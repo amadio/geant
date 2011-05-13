@@ -59,7 +59,7 @@ Int_t        gBasketGeneration = 0;
 const Int_t  gNprocesses  = 3;
 
 const Bool_t gUseDebug   = kFALSE;
-const Int_t  gDebugTrk   = 5;
+const Int_t  gDebugTrk   = 1;
 Int_t        gNtracks    = 0;
 
 Double_t *gDblArray      = new Double_t[5*gMaxTracks];
@@ -175,6 +175,7 @@ Int_t AddTrack(GeantTrack *track)
 //______________________________________________________________________________
 Double_t BetheBloch(GeantTrack* track, Double_t tz, Double_t ta, Double_t rho) 
 {
+  if (tz<1. || ta<1.) return 0.;
   const Double_t konst = 0.1535; // MeV cm2/g
   const Double_t emass = 1000*TDatabasePDG::Instance()->GetParticle(kElectron)->Mass();
   const Double_t beta = track->Beta();
@@ -819,12 +820,14 @@ void ComputeIntLenEloss(Int_t ntracks, Int_t *trackin, Double_t *lengths)
    Double_t mata = mat->GetA();
    Double_t matz = mat->GetZ();
    Double_t matr = mat->GetDensity();
+   Bool_t invalid_material = kFALSE;
+   if (matz<1 || mata<1 || matr<1.E-8) invalid_material = kTRUE;
    Int_t itrack;
    GeantTrack *track;
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];  
       track = gTracks[itrack];
-      if(track->charge) {
+      if(track->charge && !invalid_material) {
          Double_t dedx = BetheBloch(track,matz,mata,matr);
          Double_t stepmax = (dedx>1.E-8)?dw/dedx:TMath::Limits<double>::Max();
          lengths[itrack] = stepmax;
@@ -844,12 +847,17 @@ void ComputeIntLenInteraction(Int_t ntracks, Int_t *trackin, Double_t *lengths)
    GeantTrack *track;
    Double_t xlen = TMath::Limits<double>::Max();
    TGeoMaterial *mat = gVolume->GetMaterial();
-   if (mat) {
-     Double_t density = TMath::Max(mat->GetDensity(),1e-5);
-     Double_t sigma = 28.5*TMath::Power(mat->GetA(),0.75);
-     xlen = mat->GetA()/(sigma*density*nabarn);
+   Double_t mata = mat->GetA();
+   Double_t matz = mat->GetZ();
+   Double_t matr = mat->GetDensity();
+   Bool_t invalid_material = kFALSE;
+   if (matz<1 || mata<1 || matr<1.E-8) invalid_material = kTRUE;
+   if (!invalid_material) {
+      Double_t density = TMath::Max(matr,1e-5);
+      Double_t sigma = 28.5*TMath::Power(mata,0.75);
+      xlen = mat->GetA()/(sigma*density*nabarn);
    }   
-
+ 
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gTracks[itrack];
