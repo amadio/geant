@@ -47,12 +47,14 @@
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"
 
-const Int_t  gNstart      = 1000;     // change this to change number of tracks
+const Int_t     gNevents     = 10;    // number of events transported
+const Double_t  gNaverage    = 100.;  // average number of tracks per event (Poisson)
 const Bool_t gUsePhysics  = kTRUE;    // change this to disable physics
 Bool_t       gSingleTrack = kFALSE;   // propagate single track versus vectorized
 
-const Bool_t gFillTree    = kFALSE;
+const Bool_t gFillTree    = kFALSE;   // enable I/O
 
+Int_t        gNstart      = 0;        // cumulated initial number of tracks
 Int_t        gMaxTracks   = 100000;
 Int_t        gNminThreshold = 10;  // threshold for starting transporting a basket
 Int_t        gBasketGeneration = 0;
@@ -116,6 +118,7 @@ TBits gPushed(gMaxTracks);
 
 //______________________________________________________________________________
 struct GeantTrack {
+   Int_t    event;     // event number
    Int_t    particle;  // index of corresponding particle
    Int_t    pdg;       // particle pdg code
    Species_t species;  // particle species
@@ -137,7 +140,7 @@ struct GeantTrack {
    Int_t    izero;     // number of small steps used to catch errors
    Int_t    pathindex; // Index of the branch array object in the owner basket
    
-   GeantTrack() : particle(-1),pdg(0),species(kHadron),charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), safety(0), frombdr(false), izero(0), pathindex(-1) {}
+   GeantTrack() : event(-1),particle(-1),pdg(0),species(kHadron),charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), safety(0), frombdr(false), izero(0), pathindex(-1) {}
    Double_t           Curvature() {return TMath::Abs(kB2C*Bmag/Pt());}
    void               Direction(Double_t dir[3]);
    void               Print(Int_t trackindex=0) const;
@@ -287,10 +290,11 @@ GeantVolumeBasket ** gBasketArray = 0;
 class GeantOutput : public TObject {
 public:
    Double_t        fCpuTime;                 // Cpu time
-   Int_t           fVolId;                   // Volume id
+   Int_t           fVolId;                   // Volume transporting this generation
    Int_t           fBasketGeneration;        // Burent generation of baskets to be flushed
    Int_t           fGeneration;              // Current generation for one basket
    Int_t           fNtracks;                 // Number of tracks in current generation
+   Int_t          *fEvent;                   //[fNtracks]
    Int_t          *fInd;                     //[fNtracks] Track indices
    Int_t          *fProc;                    //[fNtracks] Selected processes for each track
    Double_t       *fX;                       //[fNtracks] X positions
@@ -306,13 +310,13 @@ public:
    Double_t       *fSafety;                  //[fNtracks] Snext distance
 
 public:
-   GeantOutput() : TObject(),fCpuTime(0),fVolId(-1),fBasketGeneration(0),fGeneration(0),fNtracks(0),fInd(0),fProc(0),fX(0),fY(0),fZ(0),fPx(0),fPy(0),fPz(0),fE(0),fPstep(0),fStep(0),fSnext(0),fSafety(0) {}
+   GeantOutput() : TObject(),fCpuTime(0),fVolId(-1),fBasketGeneration(0),fGeneration(0),fNtracks(0),fEvent(0),fInd(0),fProc(0),fX(0),fY(0),fZ(0),fPx(0),fPy(0),fPz(0),fE(0),fPstep(0),fStep(0),fSnext(0),fSafety(0) {}
    virtual ~GeantOutput();
    void            Init(Int_t size);
    void            Reset();
-   void            SetStamp(Int_t volid, Int_t basket_gen, Int_t generation, Int_t ntracks, Double_t cputime=0.) {fVolId = volid, fBasketGeneration=basket_gen; fGeneration=generation;fNtracks=ntracks;fCpuTime=cputime;}
-   void            SetTrack(Int_t ntrack, Int_t itrack, Int_t proc, Double_t x, Double_t y, Double_t z, Double_t px, Double_t py, Double_t pz, Double_t e, Double_t pstep, Double_t step, Double_t snext, Double_t safety);
-   void            SetTrack(Int_t ntrack, Int_t itrack, GeantTrack *track);
+   void            SetStamp(Int_t volId, Int_t basket_gen, Int_t generation, Int_t ntracks, Double_t cputime=0.) {fVolId=volId; fBasketGeneration=basket_gen; fGeneration=generation;fNtracks=ntracks;fCpuTime=cputime;}
+   void            SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc, Double_t x, Double_t y, Double_t z, Double_t px, Double_t py, Double_t pz, Double_t e, Double_t pstep, Double_t step, Double_t snext, Double_t safety);
+   void            SetTrack(Int_t ntrack, GeantTrack *track);
 ClassDef(GeantOutput,1)       // The transport output per generation
 };
 
@@ -332,6 +336,7 @@ void GeantOutput::Init(Int_t size)
 {
 // Initialize arrays to a given size.
    Reset();
+   fEvent = new Int_t[size];
    fInd = new Int_t[size];
    fProc = new Int_t[size];
    fX = new Double_t[size];
@@ -351,6 +356,7 @@ void GeantOutput::Init(Int_t size)
 void GeantOutput::Reset()
 {
 // Reset arrays
+   delete [] fEvent; fEvent = 0;
    delete [] fInd; fInd = 0;
    delete [] fProc;
    delete [] fX; delete [] fY; delete [] fZ;
@@ -359,10 +365,11 @@ void GeantOutput::Reset()
 }   
 
 //______________________________________________________________________________
-void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, Int_t proc, Double_t x, Double_t y, Double_t z, Double_t px, Double_t py, Double_t pz, Double_t e, Double_t pstep, Double_t step, Double_t snext, Double_t safety)
+void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc, Double_t x, Double_t y, Double_t z, Double_t px, Double_t py, Double_t pz, Double_t e, Double_t pstep, Double_t step, Double_t snext, Double_t safety)
 {
 // Set parameters for ntrack
    fInd[ntrack] = itrack;
+   fEvent[ntrack] = event;
    fProc[ntrack] = proc;
    fX[ntrack] = x;
    fY[ntrack] = y;
@@ -378,10 +385,10 @@ void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, Int_t proc, Double_t x, D
 }   
 
 //______________________________________________________________________________
-void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, GeantTrack *track)
+void GeantOutput::SetTrack(Int_t ntrack, GeantTrack *track)
 {
 // Set parameters for ntrack based on a GeantTrack
-   SetTrack(ntrack, itrack, track->process, track->xpos, track->ypos, track->zpos, track->px, track->py, track->pz, track->e, track->pstep, track->step, track->snext, track->safety);
+   SetTrack(ntrack, track->particle, track->event, track->process, track->xpos, track->ypos, track->zpos, track->px, track->py, track->pz, track->e, track->pstep, track->step, track->snext, track->safety);
 }   
 
 //#### Track methods ########################################
@@ -705,9 +712,9 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
 //######## Initialization of tracks and geometry
 
 //______________________________________________________________________________
-GeantVolumeBasket *ImportTracks()
+GeantVolumeBasket *ImportTracks(Int_t nevents, Double_t average)
 {
-// Import tracks from "somewhere". Here we just generate them.
+// Import tracks from "somewhere". Here we just generate nevents.
    TGeoNode *node = gGeoManager->FindNode(gVertex[0], gVertex[1], gVertex[2]);
    gMatrix = gGeoManager->GetCurrentMatrix();
    gVolume = node->GetVolume();
@@ -715,6 +722,7 @@ GeantVolumeBasket *ImportTracks()
    gVolume->SetField(basket);
    
    const Double_t etamin = -3, etamax = 3;
+   Int_t ntracks = 0;
    
    // Species generated for the moment N, P, e, photon
    const Int_t kMaxPart=9;
@@ -730,50 +738,52 @@ GeantVolumeBasket *ImportTracks()
       for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
       init=kFALSE;
    }
-
-   for (Int_t i=0; i<gNstart; i++) {
-      TGeoBranchArray *a = new TGeoBranchArray();
-      a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
-      GeantTrack *track = new GeantTrack();
-      track->particle = i;
-      Double_t prob=gRandom->Uniform(0.,pdgProb[kMaxPart-1]);
-      track->pdg=0;
-      for(Int_t j=0; j<kMaxPart; ++j) {
-         if(prob <= pdgProb[j]) {
-            track->pdg = pdgGen[j];
-            track->species = pdgSpec[j];
+   for (Int_t event=0; event<nevents; event++) {
+      ntracks = gRandom->Poisson(average);
+      
+      for (Int_t i=0; i<ntracks; i++) {
+         TGeoBranchArray *a = new TGeoBranchArray();
+         a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
+         GeantTrack *track = new GeantTrack();
+         track->event = event;
+         track->particle = gNstart;
+         Double_t prob=gRandom->Uniform(0.,pdgProb[kMaxPart-1]);
+         track->pdg=0;
+         for(Int_t j=0; j<kMaxPart; ++j) {
+            if(prob <= pdgProb[j]) {
+               track->pdg = pdgGen[j];
+               track->species = pdgSpec[j];
 //            printf("Generating a %s\n",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
-            pdgCount[j]++;
-            break;
-         }
-      }   
-      if(!track->pdg) Fatal("ImportTracks","No particle generated!");
-      TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track->pdg);
-      track->charge = part->Charge()/3.;
-      track->mass   = part->Mass();
-      track->xpos = gVertex[0];
-      track->ypos = gVertex[1];
-      track->zpos = gVertex[2];
-      track->e = gKineTF1->GetRandom()+track->mass;
-      Double_t p = TMath::Sqrt((track->e-track->mass)*(track->e+track->mass));
-      Double_t eta = gRandom->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
-      Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
-      //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
-      Double_t phi = TMath::TwoPi()*gRandom->Rndm();
-      track->px = p*TMath::Sin(theta)*TMath::Cos(phi);
-      track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
-      track->pz = p*TMath::Cos(theta);
-      track->frombdr = kFALSE;
-      AddTrack(track);
-      basket->AddTrack(i, a);
-//      pm[i] = new TPolyMarker3D(500);
-//      pm[i]->SetMarkerColor(kRed);
-//      pm[i]->SetNextPoint(gVertex[0],gVertex[1],gVertex[2]);
-   }
-   printf("Generated species for %6d particles:\n", gNstart);
-   for (Int_t i=0; i<kMaxPart; i++)
-      printf("%15s : %6d particles\n", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
-   return basket;   
+               pdgCount[j]++;
+               break;
+            }
+         }   
+         if(!track->pdg) Fatal("ImportTracks","No particle generated!");
+         TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track->pdg);
+         track->charge = part->Charge()/3.;
+         track->mass   = part->Mass();
+         track->xpos = gVertex[0];
+         track->ypos = gVertex[1];
+         track->zpos = gVertex[2];
+         track->e = gKineTF1->GetRandom()+track->mass;
+         Double_t p = TMath::Sqrt((track->e-track->mass)*(track->e+track->mass));
+         Double_t eta = gRandom->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
+         Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
+         //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
+         Double_t phi = TMath::TwoPi()*gRandom->Rndm();
+         track->px = p*TMath::Sin(theta)*TMath::Cos(phi);
+         track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
+         track->pz = p*TMath::Cos(theta);
+         track->frombdr = kFALSE;
+         AddTrack(track);
+         basket->AddTrack(gNstart, a);
+         gNstart++;
+      }
+      printf("Event #%d: Generated species for %6d particles:\n", event, ntracks);
+      for (Int_t i=0; i<kMaxPart; i++)
+         printf("%15s : %6d particles\n", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
+   }      
+   return basket;
 }
 
 //______________________________________________________________________________
@@ -1668,7 +1678,7 @@ void GeantVolumeBasket::TransportTracks()
          gOutdata->SetStamp(fVolume->GetNumber(), gBasketGeneration, generation, ntotransport, cputime);
          for (itrack=0; itrack<ntotransport;itrack++) {
             track = gTracks[particles[itrack]];
-            gOutdata->SetTrack(itrack, particles[itrack], track);
+            gOutdata->SetTrack(itrack, track);
          }   
          gOutTree->Fill();
       }
@@ -1708,9 +1718,8 @@ void SortBaskets(Int_t *index)
 //______________________________________________________________________________
 void PropagatorGeom(const char *geomfile="geometry.root", Bool_t graphics=kFALSE, Bool_t single=kFALSE, Double_t vertx=0., Double_t verty=0., Double_t vertz=0.)
 {
-// Propagate Ntracks (change gNstart at the beginning) in the volume containing
-// the vertex. Simulate 2 physics processes up to exiting the current volume.
-// Forget about vectorization for the moment.... or just a bit  
+// Propagate gNevents in the volume containing the vertex. 
+// Simulate 2 physics processes up to exiting the current volume.
    static Bool_t called=kFALSE;
    gSingleTrack = single;
    gFieldPropagator.SetField(0,0,Bmag, kFALSE);
@@ -1719,15 +1728,6 @@ void PropagatorGeom(const char *geomfile="geometry.root", Bool_t graphics=kFALSE
       return;
    }
    called = kTRUE;   
-   // Initialize tree
-   gOutdata = new GeantOutput();
-   gOutdata->Init(gNstart);
-   gOutFile = 0;
-   if (gFillTree) {
-      gOutFile = new TFile("output.root", "RECREATE");
-      gOutTree = new TTree("TK","Transport track data");
-      gOutTree->Branch("gen", &gOutdata);
-   }
    // Initialize pointers to functions
    InitFunctions();
    gKineTF1 = new TF1("gKineTF1","gaus",emin,emax);
@@ -1768,8 +1768,18 @@ void PropagatorGeom(const char *geomfile="geometry.root", Bool_t graphics=kFALSE
    }
    
    // Create the main volume basket
-   GeantVolumeBasket *basket = ImportTracks();
+   GeantVolumeBasket *basket = ImportTracks(gNevents, gNaverage);
    gBasketArray[gNbaskets++] = basket;
+
+   // Initialize tree
+   gOutdata = new GeantOutput();
+   gOutdata->Init(gMaxTracks);
+   gOutFile = 0;
+   if (gFillTree) {
+      gOutFile = new TFile("output.root", "RECREATE");
+      gOutTree = new TTree("TK","Transport track data");
+      gOutTree->Branch("gen", &gOutdata);
+   }
    
    // Loop baskets and transport particles until there is nothing to transport anymore
    gTransportOngoing = kTRUE;
