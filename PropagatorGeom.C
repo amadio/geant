@@ -46,10 +46,9 @@
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"
-#include "bounded_buffer.h"
 
-const Int_t     gNevents     = 1;    // number of events transported
-const Double_t  gNaverage    = 10000.;  // average number of tracks per event (Poisson)
+const Int_t     gNevents     = 10;    // number of events transported
+const Double_t  gNaverage    = 100.;  // average number of tracks per event (Poisson)
 const Bool_t gUsePhysics  = kTRUE;    // change this to disable physics
 Bool_t       gSingleTrack = kFALSE;   // propagate single track versus vectorized
 
@@ -60,21 +59,17 @@ Int_t        gMaxTracks   = 100000;
 Int_t        gNminThreshold = 10;  // threshold for starting transporting a basket
 Int_t        gBasketGeneration = 0;
 const Int_t  gNprocesses  = 3;
-const Int_t  gMaxThreads  = 100;
 
 const Bool_t gUseDebug   = kFALSE;
-const Int_t  gDebugTrk   = -1;
+const Int_t  gDebugTrk   = 1;
 Int_t        gNtracks    = 0;
-Int_t        gNthreads   = 1;        // number of threads
-const Int_t  gMaxSteps   = 10000;      // max number of steps per track
 
 Double_t *gDblArray      = new Double_t[5*gMaxTracks];
 Double_t *gProcStep      = new Double_t[gNprocesses*gMaxTracks];
-TRandom  **gRndm         = new TRandom*[gMaxThreads];
-TArrayI  **gPartInd      = new TArrayI*[gMaxThreads];
-TArrayI  **gPartNext     = new TArrayI*[gMaxThreads];
-TArrayI  **gPartTodo     = new TArrayI*[gMaxThreads];
-TArrayI  **gPartCross    = new TArrayI*[gMaxThreads];
+TArrayI  *gPartInd       = new TArrayI(gMaxTracks);
+TArrayI  *gPartNext      = new TArrayI(gMaxTracks);
+TArrayI  *gPartTodo      = new TArrayI(gMaxTracks);
+TArrayI  *gPartCross     = new TArrayI(gMaxTracks);
 TTree    *gOutTree       = 0;
 TFile    *gOutFile       = 0;
 TGeoRotation *gRotation  = 0;
@@ -84,7 +79,6 @@ Long64_t    gNtransported = 0;    // number of transported particles
 
 enum Species_t {kHadron, kLepton};
 enum ProcessType_t {kContinuous, kDiscrete};
-enum TrackStatus_t {kAlive, kKilled, kBoundary};
 
 const char *gProcessName[gNprocesses]   = {"Scattering", "Eloss", "Interaction"};
 ProcessType_t gProcessType[gNprocesses] = {kDiscrete, kContinuous, kDiscrete};
@@ -99,14 +93,10 @@ Double_t gVertex[3] = {0., 0., 0.};
 
 TF1        *gKineTF1;
 //TPolyMarker3D **pm = new TPolyMarker3D*[gMaxTracks];
-//BlockStart  *bufferStart;
-//BlockStart  *bufferStop;
-concurrent_queue<int> *feeder_queue;
-concurrent_queue<int> *answer_queue;
 
 // Array of pointers to ComputeIntLen and Poststep functions
-typedef void (*ComputeIntLenFunc)(Int_t ntracks, Int_t *trackin, Double_t *lengths, Int_t tid);
-typedef void (*PostStepFunc)(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout, Int_t tid);
+typedef void (*ComputeIntLenFunc)(Int_t ntracks, Int_t *trackin, Double_t *lengths);
+typedef void (*PostStepFunc)(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout);
 class GeantVolumeBasket;
 
 ComputeIntLenFunc ComputeIntLen[gNprocesses] = {NULL};
@@ -121,12 +111,10 @@ Bool_t gTransportOngoing = kFALSE;
 // Current global matrix for the volume
 TGeoMatrix *gMatrix = 0;
 // Field propagator
-TGeoHelix **gFieldPropagator;
+TGeoHelix gFieldPropagator(1,1);
 TStopwatch gTimer;
-//TBits gUsed(gMaxTracks);
-//TBits gPushed(gMaxTracks);
-//TBits **gUsed;
-//TBits **gPushed;
+TBits gUsed(gMaxTracks);
+TBits gPushed(gMaxTracks);
 
 //______________________________________________________________________________
 struct GeantTrack {
@@ -134,7 +122,6 @@ struct GeantTrack {
    Int_t    particle;  // index of corresponding particle
    Int_t    pdg;       // particle pdg code
    Species_t species;  // particle species
-   TrackStatus_t status; // track status
    Int_t    charge;    // particle charge
    Double_t mass;      // particle mass
    Int_t    process;   // current process
@@ -151,16 +138,11 @@ struct GeantTrack {
    Double_t safety;    // safe distance to any boundary
    Bool_t   frombdr;   // true if starting from boundary
    Int_t    izero;     // number of small steps used to catch errors
-   Int_t    nsteps;    // number of steps made
-   TGeoBranchArray *path; // path for this particle in the geometry
-//   Int_t    pathindex; // Index of the branch array object in the owner basket
+   Int_t    pathindex; // Index of the branch array object in the owner basket
    
-   GeantTrack() : event(-1),particle(-1),pdg(0),species(kHadron),status(kAlive),charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), safety(0), frombdr(false), izero(0), nsteps(0), path(0) {}
+   GeantTrack() : event(-1),particle(-1),pdg(0),species(kHadron),charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), safety(0), frombdr(false), izero(0), pathindex(-1) {}
    Double_t           Curvature() {return TMath::Abs(kB2C*Bmag/Pt());}
    void               Direction(Double_t dir[3]);
-   Bool_t             IsAlive() const {return (status != kKilled);}
-   Bool_t             IsOnBoundary() const {return (status == kBoundary);}
-   void               Kill()        {status = kKilled;}
    void               Print(Int_t trackindex=0) const;
    Bool_t             PropagateInFieldSingle(Double_t step, Bool_t checkcross, Int_t itr);
    GeantVolumeBasket *PropagateInField(Double_t step, Bool_t checkcross, Int_t itr);
@@ -178,12 +160,8 @@ GeantTrack **gTracks = new GeantTrack*[gMaxTracks];
 Int_t AddTrack(GeantTrack *track)
 {
 // Add a new track in the system.
-   TThread::Lock();
-   Int_t iret;
-   track->particle = gNtracks;
    gTracks[gNtracks] = track;
-//   Int_t tid = TGeoManager::ThreadId();
-//   gUsed[tid]->SetBitNumber(gNtracks, kFALSE);
+   gUsed.SetBitNumber(gNtracks, kFALSE);
    gNtracks++;
    gNtransported++;
    if (gNtracks==gMaxTracks) {
@@ -194,9 +172,7 @@ Int_t AddTrack(GeantTrack *track)
       gMaxTracks *= 2;
       // Other arrays will need to be also increased...
    }
-   iret = gNtracks-1;
-   TThread::UnLock();
-   return iret;   
+   return gNtracks-1;   
 }
 
 //______________________________________________________________________________
@@ -214,9 +190,9 @@ Double_t BetheBloch(GeantTrack* track, Double_t tz, Double_t ta, Double_t rho)
   else ioniz = 9.76 + 58.8*TMath::Power(tz,-1.19);
 
   Double_t bethe = (konst * tz * rho * track->charge * track->charge)/(ta * beta * beta);
-//  Printf("ioniz %f",ioniz);
+//  printf("ioniz %f\n",ioniz);
   bethe *= TMath::Log(2*emass*bg*bg*wmax*1e12/(ioniz*ioniz))-2*beta*beta;
-//  Printf("bethe %f",bethe);
+//  printf("bethe %f\n",bethe);
   return 1.e-3*bethe;
 }
 
@@ -265,9 +241,8 @@ void StepManager(Int_t iproc, Int_t npart, Int_t */*particles*/, Int_t nout, Int
 {
 // User stepping routine. <partnext> array can
 // be null.
-//   for (Int_t ipart=0; ipart<npart; ipart++) gTracks[particles[ipart]]->nsteps++;
    if (gUseDebug) {
-      Printf("StepManager: process %s, npart=%d, nout=%d", gProcessName[iproc], npart, nout);
+      printf("StepManager: process %s, npart=%d, nout=%d\n", gProcessName[iproc], npart, nout);
    }   
 }
 
@@ -276,7 +251,6 @@ class GeantVolumeBasket : public TObject {
 protected:
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNtracks;               // Number of tracks
-   Int_t             fFirstFree;             // First un-processed track
    Int_t             fMaxTracks;             // Max number of tracks
    Int_t             fNpaths;                // Max number of physical node paths
    Int_t             fNpathEntries;          // Number of physical paths stored in the array
@@ -285,27 +259,24 @@ protected:
 
    Int_t             InsertPath(TGeoBranchArray* a);
 public:
-   GeantVolumeBasket(TGeoVolume *vol) : TObject(), fVolume(vol), fNtracks(0), fFirstFree(0), fMaxTracks(50), fNpaths(10), fNpathEntries(0), fIndex(0), fPaths(0) {} 
+   GeantVolumeBasket(TGeoVolume *vol) : TObject(), fVolume(vol), fNtracks(0), fMaxTracks(50), fNpaths(10), fNpathEntries(0), fIndex(0), fPaths(0) {} 
    virtual ~GeantVolumeBasket();
    
    void              AddTrack(Int_t itrack, TGeoBranchArray* a);
    virtual void      Clear(Option_t *option="");
    void              ComputeTransportLengthSingle(Int_t *trackin);
    void              ComputeTransportLength(Int_t ntracks, Int_t *trackin);
-   TGeoBranchArray  *GetBranchArray(GeantTrack *track) const {return track->path;}
-   TGeoBranchArray  *GetBranchArray(Int_t itrack) const {return gTracks[fIndex[itrack]]->path;}
+   TGeoBranchArray  *GetBranchArray(GeantTrack *track) const {return fPaths[track->pathindex];} 
+   TGeoBranchArray  *GetBranchArray(Int_t itrack) const {GeantTrack *track = gTracks[fIndex[itrack]]; return fPaths[track->pathindex];} 
    Int_t             GetIndex(Int_t itrack) const {return fIndex[itrack];}
-   const Int_t      *GetIndArray() const          {return fIndex;}
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
    Int_t             GetNtracks() const           {return fNtracks;}
    GeantTrack       *GetTrack(Int_t itrack) const {return gTracks[fIndex[itrack]];}
-   TGeoVolume       *GetVolume() const            {return fVolume;}
-   void              GetWorkload(Int_t &indmin, Int_t &indmax);
    virtual void      Print(Option_t *option="") const;
    Bool_t            PropagateTrack(Int_t *trackin);
    void              PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout, Int_t &ntodo, Int_t *tracktodo, Int_t &ncross, Int_t *trackcross);
    void              TransportSingle();
-//   void              TransportTracks();
+   void              TransportTracks();
    
    ClassDef(GeantVolumeBasket,1)  // A path in geometry represented by the array of indices
 };   
@@ -429,11 +400,9 @@ void GeantTrack::Direction(Double_t dir[3]) {
 }
 
 //______________________________________________________________________________
-void GeantTrack::Print(Int_t) const {
-   TString spath;
-//   if (path) path->GetPath(spath);
-   Printf("=== Track %d (%s): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%g E:%g snext=%g safety=%g nsteps=%d",
-           particle,spath.Data(), process,pstep,charge,xpos,ypos,zpos,px,py,pz,TMath::Sqrt(px*px+py*py+pz*pz),e,snext,safety,nsteps);
+void GeantTrack::Print(Int_t trackindex) const {
+   printf("=== Track #%d: Process=%d, pstep=%f Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%f E:%f snext=%f safety=%f\n",
+           trackindex,process,pstep,charge,xpos,ypos,zpos,px,py,pz,TMath::Sqrt(px*px+py*py+pz*pz),e,snext,safety);
 }
 
 //______________________________________________________________________________
@@ -452,8 +421,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    safety = 0;
    // Change path to reflect the physical volume for the current track;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//   Int_t tid = nav->GetThreadId();
-   TGeoBranchArray *a = path;
+   TGeoBranchArray *a = gCurrentBasket->GetBranchArray(this);
    a->UpdateNavigator(nav);
    nav->SetOutside(kFALSE);
    nav->SetStep(crtstep);
@@ -478,7 +446,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    TGeoBranchArray *b = new TGeoBranchArray();
    b->InitFromNavigator(nav);
    TGeoVolume *vol = nav->GetCurrentVolume();
-   if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
+   if (vol->IsAssembly()) printf("### ERROR ### Entered assembly %s\n", vol->GetName());
    GeantVolumeBasket *basket = 0;
    if (!vol->GetField()) {
       basket = new GeantVolumeBasket(vol);
@@ -490,11 +458,11 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    // Signal that the transport is still ongoing if the particle entered a new basket
    if (basket!=gCurrentBasket) {
       gTransportOngoing = kTRUE;
-//      gPushed[tid]->SetBitNumber(itr,kTRUE);
+      gPushed.SetBitNumber(itr,kTRUE);
    }   
    if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {
-      Printf("   track %d: entering %s at:(%f, %f, %f)", itr, nav->GetCurrentNode()->GetName(), xpos,ypos,zpos);
-      if (gTracks[itr]->path) gTracks[itr]->path->Print();
+      printf("   track %d: entering %s at:(%f, %f, %f) ipath=%d", itr, nav->GetCurrentNode()->GetName(), xpos,ypos,zpos, gTracks[itr]->pathindex);
+      basket->GetBranchArray(gTracks[itr])->Print();
    }
 //   basket->Print();
    return basket;  
@@ -507,10 +475,11 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
 // boundary was crossed. In such case, the track position and step will reflect
 // the boundary crossing point.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   Int_t tid = nav->GetThreadId();
    nav->ResetState();
+   TGeoBranchArray *a = 0;
    if (checkcross) {
-      path->UpdateNavigator(nav);
+      a = gCurrentBasket->GetBranchArray(this);
+      a->UpdateNavigator(nav);
       nav->SetLastSafetyForPoint(safety, &xpos);
    }   
    // Reset relevant variables
@@ -521,17 +490,17 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    step += crtstep;
    // Set curvature, charge
    Double_t c = Curvature();
-   gFieldPropagator[tid]->SetXYcurvature(c);
-   gFieldPropagator[tid]->SetCharge(charge);
-   gFieldPropagator[tid]->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
-   gFieldPropagator[tid]->InitPoint(xpos,ypos,zpos);
+   gFieldPropagator.SetXYcurvature(c);
+   gFieldPropagator.SetCharge(charge);
+   gFieldPropagator.SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
+   gFieldPropagator.InitPoint(xpos,ypos,zpos);
    Double_t dir[3];
    Direction(dir);
-   gFieldPropagator[tid]->InitDirection(dir);
-   gFieldPropagator[tid]->UpdateHelix();
-   gFieldPropagator[tid]->Step(crtstep);
-   const Double_t *point = gFieldPropagator[tid]->GetCurrentPoint();
-   const Double_t *newdir = gFieldPropagator[tid]->GetCurrentDirection();
+   gFieldPropagator.InitDirection(dir);
+   gFieldPropagator.UpdateHelix();
+   gFieldPropagator.Step(crtstep);
+   const Double_t *point = gFieldPropagator.GetCurrentPoint();
+   const Double_t *newdir = gFieldPropagator.GetCurrentDirection();
    xpos = point[0]; ypos = point[1]; zpos = point[2];
    Double_t ptot = P();
    px = ptot*newdir[0];
@@ -552,10 +521,10 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    Bool_t entering = kTRUE;
    TGeoNode *node1 = 0;
    TGeoNode *node2 = 0;
-   if (level < path->GetLevel() && !outside) {
+   if (level < a->GetLevel() && !outside) {
       for (Int_t lev=0; lev<=level; lev++) {
          node1 = nav->GetMother(level-lev);
-         node2 = path->GetNode(lev);
+         node2 = a->GetNode(lev);
          if (node1 == node2) {
             if (lev==level) entering = kFALSE;
          } else {
@@ -564,7 +533,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
          }   
       }
    }   
-   if (!entering) checked = path->GetNode(level+1);
+   if (!entering) checked = a->GetNode(level+1);
    nav->MasterToLocal(&xpos, local);
    nav->MasterToLocalVect(dir, ldir);
    if (entering) {
@@ -576,16 +545,16 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
       delta = checked->GetVolume()->GetShape()->DistFromOutside(lp,ld,3);
    }   
    if (gUseDebug && (gDebugTrk<0 || itr==gDebugTrk)) {
-      if (entering) Printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
-      else          Printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f", itr, checked->GetName(), vol->GetName(), crtstep, delta);
+      if (entering) printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f\n", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
+      else          printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f\n", itr, checked->GetName(), vol->GetName(), crtstep, delta);
    }   
    if (delta>crtstep) {
       if (gUseDebug && (gDebugTrk<0 || itr==gDebugTrk)) {
-         if (entering) Printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
-         else          Printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f", itr, checked->GetName(), vol->GetName(), crtstep, delta);
-         Printf("Error propagating back %19.15f (forward %19.15f) track for track %d", delta, crtstep, itr);
-         if (entering) Printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)", vol->GetName(), local[0],local[1],local[2],ldir[0],ldir[1],ldir[2]);
-         else          Printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)", checked->GetName(), lp[0],lp[1],lp[2],ld[0],ld[1],ld[2]);
+         if (entering) printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f\n", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
+         else          printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f\n", itr, checked->GetName(), vol->GetName(), crtstep, delta);
+         printf("Error propagating back %19.15f (forward %19.15f) track for track %d\n", delta, crtstep, itr);
+         if (entering) printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)\n", vol->GetName(), local[0],local[1],local[2],ldir[0],ldir[1],ldir[2]);
+         else          printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)\n", checked->GetName(), lp[0],lp[1],lp[2],ld[0],ld[1],ld[2]);
       }   
       delta = 10*gTolerance;
    }
@@ -610,7 +579,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    // Create a new branch array
    TGeoBranchArray *b = new TGeoBranchArray();
    b->InitFromNavigator(nav);
-   if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
+   if (vol->IsAssembly()) printf("### ERROR ### Entered assembly %s\n", vol->GetName());
    GeantVolumeBasket *basket = 0;
    if (!vol->GetField()) {
       basket = new GeantVolumeBasket(vol);
@@ -620,9 +589,12 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    basket = (GeantVolumeBasket*)vol->GetField();
    basket->AddTrack(itr, b);
    // Signal that the transport is still ongoing if the particle entered a new basket
-   if (basket!=gCurrentBasket) gTransportOngoing = kTRUE;
+   if (basket!=gCurrentBasket) {
+      gTransportOngoing = kTRUE;
+      gPushed.SetBitNumber(itr,kTRUE);
+   }   
 //   if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {
-//      Printf("   track %d: entering %s at:(%f, %f, %f)   ", itr, nav->GetCurrentNode()->GetName(), xpos,ypos,zpos);
+//      printf("   track %d: entering %s at:(%f, %f, %f) ipath=%d   ", itr, nav->GetCurrentNode()->GetName(), xpos,ypos,zpos, gTracks[itr]->pathindex);
 //      basket->GetBranchArray(gTracks[itr])->Print();
 //   }
    return basket;
@@ -634,7 +606,6 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
 // Propagate with step using the helix propagator. Navigation must point to
 // current particle location. Returns true if crossed next boundary.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   Int_t tid = nav->GetThreadId();
    nav->ResetState();
    TGeoBranchArray a;
    a.InitFromNavigator(nav);
@@ -649,17 +620,17 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
    step += crtstep;
    // Set curvature, charge
    Double_t c = Curvature();
-   gFieldPropagator[tid]->SetXYcurvature(c);
-   gFieldPropagator[tid]->SetCharge(charge);
-   gFieldPropagator[tid]->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
-   gFieldPropagator[tid]->InitPoint(xpos,ypos,zpos);
+   gFieldPropagator.SetXYcurvature(c);
+   gFieldPropagator.SetCharge(charge);
+   gFieldPropagator.SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
+   gFieldPropagator.InitPoint(xpos,ypos,zpos);
    Double_t dir[3];
    Direction(dir);
-   gFieldPropagator[tid]->InitDirection(dir);
-   gFieldPropagator[tid]->UpdateHelix();
-   gFieldPropagator[tid]->Step(crtstep);
-   const Double_t *point = gFieldPropagator[tid]->GetCurrentPoint();
-   const Double_t *newdir = gFieldPropagator[tid]->GetCurrentDirection();
+   gFieldPropagator.InitDirection(dir);
+   gFieldPropagator.UpdateHelix();
+   gFieldPropagator.Step(crtstep);
+   const Double_t *point = gFieldPropagator.GetCurrentPoint();
+   const Double_t *newdir = gFieldPropagator.GetCurrentDirection();
    xpos = point[0]; ypos = point[1]; zpos = point[2];
    Double_t ptot = P();
    px = ptot*newdir[0];
@@ -704,16 +675,16 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
       delta = checked->GetVolume()->GetShape()->DistFromOutside(lp,ld,3);
    }   
    if (gUseDebug && (gDebugTrk<0 || itr==gDebugTrk)) {
-      if (entering) Printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
-      else          Printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f", itr, checked->GetName(), vol->GetName(), crtstep, delta);
+      if (entering) printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f\n", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
+      else          printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f\n", itr, checked->GetName(), vol->GetName(), crtstep, delta);
    }   
    if (delta>crtstep) {
       if (gUseDebug && (gDebugTrk<0 || itr==gDebugTrk)) {
-         if (entering) Printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
-         else          Printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f", itr, checked->GetName(), vol->GetName(), crtstep, delta);
-         Printf("Error propagating back %19.15f (forward %19.15f) track for track %d", delta, crtstep, itr);
-         if (entering) Printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)", vol->GetName(), local[0],local[1],local[2],ldir[0],ldir[1],ldir[2]);
-         else          Printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)", checked->GetName(), lp[0],lp[1],lp[2],ld[0],ld[1],ld[2]);
+         if (entering) printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f\n", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
+         else          printf("   field-> track %d exiting %s, entering %s  crtstep=%19.15f delta=%19.15f\n", itr, checked->GetName(), vol->GetName(), crtstep, delta);
+         printf("Error propagating back %19.15f (forward %19.15f) track for track %d\n", delta, crtstep, itr);
+         if (entering) printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)\n", vol->GetName(), local[0],local[1],local[2],ldir[0],ldir[1],ldir[2]);
+         else          printf("%s Local: (%19.15f, %19.15f, %19.15f), ldir: (%19.15f, %19.15f, %19.15f)\n", checked->GetName(), lp[0],lp[1],lp[2],ld[0],ld[1],ld[2]);
       }   
       delta = 10*gTolerance;
    }
@@ -737,7 +708,6 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
    // Boundary crossed, navigation points to new location
    return kTRUE;
 }   
-
 
 //######## Initialization of tracks and geometry
 
@@ -783,7 +753,7 @@ GeantVolumeBasket *ImportTracks(Int_t nevents, Double_t average)
             if(prob <= pdgProb[j]) {
                track->pdg = pdgGen[j];
                track->species = pdgSpec[j];
-//            Printf("Generating a %s",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
+//            printf("Generating a %s\n",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
                pdgCount[j]++;
                break;
             }
@@ -809,23 +779,13 @@ GeantVolumeBasket *ImportTracks(Int_t nevents, Double_t average)
          basket->AddTrack(gNstart, a);
          gNstart++;
       }
-      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
+      printf("Event #%d: Generated species for %6d particles:\n", event, ntracks);
       for (Int_t i=0; i<kMaxPart; i++)
-         Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
+         printf("%15s : %6d particles\n", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
    }      
    return basket;
 }
 
-//______________________________________________________________________________
-void PrintParticles(Int_t *trackin, Int_t ntracks, Int_t tid)
-{
-// Print the detailed particles list.
-   Printf("================ THREAD %d: particles list", tid);
-   for (Int_t i=0; i<ntracks; i++) {
-      gTracks[trackin[i]]->Print();
-   }
-}
-      
 //______________________________________________________________________________
 Bool_t LoadGeometry(const char *filename="geometry.root")
 {
@@ -841,34 +801,27 @@ Bool_t LoadGeometry(const char *filename="geometry.root")
    
 //####### Generate interaction lengths for a bunch of tracks
 //______________________________________________________________________________
-void ComputeIntLenScattering(Int_t ntracks, Int_t *trackin, Double_t *lengths, Int_t tid)
+void ComputeIntLenScattering(Int_t ntracks, Int_t *trackin, Double_t *lengths)
 {
 // Generates an interaction length for the scattering process. Nothing physical,
 // just generate something comparable with the size of the current volume.
-//
-// trackin and lengths arrays should be be correctly set by the caller
    const Double_t kC1 = 500.;
-   const Double_t xlen = TMath::Limits<double>::Max();
    Int_t itrack;
    Double_t density = 1.e-5;
    TGeoMaterial *mat = gVolume->GetMaterial();
    if (mat) density = mat->GetDensity();
    density = TMath::Max(density, 1.E-3);
-   // Make sure we write in the thread space for the current basket
-   Double_t *rndArray = &gDblArray[2*tid*ntracks];
+   Double_t *rndArray = gDblArray;
    Int_t irnd = 0;
-   gRndm[tid]->RndmArray(ntracks, rndArray);
+   gRandom->RndmArray(ntracks, rndArray);
    for (Int_t i=0; i<ntracks; i++) {
-      itrack = trackin[i];
-      if (gTracks[itrack]->IsAlive())
-        lengths[itrack] = kC1*gTracks[itrack]->e*rndArray[irnd++]/density;
-      else
-        lengths[itrack] =  0.5*xlen; 
+      itrack = trackin[i];  
+      lengths[itrack] = kC1*gTracks[itrack]->e*rndArray[irnd++]/density;
    }
 }
 
 //______________________________________________________________________________
-void ComputeIntLenEloss(Int_t ntracks, Int_t *trackin, Double_t *lengths, Int_t)
+void ComputeIntLenEloss(Int_t ntracks, Int_t *trackin, Double_t *lengths)
 {
 // Energy loss process. Continuous process. Compute step limit for losing
 // maximum dw per step.
@@ -884,18 +837,18 @@ void ComputeIntLenEloss(Int_t ntracks, Int_t *trackin, Double_t *lengths, Int_t)
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];  
       track = gTracks[itrack];
-      if(track->charge && !invalid_material && track->IsAlive()) {
+      if(track->charge && !invalid_material) {
          Double_t dedx = BetheBloch(track,matz,mata,matr);
-         Double_t stepmax = (dedx>1.E-32)?dw/dedx:0.5*TMath::Limits<double>::Max();
+         Double_t stepmax = (dedx>1.E-8)?dw/dedx:TMath::Limits<double>::Max();
          lengths[itrack] = stepmax;
       } else {
-         lengths[itrack]=0.5*TMath::Limits<double>::Max();
+         lengths[itrack]=TMath::Limits<double>::Max();
       }      
    }
 }
 
 //______________________________________________________________________________
-void ComputeIntLenInteraction(Int_t ntracks, Int_t *trackin, Double_t *lengths, Int_t)
+void ComputeIntLenInteraction(Int_t ntracks, Int_t *trackin, Double_t *lengths)
 {
 // 
    Double_t fact = 1.;
@@ -913,26 +866,23 @@ void ComputeIntLenInteraction(Int_t ntracks, Int_t *trackin, Double_t *lengths, 
       Double_t density = TMath::Max(matr,1e-5);
       Double_t sigma = 28.5*TMath::Power(mata,0.75);
       xlen = mat->GetA()/(sigma*density*nabarn);
-   } else {
-      for (itrack=0; itrack<ntracks; itrack++) lengths[itrack] = 0.5*TMath::Limits<double>::Max();
-      return;
    }   
  
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gTracks[itrack];
-      if(track->species == kHadron && track->IsAlive()) {
+      if(track->species == kHadron) {
          Double_t ek = track->e - track->mass;
          lengths[itrack] = xlen*(0.007+0.1*TMath::Log(ek)/ek+0.2/(ek*ek));
       } else {
-         lengths[itrack] = 0.5*TMath::Limits<double>::Max();
+         lengths[itrack] = TMath::Limits<double>::Max();
       }
    }
 }
 
-//####### Post step actions for different processes, acting for a bunch of tracks
+//####### Post step actions for different penergy momentum gammapion chargerocesses, acting for a bunch of tracks
 //______________________________________________________________________________
-void PostStepScattering(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout, Int_t tid)
+void PostStepScattering(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout)
 {
 // Do post-step actions on particle after scattering process. Surviving tracks
 // copied in trackout
@@ -944,9 +894,9 @@ void PostStepScattering(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* track
    GeantTrack *track = 0;
    Int_t itrack;
    Double_t p;
-   Double_t *rndArray = &gDblArray[2*tid*ntracks];
+   Double_t *rndArray = gDblArray;
    Int_t irnd = 0;
-   gRndm[tid]->RndmArray(2*ntracks, rndArray);
+   gRandom->RndmArray(2*ntracks, rndArray);
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gTracks[itrack];
@@ -975,60 +925,48 @@ void PostStepScattering(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* track
 }   
 
 //______________________________________________________________________________
-void PostStepEloss(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout, Int_t)
+void PostStepEloss(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout)
 {
 // Do post-step actions after energy loss process. 
-   Double_t eloss, dedx;
+   Double_t eloss;
    GeantTrack *track;
    Int_t itrack;
    TGeoMaterial *mat = gVolume->GetMaterial();
    Double_t mata = mat->GetA();
    Double_t matz = mat->GetZ();
    Double_t matr = mat->GetDensity();
-   Bool_t invalid_material = kFALSE;
-   if (matz<1 || mata<1 || matr<1.E-8) invalid_material = kTRUE;
 
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];   
       track = gTracks[itrack];
-      if (!track->IsAlive()) continue;
-      if (track->e-track->mass < emin) {
-         track->Kill();
-         continue;
-      }   
-      if (track->step==0 || invalid_material) {
+      if (track->e-track->mass < emin) continue;
+      if (track->step==0) {
          if (trackout) trackout[nout] = itrack;
-         nout++;
          continue;
       }   
-      dedx = BetheBloch(track,matz,mata,matr);
-      eloss = track->step*dedx;
-      if (track->e-track->mass-eloss < emin) eloss = track->e-track->mass;
+      eloss = track->step*BetheBloch(track,matz,mata,matr);
       Double_t gammaold = track->Gamma();
       Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
       track->e -= eloss;
-      if (track->e-track->mass < emin) {
-         track->Kill();
-         continue;
-      }   
-      if (trackout) trackout[nout] = itrack;
-      nout++;
-
       Double_t gammanew = track->Gamma();
       Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
       Double_t pnorm = bgnew/bgold;
       track->px *= pnorm;
       track->py *= pnorm;
       track->pz *= pnorm;
+      if (track->e-track->mass > emin) {
+         if (trackout) trackout[nout] = itrack;
+         nout++;
+      }   
    }   
    StepManager(1, ntracks, trackin, nout, trackout);
 }   
 
 //______________________________________________________________________________
-void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout, Int_t tid)
+void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trackout)
 {
 // Do post-step actions on particle after interaction process. 
-//   if (gUseDebug) Printf("PostStepInteraction %d tracks", ntracks);
+//   if (gUseDebug) printf("PostStepInteraction %d tracks\n", ntracks);
 // We calculate the CMS energy
 // We suppose at first that the available energy is the Kin cms energy
 // We produce equal number of pos and neg pions
@@ -1036,17 +974,17 @@ void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trac
    static TGenPhaseSpace gps;
    GeantTrack *track;
    Int_t itrack;
-   Double_t *rndArray = &gDblArray[2*tid*ntracks];
+   Double_t *rndArray = gDblArray;
    const Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
    const Double_t prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass,
 			       pimass, pimass, pimass, pimass, pimass, pimass,
 			       pimass, pimass, pimass, pimass, pimass, pimass};
-   gRndm[tid]->RndmArray(ntracks, rndArray);
+   gRandom->RndmArray(ntracks, rndArray);
 
    Int_t nprod = 0;
    Int_t ngen  = 0;
    for (Int_t i=0; i<ntracks; i++) {
-      itrack = trackin[i];
+      itrack = trackin[i];   
       track = gTracks[itrack];
       Double_t en = track->e;
       Double_t m1 = track->mass;
@@ -1054,19 +992,20 @@ void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trac
       Double_t cmsen = TMath::Sqrt(m1*m1+m2*m2+2*en*m2)-m1-m2;
       // Calculate the number of pions as a poisson distribution leaving half of the cms energy
       // for phase space momentum
-      Int_t npi = 0.5*gRndm[tid]->Rndm()*cmsen/pimass+0.5;
+      Int_t npi = 0.5*gRandom->Rndm()*cmsen/pimass+0.5;
       if(npi>1) {
-         do { nprod = TMath::Min(gRndm[tid]->Poisson(npi),9); } 
+         do { nprod = TMath::Min(gRandom->Poisson(npi),9); } 
          while(nprod*pimass*2>cmsen || nprod==0);
-//         Printf("Inc en = %f, cms en = %f produced pis = %d",en,cmsen,nprod);
+//         printf("Inc en = %f, cms en = %f produced pis = %d\n",en,cmsen,nprod);
          TLorentzVector pcms(track->px, track->py, track->pz, track->e + m2);
-         if(!gps.SetDecay(pcms,2*nprod,prodm)) Printf("Forbidden decay!");
+         if(!gps.SetDecay(pcms,2*nprod,prodm)) printf("Forbidden decay!\n");
          gps.Generate();
          //Double_t pxtot=track->px;
          //Double_t pytot=track->py;
          //Double_t pztot=track->pz;
          for(Int_t j=0; j<2*nprod; ++j) {
-            TGeoBranchArray *a = new TGeoBranchArray(*track->path);
+            TGeoBranchArray *a = new TGeoBranchArray();
+            a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
             GeantTrack *trackg=new GeantTrack();
             TLorentzVector *lv = gps.GetDecay(j);
             if(j%2) trackg->pdg = kPiMinus;
@@ -1092,7 +1031,7 @@ void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trac
            //pytot -= trackg->py;
            //pztot -= trackg->pz;
          }
-	//	Printf("pbal = %f %f %f",pxtot, pytot, pztot);
+	//	printf("pbal = %f %f %f\n",pxtot, pytot, pztot);
       }
    }   
    StepManager(2, ntracks, trackin, nout, trackout);
@@ -1100,7 +1039,7 @@ void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trac
       // Generated particles may be below threshold-> Call PostStepEloss
       Int_t nsurv = 0;
       Int_t *trackgen = new Int_t[ngen];
-      PostStepEloss(ngen, &trackout[nout-ngen], nsurv, trackgen,tid);
+      PostStepEloss(ngen, &trackout[nout-ngen], nsurv, trackgen);
       memcpy(&trackout[nout-ngen], trackgen, nsurv*sizeof(Int_t));
       nout += nsurv-ngen;
       delete [] trackgen;
@@ -1109,36 +1048,26 @@ void PostStepInteraction(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t* trac
 
 // ########## Selection of the physics process that generated the smallest intlen
 //______________________________________________________________________________
-void PhysicsSelect(Int_t ntracks, Int_t *trackin, Int_t tid)
+void PhysicsSelect(Int_t ntracks, Int_t *trackin)
 {
 // Generate all physics steps for the tracks in trackin.
 // Vectorized, except the unavoidable Sort()
-   static const Double_t maxlen = TMath::Limits<double>::Max();   
-   Double_t pstep;
+   Double_t xproc[gNprocesses];
+   Int_t selproc[gNprocesses];
    Int_t ipart, iproc;
    GeantTrack *track;
    // Fill interaction lengths for all processes and all particles
    for (iproc=0; iproc<gNprocesses; iproc++) 
-      ComputeIntLen[iproc](ntracks, trackin, &gProcStep[(tid*gNprocesses+iproc)*ntracks],tid);
+      ComputeIntLen[iproc](ntracks, trackin, &gProcStep[iproc*ntracks]);
    // Loop tracks and select process
    for (Int_t i=0; i<ntracks; i++) {
       ipart = trackin[i];
       track = gTracks[ipart];
-      track->step = maxlen;
-      track->process = -1;
-      for (iproc=0; iproc<gNprocesses; iproc++) {
-         pstep = gProcStep[(tid*gNprocesses+iproc)*ntracks+ipart];
-         if (pstep < track->step) {
-            track->step = pstep;
-            track->process = iproc;
-         }
-      }
-      if (gUseDebug && (gDebugTrk==ipart || gDebugTrk<0)) {
-         Printf("   (%d) PhysicsSelect: track #%d - process=%d pstep=%g",tid,ipart,track->process,track->step);
-         if (track->step>1.E200) {
-            Printf("xxx");
-         }   
-      }
+      for (iproc=0; iproc<gNprocesses; iproc++) xproc[iproc] = gProcStep[iproc*ntracks+ipart];
+      TMath::Sort(gNprocesses, xproc, selproc, kFALSE); // first smallest
+      track->pstep = xproc[selproc[0]];
+      track->step = 0.;
+      track->process = selproc[0];
    }      
 }
 
@@ -1154,24 +1083,6 @@ void InitFunctions()
    PostStepAction[1] = &PostStepEloss;
    PostStepAction[2] = &PostStepInteraction;
    gRotation = new TGeoRotation();
-   gFieldPropagator = new TGeoHelix*[gNthreads];
-//   gUsed   = new TBits*[gNthreads];
-//   gPushed = new TBits*[gNthreads];
-//   bufferStart = new BlockStart(gNthreads);
-//   bufferStop  = new BlockStart(gNthreads);
-   feeder_queue = new concurrent_queue<int>(true);
-   answer_queue = new concurrent_queue<int>;
-   for (Int_t i=0; i<gNthreads; i++) {
-      gPartInd[i]   = new TArrayI(gMaxTracks/gNthreads);
-      gPartNext[i]  = new TArrayI(gMaxTracks/gNthreads);
-      gPartTodo[i]  = new TArrayI(gMaxTracks/gNthreads);
-      gPartCross[i] = new TArrayI(gMaxTracks/gNthreads);
-      gFieldPropagator[i] = new TGeoHelix(1,1);
-      gFieldPropagator[i]->SetField(0,0,Bmag, kFALSE);
-      gRndm[i]      = new TRandom();
-//      gUsed[i]   = new TBits(gMaxTracks);
-//      gPushed[i] = new TBits(gMaxTracks);
-   }   
 }
 
 //______________________________________________________________________________
@@ -1195,34 +1106,11 @@ GeantVolumeBasket::~GeantVolumeBasket()
 }   
 
 //______________________________________________________________________________
-void GeantVolumeBasket::GetWorkload(Int_t &indmin, Int_t &indmax)
-{
-// Get a range of indices to work with for a given thread.
-   TThread::Lock();
-   indmin = indmax = fFirstFree;
-   if (!fNtracks || fFirstFree==fNtracks) {
-      TThread::UnLock();
-      return;
-   }   
-   Int_t fair_share = fNtracks/gNthreads;
-   Int_t remaining = fNtracks%gNthreads;
-   indmax = indmin+fair_share;
-   if (remaining) indmax++;
-   if (indmax > fNtracks) indmax = fNtracks;
-   fFirstFree = indmax;
-   TThread::UnLock();
-}   
-
-//______________________________________________________________________________
 Int_t GeantVolumeBasket::InsertPath(TGeoBranchArray* a)
 {
 // Check if the path is stored and return its index. If not there, insert it in fPaths.
 // Deletes input branch array if an equal one is found.
    Int_t i = 0;
-//   Int_t tid = TGeoManager::ThreadId();
-   if (a->GetNode(a->GetLevel())->GetVolume() != fVolume) {
-      Printf("ERROR: Wrong path for basket %s", GetName());
-   }
    Int_t ifound = TGeoBranchArray::BinarySearch(fNpathEntries,(const TGeoBranchArray**)fPaths,a);
    if (ifound<=fNpathEntries-1) {
       if (ifound>=0 && *a == *fPaths[ifound]) {
@@ -1234,7 +1122,18 @@ Int_t GeantVolumeBasket::InsertPath(TGeoBranchArray* a)
       for (i=fNpathEntries-1; i>ifound; i--) fPaths[i+1]=fPaths[i];
    }
    fPaths[ifound+1] = a;
-
+   // Correct path indices pointed by tracks (only once per track 
+   //  and NOT for tracks that were pushed to other baskets)
+   for (i=0; i<fNtracks; i++) {
+      if (gUsed.TestBitNumber(fIndex[i])) continue;
+      if  ((gCurrentBasket == this) && gPushed.TestBitNumber(fIndex[i])) continue;
+      if (gTracks[fIndex[i]]->pathindex>ifound) {
+         gTracks[fIndex[i]]->pathindex++;
+         gUsed.SetBitNumber(fIndex[i],kTRUE);
+      }
+   }
+   // Reset used bits
+   gUsed.ResetAllBits();      
    // Increase array of paths if needed.
    fNpathEntries++;
    if (fNpathEntries == fNpaths) {
@@ -1251,73 +1150,59 @@ Int_t GeantVolumeBasket::InsertPath(TGeoBranchArray* a)
 void GeantVolumeBasket::AddTrack(Int_t itrack, TGeoBranchArray* a)
 {
 // Add a track and its path to the basket.
-   TThread::Lock();
    if (!fNtracks) {
       fPaths = new TGeoBranchArray*[fNpaths];
       fIndex = new Int_t[fMaxTracks];
       fPaths[fNtracks] = a;
       fIndex[fNtracks] = itrack;
-      gTracks[itrack]->path = a;
+      gTracks[itrack]->pathindex = 0;
       fNtracks++;
       fNpathEntries++;
-      TThread::UnLock();
       return;
    }
-//   Int_t tid = TGeoManager::ThreadId();
    // Check if the path is already stored.
    Int_t ipath = InsertPath(a);
-   gTracks[itrack]->path = fPaths[ipath];
-   if (gTracks[itrack]->path->GetNode(gTracks[itrack]->path->GetLevel())->GetVolume() != fVolume) {
-      Printf("ERROR: Wrong path for basket %s", GetName());
-      gTracks[itrack]->Print();
-   }  
-   TString spath; 
-   fPaths[ipath]->GetPath(spath);
-//   Printf("(%d) Track %d added to basket:%s in path: %s", tid, itrack, GetName(), spath.Data());
+   gTracks[itrack]->pathindex = ipath;
    // If the track is already in the basket, do not add it again (!)
-   if (gCurrentBasket != this) {
-      fIndex[fNtracks] = itrack;
-      fNtracks++;
-      // Increase arrays of tracks and path indices if needed
-      if (fNtracks == fMaxTracks) {
-         Int_t *newindex = new Int_t[2*fMaxTracks];
-         memcpy(newindex, fIndex, fNtracks*sizeof(Int_t));
-         delete [] fIndex;
-         fIndex = newindex;
-         fMaxTracks *= 2;
-      }   
-   }
-   TThread::UnLock();   
+   if (gCurrentBasket == this) return;
+   fIndex[fNtracks] = itrack;
+   fNtracks++;
+   // Increase arrays of tracks and path indices if needed
+   if (fNtracks == fMaxTracks) {
+      Int_t *newindex = new Int_t[2*fMaxTracks];
+      memcpy(newindex, fIndex, fNtracks*sizeof(Int_t));
+      delete [] fIndex;
+      fIndex = newindex;
+      fMaxTracks *= 2;
+   }   
 }     
 
 //______________________________________________________________________________
 void GeantVolumeBasket::Clear(Option_t *)
 {
 // Clear all particles and paths 
-   TThread::Lock();
    for (Int_t i=0; i<fNpathEntries; i++) delete fPaths[i];
    fNtracks = 0;
-   fFirstFree = 0;
    fNpathEntries = 0;
-   TThread::UnLock();   
 }   
 
 //______________________________________________________________________________
 void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin)
 {
-// Computes snext and safety for an array of tracks. This is the transportation 
-// process. Tracks are assumed to be inside gVolume.
+// Computes snext and safety for a given track. This is the transportation 
+// process. Track is assumed to be inside gVolume. Lighter version of normal 
+// navigation, using only volume data and ignoring MANY option.
    static Int_t icalls = 0;
    Double_t pdir[3];
    Int_t itr;
    Bool_t isOnBoundary = kFALSE;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    nav->SetOutside(kFALSE);
-   
    for (itr=0; itr<ntracks; itr++) {
       GeantTrack *track = gTracks[trackin[itr]];
       track->Direction(pdir);
-      track->path->UpdateNavigator(nav);
+      TGeoBranchArray *a = gCurrentBasket->GetBranchArray(track);
+      a->UpdateNavigator(nav);
       nav->SetCurrentPoint(&track->xpos);
       nav->SetCurrentDirection(pdir);
       isOnBoundary = track->frombdr;
@@ -1331,8 +1216,8 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin)
 //      track->snext = nav->GetStep();
       track->snext = TMath::Max(gTolerance,nav->GetStep());
       if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) {
-//         Printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
-         Printf("       track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
+//         printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f\n", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
+         printf("       track %d: %s  snext=%19.15f safe=%19.15f pstep=%f\n", trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
          track->Print(trackin[itr]);
       }   
    }
@@ -1368,8 +1253,8 @@ void GeantVolumeBasket::ComputeTransportLengthSingle(Int_t *trackin)
 //      track->snext = nav->GetStep();
    track->snext = TMath::Max(gTolerance,nav->GetStep());
    if (gUseDebug && (gDebugTrk==trackin[0] || gDebugTrk<0)) {
-      Printf("       track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", trackin[0], nav->GetPath(), track->snext, track->safety, track->pstep);
-//      Printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[0], nav->GetPath(), track->snext, track->safety, track->pstep);
+      printf("       track %d: %s  snext=%19.15f safe=%19.15f pstep=%f\n", trackin[0], nav->GetPath(), track->snext, track->safety, track->pstep);
+//      printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f\n", icalls,trackin[0], nav->GetPath(), track->snext, track->safety, track->pstep);
       track->Print(trackin[0]);
    }   
    icalls++;  
@@ -1391,17 +1276,11 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
    ntodo = 0;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    GeantVolumeBasket *basket = 0;
-//   Printf("===== PropagateTracks: ntracks=%d nout=%d", ntracks, nout);
+//   printf("===== PropagateTracks: ntracks=%d nout=%d\n", ntracks, nout);
    for (Int_t itr=0; itr<ntracks; itr++) {
       track = gTracks[trackin[itr]];
       // Skip neutral tracks for the time being (!!!)
       if (!track->charge) continue;
-      if (!track->IsAlive()) continue;
-      track->nsteps++;
-      if (track->nsteps > gMaxSteps) {
-         track->Kill();
-         continue;
-      }   
       step = track->pstep;
       snext = track->snext;
       safety = track->safety;
@@ -1410,9 +1289,9 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
       if (step<safety) {
          track->izero = 0;
          track->PropagateInField(step, kFALSE, trackin[itr]);
-         gNsafeSteps++; // increment-only, thread safe
+         gNsafeSteps++;
          // track transported to physics process
-         if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) Printf("   track %d process: %s", trackin[itr], gProcessName[track->process]);
+         if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) printf("   track %d process: %s\n", trackin[itr], gProcessName[track->process]);
          trackout[nout++] = trackin[itr]; // <- survives geometry, stopped due to physics
          continue; // -> to next track
       }
@@ -1428,22 +1307,22 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
          if (!basket) {
             // track exiting
             if (nav->IsOutside()) {
-               if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d exiting geometry", trackin[itr]);
+               if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d exiting geometry\n", trackin[itr]);
                trackcross[ncross++] = trackin[itr];
                continue;
             }   
             // these tracks do not cross
-//            if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d propagated with snext=%19.15f", trackin[itr], snext);
+//            if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d propagated with snext=%19.15f\n", trackin[itr], snext);
             tracktodo[ntodo++] = trackin[itr]; // <- survives partial geometry step
             continue; // -> next track
          }
          // These tracks are reaching boundaries
          trackcross[ncross++] = trackin[itr];
-//         if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d pushed to boundary of %s", trackin[itr], basket->GetName());
+//         if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d pushed to boundary of %s\n", trackin[itr], basket->GetName());
 //         basket = track->PropagateStraight(snext, trackin[itr]);
          if (basket==this) {
             // The track entered the same basket -> add it to the todo list
-//           if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) Printf("   track %d entered the same basket %s", trackin[itr], GetName());
+//           if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) printf("   track %d entered the same basket %s\n", trackin[itr], GetName());
            tracktodo[ntodo++] = trackin[itr]; 
          }   
          continue; // -> to next track
@@ -1468,12 +1347,12 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
             if (!basket) {
                // track exiting geometry
                if (nav->IsOutside()) {
-                  if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d exiting geometry", trackin[itr]);
+                  if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d exiting geometry\n", trackin[itr]);
                   trackcross[ncross++] = trackin[itr];
                   continue;
                }   
                // these tracks do not cross
-//               if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d propagated with snext=%19.15f", trackin[itr], snext);
+//               if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d propagated with snext=%19.15f\n", trackin[itr], snext);
                tracktodo[ntodo++] = trackin[itr]; // <- survives partial geometry step
                continue; // -> next track
             }
@@ -1493,12 +1372,12 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
       if (!basket) {
          // check if track exiting
          if (nav->IsOutside()) {
-            if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d exiting geometry", trackin[itr]);
+            if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d exiting geometry\n", trackin[itr]);
             trackcross[ncross++] = trackin[itr];
             continue;
          }   
          // these tracks do not cross
-//         if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) Printf("   track %d propagated with safety=%19.15f", trackin[itr], safety);
+//         if (gUseDebug && (gDebugTrk== trackin[itr] || gDebugTrk<0)) printf("   track %d propagated with safety=%19.15f\n", trackin[itr], safety);
          tracktodo[ntodo++] = trackin[itr]; // <- survives partial geometry step
          continue; // -> next track
       }
@@ -1506,7 +1385,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
       trackcross[ncross++] = trackin[itr];
       if (basket==this) {
          // The track entered the same basket -> add it to the todo list
-        if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) Printf("   track %d entered the same basket %s", trackin[itr], GetName());
+        if (gUseDebug && (gDebugTrk==trackin[itr] || gDebugTrk<0)) printf("   track %d entered the same basket %s\n", trackin[itr], GetName());
         tracktodo[ntodo++] = trackin[itr]; 
       } 
    }   
@@ -1590,12 +1469,11 @@ void GeantVolumeBasket::TransportSingle()
    if (!fNtracks) return;
    // Main loop
    Int_t itrack, nout;   
-   Int_t *particles = gPartInd[0]->GetArray();
-   Int_t *partnext  = gPartNext[0]->GetArray();
+   Int_t *particles = gPartInd->GetArray();
+   Int_t *partnext  = gPartNext->GetArray();
    memcpy(particles, fIndex, fNtracks*sizeof(Int_t));
+   gPushed.ResetAllBits();
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//   Int_t tid = nav->GetThreadId();
-//   gPushed[tid]->ResetAllBits();
    Bool_t transported = kFALSE;
    Bool_t crossed = kFALSE;
    Int_t generation = 0;
@@ -1604,7 +1482,7 @@ void GeantVolumeBasket::TransportSingle()
    Int_t n10 = fNtracks/10;
    for (itrack=0; itrack<fNtracks; itrack++) {
       if (n10) {
-         if ((itrack%n10) == 0) Printf("%i percent", Int_t(100*itrack/fNtracks));
+         if ((itrack%n10) == 0) printf("%i percent\n", Int_t(100*itrack/fNtracks));
       }
       // Skip neutral particles for the moment (!!!)
       if (!gTracks[particles[itrack]]->charge) continue;
@@ -1613,7 +1491,7 @@ void GeantVolumeBasket::TransportSingle()
       GetBranchArray(gTracks[particles[itrack]])->UpdateNavigator(nav);
       gVolume = gGeoManager->GetCurrentVolume();
       // Physics step      
-      if (gUsePhysics) PhysicsSelect(1,&particles[itrack],0);
+      if (gUsePhysics) PhysicsSelect(1,&particles[itrack]);
       while (!transported) {
          crossed = kFALSE;
          a.InitFromNavigator(nav);
@@ -1629,7 +1507,7 @@ void GeantVolumeBasket::TransportSingle()
                for (Int_t iproc=0; iproc<gNprocesses; iproc++) {
                   if (gProcessType[iproc] == kDiscrete) continue;
                   nout = 0;
-                  PostStepAction[iproc](1, &particles[itrack], nout, partnext,0);
+                  PostStepAction[iproc](1, &particles[itrack], nout, partnext);
                   if (!nout) {
                      transported = kTRUE;
                      break;
@@ -1638,13 +1516,13 @@ void GeantVolumeBasket::TransportSingle()
                // Apply discrete process if selected
                if (!transported && gProcessType[gTracks[particles[itrack]]->process] == kDiscrete) {
                   nout = 0;
-                  PostStepAction[gTracks[particles[itrack]]->process](1, &particles[itrack], nout, partnext,0);
+                  PostStepAction[gTracks[particles[itrack]]->process](1, &particles[itrack], nout, partnext);
                   if (!nout) {
                      transported = kTRUE;
                      break;
                   } 
                }     
-               if (!transported) PhysicsSelect(1,&particles[itrack],0);
+               if (!transported) PhysicsSelect(1,&particles[itrack]);
             }   
             continue;
          } else {
@@ -1655,7 +1533,7 @@ void GeantVolumeBasket::TransportSingle()
                   // In future take into account that particles may be generated 
                   // here (like dray)
                   Int_t nafter = 0;
-                  PostStepAction[iproc](1, &particles[itrack], nafter, NULL,0);
+                  PostStepAction[iproc](1, &particles[itrack], nafter, NULL);
                   ResetStep(1, &particles[itrack]);
                }   
             }
@@ -1667,190 +1545,160 @@ void GeantVolumeBasket::TransportSingle()
          if (b==a) continue; // Particle entered the same volume, just continue the step
          // Physics step      
          gVolume = gGeoManager->GetCurrentVolume();
-         if (gUsePhysics) PhysicsSelect(1,&particles[itrack],0);
+         if (gUsePhysics) PhysicsSelect(1,&particles[itrack]);
       }
    }
 }   
-
+   
 //______________________________________________________________________________
-void *TransportTracks(void *)
+void GeantVolumeBasket::TransportTracks()
 {
-// Thread propagating all tracks from a basket.
-   Int_t tid = TGeoManager::ThreadId();
-//   Printf("(%d) WORKER started", tid);
-   // Create navigator if none serving this thread.
-   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   if (!nav) nav = gGeoManager->AddNavigator();
-
-   Int_t indmin, indmax;
-   Int_t ntotnext, ntmp, ntodo, ncross, cputime, ntotransport;
+// Transport all particles in this basket (empty basket).
+   if (!fNtracks) return;
+   gVolume = fVolume;
+   Int_t ntotnext = 0;
+   Int_t ntmp = 0;
+   Int_t ntodo = 0;
+   Int_t ncross = 0;
+   Int_t nperproc = 0;
+//   Int_t nloop = 0;
+   Double_t cputime = 0.;   
+   Int_t ntotransport = fNtracks;
    GeantTrack *track = 0;
+   // Main loop
    Int_t itrack;
-   Int_t *particles = 0;
-   Int_t *partnext  = 0;
-   Int_t *parttodo  = 0;
-   Int_t *partcross = 0;
+   Int_t *particles = gPartInd->GetArray();
+   Int_t *partnext  = gPartNext->GetArray();
+   Int_t *parttodo  = gPartTodo->GetArray();
+   Int_t *partcross = gPartCross->GetArray();
    Int_t generation = 0;
-   GeantVolumeBasket *basket = 0;
-   while (gCurrentBasket) {
-      feeder_queue->wait_and_pop(ntmp);
-//      Printf("Popped %d\n", ntmp);
-//      bufferStart->Receive();
-      basket = gCurrentBasket;
-      ntotransport = basket->GetNtracks();  // all tracks to be transported      
-      if (!ntotransport) goto finish;
-      // Work splitting per thread
-      basket->GetWorkload(indmin, indmax);
-      ntotransport = indmax-indmin;
-      if (!ntotransport) goto finish;      
-//      Printf("(%d) ================= BASKET %s: %d tracks (%d-%d)", tid, basket->GetName(), ntotransport, indmin,indmax);
-      particles = gPartInd[tid]->GetArray();
-      partnext  = gPartNext[tid]->GetArray();
-      parttodo  = gPartTodo[tid]->GetArray();
-      partcross = gPartCross[tid]->GetArray();
-      memcpy(particles, &basket->GetIndArray()[indmin], ntotransport*sizeof(Int_t));
-//      PrintParticles(particles, ntotransport, tid);
+//   printf("   ###  PROPAGATING %d tracks in volume %s #######\n", fNtracks, fVolume->GetName());
+//   printf("### Generation %d:  %d tracks  cputime=0\n", generation, ntotransport);
+   memcpy(particles, fIndex, ntotransport*sizeof(Int_t));
+   if (ntotransport) gPushed.ResetAllBits();
+   while (ntotransport) {
+      gTimer.Continue();
+      generation++;
+//      nloop = 0;
+      // Loop all tracks to generate physics/geometry steps
+      // Physics step
+      if (gUsePhysics) PhysicsSelect(ntotransport, particles);
+      // Geometry snext and safety
+      ComputeTransportLength(ntotransport, particles);
+      // Propagate tracks with physics step and check if they survive boundaries 
+      // or physics
+      ntmp = ntotransport;
+      ntodo = ntotransport;
       ntotnext = 0;
-      ntmp = 0;
-      ntodo = 0;
-      ncross = 0;
-      cputime = 0.;   
-      generation = 0;
-      track = 0;
-      while (ntotransport) {
-         generation++;
-         // Loop all tracks to generate physics/geometry steps
-         // Physics step
-         if (gUsePhysics) PhysicsSelect(ntotransport, particles, tid);
-         // Geometry snext and safety
-         basket->ComputeTransportLength(ntotransport, particles);
-         // Propagate tracks with physics step and check if they survive boundaries 
-         // or physics
-         ntmp = ntotransport;
-         ntodo = ntotransport;
-         ntotnext = 0;
-         Int_t *ptrParticles = particles;
-         // Propagate all tracks alive with physics step.
-         // If a boundary is encountered before the physics step, stop the track
-         if (gUseDebug) Printf("(%d) --- propagating %d tracks for volume basket %s", tid, ntodo, basket->GetName());
-         while (ntodo) {
-            ntodo = 0;
-            ncross = 0;
-            // Propagate ALL ntmp tracks
-            basket->PropagateTracks(ntmp, ptrParticles, ntotnext, partnext, ntodo, parttodo, ncross, partcross);
-//            printf("(%d) %s   ->crossing particles (%d): ",tid, basket->GetName(), ncross); 
-//            for (Int_t ii=0; ii<ncross; ii++) printf("%d ", partcross[ii]);
-//            printf("\n(%d) %s   ->remaining particles (%d): ", tid, basket->GetName(), ntotnext);
-//            for (Int_t ii=0; ii<ntotnext; ii++) printf("%d ", partnext[ii]);
-//            printf("\n(%d) %s   ->todo particles (%d): ", tid, basket->GetName(),ntodo);
-//            for (Int_t ii=0; ii<ntodo; ii++) printf("%d ", parttodo[ii]);
-//            printf("\n");
-            // Post-step actions by continuous processes for particles reaching boundaries
-            if (gUsePhysics && ncross) {
-               for (Int_t iproc=0; iproc<gNprocesses; iproc++) {
-                  if (gProcessType[iproc] == kDiscrete) continue;
-                  Int_t nafter = 0;
-                  PostStepAction[iproc](ncross, partcross, nafter, NULL,tid);
-                  ResetStep(ncross, partcross);
-               }   
-            }      
-            ntmp = ntodo;
-            ptrParticles = parttodo;
-         }
-        
-         // Copy only tracks that survived boundaries (well we will have to think of
-         // those too, like passing them to the next volume...)
-         memcpy(particles, partnext, ntotnext*sizeof(Int_t));
-         ntotransport = ntotnext;
-            
-         // Do post-step actions on remaining particles
-         ntotnext = 0;
-         // Loop all processes to group particles per process
-         if (gUsePhysics && ntotransport) {
-            // Apply continuous processes to all particles
+      Int_t *ptrParticles = particles;
+      // Propagate all tracks alive with physics step.
+      // If a boundary is encountered before the physics step, stop the track
+      if (gUseDebug) printf("--- propagating %d tracks for volume basket %s\n", ntodo, GetName());
+      while (ntodo) {
+         ntodo = 0;
+         ncross = 0;
+//         nloop++;
+//         if (nloop>5000) {
+//            printf("Error: particle looping in volume %s\n", GetName());
+//            break;
+//         }   
+//         if (gUseDebug) printf("--- propagating tracks for volume basket %s\n", GetName());
+         PropagateTracks(ntmp, ptrParticles, ntotnext, partnext, ntodo, parttodo, ncross, partcross);
+         // Post-step actions by continuous processes for particles reaching boundaries
+         if (gUsePhysics && ncross) {
             for (Int_t iproc=0; iproc<gNprocesses; iproc++) {
                if (gProcessType[iproc] == kDiscrete) continue;
-               ntodo = 0;
-               PostStepAction[iproc](ntotransport, particles, ntodo, parttodo, tid);
-               // Do we have stopped particles ?
-               if (ntodo<ntotransport) {
-                  memcpy(particles, parttodo, ntodo*sizeof(Int_t));
-                  ntotransport = ntodo;
-               }
-            } 
-            // Copy al tracks for which step was limited by a continuous process
-            // to the next array
-            for (Int_t itr=0; itr<ntotransport; itr++) {
-               if (gProcessType[gTracks[particles[itr]]->process] == kContinuous)
-                  partnext[ntotnext++] = particles[itr];
-            }      
-            // Discrete processes only
-            for (Int_t iproc=0; iproc<gNprocesses; iproc++) {
-               // Make arrays of particles per process -> ntodo, parttodo
-               if (gProcessType[iproc] == kContinuous) continue;
-               ntodo = 0;
-               SelectTracksForProcess(iproc, ntotransport, particles, ntodo, parttodo);
-               if (!ntodo) continue;
-               if (gPartTodo[tid]->GetSize()-ntodo<500) {
-                  gPartTodo[tid]->Set(2*gPartTodo[tid]->GetSize());
-                  parttodo  = gPartTodo[tid]->GetArray(); 
-               }   
-               // Do post step actions for particles suffering a given process.
-               // Surviving particles are added to the next array
-      //         Printf("PostStep for proc %d: %d particles:\n", iproc, ntodo);
-               PostStepAction[iproc](ntodo, parttodo, ntotnext, partnext,tid);
-               if (gPartNext[tid]->GetSize()-ntotnext<500) {
-                  gPartNext[tid]->Set(2*gPartNext[tid]->GetSize());
-                  partnext  = gPartNext[tid]->GetArray();
-                  gPartInd[tid]->Set(2*gPartInd[tid]->GetSize());
-                  particles = gPartInd[tid]->GetArray();
-               }   
-            }
-            memcpy(particles, partnext, ntotnext*sizeof(Int_t));
-            ntotransport = ntotnext;
-         }
-         // I/O: Dump current generation
-//         Printf("   ### Generation %d:  %d tracks  cputime=%f", generation, ntotransport,cputime);
-         if (gFillTree) {
-            cputime = gTimer.CpuTime();
-            gOutdata->SetStamp(basket->GetVolume()->GetNumber(), gBasketGeneration, generation, ntotransport, cputime);
-            for (itrack=0; itrack<ntotransport;itrack++) {
-               track = gTracks[particles[itrack]];
-               gOutdata->SetTrack(itrack, track);
+               // In future take into account that particles may be generated 
+               // here (like dray)
+               Int_t nafter = 0;
+               PostStepAction[iproc](ncross, partcross, nafter, NULL);
+               ResetStep(ncross, partcross);
             }   
-            gOutTree->Fill();
+         }      
+         ntmp = ntodo;
+         ptrParticles = parttodo;
+      }
+      // Copy only tracks that survived boundaries (well we will have to think of
+      // those too, like passing them to the next volume...)
+      memcpy(particles, partnext, ntotnext*sizeof(Int_t));
+      ntotransport = ntotnext;
+            
+      // Do post-step actions on remaining particles
+      ntotnext = 0;
+      nperproc = 0;
+      // Loop all processes to group particles per process
+      if (gUsePhysics && ntotransport) {
+         // Apply continuous processes to all particles
+         for (Int_t iproc=0; iproc<gNprocesses; iproc++) {
+            if (gProcessType[iproc] == kDiscrete) continue;
+            ntodo = 0;
+            PostStepAction[iproc](ntotransport, particles, ntodo, parttodo);
+            // Do we have stopped particles ?
+            if (ntodo<ntotransport) {
+               memcpy(particles, parttodo, ntodo*sizeof(Int_t));
+               ntotransport = ntodo;
+            }
+         } 
+         // Copy al tracks for which step was limited by a continuous process
+         // to the next array
+         for (Int_t itr=0; itr<ntotransport; itr++) {
+            if (gProcessType[gTracks[particles[itr]]->process] == kContinuous)
+               partnext[ntotnext++] = particles[itr];
+         }      
+         // Discrete processes only
+         for (Int_t iproc=0; iproc<gNprocesses; iproc++) {
+            // Make arrays of particles per process -> ntodo, parttodo
+            if (gProcessType[iproc] == kContinuous) continue;
+            ntodo = 0;
+            SelectTracksForProcess(iproc, ntotransport, particles, ntodo, parttodo);
+            if (!ntodo) continue;
+            if (gPartTodo->GetSize()-ntodo<500) {
+               gPartTodo->Set(2*gPartTodo->GetSize());
+               parttodo  = gPartTodo->GetArray(); 
+            }   
+            // Do post step actions for particles suffering a given process.
+            // Surviving particles are added to the next array
+   //         printf("PostStep for proc %d: %d particles:\n", iproc, ntodo);
+            PostStepAction[iproc](ntodo, parttodo, ntotnext, partnext);
+            if (gPartNext->GetSize()-ntotnext<500) {
+               gPartNext->Set(2*gPartNext->GetSize());
+               partnext  = gPartNext->GetArray();
+               gPartInd->Set(2*gPartInd->GetSize());
+               particles = gPartInd->GetArray();
+            }   
          }
-      }   
-
-finish:
-      // the last thread to finish wakes up the main thread
-      // ... then go to sleep
-      // Checkpoint. 
-//      Printf("Thread %d finished", tid);
-      answer_queue->push(tid);
-//      bufferStop->StartN();
+         memcpy(particles, partnext, ntotnext*sizeof(Int_t));
+         ntotransport = ntotnext;
+      }
+      // I/O: Dump current generation
+      gTimer.Stop();
+      cputime = gTimer.CpuTime();
+//      printf("   ### Generation %d:  %d tracks  cputime=%f\n", generation, ntotransport,cputime);
+      if (gFillTree) {
+         gOutdata->SetStamp(fVolume->GetNumber(), gBasketGeneration, generation, ntotransport, cputime);
+         for (itrack=0; itrack<ntotransport;itrack++) {
+            track = gTracks[particles[itrack]];
+            gOutdata->SetTrack(itrack, track);
+         }   
+         gOutTree->Fill();
+      }
    }
-   return 0;
+   Clear();
 }
-   
+
 //______________________________________________________________________________
 void GeantVolumeBasket::Print(Option_t *) const
 {
 // Print info about the basket content.
-   Printf("Volume basket %s: ntracks=%d npaths=%d", GetName(), GetNtracks(), fNpaths);
-//   if (gUseDebug) {
+   printf("Volume basket %s: ntracks=%d npaths=%d\n", GetName(), GetNtracks(), fNpaths);
+   if (gUseDebug) {
       for (Int_t i=0; i<fNtracks; i++) {
-//         if (gDebug && (gDebugTrk==fIndex[i] || gDebugTrk<0)) {
-//            Printf("   %d - track %d: ", i, fIndex[i]);
-            gTracks[fIndex[i]]->Print();
-            if (gTracks[fIndex[i]]->path->GetNode(gTracks[fIndex[i]]->path->GetLevel())->GetVolume() != fVolume) {
-               Printf("ERROR: Wrong path for basket %s", GetName());
-               *((int*)0)=0;
-            }  
-//            GetBranchArray(i)->Print();
-//         }   
+         if (gDebug && (gDebugTrk==fIndex[i] || gDebugTrk<0)) {
+            printf("   %d - track %d: ", i, fIndex[i]);
+            GetBranchArray(i)->Print();
+         }   
       }
-//   }      
+   }      
 }
 
 //______________________________________________________________________________
@@ -1868,16 +1716,15 @@ void SortBaskets(Int_t *index)
 // ######## Main loop
 
 //______________________________________________________________________________
-void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool_t graphics=kFALSE, Bool_t single=kFALSE, Double_t vertx=0., Double_t verty=0., Double_t vertz=0.)
+void PropagatorGeom(const char *geomfile="geometry.root", Bool_t graphics=kFALSE, Bool_t single=kFALSE, Double_t vertx=0., Double_t verty=0., Double_t vertz=0.)
 {
 // Propagate gNevents in the volume containing the vertex. 
 // Simulate 2 physics processes up to exiting the current volume.
    static Bool_t called=kFALSE;
-   Int_t ipop;
-   gNthreads = nthreads;
    gSingleTrack = single;
+   gFieldPropagator.SetField(0,0,Bmag, kFALSE);
    if (called) {
-      Printf("Sorry, you can call this only once per session.");
+      printf("Sorry, you can call this only once per session.\n");
       return;
    }
    called = kTRUE;   
@@ -1893,19 +1740,19 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
 
    // Initialize geometry and current volume
    if (!LoadGeometry(geomfile)) return;
-   if (gSingleTrack) Printf("==== Executing in single track loop mode using %d threads ====", gNthreads);
-   else              Printf("==== Executing in vectorized mode using %d threads ====",gNthreads);
-   if (gFillTree)    Printf("  I/O enabled - disable if comparing single track loop with vectorized modes");
-   else              Printf("  I/O disabled");
-   if (gUsePhysics)  Printf("  Physics ON with %d processes", gNprocesses);
-   else              Printf("  Physics OFF");
+   if (gSingleTrack) printf("==== Executing in single track loop mode ====\n");
+   else              printf("==== Executing in vectorized mode ====\n");
+   if (gFillTree)    printf("  I/O enabled - disable if comparing single track loop with vectorized modes\n");
+   else              printf("  I/O disabled\n");
+   if (gUsePhysics)  printf("  Physics ON with %d processes\n", gNprocesses);
+   else              printf("  Physics OFF\n");
    // Create the basket array
    Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
    gBasketArray = new GeantVolumeBasket*[nvols];
 
-   TCanvas *c1=0;
-   TH1F *hnb=0, *hbaskets=0;
-   TPad *pad1=0, *pad2=0;
+   TCanvas *c1;
+   TH1F *hnb, *hbaskets;
+   TPad *pad1, *pad2;
    if (graphics) {
       c1 = new TCanvas("c1","c1",800,900);
       c1->Divide(1,2);
@@ -1934,20 +1781,8 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
       gOutTree->Branch("gen", &gOutdata);
    }
    
-   // Initialize threads
-   TThread *t;
-   TList *listThreads = new TList();
-   listThreads->SetOwner();
-   for (Int_t ith=0; ith<gNthreads; ith++) {
-      t = new TThread(TransportTracks);
-      listThreads->Add(t);
-   } 
-   Bool_t threadsStarted = kFALSE;
-   
-   
    // Loop baskets and transport particles until there is nothing to transport anymore
    gTransportOngoing = kTRUE;
-   gGeoManager->SetMultiThread(kTRUE);
    Int_t nbaskets, nb0;
    gBasketGeneration = 0;
    gTimer.Start();
@@ -1971,7 +1806,7 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
          if (useThreshold && ntracks<gNminThreshold) continue;
          nb0++;
       }   
-      Printf("#### TRANSPORTING GENERATION #%d OF %d (of %d) VOLUME BASKETS ####", gBasketGeneration, nb0, nbaskets);
+      printf("#### TRANSPORTING GENERATION #%d OF %d (of %d) VOLUME BASKETS ####\n", gBasketGeneration, nb0, nbaskets);
       for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
          gCurrentBasket = gBasketArray[index[ibasket]];
          Int_t ntracks = gCurrentBasket->GetNtracks();
@@ -1991,36 +1826,7 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
 //            gCurrentBasket->Print();
          }
          nbtrue++;
-         // Start threaded transport
-//         gCurrentBasket->TransportTracks();
-//         Printf("CURRENT BASKET: %s", gCurrentBasket->GetName());
-         gVolume = gCurrentBasket->GetVolume();
-//         gCurrentBasket->Print();
-         if (!threadsStarted) {
-            for (Int_t ith=0; ith<gNthreads; ith++) {
-               t = (TThread*)listThreads->At(ith);
-               t->Run();
-            }
-//         TThread::Sleep(0,2000000);
-            threadsStarted = kTRUE;
-         }
-         // Put the object in buffer for N threads
-//         bufferStart->Start();
-         Int_t nchunk = ntracks/gNthreads;
-         Int_t nworkers = gNthreads;
-         if (!nchunk) nworkers = ntracks;
-         for (Int_t iwork=0; iwork<nworkers; iwork++) feeder_queue->push(iwork);
-//         Printf("== %d objects put by main thread", nworkers);
-         // Retreive the result
-         while(nworkers) {
-            answer_queue->wait_and_pop(ipop);
-//            Printf("Worker %d finished", ipop);
-            nworkers--;
-         }   
-//         bufferStop->ReceiveN();
-         gCurrentBasket->Clear();
-//         Printf("== basket cleared");
-//         TThread::Sleep(0,2000000);
+         gCurrentBasket->TransportTracks();
       }
       delete [] index;
       if (graphics) {
@@ -2030,9 +1836,6 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
       }
       gBasketGeneration++;
    }      
-   gTimer.Stop();
-   gTimeCounter.Print();
-//   for (Int_t itr=0; itr<gNtracks; itr++) gTracks[itr]->Print();
    if (gFillTree) gOutTree->AutoSave();
    delete gOutFile;
    Double_t rtime = gTimer.RealTime();
@@ -2040,12 +1843,11 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
    gTimer.Print();
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
-   Printf("=== Transported: %lld,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", gNtransported, gNsafeSteps, gNsnextSteps,rtime,ctime);
+   printf("=== Transported: %lld,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs\n", gNtransported, gNsafeSteps, gNsnextSteps,rtime,ctime);
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %g %g",single, gNsafeSteps, gNsnextSteps,rtime,ctime);
    fclose(fp);
-   delete listThreads;
    gOutFile = 0;
    gOutTree = 0;
 }
@@ -2073,7 +1875,7 @@ Bool_t DrawData(Int_t color = kRed)
       for (Int_t itrack=0; itrack<gOutdata->fNtracks; itrack++) 
          pmgen->SetNextPoint(gOutdata->fX[itrack], gOutdata->fY[itrack],gOutdata->fZ[itrack]);
    }
-   Printf("basket generation #%d\n", ibgen);
+   printf("basket generation #%d\n", ibgen);
    pmgen->Draw("SAME");
    if (ientry==nentries) return kFALSE;
    return kTRUE;
@@ -2100,7 +1902,7 @@ void DrawNextBasket()
       gPad->Modified();
       gPad->Update();
       if (!drawn) {
-         Printf("That was the last basket...\n");
+         printf("That was the last basket...\n");
       }
    }
    gROOT->SetInterrupt(kTRUE);      
@@ -2128,5 +1930,5 @@ void Menu(const char *file="geometry.root")
    bar->AddButton("Stop", "Stop()", "Stop drawing.");
    bar->Show();
    gROOT->SaveContext();
-   Printf("=== Maybe press 'w' for wireframe mode ===\n");
+   printf("=== Maybe press 'w' for wireframe mode ===\n");
 }
