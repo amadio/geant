@@ -46,7 +46,7 @@
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"
-#include "bounded_buffer.h"
+#include "sync_objects.h"
 
 const Int_t     gNevents     = 1;    // number of events transported
 const Double_t  gNaverage    = 10000.;  // average number of tracks per event (Poisson)
@@ -1948,7 +1948,7 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
    // Loop baskets and transport particles until there is nothing to transport anymore
    gTransportOngoing = kTRUE;
    gGeoManager->SetMultiThread(kTRUE);
-   Int_t nbaskets, nb0;
+   Int_t nbaskets, nb0, ntrackgen;
    gBasketGeneration = 0;
    gTimer.Start();
    while (gTransportOngoing) {
@@ -1965,13 +1965,15 @@ void PropagatorGeom(const char *geomfile="geometry.root", Int_t nthreads=4, Bool
       Int_t nbtrue = 0;
       if (gBasketArray[index[0]]->GetNtracks()>gNminThreshold) useThreshold = kTRUE;
       nb0 = 0;
+      ntrackgen = 0;
       for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
          Int_t ntracks = gBasketArray[index[ibasket]]->GetNtracks();
          if (!ntracks) continue;
          if (useThreshold && ntracks<gNminThreshold) continue;
+         ntrackgen += ntracks;
          nb0++;
       }   
-      Printf("#### TRANSPORTING GENERATION #%d OF %d (of %d) VOLUME BASKETS ####", gBasketGeneration, nb0, nbaskets);
+      if (nbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s) ####", gBasketGeneration, ntrackgen, nb0, nbaskets, gBasketArray[index[0]]->GetName());
       for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
          gCurrentBasket = gBasketArray[index[ibasket]];
          Int_t ntracks = gCurrentBasket->GetNtracks();
