@@ -376,6 +376,8 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
    fVolume[tid] = node->GetVolume();
    GeantVolumeBasket *basket = new GeantVolumeBasket(fVolume[tid]);
    fVolume[tid]->SetField(basket);
+   TGeoBranchArray a;
+   a.InitFromNavigator(gGeoManager->GetCurrentNavigator());
    
    const Double_t etamin = -3, etamax = 3;
    Int_t ntracks = 0;
@@ -398,9 +400,10 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
       ntracks = fRndm[tid]->Poisson(average);
       
       for (Int_t i=0; i<ntracks; i++) {
-         TGeoBranchArray *a = new TGeoBranchArray();
-         a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
-         GeantTrack *track = new GeantTrack();
+//         TGeoBranchArray *a = new TGeoBranchArray();
+//         a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
+         GeantTrack *track = new GeantTrack(0);
+         *track->path = a;
          track->event = event;
          track->particle = fNstart;
          Double_t prob=fRndm[tid]->Uniform(0.,pdgProb[kMaxPart-1]);
@@ -432,7 +435,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          track->pz = p*TMath::Cos(theta);
          track->frombdr = kFALSE;
          AddTrack(track);
-         basket->AddTrack(fNstart, a);
+         basket->AddTrack(fNstart);
          fNstart++;
       }
       Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
@@ -462,8 +465,8 @@ void GeantPropagator::Initialize()
    }   
    if (!fProcesses) {
       fProcesses = new PhysicsProcess*[fNprocesses];
-      fProcesses[0] = new ScatteringProcess("Single scattering");
-      fProcesses[1] = new ElossProcess("Energy loss");
+      fProcesses[0] = new ScatteringProcess("Scattering");
+      fProcesses[1] = new ElossProcess("Eloss");
       fElossInd = 1;
       fProcesses[2] = new InteractionProcess("Interaction");
    }

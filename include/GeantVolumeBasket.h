@@ -14,22 +14,30 @@ class TGeoBranchArray;
 
 //______________________________________________________________________________
 class GeantVolumeBasket : public TObject {
+   struct PendingTrack {
+      Int_t          fIndex;                 // Track index
+      TGeoBranchArray *fPath;                // Track path
+      Bool_t           fIsNew;               // Flag new track.
+      
+      PendingTrack() : fIndex(-1), fPath(0), fIsNew(kFALSE) {}
+      PendingTrack(Int_t index, TGeoBranchArray* path, Bool_t isNew) {fIndex = index; fPath = path; fIsNew=isNew;}
+   };
 protected:
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNtracks;               // Number of tracks
    Int_t             fFirstFree;             // First un-processed track
    Int_t             fMaxTracks;             // Max number of tracks
-   Int_t             fNpaths;                // Max number of physical node paths
-   Int_t             fNpathEntries;          // Number of physical paths stored in the array
    Int_t            *fIndex;                 //[fNtracks] Track indices in the global stack
-   TGeoBranchArray **fPaths;                 //! Array of physical node paths
+   Int_t             fMaxPending;            //!Max number of pending tracks
+   Int_t             fNpending;              //!Number of pendig tracks to be added
+   PendingTrack    **fPending;               //![fMaxPending] Array of pending tracks
 
-   Int_t             InsertPath(TGeoBranchArray* a);
 public:
-   GeantVolumeBasket(TGeoVolume *vol) : TObject(), fVolume(vol), fNtracks(0), fFirstFree(0), fMaxTracks(50), fNpaths(10), fNpathEntries(0), fIndex(0), fPaths(0) {} 
+   GeantVolumeBasket(TGeoVolume *vol);
    virtual ~GeantVolumeBasket();
    
-   void              AddTrack(Int_t itrack, TGeoBranchArray* a);
+   void              AddTrack(Int_t itrack);
+   void              AddPendingTrack(Int_t itrack, TGeoBranchArray* a, Bool_t isNew);
    virtual void      Clear(Option_t *option="");
    void              ComputeTransportLengthSingle(Int_t *trackin);
    void              ComputeTransportLength(Int_t ntracks, Int_t *trackin);
@@ -37,15 +45,18 @@ public:
    TGeoBranchArray  *GetBranchArray(Int_t itrack) const;
    Int_t             GetIndex(Int_t itrack) const {return fIndex[itrack];}
    const Int_t      *GetIndArray() const          {return fIndex;}
+   Int_t             GetNpending() const          {return fNpending;}
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
    Int_t             GetNtracks() const           {return fNtracks;}
    GeantTrack       *GetTrack(Int_t itrack) const;
    TGeoVolume       *GetVolume() const            {return fVolume;}
    void              GetWorkload(Int_t &indmin, Int_t &indmax);
+   void              Prepare();
    virtual void      Print(Option_t *option="") const;
    Bool_t            PropagateTrack(Int_t *trackin);
    void              PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout, Int_t &ntodo, Int_t *tracktodo, Int_t &ncross, Int_t *trackcross);
    static void       ResetStep(Int_t ntracks, Int_t *array);
+   void              Suspend();
    void              TransportSingle();
 //   void              TransportTracks();
    

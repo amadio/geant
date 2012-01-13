@@ -4,6 +4,7 @@
 // - generic interaction as discrete process, producing secondaries
 
 #include "PhysicsProcess.h"
+#include "GeantVolumeBasket.h"
 #include "TMath.h"
 #include "TH1.h"
 #include "TF1.h"
@@ -14,6 +15,7 @@
 #include "TGeoMedium.h"
 #include "TGeoMaterial.h"
 #include "TGeoMatrix.h"
+#include "TGeoBranchArray.h"
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"
@@ -303,49 +305,83 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
                                  Int_t* trackout, 
                                  Int_t tid)
 {
-// Do post-step actions after energy loss process. 
-   Double_t eloss, dedx;
+// Do post-step actions on particle after interaction process. 
+//   if (gUseDebug) Printf("PostStepInteraction %d tracks", ntracks);
+// We calculate the CMS energy
+// We suppose at first that the available energy is the Kin cms energy
+// We produce equal number of pos and neg pions
+
+   static TGenPhaseSpace gps;
    GeantTrack *track;
    Int_t itrack;
-   TGeoMaterial *mat = vol->GetMaterial();
-   Double_t mata = mat->GetA();
-   Double_t matz = mat->GetZ();
-   Double_t matr = mat->GetDensity();
-   Bool_t invalid_material = kFALSE;
-   if (matz<1 || mata<1 || matr<1.E-8) invalid_material = kTRUE;
+   Double_t *rndArray = &gPropagator->fDblArray[2*tid*ntracks];
+   const Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
+   const Double_t prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass,
+			       pimass, pimass, pimass, pimass, pimass, pimass,
+			       pimass, pimass, pimass, pimass, pimass, pimass};
+   gPropagator->fRndm[tid]->RndmArray(ntracks, rndArray);
 
+   Int_t nprod = 0;
+   Int_t ngen  = 0;
    for (Int_t i=0; i<ntracks; i++) {
-      itrack = trackin[i];   
+      itrack = trackin[i];
       track = gPropagator->fTracks[itrack];
-      if (!track->IsAlive()) continue;
-      if (track->e-track->mass < gPropagator->fEmin) {
-         track->Kill();
-         continue;
-      }   
-      if (track->step==0 || invalid_material) {
-         if (trackout) trackout[nout] = itrack;
-         nout++;
-         continue;
-      }   
-      dedx = ElossProcess::BetheBloch(track,matz,mata,matr);
-      eloss = track->step*dedx;
-      if (track->e-track->mass-eloss < gPropagator->fEmin) eloss = track->e-track->mass;
-      Double_t gammaold = track->Gamma();
-      Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
-      track->e -= eloss;
-      if (track->e-track->mass < gPropagator->fEmin) {
-         track->Kill();
-         continue;
-      }   
-      if (trackout) trackout[nout] = itrack;
-      nout++;
-
-      Double_t gammanew = track->Gamma();
-      Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
-      Double_t pnorm = bgnew/bgold;
-      track->px *= pnorm;
-      track->py *= pnorm;
-      track->pz *= pnorm;
+      Double_t en = track->e;
+      Double_t m1 = track->mass;
+      Double_t m2 = gPropagator->fVolume[tid]->GetMaterial()->GetA();
+      Double_t cmsen = TMath::Sqrt(m1*m1+m2*m2+2*en*m2)-m1-m2;
+      // Calculate the number of pions as a poisson distribution leaving half of the cms energy
+      // for phase space momentum
+      Int_t npi = 0.5*gPropagator->fRndm[tid]->Rndm()*cmsen/pimass+0.5;
+      if(npi>1) {
+         do { nprod = TMath::Min(gPropagator->fRndm[tid]->Poisson(npi),9); } 
+         while(nprod*pimass*2>cmsen || nprod==0);
+//         Printf("Inc en = %f, cms en = %f produced pis = %d",en,cmsen,nprod);
+         TLorentzVector pcms(track->px, track->py, track->pz, track->e + m2);
+         if(!gps.SetDecay(pcms,2*nprod,prodm)) Printf("Forbidden decay!");
+         gps.Generate();
+         //Double_t pxtot=track->px;
+         //Double_t pytot=track->py;
+         //Double_t pztot=track->pz;
+         TGeoBranchArray &a = *track->path;
+         for(Int_t j=0; j<2*nprod; ++j) {
+            GeantTrack *trackg=new GeantTrack(0);
+            *trackg->path = a;
+            TLorentzVector *lv = gps.GetDecay(j);
+            if(j%2) trackg->pdg = kPiMinus;
+            else trackg->pdg = kPiPlus;
+            trackg->species = kHadron;
+            trackg->charge = TDatabasePDG::Instance()->GetParticle(trackg->pdg)->Charge()/3.;
+            trackg->mass = pimass;
+            trackg->process = 0;
+            trackg->xpos = track->xpos;
+            trackg->ypos = track->ypos;
+            trackg->zpos = track->zpos;
+            trackg->px = lv->Px();
+            trackg->py = lv->Py();
+            trackg->pz = lv->Pz();
+            trackg->e = lv->E();
+//            Double_t mm2 = trackg->e*trackg->e-trackg->px*trackg->px-trackg->py*trackg->py-trackg->pz*trackg->pz;
+            Int_t itracknew = gPropagator->AddTrack(trackg);
+            trackout[nout++] = trackg->particle = itracknew;
+            ngen++;
+            if (gPropagator->fCurrentBasket) gPropagator->fCurrentBasket->AddTrack(itracknew);
+           //check
+           //pxtot -= trackg->px;
+           //pytot -= trackg->py;
+           //pztot -= trackg->pz;
+         }
+	//	Printf("pbal = %f %f %f",pxtot, pytot, pztot);
+      }
    }   
-   StepManager(1, ntracks, trackin, nout, trackout);
+   StepManager(2, ntracks, trackin, nout, trackout);
+   if (ngen) {
+      // Generated particles may be below threshold-> Call PostStepEloss
+      Int_t nsurv = 0;
+      Int_t *trackgen = new Int_t[ngen];
+      gPropagator->Process(1)->PostStep(vol, ngen, &trackout[nout-ngen], nsurv, trackgen,tid);
+      memcpy(&trackout[nout-ngen], trackgen, nsurv*sizeof(Int_t));
+      nout += nsurv-ngen;
+      delete [] trackgen;
+   }
 }

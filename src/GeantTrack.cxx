@@ -10,6 +10,42 @@
 const Double_t gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
+GeantTrack::GeantTrack(Int_t ipdg) 
+           :event(-1),
+            particle(-1),
+            pdg(ipdg),
+            species(kHadron),
+            status(kAlive),
+            charge(0),
+            mass(0),
+            process(-1),
+            xpos(0),
+            ypos(0),
+            zpos(0),
+            px(0),
+            py(0),
+            pz(0),
+            e(0), 
+            pstep(1.E20), 
+            step(0), 
+            snext(0), 
+            safety(0), 
+            frombdr(false), 
+            izero(0), 
+            nsteps(0)
+{
+// Constructor
+   path = new TGeoBranchArray();
+}
+
+//______________________________________________________________________________
+GeantTrack::~GeantTrack()
+{
+// Destructor.
+   delete path;
+}   
+
+//______________________________________________________________________________
 void GeantTrack::Direction(Double_t dir[3]) {
    dir[0] = px; dir[1] = py; dir[2] = pz;
    TMath::Normalize(dir);
@@ -40,8 +76,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    // Change path to reflect the physical volume for the current track;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 //   Int_t tid = nav->GetThreadId();
-   TGeoBranchArray *a = path;
-   a->UpdateNavigator(nav);
+   path->UpdateNavigator(nav);
    nav->SetOutside(kFALSE);
    nav->SetStep(crtstep);
    xpos += crtstep*dir[0];
@@ -53,7 +88,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    TGeoNode *next = 0;
    next = nav->CrossBoundaryAndLocate(kTRUE, skip);
    if (!next) {
-      a->UpdateNavigator(nav);
+      path->UpdateNavigator(nav);
       next = nav->FindNextBoundaryAndStep(TGeoShape::Big(),kFALSE);
    }   
    gGeoManager->SetVerboseLevel(0);
@@ -62,8 +97,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    zpos += 10.*gTolerance*dir[2];
    if (nav->IsOutside()) return 0;
    // Create a new branch array
-   TGeoBranchArray *b = new TGeoBranchArray();
-   b->InitFromNavigator(nav);
+   path->InitFromNavigator(nav);
    TGeoVolume *vol = nav->GetCurrentVolume();
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = 0;
@@ -73,7 +107,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
       gPropagator->fBasketArray[gPropagator->fNbaskets++] = basket;
    } 
    basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddTrack(itr, b);
+   basket->AddTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket
    if (basket!=gPropagator->fCurrentBasket) {
       gPropagator->fTransportOngoing = kTRUE;
@@ -197,8 +231,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
       return 0;
    }   
    // Create a new branch array
-   TGeoBranchArray *b = new TGeoBranchArray();
-   b->InitFromNavigator(nav);
+   path->InitFromNavigator(nav);
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = 0;
    if (!vol->GetField()) {
@@ -207,7 +240,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
       gPropagator->fBasketArray[gPropagator->fNbaskets++] = basket;
    } 
    basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddTrack(itr, b);
+   basket->AddTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket
    if (basket!=gPropagator->fCurrentBasket) gPropagator->fTransportOngoing = kTRUE;
 //   if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {

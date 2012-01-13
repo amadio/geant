@@ -16,12 +16,25 @@ ClassImp(GeantVolumeBasket)
 const Double_t gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
+GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol)
+                  :TObject(),
+                   fVolume(vol),
+                   fNtracks(0),
+                   fFirstFree(0),
+                   fMaxTracks(10),
+                   fIndex(0),
+                   fMaxPending(10),
+                   fNpending(0),
+                   fPending(0)
+{
+// Constructor
+}                   
+
+//______________________________________________________________________________
 GeantVolumeBasket::~GeantVolumeBasket()
 {
 // Clean up
    delete [] fIndex;
-   for (Int_t i=0; i<fNpathEntries; i++) delete fPaths[i];
-   delete [] fPaths;
 }   
 
 //______________________________________________________________________________
@@ -59,66 +72,31 @@ void GeantVolumeBasket::GetWorkload(Int_t &indmin, Int_t &indmax)
 }   
 
 //______________________________________________________________________________
-Int_t GeantVolumeBasket::InsertPath(TGeoBranchArray* a)
+void GeantVolumeBasket::AddPendingTrack(Int_t itrack, TGeoBranchArray* a, Bool_t isNew)
 {
-// Check if the path is stored and return its index. If not there, insert it in fPaths.
-// Deletes input branch array if an equal one is found.
-   Int_t i = 0;
-//   Int_t tid = TGeoManager::ThreadId();
-   if (a->GetNode(a->GetLevel())->GetVolume() != fVolume) {
-      Printf("ERROR: Wrong path for basket %s", GetName());
+// Add a new track to the pending tracks list.
+   TThread::Lock();   
+   if (!fPending) fPending = new PendingTrack*[fMaxPending];
+   if (fNpending==fMaxPending) {
+      PendingTrack **pending = new PendingTrack*[2*fMaxPending];
+      memcpy(pending, fPending, fNpending*sizeof(PendingTrack*));
+      delete [] fPending;
+      fPending = pending;
+      fMaxPending *= 2;
    }
-   Int_t ifound = TGeoBranchArray::BinarySearch(fNpathEntries,(const TGeoBranchArray**)fPaths,a);
-   if (ifound<=fNpathEntries-1) {
-      if (ifound>=0 && *a == *fPaths[ifound]) {
-         delete a;
-         return ifound;
-      }   
-      // Insert path at ifound+1. Copy elements from ifound+1 up 1 unit
-//      memmove(&fPaths[ifound+2], &fPaths[ifound+1], (fNpathEntries-ifound-1)*sizeof(TGeoBranchArray *));
-      for (i=fNpathEntries-1; i>ifound; i--) fPaths[i+1]=fPaths[i];
-   }
-   fPaths[ifound+1] = a;
-
-   // Increase array of paths if needed.
-   fNpathEntries++;
-   if (fNpathEntries == fNpaths) {
-      TGeoBranchArray **newarr = new TGeoBranchArray*[2*fNpaths];
-      memcpy(newarr, fPaths, fNpathEntries*sizeof(TGeoBranchArray *));
-      fNpaths *=2;
-      delete [] fPaths;
-      fPaths = newarr;
-   }   
-   return ifound+1;
-}   
+   fPending[fNpending++] = new PendingTrack(itrack,a, isNew);
+   TThread::UnLock();     
+}      
 
 //______________________________________________________________________________
-void GeantVolumeBasket::AddTrack(Int_t itrack, TGeoBranchArray* a)
+void GeantVolumeBasket::AddTrack(Int_t itrack)
 {
 // Add a track and its path to the basket.
    TThread::Lock();
    if (!fNtracks) {
-      fPaths = new TGeoBranchArray*[fNpaths];
       fIndex = new Int_t[fMaxTracks];
-      fPaths[fNtracks] = a;
       fIndex[fNtracks] = itrack;
-      gPropagator->fTracks[itrack]->path = a;
-      fNtracks++;
-      fNpathEntries++;
-      TThread::UnLock();
-      return;
    }
-//   Int_t tid = TGeoManager::ThreadId();
-   // Check if the path is already stored.
-   Int_t ipath = InsertPath(a);
-   gPropagator->fTracks[itrack]->path = fPaths[ipath];
-   if (gPropagator->fTracks[itrack]->path->GetNode(gPropagator->fTracks[itrack]->path->GetLevel())->GetVolume() != fVolume) {
-      Printf("ERROR: Wrong path for basket %s", GetName());
-      gPropagator->fTracks[itrack]->Print();
-   }  
-   TString spath; 
-   fPaths[ipath]->GetPath(spath);
-//   Printf("(%d) Track %d added to basket:%s in path: %s", tid, itrack, GetName(), spath.Data());
    // If the track is already in the basket, do not add it again (!)
    if (gPropagator->fCurrentBasket != this) {
       fIndex[fNtracks] = itrack;
@@ -140,10 +118,8 @@ void GeantVolumeBasket::Clear(Option_t *)
 {
 // Clear all particles and paths 
    TThread::Lock();
-   for (Int_t i=0; i<fNpathEntries; i++) delete fPaths[i];
    fNtracks = 0;
    fFirstFree = 0;
-   fNpathEntries = 0;
    TThread::UnLock();   
 }   
 
@@ -429,11 +405,16 @@ Bool_t GeantVolumeBasket::PropagateTrack(Int_t *trackin)
 }
 
 //______________________________________________________________________________
+void GeantVolumeBasket::Prepare()
+{
+// Prepare basket for transport.
+}
+
+//______________________________________________________________________________
 void GeantVolumeBasket::Print(Option_t *) const
 {
 // Print info about the basket content.
-   Printf("Volume basket %s: ntracks=%d npaths=%d", GetName(), GetNtracks(), fNpaths);
-//   if (gPropagator->fUseDebug) {
+   if (gPropagator->fUseDebug) {
       for (Int_t i=0; i<fNtracks; i++) {
 //         if (gDebug && (gPropagator->fDebugTrk==fIndex[i] || gPropagator->fDebugTrk<0)) {
 //            Printf("   %d - track %d: ", i, fIndex[i]);
@@ -445,7 +426,7 @@ void GeantVolumeBasket::Print(Option_t *) const
 //            GetBranchArray(i)->Print();
 //         }   
       }
-//   }      
+   }      
 }
 
 //______________________________________________________________________________
@@ -456,6 +437,12 @@ void GeantVolumeBasket::ResetStep(Int_t ntracks, Int_t *array)
       GeantTrack *track = gPropagator->fTracks[array[i]];
       track->step = 0.;
    }
+}
+
+//______________________________________________________________________________
+void GeantVolumeBasket::Suspend()
+{
+// Suspend transport for this basket and put remaining tracks as pending.
 }
 
 //______________________________________________________________________________
