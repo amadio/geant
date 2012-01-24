@@ -6,6 +6,7 @@
 #include "TGeoHelix.h"
 #include "GeantTrack.h"
 #include "GeantVolumeBasket.h"
+#include "WorkloadManager.h"
 
 const Double_t gTolerance = TGeoShape::Tolerance();
 
@@ -104,15 +105,12 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    if (!vol->GetField()) {
       basket = new GeantVolumeBasket(vol);
       vol->SetField(basket);
-      gPropagator->fBasketArray[gPropagator->fNbaskets++] = basket;
+      gPropagator->fWMgr->AddBasket(basket);
    } 
    basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddTrack(itr);
+   basket->AddPendingTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket
-   if (basket!=gPropagator->fCurrentBasket) {
-      gPropagator->fTransportOngoing = kTRUE;
-//      gPushed[tid]->SetBitNumber(itr,kTRUE);
-   }   
+   gPropagator->fTransportOngoing = kTRUE;
    if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==itr || gPropagator->fDebugTrk<0)) {
       Printf("   track %d: entering %s at:(%f, %f, %f)", itr, nav->GetCurrentNode()->GetName(), xpos,ypos,zpos);
       if (gPropagator->fTracks[itr]->path) gPropagator->fTracks[itr]->path->Print();
@@ -237,12 +235,12 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    if (!vol->GetField()) {
       basket = new GeantVolumeBasket(vol);
       vol->SetField(basket);
-      gPropagator->fBasketArray[gPropagator->fNbaskets++] = basket;
+      gPropagator->fWMgr->AddBasket(basket);
    } 
    basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddTrack(itr);
+   basket->AddPendingTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket
-   if (basket!=gPropagator->fCurrentBasket) gPropagator->fTransportOngoing = kTRUE;
+   gPropagator->fTransportOngoing = kTRUE;
 //   if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {
 //      Printf("   track %d: entering %s at:(%f, %f, %f)   ", itr, nav->GetCurrentNode()->GetName(), xpos,ypos,zpos);
 //      basket->GetBranchArray(gTracks[itr])->Print();

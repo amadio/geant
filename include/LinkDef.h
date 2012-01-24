@@ -7,6 +7,7 @@
 #pragma link C++ class GeantVolumeBasket+;
 #pragma link C++ class GeantPropagator+;
 #pragma link C++ class GeantOutput+;
+#pragma link C++ class WorkloadManager+;
 #pragma link C++ class PhysicsProcess+;
 #pragma link C++ class ScatteringProcess+;
 #pragma link C++ class ElossProcess+;

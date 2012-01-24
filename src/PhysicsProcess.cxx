@@ -5,6 +5,7 @@
 
 #include "PhysicsProcess.h"
 #include "GeantVolumeBasket.h"
+#include "WorkloadManager.h"
 #include "TMath.h"
 #include "TH1.h"
 #include "TF1.h"
@@ -365,7 +366,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             Int_t itracknew = gPropagator->AddTrack(trackg);
             trackout[nout++] = trackg->particle = itracknew;
             ngen++;
-            if (gPropagator->fCurrentBasket) gPropagator->fCurrentBasket->AddTrack(itracknew);
+            if (gPropagator->fWMgr->GetCurrentBasket(tid)) gPropagator->fWMgr->GetCurrentBasket(tid)->AddPendingTrack(itracknew);
            //check
            //pxtot -= trackg->px;
            //pytot -= trackg->py;

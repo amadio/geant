@@ -3,7 +3,7 @@ ObjSuf        = o
 DllSuf        = so
 OutPutOpt     = -o # keep whitespace after "-o"
 
-OPT           = -O2 -g
+OPT           = -O2
 
 CXX           = g++
 CXXFLAGS      = $(OPT) -Wall -fPIC
@@ -15,9 +15,9 @@ SRCDIR        = src
 CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
 
 
-GEANTSOURCES  = PhysicsProcess.cxx GeantTrack.cxx GeantOutput.cxx GeantVolumeBasket.cxx GeantPropagator.cxx
+GEANTSOURCES  = PhysicsProcess.cxx GeantTrack.cxx GeantOutput.cxx GeantVolumeBasket.cxx GeantPropagator.cxx WorkloadManager.cxx sync_objects.cxx
 GEANTDICTS    = G__Geant.cxx
-GEANTO        = PhysicsProcess.o GeantTrack.o GeantOutput.o GeantVolumeBasket.o GeantPropagator.o G__Geant.o
+GEANTO        = PhysicsProcess.o GeantTrack.o GeantOutput.o GeantVolumeBasket.o GeantPropagator.o WorkloadManager.o sync_objects.o G__Geant.o
 GEANTSL       = $(patsubst %.o,$(SRCDIR)/%.o,$(GEANTO))
 GEANTDEPS     = $(patsubst %.cxx,$(INCDIR)/%.h,$(GEANTSOURCES))
 
@@ -43,12 +43,16 @@ GeantVolumeBasket.o:
 		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantVolumeBasket.cxx
 GeantPropagator.o:
 		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantPropagator.cxx
+WorkloadManager.o:
+		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/WorkloadManager.cxx
+sync_objects.o:
+		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/sync_objects.cxx
 $(GEANTDICTS):
 		@echo "Generating dictionary $@"
 #		cp $(INCBRIDGE)/*.h $(INCDIR)
 		$(ROOTSYS)/bin/rootcint -f $(SRCDIR)/$@ \
                 -c $(INCDIR)/PhysicsProcess.h $(INCDIR)/GeantVolumeBasket.h $(INCDIR)/GeantPropagator.h \
-		$(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h $(INCDIR)/LinkDef.h
+		$(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h $(INCDIR)/WorkloadManager.h $(INCDIR)/LinkDef.h
 G__Geant.o:
 		$(ROOTSYS)/bin/rmkdepend -R -f$(SRCDIR)/G__Geant.d -Y -w 1000 -- \
                 pipe -m64 -Wshadow -Wall -W -Woverloaded-virtual -fPIC \

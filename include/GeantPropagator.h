@@ -19,6 +19,7 @@ class PhysicsProcess;
 class GeantTrack;
 class GeantOutput;
 class GeantVolumeBasket;
+class WorkloadManager;
 
 class GeantPropagator : public TObject
 {
@@ -31,13 +32,11 @@ public:
    Long64_t    fNsafeSteps;  // Number of fast steps within safety
    Long64_t    fNsnextSteps; // Number of steps where full snext computation is needed
    Int_t       fNprocesses;  // Number of active processes
-   Int_t       fNbaskets;    // Number of transported baskets
    Int_t       fElossInd;    // Index of eloss process
    Int_t       fNstart;      // Cumulated initial number of tracks
    Int_t       fMaxTracks;   // Maximum number of tracks
    Int_t       fMaxThreads;  // Maximum number of threads
    Int_t       fNminThreshold; // Threshold for starting transporting a basket
-   Int_t       fBasketGeneration; // Basket generation
    Int_t       fDebugTrk;    // Track to debug
    Int_t       fMaxSteps;    // Maximum number of steps per track
    
@@ -52,6 +51,8 @@ public:
    Bool_t      fTransportOngoing; // Flag for ongoing transport
    Bool_t      fSingleTrack; // Use single track transport mode
    Bool_t      fFillTree;    // Enable I/O
+   
+   WorkloadManager *fWMgr;   // Workload manager
    GeantOutput *
                fOutput;      // Output object
    
@@ -61,8 +62,6 @@ public:
    TStopwatch      *fTimer;     // Timer
    TGeoHMatrix    **fMatrix;    //![fMaxThreads] Transformation matrix for each thread
    TGeoVolume     **fVolume;    //![fMaxThreads] Volumes for each thread
-   GeantVolumeBasket *fCurrentBasket; //! Current basket (to be removed) !!!!!
-   GeantVolumeBasket **fBasketArray; //![number of volumes] Array of baskets
    
    PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack     **fTracks;    //![fMaxTracks]  Array of tracks
@@ -98,7 +97,6 @@ public:
                                    Bool_t single=kFALSE,
                                    Double_t vertx=0., Double_t verty=0., Double_t vertz=0.);
    void             SelectTracksForProcess(Int_t iproc, Int_t ntotransport, Int_t *particles, Int_t &ntodo, Int_t *parttodo);
-   void             SortBaskets(Int_t *index);
    ClassDef(GeantPropagator, 1)
 };
 #endif

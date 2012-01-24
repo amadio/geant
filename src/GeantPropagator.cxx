@@ -52,185 +52,9 @@
 #include "sync_objects.h"
 #include "PhysicsProcess.h"
 #include "GeantVolumeBasket.h"
+#include "WorkloadManager.h"
 
 GeantPropagator *gPropagator = 0;
-
-concurrent_queue<int> *feeder_queue;
-concurrent_queue<int> *answer_queue;
-
-//______________________________________________________________________________
-void InitFunctions()
-{
-// Initialize arrays of pointers to functions per process.
-   feeder_queue = new concurrent_queue<int>(true);
-   answer_queue = new concurrent_queue<int>;
-}
-
-//______________________________________________________________________________
-void *TransportTracks(void *)
-{
-// Thread propagating all tracks from a basket.
-   Int_t tid = TGeoManager::ThreadId();
-   GeantPropagator *propagator = GeantPropagator::Instance();
-   Int_t nprocesses = propagator->fNprocesses;
-   Bool_t useDebug = propagator->fUseDebug;
-   GeantTrack **tracks = propagator->fTracks;
-//   Printf("(%d) WORKER started", tid);
-   // Create navigator if none serving this thread.
-   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   if (!nav) nav = gGeoManager->AddNavigator();
-
-   Int_t indmin, indmax;
-   Int_t ntotnext, ntmp, ntodo, ncross, cputime, ntotransport;
-   GeantTrack *track = 0;
-   Int_t itrack;
-   Int_t *particles = 0;
-   Int_t *partnext  = 0;
-   Int_t *parttodo  = 0;
-   Int_t *partcross = 0;
-   Int_t generation = 0;
-   GeantVolumeBasket *basket = 0;
-   while (gPropagator->fCurrentBasket) {
-      feeder_queue->wait_and_pop(ntmp);
-//      Printf("Popped %d\n", ntmp);
-//      bufferStart->Receive();
-      basket = gPropagator->fCurrentBasket;
-      gPropagator->fVolume[tid] = basket->GetVolume();
-      ntotransport = basket->GetNtracks();  // all tracks to be transported      
-      if (!ntotransport) goto finish;
-      // Work splitting per thread
-      basket->GetWorkload(indmin, indmax);
-      ntotransport = indmax-indmin;
-      if (!ntotransport) goto finish;      
-//      Printf("(%d) ================= BASKET %s: %d tracks (%d-%d)", tid, basket->GetName(), ntotransport, indmin,indmax);
-      particles = propagator->fPartInd[tid]->GetArray();
-      partnext  = propagator->fPartNext[tid]->GetArray();
-      parttodo  = gPropagator->fPartTodo[tid]->GetArray();
-      partcross = gPropagator->fPartCross[tid]->GetArray();
-      memcpy(particles, &basket->GetIndArray()[indmin], ntotransport*sizeof(Int_t));
-//      PrintParticles(particles, ntotransport, tid);
-      ntotnext = 0;
-      ntmp = 0;
-      ntodo = 0;
-      ncross = 0;
-      cputime = 0.;   
-      generation = 0;
-      track = 0;
-      while (ntotransport) {
-         generation++;
-         // Loop all tracks to generate physics/geometry steps
-         // Physics step
-         if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, particles, tid);
-         // Geometry snext and safety
-         basket->ComputeTransportLength(ntotransport, particles);
-         // Propagate tracks with physics step and check if they survive boundaries 
-         // or physics
-         ntmp = ntotransport;
-         ntodo = ntotransport;
-         ntotnext = 0;
-         Int_t *ptrParticles = particles;
-         // Propagate all tracks alive with physics step.
-         // If a boundary is encountered before the physics step, stop the track
-         if (useDebug) Printf("(%d) --- propagating %d tracks for volume basket %s", tid, ntodo, basket->GetName());
-         while (ntodo) {
-            ntodo = 0;
-            ncross = 0;
-            // Propagate ALL ntmp tracks
-            basket->PropagateTracks(ntmp, ptrParticles, ntotnext, partnext, ntodo, parttodo, ncross, partcross);
-//            printf("(%d) %s   ->crossing particles (%d): ",tid, basket->GetName(), ncross); 
-//            for (Int_t ii=0; ii<ncross; ii++) printf("%d ", partcross[ii]);
-//            printf("\n(%d) %s   ->remaining particles (%d): ", tid, basket->GetName(), ntotnext);
-//            for (Int_t ii=0; ii<ntotnext; ii++) printf("%d ", partnext[ii]);
-//            printf("\n(%d) %s   ->todo particles (%d): ", tid, basket->GetName(),ntodo);
-//            for (Int_t ii=0; ii<ntodo; ii++) printf("%d ", parttodo[ii]);
-//            printf("\n");
-            // Post-step actions by continuous processes for particles reaching boundaries
-            if (propagator->fUsePhysics && ncross) {
-               for (Int_t iproc=0; iproc<nprocesses; iproc++) {
-                  if (propagator->Process(iproc)->IsType(PhysicsProcess::kDiscrete)) continue;
-                  Int_t nafter = 0;
-                  gPropagator->Process(iproc)->PostStep(gPropagator->fVolume[tid], ncross, partcross, nafter, NULL,tid);
-                  basket->ResetStep(ncross, partcross);
-               }   
-            }      
-            ntmp = ntodo;
-            ptrParticles = parttodo;
-         }
-        
-         // Copy only tracks that survived boundaries (well we will have to think of
-         // those too, like passing them to the next volume...)
-         memcpy(particles, partnext, ntotnext*sizeof(Int_t));
-         ntotransport = ntotnext;
-            
-         // Do post-step actions on remaining particles
-         ntotnext = 0;
-         // Loop all processes to group particles per process
-         if (propagator->fUsePhysics && ntotransport) {
-            // Apply continuous processes to all particles
-            for (Int_t iproc=0; iproc<nprocesses; iproc++) {
-               if (propagator->Process(iproc)->IsType(PhysicsProcess::kDiscrete)) continue;
-               ntodo = 0;
-               gPropagator->Process(iproc)->PostStep(gPropagator->fVolume[tid], ntotransport, particles, ntodo, parttodo, tid);
-               // Do we have stopped particles ?
-               if (ntodo<ntotransport) {
-                  memcpy(particles, parttodo, ntodo*sizeof(Int_t));
-                  ntotransport = ntodo;
-               }
-            } 
-            // Copy al tracks for which step was limited by a continuous process
-            // to the next array
-            for (Int_t itr=0; itr<ntotransport; itr++) {
-               if (propagator->Process(tracks[particles[itr]]->process)->IsType(PhysicsProcess::kContinuous))
-                  partnext[ntotnext++] = particles[itr];
-            }      
-            // Discrete processes only
-            for (Int_t iproc=0; iproc<nprocesses; iproc++) {
-               // Make arrays of particles per process -> ntodo, parttodo
-               if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) continue;
-               ntodo = 0;
-               propagator->SelectTracksForProcess(iproc, ntotransport, particles, ntodo, parttodo);
-               if (!ntodo) continue;
-               if (gPropagator->fPartTodo[tid]->GetSize()-ntodo<500) {
-                  gPropagator->fPartTodo[tid]->Set(2*gPropagator->fPartTodo[tid]->GetSize());
-                  parttodo  = gPropagator->fPartTodo[tid]->GetArray();
-               }   
-               // Do post step actions for particles suffering a given process.
-               // Surviving particles are added to the next array
-      //         Printf("PostStep for proc %d: %d particles:\n", iproc, ntodo);
-               gPropagator->Process(iproc)->PostStep(gPropagator->fVolume[tid], ntodo, parttodo, ntotnext, partnext,tid);
-               if (gPropagator->fPartNext[tid]->GetSize()-ntotnext<500) {
-                  gPropagator->fPartNext[tid]->Set(2*gPropagator->fPartNext[tid]->GetSize());
-                  partnext  = gPropagator->fPartNext[tid]->GetArray();
-                  propagator->fPartInd[tid]->Set(2*propagator->fPartInd[tid]->GetSize());
-                  particles = propagator->fPartInd[tid]->GetArray();
-               }   
-            }
-            memcpy(particles, partnext, ntotnext*sizeof(Int_t));
-            ntotransport = ntotnext;
-         }
-         // I/O: Dump current generation
-//         Printf("   ### Generation %d:  %d tracks  cputime=%f", generation, ntotransport,cputime);
-         if (propagator->fFillTree) {
-            cputime = gPropagator->fTimer->CpuTime();
-            gPropagator->fOutput->SetStamp(basket->GetVolume()->GetNumber(), propagator->fBasketGeneration, generation, ntotransport, cputime);
-            for (itrack=0; itrack<ntotransport;itrack++) {
-               track = tracks[particles[itrack]];
-               gPropagator->fOutput->SetTrack(itrack, track);
-            }   
-            gPropagator->fOutTree->Fill();
-         }
-      }   
-
-finish:
-      // the last thread to finish wakes up the main thread
-      // ... then go to sleep
-      // Checkpoint. 
-//      Printf("Thread %d finished", tid);
-      answer_queue->push(tid);
-//      bufferStop->StartN();
-   }
-   return 0;
-}
    
 ClassImp(GeantPropagator)
 
@@ -246,13 +70,11 @@ GeantPropagator::GeantPropagator()
                  fNsafeSteps(0),
                  fNsnextSteps(0),
                  fNprocesses(3),
-                 fNbaskets(0),
                  fElossInd(0),
                  fNstart(0),
                  fMaxTracks(100000),
                  fMaxThreads(100),
                  fNminThreshold(10),
-                 fBasketGeneration(0),
                  fDebugTrk(-1),
                  fMaxSteps(10000),
                  fNaverage(0.),
@@ -264,6 +86,7 @@ GeantPropagator::GeantPropagator()
                  fTransportOngoing(kFALSE),
                  fSingleTrack(kFALSE),
                  fFillTree(kFALSE),
+                 fWMgr(0),
                  fOutput(0),
                  fKineTF1(0),
                  fOutTree(0),
@@ -271,8 +94,6 @@ GeantPropagator::GeantPropagator()
                  fTimer(0),
                  fMatrix(0),
                  fVolume(0),
-                 fCurrentBasket(0),
-                 fBasketArray(0),
                  fProcesses(0),
                  fTracks(0),
                  fDblArray(0),
@@ -327,10 +148,6 @@ GeantPropagator::~GeantPropagator()
       for (i=0; i<fNthreads; i++) delete fPartCross[i];
       delete [] fPartCross;
    }  
-   if (fBasketArray) {
-      for (i=0; i<fNbaskets; i++) delete fBasketArray[i];
-      delete [] fBasketArray;
-   }   
    if (fFieldPropagator) {
       for (i=0; i<fNthreads; i++) delete fFieldPropagator[i];
       delete fFieldPropagator;
@@ -340,6 +157,9 @@ GeantPropagator::~GeantPropagator()
       delete fRotation;
    }
    delete fOutput;
+   delete fOutFile;
+   delete fTimer;
+   delete fWMgr;
 }
 
 //______________________________________________________________________________
@@ -524,8 +344,7 @@ void GeantPropagator::Initialize()
          fFieldPropagator[i]->SetField(0,0,fBmag, kFALSE);
       }
    }      
-   delete fOutFile;
-   delete fTimer;
+   fWMgr = WorkloadManager::Instance(fNthreads);
 }
 
 //______________________________________________________________________________
@@ -537,7 +356,7 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
    if (geom) {
       // Create the basket array
       Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
-      fBasketArray = new GeantVolumeBasket*[nvols];
+      fWMgr->CreateBaskets(nvols);
       return kTRUE;
    }   
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
@@ -594,7 +413,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 // Propagate fNevents in the volume containing the vertex. 
 // Simulate 2 physics processes up to exiting the current volume.
    static Bool_t called=kFALSE;
-   Int_t ipop;
    fNthreads = nthreads;
    fSingleTrack = single;
    Initialize();
@@ -602,9 +420,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
       Printf("Sorry, you can call this only once per session.");
       return;
    }
-   called = kTRUE;   
-   // Initialize pointers to functions
-   InitFunctions();
+   called = kTRUE;
+   
    // Initialize vertex
    fVertex[0] = vertx;
    fVertex[1] = verty;
@@ -640,7 +457,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    
    // Create the main volume basket
    GeantVolumeBasket *basket = ImportTracks(fNevents, fNaverage);
-   fBasketArray[fNbaskets++] = basket;
+//   fBasketArray[fNbaskets++] = basket;
+   fWMgr->AddBasket(basket);
 
    // Initialize tree
    fOutput = new GeantOutput();
@@ -650,22 +468,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
       fOutTree = new TTree("TK","Transport track data");
       fOutTree->Branch("gen", &fOutput);
    }
-   
-   // Initialize threads
-   TThread *t;
-   TList *listThreads = new TList();
-   listThreads->SetOwner();
-   for (Int_t ith=0; ith<fNthreads; ith++) {
-      t = new TThread(TransportTracks);
-      listThreads->Add(t);
-   } 
-   Bool_t threadsStarted = kFALSE;
-   
-   
+      
    // Loop baskets and transport particles until there is nothing to transport anymore
    fTransportOngoing = kTRUE;
    gGeoManager->SetMultiThread(kTRUE);
-   Int_t nbaskets, nb0, ntrackgen;
    fTimer = new TStopwatch();
    fTimer->Start();
    while (fTransportOngoing) {
@@ -674,82 +480,16 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
          break;
       }    
       fTransportOngoing = kFALSE;
-      nbaskets = fNbaskets;
-      // Loop current generation of baskets
-      Int_t *index = new Int_t[nbaskets];
-      SortBaskets(index);
-      Bool_t useThreshold = kFALSE;
-      Int_t nbtrue = 0;
-      if (fBasketArray[index[0]]->GetNtracks()>fNminThreshold) useThreshold = kTRUE;
-      nb0 = 0;
-      ntrackgen = 0;
-      for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
-         Int_t ntracks = fBasketArray[index[ibasket]]->GetNtracks();
-         if (!ntracks) continue;
-         if (useThreshold && ntracks<fNminThreshold) continue;
-         ntrackgen += ntracks;
-         nb0++;
-      }   
-      if (nbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s) ####", fBasketGeneration, ntrackgen, nb0, nbaskets, fBasketArray[index[0]]->GetName());
-      for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
-         fCurrentBasket = fBasketArray[index[ibasket]];
-         Int_t ntracks = fCurrentBasket->GetNtracks();
-         if (!ntracks) continue;
-         if (useThreshold && ntracks<fNminThreshold) {
-            if (ntracks) fTransportOngoing=kTRUE;
-            continue;
-         }   
-         if (graphics) {
-            if (ibasket < 102) {
-               hbaskets->Fill(ibasket,ntracks);
-               hbaskets->SetTitle(Form("baskets population for generation %d, volume = %s",fBasketGeneration,fCurrentBasket->GetName()));
-               pad2->Modified();
-               c1->Update();
-            }
-         } else {
-//            fCurrentBasket->Print();
-         }
-         nbtrue++;
-         // Start threaded transport
-//         fCurrentBasket->TransportTracks();
-//         Printf("CURRENT BASKET: %s", fCurrentBasket->GetName());
-//         fCurrentBasket->Print();
-         if (!threadsStarted) {
-            for (Int_t ith=0; ith<fNthreads; ith++) {
-               t = (TThread*)listThreads->At(ith);
-               t->Run();
-            }
-//         TThread::Sleep(0,2000000);
-            threadsStarted = kTRUE;
-         }
-         // Put the object in buffer for N threads
-//         bufferStart->Start();
-         Int_t nchunk = ntracks/fNthreads;
-         Int_t nworkers = fNthreads;
-         if (!nchunk) nworkers = ntracks;
-         for (Int_t iwork=0; iwork<nworkers; iwork++) feeder_queue->push(iwork);
-//         Printf("== %d objects put by main thread", nworkers);
-         // Retreive the result
-         while(nworkers) {
-            answer_queue->wait_and_pop(ipop);
-//            Printf("Worker %d finished", ipop);
-            nworkers--;
-         }   
-//         bufferStop->ReceiveN();
-         fCurrentBasket->Clear();
-//         Printf("== basket cleared");
-//         TThread::Sleep(0,2000000);
-      }
-      delete [] index;
-      if (graphics) {
-         hnb->Fill(fBasketGeneration,nbtrue);
-         pad1->Modified();
-         hbaskets->Reset();
-      }
-      fBasketGeneration++;
-   }      
+      // Select baskets to be transported
+      fWMgr->SelectBaskets();
+      // Process current generation
+      fWMgr->QueueBaskets();
+      // Wait for work do get done
+      fWMgr->WaitWorkers();
+      // Clear transported baskets
+      fWMgr->ClearBaskets();
+   }   
    fTimer->Stop();
-   gTimeCounter.Print();
    if (fFillTree) fOutTree->AutoSave();
    delete fOutFile;
    Double_t rtime = fTimer->RealTime();
@@ -762,7 +502,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,rtime,ctime);
    fclose(fp);
-   delete listThreads;
    fOutFile = 0;
    fOutTree = 0;
 }
@@ -774,18 +513,6 @@ void GeantPropagator::SelectTracksForProcess(Int_t iproc, Int_t ntotransport, In
    for (Int_t itr=0; itr<ntotransport; itr++)
       if (fTracks[particles[itr]]->process == iproc) parttodo[ntodo++] = particles[itr];
 }
-
-//______________________________________________________________________________
-void GeantPropagator::SortBaskets(Int_t *index)
-{
-// Sort baskets in decreasing number of particles. The order is set in the provided index array of size fNbaskets minimum.
-   if (fNbaskets<1) return;
-   Int_t *ipart = new Int_t[fNbaskets];
-   ipart[0] = 0;
-   for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) ipart[ibasket] = fBasketArray[ibasket]->GetNtracks();
-   TMath::Sort(fNbaskets, ipart, index, kTRUE);
-   delete [] ipart;
-}   
 
 //______________________________________________________________________________
 Bool_t DrawData(Int_t color = kRed)
