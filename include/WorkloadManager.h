@@ -47,9 +47,11 @@ public:
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
    void                SetCurrentBasket(Int_t tid, GeantVolumeBasket *basket) {fCurrentBasket[tid]=basket;}
    GeantVolumeBasket  *GetCurrentBasket(Int_t tid) const {return fCurrentBasket[tid];}
+   void                Print();
    void                SortBaskets();
    void                SelectBaskets();
    void                StartThreads();
+   void                JoinThreads();
    static void        *TransportTracks(void *arg);
    void                WaitWorkers();
    

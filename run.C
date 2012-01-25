@@ -1,4 +1,4 @@
-void run(const char *geomfile="geometry.root", Int_t nthreads=4)
+void run(const char *geomfile="http://root.cern.ch/files/cms.root", Int_t nthreads=4)
 {
    gSystem->Load("libPhysics.so");
    gSystem->Load("libHist.so");
@@ -9,8 +9,9 @@ void run(const char *geomfile="geometry.root", Int_t nthreads=4)
    
    GeantPropagator *prop = GeantPropagator::Instance();
    prop->fNevents  = 1;     // Number of events to be transported
-   prop->fNaverage = 100;   // Average number of tracks per event
+   prop->fNaverage = 1000;   // Average number of tracks per event
    prop->PropagatorGeom(geomfile, nthreads);
+   delete prop;
 }   
    
    

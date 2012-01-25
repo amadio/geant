@@ -80,6 +80,13 @@ void WorkloadManager::ClearBaskets()
 }   
 
 //______________________________________________________________________________
+void WorkloadManager::Print()
+{
+//
+   feeder_queue->Print();
+}   
+
+//______________________________________________________________________________
 void WorkloadManager::QueueBaskets()
 {
 // Queue all baskets in the current generation. Note that workers will start as
@@ -146,6 +153,14 @@ void WorkloadManager::StartThreads()
 }   
 
 //______________________________________________________________________________
+void WorkloadManager::JoinThreads()
+{
+// 
+   for (Int_t ith=0; ith<fNthreads; ith++) feeder_queue->push(0);
+   for (Int_t ith=0; ith<fNthreads; ith++) ((TThread*)fListThreads->At(ith))->Join();
+}
+   
+//______________________________________________________________________________
 void WorkloadManager::WaitWorkers()
 {
 // Waiting point for the main thread until work gets done.
@@ -184,6 +199,7 @@ void *WorkloadManager::TransportTracks(void *)
 
    while (1) {
       basket = wm->FeederQueue()->wait_and_pop();
+      if (!basket) return 0;
       wm->SetCurrentBasket(tid,basket);
 //      Printf("Popped %d\n", ntmp);
 //      bufferStart->Receive();

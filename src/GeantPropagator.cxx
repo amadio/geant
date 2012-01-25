@@ -495,9 +495,14 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Double_t rtime = fTimer->RealTime();
    Double_t ctime = fTimer->CpuTime();
    fTimer->Print();
+   Double_t speedup = ctime/rtime;
+   Double_t efficiency = speedup/nthreads;
+   fWMgr->Print();
+   fWMgr->JoinThreads();
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
    Printf("=== Transported: %lld,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", fNtransported, fNsafeSteps, fNsnextSteps,rtime,ctime);
+   Printf("   nthreads=%d  speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,rtime,ctime);

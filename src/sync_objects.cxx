@@ -21,6 +21,7 @@ TimeCounter::TimeCounter()
 //______________________________________________________________________________
 void TimeCounter::operator++() {
 // Increment
+   TThread::Lock();
    timer.Stop();
    Double_t now = timer.RealTime();
    realtime[nthreads] += now-stamp;
@@ -28,11 +29,13 @@ void TimeCounter::operator++() {
    stamp = now;
 //      Printf("%d: %f", nthreads, stamp);
    timer.Continue();
+   TThread::UnLock();
 }   
 
 //______________________________________________________________________________
 void TimeCounter::operator--() {
 // Decrement
+   TThread::Lock();
    timer.Stop();
    Double_t now = timer.RealTime();
    if (nthreads>0) {
@@ -42,6 +45,7 @@ void TimeCounter::operator--() {
    }   
 //      Printf("%d: %f", nthreads, stamp);
    timer.Continue();
+   TThread::UnLock();
 }
 
 //______________________________________________________________________________
@@ -55,11 +59,12 @@ void TimeCounter::Print()
    for (i=0; i<100; i++) {
       if (realtime[i]<0.00001) continue;
       npoints++;
-      Printf("%d: real: %f", i, realtime[i]);
       sum += realtime[i];
    }
+   Printf("== Percentage of time spent with N threads running (0 = main thread) ==");
    for (i=0; i<npoints; i++) {
       realtime[i] /= sum;
+      Printf("%d:  %f%%", i, 100.*realtime[i]);
    }   
    TCanvas *c1 = new TCanvas("c1","Time spent in workers",200,10,700,500);
    c1->SetFillColor(42);
@@ -73,8 +78,8 @@ void TimeCounter::Print()
    h1->SetMinimum(0);
    h1->SetMaximum(1);
    h1->Fill("MT", realtime[0]);
-   h1->GetXaxis()->SetBinLabel(1,"MT");
-   for (i=1; i<=npoints; i++) {
+   h1->GetXaxis()->SetBinLabel(1,(new TString("MT"))->Data());
+   for (i=2; i<=npoints; i++) {
       TString *s = new TString(Form("%d",i-1));
       h1->Fill(s->Data(), realtime[i-1]);
       h1->GetXaxis()->SetBinLabel(i,s->Data());
@@ -125,8 +130,8 @@ GeantVolumeBasket *concurrent_queue::try_pop() {
 
 //______________________________________________________________________________
 GeantVolumeBasket *concurrent_queue::wait_and_pop() {
-   the_mutex.Lock();
    if (the_counter) --(*the_counter);
+   the_mutex.Lock();
    while(the_queue.empty()) {
 //         Printf("WAITING");
       the_condition_variable.Wait();
