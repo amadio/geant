@@ -185,7 +185,10 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
          }   
       }
    }   
-   if (!entering) checked = path->GetNode(level+1);
+   if (!entering) {
+      checked = path->GetNode(level+1);
+      if (!checked) return 0;
+   }   
    nav->MasterToLocal(&xpos, local);
    nav->MasterToLocalVect(dir, ldir);
    if (entering) {
