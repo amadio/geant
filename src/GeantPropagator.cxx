@@ -471,7 +471,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
       
    // Loop baskets and transport particles until there is nothing to transport anymore
    fTransportOngoing = kTRUE;
-   gGeoManager->SetMultiThread(kTRUE);
+   gGeoManager->SetMaxThreads(nthreads);
+//   gGeoManager->SetMultiThread(kTRUE);
    fTimer = new TStopwatch();
    fTimer->Start();
    while (fTransportOngoing) {

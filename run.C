@@ -1,4 +1,4 @@
-void run(const char *geomfile="http://root.cern.ch/files/cms.root", Int_t nthreads=4)
+void run(Int_t nthreads=4, const char *geomfile="http://root.cern.ch/files/cms.root")
 {
    gSystem->Load("libPhysics.so");
    gSystem->Load("libHist.so");
