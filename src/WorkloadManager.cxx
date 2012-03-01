@@ -176,6 +176,8 @@ void WorkloadManager::WaitWorkers()
 void *WorkloadManager::TransportTracks(void *)
 {
 // Thread propagating all tracks from a basket.
+//      char slist[256];
+//      TString sslist;
    Int_t indmin, indmax;
    Int_t ntotnext, ntmp, ntodo, ncross, cputime, ntotransport;
    GeantTrack *track = 0;
@@ -217,6 +219,10 @@ void *WorkloadManager::TransportTracks(void *)
       partcross = gPropagator->fPartCross[tid]->GetArray();
       memcpy(particles, &basket->GetIndArray()[indmin], ntotransport*sizeof(Int_t));
 //      PrintParticles(particles, ntotransport, tid);
+//      sprintf(slist,"Thread #%d transporting %d tracks in basket %s: ", tid, ntotransport, basket->GetName());
+//      sslist = slist;
+//      for (Int_t ip=0; ip<ntotransport; ip++) {sprintf(slist,"%d ",particles[ip]), sslist += slist;}
+//      Printf("%s", sslist.Data());
       ntotnext = 0;
       ntmp = 0;
       ntodo = 0;

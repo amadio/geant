@@ -33,7 +33,9 @@ GeantTrack::GeantTrack(Int_t ipdg)
             safety(0), 
             frombdr(false), 
             izero(0), 
-            nsteps(0)
+            nsteps(0),
+            path(0),
+            pending(false)
 {
 // Constructor
    path = new TGeoBranchArray();
@@ -236,10 +238,12 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = 0;
    if (!vol->GetField()) {
+      TThread::Lock();
       basket = new GeantVolumeBasket(vol);
       vol->SetField(basket);
       gPropagator->fWMgr->AddBasket(basket);
-   } 
+      TThread::UnLock();
+   }
    basket = (GeantVolumeBasket*)vol->GetField();
    basket->AddPendingTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket

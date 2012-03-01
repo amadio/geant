@@ -8,10 +8,9 @@ void run(Int_t nthreads=4, const char *geomfile="http://root.cern.ch/files/cms.r
    gSystem->Load("libGeant.so");
    
    GeantPropagator *prop = GeantPropagator::Instance();
-   prop->fNevents  = 1;     // Number of events to be transported
-   prop->fNaverage = 1000;   // Average number of tracks per event
+   prop->fNevents  = 10;     // Number of events to be transported
+   prop->fNaverage = 10000;   // Average number of tracks per event
    prop->PropagatorGeom(geomfile, nthreads);
-   delete prop;
 }   
    
    

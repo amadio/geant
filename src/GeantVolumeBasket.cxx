@@ -96,7 +96,15 @@ void GeantVolumeBasket::AddPendingTrack(Int_t itrack)
       fPending = pending;
       fMaxPending *= 2;
    }
+   GeantTrack *track = gPropagator->fTracks[itrack];
+   if (track->pending) {
+      Printf("track %d for basket %s already pending for path:", itrack, fVolume->GetName());
+      track->path->Print();
+//      *(int*)0=0;
+   }
+   track->pending = true;
    fPending[fNpending++] = itrack;
+//   Printf("track %d pending to %s", itrack, fVolume->GetName());
    TThread::UnLock();     
 }      
 
@@ -105,10 +113,7 @@ void GeantVolumeBasket::AddTrack(Int_t itrack)
 {
 // Add a track and its path to the basket.
    TThread::Lock();
-   if (!fNtracks) {
-      fIndex = new Int_t[fMaxTracks];
-      fIndex[fNtracks] = itrack;
-   }
+   if (!fNtracks) fIndex = new Int_t[fMaxTracks];
    fIndex[fNtracks] = itrack;
    fNtracks++;
    // Increase arrays of tracks and path indices if needed
@@ -227,6 +232,9 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
       // Skip neutral tracks for the time being (!!!)
       if (!track->charge) continue;
       if (!track->IsAlive()) continue;
+      if (track->pending) {
+         continue;
+      }   
       track->nsteps++;
       if (track->nsteps > gPropagator->fMaxSteps) {
          track->Kill();
@@ -411,6 +419,11 @@ void GeantVolumeBasket::Prepare()
    }
    memcpy(fIndex, fPending, fNpending*sizeof(Int_t));
    fNtracks = fNpending;
+   GeantTrack *track;
+   for (Int_t i=0; i<fNtracks; i++) {
+      track = gPropagator->fTracks[fIndex[i]];
+      track->pending = false;
+   }   
    fNpending = 0;   
 }
 
