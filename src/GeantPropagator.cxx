@@ -194,8 +194,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
    TGeoNode *node = gGeoManager->FindNode(fVertex[0], fVertex[1], fVertex[2]);
    *fMatrix[tid] = gGeoManager->GetCurrentMatrix();
    fVolume[tid] = node->GetVolume();
-   GeantVolumeBasket *basket = new GeantVolumeBasket(fVolume[tid]);
-   fVolume[tid]->SetField(basket);
+   GeantVolumeBasket *basket = (GeantVolumeBasket*)fVolume[tid]->GetField();
    TGeoBranchArray a;
    a.InitFromNavigator(gGeoManager->GetCurrentNavigator());
    
@@ -356,7 +355,7 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
    if (geom) {
       // Create the basket array
       Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
-      fWMgr->CreateBaskets(nvols);
+      fWMgr->CreateBaskets(2*nvols);
       return kTRUE;
    }   
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
@@ -458,7 +457,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    // Create the main volume basket
    GeantVolumeBasket *basket = ImportTracks(fNevents, fNaverage);
 //   fBasketArray[fNbaskets++] = basket;
-   fWMgr->AddBasket(basket);
+//   fWMgr->AddBasket(basket);
 
    // Initialize tree
    fOutput = new GeantOutput();

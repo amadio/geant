@@ -78,7 +78,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    safety = 0;
    // Change path to reflect the physical volume for the current track;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//   Int_t tid = nav->GetThreadId();
+   Int_t tid = nav->GetThreadId();
    path->UpdateNavigator(nav);
    nav->SetOutside(kFALSE);
    nav->SetStep(crtstep);
@@ -103,14 +103,9 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    path->InitFromNavigator(nav);
    TGeoVolume *vol = nav->GetCurrentVolume();
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
-   GeantVolumeBasket *basket = 0;
-   if (!vol->GetField()) {
-      basket = new GeantVolumeBasket(vol);
-      vol->SetField(basket);
-      gPropagator->fWMgr->AddBasket(basket);
-   } 
-   basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddPendingTrack(itr);
+   GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
+   gPropagator->fWMgr->AddPendingTrack(itr, basket, tid);
+//   basket->AddPendingTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket
    gPropagator->fTransportOngoing = kTRUE;
    if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==itr || gPropagator->fDebugTrk<0)) {
@@ -236,16 +231,9 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    // Create a new branch array
    path->InitFromNavigator(nav);
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
-   GeantVolumeBasket *basket = 0;
-   if (!vol->GetField()) {
-      TThread::Lock();
-      basket = new GeantVolumeBasket(vol);
-      vol->SetField(basket);
-      gPropagator->fWMgr->AddBasket(basket);
-      TThread::UnLock();
-   }
-   basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddPendingTrack(itr);
+   GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
+   gPropagator->fWMgr->AddPendingTrack(itr, basket, tid);
+//   basket->AddPendingTrack(itr);
    // Signal that the transport is still ongoing if the particle entered a new basket
    gPropagator->fTransportOngoing = kTRUE;
 //   if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {

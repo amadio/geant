@@ -8,6 +8,7 @@
 #include "sync_objects.h"
  
 class GeantVolumeBasket;
+class GeantParticleBuffer;
 
 // Main work manager class. This creates and manages all the worker threads,
 // has pointers to the synchronization objects, but also to the currently
@@ -29,13 +30,15 @@ protected:
    concurrent_queue  *answer_queue;           // answer queue
    static WorkloadManager *fgInstance;        // Singleton instance
    GeantVolumeBasket **fCurrentBasket;        // Current basket transported per thread
-   TList              *fListThreads;          // List of threads
+   TList             *fListThreads;          // List of threads
    GeantVolumeBasket **fBasketArray; //![number of volumes] Array of baskets
+   GeantParticleBuffer *fBuffer;     // Buffer of pending particles
 
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
    void                AddBasket(GeantVolumeBasket *basket) {fBasketArray[fNbaskets++]=basket;}
+   void                AddPendingTrack(Int_t itrack, GeantVolumeBasket *basket, Int_t tid);
    void                CreateBaskets(Int_t nvolumes);
    concurrent_queue   *FeederQueue() const {return feeder_queue;}
    concurrent_queue   *AnswerQueue() const {return answer_queue;}
@@ -45,6 +48,7 @@ public:
    void                ClearBaskets();
    void                QueueBaskets();
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
+   GeantParticleBuffer *GetBuffer() const {return fBuffer;}
    void                SetCurrentBasket(Int_t tid, GeantVolumeBasket *basket) {fCurrentBasket[tid]=basket;}
    GeantVolumeBasket  *GetCurrentBasket(Int_t tid) const {return fCurrentBasket[tid];}
    void                Print();

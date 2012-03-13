@@ -6,6 +6,7 @@
 #include "TGeoManager.h"
 #include "TGeoNavigator.h"
 #include "GeantVolumeBasket.h"
+#include "GeantParticleBuffer.h"
 #include "GeantOutput.h"
 #include "PhysicsProcess.h"
 
@@ -22,7 +23,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fBasketGeneration = 0;
    fNbasketgen = 0;
    fNidle = nthreads;
-   fNminThreshold = 10;
+   fNminThreshold = 50;
    fNqueued = 0;
    fBindex = 0;
    fStarted = kFALSE;
@@ -32,6 +33,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fCurrentBasket = new GeantVolumeBasket*[nthreads];
    fListThreads = 0;
    fBasketArray = 0;
+   fBuffer = new GeantParticleBuffer(nthreads, 100000);
 }
 
 //______________________________________________________________________________
@@ -46,8 +48,16 @@ WorkloadManager::~WorkloadManager()
       delete [] fBasketArray;
    }   
    delete [] fBindex;
+   delete fBuffer;
    fgInstance = 0;
 }
+
+//______________________________________________________________________________
+void WorkloadManager::AddPendingTrack(Int_t itrack, GeantVolumeBasket *basket, Int_t tid)
+{
+// Add a pending track.
+   fBuffer->AddPendingTrack(itrack, basket, tid);
+}   
 
 //______________________________________________________________________________
 void WorkloadManager::CreateBaskets(Int_t nvolumes)
@@ -55,6 +65,14 @@ void WorkloadManager::CreateBaskets(Int_t nvolumes)
 // Create the array of baskets
    if (fBasketArray) return;
    fBasketArray = new GeantVolumeBasket*[nvolumes];
+   TIter next(gGeoManager->GetListOfVolumes());
+   TGeoVolume *vol;
+   GeantVolumeBasket *basket;
+   while ((vol=(TGeoVolume*)next())) {
+      basket = new GeantVolumeBasket(vol);
+      vol->SetField(basket);
+      AddBasket(basket);
+   }
    fBindex = new Int_t[nvolumes];
 }
    
@@ -73,10 +91,11 @@ WorkloadManager *WorkloadManager::Instance(Int_t nthreads)
 //______________________________________________________________________________
 void WorkloadManager::ClearBaskets()
 {
-// Clear all active particles from the transported baskets. Pending particles 
-// are not flushed by this.
+// Clear all active particles from the transported baskets. Also flush all 
+// pending particles
    for (Int_t ibasket=0; ibasket<fNbasketgen; ibasket++)
       fBasketArray[fBindex[ibasket]]->Clear();
+   fBuffer->FlushBaskets();   
 }   
 
 //______________________________________________________________________________
@@ -95,7 +114,7 @@ void WorkloadManager::QueueBaskets()
    Int_t nchunks;
    for (Int_t ibasket=0; ibasket<fNbasketgen; ibasket++) {
       basket = fBasketArray[fBindex[ibasket]];
-      basket->Prepare();
+//      basket->Prepare();
       nchunks = basket->GetNchunks(fNthreads);
       for (Int_t ichunk=0; ichunk<nchunks; ichunk++) {
          fNqueued++;
@@ -109,20 +128,25 @@ void WorkloadManager::SelectBaskets()
 {
 // Select the list of baskets to be transported in the current generation.
 // Called by main thread.
-   SortBaskets();
-   Bool_t useThreshold = kFALSE;
-   if (fBasketArray[fBindex[0]]->GetNtotal()>fNminThreshold) useThreshold = kTRUE;
+//   SortBaskets();
+//   Bool_t useThreshold = kFALSE;
+//   if (fBasketArray[fBindex[0]]->GetNtotal()>fNminThreshold) useThreshold = kTRUE;
    fNbasketgen = 0;
    Int_t ntrackgen = 0;
+   Int_t indmax = 0;
+   Int_t nmax = 0;
    for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) {
-      Int_t ntracks = fBasketArray[fBindex[ibasket]]->GetNtotal();
-      if (!ntracks) break;
-      if (useThreshold && ntracks<fNminThreshold) continue;
+      Int_t ntracks = fBasketArray[ibasket]->GetNtotal();
+      if (ntracks<fNminThreshold) continue;
+      fBindex[fNbasketgen++] = ibasket;
       ntrackgen += ntracks;
-      fNbasketgen++;
+      if (ntracks>nmax) {
+         nmax = ntracks;
+         indmax = ibasket;
+      }   
    }
    if (!fStarted) StartThreads();
-   if (fNbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s) ####", fBasketGeneration, ntrackgen, fNbasketgen, fNbaskets, fBasketArray[fBindex[0]]->GetName());
+   if (fNbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s) ####", fBasketGeneration, ntrackgen, fNbasketgen, fNbaskets, fBasketArray[indmax]->GetName());
 }   
 
 //______________________________________________________________________________
@@ -130,11 +154,11 @@ void WorkloadManager::SortBaskets()
 {
 // Sort baskets in decreasing number of particles. The order is set in the provided index array of size fNbaskets minimum.
    if (fNbaskets<1) return;
-   Int_t *ipart = new Int_t[fNbaskets];
-   ipart[0] = 0;
-   for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) ipart[ibasket] = fBasketArray[ibasket]->GetNtotal();
-   TMath::Sort(fNbaskets, ipart, fBindex, kTRUE);
-   delete [] ipart;
+   Int_t *array = new Int_t[fNbaskets];
+   array[0] = 0;
+   for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) array[ibasket] = fBasketArray[ibasket]->GetNtotal();
+   TMath::Sort(fNbaskets, array, fBindex, kTRUE);
+   delete [] array;
 }   
    
 //______________________________________________________________________________
