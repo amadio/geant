@@ -38,7 +38,7 @@ GeantTrack::GeantTrack(Int_t ipdg)
             pending(false)
 {
 // Constructor
-   path = new TGeoBranchArray();
+   path = new TGeoBranchArray(30);
 }
 
 //______________________________________________________________________________

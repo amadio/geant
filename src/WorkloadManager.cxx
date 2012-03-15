@@ -145,8 +145,21 @@ void WorkloadManager::SelectBaskets()
          indmax = ibasket;
       }   
    }
+   if (!fNbasketgen) {
+      Printf("Garbage collection");
+      for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) {
+         Int_t ntracks = fBasketArray[ibasket]->GetNtotal();
+         if (!ntracks) continue;
+         if (ntracks>nmax) {
+            nmax = ntracks;
+            indmax = ibasket;
+         }
+         fBindex[fNbasketgen++] = ibasket;
+         ntrackgen += ntracks;
+      }   
+   }
    if (!fStarted) StartThreads();
-   if (fNbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s) ####", fBasketGeneration, ntrackgen, fNbasketgen, fNbaskets, fBasketArray[indmax]->GetName());
+   if (fNbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s - %d tracks) ####", fBasketGeneration, ntrackgen, fNbasketgen, fNbaskets, fBasketArray[indmax]->GetName(), nmax);
 }   
 
 //______________________________________________________________________________
