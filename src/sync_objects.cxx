@@ -5,30 +5,45 @@
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TString.h"
+#include "TStopwatch.h"
 #include "GeantVolumeBasket.h"
 
 //______________________________________________________________________________
-TimeCounter::TimeCounter()
+TimeCounter::TimeCounter(bool measure_time)
+            :nthreads(0),
+             timer(0),
+             stamp(0)
 {
 // ctor
-      timer.Start();
-      timer.Stop();
-      nthreads = 0;
-      stamp = timer.RealTime();
+   if (measure_time) {
+      timer = new TStopwatch();
+      timer->Start();
+      timer->Stop();
+      stamp = timer->RealTime();
       memset(realtime, 0, 100*sizeof(Double_t));
+   }
+}
+
+//______________________________________________________________________________
+TimeCounter::~TimeCounter()
+{
+// destructor.
+   delete timer;
 }
 
 //______________________________________________________________________________
 void TimeCounter::operator++() {
 // Increment
    TThread::Lock();
-   timer.Stop();
-   Double_t now = timer.RealTime();
-   realtime[nthreads] += now-stamp;
+   if (timer) {
+      timer->Stop();
+      Double_t now = timer->RealTime();
+      realtime[nthreads] += now-stamp;
+      stamp = now;
+      timer->Continue();
+   }
    nthreads++;
-   stamp = now;
 //      Printf("%d: %f", nthreads, stamp);
-   timer.Continue();
    TThread::UnLock();
 }   
 
@@ -36,15 +51,19 @@ void TimeCounter::operator++() {
 void TimeCounter::operator--() {
 // Decrement
    TThread::Lock();
-   timer.Stop();
-   Double_t now = timer.RealTime();
-   if (nthreads>0) {
-      realtime[nthreads] += now-stamp;
-      nthreads--;
-      stamp = now;
+   if (timer) {
+      timer->Stop();
+      Double_t now = timer->RealTime();
+      if (nthreads>0) {
+         realtime[nthreads] += now-stamp;
+         nthreads--;
+         stamp = now;
+      }   
+      timer->Continue();
+   } else {
+      if (nthreads>0) nthreads--;
    }   
 //      Printf("%d: %f", nthreads, stamp);
-   timer.Continue();
    TThread::UnLock();
 }
 
@@ -52,7 +71,8 @@ void TimeCounter::operator--() {
 void TimeCounter::Print()
 {
 // Draw timing statistics.
-   timer.Stop();
+   if (!timer) return;
+   timer->Stop();
    Int_t npoints = 0;
    Double_t sum = 0.;
    Int_t i;
@@ -95,11 +115,19 @@ concurrent_queue::concurrent_queue(bool counter)
                   the_counter(0)
 {
 // Concurrent queue constructor.
-   if (counter) the_counter = new TimeCounter();
+   the_counter = new TimeCounter(counter);
 }
-                     
+
 //______________________________________________________________________________
-void concurrent_queue::push(GeantVolumeBasket *data) {
+concurrent_queue::~concurrent_queue()
+{
+// destructor
+   delete the_counter;
+}   
+
+//______________________________________________________________________________
+void concurrent_queue::push(GeantVolumeBasket *data) 
+{
    the_mutex.Lock();
    the_queue.push(data);
 //      Printf("PUSHED basket %s", data->GetName());
@@ -108,7 +136,8 @@ void concurrent_queue::push(GeantVolumeBasket *data) {
 }
 
 //______________________________________________________________________________
-bool concurrent_queue::empty() const {
+Bool_t concurrent_queue::empty() const 
+{
    the_mutex.Lock();
    bool is_empty = the_queue.empty();
    the_mutex.UnLock();
@@ -116,7 +145,8 @@ bool concurrent_queue::empty() const {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *concurrent_queue::try_pop() {
+GeantVolumeBasket *concurrent_queue::try_pop() 
+{
    the_mutex.Lock();
    if(the_queue.empty()) {
       the_mutex.UnLock();
@@ -129,8 +159,9 @@ GeantVolumeBasket *concurrent_queue::try_pop() {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *concurrent_queue::wait_and_pop() {
-   if (the_counter) --(*the_counter);
+GeantVolumeBasket *concurrent_queue::wait_and_pop() 
+{
+   --(*the_counter);
    the_mutex.Lock();
    while(the_queue.empty()) {
 //         Printf("WAITING");
@@ -140,7 +171,7 @@ GeantVolumeBasket *concurrent_queue::wait_and_pop() {
    GeantVolumeBasket *popped_value=the_queue.front();
    the_queue.pop();
 //   Printf("Popped basket %s", popped_value->GetName());
-   if (the_counter) ++(*the_counter);
+   ++(*the_counter);
    the_mutex.UnLock();
    return popped_value;
 }

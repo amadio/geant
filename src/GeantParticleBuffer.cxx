@@ -1,5 +1,6 @@
 #include "GeantParticleBuffer.h"
 
+#include "TThread.h"
 #include "GeantVolumeBasket.h"
 
 ClassImp(GeantParticleBuffer)
@@ -8,6 +9,7 @@ ClassImp(GeantParticleBuffer)
 GeantParticleBuffer::GeantParticleBuffer(Int_t nthreads, Int_t max_pending)
                     :TObject(),
                      fNthreads(nthreads),
+                     fCrtFlushed(0),
                      fMaxPending(max_pending),
                      fNpending(0),
                      fTrackInd(0),
@@ -51,15 +53,20 @@ void GeantParticleBuffer::AddPendingTrack(Int_t itrack, GeantVolumeBasket *baske
 }
 
 //______________________________________________________________________________
-void GeantParticleBuffer::FlushBaskets()
+Bool_t GeantParticleBuffer::FlushBaskets()
 {
-// Flush all baskets. To be called by a single thread.
-   for (Int_t tid=0; tid<fNthreads; tid++) {
-      for (Int_t itrack=0; itrack<fNpending[tid]; itrack++) {
-         fBaskets[tid][itrack]->AddTrack(fTrackInd[tid][itrack]);
-      }
-      fNpending[tid] = 0;
+// Flush all baskets filled by thread tid.
+   Int_t tid;
+   TThread::Lock();
+   tid = fCrtFlushed++;
+   TThread::UnLock();
+   if (tid>=fNthreads) return kTRUE;
+//   Printf("flushing %d tracks produced by thread %d", fNpending[tid],tid);
+   for (Int_t itrack=0; itrack<fNpending[tid]; itrack++) {
+      fBaskets[tid][itrack]->AddTrack(fTrackInd[tid][itrack]);
    }
+   fNpending[tid] = 0;
+   return kFALSE;
 }   
 
 //______________________________________________________________________________

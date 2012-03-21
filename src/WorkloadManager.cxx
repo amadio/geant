@@ -1,5 +1,6 @@
 #include "WorkloadManager.h"
 
+#include "TStopwatch.h"
 #include "TList.h"
 #include "TTree.h"
 #include "TThread.h"
@@ -23,9 +24,8 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fBasketGeneration = 0;
    fNbasketgen = 0;
    fNidle = nthreads;
-   fNminThreshold = 50;
+   fNminThreshold = 10;
    fNqueued = 0;
-   fBindex = 0;
    fStarted = kFALSE;
    feeder_queue = new concurrent_queue(true);
    answer_queue = new concurrent_queue;
@@ -34,6 +34,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fListThreads = 0;
    fBasketArray = 0;
    fBuffer = new GeantParticleBuffer(nthreads, 100000);
+   fFlushed = kFALSE;
 }
 
 //______________________________________________________________________________
@@ -47,7 +48,6 @@ WorkloadManager::~WorkloadManager()
       for (Int_t i=0; i<fNbaskets; i++) delete fBasketArray[i];
       delete [] fBasketArray;
    }   
-   delete [] fBindex;
    delete fBuffer;
    fgInstance = 0;
 }
@@ -73,7 +73,6 @@ void WorkloadManager::CreateBaskets(Int_t nvolumes)
       vol->SetField(basket);
       AddBasket(basket);
    }
-   fBindex = new Int_t[nvolumes];
 }
    
 //______________________________________________________________________________
@@ -89,16 +88,6 @@ WorkloadManager *WorkloadManager::Instance(Int_t nthreads)
 }
 
 //______________________________________________________________________________
-void WorkloadManager::ClearBaskets()
-{
-// Clear all active particles from the transported baskets. Also flush all 
-// pending particles
-   for (Int_t ibasket=0; ibasket<fNbasketgen; ibasket++)
-      fBasketArray[fBindex[ibasket]]->Clear();
-   fBuffer->FlushBaskets();   
-}   
-
-//______________________________________________________________________________
 void WorkloadManager::Print()
 {
 //
@@ -106,22 +95,13 @@ void WorkloadManager::Print()
 }   
 
 //______________________________________________________________________________
-void WorkloadManager::QueueBaskets()
+void WorkloadManager::InterruptBasket(GeantVolumeBasket *basket, Int_t *trackin, Int_t ntracks, Int_t tid)
 {
-// Queue all baskets in the current generation. Note that workers will start as
-// soon as the first chunk gets pushed in the queue.
-   GeantVolumeBasket *basket = 0;
-   Int_t nchunks;
-   for (Int_t ibasket=0; ibasket<fNbasketgen; ibasket++) {
-      basket = fBasketArray[fBindex[ibasket]];
-//      basket->Prepare();
-      nchunks = basket->GetNchunks(fNthreads);
-      for (Int_t ichunk=0; ichunk<nchunks; ichunk++) {
-         fNqueued++;
-         feeder_queue->push(basket);
-      }   
-   }
-}   
+// Interrupt transporting a given basket. This has to be correlated with the fact
+// that there are too many idle workers and the work queue is not filling.
+   for (Int_t itr=0; itr<ntracks; itr++) AddPendingTrack(trackin[itr], basket, tid);
+   basket->Clear();
+}
    
 //______________________________________________________________________________
 void WorkloadManager::SelectBaskets()
@@ -130,48 +110,56 @@ void WorkloadManager::SelectBaskets()
 // Called by main thread.
 //   SortBaskets();
 //   Bool_t useThreshold = kFALSE;
-//   if (fBasketArray[fBindex[0]]->GetNtotal()>fNminThreshold) useThreshold = kTRUE;
+   static Int_t collect=0;
+   fFilling = kTRUE;
+   if (!fStarted) StartThreads();
+   Int_t nchunks;
+   GeantVolumeBasket *basket = 0;
    fNbasketgen = 0;
    Int_t ntrackgen = 0;
    Int_t indmax = 0;
    Int_t nmax = 0;
-   for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) {
-      Int_t ntracks = fBasketArray[ibasket]->GetNtotal();
-      if (ntracks<fNminThreshold) continue;
-      fBindex[fNbasketgen++] = ibasket;
-      ntrackgen += ntracks;
-      if (ntracks>nmax) {
-         nmax = ntracks;
-         indmax = ibasket;
-      }   
-   }
-   if (!fNbasketgen) {
-      Printf("Garbage collection");
+   if (collect<5) {
       for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) {
-         Int_t ntracks = fBasketArray[ibasket]->GetNtotal();
-         if (!ntracks) continue;
+         basket = fBasketArray[ibasket];
+         Int_t ntracks = basket->GetNtotal();
+         if (ntracks<fNminThreshold) continue;
+         collect = 0;
+         fNbasketgen++;
+         nchunks = basket->GetNchunks(fNthreads);
+         ntrackgen += ntracks;
          if (ntracks>nmax) {
             nmax = ntracks;
             indmax = ibasket;
          }
-         fBindex[fNbasketgen++] = ibasket;
+         for (Int_t ichunk=0; ichunk<nchunks; ichunk++) {
+            fNqueued++;
+            feeder_queue->push(basket);
+         }
+      }   
+   }
+   if (!fNbasketgen) {
+      collect++;
+      Printf("Garbage collection");
+      for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) {
+         basket = fBasketArray[ibasket];
+         Int_t ntracks = basket->GetNtotal();
+         if (!ntracks) continue;
+         fNbasketgen++;
+         nchunks = basket->GetNchunks(fNthreads);
          ntrackgen += ntracks;
+         if (ntracks>nmax) {
+            nmax = ntracks;
+            indmax = ibasket;
+         }
+         for (Int_t ichunk=0; ichunk<nchunks; ichunk++) {
+            fNqueued++;
+            feeder_queue->push(basket);
+         }
       }   
    }
    if (!fStarted) StartThreads();
-   if (fNbaskets) Printf("#### GENERATION #%04d (%05d part) OF %04d/%04d VOLUME BASKETS, (TOP= %s - %d tracks) ####", fBasketGeneration, ntrackgen, fNbasketgen, fNbaskets, fBasketArray[indmax]->GetName(), nmax);
-}   
-
-//______________________________________________________________________________
-void WorkloadManager::SortBaskets()
-{
-// Sort baskets in decreasing number of particles. The order is set in the provided index array of size fNbaskets minimum.
-   if (fNbaskets<1) return;
-   Int_t *array = new Int_t[fNbaskets];
-   array[0] = 0;
-   for (Int_t ibasket=0; ibasket<fNbaskets; ibasket++) array[ibasket] = fBasketArray[ibasket]->GetNtotal();
-   TMath::Sort(fNbaskets, array, fBindex, kTRUE);
-   delete [] array;
+   if (fNbaskets) Printf("#### GENERATION #%04d (%05d tracks/%04d chunks) IN %04d VOLUME BASKETS, (TOP= %s - %d tracks) ####", fBasketGeneration, ntrackgen, fNqueued, fNbasketgen, fBasketArray[indmax]->GetName(), nmax);
 }   
    
 //______________________________________________________________________________
@@ -201,6 +189,7 @@ void WorkloadManager::JoinThreads()
 void WorkloadManager::WaitWorkers()
 {
 // Waiting point for the main thread until work gets done.
+   fFilling = kFALSE;
    while(fNqueued) {
       answer_queue->wait_and_pop();
       fNqueued--;
@@ -215,6 +204,7 @@ void *WorkloadManager::TransportTracks(void *)
 // Thread propagating all tracks from a basket.
 //      char slist[256];
 //      TString sslist;
+   const Int_t max_idle = 1;
    Int_t indmin, indmax;
    Int_t ntotnext, ntmp, ntodo, ncross, cputime, ntotransport;
    GeantTrack *track = 0;
@@ -224,6 +214,7 @@ void *WorkloadManager::TransportTracks(void *)
    Int_t *parttodo  = 0;
    Int_t *partcross = 0;
    Int_t generation = 0;
+   Bool_t lastToClear = kFALSE;
    GeantVolumeBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantPropagator *propagator = GeantPropagator::Instance();
@@ -238,6 +229,7 @@ void *WorkloadManager::TransportTracks(void *)
 
    while (1) {
       basket = wm->FeederQueue()->wait_and_pop();
+      lastToClear = kFALSE;
       if (!basket) return 0;
       wm->SetCurrentBasket(tid,basket);
 //      Printf("Popped %d\n", ntmp);
@@ -247,6 +239,8 @@ void *WorkloadManager::TransportTracks(void *)
       if (!ntotransport) goto finish;
       // Work splitting per thread
       basket->GetWorkload(indmin, indmax);
+      // Check if basket was fully distributed
+      if (indmax == ntotransport) lastToClear = kTRUE;
       ntotransport = indmax-indmin;
       if (!ntotransport) goto finish;      
 //      Printf("(%d) ================= BASKET %s: %d tracks (%d-%d)", tid, basket->GetName(), ntotransport, indmin,indmax);
@@ -268,6 +262,14 @@ void *WorkloadManager::TransportTracks(void *)
       generation = 0;
       track = 0;
       while (ntotransport) {
+         // Interrupt condition here. Work stealing could be also implemented here...
+         if (!wm->IsFilling() && wm->FeederQueue()->empty()) {
+            Int_t nworkers = wm->FeederQueue()->assigned_workers();
+            if (wm->GetNthreads()-nworkers > max_idle) {
+               Printf("Interrupting transport of %d tracks in %s", ntotransport, basket->GetName());
+               wm->InterruptBasket(basket, particles, ntotransport, tid);
+            }
+         }            
          generation++;
          // Loop all tracks to generate physics/geometry steps
          // Physics step
@@ -377,6 +379,16 @@ finish:
       // ... then go to sleep
       // Checkpoint. 
 //      Printf("Thread %d finished", tid);
+      if (lastToClear) basket->Clear();
+//      if (wm->FeederQueue()->empty()) {
+//         while (!wm->IsCleared()) wm->ClearBaskets();
+//         TThread::Lock();
+//         while (!wm->IsFlushed()) {
+//            wm->SetFlushed(wm->GetBuffer()->FlushBaskets());
+//         }   
+//         Printf("worker %d finished. Queue empty.", tid);
+//         TThread::UnLock();
+//      }
       wm->AnswerQueue()->push(basket);
 //      bufferStop->StartN();
    }

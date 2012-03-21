@@ -53,6 +53,7 @@
 #include "PhysicsProcess.h"
 #include "GeantVolumeBasket.h"
 #include "WorkloadManager.h"
+#include "GeantParticleBuffer.h"
 
 GeantPropagator *gPropagator = 0;
    
@@ -480,14 +481,16 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
          break;
       }    
       fTransportOngoing = kFALSE;
-      // Select baskets to be transported
+      // Select baskets to be transported and start transport
       fWMgr->SelectBaskets();
-      // Process current generation
-      fWMgr->QueueBaskets();
       // Wait for work do get done
       fWMgr->WaitWorkers();
       // Clear transported baskets
-      fWMgr->ClearBaskets();
+      fWMgr->SetFlushed(kFALSE);
+      while (!fWMgr->IsFlushed()) {      
+         fWMgr->SetFlushed(fWMgr->GetBuffer()->FlushBaskets());
+      }   
+      fWMgr->GetBuffer()->Reset();
    }   
    fTimer->Stop();
    if (fFillTree) fOutTree->AutoSave();

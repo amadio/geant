@@ -17,41 +17,47 @@ class GeantParticleBuffer;
 //______________________________________________________________________________
 class WorkloadManager : public TObject {
 protected:
-   Int_t              fNthreads;              // number of managed threads
-   Int_t              fNbaskets;              // total number of baskets
-   Int_t              fBasketGeneration;      // basket generation
-   Int_t              fNbasketgen;            // number of baskets to transport in the current generation
-   Int_t              fNidle;                 // number of idle workers
-   Int_t              fNminThreshold;         // Minimum number of tracks in a basket to trigger transport
-   Int_t              fNqueued;               // Number of chunks queued
-   Int_t             *fBindex;                // array of basket indices in the current generation
-   Bool_t             fStarted;               // Start flag
-   concurrent_queue  *feeder_queue;           // workload queue
-   concurrent_queue  *answer_queue;           // answer queue
-   static WorkloadManager *fgInstance;        // Singleton instance
-   GeantVolumeBasket **fCurrentBasket;        // Current basket transported per thread
-   TList             *fListThreads;          // List of threads
-   GeantVolumeBasket **fBasketArray; //![number of volumes] Array of baskets
-   GeantParticleBuffer *fBuffer;     // Buffer of pending particles
+   Int_t              fNthreads;           // number of managed threads
+   Int_t              fNbaskets;           // total number of baskets
+   Int_t              fBasketGeneration;   // basket generation
+   Int_t              fNbasketgen;         // number of baskets to transport in the current generation
+   Int_t              fNidle;              // number of idle workers
+   Int_t              fNminThreshold;      // Minimum number of tracks in a basket to trigger transport
+   Int_t              fNqueued;            // Number of chunks queued
+   Int_t             *fBtogo;              // array of baskets to be processed in the next generation
+   Bool_t             fStarted;            // Start flag
+   concurrent_queue  *feeder_queue;        // workload queue
+   concurrent_queue  *answer_queue;        // answer queue
+   static WorkloadManager *fgInstance;     // Singleton instance
+   GeantVolumeBasket **fCurrentBasket;     // Current basket transported per thread
+   TList             *fListThreads;        // List of threads
+   GeantVolumeBasket **fBasketArray;       //![number of volumes] Array of baskets
+   GeantParticleBuffer *fBuffer;           // Buffer of pending particles
+   Bool_t             fFlushed;            // Buffer flushed
+   Bool_t             fFilling;            // Worker queue is filling
 
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
    void                AddBasket(GeantVolumeBasket *basket) {fBasketArray[fNbaskets++]=basket;}
    void                AddPendingTrack(Int_t itrack, GeantVolumeBasket *basket, Int_t tid);
+   void                InterruptBasket(GeantVolumeBasket *basket, Int_t *trackin, Int_t ntracks, Int_t tid);
    void                CreateBaskets(Int_t nvolumes);
    concurrent_queue   *FeederQueue() const {return feeder_queue;}
    concurrent_queue   *AnswerQueue() const {return answer_queue;}
    
+   Int_t               GetNthreads() const {return fNthreads;}
    static WorkloadManager *
                        Instance(Int_t nthreads=0);
-   void                ClearBaskets();
-   void                QueueBaskets();
+   Bool_t              IsFlushed() const {return fFlushed;}
+   Bool_t              IsFilling() const {return fFilling;}
+   void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
    GeantParticleBuffer *GetBuffer() const {return fBuffer;}
    void                SetCurrentBasket(Int_t tid, GeantVolumeBasket *basket) {fCurrentBasket[tid]=basket;}
    GeantVolumeBasket  *GetCurrentBasket(Int_t tid) const {return fCurrentBasket[tid];}
    void                Print();
+   void                SetNminThreshold(Int_t thr) {fNminThreshold = thr;}
    void                SortBaskets();
    void                SelectBaskets();
    void                StartThreads();

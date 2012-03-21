@@ -3,7 +3,7 @@ ObjSuf        = o
 DllSuf        = so
 OutPutOpt     = -o # keep whitespace after "-o"
 
-OPT           = -O3
+OPT           = -O2
 
 CXX           = g++
 CXXFLAGS      = $(OPT) -Wall -fPIC

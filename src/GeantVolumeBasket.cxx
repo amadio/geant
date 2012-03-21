@@ -22,10 +22,12 @@ GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol)
                    fNtracks(0),
                    fFirstFree(0),
                    fMaxTracks(10),
-                   fIndex(0)
+                   fIndex(0),
+                   fAdded(kFALSE)
 {
 // Constructor
-}                   
+   fIndex = new Int_t[fMaxTracks];
+}
 
 //______________________________________________________________________________
 GeantVolumeBasket::~GeantVolumeBasket()
@@ -83,10 +85,8 @@ void GeantVolumeBasket::GetWorkload(Int_t &indmin, Int_t &indmax)
 void GeantVolumeBasket::AddTrack(Int_t itrack)
 {
 // Add a track and its path to the basket.
-//   TThread::Lock();
-   if (!fNtracks) fIndex = new Int_t[fMaxTracks];
-   fIndex[fNtracks] = itrack;
-   fNtracks++;
+   TThread::Lock();
+   fIndex[fNtracks++] = itrack;
    // Increase arrays of tracks and path indices if needed
    if (fNtracks == fMaxTracks) {
       Int_t *newindex = new Int_t[2*fMaxTracks];
@@ -95,7 +95,7 @@ void GeantVolumeBasket::AddTrack(Int_t itrack)
       fIndex = newindex;
       fMaxTracks *= 2;
    }   
-//   TThread::UnLock();   
+   TThread::UnLock();   
 }     
 
 //______________________________________________________________________________

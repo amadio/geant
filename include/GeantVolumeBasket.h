@@ -20,6 +20,7 @@ protected:
    Int_t             fFirstFree;             // First un-processed track
    Int_t             fMaxTracks;             // Max number of tracks
    Int_t            *fIndex;                 //[fNtracks] Track indices in the global stack
+   Bool_t            fAdded;                 // Basket was added to next generation
 
 public:
    GeantVolumeBasket(TGeoVolume *vol);
