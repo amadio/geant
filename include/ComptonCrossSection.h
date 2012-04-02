@@ -14,6 +14,8 @@ class TGeoElement;
 class TGeoMaterial; 
 // class ParticleType;
 
+class TRandom; 
+
 class ComptonCrossSection  // : TNamed()
 {
 // methods
@@ -23,7 +25,8 @@ class ComptonCrossSection  // : TNamed()
                                     Double_t kinEnergyT); 
 
    const TGeoElement* SelectRandomAtom(const TGeoMaterial& tMaterial,
-                                       Double_t kinEnergyT ); 
+                                       Double_t  kinEnergyT, 
+                                       TRandom   *rngEngine );
                                    //  Double_t tcut, Double_t tmax);
 
    ComptonCrossSection(); 

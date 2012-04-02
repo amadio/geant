@@ -10,6 +10,7 @@
 class TGeoVolume;
 class GeantTrack;
 class ComptonCrossSection; 
+class TRandom; 
 
 #include "PhysicsProcess.h"
 #include "TGeoMaterial.h"
@@ -50,8 +51,8 @@ public:
                              TLorentzVector&       gamma4Mom,     // In/Out: 4-mom of gamma
                              // Int_t&                 electronOut,   // Out: true if secondary created
                              TLorentzVector&       electron4Mom,  // Out: 4-mom of outgoing e-
-                             Double_t&             enDeposit);    // Out: Energy Deposit
-
+                             // Double_t&             enDeposit,     // Out: Energy Deposit
+                             TRandom*             fRndEngine); 
 private:
   ComptonCrossSection   *fComptonXS; 
   Double_t               fTcut;
