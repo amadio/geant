@@ -22,10 +22,13 @@
 #include "TLorentzVector.h"
 #include "TVector3.h"
 
+#include "WorkloadManager.h"   
 #include "ComptonCrossSection.h"    // For ComptonCrossSection - not separate
 #include "TAtomicShells.h" 
 
-#include <cstdio>
+#include "physical_constants.h"  
+
+#include <iostream>
 
 ClassImp(GammaCompton)
 
@@ -112,10 +115,10 @@ void GammaCompton::PostStep(TGeoVolume *vol,
    // Double_t p;
    Double_t     *rndArray = &gPropagator->fDblArray[2*tid*ntracks];
    // Int_t        irnd = 0;
-   TRandom      *fRndEngine= gPropagator->fRndm[tid]; 
+   TRandom      *RngEngine= gPropagator->fRndm[tid]; 
    TGeoMaterial *tMaterial = vol->GetMaterial();
 
-   fRndEngine->RndmArray(2*ntracks, rndArray);
+   RngEngine->RndmArray(2*ntracks, rndArray);
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track  = gPropagator->fTracks[itrack];
@@ -124,12 +127,11 @@ void GammaCompton::PostStep(TGeoVolume *vol,
          //  Only if Compton limited the step does it create a secondary
          TLorentzVector  gamma4m(  track->px, track->py, track->pz, track->e);
          TLorentzVector  electron4m( 0.0, 0.0, 0.0, 0.0);            //  
-         // Int_t           electronOut;   -> Always creates 'out' electron
-         Double_t        enDeposit; 
-         SampleSecondaries( *tMaterial, 
-                            gamma4m,      // electronOut, 
-                            electron4m, 
-                            enDeposit ); 
+         // Int_t           electronOut;  CHANGED -> Always creates 'out' electron
+         // Double_t        enDeposit; 
+
+         SampleSecondaries( *tMaterial, gamma4m, electron4m, RngEngine ); 
+         //****************
 
          if( 1 ) //  ( electron4m.E > E_threshold )
          {            
@@ -164,9 +166,10 @@ void GammaCompton::PostStep(TGeoVolume *vol,
                Int_t itracknew = gPropagator->AddTrack(eTrk);
                trackout[nout] = itracknew;
                nout++;
-               // if (gPropagator->fWMgr->GetCurrentBasket(tid)) 
-               //    gPropagator->fWMgr->GetCurrentBasket(tid)->AddPendingTrack(itracknew);
-               std::cout << " WANT to add gamma of Energy= " << eTrk->e << " to stack. " << std::endl;
+               // std::cout << " WANT to add gamma of Energy= " << eTrk->e << " to stack. " << std::endl;
+
+               GeantVolumeBasket *basket = gPropagator->fWMgr->GetCurrentBasket(tid);
+               if (basket) gPropagator->fWMgr->AddPendingTrack(itracknew, basket, tid);
             }
          }
       }
@@ -176,211 +179,100 @@ void GammaCompton::PostStep(TGeoVolume *vol,
 
 
 
-//  Adapted from  G4KleinNishinaModel::SampleSecondaries()
+
+// Adapted from G4KleinNishinaCompton::SampleSecondaries 
+
 
 void GammaCompton::SampleSecondaries(
-                     const TGeoMaterial&   tMaterial,
-                     TLorentzVector&        gamma4Mom,     // In/Out: 4-mom of gamma
-                     // Int_t&                electronOut,   // Out: true if secondary created
-                     TLorentzVector&        electron4Mom,  // Out: 4-mom of outgoing e-
-                     Double_t&             enDeposit)     // Out: Energy Deposit
+			const TGeoMaterial&  tMaterial,
+     		        TLorentzVector&      gamma4Mom,     // In/Out: 4-mom of gamma
+                        TLorentzVector&      electron4Mom,  // Out: 4-mom of outgoing e-
+                        // Double_t&            enDeposit,     // Out: Energy Deposit - None
+                        TRandom*             RngEngine)
 {
-  // primary gamma
-  TVector3       direction= gamma4Mom.Vect(); 
-  Double_t       energy=    gamma4Mom.E(); 
-  TLorentzVector lv1, lv2; 
+  // The scattered gamma energy is sampled according to Klein - Nishina formula.
+  // The random number techniques of Butcher & Messel are used 
+  // (Nuc Phys 20(1960),15).
+  // Note : Effects due to binding of atomic electrons are negliged.
+ 
+  Double_t gamEnergy0 =  gamma4Mom.E(); 
 
-  const Int_t  MaxRandom= 12; 
-  Double_t     UniformRandom[MaxRandom]; 
-  Int_t randCount= 0; 
+  // extra protection
+  // if(gamEnergy0 < lowestGammaEnergy) {
+  //  fParticleChange->ProposeTrackStatus(fStopAndKill);
+  //  fParticleChange->ProposeLocalEnergyDeposit(gamEnergy0);
+  //  fParticleChange->SetProposedKineticEnergy(0.0);
+  //  return;
+  // }
 
-  // select atom
-  const TGeoElement* elm = fComptonXS->SelectRandomAtom(tMaterial, energy);
+  Double_t E0_m = gamEnergy0 / electron_mass_c2 ;
 
-  // select shell first
-  Int_t Z= elm->Z(); 
-  Int_t nShells = TAtomicShells::GetNumberOfShells(Z);
-  if(nShells > (Int_t) fProbabilities.size() ) { fProbabilities.resize(nShells); }
-  Double_t totprob = 0.0;
-  Int_t i;
+  TVector3 gamDirection0 = gamma4Mom.P(); // GetMomentumDirection();
 
-  for(i=0; i<nShells; ++i) {
-     Double_t bindingEnergy =  TAtomicShells::GetBindingEnergy(Z, i);
-     Double_t eth = sqrt(bindingEnergy*(bindingEnergy + electron_mass_c2)) -
-        0.5*(sqrt(bindingEnergy*(bindingEnergy + 2*electron_mass_c2)) - bindingEnergy);
-     Double_t prob = 1.0 - eth/energy;
-     if(prob > 0.0) { totprob += prob*TAtomicShells::GetNumberOfShellElectrons(i); } 
-     fProbabilities[i] = totprob; 
-  }
-  if(totprob == 0.0) { return; }
+  //
+  // sample the energy rate of the scattered gamma 
+  //
 
-  // Loop on sampling
-  Double_t eKinEnergy;
-  const Int_t nlooplim = 100;
-  Int_t nloop = 0;
-  Int_t firstGo = true;
+  Double_t epsilon, epsilonsq, onecost, sint2, greject ;
 
+  Double_t epsilon0   = 1./(1. + 2.*E0_m);
+  Double_t epsilon0sq = epsilon0*epsilon0;
+  Double_t alpha1     = - log(epsilon0);
+  Double_t alpha2     = 0.5*(1.- epsilon0sq);
+
+  const  Int_t RandsPerIter=3; 
+  Double_t     dUniformRand[RandsPerIter]; 
   do {
-    ++nloop;
+     RngEngine->RndmArray( RandsPerIter, dUniformRand );
+     if ( alpha1/(alpha1+alpha2) > dUniformRand[0] ) {
+        epsilon   = exp(-alpha1*dUniformRand[1]);   // epsilon0**r
+        epsilonsq = epsilon*epsilon; 
+     } else {
+        epsilonsq = epsilon0sq + (1.- epsilon0sq)*dUniformRand[1];
+        epsilon   = sqrt(epsilonsq);
+     };
+     
+     onecost = (1.- epsilon)/(epsilon*E0_m);
+     sint2   = onecost*(2.-onecost);
+     greject = 1. - epsilon*sint2/(1.+ epsilonsq);
+     
+  } while (greject < dUniformRand[2] );
+ 
+  // Accept/Reject is NOT well suited to Vectorisation
 
-    //  Retry 
-    const Int_t randsPerLoopIter= 5; 
-    if( firstGo || (randCount + randsPerLoopIter >= MaxRand) ) {
-       // Refill the Vector with Random numbers
-       fRndEngine->RndmArray( MaxRandom, UniformRand );
-       randCount=0; 
-       firstGo= false; 
-    }
+  Double_t  aUniformRand;
+  RngEngine->RndmArray( 1, &aUniformRand );
+  //
+  // scattered gamma angles. ( Z - axis along the parent gamma)
+  //
 
-    Double_t xprob = totprob*UniformRandom[randCount++];    // Rand #1
-
-    // select shell
-    for(i=0; i<nShells; ++i) { if(xprob <= fProbabilities[i]) {break;} }
+  if(sint2 < 0.0) { sint2 = 0.0; }
+  Double_t cosTeta = 1. - onecost; 
+  Double_t sinTeta = sqrt (sint2);
+  Double_t Phi     = 2.0 * PI * aUniformRand;
+  //
+  // update G4VParticleChange for the scattered gamma
+  //
    
-    Double_t bindingEnergy = elm->GetAtomicShell(i);
+  TVector3 gamDirection1(sinTeta*cos(Phi), sinTeta*sin(Phi), cosTeta);
+  gamDirection1.RotateUz(gamDirection0);
+  Double_t gamEnergy1 = epsilon*gamEnergy0;   // Final Energy of Gamma
 
-    // shortcut if the loop is too long
-    if(nloop >= nlooplim) {
-      lv1.set(0.0,0.0,0.0,0.0);
-      eKinEnergy = energy - bindingEnergy;
-      if(eKinEnergy < 0.0) { eKinEnergy = 0.0; }
-      Double_t eTotMomentum = sqrt(eKinEnergy*(eKinEnergy + 2*electron_mass_c2));
-      Double_t phi = UniformRandom[randCount++]*twopi;      // Rand #2
-      Double_t costet = 2*UniformRand[randCount++] - 1;     // Rand #3
-      Double_t sintet = sqrt((1 - costet)*(1 + costet));
-      lv2.set(eTotMomentum*sintet*cos(phi),eTotMomentum*sintet*sin(phi),
-	      eTotMomentum*costet,eKinEnergy + electron_mass_c2);
-      break;
-    }
+  TVector3 gamMomentum= gamEnergy1 * gamDirection1; 
+  gamma4Mom.SetPxPyPzE( gamMomentum.X(), gamMomentum.Y(), gamMomentum.Z(), gamEnergy1 );
 
-    Double_t limitEnergy = limitFactor*bindingEnergy;
-    Double_t gamEnergy0 = energy;
-    lv1.set(0.0,0.0,energy,energy);
-
-    //std::cout << "nShells= " << nShells << " i= " << i 
-    //   << " Egamma= " << energy << " Ebind= " << bindingEnergy
-    //   << " Elim= " << limitEnergy 
-    //   << std::endl;
-
-    // for low energy rest frame of the electron
-    if(energy < limitEnergy) { 
-      Double_t eTotMomentum = sqrt(bindingEnergy*(bindingEnergy + 2*electron_mass_c2));
-      Double_t phi = UniformRand[randCount++]*twopi;              // Rand #4
-      Double_t costet = 2*UniformRand[randCount++] - 1;           // Rand #5
-      Double_t sintet = sqrt((1 - costet)*(1 + costet));
-      lv2.set(eTotMomentum*sintet*cos(phi),eTotMomentum*sintet*sin(phi),
-	      eTotMomentum*costet,bindingEnergy + electron_mass_c2);
-      bst = lv2.boostVector();
-      lv1.boost(-bst);
-      gamEnergy0 = lv1.e();
-    }
-
-    // In the rest frame of the electron
-    // The scattered gamma energy is sampled according to Klein - Nishina formula.
-    // The random number techniques of Butcher & Messel are used 
-    // (Nuc Phys 20(1960),15).
- 
-    Double_t E0_m = gamEnergy0/electron_mass_c2;
-
-    //
-    // sample the energy rate of the scattered gamma 
-    //
-
-    Double_t epsilon, epsilonsq, onecost, sint2, greject ;
-
-    Double_t epsilon0   = 1./(1 + 2*E0_m);
-    Double_t epsilon0sq = epsilon0*epsilon0;
-    Double_t alpha1     = - log(epsilon0);
-    Double_t alpha2     = 0.5*(1 - epsilon0sq);
-
-    do {
-       const Int_t randsPerIteration= 3; 
-       if( randCount + randsPerIteration >= MaxRand ) {
-          // Refill the Vector with Random numbers
-          fRndEngine->RndmArray( MaxRandom, UniformRand );
-          randCount=0; 
-       }
-
-       if ( alpha1/(alpha1+alpha2) > UniformRand[randCount++] ) {   // Rand A1
-          epsilon   = exp(-alpha1*UniformRand[randCount++]);        // Rand A2
-                            // epsilon0**r
-          epsilonsq = epsilon*epsilon; 
-
-       } else {                                                  // Rand A1'
-          epsilonsq = epsilon0sq + (1.- epsilon0sq)*UniformRand[randCount++];
-          epsilon   = sqrt(epsilonsq);
-       };
-
-       onecost = (1.- epsilon)/(epsilon*E0_m);
-       sint2   = onecost*(2.-onecost);
-       greject = 1. - epsilon*sint2/(1.+ epsilonsq);
-       
-    } while (greject < UniformRand[randCount++]);            // Rand A3  (max)
-
-    Double_t gamEnergy1 = epsilon*gamEnergy0;
- 
-    // before scattering total 4-momentum in e- system
-    lv2.set(0.0, 0.0, 0.0, electron_mass_c2);
-    lv2 += lv1;
- 
-    //
-    // scattered gamma angles. ( Z - axis along the parent gamma)
-    //
-    if(sint2 < 0.0) { sint2 = 0.0; }
-    Double_t cosTeta = 1. - onecost; 
-    Double_t sinTeta = sqrt(sint2);
-    Double_t Phi  = twopi * G4UniformRand();
-
-    // e- recoil
-    //
-    // in  rest frame of the electron
-    if(energy < limitEnergy) { 
-      TVector3 gamDir = lv1.Vect().unit();
-      TVector3 v = TVector3(sinTeta*cos(Phi),sinTeta*sin(Phi),cosTeta);
-      v.rotateUz(gamDir);
-      lv1.set(gamEnergy1*v.x(),gamEnergy1*v.y(),gamEnergy1*v.z(),gamEnergy1);
-      lv2 -= lv1;
-      //cout << "Egam= " << lv1.e() << "  Ee= " << lv2.e()-electron_mass_c2 << std::endl;
-      lv2.boost(bst);
-      lv1.boost(bst);
-      eKinEnergy = lv2.e() - electron_mass_c2 - 2*bindingEnergy;
-      
-    } else {
-      lv1.set(gamEnergy1*sinTeta*cos(Phi),gamEnergy1*sinTeta*sin(Phi),
-	      gamEnergy1*cosTeta,gamEnergy1);
-      lv2 -= lv1;
-      eKinEnergy = lv2.e() - electron_mass_c2 - bindingEnergy;
-    }
-   
-    // std::cout << "eKinEnergy= " << eKinEnergy << std::endl;
-
-  } while ( eKinEnergy < 0.0 );
-
-  //
-  //  Prepare the scattered gamma
-  //
-  Double_t gamEnergy1 = lv1.e();
-  TVector3 gamMomentum = lv1.Vect();
-  gamMomentum.rotateUz(direction);
-  gamma4Mom->SetPxPyPzE( gamMomentum.X(), gamMomentum.Y(), gamMomentum.Z(), gamEnergy1 );
-
-  //
   // kinematic of the scattered electron
   //
-  //  if(eKinEnergy > lowestGammaEnergy) {  .. leave the decision to calling method
-  TVector3 eMomentum = lv2.Vect();
-  eMomentum.rotateUz(direction);
-  // G4DynamicParticle* dp = new G4DynamicParticle(theElectron, eDirection, eKinEnergy);
-  electron4Mom->SetPxPyPzE( eMomentum.X(), eMomentum.Y(), eMomentum.Z(), eKinEnergy);
+  Double_t eKinEnergy = gamEnergy0 - gamEnergy1;
+  // eKinEnergy = max( 0.0, eKinEnergy ); 
 
-  enDeposit = energy - gamEnergy1 - eKinEnergy;
+  // Double_t eMomentumMag = sqrt( eKinEnergy * ( electron_restMass_c2+ 2.0* eKinEnergy  ) ); 
+  TVector3 eVector      = gamEnergy0*gamDirection0 - gamEnergy1*gamDirection1;
+  // In case of problem with rounding or units, can normalise and fix
+  //   eVector  = eVector.unit(); 
+  //   eVector *= eMomentumMag;     
   
-  // No sampling of deexcitation - at this stage   
-  //
-
-  // energy balance
-  if(edep < 0.0) { edep = 0.0; }
+  electron4Mom.SetPxPyPzE( eVector.X(), eVector.Y(), eVector.Z(), eKinEnergy+electron_mass_c2);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

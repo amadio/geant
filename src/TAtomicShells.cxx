@@ -12,7 +12,7 @@
 #include "TAtomicShells.h"
 #include <assert.h>
 
-const G4int
+const Int_t
 TAtomicShells::fNumberOfShells[101] = 
 {
  0 ,  // nonexisting zero element
@@ -46,7 +46,7 @@ TAtomicShells::fNumberOfShells[101] =
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-const G4int    
+const Int_t    
 TAtomicShells::fIndexOfShells[101] =
   {    0,
        1,    2,    3,    5,    7,   10,   13,   17,   21,   24,  
@@ -63,7 +63,7 @@ TAtomicShells::fIndexOfShells[101] =
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-const G4double
+const Double_t
 TAtomicShells::fBindingEnergies[1540] =
 {
   0.0 ,   // Nonexisting zero element
@@ -504,7 +504,7 @@ TAtomicShells::fBindingEnergies[1540] =
 
 };
 
-const G4int
+const Int_t
 TAtomicShells::fNumberOfElectrons[1540] =
 {
   0,   // Nonexisting zero element
@@ -712,8 +712,8 @@ TAtomicShells::fNumberOfElectrons[1540] =
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-G4int
-TAtomicShells::GetNumberOfShells(G4int Z)  
+Int_t
+TAtomicShells::GetNumberOfShells(Int_t Z)  
 {
   assert (Z>0 && Z<101);
   return fNumberOfShells[Z];
@@ -721,8 +721,8 @@ TAtomicShells::GetNumberOfShells(G4int Z)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-G4double 
-TAtomicShells::GetBindingEnergy(G4int Z, G4int ShellNb)
+Double_t 
+TAtomicShells::GetBindingEnergy(Int_t Z, Int_t ShellNb)
 {
   assert (Z>0 && Z<101 && ShellNb<fNumberOfShells[Z]);
   return fBindingEnergies[fIndexOfShells[Z] + ShellNb]*CLHEP::eV;
@@ -730,8 +730,8 @@ TAtomicShells::GetBindingEnergy(G4int Z, G4int ShellNb)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-G4int
-TAtomicShells::GetNumberOfElectrons(G4int Z, G4int ShellNb)
+Int_t
+TAtomicShells::GetNumberOfElectrons(Int_t Z, Int_t ShellNb)
 {
   assert (Z>0 && Z<101 && ShellNb<fNumberOfShells[Z]);
   return fNumberOfElectrons[fIndexOfShells[Z] + ShellNb];
@@ -739,14 +739,14 @@ TAtomicShells::GetNumberOfElectrons(G4int Z, G4int ShellNb)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-G4double TAtomicShells::GetTotalBindingEnergy (G4int Z)
+Double_t TAtomicShells::GetTotalBindingEnergy (Int_t Z)
 {
   assert (Z>=1 && Z<101);
   
-  G4int idx = fIndexOfShells[Z];
-  G4int idxmax = idx +  fNumberOfShells[Z];
-  G4double energy = 0.0;
-  for (G4int i=idx; i<idxmax; ++i) {energy += fBindingEnergies[i];}
+  Int_t idx = fIndexOfShells[Z];
+  Int_t idxmax = idx +  fNumberOfShells[Z];
+  Double_t energy = 0.0;
+  for (Int_t i=idx; i<idxmax; ++i) {energy += fBindingEnergies[i];}
   return energy*CLHEP::eV;
 }
 

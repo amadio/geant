@@ -1,6 +1,15 @@
 #include "ComptonCrossSection.h"
+#include "TGeoMaterial.h" 
+// #include "TGeoElement.h" 
+#include "TRandom.h" 
+
+#include "physical_constants.h"  
 
 #include <cmath>
+#include <iostream> 
+
+using namespace std; 
+// using std::cout; 
 
 // ClassImp(ComptonCrossSection)
 //
@@ -39,10 +48,9 @@ ComptonCrossSection::ComputeCrossSectionPerAtom(
 {
    // Must deal consistently with units -- these are temporary 
    //                        (TODO: check consistency, create & enforce policy )
-   const  Double_t  keV= 0.001;   //   MeV= 1.00; 
+   const  Double_t  keV= 0.001 * MeV; 
   // Ensure that Gamma is expressed in MeV -- or revise "keV" definition above
   const  Double_t  barn= 1.0; // Cross-section will be in unit of barn
-  const  Double_t  electron_mass_c2=  510.99892 * keV ;
 
   Double_t CrossSection = 0.0 ;
   if (( Z < 0.9999 ) || ( GammaEnergy < 0.1*keV ) ) return CrossSection;
@@ -82,6 +90,11 @@ ComptonCrossSection::ComputeCrossSectionPerAtom(
   return CrossSection;
 }
 
+
+// Adapted from 
+// G4double G4VEmModel::CrossSectionPerVolume(const G4Material* material, ..
+
+
 Double_t 
 ComptonCrossSection::CrossSectionForMaterial(const TGeoMaterial& tMaterial,
                                  Double_t kinEnergyT)
@@ -90,33 +103,43 @@ ComptonCrossSection::CrossSectionForMaterial(const TGeoMaterial& tMaterial,
   Int_t nelm= 1;
   Int_t numTracks= 1; 
 
+  static const Double_t Avogadro = 6.02214179e+23 * 1000;  // */mole;
+  Double_t  density=  tMaterial.GetDensity(); 
+
    // Loop over the elements of  tMaterial
 
   //  SetupForMaterial(p, material, ekin);
   // const G4ElementVector* theElementVector = material->GetElementVector();
   // const G4double* theAtomNumDensityVector = material->GetVecNbOfAtomsPerVolume();
-  TGeoMixture* tMixture=  dynamic_cast<TGeoMixture*>( tMaterial ); 
-  if( tMixture ) 
+  const TGeoMixture* ptMixture=  dynamic_cast<const TGeoMixture*>( &tMaterial ); 
+  if( ptMixture ) 
   {
-     nelm = tMaterial->GetNelements(); 
+     nelm = tMaterial.GetNelements(); 
 
      Int_t  numEntries= nelm * numTracks; 
      if(numEntries > fNoSec) {
-        fPartialXsec.resize( numEntries );  // Choice for storing partial sums of cross sections
-        fNoSec = numEntries;
+        // fPartialXsec.resize( numEntries );  // Choice for storing partial sums of cross sections
+        // fNoSec = numEntries;
+        std::cerr << " ERROR in ComptonCrossSection::CrossSectionForMaterial" 
+                  << " Material has too many elements: " << numEntries << "." 
+                  << " Maximum expected is " << MaxElements  << std::endl;
+        std::cerr << " ABORTING. " << std::endl;
+        abort(); 
      }
   }
-  static const Double_t Avogadro = 6.02214179e+23 * 1000;  // */mole;
+
   for (Int_t i=0; i<nelm; i++) {
      //  Constant for this volume -- and shared between tracks
-     fNumAtomsPerVolume[i] = Avogadro*fDensity* tMixture->GetWmixt()[i] / tMixture->GetAmixt()[i]; 
+     fNumAtomsPerVolume[i] = Avogadro* density * ptMixture->GetWmixt()[i] / ptMixture->GetAmixt()[i]; 
   }
 
   for (Int_t i=0; i<nelm; i++) {
      //  Per track value(s)
+     TGeoElement* elementI= tMaterial.GetElement(i); 
+
      Xsection += 
         fNumAtomsPerVolume[i] *
-        ComputeCrossSectionPerAtom(p,(*theElementVector)[i],ekin,emin,emax);
+        ComputeCrossSectionPerAtom( kinEnergyT, elementI->Z() ); // ,emin,emax);
      fPartialXsec[i] = Xsection;
      // Store partial sums, to use with Select Random Atom method (for interaction)
   }
@@ -127,29 +150,40 @@ ComptonCrossSection::CrossSectionForMaterial(const TGeoMaterial& tMaterial,
 
 const TGeoElement* 
 ComptonCrossSection::SelectRandomAtom(const TGeoMaterial& tMaterial,
-                                    Double_t kinEnergyT )
+                                      Double_t kinEnergyT,
+                                      TRandom *rngEngine )
 {
   const TGeoElement* tCurrentElement= 0; 
-  TGeoMixture* tMixture=  dynamic_cast<TGeoMixture*>( tMaterial ); 
-  if( tMixture ) 
+
+  // Double_t *rndArray = &gPropagator->fDblArray[2*tid*ntracks];   //  --> But make sure it is not used already
+
+  const TGeoMixture* ptMixture=  dynamic_cast<const TGeoMixture*>( &tMaterial ); 
+  if( ptMixture ) 
   {
-     Int_t  nelm = tMaterial->GetNelements(); 
+     Int_t  nelm = tMaterial.GetNelements(); 
      Int_t  n = nelm - 1;
-     tCurrentElement = tMixture->GetElement(n); 
+     tCurrentElement = ptMixture->GetElement(n); 
      Double_t Xsection= fPartialXsec[n];
+     // rngEngine->RndmArray(ntracks, rndArray);  
      if (n > 0) {
-        Double_t x = UniformRand() * Xsection;  // fPartialXsec[n];
+        Double_t randUnif=  rngEngine->Rndm(); 
+        Double_t x = randUnif * Xsection;  // fPartialXsec[n];
            // CrossSectionPerVolume(tMaterial,kinEnergyT); // ,tcut,tmax);
         for(Int_t i=0; i<n; ++i) {
            if (x <= fPartialXsec[i]) {
-              tCurrentElement = tMixture->GetElement(i); 
+              tCurrentElement = ptMixture->GetElement(i); 
+              std::cout << " Choosing element " << tCurrentElement->GetName() << std::endl;
+              std::cout << "    Rand * Xsec= " << x << std::endl;
+              std::cout << "    PartialXsec= " << fPartialXsec[i] << std::endl; 
+              std::cout << "    Rand= " << randUnif <<  " Xsec= " << fPartialXsec[n] << std::endl; 
               break;
            }
         }
      }
   }else{
      //  Method did not need to be called in this case ... 
-     fCurrentElement= tMaterial->GetElement(); 
+     tCurrentElement= tMaterial.GetElement(); 
   }
-  return fCurrentElement;
+  return tCurrentElement;
 }
+
