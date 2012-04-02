@@ -16,7 +16,7 @@ class TGeoMaterial;
 
 class TRandom; 
 
-class ComptonCrossSection  // : TNamed()
+class ComptonCrossSection : public TNamed
 {
 // methods
  public:
@@ -30,7 +30,7 @@ class ComptonCrossSection  // : TNamed()
                                    //  Double_t tcut, Double_t tmax);
 
    ComptonCrossSection(); 
-   ~ComptonCrossSection(); 
+   virtual ~ComptonCrossSection(); 
 
 // 
  private: 
