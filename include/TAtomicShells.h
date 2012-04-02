@@ -24,26 +24,30 @@
 #ifndef ROOT_TATOMICSHELLS_H
 #define ROOT_TATOMICSHELLS_H
 
+#ifndef ROOT_TNamed
+#include "TNamed.h"
+#endif
+
 // #include "globals.hh"
 // #include "templates.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
-class TAtomicShells 
+class TAtomicShells   // : Tnamed() 
 {
 public :  //with description
 
-static G4int    GetNumberOfShells(G4int Z);
-static G4int    GetNumberOfElectrons(G4int Z, G4int SubshellNb);
-static G4double GetBindingEnergy (G4int Z, G4int SubshellNb);
-       G4double GetTotalBindingEnergy (G4int Z);
+static Int_t    GetNumberOfShells(Int_t Z);
+static Int_t    GetNumberOfElectrons(Int_t Z, Int_t SubshellNb);
+static Double_t GetBindingEnergy (Int_t Z, Int_t SubshellNb);
+       Double_t GetTotalBindingEnergy (Int_t Z);
 
 private :
 
-static const G4int    fNumberOfShells[101];
-static const G4int    fIndexOfShells[101];
-static const G4int    fNumberOfElectrons[1540];
-static const G4double fBindingEnergies[1540];
+static const Int_t    fNumberOfShells[101];
+static const Int_t    fIndexOfShells[101];
+static const Int_t    fNumberOfElectrons[1540];
+static const Double_t fBindingEnergies[1540];
 
 };
 
