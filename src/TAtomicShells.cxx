@@ -11,6 +11,7 @@
 
 #include "TAtomicShells.h"
 #include <assert.h>
+#include "physical_constants.h" 
 
 const Int_t
 TAtomicShells::fNumberOfShells[101] = 
@@ -725,7 +726,7 @@ Double_t
 TAtomicShells::GetBindingEnergy(Int_t Z, Int_t ShellNb)
 {
   assert (Z>0 && Z<101 && ShellNb<fNumberOfShells[Z]);
-  return fBindingEnergies[fIndexOfShells[Z] + ShellNb]*CLHEP::eV;
+  return fBindingEnergies[fIndexOfShells[Z] + ShellNb]*eV;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
@@ -747,7 +748,7 @@ Double_t TAtomicShells::GetTotalBindingEnergy (Int_t Z)
   Int_t idxmax = idx +  fNumberOfShells[Z];
   Double_t energy = 0.0;
   for (Int_t i=idx; i<idxmax; ++i) {energy += fBindingEnergies[i];}
-  return energy*CLHEP::eV;
+  return energy*eV;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
