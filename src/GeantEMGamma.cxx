@@ -53,9 +53,13 @@ void GammaCompton::ComputeIntLen(TGeoVolume *vol,
    // const Double_t kC1 = 500.;
    // const Double_t xlen = TMath::Limits<double>::Max();
    Int_t itrack;
-   Double_t density = 1.0e-100;  //  finite minimum density
+   Double_t density = 0.0;  // No material = zero density
+
+   // std::cout << " GammaCompton::ComputeIntLen called " 
+   //           << " with " << ntracks << " tracks. " << std::endl;
 
    TGeoMaterial *mat = vol->GetMaterial();
+   // std::cout << " GC: Material = " << mat->GetName() << std::endl;
    if (mat) density = mat->GetDensity();
 
    // Write in the thread space for the current basket  ... ???
@@ -67,6 +71,7 @@ void GammaCompton::ComputeIntLen(TGeoVolume *vol,
    GeantTrack** gTracks= gPropagator->fTracks; 
    static const Int_t PdgGamma= 22; 
 
+   Int_t noGammas= 0; 
    //  Could use count of number of gammas which are alive ...
    for (Int_t i=0; i<ntracks; i++) {   
       Double_t sigma= 0.0, meanFreePath= DBL_MAX;
@@ -86,12 +91,18 @@ void GammaCompton::ComputeIntLen(TGeoVolume *vol,
             Double_t theNumberOfInteractionLengthsLeft= - std::log( rndArray[irnd++] ); 
             lengthC = theNumberOfInteractionLengthsLeft * meanFreePath; 
          }
+         noGammas++; 
       }
       if( lengthC < lengths[itrack] )
       {
          lengths[itrack] = lengthC; 
          // limited[itrack] = kComptonProcess;  // Flag that Compton limited this one
       }
+   }
+   if( noGammas > 0 ) { 
+      std::cout << " GammaCompton::ComputeIntLen:  "; 
+      std::cout << " GC: Material = " << mat->GetName() << std::endl;
+      std::cout << " Found " << noGammas << "  gammas. " << std::endl;
    }
 }
 
@@ -166,7 +177,7 @@ void GammaCompton::PostStep(TGeoVolume *vol,
                Int_t itracknew = gPropagator->AddTrack(eTrk);
                trackout[nout] = itracknew;
                nout++;
-               // std::cout << " WANT to add gamma of Energy= " << eTrk->e << " to stack. " << std::endl;
+               std::cout << " WANT to add gamma of Energy= " << eTrk->e << " to stack. " << std::endl;
 
                GeantVolumeBasket *basket = gPropagator->fWMgr->GetCurrentBasket(tid);
                if (basket) gPropagator->fWMgr->AddPendingTrack(itracknew, basket, tid);
@@ -174,7 +185,7 @@ void GammaCompton::PostStep(TGeoVolume *vol,
          }
       }
    }   
-   StepManager(0, ntracks, trackin, nout, trackout);
+   StepManager(3, ntracks, trackin, nout, trackout);
 }
 
 
