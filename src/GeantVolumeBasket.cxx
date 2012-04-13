@@ -19,93 +19,16 @@ const Double_t gTolerance = TGeoShape::Tolerance();
 GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol)
                   :TObject(),
                    fVolume(vol),
-                   fNtracks(0),
-                   fFirstFree(0),
-                   fMaxTracks(10),
-                   fIndex(0),
-                   fAdded(kFALSE)
+                   fScheduler(new GeantBasketScheduler(vol))
 {
 // Constructor
-   fIndex = new Int_t[fMaxTracks];
 }
 
 //______________________________________________________________________________
 GeantVolumeBasket::~GeantVolumeBasket()
 {
 // Clean up
-   delete [] fIndex;
-}   
-
-//______________________________________________________________________________
-TGeoBranchArray *GeantVolumeBasket::GetBranchArray(Int_t itrack) const
-{
-// Return path for the track.
-   return gPropagator->fTracks[fIndex[itrack]]->path;
-}
-
-//______________________________________________________________________________
-Int_t GeantVolumeBasket::GetNchunks(Int_t nthreads) const
-{
-// Get optimum number of work chunks for the basket for nthreads. The basket
-// should be flushed.
-   Int_t nchunk = fNtracks/nthreads;
-   Int_t nworkers = nthreads;
-   if (!nchunk) nworkers = fNtracks;
-   return nworkers;   
-}
-
-//______________________________________________________________________________
-GeantTrack *GeantVolumeBasket::GetTrack(Int_t itrack) const
-{
-// Get track from the basket.
-   return gPropagator->fTracks[fIndex[itrack]];
-}
-   
-//______________________________________________________________________________
-void GeantVolumeBasket::GetWorkload(Int_t &indmin, Int_t &indmax)
-{
-// Get a range of indices to work with for a given thread.
-   Int_t nthreads = gPropagator->fNthreads;
-   TThread::Lock();
-   indmin = indmax = fFirstFree;
-   if (!fNtracks || fFirstFree==fNtracks) {
-      TThread::UnLock();
-      return;
-   }
-   Int_t fair_share = fNtracks/nthreads;
-   Int_t remaining = fNtracks%nthreads;
-   indmax = indmin+fair_share;
-   if (remaining) indmax++;
-   if (indmax > fNtracks) indmax = fNtracks;
-   fFirstFree = indmax;
-   TThread::UnLock();
-}   
-
-//______________________________________________________________________________
-void GeantVolumeBasket::AddTrack(Int_t itrack)
-{
-// Add a track and its path to the basket.
-   TThread::Lock();
-   fIndex[fNtracks++] = itrack;
-   // Increase arrays of tracks and path indices if needed
-   if (fNtracks == fMaxTracks) {
-      Int_t *newindex = new Int_t[2*fMaxTracks];
-      memcpy(newindex, fIndex, fNtracks*sizeof(Int_t));
-      delete [] fIndex;
-      fIndex = newindex;
-      fMaxTracks *= 2;
-   }   
-   TThread::UnLock();   
-}     
-
-//______________________________________________________________________________
-void GeantVolumeBasket::Clear(Option_t *)
-{
-// Clear all particles and paths 
-//   TThread::Lock();
-   fNtracks = 0;
-   fFirstFree = 0;
-//   TThread::UnLock();   
+   delete fScheduler;
 }   
 
 //______________________________________________________________________________
@@ -382,22 +305,8 @@ Bool_t GeantVolumeBasket::PropagateTrack(Int_t *trackin)
 void GeantVolumeBasket::Print(Option_t *) const
 {
 // Print info about the basket content.
-   if (gPropagator->fUseDebug) {
-      for (Int_t i=0; i<fNtracks; i++) {
-//         if (gDebug && (gPropagator->fDebugTrk==fIndex[i] || gPropagator->fDebugTrk<0)) {
-//            Printf("   %d - track %d: ", i, fIndex[i]);
-            gPropagator->fTracks[fIndex[i]]->Print();
-            if (gPropagator->fTracks[fIndex[i]]->path->GetNode(gPropagator->fTracks[fIndex[i]]->path->GetLevel())->GetVolume() != fVolume) {
-               Printf("ERROR: Wrong path for basket %s", GetName());
-               *((int*)0)=0;
-            }  
-//            GetBranchArray(i)->Print();
-//         }   
-      }
-   }      
 }
 
-//______________________________________________________________________________
 void GeantVolumeBasket::ResetStep(Int_t ntracks, Int_t *array)
 {
 // Reset current step for a list of tracks.
@@ -411,7 +320,8 @@ void GeantVolumeBasket::ResetStep(Int_t ntracks, Int_t *array)
 void GeantVolumeBasket::TransportSingle()
 {
 // Transport all particles in this basket one by one (empty basket).
-   if (!fNtracks) return;
+/*
+   if (!fScheduler->GetNtracks()) return;
    // Main loop
    Int_t itrack, nout;   
    Int_t nprocesses = gPropagator->fNprocesses;
@@ -498,4 +408,5 @@ void GeantVolumeBasket::TransportSingle()
          if (usePhysics) gPropagator->PhysicsSelect(1,&particles[itrack],0);
       }
    }
+*/
 }   

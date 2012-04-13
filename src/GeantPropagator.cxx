@@ -53,7 +53,6 @@
 #include "PhysicsProcess.h"
 #include "GeantVolumeBasket.h"
 #include "WorkloadManager.h"
-#include "GeantParticleBuffer.h"
 
 GeantPropagator *gPropagator = 0;
    
@@ -78,12 +77,14 @@ GeantPropagator::GeantPropagator()
                  fNminThreshold(10),
                  fDebugTrk(-1),
                  fMaxSteps(10000),
+                 fNperBasket(10),
                  fNaverage(0.),
                  fEmin(0.1), // 100 MeV
                  fEmax(10),  // 10 Gev
                  fBmag(1.),
                  fUsePhysics(kTRUE),
                  fUseDebug(kFALSE),
+                 fUseGraphics(kFALSE),
                  fTransportOngoing(kFALSE),
                  fSingleTrack(kFALSE),
                  fFillTree(kFALSE),
@@ -345,6 +346,8 @@ void GeantPropagator::Initialize()
       }
    }      
    fWMgr = WorkloadManager::Instance(fNthreads);
+   // Add some empty baskets in the queue
+   fWMgr->AddEmptyBaskets(1000);
 }
 
 //______________________________________________________________________________
@@ -413,6 +416,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 // Propagate fNevents in the volume containing the vertex. 
 // Simulate 2 physics processes up to exiting the current volume.
    static Bool_t called=kFALSE;
+   fUseGraphics = graphics;
    fNthreads = nthreads;
    fSingleTrack = single;
    Initialize();
@@ -438,27 +442,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    else              Printf("  Physics OFF");
    // Create the basket array
 
-   TCanvas *c1=0;
-   TH1F *hnb=0, *hbaskets=0;
-   TPad *pad1=0, *pad2=0;
-   if (graphics) {
-      c1 = new TCanvas("c1","c1",800,900);
-      c1->Divide(1,2);
-      pad1 = (TPad*)c1->cd(1);
-      hnb = new TH1F("hnb","number of baskets per generation",500,0,500);
-      hnb->SetFillColor(kRed);
-      hnb->Draw();
-      pad2 = (TPad*)c1->cd(2);
-      hbaskets = new TH1F("hbaskets","baskets population per generation",100,0,100);
-      //hbaskets->GetXaxis()->SetTitle("basket");
-      hbaskets->SetFillColor(kBlue);
-      hbaskets->Draw();
-   }
-   
-   // Create the main volume basket
-   GeantVolumeBasket *basket = ImportTracks(fNevents, fNaverage);
-//   fBasketArray[fNbaskets++] = basket;
-//   fWMgr->AddBasket(basket);
+   // Import the input events. This will start also populating the main queue
+   ImportTracks(fNevents, fNaverage);
 
    // Initialize tree
    fOutput = new GeantOutput();
@@ -472,40 +457,24 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    // Loop baskets and transport particles until there is nothing to transport anymore
    fTransportOngoing = kTRUE;
    gGeoManager->SetMaxThreads(nthreads);
-//   gGeoManager->SetMultiThread(kTRUE);
    fTimer = new TStopwatch();
    fTimer->Start();
-   while (fTransportOngoing) {
-      if (fSingleTrack) {
-         basket->TransportSingle();
-         break;
-      }    
-      fTransportOngoing = kFALSE;
-      // Select baskets to be transported and start transport
-      fWMgr->SelectBaskets();
-      // Wait for work do get done
-      fWMgr->WaitWorkers();
-      // Clear transported baskets
-      fWMgr->SetFlushed(kFALSE);
-      while (!fWMgr->IsFlushed()) {      
-         fWMgr->SetFlushed(fWMgr->GetBuffer()->FlushBaskets());
-      }   
-      fWMgr->GetBuffer()->Reset();
-   }   
+   fWMgr->StartThreads();
+   fWMgr->WaitWorkers();
    fTimer->Stop();
-   if (fFillTree) fOutTree->AutoSave();
-   delete fOutFile;
    Double_t rtime = fTimer->RealTime();
    Double_t ctime = fTimer->CpuTime();
-   fTimer->Print();
+   if (fFillTree) fOutTree->AutoSave();
+   delete fOutFile;
+//   fTimer->Print();
    Double_t speedup = ctime/rtime;
    Double_t efficiency = speedup/nthreads;
-   fWMgr->Print();
+//   fWMgr->Print();
    fWMgr->JoinThreads();
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
    Printf("=== Transported: %lld,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", fNtransported, fNsafeSteps, fNsnextSteps,rtime,ctime);
-   Printf("   nthreads=%d  speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
+   Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,rtime,ctime);

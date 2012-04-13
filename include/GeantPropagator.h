@@ -39,6 +39,7 @@ public:
    Int_t       fNminThreshold; // Threshold for starting transporting a basket
    Int_t       fDebugTrk;    // Track to debug
    Int_t       fMaxSteps;    // Maximum number of steps per track
+   Int_t       fNperBasket;  // Number of tracks per basket
    
    Double_t    fNaverage;    // Average number of tracks per event
    Double_t    fVertex[3];   // Vertex position
@@ -48,6 +49,7 @@ public:
    
    Bool_t      fUsePhysics;  // Enable/disable physics
    Bool_t      fUseDebug;    // Use debug mode
+   Bool_t      fUseGraphics; // graphics mode
    Bool_t      fTransportOngoing; // Flag for ongoing transport
    Bool_t      fSingleTrack; // Use single track transport mode
    Bool_t      fFillTree;    // Enable I/O

@@ -6,7 +6,7 @@
 #include "TStyle.h"
 #include "TString.h"
 #include "TStopwatch.h"
-#include "GeantVolumeBasket.h"
+#include "GeantBasket.h"
 
 //______________________________________________________________________________
 TimeCounter::TimeCounter(bool measure_time)
@@ -126,7 +126,7 @@ concurrent_queue::~concurrent_queue()
 }   
 
 //______________________________________________________________________________
-void concurrent_queue::push(GeantVolumeBasket *data) 
+void concurrent_queue::push(GeantBasket *data) 
 {
    the_mutex.Lock();
    the_queue.push(data);
@@ -145,33 +145,33 @@ Bool_t concurrent_queue::empty() const
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *concurrent_queue::try_pop() 
+GeantBasket *concurrent_queue::try_pop() 
 {
    the_mutex.Lock();
    if(the_queue.empty()) {
       the_mutex.UnLock();
       return 0;
    }
-   GeantVolumeBasket *popped_value=the_queue.front();
+   GeantBasket *popped_value=the_queue.front();
    the_queue.pop();
    the_mutex.UnLock();
    return popped_value;
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *concurrent_queue::wait_and_pop() 
+GeantBasket *concurrent_queue::wait_and_pop() 
 {
-   --(*the_counter);
+//   --(*the_counter);
    the_mutex.Lock();
    while(the_queue.empty()) {
 //         Printf("WAITING");
       the_condition_variable.Wait();
    }
         
-   GeantVolumeBasket *popped_value=the_queue.front();
+   GeantBasket *popped_value=the_queue.front();
    the_queue.pop();
 //   Printf("Popped basket %s", popped_value->GetName());
-   ++(*the_counter);
+//   ++(*the_counter);
    the_mutex.UnLock();
    return popped_value;
 }
