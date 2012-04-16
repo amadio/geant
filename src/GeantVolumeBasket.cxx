@@ -51,16 +51,30 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin)
       nav->SetCurrentDirection(pdir);
       isOnBoundary = track->frombdr;
       Double_t pstep = TMath::Min(1.E20, track->pstep);
-      nav->FindNextBoundary(pstep,"",isOnBoundary);
-//      gGeoManager->SetVerboseLevel(0);
-      track->safety = nav->GetSafeDistance();
-//      if (!isOnBoundary && track->safety<gTolerance) {
-//         nav->FindNextBoundary(track->pstep,"",isOnBoundary);
-//      }
-//      track->snext = nav->GetStep();
-      track->snext = TMath::Max(gTolerance,nav->GetStep());
+      track->snext = 0;
+      if (track->charge) {
+         nav->FindNextBoundary(pstep,"",isOnBoundary);
+         track->safety = nav->GetSafeDistance();
+         track->snext = TMath::Max(2*gTolerance,nav->GetStep());
+      } else {
+         // Propagate to next volume without computing safety for neutrals
+         nav->FindNextBoundaryAndStep(pstep, kFALSE);
+         track->safety = 0.;
+         track->snext = nav->GetStep();
+         // Check if it was a short step
+         track->nextpath->InitFromNavigator(nav);
+         track->frombdr = nav->IsOnBoundary();
+         if (nav->IsOnBoundary() && track->snext<2.*gTolerance) {
+            // Make sure track crossed
+            nav->FindNextBoundaryAndStep(1.E30, kFALSE);
+            track->nextpath->InitFromNavigator(nav);
+            track->snext += nav->GetStep();
+         }
+         if (nav->IsOutside()) track->Kill();   
+      }
+      
       if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
-//         Printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
+         Printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
          Printf("       track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
          track->Print(trackin[itr]);
       }   
@@ -124,7 +138,12 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
    for (Int_t itr=0; itr<ntracks; itr++) {
       track = gPropagator->fTracks[trackin[itr]];
       // Skip neutral tracks for the time being (!!!)
-      if (!track->charge) continue;
+      if (!track->charge) {
+         track->PropagateStraight(track->snext, itr);
+         if (track->frombdr) trackcross[ncross++] = trackin[itr];
+         else                trackout[nout++] = trackin[itr];
+         continue;
+      }
       if (!track->IsAlive()) continue;
       if (track->pending) {
          continue;
@@ -137,7 +156,6 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
       step = track->pstep;
       snext = track->snext;
       safety = track->safety;
-      c = track->Curvature();
       // If proposed step less than safety, just propagate to physics process
       if (step<safety) {
          track->izero = 0;
@@ -149,6 +167,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
          continue; // -> to next track
       }
       // Check if we can propagate to boundary
+      c = track->Curvature();
       if (0.25*c*snext<1E-6 && snext<1E-3 && snext<step-1E-6) {
          // Propagate with snext and check if we crossed
          //   backup track position and momentum

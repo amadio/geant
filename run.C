@@ -1,4 +1,4 @@
-void run(Int_t nthreads=4, Bool_t graphics=kTRUE, const char *geomfile="http://root.cern.ch/files/cms.root")
+void run(Int_t nthreads=4, Bool_t graphics=kFALSE, const char *geomfile="http://root.cern.ch/files/cms.root")
 {
    gSystem->Load("libPhysics.so");
    gSystem->Load("libHist.so");

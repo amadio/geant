@@ -76,6 +76,7 @@ public:
    TArrayI        **fPartCross; //![fNThreads]
    TGeoHelix      **fFieldPropagator; //![fNThreads]
    TGeoRotation   **fRotation;  //![fNThreads]
+   Int_t           *fTracksPerBasket; //![fNthreads]
    
    static GeantPropagator *fgInstance;
 public:
@@ -96,8 +97,7 @@ public:
    void             PropagatorGeom(const char *geomfile="geometry.root",
                                    Int_t nthreads=4,
                                    Bool_t graphics=kFALSE,
-                                   Bool_t single=kFALSE,
-                                   Double_t vertx=0., Double_t verty=0., Double_t vertz=0.);
+                                   Bool_t single=kFALSE);
    void             SelectTracksForProcess(Int_t iproc, Int_t ntotransport, Int_t *particles, Int_t &ntodo, Int_t *parttodo);
    ClassDef(GeantPropagator, 1)
 };

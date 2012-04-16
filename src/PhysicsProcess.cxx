@@ -59,9 +59,12 @@ void ScatteringProcess::ComputeIntLen(TGeoVolume *vol,
    Double_t *rndArray = &gPropagator->fDblArray[2*tid*ntracks];
    Int_t irnd = 0;
    gPropagator->fRndm[tid]->RndmArray(ntracks, rndArray);
+   GeantTrack *track = 0;
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
-      if (gPropagator->fTracks[itrack]->IsAlive())
+      track = gPropagator->fTracks[itrack];
+      if (!track->charge) lengths[itrack] =  0.5*xlen;
+      else if (gPropagator->fTracks[itrack]->IsAlive())
         lengths[itrack] = kC1*gPropagator->fTracks[itrack]->e*rndArray[irnd++]/density;
       else
         lengths[itrack] =  0.5*xlen; 
@@ -92,6 +95,7 @@ void ScatteringProcess::PostStep(TGeoVolume *,
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gPropagator->fTracks[itrack];
+      if (!track->charge) continue;
       theta = TMath::ACos((1.-rndArray[irnd++]*(1.-ctmax)));
       // Re-scale from emin to emax
       scale = (track->e-gPropagator->fEmin)/(gPropagator->fEmax-gPropagator->fEmin);
@@ -171,7 +175,7 @@ void ElossProcess::PostStep(TGeoVolume *vol,
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];   
       track = gPropagator->fTracks[itrack];
-      if (!track->IsAlive()) continue;
+      if (!track->IsAlive() || !track->charge) continue;
       if (track->e-track->mass < gPropagator->fEmin) {
          track->Kill();
          continue;

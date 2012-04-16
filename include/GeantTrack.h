@@ -35,15 +35,16 @@ struct GeantTrack {
    Int_t    izero;     // number of small steps used to catch errors
    Int_t    nsteps;    // number of steps made
    TGeoBranchArray *path; // path for this particle in the geometry
+   TGeoBranchArray *nextpath; // path for next volume
    Bool_t   pending;
    
    GeantTrack() : event(-1),particle(-1),pdg(0),species(kHadron),status(kAlive),
                   charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),
                   px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), 
-                  safety(0), frombdr(false), izero(0), nsteps(0), path(0) , pending(false){}
+                  safety(0), frombdr(false), izero(0), nsteps(0), path(0) ,nextpath(0), pending(false){}
    GeantTrack(Int_t ipdg);
    ~GeantTrack();
-   Double_t           Curvature() {return TMath::Abs(kB2C*gPropagator->fBmag/Pt());}
+   Double_t           Curvature() {return (charge)?TMath::Abs(kB2C*gPropagator->fBmag/Pt()):0.;}
    void               Direction(Double_t dir[3]);
    Bool_t             IsAlive() const {return (status != kKilled);}
    Bool_t             IsOnBoundary() const {return (status == kBoundary);}

@@ -106,10 +106,11 @@ GeantPropagator::GeantPropagator()
                  fPartTodo(0),
                  fPartCross(0),
                  fFieldPropagator(0),
-                 fRotation(0)
+                 fRotation(0),
+                 fTracksPerBasket(0)
 {
 // Constructor
-   fVertex[0] = fVertex[1] = fVertex[2] = 0.;
+   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
    fgInstance = this;
 }
 
@@ -344,7 +345,11 @@ void GeantPropagator::Initialize()
          fFieldPropagator[i] = new TGeoHelix(1,1);
          fFieldPropagator[i]->SetField(0,0,fBmag, kFALSE);
       }
-   }      
+   }  
+   if (!fTracksPerBasket) {
+      fTracksPerBasket = new Int_t[fNthreads];    
+      for (Int_t i=0; i<fNthreads; i++) fTracksPerBasket[i] = 0;
+   }   
    fWMgr = WorkloadManager::Instance(fNthreads);
    // Add some empty baskets in the queue
    fWMgr->AddEmptyBaskets(1000);
@@ -411,7 +416,7 @@ void GeantPropagator::PrintParticles(Int_t *trackin, Int_t ntracks, Int_t tid)
 }
       
 //______________________________________________________________________________
-void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_t graphics, Bool_t single, Double_t vertx, Double_t verty, Double_t vertz)
+void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_t graphics, Bool_t single)
 {
 // Propagate fNevents in the volume containing the vertex. 
 // Simulate 2 physics processes up to exiting the current volume.
@@ -426,10 +431,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    }
    called = kTRUE;
    
-   // Initialize vertex
-   fVertex[0] = vertx;
-   fVertex[1] = verty;
-   fVertex[2] = vertz;
 //   Int_t itrack;
 
    // Initialize geometry and current volume

@@ -35,10 +35,12 @@ GeantTrack::GeantTrack(Int_t ipdg)
             izero(0), 
             nsteps(0),
             path(0),
+            nextpath(0),
             pending(false)
 {
 // Constructor
    path = new TGeoBranchArray(30);
+   nextpath = new TGeoBranchArray(30);
 }
 
 //______________________________________________________________________________
@@ -46,6 +48,7 @@ GeantTrack::~GeantTrack()
 {
 // Destructor.
    delete path;
+   delete nextpath;
 }   
 
 //______________________________________________________________________________
@@ -69,8 +72,6 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
 // The method adds the particle to the next volume basket. 
 // Returns the basket pointer, null if exiting geometry.
 // Find next volume
-   static Int_t istep;
-   istep++;
    Double_t dir[3];
    frombdr = kTRUE;
    Direction(dir);
@@ -79,32 +80,21 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    // Change path to reflect the physical volume for the current track;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 //   Int_t tid = nav->GetThreadId();
-   path->UpdateNavigator(nav);
+   // Particle crossed?
+   if (frombdr) nextpath->UpdateNavigator(nav);
+   else path->UpdateNavigator(nav);
    nav->SetOutside(kFALSE);
    nav->SetStep(crtstep);
    xpos += crtstep*dir[0];
    ypos += crtstep*dir[1];
    zpos += crtstep*dir[2];
-   nav->SetCurrentPoint(xpos,ypos,zpos);
-   nav->SetCurrentDirection(dir);
-   TGeoNode *skip = nav->GetCurrentNode();
-   TGeoNode *next = 0;
-   next = nav->CrossBoundaryAndLocate(kTRUE, skip);
-   if (!next) {
-      path->UpdateNavigator(nav);
-      next = nav->FindNextBoundaryAndStep(TGeoShape::Big(),kFALSE);
-   }   
-   gGeoManager->SetVerboseLevel(0);
-   xpos += 10.*gTolerance*dir[0];
-   ypos += 10.*gTolerance*dir[1];
-   zpos += 10.*gTolerance*dir[2];
-   if (nav->IsOutside()) return 0;
-   // Create a new branch array
-   path->InitFromNavigator(nav);
    TGeoVolume *vol = nav->GetCurrentVolume();
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddTrack(itr);
+   if (frombdr) {
+      basket->AddTrack(itr);
+      path->InitFromNavigator(nav);
+   }   
    // Signal that the transport is still ongoing if the particle entered a new basket
    gPropagator->fTransportOngoing = kTRUE;
    if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==itr || gPropagator->fDebugTrk<0)) {
@@ -137,25 +127,47 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    if (safety<0.) safety = 0.;
    step += crtstep;
    // Set curvature, charge
-   Double_t c = Curvature();
-   gPropagator->fFieldPropagator[tid]->SetXYcurvature(c);
-   gPropagator->fFieldPropagator[tid]->SetCharge(charge);
-   gPropagator->fFieldPropagator[tid]->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
-   gPropagator->fFieldPropagator[tid]->InitPoint(xpos,ypos,zpos);
+   Double_t c = 0.;
    Double_t dir[3];
+   Double_t ptot = 0;
+   const Double_t *point = 0;
+   const Double_t *newdir = 0;
    Direction(dir);
-   gPropagator->fFieldPropagator[tid]->InitDirection(dir);
-   gPropagator->fFieldPropagator[tid]->UpdateHelix();
-   gPropagator->fFieldPropagator[tid]->Step(crtstep);
-   const Double_t *point = gPropagator->fFieldPropagator[tid]->GetCurrentPoint();
-   const Double_t *newdir = gPropagator->fFieldPropagator[tid]->GetCurrentDirection();
-   xpos = point[0]; ypos = point[1]; zpos = point[2];
-   Double_t ptot = P();
-   px = ptot*newdir[0];
-   py = ptot*newdir[1];
-   pz = ptot*newdir[2];
+   if (charge) {
+      c = Curvature();
+      gPropagator->fFieldPropagator[tid]->SetXYcurvature(c);
+      gPropagator->fFieldPropagator[tid]->SetCharge(charge);
+      gPropagator->fFieldPropagator[tid]->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
+      gPropagator->fFieldPropagator[tid]->InitPoint(xpos,ypos,zpos);
+      gPropagator->fFieldPropagator[tid]->InitDirection(dir);
+      gPropagator->fFieldPropagator[tid]->UpdateHelix();
+      gPropagator->fFieldPropagator[tid]->Step(crtstep);
+      point = gPropagator->fFieldPropagator[tid]->GetCurrentPoint();
+      newdir = gPropagator->fFieldPropagator[tid]->GetCurrentDirection();
+      xpos = point[0]; ypos = point[1]; zpos = point[2];
+      ptot = P();
+      px = ptot*newdir[0];
+      py = ptot*newdir[1];
+      pz = ptot*newdir[2];
+   } else {
+      xpos += crtstep*dir[0];
+      ypos += crtstep*dir[1];
+      zpos += crtstep*dir[2];
+   }
    if (!checkcross) return 0;
-   if (nav->IsSameLocation(xpos,ypos,zpos,kTRUE)) return 0;
+   if (charge) {
+      if (nav->IsSameLocation(xpos,ypos,zpos,kTRUE)) return 0;
+   } else {
+      frombdr = kTRUE;
+      TGeoNode *skip = nav->GetCurrentNode();
+      TGeoNode *next = 0;
+      next = nav->CrossBoundaryAndLocate(kTRUE, skip);
+      if (!next && !nav->IsOutside()) {
+         path->UpdateNavigator(nav);
+         next = nav->FindNextBoundaryAndStep(TGeoShape::Big(),kFALSE);
+      }   
+   }   
+      
    // Boundary crossed
    TGeoNode *checked = nav->GetCurrentNode();
    TGeoVolume *vol = checked->GetVolume();

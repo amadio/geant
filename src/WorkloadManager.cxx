@@ -176,18 +176,19 @@ void *WorkloadManager::GarbageCollect(void *)
    // Number of tracks in the current basket
    Int_t ntracksb = 0;
    GeantBasketScheduler *basket_sch = 0;
+   GeantBasketScheduler *btop = 0;
    GeantBasket *basket = 0;
    Int_t nbaskets = wm->GetNbaskets();
    Double_t factor;
    GeantVolumeBasket **array = wm->GetBasketArray();
    TH1F *hnb, *hfree;
-   TCanvas *c1= new TCanvas("c2","c2",800,900);
-   c1->Divide(1,2);
+   TCanvas *c1 = 0;
+//   c1->Divide(1,2);
    TPad *pad1=0, *pad2=0;
    TFile *fresult = 0;
    if (graphics) {
-//      c1 = new TCanvas("c2","c2",800,900);
-//      c1->Divide(1,2);
+      c1 = new TCanvas("c2","c2",800,900);
+      c1->Divide(1,2);
       pad1 = (TPad*)c1->cd(1);
       hnb = new TH1F("hnb","number of baskets in the transport queue",500,0,500);
       hnb->SetFillColor(kRed);
@@ -197,19 +198,23 @@ void *WorkloadManager::GarbageCollect(void *)
       hfree->SetFillColor(kBlue);
       hfree->Draw();
    } else {
-      delete c1;
       fresult = new TFile("results.root", "RECREATE");
       hnb = new TH1F("hnb","number of baskets in the transport queue",10000,0,10000);
       hnb->SetFillColor(kRed);
-      hfree = new TH1F("hfree","number of free baskets available",10000,0,10000);
+      hfree = new TH1F("hfree","average number of tracks per basket",10000,0,10000);
       hfree->SetFillColor(kBlue);
    }      
    Int_t niter = -1;
    Int_t iiter;
+   Double_t nperbasket, ntracksmax;
    while (1) {
       // Monitor the queues while there are tracks to transport
       niter++;
       iiter = niter;
+      nperbasket = 0;
+      for (Int_t tid=0; tid<propagator->fNthreads; tid++) 
+         nperbasket += propagator->fTracksPerBasket[tid];
+      nperbasket /= propagator->fNthreads;
       if (graphics) iiter = niter%500;
       if (iiter==0 && graphics) {
          for (Int_t ibin=0; ibin<501; ibin++) {
@@ -224,13 +229,13 @@ void *WorkloadManager::GarbageCollect(void *)
       nempty = empty_queue->size();
       if (iiter<10000) {
          hnb->Fill(iiter, ntotransport);
-         hfree->Fill(iiter, nempty);
+         hfree->Fill(iiter, nperbasket);
       }   
       if (graphics) {
          pad1->Modified();
          pad2->Modified();
          c1->Update();
-      }   
+      }
       // Try to keep 50 baskets in the queue
       factor = (Double_t)ntotransport/(2.*propagator->fNthreads);
 //      factor = 1.;
@@ -241,20 +246,27 @@ void *WorkloadManager::GarbageCollect(void *)
       ntracks = 0;
       // loop all baskets and garbage collect them
       if (ntotransport < min_feeder) {
-         if (!feed) Printf("=== Garbage collector: start feeding ===");
+//         if (!feed) Printf("=== Garbage collector: start feeding ===");
          feed=kTRUE;
       } else {
-         if (feed) Printf("=== Garbage collector: stop feeding ===");
+//         if (feed) Printf("=== Garbage collector: stop feeding ===");
          feed = kFALSE;
-      }   
+      }
+      ntracksmax = 0;   
       for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
          basket_sch = array[ibasket]->GetScheduler();
          ntracksb = basket_sch->GetNtotal();
          if (!ntracksb) continue;
+         if (ntracksb>ntracksmax) {
+            ntracksmax = ntracksb;
+            btop = basket_sch;
+         }   
          ntracks += ntracksb;
          if (!basket) basket = empty_queue->wait_and_pop();
          basket = basket_sch->GarbageCollect(basket, feed);
       }
+      if ((niter%100) == 0 && btop) Printf("== Collector iteration #%d: ntracks=%d TOP=%s",
+                niter, ntracks, btop->GetVolume()->GetName());
       if (!ntotransport && !ntracks) break;
    }
    Printf("=== Garbage collector: stopping threads ===");
@@ -306,11 +318,12 @@ void *WorkloadManager::TransportTracks(void *)
       if (!basket) break;
       ntotransport = basket->GetNtracks();  // all tracks to be transported 
       if (!ntotransport) goto finish;
+      propagator->fTracksPerBasket[tid] = ntotransport;
       path = tracks[basket->GetTracks()[0]]->path;
       gPropagator->fVolume[tid] = path->GetCurrentNode()->GetVolume();
       basket_sch = (GeantVolumeBasket*)gPropagator->fVolume[tid]->GetField();
       wm->SetCurrentBasket(tid,basket_sch);
-      Printf("(%d) ================= BASKET of %s: %d tracks", tid, gPropagator->fVolume[tid]->GetName(), ntotransport);
+//      Printf("(%d) ================= BASKET of %s: %d tracks", tid, gPropagator->fVolume[tid]->GetName(), ntotransport);
       memcpy(particles, basket->GetTracks(), ntotransport*sizeof(Int_t));
 //      PrintParticles(particles, ntotransport, tid);
 //      sprintf(slist,"Thread #%d transporting %d tracks in basket %s: ", tid, ntotransport, basket->GetName());
