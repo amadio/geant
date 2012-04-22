@@ -79,7 +79,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    safety = 0;
    // Change path to reflect the physical volume for the current track;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//   Int_t tid = nav->GetThreadId();
+   Int_t tid = nav->GetThreadId();
    // Particle crossed?
    if (frombdr) nextpath->UpdateNavigator(nav);
    else path->UpdateNavigator(nav);
@@ -92,7 +92,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
    if (frombdr) {
-      basket->AddTrack(itr);
+      gPropagator->fCollectors[tid]->AddTrack(itr,basket);
       path->InitFromNavigator(nav);
    }   
    // Signal that the transport is still ongoing if the particle entered a new basket
@@ -243,7 +243,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    path->InitFromNavigator(nav);
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
-   basket->AddTrack(itr);
+   gPropagator->fCollectors[tid]->AddTrack(itr, basket);
    // Signal that the transport is still ongoing if the particle entered a new basket
    gPropagator->fTransportOngoing = kTRUE;
 //   if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {

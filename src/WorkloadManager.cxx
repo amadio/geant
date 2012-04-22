@@ -36,6 +36,9 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    answer_queue = new concurrent_queue();
    feeder_queue = new concurrent_queue(true);
    empty_queue = new concurrent_queue;
+   collector_queue = new concurrent_queue();
+   collector_empty_queue = new concurrent_queue();
+   for (Int_t i=0; i<nthreads; i++) collector_empty_queue->push(new GeantTrackCollector(100));
    fStarted = kFALSE;
    fgInstance = this;
    fCurrentBasket = new GeantVolumeBasket*[nthreads];
@@ -69,8 +72,9 @@ void WorkloadManager::CreateBaskets(Int_t nvolumes)
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
    GeantVolumeBasket *basket;
+   Int_t icrt = 0;
    while ((vol=(TGeoVolume*)next())) {
-      basket = new GeantVolumeBasket(vol);
+      basket = new GeantVolumeBasket(vol, icrt++);
       vol->SetField(basket);
       AddBasket(basket);
    }
@@ -101,15 +105,6 @@ void WorkloadManager::AddEmptyBaskets(Int_t nb)
 // Add empty baskets in the queue.
    for (Int_t i=0; i<nb; i++) empty_queue->push(new GeantBasket(10));
    Printf("Added %d empty baskets to the queue", nb);
-}
-
-//______________________________________________________________________________
-void WorkloadManager::InterruptBasket(GeantVolumeBasket *basket, Int_t *trackin, Int_t ntracks, Int_t tid)
-{
-// Interrupt transporting a given basket. This has to be correlated with the fact
-// that there are too many idle workers and the work queue is not filling.
-   for (Int_t itr=0; itr<ntracks; itr++) basket->AddTrack(trackin[itr]);
-//   basket->Clear();
 }
 
 //______________________________________________________________________________
@@ -163,29 +158,27 @@ void *WorkloadManager::GarbageCollect(void *)
    WorkloadManager *wm = WorkloadManager::Instance();
    concurrent_queue *feeder_queue = wm->FeederQueue();
    concurrent_queue *empty_queue = wm->EmptyQueue();
+   concurrent_queue *collector_queue = wm->CollectorQueue();
+   concurrent_queue *collector_empty_queue = wm->CollectorEmptyQueue();
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
+   // Number of collectors available
+   Int_t ncollectors = 0;
    // Number of empty baskets available
    Int_t nempty = 0;
-   Int_t ntracksperbasket = propagator->fNperBasket;
-   Bool_t feed = kFALSE;
+//   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
    Int_t min_feeder = TMath::Max(50,2*propagator->fNthreads); // setter/getter here ?
-   // Number of remaining tracks
-   Int_t ntracks = 1;
    // Number of tracks in the current basket
-   Int_t ntracksb = 0;
-   GeantBasketScheduler *basket_sch = 0;
-   GeantBasketScheduler *btop = 0;
-   GeantBasket *basket = 0;
+//   Int_t ntracksb = 0;
    Int_t nbaskets = wm->GetNbaskets();
-   Double_t factor;
-   GeantVolumeBasket **array = wm->GetBasketArray();
-   TH1F *hnb, *hfree;
+//   GeantVolumeBasket **array = wm->GetBasketArray();
+   // Main scheduler
+   GeantMainScheduler *main_sch = new GeantMainScheduler(nbaskets); 
+   TH1F *hnb=0, *hfree=0;
    TCanvas *c1 = 0;
 //   c1->Divide(1,2);
    TPad *pad1=0, *pad2=0;
-   TFile *fresult = 0;
    if (graphics) {
       c1 = new TCanvas("c2","c2",800,900);
       c1->Divide(1,2);
@@ -194,89 +187,64 @@ void *WorkloadManager::GarbageCollect(void *)
       hnb->SetFillColor(kRed);
       hnb->Draw();
       pad2 = (TPad*)c1->cd(2);
-      hfree = new TH1F("hfree","number of free baskets available",500,0,500);
+      hfree = new TH1F("hfree","number of reinjected baskets",500,0,500);
       hfree->SetFillColor(kBlue);
       hfree->Draw();
-   } else {
-      fresult = new TFile("results.root", "RECREATE");
-      hnb = new TH1F("hnb","number of baskets in the transport queue",10000,0,10000);
-      hnb->SetFillColor(kRed);
-      hfree = new TH1F("hfree","average number of tracks per basket",10000,0,10000);
-      hfree->SetFillColor(kBlue);
    }      
    Int_t niter = -1;
    Int_t iiter;
-   Double_t nperbasket, ntracksmax;
-   while (1) {
+   UInt_t npop = 0;
+   Double_t nperbasket;
+   Int_t ninjected = 0;
+//   Double_t ntracksmax;
+   GeantTrackCollector *collector;
+   TObject **carray = new TObject*[500];
+//   Bool_t direct_feed = kFALSE;
+   while ((collector = (GeantTrackCollector*)collector_queue->wait_and_pop_max(500,npop,carray))) {
       // Monitor the queues while there are tracks to transport
       niter++;
       iiter = niter;
+      ntotransport = feeder_queue->size();
+      // Check first the queue of collectors
+      ncollectors = npop+collector_queue->size();
+      nempty = empty_queue->size();
+      // Process popped collectors and flush their tracks
+      ninjected = 0;
+      for (UInt_t icoll=0; icoll<npop; icoll++) {
+         collector = (GeantTrackCollector*)carray[icoll];
+         ninjected += collector->FlushTracks(main_sch);
+         collector_empty_queue->push(collector);
+      }         
+      // If no collectors and to few baskets to transport perform a garbage collection
+//      Printf("picked=%d ncoll=%d  ninjected=%d ntotransport=%d",npop, ncollectors,ninjected,ntotransport);
+      if (ntotransport+ninjected<min_feeder) {
+         ninjected += main_sch->FlushBaskets();
+         Printf("Garbage collection injected %d baskets", ninjected);
+         if (ninjected<2 && !ntotransport) break;
+//         direct_feed = (ntotransport==0)?kTRUE:kFALSE;
+      }
       nperbasket = 0;
       for (Int_t tid=0; tid<propagator->fNthreads; tid++) 
          nperbasket += propagator->fTracksPerBasket[tid];
       nperbasket /= propagator->fNthreads;
-      if (graphics) iiter = niter%500;
-      if (iiter==0 && graphics) {
-         for (Int_t ibin=0; ibin<501; ibin++) {
-            hnb->SetBinContent(ibin,0);
-            hfree->SetBinContent(ibin,0);
-         }  
-         pad1->Modified();
-         pad2->Modified();
-         c1->Update();
-      }   
-      ntotransport = feeder_queue->size();
-      nempty = empty_queue->size();
-      if (iiter<10000) {
-         hnb->Fill(iiter, ntotransport);
-         hfree->Fill(iiter, nperbasket);
-      }   
+      iiter = niter%500;
       if (graphics) {
+         if (iiter==0) {
+            for (Int_t ibin=0; ibin<501; ibin++) {
+               hnb->SetBinContent(ibin,0);
+               hfree->SetBinContent(ibin,0);
+            } 
+         }    
+         hnb->Fill(iiter, ntotransport);
+         hfree->Fill(iiter, ninjected);
          pad1->Modified();
          pad2->Modified();
          c1->Update();
-      }
-      // Try to keep 50 baskets in the queue
-      factor = (Double_t)ntotransport/(2.*propagator->fNthreads);
-//      factor = 1.;
-      if (factor>10.) ntracksperbasket += 0.2*ntracksperbasket;
-      else if (factor<0.5) ntracksperbasket -= 0.2*ntracksperbasket;
-      ntracksperbasket = TMath::Max(5, ntracksperbasket);
-//      propagator->fNperBasket = ntracksperbasket;
-      ntracks = 0;
-      // loop all baskets and garbage collect them
-      if (ntotransport < min_feeder) {
-//         if (!feed) Printf("=== Garbage collector: start feeding ===");
-         feed=kTRUE;
-      } else {
-//         if (feed) Printf("=== Garbage collector: stop feeding ===");
-         feed = kFALSE;
-      }
-      ntracksmax = 0;   
-      for (Int_t ibasket=0; ibasket<nbaskets; ibasket++) {
-         basket_sch = array[ibasket]->GetScheduler();
-         ntracksb = basket_sch->GetNtotal();
-         if (!ntracksb) continue;
-         if (ntracksb>ntracksmax) {
-            ntracksmax = ntracksb;
-            btop = basket_sch;
-         }   
-         ntracks += ntracksb;
-         if (!basket) basket = empty_queue->wait_and_pop();
-         basket = basket_sch->GarbageCollect(basket, feed);
-      }
-      if ((niter%100) == 0 && btop) Printf("== Collector iteration #%d: ntracks=%d TOP=%s",
-                niter, ntracks, btop->GetVolume()->GetName());
-      if (!ntotransport && !ntracks) break;
+      }   
    }
    Printf("=== Garbage collector: stopping threads ===");
    for (Int_t i=0; i<propagator->fNthreads; i++) wm->FeederQueue()->push(0);
    wm->AnswerQueue()->push(0);
-   if (!graphics) {
-      hnb->Write();
-      hfree->Write();
-      fresult->Close();
-   }  
    Printf("=== Garbage collector: exiting ===");
    return 0;
 }        
@@ -313,7 +281,7 @@ void *WorkloadManager::TransportTracks(void *)
    if (!nav) nav = gGeoManager->AddNavigator();
 
    while (1) {
-      basket = wm->FeederQueue()->wait_and_pop();
+      basket = (GeantBasket*)wm->FeederQueue()->wait_and_pop();
       lastToClear = kFALSE;
       if (!basket) break;
       ntotransport = basket->GetNtracks();  // all tracks to be transported 
@@ -453,22 +421,9 @@ void *WorkloadManager::TransportTracks(void *)
       }   
 
 finish:
-      // the last thread to finish wakes up the main thread
-      // ... then go to sleep
-      // Checkpoint. 
-//      Printf("Thread %d finished", tid);
       basket->Clear();
-//      if (wm->FeederQueue()->empty()) {
-//         while (!wm->IsCleared()) wm->ClearBaskets();
-//         TThread::Lock();
-//         while (!wm->IsFlushed()) {
-//            wm->SetFlushed(wm->GetBuffer()->FlushBaskets());
-//         }   
-//         Printf("worker %d finished. Queue empty.", tid);
-//         TThread::UnLock();
-//      }
       wm->EmptyQueue()->push(basket);
-//      bufferStop->StartN();
+      propagator->InjectCollector(tid);
    }
    wm->AnswerQueue()->push(0);
    Printf("=== Thread %d: exiting ===", tid);

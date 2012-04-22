@@ -371,7 +371,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             trackout[nout++] = trackg->particle = itracknew;
             ngen++;
             GeantVolumeBasket *basket = gPropagator->fWMgr->GetCurrentBasket(tid);
-            if (basket) basket->AddTrack(itracknew);
+            if (basket) gPropagator->fCollectors[tid]->AddTrack(itracknew, basket);
            //check
            //pxtot -= trackg->px;
            //pytot -= trackg->py;

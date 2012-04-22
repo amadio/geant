@@ -257,13 +257,16 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          track->pz = p*TMath::Cos(theta);
          track->frombdr = kFALSE;
          AddTrack(track);
-         basket->AddTrack(fNstart);
+         gPropagator->fCollectors[0]->AddTrack(fNstart, basket);
+    //     basket->AddTrack(fNstart);
          fNstart++;
       }
       Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
       for (Int_t i=0; i<kMaxPart; i++)
          Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
-   }      
+   }
+   Printf("Injecting first collector...");
+   InjectCollector(0);      
    return basket;
 }
 
@@ -350,11 +353,40 @@ void GeantPropagator::Initialize()
       fTracksPerBasket = new Int_t[fNthreads];    
       for (Int_t i=0; i<fNthreads; i++) fTracksPerBasket[i] = 0;
    }   
+   if (!fCollectors) {
+      fCollectors = new GeantTrackCollector*[fNthreads];    
+      for (Int_t i=0; i<fNthreads; i++) fCollectors[i] = new GeantTrackCollector(100);
+   }   
    fWMgr = WorkloadManager::Instance(fNthreads);
    // Add some empty baskets in the queue
    fWMgr->AddEmptyBaskets(1000);
 }
 
+//______________________________________________________________________________
+GeantBasket *GeantPropagator::InjectBasket(GeantBasket *basket)
+{
+// Inject basket in the work queue and return a fresh one.
+   if (!basket->GetNtracks()) return basket;
+   GeantBasket *newbasket;
+   if (fWMgr->EmptyQueue()->empty()) newbasket = new GeantBasket(fNperBasket);
+   else newbasket = (GeantBasket*)fWMgr->EmptyQueue()->wait_and_pop();
+   fWMgr->FeederQueue()->push(basket);
+   return newbasket;
+}
+
+//______________________________________________________________________________
+void GeantPropagator::InjectCollector(Int_t tid)
+{
+// Inject collector handled by a single thread in the collector queue.
+   if (!fCollectors[tid]->GetNtracks()) return;
+   GeantTrackCollector *newcoll;
+   if (fWMgr->CollectorEmptyQueue()->empty()) newcoll = new GeantTrackCollector(100);
+   else newcoll = (GeantTrackCollector*)fWMgr->CollectorEmptyQueue()->wait_and_pop();
+   GeantTrackCollector *toinject = fCollectors[tid];
+   fCollectors[tid] = newcoll;
+   fWMgr->CollectorQueue()->push(toinject);
+}
+   
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {

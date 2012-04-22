@@ -28,6 +28,8 @@ protected:
    concurrent_queue  *feeder_queue;        // queue of filled baskets
    concurrent_queue  *answer_queue;        // queue of filled baskets
    concurrent_queue  *empty_queue;         // queue of empty baskets
+   concurrent_queue  *collector_queue;     // queue collecting crossing tracks
+   concurrent_queue  *collector_empty_queue;  // queue collecting empty tracks
    static WorkloadManager *fgInstance;     // Singleton instance
    GeantVolumeBasket **fCurrentBasket;     // Current basket transported per thread
    TList             *fListThreads;        // List of threads
@@ -40,17 +42,18 @@ public:
    virtual ~WorkloadManager();
    void                AddBasket(GeantVolumeBasket *basket) {fBasketArray[fNbaskets++]=basket;}
    void                AddEmptyBaskets(Int_t nb);
-   void                InterruptBasket(GeantVolumeBasket *basket, Int_t *trackin, Int_t ntracks, Int_t tid);
    void                CreateBaskets(Int_t nvolumes);
    concurrent_queue   *AnswerQueue() const {return answer_queue;}
    concurrent_queue   *EmptyQueue() const  {return empty_queue;}
    concurrent_queue   *FeederQueue() const {return feeder_queue;}
+   concurrent_queue   *CollectorQueue() const {return collector_queue;}
+   concurrent_queue   *CollectorEmptyQueue() const {return collector_empty_queue;}
    
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
    GeantVolumeBasket **GetBasketArray() const {return fBasketArray;}
    static WorkloadManager *
-                       Instance(Int_t nthreads=0);
+                       Instance(Int_t nthreads=0);                    
    Bool_t              IsFlushed() const {return fFlushed;}
    Bool_t              IsFilling() const {return fFilling;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
@@ -58,6 +61,7 @@ public:
    void                SetCurrentBasket(Int_t tid, GeantVolumeBasket *basket) {fCurrentBasket[tid]=basket;}
    GeantVolumeBasket  *GetCurrentBasket(Int_t tid) const {return fCurrentBasket[tid];}
    void                Print();
+   Int_t               GetNminThreshold() const {return fNminThreshold;}
    void                SetNminThreshold(Int_t thr) {fNminThreshold = thr;}
    void                StartThreads();
    void                JoinThreads();

@@ -6,7 +6,6 @@
 #include "TStyle.h"
 #include "TString.h"
 #include "TStopwatch.h"
-#include "GeantBasket.h"
 
 //______________________________________________________________________________
 TimeCounter::TimeCounter(bool measure_time)
@@ -126,7 +125,7 @@ concurrent_queue::~concurrent_queue()
 }   
 
 //______________________________________________________________________________
-void concurrent_queue::push(GeantBasket *data) 
+void concurrent_queue::push(TObject *data) 
 {
    the_mutex.Lock();
    the_queue.push(data);
@@ -145,21 +144,21 @@ Bool_t concurrent_queue::empty() const
 }
 
 //______________________________________________________________________________
-GeantBasket *concurrent_queue::try_pop() 
+TObject *concurrent_queue::try_pop() 
 {
    the_mutex.Lock();
    if(the_queue.empty()) {
       the_mutex.UnLock();
       return 0;
    }
-   GeantBasket *popped_value=the_queue.front();
+   TObject *popped_value=the_queue.front();
    the_queue.pop();
    the_mutex.UnLock();
    return popped_value;
 }
 
 //______________________________________________________________________________
-GeantBasket *concurrent_queue::wait_and_pop() 
+TObject *concurrent_queue::wait_and_pop() 
 {
 //   --(*the_counter);
    the_mutex.Lock();
@@ -168,13 +167,48 @@ GeantBasket *concurrent_queue::wait_and_pop()
       the_condition_variable.Wait();
    }
         
-   GeantBasket *popped_value=the_queue.front();
+   TObject *popped_value=the_queue.front();
    the_queue.pop();
 //   Printf("Popped basket %s", popped_value->GetName());
 //   ++(*the_counter);
    the_mutex.UnLock();
    return popped_value;
 }
+
+//______________________________________________________________________________
+TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array)
+{
+// Pop many objects in one go, maximum nmax.
+   the_mutex.Lock();
+   while(the_queue.empty()) {
+      the_condition_variable.Wait();
+   }
+   n =  the_queue.size();
+   if (n>nmax) n=nmax;
+   UInt_t npopped = 0;
+   while (npopped<n) {
+      array[npopped++] = the_queue.front();
+      the_queue.pop();
+   }
+   the_mutex.UnLock();
+   return array[0];
+}   
+
+//______________________________________________________________________________
+void concurrent_queue::pop_many(UInt_t n, TObject **array)
+{
+// Pop many objects in one go.
+   the_mutex.Lock();
+   while(the_queue.size() < n) {
+      the_condition_variable.Wait();
+   }
+   UInt_t npopped = 0;
+   while (npopped<n) {
+      array[npopped++] = the_queue.front();
+      the_queue.pop();
+   }
+   the_mutex.UnLock();
+}   
 
 //______________________________________________________________________________
 void concurrent_queue::Print()

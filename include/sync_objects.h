@@ -5,7 +5,7 @@
 #include "TMutex.h"
 
 class TStopwatch;
-class GeantBasket;
+class TObject;
 
 //______________________________________________________________________________
 struct TimeCounter {
@@ -25,7 +25,7 @@ struct TimeCounter {
 class concurrent_queue
 {
 private:
-   std::queue<GeantBasket*> the_queue;
+   std::queue<TObject*> the_queue;
    mutable TMutex    the_mutex;
    TCondition        the_condition_variable;
    TimeCounter      *the_counter;
@@ -34,11 +34,13 @@ public:
    ~concurrent_queue();
    
    Int_t              assigned_workers() const {return the_counter->nthreads;}
-   void               push(GeantBasket *data);
+   void               push(TObject *data);
    Int_t              size() const {return the_queue.size();}
    Bool_t             empty() const;
-   GeantBasket*       try_pop();
-   GeantBasket*       wait_and_pop();
+   TObject*           try_pop();
+   TObject*           wait_and_pop();
+   TObject*           wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array);
+   void               pop_many(UInt_t n, TObject **array);
    void               Print();
 };
 #endif

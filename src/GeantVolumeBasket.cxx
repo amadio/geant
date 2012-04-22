@@ -16,10 +16,11 @@ ClassImp(GeantVolumeBasket)
 const Double_t gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
-GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol)
+GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol, Int_t number)
                   :TObject(),
                    fVolume(vol),
-                   fScheduler(new GeantBasketScheduler(vol))
+                   fNumber(number)
+//                   fScheduler(new GeantBasketScheduler(vol))
 {
 // Constructor
 }
@@ -28,7 +29,7 @@ GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol)
 GeantVolumeBasket::~GeantVolumeBasket()
 {
 // Clean up
-   delete fScheduler;
+//   delete fScheduler;
 }   
 
 //______________________________________________________________________________

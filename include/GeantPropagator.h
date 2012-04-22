@@ -17,9 +17,11 @@ class TGeoVolume;
 class TGeoHelix;
 class PhysicsProcess;
 class GeantTrack;
+class GeantBasket;
 class GeantOutput;
 class GeantVolumeBasket;
 class WorkloadManager;
+class GeantTrackCollector;
 
 class GeantPropagator : public TObject
 {
@@ -77,6 +79,7 @@ public:
    TGeoHelix      **fFieldPropagator; //![fNThreads]
    TGeoRotation   **fRotation;  //![fNThreads]
    Int_t           *fTracksPerBasket; //![fNthreads]
+   GeantTrackCollector **fCollectors; //![fNthreads]  Track collectors
    
    static GeantPropagator *fgInstance;
 public:
@@ -89,6 +92,8 @@ public:
    GeantVolumeBasket *
                     ImportTracks(Int_t nevents, Double_t average);
    void             Initialize();
+   void             InjectCollector(Int_t tid);
+   GeantBasket     *InjectBasket(GeantBasket *basket);
    static 
    GeantPropagator *Instance();
    void             PhysicsSelect(Int_t ntracks, Int_t *trackin, Int_t tid);
