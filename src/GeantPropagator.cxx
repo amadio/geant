@@ -491,8 +491,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    fTransportOngoing = kTRUE;
    gGeoManager->SetMaxThreads(nthreads);
    fTimer = new TStopwatch();
-   fTimer->Start();
    fWMgr->StartThreads();
+   fTimer->Start();
    fWMgr->WaitWorkers();
    fTimer->Stop();
    Double_t rtime = fTimer->RealTime();

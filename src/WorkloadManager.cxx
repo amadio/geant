@@ -120,6 +120,7 @@ void WorkloadManager::StartThreads()
       fListThreads->Add(t);
       t->Run();
    }
+   gSystem->Sleep(1000);
    TThread *t = new TThread(WorkloadManager::GarbageCollect);
    fListThreads->Add(t);
    t->Run();
