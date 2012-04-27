@@ -1,3 +1,6 @@
+
+SYSTEM := $(shell uname)
+
 SrcSuf        = cc
 ObjSuf        = o
 DllSuf        = so
@@ -8,8 +11,12 @@ OPT           = -O2
 CXX           = g++
 CXXFLAGS      = $(OPT) -Wall -fPIC
 LD            = g++
-LDFLAGS       = $(OPT)
-SOFLAGS       = -shared -Wl -m64 -g
+LDFLAGS       = $(OPT) 
+ifeq ($(SYSTEM),Darwin)
+SOFLAGS       = -shared -m64 -dynamiclib -undefined dynamic_lookup -single_module
+else
+SOFLAGS	      = -shared -Wl -m64 -g
+endif
 INCDIR        = include
 SRCDIR        = src
 CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
