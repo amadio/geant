@@ -17,11 +17,12 @@ class TGeoVolume;
 class TGeoHelix;
 class PhysicsProcess;
 class GeantTrack;
+class GeantEvent;
 class GeantBasket;
 class GeantOutput;
 class GeantVolumeBasket;
 class WorkloadManager;
-class GeantTrackCollector;
+class GeantTrackCollection;
 
 class GeantPropagator : public TObject
 {
@@ -69,6 +70,7 @@ public:
    
    PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack     **fTracks;    //![fMaxTracks]  Array of tracks
+   GeantEvent     **fEvents;    //![fNevents]    Array of events
    Double_t        *fDblArray;  //![5*fMaxTracks]
    Double_t        *fProcStep;  //![fNprocesses*fMaxTracks]
    TRandom        **fRndm;      //![fNthreads] Array of random number generators per thread
@@ -79,7 +81,8 @@ public:
    TGeoHelix      **fFieldPropagator; //![fNThreads]
    TGeoRotation   **fRotation;  //![fNThreads]
    Int_t           *fTracksPerBasket; //![fNthreads]
-   GeantTrackCollector **fCollectors; //![fNthreads]  Track collectors
+   GeantTrackCollection **fCollections; //![fNthreads]  Track collections
+   UInt_t          *fWaiting;           //![fNthreads] Threads in waiting flag
    
    static GeantPropagator *fgInstance;
 public:
@@ -87,12 +90,14 @@ public:
    virtual ~GeantPropagator();
    
    Int_t            AddTrack(GeantTrack *track);
+   void             StopTrack(GeantTrack *track);
    Int_t            GetElossInd() const {return fElossInd;}
+   UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");
    GeantVolumeBasket *
                     ImportTracks(Int_t nevents, Double_t average);
    void             Initialize();
-   void             InjectCollector(Int_t tid);
+   void             InjectCollection(Int_t tid);
    GeantBasket     *InjectBasket(GeantBasket *basket);
    static 
    GeantPropagator *Instance();

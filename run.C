@@ -12,6 +12,8 @@ void run(Int_t nthreads=3, Bool_t graphics=kTRUE, const char *geomfile="http://r
    wmgr->SetNminThreshold(5*nthreads);
    prop->fNevents  = 100;     // Number of events to be transported
    prop->fNaverage = 100;   // Average number of tracks per event
+//   prop->fUseDebug = kTRUE;
+//   prop->fDebugTrk = 1;
    prop->PropagatorGeom(geomfile, nthreads, graphics);
 }   
    

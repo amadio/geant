@@ -98,6 +98,7 @@ GeantPropagator::GeantPropagator()
                  fVolume(0),
                  fProcesses(0),
                  fTracks(0),
+                 fEvents(0),
                  fDblArray(0),
                  fProcStep(0),
                  fRndm(0),
@@ -107,7 +108,9 @@ GeantPropagator::GeantPropagator()
                  fPartCross(0),
                  fFieldPropagator(0),
                  fRotation(0),
-                 fTracksPerBasket(0)
+                 fTracksPerBasket(0),
+                 fCollections(0),
+                 fWaiting(0)
 {
 // Constructor
    for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
@@ -129,6 +132,12 @@ GeantPropagator::~GeantPropagator()
    }
    delete [] fVolume;
    delete [] fTracks;
+
+   if (fEvents) {
+      for (i=0; i<fNevents; i++) delete fEvents[i];
+      delete [] fEvents;
+   }
+   
    delete [] fDblArray;
    delete [] fProcStep;
    if (fRndm) {
@@ -159,6 +168,7 @@ GeantPropagator::~GeantPropagator()
       for (i=0; i<fNthreads; i++) delete fRotation[i];
       delete fRotation;
    }
+   delete [] fWaiting;
    delete fOutput;
    delete fOutFile;
    delete fTimer;
@@ -173,6 +183,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack *track)
    Int_t iret;
    track->particle = fNtracks;
    fTracks[fNtracks] = track;
+   fEvents[track->event]->AddTrack();
 //   Int_t tid = TGeoManager::ThreadId();
    fNtracks++;
    fNtransported++;
@@ -189,6 +200,15 @@ Int_t GeantPropagator::AddTrack(GeantTrack *track)
    return iret;   
 }
 
+//______________________________________________________________________________
+void GeantPropagator::StopTrack(GeantTrack *track)
+{
+// Mark track as stopped for tracking.
+//   Printf("Stopping track %d", track->particle);
+   if (track->IsAlive()) fEvents[track->event]->StopTrack();
+   track->Kill();
+}
+   
 //______________________________________________________________________________
 GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average)
 {
@@ -220,6 +240,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
    }
    for (Int_t event=0; event<nevents; event++) {
       ntracks = fRndm[tid]->Poisson(average);
+      fEvents[event] = new GeantEvent();
       
       for (Int_t i=0; i<ntracks; i++) {
 //         TGeoBranchArray *a = new TGeoBranchArray();
@@ -257,16 +278,18 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          track->pz = p*TMath::Cos(theta);
          track->frombdr = kFALSE;
          AddTrack(track);
-         gPropagator->fCollectors[0]->AddTrack(fNstart, basket);
+         gPropagator->fCollections[tid]->AddTrack(fNstart, basket);
     //     basket->AddTrack(fNstart);
          fNstart++;
       }
       Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
-      for (Int_t i=0; i<kMaxPart; i++)
+      for (Int_t i=0; i<kMaxPart; i++) {
          Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
+         pdgCount[i] = 0;
+      }   
    }
-   Printf("Injecting first collector...");
-   InjectCollector(0);      
+   Printf("Injecting %d events...", nevents);
+   InjectCollection(tid);      
    return basket;
 }
 
@@ -353,13 +376,26 @@ void GeantPropagator::Initialize()
       fTracksPerBasket = new Int_t[fNthreads];    
       for (Int_t i=0; i<fNthreads; i++) fTracksPerBasket[i] = 0;
    }   
-   if (!fCollectors) {
-      fCollectors = new GeantTrackCollector*[fNthreads];    
-      for (Int_t i=0; i<fNthreads; i++) fCollectors[i] = new GeantTrackCollector(100);
+   if (!fCollections) {
+      fCollections = new GeantTrackCollection*[fNthreads+1];    
+      for (Int_t i=0; i<fNthreads+1; i++) fCollections[i] = new GeantTrackCollection(100);
+   }
+   if (!fWaiting) {
+      fWaiting = new UInt_t[fNthreads];
+      memset(fWaiting, 0, fNthreads*sizeof(UInt_t));
    }   
    fWMgr = WorkloadManager::Instance(fNthreads);
    // Add some empty baskets in the queue
    fWMgr->AddEmptyBaskets(1000);
+}
+
+//______________________________________________________________________________
+UInt_t GeantPropagator::GetNwaiting() const
+{
+// Returns number of waiting threads. Must be called by a single scheduler.
+   UInt_t nwaiting = 0;
+   for (Int_t tid=0; tid<fNthreads; tid++) nwaiting += fWaiting[tid];
+   return nwaiting;
 }
 
 //______________________________________________________________________________
@@ -375,15 +411,15 @@ GeantBasket *GeantPropagator::InjectBasket(GeantBasket *basket)
 }
 
 //______________________________________________________________________________
-void GeantPropagator::InjectCollector(Int_t tid)
+void GeantPropagator::InjectCollection(Int_t tid)
 {
 // Inject collector handled by a single thread in the collector queue.
-   if (!fCollectors[tid]->GetNtracks()) return;
-   GeantTrackCollector *newcoll;
-   if (fWMgr->CollectorEmptyQueue()->empty()) newcoll = new GeantTrackCollector(100);
-   else newcoll = (GeantTrackCollector*)fWMgr->CollectorEmptyQueue()->wait_and_pop();
-   GeantTrackCollector *toinject = fCollectors[tid];
-   fCollectors[tid] = newcoll;
+//   if (!fCollections[tid]->GetNtracks()) return;
+   GeantTrackCollection *newcoll;
+   if (fWMgr->CollectorEmptyQueue()->empty()) newcoll = new GeantTrackCollection(100);
+   else newcoll = (GeantTrackCollection*)fWMgr->CollectorEmptyQueue()->wait_and_pop();
+   GeantTrackCollection *toinject = fCollections[tid];
+   fCollections[tid] = newcoll;
    fWMgr->CollectorQueue()->push(toinject);
 }
    
@@ -476,6 +512,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    // Create the basket array
 
    // Import the input events. This will start also populating the main queue
+   if (!fEvents) fEvents = new GeantEvent*[fNevents];
    ImportTracks(fNevents, fNaverage);
 
    // Initialize tree

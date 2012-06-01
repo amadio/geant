@@ -3,6 +3,7 @@
 
 #include "globals.h"
 #include "TMath.h"
+#include "TMutex.h"
 
 class TGeoBranchArray;
 class GeantVolumeBasket;
@@ -57,6 +58,21 @@ struct GeantTrack {
    Double_t           P()     const {return TMath::Sqrt(px*px+py*py+pz*pz);}
    Double_t           Gamma() const {return mass?e/mass:TMath::Limits<double>::Max();}
    Double_t           Beta()  const {return P()/e;}
+};
+
+//______________________________________________________________________________
+struct GeantEvent {
+   Int_t  ntracks;      // number of tracks
+   Int_t  ndone;        // number of done tracks
+   TMutex the_mutex;    // mutex for this
+
+   GeantEvent() : ntracks(0), ndone(0), the_mutex() {}
+   GeantEvent(Int_t ntr) : ntracks(ntr), ndone(0), the_mutex() {}
+   ~GeantEvent() {}
+   
+   void               AddTrack();
+   void               StopTrack();
+   Bool_t             Transported() const {return (ntracks==ndone);}
 };
 
 #endif

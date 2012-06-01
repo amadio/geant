@@ -95,7 +95,11 @@ void ScatteringProcess::PostStep(TGeoVolume *,
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gPropagator->fTracks[itrack];
-      if (!track->charge) continue;
+      if (!track->charge) {
+         if (trackout) trackout[nout] = itrack;
+         nout++;
+         continue;
+      }   
       theta = TMath::ACos((1.-rndArray[irnd++]*(1.-ctmax)));
       // Re-scale from emin to emax
       scale = (track->e-gPropagator->fEmin)/(gPropagator->fEmax-gPropagator->fEmin);
@@ -175,14 +179,14 @@ void ElossProcess::PostStep(TGeoVolume *vol,
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];   
       track = gPropagator->fTracks[itrack];
-      if (!track->IsAlive() || !track->charge) continue;
-      if (track->e-track->mass < gPropagator->fEmin) {
-         track->Kill();
-         continue;
-      }   
-      if (track->step==0 || invalid_material) {
+      if (!track->IsAlive()) continue;
+      if (!track->charge || track->step==0 || invalid_material) {
          if (trackout) trackout[nout] = itrack;
          nout++;
+         continue;
+      }   
+      if (track->e-track->mass < gPropagator->fEmin) {
+         gPropagator->StopTrack(track);
          continue;
       }   
       dedx = BetheBloch(track,matz,mata,matr);
@@ -192,7 +196,7 @@ void ElossProcess::PostStep(TGeoVolume *vol,
       Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
       track->e -= eloss;
       if (track->e-track->mass < gPropagator->fEmin) {
-         track->Kill();
+         gPropagator->StopTrack(track);
          continue;
       }   
       if (trackout) trackout[nout] = itrack;
@@ -371,7 +375,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             trackout[nout++] = trackg->particle = itracknew;
             ngen++;
             GeantVolumeBasket *basket = gPropagator->fWMgr->GetCurrentBasket(tid);
-            if (basket) gPropagator->fCollectors[tid]->AddTrack(itracknew, basket);
+            if (basket) gPropagator->fCollections[tid]->AddTrack(itracknew, basket);
            //check
            //pxtot -= trackg->px;
            //pytot -= trackg->py;

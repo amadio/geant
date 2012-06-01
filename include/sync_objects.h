@@ -1,8 +1,10 @@
 #ifndef GEANT_SYNCOBJECTS
 #define GEANT_SYNCOBJECTS
-#include <queue>
+#include <deque>
 #include "TCondition.h"
 #include "TMutex.h"
+
+using namespace std;
 
 class TStopwatch;
 class TObject;
@@ -25,22 +27,27 @@ struct TimeCounter {
 class concurrent_queue
 {
 private:
-   std::queue<TObject*> the_queue;
+   deque<TObject*>   the_queue;
    mutable TMutex    the_mutex;
    TCondition        the_condition_variable;
    TimeCounter      *the_counter;
+   Int_t             nobjects;
+   Int_t             npriority;
 public:
    concurrent_queue(bool counter=false);
    ~concurrent_queue();
    
    Int_t              assigned_workers() const {return the_counter->nthreads;}
-   void               push(TObject *data);
-   Int_t              size() const {return the_queue.size();}
+   void               push(TObject *data, Bool_t priority=false);
+   Int_t              size() const;
+   Int_t              size_async() const {return the_queue.size();}
    Bool_t             empty() const;
-   TObject*           try_pop();
+   Bool_t             empty_async() const {return the_queue.empty();}
    TObject*           wait_and_pop();
    TObject*           wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array);
    void               pop_many(UInt_t n, TObject **array);
+   Int_t              size_priority() const {return npriority;}
+   Int_t              size_objects() const {return nobjects;}
    void               Print();
 };
 #endif

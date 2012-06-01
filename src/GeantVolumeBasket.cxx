@@ -59,24 +59,38 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin)
          track->snext = TMath::Max(2*gTolerance,nav->GetStep());
       } else {
          // Propagate to next volume without computing safety for neutrals
+         if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
+            Printf("track %d in %s - calling FNBAS", trackin[itr], nav->GetCurrentNode()->GetName());
+         }   
          nav->FindNextBoundaryAndStep(pstep, kFALSE);
          track->safety = 0.;
          track->snext = nav->GetStep();
+         if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
+            Printf("track %d ending in %s after snext=%g", trackin[itr], nav->GetCurrentNode()->GetName(), track->snext);
+         }   
+         if (nav->IsOutside() || track->snext>1.E19) {
+            gPropagator->StopTrack(track);
+            continue;
+         }
          // Check if it was a short step
          track->nextpath->InitFromNavigator(nav);
          track->frombdr = nav->IsOnBoundary();
          if (nav->IsOnBoundary() && track->snext<2.*gTolerance) {
             // Make sure track crossed
+            track->izero++;
+            if (track->izero > 10) {
+               gPropagator->StopTrack(track);
+               continue;
+            }   
             nav->FindNextBoundaryAndStep(1.E30, kFALSE);
             track->nextpath->InitFromNavigator(nav);
             track->snext += nav->GetStep();
          }
-         if (nav->IsOutside()) track->Kill();   
+         if (track->snext>2.*gTolerance) track->izero = 0;
       }
       
       if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
-         Printf("    %d   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
-         Printf("       track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
+         Printf(" CTL(%d):   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
          track->Print(trackin[itr]);
       }   
    }
@@ -139,19 +153,16 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
    for (Int_t itr=0; itr<ntracks; itr++) {
       track = gPropagator->fTracks[trackin[itr]];
       // Skip neutral tracks for the time being (!!!)
+      if (!track->IsAlive()) continue;
       if (!track->charge) {
-         track->PropagateStraight(track->snext, itr);
+         track->PropagateStraight(track->snext, trackin[itr]);
          if (track->frombdr) trackcross[ncross++] = trackin[itr];
          else                trackout[nout++] = trackin[itr];
          continue;
       }
-      if (!track->IsAlive()) continue;
-      if (track->pending) {
-         continue;
-      }   
       track->nsteps++;
       if (track->nsteps > gPropagator->fMaxSteps) {
-         track->Kill();
+         gPropagator->StopTrack(track);
          continue;
       }   
       step = track->pstep;
@@ -182,6 +193,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
             if (nav->IsOutside()) {
                if (gPropagator->fUseDebug && (gPropagator->fDebugTrk== trackin[itr] || gPropagator->fDebugTrk<0)) Printf("   track %d exiting geometry", trackin[itr]);
                trackcross[ncross++] = trackin[itr];
+               gPropagator->StopTrack(track);
                continue;
             }   
             // these tracks do not cross
@@ -217,6 +229,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
                if (nav->IsOutside()) {
                   if (gPropagator->fUseDebug && (gPropagator->fDebugTrk== trackin[itr] || gPropagator->fDebugTrk<0)) Printf("   track %d exiting geometry", trackin[itr]);
                   trackcross[ncross++] = trackin[itr];
+                  gPropagator->StopTrack(track);
                   continue;
                }   
                // these tracks do not cross
@@ -238,6 +251,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
          if (nav->IsOutside()) {
             if (gPropagator->fUseDebug && (gPropagator->fDebugTrk== trackin[itr] || gPropagator->fDebugTrk<0)) Printf("   track %d exiting geometry", trackin[itr]);
             trackcross[ncross++] = trackin[itr];
+            gPropagator->StopTrack(track);
             continue;
          }   
          // these tracks do not cross

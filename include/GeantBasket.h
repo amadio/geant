@@ -39,40 +39,6 @@ public:
 };   
 
 //==============================================================================
-// Class holding a list of track baskets that can be used in a preferential
-// round robin scheduling scheme.
-//==============================================================================
-
-//______________________________________________________________________________
-class GeantBasketScheduler : public TObject {
-protected:
-   TGeoVolume       *fVolume;                // Volume for which applies
-   Int_t             fNbaskets;              // Number of baskets
-   Int_t             fMaxBaskets;            // Maximum number of baskets
-   Int_t             fVIB;                   // Very important basket getting the priority
-   Int_t             fCrt;                   // Current basket to be filled
-   Int_t             fNbusy;                 // Number of busy baskets
-   GeantBasket     **fBaskets;               //[fNbaskets] Array of baskets
-   GeantBasket      *fCollector;             //! garbage collector basket
-   TMutex            fBasketLock;            //! Mutex lock for the basket
-
-public:
-   GeantBasketScheduler();
-   GeantBasketScheduler(TGeoVolume *vol);
-   virtual ~GeantBasketScheduler();
-
-   void              AddTrack(Int_t itrack);
-   void              AddNewBasket();
-   GeantBasket      *GarbageCollect(GeantBasket *basket, Bool_t feed);
-   Int_t             GetNtracks() const;
-   Int_t             GetNtotal() const;
-   TGeoVolume       *GetVolume() const {return fVolume;}
-   void              InjectBasket(Int_t islot);
-
-   ClassDef(GeantBasketScheduler,1)  // A basket scheduler
-};
-
-//==============================================================================
 // GeantMainScheduler - dispatcher running in a single thread. Collects tracks
 // from all threads via an input queue and fills baskets corresponding to each
 // volume, which are then injected in the main work queue.
@@ -84,7 +50,10 @@ class concurrent_queue;
 class GeantMainScheduler : public TObject {
 protected:
    Int_t                fNvolumes;            // Number of active volumes in the geometry
+   Int_t                fNpriority;           // Number of priority baskets held
    GeantBasket        **fBaskets;             // Array of baskets to be filled
+   GeantBasket        **fPriorityBaskets;     // Array of priority baskets
+   Int_t                fPriorityRange[2];    // Prioritized events
    concurrent_queue    *feeder_queue;         // Main feeder
    concurrent_queue    *empty_queue;          // Queue with empty baskets
    concurrent_queue    *collector_queue;      // Queue for collecting tracks
@@ -94,7 +63,10 @@ public:
    GeantMainScheduler(Int_t nvolumes);
    virtual ~GeantMainScheduler();
    Int_t                AddTrack(Int_t itrack, Int_t ibasket);
-   Int_t                FlushBaskets(Int_t ievent=-1, Int_t threshold=0);   
+   Int_t                GetNpriority() const {return fNpriority;}
+   void                 SetPriorityRange(Int_t min, Int_t max) {fPriorityRange[0]=min; fPriorityRange[1]=max;}
+   Int_t                FlushBaskets(Int_t threshold=0);   
+   Int_t                FlushPriorityBaskets();
    
    ClassDef(GeantMainScheduler, 1)      // Main basket scheduler
 };   
@@ -107,7 +79,7 @@ public:
 class GeantVolumeBasket;
 
 //______________________________________________________________________________
-class GeantTrackCollector : public TObject {
+class GeantTrackCollection : public TObject {
 protected:
    Int_t               fNtracks;              // Number of crossing tracks
    Int_t               fSize;                 // Size of the arrays > fNtracks
@@ -115,15 +87,15 @@ protected:
    GeantVolumeBasket **fBaskets;              //! Volume basket to which the track goes
 
 public:
-   GeantTrackCollector();
-   GeantTrackCollector(Int_t size);
-   virtual ~GeantTrackCollector();
+   GeantTrackCollection();
+   GeantTrackCollection(Int_t size);
+   virtual ~GeantTrackCollection();
    
    Int_t               AddTrack(Int_t itrack, GeantVolumeBasket *basket);
    Int_t               GetNtracks() const {return fNtracks;}
    Int_t               FlushTracks(GeantMainScheduler *main);
    
-   ClassDef(GeantTrackCollector, 1)     // Track collector per thread
+   ClassDef(GeantTrackCollection, 1)     // Track collection per thread
 };
 
 #endif

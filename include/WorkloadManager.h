@@ -65,7 +65,7 @@ public:
    void                SetNminThreshold(Int_t thr) {fNminThreshold = thr;}
    void                StartThreads();
    void                JoinThreads();
-   static void        *GarbageCollect(void *arg);
+   static void        *MainScheduler(void *arg);
    static void        *TransportTracks(void *arg);
    void                WaitWorkers();
    

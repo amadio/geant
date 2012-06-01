@@ -73,7 +73,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
 // Returns the basket pointer, null if exiting geometry.
 // Find next volume
    Double_t dir[3];
-   frombdr = kTRUE;
+//   frombdr = kTRUE;
    Direction(dir);
    pstep -= crtstep;
    safety = 0;
@@ -92,7 +92,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
    if (frombdr) {
-      gPropagator->fCollectors[tid]->AddTrack(itr,basket);
+      gPropagator->fCollections[tid]->AddTrack(itr,basket);
       path->InitFromNavigator(nav);
    }   
    // Signal that the transport is still ongoing if the particle entered a new basket
@@ -243,7 +243,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    path->InitFromNavigator(nav);
    if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
    GeantVolumeBasket *basket = (GeantVolumeBasket*)vol->GetField();
-   gPropagator->fCollectors[tid]->AddTrack(itr, basket);
+   gPropagator->fCollections[tid]->AddTrack(itr, basket);
    // Signal that the transport is still ongoing if the particle entered a new basket
    gPropagator->fTransportOngoing = kTRUE;
 //   if (gUseDebug && (gDebugTrk==itr || gDebugTrk<0)) {
@@ -364,3 +364,23 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
    // Boundary crossed, navigation points to new location
    return kTRUE;
 }   
+
+//______________________________________________________________________________
+void GeantEvent::AddTrack()
+{
+// Thread safe track addition
+   the_mutex.Lock();
+   ntracks++;
+   the_mutex.UnLock();
+}
+
+//______________________________________________________________________________
+void GeantEvent::StopTrack()
+{
+// Thread safe track addition
+   the_mutex.Lock();
+   ndone++;
+   the_mutex.UnLock();
+}
+
+   
