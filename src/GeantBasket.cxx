@@ -79,9 +79,14 @@ Bool_t GeantBasket::Contains(Int_t event) const
 void GeantBasket::Print(Option_t *) const
 {
 // Print basket content.
+   TThread::Lock();
+   TString s = Form("basket %p with %d tracks:", this, fNtracks);
    for (Int_t i=0; i<fNtracks; i++) {
-      gPropagator->fTracks[fIndex[i]]->Print();
+//      gPropagator->fTracks[fIndex[i]]->Print();
+      s += Form(" %d",fIndex[i]);
    }
+   Printf("%s", s.Data());
+   TThread::UnLock();
 }
 
 //______________________________________________________________________________
@@ -134,6 +139,7 @@ GeantTrackCollection::~GeantTrackCollection()
 Int_t GeantTrackCollection::AddTrack(Int_t itrack, GeantVolumeBasket *basket)
 {
 // Add a new track entering the basket.
+   if (!gPropagator->fTracks[itrack]->IsAlive()) return fNtracks;
    if (fNtracks==fSize-1) {
       Int_t *tracks = new Int_t[2*fSize];
       GeantVolumeBasket **baskets = new GeantVolumeBasket*[2*fSize];
@@ -157,6 +163,19 @@ Int_t GeantTrackCollection::FlushTracks(GeantMainScheduler *main)
    fNtracks = 0;
    return ninjected;
 }
+
+//______________________________________________________________________________
+void GeantTrackCollection::Print(Option_t *) const
+{
+// Print info
+   TThread::Lock();
+   TString s = Form("collection %p with %d tracks:", this, fNtracks);
+   for (Int_t i=0; i<fNtracks; i++) {
+      s += Form(" %d",fTracks[i]);
+   }
+   Printf("%s", s.Data());
+   TThread::UnLock();
+}   
 
 ClassImp(GeantMainScheduler)
 
@@ -192,8 +211,8 @@ GeantMainScheduler::GeantMainScheduler(Int_t nvolumes)
    empty_queue = wm->EmptyQueue();
    collector_queue = wm->CollectorQueue();
    for (Int_t i=0; i<nvolumes; i++) {
-      fBaskets[i] = new GeantBasket(10);
-      fPriorityBaskets[i] = new GeantBasket(10);
+      fBaskets[i] = new GeantBasket(2*gPropagator->fNperBasket);
+      fPriorityBaskets[i] = new GeantBasket(2*gPropagator->fNperBasket);
    }         
    fPriorityRange[0] = fPriorityRange[1] = -1;
 }
@@ -216,10 +235,15 @@ GeantMainScheduler::~GeantMainScheduler()
 Int_t GeantMainScheduler::AddTrack(Int_t itrack, Int_t ibasket)
 {
 // Add track and inject basket if above threshold. Returns 1 if the basket was
-// injected and 0 if not.
+// injected and 0 if not. Basket pushed at fNperBasket
    Int_t ninjected = 0;
    Bool_t priority = kFALSE;
    GeantBasket **baskets = fBaskets;
+   GeantTrack *track = gPropagator->fTracks[itrack];
+   if (!track || !track->IsAlive()) {
+//      Printf("TRACK %d is NOT ALIVE", itrack);
+      return 0;
+   }  
    if (fPriorityRange[0]>=0) {
       Int_t event = gPropagator->fTracks[itrack]->event;
       priority = kFALSE;
@@ -232,10 +256,12 @@ Int_t GeantMainScheduler::AddTrack(Int_t itrack, Int_t ibasket)
    baskets[ibasket]->AddTrack(itrack);
    if (baskets[ibasket]->GetNtracks() >= gPropagator->fNperBasket) {
    // inject this basket
+//      Printf("pushing basket %p", baskets[ibasket]);
+//      baskets[ibasket]->Print();
       feeder_queue->push(baskets[ibasket], priority);
       fNpriority -= (Int_t)priority;
       ninjected++;
-      if (empty_queue->empty_async()) baskets[ibasket] = new GeantBasket(10);
+      if (empty_queue->empty_async()) baskets[ibasket] = new GeantBasket(2*gPropagator->fNperBasket);
       else {
          baskets[ibasket] = (GeantBasket*)empty_queue->wait_and_pop();
          baskets[ibasket]->Clear();
@@ -253,10 +279,12 @@ Int_t GeantMainScheduler::FlushPriorityBaskets()
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++) {
       if (!fPriorityBaskets[ibasket]->GetNtracks()) continue;
       // inject this basket
+//      Printf("pushing basket %p", fPriorityBaskets[ibasket]);
+//      fPriorityBaskets[ibasket]->Print();
       feeder_queue->push(fPriorityBaskets[ibasket], kTRUE);
       fNpriority--;
       ninjected++;
-      if (empty_queue->empty_async()) fPriorityBaskets[ibasket] = new GeantBasket(10);
+      if (empty_queue->empty_async()) fPriorityBaskets[ibasket] = new GeantBasket(2*gPropagator->fNperBasket);
       else {
          fPriorityBaskets[ibasket] = (GeantBasket*)empty_queue->wait_and_pop();
          fPriorityBaskets[ibasket]->Clear();
@@ -279,10 +307,12 @@ Int_t GeantMainScheduler::FlushBaskets(Int_t threshold)
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++) {
       // inject this basket
       if (!fBaskets[ibasket]->GetNtracks()) continue;
+//      Printf("pushing basket %p", fBaskets[ibasket]);
+//      fBaskets[ibasket]->Print();
       feeder_queue->push(fBaskets[ibasket], kFALSE);
       ninjected++;
       ntoflush--;
-      if (empty_queue->empty()) fBaskets[ibasket] = new GeantBasket(10);
+      if (empty_queue->empty()) fBaskets[ibasket] = new GeantBasket(2*gPropagator->fNperBasket);
       else {
          fBaskets[ibasket] = (GeantBasket*)empty_queue->wait_and_pop();
          fBaskets[ibasket]->Clear();

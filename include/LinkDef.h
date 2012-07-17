@@ -4,6 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class GeantThreadData+;
 #pragma link C++ class GeantVolumeBasket+;
 #pragma link C++ class GeantBasket+;
 #pragma link C++ class GeantTrackCollection+;

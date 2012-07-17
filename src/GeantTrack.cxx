@@ -6,6 +6,7 @@
 #include "TGeoHelix.h"
 #include "GeantTrack.h"
 #include "GeantVolumeBasket.h"
+#include "GeantThreadData.h"
 #include "WorkloadManager.h"
 
 const Double_t gTolerance = TGeoShape::Tolerance();
@@ -13,6 +14,7 @@ const Double_t gTolerance = TGeoShape::Tolerance();
 //______________________________________________________________________________
 GeantTrack::GeantTrack(Int_t ipdg) 
            :event(-1),
+            evslot(-1),
             particle(-1),
             pdg(ipdg),
             species(kHadron),
@@ -61,8 +63,8 @@ void GeantTrack::Direction(Double_t dir[3]) {
 void GeantTrack::Print(Int_t) const {
    TString spath;
 //   if (path) path->GetPath(spath);
-   Printf("=== Track %d (%s): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%g E:%g snext=%g safety=%g nsteps=%d",
-           particle,spath.Data(), process,pstep,charge,xpos,ypos,zpos,px,py,pz,TMath::Sqrt(px*px+py*py+pz*pz),e,snext,safety,nsteps);
+   Printf("=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%g E:%g snext=%g safety=%g nsteps=%d",
+           particle,event, process,pstep,charge,xpos,ypos,zpos,px,py,pz,TMath::Sqrt(px*px+py*py+pz*pz),e,snext,safety,nsteps);
 }
 
 //______________________________________________________________________________
@@ -113,6 +115,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
 // the boundary crossing point.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    Int_t tid = nav->GetThreadId();
+   GeantThreadData *td = gPropagator->fThreadData[tid];
    Bool_t useDebug = gPropagator->fUseDebug;
    Int_t debugTrk = gPropagator->fDebugTrk;
    nav->ResetState();
@@ -135,15 +138,15 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
    Direction(dir);
    if (charge) {
       c = Curvature();
-      gPropagator->fFieldPropagator[tid]->SetXYcurvature(c);
-      gPropagator->fFieldPropagator[tid]->SetCharge(charge);
-      gPropagator->fFieldPropagator[tid]->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
-      gPropagator->fFieldPropagator[tid]->InitPoint(xpos,ypos,zpos);
-      gPropagator->fFieldPropagator[tid]->InitDirection(dir);
-      gPropagator->fFieldPropagator[tid]->UpdateHelix();
-      gPropagator->fFieldPropagator[tid]->Step(crtstep);
-      point = gPropagator->fFieldPropagator[tid]->GetCurrentPoint();
-      newdir = gPropagator->fFieldPropagator[tid]->GetCurrentDirection();
+      td->fFieldPropagator->SetXYcurvature(c);
+      td->fFieldPropagator->SetCharge(charge);
+      td->fFieldPropagator->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
+      td->fFieldPropagator->InitPoint(xpos,ypos,zpos);
+      td->fFieldPropagator->InitDirection(dir);
+      td->fFieldPropagator->UpdateHelix();
+      td->fFieldPropagator->Step(crtstep);
+      point = td->fFieldPropagator->GetCurrentPoint();
+      newdir = td->fFieldPropagator->GetCurrentDirection();
       xpos = point[0]; ypos = point[1]; zpos = point[2];
       ptot = P();
       px = ptot*newdir[0];
@@ -262,6 +265,7 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
    Bool_t useDebug = gPropagator->fUseDebug;
    Int_t debugTrk = gPropagator->fDebugTrk;
    Int_t tid = nav->GetThreadId();
+   GeantThreadData *td = gPropagator->fThreadData[tid];
    nav->ResetState();
    TGeoBranchArray a;
    a.InitFromNavigator(nav);
@@ -276,17 +280,17 @@ Bool_t GeantTrack::PropagateInFieldSingle(Double_t crtstep, Bool_t checkcross, I
    step += crtstep;
    // Set curvature, charge
    Double_t c = Curvature();
-   gPropagator->fFieldPropagator[tid]->SetXYcurvature(c);
-   gPropagator->fFieldPropagator[tid]->SetCharge(charge);
-   gPropagator->fFieldPropagator[tid]->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
-   gPropagator->fFieldPropagator[tid]->InitPoint(xpos,ypos,zpos);
+   td->fFieldPropagator->SetXYcurvature(c);
+   td->fFieldPropagator->SetCharge(charge);
+   td->fFieldPropagator->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
+   td->fFieldPropagator->InitPoint(xpos,ypos,zpos);
    Double_t dir[3];
    Direction(dir);
-   gPropagator->fFieldPropagator[tid]->InitDirection(dir);
-   gPropagator->fFieldPropagator[tid]->UpdateHelix();
-   gPropagator->fFieldPropagator[tid]->Step(crtstep);
-   const Double_t *point = gPropagator->fFieldPropagator[tid]->GetCurrentPoint();
-   const Double_t *newdir = gPropagator->fFieldPropagator[tid]->GetCurrentDirection();
+   td->fFieldPropagator->InitDirection(dir);
+   td->fFieldPropagator->UpdateHelix();
+   td->fFieldPropagator->Step(crtstep);
+   const Double_t *point = td->fFieldPropagator->GetCurrentPoint();
+   const Double_t *newdir = td->fFieldPropagator->GetCurrentDirection();
    xpos = point[0]; ypos = point[1]; zpos = point[2];
    Double_t ptot = P();
    px = ptot*newdir[0];

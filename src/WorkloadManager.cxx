@@ -3,6 +3,7 @@
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TStopwatch.h"
+#include "TBits.h"
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TList.h"
@@ -14,6 +15,7 @@
 #include "TGeoBranchArray.h"
 #include "GeantVolumeBasket.h"
 #include "GeantOutput.h"
+#include "GeantThreadData.h"
 #include "PhysicsProcess.h"
 
 ClassImp(WorkloadManager)
@@ -157,6 +159,14 @@ void *WorkloadManager::MainScheduler(void *)
    GeantPropagator *propagator = GeantPropagator::Instance();
    Bool_t graphics = propagator->fUseGraphics;
    Int_t nworkers = propagator->fNthreads;
+   Int_t naverage = propagator->fNaverage;
+   Int_t dumped_event = -1;
+   Int_t first_not_transported = 0;
+   Int_t nbuffered = propagator->fNevents;
+   Int_t last_event = nbuffered;
+   Int_t max_events = propagator->fNtotal;
+   TBits finished(max_events);
+   Bool_t prioritize = kFALSE;
    WorkloadManager *wm = WorkloadManager::Instance();
    concurrent_queue *feeder_queue = wm->FeederQueue();
    concurrent_queue *empty_queue = wm->EmptyQueue();
@@ -176,11 +186,6 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t nbaskets = wm->GetNbaskets();
    // Number of priority baskets
    Int_t npriority;
-   // Flag for event dumping being effective
-   Bool_t dump_effective = kFALSE;
-   // Event range to be flushed
-   Int_t evt_range[2] = {-1, -1};
-//   GeantVolumeBasket **array = wm->GetBasketArray();
    // Main scheduler
    GeantMainScheduler *main_sch = new GeantMainScheduler(nbaskets); 
    TH1F *hnb=0, *hworkers=0, *htracks=0;
@@ -202,21 +207,22 @@ void *WorkloadManager::MainScheduler(void *)
    Double_t nperbasket;
    Int_t ninjected = 0;
    Int_t nwaiting = 0;
-//   Double_t ntracksmax;
+   Int_t nnew = 0;
    GeantTrackCollection *collector;
    TObject **carray = new TObject*[500];
-//   Bool_t direct_feed = kFALSE;
    while ((collector = (GeantTrackCollection*)collector_queue->wait_and_pop_max(500,npop,carray))) {
       // Monitor the queues while there are tracks to transport
       niter++;
+      ninjected = 0;
+      nnew = 0;
       // Check first the queue of collectors
       ncollectors = npop+collector_queue->size_async();
 //      Printf("Popped %d collections, %d still in the queue", npop, ncollectors-npop);
       nempty = empty_queue->size_async();
-      // Process popped collectors and flush their tracks
-      ninjected = 0;
+      // Process popped collections and flush their tracks
       for (UInt_t icoll=0; icoll<npop; icoll++) {
          collector = (GeantTrackCollection*)carray[icoll];
+//         collector->Print();
 //         Printf("= collector has %d tracks", collector->GetNtracks());
          ninjected += collector->FlushTracks(main_sch);
 //         Printf("=== injected %d baskets", ninjected);
@@ -236,55 +242,75 @@ void *WorkloadManager::MainScheduler(void *)
                Printf("============         Phase 1:      ============");
                Printf("   Dumping ranges of events");
                break;
+            case 2:
+               Printf("============         Phase 2:      ============");
+               Printf("   Importing new events");
+               break;
             default:
                break;
          }
       }
-      if (evt_range[0] >= 0) {
-         npriority = main_sch->GetNpriority();
-         if (npriority) {
-            if (!dump_effective) dump_effective = kTRUE;
-            ninjected += main_sch->FlushPriorityBaskets();
-//            Printf("Number of priority baskets flushed: %d", npriority);
-         } else {
-            if (dump_effective && evt_range[0]>=0) {
-               for (Int_t iev=evt_range[0]; iev<=evt_range[1]; iev++) {
-                  GeantEvent *evt = propagator->fEvents[iev];
-                  if (!evt->Transported()) break;
-                  if (iev == evt_range[1]) {
-                     dump_effective = kFALSE;
-                     Printf("+++ Events %d-%d transported +++", evt_range[0],evt_range[1]);
-                     evt_range[0] = evt_range[1]+1;
-                     evt_range[1] = evt_range[0]+4;
-                     if (evt_range[0]<propagator->fNevents-1) {
-                        if (evt_range[1]>=propagator->fNevents) evt_range[1] = propagator->fNevents-1;
-                        Printf("Setting priority range %d to %d", evt_range[0],evt_range[1]);
-                     } else {
-                        evt_range[0] = evt_range[1] = -1;
-                     }   
-                     main_sch->SetPriorityRange(evt_range[0], evt_range[1]);
-                  }
-               }
+      
+      // Check and mark finished events
+      for (Int_t ievt=0; ievt<nbuffered; ievt++) {
+         GeantEvent *evt = propagator->fEvents[ievt];
+         if (finished.TestBitNumber(evt->event)) continue;
+         if (evt->Transported()) {
+            // Digitizer (delete for now)
+            Int_t ntracks = propagator->fNtracks[ievt];
+            Printf("= digitizing event %d with %d tracks", evt->event, ntracks);
+            for (Int_t itrack=0; itrack<ntracks; itrack++) {
+               delete propagator->fTracks[5*naverage*ievt+itrack];
+               propagator->fTracks[5*naverage*ievt+itrack] = 0;
             }
-         }   
+            finished.SetBitNumber(evt->event);
+            if (last_event<max_events) {
+               Printf("=> Importing event %d", last_event);
+               propagator->ImportTracks(1,propagator->fNaverage,last_event,ievt);
+               last_event++;
+               nnew++;
+            }
+         }
       }
+      if (finished.FirstNullBit() >= (UInt_t)max_events) break;
+      
+      // In case events were transported with priority, check if they finished
+      if (prioritize) {
+         first_not_transported = finished.FirstNullBit();
+         if (first_not_transported > dumped_event+4) {
+            // Priority events digitized, exit prioritized regime
+            Printf("= stopped prioritizing");
+            prioritize = kFALSE;
+            main_sch->SetPriorityRange(-1, -1);
+         } else {
+            // Flush priority baskets
+            npriority = main_sch->GetNpriority();
+            if (npriority) ninjected += main_sch->FlushPriorityBaskets();
+         }
+      }
+      
       ntotransport = feeder_queue->size_async();
       nwaiting = propagator->GetNwaiting();
-      // If no collectors and to few baskets to transport perform a garbage collection
 //      Printf("picked=%d ncoll=%d  ninjected=%d ntotransport=%d",npop, ncollectors,ninjected,ntotransport);
      if (ntotransport<min_feeder) {
-        crtphase = 1;
-        ninjected += main_sch->FlushBaskets();
-//        Printf("Garbage collection injected %d baskets", ninjected);
-        if (evt_range[0]<0) {
-           // Start dumping
-           evt_range[0] = 0;
-           evt_range[1] = 4;
-           Printf("Setting priority range %d to %d", evt_range[0],evt_range[1]);
-           main_sch->SetPriorityRange(evt_range[0], evt_range[1]);
+     // Transport queue below the threshold
+        if (crtphase<1) crtphase = 1;
+        // In case no new events were injected and we are not in a the priority regime
+        // and below lowest watermark in this iteration, make a garbage collection
+//        if (!nnew && !prioritize && ntotransport<nworkers) {
+           ninjected += main_sch->FlushBaskets();
+//           Printf("Garbage collection injected %d baskets", ninjected);
+//        }   
+        if (!prioritize && last_event<max_events && nnew==0) {
+           // Start prioritized regime
+           dumped_event = finished.FirstNullBit();
+           Printf("Prioritizing events %d to %d", dumped_event,dumped_event+4);
+           main_sch->SetPriorityRange(dumped_event, dumped_event+4);
+           prioritize = kTRUE;
+           continue;
         }
         nwaiting = propagator->GetNwaiting();
-        if (!ninjected && !ntotransport && nwaiting==nworkers) break;
+//        if (!ninjected && !ntotransport && !nnew && nwaiting==nworkers) break;
 //        direct_feed = (ntotransport==0)?kTRUE:kFALSE;
       }
       nperbasket = 0;
@@ -298,10 +324,6 @@ void *WorkloadManager::MainScheduler(void *)
          }   
       }   
    }
-   for (Int_t i=0; i<propagator->fNevents; i++) {
-      GeantEvent *evt = propagator->fEvents[i];
-      Printf("Event %d: total=%d transported=%d", i, evt->ntracks, evt->ndone);
-   }   
       
    Printf("=== Scheduler: stopping threads === niter =%d\n", niter);
    if (graphics) {
@@ -347,11 +369,12 @@ void *WorkloadManager::TransportTracks(void *)
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantPropagator *propagator = GeantPropagator::Instance();
+   GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
-   Int_t *particles = propagator->fPartInd[tid]->GetArray();
-   Int_t *partnext  = propagator->fPartNext[tid]->GetArray();
-   Int_t *parttodo  = gPropagator->fPartTodo[tid]->GetArray();
-   Int_t *partcross = gPropagator->fPartCross[tid]->GetArray();
+   Int_t *particles = td->fPartInd->GetArray();
+   Int_t *partnext  = td->fPartNext->GetArray();
+   Int_t *parttodo  = td->fPartTodo->GetArray();
+   Int_t *partcross = td->fPartCross->GetArray();
    Int_t nprocesses = propagator->fNprocesses;
 //   Bool_t useDebug = propagator->fUseDebug;
    GeantTrack **tracks = propagator->fTracks;
@@ -369,13 +392,13 @@ void *WorkloadManager::TransportTracks(void *)
       if (!basket) break;
       ntotransport = basket->GetNtracks();  // all tracks to be transported 
       if (!ntotransport) goto finish;
-//      Printf("======= BASKET taken by thread #%d =======", tid);
+//      Printf("======= BASKET %p taken by thread #%d =======", basket, tid);
 //      basket->Print();
 //      Printf("==========================================");
       propagator->fTracksPerBasket[tid] = ntotransport;
       path = tracks[basket->GetTracks()[0]]->path;
-      gPropagator->fVolume[tid] = path->GetCurrentNode()->GetVolume();
-      basket_sch = (GeantVolumeBasket*)gPropagator->fVolume[tid]->GetField();
+      td->fVolume = path->GetCurrentNode()->GetVolume();
+      basket_sch = (GeantVolumeBasket*)td->fVolume->GetField();
       wm->SetCurrentBasket(tid,basket_sch);
 //      Printf("(%d) ================= BASKET of %s: %d tracks", tid, gPropagator->fVolume[tid]->GetName(), ntotransport);
       memcpy(particles, basket->GetTracks(), ntotransport*sizeof(Int_t));
@@ -423,11 +446,11 @@ void *WorkloadManager::TransportTracks(void *)
             ncross = 0;
             // Propagate ALL ntmp tracks
             basket_sch->PropagateTracks(ntmp, ptrParticles, ntotnext, partnext, ntodo, parttodo, ncross, partcross);
-//            printf("(%d) %s   ->crossing particles (%d): ",tid, basket->GetName(), ncross); 
+//            printf("(%d) ->crossing particles (%d): ",tid, ncross); 
 //            for (Int_t ii=0; ii<ncross; ii++) printf("%d ", partcross[ii]);
-//            printf("\n(%d) %s   ->remaining particles (%d): ", tid, basket->GetName(), ntotnext);
+//            printf("\n(%d) ->remaining particles (%d): ", tid, ntotnext);
 //            for (Int_t ii=0; ii<ntotnext; ii++) printf("%d ", partnext[ii]);
-//            printf("\n(%d) %s   ->todo particles (%d): ", tid, basket->GetName(),ntodo);
+//            printf("\n(%d) ->todo particles (%d): ", tid,ntodo);
 //            for (Int_t ii=0; ii<ntodo; ii++) printf("%d ", parttodo[ii]);
 //            printf("\n");
             // Post-step actions by continuous processes for particles reaching boundaries
@@ -435,7 +458,7 @@ void *WorkloadManager::TransportTracks(void *)
                for (Int_t iproc=0; iproc<nprocesses; iproc++) {
                   if (propagator->Process(iproc)->IsType(PhysicsProcess::kDiscrete)) continue;
                   Int_t nafter = 0;
-                  gPropagator->Process(iproc)->PostStep(gPropagator->fVolume[tid], ncross, partcross, nafter, NULL,tid);
+                  gPropagator->Process(iproc)->PostStep(td->fVolume, ncross, partcross, nafter, NULL,tid);
                   basket_sch->ResetStep(ncross, partcross);
                }   
             }      
@@ -456,7 +479,7 @@ void *WorkloadManager::TransportTracks(void *)
             for (Int_t iproc=0; iproc<nprocesses; iproc++) {
                if (propagator->Process(iproc)->IsType(PhysicsProcess::kDiscrete)) continue;
                ntodo = 0;
-               gPropagator->Process(iproc)->PostStep(gPropagator->fVolume[tid], ntotransport, particles, ntodo, parttodo, tid);
+               gPropagator->Process(iproc)->PostStep(td->fVolume, ntotransport, particles, ntodo, parttodo, tid);
                // Do we have stopped particles ?
                if (ntodo<ntotransport) {
                   memcpy(particles, parttodo, ntodo*sizeof(Int_t));
@@ -476,18 +499,18 @@ void *WorkloadManager::TransportTracks(void *)
                ntodo = 0;
                propagator->SelectTracksForProcess(iproc, ntotransport, particles, ntodo, parttodo);
                if (!ntodo) continue;
-               if (gPropagator->fPartTodo[tid]->GetSize()-ntodo<500) {
-                  gPropagator->fPartTodo[tid]->Set(2*gPropagator->fPartTodo[tid]->GetSize());
-                  parttodo  = gPropagator->fPartTodo[tid]->GetArray();
+               if (td->fPartTodo->GetSize()-ntodo<500) {
+                  td->fPartTodo->Set(2*td->fPartTodo->GetSize());
+                  parttodo  = td->fPartTodo->GetArray();
                }   
                // Do post step actions for particles suffering a given process.
                // Surviving particles are added to the next array
-               gPropagator->Process(iproc)->PostStep(gPropagator->fVolume[tid], ntodo, parttodo, ntotnext, partnext,tid);
-               if (gPropagator->fPartNext[tid]->GetSize()-ntotnext<500) {
-                  gPropagator->fPartNext[tid]->Set(2*gPropagator->fPartNext[tid]->GetSize());
-                  partnext  = gPropagator->fPartNext[tid]->GetArray();
-                  propagator->fPartInd[tid]->Set(2*propagator->fPartInd[tid]->GetSize());
-                  particles = propagator->fPartInd[tid]->GetArray();
+               propagator->Process(iproc)->PostStep(td->fVolume, ntodo, parttodo, ntotnext, partnext,tid);
+               if (td->fPartNext->GetSize()-ntotnext<500) {
+                  td->fPartNext->Set(2*td->fPartNext->GetSize());
+                  partnext  = td->fPartNext->GetArray();
+                  td->fPartInd->Set(2*td->fPartInd->GetSize());
+                  particles = td->fPartInd->GetArray();
                }   
             }
             memcpy(particles, partnext, ntotnext*sizeof(Int_t));
@@ -497,7 +520,7 @@ void *WorkloadManager::TransportTracks(void *)
 //         Printf("   ### Generation %d:  %d tracks  cputime=%f", generation, ntotransport,cputime);
          if (propagator->fFillTree) {
             cputime = gPropagator->fTimer->CpuTime();
-            gPropagator->fOutput->SetStamp(gPropagator->fVolume[tid]->GetNumber(), propagator->fWMgr->GetBasketGeneration(), generation, ntotransport, cputime);
+            gPropagator->fOutput->SetStamp(gPropagator->fThreadData[tid]->fVolume->GetNumber(), propagator->fWMgr->GetBasketGeneration(), generation, ntotransport, cputime);
             for (itrack=0; itrack<ntotransport;itrack++) {
                track = tracks[particles[itrack]];
                gPropagator->fOutput->SetTrack(itrack, track);

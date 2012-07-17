@@ -5,6 +5,7 @@
 
 #include "PhysicsProcess.h"
 #include "GeantVolumeBasket.h"
+#include "GeantThreadData.h"
 #include "WorkloadManager.h"
 #include "TMath.h"
 #include "TH1.h"
@@ -56,18 +57,18 @@ void ScatteringProcess::ComputeIntLen(TGeoVolume *vol,
    if (mat) density = mat->GetDensity();
    density = TMath::Max(density, 1.E-3);
    // Make sure we write in the thread space for the current basket
-   Double_t *rndArray = &gPropagator->fDblArray[2*tid*ntracks];
+   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    Int_t irnd = 0;
-   gPropagator->fRndm[tid]->RndmArray(ntracks, rndArray);
+   gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
    GeantTrack *track = 0;
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gPropagator->fTracks[itrack];
-      if (!track->charge) lengths[itrack] =  0.5*xlen;
+      if (!track->charge) lengths[i] =  0.5*xlen;
       else if (gPropagator->fTracks[itrack]->IsAlive())
-        lengths[itrack] = kC1*gPropagator->fTracks[itrack]->e*rndArray[irnd++]/density;
+        lengths[i] = kC1*gPropagator->fTracks[itrack]->e*rndArray[irnd++]/density;
       else
-        lengths[itrack] =  0.5*xlen; 
+        lengths[i] =  0.5*xlen; 
    }
 }
 
@@ -89,9 +90,9 @@ void ScatteringProcess::PostStep(TGeoVolume *,
    GeantTrack *track = 0;
    Int_t itrack;
    Double_t p;
-   Double_t *rndArray = &gPropagator->fDblArray[2*tid*ntracks];
+   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    Int_t irnd = 0;
-   gPropagator->fRndm[tid]->RndmArray(2*ntracks, rndArray);
+   gPropagator->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
    for (Int_t i=0; i<ntracks; i++) {
       itrack = trackin[i];
       track = gPropagator->fTracks[itrack];
@@ -109,11 +110,11 @@ void ScatteringProcess::PostStep(TGeoVolume *,
       p = track->P();
       thetav = TMath::ACos(track->pz/p)*TMath::RadToDeg();
       phiv = TMath::ATan2(track->py,track->px)*TMath::RadToDeg();
-      gPropagator->fRotation[tid]->SetAngles(phiv-90,-thetav,0);
+      gPropagator->fThreadData[tid]->fRotation->SetAngles(phiv-90,-thetav,0);
       dir[0] = TMath::Sin(theta)*TMath::Cos(phi);
       dir[1] = TMath::Sin(theta)*TMath::Sin(phi);
       dir[2] = TMath::Cos(theta);
-      gPropagator->fRotation[tid]->LocalToMaster(dir, dirnew);
+      gPropagator->fThreadData[tid]->fRotation->LocalToMaster(dir, dirnew);
       track->px = p*dirnew[0];
       track->py = p*dirnew[1];
       track->pz = p*dirnew[2];
@@ -122,7 +123,7 @@ void ScatteringProcess::PostStep(TGeoVolume *,
       nout++;
    }   
    StepManager(0, ntracks, trackin, nout, trackout);
-}   
+}
 
 ClassImp(ElossProcess)
 
@@ -150,9 +151,9 @@ void ElossProcess::ComputeIntLen(TGeoVolume *vol,
       if(track->charge && !invalid_material && track->IsAlive()) {
          Double_t dedx = BetheBloch(track,matz,mata,matr);
          Double_t stepmax = (dedx>1.E-32)?dw/dedx:0.5*TMath::Limits<double>::Max();
-         lengths[itrack] = stepmax;
+         lengths[i] = stepmax;
       } else {
-         lengths[itrack]=0.5*TMath::Limits<double>::Max();
+         lengths[i]=0.5*TMath::Limits<double>::Max();
       }      
    }
 }
@@ -299,9 +300,9 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
       track = gPropagator->fTracks[itrack];
       if(track->species == kHadron && track->IsAlive()) {
          Double_t ek = track->e - track->mass;
-         lengths[itrack] = xlen*(0.007+0.1*TMath::Log(ek)/ek+0.2/(ek*ek));
+         lengths[i] = xlen*(0.007+0.1*TMath::Log(ek)/ek+0.2/(ek*ek));
       } else {
-         lengths[itrack] = 0.5*TMath::Limits<double>::Max();
+         lengths[i] = 0.5*TMath::Limits<double>::Max();
       }
    }
 }
@@ -323,12 +324,12 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
    static TGenPhaseSpace gps;
    GeantTrack *track;
    Int_t itrack;
-   Double_t *rndArray = &gPropagator->fDblArray[2*tid*ntracks];
+   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    const Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
    const Double_t prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass,
 			       pimass, pimass, pimass, pimass, pimass, pimass,
 			       pimass, pimass, pimass, pimass, pimass, pimass};
-   gPropagator->fRndm[tid]->RndmArray(ntracks, rndArray);
+   gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
    Int_t nprod = 0;
    Int_t ngen  = 0;
@@ -337,13 +338,13 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
       track = gPropagator->fTracks[itrack];
       Double_t en = track->e;
       Double_t m1 = track->mass;
-      Double_t m2 = gPropagator->fVolume[tid]->GetMaterial()->GetA();
+      Double_t m2 = gPropagator->fThreadData[tid]->fVolume->GetMaterial()->GetA();
       Double_t cmsen = TMath::Sqrt(m1*m1+m2*m2+2*en*m2)-m1-m2;
       // Calculate the number of pions as a poisson distribution leaving half of the cms energy
       // for phase space momentum
-      Int_t npi = 0.5*gPropagator->fRndm[tid]->Rndm()*cmsen/pimass+0.5;
+      Int_t npi = 0.5*gPropagator->fThreadData[tid]->fRndm->Rndm()*cmsen/pimass+0.5;
       if(npi>1) {
-         do { nprod = TMath::Min(gPropagator->fRndm[tid]->Poisson(npi),9); } 
+         do { nprod = TMath::Min(gPropagator->fThreadData[tid]->fRndm->Poisson(npi),9); } 
          while(nprod*pimass*2>cmsen || nprod==0);
 //         Printf("Inc en = %f, cms en = %f produced pis = %d",en,cmsen,nprod);
          TLorentzVector pcms(track->px, track->py, track->pz, track->e + m2);
@@ -359,6 +360,8 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             TLorentzVector *lv = gps.GetDecay(j);
             if(j%2) trackg->pdg = kPiMinus;
             else trackg->pdg = kPiPlus;
+            trackg->event = track->event;
+            trackg->evslot = track->evslot;
             trackg->species = kHadron;
             trackg->charge = TDatabasePDG::Instance()->GetParticle(trackg->pdg)->Charge()/3.;
             trackg->mass = pimass;

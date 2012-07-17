@@ -94,6 +94,7 @@ public:
    Int_t               AddTrack(Int_t itrack, GeantVolumeBasket *basket);
    Int_t               GetNtracks() const {return fNtracks;}
    Int_t               FlushTracks(GeantMainScheduler *main);
+   virtual void        Print(Option_t *option="") const;
    
    ClassDef(GeantTrackCollection, 1)     // Track collection per thread
 };

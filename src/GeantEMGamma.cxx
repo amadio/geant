@@ -159,6 +159,7 @@ void GammaCompton::PostStep(TGeoVolume *vol,
 
             // Create track for electron
             GeantTrack* eTrk= new GeantTrack();
+            eTrk->evslot = track->evslot;
             eTrk->px = gamma4m.X(); 
             eTrk->py = gamma4m.Y();
             eTrk->pz = gamma4m.Z(); 

@@ -23,26 +23,29 @@ class GeantOutput;
 class GeantVolumeBasket;
 class WorkloadManager;
 class GeantTrackCollection;
+class GeantThreadData;
 
 class GeantPropagator : public TObject
 {
 public:
 // data members to be made private
    Int_t       fNthreads;    // Number of threads
-   Int_t       fNevents;     // Number of events to be transported
-   Int_t       fNtracks;     // Number of tracks
+   Int_t       fNevents;     // Number of buffered
+   Int_t       fNtotal;      // Total number of events
+   Int_t      *fNtracks;     //[fNevents] Number of tracks {array of [fNevents]}
    Long64_t    fNtransported; // Number of transported tracks
    Long64_t    fNsafeSteps;  // Number of fast steps within safety
    Long64_t    fNsnextSteps; // Number of steps where full snext computation is needed
    Int_t       fNprocesses;  // Number of active processes
    Int_t       fElossInd;    // Index of eloss process
    Int_t       fNstart;      // Cumulated initial number of tracks
-   Int_t       fMaxTracks;   // Maximum number of tracks
+   Int_t       fMaxTracks;   // Maximum number of tracks per event
    Int_t       fMaxThreads;  // Maximum number of threads
    Int_t       fNminThreshold; // Threshold for starting transporting a basket
    Int_t       fDebugTrk;    // Track to debug
    Int_t       fMaxSteps;    // Maximum number of steps per track
    Int_t       fNperBasket;  // Number of tracks per basket
+   Int_t       fMaxPerBasket; // Maximum number of tracks per basket
    
    Double_t    fNaverage;    // Average number of tracks per event
    Double_t    fVertex[3];   // Vertex position
@@ -65,24 +68,14 @@ public:
    TTree           *fOutTree;   // Output tree
    TFile           *fOutFile;   // Output file
    TStopwatch      *fTimer;     // Timer
-   TGeoHMatrix    **fMatrix;    //![fMaxThreads] Transformation matrix for each thread
-   TGeoVolume     **fVolume;    //![fMaxThreads] Volumes for each thread
    
    PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack     **fTracks;    //![fMaxTracks]  Array of tracks
    GeantEvent     **fEvents;    //![fNevents]    Array of events
-   Double_t        *fDblArray;  //![5*fMaxTracks]
-   Double_t        *fProcStep;  //![fNprocesses*fMaxTracks]
-   TRandom        **fRndm;      //![fNthreads] Array of random number generators per thread
-   TArrayI        **fPartInd;   //![fNThreads]
-   TArrayI        **fPartNext;  //![fNThreads]
-   TArrayI        **fPartTodo;  //![fNThreads]
-   TArrayI        **fPartCross; //![fNThreads]
-   TGeoHelix      **fFieldPropagator; //![fNThreads]
-   TGeoRotation   **fRotation;  //![fNThreads]
    Int_t           *fTracksPerBasket; //![fNthreads]
    GeantTrackCollection **fCollections; //![fNthreads]  Track collections
    UInt_t          *fWaiting;           //![fNthreads] Threads in waiting flag
+   GeantThreadData **fThreadData; //![fNthreads]
    
    static GeantPropagator *fgInstance;
 public:
@@ -95,7 +88,7 @@ public:
    UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");
    GeantVolumeBasket *
-                    ImportTracks(Int_t nevents, Double_t average);
+                    ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
    void             Initialize();
    void             InjectCollection(Int_t tid);
    GeantBasket     *InjectBasket(GeantBasket *basket);
