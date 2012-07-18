@@ -95,7 +95,7 @@ WorkloadManager *WorkloadManager::Instance(Int_t nthreads)
 }
 
 //______________________________________________________________________________
-void WorkloadManager::Print()
+void WorkloadManager::Print(Option_t *option) const
 {
 //
    feeder_queue->Print();

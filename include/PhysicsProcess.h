@@ -10,7 +10,7 @@
 #endif
 
 class TGeoVolume;
-class GeantTrack;
+struct GeantTrack;
 
 //______________________________________________________________________________
 class PhysicsProcess : public TNamed

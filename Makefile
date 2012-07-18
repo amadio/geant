@@ -8,10 +8,20 @@ OutPutOpt     = -o # keep whitespace after "-o"
 
 OPT           = -O2
 
+ifeq ($(CXX),)
 CXX           = g++
+endif
+
+ifeq ($(CXX),g++) 
 CXXFLAGS      = $(OPT) -Wall -fPIC
 LD            = g++
 LDFLAGS       = $(OPT) 
+endif
+ifeq ($(CXX),clang++)
+CXXFLAGS      = $(OPT) -Wall
+LD            = $(CXX)
+LDFLAGS       = $(OPT)
+endif
 ifeq ($(SYSTEM),Darwin)
 SOFLAGS       = -shared -m64 -dynamiclib -undefined dynamic_lookup -single_module
 else
