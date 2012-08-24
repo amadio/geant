@@ -355,7 +355,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
          //Double_t pztot=track->pz;
          TGeoBranchArray &a = *track->path;
          for(Int_t j=0; j<2*nprod; ++j) {
-            GeantTrack *trackg=new GeantTrack(0);
+            GeantTrack *trackg = gPropagator->AddTrack(track->evslot);
             *trackg->path = a;
             TLorentzVector *lv = gps.GetDecay(j);
             if(j%2) trackg->pdg = kPiMinus;
@@ -374,8 +374,8 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             trackg->pz = lv->Pz();
             trackg->e = lv->E();
 //            Double_t mm2 = trackg->e*trackg->e-trackg->px*trackg->px-trackg->py*trackg->py-trackg->pz*trackg->pz;
-            Int_t itracknew = gPropagator->AddTrack(trackg);
-            trackout[nout++] = trackg->particle = itracknew;
+            Int_t itracknew = trackg->particle;
+            trackout[nout++] = itracknew;
             ngen++;
             GeantVolumeBasket *basket = gPropagator->fWMgr->GetCurrentBasket(tid);
             if (basket) gPropagator->fCollections[tid]->AddTrack(itracknew, basket);

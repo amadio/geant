@@ -5,6 +5,12 @@
 #include "TObject.h"
 #endif
 
+#ifndef ROOT_TMutex
+#include "TMutex.h"
+#endif
+
+#include <vector>
+
 class TRandom;
 class TArrayI;
 class TF1;
@@ -46,6 +52,7 @@ public:
    Int_t       fMaxSteps;    // Maximum number of steps per track
    Int_t       fNperBasket;  // Number of tracks per basket
    Int_t       fMaxPerBasket; // Maximum number of tracks per basket
+   Int_t       fMaxPerEvent; // Maximum number of tracks per event
    
    Double_t    fNaverage;    // Average number of tracks per event
    Double_t    fVertex[3];   // Vertex position
@@ -59,6 +66,7 @@ public:
    Bool_t      fTransportOngoing; // Flag for ongoing transport
    Bool_t      fSingleTrack; // Use single track transport mode
    Bool_t      fFillTree;    // Enable I/O
+   TMutex      fTracksLock;  // Mutex for adding tracks
    
    WorkloadManager *fWMgr;   // Workload manager
    GeantOutput *
@@ -71,6 +79,8 @@ public:
    
    PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack     **fTracks;    //![fMaxTracks]  Array of tracks
+   std::vector<GeantTrack> fTracksStorage; // buffer for tracks allocation
+
    GeantEvent     **fEvents;    //![fNevents]    Array of events
    Int_t           *fTracksPerBasket; //![fNthreads]
    GeantTrackCollection **fCollections; //![fNthreads]  Track collections
@@ -83,6 +93,7 @@ public:
    virtual ~GeantPropagator();
    
    Int_t            AddTrack(GeantTrack *track);
+   GeantTrack      *AddTrack(Int_t evslot);
    void             StopTrack(GeantTrack *track);
    Int_t            GetElossInd() const {return fElossInd;}
    UInt_t           GetNwaiting() const;

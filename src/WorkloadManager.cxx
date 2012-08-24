@@ -159,7 +159,8 @@ void *WorkloadManager::MainScheduler(void *)
    GeantPropagator *propagator = GeantPropagator::Instance();
    Bool_t graphics = propagator->fUseGraphics;
    Int_t nworkers = propagator->fNthreads;
-   Int_t naverage = propagator->fNaverage;
+//   Int_t naverage = propagator->fNaverage;
+//   Int_t maxperevent = propagator->fMaxPerEvent;
    Int_t dumped_event = -1;
    Int_t first_not_transported = 0;
    Int_t nbuffered = propagator->fNevents;
@@ -259,10 +260,10 @@ void *WorkloadManager::MainScheduler(void *)
             // Digitizer (delete for now)
             Int_t ntracks = propagator->fNtracks[ievt];
             Printf("= digitizing event %d with %d tracks", evt->event, ntracks);
-            for (Int_t itrack=0; itrack<ntracks; itrack++) {
-               delete propagator->fTracks[5*naverage*ievt+itrack];
-               propagator->fTracks[5*naverage*ievt+itrack] = 0;
-            }
+//            for (Int_t itrack=0; itrack<ntracks; itrack++) {
+//               delete propagator->fTracks[maxperevent*ievt+itrack];
+//               propagator->fTracks[maxperevent*ievt+itrack] = 0;
+//            }
             finished.SetBitNumber(evt->event);
             if (last_event<max_events) {
                Printf("=> Importing event %d", last_event);

@@ -11,6 +11,8 @@
 
 const Double_t gTolerance = TGeoShape::Tolerance();
 
+ClassImp(GeantTrack)
+
 //______________________________________________________________________________
 GeantTrack::GeantTrack(Int_t ipdg) 
            :event(-1),
@@ -46,11 +48,108 @@ GeantTrack::GeantTrack(Int_t ipdg)
 }
 
 //______________________________________________________________________________
+GeantTrack::GeantTrack(const GeantTrack& other)
+           :event(other.event),
+            evslot(other.evslot),
+            particle(other.particle),
+            pdg(other.pdg),
+            species(other.species),
+            status(other.status),
+            charge(other.charge),
+            mass(other.mass),
+            process(other.process),
+            xpos(other.xpos),
+            ypos(other.ypos),
+            zpos(other.zpos),
+            px(other.px),
+            py(other.py),
+            pz(other.pz),
+            e(other.e), 
+            pstep(other.pstep), 
+            step(other.step), 
+            snext(other.snext), 
+            safety(other.safety), 
+            frombdr(other.frombdr), 
+            izero(other.izero), 
+            nsteps(other.nsteps),
+            path(new TGeoBranchArray(*other.path)),
+            nextpath(new TGeoBranchArray(*other.nextpath)),
+            pending(other.pending)
+{
+// Copy constructor
+}
+
+//______________________________________________________________________________
+GeantTrack & GeantTrack::operator=(const GeantTrack &other)
+{
+// Assignment
+   if (&other != this) {
+     event = other.event;
+     evslot = other.evslot;
+     particle = other.particle;
+     pdg = other.pdg;
+     species = other.species;
+     status = other.status;
+     charge = other.charge;
+     mass = other.mass;
+     process = other.process;
+     xpos = other.xpos;
+     ypos = other.ypos;
+     zpos = other.zpos;
+     px = other.px;
+     py = other.py;
+     pz = other.pz;
+     e = other.e;
+     pstep = other.pstep;
+     step = other.step;
+     snext = other.snext;
+     safety = other.safety;
+     frombdr = other.frombdr;
+     izero = other.izero;
+     nsteps = other.nsteps;
+     path = new TGeoBranchArray(*other.path);;
+     nextpath = new TGeoBranchArray(*other.nextpath);
+     pending = other.pending;
+   }
+   return *this;  
+}
+   
+//______________________________________________________________________________
 GeantTrack::~GeantTrack()
 {
 // Destructor.
    delete path;
    delete nextpath;
+}   
+
+//______________________________________________________________________________
+void GeantTrack::Reset()
+{
+// Resets track content.
+   event = -1;
+   evslot = -1;
+   particle = -1;
+   pdg = 0;
+   species = kHadron;
+   status = kAlive;
+   charge = 0;
+   mass = 0;
+   process = -1;
+   xpos = 0.;
+   ypos = 0.;
+   zpos = 0.;
+   px = 0.;
+   py = 0.;
+   pz = 0.;
+   e = 0;
+   pstep = 1.E20;
+   step = 0.;
+   snext = 0.;
+   safety = 0.;
+   frombdr = false;
+   izero = 0;
+   nsteps = 0;
+   pending = false;
 }   
 
 //______________________________________________________________________________

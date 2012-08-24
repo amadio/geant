@@ -158,8 +158,10 @@ void GammaCompton::PostStep(TGeoVolume *vol,
             nout++;
 
             // Create track for electron
-            GeantTrack* eTrk= new GeantTrack();
+            
+            GeantTrack* eTrk= gPropagator->AddTrack(track->evslot);
             eTrk->evslot = track->evslot;
+            *eTrk->path = *track->path;
             eTrk->px = gamma4m.X(); 
             eTrk->py = gamma4m.Y();
             eTrk->pz = gamma4m.Z(); 
@@ -175,7 +177,7 @@ void GammaCompton::PostStep(TGeoVolume *vol,
             // Always add secondary electron -- TODO: do not add if E < threshold
             if (trackout) 
             {
-               Int_t itracknew = gPropagator->AddTrack(eTrk);
+               Int_t itracknew = eTrk->particle;
                trackout[nout] = itracknew;
                nout++;
                std::cout << " WANT to add gamma of Energy= " << eTrk->e << " to stack. " << std::endl;

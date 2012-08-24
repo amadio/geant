@@ -12,7 +12,8 @@ const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kBoundary};
 
 //______________________________________________________________________________
-struct GeantTrack {
+class GeantTrack {
+public:
    Int_t    event;     // event number
    Int_t    evslot;    // event slot
    Int_t    particle;  // index of corresponding particle
@@ -44,9 +45,11 @@ struct GeantTrack {
                   charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),
                   px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), 
                   safety(0), frombdr(false), izero(0), nsteps(0), path(0) ,nextpath(0), pending(false){}
+   GeantTrack(const GeantTrack &other);
+   GeantTrack &operator=(const GeantTrack &other);
    GeantTrack(Int_t ipdg);
    ~GeantTrack();
-   Double_t           Curvature() {return (charge)?TMath::Abs(kB2C*gPropagator->fBmag/Pt()):0.;}
+   Double_t           Curvature() const {return (charge)?TMath::Abs(kB2C*gPropagator->fBmag/Pt()):0.;}
    void               Direction(Double_t dir[3]);
    Bool_t             IsAlive() const {return (status != kKilled);}
    Bool_t             IsOnBoundary() const {return (status == kBoundary);}
@@ -59,6 +62,10 @@ struct GeantTrack {
    Double_t           P()     const {return TMath::Sqrt(px*px+py*py+pz*pz);}
    Double_t           Gamma() const {return mass?e/mass:TMath::Limits<double>::Max();}
    Double_t           Beta()  const {return P()/e;}
+   
+   void               Reset();
+   
+   ClassDef(GeantTrack, 1)      // The track
 };
 
 //______________________________________________________________________________
@@ -77,6 +84,20 @@ struct GeantEvent {
    void               Reset() {ntracks = ndone = 0;}
    void               StopTrack();
    Bool_t             Transported() const {return ((ntracks>0) && (ntracks==ndone));}
+};
+
+//______________________________________________________________________________
+struct GeantHit {
+   Double_t x;        // X position
+   Double_t y;        // Y position
+   Double_t z;        // Z position
+   Double_t eloss;    // Energy loss
+   Int_t    event;    // Event number
+   
+   GeantHit() : x(0.), y(0.), z(0.), eloss(0.), event(-1) {}
+   GeantHit(Double_t xh, Double_t yh, Double_t zh, Double_t elossh, Int_t eventh)
+              : x(xh), y(yh), z(zh), eloss(elossh), event(eventh) {}
+            
 };
 
 #endif

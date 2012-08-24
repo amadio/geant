@@ -81,6 +81,7 @@ GeantPropagator::GeantPropagator()
                  fMaxSteps(10000),
                  fNperBasket(10),
                  fMaxPerBasket(100),
+                 fMaxPerEvent(0),
                  fNaverage(0.),
                  fEmin(0.1), // 100 MeV
                  fEmax(10),  // 10 Gev
@@ -143,18 +144,40 @@ Int_t GeantPropagator::AddTrack(GeantTrack *track)
 // Add a new track in the system.
    TThread::Lock();
    Int_t slot = track->evslot;
-   Int_t itrack = 5*fNaverage*slot+fNtracks[slot];
+   Int_t itrack = fMaxPerEvent*slot+fNtracks[slot];
    track->particle = itrack;
    fEvents[slot]->AddTrack();
 //   Int_t tid = TGeoManager::ThreadId();
    fTracks[itrack] = track;
    fNtracks[slot]++;
    fNtransported++;
-   if (fNtracks[slot]==5*fNaverage) {
+   if (fNtracks[slot]==fMaxPerEvent) {
       Fatal("AddTrack", "No room to add track");
    }
    TThread::UnLock();
    return itrack;
+}
+
+//______________________________________________________________________________
+GeantTrack *GeantPropagator::AddTrack(Int_t evslot)
+{
+// Reuse the next track booked for a given event slot.
+   Int_t itrack = fMaxPerEvent*evslot+fNtracks[evslot];
+   GeantTrack *track = fTracks[itrack];
+   track->Reset();
+   track->particle = itrack;
+   fEvents[evslot]->AddTrack();
+   fTracksLock.Lock();
+// critical section
+   fNtracks[evslot]++;
+   fNtransported++;
+//   printf("slot %d, track %d = %p\n", evslot, fNtracks[evslot], track);
+// end critical section   
+   fTracksLock.UnLock();
+   if (fNtracks[evslot]==fMaxPerEvent) {
+      Fatal("AddTrack", "No room to add track");
+   }
+   return track;
 }
 
 //______________________________________________________________________________
@@ -210,8 +233,9 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
       for (Int_t i=0; i<ntracks; i++) {
 //         TGeoBranchArray *a = new TGeoBranchArray();
 //         a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
-         GeantTrack *track = new GeantTrack(0);
+         GeantTrack *track = AddTrack(slot);
          *track->path = a;
+         *track->nextpath = a;
          track->event = event;
          track->evslot = slot;
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
@@ -242,7 +266,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
          track->pz = p*TMath::Cos(theta);
          track->frombdr = kFALSE;
-         Int_t itrack = AddTrack(track);
+         Int_t itrack = track->particle;
 	 
          fCollections[tid]->AddTrack(itrack, basket);
 //         gPropagator->fCollections[tid]->AddTrack(itrack, basket);
@@ -273,9 +297,9 @@ GeantPropagator *GeantPropagator::Instance()
 //______________________________________________________________________________
 void GeantPropagator::Initialize()
 {
-
-     //changed fMaxTracks
-   	fMaxTracks = 5*fNevents*fNaverage;
+// Initialization
+   fMaxPerEvent = 5*fNaverage;  
+   fMaxTracks = fMaxPerEvent*fNevents;
 	
 // Initialize arrays here.
    gPropagator = GeantPropagator::Instance();
@@ -293,17 +317,22 @@ void GeantPropagator::Initialize()
       fElossInd = 1;
       fProcesses[2] = new InteractionProcess("Interaction");
    }
- //changed code  
+
    if(!fNtracks){
      fNtracks = new Int_t[fNevents];
      memset(fNtracks,0,fNevents*sizeof(Int_t));
-   }
-   
-   //till here
+   }   
    if (!fTracks) {
       fTracks = new GeantTrack*[fMaxTracks];
       memset(fTracks, 0, fMaxTracks*sizeof(GeantTrack*));
-   }   
+      // Pre-book tracks (Thanks to olav.smorholm@cern.ch)
+      fTracksStorage.reserve(fMaxTracks);
+      for (Int_t i=0; i<fMaxTracks; i++) {
+         fTracksStorage.push_back(GeantTrack(0));
+         fTracks[i] = &(fTracksStorage.back());
+      }   
+   } 
+   
    if (!fTracksPerBasket) {
       fTracksPerBasket = new Int_t[fNthreads];    
       for (Int_t i=0; i<fNthreads; i++) fTracksPerBasket[i] = 0;
