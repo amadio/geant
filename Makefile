@@ -8,24 +8,31 @@ OutPutOpt     = -o # keep whitespace after "-o"
 
 OPT           = -O2
 
-ifeq ($(CXX),)
-CXX           = g++
-endif
+CXX			  = $(shell root-config --cxx)
+LD			  = $(shell root-config --ld)
+CXXFLAGS      = $(shell root-config --cflags)
 
+ifneq (,$(findstring icc,$(CXX)))
+CXXFLAGS	  += -fPIC
+endif
 ifeq ($(CXX),g++) 
-CXXFLAGS      = $(OPT) -Wall -fPIC
+CXXFLAGS      += $(OPT) -Wall -fPIC
 LD            = g++
 LDFLAGS       = $(OPT) 
 endif
 ifeq ($(CXX),clang++)
-CXXFLAGS      = $(OPT) -Wall
+CXXFLAGS      += $(OPT) -Wall
 LD            = $(CXX)
 LDFLAGS       = $(OPT)
 endif
 ifeq ($(SYSTEM),Darwin)
 SOFLAGS       = -shared -m64 -dynamiclib -undefined dynamic_lookup -single_module
 else
+ifneq (,$(findstring icc,$(CXX)))
+SOFLAGS	      = -shared -m64
+else
 SOFLAGS	      = -shared -Wl -m64 -g
+endif
 endif
 INCDIR        = include
 SRCDIR        = src
