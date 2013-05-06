@@ -216,19 +216,20 @@ Bool_t TGeoBBox_v::Contains(Double_t *point) const
 
 #define vector(elcount, type)  __attribute__((vector_size((elcount)*sizeof(type)))) type
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const Double_t *point, Bool_t *isin, const Int_t np) const
+void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, const Int_t np) const
 {
 // Test if point is inside this shape.
   vector(32,double) *vx, *vy;
   Double_t xx, yy, zz;
-  for(Int_t i=0; i<np; ++i) {
-    xx=point[3*i  ]-fOrigin[0];
-    yy=point[3*i+1]-fOrigin[1];
-    zz=point[3*i+2]-fOrigin[2];
-    isin[i]=(TMath::Abs(xx)<fDX) && 
-      (TMath::Abs(yy)<fDY) && 
-      (TMath::Abs(zz)<fDZ); 
-  }
+
+#pragma ivdep
+  for(Int_t i=0; i<np; ++i) 
+    {
+      xx=point[3*i  ]-fOrigin[0];
+      yy=point[3*i+1]-fOrigin[1];
+      zz=point[3*i+2]-fOrigin[2];
+      isin[i]=(TMath::Abs(xx)<fDX) && (TMath::Abs(yy)<fDY) && (TMath::Abs(zz)<fDZ); 
+    }
 }
 
 //_____________________________________________________________________________
@@ -541,6 +542,8 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const
 {
 
 // Computes the closest distance from given point to this shape.
+
+/*
    Double_t safe, safy, safz;
    if (in) {
       safe = fDX - TMath::Abs(point[0]-fOrigin[0]);
@@ -555,7 +558,17 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const
       if (safy > safe) safe = safy;
       if (safz > safe) safe = safz;
    }
-   return safe;
+*/
+
+  Double_t safe, safy, safz;
+  char insign=(in)? 1:-1;
+  safe = insign*(fDX - TMath::Abs(point[0]-fOrigin[0]));
+  safy = insign*(fDY - TMath::Abs(point[1]-fOrigin[1]));
+  safz = insign*(fDZ - TMath::Abs(point[2]-fOrigin[2]));
+  if (safy < safe) safe = safy;
+  if (safz < safe) safe = safz;
+
+  return safe;
 }
 
 // prototype for vectorized min function
@@ -594,20 +607,20 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
 {
   double *fD = (double *) &fDX; // treat box sizes as vector instead of writing explicitly x,y,z ( this works because they are next to each other in memory
 
-  if(in)
-    {
+  // treat in as a simple sign
+  double insign=(in-0.5)*2.;
 #pragma ivdep
   for ( unsigned int i=0; i < n; i++ )
     {
       double t=point[3*i + 0] - fOrigin[0];
-      safety[i] = fD[0] - myabs( t );
+      safety[i] = insign*(fD[0] - myabs( t ));
     }
 
 #pragma ivdep
   for ( unsigned int i=0; i < n; i++ )
     {
       double t=point[3*i + 1] - fOrigin[1];
-      double t2 = fD[1] - myabs( t );
+      double t2 = insign*(fD[1] - myabs( t ));
       safety[i] = mymin(safety[i], t2);
     }
 
@@ -615,9 +628,39 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
   for ( unsigned int i=0; i < n; i++ )
     {
       double t=point[3*i + 2] - fOrigin[2];
-      double t2 = fD[2] - myabs( t );
+      double t2 = insign*(fD[2] - myabs( t ));
       safety[i] = mymin(safety[i], t2);
     }
+}
+
+
+//_____________________________________________________________________________
+void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __restrict__ safety, const Bool_t * __restrict__ in, const Int_t n) const
+{
+  double *fD = (double *) &fDX; // treat box sizes as vector instead of writing explicitly x,y,z ( this works because they are next to each other in memory )
+
+
+#pragma ivdep
+  for ( unsigned int i=0; i < n; i++ )
+    {
+      double t=point[3*i + 0] - fOrigin[0];
+      safety[i] = 2.*(in[i]-0.5)*(fD[0] - myabs( t ));
+    }
+
+#pragma ivdep
+  for ( unsigned int i=0; i < n; i++ )
+    {
+      double t=point[3*i + 1] - fOrigin[1];
+      double t2 = 2.*(in[i]-0.5)*(fD[1] - myabs( t ));
+      safety[i] = mymin(safety[i], t2);
+    }
+
+#pragma ivdep
+  for ( unsigned int i=0; i < n; i++ )
+    {
+      double t=point[3*i + 2] - fOrigin[2];
+      double t2 = 2.*(in[i]-0.5)*(fD[2] - myabs( t ));
+      safety[i] = mymin(safety[i], t2);
     }
 }
 

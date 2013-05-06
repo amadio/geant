@@ -60,6 +60,8 @@ public:
    virtual Double_t      Safety(const Double_t *point, Bool_t in=kTRUE) const;
    void                  Safety_v(const Double_t *point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const; 
 
+   void                  Safety_v(const Double_t *point, Double_t *safety, const Bool_t * in, const Int_t np ) const; 
+
    ClassDef(TGeoBBox_v, 1)         // box primitive
 };
 

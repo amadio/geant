@@ -57,5 +57,22 @@ TGeoBBox_Test_Safety: TGeoBBox_Test_Safety.o
 TGeoBBox_Test_Safety.o: TGeoBBox_Test_Safety.cxx
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Safety.cxx
 
+
+TGeoBBox_Test_Contains: TGeoBBox_Test_Contains.o
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Contains.cxx
+	$(CXX) -o TGeoBBox_Test_Contains TGeoBBox_Test_Contains.o  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
+
+TGeoBBox_Test_Contains.o: TGeoBBox_Test_Contains.cxx
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Contains.cxx
+
+TGeoBBox_Test_ContainsAndSafety: TGeoBBox_Test_ContainsAndSafety.o
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_ContainsAndSafety.cxx
+	$(CXX) -o TGeoBBox_Test_ContainsAndSafety TGeoBBox_Test_ContainsAndSafety.o  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
+
+TGeoBBox_Test_ContainsAndSafety.o: TGeoBBox_Test_ContainsAndSafety.cxx
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_ContainsAndSafety.cxx
+
+
+
 clean:
 	rm TGeoBBox_v.o libtest.so testCint.* 
