@@ -1,6 +1,6 @@
 // @(#)root/geom:$Id: TGeoBBox_v.cxx 27731 2009-03-09 17:40:56Z brun $// Author: Andrei Gheata   24/10/01
 
-// Contains() and DistFromOutside/Out() implemented by Mihaela Gheata
+// Contains() and DistromOutside/Out() implemented by Mihaela Gheata
 
 /*************************************************************************
  * Copyright (C) 1995-2000, Rene Brun and Fons Rademakers.               *
@@ -290,42 +290,23 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
    return smin;
 }
 
+
+// static DistFromInside was inlined
+
+
 //_____________________________________________________________________________
-Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir, 
-                                  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t /*stepmax*/)
+void TGeoBBox_v::DistFromInside_l(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
+				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
-
-// Computes distance from inside point to surface of the box.
-// Boundary safe algorithm.
-
-// SW:
-// WHAT ARE THE INPUT PARAMETERS?
-// 
-
-   Double_t s,smin,saf[6];
-   Double_t newpt[3];
-   Int_t i;
-   for (i=0; i<3; i++) newpt[i] = point[i] - origin[i];
-   saf[0] = dx+newpt[0];
-   saf[1] = dx-newpt[0];
-   saf[2] = dy+newpt[1];
-   saf[3] = dy-newpt[1];
-   saf[4] = dz+newpt[2];
-   saf[5] = dz-newpt[2];
-
-
-   // compute distance to surface
-   // SW: this is already done better than in Geant4
-   smin=TGeoShape::Big();
-   for (i=0; i<3; i++) {
-      if (dir[i]!=0) {
-         s = (dir[i]>0)?(saf[(i<<1)+1]/dir[i]):(-saf[i<<1]/dir[i]);
-         if (s < 0) return 0.0;
-         if (s < smin) smin = s;
-      }
-   }
-   return smin;
+  #pragma simd
+  for(unsigned int k=0; k<npoints; k++)
+    {
+      // maybe elemental function has to be declared declspec
+      distance[k]=TGeoBBox_v::DistFromInside( &point[3*k], &dir[3*k], dx, dy ,dz, origin, stepmax );
+    }
 }
+
+
 
 //_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromOutside(Double_t *point, Double_t *dir, Int_t iact, Double_t step, Double_t *safe) const
