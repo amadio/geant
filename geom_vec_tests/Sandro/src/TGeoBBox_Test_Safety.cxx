@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 	  tt.Reset();
 	}
 
-      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << std::endl;
+      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_v << std::endl;
       
       delete[] safety_v;
       delete[] points;
