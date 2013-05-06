@@ -246,7 +246,7 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Dou
 //_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, Double_t step, Double_t *safe) const
 {
-// Compute distance from inside point to surface of the box.
+// Compute distance from inside point to surface of the box along some direction given by dir
 // Boundary safe algorithm.
    Double_t s,smin,saf[6];
    Double_t newpt[3];
@@ -290,6 +290,71 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
    return smin;
 }
 
+Double_t  TGeoBBox_v::DistFromInside_l(Double_t *__restrict__ point, Double_t *__restrict__dir, Int_t iact, 
+				       Double_t step, Double_t *__restrict__ safe=0, Double_t *__restrict__distances, int npoints) const;
+{
+// Compute distance from inside point to surface of the box along some direction given by dir
+// Boundary safe algorithm.
+  for(int k=0; k<npoints; k++)
+    {
+      Double_t s,smin,saf[6];
+      Double_t newpt[3];
+      Int_t i;
+
+      double * fD = (double *) &fDX;
+      //tyring to vectorize the above already
+      //idea: fDX, fDY, fDZ should be layed out in memory consecutively
+
+#pragma ivdep
+      for (i=0; i<3; i++)
+	{
+	  newpt[i] = point[3*k+i] - fOrigin[i]; // transform to local corrdinates
+	  saf[2*i] = fD[i]+newpt[i];
+	  saf[2*i+1] = fD[i]-newpt[i];
+	}
+      // saf[0] is minimal distance to boundary in -x dir
+      // saf[1] is minimal distance to boundary in x dir ...
+
+      
+      if (iact<3 && safe) {
+	smin = saf[0];
+	// compute safe distance
+
+	// this thing computes safety which is returned in safe vector
+	for (i=1;i<6;i++) if (saf[i] < smin) smin = saf[i];
+	*safe = smin;
+
+	if (smin<0) *safe = 0.0;
+	if (iact==0) return TGeoShape::Big();
+	if (iact==1 && step<*safe) return TGeoShape::Big();
+      }
+
+      // compute distance to surface
+      smin=TGeoShape::Big();
+
+      // this is a loop over all three directions, we could make it a loop over six directions
+      for (i=0; i<3; i++) 
+	{
+	  if (dir[i]!=0)  // if a vector component is non-zero
+	    {
+	      s = (dir[i]>0)? (saf[(i<<1)+1]/dir[i]) : (-saf[i<<1]/dir[i]); // i<<1 is a multiplication by 2
+
+	      s1 = saf[(i<<1)+1]/dir[i];
+	      s2 = saf[(i<<1)]/dir[i];
+
+	      // one will be positive 
+	      
+	      // one will be negative 
+
+	      if (s < 0) smin = 0.0; // how can this be negative??
+	      else if (s < smin) smin = s;
+	    }
+	}
+      distances[k]=smin;
+    }
+}
+
+
 //_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir, 
                                   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t /*stepmax*/)
@@ -298,11 +363,9 @@ Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir,
 // Computes distance from inside point to surface of the box.
 // Boundary safe algorithm.
 
-// SW:
-// WHAT ARE THE INPUT PARAMETERS?
-// 
+// this is the static version of the code
 
-   Double_t s,smin,saf[6];
+  Double_t s,smin,saf[6];
    Double_t newpt[3];
    Int_t i;
    for (i=0; i<3; i++) newpt[i] = point[i] - origin[i];

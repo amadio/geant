@@ -46,8 +46,14 @@ public:
    static  Bool_t        Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin);
    virtual Bool_t        CouldBeCrossed(Double_t *point, Double_t *dir) const;
    virtual Int_t         DistancetoPrimitive(Int_t px, Int_t py);
+
    virtual Double_t      DistFromInside(Double_t *point, Double_t *dir, Int_t iact=1, 
                                    Double_t step=TGeoShape::Big(), Double_t *safe=0) const;
+
+   virtual Double_t      DistFromInside_l(Double_t *point, Double_t *dir, Int_t iact=1, 
+					  Double_t step=TGeoShape::Big(), Double_t *safe=0, Double_t * distances, int npoints) const;
+   // this is trivial loop implementation over a vector of particles
+
    static  Double_t      DistFromInside(const Double_t *point,const Double_t *dir, 
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
    virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, 
