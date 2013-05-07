@@ -13,7 +13,7 @@
 #CC=clang++
 
 ifeq ($(CXX),g++) 
-OPT=-O3 -mfpmath=sse -mmmx -msse -msse2 -funroll-loops -flax-vector-conversions -fivopts  \
+OPT=-O3 -mfpmath=sse -mavx -funroll-loops -flax-vector-conversions -fivopts  \
 -ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=3 -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
@@ -24,7 +24,7 @@ OPT=-O3 -mllvm -unroll-allow-partial -mllvm -unroll-runtime \
 endif
 
 ifeq ($(CXX),icc) 
-OPT=-O3 -DHAVE_AVX -mkl -mavx -vec-report3 -restrict -fPIC
+OPT=-O3 -DHAVE_AVX -mkl -mavx -xAVX -Ofast -vec-report3 -restrict -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
 
@@ -71,6 +71,14 @@ TGeoBBox_Test_ContainsAndSafety: TGeoBBox_Test_ContainsAndSafety.o
 
 TGeoBBox_Test_ContainsAndSafety.o: TGeoBBox_Test_ContainsAndSafety.cxx
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_ContainsAndSafety.cxx
+
+
+TGeoBBox_Test_DistanceIn: TGeoBBox_Test_DistanceIn.o
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_DistanceIn.cxx
+	$(CXX) -o TGeoBBox_Test_DistanceIn TGeoBBox_Test_DistanceIn.o  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
+
+TGeoBBox_Test_DistanceIn.o: TGeoBBox_Test_DistanceIn.cxx
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_DistanceIn.cxx
 
 
 

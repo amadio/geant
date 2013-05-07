@@ -1,6 +1,6 @@
 // @(#)root/geom:$Id: TGeoBBox_v.cxx 27731 2009-03-09 17:40:56Z brun $// Author: Andrei Gheata   24/10/01
 
-// Contains() and DistFromOutside/Out() implemented by Mihaela Gheata
+// Contains() and DistromOutside/Out() implemented by Mihaela Gheata
 
 /*************************************************************************
  * Copyright (C) 1995-2000, Rene Brun and Fons Rademakers.               *
@@ -261,12 +261,14 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
 
    //tyring to vectorize the above already
    //idea: fDX, fDY, fDZ should be layed out in memory consecutively
-   double * fD = (double *) &fDX;
-   for (i=0; i<3; i++)
-     {
-       saf[2*i] = fD[i]+newpt[i];
-       saf[2*i+1] = fD[i]-newpt[i];
-     }
+
+
+   // double * fD = (double *) &fDX;
+   // for (i=0; i<3; i++)
+   //   {
+   //     saf[2*i] = fD[i]+newpt[i];
+   //     saf[2*i+1] = fD[i]-newpt[i];
+   //   }
 
 
    if (iact<3 && safe) {
@@ -278,6 +280,7 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
       if (iact==0) return TGeoShape::Big();
       if (iact==1 && step<*safe) return TGeoShape::Big();
    }
+
    // compute distance to surface
    smin=TGeoShape::Big();
    for (i=0; i<3; i++) {
@@ -290,105 +293,78 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
    return smin;
 }
 
-Double_t  TGeoBBox_v::DistFromInside_l(Double_t *__restrict__ point, Double_t *__restrict__dir, Int_t iact, 
-				       Double_t step, Double_t *__restrict__ safe=0, Double_t *__restrict__distances, int npoints) const;
+//_____________________________________________________________________________
+void TGeoBBox_v::DistFromInside_l(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
+				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
-// Compute distance from inside point to surface of the box along some direction given by dir
-// Boundary safe algorithm.
-  for(int k=0; k<npoints; k++)
+  #pragma simd
+  // #pragma ivdep
+  for(unsigned int k=0; k<npoints; k++)
     {
-      Double_t s,smin,saf[6];
-      Double_t newpt[3];
-      Int_t i;
-
-      double * fD = (double *) &fDX;
-      //tyring to vectorize the above already
-      //idea: fDX, fDY, fDZ should be layed out in memory consecutively
-
-#pragma ivdep
-      for (i=0; i<3; i++)
-	{
-	  newpt[i] = point[3*k+i] - fOrigin[i]; // transform to local corrdinates
-	  saf[2*i] = fD[i]+newpt[i];
-	  saf[2*i+1] = fD[i]-newpt[i];
-	}
-      // saf[0] is minimal distance to boundary in -x dir
-      // saf[1] is minimal distance to boundary in x dir ...
-
-      
-      if (iact<3 && safe) {
-	smin = saf[0];
-	// compute safe distance
-
-	// this thing computes safety which is returned in safe vector
-	for (i=1;i<6;i++) if (saf[i] < smin) smin = saf[i];
-	*safe = smin;
-
-	if (smin<0) *safe = 0.0;
-	if (iact==0) return TGeoShape::Big();
-	if (iact==1 && step<*safe) return TGeoShape::Big();
-      }
-
-      // compute distance to surface
-      smin=TGeoShape::Big();
-
-      // this is a loop over all three directions, we could make it a loop over six directions
-      for (i=0; i<3; i++) 
-	{
-	  if (dir[i]!=0)  // if a vector component is non-zero
-	    {
-	      s = (dir[i]>0)? (saf[(i<<1)+1]/dir[i]) : (-saf[i<<1]/dir[i]); // i<<1 is a multiplication by 2
-
-	      s1 = saf[(i<<1)+1]/dir[i];
-	      s2 = saf[(i<<1)]/dir[i];
-
-	      // one will be positive 
-	      
-	      // one will be negative 
-
-	      if (s < 0) smin = 0.0; // how can this be negative??
-	      else if (s < smin) smin = s;
-	    }
-	}
-      distances[k]=smin;
+      // maybe elemental function has to be declared declspec
+      distance[k]=TGeoBBox_v::DistFromInside( &point[3*k], &dir[3*k], dx, dy ,dz, origin, stepmax );
     }
 }
 
 
 //_____________________________________________________________________________
-Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir, 
-                                  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t /*stepmax*/)
+void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
+				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
+  //#pragma simd
+  //#pragma ivdep
+  for(unsigned int k=0; k<npoints; ++k)
+    {
+      Double_t s,smin,saf[6];
+      Double_t newpt[3];
+      Int_t i;
 
-// Computes distance from inside point to surface of the box.
-// Boundary safe algorithm.
+      newpt[0] = point[3*k+0] - origin[0];
+      saf[0] = dx+newpt[0];
+      saf[1] = dx-newpt[0];
+      newpt[1] = point[3*k+1] - origin[1];
+      saf[2] = dy+newpt[1];
+      saf[3] = dy-newpt[1];
+      newpt[2] = point[3*k+2] - origin[2];
+      saf[4] = dz+newpt[2];
+      saf[5] = dz-newpt[2];
+      
+      smin=TGeoShape::Big();
 
-// this is the static version of the code
-
-  Double_t s,smin,saf[6];
-   Double_t newpt[3];
-   Int_t i;
-   for (i=0; i<3; i++) newpt[i] = point[i] - origin[i];
-   saf[0] = dx+newpt[0];
-   saf[1] = dx-newpt[0];
-   saf[2] = dy+newpt[1];
-   saf[3] = dy-newpt[1];
-   saf[4] = dz+newpt[2];
-   saf[5] = dz-newpt[2];
+      double s1, s2;
+      int d=3*k;
+      if (dir[d]!=0) 
+	{
+	  s = (dir[d]>0)? (saf[1]/dir[d]):(-saf[0]/dir[d]);
+	}
+      if (s < smin) smin = s;
+      if (s < 0) smin = 0.0;
 
 
-   // compute distance to surface
-   // SW: this is already done better than in Geant4
-   smin=TGeoShape::Big();
-   for (i=0; i<3; i++) {
-      if (dir[i]!=0) {
-         s = (dir[i]>0)?(saf[(i<<1)+1]/dir[i]):(-saf[i<<1]/dir[i]);
-         if (s < 0) return 0.0;
-         if (s < smin) smin = s;
-      }
-   }
-   return smin;
+      d=3*k+1;
+      if (dir[d]!=0) 
+	{
+	  s = (dir[d]>0)? (saf[3]/dir[d]):(-saf[2]/dir[d]);
+	}   
+      // if (s < smin) smin = (((int) s)>0) * s;
+      if (s < smin) smin = s;
+      if (s < 0) smin= 0.0;
+      
+      d=3*k+2;
+      if (dir[d]!=0) 
+	{
+	  s = (dir[d]>0)?(saf[5]/dir[d]):(-saf[4]/dir[d]);
+	}
+      if (s < smin) smin = s;// smin = s;
+      if (s < 0) smin = 0.0;
+      
+      // maybe elemental function has to be declared declspec
+      distance[k]=smin;
+    }
 }
+>>>>>>> unrollloopsandvectorize
+
+
 
 //_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromOutside(Double_t *point, Double_t *dir, Int_t iact, Double_t step, Double_t *safe) const
