@@ -227,16 +227,16 @@ void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
 void TGeoBBox_v::ComputeNormal_v(Double_t __restrict__  *point, Double_t __restrict__  *dir, Double_t  __restrict__ *norm, const Int_t np)
 {
     // Computes normal to closest surface from POINT.
-    memset(norm,0,3*sizeof(Double_t));
+    memset(norm,0,3*np*sizeof(Double_t));
     Double_t saf[3];
     Int_t min;
     for (Int_t i=0; i<np; i++)
     {
-        saf[0]=TMath::Abs(TMath::Abs(point[3*i]-fOrigin[0])-fDX);
-        saf[1]=TMath::Abs(TMath::Abs(point[3*i+1]-fOrigin[1])-fDY);
-        saf[2]=TMath::Abs(TMath::Abs(point[3*i+2]-fOrigin[2])-fDZ);
-        min = TMath::LocMin(3,saf);
-        norm[3*i+min] = (dir[3*i+min]>0)?1:(-1);
+      saf[0]=TMath::Abs(TMath::Abs(point[3*i]-fOrigin[0])-fDX);
+      saf[1]=TMath::Abs(TMath::Abs(point[3*i+1]-fOrigin[1])-fDY);
+      saf[2]=TMath::Abs(TMath::Abs(point[3*i+2]-fOrigin[2])-fDZ);
+      min = TMath::LocMin(3,saf);
+      norm[3*i+min] = (dir[3*i+min]>0)?1:(-1);
     }
 }
 
@@ -453,7 +453,6 @@ void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Doub
       distance[k]=smin;
     }
 }
->>>>>>> unrollloopsandvectorize
 
 
 
