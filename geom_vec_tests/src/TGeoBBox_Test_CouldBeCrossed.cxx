@@ -58,44 +58,34 @@ main(int argc, char *argv[])
       TStopWatch tt;
 
       for(int i=0; i<npoints; ++i) {
-	/*
-	points[3*i  ]=0;
-	points[3*i+1]=0;
-	points[3*i+2]=0;
-	*/
+	
+          points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
+          points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
+          points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
 
-	points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
-	points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-	points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
-          
-    dir[3*i  ]=(1-2.*gRandom->Rndm())*dx; //correct?
-    dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-    dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+          dir[3*i  ]=(1-2.*gRandom->Rndm())*dx; 
+          dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
+          dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
       
       }
-
-            
       
+      Bool_t *couldBeCrossed_v = new Bool_t[npoints];
       double DeltaT=0., DeltaT_v=0.;
       for ( unsigned int repetitions = 0; repetitions < NREP; repetitions ++ ) 
-	{
+      {
 	  // assert correctness of result (simple checksum check)
-	  {
+          {
 	    double checksum=0., checksum_v=0.;
 	    for(int i=0; i<npoints; ++i) {
-	      box->ComputeNormal(&points[3*i], &dir[3*i], &norm[3*i]);
+	      couldBeCrossed_v[i]=box->CouldBeCrossed(&points[3*i], &dir[3*i]);
 	      //	      std::cerr << "Ax " << points[3*i+0] << " y " << points[3*i+1] << " z " << points[3*i+2] << " safet " << safety_v[i] << std::endl;
-	      
+	      checksum+=couldBeCrossed_v[i];
 	    }
 	    
-          
-          for (int i=0; i<npoints*3; i++)
-              checksum+=norm[i];
-	    
-	    box->ComputeNormal_v(points,dir,norm,npoints);
-	    for(int i=0; i<npoints*3; ++i) {
+	    box->CouldBeCrossed_v(points,dir,couldBeCrossed_v,npoints);
+	    for(int i=0; i<npoints; ++i) {
 	      //	      std::cerr << "Bx " << points[3*i+0] << " y " << points[3*i+1] << " z " << points[3*i+2] << " safet " << safety_v[i] << std::endl;
-	      checksum_v+=norm[i];
+	      checksum_v+=couldBeCrossed_v[i];
 	    }
 	    assert(checksum_v == checksum);
 	  }
@@ -104,14 +94,14 @@ main(int argc, char *argv[])
 	  // measure timings here separately
 	  tt.Start();
 	  for(int i=0; i<npoints; ++i) {
-	    box->ComputeNormal(&points[3*i], &dir[3*i], &norm[3*i]);
+	    couldBeCrossed_v[i]=box->CouldBeCrossed(&points[3*i], &dir[3*i]);
 	  }
 	  tt.Stop();
 	  DeltaT+= tt.getDeltaSecs();
 	  tt.Reset();
 	  
 	  tt.Start();
-	  box->ComputeNormal_v(points,dir,norm,npoints);
+	  box->CouldBeCrossed_v(points,dir,couldBeCrossed_v,npoints);
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();

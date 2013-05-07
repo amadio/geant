@@ -223,7 +223,7 @@ void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
    norm[i] = (dir[i]>0)?1:(-1);
 }
 
-//mb_____________________________________________________________________________
+//_____________________________________________________________________________
 void TGeoBBox_v::ComputeNormal_v(Double_t __restrict__  *point, Double_t __restrict__  *dir, Double_t  __restrict__ *norm, const Int_t np)
 {
     // Computes normal to closest surface from POINT.
@@ -263,27 +263,42 @@ Bool_t TGeoBBox_v::CouldBeCrossed(Double_t *point, Double_t *dir) const
    return kFALSE;
 }
 
-//mb_____________________________________________________________________________
-Bool_t TGeoBBox_v::CouldBeCrossed_v(Double_t *point, Double_t *dir) const
+inline double mymin( double x, double y )
+{
+    return (x>y)? y : x;
+}
+
+//_____________________________________________________________________________
+void TGeoBBox_v::CouldBeCrossed_v(Double_t __restrict__ *point, Double_t __restrict__  *dir,Bool_t * __restrict__ isin, const Int_t np) const
 {
     // Decides fast if the bounding box could be crossed by a vector.
-    Double_t mind = fDX;
-    if (fDY<mind) mind=fDY;
-    if (fDZ<mind) mind=fDZ;
-    Double_t dx = fOrigin[0]-point[0];
-    Double_t dy = fOrigin[1]-point[1];
-    Double_t dz = fOrigin[2]-point[2];
-    Double_t do2 = dx*dx+dy*dy+dz*dz;
-    if (do2<=(mind*mind)) return kTRUE;
-    Double_t rmax2 = fDX*fDX+fDY*fDY+fDZ*fDZ;
-    if (do2<=rmax2) return kTRUE;
-    // inside bounding sphere
-    Double_t doct = dx*dir[0]+dy*dir[1]+dz*dir[2];
-    // leaving ray
-    if (doct<=0) return kFALSE;
-    Double_t dirnorm=dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2];
-    if ((doct*doct)>=(do2-rmax2)*dirnorm) return kTRUE;
-    return kFALSE;
+    //Double_t mind = fDX;
+    //if (fDY<mind) mind=fDY;
+    //if (fDZ<mind) mind=fDZ;
+    
+    Double_t mind = mymin(fDX, fDY);
+    mind=mymin(mind, fDZ);
+    Double_t dx,dy,dz,do2,rmax2;
+    
+    for(Int_t i=0; i<np; i++)
+    {
+        dx = fOrigin[0]-point[i*3+0];
+        dy = fOrigin[1]-point[i*3+1];
+        dz = fOrigin[2]-point[i*3+2];
+    
+        do2 = dx*dx+dy*dy+dz*dz;
+        //if (do2<=(mind*mind)) return kTRUE; // (1)
+        rmax2 = fDX*fDX+fDY*fDY+fDZ*fDZ;
+        //if (do2<=rmax2) return kTRUE; //(2)
+        // inside bounding sphere
+        Double_t doct = dx*dir[0]+dy*dir[1]+dz*dir[2];
+        // leaving ray
+        //if (doct<=0) return kFALSE; //(3)
+        Double_t dirnorm=dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2];
+        //if ((doct*doct)>=(do2-rmax2)*dirnorm) return kTRUE; //(4)
+        //return kFALSE; //(5)
+        isin[i]=((do2<=(mind*mind)) || (do2<=rmax2) || ((doct*doct)>=(do2-rmax2)*dirnorm)); //to verify
+    }
 }
 
 
@@ -688,10 +703,6 @@ inline double myabs( double x )
   return (x>=0)? x: -x; // this is basically the same as ROOT
 }
 
-inline double mymin( double x, double y )
-{
-  return (x>y)? y : x;
-}
 
 //_____________________________________________________________________________
 void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __restrict__ safety, const Int_t n, Bool_t in) const
