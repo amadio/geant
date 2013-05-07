@@ -159,6 +159,56 @@ Bool_t TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1
    return kFALSE;
 }
 
+//mb_____________________________________________________________________________
+Bool_t TGeoBBox_v::AreOverlapping_v(const TGeoBBox_v **box1, const TGeoMatrix  **mat1, const TGeoBBox_v  **box2, const TGeoMatrix  **mat2, Bool_t *  isin, const Int_t np)
+{
+    // Check if 2 positioned boxes overlap.
+    Double_t master[3];
+    Double_t local[3];
+    Double_t ldir1[3], ldir2[3];
+    
+    // Convert center of first box to the local frame of second
+    
+    for(Int_t i=0; i<np; ++i)
+    {
+        
+        const Double_t *o1 = box1[i]->GetOrigin();
+        const Double_t *o2 = box2[i]->GetOrigin();
+        mat1[i]->LocalToMaster(o1, master);
+        mat2[i]->MasterToLocal(master, local);
+        //****(1) if (TGeoBBox_v::Contains(local,box2[i]->GetDX(),box2[i]->GetDY(),box2[i]->GetDZ(),o2)) isin[i]=kTRUE;
+        Double_t distsq = (local[0]-o2[0])*(local[0]-o2[0]) +
+        (local[1]-o2[1])*(local[1]-o2[1]) +
+        (local[2]-o2[2])*(local[2]-o2[2]);
+        // Compute distance between box centers and compare with max value
+        Double_t rmaxsq = (box1[i]->GetDX()+box2[i]->GetDX())*(box1[i]->GetDX()+box2[i]->GetDX()) +
+        (box1[i]->GetDY()+box2[i]->GetDY())*(box1[i]->GetDY()+box2[i]->GetDY()) +
+        (box1[i]->GetDZ()+box2[i]->GetDZ())*(box1[i]->GetDZ()+box2[i]->GetDZ());
+        //****(2) if (distsq > rmaxsq + TGeoShape::Tolerance())  isin[i]= kFALSE;
+        // We are still not sure: shoot a ray from the center of "1" towards the
+        // center of 2.
+        Double_t dir[3];
+        mat1[i]->LocalToMaster(o1, ldir1);
+        mat2[i]->LocalToMaster(o2, ldir2);
+        distsq = 1./TMath::Sqrt(distsq);
+        dir[0] = (ldir2[0]-ldir1[0])*distsq;
+        dir[1] = (ldir2[1]-ldir1[1])*distsq;
+        dir[2] = (ldir2[2]-ldir1[2])*distsq;
+        mat1[i]->MasterToLocalVect(dir, ldir1);
+        mat2[i]->MasterToLocalVect(dir, ldir2);
+        // Distance to exit from o1
+        Double_t dist1 = TGeoBBox_v::DistFromInside(o1,ldir1,box1[i]->GetDX(),box1[i]->GetDY(),box1[i]->GetDZ(),o1);
+        // Distance to enter from o2
+        Double_t dist2 = TGeoBBox_v::DistFromOutside(local,ldir2,box2[i]->GetDX(),box2[i]->GetDY(),box2[i]->GetDZ(),o2);
+        //****(3)if (dist1 > dist2)  isin[i]=kTRUE;
+        //**** (4)isin[i]=kFALSE;
+        isin[i]= ( (TGeoBBox_v::Contains(local,box2[i]->GetDX(),box2[i]->GetDY(),box2[i]->GetDZ(),o2)) || (dist1 > dist2) ); //to verify
+    }
+    
+}
+
+
+
 //_____________________________________________________________________________
 void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
 {
@@ -171,6 +221,23 @@ void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
    saf[2]=TMath::Abs(TMath::Abs(point[2]-fOrigin[2])-fDZ);
    i = TMath::LocMin(3,saf);
    norm[i] = (dir[i]>0)?1:(-1);
+}
+
+//mb_____________________________________________________________________________
+void TGeoBBox_v::ComputeNormal_v(Double_t __restrict__  *point, Double_t __restrict__  *dir, Double_t  __restrict__ *norm, const Int_t np)
+{
+    // Computes normal to closest surface from POINT.
+    memset(norm,0,3*sizeof(Double_t));
+    Double_t saf[3];
+    Int_t min;
+    for (Int_t i=0; i<np; i++)
+    {
+        saf[0]=TMath::Abs(TMath::Abs(point[3*i]-fOrigin[0])-fDX);
+        saf[1]=TMath::Abs(TMath::Abs(point[3*i+1]-fOrigin[1])-fDY);
+        saf[2]=TMath::Abs(TMath::Abs(point[3*i+2]-fOrigin[2])-fDZ);
+        min = TMath::LocMin(3,saf);
+        norm[3*i+min] = (dir[3*i+min]>0)?1:(-1);
+    }
 }
 
 //_____________________________________________________________________________
@@ -195,6 +262,30 @@ Bool_t TGeoBBox_v::CouldBeCrossed(Double_t *point, Double_t *dir) const
    if ((doct*doct)>=(do2-rmax2)*dirnorm) return kTRUE;
    return kFALSE;
 }
+
+//mb_____________________________________________________________________________
+Bool_t TGeoBBox_v::CouldBeCrossed_v(Double_t *point, Double_t *dir) const
+{
+    // Decides fast if the bounding box could be crossed by a vector.
+    Double_t mind = fDX;
+    if (fDY<mind) mind=fDY;
+    if (fDZ<mind) mind=fDZ;
+    Double_t dx = fOrigin[0]-point[0];
+    Double_t dy = fOrigin[1]-point[1];
+    Double_t dz = fOrigin[2]-point[2];
+    Double_t do2 = dx*dx+dy*dy+dz*dz;
+    if (do2<=(mind*mind)) return kTRUE;
+    Double_t rmax2 = fDX*fDX+fDY*fDY+fDZ*fDZ;
+    if (do2<=rmax2) return kTRUE;
+    // inside bounding sphere
+    Double_t doct = dx*dir[0]+dy*dir[1]+dz*dir[2];
+    // leaving ray
+    if (doct<=0) return kFALSE;
+    Double_t dirnorm=dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2];
+    if ((doct*doct)>=(do2-rmax2)*dirnorm) return kTRUE;
+    return kFALSE;
+}
+
 
 //_____________________________________________________________________________
 Int_t TGeoBBox_v::DistancetoPrimitive(Int_t px, Int_t py)
