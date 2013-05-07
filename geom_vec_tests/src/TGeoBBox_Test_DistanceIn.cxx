@@ -18,7 +18,8 @@ struct TStopWatch
   double getDeltaSecs() { return (t2-t1).seconds(); }
 };
 
-#define NREP 1000
+
+#define NREP 100
 
 main(int argc, char *argv[])
 {
@@ -71,15 +72,17 @@ main(int argc, char *argv[])
 	dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
 	dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
       }
+      // TODO: introduce some special boundary cases for tests
 
       double *distance_v = new double[npoints];
-  
-      double DeltaT=0., DeltaT_v=0.;
+
+      double DeltaT=0., DeltaT_v=0., DeltaT_l=0., DeltaT_b=0.;
       for ( unsigned int repetitions = 0; repetitions < NREP; repetitions ++ ) 
 	{
 	  // assert correctness of result (simple checksum check)
 	  {
-	    double checksum=0., checksum_v=0.;
+	    double checksum=0., checksum_l=0., checksum_box=0., checksum_v=0.;
+	    #pragma novector 
 	    for(int i=0; i<npoints; ++i) {
 	      distance_v[i]=TGeoBBox_v::DistFromInside(&points[3*i],&dir[3*i], dx,dy,dz, origin, TGeoShape::Big());
  	      checksum+=distance_v[i];
@@ -87,35 +90,61 @@ main(int argc, char *argv[])
 	    
 	    TGeoBBox_v::DistFromInside_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
 	    for(int i=0; i<npoints; ++i) {
-	      //	      std::cerr << "Bx " << points[3*i+0] << " y " << points[3*i+1] << " z " << points[3*i+2] << " safet " << safety_v[i] << std::endl;
+	      checksum_l+=distance_v[i];
+	    }
+
+	    TGeoBBox_v::DistFromInside_v(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	    for(int i=0; i<npoints; ++i) {
 	      checksum_v+=distance_v[i];
 	    }
-	    if(checksum_v != checksum);
+
+	    // crosscheck with result from box instance ( non - statically )
+	    for(int i=0; i<npoints; ++i) {
+	      distance_v[i]=box->DistFromInside(&points[3*i],&dir[3*i], 3, TGeoShape::Big(), 0);
+ 	      checksum_box+=distance_v[i];
+	    }
+
+	    if(checksum_v != checksum || checksum_box != checksum );
 	    {
-	      //  std::cerr << "#" << checksum_v <<  " " << checksum << std::endl;
+	      //  std::cerr << "#" << checksum_box << " " << checksum_v <<  " " << checksum << " " <<  checksum_l << std::endl;
 	    }	  
 	  }
 
 	  
 	  tt.Start();
-	  TGeoBBox_v::DistFromInside_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	  TGeoBBox_v::DistFromInside_v(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
+
+	  tt.Start();
+	  TGeoBBox_v::DistFromInside_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	  tt.Stop();
+	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
 
 
 	  // measure timings here separately
 	  tt.Start();
+	  #pragma novector
 	  for(int i=0; i<npoints; ++i) {
 	    distance_v[i] = TGeoBBox_v::DistFromInside(&points[3*i],&dir[3*i], dx,dy,dz, origin, TGeoShape::Big());
 	  }
 	  tt.Stop();
 	  DeltaT+= tt.getDeltaSecs();
 	  tt.Reset();
-	 
+
+	  // crosscheck with result from box instance ( non - statically )
+	  tt.Start();
+	  for(int i=0; i<npoints; ++i) {
+	    distance_v[i]=box->DistFromInside(&points[3*i],&dir[3*i], 3, TGeoShape::Big(), 0);
+	  }
+	  tt.Stop();
+	  DeltaT_b+= tt.getDeltaSecs();
+	  tt.Reset();
 	}
 
-      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_v << std::endl;
+      std::cerr << npoints << " " << DeltaT_b/NREP << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT_l/NREP << " " << DeltaT/DeltaT_v << " " << DeltaT/DeltaT_l << std::endl;
       
       delete[] distance_v;
       delete[] dir;
