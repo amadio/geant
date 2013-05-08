@@ -1,17 +1,3 @@
-#
-
-#gcc: -std=c99 -O3 -funroll-loops -vopts -
-#ax-vector-conversions
-#-ast-math -funsafe-math-optimizations -msse4.1 (with
-#-fno-tree-vectorize to turn o autovectorization)
-#clang: -O3 -mllvm -unroll-allow-partial -mllvm -unroll-runtime
-#-funsafe-math-optimizations -ast-math (with -mllvm -vectorize
-#-mllvm -bb-vectorize-aligned-only for autovectorization)
-
-#OPT=-O3 -mllvm -unroll-allow-partial -mllvm -unroll-runtime \
--mllvm -vectorize -mllvm -bb-vectorize-aligned-only
-#CC=clang++
-
 ifeq ($(CXX),g++) 
 OPT=-O3 -mfpmath=sse -mavx -funroll-loops -flax-vector-conversions -fivopts  \
 -ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=3 -fPIC
