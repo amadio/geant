@@ -314,7 +314,7 @@ void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __rest
   Double_t xx, yy, zz;
 
 #pragma ivdep
-  for(Int_t i=0; i<np; ++i) 
+  for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
     {
       xx=point[3*i  ]-fOrigin[0];
       yy=point[3*i+1]-fOrigin[1];
@@ -390,7 +390,7 @@ void TGeoBBox_v::DistFromInside_l(const Double_t * __restrict__ point,const Doub
 {
   #pragma simd
   // #pragma ivdep
-  for(unsigned int k=0; k<npoints; k++)
+  for(unsigned int k=0; k<npoints; k++) //@EXPECTVEC
     {
       // maybe elemental function has to be declared declspec
       distance[k]=TGeoBBox_v::DistFromInside( &point[3*k], &dir[3*k], dx, dy ,dz, origin, stepmax );
@@ -402,9 +402,9 @@ void TGeoBBox_v::DistFromInside_l(const Double_t * __restrict__ point,const Doub
 void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
 				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
-  //#pragma simd
-  //#pragma ivdep
-  for(unsigned int k=0; k<npoints; ++k)
+  // this and the previous should be the same; here I have done manual inlining
+
+  for(unsigned int k=0; k<npoints; ++k) //@EXPECTVEC
     {
       Double_t s,smin,saf[6];
       Double_t newpt[3];
@@ -431,7 +431,6 @@ void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Doub
       if (s < smin) smin = s;
       if (s < 0) smin = 0.0;
 
-
       d=3*k+1;
       if (dir[d]!=0) 
 	{
@@ -453,7 +452,6 @@ void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Doub
       distance[k]=smin;
     }
 }
-
 
 
 //_____________________________________________________________________________
@@ -739,14 +737,14 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
   // treat in as a simple sign
   double insign=(in-0.5)*2.;
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 0] - fOrigin[0];
       safety[i] = insign*(fD[0] - myabs( t ));
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 1] - fOrigin[1];
       double t2 = insign*(fD[1] - myabs( t ));
@@ -754,7 +752,7 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 2] - fOrigin[2];
       double t2 = insign*(fD[2] - myabs( t ));
@@ -770,14 +768,14 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
 
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 0] - fOrigin[0];
       safety[i] = 2.*(in[i]-0.5)*(fD[0] - myabs( t ));
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 1] - fOrigin[1];
       double t2 = 2.*(in[i]-0.5)*(fD[1] - myabs( t ));
@@ -785,7 +783,7 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 2] - fOrigin[2];
       double t2 = 2.*(in[i]-0.5)*(fD[2] - myabs( t ));
