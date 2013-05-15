@@ -1,6 +1,6 @@
 // @(#)root/geom:$Id: TGeoBBox_v.cxx 27731 2009-03-09 17:40:56Z brun $// Author: Andrei Gheata   24/10/01
 
-// Contains() and DistFromOutside/Out() implemented by Mihaela Gheata
+// Contains() and DistromOutside/Out() implemented by Mihaela Gheata
 
 /*************************************************************************
  * Copyright (C) 1995-2000, Rene Brun and Fons Rademakers.               *
@@ -223,8 +223,8 @@ void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
    norm[i] = (dir[i]>0)?1:(-1);
 }
 
-//_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal_v(Double_t __restrict__  *point, Double_t __restrict__  *dir, Double_t  __restrict__ *norm, const Int_t np)
+//mb_____________________________________________________________________________
+void TGeoBBox_v::ComputeNormal_v(Double_t  * __restrict__ point, Double_t  * __restrict__ dir, Double_t  *  __restrict__ norm, const Int_t np)
 {
     // Computes normal to closest surface from POINT.
     memset(norm,0,3*np*sizeof(Double_t));
@@ -232,11 +232,11 @@ void TGeoBBox_v::ComputeNormal_v(Double_t __restrict__  *point, Double_t __restr
     Int_t min;
     for (Int_t i=0; i<np; i++) //@EXPECTVEC
     {
-        saf[0]=TMath::Abs(TMath::Abs(point[3*i]-fOrigin[0])-fDX);
-        saf[1]=TMath::Abs(TMath::Abs(point[3*i+1]-fOrigin[1])-fDY);
-        saf[2]=TMath::Abs(TMath::Abs(point[3*i+2]-fOrigin[2])-fDZ);
-        min = TMath::LocMin(3,saf);
-        norm[3*i+min] = (dir[3*i+min]>0)?1:(-1);
+      saf[0]=TMath::Abs(TMath::Abs(point[3*i]-fOrigin[0])-fDX);
+      saf[1]=TMath::Abs(TMath::Abs(point[3*i+1]-fOrigin[1])-fDY);
+      saf[2]=TMath::Abs(TMath::Abs(point[3*i+2]-fOrigin[2])-fDZ);
+      min = TMath::LocMin(3,saf);
+      norm[3*i+min] = (dir[3*i+min]>0)?1:(-1);
     }
 }
 
@@ -329,7 +329,7 @@ void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __rest
   Double_t xx, yy, zz;
 
 #pragma ivdep
-  for(Int_t i=0; i<np; ++i) //@EXPECTVEC
+  for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
     {
       xx=point[3*i  ]-fOrigin[0];
       yy=point[3*i+1]-fOrigin[1];
@@ -352,7 +352,7 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Dou
 //_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, Double_t step, Double_t *safe) const
 {
-// Compute distance from inside point to surface of the box.
+// Compute distance from inside point to surface of the box along some direction given by dir
 // Boundary safe algorithm.
    Double_t s,smin,saf[6];
    Double_t newpt[3];
@@ -367,12 +367,14 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
 
    //tyring to vectorize the above already
    //idea: fDX, fDY, fDZ should be layed out in memory consecutively
-   double * fD = (double *) &fDX;
-   for (i=0; i<3; i++)
-     {
-       saf[2*i] = fD[i]+newpt[i];
-       saf[2*i+1] = fD[i]-newpt[i];
-     }
+
+
+   // double * fD = (double *) &fDX;
+   // for (i=0; i<3; i++)
+   //   {
+   //     saf[2*i] = fD[i]+newpt[i];
+   //     saf[2*i+1] = fD[i]-newpt[i];
+   //   }
 
 
    if (iact<3 && safe) {
@@ -384,6 +386,7 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
       if (iact==0) return TGeoShape::Big();
       if (iact==1 && step<*safe) return TGeoShape::Big();
    }
+
    // compute distance to surface
    smin=TGeoShape::Big();
    for (i=0; i<3; i++) {
@@ -397,41 +400,74 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
 }
 
 //_____________________________________________________________________________
-Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir, 
-                                  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t /*stepmax*/)
+void TGeoBBox_v::DistFromInside_l(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
+				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
-
-// Computes distance from inside point to surface of the box.
-// Boundary safe algorithm.
-
-// SW:
-// WHAT ARE THE INPUT PARAMETERS?
-// 
-
-   Double_t s,smin,saf[6];
-   Double_t newpt[3];
-   Int_t i;
-   for (i=0; i<3; i++) newpt[i] = point[i] - origin[i];
-   saf[0] = dx+newpt[0];
-   saf[1] = dx-newpt[0];
-   saf[2] = dy+newpt[1];
-   saf[3] = dy-newpt[1];
-   saf[4] = dz+newpt[2];
-   saf[5] = dz-newpt[2];
-
-
-   // compute distance to surface
-   // SW: this is already done better than in Geant4
-   smin=TGeoShape::Big();
-   for (i=0; i<3; i++) {
-      if (dir[i]!=0) {
-         s = (dir[i]>0)?(saf[(i<<1)+1]/dir[i]):(-saf[i<<1]/dir[i]);
-         if (s < 0) return 0.0;
-         if (s < smin) smin = s;
-      }
-   }
-   return smin;
+  #pragma simd
+  // #pragma ivdep
+  for(unsigned int k=0; k<npoints; k++) //@EXPECTVEC
+    {
+      // maybe elemental function has to be declared declspec
+      distance[k]=TGeoBBox_v::DistFromInside( &point[3*k], &dir[3*k], dx, dy ,dz, origin, stepmax );
+    }
 }
+
+
+//_____________________________________________________________________________
+void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
+				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
+{
+  // this and the previous should be the same; here I have done manual inlining
+
+  for(unsigned int k=0; k<npoints; ++k) //@EXPECTVEC
+    {
+      Double_t s,smin,saf[6];
+      Double_t newpt[3];
+      Int_t i;
+
+      newpt[0] = point[3*k+0] - origin[0];
+      saf[0] = dx+newpt[0];
+      saf[1] = dx-newpt[0];
+      newpt[1] = point[3*k+1] - origin[1];
+      saf[2] = dy+newpt[1];
+      saf[3] = dy-newpt[1];
+      newpt[2] = point[3*k+2] - origin[2];
+      saf[4] = dz+newpt[2];
+      saf[5] = dz-newpt[2];
+      
+      smin=TGeoShape::Big();
+
+      double s1, s2;
+      int d=3*k;
+      if (dir[d]!=0) 
+	{
+	  s = (dir[d]>0)? (saf[1]/dir[d]):(-saf[0]/dir[d]);
+	}
+      if (s < smin) smin = s;
+      if (s < 0) smin = 0.0;
+
+      d=3*k+1;
+      if (dir[d]!=0) 
+	{
+	  s = (dir[d]>0)? (saf[3]/dir[d]):(-saf[2]/dir[d]);
+	}   
+      // if (s < smin) smin = (((int) s)>0) * s;
+      if (s < smin) smin = s;
+      if (s < 0) smin= 0.0;
+      
+      d=3*k+2;
+      if (dir[d]!=0) 
+	{
+	  s = (dir[d]>0)?(saf[5]/dir[d]):(-saf[4]/dir[d]);
+	}
+      if (s < smin) smin = s;// smin = s;
+      if (s < 0) smin = 0.0;
+      
+      // maybe elemental function has to be declared declspec
+      distance[k]=smin;
+    }
+}
+
 
 //_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromOutside(Double_t *point, Double_t *dir, Int_t iact, Double_t step, Double_t *safe) const
@@ -501,6 +537,8 @@ Double_t TGeoBBox_v::DistFromOutside(Double_t *point, Double_t *dir, Int_t iact,
 //_____________________________________________________________________________
 void TGeoBBox_v::DistFromOutside_l(Double_t  __restrict__  *point, Double_t  __restrict__  *dir, Double_t * __restrict__ isin, const Int_t np ) const
 {
+  // trivial loop implementation calling "elemental function"
+
     for (Int_t i=0; i<np; i++) //@EXPECTVEC
         isin[i]=DistFromOutside(&point[3*i], &dir[3*i]);
     
@@ -512,6 +550,9 @@ void TGeoBBox_v::DistFromOutside_v(Double_t  __restrict__  *point, Double_t  __r
 {
     // Compute distance from outside point to surface of the box.
     // Boundary safe algorithm.
+
+  // putting source code of DistFromOutside_v and getting rid of  early return statement
+
     Bool_t in = kTRUE;
     Double_t saf[3*np];
     Double_t par[3];
@@ -879,14 +920,14 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
   // treat in as a simple sign
   double insign=(in-0.5)*2.;
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 0] - fOrigin[0];
       safety[i] = insign*(fD[0] - myabs( t ));
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 1] - fOrigin[1];
       double t2 = insign*(fD[1] - myabs( t ));
@@ -894,7 +935,7 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 2] - fOrigin[2];
       double t2 = insign*(fD[2] - myabs( t ));
@@ -910,14 +951,14 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
 
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 0] - fOrigin[0];
       safety[i] = 2.*(in[i]-0.5)*(fD[0] - myabs( t ));
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 1] - fOrigin[1];
       double t2 = 2.*(in[i]-0.5)*(fD[1] - myabs( t ));
@@ -925,7 +966,7 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
     }
 
 #pragma ivdep
-  for ( unsigned int i=0; i < n; i++ )
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
       double t=point[3*i + 2] - fOrigin[2];
       double t2 = 2.*(in[i]-0.5)*(fD[2] - myabs( t ));

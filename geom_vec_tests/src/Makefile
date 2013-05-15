@@ -1,19 +1,5 @@
-#
-
-#gcc: -std=c99 -O3 -funroll-loops -vopts -
-#ax-vector-conversions
-#-ast-math -funsafe-math-optimizations -msse4.1 (with
-#-fno-tree-vectorize to turn o autovectorization)
-#clang: -O3 -mllvm -unroll-allow-partial -mllvm -unroll-runtime
-#-funsafe-math-optimizations -ast-math (with -mllvm -vectorize
-#-mllvm -bb-vectorize-aligned-only for autovectorization)
-
-#OPT=-O3 -mllvm -unroll-allow-partial -mllvm -unroll-runtime \
--mllvm -vectorize -mllvm -bb-vectorize-aligned-only
-#CC=clang++
-
 ifeq ($(CXX),g++) 
-OPT=-O3 -mfpmath=sse -mmmx -msse -msse2 -funroll-loops -flax-vector-conversions -fivopts  \
+OPT=-O3 -mfpmath=sse -mavx -funroll-loops -flax-vector-conversions -fivopts  \
 -ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=3 -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
@@ -24,13 +10,32 @@ OPT=-O3 -mllvm -unroll-allow-partial -mllvm -unroll-runtime \
 endif
 
 ifeq ($(CXX),icc) 
-OPT=-O3 -DHAVE_AVX -mkl -mavx -vec-report3 -restrict -fPIC
+OPT=-O3 -DHAVE_AVX -mkl -mavx -xAVX -Ofast -vec-report3 -restrict -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
 
 
 ROOTLIBS:=$(shell root-config --libs)
 ROOTCFLAGS:=$(shell root-config --cflags)
+
+tests := $(shell ls TGeoBBox_Test*.cxx | xargs -I {} basename {} .cxx)
+
+looplines:=$(shell grep -n "EXPECT" TGeoBBox_v.cxx | sed 's/:.*//')
+gitcommit:=$(shell git reflog | head -n 1 | awk '{print $1}')
+compilerversion:=$(shell $(CXX) --version)
+
+
+TGeoBBox_loopvecreport.txt: TGeoBBox_v.o
+	echo $< > $@
+	echo "GIT COMMIT $(gitcommit)" >> $@ 
+	echo "COMPILER VERSION $(compilerversion)" >> $@ 
+	echo "COMPILER FLAGS $(OPT)" >> $@ 
+	grep "LOOP" compilelog >> $@
+	echo "EXPECTED $(looplines)" >> $@
+
+all: libtest.so
+
+test : $(tests)
 
 impvect: libtest.so simpvect.o
 	$(CXX) -o simpvect simpvect.o $(ROOTLIBS) -lGeom -L. -ltest -o $@
@@ -48,31 +53,16 @@ testCint.cxx: LinkDef.h TGeoBBox_v.h
 	rootcint -f testCint.cxx -c TGeoBBox_v.h LinkDef.h
 
 TGeoBBox_v.o: TGeoBBox_v.cxx TGeoBBox_v.h
-	$(CXX) -m64 $(OPT) -c -I $(ROOTSYS)/include $*.cxx
+	$(CXX) -m64 $(OPT) -c -I $(ROOTSYS)/include $< 2> compilelog
 
-TGeoBBox_Test_Safety: TGeoBBox_Test_Safety.o
-	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Safety.cxx
-	$(CXX) -o TGeoBBox_Test_Safety TGeoBBox_Test_Safety.o  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
+TGeoBBox_Test_%: TGeoBBox_Test_%.o
+	$(CXX) -o $@ $<  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
 
-TGeoBBox_Test_Safety.o: TGeoBBox_Test_Safety.cxx
-	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Safety.cxx
-
-
-TGeoBBox_Test_Contains: TGeoBBox_Test_Contains.o
-	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Contains.cxx
-	$(CXX) -o TGeoBBox_Test_Contains TGeoBBox_Test_Contains.o  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
-
-TGeoBBox_Test_Contains.o: TGeoBBox_Test_Contains.cxx
-	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_Contains.cxx
-
-TGeoBBox_Test_ContainsAndSafety: TGeoBBox_Test_ContainsAndSafety.o
-	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_ContainsAndSafety.cxx
-	$(CXX) -o TGeoBBox_Test_ContainsAndSafety TGeoBBox_Test_ContainsAndSafety.o  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
-
-TGeoBBox_Test_ContainsAndSafety.o: TGeoBBox_Test_ContainsAndSafety.cxx
-	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c TGeoBBox_Test_ContainsAndSafety.cxx
-
-
+TGeoBBox_Test_%.o: TGeoBBox_Test_%.cxx
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c $<
 
 clean:
 	rm TGeoBBox_v.o libtest.so testCint.* 
+
+cleantest:
+	rm $(tests)

@@ -43,7 +43,7 @@ public:
     Bool_t              AreOverlapping_v(const TGeoBBox_v  **box1, const TGeoMatrix  **mat1, const TGeoBBox_v  **box2, const TGeoMatrix  **mat2, Bool_t *  isin, const Int_t np);
     
    virtual void          ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm);
-    virtual void          ComputeNormal_v(Double_t   *point, Double_t  *dir, Double_t   *norm, const Int_t np);
+   virtual void          ComputeNormal_v(Double_t *point, Double_t  *dir, Double_t  *norm, const Int_t np);
    virtual Bool_t        Contains(Double_t *point) const;
    virtual void          Contains_v(const Double_t *point, Bool_t *isin, Int_t np) const;
    static  Bool_t        Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin);
@@ -51,15 +51,23 @@ public:
    virtual void          CouldBeCrossed_v(Double_t  *point, Double_t  *dir,Bool_t *  isin, const Int_t np) const;
     
    virtual Int_t         DistancetoPrimitive(Int_t px, Int_t py);
+
    virtual Double_t      DistFromInside(Double_t *point, Double_t *dir, Int_t iact=1, 
                                    Double_t step=TGeoShape::Big(), Double_t *safe=0) const;
-   static  Double_t      DistFromInside(const Double_t *point,const Double_t *dir, 
+
+   inline  static  Double_t      DistFromInside(const Double_t *point,const Double_t *dir, 
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
-  
-   virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1,
+
+   static  void      DistFromInside_l(const Double_t *point,const Double_t *dir, 
+					  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax, Double_t * dist, int npoints);
+   static  void      DistFromInside_v(const Double_t *point,const Double_t *dir, 
+					  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax, Double_t * dist, int npoints);
+
+
+   virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, 
                                    Double_t step=TGeoShape::Big(), Double_t *safe=0) const;
    
-    virtual void DistFromOutside_l(Double_t  *point, Double_t   *dir, Double_t *  isin, const Int_t np ) const;
+   virtual void DistFromOutside_l(Double_t  *point, Double_t   *dir, Double_t *  isin, const Int_t np ) const;
    
    virtual void          DistFromOutside_v(Double_t   *point, Double_t  *dir, Int_t   *iact, Double_t    *step, Double_t    *safe, Double_t *  isin, const Int_t np ) const;
    static  Double_t      DistFromOutside(const Double_t *point,const Double_t *dir,
@@ -74,5 +82,54 @@ public:
 
    ClassDef(TGeoBBox_v, 1)         // box primitive
 };
+
+
+inline
+Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir,  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t /*stepmax*/)
+{
+// Computes distance from inside point to surface of the box.
+// Boundary safe algorithm.
+
+   Double_t s,smin,saf[6];
+   Double_t newpt[3];
+   Int_t i;
+
+   newpt[0] = point[0] - origin[0];
+   saf[0] = dx+newpt[0];
+   saf[1] = dx-newpt[0];
+   newpt[1] = point[1] - origin[1];
+   saf[2] = dy+newpt[1];
+   saf[3] = dy-newpt[1];
+   newpt[2] = point[2] - origin[2];
+   saf[4] = dz+newpt[2];
+   saf[5] = dz-newpt[2];
+   smin=TGeoShape::Big();
+
+   double s1, s2;
+   if (dir[0]!=0) 
+     {
+       // sign will be zero for negative numbers
+       s = (dir[0]>0)? (saf[1]/dir[0]):(-saf[0]/dir[0]);
+       if (s < smin) smin = s;
+       if (s < 0) smin = 0.0;
+     }
+
+
+   if (dir[1]!=0) 
+     {
+       s = (dir[1]>0)? (saf[3]/dir[1]):(-saf[2]/dir[1]);
+       if (s < smin) smin = s;
+       if (s < 0) smin= 0.0;
+     }   
+   
+   if (dir[2]!=0) 
+     {
+       s = (dir[2]>0)?(saf[5]/dir[2]):(-saf[4]/dir[2]);
+       if (s < smin) smin = s;
+       if (s < 0) smin = 0.0;
+     }
+    
+    return smin;
+}
 
 #endif
