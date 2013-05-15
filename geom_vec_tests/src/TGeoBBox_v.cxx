@@ -224,7 +224,7 @@ void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
 }
 
 //mb_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal_v(Double_t __restrict__  *point, Double_t __restrict__  *dir, Double_t  __restrict__ *norm, const Int_t np)
+void TGeoBBox_v::ComputeNormal_v(Double_t  * __restrict__ point, Double_t  * __restrict__ dir, Double_t  *  __restrict__ norm, const Int_t np)
 {
     // Computes normal to closest surface from POINT.
     memset(norm,0,3*np*sizeof(Double_t));
