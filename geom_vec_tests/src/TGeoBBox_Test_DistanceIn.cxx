@@ -19,7 +19,7 @@ struct TStopWatch
 };
 
 
-#define NREP 100
+#define NREP 1000
 
 main(int argc, char *argv[])
 {
@@ -124,7 +124,6 @@ main(int argc, char *argv[])
 	  tt.Reset();
 
 
-	  // measure timings here separately
 	  tt.Start();
 	  #pragma novector
 	  for(int i=0; i<npoints; ++i) {
@@ -144,7 +143,7 @@ main(int argc, char *argv[])
 	  tt.Reset();
 	}
 
-      std::cerr << npoints << " " << DeltaT_b/NREP << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT_l/NREP << " " << DeltaT/DeltaT_v << " " << DeltaT/DeltaT_l << std::endl;
+      std::cerr << "#P " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v << " " << DeltaT_b/DeltaT_v << std::endl;
       
       delete[] distance_v;
       delete[] dir;

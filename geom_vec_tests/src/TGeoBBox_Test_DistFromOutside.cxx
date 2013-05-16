@@ -18,7 +18,7 @@ struct TStopWatch
   double getDeltaSecs() { return (t2-t1).seconds(); }
 };
 
-#define NREP 10
+#define NREP 1000
 
 main(int argc, char *argv[])
 {
@@ -89,12 +89,26 @@ main(int argc, char *argv[])
 	    double checksum=0., checksum_v=0.;
 	    for(int i=0; i<npoints; ++i)
 	      isin[i]=box->DistFromOutside(&points[3*i], &dir[3*i]);
-        box->DistFromOutside_l(points,dir,isin_l,npoints); 
-        box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
-        for(int i=0; i<npoints; i++)
-            assert(isin[i] == isin_v[i]);
-              
+
+	    box->DistFromOutside_l(points,dir,isin_l,npoints); 
+	    box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
+
+	    for(int i=0; i<npoints; i++)
+	      assert(isin[i] == isin_v[i]);
 	  }
+
+	  tt.Start();
+	  box->DistFromOutside_l(points,dir,isin_l,npoints);
+	  tt.Stop();
+	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
+          
+	  tt.Start();
+	  //box->DistFromOutside_v(points,dir,isin_v,npoints); //uncomment to test DistFromOutside_l
+	  box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
+	  tt.Stop();
+	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
 
 	  // measure timings here separately
 	  tt.Start();
@@ -104,23 +118,9 @@ main(int argc, char *argv[])
 	  tt.Stop();
 	  DeltaT+= tt.getDeltaSecs();
 	  tt.Reset();
-	  
-          
-      tt.Start();
-      box->DistFromOutside_l(points,dir,isin_l,npoints);
-      tt.Stop();
-      DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
-      tt.Reset();
-          
-	  tt.Start();
-	  //box->DistFromOutside_v(points,dir,isin_v,npoints); //uncomment to test DistFromOutside_l
-	  box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
-      tt.Stop();
-	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
-	  tt.Reset();
-	}
+      }
 
-      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v<<std::endl;
+      std::cerr <<  "#P " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v<<std::endl;
       
       delete[] dir;
       delete[] points;

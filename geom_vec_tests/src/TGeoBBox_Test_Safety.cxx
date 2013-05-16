@@ -18,7 +18,7 @@ struct TStopWatch
   double getDeltaSecs() { return (t2-t1).seconds(); }
 };
 
-#define NREP 10
+#define NREP 1000
 
 main(int argc, char *argv[])
 {
@@ -68,7 +68,7 @@ main(int argc, char *argv[])
       }
 
       double *safety_v = new double[npoints];
-      double DeltaT=0., DeltaT_v=0.;
+      double DeltaT=0., DeltaT_v=0., DeltaT_l=0.;
       for ( unsigned int repetitions = 0; repetitions < NREP; repetitions ++ ) 
 	{
 	  // assert correctness of result (simple checksum check)
@@ -104,9 +104,15 @@ main(int argc, char *argv[])
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
+
+	  tt.Start();
+	  box->Safety_l(points,safety_v,npoints,true);
+	  tt.Stop();
+	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
 	}
 
-      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_v << std::endl;
+      std::cerr << "#P " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v << std::endl;
       
       delete[] safety_v;
       delete[] points;

@@ -18,7 +18,7 @@ struct TStopWatch
   double getDeltaSecs() { return (t2-t1).seconds(); }
 };
 
-#define NREP 100
+#define NREP 1000
 
 main(int argc, char *argv[])
 {
@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 	}
 
       Bool_t *in_v = new Bool_t[npoints];
-      double DeltaT=0., DeltaT_v=0.;
+      double DeltaT=0., DeltaT_v=0., DeltaT_l=0.;
       for ( unsigned int repetitions = 0; repetitions < NREP; repetitions ++ ) 
 	{
 	  // assert correctness of result (simple checksum check)
@@ -82,6 +82,19 @@ main(int argc, char *argv[])
 	    assert(checksum_v == checksum);
 	  }
 
+	  tt.Start();
+	  box->Contains_v(points,in_v,npoints);
+	  tt.Stop();
+	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
+
+
+	  tt.Start();
+	  box->Contains_l(points,in_v,npoints);
+	  tt.Stop();
+	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
+
 
 	  // measure timings here separately
 	  tt.Start();
@@ -92,14 +105,9 @@ main(int argc, char *argv[])
 	  DeltaT+= tt.getDeltaSecs();
 	  tt.Reset();
 	  
-	  tt.Start();
-	  box->Contains_v(points,in_v,npoints);
-	  tt.Stop();
-	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
-	  tt.Reset();
 	}
 
-      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_v << std::endl;
+      std::cerr << "#P " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v << std::endl;
       
       delete[] in_v;
       delete[] points;

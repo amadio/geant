@@ -18,7 +18,7 @@ struct TStopWatch
   double getDeltaSecs() { return (t2-t1).seconds(); }
 };
 
-#define NREP 10
+#define NREP 1000
 
 main(int argc, char *argv[])
 {
@@ -57,26 +57,24 @@ main(int argc, char *argv[])
       Double_t *norm = new Double_t[3*npoints];
       TStopWatch tt;
 
-      for(int i=0; i<npoints; ++i) {
-	/*
-	points[3*i  ]=0;
-	points[3*i+1]=0;
-	points[3*i+2]=0;
-	*/
-
-	points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
-	points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-	points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+      for(int i=0; i<npoints; ++i) 
+	{
+	  /*
+	    points[3*i  ]=0;
+	    points[3*i+1]=0;
+	    points[3*i+2]=0;
+	  */
+	  
+	  points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
+	  points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
+	  points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
           
-    dir[3*i  ]=(1-2.*gRandom->Rndm())*dx; //correct?
-    dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-    dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+	  dir[3*i  ]=(1-2.*gRandom->Rndm())*dx; //correct?
+	  dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
+	  dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+	}
       
-      }
-
-            
-      
-      double DeltaT=0., DeltaT_v=0.;
+      double DeltaT=0., DeltaT_v=0., DeltaT_l=0.;
       for ( unsigned int repetitions = 0; repetitions < NREP; repetitions ++ ) 
 	{
 	  // assert correctness of result (simple checksum check)
@@ -92,7 +90,7 @@ main(int argc, char *argv[])
           for (int i=0; i<npoints*3; i++)
               checksum+=norm[i];
 	    
-	    box->ComputeNormal_v(points,dir,norm,npoints);
+	    box->ComputeNormal_l(points,dir,norm,npoints);
 	    for(int i=0; i<npoints*3; ++i) {
 	      //	      std::cerr << "Bx " << points[3*i+0] << " y " << points[3*i+1] << " z " << points[3*i+2] << " safet " << safety_v[i] << std::endl;
 	      checksum_v+=norm[i];
@@ -115,9 +113,15 @@ main(int argc, char *argv[])
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
+
+	  tt.Start();
+	  box->ComputeNormal_l(points,dir,norm,npoints);
+	  tt.Stop();
+	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
+	  tt.Reset();
 	}
 
-      std::cerr << npoints << " " << DeltaT/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_v << std::endl;
+      std::cerr << "P# " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v << std::endl;
       
       delete[] dir;
       delete[] norm;
