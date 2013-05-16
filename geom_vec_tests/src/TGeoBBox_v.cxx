@@ -341,33 +341,93 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point) const
    return kTRUE;
 }
 
+
 void TGeoBBox_v::Contains_l(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
 {
 // 
   for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
     {
-      isin[i]=this->Contains(&point[3*i]);
+      isin[i]=this->TGeoBBox_v::Contains(&point[3*i]);
     }
 }
 
 
 #define vector(elcount, type)  __attribute__((vector_size((elcount)*sizeof(type)))) type
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
+void TGeoBBox_v::Contains_v(const Double_t *__restrict__ pointi, Bool_t *__restrict__ isin, Int_t np) const
 {
 // Test if point is inside this shape.
-  vector(32,double) *vx, *vy;
-  Double_t xx, yy, zz;
+//  vector(32,double) *vx, *vy;
+#ifndef __INTEL_COMPILER
+  const double * point = (double *) __builtin_assume_aligned (pointi, 32); 
+#else
+  const double * point = (const double *) pointi; 
+#endif  
+
+  //#pragma ivdep
+  for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
+    {
+      Double_t xx, yy, zz;
+      xx=point[3*i  ];
+      yy=point[3*i+1];
+      zz=point[3*i+2];
+      isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+    }
+}
+
+void TGeoBBox_v::Contains_v(const StructOfCoord &__restrict__ pointi, Bool_t *__restrict__ isin, Int_t np) const
+{
+// Test if point is inside this shape.
+//  vector(32,double) *vx, *vy;
+#ifndef __INTEL_COMPILER 
+  const double * x = (const double *) __builtin_assume_aligned (pointi.x, 16); 
+  const double * y = (const double *) __builtin_assume_aligned (pointi.y, 16); 
+  const double * z = (const double *) __builtin_assume_aligned (pointi.z, 16); 
+#else
+  const double * x = (const double *) pointi.x; 
+  const double * y = (const double *) pointi.y; 
+  const double * z = (const double *) pointi.z; 
+#endif
+
+  //#pragma ivdep
+  for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
+    {
+      Double_t xx, yy, zz;
+      xx= x[i];
+      yy= y[i];
+      zz= z[i];
+      isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+    }
+}
+
+
+ /*
+//_____________________________________________________________________________
+void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
+{
+  Double_t px[np];
+  Double_t py[np];
+  Double_t pz[np];
+  Double_t fake[np];
+  for(Int_t i=0; i<np; ++i)
+    {
+      px[i]=point[3*i];
+      py[i]=point[3*i+1];
+      pz[i]=point[3*i+2];
+      fake[i]=point[3*i+3];
+    }
 
 #pragma ivdep
   for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
     {
-      xx=point[3*i  ]-fOrigin[0];
-      yy=point[3*i+1]-fOrigin[1];
-      zz=point[3*i+2]-fOrigin[2];
-      isin[i]=(TMath::Abs(xx)<fDX) && (TMath::Abs(yy)<fDY) && (TMath::Abs(zz)<fDZ); 
+      Double_t xx, yy, zz;
+      xx=px[i]-fOrigin[0];
+      yy=py[i]-fOrigin[1];
+      zz=pz[i]-fOrigin[2];
+      isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
     }
 }
+ */
 
 //_____________________________________________________________________________
 Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin)
@@ -616,10 +676,9 @@ Double_t TGeoBBox_v::DistFromOutside(Double_t *point, Double_t *dir, Int_t iact,
 void TGeoBBox_v::DistFromOutside_l(Double_t  __restrict__  *point, Double_t  __restrict__  *dir, Double_t * __restrict__ isin, const Int_t np ) const
 {
   // trivial loop implementation calling "elemental function"
-
   #pragma simd
-    for (Int_t i=0; i<np; i++) //@EXPECTVEC
-        isin[i]=DistFromOutside(&point[3*i], &dir[3*i]);
+  for (Int_t i=0; i<np; i++) //@EXPECTVEC
+    isin[i]=TGeoBBox_v::DistFromOutside(&point[3*i], &dir[3*i]);
 }
 
 //_____________________________________________________________________________

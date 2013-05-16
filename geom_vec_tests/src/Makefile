@@ -1,6 +1,6 @@
 ifeq ($(CXX),g++)
 OPT=-O3 -mfpmath=sse -funroll-loops -ftree-vectorize -flax-vector-conversions -fivopts  \
--ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=3 -fPIC
+-ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=1 -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
 
@@ -25,15 +25,14 @@ gitcommit:=$(shell git reflog | head -n 1 | awk '{print $1}')
 compilerversion:=$(shell $(CXX) --version)
 
 
-TGeoBBox_$(CXX)_loopvecreport.txt: TGeoBBox_v_$(CXX).o compilelog_$(CXX)
+TGeoBBox_$(CXX)_loopvecreport.txt: libtest_$(CXX).so
 	echo $< > $@
 	echo "GIT COMMIT $(gitcommit)" >> $@ 
 	echo "COMPILER VERSION $(compilerversion)" >> $@ 
 	echo "COMPILER FLAGS $(OPT)" >> $@ 
-	grep "LOOP" compilelog >> $@
+	grep "LOOP" compilelog_$(CXX) >> $@
 	echo "EXPECTED $(looplines)" >> $@
 
-compilelog_$(CXX): TGeoBBox_v.cxx
 
 all: libtest_$(CXX).so
 
@@ -64,7 +63,7 @@ TGeoBBox_Test_%.o: TGeoBBox_Test_%.cxx
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c $<
 
 clean:
-	rm TGeoBBox_v.o libtest.so testCint.* 
+	rm TGeoBBox_v_$(CXX).o libtest_$(CXX).so testCint.* 
 
 cleantest:
 	rm $(tests)

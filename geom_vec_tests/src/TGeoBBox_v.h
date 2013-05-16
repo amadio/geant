@@ -28,6 +28,40 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+struct StructOfCoord
+{
+public:
+  int np; // the size
+  double *x;
+  double *y;
+  double *z;
+
+  void fill(double * onedvec)
+  {
+    for(unsigned int i=0;i<np;++i)
+      {
+	x[i]=onedvec[3*i];
+	y[i]=onedvec[3*i+1];
+	z[i]=onedvec[3*i+2];
+      }
+  }
+
+  void alloc(int np)
+  {
+    this->np=np;
+    x=new double[np];
+    y=new double[np];
+    z=new double[np];
+  }
+
+  void dealloc()
+  {
+    delete[] x;
+    delete[] y;
+    delete[] z;
+  }
+};
+
 class TGeoBBox_v : public TGeoBBox
 {
 public:
@@ -48,6 +82,7 @@ public:
 
    virtual Bool_t        Contains(const Double_t *point) const;
    virtual void          Contains_v(const Double_t *point, Bool_t *isin, Int_t np) const;
+   virtual void          Contains_v(const StructOfCoord & point, Bool_t *isin, Int_t np) const;
    virtual void          Contains_l(const Double_t *point, Bool_t *isin, Int_t np) const;
 
    static  Bool_t        Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin);
