@@ -71,7 +71,7 @@
 // shape.
 //_____________________________________________________________________________
 
-#include "Riostream.h"
+#include <iostream>
 
 #include "TGeoManager.h"
 #include "TGeoMatrix.h"
@@ -210,7 +210,7 @@ Bool_t TGeoBBox_v::AreOverlapping_v(const TGeoBBox_v **box1, const TGeoMatrix  *
 
 
 //_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
+void TGeoBBox_v::ComputeNormal(const Double_t *point, const Double_t *dir, Double_t *norm) const
 {
 // Computes normal to closest surface from POINT. 
    memset(norm,0,3*sizeof(Double_t));
@@ -223,8 +223,19 @@ void TGeoBBox_v::ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm)
    norm[i] = (dir[i]>0)?1:(-1);
 }
 
+
+//sw_____________________________________________________________________________
+void TGeoBBox_v::ComputeNormal_l(const Double_t  * __restrict__ point, const Double_t  * __restrict__ dir, Double_t  *  __restrict__ norm, Int_t np) const
+{
+    for (Int_t i=0; i<np; i++) //@EXPECTVEC
+      {
+	ComputeNormal(&point[3*i], &dir[3*i], &norm[3*i]);
+      }
+}
+
+
 //mb_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal_v(Double_t  * __restrict__ point, Double_t  * __restrict__ dir, Double_t  *  __restrict__ norm, const Int_t np)
+void TGeoBBox_v::ComputeNormal_v(const Double_t  * __restrict__ point, const Double_t  * __restrict__ dir, Double_t  *  __restrict__ norm, Int_t np) const
 {
     // Computes normal to closest surface from POINT.
     memset(norm,0,3*np*sizeof(Double_t));
@@ -241,7 +252,7 @@ void TGeoBBox_v::ComputeNormal_v(Double_t  * __restrict__ point, Double_t  * __r
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::CouldBeCrossed(Double_t *point, Double_t *dir) const
+Bool_t TGeoBBox_v::CouldBeCrossed(const Double_t *point, const Double_t *dir) const
 {
 // Decides fast if the bounding box could be crossed by a vector.
    Double_t mind = fDX;
@@ -263,13 +274,23 @@ Bool_t TGeoBBox_v::CouldBeCrossed(Double_t *point, Double_t *dir) const
    return kFALSE;
 }
 
+Bool_t TGeoBBox_v::CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bool_t * __restrict__ crossed, Int_t np ) const
+{
+// Decides fast if the bounding box could be crossed by a vector.
+  for(unsigned int i=0; i < np; ++i)
+    {
+      crossed[i]=CouldBeCrossed(&point[3*i], &dir[3*i]);
+    }
+}
+
+
 inline double mymin( double x, double y )
 {
     return (x>y)? y : x;
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::CouldBeCrossed_v(Double_t __restrict__ *point, Double_t __restrict__  *dir,Bool_t * __restrict__ isin, const Int_t np) const
+void TGeoBBox_v::CouldBeCrossed_v(const Double_t __restrict__ *point, const Double_t __restrict__  *dir, Bool_t * __restrict__ isin, Int_t np) const
 {
     // Decides fast if the bounding box could be crossed by a vector.
     //Double_t mind = fDX;
@@ -311,7 +332,7 @@ Int_t TGeoBBox_v::DistancetoPrimitive(Int_t px, Int_t py)
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::Contains(Double_t *point) const
+Bool_t TGeoBBox_v::Contains(const Double_t *point) const
 {
 // Test if point is inside this shape.
    if (TMath::Abs(point[2]-fOrigin[2]) > fDZ) return kFALSE;
@@ -320,9 +341,19 @@ Bool_t TGeoBBox_v::Contains(Double_t *point) const
    return kTRUE;
 }
 
+void TGeoBBox_v::Contains_l(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
+{
+// 
+  for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
+    {
+      isin[i]=this->Contains(&point[3*i]);
+    }
+}
+
+
 #define vector(elcount, type)  __attribute__((vector_size((elcount)*sizeof(type)))) type
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, const Int_t np) const
+void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
 {
 // Test if point is inside this shape.
   vector(32,double) *vx, *vy;
@@ -346,6 +377,54 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Dou
    if (TMath::Abs(point[0]-origin[0]) > dx) return kFALSE;
    if (TMath::Abs(point[1]-origin[1]) > dy) return kFALSE;
    return kTRUE;
+}
+
+//__ static version of method _________________________________________________
+Double_t TGeoBBox_v::DistFromInside(const Double_t *point,const Double_t *dir,  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t /*stepmax*/)
+{
+// Computes distance from inside point to surface of the box.
+// Boundary safe algorithm.
+
+   Double_t s,smin,saf[6];
+   Double_t newpt[3];
+   Int_t i;
+
+   newpt[0] = point[0] - origin[0];
+   saf[0] = dx+newpt[0];
+   saf[1] = dx-newpt[0];
+   newpt[1] = point[1] - origin[1];
+   saf[2] = dy+newpt[1];
+   saf[3] = dy-newpt[1];
+   newpt[2] = point[2] - origin[2];
+   saf[4] = dz+newpt[2];
+   saf[5] = dz-newpt[2];
+   smin=TGeoShape::Big();
+
+   double s1, s2;
+   if (dir[0]!=0) 
+     {
+       // sign will be zero for negative numbers
+       s = (dir[0]>0)? (saf[1]/dir[0]):(-saf[0]/dir[0]);
+       if (s < smin) smin = s;
+       if (s < 0) smin = 0.0;
+     }
+
+
+   if (dir[1]!=0) 
+     {
+       s = (dir[1]>0)? (saf[3]/dir[1]):(-saf[2]/dir[1]);
+       if (s < smin) smin = s;
+       if (s < 0) smin= 0.0;
+     }   
+   
+   if (dir[2]!=0) 
+     {
+       s = (dir[2]>0)?(saf[5]/dir[2]):(-saf[4]/dir[2]);
+       if (s < smin) smin = s;
+       if (s < 0) smin = 0.0;
+     }
+    
+    return smin;
 }
 
 
@@ -418,7 +497,6 @@ void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Doub
 				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
   // this and the previous should be the same; here I have done manual inlining
-
   for(unsigned int k=0; k<npoints; ++k) //@EXPECTVEC
     {
       Double_t s,smin,saf[6];
@@ -426,14 +504,14 @@ void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Doub
       Int_t i;
 
       newpt[0] = point[3*k+0] - origin[0];
-      saf[0] = dx+newpt[0];
-      saf[1] = dx-newpt[0];
+      saf[0] = dx + newpt[0];
+      saf[1] = dx - newpt[0];
       newpt[1] = point[3*k+1] - origin[1];
-      saf[2] = dy+newpt[1];
-      saf[3] = dy-newpt[1];
+      saf[2] = dy + newpt[1];
+      saf[3] = dy - newpt[1];
       newpt[2] = point[3*k+2] - origin[2];
-      saf[4] = dz+newpt[2];
-      saf[5] = dz-newpt[2];
+      saf[4] = dz + newpt[2];
+      saf[5] = dz - newpt[2];
       
       smin=TGeoShape::Big();
 
@@ -539,10 +617,9 @@ void TGeoBBox_v::DistFromOutside_l(Double_t  __restrict__  *point, Double_t  __r
 {
   // trivial loop implementation calling "elemental function"
 
+  #pragma simd
     for (Int_t i=0; i<np; i++) //@EXPECTVEC
         isin[i]=DistFromOutside(&point[3*i], &dir[3*i]);
-    
-        //isin[i]=i;
 }
 
 //_____________________________________________________________________________
@@ -698,7 +775,6 @@ void TGeoBBox_v::DistFromOutside_v(Double_t  __restrict__  *point, Double_t  __r
             continue;
             
         }
-
         
         isin[i]=TGeoShape::Big();
     }
@@ -885,6 +961,17 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const
   return safe;
 }
 
+
+//_____________________________________________________________________________
+void TGeoBBox_v::Safety_l(const Double_t * __restrict__ point, Double_t * __restrict__ safety, const Int_t n, Bool_t in) const
+{
+  for(unsigned int i=0;i<n;i++)
+    {
+      safety[i]=this->Safety(&point[3*i], in);
+    }
+}
+
+
 // prototype for vectorized min function
 inline
 void getmin_v( const double * x, const double * y, double * z, Int_t n)
@@ -942,6 +1029,7 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
       safety[i] = mymin(safety[i], t2);
     }
 }
+
 
 
 //_____________________________________________________________________________
