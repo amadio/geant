@@ -1,5 +1,5 @@
-ifeq ($(CXX),g++) 
-OPT=-O3 -mfpmath=sse -mavx -funroll-loops -flax-vector-conversions -fivopts  \
+ifeq ($(CXX),g++)
+OPT=-O3 -mfpmath=sse -funroll-loops -ftree-vectorize -flax-vector-conversions -fivopts  \
 -ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=3 -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
@@ -18,14 +18,14 @@ endif
 ROOTLIBS:=$(shell root-config --libs)
 ROOTCFLAGS:=$(shell root-config --cflags)
 
-tests := $(shell ls TGeoBBox_Test*.cxx | xargs -I {} basename {} .cxx)
+tests := $(shell ls TGeoBBox_Test*.cxx | xargs -I {} basename {} .cxx | xargs -I {} echo {}_$(CXX))
 
 looplines:=$(shell grep -n "EXPECT" TGeoBBox_v.cxx | sed 's/:.*//')
 gitcommit:=$(shell git reflog | head -n 1 | awk '{print $1}')
 compilerversion:=$(shell $(CXX) --version)
 
 
-TGeoBBox_loopvecreport.txt: TGeoBBox_v.o
+TGeoBBox_$(CXX)_loopvecreport.txt: TGeoBBox_v_$(CXX).o compilelog_$(CXX)
 	echo $< > $@
 	echo "GIT COMMIT $(gitcommit)" >> $@ 
 	echo "COMPILER VERSION $(compilerversion)" >> $@ 
@@ -33,17 +33,19 @@ TGeoBBox_loopvecreport.txt: TGeoBBox_v.o
 	grep "LOOP" compilelog >> $@
 	echo "EXPECTED $(looplines)" >> $@
 
-all: libtest.so
+compilelog_$(CXX): TGeoBBox_v.cxx
+
+all: libtest_$(CXX).so
 
 test : $(tests)
 
-impvect: libtest.so simpvect.o
-	$(CXX) -o simpvect simpvect.o $(ROOTLIBS) -lGeom -L. -ltest -o $@
+impvect: libtest_$(CXX).so simpvect.o
+	$(CXX) -o simpvect simpvect.o $(ROOTLIBS) -lGeom -L. -ltest_$(CXX) -o $@
 
 simpvect.o: simpvect.cxx
 	$(CXX) -m64 $(OPT) -c simpvect.cxx $(ROOTCFLAGS) 
 
-libtest.so: TGeoBBox_v.o testCint.o
+libtest_$(CXX).so: TGeoBBox_v_$(CXX).o testCint.o
 	$(CXX) -m64 $(LDOPTS) $(ROOTLIBS) -lGeom -o $@ $^
 
 testCint.o: testCint.cxx
@@ -52,11 +54,11 @@ testCint.o: testCint.cxx
 testCint.cxx: LinkDef.h TGeoBBox_v.h
 	rootcint -f testCint.cxx -c TGeoBBox_v.h LinkDef.h
 
-TGeoBBox_v.o: TGeoBBox_v.cxx TGeoBBox_v.h
-	$(CXX) -m64 $(OPT) -c -I $(ROOTSYS)/include $< 2> compilelog
+TGeoBBox_v_$(CXX).o: TGeoBBox_v.cxx TGeoBBox_v.h
+	$(CXX) -m64 $(OPT) -c -I $(ROOTSYS)/include $< -o $@ 2> compilelog_$(CXX)
 
-TGeoBBox_Test_%: TGeoBBox_Test_%.o
-	$(CXX) -o $@ $<  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest
+TGeoBBox_Test_%_$(CXX): TGeoBBox_Test_%.o libtest_$(CXX).so
+	$(CXX) -o $@ $<  $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L. -ltest_$(CXX)
 
 TGeoBBox_Test_%.o: TGeoBBox_Test_%.cxx
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c $<
