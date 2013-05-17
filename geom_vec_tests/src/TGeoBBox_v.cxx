@@ -556,6 +556,9 @@ void TGeoBBox_v::DistFromInside_l(const Double_t * __restrict__ point,const Doub
 void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Double_t *__restrict__ dir, 
 				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
 {
+
+
+
   // this and the previous should be the same; here I have done manual inlining
   for(unsigned int k=0; k<npoints; ++k) //@EXPECTVEC
     {
@@ -602,6 +605,73 @@ void TGeoBBox_v::DistFromInside_v(const Double_t * __restrict__ point,const Doub
       if (s < 0) smin = 0.0;
       
       // maybe elemental function has to be declared declspec
+      distance[k]=smin;
+    }
+}
+
+
+// SOA version____________________________________________________________________________
+void TGeoBBox_v::DistFromInside_v(const StructOfCoord & __restrict__ point,const StructOfCoord & __restrict__ dir, 
+				      Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin, Double_t stepmax, Double_t *__restrict__ distance, int npoints )
+{
+#ifndef __INTEL_COMPILER 
+  const double * x = (const double *) __builtin_assume_aligned (point.x, 16); 
+  const double * y = (const double *) __builtin_assume_aligned (point.y, 16); 
+  const double * z = (const double *) __builtin_assume_aligned (point.z, 16); 
+  const double * dirx = (const double *) __builtin_assume_aligned (dir.x, 16); 
+  const double * diry = (const double *) __builtin_assume_aligned (dir.y, 16); 
+  const double * dirz = (const double *) __builtin_assume_aligned (dir.z, 16); 
+#else
+  const double * x = (const double *) point.x; 
+  const double * y = (const double *) point.y; 
+  const double * z = (const double *) point.z; 
+  const double * dirx = (const double *) dir.x; 
+  const double * diry = (const double *) dir.y; 
+  const double * dirz = (const double *) dir.z; 
+#endif
+
+
+  // this and the previous should be the same; here I have done manual inlining
+  for(unsigned int k=0; k<npoints; ++k) //@EXPECTVEC
+    {
+      Double_t s,smin,saf[6];
+      Double_t newpt[3];
+      Int_t i;
+
+      newpt[0] = x[k] - origin[0];
+      saf[0] = dx + newpt[0];
+      saf[1] = dx - newpt[0];
+      newpt[1] = y[k] - origin[1];
+      saf[2] = dy + newpt[1];
+      saf[3] = dy - newpt[1];
+      newpt[2] = z[k] - origin[2];
+      saf[4] = dz + newpt[2];
+      saf[5] = dz - newpt[2];
+      
+      smin=TGeoShape::Big();
+
+      double s1, s2;
+      if (dirx[k]!=0) 
+	{
+	  s = (dirx[k]>0)? (saf[1]/dirx[k]):(-saf[0]/dirx[k]);
+	}
+      if (s < smin) smin = s;
+      if (s < 0) smin = 0.0;
+
+      if (diry[k]!=0) 
+	{
+	  s = (diry[k]>0)? (saf[3]/diry[k]):(-saf[2]/diry[k]);
+	}   
+      if (s < smin) smin = s;
+      if (s < 0) smin= 0.0;
+      
+      if (dirz[k]!=0) 
+	{
+	  s = (dirz[k]>0)?(saf[5]/dirz[k]):(-saf[4]/dirz[k]);
+	}
+      if (s < smin) smin = s;// smin = s;
+      if (s < 0) smin = 0.0;
+      
       distance[k]=smin;
     }
 }
@@ -1090,11 +1160,40 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
 }
 
 
+// SOA version_____________________________________________________________________________
+void TGeoBBox_v::Safety_v(const StructOfCoord & __restrict__ point, Double_t * __restrict__ safety, const Int_t n, Bool_t in) const
+{
+
+#ifndef __INTEL_COMPILER 
+  const double * x = (const double *) __builtin_assume_aligned (point.x, 16); 
+  const double * y = (const double *) __builtin_assume_aligned (point.y, 16); 
+  const double * z = (const double *) __builtin_assume_aligned (point.z, 16); 
+#else
+  const double * x = (const double *) point.x; 
+  const double * y = (const double *) point.y; 
+  const double * z = (const double *) point.z; 
+#endif
+
+  Double_t safe, safy, safz;
+  char insign=(in)? 1:-1;
+  for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
+    {
+      safe = insign*(fDX - TMath::Abs(x[i]-fOrigin[0]));
+      safy = insign*(fDY - TMath::Abs(y[i]-fOrigin[1]));
+      safz = insign*(fDZ - TMath::Abs(z[i]-fOrigin[2]));
+      if (safy < safe) safe = safy;
+      if (safz < safe) safe = safz;
+      safety[i]=safe;
+    }
+}
+
+
 
 //_____________________________________________________________________________
 void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __restrict__ safety, const Bool_t * __restrict__ in, const Int_t n) const
 {
   double *fD = (double *) &fDX; // treat box sizes as vector instead of writing explicitly x,y,z ( this works because they are next to each other in memory )
+
 
 
 #pragma ivdep
@@ -1120,4 +1219,6 @@ void TGeoBBox_v::Safety_v(const Double_t * __restrict__ point, Double_t * __rest
       safety[i] = mymin(safety[i], t2);
     }
 }
+
+
 

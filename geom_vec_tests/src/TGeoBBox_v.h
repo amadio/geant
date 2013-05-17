@@ -28,6 +28,7 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+// this is used to pass data as struct of array
 struct StructOfCoord
 {
 public:
@@ -103,6 +104,10 @@ public:
 					  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax, Double_t * dist, int npoints);
    static  void      DistFromInside_v(const Double_t *point,const Double_t *dir, 
 					  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax, Double_t * dist, int npoints);
+   //SOA version
+   static  void      DistFromInside_v(const StructOfCoord & point,const StructOfCoord & dir, 
+   					  Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax, Double_t * dist, int npoints);
+
 
 
    virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, 
@@ -117,10 +122,13 @@ public:
    virtual Bool_t        GetPointsOnSegments(Int_t npoints, Double_t *array) const;
 
    virtual Double_t      Safety(const Double_t *point, Bool_t in=kTRUE) const;
-   void                  Safety_l(const Double_t *point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const;
-   void                  Safety_v(const Double_t *point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const; 
+   virtual void          Safety_l(const Double_t *point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const;
 
-   void                  Safety_v(const Double_t *point, Double_t *safety, const Bool_t * in, const Int_t np ) const; 
+   virtual void          Safety_v(const Double_t *point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const; 
+   //SOA version
+   virtual void          Safety_v(const StructOfCoord &point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const;         
+
+   virtual void          Safety_v(const Double_t *point, Double_t *safety, const Bool_t * in, const Int_t np ) const; 
 
    ClassDef(TGeoBBox_v, 1)         // box primitive
 };
