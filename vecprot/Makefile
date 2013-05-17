@@ -94,6 +94,6 @@ src/G__Geant.o:
                 -c $(SRCDIR)/G__Geant.cxx
 clean:
 		@rm -rf $(GEANTSO) src/*.o src/*.d src/G__*
-                
+
 
 # DO NOT DELETE

@@ -156,6 +156,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack *track)
    track->particle = itrack;
    fEvents[slot]->AddTrack();
 //   Int_t tid = TGeoManager::ThreadId();
+   // fprintf(stderr,"DEBUG3: add track in slot %d with event %d\n",itrack,track->event);
    fTracks[itrack] = track;
    fNtracks[slot]++;
    fNtransported++;
@@ -230,6 +231,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
       init=kFALSE;
    }
    Int_t event = startevent;
+   // fprintf(stderr,"DEBUG: slot %d to %d\n",startslot,startslot+nevents);
    for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
       ntracks = td->fRndm->Poisson(average);
       if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
@@ -246,6 +248,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          *track->nextpath = a;
          track->event = event;
          track->evslot = slot;
+         //fprintf(stderr,"DEBUG5: udpated %p slot %d with event %d itrack %d\n",track,slot,event,fMaxPerEvent*slot+fNtracks[slot]);
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
          track->pdg=0;
          for(Int_t j=0; j<kMaxPart; ++j) {
@@ -401,14 +404,14 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
    if (!gGeoManager) {
-   TGeoManager *geom = TGeoManager::Import(filename);
-   if (geom) {
-      // Create the basket array
-      Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
-      fWMgr->CreateBaskets(2*nvols);
-      return kTRUE;
-   }   
-   ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
+      TGeoManager *geom = TGeoManager::Import(filename);
+      if (geom) {
+         // Create the basket array
+         Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
+         fWMgr->CreateBaskets(2*nvols);
+         return kTRUE;
+      }
+      ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
    } else {
       if (fWMgr->GetNbaskets() == 0) {
          // Create the basket array

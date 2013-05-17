@@ -37,7 +37,7 @@ protected:
    GeantVolumeBasket **fBasketArray;       //![number of volumes] Array of baskets
    Bool_t             fFlushed;            // Buffer flushed
    Bool_t             fFilling;            // Worker queue is filling
-
+   
    CoprocessorBroker *fCoprocBroker;           // Pointer to the coprocessor broker, this could be made a collection.
 
    WorkloadManager(Int_t nthreads);
