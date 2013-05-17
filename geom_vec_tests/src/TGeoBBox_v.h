@@ -75,7 +75,6 @@ public:
    virtual ~TGeoBBox_v();
    // methods
    static  Bool_t        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
-    Bool_t              AreOverlapping_v(const TGeoBBox_v  **box1, const TGeoMatrix  **mat1, const TGeoBBox_v  **box2, const TGeoMatrix  **mat2, Bool_t *  isin, const Int_t np);
     
    virtual void          ComputeNormal(const Double_t *point, const Double_t *dir, Double_t *norm) const;
    virtual void          ComputeNormal_v(const Double_t *point, const Double_t  *dir, Double_t  *norm, Int_t np) const;
@@ -89,8 +88,10 @@ public:
    static  Bool_t        Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin);
 
    virtual Bool_t        CouldBeCrossed(const Double_t *point, const Double_t *dir) const;
-   virtual Bool_t        CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bool_t * crossed, Int_t np ) const;
-   virtual void          CouldBeCrossed_v(const Double_t  *point, const Double_t  *dir,Bool_t *  isin, Int_t np) const;
+   virtual void          CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bool_t * crossed, Int_t np ) const;
+   virtual void          CouldBeCrossed_v(const Double_t  *point, const Double_t  *dir,Bool_t *  crossed, Int_t np) const;
+   // SOA version
+   virtual void          CouldBeCrossed_v(const StructOfCoord  & point, const StructOfCoord  & dir,Bool_t *  crossed, Int_t np) const;
     
    virtual Int_t         DistancetoPrimitive(Int_t px, Int_t py);
 
@@ -110,16 +111,20 @@ public:
 
 
 
-   virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, 
+   virtual Double_t    DistFromOutside(const Double_t *point, const Double_t *dir, Int_t iact=1, 
                                    Double_t step=TGeoShape::Big(), Double_t *safe=0) const;
    
-   virtual void DistFromOutside_l(Double_t  *point, Double_t   *dir, Double_t *  isin, const Int_t np ) const;
+   virtual void DistFromOutside_l(const Double_t  *point, const Double_t  *dir, Double_t *  distance, Int_t np ) const;
    
-   virtual void          DistFromOutside_v(Double_t   *point, Double_t  *dir, Int_t   *iact, Double_t    *step, Double_t    *safe, Double_t *  isin, const Int_t np ) const;
+   virtual void          DistFromOutside_v(const Double_t *point, const Double_t  *dir, Int_t *iact, const Double_t  *step, Double_t  *safe, Double_t *  distance, Int_t np ) const;
    static  Double_t      DistFromOutside(const Double_t *point,const Double_t *dir,
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
+
+
    virtual Bool_t        GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array) const;
    virtual Bool_t        GetPointsOnSegments(Int_t npoints, Double_t *array) const;
+
+
 
    virtual Double_t      Safety(const Double_t *point, Bool_t in=kTRUE) const;
    virtual void          Safety_l(const Double_t *point, Double_t *safety, Int_t np, Bool_t in=kTRUE) const;
