@@ -18,6 +18,8 @@
 #include "GeantThreadData.h"
 #include "PhysicsProcess.h"
 
+#include "CoprocessorBroker.h"
+
 ClassImp(WorkloadManager)
 
 WorkloadManager *WorkloadManager::fgInstance = 0;
@@ -48,6 +50,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fBasketArray = 0;
    fFlushed = kFALSE;
    fFilling = kFALSE;
+   fCoprocBroker = 0;
 }
 
 //______________________________________________________________________________
@@ -117,7 +120,15 @@ void WorkloadManager::StartThreads()
    if (fListThreads) return;
    fListThreads = new TList();
    fListThreads->SetOwner();
-   for (Int_t ith=0; ith<fNthreads; ith++) {
+   Int_t ith = 0;
+   if (1 && fCoprocBroker) {
+      Printf("Running with a coprocessor broker.");
+      TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor,fCoprocBroker);
+      fListThreads->Add(t);
+      t->Run();
+      ++ith;
+   }
+   for (; ith<fNthreads; ith++) {
       TThread *t = new TThread(WorkloadManager::TransportTracks);
       fListThreads->Add(t);
       t->Run();
@@ -347,11 +358,117 @@ void *WorkloadManager::MainScheduler(void *)
 //      pad3->Modified();
 //      c1->Update();
    }   
-   for (Int_t i=0; i<propagator->fNthreads; i++) wm->FeederQueue()->push(0);
+   for (Int_t i=0; i<propagator->fNthreads+1; i++) wm->FeederQueue()->push(0);
    wm->AnswerQueue()->push(0);
    Printf("=== Scheduler: exiting ===");
    return 0;
 }        
+
+//______________________________________________________________________________
+void *WorkloadManager::TransportTracksCoprocessor(void *arg)
+{
+   // Thread propagating all tracks from a basket.
+   //      char slist[256];
+   //      TString sslist;
+   //   const Int_t max_idle = 1;
+   //   Int_t indmin, indmax;
+   Int_t ntotnext, ntmp, ntodo, ncross, cputime, ntotransport;
+   GeantTrack *track = 0;
+   Int_t itrack;
+   Int_t generation = 0;
+   Bool_t lastToClear = kFALSE;
+   GeantVolumeBasket *basket_sch = 0;
+   GeantBasket *basket = 0;
+   Int_t tid = TGeoManager::ThreadId();
+   GeantPropagator *propagator = GeantPropagator::Instance();
+   GeantThreadData *td = propagator->fThreadData[tid];
+   WorkloadManager *wm = WorkloadManager::Instance();
+   Int_t *particles = td->fPartInd->GetArray();
+   Int_t *partnext  = td->fPartNext->GetArray();
+   Int_t *parttodo  = td->fPartTodo->GetArray();
+   Int_t *partcross = td->fPartCross->GetArray();
+   Int_t nprocesses = propagator->fNprocesses;
+   //   Bool_t useDebug = propagator->fUseDebug;
+   GeantTrack **tracks = propagator->fTracks;
+   TGeoBranchArray *path = 0;
+   //   Printf("(%d) WORKER started", tid);
+   // Create navigator if none serving this thread.
+   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+   if (!nav) nav = gGeoManager->AddNavigator();
+   propagator->fWaiting[tid] = 1;
+   CoprocessorBroker *broker = reinterpret_cast<CoprocessorBroker*>(arg);
+   while (1) {
+      propagator->fWaiting[tid] = 1;
+      ::Info("GPU","Grabbing stuff");
+      basket = (GeantBasket*)wm->FeederQueue()->wait_and_pop();
+      // gSystem->Sleep(3000);
+      propagator->fWaiting[tid] = 0;
+      lastToClear = kFALSE;
+      if (!basket) break;
+      ntotransport = basket->GetNtracks();  // all tracks to be transported
+      if (!ntotransport) goto finish;
+      //      Printf("======= BASKET %p taken by thread #%d =======", basket, tid);
+      //      basket->Print();
+      //      Printf("==========================================");
+      propagator->fTracksPerBasket[tid] = ntotransport;
+      path = tracks[basket->GetTracks()[0]]->path;
+      td->fVolume = path->GetCurrentNode()->GetVolume();
+      basket_sch = (GeantVolumeBasket*)td->fVolume->GetField();
+      wm->SetCurrentBasket(tid,basket_sch);
+      Printf("(%d - GPU) ================= BASKET of %s (%d): %d tracks", tid, basket_sch->GetName(), basket_sch->GetNumber(), ntotransport);
+      memcpy(particles, basket->GetTracks(), ntotransport*sizeof(Int_t));
+      //      PrintParticles(particles, ntotransport, tid);
+      //      sprintf(slist,"Thread #%d transporting %d tracks in basket %s: ", tid, ntotransport, basket->GetName());
+      //      sslist = slist;
+      //      for (Int_t ip=0; ip<ntotransport; ip++) {sprintf(slist,"%d ",particles[ip]), sslist += slist;}
+      //      Printf("%s", sslist.Data());
+      ntotnext = 0;
+      ntmp = 0;
+      ntodo = 0;
+      ncross = 0;
+      cputime = 0.;
+      generation = 0;
+      track = 0;
+      while (ntotransport) {
+         generation++;
+         // Loop all tracks to generate physics/geometry steps
+         // Physics step
+         
+         broker->prepateDataArray(ntotransport);
+         broker->runTask(ntotransport, gPropagator->fTracks, particles);
+         
+         // Copy only tracks that survived boundaries (well we will have to think of
+         // those too, like passing them to the next volume...)
+         memcpy(particles, partnext, ntotnext*sizeof(Int_t));
+         
+         for (Int_t t = 0; t < ntotransport; ++t) {
+            propagator->StopTrack(gPropagator->fTracks[particles[t]]);
+         }
+         ntotransport = 0;
+         
+         // I/O: Dump current generation
+         //         Printf("   ### Generation %d:  %d tracks  cputime=%f", generation, ntotransport,cputime);
+         if (propagator->fFillTree) {
+            cputime = gPropagator->fTimer->CpuTime();
+            gPropagator->fOutput->SetStamp(gPropagator->fThreadData[tid]->fVolume->GetNumber(), propagator->fWMgr->GetBasketGeneration(), generation, ntotransport, cputime);
+            for (itrack=0; itrack<ntotransport;itrack++) {
+               track = tracks[particles[itrack]];
+               gPropagator->fOutput->SetTrack(itrack, track);
+            }
+            gPropagator->fOutTree->Fill();
+         }
+      }
+      
+   finish:
+      ::Info("GPU","Clearing");
+      basket->Clear();
+      wm->EmptyQueue()->push(basket);
+      propagator->InjectCollection(tid);
+   }
+   wm->AnswerQueue()->push(0);
+   Printf("=== Thread %d: exiting ===", tid);
+   return 0;
+}
 
 //______________________________________________________________________________
 void *WorkloadManager::TransportTracks(void *)
@@ -401,6 +518,7 @@ void *WorkloadManager::TransportTracks(void *)
       td->fVolume = path->GetCurrentNode()->GetVolume();
       basket_sch = (GeantVolumeBasket*)td->fVolume->GetField();
       wm->SetCurrentBasket(tid,basket_sch);
+      Printf("(%d - CPU) ================= BASKET of %s (%d): %d tracks", tid, basket_sch->GetName(), basket_sch->GetNumber(), ntotransport);
 //      Printf("(%d) ================= BASKET of %s: %d tracks", tid, gPropagator->fVolume[tid]->GetName(), ntotransport);
       memcpy(particles, basket->GetTracks(), ntotransport*sizeof(Int_t));
 //      PrintParticles(particles, ntotransport, tid);

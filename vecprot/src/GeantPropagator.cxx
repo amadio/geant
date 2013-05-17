@@ -107,7 +107,15 @@ GeantPropagator::GeantPropagator()
                  fThreadData(0)
 {
 // Constructor
-   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
+//   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
+   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(-300.,300.);
+   // Causes crash at the end (sometimes)
+   // for (Int_t i=0; i<3; i++) fVertex[i] = 10*i;
+   // Causes crash at the beginning:
+   //for (Int_t i=0; i<3; i++) fVertex[i] = i;
+   //fVertex[0] = 6000; fVertex[2] = 1; fVertex[3] = 1;
+   // fVertex[0] = 0; fVertex[2] = 0; fVertex[3] = 0;
+   // fVertex[2] = fVertex[1] = fVertex[0];
    fgInstance = this;
 }
 
@@ -346,7 +354,7 @@ void GeantPropagator::Initialize()
       memset(fWaiting, 0, (fNthreads+1)*sizeof(UInt_t));
    }  
    if (!fThreadData) {
-      fThreadData = new GeantThreadData*[fNthreads];
+      fThreadData = new GeantThreadData*[fNthreads+1];
       for (Int_t i=0; i<fNthreads+1; i++) fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
    } 
    fWMgr = WorkloadManager::Instance(fNthreads);
@@ -392,7 +400,7 @@ void GeantPropagator::InjectCollection(Int_t tid)
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
-   if (gGeoManager) return kTRUE;
+   if (!gGeoManager) {
    TGeoManager *geom = TGeoManager::Import(filename);
    if (geom) {
       // Create the basket array
@@ -401,6 +409,15 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
       return kTRUE;
    }   
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
+   } else {
+      if (fWMgr->GetNbaskets() == 0) {
+         // Create the basket array
+         Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
+         fWMgr->CreateBaskets(2*nvols);
+         return kTRUE;
+      }
+      ::Error("LoadGeometry","Array of basket already created.");      
+   }
    return kFALSE;
 }
 

@@ -159,7 +159,8 @@ Int_t GeantTrackCollection::FlushTracks(GeantMainScheduler *main)
 {
 // Flush all tracks to the main scheduler. Returns number of injected baskets.
    Int_t ninjected = 0;
-   for (Int_t itr=0; itr<fNtracks; itr++) ninjected += main->AddTrack(fTracks[itr], fBaskets[itr]->GetNumber());
+   for (Int_t itr=0; itr<fNtracks; itr++)
+      ninjected += main->AddTrack(fTracks[itr], fBaskets[itr]->GetNumber());
    fNtracks = 0;
    return ninjected;
 }
