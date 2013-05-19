@@ -62,20 +62,25 @@ main(int argc, char *argv[])
 
       TStopWatch tt;
 
-      for(int i=0; i<npoints; ++i) {
+      points[3*i] = -10*dx;
+      points[3*i+1] = -10*dy;
+      points[3*i+2] = -10*dz;
+
+      for(int i=1; i<npoints; ++i) {
 	/*
 	points[3*i  ]=0;
 	points[3*i+1]=0;
 	points[3*i+2]=0;
 	*/
 
+	// they are all completely in
 	points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
 	points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
 	points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
 
-	dir[3*i  ]=(1-2.*gRandom->Rndm())*dx;
-	dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-	dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+	dir[3*i  ]=(1-2.*gRandom->Rndm());
+	dir[3*i+1]=(1-2.*gRandom->Rndm());
+	dir[3*i+2]=(1-2.*gRandom->Rndm());
       }
       p.fill(points);
       d.fill(dir);

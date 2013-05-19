@@ -255,18 +255,10 @@ void TGeoBBox_v::CouldBeCrossed_v(const StructOfCoord & point, const StructOfCoo
       dy = fOrigin[1]-point.y[i];
       dz = fOrigin[2]-point.z[i];
       do2 = dx*dx+dy*dy+dz*dz;
-	
-      // inside bounding sphere
       Double_t doct = dx*dir.x[i]+dy*dir.y[i]+dz*dir.z[i];
-      // leaving ray
-      //if (doct<=0) return kFALSE; //(3)
       Double_t dirnorm=dir.x[i]*dir.x[i]+dir.y[i]*dir.y[i]+dir.z[i]*dir.z[i];
-     
-      //if ((doct*doct)>=(do2-rmax2)*dirnorm) return kTRUE; //(4)
-      //return kFALSE; //(5)
-
       crossed[i]=((do2<=(mind*mind)) | (do2<=rmax2) | ( doct>0 & ((doct*doct)>=(do2-rmax2)*dirnorm) ) ); //to verify
-      // !! use | instead of || as lazy operators are branching
+      // !! use | instead of || .. as lazy operators are branching
     }     
 }
 
@@ -319,8 +311,8 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point) const
 {
 // Test if point is inside this shape.
    if (TMath::Abs(point[2]-fOrigin[2]) > fDZ) return kFALSE;
-   if (TMath::Abs(point[0]-fOrigin[0]) > fDX) return kFALSE;
    if (TMath::Abs(point[1]-fOrigin[1]) > fDY) return kFALSE;
+   if (TMath::Abs(point[0]-fOrigin[0]) > fDX) return kFALSE;
    return kTRUE;
 }
 
@@ -604,6 +596,7 @@ void TGeoBBox_v::DistFromInside_v(const StructOfCoord & __restrict__ point,const
   const double * dirx = (const double *) __builtin_assume_aligned (dir.x, 16); 
   const double * diry = (const double *) __builtin_assume_aligned (dir.y, 16); 
   const double * dirz = (const double *) __builtin_assume_aligned (dir.z, 16); 
+  double * dist = (double *) __builtin_assume_aligned (distance, 16); 
 #else
   const double * x = (const double *) point.x; 
   const double * y = (const double *) point.y; 
@@ -613,13 +606,11 @@ void TGeoBBox_v::DistFromInside_v(const StructOfCoord & __restrict__ point,const
   const double * dirz = (const double *) dir.z; 
 #endif
 
-
   // this and the previous should be the same; here I have done manual inlining
-  for(unsigned int k=0; k<npoints; ++k) //@EXPECTVEC
+  for(size_t k=0; k<npoints; ++k) //@EXPECTVEC
     {
       Double_t s,smin,saf[6];
       Double_t newpt[3];
-      Int_t i;
 
       newpt[0] = x[k] - origin[0];
       saf[0] = dx + newpt[0];
@@ -632,30 +623,18 @@ void TGeoBBox_v::DistFromInside_v(const StructOfCoord & __restrict__ point,const
       saf[5] = dz - newpt[2];
       
       smin=TGeoShape::Big();
+      double sx, sy, sz;
+      sx = (dirx[k]>0)? (saf[1]/dirx[k]):(-saf[0]/dirx[k]);
+      sy = (diry[k]>0)? (saf[3]/diry[k]):(-saf[2]/diry[k]);
+      sz = (dirz[k]>0)? (saf[5]/dirz[k]):(-saf[4]/dirz[k]);
 
-      double s1, s2;
-      if (dirx[k]!=0) 
-	{
-	  s = (dirx[k]>0)? (saf[1]/dirx[k]):(-saf[0]/dirx[k]);
-	}
-      if (s < smin) smin = s;
-      if (s < 0) smin = 0.0;
-
-      if (diry[k]!=0) 
-	{
-	  s = (diry[k]>0)? (saf[3]/diry[k]):(-saf[2]/diry[k]);
-	}   
-      if (s < smin) smin = s;
-      if (s < 0) smin= 0.0;
-      
-      if (dirz[k]!=0) 
-	{
-	  s = (dirz[k]>0)?(saf[5]/dirz[k]):(-saf[4]/dirz[k]);
-	}
-      if (s < smin) smin = s;// smin = s;
-      if (s < 0) smin = 0.0;
-      
-      distance[k]=smin;
+      double syp, szp;
+      smin = (dirx[k]==0)? TGeoShape::Big(): sx;
+      syp = (diry[k]==0)? TGeoShape::Big(): sy;
+      smin = (syp < smin)? syp : smin;
+      szp = (dirz[k]==0)? TGeoShape::Big(): sz;
+      smin = (szp < smin)? szp : smin;
+      distance[k] = (smin < 0)? 0 : smin;
     }
 }
 
