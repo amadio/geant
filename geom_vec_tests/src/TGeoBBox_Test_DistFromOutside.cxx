@@ -64,13 +64,13 @@ main(int argc, char *argv[])
         TStopWatch tt;
 
         for(int i=0; i<npoints; ++i) {
-            points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
-            points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-            points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+            points[3*i  ]=10*(1-2.*gRandom->Rndm())*dx;
+            points[3*i+1]=10*(1-2.*gRandom->Rndm())*dy;
+            points[3*i+2]=10*(1-2.*gRandom->Rndm())*dz;
 
-            dir[3*i  ]=(1-2.*gRandom->Rndm())*dx;
-            dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-            dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
+            dir[3*i  ]=(1-2.*gRandom->Rndm());
+            dir[3*i+1]=(1-2.*gRandom->Rndm());
+            dir[3*i+2]=(1-2.*gRandom->Rndm());
             
             iact[i]=1;
             step[i]=TGeoShape::Big();
@@ -91,10 +91,10 @@ main(int argc, char *argv[])
 	      isin[i]=box->DistFromOutside(&points[3*i], &dir[3*i]);
 
 	    box->DistFromOutside_l(points,dir,isin_l,npoints); 
-	    box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
+	    //  box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
 
 	    for(int i=0; i<npoints; i++)
-	      assert(isin[i] == isin_v[i]);
+	      assert(isin[i] == isin_l[i]);
 	  }
 
 	  tt.Start();
@@ -105,7 +105,7 @@ main(int argc, char *argv[])
           
 	  tt.Start();
 	  //box->DistFromOutside_v(points,dir,isin_v,npoints); //uncomment to test DistFromOutside_l
-	  box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
+	  // box->DistFromOutside_v(points,dir,iact,step,safe,isin_v,npoints);
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
