@@ -646,6 +646,7 @@ void *WorkloadManager::TransportTracks(void *)
             // Copy al tracks for which step was limited by a continuous process
             // to the next array
             for (Int_t itr=0; itr<ntotransport; itr++) {
+               if (tracks[particles[itr]]->process < 0) continue;
                if (propagator->Process(tracks[particles[itr]]->process)->IsType(PhysicsProcess::kContinuous))
                   partnext[ntotnext++] = particles[itr];
             }
