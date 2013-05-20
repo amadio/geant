@@ -113,7 +113,8 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 }
 
 
-CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fPhysIndex(0),fLogIndex(0),fNStaged(0)
+CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
+                                                  fThreadId(-1),fHostTracks(0)
 {
    // Default constructor.
 }
@@ -121,7 +122,10 @@ CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fPhysIndex(0),fLogIn
 CoprocessorBroker::StreamHelper::~StreamHelper() {
    // Destructor.
    
+   // We do not own fHosttracks.
+
    delete [] fTrack;
+   delete [] fTrackId;
    delete [] fPhysIndex;
    delete [] fLogIndex;
    cudaStreamDestroy(fStream);
@@ -141,6 +145,7 @@ bool CoprocessorBroker::StreamHelper::CudaSetup(int nblocks, int nthreads, int m
    fDevTrackPhysIndex.Alloc(maxTrackPerKernel);
    fDevTrackLogIndex.Alloc(maxTrackPerKernel);
    fTrack = new GXTrack[maxTrackPerKernel];
+   fTrackId = new int[maxTrackPerKernel];
    fPhysIndex = new int[maxTrackPerKernel];
    fLogIndex = new int[maxTrackPerKernel];
    
@@ -148,6 +153,7 @@ bool CoprocessorBroker::StreamHelper::CudaSetup(int nblocks, int nthreads, int m
 }
 
 CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
+   ,fCurrentHelper(0)
    ,fNblocks(0),fNthreads(0),fNchunk(0)
    ,fMaxTrackPerThread(1)
    ,fKernelType(1)
@@ -280,9 +286,10 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    fMaxTrackPerThread = maxTrackPerThread;
 
    //initialize the stream
-   fStream0.CudaSetup(nblocks,nthreads,maxTrackPerThread);
-   fStream1.CudaSetup(nblocks,nthreads,maxTrackPerThread);
-
+   for(unsigned int i=0; i < sizeof(fStream)/sizeof(StreamHelper); ++i) {
+      fStream[i].CudaSetup(nblocks,nthreads,maxTrackPerThread);
+      fHelpers.push(&(fStream[i]));
+   }
    return true;
 }
 
@@ -349,6 +356,16 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
                            unsigned int startIdx, unsigned int basketSize,
                            unsigned int chunkSize)
 {
+   if (fThreadId == -1) {
+      fThreadId = tid;
+      fHostTracks = host_track;
+   } else if (fThreadId != tid || fHostTracks != host_track) {
+      Fatal("TrackToDevice","The stream %p is already assigned to thread %d when requested to do work for thread %d",
+            this, fThreadId, tid);
+      return 0;
+   }
+
+   unsigned int start = fNStaged;
    unsigned int count = 0;
    for(unsigned int hostIdx = startIdx;
        fNStaged < chunkSize && hostIdx < basketSize;
@@ -364,7 +381,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
       TGeoVolume *logVol = path->GetCurrentNode()->GetVolume();
       int volumeIndex = ((GeantVolumeBasket*)logVol->GetField())->GetNumber();
 
-      if (1 && !CanHandleTrack(* host_track[trackin[hostIdx]])) {
+      if (!CanHandleTrack(* host_track[trackin[hostIdx]])) {
          
          gPropagator->fCollections[tid]->AddTrack(trackin[hostIdx],
                                                   WorkloadManager::Instance()->GetBasketArray()[volumeIndex]);
@@ -372,6 +389,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
          gPropagator->fTransportOngoing = kTRUE;
          continue;
       }
+      fTrackId[fNStaged]  = trackin[hostIdx];
       fTrack[fNStaged].x  = host_track[trackin[hostIdx]]->xpos;
       fTrack[fNStaged].y  = host_track[trackin[hostIdx]]->ypos;
       fTrack[fNStaged].z  = host_track[trackin[hostIdx]]->zpos;
@@ -397,64 +415,56 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
       fPhysIndex[fNStaged] = nodeIndex;
 
       ++fNStaged;
-
    }
    // count = min(chunkSize,basketSize-startIdx);
-   cudaMemcpyAsync(fDevTrack, fTrack, count*sizeof(GXTrack),
+   cudaMemcpyAsync(fDevTrack+start, fTrack+start, count*sizeof(GXTrack),
                    cudaMemcpyHostToDevice, fStream);
-   cudaMemcpyAsync(fDevTrackLogIndex, fLogIndex, count*sizeof(int),
+   cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, count*sizeof(int),
                    cudaMemcpyHostToDevice, fStream);
-   cudaMemcpyAsync(fDevTrackPhysIndex, fPhysIndex, count*sizeof(int),
+   cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, count*sizeof(int),
                    cudaMemcpyHostToDevice, fStream);
    
    return count;
 }
 
 
-unsigned int CoprocessorBroker::StreamHelper::TrackToHost(// int tid,
-                                                            GeantTrack **host_track, int *trackin,
-                                                            unsigned int startIdx)
+unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
 {
-   for(unsigned int devIdx = 0, hostIdx = startIdx;
+   for(unsigned int devIdx = 0;
        devIdx < fNStaged;
-       ++devIdx, ++hostIdx ) {
-      if ( trackin[hostIdx] < 0 ) {
-         --devIdx;
+       ++devIdx) {
+      if ( fTrackId[devIdx] < 0 ) {
+         // fprintf(stderr,"DEBUG: missig a track %d %d\n",devIdx,fTrackId[devIdx]);
          continue;
       }
-      host_track[trackin[hostIdx]]->xpos = fTrack[devIdx].x;
-      host_track[trackin[hostIdx]]->ypos = fTrack[devIdx].y;
-      host_track[trackin[hostIdx]]->zpos = fTrack[devIdx].z;
-      host_track[trackin[hostIdx]]->px = fTrack[devIdx].px;
-      host_track[trackin[hostIdx]]->py = fTrack[devIdx].py;
-      host_track[trackin[hostIdx]]->pz = fTrack[devIdx].pz;
-      host_track[trackin[hostIdx]]->charge = fTrack[devIdx].q;
-      host_track[trackin[hostIdx]]->step = fTrack[devIdx].s;
+      fHostTracks[fTrackId[devIdx]]->xpos = fTrack[devIdx].x;
+      fHostTracks[fTrackId[devIdx]]->ypos = fTrack[devIdx].y;
+      fHostTracks[fTrackId[devIdx]]->zpos = fTrack[devIdx].z;
+      fHostTracks[fTrackId[devIdx]]->px = fTrack[devIdx].px;
+      fHostTracks[fTrackId[devIdx]]->py = fTrack[devIdx].py;
+      fHostTracks[fTrackId[devIdx]]->pz = fTrack[devIdx].pz;
+      fHostTracks[fTrackId[devIdx]]->charge = fTrack[devIdx].q;
+      fHostTracks[fTrackId[devIdx]]->step = fTrack[devIdx].s;
       
       // NOTE: need to update the path ....
+
+      if (fLogIndex[devIdx] == -1) {
+         // The track/particle is done.
+         // fprintf(stderr,"DEBUG: stopping %d in basket %d %d:%d - isalive %d\n", fTrackId[devIdx],fLogIndex[devIdx],
+         //         fHostTracks[fTrackId[devIdx]]->event,fTrackId[devIdx],fHostTracks[fTrackId[devIdx]]->IsAlive());
+         gPropagator->StopTrack(gPropagator->fTracks[fTrackId[devIdx]]);
+      } else if (1) {
+         // Let's reschedule it.
+         // fprintf(stderr,"DEBUG: rescheduling %d in basket %d\n",fTrackId[devIdx],fLogIndex[devIdx]);
+         gPropagator->fCollections[fThreadId]->AddTrack(fTrackId[devIdx],
+                                                  WorkloadManager::Instance()->GetBasketArray()[fLogIndex[devIdx]]);
+         gPropagator->fTransportOngoing = kTRUE;
+      }
    }
+   fThreadId = -1;
+   fHostTracks = 0;
    return fNStaged;
 }
-
-struct TrackToHostData {
-   GeantTrack **host_track;
-   Int_t       *trackin;
-   UInt_t       startIdx;
-   CoprocessorBroker::StreamHelper *fStream;
-   
-   TrackToHostData(GeantTrack **i_host_track, Int_t *i_trackin, UInt_t i_startIdx,
-                   CoprocessorBroker::StreamHelper *stream) :
-   host_track(i_host_track), trackin(i_trackin), startIdx(i_startIdx),
-   fStream(stream)
-   {}
-
-   unsigned int TrackToHost()
-   {
-      return fStream->TrackToHost(host_track,trackin,startIdx);
-   }
-   
-};
-
 
 // typedef void(CUDART_CB * cudaStreamCallback_t)(cudaStream_t stream, cudaError_t status, void
 //                                                *userData)
@@ -467,15 +477,16 @@ void ResetNStaged(cudaStream_t /* stream */, cudaError_t status, void *userData)
 
 void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
 {
-   TrackToHostData *data = (TrackToHostData*)userData;
-   data->TrackToHost();
+   CoprocessorBroker::StreamHelper *helper = (CoprocessorBroker::StreamHelper*)userData;
+   helper->TrackToHost();
 }
-
 
 void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
 {
    prepateDataArray(nTracks);
 
+   bool force = false;
+   
    cudaEvent_t start, stop;
    cudaEventCreate (&start);
    cudaEventCreate (&stop);
@@ -483,9 +494,15 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
    //start time for kernels
    cudaEventRecord (start,0);
    
-   std::vector<TrackToHostData> data;
-   data.reserve( (nTracks / fNchunk) + 1 ); // Important, we can not afford a resize.
-
+   if (!fCurrentHelper) {
+      fCurrentHelper = dynamic_cast<StreamHelper*>(fHelpers.wait_and_pop());
+      if (!fCurrentHelper) {
+         // nothing we can do at the moment
+         return;
+      }
+   }
+   StreamHelper *stream = fCurrentHelper;
+   
    //<<<---------------------------------------------------------->>>
    if(fKernelType ==1) {
       for(int i = 0, round = 0 ; i < nTracks ; i += 2*fNchunk, ++round) {
@@ -496,61 +513,58 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
 //         cudaMemcpyAsync(track_d0, track_h+i, count1*sizeof(GXTrack),
 //                         cudaMemcpyHostToDevice, stream0);
 //
-         count1 = fStream0.TrackToDevice(threadid,
-                                         tracks,trackin,
-                                         i,nTracks,
-                                         fNchunk);
+         count1 = stream->TrackToDevice(threadid,
+                                        tracks,trackin,
+                                        i,nTracks,
+                                        fNchunk);
+         if (count1 < fNchunk && !force) {
+            // We do not have enough tracks
+            printf("After %d tracks, go fish for more\n",count1);
+            
+            //stop time for kernel
+            cudaEventRecord (stop,0);
+            cudaEventSynchronize (stop);
+            float elapsedTimeGPU;
+            cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
+
+            return;
+         }
+
          printf("Running kernel 1 with %d tracks\n",count1);
-         cudaStreamAddCallback(fStream0.fStream, ResetNStaged, &fStream0, 0 );
+         fCurrentHelper = 0;
+         // cudaStreamAddCallback(stream->fStream, ResetNStaged, stream, 0 );
          
-         tracking_gpu(fStream0.fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
-                      fStream0.fDevTrack,
-                      fStream0.fDevTrackLogIndex,
-                      fStream0.fDevTrackPhysIndex,
+         tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
+                      stream->fDevTrack,
+                      stream->fDevTrackLogIndex,
+                      stream->fDevTrackPhysIndex,
                       fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                      fStream0.fNStaged,
-                      fNblocks,fNthreads,fStream0);
+                      stream->fNStaged,
+                      fNblocks,fNthreads,*stream);
          
-         cudaMemcpyAsync(fStream0.fTrack, fStream0.fDevTrack, fStream0.fNStaged*sizeof(GXTrack),
-                         cudaMemcpyDeviceToHost, fStream0);
-         cudaMemcpyAsync(fStream0.fPhysIndex, fStream0.fDevTrackPhysIndex, fStream0.fNStaged*sizeof(int),
-                         cudaMemcpyDeviceToHost, fStream0);
-         cudaMemcpyAsync(fStream0.fLogIndex, fStream0.fDevTrackLogIndex, fStream0.fNStaged*sizeof(int),
-                         cudaMemcpyDeviceToHost, fStream0);
+         cudaMemcpyAsync(stream->fTrack, stream->fDevTrack, stream->fNStaged*sizeof(GXTrack),
+                         cudaMemcpyDeviceToHost, *stream);
+         cudaMemcpyAsync(stream->fPhysIndex, stream->fDevTrackPhysIndex, stream->fNStaged*sizeof(int),
+                         cudaMemcpyDeviceToHost, *stream);
+         cudaMemcpyAsync(stream->fLogIndex, stream->fDevTrackLogIndex, stream->fNStaged*sizeof(int),
+                         cudaMemcpyDeviceToHost, *stream);
          
-         data.push_back(TrackToHostData(tracks, trackin, i, &fStream0));
-         cudaStreamAddCallback(fStream0.fStream, TrackToHost, &(data.back()), 0 );
+         cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 );
 
          int count2 = std::min( fNchunk, nTracks - (i+count1) );
          if (count2) {
-//            cudaMemcpyAsync(track_d1, track_h+i+count1,count2*sizeof(GXTrack),
-//                            cudaMemcpyHostToDevice, stream1);
-            count2 = fStream1.TrackToDevice(threadid, tracks,trackin,i+count1,nTracks,
-                                            fNchunk);
-           
-            printf("Running kernel 1 with %d tracks\n",count2);
-            cudaStreamAddCallback(fStream1.fStream, ResetNStaged, &fStream1, 0 );
-            tracking_gpu(fStream1.fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
-                         fStream1.fDevTrack,
-                         fStream0.fDevTrackLogIndex,
-                         fStream1.fDevTrackPhysIndex,
-                         fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                         fStream1.fNStaged,
-                         fNblocks,fNthreads,fStream1);
-            
-            cudaMemcpyAsync(fStream1.fTrack, fStream1.fDevTrack, fStream1.fNStaged*sizeof(GXTrack),
-                            cudaMemcpyDeviceToHost, fStream1.fStream);
-            cudaMemcpyAsync(fStream1.fPhysIndex, fStream1.fDevTrackPhysIndex, fStream1.fNStaged*sizeof(int),
-                            cudaMemcpyDeviceToHost, fStream1);
-            cudaMemcpyAsync(fStream1.fLogIndex, fStream1.fDevTrackLogIndex, fStream1.fNStaged*sizeof(int),
-                            cudaMemcpyDeviceToHost, fStream1);
-            //{userdata} = { host_track, trackin, i+count1, scratch_track, count2 }
-            data.push_back(TrackToHostData(tracks, trackin, i+count1, &fStream1));
-            cudaStreamAddCallback(fStream1, TrackToHost, &(data.back()), 0 );
+            fCurrentHelper = dynamic_cast<StreamHelper*>(fHelpers.wait_and_pop());
+            if (!fCurrentHelper) {
+               // nothing we can do at the moment
+               //stop time for kernel
+               cudaEventRecord (stop,0);
+               cudaEventSynchronize (stop);
+               float elapsedTimeGPU;
+               cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
+               return;
+            }
+            stream = fCurrentHelper;
          }
-         // fprintf(stderr,"round = %d count1 = %d count2 = %d\n",round,count1,count2);
-         // random_testing_gpu( devStates, results,theNBlocks,theNThreads,stream0);
-         
       }
    }
    else if(fKernelType ==2) {
@@ -612,15 +626,18 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
 #endif
    }
    
-   cudaStreamSynchronize(fStream0);
-   cudaStreamSynchronize(fStream1);
-   
+   cudaStreamSynchronize(*stream);
+   stream->ResetNStaged();
+
    //stop time for kernel
    cudaEventRecord (stop,0);
    cudaEventSynchronize (stop);
    float elapsedTimeGPU;
    cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
-      
+
+
+   
+   fHelpers.push(stream);      
 }
 
 

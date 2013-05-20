@@ -450,21 +450,8 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
          // Physics step
          
          broker->runTask(tid, ntotransport, basket_sch->GetNumber(), gPropagator->fTracks, particles);
-         
-         // Copy only tracks that survived boundaries (well we will have to think of
-         // those too, like passing them to the next volume...)
-         memcpy(particles, partnext, ntotnext*sizeof(Int_t));
-         
-         for (Int_t t = 0; t < ntotransport; ++t) {
-            if (particles[t]>=0) {
-//               if (gPropagator->fTracks[particles[t]]->path->GetLevel() > 1) {
-//                  fprintf(stderr,"DEBUG: for %d level is %d\n",t,gPropagator->fTracks[particles[t]]->path->GetLevel());
-//               }
-               propagator->StopTrack(gPropagator->fTracks[particles[t]]);
-            }
-         }
          ntotransport = 0;
-         
+
          // I/O: Dump current generation
          //         Printf("   ### Generation %d:  %d tracks  cputime=%f", generation, ntotransport,cputime);
          if (propagator->fFillTree) {

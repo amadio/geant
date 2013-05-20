@@ -53,6 +53,9 @@ class curandState;
 
 class GeantTrack;
 
+#include "TObject.h"
+#include "sync_objects.h"
+
 class CoprocessorBroker : public TaskBroker
 {
 public:
@@ -79,7 +82,7 @@ private:
    DevicePtr<GPPhysicsTable> fd_eIoniTable;
    DevicePtr<GPPhysicsTable> fd_mscTable;
    
-   struct StreamHelper {
+   struct StreamHelper : public TObject {
       StreamHelper();
       ~StreamHelper();
 
@@ -90,11 +93,10 @@ private:
                                  unsigned int startIdx, unsigned int basketSize,
                                  unsigned int chunkSize);
 
-      unsigned int TrackToHost(// int tid,
-                               GeantTrack **host_track, int *trackin,
-                               unsigned int startIdx);
+      unsigned int TrackToHost();
       
       GXTrack               *fTrack;
+      int                   *fTrackId;   // unique indentifier of the track on the CPU
       int                   *fPhysIndex;
       int                   *fLogIndex;
       unsigned int           fNStaged;   // How many track have been copied to the scratch area so far.
@@ -104,16 +106,22 @@ private:
       DevicePtr<GXTrack>     fDevTrack;
       DevicePtr<int>         fDevTrackPhysIndex;
       DevicePtr<int>         fDevTrackLogIndex;
+
+      int          fThreadId;
+      GeantTrack **fHostTracks;
       
       void ResetNStaged() { fNStaged = 0; }
       operator cudaStream_t() { return fStream; }
+      
+      ClassDef(StreamHelper,0);
    };
 
-   friend struct TrackToHostData;
    friend void ResetNStaged(cudaStream_t /* stream */, cudaError_t status, void *userData);
-   
-   StreamHelper fStream0;
-   StreamHelper fStream1;
+   friend void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData);
+
+   StreamHelper fStream[3];
+   StreamHelper *fCurrentHelper;
+   concurrent_queue fHelpers;
    
    int fNblocks;
    int fNthreads;
