@@ -284,7 +284,13 @@ void *WorkloadManager::MainScheduler(void *)
             }
          }
       }
-      if (finished.FirstNullBit() >= (UInt_t)max_events) break;
+      if (finished.FirstNullBit() >= (UInt_t)max_events) {
+         // Printf("All Events are finished.");
+         break;
+      }
+      // else {
+      //    finished.Print("all");
+      // }
       
       // In case events were transported with priority, check if they finished
       if (prioritize) {
@@ -427,6 +433,10 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       //      sslist = slist;
       //      for (Int_t ip=0; ip<ntotransport; ip++) {sprintf(slist,"%d ",particles[ip]), sslist += slist;}
       //      Printf("%s", sslist.Data());
+      // for (Int_t ip=0; ip<ntotransport; ip++) {
+      //    int ti = particles[ip];
+      //    fprintf(stderr,"DEBUG track %d:%d is %d \n",tracks[ti]->event,ti,tracks[ti]->IsAlive()); 
+      // }
       ntotnext = 0;
       ntmp = 0;
       ntodo = 0;
@@ -521,9 +531,15 @@ void *WorkloadManager::TransportTracks(void *)
       basket = (GeantBasket*)wm->FeederQueue()->wait_and_pop();
       propagator->fWaiting[tid] = 0;
       lastToClear = kFALSE;
-      if (!basket) break;
+      if (!basket) {
+         // Printf("Finishing for %d with %p\n",tid,basket);
+         break;
+      }
       ntotransport = basket->GetNtracks();  // all tracks to be transported
-      if (!ntotransport) goto finish;
+      if (!ntotransport) {
+         // Printf("Finishing for %d with %p\n",tid,basket);
+         goto finish;
+      }
       //      Printf("======= BASKET %p taken by thread #%d =======", basket, tid);
       //      basket->Print();
       //      Printf("==========================================");
@@ -544,6 +560,10 @@ void *WorkloadManager::TransportTracks(void *)
       //      sslist = slist;
       //      for (Int_t ip=0; ip<ntotransport; ip++) {sprintf(slist,"%d ",particles[ip]), sslist += slist;}
       //      Printf("%s", sslist.Data());
+      // for (Int_t ip=0; ip<ntotransport; ip++) {
+      //    int ti = particles[ip];
+      //    fprintf(stderr,"DEBUG track %d:%d is %d \n",tracks[ti]->event,ti,tracks[ti]->IsAlive()); 
+      // }
       ntotnext = 0;
       ntmp = 0;
       ntodo = 0;

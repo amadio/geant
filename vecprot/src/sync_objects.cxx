@@ -135,7 +135,9 @@ void concurrent_queue::push(TObject *data, Bool_t priority)
    nobjects++;
    if (priority) {the_queue.push_back(data); npriority++;}
    else          the_queue.push_front(data);
-//      Printf("PUSHED basket %s", data->GetName());
+   // if (data == 0) {
+   //    Printf("PUSHED basket %s", data ? data->GetName() : "nill");
+   // }
    the_condition_variable.Signal();
    the_mutex.UnLock();
 }

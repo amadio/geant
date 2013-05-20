@@ -481,6 +481,7 @@ void GeantEvent::AddTrack()
 void GeantEvent::StopTrack()
 {
    // Thread safe track addition
+   // fprintf(stderr,"DEBUG: evtslot=%d ntracks=%d ndone=%d\n",event,ntracks,ndone);
    the_mutex.Lock();
    ndone++;
    the_mutex.UnLock();

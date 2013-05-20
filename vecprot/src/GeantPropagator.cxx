@@ -193,7 +193,8 @@ GeantTrack *GeantPropagator::AddTrack(Int_t evslot)
 void GeantPropagator::StopTrack(GeantTrack *track)
 {
 // Mark track as stopped for tracking.
-//   Printf("Stopping track %d", track->particle);
+
+   // Printf("Stopping track %d:%d", track->evslot, track->particle);
    if (track->IsAlive()) fEvents[track->evslot]->StopTrack();
    track->Kill();
 }
