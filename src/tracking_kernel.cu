@@ -132,11 +132,11 @@ void tracking_kernel(curandState* devStates,
       GPVPhysicalVolume *where = GPNavigator_LocateGlobalPointAndSetup(&aNavigator,GPThreeVector_create(x,y,z),NULL,false,true);
       if (where) {
          if (where->fIndex != physVolumeIndices[tid])
-            printf("ERROR: %d Found the track to be in volume node #%d expected %d at %lf %lf %lf\n",
+            printf("ERROR: %d Found the track to be in phys volume node #%d expected %d at %lf %lf %lf\n",
                    tid,where->fIndex,physVolumeIndices[tid],
                    x,y,z);
          if (where->flogical->fIndex != logVolumeIndices[tid])
-            printf("ERROR: %d Found the track to be in volume node #%d expected %d at %lf %lf %lf\n",
+            printf("ERROR: %d Found the track to be in log volume node #%d expected %d at %lf %lf %lf\n",
                    tid,where->flogical->fIndex,logVolumeIndices[tid],
                    x,y,z);
       } else printf("ERROR: Could not find where the track is ...\n");
@@ -178,11 +178,26 @@ void tracking_kernel(curandState* devStates,
       //           aNavigator.fExiting,
       //           aNavigator.fBlockedPhysicalVolume ? aNavigator.fBlockedPhysicalVolume->fIndex : -1,
       //           aNavigator.fBlockedPhysicalVolume);
-      if (aNavigator.fBlockedPhysicalVolume) {
-         physVolumeIndices[tid] = aNavigator.fBlockedPhysicalVolume->fIndex;
-         logVolumeIndices[tid] = aNavigator.fBlockedPhysicalVolume->flogical->fIndex;
-         printf("Moved from %d to in %d\n",logVolumeIndices[tid],aNavigator.fBlockedPhysicalVolume ? aNavigator.fBlockedPhysicalVolume->flogical->fIndex : -1);
-      }
+      // if (aNavigator.fBlockedPhysicalVolume) {
+      //    physVolumeIndices[tid] = aNavigator.fBlockedPhysicalVolume->fIndex;
+      //    logVolumeIndices[tid] = aNavigator.fBlockedPhysicalVolume->flogical->fIndex;
+      //    // printf("Moved from %d to in %d\n",logVolumeIndices[tid],aNavigator.fBlockedPhysicalVolume ? aNavigator.fBlockedPhysicalVolume->flogical->fIndex : -1);
+      // } else {
+         // humm so we have not moved ... let's check..
+         where = GPNavigator_LocateGlobalPointAndSetup(&aNavigator,GPThreeVector_create(atrack.x,atrack.y,atrack.z),NULL,false,true);
+         if (!where) {
+            // printf("Moved out of the geometry\n");
+            physVolumeIndices[tid] = -1;
+            logVolumeIndices[tid] = -1;
+         } else {
+            // // if (where->flogical->fIndex != logVolumeIndices[tid] || where->fIndex != physVolumeIndices[tid]) {
+            //    printf("Moved from %d:%d to %d:%d\n", logVolumeIndices[tid], physVolumeIndices[tid],
+            //           where->flogical->fIndex, where->fIndex);
+            // }
+            physVolumeIndices[tid] = where->fIndex;
+            logVolumeIndices[tid] = where->flogical->fIndex;
+         }            
+      // }
       tid += blockDim.x * gridDim.x;
       
    }
