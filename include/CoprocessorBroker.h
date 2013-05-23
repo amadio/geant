@@ -27,7 +27,7 @@ class DevicePtr : public DevicePtrBase
 {
 public:
    void Alloc(unsigned long nelems = 1) {
-      Malloc(nelems*sizeof(nelems));
+      Malloc(nelems*sizeof(T));
    }
    void ToDevice(const T* what, unsigned long nelems = 1) {
       MemcpyToDevice(what,nelems*sizeof(T));
