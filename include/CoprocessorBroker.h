@@ -58,6 +58,12 @@ class GeantTrack;
 
 class CoprocessorBroker : public TaskBroker
 {
+private:
+   struct StreamHelper;
+public:
+   typedef StreamHelper *Stream;
+   Stream GetNextStream();
+   
 public:
    CoprocessorBroker();
    ~CoprocessorBroker();
@@ -70,9 +76,10 @@ public:
    bool UploadMscTable(const GPPhysicsTable &msc_table);
    
    bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
-   void prepateDataArray(long nTracks);
 
    void runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin);
+   Stream launchTask(bool wait = false);
+   void waitForTasks();
 
 private:
    char       *fdGeometry; // Point to a GPGeomManager in GPU land.
@@ -86,12 +93,11 @@ private:
       StreamHelper();
       ~StreamHelper();
 
-      bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
+      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread);
 
       unsigned int TrackToDevice(int tid,
                                  GeantTrack **host_track, int *trackin,
-                                 unsigned int startIdx, unsigned int basketSize,
-                                 unsigned int chunkSize);
+                                 unsigned int startIdx, unsigned int basketSize);
 
       unsigned int TrackToHost();
       
@@ -99,8 +105,10 @@ private:
       int                   *fTrackId;   // unique indentifier of the track on the CPU
       int                   *fPhysIndex;
       int                   *fLogIndex;
+      unsigned int           fChunkSize; // Max number of track for this stream
       unsigned int           fNStaged;   // How many track have been copied to the scratch area so far.
 
+      unsigned int  fStreamId;
       cudaStream_t  fStream;
       DevicePtr<curandState> fdRandStates;
       DevicePtr<GXTrack>     fDevTrack;
@@ -109,14 +117,20 @@ private:
 
       int          fThreadId;
       GeantTrack **fHostTracks;
-      
+
+      concurrent_queue      *fQueue;    // Queue recording whether this helper is available or not.
+
       void ResetNStaged() { fNStaged = 0; }
       operator cudaStream_t() { return fStream; }
+   
+      void Reset();
+      void Push(concurrent_queue *q = 0);
+   
       
       ClassDef(StreamHelper,0);
    };
 
-   friend void ResetNStaged(cudaStream_t /* stream */, cudaError_t status, void *userData);
+   friend void StreamReset(cudaStream_t /* stream */, cudaError_t status, void *userData);
    friend void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData);
 
    StreamHelper fStream[3];
@@ -125,7 +139,6 @@ private:
    
    int fNblocks;
    int fNthreads;
-   int fNchunk;
    int fMaxTrackPerThread;
    int fKernelType;
    

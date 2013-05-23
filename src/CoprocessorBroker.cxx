@@ -113,8 +113,10 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 }
 
 
-CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
-                                                  fThreadId(-1),fHostTracks(0)
+CoprocessorBroker::StreamHelper::StreamHelper() : fStreamId(0),
+                                                  fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
+                                                  fThreadId(-1),fHostTracks(0),
+                                                  fQueue(0)
 {
    // Default constructor.
 }
@@ -123,6 +125,7 @@ CoprocessorBroker::StreamHelper::~StreamHelper() {
    // Destructor.
    
    // We do not own fHosttracks.
+   // We do not own fQueue.
 
    delete [] fTrack;
    delete [] fTrackId;
@@ -132,8 +135,9 @@ CoprocessorBroker::StreamHelper::~StreamHelper() {
 }
 
 
-bool CoprocessorBroker::StreamHelper::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
+bool CoprocessorBroker::StreamHelper::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
+   fStreamId = streamid;
    cudaStreamCreate(&fStream);
    
    //prepare random engines on the device
@@ -141,6 +145,7 @@ bool CoprocessorBroker::StreamHelper::CudaSetup(int nblocks, int nthreads, int m
    curand_setup_gpu(fdRandStates, time(NULL), nblocks, nthreads);
    
    unsigned int maxTrackPerKernel = nblocks*nthreads*maxTrackPerThread;
+   fChunkSize = maxTrackPerKernel;
    fDevTrack.Alloc(maxTrackPerKernel);
    fDevTrackPhysIndex.Alloc(maxTrackPerKernel);
    fDevTrackLogIndex.Alloc(maxTrackPerKernel);
@@ -152,9 +157,32 @@ bool CoprocessorBroker::StreamHelper::CudaSetup(int nblocks, int nthreads, int m
    return true;
 }
 
+void CoprocessorBroker::StreamHelper::Push(concurrent_queue *q)
+{
+   // Add this helper to the queue and record it as the
+   // default queue.
+   
+   if (q) {
+      fQueue = q;
+      fQueue->push(this);
+   } else if (fQueue) {
+      fQueue->push(this);
+   }
+}
+
+void CoprocessorBroker::StreamHelper::Reset()
+{
+   // Get the stream helper ready for re-use.
+   // by setting fNStaged to zero and add the helper
+   // to the list of available helpers.
+
+   ResetNStaged();
+   Push();
+}
+
 CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
    ,fCurrentHelper(0)
-   ,fNblocks(0),fNthreads(0),fNchunk(0)
+   ,fNblocks(0),fNthreads(0)
    ,fMaxTrackPerThread(1)
    ,fKernelType(1)
 //,fdFieldMap(0)
@@ -287,60 +315,10 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
 
    //initialize the stream
    for(unsigned int i=0; i < sizeof(fStream)/sizeof(StreamHelper); ++i) {
-      fStream[i].CudaSetup(nblocks,nthreads,maxTrackPerThread);
-      fHelpers.push(&(fStream[i]));
+      fStream[i].CudaSetup(i,nblocks,nthreads,maxTrackPerThread);
+      fStream[i].Push(&fHelpers);
    }
    return true;
-}
-
-void CoprocessorBroker::prepateDataArray(long nTracks)
-{
-   
-   if(fKernelType ==1) {
-      // Nchunk = ( nTracks%nDiv != 0 ) ? (nTracks/nDiv + 1 ) : (nTracks/nDiv);
-      int nthreads_total = fNblocks * fNthreads;
-      if (nTracks < nthreads_total*fMaxTrackPerThread) {
-         fNchunk = nTracks;
-         fprintf(stderr,"Warning: too few tracks resulting in only one step with low chunk size %d (< %d)\n",fNchunk,nthreads_total);
-      } else {
-         fNchunk = nthreads_total*fMaxTrackPerThread;
-         // if ( (nTracks%fNchunk)==0 )
-         //   nstep = nTracks / fNchunk;
-         // else
-         //   nstep = nTracks / fNchunk + 1;
-      }
-
-//      cudaMalloc((void**)&track_d0, Nchunk*sizeof(GXTrack));
-//      cudaMalloc((void**)&track_d1, Nchunk*sizeof(GXTrack));
-      //      cudaMalloc((void**)&track_d1, Nchunk*sizeof(GXTrack));
-   }
-   else if(fKernelType ==2) {
-      fprintf(stderr,"We do not yet support the multiple kernel\n");
-#if 0
-      
-      int nthreads_total = theNBlocks * theNThreads;
-      
-      NchunkG = (nPhotons/nDiv);
-      if (NchunkG >= nthreads_total) {
-         NchunkG -= ( (nPhotons/nDiv) % nthreads_total); // align on multiple of the grid size
-      } else {
-         fprintf(stderr,"Warning: too many division for photons (%d) resulting in low chunk size %d (< %d)\n",nDiv,NchunkG,nthreads_total);
-      }
-      
-      NchunkE = (nElectrons/nDiv);
-      if (NchunkE >= nthreads_total) {
-         NchunkE -= ( (nElectrons/nDiv) % nthreads_total); // align on multiple of the grid size
-      } else {
-         fprintf(stderr,"Warning: too many division for electrons (%d) resulting in low chunk size %d (< %d)\n",nDiv,NchunkE,nthreads_total);
-      }
-#endif
-//      cudaMalloc((void**)&photon_d0, NchunkG*sizeof(GXTrack));
-//      cudaMalloc((void**)&photon_d1, NchunkG*sizeof(GXTrack));
-//      
-//      cudaMalloc((void**)&electron_d0, NchunkE*sizeof(GXTrack));
-//      cudaMalloc((void**)&electron_d1, NchunkE*sizeof(GXTrack));
-   }
-   
 }
 
 bool CanHandleTrack(GeantTrack &track)
@@ -353,8 +331,7 @@ bool CanHandleTrack(GeantTrack &track)
 
 unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
                            GeantTrack **host_track, int *trackin,
-                           unsigned int startIdx, unsigned int basketSize,
-                           unsigned int chunkSize)
+                           unsigned int startIdx, unsigned int basketSize)
 {
    if (fThreadId == -1) {
       fThreadId = tid;
@@ -368,7 +345,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
    unsigned int start = fNStaged;
    unsigned int count = 0;
    for(unsigned int hostIdx = startIdx;
-       fNStaged < chunkSize && hostIdx < basketSize;
+       fNStaged < fChunkSize && hostIdx < basketSize;
        ++hostIdx ) {
 
       ++count;
@@ -416,12 +393,13 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
 
       ++fNStaged;
    }
-   // count = min(chunkSize,basketSize-startIdx);
-   cudaMemcpyAsync(fDevTrack+start, fTrack+start, count*sizeof(GXTrack),
+   // count = min(fChunkSize,basketSize-startIdx);
+   int ntrack = fNStaged - start;
+   cudaMemcpyAsync(fDevTrack+start, fTrack+start, ntrack*sizeof(GXTrack),
                    cudaMemcpyHostToDevice, fStream);
-   cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, count*sizeof(int),
+   cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, ntrack*sizeof(int),
                    cudaMemcpyHostToDevice, fStream);
-   cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, count*sizeof(int),
+   cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, ntrack*sizeof(int),
                    cudaMemcpyHostToDevice, fStream);
    
    return count;
@@ -469,10 +447,10 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
 // typedef void(CUDART_CB * cudaStreamCallback_t)(cudaStream_t stream, cudaError_t status, void
 //                                                *userData)
 
-void ResetNStaged(cudaStream_t /* stream */, cudaError_t status, void *userData)
+void StreamReset(cudaStream_t /* stream */, cudaError_t status, void *userData)
 {
    CoprocessorBroker::StreamHelper *helper = (CoprocessorBroker::StreamHelper*)userData;
-   helper->ResetNStaged();
+   helper->Reset();
 }
 
 void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
@@ -481,47 +459,98 @@ void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
    helper->TrackToHost();
 }
 
-void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
-{
-   prepateDataArray(nTracks);
 
-   bool force = false;
-   
-   cudaEvent_t start, stop;
-   cudaEventCreate (&start);
-   cudaEventCreate (&stop);
- 
-   //start time for kernels
-   cudaEventRecord (start,0);
-   
+CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
+{
+   // Return the current stream (one that we can still add input to)
+   // or return new one.
+
    if (!fCurrentHelper) {
       fCurrentHelper = dynamic_cast<StreamHelper*>(fHelpers.wait_and_pop());
       if (!fCurrentHelper) {
          // nothing we can do at the moment
-         return;
+         return 0;
       }
    }
+   return fCurrentHelper;
+}
+
+CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
+{
+   if (fCurrentHelper == 0 || fCurrentHelper->fNStaged == 0) {
+      // Nothing to do ...
+      return 0;
+   }
    StreamHelper *stream = fCurrentHelper;
+   fCurrentHelper = 0;
+   
+   if (stream) {
+      Printf("(%d - GPU) == Starting kernel on stream %d with %d tracks\n",
+             stream->fThreadId, stream->fStreamId, stream->fNStaged );
+      tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
+                   stream->fDevTrack,
+                   stream->fDevTrackLogIndex,
+                   stream->fDevTrackPhysIndex,
+                   fd_eBremTable, fd_eIoniTable, fd_mscTable,
+                   stream->fNStaged,
+                   fNblocks,fNthreads,*stream);
+      
+      cudaMemcpyAsync(stream->fTrack, stream->fDevTrack, stream->fNStaged*sizeof(GXTrack),
+                      cudaMemcpyDeviceToHost, *stream);
+      cudaMemcpyAsync(stream->fPhysIndex, stream->fDevTrackPhysIndex, stream->fNStaged*sizeof(int),
+                      cudaMemcpyDeviceToHost, *stream);
+      cudaMemcpyAsync(stream->fLogIndex, stream->fDevTrackLogIndex, stream->fNStaged*sizeof(int),
+                      cudaMemcpyDeviceToHost, *stream);
+      
+      cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 );
+      cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 );
+      
+      if (wait) {
+         cudaStreamSynchronize(*stream);
+//         stream->ResetNStaged();
+//         fHelpers.push(stream);
+      }
+   }
+   return stream;
+}
+
+void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
+{
+   bool force = true;
+   
    
    //<<<---------------------------------------------------------->>>
    if(fKernelType ==1) {
-      for(int i = 0, round = 0 ; i < nTracks ; i += 2*fNchunk, ++round) {
-         
-         int count1 = std::min(fNchunk,nTracks-i);
 //         fprintf(stderr,"round = %d count1 = %d fNchunk=%d nTracks=%d\n",
 //                 round,count1,fNchunk,nTracks);
 //         cudaMemcpyAsync(track_d0, track_h+i, count1*sizeof(GXTrack),
 //                         cudaMemcpyHostToDevice, stream0);
 //
-         count1 = stream->TrackToDevice(threadid,
-                                        tracks,trackin,
-                                        i,nTracks,
-                                        fNchunk);
-         if (count1 < fNchunk && !force) {
+      int trackLeft  = nTracks;
+      int trackStart = 0;
+      while (trackLeft) {
+         StreamHelper *stream = GetNextStream();
+         if (!stream) return;
+
+         cudaEvent_t start, stop;
+         cudaEventCreate (&start);
+         cudaEventCreate (&stop);
+         
+         //start time for kernels
+         cudaEventRecord (start,0);
+
+         unsigned int before = stream->fNStaged;
+         unsigned int count = stream->TrackToDevice(threadid,
+                                                    tracks, trackin,
+                                                    trackStart, nTracks);
+         unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+         if (stream->fNStaged < stream->fChunkSize
+             && (before != stream->fNStaged) // if we did not make any progress, assume there is no 'interesting' track left and schedule the kernel.
+             && !force) {
             // We do not have enough tracks
-            printf("After %d tracks, go fish for more\n",count1);
+            Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
             
-            //stop time for kernel
+            // Stop time for kernel
             cudaEventRecord (stop,0);
             cudaEventSynchronize (stop);
             float elapsedTimeGPU;
@@ -530,41 +559,17 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
             return;
          }
 
-         printf("Running kernel 1 with %d tracks\n",count1);
-         fCurrentHelper = 0;
-         // cudaStreamAddCallback(stream->fStream, ResetNStaged, stream, 0 );
-         
-         tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
-                      stream->fDevTrack,
-                      stream->fDevTrackLogIndex,
-                      stream->fDevTrackPhysIndex,
-                      fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                      stream->fNStaged,
-                      fNblocks,fNthreads,*stream);
-         
-         cudaMemcpyAsync(stream->fTrack, stream->fDevTrack, stream->fNStaged*sizeof(GXTrack),
-                         cudaMemcpyDeviceToHost, *stream);
-         cudaMemcpyAsync(stream->fPhysIndex, stream->fDevTrackPhysIndex, stream->fNStaged*sizeof(int),
-                         cudaMemcpyDeviceToHost, *stream);
-         cudaMemcpyAsync(stream->fLogIndex, stream->fDevTrackLogIndex, stream->fNStaged*sizeof(int),
-                         cudaMemcpyDeviceToHost, *stream);
-         
-         cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 );
-
-         int count2 = std::min( fNchunk, nTracks - (i+count1) );
-         if (count2) {
-            fCurrentHelper = dynamic_cast<StreamHelper*>(fHelpers.wait_and_pop());
-            if (!fCurrentHelper) {
-               // nothing we can do at the moment
-               //stop time for kernel
-               cudaEventRecord (stop,0);
-               cudaEventSynchronize (stop);
-               float elapsedTimeGPU;
-               cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
-               return;
-            }
-            stream = fCurrentHelper;
+         if (stream->fNStaged) {
+            Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
+            launchTask();
          }
+         trackLeft  -= count;
+         trackStart += count;
+
+         cudaEventRecord (stop,0);
+         cudaEventSynchronize (stop);
+         float elapsedTimeGPU;
+         cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
       }
    }
    else if(fKernelType ==2) {
@@ -626,24 +631,15 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
 #endif
    }
    
-   cudaStreamSynchronize(*stream);
-   stream->ResetNStaged();
-
-   //stop time for kernel
-   cudaEventRecord (stop,0);
-   cudaEventSynchronize (stop);
-   float elapsedTimeGPU;
-   cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
-
-
-   
-   fHelpers.push(stream);      
 }
 
-
-void retrieveData()
+void CoprocessorBroker::waitForTasks()
 {
+   // Make sure all the tasks are finished.
    
-   
-   
+   for(unsigned int i=0; i < sizeof(fStream)/sizeof(StreamHelper); ++i) {
+      if (fStream[i].fNStaged) {
+         cudaStreamSynchronize(fStream[i]);
+      }
+   }
 }

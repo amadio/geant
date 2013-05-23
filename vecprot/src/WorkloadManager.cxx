@@ -406,13 +406,32 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    while (1) {
       // fprintf(stderr,"DEBUG2: check slot 55: event# %d %p\n",tracks[55]->event,tracks[55]);
 
+      CoprocessorBroker::Stream stream = broker->GetNextStream();
+      if (!stream) break;
+      
+      if (wm->FeederQueue()->empty()) {
+         // There is no work to be done for now, let's just run what we have
+         if (0 != broker->launchTask()) {
+            // We ran something, let wait for the next free stream,
+            continue;
+         } else {
+            // We had nothing to run at all .... we need to wait for
+            // more data ....
+         }
+      }
       propagator->fWaiting[tid] = 1;
-      ::Info("GPU","Grabbing stuff");
+      ::Info("GPU","Waiting for next available basket.");
       basket = (GeantBasket*)wm->FeederQueue()->wait_and_pop();
       // gSystem->Sleep(3000);
       propagator->fWaiting[tid] = 0;
+      if (!stream) {
+         stream = broker->GetNextStream();
+      }
       lastToClear = kFALSE;
-      if (!basket) break;
+      if (!basket) {
+         broker->launchTask(/* wait= */ true);
+         break;
+      }
       ntotransport = basket->GetNtracks();  // all tracks to be transported
       if (!ntotransport) goto finish;
       //      Printf("======= BASKET %p taken by thread #%d =======", basket, tid);
@@ -468,11 +487,12 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       }
       
    finish:
-      ::Info("GPU","Clearing");
+      ::Info("GPU","Clearing basket.");
       basket->Clear();
       wm->EmptyQueue()->push(basket);
       propagator->InjectCollection(tid);
    }
+   broker->waitForTasks();
    wm->AnswerQueue()->push(0);
    Printf("=== Thread %d: exiting ===", tid);
    return 0;
