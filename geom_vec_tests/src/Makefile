@@ -1,6 +1,6 @@
 ifeq ($(CXX),g++)
 OPT=-O3 -mavx -mfpmath=sse -funroll-loops -ftree-vectorize -flax-vector-conversions -fivopts  \
--ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=5 -fPIC
+-ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=7 -fPIC
 LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
 endif
 

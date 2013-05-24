@@ -271,3 +271,76 @@ void foo12 (int np, double *__restrict__ result, const double *__restrict__ b, c
     }
 }
 
+
+// example with inner loop
+void foo13 (int np, double *__restrict__ result, const double *__restrict__ b, const double *__restrict__ a, const double *__restrict__ c )
+{
+  int i;
+  double f[3];
+
+#ifndef __INTEL_COMPILER
+   double *x1 = (double *) __builtin_assume_aligned (a, 16);
+   double *x2 = (double *) __builtin_assume_aligned (b, 16);
+   double *x3 = (double *) __builtin_assume_aligned (c, 16);
+   //double *x1 = (double *) a;
+   //double *x2 = (double *) b;
+   //double *x3 = (double *) c;
+#else
+  double *x1 = (double *) a;
+  double *x2 = (double *) b;
+  double *x3 = (double *) c;
+#endif
+  double r[3];
+  for (i = 0; i < np; i++)
+    {
+      for(unsigned int j=0;j<3;j++)
+	{
+	  r[j]=-2*j+x1[i];
+	}
+      double w,y,z;
+      w= x1[i]-r[0];
+      y= x2[i]-r[1];
+      z= x3[i]-r[2];
+
+      result[i]=w+y+z;
+    }
+}
+
+
+// example with double array ( does not get vectorized currently) 
+void foo14 (int np, double *__restrict__ result, const double *__restrict__ b, const double *__restrict__ a, const double *__restrict__ c )
+{
+  int i;
+  double f[3];
+
+#ifndef __INTEL_COMPILER
+  double *x[3];
+  x[0] = (double *) __builtin_assume_aligned (a, 16);
+  x[1] = (double *) __builtin_assume_aligned (b, 16);
+  x[3] = (double *) __builtin_assume_aligned (c, 16);
+#else
+  double *x[3];
+  x[0] = (double *) a;
+  x[1] = (double *) b;
+  x[2] = (double *) c;
+#endif
+  double r[3];
+  for (i = 0; i < np; i++)
+    {
+      //    for(unsigned int j=0;j<3;j++)
+      // 	{
+      //	  r[j]=-2*j+x[j][i];
+      //	}
+      // r[0]=x[0][i];
+      // r[1]=-2+x[1][i];
+      // r[2]=-4+x[2][i];
+    
+      double w,y,z;
+      w= x[0][i]-r[0];
+      y= x[1][i]-r[1];
+      z= x[2][i]-r[2];
+
+      result[i]=w+y+z;
+    }
+}
+
