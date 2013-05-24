@@ -912,6 +912,138 @@ Double_t TGeoBBox_v::DistFromOutside(const Double_t *point,const Double_t *dir,
    }
    return TGeoShape::Big();
 }
+
+// SOA version of static method DistFromOutside
+void TGeoBBox_v::DistFromOutside_v(const StructOfCoord & __restrict__  point,const StructOfCoord & __restrict__ dir,
+				     Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
+{
+  // note: we take stepmax as a maxstep PER particle
+  // ALIGNMENTSTUFF HERE (TODO: should be generated automatically, MACRO? )
+#ifndef __INTEL_COMPILER
+  const double * p[3];
+  p[0] = (const double *) __builtin_assume_aligned (point.x, 16); 
+  p[1] = (const double *) __builtin_assume_aligned (point.y, 16); 
+  p[2] = (const double *) __builtin_assume_aligned (point.z, 16); 
+  const double * d[3];
+  d[0] = (const double *) __builtin_assume_aligned (dir.x, 16); 
+  d[1] = (const double *) __builtin_assume_aligned (dir.y, 16); 
+  d[2] = (const double *) __builtin_assume_aligned (dir.z, 16); 
+  double * dist = (double *) __builtin_assume_aligned (distance, 16); 
+#else
+  const double * p[3];
+  p[0] = (const double *) point.x; 
+  p[1] = (const double *) point.y; 
+  p[2] = (const double *) point.z; 
+  const double * d[3];
+  d[0] = (const double *) dir.x; 
+  d[1] = (const double *) dir.y; 
+  d[2] = (const double *) dir.z; 
+  double * dist = (double *) distance; 
+#endif
+
+  Double_t par[3];
+  par[0] = dx;
+  par[1] = dy;
+  par[2] = dz;
+#pragma ivdep
+  for(unsigned int k=0;k<np;++k) // @EXPECTVEC
+     {
+       Bool_t in;
+       Double_t saf[3];
+       Double_t newpt[3];
+  
+       Double_t factor=1.;
+       Double_t infactor; // will be zero or one depending if we are inside/outside
+
+       //for (unsigned int i=0; i<3; i++) {
+       //	 newpt[i] = p[i][k] - origin[i];
+       // saf[i] = TMath::Abs(newpt[i])-par[i];
+       // factor* = (saf[i]>=stepmax[k]) ? TGeoShape::Big() : 1.;
+       // if (in && saf[i]>0) in=kFALSE;
+       //	 in = in & (saf[i]<0);
+       //}   
+     
+       // unrolled above block manually: ( it would be nice to have a template unrool loop and a lambda function ?? )
+    
+       newpt[0] = p[0][k] - origin[0];
+       saf[0] = TMath::Abs(newpt[0])-par[0];
+       factor = (saf[0]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
+       in = (saf[0]<0);
+       
+       newpt[1] = p[1][k] - origin[1];
+       saf[1] = TMath::Abs(newpt[1])-par[1];
+       factor *= (saf[1]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
+       in = in & (saf[1]<0);
+	 
+       newpt[2] = p[2][k] - origin[2];
+       saf[2] = TMath::Abs(newpt[2])-par[2];
+       factor *= (saf[2]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
+       in = in & (saf[2]<0);
+ 
+       infactor = (double) !in;
+      
+       // NOW WE HAVE THE SAFETYS AND IF IN OUT
+     
+       Double_t coord;
+       Double_t snxt[3]={TGeoShape::Big(),TGeoShape::Big(),TGeoShape::Big()};
+     
+       /*
+       Int_t ibreak=0;
+       for (i=0; i<3; i++) {
+	 if (saf[i]<0) continue;
+	 if (newpt[i]*dir[i] >= 0) continue;
+	 snxt = saf[i]/TMath::Abs(dir[i]);
+	 ibreak = 0;
+	 for (j=0; j<3; j++) {
+	   if (j==i) continue;
+	   coord=newpt[j]+snxt*dir[j];
+	   if (TMath::Abs(coord)>par[j]) {
+	     ibreak=1;
+	     break;
+	   }
+	 }
+	 if (!ibreak) return snxt;
+	 }
+       */
+       
+       // THE FOLLOWING IS AN UNROLLED VERSION OF ABOVE CONSTRUCT WITHOUT EARLY RETURNS
+
+       // i=0
+       Int_t hit0=0;
+       if ( saf[0] > 0 & newpt[0]*d[0][k] < 0 ) // if out and right direction
+	 {
+	   snxt[0] = saf[0]/TMath::Abs(d[0][k]); // distance to y-z face
+	   
+	   double coord1=newpt[1]+snxt[0]*d[1][k]; // calculate new y and z coordinate
+	   double coord2=newpt[2]+snxt[0]*d[2][k];
+	   hit0 = (TMath::Abs(coord1)>par[1] | TMath::Abs(coord2)>par[2])? 0 : 1; // 0 means miss, 1 means hit
+	 }
+            
+       Int_t hit1=0;
+       if ( saf[1] > 0 & newpt[1]*d[1][k] < 0 )
+	 {
+	   snxt[1] = saf[1]/TMath::Abs(d[1][k]);
+	  
+	   double coord0=newpt[0]+snxt[1]*d[0][k];
+	   double coord2=newpt[2]+snxt[1]*d[2][k];
+	   hit1 = (TMath::Abs(coord0)>par[0] | TMath::Abs(coord2)>par[2])? 0 : 1;
+	 }
+     
+       Int_t hit2=0;
+       if ( saf[2] > 0 & newpt[2]*d[2][k] < 0 )
+	 {
+	   snxt[2] = saf[2]/TMath::Abs(d[2][k]);
+	   double coord0 = newpt[0]+snxt[2]*d[0][k];
+	   double coord1 = newpt[1]+snxt[2]*d[1][k];
+	   hit2 = (TMath::Abs(coord0)>par[0] | TMath::Abs(coord1)>par[1])? 0 : 1;
+	 }
+
+       distance[k]= ( hit0 | hit1 | hit2  )? factor*infactor*(hit0*snxt[0] + hit1*snxt[1] + hit2*snxt[2]) : infactor*TGeoShape::Big();
+     }
+
+}
+
+
             
 //_____________________________________________________________________________
 Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array) const

@@ -117,8 +117,13 @@ public:
    virtual void DistFromOutside_l(const Double_t  *point, const Double_t  *dir, Double_t *  distance, Int_t np ) const;
    
    virtual void          DistFromOutside_v(const Double_t *point, const Double_t  *dir, Int_t *iact, const Double_t  *step, Double_t  *safe, Double_t *  distance, Int_t np ) const;
+ 
+ 
    static  Double_t      DistFromOutside(const Double_t *point,const Double_t *dir,
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
+    // SOA version for static method
+   static  void      DistFromOutside_v(const StructOfCoord & point,const StructOfCoord & dir,
+					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
 
 
    virtual Bool_t        GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array) const;
