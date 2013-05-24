@@ -201,6 +201,7 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
    ,fNblocks(0),fNthreads(0)
    ,fMaxTrackPerThread(1)
    ,fKernelType(1)
+   ,fTotalWork(0)
 //,fdFieldMap(0)
 //,fdStates0(0),fdStates1(0),fdRandStates0(0),fdRandStates1(0)
 {
@@ -510,6 +511,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
    if (stream) {
       Printf("(%d - GPU) == Starting kernel on stream %d with %d tracks\n",
              stream->fThreadId, stream->fStreamId, stream->fNStaged );
+      fTotalWork += stream->fNStaged;
       tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
                    stream->fDevTrack,
                    stream->fDevTrackLogIndex,

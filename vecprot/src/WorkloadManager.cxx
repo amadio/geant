@@ -403,6 +403,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
    TaskBroker *broker = reinterpret_cast<TaskBroker*>(arg);
+   Long_t totalWork = 0;
    while (1) {
       // fprintf(stderr,"DEBUG2: check slot 55: event# %d %p\n",tracks[55]->event,tracks[55]);
 
@@ -500,7 +501,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    }
    broker->waitForTasks();
    wm->AnswerQueue()->push(0);
-   Printf("=== Thread %d: exiting ===", tid);
+   Printf("=== GPU Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
    return 0;
 }
 
@@ -536,6 +537,8 @@ void *WorkloadManager::TransportTracks(void *)
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
+   
+   Long_t totalWork = 0;
    while (1) {
       // fprintf(stderr,"DEBUG: check slot  5: event# %d %p\n",tracks[ 5]->event,tracks[ 5]);
       // fprintf(stderr,"DEBUG: check slot 55: event# %d %p\n",tracks[55]->event,tracks[55]);
@@ -585,6 +588,8 @@ void *WorkloadManager::TransportTracks(void *)
       generation = 0;
       track = 0;
       while (ntotransport) {
+         totalWork += ntotransport;
+
          // Interrupt condition here. Work stealing could be also implemented here...
          /*
           if (!wm->IsFilling() && wm->FeederQueue()->empty()) {
@@ -706,6 +711,6 @@ void *WorkloadManager::TransportTracks(void *)
       propagator->InjectCollection(tid);
    }
    wm->AnswerQueue()->push(0);
-   Printf("=== Thread %d: exiting ===", tid);
+   Printf("=== Thread %d: exiting === Processed %ld", tid, totalWork);
    return 0;
 }

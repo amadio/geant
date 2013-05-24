@@ -81,6 +81,8 @@ public:
    void runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin);
    Stream launchTask(bool wait = false);
    void waitForTasks();
+   
+   long GetTotalWork() { return fTotalWork; }
 
 private:
    char       *fdGeometry; // Point to a GPGeomManager in GPU land.
@@ -144,6 +146,7 @@ private:
    int fNthreads;
    int fMaxTrackPerThread;
    int fKernelType;
+   int fTotalWork;
    
   
 };
