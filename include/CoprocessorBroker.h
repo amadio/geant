@@ -52,6 +52,7 @@ class curandState;
 #endif
 
 class GeantTrack;
+class GeantTrackCollection;
 
 #include "TObject.h"
 #include "sync_objects.h"
@@ -118,8 +119,10 @@ private:
       int          fThreadId;
       GeantTrack **fHostTracks;
 
+      GeantTrackCollection  *fTrackCollection; // Work manager track (pre)-queue
       concurrent_queue      *fQueue;    // Queue recording whether this helper is available or not.
 
+      GeantTrackCollection *GetNextTrackCollection();
       void ResetNStaged() { fNStaged = 0; }
       operator cudaStream_t() { return fStream; }
    

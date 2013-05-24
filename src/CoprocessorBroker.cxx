@@ -113,10 +113,10 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 }
 
 
-CoprocessorBroker::StreamHelper::StreamHelper() : fStreamId(0),
-                                                  fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
+CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
+                                                  fStreamId(0),
                                                   fThreadId(-1),fHostTracks(0),
-                                                  fQueue(0)
+                                                  fTrackCollection(0), fQueue(0)
 {
    // Default constructor.
 }
@@ -126,6 +126,7 @@ CoprocessorBroker::StreamHelper::~StreamHelper() {
    
    // We do not own fHosttracks.
    // We do not own fQueue.
+   // We do not own fTrackCollection.
 
    delete [] fTrack;
    delete [] fTrackId;
@@ -154,7 +155,22 @@ bool CoprocessorBroker::StreamHelper::CudaSetup(unsigned int streamid, int nbloc
    fPhysIndex = new int[maxTrackPerKernel];
    fLogIndex = new int[maxTrackPerKernel];
    
+   if (fTrackCollection == 0) {
+      fTrackCollection = GetNextTrackCollection();
+   }
    return true;
+}
+
+//______________________________________________________________________________
+GeantTrackCollection *CoprocessorBroker::StreamHelper::GetNextTrackCollection()
+{
+   // Get a new GeantTrackCollection from the workload manager.
+
+   GeantTrackCollection *newcoll;
+   WorkloadManager *mgr = WorkloadManager::Instance();
+   if (mgr->CollectorEmptyQueue()->empty()) newcoll = new GeantTrackCollection(100);
+   else newcoll = (GeantTrackCollection*)mgr->CollectorEmptyQueue()->wait_and_pop();
+   return newcoll;
 }
 
 void CoprocessorBroker::StreamHelper::Push(concurrent_queue *q)
@@ -342,6 +358,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
       return 0;
    }
 
+   WorkloadManager *mgr = WorkloadManager::Instance();
    unsigned int start = fNStaged;
    unsigned int count = 0;
    for(unsigned int hostIdx = startIdx;
@@ -360,8 +377,8 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
 
       if (!CanHandleTrack(* host_track[trackin[hostIdx]])) {
          
-         gPropagator->fCollections[tid]->AddTrack(trackin[hostIdx],
-                                                  WorkloadManager::Instance()->GetBasketArray()[volumeIndex]);
+         fTrackCollection->AddTrack(trackin[hostIdx],
+                                    mgr->GetBasketArray()[volumeIndex]);
          trackin[hostIdx] = -1; // forget the track since we already passed it along.
          gPropagator->fTransportOngoing = kTRUE;
          continue;
@@ -393,6 +410,9 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
 
       ++fNStaged;
    }
+   mgr->CollectorQueue()->push(fTrackCollection);
+   fTrackCollection = GetNextTrackCollection();
+
    // count = min(fChunkSize,basketSize-startIdx);
    int ntrack = fNStaged - start;
    cudaMemcpyAsync(fDevTrack+start, fTrack+start, ntrack*sizeof(GXTrack),
@@ -408,6 +428,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
 
 unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
 {
+   WorkloadManager *mgr = WorkloadManager::Instance();
    for(unsigned int devIdx = 0;
        devIdx < fNStaged;
        ++devIdx) {
@@ -434,11 +455,13 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
       } else if (1) {
          // Let's reschedule it.
          // fprintf(stderr,"DEBUG: rescheduling %d in basket %d\n",fTrackId[devIdx],fLogIndex[devIdx]);
-         gPropagator->fCollections[fThreadId]->AddTrack(fTrackId[devIdx],
-                                                  WorkloadManager::Instance()->GetBasketArray()[fLogIndex[devIdx]]);
+         fTrackCollection->AddTrack(fTrackId[devIdx],
+                                                  mgr->GetBasketArray()[fLogIndex[devIdx]]);
          gPropagator->fTransportOngoing = kTRUE;
       }
    }
+   mgr->CollectorQueue()->push(fTrackCollection);
+   fTrackCollection = GetNextTrackCollection();
    fThreadId = -1;
    fHostTracks = 0;
    return fNStaged;
@@ -516,7 +539,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 
 void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
 {
-   bool force = true;
+   bool force = false;
    
    
    //<<<---------------------------------------------------------->>>
