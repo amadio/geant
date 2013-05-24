@@ -406,6 +406,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    while (1) {
       // fprintf(stderr,"DEBUG2: check slot 55: event# %d %p\n",tracks[55]->event,tracks[55]);
 
+      ::Info("GPU","Waiting (1) for next available stream.");
       CoprocessorBroker::Stream stream = broker->GetNextStream();
       if (!stream) break;
       
@@ -425,12 +426,17 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       // gSystem->Sleep(3000);
       propagator->fWaiting[tid] = 0;
       if (!stream) {
+         ::Info("GPU","Waiting (2) for next available stream.");
          stream = broker->GetNextStream();
       }
       lastToClear = kFALSE;
       if (!basket) {
-         broker->launchTask(/* wait= */ true);
-         break;
+         if (0 != broker->launchTask(/* wait= */ true)) {
+            // We ran something, new basket might be available.
+            continue;
+         } else {
+            break;
+         }
       }
       ntotransport = basket->GetNtracks();  // all tracks to be transported
       if (!ntotransport) goto finish;
