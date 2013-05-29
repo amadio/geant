@@ -27,6 +27,10 @@
 //      fOrigin[3]    - position of box origin                               //
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
+//#include <malloc.h>
+#ifdef __INTEL_COMPILER
+#include <immintrin.h> 
+#endif
 
 // this is used to pass data as struct of array
 struct StructOfCoord
@@ -50,16 +54,28 @@ public:
   void alloc(int np)
   {
     this->np=np;
+#ifdef __INTEL_COMPILER
+    x=(double*)_mm_malloc(sizeof(double)*np,32);
+    y=(double*)_mm_malloc(sizeof(double)*np,32);
+    z=(double*)_mm_malloc(sizeof(double)*np,32);
+#else
     x=new double[np];
     y=new double[np];
     z=new double[np];
+#endif
   }
 
   void dealloc()
   {
+#ifdef __INTEL_COMPILER
+    _mm_free(x);
+    _mm_free(y);
+    _mm_free(z);
+#else
     delete[] x;
     delete[] y;
     delete[] z;
+#endif
   }
 };
 
@@ -119,16 +135,21 @@ public:
    virtual void          DistFromOutside_v(const Double_t *point, const Double_t  *dir, Int_t *iact, const Double_t  *step, Double_t  *safe, Double_t *  distance, Int_t np ) const;
  
  
-   static  Double_t      DistFromOutside(const Double_t *point,const Double_t *dir,
+   static  Double_t  DistFromOutside(const Double_t *point,const Double_t *dir,
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
     // SOA version for static method
    static  void      DistFromOutside_v(const StructOfCoord & point,const StructOfCoord & dir,
+					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
+   // SOA trivial loop version for static method
+   static  void      DistFromOutside_l(const StructOfCoord & point,const StructOfCoord & dir,
+					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
+   // trivial loop version for static method, no SOA
+   static  void      DistFromOutside_l(const double * point,const double * dir,
 					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
 
 
    virtual Bool_t        GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array) const;
    virtual Bool_t        GetPointsOnSegments(Int_t npoints, Double_t *array) const;
-
 
 
    virtual Double_t      Safety(const Double_t *point, Bool_t in=kTRUE) const;
