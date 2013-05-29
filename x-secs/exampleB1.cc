@@ -190,7 +190,6 @@ int main(int argc,char** argv)
 	   for(int i=0;i<1000;++i) {
 	      G4double xsec = pt->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
 	      feioni->SetBinContent(i,xsec);
-	      //	      printf("%f %g\n",en,feioni->GetBinContent(i));
 	      en*=delta;
 	   }
 	   feioni->Write();
