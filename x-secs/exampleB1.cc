@@ -181,7 +181,6 @@ int main(int argc,char** argv)
 	      couple = theCoupleTable->GetMaterialCutsCouple(i);
 	      if (couple->GetMaterial() == iron) break;
 	   }
-
 	   printf("Iron Z %f, A %f\n",iron->GetZ(), iron->GetA()*mole/g);
 	   G4double natomscm3 = (Avogadro*iron->GetDensity()*cm3)/(iron->GetA()*mole);
 	   printf("Density = %g, natoms/cm3 = %g\n",iron->GetDensity()*cm3/g,natomscm3);
