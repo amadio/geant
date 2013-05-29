@@ -607,6 +607,7 @@ void TGeoBBox_v::DistFromInside_v(const StructOfCoord & __restrict__ point,const
 #endif
 
   // this and the previous should be the same; here I have done manual inlining
+#pragma vector aligned
   for(size_t k=0; k<npoints; ++k) //@EXPECTVEC
     {
       Double_t s,smin,saf[6];
@@ -624,16 +625,17 @@ void TGeoBBox_v::DistFromInside_v(const StructOfCoord & __restrict__ point,const
       
       smin=TGeoShape::Big();
       double sx, sy, sz;
-      sx = (dirx[k]>0)? (saf[1]/dirx[k]):(-saf[0]/dirx[k]);
-      sy = (diry[k]>0)? (saf[3]/diry[k]):(-saf[2]/diry[k]);
-      sz = (dirz[k]>0)? (saf[5]/dirz[k]):(-saf[4]/dirz[k]);
+      double tiny=1e-20;
+      //      sx = (dirx[k]>0)? (saf[1]/(dirx[k]+tiny)):(-saf[0]/(dirx[k]-tiny));
+      //      sy = (diry[k]>0)? (saf[3]/(diry[k]+tiny)):(-saf[2]/(diry[k]-tiny));
+      //      sz = (dirz[k]>0)? (saf[5]/(dirz[k]+tiny)):(-saf[4]/(dirz[k]-tiny));
+      sx = (saf[1]/(std::fabs(dirx[k])+tiny));
+      sy = (saf[3]/(std::fabs(diry[k])+tiny));
+      sz = (saf[5]/(std::fabs(dirz[k])+tiny));
 
-      double syp, szp;
-      smin = (dirx[k]==0)? TGeoShape::Big(): sx;
-      syp = (diry[k]==0)? TGeoShape::Big(): sy;
-      smin = (syp < smin)? syp : smin;
-      szp = (dirz[k]==0)? TGeoShape::Big(): sz;
-      smin = (szp < smin)? szp : smin;
+      smin = sx;
+      smin = (sy < smin)? sy : smin;
+      smin = (sz < smin)? sz : smin;
       distance[k] = (smin < 0)? 0 : smin;
     }
 }
