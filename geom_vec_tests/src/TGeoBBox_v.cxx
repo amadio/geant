@@ -871,7 +871,7 @@ void TGeoBBox_v::DistFromOutside_v(const Double_t  __restrict__  *point, const D
 }
 
 
-//_____________________________________________________________________________
+// static version_____________________________________________________________________________
 Double_t TGeoBBox_v::DistFromOutside(const Double_t *point,const Double_t *dir,
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax)
 {
@@ -913,22 +913,52 @@ Double_t TGeoBBox_v::DistFromOutside(const Double_t *point,const Double_t *dir,
    return TGeoShape::Big();
 }
 
+// SOA _l version of static method DistFromOutside
+void TGeoBBox_v::DistFromOutside_l(const StructOfCoord & __restrict__  point,const StructOfCoord & __restrict__ dir,
+				     Double_t dx, Double_t dy, Double_t dz, const Double_t * __restrict__ origin, const Double_t * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
+{
+  for(unsigned int k=0;k<np;++k) // @EXPECTVEC
+    {
+      double p[3];
+      double d[3];
+      p[0]=point.x[k];
+      p[1]=point.y[k];
+      p[2]=point.z[k];
+      d[0]=dir.x[k];
+      d[1]=dir.y[k];
+      d[2]=dir.z[k];
+      distance[k]=TGeoBBox_v::DistFromOutside(p,d, dx, dy, dz, origin, stepmax[k]);
+    }
+}
+
+// _l version of static method DistFromOutside
+void TGeoBBox_v::DistFromOutside_l(const double * __restrict__  point,const double * __restrict__ dir,
+				     Double_t dx, Double_t dy, Double_t dz, const Double_t * __restrict__ origin, const Double_t * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
+{
+  for(unsigned int k=0;k<np;++k) // @EXPECTVEC
+    {
+      distance[k]=TGeoBBox_v::DistFromOutside(&point[3*k],&dir[3*k], dx, dy, dz, origin, stepmax[k]);
+    }
+}
+
+
 // SOA version of static method DistFromOutside
 void TGeoBBox_v::DistFromOutside_v(const StructOfCoord & __restrict__  point,const StructOfCoord & __restrict__ dir,
-				     Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
+				     Double_t dx, Double_t dy, Double_t dz, const Double_t * __restrict__ origin, const Double_t * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
 {
   // note: we take stepmax as a maxstep PER particle
   // ALIGNMENTSTUFF HERE (TODO: should be generated automatically, MACRO? )
 #ifndef __INTEL_COMPILER
   const double * p[3];
-  p[0] = (const double *) __builtin_assume_aligned (point.x, 16); 
-  p[1] = (const double *) __builtin_assume_aligned (point.y, 16); 
-  p[2] = (const double *) __builtin_assume_aligned (point.z, 16); 
+  p[0] = (const double *) __builtin_assume_aligned (point.x, 32); // 32 bit for AVX 
+  p[1] = (const double *) __builtin_assume_aligned (point.y, 32); 
+  p[2] = (const double *) __builtin_assume_aligned (point.z, 32); 
   const double * d[3];
-  d[0] = (const double *) __builtin_assume_aligned (dir.x, 16); 
-  d[1] = (const double *) __builtin_assume_aligned (dir.y, 16); 
-  d[2] = (const double *) __builtin_assume_aligned (dir.z, 16); 
-  double * dist = (double *) __builtin_assume_aligned (distance, 16); 
+  d[0] = (const double *) __builtin_assume_aligned (dir.x, 32); 
+  d[1] = (const double *) __builtin_assume_aligned (dir.y, 32); 
+  d[2] = (const double *) __builtin_assume_aligned (dir.z, 32); 
+  double * dist = (double *) __builtin_assume_aligned (distance, 32); 
+  const double * stepm = (const double *) __builtin_assume_aligned(stepmax,32); 
 #else
   const double * p[3];
   p[0] = (const double *) point.x; 
