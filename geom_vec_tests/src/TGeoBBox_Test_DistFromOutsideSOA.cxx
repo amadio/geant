@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 	
 	double checksum=0., checksum_v=0.;
 	for(int i=0; i<npoints; ++i)
-	  distance[i]=TGeoBBox_v::DistFromOutside(&points[3*i], &dir[3*i],dx,dy,dz,origin,TGeoShape::Big());
+	  distance[i]=TGeoBBox_v::DistFromOutside(&points[3*i], &dir[3*i],dx,dy,dz,origin,step[i]);
 	
 	TGeoBBox_v::DistFromOutside_v(p, d,dx,dy,dz,origin,step, distance_v, npoints);
 	
@@ -110,14 +110,14 @@ main(int argc, char *argv[])
 	  {
 	    
 	  tt.Start();
-	  TGeoBBox_v::DistFromInside_v(p, d, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	  TGeoBBox_v::DistFromOutside_v(p, d, dx, dy, dz, origin, step, distance_v, npoints);
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
 
 	  tt.Start();
 	for(int i=0; i<npoints; i++)
-	  distance[i]=TGeoBBox_v::DistFromOutside(&points[3*i], &dir[3*i],dx,dy,dz,origin,TGeoShape::Big());
+	  distance[i]=TGeoBBox_v::DistFromOutside(&points[3*i], &dir[3*i],dx,dy,dz,origin,step[i]);
 	  tt.Stop();
 	  DeltaT+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
