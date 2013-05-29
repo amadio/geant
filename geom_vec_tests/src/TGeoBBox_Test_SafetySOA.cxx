@@ -49,7 +49,7 @@ main(int argc, char *argv[])
   TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz,origin);
   const Double_t r3two = TMath::Power(2,1./3.);
 
-  npoints=10;
+  npoints=1;
   for(int i = 0 ;i < 14; i++) 
     {
       Double_t *points = new Double_t[3*npoints];

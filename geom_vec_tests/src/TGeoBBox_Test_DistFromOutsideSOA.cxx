@@ -81,15 +81,24 @@ main(int argc, char *argv[])
         
 	step[0]=TGeoShape::Big();
         for(int i=1; i<npoints; ++i) {
-            points[3*i  ]=1.4*(1-2.*gRandom->Rndm())*dx;
-            points[3*i+1]=1.4*(1-2.*gRandom->Rndm())*dy;
-            points[3*i+2]=1.4*(1-2.*gRandom->Rndm())*dz;
+	  //            points[3*i  ]=1.4*(1-2.*gRandom->Rndm())*dx;
+	  //            points[3*i+1]=1.4*(1-2.*gRandom->Rndm())*dy;
+	  //            points[3*i+2]=1.4*(1-2.*gRandom->Rndm())*dz;
+	  
+	  // most of test particles should be outside to be fair
+	  int signx = (gRandom->Rndm() < 0.5)? -1 : 1;
+	  int signy = (gRandom->Rndm() < 0.5)? -1 : 1;
+	  int signz = (gRandom->Rndm() < 0.5)? -1 : 1;
 
-            dir[3*i  ]=(1-2.*gRandom->Rndm());
-            dir[3*i+1]=(1-2.*gRandom->Rndm());
-            dir[3*i+2]=(1-2.*gRandom->Rndm());
-            
-	    step[i]=TGeoShape::Big();
+	  points[3*i  ]=signx*(dx + 0.1*(gRandom->Rndm()-0.1));
+	  points[3*i+1]=signy*(dy + 0.1*(gRandom->Rndm()-0.1));
+	  points[3*i+2]=signz*(dz + 0.1*(gRandom->Rndm()-0.1));
+	  
+	  dir[3*i  ]=-1.;//(1-2.*gRandom->Rndm());
+	  dir[3*i+1]=0.;///(1-2.*gRandom->Rndm());
+	    dir[3*i+2]=0.;//(1-2.*gRandom->Rndm());
+          
+	  step[i]=TGeoShape::Big();
 	}
 	p.fill(points);
 	d.fill(dir);
@@ -106,7 +115,7 @@ main(int argc, char *argv[])
 	
 	for(int i=0; i<npoints; i++)
 	  {	
-	    //	    std::cerr <<  distance[i] << " " << distance_v[i] << std::endl;
+	    // std::cerr <<  distance[i] << " " << distance_v[i] << std::endl;
 	    assert(distance[i] == distance_v[i]);
 	  }
 
