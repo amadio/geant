@@ -23,8 +23,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <RTypes.h>
+#include <TObject.h>
 
-class TXsec {
+class TXsec : public TObject {
 
 public:
    TXsec();
