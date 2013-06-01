@@ -44,6 +44,7 @@
 #include "G4NistMaterialBuilder.hh"
 #include "G4VEnergyLossProcess.hh"
 #include "G4ProductionCutsTable.hh"
+#include "G4MaterialTable.hh"
 
 #ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
@@ -59,9 +60,11 @@
 #include <TH1F.h>
 #include <TMath.h>
 #include <TFile.h>
-#include <TXsec.h>
+#include <TMXsec.h>
+#include <TRandom.h>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 
 int main(int argc,char** argv)
 {
@@ -86,7 +89,7 @@ int main(int argc,char** argv)
   // Primary generator action
   runManager->SetUserAction(new B1PrimaryGeneratorAction());
 
-  // Set user action classes
+  // Set user action classes4
   //
   // Stepping action
   runManager->SetUserAction(new B1SteppingAction());     
@@ -117,17 +120,22 @@ int main(int argc,char** argv)
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
     UImanager->ApplyCommand(command+fileName);
-  // ---------------------------------------------------------------------
-  //
-  // Here x-sections should be defined... let's see...
-
-    // correspondence pdg -> particle
-    G4int partb[500];
-       
-    G4ParticleDefinition* particle;
-    const G4VModularPhysicsList* pl = dynamic_cast<const G4VModularPhysicsList*>(runManager->GetUserPhysicsList());
-    G4cout << pl << G4endl;
+    // ---------------------------------------------------------------------
     //
+    // Here x-sections should be defined... let's see...
+    //
+    // Definitions
+    //
+    G4ParticleDefinition* particle;
+
+    G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();
+
+    G4int np=theParticleTable->size();
+
+    printf("Found %d particles\n",np);
+
+    //
+    const G4int maxproc = 10;  // max of 10 proc per particle
     const G4int nbins = 1000;
     const G4double emin = 1.e-6*GeV;
     const G4double emax = 1.e3*GeV;
@@ -135,110 +143,190 @@ int main(int argc,char** argv)
     const G4double lemin = TMath::Log10(emin/GeV);
     const G4double lemax = TMath::Log10(emax/GeV);
     
-    printf("%f %f \n",lemin, lemax);
+    printf("Log emin %f Log emax %f \n",lemin, lemax);
     
-    // Let's create the materials X-secs
-    TXsec **secTable = new TXsec*[nmaterials];
-    for(G4int i=0; i<nmaterials; ++i) {
-       G4Material *mat = G4Material::GetMaterial(material[i]);
-       secTable[i] = new TXsec(mat->GetZ(),mat->GetA()*mole/g,emin,emax,nbins);
-    }
-
 
     TFile *fh = new TFile("xsec.root","recreate");
+    /*
+      snippets
+
+      const G4VModularPhysicsList* pl = dynamic_cast<const G4VModularPhysicsList*>(runManager->GetUserPhysicsList());
     
-    // Loop on the particle table to create the dictionary
-    G4int np=0;
-    G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();
-    G4ParticleTable::G4PTblDicIterator *theParticleIterator = theParticleTable->GetIterator();
+      G4MaterialTable *theMaterialTable = (G4MaterialTable*)G4Material::GetMaterialTable();
+      G4ElementTable  *theElementTable = (G4ElementTable*)G4Element::GetElementTable();
+      
+      for(i=0;i<matTable->size();i++)
+      { delete (*(matTable))[i]; }
+      matTable->clear();
+      for(i=0;i<elemTable->size();i++)
+      { delete (*(elemTable))[i]; }
+      elemTable->clear();
+      }    
+      
+      G4ParticleTable::G4PTblDicIterator *theParticleIterator = theParticleTable->GetIterator();
+      theParticleIterator->reset();
+      while((*theParticleIterator)()) {
+      particle = theParticleIterator->value(); 
+    */
 
-    theParticleIterator->reset();
-    while((*theParticleIterator)()) {
-       particle = theParticleIterator->value();
-       partb[np++]=particle->GetPDGEncoding();
-    }
-    printf("Found %d particles\n",np);
     //
-    // order them to get them at least via bin search
-    for(G4int i=0; i<np-1; ++i)
-       for(G4int j=i+1; j<np; ++j) 
-	  if(partb[i]>partb[j]) {
-	     G4int pc = partb[i];
-	     partb[i] = partb[j];
-	     partb[j] = pc;
-	  }
+    // Let's build the material table
+    G4MaterialTable *theMaterialTable = (G4MaterialTable*)G4Material::GetMaterialTable();
+    TMXsec **secTable = new TMXsec*[nmaterials];
+    //
+    // now let's go for cross sections
+    char string[1024]="\0";
+    // Array of cross sections, say max 10 processes per particle
+    G4float *pxsec = new G4float[maxproc*nbins];
+    G4float *msang = new G4float[nbins];
+    G4float *mslen = new G4float[nbins];
+    G4float *dedx  = new G4float[nbins];
+    G4int   *pdic  = new G4int[maxproc];
 
-    theParticleIterator->reset();
-    while((*theParticleIterator)()) {
-       char string[1024]="\0";
-       G4int ip=0;
-       particle = theParticleIterator->value();
-       sprintf(string,"%-20s:",(const char *)particle->GetParticleName());
+    // Print all processes for all particles for reference
+    G4double maxwidth=0;
+    G4double minlife =1e9;
+    for(G4int i=0; i<np; ++i) {
+       particle = theParticleTable->GetParticle(i);
+       char sl[3]="ll";
+       if(particle->IsShortLived()) strcpy(sl,"sl");
+       G4double life = particle->GetPDGLifeTime()/s;
+       G4double width = particle->GetPDGWidth();
+       sprintf(string,"%-20s: %s %12.5g %12.5g %12.5g",(const char *)particle->GetParticleName(),sl,life,width,life*width/hbar_Planck*s);
+       G4int nproc=0;
        G4ProcessManager* pManager = particle->GetProcessManager();
        if ( pManager == 0) {
-	  G4cout << "No process manager for particle" << particle->GetParticleName() << G4endl;
+	  G4cout << "No process manager (no X-sec!) for " << particle->GetParticleName() << G4endl;
        } else {
 	  // Here we get the process list for this particle
 	  G4ProcessVector* pList = pManager->GetProcessList();
+
+	  // loop over all processes
 	  for (G4int idx=0; idx<pList->size(); idx++) {
 	     const G4VProcess* p = (*pList)[idx];
+	     G4int ptype = p->GetProcessType();
+	     if(ptype !=1 && ptype !=6) ++nproc;
 	     sprintf(&string[strlen(string)]," [%s,%d,%d]",
 		     (const char *)p->GetProcessName(),p->GetProcessType(),
 		     p->GetProcessSubType());
-	     // if it is transportation or decay we bail out
-	     ip=1;
-	     if(p->GetProcessType()==1||p->GetProcessType()==6) continue;
-	     //	if(p->GetProcessType()==2) 
-	     //	  if(p->GetProcessSubType()==10||p->GetProcessSubType()==2) continue;
-	     if(!strcmp((const char*)particle->GetParticleName(),"pi+")&&
-		!strcmp((const char*)p->GetProcessName(),"pi+Inelastic")) {
-		printf("Found pi+ && p+Inelastic\n");
-		TH1F *fpiin = new TH1F("fpiin",(const char*)p->GetProcessName(),1000,lemin,lemax);
-		G4Material *iron =  G4Material::GetMaterial("G4_Fe");
-		G4double en = emin;
-		for(int i=0;i<1000;++i) {
-		   fpiin->SetBinContent(i,((G4HadronicProcess*)p)->GetElementCrossSection(
-											  new G4DynamicParticle(particle,G4ThreeVector(0,0,1),en),iron->GetElement(0))/barn);
-		   en*=delta;
-		   //	    printf("%f %f\n",TMath::Power(10,-3.+0.006*i)*GeV,fpiin->GetBinContent(i));
+	  }
+       }
+       if(nproc) {
+	  if(life>0 && life<minlife) minlife=life;
+	  if(width>maxwidth) maxwidth=width;
+       }
+       printf("%s\n",string);
+    }
+    G4double maxwidthl=hbar_Planck/(s*minlife);
+    G4double minlifew =hbar_Planck/(s*maxwidth);
+    printf("Reactions for life above %g(%g) and width below %g(%g) (%g)\n",
+	   minlife,maxwidthl,maxwidth,minlifew,minlife*maxwidth/hbar_Planck*s);
+	     
+    G4ProductionCutsTable* theCoupleTable =
+       G4ProductionCutsTable::GetProductionCutsTable();
+    
+    size_t numOfCouples = theCoupleTable->GetTableSize();
+
+    // loop over all materials
+    G4double totsize = 0;
+    for(G4int imat=0; imat<nmaterials; ++imat) {
+       // Just a check that we are finding out the same thing...
+       const G4Material *matt = G4Material::GetMaterial(material[imat]);
+       const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
+       if(matt!=mat) printf("Funny %s %s!\n",(const char*) mat->GetName(),(const char*) mat->GetName());
+       secTable[imat] = new TMXsec(mat->GetZ(),mat->GetA()*mole/g,emin,emax,nbins,np);
+
+       G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
+       printf("Material = %s density = %g, natoms/cm3 = %g\n",
+	      (const char*) mat->GetName(),mat->GetDensity()*cm3/g,natomscm3);
+
+       // get the couple table for em processes
+       const G4MaterialCutsCouple* couple = 0;
+       for (size_t i=0; i<numOfCouples; i++) {
+	  couple = theCoupleTable->GetMaterialCutsCouple(i);
+	  if (couple->GetMaterial() == mat) break;
+       }
+
+       // loop over all particles
+       for(G4int i=0; i<np; ++i) {
+	  particle = theParticleTable->GetParticle(i);
+	  sprintf(string,"%-20s:",(const char *)particle->GetParticleName());
+	  G4ProcessManager* pManager = particle->GetProcessManager();
+	  if ( pManager == 0) {
+	     G4cout << "No process manager (no X-sec!) for " << particle->GetParticleName() << G4endl;
+	  } else {
+	     // Here we get the process list for this particle
+	     G4ProcessVector* pList = pManager->GetProcessList();
+	     G4int nproc=0;
+
+	     // loop over all processes
+	     for (G4int idx=0; idx<pList->size(); idx++) {
+		G4VProcess* p = (*pList)[idx];
+		sprintf(&string[strlen(string)]," [%s,%d,%d]",
+			(const char *)p->GetProcessName(),p->GetProcessType(),
+			p->GetProcessSubType());
+
+		// if it is transportation or decay we bail out
+		if(p->GetProcessType()==1||p->GetProcessType()==6) continue;
+
+		// Let's start with what we know
+		if(p->GetProcessType() == 4) {
+		   // no parametrization for Z > 92 and inhelastic (but why a crash??)
+		   if(mat->GetZ() > 92 && 
+		      ( i == 382 || i == 383 ) && 
+		      p->GetProcessSubType() == 121) continue; 
+		   totsize += nbins;
+		   if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
+
+		   // Hadronic interaction -- just store x-sec
+		   printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+			  (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
+			  (const char*) p->GetProcessName(),
+			  p->GetProcessType(),p->GetProcessSubType());
+		   G4double en=emin;
+		   G4HadronicProcess *ph = (G4HadronicProcess*)p;
+		   for(G4int j=0; j<nbins; ++j) {
+		      G4DynamicParticle *dp = new G4DynamicParticle(particle,G4ThreeVector(0,0,1),en);
+		      pxsec[nproc*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
+		      en*=delta;
+		      delete dp;
+		   }
+		   pdic[nproc]=ph->GetProcessType()*1000+ph->GetProcessSubType();
+		   ++nproc;
+		} else if (p->GetProcessType() == 2) {
+		   
+		   // Em process. A bit more complicated
+		   
+		   totsize += nbins;
+		   G4VEnergyLossProcess *pt = dynamic_cast<G4VEnergyLossProcess*>(p);
+		   if(pt) {
+		      printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
+			     (const char*) p->GetProcessName(),
+			     p->GetProcessType(),p->GetProcessSubType());
+		      G4double en=emin;
+		      for(G4int j=0; j<nbins; ++j) {
+			 pxsec[nproc*nbins+j] =  pt->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 en*=delta;
+		      }
+		      pdic[nproc]=pt->GetProcessType()*1000+pt->GetProcessSubType();
+		      ++nproc;
+		   } else {
+		      printf("%s: %s[%d,%d] not a GVEnergyLossProcess\n",
+			     (const char*) particle->GetParticleName(),
+			     (const char*)p->GetProcessName(),
+			     p->GetProcessType(),p->GetProcessSubType());
+		   }
 		}
-		fpiin->Write();
-	     } else 	if(!strcmp((const char*)particle->GetParticleName(),"e-")&&
-			   !strcmp((const char*)p->GetProcessName(),"eIoni")) {
-		printf("Found %s && %s\n",(const char*)particle->GetParticleName(),(const char*)p->GetProcessName());
-		TH1F *feioni = new TH1F("feioni",(const char*)p->GetProcessName(),1000,lemin,lemax);
-		G4Material *iron =  G4Material::GetMaterial("G4_Fe");
-		
-		G4ProductionCutsTable* theCoupleTable =
-		   G4ProductionCutsTable::GetProductionCutsTable();
-		
-		size_t numOfCouples = theCoupleTable->GetTableSize();
-		const G4MaterialCutsCouple* couple = 0;
-		for (size_t i=0; i<numOfCouples; i++) {
-		   couple = theCoupleTable->GetMaterialCutsCouple(i);
-		   if (couple->GetMaterial() == iron) break;
-		}
-		
-		printf("Iron Z %f, A %f\n",iron->GetZ(), iron->GetA()*mole/g);
-		G4double natomscm3 = (Avogadro*iron->GetDensity()*cm3)/(iron->GetA()*mole);
-		printf("Density = %g, natoms/cm3 = %g\n",iron->GetDensity()*cm3/g,natomscm3);
-		G4VEnergyLossProcess *pt = (G4VEnergyLossProcess*)p;
-		G4double en=emin;
-		for(int i=0;i<1000;++i) {
-		   G4double xsec = pt->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-		   feioni->SetBinContent(i,xsec);
-		   en*=delta;
-		}
-		feioni->Write();
 	     }
 	  }
        }
-       if(ip) printf("%s\n",string);
     }
+    totsize += nbins*nmaterials;
+    totsize /= 0.25*1024*1024;
+    printf("Tot size = %11.4gMB\n",totsize);
     fh->Write();
     fh->Close();
-    
-//---------------------------------------------------------------------------
   }
   else {
     // interactive mode : define UI session

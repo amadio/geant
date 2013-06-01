@@ -9,49 +9,39 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_TXsec
-#define ROOT_TXsec
+#ifndef ROOT_TMXsec
+#define ROOT_TMXsec
 
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TXSec                                                                //
+// TMXSec                                                               //
 //                                                                      //
-// X-section for G5                                                     //
+// X-section for G5 per material                                        //
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
 #include <RTypes.h>
 #include <TObject.h>
+class TPXsec;
 
-class TXsec : public TObject {
+class TMXsec : public TObject {
 
 public:
-   TXsec();
-   TXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen);
-   ~TXsec();
-   void AddXsec(Int_t part, Int_t reac, const Float_t xsec[]) {}
+   TMXsec();
+   TMXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np);
+   ~TMXsec();
 
 private:
-   struct         TXtemp {
-     Short_t      fPart; // PDG code
-     Short_t      fReac; // Reaction code
-     Float_t     *fXs; // cross section
-     TXtemp      *fNext; // Next x-section
-   };
-     
-   Short_t        fMat; // Material code Z*1000+A
+   Short_t        fMat; // Material code Z*10000+A*10+metastable level
    Float_t        fEmin; // Min en in GeV
    Float_t        fEmax; // Max en in Gev
    Short_t        fNen;  // Number of log steps in energy
    Double_t       fElDelta; // Log energy step
-   Float_t       *fXsec; // Cross sections
    Short_t        fNpart; // Number of particles
-   Int_t         *fPcode; // Pointer to start of particle x-secs
-   Short_t       *fRcode; // reaction codes for particles
-   UChar_t        fNXsec; // Number of x-secs per part (+total)
-   TXtemp        *fXtemp; // Temporary storage for x-secs
+   TPXsec       **fPXsec; // [fNpart] Cross section table per particle
+   Double_t      *fCuts; // Just a placeholder for the moment
 };
 
 #endif

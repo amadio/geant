@@ -102,7 +102,7 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
   B1SteppingAction* steppingAction = B1SteppingAction::Instance(); 
   for(G4int i=0; i<nmaterials; ++i) {
      G4Material *mat = nist->FindOrBuildMaterial(material[i]);
-     G4cout << *mat;
+     //     G4cout << *mat;
      G4Sphere *solidSphere = new G4Sphere(material[i],             // name
 					  0.,kRadius,              // rmin rmax
 					  0., 2*pi,                // phi range
@@ -114,7 +114,7 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
   
      G4double xplace = kLattice-kRadius+(i%nballs)*kLattice-0.5*world_sizeXY;
      G4double yplace = kLattice-kRadius+(i/nballs)*kLattice-0.5*world_sizeXY;
-     printf("%f %f\n",xplace,yplace);
+     //     printf("%f %f\n",xplace,yplace);
      new G4PVPlacement(0,                       //no rotation
 		       G4ThreeVector(xplace,yplace,0),         //at 
 		       logicSphere,                //its logical volume
