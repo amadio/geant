@@ -229,6 +229,7 @@ int main(int argc,char** argv)
 
     // loop over all materials
     G4double totsize = 0;
+    G4int npr=0;
     for(G4int imat=0; imat<nmaterials; ++imat) {
        // Just a check that we are finding out the same thing...
        const G4Material *matt = G4Material::GetMaterial(material[imat]);
@@ -252,12 +253,12 @@ int main(int argc,char** argv)
 	  particle = theParticleTable->GetParticle(i);
 	  sprintf(string,"%-20s:",(const char *)particle->GetParticleName());
 	  G4ProcessManager* pManager = particle->GetProcessManager();
+	  G4int nproc=0;
 	  if ( pManager == 0) {
 	     G4cout << "No process manager (no X-sec!) for " << particle->GetParticleName() << G4endl;
 	  } else {
 	     // Here we get the process list for this particle
 	     G4ProcessVector* pList = pManager->GetProcessList();
-	     G4int nproc=0;
 
 	     // loop over all processes
 	     for (G4int idx=0; idx<pList->size(); idx++) {
@@ -320,11 +321,12 @@ int main(int argc,char** argv)
 		}
 	     }
 	  }
+	  if(nproc) ++npr;
        }
     }
     totsize += nbins*nmaterials;
     totsize /= 0.25*1024*1024;
-    printf("Tot size = %11.4gMB\n",totsize);
+    printf("Particles with reactions = %d, tot size = %11.4gMB\n",npr/nmaterials, totsize);
     fh->Write();
     fh->Close();
   }
