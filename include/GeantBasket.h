@@ -20,6 +20,7 @@ protected:
    Int_t             fNtracks;               // Number of tracks
    Int_t             fMaxTracks;             // Max number of tracks
    Int_t            *fIndex;                 //[fNtracks] Track indices in the global stack
+   // have to change it to hold local tracks
 
 public:
    GeantBasket();
