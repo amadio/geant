@@ -45,6 +45,9 @@
 #include "G4VEnergyLossProcess.hh"
 #include "G4ProductionCutsTable.hh"
 #include "G4MaterialTable.hh"
+#include "G4LossTableManager.hh"
+#include "G4VMultipleScattering.hh"
+#include "G4VMscModel.hh"
 
 #ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
@@ -231,6 +234,8 @@ int main(int argc,char** argv)
     G4double totsize = 0;
     G4int npr=0;
     for(G4int imat=0; imat<nmaterials; ++imat) {
+       //       printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
+       G4ThreeVector pos(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
        // Just a check that we are finding out the same thing...
        const G4Material *matt = G4Material::GetMaterial(material[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
@@ -280,10 +285,10 @@ int main(int argc,char** argv)
 		   if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
 
 		   // Hadronic interaction -- just store x-sec
-		   printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+		   /*		   printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
 			  (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			  (const char*) p->GetProcessName(),
-			  p->GetProcessType(),p->GetProcessSubType());
+			  p->GetProcessType(),p->GetProcessSubType()); */
 		   G4double en=emin;
 		   G4HadronicProcess *ph = (G4HadronicProcess*)p;
 		   for(G4int j=0; j<nbins; ++j) {
@@ -299,12 +304,11 @@ int main(int argc,char** argv)
 		   // Em process. A bit more complicated
 		   
 		   totsize += nbins;
-		   G4VEnergyLossProcess *pt = dynamic_cast<G4VEnergyLossProcess*>(p);
-		   if(pt) {
-		      printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+		   if(G4VEnergyLossProcess *pt = dynamic_cast<G4VEnergyLossProcess*>(p)) {
+		      /*		      printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
-			     p->GetProcessType(),p->GetProcessSubType());
+			     p->GetProcessType(),p->GetProcessSubType()); */
 		      G4double en=emin;
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nproc*nbins+j] =  pt->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
@@ -312,14 +316,50 @@ int main(int argc,char** argv)
 		      }
 		      pdic[nproc]=pt->GetProcessType()*1000+pt->GetProcessSubType();
 		      ++nproc;
+		   } else if(G4VEmProcess *pt = dynamic_cast<G4VEmProcess*>(p)) {
+		      /* printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
+			     (const char*) p->GetProcessName(),
+			     p->GetProcessType(),p->GetProcessSubType()); */
+		      G4double en=emin;
+		      for(G4int j=0; j<nbins; ++j) {
+			 pxsec[nproc*nbins+j] =  pt->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 en*=delta;
+		      }
+		      pdic[nproc]=pt->GetProcessType()*1000+pt->GetProcessSubType();
+		      ++nproc;
+		   } else if(p->GetProcessSubType() == 10) {
+		      ++nproc;
+		      // Multiple scattering, let's see what we can do here
+		      G4VMultipleScattering *pms = dynamic_cast<G4VMultipleScattering*>(p);
+		      if(!pms) printf("Cannot cast to MS!!!\n");
+		      G4double en=emin;
+		      for(G4int j=0; j<nbins; ++j) {
+			 G4DynamicParticle *dp = new G4DynamicParticle(particle,G4ThreeVector(0,0,1),en);
+			 G4Track *track = new G4Track(dp,0.,pos);
+			 //			 const G4MaterialCutsCouple *cc = track->GetMaterialCutsCouple();
+			 //			 printf("%p\n",cc);
+			 //			 printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
+			 G4VMscModel *msmod = dynamic_cast<G4VMscModel*>(pms->SelectModel(en,0));
+			 G4ThreeVector dirold(0,0,1), dirnew(0,0,0);
+			 dirnew = msmod->SampleScattering(dirold,0);
+			 en*=delta;
+		      }
 		   } else {
-		      printf("%s: %s[%d,%d] not a GVEnergyLossProcess\n",
+		      printf("%s: %s[%d,%d] Cannot handle yet\n",
 			     (const char*) particle->GetParticleName(),
 			     (const char*)p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType());
 		   }
 		}
 	     }
+	  }
+	  // Here we build the dedx tables
+	  G4double en=emin;
+	  for(G4int j=0; j<nbins; ++j) {
+	     dedx[j] = G4LossTableManager::Instance()
+		->GetDEDX(particle,en,couple);
+	     en*=delta;
 	  }
 	  if(nproc) ++npr;
        }

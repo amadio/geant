@@ -44,6 +44,8 @@
 #include "G4PVPlacement.hh"
 #include "G4SystemOfUnits.hh"
 
+G4double MaterialPosition[98][3]; 
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B1DetectorConstruction::B1DetectorConstruction()
@@ -124,6 +126,9 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
 		       0,                       //copy number
 		       checkOverlaps);          //overlaps checking
  
+     MaterialPosition[i][0] = xplace;
+     MaterialPosition[i][1] = yplace;
+     MaterialPosition[i][2] = 0.;
   // Set scoring volume to stepping action 
   // (where we will account energy deposit)
   //

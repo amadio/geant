@@ -9,4 +9,6 @@ static const char material[98][6] = {"G4_H" ,"G4_He","G4_Li","G4_Be","G4_B" ,"G4
 			  "G4_Tl","G4_Pb","G4_Bi","G4_Po","G4_At","G4_Rn","G4_Fr","G4_Ra","G4_Ac","G4_Th",
 			  "G4_Pa","G4_U" ,"G4_Np","G4_Pu","G4_Am","G4_Cm","G4_Bk","G4_Cf"};
 
+extern G4double MaterialPosition[98][3]; 
+
 static const G4int nmaterials = 98;
