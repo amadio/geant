@@ -109,13 +109,15 @@ void TPXsec::Print(Option_t *) const
 Float_t TPXsec::XS(Short_t rcode, Float_t en) const {
    for(Int_t i=0; i<fNXsec; ++i) 
       if(rcode == fRdict[i]) {
+	 if(en>=fEmax) return fXSecs[fNen-1];
+	 if(en<=fEmin) return fXSecs[0];
 	 Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
-	 Double_t en1 = TMath::Exp(fEmin+fEDelta*ibin);
-	 Double_t en2 = TMath::Exp(fEmin+fEDelta*(ibin+1));
+	 Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
+	 Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
 	 Double_t xs1 = fXSecs[i*fNen+ibin];
 	 Double_t xs2 = fXSecs[i*fNen+ibin+1];
-	 printf("%f < %f < %f\n",en1,en,en2);
-	 return xs1 + (en2-en)*xs1/(en2-en1)+(en-en1)*xs2/(en2-en1);
+	 printf("ibin %d %f < %f < %f\n",ibin,en1,en,en2);
+	 return (en2-en)*xs1/(en2-en1)+(en-en1)*xs2/(en2-en1);
       }
    Error("XS","No reaction code %d\n",rcode);
    return 0;
