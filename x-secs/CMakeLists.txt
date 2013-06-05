@@ -32,21 +32,21 @@ include_directories(${ROOT_INCLUDE_DIR})
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.cxx)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+file(GLOB lsources ${PROJECT_SOURCE_DIR}/src/*.cxx)
+file(GLOB lheaders ${PROJECT_SOURCE_DIR}/include/TM*.h ${PROJECT_SOURCE_DIR}/include/TP*.h)
 file(GLOB chdrs   ${PROJECT_SOURCE_DIR}/include/T*.h)
-#set(cdict ${PROJECT_SOURCE_DIR}/src/TXsecCint)
 set(cdict TXsecCint)
-message(${cdict})
-ROOT_GENERATE_DICTIONARY(${cdict} ${chdrs} 
-			 ${PROJECT_SOURCE_DIR}/include/TXsecLinkDef.h)
+ROOT_GENERATE_DICTIONARY(${cdict} ${chdrs} LINKDEF ${PROJECT_SOURCE_DIR}/include/TXsecLinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-SET_SOURCE_FILES_PROPERTIES(${cdict}.cxx ${cdict}.h PROPERTIES GENERATED 1)
-add_executable(exampleB1 exampleB1.cc ${sources} ${cdict}.cxx ${headers} ${cdict}.h)
-target_link_libraries(exampleB1 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+add_library(TXsec SHARED ${lsources} ${cdict}.cxx ${lheaders} ${cdict}.h)
+target_link_libraries(TXsec ${ROOT_LIBRARIES})
+add_executable(tabxsec tabxsec.cc ${sources} ${headers})
+target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L. -lTXsec)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
@@ -54,8 +54,8 @@ target_link_libraries(exampleB1 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 # relies on these scripts being in the current working directory.
 #
 set(EXAMPLEB1_SCRIPTS
-  exampleB1.in
-  exampleB1.out
+  tabxsec.in
+  tabxsec.out
   init.mac
   init_vis.mac
   run1.mac
@@ -71,15 +71,6 @@ foreach(_script ${EXAMPLEB1_SCRIPTS})
     )
 endforeach()
 
-#----------------------------------------------------------------------------
-# For internal Geant4 use - but has no effect if you build this
-# example standalone
-#
-add_custom_target(B1 DEPENDS exampleB1)
 
-#----------------------------------------------------------------------------
-# Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
-#
-install(TARGETS exampleB1 DESTINATION bin)
 
 

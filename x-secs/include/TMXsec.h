@@ -32,16 +32,28 @@ public:
    TMXsec();
    TMXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np);
    ~TMXsec();
+   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
+   Bool_t AddPartXS(Int_t kpart, const Float_t xsec[], const Short_t dict[]);
+   Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
+   Bool_t Finalise();
+   
+   Int_t Mat() const {return fMat;}
+   Float_t Emin() const {return fEmin;}
+   Float_t Emax() const {return fEmax;}
+   Int_t NEbins() const {return fNEbins;}
+   Double_t ElDelta() const {return fElDelta;}
+   Float_t XS(Int_t pdg, Short_t rcode, Float_t en) const;
+   void Dump() const;
 
 private:
-   Short_t        fMat; // Material code Z*10000+A*10+metastable level
-   Float_t        fEmin; // Min en in GeV
-   Float_t        fEmax; // Max en in Gev
-   Short_t        fNen;  // Number of log steps in energy
+   Int_t          fMat;     // Material code Z*10000+A*10+metastable level
+   Float_t        fEmin;    // Min en in GeV
+   Float_t        fEmax;    // Max en in Gev
+   Short_t        fNEbins;  // Number of log steps in energy
    Double_t       fElDelta; // Log energy step
-   Short_t        fNpart; // Number of particles
-   TPXsec        *fPXsec; // [fNpart] Cross section table per particle
-   Double_t      *fCuts; // [fNpart] Just a placeholder for the moment
+   Int_t          fNpart;   // Number of particles
+   TPXsec        *fPXsec;   // [fNpart] Cross section table per particle
+   Double_t      *fCuts;    // [fNpart] Just a placeholder for the moment
 
    ClassDef(TMXsec,1)  //Material X-secs
 

@@ -17,7 +17,8 @@
 #endif
 
 
-#pragma link C++ class TXMsec+;
-#pragma link C++ class TXPsec+;
+#pragma link C++ class TMXsec+;
+#pragma link C++ class TPXsec+;
+#pragma link C++ class TPartIndex+;
 
 #endif
