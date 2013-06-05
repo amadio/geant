@@ -40,8 +40,12 @@ private:
    Short_t        fNen;  // Number of log steps in energy
    Double_t       fElDelta; // Log energy step
    Short_t        fNpart; // Number of particles
-   TPXsec       **fPXsec; // [fNpart] Cross section table per particle
-   Double_t      *fCuts; // Just a placeholder for the moment
+   TPXsec        *fPXsec; // [fNpart] Cross section table per particle
+   Double_t      *fCuts; // [fNpart] Just a placeholder for the moment
+
+   ClassDef(TMXsec,1)  //Material X-secs
+
 };
+
 
 #endif

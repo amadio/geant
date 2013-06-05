@@ -34,11 +34,18 @@ include_directories(${ROOT_INCLUDE_DIR})
 #
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.cxx)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB chdrs   ${PROJECT_SOURCE_DIR}/include/T*.h)
+#set(cdict ${PROJECT_SOURCE_DIR}/src/TXsecCint)
+set(cdict TXsecCint)
+message(${cdict})
+ROOT_GENERATE_DICTIONARY(${cdict} ${chdrs} 
+			 ${PROJECT_SOURCE_DIR}/include/TXsecLinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(exampleB1 exampleB1.cc ${sources} ${headers})
+SET_SOURCE_FILES_PROPERTIES(${cdict}.cxx ${cdict}.h PROPERTIES GENERATED 1)
+add_executable(exampleB1 exampleB1.cc ${sources} ${cdict}.cxx ${headers} ${cdict}.h)
 target_link_libraries(exampleB1 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 #----------------------------------------------------------------------------

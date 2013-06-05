@@ -337,7 +337,8 @@ int main(int argc,char** argv)
 		      for(G4int j=0; j<nbins; ++j) {
 			 G4DynamicParticle *dp = new G4DynamicParticle(particle,G4ThreeVector(0,0,1),en);
 			 G4Track *track = new G4Track(dp,0.,pos);
-			 //			 const G4MaterialCutsCouple *cc = track->GetMaterialCutsCouple();
+			 pms->StartTracking(track);
+			 // const G4MaterialCutsCouple *cc = track->GetMaterialCutsCouple();
 			 //			 printf("%p\n",cc);
 			 //			 printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
 			 G4VMscModel *msmod = dynamic_cast<G4VMscModel*>(pms->SelectModel(en,0));

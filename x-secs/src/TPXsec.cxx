@@ -1,6 +1,8 @@
 #include <TPXsec.h>
 #include <TMath.h>
 
+ClassImp(TPXsec)
+
 //_________________________________________________________________________
 TPXsec::TPXsec():
    fPDG(0),

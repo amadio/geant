@@ -45,6 +45,8 @@ private:
    Float_t       *fTotXs;        // [fNen] table of total x-sec
    Float_t       *fXSecs;        // [fNen*fNXsec] table of partial x-sec
    Int_t         *fRdict;        // [fNXsec] reaction dictionary
+
+   ClassDef(TPXsec,1)  //Particle X-secs
 };
 
 #endif

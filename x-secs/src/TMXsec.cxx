@@ -23,15 +23,13 @@ TMXsec::TMXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np
    fNen(nen),
    fElDelta(TMath::Log(fEmax/fEmin)/fNen),
    fNpart(np),
-   fPXsec(new TPXsec*[fNpart]),
+   fPXsec(new TPXsec[fNpart]),
    fCuts(0)
 {
-   memset(fPXsec,0,fNpart*sizeof(TPXsec**));
 }
 
 //___________________________________________________________________
 TMXsec::~TMXsec() {
-   for(Int_t i=0; i<fNpart; ++i) delete fPXsec[i];
    delete fPXsec;
    delete fCuts;
 }
