@@ -182,8 +182,8 @@ int main(int argc,char** argv)
     char string[1024]="\0";
     // Array of cross sections, say max 10 processes per particle
     G4float *pxsec = new G4float[maxproc*nbins];
-    G4float *msang = new G4float[nbins];
-    G4float *mslen = new G4float[nbins];
+    // G4float *msang = new G4float[nbins];
+    // G4float *mslen = new G4float[nbins];
     G4float *dedx  = new G4float[nbins];
     short   *pdic  = new short[maxproc];
 
@@ -245,7 +245,7 @@ int main(int argc,char** argv)
        //       printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
        G4ThreeVector pos(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
        // Just a check that we are finding out the same thing...
-       const G4Material *matt = G4Material::GetMaterial(material[imat]);
+       G4Material *matt = G4Material::GetMaterial(material[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
        if(matt!=mat) printf("Funny %s %s!\n",(const char*) mat->GetName(),(const char*) mat->GetName());
        TMXsec *mxsec = secTable[imat] = new TMXsec(mat->GetZ(),
@@ -261,9 +261,18 @@ int main(int argc,char** argv)
 	  couple = theCoupleTable->GetMaterialCutsCouple(i);
 	  if (couple->GetMaterial() == mat) break;
        }
+       if(couple == 0) { 
+          G4cerr << "ERROR> Not found couple for material " << mat->GetName() << G4endl;
+       }
 
+       G4DynamicParticle dynParticle(particle, G4ThreeVector(1,0,0), 100*MeV);
+       G4Track aTrack( &dynParticle, 0.0, G4ThreeVector(0,0,0));
        G4Step step;
-       step.GetPreStepPoint()->SetMaterialCutsCouple(couple); 
+       aTrack.SetStep( &step ); 
+
+       G4StepPoint *preStepPt= step.GetPreStepPoint();
+       preStepPt->SetMaterialCutsCouple(couple); 
+       preStepPt->SetMaterial(matt); // const_cast<G4Material *>(mat) ); 
 
        // loop over all particles
        G4int kpreac=0; // number of particles with reaction, should always be the same
@@ -281,17 +290,14 @@ int main(int argc,char** argv)
 	     // Here we get the process list for this particle
 	     G4ProcessVector* pList = pManager->GetProcessList();
 
-             // Create a track with this particle - to initialise the process if necessary
-	     G4DynamicParticle dynParticle(particle, G4ThreeVector(1,0,0), 100*MeV);
-	     // G4Track aTrack( &dynParticle, 0.0, G4ThreeVector(0,0,0));
-	     //             aTrack.SetStep( &step ); 
-
 	     // loop over all processes
 	     for (G4int idx=0; idx<pList->size(); idx++) {
 		G4VProcess* p = (*pList)[idx];
 		sprintf(&string[strlen(string)]," [%s,%d,%d]",
 			(const char *)p->GetProcessName(),p->GetProcessType(),
 			p->GetProcessSubType());
+
+                G4ThreeVector  dirold(0,0,1);
 
                 // Inform the process that it will deal with this type of particle
 		//                p->StartTracking( &aTrack);
@@ -314,9 +320,10 @@ int main(int argc,char** argv)
 			  (const char*) p->GetProcessName(),
 			  p->GetProcessType(),p->GetProcessSubType()); */
 		   G4double en=emin;
+
 		   G4HadronicProcess *ph = (G4HadronicProcess*)p;
 		   for(G4int j=0; j<nbins; ++j) {
-		      G4DynamicParticle *dp = new G4DynamicParticle(particle,G4ThreeVector(0,0,1),en);
+		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirold,en);
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
 		      en*=delta;
 		      delete dp;
@@ -368,16 +375,43 @@ int main(int argc,char** argv)
 		      for(G4int j=0; j<nbins; ++j) {
 			 G4DynamicParticle *dp = new G4DynamicParticle(particle,G4ThreeVector(0,0,1),en);
 			 G4Track *track = new G4Track(dp,0.,pos);
-			 // pms->StartTracking(track);
-			 // const G4MaterialCutsCouple *cc = track->GetMaterialCutsCouple();
+                         track->SetStep( &step ); 
+			 pms->StartTracking(track);
 			 //			 printf("%p\n",cc);
 			 //			 printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
-			 G4VMscModel *msmod = dynamic_cast<G4VMscModel*>(pms->SelectModel(en,0));
-			 G4ThreeVector dirold(0,0,1), dirnew(0,0,0);
-			 dirnew = msmod->SampleScattering(dirold,0);
+                         // G4VMscModel *msmod = dynamic_cast<G4VMscModel*>(pms->SelectModel(en,0));
+
+                         // Full call to AlongStepGPIL
+                         G4double previousStep= 0.0;
+                         G4double proposedStep= 10.0*mm;
+                         G4double currentSafety= 9.0*mm;
+  		         G4GPILSelection selection;
+                         // G4double stepSize= 
+                         pms->AlongStepGetPhysicalInteractionLength(
+                                            *track,
+					    previousStep,
+					    proposedStep,
+					    currentSafety,
+					    &selection);
+
+                         // Else mimic call to AlongStepGPIL
+                         // G4double geomLen= 100.0*mm; 
+                         //   G4double trueLimit = 
+                         // msmod->ComputeTruePathLengthLimit( *track, geomLen); // Called from AlongGPIL
+
+                         // Sample Scattering
+			 G4ThreeVector  dirnew(0,0,0), displacement;
+                         G4ParticleChangeForMSC* particleChng; 
+
+                         particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pms->AlongStepDoIt( *track, step)); 
+                         dirnew= *(particleChng->GetMomentumDirection()); 
+
 			 en*=delta;
 			 nproc=TRUE;
 			 bmulsc=TRUE;
+
+                         delete track;
+                         delete dp;
 		      }
 		   } else {
 		      printf("%s: %s[%d,%d] Cannot handle yet\n",
