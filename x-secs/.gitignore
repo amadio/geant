@@ -1,3 +1,11 @@
 build
 *~
-\#*
+did.*
+*-bak
+*-
+mkout.*
+upd-*
+.DS_Store
+README.japost
+##
+setup-root.csh

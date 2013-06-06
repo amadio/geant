@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-project(B1)
+project(TabXsec)
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -53,7 +53,7 @@ target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L. -lTXsec)
 # build B1. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
-set(EXAMPLEB1_SCRIPTS
+set(TABXSEC_SCRIPTS
   tabxsec.in
   tabxsec.out
   init.mac
@@ -63,7 +63,7 @@ set(EXAMPLEB1_SCRIPTS
   vis.mac
   )
 
-foreach(_script ${EXAMPLEB1_SCRIPTS})
+foreach(_script ${TABXSEC_SCRIPTS})
   configure_file(
     ${PROJECT_SOURCE_DIR}/${_script}
     ${PROJECT_BINARY_DIR}/${_script}
