@@ -117,7 +117,8 @@ Float_t TPXsec::XS(Short_t rcode, Float_t en) const {
 	 Double_t xs1 = fXSecs[i*fNen+ibin];
 	 Double_t xs2 = fXSecs[i*fNen+ibin+1];
 	 printf("ibin %d %f < %f < %f\n",ibin,en1,en,en2);
-	 return (en2-en)*xs1/(en2-en1)+(en-en1)*xs2/(en2-en1);
+	 Double_t xrat = (en2-en)/(en2-en1);
+	 return xrat*xs1+(1-xrat)*xs2;
       }
    Error("XS","No reaction code %d\n",rcode);
    return 0;

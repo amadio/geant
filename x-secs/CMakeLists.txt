@@ -34,19 +34,18 @@ include_directories(${ROOT_INCLUDE_DIR})
 #
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
-file(GLOB lsources ${PROJECT_SOURCE_DIR}/src/*.cxx)
-file(GLOB lheaders ${PROJECT_SOURCE_DIR}/include/TM*.h ${PROJECT_SOURCE_DIR}/include/TP*.h)
-file(GLOB chdrs   ${PROJECT_SOURCE_DIR}/include/T*.h)
-set(cdict TXsecCint)
-ROOT_GENERATE_DICTIONARY(${cdict} ${chdrs} LINKDEF ${PROJECT_SOURCE_DIR}/include/TXsecLinkDef.h)
+file(GLOB lsources ${PROJECT_SOURCE_DIR}/xsec/src/*.cxx)
+file(GLOB lheaders ${PROJECT_SOURCE_DIR}/xsec/inc/T*.h)
+include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
+ROOT_GENERATE_DICTIONARY(xsecCint ${lheaders} LINKDEF ${PROJECT_SOURCE_DIR}/xsec/inc/xsecLinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_library(TXsec SHARED ${lsources} ${cdict}.cxx ${lheaders} ${cdict}.h)
-target_link_libraries(TXsec ${ROOT_LIBRARIES})
+add_library(Xsec SHARED ${lsources} xsecCint.cxx ${lheaders} xsecCint.h)
+target_link_libraries(Xsec ${ROOT_LIBRARIES})
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
-target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L. -lTXsec)
+target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L. -lXsec)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
