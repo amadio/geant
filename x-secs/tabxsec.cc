@@ -66,6 +66,7 @@
 #include <TFile.h>
 #include <TMXsec.h>
 #include <TRandom.h>
+#include <TPartIndex.h>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -185,7 +186,10 @@ int main(int argc,char** argv)
     // G4float *msang = new G4float[nbins];
     // G4float *mslen = new G4float[nbins];
     G4float *dedx  = new G4float[nbins];
+    G4int   npdic = 0;
     short   *pdic  = new short[maxproc];
+    short   *ndic = new short[100];
+    char    (*cdic)[DICLEN+1] = new char[100][DICLEN+1];
 
     // Print all processes for all particles for reference
     G4double maxwidth=0;
@@ -298,9 +302,20 @@ int main(int argc,char** argv)
 			(const char *)p->GetProcessName(),p->GetProcessType(),
 			p->GetProcessSubType());
 
+		// Add information to the process dictionary
 
-                // Inform the process that it will deal with this type of particle
-		//                p->StartTracking( &aTrack);
+		G4int pcode = p->GetProcessType()*1000+p->GetProcessSubType();
+		G4int pf = 1;
+		for(G4int ipt=0; ipt<npdic; ++ipt) if(ndic[ipt]==pcode) {
+		      pf=0;
+		      break;}
+		if(pf) {
+		   printf("Adding process %d %d %s\n",p->GetProcessType(),p->GetProcessSubType(),(const char*) p->GetProcessName());
+		   ndic[npdic]=pcode;
+		   strncpy(cdic[npdic],(const char *)p->GetProcessName(),DICLEN);
+		   cdic[npdic][DICLEN]='\0';
+		   ++npdic;
+		}
 		
 		// if it is transportation or decay we bail out
 		if(p->GetProcessType()==1||p->GetProcessType()==6) continue;
@@ -387,7 +402,7 @@ int main(int argc,char** argv)
 			      strcmp((const char*) mat->GetName(),"G4_Fe")) && 
 			    fabs(en-0.05)<1e-3) {
 			    printf("Found e- in iron and energy %fMeV!!!\n",en*1000);
-			    nrep=1000;
+			    nrep=10;
 			    }
                          const G4double previousStep= 0.0;
                          const G4double proposedStep= 10.0*mm;
@@ -418,7 +433,7 @@ int main(int argc,char** argv)
 			    particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pms->AlongStepDoIt( *track, step)); 
 			    dirnew= *(particleChng->GetMomentumDirection()); 
 			    G4double angle = dirnew.angle(dirz);
-			    printf("Correction %f, angle %f, en %f\n",proposedStep/stepSize,180*angle/pi,track->GetKineticEnergy());
+//			    printf("Correction %f, angle %f, en %f\n",proposedStep/stepSize,180*angle/pi,track->GetKineticEnergy());
 			 }
 
 			 en*=delta;
@@ -474,11 +489,13 @@ int main(int argc,char** argv)
        //       mxsec->Dump();
        mxsec->Write(material[imat]);
     } // end of material loop
+    fh->Write();
+    fh->Close();
     totsize += nbins*nmaterials;
     totsize /= 0.25*1024*1024;
     printf("Particles with reactions = %d, tot size = %11.4gMB\n",npr/nmaterials, totsize);
-    fh->Write();
-    fh->Close();
+      // Print dictionary
+    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
   }
   else {
     // interactive mode : define UI session

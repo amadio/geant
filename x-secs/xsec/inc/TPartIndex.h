@@ -12,6 +12,7 @@
 #ifndef ROOT_TPartIndex
 #define ROOT_TPartIndex
 
+#define DICLEN 12
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -33,10 +34,12 @@ public:
 private:
    TPartIndex(): fNpart(0), fNpartReac(0), fPDG(0), fPDGReac(0) {}
    static TPartIndex  *fgPartIndex;
-   Short_t        fNpart; // Total number of particles
-   Short_t        fNpartReac; // Total number of particles with reactions
+   Int_t          fNpart; // Total number of particles
+   Int_t          fNpartReac; // Total number of particles with reactions
+   Int_t          fNReac; //
    Short_t       *fPDG; // [fNpart] Correspondence PDG <-> particle number (from G4)
    Short_t       *fPDGReac; // [fNpartReac] Correspondence PDG <-> particle number with reac
+   Char_t        *fRdict[12]; // [fNReac]
 
    ClassDef(TPartIndex,1)  // Particle Index
 
