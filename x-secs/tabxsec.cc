@@ -418,7 +418,7 @@ int main(int argc,char** argv)
 			    particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pms->AlongStepDoIt( *track, step)); 
 			    dirnew= *(particleChng->GetMomentumDirection()); 
 			    G4double angle = dirnew.angle(dirz);
-			    printf("Correction = %f, angle %f\n",proposedStep/stepSize,180*angle/pi);
+			    printf("Correction %f, angle %f, en %f\n",proposedStep/stepSize,180*angle/pi,track->GetKineticEnergy());
 			 }
 
 			 en*=delta;
