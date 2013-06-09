@@ -197,6 +197,7 @@ int main(int argc,char** argv)
     G4int *pindex = new G4int[np];
     G4int *preac  = new G4int[np];
     G4int npreac = 0;
+    char **parttab = new char*[np];
     for(G4int i=0; i<np; ++i) {
        particle = theParticleTable->GetParticle(i);
        char sl[3]="ll";
@@ -205,6 +206,13 @@ int main(int argc,char** argv)
        G4double width = particle->GetPDGWidth();
        sprintf(string,"%-20s (%10d): %s %12.5g %12.5g %12.5g",(const char *)particle->GetParticleName(),
 	       particle->GetPDGEncoding(),sl,life,width,life*width/hbar_Planck*s);
+
+       const char *pnam = (const char*) particle->GetParticleName();
+       G4int pnl = strlen(pnam);
+       parttab[i] = new char[pnl+1];
+       strcpy(parttab[i],pnam);
+       parttab[i][pnl]='\0';
+
        pindex[i]=particle->GetPDGEncoding();
        G4bool nproc=FALSE;
        G4ProcessManager* pManager = particle->GetProcessManager();
@@ -241,6 +249,62 @@ int main(int argc,char** argv)
        G4ProductionCutsTable::GetProductionCutsTable();
     
     size_t numOfCouples = theCoupleTable->GetTableSize();
+
+    // Order the particle table
+    for(G4int i=0; i<np+1; ++i) 
+       for(G4int j=i; j<np; ++j) {
+	  if(pindex[i]>pindex[j]) {
+	     G4int itmp = pindex[i];
+	     pindex[i] = pindex[j];
+	     pindex[j] = itmp;
+	     char *ctmp = parttab[i];
+	     parttab[i] = parttab[j];
+	     parttab[j] = ctmp;
+	  }
+       }
+    FILE *fout = fopen("file.txt","w");
+    char line[120];
+    line[0]='\0';
+    for(G4int i=0; i<np; ++i) {
+       if(strlen(line)+strlen(parttab[i])+3<120) {
+	  strcat(line,"\"");
+	  strcat(line,parttab[i]);
+	  strcat(line,"\",");
+       } else {
+	  fprintf(fout,line);
+	  fprintf(fout,"\n");
+	  line[0]='\0';
+       }
+    }
+    if(strlen(line)>0) {
+       fprintf(fout,line);
+       fprintf(fout,"\n");
+    }
+
+    line[0]='\0';
+    for(G4int i=0; i<np; ++i) {
+       char cnum[30];
+       sprintf(cnum,"%d,",pindex[i]);
+       if(strlen(line)+strlen(cnum)<120) {
+	  strcat(line,cnum);
+       } else {
+	  fprintf(fout,line);
+	  fprintf(fout,"\n");
+	  line[0]='\0';
+       }
+    }
+    if(strlen(line)>0) {
+       fprintf(fout,line);
+       fprintf(fout,"\n");
+    }
+    fclose(fout);
+
+    TPartIndex::I()->SetPartTable(parttab,pindex,np);
+    printf("code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
+
+    // Push particle table into the TPartIndex
+
+    
 
     // loop over all materials
     const G4ThreeVector  dirz(0,0,1);
@@ -489,6 +553,7 @@ int main(int argc,char** argv)
        //       mxsec->Dump();
        mxsec->Write(material[imat]);
     } // end of material loop
+    TPartIndex::I()->Write("PartIndex");
     fh->Write();
     fh->Close();
     totsize += nbins*nmaterials;

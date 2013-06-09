@@ -16,7 +16,6 @@
 #include "dll_stl/str.h" 	 
 #endif
 
-
 #pragma link C++ class TMXsec+;
 #pragma link C++ class TPXsec+;
 #pragma link C++ class TPartIndex+;

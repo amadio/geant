@@ -64,8 +64,13 @@ Bool_t TMXsec::Finalise() {
 Float_t TMXsec::XS(Int_t pdg, Short_t rcode, Float_t en) const {
    for(Int_t i=0; i<fNpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
-	 return fPXsec[i].XS(rcode,en);
+	 return fPXsec[i].XS(TPartIndex::I()->ProcIndex(rcode),en);
    return -1;
+}
+
+//___________________________________________________________________
+Float_t TMXsec::XSindex(Int_t pindex, Short_t rindex, Float_t en) const {
+   return fPXsec[pindex].XS(rindex,en);
 }
 
 //___________________________________________________________________

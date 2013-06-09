@@ -43,6 +43,7 @@ public:
    Int_t NEbins() const {return fNEbins;}
    Double_t ElDelta() const {return fElDelta;}
    Float_t XS(Int_t pdg, Short_t rcode, Float_t en) const;
+   Float_t XSindex(Int_t pindex, Short_t rindex, Float_t en) const;
    void Dump() const;
 
 private:
