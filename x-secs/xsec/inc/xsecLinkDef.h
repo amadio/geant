@@ -18,6 +18,6 @@
 
 #pragma link C++ class TMXsec+;
 #pragma link C++ class TPXsec+;
-#pragma link C++ class TPartIndex+;
+#pragma link C++ class TPartIndex-;
 
 #endif

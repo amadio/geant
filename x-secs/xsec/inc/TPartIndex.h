@@ -27,7 +27,7 @@
 
 #define FNPROC 16
 #define FNPREA 53
-#define NMAT 100
+#define NMAT 118
 
 class TPartIndex: public TObject {
 
@@ -54,15 +54,19 @@ public:
    Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc;
       while(nr--) if(!strcmp(reac,fPName[nr])) break; if(nr<0) return nr;
 		     return fPCode[nr];}
+   static const char* MatSymb(Int_t i) {return fMatSymbol[i-1];}
+   static const char* MatName(Int_t i) {return fMatName[i-1];}
 
 private:
    static TPartIndex *fgPartIndex;
-   static const Char_t *fMatSymbol[NMAT] //
-   static const Char_t *fMatName[NMAT] // 
 
-   Int_t    fNProc;         // Number of processes
-   char    *fPName[FNPROC]; // [fNProc] Process name
-   Short_t  fPCode[FNPROC]; // G4 process codes
+   static const Int_t   fNmat=NMAT;       // Number of Materials
+   static const Char_t *fMatSymbol[NMAT]; // Symbol of Material
+   static const Char_t *fMatName[NMAT];   // Name of Material
+
+   static const Int_t   fNProc=FNPROC;    // Number of processes
+   static const char   *fPName[FNPROC];   // Process name
+   static const Short_t fPCode[FNPROC];   // G4 process codes
 
    Int_t    fNPart;         // Total number of particles
    Int_t    fNPart30;       // length of the char store

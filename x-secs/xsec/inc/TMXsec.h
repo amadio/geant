@@ -23,10 +23,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <RTypes.h>
-#include <TObject.h>
+#include <TNamed.h>
 class TPXsec;
+class TGraph;
 
-class TMXsec : public TObject {
+class TMXsec : public TNamed {
 
 public:
    TMXsec();
@@ -44,6 +45,8 @@ public:
    Double_t ElDelta() const {return fElDelta;}
    Float_t XS(Int_t pdg, Short_t rcode, Float_t en) const;
    Float_t XSindex(Int_t pindex, Short_t rindex, Float_t en) const;
+   TGraph *XSGraph(const char* part, const char *reac, 
+		   Float_t emin, Float_t emax, Int_t nbin) const;
    void Dump() const;
 
 private:

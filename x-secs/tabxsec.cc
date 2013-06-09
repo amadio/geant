@@ -551,7 +551,7 @@ int main(int argc,char** argv)
 	  exit(1);
        }
        //       mxsec->Dump();
-       mxsec->Write(material[imat]);
+       mxsec->Write();
     } // end of material loop
     TPartIndex::I()->Write("PartIndex");
     fh->Write();

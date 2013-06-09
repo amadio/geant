@@ -1,6 +1,7 @@
 #include <TMXsec.h>
 #include <TPXsec.h>
 #include <TMath.h>
+#include <TGraph.h>
 
 ClassImp(TMXsec)
 
@@ -19,6 +20,7 @@ TMXsec::TMXsec():
 
 //___________________________________________________________________
 TMXsec::TMXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np):
+   TNamed(TPartIndex::MatSymb(z),TPartIndex::MatName(z)),
    fMat(z*10000+a*10),
    fEmin(emin),
    fEmax(emax),
@@ -79,5 +81,34 @@ void TMXsec::Dump() const {
 	  fMat,fEmin,fEmax,fNEbins,fElDelta,fNpart);
    for(Int_t i=0; i<fNpart; ++i) 
       fPXsec[i].Dump();
+}
+
+//___________________________________________________________________
+TGraph* TMXsec::XSGraph(const char* part, const char *reac, 
+			Float_t emin, Float_t emax, Int_t nbin) const 
+{
+   const Double_t delta = TMath::Exp(TMath::Log(emax/emin)/(nbin-1));
+   Float_t *xsec = new Float_t[nbin];
+   Float_t *energy = new Float_t[nbin];
+   Double_t en=emin;
+   Int_t rcode = TPartIndex::I()->Rcode(reac);
+   if(rcode<0) {
+      Error("XSGraph","Unknown reaction %s\n",reac);
+      return 0;
+   }
+   Int_t pdg = TPartIndex::I()->PDG(part);
+   if(pdg < 0) {
+      Error("XSGraph","Unknown particle %s\n",part);
+      return 0;
+   }
+   for(Int_t i=0; i<nbin; ++i) {
+      energy[i] = en;
+      xsec[i] = XS(pdg,rcode,en);
+      en*=delta;
+   }
+   TGraph *tg = new TGraph(nbin,energy,xsec);
+   delete [] xsec;
+   delete [] energy;
+   return tg;
 }
 

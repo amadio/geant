@@ -44,8 +44,8 @@ private:
    Int_t          fNen;           // number of energy bins
    Int_t          fNXsec;         // number of reactions
    Int_t          fTotBin;        // tot size of fXSecs
-   Float_t        fEmin;          // min tab energy
-   Float_t        fEmax;          // max tab energy
+   Double_t       fEmin;          // min tab energy
+   Double_t       fEmax;          // max tab energy
    Double_t       fEDelta;        // logarithmic energy delta
    Float_t       *fMSangle;       // [fNen] table of MS angle
    Float_t       *fMSlength;      // [fNen] table of MS lenght correction

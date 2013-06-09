@@ -29,7 +29,7 @@ TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec,
    fTotBin(fNen*fNXsec),
    fEmin(emin),
    fEmax(emax),
-   fEDelta(TMath::Log(emax/emin)/fNen),
+   fEDelta(TMath::Log(fEmax/fEmin)/(fNen-1)),
    fMSangle(new Float_t[fNen]),
    fMSlength(new Float_t[fNen]),
    fdEdx(new Float_t[fNen]),
@@ -57,7 +57,7 @@ Bool_t TPXsec::SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t 
    fTotBin = fNen*fNXsec;
    fEmin = emin;
    fEmax = emax;
-   fEDelta = TMath::Log(emax/emin)/fNen;
+   fEDelta = TMath::Log(fEmax/fEmin)/(fNen-1);
    fMSangle = new Float_t[fNen];
    fMSlength = new Float_t[fNen];
    fdEdx = new Float_t[fNen];
@@ -71,8 +71,9 @@ Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Short_t dict[]) {
    delete [] fXSecs;
    fXSecs = new Float_t[fNXsec*fNen];
    memcpy(fXSecs,xsec,fNXsec*fNen*sizeof(Float_t));
+   for(Int_t i=0; i<fNXsec; ++i) fRdict[0]=-1;
    memset(fRdict,0,TPartIndex::I()->NProc()*sizeof(Short_t));
-   for(Int_t i=0; i<fNXsec; ++i) fRdict[TPartIndex::I()->ProcIndex(dict[i])]=i;
+   for(Int_t i=0; i<fNXsec; ++i) fRdict[i]=TPartIndex::I()->ProcIndex(dict[i]);
    return kTRUE;
 }
 
@@ -107,13 +108,21 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
    Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   ibin = ibin<fNen-1?ibin:fNen-2;
    Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
    Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
    Double_t xs1 = fXSecs[rindex*fNen+ibin];
    Double_t xs2 = fXSecs[rindex*fNen+ibin+1];
-   printf("ibin %d %f < %f < %f\n",ibin,en1,en,en2);
+   if(en1>en || en2<en) {
+      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	    ibin, en1, en, en2);
+      return 0;
+   }
    Double_t xrat = (en2-en)/(en2-en1);
-   return xrat*xs1+(1-xrat)*xs2;
+   Double_t xsec = xrat*xs1+(1-xrat)*xs2;
+   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
+	  ibin,en1,en,en2,xs1,xs2,xrat,xsec);
+   return xsec;
 }
 
 //_________________________________________________________________________
