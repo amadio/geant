@@ -27,7 +27,7 @@
 
 #define FNPROC 16
 #define FNPREA 53
-#define MAXPART 500
+#define NMAT 100
 
 class TPartIndex: public TObject {
 
@@ -57,6 +57,9 @@ public:
 
 private:
    static TPartIndex *fgPartIndex;
+   static const Char_t *fMatSymbol[NMAT] //
+   static const Char_t *fMatName[NMAT] // 
+
    Int_t    fNProc;         // Number of processes
    char    *fPName[FNPROC]; // [fNProc] Process name
    Short_t  fPCode[FNPROC]; // G4 process codes

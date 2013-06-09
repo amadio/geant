@@ -4,7 +4,7 @@
 #include <TFile.h>
 #include <TH1F.h>*/
 
-void plotxsec1(const char* mat, const char* pnam, const char* reac)
+void plotxsec(const char* mat, const char* pnam, const char* reac)
 {
    gSystem->Load("libXSec");
    TFile *fx = new TFile("xsec.root");
