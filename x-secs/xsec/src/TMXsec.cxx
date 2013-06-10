@@ -3,7 +3,11 @@
 #include <TMath.h>
 #include <TGraph.h>
 #include <TCanvas.h>
+#include <TObjArray.h>
 #include <TPartIndex.h>
+#include <TString.h>
+#include <TObjString.h>
+#include <TFile.h>
 
 ClassImp(TMXsec)
 
@@ -130,3 +134,48 @@ void TMXsec::XSDraw(const char* part, const char *reac,
    tc->SetLogx();
    tg->Draw("ACL");
 }
+
+//___________________________________________________________________
+void TMXsec::Draw(Option_t *option)
+{
+   // Draw cross sections and other physics quantities for this material
+   //
+   // Format is "particle,reaction,emin,emax,nbin"
+   // Available reactions are: 
+   // Transport,MultScatt,Ionisation,Decay,inElastic,Elastic,Capture,Brehms,PairProd",Annihilation,
+   // CoulombScatt,Photoel,Compton,Conversion,Capture,Killer
+   Char_t title[200];
+   TString opt = option;
+   TObjArray *token = opt.Tokenize(",");
+   Int_t narg = token->GetEntries();
+   if(narg<2) {
+      Error("Draw","Must speficy at least particle and reaction");
+      return;
+   }
+   if(gFile) gFile->Get("PartIndex");
+   const Char_t *part = ((TObjString *) token->At(0))->GetName();
+   if(TPartIndex::I()->PDG(part) == -12345678) {
+      Error("Draw","Particle %s does not exist\n",part);
+      TPartIndex::I()->Print("particles");
+      return;
+   }
+   const Char_t *reac = ((TObjString*) token->At(1))->GetName();
+   if(TPartIndex::I()->Rcode(reac)<0) {
+      Error("Draw","Reaction %s does not exist\n",reac);
+      TPartIndex::I()->Print("reactions");
+      return;
+   }
+   Float_t emin=1e-3;
+   if(narg>2) sscanf(((TObjString*) token->At(2))->GetName(),"%f",&emin);
+   Float_t emax=1e6;
+   if(narg>3) sscanf(((TObjString*) token->At(3))->GetName(),"%f",&emax);
+   Int_t nbin=100;
+   if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
+   TGraph *tg = XSGraph(part, reac, emin, emax, nbin);
+   snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+   gPad->SetTitle(title);
+   TCanvas *tc = new TCanvas(part,title,600,400);
+   tc->SetLogx();
+   tg->Draw("ACL");
+}
+

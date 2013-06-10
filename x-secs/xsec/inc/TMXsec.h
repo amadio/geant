@@ -51,6 +51,7 @@ public:
    void XSDraw(const char* part, const char *reac, 
 	       Float_t emin, Float_t emax, Int_t nbin) const;
    void DumpPointers() const;
+   void Draw(Option_t *option);
 
 private:
    Int_t          fMat;     // Material code Z*10000+A*10+metastable level

@@ -28,6 +28,7 @@
 #define FNPROC 16
 #define FNPREA 53
 #define NMAT 118
+#define FNPART 464
 
 class TPartIndex: public TObject {
 
@@ -54,8 +55,13 @@ public:
    Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc;
       while(nr--) if(!strcmp(reac,fPName[nr])) break; if(nr<0) return nr;
 		     return fPCode[nr];}
+   Int_t NReac() const {return fNProc;}
+   const Char_t *ReacName(Int_t i) const {return fPName[i];}
+   Int_t Rindex(const Char_t *reac) const {Int_t nr=fNProc;
+      while(nr--) if(!strcmp(reac,fPName[nr])) break; return nr;}
    static const char* MatSymb(Int_t i) {return fMatSymbol[i-1];}
    static const char* MatName(Int_t i) {return fMatName[i-1];}
+   void Print(Option_t *option="") const;
 
 private:
    static TPartIndex *fgPartIndex;
@@ -70,7 +76,7 @@ private:
 
    Int_t    fNPart;         // Total number of particles
    Int_t    fNPart30;       // length of the char store
-   Short_t *fPDG;           // [fNPart] PDG code of all part
+   Int_t   *fPDG;           // [fNPart] PDG code of all part
    Char_t  *fPnames;        // [fNPart30] Names of all part
 
    Int_t    fNReac;          // Number of particles with reactions

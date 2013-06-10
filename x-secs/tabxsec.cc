@@ -300,6 +300,8 @@ int main(int argc,char** argv)
     fclose(fout);
 
     TPartIndex::I()->SetPartTable(parttab,pindex,np);
+    /*    for(G4int i=0; i<np; ++i) printf("\"%s\",",parttab[i]);
+	  for(G4int i=0; i<np; ++i) printf("%d,",pindex[i]); */
     printf("code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
 
     // Push particle table into the TPartIndex
@@ -386,7 +388,7 @@ int main(int argc,char** argv)
 
 		// Let's start with what we know
 		if(p->GetProcessType() == 4) {
-		   // no parametrization for Z > 92 and inhelastic (but why a crash??)
+		   // no parametrization for Z > 92 and inelastic (but why a crash??)
 		   if(mat->GetZ() > 92 && 
 		      ( i == 382 || i == 383 ) && 
 		      p->GetProcessSubType() == 121) continue; 
