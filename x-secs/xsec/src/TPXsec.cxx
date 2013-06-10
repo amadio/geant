@@ -120,8 +120,8 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    }
    Double_t xrat = (en2-en)/(en2-en1);
    Double_t xsec = xrat*xs1+(1-xrat)*xs2;
-   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
-	  ibin,en1,en,en2,xs1,xs2,xrat,xsec);
+   /*   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
+	ibin,en1,en,en2,xs1,xs2,xrat,xsec); */
    return xsec;
 }
 

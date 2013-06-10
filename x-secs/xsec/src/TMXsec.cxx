@@ -2,6 +2,8 @@
 #include <TPXsec.h>
 #include <TMath.h>
 #include <TGraph.h>
+#include <TCanvas.h>
+#include <TPartIndex.h>
 
 ClassImp(TMXsec)
 
@@ -76,7 +78,7 @@ Float_t TMXsec::XSindex(Int_t pindex, Short_t rindex, Float_t en) const {
 }
 
 //___________________________________________________________________
-void TMXsec::Dump() const {
+void TMXsec::DumpPointers() const {
    printf("Material %d emin %f emax %f NEbins %d ElDelta %f Npart %d\n",
 	  fMat,fEmin,fEmax,fNEbins,fElDelta,fNpart);
    for(Int_t i=0; i<fNpart; ++i) 
@@ -87,6 +89,7 @@ void TMXsec::Dump() const {
 TGraph* TMXsec::XSGraph(const char* part, const char *reac, 
 			Float_t emin, Float_t emax, Int_t nbin) const 
 {
+   Char_t title[200];
    const Double_t delta = TMath::Exp(TMath::Log(emax/emin)/(nbin-1));
    Float_t *xsec = new Float_t[nbin];
    Float_t *energy = new Float_t[nbin];
@@ -97,7 +100,7 @@ TGraph* TMXsec::XSGraph(const char* part, const char *reac,
       return 0;
    }
    Int_t pdg = TPartIndex::I()->PDG(part);
-   if(pdg < 0) {
+   if(pdg == -12345678) {
       Error("XSGraph","Unknown particle %s\n",part);
       return 0;
    }
@@ -107,8 +110,23 @@ TGraph* TMXsec::XSGraph(const char* part, const char *reac,
       en*=delta;
    }
    TGraph *tg = new TGraph(nbin,energy,xsec);
+   memset(title,0,200);
+   snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+   tg->SetTitle(title);
    delete [] xsec;
    delete [] energy;
    return tg;
 }
 
+//___________________________________________________________________
+void TMXsec::XSDraw(const char* part, const char *reac, 
+		    Float_t emin, Float_t emax, Int_t nbin) const 
+{
+   Char_t title[200];
+   TGraph *tg = XSGraph(part, reac, emin, emax, nbin);
+   memset(title,0,200);
+   snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+   TCanvas *tc = new TCanvas(part,title,600,400);
+   tc->SetLogx();
+   tg->Draw("ACL");
+}

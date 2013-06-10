@@ -46,7 +46,7 @@ public:
    Int_t PDG(Int_t i) const {return fPDG[i];}
    Int_t PDG(const Char_t* pname) const {Int_t nr=fNPart;
       while(nr--) if(!strcmp(pname,&fPnames[30*nr])) break;
-      if(nr<0) return nr; return fPDG[nr];}
+      if(nr<0) return -12345678; return fPDG[nr];}
    const Char_t *PartName(Int_t i) const {return &fPnames[30*i];}
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
       while(np--) if(fPDG[np]==pdg) break; return np;}

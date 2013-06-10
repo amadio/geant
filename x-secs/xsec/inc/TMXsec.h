@@ -24,6 +24,7 @@
 
 #include <RTypes.h>
 #include <TNamed.h>
+class TPartIndex;
 class TPXsec;
 class TGraph;
 
@@ -47,7 +48,9 @@ public:
    Float_t XSindex(Int_t pindex, Short_t rindex, Float_t en) const;
    TGraph *XSGraph(const char* part, const char *reac, 
 		   Float_t emin, Float_t emax, Int_t nbin) const;
-   void Dump() const;
+   void XSDraw(const char* part, const char *reac, 
+	       Float_t emin, Float_t emax, Int_t nbin) const;
+   void DumpPointers() const;
 
 private:
    Int_t          fMat;     // Material code Z*10000+A*10+metastable level
