@@ -38,6 +38,7 @@ public:
    Bool_t Finalise();
    Int_t PDG() const {return fPDG;}
    Float_t XS(Short_t rindex, Float_t en) const;
+   Float_t DEdx(Float_t en) const;
    void Dump() const;
 private:
    Int_t          fPDG;           // particle pdg code

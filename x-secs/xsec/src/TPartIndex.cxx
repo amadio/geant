@@ -147,7 +147,7 @@ TPartIndex::TPartIndex():
    fPDG(0),
    fPnames(0),
    fNReac(FNPREA)
-{
+{ 
    memset(fPDGReac,0,fNReac*sizeof(Short_t));
 }
 
