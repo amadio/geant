@@ -1,4 +1,4 @@
-static const char material[98][6] = {"G4_H" ,"G4_He","G4_Li","G4_Be","G4_B" ,"G4_C" ,"G4_N" ,"G4_O" ,"G4_F" ,"G4_Ne",
+static const char materialVec[98][6] = {"G4_H" ,"G4_He","G4_Li","G4_Be","G4_B" ,"G4_C" ,"G4_N" ,"G4_O" ,"G4_F" ,"G4_Ne",
 			  "G4_Na","G4_Mg","G4_Al","G4_Si","G4_P" ,"G4_S" ,"G4_Cl","G4_Ar","G4_K" ,"G4_Ca",
 			  "G4_Sc","G4_Ti","G4_V" ,"G4_Cr","G4_Mn","G4_Fe","G4_Co","G4_Ni","G4_Cu","G4_Zn",
 			  "G4_Ga","G4_Ge","G4_As","G4_Se","G4_Br","G4_Kr","G4_Rb","G4_Sr","G4_Y" ,"G4_Zr",

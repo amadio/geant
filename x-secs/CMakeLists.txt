@@ -1,6 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+#roject(ExtractXsec)
 project(TabXsec)
 
 #----------------------------------------------------------------------------
@@ -70,6 +71,11 @@ foreach(_script ${TABXSEC_SCRIPTS})
     )
 endforeach()
 
+#----------------------------------------------------------------------------
+# Add program to the project targets
+# (this avoids the need of typing the program name after make)
+#
+add_custom_target(ExtractXsec DEPENDS tabxsec)
 
 
 
