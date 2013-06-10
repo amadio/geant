@@ -24,6 +24,7 @@
 
 #include <RTypes.h>
 #include <TNamed.h>
+class TPartIndex;
 class TPXsec;
 class TGraph;
 
@@ -45,9 +46,14 @@ public:
    Double_t ElDelta() const {return fElDelta;}
    Float_t XS(Int_t pdg, Short_t rcode, Float_t en) const;
    Float_t XSindex(Int_t pindex, Short_t rindex, Float_t en) const;
+   Float_t DEdx(Int_t pdg, Float_t en) const;
+   Float_t DEdxIndex(Int_t pindex, Float_t en) const;
    TGraph *XSGraph(const char* part, const char *reac, 
 		   Float_t emin, Float_t emax, Int_t nbin) const;
-   void Dump() const;
+   TGraph *DEdxGraph(const char* part, 
+		   Float_t emin, Float_t emax, Int_t nbin) const;
+   void DumpPointers() const;
+   void Draw(Option_t *option);
 
 private:
    Int_t          fMat;     // Material code Z*10000+A*10+metastable level

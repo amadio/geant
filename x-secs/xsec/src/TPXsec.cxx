@@ -71,9 +71,8 @@ Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Short_t dict[]) {
    delete [] fXSecs;
    fXSecs = new Float_t[fNXsec*fNen];
    memcpy(fXSecs,xsec,fNXsec*fNen*sizeof(Float_t));
-   for(Int_t i=0; i<fNXsec; ++i) fRdict[0]=-1;
-   memset(fRdict,0,TPartIndex::I()->NProc()*sizeof(Short_t));
-   for(Int_t i=0; i<fNXsec; ++i) fRdict[i]=TPartIndex::I()->ProcIndex(dict[i]);
+   for(Int_t i=0; i<TPartIndex::I()->NReac(); ++i) fRdict[i]=-1;
+   for(Int_t i=0; i<fNXsec; ++i) fRdict[TPartIndex::I()->ProcIndex(dict[i])]=i;
    return kTRUE;
 }
 
@@ -104,15 +103,15 @@ void TPXsec::Print(Option_t *) const
 }
 
 //_________________________________________________________________________
-Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
+Float_t TPXsec::DEdx(Float_t en) const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
    Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
    ibin = ibin<fNen-1?ibin:fNen-2;
    Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
    Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
-   Double_t xs1 = fXSecs[rindex*fNen+ibin];
-   Double_t xs2 = fXSecs[rindex*fNen+ibin+1];
+   Double_t xs1 = fdEdx[ibin];
+   Double_t xs2 = fdEdx[ibin+1];
    if(en1>en || en2<en) {
       Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	    ibin, en1, en, en2);
@@ -120,8 +119,32 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    }
    Double_t xrat = (en2-en)/(en2-en1);
    Double_t xsec = xrat*xs1+(1-xrat)*xs2;
-   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
-	  ibin,en1,en,en2,xs1,xs2,xrat,xsec);
+   /*   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
+	ibin,en1,en,en2,xs1,xs2,xrat,xsec); */
+   return xsec;
+}
+
+//_________________________________________________________________________
+Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
+   Int_t rnumber = fRdict[rindex];
+   if(rnumber<0) return 0;
+   en=en<=fEmax?en:fEmax;
+   en=en>=fEmin?en:fEmin;
+   Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   ibin = ibin<fNen-1?ibin:fNen-2;
+   Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
+   Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
+   Double_t xs1 = fXSecs[rnumber*fNen+ibin];
+   Double_t xs2 = fXSecs[rnumber*fNen+ibin+1];
+   if(en1>en || en2<en) {
+      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	    ibin, en1, en, en2);
+      return 0;
+   }
+   Double_t xrat = (en2-en)/(en2-en1);
+   Double_t xsec = xrat*xs1+(1-xrat)*xs2;
+   /*   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
+	ibin,en1,en,en2,xs1,xs2,xrat,xsec); */
    return xsec;
 }
 
