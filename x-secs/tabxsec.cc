@@ -441,17 +441,17 @@ int main(int argc,char** argv)
 		      nproc=TRUE;
 		   } else if(p->GetProcessSubType() == 10) {
 		      // Multiple scattering, let's see what we can do here
-		      // just a check...
+
+		      // First check particle and process
 		      if(!particle->GetPDGCharge()) {
 			 printf("ms for a neutral particle %s\n",(const char *) particle->GetParticleName());
 			 exit(1);
 		      }
 		      G4VMultipleScattering *pms = dynamic_cast<G4VMultipleScattering*>(p);
-
 		      if(!pms) { printf("Cannot cast to MS!!!\n"); exit(1); } 
+
 		      G4double en=emin;
 		      for(G4int j=0; j<nbins; ++j) {
-			 G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 
                          // Define the step size - as ftrR * range
                          G4double maxStep= 1.0*cm; 
@@ -460,25 +460,9 @@ int main(int argc,char** argv)
                          G4double range = msModel->GetRange(particle, en, couple); 
                          const G4double proposedStep= std::min( ftrR*range, maxStep ); 
 
-			 G4Track *track = new G4Track(dp,0.,pos);
-                         G4Step step;
-                         step.SetStepLength( proposedStep ); 
-                         // aTrack.SetStep( &step );  
-
-                         G4StepPoint *preStepPt= step.GetPreStepPoint();
-                         preStepPt->SetMaterialCutsCouple(couple); 
-                         preStepPt->SetMaterial(matt); // const_cast<G4Material *>(mat) ); 
-                         preStepPt->SetSafety( 1.1 * proposedStep ); 
-
-                         track->SetStep( &step ); 
-                         G4StepPoint *postStepPt= step.GetPreStepPoint(); 
-                         postStepPt->SetMomentumDirection( dirz ); 
-                         postStepPt->SetSafety( 1.1 * proposedStep ); 
-
 			 //	printf("%p\n",cc);
 			 //	printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
 
-                         // Full call to AlongStepGPIL
 			 G4int nrep=1;
 			 if(!(strcmp((const char*) particle->GetParticleName(),"e-") ||
 			      strcmp((const char*) mat->GetName(),"G4_Fe")) && 
@@ -487,13 +471,28 @@ int main(int argc,char** argv)
 			    nrep=10;
 			    }
                          const G4double previousStep= 0.0;
-
   
                         // G4double aveang = 0;
 			// G4double sigang = 0;
 			// G4double avecor = 0;
 			// G4double sigcor = 0;
 			 for(G4int is=0; is<nrep; ++is) {
+                           G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+                           G4Track *track = new G4Track(dp,0.,pos);
+                           G4Step   step;
+                           step.SetStepLength( proposedStep ); 
+                         // aTrack.SetStep( &step );  
+
+                           G4StepPoint *preStepPt= step.GetPreStepPoint();
+                           preStepPt->SetMaterialCutsCouple(couple); 
+                           preStepPt->SetMaterial(matt); // const_cast<G4Material *>(mat) ); 
+                           preStepPt->SetSafety( 1.1 * proposedStep ); 
+
+                           track->SetStep( &step ); 
+                           step.SetTrack( track ); 
+                           G4StepPoint *postStepPt= step.GetPreStepPoint(); 
+                           postStepPt->SetMomentumDirection( dirz ); 
+                           postStepPt->SetSafety( 1.1 * proposedStep ); 
 
                            // Must be initialised for every attempted step
                            postStepPt->SetMomentumDirection( dirz ); 
@@ -517,25 +516,37 @@ int main(int argc,char** argv)
                          // G4double geomLen= 100.0*mm; 
                          //   G4double trueLimit = 
                          // msmod->ComputeTruePathLengthLimit( *track, geomLen); // Called from AlongGPIL
-			    
-                         // Sample Scattering
+
+                            step.SetStepLength( stepSize );  // Set Geometry step size - mimics tracking
 			    G4ThreeVector  dirnew(0,0,0), displacement;
-			    G4ParticleChangeForMSC* particleChng; 
-			    
-			    particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pms->AlongStepDoIt( *track, step)); 
+
+                         // Sample Scattering by calling the full DoIt
+                            G4VParticleChange *pc= pms->AlongStepDoIt( *track, step);
+                                                     // *************
+			    G4ParticleChangeForMSC* particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pc); 
                             if( particleChng == 0) { G4cout << "ERROR> Incorrect type of Particle Change" << G4endl;  exit(1); } 
+
 			    dirnew= *(particleChng->GetMomentumDirection()); 
 			    G4double angle = dirnew.angle(dirz);
 			    printf("Correction %f, angle %f, en %f\n",
-                                 proposedStep/stepSize,  180*angle/pi, track->GetKineticEnergy() );
+                                   proposedStep/stepSize,  180*angle/pi, track->GetKineticEnergy() );
+
+                            pc->UpdateStepForAlongStep(&step);
+                            // step->UpdateTrack(); 
+
+                            // Post Step Do It 
+                            // G4VParticleChange *pc2= pms->PostStepDoIt( *track, step); 
+                                                         // ************
+                            // pc2->UpdateStepForPostStep(&step); 
+                            // step->UpdateTrack(); 
+
+                            delete track;
+                            delete dp;
 			 }
 
 			 en*=delta;
 			 nproc=TRUE;
 			 bmulsc=TRUE;
-
-                         delete track;
-                         delete dp;
 		      }
 		   } else {
 		      printf("%s: %s[%d,%d] Cannot handle yet\n",
