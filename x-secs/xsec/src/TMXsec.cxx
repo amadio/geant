@@ -9,6 +9,8 @@
 #include <TObjString.h>
 #include <TFile.h>
 #include <TMultiGraph.h>
+#include <TLine.h>
+#include <TText.h>
 
 ClassImp(TMXsec)
 
@@ -227,25 +229,38 @@ void TMXsec::Draw(Option_t *option)
 {
    // Draw cross sections and other physics quantities for this material
    //
-   // Format is "particle,reaction,emin,emax,nbin"
-   // Available reactions are: 
-   // Total,Transport,MultScatt,Ionisation,Decay,inElastic,Elastic,Capture,Brehms,PairProd",Annihilation,
+   TString help("Method to draw the cross sections. The format is:\n");
+   help+="particle,reaction|reaction|reaction,emin,emax,nbin:<options for draw>\n";
+   help+="Available reactions are:\n";
+   help+="Total,Transport,MultScatt,Ionisation,Decay,inElastic,Elastic,Capture,Brehms\n";
+   help+="PairProd,dEdx,MSang,MSang_sig,MSCorr,MSCorr_sig\n";
+   help+="the option All can be given to draw all reaction cross sections for a given particle\n";
+   help+="the option \"same\" superimposes the plot on the previous one";
+
    // CoulombScatt,Photoel,Compton,Conversion,Capture,Killer,dEdx,MSangle,MSlength
    const EColor col[14] = {kBlack,kGray,kRed,kGreen,kBlue, kMagenta, kCyan,
 		       kOrange, kSpring, kTeal, kAzure, kViolet, kPink };
    Char_t title[200];
    Char_t gtitle[200];
+
    TString opt = option;
    
+   static Int_t isame=0;
+
    TObjArray *sections = opt.Tokenize(":");
    TString sec1 = ((TObjString*) sections->At(0))->GetName();
    TString sec2;
    if(sections->GetEntries()>1) sec2 = ((TObjString*) sections->At(1))->GetName();
+   Bool_t same = sec2.Contains("same");
+   if (same) {
+      sec2.ReplaceAll("same","CL");
+      ++isame;
+   } else isame=0;
 
    TObjArray *token = sec1.Tokenize(",");
    Int_t narg = token->GetEntries();
    if(narg<2) {
-      Error("Draw","Must speficy at least particle and reaction");
+      Info("Draw","%s",help.Data());
       return;
    }
    const Char_t *part = ((TObjString *) token->At(0))->GetName();
@@ -275,22 +290,39 @@ void TMXsec::Draw(Option_t *option)
    Int_t nreac = rnames->GetEntries();
    snprintf(gtitle,199,"%s %s on %s",part,reactions.ReplaceAll("|",",").Data(),GetTitle());
    TMultiGraph *tmg= new TMultiGraph("G5",gtitle);
-   Int_t lcolor=0;
+   TLine **line = new TLine*[nreac];
+   TText **text = new TText*[nreac];
+   Float_t lstartx = 0.7;
+   if(isame == 2 || isame == 3) lstartx = 0.3;
+   const Float_t lendx = lstartx+0.05;
+   const Float_t tstartx = lstartx+0.07;
+   Float_t lstarty = 0.85;
+   if(isame==1 || isame==3) lstarty = 0.5;
+   const Float_t lstepy = 0.03;
+   Int_t coff = 0 + isame;
    for(Int_t j=0; j<nreac; ++j) {
       const Char_t *reac = ((TObjString*) rnames->At(j))->GetName();
       TGraph *tg;
       if(TString(reac).BeginsWith("MS")) {
 	 tg = MSGraph(part,reac,emin,emax,nbin);
 	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+	 tg->SetName(title);
 	 tg->SetTitle(title);
-	 tg->SetLineColor(col[lcolor++%14]);
-	 tmg->Add(tg/*,sec2.Data()*/);
+	 tg->SetLineColor(col[(coff+j)%14]);
+	 tmg->Add(tg,sec2.Data());
+	 line[j] = new TLine(lstartx,lstarty-lstepy*j,lendx,lstarty-lstepy*j);
+	 line[j]->SetLineColor(col[(coff+j)%14]);
+	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       } else if(!strcmp(reac,"dEdx")) {
 	 tg = DEdxGraph(part, emin, emax, nbin);
 	 snprintf(title,199,"%s dEdx on %s",part,GetTitle());
+	 tg->SetName(title);
 	 tg->SetTitle(title);
-	 tg->SetLineColor(col[lcolor++%14]);
-	 tmg->Add(tg/*,sec2.Data()*/);
+	 tg->SetLineColor(col[(coff+j)%14]);
+	 tmg->Add(tg,sec2.Data());
+	 line[j] = new TLine(lstartx,lstarty-lstepy*j,lendx,lstarty-lstepy*j);
+	 line[j]->SetLineColor(col[(coff+j)%14]);
+	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       } else {
 	 if(TPartIndex::I()->Rcode(reac)<0) {
 	    Error("Draw","Reaction %s does not exist\n",reac);
@@ -300,23 +332,47 @@ void TMXsec::Draw(Option_t *option)
 	 }
 	 tg = XSGraph(part, reac, emin, emax, nbin);
 	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+	 tg->SetName(title);
 	 tg->SetTitle(title);
-	 tg->SetLineColor(col[lcolor++%14]);
-	 tmg->Add(tg/*,sec2.Data()*/);
+	 tg->SetLineColor(col[(coff+j)%14]);
+	 tmg->Add(tg,sec2.Data());
+	 line[j] = new TLine(lstartx,lstarty-lstepy*j,lendx,lstarty-lstepy*j);
+	 line[j]->SetLineColor(col[(coff+j)%14]);
+	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       }
    }
    //   TCanvas *tc = new TCanvas(part,title,600,400);
    //   tc->SetLogx();
    const Char_t *gopt=0;
    TCanvas *tc=0;
-   if(!sec2.Contains("same")) {
+   if(!same) {
       tc = new TCanvas(part,gtitle,600,400);      
       tc->SetLogx();
-      sec2.ReplaceAll("same","CL");
    }
    if(strlen(sec2.Data())) gopt = sec2.Data();
    else gopt = "ACL";
    if(gPad) gPad->SetLogx();
    tmg->Draw(gopt);
+   TText **ptext = new TText*[nreac];
+   Char_t string[100]={"\0"};
+   if(same) {
+      snprintf(string,99,"%s on %s",part,GetTitle());
+   }
+   for(Int_t j=0;j<nreac;++j) {
+      line[j]->SetBit(TLine::kLineNDC);
+      line[j]->Draw();
+      line[j]->SetLineColor(col[(coff+j)%14]);
+      text[j]->SetNDC(kTRUE);
+      text[j]->SetTextSize(0.03);
+      text[j]->SetTextAlign(12);
+      text[j]->Draw();
+      if(same) {
+	 ptext[j]=new TText(lstartx*0.95,lstarty-lstepy*j,string);
+	 ptext[j]->SetTextSize(0.03);
+	 ptext[j]->SetNDC(kTRUE);
+	 ptext[j]->SetTextAlign(32);
+	 ptext[j]->Draw();
+      }
+   }
 }
 
