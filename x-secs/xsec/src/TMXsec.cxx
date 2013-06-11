@@ -8,6 +8,7 @@
 #include <TString.h>
 #include <TObjString.h>
 #include <TFile.h>
+#include <TMultiGraph.h>
 
 ClassImp(TMXsec)
 
@@ -49,6 +50,11 @@ Bool_t TMXsec::AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t e
    return fPXsec[kpart].SetPart(pdg,nen,nxsec,emin,emax);
 }
 
+//___________________________________________________________________
+Bool_t TMXsec::AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
+			 const Float_t length[], const Float_t lensig[]) {
+   return fPXsec[kpart].SetPartMS(angle, ansig, length, lensig);
+}
 
 //___________________________________________________________________
 Bool_t TMXsec::AddPartXS(Int_t kpart, const Float_t xsec[], const Short_t dict[]) {
@@ -92,6 +98,21 @@ Float_t TMXsec::DEdx(Int_t pdg, Float_t en) const {
 //___________________________________________________________________
 Float_t TMXsec::DEdxIndex(Int_t pindex, Float_t en) const {
    return fPXsec[pindex].DEdx(en);
+}
+
+//___________________________________________________________________
+Bool_t TMXsec::MS(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
+		  Float_t &len, Float_t &lsig) const {
+   for(Int_t i=0; i<fNpart; ++i) 
+      if(pdg == fPXsec[i].PDG()) 
+	 return fPXsec[i].MS(en,ang,asig,len,lsig);
+   return kFALSE;
+}
+
+//___________________________________________________________________
+Bool_t TMXsec::MSIndex(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, 
+		  Float_t &len, Float_t &lsig) const {
+   return fPXsec[pindex].MS(en,ang,asig,len,lsig);
 }
 
 //___________________________________________________________________
@@ -164,52 +185,138 @@ TGraph* TMXsec::DEdxGraph(const char* part,
 }
 
 //___________________________________________________________________
+TGraph* TMXsec::MSGraph(const char* part, const char* what,
+			  Float_t emin, Float_t emax, Int_t nbin) const 
+{
+   Char_t title[200];
+   const Char_t *whatname[4] = {"MSangle", "MSangle_sig", "MSCorr", "MSCorr_sig"};
+   const Double_t delta = TMath::Exp(TMath::Log(emax/emin)/(nbin-1));
+   Float_t *mscat = new Float_t[nbin];
+   Float_t *energy = new Float_t[nbin];
+   Double_t en=emin;
+   Int_t pdg = TPartIndex::I()->PDG(part);
+   if(pdg == -12345678) {
+      Error("XSGraph","Unknown particle %s\n",part);
+      return 0;
+   }
+   Int_t iopt=4;
+   while(iopt--) if(!strcmp(whatname[iopt],what)) break;
+   if(iopt<0)  {
+      Error("MSGraph","Unknown parameter %s\nShould be one of %s %s %s %s\n",
+	    what, whatname[0],whatname[1],whatname[2],whatname[3]);
+      return 0;
+   }
+   for(Int_t i=0; i<nbin; ++i) {
+      Float_t answ[4];
+      energy[i] = en;
+      MS(pdg,en,answ[0],answ[1],answ[2],answ[3]);
+      mscat[i] = answ[iopt];
+      en*=delta;
+   }
+   TGraph *tg = new TGraph(nbin,energy,mscat);
+   memset(title,0,200);
+   snprintf(title,199,"%s %s on %s",part,whatname[iopt],GetTitle());
+   tg->SetTitle(title);
+   delete [] mscat;
+   delete [] energy;
+   return tg;
+}
+
+//___________________________________________________________________
 void TMXsec::Draw(Option_t *option)
 {
    // Draw cross sections and other physics quantities for this material
    //
    // Format is "particle,reaction,emin,emax,nbin"
    // Available reactions are: 
-   // Transport,MultScatt,Ionisation,Decay,inElastic,Elastic,Capture,Brehms,PairProd",Annihilation,
-   // CoulombScatt,Photoel,Compton,Conversion,Capture,Killer
+   // Total,Transport,MultScatt,Ionisation,Decay,inElastic,Elastic,Capture,Brehms,PairProd",Annihilation,
+   // CoulombScatt,Photoel,Compton,Conversion,Capture,Killer,dEdx,MSangle,MSlength
+   const EColor col[14] = {kBlack,kGray,kRed,kGreen,kBlue, kMagenta, kCyan,
+		       kOrange, kSpring, kTeal, kAzure, kViolet, kPink };
    Char_t title[200];
+   Char_t gtitle[200];
    TString opt = option;
-   TObjArray *token = opt.Tokenize(",");
+   
+   TObjArray *sections = opt.Tokenize(":");
+   TString sec1 = ((TObjString*) sections->At(0))->GetName();
+   TString sec2;
+   if(sections->GetEntries()>1) sec2 = ((TObjString*) sections->At(1))->GetName();
+
+   TObjArray *token = sec1.Tokenize(",");
    Int_t narg = token->GetEntries();
    if(narg<2) {
       Error("Draw","Must speficy at least particle and reaction");
       return;
    }
-   if(gFile) gFile->Get("PartIndex");
    const Char_t *part = ((TObjString *) token->At(0))->GetName();
-   const Char_t *reac = ((TObjString*) token->At(1))->GetName();
+   TString reactions = ((TObjString*) token->At(1))->GetName();
    Float_t emin=1e-3;
    if(narg>2) sscanf(((TObjString*) token->At(2))->GetName(),"%f",&emin);
    Float_t emax=1e6;
    if(narg>3) sscanf(((TObjString*) token->At(3))->GetName(),"%f",&emax);
    Int_t nbin=100;
    if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
-   if(TPartIndex::I()->PDG(part) == -12345678) {
+   if(gFile) gFile->Get("PartIndex");
+   Int_t pdg = TPartIndex::I()->PDG(part);
+   if(pdg == -12345678) {
       Error("Draw","Particle %s does not exist\n",part);
       TPartIndex::I()->Print("particles");
       return;
    }
-   TGraph *tg=0;
-   if(!strcmp(reac,"dEdx")) {
-      tg = DEdxGraph(part, emin, emax, nbin);
-      snprintf(title,199,"%s dEdx on %s",part,GetTitle());
-   } else {
-      if(TPartIndex::I()->Rcode(reac)<0) {
-	 Error("Draw","Reaction %s does not exist\n",reac);
-	 TPartIndex::I()->Print("reactions");
-	 printf("dEdx\n");
-	 return;
+   if(reactions.Contains("All")) {
+      TString allrea="";
+      for(Int_t i=0; i<TPartIndex::I()->NReac()-1; ++i) {
+	 if(XS(pdg,TPartIndex::I()->ProcCode(i),emin)>=0) allrea=allrea+TPartIndex::I()->ReacName(i)+"|";
       }
-      tg = XSGraph(part, reac, emin, emax, nbin);
-      snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+      allrea+=TPartIndex::I()->ReacName(TPartIndex::I()->NReac()-1);
+      reactions.ReplaceAll("All",allrea);
    }
-   TCanvas *tc = new TCanvas(part,title,600,400);
-   tc->SetLogx();
-   tg->Draw("ACL");
+   TObjArray *rnames = reactions.Tokenize("|");
+   Int_t nreac = rnames->GetEntries();
+   snprintf(gtitle,199,"%s %s on %s",part,reactions.ReplaceAll("|",",").Data(),GetTitle());
+   TMultiGraph *tmg= new TMultiGraph("G5",gtitle);
+   Int_t lcolor=0;
+   for(Int_t j=0; j<nreac; ++j) {
+      const Char_t *reac = ((TObjString*) rnames->At(j))->GetName();
+      TGraph *tg;
+      if(TString(reac).BeginsWith("MS")) {
+	 tg = MSGraph(part,reac,emin,emax,nbin);
+	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+	 tg->SetTitle(title);
+	 tg->SetLineColor(col[lcolor++%14]);
+	 tmg->Add(tg/*,sec2.Data()*/);
+      } else if(!strcmp(reac,"dEdx")) {
+	 tg = DEdxGraph(part, emin, emax, nbin);
+	 snprintf(title,199,"%s dEdx on %s",part,GetTitle());
+	 tg->SetTitle(title);
+	 tg->SetLineColor(col[lcolor++%14]);
+	 tmg->Add(tg/*,sec2.Data()*/);
+      } else {
+	 if(TPartIndex::I()->Rcode(reac)<0) {
+	    Error("Draw","Reaction %s does not exist\n",reac);
+	    TPartIndex::I()->Print("reactions");
+	    printf("dEdx, MSangle, MSangle_sig, MSCorr, MSCorr_sig\n");
+	    return;
+	 }
+	 tg = XSGraph(part, reac, emin, emax, nbin);
+	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
+	 tg->SetTitle(title);
+	 tg->SetLineColor(col[lcolor++%14]);
+	 tmg->Add(tg/*,sec2.Data()*/);
+      }
+   }
+   //   TCanvas *tc = new TCanvas(part,title,600,400);
+   //   tc->SetLogx();
+   const Char_t *gopt=0;
+   TCanvas *tc=0;
+   if(!sec2.Contains("same")) {
+      tc = new TCanvas(part,gtitle,600,400);      
+      tc->SetLogx();
+      sec2.ReplaceAll("same","CL");
+   }
+   if(strlen(sec2.Data())) gopt = sec2.Data();
+   else gopt = "ACL";
+   if(gPad) gPad->SetLogx();
+   tmg->Draw(gopt);
 }
 

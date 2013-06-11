@@ -185,8 +185,10 @@ int main(int argc,char** argv)
     char string[1024]="\0";
     // Array of cross sections, say max 10 processes per particle
     G4float *pxsec = new G4float[maxproc*nbins];
-    // G4float *msang = new G4float[nbins];
-    // G4float *mslen = new G4float[nbins];
+    G4float *msang = new G4float[nbins];
+    G4float *mslen = new G4float[nbins];
+    G4float *msasig = new G4float[nbins];
+    G4float *mslsig = new G4float[nbins];
     G4float *dedx  = new G4float[nbins];
     G4int   npdic = 0;
     short   *pdic  = new short[maxproc];
@@ -451,6 +453,10 @@ int main(int argc,char** argv)
 		      if(!pms) { printf("Cannot cast to MS!!!\n"); exit(1); } 
 
 		      G4double en=emin;
+		      memset(msang,0,nbins*sizeof(G4float));
+		      memset(mslen,0,nbins*sizeof(G4float));
+		      memset(msasig,0,nbins*sizeof(G4float));
+		      memset(mslsig,0,nbins*sizeof(G4float));
 		      for(G4int j=0; j<nbins; ++j) {
 
                          // Define the step size - as ftrR * range
@@ -463,87 +469,81 @@ int main(int argc,char** argv)
 			 //	printf("%p\n",cc);
 			 //	printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
 
-			 G4int nrep=1;
-			 if(!(strcmp((const char*) particle->GetParticleName(),"e-") ||
-			      strcmp((const char*) mat->GetName(),"G4_Fe")) && 
-			    fabs(en-0.05)<1e-3) {
-			    printf("Found e- in iron and energy %fMeV!!!\n",en*1000);
-			    nrep=10;
-			    }
-                         const G4double previousStep= 0.0;
-  
-                        // G4double aveang = 0;
-			// G4double sigang = 0;
-			// G4double avecor = 0;
-			// G4double sigcor = 0;
+			 G4int nrep=100;
+			 
 			 for(G4int is=0; is<nrep; ++is) {
-                           G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
-                           G4Track *track = new G4Track(dp,0.,pos);
-                           G4Step   step;
-                           step.SetStepLength( proposedStep ); 
-                         // aTrack.SetStep( &step );  
-
-                           G4StepPoint *preStepPt= step.GetPreStepPoint();
-                           preStepPt->SetMaterialCutsCouple(couple); 
-                           preStepPt->SetMaterial(matt); // const_cast<G4Material *>(mat) ); 
-                           preStepPt->SetSafety( 1.1 * proposedStep ); 
-
-                           track->SetStep( &step ); 
-                           step.SetTrack( track ); 
-                           G4StepPoint *postStepPt= step.GetPreStepPoint(); 
-                           postStepPt->SetMomentumDirection( dirz ); 
-                           postStepPt->SetSafety( 1.1 * proposedStep ); 
-
-                           // Must be initialised for every attempted step
-                           postStepPt->SetMomentumDirection( dirz ); 
-                           // G4cout << " End dir - before call: " << postStepPt->GetMomentumDirection() 
-                           //        << "  was set to " << dirz << G4endl; 
-			   pms->StartTracking(track);
-                           // Value for return - safety also may be used
-                           G4double currentSafety= 9.0*mm;
-   		           G4GPILSelection selection;
-
-                         // Option 1. Mimic call to AlongStepGPIL
-                           G4double stepSize=
+			    const G4double previousStep= 0.0;
+			    G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+			    G4Track *track = new G4Track(dp,0.,pos);
+			    G4Step   step;
+			    step.SetStepLength( proposedStep ); 
+			   
+			    G4StepPoint *preStepPt= step.GetPreStepPoint();
+			    preStepPt->SetMaterialCutsCouple(couple); 
+			    preStepPt->SetMaterial(matt); // const_cast<G4Material *>(mat) ); 
+			    G4double currentSafety= 1.1 * proposedStep;
+			    preStepPt->SetSafety( currentSafety ); 
+			   
+			    track->SetStep( &step ); 
+			    step.SetTrack( track ); 
+			    G4StepPoint *postStepPt= step.GetPostStepPoint(); 
+			    postStepPt->SetMomentumDirection( dirz ); 
+			    postStepPt->SetSafety( currentSafety ); 
+			    
+			    pms->StartTracking(track);
+			    // Value for return - safety also may be used
+			    G4GPILSelection selection;
+			   
+			   // Option 1. Mimic call to AlongStepGPIL
+			    G4double stepSize=
 			       pms->AlongStepGetPhysicalInteractionLength(
 									  *track,
 									  previousStep,
 									  proposedStep,
 									  currentSafety,
 									  &selection);
-
-                         // Option 2. Get path correction from MSc model's method 
-                         // G4double geomLen= 100.0*mm; 
-                         //   G4double trueLimit = 
-                         // msmod->ComputeTruePathLengthLimit( *track, geomLen); // Called from AlongGPIL
-
-                            step.SetStepLength( stepSize );  // Set Geometry step size - mimics tracking
+			   
+			    // Option 2. Get path correction from MSc model's method 
+			    // G4double geomLen= 100.0*mm; 
+			    //   G4double trueLimit = 
+			    // msmod->ComputeTruePathLengthLimit( *track, geomLen); // Called from AlongGPIL
+			    
+			    step.SetStepLength( stepSize );  // Set Geometry step size - mimics tracking
 			    G4ThreeVector  dirnew(0,0,0), displacement;
-
-                         // Sample Scattering by calling the full DoIt
-                            G4VParticleChange *pc= pms->AlongStepDoIt( *track, step);
-                                                     // *************
+			    
+			    // Sample Scattering by calling the full DoIt
+			    G4VParticleChange *pc= pms->AlongStepDoIt( *track, step);
+			    // *************
 			    G4ParticleChangeForMSC* particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pc); 
-                            if( particleChng == 0) { G4cout << "ERROR> Incorrect type of Particle Change" << G4endl;  exit(1); } 
-
+			    if( particleChng == 0) { G4cout << "ERROR> Incorrect type of Particle Change" << G4endl;  exit(1); } 
+			    
 			    dirnew= *(particleChng->GetMomentumDirection()); 
 			    G4double angle = dirnew.angle(dirz);
-			    printf("Correction %f, angle %f, en %f\n",
-                                   proposedStep/stepSize,  180*angle/pi, track->GetKineticEnergy() );
+			    /*			    printf("Correction %f, angle %f, en %f\n",
+						    proposedStep/stepSize,  180*angle/pi, track->GetKineticEnergy() );*/
 
-                            pc->UpdateStepForAlongStep(&step);
-                            // step->UpdateTrack(); 
-
-                            // Post Step Do It 
+			    msang[j] += angle;
+			    msasig[j] += angle*angle;
+			    mslen[j] += proposedStep/stepSize;
+			    mslsig[j] += (proposedStep/stepSize)*(proposedStep/stepSize);	
+		    
+			    pc->UpdateStepForAlongStep(&step);
+			    // step->UpdateTrack(); 
+			   
+			    // Post Step Do It 
                             // G4VParticleChange *pc2= pms->PostStepDoIt( *track, step); 
-                                                         // ************
-                            // pc2->UpdateStepForPostStep(&step); 
-                            // step->UpdateTrack(); 
-
-                            delete track;
-                            delete dp;
+			    // ************
+			    // pc2->UpdateStepForPostStep(&step); 
+			    // step->UpdateTrack(); 
+			    
+			    delete track;
+			    delete dp;
 			 }
-
+			 msang[j] /= nrep;
+			 msasig[j] = msasig[j]/nrep-msang[j]*msang[j];
+			 mslen[j] /=nrep;
+			 mslsig[j] = mslsig[j]/nrep-mslen[j]*mslen[j];
+			 
 			 en*=delta;
 			 nproc=TRUE;
 			 bmulsc=TRUE;
@@ -582,6 +582,7 @@ int main(int argc,char** argv)
 	     mxsec->AddPart(kpreac,particle->GetPDGEncoding(),nbins,nprxs,emin,emax);
 	     if(nprxs) mxsec->AddPartXS(kpreac,pxsec,pdic);
 	     if(bdedx) mxsec->AddPartIon(kpreac,dedx);
+	     if(bmulsc) mxsec->AddPartMS(kpreac,msang,msasig,mslen,mslsig);
 	     ++npr; // Total number of processes to calculate size
 	     ++kpreac; // number of processes for this particle
 	  } // end of "if we have processes" for this particle

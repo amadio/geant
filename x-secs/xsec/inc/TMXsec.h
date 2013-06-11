@@ -37,6 +37,8 @@ public:
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t AddPartXS(Int_t kpart, const Float_t xsec[], const Short_t dict[]);
    Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
+   Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
+		    const Float_t length[], const Float_t lensig[]);
    Bool_t Finalise();
    
    Int_t Mat() const {return fMat;}
@@ -48,9 +50,15 @@ public:
    Float_t XSindex(Int_t pindex, Short_t rindex, Float_t en) const;
    Float_t DEdx(Int_t pdg, Float_t en) const;
    Float_t DEdxIndex(Int_t pindex, Float_t en) const;
+   Bool_t MS(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
+	     Float_t &len, Float_t &lsig) const;
+   Bool_t MSIndex(Int_t index, Float_t en, Float_t &ang, Float_t &asig, 
+		  Float_t &len, Float_t &lsig) const;
    TGraph *XSGraph(const char* part, const char *reac, 
 		   Float_t emin, Float_t emax, Int_t nbin) const;
    TGraph *DEdxGraph(const char* part, 
+		   Float_t emin, Float_t emax, Int_t nbin) const;
+   TGraph *MSGraph(const char* part, const char *what,
 		   Float_t emin, Float_t emax, Int_t nbin) const;
    void DumpPointers() const;
    void Draw(Option_t *option);

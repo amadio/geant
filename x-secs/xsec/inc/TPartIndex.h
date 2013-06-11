@@ -25,7 +25,7 @@
 
 #include <TObject.h>
 
-#define FNPROC 16
+#define FNPROC 17
 #define FNPREA 53
 #define NMAT 118
 #define FNPART 464
@@ -40,6 +40,7 @@ public:
    Short_t ProcIndex(Short_t proccode) const;
    const Char_t* ProcNameCode(Int_t proccode) const;
    const Char_t* ProcNameIndex(Int_t procindex) const;
+   Int_t ProcCode(Int_t procindex) const {return fPCode[procindex];}
    Short_t NProc() const {return fNProc;}
 
    void SetPartTable(char **names, Int_t *PDG, Int_t np);
@@ -52,7 +53,7 @@ public:
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
       while(np--) if(fPDG[np]==pdg) break; return np;}
    Int_t NPart() const {return fNPart;}
-   Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc;
+   Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc; 
       while(nr--) if(!strcmp(reac,fPName[nr])) break; if(nr<0) return nr;
 		     return fPCode[nr];}
    Int_t NReac() const {return fNProc;}

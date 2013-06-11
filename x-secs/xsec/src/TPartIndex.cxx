@@ -6,9 +6,9 @@ ClassImp(TPartIndex)
 const char* TPartIndex::fPName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
 			   "Elastic","Capture","Brehms","PairProd","Annihilation",
 			   "CoulombScatt","Photoel","Compton","Conversion","Capture",
-			   "Killer"};
+					"Killer","Total"};
 const Short_t TPartIndex::fPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
-			     2012,2013,2014,4131,7403};
+					  2012,2013,2014,4131,7403,999};
 
 const char* TPartIndex::fMatSymbol[NMAT]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
 				"Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V",
@@ -210,6 +210,7 @@ void TPartIndex::Print(Option_t *option) const
    if(opt.Contains("reactions")) {
       printf("Available reactions:\n");
       memset(line,0,120);
+      strcat(line,"Total ");
       for(Int_t i=0; i<fNProc; ++i) {
 	 if(strlen(line)+strlen(fPName[i])+1>119) {
 	    printf("%s\n",line);
