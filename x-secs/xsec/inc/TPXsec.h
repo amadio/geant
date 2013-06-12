@@ -60,7 +60,7 @@ private:
    Float_t       *fdEdx;          // [fNCbins] table of dE/dx
    Float_t       *fTotXs;         // [fNEbins] table of total x-sec
    Float_t       *fXSecs;         // [fTotBin] table of partial x-sec
-   Short_t        fRdict[FNPROC-1]; // reaction dictionary
+   Short_t        fRdict[FNPROC]; // reaction dictionary
 
    ClassDef(TPXsec,1)  //Particle X-secs
 };

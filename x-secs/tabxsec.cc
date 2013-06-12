@@ -67,6 +67,8 @@
 #include <TMXsec.h>
 #include <TRandom.h>
 #include <TPartIndex.h>
+#include <TClass.h>
+#include <TVirtualStreamerInfo.h>
 
 using namespace CLHEP;
 
@@ -147,8 +149,8 @@ int main(int argc,char** argv)
     const G4double emin = 1.e-6*GeV;
     const G4double emax = 1.e3*GeV;
     const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
-    const G4double lemin = TMath::Log10(emin/GeV);
-    const G4double lemax = TMath::Log10(emax/GeV);
+    const G4double lemin = TMath::Log10(emin);
+    const G4double lemax = TMath::Log10(emax);
     
     printf("Log emin %f Log emax %f \n",lemin, lemax);
     
@@ -310,6 +312,7 @@ int main(int argc,char** argv)
 
     // Push particle table into the TPartIndex
 
+    //    Bool_t hist=kFALSE;
     
 
     // loop over all materials
@@ -415,12 +418,14 @@ int main(int argc,char** argv)
 		   // Em process. A bit more complicated
 		   
 		   totsize += nbins;
+		   
 		   if(G4VEnergyLossProcess *ptEloss = dynamic_cast<G4VEnergyLossProcess*>(p)) {
 		      /*		      printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType()); */
 		      G4double en=emin;
+
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
 			 en*=delta;
@@ -433,11 +438,27 @@ int main(int argc,char** argv)
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType()); */
+
+		      /*		      TH1F *h=0;
+		      if(!strcmp((const char*) p->GetProcessName(),"compt")&&
+			 !strcmp(mxsec->GetName(),"Pb")) {
+			 h = new TH1F("Compton","Compton on Lead",nbins,lemin,lemax);
+			 hist = kTRUE;
+			 printf("\n\nFound Compton on Lead\n\n");
+			 }*/
+
 		      G4double en=emin;
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 //			 if(hist) h->Fill(TMath::Log10(en),ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn);
 			 en*=delta;
 		      }
+
+		      /*		      if(hist) {
+			 h->Write();
+			 hist=kFALSE;
+			 }*/
+
 		      pdic[nprxs]=ptEm->GetProcessType()*1000+ptEm->GetProcessSubType();
 		      ++nprxs;
 		      nproc=TRUE;
@@ -469,7 +490,7 @@ int main(int argc,char** argv)
 			 //	printf("%p\n",cc);
 			 //	printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
 
-			 G4int nrep=100;
+			 const G4int nrep=2;
 			 
 			 for(G4int is=0; is<nrep; ++is) {
 			    const G4double previousStep= 0.0;
@@ -540,9 +561,9 @@ int main(int argc,char** argv)
 			    delete dp;
 			 }
 			 msang[j] /= nrep;
-			 msasig[j] = msasig[j]/nrep-msang[j]*msang[j];
+			 msasig[j] = sqrt(msasig[j]/nrep-msang[j]*msang[j]);
 			 mslen[j] /=nrep;
-			 mslsig[j] = mslsig[j]/nrep-mslen[j]*mslen[j];
+			 mslsig[j] = sqrt(mslsig[j]/nrep-mslen[j]*mslen[j]);
 			 
 			 en*=delta;
 			 nproc=TRUE;
@@ -592,7 +613,6 @@ int main(int argc,char** argv)
 	  printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
 	  exit(1);
        }
-       //       mxsec->Dump();
        mxsec->Write();
     } // end of material loop
     TPartIndex::I()->Write("PartIndex");

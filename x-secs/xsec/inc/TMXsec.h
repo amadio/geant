@@ -46,13 +46,13 @@ public:
    Float_t Emax() const {return fEmax;}
    Int_t NEbins() const {return fNEbins;}
    Double_t ElDelta() const {return fElDelta;}
-   Float_t XS(Int_t pdg, Short_t rcode, Float_t en) const;
-   Float_t XSindex(Int_t pindex, Short_t rindex, Float_t en) const;
-   Float_t DEdx(Int_t pdg, Float_t en) const;
-   Float_t DEdxIndex(Int_t pindex, Float_t en) const;
-   Bool_t MS(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
+   Float_t XSPDG(Int_t pdg, Short_t rcode, Float_t en) const;
+   Float_t XS(Int_t pindex, Short_t rindex, Float_t en) const;
+   Float_t DEdxPDG(Int_t pdg, Float_t en) const;
+   Float_t DEdx(Int_t pindex, Float_t en) const;
+   Bool_t MSPDG(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;
-   Bool_t MSIndex(Int_t index, Float_t en, Float_t &ang, Float_t &asig, 
+   Bool_t MS(Int_t index, Float_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const;
    TGraph *XSGraph(const char* part, const char *reac, 
 		   Float_t emin, Float_t emax, Int_t nbin) const;
@@ -60,11 +60,18 @@ public:
 		   Float_t emin, Float_t emax, Int_t nbin) const;
    TGraph *MSGraph(const char* part, const char *what,
 		   Float_t emin, Float_t emax, Int_t nbin) const;
+
+   Float_t LambdaPDG(Int_t pdg, Double_t en) const;
+   Float_t Lambda(Int_t pindex, Double_t en) const;
+
+   const Double_t *Cuts() const {return fCuts;}
+
    void DumpPointers() const;
    void Draw(Option_t *option);
 
 private:
    Int_t          fMat;     // Material code Z*10000+A*10+metastable level
+   Double_t       fAtcm3;   // Atoms per cubic cm unit density
    Float_t        fEmin;    // Min en in GeV
    Float_t        fEmax;    // Max en in Gev
    Short_t        fNEbins;  // Number of log steps in energy

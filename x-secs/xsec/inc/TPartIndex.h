@@ -62,6 +62,7 @@ public:
       while(nr--) if(!strcmp(reac,fPName[nr])) break; return nr;}
    static const char* MatSymb(Int_t i) {return fMatSymbol[i-1];}
    static const char* MatName(Int_t i) {return fMatName[i-1];}
+   static Float_t WMat(Int_t z) {return fWmate[z];}
    void Print(Option_t *option="") const;
 
 private:
@@ -70,6 +71,7 @@ private:
    static const Int_t   fNmat=NMAT;       // Number of Materials
    static const Char_t *fMatSymbol[NMAT]; // Symbol of Material
    static const Char_t *fMatName[NMAT];   // Name of Material
+   static const Float_t fWmate[NMAT];     // Weight of a mole in grams
 
    static const Int_t   fNProc=FNPROC;    // Number of processes
    static const char   *fPName[FNPROC];   // Process name

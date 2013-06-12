@@ -11,12 +11,14 @@
 #include <TMultiGraph.h>
 #include <TLine.h>
 #include <TText.h>
+#include <TROOT.h>
 
 ClassImp(TMXsec)
 
 //___________________________________________________________________
 TMXsec::TMXsec():
    fMat(0),
+   fAtcm3(0),
    fEmin(0),
    fEmax(0),
    fNEbins(0),
@@ -31,6 +33,7 @@ TMXsec::TMXsec():
 TMXsec::TMXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np):
    TNamed(TPartIndex::MatSymb(z),TPartIndex::MatName(z)),
    fMat(z*10000+a*10),
+   fAtcm3(TMath::Na()*1e-24/TPartIndex::I()->WMat(z)),
    fEmin(emin),
    fEmax(emax),
    fNEbins(nen),
@@ -43,8 +46,8 @@ TMXsec::TMXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np
 
 //___________________________________________________________________
 TMXsec::~TMXsec() {
-   delete fPXsec;
-   delete fCuts;
+   delete [] fPXsec;
+   delete [] fCuts;
 }
 
 //___________________________________________________________________
@@ -77,7 +80,7 @@ Bool_t TMXsec::Finalise() {
 }
 
 //___________________________________________________________________
-Float_t TMXsec::XS(Int_t pdg, Short_t rcode, Float_t en) const {
+Float_t TMXsec::XSPDG(Int_t pdg, Short_t rcode, Float_t en) const {
    for(Int_t i=0; i<fNpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
 	 return fPXsec[i].XS(TPartIndex::I()->ProcIndex(rcode),en);
@@ -85,12 +88,12 @@ Float_t TMXsec::XS(Int_t pdg, Short_t rcode, Float_t en) const {
 }
 
 //___________________________________________________________________
-Float_t TMXsec::XSindex(Int_t pindex, Short_t rindex, Float_t en) const {
+Float_t TMXsec::XS(Int_t pindex, Short_t rindex, Float_t en) const {
    return fPXsec[pindex].XS(rindex,en);
 }
 
 //___________________________________________________________________
-Float_t TMXsec::DEdx(Int_t pdg, Float_t en) const {
+Float_t TMXsec::DEdxPDG(Int_t pdg, Float_t en) const {
    for(Int_t i=0; i<fNpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
 	 return fPXsec[i].DEdx(en);
@@ -98,12 +101,12 @@ Float_t TMXsec::DEdx(Int_t pdg, Float_t en) const {
 }
 
 //___________________________________________________________________
-Float_t TMXsec::DEdxIndex(Int_t pindex, Float_t en) const {
+Float_t TMXsec::DEdx(Int_t pindex, Float_t en) const {
    return fPXsec[pindex].DEdx(en);
 }
 
 //___________________________________________________________________
-Bool_t TMXsec::MS(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
+Bool_t TMXsec::MSPDG(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
    for(Int_t i=0; i<fNpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
@@ -112,7 +115,7 @@ Bool_t TMXsec::MS(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig,
 }
 
 //___________________________________________________________________
-Bool_t TMXsec::MSIndex(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, 
+Bool_t TMXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
    return fPXsec[pindex].MS(en,ang,asig,len,lsig);
 }
@@ -146,7 +149,7 @@ TGraph* TMXsec::XSGraph(const char* part, const char *reac,
    }
    for(Int_t i=0; i<nbin; ++i) {
       energy[i] = en;
-      xsec[i] = XS(pdg,rcode,en);
+      xsec[i] = XSPDG(pdg,rcode,en);
       en*=delta;
    }
    TGraph *tg = new TGraph(nbin,energy,xsec);
@@ -174,7 +177,7 @@ TGraph* TMXsec::DEdxGraph(const char* part,
    }
    for(Int_t i=0; i<nbin; ++i) {
       energy[i] = en;
-      dedx[i] = DEdx(pdg,en);
+      dedx[i] = DEdxPDG(pdg,en);
       en*=delta;
    }
    TGraph *tg = new TGraph(nbin,energy,dedx);
@@ -184,6 +187,19 @@ TGraph* TMXsec::DEdxGraph(const char* part,
    delete [] dedx;
    delete [] energy;
    return tg;
+}
+
+//___________________________________________________________________
+Float_t TMXsec::LambdaPDG(Int_t pdg, Double_t en) const {
+   for(Int_t i=0; i<fNpart; ++i) 
+      if(pdg == fPXsec[i].PDG()) 
+	 return fPXsec[i].XS(TPartIndex::I()->NReac()-1,en);
+   return TMath::Limits<Float_t>::Max();
+}
+
+//___________________________________________________________________
+Float_t TMXsec::Lambda(Int_t pindex, Double_t en) const {
+   return fPXsec[pindex].XS(TPartIndex::I()->NReac()-1,en);
 }
 
 //___________________________________________________________________
@@ -211,7 +227,7 @@ TGraph* TMXsec::MSGraph(const char* part, const char* what,
    for(Int_t i=0; i<nbin; ++i) {
       Float_t answ[4];
       energy[i] = en;
-      MS(pdg,en,answ[0],answ[1],answ[2],answ[3]);
+      MSPDG(pdg,en,answ[0],answ[1],answ[2],answ[3]);
       mscat[i] = answ[iopt];
       en*=delta;
    }
@@ -252,10 +268,6 @@ void TMXsec::Draw(Option_t *option)
    TString sec2;
    if(sections->GetEntries()>1) sec2 = ((TObjString*) sections->At(1))->GetName();
    Bool_t same = sec2.Contains("same");
-   if (same) {
-      sec2.ReplaceAll("same","CL");
-      ++isame;
-   } else isame=0;
 
    TObjArray *token = sec1.Tokenize(",");
    Int_t narg = token->GetEntries();
@@ -265,6 +277,7 @@ void TMXsec::Draw(Option_t *option)
    }
    const Char_t *part = ((TObjString *) token->At(0))->GetName();
    TString reactions = ((TObjString*) token->At(1))->GetName();
+
    Float_t emin=1e-3;
    if(narg>2) sscanf(((TObjString*) token->At(2))->GetName(),"%f",&emin);
    Float_t emax=1e6;
@@ -278,13 +291,14 @@ void TMXsec::Draw(Option_t *option)
       TPartIndex::I()->Print("particles");
       return;
    }
-   if(reactions.Contains("All")) {
+   if(reactions.Contains("All") || reactions.Contains("*")) {
       TString allrea="";
       for(Int_t i=0; i<TPartIndex::I()->NReac()-1; ++i) {
-	 if(XS(pdg,TPartIndex::I()->ProcCode(i),emin)>=0) allrea=allrea+TPartIndex::I()->ReacName(i)+"|";
+	 if(XSPDG(pdg,TPartIndex::I()->ProcCode(i),emin)>=0) allrea=allrea+TPartIndex::I()->ReacName(i)+"|";
       }
       allrea+=TPartIndex::I()->ReacName(TPartIndex::I()->NReac()-1);
       reactions.ReplaceAll("All",allrea);
+      reactions.ReplaceAll("*",allrea);
    }
    TObjArray *rnames = reactions.Tokenize("|");
    Int_t nreac = rnames->GetEntries();
@@ -293,13 +307,33 @@ void TMXsec::Draw(Option_t *option)
    TLine **line = new TLine*[nreac];
    TText **text = new TText*[nreac];
    Float_t lstartx = 0.7;
+
+   TCanvas *tc=(TCanvas*)gROOT->GetListOfCanvases()->FindObject("G5canvas");
+   if(!tc) {
+      tc = new TCanvas("G5canvas",gtitle,600,400);      
+      tc->SetLogx();
+      tc->SetLogy();
+      tc->SetGrid();
+      same = kFALSE;
+      sec2.ReplaceAll("same","");
+   }
+
+   if (same) {
+      sec2.ReplaceAll("same","C");
+      ++isame;
+   } else {
+      isame=0;
+      tc->Clear();
+      tc->SetTitle(gtitle);
+   }
+
    if(isame == 2 || isame == 3) lstartx = 0.3;
    const Float_t lendx = lstartx+0.05;
    const Float_t tstartx = lstartx+0.07;
    Float_t lstarty = 0.85;
-   if(isame==1 || isame==3) lstarty = 0.5;
+   if(isame==1 || isame==3) lstarty = 0.4;
    const Float_t lstepy = 0.03;
-   Int_t coff = 0 + isame;
+   Int_t coff = isame;
    for(Int_t j=0; j<nreac; ++j) {
       const Char_t *reac = ((TObjString*) rnames->At(j))->GetName();
       TGraph *tg;
@@ -341,17 +375,10 @@ void TMXsec::Draw(Option_t *option)
 	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       }
    }
-   //   TCanvas *tc = new TCanvas(part,title,600,400);
-   //   tc->SetLogx();
    const Char_t *gopt=0;
-   TCanvas *tc=0;
-   if(!same) {
-      tc = new TCanvas(part,gtitle,600,400);      
-      tc->SetLogx();
-   }
    if(strlen(sec2.Data())) gopt = sec2.Data();
-   else gopt = "ACL";
-   if(gPad) gPad->SetLogx();
+   else gopt = "AC";
+   tmg->SetMinimum(1e-6);
    tmg->Draw(gopt);
    TText **ptext = new TText*[nreac];
    Char_t string[100]={"\0"};
