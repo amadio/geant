@@ -490,7 +490,7 @@ int main(int argc,char** argv)
 			 //	printf("%p\n",cc);
 			 //	printf("Material %s\n",(const char*)track->GetMaterialCutsCouple()->GetMaterial()->GetName());
 
-			 const G4int nrep=2;
+			 const G4int nrep=10;
 			 
 			 for(G4int is=0; is<nrep; ++is) {
 			    const G4double previousStep= 0.0;
@@ -566,9 +566,9 @@ int main(int argc,char** argv)
 			 mslsig[j] = sqrt(mslsig[j]/nrep-mslen[j]*mslen[j]);
 			 
 			 en*=delta;
-			 nproc=TRUE;
-			 bmulsc=TRUE;
 		      }
+		      nproc=TRUE;
+		      bmulsc=TRUE;
 		   } else {
 		      printf("%s: %s[%d,%d] Cannot handle yet\n",
 			     (const char*) particle->GetParticleName(),
@@ -581,7 +581,7 @@ int main(int argc,char** argv)
 	  // Here we build the dedx tables
 	  if(nproc && particle->GetPDGCharge()) {
 	     // we only consider ionisation for particles that have other processes
-	     // This is overshooting, because even with a proton at 100TeV and a lifetime
+	     // This is overshooting, because even with a particle at 100TeV and a lifetime
 	     // of 7.4e-20 (which is the shortest lifetime for which we have reactions)
 	     // we still have a c*tau*gamma of 2.5e-3 microns!!
 	     G4double en=emin;

@@ -12,6 +12,8 @@
 #include <TLine.h>
 #include <TText.h>
 #include <TROOT.h>
+#include <TAxis.h>
+#include <TH1F.h>
 
 ClassImp(TMXsec)
 
@@ -334,6 +336,7 @@ void TMXsec::Draw(Option_t *option)
    if(isame==1 || isame==3) lstarty = 0.4;
    const Float_t lstepy = 0.03;
    Int_t coff = isame;
+   Char_t ytitle[50];
    for(Int_t j=0; j<nreac; ++j) {
       const Char_t *reac = ((TObjString*) rnames->At(j))->GetName();
       TGraph *tg;
@@ -347,7 +350,10 @@ void TMXsec::Draw(Option_t *option)
 	 line[j] = new TLine(lstartx,lstarty-lstepy*j,lendx,lstarty-lstepy*j);
 	 line[j]->SetLineColor(col[(coff+j)%14]);
 	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
+	 if(TString(reac).BeginsWith("MSangle")) snprintf(ytitle,49,"Radians");
+	 else snprintf(ytitle,49,"Relative Step Correction");
       } else if(!strcmp(reac,"dEdx")) {
+	 snprintf(ytitle,49,"MeV/cm");
 	 tg = DEdxGraph(part, emin, emax, nbin);
 	 snprintf(title,199,"%s dEdx on %s",part,GetTitle());
 	 tg->SetName(title);
@@ -358,6 +364,7 @@ void TMXsec::Draw(Option_t *option)
 	 line[j]->SetLineColor(col[(coff+j)%14]);
 	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       } else {
+	 snprintf(ytitle,49,"barn");
 	 if(TPartIndex::I()->Rcode(reac)<0) {
 	    Error("Draw","Reaction %s does not exist\n",reac);
 	    TPartIndex::I()->Print("reactions");
@@ -380,6 +387,8 @@ void TMXsec::Draw(Option_t *option)
    else gopt = "AC";
    tmg->SetMinimum(1e-6);
    tmg->Draw(gopt);
+   ((TAxis*) tmg->GetHistogram()->GetXaxis())->SetTitle("Energy (GeV)");
+   ((TAxis*) tmg->GetHistogram()->GetYaxis())->SetTitle(ytitle);
    TText **ptext = new TText*[nreac];
    Char_t string[100]={"\0"};
    if(same) {
