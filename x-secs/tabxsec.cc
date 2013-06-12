@@ -608,7 +608,6 @@ int main(int argc,char** argv)
 	     ++kpreac; // number of processes for this particle
 	  } // end of "if we have processes" for this particle
        } // end of particle loop
-       mxsec->Finalise();
        if(kpreac!=npreac) { // number of processes should not change with time!
 	  printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
 	  exit(1);

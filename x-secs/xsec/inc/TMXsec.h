@@ -39,7 +39,6 @@ public:
    Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
    Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
-   Bool_t Finalise();
    
    Int_t Mat() const {return fMat;}
    Float_t Emin() const {return fEmin;}
@@ -63,6 +62,8 @@ public:
 
    Float_t LambdaPDG(Int_t pdg, Double_t en) const;
    Float_t Lambda(Int_t pindex, Double_t en) const;
+   Int_t SampleReacPDG(Int_t pdg, Double_t en) const;
+   Int_t SampleReac(Int_t pindex, Double_t en) const;
 
    const Double_t *Cuts() const {return fCuts;}
 

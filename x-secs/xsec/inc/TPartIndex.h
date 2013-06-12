@@ -49,10 +49,16 @@ public:
    Int_t PDG(const Char_t* pname) const {Int_t nr=fNPart;
       while(nr--) if(!strcmp(pname,&fPnames[30*nr])) break;
       if(nr<0) return -12345678; return fPDG[nr];}
+
    const Char_t *PartName(Int_t i) const {return &fPnames[30*i];}
+
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
       while(np--) if(fPDG[np]==pdg) break; return np;}
+   Int_t PartIndex(const Char_t *partname) const {
+      return PartIndex(PDG(partname));}
+
    Int_t NPart() const {return fNPart;}
+
    Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc; 
       while(nr--) if(!strcmp(reac,fPName[nr])) break; if(nr<0) return nr;
 		     return fPCode[nr];}

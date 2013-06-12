@@ -74,14 +74,6 @@ Bool_t TMXsec::AddPartIon(Int_t kpart, const Float_t dedx[]) {
 }
 
 //___________________________________________________________________
-Bool_t TMXsec::Finalise() {
-   Bool_t retok = kTRUE;
-   for(Int_t i=0; i<fNpart; ++i) 
-      retok &= fPXsec[i].Finalise();
-   return retok;
-}
-
-//___________________________________________________________________
 Float_t TMXsec::XSPDG(Int_t pdg, Short_t rcode, Float_t en) const {
    for(Int_t i=0; i<fNpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
@@ -193,15 +185,34 @@ TGraph* TMXsec::DEdxGraph(const char* part,
 
 //___________________________________________________________________
 Float_t TMXsec::LambdaPDG(Int_t pdg, Double_t en) const {
+   Double_t xs=0;
    for(Int_t i=0; i<fNpart; ++i) 
-      if(pdg == fPXsec[i].PDG()) 
-	 return fPXsec[i].XS(TPartIndex::I()->NReac()-1,en);
-   return TMath::Limits<Float_t>::Max();
+      if(pdg == fPXsec[i].PDG()) {
+	 xs = fPXsec[i].XS(TPartIndex::I()->NReac()-1,en);
+	 break;
+      }
+   return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
 }
 
 //___________________________________________________________________
 Float_t TMXsec::Lambda(Int_t pindex, Double_t en) const {
-   return fPXsec[pindex].XS(TPartIndex::I()->NReac()-1,en);
+   Double_t xs=0;
+   xs = fPXsec[pindex].XS(TPartIndex::I()->NReac()-1,en);
+   return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
+}
+
+//___________________________________________________________________
+Int_t TMXsec::SampleReac(Int_t pindex, Double_t en) const {
+   return fPXsec[pindex].SampleReac(en);
+}
+
+//___________________________________________________________________
+Int_t TMXsec::SampleReacPDG(Int_t pdg, Double_t en) const {
+   for(Int_t i=0; i<fNpart; ++i) 
+      if(pdg == fPXsec[i].PDG()) {
+	 return fPXsec[i].SampleReac(en);
+      }
+   return -1;
 }
 
 //___________________________________________________________________

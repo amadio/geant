@@ -37,12 +37,12 @@ public:
    Bool_t SetPartIon(const Float_t dedx[]);
    Bool_t SetPartMS(const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
-   Bool_t Finalise();
    Int_t PDG() const {return fPDG;}
    Float_t XS(Short_t rindex, Float_t en) const;
    Float_t DEdx(Float_t en) const;
    Bool_t MS(Float_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;
+   Int_t SampleReac(Double_t en) const;
    void Dump() const;
 private:
    Int_t          fPDG;           // particle pdg code
@@ -60,7 +60,10 @@ private:
    Float_t       *fdEdx;          // [fNCbins] table of dE/dx
    Float_t       *fTotXs;         // [fNEbins] table of total x-sec
    Float_t       *fXSecs;         // [fTotBin] table of partial x-sec
-   Short_t        fRdict[FNPROC]; // reaction dictionary
+   Short_t        fRdict[FNPROC]; // reaction dictionary from reaction number to position
+                                  // in the X-sec array
+   Short_t        fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
+                                  // array to the raction number
 
    ClassDef(TPXsec,1)  //Particle X-secs
 };

@@ -1,5 +1,6 @@
 #include <TPXsec.h>
 #include <TMath.h>
+#include <TRandom.h>
 
 ClassImp(TPXsec)
 
@@ -21,6 +22,7 @@ TPXsec::TPXsec():
    fXSecs(0)
 {
    memset(fRdict,0,TPartIndex::I()->NProc()*sizeof(Short_t));
+   memset(fRmap,0,TPartIndex::I()->NProc()*sizeof(Short_t));
 }
 
 //_________________________________________________________________________
@@ -42,6 +44,7 @@ TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec,
    fXSecs(new Float_t[fNEbins*fNXsec])
 {
    memset(fRdict,0,TPartIndex::I()->NProc()*sizeof(Short_t));
+   memset(fRmap,0,TPartIndex::I()->NProc()*sizeof(Short_t));
 }
 
 //_________________________________________________________________________
@@ -72,9 +75,26 @@ Bool_t TPXsec::SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t 
 Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Short_t dict[]) {
    delete [] fXSecs;
    fXSecs = new Float_t[fNXsec*fNEbins];
-   memcpy(fXSecs,xsec,fNXsec*fNEbins*sizeof(Float_t));
-   for(Int_t i=0; i<TPartIndex::I()->NReac(); ++i) fRdict[i]=-1;
-   for(Int_t i=0; i<fNXsec; ++i) fRdict[TPartIndex::I()->ProcIndex(dict[i])]=i;
+   for(Int_t jxsec=0; jxsec<fNXsec; ++jxsec)
+      for(Int_t jbin=0; jbin<fNEbins; ++jbin)
+	 fXSecs[jbin*fNXsec+jxsec] = xsec[jxsec*fNEbins+jbin];
+   for(Int_t i=0; i<TPartIndex::I()->NReac(); ++i) fRdict[i]=fRmap[i]=-1;
+   for(Int_t i=0; i<fNXsec; ++i) {
+      fRdict[TPartIndex::I()->ProcIndex(dict[i])]=i;
+      fRmap[i]=TPartIndex::I()->ProcIndex(dict[i]);
+   }
+   // consistency
+   for(Int_t i=0; i<fNXsec; ++i) 
+      if(fRdict[fRmap[i]] != i) 
+	 Fatal("SetPartXS","Dictionary mismatch for!");
+
+   delete [] fTotXs;
+   fTotXs = new Float_t[fNEbins];
+   for(Int_t i=0; i<fNEbins; ++i) {
+      fTotXs[i]=0;
+      for(Int_t j=0; j<fNXsec; ++j) fTotXs[i]+=fXSecs[i*fNXsec+j];
+      for(Int_t j=0; j<fNXsec; ++j) fXSecs[i*fNXsec+j]/=fTotXs[i];
+   }
    return kTRUE;
 }
 
@@ -108,18 +128,6 @@ Bool_t TPXsec::SetPartMS(const Float_t angle[], const Float_t ansig[],
    fMSlensig = new Float_t[fNCbins];
    memcpy(fMSlensig,lensig,fNCbins*sizeof(Float_t));
 
-   return kTRUE;
-}
-
-//___________________________________________________________________
-Bool_t TPXsec::Finalise() {
-   delete [] fTotXs;
-   fTotXs = new Float_t[fNEbins];
-   for(Int_t i=0; i<fNEbins; ++i) {
-      fTotXs[i]=0;
-      for(Int_t j=0; j<fNXsec; ++j) fTotXs[i]+=fXSecs[j*fNEbins+i];
-      for(Int_t j=0; j<fNXsec; ++j) fXSecs[j*fNEbins+i]/=fTotXs[i];
-   }
    return kTRUE;
 }
 
@@ -178,6 +186,32 @@ Bool_t TPXsec::MS(Float_t en, Float_t &ang, Float_t &asig,
 }
 
 //_________________________________________________________________________
+Int_t TPXsec::SampleReac(Double_t en)  const {
+   en=en<=fEmax?en:fEmax;
+   en=en>=fEmin?en:fEmin;
+   Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+   Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
+   Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
+   if(en1>en || en2<en) {
+      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	    ibin, en1, en, en2);
+      return 0;
+   }
+   Double_t xrat = (en2-en)/(en2-en1);
+   Double_t xnorm = 1.;
+   while(1) {
+      Double_t ran = xnorm*gRandom->Rndm();
+      Double_t xsum=0;
+      for(Int_t i=0; i<fNXsec; ++i) {
+	 xsum+=xrat*fXSecs[ibin*fNXsec+i]+(1-xrat)*fXSecs[(ibin+1)*fNXsec+i];
+	 if(ran<=xsum) return fRmap[i];
+      }
+      xnorm = xsum;
+   }
+}
+
+//_________________________________________________________________________
 Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
@@ -201,8 +235,8 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
 	       TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
 	 return -1;
       }
-      xsec = xrat*fXSecs[rnumber*fNEbins+ibin]+
-	 (1-xrat)*fXSecs[rnumber*fNEbins+ibin+1];
+      xsec = xrat*fXSecs[ibin*fNXsec+rnumber]+
+	 (1-xrat)*fXSecs[(ibin+1)*fNXsec+rnumber];
    }
    return xsec*xtot;
 }
