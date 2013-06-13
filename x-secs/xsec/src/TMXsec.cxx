@@ -322,6 +322,7 @@ void TMXsec::Draw(Option_t *option)
    Float_t lstartx = 0.7;
 
    TCanvas *tc=(TCanvas*)gROOT->GetListOfCanvases()->FindObject("G5canvas");
+   //   if(!tc) tc = (TCanvas*)gROOT->GetListOfCanvases()->At(0);
    if(!tc) {
       tc = new TCanvas("G5canvas",gtitle,600,400);      
       tc->SetLogx();
@@ -398,8 +399,10 @@ void TMXsec::Draw(Option_t *option)
    else gopt = "AC";
    tmg->SetMinimum(1e-6);
    tmg->Draw(gopt);
-   ((TAxis*) tmg->GetHistogram()->GetXaxis())->SetTitle("Energy (GeV)");
-   ((TAxis*) tmg->GetHistogram()->GetYaxis())->SetTitle(ytitle);
+   if(!same) {
+      ((TAxis*) tmg->GetHistogram()->GetXaxis())->SetTitle("Energy (GeV)");
+      ((TAxis*) tmg->GetHistogram()->GetYaxis())->SetTitle(ytitle);
+   }
    TText **ptext = new TText*[nreac];
    Char_t string[100]={"\0"};
    if(same) {

@@ -250,6 +250,21 @@ int main(int argc,char** argv)
     printf("Reactions for life above %g(%g) and width below %g(%g) (%g)\n",
 	   minlife,maxwidthl,maxwidth,minlifew,minlife*maxwidth/hbar_Planck*s);
     printf("Found %d particles with reactions\n",npreac);
+    TPartIndex::I()->SetPartReac(preac,npreac);
+    
+    char line[120];
+    line[0]='\0';
+    char chpdf[20];
+    for(G4int i=0; i<npreac; ++i) {
+       snprintf(chpdf,19,"%d,",preac[i]);
+       if(strlen(line)+strlen(chpdf)<120) {
+	  strcat(line,chpdf);
+       } else {
+	  printf("%s\n", line);
+	  snprintf(line,19,"%s",chpdf);
+       }
+    }
+    if(strlen(line)>0) printf("%s\n",line);
 	     
     G4ProductionCutsTable* theCoupleTable =
        G4ProductionCutsTable::GetProductionCutsTable();
@@ -269,7 +284,6 @@ int main(int argc,char** argv)
 	  }
        }
     FILE *fout = fopen("file.txt","w");
-    char line[120];
     line[0]='\0';
     for(G4int i=0; i<np; ++i) {
        if(strlen(line)+strlen(parttab[i])+3<120) {
@@ -277,32 +291,25 @@ int main(int argc,char** argv)
 	  strcat(line,parttab[i]);
 	  strcat(line,"\",");
        } else {
-	  fprintf(fout, "%s", line);
-	  fprintf(fout,"\n");
-	  line[0]='\0';
+	  fprintf(fout, "%s\n", line);
+	  snprintf(line,100,"%s",parttab[i]);
        }
     }
-    if(strlen(line)>0) {
-       fprintf(fout,"%s",line);
-       fprintf(fout,"\n");
-    }
+    if(strlen(line)>0) fprintf(fout,"%s\n",line);
 
     line[0]='\0';
+    char cnum[30];
     for(G4int i=0; i<np; ++i) {
-       char cnum[30];
-       sprintf(cnum,"%d,",pindex[i]);
+       snprintf(cnum,29,"%d,",pindex[i]);
        if(strlen(line)+strlen(cnum)<120) {
 	  strcat(line,cnum);
        } else {
-	  fprintf(fout,"%s",line);
-	  fprintf(fout,"\n");
-	  line[0]='\0';
+	  fprintf(fout,"%s\n",line);
+	  snprintf(line,29,"%s",cnum);
        }
     }
-    if(strlen(line)>0) {
-       fprintf(fout,"%s",line);
-       fprintf(fout,"\n");
-    }
+    if(strlen(line)>0) fprintf(fout,"%s\n",line);
+
     fclose(fout);
 
     TPartIndex::I()->SetPartTable(parttab,pindex,np);
@@ -599,13 +606,19 @@ int main(int argc,char** argv)
 		printf("==========================>>>> Error %d %d %d\n",
 		       npr%npreac,preac[npr%npreac],particle->GetPDGEncoding());
 	     }
+	     
 	     // we have a material with x-sec for this particle. we add it
 	     mxsec->AddPart(kpreac,particle->GetPDGEncoding(),nbins,nprxs,emin,emax);
 	     if(nprxs) mxsec->AddPartXS(kpreac,pxsec,pdic);
 	     if(bdedx) mxsec->AddPartIon(kpreac,dedx);
 	     if(bmulsc) mxsec->AddPartMS(kpreac,msang,msasig,mslen,mslsig);
 	     ++npr; // Total number of processes to calculate size
-	     ++kpreac; // number of processes for this particle
+	     if(kpreac != TPartIndex::I()->PartReacIndex(particle->GetPDGEncoding())) {
+		printf("\nError in the particle index %d %d %d %s\n\n",
+		       kpreac,TPartIndex::I()->PartReacIndex(particle->GetPDGEncoding()),
+		       particle->GetPDGEncoding(),(const char*) particle->GetParticleName());
+	     }
+	     ++kpreac; // number particle with processes
 	  } // end of "if we have processes" for this particle
        } // end of particle loop
        if(kpreac!=npreac) { // number of processes should not change with time!

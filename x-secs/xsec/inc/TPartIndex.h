@@ -49,7 +49,6 @@ public:
    Int_t PDG(const Char_t* pname) const {Int_t nr=fNPart;
       while(nr--) if(!strcmp(pname,&fPnames[30*nr])) break;
       if(nr<0) return -12345678; return fPDG[nr];}
-
    const Char_t *PartName(Int_t i) const {return &fPnames[30*i];}
 
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
@@ -58,6 +57,17 @@ public:
       return PartIndex(PDG(partname));}
 
    Int_t NPart() const {return fNPart;}
+
+   Int_t NPartReac() const {return fNReac;}
+   Bool_t SetPartReac(const Int_t reacpdg[], Int_t np) {
+      if(np != fNReac) {
+	 Error("SetPartReac","np is %d and should be %d\n",np,fNReac);
+	 exit(1);
+	 return kFALSE;}
+      for(Int_t i=0; i<np; ++i) fPDGReac[i]=reacpdg[i];
+      return kTRUE;}
+   Int_t PartReacIndex(Int_t pdg) {Int_t np=fNReac;
+      while(np--) if(fPDGReac[np]==pdg) break; return np;}
 
    Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc; 
       while(nr--) if(!strcmp(reac,fPName[nr])) break; if(nr<0) return nr;
@@ -89,7 +99,7 @@ private:
    Char_t  *fPnames;        // [fNPart30] Names of all part
 
    Int_t    fNReac;          // Number of particles with reactions
-   Short_t  fPDGReac[FNPREA];// Correspondence PDG <-> particle number with reac
+   Int_t    fPDGReac[FNPREA];// Correspondence PDG <-> particle number with reac
 
    ClassDef(TPartIndex,1)  // Particle Index
 
