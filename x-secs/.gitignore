@@ -5,6 +5,10 @@ did.*
 *-
 mkout.*
 upd-*
+*.d
+*.so
+*.dylib
+*.o
 .DS_Store
 README.japost
 ##
