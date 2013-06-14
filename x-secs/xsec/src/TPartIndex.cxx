@@ -3,14 +3,14 @@
 
 ClassImp(TPartIndex)
 
-const char* TPartIndex::fPName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
+const char* TPartIndex::fPrName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
 			   "Elastic","Capture","Brehms","PairProd","Annihilation",
 			   "CoulombScatt","Photoel","Compton","Conversion","Capture",
 					"Killer","Total"};
 const Short_t TPartIndex::fPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
 					  2012,2013,2014,4131,7403,999};
 
-const char* TPartIndex::fMatSymbol[NMAT]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
+const char* TPartIndex::fEleSymbol[NMAT]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
 				"Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V",
 				"Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se",
 				"Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh",
@@ -21,7 +21,7 @@ const char* TPartIndex::fMatSymbol[NMAT]={"H","He","Li","Be","B","C","N","O","F"
 				"Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm",
 				"Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg",
 				"Cn","Uut","Fl","Uup","Lv","Uus","Uuo"};
-const char* TPartIndex::fMatName[NMAT]={"Hydrogen","Helium","Lithium","Beryllium","Boron",
+const char* TPartIndex::fEleName[NMAT]={"Hydrogen","Helium","Lithium","Beryllium","Boron",
 				"Carbon","Nitrogen","Oxygen","Fluorine","Neon",
 				"Sodium","Magnesium","Aluminium","Silicon","Phosphorus",
 				"Sulfur","Chlorine","Argon","Potassium","Calcium",
@@ -46,7 +46,7 @@ const char* TPartIndex::fMatName[NMAT]={"Hydrogen","Helium","Lithium","Beryllium
 				"Flerovium","Ununpentium","Livermorium","Ununseptium",
 				"Ununoctium"};
 
-const Float_t TPartIndex::fWmate[NMAT]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
+const Float_t TPartIndex::fWElem[NMAT]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
 					18.998,20.180,22.990,24.305,26.982,28.085,30.974,32.06,
 					35.45,39.948,39.098,40.078,44.956,47.867,50.942,51.996,
 					54.938,55.845,58.933,58.693,63.546,65.38,69.723,72.63,
@@ -163,9 +163,9 @@ TPartIndex::TPartIndex():
    fNPart30(0),
    fPDG(0),
    fPnames(0),
-   fNReac(FNPREA)
+   fNpReac(FNPREA)
 { 
-   memset(fPDGReac,0,fNReac*sizeof(Short_t));
+   memset(fPDGReac,0,fNpReac*sizeof(Short_t));
 }
 
 //___________________________________________________________________
@@ -183,13 +183,13 @@ Short_t TPartIndex::ProcIndex(Short_t proccode) const {
 const Char_t *TPartIndex::ProcNameCode(Int_t pcode) const {
    Int_t ip=ProcIndex(pcode);
    if(ip<0) return "Unknown";
-   else return fPName[ip];
+   else return fPrName[ip];
 }
 
 //___________________________________________________________________
 const Char_t *TPartIndex::ProcNameIndex(Int_t pindex) const {
    if(pindex<0 || pindex>=fNProc) return "Unknown";
-   return fPName[pindex];
+   return fPrName[pindex];
 }
 
 //___________________________________________________________________
@@ -229,11 +229,11 @@ void TPartIndex::Print(Option_t *option) const
       memset(line,0,120);
       strcat(line,"Total ");
       for(Int_t i=0; i<fNProc; ++i) {
-	 if(strlen(line)+strlen(fPName[i])+1>119) {
+	 if(strlen(line)+strlen(fPrName[i])+1>119) {
 	    printf("%s\n",line);
 	    memset(line,0,120);
 	 }
-	 strcat(line,fPName[i]);
+	 strcat(line,fPrName[i]);
 	 strcat(line," ");
       }
       if(strlen(line)) printf("%s\n",line);

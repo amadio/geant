@@ -78,7 +78,7 @@ Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Short_t dict[]) {
    for(Int_t jxsec=0; jxsec<fNXsec; ++jxsec)
       for(Int_t jbin=0; jbin<fNEbins; ++jbin)
 	 fXSecs[jbin*fNXsec+jxsec] = xsec[jxsec*fNEbins+jbin];
-   for(Int_t i=0; i<TPartIndex::I()->NReac(); ++i) fRdict[i]=fRmap[i]=-1;
+   for(Int_t i=0; i<TPartIndex::I()->NProc(); ++i) fRdict[i]=fRmap[i]=-1;
    for(Int_t i=0; i<fNXsec; ++i) {
       fRdict[TPartIndex::I()->ProcIndex(dict[i])]=i;
       fRmap[i]=TPartIndex::I()->ProcIndex(dict[i]);
@@ -228,7 +228,7 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
 
    Double_t xtot = (xrat*fTotXs[ibin]+(1-xrat)*fTotXs[ibin+1]);
    Double_t xsec = 1;
-   if(rindex<TPartIndex::I()->NReac()-1) {
+   if(rindex<TPartIndex::I()->NProc()-1) {
       Int_t rnumber = fRdict[rindex];
       if(rnumber<0) {
 	 Error("XS","No %s for %s\n",TPartIndex::I()->ReacName(rindex),

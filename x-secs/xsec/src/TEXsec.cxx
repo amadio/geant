@@ -19,7 +19,7 @@ ClassImp(TEXsec)
 
 //___________________________________________________________________
 TEXsec::TEXsec():
-   fMat(0),
+   fEle(0),
    fAtcm3(0),
    fEmin(0),
    fEmax(0),
@@ -33,9 +33,9 @@ TEXsec::TEXsec():
 
 //___________________________________________________________________
 TEXsec::TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np):
-   TNamed(TPartIndex::MatSymb(z),TPartIndex::MatName(z)),
-   fMat(z*10000+a*10),
-   fAtcm3(TMath::Na()*1e-24/TPartIndex::I()->WMat(z)),
+   TNamed(TPartIndex::EleSymb(z),TPartIndex::EleName(z)),
+   fEle(z*10000+a*10),
+   fAtcm3(TMath::Na()*1e-24/TPartIndex::I()->WEle(z)),
    fEmin(emin),
    fEmax(emax),
    fNEbins(nen),
@@ -117,7 +117,7 @@ Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig,
 //___________________________________________________________________
 void TEXsec::DumpPointers() const {
    printf("Material %d emin %f emax %f NEbins %d ElDelta %f Npart %d\n",
-	  fMat,fEmin,fEmax,fNEbins,fElDelta,fNpart);
+	  fEle,fEmin,fEmax,fNEbins,fElDelta,fNpart);
    for(Int_t i=0; i<fNpart; ++i) 
       fPXsec[i].Dump();
 }
@@ -188,7 +188,7 @@ Float_t TEXsec::LambdaPDG(Int_t pdg, Double_t en) const {
    Double_t xs=0;
    for(Int_t i=0; i<fNpart; ++i) 
       if(pdg == fPXsec[i].PDG()) {
-	 xs = fPXsec[i].XS(TPartIndex::I()->NReac()-1,en);
+	 xs = fPXsec[i].XS(TPartIndex::I()->NProc()-1,en);
 	 break;
       }
    return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
@@ -197,7 +197,7 @@ Float_t TEXsec::LambdaPDG(Int_t pdg, Double_t en) const {
 //___________________________________________________________________
 Float_t TEXsec::Lambda(Int_t pindex, Double_t en) const {
    Double_t xs=0;
-   xs = fPXsec[pindex].XS(TPartIndex::I()->NReac()-1,en);
+   xs = fPXsec[pindex].XS(TPartIndex::I()->NProc()-1,en);
    return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
 }
 
@@ -306,10 +306,10 @@ void TEXsec::Draw(Option_t *option)
    }
    if(reactions.Contains("All") || reactions.Contains("*")) {
       TString allrea="";
-      for(Int_t i=0; i<TPartIndex::I()->NReac()-1; ++i) {
+      for(Int_t i=0; i<TPartIndex::I()->NProc()-1; ++i) {
 	 if(XSPDG(pdg,TPartIndex::I()->ProcCode(i),emin)>=0) allrea=allrea+TPartIndex::I()->ReacName(i)+"|";
       }
-      allrea+=TPartIndex::I()->ReacName(TPartIndex::I()->NReac()-1);
+      allrea+=TPartIndex::I()->ReacName(TPartIndex::I()->NProc()-1);
       reactions.ReplaceAll("All",allrea);
       reactions.ReplaceAll("*",allrea);
    }

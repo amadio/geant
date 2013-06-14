@@ -40,7 +40,7 @@ public:
    Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
    
-   Int_t Mat() const {return fMat;}
+   Int_t Ele() const {return fEle;}
    Float_t Emin() const {return fEmin;}
    Float_t Emax() const {return fEmax;}
    Int_t NEbins() const {return fNEbins;}
@@ -71,7 +71,7 @@ public:
    void Draw(Option_t *option);
 
 private:
-   Int_t          fMat;     // Material code Z*10000+A*10+metastable level
+   Int_t          fEle;     // Element code Z*10000+A*10+metastable level
    Double_t       fAtcm3;   // Atoms per cubic cm unit density
    Float_t        fEmin;    // Min en in GeV
    Float_t        fEmax;    // Max en in Gev

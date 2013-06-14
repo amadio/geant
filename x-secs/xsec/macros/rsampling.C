@@ -24,7 +24,7 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
    // Sampling of reactions
    TFile *f = new TFile("xsec.root");
    f->Get("PartIndex");
-   Int_t nproc = TPartIndex::I()->NReac();
+   Int_t nproc = TPartIndex::I()->NProc();
    Double_t *e = new Double_t[nbins];
    Double_t *x = new Double_t[nbins];
    TH1F **histos = new TH1F*[nproc];
