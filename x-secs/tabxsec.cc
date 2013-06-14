@@ -64,7 +64,7 @@
 #include <TH1F.h>
 #include <TMath.h>
 #include <TFile.h>
-#include <TMXsec.h>
+#include <TEXsec.h>
 #include <TRandom.h>
 #include <TPartIndex.h>
 #include <TClass.h>
@@ -181,7 +181,7 @@ int main(int argc,char** argv)
     //
     // Let's build the material table
     G4MaterialTable *theMaterialTable = (G4MaterialTable*)G4Material::GetMaterialTable();
-    TMXsec **secTable = new TMXsec*[nmaterials];
+    TEXsec **secTable = new TEXsec*[nmaterials];
     //
     // now let's go for cross sections
     char string[1024]="\0";
@@ -333,7 +333,7 @@ int main(int argc,char** argv)
        G4Material *matt = G4Material::GetMaterial(materialVec[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
        if(matt!=mat) printf("Funny %s %s!\n",(const char*) mat->GetName(),(const char*) mat->GetName());
-       TMXsec *mxsec = secTable[imat] = new TMXsec(mat->GetZ(),
+       TEXsec *mxsec = secTable[imat] = new TEXsec(mat->GetZ(),
 						   mat->GetA()*mole/g,emin,emax,nbins,npreac);
 
        G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);

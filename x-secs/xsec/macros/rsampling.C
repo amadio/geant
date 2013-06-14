@@ -1,6 +1,6 @@
 #include <TMath.h>
 #include <TPartIndex.h>
-#include <TMXsec.h>
+#include <TEXsec.h>
 #include <TH1F.h>
 #include <TFile.h>
 #include <TSystem.h>
@@ -32,7 +32,7 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
    TMultiGraph *tmg= new TMultiGraph("G5","G5");
    TGraph *gr=0;
 
-   TMXsec * o = (TMXsec*)f->Get(el);
+   TEXsec * o = (TEXsec*)f->Get(el);
    Double_t en=emin;
    for(Int_t nb=0; nb<nbins; ++nb) {
       e[nb] = TMath::Log10(en);

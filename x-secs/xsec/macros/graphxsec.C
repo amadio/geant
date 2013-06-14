@@ -4,7 +4,7 @@ void graphxsec(const char* mat, const char* pnam, const char* reac,
    gSystem->Load("libXSec");
    TFile *fx = new TFile("xsec.root");
    TPartIndex* tp = fx->Get("PartIndex");
-   TMXsec *mate = fx->Get(mat);
+   TEXsec *mate = fx->Get(mat);
    //TGraph *gr = mate->XSGraph(pnam,reac,emin,emax,nbin); 
    //   gr->Draw("ACP");
    mate->XSDraw(pnam,reac,emin,emax,nbin);

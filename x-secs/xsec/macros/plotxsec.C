@@ -1,5 +1,5 @@
 /*#include <TPartIndex.h>
-#include <TMXsec.h>
+#include <TEXsec.h>
 #include <TPXsec.h>
 #include <TFile.h>
 #include <TH1F.h>*/
@@ -9,7 +9,7 @@ void plotxsec(const char* mat, const char* pnam, const char* reac)
    gSystem->Load("libXSec");
    TFile *fx = new TFile("xsec.root");
    TPartIndex* tp = fx->Get("PartIndex");
-   TMXsec *mate = fx->Get(mat);
+   TEXsec *mate = fx->Get(mat);
    mate->Print();
    //   mate->Dump();
    const Float_t emin = 1e-3;
