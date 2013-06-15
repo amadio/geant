@@ -22,11 +22,14 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <RTypes.h>
 #include <TNamed.h>
-class TPartIndex;
-class TPXsec;
+class TFile;
 class TGraph;
+class TList;
+class TPXsec;
+class TPartIndex;
+
+#define NELEM 118         // Total number of materials
 
 class TEXsec : public TNamed {
 
@@ -40,6 +43,11 @@ public:
    Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
    
+   static const char* EleSymb(Int_t z) {return fEleSymbol[z-1];}
+   static const char* EleName(Int_t z) {return fEleName[z-1];}
+   static Float_t WEle(Int_t z) {return fWElem[z-1];}
+   static Int_t NElem() {return fNElem;}
+
    Int_t Ele() const {return fEle;}
    Float_t Emin() const {return fEmin;}
    Float_t Emax() const {return fEmax;}
@@ -70,7 +78,14 @@ public:
    void DumpPointers() const;
    void Draw(Option_t *option);
 
+   static TEXsec *GetElement(Int_t z, Int_t a=0, TFile *f=0);
+
 private:
+   static const Int_t   fNElem=NELEM;       // Number of Elements
+   static const Char_t *fEleSymbol[NELEM]; // Symbol of Element
+   static const Char_t *fEleName[NELEM];   // Name of Element
+   static const Float_t fWElem[NELEM];     // Weight of a mole in grams
+
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
    Double_t       fAtcm3;   // Atoms per cubic cm unit density
    Float_t        fEmin;    // Min en in GeV
@@ -80,6 +95,8 @@ private:
    Int_t          fNpart;   // Number of particles
    TPXsec        *fPXsec;   // [fNpart] Cross section table per particle
    Double_t      *fCuts;    // [fNpart] Just a placeholder for the moment
+
+   static TEXsec *fElements[NELEM]; //! databases of elements
 
    ClassDef(TEXsec,1)  // Element X-secs
 

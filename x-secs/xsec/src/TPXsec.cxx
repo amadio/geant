@@ -231,7 +231,7 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    if(rindex<TPartIndex::I()->NProc()-1) {
       Int_t rnumber = fRdict[rindex];
       if(rnumber<0) {
-	 Error("XS","No %s for %s\n",TPartIndex::I()->ReacName(rindex),
+	 Error("XS","No %s for %s\n",TPartIndex::I()->ProcNameIndex(rindex),
 	       TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
 	 return -1;
       }

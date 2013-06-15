@@ -27,7 +27,6 @@
 #define DICLEN 12        // Number of process cross sections 
 #define FNPROC 17        // Number of total processes
 #define FNPREA 53        // Number of particles with processes
-#define NMAT 118         // Total number of materials
 #define FNPART 464       // Total number of particles
 
 class TPartIndex: public TObject {
@@ -38,28 +37,46 @@ public:
    TPartIndex();
    virtual ~TPartIndex();
 
-   Short_t ProcIndex(Short_t proccode) const;
-   const Char_t* ProcNameCode(Int_t proccode) const;
+   // Process index <- G4 process*1000+subprocess
+   Short_t ProcIndex(Short_t proccode) const;      
+   // Process name <- process index
    const Char_t* ProcNameIndex(Int_t procindex) const;
+   // Process index <- G4 process*1000+subprocess
    Int_t ProcCode(Int_t procindex) const {return fPCode[procindex];}
+   // Process name <- G4 process*1000+subprocess
+   const Char_t* ProcNameCode(Int_t proccode) const;
+   // Number of processes -- process number fNProc()-1 is the total x-sec
+   // Process code <- Process name
+   Int_t ProcCode(const Char_t* reac) const {Int_t nr=fNProc; 
+      while(nr--) if(!strcmp(reac,fPrName[nr])) break; if(nr<0) return nr;
+		     return fPCode[nr];}
+   // Process index <- Process name
+   Int_t ProcIndex(const Char_t *reac) const {Int_t nr=fNProc;
+      while(nr--) if(!strcmp(reac,fPrName[nr])) break; return nr;}
    Short_t NProc() const {return fNProc;}
-
+ 
+   // Fill the particle table
    void SetPartTable(char **names, Int_t *PDG, Int_t np);
    
+   // PDG code <- G5 particle number
    Int_t PDG(Int_t i) const {return fPDG[i];}
+   // PDG code <- particle name 
    Int_t PDG(const Char_t* pname) const {Int_t nr=fNPart;
       while(nr--) if(!strcmp(pname,&fPnames[30*nr])) break;
       if(nr<0) return -12345678; return fPDG[nr];}
+   // Particle name <- G5 particle number
    const Char_t *PartName(Int_t i) const {return &fPnames[30*i];}
-
+   // G5 particle number <- PDG code
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
       while(np--) if(fPDG[np]==pdg) break; return np;}
+   // G5 particle index <- particle name 
    Int_t PartIndex(const Char_t *partname) const {
       return PartIndex(PDG(partname));}
-
+   // Number of particles 
    Int_t NPart() const {return fNPart;}
-
+   // Number of particles with reactions
    Int_t NPartReac() const {return fNpReac;}
+   // Set a particle with reaction
    Bool_t SetPartReac(const Int_t reacpdg[], Int_t np) {
       if(np != fNpReac) {
 	 Error("SetPartReac","np is %d and should be %d\n",np,fNpReac);
@@ -67,27 +84,14 @@ public:
 	 return kFALSE;}
       for(Int_t i=0; i<np; ++i) fPDGReac[i]=reacpdg[i];
       return kTRUE;}
+   // Particle with reaction G5 code <- PDG code
    Int_t PartReacIndex(Int_t pdg) {Int_t np=fNpReac;
       while(np--) if(fPDGReac[np]==pdg) break; return np;}
-
-   Int_t Rcode(const Char_t* reac) const {Int_t nr=fNProc; 
-      while(nr--) if(!strcmp(reac,fPrName[nr])) break; if(nr<0) return nr;
-		     return fPCode[nr];}
-   const Char_t *ReacName(Int_t i) const {return fPrName[i];}
-   Int_t Rindex(const Char_t *reac) const {Int_t nr=fNProc;
-      while(nr--) if(!strcmp(reac,fPrName[nr])) break; return nr;}
-   static const char* EleSymb(Int_t i) {return fEleSymbol[i-1];}
-   static const char* EleName(Int_t i) {return fEleName[i-1];}
-   static Float_t WEle(Int_t z) {return fWElem[z];}
    void Print(Option_t *option="") const;
 
 private:
    static TPartIndex *fgPartIndex;
 
-   static const Int_t   fNmat=NMAT;       // Number of Elements
-   static const Char_t *fEleSymbol[NMAT]; // Symbol of Element
-   static const Char_t *fEleName[NMAT];   // Name of Element
-   static const Float_t fWElem[NMAT];     // Weight of a mole in grams
 
    static const Int_t   fNProc=FNPROC;    // Number of processes
    static const char   *fPrName[FNPROC];  // Process name
