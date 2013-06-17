@@ -245,6 +245,26 @@ int main(int argc,char** argv)
        }
        printf("%s\n",string);
     }
+
+    // Push particle table into the TPartIndex
+    /*    // Order the particle table -- Bad idea
+    for(G4int i=0; i<np+1; ++i) 
+       for(G4int j=i; j<np; ++j) {
+	  if(pindex[i]>pindex[j]) {
+	     G4int itmp = pindex[i];
+	     pindex[i] = pindex[j];
+	     pindex[j] = itmp;
+	     char *ctmp = parttab[i];
+	     parttab[i] = parttab[j];
+	     parttab[j] = ctmp;
+	  }
+       }
+    */
+    TPartIndex::I()->SetPartTable(parttab,pindex,np);
+    printf("Code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
+
+    // Push particles with reactions into TPartIndex
+
     G4double maxwidthl=hbar_Planck/(s*minlife);
     G4double minlifew =hbar_Planck/(s*maxwidth);
     printf("Reactions for life above %g(%g) and width below %g(%g) (%g)\n",
@@ -252,6 +272,9 @@ int main(int argc,char** argv)
     printf("Found %d particles with reactions\n",npreac);
     TPartIndex::I()->SetPartReac(preac,npreac);
     
+    // Print out available reactions
+    printf("Available reactions :");
+
     char line[120];
     line[0]='\0';
     char chpdf[20];
@@ -266,58 +289,44 @@ int main(int argc,char** argv)
     }
     if(strlen(line)>0) printf("%s\n",line);
 	     
+
+    Bool_t outpart=kTRUE;
+    if(outpart) {
+       FILE *fout = fopen("file.txt","w");
+       line[0]='\0';
+       for(G4int i=0; i<np; ++i) {
+	  if(strlen(line)+strlen(parttab[i])+3<120) {
+	     strcat(line,"\"");
+	     strcat(line,parttab[i]);
+	     strcat(line,"\",");
+	  } else {
+	     fprintf(fout, "%s\n", line);
+	     snprintf(line,119,"\"%s\",",parttab[i]);
+	  }
+       }
+       if(strlen(line)>0) fprintf(fout,"%s\n",line);
+       
+       line[0]='\0';
+       char cnum[30];
+       for(G4int i=0; i<np; ++i) {
+	  snprintf(cnum,29,"%d,",pindex[i]);
+	  if(strlen(line)+strlen(cnum)<120) {
+	     strcat(line,cnum);
+	  } else {
+	     fprintf(fout,"%s\n",line);
+	     snprintf(line,119,"%s",cnum);
+	  }
+       }
+       if(strlen(line)>0) fprintf(fout,"%s\n",line);
+       
+       fclose(fout);
+    }
+
+    // Now we find the crosss secions
     G4ProductionCutsTable* theCoupleTable =
        G4ProductionCutsTable::GetProductionCutsTable();
     
     size_t numOfCouples = theCoupleTable->GetTableSize();
-
-    // Order the particle table
-    for(G4int i=0; i<np+1; ++i) 
-       for(G4int j=i; j<np; ++j) {
-	  if(pindex[i]>pindex[j]) {
-	     G4int itmp = pindex[i];
-	     pindex[i] = pindex[j];
-	     pindex[j] = itmp;
-	     char *ctmp = parttab[i];
-	     parttab[i] = parttab[j];
-	     parttab[j] = ctmp;
-	  }
-       }
-    FILE *fout = fopen("file.txt","w");
-    line[0]='\0';
-    for(G4int i=0; i<np; ++i) {
-       if(strlen(line)+strlen(parttab[i])+3<120) {
-	  strcat(line,"\"");
-	  strcat(line,parttab[i]);
-	  strcat(line,"\",");
-       } else {
-	  fprintf(fout, "%s\n", line);
-	  snprintf(line,100,"%s",parttab[i]);
-       }
-    }
-    if(strlen(line)>0) fprintf(fout,"%s\n",line);
-
-    line[0]='\0';
-    char cnum[30];
-    for(G4int i=0; i<np; ++i) {
-       snprintf(cnum,29,"%d,",pindex[i]);
-       if(strlen(line)+strlen(cnum)<120) {
-	  strcat(line,cnum);
-       } else {
-	  fprintf(fout,"%s\n",line);
-	  snprintf(line,29,"%s",cnum);
-       }
-    }
-    if(strlen(line)>0) fprintf(fout,"%s\n",line);
-
-    fclose(fout);
-
-    TPartIndex::I()->SetPartTable(parttab,pindex,np);
-    /*    for(G4int i=0; i<np; ++i) printf("\"%s\",",parttab[i]);
-	  for(G4int i=0; i<np; ++i) printf("%d,",pindex[i]); */
-    printf("code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
-
-    // Push particle table into the TPartIndex
 
     //    Bool_t hist=kFALSE;
     
@@ -613,7 +622,7 @@ int main(int argc,char** argv)
 	     if(bdedx) mxsec->AddPartIon(kpreac,dedx);
 	     if(bmulsc) mxsec->AddPartMS(kpreac,msang,msasig,mslen,mslsig);
 	     ++npr; // Total number of processes to calculate size
-	     if(kpreac != TPartIndex::I()->PartReacIndex(particle->GetPDGEncoding())) {
+	     if(kpreac != TPartIndex::I()->PartReacIndex(TPartIndex::I()->PartIndex(particle->GetPDGEncoding()))) {
 		printf("\nError in the particle index %d %d %d %s\n\n",
 		       kpreac,TPartIndex::I()->PartReacIndex(particle->GetPDGEncoding()),
 		       particle->GetPDGEncoding(),(const char*) particle->GetParticleName());

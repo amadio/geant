@@ -73,6 +73,9 @@ TEXsec* TEXsec::fElements[NELEM]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
+Int_t TEXsec::fNLdElems=0; 
+
+
 //___________________________________________________________________
 TEXsec::TEXsec():
    fEle(0),
@@ -81,7 +84,7 @@ TEXsec::TEXsec():
    fEmax(0),
    fNEbins(0),
    fElDelta(0),
-   fNpart(0),
+   fNRpart(0),
    fPXsec(0),
    fCuts(0)
 {
@@ -96,10 +99,11 @@ TEXsec::TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np
    fEmax(emax),
    fNEbins(nen),
    fElDelta(TMath::Log(fEmax/fEmin)/fNEbins),
-   fNpart(np),
-   fPXsec(new TPXsec[fNpart]),
-   fCuts(new Double_t[fNpart])
+   fNRpart(np),
+   fPXsec(new TPXsec[fNRpart]),
+   fCuts(new Double_t[fNRpart])
 {
+   memset(fCuts,0,fNRpart*sizeof(Double_t));
 }
 
 //___________________________________________________________________
@@ -131,7 +135,7 @@ Bool_t TEXsec::AddPartIon(Int_t kpart, const Float_t dedx[]) {
 
 //___________________________________________________________________
 Float_t TEXsec::XSPDG(Int_t pdg, Short_t rcode, Float_t en) const {
-   for(Int_t i=0; i<fNpart; ++i) 
+   for(Int_t i=0; i<fNRpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
 	 return fPXsec[i].XS(TPartIndex::I()->ProcIndex(rcode),en);
    return -1;
@@ -139,12 +143,13 @@ Float_t TEXsec::XSPDG(Int_t pdg, Short_t rcode, Float_t en) const {
 
 //___________________________________________________________________
 Float_t TEXsec::XS(Int_t pindex, Short_t rindex, Float_t en) const {
-   return fPXsec[pindex].XS(rindex,en);
+   const Int_t* prindex = TPartIndex::I()->PartReac();
+   return fPXsec[prindex[pindex]].XS(rindex,en);
 }
 
 //___________________________________________________________________
 Float_t TEXsec::DEdxPDG(Int_t pdg, Float_t en) const {
-   for(Int_t i=0; i<fNpart; ++i) 
+   for(Int_t i=0; i<fNRpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
 	 return fPXsec[i].DEdx(en);
    return -1;
@@ -152,13 +157,14 @@ Float_t TEXsec::DEdxPDG(Int_t pdg, Float_t en) const {
 
 //___________________________________________________________________
 Float_t TEXsec::DEdx(Int_t pindex, Float_t en) const {
-   return fPXsec[pindex].DEdx(en);
+   const Int_t* prindex = TPartIndex::I()->PartReac();
+   return fPXsec[prindex[pindex]].DEdx(en);
 }
 
 //___________________________________________________________________
 Bool_t TEXsec::MSPDG(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
-   for(Int_t i=0; i<fNpart; ++i) 
+   for(Int_t i=0; i<fNRpart; ++i) 
       if(pdg == fPXsec[i].PDG()) 
 	 return fPXsec[i].MS(en,ang,asig,len,lsig);
    return kFALSE;
@@ -167,14 +173,15 @@ Bool_t TEXsec::MSPDG(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig,
 //___________________________________________________________________
 Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
-   return fPXsec[pindex].MS(en,ang,asig,len,lsig);
+   const Int_t* prindex = TPartIndex::I()->PartReac();
+   return fPXsec[prindex[pindex]].MS(en,ang,asig,len,lsig);
 }
 
 //___________________________________________________________________
 void TEXsec::DumpPointers() const {
    printf("Material %d emin %f emax %f NEbins %d ElDelta %f Npart %d\n",
-	  fEle,fEmin,fEmax,fNEbins,fElDelta,fNpart);
-   for(Int_t i=0; i<fNpart; ++i) 
+	  fEle,fEmin,fEmax,fNEbins,fElDelta,fNRpart);
+   for(Int_t i=0; i<fNRpart; ++i) 
       fPXsec[i].Dump();
 }
 
@@ -187,19 +194,15 @@ TGraph* TEXsec::XSGraph(const char* part, const char *reac,
    Float_t *xsec = new Float_t[nbin];
    Float_t *energy = new Float_t[nbin];
    Double_t en=emin;
-   Int_t rcode = TPartIndex::I()->ProcCode(reac);
-   if(rcode<0) {
-      Error("XSGraph","Unknown reaction %s\n",reac);
-      return 0;
-   }
-   Int_t pdg = TPartIndex::I()->PDG(part);
-   if(pdg == -12345678) {
+   Int_t pindex = TPartIndex::I()->PartIndex(part);
+   if(pindex < 0) {
       Error("XSGraph","Unknown particle %s\n",part);
       return 0;
    }
+   Int_t proc = TPartIndex::I()->ProcIndex(reac);
    for(Int_t i=0; i<nbin; ++i) {
       energy[i] = en;
-      xsec[i] = XSPDG(pdg,rcode,en);
+      xsec[i] = XS(pindex,proc,en);
       en*=delta;
    }
    TGraph *tg = new TGraph(nbin,energy,xsec);
@@ -220,14 +223,14 @@ TGraph* TEXsec::DEdxGraph(const char* part,
    Float_t *dedx = new Float_t[nbin];
    Float_t *energy = new Float_t[nbin];
    Double_t en=emin;
-   Int_t pdg = TPartIndex::I()->PDG(part);
-   if(pdg == -12345678) {
-      Error("XSGraph","Unknown particle %s\n",part);
+   Int_t pindex = TPartIndex::I()->PartIndex(part);
+   if(pindex < 0) {
+      Error("DEdxGraph","Unknown particle %s\n",part);
       return 0;
    }
    for(Int_t i=0; i<nbin; ++i) {
       energy[i] = en;
-      dedx[i] = DEdxPDG(pdg,en);
+      dedx[i] = DEdxPDG(pindex,en);
       en*=delta;
    }
    TGraph *tg = new TGraph(nbin,energy,dedx);
@@ -242,7 +245,7 @@ TGraph* TEXsec::DEdxGraph(const char* part,
 //___________________________________________________________________
 Float_t TEXsec::LambdaPDG(Int_t pdg, Double_t en) const {
    Double_t xs=0;
-   for(Int_t i=0; i<fNpart; ++i) 
+   for(Int_t i=0; i<fNRpart; ++i) 
       if(pdg == fPXsec[i].PDG()) {
 	 xs = fPXsec[i].XS(TPartIndex::I()->NProc()-1,en);
 	 break;
@@ -252,19 +255,21 @@ Float_t TEXsec::LambdaPDG(Int_t pdg, Double_t en) const {
 
 //___________________________________________________________________
 Float_t TEXsec::Lambda(Int_t pindex, Double_t en) const {
+   const Int_t* prindex = TPartIndex::I()->PartReac();
    Double_t xs=0;
-   xs = fPXsec[pindex].XS(TPartIndex::I()->NProc()-1,en);
+   xs = fPXsec[prindex[pindex]].XS(TPartIndex::I()->NProc()-1,en);
    return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
 }
 
 //___________________________________________________________________
 Int_t TEXsec::SampleReac(Int_t pindex, Double_t en) const {
-   return fPXsec[pindex].SampleReac(en);
+   const Int_t* prindex = TPartIndex::I()->PartReac();
+   return fPXsec[prindex[pindex]].SampleReac(en);
 }
 
 //___________________________________________________________________
 Int_t TEXsec::SampleReacPDG(Int_t pdg, Double_t en) const {
-   for(Int_t i=0; i<fNpart; ++i) 
+   for(Int_t i=0; i<fNRpart; ++i) 
       if(pdg == fPXsec[i].PDG()) {
 	 return fPXsec[i].SampleReac(en);
       }
@@ -281,9 +286,9 @@ TGraph* TEXsec::MSGraph(const char* part, const char* what,
    Float_t *mscat = new Float_t[nbin];
    Float_t *energy = new Float_t[nbin];
    Double_t en=emin;
-   Int_t pdg = TPartIndex::I()->PDG(part);
-   if(pdg == -12345678) {
-      Error("XSGraph","Unknown particle %s\n",part);
+   Int_t pindex = TPartIndex::I()->PartIndex(part);
+   if(pindex < 0) {
+      Error("MSGraph","Unknown particle %s\n",part);
       return 0;
    }
    Int_t iopt=4;
@@ -296,7 +301,7 @@ TGraph* TEXsec::MSGraph(const char* part, const char* what,
    for(Int_t i=0; i<nbin; ++i) {
       Float_t answ[4];
       energy[i] = en;
-      MSPDG(pdg,en,answ[0],answ[1],answ[2],answ[3]);
+      MS(pindex,en,answ[0],answ[1],answ[2],answ[3]);
       mscat[i] = answ[iopt];
       en*=delta;
    }
@@ -310,13 +315,15 @@ TGraph* TEXsec::MSGraph(const char* part, const char* what,
 }
 
 //___________________________________________________________________
-TEXsec *TEXsec::GetElement(Int_t z, Int_t, TFile* f) {
-   if(!fElements[z-1]) {
-      TFile *ff=gFile;
-      if(f) ff=f;
-      fElements[z-1] = (TEXsec *) ff->Get(fEleSymbol[z-1]);
-   }
-   return fElements[z-1];
+TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
+   Int_t ecode = z*10000+a*10;
+   for(Int_t el=0; el<fNLdElems; ++el) 
+      if(ecode == fElements[el]->Ele()) return fElements[el];
+   
+   TFile *ff=gFile;
+   if(f) ff=f;
+   fElements[fNLdElems] = (TEXsec *) ff->Get(fEleSymbol[z-1]);
+   return fElements[fNLdElems++];
 }
 
 //___________________________________________________________________
@@ -365,15 +372,16 @@ void TEXsec::Draw(Option_t *option)
    if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
    if(gFile) gFile->Get("PartIndex");
    Int_t pdg = TPartIndex::I()->PDG(part);
-   if(pdg == -12345678) {
-      Error("Draw","Particle %s does not exist\n",part);
-      TPartIndex::I()->Print("particles");
+   Int_t pindex = TPartIndex::I()->PartIndex(part);
+   printf("pdg %d pindex %d\n",pdg,pindex);
+   if(pindex < 0) {
+      Error("Draw","Unknown particle %s\n",part);
       return;
    }
    if(reactions.Contains("All") || reactions.Contains("*")) {
       TString allrea="";
       for(Int_t i=0; i<TPartIndex::I()->NProc()-1; ++i) {
-	 if(XSPDG(pdg,TPartIndex::I()->ProcCode(i),emin)>=0) allrea=allrea+TPartIndex::I()->ProcNameIndex(i)+"|";
+	 if(XS(pindex,i,emin)>=0) allrea=allrea+TPartIndex::I()->ProcNameIndex(i)+"|";
       }
       allrea+=TPartIndex::I()->ProcNameIndex(TPartIndex::I()->NProc()-1);
       reactions.ReplaceAll("All",allrea);

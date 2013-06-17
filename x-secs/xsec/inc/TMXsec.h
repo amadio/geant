@@ -31,13 +31,19 @@ public:
    TMXsec();
    TMXsec(Int_t z[], Int_t a[], Float_t w[], Int_t nel, Float_t dens, Bool_t weight=kFALSE);
    ~TMXsec() {}
+   Float_t Xlength(Int_t part, Float_t en);
+   TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
 
 private:
-   static TEXsec **fElements; //! pointer to all loaded elements
+   Int_t          fNEbins;        // number of energy bins
+   Double_t       fEmin;          // min tab energy
+   Double_t       fEmax;          // max tab energy
+   Double_t       fEDelta;        // multiplicative energy delta
+   Double_t       fElDelta;       // logarithmic energy delta
 
-   Int_t        *fElems;   // List of elements composing this material
    Int_t         fNElems;  // Number of elements
-   Float_t      *fTotXS;   // Total x-sec for this material
+   TEXsec      **fElems; // [fNElems] List of elements composing this material
+   Float_t      *fTotXL;   // Total x-sec for this material
    Float_t      *fRelXS;   // Relative x-sec for this material
 
    ClassDef(TMXsec,1)  //Material X-secs

@@ -1,38 +1,40 @@
 #include <TMXsec.h>
 #include <TPartIndex.h>
 #include <TMath.h>
-
-TEXsec** TMXsec::fElements=0;
+#include <TRandom.h>
 
 ClassImp(TMXsec)
 
 //____________________________________________________________________________
 TMXsec::TMXsec():
-   fElems(0),
+   fNEbins(0),
+   fEmin(0),
+   fEmax(0),
+   fEDelta(0),
+   fElDelta(0),
    fNElems(0),
-   fTotXS(0), 
+   fElems(0),
+   fTotXL(0), 
    fRelXS(0)
 {
 }
 
 //____________________________________________________________________________
 TMXsec::TMXsec(Int_t z[], Int_t /*a*/[], Float_t w[], Int_t nel, Float_t dens, Bool_t weight):
-   fElems(0),
+   fNEbins(0),
+   fEmin(0),
+   fEmax(0),
+   fEDelta(0),
+   fElDelta(0),
    fNElems(nel),
-   fTotXS(0), 
+   fElems(new TEXsec*[fNElems]),
+   fTotXL(0), 
    fRelXS(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
-   fElems = new Int_t[fNElems];
-   if(!fElements) {
-      fElements = new TEXsec*[TEXsec::NElem()];
-      memset(fElements,0,TEXsec::NElem()*sizeof(TEXsec*));
-   }
-   for(Int_t i=0; i<fNElems; ++i)
-      if((fElements[z[i]-1] = TEXsec::GetElement(z[i]))) 
-	 fElems[i] = z[i]-1;
-	 else Error("TMXsec","Element %d not found\n",z[i]);
+   for(Int_t i=0; i<fNElems; ++i) 
+      fElems[i] = TEXsec::GetElement(z[i],0);
    Double_t *ratios = new Double_t[fNElems];
    Double_t hnorm=0;
    for(Int_t i=0; i<fNElems; ++i) {
@@ -52,32 +54,95 @@ TMXsec::TMXsec(Int_t z[], Int_t /*a*/[], Float_t w[], Int_t nel, Float_t dens, B
 
    // Build table with total x-sections for all mate / parts
 
-   Int_t nbins = fElements[0]->NEbins();
-   Double_t emin = fElements[0]->Emin();
-   Double_t emax = fElements[0]->Emax();
-   Double_t edelta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
+   fNEbins = fElems[0]->NEbins();
+   fEmin = fElems[0]->Emin();
+   fEmax = fElems[0]->Emax();
+   fElDelta = fElems[0]->ElDelta();
+   fEDelta = TMath::Exp(fElDelta);
    Int_t totindex = TPartIndex::I()->ProcIndex("Total");
    Int_t npart = TPartIndex::I()->NPartReac();
    // Layout part1 { en<1> { tot<1>, ... , tot<fNElems>}, .....en<nbins> {tot<1>, ..., tot<fNElems>}}
    
-   fRelXS = new Float_t[npart*nbins*fNElems];
-   fTotXS = new Float_t[npart*nbins];
-   memset(fTotXS,0,npart*nbins*sizeof(Float_t));
+   fRelXS = new Float_t[npart*fNEbins*fNElems];
+   fTotXL = new Float_t[npart*fNEbins];
+   memset(fTotXL,0,npart*fNEbins*sizeof(Float_t));
 
-   for(Int_t ip=0; ip<npart; ++ip) {
-      Int_t ibase = ip*(nbins*fNElems);
-      Double_t en = emin;
-      for(Int_t ie=0; ie<nbins; ++ie) {
-	 Int_t ibin = ibase + ie*fNElems;
-	 for(Int_t iel=0; iel<fNElems; ++iel) {
-	    fRelXS[ibin+iel] = fElements[iel]->XS(ip,totindex,en)*ratios[iel];
-	    fTotXS[ip*nbins+ie]+=fRelXS[ibin+iel];
+   if(fNElems>1) {
+      for(Int_t ip=0; ip<npart; ++ip) {
+	 Int_t ibase = ip*(fNEbins*fNElems);
+	 Double_t en = fEmin;
+	 for(Int_t ie=0; ie<fNEbins; ++ie) {
+	    Int_t ibin = ibase + ie*fNElems;
+	    for(Int_t iel=0; iel<fNElems; ++iel) {
+	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,en)*ratios[iel];
+	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
+	    }
+	    if(fTotXL[ip*fNEbins+ie]) {
+	       fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
+	       for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
+	    }
+	    en*=fEDelta;
 	 }
-	 if(fTotXS[ip*nbins+ie]) {
-	    fTotXS[ip*nbins+ie]=1./fTotXS[ip*nbins+ie];
-	    for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXS[ip*nbins+ie];
+      }
+   }
+}
+
+//____________________________________________________________________________
+Float_t TMXsec::Xlength(Int_t part, Float_t en) {
+   static const Int_t *prindex = TPartIndex::I()->PartReac();
+   Int_t rpart = prindex[part];
+   if(rpart<0) 
+      return TMath::Limits<Float_t>::Max();
+   else {
+      en=en<=fEmax?en:fEmax;
+      en=en>=fEmin?en:fEmin;
+      Int_t ibin = TMath::Log(en/fEmin)/fElDelta;
+      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+      Double_t en2 = en1*fEDelta;
+      if(en1>en || en2<en) {
+	 Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	       ibin, en1, en, en2);
+	 return TMath::Limits<Float_t>::Max();
+      }
+      Double_t xrat = (en2-en)/(en2-en1);
+      return xrat*fTotXL[rpart*fNEbins+ibin]+(1-xrat)*fTotXL[rpart*fNEbins+ibin+1];
+   }
+}
+
+//____________________________________________________________________________
+TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
+   static const Int_t *prindex = TPartIndex::I()->PartReac();
+   Int_t rpart = prindex[part];
+   if(rpart<0) {
+      reac=-1;
+      return 0;
+   } else {
+      en=en<=fEmax?en:fEmax;
+      en=en>=fEmin?en:fEmin;
+      Int_t ibin = TMath::Log(en/fEmin)/fElDelta;
+      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+      Double_t en2 = en1*fEDelta;
+      if(en1>en || en2<en) {
+	 Error("SampleInt","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	       ibin, en1, en, en2);
+	 reac=-1;
+	 return 0;
+      }
+      Double_t xrat = (en2-en)/(en2-en1);
+      Double_t xnorm = 1.;
+      while(1) {
+	 Double_t ran = xnorm*gRandom->Rndm();
+	 Double_t xsum=0;
+	 for(Int_t i=0; i<fNElems; ++i) {
+	    xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
+	    if(ran<=xsum) {
+	       reac = fElems[i]->SampleReac(part,en);
+	       return fElems[i];
+	    }
 	 }
-	 en*=edelta;
+	 xnorm = xsum;
       }
    }
 }

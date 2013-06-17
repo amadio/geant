@@ -39,16 +39,15 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
       en*=edelta;
    }
    char title[200];
-   Int_t pdg = TPartIndex::I()->PDG(part);
+   Int_t pindex = TPartIndex::I()->PartIndex(part);
    Double_t ymax = -1;
    Double_t ymin = 1e12;
-   Int_t prcode = TPartIndex::I()->PartReacIndex(pdg);
    for(Int_t i=0; i<nproc-1; ++i) {
       memset(x,0,nbins*sizeof(Double_t));
-      if(o->XS(prcode,i,1)>=0) {
+      if(o->XS(pindex,i,1)>=0) {
 	 en=emin;
 	 for(Int_t nb=0; nb<nbins; ++nb) {
-	    x[nb] = o->XS(prcode, i, en);
+	    x[nb] = o->XS(pindex, i, en);
 	    ymax = x[nb]>ymax?x[nb]:ymax;
 	    if(x[nb]) ymin = x[nb]<ymin?x[nb]:ymin;
 	    en*=edelta;
@@ -72,11 +71,11 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
    Int_t ibin=nbins;
    en=emin;
    while(ibin--) {
-      Double_t hnorm = o->XS(prcode,nproc-1,en)/nrep;
+      Double_t hnorm = o->XS(pindex,nproc-1,en)/nrep;
       Double_t len = TMath::Log10(en);
       Int_t irep = nrep;
       while(irep--) {
-	 Int_t reac = o->SampleReac(prcode, en);
+	 Int_t reac = o->SampleReac(pindex, en);
 	 if(reac >= nproc-1) printf("Wrong sampling!! %d\n",reac);
 	 histos[reac]->Fill(len,hnorm);
       }

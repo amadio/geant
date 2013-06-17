@@ -66,7 +66,7 @@ public:
       if(nr<0) return -12345678; return fPDG[nr];}
    // Particle name <- G5 particle number
    const Char_t *PartName(Int_t i) const {return &fPnames[30*i];}
-   // G5 particle number <- PDG code
+   // G5 particle index <- PDG code
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
       while(np--) if(fPDG[np]==pdg) break; return np;}
    // G5 particle index <- particle name 
@@ -74,19 +74,15 @@ public:
       return PartIndex(PDG(partname));}
    // Number of particles 
    Int_t NPart() const {return fNPart;}
+ 
+   // Set particles with reaction
+   Bool_t SetPartReac(const Int_t reacpdg[], Int_t np);
+
    // Number of particles with reactions
    Int_t NPartReac() const {return fNpReac;}
-   // Set a particle with reaction
-   Bool_t SetPartReac(const Int_t reacpdg[], Int_t np) {
-      if(np != fNpReac) {
-	 Error("SetPartReac","np is %d and should be %d\n",np,fNpReac);
-	 exit(1);
-	 return kFALSE;}
-      for(Int_t i=0; i<np; ++i) fPDGReac[i]=reacpdg[i];
-      return kTRUE;}
-   // Particle with reaction G5 code <- PDG code
-   Int_t PartReacIndex(Int_t pdg) {Int_t np=fNpReac;
-      while(np--) if(fPDGReac[np]==pdg) break; return np;}
+   Int_t PartReacIndex(Int_t index) const {return fReacPart[index];}
+   const Int_t* PartReac() const {return fReacPart;}
+
    void Print(Option_t *option="") const;
 
 private:
@@ -100,10 +96,10 @@ private:
    Int_t    fNPart;         // Total number of particles
    Int_t    fNPart30;       // length of the char store
    Int_t   *fPDG;           // [fNPart] PDG code of all part
+   Int_t   *fReacPart;      // [fNPart] number of particel with reaction
    Char_t  *fPnames;        // [fNPart30] Names of all part
 
-   Int_t    fNpReac;         // Number of particles with reactions
-   Int_t    fPDGReac[FNPREA];// Correspondence PDG <-> particle number with reac
+   Int_t fNpReac;           // Number of particles with reactions
 
    ClassDef(TPartIndex,1)  // Particle Index
 

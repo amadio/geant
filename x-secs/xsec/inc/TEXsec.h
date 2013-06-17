@@ -92,10 +92,11 @@ private:
    Float_t        fEmax;    // Max en in Gev
    Short_t        fNEbins;  // Number of log steps in energy
    Double_t       fElDelta; // Log energy step
-   Int_t          fNpart;   // Number of particles
-   TPXsec        *fPXsec;   // [fNpart] Cross section table per particle
-   Double_t      *fCuts;    // [fNpart] Just a placeholder for the moment
+   Int_t          fNRpart;  // Number of particles with reaction
+   TPXsec        *fPXsec;   // [fNRpart] Cross section table per particle
+   Double_t      *fCuts;    // [fNRpart] Just a placeholder for the moment
 
+   static Int_t   fNLdElems; //! number of loaded elements
    static TEXsec *fElements[NELEM]; //! databases of elements
 
    ClassDef(TEXsec,1)  // Element X-secs
