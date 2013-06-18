@@ -49,12 +49,7 @@ class ShapeBenchmarker
   double *steps; // steps for distanceIn and distanceOut
 
 
-  // these functions prepare the test data such that we test all possible cases
-  // for example: distanceFromOut should have 1/3. of particles actually hitting the object etc.
-  void initDataDistanceFromInside();
-  void initDataDistanceFromOutside(){ }  
-  void initDataSafety();
-
+ 
  public:
   // ctor
   ShapeBenchmarker( TGeoBBox *s );
@@ -70,6 +65,11 @@ class ShapeBenchmarker
       delete[] steps;
     }
 
+  // these functions prepare the test data such that we test all possible cases
+  // for example: distanceFromOut should have 1/3. of particles actually hitting the object etc.
+  void initDataDistanceFromInside();
+  void initDataDistanceFromOutside();
+  void initDataSafety();
   void initDataContains();
 
   // actual timing functions which call the shapes routine
