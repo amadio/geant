@@ -51,7 +51,7 @@ class ShapeBenchmarker
 
   // these functions prepare the test data such that we test all possible cases
   // for example: distanceFromOut should have 1/3. of particles actually hitting the object etc.
-  void initDataDistanceToOut(){  }
+  void initDataDistanceFromInside();
   void initDataDistanceFromOutside(){ }  
   void initDataSafety();
 
@@ -73,8 +73,8 @@ class ShapeBenchmarker
   void initDataContains();
 
   // actual timing functions which call the shapes routine
-  void timeDistToOut();
-  void timeDistFromOutside();
+  void timeDistanceFromInside( double &, unsigned int );
+  void timeDistanceFromOutside( double &, unsigned int );
   void timeContains( double &, unsigned int );
   void timeSafety( double &, unsigned int );
   void timeIt();

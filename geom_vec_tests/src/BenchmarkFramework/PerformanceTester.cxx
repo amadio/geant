@@ -2,6 +2,7 @@
 #include "TRandom.h"
 //#include "TMath.h"
 #include <iostream>
+#include <cmath>
 
 class Util{
   public:
@@ -11,12 +12,18 @@ class Util{
     point[1]=scale*(1-2.*gRandom->Rndm())*dy;
     point[2]=scale*(1-2.*gRandom->Rndm())*dz;
   }
-  
-  void sampleDir( double * dir)
+ 
+  // creates random normalized vectors 
+  static void sampleDir( double * dir)
   {
-    
+    dir[0]=(1-2.*gRandom->Rndm());
+    dir[1]=(1-2.*gRandom->Rndm());
+    dir[2]=(1-2.*gRandom->Rndm());
+    double norm=sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]);
+    dir[0]/=norm;
+    dir[1]/=norm;
+    dir[2]/=norm;
   }
-  
 };
 
 
@@ -111,6 +118,46 @@ void ShapeBenchmarker::initDataSafety()
 
 
 
+void ShapeBenchmarker::initDataDistanceFromInside()
+{
+  // store box sizes instead of doing many virtual function calls
+  double dx = testshape->GetDX();
+  double dy = testshape->GetDX();
+  double dz = testshape->GetDX();
+
+  // initialize the data first off all within twice bounding box
+  for( unsigned int i=0; i<MAXSIZE; ++i) 
+    {
+      Util::samplePoint(&points_dI[3*i],dx,dy,dz,1);
+      Util::sampleDir(&dirs_dI[3*i]);
+    }
+
+  int insidecounter=0;
+
+  // now try to do some resampling
+  for(int i=0; i< MAXSIZE; ++i) 
+    {
+      insidecounter+=testshape->Contains( &points_dI[3*i] );
+    }
+  std::cerr << " prepared data with " << insidecounter << " points inside " << std::endl;
+  while(insidecounter < MAXSIZE)
+    {
+      // pick a point randomly
+      int index = gRandom->Rndm()*MAXSIZE;
+      if( ! testshape->Contains( &points_dI[ 3*index ] ))
+	{
+	  do{
+	    Util::samplePoint(&points_dI[3*index],dx,dy,dz,1);
+	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are inside
+	    }while( ! testshape->Contains( &points_dI[ 3*index ] ) );
+	}	
+      insidecounter++;
+    }
+  std::cerr << " prepared data with " << insidecounter << " points inside " << std::endl;
+}
+
+
+
 // elemental function do one time measurement for a given number of points
 void ShapeBenchmarker::timeContains(double & Tacc, unsigned int vecsize)
 {
@@ -163,12 +210,38 @@ void ShapeBenchmarker::timeSafety(double & Tacc, unsigned int vecsize)
 
 
 
+// elemental function do one time measurement for a given number of points
+void ShapeBenchmarker::timeDistanceFromInside(double & Tacc, unsigned int vecsize)
+{
+  // choose a random start point in vector
+  int startindex=gRandom->Rndm()*(1.*MAXSIZE-1.*vecsize);
+  volatile double distance;
+  if(vecsize==1)
+    {
+      timer.Start();
+      distance=testshape->DistFromInside( &points_dI[3*startindex], &dirs_dI[3*startindex], 3, TGeoShape::Big(), 0);
+      timer.Stop();
+    }
+  else
+    {
+      timer.Start();
+      for(unsigned int index=startindex; index < startindex+vecsize; ++index)
+	{
+	  distance=testshape->DistFromInside( &points_dI[3*startindex], &dirs_dI[3*startindex], 3, TGeoShape::Big(), 0);
+	}
+      timer.Stop();
+    }
+  Tacc+=timer.getDeltaSecs();
+}
+
+
+
 void ShapeBenchmarker::timeIt( )
 {
-
   // init all data
   initDataContains();
   initDataSafety();
+  initDataDistanceFromInside();
 
 
   // to avoid measuring the same function over and over again we interleave calls to different functions and different data
@@ -176,11 +249,15 @@ void ShapeBenchmarker::timeIt( )
     {
       for(unsigned int vectype =0 ; vectype < N; ++vectype )
 	{
+	  // Safety
+	  timeSafety ( Ts[vectype], vecsizes[vectype] );
+
 	  // Contains
 	  timeContains( Tc[vectype], vecsizes[vectype] );
 
 	  // Safety
-	  timeSafety ( Ts[vectype], vecsizes[vectype] );
+	  timeDistanceFromInside ( TdI[vectype], vecsizes[vectype] );
+
 	}
     }
 
@@ -188,6 +265,9 @@ void ShapeBenchmarker::timeIt( )
   // print result
   for(unsigned int vectype =0 ; vectype < N; ++vectype )
     {
-      std::cerr << vecsizes[vectype] << " " << Tc[vectype]/NREPS << " " << Tc[vectype]/NREPS/vecsizes[vectype] << " " <<  Ts[vectype]/NREPS << " " << Ts[vectype]/NREPS/vecsizes[vectype] << std::endl;
+      std::cerr << vecsizes[vectype] << " " << Tc[vectype]/NREPS << " " << Tc[vectype]/NREPS/vecsizes[vectype] 
+		<< " " <<  Ts[vectype]/NREPS << " " << Ts[vectype]/NREPS/vecsizes[vectype] 
+		<< " " <<  TdI[vectype]/NREPS << " " << TdI[vectype]/NREPS/vecsizes[vectype] 
+		<< std::endl;
     }  
 } 
