@@ -29,6 +29,12 @@
 #define FNPROC 17        // Number of total processes
 #define FNPART 464       // Total number of particles
 
+enum G5proc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
+	     kElastic, kRestCapture ,kBrehms, kPairProd, kAnnihilation,
+	     kCoulombScatt, kPhotoel, kCompton, kConversion, kCapture,
+	     kKiller, kTotal};
+
+
 class TPartIndex: public TObject {
 
 public:
@@ -37,22 +43,18 @@ public:
    TPartIndex();
    virtual ~TPartIndex();
 
-   // Process index <- G4 process*1000+subprocess
-   Int_t ProcIndex(Short_t proccode) const;      
    // Process name <- process index
-   const Char_t* ProcNameIndex(Int_t procindex) const;
-   // Process index <- G4 process*1000+subprocess
-   Int_t ProcCode(Int_t procindex) const {return fPCode[procindex];}
-   // Process name <- G4 process*1000+subprocess
-   const Char_t* ProcNameCode(Int_t proccode) const;
-   // Number of processes -- process number fNProc()-1 is the total x-sec
-   // Process code <- Process name
-   Int_t ProcCode(const Char_t* reac) const {Int_t nr=fNProc; 
-      while(nr--) if(!strcmp(reac,fPrName[nr])) break; if(nr<0) return nr;
-		     return fPCode[nr];}
+   const Char_t* ProcName(Int_t proc) const;
    // Process index <- Process name
    Int_t ProcIndex(const Char_t *reac) const {Int_t nr=fNProc;
       while(nr--) if(!strcmp(reac,fPrName[nr])) break; return nr;}
+
+
+   // Process index <- G4 process*1000+subprocess
+   Int_t ProcIndex(Int_t proccode) const;      
+   // Process index <- G4 process*1000+subprocess
+   Int_t ProcCode(Int_t procindex) const {return fPCode[procindex];}
+
    Short_t NProc() const {return fNProc;}
  
    // Fill the particle table

@@ -65,7 +65,7 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
    char name[10];
    for(Int_t i=0; i<nproc; ++i) {
       snprintf(name,9,"h%.2d",i);
-      histos[i]= new TH1F(TPartIndex::I()->ProcNameIndex(i),title,nbins,
+      histos[i]= new TH1F(TPartIndex::I()->ProcName(i),title,nbins,
 			  TMath::Log10(emin),TMath::Log10(emax));
    }
    Int_t ibin=nbins;
@@ -107,7 +107,7 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
       m[i]->SetNDC();
       m[i]->SetMarkerColor(colo);
       m[i]->Draw();
-      t[i] = new TText(mx*1.05,my-md*ndelta,TPartIndex::I()->ProcNameIndex(i));
+      t[i] = new TText(mx*1.05,my-md*ndelta,TPartIndex::I()->ProcName(i));
       t[i]->SetTextSize(0.03);
       t[i]->SetNDC();
       t[i]->SetTextAlign(12);

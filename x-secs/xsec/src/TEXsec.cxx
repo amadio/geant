@@ -376,9 +376,9 @@ void TEXsec::Draw(Option_t *option)
    if(reactions.Contains("All") || reactions.Contains("*")) {
       TString allrea="";
       for(Int_t i=0; i<TPartIndex::I()->NProc()-1; ++i) {
-	 if(XS(pindex,i,emin)>=0) allrea=allrea+TPartIndex::I()->ProcNameIndex(i)+"|";
+	 if(XS(pindex,i,emin)>=0) allrea=allrea+TPartIndex::I()->ProcName(i)+"|";
       }
-      allrea+=TPartIndex::I()->ProcNameIndex(TPartIndex::I()->NProc()-1);
+      allrea+=TPartIndex::I()->ProcName(TPartIndex::I()->NProc()-1);
       reactions.ReplaceAll("All",allrea);
       reactions.ReplaceAll("*",allrea);
    }
@@ -446,7 +446,7 @@ void TEXsec::Draw(Option_t *option)
 	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       } else {
 	 snprintf(ytitle,49,"barn");
-	 if(TPartIndex::I()->ProcCode(reac)<0) {
+	 if(TPartIndex::I()->ProcIndex(reac)<0) {
 	    Error("Draw","Reaction %s does not exist\n",reac);
 	    TPartIndex::I()->Print("reactions");
 	    printf("dEdx, MSangle, MSangle_sig, MSCorr, MSCorr_sig\n");

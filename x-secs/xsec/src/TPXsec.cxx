@@ -80,8 +80,8 @@ Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Short_t dict[]) {
 	 fXSecs[jbin*fNXsec+jxsec] = xsec[jxsec*fNEbins+jbin];
    for(Int_t i=0; i<TPartIndex::I()->NProc(); ++i) fRdict[i]=fRmap[i]=-1;
    for(Int_t i=0; i<fNXsec; ++i) {
-      fRdict[TPartIndex::I()->ProcIndex(dict[i])]=i;
-      fRmap[i]=TPartIndex::I()->ProcIndex(dict[i]);
+      fRdict[dict[i]]=i;
+      fRmap[i]=dict[i];
    }
    // consistency
    for(Int_t i=0; i<fNXsec; ++i) 
@@ -231,7 +231,7 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    if(rindex<TPartIndex::I()->NProc()-1) {
       Int_t rnumber = fRdict[rindex];
       if(rnumber<0) {
-	 Error("XS","No %s for %s\n",TPartIndex::I()->ProcNameIndex(rindex),
+	 Error("XS","No %s for %s\n",TPartIndex::I()->ProcName(rindex),
 	       TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
 	 return -1;
       }

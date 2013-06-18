@@ -5,7 +5,7 @@
 ClassImp(TPartIndex)
 
 const char* TPartIndex::fPrName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
-			   "Elastic","Capture","Brehms","PairProd","Annihilation",
+			   "Elastic","RestCapture","Brehms","PairProd","Annihilation",
 			   "CoulombScatt","Photoel","Compton","Conversion","Capture",
 					"Killer","Total"};
 const Short_t TPartIndex::fPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
@@ -55,23 +55,16 @@ TPartIndex::~TPartIndex() {
 }
 
 //___________________________________________________________________
-Int_t TPartIndex::ProcIndex(Short_t proccode) const {
+Int_t TPartIndex::ProcIndex(Int_t proccode) const {
    Short_t ip=fNProc;
    while(ip--) if(fPCode[ip]==proccode) break;
    return ip;
 }
 
 //___________________________________________________________________
-const Char_t *TPartIndex::ProcNameCode(Int_t pcode) const {
-   Int_t ip=ProcIndex(pcode);
-   if(ip<0) return "Unknown";
-   else return fPrName[ip];
-}
-
-//___________________________________________________________________
-const Char_t *TPartIndex::ProcNameIndex(Int_t pindex) const {
-   if(pindex<0 || pindex>=fNProc) return "Unknown";
-   return fPrName[pindex];
+const Char_t *TPartIndex::ProcName(Int_t proc) const {
+   if(proc<0 || proc>=fNProc) return "Unknown";
+   return fPrName[proc];
 }
 
 //___________________________________________________________________

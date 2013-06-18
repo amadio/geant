@@ -202,10 +202,7 @@ int main(int argc,char** argv)
     G4float *msasig = new G4float[nbins];
     G4float *mslsig = new G4float[nbins];
     G4float *dedx  = new G4float[nbins];
-    G4int   npdic = 0;
     short   *pdic  = new short[maxproc];
-    short   *ndic = new short[100];
-    char    (*cdic)[DICLEN+1] = new char[100][DICLEN+1];
 
     TDatabasePDG *ipdg = TDatabasePDG::Instance();
     DefineParticles(); // Add ions and other G4 particles
@@ -424,16 +421,11 @@ int main(int argc,char** argv)
 		// Add information to the process dictionary
 
 		G4int pcode = p->GetProcessType()*1000+p->GetProcessSubType();
-		G4int pf = 1;
-		for(G4int ipt=0; ipt<npdic; ++ipt) if(ndic[ipt]==pcode) {
-		      pf=0;
-		      break;}
-		if(pf) {
-		   printf("Adding process %d %d %s\n",p->GetProcessType(),p->GetProcessSubType(),(const char*) p->GetProcessName());
-		   ndic[npdic]=pcode;
-		   strncpy(cdic[npdic],(const char *)p->GetProcessName(),DICLEN);
-		   cdic[npdic][DICLEN]='\0';
-		   ++npdic;
+		G4int pindex = TPartIndex::I()->ProcIndex(pcode);
+		if(pindex<0) {
+		   printf("Error: Found unknown process %d %d %s\n",
+			  p->GetProcessType(),p->GetProcessSubType(),(const char*) p->GetProcessName());
+		   exit(1);
 		}
 		
 		// if it is transportation or decay we bail out
@@ -462,7 +454,11 @@ int main(int argc,char** argv)
 		      en*=delta;
 		      delete dp;
 		   }
-		   pdic[nprxs]=ph->GetProcessType()*1000+ph->GetProcessSubType();
+		   if(pcode != ph->GetProcessType()*1000+ph->GetProcessSubType()) {
+		      printf("Error: process code mismatch 1\n");
+		      exit(1);
+		   }
+		   pdic[nprxs]=pindex;
 		   ++nprxs;
 		   nproc=TRUE;
 		} else if (p->GetProcessType() == 2) {
@@ -482,7 +478,11 @@ int main(int argc,char** argv)
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
 			 en*=delta;
 		      }
-		      pdic[nprxs]=ptEloss->GetProcessType()*1000+ptEloss->GetProcessSubType();
+		      if(pcode != ptEloss->GetProcessType()*1000+ptEloss->GetProcessSubType()) {
+			 printf("Error: process code mismatch 2\n");
+			 exit(1);
+		      }
+		      pdic[nprxs]=pindex;
 		      ++nprxs;
 		      nproc=TRUE;
 		   } else if(G4VEmProcess *ptEm = dynamic_cast<G4VEmProcess*>(p)) {
@@ -505,13 +505,17 @@ int main(int argc,char** argv)
 			 //			 if(hist) h->Fill(TMath::Log10(en),ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn);
 			 en*=delta;
 		      }
-
+		      
 		      /*		      if(hist) {
 			 h->Write();
 			 hist=kFALSE;
 			 }*/
-
-		      pdic[nprxs]=ptEm->GetProcessType()*1000+ptEm->GetProcessSubType();
+		      
+		      if(pcode != ptEm->GetProcessType()*1000+ptEm->GetProcessSubType()) {
+			 printf("Error: process code mismatch 3\n");
+			 exit(1);
+		      }
+		      pdic[nprxs]=pindex;
 		      ++nprxs;
 		      nproc=TRUE;
 		   } else if(p->GetProcessSubType() == 10) {
@@ -629,7 +633,7 @@ int main(int argc,char** argv)
 		   }
 		}
 	     }
-	  }
+          }
 	  // Here we build the dedx tables
 	  if(nproc && particle->GetPDGCharge()) {
 	     // we only consider ionisation for particles that have other processes
@@ -673,7 +677,7 @@ int main(int argc,char** argv)
     totsize /= 0.25*1024*1024;
     printf("Particles with reactions = %d, tot size = %11.4gMB\n",npr/nmaterials, totsize);
       // Print dictionary
-    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
+    //    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
   }
   else {
     // interactive mode : define UI session
