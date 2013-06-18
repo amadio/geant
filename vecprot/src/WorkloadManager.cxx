@@ -408,7 +408,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       // fprintf(stderr,"DEBUG2: check slot 55: event# %d %p\n",tracks[55]->event,tracks[55]);
 
       ::Info("GPU","Waiting (1) for next available stream.");
-      CoprocessorBroker::Stream stream = broker->GetNextStream();
+      TaskBroker::Stream stream = broker->GetNextStream();
       if (!stream) break;
       
       if (wm->FeederQueue()->empty()) {

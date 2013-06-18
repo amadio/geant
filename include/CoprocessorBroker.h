@@ -92,7 +92,7 @@ private:
    DevicePtr<GPPhysicsTable> fd_eIoniTable;
    DevicePtr<GPPhysicsTable> fd_mscTable;
    
-   struct StreamHelper : public TObject {
+   struct StreamHelper : public TaskBroker::StreamHelper, TObject {
       StreamHelper();
       ~StreamHelper();
 
