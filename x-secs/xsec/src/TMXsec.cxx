@@ -89,9 +89,7 @@ TMXsec::TMXsec(Int_t z[], Int_t /*a*/[], Float_t w[], Int_t nel, Float_t dens, B
 
 //____________________________________________________________________________
 Float_t TMXsec::Xlength(Int_t part, Float_t en) {
-   static const Int_t *prindex = TPartIndex::I()->PartReac();
-   Int_t rpart = prindex[part];
-   if(rpart<0) 
+   if(part>=TPartIndex::I()->NPartReac()) 
       return TMath::Limits<Float_t>::Max();
    else {
       en=en<=fEmax?en:fEmax;
@@ -106,15 +104,13 @@ Float_t TMXsec::Xlength(Int_t part, Float_t en) {
 	 return TMath::Limits<Float_t>::Max();
       }
       Double_t xrat = (en2-en)/(en2-en1);
-      return xrat*fTotXL[rpart*fNEbins+ibin]+(1-xrat)*fTotXL[rpart*fNEbins+ibin+1];
+      return xrat*fTotXL[part*fNEbins+ibin]+(1-xrat)*fTotXL[part*fNEbins+ibin+1];
    }
 }
 
 //____________________________________________________________________________
 TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
-   static const Int_t *prindex = TPartIndex::I()->PartReac();
-   Int_t rpart = prindex[part];
-   if(rpart<0) {
+   if(part>=TPartIndex::I()->NPartReac()) {
       reac=-1;
       return 0;
    } else {

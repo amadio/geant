@@ -23,10 +23,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <TObject.h>
+#include <TDatabasePDG.h>
 
 #define DICLEN 12        // Number of process cross sections 
 #define FNPROC 17        // Number of total processes
-#define FNPREA 53        // Number of particles with processes
 #define FNPART 464       // Total number of particles
 
 class TPartIndex: public TObject {
@@ -38,7 +38,7 @@ public:
    virtual ~TPartIndex();
 
    // Process index <- G4 process*1000+subprocess
-   Short_t ProcIndex(Short_t proccode) const;      
+   Int_t ProcIndex(Short_t proccode) const;      
    // Process name <- process index
    const Char_t* ProcNameIndex(Int_t procindex) const;
    // Process index <- G4 process*1000+subprocess
@@ -56,16 +56,15 @@ public:
    Short_t NProc() const {return fNProc;}
  
    // Fill the particle table
-   void SetPartTable(char **names, Int_t *PDG, Int_t np);
+   void SetPartTable(const Int_t *PDG, Int_t np);
    
    // PDG code <- G5 particle number
    Int_t PDG(Int_t i) const {return fPDG[i];}
    // PDG code <- particle name 
-   Int_t PDG(const Char_t* pname) const {Int_t nr=fNPart;
-      while(nr--) if(!strcmp(pname,&fPnames[30*nr])) break;
-      if(nr<0) return -12345678; return fPDG[nr];}
+   Int_t PDG(const Char_t* pname) const;
    // Particle name <- G5 particle number
-   const Char_t *PartName(Int_t i) const {return &fPnames[30*i];}
+   const Char_t *PartName(Int_t i) const 
+   {return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName();}
    // G5 particle index <- PDG code
    Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
       while(np--) if(fPDG[np]==pdg) break; return np;}
@@ -75,31 +74,26 @@ public:
    // Number of particles 
    Int_t NPart() const {return fNPart;}
  
-   // Set particles with reaction
-   Bool_t SetPartReac(const Int_t reacpdg[], Int_t np);
-
-   // Number of particles with reactions
+    // Number of particles with reactions
+   void SetNPartReac(Int_t np) {fNpReac=np;}
    Int_t NPartReac() const {return fNpReac;}
-   Int_t PartReacIndex(Int_t index) const {return fReacPart[index];}
-   const Int_t* PartReac() const {return fReacPart;}
+   TDatabasePDG *DBPdg() const {return fDBPdg;}
 
    void Print(Option_t *option="") const;
 
 private:
    static TPartIndex *fgPartIndex;
 
-
    static const Int_t   fNProc=FNPROC;    // Number of processes
    static const char   *fPrName[FNPROC];  // Process name
    static const Short_t fPCode[FNPROC];   // G4 process codes
 
    Int_t    fNPart;         // Total number of particles
-   Int_t    fNPart30;       // length of the char store
    Int_t   *fPDG;           // [fNPart] PDG code of all part
-   Int_t   *fReacPart;      // [fNPart] number of particel with reaction
-   Char_t  *fPnames;        // [fNPart30] Names of all part
 
    Int_t fNpReac;           // Number of particles with reactions
+
+   TDatabasePDG *fDBPdg;    // Pointer to the augmented pdg database
 
    ClassDef(TPartIndex,1)  // Particle Index
 

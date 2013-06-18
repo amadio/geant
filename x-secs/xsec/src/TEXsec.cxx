@@ -143,8 +143,7 @@ Float_t TEXsec::XSPDG(Int_t pdg, Short_t rcode, Float_t en) const {
 
 //___________________________________________________________________
 Float_t TEXsec::XS(Int_t pindex, Short_t rindex, Float_t en) const {
-   const Int_t* prindex = TPartIndex::I()->PartReac();
-   return fPXsec[prindex[pindex]].XS(rindex,en);
+   return fPXsec[pindex].XS(rindex,en);
 }
 
 //___________________________________________________________________
@@ -157,8 +156,7 @@ Float_t TEXsec::DEdxPDG(Int_t pdg, Float_t en) const {
 
 //___________________________________________________________________
 Float_t TEXsec::DEdx(Int_t pindex, Float_t en) const {
-   const Int_t* prindex = TPartIndex::I()->PartReac();
-   return fPXsec[prindex[pindex]].DEdx(en);
+   return fPXsec[pindex].DEdx(en);
 }
 
 //___________________________________________________________________
@@ -173,8 +171,7 @@ Bool_t TEXsec::MSPDG(Int_t pdg, Float_t en, Float_t &ang, Float_t &asig,
 //___________________________________________________________________
 Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
-   const Int_t* prindex = TPartIndex::I()->PartReac();
-   return fPXsec[prindex[pindex]].MS(en,ang,asig,len,lsig);
+   return fPXsec[pindex].MS(en,ang,asig,len,lsig);
 }
 
 //___________________________________________________________________
@@ -255,16 +252,14 @@ Float_t TEXsec::LambdaPDG(Int_t pdg, Double_t en) const {
 
 //___________________________________________________________________
 Float_t TEXsec::Lambda(Int_t pindex, Double_t en) const {
-   const Int_t* prindex = TPartIndex::I()->PartReac();
    Double_t xs=0;
-   xs = fPXsec[prindex[pindex]].XS(TPartIndex::I()->NProc()-1,en);
+   xs = fPXsec[pindex].XS(TPartIndex::I()->NProc()-1,en);
    return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
 }
 
 //___________________________________________________________________
 Int_t TEXsec::SampleReac(Int_t pindex, Double_t en) const {
-   const Int_t* prindex = TPartIndex::I()->PartReac();
-   return fPXsec[prindex[pindex]].SampleReac(en);
+   return fPXsec[pindex].SampleReac(en);
 }
 
 //___________________________________________________________________

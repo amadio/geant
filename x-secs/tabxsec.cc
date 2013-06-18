@@ -69,11 +69,21 @@
 #include <TPartIndex.h>
 #include <TClass.h>
 #include <TVirtualStreamerInfo.h>
+#include <TDataBasePDG.h>
+#include <TMap.h>
+#include <TObjString.h>
+
+
 
 using namespace CLHEP;
 
+TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
+                              G4ParticleDefinition* particleDefinition);
+
+void DefineParticles();
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+static TMap partDict;
 
 int main(int argc,char** argv)
 {
@@ -146,8 +156,8 @@ int main(int argc,char** argv)
     //
     const G4int maxproc = 10;  // max of 10 proc per particle
     const G4int nbins = 1000;
-    const G4double emin = 1.e-6*GeV;
-    const G4double emax = 1.e3*GeV;
+    const G4double emin = 1.e-9*GeV;
+    const G4double emax = 1.e4*GeV;
     const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
     const G4double lemin = TMath::Log10(emin);
     const G4double lemax = TMath::Log10(emax);
@@ -197,29 +207,36 @@ int main(int argc,char** argv)
     short   *ndic = new short[100];
     char    (*cdic)[DICLEN+1] = new char[100][DICLEN+1];
 
+    TDatabasePDG *ipdg = TDatabasePDG::Instance();
+    DefineParticles(); // Add ions and other G4 particles
     // Print all processes for all particles for reference
     G4double maxwidth=0;
     G4double minlife =1e9;
-    G4int *pindex = new G4int[np];
+    G4int *pPDG = new G4int[np];
     G4int *preac  = new G4int[np];
+    TParticlePDG **pdpdg = new TParticlePDG*[np];
     G4int npreac = 0;
-    char **parttab = new char*[np];
     for(G4int i=0; i<np; ++i) {
        particle = theParticleTable->GetParticle(i);
+       pdpdg[i] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
        char sl[3]="ll";
        if(particle->IsShortLived()) strcpy(sl,"sl");
        G4double life = particle->GetPDGLifeTime()/s;
        G4double width = particle->GetPDGWidth();
-       sprintf(string,"%-20s (%10d): %s %12.5g %12.5g %12.5g",(const char *)particle->GetParticleName(),
+       sprintf(string,"%-20s (%10d): %s %11.5g %11.5g %11.5g",(const char *)particle->GetParticleName(),
 	       particle->GetPDGEncoding(),sl,life,width,life*width/hbar_Planck*s);
 
-       const char *pnam = (const char*) particle->GetParticleName();
-       G4int pnl = strlen(pnam);
-       parttab[i] = new char[pnl+1];
-       strcpy(parttab[i],pnam);
-       parttab[i][pnl]='\0';
+       pPDG[i]=pdpdg[i]->PdgCode();
+       if(!pPDG[i]) {
+	  // the only 0 pdg should be the rootino 
+	  TObjString *conversion = (TObjString*) partDict.GetValue((const char *)particle->GetParticleName());
+	  const char *partnam = conversion->String().Data();
+	  if(strcmp("Rootino",partnam)) {
+	     printf("Fatal, PDG for partcile name %s not found!!\n",partnam);
+	     exit(1);
+	  }
+       }
 
-       pindex[i]=particle->GetPDGEncoding();
        G4bool nproc=FALSE;
        G4ProcessManager* pManager = particle->GetProcessManager();
        if ( pManager == 0) {
@@ -238,29 +255,58 @@ int main(int argc,char** argv)
 		     p->GetProcessSubType());
 	  }
        }
+       TParticlePDG *proot = ipdg->GetParticle(particle->GetPDGEncoding());
+       if(!proot) 
+	  printf("Problem!! Particle %s has no ROOT equivalent\n",(const char*)particle->GetParticleName());
        if(nproc) {
-	  preac[npreac++]=pindex[i];
+	  preac[npreac++]=pPDG[i];
 	  if(life>0 && life<minlife) minlife=life;
 	  if(width>maxwidth) maxwidth=width;
        }
        printf("%s\n",string);
     }
 
+    TPartIndex::I()->SetNPartReac(npreac);
+
     // Push particle table into the TPartIndex
-    /*    // Order the particle table -- Bad idea
-    for(G4int i=0; i<np+1; ++i) 
+    // Put all the particles with reactions at the beginning to avoid double indexing
+    for(G4int i=0; i<np-1; ++i) {
+       G4bool inti = FALSE;
+       for(G4int jr=0; jr<npreac; ++jr) 
+	  if(preac[jr]==pPDG[i]) {inti=TRUE; break;}
        for(G4int j=i; j<np; ++j) {
-	  if(pindex[i]>pindex[j]) {
-	     G4int itmp = pindex[i];
-	     pindex[i] = pindex[j];
-	     pindex[j] = itmp;
-	     char *ctmp = parttab[i];
-	     parttab[i] = parttab[j];
-	     parttab[j] = ctmp;
+	  G4bool intj = FALSE;
+	  for(G4int jr=0; jr<npreac; ++jr) 
+	     if(preac[jr]==pPDG[j]) {intj=TRUE; break;}
+	  if(!inti && intj) {
+	     G4int itmp = pPDG[i];
+	     pPDG[i] = pPDG[j];
+	     pPDG[j] = itmp;
 	  }
        }
-    */
-    TPartIndex::I()->SetPartTable(parttab,pindex,np);
+    }
+
+    // test that the particles with reactions are contiguous...
+    G4bool endint=FALSE;
+    for(G4int i=0; i<np; ++i) {
+       G4bool inter = FALSE;
+       for(G4int j=0; j<npreac; ++j) 
+	  if(preac[j]==pPDG[i]) {inter=TRUE; break;}
+       if(!inter) {
+	  if(!endint) {
+	     printf("First particle without interaction #%d %s PDG %d\n",
+		    i,TDatabasePDG::Instance()->GetParticle(pPDG[i])->GetName(),pPDG[i]);
+	     if(i != TPartIndex::I()->NPartReac()) {
+		printf("Fatal: i=%d != npreac%d\n",i,npreac);
+		exit(1);
+	     }
+	     endint=TRUE;
+	  }
+       } //else  printf("Particle with interaction #%d %s PDG %d\n",
+       //	 i,TDatabasePDG::Instance()->GetParticle(pPDG[i])->GetName(),pPDG[i]);
+    }
+
+    TPartIndex::I()->SetPartTable(pPDG,np);
     printf("Code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
 
     // Push particles with reactions into TPartIndex
@@ -270,7 +316,6 @@ int main(int argc,char** argv)
     printf("Reactions for life above %g(%g) and width below %g(%g) (%g)\n",
 	   minlife,maxwidthl,maxwidth,minlifew,minlife*maxwidth/hbar_Planck*s);
     printf("Found %d particles with reactions\n",npreac);
-    TPartIndex::I()->SetPartReac(preac,npreac);
     
     // Print out available reactions
     printf("Available reactions :");
@@ -289,27 +334,14 @@ int main(int argc,char** argv)
     }
     if(strlen(line)>0) printf("%s\n",line);
 	     
-
     Bool_t outpart=kTRUE;
     if(outpart) {
        FILE *fout = fopen("file.txt","w");
-       line[0]='\0';
-       for(G4int i=0; i<np; ++i) {
-	  if(strlen(line)+strlen(parttab[i])+3<120) {
-	     strcat(line,"\"");
-	     strcat(line,parttab[i]);
-	     strcat(line,"\",");
-	  } else {
-	     fprintf(fout, "%s\n", line);
-	     snprintf(line,119,"\"%s\",",parttab[i]);
-	  }
-       }
-       if(strlen(line)>0) fprintf(fout,"%s\n",line);
        
        line[0]='\0';
        char cnum[30];
        for(G4int i=0; i<np; ++i) {
-	  snprintf(cnum,29,"%d,",pindex[i]);
+	  snprintf(cnum,29,"%d,",pPDG[i]);
 	  if(strlen(line)+strlen(cnum)<120) {
 	     strcat(line,cnum);
 	  } else {
@@ -328,8 +360,6 @@ int main(int argc,char** argv)
     
     size_t numOfCouples = theCoupleTable->GetTableSize();
 
-    //    Bool_t hist=kFALSE;
-    
 
     // loop over all materials
     const G4ThreeVector  dirz(0,0,1);
@@ -366,6 +396,12 @@ int main(int argc,char** argv)
        G4int kpreac=0; // number of particles with reaction, should always be the same
        for(G4int i=0; i<np; ++i) {
 	  particle = theParticleTable->GetParticle(i);
+	  G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
+	  if(partindex<0) {
+	     printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
+		    (const char *)particle->GetParticleName());
+	     exit(1);
+	  }
 	  sprintf(string,"%-20s:",(const char *)particle->GetParticleName());
 	  G4ProcessManager* pManager = particle->GetProcessManager();
 	  G4bool nproc=FALSE; // whether we have a process for this particle
@@ -609,24 +645,18 @@ int main(int argc,char** argv)
 	     bdedx=TRUE;
 	  }
 	  if(nproc) {
-	     if(preac[npr%npreac]!=particle->GetPDGEncoding() &&
-		preac[kpreac]!=particle->GetPDGEncoding()) {
-		// check that the index table is consistent
-		printf("==========================>>>> Error %d %d %d\n",
-		       npr%npreac,preac[npr%npreac],particle->GetPDGEncoding());
+	     if(partindex >= TPartIndex::I()->NPartReac()) {
+		printf("Error, particle %s PDG %d with reaction %d > %d\n",
+		       (const char *)particle->GetParticleName(),
+		       pdpdg[i]->PdgCode(),
+		       partindex,TPartIndex::I()->NPartReac());
+		exit(1);
 	     }
-	     
-	     // we have a material with x-sec for this particle. we add it
-	     mxsec->AddPart(kpreac,particle->GetPDGEncoding(),nbins,nprxs,emin,emax);
-	     if(nprxs) mxsec->AddPartXS(kpreac,pxsec,pdic);
-	     if(bdedx) mxsec->AddPartIon(kpreac,dedx);
-	     if(bmulsc) mxsec->AddPartMS(kpreac,msang,msasig,mslen,mslsig);
+	     mxsec->AddPart(partindex,pPDG[partindex],nbins,nprxs,emin,emax);
+	     if(nprxs) mxsec->AddPartXS(partindex,pxsec,pdic);
+	     if(bdedx) mxsec->AddPartIon(partindex,dedx);
+	     if(bmulsc) mxsec->AddPartMS(partindex,msang,msasig,mslen,mslsig);
 	     ++npr; // Total number of processes to calculate size
-	     if(kpreac != TPartIndex::I()->PartReacIndex(TPartIndex::I()->PartIndex(particle->GetPDGEncoding()))) {
-		printf("\nError in the particle index %d %d %d %s\n\n",
-		       kpreac,TPartIndex::I()->PartReacIndex(particle->GetPDGEncoding()),
-		       particle->GetPDGEncoding(),(const char*) particle->GetParticleName());
-	     }
 	     ++kpreac; // number particle with processes
 	  } // end of "if we have processes" for this particle
        } // end of particle loop
@@ -673,3 +703,163 @@ int main(int argc,char** argv)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+//_____________________________________________________________________________
+TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
+                              G4ParticleDefinition* particleDefinition)
+{
+   // Add the particle definition in TDatabasePDG 
+   // Code by Ivana Hrivnacova
+
+   // Return if particle was already added
+   G4int pdgEncoding = particleDefinition->GetPDGEncoding();
+   TParticlePDG *particlePDG=0;
+   if(pdgEncoding) 
+      particlePDG 
+	 = TDatabasePDG::Instance()->GetParticle(pdgEncoding);
+   else {
+      TObjString *conversion = (TObjString*) partDict.GetValue((const char *)particleDefinition->GetParticleName());
+      if( conversion )  
+	 particlePDG 
+	    = TDatabasePDG::Instance()->GetParticle(conversion->String().Data());
+      else 
+	 particlePDG 
+	    = TDatabasePDG::Instance()->GetParticle((const char*) name);
+   }
+   if ( particlePDG )  return particlePDG;
+
+   // Get particle data
+   G4String g4Name = particleDefinition->GetParticleName();
+   G4int pdgQ = G4int(particleDefinition->GetPDGCharge()/eplus);
+   // !! here we do not save dynamic charge but the static one
+   G4String g4Type = particleDefinition->GetParticleType();
+   G4String rootType = g4Type;
+   if ( g4Type == "nucleus" ||  g4Type == "anti_nucleus") rootType="Ion";
+   
+   G4bool verbose = FALSE;
+   if (verbose) {
+      G4cout << "Adding particle to TDatabasePDG " << G4endl;
+      G4cout << "   name:   " << g4Name << G4endl;
+      G4cout << "   g4name: " << name << G4endl;
+      G4cout << "   PDG:    " << pdgEncoding << G4endl;
+      G4cout << "   pdgQ:   " << pdgQ << G4endl;
+      G4cout << "   type:   " << rootType << G4endl;
+   }               
+   
+   // Add particle to TDatabasePDG
+   return TDatabasePDG::Instance()
+      ->AddParticle(name, g4Name, 
+		    particleDefinition->GetPDGMass()/GeV, 
+		    particleDefinition->GetPDGStable(), 
+		    particleDefinition->GetPDGWidth()/GeV, 
+		    pdgQ*3, rootType, pdgEncoding);                     
+}
+
+
+//
+// public methods This code is copied from G4virtual MC 
+// written by I.Hrivnacova
+//
+
+//_____________________________________________________________________________
+void DefineParticles()
+{
+/// Add special particles with standard PDG = 0 to TDatabasePDG
+/// and map them to G4 particles objects.
+
+  const Int_t kspe=50000000;
+  TDatabasePDG *pdgDB = TDatabasePDG::Instance();
+
+  // optical phothon
+  if ( !pdgDB->GetParticle(kspe+50) )
+    pdgDB->AddParticle("Cherenkov", "Cherenkov", 0, kFALSE,
+                       0,0,"Special",kspe+50);
+  partDict.Add(new TObjString("opticalphoton"),new TObjString("Cherenkov"));
+
+  // feedback phothon
+  if ( !pdgDB->GetParticle(kspe+51) )
+    pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton", 0, kFALSE,
+                       0, 0, "Special", kspe+51);
+
+  // charged rootino
+  if ( !pdgDB->GetParticle(kspe+52) )
+    pdgDB->AddParticle("ChargedRootino","ChargedRootino", 0, kFALSE,
+                       0, -1, "Special", kspe+52);
+  partDict.Add(new TObjString("chargedgeantino"), new TObjString("ChargedRootino"));
+
+  // generic ion
+  // This particle should not appear in tracking (as it is commented 
+  // in class G4GenericIon), but as it does, we map it anyway
+  if ( !pdgDB->GetParticle(kspe+60) )
+    pdgDB->AddParticle("GenericIon", "GenericIon",  0.938272, kTRUE,
+                       0, 1, "Special", kspe+60);
+  partDict.Add(new TObjString("GenericIon"),new TObjString("GenericIon"));
+
+  
+  // Light ions
+  // Get PDG codes from Geant4 the rest as in TGeant3
+  const Double_t kGeV=0.9314943228;
+  const Double_t kHslash = 1.0545726663e-27;
+  const Double_t kErgGeV = 1/1.6021773349e-3;
+  const Double_t kHshGeV = kHslash*kErgGeV;
+  const Double_t kYearsToSec = 3600*24*365.25;
+
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particle;
+
+  particle = particleTable->FindParticle("deuteron");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("Deuteron","Deuteron",2*kGeV+8.071e-3, kTRUE,
+		       0, 3, "Ion", particle->GetPDGEncoding());
+  }                       
+                       
+  particle = particleTable->FindParticle("triton");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("Triton","Triton",3*kGeV+14.931e-3,kFALSE,
+		     kHshGeV/(12.33*kYearsToSec), 3, "Ion", 
+                     particle->GetPDGEncoding());
+  }                       
+                       
+  particle = particleTable->FindParticle("alpha");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("Alpha","Alpha",4*kGeV+2.424e-3, kTRUE,
+		       kHshGeV/(12.33*kYearsToSec), 6, "Ion",
+                       particle->GetPDGEncoding());
+  }                       
+
+  particle = particleTable->FindParticle("He3");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("HE3", "HE3", 3*kGeV+14.931e-3, kFALSE,
+		       0, 6, "Ion", particle->GetPDGEncoding());
+  }                       
+
+  // Light anti-ions
+  // Get parameters from Geant4
+  
+  particle = particleTable->FindParticle("anti_deuteron");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("AntiDeuteron", "AntiDeuteron", 1.875613, kTRUE,
+		       0, -3, "Ion", particle->GetPDGEncoding());
+  }                       
+                       
+  particle = particleTable->FindParticle("anti_triton");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("AntiTriton", "AntiTriton", 2.808921, kTRUE,
+		       0, -3, "Ion", particle->GetPDGEncoding());
+  }                       
+                       
+  particle = particleTable->FindParticle("anti_alpha");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("AntiAlpha","AntiAlpha", 3.727379, kTRUE,
+		       0, -6, "Ion", particle->GetPDGEncoding());
+  }                       
+
+  particle = particleTable->FindParticle("anti_He3");
+  if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
+    pdgDB->AddParticle("AntiHE3", "AntiHE3", 2.808391, kTRUE,
+		       0, -6, "Ion", particle->GetPDGEncoding());
+  }                       
+  partDict.Add(new TObjString("geantino"), new TObjString("Rootino"));
+
+}  
+ 
+

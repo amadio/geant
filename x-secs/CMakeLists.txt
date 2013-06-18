@@ -43,9 +43,9 @@ ROOT_GENERATE_DICTIONARY(xsecCint ${lheaders} LINKDEF ${PROJECT_SOURCE_DIR}/xsec
 # Add the executable, and link it to the Geant4 libraries
 #
 add_library(Xsec SHARED ${lsources} xsecCint.cxx ${lheaders} xsecCint.h)
-target_link_libraries(Xsec ${ROOT_LIBRARIES})
+target_link_libraries(Xsec ${ROOT_LIBRARIES} -lEg)
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
-target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L. -lXsec)
+target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEg -L. -lXsec)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
