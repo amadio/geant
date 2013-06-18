@@ -167,7 +167,7 @@ void ShapeBenchmarker::initDataDistanceFromOutside()
   // initialize the data first off all within twice bounding box and arbitrary direction
   for( unsigned int i=0; i<MAXSIZE; ++i) 
     {
-      Util::samplePoint(&points_dO[3*i],dx,dy,dz,4);
+      Util::samplePoint(&points_dO[3*i],dx,dy,dz,5);
       Util::sampleDir(&dirs_dO[3*i]);
     }
 
@@ -188,7 +188,7 @@ void ShapeBenchmarker::initDataDistanceFromOutside()
       if( testshape->Contains( &points_dO[ 3*index ] ))
 	{
 	  do{
-	    Util::samplePoint(&points_dO[3*index],dx,dy,dz,4);
+	    Util::samplePoint(&points_dO[3*index],dx,dy,dz,5);
 	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are outside
 	    }while( testshape->Contains( &points_dO[ 3*index ] ) );
 	  insidecounter--;
@@ -319,7 +319,6 @@ void ShapeBenchmarker::timeDistanceFromOutside(double & Tacc, unsigned int vecsi
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
 	  distance=testshape->DistFromOutside( &points_dO[3*index], &dirs_dO[3*index], 3, TGeoShape::Big(), 0);
-	  std::cerr << distance << std::endl;
 	}
       timer.Stop();
     }
@@ -360,10 +359,15 @@ void ShapeBenchmarker::timeIt( )
   // print result
   for(unsigned int vectype =0 ; vectype < N; ++vectype )
     {
-      std::cerr << vecsizes[vectype] << " " << Tc[vectype]/NREPS << " " << Tc[vectype]/NREPS/vecsizes[vectype] 
-		<< " " <<  Ts[vectype]/NREPS << " " << Ts[vectype]/NREPS/vecsizes[vectype] 
-		<< " " <<  TdI[vectype]/NREPS << " " << TdI[vectype]/NREPS/vecsizes[vectype] 
-		<< " " <<  TdO[vectype]/NREPS << " " << TdO[vectype]/NREPS/vecsizes[vectype] 
+      std::cerr << vecsizes[vectype] 
+		<< " " << Tc[vectype]/NREPS  /* timing for Contains method */
+		<< " " << Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
+		<< " " <<  Ts[vectype]/NREPS   /* timing for safety method */
+		<< " " << Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
+		<< " " <<  TdI[vectype]/NREPS 
+		<< " " << TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
+		<< " " <<  TdO[vectype]/NREPS 
+		<< " " << TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
 		<< std::endl;
     }  
 } 
