@@ -167,7 +167,7 @@ void ShapeBenchmarker::initDataDistanceFromOutside()
   // initialize the data first off all within twice bounding box and arbitrary direction
   for( unsigned int i=0; i<MAXSIZE; ++i) 
     {
-      Util::samplePoint(&points_dO[3*i],dx,dy,dz,2);
+      Util::samplePoint(&points_dO[3*i],dx,dy,dz,4);
       Util::sampleDir(&dirs_dO[3*i]);
     }
 
@@ -188,7 +188,7 @@ void ShapeBenchmarker::initDataDistanceFromOutside()
       if( testshape->Contains( &points_dO[ 3*index ] ))
 	{
 	  do{
-	    Util::samplePoint(&points_dO[3*index],dx,dy,dz,2);
+	    Util::samplePoint(&points_dO[3*index],dx,dy,dz,4);
 	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are outside
 	    }while( testshape->Contains( &points_dO[ 3*index ] ) );
 	  insidecounter--;
@@ -198,12 +198,12 @@ void ShapeBenchmarker::initDataDistanceFromOutside()
   
   // now check how many particles hit this shape
   int hitcounter=0;
-  for(int i=0; i< MAXSIZE; ++i) 
+  for(unsigned int i=0; i< MAXSIZE; ++i) 
     {
       hitcounter+=testshape->CouldBeCrossed( &points_dO[3*i], &dirs_dO[3*i] );
     }
-  std::cerr << " have " << hitcounter << " points hitting " << std::endl;
 
+  std::cerr << " have " << hitcounter << " points hitting " << std::endl;
 
   while(hitcounter < MAXSIZE/3.)
     {
@@ -240,7 +240,7 @@ void ShapeBenchmarker::timeContains(double & Tacc, unsigned int vecsize)
       timer.Start();
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
-	  isin=testshape->Contains( &points_C[3*startindex] );
+	  isin=testshape->Contains( &points_C[3*index] );
 	}
       timer.Stop();
     }
@@ -266,7 +266,7 @@ void ShapeBenchmarker::timeSafety(double & Tacc, unsigned int vecsize)
       timer.Start();
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
-	  safety=testshape->Safety( &points_s[3*startindex], kTRUE );
+	  safety=testshape->Safety( &points_s[3*index], kTRUE );
 	}
       timer.Stop();
     }
@@ -292,7 +292,7 @@ void ShapeBenchmarker::timeDistanceFromInside(double & Tacc, unsigned int vecsiz
       timer.Start();
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
-	  distance=testshape->DistFromInside( &points_dI[3*startindex], &dirs_dI[3*startindex], 3, TGeoShape::Big(), 0);
+	  distance=testshape->DistFromInside( &points_dI[index], &dirs_dI[3*index], 3, TGeoShape::Big(), 0);
 	}
       timer.Stop();
     }
@@ -318,7 +318,8 @@ void ShapeBenchmarker::timeDistanceFromOutside(double & Tacc, unsigned int vecsi
       timer.Start();
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
-	  distance=testshape->DistFromOutside( &points_dO[3*startindex], &dirs_dO[3*startindex], 3, TGeoShape::Big(), 0);
+	  distance=testshape->DistFromOutside( &points_dO[3*index], &dirs_dO[3*index], 3, TGeoShape::Big(), 0);
+	  std::cerr << distance << std::endl;
 	}
       timer.Stop();
     }
