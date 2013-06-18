@@ -8,7 +8,7 @@
 #include "sync_objects.h"
  
 class GeantVolumeBasket;
-class CoprocessorBroker;
+class TaskBroker;
 
 // Main work manager class. This creates and manages all the worker threads,
 // has pointers to the synchronization objects, but also to the currently
@@ -38,7 +38,7 @@ protected:
    Bool_t             fFlushed;            // Buffer flushed
    Bool_t             fFilling;            // Worker queue is filling
    
-   CoprocessorBroker *fCoprocBroker;           // Pointer to the coprocessor broker, this could be made a collection.
+   TaskBroker        *fBroker;             // Pointer to the coprocessor broker, this could be made a collection.
 
    WorkloadManager(Int_t nthreads);
 public:
@@ -65,7 +65,7 @@ public:
    GeantVolumeBasket  *GetCurrentBasket(Int_t tid) const {return fCurrentBasket[tid];}
    void                Print(Option_t *option="") const;
    Int_t               GetNminThreshold() const {return fNminThreshold;}
-   void                SetCoprocessorBroker(CoprocessorBroker *broker) { fCoprocBroker = broker; }
+   void                SetTaskBroker(TaskBroker *broker) { fBroker = broker; }
    void                SetNminThreshold(Int_t thr) {fNminThreshold = thr;}
    void                StartThreads();
    void                JoinThreads();

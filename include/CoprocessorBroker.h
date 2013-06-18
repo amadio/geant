@@ -1,3 +1,13 @@
+#ifndef GEANT_COPROCESSORBROKER
+#define GEANT_COPROCESSORBROKER
+
+// Implementation of TaskBroker for CUDA devices.
+
+
+#ifndef GEANT_TASKBROKER
+#include "TaskBroker.h"
+#endif
+
 class DevicePtrBase
 {
    void *fPtr;
@@ -43,7 +53,7 @@ class curandState;
 
 class GeantTrack;
 
-class CoprocessorBroker
+class CoprocessorBroker : public TaskBroker
 {
 public:
    CoprocessorBroker();
@@ -114,4 +124,5 @@ private:
   
 };
 
+#endif
 

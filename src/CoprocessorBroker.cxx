@@ -474,7 +474,8 @@ void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
 
 void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
 {
-   
+   prepateDataArray(nTracks);
+
    cudaEvent_t start, stop;
    cudaEventCreate (&start);
    cudaEventCreate (&stop);

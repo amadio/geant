@@ -5,7 +5,7 @@ void run(Int_t nthreads=10, Bool_t graphics=kTRUE, const char *geomfile="http://
    gSystem->Load("libThread.so");
    gSystem->Load("libGeom.so");
    gSystem->Load("libVMC.so");
-   gSystem->Load("libGeantCuda.so");
+   // gSystem->Load("libGeantCuda.so");
    gSystem->Load("libGeant.so");
    
    GeantPropagator *prop = GeantPropagator::Instance();

@@ -18,7 +18,7 @@
 #include "GeantThreadData.h"
 #include "PhysicsProcess.h"
 
-#include "CoprocessorBroker.h"
+#include "TaskBroker.h"
 
 ClassImp(WorkloadManager)
 
@@ -50,7 +50,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fBasketArray = 0;
    fFlushed = kFALSE;
    fFilling = kFALSE;
-   fCoprocBroker = 0;
+   fBroker = 0;
 }
 
 //______________________________________________________________________________
@@ -121,9 +121,9 @@ void WorkloadManager::StartThreads()
    fListThreads = new TList();
    fListThreads->SetOwner();
    Int_t ith = 0;
-   if (1 && fCoprocBroker) {
+   if (fBroker) {
       Printf("Running with a coprocessor broker.");
-      TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor,fCoprocBroker);
+      TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor,fBroker);
       fListThreads->Add(t);
       t->Run();
       ++ith;
@@ -396,7 +396,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
-   CoprocessorBroker *broker = reinterpret_cast<CoprocessorBroker*>(arg);
+   TaskBroker *broker = reinterpret_cast<TaskBroker*>(arg);
    while (1) {
       // fprintf(stderr,"DEBUG2: check slot 55: event# %d %p\n",tracks[55]->event,tracks[55]);
 
@@ -439,7 +439,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
          // Loop all tracks to generate physics/geometry steps
          // Physics step
          
-         broker->prepateDataArray(ntotransport);
          broker->runTask(tid, ntotransport, basket_sch->GetNumber(), gPropagator->fTracks, particles);
          
          // Copy only tracks that survived boundaries (well we will have to think of

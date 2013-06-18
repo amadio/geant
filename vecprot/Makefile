@@ -50,7 +50,7 @@ GEANTO        = GeantThreadData.o PhysicsProcess.o GeantTrack.o \
                 WorkloadManager.o sync_objects.o G__Geant.o
 GEANTSOURCES := $(patsubst %.cxx,$(SRCDIR)/%.cxx,$(GEANTSOURCES))
 GEANTO       := $(patsubst %.o,$(SRCDIR)/%.o,$(GEANTO))
-GEANTDEPS     = $(patsubst %.cxx,%.d,$(GEANTSOURCES))
+GEANTDEPS     = $(patsubst %.cxx,%.d,$(GEANTSOURCES)) $(SRCDIR)/G__Geant.d
 
 GEANTSO       = libGeant.$(DllSuf)
 GEANTLIB      = $(shell pwd)/$(GEANTSO)
@@ -77,7 +77,7 @@ $(SRCDIR)/%.o: $(SRCDIR)/%.cxx
 		 	 -- $<
 		$(CXX)  $(CXXFLAGS) -o $@ -c $<
 
-$(GEANTDICTS):
+$(GEANTDICTS): $(INCDIR)/LinkDef.h
 		@echo "Generating dictionary $@"
 #		cp $(INCBRIDGE)/*.h $(INCDIR)
 		$(ROOTSYS)/bin/rootcint -f $@ \
@@ -85,13 +85,13 @@ $(GEANTDICTS):
                 $(INCDIR)/GeantVolumeBasket.h $(INCDIR)/GeantBasket.h \
                 $(INCDIR)/GeantPropagator.h $(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h \
                 $(INCDIR)/WorkloadManager.h $(INCDIR)/CoprocessorBroker.h $(INCDIR)/LinkDef.h
-src/G__Geant.o:
+src/G__Geant.o: $(GEANTDICTS)
 		$(ROOTSYS)/bin/rmkdepend -R -f$(SRCDIR)/G__Geant.d -Y -w 1000 -- \
-                pipe -m64 -Wshadow -Wall -W -Woverloaded-virtual -fPIC \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
-                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(SRCDIR)/$(GEANTDICTS)
+                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(GEANTDICTS)
 		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ \
                 -c $(SRCDIR)/G__Geant.cxx
+
 clean:
 		@rm -rf $(GEANTSO) src/*.o src/*.d src/G__*
 

@@ -112,15 +112,15 @@ void runGPU(Int_t nthreads=10, Bool_t graphics=kFALSE, const char *geomfile="htt
    gSystem->Load("libThread.so");
    gSystem->Load("libGeom.so");
    gSystem->Load("libVMC.so");
-   gSystem->Load("libGeantCuda.so");
    gSystem->Load("libGeant.so");
+   gSystem->Load("libGeantCuda.so");
    
    GeantPropagator *prop = GeantPropagator::Instance();
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
    CoprocessorBroker *gpuBroker = new CoprocessorBroker();
    gpuBroker->CudaSetup(32,128,1);
-   wmgr->SetCoprocessorBroker(gpuBroker);
+   wmgr->SetTaskBroker(gpuBroker);
    
    prop->fNtotal   = 150; // 0;  // Number of events to be transported
    prop->fNevents  = 100;   // Number of buffered events
