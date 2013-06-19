@@ -10,10 +10,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx)
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEMGamma.cxx" "" sources "${sources}")
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/ComptonCrossSection.cxx" "" sources "${sources}")
+
 file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEMGamma.h" "" headers "${headers}")
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/ComptonCrossSection.h" "" headers "${headers}")
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
+
 ROOT_GENERATE_DICTIONARY(geantCint ${headers} LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
