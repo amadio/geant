@@ -34,7 +34,7 @@ else
 SOFLAGS	      = -shared -Wl -m64 -g
 endif
 endif
-INCDIR        = include
+INCDIR        = inc
 SRCDIR        = src
 CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
 

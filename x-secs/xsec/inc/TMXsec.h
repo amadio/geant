@@ -29,7 +29,9 @@ class TMXsec : public TNamed {
 
 public:
    TMXsec();
-   TMXsec(Int_t z[], Int_t a[], Float_t w[], Int_t nel, Float_t dens, Bool_t weight=kFALSE);
+   TMXsec(const Char_t* name, const Char_t *title,
+	  const Int_t z[], const Int_t a[], const Float_t w[], 
+	  Int_t nel, Float_t dens, Bool_t weight=kFALSE);
    ~TMXsec() {}
    Float_t Xlength(Int_t part, Float_t en);
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);

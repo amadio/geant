@@ -20,7 +20,10 @@ TMXsec::TMXsec():
 }
 
 //____________________________________________________________________________
-TMXsec::TMXsec(Int_t z[], Int_t /*a*/[], Float_t w[], Int_t nel, Float_t dens, Bool_t weight):
+TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], 
+	       const Int_t /*a*/[], const Float_t w[], Int_t nel, 
+	       Float_t dens, Bool_t weight):
+   TNamed(name,title),
    fNEbins(0),
    fEmin(0),
    fEmax(0),
