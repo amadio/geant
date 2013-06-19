@@ -253,7 +253,7 @@ Double_t ElossProcess::Bbf1(Double_t *x, Double_t *par)
 }
 
 //______________________________________________________________________________
-void PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin=1e-2, Double_t bgmax=1e6)
+void ElossProcess::PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin, Double_t bgmax)
 {
   TF1 *f=new TF1("bb",ElossProcess::Bbf1,TMath::Log10(bgmin),TMath::Log10(bgmax),3);
   TH1F *h=new TH1F("hh","Bethe Bloch",100,TMath::Log10(bgmin),TMath::Log10(bgmax));

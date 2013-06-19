@@ -22,7 +22,7 @@ class TGeoRotation;
 class TGeoVolume;
 class TGeoHelix;
 class PhysicsProcess;
-struct GeantTrack;
+class GeantTrack;
 struct GeantEvent;
 class GeantBasket;
 class GeantOutput;
