@@ -18,3 +18,7 @@ G__*.h
 
 # Other Stuff
 *.d
+*~
+lib
+bin
+build
