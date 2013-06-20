@@ -99,7 +99,7 @@ CUDA_CPP_OBJS = $(addprefix $(CUDA_OBJDIR)/GPTracking/,$(patsubst %.cu,%_cpp.o,$
 libGeantCuda.so: $(CUDA_OBJS) $(CUDA_CPP_OBJS) $(CUDA_CXX_OBJS)
 	$(NVCC) $^  -o libGeantCuda.so $(NVCC_FLAGS) --shared -Xcompiler -fPIC
 
-$(GEANTSO): libGeantCuda.so
+all: libGeantCuda.so
 
 $(CUDA_CPP_OBJS): $(CUDA_OBJDIR)/%_cpp.o:$(CudaCode)/%.cu
 	mkdir -p $(dir $@)
