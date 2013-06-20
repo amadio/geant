@@ -18,16 +18,17 @@ include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB lsources ${PROJECT_SOURCE_DIR}/xsec/src/*.cxx)
-file(GLOB lheaders ${PROJECT_SOURCE_DIR}/xsec/inc/T*.h)
-include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
-ROOT_GENERATE_DICTIONARY(xsecCint ${lheaders} LINKDEF ${PROJECT_SOURCE_DIR}/xsec/inc/xsecLinkDef.h)
+file(GLOB sources src/*.cxx)
+file(GLOB headers inc/T*.h)
+include_directories(inc)
+ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_library(Xsec SHARED ${lsources} xsecCint.cxx ${lheaders} xsecCint.h)
+add_library(Xsec SHARED ${sources} xsecCint.cxx ${headers} xsecCint.h)
 target_link_libraries(Xsec ${ROOT_LIBRARIES} -lEg)
 
+add_headers("${headers}")
 
 
