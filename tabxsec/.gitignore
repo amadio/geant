@@ -1,0 +1,15 @@
+build
+*~
+did.*
+*-bak
+*-
+mkout.*
+upd-*
+*.d
+*.so
+*.dylib
+*.o
+.DS_Store
+README.japost
+##
+setup-root.csh
