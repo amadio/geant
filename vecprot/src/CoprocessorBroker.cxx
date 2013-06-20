@@ -43,6 +43,7 @@ typedef double G4double;
 #include "TGeoBranchArray.h"
 #include "TGeoNode.h"
 #include "TGeoManager.h"
+#include "TGeoMatrix.h"
 
 // To access the list of baskets.
 #include "WorkloadManager.h"
@@ -369,6 +370,16 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
       ++count;
 
       TGeoBranchArray *path = host_track[trackin[hostIdx]]->path;
+//      if (host_track[trackin[hostIdx]]->frombdr) {
+//         TGeoBranchArray *newpath = host_track[trackin[hostIdx]]->nextpath;
+//         if (path->GetLevel() != newpath->GetLevel())
+//            printf("Problem: path and newpath different %d %d\n",path->GetLevel(),newpath->GetLevel());
+//      }
+//      if (host_track[trackin[hostIdx]]->frombdr)
+//         path = host_track[trackin[hostIdx]]->nextpath;
+//      else
+//         path = host_track[trackin[hostIdx]]->path;
+
 //      if (path->GetLevel()>1) {
 //         fprintf(stderr,"DEBUG: for %d level is %d\n",trackin[hostIdx],path->GetLevel());
 //      }
@@ -426,10 +437,12 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
    return count;
 }
 
-
 unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
 {
    WorkloadManager *mgr = WorkloadManager::Instance();
+   std::vector<TGeoNode *> array;
+   int last_logical = -1;
+   int last_phys = -1;
    for(unsigned int devIdx = 0;
        devIdx < fNStaged;
        ++devIdx) {
@@ -454,10 +467,75 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
          //         fHostTracks[fTrackId[devIdx]]->event,fTrackId[devIdx],fHostTracks[fTrackId[devIdx]]->IsAlive());
          gPropagator->StopTrack(gPropagator->fTracks[fTrackId[devIdx]]);
       } else if (1) {
+         if (array.size() && last_logical == fLogIndex[devIdx] && last_phys == fPhysIndex[devIdx]) {
+            // Use the already setup array
+         } else {
+            // NOTE: to do a full rebuild, I would really need to calculate
+            // the path (in term of indexes and matrix) on the GPU.
+            last_phys = fPhysIndex[devIdx];
+            last_logical = fLogIndex[devIdx];
+            array.clear();
+
+//            TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+//            if (!nav) nav = gGeoManager->AddNavigator();
+//            TGeoNode *f_node = nav->FindNode(fTrack[devIdx].x, fTrack[devIdx].y, fTrack[devIdx].z);
+            
+            TGeoNode *node = gGeoManager->GetTopNode();
+            array.push_back( node );
+
+            // NOTE: cheating .. what we really need to do is to find the
+            // logical volume/node for each and every level.
+
+            // For each level do something like::
+            {
+               TGeoVolume *volume = node->GetVolume();
+               if (!volume->GetNodes()) {
+                  Fatal("CoprocessorBroker::StreamHelper::TrackToHost","Unexpectedly in a leaf node...");
+               }
+               TGeoVolume *sub_volume = mgr->GetBasketArray()[fLogIndex[devIdx]]->GetVolume();
+               if (sub_volume != volume) {
+               
+                  node = (TGeoNode*) volume->GetNodes()->At( fPhysIndex[devIdx]);
+                  array.push_back( node );
+               }
+            }            
+         }
+#if 1 // from GPU
+         // NOTE: somehow adding the navigator makes the result much more stable!
+         TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+         if (!nav) nav = gGeoManager->AddNavigator();
+
+         static TGeoIdentity matrix; // NOTE: oh well ... later ...
+         fHostTracks[fTrackId[devIdx]]->path->Init(&(array[0]),&matrix,array.size()-1);
+#else // from CPU
+         TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+         if (!nav) nav = gGeoManager->AddNavigator();
+         TGeoNode *f_node = nav->FindNode(fTrack[devIdx].x, fTrack[devIdx].y, fTrack[devIdx].z);
+         fHostTracks[fTrackId[devIdx]]->path->InitFromNavigator(gGeoManager->GetCurrentNavigator());
+#endif
+         TGeoBranchArray *path = fHostTracks[fTrackId[devIdx]]->path;
+//         if (fHostTracks[fTrackId[devIdx]]->frombdr)
+//            path = fHostTracks[fTrackId[devIdx]]->nextpath;
+         
+         if (path->GetLevel() != array.size()-1) {
+            printf("Problem (bdr=%d) with the level %d vs %d\n",fHostTracks[fTrackId[devIdx]]->frombdr,path->GetLevel(),(int)array.size()-1);
+         }
+         if (path->GetArray()[0] != array[0]) {
+            printf("Problem (bdr=%d) with the first entry %p vs %p level = %d\n", fHostTracks[fTrackId[devIdx]]->frombdr,path->GetArray()[0], array[0], path->GetLevel());
+            path->GetArray()[0]->Print();
+            array[0]->Print();
+         }
+         if (path->GetLevel() >= 1 && path->GetArray()[1] != array[1]) {
+            printf("Problem (bdr=%d) with the second entry %p vs %p level = %d\n", fHostTracks[fTrackId[devIdx]]->frombdr,path->GetArray()[1], array[1],path->GetLevel());
+            path->GetArray()[1]->Print();
+            array[1]->Print();
+         }
+
+
          // Let's reschedule it.
          // fprintf(stderr,"DEBUG: rescheduling %d in basket %d\n",fTrackId[devIdx],fLogIndex[devIdx]);
          fTrackCollection->AddTrack(fTrackId[devIdx],
-                                                  mgr->GetBasketArray()[fLogIndex[devIdx]]);
+                                    mgr->GetBasketArray()[fLogIndex[devIdx]]);
          gPropagator->fTransportOngoing = kTRUE;
       }
    }
@@ -505,6 +583,10 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
       // Nothing to do ...
       return 0;
    }
+
+//   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+//   if (!nav) nav = gGeoManager->AddNavigator();
+
    StreamHelper *stream = fCurrentHelper;
    fCurrentHelper = 0;
    
