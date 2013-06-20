@@ -84,7 +84,7 @@ $(GEANTDICTS): $(INCDIR)/LinkDef.h
                 -c $(INCDIR)/GeantThreadData.h $(INCDIR)/PhysicsProcess.h \
                 $(INCDIR)/GeantVolumeBasket.h $(INCDIR)/GeantBasket.h \
                 $(INCDIR)/GeantPropagator.h $(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h \
-                $(INCDIR)/WorkloadManager.h $(INCDIR)/CoprocessorBroker.h $(INCDIR)/LinkDef.h
+                $(INCDIR)/WorkloadManager.h $(INCDIR)/TaskBroker.h $(INCDIR)/LinkDef.h
 src/G__Geant.o: $(GEANTDICTS)
 		$(ROOTSYS)/bin/rmkdepend -R -f$(SRCDIR)/G__Geant.d -Y -w 1000 -- \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
