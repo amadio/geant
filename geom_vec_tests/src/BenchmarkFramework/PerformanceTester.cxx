@@ -19,10 +19,10 @@ class Util{
     dir[0]=(1-2.*gRandom->Rndm());
     dir[1]=(1-2.*gRandom->Rndm());
     dir[2]=(1-2.*gRandom->Rndm());
-    double norm=sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]);
-    dir[0]/=norm;
-    dir[1]/=norm;
-    dir[2]/=norm;
+    double inversenorm=1./sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]);
+    dir[0]*=norm;
+    dir[1]*=norm;
+    dir[2]*=norm;
   }
 };
 

@@ -27,7 +27,7 @@ PerformanceTester.o: PerformanceTester.cxx
 
 
 BenchTGeo%_$(CXX):  BenchTGeo%.o PerformanceTester.o
-	$(CXX) -o $@ $< PerformanceTester.o $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb 
+	$(CXX) -o $@ $< PerformanceTester.o $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L../ -ltest_g++ 
 
 BenchTGeo%.o: BenchTGeo%.cxx
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -c $<
