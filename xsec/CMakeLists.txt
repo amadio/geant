@@ -2,17 +2,10 @@
 # Setup the project
 
 #----------------------------------------------------------------------------
-# Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
 #
 
-include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
-
-#----------------------------------------------------------------------------
-# Find ROOT and setup the libraries
-#
-#find_package(ROOT REQUIRED)
-#include_directories(${ROOT_INCLUDE_DIR})
+include_directories(inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
