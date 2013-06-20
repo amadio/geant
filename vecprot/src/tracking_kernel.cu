@@ -190,10 +190,10 @@ void tracking_kernel(curandState* devStates,
             physVolumeIndices[tid] = -1;
             logVolumeIndices[tid] = -1;
          } else {
-            // // if (where->flogical->fIndex != logVolumeIndices[tid] || where->fIndex != physVolumeIndices[tid]) {
-            //    printf("Moved from %d:%d to %d:%d\n", logVolumeIndices[tid], physVolumeIndices[tid],
-            //           where->flogical->fIndex, where->fIndex);
-            // }
+//            if (where->flogical->fIndex != logVolumeIndices[tid] || where->fIndex != physVolumeIndices[tid]) {
+//                printf("Moved from %d:%d to %d:%d\n", logVolumeIndices[tid], physVolumeIndices[tid],
+//                      where->flogical->fIndex, where->fIndex);
+//            }
             physVolumeIndices[tid] = where->fIndex;
             logVolumeIndices[tid] = where->flogical->fIndex;
          }            
