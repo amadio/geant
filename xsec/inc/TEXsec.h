@@ -38,6 +38,7 @@ public:
    TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np);
    ~TEXsec();
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
+   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nxsec);
    Bool_t AddPartXS(Int_t kpart, const Float_t xsec[], const Short_t dict[]);
    Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
    Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],

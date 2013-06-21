@@ -264,6 +264,7 @@ int main(int argc,char** argv)
     }
 
     TPartIndex::I()->SetNPartReac(npreac);
+    TPartIndex::I()->SetEnergyGrid(emin,emax,nbins);
 
     // Push particle table into the TPartIndex
     // Put all the particles with reactions at the beginning to avoid double indexing
@@ -656,7 +657,7 @@ int main(int argc,char** argv)
 		       partindex,TPartIndex::I()->NPartReac());
 		exit(1);
 	     }
-	     mxsec->AddPart(partindex,pPDG[partindex],nbins,nprxs,emin,emax);
+	     mxsec->AddPart(partindex,pPDG[partindex],nprxs);
 	     if(nprxs) mxsec->AddPartXS(partindex,pxsec,pdic);
 	     if(bdedx) mxsec->AddPartIon(partindex,dedx);
 	     if(bmulsc) mxsec->AddPartMS(partindex,msang,msasig,mslen,mslsig);

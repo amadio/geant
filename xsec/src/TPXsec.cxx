@@ -1,6 +1,7 @@
 #include <TPXsec.h>
 #include <TMath.h>
 #include <TRandom.h>
+#include <TFile.h>
 
 ClassImp(TPXsec)
 
@@ -12,7 +13,8 @@ TPXsec::TPXsec():
    fNXsec(0),
    fEmin(0),
    fEmax(0),
-   fEDelta(0),
+   fEilDelta(0),
+   fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
@@ -21,8 +23,8 @@ TPXsec::TPXsec():
    fTotXs(0),
    fXSecs(0)
 {
-   memset(fRdict,0,TPartIndex::I()->NProc()*sizeof(Short_t));
-   memset(fRmap,0,TPartIndex::I()->NProc()*sizeof(Short_t));
+   Int_t np=TPartIndex::I()->NProc();
+   while(np--) fRdict[np]=fRmap[np]=-1;
 }
 
 //_________________________________________________________________________
@@ -32,19 +34,20 @@ TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec,
    fNEbins(nen),
    fNCbins(0),
    fNXsec(nxsec),
-   fTotBin(fNEbins*fNXsec),
+   fNTotXs(fNEbins*fNXsec),
    fEmin(emin),
    fEmax(emax),
-   fEDelta(TMath::Log(fEmax/fEmin)/(fNEbins-1)),
+   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
    fMSlensig(0),
    fdEdx(0),
-   fXSecs(new Float_t[fNEbins*fNXsec])
+   fTotXs(0),
+   fXSecs(0)
 {
-   memset(fRdict,0,TPartIndex::I()->NProc()*sizeof(Short_t));
-   memset(fRmap,0,TPartIndex::I()->NProc()*sizeof(Short_t));
+   Int_t np=TPartIndex::I()->NProc();
+   while(np--) fRdict[np]=fRmap[np]=-1;
 }
 
 //_________________________________________________________________________
@@ -64,10 +67,22 @@ Bool_t TPXsec::SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t 
    fPDG = pdg;
    fNEbins = nen;
    fNXsec = nxsec;
-   fTotBin = fNEbins*fNXsec;
+   fNTotXs = fNEbins*fNXsec;
    fEmin = emin;
    fEmax = emax;
-   fEDelta = TMath::Log(fEmax/fEmin)/(fNEbins-1);
+   fEilDelta = (fNEbins-1)/TMath::Log(fEmax/fEmin);
+   return kTRUE;
+}
+
+//___________________________________________________________________
+Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
+   fPDG = pdg;
+   fNEbins = TPartIndex::I()->NEbins();
+   fNXsec = nxsec;
+   fNTotXs = fNEbins*fNXsec;
+   fEmin = TPartIndex::I()->Emin();
+   fEmax = TPartIndex::I()->Emax();
+   fEilDelta = TPartIndex::I()->EilDelta();
    return kTRUE;
 }
 
@@ -143,10 +158,12 @@ Float_t TPXsec::DEdx(Float_t en) const {
    if(!fdEdx) return 0;
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-   Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
-   Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
+   //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
+   //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
    if(en1>en || en2<en) {
       Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	    ibin, en1, en, en2);
@@ -168,10 +185,12 @@ Bool_t TPXsec::MS(Float_t en, Float_t &ang, Float_t &asig,
    }
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-   Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
-   Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
+   //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
+   //  Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
    if(en1>en || en2<en) {
       Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	    ibin, en1, en, en2);
@@ -189,10 +208,12 @@ Bool_t TPXsec::MS(Float_t en, Float_t &ang, Float_t &asig,
 Int_t TPXsec::SampleReac(Double_t en)  const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-   Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
-   Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
+   //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
+   //Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
    if(en1>en || en2<en) {
       Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	    ibin, en1, en, en2);
@@ -215,10 +236,12 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
 Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)/fEDelta;
+   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-   Double_t en1 = fEmin*TMath::Exp(fEDelta*ibin);
-   Double_t en2 = fEmin*TMath::Exp(fEDelta*(ibin+1));
+//   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
+//   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
    if(en1>en || en2<en) {
       Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	    ibin, en1, en, en2);
@@ -244,7 +267,7 @@ Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
 //_________________________________________________________________________
 void TPXsec::Dump() const {
    printf("Particle %d NXsec %d emin %f emax %f NEbins %d ElDelta %f\n",
-	  fPDG,fNXsec,fEmin,fEmax,fNEbins,fEDelta);
+	  fPDG,fNXsec,fEmin,fEmax,fNEbins,fEilDelta);
    printf("MSangle %p, MSlength %p, dEdx %p, TotXs %p, XSecs %p, Rdict %p\n",
 	  fMSangle, fMSlength, fdEdx, fTotXs, fXSecs, fRdict);
 }

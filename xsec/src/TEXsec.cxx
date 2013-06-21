@@ -118,6 +118,11 @@ Bool_t TEXsec::AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t e
 }
 
 //___________________________________________________________________
+Bool_t TEXsec::AddPart(Int_t kpart, Int_t pdg, Int_t nxsec) {
+   return fPXsec[kpart].SetPart(pdg,nxsec);
+}
+
+//___________________________________________________________________
 Bool_t TEXsec::AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
 			 const Float_t length[], const Float_t lensig[]) {
    return fPXsec[kpart].SetPartMS(angle, ansig, length, lensig);
