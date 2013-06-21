@@ -10,8 +10,8 @@ TMXsec::TMXsec():
    fNEbins(0),
    fEmin(0),
    fEmax(0),
-   fEDelta(0),
-   fElDelta(0),
+   fEilDelta(0),
+   fEGrid(0),
    fNElems(0),
    fElems(0),
    fTotXL(0), 
@@ -24,11 +24,11 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	       const Int_t /*a*/[], const Float_t w[], Int_t nel, 
 	       Float_t dens, Bool_t weight):
    TNamed(name,title),
-   fNEbins(0),
-   fEmin(0),
-   fEmax(0),
-   fEDelta(0),
-   fElDelta(0),
+   fNEbins(TPartIndex::I()->NEbins()),
+   fEmin(TPartIndex::I()->Emin()),
+   fEmax(TPartIndex::I()->Emax()),
+   fEilDelta(TPartIndex::I()->EilDelta()),
+   fEGrid(TPartIndex::I()->EGrid()),
    fNElems(nel),
    fElems(new TEXsec*[fNElems]),
    fTotXL(0), 
@@ -57,11 +57,6 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 
    // Build table with total x-sections for all mate / parts
 
-   fNEbins = fElems[0]->NEbins();
-   fEmin = fElems[0]->Emin();
-   fEmax = fElems[0]->Emax();
-   fElDelta = fElems[0]->ElDelta();
-   fEDelta = TMath::Exp(fElDelta);
    Int_t totindex = TPartIndex::I()->ProcIndex("Total");
    Int_t npart = TPartIndex::I()->NPartReac();
    // Layout part1 { en<1> { tot<1>, ... , tot<fNElems>}, .....en<nbins> {tot<1>, ..., tot<fNElems>}}
@@ -73,18 +68,16 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    if(fNElems>1) {
       for(Int_t ip=0; ip<npart; ++ip) {
 	 Int_t ibase = ip*(fNEbins*fNElems);
-	 Double_t en = fEmin;
 	 for(Int_t ie=0; ie<fNEbins; ++ie) {
 	    Int_t ibin = ibase + ie*fNElems;
 	    for(Int_t iel=0; iel<fNElems; ++iel) {
-	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,en)*ratios[iel];
+	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
 	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
 	    }
 	    if(fTotXL[ip*fNEbins+ie]) {
 	       fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
 	       for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
 	    }
-	    en*=fEDelta;
 	 }
       }
    }
@@ -97,10 +90,12 @@ Float_t TMXsec::Xlength(Int_t part, Float_t en) {
    else {
       en=en<=fEmax?en:fEmax;
       en=en>=fEmin?en:fEmin;
-      Int_t ibin = TMath::Log(en/fEmin)/fElDelta;
+      Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
-      Double_t en2 = en1*fEDelta;
+      //     Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+      //     Double_t en2 = en1*fEDelta;
+      Double_t en1 = fEGrid[ibin];
+      Double_t en2 = fEGrid[ibin+1];
       if(en1>en || en2<en) {
 	 Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	       ibin, en1, en, en2);
@@ -119,10 +114,12 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
    } else {
       en=en<=fEmax?en:fEmax;
       en=en>=fEmin?en:fEmin;
-      Int_t ibin = TMath::Log(en/fEmin)/fElDelta;
+      Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
-      Double_t en2 = en1*fEDelta;
+      //      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+      //    Double_t en2 = en1*fEDelta;
+      Double_t en1 = fEGrid[ibin];
+      Double_t en2 = fEGrid[ibin+1];
       if(en1>en || en2<en) {
 	 Error("SampleInt","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	       ibin, en1, en, en2);

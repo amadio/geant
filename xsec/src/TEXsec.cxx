@@ -83,7 +83,8 @@ TEXsec::TEXsec():
    fEmin(0),
    fEmax(0),
    fNEbins(0),
-   fElDelta(0),
+   fEilDelta(0),
+   fEGrid(0),
    fNRpart(0),
    fPXsec(0),
    fCuts(0)
@@ -98,7 +99,25 @@ TEXsec::TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np
    fEmin(emin),
    fEmax(emax),
    fNEbins(nen),
-   fElDelta(TMath::Log(fEmax/fEmin)/fNEbins),
+   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
+   fEGrid(0),
+   fNRpart(np),
+   fPXsec(new TPXsec[fNRpart]),
+   fCuts(new Double_t[fNRpart])
+{
+   memset(fCuts,0,fNRpart*sizeof(Double_t));
+}
+
+//___________________________________________________________________
+TEXsec::TEXsec(Int_t z, Int_t a, Int_t np):
+   TNamed(fEleSymbol[z-1],fEleName[z-1]),
+   fEle(z*10000+a*10),
+   fAtcm3(TMath::Na()*1e-24/fWElem[z-1]),
+   fEmin(TPartIndex::I()->Emin()),
+   fEmax(TPartIndex::I()->Emax()),
+   fNEbins(TPartIndex::I()->NEbins()),
+   fEilDelta(TPartIndex::I()->EilDelta()),
+   fEGrid(TPartIndex::I()->EGrid()),
    fNRpart(np),
    fPXsec(new TPXsec[fNRpart]),
    fCuts(new Double_t[fNRpart])
@@ -156,8 +175,8 @@ Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig,
 
 //___________________________________________________________________
 void TEXsec::DumpPointers() const {
-   printf("Material %d emin %f emax %f NEbins %d ElDelta %f Npart %d\n",
-	  fEle,fEmin,fEmax,fNEbins,fElDelta,fNRpart);
+   printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n",
+	  fEle,fEmin,fEmax,fNEbins,fEilDelta,fNRpart);
    for(Int_t i=0; i<fNRpart; ++i) 
       fPXsec[i].Dump();
 }

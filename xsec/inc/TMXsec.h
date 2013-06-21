@@ -37,11 +37,11 @@ public:
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
 
 private:
-   Int_t          fNEbins;        // number of energy bins
-   Double_t       fEmin;          // min tab energy
-   Double_t       fEmax;          // max tab energy
-   Double_t       fEDelta;        // multiplicative energy delta
-   Double_t       fElDelta;       // logarithmic energy delta
+   Int_t           fNEbins;        // number of energy bins
+   Double_t        fEmin;          // min tab energy
+   Double_t        fEmax;          // max tab energy
+   Double_t        fEilDelta;      // logarithmic energy delta
+   const Double_t *fEGrid;         // Energy grid
 
    Int_t         fNElems;  // Number of elements
    TEXsec      **fElems; // [fNElems] List of elements composing this material

@@ -36,6 +36,7 @@ class TEXsec : public TNamed {
 public:
    TEXsec();
    TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np);
+   TEXsec(Int_t z, Int_t a, Int_t np);
    ~TEXsec();
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nxsec);
@@ -53,7 +54,7 @@ public:
    Float_t Emin() const {return fEmin;}
    Float_t Emax() const {return fEmax;}
    Int_t NEbins() const {return fNEbins;}
-   Double_t ElDelta() const {return fElDelta;}
+   Double_t EilDelta() const {return fEilDelta;}
    Float_t XS(Int_t pindex, Int_t rindex, Float_t en) const;
    Float_t DEdx(Int_t pindex, Float_t en) const;
    Bool_t MS(Int_t index, Float_t en, Float_t &ang, Float_t &asig, 
@@ -83,10 +84,11 @@ private:
 
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
    Double_t       fAtcm3;   // Atoms per cubic cm unit density
-   Float_t        fEmin;    // Min en in GeV
-   Float_t        fEmax;    // Max en in Gev
+   Double_t       fEmin;    // Min en in GeV
+   Double_t       fEmax;    // Max en in Gev
    Int_t          fNEbins;  // Number of log steps in energy
-   Double_t       fElDelta; // Log energy step
+   Double_t       fEilDelta; // Inverse log energy step
+   const Double_t *fEGrid;  // Common energy grid
    Int_t          fNRpart;  // Number of particles with reaction
    TPXsec        *fPXsec;   // [fNRpart] Cross section table per particle
    Double_t      *fCuts;    // [fNRpart] Just a placeholder for the moment
