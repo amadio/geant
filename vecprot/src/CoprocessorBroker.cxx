@@ -370,16 +370,6 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
       ++count;
 
       TGeoBranchArray *path = host_track[trackin[hostIdx]]->path;
-//      if (host_track[trackin[hostIdx]]->frombdr) {
-//         TGeoBranchArray *newpath = host_track[trackin[hostIdx]]->nextpath;
-//         if (path->GetLevel() != newpath->GetLevel())
-//            printf("Problem: path and newpath different %d %d\n",path->GetLevel(),newpath->GetLevel());
-//      }
-//      if (host_track[trackin[hostIdx]]->frombdr)
-//         path = host_track[trackin[hostIdx]]->nextpath;
-//      else
-//         path = host_track[trackin[hostIdx]]->path;
-
 //      if (path->GetLevel()>1) {
 //         fprintf(stderr,"DEBUG: for %d level is %d\n",trackin[hostIdx],path->GetLevel());
 //      }
@@ -476,10 +466,6 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
             last_logical = fLogIndex[devIdx];
             array.clear();
 
-//            TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//            if (!nav) nav = gGeoManager->AddNavigator();
-//            TGeoNode *f_node = nav->FindNode(fTrack[devIdx].x, fTrack[devIdx].y, fTrack[devIdx].z);
-            
             TGeoNode *node = gGeoManager->GetTopNode();
             array.push_back( node );
 
