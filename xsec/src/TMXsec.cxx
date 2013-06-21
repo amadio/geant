@@ -126,19 +126,26 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
 	 reac=-1;
 	 return 0;
       }
-      Double_t xrat = (en2-en)/(en2-en1);
-      Double_t xnorm = 1.;
-      while(1) {
-	 Double_t ran = xnorm*gRandom->Rndm();
-	 Double_t xsum=0;
-	 for(Int_t i=0; i<fNElems; ++i) {
-	    xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
-	    if(ran<=xsum) {
-	       reac = fElems[i]->SampleReac(part,en);
-	       return fElems[i];
+      Int_t iel=-1;
+      if(fNElems==1) {
+	 iel=0;
+      } else {
+	 Double_t xrat = (en2-en)/(en2-en1);
+	 Double_t xnorm = 1.;
+	 while(1) {
+	    Double_t ran = xnorm*gRandom->Rndm();
+	    Double_t xsum=0;
+	    for(Int_t i=0; i<fNElems; ++i) {
+	       xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
+	       if(ran<=xsum) {
+		  iel = i;
+		  break;
+	       }
 	    }
+	    xnorm = xsum;
 	 }
-	 xnorm = xsum;
       }
+      reac = fElems[iel]->SampleReac(part,en);
+      return fElems[iel];
    }
 }
