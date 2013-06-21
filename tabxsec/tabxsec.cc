@@ -202,7 +202,7 @@ int main(int argc,char** argv)
     G4float *msasig = new G4float[nbins];
     G4float *mslsig = new G4float[nbins];
     G4float *dedx  = new G4float[nbins];
-    short   *pdic  = new short[maxproc];
+    G4int   *pdic  = new G4int[maxproc];
 
     TDatabasePDG *ipdg = TDatabasePDG::Instance();
     DefineParticles(); // Add ions and other G4 particles

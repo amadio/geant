@@ -87,7 +87,7 @@ Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
 }
 
 //___________________________________________________________________
-Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Short_t dict[]) {
+Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Int_t dict[]) {
    delete [] fXSecs;
    fXSecs = new Float_t[fNXsec*fNEbins];
    for(Int_t jxsec=0; jxsec<fNXsec; ++jxsec)
@@ -233,7 +233,7 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
 }
 
 //_________________________________________________________________________
-Float_t TPXsec::XS(Short_t rindex, Float_t en) const {
+Float_t TPXsec::XS(Int_t rindex, Float_t en) const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
    Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;

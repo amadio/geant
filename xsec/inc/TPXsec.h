@@ -34,12 +34,12 @@ public:
    void Print(Option_t *opt="") const;
    Bool_t SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t SetPart(Int_t pdg, Int_t nxsec);
-   Bool_t SetPartXS(const Float_t xsec[], const Short_t dict[]);
+   Bool_t SetPartXS(const Float_t xsec[], const Int_t dict[]);
    Bool_t SetPartIon(const Float_t dedx[]);
    Bool_t SetPartMS(const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
    Int_t PDG() const {return fPDG;}
-   Float_t XS(Short_t rindex, Float_t en) const;
+   Float_t XS(Int_t rindex, Float_t en) const;
    Float_t DEdx(Float_t en) const;
    Bool_t MS(Float_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;
@@ -62,9 +62,9 @@ private:
    Float_t        *fdEdx;          // [fNCbins] table of dE/dx
    Float_t        *fTotXs;         // [fNEbins] table of total x-sec
    Float_t        *fXSecs;         // [fNTotXs] table of partial x-sec
-   Short_t         fRdict[FNPROC]; // reaction dictionary from reaction number to position
+   Int_t           fRdict[FNPROC]; // reaction dictionary from reaction number to position
                                   // in the X-sec array
-   Short_t         fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
+   Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
                                   // array to the raction number
 
    ClassDef(TPXsec,1)  //Particle X-secs
