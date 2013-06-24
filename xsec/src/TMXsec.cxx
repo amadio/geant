@@ -40,6 +40,8 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    for(Int_t i=0; i<fNElems; ++i) 
       if(z[i]) fElems[i] = TEXsec::GetElement(z[i],0);
       else if(fNElems>1) Fatal("TMXsec","Cannot have vacuum in mixtures");
+
+   if(!z[0]) return;
       
    Double_t *ratios = new Double_t[fNElems];
    Double_t *rdedx  = new Double_t[fNElems];
@@ -50,7 +52,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 if(weight) ratios[i]/=TEXsec::WEle(z[i]);
 	 hnorm+=ratios[i]*TEXsec::WEle(z[i]);
       }
-   } else if (z[0]) {
+   } else {
       ratios[0]=1;
       hnorm=TEXsec::WEle(z[0]);
    }
@@ -74,33 +76,28 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    
    if(fNElems>1) 
       fRelXS = new Float_t[npart*fNEbins*fNElems];
-   if(z[0]) {
-      fTotXL = new Float_t[npart*fNEbins];
-      memset(fTotXL,0,npart*fNEbins*sizeof(Float_t));
-      fDEdx = new Float_t[npart*fNEbins];
-      memset(fDEdx,0,npart*fNEbins*sizeof(Float_t));
-   }
+   fTotXL = new Float_t[npart*fNEbins];
+   memset(fTotXL,0,npart*fNEbins*sizeof(Float_t));
+   fDEdx = new Float_t[npart*fNEbins];
+   memset(fDEdx,0,npart*fNEbins*sizeof(Float_t));
 
-
-   if(z[0]) {
-      for(Int_t ip=0; ip<npart; ++ip) {
-	 Int_t ibase = ip*(fNEbins*fNElems);
-	 for(Int_t ie=0; ie<fNEbins; ++ie) {
-	    Int_t ibin = ibase + ie*fNElems;
-	    if(fNElems>1) {
-	       for(Int_t iel=0; iel<fNElems; ++iel) {
-		  fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
-		  fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
-		  fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
-	       }
-	    } else {
-	       fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
-	       fDEdx[ip*fNEbins+ie] = fElems[0]->DEdx(ip,fEGrid[ie])*rdedx[0];
+   for(Int_t ip=0; ip<npart; ++ip) {
+      Int_t ibase = ip*(fNEbins*fNElems);
+      for(Int_t ie=0; ie<fNEbins; ++ie) {
+	 Int_t ibin = ibase + ie*fNElems;
+	 if(fNElems>1) {
+	    for(Int_t iel=0; iel<fNElems; ++iel) {
+	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
+	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
+	       fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
 	    }
-	    if(fTotXL[ip*fNEbins+ie]) {
-	       fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
-	       if(fNElems>1) for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
-	    }
+	 } else {
+	    fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
+	    fDEdx[ip*fNEbins+ie] = fElems[0]->DEdx(ip,fEGrid[ie])*rdedx[0];
+	 }
+	 if(fTotXL[ip*fNEbins+ie]) {
+	    fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
+	    if(fNElems>1) for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
 	 }
       }
    }
