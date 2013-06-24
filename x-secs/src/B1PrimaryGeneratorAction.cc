@@ -29,6 +29,7 @@
 /// \brief Implementation of the B1PrimaryGeneratorAction class
 
 #include "B1PrimaryGeneratorAction.hh"
+#include "B1materials.hh"
 
 #include "G4LogicalVolumeStore.hh"
 #include "G4LogicalVolume.hh"
@@ -93,28 +94,48 @@ void B1PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   // on DetectorConstruction class we get Envelope volume
   // from G4LogicalVolumeStore.
   
-  G4double envSizeXY = 0;
-  G4double envSizeZ = 0;
+  unsigned int matNo= 1;
+
+  // Copied from Detector Construction
+  const G4double kLattice = 15*cm;
+  const G4double kRadius = 5*cm;
+  const G4int nballs = 10;
+  G4double world_sizeXY = kLattice*(nballs-1)+2*(kLattice-kRadius);
+  G4double world_sizeZ = 2*(kLattice-kRadius);
+  
+  G4double xplace = kLattice-kRadius+(matNo%nballs)*kLattice-0.5*world_sizeXY;
+  G4double yplace = kLattice-kRadius+(matNo/nballs)*kLattice-0.5*world_sizeXY;
+  G4double zplace = 0.0;
+  
+#if 0
+  G4double envSizeR = 0;
+  G4Sphere* envSphere = NULL;
+  
   G4LogicalVolume* envLV
-    = G4LogicalVolumeStore::GetInstance()->GetVolume("Envelope");
-  G4Box* envBox = NULL;
-  if ( envLV ) envBox = dynamic_cast<G4Box*>(envLV->GetSolid());
-  if ( envBox ) {
-    envSizeXY = envBox->GetXHalfLength()*2.;
-    envSizeZ = envBox->GetZHalfLength()*2.;
-  }  
+  = G4LogicalVolumeStore::GetInstance()->GetVolume(materialVec[matNo]);
+
+  if ( envLV ) envSphere = dynamic_cast<G4Sphere*>(envLV->GetSolid());
+  if ( envSphere ) {
+    envSizeR = envSphere->GetRadius();  // XHalfLength()*2.;
+  }
   else  {
-    G4cerr << "Envelope volume of box shape not found." << G4endl;
+    G4cerr << "Envelope volume of 'sphere' shape not found." << G4endl;
     G4cerr << "Perhaps you have changed geometry." << G4endl;
     G4cerr << "The gun will be place in the center." << G4endl;
   }
 
   G4double size = 0.8; 
-  G4double x0 = size * envSizeXY * (G4UniformRand()-0.5);
-  G4double y0 = size * envSizeXY * (G4UniformRand()-0.5);
-  G4double z0 = -0.5 * envSizeZ;
+  G4double r     = size * envSizeR * G4UniformRand();
+  G4double theta = CLHEP::pi * G4UniformRand();
+  G4double phi   = 2.0 * CLHEP::pi * G4UniformRand();
   
-  fParticleGun->SetParticlePosition(G4ThreeVector(x0,y0,z0));
+  G4double rsinTh= r * std::sin(theta);
+  xplace += rsinTh * std::cos(phi);
+  yplace += rsinTh * std::sin(phi);
+  zplace += r*std::cos(theta);
+#endif
+ 
+  fParticleGun->SetParticlePosition(G4ThreeVector(xplace, yplace, zplace));
 
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
