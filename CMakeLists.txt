@@ -28,5 +28,6 @@ add_custom_target(_headers ALL)
 add_subdirectory (xsec)
 add_subdirectory (tabxsec)
 add_subdirectory (vecprot)
+add_subdirectory (micromc)
 
 
