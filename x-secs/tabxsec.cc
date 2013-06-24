@@ -35,6 +35,8 @@
 #include "B1SteppingAction.hh"
 #include "B1materials.hh"
 
+#include "SampleInteractions.h"
+
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
 #include "G4ParticleTable.hh"
@@ -49,6 +51,8 @@
 #include "G4VMultipleScattering.hh"
 #include "G4VMscModel.hh"
 #include "G4Step.hh"
+
+#include "G4Proton.hh"
 
 #ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
@@ -143,7 +147,7 @@ int main(int argc,char** argv)
 
     //
     const G4int maxproc = 10;  // max of 10 proc per particle
-    const G4int nbins = 1000;
+    const G4int nbins = 25;  // 200,  1000
     const G4double emin = 1.e-6*GeV;
     const G4double emax = 1.e3*GeV;
     const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
@@ -176,6 +180,8 @@ int main(int argc,char** argv)
       particle = theParticleIterator->value(); 
     */
 
+    runManager->BeamOn( 1 );
+    
     //
     // Let's build the material table
     G4MaterialTable *theMaterialTable = (G4MaterialTable*)G4Material::GetMaterialTable();
@@ -383,7 +389,7 @@ int main(int argc,char** argv)
 		if(p->GetProcessType()==1||p->GetProcessType()==6) continue;
 
 		// Let's start with what we know
-		if(p->GetProcessType() == 4) {
+		if(p->GetProcessType() == fHadronic ) {  // 4
 		   // no parametrization for Z > 92 and inelastic (but why a crash??)
 		   if(mat->GetZ() > 92 && 
 		      ( i == 382 || i == 383 ) && 
@@ -402,6 +408,15 @@ int main(int argc,char** argv)
 		   for(G4int j=0; j<nbins; ++j) {
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
+                      if( particle == G4Proton::Proton() )
+                      {
+                         G4double sigmae= 0.25*delta;
+                         G4double stepSize= 10.0*millimeter;
+                         G4int    nevt= 10;
+                         G4int    verbose=1;
+
+                         SampleInteractions( matt, particle, ph, en, sigmae, stepSize, nevt, verbose);
+                      }
 		      en*=delta;
 		      delete dp;
 		   }
@@ -414,28 +429,51 @@ int main(int argc,char** argv)
 		   
 		   totsize += nbins;
 		   if(G4VEnergyLossProcess *ptEloss = dynamic_cast<G4VEnergyLossProcess*>(p)) {
-		      /*		      printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+		      printf("Mat %s Part [%3d] %s adding ELoss process %s [%d,%d]\n",
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
-			     p->GetProcessType(),p->GetProcessSubType()); */
+			     p->GetProcessType(),p->GetProcessSubType()); 
 		      G4double en=emin;
+                      G4double eMaxProc= ptEloss->MaxKinEnergy();
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+                         if( en <= eMaxProc ) {
+                            // G4cout << " X-sec [ " << en/MeV <<  " MeV ] = " << pxsec[nprxs*nbins+j] << G4endl;
+                            printf(" X-sec [ %12.4g MeV ] = %16.6g \n", en/MeV, pxsec[nprxs*nbins+j]);
+                         }
+
 			 en*=delta;
 		      }
 		      pdic[nprxs]=ptEloss->GetProcessType()*1000+ptEloss->GetProcessSubType();
+
+                      G4cout << " Eloss : " << " Max Energy= " << eMaxProc << G4endl;
+
 		      ++nprxs;
 		      nproc=TRUE;
 		   } else if(G4VEmProcess *ptEm = dynamic_cast<G4VEmProcess*>(p)) {
-		      /* printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+		      /* printf("Mat %s Part [%3d] %s adding EM process %s [%d,%d]\n",
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
-			     p->GetProcessType(),p->GetProcessSubType()); */
+			     p->GetProcessType(),p->GetProcessSubType());  */
 		      G4double en=emin;
+                      G4double eMaxProc= ptEm->MaxKinEnergy();
+                      G4bool IsCompton= ( p->GetProcessSubType()==13 ); // Compton
+
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+#ifdef PRINT_COMPTON
+                         if( IsCompton ){
+                            if( en <= eMaxProc ) {
+                               G4cout << " X-sec [ " << en/MeV <<  " MeV ] = " << pxsec[nprxs*nbins+j] << G4endl;
+                            }
+                         }
+#endif
 			 en*=delta;
 		      }
+                      if( IsCompton ) {
+                         G4cout << " Compton : " << " Max Energy= " << eMaxProc << G4endl;
+                      }
+
 		      pdic[nprxs]=ptEm->GetProcessType()*1000+ptEm->GetProcessSubType();
 		      ++nprxs;
 		      nproc=TRUE;
@@ -521,17 +559,18 @@ int main(int argc,char** argv)
 			    G4ThreeVector  dirnew(0,0,0), displacement;
 
                          // Sample Scattering by calling the full DoIt
-                            G4VParticleChange *pc= pms->AlongStepDoIt( *track, step);
+                            G4VParticleChange *ptc= pms->AlongStepDoIt( *track, step);
                                                      // *************
-			    G4ParticleChangeForMSC* particleChng= dynamic_cast<G4ParticleChangeForMSC *>(pc); 
+			    G4ParticleChangeForMSC* particleChng= dynamic_cast<G4ParticleChangeForMSC *>(ptc);
                             if( particleChng == 0) { G4cout << "ERROR> Incorrect type of Particle Change" << G4endl;  exit(1); } 
 
 			    dirnew= *(particleChng->GetMomentumDirection()); 
 			    G4double angle = dirnew.angle(dirz);
-			    printf("Correction %f, angle %f, en %f\n",
-                                   proposedStep/stepSize,  180*angle/pi, track->GetKineticEnergy() );
+			    /* printf("Correction %f, angle %f, en %f\n",
+                                   proposedStep/stepSize,  180*angle/pi, track->GetKineticEnergy() ); 
+                             */ 
 
-                            pc->UpdateStepForAlongStep(&step);
+                            ptc->UpdateStepForAlongStep(&step);
                             // step->UpdateTrack(); 
 
                             // Post Step Do It 
