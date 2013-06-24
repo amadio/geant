@@ -1,3 +1,4 @@
+#include <TFile.h>
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
 #include <TGeoMaterial.h>
@@ -20,6 +21,7 @@ Int_t main (int argc, char *argv[]) {
    
    // loop materials
 
+   TFile *f = new TFile("xsec.root");
    TList *matlist = (TList*) geom->GetListOfMaterials();
    TIter next(matlist);
    TGeoMaterial *mat=0;
@@ -46,7 +48,7 @@ Int_t main (int argc, char *argv[]) {
       mat->SetFWExtension(
 	new TGeoRCExtension(
 	   new TMXsec(mat->GetName(),mat->GetTitle(),
-		      z,a,w,nelem,mat->GetDensity(),kTRUE)));
+	   z,a,w,nelem,mat->GetDensity(),kTRUE))); 
       //      myObject = mat->GetExtension()->GetUserObject();
       delete [] a;
       delete [] z;

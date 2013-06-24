@@ -92,10 +92,11 @@ TEXsec::TEXsec():
 }
 
 //___________________________________________________________________
-TEXsec::TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np):
+TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Float_t emin, Float_t emax, Int_t nen, Int_t np):
    TNamed(fEleSymbol[z-1],fEleName[z-1]),
    fEle(z*10000+a*10),
-   fAtcm3(TMath::Na()*1e-24/fWElem[z-1]),
+   fDens(dens),
+   fAtcm3(fDens*TMath::Na()*1e-24/fWElem[z-1]),
    fEmin(emin),
    fEmax(emax),
    fNEbins(nen),
@@ -290,14 +291,22 @@ TGraph* TEXsec::MSGraph(const char* part, const char* what,
 
 //___________________________________________________________________
 TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
+   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
    Int_t ecode = z*10000+a*10;
    for(Int_t el=0; el<fNLdElems; ++el) 
-      if(ecode == fElements[el]->Ele()) return fElements[el];
-   
+      if(ecode == fElements[el]->Ele()) 
+	 return fElements[el];
+
+   // Element not found in memory, getting it from file
    TFile *ff=gFile;
    if(f) ff=f;
+   if(!ff) ::Fatal("GetElement","No file open!");
    fElements[fNLdElems] = (TEXsec *) ff->Get(fEleSymbol[z-1]);
-   return fElements[fNLdElems++];
+   if(!fElements[fNLdElems]) {
+      ::Fatal("GetElement","Element z %d a %d not found",z,a);
+      return 0; // just to make the compiler happy
+   } else 
+      return fElements[fNLdElems++];
 }
 
 //___________________________________________________________________

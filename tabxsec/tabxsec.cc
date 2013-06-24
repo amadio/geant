@@ -370,8 +370,11 @@ int main(int argc,char** argv)
        G4Material *matt = G4Material::GetMaterial(materialVec[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
        if(matt!=mat) printf("Funny %s %s!\n",(const char*) mat->GetName(),(const char*) mat->GetName());
+       G4int amat = mat->GetA()*mole/g;
+       amat = 0; // set a = 0 to indicate natural element.
+       G4double dens = mat->GetDensity()*cm3/g;
        TEXsec *mxsec = secTable[imat] = new TEXsec(mat->GetZ(),
-						   mat->GetA()*mole/g,emin,emax,nbins,npreac);
+						   amat,dens,emin,emax,nbins,npreac);
 
        G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
        printf("Material = %s density = %g, natoms/cm3 = %g\n",
