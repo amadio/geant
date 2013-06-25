@@ -285,7 +285,7 @@ TGraph* TEXsec::MSGraph(const char* part, const char* what,
    snprintf(title,199,"%s %s on %s",part,whatname[iopt],GetTitle());
    tg->SetTitle(title);
    delete [] mscat;
-   delete [] energy;
+   delete [] energy; 
    return tg;
 }
 
