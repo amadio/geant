@@ -12,12 +12,13 @@ const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kBoundary};
 
 //______________________________________________________________________________
-class GeantTrack {
+class GeantTrack: public TObject {
 public:
    Int_t    event;     // event number
    Int_t    evslot;    // event slot
    Int_t    particle;  // index of corresponding particle
    Int_t    pdg;       // particle pdg code
+   Int_t    fG5code;   // G5 particle code
    Species_t species;  // particle species
    TrackStatus_t status; // track status
    Int_t    charge;    // particle charge
