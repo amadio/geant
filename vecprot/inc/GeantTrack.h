@@ -12,7 +12,7 @@ const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kBoundary};
 
 //______________________________________________________________________________
-class GeantTrack: public TObject {
+class GeantTrack {
 public:
    Int_t    event;     // event number
    Int_t    evslot;    // event slot

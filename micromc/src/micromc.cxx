@@ -11,8 +11,11 @@
 
 void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]);
 Double_t SampleMaxwell(Double_t emean);
+void IncreaseStack();
 
-static TList particleStack;
+static Int_t stacksize=100;
+static Int_t hwmark=0;
+static GeantTrack *particleStack=new GeantTrack[stacksize];
 
 Int_t main (int argc, char *argv[]) {
 
@@ -33,7 +36,7 @@ Int_t main (int argc, char *argv[]) {
 
    const Char_t *geofile="http://root.cern.ch/files/cms.root";
    TGeoManager *geom = TGeoManager::Import(geofile);
-   
+
    // loop materials
 
    TFile *f = new TFile("xsec.root");
@@ -69,6 +72,8 @@ Int_t main (int argc, char *argv[]) {
       delete [] z;
       delete [] w;
    }
+
+   TPartIndex *tp = (TPartIndex*) gFile->Get("PartIndex");
 
    for(Int_t iev=0; iev<nevent; ++iev) {
       // should define a vertex, origin for the moment
@@ -120,8 +125,8 @@ Int_t main (int argc, char *argv[]) {
 void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
    static Bool_t first=kTRUE;
    static const Int_t kMaxPart=NPART;
-   static const Char_t* G5name[NPART] = {"pi+","pi-","proton","antiproton","neutron","antineutron","e-","e+","gamma"
-					  "mu+","mu-"};
+   static const Char_t* G5name[NPART] = {"pi+","pi-","proton","antiproton","neutron","antineutron","e-","e+",
+					 "gamma", "mu+","mu-"};
    static const Species_t G5species[NPART] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, 
 					      kLepton, kLepton, kLepton, kLepton, kLepton};
    static Int_t G5part[NPART];
@@ -131,7 +136,6 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
 
    // Initialise simple generator
    if(first) {
-      particleStack.SetOwner();
       Double_t sumprob=0;
       for(Int_t ip=0; ip<kMaxPart; ++ip) {
 	 G5part[ip] = TPartIndex::I()->PartIndex(G5name[ip]);
@@ -145,17 +149,19 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
       first=kFALSE;
    }
    
-   particleStack.Clear();
    Int_t ntracks = gRandom->Poisson(avemult)+0.5;
+   
+   hwmark=0;
    for (Int_t i=0; i<ntracks; i++) {
-      GeantTrack *track=new GeantTrack();
+      if(hwmark==stacksize) IncreaseStack();
+      GeantTrack *track=&particleStack[hwmark++];
       Double_t prob = gRandom->Uniform();
       for(Int_t j=0; j<kMaxPart; ++j) {
 	 if(prob <= G5prob[j]) {
 	    track->fG5code = G5part[j];
 	    track->pdg = TPartIndex::I()->PDG(G5part[j]);
 	    track->species = G5species[j];
-	    printf("Generating a %s",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
+	    printf("Generating a %s\n",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
 	    //	    pdgCount[j]++;
 	    break;
 	 }
@@ -167,7 +173,7 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
       track->xpos = fVertex[0];
       track->ypos = fVertex[1];
       track->zpos = fVertex[2];
-      Double_t ekin = SampleMaxwell(energy/(avemult*1.5));
+      Double_t ekin = SampleMaxwell(energy/avemult);
       track->e = ekin+track->mass;
       Double_t p = TMath::Sqrt(ekin*(2*ekin+track->mass));
       Double_t eta = gRandom->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
@@ -178,9 +184,6 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
       track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
       track->pz = p*TMath::Cos(theta);
       track->frombdr = kFALSE;
-      Int_t itrack = track->particle;
-      
-      particleStack.Add(track);
    }
 //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
 }
@@ -190,6 +193,15 @@ Double_t SampleMaxwell(Double_t emean)
    Double_t th = gRandom->Uniform()*TMath::TwoPi();
    Double_t rho = TMath::Sqrt(-TMath::Log(gRandom->Uniform()));
    Double_t mx = rho*TMath::Sin(th);
-   return emean*(-TMath::Log(gRandom->Uniform())+mx*mx);
+   return 2*emean*(-TMath::Log(gRandom->Uniform())+mx*mx)/3.;
+}
+
+void IncreaseStack() {
+   Int_t newstacksize = stacksize*1.5;
+   GeantTrack *tmp = new GeantTrack[newstacksize];
+   memcpy((void*)tmp,(void*)particleStack,stacksize*sizeof(GeantTrack));
+   delete [] particleStack;
+   particleStack=tmp;
+   stacksize = newstacksize;
 }
 
