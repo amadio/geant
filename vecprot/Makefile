@@ -64,7 +64,7 @@ all:            $(GEANTSO)
 -include $(GEANTDEPS)
 
 ifeq ($(EnableCuda),yes)
-include Makefile.cuda
+include cuda/Makefile.cuda
 endif
 
 $(GEANTSO):     $(GEANTDICTS) $(GEANTO)

@@ -2,7 +2,7 @@ NVCC=nvcc
 NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC
 NVCC_INCLUDES=-I$(CudaCode)/GPTracking/Common/include  -I$(CudaCode)/GPTracking/EMPhysics/include -I$(CudaCode)/GPTracking/Geometry/include -I$(CudaCode)/GPTracking/Material/include -I$(CudaCode)/GPTracking/Transportation/include -I$(CudaCode)/GPTracking/Common/src -I$(CudaCode)/GPTracking/EMPhysics/src -I$(CudaCode)/GPTracking/Geometry/src -I$(CudaCode)/GPTracking/Material/src -I$(CudaCode)/GPTracking/Transportation/src -I$(CudaCode)/GXTracking/Common/include -I$(CudaCode)/GXTracking/EMPhysics/include -I$(CudaCode)/GXTracking/Geometry/include -I$(CudaCode)/GXTracking/Transportation/include -I$(CudaCode)/GXTracking/kernel/include -I$(CudaCode)/GXTracking/EMPhysics/src -I$(CudaCode)/GXTracking/Geometry/src -I$(CudaCode)/GXTracking/Transportation/src -I$(CudaCode)/GXTracking/kernel/src
 
-CXXFLAGS += -I$(CUDA_INC)
+CXXFLAGS += -I$(CUDA_INC) -I$(CUDA_INCDIR)
 CXXFLAGS += -I$(CudaCode)/GXTracking/Common/include \
    -I$(CudaCode)/GXTracking/kernel/include \
    -I$(CudaCode)/GXTracking/EMPhysics/include \
@@ -13,6 +13,8 @@ CXXFLAGS += -I$(CudaCode)/GXTracking/Common/include \
    -I$(CudaCode)/GPTracking/Material/include
 
 CUDA_OBJDIR=obj/cuda
+CUDA_SRCDIR=cuda/src
+CUDA_INCDIR=cuda/inc
 
 #CUDA_OPT=-O0 --ptxas-options="--opt-level 0"
 
@@ -21,19 +23,19 @@ $(CUDA_OBJDIR):
 
 #CUDA_OBJ=$(patsubst %.cu,%.o,$(CUDA_SOURCES))
 
-GEANTCUDADICTS = $(SRCDIR)/G__CudaGeant.cxx
+GEANTCUDADICTS = $(CUDA_SRCDIR)/G__CudaGeant.cxx
 
-$(GEANTCUDADICTS): $(INCDIR)/CudaLinkDef.h
+$(GEANTCUDADICTS): $(CUDA_INCDIR)/CudaLinkDef.h
 	@echo "Generating dictionary $@"
 	$(ROOTSYS)/bin/rootcint -f $@ \
-                -c $(INCDIR)/CoprocessorBroker.h $(INCDIR)/CudaLinkDef.h
+                -c -I$(INCDIR) $(CUDA_INCDIR)/CoprocessorBroker.h $(CUDA_INCDIR)/CudaLinkDef.h
 
-src/G__CudaGeant.o: $(GEANTCUDADICTS)
-	$(ROOTSYS)/bin/rmkdepend -R -f$(SRCDIR)/G__CudaGeant.d -Y -w 1000 -- \
+cuda/src/G__CudaGeant.o: $(GEANTCUDADICTS)
+	$(ROOTSYS)/bin/rmkdepend -R -f$(CUDA_SRCDIR)/G__CudaGeant.d -Y -w 1000 -- \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
                 -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(GEANTCUDADICTS)
 	$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ \
-                -c $(SRCDIR)/G__CudaGeant.cxx
+                -c $(CUDA_SRCDIR)/G__CudaGeant.cxx
 
 
 ifeq ($(CudaSingleObj),yes)
@@ -90,11 +92,17 @@ CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/,$(patsubst %.cu,%.o,$(CUDA_G
 CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GPTracking/,$(patsubst %.cu,%.o,$(CUDA_GP_SOURCES)))
 CUDA_DEPS = $(patubst %.o,%.d,$(CUDA_OBJS)
 
-CUDA_CXX_OBJS = src/CoprocessorBroker.$(ObjSuf) src/G__CudaGeant.$(ObjSuf)
+CUDA_CXX_OBJS = $(CUDA_SRCDIR)/CoprocessorBroker.$(ObjSuf) $(CUDA_SRCDIR)/G__CudaGeant.$(ObjSuf)
 
 CUDA_CPP_OBJS = $(addprefix $(CUDA_OBJDIR)/GPTracking/,$(patsubst %.cu,%_cpp.o,$(CUDA_GP_CPP_SOURCES)))
 
 # GEANTO += $(CUDA_OBJS)
+
+$(CUDA_SRCDIR)/%.o: $(CUDA_SRCDIR)/%.cxx
+		$(ROOTSYS)/bin/rmkdepend -R -f$(CUDA_SRCDIR)/$*.d -Y -w 1000 -- \
+	             	$(CXXFLAGS) \
+		 	 -- $<
+		$(CXX)  $(CXXFLAGS) -o $@ -c $<
 
 libGeantCuda.so: $(CUDA_OBJS) $(CUDA_CPP_OBJS) $(CUDA_CXX_OBJS)
 	$(NVCC) $^  -o libGeantCuda.so $(NVCC_FLAGS) --shared -Xcompiler -fPIC
