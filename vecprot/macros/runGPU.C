@@ -131,7 +131,7 @@ void runGPU(Int_t nthreads=10, Bool_t graphics=kFALSE, const char *geomfile="htt
    
    // This sets gGeomManager and hence superseeds the filename.
    VP_SimpleECal();
-   prop->PropagatorGeom("", nthreads, graphics);
+   prop->PropagatorGeom("", nthreads + 3, graphics);
    
    delete gGeoManager;
    
