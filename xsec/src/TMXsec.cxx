@@ -101,6 +101,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 }
       }
    }
+   // cleaning up
    delete [] ratios;
    delete [] rdedx;
    delete [] fDEdx; 
