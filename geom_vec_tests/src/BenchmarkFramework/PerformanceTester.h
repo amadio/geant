@@ -3,8 +3,9 @@
 
 #include "TGeoBBox.h"
 #include <vector>
-#include "tbb/tick_count.h"" // timing from Intel TBB 
+#include "tbb/tick_count.h" // timing from Intel TBB 
 #include <cassert>
+#include "Util.h"
 
 struct StopWatch 
 {

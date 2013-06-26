@@ -1,7 +1,12 @@
+INC=../../inc/
+VCINC=${VCROOT}include
+VCLIB=${VCROOT}lib/libVc.a
+
+
 ifeq ($(CXX),g++)
-OPT=-O3 -mavx -mfpmath=sse -funroll-loops -ftree-vectorize -flax-vector-conversions -fivopts  \
--ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=7 -fPIC
-LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic
+OPT=-O2 -ggdb -mavx -mfpmath=sse -funroll-loops -ftree-vectorize -flax-vector-conversions -fivopts  \
+-ffast-math -funsafe-math-optimizations -msse4.1 -Wattributes -ftree-vectorizer-verbose=7 -fPIC -I ${INC}
+LDOPTS=-shared -Wl,--hash-style=sysv -Wl,-Bsymbolic 
 endif
 
 ifeq ($(CXX),clang++) 
@@ -25,11 +30,19 @@ test : $(tests) PerformanceTester.o
 PerformanceTester.o: PerformanceTester.cxx
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c $<
 
+PerformanceTesterTGeoMatrix.o: PerformanceTesterTGeoMatrix.cxx
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -I$(TBBROOT)/include -c $<
 
-BenchTGeo%_$(CXX):  BenchTGeo%.o PerformanceTester.o
-	$(CXX) -o $@ $< PerformanceTester.o $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L../ -ltest_g++ 
+BenchRotation: BenchRotation.o PerformanceTesterTGeoMatrix.o
+	$(CXX) -o $@ $< PerformanceTesterTGeoMatrix.o $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb 
 
-BenchTGeo%.o: BenchTGeo%.cxx
+BenchRotation.o: BenchRotation.cxx
+	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -c $<
+
+BenchTGeo%_$(CXX):  BenchTGeo%.o PerformanceTesterT.hpp
+	$(CXX) -o $@ $<  ${VCLIB} $(ROOTLIBS) -lGeom -L$(TBBROOT)/lib -ltbb -L../ -ltest_g++ 
+
+BenchTGeo%.o: BenchTGeo%.cxx PerformanceTesterT.hpp
 	$(CXX) -m64 $(OPT) $(ROOTCFLAGS) -c $<
 
 clean:

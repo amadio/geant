@@ -3,28 +3,8 @@
 //#include "TMath.h"
 #include <iostream>
 #include <cmath>
+#include "Util.h"
 
-class Util{
-  public:
-  static void samplePoint( double *point, double dx, double dy, double dz, double scale )
-  {
-    point[0]=scale*(1-2.*gRandom->Rndm())*dx;
-    point[1]=scale*(1-2.*gRandom->Rndm())*dy;
-    point[2]=scale*(1-2.*gRandom->Rndm())*dz;
-  }
- 
-  // creates random normalized vectors 
-  static void sampleDir( double * dir)
-  {
-    dir[0]=(1-2.*gRandom->Rndm());
-    dir[1]=(1-2.*gRandom->Rndm());
-    dir[2]=(1-2.*gRandom->Rndm());
-    double inversenorm=1./sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]);
-    dir[0]*=norm;
-    dir[1]*=norm;
-    dir[2]*=norm;
-  }
-};
 
 
 ShapeBenchmarker::ShapeBenchmarker( TGeoBBox *s ) : testshape(s), TdO(N,0.), TdI(N,0.), Tc(N,0.), Ts(N,0.) {

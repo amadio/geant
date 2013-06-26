@@ -84,16 +84,16 @@ main(int argc, char *argv[])
 	    double checksum=0., checksum_l=0., checksum_box=0., checksum_v=0.;
 	    #pragma novector 
 	    for(int i=0; i<npoints; ++i) {
-	      distance_v[i]=TGeoBBox_v::DistFromInside(&points[3*i],&dir[3*i], dx,dy,dz, origin, TGeoShape::Big());
+	      distance_v[i]=TGeoBBox_v::DistFromInsideS(&points[3*i],&dir[3*i], dx,dy,dz, origin, TGeoShape::Big());
  	      checksum+=distance_v[i];
 	    }
 	    
-	    TGeoBBox_v::DistFromInside_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	    TGeoBBox_v::DistFromInsideS_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
 	    for(int i=0; i<npoints; ++i) {
 	      checksum_l+=distance_v[i];
 	    }
 
-	    TGeoBBox_v::DistFromInside_v(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	    TGeoBBox_v::DistFromInsideS_v(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
 	    for(int i=0; i<npoints; ++i) {
 	      checksum_v+=distance_v[i];
 	    }
@@ -112,13 +112,13 @@ main(int argc, char *argv[])
 
 	  
 	  tt.Start();
-	  TGeoBBox_v::DistFromInside_v(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	  TGeoBBox_v::DistFromInsideS_v(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
 
 	  tt.Start();
-	  TGeoBBox_v::DistFromInside_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
+	  TGeoBBox_v::DistFromInsideS_l(points, dir, dx, dy, dz, origin, TGeoShape::Big(), distance_v, npoints);
 	  tt.Stop();
 	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 	  tt.Start();
 	  #pragma novector
 	  for(int i=0; i<npoints; ++i) {
-	    distance_v[i] = TGeoBBox_v::DistFromInside(&points[3*i],&dir[3*i], dx,dy,dz, origin, TGeoShape::Big());
+	    distance_v[i] = TGeoBBox_v::DistFromInsideS(&points[3*i],&dir[3*i], dx,dy,dz, origin, TGeoShape::Big());
 	  }
 	  tt.Stop();
 	  DeltaT+= tt.getDeltaSecs();

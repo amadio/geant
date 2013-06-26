@@ -1,5 +1,5 @@
 #include "../TGeoBBox_v.h"
-#include "PerformanceTester.h"
+#include "PerformanceTesterT.hpp" // for the vectorized interface
 #include <iostream>
 
 int main(int argc, char *argv[])
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
   TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz);
 
   // test vector performance of cone
-  ShapeBenchmarker test( box );
+  ShapeBenchmarker_v<TGeoBBox_v> test( box );
   test.timeIt();// initDataContains();
 
   delete box;

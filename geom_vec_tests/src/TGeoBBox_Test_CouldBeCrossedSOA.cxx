@@ -4,7 +4,7 @@
 #include "TMath.h"
 
 #include <iostream>
-#include "tbb/tick_count.h" // timing from Intel TBB 
+#include "tbb/tick_count.h"" // timing from Intel TBB 
 #include <cassert>
 
 struct TStopWatch 
@@ -49,51 +49,52 @@ main(int argc, char *argv[])
   TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz,origin);
   const Double_t r3two = TMath::Power(2,1./3.);
 
-  npoints=10;
+  npoints=1;
   for(int i = 0 ;i < 14; i++) 
     {
       Double_t *points = new Double_t[3*npoints];
       Double_t *dir = new Double_t[3*npoints];
-      Double_t *norm = new Double_t[3*npoints];
       TStopWatch tt;
 
-      for(int i=0; i<npoints; ++i) 
-	{
-	  /*
-	    points[3*i  ]=0;
-	    points[3*i+1]=0;
-	    points[3*i+2]=0;
-	  */
-	  
-	  points[3*i  ]=(1-2.*gRandom->Rndm())*dx;
-	  points[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-	  points[3*i+2]=(1-2.*gRandom->Rndm())*dz;
-          
-	  dir[3*i  ]=(1-2.*gRandom->Rndm())*dx; //correct?
-	  dir[3*i+1]=(1-2.*gRandom->Rndm())*dy;
-	  dir[3*i+2]=(1-2.*gRandom->Rndm())*dz;
-	}
+      points[0]=-100.;
+      points[1]=-100.;
+      points[2]=-100.;
       
+      dir[0]=-1.;
+      dir[1]=0.;
+      dir[2]=0.;
+     
+      StructOfCoord p,d;
+      p.alloc(npoints);
+      d.alloc(npoints);
+
+      for(int i=1; i<npoints; ++i) {
+          points[3*i  ]=100*(1-2.*gRandom->Rndm())*dx;
+          points[3*i+1]=100*(1-2.*gRandom->Rndm())*dy;
+          points[3*i+2]=100*(1-2.*gRandom->Rndm())*dz;
+
+          dir[3*i  ]=(1-2.*gRandom->Rndm()); 
+          dir[3*i+1]=(1-2.*gRandom->Rndm());
+          dir[3*i+2]=(1-2.*gRandom->Rndm());
+      }
+      p.fill(points);
+      d.fill(dir);
+      
+      Bool_t *couldBeCrossed_v = new Bool_t[npoints];
       double DeltaT=0., DeltaT_v=0., DeltaT_l=0.;
       for ( unsigned int repetitions = 0; repetitions < NREP; repetitions ++ ) 
-	{
+      {
 	  // assert correctness of result (simple checksum check)
-	  {
+          {
 	    double checksum=0., checksum_v=0.;
 	    for(int i=0; i<npoints; ++i) {
-	      box->ComputeNormal(&points[3*i], &dir[3*i], &norm[3*i]);
-	      //	      std::cerr << "Ax " << points[3*i+0] << " y " << points[3*i+1] << " z " << points[3*i+2] << " safet " << safety_v[i] << std::endl;
-	      
+	      couldBeCrossed_v[i]=box->CouldBeCrossed(&points[3*i], &dir[3*i]);
+	      checksum+=couldBeCrossed_v[i];
 	    }
 	    
-          
-          for (int i=0; i<npoints*3; i++)
-              checksum+=norm[i];
-	    
-	    box->ComputeNormal_l(points,dir,norm,npoints);
-	    for(int i=0; i<npoints*3; ++i) {
-	      //	      std::cerr << "Bx " << points[3*i+0] << " y " << points[3*i+1] << " z " << points[3*i+2] << " safet " << safety_v[i] << std::endl;
-	      checksum_v+=norm[i];
+	    box->CouldBeCrossed_v(p,d,couldBeCrossed_v,npoints);
+	    for(int i=0; i<npoints; ++i) {
+	      checksum_v+=couldBeCrossed_v[i];
 	    }
 	    assert(checksum_v == checksum);
 	  }
@@ -101,31 +102,35 @@ main(int argc, char *argv[])
 
 	  // measure timings here separately
 	  tt.Start();
-	  for(int i=0; i<npoints; ++i) {
-	    box->ComputeNormal(&points[3*i], &dir[3*i], &norm[3*i]);
-	  }
-	  tt.Stop();
-	  DeltaT+= tt.getDeltaSecs();
-	  tt.Reset();
-	  
-	  tt.Start();
-	  box->ComputeNormal_v(points,dir,norm,npoints);
+	  box->CouldBeCrossed_v(p,d,couldBeCrossed_v,npoints);
 	  tt.Stop();
 	  DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
 
+
 	  tt.Start();
-	  box->ComputeNormal_l(points,dir,norm,npoints);
+	  box->CouldBeCrossed_l(points,dir,couldBeCrossed_v,npoints);
 	  tt.Stop();
 	  DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
 	  tt.Reset();
+
+
+	  tt.Start();
+	  for(int i=0; i<npoints; ++i) {
+	    couldBeCrossed_v[i]=box->CouldBeCrossed(&points[3*i], &dir[3*i]);
+	  }
+	  tt.Stop();
+	  DeltaT+= tt.getDeltaSecs();
+	  tt.Reset();
 	}
 
-      std::cerr << "P# " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP << " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v << std::endl;
+      std::cerr << "#P " << npoints << " " << DeltaT/NREP << " " << DeltaT_l/NREP << " " << DeltaT_v/NREP <<  " " << DeltaT/DeltaT_l << " " << DeltaT/DeltaT_v << std::endl;
       
       delete[] dir;
-      delete[] norm;
       delete[] points;
+      p.dealloc();
+      d.dealloc();
+
       npoints*=2;
     }
   return 0;
