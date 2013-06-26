@@ -1,4 +1,4 @@
-ClassName = [ "TGeoBBox", "TGeoCone", "TGeoPgon" ]
+ClassNames = [ "TGeoBBox", "TGeoCone", "TGeoPgon", "TGeoTube", "TGeoPcon" ]
 #virtual Bool_t        Contains(Double_t *point) const;
 #virtual Double_t      DistFromInside(Double_t *point, Double_t *dir, Int_t iact=1, Double_t step=TGeoShape::Big(), Double_t *safe=0);
 #virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, Double_t step=TGeoShape::Big(), Double_t *safe=0);
@@ -40,7 +40,7 @@ def EmitLoopN( indentlevel ):
 
 
 def EmitContainsDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "void Contains_l( Double_t const *point, Double_t const *dir, Int_t iact=1, Double_t const * step, Double_t * safe=0, Bool_t * isin , Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void Contains_l( Double_t const *point, Double_t const *dir, Int_t iact=1, Double_t const * step, Double_t * safe=0, Bool_t * isin , Int_t vecsize ) {"
 
 
 def EmitCallToContains( indentlevel, classname ):
@@ -50,7 +50,7 @@ def EmitCallToContains( indentlevel, classname ):
 
 
 def EmitSafetyDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "void Safety_l( Double_t const *point, Bool_t const *inside, Double_t * safe , Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void Safety_l( Double_t const *point, Bool_t const *inside, Double_t * safe , Int_t vecsize ) {"
 
 
 def EmitCallToSafety( indentlevel, classname ):
@@ -61,7 +61,7 @@ def EmitCallToSafety( indentlevel, classname ):
 
 
 def EmitDistanceFromInsideDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "void DistanceFromInside_l( Double_t const *point, Double_t const *dir, Int_t iact=1, Double_t const * step, Double_t *safe=0 , Double_t * dist, Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void DistanceFromInside_l( Double_t const *point, Double_t const *dir, Int_t iact=1, Double_t const * step, Double_t *safe=0 , Double_t * dist, Int_t vecsize ) {"
 
 
 def EmitCallToDistanceFromInside( indentlevel, classname ):
@@ -83,31 +83,33 @@ def EmitSafety():
     None
 
 def main():
-    EmitCommonStuff( "Foo" )
-    EmitClassDef( "Foo" )
+    for shape in ClassNames:
+        EmitCommonStuff( shape )
+        EmitClassDef( shape )
 
     # for the Contains Method
-    EmitContainsDecl( 1, "Foo" )
-    EmitLoopN( 3 )
-    EmitCallToContains( 5 , "Foo" )
-    EmitClosingParen( 1 )
-
+        EmitContainsDecl( 1, shape )
+        EmitLoopN( 3 )
+        EmitCallToContains( 5 , shape )
+        EmitClosingParen( 1 )
+        
 
     # for the Safety Method
-    EmitSafetyDecl( 1, "Foo" )
-    EmitLoopN( 3 )
-    EmitCallToSafety( 5 , "Foo" )
-    EmitClosingParen( 1 )
-
-
+        EmitSafetyDecl( 1, shape )
+        EmitLoopN( 3 )
+        EmitCallToSafety( 5 , shape )
+        EmitClosingParen( 1 )
+        
+        
     # for the DistanceFromInside Method
-    EmitDistanceFromInsideDecl( 1, "Foo" )
-    EmitLoopN( 3 )
-    EmitCallToDistanceFromInside( 5 , "Foo" )
-    EmitClosingParen( 1 )
-
+        EmitDistanceFromInsideDecl( 1, shape )
+        EmitLoopN( 3 )
+        EmitCallToDistanceFromInside( 5 , shape )
+        EmitClosingParen( 1 )
+        
     # close the class
-    EmitClassClosing(  ) 
+        EmitClassClosing(  ) 
+
 
 if __name__ == "__main__":
     main()
