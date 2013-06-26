@@ -35,7 +35,7 @@ class TEXsec : public TNamed {
 
 public:
    TEXsec();
-   TEXsec(Int_t z, Int_t a, Float_t emin, Float_t emax, Int_t nen, Int_t np);
+   TEXsec(Int_t z, Int_t a, Float_t dens, Float_t emin, Float_t emax, Int_t nen, Int_t np);
    TEXsec(Int_t z, Int_t a, Int_t np);
    ~TEXsec();
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
@@ -51,6 +51,7 @@ public:
    static Int_t NElem() {return fNElem;}
 
    Int_t Ele() const {return fEle;}
+   Float_t Dens() const {return fDens;}
    Float_t Emin() const {return fEmin;}
    Float_t Emax() const {return fEmax;}
    Int_t NEbins() const {return fNEbins;}
@@ -83,12 +84,13 @@ private:
    static const Float_t fWElem[NELEM];     // Weight of a mole in grams
 
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
+   Float_t        fDens;    // Density in g/cm3
    Double_t       fAtcm3;   // Atoms per cubic cm unit density
    Double_t       fEmin;    // Min en in GeV
    Double_t       fEmax;    // Max en in Gev
    Int_t          fNEbins;  // Number of log steps in energy
    Double_t       fEilDelta; // Inverse log energy step
-   const Double_t *fEGrid;  // Common energy grid
+   const Double_t *fEGrid;  //! Common energy grid
    Int_t          fNRpart;  // Number of particles with reaction
    TPXsec        *fPXsec;   // [fNRpart] Cross section table per particle
    Double_t      *fCuts;    // [fNRpart] Just a placeholder for the moment

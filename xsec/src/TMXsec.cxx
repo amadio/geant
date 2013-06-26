@@ -32,24 +32,37 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    fNElems(nel),
    fElems(new TEXsec*[fNElems]),
    fTotXL(0), 
-   fRelXS(0)
+   fRelXS(0),
+   fDEdx(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
    for(Int_t i=0; i<fNElems; ++i) 
-      fElems[i] = TEXsec::GetElement(z[i],0);
+      if(z[i]) fElems[i] = TEXsec::GetElement(z[i],0);
+      else if(fNElems>1) Fatal("TMXsec","Cannot have vacuum in mixtures");
+
+   if(!z[0]) return;
+      
    Double_t *ratios = new Double_t[fNElems];
+   Double_t *rdedx  = new Double_t[fNElems];
    Double_t hnorm=0;
-   for(Int_t i=0; i<fNElems; ++i) {
-      ratios[i] = w[i];
-      if(weight) ratios[i]/=TEXsec::WEle(z[i]);
-      hnorm+=ratios[i]*TEXsec::WEle(z[i]);
+   if(fNElems>1) {
+      for(Int_t i=0; i<fNElems; ++i) {
+	 ratios[i] = w[i];
+	 if(weight) ratios[i]/=TEXsec::WEle(z[i]);
+	 hnorm+=ratios[i]*TEXsec::WEle(z[i]);
+      }
+   } else {
+      ratios[0]=1;
+      hnorm=TEXsec::WEle(z[0]);
    }
 
    if(weight) printf("By weight: ");
    else       printf("By number: ");
 
+   
    for(Int_t i=0; i<fNElems; ++i) {
+      rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
       ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
       printf("%d %f ",z[i],ratios[i]);
    }
@@ -61,31 +74,42 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    Int_t npart = TPartIndex::I()->NPartReac();
    // Layout part1 { en<1> { tot<1>, ... , tot<fNElems>}, .....en<nbins> {tot<1>, ..., tot<fNElems>}}
    
-   fRelXS = new Float_t[npart*fNEbins*fNElems];
+   if(fNElems>1) 
+      fRelXS = new Float_t[npart*fNEbins*fNElems];
    fTotXL = new Float_t[npart*fNEbins];
    memset(fTotXL,0,npart*fNEbins*sizeof(Float_t));
+   fDEdx = new Float_t[npart*fNEbins];
+   memset(fDEdx,0,npart*fNEbins*sizeof(Float_t));
 
-   if(fNElems>1) {
-      for(Int_t ip=0; ip<npart; ++ip) {
-	 Int_t ibase = ip*(fNEbins*fNElems);
-	 for(Int_t ie=0; ie<fNEbins; ++ie) {
-	    Int_t ibin = ibase + ie*fNElems;
+   for(Int_t ip=0; ip<npart; ++ip) {
+      Int_t ibase = ip*(fNEbins*fNElems);
+      for(Int_t ie=0; ie<fNEbins; ++ie) {
+	 Int_t ibin = ibase + ie*fNElems;
+	 if(fNElems>1) {
 	    for(Int_t iel=0; iel<fNElems; ++iel) {
 	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
 	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
+	       fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
 	    }
-	    if(fTotXL[ip*fNEbins+ie]) {
-	       fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
-	       for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
-	    }
+	 } else {
+	    fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
+	    fDEdx[ip*fNEbins+ie] = fElems[0]->DEdx(ip,fEGrid[ie])*rdedx[0];
+	 }
+	 if(fTotXL[ip*fNEbins+ie]) {
+	    fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
+	    if(fNElems>1) for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
 	 }
       }
    }
+   // cleaning up
+   delete [] ratios;
+   delete [] rdedx;
+   delete [] fDEdx; 
 }
 
 //____________________________________________________________________________
 Float_t TMXsec::Xlength(Int_t part, Float_t en) {
-   if(part>=TPartIndex::I()->NPartReac()) 
+   if(part>=TPartIndex::I()->NPartReac() || !fTotXL) 
       return TMath::Limits<Float_t>::Max();
    else {
       en=en<=fEmax?en:fEmax;
@@ -107,8 +131,31 @@ Float_t TMXsec::Xlength(Int_t part, Float_t en) {
 }
 
 //____________________________________________________________________________
+Float_t TMXsec::DEdx(Int_t part, Float_t en) {
+   if(part>=TPartIndex::I()->NPartReac() || !fDEdx) 
+      return 0;
+   else {
+      en=en<=fEmax?en:fEmax;
+      en=en>=fEmin?en:fEmin;
+      Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
+      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+      //     Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+      //     Double_t en2 = en1*fEDelta;
+      Double_t en1 = fEGrid[ibin];
+      Double_t en2 = fEGrid[ibin+1];
+      if(en1>en || en2<en) {
+	 Error("DEdx","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	       ibin, en1, en, en2);
+	 return TMath::Limits<Float_t>::Max();
+      }
+      Double_t xrat = (en2-en)/(en2-en1);
+      return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
+   }
+}
+
+//____________________________________________________________________________
 TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
-   if(part>=TPartIndex::I()->NPartReac()) {
+   if(part>=TPartIndex::I()->NPartReac() || !fTotXL) {
       reac=-1;
       return 0;
    } else {

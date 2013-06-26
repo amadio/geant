@@ -34,6 +34,7 @@ public:
 	  Int_t nel, Float_t dens, Bool_t weight=kFALSE);
    ~TMXsec() {}
    Float_t Xlength(Int_t part, Float_t en);
+   Float_t DEdx(Int_t part, Float_t en);
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
 
 private:
@@ -47,6 +48,7 @@ private:
    TEXsec      **fElems; // [fNElems] List of elements composing this material
    Float_t      *fTotXL;   // Total x-sec for this material
    Float_t      *fRelXS;   // Relative x-sec for this material
+   Float_t      *fDEdx;    // Ionisation energy loss for this material
 
    ClassDef(TMXsec,1)  //Material X-secs
 
