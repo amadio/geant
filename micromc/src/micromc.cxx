@@ -4,6 +4,7 @@
 #include <TGeoMaterial.h>
 #include <TList.h>
 #include <TRandom.h>
+#include <TGeoBBox.h>
 #include <GeantTrack.h>
 
 #include <TPartIndex.h>
@@ -12,10 +13,12 @@
 void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]);
 Double_t SampleMaxwell(Double_t emean);
 void IncreaseStack();
+void VertexIn(TGeoBBox *bbox, Double_t ori[3]);
 
 static Int_t stacksize=100;
 static Int_t hwmark=0;
 static GeantTrack *particleStack=new GeantTrack[stacksize];
+static TGeoManager *geom;
 
 Int_t main (int argc, char *argv[]) {
 
@@ -35,7 +38,7 @@ Int_t main (int argc, char *argv[]) {
    printf("Generating %d events with ave multiplicity %f and energy %f\n",nevent,avemult, energy);
 
    const Char_t *geofile="http://root.cern.ch/files/cms.root";
-   TGeoManager *geom = TGeoManager::Import(geofile);
+   geom = TGeoManager::Import(geofile);
 
    // loop materials
 
@@ -72,12 +75,22 @@ Int_t main (int argc, char *argv[]) {
       delete [] z;
       delete [] w;
    }
+   TPartIndex *tp = (TPartIndex*) f->Get("PartIndex");
 
-   TPartIndex *tp = (TPartIndex*) gFile->Get("PartIndex");
+   TGeoVolume *top = geom->GetTopVolume();
+   TGeoShape *shape = top->GetShape();
+   TGeoBBox *bbox = (TGeoBBox*) shape;
+   Double_t dx = bbox->GetDX();
+   Double_t dy = bbox->GetDY();
+   Double_t dz = bbox->GetDZ();
+   const Double_t *origin = bbox->GetOrigin();
+   printf("Top volume is %s shape %s\n",top->GetName(),shape->GetName());
+   printf("BBox dx %f dy %f dz %f origin %f %f %f\n",dx,dy,dz,origin[0],origin[1],origin[2]);
 
    for(Int_t iev=0; iev<nevent; ++iev) {
       // should define a vertex, origin for the moment
       Double_t vertex[3]={0,0,0};
+      VertexIn(bbox,vertex);
       GenerateEvent(avemult, energy, vertex);
    }
    /*
@@ -205,3 +218,12 @@ void IncreaseStack() {
    stacksize = newstacksize;
 }
 
+void VertexIn(TGeoBBox *bbox, Double_t ori[3])
+{
+   do {
+      ori[0] = bbox->GetDX()*gRandom->Rndm()*(1?gRandom->Rndm()>0.5:-1);
+      ori[1] = bbox->GetDY()*gRandom->Rndm()*(1?gRandom->Rndm()>0.5:-1);
+      ori[2] = bbox->GetDZ()*gRandom->Rndm()*(1?gRandom->Rndm()>0.5:-1);
+      geom->SetCurrentPoint(ori);
+   } while(geom->IsOutside());
+}
