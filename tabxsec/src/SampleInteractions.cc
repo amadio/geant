@@ -77,7 +77,7 @@
 
 #include "G4Timer.hh"
 
-#include "SampleInteractions.h"
+#include "SampleInteractions.hh"
 
 using namespace std;
 

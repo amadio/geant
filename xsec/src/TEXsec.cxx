@@ -84,7 +84,7 @@ TEXsec::TEXsec():
    fEmax(0),
    fNEbins(0),
    fEilDelta(0),
-   fEGrid(0),
+   fEGrid(TPartIndex::I()->EGrid()),
    fNRpart(0),
    fPXsec(0),
    fCuts(0)
@@ -354,6 +354,7 @@ void TEXsec::Draw(Option_t *option)
    Int_t nbin=100;
    if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
    if(gFile) gFile->Get("PartIndex");
+   printf("fEGrid %p\n",fEGrid);
    Int_t pindex = TPartIndex::I()->PartIndex(part);
    if(pindex < 0) {
       Error("Draw","Unknown particle %s\n",part);

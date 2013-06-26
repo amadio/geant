@@ -35,7 +35,7 @@
 #include "B1SteppingAction.hh"
 #include "B1materials.hh"
 
-#include "SampleInteractions.h"
+#include "SampleInteractions.hh"
 
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
