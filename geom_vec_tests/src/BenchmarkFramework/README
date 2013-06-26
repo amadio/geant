@@ -1,0 +1,2 @@
+The idea here is to study/provide some scripts to automatically generate some of the code 
+from the ROOT base classes as well as providing a generic benchmark class which is able to generate useful testcase for arbitrary shapes and which can benchmark the runtime as a function of vector size
