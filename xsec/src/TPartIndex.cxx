@@ -1,6 +1,7 @@
 #include <TPartIndex.h>
 #include <TString.h>
 #include <TDatabasePDG.h>
+#include <TMath.h>
 
 ClassImp(TPartIndex)
 
@@ -44,6 +45,11 @@ TPartIndex::TPartIndex():
    fNPart(0),
    fPDG(0),
    fNpReac(0),
+   fNEbins(0),
+   fEmin(0),
+   fEmax(0),
+   fEilDelta(0),
+   fEGrid(0),
    fDBPdg(TDatabasePDG::Instance())
 { 
 }
@@ -52,6 +58,23 @@ TPartIndex::TPartIndex():
 TPartIndex::~TPartIndex() {
    delete [] fPDG;
    delete fDBPdg;
+}
+
+
+//___________________________________________________________________
+void TPartIndex::SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins) {
+   fNEbins = nbins;
+   fEmin = emin;
+   fEmax = emax;
+   fEilDelta = (fNEbins-1)/TMath::Log(fEmax/fEmin);
+   delete [] fEGrid;
+   fEGrid = new Double_t[fNEbins];
+   Double_t en=fEmin;
+   Double_t edelta=TMath::Exp(1/fEilDelta);
+   for(Int_t i=0; i<fNEbins; ++i) {
+      fEGrid[i]=en;
+      en*=edelta;
+   }
 }
 
 //___________________________________________________________________

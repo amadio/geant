@@ -81,6 +81,13 @@ public:
    Int_t NPartReac() const {return fNpReac;}
    TDatabasePDG *DBPdg() const {return fDBPdg;}
 
+   void SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins);
+   Int_t    NEbins() const {return fNEbins;}
+   Double_t Emin() const {return fEmin;}
+   Double_t Emax() const {return fEmax;}
+   Double_t EilDelta() const {return fEilDelta;}
+   const Double_t* EGrid() const {return fEGrid;}
+
    void Print(Option_t *option="") const;
 
 private:
@@ -92,8 +99,13 @@ private:
 
    Int_t    fNPart;         // Total number of particles
    Int_t   *fPDG;           // [fNPart] PDG code of all part
-
    Int_t fNpReac;           // Number of particles with reactions
+
+   Int_t     fNEbins;       // number of bins of common energy grid
+   Double_t  fEmin;         // Min energy of common energy grid
+   Double_t  fEmax;         // Max energy of common energy grid
+   Double_t  fEilDelta;     // Inverse log delta of common energy grid
+   Double_t *fEGrid;        // [fNEbins] Common energy grid
 
    TDatabasePDG *fDBPdg;    // Pointer to the augmented pdg database
 

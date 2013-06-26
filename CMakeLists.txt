@@ -11,7 +11,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 #----------------------------------------------------------------------------
 # Find ROOT and setup the libraries
 #
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} /usr/local/geant4/geant4.9.6.p01/cmake/Modules)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
@@ -29,5 +28,6 @@ add_custom_target(_headers ALL)
 add_subdirectory (xsec)
 add_subdirectory (tabxsec)
 add_subdirectory (vecprot)
+add_subdirectory (micromc)
 
 

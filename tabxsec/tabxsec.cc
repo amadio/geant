@@ -35,6 +35,8 @@
 #include "B1SteppingAction.hh"
 #include "B1materials.hh"
 
+#include "SampleInteractions.h"
+
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
 #include "G4ParticleTable.hh"
@@ -49,6 +51,8 @@
 #include "G4VMultipleScattering.hh"
 #include "G4VMscModel.hh"
 #include "G4Step.hh"
+
+#include "G4Proton.hh"
 
 #ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
@@ -155,7 +159,7 @@ int main(int argc,char** argv)
 
     //
     const G4int maxproc = 10;  // max of 10 proc per particle
-    const G4int nbins = 1000;
+    const G4int nbins = 25;  // 200,  1000
     const G4double emin = 1.e-9*GeV;
     const G4double emax = 1.e4*GeV;
     const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
@@ -188,6 +192,8 @@ int main(int argc,char** argv)
       particle = theParticleIterator->value(); 
     */
 
+    runManager->BeamOn( 1 );
+    
     //
     // Let's build the material table
     G4MaterialTable *theMaterialTable = (G4MaterialTable*)G4Material::GetMaterialTable();
@@ -202,7 +208,7 @@ int main(int argc,char** argv)
     G4float *msasig = new G4float[nbins];
     G4float *mslsig = new G4float[nbins];
     G4float *dedx  = new G4float[nbins];
-    short   *pdic  = new short[maxproc];
+    G4int   *pdic  = new G4int[maxproc];
 
     TDatabasePDG *ipdg = TDatabasePDG::Instance();
     DefineParticles(); // Add ions and other G4 particles
@@ -264,6 +270,7 @@ int main(int argc,char** argv)
     }
 
     TPartIndex::I()->SetNPartReac(npreac);
+    TPartIndex::I()->SetEnergyGrid(emin,emax,nbins);
 
     // Push particle table into the TPartIndex
     // Put all the particles with reactions at the beginning to avoid double indexing
@@ -369,8 +376,11 @@ int main(int argc,char** argv)
        G4Material *matt = G4Material::GetMaterial(materialVec[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
        if(matt!=mat) printf("Funny %s %s!\n",(const char*) mat->GetName(),(const char*) mat->GetName());
+       G4int amat = mat->GetA()*mole/g;
+       amat = 0; // set a = 0 to indicate natural element.
+       G4double dens = mat->GetDensity()*cm3/g;
        TEXsec *mxsec = secTable[imat] = new TEXsec(mat->GetZ(),
-						   mat->GetA()*mole/g,emin,emax,nbins,npreac);
+						   amat,dens,emin,emax,nbins,npreac);
 
        G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
        printf("Material = %s density = %g, natoms/cm3 = %g\n",
@@ -432,7 +442,7 @@ int main(int argc,char** argv)
 		if(p->GetProcessType()==1||p->GetProcessType()==6) continue;
 
 		// Let's start with what we know
-		if(p->GetProcessType() == 4) {
+		if(p->GetProcessType() == fHadronic ) {  // 4
 		   // no parametrization for Z > 92 and inelastic (but why a crash??)
 		   if(mat->GetZ() > 92 && 
 		      ( i == 382 || i == 383 ) && 
@@ -451,6 +461,15 @@ int main(int argc,char** argv)
 		   for(G4int j=0; j<nbins; ++j) {
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
+                      if( particle == G4Proton::Proton() )
+                      {
+                         G4double sigmae= 0.25*delta;
+                         G4double stepSize= 10.0*millimeter;
+                         G4int    nevt= 10;
+                         G4int    verbose=1;
+
+                         SampleInteractions( matt, particle, ph, en, sigmae, stepSize, nevt, verbose);
+                      }
 		      en*=delta;
 		      delete dp;
 		   }
@@ -468,7 +487,7 @@ int main(int argc,char** argv)
 		   totsize += nbins;
 		   
 		   if(G4VEnergyLossProcess *ptEloss = dynamic_cast<G4VEnergyLossProcess*>(p)) {
-		      /*		      printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+		      /* printf("Mat %s Part [%3d] %s adding ELoss process %s [%d,%d]\n",
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType()); */
@@ -486,7 +505,7 @@ int main(int argc,char** argv)
 		      ++nprxs;
 		      nproc=TRUE;
 		   } else if(G4VEmProcess *ptEm = dynamic_cast<G4VEmProcess*>(p)) {
-		      /* printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+		      /* printf("Mat %s Part [%3d] %s adding EM process %s [%d,%d]\n",
 			     (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
 			     (const char*) p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType()); */
@@ -656,7 +675,7 @@ int main(int argc,char** argv)
 		       partindex,TPartIndex::I()->NPartReac());
 		exit(1);
 	     }
-	     mxsec->AddPart(partindex,pPDG[partindex],nbins,nprxs,emin,emax);
+	     mxsec->AddPart(partindex,pPDG[partindex],nprxs);
 	     if(nprxs) mxsec->AddPartXS(partindex,pxsec,pdic);
 	     if(bdedx) mxsec->AddPartIon(partindex,dedx);
 	     if(bmulsc) mxsec->AddPartMS(partindex,msang,msasig,mslen,mslsig);

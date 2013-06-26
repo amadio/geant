@@ -125,18 +125,20 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
 		       materialVec[i],                //its name
 		       logicWorld,              //its mother  volume
 		       false,                   //no boolean operation
-		       0,                       //copy number
+		       i,                       //copy number
 		       checkOverlaps);          //overlaps checking
  
      MaterialPosition[i][0] = xplace;
      MaterialPosition[i][1] = yplace;
      MaterialPosition[i][2] = 0.;
+
   // Set scoring volume to stepping action 
   // (where we will account energy deposit)
   //
-     steppingAction->SetVolume(logicSphere);
+     if( i==0 ) steppingAction->SetVolume(logicSphere);
+     // Not relevant -- do it so that the pointer is not null
+     //   Meant for use with 1 volume only  - JA
   }
-
 
   // Option to switch on/off checking of volumes overlaps
   //

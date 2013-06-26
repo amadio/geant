@@ -1,13 +1,13 @@
 #----------------------------------------------------------------------------
 # Setup the project
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+include_directories(inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx)
+file(GLOB sources src/*.cxx)
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEMGamma.cxx" "" sources "${sources}")
 string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/ComptonCrossSection.cxx" "" sources "${sources}")
 
