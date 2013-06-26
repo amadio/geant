@@ -14,14 +14,15 @@ TPXsec::TPXsec():
    fEmin(0),
    fEmax(0),
    fEilDelta(0),
-   fEGrid(TPartIndex::I()->EGrid()),
+   fEGrid(0),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
    fMSlensig(0),
    fdEdx(0),
    fTotXs(0),
-   fXSecs(0)
+   fXSecs(0),
+   fPartIndex(0)
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
@@ -44,7 +45,8 @@ TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec,
    fMSlensig(0),
    fdEdx(0),
    fTotXs(0),
-   fXSecs(0)
+   fXSecs(0),
+   fPartIndex(TPartIndex::I())
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
