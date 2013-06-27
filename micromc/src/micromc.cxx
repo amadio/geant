@@ -43,6 +43,7 @@ Int_t main (int argc, char *argv[]) {
    // loop materials
 
    TFile *f = new TFile("xsec.root");
+   TPartIndex *tp = (TPartIndex *) f->Get("PartIndex");
    TList *matlist = (TList*) geom->GetListOfMaterials();
    TIter next(matlist);
    TGeoMaterial *mat=0;
@@ -62,9 +63,9 @@ Int_t main (int argc, char *argv[]) {
 	 a[iel]=ad;
 	 z[iel]=zd;
 	 w[iel]=wd;
-	 printf("Mixture %s element %s z %d a %d\n",
+	 /*	 printf("Mixture %s element %s z %d a %d\n",
 		mat->GetName(), mat->GetElement(iel)->GetName(),
-		z[iel],a[iel]);
+		z[iel],a[iel]);*/
       }
       mat->SetFWExtension(
 	new TGeoRCExtension(
@@ -75,7 +76,6 @@ Int_t main (int argc, char *argv[]) {
       delete [] z;
       delete [] w;
    }
-   TPartIndex *tp = (TPartIndex*) f->Get("PartIndex");
 
    TGeoVolume *top = geom->GetTopVolume();
    TGeoShape *shape = top->GetShape();
@@ -92,6 +92,34 @@ Int_t main (int argc, char *argv[]) {
       Double_t vertex[3]={0,0,0};
       VertexIn(bbox,vertex);
       GenerateEvent(avemult, energy, vertex);
+      while(hwmark) {
+	 GeantTrack *track = &particleStack[--hwmark];
+	 Double_t pos[3] = {track->xpos,track->ypos,track->zpos};
+	 Double_t dir[3] = {track->px,track->py,track->pz};
+	 TGeoNode *current = geom->InitTrack(pos,dir);
+	 printf("Initial point %f %f %f in %s\n",pos[0],pos[1],pos[2],current->GetName());
+	 while(!geom->IsOutside()) {
+	    mat = current->GetVolume()->GetMaterial();
+	    const Double_t *cpos = geom->GetCurrentPoint();
+	    printf("Point now %f %f %f in %s\n",cpos[0],cpos[1],cpos[2],current->GetName());
+	    Double_t ken = track->e-track->mass;
+	    Double_t xlen = ((TMXsec *)
+			     ((TGeoRCExtension*) 
+			      mat->GetFWExtension())->GetUserObject())->Xlength(track->fG5code,ken);
+	    TGeoNode *nextnode = geom->FindNextBoundaryAndStep(xlen);
+	    printf("xlne = %f\n",xlen);
+	    Double_t snext = geom->GetStep();
+	    if(snext>xlen) {
+	       //phys wins
+	       printf("Phys wins\n");
+	    } else {
+	       // geom wins
+	       printf("Geom wins\n");
+	    }
+	    //	    dirnew = something;
+	    //	       geom->SetCurrentDirection(dirnew);
+	 }
+      }
    }
    /*
    Double_t dir[3];
@@ -110,23 +138,6 @@ Int_t main (int argc, char *argv[]) {
 	 x[1]=tr->ypos;
 	 x[2]=tr->zpos;
 	 // where am I
-	 current = geom->InitTrack(pos,dir);
-	 Double_t ken = 
-	 while(!geom->IsOutside()) {
-	    mat = current->GetVolume()->GetMaterial();
-	    Double_t xlen = mat->GetUserField()->Xlength(G5index,;
-	    nexnode = geom->FindNextBoundaryAndStep(xlen);
-	    Double_t snext = geom->GetStep();
-	    if(snext>xlen) {
-	       //phys wins
-	    } else {
-	       // geom wins
-	       dirnew = something;
-	       geom->SetCurrentDirection(dirnew);
-		  
-	    }
-	 }
-	 
 	    
       }
    */
@@ -220,10 +231,14 @@ void IncreaseStack() {
 
 void VertexIn(TGeoBBox *bbox, Double_t ori[3])
 {
+   Double_t eta=0;
    do {
-      ori[0] = bbox->GetDX()*gRandom->Rndm()*(1?gRandom->Rndm()>0.5:-1);
-      ori[1] = bbox->GetDY()*gRandom->Rndm()*(1?gRandom->Rndm()>0.5:-1);
-      ori[2] = bbox->GetDZ()*gRandom->Rndm()*(1?gRandom->Rndm()>0.5:-1);
+      eta = gRandom->Rndm();
+      ori[0] = bbox->GetDX()*eta*eta*(1?gRandom->Rndm()>0.5:-1);
+      eta = gRandom->Rndm();
+      ori[1] = bbox->GetDY()*eta*eta*(1?gRandom->Rndm()>0.5:-1);
+      eta = gRandom->Rndm();
+      ori[2] = bbox->GetDZ()*eta*eta*(1?gRandom->Rndm()>0.5:-1);
       geom->SetCurrentPoint(ori);
    } while(geom->IsOutside());
 }

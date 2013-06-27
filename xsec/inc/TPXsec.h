@@ -39,9 +39,9 @@ public:
    Bool_t SetPartMS(const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
    Int_t PDG() const {return fPDG;}
-   Float_t XS(Int_t rindex, Float_t en) const;
-   Float_t DEdx(Float_t en) const;
-   Bool_t MS(Float_t en, Float_t &ang, Float_t &asig, 
+   Float_t XS(Int_t rindex, Double_t en) const;
+   Float_t DEdx(Double_t en) const;
+   Bool_t MS(Double_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;
    Int_t SampleReac(Double_t en) const;
    void Dump() const;

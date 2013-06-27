@@ -36,7 +36,7 @@ class TEXsec : public TNamed {
 public:
    TEXsec();
    TEXsec(Int_t z, Int_t a, Float_t dens, Float_t emin, Float_t emax, Int_t nen, Int_t np);
-   TEXsec(Int_t z, Int_t a, Int_t np);
+   TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np);
    ~TEXsec();
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nxsec);
