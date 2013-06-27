@@ -14,7 +14,7 @@ TPXsec::TPXsec():
    fEmin(0),
    fEmax(0),
    fEilDelta(0),
-   fEGrid(0),
+   fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),

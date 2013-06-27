@@ -29,7 +29,7 @@ file(GLOB headers inc/*.hh)
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
-target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEg -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
+target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
