@@ -22,4 +22,4 @@ ROOT_GENERATE_DICTIONARY(geantCint ${headers} LINKDEF ${CMAKE_CURRENT_SOURCE_DIR
 # Add the executable, and link it to the Geant4 libraries
 #
 add_library(Geant SHARED ${sources} geantCint.cxx ${headers} geantCint.h)
-target_link_libraries(Geant ${ROOT_LIBRARIES} -lEg -lGeom)
+target_link_libraries(Geant ${ROOT_LIBRARIES} -lEG -lGeom)
