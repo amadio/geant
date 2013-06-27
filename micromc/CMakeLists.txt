@@ -12,7 +12,7 @@ include_directories(inc ${PROJECT_SOURCE_DIR}/vecprot/inc)
 include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
 
 add_executable(micromc src/micromc.cxx ${sources} ${headers})
-target_link_libraries(micromc ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEg -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant)
+target_link_libraries(micromc ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
