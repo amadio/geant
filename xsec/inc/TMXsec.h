@@ -36,6 +36,7 @@ public:
    Float_t Xlength(Int_t part, Float_t en);
    Float_t DEdx(Int_t part, Float_t en);
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
+   void Print(Option_t * opt="") const;
 
 private:
    Int_t           fNEbins;        // number of energy bins

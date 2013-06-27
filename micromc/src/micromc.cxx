@@ -94,31 +94,44 @@ Int_t main (int argc, char *argv[]) {
       GenerateEvent(avemult, energy, vertex);
       while(hwmark) {
 	 GeantTrack *track = &particleStack[--hwmark];
+	 printf("Transporting particle #%d %s energy %g\n",hwmark+1,
+		TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName(),
+		track->e-track->mass);
 	 Double_t pos[3] = {track->xpos,track->ypos,track->zpos};
 	 Double_t dir[3] = {track->px,track->py,track->pz};
 	 TGeoNode *current = geom->InitTrack(pos,dir);
+	 Double_t pintl = -TMath::Log(gRandom->Rndm());
 	 printf("Initial point %f %f %f in %s\n",pos[0],pos[1],pos[2],current->GetName());
 	 while(!geom->IsOutside()) {
 	    mat = current->GetVolume()->GetMaterial();
 	    const Double_t *cpos = geom->GetCurrentPoint();
-	    printf("Point now %f %f %f in %s\n",cpos[0],cpos[1],cpos[2],current->GetName());
+	    printf("Point now %f %f %f in %s made of %s\n",cpos[0],cpos[1],cpos[2],
+		   current->GetName(),current->GetVolume()->GetMaterial()->GetName());
 	    Double_t ken = track->e-track->mass;
-	    Double_t xlen = ((TMXsec *)
-			     ((TGeoRCExtension*) 
-			      mat->GetFWExtension())->GetUserObject())->Xlength(track->fG5code,ken);
-	    TGeoNode *nextnode = geom->FindNextBoundaryAndStep(xlen);
-	    printf("xlne = %f\n",xlen);
+	    TMXsec *mx = ((TMXsec *)
+			  ((TGeoRCExtension*) 
+			   mat->GetFWExtension())->GetUserObject());
+	    Double_t xlen = mx->Xlength(track->fG5code,ken);
+	    Double_t pnext = pintl*xlen;
+	    current = geom->FindNextBoundaryAndStep(pnext);
 	    Double_t snext = geom->GetStep();
-	    if(snext>xlen) {
+	    printf("pnext = %f snext = %f\n",pnext,snext);
+	    if(pnext<=snext) {
 	       //phys wins
-	       printf("Phys wins\n");
+	       Int_t reac;
+	       mat->Print();
+	       TEXsec *el = mx->SampleInt(track->fG5code,ken,reac);
+	       printf("particle does a %s on %s\n",TPartIndex::I()->ProcName(reac),el->GetName());
+	       break;
 	    } else {
 	       // geom wins
-	       printf("Geom wins\n");
+	       pintl-=snext/xlen;
+	       //	       printf("Geom wins\n");
 	    }
 	    //	    dirnew = something;
 	    //	       geom->SetCurrentDirection(dirnew);
 	 }
+	 if(geom->IsOutside()) printf("Particle exited setup\n");
       }
    }
    /*

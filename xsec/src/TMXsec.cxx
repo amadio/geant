@@ -57,16 +57,16 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
       hnorm=TEXsec::WEle(z[0]);
    }
 
-   if(weight) printf("By weight: ");
-   else       printf("By number: ");
+   //   if(weight) printf("By weight: ");
+   //   else       printf("By number: ");
 
    
    for(Int_t i=0; i<fNElems; ++i) {
       rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
       ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
-      printf("%d %f ",z[i],ratios[i]);
+      //      printf("%d %f ",z[i],ratios[i]);
    }
-   printf("\n");
+   //   printf("\n");
 
    // Build table with total x-sections for all mate / parts
 
@@ -179,7 +179,7 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
       } else {
 	 Double_t xrat = (en2-en)/(en2-en1);
 	 Double_t xnorm = 1.;
-	 while(1) {
+	 while(iel<0) {
 	    Double_t ran = xnorm*gRandom->Rndm();
 	    Double_t xsum=0;
 	    for(Int_t i=0; i<fNElems; ++i) {
@@ -194,5 +194,13 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
       }
       reac = fElems[iel]->SampleReac(part,en);
       return fElems[iel];
+   }
+}
+
+//____________________________________________________________________________
+void TMXsec::Print(Option_t*) const {
+   printf("Material %s %s with %d elements\n",GetName(),GetTitle(),fNElems);
+   for(Int_t i=0; i<fNElems; ++i) {
+      printf("%s %s\n",fElems[i]->GetName(),fElems[i]->GetTitle());
    }
 }
