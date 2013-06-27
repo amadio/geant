@@ -114,7 +114,7 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 }
 
 
-CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
+CoprocessorBroker::TaskData::TaskData() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
                                                   fStreamId(0),
                                                   fThreadId(-1),fHostTracks(0),
                                                   fTrackCollection(0), fQueue(0)
@@ -122,7 +122,7 @@ CoprocessorBroker::StreamHelper::StreamHelper() : fTrack(0),fTrackId(0),fPhysInd
    // Default constructor.
 }
 
-CoprocessorBroker::StreamHelper::~StreamHelper() {
+CoprocessorBroker::TaskData::~TaskData() {
    // Destructor.
    
    // We do not own fHosttracks.
@@ -137,7 +137,7 @@ CoprocessorBroker::StreamHelper::~StreamHelper() {
 }
 
 
-bool CoprocessorBroker::StreamHelper::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
+bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
    fStreamId = streamid;
    cudaStreamCreate(&fStream);
@@ -163,7 +163,7 @@ bool CoprocessorBroker::StreamHelper::CudaSetup(unsigned int streamid, int nbloc
 }
 
 //______________________________________________________________________________
-GeantTrackCollection *CoprocessorBroker::StreamHelper::GetNextTrackCollection()
+GeantTrackCollection *CoprocessorBroker::TaskData::GetNextTrackCollection()
 {
    // Get a new GeantTrackCollection from the workload manager.
 
@@ -174,7 +174,7 @@ GeantTrackCollection *CoprocessorBroker::StreamHelper::GetNextTrackCollection()
    return newcoll;
 }
 
-void CoprocessorBroker::StreamHelper::Push(concurrent_queue *q)
+void CoprocessorBroker::TaskData::Push(concurrent_queue *q)
 {
    // Add this helper to the queue and record it as the
    // default queue.
@@ -187,7 +187,7 @@ void CoprocessorBroker::StreamHelper::Push(concurrent_queue *q)
    }
 }
 
-void CoprocessorBroker::StreamHelper::Reset()
+void CoprocessorBroker::TaskData::Reset()
 {
    // Get the stream helper ready for re-use.
    // by setting fNStaged to zero and add the helper
@@ -332,7 +332,7 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    fMaxTrackPerThread = maxTrackPerThread;
 
    //initialize the stream
-   for(unsigned int i=0; i < sizeof(fStream)/sizeof(StreamHelper); ++i) {
+   for(unsigned int i=0; i < sizeof(fStream)/sizeof(TaskData); ++i) {
       fStream[i].CudaSetup(i,nblocks,nthreads,maxTrackPerThread);
       fStream[i].Push(&fHelpers);
    }
@@ -347,7 +347,7 @@ bool CanHandleTrack(GeantTrack &track)
    return -1 == track.charge;
 }
 
-unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
+unsigned int CoprocessorBroker::TaskData::TrackToDevice(int tid,
                            GeantTrack **host_track, int *trackin,
                            unsigned int startIdx, unsigned int basketSize)
 {
@@ -427,7 +427,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToDevice(int tid,
    return count;
 }
 
-unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
+unsigned int CoprocessorBroker::TaskData::TrackToHost()
 {
    WorkloadManager *mgr = WorkloadManager::Instance();
    std::vector<TGeoNode *> array;
@@ -476,7 +476,7 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
             {
                TGeoVolume *volume = node->GetVolume();
                if (!volume->GetNodes()) {
-                  Fatal("CoprocessorBroker::StreamHelper::TrackToHost","Unexpectedly in a leaf node...");
+                  Fatal("CoprocessorBroker::TaskData::TrackToHost","Unexpectedly in a leaf node...");
                }
                TGeoVolume *sub_volume = mgr->GetBasketArray()[fLogIndex[devIdx]]->GetVolume();
                if (sub_volume != volume) {
@@ -537,13 +537,13 @@ unsigned int CoprocessorBroker::StreamHelper::TrackToHost()
 
 void StreamReset(cudaStream_t /* stream */, cudaError_t status, void *userData)
 {
-   CoprocessorBroker::StreamHelper *helper = (CoprocessorBroker::StreamHelper*)userData;
+   CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
    helper->Reset();
 }
 
 void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
 {
-   CoprocessorBroker::StreamHelper *helper = (CoprocessorBroker::StreamHelper*)userData;
+   CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
    helper->TrackToHost();
 }
 
@@ -554,7 +554,7 @@ CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
    // or return new one.
 
    if (!fCurrentHelper) {
-      fCurrentHelper = dynamic_cast<StreamHelper*>(fHelpers.wait_and_pop());
+      fCurrentHelper = dynamic_cast<TaskData*>(fHelpers.wait_and_pop());
       if (!fCurrentHelper) {
          // nothing we can do at the moment
          return 0;
@@ -573,7 +573,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 //   if (!nav) nav = gGeoManager->AddNavigator();
 
-   StreamHelper *stream = fCurrentHelper;
+   TaskData *stream = fCurrentHelper;
    fCurrentHelper = 0;
    
    if (stream) {
@@ -622,7 +622,7 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
       int trackLeft  = nTracks;
       int trackStart = 0;
       while (trackLeft) {
-         StreamHelper *stream = GetNextStream();
+         TaskData *stream = GetNextStream();
          if (!stream) return;
 
          cudaEvent_t start, stop;
@@ -730,7 +730,7 @@ void CoprocessorBroker::waitForTasks()
 {
    // Make sure all the tasks are finished.
    
-   for(unsigned int i=0; i < sizeof(fStream)/sizeof(StreamHelper); ++i) {
+   for(unsigned int i=0; i < sizeof(fStream)/sizeof(TaskData); ++i) {
       if (fStream[i].fNStaged) {
          cudaStreamSynchronize(fStream[i]);
       }

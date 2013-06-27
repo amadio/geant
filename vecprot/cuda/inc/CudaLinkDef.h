@@ -5,6 +5,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class CoprocessorBroker+;
-#pragma link C++ class CoprocessorBroker::StreamHelper;
+#pragma link C++ class CoprocessorBroker::TaskData;
 
 #endif

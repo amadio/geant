@@ -60,9 +60,9 @@ class GeantTrackCollection;
 class CoprocessorBroker : public TaskBroker
 {
 private:
-   struct StreamHelper;
+   struct TaskData;
 public:
-   typedef StreamHelper *Stream;
+   typedef TaskData *Stream;
    Stream GetNextStream();
    
 public:
@@ -92,9 +92,9 @@ private:
    DevicePtr<GPPhysicsTable> fd_eIoniTable;
    DevicePtr<GPPhysicsTable> fd_mscTable;
    
-   struct StreamHelper : public TaskBroker::StreamHelper, TObject {
-      StreamHelper();
-      ~StreamHelper();
+   struct TaskData : public TaskBroker::TaskData, TObject {
+      TaskData();
+      ~TaskData();
 
       bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread);
 
@@ -132,14 +132,14 @@ private:
       void Push(concurrent_queue *q = 0);
    
       
-      ClassDef(StreamHelper,0);
+      ClassDef(TaskData,0);
    };
 
    friend void StreamReset(cudaStream_t /* stream */, cudaError_t status, void *userData);
    friend void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData);
 
-   StreamHelper fStream[3];
-   StreamHelper *fCurrentHelper;
+   TaskData  fStream[3];
+   TaskData *fCurrentHelper;
    concurrent_queue fHelpers;
    
    int fNblocks;
