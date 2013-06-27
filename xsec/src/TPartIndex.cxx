@@ -57,7 +57,9 @@ TPartIndex::TPartIndex():
 //___________________________________________________________________
 TPartIndex::~TPartIndex() {
    delete [] fPDG;
+   delete [] fEGrid;
    delete fDBPdg;
+   fgPartIndex=0;
 }
 
 
@@ -71,10 +73,12 @@ void TPartIndex::SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins) {
    fEGrid = new Double_t[fNEbins];
    Double_t en=fEmin;
    Double_t edelta=TMath::Exp(1/fEilDelta);
-   for(Int_t i=0; i<fNEbins; ++i) {
+   for(Int_t i=0; i<fNEbins-1; ++i) {
       fEGrid[i]=en;
       en*=edelta;
    }
+   // Just make sure that the upper limit is ok
+   fEGrid[fNEbins-1] = fEmax;
 }
 
 //___________________________________________________________________

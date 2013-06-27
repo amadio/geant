@@ -22,7 +22,7 @@ TPXsec::TPXsec():
    fdEdx(0),
    fTotXs(0),
    fXSecs(0),
-   fPartIndex(0)
+   fPartIndex(TPartIndex::I())
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
@@ -156,7 +156,7 @@ void TPXsec::Print(Option_t *) const
 }
 
 //_________________________________________________________________________
-Float_t TPXsec::DEdx(Float_t en) const {
+Float_t TPXsec::DEdx(Double_t en) const {
    if(!fdEdx) return 0;
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
@@ -179,7 +179,7 @@ Float_t TPXsec::DEdx(Float_t en) const {
 }
 
 //_________________________________________________________________________
-Bool_t TPXsec::MS(Float_t en, Float_t &ang, Float_t &asig, 
+Bool_t TPXsec::MS(Double_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
    if(!fNCbins) {
       ang = asig = len = lsig = 0;
@@ -235,7 +235,7 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
 }
 
 //_________________________________________________________________________
-Float_t TPXsec::XS(Int_t rindex, Float_t en) const {
+Float_t TPXsec::XS(Int_t rindex, Double_t en) const {
    en=en<=fEmax?en:fEmax;
    en=en>=fEmin?en:fEmin;
    Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;

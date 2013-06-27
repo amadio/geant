@@ -159,7 +159,7 @@ int main(int argc,char** argv)
 
     //
     const G4int maxproc = 10;  // max of 10 proc per particle
-    const G4int nbins = 25;  // 200,  1000
+    const G4int nbins = 1000;  // 200,  1000
     const G4double emin = 1.e-9*GeV;
     const G4double emax = 1.e4*GeV;
     const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
@@ -380,7 +380,7 @@ int main(int argc,char** argv)
        amat = 0; // set a = 0 to indicate natural element.
        G4double dens = mat->GetDensity()*cm3/g;
        TEXsec *mxsec = secTable[imat] = new TEXsec(mat->GetZ(),
-						   amat,dens,emin,emax,nbins,npreac);
+						   amat,dens,npreac);
 
        G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
        printf("Material = %s density = %g, natoms/cm3 = %g\n",
@@ -404,6 +404,7 @@ int main(int argc,char** argv)
        for(G4int i=0; i<np; ++i) {
 	  particle = theParticleTable->GetParticle(i);
 	  G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
+	  //	  printf("partidnex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
 	  if(partindex<0) {
 	     printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
 		    (const char *)particle->GetParticleName());
@@ -468,7 +469,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-                         SampleInteractions( matt, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 //                         SampleInteractions( matt, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
