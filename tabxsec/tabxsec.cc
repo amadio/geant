@@ -73,7 +73,7 @@
 #include <TPartIndex.h>
 #include <TClass.h>
 #include <TVirtualStreamerInfo.h>
-#include <TDataBasePDG.h>
+#include <TDatabasePDG.h>
 #include <TMap.h>
 #include <TObjString.h>
 
