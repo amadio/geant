@@ -2,10 +2,12 @@
 # Cmake for vectorized geometry part 
 #
 include_directories(inc)
-include_directories(${TBB_INCLUDE_DIR})
 
 find_package(Vc REQUIRED)
+include_directories(${VC_INCLUDE_DIR})
+
 find_package(TBB)
+include_directories(${TBB_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
