@@ -7,23 +7,23 @@ include_directories(${TBB_INCLUDE_DIR})
 find_package(Vc REQUIRED)
 find_package(TBB)
 
-# depending on whether we use Vc, have to set some compile flags
-if( VC_FOUND )
-  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_DEFINITIONS VEC_EXTENSIONS)
-  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_FLAGS -std=c++11 -fabi-version=6)
-    if( USEAVX )
-    	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_FLAGS -mavx)
-    else()
-    	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_FLAGS -msse4.1)
-    endif()
-endif()
-
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/TGeoBBox_v.cxx)
 file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
+
+# depending on whether we use Vc, have to set some compile flags
+if( VC_FOUND )
+  set_source_files_properties(${sources} PROPERTIES COMPILE_DEFINITIONS VEC_EXTENSIONS)
+  set_source_files_properties(${sources} PROPERTIES COMPILE_FLAGS "-std=c++11 -fabi-version=6")
+    if( USEAVX )
+    	set_source_files_properties(${sources} PROPERTIES COMPILE_FLAGS "-mavx")
+    else()
+    	set_source_files_properties(${sources} PROPERTIES COMPILE_FLAGS "-msse4.1")
+    endif()
+endif()
 
 
 #----------------------------------------------------------------------------

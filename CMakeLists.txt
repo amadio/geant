@@ -5,7 +5,7 @@ project(GEANT5)
 
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
-set(OUTDIR $ENV{GEANT_OUTPUT_DIRECTORY})
+set(OUTDIR $ENV{GEANT_OUTPUT_DIR})
 if(NOT OUTDIR)
   set(OUTDIR ${PROJECT_SOURCE_DIR})
 endif()
