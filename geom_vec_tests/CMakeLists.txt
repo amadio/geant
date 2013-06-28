@@ -4,12 +4,17 @@
 include_directories(inc)
 include_directories(${TBB_INCLUDE_DIR})
 
+find_package(Vc REQUIRED)
+find_package(TBB)
+
 # depending on whether we use Vc, have to set some compile flags
 if( VC_FOUND )
+  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_DEFINITIONS VEC_EXTENSIONS)
+  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_FLAGS -std=c++11 -fabi-version=6)
     if( USEAVX )
-    	add_definitions(-mavx -std=c++11 -fabi-version=6 -DVEC_EXTENSIONS)
+    	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_FLAGS -mavx)
     else()
-        add_definitions(-msse4.1 -std=c++11 -fabi-version=6 -DVEC_EXTENSIONS)
+    	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIRECTORY} PROPERTY COMPILE_FLAGS -msse4.1)
     endif()
 endif()
 
@@ -25,7 +30,7 @@ file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 # Add the library for vectorized Geometries
 #
 add_library(VecGeom SHARED ${sources} ${headers} ${VC_LIBRARIES})
-target_link_libraries(VecGeom ${ROOT_LIBRARIES} -lEG -lGeom)
+target_link_libraries(VecGeom ${ROOT_LIBRARIES} -lEG -lGeom -lVc)
 
 add_custom_target(VectorizedGeom DEPENDS VecGeom)
 
