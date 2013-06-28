@@ -3,12 +3,12 @@
 #
 include_directories(inc)
 
-
 find_package(Vc REQUIRED)
-find_package(TBB)
-
-include_directories(${TBB_INCLUDE_DIR})
 include_directories(${VC_INCLUDE_DIR})
+
+find_package(TBB)
+include_directories(${TBB_INCLUDE_DIR})
+
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
