@@ -296,7 +296,8 @@ int SampleDiscreteInteractions(
     timer->Stop();
     G4cout << "  "  << *timer << G4endl;
     delete timer;
-
+    delete gTrack;
+    delete step;
     return true;
 }
 
