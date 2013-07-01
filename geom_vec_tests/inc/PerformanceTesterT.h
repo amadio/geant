@@ -15,6 +15,7 @@
 #include "Util.h" // for sampling points and dirs
 #include "PointStruct.h"
 #include "mm_malloc.h" // for aligned malloc
+#include <fstream>
 
 #define N 14
 
@@ -117,6 +118,8 @@ class ShapeBenchmarker{
   void timeContains( double &, unsigned int );
   void timeSafety( double &, unsigned int );
   void timeIt();
+
+  void printTimings( char const * filename ) const;
 };
 
 template <typename T>
@@ -130,7 +133,7 @@ void ShapeBenchmarker<T>::initDataContains()
   // initialize the data first off all within twice bounding box
   for( unsigned int i=0; i<MAXSIZE; ++i) 
     {
-      Util::samplePoint(&points_C[3*i],dx,dy,dz,2);
+      Util::samplePoint(&points_C[3*i],dx,dy,dz, testshape->T::GetOrigin(), 1);
     }
 
   int insidecounter=0;
@@ -141,16 +144,16 @@ void ShapeBenchmarker<T>::initDataContains()
       insidecounter+=testshape->T::Contains( &points_C[3*i] );
     }
   std::cerr << " prepared data with " << insidecounter << " points inside " << std::endl;
-  while(insidecounter < MAXSIZE/3.)
+  while(insidecounter < MAXSIZE/3. )
     {
       // pick a point randomly
       int index = gRandom->Rndm()*MAXSIZE;
       if( ! testshape->T::Contains( &points_C[ 3*index ] ))
 	{
 	  do{
-	    Util::samplePoint(&points_C[3*index],dx,dy,dz, 2);
+	    Util::samplePoint(&points_C[3*index],dx,dy,dz, testshape->T::GetOrigin(), 1);
 	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are inside
-	  }while( ! testshape->T::Contains( &points_C[ 3*index ] ) );
+	  } while( ! testshape->T::Contains( &points_C[ 3*index ] ) );
 	  insidecounter++;
 	}	
     }
@@ -168,7 +171,7 @@ void ShapeBenchmarker<T>::initDataSafety()
   // initialize the data first off all within twice bounding box
   for( unsigned int i=0; i<MAXSIZE; ++i) 
     {
-      Util::samplePoint(&points_s[3*i],dx,dy,dz,1);
+      Util::samplePoint(&points_s[3*i],dx,dy,dz,testshape->T::GetOrigin(),1);
     }
 
   int insidecounter=0;
@@ -186,7 +189,7 @@ void ShapeBenchmarker<T>::initDataSafety()
       if( ! testshape->T::Contains( &points_s[ 3*index ] ))
 	{
 	  do{
-	    Util::samplePoint(&points_s[3*index],dx,dy,dz,1);
+	    Util::samplePoint(&points_s[3*index],dx,dy,dz, testshape->T::GetOrigin(), 1);
 	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are inside
 	    }while( ! testshape->T::Contains( &points_s[ 3*index ] ) );
 	}	
@@ -207,7 +210,7 @@ void ShapeBenchmarker<T>::initDataDistanceFromInside()
   // initialize the data first off all within twice bounding box
   for( unsigned int i=0; i<MAXSIZE; ++i) 
     {
-      Util::samplePoint(&points_dI[3*i],dx,dy,dz,1);
+      Util::samplePoint(&points_dI[3*i],dx,dy,dz,testshape->T::GetOrigin(),1);
       Util::sampleDir(&dirs_dI[3*i]);
     }
 
@@ -226,7 +229,7 @@ void ShapeBenchmarker<T>::initDataDistanceFromInside()
       if( ! testshape->T::Contains( &points_dI[ 3*index ] ))
 	{
 	  do{
-	    Util::samplePoint(&points_dI[3*index],dx,dy,dz,1);
+	    Util::samplePoint(&points_dI[3*index],dx,dy,dz,testshape->T::GetOrigin(),1);
 	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are inside
 	    }while( ! testshape->T::Contains( &points_dI[ 3*index ] ) );
 	  insidecounter++;
@@ -246,7 +249,7 @@ void ShapeBenchmarker<T>::initDataDistanceFromOutside()
   // initialize the data first off all within twice bounding box and arbitrary direction
   for( unsigned int i=0; i<MAXSIZE; ++i) 
     {
-      Util::samplePoint(&points_dO[3*i],dx,dy,dz,5);
+      Util::samplePoint(&points_dO[3*i],dx,dy,dz,testshape->T::GetOrigin(),5);
       Util::sampleDir(&dirs_dO[3*i]);
     }
 
@@ -267,7 +270,7 @@ void ShapeBenchmarker<T>::initDataDistanceFromOutside()
       if( testshape->T::Contains( &points_dO[ 3*index ] ))
 	{
 	  do{
-	    Util::samplePoint(&points_dO[3*index],dx,dy,dz,5);
+	    Util::samplePoint(&points_dO[3*index],dx,dy,dz, testshape->T::GetOrigin(), 5);
 	      // this might be totally inefficient and we should replace this by some importance sampling or cloning of points which are outside
 	    }while( testshape->T::Contains( &points_dO[ 3*index ] ) );
 	  insidecounter--;
@@ -450,6 +453,26 @@ void ShapeBenchmarker<T>::timeIt( )
     }  
 } 
 
+template <typename T>
+void ShapeBenchmarker<T>::printTimings( char const * filename ) const
+{
+  ofstream outstr(filename);
+  // print result
+  for(unsigned int vectype =0 ; vectype < N; ++vectype )
+    {
+      outstr << this->vecsizes[vectype] 
+		<< " " << this->Tc[vectype]/NREPS  /* timing for Contains method */
+		<< " " << this->Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
+		<< " " << this->Ts[vectype]/NREPS   /* timing for safety method */
+		<< " " << this->Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
+		<< " " <<  this->TdI[vectype]/NREPS 
+		<< " " << this->TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
+		<< " " <<  this->TdO[vectype]/NREPS 
+		<< " " << this->TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
+		<< std::endl;
+    }  
+  outstr.close();
+}
 
 
 #endif // SHAPE_PERF_TEST

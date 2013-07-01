@@ -13,6 +13,14 @@ class Util{
     point[2]=scale*(1-2.*gRandom->Rndm())*dz;
   }
  
+  static void samplePoint( double *point, double dx, double dy, double dz, double const * origin, double scale )
+  {
+    point[0]=origin[0]+scale*(1-2.*gRandom->Rndm())*dx;
+    point[1]=origin[1]+scale*(1-2.*gRandom->Rndm())*dy;
+    point[2]=origin[2]+scale*(1-2.*gRandom->Rndm())*dz;
+  }
+  
+
   // creates random normalized vectors 
   static void sampleDir( double * dir )
   {
