@@ -51,6 +51,7 @@
 #include "G4VMultipleScattering.hh"
 #include "G4VMscModel.hh"
 #include "G4Step.hh"
+#include "G4TransportationManager.hh"
 
 #include "G4Proton.hh"
 
@@ -369,9 +370,13 @@ int main(int argc,char** argv)
     const G4ThreeVector  dirz(0,0,1);
     G4double totsize = 0;
     G4int npr=0;
+    G4ThreeVector *pos = new G4ThreeVector(0,0,0);
+    G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
+       GetNavigatorForTracking();
     for(G4int imat=0; imat<nmaterials; ++imat) {
        //       printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
-       G4ThreeVector pos(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
+       pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
+       //       nav->LocateGlobalPointAndUpdateTouchableHandle(*pos,dirz,fTouchableHandle,false);
        // Just a check that we are finding out the same thing...
        G4Material *matt = G4Material::GetMaterial(materialVec[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
@@ -469,7 +474,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-			 //                         SampleInteractions( matt, particle, ph, en, sigmae, stepSize, nevt, verbose);
+                         SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
@@ -571,7 +576,7 @@ int main(int argc,char** argv)
 			 for(G4int is=0; is<nrep; ++is) {
 			    const G4double previousStep= 0.0;
 			    G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
-			    G4Track *track = new G4Track(dp,0.,pos);
+			    G4Track *track = new G4Track(dp,0.,*pos);
 			    G4Step   step;
 			    step.SetStepLength( proposedStep ); 
 			   
