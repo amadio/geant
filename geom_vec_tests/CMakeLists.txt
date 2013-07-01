@@ -45,7 +45,13 @@ if( VECGEOBENCHMARKS )
    add_executable(BenchTGeoBBox_v ${benchsource1} ${headers} ${VC_LIBRARIES})
    add_dependencies(BenchTGeoBBox_v VectorizedGeom)
    target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom ${VC_LIBRARIES} ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom)
+
+# for more complete test from CMS:
+   file(GLOB benchsource2 src/BenchmarkFramework/BenchSelectedCMSShapes.cxx)
+   add_executable(BenchSelectedCMSShapes ${benchsource2} ${headers})
+   target_link_libraries(BenchSelectedCMSShapes ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES}) 
 endif()
 
 
 #----------------------------------------------------------------------------
+ 
