@@ -1,4 +1,30 @@
-ClassNames = [ "TGeoBBox", "TGeoCone", "TGeoPgon", "TGeoTube", "TGeoPcon" ]
+ClassNames = [ "TGeoBBox", 
+               "TGeoCone", 
+               "TGeoConeSeg",
+               "TGeoPcon", 
+               "TGeoPgon", 
+               "TGeoTube", 
+               "TGeoTubeSeg", 
+               "TGeoCtub", 
+               "TGeoEltu", 
+               "TGeoHype", 
+               "TGeoSphere", 
+               "TGeoPoly" ,
+               "TGeoArb8" ,
+               "TGeoTrap" ,
+               "TGeoGTra" ,
+               "TEveGeoPolyShape" ,
+               "TGeoCompositeShape" ,
+               "TGeoHalfSpace" ,
+               "TGeoPara" ,
+               "TGeoParaboloid" ,
+               "TGeoScaledShape" ,
+               "TGeoShapeAssembly" ,
+               "TGeoTorus" ,
+               "TGeoTrd1" ,
+               "TGeoTrd2" ,
+               "TGeoXtru" ]
+
 #virtual Bool_t        Contains(Double_t *point) const;
 #virtual Double_t      DistFromInside(Double_t *point, Double_t *dir, Int_t iact=1, Double_t step=TGeoShape::Big(), Double_t *safe=0);
 #virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, Double_t step=TGeoShape::Big(), Double_t *safe=0);
@@ -59,15 +85,24 @@ def EmitCallToSafety( indentlevel, classname ):
     print getIndentString( indentlevel ) + "safe[k]= " + classname + "::Safety( &point[3*k], inside[k] );"
 
 
-
 def EmitDistanceFromInsideDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "virtual void DistanceFromInside_l( Double_t const *point, Double_t const *dir, Int_t iact=1, Double_t const * step, Double_t *safe=0 , Double_t * dist, Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void DistFromInside_l( Double_t const *point, Double_t const *dir, Int_t iact, Double_t const * step, Double_t *safe=0 , Double_t * dist, Int_t vecsize ) {"
+
+
+def EmitDistanceFromOutsideDecl( indentlevel, classname ):
+    print getIndentString( indentlevel ) + "virtual void DistFromOutside_l( Double_t const *point, Double_t const *dir, Int_t iact, Double_t const * step, Double_t *safe=0 , Double_t * dist, Int_t vecsize ) {"
+
+
+def EmitCallToDistanceFromOutside( indentlevel, classname ):
+    """
+    """
+    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistFromOutside( &point[3*k], &dist[3*k], 3, step[k] , 0 );"
 
 
 def EmitCallToDistanceFromInside( indentlevel, classname ):
     """
     """
-    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistanceFromInside( &point[3*k], &dist[3*k], iact, step[k] , safe );"
+    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistFromInside( &point[3*k], &dist[3*k], 3, step[k] , 0 );"
 
 
 
@@ -100,11 +135,16 @@ def main():
         EmitCallToSafety( 5 , shape )
         EmitClosingParen( 1 )
         
-        
     # for the DistanceFromInside Method
         EmitDistanceFromInsideDecl( 1, shape )
         EmitLoopN( 3 )
         EmitCallToDistanceFromInside( 5 , shape )
+        EmitClosingParen( 1 )
+
+    # for the DistanceFromOutside Method
+        EmitDistanceFromOutsideDecl( 1, shape )
+        EmitLoopN( 3 )
+        EmitCallToDistanceFromOutside( 5 , shape )
         EmitClosingParen( 1 )
         
     # close the class
