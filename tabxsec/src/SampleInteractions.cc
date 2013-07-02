@@ -135,7 +135,7 @@ int SampleDiscreteInteractions(
     //    if(m_pmax == 0.0) { m_pmax = emax; }
     //    else              { emax   = m_pmax; }
     // energy = sqrt(m_p*m_p + mass*mass) - mass; 
-    G4DynamicParticle dParticle(part,aDirection,energy);
+    G4DynamicParticle* dParticle= new G4DynamicParticle(part,aDirection,energy);
 
     // ------- Define target A
     const G4Element* elm = material->GetElement(0); 
@@ -167,7 +167,7 @@ int SampleDiscreteInteractions(
     // -------- Track
     G4double aTime(0.0);
     G4Track* gTrack;
-    gTrack = new G4Track(&dParticle,aTime,aPosition);
+    gTrack = new G4Track(dParticle,aTime,aPosition);
     G4TouchableHandle fpTouchable(new G4TouchableHistory());
     gTrack->SetTouchableHandle(fpTouchable);
 
@@ -223,7 +223,7 @@ int SampleDiscreteInteractions(
       if(sigmae > 0.0) {
         do {e0 = G4RandGauss::shoot(energy,sigmae);} while (e0 < 0.0);
       }
-      dParticle.SetKineticEnergy(e0);
+      dParticle->SetKineticEnergy(e0);
       gTrack->SetStep(step);
       gTrack->SetKineticEnergy(e0);
 
@@ -295,7 +295,17 @@ int SampleDiscreteInteractions(
   
     timer->Stop();
     G4cout << "  "  << *timer << G4endl;
+
+    // Clean up
     delete timer;
+
+    // A step owns its Step points 
+    //   - must ensure that they are valid or null (and not pointint to same StepPt)
+    step->SetPostStepPoint( 0 ); // new G4StepPoint() ); 
+    delete step; 
+
+    // A track owns its dynamic particle - that will be deleted by it
+    delete gTrack;
 
     return true;
 }
@@ -332,7 +342,8 @@ const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat )
     if (couple->GetMaterial() == mat) break;
   }
   if(couple == 0) {
-    G4cerr << "ERROR> Not found couple for material " << mat->GetName() << G4endl;
+    G4cerr << "Fatal ERROR> Not found couple for material " << mat->GetName() << G4endl;
+    exit(1); 
   }
   return couple;
 }
