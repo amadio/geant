@@ -303,6 +303,7 @@ Bool_t TEXsec::Resample()
    fEmin = TPartIndex::I()->Emin();
    fEmax = TPartIndex::I()->Emax();
    fNEbins = TPartIndex::I()->NEbins();
+   fEGrid = TPartIndex::I()->EGrid();
    return kTRUE;
 }
 
