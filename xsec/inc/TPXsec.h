@@ -28,11 +28,9 @@
 class TPXsec: public TObject {
 public:
    TPXsec();
-   TPXsec(Int_t pdg, Int_t nen, Int_t nxsec, 
-	  Float_t emin, Float_t emax);
+   TPXsec(Int_t pdg, Int_t nen, Int_t nxsec);
    ~TPXsec();
    void Print(Option_t *opt="") const;
-   Bool_t SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t SetPart(Int_t pdg, Int_t nxsec);
    Bool_t SetPartXS(const Float_t xsec[], const Int_t dict[]);
    Bool_t SetPartIon(const Float_t dedx[]);
@@ -51,8 +49,6 @@ private:
    Int_t           fNCbins;        // number of energy bins for dEdx and MS
    Int_t           fNXsec;         // number of reactions
    Int_t           fNTotXs;        // tot size of fXSecs
-   Double_t        fEmin;          // min tab energy
-   Double_t        fEmax;          // max tab energy
    Double_t        fEilDelta;      // logarithmic energy delta
    const Double_t *fEGrid;         //![fNEbins] energy grid
    Float_t        *fMSangle;       // [fNCbins] table of MS average angle

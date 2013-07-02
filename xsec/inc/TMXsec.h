@@ -40,8 +40,6 @@ public:
 
 private:
    Int_t           fNEbins;        // number of energy bins
-   Double_t        fEmin;          // min tab energy
-   Double_t        fEmax;          // max tab energy
    Double_t        fEilDelta;      // logarithmic energy delta
    const Double_t *fEGrid;         // Energy grid
 

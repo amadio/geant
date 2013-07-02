@@ -271,7 +271,7 @@ int main(int argc,char** argv)
     }
 
     TPartIndex::I()->SetNPartReac(npreac);
-    TPartIndex::I()->SetEnergyGrid(emin,emax,nbins);
+    TPartIndex::I()->SetEnergyGrid(emin/GeV,emax/GeV,nbins);
 
     // Push particle table into the TPartIndex
     // Put all the particles with reactions at the beginning to avoid double indexing
@@ -474,7 +474,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-                         SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 //                         SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
