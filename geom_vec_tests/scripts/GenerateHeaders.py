@@ -66,7 +66,7 @@ def EmitLoopN( indentlevel ):
 
 
 def EmitContainsDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "virtual void Contains_l( Double_t const *point, Double_t const *dir, Int_t iact=1, Double_t const * step, Double_t * safe=0, Bool_t * isin , Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void Contains_l( Double_t const *point, Bool_t * isin , Int_t vecsize ) {"
 
 
 def EmitCallToContains( indentlevel, classname ):
