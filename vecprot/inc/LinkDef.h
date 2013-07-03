@@ -17,4 +17,3 @@
 #pragma link C++ class ScatteringProcess+;
 #pragma link C++ class ElossProcess+;
 #pragma link C++ class InteractionProcess+;
-#endif 

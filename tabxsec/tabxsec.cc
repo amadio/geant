@@ -54,7 +54,6 @@
 #include "G4TransportationManager.hh"
 
 #include "G4Proton.hh"
-#include "G4GeometryManager.hh" 
 
 #ifdef G4VIS_USE
 #include "G4VisExecutive.hh"
@@ -502,7 +501,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 //                         SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
@@ -752,8 +751,6 @@ int main(int argc,char** argv)
   // Free the store: user actions, physics_list and detector_description are
   // owned and deleted by the run manager, so they should not be deleted 
   // in the main() program !
-
-  G4GeometryManager::GetInstance()->OpenGeometry(); 
   
 #ifdef G4VIS_USE
   delete visManager;
