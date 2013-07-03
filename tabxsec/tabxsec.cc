@@ -35,7 +35,7 @@
 #include "B1SteppingAction.hh"
 #include "B1materials.hh"
 
-#include "SampleInteractions.h"
+#include "SampleInteractions.hh"
 
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
@@ -51,6 +51,7 @@
 #include "G4VMultipleScattering.hh"
 #include "G4VMscModel.hh"
 #include "G4Step.hh"
+#include "G4TransportationManager.hh"
 
 #include "G4Proton.hh"
 
@@ -73,7 +74,7 @@
 #include <TPartIndex.h>
 #include <TClass.h>
 #include <TVirtualStreamerInfo.h>
-#include <TDataBasePDG.h>
+#include <TDatabasePDG.h>
 #include <TMap.h>
 #include <TObjString.h>
 
@@ -159,7 +160,7 @@ int main(int argc,char** argv)
 
     //
     const G4int maxproc = 10;  // max of 10 proc per particle
-    const G4int nbins = 25;  // 200,  1000
+    const G4int nbins = 1000;  // 200,  1000
     const G4double emin = 1.e-9*GeV;
     const G4double emax = 1.e4*GeV;
     const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
@@ -270,7 +271,7 @@ int main(int argc,char** argv)
     }
 
     TPartIndex::I()->SetNPartReac(npreac);
-    TPartIndex::I()->SetEnergyGrid(emin,emax,nbins);
+    TPartIndex::I()->SetEnergyGrid(emin/GeV,emax/GeV,nbins);
 
     // Push particle table into the TPartIndex
     // Put all the particles with reactions at the beginning to avoid double indexing
@@ -369,9 +370,13 @@ int main(int argc,char** argv)
     const G4ThreeVector  dirz(0,0,1);
     G4double totsize = 0;
     G4int npr=0;
+    G4ThreeVector *pos = new G4ThreeVector(0,0,0);
+    G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
+       GetNavigatorForTracking();
     for(G4int imat=0; imat<nmaterials; ++imat) {
        //       printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
-       G4ThreeVector pos(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
+       pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
+       //       nav->LocateGlobalPointAndUpdateTouchableHandle(*pos,dirz,fTouchableHandle,false);
        // Just a check that we are finding out the same thing...
        G4Material *matt = G4Material::GetMaterial(materialVec[imat]);
        const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
@@ -380,7 +385,7 @@ int main(int argc,char** argv)
        amat = 0; // set a = 0 to indicate natural element.
        G4double dens = mat->GetDensity()*cm3/g;
        TEXsec *mxsec = secTable[imat] = new TEXsec(mat->GetZ(),
-						   amat,dens,emin,emax,nbins,npreac);
+						   amat,dens,npreac);
 
        G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
        printf("Material = %s density = %g, natoms/cm3 = %g\n",
@@ -404,6 +409,7 @@ int main(int argc,char** argv)
        for(G4int i=0; i<np; ++i) {
 	  particle = theParticleTable->GetParticle(i);
 	  G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
+	  //	  printf("partidnex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
 	  if(partindex<0) {
 	     printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
 		    (const char *)particle->GetParticleName());
@@ -468,7 +474,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-                         SampleInteractions( matt, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 //                         SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
@@ -570,7 +576,7 @@ int main(int argc,char** argv)
 			 for(G4int is=0; is<nrep; ++is) {
 			    const G4double previousStep= 0.0;
 			    G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
-			    G4Track *track = new G4Track(dp,0.,pos);
+			    G4Track *track = new G4Track(dp,0.,*pos);
 			    G4Step   step;
 			    step.SetStepLength( proposedStep ); 
 			   

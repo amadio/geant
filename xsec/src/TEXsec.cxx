@@ -80,11 +80,9 @@ Int_t TEXsec::fNLdElems=0;
 TEXsec::TEXsec():
    fEle(0),
    fAtcm3(0),
-   fEmin(0),
-   fEmax(0),
    fNEbins(0),
    fEilDelta(0),
-   fEGrid(0),
+   fEGrid(TPartIndex::I()->EGrid()),
    fNRpart(0),
    fPXsec(0),
    fCuts(0)
@@ -92,30 +90,11 @@ TEXsec::TEXsec():
 }
 
 //___________________________________________________________________
-TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Float_t emin, Float_t emax, Int_t nen, Int_t np):
+TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np):
    TNamed(fEleSymbol[z-1],fEleName[z-1]),
    fEle(z*10000+a*10),
    fDens(dens),
    fAtcm3(fDens*TMath::Na()*1e-24/fWElem[z-1]),
-   fEmin(emin),
-   fEmax(emax),
-   fNEbins(nen),
-   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
-   fEGrid(0),
-   fNRpart(np),
-   fPXsec(new TPXsec[fNRpart]),
-   fCuts(new Double_t[fNRpart])
-{
-   memset(fCuts,0,fNRpart*sizeof(Double_t));
-}
-
-//___________________________________________________________________
-TEXsec::TEXsec(Int_t z, Int_t a, Int_t np):
-   TNamed(fEleSymbol[z-1],fEleName[z-1]),
-   fEle(z*10000+a*10),
-   fAtcm3(TMath::Na()*1e-24/fWElem[z-1]),
-   fEmin(TPartIndex::I()->Emin()),
-   fEmax(TPartIndex::I()->Emax()),
    fNEbins(TPartIndex::I()->NEbins()),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
@@ -130,11 +109,6 @@ TEXsec::TEXsec(Int_t z, Int_t a, Int_t np):
 TEXsec::~TEXsec() {
    delete [] fPXsec;
    delete [] fCuts;
-}
-
-//___________________________________________________________________
-Bool_t TEXsec::AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax) {
-   return fPXsec[kpart].SetPart(pdg,nen,nxsec,emin,emax);
 }
 
 //___________________________________________________________________
@@ -177,7 +151,7 @@ Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig,
 //___________________________________________________________________
 void TEXsec::DumpPointers() const {
    printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n",
-	  fEle,fEmin,fEmax,fNEbins,fEilDelta,fNRpart);
+	  fEle,fEGrid[0],fEGrid[fNEbins-1],fNEbins,fEilDelta,fNRpart);
    for(Int_t i=0; i<fNRpart; ++i) 
       fPXsec[i].Dump();
 }
@@ -291,7 +265,7 @@ TGraph* TEXsec::MSGraph(const char* part, const char* what,
 
 //___________________________________________________________________
 TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
-   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
+   //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
    Int_t ecode = z*10000+a*10;
    for(Int_t el=0; el<fNLdElems; ++el) 
       if(ecode == fElements[el]->Ele()) 
@@ -347,13 +321,14 @@ void TEXsec::Draw(Option_t *option)
    const Char_t *part = ((TObjString *) token->At(0))->GetName();
    TString reactions = ((TObjString*) token->At(1))->GetName();
 
-   Float_t emin=1e-3;
+   Float_t emin=TPartIndex::I()->Emin();
    if(narg>2) sscanf(((TObjString*) token->At(2))->GetName(),"%f",&emin);
-   Float_t emax=1e6;
+   Float_t emax=TPartIndex::I()->Emax();
    if(narg>3) sscanf(((TObjString*) token->At(3))->GetName(),"%f",&emax);
    Int_t nbin=100;
    if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
    if(gFile) gFile->Get("PartIndex");
+   printf("fEGrid %p\n",fEGrid);
    Int_t pindex = TPartIndex::I()->PartIndex(part);
    if(pindex < 0) {
       Error("Draw","Unknown particle %s\n",part);

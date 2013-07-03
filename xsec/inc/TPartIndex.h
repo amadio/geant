@@ -83,8 +83,8 @@ public:
 
    void SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins);
    Int_t    NEbins() const {return fNEbins;}
-   Double_t Emin() const {return fEmin;}
-   Double_t Emax() const {return fEmax;}
+   Double_t Emin() const {return fEGrid[0];}
+   Double_t Emax() const {return fEGrid[fNEbins-1];}
    Double_t EilDelta() const {return fEilDelta;}
    const Double_t* EGrid() const {return fEGrid;}
 
@@ -102,8 +102,6 @@ private:
    Int_t fNpReac;           // Number of particles with reactions
 
    Int_t     fNEbins;       // number of bins of common energy grid
-   Double_t  fEmin;         // Min energy of common energy grid
-   Double_t  fEmax;         // Max energy of common energy grid
    Double_t  fEilDelta;     // Inverse log delta of common energy grid
    Double_t *fEGrid;        // [fNEbins] Common energy grid
 

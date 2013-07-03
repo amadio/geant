@@ -20,7 +20,7 @@ ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
 # Add the executable, and link it to the Geant4 libraries
 #
 add_library(Xsec SHARED ${sources} xsecCint.cxx ${headers} xsecCint.h)
-target_link_libraries(Xsec ${ROOT_LIBRARIES} -lEg)
+target_link_libraries(Xsec ${ROOT_LIBRARIES} -lEG)
 
 add_headers("${headers}")
 

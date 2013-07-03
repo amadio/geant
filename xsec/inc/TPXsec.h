@@ -28,20 +28,18 @@
 class TPXsec: public TObject {
 public:
    TPXsec();
-   TPXsec(Int_t pdg, Int_t nen, Int_t nxsec, 
-	  Float_t emin, Float_t emax);
+   TPXsec(Int_t pdg, Int_t nen, Int_t nxsec);
    ~TPXsec();
    void Print(Option_t *opt="") const;
-   Bool_t SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t SetPart(Int_t pdg, Int_t nxsec);
    Bool_t SetPartXS(const Float_t xsec[], const Int_t dict[]);
    Bool_t SetPartIon(const Float_t dedx[]);
    Bool_t SetPartMS(const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
    Int_t PDG() const {return fPDG;}
-   Float_t XS(Int_t rindex, Float_t en) const;
-   Float_t DEdx(Float_t en) const;
-   Bool_t MS(Float_t en, Float_t &ang, Float_t &asig, 
+   Float_t XS(Int_t rindex, Double_t en) const;
+   Float_t DEdx(Double_t en) const;
+   Bool_t MS(Double_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;
    Int_t SampleReac(Double_t en) const;
    void Dump() const;
@@ -51,8 +49,6 @@ private:
    Int_t           fNCbins;        // number of energy bins for dEdx and MS
    Int_t           fNXsec;         // number of reactions
    Int_t           fNTotXs;        // tot size of fXSecs
-   Double_t        fEmin;          // min tab energy
-   Double_t        fEmax;          // max tab energy
    Double_t        fEilDelta;      // logarithmic energy delta
    const Double_t *fEGrid;         //![fNEbins] energy grid
    Float_t        *fMSangle;       // [fNCbins] table of MS average angle
@@ -66,6 +62,8 @@ private:
                                   // in the X-sec array
    Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
                                   // array to the raction number
+
+   TPartIndex     *fPartIndex;    //! pointer to TPartIndex
 
    ClassDef(TPXsec,1)  //Particle X-secs
 };

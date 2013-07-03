@@ -35,10 +35,8 @@ class TEXsec : public TNamed {
 
 public:
    TEXsec();
-   TEXsec(Int_t z, Int_t a, Float_t dens, Float_t emin, Float_t emax, Int_t nen, Int_t np);
-   TEXsec(Int_t z, Int_t a, Int_t np);
+   TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np);
    ~TEXsec();
-   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax);
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nxsec);
    Bool_t AddPartXS(Int_t kpart, const Float_t xsec[], const Int_t dict[]);
    Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
@@ -52,8 +50,8 @@ public:
 
    Int_t Ele() const {return fEle;}
    Float_t Dens() const {return fDens;}
-   Float_t Emin() const {return fEmin;}
-   Float_t Emax() const {return fEmax;}
+   Float_t Emin() const {return fEGrid[0];}
+   Float_t Emax() const {return fEGrid[fNEbins-1];}
    Int_t NEbins() const {return fNEbins;}
    Double_t EilDelta() const {return fEilDelta;}
    Float_t XS(Int_t pindex, Int_t rindex, Float_t en) const;
@@ -86,8 +84,6 @@ private:
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
    Float_t        fDens;    // Density in g/cm3
    Double_t       fAtcm3;   // Atoms per cubic cm unit density
-   Double_t       fEmin;    // Min en in GeV
-   Double_t       fEmax;    // Max en in Gev
    Int_t          fNEbins;  // Number of log steps in energy
    Double_t       fEilDelta; // Inverse log energy step
    const Double_t *fEGrid;  //! Common energy grid

@@ -4,6 +4,17 @@
 # to build a batch mode only executable
 #
 
+# Before we use Geant4 we save all previous definitions, otherwise we will completely
+# pollute the compilation environment
+
+get_property(SAVE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
+set(SAVE_CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}")
+set(SAVE_CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
+set(SAVE_CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}")
+set(SAVE_CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
+set(SAVE_CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(SAVE_CMAKE_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS}")
+
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 if(WITH_GEANT4_UIVIS)
   find_package(Geant4 REQUIRED ui_all vis_all)
@@ -11,11 +22,18 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
+
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
 #
 include(${Geant4_USE_FILE})
+
+if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+# Difficult call... sanitize compiler flags in case G4 has been built with Clang 
+  STRING(REPLACE "-Qunused-arguments" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
+
 include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 
 #----------------------------------------------------------------------------
@@ -25,11 +43,28 @@ include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 file(GLOB sources src/*.cc)
 file(GLOB headers inc/*.hh)
 
+get_property(G4_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_MINISIZEREL    "${CMAKE_CXX_FLAGS_MINISIZEREL}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "${CMAKE_EXE_LINKER_FLAGS}")
+set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_DEFINITIONS}")
+
+set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${SAVE_DEFINITIONS}")
+set(CMAKE_CXX_FLAGS                "${SAVE_CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG          "${SAVE_CMAKE_CXX_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "${SAVE_CMAKE_CXX_FLAGS_MINSIZEREL}")
+set(CMAKE_CXX_FLAGS_RELEASE        "${SAVE_CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${SAVE_CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_EXE_LINKER_FLAGS         "${SAVE_CMAKE_EXE_LINKER_FLAGS}")
+
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
-target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEg -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
+target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

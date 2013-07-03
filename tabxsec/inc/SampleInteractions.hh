@@ -4,6 +4,7 @@ class G4ParticleDefinition;
 class G4VProcess;
 
     int SampleInteractions( G4Material* material,
+			    const G4ThreeVector *pos,
                             const G4ParticleDefinition* part,
                             G4VProcess* proc,
                             G4double energy,
@@ -14,6 +15,7 @@ class G4VProcess;
        );
 
     int SampleDiscreteInteractions(  G4Material* material,
+		       const G4ThreeVector *pos,
                        const G4ParticleDefinition* part,
                        G4VProcess* proc,
                        G4double energy,

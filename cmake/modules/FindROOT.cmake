@@ -12,6 +12,7 @@ find_program(ROOT_CONFIG_EXECUTABLE root-config
 
 if(NOT ROOT_CONFIG_EXECUTABLE)
   set(ROOT_FOUND FALSE)
+  message(STATUS "Found ROOT ${ROOT_VERSION} in ${ROOTSYS}")
 else()    
   set(ROOT_FOUND TRUE)
 

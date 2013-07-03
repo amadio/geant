@@ -4,7 +4,7 @@
 #include "TMath.h"
 
 #include <iostream>
-#include "tbb/tick_count.h"" // timing from Intel TBB 
+#include "tbb/tick_count.h" // timing from Intel TBB 
 #include <cassert>
 
 struct TStopWatch 
@@ -19,17 +19,6 @@ struct TStopWatch
 };
 
 #define NREP 1000
-
-#ifndef __INTEL_COMPILER
-void * _mm_malloc(int s, int p)
-{
-  return malloc(s);
-}
-void _mm_free(void *p)
-{
-  free(p);
-}
-#endif
 
 main(int argc, char *argv[])
 {
@@ -78,8 +67,8 @@ main(int argc, char *argv[])
 	dir[3*0  ]=-1.;
 	dir[3*0+1]=0.;
 	dir[3*0+2]=0.;
-        
 	step[0]=TGeoShape::Big();
+
         for(int i=1; i<npoints; ++i) {
 	  //            points[3*i  ]=1.4*(1-2.*gRandom->Rndm())*dx;
 	  //            points[3*i+1]=1.4*(1-2.*gRandom->Rndm())*dy;
@@ -96,9 +85,9 @@ main(int argc, char *argv[])
 	  
 	  dir[3*i  ]=-1.;//(1-2.*gRandom->Rndm());
 	  dir[3*i+1]=0.;///(1-2.*gRandom->Rndm());
-	    dir[3*i+2]=0.;//(1-2.*gRandom->Rndm());
+	  dir[3*i+2]=0.;//(1-2.*gRandom->Rndm());
           
-	  step[i]=TGeoShape::Big();
+	  step[i]=0.001; // TGeoShape::Big();
 	}
 	p.fill(points);
 	d.fill(dir);
@@ -108,14 +97,15 @@ main(int argc, char *argv[])
 
 	// assert correctness of result (simple checksum check)
 	double checksum=0., checksum_v=0.;
+	// perform a check
 	for(int i=0; i<npoints; ++i)
-	  distance[i]=TGeoBBox_v::DistFromOutside(&points[3*i], &dir[3*i],dx,dy,dz,origin, step[i]);
+	  distance[i]=TGeoBBox_v::DistFromOutsideS(&points[3*i], &dir[3*i],dx,dy,dz,origin, step[i]);
 	
-	TGeoBBox_v::DistFromOutside_v(p, d,dx,dy,dz,origin,step, distance_v, npoints);
+	TGeoBBox_v::DistFromOutsideS_v(p, d,dx,dy,dz,origin,step, distance_v, npoints);
 	
 	for(int i=0; i<npoints; i++)
 	  {	
-	    // std::cerr <<  distance[i] << " " << distance_v[i] << std::endl;
+	    // std::cerr << i << " " << distance[i] << " " << distance_v[i] << std::endl;
 	    assert(distance[i] == distance_v[i]);
 	  }
 
@@ -124,20 +114,20 @@ main(int argc, char *argv[])
 	  {
 	    tt.Start();
 	    for(int i=0; i<npoints; i++)
-	      distance[i]=TGeoBBox_v::DistFromOutside(&points[3*i], &dir[3*i],dx,dy,dz,origin, step[i]);
+	      distance[i]=TGeoBBox_v::DistFromOutsideS( &points[3*i], &dir[3*i], dx, dy, dz, origin, step[i] );
 	    tt.Stop();
 	    DeltaT+= tt.getDeltaSecs(); //      tt.Print();
 	    tt.Reset();
 	    
 	    tt.Start();
-	    TGeoBBox_v::DistFromOutside_v(p, d, dx, dy, dz, origin, step, distance_v, npoints);
+	    TGeoBBox_v::DistFromOutsideS_v(p, d, dx, dy, dz, origin, step, distance_v, npoints);
 	    tt.Stop();
 	    DeltaT_v+= tt.getDeltaSecs(); //      tt.Print();
 	    tt.Reset();
 
 	    tt.Start();
 	    //	    TGeoBBox_v::DistFromOutside_l(p, d, dx, dy, dz, origin, step, distance_v, npoints);
-	    TGeoBBox_v::DistFromOutside_l(points, dir, dx, dy, dz, origin, step, distance_v, npoints);
+	    TGeoBBox_v::DistFromOutsideS_l(points, dir, dx, dy, dz, origin, step, distance_v, npoints);
 	    tt.Stop();
 	    DeltaT_l+= tt.getDeltaSecs(); //      tt.Print();
 	    tt.Reset();

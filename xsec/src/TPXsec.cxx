@@ -11,8 +11,6 @@ TPXsec::TPXsec():
    fNEbins(0),
    fNCbins(0),
    fNXsec(0),
-   fEmin(0),
-   fEmax(0),
    fEilDelta(0),
    fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
@@ -21,30 +19,30 @@ TPXsec::TPXsec():
    fMSlensig(0),
    fdEdx(0),
    fTotXs(0),
-   fXSecs(0)
+   fXSecs(0),
+   fPartIndex(TPartIndex::I())
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
 }
 
 //_________________________________________________________________________
-TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec, 
-       Float_t emin, Float_t emax):
+TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec):
    fPDG(pdg),
    fNEbins(nen),
    fNCbins(0),
    fNXsec(nxsec),
    fNTotXs(fNEbins*fNXsec),
-   fEmin(emin),
-   fEmax(emax),
-   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
+   fEilDelta((fNEbins-1)/TMath::Log(TPartIndex::I()->Emax()/TPartIndex::I()->Emin())),
+   fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
    fMSlensig(0),
    fdEdx(0),
    fTotXs(0),
-   fXSecs(0)
+   fXSecs(0),
+   fPartIndex(TPartIndex::I())
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
@@ -63,25 +61,11 @@ TPXsec::~TPXsec()
 }
 
 //___________________________________________________________________
-Bool_t TPXsec::SetPart(Int_t pdg, Int_t nen, Int_t nxsec, Float_t emin, Float_t emax) {
-   fPDG = pdg;
-   fNEbins = nen;
-   fNXsec = nxsec;
-   fNTotXs = fNEbins*fNXsec;
-   fEmin = emin;
-   fEmax = emax;
-   fEilDelta = (fNEbins-1)/TMath::Log(fEmax/fEmin);
-   return kTRUE;
-}
-
-//___________________________________________________________________
 Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
    fPDG = pdg;
    fNEbins = TPartIndex::I()->NEbins();
    fNXsec = nxsec;
    fNTotXs = fNEbins*fNXsec;
-   fEmin = TPartIndex::I()->Emin();
-   fEmax = TPartIndex::I()->Emax();
    fEilDelta = TPartIndex::I()->EilDelta();
    return kTRUE;
 }
@@ -150,15 +134,15 @@ Bool_t TPXsec::SetPartMS(const Float_t angle[], const Float_t ansig[],
 void TPXsec::Print(Option_t *) const
 {
    printf("Particle=%d Number of x-secs=%d between %g and %g GeV",
-	  fPDG, fNXsec, fEmin, fEmax);
+	  fPDG, fNXsec, fEGrid[0], fEGrid[fNEbins-1]);
 }
 
 //_________________________________________________________________________
-Float_t TPXsec::DEdx(Float_t en) const {
+Float_t TPXsec::DEdx(Double_t en) const {
    if(!fdEdx) return 0;
-   en=en<=fEmax?en:fEmax;
-   en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
+   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+   en=en>fEGrid[0]?en:fEGrid[0];
+   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
    //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
    //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
@@ -177,15 +161,15 @@ Float_t TPXsec::DEdx(Float_t en) const {
 }
 
 //_________________________________________________________________________
-Bool_t TPXsec::MS(Float_t en, Float_t &ang, Float_t &asig, 
+Bool_t TPXsec::MS(Double_t en, Float_t &ang, Float_t &asig, 
 		  Float_t &len, Float_t &lsig) const {
    if(!fNCbins) {
       ang = asig = len = lsig = 0;
       return kFALSE;
    }
-   en=en<=fEmax?en:fEmax;
-   en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
+   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+   en=en>fEGrid[0]?en:fEGrid[0];
+   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
    //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
    //  Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
@@ -206,9 +190,9 @@ Bool_t TPXsec::MS(Float_t en, Float_t &ang, Float_t &asig,
 
 //_________________________________________________________________________
 Int_t TPXsec::SampleReac(Double_t en)  const {
-   en=en<=fEmax?en:fEmax;
-   en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
+   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+   en=en>fEGrid[0]?en:fEGrid[0];
+   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
    //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
    //Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
@@ -233,10 +217,10 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
 }
 
 //_________________________________________________________________________
-Float_t TPXsec::XS(Int_t rindex, Float_t en) const {
-   en=en<=fEmax?en:fEmax;
-   en=en>=fEmin?en:fEmin;
-   Int_t ibin = TMath::Log(en/fEmin)*fEilDelta;
+Float_t TPXsec::XS(Int_t rindex, Double_t en) const {
+   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+   en=en>fEGrid[0]?en:fEGrid[0];
+   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
 //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
@@ -267,7 +251,7 @@ Float_t TPXsec::XS(Int_t rindex, Float_t en) const {
 //_________________________________________________________________________
 void TPXsec::Dump() const {
    printf("Particle %d NXsec %d emin %f emax %f NEbins %d ElDelta %f\n",
-	  fPDG,fNXsec,fEmin,fEmax,fNEbins,fEilDelta);
+	  fPDG,fNXsec,fEGrid[0],fEGrid[fNEbins-1],fNEbins,fEilDelta);
    printf("MSangle %p, MSlength %p, dEdx %p, TotXs %p, XSecs %p, Rdict %p\n",
 	  fMSangle, fMSlength, fdEdx, fTotXs, fXSecs, fRdict);
 }

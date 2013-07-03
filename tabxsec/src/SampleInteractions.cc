@@ -69,6 +69,9 @@
 
 #include "G4VCrossSectionDataSet.hh"
 
+#include "G4TransportationManager.hh"
+#include "G4Navigator.hh"
+
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -77,12 +80,13 @@
 
 #include "G4Timer.hh"
 
-#include "SampleInteractions.h"
+#include "SampleInteractions.hh"
 
 using namespace std;
 
 int SampleInteractions(
                           G4Material* material,
+			  const G4ThreeVector *pos,
                           const G4ParticleDefinition* part,
                           G4VProcess* process,
                           G4double energy,
@@ -98,10 +102,10 @@ int SampleInteractions(
    G4VContinuousDiscreteProcess* contdProc= dynamic_cast<G4VContinuousDiscreteProcess*>(process);
 
    if( discProc ) {
-      ret= SampleDiscreteInteractions( material, part, process, energy, sigmae, theStep, nevt, verbose);
+      ret= SampleDiscreteInteractions( material, pos, part, process, energy, sigmae, theStep, nevt, verbose);
    }else{
       if( contdProc ) {
-        ret= SampleDiscreteInteractions( material, part, process, energy, sigmae, theStep, nevt, verbose);
+	 ret= SampleDiscreteInteractions( material, pos, part, process, energy, sigmae, theStep, nevt, verbose);
       }else{
          G4cout << " Process " << process->GetProcessName() << " for particle " << part->GetParticleName() << " has no discrete part. " << G4endl;
       }
@@ -111,6 +115,7 @@ int SampleInteractions(
 
 int SampleDiscreteInteractions(
                           G4Material* material, 
+			  const G4ThreeVector *pos,
                           const G4ParticleDefinition* part,
                           G4VProcess* proc,
                           G4double energy,
@@ -128,7 +133,7 @@ int SampleDiscreteInteractions(
      << "     #####" << endl;
 
     // -------- Projectile
-    G4ThreeVector aPosition = G4ThreeVector(0.,0.,0.);
+    const G4ThreeVector &aPosition = *pos;
     G4ThreeVector aDirection      = G4ThreeVector(0.0,0.0,1.0);
 
     G4double mass = part->GetPDGMass();
@@ -168,8 +173,14 @@ int SampleDiscreteInteractions(
     G4double aTime(0.0);
     G4Track* gTrack;
     gTrack = new G4Track(dParticle,aTime,aPosition);
-    G4TouchableHandle fpTouchable(new G4TouchableHistory());
-    gTrack->SetTouchableHandle(fpTouchable);
+    G4TouchableHandle touchable=new G4TouchableHistory();
+    G4TransportationManager::GetTransportationManager()->
+       GetNavigatorForTracking()->LocateGlobalPointAndUpdateTouchableHandle(aPosition,
+								       aDirection,
+								       touchable,
+								       false);
+
+    gTrack->SetTouchableHandle(touchable);
 
     // -------- Step
 
@@ -184,6 +195,7 @@ int SampleDiscreteInteractions(
     aPoint->SetMaterial(material);
     G4double safety = 10000.*cm;
     aPoint->SetSafety(safety);
+    aPoint->SetTouchableHandle(touchable);
     step->SetPreStepPoint(aPoint);
 
     const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
@@ -192,9 +204,9 @@ int SampleDiscreteInteractions(
         FindMaterialCutsCouple( material );
   
     aPoint->SetMaterialCutsCouple( mcc );
-  aPoint->SetMaterial( material );
+    aPoint->SetMaterial( material );
   
-    bPoint = aPoint;
+    bPoint = new G4StepPoint(*aPoint);
     G4ThreeVector bPosition = aPosition + aDirection*theStep;
     bPoint->SetPosition(bPosition);
     step->SetPostStepPoint(bPoint);
@@ -226,6 +238,7 @@ int SampleDiscreteInteractions(
       dParticle->SetKineticEnergy(e0);
       gTrack->SetStep(step);
       gTrack->SetKineticEnergy(e0);
+      G4cout << "Projectile " << gTrack->GetParticleDefinition()->GetParticleName() << G4endl;
 
       G4LorentzVector labv;
       labv = G4LorentzVector(0., 0., sqrt(e0*(e0 + 2.0*mass)), 
@@ -282,7 +295,7 @@ int SampleDiscreteInteractions(
 	//        pz = mom.z();
         pt = sqrt(px*px +py*py);
 
-        printf(" Sec[%2d]= %10d", i, pd->GetPDGEncoding()); // , mom.z(), pt, theta );
+        printf(" Sec[%2d]= %10s (%10d)", i, (const char*) pd->GetParticleName(), pd->GetPDGEncoding()); // , mom.z(), pt, theta );
         printf(" Z= %3d B= %3d ", pd->GetAtomicNumber(), pd->GetBaryonNumber() );
         printf(" pz=%12.4g, pt=%12.4g, theta=%12.6g\n", mom.z(), pt, theta );
 
@@ -301,7 +314,6 @@ int SampleDiscreteInteractions(
 
     // A step owns its Step points 
     //   - must ensure that they are valid or null (and not pointint to same StepPt)
-    step->SetPostStepPoint( 0 ); // new G4StepPoint() ); 
     delete step; 
 
     // A track owns its dynamic particle - that will be deleted by it
