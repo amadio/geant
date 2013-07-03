@@ -220,6 +220,8 @@ int main(int argc,char** argv)
     G4int *preac  = new G4int[np];
     TParticlePDG **pdpdg = new TParticlePDG*[np];
     G4int npreac = 0;
+    G4int npchar = 0;
+    G4int ntotproc = 0;
     for(G4int i=0; i<np; ++i) {
        particle = theParticleTable->GetParticle(i);
        pdpdg[i] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
@@ -253,7 +255,10 @@ int main(int argc,char** argv)
 	  for (G4int idx=0; idx<pList->size(); idx++) {
 	     const G4VProcess* p = (*pList)[idx];
 	     G4int ptype = p->GetProcessType();
-	     if(ptype !=1 && ptype !=6) nproc=TRUE;
+	     if(ptype !=1 && ptype !=6) {
+		nproc=TRUE;
+		++ntotproc;
+	     }
 	     sprintf(&string[strlen(string)]," [%s,%d,%d]",
 		     (const char *)p->GetProcessName(),p->GetProcessType(),
 		     p->GetProcessSubType());
@@ -266,51 +271,72 @@ int main(int argc,char** argv)
 	  preac[npreac++]=pPDG[i];
 	  if(life>0 && life<minlife) minlife=life;
 	  if(width>maxwidth) maxwidth=width;
+	  if(proot->Charge()) ++npchar;
        }
        printf("%s\n",string);
     }
 
     TPartIndex::I()->SetNPartReac(npreac);
+    TPartIndex::I()->SetNPartCharge(npchar);
     TPartIndex::I()->SetEnergyGrid(emin/GeV,emax/GeV,nbins);
 
+    printf("Particles with reactions %d, of which %d charged\n",npreac,npchar);
+    printf("Average number of proc per particle %10.2g\n",(1.*ntotproc)/npreac);
+
     // Push particle table into the TPartIndex
-    // Put all the particles with reactions at the beginning to avoid double indexing
+    // Put all the particles with reactionsand charge at the beginning to avoid double indexing
     for(G4int i=0; i<np-1; ++i) {
        G4bool inti = FALSE;
+       G4bool chgi = (TDatabasePDG::Instance()->GetParticle(pPDG[i])->Charge()!=0);
        for(G4int jr=0; jr<npreac; ++jr) 
 	  if(preac[jr]==pPDG[i]) {inti=TRUE; break;}
        for(G4int j=i; j<np; ++j) {
 	  G4bool intj = FALSE;
+	  G4bool chgj = (TDatabasePDG::Instance()->GetParticle(pPDG[j])->Charge()!=0);
 	  for(G4int jr=0; jr<npreac; ++jr) 
 	     if(preac[jr]==pPDG[j]) {intj=TRUE; break;}
-	  if(!inti && intj) {
+	  if(!inti && intj || (inti && intj && (!chgi && chgj))) {
 	     G4int itmp = pPDG[i];
 	     pPDG[i] = pPDG[j];
 	     pPDG[j] = itmp;
-	  }
+	     G4bool btmp = inti;
+	     inti = intj;
+	     intj = btmp;
+	     btmp = chgi;
+	     chgi = chgj;
+	     chgj = btmp;
+	  } 
        }
     }
 
     // test that the particles with reactions are contiguous...
     G4bool endint=FALSE;
+    G4bool endchg=FALSE;
     for(G4int i=0; i<np; ++i) {
        G4bool inter = FALSE;
+       G4bool charg = FALSE;
        for(G4int j=0; j<npreac; ++j) 
 	  if(preac[j]==pPDG[i]) {inter=TRUE; break;}
+       charg = (TDatabasePDG::Instance()->GetParticle(pPDG[i])->Charge()!=0);
        if(!inter) {
 	  if(!endint) {
 	     printf("First particle without interaction #%d %s PDG %d\n",
 		    i,TDatabasePDG::Instance()->GetParticle(pPDG[i])->GetName(),pPDG[i]);
-	     if(i != TPartIndex::I()->NPartReac()) {
-		printf("Fatal: i=%d != npreac%d\n",i,npreac);
-		exit(1);
-	     }
 	     endint=TRUE;
 	  }
-       } //else  printf("Particle with interaction #%d %s PDG %d\n",
-       //	 i,TDatabasePDG::Instance()->GetParticle(pPDG[i])->GetName(),pPDG[i]);
+       } else if(endint) {
+	  printf("Fatal: particles with reactions not contiguous i=%d  npreac=%d\n",i,npreac);
+       }
+       if(!charg && !endint) {
+	  if(!endchg) {
+	     printf("First interacting particle without charge #%d %s PDG %d\n",
+		       i,TDatabasePDG::Instance()->GetParticle(pPDG[i])->GetName(),pPDG[i]);
+	     endchg=TRUE;
+	  }
+       } else if(!endint && endchg) {
+	  printf("Fatal: interacting particles with charge not contiguous i=%d  npchar=%d\n",i,npchar);
+       }
     }
-
     TPartIndex::I()->SetPartTable(pPDG,np);
     printf("Code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
 

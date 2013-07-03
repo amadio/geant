@@ -80,6 +80,8 @@ Int_t TEXsec::fNLdElems=0;
 TEXsec::TEXsec():
    fEle(0),
    fAtcm3(0),
+   fEmin(0),
+   fEmax(0),
    fNEbins(0),
    fEilDelta(0),
    fEGrid(TPartIndex::I()->EGrid()),
@@ -95,6 +97,8 @@ TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np):
    fEle(z*10000+a*10),
    fDens(dens),
    fAtcm3(fDens*TMath::Na()*1e-24/fWElem[z-1]),
+   fEmin(TPartIndex::I()->Emin()),
+   fEmax(TPartIndex::I()->Emax()),
    fNEbins(TPartIndex::I()->NEbins()),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
@@ -151,7 +155,7 @@ Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig,
 //___________________________________________________________________
 void TEXsec::DumpPointers() const {
    printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n",
-	  fEle,fEGrid[0],fEGrid[fNEbins-1],fNEbins,fEilDelta,fNRpart);
+	  fEle,fEmin,fEmax,fNEbins,fEilDelta,fNRpart);
    for(Int_t i=0; i<fNRpart; ++i) 
       fPXsec[i].Dump();
 }
@@ -279,8 +283,28 @@ TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
    if(!fElements[fNLdElems]) {
       ::Fatal("GetElement","Element z %d a %d not found",z,a);
       return 0; // just to make the compiler happy
-   } else 
+   } else {
+      // We loaded the element, however we have to see whether
+      // the energy grid is the right one
+      if(FloatDiff(TPartIndex::I()->Emin(),fElements[fNLdElems]->Emin(),1e-7) ||
+	 FloatDiff(TPartIndex::I()->Emax(),fElements[fNLdElems]->Emax(),1e-7) ||
+	 TPartIndex::I()->NEbins() != fElements[fNLdElems]->NEbins())
+	 // we have to resize the energy grid of the element
+	 fElements[fNLdElems]->Resample();
       return fElements[fNLdElems++];
+   }
+}
+
+//___________________________________________________________________
+Bool_t TEXsec::Resample()
+{
+   for(Int_t ip=0; ip<fNRpart; ++ip)
+      fPXsec[ip].Resample();
+   fEmin = TPartIndex::I()->Emin();
+   fEmax = TPartIndex::I()->Emax();
+   fNEbins = TPartIndex::I()->NEbins();
+   fEGrid = TPartIndex::I()->EGrid();
+   return kTRUE;
 }
 
 //___________________________________________________________________
@@ -328,7 +352,6 @@ void TEXsec::Draw(Option_t *option)
    Int_t nbin=100;
    if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
    if(gFile) gFile->Get("PartIndex");
-   printf("fEGrid %p\n",fEGrid);
    Int_t pindex = TPartIndex::I()->PartIndex(part);
    if(pindex < 0) {
       Error("Draw","Unknown particle %s\n",part);

@@ -9,6 +9,7 @@
 
 #include <TPartIndex.h>
 #include <TMXsec.h>
+#include <TPXsec.h>
 
 void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]);
 Double_t SampleMaxwell(Double_t emean);
@@ -44,11 +45,18 @@ Int_t main (int argc, char *argv[]) {
 
    TFile *f = new TFile("xsec.root");
    TPartIndex *tp = (TPartIndex *) f->Get("PartIndex");
+   TPXsec::SetVerbose(1);
+   TPartIndex::I()->SetEnergyGrid(1e-3,1e3,100);
    TList *matlist = (TList*) geom->GetListOfMaterials();
    TIter next(matlist);
    TGeoMaterial *mat=0;
    TGeoMixture *mix=0;
    Int_t nmater = matlist->GetEntries();
+
+   TList *matXS = new TList();
+   matXS->Add(TPartIndex::I());
+   TMXsec *mxs=0;
+   printf("Total of %d materials\n",matlist->GetSize());
    while((mat = (TGeoMaterial*) next())) {
       if(!mat->IsUsed()) continue;
       Int_t nelem = mat->GetNelements();
@@ -67,16 +75,20 @@ Int_t main (int argc, char *argv[]) {
 		mat->GetName(), mat->GetElement(iel)->GetName(),
 		z[iel],a[iel]);*/
       }
-      mat->SetFWExtension(
-	new TGeoRCExtension(
-	   new TMXsec(mat->GetName(),mat->GetTitle(),
-	   z,a,w,nelem,mat->GetDensity(),kTRUE))); 
+      mxs = new TMXsec(mat->GetName(),mat->GetTitle(),
+		       z,a,w,nelem,mat->GetDensity(),kTRUE);
+      matXS->Add(mxs);
+      mat->SetFWExtension(new TGeoRCExtension(mxs));
       //      myObject = mat->GetExtension()->GetUserObject();
       delete [] a;
       delete [] z;
       delete [] w;
    }
 
+   TFile *fmxs = new TFile("mxs.root","recreate");
+   matXS->Write();
+   fmxs->Close();
+   
    TGeoVolume *top = geom->GetTopVolume();
    TGeoShape *shape = top->GetShape();
    TGeoBBox *bbox = (TGeoBBox*) shape;
