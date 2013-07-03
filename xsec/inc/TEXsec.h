@@ -107,6 +107,8 @@ private:
    static Int_t   fNLdElems; //! number of loaded elements
    static TEXsec *fElements[NELEM]; //! databases of elements
 
+   TPartIndex *   fPartIndex; // TPartIndex class
+
    ClassDef(TEXsec,1)  // Element X-secs
 
 };

@@ -722,7 +722,7 @@ int main(int argc,char** argv)
        }
        allElements->Add(mxsec);
     } // end of material loop
-    allElements->Add(TPartIndex::I());
+    //    allElements->Add(TPartIndex::I());
     allElements->Write();
     //    TPartIndex::I()->Write("PartIndex");
     fh->Write();
