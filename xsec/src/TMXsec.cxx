@@ -15,7 +15,8 @@ TMXsec::TMXsec():
    fNElems(0),
    fElems(0),
    fTotXL(0), 
-   fRelXS(0)
+   fRelXS(0),
+   fDEdx(0)
 {
 }
 

@@ -54,6 +54,7 @@ Int_t main (int argc, char *argv[]) {
    Int_t nmater = matlist->GetEntries();
 
    TList *matXS = new TList();
+   matXS->Add(TPartIndex::I());
    TMXsec *mxs=0;
    while((mat = (TGeoMaterial*) next())) {
       if(!mat->IsUsed()) continue;
