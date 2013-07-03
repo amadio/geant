@@ -39,7 +39,7 @@ endif()
 #----------------------------------------------------------------------------
 # Add the library for vectorized Geometries
 #
-if( VCFOUND )
+if( VC_FOUND )
 add_library(VecGeom SHARED ${sources} ${headers} ${VC_LIBRARIES})
 target_link_libraries(VecGeom ${ROOT_LIBRARIES} -lEG -lGeom -L${VC_LIBRARY_DIR} -lVc)
 else()
