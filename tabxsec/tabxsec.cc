@@ -399,6 +399,7 @@ int main(int argc,char** argv)
     G4ThreeVector *pos = new G4ThreeVector(0,0,0);
     G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
        GetNavigatorForTracking();
+    TList *allElements = new TList();
     for(G4int imat=0; imat<nmaterials; ++imat) {
        //       printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
        pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -694,7 +695,7 @@ int main(int argc,char** argv)
 	     G4double en=emin;
 	     for(G4int j=0; j<nbins; ++j) {
 		dedx[j] = G4LossTableManager::Instance()
-		   ->GetDEDX(particle,en,couple);
+		   ->GetDEDX(particle,en,couple)/GeV;
 		en*=delta;
 	     }
 	     bdedx=TRUE;
@@ -719,9 +720,11 @@ int main(int argc,char** argv)
 	  printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
 	  exit(1);
        }
-       mxsec->Write();
+       allElements->Add(mxsec);
     } // end of material loop
-    TPartIndex::I()->Write("PartIndex");
+    allElements->Add(TPartIndex::I());
+    allElements->Write();
+    //    TPartIndex::I()->Write("PartIndex");
     fh->Write();
     fh->Close();
     totsize += nbins*nmaterials;
