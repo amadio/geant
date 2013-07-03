@@ -56,6 +56,7 @@ Int_t main (int argc, char *argv[]) {
    TList *matXS = new TList();
    matXS->Add(TPartIndex::I());
    TMXsec *mxs=0;
+   printf("Total of %d materials\n",matlist->GetSize());
    while((mat = (TGeoMaterial*) next())) {
       if(!mat->IsUsed()) continue;
       Int_t nelem = mat->GetNelements();

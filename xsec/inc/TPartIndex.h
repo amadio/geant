@@ -78,7 +78,9 @@ public:
  
     // Number of particles with reactions
    void SetNPartReac(Int_t np) {fNpReac=np;}
+   void SetNPartCharge(Int_t nc) {fNpCharge=nc;}
    Int_t NPartReac() const {return fNpReac;}
+   Int_t NPartCharge() const {return fNpCharge;}
    TDatabasePDG *DBPdg() const {return fDBPdg;}
 
    void SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins);
@@ -100,6 +102,7 @@ private:
    Int_t    fNPart;         // Total number of particles
    Int_t   *fPDG;           // [fNPart] PDG code of all part
    Int_t fNpReac;           // Number of particles with reactions
+   Int_t fNpCharge;         // Number of particles with reactions
 
    Int_t     fNEbins;       // number of bins of common energy grid
    Double_t  fEilDelta;     // Inverse log delta of common energy grid
