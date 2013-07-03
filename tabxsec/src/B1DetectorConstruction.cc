@@ -66,7 +66,7 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
   // Get nist material manager
   G4NistManager* nist = G4NistManager::Instance();
   
-  G4bool checkOverlaps = true;
+  G4bool checkOverlaps = false; // true;
   // Envelope parameters
   //
   const G4double kLattice = 15*cm;
