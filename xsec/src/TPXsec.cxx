@@ -3,6 +3,8 @@
 #include <TRandom.h>
 #include <TFile.h>
 
+Int_t TPXsec::fVerbose=0;
+
 ClassImp(TPXsec)
 
 //_________________________________________________________________________
@@ -11,7 +13,10 @@ TPXsec::TPXsec():
    fNEbins(0),
    fNCbins(0),
    fNXsec(0),
-   fEilDelta(0),
+   fNTotXs(0),
+   fEmin(TPartIndex::I()->Emin()),
+   fEmax(TPartIndex::I()->Emax()),
+   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
    fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
    fMSansig(0),
@@ -33,7 +38,9 @@ TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec):
    fNCbins(0),
    fNXsec(nxsec),
    fNTotXs(fNEbins*fNXsec),
-   fEilDelta((fNEbins-1)/TMath::Log(TPartIndex::I()->Emax()/TPartIndex::I()->Emin())),
+   fEmin(TPartIndex::I()->Emin()),
+   fEmax(TPartIndex::I()->Emax()),
+   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
    fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
    fMSansig(0),
@@ -59,6 +66,95 @@ TPXsec::~TPXsec()
    delete [] fTotXs;
    delete [] fXSecs;
 }
+
+//_________________________________________________________________________
+void TPXsec::Interp(Double_t egrid[], Float_t value[], Int_t nbins, 
+			   Double_t eildelta, Int_t stride, Double_t en, Float_t result[]) {
+   en=en<egrid[nbins-1]?en:egrid[nbins-1]*0.999;
+   en=en>egrid[0]?en:egrid[0];
+   Int_t ibin = TMath::Log(en/egrid[0])*eildelta;
+   ibin = ibin<nbins-1?ibin:nbins-2;
+   Double_t en1 = egrid[ibin];
+   Double_t en2 = egrid[ibin+1];
+   if(en1>en || en2<en) {
+      Error("Interp","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	    ibin, en1, en, en2);
+   }
+   Double_t xrat = (en2-en)/(en2-en1);
+   for(Int_t ival=0; ival<stride; ++ival) {
+      result[ival] = xrat*value[ibin*stride+ival]+
+	 (1-xrat)*value[(ibin+1)*stride+ival];
+   }
+}
+
+//___________________________________________________________________
+Bool_t TPXsec::Resample() {
+   if(fVerbose) printf("Resampling %s from \nemin = %8.2g emacs = %8.2g, nbins = %d to \n"
+		       "emin = %8.2g emacs = %8.2g, nbins = %d\n",Name(),fEmin,fEmax,
+		       fNEbins,TPartIndex::I()->Emin(),TPartIndex::I()->Emax(),TPartIndex::I()->NEbins());
+   // Build the original energy grid
+   Double_t edelta = TMath::Exp(1/fEilDelta);
+   Double_t *oGrid = new Double_t[fNEbins];
+   Double_t en = fEmin;
+   for(Int_t ie=0; ie<fNEbins; ++ie) {
+      oGrid[ie]=en;
+      en*=edelta;
+   }
+   // Build new arrays
+   Int_t oNEbins = fNEbins;
+   fNEbins = TPartIndex::I()->NEbins();
+   if(fNCbins) fNCbins = fNEbins;
+   fNTotXs = fNEbins*fNXsec;
+   fEmin = TPartIndex::I()->Emin();
+   fEmax = TPartIndex::I()->Emax();
+   Double_t oEilDelta = fEilDelta;
+   fEilDelta = TPartIndex::I()->EilDelta();
+   fEGrid = TPartIndex::I()->EGrid();
+   Float_t *lXSecs = new Float_t[fNTotXs];
+   Float_t *lTotXs = new Float_t[fNEbins];
+   // Total x-secs and partial channels
+   for(Int_t ien=0; ien<fNEbins; ++ien) {
+      Interp(oGrid,fXSecs,oNEbins,oEilDelta,fNXsec,fEGrid[ien],&lXSecs[ien*fNXsec]);
+      Double_t xnorm=0;
+      // recheck normalisation
+      for(Int_t ixs=0; ixs<fNXsec; ++ixs) xnorm+=lXSecs[ien*fNXsec+ixs];
+      xnorm = 1/xnorm;
+      for(Int_t ixs=0; ixs<fNXsec; ++ixs) lXSecs[ien*fNXsec+ixs]*=xnorm;
+      Interp(oGrid,fTotXs,oNEbins,oEilDelta,1,fEGrid[ien],&lTotXs[ien]);
+   }
+   delete [] fXSecs;
+   fXSecs = lXSecs;
+   delete [] fTotXs;
+   fTotXs = lTotXs;
+   // Only for charged particles
+   if(fNCbins) {
+      Float_t *lMSangle = new Float_t[fNCbins];
+      Float_t *lMSansig = new Float_t[fNCbins];
+      Float_t *lMSlength = new Float_t[fNCbins];
+      Float_t *lMSlensig = new Float_t[fNCbins];
+      Float_t *ldEdx = new Float_t[fNCbins];
+      for(Int_t ien=0; ien<fNEbins; ++ien) {
+	 Interp(oGrid,fMSangle,oNEbins,oEilDelta,1,fEGrid[ien],&lMSangle[ien]);
+	 Interp(oGrid,fMSansig,oNEbins,oEilDelta,1,fEGrid[ien],&lMSansig[ien]);
+	 Interp(oGrid,fMSlength,oNEbins,oEilDelta,1,fEGrid[ien],&lMSlength[ien]);
+	 Interp(oGrid,fMSlensig,oNEbins,oEilDelta,1,fEGrid[ien],&lMSlensig[ien]);
+	 Interp(oGrid,fdEdx,oNEbins,oEilDelta,1,fEGrid[ien],&ldEdx[ien]);
+      }
+      delete [] fMSangle;
+      fMSangle = lMSangle;
+      delete [] fMSansig;
+      fMSansig = lMSansig;
+      delete [] fMSlength;
+      fMSlength = lMSlength;
+      delete [] fMSlensig;
+      fMSlensig = lMSlensig;
+      delete [] fdEdx;
+      fdEdx = ldEdx;
+   }
+   delete [] oGrid;
+   return kTRUE;
+}
+
 
 //___________________________________________________________________
 Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {

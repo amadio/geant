@@ -17,8 +17,9 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
 			   kOrange, kSpring, kTeal, kAzure, kViolet, kPink };
 
    gSystem->Load("libXsec");
-   Double_t emin = 1e-3;
-   Double_t emax = 1e6;
+   gFile->Get("PartIndex");
+   Double_t emin = TPartIndex::I()->Emin();
+   Double_t emax = TPartIndex::I()->Emax();
    Int_t nbins = 100;
    Double_t edelta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
    // Sampling of reactions

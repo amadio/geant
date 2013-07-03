@@ -8,6 +8,8 @@ ClassImp(TMXsec)
 //____________________________________________________________________________
 TMXsec::TMXsec():
    fNEbins(0),
+   fNTotXL(0),
+   fNRelXS(0),
    fEilDelta(0),
    fEGrid(0),
    fNElems(0),
@@ -22,23 +24,31 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	       const Int_t /*a*/[], const Float_t w[], Int_t nel, 
 	       Float_t dens, Bool_t weight):
    TNamed(name,title),
-   fNEbins(TPartIndex::I()->NEbins()),
+   fNEbins(0),
+   fNTotXL(0),
+   fNRelXS(0),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
-   fNElems(nel),
-   fElems(new TEXsec*[fNElems]),
+   fNElems(0),
+   fElems(0),
    fTotXL(0), 
    fRelXS(0),
    fDEdx(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
+
+   fNElems=nel;
+   fElems = new TEXsec*[fNElems];
+   memset(fElems,0,fNElems*sizeof(TEXsec*));
+
    for(Int_t i=0; i<fNElems; ++i) 
       if(z[i]) fElems[i] = TEXsec::GetElement(z[i],0);
       else if(fNElems>1) Fatal("TMXsec","Cannot have vacuum in mixtures");
 
    if(!z[0]) return;
-      
+
+   fNEbins = TPartIndex::I()->NEbins();
    Double_t *ratios = new Double_t[fNElems];
    Double_t *rdedx  = new Double_t[fNElems];
    Double_t hnorm=0;
@@ -70,12 +80,15 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    Int_t npart = TPartIndex::I()->NPartReac();
    // Layout part1 { en<1> { tot<1>, ... , tot<fNElems>}, .....en<nbins> {tot<1>, ..., tot<fNElems>}}
    
-   if(fNElems>1) 
-      fRelXS = new Float_t[npart*fNEbins*fNElems];
-   fTotXL = new Float_t[npart*fNEbins];
-   memset(fTotXL,0,npart*fNEbins*sizeof(Float_t));
-   fDEdx = new Float_t[npart*fNEbins];
-   memset(fDEdx,0,npart*fNEbins*sizeof(Float_t));
+   if(fNElems>1) {
+      fNRelXS = npart*fNEbins*fNElems;
+      fRelXS = new Float_t[fNRelXS];
+   }
+   fNTotXL = npart*fNEbins;
+   fTotXL = new Float_t[fNTotXL];
+   memset(fTotXL,0,fNTotXL*sizeof(Float_t));
+   fDEdx = new Float_t[fNTotXL];
+   memset(fDEdx,0,fNTotXL*sizeof(Float_t));
 
    for(Int_t ip=0; ip<npart; ++ip) {
       Int_t ibase = ip*(fNEbins*fNElems);
@@ -100,7 +113,6 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    // cleaning up
    delete [] ratios;
    delete [] rdedx;
-   delete [] fDEdx; 
 }
 
 //____________________________________________________________________________

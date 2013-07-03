@@ -40,14 +40,16 @@ public:
 
 private:
    Int_t           fNEbins;        // number of energy bins
+   Int_t           fNTotXL;        // dimension of fTotXL
+   Int_t           fNRelXS;        // dimension of fRelXS
    Double_t        fEilDelta;      // logarithmic energy delta
-   const Double_t *fEGrid;         // Energy grid
+   const Double_t *fEGrid;         //! Energy grid
 
    Int_t         fNElems;  // Number of elements
-   TEXsec      **fElems; // [fNElems] List of elements composing this material
-   Float_t      *fTotXL;   // Total x-sec for this material
-   Float_t      *fRelXS;   // Relative x-sec for this material
-   Float_t      *fDEdx;    // Ionisation energy loss for this material
+   TEXsec      **fElems;   // [fNElems] List of elements composing this material
+   Float_t      *fTotXL;   // [fNTotXL] Total x-sec for this material
+   Float_t      *fRelXS;   // [fNRelXS] Relative x-sec for this material
+   Float_t      *fDEdx;    // [fNTotXL] Ionisation energy loss for this material
 
    ClassDef(TMXsec,1)  //Material X-secs
 
