@@ -14,6 +14,7 @@ TPXsec::TPXsec():
    fNCbins(0),
    fNXsec(0),
    fNTotXs(0),
+   fNXSecs(0),
    fEmin(TPartIndex::I()->Emin()),
    fEmax(TPartIndex::I()->Emax()),
    fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
@@ -32,12 +33,13 @@ TPXsec::TPXsec():
 }
 
 //_________________________________________________________________________
-TPXsec::TPXsec(Int_t pdg, Int_t nen, Int_t nxsec):
+TPXsec::TPXsec(Int_t pdg, Int_t nxsec):
    fPDG(pdg),
-   fNEbins(nen),
+   fNEbins(TPartIndex::I()->NEbins()),
    fNCbins(0),
    fNXsec(nxsec),
    fNTotXs(fNEbins*fNXsec),
+   fNXSecs(fNEbins),
    fEmin(TPartIndex::I()->Emin()),
    fEmax(TPartIndex::I()->Emax()),
    fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
@@ -88,6 +90,29 @@ void TPXsec::Interp(Double_t egrid[], Float_t value[], Int_t nbins,
 }
 
 //___________________________________________________________________
+Bool_t TPXsec::Prune()
+{
+   // 
+   // Dangerous business... delete unwanted cross-sections
+   //
+   delete [] fTotXs;
+   fTotXs=0;
+   fNXSecs = 0;
+   delete [] fMSangle;
+   fMSangle=0;
+   delete [] fMSansig;
+   fMSansig=0;
+   delete [] fMSlength;
+   fMSlength=0;
+   delete [] fMSlensig;
+   fMSlensig=0;
+   delete [] fdEdx;
+   fdEdx=0;
+   fNCbins = 0;
+   return kTRUE;
+}
+
+//___________________________________________________________________
 Bool_t TPXsec::Resample() {
    if(fVerbose) printf("Resampling %s from \nemin = %8.2g emacs = %8.2g, nbins = %d to \n"
 		       "emin = %8.2g emacs = %8.2g, nbins = %d\n",Name(),fEmin,fEmax,
@@ -102,7 +127,7 @@ Bool_t TPXsec::Resample() {
    }
    // Build new arrays
    Int_t oNEbins = fNEbins;
-   fNEbins = TPartIndex::I()->NEbins();
+   fNXSecs = fNEbins = TPartIndex::I()->NEbins();
    if(fNCbins) fNCbins = fNEbins;
    fNTotXs = fNEbins*fNXsec;
    fEmin = TPartIndex::I()->Emin();
@@ -160,6 +185,7 @@ Bool_t TPXsec::Resample() {
 Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
    fPDG = pdg;
    fNEbins = TPartIndex::I()->NEbins();
+   fNXSecs = fNEbins;
    fNXsec = nxsec;
    fNTotXs = fNEbins*fNXsec;
    fEilDelta = TPartIndex::I()->EilDelta();
@@ -295,7 +321,7 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
    if(en1>en || en2<en) {
-      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+      Error("SampleReac","Wrong bin %d in interpolation: should be %f < %f < %f\n",
 	    ibin, en1, en, en2);
       return 0;
    }

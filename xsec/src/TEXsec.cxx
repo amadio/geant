@@ -296,6 +296,14 @@ TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
 }
 
 //___________________________________________________________________
+Bool_t TEXsec::Prune()
+{
+   for(Int_t ip=0; ip<fNRpart; ++ip)
+      fPXsec[ip].Prune();
+   return kTRUE;
+}
+
+//___________________________________________________________________
 Bool_t TEXsec::Resample()
 {
    for(Int_t ip=0; ip<fNRpart; ++ip)
@@ -418,7 +426,7 @@ void TEXsec::Draw(Option_t *option)
 	 if(TString(reac).BeginsWith("MSangle")) snprintf(ytitle,49,"Radians");
 	 else snprintf(ytitle,49,"Relative Step Correction");
       } else if(!strcmp(reac,"dEdx")) {
-	 snprintf(ytitle,49,"MeV/cm");
+	 snprintf(ytitle,49,"GeV/cm");
 	 tg = DEdxGraph(part, emin, emax, nbin);
 	 snprintf(title,199,"%s dEdx on %s",part,GetTitle());
 	 tg->SetName(title);

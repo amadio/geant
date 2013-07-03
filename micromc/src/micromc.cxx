@@ -85,7 +85,10 @@ Int_t main (int argc, char *argv[]) {
       delete [] w;
    }
 
+   TMXsec::Prune();
+
    TFile *fmxs = new TFile("mxs.root","recreate");
+   fmxs->SetCompressionLevel(0);
    matXS->Write();
    fmxs->Close();
    

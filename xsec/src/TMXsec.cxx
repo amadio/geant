@@ -10,14 +10,31 @@ TMXsec::TMXsec():
    fNEbins(0),
    fNTotXL(0),
    fNRelXS(0),
+   fNCharge(0),
    fEilDelta(0),
    fEGrid(0),
    fNElems(0),
    fElems(0),
    fTotXL(0), 
    fRelXS(0),
+   fMSangle(0),
+   fMSansig(0),
+   fMSlength(0),
+   fMSlensig(0),
    fDEdx(0)
 {
+}
+
+//____________________________________________________________________________
+TMXsec::~TMXsec() {
+   delete [] fElems;
+   delete [] fTotXL; 
+   delete [] fRelXS;
+   delete [] fMSangle;
+   delete [] fMSansig;
+   delete [] fMSlength;
+   delete [] fMSlensig;
+   delete [] fDEdx;
 }
 
 //____________________________________________________________________________
@@ -28,12 +45,17 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    fNEbins(0),
    fNTotXL(0),
    fNRelXS(0),
+   fNCharge(0),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
    fNElems(0),
    fElems(0),
    fTotXL(0), 
    fRelXS(0),
+   fMSangle(0),
+   fMSansig(0),
+   fMSlength(0),
+   fMSlensig(0),
    fDEdx(0)
 {
    // Create a mixture material, we support only natural materials for the moment
@@ -79,6 +101,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 
    Int_t totindex = TPartIndex::I()->ProcIndex("Total");
    Int_t npart = TPartIndex::I()->NPartReac();
+   Int_t ncharge = TPartIndex::I()->NPartCharge();
    // Layout part1 { en<1> { tot<1>, ... , tot<fNElems>}, .....en<nbins> {tot<1>, ..., tot<fNElems>}}
    
    if(fNElems>1) {
@@ -88,8 +111,17 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    fNTotXL = npart*fNEbins;
    fTotXL = new Float_t[fNTotXL];
    memset(fTotXL,0,fNTotXL*sizeof(Float_t));
-   fDEdx = new Float_t[fNTotXL];
-   memset(fDEdx,0,fNTotXL*sizeof(Float_t));
+   fNCharge = ncharge*fNEbins;
+   fMSangle = new Float_t[fNCharge];
+   fMSansig = new Float_t[fNCharge];
+   fMSlength = new Float_t[fNCharge];
+   fMSlensig = new Float_t[fNCharge];
+   fDEdx = new Float_t[fNCharge];
+   memset(fMSangle,0,fNCharge*sizeof(Float_t));
+   memset(fMSansig,0,fNCharge*sizeof(Float_t));
+   memset(fMSlength,0,fNCharge*sizeof(Float_t));
+   memset(fMSlensig,0,fNCharge*sizeof(Float_t));
+   memset(fDEdx,0,fNCharge*sizeof(Float_t));
 
    for(Int_t ip=0; ip<npart; ++ip) {
       Int_t ibase = ip*(fNEbins*fNElems);
@@ -99,11 +131,9 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	    for(Int_t iel=0; iel<fNElems; ++iel) {
 	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
 	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
-	       fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
 	    }
 	 } else {
 	    fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
-	    fDEdx[ip*fNEbins+ie] = fElems[0]->DEdx(ip,fEGrid[ie])*rdedx[0];
 	 }
 	 if(fTotXL[ip*fNEbins+ie]) {
 	    fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
@@ -111,9 +141,35 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 }
       }
    }
+   for(Int_t ip=0; ip<ncharge; ++ip) {
+      Float_t ang;
+      Float_t asig;
+      Float_t len;
+      Float_t lsig;
+      Int_t ibase = ip*(fNEbins*fNElems);
+      for(Int_t ie=0; ie<fNEbins; ++ie) {
+	 Int_t ibin = ibase + ie*fNElems;
+	 for(Int_t iel=0; iel<fNElems; ++iel) {
+	    fElems[iel]->MS(ip,fEGrid[ie],ang,asig,len,lsig);
+	    fMSangle[ip*fNEbins+ie]+=ang*rdedx[iel];
+	    fMSansig[ip*fNEbins+ie]+=asig*rdedx[iel];
+	    fMSlength[ip*fNEbins+ie]+=len*rdedx[iel];
+	    fMSlensig[ip*fNEbins+ie]+=lsig*rdedx[iel];
+	    fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
+	 }
+      }
+   }
    // cleaning up
    delete [] ratios;
    delete [] rdedx;
+}
+
+
+//____________________________________________________________________________
+Bool_t TMXsec::Prune() {
+   // Prune elements
+   for(Int_t iel=0; iel<TEXsec::NLdElems(); ++iel) TEXsec::Element(iel)->Prune();
+   return kTRUE;
 }
 
 //____________________________________________________________________________
@@ -141,7 +197,7 @@ Float_t TMXsec::Xlength(Int_t part, Float_t en) {
 
 //____________________________________________________________________________
 Float_t TMXsec::DEdx(Int_t part, Float_t en) {
-   if(part>=TPartIndex::I()->NPartReac() || !fDEdx) 
+   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx) 
       return 0;
    else {
       en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;

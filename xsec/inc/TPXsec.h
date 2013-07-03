@@ -29,7 +29,7 @@
 class TPXsec: public TObject {
 public:
    TPXsec();
-   TPXsec(Int_t pdg, Int_t nen, Int_t nxsec);
+   TPXsec(Int_t pdg, Int_t nxsec);
    ~TPXsec();
    void Print(Option_t *opt="") const;
    const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
@@ -44,6 +44,7 @@ public:
    Bool_t MS(Double_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;
    Bool_t Resample();
+   Bool_t Prune();
    Int_t SampleReac(Double_t en) const;
    void Dump() const;
    void Interp(Double_t egrid[], Float_t value[], Int_t nbins, 
@@ -58,7 +59,8 @@ private:
    Int_t           fNEbins;        // number of energy bins
    Int_t           fNCbins;        // number of energy bins for dEdx and MS
    Int_t           fNXsec;         // number of reactions
-   Int_t           fNTotXs;        // tot size of fXSecs
+   Int_t           fNTotXs;        // tot size of fTotXs
+   Int_t           fNXSecs;        // tot size of fXSecs
    Double_t        fEmin;          // Min energy of the energy grid
    Double_t        fEmax;          // Max energy of the energy grid
    Double_t        fEilDelta;      // logarithmic energy delta
@@ -68,8 +70,8 @@ private:
    Float_t        *fMSlength;      // [fNCbins] table of MS average lenght correction
    Float_t        *fMSlensig;      // [fNCbins] table of MS sigma lenght correction
    Float_t        *fdEdx;          // [fNCbins] table of dE/dx
-   Float_t        *fTotXs;         // [fNEbins] table of total x-sec
-   Float_t        *fXSecs;         // [fNTotXs] table of partial x-sec
+   Float_t        *fTotXs;         // [fNTotXs] table of total x-sec
+   Float_t        *fXSecs;         // [fNXSecs] table of partial x-sec
    Int_t           fRdict[FNPROC]; // reaction dictionary from reaction number to position
                                   // in the X-sec array
    Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
