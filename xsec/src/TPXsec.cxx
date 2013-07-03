@@ -25,8 +25,7 @@ TPXsec::TPXsec():
    fMSlensig(0),
    fdEdx(0),
    fTotXs(0),
-   fXSecs(0),
-   fPartIndex(TPartIndex::I())
+   fXSecs(0)
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
@@ -38,8 +37,8 @@ TPXsec::TPXsec(Int_t pdg, Int_t nxsec):
    fNEbins(TPartIndex::I()->NEbins()),
    fNCbins(0),
    fNXsec(nxsec),
-   fNTotXs(fNEbins*fNXsec),
-   fNXSecs(fNEbins),
+   fNTotXs(fNEbins),
+   fNXSecs(fNEbins*fNXsec),
    fEmin(TPartIndex::I()->Emin()),
    fEmax(TPartIndex::I()->Emax()),
    fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
@@ -50,8 +49,7 @@ TPXsec::TPXsec(Int_t pdg, Int_t nxsec):
    fMSlensig(0),
    fdEdx(0),
    fTotXs(0),
-   fXSecs(0),
-   fPartIndex(TPartIndex::I())
+   fXSecs(0)
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
@@ -97,7 +95,7 @@ Bool_t TPXsec::Prune()
    //
    delete [] fTotXs;
    fTotXs=0;
-   fNXSecs = 0;
+   fNTotXs = 0;
    delete [] fMSangle;
    fMSangle=0;
    delete [] fMSansig;
@@ -127,15 +125,15 @@ Bool_t TPXsec::Resample() {
    }
    // Build new arrays
    Int_t oNEbins = fNEbins;
-   fNXSecs = fNEbins = TPartIndex::I()->NEbins();
+   fNTotXs = fNEbins = TPartIndex::I()->NEbins();
    if(fNCbins) fNCbins = fNEbins;
-   fNTotXs = fNEbins*fNXsec;
+   fNXSecs = fNEbins*fNXsec;
    fEmin = TPartIndex::I()->Emin();
    fEmax = TPartIndex::I()->Emax();
    Double_t oEilDelta = fEilDelta;
    fEilDelta = TPartIndex::I()->EilDelta();
    fEGrid = TPartIndex::I()->EGrid();
-   Float_t *lXSecs = new Float_t[fNTotXs];
+   Float_t *lXSecs = new Float_t[fNXSecs];
    Float_t *lTotXs = new Float_t[fNEbins];
    // Total x-secs and partial channels
    for(Int_t ien=0; ien<fNEbins; ++ien) {
@@ -185,9 +183,9 @@ Bool_t TPXsec::Resample() {
 Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
    fPDG = pdg;
    fNEbins = TPartIndex::I()->NEbins();
-   fNXSecs = fNEbins;
+   fNTotXs = fNEbins;
    fNXsec = nxsec;
-   fNTotXs = fNEbins*fNXsec;
+   fNXSecs = fNEbins*fNXsec;
    fEilDelta = TPartIndex::I()->EilDelta();
    return kTRUE;
 }
@@ -195,7 +193,7 @@ Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
 //___________________________________________________________________
 Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Int_t dict[]) {
    delete [] fXSecs;
-   fXSecs = new Float_t[fNXsec*fNEbins];
+   fXSecs = new Float_t[fNXSecs];
    for(Int_t jxsec=0; jxsec<fNXsec; ++jxsec)
       for(Int_t jbin=0; jbin<fNEbins; ++jbin)
 	 fXSecs[jbin*fNXsec+jxsec] = xsec[jxsec*fNEbins+jbin];
@@ -210,7 +208,7 @@ Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Int_t dict[]) {
 	 Fatal("SetPartXS","Dictionary mismatch for!");
 
    delete [] fTotXs;
-   fTotXs = new Float_t[fNEbins];
+   fTotXs = new Float_t[fNTotXs];
    for(Int_t i=0; i<fNEbins; ++i) {
       fTotXs[i]=0;
       for(Int_t j=0; j<fNXsec; ++j) fTotXs[i]+=fXSecs[i*fNXsec+j];

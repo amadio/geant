@@ -77,8 +77,6 @@ private:
    Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
                                   // array to the raction number
 
-   TPartIndex     *fPartIndex;    //! pointer to TPartIndex
-
    ClassDef(TPXsec,1)  //Particle X-secs
 };
 
