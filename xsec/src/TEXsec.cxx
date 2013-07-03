@@ -296,6 +296,14 @@ TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
 }
 
 //___________________________________________________________________
+Bool_t TEXsec::Prune()
+{
+   for(Int_t ip=0; ip<fNRpart; ++ip)
+      fPXsec[ip].Prune();
+   return kTRUE;
+}
+
+//___________________________________________________________________
 Bool_t TEXsec::Resample()
 {
    for(Int_t ip=0; ip<fNRpart; ++ip)

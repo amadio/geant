@@ -78,6 +78,12 @@ public:
    void Draw(Option_t *option);
    Bool_t Resample();
 
+   Bool_t Prune();
+
+   static Int_t NLdElems() {return fNLdElems;}
+   static TEXsec *Element(Int_t i) {
+      if(i<0 || i>=fNLdElems) return 0; return fElements[i];}
+
    static TEXsec *GetElement(Int_t z, Int_t a=0, TFile *f=0);
 
 private:
