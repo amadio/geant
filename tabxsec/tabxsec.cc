@@ -391,7 +391,6 @@ int main(int argc,char** argv)
     
     size_t numOfCouples = theCoupleTable->GetTableSize();
 
-
     // loop over all materials
     const G4ThreeVector  dirz(0,0,1);
     G4double totsize = 0;
@@ -501,7 +500,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-			 //			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
@@ -704,7 +703,7 @@ int main(int argc,char** argv)
 	     if(partindex >= TPartIndex::I()->NPartReac()) {
 		printf("Error, particle %s PDG %d with reaction %d > %d\n",
 		       (const char *)particle->GetParticleName(),
-		       pdpdg[i]->PdgCode(),
+		       particle->GetPDGEncoding(),
 		       partindex,TPartIndex::I()->NPartReac());
 		exit(1);
 	     }

@@ -16,6 +16,7 @@ TPartIndex* TPartIndex::fgPartIndex=0;
 
 //___________________________________________________________________
 TPartIndex::TPartIndex():
+   TNamed("PartIndex","Translation tables"),
    fNPart(0),
    fPDG(0),
    fNpReac(0),

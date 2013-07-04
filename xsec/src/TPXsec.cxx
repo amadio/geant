@@ -76,7 +76,7 @@ void TPXsec::Streamer(TBuffer &R__b)
       R__b.ReadClassBuffer(TPXsec::Class(),this);
       // add the energy grid
       if(!TPartIndex::I()->EGrid()) {
-	 gFile->Get("TPartIndex");
+	 gFile->Get("PartIndex");
       }
       fEGrid = TPartIndex::I()->EGrid();
    } else {

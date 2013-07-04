@@ -35,7 +35,7 @@ enum G5proc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
 	     kKiller, kTotal};
 
 
-class TPartIndex: public TObject {
+class TPartIndex: public TNamed {
 
 public:
    static TPartIndex *I() {if(!fgPartIndex) fgPartIndex=new TPartIndex();
