@@ -44,7 +44,7 @@ Int_t main (int argc, char *argv[]) {
    // loop materials
 
    TFile *f = new TFile("xsec.root");
-   TPartIndex *tp = (TPartIndex *) f->Get("PartIndex");
+   TPartIndex *tp = (TPartIndex *) f->Get("TPartIndex");
    TPXsec::SetVerbose(1);
    TPartIndex::I()->SetEnergyGrid(1e-3,1e3,100);
    TList *matlist = (TList*) geom->GetListOfMaterials();

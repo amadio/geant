@@ -15,9 +15,9 @@ TPXsec::TPXsec():
    fNXsec(0),
    fNTotXs(0),
    fNXSecs(0),
-   fEmin(TPartIndex::I()->Emin()),
-   fEmax(TPartIndex::I()->Emax()),
-   fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
+   fEmin(0),
+   fEmax(0),
+   fEilDelta(0),
    fEGrid(TPartIndex::I()->EGrid()),
    fMSangle(0),
    fMSansig(0),
@@ -65,6 +65,23 @@ TPXsec::~TPXsec()
    delete [] fdEdx;
    delete [] fTotXs;
    delete [] fXSecs;
+}
+
+//______________________________________________________________________________
+void TPXsec::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class TPXsec.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(TPXsec::Class(),this);
+      // add the energy grid
+      if(!TPartIndex::I()->EGrid()) {
+	 gFile->Get("TPartIndex");
+      }
+      fEGrid = TPartIndex::I()->EGrid();
+   } else {
+      R__b.WriteClassBuffer(TPXsec::Class(),this);
+   }
 }
 
 //_________________________________________________________________________
@@ -183,9 +200,12 @@ Bool_t TPXsec::Resample() {
 Bool_t TPXsec::SetPart(Int_t pdg, Int_t nxsec) {
    fPDG = pdg;
    fNEbins = TPartIndex::I()->NEbins();
-   fNTotXs = fNEbins;
    fNXsec = nxsec;
+   fNTotXs = fNEbins;
    fNXSecs = fNEbins*fNXsec;
+   fEmin = TPartIndex::I()->Emin();
+   fEmax = TPartIndex::I()->Emax();
+   fEGrid = TPartIndex::I()->EGrid();
    fEilDelta = TPartIndex::I()->EilDelta();
    return kTRUE;
 }
@@ -338,6 +358,7 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
 
 //_________________________________________________________________________
 Float_t TPXsec::XS(Int_t rindex, Double_t en) const {
+   //   printf("fEGrid %p\n",fEGrid);
    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
    en=en>fEGrid[0]?en:fEGrid[0];
    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;

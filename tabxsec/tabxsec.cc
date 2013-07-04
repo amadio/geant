@@ -501,7 +501,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 //			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
@@ -722,9 +722,9 @@ int main(int argc,char** argv)
        }
        allElements->Add(mxsec);
     } // end of material loop
-    //    allElements->Add(TPartIndex::I());
+    allElements->Add(TPartIndex::I());
     allElements->Write();
-    TPartIndex::I()->Write("PartIndex");
+    //TPartIndex::I()->Write("PartIndex");
     fh->Write();
     fh->Close();
     totsize += nbins*nmaterials;
