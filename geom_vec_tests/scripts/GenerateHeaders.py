@@ -95,13 +95,13 @@ def EmitDistanceFromOutsideDecl( indentlevel, classname ):
 def EmitCallToDistanceFromOutside( indentlevel, classname ):
     """
     """
-    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistFromOutside( (Double_t *) &point[3*k], (Double_t *) &dist[3*k], 3, step[k] , 0 );"
+    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistFromOutside( (Double_t *) &point[3*k], (Double_t *) &dir[3*k], 3, step[k] , 0 );"
 
 
 def EmitCallToDistanceFromInside( indentlevel, classname ):
     """
     """
-    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistFromInside( (Double_t *) &point[3*k], (Double_t *) &dist[3*k], 3, step[k] , 0 );"
+    print getIndentString( indentlevel ) + "dist[k]= " + classname + "::DistFromInside( (Double_t *) &point[3*k], (Double_t *) &dir[3*k], 3, step[k] , 0 );"
 
 
 
