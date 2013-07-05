@@ -445,7 +445,7 @@ int main(int argc,char** argv)
 	  particle = particleVector[i];
 
 	  G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
-	  printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
+	  // printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
 	  if(partindex<0) {
 	     printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
 		    (const char *)particle->GetParticleName());
