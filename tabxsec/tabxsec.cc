@@ -391,6 +391,15 @@ int main(int argc,char** argv)
     
     size_t numOfCouples = theCoupleTable->GetTableSize();
 
+    // Create our own vector of particles - since the particle table is not const in Geant4
+    std::vector<G4ParticleDefinition*> particleVector;
+    for(G4int i=0; i<np; ++i) {
+       // particleVector[i] = theParticleTable->GetParticle(i);
+       particleVector.push_back( theParticleTable->GetParticle(i) );
+    }
+    printf("Particle Vector has %lu contents.", particleVector.size() ); 
+    if( particleVector.size() == 0 ) { printf("Cannot work without particles."); exit(1); } 
+
     // loop over all materials
     const G4ThreeVector  dirz(0,0,1);
     G4double totsize = 0;
@@ -433,9 +442,10 @@ int main(int argc,char** argv)
        // loop over all particles
        G4int kpreac=0; // number of particles with reaction, should always be the same
        for(G4int i=0; i<np; ++i) {
-	  particle = theParticleTable->GetParticle(i);
+	  particle = particleVector[i];
+
 	  G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
-	  //	  printf("partidnex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
+	  printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
 	  if(partindex<0) {
 	     printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
 		    (const char *)particle->GetParticleName());
