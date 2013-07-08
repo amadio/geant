@@ -1,0 +1,39 @@
+#ifndef RDTSCTOPWATCH_H
+#define RDTSCSTOPWATCH_H
+
+// A "timer" based on CPU cycles which can be read out with the rdtsc instruction
+// this can only be interpreted as time if cpu powermanagement is switched off in the bios
+// as well as turbo-boost and other features
+// to convert to time, please adjust the frequency according to your hardware
+
+
+// as found on wikipedia for a 64bit system:
+static inline unsigned long long rdtsc()
+{
+  unsigned int lo, hi;
+  __asm__ __volatile__ (
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "rdtsc\n"
+      : "=a" (lo), "=d" (hi)
+      :
+      : "%ebx", "%ecx" );
+  return (unsigned long long)hi << 32 | lo;
+}
+
+
+struct RDTSCStopWatch 
+{
+  static const double inversefreq=1./(3.40017e9); // ( for my 3.4 GHz machine )
+  unsigned long long t1;
+  unsigned long long t2;
+  void Start(){ t1= rdtsc(); }
+  void Stop(){  t2= rdtsc(); }
+
+  void HeatUp(){ for(unsigned int i=0;i<5;++i){ Start();Stop(); } }
+
+  unsigned long long GetDeltaTics(){ return t2-t1; }
+  double getDeltaSecs() { return (t2-t1)*inversefreq; }
+};
+
+#endif

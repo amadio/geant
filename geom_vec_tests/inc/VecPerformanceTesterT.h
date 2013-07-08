@@ -117,6 +117,8 @@ void ShapeBenchmarker_v<T>::timeIt()
 template <typename T>
 void ShapeBenchmarker_v<T>::timeSafety_v(double & Tacc, unsigned int vecsize)
 {
+  this->timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*ShapeBenchmarker<T>::MAXSIZE-1.*vecsize);
   while(startindex % 4 !=0) startindex--; // for alignment reasons
@@ -134,6 +136,8 @@ void ShapeBenchmarker_v<T>::timeSafety_v(double & Tacc, unsigned int vecsize)
 template <typename T>
 void ShapeBenchmarker_v<T>::timeContains_v(double & Tacc, unsigned int vecsize)
 {
+  this->timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*ShapeBenchmarker<T>::MAXSIZE-1.*vecsize);
   while(startindex % 4 !=0) startindex--; // for alignment reasons
@@ -148,6 +152,8 @@ void ShapeBenchmarker_v<T>::timeContains_v(double & Tacc, unsigned int vecsize)
 template <typename T>
 void ShapeBenchmarker_v<T>::timeDistanceFromOutside_v(double & Tacc, unsigned int vecsize)
 {
+  this->timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*ShapeBenchmarker<T>::MAXSIZE-1.*vecsize);
   while(startindex % 4 !=0) startindex--; // for alignment reasons
@@ -163,6 +169,8 @@ void ShapeBenchmarker_v<T>::timeDistanceFromOutside_v(double & Tacc, unsigned in
 template <typename T>
 void ShapeBenchmarker_v<T>::timeDistanceFromInside_v(double & Tacc, unsigned int vecsize)
 {
+  this->timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*ShapeBenchmarker<T>::MAXSIZE-1.*vecsize);
   while(startindex % 4 !=0) startindex--; // for alignment reasons  
