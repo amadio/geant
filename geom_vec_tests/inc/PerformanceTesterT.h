@@ -7,7 +7,8 @@
 
 #include "TGeoBBox.h"
 #include <vector>
-#include "tbb/tick_count.h" // timing from Intel TBB 
+#include "TBBStopWatch.h" // timing from Intel TBB 
+#include "RDTSCStopWatch.h" // RDTSC timer
 #include <iostream>
 #include "TRandom.h"
 #include "PointStruct.h" // for the SOA data container
@@ -19,23 +20,13 @@
 
 #define N 14
 
-struct StopWatch 
-{
-  tbb::tick_count t1;
-  tbb::tick_count t2;
-  void Start(){ t1=tbb::tick_count::now(); }
-  void Stop(){ t2=tbb::tick_count::now(); }
-  void Reset(){ /* */ ;}
-  //  void Print(){  std::cerr << (t2 - t1).seconds() << std::endl; }
-  double getDeltaSecs() { return (t2-t1).seconds(); }
-};
-
 
 // T is supposed to be a TGeoShape inherited from TGeoBBox
 template <typename T>
 class ShapeBenchmarker{
  protected:
-  StopWatch timer;
+  // StopWatch timer;
+  RDTSCStopWatch timer;
 
   T * testshape;
   unsigned int vecsizes[14]={1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8182};
@@ -309,6 +300,8 @@ void ShapeBenchmarker<T>::initDataDistanceFromOutside()
 template <typename T>
 void ShapeBenchmarker<T>::timeContains(double & Tacc, unsigned int vecsize)
 {
+  timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*MAXSIZE-1.*vecsize);
   if(vecsize==1)
@@ -335,6 +328,9 @@ void ShapeBenchmarker<T>::timeContains(double & Tacc, unsigned int vecsize)
 template <typename T>
 void ShapeBenchmarker<T>::timeSafety(double & Tacc, unsigned int vecsize)
 {
+  // heat up the timer/caches
+  timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*MAXSIZE-1.*vecsize);
   if(vecsize==1)
@@ -361,6 +357,8 @@ void ShapeBenchmarker<T>::timeSafety(double & Tacc, unsigned int vecsize)
 template <typename T>
 void ShapeBenchmarker<T>::timeDistanceFromInside(double & Tacc, unsigned int vecsize)
 {
+  timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*MAXSIZE-1.*vecsize);
   volatile double distance;
@@ -388,6 +386,8 @@ void ShapeBenchmarker<T>::timeDistanceFromInside(double & Tacc, unsigned int vec
 template <typename T>
 void ShapeBenchmarker<T>::timeDistanceFromOutside(double & Tacc, unsigned int vecsize)
 {
+  timer.HeatUp();
+
   // choose a random start point in vector
   int startindex=gRandom->Rndm()*(1.*MAXSIZE-1.*vecsize);
   if(vecsize==1)
@@ -417,6 +417,7 @@ void ShapeBenchmarker<T>::timeIt( )
   initDataSafety();
   initDataDistanceFromInside();
   initDataDistanceFromOutside();
+
 
   // to avoid measuring the same function over and over again we interleave calls to different functions and different data
   for(unsigned int rep=0; rep< NREPS; rep++)
