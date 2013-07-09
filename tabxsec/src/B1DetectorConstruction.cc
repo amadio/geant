@@ -43,6 +43,7 @@
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4ProductionCuts.hh"
 
 using namespace CLHEP;
 
@@ -103,6 +104,8 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
   // Now the balls!
   //
 
+  G4ProductionCuts pcuts;
+  pcuts.SetProductionCut(0.7);
   B1SteppingAction* steppingAction = B1SteppingAction::Instance(); 
   for(G4int i=0; i<nmaterials; ++i) {
      G4Material *mat = nist->FindOrBuildMaterial(materialVec[i]);
@@ -115,7 +118,12 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
 	new G4LogicalVolume(solidSphere,            //its solid
 			    mat,                    //its material
 			    materialVec[i]);           //its name
-  
+
+     G4Region *region = 
+	new G4Region(materialVec[i]);
+     region->AddRootLogicalVolume(logicSphere);
+     region->SetProductionCuts(new G4ProductionCuts(pcuts));
+
      G4double xplace = kLattice-kRadius+(i%nballs)*kLattice-0.5*world_sizeXY;
      G4double yplace = kLattice-kRadius+(i/nballs)*kLattice-0.5*world_sizeXY;
      //     printf("%f %f\n",xplace,yplace);

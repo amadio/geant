@@ -132,8 +132,6 @@ int SampleDiscreteInteractions(
      << "  sigmaE= " << sigmae
      << "     #####" << endl;
 
-    static const G4int pdg389 =  G4ParticleTable::GetParticleTable()->GetParticle(389)->GetPDGEncoding();
-
     // -------- Projectile
     const G4ThreeVector &aPosition = *pos;
     G4ThreeVector aDirection      = G4ThreeVector(0.0,0.0,1.0);
@@ -246,19 +244,9 @@ int SampleDiscreteInteractions(
       labv = G4LorentzVector(0., 0., sqrt(e0*(e0 + 2.0*mass)), 
 			     e0 + mass + amass);
 
-    if(pdg389 !=  G4ParticleTable::GetParticleTable()->GetParticle(389)->GetPDGEncoding()) {
-       printf("Message 1: Particle 389 changed from %d to %d\n",pdg389,
-	      G4ParticleTable::GetParticleTable()->GetParticle(389)->GetPDGEncoding());
-       exit(1);
-    }
       aChange = proc->PostStepDoIt(*gTrack,*step); 
       // ** Cause Discrete Interaction **
 
-    if(pdg389 !=  G4ParticleTable::GetParticleTable()->GetParticle(389)->GetPDGEncoding()) {
-       printf("Message 2: Particle 389 changed from %d to %d\n",pdg389,
-	      G4ParticleTable::GetParticleTable()->GetParticle(389)->GetPDGEncoding());
-       exit(1);
-    }
       G4int n = aChange->GetNumberOfSecondaries();
 
       G4int nbar = 0;

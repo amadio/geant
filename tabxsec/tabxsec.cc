@@ -52,6 +52,11 @@
 #include "G4VMscModel.hh"
 #include "G4Step.hh"
 #include "G4TransportationManager.hh"
+#include "G4RToEConvForGamma.hh"
+#include "G4RToEConvForElectron.hh"
+#include "G4RToEConvForPositron.hh"
+#include "G4RToEConvForProton.hh"
+#include "G4RegionStore.hh"
 
 #include "G4Proton.hh"
 
@@ -193,7 +198,7 @@ int main(int argc,char** argv)
       particle = theParticleIterator->value(); 
     */
 
-    runManager->BeamOn( 1 );
+    //    runManager->BeamOn( 0 );
     
     //
     // Let's build the material table
@@ -385,6 +390,54 @@ int main(int argc,char** argv)
        fclose(fout);
     }
 
+    
+    G4VRangeToEnergyConverter *converter[4];
+    converter[0] = new G4RToEConvForGamma();
+    converter[1] = new G4RToEConvForElectron();
+    converter[2] = new G4RToEConvForPositron();
+    converter[3] = new G4RToEConvForProton();
+    
+    // protect scope to avoid changing all
+    
+    G4RegionStore *theRegionStore = (G4RegionStore*) G4RegionStore::GetInstance();
+    
+    G4int nRegions = theRegionStore->size();
+    printf("We found %d regions\n",nRegions);
+    
+    for(G4int imat=0; imat<nmaterials; ++imat) {
+       G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
+       G4Region *reg = theRegionStore->GetRegion(materialVec[imat]);
+       
+       /*
+	 G4ProductionCuts* pcuts = reg->GetProductionCuts();
+	 const char* parcuts[4]={"gamma","e-","e+","proton"};
+	 printf("Production Cuts (cm) : ");
+	 for(G4int ic=0; ic<4; ++ic) printf("%s=%12.2g  ",parcuts[ic],pcuts->GetProductionCut(ic)/cm);
+	 printf("\n");
+	 printf("Production Cuts (GeV): ");
+	 for(G4int ic=0; ic<4; ++ic)
+	 printf("%s=%12.2g  ",parcuts[ic],converter[ic]->Convert(pcuts->GetProductionCuts()[ic],mat)/GeV);
+	 printf("\n");
+       */
+       // Now set cuts to specified value
+       
+       const G4double ethresh = 1*keV;
+       for(G4int ic=0; ic<4; ++ic) {
+	  //	  G4double cut = reg->GetProductionCuts()->GetProductionCut(ic);
+	  G4double lmin = 1*nm;
+	  G4double lmax = 10*km;
+	  while(std::abs(lmin-lmax)>0.5*(lmin+lmax)*1e-10) {
+	     G4double lmid = 0.5*(lmin+lmax);
+	     if(converter[ic]->Convert(lmid,mat) > ethresh) lmax=lmid;
+	     else lmin = lmid;
+	  }
+	  reg->GetProductionCuts()->SetProductionCut(0.5*(lmin+lmax),ic);
+       }
+    }
+    
+  
+    runManager->BeamOn( 0 );
+    
     // Now we find the crosss secions
     G4ProductionCutsTable* theCoupleTable =
        G4ProductionCutsTable::GetProductionCutsTable();
@@ -428,14 +481,38 @@ int main(int argc,char** argv)
 
        // get the couple table for em processes
        const G4MaterialCutsCouple* couple = 0;
+       const G4MaterialCutsCouple* ctmp = 0;
+
        for (size_t i=0; i<numOfCouples; i++) {
-	  couple = theCoupleTable->GetMaterialCutsCouple(i);
-	  if (couple->GetMaterial() == mat) break;
-       }
-       if(couple == 0) { 
-          G4cerr << "ERROR> Not found couple for material " << mat->GetName() << G4endl;
+	  ctmp = theCoupleTable->GetMaterialCutsCouple(i);
+	  if (ctmp->GetMaterial() == mat) {
+	     // this is just a sanity check
+	     if(couple) {
+		printf("Found second couple for %s]n",
+		       (const char*) mat->GetName());
+		exit(1);
+	     }
+	     couple = ctmp;
+//	     break;
+	  }
        }
 
+       if(couple == 0) { 
+          G4cerr << "ERROR> Not found couple for material " << mat->GetName() << G4endl;
+	  exit(1);
+       }
+
+       // Print production cuts for this material (is already done by G4, but just to see whether we understand them)
+
+       G4ProductionCuts *pcuts = couple->GetProductionCuts();
+       const char* parcuts[4]={"gamma","e-","e+","proton"};
+       printf("Production Cuts (cm) : ");
+       for(G4int ic=0; ic<4; ++ic) printf("%s=%12.2g  ",parcuts[ic],pcuts->GetProductionCuts()[ic]/cm);
+       printf("\n");
+       printf("Production Cuts (GeV): ");
+       for(G4int ic=0; ic<4; ++ic) printf("%s=%12.2g  ",parcuts[ic],(*G4ProductionCutsTable::GetProductionCutsTable()->GetEnergyCutsVector(ic))[couple->GetIndex()]/GeV);
+       printf("\n");
+       
        //       G4DynamicParticle dynParticle(particle, G4ThreeVector(1,0,0), 100*MeV);
        //G4Track aTrack( &dynParticle, 0.0, G4ThreeVector(0,0,0));
 
@@ -510,7 +587,7 @@ int main(int argc,char** argv)
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 //			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
