@@ -588,12 +588,11 @@ int main(int argc,char** argv)
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
                       if( particle == G4Proton::Proton() )
                       {
-                         G4double sigmae= 0.25*delta;
                          G4double stepSize= 10.0*millimeter;
                          G4int    nevt= 10;
                          G4int    verbose=1;
 
-			 //			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 SampDisInt(matt, pos, dp, ph, stepSize, nevt, verbose);
                       }
 		      en*=delta;
 		      delete dp;
