@@ -70,8 +70,9 @@ G4VPhysicalVolume* B1DetectorConstruction::Construct()
   G4bool checkOverlaps = false; // true;
   // Envelope parameters
   //
-  const G4double kLattice = 15*cm;
-  const G4double kRadius = 5*cm;
+  const G4double kScale=1*cm;
+  const G4double kRadius = kScale;
+  const G4double kLattice = 2.2*kRadius;
   const G4int nballs = 10;
   G4double world_sizeXY = kLattice*(nballs-1)+2*(kLattice-kRadius);
   G4double world_sizeZ = 2*(kLattice-kRadius);

@@ -436,22 +436,22 @@ int main(int argc,char** argv)
     }
     
   
-    runManager->BeamOn( 0 );
-    
-    // Now we find the crosss secions
-    G4ProductionCutsTable* theCoupleTable =
-       G4ProductionCutsTable::GetProductionCutsTable();
-    
-    size_t numOfCouples = theCoupleTable->GetTableSize();
-
     // Create our own vector of particles - since the particle table is not const in Geant4
     std::vector<G4ParticleDefinition*> particleVector;
     for(G4int i=0; i<np; ++i) {
        // particleVector[i] = theParticleTable->GetParticle(i);
        particleVector.push_back( theParticleTable->GetParticle(i) );
     }
-    printf("Particle Vector has %lu contents.", particleVector.size() ); 
+    printf("Particle Vector has %lu contents.\n", particleVector.size() ); 
     if( particleVector.size() == 0 ) { printf("Cannot work without particles."); exit(1); } 
+
+    runManager->BeamOn( 1 );
+    
+    // Now we find the crosss secions
+    G4ProductionCutsTable* theCoupleTable =
+       G4ProductionCutsTable::GetProductionCutsTable();
+    
+    size_t numOfCouples = theCoupleTable->GetTableSize();
 
     // loop over all materials
     const G4ThreeVector  dirz(0,0,1);
@@ -646,14 +646,8 @@ int main(int argc,char** argv)
 		      G4double en=emin;
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 //			 if(hist) h->Fill(TMath::Log10(en),ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn);
 			 en*=delta;
 		      }
-		      
-		      /*		      if(hist) {
-			 h->Write();
-			 hist=kFALSE;
-			 }*/
 		      
 		      if(pcode != ptEm->GetProcessType()*1000+ptEm->GetProcessSubType()) {
 			 printf("Error: process code mismatch 3\n");
