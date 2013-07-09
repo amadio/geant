@@ -86,8 +86,7 @@ TEXsec::TEXsec():
    fEilDelta(0),
    fEGrid(TPartIndex::I()->EGrid()),
    fNRpart(0),
-   fPXsec(0),
-   fCuts(0)
+   fPXsec(0)
 {
 }
 
@@ -103,16 +102,14 @@ TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np):
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
    fNRpart(np),
-   fPXsec(new TPXsec[fNRpart]),
-   fCuts(new Double_t[fNRpart])
+   fPXsec(new TPXsec[fNRpart])
 {
-   memset(fCuts,0,fNRpart*sizeof(Double_t));
+   memset(fCuts,0,4*sizeof(Float_t));
 }
 
 //___________________________________________________________________
 TEXsec::~TEXsec() {
    delete [] fPXsec;
-   delete [] fCuts;
 }
 
 //___________________________________________________________________

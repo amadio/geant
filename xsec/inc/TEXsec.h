@@ -32,8 +32,10 @@ class TPartIndex;
 #define NELEM 118         // Total number of materials
 
 class TEXsec : public TNamed {
-
 public:
+
+   enum {kCutGamma, kCutElectron, kCutPositron, kCutProton};
+
    TEXsec();
    TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np);
    ~TEXsec();
@@ -72,7 +74,9 @@ public:
       return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;
    }
 
-   const Double_t *Cuts() const {return fCuts;}
+   const Float_t *Cuts() const {return fCuts;}
+   Bool_t SetCuts(const Double_t cuts[4]) {
+      for(Int_t jc=0; jc<4; ++jc) fCuts[jc]=cuts[jc];}
 
    void DumpPointers() const;
    void Draw(Option_t *option);
@@ -102,7 +106,7 @@ private:
    const Double_t *fEGrid;  //! Common energy grid
    Int_t          fNRpart;  // Number of particles with reaction
    TPXsec        *fPXsec;   // [fNRpart] Cross section table per particle
-   Double_t      *fCuts;    // [fNRpart] Just a placeholder for the moment
+   Float_t        fCuts[4]; // Production cuts "a la G4"
 
    static Int_t   fNLdElems; //! number of loaded elements
    static TEXsec *fElements[NELEM]; //! databases of elements
