@@ -5,5 +5,5 @@
 /control/verbose 2
 /control/saveHistory
 /run/verbose 2
-/run/beamOn 0
+#/run/beamOn 0
 
