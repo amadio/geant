@@ -99,6 +99,44 @@ void TGeoBBox_v::DistFromOutsideS_v4( Vc::double_v const & x , Vc::double_v cons
    return;
 }
 
+// VC implementation of Contains function
+void TGeoBBox_v::Contains_v(const StructOfCoord & pointi, Bool_t * isin, Int_t np) const
+{
+   vd vcorigin[3]={fOrigin[0],fOrigin[1],fOrigin[2]};
+   vd vfDX(fDX);
+   vd vfDY(fDY);
+   vd vfDZ(fDZ);
+
+   int tailsize =np % Vc::double_v::Size; 
+   for(unsigned int i = 0; i < np-tailsize; i+= Vc::double_v::Size) 
+    {
+      vd x(&pointi.x[i]); // will copy a certain number of x's into vc vector x;
+      vd y(&pointi.y[i]); 
+      vd z(&pointi.z[i]);
+      vd particleinside(0.); // we initialize it to zero meaning outside 
+      x=Vc::abs(x-vcorigin[0]);
+      y=Vc::abs(y-vcorigin[1]);
+      z=Vc::abs(z-vcorigin[2]);
+      particleinside( (x < vfDZ) & (y < vfDY) & (z<vfDZ) ) = 1.; // we set it to one if inside
+      
+      for(unsigned int j=0; j<Vc::double_v::Size; ++j)
+	{
+	  isin[i+j] = (bool) particleinside[j];
+	}
+   }
+   // do the tail part for the moment, we just call the old static version
+   for(unsigned int i = 0; i < tailsize; ++i)
+     {
+       Double_t xx, yy, zz;
+       xx= pointi.x[np-tailsize+i] - fOrigin[0];
+       yy= pointi.y[np-tailsize+i] - fOrigin[1];
+       zz= pointi.z[np-tailsize+i] - fOrigin[2];
+       isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+     }
+}
+
+
+
 /*
 void testKernel()
 {
