@@ -510,8 +510,14 @@ int main(int argc,char** argv)
        for(G4int ic=0; ic<4; ++ic) printf("%s=%12.2g  ",parcuts[ic],pcuts->GetProductionCuts()[ic]/cm);
        printf("\n");
        printf("Production Cuts (GeV): ");
-       for(G4int ic=0; ic<4; ++ic) printf("%s=%12.2g  ",parcuts[ic],(*G4ProductionCutsTable::GetProductionCutsTable()->GetEnergyCutsVector(ic))[couple->GetIndex()]/GeV);
+       Double_t cuts[4];
+       for(G4int ic=0; ic<4; ++ic) {
+	  cuts[ic] = (*G4ProductionCutsTable::GetProductionCutsTable()->GetEnergyCutsVector(ic))[couple->GetIndex()]/GeV;
+	  printf("%s=%12.2g  ",parcuts[ic],cuts[ic]);
+       }
        printf("\n");
+
+       mxsec->SetCuts(cuts);
        
        //       G4DynamicParticle dynParticle(particle, G4ThreeVector(1,0,0), 100*MeV);
        //G4Track aTrack( &dynParticle, 0.0, G4ThreeVector(0,0,0));
