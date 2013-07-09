@@ -350,6 +350,7 @@ void TGeoBBox_v::Contains_v(const Double_t *__restrict__ pointi, Bool_t *__restr
     }
 }
 
+#ifndef VEC_EXTENSIONS
 void TGeoBBox_v::Contains_v(const StructOfCoord &__restrict__ pointi, Bool_t *__restrict__ isin, Int_t np) const
 {
 // Test if point is inside this shape.
@@ -368,12 +369,13 @@ void TGeoBBox_v::Contains_v(const StructOfCoord &__restrict__ pointi, Bool_t *__
   for(Int_t i=0; i<np; ++i)  //@EXPECTVEC 
     {
       Double_t xx, yy, zz;
-      xx= x[i];
-      yy= y[i];
-      zz= z[i];
+      xx= x[i] - fOrigin[0];
+      yy= y[i] - fOrigin[1];
+      zz= z[i] - fOrigin[2];
       isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
     }
 }
+#endif
 
 
  /*

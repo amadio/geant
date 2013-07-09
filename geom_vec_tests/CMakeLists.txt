@@ -16,7 +16,7 @@ include_directories(${TBB_INCLUDE_DIR})
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources src/TGeoBBox_v.cxx)
+file(GLOB sources src/TGeoBBox_v.cxx src/TGeoPcon_v.cxx)
 file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 
 # for optimization studies, we compile this directory with higher Ox
@@ -56,12 +56,23 @@ if( VECGEOBENCHMARKS )
     file(GLOB benchsource1 src/BenchmarkFramework/BenchTGeoBBox_v.cxx)	
     if( VC_FOUND )
         add_executable(BenchTGeoBBox_v ${benchsource1} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom ${VC_LIBRARIES} ${TBB_LIBRARIES})
+        target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom.so ${VC_LIBRARIES} ${TBB_LIBRARIES})
     else()				      
         add_executable(BenchTGeoBBox_v ${benchsource1} ${headers})
-        target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom)
+        target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom.so)
     endif()
     add_dependencies(BenchTGeoBBox_v VectorizedGeom)
+
+    file(GLOB benchsource2 src/BenchmarkFramework/BenchTGeoPcon_v.cxx)	
+    if( VC_FOUND )
+        add_executable(BenchTGeoPcon_v ${benchsource2} ${headers} ${VC_LIBRARIES})
+        target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom.so ${VC_LIBRARIES} ${TBB_LIBRARIES})
+    else()				      
+        add_executable(BenchTGeoPcon_v ${benchsource2} ${headers})
+        target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom.so)
+    endif()
+    add_dependencies(BenchTGeoPcon_v VectorizedGeom)
+
 
 # for more complete test from CMS:
    file(GLOB benchsource2 src/BenchmarkFramework/BenchSelectedCMSShapes.cxx)
