@@ -48,6 +48,48 @@ typedef double G4double;
 // To access the list of baskets.
 #include "WorkloadManager.h"
 
+
+struct GeneralTask : public CoprocessorBroker::Task {
+   GeneralTask() : Task( tracking_gpu ) {}
+   
+   const char *Name() { return "GeneralTask"; }
+   bool Select(GeantTrack **host_track, int track) 
+   {
+      // Currently we can only handle electron, which we pretend are the only
+      // particle to have charge -1.
+
+      return -1 == host_track[track]->charge;
+   }
+};
+
+#if 0
+struct ElectronTask : public CoprocessorBroker::Task {
+   ElectronTask() : Task( tracking_electron_gpu ) {}
+   
+   const char *Name() { return "ElectronTask"; }
+   bool Select(GeantTrack **host_track, int track) 
+   {
+      // Currently we can only handle electron, which we pretend are the only
+      // particle to have charge -1.
+
+      return -1 == host_track[track]->charge;
+   }
+};
+
+struct PhotonTask : public CoprocessorBroker::Task {
+   PhotonTask() : Task( tracking_photon_gpu ) {}
+   
+   const char *Name() { return "PhotonTask"; }
+   bool Select(GeantTrack **host_track, int track) 
+   {
+      // Currently we can only handle photon, which we pretend are the only
+      // particle to have charge 0.
+
+      return 0 == host_track[track]->charge;
+   }
+};
+#endif
+
 void DevicePtrBase::Malloc(unsigned long size) {
    cudaMalloc((void**)&fPtr,size);
 }
@@ -201,7 +243,6 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
    ,fCurrentHelper(0)
    ,fNblocks(0),fNthreads(0)
    ,fMaxTrackPerThread(1)
-   ,fKernelType(1)
    ,fTotalWork(0)
 //,fdFieldMap(0)
 //,fdStates0(0),fdStates1(0),fdRandStates0(0),fdRandStates1(0)
@@ -212,7 +253,15 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
 
 CoprocessorBroker::~CoprocessorBroker()
 {
-
+   for(unsigned int i = 0; i < fTasks.size(); ++i) {
+      delete fTasks[i];
+   }
+   fTasks.clear();
+   for(unsigned int i = 0; i < fTaskData.size(); ++i) {
+      delete fTaskData[i];
+   }
+   fTaskData.clear();
+   
    cudaFree(fdGeometry);
 //   cudaFree(fdFieldMap);
 //   cudaFree(fd_eBremTable);
@@ -326,28 +375,32 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
 {
    setup(this);
 
-   
    fNblocks = nblocks;
    fNthreads = nthreads;
    fMaxTrackPerThread = maxTrackPerThread;
 
+   fTasks.push_back(new GeneralTask());
+
    //initialize the stream
-   for(unsigned int i=0; i < sizeof(fStream)/sizeof(TaskData); ++i) {
-      fStream[i].CudaSetup(i,nblocks,nthreads,maxTrackPerThread);
-      fStream[i].Push(&fHelpers);
+   for(unsigned int i=0; i < 2+fTasks.size(); ++i) {
+      TaskData *data = new TaskData();
+      data->CudaSetup(i,nblocks,nthreads,maxTrackPerThread);
+      data->Push(&fHelpers);
+      fTaskData.push_back(data);
    }
    return true;
 }
 
-bool CanHandleTrack(GeantTrack &track)
-{
-   // Currently we can only handle electron, which we pretend are the only
-   // particle to have charge -1.
+// bool CanHandleTrack(GeantTrack &track)
+// {
+//    // Currently we can only handle electron, which we pretend are the only
+//    // particle to have charge -1.
    
-   return -1 == track.charge;
-}
+//    return -1 == track.charge;
+// }
 
-unsigned int CoprocessorBroker::TaskData::TrackToDevice(int tid,
+unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task *task,
+                                                        int tid,
                            GeantTrack **host_track, int *trackin,
                            unsigned int startIdx, unsigned int basketSize)
 {
@@ -369,6 +422,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(int tid,
 
       ++count;
 
+      if (trackin[hostIdx] < 0) continue;
+
       TGeoBranchArray *path = host_track[trackin[hostIdx]]->path;
 //      if (path->GetLevel()>1) {
 //         fprintf(stderr,"DEBUG: for %d level is %d\n",trackin[hostIdx],path->GetLevel());
@@ -377,43 +432,46 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(int tid,
       TGeoVolume *logVol = path->GetCurrentNode()->GetVolume();
       int volumeIndex = ((GeantVolumeBasket*)logVol->GetField())->GetNumber();
 
-      if (!CanHandleTrack(* host_track[trackin[hostIdx]])) {
+      if (task->Select(host_track,trackin[hostIdx])) {
          
+         fTrackId[fNStaged]  = trackin[hostIdx];
+         fTrack[fNStaged].x  = host_track[trackin[hostIdx]]->xpos;
+         fTrack[fNStaged].y  = host_track[trackin[hostIdx]]->ypos;
+         fTrack[fNStaged].z  = host_track[trackin[hostIdx]]->zpos;
+         fTrack[fNStaged].px = host_track[trackin[hostIdx]]->px;
+         fTrack[fNStaged].py = host_track[trackin[hostIdx]]->py;
+         fTrack[fNStaged].pz = host_track[trackin[hostIdx]]->pz;
+         fTrack[fNStaged].q  = host_track[trackin[hostIdx]]->charge;
+         fTrack[fNStaged].s  = host_track[trackin[hostIdx]]->step;
+         if (fTrack[fNStaged].s == 0) {
+            // humm cheat for now :(
+            fTrack[fNStaged].s = 1.0+1*(2.0*rand()/RAND_MAX-1.0);
+         }
+         fLogIndex[fNStaged] = volumeIndex;
+         
+         // Finds the node index.
+         int nodeIndex;
+         if (gGeoManager->GetTopVolume() == logVol || path->GetLevel() == 0) {
+            nodeIndex = 0; // humm why?
+         } else {
+            TGeoVolume *mother = path->GetNode(path->GetLevel()-1)->GetVolume();
+            nodeIndex = mother->GetNodes()->IndexOf(path->GetCurrentNode());
+         }
+         fPhysIndex[fNStaged] = nodeIndex;
+
+         trackin[hostIdx] = -1; // forget the track since we already passed it along.
+
+         ++fNStaged;
+      } 
+      else {
          fTrackCollection->AddTrack(trackin[hostIdx],
                                     mgr->GetBasketArray()[volumeIndex]);
-         trackin[hostIdx] = -1; // forget the track since we already passed it along.
          gPropagator->fTransportOngoing = kTRUE;
          continue;
       }
-      fTrackId[fNStaged]  = trackin[hostIdx];
-      fTrack[fNStaged].x  = host_track[trackin[hostIdx]]->xpos;
-      fTrack[fNStaged].y  = host_track[trackin[hostIdx]]->ypos;
-      fTrack[fNStaged].z  = host_track[trackin[hostIdx]]->zpos;
-      fTrack[fNStaged].px = host_track[trackin[hostIdx]]->px;
-      fTrack[fNStaged].py = host_track[trackin[hostIdx]]->py;
-      fTrack[fNStaged].pz = host_track[trackin[hostIdx]]->pz;
-      fTrack[fNStaged].q  = host_track[trackin[hostIdx]]->charge;
-      fTrack[fNStaged].s  = host_track[trackin[hostIdx]]->step;
-      if (fTrack[fNStaged].s == 0) {
-         // humm cheat for now :(
-         fTrack[fNStaged].s = 1.0+1*(2.0*rand()/RAND_MAX-1.0);
-      }
-      fLogIndex[fNStaged] = volumeIndex;
-      
-      // Finds the node index.
-      int nodeIndex;
-      if (gGeoManager->GetTopVolume() == logVol || path->GetLevel() == 0) {
-         nodeIndex = 0; // humm why?
-      } else {
-         TGeoVolume *mother = path->GetNode(path->GetLevel()-1)->GetVolume();
-         nodeIndex = mother->GetNodes()->IndexOf(path->GetCurrentNode());
-      }
-      fPhysIndex[fNStaged] = nodeIndex;
-
-      ++fNStaged;
    }
-   mgr->CollectorQueue()->push(fTrackCollection);
-   fTrackCollection = GetNextTrackCollection();
+
+
 
    // count = min(fChunkSize,basketSize-startIdx);
    int ntrack = fNStaged - start;
@@ -424,6 +482,9 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(int tid,
    cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, ntrack*sizeof(int),
                    cudaMemcpyHostToDevice, fStream);
    
+   mgr->CollectorQueue()->push(fTrackCollection);
+   fTrackCollection = GetNextTrackCollection();
+
    return count;
 }
 
@@ -563,6 +624,35 @@ CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
    return fCurrentHelper;
 }
 
+CoprocessorBroker::Stream CoprocessorBroker::launchTask(Stream stream, bool wait /* = false */)
+{
+
+   Printf("(%d - GPU) == Starting kernel on stream %d with %d tracks\n",
+          stream->fThreadId, stream->fStreamId, stream->fNStaged );
+   fTotalWork += stream->fNStaged;
+   tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
+                stream->fDevTrack,
+                stream->fDevTrackLogIndex,
+                stream->fDevTrackPhysIndex,
+                fd_eBremTable, fd_eIoniTable, fd_mscTable,
+                stream->fNStaged,
+                fNblocks,fNthreads,*stream);
+   
+   cudaMemcpyAsync(stream->fTrack, stream->fDevTrack, stream->fNStaged*sizeof(GXTrack),
+                   cudaMemcpyDeviceToHost, *stream);
+   cudaMemcpyAsync(stream->fPhysIndex, stream->fDevTrackPhysIndex, stream->fNStaged*sizeof(int),
+                   cudaMemcpyDeviceToHost, *stream);
+   cudaMemcpyAsync(stream->fLogIndex, stream->fDevTrackLogIndex, stream->fNStaged*sizeof(int),
+                   cudaMemcpyDeviceToHost, *stream);
+   
+   cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 );
+   cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 );
+   
+   if (wait) {
+      cudaStreamSynchronize(*stream);
+   }
+}
+
 CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 {
    if (fCurrentHelper == 0 || fCurrentHelper->fNStaged == 0) {
@@ -577,32 +667,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
    fCurrentHelper = 0;
    
    if (stream) {
-      Printf("(%d - GPU) == Starting kernel on stream %d with %d tracks\n",
-             stream->fThreadId, stream->fStreamId, stream->fNStaged );
-      fTotalWork += stream->fNStaged;
-      tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
-                   stream->fDevTrack,
-                   stream->fDevTrackLogIndex,
-                   stream->fDevTrackPhysIndex,
-                   fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                   stream->fNStaged,
-                   fNblocks,fNthreads,*stream);
-      
-      cudaMemcpyAsync(stream->fTrack, stream->fDevTrack, stream->fNStaged*sizeof(GXTrack),
-                      cudaMemcpyDeviceToHost, *stream);
-      cudaMemcpyAsync(stream->fPhysIndex, stream->fDevTrackPhysIndex, stream->fNStaged*sizeof(int),
-                      cudaMemcpyDeviceToHost, *stream);
-      cudaMemcpyAsync(stream->fLogIndex, stream->fDevTrackLogIndex, stream->fNStaged*sizeof(int),
-                      cudaMemcpyDeviceToHost, *stream);
-      
-      cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 );
-      cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 );
-      
-      if (wait) {
-         cudaStreamSynchronize(*stream);
-//         stream->ResetNStaged();
-//         fHelpers.push(stream);
-      }
+      launchTask(stream,wait);
    }
    return stream;
 }
@@ -610,30 +675,32 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
 {
    bool force = false;
-   
-   
+    
    //<<<---------------------------------------------------------->>>
-   if(fKernelType ==1) {
 //         fprintf(stderr,"round = %d count1 = %d fNchunk=%d nTracks=%d\n",
 //                 round,count1,fNchunk,nTracks);
 //         cudaMemcpyAsync(track_d0, track_h+i, count1*sizeof(GXTrack),
 //                         cudaMemcpyHostToDevice, stream0);
 //
-      int trackLeft  = nTracks;
-      int trackStart = 0;
+   int trackLeft  = nTracks;
+   int trackStart = 0;
+   
+   TaskColl_t::iterator task = fTasks.begin();
+   TaskColl_t::iterator end = fTasks.end();
+   while( task != end ) {
       while (trackLeft) {
-         TaskData *stream = GetNextStream();
-         if (!stream) return;
-
-         cudaEvent_t start, stop;
-         cudaEventCreate (&start);
-         cudaEventCreate (&stop);
-         
-         //start time for kernels
-         cudaEventRecord (start,0);
-
+         if (1 || (*task)->fCurrent == 0) {
+            // If we do not yet have a TaskData, wait for one.
+            // Consequence: if we are very busy we hang on to this
+            // basket until one of the task finishes.
+            (*task)->fCurrent = GetNextStream();
+            if (!(*task)->fCurrent) continue;
+         }
+         TaskData *stream = (*task)->fCurrent;
+         fCurrentHelper = stream;
          unsigned int before = stream->fNStaged;
-         unsigned int count = stream->TrackToDevice(threadid,
+         unsigned int count = stream->TrackToDevice(*task, 
+                                                    threadid,
                                                     tracks, trackin,
                                                     trackStart, nTracks);
          unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
@@ -641,98 +708,44 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
              && (before != stream->fNStaged) // if we did not make any progress, assume there is no 'interesting' track left and schedule the kernel.
              && !force) {
             // We do not have enough tracks
-            Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
+            Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
             
-            // Stop time for kernel
-            cudaEventRecord (stop,0);
-            cudaEventSynchronize (stop);
-            float elapsedTimeGPU;
-            cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
-
-            return;
+            continue;
          }
-
+         
          if (stream->fNStaged) {
+            (*task)->fCurrent = 0;
             Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
-            launchTask();
+            launchTask(stream);
          }
          trackLeft  -= count;
          trackStart += count;
-
-         cudaEventRecord (stop,0);
-         cudaEventSynchronize (stop);
-         float elapsedTimeGPU;
-         cudaEventElapsedTime (&elapsedTimeGPU,start,stop);
       }
+      ++task;
    }
-   else if(fKernelType ==2) {
-      
-      fprintf(stderr,"We do not yet support the multiple kernel\n");
-#if 0
-      //photon kernel
-      for(int i = 0 ; i < nPhotons ; i += 2*fNchunkG) {
-         int count1 = min(fNchunkG,nPhotons-i) ;
-         cudaMemcpyAsync(photon_d0, photon_h+i, count1*sizeof(GXTrack),
-                         cudaMemcpyHostToDevice, stream0);
-         
-         tracking_photon_gpu(fdRandStates0,(GPVPhysicalVolume*)fdGeometry,fdFieldMap,photon_d0,
-                             fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                             count1,
-                             theNBlocks,theNThreads, stream0);
-         
-         cudaMemcpyAsync(photon_h+i, photon_d0, count1*sizeof(GXTrack),
-                         cudaMemcpyDeviceToHost, stream0);
-         
-         cudaMemcpyAsync(photon_d1, photon_h+i+fNchunkG, (nPhotons/nDiv)*sizeof(GXTrack),
-                         cudaMemcpyHostToDevice, stream1);
-         
-         tracking_photon_gpu(fdRandStates1,(GPVPhysicalVolume*)fdGeometry,fdFieldMap,photon_d1,
-                             fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                             (nPhotons/nDiv), theNBlocks,theNThreads, stream1);
-         
-         cudaMemcpyAsync(photon_h+i+fNchunkG, photon_d1, (nPhotons/nDiv)*sizeof(GXTrack),
-                         cudaMemcpyDeviceToHost, stream1);
+   GeantTrackCollection  *trackCollection = 0;
+   WorkloadManager *mgr = WorkloadManager::Instance();
+   if (mgr->CollectorEmptyQueue()->empty()) trackCollection = new GeantTrackCollection(100);
+   else trackCollection = (GeantTrackCollection*)mgr->CollectorEmptyQueue()->wait_and_pop();
+   for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
+       ++hostIdx ) {
+      if (trackin[hostIdx]>=0) {
+         trackCollection->AddTrack(trackin[hostIdx],
+                                   mgr->GetBasketArray()[volumeIndex]);
+         gPropagator->fTransportOngoing = kTRUE;
       }
-      
-      //electon kernel
-      for(int i = 0 ; i < nElectrons ; i += 2*fNchunkE) {
-         int count1 = min(fNchunkE,nElectrons-i) ;
-         
-         cudaMemcpyAsync(electron_d0, electron_h+i, count1*sizeof(GXTrack),
-                         cudaMemcpyHostToDevice, stream0);
-         
-         tracking_electron_gpu(fdRandStates0,(GPVPhysicalVolume*)fdGeometry,fdFieldMap,electron_d0,
-                               fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                               count1,
-                               theNBlocks,theNThreads, stream0);
-         
-         cudaMemcpyAsync(electron_h+i, electron_d0, count1*sizeof(GXTrack),
-                         cudaMemcpyDeviceToHost, stream0);
-         
-         int count2 = min(fNchunkE, nElectrons - (i+count1));
-         cudaMemcpyAsync(electron_d1, electron_h+i+count1, count2*sizeof(GXTrack),
-                         cudaMemcpyHostToDevice, stream1);
-         
-         tracking_electron_gpu(fdRandStates1,(GPVPhysicalVolume*)fdGeometry,fdFieldMap,electron_d1,
-                               fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                               count2,
-                               theNBlocks,theNThreads, stream1);
-         
-         cudaMemcpyAsync(electron_h+i+count1, electron_d1, count2*sizeof(GXTrack),
-                         cudaMemcpyDeviceToHost, stream1);
-      }
-#endif
+      else trackin[hostIdx] = -1; // forget the track since we already passed it along.
    }
-   
+   mgr->CollectorQueue()->push(trackCollection);
 }
 
 void CoprocessorBroker::waitForTasks()
 {
    // Make sure all the tasks are finished.
    
-   for(unsigned int i=0; i < sizeof(fStream)/sizeof(TaskData); ++i) {
-      if (fStream[i].fNStaged) {
-         cudaStreamSynchronize(fStream[i]);
+   for(unsigned int i=0; i < fTaskData.size(); ++i) {
+      if (fTaskData[i]->fNStaged) {
+         cudaStreamSynchronize(*fTaskData[i]);
       }
    }
 }

@@ -20,3 +20,4 @@ void tracking_gpu(curandState* devStates,
                   int NBLOCKS,
                   int NTHREADS,
                   cudaStream_t stream);
+

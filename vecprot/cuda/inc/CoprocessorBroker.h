@@ -35,6 +35,7 @@ public:
    operator T*() const { return reinterpret_cast<T*>(GetPtr()); }
 };
 
+class GPGeomManager;
 class GPFieldMap;
 class GPPhysicsTable;
 class GPVGeometry;
@@ -51,6 +52,21 @@ class cudaStream_t;
 class curandState;
 #endif
 
+typedef 
+void (*kernelFunc_t)(curandState* devStates,
+                     GPGeomManager *geomManager,
+                     GPFieldMap *magMap,
+                     GXTrack *track,
+                     int *logVolumeIndices,
+                     int *physVolumeIndices,
+                     GPPhysicsTable* eBrem_table, 
+                     GPPhysicsTable* eIoni_table, 
+                     GPPhysicsTable* msc_table,
+                     size_t nTrackSize,
+                     int NBLOCKS,
+                     int NTHREADS,
+                     cudaStream_t stream);
+
 class GeantTrack;
 class GeantTrackCollection;
 
@@ -62,9 +78,10 @@ class CoprocessorBroker : public TaskBroker
 private:
    struct TaskData;
 public:
+   struct Task;
    typedef TaskData *Stream;
    Stream GetNextStream();
-   
+  
 public:
    CoprocessorBroker();
    ~CoprocessorBroker();
@@ -80,6 +97,7 @@ public:
 
    void runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin);
    Stream launchTask(bool wait = false);
+   Stream launchTask(Stream stream, bool wait = false);
    void waitForTasks();
    
    long GetTotalWork() { return fTotalWork; }
@@ -91,14 +109,14 @@ private:
    DevicePtr<GPPhysicsTable> fd_eBremTable;
    DevicePtr<GPPhysicsTable> fd_eIoniTable;
    DevicePtr<GPPhysicsTable> fd_mscTable;
-   
+
    struct TaskData : public TaskBroker::TaskData, TObject {
       TaskData();
       ~TaskData();
 
       bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread);
 
-      unsigned int TrackToDevice(int tid,
+      unsigned int TrackToDevice(Task *task, int tid,
                                  GeantTrack **host_track, int *trackin,
                                  unsigned int startIdx, unsigned int basketSize);
 
@@ -130,22 +148,38 @@ private:
    
       void Reset();
       void Push(concurrent_queue *q = 0);
-   
-      
+
       ClassDef(TaskData,0);
    };
+
+public:
+   struct Task {
+   public:
+      Task(kernelFunc_t kernel) : fCurrent(0), fKernel(kernel) {}
+
+      TaskData     *fCurrent;  // Holder of the data to be sent to the GPU, not owned.
+      kernelFunc_t  fKernel;   // wrapper around the cuda call to the kernel.
+      
+      virtual const char *Name() = 0; // Id of the task.
+      virtual bool Select(GeantTrack **host_track, int track) = 0; // Selection routine.
+   };
+
+private:
 
    friend void StreamReset(cudaStream_t /* stream */, cudaError_t status, void *userData);
    friend void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData);
 
-   TaskData  fStream[3];
+   typedef std::vector<Task*> TaskColl_t;
+   typedef std::vector<TaskData*> TaskDataColl_t;
+   TaskColl_t     fTasks;
+   TaskDataColl_t fTaskData;
+
    TaskData *fCurrentHelper;
    concurrent_queue fHelpers;
    
    int fNblocks;
    int fNthreads;
    int fMaxTrackPerThread;
-   int fKernelType;
    int fTotalWork;
    
   
