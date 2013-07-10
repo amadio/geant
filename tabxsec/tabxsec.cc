@@ -436,22 +436,22 @@ int main(int argc,char** argv)
     }
     
   
-    runManager->BeamOn( 0 );
-    
-    // Now we find the crosss secions
-    G4ProductionCutsTable* theCoupleTable =
-       G4ProductionCutsTable::GetProductionCutsTable();
-    
-    size_t numOfCouples = theCoupleTable->GetTableSize();
-
     // Create our own vector of particles - since the particle table is not const in Geant4
     std::vector<G4ParticleDefinition*> particleVector;
     for(G4int i=0; i<np; ++i) {
        // particleVector[i] = theParticleTable->GetParticle(i);
        particleVector.push_back( theParticleTable->GetParticle(i) );
     }
-    printf("Particle Vector has %lu contents.", particleVector.size() ); 
+    printf("Particle Vector has %lu contents.\n", particleVector.size() ); 
     if( particleVector.size() == 0 ) { printf("Cannot work without particles."); exit(1); } 
+
+    runManager->BeamOn( 1 );
+    
+    // Now we find the crosss secions
+    G4ProductionCutsTable* theCoupleTable =
+       G4ProductionCutsTable::GetProductionCutsTable();
+    
+    size_t numOfCouples = theCoupleTable->GetTableSize();
 
     // loop over all materials
     const G4ThreeVector  dirz(0,0,1);
@@ -583,21 +583,21 @@ int main(int argc,char** argv)
 		   G4double en=emin;
 
 		   G4HadronicProcess *ph = (G4HadronicProcess*)p;
+		   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		   for(G4int j=0; j<nbins; ++j) {
-		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
                       if( particle == G4Proton::Proton() )
                       {
-                         G4double sigmae= 0.25*delta;
                          G4double stepSize= 10.0*millimeter;
                          G4int    nevt= 10;
-                         G4int    verbose=1;
+                         G4int    verbose=2;
 
-			 //			 SampleInteractions( matt, pos, particle, ph, en, sigmae, stepSize, nevt, verbose);
+			 SampDisInt(matt, pos, dp, ph, stepSize, nevt, verbose);
                       }
 		      en*=delta;
-		      delete dp;
+		      dp->SetKineticEnergy(en);
 		   }
+		   delete dp;
 		   if(pcode != ph->GetProcessType()*1000+ph->GetProcessSubType()) {
 		      printf("Error: process code mismatch 1\n");
 		      exit(1);
@@ -617,11 +617,22 @@ int main(int argc,char** argv)
 			     (const char*) p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType()); */
 		      G4double en=emin;
-
+		      
+		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 if( particle == G4Electron::Electron() )
+			    {
+			       G4double stepSize= 10.0*millimeter;
+			       G4int    nevt= 10;
+			       G4int    verbose=2;
+			       
+			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nevt, verbose);
+			    }
 			 en*=delta;
+			 dp->SetKineticEnergy(en);
 		      }
+		      delete dp;
 		      if(pcode != ptEloss->GetProcessType()*1000+ptEloss->GetProcessSubType()) {
 			 printf("Error: process code mismatch 2\n");
 			 exit(1);
@@ -644,16 +655,21 @@ int main(int argc,char** argv)
 			 }*/
 
 		      G4double en=emin;
+		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 //			 if(hist) h->Fill(TMath::Log10(en),ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn);
+			 if( particle == G4Electron::Electron() )
+			    {
+			       G4double stepSize= 10.0*millimeter;
+			       G4int    nevt= 10;
+			       G4int    verbose=2;
+			       
+			       SampDisInt(matt, pos, dp, ptEm, stepSize, nevt, verbose);
+			    }
 			 en*=delta;
+			 dp->SetKineticEnergy(en);
 		      }
-		      
-		      /*		      if(hist) {
-			 h->Write();
-			 hist=kFALSE;
-			 }*/
+		      delete dp;
 		      
 		      if(pcode != ptEm->GetProcessType()*1000+ptEm->GetProcessSubType()) {
 			 printf("Error: process code mismatch 3\n");

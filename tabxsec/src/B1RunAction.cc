@@ -98,7 +98,7 @@ void B1RunAction::EndOfRunAction(const G4Run* aRun)
 
   // Run conditions
   //
-  const G4ParticleGun* particleGun 
+  /*  const G4ParticleGun* particleGun 
     = B1PrimaryGeneratorAction::Instance()->GetParticleGun();
   G4String particleName 
     = particleGun->GetParticleDefinition()->GetParticleName();                       
@@ -116,6 +116,7 @@ void B1RunAction::EndOfRunAction(const G4Run* aRun)
      << " +- "                   << G4BestUnit(rmsDose,"Dose")
      << "\n------------------------------------------------------------\n"
      << G4endl;
+  */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

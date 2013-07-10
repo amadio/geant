@@ -56,32 +56,36 @@ const B1PrimaryGeneratorAction* B1PrimaryGeneratorAction::Instance()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B1PrimaryGeneratorAction::B1PrimaryGeneratorAction()
-: G4VUserPrimaryGeneratorAction(),
-  fParticleGun(0)
+B1PrimaryGeneratorAction::B1PrimaryGeneratorAction() : 
+   G4VUserPrimaryGeneratorAction(),
+   fEnergy(1*GeV),
+   fVerbose(1)
 {
-  G4int n_particle = 1;
-  fParticleGun  = new G4ParticleGun(n_particle);
 
-  // default particle kinematic
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4String particleName;
-  G4ParticleDefinition* particle
-    = particleTable->FindParticle(particleName="gamma");
-  fParticleGun->SetParticleDefinition(particle);
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fParticleGun->SetParticleEnergy(6.*MeV);
-  
-  fgInstance = this;
+   //   theMessenger = new G4ParticleGunMessenger(this);
+
+   fgInstance = this;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B1PrimaryGeneratorAction::~B1PrimaryGeneratorAction()
 {
-  delete fParticleGun;
   fgInstance = 0;
 }
+
+void B1PrimaryGeneratorAction::RandomDir(G4ThreeVector& direction) const {
+     G4double theta = CLHEP::pi * G4UniformRand();
+     G4double phi   = CLHEP::twopi * G4UniformRand();
+     
+     G4double sinTh=  std::sin(theta);
+     G4double xdir = sinTh * std::cos(phi);
+     G4double ydir = sinTh * std::sin(phi);
+     G4double zdir = std::cos(theta);
+
+     direction.set(xdir,ydir,zdir);
+}
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -90,54 +94,49 @@ void B1PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   //this function is called at the begining of ecah event
   //
 
-  // In order to avoid dependence of PrimaryGeneratorAction
-  // on DetectorConstruction class we get Envelope volume
-  // from G4LogicalVolumeStore.
-  
-  unsigned int matNo= 1;
-
-  // Copied from Detector Construction
-  const G4double kLattice = 15*cm;
-  const G4double kRadius = 5*cm;
-  const G4int nballs = 10;
-  G4double world_sizeXY = kLattice*(nballs-1)+2*(kLattice-kRadius);
-  G4double world_sizeZ = 2*(kLattice-kRadius);
-  
-  G4double xplace = kLattice-kRadius+(matNo%nballs)*kLattice-0.5*world_sizeXY;
-  G4double yplace = kLattice-kRadius+(matNo/nballs)*kLattice-0.5*world_sizeXY;
-  G4double zplace = 0.0;
-  
-#if 0
-  G4double envSizeR = 0;
-  G4Sphere* envSphere = NULL;
-  
-  G4LogicalVolume* envLV
-  = G4LogicalVolumeStore::GetInstance()->GetVolume(materialVec[matNo]);
-
-  if ( envLV ) envSphere = dynamic_cast<G4Sphere*>(envLV->GetSolid());
-  if ( envSphere ) {
-    envSizeR = envSphere->GetRadius();  // XHalfLength()*2.;
-  }
-  else  {
-    G4cerr << "Envelope volume of 'sphere' shape not found." << G4endl;
-    G4cerr << "Perhaps you have changed geometry." << G4endl;
-    G4cerr << "The gun will be place in the center." << G4endl;
-  }
-
-  G4double size = 0.8; 
-  G4double r     = size * envSizeR * G4UniformRand();
-  G4double theta = CLHEP::pi * G4UniformRand();
-  G4double phi   = 2.0 * CLHEP::pi * G4UniformRand();
-  
-  G4double rsinTh= r * std::sin(theta);
-  xplace += rsinTh * std::cos(phi);
-  yplace += rsinTh * std::sin(phi);
-  zplace += r*std::cos(theta);
-#endif
+  // default particle kinematic
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  static G4String nameElectron("e-");
+  static G4String nameProton("proton");
+  static G4ParticleDefinition *electron=particleTable->FindParticle(nameElectron);
+  static G4ParticleDefinition *proton=particleTable->FindParticle(nameProton);
  
-  fParticleGun->SetParticlePosition(G4ThreeVector(xplace, yplace, zplace));
+  G4PrimaryParticle *particle;
+  G4PrimaryVertex *vertex;
+  G4ThreeVector position;
+  G4ThreeVector direction;
+  for(G4int im=0; im<nmaterials; ++im) {
+     position.set(MaterialPosition[im][0],MaterialPosition[im][1],MaterialPosition[im][2]);
+     if(fVerbose) {
+	G4cout << "Generating..." << G4endl 
+	       << "vertex at " << position << G4endl;
+     }
+     vertex = new G4PrimaryVertex(position,0);
+     
+     particle = new G4PrimaryParticle(electron);
+     particle->SetKineticEnergy(fEnergy);
+     RandomDir(direction);
+     particle->SetMomentumDirection(direction);
+     if(fVerbose) {
+	G4cout << particle->GetParticleDefinition()->GetParticleName() 
+	       << " with momentum " << particle->GetMomentum()
+	       << G4endl;
+     }
+     vertex->SetPrimary(particle);
 
-  fParticleGun->GeneratePrimaryVertex(anEvent);
+     particle = new G4PrimaryParticle(proton);
+     particle->SetKineticEnergy(fEnergy);
+     RandomDir(direction);
+     particle->SetMomentumDirection(direction);
+     if(fVerbose) {
+	G4cout << particle->GetParticleDefinition()->GetParticleName() 
+	       << " with momentum " << particle->GetMomentum()
+	       << G4endl;
+     }
+     vertex->SetPrimary(particle);
+
+     anEvent->AddPrimaryVertex(vertex);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

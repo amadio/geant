@@ -2,6 +2,7 @@
 class G4Material;
 class G4ParticleDefinition;
 class G4VProcess;
+class G4DynamicParticle;
 
     int SampleInteractions( G4Material* material,
 			    const G4ThreeVector *pos,
@@ -25,4 +26,13 @@ class G4VProcess;
                        G4int    verbose
                        );
 
+    int SampDisInt(
+		   G4Material* material, 
+		   G4ThreeVector *pos,
+		   G4DynamicParticle *dpart,
+		   G4VProcess* proc,
+		   G4double theStep,
+		   G4int    nevt,
+		   G4int    verbose
+		   );
      G4double GetNuclearMass( G4int Z, G4int N );
