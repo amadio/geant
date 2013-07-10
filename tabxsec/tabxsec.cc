@@ -621,7 +621,7 @@ int main(int argc,char** argv)
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 if( particle == G4Electron::Electron() )
+			 if( particle == G4Positron::Positron() )
 			    {
 			       G4double stepSize= 10.0*millimeter;
 			       G4int    nevt= 10;
@@ -658,7 +658,7 @@ int main(int argc,char** argv)
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 if( particle == G4Electron::Electron() )
+			 if( particle == G4Positron::Positron() )
 			    {
 			       G4double stepSize= 10.0*millimeter;
 			       G4int    nevt= 10;

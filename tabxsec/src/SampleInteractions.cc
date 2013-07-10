@@ -51,13 +51,18 @@
 #include "G4VDiscreteProcess.hh"
 #include "G4VContinuousDiscreteProcess.hh"
 #include "G4ProcessManager.hh"
-// #include "G4VParticleChange.hh"
+#include "G4FastStep.hh"
 #include "G4ParticleChange.hh"
+#include "G4ParticleChangeForDecay.hh"
+#include "G4ParticleChangeForGamma.hh"
+#include "G4ParticleChangeForLoss.hh"
+#include "G4ParticleChangeForMSC.hh"
 
 #include "G4ParticleTable.hh"
 #include "G4DynamicParticle.hh"
 #include "G4Nucleus.hh"
 #include "G4IonTable.hh"
+#include "G4HadronicProcess.hh"
 
 #include "G4UnitsTable.hh"
 #include "G4StateManager.hh"
@@ -438,7 +443,9 @@ int SampDisInt(
 	 exit(1);
       }
       G4LorentzVector pcons(labv);
-      pcons[3]+=amass;
+      
+      if(dynamic_cast<G4HadronicProcess*>(proc)) 
+	 pcons[3]+=amass;
       aChange = proc->PostStepDoIt(*gTrack,*step); 
       // ** Cause Discrete Interaction **
       
@@ -489,12 +496,12 @@ int SampDisInt(
 	 pt = sqrt(px*px +py*py);
 
 	 if(verbose > 1) {
-	    printf(" Sec[%2d]= %10s (%10d)", i, (const char*) pd->GetParticleName(), pd->GetPDGEncoding()); // , mom.z(), pt, theta );
-	    printf(" Z= %3d B= %3d ", pd->GetAtomicNumber(), pd->GetBaryonNumber() );
-	    printf(" pz=%12.4g, pt=%12.4g, theta=%12.6g\n", mom.z(), pt, theta );
-	 }
-	  
-	 delete aChange->GetSecondary(i);
+	    G4cout << " Sec[" << i << "]=" 
+		   << pd->GetParticleName() << " (" << pd->GetPDGEncoding() << ") "
+		   << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
+		   << " p= " << sec->Get4Momentum() 
+		   << G4endl;
+	 }	  
       }
       printf(" Interaction %5d:  Created %2d secondaries.  %2d hadrons (%2d protons, %2d neutrons), %2d pions\n", iter, n, nbar, n_pr, n_nt, n_pi );
       const G4double prec=1e-7;
@@ -502,9 +509,43 @@ int SampDisInt(
 	 G4double ptot = labv.vect().mag();
 	 G4bool cons = pcons[3]>prec*labv[3];
 	 for(G4int i=0; i<3; ++i) cons |= std::abs(pcons[i])>prec*ptot;
-	 if(cons) 
+	 if(cons) {
 	    G4cout << "Dubious E/p balance = " << pcons << G4endl;
+	    G4FastStep *uChange = dynamic_cast<G4FastStep*>(aChange);
+	    G4ParticleChange *vChange = dynamic_cast<G4ParticleChange*>(aChange);
+	    G4ParticleChangeForDecay *wChange = dynamic_cast<G4ParticleChangeForDecay*>(aChange);
+	    G4ParticleChangeForGamma *xChange = dynamic_cast<G4ParticleChangeForGamma*>(aChange);
+	    G4ParticleChangeForLoss *yChange = dynamic_cast<G4ParticleChangeForLoss*>(aChange);
+	    G4ParticleChangeForMSC *zChange = dynamic_cast<G4ParticleChangeForMSC*>(aChange);
+	    
+	    G4cout << " G4FastStep " << uChange
+		   << " GParticleChange " << vChange
+		   << " GparticleChangeForDecay " << wChange
+		   << " G4ParticleChangeForGamma " << xChange
+		   << " G4ParticleChangeForLoss " << yChange
+		   << " G4ParticleChangeForMSC " << zChange 
+		   << G4endl;
+	    if(yChange) {
+	       const G4Track *trnew = yChange->GetCurrentTrack();
+	       G4cout << "Momentum " << trnew->GetMomentum() 
+		      << " kinEnergy " << trnew->GetKineticEnergy()
+		      << " mass " << trnew->GetParticleDefinition()->GetPDGMass()
+		      << G4endl;
+	    }
+	    for(G4int i=0; i<n; ++i) {
+	       
+	       sec = aChange->GetSecondary(i)->GetDynamicParticle();
+	       pd  = sec->GetDefinition();
+	       G4cout << " Sec[" << i << "]=" 
+		      << pd->GetParticleName() << " (" << pd->GetPDGEncoding() << ") "
+		      << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
+		      << " p= " << sec->Get4Momentum() 
+		      << G4endl;
+	    }
+	 }
       }
+      for(G4int i=0; i<n; ++i) 
+	 delete aChange->GetSecondary(i);
       aChange->Clear();
       
    }
