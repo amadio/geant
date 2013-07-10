@@ -583,20 +583,21 @@ int main(int argc,char** argv)
 		   G4double en=emin;
 
 		   G4HadronicProcess *ph = (G4HadronicProcess*)p;
+		   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		   for(G4int j=0; j<nbins; ++j) {
-		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
                       if( particle == G4Proton::Proton() )
                       {
                          G4double stepSize= 10.0*millimeter;
                          G4int    nevt= 10;
-                         G4int    verbose=1;
+                         G4int    verbose=2;
 
 			 SampDisInt(matt, pos, dp, ph, stepSize, nevt, verbose);
                       }
 		      en*=delta;
-		      delete dp;
+		      dp->SetKineticEnergy(en);
 		   }
+		   delete dp;
 		   if(pcode != ph->GetProcessType()*1000+ph->GetProcessSubType()) {
 		      printf("Error: process code mismatch 1\n");
 		      exit(1);
@@ -616,11 +617,22 @@ int main(int argc,char** argv)
 			     (const char*) p->GetProcessName(),
 			     p->GetProcessType(),p->GetProcessSubType()); */
 		      G4double en=emin;
-
+		      
+		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 if( particle == G4Electron::Electron() )
+			    {
+			       G4double stepSize= 10.0*millimeter;
+			       G4int    nevt= 10;
+			       G4int    verbose=2;
+			       
+			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nevt, verbose);
+			    }
 			 en*=delta;
+			 dp->SetKineticEnergy(en);
 		      }
+		      delete dp;
 		      if(pcode != ptEloss->GetProcessType()*1000+ptEloss->GetProcessSubType()) {
 			 printf("Error: process code mismatch 2\n");
 			 exit(1);
@@ -643,10 +655,21 @@ int main(int argc,char** argv)
 			 }*/
 
 		      G4double en=emin;
+		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 if( particle == G4Electron::Electron() )
+			    {
+			       G4double stepSize= 10.0*millimeter;
+			       G4int    nevt= 10;
+			       G4int    verbose=2;
+			       
+			       SampDisInt(matt, pos, dp, ptEm, stepSize, nevt, verbose);
+			    }
 			 en*=delta;
+			 dp->SetKineticEnergy(en);
 		      }
+		      delete dp;
 		      
 		      if(pcode != ptEm->GetProcessType()*1000+ptEm->GetProcessSubType()) {
 			 printf("Error: process code mismatch 3\n");

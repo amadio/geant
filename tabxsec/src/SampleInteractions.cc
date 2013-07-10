@@ -328,11 +328,6 @@ int SampDisInt(
 	       G4int    verbose
 	       ) 
 {
-   std::cout << "# Start of Sample Interactions for "
-	     << " Material= " << material->GetName()
-	     << " Process = " << proc->GetProcessName()
-	     << " Part = " << dpart->GetParticleDefinition()->GetParticleName()
-	     << "     #####" << endl;
 
    G4VDiscreteProcess* discProc= dynamic_cast<G4VDiscreteProcess*>(proc);
    G4VContinuousDiscreteProcess* contdProc= dynamic_cast<G4VContinuousDiscreteProcess*>(proc);
@@ -347,6 +342,7 @@ int SampDisInt(
     // -------- Projectile
    const G4ThreeVector &aPosition = *pos;
    G4ThreeVector aDirection      = dpart->GetMomentumDirection();
+   const G4DynamicParticle *dpsave = new G4DynamicParticle(*dpart);
 
    G4double mass = dpart->GetParticleDefinition()->GetPDGMass();
    
@@ -355,15 +351,16 @@ int SampDisInt(
    G4int A = (G4int)(elm->GetN()+0.5);
    G4int Z = (G4int)(elm->GetZ()+0.5);
    
-   // ------- Binning 
-   cout << "The particle:  " << dpart->GetParticleDefinition()->GetParticleName() << endl;
+   // ------- Printout
    if(verbose > 0) {
-      cout << "The material:  " << material->GetName() 
-	   << "  Z= " << Z << "  A= " << A << endl;
-      cout << "The step:      " << theStep/mm << " mm" << endl;
-      cout << "The position:  " << aPosition/mm << " mm" << endl;
-      cout << "The direction: " << aDirection << endl;
-      // cout << "The time:      " << aTime/ns << " ns" << endl;
+      G4cout << "The process   : " << proc->GetProcessName() << G4endl
+	     << "The particle  : " << dpart->GetParticleDefinition()->GetParticleName() << G4endl
+	     << "The momentum  : " << dpart->Get4Momentum() << G4endl
+	     << "The material  : " << material->GetName() 
+	     << "  Z " << Z 
+	     << "  A " << A << G4endl 
+	     << "The step      : " << theStep/mm << " mm" << G4endl
+	     << "The position  : " << aPosition/mm << " mm" << G4endl;
    }
 
    G4double GetNuclearMass( G4int, G4int ); // G4Material* material );
@@ -371,171 +368,170 @@ int SampDisInt(
    G4double amass = GetNuclearMass( Z, A ); 
    G4double e0 = dpart->GetKineticEnergy();
    
-    cout << "Ekin = " << e0/GeV << " GeV" << endl;
+   // G4VCrossSectionDataSet* GetCrossSectionDS(const G4ParticleDefinition*, G4Material *);
+   // G4VCrossSectionDataSet* cs = GetCrossSectionDS(part, material);
 
-  // G4VCrossSectionDataSet* GetCrossSectionDS(const G4ParticleDefinition*, G4Material *);
-
-  // G4VCrossSectionDataSet* cs = GetCrossSectionDS(part, material);
-
-  // G4double cross_sec = 0.0;
-
-    // -------- Track
-    G4Track* gTrack;
-    gTrack = new G4Track(dpart,0,aPosition);
-    G4TouchableHandle touchable=new G4TouchableHistory();
-    G4TransportationManager::GetTransportationManager()->
-       GetNavigatorForTracking()->LocateGlobalPointAndUpdateTouchableHandle(aPosition,
-								       aDirection,
-								       touchable,
-								       false);
-
-    gTrack->SetTouchableHandle(touchable);
-
-    // -------- Step
-
-    G4Step* step;
-    step = new G4Step();
-    step->SetTrack(gTrack);
-    gTrack->SetStep(step);
-    
-    G4StepPoint *aPoint, *bPoint;
-    aPoint = new G4StepPoint();
-    aPoint->SetPosition(aPosition);
-    aPoint->SetMaterial(material);
-    G4double safety = 10000.*cm;
-    aPoint->SetSafety(safety);
-    aPoint->SetTouchableHandle(touchable);
-    step->SetPreStepPoint(aPoint);
-
-    const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
-
-    const G4MaterialCutsCouple* mcc=
-        FindMaterialCutsCouple( material );
-  
-    aPoint->SetMaterialCutsCouple( mcc );
-    aPoint->SetMaterial( material );
-  
-    bPoint = new G4StepPoint(*aPoint);
-    G4ThreeVector bPosition = aPosition + aDirection*theStep;
-    bPoint->SetPosition(bPosition);
-    step->SetPostStepPoint(bPoint);
-    step->SetStepLength(theStep);
-
-    if(!G4StateManager::GetStateManager()->SetNewState(G4State_Idle))
-      cout << "G4StateManager PROBLEM: Not able to set it to Idle state! " << endl;
-
-    G4Timer* timer = new G4Timer();
-    timer->Start();
-    
-    G4double e;
-    G4VParticleChange* aChange = 0;
-
-    for (G4int iter=0; iter<nevt; ++iter) {
-       
-       G4int modu = 10000;
-       if(verbose>1 || iter == modu*(iter/modu)) {
-	  G4cout << "### " << iter << "-th event start " << G4endl;
-       }
-
-       gTrack->SetStep(step);
-       gTrack->SetKineticEnergy(e0);
-       G4cout << "Projectile " << gTrack->GetParticleDefinition()->GetParticleName() << G4endl;
-       
-       G4LorentzVector labv;
-       labv = G4LorentzVector(0., 0., sqrt(e0*(e0 + 2.0*mass)), 
-			     e0 + mass + amass);
+   // -------- Track
+   G4Track* gTrack;
+   gTrack = new G4Track(dpart,0,aPosition);
+   G4TouchableHandle touchable=new G4TouchableHistory();
+   G4TransportationManager::GetTransportationManager()->
+      GetNavigatorForTracking()->LocateGlobalPointAndUpdateTouchableHandle(aPosition,
+									   aDirection,
+									   touchable,
+									   false);
+   
+   gTrack->SetTouchableHandle(touchable);
+   
+   // -------- Step
+   
+   G4Step* step;
+   step = new G4Step();
+   step->SetTrack(gTrack);
+   gTrack->SetStep(step);
+   
+   G4StepPoint *aPoint, *bPoint;
+   aPoint = new G4StepPoint();
+   aPoint->SetPosition(aPosition);
+   aPoint->SetMaterial(material);
+   G4double safety = 10000.*cm;
+   aPoint->SetSafety(safety);
+   aPoint->SetTouchableHandle(touchable);
+   step->SetPreStepPoint(aPoint);
+   
+   const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
+   
+   const G4MaterialCutsCouple* mcc=
+      FindMaterialCutsCouple( material );
+   
+   aPoint->SetMaterialCutsCouple( mcc );
+   aPoint->SetMaterial( material );
+   
+   bPoint = new G4StepPoint(*aPoint);
+   G4ThreeVector bPosition = aPosition + aDirection*theStep;
+   bPoint->SetPosition(bPosition);
+   step->SetPostStepPoint(bPoint);
+   step->SetStepLength(theStep);
+   
+   if(!G4StateManager::GetStateManager()->SetNewState(G4State_Idle))
+      cout << "G4StateManager PROBLEM: Not able to set it to Idle state! " << G4endl;
+   
+   G4double e;
+   G4VParticleChange* aChange = 0;
+   
+   for (G4int iter=0; iter<nevt; ++iter) {
       
-       aChange = proc->PostStepDoIt(*gTrack,*step); 
-       // ** Cause Discrete Interaction **
-       
-       G4int n = aChange->GetNumberOfSecondaries();
-       
-       G4int nbar = 0;
-       G4int n_pr = 0;
-       G4int n_nt = 0;
-       G4int n_pi = 0;
-       const G4DynamicParticle* sec = 0;
-       G4ParticleDefinition* pd;
-       G4int j;
-       
-       for(j=0; j<n; ++j) {
-	  sec = aChange->GetSecondary(j)->GetDynamicParticle();
-	  pd  = sec->GetDefinition();
-	  G4int enc= pd->GetPDGEncoding();
-	  if(pd->GetPDGMass() > 100.*MeV) { ++nbar; }
-	  if(enc==2212) { ++n_pr; }
-	  if(enc==2112) { ++n_nt; }
-        if(std::fabs(enc)==211 || enc==210) { ++n_pi; }
-       }
+      G4int modu = 10000;
+      if(verbose>1 || iter == modu*(iter/modu)) {
+	 G4cout << "### " << iter << "-th event start " << G4endl;
+      }
       
-       printf(" Interaction %5d:  Created %2d secondaries.  %2d hadrons (%2d protons, %2d neutrons), %2d pions\n", iter, n, nbar, n_pr, n_nt, n_pi );
-       
-       G4ThreeVector  mom;
-       G4LorentzVector fm;
-       //  Examine the secondaries
-       
-       for(G4int i=0; i<n; ++i) {
-	  G4double p, mass1, px, py, pt, theta; // , x;
-	  
-	  sec = aChange->GetSecondary(i)->GetDynamicParticle();
-	  pd  = sec->GetDefinition();
-	  mom = sec->GetMomentumDirection();
-	  e   = sec->GetKineticEnergy();
-	  if (e < 0.0) { e = 0.0; }
-	  
-	  theta = mom.theta();
-	  // G4double cost  = cos(theta);
-	  
-	  mass1 = pd->GetPDGMass();
-	  p = sqrt(e*(e + 2.0*mass1));
-	  mom *= p;
-	  fm = G4LorentzVector(mom, e + mass1);
-	  labv -= fm;
-	  px = mom.x();
-	  py = mom.y();
-	//        pz = mom.z();
-	  pt = sqrt(px*px +py*py);
-	  
-	  printf(" Sec[%2d]= %10s (%10d)", i, (const char*) pd->GetParticleName(), pd->GetPDGEncoding()); // , mom.z(), pt, theta );
-	  printf(" Z= %3d B= %3d ", pd->GetAtomicNumber(), pd->GetBaryonNumber() );
-	  printf(" pz=%12.4g, pt=%12.4g, theta=%12.6g\n", mom.z(), pt, theta );
-	  
-	  delete aChange->GetSecondary(i);
-       }
-       aChange->Clear();
-       
-       G4cout << " E/p balance = " << labv << G4endl;
-    }
-    
-    timer->Stop();
-    G4cout << "  "  << *timer << G4endl;
-    
-    // Clean up
-    delete timer;
+      gTrack->SetStep(step);
+      gTrack->SetKineticEnergy(e0);
+      
+      G4LorentzVector labv;
+      labv = G4LorentzVector(gTrack->GetMomentum(), gTrack->GetTotalEnergy());
+      if(labv != dpsave->Get4Momentum()) {
+	 G4cout << "The momentum of the projectile has changed from " 
+		<< labv << " to "
+		<< dpart->Get4Momentum() << G4endl;
+	 exit(1);
+      }
+      G4LorentzVector pcons(labv);
+      pcons[3]+=amass;
+      aChange = proc->PostStepDoIt(*gTrack,*step); 
+      // ** Cause Discrete Interaction **
+      
+      if(proc->GetProcessName() == G4String("hadElastic")) {
+	 G4double cost = labv.vect().cosTheta(*((G4ParticleChange*) aChange)->GetMomentumDirection());
+	 G4cout << "Elastic scattering by cosTheta " 
+		<< cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)" << G4endl;
+      }
 
-    // A step owns its Step points 
-    //   - must ensure that they are valid or null (and not pointint to same StepPt)
-    delete step; 
+      G4int n = aChange->GetNumberOfSecondaries();
+      
+      G4int nbar = 0;
+      G4int n_pr = 0;
+      G4int n_nt = 0;
+      G4int n_pi = 0;
+      const G4DynamicParticle* sec = 0;
+      G4ParticleDefinition* pd;
+      G4int j;
+      
+      G4ThreeVector  mom;
+      G4LorentzVector fm;
+      //  Examine the secondaries
+      
+      for(G4int i=0; i<n; ++i) {
+	 G4double p, mass1, px, py, pt, theta; // , x;
+	 
+	 sec = aChange->GetSecondary(i)->GetDynamicParticle();
+	 pd  = sec->GetDefinition();
+	 mom = sec->GetMomentumDirection();
+	 e   = sec->GetKineticEnergy();
+	 if (e < 0.0) { e = 0.0; }
+	 G4int enc= pd->GetPDGEncoding();
+	 if(pd->GetPDGMass() > 100.*MeV) { ++nbar; }
+	 if(enc==2212) { ++n_pr; }
+	 if(enc==2112) { ++n_nt; }
+	 if(std::fabs(enc)==211 || enc==210) { ++n_pi; }
+	 
+	 theta = mom.theta();
+	 
+	 mass1 = pd->GetPDGMass();
+	 p = sqrt(e*(e + 2.0*mass1));
+	 mom *= p;
+	 fm = sec->Get4Momentum();
+	 pcons -= fm;
+	 px = mom.x();
+	 py = mom.y();
+	 //        pz = mom.z();
+	 pt = sqrt(px*px +py*py);
 
-    // A track owns its dynamic particle - that will be deleted by it
-    delete gTrack;
-
-    return true;
+	 if(verbose > 1) {
+	    printf(" Sec[%2d]= %10s (%10d)", i, (const char*) pd->GetParticleName(), pd->GetPDGEncoding()); // , mom.z(), pt, theta );
+	    printf(" Z= %3d B= %3d ", pd->GetAtomicNumber(), pd->GetBaryonNumber() );
+	    printf(" pz=%12.4g, pt=%12.4g, theta=%12.6g\n", mom.z(), pt, theta );
+	 }
+	  
+	 delete aChange->GetSecondary(i);
+      }
+      printf(" Interaction %5d:  Created %2d secondaries.  %2d hadrons (%2d protons, %2d neutrons), %2d pions\n", iter, n, nbar, n_pr, n_nt, n_pi );
+      const G4double prec=1e-7;
+      if(n) {
+	 G4double ptot = labv.vect().mag();
+	 G4bool cons = pcons[3]>prec*labv[3];
+	 for(G4int i=0; i<3; ++i) cons |= std::abs(pcons[i])>prec*ptot;
+	 if(cons) 
+	    G4cout << "Dubious E/p balance = " << pcons << G4endl;
+      }
+      aChange->Clear();
+      
+   }
+   
+   // A step owns its Step points 
+   //   - must ensure that they are valid or null (and not pointint to same StepPt)
+   delete step; 
+   
+   // A track owns its dynamic particle - that will be deleted by it
+   delete gTrack;
+   
+   return true;
 }
 
 G4double GetNuclearMass( G4int Z, G4int N )
 {
-  G4double mass= 0.0;
-  G4Nucleus targetNucleus;
-  
-  G4cout << "Nucleus with N= " << N << "  Z= " << Z << G4endl;
-  targetNucleus.SetParameters((G4double)N, (G4double)Z);
-  mass = targetNucleus.AtomicMass((G4double)N, (G4double)Z);
-  G4cout << "Mass from targetNucleus(MeV)= " << mass/MeV << G4endl;
-  mass = G4ParticleTable::GetParticleTable()->GetIonTable()->GetIonMass(Z, N);
-  G4cout << "Mass from IonTable(MeV)=      " << mass/MeV << G4endl;
-  
-  return mass;
+   G4double mass= 0.0;
+   G4Nucleus targetNucleus;
+   
+   G4cout << "Nucleus with N= " << N << "  Z= " << Z << G4endl;
+   targetNucleus.SetParameters((G4double)N, (G4double)Z);
+   mass = targetNucleus.AtomicMass((G4double)N, (G4double)Z);
+   G4cout << "Mass from targetNucleus(MeV)= " << mass/MeV << G4endl;
+   mass = G4ParticleTable::GetParticleTable()->GetIonTable()->GetIonMass(Z, N);
+   G4cout << "Mass from IonTable(MeV)=      " << mass/MeV << G4endl;
+   
+   return mass;
 }
 
 #include "G4ProductionCutsTable.hh"
@@ -546,17 +542,17 @@ const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat )
   const G4MaterialCutsCouple* couple = 0;
   
   G4ProductionCutsTable* theCoupleTable =
-    G4ProductionCutsTable::GetProductionCutsTable();
+     G4ProductionCutsTable::GetProductionCutsTable();
   
   size_t numOfCouples = theCoupleTable->GetTableSize();  
-
+  
   for (size_t i=0; i<numOfCouples; i++) {
-    couple = theCoupleTable->GetMaterialCutsCouple(i);
-    if (couple->GetMaterial() == mat) break;
+     couple = theCoupleTable->GetMaterialCutsCouple(i);
+     if (couple->GetMaterial() == mat) break;
   }
   if(couple == 0) {
-    G4cerr << "Fatal ERROR> Not found couple for material " << mat->GetName() << G4endl;
-    exit(1); 
+     G4cerr << "Fatal ERROR> Not found couple for material " << mat->GetName() << G4endl;
+     exit(1); 
   }
   return couple;
 }

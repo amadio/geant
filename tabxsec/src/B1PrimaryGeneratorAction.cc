@@ -108,7 +108,8 @@ void B1PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   for(G4int im=0; im<nmaterials; ++im) {
      position.set(MaterialPosition[im][0],MaterialPosition[im][1],MaterialPosition[im][2]);
      if(fVerbose) {
-	G4cout << "Generating vertex at " << position << G4endl;
+	G4cout << "Generating..." << G4endl 
+	       << "vertex at " << position << G4endl;
      }
      vertex = new G4PrimaryVertex(position,0);
      
@@ -117,7 +118,9 @@ void B1PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
      RandomDir(direction);
      particle->SetMomentumDirection(direction);
      if(fVerbose) {
-	G4cout << "Generating particle " << particle->GetParticleDefinition()->GetParticleName() << G4endl;
+	G4cout << particle->GetParticleDefinition()->GetParticleName() 
+	       << " with momentum " << particle->GetMomentum()
+	       << G4endl;
      }
      vertex->SetPrimary(particle);
 
@@ -126,7 +129,9 @@ void B1PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
      RandomDir(direction);
      particle->SetMomentumDirection(direction);
      if(fVerbose) {
-	G4cout << "Generating particle " << particle->GetParticleDefinition()->GetParticleName() << G4endl;
+	G4cout << particle->GetParticleDefinition()->GetParticleName() 
+	       << " with momentum " << particle->GetMomentum()
+	       << G4endl;
      }
      vertex->SetPrimary(particle);
 
