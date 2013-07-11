@@ -465,6 +465,8 @@ int main(int argc,char** argv)
     
     G4int nRegions = theRegionStore->size();
     printf("We found %d regions\n",nRegions);
+
+    G4float curxs=0;
     
     for(G4int imat=0; imat<nmaterials; ++imat) {
        G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
@@ -647,8 +649,8 @@ int main(int argc,char** argv)
 		   G4HadronicProcess *ph = (G4HadronicProcess*)p;
 		   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		   for(G4int j=0; j<nbins; ++j) {
-		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
-                      if( particle == G4Proton::Proton() && nsample)
+		      pxsec[nprxs*nbins+j] = curxs = ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
+                      if( particle == G4Proton::Proton() && nsample && curxs)
                       {
                          G4double stepSize= 10.0*millimeter;
 			 SampDisInt(matt, pos, dp, ph, stepSize, nsample, verbose);
@@ -679,8 +681,8 @@ int main(int argc,char** argv)
 		      
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
-			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 if( particle == G4Positron::Positron() && nsample)
+			 pxsec[nprxs*nbins+j] = curxs = ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 if( particle == G4Positron::Positron() && nsample && curxs)
 			    {
 			       G4double stepSize= 10.0*millimeter;
 			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nsample, verbose);
@@ -713,8 +715,8 @@ int main(int argc,char** argv)
 		      G4double en=emin;
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
-			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 if( particle == G4Positron::Positron() && nsample)
+			 pxsec[nprxs*nbins+j] = curxs = ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			 if( particle == G4Positron::Positron() && nsample && curxs)
 			    {
 			       G4double stepSize= 10.0*millimeter;
 			       SampDisInt(matt, pos, dp, ptEm, stepSize, nsample, verbose);
