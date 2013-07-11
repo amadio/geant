@@ -62,6 +62,26 @@ struct GeneralTask : public CoprocessorBroker::Task {
    }
 };
 
+struct EnergyTask : public CoprocessorBroker::Task {
+   double  fThresHold;
+   TString fName;
+   
+   EnergyTask(double threshold) : Task( tracking_gpu ), fThresHold(threshold)
+   {
+      fName.Form("EnergyTask - %3g",threshold);
+   }
+   
+   const char *Name() { return fName; }
+   bool Select(GeantTrack **host_track, int track)
+   {
+      // Currently we can only handle electron, which we pretend are the only
+      // particle to have charge -1.
+      
+      return -1 == host_track[track]->charge && host_track[track]->e > fThresHold;
+   }
+};
+
+
 #if 0
 struct ElectronTask : public CoprocessorBroker::Task {
    ElectronTask() : Task( tracking_electron_gpu ) {}
@@ -379,7 +399,11 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    fNthreads = nthreads;
    fMaxTrackPerThread = maxTrackPerThread;
 
-   fTasks.push_back(new GeneralTask());
+   //fTasks.push_back(new GeneralTask());
+   fTasks.push_back(new EnergyTask(6));
+   fTasks.push_back(new EnergyTask(4));
+   fTasks.push_back(new EnergyTask(2));
+   fTasks.push_back(new EnergyTask(0));
 
    //initialize the stream
    for(unsigned int i=0; i < 2+fTasks.size(); ++i) {
@@ -556,7 +580,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
 //         if (fHostTracks[fTrackId[devIdx]]->frombdr)
 //            path = fHostTracks[fTrackId[devIdx]]->nextpath;
          
-         if (path->GetLevel() != array.size()-1) {
+         if (path->GetLevel() != (long)(array.size())-1) {
             printf("Problem (bdr=%d) with the level %d vs %d\n",fHostTracks[fTrackId[devIdx]]->frombdr,path->GetLevel(),(int)array.size()-1);
          }
          if (path->GetArray()[0] != array[0]) {
@@ -669,7 +693,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
    return stream;
 }
 
-void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
+void CoprocessorBroker::runTask(int threadid, unsigned int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
 {
    bool force = false;
     
@@ -709,7 +733,7 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
          trackUsed += stream->fNStaged-before;
          unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
 
-         Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
+         Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated %d idles %d cycles", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles);
          
          if (stream->fNStaged < stream->fChunkSize
              && !force) {
@@ -724,8 +748,12 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
 
             unsigned int idle = (*task)->fIdles;
             unsigned int cycle = (*task)->fCycles;
-            if (stream->fNStaged && ( idle > (fTasks.size()-1))
-                && 2*idle > cycle ) {
+            if (stream->fNStaged                // There is something
+                && idle > (fTasks.size()-1)     // We are beyond the expected/normal number of idles cycles
+                && cycle > (stream->fChunkSize / nTracks)  // To fill we need at least that many cycles
+                && 2*idle > cycle               // Our input rate has drop in half
+                )
+            {
                Printf("(%d - GPU) ================= Launching idle Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, (*task)->Name(), stream->fStreamId, idle, cycle, stream->fNStaged);
                // if we did not make any progress in a while, assume there is no 'interesting' track left and schedule the kernel.
             } else {
@@ -765,14 +793,17 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
       TaskColl_t::iterator task = fTasks.begin();
       TaskColl_t::iterator end = fTasks.end();
       while( task != end ) {
-         if ((*task)->fCurrent) {
+         if ((*task)->fCurrent && (*task)->fCurrent->fNStaged) {
             if (heavy == 0 || (*task)->fCurrent->fNStaged > heavy->fCurrent->fNStaged) {
                heavy = *task;
             }
          }
          ++task;
       }
-      if (heavy) launchTask(heavy);
+      if (heavy) {
+         Printf("(%d - GPU) ================= Launching heavy Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, heavy->Name(), heavy->fCurrent->fStreamId, heavy->fIdles, heavy->fCycles, heavy->fCurrent->fNStaged);
+         launchTask(heavy);
+      }
    }
 }
 

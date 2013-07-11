@@ -95,7 +95,7 @@ public:
    
    bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
 
-   void runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin);
+   void runTask(int threadid, unsigned int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin);
    Stream launchTask(bool wait = false);
    Stream launchTask(Task *task, bool wait = false);
    void waitForTasks();
