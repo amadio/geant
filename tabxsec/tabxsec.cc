@@ -142,8 +142,8 @@ int main(int argc,char** argv)
 	 abort ();
       }
   
-  argc -= optind;
-  argv += optind;
+  argc -= optind-1;
+  argv += optind-1;
   /*  for (int index = 0; index < argc; index++)
       printf ("Non-option argument %s\n", argv[index]);*/
   if(nsample && ! ngener) {
@@ -152,11 +152,6 @@ int main(int argc,char** argv)
      ngener = 1;
   }
   
-  if(argc!=1) {
-     usage();
-     exit(1);
-  }
-
   /* end of getopt stuff */
 
   // Choose the Random engine
@@ -206,10 +201,10 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (argc==1) {
+  if (argc!=1) {
     // batch mode
     G4String command = "/control/execute ";
-    G4String fileName = argv[0];
+    G4String fileName = argv[1];
     UImanager->ApplyCommand(command+fileName);
     // ---------------------------------------------------------------------
     //
