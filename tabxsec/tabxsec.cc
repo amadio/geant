@@ -173,7 +173,9 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(physicsList);
 
   // Primary generator action
-  runManager->SetUserAction(new B1PrimaryGeneratorAction());
+  B1PrimaryGeneratorAction *gen = new B1PrimaryGeneratorAction();
+  gen->SetVerbose(verbose);
+  runManager->SetUserAction(gen);
 
   // Set user action classes4
   //

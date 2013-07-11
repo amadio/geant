@@ -46,23 +46,25 @@ class B1DetectorConstruction;
 
 class B1PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
-  public:
-    B1PrimaryGeneratorAction();    
-    ~B1PrimaryGeneratorAction();
-
-    // static access method
-    static const B1PrimaryGeneratorAction* Instance();
-
-    // method from the base class
-    void GeneratePrimaries(G4Event*);         
-
+public:
+   B1PrimaryGeneratorAction();    
+   ~B1PrimaryGeneratorAction();
+   
+   // static access method
+   static const B1PrimaryGeneratorAction* Instance();
+   
+   // method from the base class
+   void GeneratePrimaries(G4Event*);         
+   void SetVerbose(G4int verbose) {fVerbose=verbose;}
+   G4int GetVerbose() const {return fVerbose;}
+   
 protected:
    // Generate a random direction
    void RandomDir(G4ThreeVector& direction) const;
-
-  private:
+   
+private:
    static B1PrimaryGeneratorAction* fgInstance;
-
+   
    G4double fEnergy;
    G4int    fVerbose;
 };
