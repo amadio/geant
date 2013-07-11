@@ -155,10 +155,12 @@ private:
 public:
    struct Task {
    public:
-      Task(kernelFunc_t kernel) : fCurrent(0), fKernel(kernel) {}
+      Task(kernelFunc_t kernel) : fCurrent(0), fKernel(kernel), fCycles(0), fIdles(0) {}
 
       TaskData     *fCurrent;  // Holder of the data to be sent to the GPU, not owned.
       kernelFunc_t  fKernel;   // wrapper around the cuda call to the kernel.
+      unsigned int  fCycles;   // Number of times we put track in the taskData without launching (age of the data).
+      unsigned int  fIdles;   // Number of times we processed basket without putting track in the taskData.
       
       virtual const char *Name() = 0; // Id of the task.
       virtual bool Select(GeantTrack **host_track, int track) = 0; // Selection routine.

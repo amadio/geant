@@ -620,6 +620,8 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
 {
 
    Stream stream = task->fCurrent;
+   task->fIdles = 0;
+   task->fCycles = 0;
    task->fCurrent = 0;
 
    Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
@@ -677,13 +679,13 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
 //         cudaMemcpyAsync(track_d0, track_h+i, count1*sizeof(GXTrack),
 //                         cudaMemcpyHostToDevice, stream0);
 //
-   int trackLeft  = nTracks;
-   int trackStart = 0;
 
+   unsigned int trackUsed = 0;
    TaskColl_t::iterator task = fTasks.begin();
    TaskColl_t::iterator end = fTasks.end();
-   int num = 0;
    while( task != end ) {
+      unsigned int trackLeft  = nTracks;
+      unsigned int trackStart = 0;
       while (trackLeft) {
          if ((*task)->fCurrent == 0) {
             if (fNextTaskData) {
@@ -704,38 +706,73 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
                                                     threadid,
                                                     tracks, trackin,
                                                     trackStart, nTracks);
+         trackUsed += stream->fNStaged-before;
          unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+
+         Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
+         
          if (stream->fNStaged < stream->fChunkSize
-             && (before != stream->fNStaged) // if we did not make any progress, assume there is no 'interesting' track left and schedule the kernel.
              && !force) {
             // We do not have enough tracks
-            Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
             
-            break;
+            if ( before == stream->fNStaged ) {
+               ++( (*task)->fIdles );
+            } else {
+               (*task)->fIdles = 0;
+            }
+            ++( (*task)->fCycles );
+
+            unsigned int idle = (*task)->fIdles;
+            unsigned int cycle = (*task)->fCycles;
+            if (stream->fNStaged && ( idle > (fTasks.size()-1))
+                && 2*idle > cycle ) {
+               Printf("(%d - GPU) ================= Launching idle Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, (*task)->Name(), stream->fStreamId, idle, cycle, stream->fNStaged);
+               // if we did not make any progress in a while, assume there is no 'interesting' track left and schedule the kernel.
+            } else {
+               // Continue to wait for more data ...
+               break;
+            }
          }
          
          if (stream->fNStaged) {
-            Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
             launchTask(*task);
          }
          trackLeft  -= count;
          trackStart += count;
       }
       ++task;
-      ++num;
    }
 
-   GeantPropagator *propagator = GeantPropagator::Instance();
-   GeantTrackCollection  *trackCollection = propagator->fCollections[threadid];
-   WorkloadManager *mgr = WorkloadManager::Instance();
-   for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
-       ++hostIdx ) {
-      if (trackin[hostIdx]>=0) {
-         trackCollection->AddTrack(trackin[hostIdx],
-                                   mgr->GetBasketArray()[volumeIndex]);
-         gPropagator->fTransportOngoing = kTRUE;
+   if (trackUsed != nTracks) {
+      GeantPropagator *propagator = GeantPropagator::Instance();
+      GeantTrackCollection  *trackCollection = propagator->fCollections[threadid];
+      WorkloadManager *mgr = WorkloadManager::Instance();
+      for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
+          ++hostIdx ) {
+         if (trackin[hostIdx]>=0) {
+            trackCollection->AddTrack(trackin[hostIdx],
+                                      mgr->GetBasketArray()[volumeIndex]);
+            gPropagator->fTransportOngoing = kTRUE;
+         }
+         else trackin[hostIdx] = -1; // forget the track since we already passed it along.
       }
-      else trackin[hostIdx] = -1; // forget the track since we already passed it along.
+   }
+   if (trackUsed == 0) {
+      // if we did not make any progress in a while, assume there is no 'interesting' track left
+      // and schedule the most loaded task.
+
+      Task *heavy = 0;
+      TaskColl_t::iterator task = fTasks.begin();
+      TaskColl_t::iterator end = fTasks.end();
+      while( task != end ) {
+         if ((*task)->fCurrent) {
+            if (heavy == 0 || (*task)->fCurrent->fNStaged > heavy->fCurrent->fNStaged) {
+               heavy = *task;
+            }
+         }
+         ++task;
+      }
+      if (heavy) launchTask(heavy);
    }
 }
 
