@@ -7,11 +7,23 @@
 // to convert to time, please adjust the frequency according to your hardware
 
 
-// as found on wikipedia for a 64bit system:
+// as found on wikipedia for a 64bit system   ( we increase the timer overhead artifially, giving us a controllable handle ):
 static inline unsigned long long rdtsc()
 {
   unsigned int lo, hi;
   __asm__ __volatile__ (
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
       "xorl %%eax, %%eax\n"
       "cpuid\n"
       "xorl %%eax, %%eax\n"
@@ -50,6 +62,20 @@ struct RDTSCStopWatch
 
   unsigned long long GetDeltaTics(){ return t2-t1; }
   double getDeltaSecs() { return (t2-t1)*inversefreq; }
+
+  double getOverhead(int N)
+  {
+    HeatUp();
+    unsigned long long Taccum=0L;
+    for(unsigned int i=0; i < N; i++)
+      {
+	Start();
+	Stop();
+	Taccum += (t2-t1);
+      }
+    return Taccum*(inversefreq)/N;
+  }
+
 };
 
 #endif

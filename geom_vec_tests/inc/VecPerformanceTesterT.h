@@ -98,17 +98,22 @@ void ShapeBenchmarker_v<T>::timeIt()
     }
   */
 
+  this->correctTimingAndNormalize(Tc_v);
+  this->correctTimingAndNormalize(Ts_v);
+  this->correctTimingAndNormalize(TdI_v);
+  this->correctTimingAndNormalize(TdO_v);
+
   // print result
   for(unsigned int vectype =0 ; vectype < N; ++vectype )
     {
       std::cerr << ShapeBenchmarker<T>::vecsizes[vectype] 
-		<< " " << Tc_v[vectype]/ShapeBenchmarker<T>::NREPS  /* timing for Contains method */
+		<< " " << Tc_v[vectype]  /* timing for Contains method */
 		<< " " << Tc_v[0]/(Tc_v[vectype]/ShapeBenchmarker<T>::vecsizes[vectype]) /* speedup with respect to 1 particle */
-		<< " " <<  Ts_v[vectype]/ShapeBenchmarker<T>::NREPS   /* timing for safety method */
+		<< " " <<  Ts_v[vectype]   /* timing for safety method */
 		<< " " << Ts_v[0]/(Ts_v[vectype]/ShapeBenchmarker<T>::vecsizes[vectype]) 
-		<< " " <<  TdI_v[vectype]/ShapeBenchmarker<T>::NREPS 
+		<< " " <<  TdI_v[vectype] 
 		<< " " << TdI_v[0]/(TdI_v[vectype]/ShapeBenchmarker<T>::vecsizes[vectype]) 
-		<< " " <<  TdO_v[vectype]/ShapeBenchmarker<T>::NREPS 
+		<< " " <<  TdO_v[vectype] 
 		<< " " << TdO_v[0]/(TdO_v[vectype]/ShapeBenchmarker<T>::vecsizes[vectype]) 
 		<< std::endl;
     }  
