@@ -112,13 +112,15 @@ int main(int argc,char** argv)
 
    G4int nsample=0;
    G4int ngener=0;
+   G4int verbose=0;
+   G4double evEnergy=1*GeV;
   /* getopt stuff */
   int c;
   int opterr = 0;
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:")) != -1)
+  while ((c = getopt (argc, argv, "s:e:v:E:")) != -1)
     switch (c)
       {
       case 's':
@@ -127,6 +129,12 @@ int main(int argc,char** argv)
       case 'e':
 	ngener=atoi(optarg);
 	break;
+      case 'v':
+	 verbose=atoi(optarg);
+	 break;
+      case 'E':
+	 sscanf(optarg,"%fl",&evEnergy);
+	 break;
       case '?':
 	 usage();
 	 return 1;
@@ -166,7 +174,7 @@ int main(int argc,char** argv)
 
   // Physics list
   G4VModularPhysicsList* physicsList = new QBBC;
-  physicsList->SetVerboseLevel(1);
+  physicsList->SetVerboseLevel(verbose);
   runManager->SetUserInitialization(physicsList);
 
   // Primary generator action
@@ -643,8 +651,6 @@ int main(int argc,char** argv)
                       if( particle == G4Proton::Proton() && nsample)
                       {
                          G4double stepSize= 10.0*millimeter;
-                         G4int    verbose=2;
-
 			 SampDisInt(matt, pos, dp, ph, stepSize, nsample, verbose);
                       }
 		      en*=delta;
@@ -677,8 +683,6 @@ int main(int argc,char** argv)
 			 if( particle == G4Positron::Positron() && nsample)
 			    {
 			       G4double stepSize= 10.0*millimeter;
-			       G4int    verbose=2;
-			       
 			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nsample, verbose);
 			    }
 			 en*=delta;
@@ -713,8 +717,6 @@ int main(int argc,char** argv)
 			 if( particle == G4Positron::Positron() && nsample)
 			    {
 			       G4double stepSize= 10.0*millimeter;
-			       G4int    verbose=2;
-			       
 			       SampDisInt(matt, pos, dp, ptEm, stepSize, nsample, verbose);
 			    }
 			 en*=delta;
