@@ -25,13 +25,16 @@
 template <typename T>
 class ShapeBenchmarker{
  protected:
-  // StopWatch timer;
+  //  StopWatch timer;
   RDTSCStopWatch timer;
+
+  // for the timer overhead
+  double Toverhead;
 
   T * testshape;
   unsigned int vecsizes[14]={1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8182};
   static const unsigned int MAXSIZE=8182;
-  static const unsigned int NREPS = 2000; // number of timing repetitions;
+  static const unsigned int NREPS = 200; // number of timing repetitions;
 
   // containers for the timings
   std::vector<double> TdO; // dist out
@@ -79,6 +82,12 @@ class ShapeBenchmarker{
 
   // calculate Bounding Box for shape
   testshape->T::ComputeBBox();
+
+  // get timer overhead 
+  Toverhead=timer.getOverhead( 10000 );
+  
+  std::cout << "# TIMER OVERHEAD IS :" << Toverhead << std::endl;
+
   } 
 
   ~ShapeBenchmarker()
@@ -111,6 +120,23 @@ class ShapeBenchmarker{
   void timeIt();
 
   void printTimings( char const * filename ) const;
+
+
+  // correct times by overhead and normalize
+  // we expect here the timings to be accumulated over NREP repetitions
+  void correctTimingAndNormalize( std::vector<double> & timing )
+  {
+    for(unsigned int vectype =0 ; vectype < N; ++vectype )
+      {
+	// take out overhead
+	timing[ vectype ] -= Toverhead*NREPS;
+	// normalize
+	timing[ vectype ] /= NREPS;
+      }
+  }
+
+
+
 };
 
 template <typename T>
@@ -437,18 +463,30 @@ void ShapeBenchmarker<T>::timeIt( )
 	  timeDistanceFromOutside ( TdO[vectype], vecsizes[vectype] );
 	}
     }
+
+  correctTimingAndNormalize(Tc);
+  correctTimingAndNormalize(Ts);
+  correctTimingAndNormalize(TdI);
+  correctTimingAndNormalize(TdO);
   
   // print result
   for(unsigned int vectype =0 ; vectype < N; ++vectype )
     {
-      std::cerr << vecsizes[vectype] 
-		<< " " << Tc[vectype]/NREPS  /* timing for Contains method */
+      std::cout << vecsizes[vectype] 
+		<< " " << Tc[vectype]  /* timing for Contains method */
+
 		<< " " << Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
-		<< " " <<  Ts[vectype]/NREPS   /* timing for safety method */
+
+		<< " " <<  Ts[vectype]  /* timing for safety method */
+
 		<< " " << Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
-		<< " " <<  TdI[vectype]/NREPS 
+
+		<< " " <<  TdI[vectype]
+
 		<< " " << TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
-		<< " " <<  TdO[vectype]/NREPS 
+
+		<< " " <<  TdO[vectype]
+
 		<< " " << TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
 		<< std::endl;
     }  
@@ -462,13 +500,13 @@ void ShapeBenchmarker<T>::printTimings( char const * filename ) const
   for(unsigned int vectype =0 ; vectype < N; ++vectype )
     {
       outstr << this->vecsizes[vectype] 
-		<< " " << this->Tc[vectype]/NREPS  /* timing for Contains method */
+		<< " " << this->Tc[vectype]  /* timing for Contains method */
 		<< " " << this->Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
-		<< " " << this->Ts[vectype]/NREPS   /* timing for safety method */
+		<< " " << this->Ts[vectype]   /* timing for safety method */
 		<< " " << this->Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
-		<< " " <<  this->TdI[vectype]/NREPS 
+		<< " " <<  this->TdI[vectype] 
 		<< " " << this->TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
-		<< " " <<  this->TdO[vectype]/NREPS 
+		<< " " <<  this->TdO[vectype] 
 		<< " " << this->TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
 		<< std::endl;
     }  
