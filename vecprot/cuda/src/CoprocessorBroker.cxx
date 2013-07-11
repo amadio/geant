@@ -467,6 +467,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
          fTrackCollection->AddTrack(trackin[hostIdx],
                                     mgr->GetBasketArray()[volumeIndex]);
          gPropagator->fTransportOngoing = kTRUE;
+         trackin[hostIdx] = -1; // forget the track since we already passed it along.
          continue;
       }
    }
@@ -651,6 +652,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Stream stream, bool wait
    if (wait) {
       cudaStreamSynchronize(*stream);
    }
+   return stream;
 }
 
 CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
@@ -684,23 +686,14 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
 //
    int trackLeft  = nTracks;
    int trackStart = 0;
-   
-   TaskColl_t::iterator task = fTasks.begin();
-   TaskColl_t::iterator end = fTasks.end();
-   while( task != end ) {
+   if (0) {
       while (trackLeft) {
-         if (1 || (*task)->fCurrent == 0) {
-            // If we do not yet have a TaskData, wait for one.
-            // Consequence: if we are very busy we hang on to this
-            // basket until one of the task finishes.
-            (*task)->fCurrent = GetNextStream();
-            if (!(*task)->fCurrent) continue;
-         }
-         TaskData *stream = (*task)->fCurrent;
-         fCurrentHelper = stream;
+         TaskData *stream = GetNextStream();
+         if (!stream) return;
+         
+         
          unsigned int before = stream->fNStaged;
-         unsigned int count = stream->TrackToDevice(*task, 
-                                                    threadid,
+         unsigned int count = stream->TrackToDevice(fTasks[0],threadid,
                                                     tracks, trackin,
                                                     trackStart, nTracks);
          unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
@@ -708,35 +701,77 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
              && (before != stream->fNStaged) // if we did not make any progress, assume there is no 'interesting' track left and schedule the kernel.
              && !force) {
             // We do not have enough tracks
-            Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
+            Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
             
-            continue;
+         
+            return;
          }
          
          if (stream->fNStaged) {
-            (*task)->fCurrent = 0;
             Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
-            launchTask(stream);
+            launchTask();
          }
          trackLeft  -= count;
          trackStart += count;
       }
-      ++task;
-   }
-   GeantTrackCollection  *trackCollection = 0;
-   WorkloadManager *mgr = WorkloadManager::Instance();
-   if (mgr->CollectorEmptyQueue()->empty()) trackCollection = new GeantTrackCollection(100);
-   else trackCollection = (GeantTrackCollection*)mgr->CollectorEmptyQueue()->wait_and_pop();
-   for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
-       ++hostIdx ) {
-      if (trackin[hostIdx]>=0) {
-         trackCollection->AddTrack(trackin[hostIdx],
-                                   mgr->GetBasketArray()[volumeIndex]);
-         gPropagator->fTransportOngoing = kTRUE;
+   } else {
+   
+      TaskColl_t::iterator task = fTasks.begin();
+      TaskColl_t::iterator end = fTasks.end();
+      int num = 0;
+      while( task != end ) {
+         while (trackLeft) {
+            if (1 || (*task)->fCurrent == 0) {
+               // If we do not yet have a TaskData, wait for one.
+               // Consequence: if we are very busy we hang on to this
+               // basket until one of the task finishes.
+               (*task)->fCurrent = GetNextStream();
+               if (!(*task)->fCurrent) return;
+            }
+            TaskData *stream = (*task)->fCurrent;
+            fCurrentHelper = stream;
+            unsigned int before = stream->fNStaged;
+            unsigned int count = stream->TrackToDevice(*task,
+                                                       threadid,
+                                                       tracks, trackin,
+                                                       trackStart, nTracks);
+            unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+            if (stream->fNStaged < stream->fChunkSize
+                && (before != stream->fNStaged) // if we did not make any progress, assume there is no 'interesting' track left and schedule the kernel.
+                && !force) {
+               // We do not have enough tracks
+               Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
+               
+               return;
+            }
+            
+            if (stream->fNStaged) {
+               (*task)->fCurrent = 0;
+               Printf("(%d - GPU) ================= Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, stream->fStreamId, count, rejected, stream->fNStaged);
+               launchTask();
+            }
+            trackLeft  -= count;
+            trackStart += count;
+         }
+         ++task;
+         ++num;
       }
-      else trackin[hostIdx] = -1; // forget the track since we already passed it along.
    }
-   mgr->CollectorQueue()->push(trackCollection);
+   if (1) {
+      GeantPropagator *propagator = GeantPropagator::Instance();
+      GeantTrackCollection  *trackCollection = propagator->fCollections[threadid];
+      WorkloadManager *mgr = WorkloadManager::Instance();
+      for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
+          ++hostIdx ) {
+         if (trackin[hostIdx]>=0) {
+            Printf("GPU - ERROR: Had to reschedule %d\n",hostIdx);
+            trackCollection->AddTrack(trackin[hostIdx],
+                                      mgr->GetBasketArray()[volumeIndex]);
+            gPropagator->fTransportOngoing = kTRUE;
+         }
+         else trackin[hostIdx] = -1; // forget the track since we already passed it along.
+      }
+   }
 }
 
 void CoprocessorBroker::waitForTasks()
