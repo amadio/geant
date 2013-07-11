@@ -83,7 +83,13 @@
 #include <TMap.h>
 #include <TObjString.h>
 
+#include <unistd.h>
 
+extern char *optarg;
+extern int optind;
+extern int optopt;
+extern int opterr;
+extern int optreset;
 
 using namespace CLHEP;
 
@@ -95,8 +101,56 @@ void DefineParticles();
 
 static TMap partDict;
 
+void usage() {
+   fprintf(stderr,"tabxsec -e <number of events to generate> "
+	   "-s <number of reactions to sample> filename\n");
+}
+
 int main(int argc,char** argv)
 {
+
+
+   G4int nsample=0;
+   G4int ngener=0;
+  /* getopt stuff */
+  int c;
+  int opterr = 0;
+  /* end of getopt vars */
+  
+  /* getopt processing */
+  while ((c = getopt (argc, argv, "s:e:")) != -1)
+    switch (c)
+      {
+      case 's':
+	nsample=atoi(optarg);
+	break;
+      case 'e':
+	ngener=atoi(optarg);
+	break;
+      case '?':
+	 usage();
+	 return 1;
+      default:
+	 abort ();
+      }
+  
+  argc -= optind;
+  argv += optind;
+  /*  for (int index = 0; index < argc; index++)
+      printf ("Non-option argument %s\n", argv[index]);*/
+  if(nsample && ! ngener) {
+     G4cout << "Sampling will fail if at least one event is not generated!"
+	    << " Settting ngener = 1" << G4endl;
+     ngener = 1;
+  }
+  
+  if(argc!=1) {
+     usage();
+     exit(1);
+  }
+
+  /* end of getopt stuff */
+
   // Choose the Random engine
   //
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
@@ -144,10 +198,10 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (argc!=1) {
+  if (argc==1) {
     // batch mode
     G4String command = "/control/execute ";
-    G4String fileName = argv[1];
+    G4String fileName = argv[0];
     UImanager->ApplyCommand(command+fileName);
     // ---------------------------------------------------------------------
     //
@@ -445,7 +499,7 @@ int main(int argc,char** argv)
     printf("Particle Vector has %lu contents.\n", particleVector.size() ); 
     if( particleVector.size() == 0 ) { printf("Cannot work without particles."); exit(1); } 
 
-    runManager->BeamOn( 1 );
+    runManager->BeamOn( ngener );
     
     // Now we find the crosss secions
     G4ProductionCutsTable* theCoupleTable =
@@ -586,13 +640,12 @@ int main(int argc,char** argv)
 		   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		   for(G4int j=0; j<nbins; ++j) {
 		      pxsec[nprxs*nbins+j] =  ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
-                      if( particle == G4Proton::Proton() )
+                      if( particle == G4Proton::Proton() && nsample)
                       {
                          G4double stepSize= 10.0*millimeter;
-                         G4int    nevt= 10;
                          G4int    verbose=2;
 
-			 SampDisInt(matt, pos, dp, ph, stepSize, nevt, verbose);
+			 SampDisInt(matt, pos, dp, ph, stepSize, nsample, verbose);
                       }
 		      en*=delta;
 		      dp->SetKineticEnergy(en);
@@ -621,13 +674,12 @@ int main(int argc,char** argv)
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 if( particle == G4Positron::Positron() )
+			 if( particle == G4Positron::Positron() && nsample)
 			    {
 			       G4double stepSize= 10.0*millimeter;
-			       G4int    nevt= 10;
 			       G4int    verbose=2;
 			       
-			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nevt, verbose);
+			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nsample, verbose);
 			    }
 			 en*=delta;
 			 dp->SetKineticEnergy(en);
@@ -658,13 +710,12 @@ int main(int argc,char** argv)
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
 			 pxsec[nprxs*nbins+j] =  ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			 if( particle == G4Positron::Positron() )
+			 if( particle == G4Positron::Positron() && nsample)
 			    {
 			       G4double stepSize= 10.0*millimeter;
-			       G4int    nevt= 10;
 			       G4int    verbose=2;
 			       
-			       SampDisInt(matt, pos, dp, ptEm, stepSize, nevt, verbose);
+			       SampDisInt(matt, pos, dp, ptEm, stepSize, nsample, verbose);
 			    }
 			 en*=delta;
 			 dp->SetKineticEnergy(en);
