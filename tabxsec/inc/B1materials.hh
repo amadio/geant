@@ -11,4 +11,4 @@ static const char materialVec[98][6] = {"G4_H" ,"G4_He","G4_Li","G4_Be","G4_B" ,
 
 extern G4double MaterialPosition[98][3]; 
 
-static const G4int nmaterials = 98;
+static const G4int nmaterials = 92;
