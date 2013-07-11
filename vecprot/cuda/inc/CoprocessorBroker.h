@@ -97,7 +97,7 @@ public:
 
    void runTask(int threadid, int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin);
    Stream launchTask(bool wait = false);
-   Stream launchTask(Stream stream, bool wait = false);
+   Stream launchTask(Task *task, bool wait = false);
    void waitForTasks();
    
    long GetTotalWork() { return fTotalWork; }
@@ -174,7 +174,7 @@ private:
    TaskColl_t     fTasks;
    TaskDataColl_t fTaskData;
 
-   TaskData *fCurrentHelper;
+   TaskData *fNextTaskData;
    concurrent_queue fHelpers;
    
    int fNblocks;

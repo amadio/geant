@@ -240,7 +240,7 @@ void CoprocessorBroker::TaskData::Reset()
 }
 
 CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
-   ,fCurrentHelper(0)
+   ,fNextTaskData(0)
    ,fNblocks(0),fNthreads(0)
    ,fMaxTrackPerThread(1)
    ,fTotalWork(0)
@@ -606,29 +606,33 @@ CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
    // Return the current stream (one that we can still add input to)
    // or return new one.
 
-   if (!fCurrentHelper) {
-      fCurrentHelper = dynamic_cast<TaskData*>(fHelpers.wait_and_pop());
-      if (!fCurrentHelper) {
+   if (!fNextTaskData) {
+      fNextTaskData = dynamic_cast<TaskData*>(fHelpers.wait_and_pop());
+      if (!fNextTaskData) {
          // nothing we can do at the moment
          return 0;
       }
    }
-   return fCurrentHelper;
+   return fNextTaskData;
 }
 
-CoprocessorBroker::Stream CoprocessorBroker::launchTask(Stream stream, bool wait /* = false */)
+CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /* = false */)
 {
 
-   Printf("(%d - GPU) == Starting kernel on stream %d with %d tracks\n",
-          stream->fThreadId, stream->fStreamId, stream->fNStaged );
+   Stream stream = task->fCurrent;
+   task->fCurrent = 0;
+
+   Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
+          stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
+
    fTotalWork += stream->fNStaged;
-   tracking_gpu(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
-                stream->fDevTrack,
-                stream->fDevTrackLogIndex,
-                stream->fDevTrackPhysIndex,
-                fd_eBremTable, fd_eIoniTable, fd_mscTable,
-                stream->fNStaged,
-                fNblocks,fNthreads,*stream);
+   task->fKernel(stream->fdRandStates,(GPGeomManager*)fdGeometry,fdFieldMap,
+                 stream->fDevTrack,
+                 stream->fDevTrackLogIndex,
+                 stream->fDevTrackPhysIndex,
+                 fd_eBremTable, fd_eIoniTable, fd_mscTable,
+                 stream->fNStaged,
+                 fNblocks,fNthreads,*stream);
    
    cudaMemcpyAsync(stream->fTrack, stream->fDevTrack, stream->fNStaged*sizeof(GXTrack),
                    cudaMemcpyDeviceToHost, *stream);
@@ -648,20 +652,18 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Stream stream, bool wait
 
 CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 {
-   if (fCurrentHelper == 0 || fCurrentHelper->fNStaged == 0) {
-      // Nothing to do ...
-      return 0;
-   }
+   Stream stream = 0;
+   TaskColl_t::iterator task = fTasks.begin();
+   TaskColl_t::iterator end = fTasks.end();
+   while( task != end ) {
 
-//   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//   if (!nav) nav = gGeoManager->AddNavigator();
-
-   TaskData *stream = fCurrentHelper;
-   fCurrentHelper = 0;
+      if ((*task)->fCurrent != 0 && (*task)->fCurrent->fNStaged != 0) {
    
-   if (stream) {
-      launchTask(stream,wait);
+         stream = launchTask((*task),wait);
+      }
+      ++task;
    }
+   // Return the last stream used ....
    return stream;
 }
 
@@ -683,15 +685,20 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
    int num = 0;
    while( task != end ) {
       while (trackLeft) {
-         if (1 || (*task)->fCurrent == 0) {
-            // If we do not yet have a TaskData, wait for one.
-            // Consequence: if we are very busy we hang on to this
-            // basket until one of the task finishes.
-            (*task)->fCurrent = GetNextStream();
-            if (!(*task)->fCurrent) return;
+         if ((*task)->fCurrent == 0) {
+            if (fNextTaskData) {
+               (*task)->fCurrent = fNextTaskData;
+            } else {
+               // If we do not yet have a TaskData, wait for one.
+               // Consequence: if we are very busy we hang on to this
+               // basket until one of the task finishes.
+               (*task)->fCurrent = GetNextStream();
+            }
+            fNextTaskData = 0;
+            if (!(*task)->fCurrent) break;
          }
          TaskData *stream = (*task)->fCurrent;
-         fCurrentHelper = stream;
+
          unsigned int before = stream->fNStaged;
          unsigned int count = stream->TrackToDevice(*task,
                                                     threadid,
@@ -708,9 +715,8 @@ void CoprocessorBroker::runTask(int threadid, int nTracks, int volumeIndex, Gean
          }
          
          if (stream->fNStaged) {
-            (*task)->fCurrent = 0;
             Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged);
-            launchTask();
+            launchTask(*task);
          }
          trackLeft  -= count;
          trackStart += count;
