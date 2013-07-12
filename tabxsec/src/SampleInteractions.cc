@@ -454,6 +454,9 @@ int SampDisInt(
       
       if(dynamic_cast<G4HadronInelasticProcess*>(proc)) 
 	 pcons[3]+=amass;
+      if(dpart->GetParticleDefinition()->GetParticleName() == G4String("e+")
+	 && proc->GetProcessName() == G4String("annihil"))
+	 pcons[3]+=mass;
       aChange = proc->PostStepDoIt(*gTrack,*step); 
       // ** Cause Discrete Interaction **
       
@@ -534,15 +537,20 @@ int SampDisInt(
       const G4double prec=1e-7;
       if(n) {
 	 G4double ptot = labv.vect().mag();
-	 G4bool cons = pcons[3]>prec*labv[3];
-	 for(G4int i=0; i<3; ++i) cons |= std::abs(pcons[i])>prec*ptot;
-	 if(cons) {
-	    G4cout << "----------------------------------------------------------------------------------" << G4endl
-		   <<"Dubious E/p balance = " << pcons << G4endl
-		   << proc->GetProcessName() << " for " 
+	 G4double ermax = std::abs(pcons[3]);
+	 if(labv[3]) ermax/=labv[3];
+	 for(G4int i=0; i<3; ++i) {
+	    G4double err = std::abs(pcons[3])/ptot;
+	    if(err>ermax) ermax=err;
+	 }
+	 if(ermax>prec) {
+	    G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl
+		   <<"Dubious E/p balance " << setiosflags(ios::scientific) << setprecision(2) << ermax 
+		   << " p=" << setiosflags(ios::fixed) << setprecision(6) << pcons << " for "
+		   << proc->GetProcessName() << " of " 
 		   << dpart->GetParticleDefinition()->GetParticleName() << " @ "
 		   << dpart->Get4Momentum() << " on " 
-		   << material->GetName() << " (" << Z <<"," << A << ") mass " << amass << G4endl 
+		   << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" << G4endl 
 		   << "Particles generated:" << G4endl;
 	    G4FastStep *uChange = dynamic_cast<G4FastStep*>(aChange);
 	    G4ParticleChange *vChange = dynamic_cast<G4ParticleChange*>(aChange);
@@ -570,12 +578,13 @@ int SampDisInt(
 	       sec = aChange->GetSecondary(i)->GetDynamicParticle();
 	       pd  = sec->GetDefinition();
 	       G4cout << "Sec[" << i << "]=" 
-		      << pd->GetParticleName() << " (" << pd->GetPDGEncoding() << ") "
+		      << setiosflags(ios::left) << setw(10) << pd->GetParticleName() 
+		      << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
 		      << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
 		      << " p= " << sec->Get4Momentum() 
 		      << G4endl;
 	    }
-	    G4cout << "----------------------------------------------------------------------------------" << G4endl;
+	    G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
 	 }
       }
       for(G4int i=0; i<n; ++i) 
