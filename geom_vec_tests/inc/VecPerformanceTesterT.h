@@ -97,15 +97,15 @@ void ShapeBenchmarker_v<T>::timeIt()
       if( fabs(results_v_s[i] - this->results_s[i]) > 1e-10 )
 	{
 	  //	  VUSolid::EnumInside inside = testusolid->U::Inside( &this->points_C[3*index] );
-	  std::cerr << i << " #difference in safety function " << results_USolid_s[i] << "  " <<  this->results_s[i] << " CONTAINS: " << results_USolid_C[i] << " " << this->results_C[i] << std::endl;
+	  std::cerr << i << " #difference in safety function " << results_v_s[i] << "  " <<  this->results_s[i] << " CONTAINS: " << results_v_C[i] << " " << this->results_C[i] << std::endl;
 	}
-      if( ( fabs(results_v_dO[i] - this->results_dO[i]) > 1e-10 ) && ( fabs(results_USolid_dO[i] - this->results_dO[i]) < TGeoShape::Big() ) )
+      if( ( fabs(results_v_dO[i] - this->results_dO[i]) > 1e-10 ) && ( fabs(results_v_dO[i] - this->results_dO[i]) < TGeoShape::Big() ) )
 	{
-	  std::cerr << i << " #difference in DistFromOut function " << results_USolid_dO[i] << " " <<  this->results_dO[i] << std::endl;
+	  std::cerr << i << " #difference in DistFromOut function " << results_v_dO[i] << " " <<  this->results_dO[i] << std::endl;
 	}
-      if( ( fabs(results_v_dI[i] - this->results_dI[i]) > 1e-10 ) && ( fabs(results_USolid_dI[i] - this->results_dI[i]) < TGeoShape::Big() ) ) 
+      if( ( fabs(results_v_dI[i] - this->results_dI[i]) > 1e-10 ) && ( fabs(results_v_dI[i] - this->results_dI[i]) < TGeoShape::Big() ) ) 
 	{
-	  std::cerr << i << " #difference in DistFromIn function " <<  results_USolid_dI[i] << " " <<  this->results_dI[i] << std::endl;
+	  std::cerr << i << " #difference in DistFromIn function " <<  results_v_dI[i] << " " <<  this->results_dI[i] << std::endl;
 	}
 
 
