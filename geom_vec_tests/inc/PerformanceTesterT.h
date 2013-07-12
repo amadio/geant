@@ -18,7 +18,7 @@
 #include "mm_malloc.h" // for aligned malloc
 #include <fstream>
 
-#define N 14
+#define NS 14
 
 
 // T is supposed to be a TGeoShape inherited from TGeoBBox
@@ -61,7 +61,7 @@ class ShapeBenchmarker{
 
  public:
   // ctor
-  ShapeBenchmarker( T *s ) : testshape(s), TdO(N,0.), TdI(N,0.), Tc(N,0.), Ts(N,0.) {
+  ShapeBenchmarker( T *s ) : testshape(s), TdO(NS,0.), TdI(NS,0.), Tc(NS,0.), Ts(NS,0.) {
   points_C = (double*) _mm_malloc(sizeof(double)*3*MAXSIZE,32);
   points_dO = (double*) _mm_malloc(sizeof(double)*3*MAXSIZE,32);
   points_dI = (double*) _mm_malloc(sizeof(double)*3*MAXSIZE,32);
@@ -126,7 +126,7 @@ class ShapeBenchmarker{
   // we expect here the timings to be accumulated over NREP repetitions
   void correctTimingAndNormalize( std::vector<double> & timing )
   {
-    for(unsigned int vectype =0 ; vectype < N; ++vectype )
+    for(unsigned int vectype =0 ; vectype < NS; ++vectype )
       {
 	// take out overhead
 	timing[ vectype ] -= Toverhead*NREPS;
@@ -448,7 +448,7 @@ void ShapeBenchmarker<T>::timeIt( )
   // to avoid measuring the same function over and over again we interleave calls to different functions and different data
   for(unsigned int rep=0; rep< NREPS; rep++)
     {
-      for(unsigned int vectype =0 ; vectype < N; ++vectype )
+      for(unsigned int vectype =0 ; vectype < NS; ++vectype )
 	{
 	  // Safety
 	  timeSafety ( Ts[vectype], vecsizes[vectype] );
@@ -470,7 +470,7 @@ void ShapeBenchmarker<T>::timeIt( )
   correctTimingAndNormalize(TdO);
   
   // print result
-  for(unsigned int vectype =0 ; vectype < N; ++vectype )
+  for(unsigned int vectype =0 ; vectype < NS; ++vectype )
     {
       std::cout << vecsizes[vectype] 
 		<< " " << Tc[vectype]  /* timing for Contains method */
@@ -497,7 +497,7 @@ void ShapeBenchmarker<T>::printTimings( char const * filename ) const
 {
   ofstream outstr(filename);
   // print result
-  for(unsigned int vectype =0 ; vectype < N; ++vectype )
+  for(unsigned int vectype =0 ; vectype < NS; ++vectype )
     {
       outstr << this->vecsizes[vectype] 
 		<< " " << this->Tc[vectype]  /* timing for Contains method */

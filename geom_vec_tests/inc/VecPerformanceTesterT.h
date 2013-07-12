@@ -29,7 +29,7 @@ private:
 
 
 public:
-  ShapeBenchmarker_v( T  *s ) : ShapeBenchmarker<T>(s), TdO_v(N,0.), TdI_v(N,0.), Tc_v(N,0.), Ts_v(N,0.) {
+  ShapeBenchmarker_v( T  *s ) : ShapeBenchmarker<T>(s), TdO_v(NS,0.), TdI_v(NS,0.), Tc_v(NS,0.), Ts_v(NS,0.) {
     points_C_SOA.alloc(ShapeBenchmarker<T>::MAXSIZE); // contains
     points_dO_SOA.alloc(ShapeBenchmarker<T>::MAXSIZE); // distanceIn
     points_dI_SOA.alloc(ShapeBenchmarker<T>::MAXSIZE); // distanceOut
@@ -71,7 +71,7 @@ void ShapeBenchmarker_v<T>::timeIt()
   // to avoid measuring the same function over and over again we interleave calls to different functions and different data
   for(unsigned int rep=0; rep< ShapeBenchmarker<T>::NREPS; rep++)
     {
-      for(unsigned int vectype =0 ; vectype < N; ++vectype )
+      for(unsigned int vectype =0 ; vectype < NS; ++vectype )
 	{
 	  // Safety
 	  timeSafety_v ( Ts_v[vectype], ShapeBenchmarker<T>::vecsizes[vectype] );
@@ -107,7 +107,7 @@ void ShapeBenchmarker_v<T>::timeIt()
 	{
 	  std::cerr << i << " #difference in DistFromIn function " <<  results_v_dI[i] << " " <<  this->results_dI[i] << std::endl;
 	}
-
+    }
 
   /*
   for(unsigned int i =0 ; i < this->MAXSIZE; ++i )
@@ -125,7 +125,7 @@ void ShapeBenchmarker_v<T>::timeIt()
   this->correctTimingAndNormalize(TdO_v);
 
   // print result
-  for(unsigned int vectype =0 ; vectype < N; ++vectype )
+  for(unsigned int vectype =0 ; vectype < NS; ++vectype )
     {
       std::cerr << ShapeBenchmarker<T>::vecsizes[vectype] 
 		<< " " << Tc_v[vectype]  /* timing for Contains method */
