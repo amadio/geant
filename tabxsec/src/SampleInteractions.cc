@@ -359,7 +359,7 @@ int SampDisInt(
    G4double amass = GetNuclearMass( Z, A, verbose ); 
    
    // ------- Printout
-   if(verbose) {
+   if(verbose>1) {
       G4cout << G4endl << "Process   : " << proc->GetProcessName() << G4endl
 	     << "Particle  : " << dpart->GetParticleDefinition()->GetParticleName() 
 	     << "; p " << dpart->Get4Momentum() << G4endl
@@ -424,9 +424,15 @@ int SampDisInt(
    
    for (G4int iter=0; iter<nevt; ++iter) {
       
+      G4bool needendl = FALSE;
       G4int modu = 10000;
       if(verbose>1 || iter == modu*(iter/modu)) {
-	 G4cout << "### " << iter << "-th event start " << G4endl;
+	 G4cout << "### " << iter << "-th event: " 
+		<< dpart->GetParticleDefinition()->GetParticleName() << " "
+		<< proc->GetProcessName() 
+		<< " @" << dpart->Get4Momentum() << " on " 
+		<< material->GetName() << " (" << Z <<"," << A << "," << amass << ")";
+	 needendl=TRUE;
       }
       
       gTrack->SetStep(step);
@@ -435,6 +441,10 @@ int SampDisInt(
       G4LorentzVector labv;
       labv = G4LorentzVector(gTrack->GetMomentum(), gTrack->GetTotalEnergy());
       if(labv != dpsave->Get4Momentum()) {
+	 if(needendl) {
+	    G4cout << G4endl;
+	    needendl=FALSE;
+	 }
 	 G4cout << "The momentum of the projectile has changed from " 
 		<< labv << " to "
 		<< dpart->Get4Momentum() << G4endl;
@@ -449,6 +459,10 @@ int SampDisInt(
       
       if(proc->GetProcessName() == G4String("hadElastic")) {
 	 G4double cost = labv.vect().cosTheta(*((G4ParticleChange*) aChange)->GetMomentumDirection());
+	 if(needendl) {
+	    G4cout << G4endl;
+	    needendl=FALSE;
+	 }
 	 G4cout << "Elastic scattering by cosTheta " 
 		<< cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)" << G4endl;
       }
@@ -500,6 +514,10 @@ int SampDisInt(
 	 pt = sqrt(px*px +py*py);
 
 	 if(verbose > 1) {
+	    if(needendl) {
+	       G4cout << G4endl;
+	       needendl=FALSE;
+	    }
 	    G4cout << " Sec[" << i << "]=" 
 		   << pd->GetParticleName() << " (" << pd->GetPDGEncoding() << ") "
 		   << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
@@ -507,17 +525,25 @@ int SampDisInt(
 		   << G4endl;
 	 }	  
       }
-      if(verbose) 
-	 printf(" Int %5d:  %2d sec: %2d had (%2d protons, %2d neutrons, %2d pi), %2d e- %2d e+ %2d g\n", 
-		iter, n, nbar, n_pr, n_nt, n_pi, n_el, n_po, n_ga );
+      if(verbose>1 || iter == modu*(iter/modu)) {
+	 G4cout << ": " << n << " sec (" << n_pr << " protons, " 
+		<< n_nt << " neutrons, " << n_pi << " pi), " 
+		<< n_el << " e-, " << n_po << " e+, " << n_ga << " g" 
+		<< G4endl;
+      }
       const G4double prec=1e-7;
       if(n) {
 	 G4double ptot = labv.vect().mag();
 	 G4bool cons = pcons[3]>prec*labv[3];
 	 for(G4int i=0; i<3; ++i) cons |= std::abs(pcons[i])>prec*ptot;
 	 if(cons) {
-	    G4cout << "Dubious E/p balance = " << pcons << G4endl
-		   << "Particle kinematics:" << G4endl;
+	    G4cout << "----------------------------------------------------------------------------------" << G4endl
+		   <<"Dubious E/p balance = " << pcons << G4endl
+		   << proc->GetProcessName() << " for " 
+		   << dpart->GetParticleDefinition()->GetParticleName() << " @ "
+		   << dpart->Get4Momentum() << " on " 
+		   << material->GetName() << " (" << Z <<"," << A << ") mass " << amass << G4endl 
+		   << "Particles generated:" << G4endl;
 	    G4FastStep *uChange = dynamic_cast<G4FastStep*>(aChange);
 	    G4ParticleChange *vChange = dynamic_cast<G4ParticleChange*>(aChange);
 	    G4ParticleChangeForDecay *wChange = dynamic_cast<G4ParticleChangeForDecay*>(aChange);
@@ -549,6 +575,7 @@ int SampDisInt(
 		      << " p= " << sec->Get4Momentum() 
 		      << G4endl;
 	    }
+	    G4cout << "----------------------------------------------------------------------------------" << G4endl;
 	 }
       }
       for(G4int i=0; i<n; ++i) 
