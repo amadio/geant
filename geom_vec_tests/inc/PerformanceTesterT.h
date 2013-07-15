@@ -25,8 +25,11 @@
 template <typename T>
 class ShapeBenchmarker{
  protected:
-  //  StopWatch timer;
+#ifdef USE_RDTSC // to choose timer at compile time
   RDTSCStopWatch timer;
+#else
+  StopWatch timer;
+#endif
 
   // for the timer overhead
   double Toverhead;
@@ -34,7 +37,7 @@ class ShapeBenchmarker{
   T * testshape;
   unsigned int vecsizes[14]={1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8182};
   static const unsigned int MAXSIZE=8182;
-  static const unsigned int NREPS = 200; // number of timing repetitions;
+  static const unsigned int NREPS = 500; // number of timing repetitions;
 
   // containers for the timings
   std::vector<double> TdO; // dist out

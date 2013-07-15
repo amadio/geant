@@ -50,6 +50,10 @@ public:
   void timeContains_v( double &, unsigned int );
   void timeSafety_v( double &, unsigned int );
   void timeIt();
+
+  // heatup ( to avoid overhead from first call to dynamic library )
+  void heatup();
+
 };
 
 template<typename T> 
@@ -66,6 +70,9 @@ void ShapeBenchmarker_v<T>::timeIt()
   
   dirs_dO_SOA.fill(ShapeBenchmarker<T>::dirs_dO); // directions distanceIn
   dirs_dI_SOA.fill(ShapeBenchmarker<T>::dirs_dI); // directions distanceOut
+
+  // make contact to dynamic library
+  heatup();
 
   // do additional vector interface measurements
   // to avoid measuring the same function over and over again we interleave calls to different functions and different data
@@ -208,5 +215,15 @@ void ShapeBenchmarker_v<T>::timeDistanceFromInside_v(double & Tacc, unsigned int
   this->timer.Stop();
   Tacc+=this->timer.getDeltaSecs();
 }
+
+template <typename T>
+void ShapeBenchmarker_v<T>::heatup()
+{
+  this->testshape->T::DistFromInside_v( points_dI_SOA, dirs_dI_SOA, 3, this->steps, 0, results_v_dI, this->MAXSIZE );
+  this->testshape->T::DistFromOutside_v( points_dO_SOA, dirs_dO_SOA, 3, this->steps, 0, results_v_dO, this->MAXSIZE );
+  this->testshape->T::Contains_v( points_C_SOA, results_v_C, this->MAXSIZE );
+  this->testshape->T::Safety_v( points_s_SOA, kTRUE, results_v_s, this->MAXSIZE );
+}
+
 
 #endif
