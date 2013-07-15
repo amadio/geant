@@ -21,11 +21,10 @@ file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 
 # for optimization studies, we compile this directory with higher Ox
 # TODO: check compiler etc
-set( BASEFLAGS "-Ofast -ftree-vectorize -ftree-vectorizer-verbose=0" )
+set( BASEFLAGS "-Ofast -ftree-vectorize -ftree-vectorizer-verbose=0 -fpermissive" )
 
-# depending on whether we use Vc, have to set some additional compile flags
 if( VC_FOUND )
-  set_source_files_properties(${sources} PROPERTIES COMPILE_DEFINITIONS VEC_EXTENSIONS)
+  add_definitions( "-DVEC_EXTENSIONS" )
   set( BASEVCFLAGS "-std=c++11 -fabi-version=6" )
 endif()
 if( USEAVX )
@@ -34,6 +33,10 @@ else()
    	set_source_files_properties(${sources} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS} -msse4.1")
 endif()
 
+# for the timer
+if ( USE_RDTSC )
+  add_definitions( "-DUSE_RDTSC" )
+endif()
 
 
 #----------------------------------------------------------------------------
@@ -54,8 +57,9 @@ add_custom_target(VectorizedGeom DEPENDS VecGeom)
 # TODO: make this general ( with patterns, etc. )
 if( VECGEOBENCHMARKS )
     file(GLOB benchsource1 src/BenchmarkFramework/BenchTGeoBBox_v.cxx)	
+    set_source_files_properties(${benchsource1} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
     if( VC_FOUND )
-        add_executable(BenchTGeoBBox_v ${benchsource1} ${headers} ${VC_LIBRARIES})
+     	add_executable(BenchTGeoBBox_v ${benchsource1} ${headers} ${VC_LIBRARIES})
         target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom  ${VC_LIBRARIES} ${TBB_LIBRARIES})
     else()				      
         add_executable(BenchTGeoBBox_v ${benchsource1} ${headers})
@@ -64,6 +68,7 @@ if( VECGEOBENCHMARKS )
     add_dependencies(BenchTGeoBBox_v VectorizedGeom)
 
     file(GLOB benchsourcepcon src/BenchmarkFramework/BenchTGeoPcon_v.cxx)	
+ set_source_files_properties(${benchsourcepcon} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")		
     if( VC_FOUND )
         add_executable(BenchTGeoPcon_v ${benchsourcepcon} ${headers} ${VC_LIBRARIES})
         target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom  ${VC_LIBRARIES} ${TBB_LIBRARIES})
@@ -74,6 +79,7 @@ if( VECGEOBENCHMARKS )
     add_dependencies(BenchTGeoPcon_v VectorizedGeom)
 
    file(GLOB benchsourceTube src/BenchmarkFramework/BenchTGeoTube_v.cxx)	
+ set_source_files_properties(${benchsourceTube} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
     if( VC_FOUND )
         add_executable(BenchTGeoTube_v ${benchsourceTube} ${headers} ${VC_LIBRARIES})
         target_link_libraries(BenchTGeoTube_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom ${VC_LIBRARIES} ${TBB_LIBRARIES})
@@ -84,6 +90,7 @@ if( VECGEOBENCHMARKS )
     add_dependencies(BenchTGeoTube_v VectorizedGeom)
 
    file(GLOB benchsourceTubeSeg src/BenchmarkFramework/BenchTGeoTubeSeg_v.cxx)	
+ set_source_files_properties(${benchsourceTubeSeg} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
     if( VC_FOUND )
         add_executable(BenchTGeoTubeSeg_v ${benchsourceTubeSeg} ${headers} ${VC_LIBRARIES})
         target_link_libraries(BenchTGeoTubeSeg_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom  ${VC_LIBRARIES} ${TBB_LIBRARIES})
@@ -94,6 +101,7 @@ if( VECGEOBENCHMARKS )
     add_dependencies(BenchTGeoTubeSeg_v VectorizedGeom)
 
    file(GLOB benchsourceCone src/BenchmarkFramework/BenchTGeoCone_v.cxx)	
+ set_source_files_properties(${benchsourceCone} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
     if( VC_FOUND )
         add_executable(BenchTGeoCone_v ${benchsourceCone} ${headers} ${VC_LIBRARIES})
         target_link_libraries(BenchTGeoCone_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom  ${VC_LIBRARIES} ${TBB_LIBRARIES})
@@ -105,6 +113,7 @@ if( VECGEOBENCHMARKS )
 
 
     file(GLOB benchsourceConeSeg src/BenchmarkFramework/BenchTGeoConeSeg_v.cxx)	
+ set_source_files_properties(${benchsourceConeSeg} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
     if( VC_FOUND )
         add_executable(BenchTGeoConeSeg_v ${benchsourceConeSeg} ${headers} ${VC_LIBRARIES})
         target_link_libraries(BenchTGeoConeSeg_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom  ${VC_LIBRARIES} ${TBB_LIBRARIES})
