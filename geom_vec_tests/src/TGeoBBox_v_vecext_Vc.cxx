@@ -48,6 +48,45 @@ void TGeoBBox_v::DistFromOutsideS_v(StructOfCoord const & point, StructOfCoord c
  }
 
 
+
+// // this is the actual kernel doing the computation with possibility of early return
+void TGeoBBox_v::DistFromOutsideS_Masked_v(double const * mask, StructOfCoord const & point, StructOfCoord const & dir, 
+                          double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, int np)
+ {
+   vd zero=0.;
+   vd vcorigin[3]={origin[0],origin[1],origin[2]};
+   int tailsize =np % Vc::double_v::Size; 
+   for(volatile unsigned int i = 0; i < np-tailsize; i+= Vc::double_v::Size) 
+    {
+      // get the mask and check if work to do
+      vd m(&mask[i]);
+      if ( m==0. )
+	{
+	  // std::cerr << " I am dropping this calculation for " << np << std::endl;
+	  continue;
+	}
+      vd x(&point.x[i]);
+      vd y(&point.y[i]);
+      vd z(&point.z[i]);
+      vd dirx(&dir.x[i]);
+      vd diry(&dir.y[i]);
+      vd dirz(&dir.z[i]);
+      vd s(&stepmax[i]);
+      vd dist(0.);
+      DistFromOutsideS_v4( x, y, z, dirx, diry, dirz, dx, dy, dz, vcorigin, s, dist );
+      dist.store(&distance[i]);
+    }
+   // do the tail part for the moment, we just call the old static version
+   for(unsigned int i = 0; i < tailsize; ++i)
+     {
+       double p[3]={point.x[np-tailsize+i], point.y[np-tailsize+i], point.z[np-tailsize+i]};
+       double d[3]={dir.x[np-tailsize+i], dir.y[np-tailsize+i], dir.z[np-tailsize+i]};
+       distance[np-tailsize+i]=TGeoBBox_v::DistFromOutsideS(p, d, dx, dy, dz, origin, stepmax[np-tailsize+i] );
+     }
+ }
+
+
+
  // this is the actual kernel doing the computation with possibility of early return
 void TGeoBBox_v::DistFromOutsideS_v4( Vc::double_v const & x , Vc::double_v const & y, Vc::double_v const & z, Vc::double_v const & dirx, Vc::double_v const & diry, Vc::double_v const & dirz, double dx, double dy, double dz, Vc::double_v const origin[3], Vc::double_v const & stepmax, Vc::double_v & distance )
  {
@@ -102,28 +141,32 @@ void TGeoBBox_v::DistFromOutsideS_v4( Vc::double_v const & x , Vc::double_v cons
 // VC implementation of Contains function
 void TGeoBBox_v::Contains_v(const StructOfCoord & pointi, Bool_t * isin, Int_t np) const
 {
-   vd vcorigin[3]={fOrigin[0],fOrigin[1],fOrigin[2]};
-   vd vfDX(fDX);
-   vd vfDY(fDY);
-   vd vfDZ(fDZ);
+   static vd vcorigin[3]={fOrigin[0],fOrigin[1],fOrigin[2]};
+   static vd vfDX(fDX);
+   static vd vfDY(fDY);
+   static vd vfDZ(fDZ);
 
    int tailsize =np % Vc::double_v::Size; 
    for(unsigned int i = 0; i < np-tailsize; i+= Vc::double_v::Size) 
     {
       vd x(&pointi.x[i]); // will copy a certain number of x's into vc vector x;
-      vd y(&pointi.y[i]); 
-      vd z(&pointi.z[i]);
-      vd particleinside(0.); // we initialize it to zero meaning outside 
       x=Vc::abs(x-vcorigin[0]);
+      Vc::double_m c1 = (x > vfDZ);
+      //  if( c1 ) continue;	
+      vd y(&pointi.y[i]); 
       y=Vc::abs(y-vcorigin[1]);
+      Vc::double_m c2 = (y > vfDY);
+      // if( c2 ) continue;	
+    
+      vd z(&pointi.z[i]);
       z=Vc::abs(z-vcorigin[2]);
-      particleinside( (x < vfDZ) & (y < vfDY) & (z<vfDZ) ) = 1.; // we set it to one if inside
-      
-      for(unsigned int j=0; j<Vc::double_v::Size; ++j)
-	{
-	  isin[i+j] = (bool) particleinside[j];
-	}
-   }
+      Vc::double_m c3 = (z > vfDZ);
+
+      Vc::double_m particleinside;
+      particleinside = !c1 && !c2 && !c3; // we set it to one if inside
+      for(unsigned int j=0;j<Vc::double_v::Size;++j) isin[i+j]= particleinside[j];
+      //  void * p = (void *) &particleinside;
+    }
    // do the tail part for the moment, we just call the old static version
    for(unsigned int i = 0; i < tailsize; ++i)
      {

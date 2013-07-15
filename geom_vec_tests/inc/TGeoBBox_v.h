@@ -104,6 +104,12 @@ public:
      TGeoBBox_v::DistFromOutsideS_v(point, dir, this->TGeoBBox::GetDX(), this->TGeoBBox::GetDY(), this->TGeoBBox::GetDZ(), this->TGeoBBox::GetOrigin(),  step, distance, np );
    }
 
+   virtual void    DistFromOutside_Masked_v(double const *m, StructOfCoord const & point, StructOfCoord const & dir, Int_t iact, 
+				     Double_t const * step, Double_t *safe, Double_t * distance , Int_t np) const {
+     TGeoBBox_v::DistFromOutsideS_Masked_v(m, point, dir, this->TGeoBBox::GetDX(), this->TGeoBBox::GetDY(), this->TGeoBBox::GetDZ(), this->TGeoBBox::GetOrigin(),  step, distance, np );
+   }
+
+
    // static version ( added "S" to it to make it consistent with other TGeo classes )
    static  Double_t  DistFromOutsideS(const Double_t *point,const Double_t *dir,
                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
@@ -113,6 +119,10 @@ public:
     // SOA version for static method
    static  void      DistFromOutsideS_v(const StructOfCoord & point,const StructOfCoord & dir,
 					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
+  // SOA version for static method
+   static  void      DistFromOutsideS_Masked_v(double const*, const StructOfCoord & point,const StructOfCoord & dir,
+					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
+   
    // SOA trivial loop version for static method
    static  void      DistFromOutsideS_l(const StructOfCoord & point,const StructOfCoord & dir,
 					   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax, Double_t * distance, Int_t np);
