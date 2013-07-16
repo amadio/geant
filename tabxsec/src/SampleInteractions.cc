@@ -577,11 +577,11 @@ int SampDisInt(
 	       
 	       sec = aChange->GetSecondary(i)->GetDynamicParticle();
 	       pd  = sec->GetDefinition();
-	       G4cout << "Sec[" << i << "]=" 
+	       G4cout << "  #" << setw(3) << i << setw(0) << ": " 
 		      << setiosflags(ios::left) << setw(10) << pd->GetParticleName() 
 		      << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
-		      << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
-		      << " p= " << sec->Get4Momentum() 
+		      << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
+		      << " p:" << sec->Get4Momentum() 
 		      << G4endl;
 	    }
 	    G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
