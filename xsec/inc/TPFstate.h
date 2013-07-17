@@ -31,7 +31,7 @@ class TFinState;
 class TPFstate: public TObject {
 public:
    TPFstate();
-   TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t map[]);
+   TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
    ~TPFstate();
 
    Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
@@ -39,8 +39,9 @@ public:
 		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]);
    void Print(Option_t *opt="") const;
    Bool_t Prune() {return kTRUE;}
-   Int_t SampleReac(Double_t /*en*/) const {return 0;}
+   Int_t SampleReac(Double_t /*en*/, Int_t */*pid*/, Float_t (*/*mom*/)[3]) const {return 0;}
    void Dump() const {}
+   void Resample() {}
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
    static Int_t GetVerbose() {return fVerbose;}
