@@ -42,6 +42,8 @@ Int_t main (int argc, char *argv[]) {
    geom = TGeoManager::Import(geofile);
 
    // loop materials
+   TFile *f = new TFile("xsec.root");
+   f->Get("PartIndex");
 
    TPXsec::SetVerbose(1);
    TPartIndex::I()->SetEnergyGrid(1e-3,1e3,100);

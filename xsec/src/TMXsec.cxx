@@ -78,12 +78,12 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    if(fNElems>1) {
       for(Int_t i=0; i<fNElems; ++i) {
 	 ratios[i] = w[i];
-	 if(weight) ratios[i]/=TEXsec::WEle(z[i]);
-	 hnorm+=ratios[i]*TEXsec::WEle(z[i]);
+	 if(weight) ratios[i]/=TPartIndex::I()->WEle(z[i]);
+	 hnorm+=ratios[i]*TPartIndex::I()->WEle(z[i]);
       }
    } else {
       ratios[0]=1;
-      hnorm=TEXsec::WEle(z[0]);
+      hnorm=TPartIndex::I()->WEle(z[0]);
    }
 
    //   if(weight) printf("By weight: ");

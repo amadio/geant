@@ -28,6 +28,7 @@
 #define DICLEN 12        // Number of process cross sections 
 #define FNPROC 17        // Number of total processes
 #define FNPART 464       // Total number of particles
+#define NELEM 118         // Total number of materials
 
 enum G5proc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
 	     kElastic, kRestCapture ,kBrehms, kPairProd, kAnnihilation,
@@ -90,6 +91,11 @@ public:
    Double_t EilDelta() const {return fEilDelta;}
    const Double_t* EGrid() const {return fEGrid;}
 
+   static const char* EleSymb(Int_t z) {return fEleSymbol[z-1];}
+   static const char* EleName(Int_t z) {return fEleName[z-1];}
+   static Float_t WEle(Int_t z) {return fWElem[z-1];}
+   static Int_t NElem() {return fNElem;}
+
    void Print(Option_t *option="") const;
 
 private:
@@ -101,6 +107,11 @@ private:
    static const Int_t   fNProc=FNPROC;    // Number of processes
    static const char   *fPrName[FNPROC];  // Process name
    static const Short_t fPCode[FNPROC];   // G4 process codes
+
+   static const Int_t   fNElem=NELEM;       // Number of Elements
+   static const Char_t *fEleSymbol[NELEM]; // Symbol of Element
+   static const Char_t *fEleName[NELEM];   // Name of Element
+   static const Float_t fWElem[NELEM];     // Weight of a mole in grams
 
    Int_t    fNPart;         // Total number of particles
    Int_t   *fPDG;           // [fNPart] PDG code of all part

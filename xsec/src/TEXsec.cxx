@@ -17,57 +17,6 @@
 
 ClassImp(TEXsec)
 
-const char* TEXsec::fEleSymbol[NELEM]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
-				"Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V",
-				"Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se",
-				"Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh",
-				"Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba",
-				"La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho",
-				"Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt",
-				"Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac",
-				"Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm",
-				"Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg",
-				"Cn","Uut","Fl","Uup","Lv","Uus","Uuo"};
-const char* TEXsec::fEleName[NELEM]={"Hydrogen","Helium","Lithium","Beryllium","Boron",
-				"Carbon","Nitrogen","Oxygen","Fluorine","Neon",
-				"Sodium","Magnesium","Aluminium","Silicon","Phosphorus",
-				"Sulfur","Chlorine","Argon","Potassium","Calcium",
-				"Scandium","Titanium","Vanadium","Chromium","Manganese",
-				"Iron","Cobalt","Nickel","Copper","Zinc","Gallium",
-				"Germanium","Arsenic","Selenium","Bromine","Krypton",
-				"Rubidium","Strontium","Yttrium","Zirconium","Niobium",
-				"Molybdenum","Technetium","Ruthenium","Rhodium","Palladium",
-				"Silver","Cadmium","Indium","Tin","Antimony","Tellurium",
-				"Iodine","Xenon","Caesium","Barium","Lanthanum","Cerium",
-				"Praseodymium","Neodymium","Promethium","Samarium",
-				"Europium","Gadolinium","Terbium","Dysprosium","Holmium",
-				"Erbium","Thulium","Ytterbium","Lutetium","Hafnium",
-				"Tantalum","Tungsten","Rhenium","Osmium","Iridium",
-				"Platinum","Gold","Mercury","Thallium","Lead","Bismuth",
-				"Polonium","Astatine","Radon","Francium","Radium","Actinium",
-				"Thorium","Protactinium","Uranium","Neptunium","Plutonium",
-				"Americium","Curium","Berkelium","Californium","Einsteinium",
-				"Fermium","Mendelevium","Nobelium","Lawrencium","Rutherfordium",
-				"Dubnium","Seaborgium","Bohrium","Hassium","Meitnerium",
-				"Darmstadtium","Roentgenium","Copernicium","Ununtrium",
-				"Flerovium","Ununpentium","Livermorium","Ununseptium",
-				"Ununoctium"};
-
-const Float_t TEXsec::fWElem[NELEM]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
-					18.998,20.180,22.990,24.305,26.982,28.085,30.974,32.06,
-					35.45,39.948,39.098,40.078,44.956,47.867,50.942,51.996,
-					54.938,55.845,58.933,58.693,63.546,65.38,69.723,72.63,
-					74.922,78.96,79.904,83.798,85.468,87.62,88.906,91.224,
-					92.906,95.96,97.91,101.07,102.91,106.42,107.87,112.41,
-					114.82,118.71,121.76,127.60,126.90,131.29,132.91,137.33,
-					138.91,140.12,140.91,144.24,144.91,150.36,151.96,157.25,
-					158.93,162.50,164.93,167.26,168.93,173.05,174.97,178.49,
-					180.95,183.84,186.21,190.23,192.22,195.08,196.97,200.59,
-					204.38,207.2,208.98,208.98,209.99,222.02,223.02,226.03,
-					227.03,232.04,231.04,238.03,237.05,244.06,243.06,247.07,
-					247.07,251.08,252.08,257.10,258.10,259.10,262.11,265.12,
-					268.13,271.13,270,277.15,276.15,281.16,280.16,285.17,
-					284.18,289.19,288.19,293,294,294};
 
 TEXsec* TEXsec::fElements[NELEM]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -93,10 +42,10 @@ TEXsec::TEXsec():
 
 //___________________________________________________________________
 TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np):
-   TNamed(fEleSymbol[z-1],fEleName[z-1]),
+   TNamed(TPartIndex::I()->EleSymb(z),TPartIndex::I()->EleName(z)),
    fEle(z*10000+a*10),
    fDens(dens),
-   fAtcm3(fDens*TMath::Na()*1e-24/fWElem[z-1]),
+   fAtcm3(fDens*TMath::Na()*1e-24/TPartIndex::I()->WEle(z)),
    fEmin(TPartIndex::I()->Emin()),
    fEmax(TPartIndex::I()->Emax()),
    fNEbins(TPartIndex::I()->NEbins()),
@@ -276,8 +225,8 @@ TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
    // Element not found in memory, getting it from file
    TFile *ff=gFile;
    if(f) ff=f;
-   if(!ff) ::Fatal("GetElement","No file open!");
-   fElements[fNLdElems] = (TEXsec *) ff->Get(fEleSymbol[z-1]);
+   if(!ff) ::Fatal("TEXsec::GetElement","No file open!");
+   fElements[fNLdElems] = (TEXsec *) ff->Get(TPartIndex::I()->EleSymb(z));
    if(!fElements[fNLdElems]) {
       ::Fatal("GetElement","Element z %d a %d not found",z,a);
       return 0; // just to make the compiler happy

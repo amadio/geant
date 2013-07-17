@@ -23,13 +23,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <TNamed.h>
+#include <TPartIndex.h>
 class TFile;
 class TGraph;
 class TList;
 class TPXsec;
-class TPartIndex;
-
-#define NELEM 118         // Total number of materials
 
 class TEXsec : public TNamed {
 public:
@@ -45,11 +43,6 @@ public:
    Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
 		    const Float_t length[], const Float_t lensig[]);
    
-   static const char* EleSymb(Int_t z) {return fEleSymbol[z-1];}
-   static const char* EleName(Int_t z) {return fEleName[z-1];}
-   static Float_t WEle(Int_t z) {return fWElem[z-1];}
-   static Int_t NElem() {return fNElem;}
-
    Int_t Ele() const {return fEle;}
    Double_t Dens() const {return fDens;}
    Double_t Emin() const {return fEmin;}
@@ -93,11 +86,6 @@ public:
 private:
    TEXsec(const TEXsec &); // Not implemented
    TEXsec& operator=(const TEXsec &); // Not implemented
-
-   static const Int_t   fNElem=NELEM;       // Number of Elements
-   static const Char_t *fEleSymbol[NELEM]; // Symbol of Element
-   static const Char_t *fEleName[NELEM];   // Name of Element
-   static const Float_t fWElem[NELEM];     // Weight of a mole in grams
 
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
    Float_t        fDens;    // Density in g/cm3
