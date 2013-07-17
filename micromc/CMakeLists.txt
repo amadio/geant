@@ -20,6 +20,7 @@ include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
 
 add_executable(micromc src/micromc.cxx ${sources} ${headers})
 target_link_libraries(micromc ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant)
+add_dependencies(micromc XSEC GEANT)
 
 #----------------------------------------------------------------------------
 # Add program to the project targets

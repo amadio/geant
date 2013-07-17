@@ -23,3 +23,5 @@ ROOT_GENERATE_DICTIONARY(geantCint ${headers} LINKDEF ${CMAKE_CURRENT_SOURCE_DIR
 #
 add_library(Geant SHARED ${sources} geantCint.cxx ${headers} geantCint.h)
 target_link_libraries(Geant ${ROOT_LIBRARIES} -lEG -lGeom)
+
+add_custom_target(GEANT DEPENDS Geant)
