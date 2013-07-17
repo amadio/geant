@@ -394,6 +394,7 @@ void TPXsec::Dump() const {
    printf("Particle %d NXsec %d emin %f emax %f NEbins %d ElDelta %f\n",
 	  fPDG,fNXsec,fEGrid[0],fEGrid[fNEbins-1],fNEbins,fEilDelta);
    printf("MSangle %p, MSlength %p, dEdx %p, TotXs %p, XSecs %p, Rdict %p\n",
-	  fMSangle, fMSlength, fdEdx, fTotXs, fXSecs, fRdict);
+	  (void*)fMSangle, (void*)fMSlength, (void*)fdEdx, (void*)fTotXs, 
+	  (void*)fXSecs, (const void*)fRdict);
 }
 

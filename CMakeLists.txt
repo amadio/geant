@@ -27,6 +27,27 @@ include_directories(${ROOT_INCLUDE_DIR})
 include(cmake/modules/GeantMacros.cmake)
 
 #----------------------------------------------------------------------------
+# Define compiler flags
+#
+get_property(GEANT5_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
+get_property(GEANT5_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
+set(GEANT5_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
+set(GEANT5_CXX_NOW_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
+set(GEANT5_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}")
+set(GEANT5_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
+set(GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(GEANT5_EXE_NOW_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS}")
+set(GEANT5_WARNING_FLAGS "-W -Wall -Weffc++ -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
+
+set(GEANT5_CXX_FLAGS                "${CMAKE_CXX_FLAGS} ${GEANT5_WARNING_FLAGS}")
+set(GEANT5_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ${GEANT5_WARNING_FLAGS}")
+set(GEANT5_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ${GEANT5_WARNING_FLAGS}")
+set(GEANT5_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} ${GEANT5_WARNING_FLAGS}")
+set(GEANT5_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${GEANT5_WARNING_FLAGS}")
+set(GEANT5_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ${GEANT5_WARNING_FLAGS}")
+set(GEANT5_COMPILE_FLAGS            "${GEANT5_COMPILE_FLAGS_NOW} ${GEANT5_WARNING_FLAGS}")
+
+#----------------------------------------------------------------------------
 # Add subdirectories
 #
 add_custom_target(_headers ALL)

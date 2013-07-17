@@ -42,16 +42,14 @@ Int_t main (int argc, char *argv[]) {
    geom = TGeoManager::Import(geofile);
 
    // loop materials
-
    TFile *f = new TFile("xsec.root");
-   TPartIndex *tp = (TPartIndex *) f->Get("PartIndex");
+   f->Get("PartIndex");
+
    TPXsec::SetVerbose(1);
    TPartIndex::I()->SetEnergyGrid(1e-3,1e3,100);
    TList *matlist = (TList*) geom->GetListOfMaterials();
    TIter next(matlist);
    TGeoMaterial *mat=0;
-   TGeoMixture *mix=0;
-   Int_t nmater = matlist->GetEntries();
 
    TList *matXS = new TList();
    matXS->Add(TPartIndex::I());

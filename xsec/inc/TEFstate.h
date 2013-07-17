@@ -9,8 +9,8 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_TEXsec
-#define ROOT_TEXsec
+#ifndef ROOT_TEFstate
+#define ROOT_TEFstate
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,22 +26,17 @@
 #include <TPartIndex.h>
 class TFile;
 class TGraph;
-class TList;
-class TPXsec;
+class TPFstate;
 
-class TEXsec : public TNamed {
+class TEFstate : public TNamed {
 public:
 
-   enum {kCutGamma, kCutElectron, kCutPositron, kCutProton};
-
-   TEXsec();
-   TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np);
-   ~TEXsec();
-   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nxsec);
-   Bool_t AddPartXS(Int_t kpart, const Float_t xsec[], const Int_t dict[]);
-   Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
-   Bool_t AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[],
-		    const Float_t length[], const Float_t lensig[]);
+   TEFstate();
+   TEFstate(Int_t z, Int_t a, Float_t dens, Int_t np);
+   ~TEFstate();
+   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
+   Bool_t AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
+		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]);
    
    Int_t Ele() const {return fEle;}
    Double_t Dens() const {return fDens;}
@@ -49,43 +44,28 @@ public:
    Double_t Emax() const {return fEmax;}
    Int_t NEbins() const {return fNEbins;}
    Double_t EilDelta() const {return fEilDelta;}
-   Float_t XS(Int_t pindex, Int_t rindex, Float_t en) const;
-   Float_t DEdx(Int_t pindex, Float_t en) const;
-   Bool_t MS(Int_t index, Float_t en, Float_t &ang, Float_t &asig, 
-		  Float_t &len, Float_t &lsig) const;
-   TGraph *XSGraph(const char* part, const char *reac, 
-		   Float_t emin, Float_t emax, Int_t nbin) const;
-   TGraph *DEdxGraph(const char* part, 
-		   Float_t emin, Float_t emax, Int_t nbin) const;
-   TGraph *MSGraph(const char* part, const char *what,
-		   Float_t emin, Float_t emax, Int_t nbin) const;
 
-   Float_t Lambda(Int_t pindex, Double_t en) const;
-   Int_t SampleReac(Int_t pindex, Double_t en) const;
+   Int_t SampleFS(Int_t pindex, Double_t en, Int_t pid[], Float_t (*mom)[3]) const;
    
    static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
       return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;
    }
 
-   const Float_t *Cuts() const {return fCuts;}
-   Bool_t SetCuts(const Double_t cuts[4]) {
-      for(Int_t jc=0; jc<4; ++jc) fCuts[jc]=cuts[jc]; return kTRUE;}
-
-   void DumpPointers() const;
    void Draw(Option_t *option);
    Bool_t Resample();
 
    Bool_t Prune();
 
    static Int_t NLdElems() {return fNLdElems;}
-   static TEXsec *Element(Int_t i) {
+
+   static TEFstate *Element(Int_t i) {
       if(i<0 || i>=fNLdElems) return 0; return fElements[i];}
 
-   static TEXsec *GetElement(Int_t z, Int_t a=0, TFile *f=0);
+   static TEFstate *GetElement(Int_t z, Int_t a=0, TFile *f=0);
 
 private:
-   TEXsec(const TEXsec &); // Not implemented
-   TEXsec& operator=(const TEXsec &); // Not implemented
+   TEFstate(const TEFstate &); // Not implemented
+   TEFstate& operator=(const TEFstate &); // Not implemented
 
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
    Float_t        fDens;    // Density in g/cm3
@@ -96,13 +76,12 @@ private:
    Double_t       fEilDelta; // Inverse log energy step
    const Double_t *fEGrid;  //! Common energy grid
    Int_t          fNRpart;  // Number of particles with reaction
-   TPXsec        *fPXsec;   // [fNRpart] Cross section table per particle
-   Float_t        fCuts[4]; // Production cuts "a la G4"
+   TPFstate      *fPFstate;   // [fNRpart] Cross section table per particle
 
    static Int_t   fNLdElems; //! number of loaded elements
-   static TEXsec *fElements[NELEM]; //! databases of elements
+   static TEFstate *fElements[NELEM]; //! databases of elements
 
-   ClassDef(TEXsec,1)  // Element X-secs
+   ClassDef(TEFstate,1)  // Element X-secs
 
 };
 
