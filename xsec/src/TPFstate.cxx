@@ -104,7 +104,7 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
    }
    Int_t rnumber = fRdict[reac];
    Int_t ipoint = rnumber*fNEbins + ibin;
-   fFstat[ibin].SetFinState(fNEFstat,weight,kerma,npart,mom,pid);
+   fFstat[ipoint].SetFinState(fNEFstat,weight,kerma,npart,mom,pid);
    return kTRUE;
 }     
 

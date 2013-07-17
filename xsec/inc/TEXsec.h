@@ -76,7 +76,7 @@ public:
 
    const Float_t *Cuts() const {return fCuts;}
    Bool_t SetCuts(const Double_t cuts[4]) {
-      for(Int_t jc=0; jc<4; ++jc) fCuts[jc]=cuts[jc];}
+      for(Int_t jc=0; jc<4; ++jc) fCuts[jc]=cuts[jc]; return kTRUE;}
 
    void DumpPointers() const;
    void Draw(Option_t *option);
@@ -91,6 +91,9 @@ public:
    static TEXsec *GetElement(Int_t z, Int_t a=0, TFile *f=0);
 
 private:
+   TEXsec(const TEXsec &); // Not implemented
+   TEXsec& operator=(const TEXsec &); // Not implemented
+
    static const Int_t   fNElem=NELEM;       // Number of Elements
    static const Char_t *fEleSymbol[NELEM]; // Symbol of Element
    static const Char_t *fEleName[NELEM];   // Name of Element

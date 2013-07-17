@@ -65,11 +65,12 @@ const Char_t *TPartIndex::ProcName(Int_t proc) const {
 }
 
 //___________________________________________________________________
-void TPartIndex::SetPartTable(const Int_t *PDG, Int_t np) {
+void TPartIndex::SetPartTable(const Int_t *vpdg, Int_t np) {
    fNPart = np;
+   delete [] fPDG;
    fPDG = new Int_t[fNPart];
    for(Int_t i=0; i<fNPart; ++i) 
-      fPDG[i]=PDG[i];
+      fPDG[i]=vpdg[i];
 }
 
 //______________________________________________________________________________

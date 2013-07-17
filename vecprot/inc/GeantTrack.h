@@ -42,7 +42,7 @@ public:
    TGeoBranchArray *nextpath; // path for next volume
    Bool_t   pending;
    
-   GeantTrack() : event(-1),evslot(-1), particle(-1),pdg(0),species(kHadron),status(kAlive),
+   GeantTrack() : event(-1),evslot(-1), particle(-1),pdg(0),fG5code(0),species(kHadron),status(kAlive),
                   charge(0),mass(0),process(-1),xpos(0),ypos(0),zpos(0),
                   px(0),py(0),pz(0),e(0), pstep(1.E20), step(0), snext(0), 
                   safety(0), frombdr(false), izero(0), nsteps(0), path(0) ,nextpath(0), pending(false){}

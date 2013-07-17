@@ -37,15 +37,18 @@ public:
 	     const Float_t kerma[], const Int_t npart[],
 	     const Float_t (*mom)[3], const Int_t pid[]);
    ~TFinState();
-   void Print(Option_t *opt="") const {};
-   Bool_t Prune() {}
-   Int_t SampleReac(Double_t en) const {}
+   void Print(Option_t */*opt*/="") const {}
+   Bool_t Prune() {return kTRUE;}
+   Int_t SampleReac(Double_t /*en*/) const {return 0;}
    void Dump() const {}
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
    static Int_t GetVerbose() {return fVerbose;}
 
 private:
+   TFinState(const TFinState&);    // Not implemented
+   TFinState& operator=(const TFinState&);    // Not implemented
+
    static Int_t    fVerbose;       // Controls verbosity level
 
    Int_t           fNFstates;      // Number of final states

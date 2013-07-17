@@ -40,6 +40,9 @@ public:
    void Print(Option_t * opt="") const;
 
 private:
+   TMXsec(const TMXsec&);      // Not implemented
+   TMXsec& operator=(const TMXsec&);      // Not implemented
+
    Int_t           fNEbins;    // number of energy bins
    Int_t           fNTotXL;    // dimension of fTotXL
    Int_t           fNCharge;   // dimension of tables for charged particles

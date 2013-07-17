@@ -38,14 +38,17 @@ public:
    Bool_t SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
 		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]);
    void Print(Option_t *opt="") const;
-   Bool_t Prune() {}
-   Int_t SampleReac(Double_t en) const {}
+   Bool_t Prune() {return kTRUE;}
+   Int_t SampleReac(Double_t /*en*/) const {return 0;}
    void Dump() const {}
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
    static Int_t GetVerbose() {return fVerbose;}
 
 private:
+   TPFstate(const TPFstate&);      // Not implemented
+   TPFstate& operator=(const TPFstate&);      // Not implemented
+
    static Int_t    fVerbose;       // Controls verbosity level
 
    Int_t           fPDG;           // particle pdg code

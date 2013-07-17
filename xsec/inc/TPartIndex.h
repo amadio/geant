@@ -58,7 +58,7 @@ public:
    Short_t NProc() const {return fNProc;}
  
    // Fill the particle table
-   void SetPartTable(const Int_t *PDG, Int_t np);
+   void SetPartTable(const Int_t *vpdg, Int_t np);
    
    // PDG code <- G5 particle number
    Int_t PDG(Int_t i) const {return fPDG[i];}
@@ -93,6 +93,9 @@ public:
    void Print(Option_t *option="") const;
 
 private:
+   TPartIndex(const TPartIndex&); // Not implemented
+   TPartIndex& operator=(const TPartIndex&); // Not implemented
+   
    static TPartIndex *fgPartIndex;
 
    static const Int_t   fNProc=FNPROC;    // Number of processes

@@ -79,6 +79,7 @@ Int_t TEXsec::fNLdElems=0;
 //___________________________________________________________________
 TEXsec::TEXsec():
    fEle(0),
+   fDens(0),
    fAtcm3(0),
    fEmin(0),
    fEmax(0),
@@ -407,11 +408,16 @@ void TEXsec::Draw(Option_t *option)
    const Float_t lstepy = 0.03;
    Int_t coff = isame;
    Char_t ytitle[50];
+   Double_t ymin=1e10;
    for(Int_t j=0; j<nreac; ++j) {
       const Char_t *reac = ((TObjString*) rnames->At(j))->GetName();
       TGraph *tg;
       if(TString(reac).BeginsWith("MS")) {
 	 tg = MSGraph(part,reac,emin,emax,nbin);
+	 for(Int_t i=0; i<tg->GetN(); ++i) {
+	    Double_t y=tg->GetY()[i];
+	    if(y>0 && y<ymin) ymin=y;
+	 }
 	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
 	 tg->SetName(title);
 	 tg->SetTitle(title);
@@ -425,6 +431,10 @@ void TEXsec::Draw(Option_t *option)
       } else if(!strcmp(reac,"dEdx")) {
 	 snprintf(ytitle,49,"GeV/cm");
 	 tg = DEdxGraph(part, emin, emax, nbin);
+	 for(Int_t i=0; i<tg->GetN(); ++i) {
+	    Double_t y=tg->GetY()[i];
+	    if(y>0 && y<ymin) ymin=y;
+	 }
 	 snprintf(title,199,"%s dEdx on %s",part,GetTitle());
 	 tg->SetName(title);
 	 tg->SetTitle(title);
@@ -442,6 +452,10 @@ void TEXsec::Draw(Option_t *option)
 	    return;
 	 }
 	 tg = XSGraph(part, reac, emin, emax, nbin);
+	 for(Int_t i=0; i<tg->GetN(); ++i) {
+	    Double_t y=tg->GetY()[i];
+	    if(y>0 && y<ymin) ymin=y;
+	 }
 	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
 	 tg->SetName(title);
 	 tg->SetTitle(title);
@@ -455,7 +469,7 @@ void TEXsec::Draw(Option_t *option)
    const Char_t *gopt=0;
    if(strlen(sec2.Data())) gopt = sec2.Data();
    else gopt = "AC";
-   tmg->SetMinimum(1e-6);
+   tmg->SetMinimum(0.5*ymin);
    tmg->Draw(gopt);
    if(!same) {
       ((TAxis*) tmg->GetHistogram()->GetXaxis())->SetTitle("Energy (GeV)");

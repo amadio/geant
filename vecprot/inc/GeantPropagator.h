@@ -113,6 +113,10 @@ public:
                                    Bool_t graphics=kFALSE,
                                    Bool_t single=kFALSE);
    void             SelectTracksForProcess(Int_t iproc, Int_t ntotransport, Int_t *particles, Int_t &ntodo, Int_t *parttodo);
+
+private:
+   GeantPropagator(const GeantPropagator&); // Not implemented
+   GeantPropagator& operator=(const GeantPropagator&); // Not implemented
    ClassDef(GeantPropagator, 1)
 };
 #endif

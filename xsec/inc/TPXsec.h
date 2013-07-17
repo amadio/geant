@@ -53,6 +53,9 @@ public:
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
    static Int_t GetVerbose() {return fVerbose;}
 private:
+   TPXsec(const TPXsec&); // Not implemented
+   TPXsec& operator=(const TPXsec&); // Not implemented
+
    static Int_t    fVerbose;       // Controls verbosity level
 
    Int_t           fPDG;           // particle pdg code

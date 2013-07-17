@@ -9,19 +9,19 @@ ClassImp(TMXsec)
 TMXsec::TMXsec():
    fNEbins(0),
    fNTotXL(0),
-   fNRelXS(0),
    fNCharge(0),
+   fNRelXS(0),
    fEilDelta(0),
    fEGrid(0),
    fNElems(0),
    fElems(0),
    fTotXL(0), 
    fRelXS(0),
+   fDEdx(0),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
-   fMSlensig(0),
-   fDEdx(0)
+   fMSlensig(0)
 {
 }
 
@@ -44,19 +44,19 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    TNamed(name,title),
    fNEbins(0),
    fNTotXL(0),
-   fNRelXS(0),
    fNCharge(0),
+   fNRelXS(0),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
    fNElems(0),
    fElems(0),
    fTotXL(0), 
    fRelXS(0),
+   fDEdx(0),
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
-   fMSlensig(0),
-   fDEdx(0)
+   fMSlensig(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
@@ -146,9 +146,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
       Float_t asig;
       Float_t len;
       Float_t lsig;
-      Int_t ibase = ip*(fNEbins*fNElems);
       for(Int_t ie=0; ie<fNEbins; ++ie) {
-	 Int_t ibin = ibase + ie*fNElems;
 	 for(Int_t iel=0; iel<fNElems; ++iel) {
 	    fElems[iel]->MS(ip,fEGrid[ie],ang,asig,len,lsig);
 	    fMSangle[ip*fNEbins+ie]+=ang*rdedx[iel];

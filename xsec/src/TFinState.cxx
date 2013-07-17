@@ -31,6 +31,14 @@ TFinState::TFinState(Int_t nfstates, const Float_t weight[],
    memcpy(fNpart,npart,fNFstates*sizeof(Int_t));
    memcpy(fWeight,weight,fNFstates*sizeof(Float_t));
    memcpy(fKerma,kerma,fNFstates*sizeof(Float_t));
+
+   fNsecs = 0;
+   for(Int_t j=0; j<fNFstates; ++j) fNsecs+=fNpart[j];
+
+   fMom = new Float_t[fNsecs][3];
+   memcpy(fMom,mom,3*fNsecs*sizeof(Float_t));
+   fPID = new Int_t[fNsecs];
+   memcpy(fPID,pid,fNsecs*sizeof(Int_t));
 }
 
 //_________________________________________________________________________
@@ -42,6 +50,7 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
 
    delete [] fNpart;
    fNpart = new Int_t[fNFstates];
+   memcpy(fNpart,npart,fNFstates*sizeof(Int_t));
    delete [] fWeight;
    fWeight = new Float_t[fNFstates];
    memcpy(fWeight,weight,fNFstates*sizeof(Float_t));
@@ -49,8 +58,16 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
    fKerma = new Float_t[fNFstates];
    memcpy(fKerma,kerma,fNFstates*sizeof(Float_t));
    
+   fNsecs = 0;
+   for(Int_t j=0; j<fNFstates; ++j) fNsecs+=fNpart[j];
+
+   delete [] fMom;
+   fMom = new Float_t[fNsecs][3];
    memcpy(fMom,mom,3*fNsecs*sizeof(Float_t));
+   delete [] fPID;
+   fPID = new Int_t[fNsecs];
    memcpy(fPID,pid,fNsecs*sizeof(Int_t));
+   return kTRUE;
 }
 
 //_________________________________________________________________________
