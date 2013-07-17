@@ -37,7 +37,7 @@ class ShapeBenchmarker{
   T * testshape;
   unsigned int vecsizes[14]={1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8182};
   static const unsigned int MAXSIZE=8182;
-  static const unsigned int NREPS = 500; // number of timing repetitions;
+  static const unsigned int NREPS = 1000; // number of timing repetitions;
 
   // containers for the timings
   std::vector<double> TdO; // dist out
@@ -61,6 +61,8 @@ class ShapeBenchmarker{
   double *results_dO; // distance from Out
   double *results_s;  // safety
   bool *results_C;  // contains
+
+  void heatup();
 
  public:
   // ctor
@@ -89,7 +91,7 @@ class ShapeBenchmarker{
   // get timer overhead 
   Toverhead=timer.getOverhead( 10000 );
   
-  std::cout << "# TIMER OVERHEAD IS :" << Toverhead << std::endl;
+  std::cerr << "# TIMER OVERHEAD IS :" << Toverhead << std::endl;
 
   } 
 
@@ -447,6 +449,7 @@ void ShapeBenchmarker<T>::timeIt( )
   initDataDistanceFromInside();
   initDataDistanceFromOutside();
 
+  heatup();
 
   // to avoid measuring the same function over and over again we interleave calls to different functions and different data
   for(unsigned int rep=0; rep< NREPS; rep++)
@@ -514,6 +517,16 @@ void ShapeBenchmarker<T>::printTimings( char const * filename ) const
 		<< std::endl;
     }  
   outstr.close();
+}
+
+
+template <typename T>
+void ShapeBenchmarker<T>::heatup()
+{
+  results_dI[0] = this->testshape->T::DistFromInside( &points_dI[3*0], &dirs_dI[3*0], 3, TGeoShape::Big(), 0 ); 
+  results_dO[0] = this->testshape->T::DistFromOutside( &points_dO[3*0], &dirs_dO[3*0], 3, TGeoShape::Big(), 0 ); 
+  results_C[0] = this->testshape->T::Contains( points_C );
+  results_s[0] = this->testshape->T::Safety( points_s, kTRUE );
 }
 
 

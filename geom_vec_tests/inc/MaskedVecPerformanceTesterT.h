@@ -15,7 +15,7 @@ private:
   std::vector<double> Ts_v;  // safety
 
   // number of holes out of 8182
-  unsigned int numberofholes[14]={2,8,32,64,128,512,1024,2048,3072,4096,5120,6144,7168,8182};
+  unsigned int numberofholes[14]={2,32,64,128,512,1024,2048,3072,4096,5120,6144,7168,8178,8182};
 
   double *results_v_dI; // distance In
   double *results_v_dO; // distance from Out
@@ -57,6 +57,7 @@ public:
   // actual timing functions which call the shapes routine
   void timeDistanceFromInside_v( double &, unsigned int );
   void timeDistanceFromOutside_v( double &, unsigned int );
+  void timeDistanceFromOutside_shrinkVec_v( double &, unsigned int );
   void timeContains_v( double &, unsigned int );
   void timeSafety_v( double &, unsigned int );
   void timeIt();
@@ -110,6 +111,9 @@ void ShapeBenchmarker_masked_v<T>::timeIt()
 	  
 	  // distFromOutside
 	  timeDistanceFromOutside_v ( TdO_v[vectype], this->MAXSIZE );
+
+	  // distFromOutside
+	  timeDistanceFromOutside_shrinkVec_v ( TdI_v[vectype], this->MAXSIZE );
 	}
     }
 
@@ -130,12 +134,14 @@ void ShapeBenchmarker_masked_v<T>::timeIt()
     }
 
   this->correctTimingAndNormalize(TdO_v);
+  this->correctTimingAndNormalize(TdI_v);
 
   // print result
   for(unsigned int vectype =0 ; vectype < NS-1; ++vectype )
     {
-      std::cerr << numberofholes[vectype] 
+      std::cout << numberofholes[vectype] 
 		<< " " <<  TdO_v[vectype] 
+		<< " " <<  TdI_v[vectype] 
 		<< std::endl;
     }  
 }
@@ -190,6 +196,44 @@ void ShapeBenchmarker_masked_v<T>::timeDistanceFromOutside_v(double & Tacc, unsi
   this->timer.Stop();
   Tacc+=this->timer.getDeltaSecs();
 }
+
+
+template <typename T>
+void ShapeBenchmarker_masked_v<T>::timeDistanceFromOutside_shrinkVec_v(double & Tacc, unsigned int vecsize)
+{
+  this->timer.HeatUp();
+
+  // choose a random start point in vector
+  int startindex=gRandom->Rndm()*(1.*ShapeBenchmarker<T>::MAXSIZE-1.*vecsize);
+  while(startindex % 4 !=0) startindex--; // for alignment reasons
+  points_dO_SOA.setstartindex(startindex);
+  dirs_dO_SOA.setstartindex(startindex);
+
+  // the idea is to compactify the vector and remove the mask
+  // we abuse points_dI_SOA as compactification space
+  this->timer.Start();
+  int counter=0;
+  for(unsigned int k=0;k<vecsize;k++)
+    {
+      if(mask[k]==1.)
+	{
+	  points_dI_SOA.x[counter]=points_dO_SOA.x[k];
+	  points_dI_SOA.y[counter]=points_dO_SOA.y[k];
+	  points_dI_SOA.z[counter]=points_dO_SOA.z[k];
+	  dirs_dI_SOA.x[counter]=dirs_dO_SOA.x[k];
+	  dirs_dI_SOA.y[counter]=dirs_dO_SOA.y[k];
+	  dirs_dI_SOA.z[counter]=dirs_dO_SOA.z[k];
+	  results_v_s[counter]=this->steps[k];
+	  counter++;
+	}
+    }
+  this->testshape->T::DistFromOutside_v( points_dI_SOA, dirs_dI_SOA, 3, results_v_s, 0, results_v_dI, counter );
+
+  // neglecting time now to unpack again
+  this->timer.Stop();
+  Tacc+=this->timer.getDeltaSecs();
+}
+
 
 
 template <typename T>

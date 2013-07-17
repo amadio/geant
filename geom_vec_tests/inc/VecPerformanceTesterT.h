@@ -134,7 +134,7 @@ void ShapeBenchmarker_v<T>::timeIt()
   // print result
   for(unsigned int vectype =0 ; vectype < NS; ++vectype )
     {
-      std::cerr << ShapeBenchmarker<T>::vecsizes[vectype] 
+      std::cout << ShapeBenchmarker<T>::vecsizes[vectype] 
 		<< " " << Tc_v[vectype]  /* timing for Contains method */
 		<< " " << Tc_v[0]/(Tc_v[vectype]/ShapeBenchmarker<T>::vecsizes[vectype]) /* speedup with respect to 1 particle */
 		<< " " <<  Ts_v[vectype]   /* timing for safety method */
