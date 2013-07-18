@@ -40,7 +40,7 @@ public:
 		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]);
    void Print(Option_t *opt="") const;
    Bool_t Prune() {return kTRUE;}
-   Int_t SampleReac(Double_t /*en*/, Int_t */*pid*/, Float_t (*/*mom*/)[3]) const {return 0;}
+   Bool_t SampleReac(Double_t en, Int_t preac, Int_t& npart, Int_t *pid, Float_t (*mom)[3]) const;
    void Dump() const {}
    Bool_t Resample();
 

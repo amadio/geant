@@ -45,7 +45,7 @@ public:
    Int_t NEbins() const {return fNEbins;}
    Double_t EilDelta() const {return fEilDelta;}
 
-   Int_t SampleFS(Int_t pindex, Double_t en, Int_t pid[], Float_t (*mom)[3]) const;
+   Int_t SampleFS(Int_t pindex, Double_t en, Int_t preac, Int_t &npart, Int_t pid[], Float_t (*mom)[3]) const;
    
    static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
       return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;

@@ -43,7 +43,7 @@ public:
 	     const Float_t (*mom)[3], const Int_t pid[]);
    void Print(Option_t */*opt*/="") const {}
    Bool_t Prune() {return kTRUE;}
-   Int_t SampleReac(Double_t /*en*/) const {return 0;}
+   Bool_t SampleReac(Int_t& npart, Int_t* pid, Float_t (*mom)[3]) const;
    void Dump() const {}
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}

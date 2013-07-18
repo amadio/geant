@@ -76,8 +76,9 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t w
 }
 
 //___________________________________________________________________
-Int_t TEFstate::SampleFS(Int_t pindex, Double_t en, Int_t pid[], Float_t (*mom)[3]) const {
-   return fPFstate[pindex].SampleReac(en,pid,mom);
+Int_t TEFstate::SampleFS(Int_t pindex, Double_t en, Int_t preac, Int_t &npart,
+			 Int_t pid[], Float_t (*mom)[3]) const {
+   return fPFstate[pindex].SampleReac(preac,en,npart,pid,mom);
 }
 
 //___________________________________________________________________

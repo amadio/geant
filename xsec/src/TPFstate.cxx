@@ -2,6 +2,7 @@
 #include <TFinState.h>
 #include <TMath.h>
 #include <TFile.h>
+#include <TRandom.h>
 
 Int_t TPFstate::fVerbose=0;
 
@@ -109,6 +110,29 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
 }     
 
 //______________________________________________________________________________
+Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Int_t& npart, 
+			   Int_t *pid, Float_t (*mom)[3]) const
+{
+   Double_t eta = gRandom->Rndm();
+   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+   en=en>fEGrid[0]?en:fEGrid[0];
+   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+   ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
+   if(en1>en || en2<en) {
+      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	    ibin, en1, en, en2);
+      return kFALSE;
+   }
+   Double_t xrat = (en2-en)/(en2-en1);
+   if(eta>xrat) ++ibin;
+   Int_t rnumber = fRdict[preac];
+   Int_t ipoint = rnumber*fNEbins + ibin;
+   return fFstat[ipoint].SampleReac(npart,pid,mom);
+}
+
+//______________________________________________________________________________
 void TPFstate::Streamer(TBuffer &R__b)
 {
    // Stream an object of class TPFstate.
@@ -150,7 +174,6 @@ Bool_t TPFstate::Resample() {
    fNEbins = TPartIndex::I()->NEbins();
    // Temporary bins holder
    Int_t *obins = new Int_t[fNEbins];
-   Int_t oNEFstat = fNEFstat;
    fNEFstat = fNEbins*fNReac;
    fEmin = TPartIndex::I()->Emin();
    fEmax = TPartIndex::I()->Emax();
@@ -161,17 +184,18 @@ Bool_t TPFstate::Resample() {
    fFstat = new TFinState[fNEFstat];
 
    for(Int_t ien=0; ien<fNEbins; ++ien) {
+      en = fEGrid[ien];
       en=en<oGrid[oNEbins-1]?en:oGrid[oNEbins-1]*0.999;
       en=en>oGrid[0]?en:oGrid[0];
       Int_t ibin = TMath::Log(fEGrid[ien]/oGrid[0])*oEilDelta;
       ibin = ibin<oNEbins-1?ibin:oNEbins-2;
       Double_t en1 = oGrid[ibin];
       Double_t en2 = oGrid[ibin+1];
-      if(en1>fEGrid[ien] || fEGrid[ien]<en) {
+      if(en1>en || en<en) {
 	 Error("Interp","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	       ibin, en1, fEGrid[ien], en2);
+	       ibin, en1, en, en2);
       }
-      Double_t xrat = (en2-fEGrid[ien])/(en2-en1);
+      Double_t xrat = (en2-en)/(en2-en1);
       if(xrat<0.5) obins[ien]=ibin;
       else obins[ien]=ibin+1;
    }
