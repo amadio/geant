@@ -19,9 +19,14 @@ include_directories(${TBB_INCLUDE_DIR})
 file(GLOB sources src/TGeoBBox_v.cxx src/TGeoPcon_v.cxx src/TGeoTube_v.cxx src/TGeoCone_v.cxx )
 file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 
-# for optimization studies, we compile this directory with higher Ox
+# for optimization studies, we compile this directory with higher Ox when no debug build
 # TODO: check compiler etc
-set( BASEFLAGS "-Ofast -ftree-vectorize -ftree-vectorizer-verbose=0 -fpermissive" )
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+	set( BASEFLAGS "-O0 -fpermissive" )	
+else()
+	set( BASEFLAGS "-Ofast -ftree-vectorize -ftree-vectorizer-verbose=0 -fpermissive" )	
+endif()
+
 
 if( VC_FOUND )
   add_definitions( "-DVEC_EXTENSIONS" )
