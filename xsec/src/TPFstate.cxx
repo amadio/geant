@@ -98,8 +98,8 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
       return kFALSE;
    }
    Double_t xrat = (en2-en)/(en2-en1);
-   if(1-xrat<1.e-6) ++ibin;
-   else if(xrat>1.e-6) {
+   if(xrat<1.e-6) ++ibin;
+   else if(1-xrat>1.e-6) {
       Error("SetFinState","Energy %9.2g should be %9.2g or %9.2g",en,en1,en2);
       return kFALSE;
    }
