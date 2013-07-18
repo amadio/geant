@@ -33,5 +33,5 @@ target_link_libraries(Xsec ${ROOT_LIBRARIES} -lEG)
 
 add_headers("${headers}")
 
-add_custom_target(XSEC DEPENDS Xsec)
+add_custom_target(xseclib DEPENDS Xsec)
 

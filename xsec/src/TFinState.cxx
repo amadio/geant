@@ -17,9 +17,8 @@ TFinState::TFinState():
 }
 
 //_________________________________________________________________________
-TFinState::TFinState(Int_t nfstates, const Float_t weight[],
-			     const Float_t kerma[], const Int_t npart[],
-		     const Float_t (*mom)[3], const Int_t pid[]):
+TFinState::TFinState(Int_t nfstates, const Float_t weight[], const Float_t kerma[], 
+		     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]):
    fNFstates(nfstates),
    fNsecs(0),
    fPID(0),
@@ -39,6 +38,19 @@ TFinState::TFinState(Int_t nfstates, const Float_t weight[],
    memcpy(fMom,mom,3*fNsecs*sizeof(Float_t));
    fPID = new Int_t[fNsecs];
    memcpy(fPID,pid,fNsecs*sizeof(Int_t));
+}
+
+//_________________________________________________________________________
+TFinState::~TFinState()
+{
+   delete [] fMom;
+   delete [] fPID;
+}
+
+//_________________________________________________________________________
+TFinState& TFinState::operator=(const TFinState& right)
+{
+   return *this;
 }
 
 //_________________________________________________________________________
@@ -68,12 +80,5 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
    fPID = new Int_t[fNsecs];
    memcpy(fPID,pid,fNsecs*sizeof(Int_t));
    return kTRUE;
-}
-
-//_________________________________________________________________________
-TFinState::~TFinState()
-{
-   delete [] fMom;
-   delete [] fPID;
 }
 

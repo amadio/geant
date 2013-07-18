@@ -34,6 +34,7 @@ public:
    TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
    ~TPFstate();
 
+   const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
    Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
    Bool_t SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
 		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]);
@@ -41,7 +42,7 @@ public:
    Bool_t Prune() {return kTRUE;}
    Int_t SampleReac(Double_t /*en*/, Int_t */*pid*/, Float_t (*/*mom*/)[3]) const {return 0;}
    void Dump() const {}
-   void Resample() {}
+   Bool_t Resample();
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
    static Int_t GetVerbose() {return fVerbose;}

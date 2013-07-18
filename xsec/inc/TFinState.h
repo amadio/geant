@@ -15,10 +15,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// TFinState                                                             //
+// TFinState                                                            //
 //                                                                      //
 // Final states for a reaction                                          //
 //                                                                      //
+// This class contains the final states for a given particle, energy    //
+// and reaction                                                         //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -33,10 +35,12 @@ public:
    TFinState(Int_t nfstates, const Float_t weight[],
 	     const Float_t kerma[], const Int_t npart[],
 	     const Float_t (*mom)[3], const Int_t pid[]);
+   ~TFinState();
+   TFinState& operator=(const TFinState& right);
+
    Bool_t SetFinState(Int_t nfstates, const Float_t weight[],
 	     const Float_t kerma[], const Int_t npart[],
 	     const Float_t (*mom)[3], const Int_t pid[]);
-   ~TFinState();
    void Print(Option_t */*opt*/="") const {}
    Bool_t Prune() {return kTRUE;}
    Int_t SampleReac(Double_t /*en*/) const {return 0;}
@@ -47,7 +51,6 @@ public:
 
 private:
    TFinState(const TFinState&);    // Not implemented
-   TFinState& operator=(const TFinState&);    // Not implemented
 
    static Int_t    fVerbose;       // Controls verbosity level
 
