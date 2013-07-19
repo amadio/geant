@@ -75,6 +75,7 @@
 #include <TMath.h>
 #include <TFile.h>
 #include <TEXsec.h>
+#include <TEFstate.h>
 #include <TRandom.h>
 #include <TPartIndex.h>
 #include <TClass.h>
@@ -82,6 +83,7 @@
 #include <TDatabasePDG.h>
 #include <TMap.h>
 #include <TObjString.h>
+#include <TFinState.h>
 
 #include <unistd.h>
 
@@ -99,16 +101,15 @@ void usage()
       "NAME" << G4endl <<
       "     tabxsec -- generate physics tables for the G5 prototype from G4" << G4endl << G4endl <<
       "SYNOPSIS" << G4endl <<
-      "     tabxsec [-Eiesvx] [file]" << G4endl << G4endl <<
+      "     tabxsec [-Eesvx] [file]" << G4endl << G4endl <<
       "DESCRIPTION" << G4endl <<
       "     Run one of more G4 events for all the known elements and extract cross sections and secondary particles" << G4endl <<
       "     generated during the interaction, tabulating them for use in the G5 prototype. file is the G4 input" << G4endl <<
       "     macro. This code has been derived from the G4 example B1" << G4endl << G4endl <<
       "     The following options are available:" << G4endl <<
       "     -E ene  energy of the particles generated in GeV" << G4endl <<
-      "     -i      generate the final states and store them in the file fstat.root" << G4endl <<
-      "     -e num  number of G4 events to generate (default 0)" << G4endl <<
-      "     -s num  number of samples of the final state to generate" << G4endl <<
+      "     -e num  number of G4 events to generate" << G4endl <<
+      "     -s num  number of samples of the final state to generate and store in fstat.root (default 0, no file generated)" << G4endl <<
       "     -v num  verbosity level (at the moment only 0, 1 and 2 are used)" << G4endl <<
       "     -x      generate the cross sections and store them in the file xsec.root" << G4endl <<
       G4endl;
@@ -130,7 +131,6 @@ int main(int argc,char** argv)
    G4int ngener=0;
    G4int verbose=0;
    G4double evEnergy=1*GeV;
-   G4bool fstat=FALSE;
    G4bool xsecs=FALSE;
   /* getopt stuff */
   int c;
@@ -152,9 +152,6 @@ int main(int argc,char** argv)
 	 break;
       case 'E':
 	 sscanf(optarg,"%fl",&evEnergy);
-	 break;
-      case 'i':
-	 fstat=TRUE;
 	 break;
       case 'x':
 	 xsecs=TRUE;
@@ -232,7 +229,7 @@ int main(int argc,char** argv)
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
     UImanager->ApplyCommand(command+fileName);
-    if(!fstat && !xsecs) {
+    if(!nsample && !xsecs) {
        // only event generation is requested
        runManager->BeamOn( ngener );
     } else {
@@ -261,8 +258,6 @@ int main(int argc,char** argv)
        
        printf("Log emin %f Log emax %f \n",lemin, lemax);
        
-       
-       TFile *fh = new TFile("xsec.root","recreate");
        /*
 	 snippets
 	 
@@ -291,7 +286,6 @@ int main(int argc,char** argv)
        //
        // Let's build the material table
        G4MaterialTable *theMaterialTable = (G4MaterialTable*)G4Material::GetMaterialTable();
-       TEXsec **secTable = new TEXsec*[nmaterials];
        //
        // now let's go for cross sections
        char string[1024]="\0";
@@ -542,7 +536,6 @@ int main(int argc,char** argv)
 	  }
        }
        
-  
        // Create our own vector of particles - since the particle table is not const in Geant4
        // New particles can be added during interaction generation and then everything is
        // messed up in the particle table.
@@ -580,6 +573,20 @@ int main(int argc,char** argv)
        G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
 	  GetNavigatorForTracking();
        TList *allElements = new TList();
+       TList *allFstates = new TList();
+       TEXsec *mxsec=0;
+       TEFstate *mfstate=0;
+       Int_t totfs=0;
+       Int_t curfs=0;
+       TFinState *vecfs=0;
+
+       if(nsample) {
+	  // In case we are requested to sample events, we sample all events for all
+	  // the channels and all the energies for a given particle, so we have to
+	  // allocate "enough" final states 
+	  totfs = TPartIndex::I()->NProc()*nbins;
+	  vecfs = new TFinState[totfs];
+       }
 
        for(G4int imat=0; imat<nmaterials; ++imat) {
 	  if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -597,8 +604,11 @@ int main(int argc,char** argv)
 	  G4double dens = mat->GetDensity()*cm3/g;
 
 	  // Create container class for the x-sections of this material
-	  TEXsec *mxsec = secTable[imat] = new TEXsec(mat->GetZ(),
-						      amat,dens,npreac);
+	  allElements->Add(mxsec = 
+			   new TEXsec(mat->GetZ(),amat,dens,npreac));
+	  if(nsample)
+	     allFstates->Add(mfstate = 
+			   new TEFstate(mat->GetZ(),amat,dens,npreac));
 	  
 	  G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
 	  printf("Material = %s density = %g, natoms/cm3 = %g\n",
@@ -676,6 +686,7 @@ int main(int argc,char** argv)
 		
 		// loop over all processes defined for this particle
 		//
+		curfs = 0;
 		for (G4int idx=0; idx<pList->size(); idx++) {
 		   G4VProcess* p = (*pList)[idx];
 		   sprintf(&string[strlen(string)]," [%s,%d,%d]",
@@ -714,11 +725,11 @@ int main(int argc,char** argv)
 		      G4HadronicProcess *ph = (G4HadronicProcess*)p;
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 		      for(G4int j=0; j<nbins; ++j) {
-			 pxsec[nprxs*nbins+j] = curxs = ph->GetElementCrossSection(dp,mat->GetElement(0))/barn;
-			 if( particle == G4Proton::Proton() && nsample && curxs) {
+			 pxsec[nprxs*nbins+j] = curxs = std::max(ph->GetElementCrossSection(dp,mat->GetElement(0))/barn,0.);
+			 if( /*particle == G4Proton::Proton() &&*/ nsample && curxs) {
 			    // Here we sample proton interactions only when xsec>0 -- just for a test
 			    G4double stepSize= 10.0*millimeter;
-			    SampDisInt(matt, pos, dp, ph, stepSize, nsample, verbose);
+			    SampDisInt(matt, pos, dp, ph, stepSize, nsample, verbose, vecfs[curfs++]);
 			 }
 			 en*=delta;
 			 dp->SetKineticEnergy(en);
@@ -746,11 +757,10 @@ int main(int argc,char** argv)
 			 
 			 G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 			 for(G4int j=0; j<nbins; ++j) {
-			    pxsec[nprxs*nbins+j] = curxs = ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
-			    if( particle == G4Positron::Positron() && nsample && curxs) {
-			       // Sampling of em interactions for positrons only -- only a test
+			    pxsec[nprxs*nbins+j] = curxs = std::max(ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn,0.);
+			    if( /*particle == G4Electron::Electron() && */nsample && curxs) {
 			       G4double stepSize= 10.0*millimeter;
-			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nsample, verbose);
+			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nsample, verbose, vecfs[curfs++]);
 			    }
 			    en*=delta;
 			    dp->SetKineticEnergy(en);
@@ -780,10 +790,10 @@ int main(int argc,char** argv)
 			 G4double en=emin;
 			 G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
 			 for(G4int j=0; j<nbins; ++j) {
-			    pxsec[nprxs*nbins+j] = curxs = ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn;
+			    pxsec[nprxs*nbins+j] = curxs = std::max(ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn,0.);
 			    if( particle == G4Positron::Positron() && nsample && curxs) {
 			       G4double stepSize= 10.0*millimeter;
-			       SampDisInt(matt, pos, dp, ptEm, stepSize, nsample, verbose);
+			       SampDisInt(matt, pos, dp, ptEm, stepSize, nsample, verbose, vecfs[curfs++]);
 			    }
 			    en*=delta;
 			    dp->SetKineticEnergy(en);
@@ -921,8 +931,9 @@ int main(int argc,char** argv)
 		// we still have a c*tau*gamma of 2.5e-3 microns!!
 		G4double en=emin;
 		for(G4int j=0; j<nbins; ++j) {
-		   dedx[j] = G4LossTableManager::Instance()
-		      ->GetDEDX(particle,en,couple)/GeV;
+		   // Store density in GeV*g/cm^2
+		   dedx[j] = (G4LossTableManager::Instance()
+			      ->GetDEDX(particle,en,couple)/GeV) / (mat->GetDensity()*cm3/g);
 		   en*=delta;
 		}
 		bdedx=TRUE;
@@ -951,13 +962,24 @@ int main(int argc,char** argv)
 	     printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
 	     exit(1);
 	  }
-	  allElements->Add(mxsec);
        } // end of material loop
-       allElements->Add(TPartIndex::I());
-       allElements->Write();
-       //TPartIndex::I()->Write("PartIndex");
-       fh->Write();
-       fh->Close();
+
+       // Write all cross sections
+       if(xsecs) {
+	  TFile *fh = new TFile("xsec.root","recreate");
+	  //allElements->Add(TPartIndex::I());
+	  TPartIndex::I()->Write("PartIndex");
+	  allElements->Write();
+	  fh->Write();
+	  fh->Close();
+       }
+       if(nsample) {
+	  TFile *fh = new TFile("fstate.root","recreate");
+	  allFstates->Write();
+	  fh->Write();
+	  fh->Close();
+       }
+
        totsize += nbins*nmaterials;
        totsize /= 0.25*1024*1024;
        printf("Particles with reactions = %d, tot size = %11.4gMB\n",npr/nmaterials, totsize);

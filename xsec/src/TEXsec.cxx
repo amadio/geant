@@ -378,7 +378,7 @@ void TEXsec::Draw(Option_t *option)
 	 if(TString(reac).BeginsWith("MSangle")) snprintf(ytitle,49,"Radians");
 	 else snprintf(ytitle,49,"Relative Step Correction");
       } else if(!strcmp(reac,"dEdx")) {
-	 snprintf(ytitle,49,"GeV/cm");
+	 snprintf(ytitle,49,"GeV/cm / g/cm^3");
 	 tg = DEdxGraph(part, emin, emax, nbin);
 	 for(Int_t i=0; i<tg->GetN(); ++i) {
 	    Double_t y=tg->GetY()[i];
@@ -405,6 +405,8 @@ void TEXsec::Draw(Option_t *option)
 	    Double_t y=tg->GetY()[i];
 	    if(y>0 && y<ymin) ymin=y;
 	 }
+	 // a x-sec less than 1nb makes little sense...
+	 ymin = ymin<1e-9?1e-9:ymin;
 	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
 	 tg->SetName(title);
 	 tg->SetTitle(title);

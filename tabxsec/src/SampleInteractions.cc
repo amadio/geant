@@ -88,6 +88,8 @@
 
 #include "SampleInteractions.hh"
 
+#include <TFinState.h>
+
 using namespace std;
 
 G4double GetNuclearMass( G4int, G4int, G4int ); // G4Material* material );
@@ -331,8 +333,8 @@ int SampDisInt(
 	       G4VProcess* proc,
 	       G4double theStep,
 	       G4int    nevt,
-	       G4int    verbose
-	       ) 
+	       G4int    verbose,
+	       TFinState& fs) 
 {
 
    G4VDiscreteProcess* discProc= dynamic_cast<G4VDiscreteProcess*>(proc);
