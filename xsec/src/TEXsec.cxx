@@ -14,6 +14,12 @@
 #include <TROOT.h>
 #include <TString.h>
 #include <TText.h>
+#include <TFrame.h>
+#include <TGFrame.h>
+#include <TGComboBox.h>
+#include <TGListBox.h>
+#include <TGLabel.h>
+#include <TRootEmbeddedCanvas.h>
 
 ClassImp(TEXsec)
 
@@ -23,7 +29,11 @@ TEXsec* TEXsec::fElements[NELEM]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 Int_t TEXsec::fNLdElems=0; 
-
+TGMainFrame *fMain;
+TGMainFrame *faboutframe;
+TRootEmbeddedCanvas *fEcan;
+TGListBox *fReactionBox;
+TGListBox *fParticleBox;
 
 //___________________________________________________________________
 TEXsec::TEXsec():
@@ -263,7 +273,7 @@ Bool_t TEXsec::Resample()
 }
 
 //___________________________________________________________________
-void TEXsec::Draw(Option_t *option)
+void TEXsec::Draw(Option_t *option)  // mode=0->terminal, mode=1->viewer
 {
    // Draw cross sections and other physics quantities for this material
    //
@@ -306,6 +316,8 @@ void TEXsec::Draw(Option_t *option)
    if(narg>3) sscanf(((TObjString*) token->At(3))->GetName(),"%f",&emax);
    Int_t nbin=100;
    if(narg>4) sscanf(((TObjString*) token->At(4))->GetName(),"%d",&nbin);
+   Int_t mode=0;
+   if(narg>5) sscanf(((TObjString*) token->At(5))->GetName(),"%d",&mode);
    if(gFile) gFile->Get("PartIndex");
    Int_t pindex = TPartIndex::I()->PartIndex(part);
    if(pindex < 0) {
@@ -329,7 +341,15 @@ void TEXsec::Draw(Option_t *option)
    TText **text = new TText*[nreac];
    Float_t lstartx = 0.7;
 
-   TCanvas *tc=(TCanvas*)gROOT->GetListOfCanvases()->FindObject("G5canvas");
+    TCanvas *tc;
+    if (mode){
+        tc = fEcan->GetCanvas();
+        tc->SetLogx();
+        tc->SetLogy();
+        tc->SetGrid();
+        same = kFALSE;
+    }else{
+        tc=(TCanvas*)gROOT->GetListOfCanvases()->FindObject("G5canvas");
    //   if(!tc) tc = (TCanvas*)gROOT->GetListOfCanvases()->At(0);
    if(!tc) {
       tc = new TCanvas("G5canvas",gtitle,600,400);      
@@ -339,6 +359,8 @@ void TEXsec::Draw(Option_t *option)
       same = kFALSE;
       sec2.ReplaceAll("same","");
    }
+    }
+   
 
    if (same) {
       sec2.ReplaceAll("same","C");
@@ -349,6 +371,8 @@ void TEXsec::Draw(Option_t *option)
       tc->SetTitle(gtitle);
    }
 
+    
+    
    if(isame == 2 || isame == 3) lstartx = 0.3;
    const Float_t lendx = lstartx+0.05;
    const Float_t tstartx = lstartx+0.07;
@@ -375,6 +399,7 @@ void TEXsec::Draw(Option_t *option)
 	 line[j] = new TLine(lstartx,lstarty-lstepy*j,lendx,lstarty-lstepy*j);
 	 line[j]->SetLineColor(col[(coff+j)%14]);
 	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
+            
 	 if(TString(reac).BeginsWith("MSangle")) snprintf(ytitle,49,"Radians");
 	 else snprintf(ytitle,49,"Relative Step Correction");
       } else if(!strcmp(reac,"dEdx")) {
@@ -406,7 +431,7 @@ void TEXsec::Draw(Option_t *option)
 	    if(y>0 && y<ymin) ymin=y;
 	 }
 	 // a x-sec less than 1nb makes little sense...
-	 ymin = ymin<1e-9?1e-9:ymin;
+	 ymin = ymin<2e-9?2e-9:ymin;
 	 snprintf(title,199,"%s %s on %s",part,reac,GetTitle());
 	 tg->SetName(title);
 	 tg->SetTitle(title);
@@ -416,6 +441,7 @@ void TEXsec::Draw(Option_t *option)
 	 line[j]->SetLineColor(col[(coff+j)%14]);
 	 text[j]=new TText(tstartx,lstarty-lstepy*j,reac);
       }
+        
    }
    const Char_t *gopt=0;
    if(strlen(sec2.Data())) gopt = sec2.Data();
@@ -425,6 +451,8 @@ void TEXsec::Draw(Option_t *option)
    if(!same) {
       ((TAxis*) tmg->GetHistogram()->GetXaxis())->SetTitle("Energy (GeV)");
       ((TAxis*) tmg->GetHistogram()->GetYaxis())->SetTitle(ytitle);
+        ((TAxis*) tmg->GetHistogram()->GetXaxis())->CenterTitle();
+        ((TAxis*) tmg->GetHistogram()->GetYaxis())->CenterTitle();
    }
    TText **ptext = new TText*[nreac];
    Char_t string[100]={"\0"};
@@ -447,5 +475,129 @@ void TEXsec::Draw(Option_t *option)
 	 ptext[j]->Draw();
       }
    }
+    tc->Update();
+}
+
+//___________________________________________________________________
+
+//  All the methods below are used by the Viewer() method
+void TEXsec::Viewer()
+{
+    fMain = new TGMainFrame(gClient->GetRoot(),750,520);
+    // Create the embedded canvas
+    fEcan = new TRootEmbeddedCanvas(0,fMain,500,400);
+    
+    TGHorizontalFrame *hframe = new TGHorizontalFrame(fMain, 200, 40);   // Create a horizontal frame containing the particle list, the reaction_frame and the draw & exit buttons
+    TGVerticalFrame *reaction_frame = new TGVerticalFrame(hframe, 100, 40);  // contains the reaction list & the little_frame
+    TGHorizontalFrame *little_frame = new TGHorizontalFrame(reaction_frame, 200, 40);   //contains the select all & deselect all buttons
+    
+    TGLabel *lParticle = new TGLabel(hframe, "Particle : "); // label for the particle selector
+    hframe->AddFrame(lParticle, new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
+    
+    fParticleBox = new TGListBox(hframe);
+    fParticleBox->Connect("Selected(Int_t)","TEXsec",this,"UpdateReactions()");   // when the user changes the particle with the mouse
+    TGLBContainer *lbc = (TGLBContainer*)fParticleBox->GetContainer();
+    lbc->Connect("CurrentChanged(TGFrame*)", "TEXsec", this, "UpdateReactions()");   //when the user changes the particle with the keyborad
+    
+    for (Int_t i=0; i<TPartIndex::I()->NPartReac(); i++) {
+        fParticleBox->AddEntry(TPartIndex::I()->PartName(i), i);  // adding all the particles of the list
+    }
+    fParticleBox->Select(0);
+    
+    fParticleBox->Resize(150, 80);
+    
+    hframe->AddFrame(fParticleBox,new TGLayoutHints(kLHintsCenterX, 5, 5, 5, 5));
+    
+    TGLabel *lReaction = new TGLabel(hframe, "Reaction : "); // label for the reaction selector
+    hframe->AddFrame(lReaction, new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
+    
+    fReactionBox = new TGListBox(reaction_frame, 90);
+    
+    this->UpdateReactions();
+    
+    fReactionBox->Resize(150, 80);
+    fReactionBox->SetMultipleSelections(kTRUE);
+    reaction_frame->AddFrame(fReactionBox,new TGLayoutHints(kLHintsTop, 5, 5, 5, 5));
+    
+    TGTextButton *select = new TGTextButton(little_frame,"&Select All");      // adding the 4 buttons
+    select->Connect("Clicked()","TEXsec",this,"SelectAll()");
+    little_frame->AddFrame(select, new TGLayoutHints(kLHintsLeft, 0,5,3,4));
+    
+    TGTextButton *deselect = new TGTextButton(little_frame,"Deselect &All");
+    deselect->Connect("Clicked()","TEXsec",this,"DeselectAll()");
+    little_frame->AddFrame(deselect, new TGLayoutHints(kLHintsRight, 5,5,3,4));
+    
+    reaction_frame->AddFrame(little_frame, new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
+    hframe->AddFrame(reaction_frame, new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
+    
+    TGTextButton *draw = new TGTextButton(hframe,"&Draw");
+    draw->Connect("Clicked()","TEXsec",this,"PreDraw()");
+    hframe->AddFrame(draw, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    
+    TGTextButton *exit = new TGTextButton(hframe,"&Exit", "gApplication->Terminate(0)");
+    hframe->AddFrame(exit, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    
+    fMain->AddFrame(hframe, new TGLayoutHints(kLHintsCenterX,2,2,2,2));
+    
+    fMain->AddFrame(fEcan, new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX  | kLHintsExpandY,0,0,1,1));
+    
+    fMain->SetWindowName("ROOT XSec Viewer");
+    fMain->MapSubwindows();
+    fMain->MapWindow();
+    fMain->Layout();
+    
+}
+//___________________________________________________________________
+void TEXsec::SelectAll()
+{
+    
+    for (Int_t i=0; i<fReactionBox->GetNumberOfEntries(); i++) {
+        if(!fReactionBox->GetEntry(i)->IsActive()) {
+            fReactionBox->GetEntry(i)->Toggle();
+        }
+    }
+    fReactionBox->Layout();
+}
+
+//___________________________________________________________________
+void TEXsec::DeselectAll()
+{
+    for (Int_t i=0; i<fReactionBox->GetNumberOfEntries(); i++) {
+        if(fReactionBox->GetEntry(i)->IsActive()) {
+            fReactionBox->GetEntry(i)->Toggle();
+        }
+    }
+    fReactionBox->Layout();
+}
+
+//___________________________________________________________________
+void TEXsec::UpdateReactions()   // when the user changes the selected particle
+{
+    
+    fReactionBox->RemoveAll();
+    Int_t nb=0;
+    for(Int_t i=0; i<TPartIndex::I()->NProc()-1; ++i) {
+        if(XS(TPartIndex::I()->PartIndex(((TGTextLBEntry *)fParticleBox->GetSelectedEntry())->GetTitle()),i,0.0000000001)>=0) {
+            fReactionBox->AddEntry(TPartIndex::I()->ProcName(i), nb);   // adding the possible reactions for the chosen particle
+            fReactionBox->GetEntry(nb)->Toggle();
+            nb++;
+        }
+    }
+    fReactionBox->Layout();
+}
+
+//___________________________________________________________________
+void TEXsec::PreDraw()   // preparation of Draw() in the viewer, generation of the option
+{
+    TString opt = ((TGTextLBEntry *)fParticleBox->GetSelectedEntry())->GetTitle();
+    opt+=",Total|";
+    for (Int_t i=0; i<fReactionBox->GetNumberOfEntries(); i++) {
+        if(fReactionBox->GetEntry(i)->IsActive()) {
+            opt+=((TGTextLBEntry *)fReactionBox->GetEntry(i))->GetTitle();
+            opt+="|";
+        }
+    }
+    opt+=",0.000000001,1000000000,100,1";
+    this->Draw(opt);
 }
 

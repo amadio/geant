@@ -73,6 +73,11 @@ public:
 
    void DumpPointers() const;
    void Draw(Option_t *option);
+   void Viewer(); // *MENU*
+   void UpdateReactions();
+   void SelectAll();
+   void DeselectAll();
+   void PreDraw();
    Bool_t Resample();
 
    Bool_t Prune();
