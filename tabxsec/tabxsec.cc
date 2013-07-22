@@ -504,7 +504,7 @@ int main(int argc,char** argv)
        G4int nRegions = theRegionStore->size();
        printf("We found %d regions\n",nRegions);
        
-       G4float curxs=0;
+       G4double curxs=0;
        
        for(G4int imat=0; imat<nmaterials; ++imat) {
 	  G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
@@ -732,7 +732,7 @@ int main(int argc,char** argv)
 		      for(G4int j=0; j<nbins; ++j) {
 			 curxs = ph->GetElementCrossSection(dp,mat->GetElement(0));
 			 if(curxs < 0 || curxs > 1e10) {
-			    printf("%s %s on %s @ %f GeV: xs %f\n",
+			    printf("%s %s on %s @ %f GeV: xs %14.7g\n",
 				   (const char*) particle->GetParticleName(),
 				   (const char*) p->GetProcessName(),
 				   (const char*) mat->GetName(),
@@ -780,7 +780,7 @@ int main(int argc,char** argv)
 			 for(G4int j=0; j<nbins; ++j) {
 			    curxs = ptEloss->CrossSectionPerVolume(en,couple);
 			    if(curxs < 0 || curxs > 1e10) {
-			       printf("%s %s on %s @ %f GeV: xs %f\n",
+			       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
 				      (const char*) particle->GetParticleName(),
 				      (const char*) p->GetProcessName(),
 				      (const char*) mat->GetName(),
@@ -828,7 +828,7 @@ int main(int argc,char** argv)
 			 for(G4int j=0; j<nbins; ++j) {
 			    curxs = ptEm->CrossSectionPerVolume(en,couple);
 			    if(curxs < 0 || curxs > 1e10) {
-			       printf("%s %s on %s @ %f GeV: xs %f\n",
+			       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
 				      (const char*) particle->GetParticleName(),
 				      (const char*) p->GetProcessName(),
 				      (const char*) mat->GetName(),
