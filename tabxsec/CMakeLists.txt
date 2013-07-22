@@ -57,6 +57,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
 target_link_libraries(tabxsec ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
+add_dependencies(tabxsec xseclib)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
