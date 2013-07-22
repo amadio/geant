@@ -232,7 +232,8 @@ Bool_t TPXsec::SetPartXS(const Float_t xsec[], const Int_t dict[]) {
    for(Int_t i=0; i<fNEbins; ++i) {
       fTotXs[i]=0;
       for(Int_t j=0; j<fNXsec; ++j) fTotXs[i]+=fXSecs[i*fNXsec+j];
-      for(Int_t j=0; j<fNXsec; ++j) fXSecs[i*fNXsec+j]/=fTotXs[i];
+      if(fTotXs[i]) 
+	 for(Int_t j=0; j<fNXsec; ++j) fXSecs[i*fNXsec+j]/=fTotXs[i];
    }
    return kTRUE;
 }

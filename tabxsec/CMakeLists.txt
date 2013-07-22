@@ -32,8 +32,8 @@ include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources src/*.cc)
-file(GLOB headers inc/*.hh)
+file(GLOB sources src/*.cc src/*.c)
+file(GLOB headers inc/*.hh src/*.h)
 
 get_property(G4_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}")

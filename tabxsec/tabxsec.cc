@@ -115,6 +115,9 @@ void usage()
       G4endl;
 }
 
+#include <fenv.h>
+#include <fp_exception_glibc_extension.h>
+
 TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
                               G4ParticleDefinition* particleDefinition);
 
@@ -126,6 +129,7 @@ static TMap partDict;
 int main(int argc,char** argv)
 {
 
+   feenableexcept(FE_OVERFLOW|FE_DIVBYZERO|FE_INVALID);
 
    G4int nsample=0;
    G4int ngener=0;
@@ -724,8 +728,20 @@ int main(int argc,char** argv)
 		      
 		      G4HadronicProcess *ph = (G4HadronicProcess*)p;
 		      G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+		      G4bool iszero=TRUE;
 		      for(G4int j=0; j<nbins; ++j) {
-			 pxsec[nprxs*nbins+j] = curxs = std::max(ph->GetElementCrossSection(dp,mat->GetElement(0))/barn,0.);
+			 curxs = ph->GetElementCrossSection(dp,mat->GetElement(0));
+			 if(curxs < 0 || curxs > 1e10) {
+			    printf("%s %s on %s @ %f GeV: xs %f\n",
+				   (const char*) particle->GetParticleName(),
+				   (const char*) p->GetProcessName(),
+				   (const char*) mat->GetName(),
+				   en/GeV,curxs);
+			    if(curxs>0) curxs = 1e10;
+			    else curxs=0;
+			 }
+			 pxsec[nprxs*nbins+j] = curxs/barn;
+			 iszero = (curxs<=0.);
 			 if( /*particle == G4Proton::Proton() &&*/ nsample && curxs) {
 			    // Here we sample proton interactions only when xsec>0 -- just for a test
 			    G4double stepSize= 10.0*millimeter;
@@ -734,6 +750,10 @@ int main(int argc,char** argv)
 			 en*=delta;
 			 dp->SetKineticEnergy(en);
 		      }
+		      if(iszero) printf("%s for %s on %s has 0 x-sec\n",
+					(const char *) p->GetProcessName(),
+					(const char *) particle->GetParticleName(),
+					(const char *) mat->GetName());
 		      delete dp;
 		      if(pcode != ph->GetProcessType()*1000+ph->GetProcessSubType()) {
 			 printf("Error: process code mismatch 1\n");
@@ -756,8 +776,20 @@ int main(int argc,char** argv)
 			 G4double en=emin;
 			 
 			 G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+			 G4bool iszero=TRUE;
 			 for(G4int j=0; j<nbins; ++j) {
-			    pxsec[nprxs*nbins+j] = curxs = std::max(ptEloss->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn,0.);
+			    curxs = ptEloss->CrossSectionPerVolume(en,couple);
+			    if(curxs < 0 || curxs > 1e10) {
+			       printf("%s %s on %s @ %f GeV: xs %f\n",
+				      (const char*) particle->GetParticleName(),
+				      (const char*) p->GetProcessName(),
+				      (const char*) mat->GetName(),
+				      en/GeV,curxs);
+			       if(curxs>0) curxs = 1e10;
+			       else curxs=0;
+			    }
+			    pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+			    iszero = (curxs<=0.);
 			    if( /*particle == G4Electron::Electron() && */nsample && curxs) {
 			       G4double stepSize= 10.0*millimeter;
 			       SampDisInt(matt, pos, dp, ptEloss, stepSize, nsample, verbose, vecfs[curfs++]);
@@ -765,6 +797,9 @@ int main(int argc,char** argv)
 			    en*=delta;
 			    dp->SetKineticEnergy(en);
 			 }
+			 if(iszero) printf("Process %s for %s has 0 x-sec\n",
+					   (const char *) p->GetProcessName(),
+					   (const char *) particle->GetParticleName());
 			 delete dp;
 			 if(pcode != ptEloss->GetProcessType()*1000+ptEloss->GetProcessSubType()) {
 			    printf("Error: process code mismatch 2\n");
@@ -789,8 +824,20 @@ int main(int argc,char** argv)
 		      
 			 G4double en=emin;
 			 G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+			 G4bool iszero=TRUE;
 			 for(G4int j=0; j<nbins; ++j) {
-			    pxsec[nprxs*nbins+j] = curxs = std::max(ptEm->CrossSectionPerVolume(en,couple)*cm/natomscm3/barn,0.);
+			    curxs = ptEm->CrossSectionPerVolume(en,couple);
+			    if(curxs < 0 || curxs > 1e10) {
+			       printf("%s %s on %s @ %f GeV: xs %f\n",
+				      (const char*) particle->GetParticleName(),
+				      (const char*) p->GetProcessName(),
+				      (const char*) mat->GetName(),
+				      en/GeV,curxs);
+			       if(curxs>0) curxs = 1e10;
+			       else curxs=0;
+			    }
+			    pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+			    iszero = (curxs<=0.);
 			    if( particle == G4Positron::Positron() && nsample && curxs) {
 			       G4double stepSize= 10.0*millimeter;
 			       SampDisInt(matt, pos, dp, ptEm, stepSize, nsample, verbose, vecfs[curfs++]);
@@ -798,6 +845,9 @@ int main(int argc,char** argv)
 			    en*=delta;
 			    dp->SetKineticEnergy(en);
 			 }
+			 if(iszero) printf("Process %s for %s has 0 x-sec\n",
+					   (const char *) p->GetProcessName(),
+					   (const char *) particle->GetParticleName());
 			 delete dp;
 			 
 			 if(pcode != ptEm->GetProcessType()*1000+ptEm->GetProcessSubType()) {
@@ -906,9 +956,9 @@ int main(int argc,char** argv)
 			       delete dp;
 			    }
 			    msang[j] /= nrep;
-			    msasig[j] = sqrt(msasig[j]/nrep-msang[j]*msang[j]);
+			    msasig[j] = sqrt(TMath::Max(msasig[j]/nrep-msang[j]*msang[j],0.f));
 			    mslen[j] /=nrep;
-			    mslsig[j] = sqrt(mslsig[j]/nrep-mslen[j]*mslen[j]);
+			    mslsig[j] = sqrt(TMath::Max(mslsig[j]/nrep-mslen[j]*mslen[j],0.f));
 			    
 			    en*=delta;
 			 }
