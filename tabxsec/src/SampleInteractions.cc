@@ -93,6 +93,7 @@
 using namespace std;
 
 G4double GetNuclearMass( G4int, G4int, G4int ); // G4Material* material );
+const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
 
 int SampleInteractions(
                           G4Material* material,
@@ -201,8 +202,6 @@ int SampleDiscreteInteractions(
     aPoint->SetSafety(safety);
     aPoint->SetTouchableHandle(touchable);
     step->SetPreStepPoint(aPoint);
-
-    const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
 
     const G4MaterialCutsCouple* mcc=
         FindMaterialCutsCouple( material );
