@@ -27,13 +27,3 @@ class TFinState;
                        G4int    verbose
                        );
 
-    int SampDisInt(
-		   G4Material* material, 
-		   G4ThreeVector *pos,
-		   G4DynamicParticle *dpart,
-		   G4VProcess* proc,
-		   G4double theStep,
-		   G4int    nevt,
-		   G4int    verbose,
-		   TFinState& fs);
-     G4double GetNuclearMass( G4int Z, G4int N );
