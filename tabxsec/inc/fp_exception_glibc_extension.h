@@ -12,6 +12,7 @@
 #ifndef __FENV_H_LINUX_REPLACEMENT__
 #define __FENV_H_LINUX_REPLACEMENT__
 
+#ifndef linux
 //#include <fenv.h>
 #include <signal.h>
 #ifdef __cplusplus
@@ -60,5 +61,6 @@ extern "C" {
 }
 #endif
 
+#endif // if not LINUX
 
 #endif // __FENV_H_LINUX_REPLACEMENT__
