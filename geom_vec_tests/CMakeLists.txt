@@ -84,6 +84,17 @@ if( VECGEOBENCHMARKS )
     endif( )
 
 
+    file(GLOB benchsourcepcon src/BenchmarkFramework/BenchTGeoPcon_v.cxx)	
+    set_source_files_properties(${benchsourcepcon} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")		
+    if( VC_FOUND )
+        add_executable(BenchTGeoPcon_v ${benchsourcepcon} ${headers} ${VC_LIBRARIES})
+        target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
+    else()				      
+        add_executable(BenchTGeoPcon_v ${benchsourcepcon} ${headers})
+        target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
+    endif()
+    add_dependencies(BenchTGeoPcon_v VectorizedGeom)
+
     file(GLOB benchsourcepcon src/BenchmarkFramework/BenchTGeoPconSeg_v.cxx)	
     set_source_files_properties(${benchsourcepcon} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")		
     if( VC_FOUND )
