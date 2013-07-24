@@ -244,6 +244,7 @@ int SampDisInt(
       exit(1);
     }
     G4LorentzVector pcons(labv);
+    G4LorentzVector opart(0.,0.,0.,0.);
     
     if(dynamic_cast<G4HadronInelasticProcess*>(proc))
       pcons[3]+=amass;
@@ -251,7 +252,23 @@ int SampDisInt(
        && proc->GetProcessName() == G4String("annihil"))
       pcons[3]+=mass;
     // ----------------------------------- ** Cause Discrete Interaction ** ----------------------------
+    
     aChange = proc->PostStepDoIt(*gTrack,*step);
+    // -- See wheter the original particle is still alive
+    if((aChange->GetTrackStatus() == fAlive) || (aChange->GetTrackStatus() == fStopButAlive)) {
+      // -- Original particle is alive -- let's get it
+      printf("after %s on %s %s is still alive\n",
+             (const char *)proc->GetProcessName(),
+             (const char *)material->GetName(),
+             (const char *)dpart->GetParticleDefinition()->GetParticleName());
+      G4Step *tstep = aChange->UpdateStepForPostStep(step);
+      opart.set(tstep->GetTrack()->GetMomentum(),tstep->GetTrack()->GetTotalEnergy());
+      if((G4String("hIoni") == proc->GetProcessName()) || (G4String("ionIoni") == proc->GetProcessName())
+         || (G4String("eIoni") == proc->GetProcessName())) {
+        // the electron is NOT produced... ;-)
+        opart[3]-=G4ParticleTable::GetParticleTable()->FindParticle("e-")->GetPDGMass();
+      }
+    }
     
     // ----------------------------------- Trying to find out the angle in elastic ----------------------------
     if(proc->GetProcessName() == G4String("hadElastic")) {
@@ -262,7 +279,14 @@ int SampDisInt(
       }
       G4cout << "Elastic scattering by cosTheta "
       << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)" << G4endl;
+      G4double ken = ((G4ParticleChange*) aChange)->GetEnergy();
+      G4double mas = ((G4ParticleChange*) aChange)->GetMass();
+      G4double pmo = std::sqrt(ken*(2*ken+mas));
+      opart.set(*((G4ParticleChange*) aChange)->GetMomentumDirection()*pmo,ken+mas);
+      G4cout << " Output mom in elastic scatt " << opart << " mass " << mas << G4endl;
+      opart[3]-=amass;
     }
+    pcons -= opart;
     
     // ----------------------------------- Generated secondaries ----------------------------
     G4int n = aChange->GetNumberOfSecondaries();
