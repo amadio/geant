@@ -14,7 +14,6 @@ typedef Vc::double_m vdm; // short for double mask
 typedef Vc::int_v vi; // short for vector integer
 
 static vdm true_m(true);
-static vdm false_m(false);
 
 struct Foo{
 static Vc::double_m IsSameWithinTolerance(Vc::double_v const & a, Vc::double_v const & b )
@@ -53,8 +52,9 @@ void TGeoPcon_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
       vd z_v(&pointi.z[i]);
       
       // check if the particles are inside in the z-direction
-      vdm zInside_m = (z_v > fZ1_v) && (z_v < fZN_v);
-      if(zInside_m == false_m) // if all the particles are outside
+      vdm zInside_m = (z_v > fZ1_v) & (z_v < fZN_v);
+
+      if( zInside_m.isEmpty() ) // if all the particles are outside
 	{
 	  //  isin[i] = zInside_m;
 	  for(unsigned int j = 0; j < Vc::double_v::Size; ++j)
@@ -109,7 +109,7 @@ void TGeoPcon_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
 
       // check if the particles are radially in the volume
       vdm rInside_m = (r2_v > rmin_v*rmin_v) && (r2_v < rmax_v*rmax_v);
-      if(rInside_m == false_m) // if all the particles are outside
+      if( rInside_m.isEmpty() ) // if all the particles are outside
 	{
 	  // isin[i] = rInside_m;
 	  for(unsigned int j = 0; j < Vc::double_v::Size; ++j)
