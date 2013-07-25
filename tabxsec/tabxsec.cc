@@ -752,7 +752,7 @@ int main(int argc,char** argv)
                              (const char *) particle->GetParticleName(),
                              (const char *) ph->GetProcessName(),
                              (const char *) mat->GetName(),
-                             en);
+                             en/GeV);
                       SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[curfs]);
                     }
                     ++curfs;
@@ -814,7 +814,7 @@ int main(int argc,char** argv)
                                (const char *) particle->GetParticleName(),
                                (const char *) ptEloss->GetProcessName(),
                                (const char *) mat->GetName(),
-                               en);
+                               en/GeV);
                         SampDisInt(matt, pos, dp, ptEloss, nsample, verbose, vecfs[curfs]);
                       }
                       ++curfs;
@@ -870,7 +870,7 @@ int main(int argc,char** argv)
                                (const char *) particle->GetParticleName(),
                                (const char *) ptEm->GetProcessName(),
                                (const char *) mat->GetName(),
-                               en);
+                               en/GeV);
                         SampDisInt(matt, pos, dp, ptEm, nsample, verbose, vecfs[curfs]);
                       }
                       ++curfs;
