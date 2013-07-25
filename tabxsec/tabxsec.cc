@@ -747,7 +747,14 @@ int main(int argc,char** argv)
                   iszero = (curxs<=0.);
                   if( /*particle == G4Proton::Proton() &&*/ nsample) {
                     // Here we sample proton interactions only when xsec>0 -- just for a test
-                    if(curxs) SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[curfs]);
+                    if(curxs) {
+                      printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
+                             (const char *) particle->GetParticleName(),
+                             (const char *) ph->GetProcessName(),
+                             (const char *) mat->GetName(),
+                             en/GeV);
+                      SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[curfs]);
+                    }
                     ++curfs;
                   }
                   en*=delta;
@@ -802,7 +809,14 @@ int main(int argc,char** argv)
                     pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
                     iszero = (curxs<=0.);
                     if( /*particle == G4Electron::Electron() && */nsample) {
-                      if(curxs) SampDisInt(matt, pos, dp, ptEloss, nsample, verbose, vecfs[curfs]);
+                      if(curxs) {
+                        printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
+                               (const char *) particle->GetParticleName(),
+                               (const char *) ptEloss->GetProcessName(),
+                               (const char *) mat->GetName(),
+                               en/GeV);
+                        SampDisInt(matt, pos, dp, ptEloss, nsample, verbose, vecfs[curfs]);
+                      }
                       ++curfs;
                     }
                     en*=delta;
@@ -851,7 +865,14 @@ int main(int argc,char** argv)
                     pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
                     iszero = (curxs<=0.);
                     if( /*particle == G4Positron::Positron() &&*/ nsample) {
-                      if(curxs) SampDisInt(matt, pos, dp, ptEm, nsample, verbose, vecfs[curfs]);
+                      if(curxs) {
+                        printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
+                               (const char *) particle->GetParticleName(),
+                               (const char *) ptEm->GetProcessName(),
+                               (const char *) mat->GetName(),
+                               en/GeV);
+                        SampDisInt(matt, pos, dp, ptEm, nsample, verbose, vecfs[curfs]);
+                      }
                       ++curfs;
                     }
                     en*=delta;
