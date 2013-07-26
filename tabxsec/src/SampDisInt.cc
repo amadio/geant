@@ -158,6 +158,7 @@ int SampDisInt(G4Material* material,
     G4int *npart = new G4int[nevt];
     G4float *kerma = new G4float[nevt];
     G4float *weight = new G4float[nevt];
+    char *surv = new char[nevt];
     
     G4int *tpid = new G4int[ntotp];
     G4float (*tmom)[3] = new G4float[ntotp][3];
@@ -167,6 +168,7 @@ int SampDisInt(G4Material* material,
       npart[i]=fstat[i].npart;
       kerma[i]=fstat[i].kerma;
       weight[i]=fstat[i].weight;
+      surv[i]=fstat[i].survived;
       for(G4int j=0; j<npart[i]; ++j ) {
         tmom[ip+j][0]=fstat[i].mom[j][0];
         tmom[ip+j][1]=fstat[i].mom[j][1];
@@ -273,6 +275,11 @@ G4int SampleOne(G4Material* material,
   G4double e;
   G4VParticleChange* aChange = 0;
   
+  G4int isurv=0;
+  fs.survived=FALSE;
+  G4ThreeVector psurv(0,0,0);
+  G4int spid=0;
+  
   fs.kerma=0;
   G4bool needendl = FALSE;
   G4int modu = 10000;
@@ -350,41 +357,49 @@ G4int SampleOne(G4Material* material,
   step->UpdateTrack();
   fs.kerma+=step->GetTotalEnergyDeposit();
   
+  // ----------------------------------- Generated secondaries ----------------------------
+  G4int n = aChange->GetNumberOfSecondaries();
+  
   // -- See wheter the original particle is still alive
   if((aChange->GetTrackStatus() == fAlive) || (aChange->GetTrackStatus() == fStopButAlive)) {
     // -- Original particle is alive -- let's get it
-    printf("after %s on %s %s is still alive\n",
+    if(verbose>1) printf("after %s on %s %s is still alive\n",
            (const char *)pname,
            (const char *)material->GetName(),
            (const char *)dpart->GetParticleDefinition()->GetParticleName());
     // we remove the life particle from the input vector to test momentum conservation
     pcons-=G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy());
     bnum-=dpart->GetParticleDefinition()->GetBaryonNumber();
+    
+    fs.survived = TRUE;
+    isurv = 1;
+    psurv = step->GetTrack()->GetMomentum();
+    spid = TPartIndex::I()->PartIndex(dpart->GetParticleDefinition()->GetPDGEncoding());
+    if(G4String("hadElastic") == pname){
+      
+      // ----------------------------------- Trying to find out the angle in elastic ---------------------------
+      G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
+      G4double ken = gTrack->GetKineticEnergy();
+      G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
+      G4double pmo = gTrack->GetMomentum().mag();
+      if(needendl) {
+        G4cout << G4endl;
+        needendl=FALSE;
+      }
+      if(verbose) G4cout << "Elastic scattering by cosTheta "
+      << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
+      << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
+      // we add the baryon number of the target but only if there are  generated particles
+      // oterwise the target will recoil and this will alter the baryon number conservation
+      if(n) {
+        bnum+=A;
+        pcons[3]+=amass;
+      }
+    }
   }
   
-  // ----------------------------------- Generated secondaries ----------------------------
-  G4int n = aChange->GetNumberOfSecondaries();
-
-  if(G4String("hadElastic") == pname){
-    
-    // ----------------------------------- Trying to find out the angle in elastic ---------------------------
-    G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
-    G4double ken = gTrack->GetKineticEnergy();
-    G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
-    G4double pmo = gTrack->GetMomentum().mag();
-    if(needendl) {
-      G4cout << G4endl;
-      needendl=FALSE;
-    }
-    G4cout << "Elastic scattering by cosTheta "
-    << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
-    << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
-    // we add the baryon number of the target but only if there are  generated particles
-    // oterwise the target will recoil and this will alter the baryon number conservation
-    if(n) {
-      bnum+=A;
-      pcons[3]+=amass;
-    }
+  if(G4String("hadElastic") == pname && !fs.survived) {
+    G4cout << "Elastic but the particle did not survive " << tStatus[aChange->GetTrackStatus()] << G4endl;
   }
   
   
@@ -397,9 +412,16 @@ G4int SampleOne(G4Material* material,
     
   fs.npart = 0;
   fs.weight = 1; // for the moment all events have the same prob
-  if(n) {
-    fs.mom = new G4float[n][3];
-    fs.pid = new G4int[n];
+  if(n+isurv) {
+    fs.mom = new G4float[n+isurv][3];
+    fs.pid = new G4int[n+isurv];
+    if(isurv) {
+      fs.mom[0][0]=psurv[0];
+      fs.mom[0][1]=psurv[1];
+      fs.mom[0][2]=psurv[2];
+      fs.pid[0]=spid;
+      fs.npart=1;
+    }
   } else {
     fs.mom = 0;
     fs.pid = 0;
@@ -454,10 +476,11 @@ G4int SampleOne(G4Material* material,
     if(g5pid<0) {
       fs.kerma+=e+mass1;
     } else {
-      fs.pid[fs.npart] = g5pid;
-      fs.mom[fs.npart][0] = mom.x();
-      fs.mom[fs.npart][1] = mom.x();
-      fs.mom[fs.npart][2] = mom.x();
+      G4int ip=fs.npart;
+      fs.pid[ip] = g5pid;
+      fs.mom[ip][0] = mom.x();
+      fs.mom[ip][1] = mom.x();
+      fs.mom[ip][2] = mom.x();
       ++fs.npart;
     }
     if(verbose > 1) {

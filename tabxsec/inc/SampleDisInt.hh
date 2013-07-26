@@ -20,6 +20,7 @@ const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
 
 // -------- Simple structure to hold one final states
 struct Finstat_t {
+  G4bool survived;
   G4int npart;
   G4float kerma;
   G4float weight;
@@ -34,3 +35,9 @@ G4int SampleOne(G4Material* material,
                 G4int    verbose,
                 Finstat_t& fs);
 
+static const char* tStatus[6] = {"Alive: Continue the tracking",
+  "StopButAlive: Invoke active rest physics processes and kill the current track afterward",
+  "StopAndKill: Kill the current track",
+  "KillTrackAndSecondaries: Kill the current track and also associated secondaries",
+  "Suspend: Suspend the current track",
+  "PostponeToNextEvent: Postpones the tracking of thecurrent track to the next event"};

@@ -713,13 +713,13 @@ int main(int argc,char** argv)
               // if the particle is a generic ion we bail out
               if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
               
-              // These are the proecsses that we want to store
+              // These are the processes that we want to store
               if(p->GetProcessType() == fHadronic ) {  // 4
                 // no parametrization for Z > 92 and inelastic (but why a crash??)
                 if(mat->GetZ() > 92 &&
                    ( i == 382 || i == 383 ) &&
                    p->GetProcessSubType() == 121) continue;
-                if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
+                   if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
                 
                 // Hadronic interaction -- just store x-sec
                 if(verbose > 2)
