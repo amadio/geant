@@ -19,15 +19,18 @@ TFinState::TFinState():
 
 //_________________________________________________________________________
 TFinState::TFinState(Int_t nfstates, const Float_t weight[], const Float_t kerma[], 
-		     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]):
+		     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[],
+        const Char_t surv[]):
    fNFstates(nfstates),
    fNsecs(0),
    fPID(0),
+   fSurv(new Char_t[fNFstates]),
    fNpart(new Int_t[fNFstates]),
    fWeight(new Float_t[fNFstates]),
    fKerma(new Float_t[fNFstates]),
    fMom(0)
 {
+   memcpy(fSurv,surv,fNFstates*sizeof(Char_t));
    memcpy(fNpart,npart,fNFstates*sizeof(Int_t));
    memcpy(fWeight,weight,fNFstates*sizeof(Float_t));
    memcpy(fKerma,kerma,fNFstates*sizeof(Float_t));
@@ -56,38 +59,42 @@ TFinState::~TFinState()
 //_________________________________________________________________________
 TFinState& TFinState::operator=(const TFinState& right)
 {
-   if(this != &right) {
-      TObject::operator=(right);
-      fNFstates = right.fNFstates;
-      fNsecs = right.fNsecs;
-
-      delete [] fPID;
-      fPID = new Int_t[fNsecs];
-      memcpy(fPID,right.fPID,fNsecs*sizeof(Int_t));
-
-      delete [] fNpart;
-      fNpart = new Int_t[fNFstates];
-      memcpy(fNpart,right.fNpart,fNFstates*sizeof(Int_t));
-
-      delete [] fWeight;
-      fWeight = new Float_t[fNFstates];
-      memcpy(fWeight,right.fWeight,fNFstates*sizeof(Float_t));
-
-      delete [] fKerma;
-      fKerma = new Float_t[fNFstates];
-      memcpy(fKerma,right.fKerma,fNFstates*sizeof(Float_t));
-
-      delete [] fMom;
-      fMom = new Float_t[fNsecs][3];
-      memcpy(fMom,right.fMom,3*fNsecs*sizeof(Float_t));
-   }
-   return *this;
+  if(this != &right) {
+    TObject::operator=(right);
+    fNFstates = right.fNFstates;
+    fNsecs = right.fNsecs;
+    
+    delete [] fPID;
+    fPID = new Int_t[fNsecs];
+    memcpy(fPID,right.fPID,fNsecs*sizeof(Int_t));
+    
+    delete [] fSurv;
+    fSurv = new Char_t[fNFstates];
+    memcpy(fSurv,right.fSurv,fNFstates*sizeof(Int_t));
+    
+    delete [] fNpart;
+    fNpart = new Int_t[fNFstates];
+    memcpy(fNpart,right.fNpart,fNFstates*sizeof(Int_t));
+    
+    delete [] fWeight;
+    fWeight = new Float_t[fNFstates];
+    memcpy(fWeight,right.fWeight,fNFstates*sizeof(Float_t));
+    
+    delete [] fKerma;
+    fKerma = new Float_t[fNFstates];
+    memcpy(fKerma,right.fKerma,fNFstates*sizeof(Float_t));
+    
+    delete [] fMom;
+    fMom = new Float_t[fNsecs][3];
+    memcpy(fMom,right.fMom,3*fNsecs*sizeof(Float_t));
+  }
+  return *this;
 }
 
 //_________________________________________________________________________
 Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
 			      const Float_t kerma[], const Int_t npart[],
-			      const Float_t (*mom)[3], const Int_t pid[])
+			      const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[])
 {
    fNFstates = nfstates;
 

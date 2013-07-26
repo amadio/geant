@@ -36,7 +36,7 @@ public:
    ~TEFstate();
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
    Bool_t AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
-		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[]);
+		      const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[]);
    
    Int_t Ele() const {return fEle;}
    Double_t Dens() const {return fDens;}

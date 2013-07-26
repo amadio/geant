@@ -84,7 +84,7 @@ Bool_t TPFstate::SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[
 
 //_________________________________________________________________________
 Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[], 
-			     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[])
+			     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[])
 {
    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
    en=en>fEGrid[0]?en:fEGrid[0];
@@ -105,7 +105,7 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
    }
    Int_t rnumber = fRdict[reac];
    Int_t ipoint = rnumber*fNEbins + ibin;
-   fFstat[ipoint].SetFinState(fNEFstat,weight,kerma,npart,mom,pid);
+   fFstat[ipoint].SetFinState(fNEFstat,weight,kerma,npart,mom,pid,surv);
    return kTRUE;
 }     
 

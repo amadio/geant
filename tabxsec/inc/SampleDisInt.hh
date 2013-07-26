@@ -5,6 +5,7 @@ class G4VProcess;
 class G4DynamicParticle;
 class G4MaterialCutsCouple;
 class TFinState;
+#include "G4LorentzVector.hh"
 
 int SampDisInt(
                G4Material* material,
@@ -17,6 +18,9 @@ int SampDisInt(
 
 G4double GetNuclearMass( G4int, G4int, G4int ); // G4Material* material );
 const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat );
+void  checkBalance(const G4LorentzVector &porig, const G4LorentzVector &pmom, G4int bnum, G4DynamicParticle *secs, G4int n, G4LorentzVector &ptest, G4double &perr, G4int &berr);
+G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4int n, G4double eleft, G4double etot);
+
 
 // -------- Simple structure to hold one final states
 struct Finstat_t {
@@ -41,3 +45,4 @@ static const char* tStatus[6] = {"Alive: Continue the tracking",
   "KillTrackAndSecondaries: Kill the current track and also associated secondaries",
   "Suspend: Suspend the current track",
   "PostponeToNextEvent: Postpones the tracking of thecurrent track to the next event"};
+

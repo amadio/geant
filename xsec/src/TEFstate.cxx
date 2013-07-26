@@ -70,9 +70,9 @@ Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, cons
 //___________________________________________________________________
 Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t weight[], 
 			   const Float_t kerma[], const Int_t npart[], const Float_t (*mom)[3], 
-			   const Int_t pid[])
+			   const Int_t pid[], const Char_t surv[])
 {
-   return fPFstate[kpart].SetFinState(en,reac,weight,kerma,npart,mom,pid);
+   return fPFstate[kpart].SetFinState(en,reac,weight,kerma,npart,mom,pid,surv);
 }
 
 //___________________________________________________________________
