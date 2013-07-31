@@ -25,9 +25,13 @@
 #include <TNamed.h>
 #include <TPartIndex.h>
 class TFile;
+class TGHorizontalFrame;
+class TGListBox;
+class TGMainFrame;
 class TGraph;
 class TList;
 class TPXsec;
+class TRootEmbeddedCanvas;
 
 class TEXsec : public TNamed {
 public:
@@ -78,6 +82,9 @@ public:
    void SelectAll();
    void DeselectAll();
    void PreDraw();
+   void ResetFrame();
+
+
    Bool_t Resample();
 
    Bool_t Prune();
@@ -106,6 +113,13 @@ private:
 
    static Int_t   fNLdElems; //! number of loaded elements
    static TEXsec *fElements[NELEM]; //! databases of elements
+
+   static TGMainFrame         *fMain;           //! Main window
+   static TGHorizontalFrame   *fSecond;         //! Window for the graph and the bar on left
+   static TRootEmbeddedCanvas *fCanvas;         //! For the graphs
+   static TGListBox           *fReactionBox;    //! Reaction list
+   static TGListBox           *fParticleBox;    //! Particle list 
+
 
    ClassDef(TEXsec,1)  // Element X-secs
 
