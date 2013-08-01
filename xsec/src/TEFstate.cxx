@@ -68,6 +68,12 @@ Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, cons
 }
 
 //___________________________________________________________________
+Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[])
+{
+  return fPFstate[kpart].SetPart(pdg,nfstat,nreac,dict,vecfs);
+}
+
+//___________________________________________________________________
 Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t weight[], 
 			   const Float_t kerma[], const Int_t npart[], const Float_t (*mom)[3], 
 			   const Int_t pid[], const Char_t surv[])
@@ -76,9 +82,9 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t w
 }
 
 //___________________________________________________________________
-Int_t TEFstate::SampleFS(Int_t pindex, Double_t en, Int_t preac, Int_t &npart,
-			 Int_t pid[], Float_t (*mom)[3]) const {
-   return fPFstate[pindex].SampleReac(preac,en,npart,pid,mom);
+Bool_t TEFstate::SampleFS(Int_t pindex, Double_t en, Int_t preac,
+			 Float_t& kerma, Int_t &npart, Int_t pid[], Float_t (*mom)[3]) const {
+   return fPFstate[pindex].SampleReac(preac,en,kerma,npart,pid,mom);
 }
 
 //___________________________________________________________________

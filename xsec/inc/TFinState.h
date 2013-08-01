@@ -29,7 +29,7 @@
 #include <TDatabasePDG.h>
 #include <TPartIndex.h>
 
-class TFinState: public TObject {
+class TFinState {
 public:
    TFinState();
    TFinState(Int_t nfstates, const Float_t weight[],
@@ -45,7 +45,7 @@ public:
                       const Char_t surv[]);
    void Print(Option_t */*opt*/="") const {}
    Bool_t Prune() {return kTRUE;}
-   Bool_t SampleReac(Int_t& npart, Int_t* pid, Float_t (*mom)[3]) const;
+   Bool_t SampleReac(Float_t& kerma, Int_t& npart, Int_t* pid, Float_t (*mom)[3]) const;
    void Dump() const {}
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
