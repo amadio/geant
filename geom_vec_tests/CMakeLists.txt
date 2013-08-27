@@ -67,102 +67,40 @@ endif()
 
 add_custom_target(VectorizedGeom DEPENDS VecGeom VecGeom_static)
 
+
 #----------------------------------------------------------------------------
 # Add some benchmarks and standard tests if wanted
-# TODO: make this general ( with patterns, etc. )
 if( VECGEOBENCHMARKS )
-    file(GLOB benchsource1 src/BenchmarkFramework/BenchTGeoBBox_v.cxx)	
-    set_source_files_properties(${benchsource1} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
-    if( VC_FOUND )
-     	add_executable(BenchTGeoBBox_v ${benchsource1} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoBBox_v ${benchsource1} ${headers})
-        target_link_libraries(BenchTGeoBBox_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoBBox_v VectorizedGeom)
+    file(GLOB benchmarksources src/BenchmarkFramework/BenchTGeoBBox_v.cxx
+			       src/BenchmarkFramework/BenchTGeoTube_v.cxx
+			       src/BenchmarkFramework/BenchTGeoTubeSeg_v.cxx
+			       src/BenchmarkFramework/BenchTGeoPcon_v.cxx
+			       src/BenchmarkFramework/BenchTGeoPconSeg_v.cxx
+			       src/BenchmarkFramework/BenchTGeoCone_v.cxx
+			       src/BenchmarkFramework/BenchTGeoConeSeg_v.cxx)
+    if( VC_FOUND ) # if we have VC we build some additional stuff
+	 list(APPEND benchmarksources src/BenchmarkFramework/BenchTGeoBBox_v_masked.cxx)
+    endif( VC_FOUND )
 
-    if( VC_FOUND )
-    file(GLOB boxmasked src/BenchmarkFramework/BenchTGeoBBox_v_masked.cxx)	
-    set_source_files_properties(${boxmasked} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
-    add_executable(BenchTGeoBBox_v_masked ${boxmasked} ${headers} ${VC_LIBRARIES})
-    target_link_libraries(BenchTGeoBBox_v_masked ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    add_dependencies(BenchTGeoBBox_v_masked VectorizedGeom)
-    endif( )
+    set_source_files_properties(${benchmarksources} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")
 
-
-    file(GLOB benchsourcepcon src/BenchmarkFramework/BenchTGeoPcon_v.cxx)	
-    set_source_files_properties(${benchsourcepcon} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")		
-    if( VC_FOUND )
-        add_executable(BenchTGeoPcon_v ${benchsourcepcon} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoPcon_v ${benchsourcepcon} ${headers})
-        target_link_libraries(BenchTGeoPcon_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoPcon_v VectorizedGeom)
-
-    file(GLOB benchsourcepcon src/BenchmarkFramework/BenchTGeoPconSeg_v.cxx)	
-    set_source_files_properties(${benchsourcepcon} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")		
-    if( VC_FOUND )
-        add_executable(BenchTGeoPconSeg_v ${benchsourcepcon} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoPconSeg_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoPconSeg_v ${benchsourcepcon} ${headers})
-        target_link_libraries(BenchTGeoPconSeg_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoPconSeg_v VectorizedGeom)
-
-   file(GLOB benchsourceTube src/BenchmarkFramework/BenchTGeoTube_v.cxx)	
- set_source_files_properties(${benchsourceTube} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
-    if( VC_FOUND )
-        add_executable(BenchTGeoTube_v ${benchsourceTube} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoTube_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoTube_v ${benchsourceTube} ${headers})
-        target_link_libraries(BenchTGeoTube_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoTube_v VectorizedGeom)
-
-   file(GLOB benchsourceTubeSeg src/BenchmarkFramework/BenchTGeoTubeSeg_v.cxx)	
- set_source_files_properties(${benchsourceTubeSeg} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
-    if( VC_FOUND )
-        add_executable(BenchTGeoTubeSeg_v ${benchsourceTubeSeg} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoTubeSeg_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoTubeSeg_v ${benchsourceTubeSeg} ${headers})
-        target_link_libraries(BenchTGeoTubeSeg_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoTubeSeg_v VectorizedGeom)
-
-   file(GLOB benchsourceCone src/BenchmarkFramework/BenchTGeoCone_v.cxx)	
- set_source_files_properties(${benchsourceCone} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
-    if( VC_FOUND )
-        add_executable(BenchTGeoCone_v ${benchsourceCone} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoCone_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoCone_v ${benchsourceCone} ${headers})
-        target_link_libraries(BenchTGeoCone_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoCone_v VectorizedGeom)
-
-
-    file(GLOB benchsourceConeSeg src/BenchmarkFramework/BenchTGeoConeSeg_v.cxx)	
- set_source_files_properties(${benchsourceConeSeg} PROPERTIES COMPILE_FLAGS "${BASEFLAGS} ${BASEVCFLAGS}")	
-    if( VC_FOUND )
-        add_executable(BenchTGeoConeSeg_v ${benchsourceConeSeg} ${headers} ${VC_LIBRARIES})
-        target_link_libraries(BenchTGeoConeSeg_v ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
-    else()				      
-        add_executable(BenchTGeoConeSeg_v ${benchsourceConeSeg} ${headers})
-        target_link_libraries(BenchTGeoConeSeg_v ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom) # -Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVecGeom${SUFFIX})
-    endif()
-    add_dependencies(BenchTGeoConeSeg_v VectorizedGeom)
-
+    foreach( benchmarksrc  ${benchmarksources} )
+        get_filename_component( BENCHEXEC  ${benchmarksrc} NAME_WE)
+	message(STATUS "building benchmark ${BENCHEXEC}")
+	if( VC_FOUND )
+	add_executable( ${BENCHEXEC} ${benchmarksrc} ${headers} ${VC_LIBRARIES} )
+	target_link_libraries( ${BENCHEXEC} ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
+	else()
+	add_executable( ${BENCHEXEC} ${benchmarksrc} ${headers} )
+	target_link_libraries( ${BENCHEXEC} ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static ${TBB_LIBRARIES})
+	endif( VC_FOUND )
+	add_dependencies( ${BENCHEXEC} VectorizedGeom )
+    endforeach( benchmarksrc )
 
 # for more complete test from CMS:
-   file(GLOB benchsource2 src/BenchmarkFramework/BenchSelectedCMSShapes.cxx)
-   add_executable(BenchSelectedCMSShapes ${benchsource2} ${headers})
-   target_link_libraries(BenchSelectedCMSShapes ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES}) 
+#   file(GLOB benchsource2 src/BenchmarkFramework/BenchSelectedCMSShapes.cxx)
+#   add_executable(BenchSelectedCMSShapes ${benchsource2} ${headers})
+#   target_link_libraries(BenchSelectedCMSShapes ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES})
 endif()
 
 
