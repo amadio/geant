@@ -24,9 +24,16 @@ file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	set( BASEFLAGS "-O0 -fpermissive" )	
 else()
-	set( BASEFLAGS "-Ofast -ftree-vectorize -ftree-vectorizer-verbose=0 -fpermissive" )	
+# set baseflags as a function of the compiler:
+      message(STATUS "setting up compilation flags to compile vectorized geometry")
+ if( CMAKE_COMPILER_IS_GNUCXX )
+      message(STATUS "configuration compile flags for gcc")
+      set( BASEFLAGS "-Ofast -ftree-vectorize -ftree-vectorizer-verbose=0 -fpermissive" )
+  elseif( CMAKE_CXX_COMPILER_ID STREQUAL Intel )
+      message(STATUS "configuring compile flags for Intel compiler")
+      set( BASEFLAGS "-Ofast -restrict -vec-report=2" )
+  endif()
 endif()
-
 
 if( VC_FOUND )
   add_definitions( "-DVEC_EXTENSIONS" )
