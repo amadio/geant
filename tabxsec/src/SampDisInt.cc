@@ -158,6 +158,7 @@ int SampDisInt(G4Material* material,
     G4int *npart = new G4int[nevt];
     G4float *kerma = new G4float[nevt];
     G4float *weight = new G4float[nevt];
+    char *surv = new char[nevt];
     
     G4int *tpid = new G4int[ntotp];
     G4float (*tmom)[3] = new G4float[ntotp][3];
@@ -167,6 +168,7 @@ int SampDisInt(G4Material* material,
       npart[i]=fstat[i].npart;
       kerma[i]=fstat[i].kerma;
       weight[i]=fstat[i].weight;
+      surv[i]=fstat[i].survived;
       for(G4int j=0; j<npart[i]; ++j ) {
         tmom[ip+j][0]=fstat[i].mom[j][0];
         tmom[ip+j][1]=fstat[i].mom[j][1];
@@ -176,7 +178,7 @@ int SampDisInt(G4Material* material,
       ip+=npart[i];
     }
     
-    fs.SetFinState(nevt, weight, kerma, npart, tmom, tpid);
+    fs.SetFinState(nevt, weight, kerma, npart, tmom, tpid, surv);
     
     delete [] npart;
     delete [] kerma;
@@ -273,6 +275,11 @@ G4int SampleOne(G4Material* material,
   G4double e;
   G4VParticleChange* aChange = 0;
   
+  G4int isurv=0;
+  fs.survived=FALSE;
+  G4ThreeVector psurv(0,0,0);
+  G4int spid=0;
+  
   fs.kerma=0;
   G4bool needendl = FALSE;
   G4int modu = 10000;
@@ -305,13 +312,17 @@ G4int SampleOne(G4Material* material,
     bnum += A;
     pcons[3]+=amass;
   }
-  
+
   // -- add the mass of the electron in case it is an annihilation
   if(dpart->GetParticleDefinition()->GetParticleName() == G4String("e+")
      && pname == G4String("annihil"))
     pcons[3]+=mass;
   
+  // 
+  // We save at this point the value of the "input energy" to check the energy balance
+  // This is highly debatable, but it is a good compromise
   
+  G4LorentzVector porig = pcons;
   // ----------------------------------- ** Cause Discrete Interaction ** ----------------------------
   
   G4double  previousStepSize= 1.0;
@@ -350,41 +361,62 @@ G4int SampleOne(G4Material* material,
   step->UpdateTrack();
   fs.kerma+=step->GetTotalEnergyDeposit();
   
+  // ----------------------------------- Generated secondaries ----------------------------
+  G4int n = aChange->GetNumberOfSecondaries();
+  
   // -- See wheter the original particle is still alive
   if((aChange->GetTrackStatus() == fAlive) || (aChange->GetTrackStatus() == fStopButAlive)) {
     // -- Original particle is alive -- let's get it
-    printf("after %s on %s %s is still alive\n",
+    if(verbose>1) printf("after %s on %s %s is still alive\n",
            (const char *)pname,
            (const char *)material->GetName(),
            (const char *)dpart->GetParticleDefinition()->GetParticleName());
     // we remove the life particle from the input vector to test momentum conservation
     pcons-=G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy());
     bnum-=dpart->GetParticleDefinition()->GetBaryonNumber();
+    
+    fs.survived = TRUE;
+    isurv = 1;
+    psurv = step->GetTrack()->GetMomentum();
+    spid = TPartIndex::I()->PartIndex(dpart->GetParticleDefinition()->GetPDGEncoding());
+    if(G4String("hadElastic") == pname){
+      
+      // ----------------------------------- Trying to find out the angle in elastic ---------------------------
+      G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
+      G4double ken = gTrack->GetKineticEnergy();
+      G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
+      G4double pmo = gTrack->GetMomentum().mag();
+      if(needendl) {
+        G4cout << G4endl;
+        needendl=FALSE;
+      }
+      if(verbose) G4cout << "Elastic scattering by cosTheta "
+      << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
+      << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
+      // we add the baryon number of the target but only if there are  generated particles
+      // oterwise the target will recoil and this will alter the baryon number conservation
+      if(n) {
+        bnum+=A;
+        pcons[3]+=amass;
+        porig[3]+=amass;
+      }
+    }
   }
   
-  // ----------------------------------- Generated secondaries ----------------------------
-  G4int n = aChange->GetNumberOfSecondaries();
-
-  if(G4String("hadElastic") == pname){
-    
-    // ----------------------------------- Trying to find out the angle in elastic ---------------------------
-    G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
-    G4double ken = gTrack->GetKineticEnergy();
-    G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
-    G4double pmo = gTrack->GetMomentum().mag();
-    if(needendl) {
-      G4cout << G4endl;
-      needendl=FALSE;
-    }
-    G4cout << "Elastic scattering by cosTheta "
-    << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
-    << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
-    // we add the baryon number of the target but only if there are  generated particles
-    // oterwise the target will recoil and this will alter the baryon number conservation
+  if(G4String("CoulombScat") == pname) {
+    // If the target nucleus recoils we have to add the mass to the initial balance
+    if(verbose) G4cout << "CoulombScatt status " << tStatus[aChange->GetTrackStatus()]
+    << " p " << G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy()) << G4endl;
     if(n) {
-      bnum+=A;
       pcons[3]+=amass;
+      porig[3]+=amass;
+      bnum+=A;
     }
+  }
+  
+  
+  if(G4String("hadElastic") == pname && !fs.survived) {
+    G4cout << "Elastic but the particle did not survive " << tStatus[aChange->GetTrackStatus()] << G4endl;
   }
   
   
@@ -393,13 +425,21 @@ G4int SampleOne(G4Material* material,
            || (G4String("compt") == pname)) {
     // the electron is NOT produced... ;-)
     pcons[3]+=G4ParticleTable::GetParticleTable()->FindParticle("e-")->GetPDGMass();
+    porig[3]+=G4ParticleTable::GetParticleTable()->FindParticle("e-")->GetPDGMass();
   }
     
   fs.npart = 0;
   fs.weight = 1; // for the moment all events have the same prob
-  if(n) {
-    fs.mom = new G4float[n][3];
-    fs.pid = new G4int[n];
+  if(n+isurv) {
+    fs.mom = new G4float[n+isurv][3];
+    fs.pid = new G4int[n+isurv];
+    if(isurv) {
+      fs.mom[0][0]=psurv[0];
+      fs.mom[0][1]=psurv[1];
+      fs.mom[0][2]=psurv[2];
+      fs.pid[0]=spid;
+      fs.npart=1;
+    }
   } else {
     fs.mom = 0;
     fs.pid = 0;
@@ -416,17 +456,17 @@ G4int SampleOne(G4Material* material,
   G4ParticleDefinition* pd;
   G4int j;
   
-  G4ThreeVector  mom;
-  G4LorentzVector fm;
   //  Examine the secondaries
+  G4DynamicParticle *secs=0;
+  
+  if(n) secs = new G4DynamicParticle[n];
   
   for(G4int i=0; i<n; ++i) {
     G4double p, mass1, px, py, pt, theta; // , x;
     
     sec = aChange->GetSecondary(i)->GetDynamicParticle();
+    secs[i] = *sec;
     pd  = sec->GetDefinition();
-    mom = sec->GetMomentumDirection();
-    e   = sec->GetKineticEnergy();
     if (e < 0.0) { e = 0.0; }
     G4int enc= pd->GetPDGEncoding();
     if(enc==-2212) ++nbar;
@@ -437,29 +477,6 @@ G4int SampleOne(G4Material* material,
     if(enc==-11) ++n_po;
     if(std::fabs(enc)==211 || enc==210) { ++n_pi; }
     
-    theta = mom.theta();
-    
-    mass1 = pd->GetPDGMass();
-    p = sqrt(e*(e + 2.0*mass1));
-    mom *= p;
-    fm = sec->Get4Momentum();
-    pcons -= fm;
-    bnum -= pd->GetBaryonNumber();
-    px = mom.x();
-    py = mom.y();
-    //        pz = mom.z();
-    pt = sqrt(px*px +py*py);
-    
-    G4int g5pid = TPartIndex::I()->PartIndex(enc);
-    if(g5pid<0) {
-      fs.kerma+=e+mass1;
-    } else {
-      fs.pid[fs.npart] = g5pid;
-      fs.mom[fs.npart][0] = mom.x();
-      fs.mom[fs.npart][1] = mom.x();
-      fs.mom[fs.npart][2] = mom.x();
-      ++fs.npart;
-    }
     if(verbose > 1) {
       if(needendl) {
         G4cout << G4endl;
@@ -472,47 +489,97 @@ G4int SampleOne(G4Material* material,
       << G4endl;
     }
   }
+
   if(verbose>1) {
     G4cout << ": " << n << " sec (" << n_pr << " protons, "
     << n_nt << " neutrons, " << n_pi << " pi), "
     << n_el << " e-, " << n_po << " e+, " << n_ga << " g"
     << G4endl;
   }
-  const G4double prec=1e-3;
-  G4double err=0;
-  if(n) {
-    G4double ptot = labv.vect().mag();
-    G4double ermax = std::abs(pcons[3]);
-    if(labv[3]) ermax/=labv[3];
-    for(G4int i=0; i<3; ++i) {
-      if(ptot)
-        err = std::abs(pcons[3])/ptot;
-      if(err>ermax) ermax=err;
-    }
-    if(ermax>prec || bnum) {
-      G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl
-      <<"Dubious E/p/B balance " << setiosflags(ios::scientific) << setprecision(2) << ermax
-      << " / dB " << bnum
-      << " p=" << setiosflags(ios::fixed) << setprecision(6) << pcons << " for "
-      << pname << " of "
-      << dpart->GetParticleDefinition()->GetParticleName() << " @ "
-      << dpart->Get4Momentum() << " on "
-      << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" << G4endl
-      << "Particles generated:" << G4endl;
-      for(G4int i=0; i<n; ++i) {
-        
-        sec = aChange->GetSecondary(i)->GetDynamicParticle();
-        pd  = sec->GetDefinition();
-        G4cout << "  #" << setw(3) << i << setw(0) << ": "
+
+  if(n                                                  // We check only if we have secondaries
+     && (G4String("conv") != pname)                     // But not if we have conversion, momentum is not preserved
+     && (G4String("PositronNuclear") != pname)          // Here we have a problem in G4
+     && (G4String("ElectroNuclear") != pname)           // Another problem in G4
+     ) {
+    G4double perr;
+    G4int berr;
+    G4LorentzVector ptest;
+    
+    const G4double prec=1e-3;
+    checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+    
+    if(perr>prec || berr) {
+      // --- Try to fix few simple things
+      if(ptest[3]>-939 && ptest[3]<-936 && berr==-1) {
+        //G4cout << "Energy balance wrong by one baryon mass, let's try to fix it changing a deuteron in proton" << G4endl;
+        for(G4int i=0; i<n; ++i) {
+          if(G4String("deuteron") == secs[i].GetDefinition()->GetParticleName()) {
+            secs[i] = G4DynamicParticle(G4Proton::Proton(),secs[i].GetMomentum());
+            break;
+          }
+        }
+        checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+        if(ptest[3]>-939 && ptest[3]<-936 && berr==-1) {
+          // -- this still did not fix it... however sometimes there is a neutron that we can change into a gamma
+          //G4cout << "Energy balance wrong by one baryon mass, let's try to fix it changing a neutron in gamma" << G4endl;
+          for(G4int i=0; i<n; ++i) {
+            if(G4String("neutron") == secs[i].GetDefinition()->GetParticleName()) {
+              secs[i] = G4DynamicParticle(G4Gamma::Gamma(),secs[i].GetMomentum());
+              break;
+            }
+          }
+        }
+      }
+      checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+      if(perr>prec || berr) {
+        pd = gTrack->GetDefinition();
+        G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl
+        <<"Dubious E/p/B balance " << setiosflags(ios::scientific) << setprecision(2) << perr
+        << " / dB " << berr
+        << " p=" << setiosflags(ios::fixed) << setprecision(6) << ptest << " for "
+        << pname << " of "
+        << dpart->GetParticleDefinition()->GetParticleName() << " @ "
+        << dpart->Get4Momentum() << " on "
+        << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" << G4endl
+        << "  O   :"
         << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
         << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
         << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
-        << " p:" << sec->Get4Momentum()
-        << G4endl;
+        << " p:" << gTrack->GetDynamicParticle()->Get4Momentum() << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
+        << "Particles generated:" << G4endl;
+        for(G4int i=0; i<n; ++i) {
+          
+          sec = &secs[i];
+          pd  = sec->GetDefinition();
+          G4cout << "  #" << setw(3) << i << setw(0) << ": "
+          << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
+          << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
+          << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
+          << " p:" << sec->Get4Momentum()
+          << G4endl;
+        }
+        G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
       }
-      G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
+      
+      for(G4int i=0; i<n; ++i) {
+        G4ParticleDefinition *pd = secs[i].GetDefinition();
+        G4int enc = pd->GetPDGEncoding();
+        G4int g5pid = TPartIndex::I()->PartIndex(enc);
+        if(g5pid<0) {
+          fs.kerma+=secs[i].GetTotalEnergy();
+        } else {
+          G4int ip=fs.npart;
+          fs.pid[ip] = g5pid;
+          fs.mom[ip][0] = secs[i].Get4Momentum()[0];
+          fs.mom[ip][1] = secs[i].Get4Momentum()[1];
+          fs.mom[ip][2] = secs[i].Get4Momentum()[2];
+          ++fs.npart;
+        }
+      }
     }
   }
+  
   
   for(G4int i=0; i<n; ++i)
     delete aChange->GetSecondary(i);
@@ -563,3 +630,105 @@ const G4MaterialCutsCouple* FindMaterialCutsCouple( G4Material* mat )
   }
   return couple;
 }
+
+void checkBalance(const G4LorentzVector &porig,
+                  const G4LorentzVector &pmom,
+                  G4int bnum,
+                  G4DynamicParticle *secs,
+                  G4int n,
+                  G4LorentzVector &ptest,
+                  G4double &perr,
+                  G4int &berr)
+{
+  ptest = pmom;
+  berr = bnum;
+  for(G4int i=0; i<n; ++i) {
+    ptest-=secs[i].Get4Momentum();
+    berr-=secs[i].GetDefinition()->GetBaryonNumber();
+  }
+  
+  G4double err=0;
+  G4double ptot = porig.vect().mag();
+  perr = std::abs(ptest[3]);
+  if(pmom[3]) perr/=porig[3];
+  if(ptot)
+    for(G4int i=0; i<3; ++i) {
+      err = std::abs(ptest[i])/ptot;
+      if(err>perr) perr=err;
+    }
+}
+
+G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4int n, G4double eleft, G4double etot)
+{
+  G4double esum = etot;
+  G4LorentzVector psum(0,0,0,0);
+  for(G4int i=0; i<n; ++i) psum+=secs[i].Get4Momentum();
+  if(std::abs(eleft-(etot-psum[3]))>1e-6) {
+    G4cout << "You screwed it up" << G4endl;
+    exit(1);
+  }
+  G4DynamicParticle *bsecs = new G4DynamicParticle[n];
+  // The cms momentum
+  G4ThreeVector cms(psum[0]/psum[3],psum[1]/psum[3],psum[2]/psum[3]);
+  //G4ThreeVector cms(porig[0]/porig[3],porig[1]/porig[3],porig[2]/porig[3]);
+  
+  // -- see what is the total energy if there is just no motion
+  G4LorentzVector pcms(0,0,0,0);
+  for(G4int i=0; i<n; ++i) pcms[3]+=secs[i].GetDefinition()->GetPDGMass();
+  G4LorentzVector plab = pcms.boost(cms);
+  G4cout << "Energy of all particle at rest " << plab << " Energy available " << porig[3] << " Delta " <<
+  plab[3]-porig[3] << G4endl;
+  
+  if(plab[3]<porig[3]) {
+    // The energy of the bare masses is less than the energy of the reaction, we can therefore rescale
+    // in both directions
+    G4cout << "Here rescaling" << G4endl;
+    G4double alphamin;
+    G4double alphamax;
+    G4double emin;
+    G4double emax;
+    if(etot>psum[3]) {
+      // We should increase the energy
+      alphamin = 1;
+      emin = plab[3];
+      alphamax = 10;
+      emax = 0;
+      // Calculate emax
+      for(G4int i=0; i<n; ++i) {
+        G4LorentzVector ppp = secs[i].Get4Momentum().boost(-cms);
+        G4ThreeVector lll = alphamax*ppp.vect();
+        ppp.set(lll,std::sqrt(lll.mag2()+secs[i].GetDefinition()->GetPDGMass()*secs[i].GetDefinition()->GetPDGMass()));
+        ppp = ppp.boost(cms);
+        emax +=ppp[3];
+      }
+    } else {
+      // We should decrease the energy
+      alphamin = 0;
+      emin = plab[3];
+      alphamax = 1;
+      emax = psum[3];
+    }
+    while(std::abs(alphamin-alphamax)>1e-6) {
+      G4double alphamid=0.5*(alphamin+alphamax);
+      G4double emid=0;
+      for(G4int i=0; i<n; ++i) {
+        G4LorentzVector ppp = secs[i].Get4Momentum().boost(-cms);
+        G4ThreeVector lll = alphamid*ppp.vect();
+        ppp.set(lll,std::sqrt(lll.mag2()+secs[i].GetDefinition()->GetPDGMass()*secs[i].GetDefinition()->GetPDGMass()));
+        ppp = ppp.boost(cms);
+        emid +=ppp[3];
+      }
+      if(etot>emid) alphamin=alphamid;
+      else alphamax=alphamid;
+    }
+    for(G4int i=0; i<n; ++i) {
+      G4LorentzVector ppp = secs[i].Get4Momentum().boost(-cms);
+      G4ThreeVector lll = 0.5*(alphamin+alphamax)*ppp.vect();
+      ppp.set(lll,std::sqrt(lll.mag2()+secs[i].GetDefinition()->GetPDGMass()*secs[i].GetDefinition()->GetPDGMass()));
+      ppp = ppp.boost(cms);
+      secs[i].Set4Momentum(ppp);
+    }
+  }
+}
+
+

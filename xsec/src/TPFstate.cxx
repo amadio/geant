@@ -83,8 +83,33 @@ Bool_t TPFstate::SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[
 }
 
 //_________________________________________________________________________
+Bool_t TPFstate::SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[])
+{
+  fPDG = pdg;
+  fNEbins = TPartIndex::I()->NEbins();
+  fNReac = nreac;
+  fNEFstat = nfstat;
+  fNFstat = fNEbins*fNReac;
+  fEmin = TPartIndex::I()->Emin();
+  fEmax = TPartIndex::I()->Emax();
+  fEGrid = TPartIndex::I()->EGrid();
+  fEilDelta = (fNEbins-1)/TMath::Log(fEmax/fEmin);
+  fFstat = vecfs;
+
+  for(Int_t np=0; np<nreac; ++np) {
+    fRdict[dict[np]]=np;
+    fRmap[np]=dict[np];
+  }
+  // consistency
+  for(Int_t i=0; i<fNReac; ++i)
+    if(fRdict[fRmap[i]] != i)
+      Fatal("SetPart","Dictionary mismatch for!");
+  return kTRUE;
+}
+
+//_________________________________________________________________________
 Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[], 
-			     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[])
+			     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[])
 {
    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
    en=en>fEGrid[0]?en:fEGrid[0];
@@ -105,12 +130,12 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
    }
    Int_t rnumber = fRdict[reac];
    Int_t ipoint = rnumber*fNEbins + ibin;
-   fFstat[ipoint].SetFinState(fNEFstat,weight,kerma,npart,mom,pid);
+   fFstat[ipoint].SetFinState(fNEFstat,weight,kerma,npart,mom,pid,surv);
    return kTRUE;
 }     
 
 //______________________________________________________________________________
-Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Int_t& npart, 
+Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart,  
 			   Int_t *pid, Float_t (*mom)[3]) const
 {
    Double_t eta = gRandom->Rndm();
@@ -129,7 +154,7 @@ Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Int_t& npart,
    if(eta>xrat) ++ibin;
    Int_t rnumber = fRdict[preac];
    Int_t ipoint = rnumber*fNEbins + ibin;
-   return fFstat[ipoint].SampleReac(npart,pid,mom);
+   return fFstat[ipoint].SampleReac(kerma,npart,pid,mom);
 }
 
 //______________________________________________________________________________

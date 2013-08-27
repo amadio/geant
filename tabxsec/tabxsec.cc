@@ -112,7 +112,11 @@ void usage()
   "     -s num  number of samples of the final state to generate and store in fstat.root (default 0, no file generated)" << G4endl <<
   "     -v num  verbosity level (at the moment only 0, 1 and 2 are used)" << G4endl <<
   "     -x      generate the cross sections and store them in the file xsec.root" << G4endl <<
-  G4endl;
+  "     -z nun  minimum Z of the material to treat (default 1)" << G4endl <<
+  "     -Z num  maximum Z of the material to treat (default 100)" << G4endl <<
+  "     -k ene  minimum kinetic energy in GeV (default 1e-9)" << G4endl <<
+  "     -K ene  maximum kinetic energy in GeV (default 1e4)" << G4endl <<
+  "     -n num  number of energy bins (default 1000)" << G4endl;
 }
 
 #include <fenv.h>
@@ -136,13 +140,18 @@ int main(int argc,char** argv)
   G4int verbose=0;
   G4double evEnergy=1*GeV;
   G4bool xsecs=FALSE;
+  G4int zmin = 1;
+  G4int zmax = 100;
+  G4float emin = 1e-9;
+  G4float emax = 1e4;
+  G4int nbins = 1000;
   /* getopt stuff */
   int c;
   int opterr = 0;
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:v:E:ix")) != -1)
+  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:")) != -1)
     switch (c)
   {
     case 's':
@@ -151,11 +160,26 @@ int main(int argc,char** argv)
     case 'e':
       ngener=atoi(optarg);
       break;
+    case 'z':
+      zmin=atoi(optarg);
+      break;
+    case 'Z':
+      zmax=atoi(optarg);
+      break;
+    case 'n':
+      nbins=atoi(optarg);
+      break;
     case 'v':
       verbose=atoi(optarg);
       break;
     case 'E':
       sscanf(optarg,"%fl",&evEnergy);
+      break;
+    case 'k':
+      sscanf(optarg,"%fl",emin);
+      break;
+    case 'K':
+      sscanf(optarg,"%fl",emax);
       break;
     case 'x':
       xsecs=TRUE;
@@ -253,9 +277,8 @@ int main(int argc,char** argv)
       
       // These quantities could be defined via program options
       const G4int maxproc = 10;  // max of 10 proc per particle
-      const G4int nbins = 1000;  // 200,  1000
-      const G4double emin = 1.e-9*GeV;
-      const G4double emax = 1.e4*GeV;
+      emin = emin*GeV;
+      emax = emax*GeV;
       const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
       const G4double lemin = TMath::Log10(emin);
       const G4double lemax = TMath::Log10(emax);
@@ -583,15 +606,7 @@ int main(int argc,char** argv)
       Int_t totfs=0;
       Int_t curfs=0;
       TFinState *vecfs=0;
-      
-      if(nsample) {
-        // In case we are requested to sample events, we sample all events for all
-        // the channels and all the energies for a given particle, so we have to
-        // allocate "enough" final states
-        totfs = TPartIndex::I()->NProc()*nbins;
-        vecfs = new TFinState[totfs];
-      }
-      
+            
       for(G4int imat=0; imat<nmaterials; ++imat) {
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
         pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -602,6 +617,8 @@ int main(int argc,char** argv)
         G4Material *matt = G4Material::GetMaterial(materialVec[imat]);
         const G4Material *mat = (*theMaterialTable)[imat+1];  // skip G4_galactic
         if(matt!=mat) printf("Funny %s %s!\n",(const char*) mat->GetName(),(const char*) mat->GetName());
+        
+        if(mat->GetZ()<zmin || mat->GetZ()>zmax) continue;
         
         G4int amat = mat->GetA()*mole/g;
         amat = 0; // set a = 0 to indicate natural element.
@@ -681,6 +698,14 @@ int main(int argc,char** argv)
           G4bool bmulsc=FALSE; // whether we have multiple scattering for this particle
           G4int nprxs=0; // number of processes with x-secs
           
+          if(nsample) {
+            // In case we are requested to sample events, we sample all events for all
+            // the channels and all the energies for a given particle, so we have to
+            // allocate "enough" final states
+            totfs = TPartIndex::I()->NProc()*nbins;
+            vecfs = new TFinState[totfs];
+          }
+
           // Loop over all the process active for this particle
           if ( pManager == 0) {
             G4cout << "No process manager (no X-sec!) for " << particle->GetParticleName() << G4endl;
@@ -713,13 +738,13 @@ int main(int argc,char** argv)
               // if the particle is a generic ion we bail out
               if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
               
-              // These are the proecsses that we want to store
+              // These are the processes that we want to store
               if(p->GetProcessType() == fHadronic ) {  // 4
                 // no parametrization for Z > 92 and inelastic (but why a crash??)
                 if(mat->GetZ() > 92 &&
                    ( i == 382 || i == 383 ) &&
                    p->GetProcessSubType() == 121) continue;
-                if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
+                   if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
                 
                 // Hadronic interaction -- just store x-sec
                 if(verbose > 2)
@@ -753,7 +778,11 @@ int main(int argc,char** argv)
                              (const char *) ph->GetProcessName(),
                              (const char *) mat->GetName(),
                              en/GeV);
-                      SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[curfs]);
+                      SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[nbins*nprxs+j]);
+                    }
+                    if(curfs != nbins*nprxs+j) {
+                      printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
+                      exit(1);
                     }
                     ++curfs;
                   }
@@ -815,7 +844,11 @@ int main(int argc,char** argv)
                                (const char *) ptEloss->GetProcessName(),
                                (const char *) mat->GetName(),
                                en/GeV);
-                        SampDisInt(matt, pos, dp, ptEloss, nsample, verbose, vecfs[curfs]);
+                        SampDisInt(matt, pos, dp, ptEloss, nsample, verbose, vecfs[nbins*nprxs+j]);
+                      }
+                      if(curfs != nbins*nprxs+j) {
+                        printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
+                        exit(1);
                       }
                       ++curfs;
                     }
@@ -871,7 +904,11 @@ int main(int argc,char** argv)
                                (const char *) ptEm->GetProcessName(),
                                (const char *) mat->GetName(),
                                en/GeV);
-                        SampDisInt(matt, pos, dp, ptEm, nsample, verbose, vecfs[curfs]);
+                        SampDisInt(matt, pos, dp, ptEm, nsample, verbose, vecfs[nbins*nprxs+j]);
+                      }
+                      if(curfs != nbins*nprxs+j) {
+                        printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
+                        exit(1);
                       }
                       ++curfs;
                     }
@@ -1047,6 +1084,16 @@ int main(int argc,char** argv)
             if(bmulsc) mxsec->AddPartMS(partindex,msang,msasig,mslen,mslsig);
             ++npr; // Total number of processes to calculate size
             ++kpreac; // number particle with processes
+            if(nsample) { // We have been requested for sampling final states
+              // Trim vecfs -- Ugly till I find a better way...
+              TFinState * newvfs = new TFinState[nprxs*nbins];
+              for(G4int ifs=0; ifs<nprxs*nbins; ++ifs) {
+                newvfs[ifs]=vecfs[ifs];
+              }
+              mfstate->AddPart(partindex, pPDG[partindex], nsample, nprxs, pdic,newvfs);
+              // Set to 0 the pointer to vecfs because now it is owned by the class
+              delete [] vecfs;
+            }
           } // end of "if we have processes" for this particle
         } // end of particle loop
         if(kpreac!=npreac) { // number of processes should not change with time!
@@ -1058,6 +1105,7 @@ int main(int argc,char** argv)
       // Write all cross sections
       if(xsecs) {
         TFile *fh = new TFile("xsec.root","recreate");
+        fh->SetCompressionLevel(0);
         //allElements->Add(TPartIndex::I());
         TPartIndex::I()->Write("PartIndex");
         allElements->Write();
@@ -1066,6 +1114,7 @@ int main(int argc,char** argv)
       }
       if(nsample) {
         TFile *fh = new TFile("fstate.root","recreate");
+        fh->SetCompressionLevel(0);
         allFstates->Write();
         fh->Write();
         fh->Close();

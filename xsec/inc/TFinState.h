@@ -29,21 +29,23 @@
 #include <TDatabasePDG.h>
 #include <TPartIndex.h>
 
-class TFinState: public TObject {
+class TFinState {
 public:
    TFinState();
    TFinState(Int_t nfstates, const Float_t weight[],
 	     const Float_t kerma[], const Int_t npart[],
-	     const Float_t (*mom)[3], const Int_t pid[]);
+	     const Float_t (*mom)[3], const Int_t pid[],
+             const Char_t surv[]);
    ~TFinState();
    TFinState& operator=(const TFinState& right);
 
    Bool_t SetFinState(Int_t nfstates, const Float_t weight[],
 	     const Float_t kerma[], const Int_t npart[],
-	     const Float_t (*mom)[3], const Int_t pid[]);
+	     const Float_t (*mom)[3], const Int_t pid[],
+                      const Char_t surv[]);
    void Print(Option_t */*opt*/="") const {}
    Bool_t Prune() {return kTRUE;}
-   Bool_t SampleReac(Int_t& npart, Int_t* pid, Float_t (*mom)[3]) const;
+   Bool_t SampleReac(Float_t& kerma, Int_t& npart, Int_t* pid, Float_t (*mom)[3]) const;
    void Dump() const {}
 
    static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
@@ -57,6 +59,7 @@ private:
    Int_t           fNFstates;      // Number of final states
    Int_t           fNsecs;         // Total number of secondaries
    Int_t          *fPID;           // [fNsecs] G5 particle code
+   Char_t         *fSurv;          // [fNFstates] whether the orignal particle has survived or not
    Int_t          *fNpart;         // [fNFstates] number of particles in each final state
    Float_t        *fWeight;        // [fNFstates] Weight of the final states
    Float_t        *fKerma;         // [fNFstates] Released energy
