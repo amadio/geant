@@ -462,12 +462,10 @@ G4int SampleOne(G4Material* material,
   if(n) secs = new G4DynamicParticle[n];
   
   for(G4int i=0; i<n; ++i) {
-    G4double p, mass1, px, py, pt, theta; // , x;
     
     sec = aChange->GetSecondary(i)->GetDynamicParticle();
     secs[i] = *sec;
     pd  = sec->GetDefinition();
-    if (e < 0.0) { e = 0.0; }
     G4int enc= pd->GetPDGEncoding();
     if(enc==-2212) ++nbar;
     if(enc==2212) ++n_pr;

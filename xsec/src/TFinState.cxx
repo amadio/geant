@@ -74,7 +74,7 @@ TFinState& TFinState::operator=(const TFinState& right)
     
     delete [] fSurv;
     fSurv = new Char_t[fNFstates];
-    memcpy(fSurv,right.fSurv,fNFstates*sizeof(Int_t));
+    memcpy(fSurv,right.fSurv,fNFstates*sizeof(Char_t));
     
     delete [] fNpart;
     fNpart = new Int_t[fNFstates];
@@ -126,8 +126,8 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
   memcpy(fPID,pid,fNsecs*sizeof(Int_t));
   
   delete [] fSurv;
-  fSurv = new Char_t[fNsecs];
-  memcpy(fSurv,surv,fNsecs*sizeof(Char_t));
+  fSurv = new Char_t[fNFstates];
+  memcpy(fSurv,surv,fNFstates*sizeof(Char_t));
   
   return kTRUE;
 }
