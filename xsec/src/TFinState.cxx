@@ -9,6 +9,7 @@ ClassImp(TFinState)
 TFinState::TFinState():
 fNFstates(0),
 fNsecs(0),
+fNMom(0),
 fPID(0),
 fSurv(0),
 fNpart(0),
@@ -20,10 +21,11 @@ fMom(0)
 
 //_________________________________________________________________________
 TFinState::TFinState(Int_t nfstates, const Float_t weight[], const Float_t kerma[],
-                     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[],
+                     const Int_t npart[], const Float_t mom[], const Int_t pid[],
                      const Char_t surv[]):
 fNFstates(nfstates),
 fNsecs(0),
+fNMom(0),
 fPID(0),
 fSurv(new Char_t[fNFstates]),
 fNpart(new Int_t[fNFstates]),
@@ -41,11 +43,13 @@ fMom(0)
     fNsecs+=fNpart[j];
     if(j) fWeight[j]+=fWeight[j-1];
   }
+  fNMom = 3*fNsecs;
+
   Double_t wnorm = 1/fWeight[fNFstates-1];
   for(Int_t j=0; j<fNFstates; ++j) fWeight[j]*=wnorm;
   
-  fMom = new Float_t[fNsecs][3];
-  memcpy(fMom,mom,3*fNsecs*sizeof(Float_t));
+  fMom = new Float_t[fNMom];
+  memcpy(fMom,mom,fNMom*sizeof(Float_t));
   fPID = new Int_t[fNsecs];
   memcpy(fPID,pid,fNsecs*sizeof(Int_t));
 }
@@ -67,6 +71,7 @@ TFinState& TFinState::operator=(const TFinState& right)
   if(this != &right) {
     fNFstates = right.fNFstates;
     fNsecs = right.fNsecs;
+    fNMom = right.fNMom;
     
     delete [] fPID;
     fPID = new Int_t[fNsecs];
@@ -89,8 +94,8 @@ TFinState& TFinState::operator=(const TFinState& right)
     memcpy(fKerma,right.fKerma,fNFstates*sizeof(Float_t));
     
     delete [] fMom;
-    fMom = new Float_t[fNsecs][3];
-    memcpy(fMom,right.fMom,3*fNsecs*sizeof(Float_t));
+    fMom = new Float_t[fNMom];
+    memcpy(fMom,right.fMom,fNMom*sizeof(Float_t));
   }
   return *this;
 }
@@ -98,7 +103,7 @@ TFinState& TFinState::operator=(const TFinState& right)
 //_________________________________________________________________________
 Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
                               const Float_t kerma[], const Int_t npart[],
-                              const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[])
+                              const Float_t mom[], const Int_t pid[], const Char_t surv[])
 {
   fNFstates = nfstates;
   
@@ -116,10 +121,11 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
   
   fNsecs = 0;
   for(Int_t j=0; j<fNFstates; ++j) fNsecs+=fNpart[j];
+  fNMom = 3*fNsecs;
   
   delete [] fMom;
-  fMom = new Float_t[fNsecs][3];
-  memcpy(fMom,mom,3*fNsecs*sizeof(Float_t));
+  fMom = new Float_t[fNMom];
+  memcpy(fMom,mom,fNMom*sizeof(Float_t));
   
   delete [] fPID;
   fPID = new Int_t[fNsecs];
@@ -133,7 +139,7 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, Int_t* pid, Float_t (*mom)[3]) const
+Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, Int_t pid[], Float_t mom[]) const
 {
   Double_t eta = gRandom->Rndm();
   Int_t finstat = fNFstates-1;
@@ -145,7 +151,8 @@ Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, Int_t* pid, Float_t (
   Int_t ipoint = 0;
   for(Int_t i=0; i<finstat-1; ++i) ipoint+=fNpart[i];
   npart = fNpart[finstat];
+  kerma = fKerma[finstat];
   memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
-  memcpy(mom,&fMom[ipoint][0],3*npart*sizeof(Float_t));
+  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
   return fSurv[finstat];
 }

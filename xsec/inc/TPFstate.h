@@ -38,10 +38,10 @@ public:
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[]);
   Bool_t SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
-                     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[]);
+                     const Int_t npart[], const Float_t mom[], const Int_t pid[], const Char_t surv[]);
   void Print(Option_t *opt="") const;
   Bool_t Prune() {return kTRUE;}
-  Bool_t SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart, Int_t *pid, Float_t (*mom)[3]) const;
+  Bool_t SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart, Int_t *pid, Float_t mom[]) const;
   void Dump() const {}
   Bool_t Resample();
   

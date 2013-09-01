@@ -59,6 +59,8 @@
 #include "G4ParticleChangeForGamma.hh"
 #include "G4ParticleChangeForLoss.hh"
 #include "G4ParticleChangeForMSC.hh"
+#include "G4VRestProcess.hh"
+#include "G4VEmProcess.hh"
 
 #include "G4ParticleTable.hh"
 #include "G4DynamicParticle.hh"
@@ -161,7 +163,7 @@ int SampDisInt(G4Material* material,
     char *surv = new char[nevt];
     
     G4int *tpid = new G4int[ntotp];
-    G4float (*tmom)[3] = new G4float[ntotp][3];
+    G4float *tmom = new G4float[3*ntotp];
     
     G4int ip=0;
     for(G4int i=0; i<nevt; ++i) {
@@ -170,9 +172,9 @@ int SampDisInt(G4Material* material,
       weight[i]=fstat[i].weight;
       surv[i]=fstat[i].survived;
       for(G4int j=0; j<npart[i]; ++j ) {
-        tmom[ip+j][0]=fstat[i].mom[j][0];
-        tmom[ip+j][1]=fstat[i].mom[j][1];
-        tmom[ip+j][2]=fstat[i].mom[j][2];
+        tmom[3*(ip+j)]  =fstat[i].mom[3*j];
+        tmom[3*(ip+j)+1]=fstat[i].mom[3*j+1];
+        tmom[3*(ip+j)+2]=fstat[i].mom[3*j+2];
         tpid[ip+j]=fstat[i].pid[j];
       }
       ip+=npart[i];
@@ -203,6 +205,8 @@ G4int SampleOne(G4Material* material,
   
   G4VDiscreteProcess* discProc= dynamic_cast<G4VDiscreteProcess*>(proc);
   G4VContinuousDiscreteProcess* contdProc= dynamic_cast<G4VContinuousDiscreteProcess*>(proc);
+  G4HadronicProcess *hadp = dynamic_cast<G4HadronicProcess*>(proc);
+  G4VEmProcess *vemp = dynamic_cast<G4VEmProcess*>(proc);
   const G4String pname = proc->GetProcessName();
   
   // -------- We chose a short step because we do not want anything
@@ -216,12 +220,6 @@ G4int SampleOne(G4Material* material,
   const G4DynamicParticle *dpsave = new G4DynamicParticle(*dpart);
   
   G4double mass = dpart->GetParticleDefinition()->GetPDGMass();
-  
-  // ------- Define target A
-  const G4Element* elm = material->GetElement(0);
-  G4int A = (G4int)(elm->GetN()+0.5);
-  G4int Z = (G4int)(elm->GetZ()+0.5);
-  G4double amass = GetNuclearMass( Z, A, verbose );
   
   
   G4double e0 = dpart->GetKineticEnergy();
@@ -303,26 +301,7 @@ G4int SampleOne(G4Material* material,
     G4cout << gTrack->GetMomentum() << gTrack->GetTotalEnergy() << gTrack->GetParticleDefinition()->GetPDGMass() << G4endl;
     exit(1);
   }
-  
-  G4LorentzVector pcons(labv);
-  
-  // -- add the mass and baryon number of the target in case it is a hadron inelastic
-  G4int bnum = dpart->GetParticleDefinition()->GetBaryonNumber();
-  if(dynamic_cast<G4HadronInelasticProcess*>(proc)) {
-    bnum += A;
-    pcons[3]+=amass;
-  }
 
-  // -- add the mass of the electron in case it is an annihilation
-  if(dpart->GetParticleDefinition()->GetParticleName() == G4String("e+")
-     && pname == G4String("annihil"))
-    pcons[3]+=mass;
-  
-  // 
-  // We save at this point the value of the "input energy" to check the energy balance
-  // This is highly debatable, but it is a good compromise
-  
-  G4LorentzVector porig = pcons;
   // ----------------------------------- ** Cause Discrete Interaction ** ----------------------------
   
   G4double  previousStepSize= 1.0;
@@ -361,6 +340,69 @@ G4int SampleOne(G4Material* material,
   step->UpdateTrack();
   fs.kerma+=step->GetTotalEnergyDeposit();
   
+  // ------- Define target A
+  const G4Element* elm = material->GetElement(0);
+  G4int A = (G4int)(elm->GetN()+0.5);
+  G4int Z = (G4int)(elm->GetZ()+0.5);
+  G4double amass = GetNuclearMass( Z, A, verbose );
+  G4int isoA = A;
+  G4int isoZ = Z;
+  G4double isoM = amass;
+  if(hadp) {
+    const G4Isotope *iso = hadp->GetTargetIsotope();
+    if(!iso) {
+      if(verbose)
+        G4cout << "Process " << proc->GetProcessName() << " did not select isotope!" << G4endl;
+    } else {
+      isoM = iso->GetA()/Avogadro*c_squared;
+      isoZ = iso->GetZ();
+      isoA = iso->GetN();
+      if(verbose) if((A!=isoA) || (Z!=isoZ))
+        printf("Target changed. A: %d -> %d, Z: %d -> %d, M: %f -> %f (%f)\n",
+               A,isoA,Z,isoZ,amass,isoM,GetNuclearMass(isoZ,isoA,verbose));
+    }
+  }
+/*  if(vemp) {
+    const G4Element* ele = vemp->GetCurrentElement();
+    if(!ele) {
+      G4cout << "Process " << vemp->GetProcessName() << " did not select isotope" << G4endl;
+    } else {
+      G4cout << "Interaction " << vemp->GetProcessName() << " happened on Z "
+        << ele->GetZ() << " A " << ele->GetN()
+        << G4endl;
+    }
+  }
+ */
+  
+  // *** Warning *** this is experimental *** We use the Target Isotope for energy and B balance
+  
+  A = isoA;
+  amass = isoM;
+
+  // ----------------------------------- Correct for checking energy balance --------------
+  
+  
+  G4LorentzVector pcons(labv);
+  
+  // -- add the mass and baryon number of the target in case it is a hadron inelastic
+  G4int bnum = dpart->GetParticleDefinition()->GetBaryonNumber();
+  if(dynamic_cast<G4HadronInelasticProcess*>(proc) ||
+     dynamic_cast<G4VRestProcess*>(proc)) {
+    bnum += A;
+    pcons[3]+=amass;
+  }
+  
+  // -- add the mass of the electron in case it is an annihilation
+  if(dpart->GetParticleDefinition()->GetParticleName() == G4String("e+")
+     && pname == G4String("annihil"))
+    pcons[3]+=mass;
+  
+  //
+  // We save at this point the value of the "input energy" to check the energy balance
+  // This is highly debatable, but it is a good compromise
+  
+  G4LorentzVector porig = pcons;
+
   // ----------------------------------- Generated secondaries ----------------------------
   G4int n = aChange->GetNumberOfSecondaries();
   
@@ -431,12 +473,12 @@ G4int SampleOne(G4Material* material,
   fs.npart = 0;
   fs.weight = 1; // for the moment all events have the same prob
   if(n+isurv) {
-    fs.mom = new G4float[n+isurv][3];
+    fs.mom = new G4float[3*(n+isurv)];
     fs.pid = new G4int[n+isurv];
     if(isurv) {
-      fs.mom[0][0]=psurv[0];
-      fs.mom[0][1]=psurv[1];
-      fs.mom[0][2]=psurv[2];
+      fs.mom[0]=psurv[0];
+      fs.mom[1]=psurv[1];
+      fs.mom[2]=psurv[2];
       fs.pid[0]=spid;
       fs.npart=1;
     }
@@ -569,9 +611,9 @@ G4int SampleOne(G4Material* material,
         } else {
           G4int ip=fs.npart;
           fs.pid[ip] = g5pid;
-          fs.mom[ip][0] = secs[i].Get4Momentum()[0];
-          fs.mom[ip][1] = secs[i].Get4Momentum()[1];
-          fs.mom[ip][2] = secs[i].Get4Momentum()[2];
+          fs.mom[3*ip]   = secs[i].Get4Momentum()[0];
+          fs.mom[3*ip+1] = secs[i].Get4Momentum()[1];
+          fs.mom[3*ip+2] = secs[i].Get4Momentum()[2];
           ++fs.npart;
         }
       }

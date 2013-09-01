@@ -109,7 +109,7 @@ Bool_t TPFstate::SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[
 
 //_________________________________________________________________________
 Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[], 
-			     const Int_t npart[], const Float_t (*mom)[3], const Int_t pid[], const Char_t surv[])
+			     const Int_t npart[], const Float_t mom[], const Int_t pid[], const Char_t surv[])
 {
    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
    en=en>fEGrid[0]?en:fEGrid[0];
@@ -136,7 +136,7 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
 
 //______________________________________________________________________________
 Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart,  
-			   Int_t *pid, Float_t (*mom)[3]) const
+			   Int_t *pid, Float_t mom[]) const
 {
    Double_t eta = gRandom->Rndm();
    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;

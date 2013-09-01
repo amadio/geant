@@ -29,7 +29,7 @@ struct Finstat_t {
   G4float kerma;
   G4float weight;
   G4int *pid;
-  G4float (*mom)[3];
+  G4float *mom;
 };
 
 G4int SampleOne(G4Material* material,
