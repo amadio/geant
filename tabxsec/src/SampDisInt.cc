@@ -362,17 +362,34 @@ G4int SampleOne(G4Material* material,
                A,isoA,Z,isoZ,amass,isoM,GetNuclearMass(isoZ,isoA,verbose));
     }
   }
-/*  if(vemp) {
+ 
+  G4int n = aChange->GetNumberOfSecondaries();
+
+  if(vemp) {
+    // --- "by hand" determination of the target isotope, it is not saved in G4
     const G4Element* ele = vemp->GetCurrentElement();
     if(!ele) {
       G4cout << "Process " << vemp->GetProcessName() << " did not select isotope" << G4endl;
     } else {
+      isoZ = ele->GetZ();
+      if(isoZ == Z) {
+        // the target nucleus is what we think it should be
+        for(G4int i=0; i<n; ++i) {
+          G4Ions *prion = dynamic_cast<G4Ions*>(aChange->GetSecondary(i)->GetDefinition());
+          if(prion) {
+            if(prion->GetPDGCharge()==Z) {
+              isoA = prion->GetBaryonNumber();
+              isoM = GetNuclearMass(isoZ,isoA,verbose);
+              break;
+            }
+          }
+        }
+      }
       G4cout << "Interaction " << vemp->GetProcessName() << " happened on Z "
         << ele->GetZ() << " A " << ele->GetN()
         << G4endl;
     }
-  }
- */
+  } 
   
   // *** Warning *** this is experimental *** We use the Target Isotope for energy and B balance
   
@@ -402,9 +419,6 @@ G4int SampleOne(G4Material* material,
   // This is highly debatable, but it is a good compromise
   
   G4LorentzVector porig = pcons;
-
-  // ----------------------------------- Generated secondaries ----------------------------
-  G4int n = aChange->GetNumberOfSecondaries();
   
   // -- See wheter the original particle is still alive
   if((aChange->GetTrackStatus() == fAlive) || (aChange->GetTrackStatus() == fStopButAlive)) {
@@ -501,6 +515,8 @@ G4int SampleOne(G4Material* material,
   //  Examine the secondaries
   G4DynamicParticle *secs=0;
   
+  // ----------------------------------- Generated secondaries ----------------------------
+
   if(n) secs = new G4DynamicParticle[n];
   
   for(G4int i=0; i<n; ++i) {
