@@ -176,10 +176,10 @@ int main(int argc,char** argv)
       sscanf(optarg,"%fl",&evEnergy);
       break;
     case 'k':
-      sscanf(optarg,"%fl",emin);
+      sscanf(optarg,"%fl",&emin);
       break;
     case 'K':
-      sscanf(optarg,"%fl",emax);
+      sscanf(optarg,"%fl",&emax);
       break;
     case 'x':
       xsecs=TRUE;
