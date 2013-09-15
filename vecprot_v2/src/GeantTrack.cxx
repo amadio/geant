@@ -902,7 +902,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 }
 
 //______________________________________________________________________________
-void GeantTrack_v::NavIsSameLocation(TGeoBranchArray *start, Bool_t *same)
+void GeantTrack_v::NavIsSameLocation(TGeoBranchArray *start, TGeoBranchArray *end, Bool_t *same)
 {
 // Implementation of TGeoNavigator::IsSameLocation with vector input
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -912,25 +912,16 @@ void GeantTrack_v::NavIsSameLocation(TGeoBranchArray *start, Bool_t *same)
       nav->SetCurrentDirection(fXdir[i], fYdir[i], fZdir[i]);
       start[i]->UpdateNavigator(nav);
       same[i] = nav->IsSameLocation(fXpos[i],fYpos[i],fZpos[i],kTRUE);
+      if (same[i]) end->InitFromNavigator(nav);
    }
 }   
-
 //______________________________________________________________________________
-Int_t GeantTrack_v::PropagateInField(const Double_t *crtstep)
+void GeantTrack_v::PropagateBack(Int_t itr)
 {
-// Propagate with crtstep using the helix propagator. Mark crossing tracks as holes.
-   Int_t icrossed = 0;
-//   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-//   Int_t tid = nav->GetThreadId();
-//   GeantThreadData *td = gPropagator->fThreadData[tid];
-//   Bool_t useDebug = gPropagator->fUseDebug;
-//   Int_t debugTrk = gPropagator->fDebugTrk;
-   Bool_t *same = new Bool_t[fNtracks];
-   PropagateInVolume(crtstep);
-   NavIsSameLocation(fPathV,same);
-   
-      
-   // Boundary crossed
+// This method is to be called after a successful crossing made by PropagateInField
+// to put the particle at the entry point.
+   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+   fNextPathV[i]->UpdateNavigator(nav);
    TGeoNode *checked = nav->GetCurrentNode();
    TGeoVolume *vol = checked->GetVolume();
    Double_t ldir[3], ld[3];
@@ -943,7 +934,7 @@ Int_t GeantTrack_v::PropagateInField(const Double_t *crtstep)
    Bool_t entering = kTRUE;
    TGeoNode *node1 = 0;
    TGeoNode *node2 = 0;
-   if (level < fPath[i]->GetLevel() && !outside) {
+   if (level < fPathV[i]->GetLevel() && !outside) {
       for (Int_t lev=0; lev<=level; lev++) {
          node1 = nav->GetMother(level-lev);
          node2 = fPath[i]->GetNode(lev);
@@ -988,15 +979,24 @@ Int_t GeantTrack_v::PropagateInField(const Double_t *crtstep)
    fXpos[i] += delta*fXdir[i];
    fYpos[i] += delta*fYdir[i];
    fZpos[i] += delta*fZdir[i];
-   // Mark track as "on boundary" and update step/pstep
-   fFrombdr[i] = kTRUE;
-   fSafety[i] = 0.;
-   fPstep[i] += delta;
-   fStep[i] -= delta;
-   if (outside) {
-      nav->SetOutside(kTRUE);
-      continue;
-   }   
+   
+//______________________________________________________________________________
+Int_t GeantTrack_v::PropagateInField(Int_t ntracks, const Double_t *crtstep)
+{
+// Propagate with crtstep using the helix propagator. Mark crossing tracks as holes.
+   Int_t icrossed = 0;
+//   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+//   Int_t tid = nav->GetThreadId();
+//   GeantThreadData *td = gPropagator->fThreadData[tid];
+//   Bool_t useDebug = gPropagator->fUseDebug;
+//   Int_t debugTrk = gPropagator->fDebugTrk;
+   Bool_t *same = new Bool_t[ntracks];
+   PropagateInVolume(crtstep);
+   NavIsSameLocation(fPathV, fNextPathV, same);
+   for (Int_t itr=0; itr<ntracks; itr++) {
+      if (same[itr]) continue;      
+      // Boundary crossed
+      PropagateBack(itr);
    // Create a new branch array
    fPath[i]->InitFromNavigator(nav);
 //   if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
@@ -1110,7 +1110,11 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
       if (0.25*c*fSnextV[itr]<1E-6 && fSnextV[itr]<1E-3 && fSnextV[itr]<fStepV[itr]-1E-6) {
          Select[itr];
          nsel++;
-      }   
+      }
+   } 
+   if (nsel>0) {
+      Reshuffle();
+      for (Int_t itr=0; itr<nsel;      
          // Propagate with snext and check if we crossed
          //   backup track position and momentum
          if (track->izero>10) snext = 1.E-3;
