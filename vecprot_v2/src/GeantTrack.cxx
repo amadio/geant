@@ -252,7 +252,7 @@ ClassImp(GeantTrack_v)
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
              :TObject(),
-              fNtracks(0),fMaxtracks(0),fHoles(),fSelected(),fCompact(true),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+              fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fPstepV(0),fStepV(0),
@@ -264,7 +264,7 @@ GeantTrack_v::GeantTrack_v()
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(Int_t size)
              :TObject(),
-              fNtracks(0),fMaxtracks(0),fHoles(size),fSelected(size),fCompact(true),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+              fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fPstepV(0),fStepV(0),
@@ -277,7 +277,7 @@ GeantTrack_v::GeantTrack_v(Int_t size)
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
              :TObject(),
-              fNtracks(track_v.fNtracks),fMaxtracks(track_v.fMaxTracks),fHoles(track_v.fHoles),
+              fNtracks(track_v.fNtracks),fMaxtracks(track_v.fMaxTracks),fNselected(track_v.fNselected),fHoles(track_v.fHoles),
               fSelected(track_v.fSelected),fCompact(track_v.fCompact),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
@@ -303,6 +303,7 @@ GeantTrack_v &GeantTrack_v()::operator=(const GeantTrack_v &track_v)
       }
       fNtracks = track_v.fNtracks;
       fMaxtracks = size;
+      fNselected = track_v.fNselected;
       fHoles = track_v.fHoles;
       fSelected = track_v.fSelected;
       fCompact = track_v.fCompact();
@@ -667,6 +668,9 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
    tbool = fPendingV[i]; fPendingV[i] = fPendingV[j]; fPendingV[j] = tbool;
    tptr = fPathV[i]; fPathV[i] = fPathV[j]; fPathV[j] = tptr;
    tptr = fNextpathV[i]; fNextpathV[i] = fNextpathV[j]; fNextpathV[j] = tptr;
+   Bool_t sel = fSelected.TestBitNumber(j);
+   fSelected.SetBitNumber(j, fSelected.TestBitNumber(i));
+   fSelected.SetBitNumber(i, sel);
 }
 
 //______________________________________________________________________________  
@@ -700,6 +704,7 @@ void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j)
    fPendingV[i] = fPendingV[j];
    fPathV[i] = fPathV[j];
    fNextpathV[i] = fNextpathV[j];
+   fSelected.SetBitNumber(i, fSelected.TestBitNumber(j));
 }   
 
 //______________________________________________________________________________  
@@ -736,9 +741,12 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
    memmove(&fPathV[from], &fPathV[to+1], ncpy*sizeof(TGeoBranchArray*));
    memmove(&fNextpathV[from], &fNextpathV[to+1], ncpy*sizeof(TGeoBranchArray*));
    fNtracks -= ncpy;
+   fSelected.ResetAllBits();
+   fNselected = 0;
+}   
    
 //______________________________________________________________________________  
-Int_t GeantTrack_v::Compact()
+Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
 {
 // Compact the holes in the array. Return number of active elements. This will
 // lose the track fields in the holes, so information from the holes has to be
@@ -757,12 +765,15 @@ Int_t GeantTrack_v::Compact()
          return 0;
       }
       // replace content of first hole with the last active track
+      if (moveto) moveto->AddTrack(*this, firsthole);
       ReplaceTrack(firsthole, lastactive);
       fHoles.SetBitNumber(firsthole, false);
       fHoles.SetBitNumber(lastactive, true);
       firsthole = fHoles.FirstSetBit(firsthole+1);
       fNtracks--;
    }
+   fSelected->ResetAllBits();
+   fNselected = 0;
    return fNtracks;
 }
 
@@ -772,21 +783,21 @@ Int_t GeantTrack_v::Reshuffle()
 // Reshuffle tracks according the selection mask. The selected tracks will be
 // moved at the beginning of the array. Tracks should be compacted before.
    if (fNtracks == 0) return 0;
-   Int_t nselected = fNtracks;
+   fNselected = fNtracks;
    Int_t firsthole = fSelected.FirstNullBit();
-   while (firsthole<nselected) {
-      Int_t lastsel = fSelected.LastSetBit(nselected-1);
-      if (lastsel >= nselected) return 0;
-      nselected = lastsel+1;
-      if (firsthole==nselected) return nselected;
+   while (firsthole<fNselected) {
+      Int_t lastsel = fSelected.LastSetBit(fNselected-1);
+      if (lastsel >= fNselected) return 0;
+      fNselected = lastsel+1;
+      if (firsthole==fNselected) return fNselected;
       // exchange tracks pointed by firsthole and lastactive
       SwapTracks(firsthole, lastsel);
       fSelected.SetBitNumber(firsthole, true);
       fSelected.SetBitNumber(lastactive, false);
       firsthole = fSelected.FirstNullBit(firsthole+1);
-      nselected--;
+      fNselected--;
    }
-   return nselected;
+   return fNselected;
 }
       
 //______________________________________________________________________________
@@ -800,12 +811,13 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
 // Find next volume
    Int_t icrossed = 0;
    for (Int_t i=0; i<ntracks; i++) {
-      if (fFrombdr) {
-         *fPath[i] = *fNextPath[i];
+      if (fFrombdrV[i]) {
+         *fPathV[i] = *fNextPathV[i];
          fStatus[i] = kBoundary;
 //         MarkRemoved(i);
          icrossed++;
-      }
+      } else {
+         
    }   
    for (Int_t i=0; i<ntracks; i++) {
       fPstep[i] -= crtstep[i];
@@ -820,66 +832,103 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
    }   
    return icrossed;
 }   
+
 //______________________________________________________________________________
-Int_t GeantTrack_v::PropagateInField(Int_t ntracks, Double_t *crtstep, Bool_t *checkcross)
+void GeantTrack_v::PropagateInVolume(const Double_t *crtstep)
 {
-// Propagate with crtstep using the helix propagator. Mark crossing tracks as holes.
-   Int_t icrossed = 0;
-   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   Int_t tid = nav->GetThreadId();
-   GeantThreadData *td = gPropagator->fThreadData[tid];
-   Bool_t useDebug = gPropagator->fUseDebug;
-   Int_t debugTrk = gPropagator->fDebugTrk;
-   for (Int_t i=0; i<ntracks; i++) {   
-   if (checkcross[i]) {
-      nav->ResetState();
-      nav->SetCurrentPoint(fXpos[i], fYpos[i], fZpos[i]);
-      nav->SetCurrentDirection(fXdir[i], fYdir[i], fZdir[i]);
-      fPath[i]->UpdateNavigator(nav);
-//      nav->SetLastSafetyForPoint(safety, &xpos);
-   }   
-   // Reset relevant variables
-   fFrombdr[i] = kFALSE;
-   fPstep[i] -= crtstep[i];
-   fSafety[i] -= crtstep[i];
-   if (fSafety<0.) fSafety = 0.;
-   fStep += crtstep;
-   // Set curvature, charge
+// Propagate the selected tracks with crtstep values. The method is to be called
+// only with  charged tracks in magnetic field. The tracks array has to be reshuffled.
    Double_t c = 0.;
    Double_t ptot = 0;
    const Double_t *point = 0;
    const Double_t *newdir = 0;
-   if (fCharge[i]) {
-      c = Curvature();
-      td->fFieldPropagator->SetXYcurvature(c);
-      td->fFieldPropagator->SetCharge(fCharge);
-      td->fFieldPropagator->SetHelixStep(std::fabs(TMath::TwoPi()*Pz(i)/(c*Pt(i))));
-      td->fFieldPropagator->InitPoint(fXpos[i],fYpos[i],fZpos[i]);
-      td->fFieldPropagator->InitDirection(fXdir[i],fYdir[i], fZdir[i]);
-      td->fFieldPropagator->UpdateHelix();
-      td->fFieldPropagator->Step(crtstep[i]);
-      point = td->fFieldPropagator->GetCurrentPoint();
-      newdir = td->fFieldPropagator->GetCurrentDirection();
+   const Double_t bmag = gPropagator->fBmag;
+   GeantThreadData *td = gPropagator->fThreadData[TGeoManager::ThreadId();
+   TGeoHelix *fieldp = td->fFieldPropagator;
+   for (Int_t i=0; i<fNtracks; i++) {
+      // Reset relevant variables
+      fFrombdr[i] = kFALSE;
+      fPstep[i] -= crtstep[i];
+      fSafety[i] -= crtstep[i];
+      if (fSafety[i]<0.) fSafety = 0.;
+      fStep[i] += crtstep[i];
+      // Set curvature, charge
+      c = std::fabs(kB2C*bmag/Pt(i));
+// NOTE: vectorized treatment in TGeoHelix
+      fieldp->SetXYcurvature(c);
+      fieldp->SetCharge(fCharge);
+      fieldp->SetHelixStep(std::fabs(TMath::TwoPi()*Pz(i)/(c*Pt(i))));
+      fieldp->InitPoint(fXpos[i],fYpos[i],fZpos[i]);
+      fieldp->InitDirection(fXdir[i],fYdir[i], fZdir[i]);
+      fieldp->UpdateHelix();
+      fieldp->Step(crtstep[i]);
+      point = fieldp->GetCurrentPoint();
+      newdir = fieldp->GetCurrentDirection();
       fXpos[i] = point[0]; fYpos[i] = point[1]; fZpos[i] = point[2];
       fXdir[i] = newdir[0]; fYdir[i] = newdir[1]; fZdir[i] = newdir[2];
-   } else {
-      fXpos[i] += crtstep[i]*fXdir[i];
-      fYpos[i] += crtstep[i]*fYdir[i];
-      fZpos[i] += crtstep[i]*fZdir[i];
    }
-   if (!checkcross[i]) continue;
-   if (fCharge[i]) {
-      if (nav->IsSameLocation(fXpos[i],fYpos[i],fZpos[i],kTRUE)) continue;
-   } else {
-      fFrombdr[i] = kTRUE;
-      TGeoNode *skip = nav->GetCurrentNode();
-      TGeoNode *next = 0;
-      next = nav->CrossBoundaryAndLocate(kTRUE, skip);
-      if (!next && !nav->IsOutside()) {
-         fPath[i]->UpdateNavigator(nav);
-         next = nav->FindNextBoundaryAndStep(TGeoShape::Big(),kFALSE);
-      }   
-   }   
+}   
+
+//______________________________________________________________________________
+void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
+                       const Double_t *x, const Double_t *y, const Double_t *z,
+                       const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
+                       TGeoBranchArray **pathin, TGeoBranchArray **pathout, 
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr)
+{
+// Vector version of TGeo FNB (To be implemented the vectorized navigator)
+// Apply to all particles (charged or not).
+//    pstep = proposed steps by physics
+//    x,y,z, dirx,diry, dirz = initial positions and directions
+//    safety = safety values for the initial points
+//    step = distances to next boundary (or to physics step if closer)
+//    isonbdr = starting points on boundary flags (used to decide on safety computation)
+//              use also as output to notify if the step is boundary or physics
+//    pathin = starting paths
+//    pathout = final path after propagation to next boundary
+   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();   
+   for (Int_t i=0; i<ntracks; i++) {
+      nav->ResetState();
+      nav->SetCurrentPoint(x[i], y[i], z[i]);
+      nav->SetCurrentDirection(dirx[i], diry[i], dirz[i]);
+      pathin[i]->UpdateNavigator(nav);
+      nav->SetLastSafetyForPoint(safe[i], x[i], y[i], z[i]);
+      nav->FindNextBoundaryAndStep(TMath::Min(1.E20, pstep[i]), isonbdr[i]);
+      step[i] = TMath::Max(2*gTolerance,nav->GetStep());
+      safe[i] = nav->GetSafeDistance();
+      pathout[i]->InitFromNavigator(nav);
+      isonbdr[i] = nav->IsOnBoundary();
+   }      
+}
+
+//______________________________________________________________________________
+void GeantTrack_v::NavIsSameLocation(TGeoBranchArray *start, Bool_t *same)
+{
+// Implementation of TGeoNavigator::IsSameLocation with vector input
+   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+   for (Int_t i=0; i<fNtracks; i++) {   
+      nav->ResetState();
+      nav->SetCurrentPoint(fXpos[i], fYpos[i], fZpos[i]);
+      nav->SetCurrentDirection(fXdir[i], fYdir[i], fZdir[i]);
+      start[i]->UpdateNavigator(nav);
+      same[i] = nav->IsSameLocation(fXpos[i],fYpos[i],fZpos[i],kTRUE);
+   }
+}   
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::PropagateInField(const Double_t *crtstep)
+{
+// Propagate with crtstep using the helix propagator. Mark crossing tracks as holes.
+   Int_t icrossed = 0;
+//   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+//   Int_t tid = nav->GetThreadId();
+//   GeantThreadData *td = gPropagator->fThreadData[tid];
+//   Bool_t useDebug = gPropagator->fUseDebug;
+//   Int_t debugTrk = gPropagator->fDebugTrk;
+   Bool_t *same = new Bool_t[fNtracks];
+   PropagateInVolume(crtstep);
+   NavIsSameLocation(fPathV,same);
+   
       
    // Boundary crossed
    TGeoNode *checked = nav->GetCurrentNode();
@@ -967,59 +1016,25 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
    Int_t itr;
    Bool_t isOnBoundary = kFALSE;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   
+   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
+                              fPathV, fNextPathV, fStepV, fSafeV, fFrombdrV);
    for (itr=0; itr<ntracks; itr++) {
-      nav->ResetState();
-      fPath[i]->UpdateNavigator(nav);
-      nav->SetCurrentPoint(&fXpos[i]);
-      nav->SetCurrentDirection(&fXdir[i]);
-      isOnBoundary = fFrombdr[i];
-      Double_t pstep = TMath::Min(1.E20, fPstep[i]);
-      fSnext[i] = 0;
-      if (fCharge[i]) {
-         nav->FindNextBoundary(fPstep[i],"",isOnBoundary);
-         fSafety[i] = nav->GetSafeDistance();
-         fSnext[i] = TMath::Max(2*gTolerance,nav->GetStep());
-      } else {
-         // Propagate to next volume without computing safety for neutrals
-         if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
-            Printf("track %d in %s - calling FNBAS", trackin[itr], nav->GetCurrentNode()->GetName());
-         }   
-         nav->FindNextBoundaryAndStep(fPstep[i], kFALSE);
-         fSafety[i] = 0.;
-         fSnext[i] = nav->GetStep();
-         if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
-            Printf("track %d ending in %s after snext=%g", trackin[itr], nav->GetCurrentNode()->GetName(), track->snext);
-         }   
-         if (nav->IsOutside() || fSnext[i]>1.E19) {
-            fStatus[i] = kExitingSetup;
-//            gPropagator->StopTrack(track);
+      if (fNextPathV[i]->IsOutside() || fSnextV[i]>1.E19) fStatusV[i] = kExitingSetup;
+      if (fFrombdrV[i] && fSnextV[i]<2.*gTolerance) {
+         // Make sure track crossed
+         fIzeroV[i]++;
+         if (fIzeroV[i] > 10) {
+            fStatus[i] = kKilled;
+            Printf("### track %d had to be killed due to crossing problems", fParticleV[i]);
             continue;
-         }
-         // Check if it was a short step
-         fNextpath[i]->InitFromNavigator(nav);
-         fFrombdr[i] = nav->IsOnBoundary();
-         if (fFrombdr[i] && fSnext[i]<2.*gTolerance) {
-            // Make sure track crossed
-            fIzero[i]++;
-            if (fIzero[i] > 10) {
-               fStatus[i] = kKilled;
-               Printf("### track %d had to be killed due to crossing problems", fParticle[i]);
-               continue;
-            }   
-            nav->FindNextBoundaryAndStep(1.E30, kFALSE);
-            fNextpath[i]->InitFromNavigator(nav);
-            fSnext[i] += nav->GetStep();
-         }
-         if (fSnext[i]>2.*gTolerance) fIzero[i] = 0;
+         }   
+         nav->FindNextBoundaryAndStep(1.E30, kFALSE);
+         fNextpathV[i]->InitFromNavigator(nav);
+         fSnextV[i] += nav->GetStep();
       }
-      
-      if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {
-         Printf(" CTL(%d):   track %d: %s  snext=%19.15f safe=%19.15f pstep=%f", icalls,trackin[itr], nav->GetPath(), track->snext, track->safety, track->pstep);
-         track->Print(trackin[itr]);
-      }   
+      if (fSnextV[i]>2.*gTolerance) fIzeroV[i] = 0;
    }
-}            
+}
 
 //______________________________________________________________________________
 Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
@@ -1033,66 +1048,76 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
 //     trackcross = array of <ncross> tracks that crossed the boundary. For these tracks
 //                 the continuous processes have to be applied after propagation
    Int_t itr = 0;
+   Int_t nsel = 0;
    Double_t step, snext, safety, c;
-   ntodo = 0;
-   ncross = 0;
+   const Double_t bmag = gPropagator->fBmag;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    Int_t tid = nav->GetThreadId();
    GeantThreadData *td = gPropagator->fThreadData[tid];
-   // Remove dead tracks
-   for (itr=0; itr<fNtracks; itr++)
-      if (fStatus[itr] == kKilled) MarkRemoved(itr);
-   if (!fCompact) Compact();
-   // Treat first neutral tracks
-   Int_t nneutral = 0;
-   Double_t *steps = td->GetDblArray(fNtracks);
+   // Remove dead tracks, propagate neutrals
    for (itr=0; itr<fNtracks; itr++) {
-      if (fCharge[itr]==0) Select(itr); 
-   } 
-   if (nneutral) {
-      Reshuffle();
-      Double_t *steps = td->GetDblArray(nneutral);
-      for (itr=0; itr<nneutral; itr++) steps[itr] = fSnext[itr];
-      ncross += PropagateStraight(nneutral, steps);
-      // The neutral tracks have nou either kBoundary or kPhysics status and need to
-      // be copied to the output array
-      output.AddTracks(*this, 0, nneutral-1);
-      RemoveTracks(0, nneutral-1);
-      ClearSelection();
-   }
-   // Remainimg tracks are charged
-   for (Int_t itr=0; itr<fNtracks; itr++) {
-      fNsteps[itr]++;
-      if (fNsteps[itr] > gPropagator->fMaxSteps) {
-         fStatus[itr] = kKilled;
+      if (fStatusV[itr] == kKilled) {
          MarkRemoved(itr);
-      }   
-         gPropagator->StopTrack(track);
          continue;
-      }   
-      step = track->pstep;
-      snext = track->snext;
-      safety = track->safety;
-      // If proposed step less than safety, just propagate to physics process
-      if (step<safety) {
-         track->izero = 0;
-         track->PropagateInField(step, kFALSE, trackin[itr]);
-         gPropagator->fNsafeSteps++; // increment-only, thread safe
-         // track transported to physics process
-         if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) Printf("   track %d process: %s", trackin[itr], gPropagator->Process(track->process)->GetName());
-         trackout[nout++] = trackin[itr]; // <- survives geometry, stopped due to physics
-         continue; // -> to next track
       }
-      // Check if we can propagate to boundary
-      c = track->Curvature();
-      if (0.25*c*snext<1E-6 && snext<1E-3 && snext<step-1E-6) {
+      if (fChargeV[itr]==0 || bmag<1.E-10) {
+      // Do straight propagation to physics process or boundary
+         if (fFrombdrV[itr]) {
+            *fPathV[itr] = *fNextPathV[itr];
+            fStatus[itr] = kBoundary;
+         } else {
+            fStatus[itr] = kPhysics;
+         }
+         fPstepV[itr] -= fSnextV[itr];
+         fSafetyV[itr] -= fSnextV[itr];
+         if (fSafetyV[itr]<gTolerance) fSafetyV[itr] = 0;
+         fXposV[itr] += fSnextV[itr]*fXdir[itr];
+         fYposV[itr] += fSnextV[itr]*fYdir[itr];
+         fZposV[itr] += fSnextV[itr]*fZdir[itr];
+         fNsteps[itr]++;
+         MarkRemoved(itr);
+      }
+   }
+   // Compact remaining tracks and move the removed oned to the output container
+   if (!fCompact) Compact(output);
+   if (!fNtracks) return 0;
+
+   // ONLY CHARGED TRACKS IN MAG. FIELD
+   Double_t *steps = new Double_t[fNtracks];
+   // Select tracks that undergo safe steps to physics process
+   nsel = 0;
+   for (Int_t itr=0; itr<fNtracks; itr++) {
+      if (fPstep[itr]<fSafety[itr]) {
+         Select(itr);
+         fStatusV[itr] = kPhysics;
+         nsel++;
+      }   
+   }
+   // fPstep array is contiguous after the last Reshuffle operation
+   if (nsel) {
+      Reshuffle();
+      memcpy(steps, fPstep, nsel*sizeof(Double_t));
+      // This category of tracks can make the full step to the physics process
+      PropagateInVolume(steps);
+      // Move these tracks to the output container
+      output.AddTracks(*this, 0, nsel-1);
+      RemoveTracks(0, nsel-1);
+   }
+   // Check if we can propagate to boundary
+   nsel = 0;
+   for (Int_t itr=0; itr<fNtracks; itr++) {
+      c = Curvature(itr);
+      if (0.25*c*fSnextV[itr]<1E-6 && fSnextV[itr]<1E-3 && fSnextV[itr]<fStepV[itr]-1E-6) {
+         Select[itr];
+         nsel++;
+      }   
          // Propagate with snext and check if we crossed
          //   backup track position and momentum
          if (track->izero>10) snext = 1.E-3;
          basket = track->PropagateInField(snext+10*gTolerance, kTRUE, trackin[itr]);
          if (snext<1.E-6) track->izero++;
          else track->izero = 0;
-         gPropagator->fNsnextSteps++;https://indico.cern.ch/conferenceDisplay.py?confId=258928
+         gPropagator->fNsnextSteps++;
          if (!basket) {
             // track exiting
             if (nav->IsOutside()) {

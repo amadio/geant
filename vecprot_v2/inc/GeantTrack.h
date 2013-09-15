@@ -141,6 +141,7 @@ struct GeantTrack_v {
 public:
    Int_t     fNtracks;    // number of tracks contained
    Int_t     fMaxtracks;  // max size for tracks
+   Int_t     fNselected;  // Number of selected tracks
    TBits     fHoles;      // Bits of holes
    TBits     fSelected;   // Mask of selected tracks for the current operation
    Bool_t    fCompact;    // Flag marking the compactness
@@ -186,6 +187,7 @@ public:
    virtual ~GeantTrack_v();
 
    Int_t     GetNtracks() const   {return fNtracks;}
+   Int_t     GetNselected() const {return fNselected;}
    void      AddTrack(const GeantTrack &track);
    void      AddTrack(const GeantTrack_v &arr, Int_t i);
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
@@ -193,8 +195,9 @@ public:
    void      RemoveTracks(Int_t from, Int_t to);
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
+   void      SelectTracks(Int_t n) {fNselected = n;}
    Bool_t    IsSelected(Int_t i)  {return TestBitNumber(i);}
-   Int_t     Compact();
+   Int_t     Compact(GeantTrack_v *moveto=0);
    void      ClearSelection()     {fSelected.ResetAllBits();}
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
@@ -207,6 +210,15 @@ public:
    void      ReplaceTrack(Int_t i, Int_t withj);
    Int_t     Reshuffle();
    void      SwapTracks(Int_t i, Int_t j);
+// Track methods
+   Double_t           Beta(Int_t i)  const {return fP[i]/fE[i];}
+   Double_t           Curvature(Int_t i) const {return (fCharge[i])?TMath::Abs(kB2C*gPropagator->fBmag/Pt(i)):0.;}
+   Double_t           Gamma() const {return mass?e/mass:TMath::Limits<double>::Max();}
+   Double_t           Px(Int_t i) const {return fP[i]*fXdir[i];}
+   Double_t           Py(Int_t i) const {return fP[i]*fYdir[i];}
+   Double_t           Pz(Int_t i) const {return fP[i]*fZdir[i];}
+   Double_t           Pt()    const {return fP[i]*TMath::Sqrt(fXdir[i]*fXdir[i]+fYdir[i]*fYdir[i]);}
+
    ClassDef(GeantTrack_v)      // SOA for GeantTrack class           
 };
 
