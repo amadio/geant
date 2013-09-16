@@ -139,6 +139,12 @@ private:
 
 struct GeantTrack_v {
 public:
+enum TransportAction_t {
+   kPostpone = 0,   // return imediately and postpone whatever tracks left
+   kSingle   = 1,   // perform remaining loop in single track mode
+   kVector   = 2    // perform remaining loop in vectorized mode
+};   
+public:
    Int_t     fNtracks;    // number of tracks contained
    Int_t     fMaxtracks;  // max size for tracks
    Int_t     fNselected;  // Number of selected tracks
@@ -206,6 +212,10 @@ public:
       printf("fXposV=%p fYposV=%p fZposV=%p fXdirV=%p fYdirV=%p fZdirV=%p ptot=%p fG5codeV=%p obj=%p\n",
               fXposV,fYposV,fZposV,fXdirV,fYdirV,fZdirV,ptot,fG5codeV,obj);
    }
+   TransportAction_t PostponedAction() const;
+   Int_t     PropagateTracks(GeantTrack_v &output);
+   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage);
+   
    void      Resize(Int_t newsize);
    void      ReplaceTrack(Int_t i, Int_t withj);
    Int_t     Reshuffle();
