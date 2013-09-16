@@ -814,10 +814,8 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
       if (fFrombdrV[i]) {
          *fPathV[i] = *fNextPathV[i];
          fStatus[i] = kBoundary;
-//         MarkRemoved(i);
          icrossed++;
-      } else {
-         
+      }     
    }   
    for (Int_t i=0; i<ntracks; i++) {
       fPstep[i] -= crtstep[i];
@@ -916,46 +914,38 @@ void GeantTrack_v::NavIsSameLocation(TGeoBranchArray *start, TGeoBranchArray *en
    }
 }   
 //______________________________________________________________________________
-void GeantTrack_v::PropagateBack(Int_t itr)
+void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
 {
 // This method is to be called after a successful crossing made by PropagateInField
 // to put the particle at the entry point.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+   // Put the navigation to the propagation location stored as next path
    fNextPathV[i]->UpdateNavigator(nav);
    TGeoNode *checked = nav->GetCurrentNode();
    TGeoVolume *vol = checked->GetVolume();
-   Double_t ldir[3], ld[3];
+   Double_t dir[3], ldir[3], ld[3];
    Double_t local[3], lp[3];
    Double_t delta;
-   Bool_t outside = nav->IsOutside();
+   Bool_t outside = fNextPathV[i]->IsOutside();
    // Swap track direction and compute distance back to boundary
-   fXdir[i] = -newdir[0]; fYdir[i] = -newdir[1]; fZdir[i] = -newdir[2];
+   dir[0] = -fXdirV[i]; dir[1] = -fYdirV[i]; dir[2] = -fZdirV[i];
    Int_t level = nav->GetLevel();
    Bool_t entering = kTRUE;
    TGeoNode *node1 = 0;
    TGeoNode *node2 = 0;
    if (level < fPathV[i]->GetLevel() && !outside) {
       for (Int_t lev=0; lev<=level; lev++) {
-         node1 = nav->GetMother(level-lev);
-         node2 = fPath[i]->GetNode(lev);
-         if (node1 == node2) {
-            if (lev==level) entering = kFALSE;
-         } else {
-         // different nodes at some level -> entering current node
-            break;
-         }   
+         if (fNextPathV[i]->GetNode[lev] != fPathV[i]->GetNode[lev]) break;
+         if (lev==level) entering = kFALSE;
       }
    }   
-   if (!entering) {
-      checked = fPath[i]->GetNode(level+1);
-      if (!checked) return 0;
-   }   
-   nav->MasterToLocal(&fXpos[i], local);
-   nav->MasterToLocalVect(&fXdir[i], ldir);
+   fNextPathV[i]->GetMatrix()->MasterToLocal(&fXpos[i], local);
+   fNextPathV[i]->GetMatrix()->MasterToLocalVect(dir, ldir);
    if (entering) {
       if (outside) delta = vol->GetShape()->DistFromOutside(local,ldir,3);
       else         delta = vol->GetShape()->DistFromInside(local,ldir,3);
    } else {
+      checked = fPath[i]->GetNode(level+1);
       checked->MasterToLocal(local,lp);
       checked->MasterToLocalVect(ldir,ld);
       delta = checked->GetVolume()->GetShape()->DistFromOutside(lp,ld,3);
@@ -976,9 +966,10 @@ void GeantTrack_v::PropagateBack(Int_t itr)
    }
    delta -= 10*gTolerance;
    // Propagate back to boundary and store position/direction
-   fXpos[i] += delta*fXdir[i];
-   fYpos[i] += delta*fYdir[i];
-   fZpos[i] += delta*fZdir[i];
+   fXpos[i] += delta*dir[i];
+   fYpos[i] += delta*dir[i];
+   fZpos[i] += delta*dir[i];
+}
    
 //______________________________________________________________________________
 Int_t GeantTrack_v::PropagateInField(Int_t ntracks, const Double_t *crtstep)
@@ -996,12 +987,13 @@ Int_t GeantTrack_v::PropagateInField(Int_t ntracks, const Double_t *crtstep)
    for (Int_t itr=0; itr<ntracks; itr++) {
       if (same[itr]) continue;      
       // Boundary crossed
-      PropagateBack(itr);
-   // Create a new branch array
-   fPath[i]->InitFromNavigator(nav);
-//   if (vol->IsAssembly()) Printf("### ERROR ### Entered assembly %s", vol->GetName());
-   MarkRemoved(i);
-   icrossed++;
+      PropagateBack(itr, crtstep[itr]);
+      // Update current path
+      *fPathV[itr]->*fNextPathV[itr];
+      fStatusV[itr] = kBoundary;
+      MarkRemoved(itr);
+      icrossed++;
+   }   
    return icrossed;
 }   
 
