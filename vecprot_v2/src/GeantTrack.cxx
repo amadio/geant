@@ -799,7 +799,38 @@ Int_t GeantTrack_v::Reshuffle()
    }
    return fNselected;
 }
-      
+
+//______________________________________________________________________________
+Bool_t GeantTrack_v::Contains(Int_t evstart, Int_t nevents=1) const
+{
+// Check if the array contains tracks from a given event range
+   Int_t evend = evstart+nevents;
+   for (Int_t itr=0; itr<fNtracks; itr++) {
+      if (fEventV[itr]>=evsart && fEventV[itr]<evend) return kTRUE;
+   }
+}      
+
+//______________________________________________________________________________
+void GeantTrack_v::Clear(Option_t *)
+{
+// Clear track content and selections
+   fNselected = 0;
+   fHoles.ResetAllBits();
+   fSelected.ResetAllBits();
+   fCompact = kTRUE;
+   fNtracks = 0;
+}
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::FlushTracks(GeantMainScheduler *main)
+{
+// Flush all tracks to the main scheduler. Returns number of injected baskets.
+   Int_t ninjected = 0;
+   for (Int_t itr=0; itr<fNtracks; itr++) ninjected += main->AddTracks(this);
+   Clear();
+   return ninjected;
+}
+
 //______________________________________________________________________________
 Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
 {

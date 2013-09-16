@@ -16,6 +16,7 @@
 #endif
 
 class TGeoBranchArray;
+class GeantMainScheduler;
 
 const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics};
@@ -197,13 +198,16 @@ public:
    void      AddTrack(const GeantTrack &track);
    void      AddTrack(const GeantTrack_v &arr, Int_t i);
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
+   Int_t     FlushTracks(GeantMainScheduler *main);
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
    Bool_t    IsSelected(Int_t i)  {return TestBitNumber(i);}
+   virtual void      Clear(Option_t *option="");
    Int_t     Compact(GeantTrack_v *moveto=0);
+   Bool_t    Contains(Int_t evstart, Int_t nevents=1) const;
    void      ClearSelection()     {fSelected.ResetAllBits();}
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
