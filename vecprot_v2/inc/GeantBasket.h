@@ -27,9 +27,9 @@ public:
    GeantBasket(Int_t size, Int_t volId, Int_t matId);
    virtual ~GeantBasket();
    
-   // Add track from generator
+   // Add track from generator or physics process
    void              AddTrack(const GeantTrack *track);
-   // Add track from a track_v array
+   // Add track from a track_v array (copied)
    void              AddTrack(const GeantTrack_v &tracks, Int_t itr);
    // Add multiple tracks from a track_v array
    void              AddTracks(const GeantTrack_v &tracks, Int_t istart, Int_t iend);

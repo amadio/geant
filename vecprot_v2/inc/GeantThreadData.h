@@ -16,7 +16,7 @@ class TRandom;
 class TArrayI;
 class TGeoHelix;
 class TGeoRotation;
-class GeantTrackCollection;
+class GeantTrack;
 
 //______________________________________________________________________________
 class GeantThreadData : public TObject {
@@ -30,6 +30,7 @@ public:
    Double_t         *fProcStep;              //![fNprocesses*fMaxPerBasket] 
    TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
    TGeoRotation     *fRotation;              //! Rotation used by the field propagator
+   GeantTrack        fTrack;                 // Track support for this thread
 
 public:
    GeantThreadData();

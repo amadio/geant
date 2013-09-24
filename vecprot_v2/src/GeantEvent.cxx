@@ -3,12 +3,15 @@
 ClassImp(GeantEvent)
 
 //______________________________________________________________________________
-void GeantEvent::AddTrack()
+Int_t GeantEvent::AddTrack()
 {
 // Thread safe track addition
+   Int_t itrack;
    fMutex.Lock();
    fNtracks++;
+   itrack = fNtracks-1;
    fMutex.UnLock();
+   return itrack;
 }
 
 //______________________________________________________________________________

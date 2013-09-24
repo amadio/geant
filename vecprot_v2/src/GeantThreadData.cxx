@@ -22,7 +22,8 @@ GeantThreadData::GeantThreadData()
              fDblArray(0),
              fProcStep(0),
              fFieldPropagator(0),
-             fRotation(0)
+             fRotation(0),
+             fTrack()
 {
 // I/O ctor.
 }
@@ -38,7 +39,8 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
              fDblArray(0),
              fProcStep(0),
              fFieldPropagator(0),
-             fRotation(new TGeoRotation())
+             fRotation(new TGeoRotation()),
+             fTrack()
 {
 // Constructor
    GeantPropagator *propagator = GeantPropagator::Instance();

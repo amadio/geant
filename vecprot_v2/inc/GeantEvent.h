@@ -18,7 +18,7 @@ public:
    GeantEvent(Int_t ntr) : fEvent(0), fSlot(0), fNtracks(ntr), fNdone(0), fMutex() {}
    ~GeantEvent() {}
    
-   void               AddTrack();
+   Int_t              AddTrack();
    void               Reset() {fNtracks = fNdone = 0;}
    void               StopTrack();
    Bool_t             Transported() const {return ((fNtracks>0) && (fNtracks==fNdone));}
