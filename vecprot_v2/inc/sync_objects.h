@@ -68,6 +68,7 @@ public:
    int                size_async() const {return the_queue.size();}
    bool               empty() const;
    bool               empty_async() const {return the_queue.empty();}
+   T*                 try_pop();
    T*                 wait_and_pop();
    T*                 wait_and_pop_max(unsigned int nmax, unsigned int &n, T **array);
    void               pop_many(unsigned int n, T **array);
@@ -114,6 +115,20 @@ T* dcqueue<T>::wait_and_pop()
 // Gets the back object from the queue. Wait if none is available.
    the_mutex.Lock();
    while(the_queue.empty()) the_condition_variable.Wait();        
+   T *popped_value = the_queue.back();
+   the_queue.pop_back();
+   nobjects--;
+   if (npriority>0) npriority--;
+   the_mutex.UnLock();
+   return popped_value;
+}
+
+template <class T>
+T* dcqueue<T>::try_pop()
+{
+// Gets the back object from the queue. Returns 0 if none is available.
+   the_mutex.Lock();
+   if(the_queue.empty()) return 0;
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;

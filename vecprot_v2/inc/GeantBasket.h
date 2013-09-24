@@ -37,14 +37,14 @@ public:
    Bool_t            Contains(Int_t evstart, Int_t nevents=1) const;
    Int_t             GetNinput() const {return fTracksIn.GetNtracks();}
    Int_t             GetNoutput() const {return fTracksOut.GetNtracks();}
-   GeantTrack_v     &GetInputTracks() const {return fTracksIn;}
-   GeantTrack_v     &GetOutputTracks() const {return fTracksOut;}
+   GeantTrack_v     &GetInputTracks() const {return (GeantTrack_v&)fTracksIn;}
+   GeantTrack_v     &GetOutputTracks() const {return (GeantTrack_v&)fTracksOut;}
    Int_t             GetVolId() const {return fVolId;}
    Int_t             GetMatId() const {return fMatId;}
    void              SetVolId(Int_t id) {fVolId = id;}
    void              SetMatId(Int_t id) {fMatId = id;}
    virtual void      Print(Option_t *option="") const;
-   void              PrintTrack(Int_t itr, Bool_t input=kTRUE;}
+   void              PrintTrack(Int_t itr, Bool_t input=kTRUE) const;
    
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
 };   

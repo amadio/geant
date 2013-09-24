@@ -19,7 +19,12 @@ class TGeoBranchArray;
 class GeantMainScheduler;
 
 const Double_t kB2C = -0.299792458e-3;
-enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics};
+enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed};
+enum TransportAction_t {
+   kPostpone = 0,   // return imediately and postpone whatever tracks left
+   kSingle   = 1,   // perform remaining loop in single track mode
+   kVector   = 2    // perform remaining loop in vectorized mode
+};   
 
 // Rounding up the desired allocation value to the closest padding multiple
 int round_up_align(int num)
@@ -63,6 +68,7 @@ private:
    TGeoBranchArray *fPath; // path for this particle in the geometry
    TGeoBranchArray *fNextpath; // path for next volume
    
+public:
    GeantTrack();
    GeantTrack(const GeantTrack &other);
    GeantTrack &operator=(const GeantTrack &other);
@@ -72,7 +78,7 @@ private:
    Double_t           Beta()  const {return fP/fE;}
    Int_t              Charge() const {return fCharge;}
    Double_t           Curvature() const {return (fCharge)?TMath::Abs(kB2C*gPropagator->fBmag/Pt()):0.;}
-   Double_t          *Direction() const {return &fXdir;}
+   const Double_t    *Direction() const {return &fXdir;}
    Double_t           DirX() const {return fXdir;}
    Double_t           DirY() const {return fYdir;}
    Double_t           DirZ() const {return fZdir;}
@@ -80,19 +86,19 @@ private:
    Int_t              Event() const {return fEvent;}
    Int_t              EventSlot() const  {return fEvslot;}
    Bool_t             FromBoundary() const {return fFrombdr;}
-   Int_t              G5code() const {return fG5codeV;}
-   Double_t           Gamma() const {return mass?e/mass:TMath::Limits<double>::Max();}
+   Int_t              G5code() const {return fG5code;}
+   Double_t           Gamma() const {return fMass?fE/fMass:TMath::Limits<double>::Max();}
    Double_t           GetPstep() const {return fPstep;}
    TGeoBranchArray   *GetPath() const {return fPath;}
    TGeoBranchArray   *GetNextPath() const {return fNextpath;}
-   Int_t              GetNsteps() const {fNsteps;}
+   Int_t              GetNsteps() const {return fNsteps;}
    Double_t           GetStep() const {return fStep;}
    Double_t           GetSnext() const {return fSnext;}
    Double_t           GetSafety() const {return fSafety;}
-   Bool_t             IsAlive() const {return (status != kKilled);}
-   Bool_t             IsOnBoundary() const {return (status == kBoundary);}
+   Bool_t             IsAlive() const {return (fStatus != kKilled);}
+   Bool_t             IsOnBoundary() const {return (fStatus == kBoundary);}
    Int_t              Izero() const {return fIzero;}
-   void               Kill()        {status = kKilled;}
+   void               Kill()        {fStatus = kKilled;}
    Double_t           Mass() const {return fMass;}
    Double_t           P() const {return fP;}
    Double_t           Px() const {return fP*fXdir;}
@@ -100,10 +106,10 @@ private:
    Double_t           Pz() const {return fP*fZdir;}
    Double_t           Pt()    const {return fP*TMath::Sqrt(fXdir*fXdir+fYdir*fYdir);}
    Int_t              Particle() const {return fParticle;}
-   Bool_t             Pending() const return fPending();}
+   Bool_t             Pending() const {return fPending;}
    Int_t              PDG() const   {return fPDG;}
    Int_t              Process() const {return fProcess;}
-   Double_t          *Position() const {return &fXpos;}
+   const Double_t    *Position() const {return &fXpos;}
    Double_t           PosX() const {return fXpos;}
    Double_t           PosY() const {return fYpos;}
    Double_t           PosZ() const {return fZpos;}
@@ -112,7 +118,7 @@ private:
    GeantVolumeBasket *PropagateInField(Double_t step, Bool_t checkcross, Int_t itr);
    GeantVolumeBasket *PropagateStraight(Double_t step, Int_t itrack);
    Species_t          Species() const {return fSpecies;}
-   TrackStatus_t      Status() const  {retunr fStatus;}
+   TrackStatus_t      Status() const  {return fStatus;}
    
    void               Reset();
    Double_t           X() const {return fXpos;}
@@ -120,7 +126,7 @@ private:
    Double_t           Z() const {return fZpos;}
    Bool_t             ZeroCounter() const {return fIzero;}
    
-   void               ReadFromVector(const GeantTrack_v arr. Int_t i);
+   void               ReadFromVector(const GeantTrack_v &arr, Int_t i);
    void               SetEvent(Int_t event) {fEvent = event;}
    void               SetEvslot(Int_t slot) {fEvslot = slot;}
    void               SetParticle(Int_t particle) {fParticle = particle;}
@@ -139,12 +145,6 @@ private:
 // SOA for GeantTrack used at processing time
 
 struct GeantTrack_v {
-public:
-enum TransportAction_t {
-   kPostpone = 0,   // return imediately and postpone whatever tracks left
-   kSingle   = 1,   // perform remaining loop in single track mode
-   kVector   = 2    // perform remaining loop in vectorized mode
-};   
 public:
    Int_t     fNtracks;    // number of tracks contained
    Int_t     fMaxtracks;  // max size for tracks
@@ -193,6 +193,7 @@ public:
    GeantTrack_v &operator=(const GeantTrack_v &track_v);
    virtual ~GeantTrack_v();
 
+   Int_t     Capacity() const     {return fMaxtracks;}
    Int_t     GetNtracks() const   {return fNtracks;}
    Int_t     GetNselected() const {return fNselected;}
    void      AddTrack(const GeantTrack &track);
@@ -204,7 +205,7 @@ public:
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
-   Bool_t    IsSelected(Int_t i)  {return TestBitNumber(i);}
+   Bool_t    IsSelected(Int_t i)  {return fSelected.TestBitNumber(i);}
    virtual void      Clear(Option_t *option="");
    Int_t     Compact(GeantTrack_v *moveto=0);
    Bool_t    Contains(Int_t evstart, Int_t nevents=1) const;
@@ -213,10 +214,26 @@ public:
    Bool_t    IsCompact() const {return fCompact;}
       
    void Print() {
-      printf("fXposV=%p fYposV=%p fZposV=%p fXdirV=%p fYdirV=%p fZdirV=%p ptot=%p fG5codeV=%p obj=%p\n",
-              fXposV,fYposV,fZposV,fXdirV,fYdirV,fZdirV,ptot,fG5codeV,obj);
+      printf("fXposV=%p fYposV=%p fZposV=%p fXdirV=%p fYdirV=%p fZdirV=%p ptot=%p fG5codeV=%p\n",
+              fXposV,fYposV,fZposV,fXdirV,fYdirV,fZdirV,fPV,fG5codeV);
    }
+   void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
+                       const Double_t *x, const Double_t *y, const Double_t *z,
+                       const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
+                       TGeoBranchArray **pathin, TGeoBranchArray **pathout, 
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr);
+   void      NavIsSameLocation(Int_t ntracks, TGeoBranchArray **start, TGeoBranchArray **end, Bool_t *same);
+   Bool_t    NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start, TGeoBranchArray **end);
    TransportAction_t PostponedAction() const;
+   Int_t     PostponeTracks(GeantTrack_v &output);
+   void      PropagateBack(Int_t itr, Double_t crtstep);
+   Int_t     PropagateInField(Int_t ntracks, const Double_t *crtstep);
+   Int_t     PropagateInFieldSingle(Int_t itr, Double_t crtstep, Bool_t checkcross);
+   void      ComputeTransportLength(Int_t ntracks);
+   void      ComputeTransportLengthSingle(Int_t itr);
+   void      PropagateInVolume(const Double_t *crtstep);
+   void      PropagateInVolumeSingle(Int_t i, Double_t crtstep);
+   Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
    Int_t     PropagateTracks(GeantTrack_v &output);
    Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage);
    
@@ -225,15 +242,15 @@ public:
    Int_t     Reshuffle();
    void      SwapTracks(Int_t i, Int_t j);
 // Track methods
-   Double_t           Beta(Int_t i)  const {return fP[i]/fE[i];}
-   Double_t           Curvature(Int_t i) const {return (fCharge[i])?TMath::Abs(kB2C*gPropagator->fBmag/Pt(i)):0.;}
-   Double_t           Gamma() const {return mass?e/mass:TMath::Limits<double>::Max();}
-   Double_t           Px(Int_t i) const {return fP[i]*fXdir[i];}
-   Double_t           Py(Int_t i) const {return fP[i]*fYdir[i];}
-   Double_t           Pz(Int_t i) const {return fP[i]*fZdir[i];}
-   Double_t           Pt()    const {return fP[i]*TMath::Sqrt(fXdir[i]*fXdir[i]+fYdir[i]*fYdir[i]);}
+   Double_t           Beta(Int_t i)  const {return fPV[i]/fEV[i];}
+   Double_t           Curvature(Int_t i) const {return (fChargeV[i])?TMath::Abs(kB2C*gPropagator->fBmag/Pt(i)):0.;}
+   Double_t           Gamma(Int_t i) const {return fMassV[i]?fEV[i]/fMassV[i]:TMath::Limits<double>::Max();}
+   Double_t           Px(Int_t i) const {return fPV[i]*fXdirV[i];}
+   Double_t           Py(Int_t i) const {return fPV[i]*fYdirV[i];}
+   Double_t           Pz(Int_t i) const {return fPV[i]*fZdirV[i];}
+   Double_t           Pt(Int_t i) const {return fPV[i]*TMath::Sqrt(fXdirV[i]*fXdirV[i]+fYdirV[i]*fYdirV[i]);}
 
-   ClassDef(GeantTrack_v)      // SOA for GeantTrack class           
+   ClassDef(GeantTrack_v, 1)      // SOA for GeantTrack class           
 };
 
 #endif

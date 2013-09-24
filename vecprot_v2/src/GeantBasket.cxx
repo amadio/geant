@@ -46,7 +46,7 @@ GeantBasket::~GeantBasket()
 void GeantBasket::AddTrack(const GeantTrack *track)
 {
 // Add a new track to this basket;
-   fTracksIn.AddTrack(track);
+   fTracksIn.AddTrack(*track);
 }
 
 //______________________________________________________________________________
@@ -60,16 +60,7 @@ void GeantBasket::AddTrack(const GeantTrack_v &tracks, Int_t itr)
 void GeantBasket::AddTracks(const GeantTrack_v &tracks, Int_t istart, Int_t iend)
 {
 // Add multiple tracks from a track_v array
-   fTracksIn.AddTrack(tracks, istart, iend);
-}
-
-//______________________________________________________________________________
-void GeantBasket::AddTracks(const Int_t *array, Int_t ntracks)
-{
-// Add array of tracks to the basket.
-   if (fNtracks+ntracks > fMaxTracks-1) Resize(TMath::Max(fNtracks+ntracks, 2*fMaxTracks));
-   memcpy(&fIndex[fNtracks], array, ntracks*sizeof(Int_t));
-   fNtracks += ntracks;
+   fTracksIn.AddTracks(tracks, istart, iend);
 }
    
 //______________________________________________________________________________
@@ -97,16 +88,4 @@ void GeantBasket::Print(Option_t *) const
 void GeantBasket::PrintTrack(Int_t itr, Bool_t input) const
 {
 // Print a given track.
-}
-
-//______________________________________________________________________________
-void GeantBasket::Resize(Int_t newSize)
-{
-// Resize the array of track indices. Not thread safe - should be called by a 
-// single thread at a time;
-   Int_t *newindex = new Int_t[newSize];
-   memcpy(newindex, fIndex, fNtracks*sizeof(Int_t));
-   delete [] fIndex;
-   fIndex = newindex;
-   fMaxTracks = newSize;
 }

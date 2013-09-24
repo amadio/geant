@@ -40,3 +40,4 @@ public:
    
    ClassDef(GeantMainScheduler, 1)      // Main basket scheduler
 };   
+#endif
