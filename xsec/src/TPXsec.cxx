@@ -1,7 +1,7 @@
-#include <TPXsec.h>
-#include <TMath.h>
-#include <TRandom.h>
-#include <TFile.h>
+#include "TPXsec.h"
+#include "TMath.h"
+#include "TRandom.h"
+#include "TFile.h"
 
 Int_t TPXsec::fVerbose=0;
 
@@ -355,6 +355,44 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
       }
       xnorm = xsum;
    }
+}
+
+//_________________________________________________________________________
+Bool_t TPXsec::XS_v(Int_t npart, Int_t rindex, const Double_t en[], Double_t lam[]) const
+{
+  //   printf("fEGrid %p\n",fEGrid);
+  Double_t ene;
+  for(Int_t ip=0; ip<npart; ++ip) {
+    ene=en[ip]<fEGrid[fNEbins-1]?en[ip]:fEGrid[fNEbins-1]*0.999;
+    ene=en[ip]>fEGrid[0]?en[ip]:fEGrid[0];
+    Int_t ibin = TMath::Log(ene/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+    //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
+    //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>ene || en2<ene) {
+      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+            ibin, en1, ene, en2);
+      return 0;
+    }
+    Double_t xrat = (en2-ene)/(en2-en1);
+    
+    Double_t xtot = (xrat*fTotXs[ibin]+(1-xrat)*fTotXs[ibin+1]);
+    Double_t xsec = 1;
+    if(rindex<TPartIndex::I()->NProc()-1) {
+      Int_t rnumber = fRdict[rindex];
+      if(rnumber<0) {
+        Error("XS","No %s for %s\n",TPartIndex::I()->ProcName(rindex),
+              TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
+        return -1;
+      }
+      xsec = xrat*fXSecs[ibin*fNXsec+rnumber]+
+      (1-xrat)*fXSecs[(ibin+1)*fNXsec+rnumber];
+    }
+    lam[ip] = xsec*xtot;
+  }
+  return kTRUE;
 }
 
 //_________________________________________________________________________

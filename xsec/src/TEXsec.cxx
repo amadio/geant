@@ -1,12 +1,12 @@
-#include <TAxis.h>
-#include <TCanvas.h>
-#include <TEXsec.h>
-#include <TFile.h>
-#include <TGraph.h>
-#include <TH1F.h>
-#include <TLine.h>
-#include <TMath.h>
-#include <TMultiGraph.h>
+#include "TAxis.h"
+#include "TCanvas.h"
+#include "TEXsec.h"
+#include "TFile.h"
+#include "TGraph.h"
+#include "TH1F.h"
+#include "TLine.h"
+#include "TMath.h"
+#include "TMultiGraph.h"
 #include <TObjArray.h>
 #include <TObjString.h>
 #include <TPXsec.h>
@@ -177,9 +177,24 @@ TGraph* TEXsec::DEdxGraph(const char* part,
 
 //___________________________________________________________________
 Float_t TEXsec::Lambda(Int_t pindex, Double_t en) const {
-    Double_t xs=0;
-    xs = fPXsec[pindex].XS(TPartIndex::I()->NProc()-1,en);
-    return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
+  Double_t xs = fPXsec[pindex].XS(TPartIndex::I()->NProc()-1,en);
+  return xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
+}
+
+//___________________________________________________________________
+Bool_t TEXsec::Lambda_v(Int_t npart, const Int_t pindex[], const Double_t en[], Double_t lam[]) const {
+  const Int_t itot = TPartIndex::I()->NProc()-1;
+  for(Int_t ip=0; ip<npart; ++ip) {
+    Double_t xs = fPXsec[pindex[ip]].XS(itot,en[ip]);
+    lam[ip] = xs?1./(fAtcm3*xs):TMath::Limits<Float_t>::Max();
+  }
+  return kTRUE;
+}
+
+//___________________________________________________________________
+Bool_t TEXsec::Lambda_v(Int_t npart, Int_t pindex, const Double_t en[], Double_t lam[]) const {
+  const Int_t itot = TPartIndex::I()->NProc()-1;
+  return fPXsec[pindex].XS_v(npart, itot,en,lam);
 }
 
 //___________________________________________________________________
