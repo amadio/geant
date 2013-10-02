@@ -116,11 +116,12 @@ void usage()
   "     -Z num  maximum Z of the material to treat (default 100)" << G4endl <<
   "     -k ene  minimum kinetic energy in GeV (default 1e-9)" << G4endl <<
   "     -K ene  maximum kinetic energy in GeV (default 1e4)" << G4endl <<
-  "     -n num  number of energy bins (default 1000)" << G4endl;
+  "     -n num  number of energy bins (default 1000)" << G4endl <<
+  "     -i      interactive graphics mode" << G4endl;
 }
 
 #include <fenv.h>
-#include <fp_exception_glibc_extension.h>
+#include "fp_exception_glibc_extension.h"
 
 TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
                                        G4ParticleDefinition* particleDefinition);
@@ -138,6 +139,7 @@ int main(int argc,char** argv)
   G4int nsample=0;
   G4int ngener=0;
   G4int verbose=0;
+  G4bool interact=FALSE;
   G4double evEnergy=1*GeV;
   G4bool xsecs=FALSE;
   G4int zmin = 1;
@@ -151,7 +153,7 @@ int main(int argc,char** argv)
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:")) != -1)
+  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:i")) != -1)
     switch (c)
   {
     case 's':
@@ -183,6 +185,9 @@ int main(int argc,char** argv)
       break;
     case 'x':
       xsecs=TRUE;
+      break;
+    case 'i':
+      interact=TRUE;
       break;
     case '?':
       usage();
@@ -252,11 +257,17 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
   
-  if (argc!=1) {
-    // batch mode
-    G4String command = "/control/execute ";
-    G4String fileName = argv[1];
-    UImanager->ApplyCommand(command+fileName);
+  if (!interact) {
+    if(argc!=1) {
+      // batch mode
+      G4String command = "/control/execute ";
+      G4String fileName = argv[1];
+      UImanager->ApplyCommand(command+fileName);
+    } else {
+      UImanager->ApplyCommand("/control/verbose 2");
+      UImanager->ApplyCommand("/control/saveHistory");
+      UImanager->ApplyCommand("/run/verbose 2");
+    }
     if(!nsample && !xsecs) {
       // only event generation is requested
       runManager->BeamOn( ngener );
@@ -415,7 +426,7 @@ int main(int argc,char** argv)
           G4bool chgj = (TDatabasePDG::Instance()->GetParticle(pPDG[j])->Charge()!=0);
           for(G4int jr=0; jr<npreac; ++jr)
             if(preac[jr]==pPDG[j]) {intj=TRUE; break;}
-          if(!inti && intj || (inti && intj && (!chgi && chgj))) {
+          if((!inti && intj) || (inti && intj && (!chgi && chgj))) {
             G4int itmp = pPDG[i];
             pPDG[i] = pPDG[j];
             pPDG[j] = itmp;
