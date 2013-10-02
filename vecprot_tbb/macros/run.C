@@ -1,7 +1,11 @@
-// Number of threads should be specified one less then desired for consistency
-// There are no more separate thread manager which was added before
-// Simply nthreads+1 are occupied
-void run(Int_t nthreads=15, Bool_t graphics=kTRUE, const char *geomfile="../geometry/cms.root")
+void run(Int_t nthreads=16, Bool_t graphics=kTRUE, const char *geomfile="../../geometry/cms.root",
+         Int_t evtot=500,
+         Int_t evbuf=100,
+         Double_t trav=400.,
+         Int_t trperbask=10,
+         Int_t min_feeder_arg=50,
+         Int_t nprior=5,
+         Int_t dispthr=100)
 {
    gSystem->Load("libtbb2.so");
    gSystem->Load("libPhysics.so");
@@ -13,12 +17,12 @@ void run(Int_t nthreads=15, Bool_t graphics=kTRUE, const char *geomfile="../geom
 
    GeantMainPropagator *mainprop = GeantMainPropagator::Instance();
 
-   // For your info. Originally min_feeder was
-   // TMath::Max(50, 2*nthreads)
+   // Note that min_feeder is currently hard-coded to
+   // TMath::Max(min_feeder_arg, 2*nthreads)
 
    // n_threads, events_total, events_buffered, tracks_average, max_per_basket
    // min_feeder, n_events_to_prioritize, threshold_to_start_DispTask
-   mainprop->SetParams (nthreads, 1500, 100, 500., 10, 50, 5, 100);
+   mainprop->SetParams (nthreads, evtot, evbuf, trav, trperbask, min_feeder_arg, nprior, dispthr);
 
    mainprop->Start(geomfile, graphics);
 }

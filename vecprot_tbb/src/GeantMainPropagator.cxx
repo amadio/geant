@@ -3,6 +3,8 @@
 #include "GeantPropagator.h"
 #include "WorkloadManager.h"
 
+#include "TMath.h"
+
 ClassImp (GeantMainPropagator)
 
 GeantMainPropagator* GeantMainPropagator::fgInstance = 0;
@@ -39,14 +41,14 @@ void GeantMainPropagator::SetParams (Int_t nthr, Int_t evtot, Int_t evbuf, Doubl
 	p->fNaverage = tracksaver;
 	p->fNperBasket = maxperbask;
 
-   p->fMinFeeder = minFeeder;
+   p->fMinFeeder = TMath::Max(minFeeder, 2*nthr);
    p->fNevToPrioritize = numPrior;
    p->fDispThr = dispThr;
 
    p->fUseDebug = dbg;
    p->fDebugTrk = dbgTrk;
 
-   /*WorkloadManager *wmgr =*/ WorkloadManager::Instance(nthr);
+   WorkloadManager::Instance();
 }
 
 void GeantMainPropagator::Start (const char *geomfile, Bool_t graphics, Bool_t single)

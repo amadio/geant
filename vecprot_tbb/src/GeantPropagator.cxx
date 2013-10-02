@@ -58,6 +58,19 @@
 #include "CollDispTask.h"
 
 #include "tbb/task_scheduler_init.h"
+#include "tbb/tick_count.h"
+
+
+void myObserver::on_scheduler_entry (bool is_worker)
+{
+	Printf("-------------------------------------------------------------------------------------------Started");
+}
+
+void myObserver::on_scheduler_exit (bool is_worker)
+{
+	Printf("-------------------------------------------------------------------------------------------Finished");
+}
+
 
 GeantPropagator *GeantPropagator::fgInstance = 0;
 
@@ -99,11 +112,17 @@ GeantPropagator::GeantPropagator() :
                  fProcesses(0),
                  fTracks(0),
                  fEvents(0),
-                 fPrioritize(),
                  fNimportedEvents(),
-                 niter()
+                 niter(),
+                 /*niter2(),
+                 niter3(),
+                 niter4(),*/
+                 pnTasksTotal(),
+                 ppTasksTotal(),
+                 dTasksTotal()
 {
 // Constructor
+   gRandom->SetSeed();
    for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
    fgInstance = this;
 }
@@ -180,7 +199,8 @@ GeantTrack *GeantPropagator::AddTrack(Int_t evslot)
 void GeantPropagator::StopTrack(GeantTrack *track)
 {
 // Mark track as stopped for tracking.
-//   Printf("Stopping track from event %d in slot %d. Left %d tracks.", fEvents[track->evslot]->event, track->evslot, fEvents[track->evslot]->TracksLeft());
+//   Printf("Stop tr fr ev %d in slot %d. Left %d tr", fEvents[track->evslot]->event, track->evslot, fEvents[track->evslot]->TracksLeft());
+
    if (track->IsAlive()) {
       fEvents[track->evslot]->StopTrack();
       fNtransported++;
@@ -194,7 +214,7 @@ void GeantPropagator::StopTrack(GeantTrack *track)
 		TBBperThread.PushFinishedEvent (track->evslot);
 
 //      Printf ("Finished event %d in slot %d\tfNcurPriorEvents=%d", track->event, track->evslot, fNcurPriorEvents);
-      Printf ("Finished event %d in slot %d", track->event, track->evslot);
+      Printf ("Fin ev %d in sl %d", track->event, track->evslot);
 
       fEventsStatus[fEvents[track->evslot]->event]++;    // In principle this can be moved into the PropTask
 
@@ -358,7 +378,6 @@ void GeantPropagator::Initialize()
    for (Int_t evn=0; evn<fNtotal; evn++) fEventsStatus[evn] = 0;
    fPriorityRange[0] = -1;
    fPriorityRange[1] = -1;
-   fPrioritize = kFALSE;
 
    niter = -1;
 
@@ -366,29 +385,52 @@ void GeantPropagator::Initialize()
    // Add some empty baskets in the queue
    fWMgr->AddEmptyBaskets(1000);
 
+   if (fUseGraphics) {
+      // Int iter
+      hnb = new TH1I("hnb", "number of baskets in the transport queue; iteration#", 500000, 0, 500000);
+      htracks = new TH1I("htracks", "number of tracks/basket; iteration#", 500000, 0, 500000);
+      numOfTracksTransportedInIter = new TH1I("numOfTracksTransportedInIter","number of tracks transported; iteration#", 500000, 0, 500000);
+      /*numOfnPropTasks = new TH1I("numOfnPropTasks", "number of normal PropTasks; iteration#", 500000, 0, 500000);
+      numOfpPropTasks = new TH1I("numOfpPropTasks", "number of priority PropTasks; iteration#", 500000, 0, 500000);
+      numOfDispTasks = new TH1I("numOfDispTasks", "number of CollDispTasks; iteration#", 500000, 0, 500000);*/
 
-	numOfPNtasks = new TH1S ("numOfPNtasks", "Number of normal PropTasks running; (1/5)second", 1500, 0, 1500);
-	numOfPPtasks = new TH1S ("numOfPPtasks", "Number of priority PropTasks running; (1/5)second", 1500, 0, 1500);
-	numOfDtasks = new TH1S ("numOfDtasks", "Number of DispTasks running; (1/5)second", 1500, 0, 1500);
-	sizeOfFQ = new TH1S ("sizeOfFQ", "Size of feeder_queue; (1/5)second", 1500, 0, 1500);
-	sizeOfPFQ = new TH1S ("sizeOfPFQ", "Size of priority_feeder_queue; (1/5)second", 1500, 0, 1500);
-	sizeOfCQ = new TH1S ("sizeOfCQ", "Size of collector_queue; (1/5)second", 1500, 0, 1500);
-	numOfCollsPerTask = new TH1S ("numOfCollsPerTask", "Number of CollDispTasks; Number of collections poped", 60, 0, 60);
-	numOfTracksInBasket = new TH1S ("numOfTracksInBasket", "Number of normal baskets; tracks per basket", fNperBasket*2, 0, fNperBasket*2);
-	numOfTracksInPriorBasket = new TH1S ("numOfTracksInPriorBasket", "Number of priority baskets; tracks per basket", fNperBasket*2, 0, fNperBasket*2);
-	numOfTracksInColl = new TH1S ("numOfTracksInColl", "Number of collection; tracks per collection", 2 * fNaverage, 0, 2 * fNaverage);
-   numOfTracksTransportedInTime = new TH1I ("numOfTracksTransportedInTime", "Tracks transported; (1/5)second", 1500, 0, 1500);
+      // In time
+      numOfTracksTransportedInTime = new TH1I ("numOfTracksTransportedInTime", "Tracks transported; (1/5)second", 2000, 0, 2000);
+	   numOfPNtasks = new TH1I ("numOfPNtasks", "Number of normal PropTasks running; (1/5)second", 2000, 0, 2000);
+	   numOfPPtasks = new TH1I ("numOfPPtasks", "Number of priority PropTasks running; (1/5)second", 2000, 0, 2000);
+	   numOfDtasks = new TH1I ("numOfDtasks", "Number of DispTasks running; (1/5)second", 2000, 0, 2000);
+	   sizeOfFQ = new TH1I ("sizeOfFQ", "Size of feeder_queue; (1/5)second", 2000, 0, 2000);
+	   sizeOfPFQ = new TH1I ("sizeOfPFQ", "Size of priority_feeder_queue; (1/5)second", 2000, 0, 2000);
+	   sizeOfCQ = new TH1I ("sizeOfCQ", "Size of collector_queue; (1/5)second", 2000, 0, 2000);
 
-	numOfPNtasks->SetFillColor(kRed);
-	numOfPPtasks->SetFillColor(kBlue);
-	numOfDtasks->SetFillColor(kGreen);
-	sizeOfFQ->SetFillColor(kGreen);
-	sizeOfPFQ->SetFillColor(kMagenta);
-	sizeOfCQ->SetFillColor(kYellow);
-	numOfCollsPerTask->SetFillColor(kAzure);
-	numOfTracksInBasket->SetFillColor(kCyan);
-	numOfTracksInPriorBasket->SetFillColor(kOrange);
-	numOfTracksInColl->SetFillColor(kPink);
+      // Statistics
+	   numOfCollsPerTask = new TH1I ("numOfCollsPerTask", "Number of CollDispTasks; Number of collections poped", 60, 0, 60);
+	   numOfTracksInBasket = new TH1I ("numOfTracksInBasket", "Number of normal baskets; tracks per basket", fNperBasket*2, 0, fNperBasket*2);
+	   numOfTracksInPriorBasket = new TH1I ("numOfTracksInPriorBasket", "Number of priority baskets; tracks per basket", fNperBasket*2, 0, fNperBasket*2);
+	   numOfTracksInColl = new TH1I ("numOfTracksInColl", "Number of collection; tracks per collection", 2 * fNaverage, 0, 2 * fNaverage);
+
+
+      hnb->SetFillColor(kRed);
+      htracks->SetFillColor(kGreen);
+      numOfTracksTransportedInIter->SetFillColor(kBlue);
+/*
+      numOfnPropTasks->SetFillColor(kRed);
+      numOfpPropTasks->SetFillColor(kGreen);
+      numOfDispTasks->SetFillColor(kBlue);
+*/
+      numOfTracksTransportedInTime->SetFillColor(kAzure);
+	   numOfPNtasks->SetFillColor(kRed);
+	   numOfPPtasks->SetFillColor(kBlue);
+	   numOfDtasks->SetFillColor(kGreen);
+	   sizeOfFQ->SetFillColor(kGreen);
+	   sizeOfPFQ->SetFillColor(kMagenta);
+	   sizeOfCQ->SetFillColor(kYellow);
+
+	   numOfCollsPerTask->SetFillColor(kAzure);
+	   numOfTracksInBasket->SetFillColor(kCyan);
+	   numOfTracksInPriorBasket->SetFillColor(kOrange);
+	   numOfTracksInColl->SetFillColor(kPink);
+   }
 
 }
 
@@ -550,77 +592,69 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
    }
 
    // Loop baskets and transport particles until there is nothing to transport anymore
-   gGeoManager->SetMaxThreads(fNthreads+1);
-   tbb::task_scheduler_init init(fNthreads+1);
+   gGeoManager->SetMaxThreads(fNthreads);
+   tbb::task_scheduler_init init(fNthreads);
 
    fTimer = new TStopwatch();
 
-/*------------------------------------------------------------------------------------------------------*/
-// Just histograms filling
-///*
    if (fUseGraphics) {
-      hnb = new TH1F("hnb","number of baskets in the transport queue; iteration#",200000,0,200000);
-      hnb->SetMinimum(0.);
-      hnb->SetMaximum(NinjectedTracks / fNperBasket + 200.);
-      hnb->SetFillColor(kRed);
-      htracks = new TH1F("htracks","number of tracks/basket; iteration#",200000,0,200000);
-      htracks->SetFillColor(kGreen);
-      numOfTracksTransportedInIter = new TH1I("numOfTracksTransportedInIter","number of tracks transported; iteration#",200000,0,200000);
-      numOfTracksTransportedInIter->SetFillColor(kBlue);
+	   TThread* observerThread = new TThread (GeantPropagator::GlobalObserver);
+	   observerThread->Run();
    }
-//*/
-/*------------------------------------------------------------------------------------------------------*/
 
-	TThread* observerThread = new TThread (GeantPropagator::GlobalObserver);
-	observerThread->Run();
+//   propObserver.observe();
 
    fTimer->Start();
+   tbb::tick_count t0 = tick_count::now();
 
    CollDispTask& topTask = *new (task::allocate_root()) CollDispTask(1);
    task::spawn_root_and_wait (topTask);
 
-   // Here we check if really all the events were transported
-   Int_t first_not_transported = fNtotal;
-   for (Int_t evn=0; evn<fNtotal; evn++) {
-      if (fEventsStatus[evn] == 0) {
-         first_not_transported = evn;
+
+   do {
+      // Here we check if really all the events were transported
+      Int_t first_not_transported = fNtotal;
+      for (Int_t evn=0; evn<fNtotal; evn++) {
+         if (fEventsStatus[evn] == 0) {
+            first_not_transported = evn;
+            break;
+         }
+      }
+      if (first_not_transported < fNtotal) {
+         Printf ("Not all events transported. First not transported: %d", first_not_transported);
+         Printf ("Feeder queue size: %d\t\tCollector queue size: %d",
+                  fWMgr->tbb_feeder_queue.size(), fWMgr->tbb_collector_queue.size());
+         Printf ("Collections waiting: %d\t\tTracks waiting: %d", fCollsWaiting, fTracksWaiting);
+         Printf ("feeder_queue size: %d", fWMgr->tbb_feeder_queue.size());
+         Printf ("feeder_priority_queue size: %d", fWMgr->tbb_feeder_priority_queue.size());
+
+         fCollsWaiting = 0;
+         fTracksWaiting = 0;
+
+         fGarbageCollMode = kTRUE;
+         CollDispTask& garbTask = *new (task::allocate_root()) CollDispTask(fWMgr->tbb_collector_queue.size());
+         task::spawn_root_and_wait (garbTask);
+      } else {
+         Printf ("ALL EVENTS FINISHED");
          break;
       }
-   }
-   if (first_not_transported < fNtotal) {
-      Printf ("Not all events transported. First not transported: %d", first_not_transported);
-      Printf ("Feeder queue size: %d\t\tCollector queue size: %d",
-               fWMgr->tbb_feeder_queue.size(), fWMgr->tbb_collector_queue.size());
-      Printf ("Collections waiting: %d\t\tTracks waiting: %d", fCollsWaiting, fTracksWaiting);
+   } while (1);
 
-      fCollsWaiting = 0;
-      fTracksWaiting = 0;
-
-      fGarbageCollMode = kTRUE;
-      CollDispTask& garbTask = *new (task::allocate_root()) CollDispTask(fWMgr->tbb_collector_queue.size());
-      task::spawn_root_and_wait (garbTask);
-   }
-
-   first_not_transported = fNtotal;
-   for (Int_t evn=0; evn<fNtotal; evn++) {
-      if (fEventsStatus[evn] == 0) {
-         first_not_transported = evn;
-         break;
-      }
-   }
-   if (first_not_transported < fNtotal) Printf ("Not all events transported. First not transported: %d", first_not_transported);
-   else Printf ("ALL EVENTS FINISHED");
 
    fTimer->Stop();
+   tbb::tick_count t1 = tick_count::now();
 
-   observerSigsQueue.push(1);
+   if (fUseGraphics) {
+      observerSigsQueue.push(1);
+   }
 
 /*------------------------------------------------------------------------------------------------------*/
 // Just histograms filling
 ///*
-   TPad *pad1=0, *pad2=0, *pad3=0;
-   TCanvas *c1 = 0;
    if (fUseGraphics) {
+      TPad *pad1=0, *pad2=0, *pad3=0;
+      TCanvas *c1 = 0;
+
       c1 = new TCanvas("c2","c2",1200,1200);
       c1->Divide(1,3);
 
@@ -638,43 +672,55 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
       numOfTracksTransportedInIter->SetStats(kFALSE);
       numOfTracksTransportedInIter->GetXaxis()->SetRangeUser(0,niter/10);
       numOfTracksTransportedInIter->Draw();
+
+	   TFile* diagFile = new TFile("diagnostics.root", "UPDATE");
+
+      hnb->Write();
+      htracks->Write();
+      numOfTracksTransportedInIter->Write();
+/*
+      numOfnPropTasks->Write();
+      numOfpPropTasks->Write();
+      numOfDispTasks->Write();
+*/
+	   numOfPNtasks->Write();
+	   numOfPPtasks->Write();
+	   numOfDtasks->Write();
+	   sizeOfFQ->Write();
+	   sizeOfPFQ->Write();
+	   sizeOfCQ->Write();
+	   numOfCollsPerTask->Write();
+	   numOfTracksInBasket->Write();
+	   numOfTracksInPriorBasket->Write();
+	   numOfTracksInColl->Write();
+      numOfTracksTransportedInTime->Write();
+
+	   diagFile->Close();
+
    }
 //*/
 /*------------------------------------------------------------------------------------------------------*/
 
-	TFile* diagFile = new TFile("diagnostics.root", "UPDATE");
-
-   hnb->Write();
-   htracks->Write();
-   numOfTracksTransportedInIter->Write();
-
-	numOfPNtasks->Write();
-	numOfPPtasks->Write();
-	numOfDtasks->Write();
-	sizeOfFQ->Write();
-	sizeOfPFQ->Write();
-	sizeOfCQ->Write();
-	numOfCollsPerTask->Write();
-	numOfTracksInBasket->Write();
-	numOfTracksInPriorBasket->Write();
-	numOfTracksInColl->Write();
-   numOfTracksTransportedInTime->Write();
-
-	diagFile->Close();
-
-/*------------------------------------------------------------------------------------------------------*/
-
    Double_t rtime = fTimer->RealTime();
    Double_t ctime = fTimer->CpuTime();
+   Double_t tbbtime = (t1-t0).seconds();
+
    if (fFillTree) fOutTree->AutoSave();
    delete fOutFile;
 
    FILE *fp = fopen("rez.txt","a");
+   fprintf(fp, "geometry \"%s\"\n", geomfile);
    fprintf(fp, "threads %d\nevtotal %d\nevbuf %d\ntr/ev %f\ntr/bask %d\n",
                fNthreads, fNtotal, fNevents, fNaverage, fNperBasket);
-   fprintf(fp, "added %lld\ntransported %lld\nsafesteps %lld\nsnextsteps %lld\nrealtime %g\ncputime %g\n",
-               fNadded, fNtransported, fNsafeSteps, fNsnextSteps, rtime, ctime);
+   fprintf(fp, "added %lld\ntransported %lld\nsafesteps %lld\nsnextsteps %lld\nrealtime %g\ncputime %g\ntbbtime %g\n",
+               fNadded, fNtransported, fNsafeSteps, fNsnextSteps, rtime, ctime, tbbtime);
+   fprintf(fp, "Total %d normal PropTasks\nTotal %d priority PropTasks\nTotal %d DispTasks\n", pnTasksTotal, ppTasksTotal, dTasksTotal);
+   fprintf(fp, "------------------------------------------------------------------------------------------------------\n");
    fclose(fp);
+
+   FILE *fp2 = fopen("diag.txt","a");
+   fprintf(fp2, "%f, %g, %g, %f, %f\n", (Double_t)fNthreads, ctime, rtime, (Double_t)fNsafeSteps, (Double_t)fNsnextSteps);
+   fclose(fp2);
 
    fOutFile = 0;
    fOutTree = 0;

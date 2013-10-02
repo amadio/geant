@@ -161,10 +161,10 @@ void GeantTrackCollection::Clear(Option_t *)
 //______________________________________________________________________________
 Int_t GeantTrackCollection::AddTrack(Int_t itrack, GeantVolumeBasket *basket)
 {
-   GeantPropagator *gPropagator = GeantPropagator::Instance();
+   GeantPropagator *propagator = GeantPropagator::Instance();
 
 // Add a new track entering the basket.
-   if (!gPropagator->fTracks[itrack]->IsAlive()) return fNtracks;
+   if (!propagator->fTracks[itrack]->IsAlive()) return fNtracks;
    if (fNtracks==fSize-1) {
       Int_t *tracks = new Int_t[2*fSize];
       GeantVolumeBasket **baskets = new GeantVolumeBasket*[2*fSize];

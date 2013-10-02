@@ -22,9 +22,17 @@ task* CollDispTask::execute ()
    PerThread::reference TBBperThread = propagator->fTBBthreadData.local();
    WorkloadManager *wm = WorkloadManager::Instance();
 
-   propagator->dTasksRunning++;
+   propagator->dTasksTotal++;
 
-   tbb::task_scheduler_init init(propagator->fNthreads+1);
+   Int_t ndTasks;
+   /*Int_t iter2;*/
+   if (propagator->fUseGraphics) {
+      ndTasks = propagator->dTasksRunning.fetch_and_increment();
+      /*iter2 = propagator->niter2.fetch_and_increment();
+      propagator->numOfDispTasks->Fill(iter2, ndTasks+1);*/
+   }
+
+   tbb::task_scheduler_init init(propagator->fNthreads);
 
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
@@ -43,20 +51,22 @@ task* CollDispTask::execute ()
       npop++;
    }
 
-   propagator->numOfCollsPerTask->Fill(npop);
+   if (propagator->fUseGraphics) propagator->numOfCollsPerTask->Fill(npop);
 
    // Process popped collections and flush their tracks
    for (UInt_t icoll=0; icoll<npop; icoll++) {
       collector = (GeantTrackCollection*)carray[icoll];
 
-      propagator->numOfTracksInColl->Fill(collector->GetNtracks());
+      if (propagator->fUseGraphics) {
+         propagator->numOfTracksInColl->Fill(collector->GetNtracks());
+      }
 
       collector->FlushTracks(wm->fMainSch, &ninjectedNormal, &ninjectedPriority);
       wm->tbb_collector_empty_queue.push(collector);
    }
 
    // Flush priority baskets if in priority mode
-   if (propagator->fPrioritize) {
+   if (propagator->fPriorityRange[0] > -1) {
       ninjectedPriority += wm->fMainSch->FlushPriorityBaskets();
 //      Printf ("ninjectedPriority=%d", ninjectedPriority);
    }
@@ -68,7 +78,7 @@ task* CollDispTask::execute ()
 
       ninjectedNormal += wm->fMainSch->FlushNormalBaskets();
 
-      if (!propagator->fPrioritize) {
+      if (propagator->fPriorityRange[0] == -1) {
 
          // Find first not transported
          propagator->fDispTaskLock.Lock();			// CRITICAL SECTION begin
@@ -85,7 +95,6 @@ task* CollDispTask::execute ()
          if (first_not_transported > -1) {
             propagator->SetPriorityRange(first_not_transported,
                TMath::Min(first_not_transported+propagator->fNevToPrioritize-1, propagator->fNtotal-1));
-            propagator->fPrioritize = kTRUE;
             Printf ("Prioritizing events %d to %d", first_not_transported,
                TMath::Min(first_not_transported+propagator->fNevToPrioritize-1, propagator->fNtotal-1));
 
@@ -100,16 +109,18 @@ task* CollDispTask::execute ()
 /*------------------------------------------------------------------------------------------------------*/
 // Just histograms filling
 ///*
-   Int_t localNiter = propagator->niter.fetch_and_increment();
-   Double_t nperbasket = 0;
-   for (PerThread::iterator it=propagator->fTBBthreadData.begin(); it!= propagator->fTBBthreadData.end(); ++it)
-      nperbasket += it->fTracksPerBasket;
-   nperbasket /= propagator->fNthreads+1;
    if (propagator->fUseGraphics) {
-      if ((localNiter%10==0) && (localNiter/10<200000)) {
-         propagator->hnb->Fill(localNiter/10, ntotransport);
-         propagator->htracks->Fill(localNiter/10, nperbasket);
-         propagator->numOfTracksTransportedInIter->Fill(localNiter/10, propagator->fNtransported);
+      Int_t localNiter = propagator->niter.fetch_and_increment();
+      Double_t nperbasket = 0;
+      for (PerThread::iterator it=propagator->fTBBthreadData.begin(); it!= propagator->fTBBthreadData.end(); ++it)
+         nperbasket += it->fTracksPerBasket;
+      nperbasket /= propagator->fNthreads;
+      if (propagator->fUseGraphics) {
+         if ((localNiter%20==0) && (localNiter/20<500000)) {
+            propagator->hnb->Fill(localNiter/20, ntotransport);
+            propagator->htracks->Fill(localNiter/20, nperbasket);
+            propagator->numOfTracksTransportedInIter->Fill(localNiter/20, propagator->fNtransported);
+         }
       }
    }
 //*/
@@ -117,18 +128,28 @@ task* CollDispTask::execute ()
 
 	if (ninjectedNormal+ninjectedPriority) {
 		PropTask& lastTask = StartPropTasks (ninjectedPriority, ninjectedNormal);
-      propagator->dTasksRunning--;
+      if (propagator->fUseGraphics) {
+         ndTasks = propagator->dTasksRunning.fetch_and_decrement();
+         /*iter2 = propagator->niter2.fetch_and_increment();
+         propagator->numOfDispTasks->Fill(iter2, ndTasks-1);*/
+      }
 		return &lastTask;
-	}
+   }
 
-   propagator->dTasksRunning--;
+   if (propagator->fUseGraphics) {
+      ndTasks = propagator->dTasksRunning.fetch_and_decrement();
+      /*iter2 = propagator->niter2.fetch_and_increment();
+      propagator->numOfDispTasks->Fill(iter2, ndTasks-1);*/
+   }
    return NULL;
 }
 
 // total amount must be more then 0
 PropTask& CollDispTask::StartPropTasks (Int_t amountPriority, Int_t amountNormal)
 {
-	task_list tlist;
+	task_list tlist_normal;
+	task_list tlist_priority;
+
 	empty_task& cont = *new(allocate_continuation()) empty_task();
 	cont.set_ref_count (amountPriority+amountNormal);
 	Bool_t flag;
@@ -136,23 +157,27 @@ PropTask& CollDispTask::StartPropTasks (Int_t amountPriority, Int_t amountNormal
 	if (amountPriority) {
 
 		for (Int_t i = 0; i < amountPriority - 1; i++)
-			tlist.push_back (*new(cont.allocate_child()) PropTask(kTRUE));
+			tlist_priority.push_back (*new(cont.allocate_child()) PropTask(kTRUE));
 		for (Int_t i = 0; i < amountNormal; i++)
-			tlist.push_back (*new(cont.allocate_child()) PropTask(kFALSE));
+			tlist_normal.push_back (*new(cont.allocate_child()) PropTask(kFALSE));
+
 		flag = kTRUE;
 
 	} else if (amountNormal) {
 
 		for (Int_t i = 0; i < amountPriority; i++)
-			tlist.push_back (*new(cont.allocate_child()) PropTask(kTRUE));
-		for (Int_t i = 0; i < amountNormal-1; i++)
-			tlist.push_back (*new(cont.allocate_child()) PropTask(kFALSE));
+			tlist_priority.push_back (*new(cont.allocate_child()) PropTask(kTRUE));
+		for (Int_t i = 0; i < amountNormal - 1; i++)
+			tlist_normal.push_back (*new(cont.allocate_child()) PropTask(kFALSE));
+
 		flag = kFALSE;
 	}
 
 	PropTask& lastTask = *new(cont.allocate_child()) PropTask(flag);
 
-	if (!tlist.empty()) spawn(tlist);
+	if (!tlist_priority.empty()) spawn(tlist_priority);
+	if (!tlist_normal.empty()) spawn(tlist_normal);
+
 	return lastTask;
 }
 
