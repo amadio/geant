@@ -1,7 +1,7 @@
-#include <TMXsec.h>
-#include <TPartIndex.h>
-#include <TMath.h>
-#include <TRandom.h>
+#include "TMXsec.h"
+#include "TPartIndex.h"
+#include "TMath.h"
+#include "TRandom.h"
 
 ClassImp(TMXsec)
 
@@ -172,48 +172,106 @@ Bool_t TMXsec::Prune() {
 
 //____________________________________________________________________________
 Float_t TMXsec::Xlength(Int_t part, Float_t en) {
-   if(part>=TPartIndex::I()->NPartReac() || !fTotXL) 
+  if(part>=TPartIndex::I()->NPartReac() || !fTotXL)
+    return TMath::Limits<Float_t>::Max();
+  else {
+    en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+    en=en>=fEGrid[0]?en:fEGrid[0];
+    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+    //     Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+    //     Double_t en2 = en1*fEDelta;
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>en || en2<en) {
+      Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+            ibin, en1, en, en2);
       return TMath::Limits<Float_t>::Max();
-   else {
-      en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
-      en=en>=fEGrid[0]?en:fEGrid[0];
-      Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    }
+    Double_t xrat = (en2-en)/(en2-en1);
+    return xrat*fTotXL[part*fNEbins+ibin]+(1-xrat)*fTotXL[part*fNEbins+ibin+1];
+  }
+}
+
+//____________________________________________________________________________
+Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[])
+{
+  Double_t ene;
+  for(Int_t ip=0; ip<npart; ++ip) {
+    if(part[ip]>=TPartIndex::I()->NPartReac() || !fTotXL)
+      lam[ip]=TMath::Limits<Float_t>::Max();
+    else {
+      ene=en[ip]<=fEGrid[fNEbins-1]?en[ip]:fEGrid[fNEbins-1]*0.999;
+      ene=en[ip]>=fEGrid[0]?en[ip]:fEGrid[0];
+      Int_t ibin = TMath::Log(ene/fEGrid[0])*fEilDelta;
       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
       //     Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
       //     Double_t en2 = en1*fEDelta;
       Double_t en1 = fEGrid[ibin];
       Double_t en2 = fEGrid[ibin+1];
-      if(en1>en || en2<en) {
-	 Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	       ibin, en1, en, en2);
-	 return TMath::Limits<Float_t>::Max();
+      if(en1>ene || en2<ene) {
+        Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+              ibin, en1, ene, en2);
+        lam[ip] = TMath::Limits<Float_t>::Max();
       }
-      Double_t xrat = (en2-en)/(en2-en1);
-      return xrat*fTotXL[part*fNEbins+ibin]+(1-xrat)*fTotXL[part*fNEbins+ibin+1];
-   }
+      Double_t xrat = (en2-ene)/(en2-en1);
+      lam[ip] = xrat*fTotXL[part[ip]*fNEbins+ibin]+(1-xrat)*fTotXL[part[ip]*fNEbins+ibin+1];
+    }
+  }
+  return kTRUE;
 }
 
 //____________________________________________________________________________
 Float_t TMXsec::DEdx(Int_t part, Float_t en) {
-   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx) 
-      return 0;
-   else {
-      en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
-      en=en>=fEGrid[0]?en:fEGrid[0];
-      Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+  if(part>=TPartIndex::I()->NPartCharge() || !fDEdx)
+    return 0;
+  else {
+    en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+    en=en>=fEGrid[0]?en:fEGrid[0];
+    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+    //     Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+    //     Double_t en2 = en1*fEDelta;
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>en || en2<en) {
+      Error("DEdx","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+            ibin, en1, en, en2);
+      return TMath::Limits<Float_t>::Max();
+    }
+    Double_t xrat = (en2-en)/(en2-en1);
+    return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
+  }
+}
+
+//____________________________________________________________________________
+Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]) {
+  Double_t ene;
+  if(!fDEdx) {
+    memset(de,0,npart*sizeof(Float_t));
+    return kFALSE;
+  }
+  for(Int_t ip=0; ip<npart; ++ip) {
+    if(part[ip]>=TPartIndex::I()->NPartCharge())
+      de[ip]=0;
+    else {
+      ene=en[ip]<=fEGrid[fNEbins-1]?en[ip]:fEGrid[fNEbins-1]*0.999;
+      ene=en[ip]>=fEGrid[0]?en[ip]:fEGrid[0];
+      Int_t ibin = TMath::Log(ene/fEGrid[0])*fEilDelta;
       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
       //     Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
       //     Double_t en2 = en1*fEDelta;
       Double_t en1 = fEGrid[ibin];
       Double_t en2 = fEGrid[ibin+1];
-      if(en1>en || en2<en) {
-	 Error("DEdx","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	       ibin, en1, en, en2);
-	 return TMath::Limits<Float_t>::Max();
+      if(en1>ene || en2<ene) {
+        Error("DEdx","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+              ibin, en1, ene, en2);
+        de[ip]=TMath::Limits<Float_t>::Max();
       }
-      Double_t xrat = (en2-en)/(en2-en1);
-      return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
-   }
+      Double_t xrat = (en2-ene)/(en2-en1);
+      de[ip] = xrat*fDEdx[part[ip]*fNEbins+ibin]+(1-xrat)*fDEdx[part[ip]*fNEbins+ibin+1];
+    }
+  }
 }
 
 //____________________________________________________________________________

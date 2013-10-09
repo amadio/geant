@@ -12,6 +12,8 @@
 #include "GeantThreadData.h"
 #include "WorkloadManager.h"
 
+#include <iostream>
+
 const Double_t gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
@@ -191,6 +193,12 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr)
    safety = 0;
    // Change path to reflect the physical volume for the current track;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+
+   if (!nav) {
+      nav = gGeoManager->AddNavigator();
+      std::cerr << "[PropagateStraight] Added navigator" << std::endl;
+   }
+
    /*Int_t tid = nav->GetThreadId();*/
    // Particle crossed?
    if (frombdr) nextpath->UpdateNavigator(nav);
@@ -226,6 +234,11 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
 
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    /*Int_t tid = nav->GetThreadId();*/
+
+   if (!nav) {
+      nav = gGeoManager->AddNavigator();
+      std::cerr << "[PropagateInField] Added navigator" << std::endl;
+   }
 
    Bool_t useDebug = gPropagator->fUseDebug;
    Int_t debugTrk = gPropagator->fDebugTrk;

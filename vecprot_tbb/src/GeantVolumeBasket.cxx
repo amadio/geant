@@ -11,6 +11,8 @@
 #include "TGeoNavigator.h"
 #include "TGeoBranchArray.h"
 
+#include <iostream>
+
 ClassImp(GeantVolumeBasket)
 
 const Double_t gTolerance = TGeoShape::Tolerance();
@@ -43,6 +45,12 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin)
    Int_t itr;
    Bool_t isOnBoundary = kFALSE;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+
+   if (!nav) {
+      nav = gGeoManager->AddNavigator();
+      std::cerr << "[ComputeTransportLength] Added navigator" << std::endl;
+   }
+
    nav->SetOutside(kFALSE);
 
    for (itr=0; itr<ntracks; itr++) {
@@ -115,7 +123,14 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
    GeantTrack *track;
    Double_t step, snext, safety, c;
    ntodo = 0;
+
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+
+   if (!nav) {
+      nav = gGeoManager->AddNavigator();
+      std::cerr << "[PropagateTracks] Added navigator" << std::endl;
+   }
+
    GeantVolumeBasket *basket = 0;
 //   Printf("===== PropagateTracks: ntracks=%d nout=%d", ntracks, nout);
    for (Int_t itr=0; itr<ntracks; itr++) {

@@ -18,6 +18,8 @@
 
 #include "tbb/task_scheduler_init.h"
 
+#include <iostream>
+
 PropTask::PropTask (Bool_t inPriority):
    fPriority (inPriority)
 { }
@@ -27,11 +29,27 @@ PropTask::~PropTask () { }
 task* PropTask::execute ()
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
-   tbb::task_scheduler_init init(propagator->fNthreads+1);
+   tbb::task_scheduler_init init(propagator->fNthreads);
    PerThread::reference TBBperThread = propagator->fTBBthreadData.local();
 
-	if (!fPriority) propagator->pnTasksRunning++;
-	else propagator->ppTasksRunning++;
+   if (!fPriority) propagator->pnTasksTotal++;
+   else propagator->ppTasksTotal++;
+
+   Int_t npnTasks;
+   Int_t nppTasks;
+   /*Int_t iter3;
+   Int_t iter4;*/
+   if (propagator->fUseGraphics) {
+	   if (!fPriority) {
+         npnTasks = propagator->pnTasksRunning.fetch_and_increment();
+         /*iter3 = propagator->niter3.fetch_and_increment();
+         propagator->numOfnPropTasks->Fill(iter3, npnTasks+1);*/
+	   } else {
+         nppTasks = propagator->ppTasksRunning.fetch_and_increment();
+         /*iter4 = propagator->niter4.fetch_and_increment();
+         propagator->numOfpPropTasks->Fill(iter4, nppTasks+1);*/
+      }
+   }
 
    WorkloadManager *wm = WorkloadManager::Instance();
    Int_t *particles = TBBperThread.fPartInd->GetArray();
@@ -40,7 +58,10 @@ task* PropTask::execute ()
    Int_t *partcross = TBBperThread.fPartCross->GetArray();
 
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   if (!nav) nav = gGeoManager->AddNavigator();
+   if (!nav) {
+      nav = gGeoManager->AddNavigator();
+      std::cerr << "[PropTask] Added navigator" << std::endl;
+   }
 
    // Pop basket to propagate
    GeantBasket* basket;
@@ -53,8 +74,10 @@ task* PropTask::execute ()
    Int_t ntotransport = basket->GetNtracks();
    if (!ntotransport) Fatal("PropTask", "Empty basket poped");
 
-	if (fPriority) propagator->numOfTracksInPriorBasket->Fill (ntotransport);
-	else propagator->numOfTracksInBasket->Fill (ntotransport);
+   if (propagator->fUseGraphics) {
+	   if (fPriority) propagator->numOfTracksInPriorBasket->Fill (ntotransport);
+	   else propagator->numOfTracksInBasket->Fill (ntotransport);
+   }
 
    TBBperThread.fTracksPerBasket = ntotransport;
 
@@ -183,7 +206,7 @@ task* PropTask::execute ()
    }
 
    // Check whether any priority events have finished
-   if (propagator->fPrioritize && numOfFinishedEvents) {
+   if ((propagator->fPriorityRange[0] > -1) && numOfFinishedEvents) {
       Int_t first_not_transported = -1;
       for (Int_t evn=0; evn<propagator->fNtotal; evn++) {
          if (propagator->fEventsStatus[evn] == 0) {
@@ -193,12 +216,10 @@ task* PropTask::execute ()
       }
       if (first_not_transported > propagator->fPriorityRange[1]) {
          Printf ("Stopping priority regime.");
-         propagator->fPrioritize = kFALSE;
          propagator->SetPriorityRange(-1, -1);
       } else if (first_not_transported== -1) {
          Printf ("first_not_transported = -1");
          Printf ("Stopping priority regime.");
-         propagator->fPrioritize = kFALSE;
          propagator->SetPriorityRange(-1, -1);
       }
    }
@@ -229,7 +250,7 @@ propagator->fPropTaskLock.Lock ();			// CRITICAL SECTION begin
    propagator->fTracksWaiting += numOfTracksInResultColl;
 
 	// Non-priority regime
-   if (!propagator->fPrioritize) {
+   if (propagator->fPriorityRange[0] == -1) {
 	   if (propagator->fTracksWaiting >= propagator->fDispThr) {
 		   nCollsToPop = propagator->fCollsWaiting;
 		   propagator->fCollsWaiting = 0;
@@ -253,14 +274,32 @@ propagator->fPropTaskLock.UnLock ();		// CRITICAL SECTION end
 		cont.set_ref_count(1);
 		CollDispTask& dispTask = *new(cont.allocate_child()) CollDispTask(nCollsToPop);
 
-	   if (!fPriority) propagator->pnTasksRunning--;
-	   else propagator->ppTasksRunning--;
+      if (propagator->fUseGraphics) {
+	      if (!fPriority) {
+            npnTasks = propagator->pnTasksRunning.fetch_and_decrement();
+            /*iter3 = propagator->niter3.fetch_and_increment();
+            propagator->numOfnPropTasks->Fill(iter3, npnTasks-1);*/
+	      } else {
+            nppTasks = propagator->ppTasksRunning.fetch_and_decrement();
+            /*iter4 = propagator->niter4.fetch_and_increment();
+            propagator->numOfpPropTasks->Fill(iter4, nppTasks-1);*/
+         }
+      }
 
 		return &dispTask;
 	}
 
-	if (!fPriority) propagator->pnTasksRunning--;
-	else propagator->ppTasksRunning--;
+   if (propagator->fUseGraphics) {
+      if (!fPriority) {
+         npnTasks = propagator->pnTasksRunning.fetch_and_decrement();
+         /*iter3 = propagator->niter3.fetch_and_increment();
+         propagator->numOfnPropTasks->Fill(iter3, npnTasks-1);*/
+      } else {
+         nppTasks = propagator->ppTasksRunning.fetch_and_decrement();
+         /*iter4 = propagator->niter4.fetch_and_increment();
+         propagator->numOfpPropTasks->Fill(iter4, nppTasks-1);*/
+      }
+   }
 
    return NULL;
 }

@@ -34,7 +34,9 @@ public:
 	  Int_t nel, Float_t dens, Bool_t weight=kFALSE);
    ~TMXsec();
    Float_t Xlength(Int_t part, Float_t en);
+   Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
    Float_t DEdx(Int_t part, Float_t en);
+   Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
    static Bool_t Prune();
    void Print(Option_t * opt="") const;

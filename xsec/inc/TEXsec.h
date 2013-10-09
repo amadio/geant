@@ -65,6 +65,8 @@ public:
 		   Float_t emin, Float_t emax, Int_t nbin) const;
 
    Float_t Lambda(Int_t pindex, Double_t en) const;
+   Bool_t Lambda_v(Int_t npart, const Int_t pindex[], const Double_t en[], Double_t lam[]) const;
+   Bool_t Lambda_v(Int_t npart, Int_t pindex, const Double_t en[], Double_t lam[]) const;
    Int_t SampleReac(Int_t pindex, Double_t en) const;
    
    static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {

@@ -40,6 +40,7 @@ public:
 		    const Float_t length[], const Float_t lensig[]);
    Int_t PDG() const {return fPDG;}
    Float_t XS(Int_t rindex, Double_t en) const;
+   Bool_t XS_v(Int_t npart, Int_t rindex, const Double_t en[], Double_t lam[]) const;
    Float_t DEdx(Double_t en) const;
    Bool_t MS(Double_t en, Float_t &ang, Float_t &asig, 
 	     Float_t &len, Float_t &lsig) const;

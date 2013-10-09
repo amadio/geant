@@ -18,8 +18,6 @@
 class TRandom;
 class TArrayI;
 class TF1;
-class TH1F;
-class TH1S;
 class TH1I;
 class TTree;
 class TFile;
@@ -38,6 +36,14 @@ class WorkloadManager;
 class GeantTrackCollection;
 
 typedef tbb::enumerable_thread_specific<GeantThreadData> PerThread;
+
+#include "tbb/task_scheduler_observer.h"
+class myObserver : public tbb::task_scheduler_observer
+{
+public:
+	void on_scheduler_entry (bool is_worker);
+	void on_scheduler_exit (bool is_worker);
+};
 
 class GeantPropagator
 {
@@ -97,7 +103,6 @@ public:
    static GeantPropagator *fgInstance;
 
 public:
-   tbb::atomic<Bool_t> fPrioritize;
    Bool_t fGarbageCollMode;
 
    Int_t fMinFeeder;
@@ -114,30 +119,46 @@ public:
    TMutex fPropTaskLock;
    TMutex fDispTaskLock;
 
-   tbb::atomic<Int_t> niter;
-   TH1F *hnb;
-   TH1F *htracks;
-
    void SetPriorityRange (Int_t min, Int_t max) { fPriorityRange[0]=min; fPriorityRange[1]=max; }
 
    static void* GlobalObserver (void* arg);
    tbb::concurrent_queue<Int_t> observerSigsQueue;
+	myObserver propObserver;
+
+   tbb::atomic<Int_t> pnTasksTotal;
+   tbb::atomic<Int_t> ppTasksTotal;
+   tbb::atomic<Int_t> dTasksTotal;
+
 	tbb::atomic<Int_t> pnTasksRunning;
 	tbb::atomic<Int_t> ppTasksRunning;
 	tbb::atomic<Int_t> dTasksRunning;
-	TH1S* numOfPNtasks;
-	TH1S* numOfPPtasks;
-	TH1S* numOfDtasks;
-	TH1S* sizeOfFQ;
-	TH1S* sizeOfPFQ;
-	TH1S* sizeOfCQ;
-	TH1S* numOfCollsPerTask;
-	TH1S* numOfTracksInBasket;
-	TH1S* numOfTracksInPriorBasket;
-	TH1S* numOfTracksInColl;
+   tbb::atomic<Int_t> niter;
+   tbb::atomic<Int_t> niter2;
+   tbb::atomic<Int_t> niter3;
+   tbb::atomic<Int_t> niter4;
 
+   // In time
    TH1I* numOfTracksTransportedInTime;
+	TH1I* numOfPNtasks;
+	TH1I* numOfPPtasks;
+	TH1I* numOfDtasks;
+	TH1I* sizeOfFQ;
+	TH1I* sizeOfPFQ;
+	TH1I* sizeOfCQ;
+
+   // In iter
+   TH1I *hnb;
+   TH1I *htracks;
    TH1I* numOfTracksTransportedInIter;
+   /*TH1I* numOfnPropTasks;
+   TH1I* numOfpPropTasks;
+   TH1I* numOfDispTasks;*/
+
+   // Statistics
+	TH1I* numOfCollsPerTask;
+	TH1I* numOfTracksInBasket;
+	TH1I* numOfTracksInPriorBasket;
+	TH1I* numOfTracksInColl;
 
 public:
    GeantPropagator();
