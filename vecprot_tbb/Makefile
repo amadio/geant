@@ -8,8 +8,10 @@ OutPutOpt     = -o # keep whitespace after "-o"
 
 OPT           = -O2
 
-CXX			  = $(shell root-config --cxx)
-LD			  = $(shell root-config --ld)
+#SW: the compiler and linker could be independent of the root one??
+#CXX			  = $(shell root-config --cxx)
+#LD			  = $(shell root-config --ld)
+
 CXXFLAGS      = $(shell root-config --cflags)
 
 ifneq (,$(findstring icc,$(CXX)))
