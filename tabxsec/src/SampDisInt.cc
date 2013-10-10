@@ -562,7 +562,7 @@ G4int SampleOne(G4Material* material,
     G4int berr;
     G4LorentzVector ptest;
     
-    const G4double prec=1e-3;
+    const G4double prec=1e-2;
     checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
     
     if(perr>prec || berr) {
