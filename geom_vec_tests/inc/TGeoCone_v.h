@@ -35,7 +35,8 @@ public:
     virtual void Contains_v(const StructOfCoord & pointi, Bool_t * isin, Int_t np) const;
 #ifdef VEC_EXTENSIONS
 private:
-    virtual void Contains_v4( Vc::double_v const & x , Vc::double_v const & y, Vc::double_v const & z,  Vc::double_m &c1);
+    virtual void Contains_v4( Vc::double_v const & x , Vc::double_v const & y, Vc::double_v const & z,  Vc::double_m &c1) const;
+    virtual void Safety_v4(Vc::double_v const & x , Vc::double_v const & y, Vc::double_v const & z , Bool_t in, Vc::double_v &safety) const;
 public:
 #endif
     virtual void Safety_v(const StructOfCoord &pointi, Bool_t in, Double_t *safety, Int_t np ) const;
