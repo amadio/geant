@@ -48,6 +48,8 @@ public:
   Int_t NEbins() const {return fNEbins;}
   Double_t EilDelta() const {return fEilDelta;}
   
+  Int_t NRpart() const {return fNRpart;}
+  
   Bool_t SampleFS(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, Int_t pid[], Float_t mom[]) const;
   
   static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
@@ -79,7 +81,7 @@ private:
   Double_t       fEilDelta; // Inverse log energy step
   const Double_t *fEGrid;  //! Common energy grid
   Int_t          fNRpart;  // Number of particles with reaction
-  TPFstate      *fPFstate;   // [fNRpart] Cross section table per particle
+  TPFstate      *fPFstate;   // [fNRpart] Final state table per particle
   
   static Int_t   fNLdElems; //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements

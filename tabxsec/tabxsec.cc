@@ -114,9 +114,9 @@ void usage()
   "     -x      generate the cross sections and store them in the file xsec.root" << G4endl <<
   "     -z nun  minimum Z of the material to treat (default 1)" << G4endl <<
   "     -Z num  maximum Z of the material to treat (default 100)" << G4endl <<
-  "     -k ene  minimum kinetic energy in GeV (default 1e-9)" << G4endl <<
+  "     -k ene  minimum kinetic energy in GeV (default 1e-8)" << G4endl <<
   "     -K ene  maximum kinetic energy in GeV (default 1e4)" << G4endl <<
-  "     -n num  number of energy bins (default 1000)" << G4endl <<
+  "     -n num  number of energy bins (default 100)" << G4endl <<
   "     -i      interactive graphics mode" << G4endl;
 }
 
@@ -144,9 +144,9 @@ int main(int argc,char** argv)
   G4bool xsecs=FALSE;
   G4int zmin = 1;
   G4int zmax = 100;
-  G4float emin = 1e-9;
+  G4float emin = 1e-8;
   G4float emax = 1e4;
-  G4int nbins = 1000;
+  G4int nbins = 100;
   /* getopt stuff */
   int c;
   int opterr = 0;
