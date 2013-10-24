@@ -137,11 +137,11 @@ void TGeoCone_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
 //_____________________________________________________________________________                                                                                                     
 void TGeoCone_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t np) const
 {
-    static vd vfDz(fDz);
-    static vd vfRmin1(fRmin1);
-    static vd vfRmin2(fRmin2);
-    static vd vfRmax1(fRmax1);
-    static vd vfRmax2(fRmax2);
+    vd const vfDz(fDz);
+    vd const vfRmin1(fRmin1);
+    vd const vfRmin2(fRmin2);
+    vd const vfRmax1(fRmax1);
+    vd const vfRmax2(fRmax2);
     
     Vc::double_m particleinside;
     
@@ -222,10 +222,10 @@ void TGeoCone_v::Safety_v(const StructOfCoord & pointi, Bool_t in, Double_t * sa
     
     //Vc implementation
     vd const vfRmin1(fRmin1);
-    static vd vfRmin2(fRmin2);
-    static vd vfRmax1(fRmax1);
-    static vd vfRmax2(fRmax2);
-    static vd vfDz(fDz);
+    vd const vfRmin2(fRmin2);
+    vd const vfRmax1(fRmax1);
+    vd const vfRmax2(fRmax2);
+    vd const vfDz(fDz);
     
     Vc::double_m particleinside;
     int vectorsize=Vc::double_v::Size;
@@ -252,6 +252,32 @@ void TGeoCone_v::Safety_v(const StructOfCoord & pointi, Bool_t in, Double_t * sa
             safety[i+k]=csaf[TMath::LocMin(4,csaf)]; 
             
         }
+        
+        /*START*/
+        vd particlesafety;
+        vd r=Vc::sqrt(x*x+y*y);
+        vd saf[4];
+        Vc::double_v return_val(Vc::Zero);
+        
+        geoShapeSafetySeg(r,z, vfRmin1, -vfDz, vfRmax1, -vfDz, !in, return_val);
+        saf[0] = return_val;
+        geoShapeSafetySeg(r,z, vfRmax2, vfDz, vfRmin2, vfDz, !in, return_val);
+        saf[1] = return_val;
+        geoShapeSafetySeg(r,z, vfRmin2, vfDz, vfRmin1, -vfDz, !in, return_val);
+        saf[2] = return_val;
+        geoShapeSafetySeg(r,z, vfRmax1, -vfDz, vfRmax2, vfDz, !in, return_val);
+        saf[3] = return_val;
+        
+        for(int k=0;k<Vc::double_v::Size; k++)
+        {
+            double result[4]={saf[0][k],saf[1][k], saf[2][k], saf[3][k]};
+            particlesafety[k]=saf[TMath::LocMin(4, result)][k];
+        }
+        
+        for(unsigned int j=0;j<Vc::double_v::Size;++j) safety[i+j]= particlesafety[j];
+        
+        /*END*/
+        
     }
     
     // do the tail part for the moment, we just call the old static version
@@ -334,8 +360,8 @@ const{
 //_____________________________________________________________________________
 void TGeoConeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t np) const
 {
-    static vd vfPhi1(fPhi1);
-    static vd vfPhi2(fPhi2);
+    vd const vfPhi1(fPhi1);
+    vd const vfPhi2(fPhi2);
     int vectorsize=Vc::double_v::Size;
     int tailsize =np % vectorsize;
     Vc::double_m particleinside;
@@ -453,8 +479,8 @@ void TGeoConeSeg_v::Safety_v4(Vc::double_v const & x , Vc::double_v const & y, V
 void TGeoConeSeg_v::Safety_v(const StructOfCoord & pointi, Bool_t in, Double_t * safety, Int_t np ) const
 {
     //Vc implementation
-    static vd vfPhi1(fPhi1);
-    static vd vfPhi2(fPhi2);
+    vd const vfPhi1(fPhi1);
+    vd const vfPhi2(fPhi2);
     int vectorsize=Vc::double_v::Size;
     int tailsize =np % vectorsize;
     
