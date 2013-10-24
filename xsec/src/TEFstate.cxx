@@ -1,9 +1,9 @@
-#include <TAxis.h>
-#include <TCanvas.h>
-#include <TEFstate.h>
-#include <TFile.h>
-#include <TGraph.h>
-#include <TH1F.h>
+#include "TAxis.h"
+#include "TCanvas.h"
+#include "TEFstate.h"
+#include "TFile.h"
+#include "TGraph.h"
+#include "TH1F.h"
 #include <TLine.h>
 #include <TMath.h>
 #include <TMultiGraph.h>
@@ -41,7 +41,7 @@ TEFstate::TEFstate():
 }
 
 //___________________________________________________________________
-TEFstate::TEFstate(Int_t z, Int_t a, Float_t dens, Int_t np):
+TEFstate::TEFstate(Int_t z, Int_t a, Float_t dens):
    TNamed(TPartIndex::I()->EleSymb(z),TPartIndex::I()->EleName(z)),
    fEle(z*10000+a*10),
    fDens(dens),
@@ -51,7 +51,7 @@ TEFstate::TEFstate(Int_t z, Int_t a, Float_t dens, Int_t np):
    fNEbins(TPartIndex::I()->NEbins()),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
-   fNRpart(np),
+   fNRpart(TPartIndex::I()->NPartReac()),
    fPFstate(new TPFstate[fNRpart])
 {
 }
@@ -82,10 +82,18 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t w
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::SampleFS(Int_t pindex, Double_t en, Int_t preac,
-			 Float_t& kerma, Int_t &npart, Int_t pid[], Float_t mom[]) const {
+Bool_t TEFstate::SampleReac(Int_t pindex, Double_t en, Int_t preac,
+			 Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *mom) const {
    return fPFstate[pindex].SampleReac(preac,en,kerma,npart,pid,mom);
 }
+
+//___________________________________________________________________
+Bool_t TEFstate::GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs,
+                              Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *mom) const
+{
+  return fPFstate[pindex].GetReac(en,preac,ifs,kerma,npart,pid,mom);
+}
+
 
 //___________________________________________________________________
 TEFstate *TEFstate::GetElement(Int_t z, Int_t a, TFile* f) {

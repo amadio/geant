@@ -175,7 +175,7 @@ int main(int argc,char** argv)
       verbose=atoi(optarg);
       break;
     case 'E':
-      sscanf(optarg,"%fl",&evEnergy);
+      sscanf(optarg,"%lfl",&evEnergy);
       break;
     case 'k':
       sscanf(optarg,"%fl",&emin);
@@ -611,13 +611,19 @@ int main(int argc,char** argv)
       G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
       GetNavigatorForTracking();
       TList *allElements = new TList();
-      TList *allFstates = new TList();
       TEXsec *mxsec=0;
       TEFstate *mfstate=0;
       Int_t totfs=0;
       Int_t curfs=0;
       TFinState *vecfs=0;
             
+      TFile *fh = 0;
+      
+      if(nsample) {
+        fh = new TFile("fstate.root","recreate");
+        fh->SetCompressionLevel(0);
+      }
+      
       for(G4int imat=0; imat<nmaterials; ++imat) {
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
         pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -639,8 +645,7 @@ int main(int argc,char** argv)
         allElements->Add(mxsec =
                          new TEXsec(mat->GetZ(),amat,dens,npreac));
         if(nsample)
-          allFstates->Add(mfstate =
-                          new TEFstate(mat->GetZ(),amat,dens,npreac));
+          mfstate = new TEFstate(mat->GetZ(),amat,dens);
         
         G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
         printf("Material = %s density = %g, natoms/cm3 = %g\n",
@@ -790,6 +795,7 @@ int main(int argc,char** argv)
                              (const char *) mat->GetName(),
                              en/GeV);
                       SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[nbins*nprxs+j]);
+ //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                     }
                     if(curfs != nbins*nprxs+j) {
                       printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
@@ -1096,7 +1102,20 @@ int main(int argc,char** argv)
             ++npr; // Total number of processes to calculate size
             ++kpreac; // number particle with processes
             if(nsample) { // We have been requested for sampling final states
-              // Trim vecfs -- Ugly till I find a better way...
+ /*             if(partindex==32) {
+                printf("Storing for protons ns %d nprxs %d\n", nsample, nprxs);
+                for(G4int i=0; i<nprxs; ++i) {
+                  printf("Reaction %d %s\n",i,TPartIndex::I()->ProcName(pdic[i]));
+                }
+                for(G4int j=0; j<nprxs; ++j) {
+                  for(G4int i=0; i<nbins; ++i) {
+                    printf("%s %f ",TPartIndex::I()->ProcName(pdic[j]),TPartIndex::I()->EGrid()[i]);
+                    vecfs[nbins*j+i].Print();
+                  }
+                }
+              }
+  */
+             // Trim vecfs -- Ugly till I find a better way...
               TFinState * newvfs = new TFinState[nprxs*nbins];
               for(G4int ifs=0; ifs<nprxs*nbins; ++ifs) {
                 newvfs[ifs]=vecfs[ifs];
@@ -1111,6 +1130,11 @@ int main(int argc,char** argv)
           printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
           exit(1);
         }
+        if(nsample) {
+          fh->cd();
+          mfstate->Write();
+          delete mfstate;
+        }
       } // end of material loop
       
       // Write all cross sections
@@ -1124,9 +1148,6 @@ int main(int argc,char** argv)
         fh->Close();
       }
       if(nsample) {
-        TFile *fh = new TFile("fstate.root","recreate");
-        fh->SetCompressionLevel(0);
-        allFstates->Write();
         fh->Write();
         fh->Close();
       }

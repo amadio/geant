@@ -1,4 +1,4 @@
-#include <TFinState.h>
+#include "TFinState.h"
 #include <TRandom.h>
 
 Int_t TFinState::fVerbose=0;
@@ -139,7 +139,7 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, Int_t pid[], Float_t mom[]) const
+Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, const Int_t *pid, const Float_t *mom) const
 {
   Double_t eta = gRandom->Rndm();
   Int_t finstat = fNFstates-1;
@@ -152,7 +152,33 @@ Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, Int_t pid[], Float_t 
   for(Int_t i=0; i<finstat-1; ++i) ipoint+=fNpart[i];
   npart = fNpart[finstat];
   kerma = fKerma[finstat];
-  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
-  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+//  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
+//  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+  pid = &fPID[ipoint];
+  mom = &fMom[3*ipoint];
   return fSurv[finstat];
 }
+
+//_________________________________________________________________________
+Bool_t TFinState::GetReac(Int_t finstat, Float_t& kerma, Int_t& npart, const Int_t *&pid, const Float_t *mom) const
+{
+  if(!fNFstates) {
+    kerma = 0;
+    npart = 0;
+    pid = 0;
+    mom = 0;
+    return kFALSE;
+  } else {
+    Int_t ipoint = 0;
+    for(Int_t i=0; i<finstat-1; ++i) ipoint+=fNpart[i];
+    npart = fNpart[finstat];
+    kerma = fKerma[finstat];
+    //  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
+    //  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+    pid = &fPID[ipoint];
+    mom = &fMom[3*ipoint];
+    return fSurv[finstat];
+  }
+}
+
+

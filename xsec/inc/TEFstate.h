@@ -22,8 +22,8 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TNamed.h>
-#include <TPartIndex.h>
+#include "TNamed.h"
+#include "TPartIndex.h"
 class TFile;
 class TGraph;
 class TPFstate;
@@ -33,7 +33,7 @@ class TEFstate : public TNamed {
 public:
   
   TEFstate();
-  TEFstate(Int_t z, Int_t a, Float_t dens, Int_t np);
+  TEFstate(Int_t z, Int_t a, Float_t dens);
   ~TEFstate();
   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[]);
@@ -50,7 +50,8 @@ public:
   
   Int_t NRpart() const {return fNRpart;}
   
-  Bool_t SampleFS(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, Int_t pid[], Float_t mom[]) const;
+  Bool_t SampleReac(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *mom) const;
+  Bool_t GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *mom) const;
   
   static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
     return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;

@@ -156,6 +156,8 @@ int SampDisInt(G4Material* material,
   G4int ntotp = 0;
   for(G4int i=0; i<nevt; ++i) ntotp+=fstat[i].npart;
   
+//  printf("Total particles %d\n",ntotp);
+  
   if(ntotp) {
     G4int *npart = new G4int[nevt];
     G4float *kerma = new G4float[nevt];
@@ -181,6 +183,7 @@ int SampDisInt(G4Material* material,
     }
     
     fs.SetFinState(nevt, weight, kerma, npart, tmom, tpid, surv);
+//    fs.Print();
     
     delete [] npart;
     delete [] kerma;
@@ -479,7 +482,7 @@ G4int SampleOne(G4Material* material,
   if(n) if((G4String("hIoni") == pname) || (G4String("ionIoni") == pname)
            || (G4String("eIoni") == pname) || (G4String("phot") == pname)
            || (G4String("compt") == pname)) {
-    // the electron is NOT produced... ;-)
+    // the electron is NOT produced in the collision ... ;-)
     pcons[3]+=G4ParticleTable::GetParticleTable()->FindParticle("e-")->GetPDGMass();
     porig[3]+=G4ParticleTable::GetParticleTable()->FindParticle("e-")->GetPDGMass();
   }
@@ -593,16 +596,23 @@ G4int SampleOne(G4Material* material,
         G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl
         <<"Dubious E/p/B balance " << setiosflags(ios::scientific) << setprecision(2) << perr
         << " / dB " << berr
-        << " p=" << setiosflags(ios::fixed) << setprecision(6) << ptest << " for "
+        << " delta p=" << setiosflags(ios::fixed) << setprecision(6) << ptest << " for "
         << pname << " of "
         << dpart->GetParticleDefinition()->GetParticleName() << " @ "
         << dpart->Get4Momentum() << " on "
         << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" << G4endl
-        << "  O   :"
-        << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
-        << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
-        << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
-        << " p:" << gTrack->GetDynamicParticle()->Get4Momentum() << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
+//        << "  Out   :"
+//        << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
+//        << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
+//        << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
+//        << " p:" << gTrack->GetDynamicParticle()->Get4Momentum() << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
+        
+        << "  Out   :"
+        << setiosflags(ios::left) << setw(10) << step->GetTrack()->GetParticleDefinition()->GetParticleName()
+        << " (" << setiosflags(ios::right) << setw(6) << step->GetTrack()->GetParticleDefinition()->GetPDGEncoding() << ") " << setw(0)
+        << " Z:" << step->GetTrack()->GetParticleDefinition()->GetAtomicNumber() << " B:" << step->GetTrack()->GetParticleDefinition()->GetBaryonNumber()
+        << " p:" << G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy()) << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
+        
         << "Particles generated:" << G4endl;
         for(G4int i=0; i<n; ++i) {
           
@@ -618,20 +628,23 @@ G4int SampleOne(G4Material* material,
         G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
       }
       
-      for(G4int i=0; i<n; ++i) {
-        G4ParticleDefinition *pd = secs[i].GetDefinition();
-        G4int enc = pd->GetPDGEncoding();
-        G4int g5pid = TPartIndex::I()->PartIndex(enc);
-        if(g5pid<0) {
-          fs.kerma+=secs[i].GetTotalEnergy();
-        } else {
-          G4int ip=fs.npart;
-          fs.pid[ip] = g5pid;
-          fs.mom[3*ip]   = secs[i].Get4Momentum()[0];
-          fs.mom[3*ip+1] = secs[i].Get4Momentum()[1];
-          fs.mom[3*ip+2] = secs[i].Get4Momentum()[2];
-          ++fs.npart;
-        }
+    }
+    for(G4int i=0; i<n; ++i) {
+      G4ParticleDefinition *pd = secs[i].GetDefinition();
+      G4int enc = pd->GetPDGEncoding();
+      G4int g5pid = 0;
+      if(enc>1000000000 && enc<2000000000) g5pid = enc;
+      else g5pid = TPartIndex::I()->PartIndex(enc);
+      if(g5pid<0) {
+        // If there is Ion we put it in the output stack. However we have to handle it afterwards...
+        fs.kerma+=secs[i].GetKineticEnergy();
+      } else {
+        G4int ip=fs.npart;
+        fs.pid[ip] = g5pid;
+        fs.mom[3*ip]   = secs[i].Get4Momentum()[0];
+        fs.mom[3*ip+1] = secs[i].Get4Momentum()[1];
+        fs.mom[3*ip+2] = secs[i].Get4Momentum()[2];
+        ++fs.npart;
       }
     }
   }
