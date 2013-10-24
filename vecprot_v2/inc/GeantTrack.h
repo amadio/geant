@@ -1,7 +1,7 @@
 #ifndef GEANT_TRACK
 #define GEANT_TRACK
 
-#include "globals.h"
+//#include "globals.h"
 #include "TMath.h"
 #include "TBits.h"
 
@@ -25,6 +25,8 @@ enum TransportAction_t {
    kSingle   = 1,   // perform remaining loop in single track mode
    kVector   = 2    // perform remaining loop in vectorized mode
 };   
+// types
+enum Species_t {kHadron, kLepton};
 
 // Rounding up the desired allocation value to the closest padding multiple
 int round_up_align(int num)
@@ -77,7 +79,7 @@ public:
 
    Double_t           Beta()  const {return fP/fE;}
    Int_t              Charge() const {return fCharge;}
-   Double_t           Curvature() const {return (fCharge)?TMath::Abs(kB2C*gPropagator->fBmag/Pt()):0.;}
+   Double_t           Curvature() const;
    const Double_t    *Direction() const {return &fXdir;}
    Double_t           DirX() const {return fXdir;}
    Double_t           DirY() const {return fYdir;}
@@ -114,13 +116,10 @@ public:
    Double_t           PosY() const {return fYpos;}
    Double_t           PosZ() const {return fZpos;}
    void               Print(Int_t trackindex=0) const;
-   Bool_t             PropagateInFieldSingle(Double_t step, Bool_t checkcross, Int_t itr);
-   GeantVolumeBasket *PropagateInField(Double_t step, Bool_t checkcross, Int_t itr);
-   GeantVolumeBasket *PropagateStraight(Double_t step, Int_t itrack);
    Species_t          Species() const {return fSpecies;}
    TrackStatus_t      Status() const  {return fStatus;}
    
-   void               Reset();
+   virtual void       Clear(Option_t *option="");
    Double_t           X() const {return fXpos;}
    Double_t           Y() const {return fYpos;}
    Double_t           Z() const {return fZpos;}
@@ -136,7 +135,20 @@ public:
    void               SetProcess(Int_t process) {fProcess = process;}
    void               SetIzero(Int_t izero) {fIzero = izero;}
    void               SetNsteps(Int_t nsteps) {fNsteps = nsteps;}
-        
+   void               SetSpecies(Species_t   species) {fSpecies = species;}
+   void               SetStatus(TrackStatus_t &status) {fStatus = status;}
+   void               SetMass(Double_t mass) {fMass = mass;}
+   void               SetPosition(Double_t x, Double_t y, Double_t z) {fXpos=x; fYpos=y; fZpos=z;}
+   void               SetDirection(Double_t dx, Double_t dy, Double_t dz) {fXdir=dx; fYdir=dy; fZdir=dz;}
+   void               SetP(Double_t p) {fP=p;}
+   void               SetE(Double_t e) {fE = e;}
+   void               SetPstep(Double_t pstep) {fPstep = pstep;}
+   void               SetSnext(Double_t snext) {fSnext = snext;}
+   void               SetSafety(Double_t safety) {fSafety = safety;}
+   void               SetFrombdr(Bool_t flag) {fFrombdr = flag;}
+   void               SetPending(Bool_t flag) {fPending = flag;}
+   void               SetPath(TGeoBranchArray *path);
+   void               SetNextPath(TGeoBranchArray *path);
    
    ClassDef(GeantTrack, 1)      // The track
 };
@@ -144,7 +156,7 @@ public:
 //______________________________________________________________________________
 // SOA for GeantTrack used at processing time
 
-struct GeantTrack_v {
+class GeantTrack_v {
 public:
    Int_t     fNtracks;    // number of tracks contained
    Int_t     fMaxtracks;  // max size for tracks
@@ -243,7 +255,7 @@ public:
    void      SwapTracks(Int_t i, Int_t j);
 // Track methods
    Double_t           Beta(Int_t i)  const {return fPV[i]/fEV[i];}
-   Double_t           Curvature(Int_t i) const {return (fChargeV[i])?TMath::Abs(kB2C*gPropagator->fBmag/Pt(i)):0.;}
+   Double_t           Curvature(Int_t i) const;
    Double_t           Gamma(Int_t i) const {return fMassV[i]?fEV[i]/fMassV[i]:TMath::Limits<double>::Max();}
    Double_t           Px(Int_t i) const {return fPV[i]*fXdirV[i];}
    Double_t           Py(Int_t i) const {return fPV[i]*fYdirV[i];}

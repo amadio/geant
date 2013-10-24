@@ -15,7 +15,7 @@ const Double_t gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
 GeantVolumeBaskets::GeantVolumeBasket(TGeoVolume *vol, Int_t number)
-                  :TObject(),
+                  :TGeoExtension(),
                    fVolume(vol),
                    fNumber(number),
                    fThreshold(0),
@@ -38,6 +38,31 @@ GeantVolumeBaskets::~GeantVolumeBaskets()
    delete fCBasket;
    delete fPBasket;
 }   
+
+//______________________________________________________________________________
+Int_t GeantVolumeBaskets::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority)
+{
+// Copy directly from a track_v a track to the basket manager.
+   GeantBasket *basket = 0;
+   if (priority) {
+      if (!fPBasket) fPBasket = GetNextBasket();
+      fPBasket->AddTrack(trackv, itr);
+      if (fPBasket->GetNinput() >= fThreshold) {
+         fFeeder->push(fPBasket, priority);
+         fPBasket = GetNextBasket();
+         return 1;
+      }
+   } else {
+      if (!fCBasket) fCBasket = GetNextBasket();
+      fCBasket->AddTrack(trackv, itr);
+      if (fCBasket->GetNinput() >= fThreshold) {
+         fFeeder->push(fCBasket, priority);
+         fCBasket = GetNextBasket();
+         return 1;
+      }
+   }
+   return 0;
+}
 
 //______________________________________________________________________________
 Int_t GeantVolumeBaskets::AddTrack(const GeantTrack &track, Bool_t priority)
@@ -68,22 +93,58 @@ Int_t GeantVolumeBaskets::AddTrack(const GeantTrack &track, Bool_t priority)
 }      
 
 //______________________________________________________________________________
-Int_t GeantVolumeBaskets::Flush()
+Int_t GeantVolumeBaskets::CollectPrioritizedTracks(Int_t evmin, Int_t evmax)
+{
+// Move current basket tracks to priority one. 
+// *** NONE *** This should be done for all basket managers only once when 
+// starting prioritizing an event range.
+   GeantTrack_v &tracks = fPBasket->GetInputTracks();
+   Int_t ntracks = tracks.GetNtracks();
+   for (Int_t itr=0; itr<ntracks; itr++) {
+      if (tracks.fEvent[itr]>=evmin && tracks.fEvent[itr]<=evmax) {
+         fCBasket->GetInputTracks().AddTracks(tracks, 0, ntracks-1);
+         tracks.Clear();
+         if (fCBasket->GetNinput() >= fThreshold) {
+            fFeeder->push(fCBasket, priority);
+            fCBasket = GetNextBasket();
+            return 1;
+         }
+         return 0;
+      }
+   }
+   return 0;
+}      
+
+//______________________________________________________________________________
+Int_t GeantVolumeBaskets::FlushPriorityBasket()
 {
 // Flush the baskets containing tracks. Returns the number of dispatched baskets.
-   Int_t ndispatched = 0;
    if (fPBasket && fPBasket->GetNinput()) {
       fFeeder->push(fPBasket, kTRUE);
       fPBasket = GetNextBasket();
-      ndispatched++;
+      return 1;
    }
-   if (fCBasket && fCBasket->GetNinput()) {
+   return 0;
+}
+
+//______________________________________________________________________________
+Int_t GeantVolumeBaskets::GarbageCollect()
+{
+// Copy all priority tracks to the current basket and flush to queue
+   GeantTrack_v &tracks = fPBasket->GetInputTracks();
+   Int_t ntracks = tracks.GetNtracks();
+   // Copy prioritized tracks to current basket
+   if (ntracks) {
+      fCBasket->GetInputTracks().AddTracks(tracks, 0, ntracks-1);
+      tracks.Clear();
+   }
+   if (fCBasket->GetNinput()) {
       fFeeder->push(fCBasket, kFALSE);
       fCBasket = GetNextBasket();
-      ndispatched++;
+      return 1;
    }
-   return ndispatched;
-}
+   return 0;
+}   
 
 //______________________________________________________________________________
 GeantBasket *GeantVolumeBaskets::GetNextBasket()

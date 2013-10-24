@@ -17,6 +17,7 @@
 #include "GeantOutput.h"
 #include "GeantThreadData.h"
 #include "PhysicsProcess.h"
+#include "GeantScheduler.h"
 
 ClassImp(WorkloadManager)
 
@@ -35,33 +36,23 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fNqueued = 0;
    fBtogo = 0;
    fStarted = kFALSE;
-   answer_queue = new concurrent_queue();
-   feeder_queue = new concurrent_queue(true);
-   empty_queue = new concurrent_queue;
-   collector_queue = new concurrent_queue();
-   collector_empty_queue = new concurrent_queue();
-   for (Int_t i=0; i<nthreads; i++) collector_empty_queue->push(new GeantTrackCollection(100));
-   fStarted = kFALSE;
+   fFeederQ = new dcqueue<GeantBasket>();
+   fTransportedQ = new dcqueue<GeantBasket>();
+   fDoneQ = new dcqueue<GeantBasket>();
    fgInstance = this;
-   fCurrentBasket = new GeantVolumeBasket*[nthreads];
    fListThreads = 0;
-   fBasketArray = 0;
    fFlushed = kFALSE;
    fFilling = kFALSE;
+   fScheduler = 0;
 }
 
 //______________________________________________________________________________
 WorkloadManager::~WorkloadManager()
 {
 // Destructor.
-   delete answer_queue;
-   delete feeder_queue;
-   delete empty_queue;
-   delete [] fCurrentBasket;
-   if (fBasketArray) {
-      for (Int_t i=0; i<fNbaskets; i++) delete fBasketArray[i];
-      delete [] fBasketArray;
-   }   
+   delete fFeederQ;
+   delete fTransportedQ;
+   delete fDoneQ;
    fgInstance = 0;
 }
 
@@ -70,16 +61,19 @@ void WorkloadManager::CreateBaskets(Int_t nvolumes)
 {
 // Create the array of baskets
    if (fBasketArray) return;
-   fBasketArray = new GeantVolumeBasket*[nvolumes];
+   fBasketArray = new GeantVolumeBaskets*[nvolumes];
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
-   GeantVolumeBasket *basket;
+   GeantVolumeBaskets *basket_mgr;
    Int_t icrt = 0;
    while ((vol=(TGeoVolume*)next())) {
-      basket = new GeantVolumeBasket(vol, icrt++);
-      vol->SetField(basket);
-      AddBasket(basket);
+      basket_mgr = new GeantVolumeBaskets(vol, icrt++);
+      vol->SetFWExtension(basket_mgr);
+      basket_mgr->SetFeederQueue(fFeederQ);
+      AddBasket(basket_mgr);
    }
+   fScheduler = new GeantScheduler();
+   fScheduler->CreateBaskets(nvolumes);
 }
    
 //______________________________________________________________________________
@@ -98,16 +92,7 @@ WorkloadManager *WorkloadManager::Instance(Int_t nthreads)
 void WorkloadManager::Print(Option_t *option) const
 {
 //
-   feeder_queue->Print();
 }   
-
-//______________________________________________________________________________
-void WorkloadManager::AddEmptyBaskets(Int_t nb)
-{
-// Add empty baskets in the queue.
-   for (Int_t i=0; i<nb; i++) empty_queue->push(new GeantBasket(10));
-   Printf("Added %d empty baskets to the queue", nb);
-}
 
 //______________________________________________________________________________
 void WorkloadManager::StartThreads()
@@ -132,7 +117,7 @@ void WorkloadManager::StartThreads()
 void WorkloadManager::JoinThreads()
 {
 // 
-   for (Int_t ith=0; ith<fNthreads; ith++) feeder_queue->push(0);
+   for (Int_t ith=0; ith<fNthreads; ith++) fFeederQ->push(0);
    for (Int_t ith=0; ith<fNthreads; ith++) ((TThread*)fListThreads->At(ith))->Join();
    // Join garbage collector
    ((TThread*)fListThreads->At(fNthreads))->Join();
@@ -145,9 +130,9 @@ void WorkloadManager::WaitWorkers()
    fFilling = kFALSE;
    Int_t ntowait = fNthreads+1;
    while(ntowait) {
-      answer_queue->wait_and_pop();
+      fDoneQ->wait_and_pop();
       ntowait--;
-//      Printf("Worker %d finished", ipop);
+      Printf("=== %d workers finished", fNthreads+1-ntowait);
    }
 //   fBasketGeneration++;
 }
@@ -169,10 +154,8 @@ void *WorkloadManager::MainScheduler(void *)
    TBits finished(max_events);
    Bool_t prioritize = kFALSE;
    WorkloadManager *wm = WorkloadManager::Instance();
-   concurrent_queue *feeder_queue = wm->FeederQueue();
-   concurrent_queue *empty_queue = wm->EmptyQueue();
-   concurrent_queue *collector_queue = wm->CollectorQueue();
-   concurrent_queue *collector_empty_queue = wm->CollectorEmptyQueue();
+   dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
+   dcqueue<GeantBasket> *transportedQ = wm->TransportedQueue();
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
    // Number of collectors available
@@ -181,14 +164,12 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t nempty = 0;
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
-   Int_t min_feeder = TMath::Max(50,2*propagator->fNthreads); // setter/getter here ?
+   Int_t min_feeder = TMath::Max(50,2*nworkers); // setter/getter here ?
    // Number of tracks in the current basket
 //   Int_t ntracksb = 0;
    Int_t nbaskets = wm->GetNbaskets();
    // Number of priority baskets
    Int_t npriority;
-   // Main scheduler
-   GeantMainScheduler *main_sch = new GeantMainScheduler(nbaskets); 
    TH1F *hnb=0, *hworkers=0, *htracks=0;
    TCanvas *c1 = 0;
    TPad *pad1=0, *pad2=0, *pad3=0;
@@ -198,9 +179,12 @@ void *WorkloadManager::MainScheduler(void *)
    if (graphics) {
       hnb = new TH1F("hnb","number of baskets in the transport queue; iteration#",200000,0,200000);
       hnb->SetFillColor(kRed);
+      hnb->SetLineColor(0);
       hworkers = new TH1F("hworkers","number of active workers; iteration#",200000,0,200000);
+      hworkers->SetLineColor(0);
       hworkers->SetFillColor(kBlue);
       htracks = new TH1F("htracks","number of tracks/basket; iteration#",200000,0,200000);
+      htracks->SetLineColor(0);
       htracks->SetFillColor(kGreen);
    }      
    Int_t niter = -1;
@@ -209,9 +193,9 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t ninjected = 0;
    Int_t nwaiting = 0;
    Int_t nnew = 0;
-   GeantTrackCollection *collector;
-   TObject **carray = new TObject*[500];
-   while ((collector = (GeantTrackCollection*)collector_queue->wait_and_pop_max(500,npop,carray))) {
+   GeantBasket *output;
+   TObject **carray = new GeantBasket*[500];
+   while ((output = (GeantBasket*)transportedQ->wait_and_pop_max(500,npop,carray))) {
       // Monitor the queues while there are tracks to transport
       niter++;
       ninjected = 0;

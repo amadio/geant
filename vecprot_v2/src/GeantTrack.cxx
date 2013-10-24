@@ -6,7 +6,7 @@
 #include "TGeoHelix.h"
 #include "GeantTrack.h"
 #include "GeantThreadData.h"
-#include "WorkloadManager.h"
+//#include "WorkloadManager.h"
 #include "GeantScheduler.h"
 
 #ifdef __INTEL_COMPILER
@@ -207,7 +207,7 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
 }
 
 //______________________________________________________________________________
-void GeantTrack::Reset()
+void GeantTrack::Clear(Option_t *)
 {
 // Resets track content.
    fEvent = -1;
@@ -236,6 +236,28 @@ void GeantTrack::Reset()
    fSafety = 0.;
    fFrombdr = false;
    fPending = false;
+}   
+
+//______________________________________________________________________________
+Double_t GeantTrack::Curvature() const
+{
+// Curvature
+   if (fCharge==0) return 0.;
+   return TMath::Abs(kB2C*gPropagator->fBmag/Pt());
+}
+   
+//______________________________________________________________________________
+void GeantTrack::SetPath(TGeoBranchArray *path)
+{
+// Set path.
+   *fPath = *path;
+}   
+
+//______________________________________________________________________________
+void GeantTrack::SetNextPath(TGeoBranchArray *path)
+{
+// Set next path.
+   *fNextpath = *path;
 }   
 
 //______________________________________________________________________________
@@ -1417,6 +1439,14 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
    return icrossed;   
 }
 
+//______________________________________________________________________________
+Double_t GeantTrack_v::Curvature(Int_t i) const
+{
+// Curvature
+   if (fChargeV[i]==0) return 0.;
+   return TMath::Abs(kB2C*gPropagator->fBmag/Pt(i));
+}
+   
 //______________________________________________________________________________
 Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)
 {

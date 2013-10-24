@@ -5,6 +5,10 @@
 #include "TObject.h"
 #endif
 
+#ifndef GEANT_TRACK
+#include "GeantTrack.h"
+#endif
+
 #ifndef ROOT_TMutex
 #include "TMutex.h"
 #endif
@@ -26,10 +30,10 @@ class GeantTrack;
 struct GeantEvent;
 class GeantBasket;
 class GeantOutput;
-class GeantVolumeBasket;
+class GeantVolumeBaskets;
 class WorkloadManager;
-class GeantTrackCollection;
 class GeantThreadData;
+class GeantVApplication;
 
 class GeantPropagator : public TObject
 {
@@ -68,8 +72,8 @@ public:
    TMutex      fTracksLock;  // Mutex for adding tracks
    
    WorkloadManager *fWMgr;   // Workload manager
-   GeantOutput *
-               fOutput;      // Output object
+   GeantVApplication *fApplication; // User application
+  GeantOutput      *fOutput;      // Output object
    
    TF1             *fKineTF1;   //
    TTree           *fOutTree;   // Output tree
@@ -83,7 +87,6 @@ public:
    Int_t           *fNtracks;   //[fNevents] Number of tracks {array of [fNevents]}
    GeantEvent     **fEvents;    //![fNevents]    Array of events
 
-   Int_t           *fTracksPerBasket; //![fNthreads]
    UInt_t          *fWaiting;           //![fNthreads] Threads in waiting flag
    GeantThreadData **fThreadData; //![fNthreads]
    
@@ -93,15 +96,15 @@ public:
    virtual ~GeantPropagator();
    
    // Temporary track for the current caller thread
-   GeantTrack      &GetTempTrack();
+   GeantTrack      &GetTempTrack(Int_t tid=-1);
    Int_t            AddTrack(GeantTrack *track);
-   GeantTrack      *AddTrack(Int_t evslot);
+   Int_t            DispatchTrack(const GeantTrack &track, Bool_t priority=kFALSE);
+   Int_t            DispatchTrack(const GeantTrack_v &track, Int_t itr, Bool_t priority=kFALSE);
    void             StopTrack(GeantTrack *track);
    Int_t            GetElossInd() const {return fElossInd;}
    UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");
-   GeantVolumeBasket *
-                    ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
+   Int_t            ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
    void             Initialize();
    void             InjectCollection(Int_t tid);
    GeantBasket     *InjectBasket(GeantBasket *basket);

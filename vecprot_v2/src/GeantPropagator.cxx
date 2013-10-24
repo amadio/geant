@@ -54,6 +54,8 @@
 #include "GeantVolumeBasket.h"
 #include "WorkloadManager.h"
 #include "GeantThreadData.h"
+#include "GeantVApplication.h"
+#include "GeantFactoryStore.h"
 
 GeantPropagator *gPropagator = 0;
    
@@ -93,6 +95,7 @@ GeantPropagator::GeantPropagator()
                  fSingleTrack(kFALSE),
                  fFillTree(kFALSE),
                  fWMgr(0),
+                 fApplication(0),
                  fOutput(0),
                  fKineTF1(0),
                  fOutTree(0),
@@ -135,50 +138,47 @@ GeantPropagator::~GeantPropagator()
    delete fOutFile;
    delete fTimer;
    delete fWMgr;
+   delete fApplication;
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::AddTrack(GeantTrack *track)
+Int_t GeantPropagator::AddTrack(GeantTrack &track)
 {
-// Add a new track in the system.
-   TThread::Lock();
-   Int_t slot = track->evslot;
-   Int_t itrack = fMaxPerEvent*slot+fNtracks[slot];
-   track->particle = itrack;
-   fEvents[slot]->AddTrack();
-//   Int_t tid = TGeoManager::ThreadId();
-   fTracks[itrack] = track;
-   fNtracks[slot]++;
-   fNtransported++;
-   if (fNtracks[slot]==fMaxPerEvent) {
-      Fatal("AddTrack", "No room to add track");
-   }
-   TThread::UnLock();
-   return itrack;
+// Add a new track in the system. returns track number within the event.
+   Int_t slot = track.fEvslot;
+   track.fParticle = fEvents[slot]->AddTrack();
+//   fNtracks[slot]++;
+//   fNtransported++;
+   return track.fParticle;
 }
 
 //______________________________________________________________________________
-GeantTrack_v *GeantPropagator::AddTrack(Int_t evslot, const TGeoBranchArray &start)
+Int_t GeantPropagator::DispatchTrack(const GeantTrack &track, Bool_t priority)
 {
-// Add a track for the event stored at evslot. The tracks starts in the specified
-// location.
-   Int_t itrack = fMaxPerEvent*evslot+fNtracks[evslot];
-   GeantTrack *track = fTracks[itrack];
-   track->Reset();
-   track->particle = itrack;
-   fEvents[evslot]->AddTrack();
-   fTracksLock.Lock();
-// critical section
-   fNtracks[evslot]++;
-   fNtransported++;
-//   printf("slot %d, track %d = %p\n", evslot, fNtracks[evslot], track);
-// end critical section   
-   fTracksLock.UnLock();
-   if (fNtracks[evslot]==fMaxPerEvent) {
-      Fatal("AddTrack", "No room to add track");
+// Dispatch a registered track produced by the generator.
+   TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
+   TGeoVolumeBaskets *basket_mgr = static_cast<TGeoVolumeExtension*>(vol->GetFWExtension());
+   if (!basket_mgr) {
+      basket_mgr = new GeantVolumeBaskets(vol, vol->GetNumber());
+      vol->SetFWExtension(basket_mgr);
    }
-   return track;
-}
+   return basket_mgr->AddTrack(track, priority);
+}   
+   
+
+//______________________________________________________________________________
+Int_t GeantPropagator::DispatchTrack(const GeantTrack_v &track, Int_t itr, Bool_t priority)
+{
+// Dispatch a registered track from some track_v array. Returns the number of 
+// dispatched baskets. The track fields are already filled.
+   TGeoVolume *vol = track.fPathV[itr]->GetCurrentNode()->GetVolume();
+   TGeoVolumeBaskets *basket_mgr = static_cast<TGeoVolumeExtension*>(vol->GetFWExtension());
+   if (!basket_mgr) {
+      basket_mgr = new GeantVolumeBaskets(vol, vol->GetNumber());
+      vol->SetFWExtension(basket_mgr);
+   }
+   return basket_mgr->AddTrack(track, itr, priority);
+}   
 
 //______________________________________________________________________________
 void GeantPropagator::StopTrack(GeantTrack *track)
@@ -190,31 +190,48 @@ void GeantPropagator::StopTrack(GeantTrack *track)
 }
 
 //______________________________________________________________________________
-GeantTrack &GeantPropagator::GetTempTrack()
+GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
 {
 // Returns a temporary track support for the physics processes, unique per
 // thread which can be used to add tracks produced by physics processes.
-   Int_t tid = TGeoManager::ThreadId();
-   return fThreadData[tid]->fTrack;
+   if (tid<0) tid = TGeoManager::ThreadId();
+   GeantTrack &track = fThreadData[tid]->fTrack;
+   track.Clear();
+   return track;
 }
    
 //______________________________________________________________________________
-GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
+Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
 {
 // Import tracks from "somewhere". Here we just generate nevents.
+   static TGeoBranchArray *a = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantThreadData *td = fThreadData[tid];
-   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   if (!nav) nav = gGeoManager->AddNavigator();
-   TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
-   *td->fMatrix = nav->GetCurrentMatrix();
-   td->fVolume = node->GetVolume();
-   GeantVolumeBasket *basket = (GeantVolumeBasket*)td->fVolume->GetField();
-   TGeoBranchArray a;
-   a.InitFromNavigator(gGeoManager->GetCurrentNavigator());
+   TGeoVolume *vol = 0;
+   if (!a) {
+      a = new TGeoBranchArray();      
+      TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+      if (!nav) nav = gGeoManager->AddNavigator();
+      TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
+      *td->fMatrix = nav->GetCurrentMatrix();
+      vol = node->GetVolume();
+      td->fVolume = vol;
+   } else {
+      TGeoNode *node = a->GetCurrentNode();
+      *td->fMatrix = a->GetMatrix();
+      vol = node->GetVolume();
+      td->fVolume = vol;
+   }     
+   GeantVolumeBaskets *basket_mgr = static_cast<GeantVolumeBaskets*>(vol->GetFWExtension());
+   if (!basket_mgr) {
+      basket_mgr = new GeantVolumeBaskets(vol, vol->GetNumber());
+      vol->SetFWExtension(basket_mgr);
+   }
    
    const Double_t etamin = -3, etamax = 3;
    Int_t ntracks = 0;
+   Int_t ntotal = 0;
+   Int_t ndispatched = 0;
    
    // Species generated for the moment N, P, e, photon
    const Int_t kMaxPart=9;
@@ -233,54 +250,50 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
    Int_t event = startevent;
    for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
       ntracks = td->fRndm->Poisson(average);
+      ntotal += ntracks;
       if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
-      fEvents[slot]->slot = slot;
-      fEvents[slot]->event = event;
+      fEvents[slot]->fSlot = slot;
+      fEvents[slot]->Event = event;
       fEvents[slot]->Reset();
-      fNtracks[slot] = 0;
       
       for (Int_t i=0; i<ntracks; i++) {
-//         TGeoBranchArray *a = new TGeoBranchArray();
-//         a->InitFromNavigator(gGeoManager->GetCurrentNavigator());
-         GeantTrack *track = AddTrack(slot);
-         *track->path = a;
-         *track->nextpath = a;
-         track->event = event;
-         track->evslot = slot;
+         GeantTrack *track = GetTempTrack(tid);
+         track->SetPath(a);
+         track->SetNextPath(a);
+         track->SetEvent(event);
+         track->SetEvslot(slot);
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
-         track->pdg=0;
+         track->SetPDG(0);
          for(Int_t j=0; j<kMaxPart; ++j) {
             if(prob <= pdgProb[j]) {
-               track->pdg = pdgGen[j];
-               track->species = pdgSpec[j];
+               track->SetPDG(pdgGen[j]);
+               track->SetSpecies(pdgSpec[j]);
 //            Printf("Generating a %s",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
                pdgCount[j]++;
                break;
             }
          }   
-         if(!track->pdg) Fatal("ImportTracks","No particle generated!");
-         TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track->pdg);
-         track->charge = part->Charge()/3.;
-         track->mass   = part->Mass();
-         track->xpos = fVertex[0];
-         track->ypos = fVertex[1];
-         track->zpos = fVertex[2];
-         track->e = fKineTF1->GetRandom()+track->mass;
-         Double_t p = TMath::Sqrt((track->e-track->mass)*(track->e+track->mass));
+         if(!track->GetPDG()) Fatal("ImportTracks","No particle generated!");
+         TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track->GetPDG());
+         track->SetCharge(part->Charge()/3.);
+         track->SetMass(part->Mass());
+         track->SetXpos(fVertex[0]);
+         track->SetYpos(fVertex[1]);
+         track->SetZpos(fVertex[2]);
+         track->SetE(fKineTF1->GetRandom()+part->Mass());
+         Double_t p = TMath::Sqrt((track->E()-track->Mass())*(track->E()+track->Mass()));
          Double_t eta = td->fRndm->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
          Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
          //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
          Double_t phi = TMath::TwoPi()*td->fRndm->Rndm();
-         track->px = p*TMath::Sin(theta)*TMath::Cos(phi);
-         track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
-         track->pz = p*TMath::Cos(theta);
-         track->frombdr = kFALSE;
-         Int_t itrack = track->particle;
-	 
-         fCollections[tid]->AddTrack(itrack, basket);
-//         gPropagator->fCollections[tid]->AddTrack(itrack, basket);
-    //     basket->AddTrack(fNstart);
-         fNstart++;
+         track->SetP(p);
+         track->SetXdir(TMath::Sin(theta)*TMath::Cos(phi));
+         track->SetYdir(TMath::Sin(theta)*TMath::Sin(phi));
+         track->SetZdir(TMath::Cos(theta));
+         track->SetFrombdr(kFALSE);
+         
+         fEvents[slot]->AddTrack(track);
+         ndispatched += DispatchTrack(track);
       }
 //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
       event++;
@@ -289,12 +302,25 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          pdgCount[i] = 0;
       }   
    }
-//   Printf("Injecting %d events...", nevents);
-   InjectCollection(tid);      
-   return basket;
+   Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
+           ntotal, startevent, startevent+nevents-1, ndispatched)
+   return ndispatched;
 }
 
+//______________________________________________________________________________
+GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered)
+{
+// Single instance of the propagator
+   if (!fgInstance) fgInstance = new GeantPropagator();
+   if (ntotal) fgInstance->fNtotal = ntotal;
+   if (nbuffered) {
+      fgInstance->fNevents = nbuffered;
+      GeantFactoryStore::Instance(nbuffered);
+   }   
+   return fgInstance;
+}
 
+/*
 //______________________________________________________________________________
 GeantPropagator *GeantPropagator::Instance()
 {
@@ -302,6 +328,7 @@ GeantPropagator *GeantPropagator::Instance()
    if (!fgInstance) fgInstance = new GeantPropagator();
    return fgInstance;
 }
+*/
    
 //______________________________________________________________________________
 void GeantPropagator::Initialize()
@@ -331,31 +358,13 @@ void GeantPropagator::Initialize()
      fNtracks = new Int_t[fNevents];
      memset(fNtracks,0,fNevents*sizeof(Int_t));
    }   
-   if (!fTracks) {
-      fTracks = new GeantTrack*[fMaxTracks];
-      memset(fTracks, 0, fMaxTracks*sizeof(GeantTrack*));
-      // Pre-book tracks (Thanks to olav.smorholm@cern.ch)
-      fTracksStorage.reserve(fMaxTracks);
-      for (Int_t i=0; i<fMaxTracks; i++) {
-         fTracksStorage.push_back(GeantTrack(0));
-         fTracks[i] = &(fTracksStorage.back());
-      }   
-   } 
    
-   if (!fTracksPerBasket) {
-      fTracksPerBasket = new Int_t[fNthreads];    
-      for (Int_t i=0; i<fNthreads; i++) fTracksPerBasket[i] = 0;
-   }   
-   if (!fCollections) {
-      fCollections = new GeantTrackCollection*[fNthreads+1];    
-      for (Int_t i=0; i<fNthreads+1; i++) fCollections[i] = new GeantTrackCollection(100);
-   }
    if (!fWaiting) {
       fWaiting = new UInt_t[fNthreads+1];
       memset(fWaiting, 0, (fNthreads+1)*sizeof(UInt_t));
    }  
    if (!fThreadData) {
-      fThreadData = new GeantThreadData*[fNthreads];
+      fThreadData = new GeantThreadData*[fNthreads+1];
       for (Int_t i=0; i<fNthreads+1; i++) fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
    } 
    fWMgr = WorkloadManager::Instance(fNthreads);
@@ -371,84 +380,52 @@ UInt_t GeantPropagator::GetNwaiting() const
    for (Int_t tid=0; tid<fNthreads; tid++) nwaiting += fWaiting[tid];
    return nwaiting;
 }
-
-//______________________________________________________________________________
-GeantBasket *GeantPropagator::InjectBasket(GeantBasket *basket)
-{
-// Inject basket in the work queue and return a fresh one.
-   if (!basket->GetNtracks()) return basket;
-   GeantBasket *newbasket;
-   if (fWMgr->EmptyQueue()->empty()) newbasket = new GeantBasket(fNperBasket);
-   else newbasket = (GeantBasket*)fWMgr->EmptyQueue()->wait_and_pop();
-   fWMgr->FeederQueue()->push(basket);
-   return newbasket;
-}
-
-//______________________________________________________________________________
-void GeantPropagator::InjectCollection(Int_t tid)
-{
-// Inject collector handled by a single thread in the collector queue.
-//   if (!fCollections[tid]->GetNtracks()) return;
-   GeantTrackCollection *newcoll;
-   if (fWMgr->CollectorEmptyQueue()->empty()) newcoll = new GeantTrackCollection(100);
-   else newcoll = (GeantTrackCollection*)fWMgr->CollectorEmptyQueue()->wait_and_pop();
-   GeantTrackCollection *toinject = fCollections[tid];
-   fCollections[tid] = newcoll;
-   fWMgr->CollectorQueue()->push(toinject);
-}
    
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
    if (gGeoManager) return kTRUE;
-   TGeoManager *geom = TGeoManager::Import(filename);
-   if (geom) {
-      // Create the basket array
-      Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
-      fWMgr->CreateBaskets(2*nvols);
-      return kTRUE;
-   }   
+   TGeoManager *geom = (gGeoManager)?gGeoManager:TGeoManager::Import(filename);
+   if (geom) return kTRUE;
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
    return kFALSE;
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin, Int_t tid)
+void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Generate all physics steps for the tracks in trackin.
-// Vectorized, except the unavoidable Sort()
    static const Double_t maxlen = TMath::Limits<double>::Max();   
    Double_t pstep;
    Int_t ipart, iproc;
-   GeantTrack *track;
    GeantThreadData *td = fThreadData[tid];
    Double_t *procStep;
    // Fill interaction lengths for all processes and all particles
    for (iproc=0; iproc<fNprocesses; iproc++) {
       procStep = td->GetProcStep(iproc);
-      fProcesses[iproc]->ComputeIntLen(td->fVolume, ntracks, trackin, procStep, tid);
-   }   
+      fProcesses[iproc]->ComputeIntLen(td->fVolume, ntracks, tracks, procStep, tid);
+   }
    // Loop tracks and select process
    for (Int_t i=0; i<ntracks; i++) {
-      ipart = trackin[i];
-      track = fTracks[ipart];
-      track->step = maxlen;
-      track->process = -1;
+      tracks.fStepV[i] = maxlen;
+      tracks.fProcessV[i] = -1;
       for (iproc=0; iproc<fNprocesses; iproc++) {
          procStep = td->GetProcStep(iproc);
          pstep = procStep[i];
-         if (pstep < track->step) {
-            track->step = pstep;
-            track->process = iproc;
+         if (pstep < tracks.fStepV[i]) {
+            tracks.fStepV[i] = pstep;
+            tracks.fProcessV[i] = iproc;
          }
       }
+/*
       if (fUseDebug && (fDebugTrk==ipart || fDebugTrk<0)) {
          Printf("   (%d) PhysicsSelect: track #%d - process=%d pstep=%g",tid,ipart,track->process,track->step);
          if (track->step>1.E200) {
             Printf("xxx");
          }   
       }
+*/      
    }      
 }
 
@@ -471,6 +448,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    fUseGraphics = graphics;
    fNthreads = nthreads;
    fSingleTrack = single;
+   if (!fApplication) {
+      Printf("No user application attached - aborting");
+      return;
+   }   
    Initialize();
    if (called) {
       Printf("Sorry, you can call this only once per session.");
@@ -489,6 +470,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    if (fUsePhysics)  Printf("  Physics ON with %d processes", fNprocesses);
    else              Printf("  Physics OFF");
    // Create the basket array
+   fWMgr->CreateBaskets();   // geometry should be created by now
 
    // Import the input events. This will start also populating the main queue
    if (!fEvents) {
