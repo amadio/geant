@@ -8,6 +8,7 @@
 #include "sync_objects.h"
  
 class GeantVolumeBaskets;
+class GeantScheduler;
 
 // Main work manager class. This creates and manages all the worker threads,
 // has pointers to the synchronization objects, but also to the currently
@@ -25,29 +26,25 @@ protected:
    Int_t              fNqueued;            // Number of chunks queued
    Int_t             *fBtogo;              // array of baskets to be processed in the next generation
    Bool_t             fStarted;            // Start flag
-   concurrent_queue  *feeder_queue;        // queue of filled baskets
-   concurrent_queue  *answer_queue;        // queue of filled baskets
-   concurrent_queue  *empty_queue;         // queue of empty baskets
-   concurrent_queue  *collector_queue;     // queue collecting crossing tracks
-   concurrent_queue  *collector_empty_queue;  // queue collecting empty tracks
+   dcqueue<GeantBasket> 
+                     *fFeederQ;            // queue of transportable baskets
+   dcqueue<GeantBasket>  
+                     *fTransportedQ;       // queue of transported baskets
+   dcqueue<GeantBasket> 
+                     *fDoneQ;              // Thread "all work done" queue
    static WorkloadManager *fgInstance;     // Singleton instance
-   GeantVolumeBasket **fCurrentBasket;     // Current basket transported per thread
    TList             *fListThreads;        // List of threads
-   GeantVolumeBasket **fBasketArray;       //![number of volumes] Array of baskets
    Bool_t             fFlushed;            // Buffer flushed
    Bool_t             fFilling;            // Worker queue is filling
+   GeantScheduler    *fScheduler;          // Main basket scheduler
 
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
-   void                AddBasket(GeantVolumeBasket *basket) {fBasketArray[fNbaskets++]=basket;}
-   void                AddEmptyBaskets(Int_t nb);
+   void                AddBasket(GeantVolumeBaskets *basket) {fBasketArray[fNbaskets++]=basket;}
    void                CreateBaskets(Int_t nvolumes);
-   concurrent_queue   *AnswerQueue() const {return answer_queue;}
-   concurrent_queue   *EmptyQueue() const  {return empty_queue;}
-   concurrent_queue   *FeederQueue() const {return feeder_queue;}
-   concurrent_queue   *CollectorQueue() const {return collector_queue;}
-   concurrent_queue   *CollectorEmptyQueue() const {return collector_empty_queue;}
+   dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
+   dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
    
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
@@ -58,8 +55,6 @@ public:
    Bool_t              IsFilling() const {return fFilling;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
-   void                SetCurrentBasket(Int_t tid, GeantVolumeBasket *basket) {fCurrentBasket[tid]=basket;}
-   GeantVolumeBasket  *GetCurrentBasket(Int_t tid) const {return fCurrentBasket[tid];}
    void                Print(Option_t *option="") const;
    Int_t               GetNminThreshold() const {return fNminThreshold;}
    void                SetNminThreshold(Int_t thr) {fNminThreshold = thr;}

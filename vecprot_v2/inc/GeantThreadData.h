@@ -5,6 +5,10 @@
 #include "TObject.h"
 #endif
 
+#ifndef GEANT_TRACK
+#include "GeantTrack.h"
+#endif
+
  
 //==============================================================================
 // Data organized per thread
@@ -16,7 +20,6 @@ class TRandom;
 class TArrayI;
 class TGeoHelix;
 class TGeoRotation;
-class GeantTrack;
 
 //______________________________________________________________________________
 class GeantThreadData : public TObject {

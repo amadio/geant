@@ -1,9 +1,10 @@
 #ifndef GEANT_VOLUMEBASKETS
 #define GEANT_VOLUMEBASKETS
 
-#ifndef ROOT_TObject
-#include "TObject.h"
+#ifndef ROOT_TGeoExtension
+#include "TGeoExtension.h"
 #endif
+
 #include "GeantTrack.h"
  
 #ifndef ROOT_TGeoVolume
@@ -22,7 +23,7 @@
 //______________________________________________________________________________
 
 //______________________________________________________________________________
-class GeantVolumeBaskets : public TObject {
+class GeantVolumeBaskets : public TGeoExtension {
 protected:
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNumber;                // Number assigned
@@ -43,7 +44,13 @@ public:
    GeantVolumeBaskets(TGeoVolume *vol, Int_t number);
    virtual ~GeantVolumeBasket();
    
+   virtual TGeoExtension *Grab() {return 0;}
+   virtual void           Release() const {}
    Int_t             AddTrack(const GeantTrack &track, Bool_t priority=kFALSE);
+   Int_t             AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority=kFALSE);
+   Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
+   Int_t             FlushPriorityBasket();
+   Int_t             GarbageCollect();
    Int_t             GetNbaskets() const          {return fNbaskets;}
    Int_t             GetNused() const             {return fNused;}
    Int_t             GetThreshold() const         {return fThreshold;}

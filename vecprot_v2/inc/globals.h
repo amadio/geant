@@ -5,7 +5,4 @@
 
 R__EXTERN GeantPropagator   *gPropagator;     // propagator class
 
-// types
-enum Species_t {kHadron, kLepton};
-
 #endif
