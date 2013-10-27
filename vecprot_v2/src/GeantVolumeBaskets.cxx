@@ -152,8 +152,7 @@ GeantBasket *GeantVolumeBaskets::GetNextBasket()
 // Returns next empy basket if any available, else create a new basket.
    GeantBasket *next = fBaskets.try_pop();
    if (!next) {
-      next = new GeantBasket(fThreshold+1, fNumber, 
-                 fVolume->GetMaterial()->GetNumber()); // maybe bigger, don't know...
+      next = new GeantBasket(fThreshold+1, this); 
       fMutex.Lock();
       // === critical section ===
       fNbaskets++;

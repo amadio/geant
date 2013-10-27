@@ -16,15 +16,14 @@
 //______________________________________________________________________________
 class GeantBasket : public TObject {
 protected:
-   Int_t             fVolId;               // Unique TGeo volume identifier
-   Int_t             fMatId;               // Material ID
+   GeantVolumeBaskets   *fManager;         // Manager for the basket
    GeantTrack_v      fTracksIn;            // Vector of input tracks
    GeantTrack_v      fTracksOut;           // Vector of output tracks
 //   GeantHit_v        fHits;                // Vector of produced hits
 
 public:
    GeantBasket();
-   GeantBasket(Int_t size, Int_t volId, Int_t matId);
+   GeantBasket(Int_t size, GeantVolumeBaskets *mgr);
    virtual ~GeantBasket();
    
    // Add track from generator or physics process
@@ -45,6 +44,7 @@ public:
    void              SetMatId(Int_t id) {fMatId = id;}
    virtual void      Print(Option_t *option="") const;
    void              PrintTrack(Int_t itr, Bool_t input=kTRUE) const;
+   void              Recycle();
    
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
 };   

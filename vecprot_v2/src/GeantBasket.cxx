@@ -17,8 +17,7 @@ ClassImp(GeantBasket)
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
             :TObject(),
-             fVolId(0),
-             fMatId(0),
+             fManager(0),
              fTracksIn(),
              fTracksOut()
 {
@@ -26,10 +25,9 @@ GeantBasket::GeantBasket()
 }
 
 //______________________________________________________________________________
-GeantBasket::GeantBasket(Int_t size, Int_t volId, Int_t matId)
+GeantBasket::GeantBasket(Int_t size, GeantVolumeBaskets *mgr)
             :TObject(),
-             fVolId(volId),
-             fMatId(matId),
+             fManager(mgr),
              fTracksIn(size),
              fTracksOut(size)
 {
@@ -88,4 +86,11 @@ void GeantBasket::Print(Option_t *) const
 void GeantBasket::PrintTrack(Int_t itr, Bool_t input) const
 {
 // Print a given track.
+}
+
+//______________________________________________________________________________
+void GeantBasket::Recycle()
+{
+// Recycle the basket to the volume scheduler.
+   fManager->Recycle(this);   
 }

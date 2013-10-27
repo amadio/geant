@@ -156,6 +156,7 @@ void *WorkloadManager::MainScheduler(void *)
    WorkloadManager *wm = WorkloadManager::Instance();
    dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
    dcqueue<GeantBasket> *transportedQ = wm->TransportedQueue();
+   GeantScheduler *sch = wm->GetScheduler;
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
    // Number of collectors available
@@ -194,24 +195,25 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t nwaiting = 0;
    Int_t nnew = 0;
    GeantBasket *output;
-   TObject **carray = new GeantBasket*[500];
+   GeantBasket **carray = new GeantBasket*[500];
    while ((output = (GeantBasket*)transportedQ->wait_and_pop_max(500,npop,carray))) {
       // Monitor the queues while there are tracks to transport
       niter++;
       ninjected = 0;
       nnew = 0;
       // Check first the queue of collectors
-      ncollectors = npop+collector_queue->size_async();
+//      ncollectors = npop+collector_queue->size_async();
 //      Printf("Popped %d collections, %d still in the queue", npop, ncollectors-npop);
-      nempty = empty_queue->size_async();
+//      nempty = empty_queue->size_async();
       // Process popped collections and flush their tracks
-      for (UInt_t icoll=0; icoll<npop; icoll++) {
-         collector = (GeantTrackCollection*)carray[icoll];
+      for (UInt_t iout=0; iout<npop; iout++) {
+         output = carray[iout];
 //         collector->Print();
 //         Printf("= collector has %d tracks", collector->GetNtracks());
-         ninjected += collector->FlushTracks(main_sch);
+         ninjected += sch->AddTracks(output->GetOutputTracks());
 //         Printf("=== injected %d baskets", ninjected);
-         collector_empty_queue->push(collector);
+         // Recycle basket
+	 output->Recycle();	 
       }
       // If there were events to be dumped, check their status here
       ntotransport = feeder_queue->size_async();

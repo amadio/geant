@@ -48,6 +48,7 @@ public:
    
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
+   GeantScheduler     *GetScheduler() const {return fScheduler;}
    GeantVolumeBasket **GetBasketArray() const {return fBasketArray;}
    static WorkloadManager *
                        Instance(Int_t nthreads=0);                    
