@@ -20,7 +20,7 @@ class GeantScheduler : public TObject {
 protected:
    Int_t                fNvolumes;            // Number of active volumes in the geometry
    Int_t                fNpriority;           // Number of priority baskets held
-   GeantVolumeBaskets **fBasketMgr;           // Array of basket managers
+   GeantBasketMgr     **fBasketMgr;           // Array of basket managers
    Int_t                fPriorityRange[2];    // Prioritized events
    
 public:

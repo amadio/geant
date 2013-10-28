@@ -19,9 +19,15 @@ public:
    ~GeantEvent() {}
    
    Int_t              AddTrack();
+   Int_t              GetEvent() const {return fEvent;}
+   Int_t              GetSlot() const {return fSlot;}
+   Int_t              GetNtracks() const {return fNtracks;}
+   void               SetEvent(Int_t event) {fEvent = event;}
+   void               SetSlot(Int_t islot) {fSlot = islot;}
    void               Reset() {fNtracks = fNdone = 0;}
    void               StopTrack();
    Bool_t             Transported() const {return ((fNtracks>0) && (fNtracks==fNdone));}
 
    ClassDef(GeantEvent, 1)       // The G5 event
 };
+#endif

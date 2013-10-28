@@ -30,7 +30,7 @@ class GeantTrack;
 struct GeantEvent;
 class GeantBasket;
 class GeantOutput;
-class GeantVolumeBaskets;
+class GeantBasketMgr;
 class WorkloadManager;
 class GeantThreadData;
 class GeantVApplication;
@@ -97,7 +97,7 @@ public:
    
    // Temporary track for the current caller thread
    GeantTrack      &GetTempTrack(Int_t tid=-1);
-   Int_t            AddTrack(GeantTrack *track);
+   Int_t            AddTrack(GeantTrack &track);
    Int_t            DispatchTrack(const GeantTrack &track, Bool_t priority=kFALSE);
    Int_t            DispatchTrack(const GeantTrack_v &track, Int_t itr, Bool_t priority=kFALSE);
    void             StopTrack(GeantTrack *track);
@@ -109,15 +109,13 @@ public:
    void             InjectCollection(Int_t tid);
    GeantBasket     *InjectBasket(GeantBasket *basket);
    static 
-   GeantPropagator *Instance();
-   void             PhysicsSelect(Int_t ntracks, Int_t *trackin, Int_t tid);
-   void             PrintParticles(Int_t *trackin, Int_t ntracks, Int_t tid);
+   GeantPropagator *Instance(Int_t ntotal=0, Int_t nbuffered=0);
+   void             PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
    void             PropagatorGeom(const char *geomfile="geometry.root",
                                    Int_t nthreads=4,
                                    Bool_t graphics=kFALSE,
                                    Bool_t single=kFALSE);
-   void             SelectTracksForProcess(Int_t iproc, Int_t ntotransport, Int_t *particles, Int_t &ntodo, Int_t *parttodo);
 
 private:
    GeantPropagator(const GeantPropagator&); // Not implemented

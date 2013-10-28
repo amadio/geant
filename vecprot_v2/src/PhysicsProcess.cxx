@@ -28,7 +28,7 @@ ClassImp(ScatteringProcess)
 //______________________________________________________________________________
 void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, 
                                       Int_t ntracks, 
-                                      GeantTrack_v &tracks,
+                                      const GeantTrack_v &tracks,
                                       Double_t *lengths, 
                                       Int_t tid)
 {
@@ -39,7 +39,6 @@ void ScatteringProcess::ComputeIntLen(TGeoVolume *vol,
 // trackin and lengths arrays should be be correctly set by the caller
    const Double_t kC1 = 500.;
    const Double_t xlen = TMath::Limits<double>::Max();
-   Int_t itrack;
    Double_t density = 1.e-5;
    TGeoMaterial *mat = vol->GetMaterial();
    if (mat) density = mat->GetDensity();
@@ -48,7 +47,6 @@ void ScatteringProcess::ComputeIntLen(TGeoVolume *vol,
    Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    Int_t irnd = 0;
    gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
-   GeantTrack *track = 0;
    for (Int_t i=0; i<ntracks; i++) {
       lengths[i] =  0.5*xlen;
       if (tracks.fStatusV[i] != kKilled)
@@ -71,9 +69,6 @@ void ScatteringProcess::PostStep(TGeoVolume *vol,
    Double_t theta, phi, scale,thetav,phiv; 
    Double_t dir[3];
    Double_t dirnew[3];
-   GeantTrack *track = 0;
-   Int_t itrack;
-   Double_t p;
    Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    Int_t irnd = 0;
    gPropagator->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
@@ -109,7 +104,7 @@ ClassImp(ElossProcess)
 //______________________________________________________________________________
 void ElossProcess::ComputeIntLen(TGeoVolume *vol, 
                                  Int_t ntracks, 
-                                 GeantTrack_v &tracks,
+                                 const GeantTrack_v &tracks,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
@@ -156,7 +151,7 @@ void ElossProcess::PostStep(TGeoVolume *vol,
          continue;
       }   
       if (tracks.fEV[i]-tracks.fMassV[i] < gPropagator->fEmin) {
-         tracks.fStatusV[i] == kKilled;
+         tracks.fStatusV[i] = kKilled;
 //         gPropagator->StopTrack(track);
          continue;
       }   
@@ -166,8 +161,8 @@ void ElossProcess::PostStep(TGeoVolume *vol,
       Double_t gammaold = tracks.Gamma(i);
       Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
       tracks.fEV[i] -= eloss;
-      if (tracks.fEV[[i]-tracks.fMassV[i] < gPropagator->fEmin) {
-         tracks.fStatusV[i] == kKilled;
+      if (tracks.fEV[i]-tracks.fMassV[i] < gPropagator->fEmin) {
+         tracks.fStatusV[i] = kKilled;
 //         gPropagator->StopTrack(track);
          continue;
       }   
@@ -182,7 +177,7 @@ void ElossProcess::PostStep(TGeoVolume *vol,
 }
 
 //______________________________________________________________________________
-Double_t ElossProcess::BetheBloch(const GeantTrack_v &track, Int_t itr, Double_t tz, Double_t ta, Double_t rho)
+Double_t ElossProcess::BetheBloch(const GeantTrack_v &tracks, Int_t i, Double_t tz, Double_t ta, Double_t rho)
 {
 // Energy loss given by Bethe formula.
   if (tz<1. || ta<1.) return 0.;
@@ -196,13 +191,14 @@ Double_t ElossProcess::BetheBloch(const GeantTrack_v &track, Int_t itr, Double_t
   if(tz<13) ioniz = 12 + 7/tz;
   else ioniz = 9.76 + 58.8*TMath::Power(tz,-1.19);
 
-  Double_t bethe = (konst * tz * rho * tracks.fChargeV[i] * tracks->fChargeV[i])/(ta * beta * beta);
+  Double_t bethe = (konst * tz * rho * tracks.fChargeV[i] * tracks.fChargeV[i])/(ta * beta * beta);
 //  Printf("ioniz %f",ioniz);
   bethe *= TMath::Log(2*emass*bg*bg*wmax*1e12/(ioniz*ioniz))-2*beta*beta;
 //  Printf("bethe %f",bethe);
   return 1.e-3*bethe;
 }
 
+/*
 //______________________________________________________________________________
 Double_t ElossProcess::Bbf1(Double_t *x, Double_t *par)
 {
@@ -219,7 +215,6 @@ Double_t ElossProcess::Bbf1(Double_t *x, Double_t *par)
   t.mass = pimass;
   return 1000*BetheBloch(&t,par[0],par[1],par[2]);
 }
-
 //______________________________________________________________________________
 void ElossProcess::PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin, Double_t bgmax)
 {
@@ -233,13 +228,14 @@ void ElossProcess::PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin, 
   h->Draw();
   f->Draw("same");
 }
+*/
 
 ClassImp(InteractionProcess)
 
 //______________________________________________________________________________
 void InteractionProcess::ComputeIntLen(TGeoVolume *vol, 
                                  Int_t ntracks, 
-                                 GeantTrack_v &tracks,
+                                 const GeantTrack_v &tracks,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
@@ -257,7 +253,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
       Double_t sigma = 28.5*TMath::Power(mata,0.75);
       xlen = mat->GetA()/(sigma*density*nabarn);
    } else {
-      for (itrack=0; itrack<ntracks; itrack++) lengths[itrack] = 0.5*TMath::Limits<double>::Max();
+      for (Int_t itr=0; itr<ntracks; itr++) lengths[itr] = 0.5*TMath::Limits<double>::Max();
       return;
    }   
  
@@ -315,26 +311,26 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
          TGeoBranchArray &a = *tracks.fPathV[i];
          for(Int_t j=0; j<2*nprod; ++j) {
             // Do not consider tracks below the production threshold. Normally the energy deposited should be taken into account
+            TLorentzVector *lv = gps.GetDecay(j);
             if (lv->E()-pimass < gPropagator->fEmin) continue;
             GeantTrack &trackg = gPropagator->GetTempTrack(tid);
-            Int_t itracknew = gPropagator->AddTrack(trackg);
+            gPropagator->AddTrack(trackg);
             *trackg.fPath = a;
-            TLorentzVector *lv = gps.GetDecay(j);
-            if(j%2) trackg.fPdg = kPiMinus;
-            else trackg.fPdg = kPiPlus;
+            if(j%2) trackg.fPDG = kPiMinus;
+            else trackg.fPDG = kPiPlus;
             trackg.fEvent = tracks.fEventV[j];
             trackg.fEvslot = tracks.fEvslotV[j];
             trackg.fSpecies = kHadron;
-            trackg.fCharge = TDatabasePDG::Instance()->GetParticle(trackg.fPdg)->Charge()/3.;
+            trackg.fCharge = TDatabasePDG::Instance()->GetParticle(trackg.fPDG)->Charge()/3.;
             trackg.fMass = pimass;
 //            trackg.fProcess = 0;
             trackg.fXpos = tracks.fXposV[j];
-            trackg.fypos = tracks.fYposV[j];
+            trackg.fYpos = tracks.fYposV[j];
             trackg.fZpos = tracks.fZposV[j];
             Double_t oneoverp = 1./lv->P();
-            trackg.fXdir = oneoverp*lv->Px()
-            trackg.fYdir = oneoverp*lv->Py()
-            trackg.fZdir = oneoverp*lv->Pz()
+            trackg.fXdir = oneoverp*lv->Px();
+            trackg.fYdir = oneoverp*lv->Py();
+            trackg.fZdir = oneoverp*lv->Pz();
             trackg.fE = lv->E();
             ngen++;
             // Add track to the tracks vector

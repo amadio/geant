@@ -40,11 +40,11 @@ CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
 
 
 GEANTSOURCES  = GeantThreadData.cxx GeantTrack.cxx GeantBasket.cxx  sync_objects.cxx \
-                GeantOutput.cxx GeantVolumeBasket.cxx GeantPropagator.cxx \
+                GeantOutput.cxx GeantPropagator.cxx \
                 PhysicsProcess.cxx WorkloadManager.cxx 
 GEANTDICTS    = G__Geant.cxx
 GEANTO        = GeantThreadData.o GeantTrack.o GeantBasket.o sync_objects.o \
-                PhysicsProcess.o GeantOutput.o GeantVolumeBasket.o GeantPropagator.o \
+                PhysicsProcess.o GeantOutput.o GeantPropagator.o \
                 WorkloadManager.o G__Geant.o
 GEANTSL       = $(patsubst %.o,$(SRCDIR)/%.o,$(GEANTO))
 GEANTDEPS     = $(patsubst %.cxx,$(INCDIR)/%.h,$(GEANTSOURCES))
@@ -72,8 +72,6 @@ GeantBasket.o:
 		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantBasket.cxx
 GeantOutput.o:
 		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantOutput.cxx
-GeantVolumeBasket.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantVolumeBasket.cxx
 GeantPropagator.o:
 		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantPropagator.cxx
 WorkloadManager.o:
@@ -85,7 +83,7 @@ $(GEANTDICTS):
 #		cp $(INCBRIDGE)/*.h $(INCDIR)
 		$(ROOTSYS)/bin/rootcint -f $(SRCDIR)/$@ \
                 -c $(INCDIR)/GeantThreadData.h $(INCDIR)/PhysicsProcess.h \
-                $(INCDIR)/GeantVolumeBasket.h $(INCDIR)/GeantBasket.h \
+                $(INCDIR)/GeantBasket.h \
                 $(INCDIR)/GeantPropagator.h $(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h \
                 $(INCDIR)/WorkloadManager.h $(INCDIR)/LinkDef.h
 G__Geant.o:

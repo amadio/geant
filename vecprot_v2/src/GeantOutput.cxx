@@ -68,5 +68,5 @@ void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc, 
 void GeantOutput::SetTrack(Int_t ntrack, GeantTrack *track)
 {
 // Set parameters for ntrack based on a GeantTrack
-   SetTrack(ntrack, track->particle, track->event, track->process, track->xpos, track->ypos, track->zpos, track->px, track->py, track->pz, track->e, track->pstep, track->step, track->snext, track->safety);
+   SetTrack(ntrack, track->fParticle, track->fEvent, track->fProcess, track->fXpos, track->fYpos, track->fZpos, track->Px(), track->Py(), track->Pz(), track->fE, track->fPstep, track->fStep, track->fSnext, track->fSafety);
 }   

@@ -843,16 +843,6 @@ void GeantTrack_v::Clear(Option_t *)
 }
 
 //______________________________________________________________________________
-Int_t GeantTrack_v::FlushTracks(GeantMainScheduler *main)
-{
-// Flush all tracks to the main scheduler. Returns number of injected baskets.
-   Int_t ninjected = 0;
-   for (Int_t itr=0; itr<fNtracks; itr++) ninjected += main->AddTracks(*this);
-   Clear();
-   return ninjected;
-}
-
-//______________________________________________________________________________
 Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
 {
 // Propagate first ntracks along a straight line (neutral particles, no mag. 

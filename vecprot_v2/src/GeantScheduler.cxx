@@ -38,14 +38,14 @@ void GeantScheduler::CreateBaskets()
 // Create the array of baskets
    if (fBasketMgr) return;
    fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
-   fBasketMgr = new GeantVolumeBaskets*[fNvolumes];
+   fBasketMgr = new GeantBasketMgr*[fNvolumes];
    dcqueue<GeatBasket> *feeder = WorkloadManager::Instance()->FeederQueue();
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
-   GeantVolumeBaskets *basket_mgr;
+   GeantBasketMgr *basket_mgr;
    Int_t icrt = 0;
    while ((vol=(TGeoVolume*)next())) {
-      basket_mgr = new GeantVolumeBaskets(vol, icrt);
+      basket_mgr = new GeantBasketMgr(vol, icrt);
       vol->SetFWExtension(basket_mgr);
       basket_mgr->SetFeederQueue(feeder);
       fBasketMgr[icrt++] = basket_mgr;
@@ -60,7 +60,7 @@ Int_t GeantScheduler::AddTracks(GeantTrack_v &tracks)
    Int_t ninjected = 0;
    Bool_t priority = kFALSE;
    Int_t ntracks = tracks.GetNtracks();
-   GeantVolumeBaskets *basket_mgr = 0;
+   GeantBasketMgr *basket_mgr = 0;
    TGeoVolume *vol = 0;
    for (Int_t itr=0; itr<ntracks; itr++) {
       if (tracks.fStatusV[itr]==GeantTrack::kKilled) continue;
@@ -69,7 +69,7 @@ Int_t GeantScheduler::AddTracks(GeantTrack_v &tracks)
           tracks.fEventV[itr]>=fPriorityRange[0] &&
           tracks.fEventV[itr]<=fPriorityRange[1]) priority = kTRUE;
       vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();    
-      basket_mgr = static_cast<GeantVolumeBaskets*>(vol->GetFWExtension());
+      basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);
    }   
    return ninjected;

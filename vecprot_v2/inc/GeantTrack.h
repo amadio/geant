@@ -16,7 +16,6 @@
 #endif
 
 class TGeoBranchArray;
-class GeantMainScheduler;
 
 const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed};
@@ -40,7 +39,7 @@ class GeantTrack_v;
 
 //______________________________________________________________________________
 class GeantTrack : public TObject {
-private:
+public:
    Int_t    fEvent;     // event number
    Int_t    fEvslot;    // event slot
    Int_t    fParticle;  // index of corresponding particle
@@ -211,7 +210,6 @@ public:
    void      AddTrack(const GeantTrack &track);
    void      AddTrack(const GeantTrack_v &arr, Int_t i);
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
-   Int_t     FlushTracks(GeantMainScheduler *main);
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}

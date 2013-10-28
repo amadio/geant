@@ -7,7 +7,8 @@
 
 #include "sync_objects.h"
  
-class GeantVolumeBaskets;
+class GeantBasketMgr;
+class GeantBasket;
 class GeantScheduler;
 
 // Main work manager class. This creates and manages all the worker threads,
@@ -41,15 +42,13 @@ protected:
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
-   void                AddBasket(GeantVolumeBaskets *basket) {fBasketArray[fNbaskets++]=basket;}
-   void                CreateBaskets(Int_t nvolumes);
+   void                CreateBaskets();
    dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
    dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
    
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
    GeantScheduler     *GetScheduler() const {return fScheduler;}
-   GeantVolumeBasket **GetBasketArray() const {return fBasketArray;}
    static WorkloadManager *
                        Instance(Int_t nthreads=0);                    
    Bool_t              IsFlushed() const {return fFlushed;}
