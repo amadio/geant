@@ -409,13 +409,15 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t t
    }
    // Loop tracks and select process
    for (Int_t i=0; i<ntracks; i++) {
-      tracks.fStepV[i] = maxlen;
+      // reset total step
+      tracks.fStepV[i] = 0.;
+      tracks.fPstepV[i] = maxlen;
       tracks.fProcessV[i] = -1;
       for (iproc=0; iproc<fNprocesses; iproc++) {
          procStep = td->GetProcStep(iproc);
          pstep = procStep[i];
-         if (pstep < tracks.fStepV[i]) {
-            tracks.fStepV[i] = pstep;
+         if (pstep < tracks.fPstepV[i]) {
+            tracks.fPstepV[i] = pstep;
             tracks.fProcessV[i] = iproc;
          }
       }

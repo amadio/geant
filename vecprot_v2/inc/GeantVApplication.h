@@ -6,6 +6,7 @@
 #endif
 
 class GeantHitBlock;
+class GeantTrack_v;
 
 //______________________________________________________________________________
 class GeantVApplication : public TObject {

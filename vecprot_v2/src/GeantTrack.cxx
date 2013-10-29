@@ -1103,6 +1103,37 @@ Int_t GeantTrack_v::PropagateInFieldSingle(Int_t itr, Double_t crtstep, Bool_t c
 }   
 
 //______________________________________________________________________________
+Int_t GeantTrack_v::SortByStatus(TrackStatus_t status)
+{
+// Sort tracks by a given status.
+   Int_t nsel = 0;
+   for (Int_t itr=0; itr<fNtracks; itr++) {
+      if (fStatusV[itr] == status) {
+         Select(itr);
+         nsel++;
+      }
+   }
+   if (nsel) Reshuffle();
+   return nsel;
+}   
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output)
+{
+// Remove tracks with given status from the container to the output vector,
+// then compact.
+   Int_t nremoved = 0;
+   for (Int_t itr=0; itr<fNtracks; itr++) {
+      if (fStatusV[itr] == status) {
+         MarkRemoved(itr);
+         nremoved++;
+      }
+   }      
+   if (!fCompact) Compact(&output);
+   return nremoved;
+}   
+
+//______________________________________________________________________________
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 {
 // Computes snext and safety for an array of tracks. For charged tracks these are the only
@@ -1146,7 +1177,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    fPathV[itr]->UpdateNavigator(nav);
    nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
    nav->FindNextBoundaryAndStep(TMath::Min(1.E20, fPstepV[itr]), fFrombdrV[itr]);
-   fStepV[itr] = TMath::Max(2*gTolerance,nav->GetStep());
+   fSnextV[itr] = TMath::Max(2*gTolerance,nav->GetStep());
    fSafetyV[itr] = nav->GetSafeDistance();
    fNextpathV[itr]->InitFromNavigator(nav);
    fFrombdrV[itr] = nav->IsOnBoundary();
@@ -1185,16 +1216,20 @@ TransportAction_t GeantTrack_v::PostponedAction() const
 //______________________________________________________________________________
 Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
 {
-// Propagate the ntracks with their selected steps. Vectors are pushed 
-// downstream.
+// Propagate the ntracks in the current volume with their physics steps (already
+// computed)
+// Vectors are pushed downstream when efficient.
 
    // Check if tracking the remaining tracks can be postponed
    TransportAction_t action = PostponedAction();
    if (action==kPostpone) {
       PostponeTracks(output);
       return 0;
-   }   
+   }
    if (action != kVector) return PropagateTracksSingle(output,0);
+   // Compute transport length in geometry, limited by the physics step
+   ComputeTransportLength(fNtracks);
+   
    Int_t itr = 0;
    Int_t icrossed = 0;
    Int_t nsel = 0;
@@ -1223,6 +1258,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
             fStatusV[itr] = kPhysics;
          }
          fPstepV[itr] -= fSnextV[itr];
+         fStepV[itr] += fSnextV[itr];
          fSafetyV[itr] -= fSnextV[itr];
          if (fSafetyV[itr]<gTolerance) fSafetyV[itr] = 0;
          fXposV[itr] += fSnextV[itr]*fXdirV[itr];
@@ -1322,8 +1358,8 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
    }
    // Compact remaining tracks and move the removed oned to the output container
    if (!fCompact) Compact(&output);
-   // Remaining tracks have been partially propagated, and they need to ask
-   // geometry for the updated transport length
+   // Remaining tracks have been partially propagated, they need to be 
+   // transported again after applying continuous energy loss
    if (fNtracks) ComputeTransportLength(fNtracks);
    return icrossed;
 }
@@ -1341,7 +1377,9 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
       if (fStatusV[itr] == kKilled) {
          MarkRemoved(itr);
          continue;
-      }   
+      }
+      // Compute transport length in geometry, limited by the physics step
+      ComputeTransportLengthSingle(itr);
       // Stage 0: straight propagation
       if (stage==0) {
          if (fChargeV[itr]==0 || bmag<1.E-10) {

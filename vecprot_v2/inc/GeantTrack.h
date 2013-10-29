@@ -27,14 +27,6 @@ enum TransportAction_t {
 // types
 enum Species_t {kHadron, kLepton};
 
-// Rounding up the desired allocation value to the closest padding multiple
-int round_up_align(int num)
-{
-   int remainder = num % ALIGN_PADDING;
-   if (remainder == 0) return num;
-   return (num+ALIGN_PADDING-remainder);
-}  
-
 class GeantTrack_v;
 
 //______________________________________________________________________________
@@ -215,6 +207,8 @@ public:
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
+   Int_t     SortByStatus(TrackStatus_t status);
+   Int_t     RemoveByStatus(TrackStatus_t status, GeantTrack_v &output);
    Bool_t    IsSelected(Int_t i)  {return fSelected.TestBitNumber(i);}
    virtual void      Clear(Option_t *option="");
    Int_t     Compact(GeantTrack_v *moveto=0);
@@ -259,6 +253,11 @@ public:
    Double_t           Py(Int_t i) const {return fPV[i]*fYdirV[i];}
    Double_t           Pz(Int_t i) const {return fPV[i]*fZdirV[i];}
    Double_t           Pt(Int_t i) const {return fPV[i]*TMath::Sqrt(fXdirV[i]*fXdirV[i]+fYdirV[i]*fYdirV[i]);}
+   static Int_t round_up_align(Int_t num) {
+      int remainder = num % ALIGN_PADDING;
+      if (remainder == 0) return num;
+      return (num+ALIGN_PADDING-remainder);
+   }  
 
    ClassDef(GeantTrack_v, 1)      // SOA for GeantTrack class           
 };

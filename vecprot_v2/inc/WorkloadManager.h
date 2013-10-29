@@ -45,6 +45,7 @@ public:
    void                CreateBaskets();
    dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
    dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
+   dcqueue<GeantBasket> *DoneQueue() const {return fDoneQ;}
    
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}

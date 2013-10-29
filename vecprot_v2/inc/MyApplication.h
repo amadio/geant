@@ -13,6 +13,8 @@
 #include "MyHit.h"
 #endif
 
+class GeantTrack_v;
+
 //______________________________________________________________________________
 class MyApplication : public GeantVApplication {
 private:
@@ -22,7 +24,7 @@ public:
    MyApplication();
    virtual ~MyApplication() {}
 
-   virtual void  StepManager(Int_t tid, Int_t iproc, Int_t npart, Int_t *particles);
+   virtual void  StepManager(Int_t tid, Int_t iproc, Int_t npart, const GeantTrack_v & tracks);
    virtual void  Digitize(Int_t event);
       
    ClassDef(MyApplication, 1)      // User application
