@@ -14,6 +14,7 @@
 
 class concurrent_queue;
 class GeantTrack_v;
+class GeantBasketMgr;
 
 //______________________________________________________________________________
 class GeantScheduler : public TObject {

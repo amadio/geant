@@ -38,7 +38,6 @@ public:
                              GeantTrack_v &tracks, 
                              Int_t &nout, 
                              Int_t tid)                             = 0;
-  static void StepManager(Int_t iproc, Int_t npart, Int_t */*particles*/, Int_t nout, Int_t */*partnext*/);
   ClassDef(PhysicsProcess,1)    // Physics process base class
 };
 

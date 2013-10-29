@@ -1,3 +1,4 @@
+#include "GeantScheduler.h"
 #include "GeantBasket.h"
 #include "globals.h"
 #include "GeantTrack.h"
@@ -27,7 +28,7 @@ GeantScheduler::~GeantScheduler()
 {
 // dtor.
    if (fBasketMgr) {
-      for (Int_t ib=0; ib<fNvolumes; ib++) delete fBaskets[ib];
+      for (Int_t ib=0; ib<fNvolumes; ib++) delete fBasketMgr[ib];
    }   
    delete [] fBasketMgr;
 }
@@ -39,7 +40,7 @@ void GeantScheduler::CreateBaskets()
    if (fBasketMgr) return;
    fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
    fBasketMgr = new GeantBasketMgr*[fNvolumes];
-   dcqueue<GeatBasket> *feeder = WorkloadManager::Instance()->FeederQueue();
+   dcqueue<GeantBasket> *feeder = WorkloadManager::Instance()->FeederQueue();
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
    GeantBasketMgr *basket_mgr;
@@ -63,7 +64,7 @@ Int_t GeantScheduler::AddTracks(GeantTrack_v &tracks)
    GeantBasketMgr *basket_mgr = 0;
    TGeoVolume *vol = 0;
    for (Int_t itr=0; itr<ntracks; itr++) {
-      if (tracks.fStatusV[itr]==GeantTrack::kKilled) continue;
+      if (tracks.fStatusV[itr]==kKilled) continue;
       priority = kFALSE;
       if (fPriorityRange[0]>=0 &&
           tracks.fEventV[itr]>=fPriorityRange[0] &&

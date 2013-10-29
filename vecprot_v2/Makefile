@@ -40,24 +40,23 @@ CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
 
 
 GEANTSOURCES  = GeantThreadData.cxx GeantTrack.cxx GeantBasket.cxx  sync_objects.cxx \
-                GeantOutput.cxx GeantPropagator.cxx \
+                GeantOutput.cxx GeantPropagator.cxx GeantEvent.cxx GeantScheduler.cxx \
                 PhysicsProcess.cxx WorkloadManager.cxx GeantVApplication.cxx GeantFactoryStore.cxx
-USERSOURCES   = MyHit.cxx MyApplication.cxx
 GEANTDICTS    = G__Geant.cxx
-USERDICTS     = G__User.cxx
-GEANTO        = GeantThreadData.o GeantTrack.o GeantBasket.o sync_objects.o \
-                PhysicsProcess.o GeantOutput.o GeantPropagator.o \
-                WorkloadManager.o GeantVApplication.o G__Geant.o
-USERO         = MyHit.o  MyApplication.o  G__User.o
+GEANTO        = $(patsubst %.cxx,%.o,$(GEANTSOURCES)) $(patsubst %.cxx,%.o,$(GEANTDICTS))
 GEANTSL       = $(patsubst %.o,$(SRCDIR)/%.o,$(GEANTO))
-USERSL        = $(patsubst %.o,$(SRCDIR)/%.o,$(USERO))
 GEANTDEPS     = $(patsubst %.cxx,$(INCDIR)/%.h,$(GEANTSOURCES))
-USERDEPS      = $(patsubst %.cxx,$(INCDIR)/%.h,$(USERSOURCES))
-
 GEANTSO       = libGeant.$(DllSuf)
-USERSO        = libUser.$(DllSuf)
 GEANTLIB      = $(shell pwd)/$(GEANTSO)
+
+USERSOURCES   = MyHit.cxx MyApplication.cxx
+USERDICTS     = G__User.cxx
+USERO        = $(patsubst %.cxx,%.o,$(USERSOURCES)) $(patsubst %.cxx,%.o,$(USERDICTS))
+USERSL        = $(patsubst %.o,$(SRCDIR)/%.o,$(USERO))
+USERDEPS      = $(patsubst %.cxx,$(INCDIR)/%.h,$(USERSOURCES))
+USERSO        = libUser.$(DllSuf)
 USERLIB       = $(shell pwd)/$(USERSO)
+
 OBJS          = $(GEANTSO) $(USERSO)
 
 
@@ -73,36 +72,15 @@ $(GEANTSO):     $(GEANTDICTS) $(GEANTO)
 $(USERSO):      $(USERDICTS) $(USERO)
 		$(LD) $(LDFLAGS) $(SOFLAGS) $(USERSL) $(OutPutOpt)$@
 		@echo "$@ done"
-GeantThreadData.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantThreadData.cxx
-PhysicsProcess.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/PhysicsProcess.cxx
-GeantTrack.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantTrack.cxx
-GeantBasket.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantBasket.cxx
-GeantOutput.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantOutput.cxx
-GeantPropagator.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantPropagator.cxx
-WorkloadManager.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/WorkloadManager.cxx
-GeantVApplication.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantVApplication.cxx
-GeantFactoryStore.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/GeantFactoryStore.cxx
-sync_objects.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/sync_objects.cxx
-MyHit.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/MyHit.cxx
-MyApplication.o:
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c src/MyApplication.cxx
+%.o: src/%.cxx inc/%.h
+		$(CXX)  $(CXXFLAGS) -o src/$@ -c $<
+
 $(GEANTDICTS):
 		@echo "Generating dictionary $@"
 		$(ROOTSYS)/bin/rootcint -f $(SRCDIR)/$@ \
                 -c -p $(INCDIR)/GeantThreadData.h $(INCDIR)/PhysicsProcess.h \
                 $(INCDIR)/GeantBasket.h $(INCDIR)/GeantScheduler.h \
-                $(INCDIR)/GeantPropagator.h $(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h \
+                $(INCDIR)/GeantPropagator.h $(INCDIR)/GeantEvent.h $(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h \
                 $(INCDIR)/WorkloadManager.h $(INCDIR)/GeantVApplication.h $(INCDIR)/LinkDef.h
 $(USERDICTS):
 		@echo "Generating dictionary $@"
