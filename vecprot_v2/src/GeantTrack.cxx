@@ -964,8 +964,8 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
       nav->SetCurrentPoint(x[i], y[i], z[i]);
       nav->SetCurrentDirection(dirx[i], diry[i], dirz[i]);
       pathin[i]->UpdateNavigator(nav);
-      nav->SetLastSafetyForPoint(safe[i], x[i], y[i], z[i]);
-      nav->FindNextBoundaryAndStep(TMath::Min(1.E20, pstep[i]), isonbdr[i]);
+//      nav->SetLastSafetyForPoint(safe[i], x[i], y[i], z[i]);
+      nav->FindNextBoundaryAndStep(TMath::Min(1.E20, pstep[i]), !isonbdr[i]);
       step[i] = TMath::Max(2*gTolerance,nav->GetStep());
       safe[i] = nav->GetSafeDistance();
       pathout[i]->InitFromNavigator(nav);
@@ -1134,6 +1134,20 @@ Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output)
 }   
 
 //______________________________________________________________________________
+void GeantTrack_v::PrintTrack(Int_t itr)
+{
+// Print info for a given track
+      const char* status[6] = {"alive", "killed", "boundary", "exitSetup", "physics","postponed"};
+      TString path; 
+      fPathV[itr]->GetPath(path);
+      TString nextpath; 
+      fNextpathV[itr]->GetPath(nextpath);
+      
+      printf("Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d izr=%d nstp=%d spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n pth=%s npth=%s\n",
+              itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr], fG5codeV[itr], fChargeV[itr], fProcessV[itr],fIzeroV[itr],fNstepsV[itr], (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr],fYposV[itr],fZposV[itr],fXdirV[itr],fYdirV[itr],fZdirV[itr],fPV[itr],fEV[itr],fPstepV[itr], fStepV[itr], fSnextV[itr],fSafetyV[itr],fFrombdrV[itr], path.Data(), nextpath.Data());
+}   
+
+//______________________________________________________________________________
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 {
 // Computes snext and safety for an array of tracks. For charged tracks these are the only
@@ -1144,7 +1158,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
    Int_t itr;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
-                              fPathV, fNextpathV, fStepV, fSafetyV, fFrombdrV);
+                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV);
    for (itr=0; itr<ntracks; itr++) {
       if (fNextpathV[itr]->IsOutside() || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
       if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {

@@ -210,13 +210,14 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    GeantThreadData *td = fThreadData[tid];
    TGeoVolume *vol = 0;
    if (!a) {
-      a = new TGeoBranchArray();      
+      a = new TGeoBranchArray();
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
       if (!nav) nav = gGeoManager->AddNavigator();
       TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
       *td->fMatrix = nav->GetCurrentMatrix();
       vol = node->GetVolume();
       td->fVolume = vol;
+      a->InitFromNavigator(nav);
    } else {
       TGeoNode *node = a->GetCurrentNode();
       *td->fMatrix = a->GetMatrix();

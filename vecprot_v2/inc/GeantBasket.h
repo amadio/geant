@@ -75,8 +75,8 @@ public:
    GeantBasketMgr(TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
    
-   virtual TGeoExtension *Grab() {return 0;}
-   virtual void           Release() const {}
+   virtual TGeoExtension *Grab() {return this;}
+   virtual void           Release() const {delete this;}
    Int_t             AddTrack(const GeantTrack &track, Bool_t priority=kFALSE);
    Int_t             AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority=kFALSE);
    Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);

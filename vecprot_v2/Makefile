@@ -6,7 +6,7 @@ ObjSuf        = o
 DllSuf        = so
 OutPutOpt     = -o # keep whitespace after "-o"
 
-OPT           = -O2
+OPT           = -g
 
 CXX			  = $(shell root-config --cxx)
 LD			  = $(shell root-config --ld)

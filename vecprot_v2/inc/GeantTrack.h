@@ -217,10 +217,12 @@ public:
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
       
-   void Print() {
+   void PrintPointers() {
       printf("fXposV=%p fYposV=%p fZposV=%p fXdirV=%p fYdirV=%p fZdirV=%p ptot=%p fG5codeV=%p\n",
               fXposV,fYposV,fZposV,fXdirV,fYdirV,fZdirV,fPV,fG5codeV);
    }
+   void PrintTrack(Int_t itr);
+   
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,

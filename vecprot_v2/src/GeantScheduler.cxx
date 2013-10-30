@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "GeantTrack.h"
 #include "WorkloadManager.h"
+#include "GeantPropagator.h"
 
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
@@ -45,8 +46,10 @@ void GeantScheduler::CreateBaskets()
    TGeoVolume *vol;
    GeantBasketMgr *basket_mgr;
    Int_t icrt = 0;
+   Int_t nperbasket = gPropagator->fNperBasket;
    while ((vol=(TGeoVolume*)next())) {
       basket_mgr = new GeantBasketMgr(vol, icrt);
+      basket_mgr->SetThreshold(nperbasket);
       vol->SetFWExtension(basket_mgr);
       basket_mgr->SetFeederQueue(feeder);
       fBasketMgr[icrt++] = basket_mgr;
