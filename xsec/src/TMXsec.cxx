@@ -272,6 +272,7 @@ Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float
       de[ip] = xrat*fDEdx[part[ip]*fNEbins+ibin]+(1-xrat)*fDEdx[part[ip]*fNEbins+ibin+1];
     }
   }
+  return kTRUE;
 }
 
 //____________________________________________________________________________

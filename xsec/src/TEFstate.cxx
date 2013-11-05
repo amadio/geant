@@ -5,8 +5,8 @@
 #include "TGraph.h"
 #include "TH1F.h"
 #include "TLine.h"
-#include <TMath.h>
-#include <TMultiGraph.h>
+#include "TMath.h"
+#include "TMultiGraph.h"
 #include <TObjArray.h>
 #include <TObjString.h>
 #include <TPFstate.h>
@@ -42,7 +42,6 @@ TEFstate::TEFstate():
 
 //___________________________________________________________________
 TEFstate::TEFstate(Int_t z, Int_t a, Float_t dens):
-   TNamed(TPartIndex::I()->EleSymb(z),TPartIndex::I()->EleName(z)),
    fEle(z*10000+a*10),
    fDens(dens),
    fAtcm3(fDens*TMath::Na()*1e-24/TPartIndex::I()->WEle(z)),

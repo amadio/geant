@@ -23,8 +23,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include <TDatabasePDG.h>
-#include <TPartIndex.h>
+#include "TDatabasePDG.h"
+#include "TPartIndex.h"
 class TFinState;
 
 class TPFstate {

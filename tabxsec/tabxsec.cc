@@ -1131,8 +1131,7 @@ int main(int argc,char** argv)
           exit(1);
         }
         if(nsample) {
-          fh->cd();
-          mfstate->Write();
+          fh->WriteObject(mfstate,TPartIndex::I()->EleSymb(mat->GetZ()));
           delete mfstate;
         }
       } // end of material loop

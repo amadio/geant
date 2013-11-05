@@ -22,8 +22,8 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TNamed.h>
-#include <TPartIndex.h>
+#include "TNamed.h"
+#include "TPartIndex.h"
 class TFile;
 class TGHorizontalFrame;
 class TGListBox;

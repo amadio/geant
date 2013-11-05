@@ -22,14 +22,13 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include "TNamed.h"
 #include "TPartIndex.h"
 class TFile;
 class TGraph;
 class TPFstate;
 class TFinState;
 
-class TEFstate : public TNamed {
+class TEFstate {
 public:
   
   TEFstate();

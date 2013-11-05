@@ -22,11 +22,10 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TObject.h>
-#include <TDatabasePDG.h>
-#include <TPartIndex.h>
+#include "TDatabasePDG.h"
+#include "TPartIndex.h"
 
-class TPXsec: public TObject {
+class TPXsec {
 public:
    TPXsec();
    TPXsec(Int_t pdg, Int_t nxsec);
