@@ -42,18 +42,21 @@ CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
 GEANTSOURCES  = GeantThreadData.cxx GeantTrack.cxx GeantBasket.cxx  sync_objects.cxx \
                 GeantOutput.cxx GeantPropagator.cxx GeantEvent.cxx GeantScheduler.cxx \
                 PhysicsProcess.cxx WorkloadManager.cxx GeantVApplication.cxx GeantFactoryStore.cxx
+GEANTH        = GeantThreadData.h PhysicsProcess.h GeantBasket.h GeantScheduler.h GeantPropagator.h \
+                GeantEvent.h GeantTrack.h GeantOutput.h WorkloadManager.h GeantVApplication.h LinkDef.h
+GEANTHI       = $(patsubst %.h,inc/%.h,$(GEANTH))
 GEANTDICTS    = G__Geant.cxx
-GEANTO        = $(patsubst %.cxx,%.o,$(GEANTSOURCES)) $(patsubst %.cxx,%.o,$(GEANTDICTS))
-GEANTSL       = $(patsubst %.o,$(SRCDIR)/%.o,$(GEANTO))
-GEANTDEPS     = $(patsubst %.cxx,$(INCDIR)/%.h,$(GEANTSOURCES))
+GEANTO        = $(patsubst %.cxx,src/%.o,$(GEANTSOURCES)) G__Geant.o
+GEANTDEPS     = $(patsubst %.cxx,$(INCDIR)/%.h,$(GEANTSOURCES)) $(patsubst %.cxx,%.h,$(GEANTDICTS))
 GEANTSO       = libGeant.$(DllSuf)
 GEANTLIB      = $(shell pwd)/$(GEANTSO)
 
 USERSOURCES   = MyHit.cxx MyApplication.cxx
+USERH         = MyHit.h MyApplication.h UserLinkDef.h
+USERHI        = $(patsubst %.h,inc/%.h,$(USERH))
 USERDICTS     = G__User.cxx
-USERO        = $(patsubst %.cxx,%.o,$(USERSOURCES)) $(patsubst %.cxx,%.o,$(USERDICTS))
-USERSL        = $(patsubst %.o,$(SRCDIR)/%.o,$(USERO))
-USERDEPS      = $(patsubst %.cxx,$(INCDIR)/%.h,$(USERSOURCES))
+USERO        = $(patsubst %.cxx,src/%.o,$(USERSOURCES)) G__User.o
+USERDEPS      = $(patsubst %.cxx,$(INCDIR)/%.h,$(USERSOURCES)) $(patsubst %.cxx,%.h,$(USERDICTS))
 USERSO        = libUser.$(DllSuf)
 USERLIB       = $(shell pwd)/$(USERSO)
 
@@ -67,41 +70,34 @@ geant:          $(GEANTSO)
 user:           $(USERSO)
 
 $(GEANTSO):     $(GEANTDICTS) $(GEANTO)
-		$(LD) $(LDFLAGS) $(SOFLAGS) $(GEANTSL) $(OutPutOpt)$@
+		$(LD) $(LDFLAGS) $(SOFLAGS) $(GEANTO) $(OutPutOpt)$@
 		@echo "$@ done"
 $(USERSO):      $(USERDICTS) $(USERO)
-		$(LD) $(LDFLAGS) $(SOFLAGS) $(USERSL) $(OutPutOpt)$@
+		$(LD) $(LDFLAGS) $(SOFLAGS) $(USERO) $(OutPutOpt)$@
 		@echo "$@ done"
-%.o: src/%.cxx inc/%.h
-		$(CXX)  $(CXXFLAGS) -o src/$@ -c $<
+
+src/%.o: src/%.cxx inc/%.h
+		$(CXX)  $(CXXFLAGS) -o $@ -c $<
 
 $(GEANTDICTS):
 		@echo "Generating dictionary $@"
-		$(ROOTSYS)/bin/rootcint -f $(SRCDIR)/$@ \
-                -c -p $(INCDIR)/GeantThreadData.h $(INCDIR)/PhysicsProcess.h \
-                $(INCDIR)/GeantBasket.h $(INCDIR)/GeantScheduler.h \
-                $(INCDIR)/GeantPropagator.h $(INCDIR)/GeantEvent.h $(INCDIR)/GeantTrack.h $(INCDIR)/GeantOutput.h \
-                $(INCDIR)/WorkloadManager.h $(INCDIR)/GeantVApplication.h $(INCDIR)/LinkDef.h
+		$(ROOTSYS)/bin/rootcint -f $@ -c -p $(GEANTHI)
 $(USERDICTS):
 		@echo "Generating dictionary $@"
-		$(ROOTSYS)/bin/rootcint -f $(SRCDIR)/$@ \
-                -c  $(INCDIR)/MyHit.h $(INCDIR)/MyApplication.h \
-                $(INCDIR)/UserLinkDef.h
+		$(ROOTSYS)/bin/rootcint -f $@ -c $(USERHI)
 G__Geant.o:
-		$(ROOTSYS)/bin/rmkdepend -R -f$(SRCDIR)/G__Geant.d -Y -w 1000 -- \
+		$(ROOTSYS)/bin/rmkdepend -R -f G__Geant.d -Y -w 1000 -- \
                 pipe -m64 -Wshadow -Wall -W -Woverloaded-virtual -fPIC \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
-                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(SRCDIR)/$(GEANTDICTS)
-		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $(SRCDIR)/$@ \
-                -c $(SRCDIR)/G__Geant.cxx
+                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(GEANTDICTS)
+		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ -c G__Geant.cxx
 G__User.o:
-		$(ROOTSYS)/bin/rmkdepend -R -f$(SRCDIR)/G__User.d -Y -w 1000 -- \
+		$(ROOTSYS)/bin/rmkdepend -R -f G__User.d -Y -w 1000 -- \
                 pipe -m64 -Wshadow -Wall -W -Woverloaded-virtual -fPIC \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
-                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(SRCDIR)/$(USERDICTS)
-		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $(SRCDIR)/$@ \
-                -c $(SRCDIR)/G__User.cxx
+                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(USERDICTS)
+		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ -c G__User.cxx
 clean:
-		@rm -rf $(GEANTSO) $(USERSO) src/*.o src/*.d src/G__*
+		@rm -rf $(GEANTSO) $(USERSO) src/*.o src/*.d G__*
                 
 

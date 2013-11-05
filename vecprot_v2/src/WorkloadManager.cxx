@@ -195,7 +195,7 @@ void *WorkloadManager::MainScheduler(void *)
          ninjected += sch->AddTracks(output->GetOutputTracks());
 //         Printf("=== injected %d baskets", ninjected);
          // Recycle basket
-	 output->Recycle();	 
+	      output->Recycle();	 
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
@@ -354,7 +354,7 @@ void *WorkloadManager::TransportTracks(void *)
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
-//      Printf("======= BASKET %p taken by thread #%d =======", basket, tid);
+      Printf("======= BASKET %p with %d tracks thread #%d =======", basket, ntotransport, tid);
 //      basket->Print();
 //      Printf("==========================================");
 //      propagator->fTracksPerBasket[tid] = ntotransport;
@@ -408,7 +408,8 @@ void *WorkloadManager::TransportTracks(void *)
       }
 
 finish:
-      basket->Clear();
+//      basket->Clear();
+      Printf("======= BASKET %p with %d output tracks thread #%d =======", basket, basket->GetNoutput(), tid);
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);

@@ -1,5 +1,5 @@
 void run(Int_t nthreads=1, Bool_t graphics=kFALSE, 
-         const char *geomfile="gexam3.root")
+         const char *geomfile="gexam1.root")
 //         "http://root.cern.ch/files/cms.root")
 {
    gSystem->Load("libPhysics.so");
@@ -21,7 +21,7 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
 
    prop->fApplication = new MyApplication();
 
-   gROOT->ProcessLine(".x factory.C+");   
+//   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;
 //   prop->fDebugTrk = 1;
    prop->PropagatorGeom(geomfile, nthreads, graphics);

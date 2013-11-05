@@ -18,11 +18,12 @@
 class TGeoBranchArray;
 
 const Double_t kB2C = -0.299792458e-3;
-enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed};
+enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
 enum TransportAction_t {
-   kPostpone = 0,   // return imediately and postpone whatever tracks left
-   kSingle   = 1,   // perform remaining loop in single track mode
-   kVector   = 2    // perform remaining loop in vectorized mode
+   kDone     = 0,   // Return immediately - no tracks left
+   kPostpone = 1,   // return imediately and postpone whatever tracks left
+   kSingle   = 2,   // perform remaining loop in single track mode
+   kVector   = 3    // perform remaining loop in vectorized mode
 };   
 // types
 enum Species_t {kHadron, kLepton};
@@ -204,6 +205,7 @@ public:
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
+   void      DeleteTrack(Int_t itr);
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
@@ -237,7 +239,7 @@ public:
    Int_t     PropagateInFieldSingle(Int_t itr, Double_t crtstep, Bool_t checkcross);
    void      ComputeTransportLength(Int_t ntracks);
    void      ComputeTransportLengthSingle(Int_t itr);
-   void      PropagateInVolume(const Double_t *crtstep);
+   void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep);
    void      PropagateInVolumeSingle(Int_t i, Double_t crtstep);
    Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
    Int_t     PropagateTracks(GeantTrack_v &output);

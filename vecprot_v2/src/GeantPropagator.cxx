@@ -111,7 +111,7 @@ GeantPropagator::GeantPropagator()
                  fThreadData(0)
 {
 // Constructor
-   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
+   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,0.2);
    fgInstance = this;
 }
 
@@ -198,6 +198,8 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
    if (tid<0) tid = TGeoManager::ThreadId();
    GeantTrack &track = fThreadData[tid]->fTrack;
    track.Clear();
+   track.fPath = new TGeoBranchArray();
+   track.fNextpath = new TGeoBranchArray();
    return track;
 }
    
@@ -294,7 +296,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fZdir = TMath::Cos(theta);
          track.fFrombdr = kFALSE;
          
-         fEvents[slot]->AddTrack();
+         AddTrack(track);
          ndispatched += DispatchTrack(track);
       }
 //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
@@ -405,6 +407,7 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t t
    Double_t *procStep;
    // Fill interaction lengths for all processes and all particles
    for (iproc=0; iproc<fNprocesses; iproc++) {
+      if (fProcesses[iproc]->IsType(PhysicsProcess::kContinuous)) continue;
       procStep = td->GetProcStep(iproc);
       fProcesses[iproc]->ComputeIntLen(td->fVolume, ntracks, tracks, procStep, tid);
    }
@@ -415,6 +418,7 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t t
       tracks.fPstepV[i] = maxlen;
       tracks.fProcessV[i] = -1;
       for (iproc=0; iproc<fNprocesses; iproc++) {
+         if (fProcesses[iproc]->IsType(PhysicsProcess::kContinuous)) continue;
          procStep = td->GetProcStep(iproc);
          pstep = procStep[i];
          if (pstep < tracks.fPstepV[i]) {

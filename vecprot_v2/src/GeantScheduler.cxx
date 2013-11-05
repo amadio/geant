@@ -59,7 +59,7 @@ void GeantScheduler::CreateBaskets()
 //______________________________________________________________________________
 Int_t GeantScheduler::AddTracks(GeantTrack_v &tracks)
 {
-// Add all tracks and inject baskets if above threshold. Returns the number
+// Add all tracks and insject baskets if above threshold. Returns the number
 // of injected baskets.
    Int_t ninjected = 0;
    Bool_t priority = kFALSE;
@@ -67,7 +67,10 @@ Int_t GeantScheduler::AddTracks(GeantTrack_v &tracks)
    GeantBasketMgr *basket_mgr = 0;
    TGeoVolume *vol = 0;
    for (Int_t itr=0; itr<ntracks; itr++) {
-      if (tracks.fStatusV[itr]==kKilled) continue;
+      if (tracks.fStatusV[itr]==kKilled) {
+         tracks.DeleteTrack(itr);
+         continue;
+      }   
       priority = kFALSE;
       if (fPriorityRange[0]>=0 &&
           tracks.fEventV[itr]>=fPriorityRange[0] &&

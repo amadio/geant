@@ -73,7 +73,7 @@ void ScatteringProcess::PostStep(TGeoVolume *vol,
    Int_t irnd = 0;
    gPropagator->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
    for (Int_t i=0; i<ntracks; i++) {
-      if (!tracks.fChargeV[i]) {
+      if (!tracks.fChargeV[i] || (tracks.fProcessV[i]!=0)) {
          nout++;
          continue;
       }   
@@ -239,7 +239,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
-   Double_t fact = 1.;
+   Double_t fact = 0.1;
    const Double_t nabarn = fact*TMath::Na()*1e-24;
    Double_t xlen = TMath::Limits<double>::Max();
    TGeoMaterial *mat = vol->GetMaterial();
@@ -291,6 +291,10 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
    Int_t nprod = 0;
    Int_t ngen  = 0;
    for (Int_t i=0; i<ntracks; i++) {
+      if (tracks.fProcessV[i]!=2) {
+         nout++;
+         continue;
+      }   
       Double_t en = tracks.fEV[i];
       Double_t m1 = tracks.fMassV[i];
       Double_t m2 = vol->GetMaterial()->GetA();
@@ -309,31 +313,35 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
          //Double_t pytot=track->py;
          //Double_t pztot=track->pz;
          TGeoBranchArray &a = *tracks.fPathV[i];
+         // The mother particle dies
+         tracks.fStatusV[i] = kKilled;
+         GeantTrack &trackg = gPropagator->GetTempTrack(tid);
          for(Int_t j=0; j<2*nprod; ++j) {
             // Do not consider tracks below the production threshold. Normally the energy deposited should be taken into account
             TLorentzVector *lv = gps.GetDecay(j);
             if (lv->E()-pimass < gPropagator->fEmin) continue;
-            GeantTrack &trackg = gPropagator->GetTempTrack(tid);
-            gPropagator->AddTrack(trackg);
             *trackg.fPath = a;
             if(j%2) trackg.fPDG = kPiMinus;
             else trackg.fPDG = kPiPlus;
-            trackg.fEvent = tracks.fEventV[j];
-            trackg.fEvslot = tracks.fEvslotV[j];
+            trackg.fEvent = tracks.fEventV[i];
+            trackg.fEvslot = tracks.fEvslotV[i];
             trackg.fSpecies = kHadron;
             trackg.fCharge = TDatabasePDG::Instance()->GetParticle(trackg.fPDG)->Charge()/3.;
             trackg.fMass = pimass;
 //            trackg.fProcess = 0;
-            trackg.fXpos = tracks.fXposV[j];
-            trackg.fYpos = tracks.fYposV[j];
-            trackg.fZpos = tracks.fZposV[j];
+            trackg.fXpos = tracks.fXposV[i];
+            trackg.fYpos = tracks.fYposV[i];
+            trackg.fZpos = tracks.fZposV[i];
             Double_t oneoverp = 1./lv->P();
             trackg.fXdir = oneoverp*lv->Px();
             trackg.fYdir = oneoverp*lv->Py();
             trackg.fZdir = oneoverp*lv->Pz();
             trackg.fE = lv->E();
+            trackg.fP = TMath::Sqrt((trackg.E()-trackg.Mass())*(trackg.E()+trackg.Mass()));
+            trackg.fStatus = kNew;
             ngen++;
             // Add track to the tracks vector
+            gPropagator->AddTrack(trackg);
             tracks.AddTrack(trackg);
          }
       }
