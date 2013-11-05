@@ -23,9 +23,13 @@ void finstate()
      printf("Element %d is %s\n",i+1,TPartIndex::I()->EleName(i+1));
   }
   
+  TH1F *hh[92];
+  Int_t nh=0;
   for(Int_t iele=0; iele<92; ++iele) {
+    hh[iele]=0;
     fs = (TEFstate *) ff->Get(TPartIndex::I()->EleSymb(iele));
     if(fs) {
+      
       Int_t iproc = 4; // inelastic
       Int_t ipart = 32; // proton
       Float_t kerma=0;
@@ -37,7 +41,7 @@ void finstate()
       
       for(Int_t ien=0; ien<TPartIndex::I()->NEbins(); ++ien) {
         Int_t isurv = fs->GetReac(ipart, egrid[ien], iproc, 0, kerma, npart, pid, mom);
-        printf("en %f #%d(%d) ",egrid[ien], npart,isurv);
+        printf("en %10.3e #%d(%d) ",egrid[ien], npart,isurv);
         for(Int_t l=0; l<npart; ++l) if(pid[l]<1000) printf("%s ",TPartIndex::I()->PartName(pid[l]));
         else printf("%d ",pid[l]);
         printf("\n");

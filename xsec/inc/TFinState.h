@@ -44,12 +44,13 @@ public:
                      const Float_t mom[], const Int_t pid[],
                      const Char_t surv[]);
   Bool_t Prune() {return kTRUE;}
-  Bool_t SampleReac(Float_t& kerma, Int_t& npart, const Int_t* pid, const Float_t *mom) const;
-  Bool_t GetReac(Int_t finstat, Float_t& kerma, Int_t& npart, const Int_t *&pid, const Float_t *mom) const;
+  Bool_t SampleReac(Float_t& kerma, Int_t& npart, const Int_t* &pid, const Float_t *&mom) const;
+  Bool_t GetReac(Int_t finstat, Float_t& kerma, Int_t& npart, const Int_t *&pid, const Float_t *&mom) const;
   void Dump() const {}
   void Print(Option_t */*opt*/="") const
   { printf("fNFstates %d, fNsecs %d, fNMom %d, fPID %p, fSurv %p, fNpart %p, fWeight %p, fKerma %p, fMom %p\n",
-           fNFstates,fNsecs,fNMom,fPID,fSurv,fNpart,fWeight,fKerma, fMom);}
+           fNFstates,fNsecs,fNMom,(void *)fPID,(void *)fSurv,
+           (void *)fNpart,(void *)fWeight,(void *)fKerma, (void *)fMom);}
   
   static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
   static Int_t GetVerbose() {return fVerbose;}

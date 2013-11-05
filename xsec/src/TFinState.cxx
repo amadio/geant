@@ -1,5 +1,5 @@
 #include "TFinState.h"
-#include <TRandom.h>
+#include "TRandom.h"
 
 Int_t TFinState::fVerbose=0;
 
@@ -139,7 +139,7 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Float_t weight[],
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, const Int_t *pid, const Float_t *mom) const
+Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, const Int_t *&pid, const Float_t *&mom) const
 {
   Double_t eta = gRandom->Rndm();
   Int_t finstat = fNFstates-1;
@@ -160,7 +160,7 @@ Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, const Int_t *pid, con
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::GetReac(Int_t finstat, Float_t& kerma, Int_t& npart, const Int_t *&pid, const Float_t *mom) const
+Bool_t TFinState::GetReac(Int_t finstat, Float_t& kerma, Int_t& npart, const Int_t *&pid, const Float_t *&mom) const
 {
   if(!fNFstates) {
     kerma = 0;
