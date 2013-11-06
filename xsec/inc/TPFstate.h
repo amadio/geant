@@ -40,8 +40,9 @@ public:
                      const Int_t npart[], const Float_t mom[], const Int_t pid[], const Char_t surv[]);
   void Print(Option_t *opt="") const;
   Bool_t Prune() {return kTRUE;}
-  Bool_t SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart, const Int_t *pid, const Float_t *mom) const;
-  Bool_t GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma, Int_t& npart, const Int_t *&pid, const Float_t *mom) const;
+  Bool_t SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart, const Int_t *pid, const Float_t *&mom) const;
+  Bool_t GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma, Int_t& npart, const Int_t *&pid, const Float_t *&mom) const;
+  Int_t NEFstat() const {return fNEFstat;}
   void Dump() const {}
   Bool_t Resample();
   

@@ -135,48 +135,64 @@ Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], co
 }     
 
 //______________________________________________________________________________
-Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart,  
-			   const Int_t *pid, const Float_t *mom) const
+Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart,
+                            const Int_t *pid, const Float_t *&mom) const
 {
-   Double_t eta = gRandom->Rndm();
-   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
-   en=en>fEGrid[0]?en:fEGrid[0];
-   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
-   ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-   Double_t en1 = fEGrid[ibin];
-   Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
+  Int_t rnumber = fRdict[preac];
+  if(rnumber==-1) {
+    kerma=0;
+    npart=0;
+    pid=0;
+    mom=0;
+    return kFALSE;
+  } else {
+    Double_t eta = gRandom->Rndm();
+    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+    en=en>fEGrid[0]?en:fEGrid[0];
+    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>en || en2<en) {
       Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
+            ibin, en1, en, en2);
       return kFALSE;
-   }
-   Double_t xrat = (en2-en)/(en2-en1);
-   if(eta>xrat) ++ibin;
-   Int_t rnumber = fRdict[preac];
-   Int_t ipoint = rnumber*fNEbins + ibin;
-   return fFstat[ipoint].SampleReac(kerma,npart,pid,mom);
+    }
+    Double_t xrat = (en2-en)/(en2-en1);
+    if(eta>xrat) ++ibin;
+    Int_t ipoint = rnumber*fNEbins + ibin;
+    return fFstat[ipoint].SampleReac(kerma,npart,pid,mom);
+  }
 }
 
 
 //______________________________________________________________________________
 Bool_t TPFstate::GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma,
-                         Int_t& npart, const Int_t *&pid, const Float_t *mom) const
+                         Int_t& npart, const Int_t *&pid, const Float_t *&mom) const
 {
-  en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
-  en=en>fEGrid[0]?en:fEGrid[0];
-  Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
-  ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-  Double_t en1 = fEGrid[ibin];
-  Double_t en2 = fEGrid[ibin+1];
-  if(en1>en || en2<en) {
-    Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-          ibin, en1, en, en2);
-    return kFALSE;
-  }
-  if(en-en1>en-en) ++ibin;
   Int_t rnumber = fRdict[preac];
-  Int_t ipoint = rnumber*fNEbins + ibin;
-  return fFstat[ipoint].GetReac(finstat,kerma,npart,pid,mom);
+  if(rnumber==-1) {
+    kerma=0;
+    npart=0;
+    pid=0;
+    mom=0;
+    return kFALSE;
+  } else {
+    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+    en=en>fEGrid[0]?en:fEGrid[0];
+    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>en || en2<en) {
+      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+            ibin, en1, en, en2);
+      return kFALSE;
+    }
+    if(en-en1>en-en) ++ibin;
+    Int_t ipoint = rnumber*fNEbins + ibin;
+    return fFstat[ipoint].GetReac(finstat,kerma,npart,pid,mom);
+  }
 }
 
 

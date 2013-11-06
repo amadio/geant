@@ -197,6 +197,9 @@ int SampDisInt(G4Material* material,
   return true;
 }
 
+void TimingInfo(G4float,G4int,G4int,G4int,G4float,G4int);
+
+
 G4int SampleOne(G4Material* material,
                 G4ThreeVector *pos,
                 G4DynamicParticle *dpart,
@@ -211,6 +214,10 @@ G4int SampleOne(G4Material* material,
   G4HadronicProcess *hadp = dynamic_cast<G4HadronicProcess*>(proc);
   G4VEmProcess *vemp = dynamic_cast<G4VEmProcess*>(proc);
   const G4String pname = proc->GetProcessName();
+  
+  // Timing stuff
+  clock_t begin, end;
+  //
   
   // -------- We chose a short step because we do not want anything
   // -------- to happen during the step
@@ -305,7 +312,11 @@ G4int SampleOne(G4Material* material,
     exit(1);
   }
 
+  
+  
   // ----------------------------------- ** Cause Discrete Interaction ** ----------------------------
+  
+  begin = clock();
   
   G4double  previousStepSize= 1.0;
   G4ForceCondition fCondition;
@@ -341,6 +352,11 @@ G4int SampleOne(G4Material* material,
   aChange = proc->PostStepDoIt(*gTrack,*step);
   aChange->UpdateStepForPostStep(step);
   step->UpdateTrack();
+  
+  end = clock();
+  G4float cputime = (G4double)(end - begin) / CLOCKS_PER_SEC;
+  
+  
   fs.kerma+=step->GetTotalEnergyDeposit();
   
   // ------- Define target A
@@ -365,7 +381,7 @@ G4int SampleOne(G4Material* material,
                A,isoA,Z,isoZ,amass,isoM,GetNuclearMass(isoZ,isoA,verbose));
     }
   }
- 
+  
   G4int n = aChange->GetNumberOfSecondaries();
 
   if(vemp) {
@@ -472,7 +488,9 @@ G4int SampleOne(G4Material* material,
       bnum+=A;
     }
   }
-  
+ 
+  TimingInfo(cputime,Z,dpart->GetParticleDefinition()->GetPDGEncoding(),
+             proc->GetProcessType()*1000+proc->GetProcessSubType(),dpart->GetKineticEnergy(),n+isurv);
   
   if(G4String("hadElastic") == pname && !fs.survived) {
     G4cout << "Elastic but the particle did not survive " << tStatus[aChange->GetTrackStatus()] << G4endl;
@@ -555,79 +573,80 @@ G4int SampleOne(G4Material* material,
     << n_el << " e-, " << n_po << " e+, " << n_ga << " g"
     << G4endl;
   }
-
-  if(n                                                  // We check only if we have secondaries
-     && (G4String("conv") != pname)                     // But not if we have conversion, momentum is not preserved
-     && (G4String("PositronNuclear") != pname)          // Here we have a problem in G4
-     && (G4String("ElectroNuclear") != pname)           // Another problem in G4
-     ) {
-    G4double perr;
-    G4int berr;
-    G4LorentzVector ptest;
-    
-    const G4double prec=1e-2;
-    checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
-    
-    if(perr>prec || berr) {
-      // --- Try to fix few simple things
-      if(ptest[3]>-939 && ptest[3]<-936 && berr==-1) {
-        //G4cout << "Energy balance wrong by one baryon mass, let's try to fix it changing a deuteron in proton" << G4endl;
-        for(G4int i=0; i<n; ++i) {
-          if(G4String("deuteron") == secs[i].GetDefinition()->GetParticleName()) {
-            secs[i] = G4DynamicParticle(G4Proton::Proton(),secs[i].GetMomentum());
-            break;
-          }
-        }
-        checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+  
+  if(n) {                                                  // We check only if we have secondaries
+    if((G4String("conv") != pname)                     // But not if we have conversion, momentum is not preserved
+       && (G4String("PositronNuclear") != pname)          // Here we have a problem in G4
+       && (G4String("ElectroNuclear") != pname)           // Another problem in G4
+       ) {
+      G4double perr;
+      G4int berr;
+      G4LorentzVector ptest;
+      
+      const G4double prec=1e-2;
+      checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+      
+      if(perr>prec || berr) {
+        // --- Try to fix few simple things
         if(ptest[3]>-939 && ptest[3]<-936 && berr==-1) {
-          // -- this still did not fix it... however sometimes there is a neutron that we can change into a gamma
-          //G4cout << "Energy balance wrong by one baryon mass, let's try to fix it changing a neutron in gamma" << G4endl;
+          //G4cout << "Energy balance wrong by one baryon mass, let's try to fix it changing a deuteron in proton" << G4endl;
           for(G4int i=0; i<n; ++i) {
-            if(G4String("neutron") == secs[i].GetDefinition()->GetParticleName()) {
-              secs[i] = G4DynamicParticle(G4Gamma::Gamma(),secs[i].GetMomentum());
+            if(G4String("deuteron") == secs[i].GetDefinition()->GetParticleName()) {
+              secs[i] = G4DynamicParticle(G4Proton::Proton(),secs[i].GetMomentum());
               break;
             }
           }
+          checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+          if(ptest[3]>-939 && ptest[3]<-936 && berr==-1) {
+            // -- this still did not fix it... however sometimes there is a neutron that we can change into a gamma
+            //G4cout << "Energy balance wrong by one baryon mass, let's try to fix it changing a neutron in gamma" << G4endl;
+            for(G4int i=0; i<n; ++i) {
+              if(G4String("neutron") == secs[i].GetDefinition()->GetParticleName()) {
+                secs[i] = G4DynamicParticle(G4Gamma::Gamma(),secs[i].GetMomentum());
+                break;
+              }
+            }
+          }
         }
-      }
-      checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
-      if(perr>prec || berr) {
-        pd = gTrack->GetDefinition();
-        G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl
-        <<"Dubious E/p/B balance " << setiosflags(ios::scientific) << setprecision(2) << perr
-        << " / dB " << berr
-        << " delta p=" << setiosflags(ios::fixed) << setprecision(6) << ptest << " for "
-        << pname << " of "
-        << dpart->GetParticleDefinition()->GetParticleName() << " @ "
-        << dpart->Get4Momentum() << " on "
-        << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" << G4endl
-//        << "  Out   :"
-//        << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
-//        << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
-//        << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
-//        << " p:" << gTrack->GetDynamicParticle()->Get4Momentum() << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
-        
-        << "  Out   :"
-        << setiosflags(ios::left) << setw(10) << step->GetTrack()->GetParticleDefinition()->GetParticleName()
-        << " (" << setiosflags(ios::right) << setw(6) << step->GetTrack()->GetParticleDefinition()->GetPDGEncoding() << ") " << setw(0)
-        << " Z:" << step->GetTrack()->GetParticleDefinition()->GetAtomicNumber() << " B:" << step->GetTrack()->GetParticleDefinition()->GetBaryonNumber()
-        << " p:" << G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy()) << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
-        
-        << "Particles generated:" << G4endl;
-        for(G4int i=0; i<n; ++i) {
+        checkBalance(porig,pcons,bnum,secs,n,ptest,perr,berr);
+        if(perr>prec || berr) {
+          pd = gTrack->GetDefinition();
+          G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl
+          <<"Dubious E/p/B balance " << setiosflags(ios::scientific) << setprecision(2) << perr
+          << " / dB " << berr
+          << " delta p=" << setiosflags(ios::fixed) << setprecision(6) << ptest << " for "
+          << pname << " of "
+          << dpart->GetParticleDefinition()->GetParticleName() << " @ "
+          << dpart->Get4Momentum() << " on "
+          << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" << G4endl
+          //        << "  Out   :"
+          //        << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
+          //        << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
+          //        << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
+          //        << " p:" << gTrack->GetDynamicParticle()->Get4Momentum() << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
           
-          sec = &secs[i];
-          pd  = sec->GetDefinition();
-          G4cout << "  #" << setw(3) << i << setw(0) << ": "
-          << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
-          << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
-          << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
-          << " p:" << sec->Get4Momentum()
-          << G4endl;
+          << "  Out   :"
+          << setiosflags(ios::left) << setw(10) << step->GetTrack()->GetParticleDefinition()->GetParticleName()
+          << " (" << setiosflags(ios::right) << setw(6) << step->GetTrack()->GetParticleDefinition()->GetPDGEncoding() << ") " << setw(0)
+          << " Z:" << step->GetTrack()->GetParticleDefinition()->GetAtomicNumber() << " B:" << step->GetTrack()->GetParticleDefinition()->GetBaryonNumber()
+          << " p:" << G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy()) << ": " << tStatus[aChange->GetTrackStatus()] << G4endl
+          
+          << "Particles generated:" << G4endl;
+          for(G4int i=0; i<n; ++i) {
+            
+            sec = &secs[i];
+            pd  = sec->GetDefinition();
+            G4cout << "  #" << setw(3) << i << setw(0) << ": "
+            << setiosflags(ios::left) << setw(10) << pd->GetParticleName()
+            << " (" << setiosflags(ios::right) << setw(6) << pd->GetPDGEncoding() << ") " << setw(0)
+            << " Z:" << pd->GetAtomicNumber() << " B:" << pd->GetBaryonNumber()
+            << " p:" << sec->Get4Momentum()
+            << G4endl;
+          }
+          G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
         }
-        G4cout << setfill('-') << setw(120) << "-" << setfill(' ') << setw(0) << G4endl;
+        
       }
-      
     }
     for(G4int i=0; i<n; ++i) {
       G4ParticleDefinition *pd = secs[i].GetDefinition();

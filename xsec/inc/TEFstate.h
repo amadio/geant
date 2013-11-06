@@ -46,11 +46,12 @@ public:
   Double_t Emax() const {return fEmax;}
   Int_t NEbins() const {return fNEbins;}
   Double_t EilDelta() const {return fEilDelta;}
+  Int_t NEFstat() const {return fNEFstat;}
   
   Int_t NRpart() const {return fNRpart;}
   
-  Bool_t SampleReac(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *mom) const;
-  Bool_t GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *mom) const;
+  Bool_t SampleReac(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *&mom) const;
+  Bool_t GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
   
   static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
     return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;
@@ -80,6 +81,7 @@ private:
   Int_t          fNEbins;  // Number of log steps in energy
   Double_t       fEilDelta; // Inverse log energy step
   const Double_t *fEGrid;  //! Common energy grid
+  Int_t          fNEFstat; // Number of sampled final states
   Int_t          fNRpart;  // Number of particles with reaction
   TPFstate      *fPFstate;   // [fNRpart] Final state table per particle
   

@@ -35,6 +35,7 @@ TEFstate::TEFstate():
    fNEbins(0),
    fEilDelta(0),
    fEGrid(TPartIndex::I()->EGrid()),
+   fNEFstat(0),
    fNRpart(0),
    fPFstate(0)
 {
@@ -50,6 +51,7 @@ TEFstate::TEFstate(Int_t z, Int_t a, Float_t dens):
    fNEbins(TPartIndex::I()->NEbins()),
    fEilDelta(TPartIndex::I()->EilDelta()),
    fEGrid(TPartIndex::I()->EGrid()),
+   fNEFstat(0),
    fNRpart(TPartIndex::I()->NPartReac()),
    fPFstate(new TPFstate[fNRpart])
 {
@@ -69,6 +71,10 @@ Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, cons
 //___________________________________________________________________
 Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[])
 {
+  if(!fNEFstat) fNEFstat = nfstat;
+  else if(fNEFstat != nfstat) {
+    ::Fatal("AddPart","Number of final sample states changed during run from %d to %d",fNEFstat,nfstat);
+  }
   return fPFstate[kpart].SetPart(pdg,nfstat,nreac,dict,vecfs);
 }
 
@@ -82,13 +88,13 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t w
 
 //___________________________________________________________________
 Bool_t TEFstate::SampleReac(Int_t pindex, Double_t en, Int_t preac,
-			 Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *mom) const {
+			 Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *&mom) const {
    return fPFstate[pindex].SampleReac(preac,en,kerma,npart,pid,mom);
 }
 
 //___________________________________________________________________
 Bool_t TEFstate::GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs,
-                              Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *mom) const
+                              Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const
 {
   return fPFstate[pindex].GetReac(en,preac,ifs,kerma,npart,pid,mom);
 }

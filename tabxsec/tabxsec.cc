@@ -120,6 +120,8 @@ void usage()
   "     -i      interactive graphics mode" << G4endl;
 }
 
+void CloseTiming();
+
 #include <fenv.h>
 #include "fp_exception_glibc_extension.h"
 
@@ -1157,6 +1159,7 @@ int main(int argc,char** argv)
       // Print dictionary
       //    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
     }
+    CloseTiming();
   } else {
     // interactive mode : define UI session
 #ifdef G4UI_USE
