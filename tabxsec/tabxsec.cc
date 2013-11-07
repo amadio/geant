@@ -505,7 +505,7 @@ int main(int argc,char** argv)
       if(strlen(line)>0) printf("%s\n",line);
       
       // Write out particles
-      // not very useful indeed, so it is disable
+      // not very useful indeed, so it is disabled
       Bool_t outpart=kFALSE;
       if(outpart) {
         FILE *fout = fopen("file.txt","w");
@@ -596,6 +596,86 @@ int main(int argc,char** argv)
       // This is still not enough but it is necessary
       
       runManager->BeamOn( ngener );
+ 
+      const G4ThreeVector  dirz(0,0,1);
+      G4ThreeVector *pos = new G4ThreeVector(0,0,0);
+      TFinState decayfs;
+
+      if(nsample) {
+        // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
+        for(G4int i=0; i<np; ++i) {
+          particle = particleVector[i];
+          if(particle->GetDecayTable()) {
+            
+            // if the particle is a generic ion we bail out
+            if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
+            
+            G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
+            // printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
+            if(partindex<0) {
+              printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
+                     (const char *)particle->GetParticleName());
+              exit(1);
+            }
+            sprintf(string,"%-20s:",(const char *)particle->GetParticleName());
+            G4ProcessManager* pManager = particle->GetProcessManager();
+            
+            // Loop over all the process active for this particle
+            if ( pManager == 0) {
+              G4cout << "No process manager (no X-sec!) for " << particle->GetParticleName() << G4endl;
+            } else {
+              // Here we get the process list for this particle
+              G4ProcessVector* pList = pManager->GetProcessList();
+              
+              // loop over all processes defined for this particle
+              //
+              for (G4int idx=0; idx<pList->size(); idx++) {
+                G4VProcess* p = (*pList)[idx];
+                sprintf(&string[strlen(string)]," [%s,%d,%d]",
+                        (const char *)p->GetProcessName(),p->GetProcessType(),
+                        p->GetProcessSubType());
+                
+                // Add information to the process dictionary
+                
+                G4int pcode = p->GetProcessType()*1000+p->GetProcessSubType();
+                G4int pindex = TPartIndex::I()->ProcIndex(pcode);
+                if(pindex<0) {
+                  printf("Error: Found unknown process %d %d %s\n",
+                         p->GetProcessType(),p->GetProcessSubType(),(const char*) p->GetProcessName());
+                  exit(1);
+                }
+                
+                if(p->GetProcessType()==6) {
+                  // ----------------------------------- Decay ---------------------------------------
+                  
+                  if(verbose > 2)
+                    printf("Part [%3d] %s adding process %s [%d,%d]\n",
+                           i, (const char*) particle->GetParticleName(),
+                           (const char*) p->GetProcessName(),
+                           p->GetProcessType(),p->GetProcessSubType());
+                  G4double en=0; // Let's try decay at rest
+                  
+                  G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+                  
+                  if(nsample) {
+                    G4Material *matt = (*theMaterialTable)[0];
+                    printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------------\n",
+                           (const char *) particle->GetParticleName(),
+                           (const char *) p->GetProcessName(),
+                           (const char*) matt->GetName(),
+                           en/GeV);
+                    SampDisInt(matt, pos, dp, p, nsample, verbose, decayfs);
+                    //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
+                  }
+                  delete dp;
+                  // ----------------------------------- Decay ---------------------------------------
+                }
+              }
+            }
+          }
+        }
+        // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
+      }
       
       // From here on we tabulate the cross sections and sample the interactions
       // These two functions may be split later
@@ -606,10 +686,8 @@ int main(int argc,char** argv)
       
       // loop over all materials defined
       //
-      const G4ThreeVector  dirz(0,0,1);
       G4double totsize = 0;
       G4int npr=0;
-      G4ThreeVector *pos = new G4ThreeVector(0,0,0);
       G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
       GetNavigatorForTracking();
       TList *allElements = new TList();
@@ -618,7 +696,7 @@ int main(int argc,char** argv)
       Int_t totfs=0;
       Int_t curfs=0;
       TFinState *vecfs=0;
-            
+      
       TFile *fh = 0;
       
       if(nsample) {
@@ -702,6 +780,9 @@ int main(int argc,char** argv)
         for(G4int i=0; i<np; ++i) {
           particle = particleVector[i];
           
+          // if the particle is a generic ion we bail out
+          if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
+
           G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
           // printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
           if(partindex<0) {
@@ -751,13 +832,13 @@ int main(int argc,char** argv)
               }
               
               // if it is transportation or decay we bail out
-              if(p->GetProcessType()==1||p->GetProcessType()==6) continue;
-              
-              // if the particle is a generic ion we bail out
-              if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
-              
-              // These are the processes that we want to store
-              if(p->GetProcessType() == fHadronic ) {  // 4
+              if(p->GetProcessType()==1) {
+                continue;
+                // Decay we already did
+              } else if(p->GetProcessType()==6) {
+                continue;
+                 // From here on the processes we want to store
+              } else if(p->GetProcessType() == fHadronic ) {  // 4
                 // no parametrization for Z > 92 and inelastic (but why a crash??)
                 if(mat->GetZ() > 92 &&
                    ( i == 382 || i == 383 ) &&

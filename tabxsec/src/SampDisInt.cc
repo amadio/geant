@@ -61,6 +61,7 @@
 #include "G4ParticleChangeForMSC.hh"
 #include "G4VRestProcess.hh"
 #include "G4VEmProcess.hh"
+#include "G4VRestDiscreteProcess.hh"
 
 #include "G4ParticleTable.hh"
 #include "G4DynamicParticle.hh"
@@ -107,14 +108,24 @@ int SampDisInt(G4Material* material,
   
   G4VDiscreteProcess* discProc= dynamic_cast<G4VDiscreteProcess*>(proc);
   G4VContinuousDiscreteProcess* contdProc= dynamic_cast<G4VContinuousDiscreteProcess*>(proc);
+  G4VRestDiscreteProcess* discRestProc= dynamic_cast<G4VRestDiscreteProcess*>(proc);
   
   const G4String pname = proc->GetProcessName();
   
-  if( !discProc && !contdProc ) {
+  if( !discProc && !contdProc && !discRestProc) {
     G4cout << " Process " << pname
     << " for particle " << dpart->GetParticleDefinition()->GetParticleName()
     << " has no discrete part. " << G4endl;
     return -1;
+  }
+  
+  if(G4String("Decay") == pname) {
+    G4DecayTable *dt = dpart->GetParticleDefinition()->GetDecayTable();
+    if(!dt) {
+      G4cout << "Cannot decay " << dpart->GetParticleDefinition()->GetParticleName()
+      << " without a decay table" << G4endl;
+      return -1;
+    }
   }
   
   // ------- Define target A
@@ -356,6 +367,11 @@ G4int SampleOne(G4Material* material,
   end = clock();
   G4float cputime = (G4double)(end - begin) / CLOCKS_PER_SEC;
   
+  G4int n = aChange->GetNumberOfSecondaries();
+
+  if(proc->GetProcessName() == G4String("Decay") && !n) {
+    G4cout << "No particles produced for decay!!!!" << G4endl;
+  }
   
   fs.kerma+=step->GetTotalEnergyDeposit();
   
@@ -382,8 +398,6 @@ G4int SampleOne(G4Material* material,
     }
   }
   
-  G4int n = aChange->GetNumberOfSecondaries();
-
   if(vemp) {
     // --- "by hand" determination of the target isotope, it is not saved in G4
     const G4Element* ele = vemp->GetCurrentElement();

@@ -1,7 +1,7 @@
 #include <TPartIndex.h>
 #include <TString.h>
 #include <TDatabasePDG.h>
-#include <TMath.h>
+#include "TMath.h"
 
 ClassImp(TPartIndex)
 
