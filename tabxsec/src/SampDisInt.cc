@@ -147,8 +147,10 @@ int SampDisInt(G4Material* material,
   }
   
   //----------------------------- Start event loop -------------------------------
-  for(G4int iter=0; iter<nevt; ++iter) {
-    
+  G4int iter=0;
+  G4int nresample = 0;
+  const G4int maxresample = 10*nevt;
+  while(iter<nevt) {
     if(verbose>1) {
       G4cout << "### " << iter << "-th event: "
       << dpart->GetParticleDefinition()->GetParticleName() << " "
@@ -159,6 +161,11 @@ int SampDisInt(G4Material* material,
     }
     
     SampleOne(material,pos,dpart,proc,verbose,fstat[iter]);
+    if(pname != G4String("Decay") || fstat[iter].npart || ++nresample>maxresample) {
+      ++iter;
+    } else {
+      G4cout << "No particles produced for decay!!!!" << G4endl;
+    }
   }
   
   //----------------------------- End event loop -------------------------------
@@ -368,10 +375,6 @@ G4int SampleOne(G4Material* material,
   G4float cputime = (G4double)(end - begin) / CLOCKS_PER_SEC;
   
   G4int n = aChange->GetNumberOfSecondaries();
-
-  if(proc->GetProcessName() == G4String("Decay") && !n) {
-    G4cout << "No particles produced for decay!!!!" << G4endl;
-  }
   
   fs.kerma+=step->GetTotalEnergyDeposit();
   
