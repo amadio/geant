@@ -79,25 +79,25 @@ $(USERSO):      $(USERDICTS) $(USERO)
 src/%.o: src/%.cxx inc/%.h
 		$(CXX)  $(CXXFLAGS) -o $@ -c $<
 
-$(GEANTDICTS):
+$(GEANTDICTS): $(GEANTHI) 
 		@echo "Generating dictionary $@"
 		$(ROOTSYS)/bin/rootcint -f $@ -c -p $(GEANTHI)
 $(USERDICTS):
 		@echo "Generating dictionary $@"
 		$(ROOTSYS)/bin/rootcint -f $@ -c $(USERHI)
 G__Geant.o:
-		$(ROOTSYS)/bin/rmkdepend -R -f G__Geant.d -Y -w 1000 -- \
+#		$(ROOTSYS)/bin/rmkdepend -R -f G__Geant.d -Y -w 1000 -- \
                 pipe -m64 -Wshadow -Wall -W -Woverloaded-virtual -fPIC \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
                 -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(GEANTDICTS)
 		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ -c G__Geant.cxx
 G__User.o:
-		$(ROOTSYS)/bin/rmkdepend -R -f G__User.d -Y -w 1000 -- \
+#		$(ROOTSYS)/bin/rmkdepend -R -f G__User.d -Y -w 1000 -- \
                 pipe -m64 -Wshadow -Wall -W -Woverloaded-virtual -fPIC \
                 -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
                 -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(USERDICTS)
 		$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ -c G__User.cxx
 clean:
-		@rm -rf $(GEANTSO) $(USERSO) src/*.o src/*.d G__*
+		@rm -rf $(GEANTSO) $(USERSO) src/*.o G__*
                 
 

@@ -239,7 +239,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
-   Double_t fact = 0.1;
+   Double_t fact = 1;
    const Double_t nabarn = fact*TMath::Na()*1e-24;
    Double_t xlen = TMath::Limits<double>::Max();
    TGeoMaterial *mat = vol->GetMaterial();
@@ -260,7 +260,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
    for (Int_t i=0; i<ntracks; i++) {
       if(tracks.fSpeciesV[i] == kHadron && tracks.fStatusV[i] != kKilled) {
          Double_t ek = tracks.fEV[i] - tracks.fMassV[i];
-         lengths[i] = xlen*(0.007+0.1*TMath::Log(ek)/ek+0.2/(ek*ek));
+         lengths[i] = 10000.*xlen*(0.007+0.1*TMath::Log(ek)/ek+0.2/(ek*ek));
       } else {
          lengths[i] = 0.5*TMath::Limits<double>::Max();
       }

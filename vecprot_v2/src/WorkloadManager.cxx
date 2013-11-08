@@ -95,7 +95,7 @@ void WorkloadManager::StartThreads()
       fListThreads->Add(t);
       t->Run();
    }
-   gSystem->Sleep(1000);
+//   gSystem->Sleep(1000);
    TThread *t = new TThread(WorkloadManager::MainScheduler);
    fListThreads->Add(t);
    t->Run();
@@ -330,6 +330,7 @@ void *WorkloadManager::TransportTracks(void *)
 //      TString sslist;
 //   const Int_t max_idle = 1;
 //   Int_t indmin, indmax;
+   static Int_t counter=0;
    Int_t ntotnext, ncross, ntotransport;
    Int_t generation = 0;
    GeantBasket *basket = 0;
@@ -350,11 +351,13 @@ void *WorkloadManager::TransportTracks(void *)
       propagator->fWaiting[tid] = 0;
       // Check exit condition: null basket in the queue
       if (!basket) break;
+      counter++;
       ntotransport = basket->GetNinput();  // all tracks to be transported 
+//      ninput = ntotransport;
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
-      Printf("======= BASKET %p with %d tracks thread #%d =======", basket, ntotransport, tid);
+//      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
 //      basket->Print();
 //      Printf("==========================================");
 //      propagator->fTracksPerBasket[tid] = ntotransport;
@@ -409,7 +412,7 @@ void *WorkloadManager::TransportTracks(void *)
 
 finish:
 //      basket->Clear();
-      Printf("======= BASKET %p with %d output tracks thread #%d =======", basket, basket->GetNoutput(), tid);
+//      Printf("======= BASKET %p with %d output tracks thread #%d =======", basket, basket->GetNoutput(), tid);
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);

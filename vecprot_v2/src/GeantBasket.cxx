@@ -128,6 +128,8 @@ GeantBasketMgr::GeantBasketMgr(TGeoVolume *vol, Int_t number)
                    fMutex()
 {
 // Constructor
+   fCBasket = GetNextBasket();
+   fPBasket = GetNextBasket();
 }
 
 //______________________________________________________________________________
@@ -143,7 +145,6 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t pri
 {
 // Copy directly from a track_v a track to the basket manager.
    if (priority) {
-      if (!fPBasket) fPBasket = GetNextBasket();
       fPBasket->AddTrack(trackv, itr);
       if (fPBasket->GetNinput() >= fThreshold) {
          fFeeder->push(fPBasket, priority);
@@ -151,7 +152,6 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t pri
          return 1;
       }
    } else {
-      if (!fCBasket) fCBasket = GetNextBasket();
       fCBasket->AddTrack(trackv, itr);
       if (fCBasket->GetNinput() >= fThreshold) {
          fFeeder->push(fCBasket, priority);
@@ -170,7 +170,6 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack &track, Bool_t priority)
 // one. The feeder must be defined beforehand. Returns the number of dispatched
 // baskets
    if (priority) {
-      if (!fPBasket) fPBasket = GetNextBasket();
       fPBasket->AddTrack(track);
       if (fPBasket->GetNinput() >= fThreshold) {
          fFeeder->push(fPBasket, priority);
@@ -178,7 +177,6 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack &track, Bool_t priority)
          return 1;
       }
    } else {
-      if (!fCBasket) fCBasket = GetNextBasket();
       fCBasket->AddTrack(track);
       if (fCBasket->GetNinput() >= fThreshold) {
          fFeeder->push(fCBasket, priority);
@@ -216,7 +214,7 @@ Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax)
 Int_t GeantBasketMgr::FlushPriorityBasket()
 {
 // Flush the baskets containing tracks. Returns the number of dispatched baskets.
-   if (fPBasket && fPBasket->GetNinput()) {
+   if (fPBasket->GetNinput()) {
       fFeeder->push(fPBasket, kTRUE);
       fPBasket = GetNextBasket();
       return 1;

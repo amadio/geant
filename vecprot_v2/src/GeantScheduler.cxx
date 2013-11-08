@@ -67,7 +67,8 @@ Int_t GeantScheduler::AddTracks(GeantTrack_v &tracks)
    GeantBasketMgr *basket_mgr = 0;
    TGeoVolume *vol = 0;
    for (Int_t itr=0; itr<ntracks; itr++) {
-      if (tracks.fStatusV[itr]==kKilled) {
+      if (tracks.fStatusV[itr]==kKilled ||
+          tracks.fStatusV[itr]==kExitingSetup) {
          tracks.DeleteTrack(itr);
          continue;
       }   

@@ -793,7 +793,7 @@ Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
          if (firsthole==fNtracks) return fNtracks;
       } else {
          // No active tracks left. First copy the hole track to the output
-         if (moveto) moveto->AddTrack(*this, firsthole);
+         if (moveto) moveto->AddTracks(*this, firsthole, firsthole+fNtracks-1);
          fNtracks = 0;
          return 0;
       }
@@ -1207,7 +1207,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
    fPathV[itr]->UpdateNavigator(nav);
    nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
-   nav->FindNextBoundaryAndStep(TMath::Min(1.E20, fPstepV[itr]), fFrombdrV[itr]);
+   nav->FindNextBoundaryAndStep(TMath::Min(1.E20, fPstepV[itr]), !fFrombdrV[itr]);
    fSnextV[itr] = TMath::Max(2*gTolerance,nav->GetStep());
    fSafetyV[itr] = nav->GetSafeDistance();
    fNextpathV[itr]->InitFromNavigator(nav);
@@ -1283,7 +1283,8 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
       // Do straight propagation to physics process or boundary
          if (fFrombdrV[itr]) {
             *fPathV[itr] = *fNextpathV[itr];
-            fStatusV[itr] = kBoundary;
+            if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
+            else                          fStatusV[itr] = kBoundary;
             icrossed++;
          } else {
             fStatusV[itr] = kPhysics;
@@ -1425,7 +1426,8 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
          // Do straight propagation to physics process or boundary
             if (fFrombdrV[itr]) {
                *fPathV[itr] = *fNextpathV[itr];
-               fStatusV[itr] = kBoundary;
+               if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
+               else                          fStatusV[itr] = kBoundary;
                icrossed++;
             } else {
                fStatusV[itr] = kPhysics;
@@ -1471,7 +1473,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
          }
          // Track has safety<pstep but next boundary not close enough.
          // We propagate in field with the safety value.
-         if (fSafetyV[itr] < gTolerance) {
+         if (fSafetyV[itr] < 1.E-6) {
             // Track getting away from boundary. Work to be done here
             // In principle we need a safety value for the content of the current volume only
             // This does not behave well on corners...
