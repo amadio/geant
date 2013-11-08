@@ -70,7 +70,7 @@ private:
   Float_t        *fKerma;         // [fNFstates] Released energy
   Float_t        *fMom;           // [fNMom] Particle momentum (GeV)
   
-  ClassDef(TFinState,1)  //Particle Final States
+  ClassDefNV(TFinState,1)  //Particle Final States
 };
 
 #endif
