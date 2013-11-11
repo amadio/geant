@@ -13,7 +13,8 @@
 //==============================================================================
 
 class concurrent_queue;
-class GeantTrack_v;
+class GeantTrack;
+class GeantBasket;
 class GeantBasketMgr;
 
 //______________________________________________________________________________
@@ -22,12 +23,15 @@ protected:
    Int_t                fNvolumes;            // Number of active volumes in the geometry
    Int_t                fNpriority;           // Number of priority baskets held
    GeantBasketMgr     **fBasketMgr;           // Array of basket managers
+   Int_t               *fNtracks;             //[fNvolume] Number of tracks per volume
    Int_t                fPriorityRange[2];    // Prioritized events
    
 public:
    GeantScheduler();
    virtual ~GeantScheduler();
-   Int_t                AddTracks(GeantTrack_v &tracks);
+   Int_t                AddTrack(const GeantTrack &track);
+   Int_t                AddTracks(GeantBasket *output);
+   void                 AdjustBasketSize();
    void                 CreateBaskets();
    Int_t                CollectPrioritizedTracks();
    Int_t                GetNpriority() const {return fNpriority;}
