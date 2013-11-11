@@ -50,7 +50,7 @@ public:
   
   Int_t NRpart() const {return fNRpart;}
   
-  Bool_t SampleReac(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *&mom) const;
+  Bool_t SampleReac(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
   Bool_t GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
   
   static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
@@ -88,7 +88,7 @@ private:
   static Int_t   fNLdElems; //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
   
-  ClassDef(TEFstate,1)  // Element X-secs
+  ClassDefNV(TEFstate,1)  // Element X-secs
   
 };
 

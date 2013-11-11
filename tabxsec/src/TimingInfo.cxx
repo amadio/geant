@@ -2,8 +2,8 @@
 #include "TTree.h"
 #include "TPartIndex.h"
 
-static TFile *f;
-static TTree *t;
+static TFile *f=0;
+static TTree *t=0;
 
 void TimingInfo(Float_t cpu,Int_t z,Int_t pdg,Int_t proc,Float_t en, Int_t np)
 {
@@ -39,7 +39,10 @@ void TimingInfo(Float_t cpu,Int_t z,Int_t pdg,Int_t proc,Float_t en, Int_t np)
 
 void CloseTiming()
 {
-  t->Write();
-  f->Write();
-  f->Close();
+  if(t)
+    t->Write();
+  if(f) {
+    f->Write();
+    f->Close();
+  }
 }

@@ -135,6 +135,7 @@ int SampDisInt(G4Material* material,
   G4double amass = GetNuclearMass( Z, A, verbose );
   
   Finstat_t *fstat = new Finstat_t[nevt];
+  memset(fstat,0,nevt*sizeof(Finstat_t));
   
   if(verbose>1) {
     G4cout << G4endl << "Process   : " << pname << G4endl
@@ -160,8 +161,9 @@ int SampDisInt(G4Material* material,
       // ------- Printout
     }
     
+    if(++nresample>maxresample) break;
     SampleOne(material,pos,dpart,proc,verbose,fstat[iter]);
-    if(pname != G4String("Decay") || fstat[iter].npart || ++nresample>maxresample) {
+    if(pname != G4String("Decay") || fstat[iter].npart) {
       ++iter;
     } else {
       G4cout << "No particles produced for decay!!!!" << G4endl;
@@ -192,9 +194,9 @@ int SampDisInt(G4Material* material,
       weight[i]=fstat[i].weight;
       surv[i]=fstat[i].survived;
       for(G4int j=0; j<npart[i]; ++j ) {
-        tmom[3*(ip+j)]  =fstat[i].mom[3*j];
-        tmom[3*(ip+j)+1]=fstat[i].mom[3*j+1];
-        tmom[3*(ip+j)+2]=fstat[i].mom[3*j+2];
+        tmom[3*(ip+j)]  =fstat[i].mom[3*j]/GeV;
+        tmom[3*(ip+j)+1]=fstat[i].mom[3*j+1]/GeV;
+        tmom[3*(ip+j)+2]=fstat[i].mom[3*j+2]/GeV;
         tpid[ip+j]=fstat[i].pid[j];
       }
       ip+=npart[i];
@@ -329,8 +331,6 @@ G4int SampleOne(G4Material* material,
     G4cout << gTrack->GetMomentum() << gTrack->GetTotalEnergy() << gTrack->GetParticleDefinition()->GetPDGMass() << G4endl;
     exit(1);
   }
-
-  
   
   // ----------------------------------- ** Cause Discrete Interaction ** ----------------------------
   

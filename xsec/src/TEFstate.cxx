@@ -88,7 +88,7 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t w
 
 //___________________________________________________________________
 Bool_t TEFstate::SampleReac(Int_t pindex, Double_t en, Int_t preac,
-			 Float_t& kerma, Int_t &npart, const Int_t *pid, const Float_t *&mom) const {
+			 Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const {
    return fPFstate[pindex].SampleReac(preac,en,kerma,npart,pid,mom);
 }
 

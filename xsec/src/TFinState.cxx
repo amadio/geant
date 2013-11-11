@@ -149,7 +149,7 @@ Bool_t TFinState::SampleReac(Float_t& kerma, Int_t& npart, const Int_t *&pid, co
       break;
     }
   Int_t ipoint = 0;
-  for(Int_t i=0; i<finstat-1; ++i) ipoint+=fNpart[i];
+  for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
   npart = fNpart[finstat];
   kerma = fKerma[finstat];
 //  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
@@ -170,7 +170,7 @@ Bool_t TFinState::GetReac(Int_t finstat, Float_t& kerma, Int_t& npart, const Int
     return kFALSE;
   } else {
     Int_t ipoint = 0;
-    for(Int_t i=0; i<finstat-1; ++i) ipoint+=fNpart[i];
+    for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
     npart = fNpart[finstat];
     kerma = fKerma[finstat];
     //  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));

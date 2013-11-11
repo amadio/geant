@@ -84,6 +84,7 @@
 #include <TMap.h>
 #include <TObjString.h>
 #include <TFinState.h>
+#include "TPDecay.h"
 
 #include <unistd.h>
 
@@ -599,10 +600,16 @@ int main(int argc,char** argv)
  
       const G4ThreeVector  dirz(0,0,1);
       G4ThreeVector *pos = new G4ThreeVector(0,0,0);
-      TFinState decayfs;
+
+      TFile *fh = 0;
 
       if(nsample) {
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
+        
+        fh = new TFile("fstate.root","recreate");
+        fh->SetCompressionLevel(0);
+
+        TFinState decayfs[np];
         for(G4int i=0; i<np; ++i) {
           particle = particleVector[i];
           if(particle->GetDecayTable()) {
@@ -664,7 +671,7 @@ int main(int argc,char** argv)
                            (const char *) p->GetProcessName(),
                            (const char*) matt->GetName(),
                            en/GeV);
-                    SampDisInt(matt, pos, dp, p, nsample, verbose, decayfs);
+                    SampDisInt(matt, pos, dp, p, nsample, verbose, decayfs[partindex]);
                     //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                   }
                   delete dp;
@@ -675,6 +682,8 @@ int main(int argc,char** argv)
           }
         }
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
+        TPDecay *decayTable = new TPDecay(nsample,np,decayfs);
+        fh->WriteObject(decayTable,"DecayTable");
       }
       
       // From here on we tabulate the cross sections and sample the interactions
@@ -696,13 +705,6 @@ int main(int argc,char** argv)
       Int_t totfs=0;
       Int_t curfs=0;
       TFinState *vecfs=0;
-      
-      TFile *fh = 0;
-      
-      if(nsample) {
-        fh = new TFile("fstate.root","recreate");
-        fh->SetCompressionLevel(0);
-      }
       
       for(G4int imat=0; imat<nmaterials; ++imat) {
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
