@@ -7,10 +7,10 @@ ClassImp(TPartIndex)
 
 const char* TPartIndex::fPrName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
 			   "Elastic","RestCapture","Brehms","PairProd","Annihilation",
-			   "CoulombScatt","Photoel","Compton","Conversion","Capture",
+			   "CoulombScatt","Photoel","Compton","Conversion","Capture","Fission",
 					"Killer","Total"};
 const Short_t TPartIndex::fPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
-					  2012,2013,2014,4131,7403,999};
+					  2012,2013,2014,4131,4141,7403,999};
 
 const char* TPartIndex::fEleSymbol[NELEM]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
 				"Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V",

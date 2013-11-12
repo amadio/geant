@@ -41,6 +41,7 @@
 #include "G4UImanager.hh"
 #include "G4ParticleTable.hh"
 #include "QBBC.hh"
+#include "FTFP_BERT.hh"
 #include "G4HadronicProcess.hh"
 #include "G4VEmProcess.hh"
 #include "G4NistMaterialBuilder.hh"
@@ -225,7 +226,8 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(new B1DetectorConstruction());
   
   // Physics list
-  G4VModularPhysicsList* physicsList = new QBBC;
+  // G4VModularPhysicsList* physicsList = new QBBC;
+  G4VModularPhysicsList* physicsList = new FTFP_BERT;
   physicsList->SetVerboseLevel(verbose);
   runManager->SetUserInitialization(physicsList);
   
@@ -597,18 +599,18 @@ int main(int argc,char** argv)
       // This is still not enough but it is necessary
       
       runManager->BeamOn( ngener );
- 
+      
       const G4ThreeVector  dirz(0,0,1);
       G4ThreeVector *pos = new G4ThreeVector(0,0,0);
-
+      
       TFile *fh = 0;
-
+      
       if(nsample) {
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
         
         fh = new TFile("fstate.root","recreate");
         fh->SetCompressionLevel(0);
-
+        
         TFinState decayfs[np];
         for(G4int i=0; i<np; ++i) {
           particle = particleVector[i];
@@ -706,6 +708,7 @@ int main(int argc,char** argv)
       Int_t curfs=0;
       TFinState *vecfs=0;
       
+      TFinState rcaptfs[np];
       for(G4int imat=0; imat<nmaterials; ++imat) {
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
         pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -784,7 +787,7 @@ int main(int argc,char** argv)
           
           // if the particle is a generic ion we bail out
           if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
-
+          
           G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
           // printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
           if(partindex<0) {
@@ -806,7 +809,7 @@ int main(int argc,char** argv)
             totfs = TPartIndex::I()->NProc()*nbins;
             vecfs = new TFinState[totfs];
           }
-
+          
           // Loop over all the process active for this particle
           if ( pManager == 0) {
             G4cout << "No process manager (no X-sec!) for " << particle->GetParticleName() << G4endl;
@@ -839,77 +842,101 @@ int main(int argc,char** argv)
                 // Decay we already did
               } else if(p->GetProcessType()==6) {
                 continue;
-                 // From here on the processes we want to store
+                // From here on the processes we want to store
               } else if(p->GetProcessType() == fHadronic ) {  // 4
                 // no parametrization for Z > 92 and inelastic (but why a crash??)
                 if(mat->GetZ() > 92 &&
                    ( i == 382 || i == 383 ) &&
                    p->GetProcessSubType() == 121) continue;
-                   if(p->GetProcessSubType() == 151) continue; // Capture at rest, will see later
-                
-                // Hadronic interaction -- just store x-sec
-                if(verbose > 2)
-                  printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
-                         (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
-                         (const char*) p->GetProcessName(),
-                         p->GetProcessType(),p->GetProcessSubType());
-                G4double en=emin;
-                
-                G4HadronicProcess *ph = (G4HadronicProcess*)p;
-                G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
-                G4bool iszero=TRUE;
-                for(G4int j=0; j<nbins; ++j) {
-                  curxs = ph->GetElementCrossSection(dp,mat->GetElement(0));
-                  if(curxs < 0 || curxs > 1e10) {
-                    printf("%s %s on %s @ %f GeV: xs %14.7g\n",
-                           (const char*) particle->GetParticleName(),
+                if(p->GetProcessSubType() == 151) {
+                  // Capture at rest
+                  continue;
+                  if(verbose > 2)
+                    printf("Part [%3d] %s adding process %s [%d,%d]\n",
+                           i, (const char*) particle->GetParticleName(),
                            (const char*) p->GetProcessName(),
-                           (const char*) mat->GetName(),
-                           en/GeV,curxs);
-                    if(curxs>0) curxs = 1e10;
-                    else curxs=0;
-                  }
-                  pxsec[nprxs*nbins+j] = curxs/barn;
-                  iszero = (curxs<=0.);
-                  if( /*particle == G4Proton::Proton() &&*/ nsample) {
-                    // Here we sample proton interactions only when xsec>0 -- just for a test
-                    if(curxs) {
-                      printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
-                             (const char *) particle->GetParticleName(),
-                             (const char *) ph->GetProcessName(),
-                             (const char *) mat->GetName(),
-                             en/GeV);
-                      SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[nbins*nprxs+j]);
- //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
-                    }
-                    if(curfs != nbins*nprxs+j) {
-                      printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
-                      exit(1);
-                    }
-                    ++curfs;
-                  }
-                  en*=delta;
-                  dp->SetKineticEnergy(en);
-                }
-                delete dp;
-                if(pcode != ph->GetProcessType()*1000+ph->GetProcessSubType()) {
-                  printf("Error: process code mismatch 1\n");
-                  exit(1);
-                }
-                if(iszero) {
-                  printf("%s for %s on %s has 0 x-sec\n",
-                         (const char *) p->GetProcessName(),
-                         (const char *) particle->GetParticleName(),
-                         (const char *) mat->GetName());
+                           p->GetProcessType(),p->GetProcessSubType());
+                  G4double en=0; // Let's try capture at rest
                   
-                  // Roll back the final states
-                  if(nsample) curfs-=nbins;
+                  G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+                  
+                  if(nsample) {
+                    printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------------\n",
+                           (const char *) particle->GetParticleName(),
+                           (const char *) p->GetProcessName(),
+                           (const char*) matt->GetName(),
+                           en/GeV);
+                    SampDisInt(matt, pos, dp, p, nsample, verbose, rcaptfs[partindex]);
+                    //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
+                  }
+                  delete dp;
+                  //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                 } else {
-                  // Add process only if there is at least one bin with nonzero x-sec
-                  totsize += nbins;
-                  pdic[nprxs]=pindex;
-                  ++nprxs;
-                  nproc=TRUE;
+                  
+                  // Hadronic interaction -- just store x-sec
+                  if(verbose > 2)
+                    printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
+                           (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
+                           (const char*) p->GetProcessName(),
+                           p->GetProcessType(),p->GetProcessSubType());
+                  G4double en=emin;
+                  
+                  G4HadronicProcess *ph = (G4HadronicProcess*)p;
+                  G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
+                  G4bool iszero=TRUE;
+                  for(G4int j=0; j<nbins; ++j) {
+                    curxs = ph->GetElementCrossSection(dp,mat->GetElement(0));
+                    if(curxs < 0 || curxs > 1e10) {
+                      printf("%s %s on %s @ %f GeV: xs %14.7g\n",
+                             (const char*) particle->GetParticleName(),
+                             (const char*) p->GetProcessName(),
+                             (const char*) mat->GetName(),
+                             en/GeV,curxs);
+                      if(curxs>0) curxs = 1e10;
+                      else curxs=0;
+                    }
+                    pxsec[nprxs*nbins+j] = curxs/barn;
+                    iszero = (curxs<=0.);
+                    if( /*particle == G4Proton::Proton() &&*/ nsample) {
+                      // Here we sample proton interactions only when xsec>0 -- just for a test
+                      if(curxs) {
+                        printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
+                               (const char *) particle->GetParticleName(),
+                               (const char *) ph->GetProcessName(),
+                               (const char *) mat->GetName(),
+                               en/GeV);
+                        SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[nbins*nprxs+j]);
+                        //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
+                      }
+                      if(curfs != nbins*nprxs+j) {
+                        printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
+                        exit(1);
+                      }
+                      ++curfs;
+                    }
+                    en*=delta;
+                    dp->SetKineticEnergy(en);
+                  }
+                  delete dp;
+                  if(pcode != ph->GetProcessType()*1000+ph->GetProcessSubType()) {
+                    printf("Error: process code mismatch 1\n");
+                    exit(1);
+                  }
+                  if(iszero) {
+                    printf("%s for %s on %s has 0 x-sec\n",
+                           (const char *) p->GetProcessName(),
+                           (const char *) particle->GetParticleName(),
+                           (const char *) mat->GetName());
+                    
+                    // Roll back the final states
+                    if(nsample) curfs-=nbins;
+                  } else {
+                    // Add process only if there is at least one bin with nonzero x-sec
+                    totsize += nbins;
+                    pdic[nprxs]=pindex;
+                    ++nprxs;
+                    nproc=TRUE;
+                  }
                 }
               } else if (p->GetProcessType() == 2) {
                 
@@ -1187,20 +1214,20 @@ int main(int argc,char** argv)
             ++npr; // Total number of processes to calculate size
             ++kpreac; // number particle with processes
             if(nsample) { // We have been requested for sampling final states
- /*             if(partindex==32) {
-                printf("Storing for protons ns %d nprxs %d\n", nsample, nprxs);
-                for(G4int i=0; i<nprxs; ++i) {
-                  printf("Reaction %d %s\n",i,TPartIndex::I()->ProcName(pdic[i]));
-                }
-                for(G4int j=0; j<nprxs; ++j) {
-                  for(G4int i=0; i<nbins; ++i) {
-                    printf("%s %f ",TPartIndex::I()->ProcName(pdic[j]),TPartIndex::I()->EGrid()[i]);
-                    vecfs[nbins*j+i].Print();
-                  }
-                }
-              }
-  */
-             // Trim vecfs -- Ugly till I find a better way...
+              /*             if(partindex==32) {
+               printf("Storing for protons ns %d nprxs %d\n", nsample, nprxs);
+               for(G4int i=0; i<nprxs; ++i) {
+               printf("Reaction %d %s\n",i,TPartIndex::I()->ProcName(pdic[i]));
+               }
+               for(G4int j=0; j<nprxs; ++j) {
+               for(G4int i=0; i<nbins; ++i) {
+               printf("%s %f ",TPartIndex::I()->ProcName(pdic[j]),TPartIndex::I()->EGrid()[i]);
+               vecfs[nbins*j+i].Print();
+               }
+               }
+               }
+               */
+              // Trim vecfs -- Ugly till I find a better way...
               TFinState * newvfs = new TFinState[nprxs*nbins];
               for(G4int ifs=0; ifs<nprxs*nbins; ++ifs) {
                 newvfs[ifs]=vecfs[ifs];
@@ -1311,20 +1338,20 @@ TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
     G4cout << "   PDG:    " << pdgEncoding << G4endl;
     G4cout << "   pdgQ:   " << pdgQ << G4endl;
     G4cout << "   type:   " << rootType << G4endl;
-  }               
+  }
   
   // Add particle to TDatabasePDG
   return TDatabasePDG::Instance()
-  ->AddParticle(name, g4Name, 
-                particleDefinition->GetPDGMass()/GeV, 
-                particleDefinition->GetPDGStable(), 
-                particleDefinition->GetPDGWidth()/GeV, 
-                pdgQ*3, rootType, pdgEncoding);                     
+  ->AddParticle(name, g4Name,
+                particleDefinition->GetPDGMass()/GeV,
+                particleDefinition->GetPDGStable(),
+                particleDefinition->GetPDGWidth()/GeV,
+                pdgQ*3, rootType, pdgEncoding);
 }
 
 
 //
-// public methods This code is copied from G4virtual MC 
+// public methods This code is copied from G4virtual MC
 // written by I.Hrivnacova
 //
 
@@ -1355,7 +1382,7 @@ void DefineParticles()
   partDict.Add(new TObjString("chargedgeantino"), new TObjString("ChargedRootino"));
   
   // generic ion
-  // This particle should not appear in tracking (as it is commented 
+  // This particle should not appear in tracking (as it is commented
   // in class G4GenericIon), but as it does, we map it anyway
   if ( !pdgDB->GetParticle(kspe+60) )
     pdgDB->AddParticle("GenericIon", "GenericIon",  0.938272, kTRUE,
@@ -1378,27 +1405,27 @@ void DefineParticles()
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("Deuteron","Deuteron",2*kGeV+8.071e-3, kTRUE,
                        0, 3, "Ion", particle->GetPDGEncoding());
-  }                       
+  }
   
   particle = particleTable->FindParticle("triton");
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("Triton","Triton",3*kGeV+14.931e-3,kFALSE,
-                       kHshGeV/(12.33*kYearsToSec), 3, "Ion", 
+                       kHshGeV/(12.33*kYearsToSec), 3, "Ion",
                        particle->GetPDGEncoding());
-  }                       
+  }
   
   particle = particleTable->FindParticle("alpha");
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("Alpha","Alpha",4*kGeV+2.424e-3, kTRUE,
                        kHshGeV/(12.33*kYearsToSec), 6, "Ion",
                        particle->GetPDGEncoding());
-  }                       
+  }
   
   particle = particleTable->FindParticle("He3");
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("HE3", "HE3", 3*kGeV+14.931e-3, kFALSE,
                        0, 6, "Ion", particle->GetPDGEncoding());
-  }                       
+  }
   
   // Light anti-ions
   // Get parameters from Geant4
@@ -1407,27 +1434,27 @@ void DefineParticles()
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("AntiDeuteron", "AntiDeuteron", 1.875613, kTRUE,
                        0, -3, "Ion", particle->GetPDGEncoding());
-  }                       
+  }
   
   particle = particleTable->FindParticle("anti_triton");
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("AntiTriton", "AntiTriton", 2.808921, kTRUE,
                        0, -3, "Ion", particle->GetPDGEncoding());
-  }                       
+  }
   
   particle = particleTable->FindParticle("anti_alpha");
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("AntiAlpha","AntiAlpha", 3.727379, kTRUE,
                        0, -6, "Ion", particle->GetPDGEncoding());
-  }                       
+  }
   
   particle = particleTable->FindParticle("anti_He3");
   if ( particle && ! pdgDB->GetParticle(particle->GetPDGEncoding()) ) {
     pdgDB->AddParticle("AntiHE3", "AntiHE3", 2.808391, kTRUE,
                        0, -6, "Ion", particle->GetPDGEncoding());
-  }                       
+  }
   partDict.Add(new TObjString("geantino"), new TObjString("Rootino"));
   
-}  
+}
 
 

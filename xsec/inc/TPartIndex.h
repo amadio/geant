@@ -26,7 +26,7 @@
 #include <TDatabasePDG.h>
 
 #define DICLEN 12        // Number of process cross sections 
-#define FNPROC 17        // Number of total processes
+#define FNPROC 18        // Number of total processes
 #define FNPART 464       // Total number of particles
 #define NELEM 118         // Total number of materials
 

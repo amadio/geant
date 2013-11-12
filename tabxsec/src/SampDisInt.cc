@@ -233,6 +233,7 @@ G4int SampleOne(G4Material* material,
   G4VContinuousDiscreteProcess* contdProc= dynamic_cast<G4VContinuousDiscreteProcess*>(proc);
   G4HadronicProcess *hadp = dynamic_cast<G4HadronicProcess*>(proc);
   G4VEmProcess *vemp = dynamic_cast<G4VEmProcess*>(proc);
+  G4VRestProcess* restProc= dynamic_cast<G4VRestProcess*>(proc);
   const G4String pname = proc->GetProcessName();
   
   // Timing stuff
@@ -336,39 +337,53 @@ G4int SampleOne(G4Material* material,
   
   begin = clock();
   
-  G4double  previousStepSize= 1.0;
-  G4ForceCondition fCondition;
-  // In SteppingManager::DefinePhysicalStepLength()
-  G4double physIntLength = proc->PostStepGetPhysicalInteractionLength(
-                                                                      *gTrack,
-                                                                      previousStepSize,
-                                                                      &fCondition);
-  // Ignore the proposed value - will force the interaction
-  //  fCondition= Forced;
-  
-  
-  if( contdProc ) {
-    // -- if continuous discrete process, make it happen along the step
-    G4GPILSelection  fGPILSelection;
-    G4double         safetyPrx= 2*theStep; // Not limiting
-    physIntLength = contdProc->AlongStepGetPhysicalInteractionLength(*gTrack,
-                                                                     previousStepSize,
-                                                                     theStep,
-                                                                     safetyPrx,
-                                                                     &fGPILSelection );
+  if(restProc && e0 == 0.0) {
+    G4ForceCondition fCondition;
+    // In SteppingManager::DefinePhysicalStepLength()
+    G4double physIntLength = restProc->AtRestGetPhysicalInteractionLength(
+                                                                        *gTrack,
+                                                                        &fCondition);
+    // -- Make it happen in time
+    aChange = proc->AtRestDoIt(*gTrack,*step);
+    aChange->UpdateStepForAtRest(step);
+   
+  } else {
     
-    // safetyPrx is output only for transportation - currently
+    G4double  previousStepSize= 1.0;
+    G4ForceCondition fCondition;
+    // In SteppingManager::DefinePhysicalStepLength()
+    G4double physIntLength = proc->PostStepGetPhysicalInteractionLength(
+                                                                        *gTrack,
+                                                                        previousStepSize,
+                                                                        &fCondition);
+    // Ignore the proposed value - will force the interaction
+    //  fCondition= Forced;
     
     
-    aChange = contdProc->AlongStepDoIt( *gTrack, *step );
+    if( contdProc ) {
+      // -- if continuous discrete process, make it happen along the step
+      G4GPILSelection  fGPILSelection;
+      G4double         safetyPrx= 2*theStep; // Not limiting
+      physIntLength = contdProc->AlongStepGetPhysicalInteractionLength(*gTrack,
+                                                                       previousStepSize,
+                                                                       theStep,
+                                                                       safetyPrx,
+                                                                       &fGPILSelection );
+      
+      // safetyPrx is output only for transportation - currently
+      
+      
+      aChange = contdProc->AlongStepDoIt( *gTrack, *step );
+      
+      // Update the PostStepPoint of Step according to ParticleChange
+      aChange->UpdateStepForAlongStep(step);
+    }
     
-    // Update the PostStepPoint of Step according to ParticleChange
-    aChange->UpdateStepForAlongStep(step);
+    // -- Make it happen at the end of the step
+    aChange = proc->PostStepDoIt(*gTrack,*step);
+    aChange->UpdateStepForPostStep(step);
+    
   }
-  
-  // -- Make it happen at the end of the step
-  aChange = proc->PostStepDoIt(*gTrack,*step);
-  aChange->UpdateStepForPostStep(step);
   step->UpdateTrack();
   
   end = clock();
