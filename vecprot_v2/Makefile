@@ -31,7 +31,7 @@ else
 ifneq (,$(findstring icc,$(CXX)))
 SOFLAGS	      = -shared -m64
 else
-SOFLAGS	      = -shared -Wl -m64 -g
+SOFLAGS	      = -shared -m64 -g
 endif
 endif
 INCDIR        = inc
