@@ -339,6 +339,9 @@ void TEXsec::Draw(Option_t *option)  // mode=0->terminal, mode=1->viewer
     if(pindex < 0) {
         Error("Draw","Unknown particle %s\n",part);
         return;
+    } else if (pindex > TPartIndex::I()->NPartReac()) {
+        Error("Draw","No reaction for particle %s\n",part);
+        return;
     }
     if(reactions.Contains("All") || reactions.Contains("*")) {
         TString allrea="";
