@@ -317,7 +317,7 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
    if (&track_v != this) {
       Int_t size = track_v.fMaxtracks;
       if (fMaxtracks<size) {
-         delete [] fBuf;
+         _mm_free(fBuf);
          fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
       }
       fNtracks = track_v.fNtracks;
@@ -522,7 +522,7 @@ void GeantTrack_v::Resize(Int_t newsize)
    } else {
       // Resize container
       CopyToBuffer(buf, size);
-      delete [] fBuf;
+      _mm_free(fBuf);
       fBuf = buf;
       fMaxtracks = size;
    }   

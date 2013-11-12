@@ -149,7 +149,7 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t ntotransport = 0;
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
-   Int_t min_feeder = TMath::Max(50,2*nworkers); // setter/getter here ?
+   Int_t min_feeder = TMath::Max(10,2*nworkers); // setter/getter here ?
    // Number of tracks in the current basket
 //   Int_t ntracksb = 0;
    // Number of priority baskets
@@ -192,13 +192,14 @@ void *WorkloadManager::MainScheduler(void *)
          output = carray[iout];
 //         collector->Print();
 //         Printf("= collector has %d tracks", collector->GetNtracks());
-         ninjected += sch->AddTracks(output->GetOutputTracks());
+         ninjected += sch->AddTracks(output);
 //         Printf("=== injected %d baskets", ninjected);
          // Recycle basket
 	      output->Recycle();	 
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
+      Printf("Scheduler injected %d baskets/ queue size = %d", ninjected, ntotransport);
       // Print info about current phase
       if (crtphase!=lastphase) {
          lastphase=crtphase;
@@ -223,6 +224,7 @@ void *WorkloadManager::MainScheduler(void *)
       // Check and mark finished events
       for (Int_t ievt=0; ievt<nbuffered; ievt++) {
          GeantEvent *evt = propagator->fEvents[ievt];
+         if (prioritize && ievt==dumped_event) evt->Print();
          if (finished.TestBitNumber(evt->GetEvent())) continue;
          if (evt->Transported()) {
             // Digitizer (delete for now)
@@ -267,14 +269,17 @@ void *WorkloadManager::MainScheduler(void *)
         // In case no new events were injected and we are not in a the priority regime
         // and below lowest watermark in this iteration, make a garbage collection
 //        if (!nnew && !prioritize && ntotransport<nworkers) {
-           ninjected += sch->GarbageCollect();
-           Printf("Garbage collection injected %d baskets", ninjected);
-//        }   
+
+//           ninjected += sch->GarbageCollect();
+//           Printf("Garbage collection injected %d baskets", ninjected);
+
+//        }  
+//        Printf("Critical regime"); 
         if (!prioritize && last_event<max_events && nnew==0) {
            // Start prioritized regime
            dumped_event = finished.FirstNullBit();
-           Printf("Prioritizing events %d to %d", dumped_event,dumped_event+4);
-           sch->SetPriorityRange(dumped_event, dumped_event+4);
+           Printf("Prioritizing events %d to %d", dumped_event,dumped_event);
+           sch->SetPriorityRange(dumped_event, dumped_event);
            sch->CollectPrioritizedTracks();
            prioritize = kTRUE;
            continue;
@@ -283,6 +288,7 @@ void *WorkloadManager::MainScheduler(void *)
 //        if (!ninjected && !ntotransport && !nnew && nwaiting==nworkers) break;
 //        direct_feed = (ntotransport==0)?kTRUE:kFALSE;
       }
+      sch->AdjustBasketSize();
       nperbasket = 0;
 //      for (Int_t tid=0; tid<propagator->fNthreads; tid++) nperbasket += propagator->fTracksPerBasket[tid];
 //      nperbasket /= propagator->fNthreads;
@@ -339,6 +345,7 @@ void *WorkloadManager::TransportTracks(void *)
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
    Int_t nprocesses = propagator->fNprocesses;
+   Int_t ninput;
 //   Bool_t useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
    // Create navigator if none serving this thread.
@@ -353,7 +360,7 @@ void *WorkloadManager::TransportTracks(void *)
       if (!basket) break;
       counter++;
       ntotransport = basket->GetNinput();  // all tracks to be transported 
-//      ninput = ntotransport;
+      ninput = ntotransport;
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
@@ -412,7 +419,7 @@ void *WorkloadManager::TransportTracks(void *)
 
 finish:
 //      basket->Clear();
-//      Printf("======= BASKET %p with %d output tracks thread #%d =======", basket, basket->GetNoutput(), tid);
+      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);

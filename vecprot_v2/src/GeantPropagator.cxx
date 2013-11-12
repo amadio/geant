@@ -57,6 +57,7 @@
 #include "GeantVApplication.h"
 #include "GeantFactoryStore.h"
 #include "GeantEvent.h"
+#include "GeantScheduler.h"
 
 GeantPropagator *gPropagator = 0;
    
@@ -82,7 +83,7 @@ GeantPropagator::GeantPropagator()
                  fDebugTrk(-1),
                  fMaxSteps(10000),
                  fNperBasket(10),
-                 fMaxPerBasket(100),
+                 fMaxPerBasket(1000),
                  fMaxPerEvent(0),
                  fNaverage(0.),
                  fVertex(),
@@ -154,33 +155,12 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track)
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::DispatchTrack(const GeantTrack &track, Bool_t priority)
+Int_t GeantPropagator::DispatchTrack(const GeantTrack &track)
 {
 // Dispatch a registered track produced by the generator.
-   TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
-   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
-   if (!basket_mgr) {
-      basket_mgr = new GeantBasketMgr(vol, vol->GetNumber());
-      vol->SetFWExtension(basket_mgr);
-   }
-   return basket_mgr->AddTrack(track, priority);
+   return fWMgr->GetScheduler()->AddTrack(track);
 }   
    
-
-//______________________________________________________________________________
-Int_t GeantPropagator::DispatchTrack(const GeantTrack_v &track, Int_t itr, Bool_t priority)
-{
-// Dispatch a registered track from some track_v array. Returns the number of 
-// dispatched baskets. The track fields are already filled.
-   TGeoVolume *vol = track.fPathV[itr]->GetCurrentNode()->GetVolume();
-   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
-   if (!basket_mgr) {
-      basket_mgr = new GeantBasketMgr(vol, vol->GetNumber());
-      vol->SetFWExtension(basket_mgr);
-   }
-   return basket_mgr->AddTrack(track, itr, priority);
-}   
-
 //______________________________________________________________________________
 void GeantPropagator::StopTrack(GeantTrack *track)
 {
@@ -188,6 +168,14 @@ void GeantPropagator::StopTrack(GeantTrack *track)
 //   Printf("Stopping track %d", track->particle);
    if (track->IsAlive()) fEvents[track->fEvslot]->StopTrack();
    track->Kill();
+}
+
+//______________________________________________________________________________
+void GeantPropagator::StopTrack(const GeantTrack_v &tracks, Int_t itr)
+{
+// Mark track as stopped for tracking.
+//   Printf("Stopping track %d", track->particle);
+   fEvents[tracks.fEvslotV[itr]]->StopTrack();
 }
 
 //______________________________________________________________________________
@@ -227,10 +215,11 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       td->fVolume = vol;
    }     
    GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
-   if (!basket_mgr) {
-      basket_mgr = new GeantBasketMgr(vol, vol->GetNumber());
-      vol->SetFWExtension(basket_mgr);
-   }
+   Int_t threshold = nevents*average/(2*fNthreads);
+   threshold -= threshold%4;
+   if (threshold<4) threshold = 4;
+   if (threshold>256) threshold = 256;
+   basket_mgr->SetThreshold(threshold);
    
    const Double_t etamin = -3, etamax = 3;
    Int_t ntracks = 0;

@@ -98,9 +98,9 @@ public:
    // Temporary track for the current caller thread
    GeantTrack      &GetTempTrack(Int_t tid=-1);
    Int_t            AddTrack(GeantTrack &track);
-   Int_t            DispatchTrack(const GeantTrack &track, Bool_t priority=kFALSE);
-   Int_t            DispatchTrack(const GeantTrack_v &track, Int_t itr, Bool_t priority=kFALSE);
+   Int_t            DispatchTrack(const GeantTrack &track);
    void             StopTrack(GeantTrack *track);
+   void             StopTrack(const GeantTrack_v &tracks, Int_t itr);
    Int_t            GetElossInd() const {return fElossInd;}
    UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");

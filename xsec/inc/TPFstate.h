@@ -70,7 +70,7 @@ private:
   Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
   // array to the raction number
   
-  ClassDef(TPFstate,1)  //Particle Final States
+  ClassDefNV(TPFstate,1)  //Particle Final States
 };
 
 #endif

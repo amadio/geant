@@ -24,6 +24,7 @@ public:
    Int_t              GetNtracks() const {return fNtracks;}
    void               SetEvent(Int_t event) {fEvent = event;}
    void               SetSlot(Int_t islot) {fSlot = islot;}
+   void               Print(Option_t *option="") const;
    void               Reset() {fNtracks = fNdone = 0;}
    void               StopTrack();
    Bool_t             Transported() const {return ((fNtracks>0) && (fNtracks==fNdone));}

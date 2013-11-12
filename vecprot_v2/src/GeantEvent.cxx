@@ -22,3 +22,11 @@ void GeantEvent::StopTrack()
    fNdone++;
    fMutex.UnLock();
 }
+
+//______________________________________________________________________________
+void GeantEvent::Print(Option_t *) const
+{
+// Print events content
+   Printf("Event %d: %d/%d tracks transported", fEvent, fNdone, fNtracks);
+}
+   
