@@ -46,8 +46,8 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
     if(fs) {
       Int_t nsamp = fs->NEFstat();
       TString title = TString(TPartIndex::I()->PartName(ipart))
-      +TString(" ")+ TString(TPartIndex::I()->ProcName(iproc))+TString(" on ")+TString(TPartIndex::I()->EleSymb(iele));
-      TString name = TString(TPartIndex::I()->EleSymb(iele));
+      +TString(" ")+ TString(TPartIndex::I()->ProcName(iproc))+TString(" on ")+TString(TPartIndex::I()->EleSymb(iele+1));
+      TString name = TString(TPartIndex::I()->EleSymb(iele+1));
       hh[iele] = new TProfile(name+"-mult", title,
                               100,TMath::Log10(TPartIndex::I()->Emin()),
                               TMath::Log10(TPartIndex::I()->Emax()));
