@@ -420,7 +420,8 @@ G4int SampleOne(G4Material* material,
     // --- "by hand" determination of the target isotope, it is not saved in G4
     const G4Element* ele = vemp->GetCurrentElement();
     if(!ele) {
-      G4cout << "Process " << vemp->GetProcessName() << " did not select isotope" << G4endl;
+      if(verbose>1)
+        G4cout << "Process " << vemp->GetProcessName() << " did not select isotope" << G4endl;
     } else {
       isoZ = ele->GetZ();
       if(isoZ == Z) {
@@ -436,11 +437,12 @@ G4int SampleOne(G4Material* material,
           }
         }
       }
-      G4cout << "Interaction " << vemp->GetProcessName() << " happened on Z "
+      if(verbose>1)
+        G4cout << "Interaction " << vemp->GetProcessName() << " happened on Z "
         << ele->GetZ() << " A " << ele->GetN()
         << G4endl;
     }
-  } 
+  }
   
   // *** Warning *** this is experimental *** We use the Target Isotope for energy and B balance
   
