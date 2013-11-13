@@ -11,7 +11,7 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
 {
   gSystem->Load("libXsec");
   TFile *fx = new TFile("xsec.root","r");
-  TEXsec *s = (TEXsec *) fx->Get("O");
+  fx->Get("PartIndex");
   TFile *ff = new TFile("fstate.root","r");
 //  ff->ls();
   Int_t iproc = TPartIndex::I()->ProcIndex(proc);
@@ -72,10 +72,10 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
           if(npart)
             hh[92+iele]->Fill(TMath::Log10(egrid[ien]),TMath::Sqrt(mom[3*is]*mom[3*is]+mom[3*is+1]*mom[3*is+1]));
           if(is<1000) {
-//            printf("en %10.3e #%d(%d) ",egrid[ien], npart,isurv);
-//            for(Int_t l=0; l<npart; ++l) if(pid[l]<1000) printf("%s ",TPartIndex::I()->PartName(pid[l]));
-//            else printf("%d ",pid[l]);
-//            printf("\n");
+            printf("en %10.3e #%d(%d) ",egrid[ien], npart,isurv);
+            for(Int_t l=0; l<npart; ++l) if(pid[l]<1000) printf("%s ",TPartIndex::I()->PartName(pid[l]));
+            else printf("%d ",pid[l]);
+            printf("\n");
           }
         }
       }

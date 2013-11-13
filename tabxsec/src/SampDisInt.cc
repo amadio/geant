@@ -460,6 +460,7 @@ G4int SampleOne(G4Material* material,
      dynamic_cast<G4VRestProcess*>(proc)) {
     bnum += A;
     pcons[3]+=amass;
+    porig[3]+=amass;
   }
   
   // -- add the mass of the electron in case it is an annihilation

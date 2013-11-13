@@ -42,6 +42,7 @@
 #include "G4ParticleTable.hh"
 #include "QBBC.hh"
 #include "FTFP_BERT.hh"
+#include "FTFP_BERT_HP.hh"
 #include "G4HadronicProcess.hh"
 #include "G4VEmProcess.hh"
 #include "G4NistMaterialBuilder.hh"
@@ -119,6 +120,7 @@ void usage()
   "     -k ene  minimum kinetic energy in GeV (default 1e-8)" << G4endl <<
   "     -K ene  maximum kinetic energy in GeV (default 1e4)" << G4endl <<
   "     -n num  number of energy bins (default 100)" << G4endl <<
+  "     -p pyl  physics list (default FTFP_BERT)" << G4endl <<
   "     -i      interactive graphics mode" << G4endl;
 }
 
@@ -151,13 +153,15 @@ int main(int argc,char** argv)
   G4float emin = 1e-8;
   G4float emax = 1e4;
   G4int nbins = 100;
+  char physlist[80]="FTFP_BERT";
+  G4int sl=0;
   /* getopt stuff */
   int c;
   int opterr = 0;
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:i")) != -1)
+  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:p:")) != -1)
     switch (c)
   {
     case 's':
@@ -193,6 +197,11 @@ int main(int argc,char** argv)
     case 'i':
       interact=TRUE;
       break;
+    case 'p':
+      sl=strlen(optarg);
+      strncpy(physlist,optarg,sl);
+      physlist[sl]='\0';
+      break;
     case '?':
       usage();
       return 1;
@@ -226,8 +235,18 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(new B1DetectorConstruction());
   
   // Physics list
-  // G4VModularPhysicsList* physicsList = new QBBC;
-  G4VModularPhysicsList* physicsList = new FTFP_BERT;
+  G4VModularPhysicsList* physicsList=0;
+  if(!strcmp(physlist,"QBBC")) {
+    physicsList = new QBBC;
+  } else if(!strcmp(physlist,"FTFP_BERT")) {
+    physicsList = new FTFP_BERT;
+  } else if(!strcmp(physlist,"FTFP_BERT_HP")) {
+    physicsList = new FTFP_BERT_HP;
+  } else {
+    G4cout << "Unknown physics list " << physlist << G4endl;
+    exit(1);
+  }
+
   physicsList->SetVerboseLevel(verbose);
   runManager->SetUserInitialization(physicsList);
   
@@ -885,7 +904,7 @@ int main(int argc,char** argv)
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   G4bool iszero=TRUE;
                   for(G4int j=0; j<nbins; ++j) {
-                    curxs = ph->GetElementCrossSection(dp,mat->GetElement(0));
+                    curxs = ph->GetElementCrossSection(dp,mat->GetElement(0),mat);
                     if(curxs < 0 || curxs > 1e10) {
                       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
                              (const char*) particle->GetParticleName(),
@@ -896,7 +915,7 @@ int main(int argc,char** argv)
                       else curxs=0;
                     }
                     pxsec[nprxs*nbins+j] = curxs/barn;
-                    iszero = (curxs<=0.);
+                    iszero &= (curxs<=0.);
                     if( /*particle == G4Proton::Proton() &&*/ nsample) {
                       // Here we sample proton interactions only when xsec>0 -- just for a test
                       if(curxs) {
@@ -965,7 +984,7 @@ int main(int argc,char** argv)
                       else curxs=0;
                     }
                     pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
-                    iszero = (curxs<=0.);
+                    iszero &= (curxs<=0.);
                     if( /*particle == G4Electron::Electron() && */nsample) {
                       if(curxs) {
                         printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
@@ -1025,7 +1044,7 @@ int main(int argc,char** argv)
                       else curxs=0;
                     }
                     pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
-                    iszero = (curxs<=0.);
+                    iszero &= (curxs<=0.);
                     if( /*particle == G4Positron::Positron() &&*/ nsample) {
                       if(curxs) {
                         printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
