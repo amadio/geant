@@ -193,15 +193,15 @@ Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax)
 // Move current basket tracks to priority one. 
 // *** NONE *** This should be done for all basket managers only once when 
 // starting prioritizing an event range.
-   GeantTrack_v &tracks = fPBasket->GetInputTracks();
+   GeantTrack_v &tracks = fCBasket->GetInputTracks();
    Int_t ntracks = tracks.GetNtracks();
    for (Int_t itr=0; itr<ntracks; itr++) {
       if (tracks.fEventV[itr]>=evmin && tracks.fEventV[itr]<=evmax) {
-         fCBasket->GetInputTracks().AddTracks(tracks, 0, ntracks-1);
+         fPBasket->GetInputTracks().AddTracks(tracks, 0, ntracks-1);
          tracks.Clear();
-         if (fCBasket->GetNinput() >= fThreshold) {
-            fFeeder->push(fCBasket, kFALSE);
-            fCBasket = GetNextBasket();
+         if (fPBasket->GetNinput() >= fThreshold) {
+            fFeeder->push(fPBasket, kFALSE);
+            fPBasket = GetNextBasket();
             return 1;
          }
          return 0;

@@ -116,7 +116,7 @@ void WorkloadManager::WaitWorkers()
 {
 // Waiting point for the main thread until work gets done.
    fFilling = kFALSE;
-   Int_t ntowait = fNthreads+1;
+   Int_t ntowait = fNthreads;
    while(ntowait) {
       fDoneQ->wait_and_pop();
       ntowait--;
@@ -261,6 +261,10 @@ void *WorkloadManager::MainScheduler(void *)
       }
       
       ntotransport = feederQ->size_async();
+      if (ntotransport==0) {
+         Printf("Garbage collection");
+         sch->GarbageCollect();
+      }   
       nwaiting = propagator->GetNwaiting();
 //      Printf("picked=%d ncoll=%d  ninjected=%d ntotransport=%d",npop, ncollectors,ninjected,ntotransport);
      if (ntotransport<min_feeder) {

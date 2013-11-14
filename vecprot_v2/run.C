@@ -1,4 +1,4 @@
-void run(Int_t nthreads=1, Bool_t graphics=kFALSE, 
+void run(Int_t nthreads=4, Bool_t graphics=kFALSE, 
          const char *geomfile="gexam1.root")
 //         "http://root.cern.ch/files/cms.root")
 {
