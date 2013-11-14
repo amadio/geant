@@ -567,7 +567,7 @@ G4int SampleOne(G4Material* material,
         // No ion was produced by G4, so we can add our own
         iextra = 1;
       }
-      G4cout << "Capture is " << proc->GetProcessName() << G4endl;
+      // G4cout << "Capture is " << proc->GetProcessName() << G4endl;
     }
   }
   
