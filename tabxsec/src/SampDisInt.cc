@@ -558,8 +558,6 @@ G4int SampleOne(G4Material* material,
             // G4 put an output ion but it does not seem right. Put an error message and continue
             G4cout << name << " " << pname << " on " << material->GetName() << " (" << Z <<"," << A << "," << amass << ")" <<
             " produces Z " << prion->GetPDGCharge() << " A " << prion->GetBaryonNumber() << G4endl;
-            isoA = prion->GetBaryonNumber();
-            isoM = GetNuclearMass(isoZ,isoA,verbose);
           }
         }
       }
@@ -647,10 +645,13 @@ G4int SampleOne(G4Material* material,
     for(G4int i=0; i<n; ++i) {
       ptemp-=secs[i].Get4Momentum();
     }
+    G4double isomass = GetNuclearMass(Z,A+1,verbose);
+    G4double mmass = ptemp.m();
+    ptemp[3] = std::sqrt(ptemp.vect().mag2()+isomass*isomass);
     pcons -= ptemp;
     bnum -= A+1;
     if(verbose)
-      G4cout << "nCapture: Mass of missing momentum " << ptemp.m() << " should be " << GetNuclearMass(Z,A+1,verbose) << G4endl;
+      G4cout << "nCapture: Mass of missing momentum " << ptemp.m() << " should be " << isomass << G4endl;
     // Adding output ion
     G4int ip=fs.npart;
     fs.pid[ip] = 1000000000+10000*Z+10*(A+1);
