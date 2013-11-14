@@ -7,6 +7,10 @@
 #include "TEXsec.h"
 #include "TEFstate.h"
 
+static enum Error_t (kPart, kProcess);
+
+void usage(Error_t err);
+
 void finstate(const char *proc="inElastic", const char *part="proton", Int_t elemin=1, Int_t elemax=92)
 {
   gSystem->Load("libXsec");
@@ -15,9 +19,20 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
   TFile *ff = new TFile("fstate.root","r");
 //  ff->ls();
   Int_t iproc = TPartIndex::I()->ProcIndex(proc);
-  Int_t ipart = TPartIndex::I()->PartIndex(part);
-
+  if(iproc<0) {
+    printf("Unknown process %s\n",proc);
+    usage(kPart);
+    return;
+  }
   
+  Int_t ipart = TPartIndex::I()->PartIndex(part);
+  if(ipart<0) {
+    printf("Uknown particle %s\n",part);
+    usage(kProcess);
+    return;
+  }
+  
+/*
   // Reaction list
   for(Int_t i=0; i<TPartIndex::I()->NProc(); ++i) {
     printf("Proc #%d is %s\n",i,TPartIndex::I()->ProcName(i));
@@ -28,6 +43,7 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
   for(Int_t i=0; i<TPartIndex::I()->NPartReac();++i) {
     printf("Particle #%d is %s\n",i,TPartIndex::I()->PartName(i));
   }
+ */
   
   TEFstate *fs=0;
   for(Int_t i=0; i<92; ++i) {
@@ -89,6 +105,24 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
     if(hh[92+iele]) {
       TCanvas *c = new TCanvas();
       hh[92+iele]->Draw();
+    }
+  }
+}
+
+void usage(Error_t err)
+{
+  printf("Usage: finstate.C(const char* process, const char* particle, zmin=1, zmax=92)\n");
+  if(err==kProcess) {
+    printf("       Available processes: ");
+    for(Int_t jp=0; jp<TPartIndex::I()->NProc(); ++jp) {
+      printf("%s, ",TPartIndex::I()->ProcName(jp));
+      printf("\n");
+    }
+  } else if(err==kPart) {
+    printf("       Particles: ");
+    for(Int_t jp=0; jp<TPartIndex::I()->NPartReac(); ++jp) {
+      printf("%s, ",TPartIndex::I()->PartName(jp));
+      printf("\n");
     }
   }
 }
