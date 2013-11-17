@@ -200,6 +200,8 @@ int SampDisInt(G4Material* material,
         tmom[3*(ip+j)+2]=fstat[i].mom[3*j+2]/GeV;
         tpid[ip+j]=fstat[i].pid[j];
       }
+      delete [] fstat[i].pid;
+      delete [] fstat[i].mom;
       ip+=npart[i];
     }
     
@@ -209,6 +211,7 @@ int SampDisInt(G4Material* material,
     delete [] npart;
     delete [] kerma;
     delete [] weight;
+    delete [] surv;
     
     delete [] tmom;
     delete [] tpid;
