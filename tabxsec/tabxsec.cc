@@ -152,7 +152,7 @@ int main(int argc,char** argv)
   G4int zmax = 100;
   G4float emin = 1e-6;
   G4float emax = 1e3;
-  G4int nbins = 200;
+  G4int nbins = 100;
   char physlist[80]="FTFP_BERT";
   G4int sl=0;
   /* getopt stuff */
