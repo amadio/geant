@@ -693,7 +693,6 @@ int main(int argc,char** argv)
                            (const char*) matt->GetName(),
                            en/GeV);
                     SampDisInt(matt, pos, dp, p, nsample, verbose, decayfs[partindex]);
-                    //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                   }
                   delete dp;
                   // ----------------------------------- Decay ---------------------------------------
@@ -1253,9 +1252,9 @@ int main(int argc,char** argv)
               }
               mfstate->AddPart(partindex, pPDG[partindex], nsample, nprxs, pdic,newvfs);
               // Set to 0 the pointer to vecfs because now it is owned by the class
-              delete [] vecfs;
             }
           } // end of "if we have processes" for this particle
+          if(nsample) delete [] vecfs;
         } // end of particle loop
         if(kpreac!=npreac) { // number of processes should not change with time!
           printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);

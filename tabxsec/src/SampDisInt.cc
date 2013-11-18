@@ -765,6 +765,8 @@ G4int SampleOne(G4Material* material,
     delete aChange->GetSecondary(i);
   aChange->Clear();
   
+  delete [] secs;
+  
   // A step owns its Step points
   //   - must ensure that they are valid or null (and not pointint to same StepPt)
   delete step;
