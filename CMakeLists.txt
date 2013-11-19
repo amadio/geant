@@ -47,6 +47,11 @@ set(GEANT5_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${GEANT5_
 set(GEANT5_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ${GEANT5_WARNING_FLAGS}")
 set(GEANT5_COMPILE_FLAGS            "${GEANT5_COMPILE_FLAGS_NOW} ${GEANT5_WARNING_FLAGS}")
 
+#---------------------------------------------------------------------------
+if(CUSTOM_ALLOCATOR)
+  find_package(CAllocator)
+endif()
+
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
