@@ -12,9 +12,10 @@ find_program(ROOT_CONFIG_EXECUTABLE root-config
 
 if(NOT ROOT_CONFIG_EXECUTABLE)
   set(ROOT_FOUND FALSE)
-  message(STATUS "Found ROOT ${ROOT_VERSION} in ${ROOTSYS}")
+  message(STATUS "ROOT ${ROOT_VERSION} not found in ${ROOTSYS}")
 else()    
   set(ROOT_FOUND TRUE)
+  message(STATUS "Found ROOT ${ROOT_VERSION} in ${ROOTSYS}")
 
   execute_process(
     COMMAND ${ROOT_CONFIG_EXECUTABLE} --prefix 
