@@ -598,6 +598,8 @@ int main(int argc,char** argv)
         }
       }
       
+      for(G4int i=0; i<4; ++i) delete converter[i];
+      
       // Create our own vector of particles - since the particle table is not const in Geant4
       // New particles can be added during interaction generation and then everything is
       // messed up in the particle table.
@@ -1286,8 +1288,13 @@ int main(int argc,char** argv)
       printf("Particles with reactions = %d, tot size = %11.4gMB\n",npr/nmaterials, totsize);
       // Print dictionary
       //    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
+
+      for(G4int i=0; i<np; ++i) delete pdpdg[i];
+      delete [] pdpdg;
+      
     }
     CloseTiming();
+    
   } else {
     // interactive mode : define UI session
 #ifdef G4UI_USE
@@ -1310,6 +1317,7 @@ int main(int argc,char** argv)
 #ifdef G4VIS_USE
   delete visManager;
 #endif
+  
   delete runManager;
   
   return 0;
