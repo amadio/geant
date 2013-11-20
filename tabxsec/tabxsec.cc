@@ -722,6 +722,7 @@ int main(int argc,char** argv)
       G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
       GetNavigatorForTracking();
       TList *allElements = new TList();
+      allElements->SetOwner();
       TEXsec *mxsec=0;
       TEFstate *mfstate=0;
       Int_t totfs=0;
