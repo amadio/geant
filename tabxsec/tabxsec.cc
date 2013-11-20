@@ -1282,7 +1282,8 @@ int main(int argc,char** argv)
         fh->Write();
         fh->Close();
       }
-      
+      delete allElements;
+
       totsize += nbins*nmaterials;
       totsize /= 0.25*1024*1024;
       printf("Particles with reactions = %d, tot size = %11.4gMB\n",npr/nmaterials, totsize);
@@ -1291,6 +1292,7 @@ int main(int argc,char** argv)
 
       for(G4int i=0; i<np; ++i) delete pdpdg[i];
       delete [] pdpdg;
+      delete ipdg;
       
     }
     CloseTiming();
