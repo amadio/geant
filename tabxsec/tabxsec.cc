@@ -1294,6 +1294,8 @@ int main(int argc,char** argv)
       for(G4int i=0; i<np; ++i) delete pdpdg[i];
       delete [] pdpdg;
       delete ipdg;
+      delete [] preac;
+      delete [] pPDG;
       
     }
     CloseTiming();
