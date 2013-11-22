@@ -40,9 +40,9 @@ public:
    Int_t              assigned_workers() const {return the_counter->nthreads;}
    void               push(TObject *data, Bool_t priority=false);
    Int_t              size() const;
-   Int_t              size_async() const {return the_queue.size();}
+   Int_t              size_async() const {return nobjects;}
    Bool_t             empty() const;
-   Bool_t             empty_async() const {return the_queue.empty();}
+   Bool_t             empty_async() const {return nobjects == 0;}
    TObject*           wait_and_pop();
    TObject*           wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array);
    void               pop_many(UInt_t n, TObject **array);
@@ -65,9 +65,9 @@ public:
    ~dcqueue() {}
    void               push(T *data, bool priority=false);
    int                size() const;
-   int                size_async() const {return the_queue.size();}
+   int                size_async() const {return nobjects;}
    bool               empty() const;
-   bool               empty_async() const {return the_queue.empty();}
+   bool               empty_async() const {return nobjects == 0;}
    T*                 try_pop();
    T*                 wait_and_pop();
    T*                 wait_and_pop_max(unsigned int nmax, unsigned int &n, T **array);
