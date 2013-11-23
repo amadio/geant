@@ -1265,7 +1265,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
    Int_t itr = 0;
    Int_t icrossed = 0;
    Int_t nsel = 0;
-   Double_t snext, c;
+   Double_t c;
    const Double_t bmag = gPropagator->fBmag;
 //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 //   Int_t tid = nav->GetThreadId();
@@ -1361,9 +1361,9 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
       c = Curvature(itr);
       if (0.25*c*fSnextV[itr]<1E-6 && fSnextV[itr]<1E-3 && fSnextV[itr]<fPstepV[itr]-1E-6) {
          // Propagate with snext and check if we crossed
-         if (fIzeroV[itr]>10) snext = 1.E-3;
+         if (fIzeroV[itr]>10) fSnextV[itr] = 1.E-3;
          icrossed += PropagateInFieldSingle(itr, fSnextV[itr]+10*gTolerance, kTRUE);
-         if (snext<1.E-6) fIzeroV[itr]++;
+         if (fSnextV[itr]<1.E-6) fIzeroV[itr]++;
          else fIzeroV[itr] = 0;
          // Crossing tracks have the correct status and are now marked for removal
          gPropagator->fNsnextSteps++;
@@ -1412,7 +1412,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
 // starting from a given stage.
    Int_t itr = 0;
    Int_t icrossed = 0;
-   Double_t snext, step, c;
+   Double_t step, c;
    const Double_t bmag = gPropagator->fBmag;
    for (itr=0; itr<fNtracks; itr++) {
       if (fStatusV[itr] == kKilled) {
@@ -1462,9 +1462,9 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
          c = Curvature(itr);
          if (0.25*c*fSnextV[itr]<1E-6 && fSnextV[itr]<1E-3 && fSnextV[itr]<fPstepV[itr]-1E-6) {
             // Propagate with snext and check if we crossed
-            if (fIzeroV[itr]>10) snext = 1.E-3;
+            if (fIzeroV[itr]>10) fSnextV[itr] = 1.E-3;
             icrossed += PropagateInFieldSingle(itr, fSnextV[itr]+10*gTolerance, kTRUE);
-            if (snext<1.E-6) fIzeroV[itr]++;
+            if (fSnextV[itr]<1.E-6) fIzeroV[itr]++;
             else fIzeroV[itr] = 0;
             // Crossing tracks have the correct status and are now marked for removal
             gPropagator->fNsnextSteps++;
