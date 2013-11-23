@@ -733,8 +733,9 @@ void GeantTrack_v::DeleteTrack(Int_t itr)
 {
 // Delete branch arrays for this track. The track should not have a copy, this has
 // to be called after a killed track is removed by the scheduler.
-   delete fPathV[itr];
-   delete fNextpathV[itr];
+   delete fPathV[itr];     fPathV[itr] = 0;
+   delete fNextpathV[itr]; fNextpathV[itr] = 0;
+   MarkRemoved(itr);
 }   
 
 //______________________________________________________________________________  
