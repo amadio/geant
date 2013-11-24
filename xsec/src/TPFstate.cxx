@@ -108,35 +108,18 @@ Bool_t TPFstate::SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[
 }
 
 //_________________________________________________________________________
-Bool_t TPFstate::SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[], 
-			     const Int_t npart[], const Float_t mom[], const Int_t pid[], const Char_t surv[])
+Bool_t TPFstate::SetFinState(Int_t ibin, Int_t reac, const Int_t npart[], const Float_t weight[], const Float_t kerma[],
+                             const Float_t en[], const Char_t surv[], const Int_t pid[], const Float_t mom[])
 {
-   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
-   en=en>fEGrid[0]?en:fEGrid[0];
-   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
-   ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-   Double_t en1 = fEGrid[ibin];
-   Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-      return kFALSE;
-   }
-   Double_t xrat = (en2-en)/(en2-en1);
-   if(xrat<1.e-6) ++ibin;
-   else if(1-xrat>1.e-6) {
-      Error("SetFinState","Energy %9.2g should be %9.2g or %9.2g",en,en1,en2);
-      return kFALSE;
-   }
    Int_t rnumber = fRdict[reac];
    Int_t ipoint = rnumber*fNEbins + ibin;
-   fFstat[ipoint].SetFinState(fNEFstat,weight,kerma,npart,mom,pid,surv);
+   fFstat[ipoint].SetFinState(fNEFstat,npart, weight, kerma, en, surv, pid, mom);
    return kTRUE;
-}     
+}
 
 //______________________________________________________________________________
-Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart,
-                            const Int_t *pid, const Float_t *&mom) const
+Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
@@ -161,14 +144,14 @@ Bool_t TPFstate::SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npa
     Double_t xrat = (en2-en)/(en2-en1);
     if(eta>xrat) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
-    return fFstat[ipoint].SampleReac(kerma,npart,pid,mom);
+    return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom);
   }
 }
 
 
 //______________________________________________________________________________
-Bool_t TPFstate::GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma,
-                         Int_t& npart, const Int_t *&pid, const Float_t *&mom) const
+Bool_t TPFstate::GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
+                         Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
@@ -191,7 +174,7 @@ Bool_t TPFstate::GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma
     }
     if(en-en1>en-en) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
-    return fFstat[ipoint].GetReac(finstat,kerma,npart,pid,mom);
+    return fFstat[ipoint].GetReac(ifs, npart, weight, kerma, enr, pid, mom);
   }
 }
 
@@ -199,18 +182,18 @@ Bool_t TPFstate::GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma
 //______________________________________________________________________________
 void TPFstate::Streamer(TBuffer &R__b)
 {
-   // Stream an object of class TPFstate.
-
-   if (R__b.IsReading()) {
-      R__b.ReadClassBuffer(TPFstate::Class(),this);
-      // add the energy grid
-      if(!TPartIndex::I()->EGrid()) {
-	 gFile->Get("PartIndex");
-      }
-      fEGrid = TPartIndex::I()->EGrid();
-   } else {
-      R__b.WriteClassBuffer(TPFstate::Class(),this);
-   }
+  // Stream an object of class TPFstate.
+  
+  if (R__b.IsReading()) {
+    R__b.ReadClassBuffer(TPFstate::Class(),this);
+    // add the energy grid
+    if(!TPartIndex::I()->EGrid()) {
+      gFile->Get("PartIndex");
+    }
+    fEGrid = TPartIndex::I()->EGrid();
+  } else {
+    R__b.WriteClassBuffer(TPFstate::Class(),this);
+  }
 }
 
 //_________________________________________________________________________

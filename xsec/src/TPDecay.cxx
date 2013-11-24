@@ -28,7 +28,9 @@ Bool_t TPDecay::SampleDecay(Int_t pindex, Int_t &npart,
                             const Int_t *&pid, const Float_t *&mom) const
 {
   Float_t kerma;
-  return fDecay[pindex].SampleReac(kerma,npart,pid,mom);
+  Float_t weight;
+  Float_t en;
+  return fDecay[pindex].SampleReac(npart, weight, kerma, en, pid, mom);
 }
 
 //___________________________________________________________________
@@ -36,6 +38,8 @@ Bool_t TPDecay::GetDecay(Int_t pindex, Int_t ifs, Int_t &npart,
                          const Int_t *&pid, const Float_t *&mom) const
 {
   Float_t kerma;
-  return fDecay[pindex].GetReac(ifs,kerma,npart,pid,mom);
+  Float_t weight;
+  Float_t en;
+  return fDecay[pindex].GetReac(ifs,npart, weight, kerma, en, pid, mom);
 }
 

@@ -121,6 +121,7 @@ void usage()
   "     -K ene  maximum kinetic energy in GeV (default 1e4)" << G4endl <<
   "     -n num  number of energy bins (default 100)" << G4endl <<
   "     -p pyl  physics list (default FTFP_BERT)" << G4endl <<
+  "     -r      energy is chosen randomly into an energy bin" << G4endl <<
   "     -i      interactive graphics mode" << G4endl;
 }
 
@@ -153,6 +154,7 @@ int main(int argc,char** argv)
   G4float emin = 1e-6;
   G4float emax = 1e3;
   G4int nbins = 100;
+  G4bool ranen = FALSE;
   char physlist[80]="FTFP_BERT";
   G4int sl=0;
   /* getopt stuff */
@@ -193,6 +195,9 @@ int main(int argc,char** argv)
       break;
     case 'x':
       xsecs=TRUE;
+      break;
+    case 'r':
+      ranen=TRUE;
       break;
     case 'i':
       interact=TRUE;
@@ -684,6 +689,7 @@ int main(int argc,char** argv)
                            (const char*) p->GetProcessName(),
                            p->GetProcessType(),p->GetProcessSubType());
                   G4double en=0; // Let's try decay at rest
+                  G4double de=0; // No energy spead for decay!
                   
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   
@@ -694,7 +700,7 @@ int main(int argc,char** argv)
                            (const char *) p->GetProcessName(),
                            (const char*) matt->GetName(),
                            en/GeV);
-                    SampDisInt(matt, pos, dp, p, nsample, verbose, decayfs[partindex]);
+                    SampDisInt(matt, pos, dp, de, p, nsample, verbose, decayfs[partindex]);
                   }
                   delete dp;
                   // ----------------------------------- Decay ---------------------------------------
@@ -878,6 +884,7 @@ int main(int argc,char** argv)
                            (const char*) p->GetProcessName(),
                            p->GetProcessType(),p->GetProcessSubType());
                   G4double en=0; // Let's try capture at rest
+                  G4double de=0; // No energy spread for catpure at rest
                   
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   
@@ -887,7 +894,7 @@ int main(int argc,char** argv)
                            (const char *) p->GetProcessName(),
                            (const char*) matt->GetName(),
                            en/GeV);
-                    SampDisInt(matt, pos, dp, p, nsample, verbose, rcaptfs[partindex]);
+                    SampDisInt(matt, pos, dp, de, p, nsample, verbose, rcaptfs[partindex]);
                     //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                   }
                   delete dp;
@@ -901,11 +908,14 @@ int main(int argc,char** argv)
                            (const char*) p->GetProcessName(),
                            p->GetProcessType(),p->GetProcessSubType());
                   G4double en=emin;
+                  G4double en1=0;
+                  G4double de=0;
                   
                   G4HadronicProcess *ph = (G4HadronicProcess*)p;
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   G4bool iszero=TRUE;
                   for(G4int j=0; j<nbins; ++j) {
+                    en1=en*delta;
                     curxs = ph->GetElementCrossSection(dp,mat->GetElement(0),mat);
                     if(curxs < 0 || curxs > 1e10) {
                       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
@@ -926,7 +936,8 @@ int main(int argc,char** argv)
                                (const char *) ph->GetProcessName(),
                                (const char *) mat->GetName(),
                                en/GeV);
-                        SampDisInt(matt, pos, dp, ph, nsample, verbose, vecfs[nbins*nprxs+j]);
+                        if(ranen) G4double de=en1-en;
+                        SampDisInt(matt, pos, dp, de, ph, nsample, verbose, vecfs[nbins*nprxs+j]);
                         //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                       }
                       if(curfs != nbins*nprxs+j) {
@@ -935,7 +946,7 @@ int main(int argc,char** argv)
                       }
                       ++curfs;
                     }
-                    en*=delta;
+                    en=en1;
                     dp->SetKineticEnergy(en);
                   }
                   delete dp;
@@ -971,10 +982,13 @@ int main(int argc,char** argv)
                            (const char*) p->GetProcessName(),
                            p->GetProcessType(),p->GetProcessSubType());
                   G4double en=emin;
+                  G4double en1=0;
+                  G4double de=0;
                   
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   G4bool iszero=TRUE;
                   for(G4int j=0; j<nbins; ++j) {
+                    en1=en*delta;
                     curxs = ptEloss->CrossSectionPerVolume(en,couple);
                     if(curxs < 0 || curxs > 1e10) {
                       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
@@ -994,7 +1008,8 @@ int main(int argc,char** argv)
                                (const char *) ptEloss->GetProcessName(),
                                (const char *) mat->GetName(),
                                en/GeV);
-                        SampDisInt(matt, pos, dp, ptEloss, nsample, verbose, vecfs[nbins*nprxs+j]);
+                        if(ranen) G4double de=en1-en;
+                        SampDisInt(matt, pos, dp, de, ptEloss, nsample, verbose, vecfs[nbins*nprxs+j]);
                       }
                       if(curfs != nbins*nprxs+j) {
                         printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
@@ -1002,7 +1017,7 @@ int main(int argc,char** argv)
                       }
                       ++curfs;
                     }
-                    en*=delta;
+                    en=en1;
                     dp->SetKineticEnergy(en);
                   }
                   delete dp;
@@ -1032,9 +1047,12 @@ int main(int argc,char** argv)
                            p->GetProcessType(),p->GetProcessSubType());
                   
                   G4double en=emin;
+                  G4double en1=0;
+                  G4double de=0;
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   G4bool iszero=TRUE;
                   for(G4int j=0; j<nbins; ++j) {
+                    en1=en*delta;
                     curxs = ptEm->CrossSectionPerVolume(en,couple);
                     if(curxs < 0 || curxs > 1e10) {
                       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
@@ -1054,7 +1072,8 @@ int main(int argc,char** argv)
                                (const char *) ptEm->GetProcessName(),
                                (const char *) mat->GetName(),
                                en/GeV);
-                        SampDisInt(matt, pos, dp, ptEm, nsample, verbose, vecfs[nbins*nprxs+j]);
+                       if(ranen) G4double de=en1-en;
+                       SampDisInt(matt, pos, dp, de, ptEm, nsample, verbose, vecfs[nbins*nprxs+j]);
                       }
                       if(curfs != nbins*nprxs+j) {
                         printf("Eeeeeek! %d %d\n",curfs,nbins*nprxs+j);
@@ -1062,7 +1081,7 @@ int main(int argc,char** argv)
                       }
                       ++curfs;
                     }
-                    en*=delta;
+                    en=en1;
                     dp->SetKineticEnergy(en);
                   }
                   delete dp;

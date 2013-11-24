@@ -11,6 +11,7 @@ int SampDisInt(
                G4Material* material,
                G4ThreeVector *pos,
                G4DynamicParticle *dpart,
+               G4double de,
                G4VProcess* proc,
                G4int    nevt,
                G4int    verbose,
@@ -24,10 +25,11 @@ G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4in
 
 // -------- Simple structure to hold one final states
 struct Finstat_t {
-  G4bool survived;
   G4int npart;
-  G4float kerma;
   G4float weight;
+  G4float kerma;
+  G4float en;
+  G4bool survived;
   G4int *pid;
   G4float *mom;
 };

@@ -37,8 +37,9 @@ public:
   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
   Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[]);
   
-  Bool_t AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
-                   const Int_t npart[], const Float_t mom[], const Int_t pid[], const Char_t surv[]);
+  Bool_t AddPartFS(Int_t kpart, Int_t ibin, Int_t reac, const Int_t npart[], const Float_t weight[],
+                   const Float_t kerma[], const Float_t en[], const Char_t surv[], const Int_t pid[],
+                   const Float_t mom[]);
   
   Int_t Ele() const {return fEle;}
   Double_t Dens() const {return fDens;}
@@ -50,8 +51,10 @@ public:
   
   Int_t NRpart() const {return fNRpart;}
   
-  Bool_t SampleReac(Int_t pindex, Double_t en, Int_t preac, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
-  Bool_t GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs, Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
+  Bool_t SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
+                    Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
+  Bool_t GetReac(Int_t pindex, Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
+                 Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
   
   static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
     return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;

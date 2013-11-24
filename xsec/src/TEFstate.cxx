@@ -79,24 +79,25 @@ Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, cons
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::AddPartFS(Int_t kpart, Double_t en, Int_t reac, const Float_t weight[], 
-			   const Float_t kerma[], const Int_t npart[], const Float_t mom[], 
-			   const Int_t pid[], const Char_t surv[])
+Bool_t TEFstate::AddPartFS(Int_t kpart, Int_t ibin, Int_t reac, const Int_t npart[], const Float_t weight[],
+                           const Float_t kerma[], const Float_t en[], const Char_t surv[], const Int_t pid[],
+                           const Float_t mom[])
 {
-   return fPFstate[kpart].SetFinState(en,reac,weight,kerma,npart,mom,pid,surv);
+  return fPFstate[kpart].SetFinState(ibin, reac, npart, weight, kerma, en, surv, pid, mom);
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::SampleReac(Int_t pindex, Double_t en, Int_t preac,
-			 Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const {
-   return fPFstate[pindex].SampleReac(preac,en,kerma,npart,pid,mom);
+Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+{
+  return fPFstate[pindex].SampleReac(en, preac, npart, weight, kerma, enr, pid, mom);
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::GetReac(Int_t pindex, Double_t en, Int_t preac, Int_t ifs,
-                              Float_t& kerma, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const
+Bool_t TEFstate::GetReac(Int_t pindex, Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
+                         Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
-  return fPFstate[pindex].GetReac(en,preac,ifs,kerma,npart,pid,mom);
+  return fPFstate[pindex].GetReac(en, preac, ifs, npart, weight, kerma, enr, pid, mom);
 }
 
 

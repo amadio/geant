@@ -36,12 +36,14 @@ public:
   const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[]);
-  Bool_t SetFinState(Double_t en, Int_t reac, const Float_t weight[], const Float_t kerma[],
-                     const Int_t npart[], const Float_t mom[], const Int_t pid[], const Char_t surv[]);
+  Bool_t SetFinState(Int_t ibin, Int_t reac, const Int_t npart[], const Float_t weight[], const Float_t kerma[],
+                     const Float_t en[], const Char_t surv[], const Int_t pid[], const Float_t mom[]);
   void Print(Option_t *opt="") const;
   Bool_t Prune() {return kTRUE;}
-  Bool_t SampleReac(Double_t en, Int_t preac, Float_t& kerma, Int_t& npart, const Int_t *pid, const Float_t *&mom) const;
-  Bool_t GetReac(Double_t en, Int_t preac, Int_t finstat, Float_t &kerma, Int_t& npart, const Int_t *&pid, const Float_t *&mom) const;
+  Bool_t SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
+                    Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
+  Bool_t GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
+                 Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
   Int_t NEFstat() const {return fNEFstat;}
   void Dump() const {}
   Bool_t Resample();

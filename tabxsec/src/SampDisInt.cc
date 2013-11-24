@@ -101,6 +101,7 @@ using namespace std;
 int SampDisInt(G4Material* material,
                G4ThreeVector *pos,
                G4DynamicParticle *dpart,
+               G4double de,
                G4VProcess* proc,
                G4int    nevt,
                G4int    verbose,
@@ -152,7 +153,12 @@ int SampDisInt(G4Material* material,
   G4int iter=0;
   G4int nresample = 0;
   const G4int maxresample = 10*nevt;
+  G4double eini = dpart->GetKineticEnergy();
   while(iter<nevt) {
+    if(de != 0) {
+      G4double ep = eini + de * G4UniformRand();
+      dpart->SetKineticEnergy(ep);
+    }
     if(verbose>1) {
       G4cout << "### " << iter << "-th event: "
       << dpart->GetParticleDefinition()->GetParticleName() << " "
@@ -181,8 +187,9 @@ int SampDisInt(G4Material* material,
   
   if(ntotp) {
     G4int *npart = new G4int[nevt];
-    G4float *kerma = new G4float[nevt];
     G4float *weight = new G4float[nevt];
+    G4float *kerma = new G4float[nevt];
+    G4float *en = new G4float[nevt];
     char *surv = new char[nevt];
     
     G4int *tpid = new G4int[ntotp];
@@ -191,26 +198,28 @@ int SampDisInt(G4Material* material,
     G4int ip=0;
     for(G4int i=0; i<nevt; ++i) {
       npart[i]=fstat[i].npart;
-      kerma[i]=fstat[i].kerma;
       weight[i]=fstat[i].weight;
+      kerma[i]=fstat[i].kerma/GeV;
+      en[i]=fstat[i].en/GeV;
       surv[i]=fstat[i].survived;
       for(G4int j=0; j<npart[i]; ++j ) {
+        tpid[ip+j]=fstat[i].pid[j];
         tmom[3*(ip+j)]  =fstat[i].mom[3*j]/GeV;
         tmom[3*(ip+j)+1]=fstat[i].mom[3*j+1]/GeV;
         tmom[3*(ip+j)+2]=fstat[i].mom[3*j+2]/GeV;
-        tpid[ip+j]=fstat[i].pid[j];
       }
       delete [] fstat[i].pid;
       delete [] fstat[i].mom;
       ip+=npart[i];
     }
     
-    fs.SetFinState(nevt, weight, kerma, npart, tmom, tpid, surv);
+    fs.SetFinState(nevt, npart, weight, kerma, en, surv, tpid, tmom);
 //    fs.Print();
     
     delete [] npart;
-    delete [] kerma;
     delete [] weight;
+    delete [] kerma;
+    delete [] en;
     delete [] surv;
     
     delete [] tmom;
@@ -575,6 +584,7 @@ G4int SampleOne(G4Material* material,
   G4int ntot = isurv+n+iextra;
   fs.npart = 0;
   fs.weight = 1; // for the moment all events have the same prob
+  fs.en = dpart->GetKineticEnergy();
   if(ntot) {
     fs.mom = new G4float[3*(ntot)];
     fs.pid = new G4int[ntot];
