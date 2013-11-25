@@ -1044,7 +1044,9 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
          if (lev==level) entering = kFALSE;
       }
    }   
-   fNextpathV[itr]->GetMatrix()->MasterToLocal(&fXposV[itr], local);
+   Double_t pos[3];
+   pos[0] = fXposV[itr]; pos[1] = fYposV[itr]; pos[2] = fZposV[itr];
+   fNextpathV[itr]->GetMatrix()->MasterToLocal(pos,local);
    fNextpathV[itr]->GetMatrix()->MasterToLocalVect(dir, ldir);
    if (entering) {
       if (outside) delta = vol->GetShape()->DistFromOutside(local,ldir,3);
@@ -1075,9 +1077,9 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
    }
    delta -= 10*gTolerance;
    // Propagate back to boundary and store position/direction
-   fXposV[itr] += delta*dir[itr];
-   fYposV[itr] += delta*dir[itr];
-   fZposV[itr] += delta*dir[itr];
+   fXposV[itr] += delta*dir[0];
+   fYposV[itr] += delta*dir[1];
+   fZposV[itr] += delta*dir[2];
 }
    
 //______________________________________________________________________________
