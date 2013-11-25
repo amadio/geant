@@ -1310,7 +1310,16 @@ int main(int argc,char** argv)
       // Print dictionary
       //    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
 
-      for(G4int i=0; i<np; ++i) delete pdpdg[i];
+      delete [] pxsec;
+      delete [] msang;
+      delete [] mslen;
+      delete [] msasig;
+      delete [] mslsig;
+      delete [] dedx;
+      delete [] pdic;
+
+      
+//      for(G4int i=0; i<np; ++i) delete pdpdg[i];
       delete [] pdpdg;
       delete ipdg;
       delete [] preac;
