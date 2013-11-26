@@ -102,16 +102,16 @@ void usage()
 {
   G4cout <<
   "NAME" << G4endl <<
-  "     tabxsec -- generate physics tables for the G5 prototype from G4" << G4endl << G4endl <<
+  "     tabxsec -- generate physics tables for the GeantV prototype from Geant4" << G4endl << G4endl <<
   "SYNOPSIS" << G4endl <<
   "     tabxsec [-Eesvx] [file]" << G4endl << G4endl <<
   "DESCRIPTION" << G4endl <<
-  "     Run one of more G4 events for all the known elements and extract cross sections and secondary particles" << G4endl <<
-  "     generated during the interaction, tabulating them for use in the G5 prototype. file is the G4 input" << G4endl <<
+  "     Run one of more Geant4 events for all the known elements and extract cross sections and secondary particles" << G4endl <<
+  "     generated during the interaction, tabulating them for use in the GeantV prototype. file is the Geant4 input" << G4endl <<
   "     macro. This code has been derived from the G4 example B1" << G4endl << G4endl <<
   "     The following options are available:" << G4endl <<
   "     -E ene  energy of the particles generated in GeV" << G4endl <<
-  "     -e num  number of G4 events to generate" << G4endl <<
+  "     -e num  number of Geant4 events to generate" << G4endl <<
   "     -s num  number of samples of the final state to generate and store in fstat.root (default 0, no file generated)" << G4endl <<
   "     -v num  verbosity level (at the moment only 0, 1 and 2 are used)" << G4endl <<
   "     -x      generate the cross sections and store them in the file xsec.root" << G4endl <<
@@ -163,7 +163,7 @@ int main(int argc,char** argv)
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:p:")) != -1)
+  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:p:r")) != -1)
     switch (c)
   {
     case 's':
