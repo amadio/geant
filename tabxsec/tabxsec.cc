@@ -712,6 +712,7 @@ int main(int argc,char** argv)
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
         TPDecay *decayTable = new TPDecay(nsample,np,decayfs);
         fh->WriteObject(decayTable,"DecayTable");
+        delete decayTable;
       }
       
       // From here on we tabulate the cross sections and sample the interactions
@@ -1310,6 +1311,7 @@ int main(int argc,char** argv)
       // Print dictionary
       //    for(G4int id=0; id<npdic; ++id) printf("Reac #%d code %-6d %s\n",id,ndic[id],cdic[id]);
 
+      delete pos;
       delete [] pxsec;
       delete [] msang;
       delete [] mslen;

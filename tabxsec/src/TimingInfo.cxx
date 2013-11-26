@@ -7,12 +7,12 @@ static TTree *t=0;
 
 void TimingInfo(Float_t cpu,Int_t z,Int_t pdg,Int_t proc,Float_t en, Int_t np)
 {
-  static Float_t scpu;
-  static Int_t sz;
-  static Int_t spcode;
-  static Int_t sreac;
-  static Float_t sen;
-  static Int_t snp;
+  static Float_t scpu=0;
+  static Int_t sz=0;
+  static Int_t spcode=0;
+  static Int_t sreac=0;
+  static Float_t sen=0;
+  static Int_t snp=0;
   static Bool_t first=kTRUE;
   
   if(first) {
