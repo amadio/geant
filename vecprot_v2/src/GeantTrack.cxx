@@ -497,7 +497,7 @@ void GeantTrack_v::CopyToBuffer(const char *buff, Int_t size)
    // is used to resize the underlying arrays and the previous ones
    // are just dropped.
    // However, because we need fPathV to be initalized we copy
-   // path the end of the active part of the array.
+   // past the end of the active part of the array.
    memcpy(buf, fPathV, fMaxtracks*sizeof(TGeoBranchArray*));
    fPathV = (TGeoBranchArray**)buf;
    buf += size*sizeof(TGeoBranchArray*);
