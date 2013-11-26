@@ -202,8 +202,8 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
    fSafety = arr.fSafetyV[i];
    fFrombdr = arr.fFrombdrV[i];
    fPending = arr.fPendingV[i];
-   fPath = arr.fPathV[i];
-   fNextpath = arr.fNextpathV[i];
+   if (fPath) *fPath = *arr.fPathV[i]; else fPath = new TGeoBranchArray(*arr.fPathV[i]);
+   if (fNextpath) *fNextpath = *arr.fNextpathV[i]; else fNextpath = new TGeoBranchArray(*arr.fNextpathV[i]);
 }
 
 //______________________________________________________________________________
@@ -493,10 +493,15 @@ void GeantTrack_v::CopyToBuffer(const char *buff, Int_t size)
    memcpy(buf, fPendingV, fNtracks*sizeof(Bool_t));
    fPendingV = (Bool_t*)buff;
    buf += size*sizeof(Bool_t);
-   memcpy(buf, fPathV, fNtracks*sizeof(TGeoBranchArray*));
+   // Eventhough the fPath are pointers, this is fine as CopyToBuffer
+   // is used to resize the underlying arrays and the previous ones
+   // are just dropped.
+   // However, because we need fPathV to be initalized we copy
+   // path the end of the active part of the array.
+   memcpy(buf, fPathV, fMaxtracks*sizeof(TGeoBranchArray*));
    fPathV = (TGeoBranchArray**)buf;
    buf += size*sizeof(TGeoBranchArray*);
-   memcpy(buf, fNextpathV, fNtracks*sizeof(TGeoBranchArray*));
+   memcpy(buf, fNextpathV, fMaxtracks*sizeof(TGeoBranchArray*));
    fNextpathV = (TGeoBranchArray**)buf;
    buf += size*sizeof(TGeoBranchArray*);
 }
@@ -519,11 +524,16 @@ void GeantTrack_v::Resize(Int_t newsize)
       fBuf = buf;
       fMaxtracks = size;
       AssignInBuffer(buf, size);
+      memset( fPathV, 0, size * sizeof(TGeoBranchArray*) );
+      memset( fNextpathV, 0, size * sizeof(TGeoBranchArray*) );
    } else {
       // Resize container
       CopyToBuffer(buf, size);
       _mm_free(fBuf);
       fBuf = buf;
+      UInt_t increase = size - fMaxtracks;
+      memset( fPathV+fMaxtracks, 0, increase * sizeof(TGeoBranchArray*) );
+      memset( fNextpathV+fMaxtracks, 0, increase * sizeof(TGeoBranchArray*) );
       fMaxtracks = size;
    }   
 }
@@ -562,8 +572,8 @@ void GeantTrack_v::AddTrack(const GeantTrack &track)
    fSafetyV[itrack] = track.fSafety;
    fFrombdrV[itrack] = track.fFrombdr;
    fPendingV[itrack] = track.fPending;
-   fPathV[itrack] = track.fPath;
-   fNextpathV[itrack] = track.fNextpath;
+   if (fPathV[itrack]) *fPathV[itrack] = *track.fPath; else fPathV[itrack] = new TGeoBranchArray(*track.fPath);
+   if (fNextpathV[itrack]) *fNextpathV[itrack] = *track.fNextpath; else fNextpathV[itrack] = new TGeoBranchArray(*track.fNextpath);
    if (itrack==fNtracks) fNtracks++;
 }   
 
@@ -605,9 +615,8 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
    fSafetyV[fNtracks] = arr.fSafetyV[i];
    fFrombdrV[fNtracks] = arr.fFrombdrV[i];
    fPendingV[fNtracks] = arr.fPendingV[i];
-   fPathV[fNtracks] = arr.fPathV[i];
-   fNextpathV[fNtracks] = arr.fNextpathV[i];
-
+   if (fPathV[fNtracks]) *fPathV[fNtracks] = *arr.fPathV[i]; else fPathV[fNtracks] = new TGeoBranchArray(*arr.fPathV[i]);
+   if (fNextpathV[fNtracks]) *fNextpathV[fNtracks] = *arr.fNextpathV[i]; else fNextpathV[fNtracks] = new TGeoBranchArray(*arr.fNextpathV[i]);
    fSelected.ResetBitNumber(fNtracks);
    fHoles.ResetBitNumber(fNtracks);
    fNtracks++;
@@ -645,8 +654,20 @@ void GeantTrack_v::AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend)
    memcpy(&fSafetyV[fNtracks], &arr.fSafetyV[istart], ncpy*sizeof(Double_t));
    memcpy(&fFrombdrV[fNtracks], &arr.fFrombdrV[istart], ncpy*sizeof(Bool_t));
    memcpy(&fPendingV[fNtracks], &arr.fPendingV[istart], ncpy*sizeof(Bool_t));
-   memcpy(&fPathV[fNtracks], &arr.fPathV[istart], ncpy*sizeof(TGeoBranchArray*));
-   memcpy(&fNextpathV[fNtracks], &arr.fNextpathV[istart], ncpy*sizeof(TGeoBranchArray*));
+   for(Int_t i = fNtracks, j = istart; i < (fNtracks+ncpy) ; ++i) {
+      // The following was wrong ... because the fPath are pointers.
+      // memcpy(&fPathV[fNtracks], &arr.fPathV[istart], ncpy*sizeof(TGeoBranchArray*));
+      // memcpy(&fNextpathV[fNtracks], &arr.fNextpathV[istart], ncpy*sizeof(TGeoBranchArray*));
+      if (fPathV[i]) {
+         *fPathV[i] 
+            = *arr.fPathV[j]; 
+      }
+      else {
+         fPathV[i] 
+            = new TGeoBranchArray(*arr.fPathV[j]);
+      }
+      if (fNextpathV[i]) *fNextpathV[i] = *arr.fNextpathV[j]; else fNextpathV[i] = new TGeoBranchArray(*arr.fNextpathV[j]);
+   }
    fSelected.ResetBitNumber(fNtracks+ncpy-1);
    fHoles.ResetBitNumber(fNtracks+ncpy-1);
    fNtracks += ncpy;
@@ -723,8 +744,8 @@ void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j)
    fSafetyV[i] = fSafetyV[j];
    fFrombdrV[i] = fFrombdrV[j];
    fPendingV[i] = fPendingV[j];
-   fPathV[i] = fPathV[j];
-   fNextpathV[i] = fNextpathV[j];
+   if (fPathV[i]) *fPathV[i] = *fPathV[j]; else fPathV[i] = new TGeoBranchArray(*fPathV[j]);
+   if (fNextpathV[i]) *fNextpathV[i] = *fNextpathV[j]; else fNextpathV[i] = new TGeoBranchArray(*fNextpathV[j]);
    fSelected.SetBitNumber(i, fSelected.TestBitNumber(j));
 }   
 
@@ -735,7 +756,7 @@ void GeantTrack_v::DeleteTrack(Int_t itr)
 // to be called after a killed track is removed by the scheduler.
    delete fPathV[itr];     fPathV[itr] = 0;
    delete fNextpathV[itr]; fNextpathV[itr] = 0;
-   MarkRemoved(itr);
+   // MarkRemoved(itr);
 }   
 
 //______________________________________________________________________________  
@@ -769,8 +790,15 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
    memmove(&fSafetyV[from], &fSafetyV[to+1], ncpy*sizeof(Double_t));
    memmove(&fFrombdrV[from], &fFrombdrV[to+1], ncpy*sizeof(Bool_t));
    memmove(&fPendingV[from], &fPendingV[to+1], ncpy*sizeof(Bool_t));
-   memmove(&fPathV[from], &fPathV[to+1], ncpy*sizeof(TGeoBranchArray*));
-   memmove(&fNextpathV[from], &fNextpathV[to+1], ncpy*sizeof(TGeoBranchArray*));
+   for (Int_t i = from, j = to+1, k = 0; k < ncpy; ++i,++j,++k) {
+      // This was wrong, we must delete the overwritten one and zero the 'moved' part,
+      // or we need to swap them.  (This code has memory leaks and double use/delete)
+      // memmove(&fPathV[from], &fPathV[to+1], ncpy*sizeof(TGeoBranchArray*));
+      // memmove(&fNextpathV[from], &fNextpathV[to+1], ncpy*sizeof(TGeoBranchArray*));
+      TGeoBranchArray *tptr;
+      tptr = fPathV[i]; fPathV[i] = fPathV[j]; fPathV[j] = tptr;
+      tptr = fNextpathV[i]; fNextpathV[i] = fNextpathV[j]; fNextpathV[j] = tptr;
+   }
    fNtracks -= to-from+1;
    fSelected.ResetAllBits();
    fNselected = 0;
