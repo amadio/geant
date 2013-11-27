@@ -488,10 +488,10 @@ void GeantTrack_v::CopyToBuffer(const char *buff, Int_t size)
    fSafetyV = (Double_t*)buf;
    buf += size_doublen;
    memcpy(buf, fFrombdrV, fNtracks*sizeof(Bool_t));
-   fFrombdrV = (Bool_t*)buff;
+   fFrombdrV = (Bool_t*)buf;
    buf += size*sizeof(Bool_t);
    memcpy(buf, fPendingV, fNtracks*sizeof(Bool_t));
-   fPendingV = (Bool_t*)buff;
+   fPendingV = (Bool_t*)buf;
    buf += size*sizeof(Bool_t);
    // Eventhough the fPath are pointers, this is fine as CopyToBuffer
    // is used to resize the underlying arrays and the previous ones
@@ -504,6 +504,30 @@ void GeantTrack_v::CopyToBuffer(const char *buff, Int_t size)
    memcpy(buf, fNextpathV, fMaxtracks*sizeof(TGeoBranchArray*));
    fNextpathV = (TGeoBranchArray**)buf;
    buf += size*sizeof(TGeoBranchArray*);
+}
+
+//______________________________________________________________________________  
+Bool_t GeantTrack_v::IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2)
+{
+// Compare two tracks.
+   Long64_t chk1, chk2;
+   chk1 = tr1.fEventV[i1] + tr1.fEvslotV[i1] + tr1.fParticleV[i1] + tr1.fPDGV[i1]
+        + tr1.fG5codeV[i1] + tr1.fChargeV[i1] + tr1.fProcessV[i1] + tr1.fIzeroV[i1]
+        + tr1.fNstepsV[i1] + (Long64_t)tr1.fSpeciesV[i1] + (Long64_t)tr1.fStatusV[i1];
+   chk2 = tr2.fEventV[i2] + tr2.fEvslotV[i2] + tr2.fParticleV[i2] + tr2.fPDGV[i2]
+        + tr2.fG5codeV[i2] + tr2.fChargeV[i2] + tr2.fProcessV[i2] + tr2.fIzeroV[i2]
+        + tr2.fNstepsV[i2] + (Long64_t)tr2.fSpeciesV[i2] + (Long64_t)tr2.fStatusV[i2];
+   if (chk1 != chk2) return false;
+   Double_t dchk1, dchk2;
+   dchk1 = (Long64_t)tr1.fMassV[i1] + tr1.fXposV[i1] + tr1.fYposV[i1] + tr1.fZposV[i1] 
+        + tr1.fXdirV[i1] + tr1.fYdirV[i1] + tr1.fZdirV[i1] + tr1.fPV[i1]
+        + tr1.fEV[i1] + tr1.fPstepV[i1] + tr1.fStepV[i1] + tr1.fSnextV[i1] + tr1.fSafetyV[i1];
+   dchk2 = (Long64_t)tr2.fMassV[i2] + tr2.fXposV[i2] + tr2.fYposV[i2] + tr2.fZposV[i2] 
+        + tr2.fXdirV[i2] + tr2.fYdirV[i2] + tr2.fZdirV[i2] + tr2.fPV[i2]
+        + tr2.fEV[i2] + tr2.fPstepV[i2] + tr2.fStepV[i2] + tr2.fSnextV[i2] + tr2.fSafetyV[i2];
+   if (!TMath::AreEqualAbs(dchk1, dchk2, 1.E-10)) return false;
+   if (tr1.fPendingV[i1] != tr2.fPendingV[i2]) return false;
+   return true;    
 }
 
 //______________________________________________________________________________  
@@ -546,32 +570,34 @@ void GeantTrack_v::AddTrack(const GeantTrack &track)
    Int_t itrack = fNtracks;
    if (!fCompact) itrack = fHoles.FirstSetBit();
    if (itrack==fMaxtracks) Resize(2*fMaxtracks);
-   fEventV[itrack] = track.fEvent;
-   fEvslotV[itrack] = track.fEvslot;
-   fParticleV[itrack] = track.fParticle;
-   fPDGV[itrack] = track.fPDG;
-   fG5codeV[itrack] = track.fG5code;
-   fChargeV[itrack] = track.fCharge;
-   fProcessV[itrack] = track.fProcess;
-   fIzeroV[itrack] = track.fIzero;
-   fNstepsV[itrack] = track.fNsteps;
-   fSpeciesV[itrack] = track.fSpecies;
-   fStatusV[itrack] = track.fStatus;
-   fMassV[itrack] = track.fMass;
-   fXposV[itrack] = track.fXpos;
-   fYposV[itrack] = track.fYpos;
-   fZposV[itrack] = track.fZpos;
-   fXdirV[itrack] = track.fXdir;
-   fYdirV[itrack] = track.fYdir;
-   fZdirV[itrack] = track.fZdir;
-   fPV[itrack] = track.fP;
-   fEV[itrack] = track.fE;
-   fPstepV[itrack] = track.fPstep;
-   fStepV[itrack] = track.fStep;
-   fSnextV[itrack] = track.fSnext;
-   fSafetyV[itrack] = track.fSafety;
-   fFrombdrV[itrack] = track.fFrombdr;
-   fPendingV[itrack] = track.fPending;
+   fHoles.ResetBitNumber(itrack);
+   fSelected.ResetBitNumber(itrack);   
+   fEventV    [itrack] = track.fEvent;
+   fEvslotV   [itrack] = track.fEvslot;
+   fParticleV [itrack] = track.fParticle;
+   fPDGV      [itrack] = track.fPDG;
+   fG5codeV   [itrack] = track.fG5code;
+   fChargeV   [itrack] = track.fCharge;
+   fProcessV  [itrack] = track.fProcess;
+   fIzeroV    [itrack] = track.fIzero;
+   fNstepsV   [itrack] = track.fNsteps;
+   fSpeciesV  [itrack] = track.fSpecies;
+   fStatusV   [itrack] = track.fStatus;
+   fMassV     [itrack] = track.fMass;
+   fXposV     [itrack] = track.fXpos;
+   fYposV     [itrack] = track.fYpos;
+   fZposV     [itrack] = track.fZpos;
+   fXdirV     [itrack] = track.fXdir;
+   fYdirV     [itrack] = track.fYdir;
+   fZdirV     [itrack] = track.fZdir;
+   fPV        [itrack] = track.fP;
+   fEV        [itrack] = track.fE;
+   fPstepV    [itrack] = track.fPstep;
+   fStepV     [itrack] = track.fStep;
+   fSnextV    [itrack] = track.fSnext;
+   fSafetyV   [itrack] = track.fSafety;
+   fFrombdrV  [itrack] = track.fFrombdr;
+   fPendingV  [itrack] = track.fPending;
    if (fPathV[itrack]) *fPathV[itrack] = *track.fPath; else fPathV[itrack] = new TGeoBranchArray(*track.fPath);
    if (fNextpathV[itrack]) *fNextpathV[itrack] = *track.fNextpath; else fNextpathV[itrack] = new TGeoBranchArray(*track.fNextpath);
    if (itrack==fNtracks) fNtracks++;
@@ -589,37 +615,40 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
 // Add track from different array
    if (fNtracks==fMaxtracks) Resize(2*fMaxtracks);
    
-   fEventV[fNtracks] = arr.fEventV[i];
-   fEvslotV[fNtracks] = arr.fEvslotV[i];
-   fParticleV[fNtracks] = arr.fParticleV[i];
-   fPDGV[fNtracks] = arr.fPDGV[i];
-   fG5codeV[fNtracks] = arr.fG5codeV[i];
-   fChargeV[fNtracks] = arr.fChargeV[i];
-   fProcessV[fNtracks] = arr.fProcessV[i];
-   fIzeroV[fNtracks] = arr.fIzeroV[i];
-   fNstepsV[fNtracks] = arr.fNstepsV[i];
-   fSpeciesV[fNtracks] = arr.fSpeciesV[i];
-   fStatusV[fNtracks] = arr.fStatusV[i];
-   fMassV[fNtracks] = arr.fMassV[i];
-   fXposV[fNtracks] = arr.fXposV[i];
-   fYposV[fNtracks] = arr.fYposV[i];
-   fZposV[fNtracks] = arr.fZposV[i];
-   fXdirV[fNtracks] = arr.fXdirV[i];
-   fYdirV[fNtracks] = arr.fYdirV[i];
-   fZdirV[fNtracks] = arr.fZdirV[i];
-   fPV[fNtracks] = arr.fPV[i];
-   fEV[fNtracks] = arr.fEV[i];
-   fPstepV[fNtracks] = arr.fPstepV[i];
-   fStepV[fNtracks] = arr.fStepV[i];
-   fSnextV[fNtracks] = arr.fSnextV[i];
-   fSafetyV[fNtracks] = arr.fSafetyV[i];
-   fFrombdrV[fNtracks] = arr.fFrombdrV[i];
-   fPendingV[fNtracks] = arr.fPendingV[i];
-   if (fPathV[fNtracks]) *fPathV[fNtracks] = *arr.fPathV[i]; else fPathV[fNtracks] = new TGeoBranchArray(*arr.fPathV[i]);
-   if (fNextpathV[fNtracks]) *fNextpathV[fNtracks] = *arr.fNextpathV[i]; else fNextpathV[fNtracks] = new TGeoBranchArray(*arr.fNextpathV[i]);
+   fEventV    [fNtracks] = arr.fEventV    [i];
+   fEvslotV   [fNtracks] = arr.fEvslotV   [i];
+   fParticleV [fNtracks] = arr.fParticleV [i];
+   fPDGV      [fNtracks] = arr.fPDGV      [i];
+   fG5codeV   [fNtracks] = arr.fG5codeV   [i];
+   fChargeV   [fNtracks] = arr.fChargeV   [i];
+   fProcessV  [fNtracks] = arr.fProcessV  [i];
+   fIzeroV    [fNtracks] = arr.fIzeroV    [i];
+   fNstepsV   [fNtracks] = arr.fNstepsV   [i];
+   fSpeciesV  [fNtracks] = arr.fSpeciesV  [i];
+   fStatusV   [fNtracks] = arr.fStatusV   [i];
+   fMassV     [fNtracks] = arr.fMassV     [i];
+   fXposV     [fNtracks] = arr.fXposV     [i];
+   fYposV     [fNtracks] = arr.fYposV     [i];
+   fZposV     [fNtracks] = arr.fZposV     [i];
+   fXdirV     [fNtracks] = arr.fXdirV     [i];
+   fYdirV     [fNtracks] = arr.fYdirV     [i];
+   fZdirV     [fNtracks] = arr.fZdirV     [i];
+   fPV        [fNtracks] = arr.fPV        [i];
+   fEV        [fNtracks] = arr.fEV        [i];
+   fPstepV    [fNtracks] = arr.fPstepV    [i];
+   fStepV     [fNtracks] = arr.fStepV     [i];
+   fSnextV    [fNtracks] = arr.fSnextV    [i];
+   fSafetyV   [fNtracks] = arr.fSafetyV   [i];
+   fFrombdrV  [fNtracks] = arr.fFrombdrV  [i];
+   fPendingV  [fNtracks] = arr.fPendingV  [i];
+   if (fPathV[fNtracks]) *fPathV[fNtracks] = *arr.fPathV[i]; 
+   else fPathV[fNtracks] = new TGeoBranchArray(*arr.fPathV[i]);
+   if (fNextpathV[fNtracks]) *fNextpathV[fNtracks] = *arr.fNextpathV[i]; 
+   else fNextpathV[fNtracks] = new TGeoBranchArray(*arr.fNextpathV[i]);
    fSelected.ResetBitNumber(fNtracks);
    fHoles.ResetBitNumber(fNtracks);
    fNtracks++;
+   if (!IsSame(arr,i, *this, fNtracks-1)) Printf("Error: AddTrack: Different tracks");
 }
 
 //______________________________________________________________________________  
@@ -628,48 +657,44 @@ void GeantTrack_v::AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend)
 // Add tracks from different array
    Int_t ncpy = iend-istart+1;
    if (fNtracks+ncpy>=fMaxtracks) Resize(TMath::Max(2*fMaxtracks, fNtracks+ncpy));   
-   memcpy(&fEventV[fNtracks], &arr.fEventV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fEvslotV[fNtracks], &arr.fEvslotV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fParticleV[fNtracks], &arr.fParticleV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fPDGV[fNtracks], &arr.fPDGV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fG5codeV[fNtracks], &arr.fG5codeV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fChargeV[fNtracks], &arr.fChargeV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fProcessV[fNtracks], &arr.fProcessV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fIzeroV[fNtracks], &arr.fIzeroV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fNstepsV[fNtracks], &arr.fNstepsV[istart], ncpy*sizeof(Int_t));
-   memcpy(&fSpeciesV[fNtracks], &arr.fSpeciesV[istart], ncpy*sizeof(Species_t));
-   memcpy(&fStatusV[fNtracks], &arr.fStatusV[istart], ncpy*sizeof(TrackStatus_t));
-   memcpy(&fMassV[fNtracks], &arr.fMassV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fXposV[fNtracks], &arr.fXposV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fYposV[fNtracks], &arr.fYposV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fZposV[fNtracks], &arr.fZposV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fXdirV[fNtracks], &arr.fXdirV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fYdirV[fNtracks], &arr.fYdirV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fZdirV[fNtracks], &arr.fZdirV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fPV[fNtracks], &arr.fPV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fEV[fNtracks], &arr.fEV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fPstepV[fNtracks], &arr.fPstepV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fStepV[fNtracks], &arr.fStepV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fSnextV[fNtracks], &arr.fSnextV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fSafetyV[fNtracks], &arr.fSafetyV[istart], ncpy*sizeof(Double_t));
-   memcpy(&fFrombdrV[fNtracks], &arr.fFrombdrV[istart], ncpy*sizeof(Bool_t));
-   memcpy(&fPendingV[fNtracks], &arr.fPendingV[istart], ncpy*sizeof(Bool_t));
+   memcpy(&fEventV    [fNtracks], &arr.fEventV    [istart], ncpy*sizeof(Int_t));
+   memcpy(&fEvslotV   [fNtracks], &arr.fEvslotV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fParticleV [fNtracks], &arr.fParticleV [istart], ncpy*sizeof(Int_t));
+   memcpy(&fPDGV      [fNtracks], &arr.fPDGV      [istart], ncpy*sizeof(Int_t));
+   memcpy(&fG5codeV   [fNtracks], &arr.fG5codeV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fChargeV   [fNtracks], &arr.fChargeV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fProcessV  [fNtracks], &arr.fProcessV  [istart], ncpy*sizeof(Int_t));
+   memcpy(&fIzeroV    [fNtracks], &arr.fIzeroV    [istart], ncpy*sizeof(Int_t));
+   memcpy(&fNstepsV   [fNtracks], &arr.fNstepsV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fSpeciesV  [fNtracks], &arr.fSpeciesV  [istart], ncpy*sizeof(Species_t));
+   memcpy(&fStatusV   [fNtracks], &arr.fStatusV   [istart], ncpy*sizeof(TrackStatus_t));
+   memcpy(&fMassV     [fNtracks], &arr.fMassV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fXposV     [fNtracks], &arr.fXposV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fYposV     [fNtracks], &arr.fYposV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fZposV     [fNtracks], &arr.fZposV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fXdirV     [fNtracks], &arr.fXdirV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fYdirV     [fNtracks], &arr.fYdirV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fZdirV     [fNtracks], &arr.fZdirV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fPV        [fNtracks], &arr.fPV        [istart], ncpy*sizeof(Double_t));
+   memcpy(&fEV        [fNtracks], &arr.fEV        [istart], ncpy*sizeof(Double_t));
+   memcpy(&fPstepV    [fNtracks], &arr.fPstepV    [istart], ncpy*sizeof(Double_t));
+   memcpy(&fStepV     [fNtracks], &arr.fStepV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fSnextV    [fNtracks], &arr.fSnextV    [istart], ncpy*sizeof(Double_t));
+   memcpy(&fSafetyV   [fNtracks], &arr.fSafetyV   [istart], ncpy*sizeof(Double_t));
+   memcpy(&fFrombdrV  [fNtracks], &arr.fFrombdrV  [istart], ncpy*sizeof(Bool_t));
+   memcpy(&fPendingV  [fNtracks], &arr.fPendingV  [istart], ncpy*sizeof(Bool_t));
    for(Int_t i = fNtracks, j = istart; i < (fNtracks+ncpy) ; ++i) {
       // The following was wrong ... because the fPath are pointers.
       // memcpy(&fPathV[fNtracks], &arr.fPathV[istart], ncpy*sizeof(TGeoBranchArray*));
       // memcpy(&fNextpathV[fNtracks], &arr.fNextpathV[istart], ncpy*sizeof(TGeoBranchArray*));
-      if (fPathV[i]) {
-         *fPathV[i] 
-            = *arr.fPathV[j]; 
-      }
-      else {
-         fPathV[i] 
-            = new TGeoBranchArray(*arr.fPathV[j]);
-      }
-      if (fNextpathV[i]) *fNextpathV[i] = *arr.fNextpathV[j]; else fNextpathV[i] = new TGeoBranchArray(*arr.fNextpathV[j]);
+      if (fPathV[i]) *fPathV[i] = *arr.fPathV[j]; 
+      else fPathV[i]  = new TGeoBranchArray(*arr.fPathV[j]);
+      if (fNextpathV[i]) *fNextpathV[i] = *arr.fNextpathV[j]; 
+      else fNextpathV[i] = new TGeoBranchArray(*arr.fNextpathV[j]);
    }
    fSelected.ResetBitNumber(fNtracks+ncpy-1);
    fHoles.ResetBitNumber(fNtracks+ncpy-1);
+   for (Int_t i=istart; i<=iend; i++) if (!IsSame(arr,i, *this, fNtracks+i-istart)) Printf("Error: AddTracks: Different tracks");
    fNtracks += ncpy;
 }
 
@@ -681,34 +706,36 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
    Int_t    tint;
    Bool_t   tbool;
    TGeoBranchArray *tptr;
-   tint = fEventV[i]; fEventV[i] = fEventV[j]; fEventV[j] = tint;
-   tint = fEvslotV[i]; fEvslotV[i] = fEvslotV[j]; fEvslotV[j] = tint;
-   tint = fParticleV[i]; fParticleV[i] = fParticleV[j]; fParticleV[j] = tint;
-   tint = fPDGV[i]; fPDGV[i] = fPDGV[j]; fPDGV[j] = tint;
-   tint = fG5codeV[i]; fG5codeV[i] = fG5codeV[j]; fG5codeV[j] = tint;
-   tint = fChargeV[i]; fChargeV[i] = fChargeV[j]; fChargeV[j] = tint;
-   tint = fProcessV[i]; fProcessV[i] = fProcessV[j]; fProcessV[j] = tint;
-   tint = fIzeroV[i]; fIzeroV[i] = fIzeroV[j]; fIzeroV[j] = tint;
-   tint = fNstepsV[i]; fNstepsV[i] = fNstepsV[j]; fNstepsV[j] = tint;
-   Species_t tspec = fSpeciesV[i]; fSpeciesV[i] = fSpeciesV[j]; fSpeciesV[j] = tspec;
-   TrackStatus_t  tstat = fStatusV[i]; fStatusV[i] = fStatusV[j]; fStatusV[j] = tstat;
-   tdbl = fMassV[i]; fMassV[i] = fMassV[j]; fMassV[j] = tdbl;
-   tdbl = fMassV[i]; fMassV[i] = fMassV[j]; fMassV[j] = tdbl;
-   tdbl = fXposV[i]; fXposV[i] = fXposV[j]; fXposV[j] = tdbl;
-   tdbl = fYposV[i]; fYposV[i] = fYposV[j]; fYposV[j] = tdbl;
-   tdbl = fZposV[i]; fZposV[i] = fZposV[j]; fZposV[j] = tdbl;
-   tdbl = fXdirV[i]; fXdirV[i] = fXdirV[j]; fXdirV[j] = tdbl;
-   tdbl = fYdirV[i]; fYdirV[i] = fYdirV[j]; fYdirV[j] = tdbl;
-   tdbl = fZdirV[i]; fZdirV[i] = fZdirV[j]; fZdirV[j] = tdbl;
-   tdbl = fPV[i]; fPV[i] = fPV[j]; fPV[j] = tdbl;
-   tdbl = fEV[i]; fEV[i] = fEV[j]; fEV[j] = tdbl;
-   tdbl = fPstepV[i]; fPstepV[i] = fPstepV[j]; fPstepV[j] = tdbl;
-   tdbl = fSnextV[i]; fSnextV[i] = fSnextV[j]; fSnextV[j] = tdbl;
-   tdbl = fSafetyV[i]; fSafetyV[i] = fSafetyV[j]; fSafetyV[j] = tdbl;
-   tbool = fFrombdrV[i]; fFrombdrV[i] = fFrombdrV[j]; fFrombdrV[j] = tbool;
-   tbool = fPendingV[i]; fPendingV[i] = fPendingV[j]; fPendingV[j] = tbool;
-   tptr = fPathV[i]; fPathV[i] = fPathV[j]; fPathV[j] = tptr;
-   tptr = fNextpathV[i]; fNextpathV[i] = fNextpathV[j]; fNextpathV[j] = tptr;
+   tint = fEventV    [i]; fEventV    [i] = fEventV    [j]; fEventV    [j] = tint;
+   tint = fEvslotV   [i]; fEvslotV   [i] = fEvslotV   [j]; fEvslotV   [j] = tint;
+   tint = fParticleV [i]; fParticleV [i] = fParticleV [j]; fParticleV [j] = tint;
+   tint = fPDGV      [i]; fPDGV      [i] = fPDGV      [j]; fPDGV      [j] = tint;
+   tint = fG5codeV   [i]; fG5codeV   [i] = fG5codeV   [j]; fG5codeV   [j] = tint;
+   tint = fChargeV   [i]; fChargeV   [i] = fChargeV   [j]; fChargeV   [j] = tint;
+   tint = fProcessV  [i]; fProcessV  [i] = fProcessV  [j]; fProcessV  [j] = tint;
+   tint = fIzeroV    [i]; fIzeroV    [i] = fIzeroV    [j]; fIzeroV    [j] = tint;
+   tint = fNstepsV   [i]; fNstepsV   [i] = fNstepsV   [j]; fNstepsV   [j] = tint;
+   Species_t tspec = 
+          fSpeciesV  [i]; fSpeciesV  [i] = fSpeciesV  [j]; fSpeciesV  [j] = tspec;
+   TrackStatus_t  tstat = 
+          fStatusV   [i]; fStatusV   [i] = fStatusV   [j]; fStatusV   [j] = tstat;
+   tdbl = fMassV     [i]; fMassV     [i] = fMassV     [j]; fMassV     [j] = tdbl;
+   tdbl = fXposV     [i]; fXposV     [i] = fXposV     [j]; fXposV     [j] = tdbl;
+   tdbl = fYposV     [i]; fYposV     [i] = fYposV     [j]; fYposV     [j] = tdbl;
+   tdbl = fZposV     [i]; fZposV     [i] = fZposV     [j]; fZposV     [j] = tdbl;
+   tdbl = fXdirV     [i]; fXdirV     [i] = fXdirV     [j]; fXdirV     [j] = tdbl;
+   tdbl = fYdirV     [i]; fYdirV     [i] = fYdirV     [j]; fYdirV     [j] = tdbl;
+   tdbl = fZdirV     [i]; fZdirV     [i] = fZdirV     [j]; fZdirV     [j] = tdbl;
+   tdbl = fPV        [i]; fPV        [i] = fPV        [j]; fPV        [j] = tdbl;
+   tdbl = fEV        [i]; fEV        [i] = fEV        [j]; fEV        [j] = tdbl;
+   tdbl = fPstepV    [i]; fPstepV    [i] = fPstepV    [j]; fPstepV    [j] = tdbl;
+   tdbl = fStepV     [i]; fStepV     [i] = fStepV     [j]; fStepV     [j] = tdbl;
+   tdbl = fSnextV    [i]; fSnextV    [i] = fSnextV    [j]; fSnextV    [j] = tdbl;
+   tdbl = fSafetyV   [i]; fSafetyV   [i] = fSafetyV   [j]; fSafetyV   [j] = tdbl;
+   tbool = fFrombdrV [i]; fFrombdrV  [i] = fFrombdrV  [j]; fFrombdrV  [j] = tbool;
+   tbool = fPendingV [i]; fPendingV  [i] = fPendingV  [j]; fPendingV  [j] = tbool;
+   tptr = fPathV     [i]; fPathV     [i] = fPathV     [j]; fPathV     [j] = tptr;
+   tptr = fNextpathV [i]; fNextpathV [i] = fNextpathV [j]; fNextpathV [j] = tptr;
    Bool_t sel = fSelected.TestBitNumber(j);
    fSelected.SetBitNumber(j, fSelected.TestBitNumber(i));
    fSelected.SetBitNumber(i, sel);
@@ -718,32 +745,32 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
 void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j)
 {
 // Replace content of track i with the one of track j
-   fEventV[i] = fEventV[j];
-   fEvslotV[i] = fEvslotV[j];
-   fParticleV[i] = fParticleV[j];
-   fPDGV[i] = fPDGV[j];
-   fG5codeV[i] = fG5codeV[j];
-   fChargeV[i] = fChargeV[j];
-   fProcessV[i] = fProcessV[j];
-   fIzeroV[i] = fIzeroV[j];
-   fNstepsV[i] = fNstepsV[j];
-   fSpeciesV[i] = fSpeciesV[j];
-   fStatusV[i] = fStatusV[j];
-   fMassV[i] = fMassV[j];
-   fMassV[i] = fMassV[j];
-   fXposV[i] = fXposV[j];
-   fYposV[i] = fYposV[j];
-   fZposV[i] = fZposV[j];
-   fXdirV[i] = fXdirV[j];
-   fYdirV[i] = fYdirV[j];
-   fZdirV[i] = fZdirV[j];
-   fPV[i] = fPV[j];
-   fEV[i] = fEV[j];
-   fPstepV[i] = fPstepV[j];
-   fSnextV[i] = fSnextV[j];
-   fSafetyV[i] = fSafetyV[j];
-   fFrombdrV[i] = fFrombdrV[j];
-   fPendingV[i] = fPendingV[j];
+   fEventV    [i] = fEventV    [j];
+   fEvslotV   [i] = fEvslotV   [j];
+   fParticleV [i] = fParticleV [j];
+   fPDGV      [i] = fPDGV      [j];
+   fG5codeV   [i] = fG5codeV   [j];
+   fChargeV   [i] = fChargeV   [j];
+   fProcessV  [i] = fProcessV  [j];
+   fIzeroV    [i] = fIzeroV    [j];
+   fNstepsV   [i] = fNstepsV   [j];
+   fSpeciesV  [i] = fSpeciesV  [j];
+   fStatusV   [i] = fStatusV   [j];
+   fMassV     [i] = fMassV     [j];
+   fXposV     [i] = fXposV     [j];
+   fYposV     [i] = fYposV     [j];
+   fZposV     [i] = fZposV     [j];
+   fXdirV     [i] = fXdirV     [j];
+   fYdirV     [i] = fYdirV     [j];
+   fZdirV     [i] = fZdirV     [j];
+   fPV        [i] = fPV        [j];
+   fEV        [i] = fEV        [j];
+   fPstepV    [i] = fPstepV    [j];
+   fStepV     [i] = fStepV     [j];
+   fSnextV    [i] = fSnextV    [j];
+   fSafetyV   [i] = fSafetyV   [j];
+   fFrombdrV  [i] = fFrombdrV  [j];
+   fPendingV  [i] = fPendingV  [j];
    if (fPathV[i]) *fPathV[i] = *fPathV[j]; else fPathV[i] = new TGeoBranchArray(*fPathV[j]);
    if (fNextpathV[i]) *fNextpathV[i] = *fNextpathV[j]; else fNextpathV[i] = new TGeoBranchArray(*fNextpathV[j]);
    fSelected.SetBitNumber(i, fSelected.TestBitNumber(j));
@@ -764,32 +791,32 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
 {
 // Remove tracks from the container
    Int_t ncpy = fNtracks-to;
-   memmove(&fEventV[from], &fEventV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fEvslotV[from], &fEvslotV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fParticleV[from], &fParticleV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fPDGV[from], &fPDGV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fG5codeV[from], &fG5codeV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fChargeV[from], &fChargeV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fProcessV[from], &fProcessV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fIzeroV[from], &fIzeroV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fNstepsV[from], &fNstepsV[to+1], ncpy*sizeof(Int_t));
-   memmove(&fSpeciesV[from], &fSpeciesV[to+1], ncpy*sizeof(Species_t));
-   memmove(&fStatusV[from], &fStatusV[to+1], ncpy*sizeof(TrackStatus_t));
-   memmove(&fMassV[from], &fMassV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fXposV[from], &fXposV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fYposV[from], &fYposV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fZposV[from], &fZposV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fXdirV[from], &fXdirV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fYdirV[from], &fYdirV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fZdirV[from], &fZdirV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fPV[from], &fPV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fEV[from], &fEV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fPstepV[from], &fPstepV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fStepV[from], &fStepV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fSnextV[from], &fSnextV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fSafetyV[from], &fSafetyV[to+1], ncpy*sizeof(Double_t));
-   memmove(&fFrombdrV[from], &fFrombdrV[to+1], ncpy*sizeof(Bool_t));
-   memmove(&fPendingV[from], &fPendingV[to+1], ncpy*sizeof(Bool_t));
+   memmove(&fEventV    [from], &fEventV    [to+1], ncpy*sizeof(Int_t));
+   memmove(&fEvslotV   [from], &fEvslotV   [to+1], ncpy*sizeof(Int_t));
+   memmove(&fParticleV [from], &fParticleV [to+1], ncpy*sizeof(Int_t));
+   memmove(&fPDGV      [from], &fPDGV      [to+1], ncpy*sizeof(Int_t));
+   memmove(&fG5codeV   [from], &fG5codeV   [to+1], ncpy*sizeof(Int_t));
+   memmove(&fChargeV   [from], &fChargeV   [to+1], ncpy*sizeof(Int_t));
+   memmove(&fProcessV  [from], &fProcessV  [to+1], ncpy*sizeof(Int_t));
+   memmove(&fIzeroV    [from], &fIzeroV    [to+1], ncpy*sizeof(Int_t));
+   memmove(&fNstepsV   [from], &fNstepsV   [to+1], ncpy*sizeof(Int_t));
+   memmove(&fSpeciesV  [from], &fSpeciesV  [to+1], ncpy*sizeof(Species_t));
+   memmove(&fStatusV   [from], &fStatusV   [to+1], ncpy*sizeof(TrackStatus_t));
+   memmove(&fMassV     [from], &fMassV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fXposV     [from], &fXposV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fYposV     [from], &fYposV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fZposV     [from], &fZposV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fXdirV     [from], &fXdirV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fYdirV     [from], &fYdirV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fZdirV     [from], &fZdirV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fPV        [from], &fPV        [to+1], ncpy*sizeof(Double_t));
+   memmove(&fEV        [from], &fEV        [to+1], ncpy*sizeof(Double_t));
+   memmove(&fPstepV    [from], &fPstepV    [to+1], ncpy*sizeof(Double_t));
+   memmove(&fStepV     [from], &fStepV     [to+1], ncpy*sizeof(Double_t));
+   memmove(&fSnextV    [from], &fSnextV    [to+1], ncpy*sizeof(Double_t));
+   memmove(&fSafetyV   [from], &fSafetyV   [to+1], ncpy*sizeof(Double_t));
+   memmove(&fFrombdrV  [from], &fFrombdrV  [to+1], ncpy*sizeof(Bool_t));
+   memmove(&fPendingV  [from], &fPendingV  [to+1], ncpy*sizeof(Bool_t));
    for (Int_t i = from, j = to+1, k = 0; k < ncpy; ++i,++j,++k) {
       // This was wrong, we must delete the overwritten one and zero the 'moved' part,
       // or we need to swap them.  (This code has memory leaks and double use/delete)
@@ -988,7 +1015,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
                        TGeoBranchArray **pathin, TGeoBranchArray **pathout, 
-                       Double_t *step, Double_t *safe, Bool_t *isonbdr)
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk)
 {
 // Vector version of TGeo FNB (To be implemented the vectorized navigator)
 // Apply to all particles (charged or not).
@@ -1196,6 +1223,13 @@ void GeantTrack_v::PrintTrack(Int_t itr)
 }   
 
 //______________________________________________________________________________
+void GeantTrack_v::PrintTracks()
+{
+// Print all tracks
+   for (Int_t i=0; i<fNtracks; i++) PrintTrack(i);
+}   
+
+//______________________________________________________________________________
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 {
 // Computes snext and safety for an array of tracks. For charged tracks these are the only
@@ -1206,7 +1240,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
    Int_t itr;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
-                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV);
+                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
    for (itr=0; itr<ntracks; itr++) {
       if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
       if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {
@@ -1221,7 +1255,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
          fNextpathV[itr]->InitFromNavigator(nav);
          fSnextV[itr] += nav->GetStep();
       }
-      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+//      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
    }
 }
 //______________________________________________________________________________
@@ -1257,7 +1291,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
       fNextpathV[itr]->InitFromNavigator(nav);
       fSnextV[itr] += nav->GetStep();
    }
-   if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+//   if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
 }   
 
 //______________________________________________________________________________
@@ -1511,7 +1545,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
             // ... so we peek a small value and chech if this crosses, than recompute safety
             fSafetyV[itr] = 1.E-3;
             fIzeroV[itr]++;
-            if (fIzeroV[itr] > 10) fSafetyV[itr] = 0.5*fSnextV[itr];
+            if (fIzeroV[itr] > 10) {fSafetyV[itr] = 0.5*fSnextV[itr]; fIzeroV[itr]=0;}
             icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kTRUE);
          } else {
             if (fIzeroV[itr] > 10) {

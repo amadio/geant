@@ -91,6 +91,7 @@ public:
    virtual void      Print(Option_t *option="") const;
    void              RecycleBasket(GeantBasket *b);
    void              SetFeederQueue(dcqueue<GeantBasket> *queue) {fFeeder = queue;}
+   dcqueue<GeantBasket> *GetFeederQueue() const {return fFeeder;}
    void              SetThreshold(Int_t thr)      {fThreshold = thr;}
    
    ClassDef(GeantBasketMgr,1)  // A path in geometry represented by the array of indices

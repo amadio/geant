@@ -77,6 +77,7 @@ void GeantScheduler::CreateBaskets()
       basket_mgr->SetThreshold(nperbasket);
       vol->SetFWExtension(basket_mgr);
       basket_mgr->SetFeederQueue(feeder);
+//      Printf("basket %s: %p feeder=%p", basket_mgr->GetName(), basket_mgr, basket_mgr->GetFeederQueue());
       fBasketMgr[icrt++] = basket_mgr;
    }
 }

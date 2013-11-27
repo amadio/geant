@@ -198,6 +198,7 @@ public:
    virtual ~GeantTrack_v();
 
    Int_t     Capacity() const     {return fMaxtracks;}
+   static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
    Int_t     GetNtracks() const   {return fNtracks;}
    Int_t     GetNselected() const {return fNselected;}
    void      AddTrack(const GeantTrack &track);
@@ -220,16 +221,16 @@ public:
    Bool_t    IsCompact() const {return fCompact;}
       
    void PrintPointers() {
-      printf("fXposV=%p fYposV=%p fZposV=%p fXdirV=%p fYdirV=%p fZdirV=%p ptot=%p fG5codeV=%p\n",
-              fXposV,fYposV,fZposV,fXdirV,fYdirV,fZdirV,fPV,fG5codeV);
+      printf("fEventV=%p fFrombdrV=%p\n",  fEventV,fFrombdrV);
    }
    void PrintTrack(Int_t itr);
+   void PrintTracks();
    
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
                        TGeoBranchArray **pathin, TGeoBranchArray **pathout, 
-                       Double_t *step, Double_t *safe, Bool_t *isonbdr);
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk);
    void      NavIsSameLocation(Int_t ntracks, TGeoBranchArray **start, TGeoBranchArray **end, Bool_t *same);
    Bool_t    NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start, TGeoBranchArray **end);
    TransportAction_t PostponedAction() const;

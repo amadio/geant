@@ -60,10 +60,14 @@ class dcqueue {
    TCondition        the_condition_variable; // Condition
    int               nobjects;   // Number of objects in the queue
    int               npriority;  // Number of prioritized objects
+   int               countdown;  // Countdown counter for extracted objects
 public:
    dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0) {}
    ~dcqueue() {}
    void               push(T *data, bool priority=false);
+   int                get_countdown() const {return countdown;}
+   void               reset_countdown() {countdown = -1;}
+   void               set_countdown(int n) {countdown=n;}
    int                size() const;
    int                size_async() const {return nobjects;}
    bool               empty() const;
@@ -118,6 +122,7 @@ T* dcqueue<T>::wait_and_pop()
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;
+   if (countdown>0) countdown--;
    if (npriority>0) npriority--;
    the_mutex.UnLock();
    return popped_value;
@@ -155,6 +160,7 @@ T* dcqueue<T>::wait_and_pop_max(unsigned int nmax, unsigned int &n, T **array)
       the_queue.pop_back();
       nobjects--;
       if (npriority) npriority--;
+      if (countdown>0) countdown--;
    }
    the_mutex.UnLock();
    return array[0];
@@ -175,6 +181,7 @@ void dcqueue<T>::pop_many(unsigned int n, T **array)
       the_queue.pop_back();
       nobjects--;
       if (npriority) npriority--;
+      if (countdown>0) countdown--;
    }
    the_mutex.UnLock();
 }
