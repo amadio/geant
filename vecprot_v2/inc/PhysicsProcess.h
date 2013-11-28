@@ -12,6 +12,7 @@
 class TGeoVolume;
 class GeantTrack;
 class GeantTrack_v;
+class TGenPhaseSpace;
 
 //______________________________________________________________________________
 class PhysicsProcess : public TNamed
@@ -73,10 +74,13 @@ public:
 //______________________________________________________________________________
 class InteractionProcess : public PhysicsProcess
 {
+private:
+  Int_t                fNthreads; // Number of threads
+  TGenPhaseSpace      *fGen; //[fNthreads] Phase space generator
 public:
-  InteractionProcess() : PhysicsProcess() {TObject::SetBit(kDiscrete);}
-  InteractionProcess(const char *name) : PhysicsProcess(name) {TObject::SetBit(kDiscrete);}
-  virtual ~InteractionProcess() {}
+  InteractionProcess() : PhysicsProcess(), fNthreads(0), fGen(0) {TObject::SetBit(kDiscrete);}
+  InteractionProcess(const char *name);
+  virtual ~InteractionProcess();
   
   virtual void ComputeIntLen(TGeoVolume *vol, Int_t ntracks, const GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
   virtual void PostStep(TGeoVolume *vol, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
