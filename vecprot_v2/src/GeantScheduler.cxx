@@ -93,7 +93,7 @@ Int_t GeantScheduler::AddTrack(const GeantTrack &track)
 }
 
 //______________________________________________________________________________
-Int_t GeantScheduler::AddTracks(GeantBasket *output)
+Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled)
 {
 // Add all tracks and inject baskets if above threshold. Returns the number
 // of injected baskets.
@@ -101,6 +101,7 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output)
    Bool_t priority = kFALSE;
    GeantTrack_v &tracks = output->GetOutputTracks();
    Int_t ntracks = tracks.GetNtracks();
+   ntot += ntracks;
    GeantBasketMgr *basket_mgr = 0;
    Int_t output_id = output->GetBasketMgr()->GetNumber();
    TGeoVolume *vol = 0;
@@ -108,20 +109,22 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output)
       // We have to collect the killed tracks
       if (tracks.fStatusV[itr]==kKilled ||
           tracks.fStatusV[itr]==kExitingSetup ||
-          tracks.fPathV[itr]->IsOutside()) {
+          tracks.fPathV[itr]->IsOutside()) { 
+         nkilled++; 
          gPropagator->StopTrack(tracks, itr); 
          tracks.DeleteTrack(itr);
          fNtracks[output_id]--;
          continue;
       }
       if (tracks.fStatusV[itr]!=kNew) fNtracks[output_id]--;
+      else nnew++;
       priority = kFALSE;
       if (fPriorityRange[0]>=0 &&
           tracks.fEventV[itr]>=fPriorityRange[0] &&
           tracks.fEventV[itr]<=fPriorityRange[1]) priority = kTRUE;
       vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();    
       basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
-      fNtracks[basket_mgr->GetNumber()]++;
+      fNtracks[output_id]++;
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);
    }   
    return ninjected;

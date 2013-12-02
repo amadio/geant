@@ -14,6 +14,8 @@ class GeantTrack;
 class GeantTrack_v;
 class TGenPhaseSpace;
 
+#include "TMutex.h"
+
 //______________________________________________________________________________
 class PhysicsProcess : public TNamed
 {
@@ -77,8 +79,9 @@ class InteractionProcess : public PhysicsProcess
 private:
   Int_t                fNthreads; // Number of threads
   TGenPhaseSpace      *fGen; //[fNthreads] Phase space generator
+  TMutex               fMutex; //! mutex
 public:
-  InteractionProcess() : PhysicsProcess(), fNthreads(0), fGen(0) {TObject::SetBit(kDiscrete);}
+  InteractionProcess() : PhysicsProcess(), fNthreads(0), fGen(0), fMutex() {TObject::SetBit(kDiscrete);}
   InteractionProcess(const char *name);
   virtual ~InteractionProcess();
   

@@ -236,7 +236,8 @@ ClassImp(InteractionProcess)
 InteractionProcess::InteractionProcess(const char *name)
                    :PhysicsProcess(name),
                     fNthreads(gPropagator->fNthreads),
-                    fGen(0)
+                    fGen(0),
+                    fMutex()
                    
 {
 // Ctor
@@ -258,7 +259,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
-   Double_t fact = 1;
+   Double_t fact = 1.0E-1;
    const Double_t nabarn = fact*TMath::Na()*1e-24;
    Double_t xlen = TMath::Limits<double>::Max();
    TGeoMaterial *mat = vol->GetMaterial();
@@ -326,7 +327,9 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
 //         Printf("Inc en = %f, cms en = %f produced pis = %d",en,cmsen,nprod);
          TLorentzVector pcms(tracks.Px(i), tracks.Py(i), tracks.Pz(i), tracks.fEV[i] + m2);
          if(!fGen[tid].SetDecay(pcms,2*nprod,prodm)) Printf("Forbidden decay!");
+         fMutex.Lock();
          fGen[tid].Generate();
+         fMutex.UnLock();
          //Double_t pxtot=track->px;
          //Double_t pytot=track->py;
          //Double_t pztot=track->pz;
@@ -356,6 +359,9 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             trackg.fZdir = oneoverp*lv->Pz();
             trackg.fE = lv->E();
             trackg.fP = TMath::Sqrt((trackg.E()-trackg.Mass())*(trackg.E()+trackg.Mass()));
+            if (TMath::IsNaN(trackg.fXdir)) {
+               Printf("NaN");
+            }   
             trackg.fStatus = kNew;
             ngen++;
             // Add track to the tracks vector

@@ -648,7 +648,9 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
    fSelected.ResetBitNumber(fNtracks);
    fHoles.ResetBitNumber(fNtracks);
    fNtracks++;
-   if (!IsSame(arr,i, *this, fNtracks-1)) Printf("Error: AddTrack: Different tracks");
+   if (TMath::IsNaN(fXdirV[fNtracks-1]) || !IsSame(arr,i, *this, fNtracks-1)) {
+      Printf("Error: AddTrack: Different tracks");
+   }   
 }
 
 //______________________________________________________________________________  
