@@ -268,7 +268,9 @@ G4int SampleOne(G4Material* material,
   
   
   G4double e0 = dpart->GetKineticEnergy();
-  
+  G4double charge = dpart->GetParticleDefinition()->GetPDGCharge();  // Baseline charge
+  // During tracking use dpart->GetCharge() instead - as the charge can be dynamic (e.g. for ions)
+
   // G4VCrossSectionDataSet* GetCrossSectionDS(const G4ParticleDefinition*, G4Material *);
   // G4VCrossSectionDataSet* cs = GetCrossSectionDS(part, material);
   
@@ -287,6 +289,8 @@ G4int SampleOne(G4Material* material,
   
   G4Step* step;
   step = new G4Step();
+
+  // Intertwines the step and track - does not Set their values
   step->SetTrack(gTrack);
   gTrack->SetStep(step);
   
@@ -297,6 +301,11 @@ G4int SampleOne(G4Material* material,
   G4double safety = 10000.*cm;
   aPoint->SetSafety(safety);
   aPoint->SetTouchableHandle(touchable);
+
+  aPoint->SetKineticEnergy( e0 );   
+  aPoint->SetMass( mass );          //  To be sure
+  aPoint->SetCharge( charge );    
+
   step->SetPreStepPoint(aPoint);
   
   const G4MaterialCutsCouple* mcc=
@@ -327,6 +336,14 @@ G4int SampleOne(G4Material* material,
   G4bool needendl = FALSE;
   G4int modu = 10000;
   
+  // gTrack->SetKineticEnergy(e0);
+  if( std::fabs(gTrack->GetKineticEnergy() - e0) > 1.0e-8*e0 ) {  
+     G4cerr << " ERROR> : Track Kinetic energy is not set correctly " << G4endl;
+     G4cerr << "        :  Track Kin E = " << gTrack->GetKineticEnergy() << G4endl;
+     G4cerr << "        :  Expected    = " << e0 << G4endl;
+     exit(1); 
+     // (gTrack->GetKineticEnergy - e0) 
+  }
   gTrack->SetStep(step);
   proc->StartTracking(gTrack);
 
@@ -391,10 +408,19 @@ G4int SampleOne(G4Material* material,
       
       // Update the PostStepPoint of Step according to ParticleChange
       aChange->UpdateStepForAlongStep(step);
+
+      // Check the energy loss during the Along Step
+      if( std::fabs(gTrack->GetKineticEnergy() - e0) > 0.5*e0 ) {  
+         G4cerr << " Warning : Track lost majority of its Kinetic energy during AlongStep " << G4endl;
+         G4cerr << "      Current Kin E (T) = " << gTrack->GetKineticEnergy() << G4endl;
+         G4cerr << "      Initial Kin E (T0)= " << e0 << G4endl;
+         G4cerr << "      Ratio (T/T0)  = " << gTrack->GetKineticEnergy() / e0 << G4endl;
+      }
     }
     
     // -- Make it happen at the end of the step
     aChange = proc->PostStepDoIt(*gTrack,*step);
+    // std::cout << "SDI> PostStepDoIt: Nsec= " << aChange->GetNumberOfSecondaries() << std::endl;
     aChange->UpdateStepForPostStep(step);
     
   }
@@ -783,7 +809,8 @@ G4int SampleOne(G4Material* material,
   
   // A track owns its dynamic particle - that will be deleted by it
   delete gTrack;
-  
+
+  return 1;  
 }
 
 G4double GetNuclearMass( G4int Z, G4int N, G4int verbose )
@@ -921,6 +948,8 @@ G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4in
       secs[i].Set4Momentum(ppp);
     }
   }
+
+  return true; 
 }
 
 
