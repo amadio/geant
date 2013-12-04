@@ -59,6 +59,7 @@
 #include "G4RToEConvForPositron.hh"
 #include "G4RToEConvForProton.hh"
 #include "G4RegionStore.hh"
+#include "G4EmProcessOptions.hh"
 
 #include "G4Proton.hh"
 
@@ -274,6 +275,9 @@ int main(int argc,char** argv)
   // Initialize G4 kernel
   //
   runManager->Initialize();
+  
+  G4EmProcessOptions opt;
+  opt.SetIntegral(false);
   
 #ifdef G4VIS_USE
   // Initialize visualization
