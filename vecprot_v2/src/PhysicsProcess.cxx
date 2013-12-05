@@ -259,7 +259,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
-   Double_t fact = 1.0E-1;
+   Double_t fact = 1.0E-10;
    const Double_t nabarn = fact*TMath::Na()*1e-24;
    Double_t xlen = TMath::Limits<double>::Max();
    TGeoMaterial *mat = vol->GetMaterial();
