@@ -90,14 +90,14 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Int_t ibin, Int_t reac, const Int_t npar
 Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
-  return fPFstate[pindex].SampleReac(en, preac, npart, weight, kerma, enr, pid, mom);
+  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom);
 }
 
 //___________________________________________________________________
 Bool_t TEFstate::GetReac(Int_t pindex, Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
                          Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
-  return fPFstate[pindex].GetReac(en, preac, ifs, npart, weight, kerma, enr, pid, mom);
+  return fPFstate[pindex].GetReac(preac, en, ifs, npart, weight, kerma, enr, pid, mom);
 }
 
 
