@@ -481,19 +481,19 @@ void ShapeBenchmarker<T>::timeIt( )
       std::cout << vecsizes[vectype] 
 		<< " " << Tc[vectype]  /* timing for Contains method */
 
-		<< " " << Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
+	//		<< " " << Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
 
 		<< " " <<  Ts[vectype]  /* timing for safety method */
 
-		<< " " << Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
+	//	<< " " << Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
 
 		<< " " <<  TdI[vectype]
 
-		<< " " << TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
+	//	<< " " << TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
 
 		<< " " <<  TdO[vectype]
 
-		<< " " << TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
+	//	<< " " << TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
 		<< std::endl;
     }  
 } 
@@ -507,13 +507,13 @@ void ShapeBenchmarker<T>::printTimings( char const * filename ) const
     {
       outstr << this->vecsizes[vectype] 
 		<< " " << this->Tc[vectype]  /* timing for Contains method */
-		<< " " << this->Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
+	//		<< " " << this->Tc[0]/(Tc[vectype]/vecsizes[vectype]) /* speedup with respect to 1 particle */
 		<< " " << this->Ts[vectype]   /* timing for safety method */
-		<< " " << this->Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
+	//	<< " " << this->Ts[0]/(Ts[vectype]/vecsizes[vectype]) 
 		<< " " <<  this->TdI[vectype] 
-		<< " " << this->TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
+	//	<< " " << this->TdI[0]/(TdI[vectype]/vecsizes[vectype]) 
 		<< " " <<  this->TdO[vectype] 
-		<< " " << this->TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
+	//	<< " " << this->TdO[0]/(TdO[vectype]/vecsizes[vectype]) 
 		<< std::endl;
     }  
   outstr.close();
