@@ -83,7 +83,7 @@ GeantPropagator::GeantPropagator()
                  fDebugTrk(-1),
                  fMaxSteps(10000),
                  fNperBasket(10),
-                 fMaxPerBasket(1000),
+                 fMaxPerBasket(10000),
                  fMaxPerEvent(0),
                  fNaverage(0.),
                  fVertex(),

@@ -62,7 +62,7 @@ class dcqueue {
    int               npriority;  // Number of prioritized objects
    int               countdown;  // Countdown counter for extracted objects
 public:
-   dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0) {}
+   dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),countdown(0) {}
    ~dcqueue() {}
    void               push(T *data, bool priority=false);
    int                get_countdown() const {return countdown;}

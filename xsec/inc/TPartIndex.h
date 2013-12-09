@@ -22,8 +22,8 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TObject.h>
-#include <TDatabasePDG.h>
+#include "TObject.h"
+#include "TDatabasePDG.h"
 
 #define DICLEN 12        // Number of process cross sections 
 #define FNPROC 18        // Number of total processes

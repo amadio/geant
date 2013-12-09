@@ -152,6 +152,7 @@ void *WorkloadManager::MainScheduler(void *)
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
    Int_t min_feeder = TMath::Max(10,2*nworkers); // setter/getter here ?
+   Int_t max_feeder = 300; // ???
    // Number of tracks in the current basket
 //   Int_t ntracksb = 0;
    // Number of priority baskets
@@ -177,7 +178,7 @@ void *WorkloadManager::MainScheduler(void *)
    Double_t nperbasket;
    Int_t ninjected = 0;
    Int_t nwaiting = 0;
-   Int_t nnew = 0;
+   Int_t nnew = 0, ntot=0, nkilled=0;
    GeantBasket *output;
    GeantBasket **carray = new GeantBasket*[500];
    while ((output = (GeantBasket*)transportedQ->wait_and_pop_max(500,npop,carray))) {
@@ -185,6 +186,8 @@ void *WorkloadManager::MainScheduler(void *)
       niter++;
       ninjected = 0;
       nnew = 0;
+      ntot = 0;
+      nkilled = 0;
       // Check first the queue of collectors
 //      ncollectors = npop+collector_queue->size_async();
 //      Printf("Popped %d collections, %d still in the queue", npop, ncollectors-npop);
@@ -194,14 +197,14 @@ void *WorkloadManager::MainScheduler(void *)
          output = carray[iout];
 //         collector->Print();
 //         Printf("= collector has %d tracks", collector->GetNtracks());
-         ninjected += sch->AddTracks(output);
+         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
 //         Printf("=== injected %d baskets", ninjected);
          // Recycle basket
 	      output->Recycle();	 
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
-      Printf("#%d: Processed %d output baskets -> injected %d. Queue size is %d", niter, npop, ninjected, ntotransport);
+      Printf("#%d: Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, npop, ntot, nnew, nkilled, ninjected, ntotransport);
       
       // Check and mark finished events
       for (Int_t ievt=0; ievt<nbuffered; ievt++) {
@@ -251,12 +254,13 @@ void *WorkloadManager::MainScheduler(void *)
             } else {
                npriority = sch->FlushPriorityBaskets();
                ninjected = npriority;
-               Printf("Flushed %d priority baskets, resetting countdown", npriority);
+               Printf("Flushed %d priority baskets", npriority);
             }
          }
       }
       
       ntotransport = feederQ->size_async();
+      if (ntotransport<min_feeder || ntotransport>max_feeder) sch->AdjustBasketSize();
       nwaiting = propagator->GetNwaiting();
 //      Printf("picked=%d ncoll=%d  ninjected=%d ntotransport=%d",npop, ncollectors,ninjected,ntotransport);
       if (ntotransport<min_feeder) {
@@ -276,8 +280,8 @@ void *WorkloadManager::MainScheduler(void *)
         if (!prioritize && last_event<max_events) {
            // Start prioritized regime
            dumped_event = finished.FirstNullBit();
-           Printf("Prioritizing events %d to %d", dumped_event,dumped_event);
-           sch->SetPriorityRange(dumped_event, dumped_event);
+           Printf("Prioritizing events %d to %d", dumped_event,dumped_event+4);
+           sch->SetPriorityRange(dumped_event, dumped_event+4);
            sch->CollectPrioritizedTracks();
            prioritize = kTRUE;
            countdown = kTRUE;
@@ -294,7 +298,6 @@ void *WorkloadManager::MainScheduler(void *)
          sch->GarbageCollect();
          if (countdown) feederQ->set_countdown(0);
       }
-      sch->AdjustBasketSize();
       nperbasket = 0;
 //      for (Int_t tid=0; tid<propagator->fNthreads; tid++) nperbasket += propagator->fTracksPerBasket[tid];
 //      nperbasket /= propagator->fNthreads;
@@ -389,6 +392,9 @@ void *WorkloadManager::TransportTracks(void *)
          itrack[itr] = input.fParticleV[itr];
          crt[itr] = input.fPathV[itr];
          nxt[itr] = input.fNextpathV[itr];
+         if (TMath::IsNaN(input.fXdirV[itr])) {
+            Printf("Error: track %d has NaN", itr);
+         }   
       }
       // Select the discrete physics process for all particles in the basket
       if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
@@ -442,7 +448,12 @@ void *WorkloadManager::TransportTracks(void *)
          Printf("Ouch: ninput=%d counter=%d", basket->GetNoutput(), counter);
       }   
       noutput = basket->GetNoutput();
-      for (Int_t itr=0; itr<ninput; itr++) {
+      for(Int_t itr=0; itr<noutput; itr++) {
+         if (TMath::IsNaN(output.fXdirV[itr])) {
+            Printf("Error: track %d has NaN", itr);
+         }   
+      }   
+      for (Int_t itr=0; itr<ninput; itr++) {         
          Bool_t found = kFALSE;
          for(Int_t i=0; i<noutput; i++) {
             if (output.fEventV[i] == iev[itr]) {

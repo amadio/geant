@@ -1,3 +1,4 @@
+
 #include "TSystem.h"
 #include "TFile.h"
 #include "TProfile.h"
@@ -7,21 +8,21 @@
 #include "TEXsec.h"
 #include "TEFstate.h"
 
-static enum Error_t (kPart, kProcess);
+enum Error_t {kPart, kProcess};
 
 void usage(Error_t err);
 
-void finstate(const char *proc="inElastic", const char *part="proton", Int_t elemin=1, Int_t elemax=92)
+void fscheck(const char *proc="inElastic", const char *part="proton", Int_t elemin=1, Int_t elemax=92)
 {
   gSystem->Load("libXsec");
   TFile *fx = new TFile("xsec.root","r");
   fx->Get("PartIndex");
   TFile *ff = new TFile("fstate.root","r");
 //  ff->ls();
-  Int_t iproc = TPartIndex::I()->ProcIndex(proc);
-  if(iproc<0) {
+  Int_t ireac = TPartIndex::I()->ProcIndex(proc);
+  if(ireac<0) {
     printf("Unknown process %s\n",proc);
-    usage(kPart);
+    usage(kProcess);
     return;
   }
   
@@ -62,7 +63,7 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
     if(fs) {
       Int_t nsamp = fs->NEFstat();
       TString title = TString(TPartIndex::I()->PartName(ipart))
-      +TString(" ")+ TString(TPartIndex::I()->ProcName(iproc))+TString(" on ")+TString(TPartIndex::I()->EleSymb(iele+1));
+      +TString(" ")+ TString(TPartIndex::I()->ProcName(ireac))+TString(" on ")+TString(TPartIndex::I()->EleSymb(iele+1));
       TString name = TString(TPartIndex::I()->EleSymb(iele+1));
       hh[iele] = new TProfile(name+"-mult", title,
                               100,TMath::Log10(TPartIndex::I()->Emin()),
@@ -75,6 +76,8 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
       hh[92+iele]->GetXaxis()->SetTitle("Log10(GeV)");
       hh[92+iele]->GetYaxis()->SetTitle("pt");
       Float_t kerma=0;
+      Float_t weight=0;
+      Float_t enr=0;
       Int_t npart=0;
       const Int_t *pid=0;
       const Float_t *mom=0;
@@ -82,7 +85,7 @@ void finstate(const char *proc="inElastic", const char *part="proton", Int_t ele
       const Double_t *egrid = TPartIndex::I()->EGrid();
       for(Int_t ien=0; ien<TPartIndex::I()->NEbins(); ++ien) {
         for(Int_t is=0; is<nsamp; ++is) {
-          Int_t isurv = fs->GetReac(ipart, egrid[ien], iproc, is, kerma, npart, pid, mom);
+          Bool_t isurv = fs->GetReac(ipart, ireac, egrid[ien], is, npart, weight, kerma, enr, pid, mom);
           hh[iele]->Fill(TMath::Log10(egrid[ien]),npart);
 //          printf("Here %d %p\n",npart,mom);
           if(npart)

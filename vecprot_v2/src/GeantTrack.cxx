@@ -497,7 +497,7 @@ void GeantTrack_v::CopyToBuffer(const char *buff, Int_t size)
    // is used to resize the underlying arrays and the previous ones
    // are just dropped.
    // However, because we need fPathV to be initalized we copy
-   // path the end of the active part of the array.
+   // past the end of the active part of the array.
    memcpy(buf, fPathV, fMaxtracks*sizeof(TGeoBranchArray*));
    fPathV = (TGeoBranchArray**)buf;
    buf += size*sizeof(TGeoBranchArray*);
@@ -648,7 +648,9 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
    fSelected.ResetBitNumber(fNtracks);
    fHoles.ResetBitNumber(fNtracks);
    fNtracks++;
-   if (!IsSame(arr,i, *this, fNtracks-1)) Printf("Error: AddTrack: Different tracks");
+   if (TMath::IsNaN(fXdirV[fNtracks-1]) || !IsSame(arr,i, *this, fNtracks-1)) {
+      Printf("Error: AddTrack: Different tracks");
+   }   
 }
 
 //______________________________________________________________________________  

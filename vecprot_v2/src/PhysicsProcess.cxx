@@ -233,13 +233,33 @@ void ElossProcess::PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin, 
 ClassImp(InteractionProcess)
 
 //______________________________________________________________________________
+InteractionProcess::InteractionProcess(const char *name)
+                   :PhysicsProcess(name),
+                    fNthreads(gPropagator->fNthreads),
+                    fGen(0),
+                    fMutex()
+                   
+{
+// Ctor
+   TObject::SetBit(kDiscrete);
+   fGen = new TGenPhaseSpace[fNthreads];
+}   
+
+//______________________________________________________________________________
+InteractionProcess::~InteractionProcess()
+{
+// dtor
+   delete [] fGen;
+}   
+
+//______________________________________________________________________________
 void InteractionProcess::ComputeIntLen(TGeoVolume *vol, 
                                  Int_t ntracks, 
                                  const GeantTrack_v &tracks,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
-   Double_t fact = 1;
+   Double_t fact = 1.0E-10;
    const Double_t nabarn = fact*TMath::Na()*1e-24;
    Double_t xlen = TMath::Limits<double>::Max();
    TGeoMaterial *mat = vol->GetMaterial();
@@ -280,7 +300,6 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
 // We suppose at first that the available energy is the Kin cms energy
 // We produce equal number of pos and neg pions
 
-   static TGenPhaseSpace gps;
    Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    const Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
    const Double_t prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass,
@@ -307,8 +326,10 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
          while(nprod*pimass*2>cmsen || nprod==0);
 //         Printf("Inc en = %f, cms en = %f produced pis = %d",en,cmsen,nprod);
          TLorentzVector pcms(tracks.Px(i), tracks.Py(i), tracks.Pz(i), tracks.fEV[i] + m2);
-         if(!gps.SetDecay(pcms,2*nprod,prodm)) Printf("Forbidden decay!");
-         gps.Generate();
+         if(!fGen[tid].SetDecay(pcms,2*nprod,prodm)) Printf("Forbidden decay!");
+         fMutex.Lock();
+         fGen[tid].Generate();
+         fMutex.UnLock();
          //Double_t pxtot=track->px;
          //Double_t pytot=track->py;
          //Double_t pztot=track->pz;
@@ -318,7 +339,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
          GeantTrack &trackg = gPropagator->GetTempTrack(tid);
          for(Int_t j=0; j<2*nprod; ++j) {
             // Do not consider tracks below the production threshold. Normally the energy deposited should be taken into account
-            TLorentzVector *lv = gps.GetDecay(j);
+            TLorentzVector *lv = fGen[tid].GetDecay(j);
             if (lv->E()-pimass < gPropagator->fEmin) continue;
             *trackg.fPath = a;
             if(j%2) trackg.fPDG = kPiMinus;
@@ -338,6 +359,9 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
             trackg.fZdir = oneoverp*lv->Pz();
             trackg.fE = lv->E();
             trackg.fP = TMath::Sqrt((trackg.E()-trackg.Mass())*(trackg.E()+trackg.Mass()));
+            if (TMath::IsNaN(trackg.fXdir)) {
+               Printf("NaN");
+            }   
             trackg.fStatus = kNew;
             ngen++;
             // Add track to the tracks vector
