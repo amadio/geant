@@ -1,6 +1,6 @@
 #include <TMath.h>
-#include <TPartIndex.h>
-#include <TEXsec.h>
+//#include <TPartIndex.h>
+//#include <TEXsec.h>
 #include <TH1F.h>
 #include <TFile.h>
 #include <TSystem.h>
@@ -17,14 +17,15 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
 			   kOrange, kSpring, kTeal, kAzure, kViolet, kPink };
 
    gSystem->Load("libXsec");
-   gFile->Get("PartIndex");
+   TFile *f = new TFile("xsec.root");
+   f->Get("PartIndex");
+
    Double_t emin = TPartIndex::I()->Emin();
    Double_t emax = TPartIndex::I()->Emax();
+
    Int_t nbins = 100;
    Double_t edelta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
    // Sampling of reactions
-   TFile *f = new TFile("xsec.root");
-   f->Get("PartIndex");
    Int_t nproc = TPartIndex::I()->NProc();
    Double_t *e = new Double_t[nbins];
    Double_t *x = new Double_t[nbins];
@@ -116,5 +117,6 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
       ++ndelta;
    }
    tmg->Draw("C");
+
    return 0;
 }

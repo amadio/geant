@@ -1,12 +1,8 @@
-
 #include "TSystem.h"
 #include "TFile.h"
 #include "TProfile.h"
 #include "TMath.h"
 #include "TCanvas.h"
-
-#include "TEXsec.h"
-#include "TEFstate.h"
 
 enum Error_t {kPart, kProcess};
 
@@ -55,6 +51,9 @@ void fscheck(const char *proc="inElastic", const char *part="proton", Int_t elem
   TProfile *hh[184];
   memset(hh,0,184*sizeof(TProfile*));
   Int_t nh=0;
+
+  char hname_mult[128];
+  char hname_pt[128];
   
   for(Int_t iele=elemin-1; iele<elemax; ++iele) {
     hh[iele]=0;
@@ -64,11 +63,13 @@ void fscheck(const char *proc="inElastic", const char *part="proton", Int_t elem
       Int_t nsamp = fs->NEFstat();
       TString title = TString(TPartIndex::I()->PartName(ipart))
       +TString(" ")+ TString(TPartIndex::I()->ProcName(ireac))+TString(" on ")+TString(TPartIndex::I()->EleSymb(iele+1));
-      TString name = TString(TPartIndex::I()->EleSymb(iele+1));
-      hh[iele] = new TProfile(name+"-mult", title,
+      sprintf(hname_mult,"%s-mult",TPartIndex::I()->EleSymb(iele+1));
+      sprintf(hname_pt,"%s-pt",TPartIndex::I()->EleSymb(iele+1));
+
+      hh[iele] = new TProfile(hname_mult, title,
                               100,TMath::Log10(TPartIndex::I()->Emin()),
                               TMath::Log10(TPartIndex::I()->Emax()));
-      hh[92+iele] = new TProfile(name+"-pt", title,
+      hh[92+iele] = new TProfile(hname_pt, title,
                                 100,TMath::Log10(TPartIndex::I()->Emin()),
                                 TMath::Log10(TPartIndex::I()->Emax()));
       hh[iele]->GetXaxis()->SetTitle("Log10(GeV)");
