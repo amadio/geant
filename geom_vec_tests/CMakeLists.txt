@@ -88,19 +88,20 @@ if( VECGEOBENCHMARKS )
         get_filename_component( BENCHEXEC  ${benchmarksrc} NAME_WE)
 	message(STATUS "building benchmark ${BENCHEXEC}")
 	if( VC_FOUND )
-	add_executable( ${BENCHEXEC} ${benchmarksrc} ${headers} ${VC_LIBRARIES} )
-	target_link_libraries( ${BENCHEXEC} ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES})
+	add_executable( ${BENCHEXEC} ${benchmarksrc} ${headers} ${VC_LIBRARIES} ${VectorizedGeom})
+	target_link_libraries( ${BENCHEXEC} ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} VecGeom_static  ${VC_LIBRARIES} ${TBB_LIBRARIES} -lrt)
 	else()
 	add_executable( ${BENCHEXEC} ${benchmarksrc} ${headers} )
-	target_link_libraries( ${BENCHEXEC} ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lVecGeom_static ${TBB_LIBRARIES})
+	target_link_libraries( ${BENCHEXEC} ${ROOT_LIBRARIES} -lGeom -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} VecGeom_static ${TBB_LIBRARIES} -lrt)
 	endif( VC_FOUND )
 	add_dependencies( ${BENCHEXEC} VectorizedGeom )
     endforeach( benchmarksrc )
 
-# for more complete test from CMS:
-#   file(GLOB benchsource2 src/BenchmarkFramework/BenchSelectedCMSShapes.cxx)
-#   add_executable(BenchSelectedCMSShapes ${benchsource2} ${headers})
-#   target_link_libraries(BenchSelectedCMSShapes ${ROOT_LIBRARIES} -lGeom ${TBB_LIBRARIES})
+
+
+    # COPY THE CMS DETECTORFILE TO BINARY BUILD DIRECTORY (FOR CONVENIENCE)
+    #---------------------------------------------------------------------------------------------
+    configure_file(src/BenchmarkFramework/cms.root ${CMAKE_BINARY_DIR}/bin/cms.root COPYONLY)
 endif()
 
 
