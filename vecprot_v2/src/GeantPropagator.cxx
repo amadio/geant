@@ -105,7 +105,7 @@ GeantPropagator::GeantPropagator()
                  fOutFile(0),
                  fTimer(0),
                  fProcesses(0),
-                 fStoredTracks(),
+                 fStoredTracks(0),
                  fNtracks(0),
                  fEvents(0),
                  fWaiting(0),

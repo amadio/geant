@@ -16,7 +16,7 @@ ifneq (,$(findstring icc,$(CXX)))
 CXXFLAGS	  += -fPIC
 endif
 ifeq ($(CXX),g++) 
-CXXFLAGS      += $(OPT) -Wall -fPIC
+CXXFLAGS      += $(OPT) -Wall -fPIC -D__STAT_DEBUG
 LD            = g++
 LDFLAGS       = $(OPT) 
 endif
@@ -41,9 +41,11 @@ CXXFLAGS     += -I./$(INCDIR) -I$(ROOTSYS)/include
 
 GEANTSOURCES  = GeantThreadData.cxx GeantTrack.cxx GeantBasket.cxx  sync_objects.cxx \
                 GeantOutput.cxx GeantPropagator.cxx GeantEvent.cxx GeantScheduler.cxx \
-                PhysicsProcess.cxx WorkloadManager.cxx GeantVApplication.cxx GeantFactoryStore.cxx
+                PhysicsProcess.cxx WorkloadManager.cxx GeantVApplication.cxx GeantFactoryStore.cxx \
+                GeantTrackStat.cxx
 GEANTH        = GeantThreadData.h PhysicsProcess.h GeantBasket.h GeantScheduler.h GeantPropagator.h \
-                GeantEvent.h GeantTrack.h GeantOutput.h WorkloadManager.h GeantVApplication.h LinkDef.h
+                GeantEvent.h GeantTrack.h GeantOutput.h WorkloadManager.h GeantVApplication.h \
+                GeantTrackStat.h LinkDef.h
 GEANTHI       = $(patsubst %.h,inc/%.h,$(GEANTH))
 GEANTDICTS    = G__Geant.cxx
 GEANTO        = $(patsubst %.cxx,src/%.o,$(GEANTSOURCES)) G__Geant.o

@@ -7,6 +7,7 @@
 #pragma link C++ class GeantEvent+;
 #pragma link C++ class GeantTrack+;
 #pragma link C++ class GeantTrack_v+;
+#pragma link C++ class GeantTrackStat+;
 #pragma link C++ class GeantThreadData+;
 #pragma link C++ class GeantBasket+;
 #pragma link C++ class GeantScheduler+;

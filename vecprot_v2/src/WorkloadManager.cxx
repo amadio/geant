@@ -151,7 +151,7 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t ntotransport = 0;
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
-   Int_t min_feeder = TMath::Max(10,2*nworkers); // setter/getter here ?
+   Int_t min_feeder = TMath::Max(20,3*nworkers); // setter/getter here ?
    Int_t max_feeder = 300; // ???
    // Number of tracks in the current basket
 //   Int_t ntracksb = 0;
@@ -204,7 +204,7 @@ void *WorkloadManager::MainScheduler(void *)
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
-      Printf("#%d: Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, npop, ntot, nnew, nkilled, ninjected, ntotransport);
+      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
       
       // Check and mark finished events
       for (Int_t ievt=0; ievt<nbuffered; ievt++) {
@@ -276,16 +276,16 @@ void *WorkloadManager::MainScheduler(void *)
 //           Printf("Garbage collection injected %d baskets", ninjected);
 
 //        }  
-        Printf("Critical regime"); 
         if (!prioritize && last_event<max_events) {
            // Start prioritized regime
            dumped_event = finished.FirstNullBit();
-           Printf("Prioritizing events %d to %d", dumped_event,dumped_event+4);
            sch->SetPriorityRange(dumped_event, dumped_event+4);
-           sch->CollectPrioritizedTracks();
+           ninjected += sch->CollectPrioritizedTracks();
            prioritize = kTRUE;
            countdown = kTRUE;
+           ntotransport = feederQ->size_async();
            feederQ->set_countdown(ntotransport);
+           Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
            continue;
         }
         nwaiting = propagator->GetNwaiting();

@@ -137,6 +137,7 @@ T* dcqueue<T>::try_pop()
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;
+   if (countdown>0) countdown--;
    if (npriority>0) npriority--;
    the_mutex.UnLock();
    return popped_value;
