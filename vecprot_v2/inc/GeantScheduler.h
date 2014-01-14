@@ -5,6 +5,10 @@
 #include "TObject.h"
 #endif
 
+#ifdef __STAT_DEBUG
+#include "GeantTrackStat.h"
+#endif   
+
 #include "TMutex.h"
 //==============================================================================
 // GeantScheduler - dispatcher running in a single thread. Collects tracks
@@ -25,6 +29,11 @@ protected:
    GeantBasketMgr     **fBasketMgr;           // Array of basket managers
    Int_t               *fNtracks;             //[fNvolume] Number of tracks per volume
    Int_t                fPriorityRange[2];    // Prioritized events
+#ifdef __STAT_DEBUG
+   GeantTrackStat       fPStat;  //! Statistics for the pending tracks
+   GeantTrackStat       fQStat;  //! Statistics for the queued tracks
+   GeantTrackStat       fTStat;  //! Statistics for the transported tracks
+#endif   
    
 public:
    GeantScheduler();
@@ -36,6 +45,11 @@ public:
    Int_t                CollectPrioritizedTracks();
    Int_t                GetNpriority() const {return fNpriority;}
    void                 SetPriorityRange(Int_t min, Int_t max) {fPriorityRange[0]=min; fPriorityRange[1]=max;}
+#ifdef __STAT_DEBUG
+   GeantTrackStat      &GetPendingStat() {return fPStat;}
+   GeantTrackStat      &GetQueuedStat()  {return fQStat;}
+   GeantTrackStat      &GetTransportStat()  {return fTStat;}
+#endif   
    Int_t                FlushPriorityBaskets();
    Int_t                GarbageCollect();
    

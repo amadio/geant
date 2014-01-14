@@ -23,6 +23,11 @@ GeantScheduler::GeantScheduler()
 {
 // dummy
    fPriorityRange[0] = fPriorityRange[1] = -1;
+#ifdef __STAT_DEBUG
+   fPStat.InitArrays(GeantPropagator::Instance()->fNevents);
+   fQStat.InitArrays(GeantPropagator::Instance()->fNevents);
+   fTStat.InitArrays(GeantPropagator::Instance()->fNevents);
+#endif   
 }
 
 //______________________________________________________________________________
@@ -73,7 +78,7 @@ void GeantScheduler::CreateBaskets()
    Int_t icrt = 0;
    Int_t nperbasket = gPropagator->fNperBasket;
    while ((vol=(TGeoVolume*)next())) {
-      basket_mgr = new GeantBasketMgr(vol, icrt);
+      basket_mgr = new GeantBasketMgr(this, vol, icrt);
       basket_mgr->SetThreshold(nperbasket);
       vol->SetFWExtension(basket_mgr);
       basket_mgr->SetFeederQueue(feeder);
@@ -85,7 +90,7 @@ void GeantScheduler::CreateBaskets()
 //______________________________________________________________________________
 Int_t GeantScheduler::AddTrack(const GeantTrack &track)
 {
-// Add generated track.
+// Main method to inject generated tracks. Track status is kNew here.
    TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
    GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
    fNtracks[basket_mgr->GetNumber()]++;
@@ -95,8 +100,8 @@ Int_t GeantScheduler::AddTrack(const GeantTrack &track)
 //______________________________________________________________________________
 Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled)
 {
-// Add all tracks and inject baskets if above threshold. Returns the number
-// of injected baskets.
+// Main re-dispatch method. Add all tracks and inject baskets if above threshold. 
+// Returns the number of injected baskets.
    Int_t ninjected = 0;
    Bool_t priority = kFALSE;
    GeantTrack_v &tracks = output->GetOutputTracks();
@@ -118,6 +123,7 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
       }
       if (tracks.fStatusV[itr]!=kNew) fNtracks[output_id]--;
       else nnew++;
+      tracks.fStatusV[itr] = kAlive;
       priority = kFALSE;
       if (fPriorityRange[0]>=0 &&
           tracks.fEventV[itr]>=fPriorityRange[0] &&

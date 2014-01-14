@@ -53,9 +53,12 @@ public:
 // concurrent queue
 //______________________________________________________________________________
 
+class GeantScheduler;
+
 //______________________________________________________________________________
 class GeantBasketMgr : public TGeoExtension {
 protected:
+   GeantScheduler   *fScheduler;             // Scheduler for this basket
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNumber;                // Number assigned
    Int_t             fThreshold;             // Adjustable transportability threshold
@@ -70,9 +73,9 @@ protected:
    GeantBasket      *GetNextBasket();
 
 public:
-   GeantBasketMgr() : fVolume(0), fNumber(0), fThreshold(0), fNbaskets(0), 
+   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fThreshold(0), fNbaskets(0), 
                          fNused(0), fCBasket(0), fPBasket(0), fBaskets(), fFeeder(0), fMutex() {}
-   GeantBasketMgr(TGeoVolume *vol, Int_t number);
+   GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
    
    virtual TGeoExtension *Grab() {return this;}
@@ -84,6 +87,7 @@ public:
    Int_t             GarbageCollect();
    Int_t             GetNbaskets() const          {return fNbaskets;}
    Int_t             GetNused() const             {return fNused;}
+   GeantScheduler   *GetScheduler() const         {return fScheduler;}
    Int_t             GetThreshold() const         {return fThreshold;}
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
    Int_t             GetNumber() const            {return fNumber;}

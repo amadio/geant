@@ -6,7 +6,7 @@
 #include "TGeoHelix.h"
 #include "GeantTrack.h"
 
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
 #include "GeantTrackStat.h"
 #endif   
 
@@ -285,7 +285,7 @@ GeantTrack_v::GeantTrack_v()
               fSnextV(0),fSafetyV(0),fFrombdrV(0),fPendingV(0),fPathV(0),fNextpathV(0)
 {
 // Dummy ctor.
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif   
 }
@@ -299,7 +299,7 @@ GeantTrack_v::GeantTrack_v(Int_t size)
               fSnextV(0),fSafetyV(0),fFrombdrV(0),fPendingV(0),fPathV(0),fNextpathV(0)
 {
 // Constructor with maximum capacity.
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif   
    Resize(size);
@@ -315,7 +315,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
               fSnextV(0),fSafetyV(0),fFrombdrV(0),fPendingV(0),fPathV(0),fNextpathV(0)
 {
 // Copy constructor
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif   
    Int_t size = track_v.fMaxtracks;
@@ -342,7 +342,7 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
       fCompact = track_v.fCompact;
       memcpy(fBuf, track_v.fBuf, size*sizeof(GeantTrack));
       AssignInBuffer(fBuf, size);
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif   
    }
@@ -618,7 +618,7 @@ void GeantTrack_v::AddTrack(const GeantTrack &track)
    if (fPathV[itrack]) *fPathV[itrack] = *track.fPath; else fPathV[itrack] = new TGeoBranchArray(*track.fPath);
    if (fNextpathV[itrack]) *fNextpathV[itrack] = *track.fNextpath; else fNextpathV[itrack] = new TGeoBranchArray(*track.fNextpath);
    if (itrack==fNtracks) fNtracks++;
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[fEvslotV[itrack]]++;
 #endif   
 }   
@@ -670,7 +670,7 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
    if (TMath::IsNaN(fXdirV[fNtracks-1]) || !IsSame(arr,i, *this, fNtracks-1)) {
       Printf("Error: AddTrack: Different tracks");
    }   
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[arr.fEvslotV[i]]++;
 #endif   
 }
@@ -679,7 +679,7 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
 void GeantTrack_v::AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend)
 {
 // Add tracks from different array
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    for (Int_t i=istart; i<=iend; i++) fStat.fNtracks[arr.fEvslotV[i]]++;
 #endif   
    Int_t ncpy = iend-istart+1;
@@ -817,7 +817,7 @@ void GeantTrack_v::DeleteTrack(Int_t itr)
 void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
 {
 // Remove tracks from the container
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    for (Int_t i=from; i<=to; i++) fStat.fNtracks[fEvslotV[i]]--;
 #endif   
    Int_t ncpy = fNtracks-to;
@@ -939,7 +939,7 @@ void GeantTrack_v::Clear(Option_t *)
    fSelected.ResetAllBits();
    fCompact = kTRUE;
    fNtracks = 0;
-#ifdef __STAT_DEBUG
+#ifdef __STAT_DEBUG_TRK
    fStat.Reset();
 #endif   
 
