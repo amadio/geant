@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
+#include "GeantScheduler.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 
@@ -13,8 +14,6 @@
 #include "TGeoVolume.h"
 #include "TGeoNavigator.h"
 #include "TGeoBranchArray.h"
-
-const Double_t gTolerance = TGeoShape::Tolerance();
 
 ClassImp(GeantBasket)
 
@@ -114,8 +113,9 @@ void GeantBasket::Recycle()
 ClassImp(GeantBasketMgr)
 
 //______________________________________________________________________________
-GeantBasketMgr::GeantBasketMgr(TGeoVolume *vol, Int_t number)
+GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number)
                   :TGeoExtension(),
+                   fScheduler(sch),
                    fVolume(vol),
                    fNumber(number),
                    fThreshold(0),
@@ -144,9 +144,16 @@ GeantBasketMgr::~GeantBasketMgr()
 Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority)
 {
 // Copy directly from a track_v a track to the basket manager.
+#ifdef __STAT_DEBUG
+      fScheduler->GetPendingStat().AddTrack(trackv, itr);
+#endif   
    if (priority) {
       fPBasket->AddTrack(trackv, itr);
       if (fPBasket->GetNinput() >= fThreshold) {
+#ifdef __STAT_DEBUG
+         fScheduler->GetPendingStat().RemoveTracks(fPBasket->GetInputTracks());
+         fScheduler->GetQueuedStat().AddTracks(fPBasket->GetInputTracks());
+#endif   
          fFeeder->push(fPBasket, priority);
          fPBasket = GetNextBasket();
          return 1;
@@ -154,6 +161,10 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t pri
    } else {
       fCBasket->AddTrack(trackv, itr);
       if (fCBasket->GetNinput() >= fThreshold) {
+#ifdef __STAT_DEBUG
+         fScheduler->GetPendingStat().RemoveTracks(fCBasket->GetInputTracks());
+         fScheduler->GetQueuedStat().AddTracks(fCBasket->GetInputTracks());
+#endif   
          fFeeder->push(fCBasket, priority);
          fCBasket = GetNextBasket();
          return 1;
@@ -169,9 +180,16 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack &track, Bool_t priority)
 // threshold, the basket is added to the feeder queue and replaced by an empty 
 // one. The feeder must be defined beforehand. Returns the number of dispatched
 // baskets
+#ifdef __STAT_DEBUG
+   fScheduler->GetPendingStat().AddTrack(track);
+#endif   
    if (priority) {
       fPBasket->AddTrack(track);
       if (fPBasket->GetNinput() >= fThreshold) {
+#ifdef __STAT_DEBUG
+         fScheduler->GetPendingStat().RemoveTracks(fPBasket->GetInputTracks());
+         fScheduler->GetQueuedStat().AddTracks(fPBasket->GetInputTracks());
+#endif   
          fFeeder->push(fPBasket, priority);
          fPBasket = GetNextBasket();
          return 1;
@@ -179,6 +197,10 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack &track, Bool_t priority)
    } else {
       fCBasket->AddTrack(track);
       if (fCBasket->GetNinput() >= fThreshold) {
+#ifdef __STAT_DEBUG
+         fScheduler->GetPendingStat().RemoveTracks(fCBasket->GetInputTracks());
+         fScheduler->GetQueuedStat().AddTracks(fCBasket->GetInputTracks());
+#endif   
          fFeeder->push(fCBasket, priority);
          fCBasket = GetNextBasket();
          return 1;
@@ -200,6 +222,10 @@ Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax)
          fPBasket->GetInputTracks().AddTracks(tracks, 0, ntracks-1);
          tracks.Clear();
          if (fPBasket->GetNinput() >= fThreshold) {
+#ifdef __STAT_DEBUG
+            fScheduler->GetPendingStat().RemoveTracks(fPBasket->GetInputTracks());
+            fScheduler->GetQueuedStat().AddTracks(fPBasket->GetInputTracks());
+#endif   
             fFeeder->push(fPBasket, kFALSE);
             fPBasket = GetNextBasket();
             return 1;
@@ -215,6 +241,10 @@ Int_t GeantBasketMgr::FlushPriorityBasket()
 {
 // Flush the baskets containing tracks. Returns the number of dispatched baskets.
    if (fPBasket->GetNinput()) {
+#ifdef __STAT_DEBUG
+            fScheduler->GetPendingStat().RemoveTracks(fPBasket->GetInputTracks());
+            fScheduler->GetQueuedStat().AddTracks(fPBasket->GetInputTracks());
+#endif   
       fFeeder->push(fPBasket, kTRUE);
       fPBasket = GetNextBasket();
       return 1;
@@ -234,6 +264,10 @@ Int_t GeantBasketMgr::GarbageCollect()
       tracks.Clear();
    }
    if (fCBasket->GetNinput()) {
+#ifdef __STAT_DEBUG
+      fScheduler->GetPendingStat().RemoveTracks(fCBasket->GetInputTracks());
+      fScheduler->GetQueuedStat().AddTracks(fCBasket->GetInputTracks());
+#endif   
       fFeeder->push(fCBasket, kFALSE);
       fCBasket = GetNextBasket();
       return 1;
