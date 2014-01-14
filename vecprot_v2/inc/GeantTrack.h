@@ -5,6 +5,10 @@
 #include "TMath.h"
 #include "TBits.h"
 
+#ifdef __STAT_DEBUG
+#include "GeantTrackStat.h"
+#endif   
+
 #ifdef __INTEL_COMPILER
 #include <immintrin.h> 
 #else
@@ -156,6 +160,9 @@ public:
    TBits     fHoles;      // Bits of holes
    TBits     fSelected;   // Mask of selected tracks for the current operation
    Bool_t    fCompact;    // Flag marking the compactness
+#ifdef __STAT_DEBUG_TRK
+   GeantTrackStat fStat;  //! Statistics for the track container
+#endif   
    char     *fBuf;        // buffer holding tracks data
 
    Int_t    *fEventV;     // event numbers
@@ -201,6 +208,9 @@ public:
    static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
    Int_t     GetNtracks() const   {return fNtracks;}
    Int_t     GetNselected() const {return fNselected;}
+#ifdef __STAT_DEBUG_TRK
+   GeantTrackStat      &GetTrackStat() {return fStat;}
+#endif   
    void      AddTrack(const GeantTrack &track);
    void      AddTrack(const GeantTrack_v &arr, Int_t i);
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);

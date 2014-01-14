@@ -151,7 +151,7 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t ntotransport = 0;
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
-   Int_t min_feeder = TMath::Max(10,2*nworkers); // setter/getter here ?
+   Int_t min_feeder = TMath::Max(20,3*nworkers); // setter/getter here ?
    Int_t max_feeder = 300; // ???
    // Number of tracks in the current basket
 //   Int_t ntracksb = 0;
@@ -204,7 +204,12 @@ void *WorkloadManager::MainScheduler(void *)
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
-      Printf("#%d: Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, npop, ntot, nnew, nkilled, ninjected, ntotransport);
+      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
+#ifdef __STAT_DEBUG
+           sch->GetPendingStat().Print();
+           sch->GetQueuedStat().Print();
+           sch->GetTransportStat().Print();
+#endif           
       
       // Check and mark finished events
       for (Int_t ievt=0; ievt<nbuffered; ievt++) {
@@ -255,6 +260,12 @@ void *WorkloadManager::MainScheduler(void *)
                npriority = sch->FlushPriorityBaskets();
                ninjected = npriority;
                Printf("Flushed %d priority baskets", npriority);
+#ifdef __STAT_DEBUG
+           Printf("After FlushPriorityBaskets:");
+           sch->GetPendingStat().Print();
+           sch->GetQueuedStat().Print();
+           sch->GetTransportStat().Print();
+#endif           
             }
          }
       }
@@ -276,16 +287,28 @@ void *WorkloadManager::MainScheduler(void *)
 //           Printf("Garbage collection injected %d baskets", ninjected);
 
 //        }  
-        Printf("Critical regime"); 
         if (!prioritize && last_event<max_events) {
            // Start prioritized regime
            dumped_event = finished.FirstNullBit();
-           Printf("Prioritizing events %d to %d", dumped_event,dumped_event+4);
            sch->SetPriorityRange(dumped_event, dumped_event+4);
-           sch->CollectPrioritizedTracks();
+#ifdef __STAT_DEBUG
+           Printf("Before CollectPrioritizedTracks:");
+           sch->GetPendingStat().Print();
+           sch->GetQueuedStat().Print();
+           sch->GetTransportStat().Print();
+#endif           
+           ninjected += sch->CollectPrioritizedTracks();
+#ifdef __STAT_DEBUG
+           Printf("After CollectPrioritizedTracks:");
+           sch->GetPendingStat().Print();
+           sch->GetQueuedStat().Print();
+           sch->GetTransportStat().Print();
+#endif           
            prioritize = kTRUE;
            countdown = kTRUE;
+           ntotransport = feederQ->size_async();
            feederQ->set_countdown(ntotransport);
+           Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
            continue;
         }
         nwaiting = propagator->GetNwaiting();
@@ -353,6 +376,7 @@ void *WorkloadManager::TransportTracks(void *)
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
+   GeantScheduler *sch = wm->GetScheduler();
    Int_t nprocesses = propagator->fNprocesses;
    Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -370,6 +394,10 @@ void *WorkloadManager::TransportTracks(void *)
       // Check exit condition: null basket in the queue
       if (!basket) break;
       counter++;
+#ifdef __STAT_DEBUG
+      sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
+      sch->GetTransportStat().AddTracks(basket->GetInputTracks());
+#endif         
       ntotransport = basket->GetNinput();  // all tracks to be transported 
       ninput = ntotransport;
       GeantTrack_v &input = basket->GetInputTracks();
@@ -472,6 +500,9 @@ void *WorkloadManager::TransportTracks(void *)
 finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
+#ifdef __STAT_DEBUG
+      sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
+#endif         
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);

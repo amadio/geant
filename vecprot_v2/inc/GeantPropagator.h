@@ -81,7 +81,7 @@ public:
    TStopwatch      *fTimer;     // Timer
    
    PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
-   GeantTrack_v     fStoredTracks;    //! Stored array of tracks (history?)
+   GeantTrack_v    *fStoredTracks;    //! Stored array of tracks (history?)
 
    // Data per event
    Int_t           *fNtracks;   //[fNevents] Number of tracks {array of [fNevents]}

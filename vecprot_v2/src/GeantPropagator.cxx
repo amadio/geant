@@ -105,7 +105,7 @@ GeantPropagator::GeantPropagator()
                  fOutFile(0),
                  fTimer(0),
                  fProcesses(0),
-                 fStoredTracks(),
+                 fStoredTracks(0),
                  fNtracks(0),
                  fEvents(0),
                  fWaiting(0),
@@ -284,6 +284,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fYdir = TMath::Sin(theta)*TMath::Sin(phi);
          track.fZdir = TMath::Cos(theta);
          track.fFrombdr = kFALSE;
+         track.fStatus = kAlive;
          
          AddTrack(track);
          ndispatched += DispatchTrack(track);
