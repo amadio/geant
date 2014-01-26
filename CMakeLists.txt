@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-project(GEANT5)
+project(GEANTV)
 
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
@@ -62,4 +62,5 @@ add_subdirectory (tabxsec)
 add_subdirectory (vecprot)
 add_subdirectory (micromc)
 add_subdirectory (geom_vec_tests)
+add_subdirectory (E03)
 
