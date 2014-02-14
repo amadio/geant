@@ -63,6 +63,7 @@ public:
    void                JoinThreads();
    static void        *MainScheduler(void *arg);
    static void        *TransportTracks(void *arg);
+   static void        *TransportTracksCoprocessor(void *arg);
    void                WaitWorkers();
    
    ClassDef(WorkloadManager,0)  // The work manager class.

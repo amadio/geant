@@ -20,6 +20,8 @@
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
 
+#include "TaskBroker.h"
+
 ClassImp(WorkloadManager)
 
 WorkloadManager *WorkloadManager::fgInstance = 0;
@@ -159,7 +161,7 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t npriority;
    TH1F *hnb=0, *hworkers=0, *htracks=0;
    TCanvas *c1 = 0;
-   Int_t lastphase = -1;
+   //   Int_t lastphase = -1;
    Int_t crtphase  = 0;
    
    if (graphics) {
@@ -511,7 +513,7 @@ finish:
 }
 
 //______________________________________________________________________________
-void *WorkloadManager::TransportTracksCoprocessor(void *)
+void *WorkloadManager::TransportTracksCoprocessor(void *arg)
 {
 // Thread propagating all tracks from a basket.
 //      char slist[256];
@@ -566,7 +568,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *)
          ::Info("GPU","Waiting (2) for next available stream.");
          stream = broker->GetNextStream();
       }
-      lastToClear = kFALSE;
+      // lastToClear = kFALSE;
       if (!basket) {
          if (0 != broker->launchTask(/* wait= */ true)) {
             // We ran something, new basket might be available.
