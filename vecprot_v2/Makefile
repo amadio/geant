@@ -52,8 +52,8 @@ GEANTH        = GeantThreadData.h PhysicsProcess.h GeantBasket.h GeantScheduler.
                 GeantTrackStat.h LinkDef.h
 GEANTHI       = $(patsubst %.h,inc/%.h,$(GEANTH))
 GEANTDICTS    = $(SRCDIR)/G__Geant.cxx
-GEANTO        = $(patsubst %.cxx,src/%.o,$(GEANTSOURCES) $(GEANTDICTS))
-GEANTDEPS     = $(patsubst %.cxx,%.d,$(GEANTSOURCES)) $(SRCDIR)/G__Geant.d $(SRCDIR)/G__User.d
+GEANTO        = $(patsubst %.cxx,src/%.o,$(GEANTSOURCES)) $(patsubst %.cxx,%.o,$(GEANTDICTS))
+GEANTDEPS     = $(patsubst %.cxx,%.d,$(GEANTSOURCES)) $(SRCDIR)/G__Geant.d 
 
 GEANTSO       = libGeant.$(DllSuf)
 GEANTLIB      = $(shell pwd)/$(GEANTSO)
@@ -62,8 +62,8 @@ USERSOURCES   = MyHit.cxx MyApplication.cxx
 USERH         = MyHit.h MyApplication.h UserLinkDef.h
 USERHI        = $(patsubst %.h,inc/%.h,$(USERH))
 USERDICTS     = $(SRCDIR)/G__User.cxx
-USERO        = $(patsubst %.cxx,src/%.o,$(USERSOURCES)) $(SRCDIR)/G__User.o
-USERDEPS      = $(patsubst %.cxx,$(INCDIR)/%.h,$(USERSOURCES)) $(patsubst %.cxx,%.h,$(USERDICTS))
+USERO         = $(patsubst %.cxx,src/%.o,$(USERSOURCES)) $(SRCDIR)/G__User.o
+USERDEPS      = $(patsubst %.cxx,%.d,$(USERSOURCES)) $(patsubst %.cxx,%.d,$(USERDICTS))
 USERSO        = libUser.$(DllSuf)
 USERLIB       = $(shell pwd)/$(USERSO)
 
