@@ -36,10 +36,10 @@ public:
 };
 
 class GPGeomManager;
-class GPFieldMap;
+class GXFieldMap;
 class GPPhysicsTable;
 class GPVGeometry;
-class GPFieldMap;
+class GXFieldMap;
 class GPPhysicsTable;
 struct GXTrack;
 
@@ -55,7 +55,7 @@ class curandState;
 typedef 
 void (*kernelFunc_t)(curandState* devStates,
                      GPGeomManager *geomManager,
-                     GPFieldMap *magMap,
+                     GXFieldMap *magMap,
                      GXTrack *track,
                      int *logVolumeIndices,
                      int *physVolumeIndices,
@@ -88,7 +88,7 @@ public:
    ~CoprocessorBroker();
    
    bool UploadGeometry(GPVGeometry *geom);
-   bool UploadMagneticField(GPFieldMap** fieldMap);
+   bool UploadMagneticField(GXFieldMap** fieldMap);
    
    bool Upload_eBremTable(const GPPhysicsTable &eBrem_table);
    bool Upload_eIoniTable(const GPPhysicsTable &eIoni_table);
@@ -105,7 +105,7 @@ public:
 
 private:
    char       *fdGeometry; // Point to a GPGeomManager in GPU land.
-   DevicePtr<GPFieldMap> fdFieldMap;
+   DevicePtr<GXFieldMap> fdFieldMap;
    
    DevicePtr<GPPhysicsTable> fd_eBremTable;
    DevicePtr<GPPhysicsTable> fd_eIoniTable;

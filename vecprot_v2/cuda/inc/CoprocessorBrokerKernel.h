@@ -1,7 +1,7 @@
 class GPFieldMap;
 class GPPhysicsTable;
 class GPVGeometry;
-class GPFieldMap;
+class GXFieldMap;
 class GPPhysicsTable;
 struct GXTrack;
 
@@ -11,7 +11,7 @@ struct GXTrack;
 
 void tracking_gpu(curandState* devStates,
                   GPGeomManager *geomManager,
-                  GPFieldMap *magMap,
+                  GXFieldMap *magMap,
                   GXTrack *track,
                   int *logVolumeIndices,
                   int *physVolumeIndices,

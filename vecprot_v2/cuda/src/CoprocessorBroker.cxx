@@ -10,8 +10,8 @@ typedef double G4double;
 
 
 #include "GPConstants.h"
-#include "GPFieldMap.h"
-#include "GPFieldMapData.h"
+#include "GXFieldMap.h"
+#include "GXFieldMapData.h"
 
 #include "GXTrack.h"
 #include "GPThreeVector.h"
@@ -123,21 +123,21 @@ void DevicePtrBase::MemcpyToDevice(const void* what, unsigned long nbytes)
               cudaMemcpyHostToDevice);
 }
 
-GPFieldMap **ReadFieldMap(const char *fieldMapFile)
+GXFieldMap **ReadFieldMap(const char *fieldMapFile)
 {
-   GPFieldMap** fieldMap;
-   fieldMap = (GPFieldMap **) malloc (nbinZ*sizeof(GPFieldMap *));
+   GXFieldMap** fieldMap;
+   fieldMap = (GXFieldMap **) malloc (nbinZ*sizeof(GXFieldMap *));
    for (int j = 0 ; j < nbinZ ; j++) {
-      fieldMap[j] = (GPFieldMap *) malloc (nbinR*sizeof(GPFieldMap));
+      fieldMap[j] = (GXFieldMap *) malloc (nbinR*sizeof(GXFieldMap));
    }
    std::ifstream ifile(fieldMapFile, std::ios::in | std::ios::binary | std::ios::ate);
    if (ifile.is_open()) {
       
       //field map structure
-      GPFieldMapData fd;
+      GXFieldMapData fd;
       
       std::ifstream::pos_type fsize = ifile.tellg();
-      size_t dsize = sizeof(GPFieldMapData);
+      size_t dsize = sizeof(GXFieldMapData);
       
       long int ngrid = fsize/dsize;
       ifile.seekg (0,  std::ios::beg);
@@ -146,7 +146,7 @@ GPFieldMap **ReadFieldMap(const char *fieldMapFile)
       << fieldMapFile << std::endl;
       
       for(int i = 0 ; i < ngrid ; i++) {
-         ifile.read((char *)&fd, sizeof(GPFieldMapData));
+         ifile.read((char *)&fd, sizeof(GXFieldMapData));
          
          //check validity of input data
          if(abs(fd.iz) > noffZ || fd.ir > nbinR) {
@@ -287,12 +287,12 @@ bool CoprocessorBroker::UploadGeometry(GPVGeometry *geom)
    return true;
 }
 
-bool CoprocessorBroker::UploadMagneticField(GPFieldMap** fieldMap)
+bool CoprocessorBroker::UploadMagneticField(GXFieldMap** fieldMap)
 {
 
    printf("Creating magnetic field map on the GPU device\n");
    //prepare fiesldMap array: fieldMap[nbinZ][nbinR];
-   GPFieldMap *bmap_h = (GPFieldMap *) malloc (nbinZ*nbinR*sizeof(GPFieldMap));
+   GXFieldMap *bmap_h = (GXFieldMap *) malloc (nbinZ*nbinR*sizeof(GXFieldMap));
    for (int i = 0 ; i < nbinZ ; i++) {
       for (int j = 0 ; j < nbinR ; j++) {
          bmap_h[i+j*nbinZ].Bz = fieldMap[i][j].Bz;
@@ -302,8 +302,8 @@ bool CoprocessorBroker::UploadMagneticField(GPFieldMap** fieldMap)
    
    printf("Copying data from host to device\n");
    
-//   cudaMalloc((void**)&fdFieldMap, nbinZ*nbinR*sizeof(GPFieldMap)) ;
-//   cudaMemcpy(fdFieldMap,bmap_h,nbinZ*nbinR*sizeof(GPFieldMap),
+//   cudaMalloc((void**)&fdFieldMap, nbinZ*nbinR*sizeof(GXFieldMap)) ;
+//   cudaMemcpy(fdFieldMap,bmap_h,nbinZ*nbinR*sizeof(GXFieldMap),
 //              cudaMemcpyHostToDevice);
    fdFieldMap.Alloc(nbinZ*nbinR);
    fdFieldMap.ToDevice(bmap_h,nbinZ*nbinR);
@@ -353,7 +353,7 @@ void setup(CoprocessorBroker *broker,
    //2. Read magnetic field map
    const char* fieldMapFile = getenv("GP_BFIELD_MAP");
    fieldMapFile = (fieldMapFile) ? fieldMapFile : "cmsExp.mag.3_8T";
-   GPFieldMap** fieldMap = ReadFieldMap(fieldMapFile);
+   GXFieldMap** fieldMap = ReadFieldMap(fieldMapFile);
    
    //3. Create magnetic field on the device
    broker->UploadMagneticField(fieldMap);
