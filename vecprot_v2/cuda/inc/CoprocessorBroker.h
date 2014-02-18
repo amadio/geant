@@ -156,6 +156,7 @@ public:
    struct Task {
    public:
       Task(kernelFunc_t kernel) : fCurrent(0), fKernel(kernel), fCycles(0), fIdles(0) {}
+      virtual ~Task() {}
 
       TaskData     *fCurrent;  // Holder of the data to be sent to the GPU, not owned.
       kernelFunc_t  fKernel;   // wrapper around the cuda call to the kernel.
