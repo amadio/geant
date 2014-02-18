@@ -108,6 +108,7 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    gSystem->Load("libVMC.so");
    gSystem->Load("libGeant.so");
    gSystem->Load("libUser.so");   
+   gSystem->Load("libGeantCuda.so");
 
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
@@ -115,6 +116,10 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
+   CoprocessorBroker *gpuBroker = new CoprocessorBroker();
+   gpuBroker->CudaSetup(32,128,1);
+   wmgr->SetTaskBroker(gpuBroker);
+
    prop->fNaverage = 500;   // Average number of tracks per event
    prop->fNperBasket = 8;
 
@@ -123,5 +128,9 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
 //   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;
 //   prop->fDebugTrk = 1;
-   prop->PropagatorGeom(geomfile, nthreads, graphics);
+   //prop->PropagatorGeom(geomfile, nthreads, graphics);
+ 
+   // This sets gGeomManager and hence superseeds the filename.
+   VP_SimpleECal();
+   prop->PropagatorGeom("", nthreads + 3, graphics);
 }   
