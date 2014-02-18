@@ -184,8 +184,6 @@ private:
    int fNthreads;
    int fMaxTrackPerThread;
    int fTotalWork;
-   
-  
 };
 
 #endif

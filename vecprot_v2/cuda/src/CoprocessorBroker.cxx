@@ -200,6 +200,7 @@ CoprocessorBroker::TaskData::~TaskData() {
 
 bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
+
    fStreamId = streamid;
    cudaStreamCreate(&fStream);
    
