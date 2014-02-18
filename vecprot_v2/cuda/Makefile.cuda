@@ -24,6 +24,7 @@ CXXFLAGS += -I$(CUDA_INC) -I$(CUDA_INCDIR)
 CXXFLAGS += -I$(CudaCode)/GXTracking/SimCore/Common/include \
    -I$(CudaCode)/GXTracking/gpu/cuda/kernel/include \
    -I$(CudaCode)/GXTracking/SimCore/EMPhysics/include \
+   -I$(CudaCode)/GXTracking/SimCore/Transportation/include \
    -I$(CudaCode)/GXTracking/GPTracking/Common/include \
    -I$(CudaCode)/GXTracking/GPTracking/Transportation/include \
    -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/include \
@@ -75,7 +76,9 @@ CUDA_GX_SOURCES=Transportation/src/GXChordFinder.cu Transportation/src/GXMagneti
   Geometry/src/GXMultiLevelLocator.cu \
   EMPhysics/src/GXBrem.cu EMPhysics/src/GXIoni.cu EMPhysics/src/GXMsc.cu \
   Transportation/src/GXPropagatorInField.cu Transportation/src/GXTransportation.cu \
-  Transportation/src/GXFieldTrack.cu 
+  Transportation/src/GXFieldTrack.cu
+
+CUDA_KERNEL_SOURCES=gpu/cuda/kernel/src/random_kernel.cu
 
 #  kernel/src/random_kernel.cu
 
@@ -107,6 +110,7 @@ CUDA_GP_CPP_SOURCES=$(filter-out Geometry/src/GPMultiLevelLocator.cu, $(subst $(
 #	kernel/src/tracking_kernel.cu \
 
 CUDA_OBJS = $(CUDA_OBJDIR)/tracking_kernel.o $(CUDA_OBJDIR)/util_kernel.o
+CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/, $(patsubst %.cu,%.o,$(CUDA_KERNEL_SOURCES)))
 CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/SimCore/,$(patsubst %.cu,%.o,$(CUDA_GX_SOURCES)))
 CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/GPTracking/,$(patsubst %.cu,%.o,$(CUDA_GP_SOURCES)))
 CUDA_DEPS = $(patsubst %.o,%.d,$(CUDA_OBJS))
@@ -121,10 +125,10 @@ CUDA_DEPS += $(patsubst %.o,%.d,$(CUDA_CXX_OBJS) $(CUDA_CPP_OBJS))
 -include $(CUDA_DEPS)
 
 $(CUDA_SRCDIR)/%.o: $(CUDA_SRCDIR)/%.cxx
-		$(ROOTSYS)/bin/rmkdepend -R -f$(CUDA_SRCDIR)/$*.d -Y -w 1000 -- \
-	             	$(CXXFLAGS) \
-		 	 -- $<
-		$(CXX)  $(CXXFLAGS) -o $@ -c $<
+	$(ROOTSYS)/bin/rmkdepend -R -f$(CUDA_SRCDIR)/$*.d -Y -w 1000 -- \
+	      	$(CXXFLAGS) \
+	 	 -- $<
+	$(CXX)  $(CXXFLAGS) -o $@ -c $<
 
 libGeantCuda.so: $(CUDA_OBJS) $(CUDA_CPP_OBJS) $(CUDA_CXX_OBJS)
 	$(NVCC) $^  -o libGeantCuda.so $(NVCC_FLAGS) --shared -Xcompiler -fPIC
