@@ -15,7 +15,7 @@ public:
    typedef TaskData *Stream;
    virtual Stream GetNextStream() = 0;
 
-   virtual void runTask(int threadid, GeantBasket *basket) = 0;
+   virtual void runTask(int threadid, GeantBasket &basket) = 0;
 
    virtual Stream launchTask(bool wait = false) = 0;
    virtual void waitForTasks() = 0;
