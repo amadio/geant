@@ -377,6 +377,14 @@ void setup(CoprocessorBroker *broker,
 
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
 {
+   int deviceCount = 0;
+   cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
+
+   if (error_id != cudaSuccess) {
+     Printf("Cuda CoprocessorBroker disabled because of issue #%d:%s\n", (int)error_id, cudaGetErrorString(error_id));
+     return false;
+   }
+
    setup(this);
 
    fNblocks = nblocks;

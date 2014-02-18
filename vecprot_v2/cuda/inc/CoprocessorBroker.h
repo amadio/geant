@@ -96,6 +96,7 @@ public:
    
    bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
 
+   bool IsValid() { return fNthreads > 0; }
    void runTask(int threadid, GeantBasket &basket);
    Stream launchTask(bool wait = false);
    Stream launchTask(Task *task, bool wait = false);

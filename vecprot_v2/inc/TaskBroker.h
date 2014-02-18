@@ -8,6 +8,8 @@ class TaskBroker
 protected:
    struct TaskData {};
 public:
+   virtual bool IsValid() = 0;
+
    typedef TaskData *Stream;
    virtual Stream GetNextStream() = 0;
 
