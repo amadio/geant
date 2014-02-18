@@ -47,6 +47,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fFlushed = kFALSE;
    fFilling = kFALSE;
    fScheduler = new GeantScheduler();
+   fBroker = 0;
 }
 
 //______________________________________________________________________________
@@ -85,6 +86,13 @@ void WorkloadManager::Print(Option_t *option) const
 }   
 
 //______________________________________________________________________________
+void WorkloadManager::SetTaskBroker(TaskBroker *broker) { 
+  // Register the broker if it is valid.
+  if (broker && broker->IsValid()) fBroker = broker; 
+}
+
+
+//______________________________________________________________________________
 void WorkloadManager::StartThreads()
 {
 // Start the threads
@@ -92,7 +100,15 @@ void WorkloadManager::StartThreads()
    if (fListThreads) return;
    fListThreads = new TList();
    fListThreads->SetOwner();
-   for (Int_t ith=0; ith<fNthreads; ith++) {
+   Int_t ith = 0;
+   if (fBroker) {
+     Printf("Running with a coprocessor broker.");
+     TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor,fBroker);
+     fListThreads->Add(t);
+     t->Run();
+     ++ith;
+   }
+   for (; ith<fNthreads; ith++) {
       TThread *t = new TThread(WorkloadManager::TransportTracks);
       fListThreads->Add(t);
       t->Run();
@@ -606,7 +622,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       }
       // Select the discrete physics process for all particles in the basket
       //if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
-      
+
       ncross = 0;
       generation = 0;
       

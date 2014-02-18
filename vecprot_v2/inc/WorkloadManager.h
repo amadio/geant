@@ -10,6 +10,7 @@
 class GeantBasketMgr;
 class GeantBasket;
 class GeantScheduler;
+class TaskBroker;
 
 // Main work manager class. This creates and manages all the worker threads,
 // has pointers to the synchronization objects, but also to the currently
@@ -39,6 +40,8 @@ protected:
    Bool_t             fFilling;            // Worker queue is filling
    GeantScheduler    *fScheduler;          // Main basket scheduler
 
+   TaskBroker        *fBroker;             // Pointer to the coprocessor broker, this could be made a collection.
+
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
@@ -57,6 +60,7 @@ public:
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
    void                Print(Option_t *option="") const;
+   void                SetTaskBroker(TaskBroker *broker);
    Int_t               GetNminThreshold() const {return fNminThreshold;}
    void                SetNminThreshold(Int_t thr) {fNminThreshold = thr;}
    void                StartThreads();
