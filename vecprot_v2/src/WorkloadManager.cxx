@@ -491,7 +491,7 @@ void *WorkloadManager::TransportTracks(void *)
       }
       // Check
       if (basket->GetNinput()) {
-         Printf("Ouch: ninput=%d counter=%d", basket->GetNoutput(), counter);
+         Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
       }   
       noutput = basket->GetNoutput();
       for(Int_t itr=0; itr<noutput; itr++) {
@@ -608,7 +608,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       // Record tracks
       ninput = ntotransport;
       if (basket->GetNoutput()) {
-         Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter);
+         Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter);
       } 
 //      if (counter==1) input.PrintTracks();  
       for (Int_t itr=0; itr<ntotransport; itr++) {
@@ -645,7 +645,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
 
       // Check
       if (basket->GetNinput()) {
-         Printf("Ouch: ninput=%d counter=%d", basket->GetNoutput(), counter);
+         Printf("Ouch (coproc): ninput=%d noutput=%d counter=%d", basket->GetNinput(), basket->GetNoutput(), counter);
       }   
       noutput = basket->GetNoutput();
       for(Int_t itr=0; itr<noutput; itr++) {
@@ -660,6 +660,6 @@ finish:
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);
-   Printf("=== Thread %d: exiting ===", tid);
+   Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
    return 0;
 }
