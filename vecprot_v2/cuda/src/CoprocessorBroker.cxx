@@ -530,8 +530,12 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
          // fprintf(stderr,"DEBUG: stopping %d in basket %d %d:%d - isalive %d\n", fTrackId[devIdx],fLogIndex[devIdx],
          //         fHostTracks[fTrackId[devIdx]]->event,fTrackId[devIdx],fHostTracks[fTrackId[devIdx]]->IsAlive())
          //gPropagator->StopTrack(gPropagator->fTracks[fTrackId[devIdx]]);
+
+         // Note: could also have been kExitingSetup
          output.fStatusV[fTrackId[devIdx]] = kKilled;
       } else if (1) {
+         output.fStatusV[fTrackId[devIdx]] = kAlive;
+
          if (array.size() && last_logical == fLogIndex[devIdx] && last_phys == fPhysIndex[devIdx]) {
             // Use the already setup array
          } else {
@@ -778,18 +782,6 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
       ++task;
    }
 
-   if (trackUsed != nTracks) {
-      GeantTrack_v &input  = basket.GetInputTracks();
-      GeantTrack_v &output = basket.GetOutputTracks();
-      for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
-          ++hostIdx ) {
-
-         if (input.fHoles.TestBitNumber(hostIdx))
-            continue;
-
-         input.PostponeTrack(hostIdx,output);
-      }
-   }
    if (trackUsed == 0) {
       // if we did not make any progress in a while, assume there is no 'interesting' track left
       // and schedule the most loaded task.
@@ -810,6 +802,20 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
          launchTask(heavy);
       }
    }
+
+   if (trackUsed != nTracks) {
+      GeantTrack_v &input  = basket.GetInputTracks();
+      GeantTrack_v &output = basket.GetOutputTracks();
+      for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
+          ++hostIdx ) {
+
+         if (input.fHoles.TestBitNumber(hostIdx))
+            continue;
+
+         input.PostponeTrack(hostIdx,output);
+      }
+   }
+   if (!basket.GetInputTracks().IsCompact()) basket.GetInputTracks().Compact();
 }
 
 void CoprocessorBroker::waitForTasks()
