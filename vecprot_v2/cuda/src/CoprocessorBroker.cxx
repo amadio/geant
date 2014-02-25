@@ -570,8 +570,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
          TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
          if (!nav) nav = gGeoManager->AddNavigator();
 
-         static TGeoIdentity matrix; // NOTE: oh well ... later ...
-         output.fPathV[fTrackId[devIdx]]->Init(&(array[0]),&matrix,array.size()-1);
+         static TGeoIdentity *matrix = new TGeoIdentity(); // NOTE: oh well ... later ...
+         output.fPathV[fTrackId[devIdx]]->Init(&(array[0]),matrix,array.size()-1);
          //fHostTracks[fTrackId[devIdx]]->fPath->Init(&(array[0]),&matrix,array.size()-1);
 #else // from CPU
          TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
