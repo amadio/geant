@@ -133,4 +133,6 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    // This sets gGeomManager and hence superseeds the filename.
    VP_SimpleECal();
    prop->PropagatorGeom("", nthreads + 3, graphics);
+
+   delete gGeoManager;
 }   
