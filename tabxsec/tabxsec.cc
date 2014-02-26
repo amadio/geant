@@ -897,7 +897,6 @@ int main(int argc,char** argv)
         
         for(G4int i=0; i<np; ++i) {
           particle = particleVector[i];
-	  if(particle != proton) { continue; }
           
           // if the particle is a generic ion we bail out
           if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
@@ -1366,12 +1365,11 @@ int main(int argc,char** argv)
           } // end of "if we have processes" for this particle
           if(nsample) delete [] vecfs;
         } // end of particle loop
-	/*
         if(kpreac!=npreac) { // number of processes should not change with time!
           printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
           exit(1);
         }
-	*/
+
         if(nsample) {
           fh->WriteObject(mfstate,TPartIndex::I()->EleSymb(mat->GetZ()));
           delete mfstate;
@@ -1423,12 +1421,7 @@ int main(int argc,char** argv)
     // interactive mode : define UI session
 #ifdef G4UI_USE
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-// #ifdef G4VIS_USE
-// #if 0
-//   UImanager->ApplyCommand("/control/execute init_vis.mac");
-// #else
     UImanager->ApplyCommand("/control/execute init.mac");
-// #endif
     ui->SessionStart();
     delete ui;
 #endif
