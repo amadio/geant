@@ -160,7 +160,7 @@ int main(int argc,char** argv)
   G4int sl=0;
   /* getopt stuff */
   int c;
-  int opterr = 0;
+  // int opterr = 0;
   /* end of getopt vars */
   
   /* getopt processing */
@@ -303,8 +303,11 @@ int main(int argc,char** argv)
     }
     if(!nsample && !xsecs) {
       // only event generation is requested
+
+       G4cout << " MODE: Only event generation was requested" << G4endl;
       runManager->BeamOn( ngener );
     } else {
+       G4cout << " MODE: Double> Extract X-sections and generate final states. " << G4endl;
       // ---------------------------------------------------------------------
       //
       // Here we extract x-sections and final states
@@ -316,7 +319,14 @@ int main(int argc,char** argv)
       G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();
       
       G4int np=theParticleTable->size();
-      
+
+      const int MAX_NP= 10000;
+      if( np > MAX_NP ) { 
+         G4cerr << " ERROR> Parameter for ARRAY size will not large enough. " << G4endl;
+         G4cerr << "        MAX_NP= " << MAX_NP << "  <  np = " << np << G4endl;
+         exit(1); 
+      }      
+
       printf("Found %d particles\n",np);
       
       // These quantities could be defined via program options
@@ -383,9 +393,60 @@ int main(int argc,char** argv)
       
       // Loop over all the particles defined by G4 in order to add them
       // to the PDG database table
+
+      // G4PTblDicIterator *piter = new G4PTblDicIterator(*fDictionary);
+
+      G4int  npAllOK  = -1; 
+      G4int  npLastOK = -1; 
+
+      G4cout << " Progress: Copying particle Table " << G4endl;
+
+      G4int igood= 0; 
       for(G4int i=0; i<np; ++i) {
+        // G4cout << " i = " << i << G4endl;
         particle = theParticleTable->GetParticle(i);
-        pdpdg[i] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
+        if( particle != 0){ 
+          pdpdg[igood] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
+          igood++;
+          // G4cout << " Good particle: " << particle->GetParticleName() << G4endl;
+          npLastOK = i; 
+        }else{
+          if( npAllOK < 0 ) {  
+             npAllOK= i-1; 
+             G4cout << " WARNING: Tabxsec(main): Particle Table " << G4endl;
+             G4cout << "   First bad entry - position = " << i << G4endl;
+          } 
+
+          static unsigned int countErr= 0; 
+          const  unsigned Max_Reports = 10; 
+          const  unsigned Modulo_Report  = 50; 
+          countErr++; 
+          if( countErr < Max_Reports )  {  
+             G4cerr << " WARNING: Cannot find a particle in pdpdg[] entry " << i << G4endl;
+             // G4cerr << "        particle= " << particle << G4endl;
+             // G4cerr << "        np=       " << np << G4endl;
+             continue; 
+          } 
+          else{ 
+             if( countErr == Max_Reports )  {  
+                G4cerr << "WARNING: Found many errors - already " << countErr << G4endl; 
+                G4cerr << "       Will now report only every " << Max_Reports << " errors. " << G4endl;
+                G4cerr << " " << G4endl;
+             }
+             if( countErr % Modulo_Report == Modulo_Report - 1 )  {  
+                G4cerr << "WARNING: Found another " << Modulo_Report 
+                       << " more non-existant particles. Total= " << countErr << G4endl; 
+             }
+             // G4cerr << "Changing value of np to " << npAllOK << G4endl;
+             // np= npAllOK; 
+             // G4cerr << "       Abandoning looking for more particles. " << G4endl;
+             // exit(1); 
+             // break; 
+          } 
+          continue; // Do not do the stuff below ... it will fail
+        }
+
+
         char sl[3]="ll";
         if(particle->IsShortLived()) strcpy(sl,"sl");
         G4double life = particle->GetPDGLifeTime()/s;
@@ -436,7 +497,21 @@ int main(int argc,char** argv)
         }
         printf("%s\n",string);
       }
-      
+
+      // Figure out how many table entries were good
+      if( npAllOK < 0 ) {  npAllOK= np; } 
+
+      G4cout << " Tabxsec(main): Particle Table " << G4endl;
+      G4cout << "   Number of good entries  = " << igood << G4endl;
+      G4cout << "   Total number of entries = " << np << G4endl;
+
+      // G4cout << "Only 'igood'= " << igood << " of the total (np)" << np 
+      //        << " particles are really initialised. " << G4ndl;
+      G4cout << "   Last good entry         = " << npLastOK << G4endl;
+
+      np= igood; 
+      std::cout << "Reset np to " << igood << std::endl;
+
       TPartIndex::I()->SetNPartReac(npreac);
       TPartIndex::I()->SetNPartCharge(npchar);
       TPartIndex::I()->SetEnergyGrid(emin/GeV,emax/GeV,nbins);
@@ -593,7 +668,8 @@ int main(int argc,char** argv)
         
         // Now set cuts to specified value via a simple bisection algorithm
         // The 1keV is arbitrary, however it is reasonable
-        const G4double ethresh = 1*keV;
+        // Why not revise to 10 keV ? - John A
+        const G4double ethresh = 1.*keV; // Try 10.0*keV 
         for(G4int ic=0; ic<4; ++ic) {
           //	  G4double cut = reg->GetProductionCuts()->GetProductionCut(ic);
           G4double lmin = 1*nm;
@@ -641,7 +717,9 @@ int main(int argc,char** argv)
         fh = new TFile("fstate.root","recreate");
         fh->SetCompressionLevel(0);
         
-        TFinState decayfs[np];
+        // TFinState decayfs[np];
+        TFinState decayfs[MAX_NP];
+
         for(G4int i=0; i<np; ++i) {
           particle = particleVector[i];
           if(particle->GetDecayTable()) {
@@ -718,6 +796,8 @@ int main(int argc,char** argv)
         fh->WriteObject(decayTable,"DecayTable");
         delete decayTable;
       }
+
+      G4ParticleDefinition* proton = G4Proton::Proton();
       
       // From here on we tabulate the cross sections and sample the interactions
       // These two functions may be split later
@@ -730,8 +810,8 @@ int main(int argc,char** argv)
       //
       G4double totsize = 0;
       G4int npr=0;
-      G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
-      GetNavigatorForTracking();
+      // G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
+      //   GetNavigatorForTracking();
       TList *allElements = new TList();
       allElements->SetOwner();
       TEXsec *mxsec=0;
@@ -740,7 +820,8 @@ int main(int argc,char** argv)
       Int_t curfs=0;
       TFinState *vecfs=0;
       
-      TFinState rcaptfs[np];
+      // TFinState rcaptfs[np];
+      TFinState rcaptfs[MAX_NP];
       for(G4int imat=0; imat<nmaterials; ++imat) {
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
         pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -816,6 +897,7 @@ int main(int argc,char** argv)
         
         for(G4int i=0; i<np; ++i) {
           particle = particleVector[i];
+	  if(particle != proton) { continue; }
           
           // if the particle is a generic ion we bail out
           if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
@@ -979,9 +1061,10 @@ int main(int argc,char** argv)
                 
                 // Em process. A bit more complicated
                 
-                
-                if(G4VEnergyLossProcess *ptEloss = dynamic_cast<G4VEnergyLossProcess*>(p)) {
-                  if(verbose>2)
+                G4VEnergyLossProcess *ptEloss = dynamic_cast<G4VEnergyLossProcess*>(p);
+                if(ptEloss) {
+		  ptEloss->SetIntegral(false);
+                  // if(verbose>2)
                     printf("Mat %s Part [%3d] %s adding ELoss process %s [%d,%d]\n",
                            (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
                            (const char*) p->GetProcessName(),
@@ -1283,10 +1366,12 @@ int main(int argc,char** argv)
           } // end of "if we have processes" for this particle
           if(nsample) delete [] vecfs;
         } // end of particle loop
+	/*
         if(kpreac!=npreac) { // number of processes should not change with time!
           printf("Error !!! kpreac(%d) != npreac(%d)\n",kpreac,npreac);
           exit(1);
         }
+	*/
         if(nsample) {
           fh->WriteObject(mfstate,TPartIndex::I()->EleSymb(mat->GetZ()));
           delete mfstate;
@@ -1338,11 +1423,12 @@ int main(int argc,char** argv)
     // interactive mode : define UI session
 #ifdef G4UI_USE
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
-#ifdef G4VIS_USE
-    UImanager->ApplyCommand("/control/execute init_vis.mac");
-#else
+// #ifdef G4VIS_USE
+// #if 0
+//   UImanager->ApplyCommand("/control/execute init_vis.mac");
+// #else
     UImanager->ApplyCommand("/control/execute init.mac");
-#endif
+// #endif
     ui->SessionStart();
     delete ui;
 #endif
