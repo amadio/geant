@@ -401,51 +401,56 @@ int main(int argc,char** argv)
 
       G4cout << " Progress: Copying particle Table " << G4endl;
 
-      G4int igood= 0; 
+      unsigned int igood= 0; 
+      unsigned int ilast= 0; 
+
       for(G4int i=0; i<np; ++i) {
         // G4cout << " i = " << i << G4endl;
         particle = theParticleTable->GetParticle(i);
-        if( particle != 0){ 
+        G4cout << " Particle[ " << i << " ]: address " << particle ; 
+           // <<  G4endl;
+        if( (particle != 0) && (particle->GetBaryonNumber()<5) ){ 
           pdpdg[igood] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
+          ilast= igood;
           igood++;
-          // G4cout << " Good particle: " << particle->GetParticleName() << G4endl;
+          G4cout << " Good particle[" << igood << " ]: " << particle->GetParticleName() << G4endl;
           npLastOK = i; 
         }else{
-          if( npAllOK < 0 ) {  
-             npAllOK= i-1; 
-             G4cout << " WARNING: Tabxsec(main): Particle Table " << G4endl;
-             G4cout << "   First bad entry - position = " << i << G4endl;
-          } 
+          if( particle->GetBaryonNumber() >= 4 ){
+            G4cout << " Ignoring ion      " << particle->GetParticleName() << G4endl;
+          }
+          if( particle == 0 ){
+            G4cout << " Null Particle pointer. " << G4endl;
+            if (npAllOK < 0) {  
+              npAllOK= i-1; 
+              G4cout << " WARNING: Tabxsec(main): Particle Table " << G4endl;
+              G4cout << "   First bad entry - position = " << i << G4endl;
+            }
 
-          static unsigned int countErr= 0; 
-          const  unsigned Max_Reports = 10; 
-          const  unsigned Modulo_Report  = 50; 
-          countErr++; 
-          if( countErr < Max_Reports )  {  
-             G4cerr << " WARNING: Cannot find a particle in pdpdg[] entry " << i << G4endl;
-             // G4cerr << "        particle= " << particle << G4endl;
-             // G4cerr << "        np=       " << np << G4endl;
-             continue; 
-          } 
-          else{ 
-             if( countErr == Max_Reports )  {  
+            static unsigned int countErr= 0; 
+            const  unsigned Max_Reports = 10; 
+            const  unsigned Modulo_Report  = 50; 
+            countErr++; 
+            if( countErr < Max_Reports )  {  
+               G4cerr << " WARNING: Cannot find a particle in pdpdg[] entry " << i << G4endl;
+               // G4cerr << "        particle= " << particle << G4endl;
+               // G4cerr << "        np=       " << np << G4endl;
+               continue; 
+            } 
+            else{ 
+              if( countErr == Max_Reports )  {  
                 G4cerr << "WARNING: Found many errors - already " << countErr << G4endl; 
                 G4cerr << "       Will now report only every " << Max_Reports << " errors. " << G4endl;
                 G4cerr << " " << G4endl;
-             }
-             if( countErr % Modulo_Report == Modulo_Report - 1 )  {  
+              }
+              if( countErr % Modulo_Report == Modulo_Report - 1 )  {  
                 G4cerr << "WARNING: Found another " << Modulo_Report 
                        << " more non-existant particles. Total= " << countErr << G4endl; 
-             }
-             // G4cerr << "Changing value of np to " << npAllOK << G4endl;
-             // np= npAllOK; 
-             // G4cerr << "       Abandoning looking for more particles. " << G4endl;
-             // exit(1); 
-             // break; 
-          } 
+              }
+            }
+          }
           continue; // Do not do the stuff below ... it will fail
         }
-
 
         char sl[3]="ll";
         if(particle->IsShortLived()) strcpy(sl,"sl");
@@ -453,9 +458,9 @@ int main(int argc,char** argv)
         G4double width = particle->GetPDGWidth();
         sprintf(string,"%-20s (%10d): %s %11.5g %11.5g %11.5g",(const char *)particle->GetParticleName(),
                 particle->GetPDGEncoding(),sl,life,width,life*width/hbar_Planck*s);
-        
-        pPDG[i]=pdpdg[i]->PdgCode();
-        if(!pPDG[i]) {
+
+        pPDG[ilast]=pdpdg[ilast]->PdgCode();
+        if(!pPDG[ilast]) {
           // the only 0 pdg should be the rootino
           TObjString *conversion = (TObjString*) partDict.GetValue((const char *)particle->GetParticleName());
           const char *partnam = conversion->String().Data();
@@ -490,7 +495,7 @@ int main(int argc,char** argv)
         if(!proot)
           printf("Problem!! Particle %s has no ROOT equivalent\n",(const char*)particle->GetParticleName());
         if(nproc && strcmp("GenericIon",(const char *)particle->GetParticleName())) {
-          preac[npreac++]=pPDG[i];
+          preac[npreac++]=pPDG[ilast];
           if(life>0 && life<minlife) minlife=life;
           if(width>maxwidth) maxwidth=width;
           if(proot->Charge()) ++npchar;
