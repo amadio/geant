@@ -403,21 +403,23 @@ int main(int argc,char** argv)
 
       unsigned int igood= 0; 
       unsigned int ilast= 0; 
+      unsigned int numIons= 0;
 
       for(G4int i=0; i<np; ++i) {
         // G4cout << " i = " << i << G4endl;
         particle = theParticleTable->GetParticle(i);
-        G4cout << " Particle[ " << i << " ]: address " << particle ; 
+        // G4cout << " Particle[ " << i << " ]: address " << particle ; 
            // <<  G4endl;
         if( (particle != 0) && (particle->GetBaryonNumber()<5) ){ 
           pdpdg[igood] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
           ilast= igood;
           igood++;
-          G4cout << " Good particle[" << igood << " ]: " << particle->GetParticleName() << G4endl;
+          // G4cout << " Good particle[" << igood << " ]: " << particle->GetParticleName() << G4endl;
           npLastOK = i; 
         }else{
           if( particle->GetBaryonNumber() >= 4 ){
-            G4cout << " Ignoring ion      " << particle->GetParticleName() << G4endl;
+            // G4cout << " Ignoring ion      " << particle->GetParticleName() << G4endl;
+            numIons++;
           }
           if( particle == 0 ){
             G4cout << " Null Particle pointer. " << G4endl;
