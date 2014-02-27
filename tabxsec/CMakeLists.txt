@@ -63,7 +63,7 @@ add_dependencies(tabxsec xseclib)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
-# build B1. This is so that we can run the executable directly because it
+# build tabxsec. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
 
