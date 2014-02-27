@@ -668,8 +668,7 @@ int main(int argc,char** argv)
         
         // Now set cuts to specified value via a simple bisection algorithm
         // The 1keV is arbitrary, however it is reasonable
-        // Why not revise to 10 keV ? - John A
-        const G4double ethresh = 1.*keV; // Try 10.0*keV 
+        const G4double ethresh = 1.*keV; 
         for(G4int ic=0; ic<4; ++ic) {
           //	  G4double cut = reg->GetProductionCuts()->GetProductionCut(ic);
           G4double lmin = 1*nm;
@@ -796,8 +795,6 @@ int main(int argc,char** argv)
         fh->WriteObject(decayTable,"DecayTable");
         delete decayTable;
       }
-
-      G4ParticleDefinition* proton = G4Proton::Proton();
       
       // From here on we tabulate the cross sections and sample the interactions
       // These two functions may be split later
@@ -1421,7 +1418,11 @@ int main(int argc,char** argv)
     // interactive mode : define UI session
 #ifdef G4UI_USE
     G4UIExecutive* ui = new G4UIExecutive(argc, argv);
+#ifdef G4VIS_USE
+    UImanager->ApplyCommand("/control/execute init_vis.mac");
+#else
     UImanager->ApplyCommand("/control/execute init.mac");
+#endif
     ui->SessionStart();
     delete ui;
 #endif
