@@ -70,6 +70,8 @@
 #include "G4IonTable.hh"
 #include "G4HadronicProcess.hh"
 
+#include "G4NucleiProperties.hh"
+
 #include "G4UnitsTable.hh"
 #include "G4StateManager.hh"
 
@@ -447,9 +449,14 @@ G4int SampleOne(G4Material* material,
       if(verbose)
         G4cout << "Process " << proc->GetProcessName() << " did not select isotope!" << G4endl;
     } else {
-      isoM = iso->GetA()/Avogadro*c_squared;
+      //--this will results in a mass in which the mass of the electron shell is 
+      // included as well. But we want the mass of the target nucleus so replace
+      // this to get it correctly. This will resolve some energy cons. violations
+      // obtained earlier.		 	
+      //isoM = iso->GetA()/Avogadro*c_squared;
       isoZ = iso->GetZ();
       isoA = iso->GetN();
+      isoM = G4NucleiProperties::GetNuclearMass(isoA, isoZ);	
       if(verbose) if((A!=isoA) || (Z!=isoZ))
         printf("Target changed. A: %d -> %d, Z: %d -> %d, M: %f -> %f (%f)\n",
                A,isoA,Z,isoZ,amass,isoM,GetNuclearMass(isoZ,isoA,verbose));
