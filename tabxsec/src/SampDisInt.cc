@@ -521,6 +521,9 @@ G4int SampleOne(G4Material* material,
            (const char *)pname,
            (const char *)material->GetName(),
            (const char *)name);
+    // !step->GetTrack()->GetMomentum() is a null-vector if the status is fStop...
+    // because kinetic energy of the particle is set to zero. Momentum conservation
+    // cannot be checked in these cases and will be skipped.!  	
     // we remove the life particle from the input vector to test momentum conservation
     pcons-=G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy());
     bnum-=dpart->GetParticleDefinition()->GetBaryonNumber();
@@ -529,20 +532,26 @@ G4int SampleOne(G4Material* material,
     isurv = 1;
     psurv = step->GetTrack()->GetMomentum();
     spid = TPartIndex::I()->PartIndex(dpart->GetParticleDefinition()->GetPDGEncoding());
-    if(G4String("hadElastic") == pname){
-      
+    if(G4String("hadElastic") == pname){	
       // ----------------------------------- Trying to find out the angle in elastic ---------------------------
-      G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
-      G4double ken = gTrack->GetKineticEnergy();
-      G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
-      G4double pmo = gTrack->GetMomentum().mag();
-      if(needendl) {
-        G4cout << G4endl;
-        needendl=FALSE;
+      //--this part is meaningless if the status is not fAlive because 
+      //gTrack->GetMomentum() is a null-vector and gTrack->GetKineticEnergy() is
+      //zero if the status is fStop... . So do it only
+      if(aChange->GetTrackStatus() == fAlive)
+      {	
+       G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
+       G4double ken = gTrack->GetKineticEnergy();
+       G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
+       G4double pmo = gTrack->GetMomentum().mag();
+       if(needendl) {
+         G4cout << G4endl;
+         needendl=FALSE;
+       }
+       if(verbose) G4cout << "Elastic scattering by cosTheta "
+        << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
+        << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
       }
-      if(verbose) G4cout << "Elastic scattering by cosTheta "
-      << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
-      << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
+
       // we add the baryon number of the target but only if there are  generated particles
       // oterwise the target will recoil and this will alter the baryon number conservation
       if(n) {
@@ -550,6 +559,7 @@ G4int SampleOne(G4Material* material,
         pcons[3]+=amass;
         porig[3]+=amass;
       }
+
     }
   }
   
@@ -567,10 +577,16 @@ G4int SampleOne(G4Material* material,
   TimingInfo(cputime,Z,dpart->GetParticleDefinition()->GetPDGEncoding(),
              proc->GetProcessType()*1000+proc->GetProcessSubType(),dpart->GetKineticEnergy(),n+isurv);
   
+  // This is ok. The particle energy drops below 'theLowestEnergy' (set to 1keV
+  // in G4HardonElasticProcess) due to recoil effect and the particle doesn't
+  // have any AtRest processes. So its kinetic energy and status are set to zero
+  // and fStopAndKill. 
+  /*
   if(G4String("hadElastic") == pname && !fs.survived) {
     G4cout << "Elastic but the particle did not survive " << tStatus[aChange->GetTrackStatus()] << G4endl;
+    	
   }
-  
+  */
   
   if(n) if((G4String("hIoni") == pname) || (G4String("ionIoni") == pname)
            || (G4String("eIoni") == pname) || (G4String("phot") == pname)
@@ -706,7 +722,8 @@ G4int SampleOne(G4Material* material,
     if((G4String("conv") != pname)                     // But not if we have conversion, momentum is not preserved
        && (G4String("PositronNuclear") != pname)          // Here we have a problem in G4
        && (G4String("ElectroNuclear") != pname)           // Another problem in G4
-       ) {
+       && !( (G4String("hadElastic") == pname) && (aChange->GetTrackStatus() != fAlive) )//post interaction momentum is lost 
+      ){
       G4double perr;
       G4int berr;
       G4LorentzVector ptest;
