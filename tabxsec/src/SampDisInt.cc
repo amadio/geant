@@ -249,6 +249,7 @@ G4int SampleOne(G4Material* material,
   G4HadronicProcess *hadp = dynamic_cast<G4HadronicProcess*>(proc);
   G4VEmProcess *vemp = dynamic_cast<G4VEmProcess*>(proc);
   G4VRestProcess* restProc= dynamic_cast<G4VRestProcess*>(proc);
+  G4VRestDiscreteProcess* restDiscProc= dynamic_cast<G4VRestDiscreteProcess*>(proc);//e.g. decay
   const G4String pname = proc->GetProcessName();
   
   // Timing stuff
@@ -370,12 +371,14 @@ G4int SampleOne(G4Material* material,
   
   begin = clock();
   
-  if(restProc && e0 == 0.0) {
+  if(e0 == 0.0 && (restProc || restDiscProc)) {
     G4ForceCondition fCondition;
+    //track status must be set properly
+    gTrack->SetTrackStatus(fStopButAlive);
     // In SteppingManager::DefinePhysicalStepLength()
-    G4double physIntLength = restProc->AtRestGetPhysicalInteractionLength(
-                                                                        *gTrack,
-                                                                        &fCondition);
+    G4double physIntLength = proc->AtRestGetPhysicalInteractionLength(
+                                                                    *gTrack,
+                                                                    &fCondition);
     // -- Make it happen in time
     aChange = proc->AtRestDoIt(*gTrack,*step);
     aChange->UpdateStepForAtRest(step);
