@@ -1,9 +1,12 @@
 NVCC=nvcc
-NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC
+NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC -DGX_MULTI_OBJ_FILES
 NVCC_INCLUDES=-I$(CudaCode)/GXTracking/SimCore/Common/include \
  -I$(CudaCode)/GXTracking/SimCore/EMPhysics/include \
  -I$(CudaCode)/GXTracking/SimCore/Geometry/include \
  -I$(CudaCode)/GXTracking/SimCore/Transportation/include \
+ -I$(CudaCode)/GXTracking/SimCore/Manager/include \
+ -I$(CudaCode)/GXTracking/FWCore/FrameWork/include \
+ -I$(CudaCode)/GXTracking/FWCore/Application/include \
  -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/include \
  -I$(CudaCode)/GXTracking/gpu/cuda/kernel/include \
  -I$(CudaCode)/GXTracking/gpu/cuda/kernel/src \
@@ -15,16 +18,21 @@ NVCC_INCLUDES=-I$(CudaCode)/GXTracking/SimCore/Common/include \
  -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/src \
  -I$(CudaCode)/GXTracking/GPTracking/Geometry/src \
  -I$(CudaCode)/GXTracking/GPTracking/Material/src \
- -I$(CudaCode)/GXTracking/GPTracking/SimCore/Transportation/src \
+ -I$(CudaCode)/GXTracking/GPTracking/Transportation/src \
+ -I$(CudaCode)/GXTracking/SimCore/Common/src \
  -I$(CudaCode)/GXTracking/SimCore/EMPhysics/src \
  -I$(CudaCode)/GXTracking/SimCore/Geometry/src \
- -I$(CudaCode)/GXTracking/SimCore/Transportation/src 
+ -I$(CudaCode)/GXTracking/SimCore/Transportation/src \
+ -I$(CudaCode)/GXTracking/SimCore/Manager/src \
+ -I$(CudaCode)/GXTracking/FWCore/FrameWork/src \
+ -I$(CudaCode)/GXTracking/FWCore/Application/src
 
 CXXFLAGS += -I$(CUDA_INC) -I$(CUDA_INCDIR)
 CXXFLAGS += -I$(CudaCode)/GXTracking/SimCore/Common/include \
    -I$(CudaCode)/GXTracking/gpu/cuda/kernel/include \
    -I$(CudaCode)/GXTracking/SimCore/EMPhysics/include \
    -I$(CudaCode)/GXTracking/SimCore/Transportation/include \
+   -I$(CudaCode)/GXTracking/SimCore/Manager/include \
    -I$(CudaCode)/GXTracking/GPTracking/Common/include \
    -I$(CudaCode)/GXTracking/GPTracking/Transportation/include \
    -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/include \
@@ -75,20 +83,36 @@ CUDA_GX_SOURCES=Transportation/src/GXChordFinder.cu Transportation/src/GXMagneti
   Transportation/src/GXMagIntegratorDriver.cu Transportation/src/GXFieldManager.cu \
   Geometry/src/GXMultiLevelLocator.cu \
   EMPhysics/src/GXBrem.cu EMPhysics/src/GXIoni.cu EMPhysics/src/GXMsc.cu \
+  EMPhysics/src/GXeBremsstrahlung.cu EMPhysics/src/GXeMultipleScattering.cu \
+  EMPhysics/src/GXeIonisation.cu \
   Transportation/src/GXPropagatorInField.cu Transportation/src/GXTransportation.cu \
-  Transportation/src/GXFieldTrack.cu
+  Transportation/src/GXFieldTrack.cu \
+  $(subst $(CudaCode)/GXTracking/SimCore,,$(wildcard $(CudaCode)/GXTracking/SimCore/Common/src/*.cu)) \
+  $(subst $(CudaCode)/GXTracking/SimCore,,$(wildcard $(CudaCode)/GXTracking/SimCore/Manager/src/*.cu))
 
-CUDA_KERNEL_SOURCES=gpu/cuda/kernel/src/random_kernel.cu
+CUDA_KERNEL_SOURCES= gpu/cuda/kernel/src/random_kernel.cu \
+                     gpu/cuda/kernel/src/sort_kernel.cu \
+                     gpu/cuda/kernel/src/trackingTest2_kernel.cu \
+                     gpu/cuda/kernel/src/gxtracking_kernel.cu
 
 #  kernel/src/random_kernel.cu
 
 CUDA_GP_SOURCES=Common/src/GPThreeVector.cu Common/src/GPUtils.cu \
   Common/src/GPThreeVectorList.cu Common/src/GPRotationMatrix.cu \
+  Common/src/GPVParticleChange.cu Common/src/GPStep.cu \
+  Common/src/GPStepPoint.cu \
   Transportation/src/GPFieldTrack.cu Transportation/src/GPChordFinder.cu \
   Transportation/src/GPChargeState.cu Transportation/src/GPMagIntegratorDriver.cu \
   Transportation/src/GPEquationOfMotion.cu Transportation/src/GPClassicalRK4.cu \
   Transportation/src/GPMagneticField.cu \
-  EMPhysics/src/GPPhysicsTable.cu
+  EMPhysics/src/GPPhysicsTable.cu \
+  EMPhysics/src/GPPhotonProcess.cu EMPhysics/src/GPeMultipleScattering.cu \
+  EMPhysics/src/GPeIonisation.cu EMPhysics/src/GPeBremsstrahlung.cu \
+  EMPhysics/src/GPSeltzerBergerRelModel.cu EMPhysics/src/GPMollerBhabhaModel.cu \
+  EMPhysics/src/GPPhotonModel.cu EMPhysics/src/GPUniversalFluctuation.cu \
+  EMPhysics/src/GPMollerBhabhaModel.cu EMPhysics/src/GPUrbanMscModel95.cu \
+  EMPhysics/src/GPPhysics2DVector.cu
+
   
 #    $(filter-out Geometry/src/GPUserGeometry.cu, )) \
 
@@ -109,7 +133,7 @@ CUDA_GP_CPP_SOURCES=$(filter-out Geometry/src/GPMultiLevelLocator.cu, $(subst $(
 
 #	kernel/src/tracking_kernel.cu \
 
-CUDA_OBJS = $(CUDA_OBJDIR)/tracking_kernel.o $(CUDA_OBJDIR)/util_kernel.o
+CUDA_OBJS = $(CUDA_OBJDIR)/tracking_kernel.o $(CUDA_OBJDIR)/util_kernel.o $(CUDA_OBJDIR)/electron_kernel.o
 CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/, $(patsubst %.cu,%.o,$(CUDA_KERNEL_SOURCES)))
 CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/SimCore/,$(patsubst %.cu,%.o,$(CUDA_GX_SOURCES)))
 CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/GPTracking/,$(patsubst %.cu,%.o,$(CUDA_GP_SOURCES)))
