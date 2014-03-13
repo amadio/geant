@@ -9,15 +9,57 @@ struct GXTrack;
 #include <curand.h>
 #include "random_kernel.h"
 
-void tracking_gpu(curandState* devStates,
-                  GPGeomManager *geomManager,
-                  GXFieldMap *magMap,
-                  GXTrack *track,
-                  int *logVolumeIndices,
-                  int *physVolumeIndices,
-                  GPPhysicsTable* eBrem_table, GPPhysicsTable* eIoni_table, GPPhysicsTable* msc_table,
-                  size_t nTrackSize,
-                  int NBLOCKS,
-                  int NTHREADS,
-                  cudaStream_t stream);
+int tracking_gpu(curandState* devStates,
+                 size_t nSteps,
+                 size_t nElectrons,
+                 GXTrack *track, GXTrack * /* altTrack */,
+                 int *logVolumeIndices,
+                 int *physVolumeIndices,
+                 GXTrack *secondaries, int *secStackSize,
 
+                 int *scratch,
+
+                 GPGeomManager *geomManager,
+                 GXFieldMap *magMap,
+                 GPPhysicsTable *physicsTable,
+                 GPPhysics2DVector *seltzerBergerTable,
+
+                 int nBlocks, int nThreads,
+                 cudaStream_t stream);
+
+
+int electron_gpu(curandState* devStates,
+                 size_t nSteps,
+                 size_t nElectrons,
+                 GXTrack *track, GXTrack * /* altTrack */,
+                 int *logVolumeIndices,
+                 int *physVolumeIndices,
+                 GXTrack *secondaries, int *secStackSize,
+
+                 int *scratch,
+
+                 GPGeomManager *geomManager,
+                 GXFieldMap *magMap,
+                 GPPhysicsTable *physicsTable,
+                 GPPhysics2DVector *seltzerBergerTable,
+
+                 int nBlocks, int nThreads,
+                 cudaStream_t stream);
+
+int electron_multistage_gpu(curandState* devStates,
+                 size_t nSteps,
+                 size_t nElectrons,
+                 GXTrack *track, GXTrack * /* altTrack */,
+                 int *logVolumeIndices,
+                 int *physVolumeIndices,
+                 GXTrack *secondaries, int *secStackSize,
+
+                 int *scratch,
+
+                 GPGeomManager *geomManager,
+                 GXFieldMap *magMap,
+                 GPPhysicsTable *physicsTable,
+                 GPPhysics2DVector *seltzerBergerTable,
+
+                 int nBlocks, int nThreads,
+                 cudaStream_t stream);
