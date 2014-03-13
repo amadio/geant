@@ -45,6 +45,8 @@
 
 #include "util_kernel.h"
 
+#include "GPPhysics2DVector.h"
+#include "GXPhysicsTableType.h"
 
 //-----------------------------------------------------------------------------
 //  Transportation engine
@@ -207,27 +209,38 @@ void tracking_kernel(curandState* devStates,
 //-----------------------------------------------------------------------------
 //  cuda wrapper for kernel
 //-----------------------------------------------------------------------------
-void tracking_gpu(curandState* devStates,
-                  GPGeomManager *geomManager,
-                  GXFieldMap *magMap,
-                  GXTrack *track,
-                  int *logVolumeIndices,
-                  int *physVolumeIndices,
-                  GPPhysicsTable* eBrem_table, GPPhysicsTable* eIoni_table, GPPhysicsTable* msc_table,
-                  size_t nTrackSize,
-                  int NBLOCKS,
-                  int NTHREADS,
-                  cudaStream_t stream)
+int tracking_gpu(curandState* devStates,
+                 size_t nSteps,
+                 size_t nTrackSize,
+                 GXTrack *track, GXTrack * /* altTrack */,
+                 int *logVolumeIndices,
+                 int *physVolumeIndices,
+                 GXTrack * /*secondaries*/, int * /*secStackSize*/,
+                 
+                 int */*scratch*/,
+
+                 GPGeomManager *geomManager,
+                 GXFieldMap *magMap,
+                 GPPhysicsTable *physicsTable,
+                 GPPhysics2DVector */*seltzerBergerTable*/,
+
+                 int nBlocks, int nThreads,
+                 cudaStream_t stream)
 {
-   int threadsPerBlock = NTHREADS;
-   int blocksPerGrid   = NBLOCKS;
+   int threadsPerBlock = nThreads;
+   int blocksPerGrid   = nBlocks;
    //  int blocksPerGrid   = (int)((nTrackSize+threadsPerBlock-1)/threadsPerBlock);
    
+   GPPhysicsTable* eBrem_table = &(physicsTable[kLambda_eBrem]);
+   GPPhysicsTable* eIoni_table = &(physicsTable[kLambda_eIoni]);
+   GPPhysicsTable* msc_table   = &(physicsTable[kLambda_msc]);
+
    tracking_kernel<<< blocksPerGrid, threadsPerBlock, 0 , stream >>>(devStates,
                                                                      geomManager,magMap,
                                                                      track,logVolumeIndices,physVolumeIndices,
                                                                      eBrem_table,eIoni_table,msc_table,
                                                                      nTrackSize);
+   return 0;
 }
 
 //-----------------------------------------------------------------------------
