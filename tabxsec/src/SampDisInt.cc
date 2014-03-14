@@ -69,6 +69,7 @@
 #include "G4Nucleus.hh"
 #include "G4IonTable.hh"
 #include "G4HadronicProcess.hh"
+#include "G4HadronStoppingProcess.hh"
 
 #include "G4NucleiProperties.hh"
 
@@ -250,6 +251,7 @@ G4int SampleOne(G4Material* material,
   G4VEmProcess *vemp = dynamic_cast<G4VEmProcess*>(proc);
   G4VRestProcess* restProc= dynamic_cast<G4VRestProcess*>(proc);
   G4VRestDiscreteProcess* restDiscProc= dynamic_cast<G4VRestDiscreteProcess*>(proc);//e.g. decay
+  G4HadronStoppingProcess* hStoppingProc = dynamic_cast<G4HadronStoppingProcess*>(proc);
   const G4String pname = proc->GetProcessName();
   
   // Timing stuff
@@ -387,11 +389,15 @@ G4int SampleOne(G4Material* material,
     
     G4double  previousStepSize= 1.0;
     G4ForceCondition fCondition;
+    G4double physIntLength;
+
     // In SteppingManager::DefinePhysicalStepLength()
-    G4double physIntLength = proc->PostStepGetPhysicalInteractionLength(
-                                                                        *gTrack,
-                                                                        previousStepSize,
-                                                                        &fCondition);
+    if(proc->isPostStepDoItIsEnabled())
+    	physIntLength = proc->PostStepGetPhysicalInteractionLength(
+                                                               *gTrack,
+                                                                previousStepSize,
+                                                                &fCondition);
+
     // Ignore the proposed value - will force the interaction
     //  fCondition= Forced;
     
@@ -422,11 +428,21 @@ G4int SampleOne(G4Material* material,
          G4cerr << "      Ratio (T/T0)  = " << gTrack->GetKineticEnergy() / e0 << G4endl;
       }
     }
-    
-    // -- Make it happen at the end of the step
-    aChange = proc->PostStepDoIt(*gTrack,*step);
-    // std::cout << "SDI> PostStepDoIt: Nsec= " << aChange->GetNumberOfSecondaries() << std::endl;
-    aChange->UpdateStepForPostStep(step);
+
+    //need to do this because of the inheritance problem in G4HadronicProcess
+    if(proc->isPostStepDoItIsEnabled()){
+	// -- Make it happen at the end of the step
+    	aChange = proc->PostStepDoIt(*gTrack,*step);
+    	// std::cout << "SDI> PostStepDoIt: Nsec= " << aChange->GetNumberOfSecondaries() << std::endl;
+    	aChange->UpdateStepForPostStep(step);
+    } else if(e0 == 0.0 && proc->isAtRestDoItIsEnabled()){
+	    gTrack->SetTrackStatus(fStopButAlive);
+    	    physIntLength = proc->AtRestGetPhysicalInteractionLength(
+                                                                    *gTrack,
+                                                                    &fCondition);
+    	    aChange = proc->AtRestDoIt(*gTrack,*step);
+    	    aChange->UpdateStepForAtRest(step);
+    }    
     
   }
   step->UpdateTrack();
@@ -733,6 +749,7 @@ G4int SampleOne(G4Material* material,
        && (G4String("PositronNuclear") != pname)          // Here we have a problem in G4
        && (G4String("ElectroNuclear") != pname)           // Another problem in G4
        && !( (G4String("hadElastic") == pname) && (aChange->GetTrackStatus() != fAlive) )//post interaction momentum is lost 
+       && !hStoppingProc	//would be complicated, so skipp now	
       ){
       G4double perr;
       G4int berr;
