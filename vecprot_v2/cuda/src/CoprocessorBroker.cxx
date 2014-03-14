@@ -268,6 +268,8 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fDevTrackLogIndex.Alloc(maxTrackPerKernel);
    fDevSecondaries.Alloc(maxTrackPerKernel);
 
+   fDevScratch.Alloc(1);
+
    fTrack = new GXTrack[maxTrackPerKernel];
    fTrackId = new int[maxTrackPerKernel];
    fPhysIndex = new int[maxTrackPerKernel];
@@ -517,6 +519,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
          fTrack[fNStaged].pz = input.fZdirV[hostIdx];
          fTrack[fNStaged].q  = input.fChargeV[hostIdx];
          fTrack[fNStaged].s  = input.fStepV[hostIdx];
+         fTrack[fNStaged].E  = input.fEV[hostIdx];
          if (fTrack[fNStaged].s == 0) {
             // humm cheat for now :(
             fTrack[fNStaged].s = 1.0+1*(2.0*rand()/RAND_MAX-1.0);
@@ -574,6 +577,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
       output.fZdirV[fTrackId[devIdx]] = fTrack[devIdx].pz;
       output.fChargeV[fTrackId[devIdx]] = fTrack[devIdx].q;
       output.fStepV[fTrackId[devIdx]] = fTrack[devIdx].s;
+      output.fEV[fTrackId[devIdx]] = fTrack[devIdx].E;
 
       // NOTE: need to update the path ....
 
