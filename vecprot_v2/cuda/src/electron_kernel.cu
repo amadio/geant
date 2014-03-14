@@ -63,8 +63,12 @@ int electron_multistage_gpu(curandState* devStates,
    int *stackSize_ioni = &(scratch[3]);
    int *secOffset = &(scratch[4]);
 
+
    GXTrackLiason *liason_d;
    cudaMalloc((void**)&liason_d, nElectrons*sizeof(GXTrackLiason));
+
+   cudaMemsetAsync( &(scratch[0]), 0, sizeof(scratch[0])*5, stream);
+   cudaMemsetAsync( secStackSize, 0, sizeof(int), stream);
 
    elec_GPIL_gpu(devStates, track, 
                  liason_d, 
