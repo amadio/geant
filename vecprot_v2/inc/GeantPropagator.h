@@ -73,7 +73,7 @@ public:
    
    WorkloadManager *fWMgr;   // Workload manager
    GeantVApplication *fApplication; // User application
-  GeantOutput      *fOutput;      // Output object
+   GeantOutput      *fOutput;      // Output object
    
    TF1             *fKineTF1;   //
    TTree           *fOutTree;   // Output tree

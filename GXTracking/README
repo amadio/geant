@@ -1,0 +1,30 @@
+This is the top level directory of the coprocessor prototype 
+
+I. Description of files and directories 
+
+g4hpcbenchmarks/GXTracking
+|- backport          : same task for GXTracking but using the Geant4 library
+|- cmake             : cmake modules and templates
+|- FWCore            : initialization, task management and user applications 
+|- GPTracking        : development version of particle transportation engine 
+|- gpu               : gpu programming models
+|  |-cuda              : cuda driver
+|  |-openCL            : not implemented yet
+|- mic               : xeon phi programming models
+|  |-omp               : openMP driver
+|  |-tbb               : not implemented yet
+|  |-cilkplus          : not implemented yet
+|  |-openCL            : not implemented yet
+|- README            : this file
+|- SimCore           : device-independent simulation codes
+|- Validation        : validation subpackage
+
+II. How to run applications of the coprocessor prototype
+
+    see README under each driver of available coprocessors
+
+III. Notes
+
+- GPTracking : collection of converted codes from Geant4 that can be used
+               as a standalone package or separated modules for GXTracking
+               (default compilation option: CUDA_SEPARATE_COMPILATION ON )

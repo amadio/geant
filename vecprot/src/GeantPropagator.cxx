@@ -107,7 +107,15 @@ GeantPropagator::GeantPropagator()
                  fThreadData(0)
 {
 // Constructor
-   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
+//   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,10.);
+   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(-300.,300.);
+   // Causes crash at the end (sometimes)
+   // for (Int_t i=0; i<3; i++) fVertex[i] = 10*i;
+   // Causes crash at the beginning:
+   //for (Int_t i=0; i<3; i++) fVertex[i] = i;
+   //fVertex[0] = 6000; fVertex[2] = 1; fVertex[3] = 1;
+   // fVertex[0] = 0; fVertex[2] = 0; fVertex[3] = 0;
+   // fVertex[2] = fVertex[1] = fVertex[0];
    fgInstance = this;
 }
 
@@ -148,6 +156,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack *track)
    track->particle = itrack;
    fEvents[slot]->AddTrack();
 //   Int_t tid = TGeoManager::ThreadId();
+   // fprintf(stderr,"DEBUG3: add track in slot %d with event %d\n",itrack,track->event);
    fTracks[itrack] = track;
    fNtracks[slot]++;
    fNtransported++;
@@ -184,7 +193,8 @@ GeantTrack *GeantPropagator::AddTrack(Int_t evslot)
 void GeantPropagator::StopTrack(GeantTrack *track)
 {
 // Mark track as stopped for tracking.
-//   Printf("Stopping track %d", track->particle);
+
+   // Printf("Stopping track %d:%d", track->evslot, track->particle);
    if (track->IsAlive()) fEvents[track->evslot]->StopTrack();
    track->Kill();
 }
@@ -222,6 +232,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
       init=kFALSE;
    }
    Int_t event = startevent;
+   // fprintf(stderr,"DEBUG: slot %d to %d\n",startslot,startslot+nevents);
    for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
       ntracks = td->fRndm->Poisson(average);
       if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
@@ -238,6 +249,7 @@ GeantVolumeBasket *GeantPropagator::ImportTracks(Int_t nevents, Double_t average
          *track->nextpath = a;
          track->event = event;
          track->evslot = slot;
+         //fprintf(stderr,"DEBUG5: udpated %p slot %d with event %d itrack %d\n",track,slot,event,fMaxPerEvent*slot+fNtracks[slot]);
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
          track->pdg=0;
          for(Int_t j=0; j<kMaxPart; ++j) {
@@ -346,7 +358,7 @@ void GeantPropagator::Initialize()
       memset(fWaiting, 0, (fNthreads+1)*sizeof(UInt_t));
    }  
    if (!fThreadData) {
-      fThreadData = new GeantThreadData*[fNthreads];
+      fThreadData = new GeantThreadData*[fNthreads+1];
       for (Int_t i=0; i<fNthreads+1; i++) fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
    } 
    fWMgr = WorkloadManager::Instance(fNthreads);
@@ -392,15 +404,24 @@ void GeantPropagator::InjectCollection(Int_t tid)
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
-   if (gGeoManager) return kTRUE;
-   TGeoManager *geom = TGeoManager::Import(filename);
-   if (geom) {
-      // Create the basket array
-      Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
-      fWMgr->CreateBaskets(2*nvols);
-      return kTRUE;
-   }   
-   ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
+   if (!gGeoManager) {
+      TGeoManager *geom = TGeoManager::Import(filename);
+      if (geom) {
+         // Create the basket array
+         Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
+         fWMgr->CreateBaskets(2*nvols);
+         return kTRUE;
+      }
+      ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
+   } else {
+      if (fWMgr->GetNbaskets() == 0) {
+         // Create the basket array
+         Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
+         fWMgr->CreateBaskets(2*nvols);
+         return kTRUE;
+      }
+      ::Error("LoadGeometry","Array of basket already created.");      
+   }
    return kFALSE;
 }
 

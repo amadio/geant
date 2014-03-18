@@ -580,10 +580,12 @@ void GeantTrack_v::Resize(Int_t newsize)
 }
 
 //______________________________________________________________________________  
-void GeantTrack_v::AddTrack(const GeantTrack &track)
+Int_t GeantTrack_v::AddTrack(const GeantTrack &track)
 {
-// Add new track to the array. If addition is done on top of non-compact array, 
-// the track will be inserted without updating the number of tracks. 
+   // Add new track to the array. If addition is done on top of non-compact array, 
+   // the track will be inserted without updating the number of tracks. 
+   // Returns the location where the track was added.
+ 
    Int_t itrack = fNtracks;
    if (!fCompact) itrack = fHoles.FirstSetBit();
    if (itrack==fMaxtracks) Resize(2*fMaxtracks);
@@ -621,6 +623,8 @@ void GeantTrack_v::AddTrack(const GeantTrack &track)
 #ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[fEvslotV[itrack]]++;
 #endif   
+   
+   return itrack;
 }   
 
 //______________________________________________________________________________  
@@ -630,10 +634,18 @@ void GeantTrack_v::GetTrack(Int_t i, GeantTrack &track) const {
 }
    
 //______________________________________________________________________________  
-void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
+Int_t GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
 {
-// Add track from different array
-   if (fNtracks==fMaxtracks) Resize(2*fMaxtracks);   
+   // Add track from different array
+   // If addition is done on top of non-compact array, 
+   // the track will be inserted without updating the number of tracks. 
+   // Returns the location where the track was added.
+
+   Int_t itrack = fNtracks;
+   if (!fCompact) itrack = fHoles.FirstSetBit();
+   if (itrack==fMaxtracks) Resize(2*fMaxtracks);
+   fHoles.ResetBitNumber(itrack);
+   
    fEventV    [fNtracks] = arr.fEventV    [i];
    fEvslotV   [fNtracks] = arr.fEvslotV   [i];
    fParticleV [fNtracks] = arr.fParticleV [i];
@@ -666,13 +678,16 @@ void GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
    else fNextpathV[fNtracks] = new TGeoBranchArray(*arr.fNextpathV[i]);
    fSelected.ResetBitNumber(fNtracks);
    fHoles.ResetBitNumber(fNtracks);
-   fNtracks++;
+   
+   if (itrack==fNtracks) fNtracks++;
    if (TMath::IsNaN(fXdirV[fNtracks-1]) || !IsSame(arr,i, *this, fNtracks-1)) {
       Printf("Error: AddTrack: Different tracks");
    }   
 #ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[arr.fEvslotV[i]]++;
 #endif   
+   
+   return itrack;
 }
 
 //______________________________________________________________________________  
@@ -1614,7 +1629,7 @@ Double_t GeantTrack_v::Curvature(Int_t i) const
    if (fChargeV[i]==0) return 0.;
    return TMath::Abs(kB2C*gPropagator->fBmag/Pt(i));
 }
-   
+  
 //______________________________________________________________________________
 Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)
 {
@@ -1626,4 +1641,17 @@ Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)
    RemoveTracks(0, fNtracks-1);
    Clear();
    return npostponed;
+}
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output)
+{
+   // Postpone transport of a track and copy it to the output.
+   // Returns where in the output the track was added.
+
+   fStatusV[itr] = kPostponed;
+   // Move these tracks to the output container
+   Int_t new_itr = output.AddTrack(*this, itr);
+   MarkRemoved(itr);
+   return new_itr;
 }

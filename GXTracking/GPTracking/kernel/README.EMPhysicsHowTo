@@ -1,0 +1,19 @@
+<How to run EMPhysics package>
+
+Origianl Author : Dongwook Jang (jang.dongwook@gmail.com)
+
+1. prepare physics tables as illustrated in test/tracking.cc
+
+ - There are several tables in data directory, but Lambda.*.asc are used currently. Other data tables are used in AlongStepDoIt which is not implemented yet.
+ - Tables are extracted from Geant4 runtime.
+ - readTable() in /kernel/include/EMPhysics_kernel.h read text files in data directory and construct physics tables.
+
+2. copy physics tables to device using cudaMemcpy()
+
+3. construct appropriate physics object inside kernel as illustrated in kernel/src/tracking_kernel.cu
+ - instantiate each physics object as a local variable per thread
+
+4. initialize tables and some optional values
+
+5. PostStepGPIL returns length while PostStepDoIt returns energy loss
+ - PostStepDoIt from MultipleScattering returns 0 at this moment because it produces only secondaries

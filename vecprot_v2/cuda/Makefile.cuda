@@ -1,0 +1,190 @@
+CudaCode = ../
+
+NVCC=nvcc
+NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC -DGX_MULTI_OBJ_FILES
+NVCC_INCLUDES=-I$(CudaCode)/GXTracking/SimCore/Common/include \
+ -I$(CudaCode)/GXTracking/SimCore/EMPhysics/include \
+ -I$(CudaCode)/GXTracking/SimCore/Geometry/include \
+ -I$(CudaCode)/GXTracking/SimCore/Transportation/include \
+ -I$(CudaCode)/GXTracking/SimCore/Manager/include \
+ -I$(CudaCode)/GXTracking/FWCore/FrameWork/include \
+ -I$(CudaCode)/GXTracking/FWCore/Application/include \
+ -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/include \
+ -I$(CudaCode)/GXTracking/gpu/cuda/kernel/include \
+ -I$(CudaCode)/GXTracking/gpu/cuda/kernel/src \
+ -I$(CudaCode)/GXTracking/GPTracking/Common/include \
+ -I$(CudaCode)/GXTracking/GPTracking/Geometry/include \
+ -I$(CudaCode)/GXTracking/GPTracking/Material/include \
+ -I$(CudaCode)/GXTracking/GPTracking/Transportation/include \
+ -I$(CudaCode)/GXTracking/GPTracking/Common/src \
+ -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/src \
+ -I$(CudaCode)/GXTracking/GPTracking/Geometry/src \
+ -I$(CudaCode)/GXTracking/GPTracking/Material/src \
+ -I$(CudaCode)/GXTracking/GPTracking/Transportation/src \
+ -I$(CudaCode)/GXTracking/SimCore/Common/src \
+ -I$(CudaCode)/GXTracking/SimCore/EMPhysics/src \
+ -I$(CudaCode)/GXTracking/SimCore/Geometry/src \
+ -I$(CudaCode)/GXTracking/SimCore/Transportation/src \
+ -I$(CudaCode)/GXTracking/SimCore/Manager/src \
+ -I$(CudaCode)/GXTracking/FWCore/FrameWork/src \
+ -I$(CudaCode)/GXTracking/FWCore/Application/src
+
+CXXFLAGS += -I$(CUDA_INC) -I$(CUDA_INCDIR)
+CXXFLAGS += -I$(CudaCode)/GXTracking/SimCore/Common/include \
+   -I$(CudaCode)/GXTracking/gpu/cuda/kernel/include \
+   -I$(CudaCode)/GXTracking/SimCore/EMPhysics/include \
+   -I$(CudaCode)/GXTracking/SimCore/Transportation/include \
+   -I$(CudaCode)/GXTracking/SimCore/Manager/include \
+   -I$(CudaCode)/GXTracking/GPTracking/Common/include \
+   -I$(CudaCode)/GXTracking/GPTracking/Transportation/include \
+   -I$(CudaCode)/GXTracking/GPTracking/EMPhysics/include \
+   -I$(CudaCode)/GXTracking/GPTracking/Geometry/include \
+   -I$(CudaCode)/GXTracking/GPTracking/Material/include
+
+CUDA_DATA_TARFILE = data/vpdata_v1.tar.gz
+CUDA_DATA_FILE = data/Lambda.eBrem.e-.asc
+
+CUDA_OBJDIR=obj/cuda
+CUDA_SRCDIR=cuda/src
+CUDA_INCDIR=cuda/inc
+
+#CUDA_OPT=-O0 --ptxas-options="--opt-level 0"
+
+$(CUDA_OBJDIR):
+	mkdir -p $(CUDA_OBJDIR)
+
+#CUDA_OBJ=$(patsubst %.cu,%.o,$(CUDA_SOURCES))
+
+GEANTCUDADICTS = $(CUDA_SRCDIR)/G__CudaGeant.cxx
+
+$(CUDA_DATA_TARFILE):
+	mkdir -p data
+	wget https://oink.fnal.gov/perfanalysis/vp$@ -O $@ || rm $@
+
+$(CUDA_DATA_FILE): $(CUDA_DATA_TARFILE)
+	(cd data; tar xfz $(notdir $(CUDA_DATA_TARFILE)) ) && touch $@
+
+$(GEANTCUDADICTS): $(CUDA_INCDIR)/CudaLinkDef.h
+	@echo "Generating dictionary $@"
+	$(ROOTSYS)/bin/rootcint -f $@ \
+                -c -I$(INCDIR) $(CUDA_INCDIR)/CoprocessorBroker.h $(CUDA_INCDIR)/CudaLinkDef.h
+
+cuda/src/G__CudaGeant.o: $(GEANTCUDADICTS)
+	$(ROOTSYS)/bin/rmkdepend -R -f$(CUDA_SRCDIR)/G__CudaGeant.d -Y -w 1000 -- \
+                -I$(INCDIR) -pthread  -D__cplusplus -I$(ROOTSYS)cint/cint/lib/prec_stl \
+                -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(GEANTCUDADICTS)
+	$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ \
+                -c $(CUDA_SRCDIR)/G__CudaGeant.cxx
+
+ifeq ($(CudaSingleObj),yes)
+
+#CUDA_SOURCES=GXTracking/gpu/cuda/kernel/src/tracking_kernel.cu
+
+%.d:%.cu
+	$(NVCC) $< -M -o $@ $(NVCC_FLAGS) $(NVCC_INCLUDES)
+
+$(CUDA_OBJDIR)/%.o:$(CudaCode)/%.cu $(CUDA_OBJDIR)
+	mkdir -p $(dir $@)
+	$(NVCC) $< -c -o $@ $(NVCC_FLAGS) $(CUDA_OPT) $(NVCC_INCLUDES)
+
+else
+
+CUDA_GX_SOURCES=Transportation/src/GXChordFinder.cu Transportation/src/GXMagneticField.cu \
+  Transportation/src/GXEquationOfMotion.cu Transportation/src/GXClassicalRK4.cu \
+  Transportation/src/GXMagIntegratorDriver.cu Transportation/src/GXFieldManager.cu \
+  Geometry/src/GXMultiLevelLocator.cu \
+  EMPhysics/src/GXBrem.cu EMPhysics/src/GXIoni.cu EMPhysics/src/GXMsc.cu \
+  EMPhysics/src/GXeBremsstrahlung.cu EMPhysics/src/GXeMultipleScattering.cu \
+  EMPhysics/src/GXeIonisation.cu \
+  Transportation/src/GXPropagatorInField.cu Transportation/src/GXTransportation.cu \
+  Transportation/src/GXFieldTrack.cu \
+  $(subst $(CudaCode)/GXTracking/SimCore,,$(wildcard $(CudaCode)/GXTracking/SimCore/Common/src/*.cu)) \
+  $(subst $(CudaCode)/GXTracking/SimCore,,$(wildcard $(CudaCode)/GXTracking/SimCore/Manager/src/*.cu))
+
+CUDA_KERNEL_SOURCES= gpu/cuda/kernel/src/random_kernel.cu \
+                     gpu/cuda/kernel/src/sort_kernel.cu \
+                     gpu/cuda/kernel/src/trackingTest2_kernel.cu
+
+#                    gpu/cuda/kernel/src/gxtracking_kernel.cu
+
+#  kernel/src/random_kernel.cu
+
+CUDA_GP_SOURCES=Common/src/GPThreeVector.cu Common/src/GPUtils.cu \
+  Common/src/GPThreeVectorList.cu Common/src/GPRotationMatrix.cu \
+  Common/src/GPVParticleChange.cu Common/src/GPStep.cu \
+  Common/src/GPStepPoint.cu \
+  Transportation/src/GPFieldTrack.cu Transportation/src/GPChordFinder.cu \
+  Transportation/src/GPChargeState.cu Transportation/src/GPMagIntegratorDriver.cu \
+  Transportation/src/GPEquationOfMotion.cu Transportation/src/GPClassicalRK4.cu \
+  Transportation/src/GPMagneticField.cu \
+  EMPhysics/src/GPPhysicsTable.cu \
+  EMPhysics/src/GPPhotonProcess.cu EMPhysics/src/GPeMultipleScattering.cu \
+  EMPhysics/src/GPeIonisation.cu EMPhysics/src/GPeBremsstrahlung.cu \
+  EMPhysics/src/GPSeltzerBergerRelModel.cu EMPhysics/src/GPMollerBhabhaModel.cu \
+  EMPhysics/src/GPPhotonModel.cu EMPhysics/src/GPUniversalFluctuation.cu \
+  EMPhysics/src/GPMollerBhabhaModel.cu EMPhysics/src/GPUrbanMscModel95.cu \
+  EMPhysics/src/GPPhysics2DVector.cu
+
+  
+#    $(filter-out Geometry/src/GPUserGeometry.cu, )) \
+
+CUDA_GP_CPP_SOURCES=$(filter-out Geometry/src/GPMultiLevelLocator.cu, $(subst $(CudaCode)/GXTracking/GPTracking/,,$(wildcard $(CudaCode)/GXTracking/GPTracking/Geometry/src/*.cu))) \
+   $(subst $(CudaCode)/GXTracking/GPTracking/,,$(wildcard $(CudaCode)/GXTracking/GPTracking/Material/src/*.cu))
+
+#  Geometry/src/GPNavigator.cu Geometry/src/GPTouchableHistory.cu \
+#  Geometry/src/GPNavigationHistory.cu Geometry/src/GPAffineTransform.cu
+
+#Transportation/src/GXTransportation.cu
+
+#  Transportation/src/GXMagneticField.cu \
+#	Transportation/src/GXFieldTrack.cu  Transportation/src/GXCashKarpRKF45.cu \
+#	 Transportation/src/GXPropagatorInField.cu \
+#	Transportation/src/GXClassicalRK4.cu Transportation/src/GXNystromRK4.cu \
+#	EMPhysics/src/GXIoni.cu EMPhysics/src/GXBrem.cu EMPhysics/src/GXMsc.cu \
+#	
+
+#	kernel/src/tracking_kernel.cu \
+
+CUDA_OBJS = $(CUDA_OBJDIR)/tracking_kernel.o $(CUDA_OBJDIR)/util_kernel.o $(CUDA_OBJDIR)/electron_kernel.o
+CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/, $(patsubst %.cu,%.o,$(CUDA_KERNEL_SOURCES)))
+CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/SimCore/,$(patsubst %.cu,%.o,$(CUDA_GX_SOURCES)))
+CUDA_OBJS += $(addprefix $(CUDA_OBJDIR)/GXTracking/GPTracking/,$(patsubst %.cu,%.o,$(CUDA_GP_SOURCES)))
+CUDA_DEPS = $(patsubst %.o,%.d,$(CUDA_OBJS))
+
+CUDA_CXX_OBJS = $(CUDA_SRCDIR)/CoprocessorBroker.$(ObjSuf) $(CUDA_SRCDIR)/G__CudaGeant.$(ObjSuf)
+CUDA_CPP_OBJS = $(addprefix $(CUDA_OBJDIR)/GXTracking/GPTracking/,$(patsubst %.cu,%_cpp.o,$(CUDA_GP_CPP_SOURCES)))
+
+CUDA_DEPS += $(patsubst %.o,%.d,$(CUDA_CXX_OBJS) $(CUDA_CPP_OBJS))
+# GEANTO += $(CUDA_OBJS)
+
+#debug := $(shell echo -$(CUDA_DEPS)- 1>&2)
+-include $(CUDA_DEPS)
+
+$(CUDA_SRCDIR)/%.o: $(CUDA_SRCDIR)/%.cxx
+	$(ROOTSYS)/bin/rmkdepend -R -f$(CUDA_SRCDIR)/$*.d -Y -w 1000 -- \
+	      	$(CXXFLAGS) \
+	 	 -- $<
+	$(CXX)  $(CXXFLAGS) -o $@ -c $<
+
+libGeantCuda.so: $(CUDA_OBJS) $(CUDA_CPP_OBJS) $(CUDA_CXX_OBJS)
+	$(NVCC) $^  -o libGeantCuda.so $(NVCC_FLAGS) --shared -Xcompiler -fPIC
+
+all: libGeantCuda.so $(CUDA_DATA_FILE)
+
+$(CUDA_CPP_OBJS): $(CUDA_OBJDIR)/%_cpp.o:$(CudaCode)/%.cu
+	mkdir -p $(dir $@)
+	$(NVCC) $< -M -MT $(CUDA_OBJDIR)/$*.o -o $(CUDA_OBJDIR)/$*.d $(NVCC_FLAGS) $(NVCC_INCLUDES)
+	$(NVCC) $< -c -dc -o $@ $(NVCC_FLAGS) -DCUDA_SEP_COMP $(CUDA_OPT) $(NVCC_INCLUDES)
+
+$(CUDA_OBJDIR)/%.o:$(CudaCode)/%.cu
+	mkdir -p $(dir $@)
+	$(NVCC) $< -M -MT $(CUDA_OBJDIR)/$*.o -o $(CUDA_OBJDIR)/$*.d $(NVCC_FLAGS) $(NVCC_INCLUDES)
+	$(NVCC) $< -dc -o $@ $(NVCC_FLAGS) -DCUDA_SEP_COMP $(CUDA_OPT) $(NVCC_INCLUDES)
+
+$(CUDA_OBJDIR)/%.o:cuda/src/%.cu 
+	mkdir -p $(dir $@)
+	$(NVCC) $< -M -MT $(CUDA_OBJDIR)/$*.o -o $(CUDA_OBJDIR)/$*.d $(NVCC_FLAGS) $(NVCC_INCLUDES)
+	$(NVCC) $< -dc -o $@ $(NVCC_FLAGS) -DCUDA_SEP_COMP $(CUDA_OPT) $(NVCC_INCLUDES)
+
+
+endif

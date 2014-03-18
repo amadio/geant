@@ -20,6 +20,8 @@
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
 
+#include "TaskBroker.h"
+
 ClassImp(WorkloadManager)
 
 WorkloadManager *WorkloadManager::fgInstance = 0;
@@ -45,6 +47,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fFlushed = kFALSE;
    fFilling = kFALSE;
    fScheduler = new GeantScheduler();
+   fBroker = 0;
 }
 
 //______________________________________________________________________________
@@ -83,6 +86,13 @@ void WorkloadManager::Print(Option_t *option) const
 }   
 
 //______________________________________________________________________________
+void WorkloadManager::SetTaskBroker(TaskBroker *broker) { 
+  // Register the broker if it is valid.
+  if (broker && broker->IsValid()) fBroker = broker; 
+}
+
+
+//______________________________________________________________________________
 void WorkloadManager::StartThreads()
 {
 // Start the threads
@@ -90,7 +100,15 @@ void WorkloadManager::StartThreads()
    if (fListThreads) return;
    fListThreads = new TList();
    fListThreads->SetOwner();
-   for (Int_t ith=0; ith<fNthreads; ith++) {
+   Int_t ith = 0;
+   if (fBroker) {
+     Printf("Running with a coprocessor broker.");
+     TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor,fBroker);
+     fListThreads->Add(t);
+     t->Run();
+     ++ith;
+   }
+   for (; ith<fNthreads; ith++) {
       TThread *t = new TThread(WorkloadManager::TransportTracks);
       fListThreads->Add(t);
       t->Run();
@@ -159,7 +177,7 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t npriority;
    TH1F *hnb=0, *hworkers=0, *htracks=0;
    TCanvas *c1 = 0;
-   Int_t lastphase = -1;
+   //   Int_t lastphase = -1;
    Int_t crtphase  = 0;
    
    if (graphics) {
@@ -369,14 +387,15 @@ void *WorkloadManager::TransportTracks(void *)
 //   const Int_t max_idle = 1;
 //   Int_t indmin, indmax;
    static Int_t counter=0;
-   Int_t ntotnext, ncross, ntotransport;
+   Int_t ntotnext; // , ncross;
+   Int_t ntotransport;
    Int_t generation = 0;
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
-   GeantScheduler *sch = wm->GetScheduler();
+   //GeantScheduler *sch = wm->GetScheduler();
    Int_t nprocesses = propagator->fNprocesses;
    Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -386,7 +405,7 @@ void *WorkloadManager::TransportTracks(void *)
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
    Int_t iev[500], itrack[500];
-   TGeoBranchArray *crt[500], *nxt[500];
+   // TGeoBranchArray *crt[500], *nxt[500];
    while (1) {
       propagator->fWaiting[tid] = 1;
       basket = wm->FeederQueue()->wait_and_pop();
@@ -418,8 +437,8 @@ void *WorkloadManager::TransportTracks(void *)
       for (Int_t itr=0; itr<ntotransport; itr++) {
          iev[itr] = input.fEventV[itr];
          itrack[itr] = input.fParticleV[itr];
-         crt[itr] = input.fPathV[itr];
-         nxt[itr] = input.fNextpathV[itr];
+         // crt[itr] = input.fPathV[itr];
+         // nxt[itr] = input.fNextpathV[itr];
          if (TMath::IsNaN(input.fXdirV[itr])) {
             Printf("Error: track %d has NaN", itr);
          }   
@@ -427,14 +446,14 @@ void *WorkloadManager::TransportTracks(void *)
       // Select the discrete physics process for all particles in the basket
       if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
       
-      ncross = 0;
+      //ncross = 0;
       generation = 0;
       
       while (ntotransport) {
          // Interrupt condition here. Work stealing could be also implemented here...
          generation++;
          // Propagate all remaining tracks
-         ncross += input.PropagateTracks(output);
+         //ncross += input.PropagateTracks(output);
          ntotransport = input.GetNtracks();
       }
       // All tracks are now in the output track vector. Possible statuses:
@@ -473,7 +492,7 @@ void *WorkloadManager::TransportTracks(void *)
       }
       // Check
       if (basket->GetNinput()) {
-         Printf("Ouch: ninput=%d counter=%d", basket->GetNoutput(), counter);
+         Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
       }   
       noutput = basket->GetNoutput();
       for(Int_t itr=0; itr<noutput; itr++) {
@@ -507,5 +526,143 @@ finish:
    }
    wm->DoneQueue()->push(0);
    Printf("=== Thread %d: exiting ===", tid);
+   return 0;
+}
+
+//______________________________________________________________________________
+void *WorkloadManager::TransportTracksCoprocessor(void *arg)
+{
+// Thread propagating all tracks from a basket.
+//      char slist[256];
+//      TString sslist;
+//   const Int_t max_idle = 1;
+//   Int_t indmin, indmax;
+   static Int_t counter=0;
+   //Int_t ntotnext, ncross;
+   Int_t ntotransport;
+   Int_t generation = 0;
+   GeantBasket *basket = 0;
+   Int_t tid = TGeoManager::ThreadId();
+   GeantPropagator *propagator = GeantPropagator::Instance();
+   GeantThreadData *td = propagator->fThreadData[tid];
+   WorkloadManager *wm = WorkloadManager::Instance();
+   //Int_t nprocesses = propagator->fNprocesses;
+   // Int_t ninput;
+   Int_t noutput;
+//   Bool_t useDebug = propagator->fUseDebug;
+//   Printf("(%d) WORKER started", tid);
+   // Create navigator if none serving this thread.
+   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+   if (!nav) nav = gGeoManager->AddNavigator();
+   propagator->fWaiting[tid] = 1;
+   // Int_t iev[500], itrack[500];
+   // TGeoBranchArray *crt[500], *nxt[500];
+
+   TaskBroker *broker = reinterpret_cast<TaskBroker*>(arg);
+   while (1) {
+
+      // ::Info("GPU","Waiting (1) for next available stream.");
+      TaskBroker::Stream stream = broker->GetNextStream();
+      if (!stream) break;
+      
+      if (wm->FeederQueue()->empty()) {
+         // There is no work to be done for now, let's just run what we have
+         if (0 != broker->launchTask()) {
+            // We ran something, let wait for the next free stream,
+            continue;
+         } else {
+            // We had nothing to run at all .... we need to wait for
+            // more data ....
+         }
+      }
+      propagator->fWaiting[tid] = 1;
+      //::Info("GPU","Waiting for next available basket.");
+      basket = wm->FeederQueue()->wait_and_pop();
+      propagator->fWaiting[tid] = 0;
+      // Check exit condition: null basket in the queue
+      if (!basket) break;
+      counter++;
+
+      if (!stream) {
+         ::Info("GPU","Waiting (2) for next available stream.");
+         stream = broker->GetNextStream();
+      }
+      // lastToClear = kFALSE;
+      if (!basket) {
+         if (0 != broker->launchTask(/* wait= */ true)) {
+            // We ran something, new basket might be available.
+            continue;
+         } else {
+            break;
+         }
+      }
+
+      ntotransport = basket->GetNinput();  // all tracks to be transported 
+      //ninput = ntotransport;
+      GeantTrack_v &input = basket->GetInputTracks();
+      GeantTrack_v &output = basket->GetOutputTracks();
+      if (!ntotransport) goto finish;      // input list empty
+//      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
+//      basket->Print();
+//      Printf("==========================================");
+//      propagator->fTracksPerBasket[tid] = ntotransport;
+      td->fVolume = basket->GetVolume();
+      
+      // Record tracks
+      //ninput = ntotransport;
+      if (basket->GetNoutput()) {
+         Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter);
+      } 
+//      if (counter==1) input.PrintTracks();  
+      for (Int_t itr=0; itr<ntotransport; itr++) {
+         // iev[itr] = input.fEventV[itr];
+         // itrack[itr] = input.fParticleV[itr];
+         // crt[itr] = input.fPathV[itr];
+         // nxt[itr] = input.fNextpathV[itr];
+         if (TMath::IsNaN(input.fXdirV[itr])) {
+            Printf("Error: track %d has NaN", itr);
+         }   
+      }
+      // Select the discrete physics process for all particles in the basket
+      //if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
+
+      //ncross = 0;
+      generation = 0;
+      
+      while (ntotransport) {
+         // Interrupt condition here. Work stealing could be also implemented here...
+         generation++;
+         // Propagate all remaining tracks
+         // NOTE: need to deal with propagator->fUsePhysics
+         broker->runTask(tid, *basket); // ntotransport, basket_sch->GetNumber(), gPropagator->fTracks, particles);
+         ntotransport = 0;
+         //ncross += input.PropagateTracks(output);
+         //ntotransport = input.GetNtracks();
+      }
+      // All tracks are now in the output track vector. Possible statuses:
+      // kCrossing - particles crossing boundaries
+      // kPhysics - particles reaching the point where the discrete physics process 
+      //            will happen.
+      // kExitingSetup - particles exiting the geometry
+      // kKilled - particles that could not advance in geometry after several tries
+
+      // Check
+      if (basket->GetNinput()) {
+         Printf("Ouch (coproc): ninput=%d noutput=%d counter=%d", basket->GetNinput(), basket->GetNoutput(), counter);
+      }   
+      noutput = basket->GetNoutput();
+      for(Int_t itr=0; itr<noutput; itr++) {
+         if (TMath::IsNaN(output.fXdirV[itr])) {
+            Printf("Error: track %d has NaN", itr);
+         }   
+      }   
+
+finish:
+//      basket->Clear();
+//      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
+      wm->TransportedQueue()->push(basket);
+   }
+   wm->DoneQueue()->push(0);
+   Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
    return 0;
 }

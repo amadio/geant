@@ -46,7 +46,7 @@ public:
    void              Recycle();
    
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
-};   
+};
 
 //______________________________________________________________________________
 // Basket manager for a given volume. Holds a list of free baskets stored in a
@@ -69,6 +69,8 @@ protected:
    dcqueue<GeantBasket> fBaskets;            // queue of available baskets
    dcqueue<GeantBasket> *fFeeder;            // feeder queue to which baskets get injected
    TMutex            fMutex;                 // Mutex for this basket manager
+
+public:
 
    GeantBasket      *GetNextBasket();
 

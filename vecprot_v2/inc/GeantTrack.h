@@ -211,8 +211,8 @@ public:
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat      &GetTrackStat() {return fStat;}
 #endif   
-   void      AddTrack(const GeantTrack &track);
-   void      AddTrack(const GeantTrack_v &arr, Int_t i);
+   Int_t     AddTrack(const GeantTrack &track);
+   Int_t     AddTrack(const GeantTrack_v &arr, Int_t i);
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
@@ -244,6 +244,7 @@ public:
    void      NavIsSameLocation(Int_t ntracks, TGeoBranchArray **start, TGeoBranchArray **end, Bool_t *same);
    Bool_t    NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start, TGeoBranchArray **end);
    TransportAction_t PostponedAction() const;
+   Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
    Int_t     PostponeTracks(GeantTrack_v &output);
    void      PropagateBack(Int_t itr, Double_t crtstep);
    Int_t     PropagateInField(Int_t ntracks, const Double_t *crtstep);
