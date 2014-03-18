@@ -92,7 +92,7 @@ int (*kernelFunc_t)(curandState* devStates,
                     GXTrack *secondaries, int *secStackSize,
 
                     int *scratch, // array of 10
-                    GXTrackLiason *scratchTrack, 
+                    GXTrackLiason *scratchTrack,
 
                     GPGeomManager* geomManager,
                     GXFieldMap* magMap,

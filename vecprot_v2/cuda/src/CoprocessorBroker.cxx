@@ -53,9 +53,9 @@ typedef double G4double;
 
 struct GeneralTask : public CoprocessorBroker::Task {
    GeneralTask() : Task( tracking_gpu ) {}
-   
+
    const char *Name() { return "GeneralTask"; }
-   bool Select(GeantTrack_v &host_track, int track) 
+   bool Select(GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -67,18 +67,18 @@ struct GeneralTask : public CoprocessorBroker::Task {
 struct EnergyTask : public CoprocessorBroker::Task {
    double  fThresHold;
    TString fName;
-   
+
    EnergyTask(double threshold) : Task( tracking_gpu ), fThresHold(threshold)
    {
       fName.Form("EnergyTask - %3g",threshold);
    }
-   
+
    const char *Name() { return fName; }
    bool Select(GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
-      
+
       return -1 == host_track.fChargeV[track] && host_track.fEV[track] > fThresHold;
    }
 };
