@@ -1,0 +1,7 @@
+g++ -O2 -o tracking_cpu ../test/tracking_cpu.cc -I../include -I../kernel/include -I../kernel/src \
+  -I../test/stopwatch \
+  -I../Geometry/include -I../Transportation/include -I../Common/include -I../EMPhysics/include \
+  -I../Geometry/src -I../Transportation/src -I../Common/src -I../EMPhysics/src \
+  -I../../GPTracking/Geometry/include -I../../GPTracking/Common/include -I../../GPTracking/Material/include -I../../GPTracking/EMPhysics/include/ -I../../GPTracking/Transportation/include \
+  -I../../GPTracking/Geometry/src -I../../GPTracking/Common/src -I../../GPTracking/Material/src -I../../GPTracking/EMPhysics/src -I../../GPTracking/Transportation/src \
+  -I$CUDA_DIR/include
