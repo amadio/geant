@@ -39,6 +39,9 @@ CXXFLAGS += -I$(CudaCode)/GXTracking/SimCore/Common/include \
    -I$(CudaCode)/GXTracking/GPTracking/Geometry/include \
    -I$(CudaCode)/GXTracking/GPTracking/Material/include
 
+CUDA_DATA_TARFILE = data/vpdata.tar.gz
+CUDA_DATA_FILE = data/Lambda.eBrem.e-.asc
+
 CUDA_OBJDIR=obj/cuda
 CUDA_SRCDIR=cuda/src
 CUDA_INCDIR=cuda/inc
@@ -52,6 +55,13 @@ $(CUDA_OBJDIR):
 
 GEANTCUDADICTS = $(CUDA_SRCDIR)/G__CudaGeant.cxx
 
+$(CUDA_DATA_TARFILE):
+	mkdir -p data
+	wget https://oink.fnal.gov/perfanalysis/vp$@ -O $@ || rm $@
+
+$(CUDA_DATA_FILE): $(CUDA_DATA_TARFILE)
+	(cd data; tar xfz vpdata.tar.gz )
+
 $(GEANTCUDADICTS): $(CUDA_INCDIR)/CudaLinkDef.h
 	@echo "Generating dictionary $@"
 	$(ROOTSYS)/bin/rootcint -f $@ \
@@ -63,7 +73,6 @@ cuda/src/G__CudaGeant.o: $(GEANTCUDADICTS)
                 -I$(ROOTSYS)cint/cint/stl -I$(ROOTSYS)/cint/cint/inc -- $(GEANTCUDADICTS)
 	$(CXX)  $(CXXFLAGS) -I. -I$(ROOTSYS)/include -o $@ \
                 -c $(CUDA_SRCDIR)/G__CudaGeant.cxx
-
 
 ifeq ($(CudaSingleObj),yes)
 
@@ -158,7 +167,7 @@ $(CUDA_SRCDIR)/%.o: $(CUDA_SRCDIR)/%.cxx
 libGeantCuda.so: $(CUDA_OBJS) $(CUDA_CPP_OBJS) $(CUDA_CXX_OBJS)
 	$(NVCC) $^  -o libGeantCuda.so $(NVCC_FLAGS) --shared -Xcompiler -fPIC
 
-all: libGeantCuda.so
+all: libGeantCuda.so $(CUDA_DATA_FILE)
 
 $(CUDA_CPP_OBJS): $(CUDA_OBJDIR)/%_cpp.o:$(CudaCode)/%.cu
 	mkdir -p $(dir $@)
