@@ -29,6 +29,7 @@ typedef double G4double;
 #include "GeantTrack.h"
 
 #include "GXTrack.h"
+#include "GXTrackLiason.h"
 
 #include "GPEMPhysicsUtils.h"
 //#include "GXRunManager.h"
@@ -269,6 +270,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fDevSecondaries.Alloc(maxTrackPerKernel);
 
    fDevScratch.Alloc(1);
+   fDevTrackTempSpace.Alloc(maxTrackPerKernel);
 
    fTrack = new GXTrack[maxTrackPerKernel];
    fTrackId = new int[maxTrackPerKernel];
@@ -316,6 +318,7 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
 
 CoprocessorBroker::~CoprocessorBroker()
 {
+   cudaDeviceSynchronize();
    for(unsigned int i = 0; i < fTasks.size(); ++i) {
       delete fTasks[i];
    }
@@ -728,6 +731,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
                               stream->fDevSecondaries.fDevStackSize,
 
                               &( (*stream->fDevScratch)[0] ),
+                              stream->fDevTrackTempSpace,
 
                               (GPGeomManager*)fdGeometry, fdFieldMap,
                               fd_PhysicsTable, fd_SeltzerBergerData,
@@ -752,8 +756,11 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 );
 
    if (wait) {
+      // Use this when you need to insure the printf are actually printed.
       cudaStreamSynchronize(*stream);
    }
+   // cudaDeviceSynchronize
+
    return stream;
 }
 

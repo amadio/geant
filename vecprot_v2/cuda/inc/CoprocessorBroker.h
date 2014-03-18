@@ -63,6 +63,7 @@ class GXFieldMap;
 class GPPhysicsTable;
 class GPPhysics2DVector;
 struct GXTrack;
+class GXTrackLiason;
 
 const unsigned int kMaxNumStep = 1;
 const unsigned int kMaxSecondaryPerStep = 2; // maxSecondaryPerStep;
@@ -91,6 +92,7 @@ int (*kernelFunc_t)(curandState* devStates,
                     GXTrack *secondaries, int *secStackSize,
 
                     int *scratch, // array of 10
+                    GXTrackLiason *scratchTrack, 
 
                     GPGeomManager* geomManager,
                     GXFieldMap* magMap,
@@ -168,7 +170,8 @@ private:
       DevicePtr<GXTrack>     fDevAltTrack;
       DevicePtr<int>         fDevTrackPhysIndex;
       DevicePtr<int>         fDevTrackLogIndex;
-      DevicePtr<int[10]>     fDevScratch;   // For communication internal to the kernel
+      DevicePtr<int[10]>     fDevScratch;       // For communication internal to the kernel
+      DevicePtr<GXTrackLiason> fDevTrackTempSpace;// For communication internal to the kernel
       SecondariesTable       fDevSecondaries;
 
       int          fThreadId;

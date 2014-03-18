@@ -48,6 +48,8 @@
 #include "GPPhysics2DVector.h"
 #include "GXPhysicsTableType.h"
 
+class GXTrackLiason;
+
 //-----------------------------------------------------------------------------
 //  Transportation engine
 //-----------------------------------------------------------------------------
@@ -218,6 +220,7 @@ int tracking_gpu(curandState* devStates,
                  GXTrack * /*secondaries*/, int * /*secStackSize*/,
                  
                  int */*scratch*/,
+                 GXTrackLiason * /* trackScratch */,
 
                  GPGeomManager *geomManager,
                  GXFieldMap *magMap,

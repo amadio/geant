@@ -18,6 +18,7 @@ int tracking_gpu(curandState* devStates,
                  GXTrack *secondaries, int *secStackSize,
 
                  int *scratch,
+                 GXTrackLiason *trackScratch,
 
                  GPGeomManager *geomManager,
                  GXFieldMap *magMap,
@@ -37,6 +38,7 @@ int electron_gpu(curandState* devStates,
                  GXTrack *secondaries, int *secStackSize,
 
                  int *scratch,
+                 GXTrackLiason *trackScratch,
 
                  GPGeomManager *geomManager,
                  GXFieldMap *magMap,
@@ -55,6 +57,7 @@ int electron_multistage_gpu(curandState* devStates,
                  GXTrack *secondaries, int *secStackSize,
 
                  int *scratch,
+                 GXTrackLiason *trackScratch,
 
                  GPGeomManager *geomManager,
                  GXFieldMap *magMap,

@@ -15,7 +15,8 @@ int electron_gpu(curandState* devStates,
                  int *physVolumeIndices,
                  GXTrack *secondaries, int *secStackSize,
                  
-                 int *scratch,
+                 int * /* scratch */,
+                 GXTrackLiason * /* trackScratch */,
 
                  GPGeomManager *geomManager,
                  GXFieldMap *magMap,
@@ -25,14 +26,12 @@ int electron_gpu(curandState* devStates,
                  int nBlocks, int nThreads,
                  cudaStream_t stream)
 {
-   int *secOffset = &(scratch[0]);
-
    elec_gpu(devStates, track,
             logVolumeIndices, physVolumeIndices,
             nElectrons, 
             geomManager, magMap, 
             physicsTable, seltzerBergerTable,
-            secondaries, secStackSize, secOffset,
+            secondaries, secStackSize,
             nSteps, 
             0 /* runType */,
             nBlocks, nThreads, stream);
@@ -48,7 +47,8 @@ int electron_multistage_gpu(curandState* devStates,
                             GXTrack *secondaries, int *secStackSize,
 
                             int *scratch, // array of 10.
-                             
+                            GXTrackLiason *trackScratch,
+
                             GPGeomManager *geomManager,
                             GXFieldMap *magMap,
                             GPPhysicsTable *physicsTable,
@@ -61,22 +61,18 @@ int electron_multistage_gpu(curandState* devStates,
    int *nioni = &(scratch[1]);
    int *stackSize_brem = &(scratch[2]);
    int *stackSize_ioni = &(scratch[3]);
-   int *secOffset = &(scratch[4]);
 
-
-   GXTrackLiason *liason_d;
-   cudaMalloc((void**)&liason_d, nElectrons*sizeof(GXTrackLiason));
 
    cudaMemsetAsync( &(scratch[0]), 0, sizeof(scratch[0])*5, stream);
    cudaMemsetAsync( secStackSize, 0, sizeof(int), stream);
 
    elec_GPIL_gpu(devStates, track, 
-                 liason_d, 
+                 trackScratch, 
                  logVolumeIndices, physVolumeIndices,
                  nElectrons,
                  geomManager, magMap, 
                  physicsTable, seltzerBergerTable,
-                 secondaries, secStackSize, secOffset, 
+                 secondaries, secStackSize,
                  nSteps,
                  0 /* runType */,
                  nBlocks, nThreads, stream);
@@ -99,15 +95,14 @@ int electron_multistage_gpu(curandState* devStates,
    // cudaThreadSynchronize();
    
    elec_doit_gpu(devStates, altTrack, 
-                 liason_d, 
+                 trackScratch, 
                  nElectrons, 
                  geomManager, magMap, 
                  physicsTable,seltzerBergerTable,
-                 secondaries, secStackSize, secOffset,
+                 secondaries, secStackSize,
                  nSteps, 
                  0 /* runType */,
                  nBlocks, nThreads, stream);
 
-   cudaFree(liason_d);
    return 1; // The real data is in altTrack
 }
