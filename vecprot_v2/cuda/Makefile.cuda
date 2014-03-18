@@ -39,7 +39,7 @@ CXXFLAGS += -I$(CudaCode)/GXTracking/SimCore/Common/include \
    -I$(CudaCode)/GXTracking/GPTracking/Geometry/include \
    -I$(CudaCode)/GXTracking/GPTracking/Material/include
 
-CUDA_DATA_TARFILE = data/vpdata.tar.gz
+CUDA_DATA_TARFILE = data/vpdata_v1.tar.gz
 CUDA_DATA_FILE = data/Lambda.eBrem.e-.asc
 
 CUDA_OBJDIR=obj/cuda
@@ -60,7 +60,7 @@ $(CUDA_DATA_TARFILE):
 	wget https://oink.fnal.gov/perfanalysis/vp$@ -O $@ || rm $@
 
 $(CUDA_DATA_FILE): $(CUDA_DATA_TARFILE)
-	(cd data; tar xfz vpdata.tar.gz )
+	(cd data; tar xfz $(notdir $(CUDA_DATA_TARFILE)) ) && touch $@
 
 $(GEANTCUDADICTS): $(CUDA_INCDIR)/CudaLinkDef.h
 	@echo "Generating dictionary $@"
