@@ -387,14 +387,15 @@ void *WorkloadManager::TransportTracks(void *)
 //   const Int_t max_idle = 1;
 //   Int_t indmin, indmax;
    static Int_t counter=0;
-   Int_t ntotnext, ncross, ntotransport;
+   Int_t ntotnext; // , ncross;
+   Int_t ntotransport;
    Int_t generation = 0;
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
-   GeantScheduler *sch = wm->GetScheduler();
+   //GeantScheduler *sch = wm->GetScheduler();
    Int_t nprocesses = propagator->fNprocesses;
    Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -404,7 +405,7 @@ void *WorkloadManager::TransportTracks(void *)
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
    Int_t iev[500], itrack[500];
-   TGeoBranchArray *crt[500], *nxt[500];
+   // TGeoBranchArray *crt[500], *nxt[500];
    while (1) {
       propagator->fWaiting[tid] = 1;
       basket = wm->FeederQueue()->wait_and_pop();
@@ -436,8 +437,8 @@ void *WorkloadManager::TransportTracks(void *)
       for (Int_t itr=0; itr<ntotransport; itr++) {
          iev[itr] = input.fEventV[itr];
          itrack[itr] = input.fParticleV[itr];
-         crt[itr] = input.fPathV[itr];
-         nxt[itr] = input.fNextpathV[itr];
+         // crt[itr] = input.fPathV[itr];
+         // nxt[itr] = input.fNextpathV[itr];
          if (TMath::IsNaN(input.fXdirV[itr])) {
             Printf("Error: track %d has NaN", itr);
          }   
@@ -445,14 +446,14 @@ void *WorkloadManager::TransportTracks(void *)
       // Select the discrete physics process for all particles in the basket
       if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
       
-      ncross = 0;
+      //ncross = 0;
       generation = 0;
       
       while (ntotransport) {
          // Interrupt condition here. Work stealing could be also implemented here...
          generation++;
          // Propagate all remaining tracks
-         ncross += input.PropagateTracks(output);
+         //ncross += input.PropagateTracks(output);
          ntotransport = input.GetNtracks();
       }
       // All tracks are now in the output track vector. Possible statuses:
@@ -537,23 +538,25 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
 //   const Int_t max_idle = 1;
 //   Int_t indmin, indmax;
    static Int_t counter=0;
-   Int_t ntotnext, ncross, ntotransport;
+   //Int_t ntotnext, ncross;
+   Int_t ntotransport;
    Int_t generation = 0;
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
-   Int_t nprocesses = propagator->fNprocesses;
-   Int_t ninput, noutput;
+   //Int_t nprocesses = propagator->fNprocesses;
+   // Int_t ninput;
+   Int_t noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
    // Create navigator if none serving this thread.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
-   Int_t iev[500], itrack[500];
-   TGeoBranchArray *crt[500], *nxt[500];
+   // Int_t iev[500], itrack[500];
+   // TGeoBranchArray *crt[500], *nxt[500];
 
    TaskBroker *broker = reinterpret_cast<TaskBroker*>(arg);
    while (1) {
@@ -595,7 +598,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       }
 
       ntotransport = basket->GetNinput();  // all tracks to be transported 
-      ninput = ntotransport;
+      //ninput = ntotransport;
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
@@ -606,16 +609,16 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       td->fVolume = basket->GetVolume();
       
       // Record tracks
-      ninput = ntotransport;
+      //ninput = ntotransport;
       if (basket->GetNoutput()) {
          Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter);
       } 
 //      if (counter==1) input.PrintTracks();  
       for (Int_t itr=0; itr<ntotransport; itr++) {
-         iev[itr] = input.fEventV[itr];
-         itrack[itr] = input.fParticleV[itr];
-         crt[itr] = input.fPathV[itr];
-         nxt[itr] = input.fNextpathV[itr];
+         // iev[itr] = input.fEventV[itr];
+         // itrack[itr] = input.fParticleV[itr];
+         // crt[itr] = input.fPathV[itr];
+         // nxt[itr] = input.fNextpathV[itr];
          if (TMath::IsNaN(input.fXdirV[itr])) {
             Printf("Error: track %d has NaN", itr);
          }   
@@ -623,7 +626,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       // Select the discrete physics process for all particles in the basket
       //if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
 
-      ncross = 0;
+      //ncross = 0;
       generation = 0;
       
       while (ntotransport) {
