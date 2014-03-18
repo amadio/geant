@@ -92,8 +92,9 @@ CUDA_GX_SOURCES=Transportation/src/GXChordFinder.cu Transportation/src/GXMagneti
 
 CUDA_KERNEL_SOURCES= gpu/cuda/kernel/src/random_kernel.cu \
                      gpu/cuda/kernel/src/sort_kernel.cu \
-                     gpu/cuda/kernel/src/trackingTest2_kernel.cu \
-                     gpu/cuda/kernel/src/gxtracking_kernel.cu
+                     gpu/cuda/kernel/src/trackingTest2_kernel.cu
+
+#                    gpu/cuda/kernel/src/gxtracking_kernel.cu
 
 #  kernel/src/random_kernel.cu
 
