@@ -1,3 +1,5 @@
+CudaCode = ../
+
 NVCC=nvcc
 NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC -DGX_MULTI_OBJ_FILES
 NVCC_INCLUDES=-I$(CudaCode)/GXTracking/SimCore/Common/include \
