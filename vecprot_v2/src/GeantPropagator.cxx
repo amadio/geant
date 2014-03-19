@@ -380,7 +380,7 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
    if (gGeoManager) return kTRUE;
-   TGeoManager *geom = (gGeoManager)?gGeoManager:TGeoManager::Import(filename);
+   TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
    if (geom) return kTRUE;
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
    return kFALSE;
