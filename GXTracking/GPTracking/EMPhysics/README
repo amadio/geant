@@ -1,0 +1,34 @@
+< EMPhysics Package >
+
+Original Author: Dongwook Jang (jang.dongwook@gmail.com)
+
+The purpose of this package is to make EMPhysics runnable on GPU. By following Geant4 procedures as close as possible, some functionalities are simplified. However, this package is still in progress and not complete by no means. Here is the list of implemented physics and functions.
+
+1. Bremsstralung : PostStepGPIL, PostStepDoIt
+2. Ionization : PostStepGPIL, PostStepDoIt
+3. MultipleScattering : PostStepGPIL, PostStepDoIt
+
+Those physics are applied to electrons. Since we haven't decided how to handle secondaries, I commented the part generating secondaries in PostStepDoIt for each physics.
+
+
+< Notes on general implemenation >
+
+* Abstract classes as G4V style are embeded to the concrete classes.
+* all members are public at the developing stage. They can be declared as private when the codes are mature.
+* functions just calling others by passing arguments are combined into one function.
+* PhysicsTables have arrays with a fixed size. They are prepared in host side and copied to device before calling kernels.
+* Materials and elements are hardcoded.
+
+< Notes on Bremsstralung >
+
+* Brem PostStepDoIt is based on general model which is not same as what Geant4 actually uses currently. I had implemented this mistakenly and had no time to implement the actual one. However, the concept is same and it is matter of replacing other functions later.
+
+< Notes on Ionization >
+
+* followed conventions in Brem implementation
+* secondary creation parts in PostStepDoIt are commented
+
+< Notes on MultipleScattering >
+
+* followed convetions in Brem implementation
+* PostStepDoIt contains only secondary creation which is commented

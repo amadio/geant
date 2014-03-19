@@ -1,0 +1,696 @@
+diff -rupN source/geometry/navigation/src/G4Navigator.cc ../tmp/geant4.9.6.p01/source/geometry/navigation/src/G4Navigator.cc
+--- source/geometry/navigation/src/G4Navigator.cc	2013-10-23 15:31:18.538462864 -0500
++++ ../tmp/geant4.9.6.p01/source/geometry/navigation/src/G4Navigator.cc	2013-02-07 09:42:57.000000000 -0600
+@@ -1860,12 +1860,8 @@ void G4Navigator::ComputeStepLog(const G
+   //  The following checks only make sense if the move is larger
+   //  than the tolerance.
+ 
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   static const G4double fAccuracyForWarning   = kCarTolerance,
+                         fAccuracyForException = 1000*kCarTolerance;
+-#else
+-  static const G4double fAccuracyForException = 1000*kCarTolerance;
+-#endif
+ 
+   G4ThreeVector OriginalGlobalpoint = fHistory.GetTopTransform().Inverse().
+                                       TransformPoint(fLastLocatedPointLocal); 
+@@ -1883,13 +1879,7 @@ void G4Navigator::ComputeStepLog(const G
+     G4double shiftOrigin = std::sqrt(shiftOriginSafSq);
+     G4double diffShiftSaf = shiftOrigin - fPreviousSafety;
+ 
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+     if( diffShiftSaf > fAccuracyForWarning )
+-#else
+-    // Currently the initial point of the Track is not realistic and/or the previous
+-    // step is not set realistically, so this warning is triggered all the times.
+-    if (0)
+-#endif
+     {
+       G4int oldcoutPrec= G4cout.precision(8);
+       G4int oldcerrPrec= G4cerr.precision(10);
+@@ -1949,8 +1939,6 @@ void G4Navigator::ComputeStepLog(const G
+     }
+ #endif
+   }
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+-   // See comment above.
+   G4double safetyPlus = fPreviousSafety + fAccuracyForException;
+   if ( shiftOriginSafSq > sqr(safetyPlus) )
+   {
+@@ -1963,7 +1951,6 @@ void G4Navigator::ComputeStepLog(const G
+     G4Exception("G4Navigator::ComputeStep()", "GeomNav1002",
+                 JustWarning, message);
+   }
+-#endif
+ }
+ 
+ // ********************************************************************
+diff -rupN source/processes/electromagnetic/standard/src/G4eBremsstrahlung.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4eBremsstrahlung.cc
+--- source/processes/electromagnetic/standard/src/G4eBremsstrahlung.cc	2013-10-23 14:26:39.913856731 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4eBremsstrahlung.cc	2013-02-07 09:43:18.000000000 -0600
+@@ -120,14 +120,9 @@ G4eBremsstrahlung::InitialiseEnergyLossP
+   if(!isInitialised) {
+ 
+     //    if (!EmModel(1)) { SetEmModel(new G4eBremsstrahlungModel(), 1); }
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+     if (!EmModel(1)) { SetEmModel(new G4SeltzerBergerModel(), 1); }
+     if (!EmModel(2)) { SetEmModel(new G4eBremsstrahlungRelModel(), 2); }
+-#else
+-    if (!EmModel(1)) { SetEmModel(new G4eBremsstrahlungModel(), 1); }
+-    if (!EmModel(2)) { SetEmModel(new G4eBremsstrahlungModel(), 2); }
+-#endif
+-     
++
+     G4double energyLimit = 1*GeV;
+ 
+     EmModel(1)->SetLowEnergyLimit(MinKinEnergy());
+diff -rupN source/processes/electromagnetic/standard/src/G4eBremsstrahlungModel.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4eBremsstrahlungModel.cc
+--- source/processes/electromagnetic/standard/src/G4eBremsstrahlungModel.cc	2013-10-23 15:40:22.941103286 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4eBremsstrahlungModel.cc	2013-02-07 09:43:18.000000000 -0600
+@@ -638,223 +638,6 @@ G4DataVector* G4eBremsstrahlungModel::Co
+   return dv;
+ }
+ 
+-#if 0
+-
+-static G4double ComputeCrossSectionPerAtom(double kineticEnergy, double Z,
+-                                            G4double cut) {
+-	G4double cross = 0.0;
+-   
+-	if (kineticEnergy < keV || kineticEnergy < cut) {
+-		return cross;
+-	}
+-   
+-	const G4double ksi = 2.0;
+-	//  const G4double alfa=1.00;
+-	const G4double csigh = 0.127, csiglow = 0.25, asiglow = 0.020 * MeV;
+-	const G4double Tlim = 10. * MeV;
+-   
+-	const G4double xlim = 1.2;
+-   
+-	const int NZ = 8;
+-	const int Nsig = 11;
+-	const float ZZ[NZ] = { 2., 4., 6., 14., 26., 50., 82., 92. };
+-	const float coefsig[NZ][Nsig] = { { 0.4638, 0.37748, 0.32249, -0.060362,
+-      -0.065004, -0.033457, -0.004583, 0.011954, 0.0030404, -0.0010077,
+-      -0.00028131 },
+-      
+-      { 0.50008, 0.33483, 0.34364, -0.086262, -0.055361, -0.028168, -0.0056172,
+-			0.011129, 0.0027528, -0.00092265, -0.00024348 },
+-      
+-      { 0.51587, 0.31095, 0.34996, -0.11623, -0.056167, -0.0087154, 0.00053943,
+-			0.0054092, 0.00077685, -0.00039635, -6.7818e-05 },
+-      
+-      { 0.55058, 0.25629, 0.35854, -0.080656, -0.054308, -0.049933, -0.00064246,
+-			0.016597, 0.0021789, -0.001327, -0.00025983 },
+-      
+-      { 0.5791, 0.26152, 0.38953, -0.17104, -0.099172, 0.024596, 0.023718,
+-			-0.0039205, -0.0036658, 0.00041749, 0.00023408 },
+-      
+-      { 0.62085, 0.27045, 0.39073, -0.37916, -0.18878, 0.23905, 0.095028,
+-			-0.068744, -0.023809, 0.0062408, 0.0020407 },
+-      
+-      { 0.66053, 0.24513, 0.35404, -0.47275, -0.22837, 0.35647, 0.13203, -0.1049,
+-			-0.034851, 0.0095046, 0.0030535 },
+-      
+-      { 0.67143, 0.23079, 0.32256, -0.46248, -0.20013, 0.3506, 0.11779, -0.1024,
+-			-0.032013, 0.0092279, 0.0028592 } };
+-   
+-	int iz = 0;
+-	G4double delz = 1.0e6;
+-	for (int ii = 0; ii < NZ; ii++) {
+-		G4double absdelz = fabs(Z - ZZ[ii]);
+-		if (absdelz < delz) {
+-			iz = ii;
+-			delz = absdelz;
+-		}
+-	}
+-   
+-	G4double xx = log10(kineticEnergy / MeV);
+-	G4double fs = 1.0;
+-   
+-	if (xx <= xlim) {
+-		fs = coefsig[iz][Nsig - 1];
+-		for (int j = Nsig - 2; j >= 0; j--) {
+-			fs = fs * xx + coefsig[iz][j];
+-		}
+-		if (fs < 0.0) {
+-			fs = 0.0;
+-		}
+-	}
+-   
+-	//  cross = Z*(Z+ksi)*(1.-csigh*exp(log(Z)/4.))*pow(log(kineticEnergy/cut),alfa);
+-	cross = Z * (Z + ksi) * (1. - csigh * exp(log(Z) / 4.))
+-   * log(kineticEnergy / cut);
+-   
+-	if (kineticEnergy <= Tlim) {
+-		cross *= exp(csiglow * log(Tlim / kineticEnergy))
+-      * (1. + asiglow / (sqrt(Z) * kineticEnergy));
+-	}
+-   
+-	if (!isElectron)
+-		cross *= PositronCorrFactorSigma(Z, kineticEnergy, cut);
+-   
+-	cross *= fs / Avogadro;
+-   
+-	if (cross < 0.0) {
+-		cross = 0.0;
+-	}
+-   
+-	return cross;
+-}
+-
+-static G4double CrossSectionPerVolume(double kineticEnergy,
+-                               G4double cutEnergy, double maxEnergy) {
+-   
+-	G4double cross = 0.0;
+-	G4double tmax = (maxEnergy < kineticEnergy) ? maxEnergy : kineticEnergy;
+-	G4double cut = (cutEnergy < kineticEnergy) ? cutEnergy : kineticEnergy;
+-	if (cut >= tmax) {
+-		return cross;
+-	}
+-   
+-	// material : PbWO4
+-	// density : 5.16797e+19
+-	// electron density : 2.06011e+21
+-	// radlen : 8.92421
+-	// effZ, effA : 68.3599, 170.87
+-	// name: Lead, symbol:Pb, Z: 82, density: 1.0958e+19
+-	// name: Tungstenm, symbol:W, Z: 74, density: 1.0958e+19
+-	// name: Oxygen, symbol:O2, Z: 8, density: 4.3832e+19
+-   
+-	const int nElements = 3;
+-	const G4double theAtomNumDensity[nElements] = { 1.0958e+19, 1.0958e+19,
+-      4.3832e+19 };
+-	const G4double Z[nElements] = { 82, 74, 8 };
+-   
+-	for (int i = 0; i < nElements; i++) {
+-		cross += theAtomNumDensity[i]
+-      * ComputeCrossSectionPerAtom(kineticEnergy, Z[i], cut);
+-		if (tmax < kineticEnergy) {
+-			cross -= theAtomNumDensity[i]
+-         * ComputeCrossSectionPerAtom(kineticEnergy, Z[i], tmax);
+-		}
+-	}
+-   
+-	// now compute the correction due to the supression(s)
+-   
+-	G4double kmax = tmax;
+-	G4double kmin = cut;
+-   
+-	G4double totalEnergy = kineticEnergy + electron_mass_c2;
+-	//  G4double kp2 = MigdalConstant*totalEnergy*totalEnergy
+-	//                                             *(material->GetElectronDensity());
+-	G4double MigdalConstant = classic_electr_radius * electron_Compton_length
+-   * electron_Compton_length * 4.0 * pi;
+-	// PbW04 electorn density : 2.06011e+21
+-	G4double kp2 = MigdalConstant * totalEnergy * totalEnergy * 2.06011e+21;
+-   
+-	G4double fsig = 0.;
+-	int nmax = 100;
+-	G4double vmin = log(kmin);
+-	G4double vmax = log(kmax);
+-	G4double highKinEnergy = 100.0 * TeV;
+-	int nn = (int) (nmax * (vmax - vmin) / (log(highKinEnergy) - vmin));
+-	G4double u, fac, c, v, dv, y;
+-	if (nn > 0) {
+-      
+-		dv = (vmax - vmin) / nn;
+-		v = vmin - dv;
+-		for (int n = 0; n <= nn; n++) {
+-         
+-			v += dv;
+-			u = exp(v);
+-			fac = SupressionFunction(kineticEnergy, u, LPMFlag);
+-			y = u / kmax;
+-			fac *= (4. - 4. * y + 3. * y * y) / 3.;
+-			//        fac *= probsup*(u*u/(u*u+kp2))+1.-probsup;
+-			fac *= (u * u / (u * u + kp2));
+-         
+-			if ((n == 0) || (n == nn))
+-				c = 0.5;
+-			else
+-				c = 1.;
+-         
+-			fac *= c;
+-			fsig += fac;
+-		}
+-		y = kmin / kmax;
+-		fsig *= dv
+-      / (-4. * log(y) / 3. - 4. * (1. - y) / 3. + 0.5 * (1. - y * y));
+-      
+-	} else {
+-      
+-		fsig = 1.;
+-	}
+-	if (fsig > 1.)
+-		fsig = 1.;
+-   
+-	// correct the cross section
+-	cross *= fsig;
+-   
+-	return cross;
+-   
+-}
+-
+-static G4double GXBrem_GPVEmModel_CrossSectionPerVolume(double ekin, double emin,
+-                                                  G4double emax) {
+-	G4double cross = 0.0;
+-	const G4double theAtomNumDensity[nElements] = { 1.0958e+19, 1.0958e+19,
+-      4.3832e+19 };
+-   
+-	for (int i = 0; i < nElements; i++) {
+-		cross += theAtomNumDensity[i]
+-      * ComputeCrossSectionPerAtom(ekin, emin, emax);
+-		xsec[i] = cross;
+-	}
+-	return cross;
+-}
+-
+-//int GPVEmModel_SelectRandomAtom(G4double kinEnergy, double tcut, double tmax) {
+-static int GXBrem__SelectRandomAtom(G4double kinEnergy, double tcut, double tmax) {
+-   // Note that in Geant4, the function actually called is G4VEmModel::SelectRandomAtom
+-   // (which requires quite a bit more setup that is currently done/ported here)
+-   
+-   const nElements = 3;
+-	int n = nElements - 1;
+-	if (n > 0) {
+-		G4double x = rand_wrapper(localState)
+-      * GXBrem_GPVEmModel_CrossSectionPerVolume(kinEnergy, tcut, tmax);
+-		for (int i = 0; i < n; ++i) {
+-			if (x <= xsec[i]) {
+-				return i;
+-			}
+-		}
+-	}
+-	return n;
+-}
+-
+-#endif
+-
+ //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+ 
+ void G4eBremsstrahlungModel::SampleSecondaries(std::vector<G4DynamicParticle*>* vdp, 
+@@ -907,53 +690,15 @@ void G4eBremsstrahlungModel::SampleSecon
+ 
+   G4double gammaEnergy;
+   G4bool LPMOK = false;
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   const G4Material* material = couple->GetMaterial();
+-#else
+-  if(couple) { }; // eliminate compiler warning about unused variable
+-#endif
+-   
++
+   // select randomly one element constituing the material
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   const G4Element* anElement = SelectRandomAtom(couple);
+-   
+-   // Extract Z factors for this Element
+-   G4double lnZ = 3.*(anElement->GetIonisation()->GetlogZ3());
+-   G4double FZ = lnZ* (4.- 0.55*lnZ);
+-   G4double ZZ = anElement->GetIonisation()->GetZZ3();
+-#else
+-	// moved to GPConstants.h
+-	// const int nElements = 3;
+-	// const G4double theAtomNumDensity[nElements] = {1.0958e+19, 1.0958e+19, 4.3832e+19};
+-	// const G4double Z[nElements] = {82, 74, 8};
+-   
+-	// tcut = 0.00099 MeV used above in GXBrem::GetCurrentLambda, taken from eBremsstralung
+-   G4Material *material = G4Material::GetMaterial("PbWO4");
+-   const G4Element* anElement = G4VEmModel::SelectRandomAtom(material,dp->GetParticleDefinition(),kineticEnergy,tmax);
+-
+-   G4double lnZ = 3.*(anElement->GetIonisation()->GetlogZ3());
+-   G4double FZ = lnZ* (4.- 0.55*lnZ);
+-   G4double ZZ = anElement->GetIonisation()->GetZZ3();
+-
+-//   int iElement = SelectRandomAtom(kineticEnergy, 0.00099, tmax);
+-//   
+-//	//  const G4double theAtomNumDensity[nElements] = {1.0958e+19, 1.0958e+19, 4.3832e+19};
+-//
+-//	const int nElements = 3;
+-//	const G4double Z[nElements] = { 82, 74, 8 };
+-//   
+-//	// from G4IonisParamElm.hh
+-//	//G4double fZ;                 // effective Z
+-//	//G4double fZ3;                // std::pow (Z,1/3)
+-//	//G4double fZZ3;               // std::pow (Z(Z+1),1/3)
+-//	//G4double flogZ3;             // std::log(Z)/3
+-//   
+-//	// Extract Z factors for this Element
+-//	G4double lnZ = 3. * pow(Z[iElement], 1 / 3.);
+-//	G4double FZ = log(Z[iElement]) * (4. - 0.55 * log(Z[iElement]));
+-//	G4double ZZ = pow(Z[iElement] * (Z[iElement] + 1), 1 / 3.);
+-   
+-#endif
++
++  // Extract Z factors for this Element
++  G4double lnZ = 3.*(anElement->GetIonisation()->GetlogZ3());
++  G4double FZ = lnZ* (4.- 0.55*lnZ);
++  G4double ZZ = anElement->GetIonisation()->GetZZ3();
+ 
+   // limits of the energy sampling
+   G4double totalEnergy = kineticEnergy + electron_mass_c2;
+@@ -1076,7 +821,6 @@ void G4eBremsstrahlungModel::SampleSecon
+ 
+   } while (!LPMOK);
+ 
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   //
+   // angles of the emitted gamma. ( Z - axis along the parent particle)
+   // use general interface
+@@ -1114,9 +858,6 @@ void G4eBremsstrahlungModel::SampleSecon
+     fParticleChange->SetProposedMomentumDirection(direction);
+     fParticleChange->SetProposedKineticEnergy(finalE);
+   }
+-#else
+-  if(vdp) { }; // eliminate compiler warning about unused variable
+-#endif
+ }
+ 
+ //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+@@ -1124,31 +865,31 @@ void G4eBremsstrahlungModel::SampleSecon
+ const G4Element* G4eBremsstrahlungModel::SelectRandomAtom(
+            const G4MaterialCutsCouple* couple) 
+ {
+-   // select randomly 1 element within the material
++  // select randomly 1 element within the material
++
++  const G4Material* material = couple->GetMaterial();
++  G4int nElements = material->GetNumberOfElements();
++  const G4ElementVector* theElementVector = material->GetElementVector();
+ 
+-   const G4Material* material = couple->GetMaterial();
+-   G4int nElements = material->GetNumberOfElements();
+-   const G4ElementVector* theElementVector = material->GetElementVector();
+-
+-   const G4Element* elm = 0;
+-
+-   if(1 < nElements) {
+-
+-      --nElements;
+-      G4DataVector* dv = partialSumSigma[couple->GetIndex()];
+-      G4double rval = G4UniformRand()*((*dv)[nElements]);
+-
+-      elm = (*theElementVector)[nElements];
+-      for (G4int i=0; i<nElements; ++i) {
+-         if (rval <= (*dv)[i]) {
+-            elm = (*theElementVector)[i];
+-            break;
+-         }
++  const G4Element* elm = 0;
++
++  if(1 < nElements) {
++
++    --nElements; 
++    G4DataVector* dv = partialSumSigma[couple->GetIndex()];
++    G4double rval = G4UniformRand()*((*dv)[nElements]);
++
++    elm = (*theElementVector)[nElements];
++    for (G4int i=0; i<nElements; ++i) {
++      if (rval <= (*dv)[i]) {
++	elm = (*theElementVector)[i];
++	break;
+       }
+-   } else { elm = (*theElementVector)[0]; }
++    }
++  } else { elm = (*theElementVector)[0]; }
+  
+-   SetCurrentElement(elm);
+-   return elm;
++  SetCurrentElement(elm);
++  return elm;
+ }
+ 
+ //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+diff -rupN source/processes/electromagnetic/standard/src/G4MollerBhabhaModel.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4MollerBhabhaModel.cc
+--- source/processes/electromagnetic/standard/src/G4MollerBhabhaModel.cc	2013-10-23 15:40:42.136279616 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4MollerBhabhaModel.cc	2013-02-07 09:43:18.000000000 -0600
+@@ -363,7 +363,6 @@ void G4MollerBhabhaModel::SampleSecondar
+     } while(grej * G4UniformRand() > z);
+   }
+ 
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   G4double deltaKinEnergy = x * kineticEnergy;
+ 
+   G4double deltaMomentum =
+@@ -391,10 +390,6 @@ void G4MollerBhabhaModel::SampleSecondar
+   G4DynamicParticle* delta = new G4DynamicParticle(theElectron,
+ 						   deltaDirection,deltaKinEnergy);
+   vdp->push_back(delta);
+-#else
+-  if(vdp || totalMomentum) { }; // eliminate compiler warning about unused variables
+-   // dwjang : wait until deciding how to handle secondaries
+-#endif
+ }
+ 
+ //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+diff -rupN source/processes/electromagnetic/standard/src/G4SeltzerBergerModel.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4SeltzerBergerModel.cc
+--- source/processes/electromagnetic/standard/src/G4SeltzerBergerModel.cc	2013-10-23 14:26:39.896857462 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4SeltzerBergerModel.cc	2013-02-07 09:43:18.000000000 -0600
+@@ -210,10 +210,6 @@ G4SeltzerBergerModel::SampleSecondaries(
+ 					G4double cutEnergy,
+ 					G4double maxEnergy)
+ {
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+-#else
+-   return;
+-#endif
+   G4double kineticEnergy = dp->GetKineticEnergy();
+   G4double cut  = std::min(cutEnergy, kineticEnergy);
+   G4double emax = std::min(maxEnergy, kineticEnergy);
+diff -rupN source/processes/electromagnetic/standard/src/G4UrbanMscModel95.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4UrbanMscModel95.cc
+--- source/processes/electromagnetic/standard/src/G4UrbanMscModel95.cc	2013-10-23 15:36:23.468379200 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/standard/src/G4UrbanMscModel95.cc	2013-02-07 09:43:18.000000000 -0600
+@@ -435,30 +435,15 @@ G4double G4UrbanMscModel95::ComputeTrueP
+ 			     G4double& currentMinimalStep)
+ {
+   tPathLength = currentMinimalStep;
++  const G4DynamicParticle* dp = track.GetDynamicParticle();
+   
+   G4StepPoint* sp = track.GetStep()->GetPreStepPoint();
+   G4StepStatus stepStatus = sp->GetStepStatus();
+   couple = track.GetMaterialCutsCouple();
+   SetCurrentCouple(couple); 
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+-  const G4DynamicParticle* dp = track.GetDynamicParticle();
+   currentMaterialIndex = couple->GetIndex();
+   currentKinEnergy = dp->GetKineticEnergy();
+   currentRange = GetRange(particle,currentKinEnergy,couple);
+-#else
+-  // The cuda version does not set up the materials couple
+-  // in the track, so it fakes it.
+-  currentMaterialIndex = 1;
+-  currentKinEnergy = 100.0;
+-  // currentRange = GetRange(currentKinEnergy);
+-   {
+-      double kinEnergy = currentKinEnergy;
+-      G4double dedx = 2.0*MeV*cm2/g;
+-      G4double density = 5.16797e+19; // for electron
+-      G4double localrange = kinEnergy/(dedx*density);
+-      currentRange = localrange;
+-   }
+-#endif
+   lambda0 = GetTransportMeanFreePath(particle,currentKinEnergy);
+   if(tPathLength > currentRange) { tPathLength = currentRange; }
+ 
+@@ -599,12 +584,8 @@ G4double G4UrbanMscModel95::ComputeTrueP
+     {
+       // compute presafety again if presafety <= 0 and no boundary
+       // i.e. when it is needed for optimization purposes
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+       if((stepStatus != fGeomBoundary) && (presafety < tlimitminfix)) 
+ 	presafety = ComputeSafety(sp->GetPosition(),tPathLength); 
+-#else
+-      // @@ dwjang : will implement this part later
+-#endif
+       /*
+       G4cout << "presafety= " << presafety
+ 	     << " firstStep= " << firstStep
+diff -rupN source/processes/electromagnetic/utils/include/G4VEnergyLossProcess.hh ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/include/G4VEnergyLossProcess.hh
+--- source/processes/electromagnetic/utils/include/G4VEnergyLossProcess.hh	2013-10-23 14:26:39.958854802 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/include/G4VEnergyLossProcess.hh	2013-02-07 09:43:19.000000000 -0600
+@@ -723,11 +723,7 @@ inline G4double G4VEnergyLossProcess::Sc
+ 
+ inline G4double G4VEnergyLossProcess::GetLambdaForScaledEnergy(G4double e)
+ {
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   return fFactor*((*theLambdaTable)[basedCoupleIndex])->Value(e);
+-#else
+-  return fFactor*((*theLambdaTable)[1])->Value(e);
+-#endif
+ }
+ 
+ //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+@@ -825,7 +821,6 @@ G4VEnergyLossProcess::GetLambda(G4double
+ 
+ inline void G4VEnergyLossProcess::ComputeLambdaForScaledEnergy(G4double e)
+ {
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   mfpKinEnergy  = theEnergyOfCrossSectionMax[currentCoupleIndex];
+   if (e <= mfpKinEnergy) {
+     preStepLambda = GetLambdaForScaledEnergy(e);
+@@ -843,26 +838,6 @@ inline void G4VEnergyLossProcess::Comput
+       preStepLambda = fFactor*theCrossSectionMax[currentCoupleIndex];
+     }
+   }
+-#else
+-   // We dont really have couple information ...
+-   mfpKinEnergy = 0.00713103;
+-	if (e <= mfpKinEnergy) {
+-		preStepLambda = GetLambdaForScaledEnergy(e);
+-	} else {
+-		G4double e1 = e * lambdaFactor;
+-		if (e1 > mfpKinEnergy) {
+-			preStepLambda = GetLambdaForScaledEnergy(e);
+-			G4double preStepLambda1 = GetLambdaForScaledEnergy(e1);
+-			if (preStepLambda1 > preStepLambda) {
+-				mfpKinEnergy = e1;
+-				preStepLambda = preStepLambda1;
+-			}
+-		} else {
+-			//      preStepLambda = fFactor*theCrossSectionMax[currentCoupleIndex];
+-			preStepLambda = 3.4635;
+-		}
+-	}
+-#endif
+ }
+ 
+ // ======== Get/Set inline methods used at initialisation ================
+diff -rupN source/processes/electromagnetic/utils/src/G4VEmModel.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/src/G4VEmModel.cc
+--- source/processes/electromagnetic/utils/src/G4VEmModel.cc	2013-10-23 14:26:39.987853556 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/src/G4VEmModel.cc	2013-02-07 09:43:20.000000000 -0600
+@@ -219,20 +219,20 @@ const G4Element* G4VEmModel::SelectRando
+ 					      G4double tcut,
+ 					      G4double tmax)
+ {
+-   const G4ElementVector* theElementVector = material->GetElementVector();
+-   G4int n = material->GetNumberOfElements() - 1;
+-   fCurrentElement = (*theElementVector)[n];
+-   if (n > 0) {
+-      G4double x = G4UniformRand()*
+-      G4VEmModel::CrossSectionPerVolume(material,pd,kinEnergy,tcut,tmax);
+-      for(G4int i=0; i<n; ++i) {
+-         if (x <= xsec[i]) {
+-            fCurrentElement = (*theElementVector)[i];
+-            break;
+-         }
++  const G4ElementVector* theElementVector = material->GetElementVector();
++  G4int n = material->GetNumberOfElements() - 1;
++  fCurrentElement = (*theElementVector)[n];
++  if (n > 0) {
++    G4double x = G4UniformRand()*
++                 G4VEmModel::CrossSectionPerVolume(material,pd,kinEnergy,tcut,tmax);
++    for(G4int i=0; i<n; ++i) {
++      if (x <= xsec[i]) {
++	fCurrentElement = (*theElementVector)[i];
++	break;
+       }
+-   }
+-   return fCurrentElement;
++    }
++  }
++  return fCurrentElement;
+ }
+ 
+ //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+diff -rupN source/processes/electromagnetic/utils/src/G4VEnergyLossProcess.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/src/G4VEnergyLossProcess.cc
+--- source/processes/electromagnetic/utils/src/G4VEnergyLossProcess.cc	2013-10-23 15:09:29.957606186 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/src/G4VEnergyLossProcess.cc	2013-02-07 09:43:20.000000000 -0600
+@@ -958,8 +958,6 @@ G4double G4VEnergyLossProcess::PostStepG
+ 
+   if(!currentModel->IsActive(preStepScaledEnergy)) { return x; }
+ 
+-   // dwjang : model selection checks whether this model is applicable in the given energy range.
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   // change effective charge of an ion on fly
+   if(isIon) {
+     G4double q2 = currentModel->ChargeSquareRatio(track);
+@@ -969,15 +967,12 @@ G4double G4VEnergyLossProcess::PostStepG
+       reduceFactor = 1.0/(fFactor*massRatio);
+     }
+   }
+-#endif
+   //  if(particle->GetPDGMass() > 0.9*GeV)
+   //G4cout << "q2= " << chargeSqRatio << " massRatio= " << massRatio << G4endl; 
+   // initialisation for sampling of the interaction length 
+   //if(previousStepSize <= 0.0) { theNumberOfInteractionLengthLeft = -1.0; }
+   //if(theNumberOfInteractionLengthLeft < 0.0) { mfpKinEnergy = DBL_MAX; }
+ 
+-   // dwjang : not considering bias at this moment
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   // forced biasing only for primary particles
+   if(biasManager) {
+     if(0 == track.GetParentID()) {
+@@ -986,7 +981,6 @@ G4double G4VEnergyLossProcess::PostStepG
+       }
+     }
+   }
+-#endif
+ 
+   // compute mean free path
+   if(preStepScaledEnergy < mfpKinEnergy) {
+@@ -1473,14 +1467,8 @@ G4VParticleChange* G4VEnergyLossProcess:
+   }
+ 
+   const G4DynamicParticle* dynParticle = track.GetDynamicParticle();
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   G4double tcut = (*theCuts)[currentCoupleIndex];
+-#else
+-   // dwjang : weight = 1, tcut = 0.00099 MeV
+-   G4double tcut = 0.00099;  
+-#endif
+-   
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
++
+   // sample secondaries
+   secParticles.clear();
+   //G4cout << "Energy of primary: " << dynParticle->GetKineticEnergy()/MeV<<G4endl;
+@@ -1501,7 +1489,7 @@ G4VParticleChange* G4VEnergyLossProcess:
+       }
+     }
+   }
+-   
++
+   // save secondaries
+   G4int num = secParticles.size();
+   if(num > 0) {
+@@ -1520,10 +1508,6 @@ G4VParticleChange* G4VEnergyLossProcess:
+       }
+     }
+   }
+-#else
+-   secParticles.clear();
+-   currentModel->SampleSecondaries(&secParticles, currentCouple, dynParticle, tcut);
+-#endif
+ 
+   if(0.0 == fParticleChange.GetProposedKineticEnergy() &&
+      fAlive == fParticleChange.GetTrackStatus()) {
+diff -rupN source/processes/electromagnetic/utils/src/G4VMultipleScattering.cc ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/src/G4VMultipleScattering.cc
+--- source/processes/electromagnetic/utils/src/G4VMultipleScattering.cc	2013-10-23 15:28:06.901684802 -0500
++++ ../tmp/geant4.9.6.p01/source/processes/electromagnetic/utils/src/G4VMultipleScattering.cc	2013-02-07 09:43:20.000000000 -0600
+@@ -354,23 +354,17 @@ G4double G4VMultipleScattering::AlongSte
+   *selection = NotCandidateForSelection;
+   physStepLimit = gPathLength = tPathLength = currentMinimalStep;
+ 
+-#ifdef NO_BACKPORT_CUDA_REMOVALS
+   G4double ekin = track.GetKineticEnergy();
+   // isIon flag is used only to select a model
+   if(isIon) { 
+     ekin *= proton_mass_c2/track.GetParticleDefinition()->GetPDGMass(); 
+   }
+-
++  
+   // select new model
+   if(1 < numberOfModels) {
+     currentModel = static_cast<G4VMscModel*>(
+       SelectModel(ekin,track.GetMaterialCutsCouple()->GetIndex()));
+   }
+-#else
+-   G4double ekin = 100.;
+-   currentModel = static_cast<G4VMscModel*>(modelManager->GetModel(0));
+-#endif
+-
+ 
+   // step limit
+   if(currentModel->IsActive(ekin) && gPathLength >= geomMin 

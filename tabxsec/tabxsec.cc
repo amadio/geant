@@ -966,8 +966,8 @@ int main(int argc,char** argv)
                    ( i == 382 || i == 383 ) &&
                    p->GetProcessSubType() == 121) continue;
                 if(p->GetProcessSubType() == 151) {
-                  // Capture at rest
-                  continue;
+                  //switch on Capture at rest 
+                  //continue;
                   if(verbose > 2)
                     printf("Part [%3d] %s adding process %s [%d,%d]\n",
                            i, (const char*) particle->GetParticleName(),

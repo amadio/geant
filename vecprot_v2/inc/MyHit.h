@@ -22,6 +22,6 @@ public:
    void               Reset() {fX=0.; fY=0.; fZ=0.; fDe=0.; fVolId=0; fDetId=0;}
    void               AddHit();
    
-   ClassDef(MyHit, 1)      // User hit
+   ClassDefNV(MyHit, 1)      // User hit
 };
 #endif

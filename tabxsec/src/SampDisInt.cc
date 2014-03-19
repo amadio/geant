@@ -69,6 +69,9 @@
 #include "G4Nucleus.hh"
 #include "G4IonTable.hh"
 #include "G4HadronicProcess.hh"
+#include "G4HadronStoppingProcess.hh"
+
+#include "G4NucleiProperties.hh"
 
 #include "G4UnitsTable.hh"
 #include "G4StateManager.hh"
@@ -247,6 +250,8 @@ G4int SampleOne(G4Material* material,
   G4HadronicProcess *hadp = dynamic_cast<G4HadronicProcess*>(proc);
   G4VEmProcess *vemp = dynamic_cast<G4VEmProcess*>(proc);
   G4VRestProcess* restProc= dynamic_cast<G4VRestProcess*>(proc);
+  G4VRestDiscreteProcess* restDiscProc= dynamic_cast<G4VRestDiscreteProcess*>(proc);//e.g. decay
+  G4HadronStoppingProcess* hStoppingProc = dynamic_cast<G4HadronStoppingProcess*>(proc);
   const G4String pname = proc->GetProcessName();
   
   // Timing stuff
@@ -368,12 +373,14 @@ G4int SampleOne(G4Material* material,
   
   begin = clock();
   
-  if(restProc && e0 == 0.0) {
+  if(e0 == 0.0 && (restProc || restDiscProc)) {
     G4ForceCondition fCondition;
+    //track status must be set properly
+    gTrack->SetTrackStatus(fStopButAlive);
     // In SteppingManager::DefinePhysicalStepLength()
-    G4double physIntLength = restProc->AtRestGetPhysicalInteractionLength(
-                                                                        *gTrack,
-                                                                        &fCondition);
+    G4double physIntLength = proc->AtRestGetPhysicalInteractionLength(
+                                                                    *gTrack,
+                                                                    &fCondition);
     // -- Make it happen in time
     aChange = proc->AtRestDoIt(*gTrack,*step);
     aChange->UpdateStepForAtRest(step);
@@ -382,11 +389,15 @@ G4int SampleOne(G4Material* material,
     
     G4double  previousStepSize= 1.0;
     G4ForceCondition fCondition;
+    G4double physIntLength;
+
     // In SteppingManager::DefinePhysicalStepLength()
-    G4double physIntLength = proc->PostStepGetPhysicalInteractionLength(
-                                                                        *gTrack,
-                                                                        previousStepSize,
-                                                                        &fCondition);
+    if(proc->isPostStepDoItIsEnabled())
+    	physIntLength = proc->PostStepGetPhysicalInteractionLength(
+                                                               *gTrack,
+                                                                previousStepSize,
+                                                                &fCondition);
+
     // Ignore the proposed value - will force the interaction
     //  fCondition= Forced;
     
@@ -417,11 +428,21 @@ G4int SampleOne(G4Material* material,
          G4cerr << "      Ratio (T/T0)  = " << gTrack->GetKineticEnergy() / e0 << G4endl;
       }
     }
-    
-    // -- Make it happen at the end of the step
-    aChange = proc->PostStepDoIt(*gTrack,*step);
-    // std::cout << "SDI> PostStepDoIt: Nsec= " << aChange->GetNumberOfSecondaries() << std::endl;
-    aChange->UpdateStepForPostStep(step);
+
+    //need to do this because of the inheritance problem in G4HadronicProcess
+    if(proc->isPostStepDoItIsEnabled()){
+	// -- Make it happen at the end of the step
+    	aChange = proc->PostStepDoIt(*gTrack,*step);
+    	// std::cout << "SDI> PostStepDoIt: Nsec= " << aChange->GetNumberOfSecondaries() << std::endl;
+    	aChange->UpdateStepForPostStep(step);
+    } else if(e0 == 0.0 && proc->isAtRestDoItIsEnabled()){
+	    gTrack->SetTrackStatus(fStopButAlive);
+    	    physIntLength = proc->AtRestGetPhysicalInteractionLength(
+                                                                    *gTrack,
+                                                                    &fCondition);
+    	    aChange = proc->AtRestDoIt(*gTrack,*step);
+    	    aChange->UpdateStepForAtRest(step);
+    }    
     
   }
   step->UpdateTrack();
@@ -447,9 +468,14 @@ G4int SampleOne(G4Material* material,
       if(verbose)
         G4cout << "Process " << proc->GetProcessName() << " did not select isotope!" << G4endl;
     } else {
-      isoM = iso->GetA()/Avogadro*c_squared;
+      //--this will results in a mass in which the mass of the electron shell is 
+      // included as well. But we want the mass of the target nucleus so replace
+      // this to get it correctly. This will resolve some energy cons. violations
+      // obtained earlier.		 	
+      //isoM = iso->GetA()/Avogadro*c_squared;
       isoZ = iso->GetZ();
       isoA = iso->GetN();
+      isoM = G4NucleiProperties::GetNuclearMass(isoA, isoZ);	
       if(verbose) if((A!=isoA) || (Z!=isoZ))
         printf("Target changed. A: %d -> %d, Z: %d -> %d, M: %f -> %f (%f)\n",
                A,isoA,Z,isoZ,amass,isoM,GetNuclearMass(isoZ,isoA,verbose));
@@ -521,6 +547,9 @@ G4int SampleOne(G4Material* material,
            (const char *)pname,
            (const char *)material->GetName(),
            (const char *)name);
+    // !step->GetTrack()->GetMomentum() is a null-vector if the status is fStop...
+    // because kinetic energy of the particle is set to zero. Momentum conservation
+    // cannot be checked in these cases and will be skipped.!  	
     // we remove the life particle from the input vector to test momentum conservation
     pcons-=G4LorentzVector(step->GetTrack()->GetMomentum(),step->GetTrack()->GetTotalEnergy());
     bnum-=dpart->GetParticleDefinition()->GetBaryonNumber();
@@ -529,20 +558,26 @@ G4int SampleOne(G4Material* material,
     isurv = 1;
     psurv = step->GetTrack()->GetMomentum();
     spid = TPartIndex::I()->PartIndex(dpart->GetParticleDefinition()->GetPDGEncoding());
-    if(G4String("hadElastic") == pname){
-      
+    if(G4String("hadElastic") == pname){	
       // ----------------------------------- Trying to find out the angle in elastic ---------------------------
-      G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
-      G4double ken = gTrack->GetKineticEnergy();
-      G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
-      G4double pmo = gTrack->GetMomentum().mag();
-      if(needendl) {
-        G4cout << G4endl;
-        needendl=FALSE;
+      //--this part is meaningless if the status is not fAlive because 
+      //gTrack->GetMomentum() is a null-vector and gTrack->GetKineticEnergy() is
+      //zero if the status is fStop... . So do it only
+      if(aChange->GetTrackStatus() == fAlive)
+      {	
+       G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
+       G4double ken = gTrack->GetKineticEnergy();
+       G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
+       G4double pmo = gTrack->GetMomentum().mag();
+       if(needendl) {
+         G4cout << G4endl;
+         needendl=FALSE;
+       }
+       if(verbose) G4cout << "Elastic scattering by cosTheta "
+        << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
+        << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
       }
-      if(verbose) G4cout << "Elastic scattering by cosTheta "
-      << cost << " (" << 180*std::acos(cost)/std::acos(-1) << " deg)"
-      << " Output p " << G4LorentzVector(gTrack->GetMomentum(),gTrack->GetTotalEnergy()) << " mass " << mas << G4endl;
+
       // we add the baryon number of the target but only if there are  generated particles
       // oterwise the target will recoil and this will alter the baryon number conservation
       if(n) {
@@ -550,6 +585,7 @@ G4int SampleOne(G4Material* material,
         pcons[3]+=amass;
         porig[3]+=amass;
       }
+
     }
   }
   
@@ -567,10 +603,16 @@ G4int SampleOne(G4Material* material,
   TimingInfo(cputime,Z,dpart->GetParticleDefinition()->GetPDGEncoding(),
              proc->GetProcessType()*1000+proc->GetProcessSubType(),dpart->GetKineticEnergy(),n+isurv);
   
+  // This is ok. The particle energy drops below 'theLowestEnergy' (set to 1keV
+  // in G4HardonElasticProcess) due to recoil effect and the particle doesn't
+  // have any AtRest processes. So its kinetic energy and status are set to zero
+  // and fStopAndKill. 
+  /*
   if(G4String("hadElastic") == pname && !fs.survived) {
     G4cout << "Elastic but the particle did not survive " << tStatus[aChange->GetTrackStatus()] << G4endl;
+    	
   }
-  
+  */
   
   if(n) if((G4String("hIoni") == pname) || (G4String("ionIoni") == pname)
            || (G4String("eIoni") == pname) || (G4String("phot") == pname)
@@ -706,7 +748,9 @@ G4int SampleOne(G4Material* material,
     if((G4String("conv") != pname)                     // But not if we have conversion, momentum is not preserved
        && (G4String("PositronNuclear") != pname)          // Here we have a problem in G4
        && (G4String("ElectroNuclear") != pname)           // Another problem in G4
-       ) {
+       && !( (G4String("hadElastic") == pname) && (aChange->GetTrackStatus() != fAlive) )//post interaction momentum is lost 
+       && !hStoppingProc	//would be complicated, so skipp now	
+      ){
       G4double perr;
       G4int berr;
       G4LorentzVector ptest;
