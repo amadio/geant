@@ -2,6 +2,7 @@
 #include "GXMagneticField.h"
 #include "GPConstants.h"
 #include "GPUtils.h"
+#include "stdio.h"
 
 FQUALIFIER
 void GXChordFinder_Constructor(GXChordFinder *This,
@@ -218,6 +219,11 @@ GXChordFinder_FindNextChord( GXChordFinder *This,
         {
           stepTrial *= 0.1;
         }
+     }
+     if (noTrials > 100) {
+        printf("GPU-ERROR: too many trials (100) in GXChordFinder_FindNextChord %e %e\n",
+               stepTrial,stepMax);
+        break;
      }
      noTrials++; 
   }
