@@ -399,7 +399,7 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t t
    for (iproc=0; iproc<fNprocesses; iproc++) {
       if (fProcesses[iproc]->IsType(PhysicsProcess::kContinuous)) continue;
       procStep = td->GetProcStep(iproc);
-      fProcesses[iproc]->ComputeIntLen(td->fVolume, ntracks, tracks, procStep, tid);
+      fProcesses[iproc]->ComputeIntLen(td->fVolume->GetMaterial(), ntracks, tracks, procStep, tid);
    }
    // Loop tracks and select process
    for (Int_t i=0; i<ntracks; i++) {
