@@ -211,6 +211,8 @@ GXFieldMap **ReadFieldMap(const char *fieldMapFile)
          }
       }
       ifile.close();
+   } else {
+      Error("ReadFieldMap","Could not open the file %s\n",fieldMapFile);
    }
    return fieldMap;
 }
@@ -398,7 +400,7 @@ void setup(CoprocessorBroker *broker,
 
    //2. Read magnetic field map
    const char* fieldMapFile = getenv("GP_BFIELD_MAP");
-   fieldMapFile = (fieldMapFile) ? fieldMapFile : "cmsExp.mag.3_8T";
+   fieldMapFile = (fieldMapFile) ? fieldMapFile : "data/cmsExp.mag.3_8T";
    GXFieldMap** fieldMap = ReadFieldMap(fieldMapFile);
 
    //3. Create magnetic field on the device
