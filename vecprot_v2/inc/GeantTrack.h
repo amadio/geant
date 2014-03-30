@@ -9,12 +9,6 @@
 #include "GeantTrackStat.h"
 #endif   
 
-#ifdef __INTEL_COMPILER
-#include <immintrin.h> 
-#else
-#include "mm_malloc.h"
-#endif
-
 #ifndef ALIGN_PADDING
 #define ALIGN_PADDING 32 
 #endif

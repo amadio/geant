@@ -52,6 +52,10 @@ if(CUSTOM_ALLOCATOR)
   find_package(CAllocator)
 endif()
 
+#---------------------------------------------------------------------------
+# Include directories
+include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
+
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
@@ -59,7 +63,9 @@ add_custom_target(_headers ALL)
 
 add_subdirectory (xsec)
 add_subdirectory (tabxsec)
-add_subdirectory (vecprot)
+#add_subdirectory (vecprot)
+add_subdirectory (vecprot_v2)
+add_subdirectory (userapp)
 add_subdirectory (micromc)
 add_subdirectory (geom_vec_tests)
 
