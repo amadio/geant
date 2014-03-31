@@ -225,7 +225,7 @@ public:
    Bool_t    IsCompact() const {return fCompact;}
       
    void PrintPointers() {
-      printf("fEventV=%p fFrombdrV=%p\n",  fEventV,fFrombdrV);
+      printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }
    void PrintTrack(Int_t itr);
    void PrintTracks();
