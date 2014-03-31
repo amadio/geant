@@ -7,16 +7,14 @@
 #include <TGeoMaterial.h>
 #include <TList.h>
 
-
-#include "TPartIndex.h"
-#include "TEXsec.h"
-#include "TMXsec.h"
-#include "TEFstate.h"
-
 #define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
 
 // Singleton-like class that handles tabulated physics data loaded for the 
 // materials present in the geometry. 
+
+class TEXsec;
+class TMXsec;
+class TEFstate;
 
 class TTabPhysMgr : public TObject
 {
@@ -25,7 +23,7 @@ private:
    Int_t            fNmaterials;    // Total number of materials in the geometry	
    TEXsec         **fElemXsec;      // Array of x-section pointers per element
    TEFstate       **fElemFstate;    // Array of final state pointers per element
-   TMXsec 	      **fMatXsec;	      // Arry of x-section pointers per material	
+   TMXsec 	      **fMatXsec;	      // Array of x-section pointers per material	
    TGeoManager     *fGeom;	         // Pointer to the geometry manager   
 	
    static TTabPhysMgr *fgInstance;	    // Singleton instance
@@ -35,11 +33,12 @@ public:
    TTabPhysMgr(TGeoManager* geom, const char* xsecfilename, 
 	       const char* finalsfilename);
    ~TTabPhysMgr();
-   TTabPhysMgr* Instance(TGeoManager* geom=0, const char* xsecfilename=0, 
+   static TTabPhysMgr* Instance(TGeoManager* geom=0, const char* xsecfilename=0, 
                                    const char* finalsfilename=0);
 private:
    TTabPhysMgr(const TTabPhysMgr &);//no imp.	
    TTabPhysMgr& operator=(const TTabPhysMgr &);//no imp.
+
    ClassDef(TTabPhysMgr,1)
 };
 
