@@ -71,6 +71,7 @@ public:
     if(i<0 || i>=fNLdElems) return 0; return fElements[i];}
   
   static TEFstate *GetElement(Int_t z, Int_t a=0, TFile *f=0);
+  static TEFstate **GetElements() {return fElements;}
   
 private:
   TEFstate(const TEFstate &); // Not implemented
