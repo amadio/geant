@@ -1,5 +1,7 @@
 #include "TTabPhysMgr.h"
 
+#include "TGeoMaterial.h"
+#include "GeantTrack.h"
 #include "TBits.h"
 #include "TStopwatch.h"
 #include "TError.h"
@@ -190,5 +192,54 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename,
   printf("Memory taken by xsec and states: %ld [MB] loaded in: %g [sec]\n", mem, timer.CpuTime());
 }
 
+//______________________________________________________________________________
+void TTabPhysMgr::TransformLF(Int_t indref, GeantTrack_v &tracks, 
+                              Int_t nproducts, Int_t indprod, GeantTrack_v &output)
+{
+// Transform tracks taken from the final state from the local frame to the lab 
+// frame (LF). Not clear what parameters to add yet.
+// Input: reference track (mother) described as vector container + index of ref track
+// Input: number of tracks in the final state, start index and vector container
+// Output: roto-boosted tracks in the output vector
+}
 
+//______________________________________________________________________________
+void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
+{
+// Compute MSC angle at the beginning of the step and apply it to the vector
+// of tracks.
+// Input: material index, number of tracks in the tracks vector to be used
+// Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
+   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+}
 
+//______________________________________________________________________________
+void TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
+{
+// Apply energy loss for the input material for ntracks in the vector of 
+// tracks. Output: modified tracks.fEV array
+   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+}
+
+//______________________________________________________________________________
+void TTabPhysMgr::ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
+{
+// Sample element in the mixture (still to find where to store it), sample
+// physics process based on xsec and store it in tracks.fProcessV. Fill 
+// tracks.fPstepV
+   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+}
+
+//______________________________________________________________________________
+Int_t TTabPhysMgr::SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout)
+{
+// Sample decay for the tracks in the input vector and push the resulting tracks in 
+// the output vector. Change status of decayed tracks. Returns number of new tracks.
+}
+
+//______________________________________________________________________________
+Int_t TTabPhysMgr::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout)
+{
+// Sample interaction using the tracksin.fProcessV which is already selected
+// Store new tracks in the output vector. Returns number of new tracks.
+}

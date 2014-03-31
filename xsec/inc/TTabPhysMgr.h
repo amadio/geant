@@ -15,6 +15,8 @@
 class TEXsec;
 class TMXsec;
 class TEFstate;
+class GeantTrack_v;
+class TGeoMaterial;
 
 class TTabPhysMgr : public TObject
 {
@@ -35,6 +37,15 @@ public:
    ~TTabPhysMgr();
    static TTabPhysMgr* Instance(TGeoManager* geom=0, const char* xsecfilename=0, 
                                    const char* finalsfilename=0);
+   // Rotation+boost utility
+   void                TransformLF(Int_t indref, GeantTrack_v &tracks, 
+                              Int_t nproducts, Int_t indprod, GeantTrack_v &output);
+   // API used by particle transport
+   void                ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   void                Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   void                ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   Int_t                SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
+   Int_t               SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
 private:
    TTabPhysMgr(const TTabPhysMgr &);//no imp.	
    TTabPhysMgr& operator=(const TTabPhysMgr &);//no imp.
