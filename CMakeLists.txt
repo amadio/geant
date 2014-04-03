@@ -24,9 +24,10 @@ include_directories(${ROOT_INCLUDE_DIR})
 #----------------------------------------------------------------------------
 # Find VecGeom geometry headers library 
 #
-find_package(VecGeom REQUIRED)
-include_directories(${VECGEOM_INDLUDE_DIR})
-
+find_package(VecGeom)
+if( VECGEOM_FOUND )
+    include_directories(${VECGEOM_INCLUDE_DIR})
+endif()
 
 #----------------------------------------------------------------------------
 # Load macros
@@ -74,6 +75,6 @@ add_subdirectory (tabxsec)
 #add_subdirectory (vecprot)
 add_subdirectory (vecprot_v2)
 add_subdirectory (micromc)
-add_subdirectory (geom_vec_tests)
+#add_subdirectory (geom_vec_tests)
 add_subdirectory (test-small)
 
