@@ -22,6 +22,13 @@ find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
+# Find VecGeom geometry headers library 
+#
+find_package(VecGeom REQUIRED)
+include_directories(${VECGEOM_INDLUDE_DIR})
+
+
+#----------------------------------------------------------------------------
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
