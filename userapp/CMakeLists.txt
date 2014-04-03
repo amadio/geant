@@ -24,6 +24,7 @@ ROOT_GENERATE_DICTIONARY(G__User ${headers} LINKDEF inc/LinkDef.h)
 include_directories(${PROJECT_SOURCE_DIR}/vecprot_v2/inc)
 add_library(User SHARED ${sources} G__User.cxx ${headers} G__User.h)
 target_link_libraries(User ${ROOT_LIBRARIES} -lEG -lGeom)
+target_link_libraries(User -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
 
 add_custom_target(Userlib DEPENDS User)
 add_dependencies(Userlib Geantlib_v)
