@@ -21,5 +21,7 @@
 #pragma link C++ class ElossProcess+;
 #pragma link C++ class InteractionProcess+;
 #pragma link C++ class TabXsecProcess+;
+#pragma link C++ class MyHit+;
+#pragma link C++ class MyApplication+;
 
 #endif
