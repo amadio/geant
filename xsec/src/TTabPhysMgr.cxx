@@ -134,6 +134,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename,
    while (zel<nbits) {
       exsec = TEXsec::GetElement(zel,0,fxsec);
       fElemXsec[zel] = exsec;
+      fElemXsec[zel]-> SetIndex(zel); //for quick access to the corresponding fstate 
       estate = TEFstate::GetElement(zel,0,fstate);
       fElemFstate[zel] = estate;
       printf("   loaded xsec data and states for: %s\n", TPartIndex::I()->EleSymb(zel));
@@ -223,17 +224,18 @@ void TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = (TMXsec*)((TGeoRCExtension*)mat->GetFWExtension());
+   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
    mxs->Eloss(ntracks, tracks);
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ProposeStep(Int_t imat, Int_t /*ntracks*/, GeantTrack_v &/*tracks*/)
+void TTabPhysMgr::ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
 {
-// Sample element in the mixture (still to find where to store it), sample
-// physics process based on xsec and store it in tracks.fProcessV. Fill 
-// tracks.fPstepV
+// Sample free flight/proposed step for the firts ntracks tracks and store them 
+// in tracks.fPstepV  
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+   mxs->ProposeStep(ntracks, tracks);
 }
 
 //______________________________________________________________________________
@@ -245,9 +247,58 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
 }
 
 //______________________________________________________________________________
-Int_t TTabPhysMgr::SampleInt(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, GeantTrack_v &/*tracksout*/)
+Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout)
 {
-// Sample interaction using the tracksin.fProcessV which is already selected
-// Store new tracks in the output vector. Returns number of new tracks.
-   return 0;
+
+// 1.Sampling the element of the material for interaction based on the relative 
+// total X-secs of the elements; Sampling the type of the interaction (on the 
+// sampled element) based on the realtive total X-secs of the interactions ;
+// OUT:-indices of the TEXsec* in fElemXsec, that correspond to the sampled 
+//      elements, will be in fstateindx array (this should be in GeantTrack_v)
+//     -the G5 reaction indices will be in GeantTrack_v::fProcessV array     
+// 2.Sampling the finale states for the selected interaction and store the secondary
+// tracks in tracksout 
+// 3.after boosting+transforming them properly; 
+// 4.number of secondary trecks will be returned and original track status will 
+// be updated (survived or not) 
+
+   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+
+   //1.	
+   Int_t *fstateindx = new Int_t[ntracks];//this SHOULD BE in GeantTrack_v
+	//this array is for storing the index of the chosen element in fElemXsec
+	//that will be the index of the corresponding finale state in fElemFstate
+        //as well -> quick access 
+   mxs->SampleInt(ntracks, tracksin, fstateindx);
+
+   for(Int_t i = 0; i<ntracks;++i)
+	printf("[%d]-th Fstate element name:= %s index:= %d\n",i ,fElemXsec[fstateindx[i]]->GetTitle(), fstateindx[i]);
+
+   //2. I still ready!!!!
+   Int_t nSecPart    = 0;   //number of secondary particles per reaction
+   Int_t nTotSecPart = 0;   //total number of secondary particles in tracksout
+   const Int_t   *pid = 0;  //particle id-s for secondaries [nSecPart]
+   const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
+   Float_t  ener   = 0;	    //energy at the fstate
+   Float_t  kerma  = 0;	    //released energy
+   Float_t  weight = 0;     //weight of the fstate (just a dummy parameter now)
+   Char_t   isSurv = 0;	    //is the primary survived the interaction 	
+   
+   for(Int_t i = 0; i < ntracks; ++i){
+     isSurv = fElemFstate[fstateindx[i]]->SampleReac(tracksin.fG5codeV[i], 
+		tracksin.fProcessV[i], tracksin.fEV[i]-tracksin.fMassV[i], 
+		nSecPart, weight, kerma, ener, pid, mom);
+//	printf("[%d]-th fstate: \n\tsurvived %d \n\t#secondaries:= %d \n\tkerma:= %f \n\tenergy:= %f \n",
+//	i, isSurv, nSecPart, kerma, ener);
+//	for(Int_t j =0 ;j < nSecPart; ++j)
+//		printf("[%d]-th seconder is a %s its monetum: (%f %f %f) ",j,mom[3*j],mom[3*j+1],mom[3*j+2],
+//			TPartIndex::I()->PartName(pid[j]));
+
+   }   
+
+
+  delete fstateindx;
+  
+  return 0;
 }

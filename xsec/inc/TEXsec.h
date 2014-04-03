@@ -48,6 +48,8 @@ public:
 		    const Float_t length[], const Float_t lensig[]);
    
    Int_t Ele() const {return fEle;}
+   Int_t Index() const {return fIndex;}
+   void SetIndex(Int_t index) { fIndex = index; }
    Double_t Dens() const {return fDens;}
    Double_t Emin() const {return fEmin;}
    Double_t Emax() const {return fEmax;}
@@ -103,6 +105,7 @@ private:
    TEXsec& operator=(const TEXsec &); // Not implemented
 
    Int_t          fEle;     // Element code Z*10000+A*10+metastable level
+   Int_t	  fIndex;   // Index of this in TTabPhysMgr::fElemXsec 
    Float_t        fDens;    // Density in g/cm3
    Double_t       fAtcm3;   // Atoms per cubic cm unit density
    Double_t       fEmin;    // Minimum of the energy Grid

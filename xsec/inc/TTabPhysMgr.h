@@ -9,7 +9,7 @@
 
 #define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
 
-// Singleton-like class that handles tabulated physics data loaded for the 
+// Singleton that handles tabulated physics data loaded for the 
 // materials present in the geometry. 
 
 class TEXsec;
@@ -25,8 +25,8 @@ private:
    Int_t            fNmaterials;    // Total number of materials in the geometry	
    TEXsec         **fElemXsec;      // Array of x-section pointers per element
    TEFstate       **fElemFstate;    // Array of final state pointers per element
-   TMXsec 	      **fMatXsec;	      // Array of x-section pointers per material	
-   TGeoManager     *fGeom;	         // Pointer to the geometry manager   
+   TMXsec 	  **fMatXsec;	    // Array of x-section pointers per material	
+   TGeoManager     *fGeom;	    // Pointer to the geometry manager   
 	
    static TTabPhysMgr *fgInstance;	    // Singleton instance
 
@@ -44,8 +44,9 @@ public:
    void                ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
    void                Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
    void                ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
-   Int_t                SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
-   Int_t               SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
+   Int_t               SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
+   Int_t               SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
+
 private:
    TTabPhysMgr(const TTabPhysMgr &);//no imp.	
    TTabPhysMgr& operator=(const TTabPhysMgr &);//no imp.

@@ -222,6 +222,42 @@ Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Do
   return kTRUE;
 }
 
+//______________________________________________________________________________
+void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks){
+// Propose step for the first ntracks in the input vector of tracks and write to
+// tracks.fPstepV[]
+// -should be called only for particles with reaction (first fNPartReac particle 
+// in TPartIndex::fPDG[])
+// -we should use the thread id for RNG like:
+//   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
+//   gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+// and use the rnumbers in the loop (or even better rndArray[*]=-log(rndArray[*]))   
+// from the array instead of simple calling an RNG when we need one rnumber
+
+   Double_t 	energy,	//Ekin
+		lambda;
+   Int_t ibin, 
+	 ipart;//G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+   
+   for (Int_t i=0; i<ntracks; ++i) {
+      energy = tracks.fEV[i] - tracks.fMassV[i];
+      ipart  = tracks.fG5codeV[i];
+ 
+      energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+      energy=energy>=fEGrid[0]?energy:fEGrid[0];
+
+      ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+
+      Double_t en1 = fEGrid[ibin];
+      Double_t en2 = fEGrid[ibin+1];
+
+      Double_t xrat = (en2-energy)/(en2-en1);	
+      lambda = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1];
+      tracks.fPstepV[i] = -lambda*TMath::Log(gRandom->Rndm());
+   }
+}
+
 //____________________________________________________________________________
 Float_t TMXsec::DEdx(Int_t part, Float_t en) {
   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx)
@@ -349,6 +385,73 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
       }
       reac = fElems[iel]->SampleReac(part,en);
       return fElems[iel];
+   }
+}
+
+//____________________________________________________________________________
+void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t fstateindx[]){
+
+// -should be called only for particles with reaction (first fNPartReac particle 
+// in TPartIndex::fPDG[])
+// -we should use the thread id for RNG like:
+//   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
+//   gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+// and use the rnumbers in the loop (or even better rndArray[*]=-log(rndArray[*]))   
+// from the array instead of simple calling an RNG when we need one rnumber
+
+   Double_t energy;	//Ekin
+   Int_t ibin, 
+	 ipart;		//G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+
+   for (Int_t t=0; t<ntracks; ++t) {
+      energy = tracksin.fEV[t] - tracksin.fMassV[t];
+      ipart  = tracksin.fG5codeV[t];
+
+      energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+      energy=energy>=fEGrid[0]?energy:fEGrid[0];
+
+      ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+
+      Double_t en1 = fEGrid[ibin];
+      Double_t en2 = fEGrid[ibin+1];
+
+//1.
+      // this material/mixture (TMXsec object) is composed of fNElems elements	 	
+      Int_t iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this 		 
+      if(fNElems==1) {
+	 iel=0;
+      } else { //sampling one element based on the elemntal realtive X-secs that
+	       //have been normalized in CTR at the Ebins!; energy interp. is 
+	       //included now-> while loop is to avoid problems from interp. 
+	 Double_t xrat = (en2-energy)/(en2-en1);
+	 Double_t xnorm = 1.;
+	 while(iel<0) {
+	    Double_t ran = xnorm*gRandom->Rndm();
+	    Double_t xsum=0;
+	    for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
+	       xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
+	       if(ran<=xsum) {
+		  iel = i;
+		  break;
+	       }
+	    }
+	    xnorm = xsum;
+	 }
+      }
+      //at this point the index of the element is sampled:= iel
+      //the corresponding TEXsec* is fElems[iel] 
+
+      //sample the reaction by using the TEXsec* that corresponds to the iel-th
+      //element i.e. fElems[iel] for the current particle (with particle index of
+      //ipart) at the current energy; will retrun with the reaction index;
+      tracksin.fProcessV[t]=fElems[iel]->SampleReac(ipart,energy); 	 
+      fstateindx[t] = fElems[iel]->Index();//fstateindx SHOULD BE IN GeantTrack_v es Int_t array 
+      
+      //INFO:
+      printf("[%d]-th partcile is %s with Ekin of %f in %s :: %s happens on %s.\n",
+       t, TPartIndex::I()->PartName(ipart), energy, this->GetName(), 
+       TPartIndex::I()->ProcName(tracksin.fProcessV[t]),fElems[iel]->GetName() );	
    }
 }
 
