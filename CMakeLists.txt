@@ -62,4 +62,5 @@ add_subdirectory (tabxsec)
 add_subdirectory (vecprot)
 add_subdirectory (micromc)
 add_subdirectory (geom_vec_tests)
+add_subdirectory (test-small)
 

@@ -1,12 +1,13 @@
 #----------------------------------------------------------------------------
+# Setup the project
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+project(N03)
+
+#----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
 # to build a batch mode only executable
 #
-
-# Before we use Geant4 we save all previous definitions, otherwise we will completely
-# pollute the compilation environment
-
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 if(WITH_GEANT4_UIVIS)
   find_package(Geant4 REQUIRED ui_all vis_all)
@@ -14,26 +15,18 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
-
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
-# Setup include directory for this project
 #
 include(${Geant4_USE_FILE})
 
-if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-# Difficult call... sanitize compiler flags in case G4 has been built with Clang 
-  STRING(REPLACE "-Qunused-arguments" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-endif()
-
-include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
-
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
-# NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources src/*.cc src/*.c src/*.cxx)
-file(GLOB headers inc/*.hh src/*.h)
+include_directories(${PROJECT_SOURCE_DIR}/include 
+                    ${Geant4_INCLUDE_DIR})
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
 get_property(G4_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}")
@@ -60,31 +53,22 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(tabxsec tabxsec.cc ${sources} ${headers})
-target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
-add_dependencies(tabxsec xseclib)
+add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
+target_link_libraries(exampleN03 ${Geant4_LIBRARIES} )
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
-# build tabxsec. This is so that we can run the executable directly because it
+# build N03. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
-
-set(_macros ${CMAKE_CURRENT_SOURCE_DIR}/macros)
-
-set(TABXSEC_SCRIPTS
-  ${_macros}/tabxsec.in
-  ${_macros}/tabxsec.out
-  ${_macros}/init.mac
-  ${_macros}/init_vis.mac
-  ${_macros}/run1.mac
-  ${_macros}/run2.mac
-  ${_macros}/vis.mac
+set(N03_SCRIPTS
+    exampleN03.in exampleN03.large_N.in exampleN03.out exo1.mac exo2.mac gui.mac newgeom.mac rndmSeed.mac run1.mac run2.mac vis.mac icons.mac
+    visTutor/exN03Tree0.mac visTutor/exN03Vis12.loop visTutor/exN03Vis12.mac visTutor/exN03Vis13.loop visTutor/exN03Vis13.mac visTutor/exN03Vis5.mac visTutor/g4Xt.xrm visTutor/heprep.mac
   )
 
-foreach(_script ${TABXSEC_SCRIPTS})
+foreach(_script ${N03_SCRIPTS})
   configure_file(
-    ${_script}
+    ${PROJECT_SOURCE_DIR}/${_script}
     ${PROJECT_BINARY_DIR}/${_script}
     COPYONLY
     )
@@ -94,4 +78,10 @@ endforeach()
 # Add program to the project targets
 # (this avoids the need of typing the program name after make)
 #
-add_custom_target(ExtracXS DEPENDS tabxsec)
+add_custom_target(N03 DEPENDS exampleN03)
+
+#----------------------------------------------------------------------------
+# Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
+#
+install(TARGETS exampleN03 DESTINATION bin)
+
