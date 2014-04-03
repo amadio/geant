@@ -57,6 +57,13 @@ ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 #
+
+#----------------------------------------------------------------------------
+# CUSTOMIZE COMPILATION IF VECGEOM IS USED
+if( VECGEOM_FOUND )
+  add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
+endif()
+
 add_library(Geant_v SHARED ${sources} G__Geant.cxx ${headers} G__Geant.h)
 target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom)
 

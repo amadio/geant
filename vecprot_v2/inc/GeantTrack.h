@@ -13,7 +13,14 @@
 #define ALIGN_PADDING 32 
 #endif
 
+#if USE_VECGEOM_NAVIGATOR == 1
+class NavigationState;
+typedef NavigationState VolumePath_t;
+#else
 class TGeoBranchArray;
+typedef TGeoBranchArray VolumePath_t;
+#endif
+
 
 const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
@@ -57,8 +64,9 @@ public:
    Double_t fSafety;    // safe distance to any boundary
    Bool_t   fFrombdr;   // true if starting from boundary
    Bool_t   fPending;
-   TGeoBranchArray *fPath; // path for this particle in the geometry
-   TGeoBranchArray *fNextpath; // path for next volume
+
+   VolumePath_t *fPath;
+   VolumePath_t *fNextpath;
    
 public:
    GeantTrack();
@@ -81,8 +89,8 @@ public:
    Int_t              G5code() const {return fG5code;}
    Double_t           Gamma() const {return fMass?fE/fMass:TMath::Limits<double>::Max();}
    Double_t           GetPstep() const {return fPstep;}
-   TGeoBranchArray   *GetPath() const {return fPath;}
-   TGeoBranchArray   *GetNextPath() const {return fNextpath;}
+   VolumePath_t*      GetPath() const {return fPath;}
+   VolumePath_t*	  GetNextPath() const {return fNextpath;}
    Int_t              GetNsteps() const {return fNsteps;}
    Double_t           GetStep() const {return fStep;}
    Double_t           GetSnext() const {return fSnext;}
@@ -137,8 +145,9 @@ public:
    void               SetSafety(Double_t safety) {fSafety = safety;}
    void               SetFrombdr(Bool_t flag) {fFrombdr = flag;}
    void               SetPending(Bool_t flag) {fPending = flag;}
-   void               SetPath(TGeoBranchArray *path);
-   void               SetNextPath(TGeoBranchArray *path);
+
+   void               SetPath(VolumePath_t *path);
+   void               SetNextPath(VolumePath_t *path);
    
    ClassDef(GeantTrack, 1)      // The track
 };
@@ -185,8 +194,10 @@ public:
    Double_t *fSafetyV;     // safe distances to any boundary
    Bool_t   *fFrombdrV;     // true if starting from boundary
    Bool_t   *fPendingV;
-   TGeoBranchArray **fPathV; // paths for the particles in the geometry
-   TGeoBranchArray **fNextpathV; // paths for next volumes
+
+
+   VolumePath_t **fPathV; // paths for the particles in the geometry
+   VolumePath_t **fNextpathV; // paths for next volumes
 
    void AssignInBuffer(const char *buff, Int_t size);
    void CopyToBuffer(const char *buff, Int_t size);
@@ -230,13 +241,17 @@ public:
    void PrintTrack(Int_t itr);
    void PrintTracks();
    
+
+
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
-                       TGeoBranchArray **pathin, TGeoBranchArray **pathout, 
+                       VolumePath_t **pathin, VolumePath_t **pathout,
                        Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk);
-   void      NavIsSameLocation(Int_t ntracks, TGeoBranchArray **start, TGeoBranchArray **end, Bool_t *same);
-   Bool_t    NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start, TGeoBranchArray **end);
+   void      NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
+   Bool_t    NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end);
+
+
    TransportAction_t PostponedAction() const;
    Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
    Int_t     PostponeTracks(GeantTrack_v &output);
@@ -247,7 +262,7 @@ public:
    void      ComputeTransportLengthSingle(Int_t itr);
    void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep);
    void      PropagateInVolumeSingle(Int_t i, Double_t crtstep);
-   Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
+   Int_t     PropagateStraight(Int_t ntracks, Double_t const *crtstep);
    Int_t     PropagateTracks(GeantTrack_v &output);
    Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage);
    
