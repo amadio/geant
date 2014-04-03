@@ -22,5 +22,5 @@ G__*.h
 lib
 bin
 build
-include
+/include
 
