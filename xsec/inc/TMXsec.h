@@ -24,6 +24,7 @@
 
 #include <TNamed.h>
 #include <TEXsec.h>
+class GeantTrack_v;
 
 class TMXsec : public TNamed {
 
@@ -37,6 +38,7 @@ public:
    Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
    Float_t DEdx(Int_t part, Float_t en);
    Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
+   void    Eloss(Int_t ntracks, GeantTrack_v &tracks);
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
    static Bool_t Prune();
    void Print(Option_t * opt="") const;

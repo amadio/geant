@@ -13,7 +13,6 @@
 #include "TRandom.h"
 #include "globals.h"
 #include "GeantTrack.h"
-#include "TGeoVolume.h"
 #include "TGeoMedium.h"
 #include "TGeoMaterial.h"
 #include "TGeoMatrix.h"
@@ -24,9 +23,41 @@
 
 ClassImp(PhysicsProcess)
 ClassImp(ScatteringProcess)
+ClassImp(TabXsecProcess)
 
 //______________________________________________________________________________
-void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, 
+void TabXsecProcess::ComputeIntLen(TGeoMaterial *mat, 
+                                      Int_t ntracks, 
+                                      const GeantTrack_v &tracks,
+                                      Double_t *lengths, 
+                                      Int_t tid)
+{
+// Tabulated cross section generic process computation of interaction length.
+}                                      
+
+//______________________________________________________________________________
+void TabXsecProcess::PostStep(TGeoMaterial *mat,
+                                 Int_t ntracks,
+                                 GeantTrack_v &tracks, 
+                                 Int_t &nout, 
+                                 Int_t tid)
+{
+// Do post-step actions on particle after generic tabxsec process. 
+// Surviving tracks copied in trackout.
+}
+
+//______________________________________________________________________________
+void TabXsecProcess::AtRest(Int_t ntracks,
+                                 GeantTrack_v &tracks, 
+                                 Int_t &nout, 
+                                 Int_t tid)
+{
+// Do at rest actions on particle after generic tabxsec process. 
+// Daughter tracks copied in trackout.
+}
+
+//______________________________________________________________________________
+void ScatteringProcess::ComputeIntLen(TGeoMaterial *mat, 
                                       Int_t ntracks, 
                                       const GeantTrack_v &tracks,
                                       Double_t *lengths, 
@@ -40,7 +71,6 @@ void ScatteringProcess::ComputeIntLen(TGeoVolume *vol,
    const Double_t kC1 = 500.;
    const Double_t xlen = TMath::Limits<double>::Max();
    Double_t density = 1.e-5;
-   TGeoMaterial *mat = vol->GetMaterial();
    if (mat) density = mat->GetDensity();
    density = TMath::Max(density, 1.E-3);
    // Make sure we write in the thread space for the current basket
@@ -55,7 +85,7 @@ void ScatteringProcess::ComputeIntLen(TGeoVolume *vol,
 }
 
 //______________________________________________________________________________
-void ScatteringProcess::PostStep(TGeoVolume *vol,
+void ScatteringProcess::PostStep(TGeoMaterial *mat,
                                  Int_t ntracks,
                                  GeantTrack_v &tracks, 
                                  Int_t &nout, 
@@ -102,7 +132,7 @@ void ScatteringProcess::PostStep(TGeoVolume *vol,
 ClassImp(ElossProcess)
 
 //______________________________________________________________________________
-void ElossProcess::ComputeIntLen(TGeoVolume *vol, 
+void ElossProcess::ComputeIntLen(TGeoMaterial *mat, 
                                  Int_t ntracks, 
                                  const GeantTrack_v &tracks,
                                  Double_t *lengths, 
@@ -111,7 +141,6 @@ void ElossProcess::ComputeIntLen(TGeoVolume *vol,
 // Energy loss process. Continuous process. Compute step limit for losing
 // maximum dw per step.
    const Double_t dw = 1.E-3;  // 1 MEV
-   TGeoMaterial *mat = vol->GetMaterial();
    Double_t mata = mat->GetA();
    Double_t matz = mat->GetZ();
    Double_t matr = mat->GetDensity();
@@ -129,7 +158,7 @@ void ElossProcess::ComputeIntLen(TGeoVolume *vol,
 }
 
 //______________________________________________________________________________
-void ElossProcess::PostStep(TGeoVolume *vol,
+void ElossProcess::PostStep(TGeoMaterial *mat,
                                  Int_t ntracks,
                                  GeantTrack_v &tracks, 
                                  Int_t &nout, 
@@ -137,7 +166,6 @@ void ElossProcess::PostStep(TGeoVolume *vol,
 {
 // Do post-step actions after energy loss process. 
    Double_t eloss, dedx;
-   TGeoMaterial *mat = vol->GetMaterial();
    Double_t mata = mat->GetA();
    Double_t matz = mat->GetZ();
    Double_t matr = mat->GetDensity();
@@ -253,7 +281,7 @@ InteractionProcess::~InteractionProcess()
 }   
 
 //______________________________________________________________________________
-void InteractionProcess::ComputeIntLen(TGeoVolume *vol, 
+void InteractionProcess::ComputeIntLen(TGeoMaterial *mat, 
                                  Int_t ntracks, 
                                  const GeantTrack_v &tracks,
                                  Double_t *lengths, 
@@ -262,7 +290,6 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
    Double_t fact = 1.0E-10;
    const Double_t nabarn = fact*TMath::Na()*1e-24;
    Double_t xlen = TMath::Limits<double>::Max();
-   TGeoMaterial *mat = vol->GetMaterial();
    Double_t mata = mat->GetA();
    Double_t matz = mat->GetZ();
    Double_t matr = mat->GetDensity();
@@ -288,7 +315,7 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol,
 }
 
 //______________________________________________________________________________
-void InteractionProcess::PostStep(TGeoVolume *vol,
+void InteractionProcess::PostStep(TGeoMaterial *mat,
                                  Int_t ntracks,
                                  GeantTrack_v &tracks, 
                                  Int_t &nout, 
@@ -316,7 +343,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol,
       }   
       Double_t en = tracks.fEV[i];
       Double_t m1 = tracks.fMassV[i];
-      Double_t m2 = vol->GetMaterial()->GetA();
+      Double_t m2 = mat->GetA();
       Double_t cmsen = TMath::Sqrt(m1*m1+m2*m2+2*en*m2)-m1-m2;
       // Calculate the number of pions as a poisson distribution leaving half of the cms energy
       // for phase space momentum

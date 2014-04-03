@@ -32,6 +32,7 @@ include(cmake/modules/GeantMacros.cmake)
 get_property(GEANT5_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
 get_property(GEANT5_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
 set(GEANT5_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG               "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2")
 set(GEANT5_CXX_NOW_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
 set(GEANT5_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}")
 set(GEANT5_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -52,6 +53,10 @@ if(CUSTOM_ALLOCATOR)
   find_package(CAllocator)
 endif()
 
+#---------------------------------------------------------------------------
+# Include directories
+include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
+
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
@@ -59,7 +64,9 @@ add_custom_target(_headers ALL)
 
 add_subdirectory (xsec)
 add_subdirectory (tabxsec)
-add_subdirectory (vecprot)
+#add_subdirectory (vecprot)
+add_subdirectory (vecprot_v2)
 add_subdirectory (micromc)
 add_subdirectory (geom_vec_tests)
+add_subdirectory (test-small)
 

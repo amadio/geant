@@ -387,7 +387,7 @@ void *WorkloadManager::TransportTracks(void *)
 //   const Int_t max_idle = 1;
 //   Int_t indmin, indmax;
    static Int_t counter=0;
-   Int_t ntotnext; // , ncross;
+   Int_t ntotnext, ncross;
    Int_t ntotransport;
    Int_t generation = 0;
    GeantBasket *basket = 0;
@@ -395,7 +395,6 @@ void *WorkloadManager::TransportTracks(void *)
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
-   //GeantScheduler *sch = wm->GetScheduler();
    Int_t nprocesses = propagator->fNprocesses;
    Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -414,6 +413,7 @@ void *WorkloadManager::TransportTracks(void *)
       if (!basket) break;
       counter++;
 #ifdef __STAT_DEBUG
+      GeantScheduler *sch = wm->GetScheduler();
       sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
       sch->GetTransportStat().AddTracks(basket->GetInputTracks());
 #endif         
@@ -453,7 +453,7 @@ void *WorkloadManager::TransportTracks(void *)
          // Interrupt condition here. Work stealing could be also implemented here...
          generation++;
          // Propagate all remaining tracks
-         //ncross += input.PropagateTracks(output);
+         ncross += input.PropagateTracks(output);
          ntotransport = input.GetNtracks();
       }
       // All tracks are now in the output track vector. Possible statuses:
@@ -469,7 +469,7 @@ void *WorkloadManager::TransportTracks(void *)
          for (Int_t iproc=0; iproc<nprocesses; iproc++) {
             if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) {
                Int_t nafter = 0;
-               gPropagator->Process(iproc)->PostStep(td->fVolume, output.GetNtracks(), output, nafter, tid);
+               gPropagator->Process(iproc)->PostStep(td->fVolume->GetMaterial(), output.GetNtracks(), output, nafter, tid);
                // Now we may also have particles killed by energy threshold
             }   
          }      
@@ -486,7 +486,7 @@ void *WorkloadManager::TransportTracks(void *)
 //               propagator->SelectTracksForProcess(iproc, ntotransport, particles, ntodo, parttodo);
                // Do post step actions for particles suffering a given process.
                // Surviving particles are added to the output array
-               propagator->Process(iproc)->PostStep(td->fVolume, nphys, output, ntotnext, tid);
+               propagator->Process(iproc)->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
             }
          }
       }

@@ -42,9 +42,12 @@ set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_MINISIZEREL    "
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "${CMAKE_EXE_LINKER_FLAGS}")
-set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS}")
-# If the Geant4 10.0+ release is MT-capable, please substitute the line below for the one above
-#et_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS} -DG4MULTITHREADED")
+
+if (Geant4_VERSION_MAJOR LESS 10)
+   set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS}")
+else()
+   set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS} -DG4MULTITHREADED")
+endif()
 
 set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
 set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_NOW_FLAGS}")
