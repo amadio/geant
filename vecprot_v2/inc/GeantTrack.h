@@ -9,12 +9,6 @@
 #include "GeantTrackStat.h"
 #endif   
 
-#ifdef __INTEL_COMPILER
-#include <immintrin.h> 
-#else
-#include "mm_malloc.h"
-#endif
-
 #ifndef ALIGN_PADDING
 #define ALIGN_PADDING 32 
 #endif
@@ -231,7 +225,7 @@ public:
    Bool_t    IsCompact() const {return fCompact;}
       
    void PrintPointers() {
-      printf("fEventV=%p fFrombdrV=%p\n",  fEventV,fFrombdrV);
+      printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }
    void PrintTrack(Int_t itr);
    void PrintTracks();

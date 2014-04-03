@@ -96,6 +96,7 @@ public:
       if(i<0 || i>=fNLdElems) return 0; return fElements[i];}
 
    static TEXsec *GetElement(Int_t z, Int_t a=0, TFile *f=0);
+   static TEXsec **GetElements() {return fElements;}
 
 private:
    TEXsec(const TEXsec &); // Not implemented

@@ -7,8 +7,11 @@ void run(Int_t nthreads=4, Bool_t graphics=kFALSE,
    gSystem->Load("libThread.so");
    gSystem->Load("libGeom.so");
    gSystem->Load("libVMC.so");
-   gSystem->Load("libGeant.so");
-   gSystem->Load("libUser.so");   
+   if (gSystem->Load("libGeant.so")<0 ||
+       gSystem->Load("libUser.so")<0) {
+      gSystem->Load("../lib/libGeant_v.so");
+      gSystem->Load("../lib/libUser.so");
+   }
 
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events

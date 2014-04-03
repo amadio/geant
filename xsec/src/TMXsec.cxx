@@ -2,6 +2,7 @@
 #include "TPartIndex.h"
 #include "TMath.h"
 #include "TRandom.h"
+#include "GeantTrack.h"
 
 ClassImp(TMXsec)
 
@@ -274,6 +275,38 @@ Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float
   }
   return kTRUE;
 }
+
+
+//____________________________________________________________________________
+void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
+{
+// Compute energy loss for the first ntracks in the input vector and update
+// tracks.fEV and tracks.fPV
+   Double_t energy, dedx;
+   Int_t ibin, ipart;
+   for (Int_t i=0; i<ntracks; ++i) {
+      energy = tracks.fEV[i] - tracks.fMassV[i]; // tabulated on total or kinetic?
+      ipart = tracks.fG5codeV[i];
+      if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins];
+      else if (energy>=fEGrid[fNEbins-1]) dedx = fDEdx[ipart*fNEbins+fNEbins-1]; 
+      else {
+         ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+         ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+         Double_t en1 = fEGrid[ibin];
+         Double_t en2 = fEGrid[ibin+1];
+         Double_t xrat = (en2-energy)/(en2-en1);
+         dedx = xrat*fDEdx[ipart*fNEbins+ibin]+(1-xrat)*fDEdx[ipart*fNEbins+ibin+1];
+         // Update energy and momentum
+         Double_t gammaold = tracks.Gamma(i);
+         Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
+         tracks.fEV[i] -= tracks.fStepV[i]*dedx;
+         Double_t gammanew = tracks.Gamma(i);
+         Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
+         Double_t pnorm = bgnew/bgold;
+         tracks.fPV[i] *= pnorm;
+      }
+   }
+}   
 
 //____________________________________________________________________________
 TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
