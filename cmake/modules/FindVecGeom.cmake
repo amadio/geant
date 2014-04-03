@@ -9,7 +9,7 @@
 # look if an environment variable VCROOT exists
 set(VECGEOMROOT $ENV{VECGEOMROOT})
 
-message(${VECGEOMROOT})
+message(STATUS ${VECGEOMROOT})
 
 find_library(VECGEOM_LIBRARIES libvecgeom_cpp.a PATHS ${VECGEOMROOT}/lib)
 if (VECGEOM_LIBRARIES) 
@@ -21,7 +21,7 @@ if (VECGEOM_LIBRARIES)
    message(STATUS "VECGEOM_INCLUDE_DIR = ${VECGEOM_INCLUDE_DIR}")
    message(STATUS "VECGEOM_LIBRARY_DIR = ${VECGEOM_LIBRARY_DIR}")
 else()
-   message(STATUS "VecGeom library not found; try to set a VECGEOM environment variable to the base installation path or add -DVECGEOM = to the cmake command")	
+   message(STATUS "VecGeom library not found; try to set a VECGEOMROOT environment variable to the base   installation path or add -DVECGEOMROOT = to the cmake command")	
 endif()
 
 
