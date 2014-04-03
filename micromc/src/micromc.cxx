@@ -108,10 +108,10 @@ Int_t main (int argc, char *argv[]) {
       while(hwmark) {
 	 GeantTrack *track = &particleStack[--hwmark];
 	 printf("Transporting particle #%d %s energy %g\n",hwmark+1,
-		TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName(),
-		track->e-track->mass);
-	 Double_t pos[3] = {track->xpos,track->ypos,track->zpos};
-	 Double_t dir[3] = {track->px,track->py,track->pz};
+		TDatabasePDG::Instance()->GetParticle(track->fPDG)->GetName(),
+		track->fE-track->fMass);
+	 Double_t pos[3] = {track->fXpos,track->fYpos,track->fZpos};
+	 Double_t dir[3] = {track->fXdir,track->fYdir,track->fZdir};
 	 TGeoNode *current = geom->InitTrack(pos,dir);
 	 Double_t pintl = -TMath::Log(gRandom->Rndm());
 	 printf("Initial point %f %f %f in %s\n",pos[0],pos[1],pos[2],current->GetName());
@@ -120,7 +120,7 @@ Int_t main (int argc, char *argv[]) {
 	    const Double_t *cpos = geom->GetCurrentPoint();
 	    printf("Point now %f %f %f in %s made of %s\n",cpos[0],cpos[1],cpos[2],
 		   current->GetName(),current->GetVolume()->GetMaterial()->GetName());
-	    Double_t ken = track->e-track->mass;
+	    Double_t ken = track->fE-track->fMass;
 	    TMXsec *mx = ((TMXsec *)
 			  ((TGeoRCExtension*) 
 			   mat->GetFWExtension())->GetUserObject());
@@ -209,31 +209,32 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
       for(Int_t j=0; j<kMaxPart; ++j) {
 	 if(prob <= G5prob[j]) {
 	    track->fG5code = G5part[j];
-	    track->pdg = TPartIndex::I()->PDG(G5part[j]);
-	    track->species = G5species[j];
-	    printf("Generating a %s\n",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
+	    track->fPDG = TPartIndex::I()->PDG(G5part[j]);
+	    track->fSpecies = G5species[j];
+	    printf("Generating a %s\n",TDatabasePDG::Instance()->GetParticle(track->fPDG)->GetName());
 	    //	    pdgCount[j]++;
 	    break;
 	 }
       }   
-      if(!track->pdg) Fatal("ImportTracks","No particle generated!");
-      TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track->pdg);
-      track->charge = part->Charge()/3.;
-      track->mass   = part->Mass();
-      track->xpos = fVertex[0];
-      track->ypos = fVertex[1];
-      track->zpos = fVertex[2];
+      if(!track->fPDG) Fatal("ImportTracks","No particle generated!");
+      TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track->fPDG);
+      track->fCharge = part->Charge()/3.;
+      track->fMass   = part->Mass();
+      track->fXpos = fVertex[0];
+      track->fYpos = fVertex[1];
+      track->fZpos = fVertex[2];
       Double_t ekin = SampleMaxwell(energy/avemult);
-      track->e = ekin+track->mass;
-      Double_t p = TMath::Sqrt(ekin*(2*ekin+track->mass));
+      track->fE = ekin+track->fMass;
+      Double_t p = TMath::Sqrt(ekin*(2*ekin+track->fMass));
       Double_t eta = gRandom->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
       Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
       //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
       Double_t phi = TMath::TwoPi()*gRandom->Rndm();
-      track->px = p*TMath::Sin(theta)*TMath::Cos(phi);
-      track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
-      track->pz = p*TMath::Cos(theta);
-      track->frombdr = kFALSE;
+      track->fP = p;
+      track->fXdir = TMath::Sin(theta)*TMath::Cos(phi);
+      track->fYdir = TMath::Sin(theta)*TMath::Sin(phi);
+      track->fZdir = TMath::Cos(theta);
+      track->fFrombdr = kFALSE;
    }
 //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
 }

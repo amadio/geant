@@ -107,7 +107,6 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    gSystem->Load("libGeom.so");
    gSystem->Load("libVMC.so");
    gSystem->Load("libGeant.so");
-   gSystem->Load("libUser.so");   
    gSystem->Load("libGeantCuda.so");
 
    Int_t ntotal   = 20;  // Number of events to be transported
