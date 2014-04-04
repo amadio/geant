@@ -146,9 +146,21 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Int_t npart[], const Float_t
   delete [] fMom;
   fMom = new Float_t[fNMom];
   memcpy(fMom,mom,fNMom*sizeof(Float_t));
+
+  NormFinSateWeights();
   
   return kTRUE;
 }
+
+//_________________________________________________________________________
+void TFinState::NormFinSateWeights(){
+  for(Int_t j=0; j<fNFstates; ++j) {
+    if(j) fWeight[j]+=fWeight[j-1];
+  }
+
+  Double_t wnorm = 1/fWeight[fNFstates-1];
+  for(Int_t j=0; j<fNFstates; ++j) fWeight[j]*=wnorm; 
+} 
 
 //_________________________________________________________________________
 Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
