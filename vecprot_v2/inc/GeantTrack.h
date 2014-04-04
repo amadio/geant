@@ -13,9 +13,10 @@
 #define ALIGN_PADDING 32 
 #endif
 
-#if USE_VECGEOM_NAVIGATOR == 1
-class NavigationState;
-typedef NavigationState VolumePath_t;
+#ifdef USE_VECGEOM_NAVIGATOR
+namespace vecgeom {
+class NavigationState; }
+typedef vecgeom::NavigationState VolumePath_t;
 #else
 class TGeoBranchArray;
 typedef TGeoBranchArray VolumePath_t;
