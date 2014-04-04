@@ -39,6 +39,7 @@ TGListBox           *TEXsec::fParticleBox=0;
 //___________________________________________________________________
 TEXsec::TEXsec():
 fEle(0),
+fIndex(-1),
 fDens(0),
 fAtcm3(0),
 fEmin(0),
@@ -55,6 +56,7 @@ fPXsec(0)
 TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np):
 TNamed(TPartIndex::I()->EleSymb(z),TPartIndex::I()->EleName(z)),
 fEle(z*10000+a*10),
+fIndex(-1),
 fDens(dens),
 fAtcm3(fDens*TMath::Na()*1e-24/TPartIndex::I()->WEle(z)),
 fEmin(TPartIndex::I()->Emin()),
