@@ -39,8 +39,10 @@ public:
   
   Bool_t SetFinState(Int_t nfstates, const Int_t npart[], const Float_t weight[], const Float_t kerma[],
                      const Float_t en[], const Char_t surv[], const Int_t pid[], const Float_t mom[]);
+  Bool_t SetFinState(const TFinState &right);
   void NormFinSateWeights();
-  
+  Int_t GetNsecs() const {return fNsecs;}
+
   Bool_t Prune() {return kTRUE;}
   Bool_t SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en, const Int_t *&pid,
                     const Float_t *&mom) const;

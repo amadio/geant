@@ -390,7 +390,7 @@ int main(int argc,char** argv)
       G4int npreac = 0;
       G4int npchar = 0;
       G4int ntotproc = 0;
-      
+
       // Loop over all the particles defined by G4 in order to add them
       // to the PDG database table
 
@@ -990,7 +990,6 @@ int main(int argc,char** argv)
                   delete dp;
                   //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j); vecfs[nbins*nprxs+j].Print();
                 } else {
-                  
                   // Hadronic interaction -- just store x-sec
                   if(verbose > 2)
                     printf("Mat %s Part [%3d] %s adding process %s [%d,%d]\n",
@@ -1365,6 +1364,9 @@ int main(int argc,char** argv)
               }
               mfstate->AddPart(partindex, pPDG[partindex], nsample, nprxs, pdic,newvfs);
               // Set to 0 the pointer to vecfs because now it is owned by the class
+
+              if(rcaptfs[partindex].GetNsecs())
+                mfstate->SetRestCaptFstate(partindex,rcaptfs[partindex]);
             }
           } // end of "if we have processes" for this particle
           if(nsample) delete [] vecfs;
