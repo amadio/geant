@@ -1162,10 +1162,12 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start,
 void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
 {
 // This method is to be called after a successful crossing made by PropagateInField
-// to put the particle at the entry point.
+// to put the particle at the volume entry point (the track curvature may
+// produce a boundary crossing macroscopically different than the expected one.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    // Put the navigation to the propagation location stored as next path
    fNextpathV[itr]->UpdateNavigator(nav);
+   // Backup the starting node location
    TGeoNode *checked = nav->GetCurrentNode();
    TGeoVolume *vol = checked->GetVolume();
    Double_t dir[3], ldir[3], ld[3];
@@ -1174,8 +1176,16 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
    Bool_t outside = fNextpathV[itr]->IsOutside();
    // Swap track direction and compute distance back to boundary
    dir[0] = -fXdirV[itr]; dir[1] = -fYdirV[itr]; dir[2] = -fZdirV[itr];
+   // Backup current depth in the hierarchy
    Int_t level = nav->GetLevel();
    Bool_t entering = kTRUE;
+   // We need to check if:
+   // 1. the track exited to a mother volume, in which case fNextpath should be
+   // "contained" in fPath
+   // - e.g. path = /a/b/c/d   nextpath = /a/b/c
+   // 2. the track is entering a volume that did not contained the point before
+   // crossing - in which case path and nextpath should diverge at a
+   // level<current level
    if (level < fPathV[itr]->GetLevel() && !outside) {
       for (Int_t lev=0; lev<=level; lev++) {
          if (fNextpathV[itr]->GetNode(lev) != fPathV[itr]->GetNode(lev)) break;
@@ -1184,8 +1194,11 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
    }   
    Double_t pos[3];
    pos[0] = fXposV[itr]; pos[1] = fYposV[itr]; pos[2] = fZposV[itr];
+   // Convert to local frame
    fNextpathV[itr]->GetMatrix()->MasterToLocal(pos,local);
    fNextpathV[itr]->GetMatrix()->MasterToLocalVect(dir, ldir);
+   // Depending if we enter or exit, we have to call the appropriate DistTo
+   // method
    if (entering) {
       if (outside) delta = vol->GetShape()->DistFromOutside(local,ldir,3);
       else         delta = vol->GetShape()->DistFromInside(local,ldir,3);
@@ -1202,6 +1215,8 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
    }   
 */
    if (delta>crtstep) {
+   // This signals sort of an error since the back propagation is larger than
+  // the last step made for crossing the boundary
 /*
       if (useDebug && (debugTrk<0 || itr==debugTrk)) {
          if (entering) Printf("   field-> track %d entering %s  at (%19.15f, %19.15f, %19.15f) crtstep=%19.15f delta=%19.15f", itr, vol->GetName(), xpos, ypos, zpos,crtstep, delta);
