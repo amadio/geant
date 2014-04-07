@@ -153,13 +153,59 @@ Bool_t TFinState::SetFinState(Int_t nfstates, const Int_t npart[], const Float_t
 }
 
 //_________________________________________________________________________
-void TFinState::NormFinSateWeights(){
-  for(Int_t j=0; j<fNFstates; ++j) {
-    if(j) fWeight[j]+=fWeight[j-1];
-  }
+Bool_t TFinState::SetFinState(const TFinState &right)
+{
+  fNFstates = right.fNFstates;
+  
+  delete [] fNpart;
+  fNpart = new Int_t[fNFstates];
+  memcpy(fNpart,right.fNpart,fNFstates*sizeof(Int_t));
+  
+  delete [] fWeight;
+  fWeight = new Float_t[fNFstates];
+  memcpy(fWeight,right.fWeight,fNFstates*sizeof(Float_t));
+  
+  delete [] fKerma;
+  fKerma = new Float_t[fNFstates];
+  memcpy(fKerma,right.fKerma,fNFstates*sizeof(Float_t));
+  
+  delete [] fEn;
+  fEn = new Float_t[fNFstates];
+  memcpy(fEn,right.fEn,fNFstates*sizeof(Float_t));
+  
+  delete [] fSurv;
+  fSurv = new Char_t[fNFstates];
+  memcpy(fSurv,right.fSurv,fNFstates*sizeof(Char_t));
+  
+  fNsecs = 0;
+  for(Int_t j=0; j<fNFstates; ++j) fNsecs+=fNpart[j];
+  fNMom = 3*fNsecs;
+  
+  delete [] fPID;
+  fPID = new Int_t[fNsecs];
+  memcpy(fPID,right.fPID,fNsecs*sizeof(Int_t));
+  
+  delete [] fMom;
+  fMom = new Float_t[fNMom];
+  memcpy(fMom,right.fMom,fNMom*sizeof(Float_t));
 
-  Double_t wnorm = 1/fWeight[fNFstates-1];
-  for(Int_t j=0; j<fNFstates; ++j) fWeight[j]*=wnorm; 
+  NormFinSateWeights();
+  
+  return kTRUE;
+}
+
+
+//_________________________________________________________________________
+void TFinState::NormFinSateWeights(){
+  if(fNsecs)
+  {
+    for(Int_t j=0; j<fNFstates; ++j) {
+      if(j) fWeight[j]+=fWeight[j-1];
+    }
+
+    Double_t wnorm = 1/fWeight[fNFstates-1];
+    for(Int_t j=0; j<fNFstates; ++j) fWeight[j]*=wnorm; 
+  }
 } 
 
 //_________________________________________________________________________
