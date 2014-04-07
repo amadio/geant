@@ -16,7 +16,11 @@
 #include "TGeoMedium.h"
 #include "TGeoMaterial.h"
 #include "TGeoMatrix.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/navigationstate.h"
+#else
 #include "TGeoBranchArray.h"
+#endif
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"
@@ -360,7 +364,6 @@ void InteractionProcess::PostStep(TGeoMaterial *mat,
          //Double_t pxtot=track->px;
          //Double_t pytot=track->py;
          //Double_t pztot=track->pz;
-         TGeoBranchArray &a = *tracks.fPathV[i];
          // The mother particle dies
          tracks.fStatusV[i] = kKilled;
          GeantTrack &trackg = gPropagator->GetTempTrack(tid);
@@ -368,7 +371,7 @@ void InteractionProcess::PostStep(TGeoMaterial *mat,
             // Do not consider tracks below the production threshold. Normally the energy deposited should be taken into account
             TLorentzVector *lv = fGen[tid].GetDecay(j);
             if (lv->E()-pimass < gPropagator->fEmin) continue;
-            *trackg.fPath = a;
+            *trackg.fPath = *tracks.fPathV[i];
             if(j%2) trackg.fPDG = kPiMinus;
             else trackg.fPDG = kPiPlus;
             trackg.fEvent = tracks.fEventV[i];

@@ -16,7 +16,7 @@ GeantThreadData::GeantThreadData()
             :TObject(),
              fMaxPerBasket(0),
              fNprocesses(0),
-             fMatrix(0),
+            // fMatrix(0),
              fVolume(0),
              fRndm(0),
              fDblArray(0),
@@ -33,7 +33,7 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
             :TObject(),
              fMaxPerBasket(maxperbasket),
              fNprocesses(maxprocesses),
-             fMatrix(new TGeoHMatrix()),
+            // fMatrix(new TGeoHMatrix()),
              fVolume(0),
              fRndm(new TRandom()),
              fDblArray(0),
@@ -54,7 +54,7 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
 GeantThreadData::~GeantThreadData()
 {
 // Destructor
-   delete fMatrix;
+   // delete fMatrix;
    delete fRndm;
    delete [] fDblArray;
    delete [] fProcStep;

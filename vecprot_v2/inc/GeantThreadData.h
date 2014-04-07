@@ -14,7 +14,7 @@
 // Data organized per thread
 //==============================================================================
 
-class TGeoHMatrix;
+// class TGeoHMatrix;
 class TGeoVolume;
 class TRandom;
 class TArrayI;
@@ -26,7 +26,7 @@ class GeantThreadData : public TObject {
 public:
    Int_t             fMaxPerBasket;          //! Max number of tracks per basket
    Int_t             fNprocesses;            //! Number of physics processes
-   TGeoHMatrix      *fMatrix;                //! Current matrix per thread
+  // TGeoHMatrix      *fMatrix;                //! Current matrix per thread
    TGeoVolume       *fVolume;                //! Current volume per thread
    TRandom          *fRndm;                  //! Random generator for thread
    Double_t         *fDblArray;              //![5*fMaxPerBasket] Support for random seed

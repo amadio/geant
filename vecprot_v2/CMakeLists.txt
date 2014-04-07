@@ -65,6 +65,6 @@ if( VECGEOM_FOUND )
 endif()
 
 add_library(Geant_v SHARED ${sources} G__Geant.cxx ${headers} G__Geant.h)
-target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom)
+target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES})
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)

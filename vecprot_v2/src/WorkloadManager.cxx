@@ -399,9 +399,12 @@ void *WorkloadManager::TransportTracks(void *)
    Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
-   // Create navigator if none serving this thread.
+
+   // Create navigator if none serving this thread -- just to make sure that a Navigor exists??
+   // actually not used here
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
+
    propagator->fWaiting[tid] = 1;
    Int_t iev[500], itrack[500];
    // TGeoBranchArray *crt[500], *nxt[500];

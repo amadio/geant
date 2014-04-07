@@ -296,13 +296,13 @@ Double_t GeantTrack::Curvature() const
    
 
 //______________________________________________________________________________
-void GeantTrack::SetPath(VolumePath_t *path)
+void GeantTrack::SetPath(VolumePath_t const * const path)
 {
    *fPath = *path;
 }   
 
 //______________________________________________________________________________
-void GeantTrack::SetNextPath(VolumePath_t *path)
+void GeantTrack::SetNextPath(VolumePath_t const * const path)
 {
 // Set next path.
    *fNextpath = *path;
@@ -1166,6 +1166,14 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep)
 #ifdef USE_VECGEOM_NAVIGATOR
 
 // provide here implementation calling VecGeom
+void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep,
+                       const Double_t *x, const Double_t *y, const Double_t *z,
+                       const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
+                       VolumePath_t **pathin, VolumePath_t **pathout,
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk)
+{
+	std::cerr << "vector interface for GeantTrack_v::NavFindNextBoundaryAndStep not yet implemented" << std::endl;
+}
 
 #else
 //______________________________________________________________________________
@@ -1284,7 +1292,7 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
 	// This method is to be called after a successful crossing made by PropagateInField
 	// to put the particle at the entry point.
 	// check if particle is outside detector
-	Bool_t outside = fNextpathV[itr]->IsOutsideWorld();
+	Bool_t outside = fNextpathV[itr]->IsOutside();
 
 	// try to find out whether particle is entering where??
 	Bool_t entering = kTRUE;
@@ -1376,9 +1384,10 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
    // 1. the track exited to a mother volume, in which case fNextpath should be
    // "contained" in fPath
    // - e.g. path = /a/b/c/d   nextpath = /a/b/c
-   // 2. the track is entering a volume that did not contained the point before
+   // 2. the track is entering a volume that did not containe the point before
    // crossing - in which case path and nextpath should diverge at a
    // level<current level
+   // - e.g. path = /a/b/c     nextpath = /a/d
    if (level < fPathV[itr]->GetLevel() && !outside) {
       for (Int_t lev=0; lev<=level; lev++) {
          if (fNextpathV[itr]->GetNode(lev) != fPathV[itr]->GetNode(lev)) break;
@@ -1612,7 +1621,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
 
    // if outside detector or enormous step mark particle as exiting the detector
-   if (fNextpathV[itr]->IsOutsideWorld() || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
+   if (fNextpathV[itr]->IsOutside() || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
 
    // force track to cross under certain conditions
    if (fFrombdrV[itr] && fSnextV[itr] < 2.*gTolerance) {

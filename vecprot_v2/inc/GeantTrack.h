@@ -153,8 +153,8 @@ public:
    void               SetFrombdr(Bool_t flag) {fFrombdr = flag;}
    void               SetPending(Bool_t flag) {fPending = flag;}
 
-   void               SetPath(VolumePath_t *path);
-   void               SetNextPath(VolumePath_t *path);
+   void               SetPath(VolumePath_t const * const path);
+   void               SetNextPath(VolumePath_t const * const path);
    
    ClassDef(GeantTrack, 1)      // The track
 };

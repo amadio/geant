@@ -5,6 +5,12 @@
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/navigationstate.h"
+#include "navigation/simple_navigator.h"
+#include "base/vector3d.h"
+#include "management/geo_manager.h"
+#endif
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
