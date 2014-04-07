@@ -27,6 +27,7 @@ private:
    TEFstate       **fElemFstate;    // Array of final state pointers per element
    TMXsec 	  **fMatXsec;	    // Array of x-section pointers per material	
    TGeoManager     *fGeom;	    // Pointer to the geometry manager   
+   Bool_t          fIsRestProcOn;   // Use at rest process   
 	
    static TTabPhysMgr *fgInstance;	    // Singleton instance
 
@@ -38,14 +39,20 @@ public:
    static TTabPhysMgr* Instance(TGeoManager* geom=0, const char* xsecfilename=0, 
                                    const char* finalsfilename=0);
    // Rotation+boost utility
-   void                TransformLF(Int_t indref, GeantTrack_v &tracks, 
-                              Int_t nproducts, Int_t indprod, GeantTrack_v &output);
+   void TransformLF(Int_t indref, GeantTrack_v &tracks, Int_t nproducts, Int_t 
+            indprod, GeantTrack_v &output);//not. imp. but done
    // API used by particle transport
-   void                ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
-   void                Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
-   void                ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
-   Int_t               SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
-   Int_t               SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);
+   void  ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);//not. imp.
+   void  Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
+   Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout, Int_t tid);
+   void  GetRestFinSates(Int_t partindex, TEFstate *elemfstate, Double_t energyLimit,
+            GeantTrack_v &tracksin, Int_t iintrack, GeantTrack_v &tracksout, Int_t &nTotSecPart, Int_t tid);
+   void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
+            GeantTrack_v &tracks, Int_t itrack);
+
+   void SetIsRestProcOn(Bool_t boolval){fIsRestProcOn = boolval;}
 
 private:
    TTabPhysMgr(const TTabPhysMgr &);//no imp.	
