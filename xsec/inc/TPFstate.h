@@ -25,6 +25,7 @@
 
 #include "TDatabasePDG.h"
 #include "TPartIndex.h"
+
 class TFinState;
 
 class TPFstate {
@@ -33,6 +34,8 @@ public:
   TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
   ~TPFstate();
   
+  void SetRestCaptFstate(const TFinState &finstate);
+
   const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[]);
@@ -42,6 +45,8 @@ public:
   Bool_t Prune() {return kTRUE;}
   Bool_t SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                     Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
+  Bool_t SampleRestCaptFstate(Int_t& npart, Float_t& weight, Float_t& kerma, 
+		    Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
   Bool_t GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
                  Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
   Int_t NEFstat() const {return fNEFstat;}
@@ -67,6 +72,8 @@ private:
   Double_t        fEilDelta;      // logarithmic energy delta
   const Double_t *fEGrid;         //![fNEbins] energy grid
   TFinState      *fFstat;         // [fNFstat] table of final states
+  TFinState      *fRestCaptFstat; // RestCapture final states
+
   Int_t           fRdict[FNPROC]; // reaction dictionary from reaction number to position
   // in the X-sec array
   Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec

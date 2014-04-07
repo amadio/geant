@@ -44,6 +44,7 @@ public:
    Int_t    fParticle;  // index of corresponding particle
    Int_t    fPDG;       // particle pdg code
    Int_t    fG5code;    // G5 particle code
+   Int_t    fEindex;    // element index
    Int_t    fCharge;    // particle charge
    Int_t    fProcess;   // current process
    Int_t    fIzero;     // number of small steps used to catch errors
@@ -59,6 +60,7 @@ public:
    Double_t fZdir;
    Double_t fP;         // momentum
    Double_t fE;         // energy
+   Double_t fEdep;      // energy deposition in the step
    Double_t fPstep;     // selected physical step
    Double_t fStep;      // current step
    Double_t fSnext;     // straight distance to next boundary
@@ -84,10 +86,12 @@ public:
    Double_t           DirY() const {return fYdir;}
    Double_t           DirZ() const {return fZdir;}
    Double_t           E() const {return fE;}
+   Double_t           Edep() const {return fEdep;}
    Int_t              Event() const {return fEvent;}
    Int_t              EventSlot() const  {return fEvslot;}
    Bool_t             FromBoundary() const {return fFrombdr;}
    Int_t              G5code() const {return fG5code;}
+   Int_t              EIndex() const {return fEindex;}
    Double_t           Gamma() const {return fMass?fE/fMass:TMath::Limits<double>::Max();}
    Double_t           GetPstep() const {return fPstep;}
    VolumePath_t*      GetPath() const {return fPath;}
@@ -130,6 +134,7 @@ public:
    void               SetParticle(Int_t particle) {fParticle = particle;}
    void               SetPDG(Int_t pdg) {fPDG = pdg;}
    void               SetG5code(Int_t g5code) {fG5code = g5code;}
+   void               SetEindex(Int_t ind) {fEindex = ind;}
    void               SetCharge(Int_t charge) {fCharge = charge;} 
    void               SetProcess(Int_t process) {fProcess = process;}
    void               SetIzero(Int_t izero) {fIzero = izero;}
@@ -141,6 +146,7 @@ public:
    void               SetDirection(Double_t dx, Double_t dy, Double_t dz) {fXdir=dx; fYdir=dy; fZdir=dz;}
    void               SetP(Double_t p) {fP=p;}
    void               SetE(Double_t e) {fE = e;}
+   void               SetEdep(Double_t edep) {fEdep = edep;}
    void               SetPstep(Double_t pstep) {fPstep = pstep;}
    void               SetSnext(Double_t snext) {fSnext = snext;}
    void               SetSafety(Double_t safety) {fSafety = safety;}
@@ -174,6 +180,7 @@ public:
    Int_t    *fParticleV;  // indices of corresponding particles
    Int_t    *fPDGV;       // particle pdg codes
    Int_t    *fG5codeV;    // G5 internal codes
+   Int_t    *fEindexV;    // Element indices
    Int_t    *fChargeV;    // particle charges
    Int_t    *fProcessV;   // current process
    Int_t    *fIzeroV;     // number of small steps used to catch errors
@@ -189,6 +196,7 @@ public:
    Double_t *fZdirV;
    Double_t *fPV;         // momenta
    Double_t *fEV;         // energies
+   Double_t *fEdepV;      // Energy depositions
    Double_t *fPstepV;     // selected physical steps
    Double_t *fStepV;      // current steps
    Double_t *fSnextV;     // straight distances to next boundary

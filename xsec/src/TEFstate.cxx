@@ -86,6 +86,18 @@ Bool_t TEFstate::AddPartFS(Int_t kpart, Int_t ibin, Int_t reac, const Int_t npar
   return fPFstate[kpart].SetFinState(ibin, reac, npart, weight, kerma, en, surv, pid, mom);
 }
 
+//_____________________________________________________________________________
+void TEFstate::SetRestCaptFstate(Int_t kpart, const TFinState &fstate){
+	fPFstate[kpart].SetRestCaptFstate(fstate);
+}
+
+//______________________________________________________________________________
+Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+{
+   return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
+}
+
 //___________________________________________________________________
 Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const

@@ -19,7 +19,8 @@ TPFstate::TPFstate():
    fEmax(0),
    fEilDelta(0),
    fEGrid(TPartIndex::I()->EGrid()),
-   fFstat(0)
+   fFstat(0),
+   fRestCaptFstat(0)
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) fRdict[np]=fRmap[np]=-1;
@@ -36,7 +37,8 @@ TPFstate::TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]):
    fEmax(TPartIndex::I()->Emax()),
    fEilDelta((fNEbins-1)/TMath::Log(fEmax/fEmin)),
    fEGrid(TPartIndex::I()->EGrid()),
-   fFstat(new TFinState[fNFstat])
+   fFstat(new TFinState[fNFstat]),
+   fRestCaptFstat(0)
 {
    Int_t np=TPartIndex::I()->NProc();
    while(np--) {
@@ -54,6 +56,16 @@ TPFstate::TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]):
 TPFstate::~TPFstate()
 {
    delete [] fFstat;
+   if(fRestCaptFstat) 
+	delete fRestCaptFstat;
+}
+
+//_________________________________________________________________________
+void TPFstate::SetRestCaptFstate(const TFinState &finstate){
+
+   fRestCaptFstat = new TFinState(); 	
+   fRestCaptFstat->SetFinState(finstate);
+
 }
 
 //_________________________________________________________________________
@@ -148,6 +160,17 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
   }
 }
 
+//______________________________________________________________________________
+Bool_t TPFstate::SampleRestCaptFstate(Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+{
+   if(fRestCaptFstat){
+   	return fRestCaptFstat->SampleReac(npart, weight, kerma, enr, pid, mom);
+   } else {
+      npart=0;
+      return 0;
+   }
+}
 
 //______________________________________________________________________________
 Bool_t TPFstate::GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
