@@ -167,8 +167,11 @@ Bool_t TPFstate::SampleRestCaptFstate(Int_t& npart, Float_t& weight,
    if(fRestCaptFstat){
    	return fRestCaptFstat->SampleReac(npart, weight, kerma, enr, pid, mom);
    } else {
+      kerma=0;
       npart=0;
-      return 0;
+      pid=0;
+      mom=0;
+      return kFALSE;
    }
 }
 

@@ -61,7 +61,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
-target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec)
+target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
 add_dependencies(tabxsec xseclib)
 
 #----------------------------------------------------------------------------

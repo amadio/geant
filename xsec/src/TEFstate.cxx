@@ -95,7 +95,15 @@ void TEFstate::SetRestCaptFstate(Int_t kpart, const TFinState &fstate){
 Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
-   return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
+   if(kpart<TPartIndex::I()->NPartReac()){	
+   	return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
+   } else {
+    kerma=0;
+    npart=0;
+    pid=0;
+    mom=0;
+    return kFALSE;
+   }	
 }
 
 //___________________________________________________________________
