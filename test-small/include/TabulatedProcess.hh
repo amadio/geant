@@ -7,10 +7,7 @@
 #include "G4WrapperProcess.hh"
 #include "G4ProcessType.hh"
 
-//tabulated physics 
-#include "TFile.h"
-#include "GXTrack.hh"
-
+class TabulatedDataManager;
 class G4VParticleChange;
 
 class TabulatedProcess : public G4WrapperProcess {
@@ -29,17 +26,9 @@ public:
   G4VParticleChange* PostStepDoIt(const G4Track& track, const G4Step& step);
 
   void Print(const G4Step& astep);
-  void PrepareTable_t(const char* pnam, const char* reac);
 private:
   G4VParticleChange* particleChange;
-
-  //tabulated physics data of VP 
-  TFile *fxsec;
-  TFile *ffsta;
-
-  //this should array for multiple materials
-  G4double* mxsec;
-  GXTrack* fstrack_h;
+  TabulatedDataManager* dataManager;
 };
 
 #endif
