@@ -44,7 +44,7 @@ public:
    // API used by particle transport
    void  ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);//not. imp.
    void  Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
-   void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout, Int_t tid);
    void  GetRestFinSates(Int_t partindex, TEFstate *elemfstate, Double_t energyLimit,

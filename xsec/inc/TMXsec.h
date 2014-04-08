@@ -40,7 +40,7 @@ public:
    Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
 
    void    Eloss(Int_t ntracks, GeantTrack_v &tracks);
-   void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks);
+   void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t fstateindx[]);
 
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);

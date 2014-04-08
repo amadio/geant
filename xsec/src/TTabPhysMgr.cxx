@@ -232,13 +232,13 @@ void TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
+void TTabPhysMgr::ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Sample free flight/proposed step for the firts ntracks tracks and store them 
 // in tracks.fPstepV  
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
-   mxs->ProposeStep(ntracks, tracks);
+   mxs->ProposeStep(ntracks, tracks, tid);
 }
 
 //______________________________________________________________________________
