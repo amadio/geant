@@ -23,76 +23,60 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// GEANT4 tag $Name: not supported by cvs2svn $
 //
-// $Id$
+//---------------------------------------------------------------------------
 //
-// 
+// ClassName:   G4NeutronBuilder_WP
+//
+// Author: 2002 J.P. Wellisch
+//
+// Modified:
+// 16.11.2005 G.Folger: don't  keep processes as data members, but new these
+// 13.06.2006 G.Folger: (re)move elastic scatterring 
+//
+//----------------------------------------------------------------------------
+//
+#ifndef G4NeutronBuilder_WP_h
+#define G4NeutronBuilder_WP_h 1
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-#ifndef PhysicsList_h
-#define PhysicsList_h 1
-
-#include "G4VUserPhysicsList.hh"
 #include "globals.hh"
 
-#include "G4PiKBuilder_WP.hh"
-#include "G4BertiniPiKBuilder.hh"
-#include "G4FTFPPiKBuilder.hh"
+#include "G4HadronFissionProcess.hh"
+#include "G4HadronCaptureProcess.hh"
+#include "G4NeutronInelasticProcess.hh"
+#include "G4VNeutronBuilder.hh"
 
-#include "G4ProtonBuilder_WP.hh"
-#include "G4BertiniProtonBuilder.hh"
-#include "G4FTFPNeutronBuilder.hh"
-#include "G4FTFPProtonBuilder.hh"
+#include <vector>
 
-#include "G4NeutronBuilder_WP.hh"
-#include "G4BertiniNeutronBuilder.hh"
-#include "G4FTFPNeutronBuilder.hh"
-#include "G4LEPNeutronBuilder.hh"
+class TabulatedHadronProcess;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-class PhysicsList: public G4VUserPhysicsList
+class G4NeutronBuilder_WP
 {
-public:
-  PhysicsList();
-  virtual ~PhysicsList();
+  public: 
+    G4NeutronBuilder_WP();
+    virtual ~G4NeutronBuilder_WP();
 
-  // Construct particle and physics
-  void ConstructParticle();
-  void ConstructProcess();
- 
-  void SetCuts();
-   
-private:
+  public: 
+    void Build();
+    void RegisterMe(G4VNeutronBuilder * aB) {theModelCollections.push_back(aB);}
 
-  // these methods Construct physics processes and register them
-  void ConstructDecay();
-  void ConstructEM();
-  // this is the wrapper process for a simplified HadronPhysicsTFTP_BERT
-  void HadronPhysicsFTFP_BERT_WP();
+  private:
+    G4NeutronInelasticProcess * theNeutronInelastic;
+    G4HadronFissionProcess * theNeutronFission;
+    G4HadronCaptureProcess  * theNeutronCapture;
 
-private:
-  G4NeutronBuilder_WP * theNeutrons;
-  G4BertiniNeutronBuilder * theBertiniNeutron;
-  G4FTFPNeutronBuilder * theFTFPNeutron;
-  G4LEPNeutronBuilder * theLEPNeutron;        //needed for capture&fission
- 
-  G4PiKBuilder_WP * thePiK;
-  G4BertiniPiKBuilder * theBertiniPiK;
-  G4FTFPPiKBuilder * theFTFPPiK;
+    TabulatedHadronProcess* theWrappedNeutronInelastic;
+    TabulatedHadronProcess* theWrappedNeutronFission;
+    TabulatedHadronProcess* theWrappedNeutronCapture;
     
-  G4ProtonBuilder_WP * thePro;
-  G4BertiniProtonBuilder * theBertiniPro;
-  G4FTFPProtonBuilder * theFTFPPro;    
+    std::vector<G4VNeutronBuilder *> theModelCollections;
 
-  G4bool QuasiElastic;
+    G4bool wasActivated;
+
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+// 2002 by J.P. Wellisch
 
 #endif
-
-
 
