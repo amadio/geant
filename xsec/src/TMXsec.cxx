@@ -325,13 +325,20 @@ Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float
 //____________________________________________________________________________
 void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
 {
+// -should be called only charged particles (first fNPartCharge particle 
+// in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
 // Compute energy loss for the first ntracks in the input vector and update
-// tracks.fEV and tracks.fPV
-   Double_t energy, dedx;
+// tracks.fEV, tracks.fPV and tracks.EdepV
+   Double_t energy, dedx, edepo;
    Int_t ibin, ipart;
+
    for (Int_t i=0; i<ntracks; ++i) {
-      energy = tracks.fEV[i] - tracks.fMassV[i]; // tabulated on total or kinetic?
       ipart = tracks.fG5codeV[i];
+
+      if(ipart>=TPartIndex::I()->NPartCharge())
+       continue;
+
+      energy = tracks.fEV[i] - tracks.fMassV[i]; // tabulated on kinetic
       if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins];
       else if (energy>=fEGrid[fNEbins-1]) dedx = fDEdx[ipart*fNEbins+fNEbins-1]; 
       else {
@@ -341,15 +348,17 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
          Double_t en2 = fEGrid[ibin+1];
          Double_t xrat = (en2-energy)/(en2-en1);
          dedx = xrat*fDEdx[ipart*fNEbins+ibin]+(1-xrat)*fDEdx[ipart*fNEbins+ibin+1];
-         // Update energy and momentum
-         Double_t gammaold = tracks.Gamma(i);
-         Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
-         tracks.fEV[i] -= tracks.fStepV[i]*dedx;
-         Double_t gammanew = tracks.Gamma(i);
-         Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
-         Double_t pnorm = bgnew/bgold;
-         tracks.fPV[i] *= pnorm;
       }
+      // Update energy and momentum
+      Double_t gammaold = tracks.Gamma(i);
+      Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
+      edepo = tracks.fStepV[i]*dedx;
+      tracks.fEdepV[i] += edepo; 
+      tracks.fEV[i] -= edepo;
+      Double_t gammanew = tracks.Gamma(i);
+      Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
+      Double_t pnorm = bgnew/bgold;
+      tracks.fPV[i] *= pnorm;
    }
 }   
 
@@ -398,44 +407,46 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
 }
 
 //____________________________________________________________________________
-void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t fstateindx[]){
-
+void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
 // -should be called only for particles with reaction (first fNPartReac particle 
-// in TPartIndex::fPDG[])
-// -we should use the thread id for RNG like:
-//   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
-//   gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
-// and use the rnumbers in the loop (or even better rndArray[*]=-log(rndArray[*]))   
-// from the array instead of simple calling an RNG when we need one rnumber
+// in TPartIndex::fPDG[]); the case ipartindex>=fNPartReac is handled now in the if
 
-   Double_t energy;	//Ekin
-   Int_t ibin, 
-	 ipart;		//G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+   Double_t energy; //Ekin
+   Int_t    ibin; 
+   Int_t    ipart; //G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+
+   // tid-based rng
+   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
    for (Int_t t=0; t<ntracks; ++t) {
-      energy = tracksin.fEV[t] - tracksin.fMassV[t];
       ipart  = tracksin.fG5codeV[t];
+      if(ipart>=TPartIndex::I()->NPartReac() || !fTotXL) {
+        //reac=-1;
+        tracksin.fProcessV[t] = -1;//this partilce doesn't have reaction
+        tracksin.fEindexV[t]  = -1;//no process -> no element selection
+        continue;
+      } else {
+        energy = tracksin.fEV[t] - tracksin.fMassV[t];
+        energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+        energy=energy>=fEGrid[0]?energy:fEGrid[0];
 
-      energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
-      energy=energy>=fEGrid[0]?energy:fEGrid[0];
+        ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+        ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 
-      ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
-      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-
-      Double_t en1 = fEGrid[ibin];
-      Double_t en2 = fEGrid[ibin+1];
-
+        Double_t en1 = fEGrid[ibin];
+        Double_t en2 = fEGrid[ibin+1];
 //1.
-      // this material/mixture (TMXsec object) is composed of fNElems elements	 	
-      Int_t iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this 		 
-      if(fNElems==1) {
-	 iel=0;
-      } else { //sampling one element based on the elemntal realtive X-secs that
+        // this material/mixture (TMXsec object) is composed of fNElems elements	 	
+        Int_t iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this 		 
+        if(fNElems==1) {
+	  iel=0;
+        } else { //sampling one element based on the elemntal realtive X-secs that
 	       //have been normalized in CTR at the Ebins!; energy interp. is 
 	       //included now-> while loop is to avoid problems from interp. 
-	 Double_t xrat = (en2-energy)/(en2-en1);
-	 Double_t xnorm = 1.;
-	 while(iel<0) {
+	  Double_t xrat = (en2-energy)/(en2-en1);
+	  Double_t xnorm = 1.;
+          while(iel<0) {
 	    Double_t ran = xnorm*gRandom->Rndm();
 	    Double_t xsum=0;
 	    for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
@@ -446,21 +457,22 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t fstateindx[]
 	       }
 	    }
 	    xnorm = xsum;
-	 }
-      }
-      //at this point the index of the element is sampled:= iel
-      //the corresponding TEXsec* is fElems[iel] 
+          }
+        }
+        //at this point the index of the element is sampled:= iel
+        //the corresponding TEXsec* is fElems[iel] 
 
-      //sample the reaction by using the TEXsec* that corresponds to the iel-th
-      //element i.e. fElems[iel] for the current particle (with particle index of
-      //ipart) at the current energy; will retrun with the reaction index;
-      tracksin.fProcessV[t]=fElems[iel]->SampleReac(ipart,energy); 	 
-      fstateindx[t] = fElems[iel]->Index();//fstateindx SHOULD BE IN GeantTrack_v es Int_t array 
+        //sample the reaction by using the TEXsec* that corresponds to the iel-th
+        //element i.e. fElems[iel] for the current particle (with particle index of
+        //ipart) at the current energy; will retrun with the reaction index;
+        tracksin.fProcessV[t] = fElems[iel]->SampleReac(ipart, energy, rndArray[t]); 	 
+        tracksin.fEindexV[t]  = fElems[iel]->Index();//index of the selected element in TTabPhysMrg::fElemXsec[] 
       
-      //INFO:
-      printf("[%d]-th partcile is %s with Ekin of %f in %s :: %s happens on %s.\n",
-       t, TPartIndex::I()->PartName(ipart), energy, this->GetName(), 
-       TPartIndex::I()->ProcName(tracksin.fProcessV[t]),fElems[iel]->GetName() );	
+        //INFO:
+        //printf("[%d]-th partcile is %s with Ekin of %f in %s :: %s happens on %s.\n",
+        //t, TPartIndex::I()->PartName(ipart), energy, this->GetName(), 
+        //TPartIndex::I()->ProcName(tracksin.fProcessV[t]),fElems[iel]->GetName() );	
+      }
    }
 }
 

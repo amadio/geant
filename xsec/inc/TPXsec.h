@@ -46,6 +46,8 @@ public:
    Bool_t Resample();
    Bool_t Prune();
    Int_t SampleReac(Double_t en) const;
+   Int_t SampleReac(Double_t en, Double_t randn)  const;
+
    void Dump() const;
    void Interp(Double_t egrid[], Float_t value[], Int_t nbins, 
 	       Double_t eildelta, Int_t stride, Double_t en, Float_t result[]);

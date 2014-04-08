@@ -161,11 +161,61 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
 }
 
 //______________________________________________________________________________
+Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid,
+                            const Float_t *&mom, Double_t randn1, Double_t randn2) const
+{
+  Int_t rnumber = fRdict[preac];
+  if(rnumber==-1) {
+    kerma=0;
+    npart=0;
+    pid=0;
+    mom=0;
+    return kFALSE;
+  } else {
+    //Double_t eta = randn1;
+    en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+    en=en>fEGrid[0]?en:fEGrid[0];
+    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>en || en2<en) {
+      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+            ibin, en1, en, en2);
+      return kFALSE;
+    }
+    Double_t xrat = (en2-en)/(en2-en1);
+    if(randn1>xrat) ++ibin;
+    Int_t ipoint = rnumber*fNEbins + ibin;
+    return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom, randn2);
+  }
+}
+
+
+//______________________________________________________________________________
 Bool_t TPFstate::SampleRestCaptFstate(Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
    if(fRestCaptFstat){
    	return fRestCaptFstat->SampleReac(npart, weight, kerma, enr, pid, mom);
+   } else {
+      kerma=0;
+      npart=0;
+      pid=0;
+      mom=0;
+      return kFALSE;
+   }
+}
+
+
+//______________________________________________________________________________
+Bool_t TPFstate::SampleRestCaptFstate(Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
+                            Double_t randn) const
+{
+   if(fRestCaptFstat){
+   	return fRestCaptFstat->SampleReac(npart, weight, kerma, enr, pid, mom, randn);
    } else {
       kerma=0;
       npart=0;

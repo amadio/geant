@@ -70,6 +70,7 @@ public:
    Bool_t Lambda_v(Int_t npart, const Int_t pindex[], const Double_t en[], Double_t lam[]) const;
    Bool_t Lambda_v(Int_t npart, Int_t pindex, const Double_t en[], Double_t lam[]) const;
    Int_t SampleReac(Int_t pindex, Double_t en) const;
+   Int_t SampleReac(Int_t pindex, Double_t en, Double_t randn) const;
    
    static Bool_t FloatDiff(Double_t a, Double_t b, Double_t prec) {
       return TMath::Abs(a-b)>0.5*TMath::Abs(a+b)*prec;

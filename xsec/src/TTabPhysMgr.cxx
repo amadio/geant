@@ -4,6 +4,8 @@
 #include "TGeoExtension.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
+#include "GeantThreadData.h"
+#include "TRandom.h"
 #include "TBits.h"
 #include "TStopwatch.h"
 #include "TError.h"
@@ -253,13 +255,18 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
 Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, 
 GeantTrack_v &tracksout, Int_t tid)
 {
+//-should be called only for particles with reaction (first fNPartReac particle 
+// in TPartIndex::fPDG[]); the case ipartindex>=fNPartReac is handled now everywhere
+//
 // 0. ntracks contains particles with status of Alive 
 // 1.Sampling the element of the material for interaction based on the relative 
 // total X-secs of the elements; Sampling the type of the interaction (on the 
 // sampled element) based on the realtive total X-secs of the interactions ;
 // OUT:-indices of the TEXsec* in fElemXsec, that correspond to the sampled 
-//      elements, will be in fstateindx array (this should be in GeantTrack_v)
-//     -the G5 reaction indices will be in GeantTrack_v::fProcessV array     
+//      elements, will be in GeantTrack_v::fEindexV array; GeantTrack_v::fEindexV[i] 
+//      will be -1 if no reaction for i-th particle
+//     -the G5 reaction indices will be in GeantTrack_v::fProcessV array; 
+//      GeantTrack_v::fEindexV[i] will be -1 if no reaction for i-th particle     
 // 2.Sampling the finale states for the selected interaction and store the secondary
 // tracks in tracksout; only those traks go into tracksout that can pass the energyLimit,
 // Rest process final states will be sampled in case of those secondaries that fail to 
@@ -273,14 +280,8 @@ GeantTrack_v &tracksout, Int_t tid)
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
 
-
-
    //1.	
-   Int_t *fstateindx = new Int_t[ntracks];//this SHOULD BE in GeantTrack_v
-	//this array is for storing the index of the chosen element in fElemXsec
-	//that will be the index of the corresponding finale state in fElemFstate
-        //as well -> quick access 
-   mxs->SampleInt(ntracks, tracksin, fstateindx);
+   mxs->SampleInt(ntracks, tracksin, tid);
 
 //   for(Int_t i = 0; i<ntracks;++i)
 //	printf("[%d]-th Fstate element name:= %s index:= %d\n",i ,fElemXsec[fstateindx[i]]->GetTitle(), fstateindx[i]);
@@ -288,6 +289,10 @@ GeantTrack_v &tracksout, Int_t tid)
 
 
    //2. at Rest story makes this part a bit complicated! (only 'trackable' secondaries can go to tracksout)
+   // tid-based rng
+   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
+
    Int_t nSecPart     = 0;  //number of secondary particles per reaction
    Int_t nTotSecPart  = 0;  //total number of secondary particles in tracksout
    const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
@@ -298,9 +303,12 @@ GeantTrack_v &tracksout, Int_t tid)
    Char_t   isSurv    = 0;  //is the primary survived the interaction 	
    
    for(Int_t t = 0; t < ntracks; ++t){
-     isSurv = fElemFstate[fstateindx[t]]->SampleReac(tracksin.fG5codeV[t], 
+    if(tracksin.fProcessV[t] < 0) //if reaction was not selected for this partilce
+     continue;	
+
+     isSurv = fElemFstate[tracksin.fEindexV[t]]->SampleReac(tracksin.fG5codeV[t], 
 		tracksin.fProcessV[t], tracksin.fEV[t]-tracksin.fMassV[t], 
-		nSecPart, weight, kerma, ener, pid, mom);
+		nSecPart, weight, kerma, ener, pid, mom, rndArray[2*t], rndArray[2*t+1]);
 
      tracksin.fEdepV[t] += kerma;    //add the deposited energy (in the interaction) to the energy depositon	
 
@@ -378,7 +386,7 @@ GeantTrack_v &tracksout, Int_t tid)
 	  ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracksin.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
-          GetRestFinSates(pid[i], fElemFstate[fstateindx[t]], energyLimit, tracksin, t, tracksout, nTotSecPart, tid);  
+          GetRestFinSates(pid[i], fElemFstate[tracksin.fEindexV[t]], energyLimit, tracksin, t, tracksout, nTotSecPart, tid);  
         } 
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
@@ -387,8 +395,6 @@ GeantTrack_v &tracksout, Int_t tid)
 
    }//end loop over tracks   
 
-  delete fstateindx;
-  
   return nTotSecPart;
 }
 
@@ -402,6 +408,8 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
 
    if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
      return;
+   
+   Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
 
    Int_t nSecPart    = 0;   //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
@@ -412,7 +420,7 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
    Char_t   isSurv = 0;	    //is the primary survived the interaction 	
    
    //sample RestCapture final states for this particle; it is the only at rest proc. at the moment
-   isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma, ener, pid, mom);
+   isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma, ener, pid, mom, randn);
    //note: parent was already stopped because an at Rest process happend; -> primary is not in the list of secondaries
    
    //isSurv should always be kFALSE here because primary was stopped -> just a check
