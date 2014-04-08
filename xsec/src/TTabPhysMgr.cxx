@@ -355,7 +355,7 @@ GeantTrack_v &tracksout, Int_t tid)
 	TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
         Double_t secMass  = secPartPDG->Mass();
         Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
-        Double_t secPtot  = TMath::Sqrt(secPtot);//total P [GeV]
+        Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
 	Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
@@ -436,7 +436,7 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
      Double_t secMass  = secPartPDG->Mass();
      Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
-     Double_t secPtot  = TMath::Sqrt(secPtot);//total P [GeV]
+     Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
      Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
      // Ekin of the i-th secondary is higher than the threshold
