@@ -3,6 +3,8 @@
 #include "TMath.h"
 #include "TRandom.h"
 #include "GeantTrack.h"
+#include "GeantPropagator.h"
+#include "GeantThreadData.h"
 
 ClassImp(TMXsec)
 
@@ -223,39 +225,46 @@ Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Do
 }
 
 //______________________________________________________________________________
-void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks){
+void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 // Propose step for the first ntracks in the input vector of tracks and write to
 // tracks.fPstepV[]
 // -should be called only for particles with reaction (first fNPartReac particle 
-// in TPartIndex::fPDG[])
-// -we should use the thread id for RNG like:
-//   Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
-//   gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
-// and use the rnumbers in the loop (or even better rndArray[*]=-log(rndArray[*]))   
-// from the array instead of simple calling an RNG when we need one rnumber
+// in TPartIndex::fPDG[]); the case if partindex>=fNPartReac is handled in the if
 
-   Double_t 	energy,	//Ekin
-		lambda;
-   Int_t ibin, 
-	 ipart;//G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+   Double_t  energy;	//Ekin
+   Int_t     ibin; 
+   Int_t     ipart;//G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+ 
+   // tid-based rng
+   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
    
    for (Int_t i=0; i<ntracks; ++i) {
-      energy = tracks.fEV[i] - tracks.fMassV[i];
       ipart  = tracks.fG5codeV[i];
- 
-      energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
-      energy=energy>=fEGrid[0]?energy:fEGrid[0];
+      if(ipart >= TPartIndex::I()->NPartReac() || !fTotXL) {
+        tracks.fPstepV[i] = -TMath::Limits<Float_t>::Max();
+      } else {
+        energy = tracks.fEV[i] - tracks.fMassV[i];
+        energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+        energy=energy>=fEGrid[0]?energy:fEGrid[0];
 
-      ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
-      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+        ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+        ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 
-      Double_t en1 = fEGrid[ibin];
-      Double_t en2 = fEGrid[ibin+1];
+        Double_t en1 = fEGrid[ibin];
+        Double_t en2 = fEGrid[ibin+1];
 
-      Double_t xrat = (en2-energy)/(en2-en1);	
-      lambda = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1];
-      tracks.fPstepV[i] = -lambda*TMath::Log(gRandom->Rndm());
+        Double_t xrat = (en2-energy)/(en2-en1);	
+        //get interpolated -(total mean free path)
+        tracks.fPstepV[i] = -(xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]);
+     }
    }
+
+   //compute proposed step based on -(total mean free path)
+   for (Int_t i=0; i<ntracks; ++i) {
+      tracks.fPstepV[i] *= TMath::Log(rndArray[i]);
+   }
+
 }
 
 //____________________________________________________________________________
