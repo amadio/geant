@@ -8,7 +8,6 @@
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
-#include "TGeoNavigator.h"
 #include "TGeoBranchArray.h"
 
 ClassImp(GeantScheduler)

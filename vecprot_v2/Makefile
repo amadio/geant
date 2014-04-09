@@ -11,7 +11,7 @@ OPT           = -g
 
 CXX			  = $(shell root-config --cxx)
 LD			  = $(shell root-config --ld)
-CXXFLAGS      = $(shell root-config --cflags)
+CXXFLAGS      = $(shell root-config --cflags) -fPIC
 
 ifneq (,$(findstring icc,$(CXX)))
 CXXFLAGS	  += -fPIC
