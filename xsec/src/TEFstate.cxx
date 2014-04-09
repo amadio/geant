@@ -95,7 +95,31 @@ void TEFstate::SetRestCaptFstate(Int_t kpart, const TFinState &fstate){
 Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
-   return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
+   if(kpart<TPartIndex::I()->NPartReac()){	
+   	return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
+   } else {
+    kerma=0;
+    npart=0;
+    pid=0;
+    mom=0;
+    return kFALSE;
+   }	
+}
+
+//______________________________________________________________________________
+Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, 
+                            const Float_t *&mom, Double_t randn) const
+{
+   if(kpart<TPartIndex::I()->NPartReac()){	
+   	return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom, randn);
+   } else {
+    kerma=0;
+    npart=0;
+    pid=0;
+    mom=0;
+    return kFALSE;
+   }	
 }
 
 //___________________________________________________________________
@@ -103,6 +127,14 @@ Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {
   return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom);
+}
+
+//___________________________________________________________________
+Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
+                            Double_t randn1, Double_t randn2) const
+{
+  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, randn1, randn2);
 }
 
 //___________________________________________________________________

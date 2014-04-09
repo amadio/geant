@@ -234,6 +234,31 @@ Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
 }
 
 //_________________________________________________________________________
+Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
+                    Float_t &en, const Int_t *&pid, const Float_t *&mom, Double_t randn) const
+{
+  //Double_t eta = gRandom->Rndm();
+  Int_t finstat = fNFstates-1;
+  for(Int_t i=0; i<fNFstates-1; ++i)
+    if(randn < fWeight[i]) {
+      finstat = i;
+      break;
+    }
+  Int_t ipoint = 0;
+  for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
+
+  npart = fNpart[finstat];
+  weight = fWeight[finstat];
+  kerma = fKerma[finstat];
+  en = fEn[finstat];
+//  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
+//  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+  pid = &fPID[ipoint];
+  mom = &fMom[3*ipoint];
+  return fSurv[finstat];
+}
+
+//_________________________________________________________________________
 Bool_t TFinState::GetReac(Int_t finstat, Int_t& npart, Float_t& weight, Float_t& kerma,
                           Float_t &en, const Int_t *&pid, const Float_t *&mom) const
 {

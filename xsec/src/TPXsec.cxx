@@ -358,6 +358,34 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
 }
 
 //_________________________________________________________________________
+Int_t TPXsec::SampleReac(Double_t en, Double_t randn)  const {
+   en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+   en=en>fEGrid[0]?en:fEGrid[0];
+   Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+   ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+   //   Double_t en1 = fEmin*TMath::Exp(ibin/fEilDelta);
+   //Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
+   if(en1>en || en2<en) {
+      Error("SampleReac","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	    ibin, en1, en, en2);
+      return 0;
+   }
+   Double_t xrat = (en2-en)/(en2-en1);
+   Double_t xnorm = 1.;
+   while(1) {
+      Double_t ran = xnorm*randn;
+      Double_t xsum=0;
+      for(Int_t i=0; i<fNXsec; ++i) {
+	 xsum+=xrat*fXSecs[ibin*fNXsec+i]+(1-xrat)*fXSecs[(ibin+1)*fNXsec+i];
+	 if(ran<=xsum) return fRmap[i];
+      }
+      xnorm = xsum;
+   }
+}
+
+//_________________________________________________________________________
 Bool_t TPXsec::XS_v(Int_t npart, Int_t rindex, const Double_t en[], Double_t lam[]) const
 {
   //   printf("fEGrid %p\n",fEGrid);

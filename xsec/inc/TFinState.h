@@ -46,6 +46,9 @@ public:
   Bool_t Prune() {return kTRUE;}
   Bool_t SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en, const Int_t *&pid,
                     const Float_t *&mom) const;
+  Bool_t SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en, const Int_t *&pid,
+                    const Float_t *&mom, Double_t randn) const;
+
   Bool_t GetReac(Int_t finstat, Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en,
                  const Int_t *&pid, const Float_t *&mom) const;
   void Dump() const {}
