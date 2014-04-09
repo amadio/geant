@@ -4,64 +4,64 @@
   <define/>
 
   <materials>
-    <isotope N="204" Z="82" name="2040x1a6f350">
+    <isotope N="204" Z="82" name="Iso_2040x1a6f350">
       <atom unit="g/mole" value="203.973"/>
     </isotope>
-    <isotope N="206" Z="82" name="2060x1a6f3c0">
+    <isotope N="206" Z="82" name="Iso_2060x1a6f3c0">
       <atom unit="g/mole" value="205.974"/>
     </isotope>
-    <isotope N="207" Z="82" name="2070x1a6f430">
+    <isotope N="207" Z="82" name="Iso_2070x1a6f430">
       <atom unit="g/mole" value="206.976"/>
     </isotope>
-    <isotope N="208" Z="82" name="2080x1a6f4a0">
+    <isotope N="208" Z="82" name="Iso_2080x1a6f4a0">
       <atom unit="g/mole" value="207.977"/>
     </isotope>
-    <element name="Lead0x1a6ef90">
-      <fraction n="0.014" ref="2040x1a6f350"/>
-      <fraction n="0.241" ref="2060x1a6f3c0"/>
-      <fraction n="0.221" ref="2070x1a6f430"/>
-      <fraction n="0.524" ref="2080x1a6f4a0"/>
+    <element name="El_Lead0x1a6ef90">
+      <fraction n="0.014" ref="Iso_2040x1a6f350"/>
+      <fraction n="0.241" ref="Iso_2060x1a6f3c0"/>
+      <fraction n="0.221" ref="Iso_2070x1a6f430"/>
+      <fraction n="0.524" ref="Iso_2080x1a6f4a0"/>
     </element>
     <material name="Lead0x1a6ee30" state="solid">
       <MEE unit="eV" value="823"/>
       <D unit="g/cm3" value="11.35"/>
-      <fraction n="1" ref="Lead0x1a6ef90"/>
+      <fraction n="1" ref="El_Lead0x1a6ef90"/>
     </material>
-    <isotope N="36" Z="18" name="360x1a6e870">
+    <isotope N="36" Z="18" name="Iso_360x1a6e870">
       <atom unit="g/mole" value="35.9675"/>
     </isotope>
-    <isotope N="38" Z="18" name="380x1a6e8e0">
+    <isotope N="38" Z="18" name="Iso_380x1a6e8e0">
       <atom unit="g/mole" value="37.9627"/>
     </isotope>
-    <isotope N="40" Z="18" name="400x1a63630">
+    <isotope N="40" Z="18" name="Iso_400x1a63630">
       <atom unit="g/mole" value="39.9624"/>
     </isotope>
-    <element name="liquidArgon0x1a6e4e0">
-      <fraction n="0.003365" ref="360x1a6e870"/>
-      <fraction n="0.000632" ref="380x1a6e8e0"/>
-      <fraction n="0.996003" ref="400x1a63630"/>
+    <element name="El_liquidArgon0x1a6e4e0">
+      <fraction n="0.003365" ref="Iso_360x1a6e870"/>
+      <fraction n="0.000632" ref="Iso_380x1a6e8e0"/>
+      <fraction n="0.996003" ref="Iso_400x1a63630"/>
     </element>
     <material name="liquidArgon0x1a6e3b0" state="solid">
       <MEE unit="eV" value="188"/>
       <D unit="g/cm3" value="1.39"/>
-      <fraction n="1" ref="liquidArgon0x1a6e4e0"/>
+      <fraction n="1" ref="El_liquidArgon0x1a6e4e0"/>
     </material>
-    <isotope N="1" Z="1" name="10x1a74be0">
+    <isotope N="1" Z="1" name="Iso_10x1a74be0">
       <atom unit="g/mole" value="1.00782503081372"/>
     </isotope>
-    <isotope N="2" Z="1" name="20x1a74c50">
+    <isotope N="2" Z="1" name="Iso_20x1a74c50">
       <atom unit="g/mole" value="2.01410199966617"/>
     </isotope>
-    <element name="Galactic0x1a74880">
-      <fraction n="0.999885" ref="10x1a74be0"/>
-      <fraction n="0.000115" ref="20x1a74c50"/>
+    <element name="El_Galactic0x1a74880">
+      <fraction n="0.999885" ref="Iso_10x1a74be0"/>
+      <fraction n="0.000115" ref="Iso_20x1a74c50"/>
     </element>
     <material name="Galactic0x1a74160" state="gas">
       <T unit="K" value="2.73"/>
       <P unit="pascal" value="3e-18"/>
       <MEE unit="eV" value="19.2"/>
       <D unit="g/cm3" value="1e-25"/>
-      <fraction n="1" ref="Galactic0x1a74880"/>
+      <fraction n="1" ref="El_Galactic0x1a74880"/>
     </material>
   </materials>
 
