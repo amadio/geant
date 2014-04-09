@@ -64,8 +64,8 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 #
 add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
 target_link_libraries(exampleN03 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
-                                 ${PROJECT_SOURCE_DIR}/../lib/libXsec.so 
-                                 ${PROJECT_SOURCE_DIR}/../lib/libGeant_v.so )
+                                 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
+add_dependencies(exampleN03 xseclib Geantlib_v)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
