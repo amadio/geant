@@ -104,7 +104,8 @@ GeantPropagator::GeantPropagator()
                  fOutTree(0),
                  fOutFile(0),
                  fTimer(0),
-                 fProcesses(0),
+//                 fProcesses(0),
+                 fProcess(0),
                  fStoredTracks(0),
                  fNtracks(0),
                  fEvents(0),
@@ -121,10 +122,11 @@ GeantPropagator::~GeantPropagator()
 {
 // Destructor
    Int_t i;
-   if (fProcesses) {
-     for (i=0; i<fNprocesses; i++) delete fProcesses[i];
-     delete [] fProcesses;
-   }  
+   delete fProcess;
+//   if (fProcesses) {
+//     for (i=0; i<fNprocesses; i++) delete fProcesses[i];
+//     delete [] fProcesses;
+//   }  
 
    if (fEvents) {
       for (i=0; i<fNevents; i++) delete fEvents[i];
@@ -338,15 +340,20 @@ void GeantPropagator::Initialize()
       fKineTF1->SetParameters(1,3*fEmin,5);
    }   
    
-   
-   
-   if (!fProcesses) {
-      fProcesses = new PhysicsProcess*[fNprocesses];
-      fProcesses[0] = new ScatteringProcess("Scattering");
-      fProcesses[1] = new ElossProcess("Eloss");
-      fElossInd = 1;
-      fProcesses[2] = new InteractionProcess("Interaction");
+   if (!fProcess) {
+      Fatal("Initialize", "The physics process has to be initilaized before this");
+      return;
    }
+   // Initialize the process(es)
+   fProcess->Initialize();
+      
+//   if (!fProcesses) {
+//      fProcesses = new PhysicsProcess*[fNprocesses];
+//      fProcesses[0] = new ScatteringProcess("Scattering");
+//      fProcesses[1] = new ElossProcess("Eloss");
+//      fElossInd = 1;
+//      fProcesses[2] = new InteractionProcess("Interaction");
+//   }
 
    if(!fNtracks){
      fNtracks = new Int_t[fNevents];
@@ -390,6 +397,10 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Generate all physics steps for the tracks in trackin.
+   GeantThreadData *td = fThreadData[tid];
+   fProcess->ComputeIntLen(td->fVolume->GetMaterial(), ntracks, tracks, 0, tid);
+
+/*
    static const Double_t maxlen = TMath::Limits<double>::Max();   
    Double_t pstep;
    Int_t iproc;
@@ -416,15 +427,8 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t t
             tracks.fProcessV[i] = iproc;
          }
       }
-/*
-      if (fUseDebug && (fDebugTrk==ipart || fDebugTrk<0)) {
-         Printf("   (%d) PhysicsSelect: track #%d - process=%d pstep=%g",tid,ipart,track->process,track->step);
-         if (track->step>1.E200) {
-            Printf("xxx");
-         }   
-      }
-*/      
    }      
+*/
 }
 
 //______________________________________________________________________________

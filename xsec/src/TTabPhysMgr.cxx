@@ -252,8 +252,7 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
 }
 
 //______________________________________________________________________________
-Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracksin, 
-GeantTrack_v &tracksout, Int_t tid)
+Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 //-should be called only for particles with reaction (first fNPartReac particle 
 // in TPartIndex::fPDG[]); the case ipartindex>=fNPartReac is handled now everywhere
@@ -268,10 +267,10 @@ GeantTrack_v &tracksout, Int_t tid)
 //     -the G5 reaction indices will be in GeantTrack_v::fProcessV array; 
 //      GeantTrack_v::fEindexV[i] will be -1 if no reaction for i-th particle     
 // 2.Sampling the finale states for the selected interaction and store the secondary
-// tracks in tracksout; only those traks go into tracksout that can pass the energyLimit,
+// tracks in tracks; only those traks go into tracks that can pass the energyLimit,
 // Rest process final states will be sampled in case of those secondaries that fail to 
 // pass the energyLimit (recursion!),
-// so the status of tracks can be only kAlive in tracksout  
+// so the status of tracks can be only kAlive in tracks  
 // 4.number of secondary trecks will be returned and original track status will 
 // be updated (if they have been killed or still alive) 
 
@@ -281,20 +280,20 @@ GeantTrack_v &tracksout, Int_t tid)
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
 
    //1.	
-   mxs->SampleInt(ntracks, tracksin, tid);
+   mxs->SampleInt(ntracks, tracks, tid);
 
 //   for(Int_t i = 0; i<ntracks;++i)
 //	printf("[%d]-th Fstate element name:= %s index:= %d\n",i ,fElemXsec[fstateindx[i]]->GetTitle(), fstateindx[i]);
 
 
 
-   //2. at Rest story makes this part a bit complicated! (only 'trackable' secondaries can go to tracksout)
+   //2. at Rest story makes this part a bit complicated! (only 'trackable' secondaries can go to tracks)
    // tid-based rng
    Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
 
    Int_t nSecPart     = 0;  //number of secondary particles per reaction
-   Int_t nTotSecPart  = 0;  //total number of secondary particles in tracksout
+   Int_t nTotSecPart  = 0;  //total number of secondary particles in tracks
    const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
    const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
    Float_t  ener      = 0;  //energy at the fstate (Ekin of primary after the interc.)
@@ -303,53 +302,53 @@ GeantTrack_v &tracksout, Int_t tid)
    Char_t   isSurv    = 0;  //is the primary survived the interaction 	
    
    for(Int_t t = 0; t < ntracks; ++t){
-    if(tracksin.fProcessV[t] < 0) //if reaction was not selected for this partilce
+    if(tracks.fProcessV[t] < 0) //if reaction was not selected for this partilce
      continue;	
 
-     isSurv = fElemFstate[tracksin.fEindexV[t]]->SampleReac(tracksin.fG5codeV[t], 
-		tracksin.fProcessV[t], tracksin.fEV[t]-tracksin.fMassV[t], 
+     isSurv = fElemFstate[tracks.fEindexV[t]]->SampleReac(tracks.fG5codeV[t], 
+		tracks.fProcessV[t], tracks.fEV[t]-tracks.fMassV[t], 
 		nSecPart, weight, kerma, ener, pid, mom, rndArray[2*t], rndArray[2*t+1]);
 
-     tracksin.fEdepV[t] += kerma;    //add the deposited energy (in the interaction) to the energy depositon	
+     tracks.fEdepV[t] += kerma;    //add the deposited energy (in the interaction) to the energy depositon	
 
     //if we have secondaries from the current interaction
     if(nSecPart){   
-      Double_t oldXdir  = tracksin.fXdirV[t];       //old X direction of the primary
-      Double_t oldYdir  = tracksin.fYdirV[t];       //old Y direction of the primary
-      Double_t oldZdir  = tracksin.fZdirV[t];       //old Z direction of the primary
+      Double_t oldXdir  = tracks.fXdirV[t];       //old X direction of the primary
+      Double_t oldYdir  = tracks.fYdirV[t];       //old Y direction of the primary
+      Double_t oldZdir  = tracks.fZdirV[t];       //old Z direction of the primary
       Int_t j = 0;
 
       if(isSurv && ener >= energyLimit){ //primary particle survived -> it is in the list of secondaries [0]: 
-        tracksin.fStatusV[t] = kAlive;   //1. ener=Ekin > energyLimit -> Alive (need to update in tracksin) 
+        tracks.fStatusV[t] = kAlive;   //1. ener=Ekin > energyLimit -> Alive (need to update in tracks) 
  
-        //update primary in tracksin
+        //update primary in tracks
         Double_t secPtot2 = mom[0]*mom[0]+mom[1]*mom[1]+mom[2]*mom[2];//total P^2 [GeV^2]
         Double_t secPtot  = TMath::Sqrt(secPtot2);     //total P [GeV]
-        Double_t secEtot  = ener + tracksin.fMassV[t]; //total energy in [GeV]
+        Double_t secEtot  = ener + tracks.fMassV[t]; //total energy in [GeV]
 
-        tracksin.fPV[t]   = secPtot;		//momentum of this particle 
-        tracksin.fEV[t]   = secEtot;		//total E of this particle 
-        tracksin.fXdirV[t] = mom[0]/secPtot;	//dirx of this particle (before transform.)
-        tracksin.fYdirV[t] = mom[1]/secPtot;	//diry of this particle (before transform.)
-        tracksin.fZdirV[t] = mom[2]/secPtot;	//dirz of this particle (before transform.)
+        tracks.fPV[t]   = secPtot;		//momentum of this particle 
+        tracks.fEV[t]   = secEtot;		//total E of this particle 
+        tracks.fXdirV[t] = mom[0]/secPtot;	//dirx of this particle (before transform.)
+        tracks.fYdirV[t] = mom[1]/secPtot;	//diry of this particle (before transform.)
+        tracks.fZdirV[t] = mom[2]/secPtot;	//dirz of this particle (before transform.)
 
-        //Rotate parent track in tracksin to original parent track's frame 
+        //Rotate parent track in tracks to original parent track's frame 
         //(a boost will be here as well; before the rotation)		           
-        RotateNewTrack(oldXdir, oldYdir, oldZdir, tracksin, t);
+        RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, t);
 
         j = 1; 
-      } else { //2. (primary survived but Ekin < energyLimit) || (primary hasn't survived) -> kill in tracksin and invoke at rest
-        tracksin.fStatusV[t] = kKilled;   //set status of primary in tracksin to kKilled;
+      } else { //2. (primary survived but Ekin < energyLimit) || (primary hasn't survived) -> kill in tracks and invoke at rest
+        tracks.fStatusV[t] = kKilled;   //set status of primary in tracks to kKilled;
 //      j = 0;
-//      tracksin.fEdepV[t]  += ener;    //add the after interaction Ekin of the primary to the energy depositon	
+//      tracks.fEdepV[t]  += ener;    //add the after interaction Ekin of the primary to the energy depositon	
         //note: even if the primary in the list of secondaries, its energy (ener)
         //      is lower than the energyLimit so it will be handled properly as 
         //      the other secondaries
       } 
 
-      //loop over the secondaries and put them into tracksout:
+      //loop over the secondaries and put them into tracks:
       // j=0 -> including stopped primary as well if isSurv = kTRUE; 
-      // j=1 -> skipp the primary in the list of secondaries (was already updated in tracksin above) 
+      // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above) 
       for(Int_t i = j; i < nSecPart; ++i) {
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
 	TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
@@ -369,28 +368,28 @@ GeantTrack_v &tracksout, Int_t tid)
 	  gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
 	  gTrack.fStatus   = kAlive; 		//status of this particle
 	  gTrack.fMass     = secMass; 		//mass of this particle
-	  gTrack.fXpos     = tracksin.fXposV[t];	//rx of this particle (same as parent)
-	  gTrack.fYpos     = tracksin.fYposV[t];	//ry of this particle (same as parent)
-	  gTrack.fZpos     = tracksin.fZposV[t];	//rz of this particle (same as parent)
+	  gTrack.fXpos     = tracks.fXposV[t];	//rx of this particle (same as parent)
+	  gTrack.fYpos     = tracks.fYposV[t];	//ry of this particle (same as parent)
+	  gTrack.fZpos     = tracks.fZposV[t];	//rz of this particle (same as parent)
 	  gTrack.fXdir     = mom[3*i]/secPtot;	//dirx of this particle (before transform.)
 	  gTrack.fYdir     = mom[3*i+1]/secPtot;	//diry of this particle before transform.)
 	  gTrack.fZdir     = mom[3*i+2]/secPtot;	//dirz of this particle before transform.)
 	  gTrack.fP        = secPtot;		//momentum of this particle 
 	  gTrack.fE        = secEtot;		//total E of this particle 
 
-          tracksout.AddTrack(gTrack);
+          tracks.AddTrack(gTrack);
 
           //Rotate new track to parent track's frame (a boost will be here as well; before the rotation)		           
-          RotateNewTrack(oldXdir, oldYdir, oldZdir, tracksout, nTotSecPart);
+          RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, nTotSecPart);
            		 
 	  ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
-          tracksin.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
-          GetRestFinSates(pid[i], fElemFstate[tracksin.fEindexV[t]], energyLimit, tracksin, t, tracksout, nTotSecPart, tid);  
+          tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
+          GetRestFinSates(pid[i], fElemFstate[tracks.fEindexV[t]], energyLimit, tracks, t, tracks, nTotSecPart, tid);  
         } 
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
-      tracksin.fStatusV[t] = kKilled; //set status of primary in tracksin to kKilled;
+      tracks.fStatusV[t] = kKilled; //set status of primary in tracks to kKilled;
      }
 
    }//end loop over tracks   

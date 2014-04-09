@@ -466,6 +466,10 @@ void *WorkloadManager::TransportTracks(void *)
       // Post-step actions by continuous processes for all particles. There are no 
       // new generated particles at this point.
       if (propagator->fUsePhysics) {
+         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output);
+      }   
+/*
+      if (propagator->fUsePhysics) {
          for (Int_t iproc=0; iproc<nprocesses; iproc++) {
             if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) {
                Int_t nafter = 0;
@@ -474,9 +478,21 @@ void *WorkloadManager::TransportTracks(void *)
             }   
          }      
       }
+*/
       // Now we may also have particles killed by energy threshold
       // Do post-step actions on remaining particles
       // Loop all processes to group particles per process
+
+      if (propagator->fUsePhysics) {
+         // Discrete processes only
+         Int_t nphys = output.SortByStatus(kPhysics);
+         if (nphys) {
+            // Do post step actions for particles suffering a given process.
+            // Surviving particles are added to the output array
+            propagator->Process()->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
+         }
+      }   
+/*
       if (propagator->fUsePhysics) {
          // Discrete processes only
          Int_t nphys = output.SortByStatus(kPhysics);
@@ -490,6 +506,7 @@ void *WorkloadManager::TransportTracks(void *)
             }
          }
       }
+*/
       // Check
       if (basket->GetNinput()) {
          Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
