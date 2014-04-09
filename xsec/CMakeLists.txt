@@ -31,6 +31,7 @@ ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
 add_library(Xsec SHARED ${sources} xsecCint.cxx ${headers} xsecCint.h)
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
                            ${ROOT_LIBRARIES} -lEG -lGui -lGeom)
+add_dependencies(Xsec Geantlib_v)
 
 add_headers("${headers}")
 
