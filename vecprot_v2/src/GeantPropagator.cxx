@@ -112,7 +112,8 @@ GeantPropagator::GeantPropagator()
                  fOutTree(0),
                  fOutFile(0),
                  fTimer(0),
-                 fProcesses(0),
+//                 fProcesses(0),
+                 fProcess(0),
                  fStoredTracks(0),
                  fNtracks(0),
                  fEvents(0),
@@ -120,7 +121,9 @@ GeantPropagator::GeantPropagator()
                  fThreadData(0)
 {
 // Constructor
-   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,0.2);
+   fVertex[0] = -8.;
+   fVertex[1] = fVertex[2] = 0.;
+//   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,0.2);
    fgInstance = this;
 }
 
@@ -129,10 +132,11 @@ GeantPropagator::~GeantPropagator()
 {
 // Destructor
    Int_t i;
-   if (fProcesses) {
-     for (i=0; i<fNprocesses; i++) delete fProcesses[i];
-     delete [] fProcesses;
-   }  
+   delete fProcess;
+//   if (fProcesses) {
+//     for (i=0; i<fNprocesses; i++) delete fProcesses[i];
+//     delete [] fProcesses;
+//   }  
 
    if (fEvents) {
       for (i=0; i<fNevents; i++) delete fEvents[i];
@@ -390,7 +394,11 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.SetEvent(event);
          track.SetEvslot(slot);
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
-         track.SetPDG(0);
+//         track.SetPDG(kMuonPlus); // G5code=27
+//         track.SetG5code(27);
+         track.SetPDG(kElectron); // G5code=23
+         track.SetG5code(23); // just a hack -> will change with new physics list
+/*
          for(Int_t j=0; j<kMaxPart; ++j) {
             if(prob <= pdgProb[j]) {
                track.SetPDG(pdgGen[j]);
@@ -400,6 +408,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
                break;
             }
          }   
+*/
          if(!track.fPDG) Fatal("ImportTracks","No particle generated!");
          TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track.fPDG);
          track.SetCharge(part->Charge()/3.);
@@ -407,16 +416,23 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fXpos = fVertex[0];
          track.fYpos = fVertex[1];
          track.fZpos = fVertex[2];
-         track.fE = fKineTF1->GetRandom()+part->Mass();
+//         track.fE = fKineTF1->GetRandom()+part->Mass();
+         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
+//         track.fE = 0.3 /*300MeV*/ +part->Mass();  //mu+
          Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
+         track.SetP(p);
+/*
          Double_t eta = td->fRndm->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
          Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
          //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
          Double_t phi = TMath::TwoPi()*td->fRndm->Rndm();
-         track.SetP(p);
          track.fXdir = TMath::Sin(theta)*TMath::Cos(phi);
          track.fYdir = TMath::Sin(theta)*TMath::Sin(phi);
          track.fZdir = TMath::Cos(theta);
+*/
+         track.fXdir = 1.;
+         track.fYdir = 0.;
+         track.fZdir = 0.;
          track.fFrombdr = kFALSE;
          track.fStatus = kAlive;
          
@@ -473,15 +489,20 @@ void GeantPropagator::Initialize()
       fKineTF1->SetParameters(1,3*fEmin,5);
    }   
    
-   
-   
-   if (!fProcesses) {
-      fProcesses = new PhysicsProcess*[fNprocesses];
-      fProcesses[0] = new ScatteringProcess("Scattering");
-      fProcesses[1] = new ElossProcess("Eloss");
-      fElossInd = 1;
-      fProcesses[2] = new InteractionProcess("Interaction");
+   if (!fProcess) {
+      Fatal("Initialize", "The physics process has to be initilaized before this");
+      return;
    }
+   // Initialize the process(es)
+   fProcess->Initialize();
+      
+//   if (!fProcesses) {
+//      fProcesses = new PhysicsProcess*[fNprocesses];
+//      fProcesses[0] = new ScatteringProcess("Scattering");
+//      fProcesses[1] = new ElossProcess("Eloss");
+//      fElossInd = 1;
+//      fProcesses[2] = new InteractionProcess("Interaction");
+//   }
 
    if(!fNtracks){
      fNtracks = new Int_t[fNevents];
@@ -531,6 +552,15 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Generate all physics steps for the tracks in trackin.
+   GeantThreadData *td = fThreadData[tid];
+   // Reset the current step length to 0
+   for (Int_t i=0; i<ntracks; ++i) {
+      tracks.fStepV[i] = 0.;
+      tracks.fEdepV[i] = 0.;
+   }   
+   fProcess->ComputeIntLen(td->fVolume->GetMaterial(), ntracks, tracks, 0, tid);
+
+/*
    static const Double_t maxlen = TMath::Limits<double>::Max();   
    Double_t pstep;
    Int_t iproc;
@@ -557,15 +587,8 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t t
             tracks.fProcessV[i] = iproc;
          }
       }
-/*
-      if (fUseDebug && (fDebugTrk==ipart || fDebugTrk<0)) {
-         Printf("   (%d) PhysicsSelect: track #%d - process=%d pstep=%g",tid,ipart,track->process,track->step);
-         if (track->step>1.E200) {
-            Printf("xxx");
-         }   
-      }
-*/      
    }      
+*/
 }
 
 //______________________________________________________________________________

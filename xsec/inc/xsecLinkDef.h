@@ -25,5 +25,6 @@
 #pragma link C++ class TPXsec-;
 #pragma link C++ class TPartIndex-;
 #pragma link C++ class TTabPhysMgr+;
+#pragma link C++ class TTabPhysProcess+;
 
 #endif

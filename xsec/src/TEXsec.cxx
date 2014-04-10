@@ -205,6 +205,12 @@ Int_t TEXsec::SampleReac(Int_t pindex, Double_t en) const {
 }
 
 //___________________________________________________________________
+Int_t TEXsec::SampleReac(Int_t pindex, Double_t en, Double_t randn) const {
+    return fPXsec[pindex].SampleReac(en, randn);
+}
+
+
+//___________________________________________________________________
 TGraph* TEXsec::MSGraph(const char* part, const char* what,
                         Float_t emin, Float_t emax, Int_t nbin) const
 {

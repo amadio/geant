@@ -15,6 +15,12 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
+if(${USE_ROOT})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ../cmake/modules)
+  find_package(ROOT REQUIRED)
+  add_definitions(-DUSE_ROOT)
+endif()
+
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
@@ -24,7 +30,10 @@ include(${Geant4_USE_FILE})
 # Locate sources and headers for this project
 #
 include_directories(${PROJECT_SOURCE_DIR}/include 
-                    ${Geant4_INCLUDE_DIR})
+                    ${Geant4_INCLUDE_DIR}
+                    ${ROOT_INCLUDE_DIR}
+                    ${PROJECT_SOURCE_DIR}/../xsec/inc 
+)
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
@@ -54,7 +63,9 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
-target_link_libraries(exampleN03 ${Geant4_LIBRARIES} )
+target_link_libraries(exampleN03 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
+                                 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
+add_dependencies(exampleN03 xseclib Geantlib_v)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

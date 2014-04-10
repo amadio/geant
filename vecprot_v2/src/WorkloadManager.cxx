@@ -437,6 +437,7 @@ void *WorkloadManager::TransportTracks(void *)
          Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter);
       } 
 //      if (counter==1) input.PrintTracks();  
+/*
       for (Int_t itr=0; itr<ntotransport; itr++) {
          iev[itr] = input.fEventV[itr];
          itrack[itr] = input.fParticleV[itr];
@@ -446,10 +447,11 @@ void *WorkloadManager::TransportTracks(void *)
             Printf("Error: track %d has NaN", itr);
          }   
       }
+*/
       // Select the discrete physics process for all particles in the basket
       if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
       
-      //ncross = 0;
+      ncross = 0;
       generation = 0;
       
       while (ntotransport) {
@@ -469,6 +471,10 @@ void *WorkloadManager::TransportTracks(void *)
       // Post-step actions by continuous processes for all particles. There are no 
       // new generated particles at this point.
       if (propagator->fUsePhysics) {
+         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output);
+      }   
+/*
+      if (propagator->fUsePhysics) {
          for (Int_t iproc=0; iproc<nprocesses; iproc++) {
             if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) {
                Int_t nafter = 0;
@@ -477,9 +483,21 @@ void *WorkloadManager::TransportTracks(void *)
             }   
          }      
       }
+*/
       // Now we may also have particles killed by energy threshold
       // Do post-step actions on remaining particles
       // Loop all processes to group particles per process
+
+      if (propagator->fUsePhysics) {
+         // Discrete processes only
+         Int_t nphys = output.SortByStatus(kPhysics);
+         if (nphys) {
+            // Do post step actions for particles suffering a given process.
+            // Surviving particles are added to the output array
+            propagator->Process()->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
+         }
+      }   
+/*
       if (propagator->fUsePhysics) {
          // Discrete processes only
          Int_t nphys = output.SortByStatus(kPhysics);
@@ -493,11 +511,13 @@ void *WorkloadManager::TransportTracks(void *)
             }
          }
       }
+*/
       // Check
       if (basket->GetNinput()) {
          Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
       }   
       noutput = basket->GetNoutput();
+/*
       for(Int_t itr=0; itr<noutput; itr++) {
          if (TMath::IsNaN(output.fXdirV[itr])) {
             Printf("Error: track %d has NaN", itr);
@@ -518,6 +538,7 @@ void *WorkloadManager::TransportTracks(void *)
 //            output.PrintTracks();
          }   
       }
+*/      
 
 finish:
 //      basket->Clear();

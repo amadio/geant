@@ -860,7 +860,7 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
    tdbl = fZdirV     [i]; fZdirV     [i] = fZdirV     [j]; fZdirV     [j] = tdbl;
    tdbl = fPV        [i]; fPV        [i] = fPV        [j]; fPV        [j] = tdbl;
    tdbl = fEV        [i]; fEV        [i] = fEV        [j]; fEV        [j] = tdbl;
-   tdbl = fEdepV     [i]; fEdepV     [i] = fEdepV     [j]; fEV        [j] = tdbl;
+   tdbl = fEdepV     [i]; fEdepV     [i] = fEdepV     [j]; fEdepV     [j] = tdbl;
    tdbl = fPstepV    [i]; fPstepV    [i] = fPstepV    [j]; fPstepV    [j] = tdbl;
    tdbl = fStepV     [i]; fStepV     [i] = fStepV     [j]; fStepV     [j] = tdbl;
    tdbl = fSnextV    [i]; fSnextV    [i] = fSnextV    [j]; fSnextV    [j] = tdbl;

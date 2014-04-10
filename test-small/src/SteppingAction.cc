@@ -32,6 +32,7 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "SteppingAction.hh"
+#include "SteppingAnalysis.hh"
 
 #include "DetectorConstruction.hh"
 #include "EventAction.hh"
@@ -46,13 +47,19 @@ SteppingAction::SteppingAction()
   detector = (DetectorConstruction*)
              G4RunManager::GetRunManager()->GetUserDetectorConstruction();
   eventaction = (EventAction*)
-                G4RunManager::GetRunManager()->GetUserEventAction();               
- }
+                G4RunManager::GetRunManager()->GetUserEventAction();          
+
+  doAnalysis = getenv("DO_STEPPING_ANALYSIS");
+  if (doAnalysis) fSteppingAnalysis = new SteppingAnalysis();
+
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 SteppingAction::~SteppingAction()
-{ }
+{ 
+  if (doAnalysis) delete fSteppingAnalysis;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -74,6 +81,8 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
   
   //example of saving random number seed of this event, under condition
   //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent(); 
+
+  if(doAnalysis) fSteppingAnalysis->DoIt(aStep);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

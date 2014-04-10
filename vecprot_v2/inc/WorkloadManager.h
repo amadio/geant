@@ -69,6 +69,10 @@ public:
    static void        *TransportTracks(void *arg);
    static void        *TransportTracksCoprocessor(void *arg);
    void                WaitWorkers();
+private:
+   WorkloadManager(const WorkloadManager &);//no imp.	
+   WorkloadManager& operator=(const WorkloadManager &);//no imp.
+      
    
    ClassDef(WorkloadManager,0)  // The work manager class.
 };   

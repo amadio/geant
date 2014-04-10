@@ -42,6 +42,9 @@ public:
 
    Double_t         *GetProcStep(Int_t iproc) {return fProcStep+iproc*fMaxPerBasket;}
    
+private:
+   GeantThreadData(const GeantThreadData &);//no imp.	
+   GeantThreadData& operator=(const GeantThreadData &);//no imp.
    
    ClassDef(GeantThreadData,1)  // Stateful data organized per thread
 };   

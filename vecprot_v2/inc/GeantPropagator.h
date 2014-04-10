@@ -80,7 +80,8 @@ public:
    TFile           *fOutFile;   // Output file
    TStopwatch      *fTimer;     // Timer
    
-   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
+   PhysicsProcess  *fProcess;   // For now the only generic process pointing to the tabulated physics
+//   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack_v    *fStoredTracks;    //! Stored array of tracks (history?)
 
    // Data per event
@@ -111,7 +112,8 @@ public:
    static 
    GeantPropagator *Instance(Int_t ntotal=0, Int_t nbuffered=0);
    void             PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
+//   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
+   PhysicsProcess  *Process() const {return fProcess;}
    void             PropagatorGeom(const char *geomfile="geometry.root",
                                    Int_t nthreads=4,
                                    Bool_t graphics=kFALSE,

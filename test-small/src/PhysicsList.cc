@@ -46,6 +46,17 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PhysicsList::PhysicsList():  G4VUserPhysicsList()
+			  , theNeutrons(0)
+			  , theBertiniNeutron(0)
+			  , theFTFPNeutron(0)
+			  , theLEPNeutron(0)
+			  , thePiK(0)
+			  , theBertiniPiK(0)
+			  , theFTFPPiK(0)
+			  , thePro(0)
+			  , theBertiniPro(0)
+			  , theFTFPPro(0)
+			  , QuasiElastic(false)
 {
   defaultCutValue = 1.0*mm;
   SetVerboseLevel(1);
@@ -54,7 +65,20 @@ PhysicsList::PhysicsList():  G4VUserPhysicsList()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PhysicsList::~PhysicsList()
-{}
+{
+  delete theNeutrons;
+  delete theBertiniNeutron;
+  delete theFTFPNeutron;
+  delete theLEPNeutron;    
+
+  delete thePiK;
+  delete theBertiniPiK;
+  delete theFTFPPiK;
+    
+  delete thePro;
+  delete theBertiniPro;
+  delete theFTFPPro;    
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -79,6 +103,7 @@ void PhysicsList::ConstructParticle()
 
   G4IonConstructor pIonConstructor;
   pIonConstructor.ConstructParticle(); 
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -88,6 +113,8 @@ void PhysicsList::ConstructProcess()
   AddTransportation();
   ConstructEM();
   ConstructDecay();
+
+  HadronPhysicsFTFP_BERT_WP();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -115,6 +142,9 @@ void PhysicsList::ConstructProcess()
 
 #include "G4ionIonisation.hh"
 
+#include "TabulatedProcess.hh"
+#include "VectorizedProcess.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void PhysicsList::ConstructEM()
@@ -134,10 +164,58 @@ void PhysicsList::ConstructEM()
       
     } else if (particleName == "e-") {
       //electron
-      ph->RegisterProcess(new G4eMultipleScattering, particle);
-      ph->RegisterProcess(new G4eIonisation,         particle);
-      ph->RegisterProcess(new G4eBremsstrahlung,     particle);      
+ 
+      //choices for different physics list for Ionisation and Bremsstrahlung
+      char* plname = getenv("PHYSLIST");
 
+      if ( plname && strcmp(plname,"TabulatedPhysics")==0) {
+	//use tabulated physics
+	G4eIonisation* eIoniProc = new G4eIonisation();
+	TabulatedProcess* eIoniWrapperProc = 
+	  new TabulatedProcess(eIoniProc->GetProcessName(),
+			       eIoniProc->GetProcessType());
+	eIoniWrapperProc->SetProcessSubType(eIoniProc->GetProcessSubType());
+	eIoniWrapperProc->RegisterProcess(eIoniProc);
+	ph->RegisterProcess(eIoniWrapperProc, particle);
+
+	//	G4ProcessManager* theProcMan = 
+	//	  G4Electron::Electron()->GetProcessManager();
+	//      theProcMan->AddDiscreteProcess(eIoniWrapperProc);
+	//      theProcMan->AddContinuousProcess(eIoniWrapperProc);
+	//@@@or	theProcMan->AddProcess(eIoniWrapperProc,-1,0,0);
+	
+	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
+	TabulatedProcess* eBremWrapperProc = 
+	  new TabulatedProcess(eBremProc->GetProcessName(),
+			       eBremProc->GetProcessType());
+	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
+	eBremWrapperProc->RegisterProcess(eBremProc);
+	ph->RegisterProcess(eBremWrapperProc, particle);
+      }
+      else if ( plname && strcmp(plname,"VectorizedPhysics")==0) {
+	//use vectorized physics
+	G4eIonisation* eIoniProc = new G4eIonisation();
+	VectorizedProcess* eIoniWrapperProc = 
+	  new VectorizedProcess(eIoniProc->GetProcessName(),
+				eIoniProc->GetProcessType());
+	eIoniWrapperProc->SetProcessSubType(eIoniProc->GetProcessSubType());
+	eIoniWrapperProc->RegisterProcess(eIoniProc);
+	ph->RegisterProcess(eIoniWrapperProc, particle);
+	
+	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
+	VectorizedProcess* eBremWrapperProc = 
+	  new VectorizedProcess(eBremProc->GetProcessName(),
+				eBremProc->GetProcessType());
+	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
+	eBremWrapperProc->RegisterProcess(eBremProc);
+	ph->RegisterProcess(eBremWrapperProc, particle);
+      }
+      else {
+	//user standard electron processes
+	ph->RegisterProcess(new G4eMultipleScattering, particle);
+	ph->RegisterProcess(new G4eIonisation,         particle);
+	ph->RegisterProcess(new G4eBremsstrahlung,     particle);      
+      }
     } else if (particleName == "e+") {
       //positron
       ph->RegisterProcess(new G4eMultipleScattering, particle);
@@ -224,3 +302,31 @@ void PhysicsList::SetCuts()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+void PhysicsList::HadronPhysicsFTFP_BERT_WP()
+{
+  theNeutrons=new G4NeutronBuilder_WP;
+  theFTFPNeutron=new G4FTFPNeutronBuilder(QuasiElastic);
+  theNeutrons->RegisterMe(theFTFPNeutron);
+  theNeutrons->RegisterMe(theBertiniNeutron=new G4BertiniNeutronBuilder);
+  theBertiniNeutron->SetMinEnergy(0.0*GeV);
+  theBertiniNeutron->SetMaxEnergy(5*GeV);
+  theNeutrons->RegisterMe(theLEPNeutron=new G4LEPNeutronBuilder);
+  theLEPNeutron->SetMinInelasticEnergy(0.0*eV);   // no inelastic from LEP
+  theLEPNeutron->SetMaxInelasticEnergy(0.0*eV);  
+
+  thePro=new G4ProtonBuilder_WP;
+  theFTFPPro=new G4FTFPProtonBuilder(QuasiElastic);
+  thePro->RegisterMe(theFTFPPro);
+  thePro->RegisterMe(theBertiniPro=new G4BertiniProtonBuilder);
+  theBertiniPro->SetMaxEnergy(5*GeV);
+
+  thePiK=new G4PiKBuilder_WP;
+  theFTFPPiK=new G4FTFPPiKBuilder(QuasiElastic);
+  thePiK->RegisterMe(theFTFPPiK);
+  thePiK->RegisterMe(theBertiniPiK=new G4BertiniPiKBuilder);
+  theBertiniPiK->SetMaxEnergy(5*GeV);
+  
+  theNeutrons->Build();
+  thePro->Build();
+  thePiK->Build();
+}

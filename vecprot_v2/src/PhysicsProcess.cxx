@@ -27,43 +27,11 @@
 
 ClassImp(PhysicsProcess)
 ClassImp(ScatteringProcess)
-ClassImp(TabXsecProcess)
-
-//______________________________________________________________________________
-void TabXsecProcess::ComputeIntLen(TGeoMaterial *mat, 
-                                      Int_t ntracks, 
-                                      const GeantTrack_v &tracks,
-                                      Double_t *lengths, 
-                                      Int_t tid)
-{
-// Tabulated cross section generic process computation of interaction length.
-}                                      
-
-//______________________________________________________________________________
-void TabXsecProcess::PostStep(TGeoMaterial *mat,
-                                 Int_t ntracks,
-                                 GeantTrack_v &tracks, 
-                                 Int_t &nout, 
-                                 Int_t tid)
-{
-// Do post-step actions on particle after generic tabxsec process. 
-// Surviving tracks copied in trackout.
-}
-
-//______________________________________________________________________________
-void TabXsecProcess::AtRest(Int_t ntracks,
-                                 GeantTrack_v &tracks, 
-                                 Int_t &nout, 
-                                 Int_t tid)
-{
-// Do at rest actions on particle after generic tabxsec process. 
-// Daughter tracks copied in trackout.
-}
 
 //______________________________________________________________________________
 void ScatteringProcess::ComputeIntLen(TGeoMaterial *mat, 
                                       Int_t ntracks, 
-                                      const GeantTrack_v &tracks,
+                                      GeantTrack_v &tracks,
                                       Double_t *lengths, 
                                       Int_t tid)
 {
@@ -138,7 +106,7 @@ ClassImp(ElossProcess)
 //______________________________________________________________________________
 void ElossProcess::ComputeIntLen(TGeoMaterial *mat, 
                                  Int_t ntracks, 
-                                 const GeantTrack_v &tracks,
+                                 GeantTrack_v &tracks,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {
@@ -287,7 +255,7 @@ InteractionProcess::~InteractionProcess()
 //______________________________________________________________________________
 void InteractionProcess::ComputeIntLen(TGeoMaterial *mat, 
                                  Int_t ntracks, 
-                                 const GeantTrack_v &tracks,
+                                 GeantTrack_v &tracks,
                                  Double_t *lengths, 
                                  Int_t /*tid*/)
 {

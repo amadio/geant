@@ -225,13 +225,13 @@ public:
 };
 
 template <class T>
-void workpipe<T>::push(T *data, bool priority)
+void workpipe<T>::push(T *data, bool pr)
 {
 // Push an pointer of type T* in the queue. If pushed with priority, the pointer
 // is put at the bask of the queue, otherwise to the front.
    the_mutex.Lock();
    nobjects++;
-   if (priority) {the_queue.push_back(data); npriority++;}
+   if (pr) {the_queue.push_back(data); npriority++;}
    else          the_queue.push_front(data);
    the_condition_variable.Signal();
    the_mutex.UnLock();
