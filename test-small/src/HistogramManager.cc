@@ -1,6 +1,7 @@
 //
 // S.Y. Jun & J. Apostolakis, April 2014
 //
+#include <string>
 #include "HistogramManager.hh"
 #include "TabulatedPhysicsNameSpace.hh"
 
