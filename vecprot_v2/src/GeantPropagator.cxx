@@ -95,7 +95,7 @@ GeantPropagator::GeantPropagator()
                  fMaxPerEvent(0),
                  fNaverage(0.),
                  fVertex(),
-                 fEmin(0.1), // 100 MeV
+                 fEmin(1.E-4), // 100 KeV
                  fEmax(10),  // 10 Gev
                  fBmag(1.),
                  fUsePhysics(kTRUE),

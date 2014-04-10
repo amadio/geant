@@ -1,5 +1,6 @@
-void run(Int_t nthreads=1, Bool_t graphics=kFALSE, 
+void run(Int_t nthreads=4, Bool_t graphics=kFALSE, 
          const char *geomfile="ExN03.root")
+//         const char *geomfile="../test-small/gdml/test-small-10Layers.gdml")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 {
    gSystem->Load("libPhysics.so");
@@ -10,7 +11,7 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
    gSystem->Load("libGeant_v.so");
    gSystem->Load("libXsec.so");
 
-   Int_t ntotal   = 20;  // Number of events to be transported
+   Int_t ntotal   = 100;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
    TGeoManager::Import(geomfile);
    
@@ -19,6 +20,7 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
    wmgr->SetNminThreshold(5*nthreads);
    prop->fNaverage = 100;   // Average number of tracks per event
    prop->fNperBasket = 8;
+   prop->fEmin = 1.E-5; // [10KeV]
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 
