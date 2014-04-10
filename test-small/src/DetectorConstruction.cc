@@ -52,6 +52,10 @@
 #include "G4Colour.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+//
+//***LOOK HERE FOR GDML PARSER
+//
+//#include "G4GDMLParser.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -221,6 +225,7 @@ G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 
 //default materials of the World
 defaultMaterial  = Vacuum;
+  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -237,7 +242,6 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
 
   // complete the Calor parameters definition
   ComputeCalorParameters();
-   
   //     
   // World
   //
@@ -288,13 +292,41 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
                                        defaultMaterial,  //its material
                                        "Layer");         //its name
       if (NbOfLayers > 1)                                      
-        physiLayer = new G4PVReplica("Layer",            //its name
+        /*physiLayer = new G4PVReplica("Layer",            //its name
                                       logicLayer,        //its logical volume
                                       logicCalor,        //its mother
                                       kXAxis,            //axis of replication
                                       NbOfLayers,        //number of replica
                                       LayerThickness);   //width of replica
+	*/
+
+	{
+         physiLayer = new G4PVPlacement(0,                //no rotation
+					G4ThreeVector(-CalorThickness/2+LayerThickness/2,0,0),   //at first position
+					//G4ThreeVector(-10,0,0),
+                                      logicLayer,        //its logical volume                                     
+                                      "Layer",           //its name
+                                      logicCalor,        //its mother  volume
+                                      false,             //no boolean operation
+                                     0);                //copy number
+         for (G4int k = 1; k < NbOfLayers; k++)
+	   {     
+	    new G4PVPlacement(0,
+   	                   G4ThreeVector(-CalorThickness/2+LayerThickness/2+LayerThickness*k,0,0),   //at first position
+					//G4ThreeVector(-10,0,0),
+                                      logicLayer,        //its logical volume                                     
+                                      "Layer",           //its name
+                                      logicCalor,        //its mother  volume
+                                      false,             //no boolean operation
+                                      0);                //copy number    
+                           
+			  
+	   }
+
+
+	   }
       else
+      
         physiLayer = new G4PVPlacement(0,                //no rotation
                                       G4ThreeVector(),   //at (0,0,0)
                                       logicLayer,        //its logical volume                                     
@@ -302,7 +334,7 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
                                       logicCalor,        //its mother  volume
                                       false,             //no boolean operation
                                       0);                //copy number     
-    }                                   
+   }                                   
   
   //                               
   // Absorber
@@ -382,6 +414,12 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
   logicGap->SetVisAttributes(atb);}
   */
 
+  //
+  //***LOOK HERE FOR GDML WRITER***
+  //
+  //***You need to uncomment #include "G4GDMLParser.hh"
+  //G4GDMLParser parser;
+  //parser.Write("test-small.gdml", physiWorld);
   //
   //always return the physical World
   //
