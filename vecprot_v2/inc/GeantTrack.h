@@ -15,7 +15,8 @@
 
 #ifdef USE_VECGEOM_NAVIGATOR
 namespace vecgeom {
-class NavigationState; }
+    class NavigationState;
+}
 typedef vecgeom::NavigationState VolumePath_t;
 #else
 class TGeoBranchArray;

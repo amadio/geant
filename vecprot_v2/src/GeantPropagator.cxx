@@ -39,6 +39,8 @@
 #include "navigation/navigationstate.h"
 #include "navigation/simple_navigator.h"
 #include "management/rootgeo_manager.h"
+#include "volumes/logical_volume.h"
+#include "volumes/placed_volume.h"
 #else
 #include "TGeoBranchArray.h"
 #endif
@@ -66,6 +68,8 @@
 #include "GeantFactoryStore.h"
 #include "GeantEvent.h"
 #include "GeantScheduler.h"
+
+#include <vector>
 
 GeantPropagator *gPropagator = 0;
    
@@ -538,12 +542,23 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
    if (gGeoManager) return kTRUE;
    TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
    if (geom)
-	   {
+       {
 #ifdef USE_VECGEOM_NAVIGATOR
-	   vecgeom::RootGeoManager::Instance().LoadRootGeometry();
+        Printf("ROOT Geometry loaded\n");
+        Printf("Now loading VecGeom geometry\n");
+        vecgeom::RootGeoManager::Instance().LoadRootGeometry();
+        Printf("Loading VecGeom geometry done\n");
+        Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
+        std::vector<vecgeom::LogicalVolume *> v1;
+        vecgeom::GeoManager::Instance().getAllLogicalVolumes( v1 );
+        Printf("Have logical volumes %d\n", v1.size() );
+        std::vector<vecgeom::VPlacedVolume *> v2;
+        vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
+
+        Printf("Have placed volumes %d\n", v2.size() );
 #endif
-	   return kTRUE;
-	   }
+       return kTRUE;
+       }
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
    return kFALSE;
 }

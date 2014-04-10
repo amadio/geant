@@ -115,11 +115,10 @@ GeantTrack::GeantTrack(Int_t ipdg)
 // Constructor
 
 #ifdef USE_VECGEOM_NAVIGATOR
-   // TODO: this hard coded size is bad and probably MUCH TOO LARGE.
       // At this time, the geometry is probably already
       // loaded and we could query it for the actual size
-      fPath = new vecgeom::NavigationState(30);
-      fNextpath = new vecgeom::NavigationState(30);
+      fPath = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
+      fNextpath = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
 #else
       fPath = new TGeoBranchArray(30);
       fNextpath = new TGeoBranchArray(30);
@@ -159,9 +158,8 @@ GeantTrack::GeantTrack(const GeantTrack& other)
             fFrombdr(other.fFrombdr), 
             fPending(other.fPending),
 
-			fPath(new VolumePath_t(*other.fPath)),
-			fNextpath(new VolumePath_t(*other.fNextpath))
-
+            fPath(new VolumePath_t(*other.fPath)),
+            fNextpath(new VolumePath_t(*other.fNextpath))
 {
 // Copy constructor
 }
@@ -1172,7 +1170,25 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
                        VolumePath_t **pathin, VolumePath_t **pathout,
                        Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk)
 {
-	std::cerr << "vector interface for GeantTrack_v::NavFindNextBoundaryAndStep not yet implemented" << std::endl;
+    using vecgeom::SimpleNavigator;
+    using vecgeom::Precision;
+    using vecgeom::Vector3D;
+    typedef Vector3D<Precision> Vector3D_t;
+
+    SimpleNavigator nav;
+    for (Int_t i=0; i<ntracks; ++i)
+    {
+        nav.FindNextBoundaryAndStep( Vector3D_t( x[i], y[i], z[i] ) /* global pos */,
+                                     Vector3D_t( dirx[i], diry[i], dirz[i] ) /* global dir */,
+                                     *pathin[i], *pathout[i] /* the paths */,
+                                     TMath::Min(1.E20, pstep[i]),
+                                     step[i] );
+        step[i] = TMath::Max(2.*gTolerance, step[i]);
+        safe[i] = ( isonbdr[i] )? 0 : nav.GetSafety( Vector3D_t( x[i], y[i], z[i] ), *pathin[i] );
+
+        // onboundary with respect to new point
+        isonbdr[i] = pathout[i]->IsOnBoundary();
+    }
 }
 
 #else
@@ -1213,16 +1229,15 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 
 void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t ** start, VolumePath_t ** end, Bool_t *same)
 {
-	// TODO: We should provide this function as a static function
-	// TODO: use direction ( if needed )
-	vecgeom::SimpleNavigator simplenav;
-	for(Int_t itr=0; itr<ntracks; ++itr)
-	{
-		same[itr] = simplenav.HasSamePath(
-					 vecgeom::Vector3D<vecgeom::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
-					 *start[itr],
-					 *end[itr]
-					);
+    // TODO: We should provide this function as a static function
+    // TODO: use direction ( if needed )
+    vecgeom::SimpleNavigator simplenav;
+    for(Int_t itr=0; itr<ntracks; ++itr)
+    {
+                     same[itr] = simplenav.HasSamePath(
+                     vecgeom::Vector3D<vecgeom::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
+                     *start[itr],
+                     *end[itr]);
 	}
 }
 
@@ -1255,13 +1270,12 @@ void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t **start, Volume
 //______________________________________________________________________________
 Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  VolumePath_t ** end)
 {
-	// TODO: We should provide this function as a static function
-	vecgeom::SimpleNavigator simplenav;
-	return simplenav.HasSamePath(
-					 vecgeom::Vector3D<vecgeom::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
-					 *start[itr],
-					 *end[itr]
-					);
+    // TODO: We should provide this function as a static function
+    vecgeom::SimpleNavigator simplenav;
+    return simplenav.HasSamePath(
+                     vecgeom::Vector3D<vecgeom::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
+                     *start[itr],
+                     *end[itr]);
 }
 #else
 //______________________________________________________________________________
@@ -1287,50 +1301,52 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start,
 //______________________________________________________________________________
 void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
 {
-	typedef vecgeom::Vector3D<vecgeom::Precision> Vector3D;
+    typedef vecgeom::Vector3D<vecgeom::Precision> Vector3D_t;
 
-	// This method is to be called after a successful crossing made by PropagateInField
-	// to put the particle at the entry point.
-	// check if particle is outside detector
-	Bool_t outside = fNextpathV[itr]->IsOutside();
+    // This method is to be called after a successful crossing made by PropagateInField
+    // to put the particle at the entry point.
+    // check if particle is outside detector
+    Bool_t outside = fNextpathV[itr]->IsOutside();
 
-	// try to find out whether particle is entering where??
-	Bool_t entering = kTRUE;
-	// is the level of next path smaller than level of where it was coming from
-	// this means that propagatin ba
+    // try to find out whether particle is entering where??
+    Bool_t entering = kTRUE;
+    // is the level of next path smaller than level of where it was coming from
+    // this means that propagatin ba
 
-	/*
-	Int_t level = nav->GetLevel();
-	if ( level < fPathV[itr]->GetLevel() && !outside )
-	{
-		for ( Int_t lev=0; lev<=level; ++lev ){
 
-			// if at some level higher up the path diverges do not do anything
-			// this is something that should be implemented in the navigation state API
-			if ( fNextpathV[itr]->GetNode(lev) != fPathV[itr]->GetNode(lev) ) break;
-	        if ( lev == level ) entering = kFALSE;
+//    Int_t level = nav->getCurrentLevel();
+    Int_t level = fNextpathV[itr]->GetCurrentLevel();
+    if ( level < fPathV[itr]->GetCurrentLevel() && !outside )
+    {
+         for ( Int_t lev=0; lev<=level; ++lev ){
 
-		}
-	}
-    */
+            // if at some level higher up the path diverges do not do anything
+            // this is something that should be implemented in the navigation state API
+            if ( fNextpathV[itr]->At(lev) != fPathV[itr]->At(lev) ) break;
+            if ( lev == level ) entering = kFALSE;
+
+        }
+    }
+
 
     // convert global coordinates to local coordinates
     vecgeom::TransformationMatrix transf = fNextpathV[itr]->TopMatrix();
-    Vector3D lpos = transf.Transform<1,-1>( Vector3D( fXposV[itr], fYposV[itr], fZposV[itr] ));
+    Vector3D_t lpos = transf.Transform<1,-1>( Vector3D_t( fXposV[itr], fYposV[itr], fZposV[itr] ));
     // transform of reversed direction ( because we are propagating back )
-    Vector3D ldir = transf.Transform<0,-1>( Vector3D( -fXdirV[itr], -fYdirV[itr], -fZdirV[itr] ));
+    Vector3D_t ldir = transf.Transform<0,-1>( Vector3D_t( -fXdirV[itr], -fYdirV[itr], -fZdirV[itr] ));
 
     // Put the navigation to the propagation location stored as next path
     vecgeom::VPlacedVolume const * vol = fNextpathV[itr]->Top();
-	Double_t delta;
+    Double_t delta;
     if (entering) // go back to mother volume
-    	{
+       {
+        assert( vol != NULL );
         // no matrix needed here because the world is placed with identity matrix
-    	delta = (outside)? vol->DistanceToIn( lpos, ldir ) : vol->DistanceToOut( lpos, ldir );
-    }
+        delta = (outside)? vol->DistanceToIn( lpos, ldir ) : vol->DistanceToOut( lpos, ldir );
+        }
     else // go back to daughter volume
     {
-    	delta = fPathV[itr]->Top()->DistanceToIn( lpos, ldir );
+       delta = fPathV[itr]->Top()->DistanceToIn( lpos, ldir );
     }
 /*
    if (useDebug && (debugTrk<0 || itr==debugTrk)) {
@@ -1516,7 +1532,7 @@ void GeantTrack_v::PrintTrack(Int_t itr)
       const char* status[7] = {"alive", "killed", "boundary", "exitSetup", "physics","postponed","new"};
 #ifdef USE_VECGEOM_NAVIGATOR
       printf("Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d izr=%d nstp=%d spc=%d status=%s mass=%g\
-    		  xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
+              xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
               itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr],
               fG5codeV[itr], fChargeV[itr], fProcessV[itr],fIzeroV[itr],fNstepsV[itr],
               (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr],fYposV[itr],fZposV[itr],
@@ -1535,7 +1551,7 @@ void GeantTrack_v::PrintTrack(Int_t itr)
               fXdirV[itr],fYdirV[itr],fZdirV[itr],fPV[itr],fEV[itr],fPstepV[itr], fStepV[itr], fSnextV[itr],fSafetyV[itr],
               fFrombdrV[itr], path.Data(), nextpath.Data());
 #endif
-}   
+}
 
 
 //______________________________________________________________________________
@@ -1543,12 +1559,39 @@ void GeantTrack_v::PrintTracks()
 {
 // Print all tracks
    for (Int_t i=0; i<fNtracks; i++) PrintTrack(i);
-}   
+}
 
 #ifdef USE_VECGEOM_NAVIGATOR
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 {
-	printf("ComputeTransportLength IN VECGEOM mode not yet implemented\n");
+    static Int_t icalls = 0;
+    icalls++;
+    Int_t itr;
+    // call the vector interface of GeantTrack_v
+    NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
+                                 fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
+    // now we should have updated everything
+
+    // perform a couple of additional checks/ set status flags and so on
+    for (itr=0; itr<ntracks; ++itr) {
+         if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
+         if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {
+            // Make sure track crossed
+            fIzeroV[itr]++;
+            if (fIzeroV[itr] > 10) {
+               fStatusV[itr] = kKilled;
+               Printf("### track %d had to be killed due to crossing problems", fParticleV[itr]);
+               continue;
+            }
+
+            Printf("trying to call a function which I don't understand");
+            //nav->FindNextBoundaryAndStep(1.E30, kFALSE);
+            //fNextpathV[itr]->InitFromNavigator(nav);
+            //fSnextV[itr] += nav->GetStep();
+         }
+   //      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+      }
+
 }
 #else
 //______________________________________________________________________________
@@ -1593,7 +1636,8 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    static Int_t icalls = 0;
    icalls++;
 
-   // inits navigator with current state
+
+      // inits navigator with current state
    //TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    //nav->ResetState();
    //nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
@@ -1603,21 +1647,23 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    //nav->FindNextBoundaryAndStep( TMath::Min(1.E20, fPstepV[itr]), !fFrombdrV[itr] );
 
    //
+   using vecgeom::SimpleNavigator;
+   using vecgeom::Precision;
+   using vecgeom::Vector3D;
+   typedef Vector3D<Precision> Vector3D_t;
+
    vecgeom::SimpleNavigator nav;
    double step;
-   nav.FindNextBoundaryAndStep(vecgeom::Vector3D<double>(fXposV[itr], fYposV[itr], fZposV[itr]),
-		   	   	   	   	   	   vecgeom::Vector3D<double>(fXdirV[itr], fYdirV[itr], fZdirV[itr]),
-		   	   	   	   	   	   *fPathV[itr],
-		   	   	   	   	   	   *fNextpathV[itr],
-		   	   	   	   	   	   TMath::Min(1.E20, fPstepV[itr]),
-   	   	   	   	   	   	   	   step
-   	   	   	   	   	   	   	   );
+   nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
+                               Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]),
+                               *fPathV[itr],
+                               *fNextpathV[itr],
+                               TMath::Min(1.E20, fPstepV[itr]),
+                               step);
 
    // get back step, safety, new geometry path, and other navigation information
    fSnextV[itr] = TMath::Max(2*gTolerance,step);
-   printf("please complete call to safety correctly");
-   //fSafetyV[itr] = nav.GetSafety(); // this actually computes it, might not be necessary
-   //fSafetyV[itr] = nav.GetSafeDistance();
+   fSafetyV[itr] = ( fFrombdrV[itr] )? 0 : nav.GetSafety( Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), *fPathV[itr] );
    fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
 
    // if outside detector or enormous step mark particle as exiting the detector

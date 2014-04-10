@@ -149,7 +149,7 @@ Int_t GeantScheduler::CollectPrioritizedTracks()
    Int_t ninjected = 0;
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++)
       ninjected += fBasketMgr[ibasket]->CollectPrioritizedTracks(fPriorityRange[0],fPriorityRange[1]);
-   return ninjected;   
+   return ninjected;
 }
 
 //______________________________________________________________________________
