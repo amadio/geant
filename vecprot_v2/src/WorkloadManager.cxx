@@ -492,6 +492,10 @@ void *WorkloadManager::TransportTracks(void *)
             // Do post step actions for particles suffering a given process.
             // Surviving particles are added to the output array
             propagator->Process()->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
+            if (0 /*ntotnext*/) {
+               printf("============= Basket: %s\n", basket->GetName());
+               output.PrintTracks();
+            }   
          }
       }   
 /*

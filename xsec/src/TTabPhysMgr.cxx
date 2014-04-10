@@ -276,7 +276,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 // 4.number of secondary trecks will be returned and original track status will 
 // be updated (if they have been killed or still alive) 
 
-   Double_t energyLimit = 1.e-6; //i.e 1KeV
+   Double_t energyLimit = gPropagator->fEmin;
 
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
@@ -424,7 +424,7 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
         GeantTrack_v &tracksout, Int_t &nTotSecPart, Int_t tid)
 {
 
-   if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
+//   if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
      return;
    
    Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
