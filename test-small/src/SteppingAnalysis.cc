@@ -1,3 +1,5 @@
+#include <string>
+
 #include "SteppingAnalysis.hh"
 #include "HistogramManager.hh"
 

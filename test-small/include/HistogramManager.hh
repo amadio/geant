@@ -52,10 +52,11 @@ public:
   TH1F *h_secKE_eBrem;
   TH1F *h_secKE_compt;
 
+#endif
+
 private:
   static HistogramManager* theInstance;
 
-#endif
 };
 
 #endif
