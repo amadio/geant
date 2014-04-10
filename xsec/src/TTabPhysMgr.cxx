@@ -2,7 +2,9 @@
 
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
+#include "TGeoBranchArray.h"
 #include "GeantTrack.h"
+#include "globals.h"
 #include "GeantPropagator.h"
 #include "GeantThreadData.h"
 #include "TRandom.h"
@@ -319,7 +321,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       Int_t j = 0;
 
       if(isSurv && ener >= energyLimit){ //primary particle survived -> it is in the list of secondaries [0]: 
-        tracks.fStatusV[t] = kAlive;   //1. ener=Ekin > energyLimit -> Alive (need to update in tracks) 
+//        tracks.fStatusV[t] = kAlive;   //1. ener=Ekin > energyLimit -> Alive (need to update in tracks) 
  
         //update primary in tracks
         Double_t secPtot2 = mom[0]*mom[0]+mom[1]*mom[1]+mom[2]*mom[2];//total P^2 [GeV^2]
@@ -351,38 +353,55 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above) 
       for(Int_t i = j; i < nSecPart; ++i) {
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
-	TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+        TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
         Double_t secMass  = secPartPDG->Mass();
         Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
         Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
-	Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
+        Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
           GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
 
           //set the new track properties
-	  gTrack.fParticle = nTotSecPart; 		//index of this particle
-	  gTrack.fPDG      = secPDG;      		//PDG code of this particle
-	  gTrack.fG5code   = pid[i];      		//G5 index of this particle
-	  gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
-	  gTrack.fStatus   = kAlive; 		//status of this particle
-	  gTrack.fMass     = secMass; 		//mass of this particle
-	  gTrack.fXpos     = tracks.fXposV[t];	//rx of this particle (same as parent)
-	  gTrack.fYpos     = tracks.fYposV[t];	//ry of this particle (same as parent)
-	  gTrack.fZpos     = tracks.fZposV[t];	//rz of this particle (same as parent)
-	  gTrack.fXdir     = mom[3*i]/secPtot;	//dirx of this particle (before transform.)
-	  gTrack.fYdir     = mom[3*i+1]/secPtot;	//diry of this particle before transform.)
-	  gTrack.fZdir     = mom[3*i+2]/secPtot;	//dirz of this particle before transform.)
-	  gTrack.fP        = secPtot;		//momentum of this particle 
-	  gTrack.fE        = secEtot;		//total E of this particle 
+          gTrack.fEvent    = tracks.fEventV[t];
+          gTrack.fEvslot   = tracks.fEvslotV[t];
+//          gTrack.fParticle = nTotSecPart;          //index of this particle
+          gTrack.fPDG      = secPDG;               //PDG code of this particle
+          gTrack.fG5code   = pid[i];               //G5 index of this particle
+          gTrack.fEindex   = 0;
+          gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
+          gTrack.fProcess  = 0;
+          gTrack.fIzero    = 0;
+          gTrack.fNsteps   = 0;
+//          gTrack.fSpecies  = 0;
+          gTrack.fStatus   = kNew;                 //status of this particle
+          gTrack.fMass     = secMass;              //mass of this particle
+          gTrack.fXpos     = tracks.fXposV[t];     //rx of this particle (same as parent)
+          gTrack.fYpos     = tracks.fYposV[t];     //ry of this particle (same as parent)
+          gTrack.fZpos     = tracks.fZposV[t];     //rz of this particle (same as parent)
+          gTrack.fXdir     = mom[3*i]/secPtot;     //dirx of this particle (before transform.)
+          gTrack.fYdir     = mom[3*i+1]/secPtot;   //diry of this particle before transform.)
+          gTrack.fZdir     = mom[3*i+2]/secPtot;   //dirz of this particle before transform.)
+          gTrack.fP        = secPtot;              //momentum of this particle 
+          gTrack.fE        = secEtot;              //total E of this particle 
+          gTrack.fEdep     = 0.;
+          gTrack.fPstep    = 0.;
+          gTrack.fStep     = 0.;
+          gTrack.fSnext    = 0.;
+          gTrack.fSafety   = tracks.fSafetyV[t];
+          gTrack.fFrombdr  = tracks.fFrombdrV[i];
+          gTrack.fPending  = kFALSE;
+          *gTrack.fPath    = *tracks.fPathV[t];
+          *gTrack.fNextpath = *tracks.fNextpathV[t];
 
+          gPropagator->AddTrack(gTrack);
           tracks.AddTrack(gTrack);
 
           //Rotate new track to parent track's frame (a boost will be here as well; before the rotation)		           
           RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, nTotSecPart);
            		 
-	  ++nTotSecPart;
+          ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
           GetRestFinSates(pid[i], fElemFstate[tracks.fEindexV[t]], energyLimit, tracks, t, tracks, nTotSecPart, tid);  
@@ -392,7 +411,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       tracks.fStatusV[t] = kKilled; //set status of primary in tracks to kKilled;
      }
 
-   }//end loop over tracks   
+   } //end loop over tracks   
 
   return nTotSecPart;
 }

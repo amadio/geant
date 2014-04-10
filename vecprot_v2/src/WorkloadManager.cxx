@@ -434,6 +434,7 @@ void *WorkloadManager::TransportTracks(void *)
          Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter);
       } 
 //      if (counter==1) input.PrintTracks();  
+/*
       for (Int_t itr=0; itr<ntotransport; itr++) {
          iev[itr] = input.fEventV[itr];
          itrack[itr] = input.fParticleV[itr];
@@ -443,10 +444,11 @@ void *WorkloadManager::TransportTracks(void *)
             Printf("Error: track %d has NaN", itr);
          }   
       }
+*/
       // Select the discrete physics process for all particles in the basket
       if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
       
-      //ncross = 0;
+      ncross = 0;
       generation = 0;
       
       while (ntotransport) {
@@ -512,6 +514,7 @@ void *WorkloadManager::TransportTracks(void *)
          Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
       }   
       noutput = basket->GetNoutput();
+/*
       for(Int_t itr=0; itr<noutput; itr++) {
          if (TMath::IsNaN(output.fXdirV[itr])) {
             Printf("Error: track %d has NaN", itr);
@@ -532,6 +535,7 @@ void *WorkloadManager::TransportTracks(void *)
 //            output.PrintTracks();
          }   
       }
+*/      
 
 finish:
 //      basket->Clear();

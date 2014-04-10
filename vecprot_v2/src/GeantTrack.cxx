@@ -799,7 +799,7 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
    tdbl = fZdirV     [i]; fZdirV     [i] = fZdirV     [j]; fZdirV     [j] = tdbl;
    tdbl = fPV        [i]; fPV        [i] = fPV        [j]; fPV        [j] = tdbl;
    tdbl = fEV        [i]; fEV        [i] = fEV        [j]; fEV        [j] = tdbl;
-   tdbl = fEdepV     [i]; fEdepV     [i] = fEdepV     [j]; fEV        [j] = tdbl;
+   tdbl = fEdepV     [i]; fEdepV     [i] = fEdepV     [j]; fEdepV     [j] = tdbl;
    tdbl = fPstepV    [i]; fPstepV    [i] = fPstepV    [j]; fPstepV    [j] = tdbl;
    tdbl = fStepV     [i]; fStepV     [i] = fStepV     [j]; fStepV     [j] = tdbl;
    tdbl = fSnextV    [i]; fSnextV    [i] = fSnextV    [j]; fSnextV    [j] = tdbl;
@@ -1316,8 +1316,13 @@ void GeantTrack_v::PrintTrack(Int_t itr)
       TString nextpath; 
       fNextpathV[itr]->GetPath(nextpath);
       
-      printf("Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d izr=%d nstp=%d spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n pth=%s npth=%s\n",
-              itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr], fG5codeV[itr], fChargeV[itr], fProcessV[itr],fIzeroV[itr],fNstepsV[itr], (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr],fYposV[itr],fZposV[itr],fXdirV[itr],fYdirV[itr],fZdirV[itr],fPV[itr],fEV[itr],fPstepV[itr], fStepV[itr], fSnextV[itr],fSafetyV[itr],fFrombdrV[itr], path.Data(), nextpath.Data());
+      printf("Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d eind=%d chg=%d proc=%d izr=%d nstp=%d spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n pth=%s npth=%s\n",
+              itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr], 
+              fEindexV[itr], fG5codeV[itr], fChargeV[itr], fProcessV[itr],
+              fIzeroV[itr],fNstepsV[itr], (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], 
+              fMassV[itr], fXposV[itr],fYposV[itr],fZposV[itr],fXdirV[itr],fYdirV[itr],fZdirV[itr],
+              fPV[itr],fEV[itr],fEdepV[itr],fPstepV[itr], fStepV[itr], fSnextV[itr],
+              fSafetyV[itr],fFrombdrV[itr], path.Data(), nextpath.Data());
 }   
 
 //______________________________________________________________________________
