@@ -38,6 +38,7 @@
 
 class DetectorConstruction;
 class EventAction;
+class SteppingAnalysis;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -52,6 +53,11 @@ public:
 private:
   DetectorConstruction* detector;
   EventAction*          eventaction;  
+
+  //stepping analysis
+  char* doAnalysis;
+  SteppingAnalysis* fSteppingAnalysis;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
