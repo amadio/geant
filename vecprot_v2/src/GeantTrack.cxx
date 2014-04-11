@@ -1539,12 +1539,20 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
       }
       // Track has safety<pstep but next boundary not close enough.
       // We propagate in field with the safety value.
-      if (fSafetyV[itr] < gTolerance) {
+      // Protection in case we have a very small safey after entering a new volume
+      const Double_t fs = 0.1;
+      if (/*fSafetyV[itr] < 0.001 &&*/ fSafetyV[itr] < fs*fSnextV[itr]) {
          // Track getting away from boundary. Work to be done here
          // In principle we need a safety value for the content of the current volume only
          // This does not behave well on corners...
          // ... so we peek a small value and chech if this crosses, than recompute safety
-         fSafetyV[itr] = 1.E-3;
+//         fSafetyV[itr] = 1.E-2;
+
+         Double_t delta = fs*fSnextV[itr];
+         if (c*fSnextV[itr]<0.1) delta = 0.5*fSnextV[itr]*fSnextV[itr]*c;
+         else if (c*fSnextV[itr]>10.) delta = TMath::Max(1/c, delta);
+         fSafetyV[itr] = TMath::Max(fSafetyV[itr], delta);
+
          fIzeroV[itr]++;
          if (fIzeroV[itr] > 10) fSafetyV[itr] = 0.5*fSnextV[itr];
          icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kTRUE);
