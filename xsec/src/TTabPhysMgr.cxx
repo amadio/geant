@@ -341,6 +341,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         j = 1; 
       } else { //2. (primary survived but Ekin < energyLimit) || (primary hasn't survived) -> kill in tracks and invoke at rest
         tracks.fStatusV[t] = kKilled;   //set status of primary in tracks to kKilled;
+
 //      j = 0;
 //      tracks.fEdepV[t]  += ener;    //add the after interaction Ekin of the primary to the energy depositon	
         //note: even if the primary in the list of secondaries, its energy (ener)
@@ -390,7 +391,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           gTrack.fStep     = 0.;
           gTrack.fSnext    = 0.;
           gTrack.fSafety   = tracks.fSafetyV[t];
-          gTrack.fFrombdr  = tracks.fFrombdrV[i];
+          gTrack.fFrombdr  = tracks.fFrombdrV[t];
           gTrack.fPending  = kFALSE;
           *gTrack.fPath    = *tracks.fPathV[t];
           *gTrack.fNextpath = *tracks.fNextpathV[t];
@@ -404,7 +405,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
-          GetRestFinSates(pid[i], fElemFstate[tracks.fEindexV[t]], energyLimit, tracks, t, tracks, nTotSecPart, tid);  
+          GetRestFinSates(pid[i], fElemFstate[tracks.fEindexV[t]], energyLimit, tracks, t, nTotSecPart, tid);  
         } 
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
@@ -420,8 +421,8 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 //______________________________________________________________________________
 //will be called recursively; only CaptureAtRest at the moment
 void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate, 
-        Double_t energyLimit, GeantTrack_v &tracksin, Int_t iintrack, 
-        GeantTrack_v &tracksout, Int_t &nTotSecPart, Int_t tid)
+        Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
+        Int_t &nTotSecPart, Int_t tid)
 {
 
 //   if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
@@ -429,24 +430,23 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
    
    Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
 
-   Int_t nSecPart    = 0;   //number of secondary particles per reaction
+   Int_t nSecPart     = 0;   //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
    const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
-   Float_t  ener   = 0;	    //energy at the fstate
-   Float_t  kerma  = 0;	    //released energy
-   Float_t  weight = 0;     //weight of the fstate (just a dummy parameter now)
-   Char_t   isSurv = 0;	    //is the primary survived the interaction 	
+   Float_t  ener      = 0;	    //energy at the fstate
+   Float_t  kerma     = 0;	    //released energy
+   Float_t  weight    = 0;     //weight of the fstate (just a dummy parameter now)
+   Char_t   isSurv    = 0;	    //is the primary survived the interaction 	
    
    //sample RestCapture final states for this particle; it is the only at rest proc. at the moment
    isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma, ener, pid, mom, randn);
    //note: parent was already stopped because an at Rest process happend; -> primary is not in the list of secondaries
-   
+
    //isSurv should always be kFALSE here because primary was stopped -> just a check
    if(isSurv) printf("A stopped particle survived its rest process in TTabPhysMgr::GetRestFinSates!\n"); 
 
-
    //if tehere was any energy deposit add it to parent track doposited energy
-   tracksin.fEdepV[iintrack] += kerma;   
+   tracks.fEdepV[iintrack] += kerma;   
 
    //loop over the secondaries
    for(Int_t i = 0; i< nSecPart; ++i){
@@ -458,34 +458,51 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
      Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
      // Ekin of the i-th secondary is higher than the threshold
-     if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
+     if(secEkin >= energyLimit) { //insert secondary into tracks_v 
        GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
 
        //set the new track properties
-       gTrack.fParticle = nTotSecPart; 		//index of this particle
-       gTrack.fPDG      = secPDG;      		//PDG code of this particle
-       gTrack.fG5code   = pid[i];      		//G5 index of this particle
+       gTrack.fEvent    = tracks.fEventV[iintrack];
+       gTrack.fEvslot   = tracks.fEvslotV[iintrack];
+//       gTrack.fParticle = nTotSecPart;          //index of this particle
+       gTrack.fPDG      = secPDG;               //PDG code of this particle
+       gTrack.fG5code   = pid[i];               //G5 index of this particle
+       gTrack.fEindex   = 0;
        gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
-       gTrack.fStatus   = kAlive; 			//status of this particle
-       gTrack.fMass     = secMass; 		//mass of this particle
-       gTrack.fXpos     = tracksin.fXposV[iintrack];	//rx of this particle (same as parent)
-       gTrack.fYpos     = tracksin.fYposV[iintrack];	//ry of this particle (same as parent)
-       gTrack.fZpos     = tracksin.fZposV[iintrack];	//rz of this particle (same as parent)
-       gTrack.fXdir     = mom[3*i]/secPtot;	//dirx of this particle (before transform.)
-       gTrack.fYdir     = mom[3*i+1]/secPtot;	//diry of this particle before transform.)
-       gTrack.fZdir     = mom[3*i+2]/secPtot;	//dirz of this particle before transform.)
-       gTrack.fP        = secPtot;			//momentum of this particle 
-       gTrack.fE        = secEtot;			//total E of this particle 
+       gTrack.fProcess  = 0;
+       gTrack.fIzero    = 0;
+       gTrack.fNsteps   = 0;
+//       gTrack.fSpecies  = 0;
+       gTrack.fStatus   = kNew;                 //status of this particle
+       gTrack.fMass     = secMass;              //mass of this particle
+       gTrack.fXpos     = tracks.fXposV[iintrack];     //rx of this particle (same as parent)
+       gTrack.fYpos     = tracks.fYposV[iintrack];     //ry of this particle (same as parent)
+       gTrack.fZpos     = tracks.fZposV[iintrack];     //rz of this particle (same as parent)
+       gTrack.fXdir     = mom[3*i]/secPtot;     //dirx of this particle (before transform.)
+       gTrack.fYdir     = mom[3*i+1]/secPtot;   //diry of this particle before transform.)
+       gTrack.fZdir     = mom[3*i+2]/secPtot;   //dirz of this particle before transform.)
+       gTrack.fP        = secPtot;              //momentum of this particle 
+       gTrack.fE        = secEtot;              //total E of this particle 
+       gTrack.fEdep     = 0.;
+       gTrack.fPstep    = 0.;
+       gTrack.fStep     = 0.;
+       gTrack.fSnext    = 0.;
+       gTrack.fSafety   = tracks.fSafetyV[iintrack];
+       gTrack.fFrombdr  = tracks.fFrombdrV[iintrack];
+       gTrack.fPending  = kFALSE;
+       *gTrack.fPath    = *tracks.fPathV[iintrack];
+       *gTrack.fNextpath = *tracks.fNextpathV[iintrack];
 
-       tracksout.AddTrack(gTrack); //insert a new GeantTrack into OUT tracks_v
+       gPropagator->AddTrack(gTrack);
+       tracks.AddTrack(gTrack);
 
        //These are secodaries from Rest process -> were sampled at rest -> no rotation and boost
       		 
-       ++nTotSecPart; //increase # of secondaries in OUT track_v 
-       // end if {secondary Ekin > energyLimit}
-     } else { // {secondary Ekin <= energyLimit} -> kill this secondary and call GetRestFinalSates
-       tracksin.fEdepV[iintrack] += secEkin;    //add the Ekin of this secondary to the energy depositon	
-       GetRestFinSates(pid[i], elemfstate, energyLimit, tracksin, iintrack, tracksout, nTotSecPart, tid);  //RECURSION
+       ++nTotSecPart; //increase # of secondaries in tracks_v 
+       // end if {secondary Ekin >= energyLimit}
+     } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
+       tracks.fEdepV[iintrack] += secEkin;    //add the Ekin of this secondary to the energy depositon	
+       GetRestFinSates(pid[i], elemfstate, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
      } 
    }//end loop over the secondaries
 }

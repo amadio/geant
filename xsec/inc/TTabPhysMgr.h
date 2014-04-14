@@ -48,7 +48,7 @@ public:
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void  GetRestFinSates(Int_t partindex, TEFstate *elemfstate, Double_t energyLimit,
-            GeantTrack_v &tracksin, Int_t iintrack, GeantTrack_v &tracksout, Int_t &nTotSecPart, Int_t tid);
+            GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid);
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack_v &tracks, Int_t itrack);
 
