@@ -231,6 +231,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 
    TGeoVolume *vol = 0;
    if (!apath) {
+      assert( GeoManager::Instance().getMaxDepth() > 1 );
+      assert( GeoManager::Instance().world() != NULL );
       apath = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
       vecgeom::SimpleNavigator nav;
       nav.LocatePoint( GeoManager::Instance().world(),
@@ -535,29 +537,46 @@ UInt_t GeantPropagator::GetNwaiting() const
    return nwaiting;
 }
    
+#ifdef USE_VECGEOM_NAVIGATOR
+/**
+ * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
+ */
+Bool_t GeantPropagator::LoadVecGeomGeometry()
+{
+   if( vecgeom::GeoManager::Instance().world() == NULL )
+   {
+    Printf("Now loading VecGeom geometry\n");
+    vecgeom::RootGeoManager::Instance().LoadRootGeometry();
+    Printf("Loading VecGeom geometry done\n");
+    Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
+    std::vector<vecgeom::LogicalVolume *> v1;
+    vecgeom::GeoManager::Instance().getAllLogicalVolumes( v1 );
+    Printf("Have logical volumes %d\n", v1.size() );
+    std::vector<vecgeom::VPlacedVolume *> v2;
+    vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
+    Printf("Have placed volumes %d\n", v2.size() );
+   }
+}
+#endif
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
-   if (gGeoManager) return kTRUE;
+   Printf("In Load Geometry");
+   if (gGeoManager){
+#ifdef USE_VECGEOM_NAVIGATOR
+       LoadVecGeomGeometry();
+#endif
+       return kTRUE;
+   }
+   Printf("returning early");
    TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
    if (geom)
        {
 #ifdef USE_VECGEOM_NAVIGATOR
-        Printf("ROOT Geometry loaded\n");
-        Printf("Now loading VecGeom geometry\n");
-        vecgeom::RootGeoManager::Instance().LoadRootGeometry();
-        Printf("Loading VecGeom geometry done\n");
-        Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
-        std::vector<vecgeom::LogicalVolume *> v1;
-        vecgeom::GeoManager::Instance().getAllLogicalVolumes( v1 );
-        Printf("Have logical volumes %d\n", v1.size() );
-        std::vector<vecgeom::VPlacedVolume *> v2;
-        vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
-
-        Printf("Have placed volumes %d\n", v2.size() );
+          LoadVecGeomGeometry();
 #endif
-       return kTRUE;
+          return kTRUE;
        }
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
    return kFALSE;
