@@ -60,15 +60,6 @@ ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
-if( VECGEOM_FOUND )
-
-    find_package(Vc)
-    if ( VC_FOUND )
-    include_directories(${VC_INCLUDE_DIR})
-    endif()
-    
-      add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
-endif()
 
 add_library(Geant_v SHARED ${sources} G__Geant.cxx ${headers} G__Geant.h)
 if( VECGEOM_FOUND )

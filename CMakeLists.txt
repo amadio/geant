@@ -26,6 +26,11 @@ include_directories(${ROOT_INCLUDE_DIR})
 #
 find_package(VecGeom)
 if( VECGEOM_FOUND )
+    find_package(Vc)
+    if ( VC_FOUND )
+    include_directories(${VC_INCLUDE_DIR})
+    endif()
+    add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
     include_directories(${VECGEOM_INCLUDE_DIR})
 endif()
 
