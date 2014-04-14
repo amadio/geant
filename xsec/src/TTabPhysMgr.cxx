@@ -2,7 +2,11 @@
 
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/navigationstate.h"
+#else
 #include "TGeoBranchArray.h"
+#endif
 #include "GeantTrack.h"
 #include "globals.h"
 #include "GeantPropagator.h"
