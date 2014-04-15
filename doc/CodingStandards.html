@@ -974,16 +974,17 @@ iterators should add a singular prefix to <tt class="docutils literal"><span cla
 <p>Here are some examples of good and bad names:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">VehicleMaker</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">F</span><span class="p">;</span>            <span class="c1">// Bad -- abbreviation and non-descriptive.</span>
-  <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">Factory</span><span class="p">;</span>      <span class="c1">// Better.</span>
-  <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">TireFactory</span><span class="p">;</span>  <span class="c1">// Even better -- if VehicleMaker has more than one</span>
+  <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">fF</span><span class="p">;</span>            <span class="c1">// Bad -- abbreviation and non-descriptive.</span>
+  <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">fFactory</span><span class="p">;</span>      <span class="c1">// Better.</span>
+  <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">fTireFactory</span><span class="p">;</span>  <span class="c1">// Even better -- if VehicleMaker has more than one</span>
                               <span class="c1">// kind of factories.</span>
 <span class="p">};</span>
 
 <span class="n">Vehicle</span> <span class="nf">MakeVehicle</span><span class="p">(</span><span class="n">VehicleType</span> <span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">VehicleMaker</span> <span class="n">M</span><span class="p">;</span>                         <span class="c1">// Might be OK if having a short life-span.</span>
-  <span class="n">Tire</span> <span class="n">Tmp1</span> <span class="o">=</span> <span class="n">M</span><span class="p">.</span><span class="n">makeTire</span><span class="p">();</span>               <span class="c1">// Bad -- 'Tmp1' provides no information.</span>
-  <span class="n">Light</span> <span class="n">Headlight</span> <span class="o">=</span> <span class="n">M</span><span class="p">.</span><span class="n">makeLight</span><span class="p">(</span><span class="s">"head"</span><span class="p">);</span>  <span class="c1">// Good -- descriptive.</span>
+  <span class="n">VehicleMaker</span> <span class="n">m</span><span class="p">;</span>                         <span class="c1">// Might be OK if having a short life-span.</span>
+  <span class="n">Tire</span> <span class="n">tmp1</span> <span class="o">=</span> <span class="n">m</span><span class="p">.</span><span class="n">makeTire</span><span class="p">();</span>               <span class="c1">// Bad -- 'Tmp1' provides no information.</span>
+  <span class="n">Light</span> <span class="n">headlight</span> <span class="o">=</span> <span class="n">m</span><span class="p">.</span><span class="n">makeLight</span><span class="p">(</span><span class="s">"head"</span><span class="p">);</span>  <span class="c1">// Good -- descriptive.</span>
+  <span class="n">headlight</span><span class="p">.</span><span class="n">turnOn();</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
