@@ -16,6 +16,10 @@ class GeantBasketMgr;
 
 //______________________________________________________________________________
 class GeantBasket : public TObject {
+public:
+  enum EBasketFlags {
+    kMixed =  BIT(14)       // Basked mixing tracks from different volumes
+  };
 protected:
    GeantBasketMgr   *fManager;         // Manager for the basket
    GeantTrack_v      fTracksIn;            // Vector of input tracks
@@ -41,9 +45,11 @@ public:
    GeantTrack_v     &GetOutputTracks() const {return (GeantTrack_v&)fTracksOut;}
    GeantBasketMgr   *GetBasketMgr() const {return fManager;}
    TGeoVolume       *GetVolume() const;
+   Bool_t            IsMixed() const {return TObject::TestBit(kMixed);}
    virtual void      Print(Option_t *option="") const;
    void              PrintTrack(Int_t itr, Bool_t input=kTRUE) const;
    void              Recycle();
+   void              SetMixed(Bool_t flag) {TObject::SetBit(kMixed, flag);}
    
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
 };

@@ -394,7 +394,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           gTrack.fFrombdr  = tracks.fFrombdrV[t];
           gTrack.fPending  = kFALSE;
           *gTrack.fPath    = *tracks.fPathV[t];
-          *gTrack.fNextpath = *tracks.fNextpathV[t];
+          *gTrack.fNextpath = *tracks.fPathV[t];
 
           gPropagator->AddTrack(gTrack);
           tracks.AddTrack(gTrack);
