@@ -362,6 +362,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
 #endif   
    Int_t size = track_v.fMaxtracks;
    fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
+   memset(fBuf, 0, size*sizeof(GeantTrack));
    memcpy(fBuf, track_v.fBuf, fNtracks*sizeof(GeantTrack));
    AssignInBuffer(fBuf, size);
 }   
@@ -613,6 +614,13 @@ Bool_t GeantTrack_v::IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_
 }
 
 //______________________________________________________________________________  
+void GeantTrack_v::CheckTracks()
+{
+   for (Int_t i=0; i<fMaxtracks; ++i)
+      if (fNextpathV[i]) fNextpathV[i]->SetClient(gPropagator);
+}
+
+//______________________________________________________________________________  
 void GeantTrack_v::Resize(Int_t newsize)
 {
 // Resize the container.
@@ -624,6 +632,7 @@ void GeantTrack_v::Resize(Int_t newsize)
    fHoles.ResetBitNumber(size-1);
    fSelected.ResetBitNumber(size-1);
    char* buf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
+   memset(buf, 0, size*sizeof(GeantTrack));
    if (!fBuf) {
       // All arrays are contiguous in a single buffer and aligned with the
       // same padding ALIGN_PADDING
@@ -655,7 +664,6 @@ Int_t GeantTrack_v::AddTrack(const GeantTrack &track)
    // Add new track to the array. If addition is done on top of non-compact array, 
    // the track will be inserted without updating the number of tracks. 
    // Returns the location where the track was added.
- 
    Int_t itrack = fNtracks;
    if (!fCompact) itrack = fHoles.FirstSetBit();
    if (itrack==fMaxtracks) Resize(2*fMaxtracks);
@@ -717,7 +725,6 @@ Int_t GeantTrack_v::AddTrack(const GeantTrack_v &arr, Int_t i)
    // If addition is done on top of non-compact array, 
    // the track will be inserted without updating the number of tracks. 
    // Returns the location where the track was added.
-
    Int_t itrack = fNtracks;
    if (!fCompact) itrack = fHoles.FirstSetBit();
    if (itrack==fMaxtracks) Resize(2*fMaxtracks);
@@ -1880,18 +1887,18 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
       // We propagate in field with the safety value.
       // Protection in case we have a very small safey after entering a new volume
       const Double_t fs = 0.1;
+//      if (fSafetyV[itr] < 1.E-6) {
+//         fSafetyV[itr] = 1.E-3;
       if (/*fSafetyV[itr] < 0.001 &&*/ fSafetyV[itr] < fs*fSnextV[itr]) {
          // Track getting away from boundary. Work to be done here
          // In principle we need a safety value for the content of the current volume only
          // This does not behave well on corners...
          // ... so we peek a small value and chech if this crosses, than recompute safety
-//         fSafetyV[itr] = 1.E-2;
-
+//
          Double_t delta = fs*fSnextV[itr];
          if (c*fSnextV[itr]<0.1) delta = 0.5*fSnextV[itr]*fSnextV[itr]*c;
          else if (c*fSnextV[itr]>10.) delta = TMath::Max(1/c, delta);
          fSafetyV[itr] = TMath::Max(fSafetyV[itr], delta);
-
          fIzeroV[itr]++;
          if (fIzeroV[itr] > 10) fSafetyV[itr] = 0.5*fSnextV[itr];
          icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kTRUE);
@@ -1988,12 +1995,20 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
          }
          // Track has safety<pstep but next boundary not close enough.
          // We propagate in field with the safety value.
-         if (fSafetyV[itr] < 1.E-6) {
+         // Protection in case we have a very small safey after entering a new volume
+         const Double_t fs = 0.1;
+//         if (fSafetyV[itr]<1.E-6) {
+         if (/*fSafetyV[itr] < 0.001 &&*/ fSafetyV[itr] < fs*fSnextV[itr]) {
             // Track getting away from boundary. Work to be done here
             // In principle we need a safety value for the content of the current volume only
             // This does not behave well on corners...
             // ... so we peek a small value and chech if this crosses, than recompute safety
-            fSafetyV[itr] = 1.E-3;
+//            fSafetyV[itr] = 1.E-3;
+
+            Double_t delta = fs*fSnextV[itr];
+            if (c*fSnextV[itr]<0.1) delta = 0.5*fSnextV[itr]*fSnextV[itr]*c;
+            else if (c*fSnextV[itr]>10.) delta = TMath::Max(1/c, delta);
+            fSafetyV[itr] = TMath::Max(fSafetyV[itr], delta);
             fIzeroV[itr]++;
             if (fIzeroV[itr] > 10) {fSafetyV[itr] = 0.5*fSnextV[itr]; fIzeroV[itr]=0;}
             icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kTRUE);

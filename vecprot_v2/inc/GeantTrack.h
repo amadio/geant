@@ -229,6 +229,7 @@ public:
    Int_t     AddTrack(const GeantTrack &track);
    Int_t     AddTrack(const GeantTrack_v &arr, Int_t i);
    void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
+   void      CheckTracks();
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
    void      DeleteTrack(Int_t itr);
