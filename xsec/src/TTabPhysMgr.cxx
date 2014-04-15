@@ -362,7 +362,11 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
-          GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
+//          GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
+          GeantTrack gTrack;
+          gTrack.fPath = new TGeoBranchArray();
+          gTrack.fNextpath = new TGeoBranchArray();
+          
 
           //set the new track properties
           gTrack.fEvent    = tracks.fEventV[t];
