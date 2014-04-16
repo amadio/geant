@@ -19,12 +19,11 @@ MyApplication::MyApplication()
 }
 
 //______________________________________________________________________________
-void MyApplication::StepManager(Int_t tid, Int_t iproc, Int_t npart, const GeantTrack_v & tracks)
+void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tracks)
 {
 // Application stepping manager. The thread id has to be used to manage storage
 // of hits independently per thread.
    return;     // FOR NOW
-   if (iproc != 1) return;     // hits for eloss process only
    MyHit *hit;
    Int_t nhits = 0;
    for (Int_t i=0; i<npart; i++) {
@@ -32,7 +31,7 @@ void MyApplication::StepManager(Int_t tid, Int_t iproc, Int_t npart, const Geant
       hit->fX = tracks.fXposV[i];
       hit->fY = tracks.fYposV[i];
       hit->fZ = tracks.fZposV[i];
-      hit->fDe = 0.; // should be: tracks.fElossV[i];
+      hit->fEdep = tracks.fEdepV[i];
       hit->fVolId = 0.;
       hit->fDetId = 0.;
 //      if (track->path && track->path->GetCurrentNode()) {

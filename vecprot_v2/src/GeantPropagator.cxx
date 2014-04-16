@@ -280,7 +280,9 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fXpos = fVertex[0];
          track.fYpos = fVertex[1];
          track.fZpos = fVertex[2];
-         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
+//         track.fE = fKineTF1->GetRandom()+part->Mass();
+//         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
+         track.fE = fEmax /*30MeV*/ +part->Mass();  //e-
 //         track.fE = 0.3 /*300MeV*/ +part->Mass();  //mu+
          Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
          track.SetP(p);

@@ -94,7 +94,7 @@ void ScatteringProcess::PostStep(TGeoMaterial *mat,
       // All tracks survive
       nout++;
    }   
-   gPropagator->fApplication->StepManager(tid, 0, ntracks, tracks);
+   gPropagator->fApplication->StepManager(tid, ntracks, tracks);
 }
 
 ClassImp(ElossProcess)
@@ -169,7 +169,7 @@ void ElossProcess::PostStep(TGeoMaterial *mat,
       Double_t pnorm = bgnew/bgold;
       tracks.fPV[i] *= pnorm;
    }   
-   gPropagator->fApplication->StepManager(tid, 1, nout, tracks);
+   gPropagator->fApplication->StepManager(tid, nout, tracks);
 }
 
 //______________________________________________________________________________
@@ -365,5 +365,5 @@ void InteractionProcess::PostStep(TGeoMaterial *mat,
          }
       }
    }   
-   gPropagator->fApplication->StepManager(tid, 2, nout, tracks);
+   gPropagator->fApplication->StepManager(tid, nout, tracks);
 }

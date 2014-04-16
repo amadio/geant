@@ -19,6 +19,7 @@
 #include "PhysicsProcess.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
+#include "GeantVApplication.h"
 
 #include "TaskBroker.h"
 
@@ -500,7 +501,8 @@ void *WorkloadManager::TransportTracks(void *)
                output.PrintTracks();
             }   
          }
-      }   
+      }
+      gPropagator->fApplication->StepManager(tid, output.GetNtracks(), output);   
 /*
       if (propagator->fUsePhysics) {
          // Discrete processes only

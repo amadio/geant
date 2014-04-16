@@ -11,15 +11,15 @@ public:
    double fX;      // position
    double fY;
    double fZ;
-   double fDe;     // energy loss
+   double fEdep;     // energy loss
    int    fVolId;  // volume Id
    int    fDetId;  // replica (segmentation)
    
-   MyHit() : fX(0), fY(0), fZ(0), fDe(0), fVolId(0), fDetId(0) {}
-   MyHit(double x, double y, double z, double de, int volid, int detid);
+   MyHit() : fX(0), fY(0), fZ(0), fEdep(0), fVolId(0), fDetId(0) {}
+   MyHit(double x, double y, double z, double edep, int volid, int detid);
    ~MyHit() {}
    
-   void               Reset() {fX=0.; fY=0.; fZ=0.; fDe=0.; fVolId=0; fDetId=0;}
+   void               Reset() {fX=0.; fY=0.; fZ=0.; fEdep=0.; fVolId=0; fDetId=0;}
    void               AddHit();
    
    ClassDefNV(MyHit, 1)      // User hit
