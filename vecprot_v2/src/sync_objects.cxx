@@ -31,7 +31,7 @@ TimeCounter::~TimeCounter()
 }
 
 //______________________________________________________________________________
-void TimeCounter::operator++() {
+TimeCounter& TimeCounter::operator++() {
 // Increment
    TThread::Lock();
    if (timer) {
@@ -44,10 +44,11 @@ void TimeCounter::operator++() {
    nthreads++;
 //      Printf("%d: %f", nthreads, stamp);
    TThread::UnLock();
+   return *this;
 }   
 
 //______________________________________________________________________________
-void TimeCounter::operator--() {
+TimeCounter &TimeCounter::operator--() {
 // Decrement
    TThread::Lock();
    if (timer) {
@@ -64,6 +65,7 @@ void TimeCounter::operator--() {
    }   
 //      Printf("%d: %f", nthreads, stamp);
    TThread::UnLock();
+   return *this;
 }
 
 //______________________________________________________________________________

@@ -5,11 +5,11 @@
 ClassImp(MyHit)
 
 //______________________________________________________________________________
-MyHit::MyHit(double x, double y, double z, double de, int volid, int detid)
+MyHit::MyHit(double x, double y, double z, double edep, int volid, int detid)
       :fX(x),
        fY(y),
        fZ(z),
-       fDe(de),
+       fEdep(edep),
        fVolId(volid),
        fDetId(detid)
 {

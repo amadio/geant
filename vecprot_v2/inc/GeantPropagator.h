@@ -15,9 +15,6 @@
 
 #include <vector>
 
-class TRandom;
-class TArrayI;
-class TF1;
 class TTree;
 class TFile;
 class TStopwatch;
@@ -75,7 +72,6 @@ public:
    GeantVApplication *fApplication; // User application
    GeantOutput      *fOutput;      // Output object
    
-   TF1             *fKineTF1;   //
    TTree           *fOutTree;   // Output tree
    TFile           *fOutFile;   // Output file
    TStopwatch      *fTimer;     // Timer

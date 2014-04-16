@@ -24,7 +24,7 @@ public:
    MyApplication();
    virtual ~MyApplication() {}
 
-   virtual void  StepManager(Int_t tid, Int_t iproc, Int_t npart, const GeantTrack_v & tracks);
+   virtual void  StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tracks);
    virtual void  Digitize(Int_t event);
       
    ClassDef(MyApplication, 1)      // User application

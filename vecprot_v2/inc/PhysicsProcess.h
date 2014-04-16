@@ -89,6 +89,10 @@ private:
   Int_t                fNthreads; // Number of threads
   TGenPhaseSpace      *fGen; //[fNthreads] Phase space generator
   TMutex               fMutex; //! mutex
+  
+  InteractionProcess(const InteractionProcess&); // not implemented
+  InteractionProcess &operator=(const InteractionProcess&); // not implemented
+
 public:
   InteractionProcess() : PhysicsProcess(), fNthreads(0), fGen(0), fMutex() {TObject::SetBit(kDiscrete);}
   InteractionProcess(const char *name);

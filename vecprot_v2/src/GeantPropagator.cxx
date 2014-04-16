@@ -53,7 +53,6 @@
 #include "TControlBar.h"
 #include "TCanvas.h"
 #include "TH1.h"
-#include "TF1.h"
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"
@@ -112,7 +111,6 @@ GeantPropagator::GeantPropagator()
                  fWMgr(0),
                  fApplication(0),
                  fOutput(0),
-                 fKineTF1(0),
                  fOutTree(0),
                  fOutFile(0),
                  fTimer(0),
@@ -423,7 +421,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fYpos = fVertex[1];
          track.fZpos = fVertex[2];
 //         track.fE = fKineTF1->GetRandom()+part->Mass();
-         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
+//         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
+         track.fE = fEmax /*30MeV*/ +part->Mass();  //e-
 //         track.fE = 0.3 /*300MeV*/ +part->Mass();  //mu+
          Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
          track.SetP(p);
@@ -490,10 +489,6 @@ void GeantPropagator::Initialize()
 	
 // Initialize arrays here.
    gPropagator = GeantPropagator::Instance();
-   if (!fKineTF1) {
-      fKineTF1 = new TF1("fKineTF1","gaus",fEmin,fEmax);
-      fKineTF1->SetParameters(1,3*fEmin,5);
-   }   
    
    if (!fProcess) {
       Fatal("Initialize", "The physics process has to be initilaized before this");

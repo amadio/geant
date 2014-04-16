@@ -19,6 +19,7 @@
 #include "PhysicsProcess.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
+#include "GeantVApplication.h"
 
 #include "TaskBroker.h"
 
@@ -458,7 +459,10 @@ void *WorkloadManager::TransportTracks(void *)
          // Interrupt condition here. Work stealing could be also implemented here...
          generation++;
          // Propagate all remaining tracks
-         ncross += input.PropagateTracks(output);
+         if (basket->IsMixed()) 
+            ncross += input.PropagateTracksSingle(output);
+         else   
+            ncross += input.PropagateTracks(output);
          ntotransport = input.GetNtracks();
       }
       // All tracks are now in the output track vector. Possible statuses:
@@ -500,7 +504,8 @@ void *WorkloadManager::TransportTracks(void *)
                output.PrintTracks();
             }   
          }
-      }   
+      }
+      gPropagator->fApplication->StepManager(tid, output.GetNtracks(), output);   
 /*
       if (propagator->fUsePhysics) {
          // Discrete processes only

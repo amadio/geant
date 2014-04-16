@@ -3,13 +3,14 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="Ex03.root")
 {
-   gSystem->Load("libPhysics.so");
-   gSystem->Load("libHist.so");
-   gSystem->Load("libThread.so");
-   gSystem->Load("libGeom.so");
-   gSystem->Load("libVMC.so");
-   gSystem->Load("../lib/libGeant_v.so");
-   gSystem->Load("../lib/libXsec.so");
+
+   gSystem->Load("libPhysics");
+   gSystem->Load("libHist");
+   gSystem->Load("libThread");
+   gSystem->Load("libGeom");
+   gSystem->Load("libVMC");
+   gSystem->Load("libGeant_v");
+   gSystem->Load("libXsec");
 
    Int_t ntotal   = 100;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
@@ -27,8 +28,10 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
    wmgr->SetNminThreshold(5*nthreads);
    prop->fNaverage = 100;   // Average number of tracks per event
 
-   prop->fNperBasket = 8;
-   prop->fEmin = 1.E-5; // [10KeV]
+   prop->fNperBasket = 8;   // Vector size
+   prop->fEmin = 1.E-5; // [10KeV] energy cut
+   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
+
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 
