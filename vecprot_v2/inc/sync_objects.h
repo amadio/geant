@@ -17,9 +17,11 @@ struct TimeCounter {
    Double_t    realtime[100];
    
    TimeCounter(bool measure_time);
+   TimeCounter(const TimeCounter &); // not implemented
    ~TimeCounter();
-   void operator++();
-   void operator--();
+   TimeCounter &operator =(const TimeCounter &); // not implemented
+   TimeCounter &operator++();
+   TimeCounter &operator--();
    void Print();
 };         
 
@@ -33,6 +35,9 @@ private:
    TimeCounter      *the_counter;
    Int_t             nobjects;
    Int_t             npriority;
+   
+   concurrent_queue(const concurrent_queue&); // not implemented
+   concurrent_queue &operator=(const concurrent_queue&); // not implemented
 public:
    concurrent_queue(bool counter=false);
    ~concurrent_queue();

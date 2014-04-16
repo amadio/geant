@@ -258,7 +258,7 @@ public:
    void      PropagateInVolumeSingle(Int_t i, Double_t crtstep);
    Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
    Int_t     PropagateTracks(GeantTrack_v &output);
-   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage);
+   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage=0);
    
    void      Resize(Int_t newsize);
    void      ReplaceTrack(Int_t i, Int_t withj);

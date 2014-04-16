@@ -27,6 +27,7 @@ protected:
    Int_t                fNvolumes;            // Number of active volumes in the geometry
    Int_t                fNpriority;           // Number of priority baskets held
    GeantBasketMgr     **fBasketMgr;           // Array of basket managers
+   GeantBasketMgr      *fGarbageCollector;    // Garbage collector manager
    Int_t               *fNtracks;             //[fNvolume] Number of tracks per volume
    Int_t                fPriorityRange[2];    // Prioritized events
 #ifdef __STAT_DEBUG
@@ -43,6 +44,7 @@ public:
    void                 AdjustBasketSize();
    void                 CreateBaskets();
    Int_t                CollectPrioritizedTracks();
+   GeantBasketMgr      *GetGarbageCollector() const {return fGarbageCollector;}
    Int_t                GetNpriority() const {return fNpriority;}
    void                 SetPriorityRange(Int_t min, Int_t max) {fPriorityRange[0]=min; fPriorityRange[1]=max;}
 #ifdef __STAT_DEBUG

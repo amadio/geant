@@ -68,6 +68,7 @@ void GeantBasket::AddTracks(const GeantTrack_v &tracks, Int_t istart, Int_t iend
 void GeantBasket::Clear(Option_t *option)
 {
 // Clear basket;
+   SetMixed(kFALSE);
    fTracksIn.Clear(option);
    fTracksOut.Clear(option);
 }   
