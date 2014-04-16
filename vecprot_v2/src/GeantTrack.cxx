@@ -1314,7 +1314,7 @@ Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output)
 }   
 
 //______________________________________________________________________________
-void GeantTrack_v::PrintTrack(Int_t itr)
+void GeantTrack_v::PrintTrack(Int_t itr) const
 {
 // Print info for a given track
       const char* status[7] = {"alive", "killed", "boundary", "exitSetup", "physics","postponed","new"};
@@ -1333,11 +1333,11 @@ void GeantTrack_v::PrintTrack(Int_t itr)
 }   
 
 //______________________________________________________________________________
-void GeantTrack_v::PrintTracks()
+void GeantTrack_v::PrintTracks() const
 {
 // Print all tracks
    for (Int_t i=0; i<fNtracks; i++) PrintTrack(i);
-}   
+}
 
 //______________________________________________________________________________
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks)

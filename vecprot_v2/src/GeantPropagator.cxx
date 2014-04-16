@@ -348,7 +348,7 @@ void GeantPropagator::Initialize()
 	
 // Initialize arrays here.
    gPropagator = GeantPropagator::Instance();
-   
+      
    if (!fProcess) {
       Fatal("Initialize", "The physics process has to be initilaized before this");
       return;
@@ -380,6 +380,8 @@ void GeantPropagator::Initialize()
    fWMgr = WorkloadManager::Instance(fNthreads);
    // Add some empty baskets in the queue
 //   fWMgr->AddEmptyBaskets(1000);
+ // Initialize application
+   fApplication->Initialize();
 }
 
 //______________________________________________________________________________
@@ -458,6 +460,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
       Printf("No user application attached - aborting");
       return;
    }   
+   // Initialize geometry and current volume
+   if (!LoadGeometry(geomfile)) return;
    Initialize();
    if (called) {
       Printf("Sorry, you can call this only once per session.");
@@ -467,8 +471,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    
 //   Int_t itrack;
 
-   // Initialize geometry and current volume
-   if (!LoadGeometry(geomfile)) return;
    if (fSingleTrack) Printf("==== Executing in single track loop mode using %d threads ====", fNthreads);
    else              Printf("==== Executing in vectorized mode using %d threads ====",fNthreads);
    if (fFillTree)    Printf("  I/O enabled - disable if comparing single track loop with vectorized modes");

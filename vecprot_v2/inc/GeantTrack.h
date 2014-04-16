@@ -236,8 +236,8 @@ public:
    void PrintPointers() {
       printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }
-   void PrintTrack(Int_t itr);
-   void PrintTracks();
+   void PrintTrack(Int_t itr) const;
+   void PrintTracks() const;
    
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
                        const Double_t *x, const Double_t *y, const Double_t *z,

@@ -239,6 +239,7 @@ void *WorkloadManager::MainScheduler(void *)
             // Digitizer (delete for now)
             Int_t ntracks = propagator->fNtracks[ievt];
             Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
+//            propagator->fApplication->Digitize(evt->GetEvent());
 //            for (Int_t itrack=0; itrack<ntracks; itrack++) {
 //               delete propagator->fTracks[maxperevent*ievt+itrack];
 //               propagator->fTracks[maxperevent*ievt+itrack] = 0;
@@ -351,6 +352,7 @@ void *WorkloadManager::MainScheduler(void *)
          }   
       }   
    }
+   propagator->fApplication->Digitize(0);
       
    Printf("=== Scheduler: stopping threads === niter =%d\n", niter);
    if (graphics) {
