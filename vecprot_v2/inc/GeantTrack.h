@@ -249,8 +249,8 @@ public:
    void PrintPointers() {
       printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }
-   void PrintTrack(Int_t itr);
-   void PrintTracks();
+   void PrintTrack(Int_t itr) const;
+   void PrintTracks() const;
    
 
 

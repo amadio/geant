@@ -220,13 +220,27 @@ void TTabPhysMgr::TransformLF(Int_t /*indref*/, GeantTrack_v &/*tracks*/,
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t /*ntracks*/, GeantTrack_v &/*tracks*/)
+void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Compute MSC angle at the beginning of the step and apply it to the vector
 // of tracks.
 // Input: material index, number of tracks in the tracks vector to be used
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+    
+   Float_t msTheta;
+   Float_t msPhi;
+
+   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+
+   for(Int_t i = 0; i < ntracks; ++i){
+      msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);     
+      msPhi = 2.*TMath::Pi()*rndArray[i];
+      RotateTrack(tracks, i, msTheta, msPhi);
+   }
+
 }
 
 //______________________________________________________________________________
@@ -467,7 +481,10 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
      // Ekin of the i-th secondary is higher than the threshold
      if(secEkin >= energyLimit) { //insert secondary into tracks_v 
-       GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
+//       GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
+       GeantTrack gTrack;
+       gTrack.fPath = new TGeoBranchArray();
+       gTrack.fNextpath = new TGeoBranchArray();
 
        //set the new track properties
        gTrack.fEvent    = tracks.fEventV[iintrack];
@@ -499,7 +516,7 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
        gTrack.fFrombdr  = tracks.fFrombdrV[iintrack];
        gTrack.fPending  = kFALSE;
        *gTrack.fPath    = *tracks.fPathV[iintrack];
-       *gTrack.fNextpath = *tracks.fNextpathV[iintrack];
+       *gTrack.fNextpath = *tracks.fPathV[iintrack];
 
        gPropagator->AddTrack(gTrack);
        tracks.AddTrack(gTrack);
@@ -563,5 +580,52 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
 }
 
 
+void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Float_t theta, 
+        Float_t phi)
+{
+     const Double_t one  = 1.0f;  
+     const Double_t zero = 0.0f; 
+     const Double_t amin = 1.0e-10f; 
+     const Double_t one5 = 1.5f; 
+     const Double_t half = 0.5f; 
+
+     Double_t cosTheta0 = tracks.fZdirV[itrack]; 
+     Double_t sinTheta0 = TMath::Sqrt(tracks.fXdirV[itrack]*tracks.fXdirV[itrack] +
+                                      tracks.fYdirV[itrack]*tracks.fYdirV[itrack]
+                                     );
+     Double_t cosPhi0;
+     Double_t sinPhi0;
+     Double_t cosTheta = TMath::Cos(theta);
+     Double_t sinTheta = TMath::Sin(theta);
+//     Double_t cosPhi = TMath::Cos(phi);
+//     Double_t sinPhi = TMath::Sin(phi);
+
+
+     if(sinTheta0 > amin) {
+       cosPhi0 = tracks.fXdirV[itrack]/sinTheta0;
+       sinPhi0 = tracks.fYdirV[itrack]/sinTheta0;                     
+     } else {
+       cosPhi0 = one;
+       sinPhi0 = zero;                     
+     }
+
+     Double_t h0 = sinTheta*TMath::Cos(phi);
+     Double_t h1 = sinTheta0*cosTheta + cosTheta0*h0;
+     Double_t h2 = sinTheta*TMath::Sin(phi);
+ 
+     tracks.fXdirV[itrack] = h1*cosPhi0 - h2*sinPhi0;
+     tracks.fYdirV[itrack] = h1*sinPhi0 + h2*cosPhi0;
+     tracks.fZdirV[itrack] = cosTheta*cosTheta0 - h0*sinTheta0;
+
+    //renormalization: ensure normality to avoid accumulated numerical errors
+    //                 due to sequential calls of rotation 
+     Double_t delta = one5-half*( tracks.fXdirV[itrack]*tracks.fXdirV[itrack] + 
+				  tracks.fYdirV[itrack]*tracks.fYdirV[itrack] +
+				  tracks.fZdirV[itrack]*tracks.fZdirV[itrack] );
+     tracks.fXdirV[itrack]*=delta;
+     tracks.fYdirV[itrack]*=delta;
+     tracks.fZdirV[itrack]*=delta;
+
+}
 
 

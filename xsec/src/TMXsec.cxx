@@ -267,6 +267,33 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 
 }
 
+//get MS angles   
+//____________________________________________________________________________
+Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
+   Int_t     ibin; 
+   
+   if(ipart >= TPartIndex::I()->NPartCharge())
+     return  0.;
+
+   energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+   energy=energy>=fEGrid[0]?energy:fEGrid[0];
+
+   ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+   ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+
+   Double_t en1 = fEGrid[ibin];
+   Double_t en2 = fEGrid[ibin+1];
+
+   if(en1>energy || en2<energy) {
+     Error("MS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+           ibin, en1, energy, en2);
+      return  0.;
+   }
+
+   Double_t xrat = (en2-energy)/(en2-en1);
+   return xrat*fMSangle[ipart*fNEbins+ibin]+(1-xrat)*fMSangle[ipart*fNEbins+ibin+1];
+}
+
 //____________________________________________________________________________
 Float_t TMXsec::DEdx(Int_t part, Float_t en) {
   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx)
