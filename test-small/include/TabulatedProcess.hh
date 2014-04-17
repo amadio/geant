@@ -8,9 +8,7 @@
 #include "G4ProcessType.hh"
 #include "GXTrack.hh"
 
-#include "TFile.h"
-
-//class TabulatedDataManager;
+class TabulatedDataManager;
 class G4VParticleChange;
 
 class TabulatedProcess : public G4WrapperProcess {
@@ -30,20 +28,10 @@ public:
   G4VParticleChange* PostStepDoIt(const G4Track& track, const G4Step& step);
 
   void Print(const G4Step& astep);
-private:
-  void PrepareTable(const char* pnam, const char* reac);
 
 private:
   G4VParticleChange* particleChange;
-
-  //tabulated physics data of VP - move to PhysicsList
-  //  TabulatedDataManager* dataManager;
-  static TFile *fxsec;
-  static TFile *ffsta;
-
-  G4double* fXsecTable;  
-  GXTrack* fFinalState;
-
+  TabulatedDataManager* theDataManager;
 };
 
 #endif

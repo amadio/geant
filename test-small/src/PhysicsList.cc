@@ -114,7 +114,7 @@ void PhysicsList::ConstructProcess()
   ConstructEM();
   ConstructDecay();
 
-  HadronPhysicsFTFP_BERT_WP();
+  //  HadronPhysicsFTFP_BERT_WP();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -144,6 +144,7 @@ void PhysicsList::ConstructProcess()
 
 #include "TabulatedProcess.hh"
 #include "VectorizedProcess.hh"
+#include "TabulatedDataManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -169,7 +170,6 @@ void PhysicsList::ConstructEM()
       char* plname = getenv("PHYSLIST");
 
       if ( plname && strcmp(plname,"TabulatedPhysics")==0) {
-	//use tabulated physics
 	G4eIonisation* eIoniProc = new G4eIonisation();
 	TabulatedProcess* eIoniWrapperProc = 
 	  new TabulatedProcess(eIoniProc->GetProcessName(),
@@ -178,12 +178,6 @@ void PhysicsList::ConstructEM()
 	eIoniWrapperProc->RegisterProcess(eIoniProc);
 	ph->RegisterProcess(eIoniWrapperProc, particle);
 
-	//	G4ProcessManager* theProcMan = 
-	//	  G4Electron::Electron()->GetProcessManager();
-	//      theProcMan->AddDiscreteProcess(eIoniWrapperProc);
-	//      theProcMan->AddContinuousProcess(eIoniWrapperProc);
-	//@@@or	theProcMan->AddProcess(eIoniWrapperProc,-1,0,0);
-	
 	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
 	TabulatedProcess* eBremWrapperProc = 
 	  new TabulatedProcess(eBremProc->GetProcessName(),
@@ -191,6 +185,7 @@ void PhysicsList::ConstructEM()
 	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
 	eBremWrapperProc->RegisterProcess(eBremProc);
 	ph->RegisterProcess(eBremWrapperProc, particle);
+	
       }
       else if ( plname && strcmp(plname,"VectorizedPhysics")==0) {
 	//use vectorized physics

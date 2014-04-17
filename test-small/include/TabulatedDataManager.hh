@@ -5,26 +5,43 @@
 #define TabulatedDataManager_HH 1
 
 #include "globals.hh"
-#include "GXTrack.hh"
-#include "TFile.h"
+#include <TGeoManager.h>
+
+#define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
+
+class G4Track;
+
+class TEXsec;
+class TMXsec;
+class TEFstate;
+class TGeoMaterial;
 
 class TabulatedDataManager
 {
 public:
 
-  TabulatedDataManager();	
-  virtual ~TabulatedDataManager();	
+  static TabulatedDataManager* Instance();
 
-  void PrepareTable(const char* pnam, const char* reac);
+  TabulatedDataManager();
+  ~TabulatedDataManager();	
+  TabulatedDataManager(TGeoManager* geom, const char* xsecfilename, 
+		       const char* finalsfilename);	
+  
+  G4double GetInteractionLength(G4int imat, G4int part, G4double en);
+  void SampleSecondaries(std::vector<G4Track*>* vdp, G4int imat, 
+			 G4Track* atrack);
+
 private:
 
-  //tabulated physics data of VP 
-  TFile *fxsec;
-  TFile *ffsta;
+  static TabulatedDataManager* theInstance;
 
-  //this should array for multiple materials
-  G4double* mxsec;
-  GXTrack* fstrack_h;
+  G4int            fNelements;    // Total number of elements in the geometry
+  G4int            fNmaterials;   // Total number of materials in the geometry
+
+  TEXsec         **fElemXsec;     // Array of x-section pointers per element
+  TEFstate       **fElemFstate;   // Array of final state pointers per element
+  TMXsec         **fMatXsec;      // Array of x-section pointers per material 
+  TGeoManager     *fGeom;         // Pointer to the geometry manager   
 };
 
 #endif

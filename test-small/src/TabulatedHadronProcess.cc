@@ -18,15 +18,7 @@ TabulatedHadronProcess::TabulatedHadronProcess(G4String processName,
   G4WrapperProcess(processName,processType),
   particleChange(0)
 {
-  dataManager = new TabulatedDataManager();
-
-  std::cout  << "processName " << processName << std::endl;
-  if(processName == "PionPlusInelastic") {
-    dataManager->PrepareTable("pi+","inElastic"); //process name from VP
-  }
-  else if(processName == "PionMinusInelastic") {
-    dataManager->PrepareTable("pi-",""); //process name from VP
-  }
+  theDataManager = TabulatedDataManager::Instance();
 }
 
 TabulatedHadronProcess::~TabulatedHadronProcess() {

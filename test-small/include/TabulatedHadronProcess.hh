@@ -28,7 +28,7 @@ public:
   void Print(const G4Step& astep);
 private:
   G4VParticleChange* particleChange;
-  TabulatedDataManager* dataManager;
+  TabulatedDataManager* theDataManager;
 };
 
 #endif

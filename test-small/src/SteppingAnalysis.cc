@@ -108,7 +108,6 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	}
       }
       if (procName == "eBremeBrem") {
-	//	std::cout << " wrapper " << std::endl;
 	TabulatedProcess* eproc = (TabulatedProcess*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
@@ -137,7 +136,6 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
       }
 
       if (procName == "eIonieIoni") {
-	std::cout << " wrapper " << std::endl;
 	TabulatedProcess* eproc = (TabulatedProcess*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if (meanFreePath > 0 && meanFreePath < DBL_MAX) {
