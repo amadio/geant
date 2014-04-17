@@ -387,6 +387,8 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
         tracks.fEV[i] = tracks.fMassV[i];
         tracks.fPV[i] = 0;
         tracks.fStatusV[i] = kKilled;
+        //tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("kRestCapture");
+        tracks.fProcessV[i] = 6; //kRestCapture will need to be called
       } else { 
         tracks.fEdepV[i] += edepo; 
         tracks.fEV[i] -= edepo;

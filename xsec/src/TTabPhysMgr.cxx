@@ -240,13 +240,24 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
+void /* Int_t */ TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks/* , Int_t tid */ )
 {
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
    mxs->Eloss(ntracks, tracks);
+
+   //call atRest sampling for tracks that have been killed by Eloss
+/*   Int_t nTotSecPart  = 0;  //total number of new tracks
+   Double_t energyLimit = gPropagator->fEmin;    
+   for(Int_t i = 0; i < ntracks; ++i)
+     if(tracks.fProcessV[i] == 6)//kRestCapture
+       GetRestFinSates(tracks.fG5codeV[i], fElemFstate[tracks.fEindexV[i]], energyLimit, 
+                       tracks, i, nTotSecPart, tid);  
+
+   return nTotSecPart;
+*/
 }
 
 //______________________________________________________________________________

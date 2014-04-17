@@ -43,7 +43,7 @@ public:
             indprod, GeantTrack_v &output);//not. imp. but done
    // API used by particle transport
    void  ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   void  Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   void  Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks/* , Int_t tid */);
    void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
