@@ -116,18 +116,40 @@ void MyApplication::Digitize(Int_t event)
    c1->SetGridx();
    c1->SetGridy();
    c1->SetLogy();
-   TH1F *histeg = new TH1F("Edep_gap", "Energy deposition per layer in gaps", 10, -0.5, 12.5);
+   TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 10, -0.5, 12.5);
    histeg->SetMarkerColor(kRed);
    histeg->SetMarkerStyle(2);
-   TH1F *histea = new TH1F("Edep_abs", "Energy deposition per layer in absorber", 10, -0.5, 12.5);
+   histeg->SetStats(kFALSE);
+   TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 10, -0.5, 12.5);
    histea->SetMarkerColor(kBlue);
    histea->SetMarkerStyle(4);
+   histea->SetStats(kFALSE);
    for (Int_t i=0; i<10; i++) {
-      histeg->SetBinContent(i+3,fEdepGap[i]*1000.);
-      histea->SetBinContent(i+3,fEdepAbs[i]*1000.);
+      histeg->SetBinContent(i+3,fEdepGap[i]*1000./(Double_t)gPropagator->fNprimaries);
+      histea->SetBinContent(i+3,fEdepAbs[i]*1000./(Double_t)gPropagator->fNprimaries);
    }
    histeg->GetXaxis()->SetTitle("Layer");
    histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
    histeg->Draw("P");
    histea->Draw("SAMEP");
+   TCanvas *c2 = new TCanvas("Length", "Length in layers for ExN03", 700, 800);
+   c2->SetGridx();
+   c2->SetGridy();
+//   c2->SetLogy();
+   TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 10, -0.5, 12.5);
+   histeg->SetMarkerColor(kRed);
+   histeg->SetMarkerStyle(2);
+   histeg->SetStats(kFALSE);
+   TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 10, -0.5, 12.5);
+   histla->SetMarkerColor(kBlue);
+   histla->SetMarkerStyle(4);
+   histla->SetStats(kFALSE);
+   for (Int_t i=0; i<10; i++) {
+      histlg->SetBinContent(i+3,fLengthGap[i]/(Double_t)gPropagator->fNprimaries);
+      histla->SetBinContent(i+3,fLengthAbs[i]/(Double_t)gPropagator->fNprimaries);
+   }
+   histlg->GetXaxis()->SetTitle("Layer");
+   histlg->GetYaxis()->SetTitle("Length per layer");
+   histlg->Draw("P");
+   histla->Draw("SAMEP");
 }

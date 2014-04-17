@@ -240,7 +240,7 @@ void *WorkloadManager::MainScheduler(void *)
             Int_t ntracks = propagator->fNtracks[ievt];
             Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
 //            propagator->fApplication->Digitize(evt->GetEvent());
-//            for (Int_t itrack=0; itrack<ntracks; itrack++) {
+//            for (Int_t itrack=0; itrack--------------------------------------------------<ntracks; itrack++) {
 //               delete propagator->fTracks[maxperevent*ievt+itrack];
 //               propagator->fTracks[maxperevent*ievt+itrack] = 0;
 //            }
@@ -392,6 +392,7 @@ void *WorkloadManager::TransportTracks(void *)
    static Int_t counter=0;
    Int_t ntotnext, ncross;
    Int_t ntotransport;
+   Int_t nextra_at_rest = 0;
    Int_t generation = 0;
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
@@ -449,7 +450,9 @@ void *WorkloadManager::TransportTracks(void *)
       }
 */
       // Select the discrete physics process for all particles in the basket
-      if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
+      if (propagator->fUsePhysics) propagator->ProposeStep(ntotransport, input, tid);
+      // Apply msc for charged tracks
+      propagator->ApplyMsc(ntotransport, input, tid);
       
       ncross = 0;
       generation = 0;
@@ -474,7 +477,9 @@ void *WorkloadManager::TransportTracks(void *)
       // Post-step actions by continuous processes for all particles. There are no 
       // new generated particles at this point.
       if (propagator->fUsePhysics) {
-         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output);
+         nextra_at_rest = 0;
+         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output, nextra_at_rest, tid);
+//         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
       }   
 /*
       if (propagator->fUsePhysics) {
@@ -656,7 +661,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
          }   
       }
       // Select the discrete physics process for all particles in the basket
-      //if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
+      //if (propagator->fUsePhysics) propagator->ProposeStep(ntotransport, input, tid);
 
       //ncross = 0;
       generation = 0;

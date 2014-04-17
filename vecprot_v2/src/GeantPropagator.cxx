@@ -1,6 +1,6 @@
 // A simple propagator taking as input a set of particles located in a given
 // volume AND the global matrix of the volume. 
-// The PhysicsSelect() method choses between a "scattering" process with no eloss 
+// The ProposeStep() method choses between a "scattering" process with no eloss 
 // and a "ionization" process and generates a random "physical" step. In this simple 
 // model all particlea undertake the same list of processes
 // The ScatteringProcess() method emulates scattering and changes the particle 
@@ -71,6 +71,7 @@ GeantPropagator::GeantPropagator()
                  fNevents(100),
                  fNtotal(1000),
                  fNtransported(0),
+                 fNprimaries(0),
                  fNsafeSteps(0),
                  fNsnextSteps(0),
                  fNprocesses(3),
@@ -152,7 +153,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track)
    Int_t slot = track.fEvslot;
    track.fParticle = fEvents[slot]->AddTrack();
 //   fNtracks[slot]++;
-//   fNtransported++;
+   fNtransported++;
    return track.fParticle;
 }
 
@@ -246,6 +247,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
       ntracks = td->fRndm->Poisson(average);
       ntotal += ntracks;
+      fNprimaries += ntracks;
       if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
       fEvents[slot]->SetSlot(slot);
       fEvents[slot]->SetEvent(event);
@@ -405,7 +407,15 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+{
+// Apply multiple scattering for charged particles.
+   GeantThreadData *td = fThreadData[tid];
+   fProcess->ApplyMsc(td->fVolume->GetMaterial(), ntracks, tracks, tid);
+}   
+
+//______________________________________________________________________________
+void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Generate all physics steps for the tracks in trackin.
    GeantThreadData *td = fThreadData[tid];
@@ -516,7 +526,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    fWMgr->JoinThreads();
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
-   Printf("=== Transported: %lld,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", fNtransported, fNsafeSteps, fNsnextSteps,rtime,ctime);
+   Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", 
+          fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");

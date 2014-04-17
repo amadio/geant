@@ -224,23 +224,39 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
-    
-   Float_t msTheta;
-   Float_t msPhi;
+//   static Int_t icnt=0;
+   Double_t msTheta;
+   Double_t msPhi;
 
    Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
+//   Double_t dir[3] = {0.,0.,0.};
    for(Int_t i = 0; i < ntracks; ++i){
-      msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);     
+      msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
       msPhi = 2.*TMath::Pi()*rndArray[i];
+/*
+      if (icnt<100 && mat->GetZ()>10) {
+         Printf("theta=%g  phi=%g", msTheta*TMath::RadToDeg(), msPhi*TMath::RadToDeg());
+         dir[0] = tracks.fXdirV[i];
+         dir[1] = tracks.fYdirV[i];
+         dir[2] = tracks.fZdirV[i];
+      }   
+*/
       RotateTrack(tracks, i, msTheta, msPhi);
+/*
+      if (icnt<100 && mat->GetZ()>10) {
+         icnt++;
+         Double_t dot = dir[0]*tracks.fXdirV[i] + dir[1]*tracks.fYdirV[i] +dir[2]*tracks.fZdirV[i];
+         Double_t angle = TMath::ACos(dot)*TMath::RadToDeg();
+         Printf("new angle=%g   delta=%g", angle, TMath::Abs(angle-msTheta*TMath::RadToDeg()));
+      }   
+*/      
    }
-
 }
 
 //______________________________________________________________________________
-void /* Int_t */ TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks/* , Int_t tid */ )
+ Int_t TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
@@ -249,7 +265,7 @@ void /* Int_t */ TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tra
    mxs->Eloss(ntracks, tracks);
 
    //call atRest sampling for tracks that have been killed by Eloss
-/*   Int_t nTotSecPart  = 0;  //total number of new tracks
+   Int_t nTotSecPart  = 0;  //total number of new tracks
    Double_t energyLimit = gPropagator->fEmin;    
    for(Int_t i = 0; i < ntracks; ++i)
      if(tracks.fProcessV[i] == 6)//kRestCapture
@@ -257,7 +273,6 @@ void /* Int_t */ TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tra
                        tracks, i, nTotSecPart, tid);  
 
    return nTotSecPart;
-*/
 }
 
 //______________________________________________________________________________
@@ -587,8 +602,8 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
 }
 
 
-void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Float_t theta, 
-        Float_t phi)
+void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, 
+        Double_t phi)
 {
      const Double_t one  = 1.0f;  
      const Double_t zero = 0.0f; 

@@ -58,7 +58,7 @@ void TTabPhysProcess::Initialize()
 }
 
 
-/*
+
 //______________________________________________________________________________
 void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat, 
                                Int_t ntracks, 
@@ -70,18 +70,18 @@ void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat,
    fMgr->ApplyMsc(imat, ntracks, tracks, tid);
    
 } 
-*/
+
 
 //______________________________________________________________________________
 void TTabPhysProcess::Eloss(TGeoMaterial *mat,
                             Int_t ntracks, 
-                            GeantTrack_v &tracks /*, 
+                            GeantTrack_v &tracks, 
                             Int_t &nout, 
-                            Int_t tid*/ )
+                            Int_t tid)
 {
 // Fill energy loss for the tracks according their fStepV
    Int_t imat = mat->GetIndex();
-   /* nout = */ fMgr->Eloss(imat, ntracks, tracks/*, tid */);
+   nout = fMgr->Eloss(imat, ntracks, tracks, tid);
 }
 
 //______________________________________________________________________________
