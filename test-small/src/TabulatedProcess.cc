@@ -39,7 +39,7 @@ TabulatedProcess::PostStepGetPhysicalInteractionLength(const G4Track& track,
 						   G4ForceCondition* condition)
 {
   // Call to ensure that the process is correctly initialised - temporary
-  return pRegProcess->PostStepGetPhysicalInteractionLength(track,
+  pRegProcess->PostStepGetPhysicalInteractionLength(track,
 						    previousStepSize,
 						    condition);
 
