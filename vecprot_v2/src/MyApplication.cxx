@@ -5,6 +5,8 @@
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "globals.h"
+#include "TH1.h"
+#include "TCanvas.h"
 
 ClassImp(MyApplication)
 
@@ -110,4 +112,22 @@ void MyApplication::Digitize(Int_t event)
 //   memset(fLengthGap, 0, kNlayers*sizeof(Float_t));
 //   memset(fEdepAbs, 0, kNlayers*sizeof(Float_t));
 //   memset(fLengthAbs, 0, kNlayers*sizeof(Float_t));
+   TCanvas *c1 = new TCanvas("Edep", "Energy deposition for ExN03", 700, 800);
+   c1->SetGridx();
+   c1->SetGridy();
+   c1->SetLogy();
+   TH1F *histeg = new TH1F("Edep_gap", "Energy deposition per layer in gaps", 10, -0.5, 12.5);
+   histeg->SetMarkerColor(kRed);
+   histeg->SetMarkerStyle(2);
+   TH1F *histea = new TH1F("Edep_abs", "Energy deposition per layer in absorber", 10, -0.5, 12.5);
+   histea->SetMarkerColor(kBlue);
+   histea->SetMarkerStyle(4);
+   for (Int_t i=0; i<10; i++) {
+      histeg->SetBinContent(i+3,fEdepGap[i]*1000.);
+      histea->SetBinContent(i+3,fEdepAbs[i]*1000.);
+   }
+   histeg->GetXaxis()->SetTitle("Layer");
+   histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
+   histeg->Draw("P");
+   histea->Draw("SAMEP");
 }
