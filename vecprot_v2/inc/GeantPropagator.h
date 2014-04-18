@@ -101,9 +101,9 @@ public:
    Int_t            GetElossInd() const {return fElossInd;}
    UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");
-#ifdef USE_VECGEOM_NAVIGATOR
+//#ifdef USE_VECGEOM_NAVIGATOR
    Bool_t           LoadVecGeomGeometry();
-#endif
+//#endif
    Int_t            ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
    void             Initialize();
 //   void             InjectCollection(Int_t tid);

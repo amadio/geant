@@ -34,16 +34,17 @@
 #include "TGeoNode.h"
 #include "TGeoMaterial.h"
 #include "TGeoMatrix.h"
+#include <fenv.h>
 
-#ifdef USE_VECGEOM_NAVIGATOR
+//#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/navigationstate.h"
 #include "navigation/simple_navigator.h"
 #include "management/rootgeo_manager.h"
 #include "volumes/logical_volume.h"
 #include "volumes/placed_volume.h"
-#else
+//#else
 #include "TGeoBranchArray.h"
-#endif
+//#endif
 
 #include "TTree.h"
 #include "TFile.h"
@@ -213,135 +214,31 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
 }
 
 
-#ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
 Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
 {
-// Import tracks from "somewhere". Here we just generate nevents.
-   static VolumePath_t *apath = 0;
+   // Import tracks from "somewhere". Here we just generate nevents.
+   static VolumePath_t *a = 0;
+#ifdef USE_VECGEOM_NAVIGATOR
    using vecgeom::SimpleNavigator;
    using vecgeom::Vector3D;
    using vecgeom::Precision;
    using vecgeom::GeoManager;
+#endif 
 
-   Int_t tid = TGeoManager::ThreadId();
-   GeantThreadData *td = fThreadData[tid];
-
-   TGeoVolume *vol = 0;
-   if (!apath) {
-      assert( GeoManager::Instance().getMaxDepth() > 1 );
-      assert( GeoManager::Instance().world() != NULL );
-      apath = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
-      vecgeom::SimpleNavigator nav;
-      nav.LocatePoint( GeoManager::Instance().world(),
-    		  Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *apath, true );
-
-      vol = apath->GetCurrentNode()->GetVolume();
-      td->fVolume = vol;
-
-   } else {
-      TGeoNode const *node = apath->GetCurrentNode();
-      vol = node->GetVolume();
-      td->fVolume = vol;
-   }
-   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
-   Int_t threshold = nevents*average/(2*fNthreads);
-   threshold -= threshold%4;
-   if ( threshold < 4   ) threshold = 4;
-   if ( threshold > 256 ) threshold = 256;
-   basket_mgr->SetThreshold(threshold);
-
-   const Double_t etamin = -3, etamax = 3;
-   Int_t ntracks = 0;
-   Int_t ntotal = 0;
-   Int_t ndispatched = 0;
-
-   // Species generated for the moment N, P, e, photon
-   const Int_t kMaxPart=9;
-   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
-   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
-   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
-   static Double_t pdgProb[9] = {0.};
-   Int_t pdgCount[9] = {0};
-
-   static Bool_t init=kTRUE;
-   if(init) {
-      pdgProb[0]=pdgRelProb[0];
-      for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
-      init=kFALSE;
-   }
-   Int_t event = startevent;
-   for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
-      ntracks = td->fRndm->Poisson(average);
-      ntotal += ntracks;
-      if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
-      fEvents[slot]->SetSlot(slot);
-      fEvents[slot]->SetEvent(event);
-      fEvents[slot]->Reset();
-
-      for (Int_t i=0; i<ntracks; i++) {
-         GeantTrack &track = GetTempTrack(tid);
-         // this takes a pointer to a VolumePath but copies it internally
-         track.SetPath(apath);
-         track.SetNextPath(apath);
-         track.SetEvent(event);
-         track.SetEvslot(slot);
-         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
-         track.SetPDG(0);
-         for(Int_t j=0; j<kMaxPart; ++j) {
-            if(prob <= pdgProb[j]) {
-               track.SetPDG(pdgGen[j]);
-               track.SetSpecies(pdgSpec[j]);
-//            Printf("Generating a %s",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
-               pdgCount[j]++;
-               break;
-            }
-         }
-         if(!track.fPDG) Fatal("ImportTracks","No particle generated!");
-         TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track.fPDG);
-         track.SetCharge(part->Charge()/3.);
-         track.SetMass(part->Mass());
-         track.fXpos = fVertex[0];
-         track.fYpos = fVertex[1];
-         track.fZpos = fVertex[2];
-         track.fE = fKineTF1->GetRandom()+part->Mass();
-         Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
-         Double_t eta = td->fRndm->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
-         Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
-         //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
-         Double_t phi = TMath::TwoPi()*td->fRndm->Rndm();
-         track.SetP(p);
-         track.fXdir = TMath::Sin(theta)*TMath::Cos(phi);
-         track.fYdir = TMath::Sin(theta)*TMath::Sin(phi);
-         track.fZdir = TMath::Cos(theta);
-         track.fFrombdr = kFALSE;
-         track.fStatus = kAlive;
-
-         AddTrack(track);
-         ndispatched += DispatchTrack(track);
-      }
-//      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
-      event++;
-      for (Int_t i=0; i<kMaxPart; i++) {
-//         Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
-         pdgCount[i] = 0;
-      }
-   }
-   Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
-           ntotal, startevent, startevent+nevents-1, ndispatched);
-   return ndispatched;
-}
-#else
-//______________________________________________________________________________
-Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
-{
-// Import tracks from "somewhere". Here we just generate nevents.
-   static TGeoBranchArray *a = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantThreadData *td = fThreadData[tid];
    TGeoVolume *vol = 0;
    if (!a) {
-      a = new TGeoBranchArray();
+#ifdef USE_VECGEOM_NAVIGATOR
+      a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
+      vecgeom::SimpleNavigator nav;
+      nav.LocatePoint( GeoManager::Instance().world(),
+    		  Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
+      vol = a->GetCurrentNode()->GetVolume();
+      td->fVolume = vol;
+#else
+      a = new VolumePath_t();
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
       if (!nav) nav = gGeoManager->AddNavigator();
       TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
@@ -349,9 +246,11 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       vol = node->GetVolume();
       td->fVolume = vol;
       a->InitFromNavigator(nav);
-   } else {
-      TGeoNode *node = a->GetCurrentNode();
+#endif
 
+   }
+   else {
+      TGeoNode const *node = a->GetCurrentNode();
       vol = node->GetVolume();
       td->fVolume = vol;
    }     
@@ -455,7 +354,6 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
            ntotal, startevent, startevent+nevents-1, ndispatched);
    return ndispatched;
 }
-#endif
 
 //______________________________________________________________________________
 GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered)
@@ -534,7 +432,7 @@ UInt_t GeantPropagator::GetNwaiting() const
    return nwaiting;
 }
    
-#ifdef USE_VECGEOM_NAVIGATOR
+//#ifdef USE_VECGEOM_NAVIGATOR
 /**
  * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
  */
@@ -552,18 +450,21 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
     std::vector<vecgeom::VPlacedVolume *> v2;
     vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
     Printf("Have placed volumes %d\n", v2.size() );
+  //  vecgeom::RootGeoManager::Instance().world()->PrintContent();
    }
 }
-#endif
+//#endif
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
-   Printf("In Load Geometry");
+ // feenableexcept( FE_INVALID );
+
+    Printf("In Load Geometry");
    if (gGeoManager){
-#ifdef USE_VECGEOM_NAVIGATOR
+//#ifdef USE_VECGEOM_NAVIGATOR
        LoadVecGeomGeometry();
-#endif
+//#endif
        return kTRUE;
    }
    Printf("returning early");

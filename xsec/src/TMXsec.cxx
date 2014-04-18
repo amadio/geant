@@ -5,6 +5,7 @@
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "GeantThreadData.h"
+#include <cassert>
 
 ClassImp(TMXsec)
 
@@ -360,12 +361,19 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
    Int_t ibin, ipart;
 
    Double_t energyLimit = GeantPropagator::Instance()->fEmin;
-   for (Int_t i=0; i<ntracks; ++i) {
+   for (Int_t i=0; i<ntracks; ++i)
+   {
       ipart = tracks.fG5codeV[i];
 
       if(ipart>=TPartIndex::I()->NPartCharge())
        continue;
 
+      if(!  tracks.fMassV[i] > 0 )
+      {
+        Printf("particle index %d\n",ipart);
+        tracks.PrintTrack(i);
+        assert( tracks.fMassV[i] > 0 );
+      }
       energy = tracks.fEV[i] - tracks.fMassV[i]; // tabulated on kinetic
       if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins];
       else if (energy>=fEGrid[fNEbins-1]) dedx = fDEdx[ipart*fNEbins+fNEbins-1]; 
@@ -380,6 +388,7 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
       // Update energy and momentum
       Double_t gammaold = tracks.Gamma(i);
       Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
+     // Printf("STEP %lf\n", tracks.fStepV[i]);
       edepo = tracks.fStepV[i]*dedx;
       if (energy-edepo < energyLimit) {
         // Particle energy below threshold
@@ -392,6 +401,7 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
         tracks.fEV[i] -= edepo;
         Double_t gammanew = tracks.Gamma(i);
         Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
+       // Printf("gammaold %lf, gammanew %lf, bgold %lf, bgnew %lf\n", gammaold, gammanew, bgold, bgnew);
         Double_t pnorm = bgnew/bgold;
         tracks.fPV[i] *= pnorm;
       }  

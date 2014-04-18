@@ -337,8 +337,10 @@ void *WorkloadManager::MainScheduler(void *)
       }
       ntotransport = feederQ->size_async();
       if (ntotransport==0) {
-         Printf("Garbage collection");
-         sch->GarbageCollect();
+#ifdef VERBSOSE
+    	 Printf("Garbage collection");
+#endif
+    	 sch->GarbageCollect();
          if (countdown) feederQ->set_countdown(0);
       }
       nperbasket = 0;
@@ -428,10 +430,13 @@ void *WorkloadManager::TransportTracks(void *)
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
-//      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
-//      basket->Print();
-//      Printf("==========================================");
-//      propagator->fTracksPerBasket[tid] = ntotransport;
+#ifdef VERBOSE
+      Printf("===================================================");
+      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
+      basket->Print();
+      Printf("===================================================");
+#endif
+      // propagator->fTracksPerBasket[tid] = ntotransport;
       td->fVolume = basket->GetVolume();
       
       // Record tracks

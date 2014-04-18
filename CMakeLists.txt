@@ -5,7 +5,11 @@ project(GEANTV)
 
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
-set(OUTDIR $ENV{GEANT_OUTPUT_DIR})
+if( GEANT_OUTPUT_DIR )
+    set(OUTDIR ${GEANT_OUTPUT_DIR})
+else()
+    set(OUTDIR $ENV{GEANT_OUTPUT_DIR})
+endif()
 if(NOT OUTDIR)
   set(OUTDIR ${PROJECT_SOURCE_DIR})
 endif()
@@ -24,14 +28,17 @@ include_directories(${ROOT_INCLUDE_DIR})
 #----------------------------------------------------------------------------
 # Find VecGeom geometry headers library 
 #
-find_package(VecGeom)
+find_package(VecGeom REQUIRED)
 if( VECGEOM_FOUND )
     find_package(Vc)
     if ( VC_FOUND )
     include_directories(${VC_INCLUDE_DIR})
     endif()
+if( USE_VECGEOM_NAVIGATOR )
     add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
-    include_directories(${VECGEOM_INCLUDE_DIR})
+endif() 
+   add_definitions( "-DVECGEOM_ROOT" )
+   include_directories(${VECGEOM_INCLUDE_DIR})
 endif()
 
 #----------------------------------------------------------------------------
@@ -84,10 +91,7 @@ add_custom_target(_headers ALL)
 
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
-add_subdirectory (tabxsec)
-#add_subdirectory (vecprot)
-#add_subdirectory (vecprot_v2)
-add_subdirectory (micromc)
+#add_subdirectory (tabxsec)
 #add_subdirectory (geom_vec_tests)
-add_subdirectory (test-small)
+#add_subdirectory (test-small)
 

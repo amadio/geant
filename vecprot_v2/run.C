@@ -1,4 +1,4 @@
-void run(Int_t nthreads=1, Bool_t graphics=kFALSE, 
+void run(Int_t nthreads=2, Bool_t graphics=kFALSE, 
 //         const char *geomfile="gexam1.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="Ex03.root")
@@ -9,8 +9,11 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
    gSystem->Load("libThread");
    gSystem->Load("libGeom");
    gSystem->Load("libVMC");
-   gSystem->Load("libGeant_v");
-   gSystem->Load("libXsec");
+   //   gSystem->Load("../buildTGeo/lib/libGeant_v");
+   // gSystem->Load("../buildTGeo/lib/libXsec");
+   gSystem->Load("../lib/libGeant_v");
+   gSystem->Load("../lib/libXsec");
+
 
    Int_t ntotal   = 100;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
@@ -19,14 +22,14 @@ void run(Int_t nthreads=1, Bool_t graphics=kFALSE,
 
    //   gSystem->Load("../lib/libGeant_v_vecGeom.so");
 
-   Int_t ntotal   = 100;  // Number of events to be transported
-   Int_t nbuffered  = 10;   // Number of buffered events
+   Int_t ntotal   = 1000;  // Number of events to be transported
+   Int_t nbuffered  = 20;   // Number of buffered events
 
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
-   prop->fNaverage = 100;   // Average number of tracks per event
+   prop->fNaverage = 10;   // Average number of tracks per event
 
    prop->fNperBasket = 8;   // Vector size
    prop->fEmin = 1.E-5; // [10KeV] energy cut

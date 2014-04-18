@@ -251,7 +251,6 @@ public:
    }
    void PrintTrack(Int_t itr) const;
    void PrintTracks() const;
-   
 
 
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
