@@ -94,6 +94,8 @@
 <li><a class="reference internal" href="#prefer-preincrement" id="id51">Prefer Preincrement</a></li>
 <li><a class="reference internal" href="#namespace-indentation" id="id52">Namespace Indentation</a></li>
 <li><a class="reference internal" href="#anonymous-namespaces" id="id53">Anonymous Namespaces</a></li>
+<li><a class="reference internal" href="#const-qualifier" id="id55">Const qualifiers</a></li>
+<li><a class="reference internal" href="#braces-and-spaces" id="id56">Braces and spaces</a></li>
 </ul>
 </li>
 </ul>
@@ -433,6 +435,10 @@ existing code if you are modifying and extending it.  If you like four spaces of
 indentation, <strong>DO NOT</strong> do that in the middle of a chunk of code with two spaces
 of indentation.  Also, do not reindent a whole source file: it makes for
 incredible diffs that are absolutely worthless.</p>
+<p>When creating a new file, prefer using two space indentation, this reduces the total length of the lines.
+When reindentation of file is necessary, for example for consistency or to reduce the line length,
+commit the reindentation changes by themselves <strong>with no functional changes;</strong> this avoid having to
+hunts for them in the middle of many irrelevant changes.
 </div>
 <div class="section" id="indent-code-consistently">
 <h4><a class="toc-backref" href="#id17">Indent Code Consistently</a><a class="headerlink" href="#indent-code-consistently" title="Permalink to this headline"><!-- ¶ --></a></h4>
@@ -977,7 +983,7 @@ iterators should add a singular prefix to <tt class="docutils literal"><span cla
   <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">fF</span><span class="p">;</span>            <span class="c1">// Bad -- abbreviation and non-descriptive.</span>
   <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">fFactory</span><span class="p">;</span>      <span class="c1">// Better.</span>
   <span class="n">Factory</span><span class="o">&lt;</span><span class="n">Tire</span><span class="o">&gt;</span> <span class="n">fTireFactory</span><span class="p">;</span>  <span class="c1">// Even better -- if VehicleMaker has more than one</span>
-                              <span class="c1">// kind of factories.</span>
+                               <span class="c1">// kind of factories.</span>
 <span class="p">};</span>
 
 <span class="n">Vehicle</span> <span class="nf">MakeVehicle</span><span class="p">(</span><span class="n">VehicleType</span> <span class="n">Type</span><span class="p">)</span> <span class="p">{</span>
@@ -1228,6 +1234,15 @@ misread the “<tt class="docutils literal"><span class="pre">A</span></tt>” e
 </div>
 <p>when skimming through the code.  By avoiding a space in a function, we avoid
 this misinterpretation.</p>
+
+<p>We prefer to not put white space after the opening parathensis and before
+the closing parathensis and to put white space surrounding operators:</p>
+
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">foo</span>(<span class="kt">int</span> <span class="n">a</span>, <span class="kt">float</span> <span class="n">b</span><span class="p">);</span>
+for (<span class="kt">int</span> <span class="n">i</span> = <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span>; <span class="o">++</span><span class="n">i</span>) <span class="c1">// No padding whitespace</span>
+</pre></div>
+
+
 </div>
 <div class="section" id="prefer-preincrement">
 <h4><a class="toc-backref" href="#id51">Prefer Preincrement</a><a class="headerlink" href="#prefer-preincrement" title="Permalink to this headline"><!-- ¶ --></a></h4>
@@ -1274,6 +1289,7 @@ is rarely a source of confusion. But namespaces both anonymous and named in
 source files that are being closed half way through the file probably could use
 clarification.</p>
 </div>
+
 <div class="section" id="anonymous-namespaces">
 <span id="static"></span><h4><a class="toc-backref" href="#id53">Anonymous Namespaces</a><a class="headerlink" href="#anonymous-namespaces" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>After talking about namespaces in general, you may be wondering about anonymous
@@ -1338,6 +1354,60 @@ Also, there is no reason to enclose the definition of “<tt class="docutils lit
 namespace just because it was declared there.</p>
 </div>
 </div>
+
+<div class="section" id="const-qualifier">
+   <span id="static"></span><h4><a class="toc-backref" href="#id55">Const qualifiers</a><a class="headerlink" href="#const-qualifier" title="Permalink to this headline"><!-- ¶ --></a></h4>
+   <p>In C++, the outer most const qualifier can be placed before or after the type.  Whether to use
+   one option or the other depends on the context.   When there is only one const qualifier and it is
+   the outer most, place the const on the left of the type as it follows the natural english language
+   reading order (left to right).   When there is more than one const qualifier or the qualifier is
+   not the outer most, place it after the type as it is much easier in that case to read from right
+   to left to properly parse/understand the type.</p>
+
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="kt">int</span> var1<span class="p">;</span>        <span class="c1">// const value</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="o">*</span>var2<span class="p">;</span>       <span class="c1">// modifiable pointer to a const int</span>
+<span class="kt">int</span> <span class="k">const</span> <span class="o">*</span>const var3<span class="p">;</span> <span class="c1">// const pointer to a const int</span>
+<span class="kt">int</span> <span class="o">*</span><span class="k">const</span> var4<span class="p">;</span>       <span class="c1">// const pointer to a modifiable int</span>
+</pre>
+</div>
+</div>
+
+<div class="section" id="braces-and-spaces">
+   <span id="static"></span><h4><a class="toc-backref" href="#id56">Braces and Spaces</a><a class="headerlink" href="#braces-and-spaces" title="Permalink to this headline"><!-- ¶ --></a></h4>
+<p>Prefer to attach the reference or pointer to the right word and never surrounds
+with spaces on both side.</p>
+
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="o">*</span> <span class="k">const</span> var1<span class="p">;</span> <span class="c1">// This is BAD</span>
+<span class="kt">int</span> <span class="o">*</span><span class="k">const</span> a<span class="p">;</span>
+<span class="kt">int</span> <span class="o">*</span>a<span class="p">;</span>
+<span class="k">const</span> std::vector&lt;<span class="kt">int</span>&gt; &amp;getContent() const<span class="p">;</span>
+</pre></div>
+
+<p>The preferred way to place brackes is to put the opening brace last on the line,
+and put the closing brace first.  There is an exception for functions, we prefer
+the opening brace at the beginning of the next line.
+
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span>x is true<span class="p">)</span> <span class="p">{</span>
+   we do y
+<span class="p">}</span>
+
+<span class="kt">int</span> function<span class="p">(</span><span class="kt">int</span> x<span class="p">)</span>
+<span class="p">{</span>
+   body of function
+<span class="p">}</span>
+</pre></div>
+
+<p>Long function signature should be kept as compact as possible while respecting the intended
+maximum line length of the source file.  When ever possible, it should be written on a single
+line.  When needed, new lines need to be aligned with the opening parentheses.</p>
+
+<div class="highlight-c++"><div class="highlight"><pre>
+<span class="kt">void</span> foo(<span class="kt">int</span> a0, <span class="kt">int</span> a1<span class="p">,</span> <span class="kt">int</span> a2<span class="p">,</span> <span class="kt">int</span> a3<span class="p">,</span>
+         <span class="kt">int</span> a4<span class="p">,</span> <span class="kt">int</span> a5) <span class="k">const</span><span class="p">;</span>
+</pre></div>
+
+</div>
+
 </div>
 <div class="section" id="see-also">
 <h2><a class="toc-backref" href="#id54">See Also</a><a class="headerlink" href="#see-also" title="Permalink to this headline"><!-- ¶ --></a></h2>
