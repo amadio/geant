@@ -350,8 +350,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          pdgCount[i] = 0;
       }   
    }
-   Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
-           ntotal, startevent, startevent+nevents-1, ndispatched);
+ //  Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
+  //         ntotal, startevent, startevent+nevents-1, ndispatched);
    return ndispatched;
 }
 
@@ -450,7 +450,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
     std::vector<vecgeom::VPlacedVolume *> v2;
     vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
     Printf("Have placed volumes %d\n", v2.size() );
-  //  vecgeom::RootGeoManager::Instance().world()->PrintContent();
+    vecgeom::RootGeoManager::Instance().world()->PrintContent();
    }
 }
 //#endif

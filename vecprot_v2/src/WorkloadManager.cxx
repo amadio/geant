@@ -223,7 +223,7 @@ void *WorkloadManager::MainScheduler(void *)
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
-      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
+     // Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
 #ifdef __STAT_DEBUG
            sch->GetPendingStat().Print();
            sch->GetQueuedStat().Print();
@@ -238,7 +238,7 @@ void *WorkloadManager::MainScheduler(void *)
          if (evt->Transported()) {
             // Digitizer (delete for now)
             Int_t ntracks = propagator->fNtracks[ievt];
-            Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
+     //       Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
 //            propagator->fApplication->Digitize(evt->GetEvent());
 //            for (Int_t itrack=0; itrack<ntracks; itrack++) {
 //               delete propagator->fTracks[maxperevent*ievt+itrack];
@@ -246,7 +246,7 @@ void *WorkloadManager::MainScheduler(void *)
 //            }
             finished.SetBitNumber(evt->GetEvent());
             if (last_event<max_events) {
-               Printf("=> Importing event %d", last_event);
+      //         Printf("=> Importing event %d", last_event);
                ninjected += propagator->ImportTracks(1,propagator->fNaverage,last_event,ievt);
                last_event++;
             }
@@ -260,7 +260,7 @@ void *WorkloadManager::MainScheduler(void *)
          first_not_transported = finished.FirstNullBit();
          if (first_not_transported > dumped_event) {
             // Priority events digitized, exit prioritized regime
-            Printf("= stopped prioritizing");
+          //  Printf("= stopped prioritizing");
             prioritize = kFALSE;
             sch->SetPriorityRange(-1, -1);
          } else {
@@ -272,14 +272,14 @@ void *WorkloadManager::MainScheduler(void *)
                   feederQ->reset_countdown();
                   npriority = sch->FlushPriorityBaskets();
                   ninjected += npriority;
-                  Printf("Flushed %d priority baskets, resetting countdown", npriority);
+               //   Printf("Flushed %d priority baskets, resetting countdown", npriority);
                } else {
-                  Printf("Countdown is %d", feederQ->get_countdown());
+               //   Printf("Countdown is %d", feederQ->get_countdown());
                }
             } else {
                npriority = sch->FlushPriorityBaskets();
                ninjected = npriority;
-               Printf("Flushed %d priority baskets", npriority);
+              // Printf("Flushed %d priority baskets", npriority);
 #ifdef __STAT_DEBUG
            Printf("After FlushPriorityBaskets:");
            sch->GetPendingStat().Print();
@@ -328,7 +328,7 @@ void *WorkloadManager::MainScheduler(void *)
            countdown = kTRUE;
            ntotransport = feederQ->size_async();
            feederQ->set_countdown(ntotransport);
-           Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
+       //    Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
            continue;
         }
         nwaiting = propagator->GetNwaiting();
@@ -337,7 +337,7 @@ void *WorkloadManager::MainScheduler(void *)
       }
       ntotransport = feederQ->size_async();
       if (ntotransport==0) {
-#ifdef VERBSOSE
+#ifdef VERBOSE
     	 Printf("Garbage collection");
 #endif
     	 sch->GarbageCollect();

@@ -261,6 +261,8 @@ public:
    void      NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
    Bool_t    NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end);
 
+   void InspectGeometryState(Int_t itr) const;
+   void InspectIsSameLocation(Int_t itr) const;
 
    TransportAction_t PostponedAction() const;
    Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
@@ -276,6 +278,11 @@ public:
    Int_t     PropagateTracks(GeantTrack_v &output);
    Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage=0);
    
+ //  void SetPath( Int_t i, VolumePath_t const & nextpath )
+  // {
+  //   *fPathV[i]=nextpath;
+  // }
+
    void      Resize(Int_t newsize);
    void      ReplaceTrack(Int_t i, Int_t withj);
    Int_t     Reshuffle();

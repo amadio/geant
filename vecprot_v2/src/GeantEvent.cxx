@@ -27,6 +27,6 @@ void GeantEvent::StopTrack()
 void GeantEvent::Print(Option_t *) const
 {
 // Print events content
-   Printf("Event %d: %d/%d tracks transported", fEvent, fNdone, fNtracks);
+  // Printf("Event %d: %d/%d tracks transported", fEvent, fNdone, fNtracks);
 }
    
