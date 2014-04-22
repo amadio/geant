@@ -103,6 +103,7 @@
 <li><a class="reference internal" href="#see-also" id="id54">See Also</a></li>
 </ul>
 </div>
+
 <div class="section" id="introduction">
 <h2><a class="toc-backref" href="#id1">Introduction</a><a class="headerlink" href="#introduction" title="Permalink to this headline"><!-- ¶ --></a></h2>
 <p>This document attempts to describe a few coding standards that
@@ -129,6 +130,7 @@ href="mailto:geant-dev%40cern.ch">the mailing list</a>.</p>
 <p>This document is largely inspired from the <a href="http://llvm.org/docs/CodingStandards.html">LLVM coding convention and</a>
 the <a href="http://root.cern.ch/drupal/content/c-coding-conventions">ROOT coding convention</a>.</p>
 </div>
+
 <div class="section" id="languages-libraries-and-standards">
 <h2><a class="toc-backref" href="#id2">Languages, Libraries, and Standards</a><a class="headerlink" href="#languages-libraries-and-standards" title="Permalink to this headline"><!-- ¶ --></a></h2>
 <p>Most source code using these coding standards
@@ -137,6 +139,7 @@ environment restrictions, historical restrictions, or due to third-party source
 code imported into the tree. Generally, our preference is for standards
 conforming, modern, and portable C++ code as the implementation language of
 choice.</p>
+
 <div class="section" id="c-standard-versions">
 <h3><a class="toc-backref" href="#id3">C++ Standard Versions</a><a class="headerlink" href="#c-standard-versions" title="Permalink to this headline"><!-- ¶ --></a></h3>
 <p>We are currently supporting C++11 conforming code,
@@ -147,6 +150,7 @@ toolchains supported as host compilers.  As necessary the code needs
   reasonable) be standard, portable, and modern C++11 code. We avoid
   unnecessary vendor-specific extensions, etc.</p>
 </div>
+
 <div class="section" id="supported-c-11-language-and-library-features">
 <h3><a class="toc-backref" href="#id5">Supported C++11 Language and Library Features</a><a class="headerlink" href="#supported-c-11-language-and-library-features" title="Permalink to this headline"><!-- ¶ --></a></h3>
 <p>While we use C++11, not all features are available in all of
@@ -213,10 +217,13 @@ you hit a type trait which doesn’t work we can then add support to our
 traits header to emulate it.</p>
 </div>
 </div>
+
 <div class="section" id="mechanical-source-issues">
 <h2><a class="toc-backref" href="#id6">Mechanical Source Issues</a><a class="headerlink" href="#mechanical-source-issues" title="Permalink to this headline"><!-- ¶ --></a></h2>
+
 <div class="section" id="source-code-formatting">
 <h3><a class="toc-backref" href="#id7">Source Code Formatting</a><a class="headerlink" href="#source-code-formatting" title="Permalink to this headline"><!-- ¶ --></a></h3>
+
 <div class="section" id="commenting">
 <h4><a class="toc-backref" href="#id8">Commenting</a><a class="headerlink" href="#commenting" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Comments are one critical part of readability and maintainability.  Everyone
@@ -224,6 +231,7 @@ knows they should comment their code, and so should you.  When writing comments,
 write them as English prose, which means they should use proper capitalization,
 punctuation, etc.  Aim to describe what the code is trying to do and why, not
 <em>how</em> it does it at a micro level. Here are a few critical things to document:</p>
+
 <div class="section" id="file-headers">
 <span id="header-file-comment"></span><h5><a class="toc-backref" href="#id9">File Headers</a><a class="headerlink" href="#file-headers" title="Permalink to this headline"><!-- ¶ --></a></h5>
 <p>Every source file should have a header on it that describes the basic purpose of
@@ -265,6 +273,7 @@ an algorithm is being implemented or something tricky is going on, a reference
 to the paper where it is published should be included, as well as any notes or
 <em>gotchas</em> in the code to watch out for.</p>
 </div>
+
 <div class="section" id="class-overviews">
 <h5><a class="toc-backref" href="#id10">Class overviews</a><a class="headerlink" href="#class-overviews" title="Permalink to this headline"><!-- ¶ --></a></h5>
 <p>Classes are one fundamental part of a good object oriented design.  As such, a
@@ -272,6 +281,7 @@ class definition should have a comment block that explains what the class is
 used for and how it works.  Every non-trivial class is expected to have a
 <tt class="docutils literal"><span class="pre">doxygen</span></tt> comment block.</p>
 </div>
+
 <div class="section" id="method-information">
 <h5><a class="toc-backref" href="#id11">Method information</a><a class="headerlink" href="#method-information" title="Permalink to this headline"><!-- ¶ --></a></h5>
 <p>Methods defined in a class (as well as any global functions) should also be
@@ -283,6 +293,7 @@ figure out how to use your interfaces without reading the code itself.</p>
 happens: does the method return null?  Abort?  Format your hard disk?</p>
 </div>
 </div>
+
 <div class="section" id="comment-formatting">
 <h4><a class="toc-backref" href="#id12">Comment Formatting</a><a class="headerlink" href="#comment-formatting" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>In general, prefer C++ style (<tt class="docutils literal"><span class="pre">//</span></tt>) comments.  They take less space, require
@@ -298,6 +309,7 @@ comments.</li>
 <p>To comment out a large block of code, use <tt class="docutils literal"><span class="pre">#if</span> <span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">#endif</span></tt>. These nest
 properly and are better behaved in general than C style comments.</p>
 </div>
+
 <div class="section" id="doxygen-use-in-documentation-comments">
 <h4><a class="toc-backref" href="#id13">Doxygen Use in Documentation Comments</a><a class="headerlink" href="#doxygen-use-in-documentation-comments" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Use the <tt class="docutils literal"><span class="pre">\file</span></tt> command to turn the standard file header into a file-level
@@ -403,6 +415,7 @@ groups to organize within a class.</li>
 </pre></div>
 </div>
 </div>
+
 <div class="section" id="include-style">
 <h4><a class="toc-backref" href="#id14"><tt class="docutils literal"><span class="pre">#include</span></tt> Style</a><a class="headerlink" href="#include-style" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Immediately after the <a class="reference internal" href="#header-file-comment">header file comment</a> (and include guards if working on a
@@ -423,6 +436,7 @@ that the header does not have any hidden dependencies which are not explicitly
 <tt class="docutils literal"><span class="pre">#include</span></tt>d in the header, but should be. It is also a form of documentation
 in the <tt class="docutils literal"><span class="pre">.cpp</span></tt> file to indicate where the interfaces it implements are defined.</p>
 </div>
+
 <div class="section" id="use-spaces-instead-of-tabs">
 <h4><a class="toc-backref" href="#id16">Use Spaces Instead of Tabs</a><a class="headerlink" href="#use-spaces-instead-of-tabs" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>In all cases, prefer spaces to tabs in source files.  People have different
@@ -440,6 +454,7 @@ When reindentation of file is necessary, for example for consistency or to reduc
 commit the reindentation changes by themselves <strong>with no functional changes;</strong> this avoid having to
 hunts for them in the middle of many irrelevant changes.
 </div>
+
 <div class="section" id="indent-code-consistently">
 <h4><a class="toc-backref" href="#id17">Indent Code Consistently</a><a class="headerlink" href="#indent-code-consistently" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Okay, in your first year of programming you were told that indentation is
@@ -447,6 +462,7 @@ important. If you didn’t believe and internalize this then, now is the time.
 Just do it. With the introduction of C++11, there are some new formatting
 challenges that merit some suggestions to help have consistent, maintainable,
 and tool-friendly formatting and indentation.</p>
+
 <div class="section" id="format-lambdas-like-blocks-of-code">
 <h5><a class="toc-backref" href="#id18">Format Lambdas Like Blocks Of Code</a><a class="headerlink" href="#format-lambdas-like-blocks-of-code" title="Permalink to this headline"><!-- ¶ --></a></h5>
 <p>When formatting a multi-line lambda, format it like a block of code, that’s
@@ -485,6 +501,7 @@ the indent of the <tt class="docutils literal"><span class="pre">[]</span></tt>:
 </pre></div>
 </div>
 </div>
+
 <div class="section" id="braced-initializer-lists">
 <h5><a class="toc-backref" href="#id19">Braced Initializer Lists</a><a class="headerlink" href="#braced-initializer-lists" title="Permalink to this headline"><!-- ¶ --></a></h5>
 <p>With C++11, there are significantly more uses of braced lists to perform
@@ -513,8 +530,10 @@ consistent, and automatic formatting with tools like <a class="reference externa
 </div>
 </div>
 </div>
+
 <div class="section" id="language-and-compiler-issues">
 <h3><a class="toc-backref" href="#id20">Language and Compiler Issues</a><a class="headerlink" href="#language-and-compiler-issues" title="Permalink to this headline"><!-- ¶ --></a></h3>
+
 <div class="section" id="treat-compiler-warnings-like-errors">
 <h4><a class="toc-backref" href="#id21">Treat Compiler Warnings Like Errors</a><a class="headerlink" href="#treat-compiler-warnings-like-errors" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>If your code has compiler warnings in it, something is wrong — you aren’t
@@ -544,6 +563,7 @@ this:</p>
 <p>which shuts <tt class="docutils literal"><span class="pre">gcc</span></tt> up.  Any <tt class="docutils literal"><span class="pre">gcc</span></tt> warning that annoys you can be fixed by
 massaging the code appropriately.</p>
 </div>
+
 <div class="section" id="write-portable-code">
 <h4><a class="toc-backref" href="#id22">Write Portable Code</a><a class="headerlink" href="#write-portable-code" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>In almost all cases, it is possible and within reason to write completely
@@ -554,6 +574,7 @@ code, isolate it behind a well defined (and well documented) interface.</p>
 features are used, they should only be an implementation detail of a library
 which has a simple exposed API, and preferably be buried in <tt class="docutils literal"><span class="pre">libSystem</span></tt>.</p>
 </div>
+
 <div class="section" id="do-not-use-static-constructors">
 <span id="static-constructor"></span><h4><a class="toc-backref" href="#id24">Do not use Static Constructors</a><a class="headerlink" href="#do-not-use-static-constructors" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Static constructors and destructors (e.g. global variables whose types have a
@@ -573,6 +594,7 @@ amount of data that gets touched. In addition, touched/dirty pages put more
 pressure on the VM system on low-memory machines.</li>
 </ul>
 </div>
+
 <div class="section" id="use-of-class-and-struct-keywords">
 <h4><a class="toc-backref" href="#id25">Use of <tt class="docutils literal"><span class="pre">class</span></tt> and <tt class="docutils literal"><span class="pre">struct</span></tt> Keywords</a><a class="headerlink" href="#use-of-class-and-struct-keywords" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>In C++, the <tt class="docutils literal"><span class="pre">class</span></tt> and <tt class="docutils literal"><span class="pre">struct</span></tt> keywords can be used almost
@@ -614,6 +636,7 @@ members are declared public.</li>
 </pre></div>
 </div>
 </div>
+
 <div class="section" id="do-not-use-braced-initializer-lists-to-call-a-constructor">
 <h4><a class="toc-backref" href="#id26">Do not use Braced Initializer Lists to Call a Constructor</a><a class="headerlink" href="#do-not-use-braced-initializer-lists-to-call-a-constructor" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>In C++11 there is a “generalized initialization syntax” which allows calling
@@ -648,6 +671,7 @@ something notionally equivalent. Examples:</p>
 </pre></div>
 </div>
 </div>
+
 <div class="section" id="use-auto-type-deduction-to-make-code-more-readable">
 <h4><a class="toc-backref" href="#id27">Use <tt class="docutils literal"><span class="pre">auto</span></tt> Type Deduction to Make Code More Readable</a><a class="headerlink" href="#use-auto-type-deduction-to-make-code-more-readable" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Some are advocating a policy of “almost always <tt class="docutils
@@ -659,6 +683,7 @@ type is already obvious from the context. Another time when <tt class="docutils 
 for these purposes is when the type would have been abstracted away anyways,
 often behind a container’s typedef such as <tt class="docutils literal"><span class="pre">std::vector&lt;T&gt;::iterator</span></tt>.</p>
 </div>
+
 <div class="section" id="beware-unnecessary-copies-with-auto">
 <h4><a class="toc-backref" href="#id28">Beware unnecessary copies with <tt class="docutils literal"><span class="pre">auto</span></tt></a><a class="headerlink" href="#beware-unnecessary-copies-with-auto" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>The convenience of <tt class="docutils literal"><span class="pre">auto</span></tt> makes it easy to forget that its default behavior
@@ -681,10 +706,13 @@ expensive.</p>
 </div>
 </div>
 </div>
+
 <div class="section" id="style-issues">
 <h2><a class="toc-backref" href="#id29">Style Issues</a><a class="headerlink" href="#style-issues" title="Permalink to this headline"><!-- ¶ --></a></h2>
+
 <div class="section" id="the-high-level-issues">
 <h3><a class="toc-backref" href="#id30">The High-Level Issues</a><a class="headerlink" href="#the-high-level-issues" title="Permalink to this headline"><!-- ¶ --></a></h3>
+
 <div class="section" id="include-as-little-as-possible">
 <span id="minimal-list-of-includes"></span><h4><a class="toc-backref" href="#id32"><tt class="docutils literal"><span class="pre">#include</span></tt> as Little as Possible</a><a class="headerlink" href="#include-as-little-as-possible" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p><tt class="docutils literal"><span class="pre">#include</span></tt> hurts compile time performance.  Don’t do it unless you have to,
@@ -705,6 +733,7 @@ header, make sure to include your module header <strong>first</strong> in the im
 file (as mentioned above).  This way there won’t be any hidden dependencies that
 you’ll find out about later.</p>
 </div>
+
 <div class="section" id="keep-internal-headers-private">
 <h4><a class="toc-backref" href="#id33">Keep “Internal” Headers Private</a><a class="headerlink" href="#keep-internal-headers-private" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Many modules have a complex implementation that causes them to use more than one
@@ -720,6 +749,7 @@ your private interface remains private and undisturbed by outsiders.</p>
 make them private (or protected) and all is well.</p>
 </div>
 </div>
+
 <div class="section" id="use-early-exits-and-continue-to-simplify-code">
 <span id="early-exits"></span><h4><a class="toc-backref" href="#id34">Use Early Exits and <tt class="docutils literal"><span class="pre">continue</span></tt> to Simplify Code</a><a class="headerlink" href="#use-early-exits-and-continue-to-simplify-code" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>When reading code, keep in mind how much state and how many previous decisions
@@ -805,6 +835,7 @@ makes it obvious to the reader that there is no <tt class="docutils literal"><sp
 have to push context into their brain for.  If a loop is large, this can be a
 big understandability win.</p>
 </div>
+
 <div class="section" id="don-t-use-else-after-a-return">
 <h4><a class="toc-backref" href="#id35">Don’t use <tt class="docutils literal"><span class="pre">else</span></tt> after a <tt class="docutils literal"><span class="pre">return</span></tt></a><a class="headerlink" href="#don-t-use-else-after-a-return" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>For similar reasons above (reduction of indentation and easier reading), please
@@ -868,6 +899,7 @@ example, this is <em>bad</em>:</p>
 <p>The idea is to reduce indentation and the amount of code you have to keep track
 of when reading the code.</p>
 </div>
+
 <div class="section" id="turn-predicate-loops-into-predicate-functions">
 <h4><a class="toc-backref" href="#id36">Turn Predicate Loops into Predicate Functions</a><a class="headerlink" href="#turn-predicate-loops-into-predicate-functions" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>It is very common to write small loops that just compute a boolean value.  There
@@ -914,8 +946,10 @@ contains a foo, we can trust the function name and continue reading with better
 locality.</p>
 </div>
 </div>
+
 <div class="section" id="the-low-level-issues">
 <h3><a class="toc-backref" href="#id37">The Low-Level Issues</a><a class="headerlink" href="#the-low-level-issues" title="Permalink to this headline"><!-- ¶ --></a></h3>
+
 <div class="section" id="name-types-functions-variables-and-enumerators-properly">
 <h4><a class="toc-backref" href="#id38">Name Types, Functions, Variables, and Enumerators Properly</a><a class="headerlink" href="#name-types-functions-variables-and-enumerators-properly" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Poorly-chosen names can mislead the reader and cause bugs. We cannot stress
@@ -996,6 +1030,7 @@ iterators should add a singular prefix to <tt class="docutils literal"><span cla
 </pre></div>
 </div>
 </div>
+
 <div class="section" id="assert-liberally">
 <h4><a class="toc-backref" href="#id39">Assert Liberally</a><a class="headerlink" href="#assert-liberally" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Use the “<tt class="docutils literal"><span class="pre">assert</span></tt>” macro to its fullest.  Check all of your preconditions and
@@ -1066,6 +1101,7 @@ this:</p>
 </pre></div>
 </div>
 </div>
+
 <div class="section" id="do-not-use-using-namespace-std">
 <h4><a class="toc-backref" href="#id40">Do Not Use <tt class="docutils literal"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">std</span></tt></a><a class="headerlink" href="#do-not-use-using-namespace-std" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>We prefer to explicitly prefix all identifiers from the standard
@@ -1093,6 +1129,7 @@ braces, and keeps the conceptual context cleaner.  The general form of this rule
 is that any <tt class="docutils literal"><span class="pre">.cpp</span></tt> file that implements code in any namespace may use that
 namespace (and its parents’), but should not use any others.</p>
 </div>
+
 <div class="section" id="provide-a-virtual-method-anchor-for-classes-in-headers">
 <h4><a class="toc-backref" href="#id41">Provide a Virtual Method Anchor for Classes in Headers</a><a class="headerlink" href="#provide-a-virtual-method-anchor-for-classes-in-headers" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>If a class is defined in a header file and has a vtable (either it has virtual
@@ -1101,6 +1138,7 @@ least one out-of-line virtual method in the class.  Without this, the compiler
 will copy the vtable and RTTI into every <tt class="docutils literal"><span class="pre">.o</span></tt> file that <tt class="docutils literal"><span class="pre">#include</span></tt>s the
 header, bloating <tt class="docutils literal"><span class="pre">.o</span></tt> file sizes and increasing link times.</p>
 </div>
+
 <div class="section" id="don-t-evaluate-end-every-time-through-a-loop">
 <h4><a class="toc-backref" href="#id44">Don’t evaluate <tt class="docutils literal"><span class="pre">end()</span></tt> every time through a loop</a><a class="headerlink" href="#don-t-evaluate-end-every-time-through-a-loop" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Because C++ doesn’t have a standard “<tt class="docutils literal"><span class="pre">foreach</span></tt>” loop (though it can be
@@ -1168,6 +1206,7 @@ flushes the output stream.  In other words, these are equivalent:</p>
 <p>Most of the time, you probably have no reason to flush the output stream, so
 it’s better to use a literal <tt class="docutils literal"><span class="pre">'\n'</span></tt>.</p>
 </div>
+
 <div class="section" id="don-t-use-inline-when-defining-a-function-in-a-class-definition">
 <h4><a class="toc-backref" href="#id48">Don’t use <tt class="docutils literal"><span class="pre">inline</span></tt> when defining a function in a class definition</a><a class="headerlink" href="#don-t-use-inline-when-defining-a-function-in-a-class-definition" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>A member function defined in a class definition is implicitly inline, so don’t
@@ -1192,10 +1231,12 @@ put the <tt class="docutils literal"><span class="pre">inline</span></tt> keywor
 </div>
 </div>
 </div>
+
 <div class="section" id="microscopic-details">
 <h3><a class="toc-backref" href="#id49">Microscopic Details</a><a class="headerlink" href="#microscopic-details" title="Permalink to this headline"><!-- ¶ --></a></h3>
 <p>This section describes preferred low-level formatting guidelines along with
 reasoning on why we prefer them.</p>
+
 <div class="section" id="spaces-before-parentheses">
 <h4><a class="toc-backref" href="#id50">Spaces Before Parentheses</a><a class="headerlink" href="#spaces-before-parentheses" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>We prefer to put a space before an open parenthesis only in control flow
@@ -1241,9 +1282,8 @@ the closing parathensis and to put white space surrounding operators:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">foo</span>(<span class="kt">int</span> <span class="n">a</span>, <span class="kt">float</span> <span class="n">b</span><span class="p">);</span>
 for (<span class="kt">int</span> <span class="n">i</span> = <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span>; <span class="o">++</span><span class="n">i</span>) <span class="c1">// No padding whitespace</span>
 </pre></div>
-
-
 </div>
+
 <div class="section" id="prefer-preincrement">
 <h4><a class="toc-backref" href="#id51">Prefer Preincrement</a><a class="headerlink" href="#prefer-preincrement" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>Hard fast rule: Preincrement (<tt class="docutils literal"><span class="pre">++X</span></tt>) may be no slower than postincrement
@@ -1256,6 +1296,7 @@ issue (for example, some iterators contains stack and set objects in them...
 copying an iterator could invoke the copy ctor’s of these as well).  In general,
 get in the habit of always using preincrement, and you won’t have a problem.</p>
 </div>
+
 <div class="section" id="namespace-indentation">
 <h4><a class="toc-backref" href="#id52">Namespace Indentation</a><a class="headerlink" href="#namespace-indentation" title="Permalink to this headline"><!-- ¶ --></a></h4>
 <p>In general, we strive to reduce indentation wherever possible.  This is useful
@@ -1409,6 +1450,7 @@ line.  When needed, new lines need to be aligned with the opening parentheses.</
 </div>
 
 </div>
+
 <div class="section" id="see-also">
 <h2><a class="toc-backref" href="#id54">See Also</a><a class="headerlink" href="#see-also" title="Permalink to this headline"><!-- ¶ --></a></h2>
 <p>A lot of these comments and recommendations have been culled from other sources.
