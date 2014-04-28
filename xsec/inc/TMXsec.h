@@ -45,6 +45,8 @@ public:
    Float_t MS(Int_t ipart, Float_t energy);
 
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
+   Int_t SampleElement(Int_t tid);
+
    static Bool_t Prune();
    void Print(Option_t * opt="") const;
 
@@ -68,6 +70,7 @@ private:
    Float_t        *fMSansig;   // [fNCharge] table of MS sigma angle
    Float_t        *fMSlength;  // [fNCharge] table of MS average lenght correction
    Float_t        *fMSlensig;  // [fNCharge] table of MS sigma lenght correction
+   Double_t       *fRatios;    // [fNElems]  relative #atoms/volume; normalized
 
    ClassDef(TMXsec,1)  //Material X-secs
 

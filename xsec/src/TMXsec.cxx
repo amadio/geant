@@ -24,7 +24,8 @@ TMXsec::TMXsec():
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
-   fMSlensig(0)
+   fMSlensig(0),
+   fRatios(0)
 {
 }
 
@@ -38,6 +39,7 @@ TMXsec::~TMXsec() {
    delete [] fMSlength;
    delete [] fMSlensig;
    delete [] fDEdx;
+   delete [] fRatios;
 }
 
 //____________________________________________________________________________
@@ -59,7 +61,8 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    fMSangle(0),
    fMSansig(0),
    fMSlength(0),
-   fMSlensig(0)
+   fMSlensig(0),
+   fRatios(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
@@ -75,17 +78,22 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    if(!z[0]) return;
 
    fNEbins = TPartIndex::I()->NEbins();
-   Double_t *ratios = new Double_t[fNElems];
+   //Double_t *ratios = new Double_t[fNElems];
+   fRatios = new Double_t[fNElems];
    Double_t *rdedx  = new Double_t[fNElems];
    Double_t hnorm=0;
    if(fNElems>1) {
       for(Int_t i=0; i<fNElems; ++i) {
-	 ratios[i] = w[i];
-	 if(weight) ratios[i]/=TPartIndex::I()->WEle(z[i]);
-	 hnorm+=ratios[i]*TPartIndex::I()->WEle(z[i]);
+	 //ratios[i] = w[i];
+	 //if(weight) ratios[i]/=TPartIndex::I()->WEle(z[i]);
+	 //hnorm+=ratios[i]*TPartIndex::I()->WEle(z[i]);
+         fRatios[i] = w[i]; 
+         if(weight) fRatios[i]/=TPartIndex::I()->WEle(z[i]);
+         hnorm+=fRatios[i]*TPartIndex::I()->WEle(z[i]);
       }
    } else {
-      ratios[0]=1;
+      //ratios[0]=1;
+      fRatios[0]=1.0;
       hnorm=TPartIndex::I()->WEle(z[0]);
    }
 
@@ -94,8 +102,10 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 
    
    for(Int_t i=0; i<fNElems; ++i) {
-      rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
-      ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
+      //rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
+      //ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
+      rdedx[i] = fRatios[i]*dens/fElems[i]->Dens();
+      fRatios[i]*=TMath::Na()*1e-24*dens/hnorm;
       //      printf("%d %f ",z[i],ratios[i]);
    }
    //   printf("\n");
@@ -132,11 +142,13 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 Int_t ibin = ibase + ie*fNElems;
 	 if(fNElems>1) {
 	    for(Int_t iel=0; iel<fNElems; ++iel) {
-	       fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
+	       //fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
+               fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*fRatios[iel];
 	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
 	    }
 	 } else {
-	    fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
+	    //fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
+            fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*fRatios[0];
 	 }
 	 if(fTotXL[ip*fNEbins+ie]) {
 	    fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
@@ -160,8 +172,19 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 }
       }
    }
+
+   //normalization of fRatios[] to 1
+   if(fNElems == 1) fRatios[0] = 1.0;
+   else { 
+     for(Int_t i=1; i<fNElems; ++i)
+        fRatios[i]+=fRatios[i-1];
+
+     for(Int_t i=0; i<fNElems; ++i)
+        fRatios[i]/=fRatios[fNElems-1];
+   }
+
    // cleaning up
-   delete [] ratios;
+   //delete [] ratios;
    delete [] rdedx;
 }
 
@@ -362,6 +385,7 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
    Double_t energyLimit = GeantPropagator::Instance()->fEmin;
    for (Int_t i=0; i<ntracks; ++i) {
       ipart = tracks.fG5codeV[i];
+      tracks.fProcessV[i] = -1;
 
       if(ipart>=TPartIndex::I()->NPartCharge())
        continue;
@@ -387,9 +411,12 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
         tracks.fEV[i] = tracks.fMassV[i];
         tracks.fPV[i] = 0;
         tracks.fStatusV[i] = kKilled;
-        //tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("kRestCapture");
+        //tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("RestCapture");
         tracks.fProcessV[i] = 6; //kRestCapture will need to be called
+        tracks.fEindexV[i]  = fElems[0]->Index(); //set to the first element of this mix.
       } else { 
+        tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("Ionisation");
+        //tracks.fEindexV[i]  = fElems[0]->Index(); //set to the first element of this mix.
         tracks.fEdepV[i] += edepo; 
         tracks.fEV[i] -= edepo;
         Double_t gammanew = tracks.Gamma(i);
@@ -513,6 +540,21 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
       }
    }
 }
+
+
+// sample one of the elements based on #atoms/volue 
+//______________________________________________________________________________
+Int_t TMXsec::SampleElement(Int_t tid){
+   if( fNElems > 1){
+     Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();      
+     for(Int_t itr=0; itr<fNElems; ++itr)
+        if(fRatios[itr]>randn)
+          return  fElems[itr]->Index();// TTabPhysMgr index of the sampled elemet
+   }
+
+   return fElems[0]->Index(); 
+}
+
 
 //____________________________________________________________________________
 void TMXsec::Print(Option_t*) const {

@@ -92,6 +92,14 @@ void TEFstate::SetRestCaptFstate(Int_t kpart, const TFinState &fstate){
 }
 
 //______________________________________________________________________________
+Bool_t TEFstate::HasRestCapture(Int_t partindex)
+{
+  if( partindex<TPartIndex::I()->NPartReac() ) 
+    return fPFstate[partindex].HasRestCaptFstat();
+  return kFALSE; 
+}
+
+//______________________________________________________________________________
 Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
 {

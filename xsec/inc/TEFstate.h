@@ -52,6 +52,7 @@ public:
   Int_t NRpart() const {return fNRpart;}
   
   void SetRestCaptFstate(Int_t kpart, const TFinState &fstate);
+  Bool_t HasRestCapture(Int_t partindex);
  
   Bool_t SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                     Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;

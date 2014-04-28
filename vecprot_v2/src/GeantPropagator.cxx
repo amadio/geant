@@ -260,6 +260,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.SetEvent(event);
          track.SetEvslot(slot);
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
+//         track.SetPDG(kMuonMinus); // G5code=28
+//         track.SetG5code(28);
 //         track.SetPDG(kMuonPlus); // G5code=27
 //         track.SetG5code(27);
          track.SetPDG(kElectron); // G5code=23

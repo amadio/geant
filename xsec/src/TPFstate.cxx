@@ -62,10 +62,12 @@ TPFstate::~TPFstate()
 
 //_________________________________________________________________________
 void TPFstate::SetRestCaptFstate(const TFinState &finstate){
-
-   fRestCaptFstat = new TFinState(); 	
-   fRestCaptFstat->SetFinState(finstate);
-
+   if(finstate.GetNsecs()){
+     fRestCaptFstat = new TFinState();
+     fRestCaptFstat->SetFinState(finstate);
+   } else {
+     fRestCaptFstat = 0;
+   }
 }
 
 //_________________________________________________________________________

@@ -268,9 +268,10 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
    Int_t nTotSecPart  = 0;  //total number of new tracks
    Double_t energyLimit = gPropagator->fEmin;    
    for(Int_t i = 0; i < ntracks; ++i)
-     if(tracks.fProcessV[i] == 6)//kRestCapture
-       GetRestFinSates(tracks.fG5codeV[i], fElemFstate[tracks.fEindexV[i]], energyLimit, 
-                       tracks, i, nTotSecPart, tid);  
+     if( tracks.fProcessV[i] == 6 && fElemFstate[tracks.fEindexV[i]]->HasRestCapture(tracks.fG5codeV[i]) )
+       //tracks.fEindexV[i] = mxs->SampleElement(tid);
+       GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
+                        nTotSecPart, tid);  
 
    return nTotSecPart;
 }
@@ -393,6 +394,9 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       // j=0 -> including stopped primary as well if isSurv = kTRUE; 
       // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above) 
       for(Int_t i = j; i < nSecPart; ++i) {
+        if(pid[i]>TPartIndex::I()->NPart())// skipp possible fragments; will be fiexed 
+          continue;    
+
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
         Double_t secMass  = secPartPDG->Mass();
@@ -449,7 +453,8 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
-          GetRestFinSates(pid[i], fElemFstate[tracks.fEindexV[t]], energyLimit, tracks, t, nTotSecPart, tid);  
+          if( fElemFstate[tracks.fEindexV[t]]->HasRestCapture(pid[i]) )
+             GetRestFinStates(pid[i], mxs, energyLimit, tracks, t, nTotSecPart, tid);            
         } 
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
@@ -464,7 +469,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 
 //______________________________________________________________________________
 //will be called recursively; only CaptureAtRest at the moment
-void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate, 
+void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs, 
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
         Int_t &nTotSecPart, Int_t tid)
 {
@@ -473,6 +478,8 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
      return;
    
    Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
+   TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
+
 
    Int_t nSecPart     = 0;   //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
@@ -494,6 +501,9 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
 
    //loop over the secondaries
    for(Int_t i = 0; i< nSecPart; ++i){
+     if(pid[i]>TPartIndex::I()->NPart())// skipp possible fragments; will be fiexed 
+       continue;    
+
      Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
      Double_t secMass  = secPartPDG->Mass();
@@ -549,7 +559,8 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
        // end if {secondary Ekin >= energyLimit}
      } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
        tracks.fEdepV[iintrack] += secEkin;    //add the Ekin of this secondary to the energy depositon	
-       GetRestFinSates(pid[i], elemfstate, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
+       if( elemfstate->HasRestCapture(pid[i]) )
+         GetRestFinStates(pid[i], mxs, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
      } 
    }//end loop over the secondaries
 }

@@ -35,6 +35,7 @@ public:
   ~TPFstate();
   
   void SetRestCaptFstate(const TFinState &finstate);
+  Bool_t HasRestCaptFstat(){ if(!fRestCaptFstat) return kFALSE; return kTRUE;}
 
   const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
   Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);

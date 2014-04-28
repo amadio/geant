@@ -47,7 +47,7 @@ public:
    void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   void  GetRestFinSates(Int_t partindex, TEFstate *elemfstate, Double_t energyLimit,
+   void  GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid);
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack_v &tracks, Int_t itrack);

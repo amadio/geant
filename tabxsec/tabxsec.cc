@@ -825,8 +825,10 @@ int main(int argc,char** argv)
       TFinState *vecfs=0;
       
       // TFinState rcaptfs[np];
-      TFinState rcaptfs[MAX_NP];
+      //TFinState rcaptfs[MAX_NP];
       for(G4int imat=0; imat<nmaterials; ++imat) {
+        TFinState rcaptfs[MAX_NP];
+
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
         pos->set(MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
         // It seems that this is not necessary
@@ -1365,7 +1367,7 @@ int main(int argc,char** argv)
               mfstate->AddPart(partindex, pPDG[partindex], nsample, nprxs, pdic,newvfs);
               // Set to 0 the pointer to vecfs because now it is owned by the class
 
-              if(rcaptfs[partindex].GetNsecs())
+              //if(rcaptfs[partindex].GetNsecs())
                 mfstate->SetRestCaptFstate(partindex,rcaptfs[partindex]);
             }
           } // end of "if we have processes" for this particle
