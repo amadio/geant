@@ -145,6 +145,7 @@ void PhysicsList::ConstructProcess()
 #include "TabulatedProcess.hh"
 #include "VectorizedProcess.hh"
 #include "TabulatedDataManager.hh"
+#include "TPartIndex.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -173,7 +174,8 @@ void PhysicsList::ConstructEM()
 	G4eIonisation* eIoniProc = new G4eIonisation();
 	TabulatedProcess* eIoniWrapperProc = 
 	  new TabulatedProcess(eIoniProc->GetProcessName(),
-			       eIoniProc->GetProcessType());
+			       eIoniProc->GetProcessType(),
+			       kIonisation);
 	eIoniWrapperProc->SetProcessSubType(eIoniProc->GetProcessSubType());
 	eIoniWrapperProc->RegisterProcess(eIoniProc);
 	ph->RegisterProcess(eIoniWrapperProc, particle);
@@ -181,7 +183,8 @@ void PhysicsList::ConstructEM()
 	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
 	TabulatedProcess* eBremWrapperProc = 
 	  new TabulatedProcess(eBremProc->GetProcessName(),
-			       eBremProc->GetProcessType());
+			       eBremProc->GetProcessType(),
+			       kBrehms);
 	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
 	eBremWrapperProc->RegisterProcess(eBremProc);
 	ph->RegisterProcess(eBremWrapperProc, particle);

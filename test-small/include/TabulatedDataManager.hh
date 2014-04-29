@@ -6,10 +6,12 @@
 
 #include "globals.hh"
 #include <TGeoManager.h>
+#include "GXTrack.hh"
 
 #define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
 
 class G4Track;
+class G4DynamicParticle;
 
 class TEXsec;
 class TMXsec;
@@ -27,9 +29,9 @@ public:
   TabulatedDataManager(TGeoManager* geom, const char* xsecfilename, 
 		       const char* finalsfilename);	
   
-  G4double GetInteractionLength(G4int imat, G4int part, G4double en);
-  void SampleSecondaries(std::vector<G4Track*>* vdp, G4int imat, 
-			 G4Track* atrack);
+  G4double GetInteractionLength(G4int imat, const G4Track& atrack);
+  void SampleSecondaries(std::vector<GXTrack*>* vdp, G4int imat, 
+                         const G4Track* atrack, G4int ireac);
 
 private:
 

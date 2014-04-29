@@ -8,6 +8,7 @@
 #include "TFile.h"
 #include "TError.h"
 #include "TBits.h"
+#include "TMath.h"
 
 #include "TPartIndex.h"
 #include "TEXsec.h"
@@ -138,6 +139,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   gSystem->GetProcInfo(&procInfo1);
   
   while (zel<nbits) {
+    
     exsec = TEXsec::GetElement(zel,0,fxsec);
     fElemXsec[zel] = exsec;
     fElemXsec[zel]-> SetIndex(zel); //quick access to the corresponding fstate 
@@ -200,21 +202,70 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
 }
 
 G4double TabulatedDataManager::GetInteractionLength(G4int imat, 
-						    G4int part, 
-						    G4double en) 
+						    const G4Track& track)
 {
   G4double x = DBL_MAX;
-  if (imat >= 0 ||imat< fNmaterials) x = fMatXsec[imat]->Xlength(part,en);
+
+  G4int inpid = track.GetDynamicParticle()->GetPDGcode();
+  G4int ipart = TPartIndex::I()->PartIndex(inpid);
+  G4double en = track.GetKineticEnergy();
+  
+  if (imat >= 0 ||imat < fNmaterials) x = fMatXsec[imat]->Xlength(ipart,en);
+  
   return x;
 }
 
-void TabulatedDataManager::SampleSecondaries(std::vector<G4Track*>* vdp, 
+void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp, 
 					     G4int imat, 
-					     G4Track* atrack)
+					     const G4Track* atrack,
+					     G4int ireac)
 {
   //select random atom
-  G4int indexElement = 0;
+  TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+  TMXsec *mxs = 
+    ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
 
+  G4int inpid = atrack->GetDynamicParticle()->GetPDGcode();
+  G4int ipart = TPartIndex::I()->PartIndex(inpid);
+  G4double kineticEnergy = atrack->GetKineticEnergy();
+
+  G4int indexElem = mxs->SelectElement(ipart,ireac,kineticEnergy);
+  
+  if(indexElem<0) return;
+  
   //sample secondaries and store to vdp
+  G4int nSecPart     = 0;  //number of secondary particles per reaction
+  G4int nTotSecPart  = 0;  //total number of secondary particles in tracks
+  const G4int *pid   = 0;  //GeantV particle codes [nSecPart]
+  const G4float *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
+  Float_t  ener      = 0;  //energy at the fstate (Ekin of primary after the interc.)
+  G4float  kerma     = 0;  //released energy
+  G4float  weight    = 0;  //weight of the fstate (just a dummy parameter now)
+  char     isSurv    = 0;  //is the primary survived the interaction   
 
+  isSurv = fElemFstate[indexElem]->SampleReac(ipart, ireac, kineticEnergy, 
+				   nSecPart, weight, kerma, ener, pid, mom);
+  if(nSecPart>0) {
+
+    for(G4int is = 0 ; is < nSecPart ; ++is) {
+      G4int secPDG = TPartIndex::I()->PDG(pid[is]); //Geant V particle code
+
+      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+      G4double secMass  = secPartPDG->Mass();
+      G4double secPtot2 = mom[3*is]*mom[3*is]+mom[3*is+1]*mom[3*is+1]
+	                + mom[3*is+2]*mom[3*is+2]; //total P^2 [GeV^2]
+      G4double secPtot  = TMath::Sqrt(secPtot2); //total P [GeV]
+      G4double secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
+      G4double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
+
+      GXTrack* secTrack = (GXTrack *) malloc(sizeof(GXTrack));
+      secTrack->id = secPDG;
+      secTrack->px = mom[3*is];
+      secTrack->py = mom[3*is+1];
+      secTrack->pz = mom[3*is+2];
+      secTrack->E  = secEkin;
+
+      vdp->push_back(secTrack);
+    }
+  }
 }
