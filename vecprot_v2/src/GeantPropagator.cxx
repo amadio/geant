@@ -74,6 +74,7 @@ GeantPropagator::GeantPropagator()
                  fNprimaries(0),
                  fNsafeSteps(0),
                  fNsnextSteps(0),
+                 fNphysSteps(0),
                  fNprocesses(3),
                  fElossInd(0),
                  fNstart(0),
@@ -528,12 +529,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    fWMgr->JoinThreads();
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
-   Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", 
-          fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,rtime,ctime);
+   Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
+          fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
-   fprintf(fp,"%d %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,rtime,ctime);
+   fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    fclose(fp);
    fOutFile = 0;
    fOutTree = 0;

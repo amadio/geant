@@ -16,7 +16,7 @@
 class TGeoBranchArray;
 
 const Double_t kB2C = -0.299792458e-3;
-enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
+enum TrackStatus_t {kAlive, kKilled, kInFlight, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
 enum TransportAction_t {
    kDone     = 0,   // Return immediately - no tracks left
    kPostpone = 1,   // return imediately and postpone whatever tracks left
@@ -246,19 +246,17 @@ public:
                        Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk);
    void      NavIsSameLocation(Int_t ntracks, TGeoBranchArray **start, TGeoBranchArray **end, Bool_t *same);
    Bool_t    NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start, TGeoBranchArray **end);
-   TransportAction_t PostponedAction() const;
+   TransportAction_t PostponedAction(Int_t ntracks) const;
    Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
    Int_t     PostponeTracks(GeantTrack_v &output);
    void      PropagateBack(Int_t itr, Double_t crtstep);
-   Int_t     PropagateInField(Int_t ntracks, const Double_t *crtstep);
-   Int_t     PropagateInFieldSingle(Int_t itr, Double_t crtstep, Bool_t checkcross);
    void      ComputeTransportLength(Int_t ntracks);
    void      ComputeTransportLengthSingle(Int_t itr);
-   void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep);
-   void      PropagateInVolumeSingle(Int_t i, Double_t crtstep);
+   void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
+   void      PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid);
    Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
-   Int_t     PropagateTracks(GeantTrack_v &output);
-   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage=0);
+   Int_t     PropagateTracks(GeantTrack_v &output, Int_t tid);
+   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage=0);
    
    void      Resize(Int_t newsize);
    void      ReplaceTrack(Int_t i, Int_t withj);
@@ -267,6 +265,7 @@ public:
 // Track methods
    Double_t           Beta(Int_t i)  const {return fPV[i]/fEV[i];}
    Double_t           Curvature(Int_t i) const;
+   Double_t           SafeLength(Int_t i, Double_t eps=1.E-4);
    Double_t           Gamma(Int_t i) const {return fMassV[i]?fEV[i]/fMassV[i]:TMath::Limits<double>::Max();}
    Double_t           Px(Int_t i) const {return fPV[i]*fXdirV[i];}
    Double_t           Py(Int_t i) const {return fPV[i]*fYdirV[i];}

@@ -26,10 +26,13 @@ class GeantThreadData : public TObject {
 public:
    Int_t             fMaxPerBasket;          //! Max number of tracks per basket
    Int_t             fNprocesses;            //! Number of physics processes
+   Int_t             fSizeDbl;               //! Size of array of doubles
+   Int_t             fSizeBool;              //! Size of bool array
    TGeoHMatrix      *fMatrix;                //! Current matrix per thread
    TGeoVolume       *fVolume;                //! Current volume per thread
    TRandom          *fRndm;                  //! Random generator for thread
-   Double_t         *fDblArray;              //![5*fMaxPerBasket] Support for random seed
+   Bool_t           *fBoolArray;             //![5*fMaxPerBasket] Thread array of bools
+   Double_t         *fDblArray;              //![5*fMaxPerBasket] Thread array of doubles
    Double_t         *fProcStep;              //![fNprocesses*fMaxPerBasket] 
    TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
    TGeoRotation     *fRotation;              //! Rotation used by the field propagator
@@ -41,6 +44,8 @@ public:
    virtual ~GeantThreadData();
 
    Double_t         *GetProcStep(Int_t iproc) {return fProcStep+iproc*fMaxPerBasket;}
+   Double_t         *GetDblArray(Int_t size);
+   Bool_t           *GetBoolArray(Int_t size);
    
 private:
    GeantThreadData(const GeantThreadData &);//no imp.	

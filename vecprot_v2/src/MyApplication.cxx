@@ -128,18 +128,22 @@ void MyApplication::Digitize(Int_t event)
       histeg->SetBinContent(i+3,fEdepGap[i]*1000./(Double_t)gPropagator->fNprimaries);
       histea->SetBinContent(i+3,fEdepAbs[i]*1000./(Double_t)gPropagator->fNprimaries);
    }
+   Double_t minval = TMath::Min(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
+   minval = TMath::Max(minval, 1.E-5);
+   Double_t maxval = TMath::Max(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
    histeg->GetXaxis()->SetTitle("Layer");
    histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
+   histeg->GetYaxis()->SetRangeUser(minval-0.1*minval,maxval+0.1*maxval);
    histeg->Draw("P");
    histea->Draw("SAMEP");
    TCanvas *c2 = new TCanvas("Length", "Length in layers for ExN03", 700, 800);
    c2->SetGridx();
    c2->SetGridy();
-//   c2->SetLogy();
+   c2->SetLogy();
    TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 10, -0.5, 12.5);
-   histeg->SetMarkerColor(kRed);
-   histeg->SetMarkerStyle(2);
-   histeg->SetStats(kFALSE);
+   histlg->SetMarkerColor(kRed);
+   histlg->SetMarkerStyle(2);
+   histlg->SetStats(kFALSE);
    TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 10, -0.5, 12.5);
    histla->SetMarkerColor(kBlue);
    histla->SetMarkerStyle(4);
@@ -150,6 +154,10 @@ void MyApplication::Digitize(Int_t event)
    }
    histlg->GetXaxis()->SetTitle("Layer");
    histlg->GetYaxis()->SetTitle("Length per layer");
+   minval = TMath::Min(histlg->GetBinContent(histlg->GetMinimumBin()), histla->GetBinContent(histla->GetMinimumBin()));
+   minval = TMath::Max(minval, 1.E-5);
+   maxval = TMath::Max(histlg->GetBinContent(histlg->GetMaximumBin()), histla->GetBinContent(histla->GetMaximumBin()));
+   histlg->GetYaxis()->SetRangeUser(minval-0.1*minval,maxval+0.1*maxval);
    histlg->Draw("P");
    histla->Draw("SAMEP");
 }

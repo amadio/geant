@@ -260,7 +260,7 @@ Double_t GeantTrack::Curvature() const
 {
 // Curvature
    if (fCharge==0) return 0.;
-   return TMath::Abs(kB2C*gPropagator->fBmag/Pt());
+   return TMath::Abs(kB2C*fCharge*gPropagator->fBmag*Pt()/(fP*fP));
 }
    
 //______________________________________________________________________________
@@ -1033,60 +1033,61 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
 }   
 
 //______________________________________________________________________________
-void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep)
+void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid)
 {
 // Propagate the selected tracks with crtstep values. The method is to be called
-// only with  charged tracks in magnetic field. The tracks array has to be reshuffled.
-   Double_t c = 0.;
-   const Double_t *point = 0;
-   const Double_t *newdir = 0;
-   const Double_t bmag = gPropagator->fBmag;
-   GeantThreadData *td = gPropagator->fThreadData[TGeoManager::ThreadId()];
-   TGeoHelix *fieldp = td->fFieldPropagator;
+// only with  charged tracks in magnetic field. The method decreases the fPstepV
+// fSafetyV and fSnextV with the propagated values while increasing the fStepV.
+// The status and boundary flags are set according to which gets hit first:
+// - physics step (bdr=0)
+// - safety step (bdr=0)
+// - snext step (bdr=1)
    for (Int_t i=0; i<ntracks; i++) {
-      // Reset relevant variables
-      fFrombdrV[i] = kFALSE;
-      fPstepV[i] -= crtstep[i];
-      fSafetyV[i] -= crtstep[i];
-      if (fSafetyV[i]<0.) fSafetyV[i] = 0.;
-      fStepV[i] += crtstep[i];
-      // Set curvature, charge
-      c = std::fabs(kB2C*bmag/Pt(i));
-// NOTE: vectorized treatment in TGeoHelix
-      fieldp->SetXYcurvature(c);
-      fieldp->SetCharge(fChargeV[i]);
-      fieldp->SetHelixStep(std::fabs(TMath::TwoPi()*Pz(i)/(c*Pt(i))));
-      fieldp->InitPoint(fXposV[i],fYposV[i],fZposV[i]);
-      fieldp->InitDirection(fXdirV[i],fYdirV[i], fZdirV[i]);
-      fieldp->UpdateHelix();
-      fieldp->Step(crtstep[i]);
-      point = fieldp->GetCurrentPoint();
-      newdir = fieldp->GetCurrentDirection();
-      fXposV[i] = point[0]; fYposV[i] = point[1]; fZposV[i] = point[2];
-      fXdirV[i] = newdir[0]; fYdirV[i] = newdir[1]; fZdirV[i] = newdir[2];
+      PropagateInVolumeSingle(i,crtstep[i],tid);
    }
 }   
 
 //______________________________________________________________________________
-void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep)
+void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 {
-// Propagate the selected tracks with crtstep values. The method is to be called
-// only with  charged tracks in magnetic field. The tracks array has to be reshuffled.
+// Propagate the selected track with crtstep value. The method is to be called
+// only with  charged tracks in magnetic field.The method decreases the fPstepV
+// fSafetyV and fSnextV with the propagated values while increasing the fStepV.
+// The status and boundary flags are set according to which gets hit first:
+// - physics step (bdr=0)
+// - safety step (bdr=0)
+// - snext step (bdr=1)
    Double_t c = 0.;
    const Double_t *point = 0;
    const Double_t *newdir = 0;
    const Double_t bmag = gPropagator->fBmag;
-   GeantThreadData *td = gPropagator->fThreadData[TGeoManager::ThreadId()];
+   GeantThreadData *td = gPropagator->fThreadData[tid];
    TGeoHelix *fieldp = td->fFieldPropagator;
    // Reset relevant variables
-   fFrombdrV[i] = kFALSE;
+   fStatusV[i] = kInFlight;
    fPstepV[i] -= crtstep;
+   if (fPstepV[i]<1.E-10) {
+      fPstepV[i] = 0;
+      fStatusV[i] = kPhysics;
+      gPropagator->fNphysSteps++;
+   }   
    fSafetyV[i] -= crtstep;
-   if (fSafetyV[i]<0.) fSafetyV[i] = 0.;
+   if (fSafetyV[i]<1.E-10) {
+      fSafetyV[i] = 0;
+      if (!fFrombdrV[i]) gPropagator->fNsafeSteps++;
+   }   
+   fSnextV[i] -= crtstep;
+   if (fSnextV[i]<1.E-10) {
+      fSnextV[i] = 0;
+      if (fFrombdrV[i]) {
+         fStatusV[i] = kBoundary;
+         gPropagator->fNsnextSteps++;
+      }   
+   }   
    fStepV[i] += crtstep;
    // Set curvature, charge
-   c = std::fabs(kB2C*bmag/Pt(i));
-// NOTE: vectorized treatment in TGeoHelix
+   c = Curvature(i);
+// NOTE: vectorized treatment in TGeoHelix -> todo
    fieldp->SetXYcurvature(c);
    fieldp->SetCharge(fChargeV[i]);
    fieldp->SetHelixStep(std::fabs(TMath::TwoPi()*Pz(i)/(c*Pt(i))));
@@ -1096,8 +1097,11 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep)
    fieldp->Step(crtstep);
    point = fieldp->GetCurrentPoint();
    newdir = fieldp->GetCurrentDirection();
+   Double_t dir[3] = {0};
+   memcpy(dir,newdir,3*sizeof(Double_t));
+   TMath::Normalize(dir);
    fXposV[i] = point[0]; fYposV[i] = point[1]; fZposV[i] = point[2];
-   fXdirV[i] = newdir[0]; fYdirV[i] = newdir[1]; fZdirV[i] = newdir[2];
+   fXdirV[i] = dir[0]; fYdirV[i] = dir[1]; fZdirV[i] = dir[2];
 }   
 
 //______________________________________________________________________________
@@ -1119,6 +1123,9 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 //    pathout = final path after propagation to next boundary
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();   
    for (Int_t i=0; i<ntracks; i++) {
+      if (fPstepV[i]<1.E-10) {
+         Printf("Error pstep");
+      }   
       nav->ResetState();
       nav->SetCurrentPoint(x[i], y[i], z[i]);
       nav->SetCurrentDirection(dirx[i], diry[i], dirz[i]);
@@ -1126,7 +1133,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 //      nav->SetLastSafetyForPoint(safe[i], x[i], y[i], z[i]);
       nav->FindNextBoundaryAndStep(TMath::Min(1.E20, pstep[i]), !isonbdr[i]);
       step[i] = TMath::Max(2*gTolerance,nav->GetStep());
-      safe[i] = nav->GetSafeDistance();
+      safe[i] = isonbdr[i] ? 0. : nav->GetSafeDistance();
       pathout[i]->InitFromNavigator(nav);
       isonbdr[i] = nav->IsOnBoundary();
    }      
@@ -1136,15 +1143,8 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 void GeantTrack_v::NavIsSameLocation(Int_t ntracks, TGeoBranchArray **start, TGeoBranchArray **end, Bool_t *same)
 {
 // Implementation of TGeoNavigator::IsSameLocation with vector input
-   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   for (Int_t i=0; i<ntracks; i++) {   
-      nav->ResetState();
-      nav->SetLastSafetyForPoint(0,0,0,0);
-      nav->SetCurrentPoint(fXposV[i], fYposV[i], fZposV[i]);
-      nav->SetCurrentDirection(fXdirV[i], fYdirV[i], fZdirV[i]);
-      start[i]->UpdateNavigator(nav);
-      same[i] = nav->IsSameLocation(fXposV[i],fYposV[i],fZposV[i],kTRUE);
-      if (!same[i]) end[i]->InitFromNavigator(nav);
+   for (Int_t i=0; i<ntracks; i++) {
+      same[i] = NavIsSameLocationSingle(i, start, end);
    }
 }
 
@@ -1158,11 +1158,11 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start,
    nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
    nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
    start[itr]->UpdateNavigator(nav);
-   if (nav->IsSameLocation(fXposV[itr],fYposV[itr],fZposV[itr],kTRUE)) {
+   if (!nav->IsSameLocation(fXposV[itr],fYposV[itr],fZposV[itr],kTRUE)) {
       end[itr]->InitFromNavigator(nav);
-      return kTRUE;
+      return kFALSE;
    }   
-   return kFALSE;
+   return kTRUE;
 }   
 
 //______________________________________________________________________________
@@ -1243,46 +1243,6 @@ void GeantTrack_v::PropagateBack(Int_t itr, Double_t crtstep)
 }
    
 //______________________________________________________________________________
-Int_t GeantTrack_v::PropagateInField(Int_t ntracks, const Double_t *crtstep)
-{
-// Propagate with crtstep using the helix propagator. Mark crossing tracks as holes.
-   Int_t icrossed = 0;
-   Bool_t *same = new Bool_t[ntracks];
-   PropagateInVolume(ntracks, crtstep);
-   NavIsSameLocation(ntracks, fPathV, fNextpathV, same);
-   for (Int_t itr=0; itr<ntracks; itr++) {
-      if (same[itr]) continue;      
-      // Boundary crossed
-      PropagateBack(itr, crtstep[itr]);
-      // Update current path
-      *fPathV[itr]=*fNextpathV[itr];
-      fStatusV[itr] = kBoundary;
-      fFrombdrV[itr] = kTRUE;
-      MarkRemoved(itr);
-      icrossed++;
-   }   
-   return icrossed;
-}   
-
-//______________________________________________________________________________
-Int_t GeantTrack_v::PropagateInFieldSingle(Int_t itr, Double_t crtstep, Bool_t checkcross)
-{
-// Propagate with crtstep using the helix propagator. Mark crossing tracks as holes.
-   PropagateInVolumeSingle(itr, crtstep);
-   if (checkcross && !NavIsSameLocationSingle(itr, fPathV, fNextpathV)) {
-      // Boundary crossed
-      PropagateBack(itr, crtstep);
-      // Update current path
-      *fPathV[itr]=*fNextpathV[itr];
-      fStatusV[itr] = kBoundary;
-      fFrombdrV[itr] = kTRUE;
-      MarkRemoved(itr);
-      return 1;
-   }   
-   return 0;
-}   
-
-//______________________________________________________________________________
 Int_t GeantTrack_v::SortByStatus(TrackStatus_t status)
 {
 // Sort tracks by a given status.
@@ -1293,7 +1253,7 @@ Int_t GeantTrack_v::SortByStatus(TrackStatus_t status)
          nsel++;
       }
    }
-   if (nsel) Reshuffle();
+   if (nsel && nsel<fNtracks) Reshuffle();
    return nsel;
 }   
 
@@ -1317,7 +1277,7 @@ Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output)
 void GeantTrack_v::PrintTrack(Int_t itr) const
 {
 // Print info for a given track
-      const char* status[7] = {"alive", "killed", "boundary", "exitSetup", "physics","postponed","new"};
+      const char* status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics","postponed","new"};
       TString path; 
       fPathV[itr]->GetPath(path);
       TString nextpath; 
@@ -1382,6 +1342,9 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
    fPathV[itr]->UpdateNavigator(nav);
    nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
+   if (fPstepV[itr]<1.E-10) {
+      Printf("Error pstep");
+   }   
    nav->FindNextBoundaryAndStep(TMath::Min(1.E20, fPstepV[itr]), !fFrombdrV[itr]);
    fSnextV[itr] = TMath::Max(2*gTolerance,nav->GetStep());
    fSafetyV[itr] = nav->GetSafeDistance();
@@ -1405,41 +1368,44 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
 }   
 
 //______________________________________________________________________________
-TransportAction_t GeantTrack_v::PostponedAction() const
+TransportAction_t GeantTrack_v::PostponedAction(Int_t ntracks) const
 {
 // Check the action to be taken according the current policy
-   if (!fNtracks) return kDone;
+   if (!ntracks) return kDone;
    // Temporary hook
-   if (fNtracks==1) {
+   if (ntracks==1) {
 //      if (gPropagator->GetPolicy()<GeantPropagator::kPrioritize)
 //           return kPostpone;
 //      else 
            return kSingle;
    }
    return kVector;
-}      
+}
 
 //______________________________________________________________________________
-Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
+Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
 {
 // Propagate the ntracks in the current volume with their physics steps (already
 // computed)
 // Vectors are pushed downstream when efficient.
 
    // Check if tracking the remaining tracks can be postponed
-   TransportAction_t action = PostponedAction();
+   TransportAction_t action = PostponedAction(fNtracks);
    if (action==kPostpone) {
       PostponeTracks(output);
       return 0;
    }
-   if (action != kVector) return PropagateTracksSingle(output,0);
+   if (action != kVector) return PropagateTracksSingle(output,tid,0);
    // Compute transport length in geometry, limited by the physics step
    ComputeTransportLength(fNtracks);
-   
+//         Printf("====== After ComputeTransportLength:");
+//         PrintTracks();
+      
    Int_t itr = 0;
    Int_t icrossed = 0;
    Int_t nsel = 0;
-   Double_t c;
+   Double_t c, lmax;
+   const Double_t eps = 1.E-4; // 1 micron
    const Double_t bmag = gPropagator->fBmag;
 //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 //   Int_t tid = nav->GetThreadId();
@@ -1467,23 +1433,25 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
          fPstepV[itr] -= fSnextV[itr];
          fStepV[itr] += fSnextV[itr];
          fSafetyV[itr] -= fSnextV[itr];
-         if (fSafetyV[itr]<gTolerance) fSafetyV[itr] = 0;
+         if (fSafetyV[itr]<0.) fSafetyV[itr] = 0;
          fXposV[itr] += fSnextV[itr]*fXdirV[itr];
          fYposV[itr] += fSnextV[itr]*fYdirV[itr];
          fZposV[itr] += fSnextV[itr]*fZdirV[itr];
+         fSnextV[itr] = 0;
          fNstepsV[itr]++;
+         gPropagator->fNsnextSteps++;  // should use atomics
          MarkRemoved(itr);
       }
    }
    // Compact remaining tracks and move the removed oned to the output container
    if (!fCompact) Compact(&output);
    // Check if tracking the remaining tracks can be postponed
-   action = PostponedAction();
+   action = PostponedAction(fNtracks);
    switch (action) {
       case kDone:
          return icrossed;
       case kSingle:
-         icrossed += PropagateTracksSingle(output,1);
+         icrossed += PropagateTracksSingle(output,tid,1);
          return icrossed;
       case kPostpone:
          PostponeTracks(output);
@@ -1491,118 +1459,96 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output)
       case kVector:
          break;
    }      
+   // REMAINING ONLY CHARGED TRACKS IN MAG. FIELD
    // Continue with vectorized mode ...
 
-   // REMAINING ONLY CHARGED TRACKS IN MAG. FIELD
-   Double_t *steps = new Double_t[fNtracks];
-   // Select tracks that undergo safe steps to physics process
+   // New algorithm: we use the track sagitta to estimate the "bending" error,
+   // i.e. what is the propagated length for which the track deviation in magnetic
+   // field with respect to straight propagation is less than epsilon.
+   // Take the maximum between the safety and the "bending" safety
    nsel = 0;
-   for (Int_t itr=0; itr<fNtracks; itr++) {
-      if (fPstepV[itr]<fSafetyV[itr]) {
-         Select(itr);
-         fStatusV[itr] = kPhysics;
-         nsel++;
+   Double_t *steps = GeantPropagator::Instance()->fThreadData[tid]->GetDblArray(fNtracks);
+   for (itr=0; itr<fNtracks; itr++) {
+      lmax = SafeLength(itr, eps);
+      lmax = TMath::Max(lmax, fSafetyV[itr]);
+      // Select step to propagate as the minimum among the "safe" step and: 
+      // the straight distance to boundary (if frombdr=1) or the proposed  physics 
+      // step (frombdr=0)
+      steps[itr] = (fFrombdrV[itr]) ? TMath::Min(lmax, fSnextV[itr]+10*TGeoShape::Tolerance())
+                                    : TMath::Min(lmax, fPstepV[itr]);
+//      Printf("track %d: step=%g (safelen=%g)", itr, steps[itr], lmax);
+   }                                 
+   // Propagate the vector of tracks
+   PropagateInVolume(fNtracks, steps, tid);
+//         Printf("====== After PropagateInVolume:");
+//         PrintTracks();
+   // Some tracks made it to physics steps (kPhysics) 
+   //         -> remove and copy to output
+   // Some tracks were propagated with steps greater than safety 
+   //         -> check possible crossing via NavIsSameLocation
+   // Some tracks were propagated with steps less than safety
+   //         -> keep in the container
+   
+   // Select tracks that made it to physics and copy to output
+   for (itr=0; itr<fNtracks; itr++) {
+      if (fStatusV[itr] == kPhysics) {
+         MarkRemoved(itr);
+         fNstepsV[itr]++;
       }   
    }
-   // fPstep array is contiguous after the last Reshuffle operation
-   if (nsel) {
-      Reshuffle();
-      memcpy(steps, fPstepV, nsel*sizeof(Double_t));
-      // This category of tracks can make the full step to the physics process
-      PropagateInVolume(nsel, steps);
-      // Move these tracks to the output container
-      output.AddTracks(*this, 0, nsel-1);
-      RemoveTracks(0, nsel-1);
-   }
-   delete [] steps;
-   action = PostponedAction();
-   switch (action) {
-      case kDone:
-         return icrossed;
-      case kSingle:
-         icrossed += PropagateTracksSingle(output,1);
-         return icrossed;
-      case kPostpone:
-         PostponeTracks(output);
-         return icrossed;
-      case kVector:   
-         break;
-   }      
-   // Continue with vectorized mode ...
-   // Check if we can propagate to boundary
-   nsel = 0;
-   for (Int_t itr=0; itr<fNtracks; itr++) {
-      c = Curvature(itr);
-      if (0.25*c*fSnextV[itr]<1E-6 && fSnextV[itr]<1E-3 && fSnextV[itr]<fPstepV[itr]-1E-6) {
-         // Propagate with snext and check if we crossed
-         if (fIzeroV[itr]>10) fSnextV[itr] = 1.E-3;
-         icrossed += PropagateInFieldSingle(itr, fSnextV[itr]+10*gTolerance, kTRUE);
-         if (fSnextV[itr]<1.E-6) fIzeroV[itr]++;
-         else fIzeroV[itr] = 0;
-         // Crossing tracks have the correct status and are now marked for removal
-         gPropagator->fNsnextSteps++;
-         if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
-         continue; // -> to next track
-      }
-      // Track has safety<pstep but next boundary not close enough.
-      // We propagate in field with the safety value.
-      // Protection in case we have a very small safey after entering a new volume
-      const Double_t fs = 0.1;
-//      if (fSafetyV[itr] < 1.E-6) {
-//         fSafetyV[itr] = 1.E-3;
-      if (/*fSafetyV[itr] < 0.001 &&*/ fSafetyV[itr] < fs*fSnextV[itr]) {
-         // Track getting away from boundary. Work to be done here
-         // In principle we need a safety value for the content of the current volume only
-         // This does not behave well on corners...
-         // ... so we peek a small value and chech if this crosses, than recompute safety
-//
-         Double_t delta = fs*fSnextV[itr];
-         if (c*fSnextV[itr]<0.1) delta = 0.5*fSnextV[itr]*fSnextV[itr]*c;
-         else if (c*fSnextV[itr]>10.) delta = TMath::Max(1/c, delta);
-         fSafetyV[itr] = TMath::Max(fSafetyV[itr], delta);
-         fIzeroV[itr]++;
-         if (fIzeroV[itr] > 10) fSafetyV[itr] = 0.5*fSnextV[itr];
-         icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kTRUE);
-      } else {
-         if (fIzeroV[itr] > 10) {
-            // Propagate with snext
-            icrossed += PropagateInFieldSingle(itr, fSnextV[itr]+10*gTolerance, kTRUE);
-            fIzeroV[itr] = 0;
-            gPropagator->fNsnextSteps++;
-            if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
-            continue; // -> to next track
-         }
-         if (fSafetyV[itr]<1.E-3) fIzeroV[itr]++;
-         // Propagate with safety without checking crossing
-         icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kFALSE);
-      } 
-      gPropagator->fNsafeSteps++;
-//      if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
-   }
-   // Compact remaining tracks and move the removed oned to the output container
    if (!fCompact) Compact(&output);
-   // Remaining tracks have been partially propagated, they need to be 
-   // transported again after applying continuous energy loss
-//   if (fNtracks) ComputeTransportLength(fNtracks);
-   return icrossed;
+   // Select tracks that are in flight or were propagated to boundary with
+   // steps bigger than safety
+   nsel = 0;
+   for (itr=0; itr<fNtracks; itr++) {
+      if (fSafetyV[itr]<1.E-10 || fSnextV[itr]<1.E-10) {
+         Select(itr);
+         nsel++;
+      }
+   }      
+   // The selected tracks may have crossed the boundaries - check that
+   if (nsel) {
+      if (nsel<fNtracks) Reshuffle();
+      Bool_t *same = GeantPropagator::Instance()->fThreadData[tid]->GetBoolArray(nsel);
+      NavIsSameLocation(nsel, fPathV, fNextpathV, same);
+      for (itr=0; itr<nsel; itr++) {
+         if (same[itr]) continue;      
+         // Boundary crossed -> update current path
+         *fPathV[itr] = *fNextpathV[itr];
+         fStatusV[itr] = kBoundary;
+         if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
+         fFrombdrV[itr] = kTRUE;
+         icrossed++;
+         fNstepsV[itr]++;
+         MarkRemoved(itr);
+      }
+//         Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
+//         PrintTracks();
+      if (!fCompact) Compact(&output);
+   }
+   return icrossed;   
 }
 
 //______________________________________________________________________________
-Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
+Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage)
 {
 // Propagate the tracks with their selected steps in a single loop, 
 // starting from a given stage.
    Int_t itr = 0;
    Int_t icrossed = 0;
-   Double_t step, c;
+   Double_t step, c, lmax;
+   const Double_t eps = 1.E-4; // 1 micron
    const Double_t bmag = gPropagator->fBmag;
    for (itr=0; itr<fNtracks; itr++) {
+      // Mark dead tracks for copy/removal
       if (fStatusV[itr] == kKilled) {
          MarkRemoved(itr);
          continue;
       }
       // Compute transport length in geometry, limited by the physics step
       ComputeTransportLengthSingle(itr);
+//      Printf("====== After ComputeTransportLengthSingle:");
+//      PrintTrack(itr);
       // Stage 0: straight propagation
       if (stage==0) {
          if (fChargeV[itr]==0 || bmag<1.E-10) {
@@ -1616,12 +1562,15 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
                fStatusV[itr] = kPhysics;
             }
             fPstepV[itr] -= fSnextV[itr];
+            fStepV[itr] += fSnextV[itr];
             fSafetyV[itr] -= fSnextV[itr];
-            if (fSafetyV[itr]<gTolerance) fSafetyV[itr] = 0;
+            if (fSafetyV[itr]<0.) fSafetyV[itr] = 0;
             fXposV[itr] += fSnextV[itr]*fXdirV[itr];
             fYposV[itr] += fSnextV[itr]*fYdirV[itr];
             fZposV[itr] += fSnextV[itr]*fZdirV[itr];
+            fSnextV[itr] = 0;
             fNstepsV[itr]++;
+            gPropagator->fNsnextSteps++;
             MarkRemoved(itr);
             continue;
          }
@@ -1629,84 +1578,75 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t stage)
       // Stage 1: mag field propagation for tracks with pstep<safety
       if (stage<=1) {      
          // REMAINING ONLY CHARGED TRACKS IN MAG. FIELD
-         // Select tracks that undergo safe steps to physics process
-         if (fPstepV[itr]<fSafetyV[itr]) {
-            fStatusV[itr] = kPhysics;
-            step = fPstepV[itr];
-            // This category of tracks can make the full step to the physics process
-            PropagateInVolumeSingle(itr, step);
+   // New algorithm: we use the track sagitta to estimate the "bending" error,
+   // i.e. what is the propagated length for which the track deviation in magnetic
+   // field with respect to straight propagation is less than epsilon.
+   // Take the maximum between the safety and the "bending" safety
+         lmax = SafeLength(itr, eps);
+         lmax = TMath::Max(lmax, fSafetyV[itr]);
+         // Select step to propagate as the minimum among the "safe" step and: 
+         // the straight distance to boundary (if frombdr=1) or the proposed  physics 
+         // step (frombdr=0)
+         step = (fFrombdrV[itr]) ? TMath::Min(lmax, fSnextV[itr]+10*TGeoShape::Tolerance())
+                                 : TMath::Min(lmax, fPstepV[itr]);
+//      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
+         PropagateInVolumeSingle(itr,step,tid);
+//      Printf("====== After PropagateInVolumeSingle:");
+//      PrintTrack(itr);
+   // The track may have made it to physics steps (kPhysics) 
+   //         -> remove and copy to output
+   // The track may have been propagated with step greater than safety 
+   //         -> check possible crossing via NavIsSameLocation
+   // The track may have been propagated with step less than safety
+   //         -> keep in the container
+   
+   // Select tracks that made it to physics and copy to output
+         if (fStatusV[itr] == kPhysics) {
             MarkRemoved(itr);
+            fNstepsV[itr]++;
             continue;
-         }
-      }
-      // Stage 2: Remaining tracks trying to cross
-      if (stage<=2) {
-         c = Curvature(itr);
-         if (0.25*c*fSnextV[itr]<1E-6 && fSnextV[itr]<1E-3 && fSnextV[itr]<fPstepV[itr]-1E-6) {
-            // Propagate with snext and check if we crossed
-            if (fIzeroV[itr]>10) fSnextV[itr] = 1.E-3;
-            icrossed += PropagateInFieldSingle(itr, fSnextV[itr]+10*gTolerance, kTRUE);
-            if (fSnextV[itr]<1.E-6) fIzeroV[itr]++;
-            else fIzeroV[itr] = 0;
-            // Crossing tracks have the correct status and are now marked for removal
-            gPropagator->fNsnextSteps++;
+         }         
+   // Select tracks that are in flight or were propagated to boundary with
+   // steps bigger than safety
+         if (fSafetyV[itr]<1.E-10 || fSnextV[itr]<1.E-10) {
+            Bool_t same = NavIsSameLocationSingle(itr, fPathV, fNextpathV);
+            if (same) continue;
+            // Boundary crossed -> update current path
+            *fPathV[itr] = *fNextpathV[itr];
+            fStatusV[itr] = kBoundary;
             if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
+            fFrombdrV[itr] = kTRUE;
+            icrossed++;
+            fNstepsV[itr]++;
             MarkRemoved(itr);
-            continue; // -> to next track
-         }
-         // Track has safety<pstep but next boundary not close enough.
-         // We propagate in field with the safety value.
-         // Protection in case we have a very small safey after entering a new volume
-         const Double_t fs = 0.1;
-//         if (fSafetyV[itr]<1.E-6) {
-         if (/*fSafetyV[itr] < 0.001 &&*/ fSafetyV[itr] < fs*fSnextV[itr]) {
-            // Track getting away from boundary. Work to be done here
-            // In principle we need a safety value for the content of the current volume only
-            // This does not behave well on corners...
-            // ... so we peek a small value and chech if this crosses, than recompute safety
-//            fSafetyV[itr] = 1.E-3;
-
-            Double_t delta = fs*fSnextV[itr];
-            if (c*fSnextV[itr]<0.1) delta = 0.5*fSnextV[itr]*fSnextV[itr]*c;
-            else if (c*fSnextV[itr]>10.) delta = TMath::Max(1/c, delta);
-            fSafetyV[itr] = TMath::Max(fSafetyV[itr], delta);
-            fIzeroV[itr]++;
-            if (fIzeroV[itr] > 10) {fSafetyV[itr] = 0.5*fSnextV[itr]; fIzeroV[itr]=0;}
-            icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kTRUE);
-         } else {
-            if (fIzeroV[itr] > 10) {
-               // Propagate with snext
-               icrossed += PropagateInFieldSingle(itr, fSnextV[itr]+10*gTolerance, kTRUE);
-               fIzeroV[itr] = 0;
-               gPropagator->fNsnextSteps++;
-               if (fPathV[itr]->IsOutside()) fStatusV[itr] = kExitingSetup;
-               continue; // -> to next track
-            }
-            if (fSafetyV[itr]<1.E-3) fIzeroV[itr]++;
-            // Propagate with safety without checking crossing
-            icrossed += PropagateInFieldSingle(itr, fSafetyV[itr], kFALSE);
-         }   
-         gPropagator->fNsafeSteps++;
-         if (fPathV[itr]->IsOutside()) {
-            fStatusV[itr] = kExitingSetup;
-            continue;
          }
       }
    }
+//   Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
+//   PrintTracks();
    // Compact remaining tracks and move the removed oned to the output container
    if (!fCompact) Compact(&output);
-//   if (fNtracks) ComputeTransportLength(fNtracks);
-   return icrossed;   
-}
+   return icrossed;
+}     
 
 //______________________________________________________________________________
 Double_t GeantTrack_v::Curvature(Int_t i) const
 {
-// Curvature
-   if (fChargeV[i]==0) return 0.;
-   return TMath::Abs(kB2C*gPropagator->fBmag/Pt(i));
+// Curvature assuming constant field is along Z
+   const Double_t tiny = 1.E-30;
+   return TMath::Abs(kB2C*fChargeV[i]*gPropagator->fBmag/(Pt(i)+tiny)); 
 }
-  
+
+//______________________________________________________________________________
+Double_t GeantTrack_v::SafeLength(Int_t i, Double_t eps)
+{
+// Returns the propagation length in field such that the propagated point is
+// shifted less than eps with respect to the linear propagation.
+   Double_t c = Curvature(i);
+   if (c < 1.E-10) return 1.E20;
+   return 2.*TMath::Sqrt(eps/c);
+}   
+
 //______________________________________________________________________________
 Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)
 {

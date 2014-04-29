@@ -460,11 +460,13 @@ void *WorkloadManager::TransportTracks(void *)
       while (ntotransport) {
          // Interrupt condition here. Work stealing could be also implemented here...
          generation++;
+//         Printf("====== WorkloadManager:");
+//         input.PrintTracks();
          // Propagate all remaining tracks
          if (basket->IsMixed()) 
-            ncross += input.PropagateTracksSingle(output);
+            ncross += input.PropagateTracksSingle(output,tid);
          else   
-            ncross += input.PropagateTracks(output);
+            ncross += input.PropagateTracks(output,tid);
          ntotransport = input.GetNtracks();
       }
       // All tracks are now in the output track vector. Possible statuses:
