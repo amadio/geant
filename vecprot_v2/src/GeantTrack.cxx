@@ -261,7 +261,7 @@ Double_t GeantTrack::Curvature() const
 // Curvature
    if (fCharge==0) return 0.;
    const Double_t tiny = 1.E-30;
-   return TMath::Abs(kB2C*fCharge*gPropagator->fBmag/(Pt()+tiny);
+   return TMath::Abs(kB2C*fCharge*gPropagator->fBmag/(Pt()+tiny));
 }
 
 //______________________________________________________________________________
@@ -1306,8 +1306,6 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 // Computes snext and safety for an array of tracks. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
-   static Int_t icalls = 0;
-   icalls++;
    Int_t itr;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
@@ -1326,7 +1324,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
          fNextpathV[itr]->InitFromNavigator(nav);
          fSnextV[itr] += nav->GetStep();
       }
-//      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
    }
 }
 //______________________________________________________________________________
@@ -1335,17 +1333,12 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
-   static Int_t icalls = 0;
-   icalls++;
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    nav->ResetState();
    nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
    nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
    fPathV[itr]->UpdateNavigator(nav);
-   nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
-   if (fPstepV[itr]<1.E-10) {
-      Printf("Error pstep");
-   }
+//   nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
    nav->FindNextBoundaryAndStep(TMath::Min(1.E20, fPstepV[itr]), !fFrombdrV[itr]);
    fSnextV[itr] = TMath::Max(2*gTolerance,nav->GetStep());
    fSafetyV[itr] = nav->GetSafeDistance();
@@ -1365,8 +1358,8 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
       fNextpathV[itr]->InitFromNavigator(nav);
       fSnextV[itr] += nav->GetStep();
    }
-//   if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
-}
+   if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+}   
 
 //______________________________________________________________________________
 TransportAction_t GeantTrack_v::PostponedAction(Int_t ntracks) const
