@@ -78,8 +78,9 @@ DetectorConstruction::DetectorConstruction()
   // materials
   DefineMaterials();
   SetAbsorberMaterial("Lead");
-  SetGapMaterial("liquidArgon");
- 
+  SetGapMaterial("Scintillator"); 
+  // SetGapMaterial("liquidArgon");
+
   // create commands for interactive definition of the calorimeter
   detectorMessenger = new DetectorMessenger(this);
 }
