@@ -967,6 +967,9 @@ to either memorize the APIs or to look it up to find the exact spelling.</p>
 <p>In general, names should be in camel case (e.g. <tt class="docutils literal"><span class="pre">TextFileReader</span></tt> and
 <tt class="docutils literal"><span class="pre">isLValue()</span></tt>).  Different kinds of declarations have different rules:</p>
 <ul>
+<li><p class="first"><strong>Namespace names</strong> should be
+nouns and start with lower-case letter (e.g. <tt class="docutils literal"><span class="pre">vecGeom</span></tt>).</p>
+</li>
 <li><p class="first"><strong>Type names</strong> (including classes, structs, enums, etc) should be
 nouns and start with an upper-case letter (e.g. <tt class="docutils literal"><span class="pre">TextFileReader</span></tt>).</p>
 </li>
@@ -981,9 +984,17 @@ be camel case, and start with a lower case letter if it is a local
   <li><strong>Data members</strong> begin with f (for field).</li>
   <li><strong>Static variables</strong> begin with g; this applies to static variables in functions and global variables (excluding static data members of a class).</li>
   <li><strong>Static data members</strong> begin with fg (i.e. class globals).</li>
-  <li><strong>Constants</strong> begin with k; including names of
-  enumeration constants and constant statics.</li>
+  <li><strong>Constants</strong> begin with k; including names of enumeration constants and constant statics.</li>
 </ul>
+</li>
+
+<li><p class="first"><strong>Template parameter names</strong> should
+follow the convention for type or variable and be suffixed by a
+capital letter T.  e.g.  <tt class="docutils literal"><span
+class="pre">template &lt;typename ValueT, int
+kSizeT&gt;.</span></tt>.  Note that just <tt class="docutils
+literal"><span class="pre">T</span></tt> is an acceptable name
+for a type template name, as it is a standard well known choice.
 </li>
 
 <li><p class="first"><strong>Function names</strong> should be verb phrases (as they represent actions), and
