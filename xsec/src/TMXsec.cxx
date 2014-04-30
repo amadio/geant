@@ -556,38 +556,6 @@ Int_t TMXsec::SampleElement(Int_t tid){
 }
 
 //____________________________________________________________________________
-Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)  
-{
-  // this material/mixture (TMXsec object) is composed of fNElems elements
-  // iel is the index of elements in TEXsec** fElems  ([fNElems]) for
-  // a particuclar particle type and reaction. 
-  // Then it returns fElems[iel]->Index()
-
-  Int_t iel = fNElems-1;
-
-  if (fNElems>1) {
-    Double_t totalxs = 0.;
-    for (Int_t i=0 ; i < fNElems ; ++i) {
-      totalxs += fElems[i]->XS(pindex, rindex, energy);
-    }
-
-    Double_t ranxs = totalxs*gRandom->Rndm();
-    Double_t cross = 0.;
-
-    for (Int_t i=0 ; i < fNElems-1 ; ++i) {
-      //redundant, should be stored in an array when calcuating totalxs
-      cross += fElems[i]->XS(pindex, rindex, energy); 
-      if (ranxs < cross) {
-        iel = i;
-        break;
-      }
-    }
-  }
-  //index of the selected element
-  return fElems[iel]->Index();
-}
-
-//____________________________________________________________________________
 void TMXsec::Print(Option_t*) const {
    printf("Material %s %s with %d elements\n",GetName(),GetTitle(),fNElems);
    for(Int_t i=0; i<fNElems; ++i) {
