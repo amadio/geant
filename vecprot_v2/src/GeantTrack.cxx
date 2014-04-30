@@ -260,7 +260,8 @@ Double_t GeantTrack::Curvature() const
 {
 // Curvature
    if (fCharge==0) return 0.;
-   return TMath::Abs(kB2C*fCharge*gPropagator->fBmag*Pt()/(fP*fP));
+   const Double_t tiny = 1.E-30;
+   return TMath::Abs(kB2C*fCharge*gPropagator->fBmag/(Pt()+tiny);
 }
 
 //______________________________________________________________________________
