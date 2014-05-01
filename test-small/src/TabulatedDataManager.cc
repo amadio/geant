@@ -221,19 +221,15 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
 					     G4int ireac)
 {
   //select random atom
-  /*
   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
   TMXsec *mxs = 
     ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
-  G4int indexElem = mxs->SelectElement(ipart,ireac,kineticEnergy);
-  */
-  //get a random element directly from material/TEXsec and take it as an input parameter
-  //(substitute imat by the index of selected random element)
-  G4int indexElem = 1 ; 
   
   G4int inpid = atrack->GetDynamicParticle()->GetPDGcode();
   G4int ipart = TPartIndex::I()->PartIndex(inpid);
   G4double kineticEnergy = atrack->GetKineticEnergy();
+
+  G4int indexElem = mxs->SelectElement(ipart,ireac,kineticEnergy);
 
   if(indexElem<0) return;
   
