@@ -567,7 +567,8 @@ Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)
   if (fNElems>1) {
     Double_t totalxs = 0.;
     for (Int_t i=0 ; i < fNElems ; ++i) {
-      totalxs += fElems[i]->XS(pindex, rindex, energy);
+      // fRatios[i] is the relative #i-th atoms/volume; fRatios[] is normalized to 1. 
+      totalxs += fElems[i]->XS(pindex, rindex, energy)*fRatios[i];
     }
 
     Double_t ranxs = totalxs*gRandom->Rndm();
@@ -575,7 +576,7 @@ Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)
 
     for (Int_t i=0 ; i < fNElems-1 ; ++i) {
       //redundant, should be stored in a temporary array when calcuating totalxs
-      cross += fElems[i]->XS(pindex, rindex, energy); 
+      cross += fElems[i]->XS(pindex, rindex, energy)*fRatios[i]; 
       if (ranxs < cross) {
         iel = i;
         break;
