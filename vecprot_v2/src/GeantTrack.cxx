@@ -1776,19 +1776,18 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 // Computes snext and safety for an array of tracks. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
-   static Int_t icalls = 0;
-   icalls++;
-  for (Int_t itr=0; itr<ntracks; ++itr) {
-        ComputeTransportLengthSingle(itr);
-   }
-   //---------------- alternative code ---------------------------------------
+
+    for(Int_t i=0;i<ntracks;++i)
+    {
+        ComputeTransportLengthSingle(i);
+    }
 //   Int_t itr;
 //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 //   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
 //                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
 //   for (itr=0; itr<ntracks; itr++) {
 //      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
-//      if (fFrombdrV[itr] && fSnextV[itr]<=2.*gTolerance) {
+//      if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {
 //         // Make sure track crossed
 //         fIzeroV[itr]++;
 //         if (fIzeroV[itr] > 10) {
@@ -1796,13 +1795,11 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 //            Printf("### track %d had to be killed due to crossing problems", fParticleV[itr]);
 //            continue;
 //         }
-//         // what is the state of the navigator here?? very likely not the state of track itr
-//         Warning("ComputeTransportLength","code tried to call TGEO navigator with potentially corrupted state");
 //         nav->FindNextBoundaryAndStep(1.E30, kFALSE);
 //         fNextpathV[itr]->InitFromNavigator(nav);
 //         fSnextV[itr] += nav->GetStep();
 //      }
-////      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+//      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
 //   }
 }
 #endif
