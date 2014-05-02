@@ -1306,26 +1306,31 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 // Computes snext and safety for an array of tracks. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
-   Int_t itr;
-   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
-                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
-   for (itr=0; itr<ntracks; itr++) {
-      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
-      if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {
-         // Make sure track crossed
-         fIzeroV[itr]++;
-         if (fIzeroV[itr] > 10) {
-            fStatusV[itr] = kKilled;
-            Printf("### track %d had to be killed due to crossing problems", fParticleV[itr]);
-            continue;
-         }
-         nav->FindNextBoundaryAndStep(1.E30, kFALSE);
-         fNextpathV[itr]->InitFromNavigator(nav);
-         fSnextV[itr] += nav->GetStep();
-      }
-      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
-   }
+
+    for(Int_t i=0;i<ntracks;++i)
+    {
+        ComputeTransportLengthSingle(i);
+    }
+//   Int_t itr;
+//   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+//   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
+//                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
+//   for (itr=0; itr<ntracks; itr++) {
+//      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
+//      if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {
+//         // Make sure track crossed
+//         fIzeroV[itr]++;
+//         if (fIzeroV[itr] > 10) {
+//            fStatusV[itr] = kKilled;
+//            Printf("### track %d had to be killed due to crossing problems", fParticleV[itr]);
+//            continue;
+//         }
+//         nav->FindNextBoundaryAndStep(1.E30, kFALSE);
+//         fNextpathV[itr]->InitFromNavigator(nav);
+//         fSnextV[itr] += nav->GetStep();
+//      }
+//      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+//   }
 }
 //______________________________________________________________________________
 void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
@@ -1346,18 +1351,6 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    fFrombdrV[itr] = nav->IsOnBoundary();
 
    if (fNextpathV[itr]->IsOutside() || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
-   if (fFrombdrV[itr] && fSnextV[itr]<2.*gTolerance) {
-      // Make sure track crossed
-      fIzeroV[itr]++;
-      if (fIzeroV[itr] > 10) {
-         fStatusV[itr] = kKilled;
-         Printf("### track %d had to be killed due to crossing problems", fParticleV[itr]);
-         return;
-      }
-      nav->FindNextBoundaryAndStep(1.E30, kFALSE);
-      fNextpathV[itr]->InitFromNavigator(nav);
-      fSnextV[itr] += nav->GetStep();
-   }
    if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
 }   
 
