@@ -9,6 +9,7 @@
 #include "GXTrack.hh"
 
 #include "TPartIndex.h"
+// for G5proc index
 
 class TabulatedDataManager;
 class G4VParticleChange;
@@ -27,7 +28,7 @@ public:
   G4double PostStepGetPhysicalInteractionLength(const G4Track& track,
                                                 G4double previousStepSize,
                                                 G4ForceCondition* condition);  
-  G4double SetupForMaterial(const G4Track& track);
+  int       SetupForMaterial(const G4Track& track);  // Set and return the GV material index
   G4double MeanFreePath(const G4Track& track);
 
   // Override PostStepDoIt method
@@ -37,12 +38,12 @@ public:
   void Print(const G4Step& astep);
 
 private:
-  G4int fMaterialIndex;
-  G5proc fReaction;
-  G4VParticleChange* fParticleChange;
+  G4int                 fMaterialIndex;
+  G5proc                fReaction;
+  G4VParticleChange*    fParticleChange;
   G4ParticleDefinition* fSecDefinition;
   TabulatedDataManager* theDataManager;
-  std::vector<GXTrack*>  fSecParticles;
+  std::vector<GXTrack*> fSecParticles;
 };
 
 #endif
