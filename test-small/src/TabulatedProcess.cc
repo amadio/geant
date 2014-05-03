@@ -27,6 +27,12 @@
 #include <TEFstate.h>
 */
 
+#include "MaterialConverter.hh"
+
+#include "TParticlePDG.h"
+#include "TDatabasePDG.h"
+#include "TPartIndex.h"
+
 TabulatedProcess::TabulatedProcess(G4String processName, 
 				   G4ProcessType processType) :
   G4WrapperProcess(processName,processType),
@@ -94,17 +100,43 @@ TabulatedProcess::PostStepGetPhysicalInteractionLength(const G4Track& track,
   return value;
 }
 
-G4double TabulatedProcess::SetupForMaterial(const G4Track& track)
+int TabulatedProcess::SetupForMaterial(const G4Track& track)
 {
   //get the material index for the current volume
-  fMaterialIndex = 1;  //temporary 
+
+  G4Material* materialG4= track.GetMaterial();
+
+  static MaterialConverter *sMatConverter= MaterialConverter::Instance(); 
+  fMaterialIndex= sMatConverter->GetRootMaterial( materialG4->GetIndex() ) ;
+ 
+  return fMaterialIndex; 
 }
 
 G4double TabulatedProcess::MeanFreePath(const G4Track& track)
 {
-  G4double preStepLambda = 
-    theDataManager->GetInteractionLength(fMaterialIndex,track);
+  // G4double energy = track.GetKineticEnergy()/GeV;
 
+  int rootMatId= SetupForMaterial(track);
+
+  //Find the number of particles with reactions
+  //
+  // int pdgEncoding= track.GetParticleDefinition()->GetPDGEncoding();
+
+  // Find the equivalent Root particle
+
+  // TParticlePDG *particleRt=0;
+  //  if(pdgEncoding)
+  //  particleRt = TDatabasePDG::Instance()->GetParticle(pdgEncoding);
+  // static TPartIndex* partIdx= TPartIndex::I();
+  // Int_t partId = partIdx->PartIndex( pdgEncoding ); // GeantVparticle index
+  
+  // std::cout << " Particle Indices:  pdg= " << pdgEncoding << " rootId = "  << partId << std::endl;
+  // std::cout << " Number of Particles: " << partIdx->NPart() << std::endl;
+  
+  G4double preStepLambda =
+     theDataManager->GetInteractionLength(rootMatId,track);
+
+  // theDataManager->GetInteractionLength(rootMatId,partId,energy);
   return preStepLambda;
 }
 
