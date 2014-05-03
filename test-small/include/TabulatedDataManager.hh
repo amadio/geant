@@ -33,6 +33,8 @@ public:
   void SampleSecondaries(std::vector<GXTrack*>* vdp, G4int imat, 
                          const G4Track* atrack, G4int ireac);
 
+  TEFstate ** GetElemFstate() { return fElemFstate; }
+
 private:
 
   static TabulatedDataManager* theInstance;
