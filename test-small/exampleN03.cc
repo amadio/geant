@@ -37,6 +37,8 @@
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
+#include "SimplePhysicsList.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "EventAction.hh"
@@ -50,6 +52,11 @@
 #ifdef G4UI_USE
 #include "G4UIExecutive.hh"
 #endif
+
+#include "MaterialConverter.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
+void RegisterG4Particles(); 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -71,8 +78,9 @@ int main(int argc,char** argv)
   //
   runManager->SetUserInitialization(new DetectorConstruction);
   //
-  runManager->SetUserInitialization(new PhysicsList);
-    
+  // runManager->SetUserInitialization(new PhysicsList);
+  runManager->SetUserInitialization(new SimplePhysicsList);
+  
   // Set user action classes
   //
   runManager->SetUserAction(new PrimaryGeneratorAction);
@@ -86,7 +94,12 @@ int main(int argc,char** argv)
   // Initialize G4 kernel
   //
   runManager->Initialize();
-  
+
+  // MaterialConverter::Instance()->Initialize();
+  MaterialConverter::Instance()->CreateRootMaterials();
+
+  RegisterG4Particles(); 
+    
 #ifdef G4VIS_USE
   // Initialize visualization
   G4VisManager* visManager = new G4VisExecutive;
