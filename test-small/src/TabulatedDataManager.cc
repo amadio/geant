@@ -151,7 +151,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   }
   
   gSystem->GetProcInfo(&procInfo2);
-  Long_t mem = (procInfo2.fMemResident - procInfo1.fMemResident)/1024;
+  // Long_t mem = (procInfo2.fMemResident - procInfo1.fMemResident)/1024;
   fxsec->Close();
   fstate->Close();
 
@@ -224,18 +224,18 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
   TMXsec *mxs = 
     ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
-  
+
   G4int inpid = atrack->GetDynamicParticle()->GetPDGcode();
   G4int ipart = TPartIndex::I()->PartIndex(inpid);
   G4double kineticEnergy = atrack->GetKineticEnergy();
 
   G4int indexElem = mxs->SelectElement(ipart,ireac,kineticEnergy);
-
+  
   if(indexElem<0) return;
   
   //sample secondaries and store to vdp
   G4int nSecPart     = 0;  //number of secondary particles per reaction
-  G4int nTotSecPart  = 0;  //total number of secondary particles in tracks
+  // G4int nTotSecPart  = 0;  //total number of secondary particles in tracks
   const G4int *pid   = 0;  //GeantV particle codes [nSecPart]
   const G4float *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
   Float_t  ener      = 0;  //energy at the fstate (Ekin of primary after the interc.)
@@ -254,7 +254,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
       G4double secMass  = secPartPDG->Mass();
       G4double secPtot2 = mom[3*is]*mom[3*is]+mom[3*is+1]*mom[3*is+1]
 	                + mom[3*is+2]*mom[3*is+2]; //total P^2 [GeV^2]
-      G4double secPtot  = TMath::Sqrt(secPtot2); //total P [GeV]
+      // G4double secPtot  = TMath::Sqrt(secPtot2); //total P [GeV]
       G4double secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
       G4double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 
