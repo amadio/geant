@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="204" Z="82" name="2040x10a96cf20">
+      <atom unit="g/mole" value="203.973"/>
+    </isotope>
+    <isotope N="206" Z="82" name="2060x10a96cf70">
+      <atom unit="g/mole" value="205.974"/>
+    </isotope>
+    <isotope N="207" Z="82" name="2070x10a96cfc0">
+      <atom unit="g/mole" value="206.976"/>
+    </isotope>
+    <isotope N="208" Z="82" name="2080x10a96d010">
+      <atom unit="g/mole" value="207.977"/>
+    </isotope>
+    <element name="Lead0x10a96caf0">
+      <fraction n="0.014" ref="2040x10a96cf20"/>
+      <fraction n="0.241" ref="2060x10a96cf70"/>
+      <fraction n="0.221" ref="2070x10a96cfc0"/>
+      <fraction n="0.524" ref="2080x10a96d010"/>
+    </element>
+    <material name="Lead0x10a96c9f0" state="solid">
+      <MEE unit="eV" value="823"/>
+      <D unit="g/cm3" value="11.35"/>
+      <fraction n="1" ref="Lead0x10a96caf0"/>
+    </material>
+    <isotope N="12" Z="6" name="C120x10a967ad0">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C130x10a967e30">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="Carbon0x10a967990">
+      <fraction n="0.9893" ref="C120x10a967ad0"/>
+      <fraction n="0.0107" ref="C130x10a967e30"/>
+    </element>
+    <isotope N="1" Z="1" name="H10x10a967b10">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H20x10a967b70">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="Hydrogen0x10a961500">
+      <fraction n="0.999885" ref="H10x10a967b10"/>
+      <fraction n="0.000115" ref="H20x10a967b70"/>
+    </element>
+    <material name="Scintillator0x10a96ddb0" state="solid">
+      <MEE unit="eV" value="64.6844741120544"/>
+      <D unit="g/cm3" value="1.032"/>
+      <fraction n="0.914544377696929" ref="Carbon0x10a967990"/>
+      <fraction n="0.0854556223030713" ref="Hydrogen0x10a961500"/>
+    </material>
+    <isotope N="1" Z="1" name="10x10a9710d0">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="20x10a971990">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="Galactic0x10a971100">
+      <fraction n="0.999885" ref="10x10a9710d0"/>
+      <fraction n="0.000115" ref="20x10a971990"/>
+    </element>
+    <material name="Galactic0x10a971650" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="19.2"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="Galactic0x10a971100"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="Absorber0x10a991ba0" x="10" y="100" z="100"/>
+    <box lunit="mm" name="Gap0x10a991d00" x="5" y="100" z="100"/>
+    <box lunit="mm" name="Layer0x10a991540" x="15" y="100" z="100"/>
+    <box lunit="mm" name="Calorimeter0x10a991370" x="150" y="100" z="100"/>
+    <box lunit="mm" name="World0x10a9911e0" x="180" y="120" z="120"/>
+  </solids>
+
+  <structure>
+    <volume name="Lead0x10a991c20">
+      <materialref ref="Lead0x10a96c9f0"/>
+      <solidref ref="Absorber0x10a991ba0"/>
+    </volume>
+    <volume name="Scintillator0x10a991d70">
+      <materialref ref="Scintillator0x10a96ddb0"/>
+      <solidref ref="Gap0x10a991d00"/>
+    </volume>
+    <volume name="Layer0x10a9915b0">
+      <materialref ref="Galactic0x10a971650"/>
+      <solidref ref="Layer0x10a991540"/>
+      <physvol name="Lead0x10a991cb0">
+        <volumeref ref="Lead0x10a991c20"/>
+        <position name="Lead0x10a991cb0_pos" unit="mm" x="-2.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Scintillator0x10a991e00">
+        <volumeref ref="Scintillator0x10a991d70"/>
+        <position name="Scintillator0x10a991e00_pos" unit="mm" x="5" y="0" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="Calorimeter0x10a9913f0">
+      <materialref ref="Galactic0x10a971650"/>
+      <solidref ref="Calorimeter0x10a991370"/>
+      <physvol name="Layer0x10a991660">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991660_pos" unit="mm" x="-67.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a9916e0">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a9916e0_pos" unit="mm" x="-52.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a991760">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991760_pos" unit="mm" x="-37.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a9917f0">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a9917f0_pos" unit="mm" x="-22.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a991860">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991860_pos" unit="mm" x="-7.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a991910">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991910_pos" unit="mm" x="7.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a991960">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991960_pos" unit="mm" x="22.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a9919d0">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a9919d0_pos" unit="mm" x="37.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a991a40">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991a40_pos" unit="mm" x="52.5" y="0" z="0"/>
+      </physvol>
+      <physvol name="Layer0x10a991b30">
+        <volumeref ref="Layer0x10a9915b0"/>
+        <position name="Layer0x10a991b30_pos" unit="mm" x="67.5" y="0" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="World0x10a991250">
+      <materialref ref="Galactic0x10a971650"/>
+      <solidref ref="World0x10a9911e0"/>
+      <physvol name="Calorimeter0x10a9914b0">
+        <volumeref ref="Calorimeter0x10a9913f0"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="World0x10a991250"/>
+  </setup>
+
+</gdml>
