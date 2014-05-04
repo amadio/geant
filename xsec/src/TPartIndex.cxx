@@ -182,6 +182,34 @@ void TPartIndex::Streamer(TBuffer &R__b)
    }
 }
 
+//semi empirical Bethe-Weizsacker mass formula based on the liquid drop model
+//with coefficients determined by fitting to experimental mass data (AME2003)and 
+//taken from J.M. Pearson: Nuclear Mass Models (jina web /pearson_MassSchool)  
+//accuracy about +-few MeV
+//______________________________________________________________________________
+Double_t TPartIndex::GetAprxNuclearMass(Int_t Z, Int_t A){
+   const Double_t a_vol  = -0.01569755;        //volume    term coef. [GeV] 
+   const Double_t a_surf =  0.01766269;        //surface   term coef. [GeV]
+   const Double_t a_c    =  0.0007070236;      //Coulomb   term coef. [GeV]
+   const Double_t a_sym  =  0.026308165;       //asymmetry term coef. [GeV]
+   const Double_t a_ss   = -0.017003132;       //surface-sym. term coef. [GeV]
+   const Double_t massp  =  0.938272;          //mass of proton  [GeV]
+   const Double_t massn  =  0.939565;          //mass of neutron [GeV]
 
+   Int_t N = A - Z;                        // #neutrons
+   Double_t delta = 0.0;                   // if A is odd
+
+   if( (N&1) && (Z&1))                     // (N,Z) are odd
+     delta = 0.0025;
+   else if( (!(N&1)) && (!(Z&1)) )         // (N,Z) are even  
+     delta = -0.0025; 
+
+   Double_t Ap13  = TMath::Power(A,1/3.);  // A^{1/3}
+   Double_t Ap23  = Ap13*Ap13;             // A^{2/3}
+   Double_t dummy = (N-Z)/(1.*A);
+
+   return Z*massp + N*massn + ( a_vol*A + a_surf*Ap23 + a_c*Z*Z/Ap13 + 
+                               (a_sym*A +a_ss*Ap23)*dummy*dummy + delta );  
+}
 
 

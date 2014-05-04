@@ -97,6 +97,8 @@ public:
    static Int_t NElem() {return fNElem;}
 
    void Print(Option_t *option="") const;
+   //approximated formula for nuclear mass computation; for handling fragments
+   Double_t GetAprxNuclearMass(Int_t Z, Int_t A);
 
 private:
    TPartIndex(const TPartIndex&); // Not implemented
