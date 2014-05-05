@@ -21,7 +21,6 @@
 #include "TEXsec.h"
 #include "TMXsec.h"
 #include "TEFstate.h"
-#include <cassert>
 
 ClassImp(TTabPhysMgr)
 
@@ -230,29 +229,56 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
-    
-   Float_t msTheta;
-   Float_t msPhi;
+//   static Int_t icnt=0;
+   Double_t msTheta;
+   Double_t msPhi;
 
    Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
+//   Double_t dir[3] = {0.,0.,0.};
    for(Int_t i = 0; i < ntracks; ++i){
-      msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);     
+      msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
       msPhi = 2.*TMath::Pi()*rndArray[i];
+/*
+      if (icnt<100 && mat->GetZ()>10) {
+         Printf("theta=%g  phi=%g", msTheta*TMath::RadToDeg(), msPhi*TMath::RadToDeg());
+         dir[0] = tracks.fXdirV[i];
+         dir[1] = tracks.fYdirV[i];
+         dir[2] = tracks.fZdirV[i];
+      }   
+*/
       RotateTrack(tracks, i, msTheta, msPhi);
+/*
+      if (icnt<100 && mat->GetZ()>10) {
+         icnt++;
+         Double_t dot = dir[0]*tracks.fXdirV[i] + dir[1]*tracks.fYdirV[i] +dir[2]*tracks.fZdirV[i];
+         Double_t angle = TMath::ACos(dot)*TMath::RadToDeg();
+         Printf("new angle=%g   delta=%g", angle, TMath::Abs(angle-msTheta*TMath::RadToDeg()));
+      }   
+*/      
    }
-
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks)
+ Int_t TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
    mxs->Eloss(ntracks, tracks);
+
+   //call atRest sampling for tracks that have been killed by Eloss
+   Int_t nTotSecPart  = 0;  //total number of new tracks
+   Double_t energyLimit = gPropagator->fEmin;    
+   for(Int_t i = 0; i < ntracks; ++i)
+     if( tracks.fProcessV[i] == 6 && fElemFstate[tracks.fEindexV[i]]->HasRestCapture(tracks.fG5codeV[i]) )
+       //tracks.fEindexV[i] = mxs->SampleElement(tid);
+       GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
+                        nTotSecPart, tid);  
+
+   return nTotSecPart;
 }
 
 //______________________________________________________________________________
@@ -373,6 +399,9 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       // j=0 -> including stopped primary as well if isSurv = kTRUE; 
       // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above) 
       for(Int_t i = j; i < nSecPart; ++i) {
+        if(pid[i]>TPartIndex::I()->NPart())// skipp possible fragments; will be fiexed 
+          continue;    
+
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
         Double_t secMass  = secPartPDG->Mass();
@@ -396,7 +425,6 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           gTrack.fEvslot   = tracks.fEvslotV[t];
 //          gTrack.fParticle = nTotSecPart;          //index of this particle
           gTrack.fPDG      = secPDG;               //PDG code of this particle
-          assert( ! (pid[i]==0 && secMass==0) );
           gTrack.fG5code   = pid[i];               //G5 index of this particle
           gTrack.fEindex   = 0;
           gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
@@ -433,7 +461,8 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
-          GetRestFinSates(pid[i], fElemFstate[tracks.fEindexV[t]], energyLimit, tracks, t, nTotSecPart, tid);  
+          if( fElemFstate[tracks.fEindexV[t]]->HasRestCapture(pid[i]) )
+             GetRestFinStates(pid[i], mxs, energyLimit, tracks, t, nTotSecPart, tid);            
         } 
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
@@ -448,7 +477,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 
 //______________________________________________________________________________
 //will be called recursively; only CaptureAtRest at the moment
-void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate, 
+void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs, 
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
         Int_t &nTotSecPart, Int_t tid)
 {
@@ -457,6 +486,8 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
    return;
    
    Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
+   TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
+
 
    Int_t nSecPart     = 0;   //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
@@ -478,6 +509,9 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
 
    //loop over the secondaries
    for(Int_t i = 0; i< nSecPart; ++i){
+     if(pid[i]>TPartIndex::I()->NPart())// skipp possible fragments; will be fiexed 
+       continue;    
+
      Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
      Double_t secMass  = secPartPDG->Mass();
@@ -542,7 +576,8 @@ void TTabPhysMgr::GetRestFinSates(Int_t partindex, TEFstate *elemfstate,
        // end if {secondary Ekin >= energyLimit}
      } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
        tracks.fEdepV[iintrack] += secEkin;    //add the Ekin of this secondary to the energy depositon	
-       GetRestFinSates(pid[i], elemfstate, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
+       if( elemfstate->HasRestCapture(pid[i]) )
+         GetRestFinStates(pid[i], mxs, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
      } 
    }//end loop over the secondaries
 }
@@ -595,8 +630,8 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
 }
 
 
-void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Float_t theta, 
-        Float_t phi)
+void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, 
+        Double_t phi)
 {
      const Double_t one  = 1.0f;  
      const Double_t zero = 0.0f; 

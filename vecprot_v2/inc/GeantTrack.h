@@ -25,7 +25,7 @@ typedef TGeoBranchArray VolumePath_t;
 
 
 const Double_t kB2C = -0.299792458e-3;
-enum TrackStatus_t {kAlive, kKilled, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
+enum TrackStatus_t {kAlive, kKilled, kInFlight, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
 enum TransportAction_t {
    kDone     = 0,   // Return immediately - no tracks left
    kPostpone = 1,   // return imediately and postpone whatever tracks left
@@ -68,7 +68,6 @@ public:
    Double_t fSafety;    // safe distance to any boundary
    Bool_t   fFrombdr;   // true if starting from boundary
    Bool_t   fPending;
-
    VolumePath_t *fPath;
    VolumePath_t *fNextpath;
    
@@ -153,7 +152,6 @@ public:
    void               SetSafety(Double_t safety) {fSafety = safety;}
    void               SetFrombdr(Bool_t flag) {fFrombdr = flag;}
    void               SetPending(Bool_t flag) {fPending = flag;}
-
    void               SetPath(VolumePath_t const * const path);
    void               SetNextPath(VolumePath_t const * const path);
    
@@ -204,8 +202,6 @@ public:
    Double_t *fSafetyV;     // safe distances to any boundary
    Bool_t   *fFrombdrV;     // true if starting from boundary
    Bool_t   *fPendingV;
-
-
    VolumePath_t **fPathV; // paths for the particles in the geometry
    VolumePath_t **fNextpathV; // paths for next volumes
 
@@ -252,7 +248,6 @@ public:
    void PrintTrack(Int_t itr) const;
    void PrintTracks() const;
 
-
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
@@ -261,28 +256,24 @@ public:
    void      NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
    Bool_t    NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end);
 
-   void InspectGeometryState(Int_t itr) const;
-   void InspectIsSameLocation(Int_t itr) const;
+   //void InspectGeometryState(Int_t itr) const;
+   //void InspectIsSameLocation(Int_t itr) const;
+#ifdef USE_VECGEOM_NAVIGATOR
+    void CheckLocationPathConsistency(Int_t itr) const;
+#endif
 
-   TransportAction_t PostponedAction() const;
+   TransportAction_t PostponedAction(Int_t ntracks) const;
    Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
    Int_t     PostponeTracks(GeantTrack_v &output);
-   void      PropagateBack(Int_t itr, Double_t crtstep);
-   Int_t     PropagateInField(Int_t ntracks, const Double_t *crtstep);
-   Int_t     PropagateInFieldSingle(Int_t itr, Double_t crtstep, Bool_t checkcross);
+   //void      PropagateBack(Int_t itr, Double_t crtstep);
    void      ComputeTransportLength(Int_t ntracks);
    void      ComputeTransportLengthSingle(Int_t itr);
-   void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep);
-   void      PropagateInVolumeSingle(Int_t i, Double_t crtstep);
-   Int_t     PropagateStraight(Int_t ntracks, Double_t const *crtstep);
-   Int_t     PropagateTracks(GeantTrack_v &output);
-   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t stage=0);
+   void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
+   void      PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid);
+   Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
+   Int_t     PropagateTracks(GeantTrack_v &output, Int_t tid);
+   Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage=0);
    
- //  void SetPath( Int_t i, VolumePath_t const & nextpath )
-  // {
-  //   *fPathV[i]=nextpath;
-  // }
-
    void      Resize(Int_t newsize);
    void      ReplaceTrack(Int_t i, Int_t withj);
    Int_t     Reshuffle();
@@ -290,6 +281,7 @@ public:
 // Track methods
    Double_t           Beta(Int_t i)  const {return fPV[i]/fEV[i];}
    Double_t           Curvature(Int_t i) const;
+   Double_t           SafeLength(Int_t i, Double_t eps=1.E-4);
    Double_t           Gamma(Int_t i) const {return fMassV[i]?fEV[i]/fMassV[i]:TMath::Limits<double>::Max();}
    Double_t           Px(Int_t i) const {return fPV[i]*fXdirV[i];}
    Double_t           Py(Int_t i) const {return fPV[i]*fYdirV[i];}

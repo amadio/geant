@@ -62,10 +62,12 @@ TPFstate::~TPFstate()
 
 //_________________________________________________________________________
 void TPFstate::SetRestCaptFstate(const TFinState &finstate){
-
-   fRestCaptFstat = new TFinState(); 	
-   fRestCaptFstat->SetFinState(finstate);
-
+   if(finstate.GetNsecs()){
+     fRestCaptFstat = new TFinState();
+     fRestCaptFstat->SetFinState(finstate);
+   } else {
+     fRestCaptFstat = 0;
+   }
 }
 
 //_________________________________________________________________________
@@ -248,7 +250,7 @@ Bool_t TPFstate::GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float
             ibin, en1, en, en2);
       return kFALSE;
     }
-    if(en-en1>en-en) ++ibin;
+    if(en-en1>en2-en) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
     return fFstat[ipoint].GetReac(ifs, npart, weight, kerma, enr, pid, mom);
   }

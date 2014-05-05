@@ -57,12 +57,31 @@ void TTabPhysProcess::Initialize()
    if (!fMgr) return;   
 }
 
+
+
 //______________________________________________________________________________
-void TTabPhysProcess::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks)
+void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat, 
+                               Int_t ntracks, 
+                               GeantTrack_v &tracks, 
+                               Int_t tid)
+{
+   //Apply multiple scattering 
+   Int_t imat = mat->GetIndex();
+   fMgr->ApplyMsc(imat, ntracks, tracks, tid);
+   
+} 
+
+
+//______________________________________________________________________________
+void TTabPhysProcess::Eloss(TGeoMaterial *mat,
+                            Int_t ntracks, 
+                            GeantTrack_v &tracks, 
+                            Int_t &nout, 
+                            Int_t tid)
 {
 // Fill energy loss for the tracks according their fStepV
    Int_t imat = mat->GetIndex();
-   fMgr->Eloss(imat, ntracks, tracks);
+   nout = fMgr->Eloss(imat, ntracks, tracks, tid);
 }
 
 //______________________________________________________________________________

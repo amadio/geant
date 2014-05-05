@@ -40,8 +40,10 @@ public:
    Int_t       fNevents;     // Number of buffered
    Int_t       fNtotal;      // Total number of events
    Long64_t    fNtransported; // Number of transported tracks
+   Long64_t    fNprimaries;  // Number of primary tracks
    Long64_t    fNsafeSteps;  // Number of fast steps within safety
    Long64_t    fNsnextSteps; // Number of steps where full snext computation is needed
+   Long64_t    fNphysSteps;  // Number of steps to physics process
    Int_t       fNprocesses;  // Number of active processes
    Int_t       fElossInd;    // Index of eloss process
    Int_t       fNstart;      // Cumulated initial number of tracks
@@ -110,7 +112,8 @@ public:
 //   GeantBasket     *InjectBasket(GeantBasket *basket);
    static 
    GeantPropagator *Instance(Int_t ntotal=0, Int_t nbuffered=0);
-   void             PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   void             ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   void             ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
 //   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
    PhysicsProcess  *Process() const {return fProcess;}
    void             PropagatorGeom(const char *geomfile="geometry.root",

@@ -48,7 +48,13 @@ public:
                              Int_t /*tid*/)                             {}
   virtual void Eloss(        TGeoMaterial */*mat*/,
                              Int_t /*ntracks*/,
-                             GeantTrack_v &/*tracks*/)                  {}
+                             GeantTrack_v &/*tracks*/,
+                             Int_t &/*nout*/,
+                             Int_t /*tid*/)                                 {}
+  virtual void ApplyMsc(     TGeoMaterial */*mat*/,
+                             Int_t /*ntracks*/,
+                             GeantTrack_v &/*tracks*/,
+                             Int_t /*tid*/)                             {}
 
   ClassDef(PhysicsProcess,1)    // Physics process base class
 };

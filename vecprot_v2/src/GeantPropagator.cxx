@@ -1,6 +1,6 @@
 // A simple propagator taking as input a set of particles located in a given
 // volume AND the global matrix of the volume. 
-// The PhysicsSelect() method choses between a "scattering" process with no eloss 
+// The ProposeStep() method choses between a "scattering" process with no eloss 
 // and a "ionization" process and generates a random "physical" step. In this simple 
 // model all particlea undertake the same list of processes
 // The ScatteringProcess() method emulates scattering and changes the particle 
@@ -36,16 +36,12 @@
 #include "TGeoMatrix.h"
 #include <fenv.h>
 
-//#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/navigationstate.h"
 #include "navigation/simple_navigator.h"
 #include "management/rootgeo_manager.h"
 #include "volumes/logical_volume.h"
 #include "volumes/placed_volume.h"
-//#else
 #include "TGeoBranchArray.h"
-//#endif
-
 #include "TTree.h"
 #include "TFile.h"
 #include "TStopwatch.h"
@@ -69,8 +65,6 @@
 #include "GeantEvent.h"
 #include "GeantScheduler.h"
 
-#include <vector>
-
 GeantPropagator *gPropagator = 0;
    
 ClassImp(GeantPropagator)
@@ -84,8 +78,10 @@ GeantPropagator::GeantPropagator()
                  fNevents(100),
                  fNtotal(1000),
                  fNtransported(0),
+                 fNprimaries(0),
                  fNsafeSteps(0),
                  fNsnextSteps(0),
+                 fNphysSteps(0),
                  fNprocesses(3),
                  fElossInd(0),
                  fNstart(0),
@@ -165,7 +161,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track)
    Int_t slot = track.fEvslot;
    track.fParticle = fEvents[slot]->AddTrack();
 //   fNtracks[slot]++;
-//   fNtransported++;
+   fNtransported++;
    return track.fParticle;
 }
 
@@ -208,8 +204,6 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
    track.fPath = new VolumePath_t();
    track.fNextpath = new VolumePath_t();
 #endif
-   //  track.fPath = new TGeoBranchArray();
- //  track.fNextpath = new TGeoBranchArray();
    return track;
 }
 
@@ -242,7 +236,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
       if (!nav) nav = gGeoManager->AddNavigator();
       TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
-
+      // *td->fMatrix = nav->GetCurrentMatrix();
       vol = node->GetVolume();
       td->fVolume = vol;
       a->InitFromNavigator(nav);
@@ -251,6 +245,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    }
    else {
       TGeoNode const *node = a->GetCurrentNode();
+     // *td->fMatrix = a->GetMatrix();
       vol = node->GetVolume();
       td->fVolume = vol;
    }     
@@ -284,6 +279,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
       ntracks = td->fRndm->Poisson(average);
       ntotal += ntracks;
+      fNprimaries += ntracks;
       if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
       fEvents[slot]->SetSlot(slot);
       fEvents[slot]->SetEvent(event);
@@ -291,12 +287,13 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       
       for (Int_t i=0; i<ntracks; i++) {
          GeantTrack &track = GetTempTrack(tid);
-         // this takes a pointer to a VolumePath but copies it internally
          track.SetPath(a);
          track.SetNextPath(a);
          track.SetEvent(event);
          track.SetEvslot(slot);
          Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
+//         track.SetPDG(kMuonMinus); // G5code=28
+//         track.SetG5code(28);
 //         track.SetPDG(kMuonPlus); // G5code=27
 //         track.SetG5code(27);
          track.SetPDG(kElectron); // G5code=23
@@ -350,8 +347,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          pdgCount[i] = 0;
       }   
    }
- //  Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
-  //         ntotal, startevent, startevent+nevents-1, ndispatched);
+   Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
+           ntotal, startevent, startevent+nevents-1, ndispatched);
    return ndispatched;
 }
 
@@ -481,7 +478,15 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PhysicsSelect(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+{
+// Apply multiple scattering for charged particles.
+   GeantThreadData *td = fThreadData[tid];
+   fProcess->ApplyMsc(td->fVolume->GetMaterial(), ntracks, tracks, tid);
+}   
+
+//______________________________________________________________________________
+void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Generate all physics steps for the tracks in trackin.
    GeantThreadData *td = fThreadData[tid];
@@ -592,11 +597,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    fWMgr->JoinThreads();
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
-   Printf("=== Transported: %lld,  safety steps: %lld,  snext steps: %lld, RT=%gs, CP=%gs", fNtransported, fNsafeSteps, fNsnextSteps,rtime,ctime);
+   Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
+          fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
-   fprintf(fp,"%d %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,rtime,ctime);
+   fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    fclose(fp);
    fOutFile = 0;
    fOutTree = 0;

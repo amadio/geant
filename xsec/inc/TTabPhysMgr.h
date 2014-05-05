@@ -43,15 +43,15 @@ public:
             indprod, GeantTrack_v &output);//not. imp. but done
    // API used by particle transport
    void  ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   void  Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks);
+   Int_t Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   void  GetRestFinSates(Int_t partindex, TEFstate *elemfstate, Double_t energyLimit,
+   void  GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid);
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack_v &tracks, Int_t itrack);
-   void  RotateTrack(GeantTrack_v &tracks, Int_t itrack, Float_t theta, Float_t phi);
+   void  RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, Double_t phi);
 
    void SetIsRestProcOn(Bool_t boolval){fIsRestProcOn = boolval;}
 

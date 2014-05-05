@@ -223,7 +223,7 @@ void *WorkloadManager::MainScheduler(void *)
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
-     // Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
+      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
 #ifdef __STAT_DEBUG
            sch->GetPendingStat().Print();
            sch->GetQueuedStat().Print();
@@ -238,15 +238,15 @@ void *WorkloadManager::MainScheduler(void *)
          if (evt->Transported()) {
             // Digitizer (delete for now)
             Int_t ntracks = propagator->fNtracks[ievt];
-     //       Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
+            Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
 //            propagator->fApplication->Digitize(evt->GetEvent());
-//            for (Int_t itrack=0; itrack<ntracks; itrack++) {
+//            for (Int_t itrack=0; itrack--------------------------------------------------<ntracks; itrack++) {
 //               delete propagator->fTracks[maxperevent*ievt+itrack];
 //               propagator->fTracks[maxperevent*ievt+itrack] = 0;
 //            }
             finished.SetBitNumber(evt->GetEvent());
             if (last_event<max_events) {
-      //         Printf("=> Importing event %d", last_event);
+               Printf("=> Importing event %d", last_event);
                ninjected += propagator->ImportTracks(1,propagator->fNaverage,last_event,ievt);
                last_event++;
             }
@@ -260,7 +260,7 @@ void *WorkloadManager::MainScheduler(void *)
          first_not_transported = finished.FirstNullBit();
          if (first_not_transported > dumped_event) {
             // Priority events digitized, exit prioritized regime
-          //  Printf("= stopped prioritizing");
+            Printf("= stopped prioritizing");
             prioritize = kFALSE;
             sch->SetPriorityRange(-1, -1);
          } else {
@@ -272,14 +272,14 @@ void *WorkloadManager::MainScheduler(void *)
                   feederQ->reset_countdown();
                   npriority = sch->FlushPriorityBaskets();
                   ninjected += npriority;
-               //   Printf("Flushed %d priority baskets, resetting countdown", npriority);
+                  Printf("Flushed %d priority baskets, resetting countdown", npriority);
                } else {
-               //   Printf("Countdown is %d", feederQ->get_countdown());
+                  Printf("Countdown is %d", feederQ->get_countdown());
                }
             } else {
                npriority = sch->FlushPriorityBaskets();
                ninjected = npriority;
-              // Printf("Flushed %d priority baskets", npriority);
+               Printf("Flushed %d priority baskets", npriority);
 #ifdef __STAT_DEBUG
            Printf("After FlushPriorityBaskets:");
            sch->GetPendingStat().Print();
@@ -328,7 +328,7 @@ void *WorkloadManager::MainScheduler(void *)
            countdown = kTRUE;
            ntotransport = feederQ->size_async();
            feederQ->set_countdown(ntotransport);
-       //    Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
+           Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
            continue;
         }
         nwaiting = propagator->GetNwaiting();
@@ -337,10 +337,8 @@ void *WorkloadManager::MainScheduler(void *)
       }
       ntotransport = feederQ->size_async();
       if (ntotransport==0) {
-#ifdef VERBOSE
-    	 Printf("Garbage collection");
-#endif
-    	 sch->GarbageCollect();
+         Printf("Garbage collection");
+         sch->GarbageCollect();
          if (countdown) feederQ->set_countdown(0);
       }
       nperbasket = 0;
@@ -394,6 +392,7 @@ void *WorkloadManager::TransportTracks(void *)
    static Int_t counter=0;
    Int_t ntotnext, ncross;
    Int_t ntotransport;
+   Int_t nextra_at_rest = 0;
    Int_t generation = 0;
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
@@ -404,12 +403,9 @@ void *WorkloadManager::TransportTracks(void *)
    Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
-
-   // Create navigator if none serving this thread -- just to make sure that a Navigor exists??
-   // actually not used here
+   // Create navigator if none serving this thread.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
-
    propagator->fWaiting[tid] = 1;
    Int_t iev[500], itrack[500];
    // TGeoBranchArray *crt[500], *nxt[500];
@@ -430,13 +426,10 @@ void *WorkloadManager::TransportTracks(void *)
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
-#ifdef VERBOSE
-      Printf("===================================================");
-      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
-      basket->Print();
-      Printf("===================================================");
-#endif
-      // propagator->fTracksPerBasket[tid] = ntotransport;
+//      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
+//      basket->Print();
+//      Printf("==========================================");
+//      propagator->fTracksPerBasket[tid] = ntotransport;
       td->fVolume = basket->GetVolume();
       
       // Record tracks
@@ -457,7 +450,9 @@ void *WorkloadManager::TransportTracks(void *)
       }
 */
       // Select the discrete physics process for all particles in the basket
-      if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
+      if (propagator->fUsePhysics) propagator->ProposeStep(ntotransport, input, tid);
+      // Apply msc for charged tracks
+      propagator->ApplyMsc(ntotransport, input, tid);
       
       ncross = 0;
       generation = 0;
@@ -465,11 +460,13 @@ void *WorkloadManager::TransportTracks(void *)
       while (ntotransport) {
          // Interrupt condition here. Work stealing could be also implemented here...
          generation++;
+//         Printf("====== WorkloadManager:");
+//         input.PrintTracks();
          // Propagate all remaining tracks
          if (basket->IsMixed()) 
-            ncross += input.PropagateTracksSingle(output);
+            ncross += input.PropagateTracksSingle(output,tid);
          else   
-            ncross += input.PropagateTracks(output);
+            ncross += input.PropagateTracks(output,tid);
          ntotransport = input.GetNtracks();
       }
       // All tracks are now in the output track vector. Possible statuses:
@@ -482,7 +479,9 @@ void *WorkloadManager::TransportTracks(void *)
       // Post-step actions by continuous processes for all particles. There are no 
       // new generated particles at this point.
       if (propagator->fUsePhysics) {
-         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output);
+         nextra_at_rest = 0;
+         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output, nextra_at_rest, tid);
+//         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
       }   
 /*
       if (propagator->fUsePhysics) {
@@ -664,7 +663,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
          }   
       }
       // Select the discrete physics process for all particles in the basket
-      //if (propagator->fUsePhysics) propagator->PhysicsSelect(ntotransport, input, tid);
+      //if (propagator->fUsePhysics) propagator->ProposeStep(ntotransport, input, tid);
 
       //ncross = 0;
       generation = 0;
