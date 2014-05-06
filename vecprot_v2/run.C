@@ -1,7 +1,7 @@
 void run(Int_t nthreads=1, Bool_t graphics=kFALSE, 
 //         const char *geomfile="gexam1.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
-	 const char *geomfile="Ex03.root")
+	 const char *geomfile="ExN03.root")
 {
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");
