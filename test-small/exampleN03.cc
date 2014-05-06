@@ -53,7 +53,6 @@
 #include "G4UIExecutive.hh"
 #endif
 
-#include "MaterialConverter.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTable.hh"
 void RegisterG4Particles(); 
@@ -95,8 +94,7 @@ int main(int argc,char** argv)
   //
   runManager->Initialize();
 
-  // MaterialConverter::Instance()->Initialize();
-  MaterialConverter::Instance()->CreateRootMaterials();
+  // MaterialConverter::Instance()->CreateRootMaterials();
 
   RegisterG4Particles(); 
     
