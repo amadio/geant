@@ -1207,7 +1207,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
     using vecgeom::GeoManager;
     typedef Vector3D<Precision> Vector3D_t;
 
-     VolumePath_t * a = new VolumePath_t( GeoManager::Instance().getMaxDepth() );
+    //     VolumePath_t * a = new VolumePath_t( GeoManager::Instance().getMaxDepth() );
 
     SimpleNavigator nav;
     for (Int_t i=0; i<ntracks; ++i)
@@ -1219,14 +1219,14 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
         }
 #endif
 
-    	a->Clear();
-    	nav.LocatePoint( GeoManager::Instance().world(),
-    			Vector3D_t( x[i], y[i], z[i] ), *a, true );
-        if( a->Top() != NULL && a->Top() != pathin[i]->Top() )
-         {
-             Printf("INCONSISTENT PATH TRACK %d, boundary state %d", i, isonbdr[i] );
-             a->GetCurrentNode()->Print();
-             pathin[i]->GetCurrentNode()->Print();
+      //    	a->Clear();
+      //    	nav.LocatePoint( GeoManager::Instance().world(),
+      //    			Vector3D_t( x[i], y[i], z[i] ), *a, true );
+      //        if( a->Top() != NULL && a->Top() != pathin[i]->Top() )
+      //         {
+      //             Printf("INCONSISTENT PATH TRACK %d, boundary state %d", i, isonbdr[i] );
+      //             a->GetCurrentNode()->Print();
+      //             pathin[i]->GetCurrentNode()->Print();
 //             Printf("environment supposed path" );
 //             nav.InspectEnvironmentForPointAndDirection(
 //                             Vector3D_t( x[i], y[i], z[i] )  /*global pos */,
@@ -1237,7 +1237,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 //                                         Vector3D_t( x[i], y[i], z[i] )  /*global pos*/ ,
 //                                         Vector3D_t( dirx[i], diry[i], dirz[i] )  /*global dir*/ ,
 //                                         *a);
-         }
+//         }
 
 
 //      assert( a->Top() == pathin[i]->Top() );
