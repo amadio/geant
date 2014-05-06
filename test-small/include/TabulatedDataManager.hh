@@ -26,18 +26,22 @@ public:
 
   TabulatedDataManager();
   ~TabulatedDataManager();	
-  TabulatedDataManager(TGeoManager* geom, const char* xsecfilename, 
+   TabulatedDataManager(TGeoManager* geom, 
+                       const char* xsecfilename, 
 		       const char* finalsfilename);	
   
   G4double GetInteractionLength(G4int imat, const G4Track& atrack);
   void SampleSecondaries(std::vector<GXTrack*>* vdp, G4int imat, 
                          const G4Track* atrack, G4int ireac);
 
-  TEFstate ** GetElemFstate() { return fElemFstate; }
+  TEFstate **   GetElemFstate()   { return fElemFstate; }
+
+  static void   SetTGeomManager(TGeoManager* tgm) { fgGeom= tgm; } 
+  TGeoManager*  GetTGeomManager() { return fgGeom; } 
 
 private:
 
-  static TabulatedDataManager* theInstance;
+  static TabulatedDataManager* fgInstance;
 
   G4int            fNelements;    // Total number of elements in the geometry
   G4int            fNmaterials;   // Total number of materials in the geometry
@@ -45,7 +49,7 @@ private:
   TEXsec         **fElemXsec;     // Array of x-section pointers per element
   TEFstate       **fElemFstate;   // Array of final state pointers per element
   TMXsec         **fMatXsec;      // Array of x-section pointers per material 
-  TGeoManager     *fGeom;         // Pointer to the geometry manager   
+  static TGeoManager *fgGeom;         // Pointer to the geometry manager   
 };
 
 #endif
