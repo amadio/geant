@@ -31,33 +31,24 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#ifndef PhysicsList_h
-#define PhysicsList_h 1
+#ifndef SimplePhysicsList_h
+#define SimplePhysicsList_h 1
 
 #include "G4VUserPhysicsList.hh"
 #include "globals.hh"
 
-#include "G4PiKBuilder_WP.hh"
-#include "G4BertiniPiKBuilder.hh"
-#include "G4FTFPPiKBuilder.hh"
-
-#include "G4ProtonBuilder_WP.hh"
-#include "G4BertiniProtonBuilder.hh"
-#include "G4FTFPNeutronBuilder.hh"
-#include "G4FTFPProtonBuilder.hh"
-
-#include "G4NeutronBuilder_WP.hh"
-#include "G4BertiniNeutronBuilder.hh"
-#include "G4FTFPNeutronBuilder.hh"
-// #include "G4LEPNeutronBuilder.hh"
+///
+//    Physics list which uses the Tabulations for all physics processes
+//    These are implemented as one 'super-process' which takes over from and hides the details 
+//     of original physics processes.
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VUserPhysicsList
+class SimplePhysicsList: public G4VUserPhysicsList
 {
 public:
-  PhysicsList();
-  virtual ~PhysicsList();
+  SimplePhysicsList();
+  virtual ~SimplePhysicsList();
 
   // Construct particle and physics
   void ConstructParticle();
@@ -68,26 +59,13 @@ public:
 private:
 
   // these methods Construct physics processes and register them
+  void ConstructTotal();
   void ConstructDecay();
-  void ConstructEM();
+  // void ConstructEM();
   // this is the wrapper process for a simplified HadronPhysicsTFTP_BERT
   void HadronPhysicsFTFP_BERT_WP();
 
 private:
-  G4NeutronBuilder_WP * theNeutrons;
-  G4BertiniNeutronBuilder * theBertiniNeutron;
-  G4FTFPNeutronBuilder * theFTFPNeutron;
-  // G4LEPNeutronBuilder * theLEPNeutron;        //needed for capture&fission
- 
-  G4PiKBuilder_WP * thePiK;
-  G4BertiniPiKBuilder * theBertiniPiK;
-  G4FTFPPiKBuilder * theFTFPPiK;
-    
-  G4ProtonBuilder_WP * thePro;
-  G4BertiniProtonBuilder * theBertiniPro;
-  G4FTFPProtonBuilder * theFTFPPro;    
-
-  G4bool QuasiElastic;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

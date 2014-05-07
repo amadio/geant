@@ -1,107 +1,288 @@
 //
 // S.Y. Jun & J. Apostolakis, April 2014
 //
+#include "G4Track.hh"
 #include "TabulatedDataManager.hh"
 
 #include "TSystem.h"
 #include "TFile.h"
-#include <TPartIndex.h>
-#include <TEXsec.h>
-#include <TEFstate.h>
+#include "TError.h"
+#include "TBits.h"
+#include "TMath.h"
 
-TabulatedDataManager::TabulatedDataManager() :
-  mxsec(0), 
-  fstrack_h(0)
+#include "TPartIndex.h"
+#include "TEXsec.h"
+#include "TMXsec.h"
+#include "TEFstate.h"
+
+#include "TGeoManager.h"
+#include "TGeoMaterial.h"
+#include "TGeoExtension.h"
+
+TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
+TGeoManager *TabulatedDataManager::fgGeom= 0 ;         // Pointer to the geometry manager   
+
+TabulatedDataManager* TabulatedDataManager::Instance()
 {
-  //tabulated physics data
-  char* fxsecFileName = getenv("VP_DATA_XSEC");
-  char* ffstaFileName = getenv("VP_DATA_FSTA");
+  if (fgInstance == 0) {
+    // char* gdmlFileName = getenv("VP_GEOM_GDML");
+    char* xsecFileName = getenv("VP_DATA_XSEC");
+    char* fstaFileName = getenv("VP_DATA_FSTA");
+    
+    if( !fgGeom ) { 
+          // if(gdmlFileName && xsecFileName && fstaFileName) {    
+          // fGeom = TGeoManager::Import(gdmlFileName);
 
-  if (fxsecFileName) fxsec = new TFile(fxsecFileName,"r");
-  else               fxsec = new TFile("xsec_FTFP.root","r");
-  if (ffstaFileName) ffsta = new TFile(ffstaFileName,"r");
-  else               ffsta = new TFile("fstate_FTFP.root","r");
+          ::Error("TabulatedDataManager::Instance", "Missing pointer to TGeomManager");
+          return 0;
+    }
+    else{
+       if(xsecFileName && fstaFileName) {
+          fgInstance = new TabulatedDataManager(fgGeom,xsecFileName,fstaFileName);
+       }
+       else {
+          ::Error("TabulatedDataManager::Instance",
+                  "Missing VP_DATA_XSEC VP_DATA_FSTA");
+          exit(1);
+          return 0;
+       }
+    }
+  }
+  return fgInstance;
 }
 
 TabulatedDataManager::~TabulatedDataManager() {
-  free(mxsec);
-  free(fstrack_h);
+  fgInstance = 0;
+  delete [] fMatXsec;
+  delete [] fElemXsec;
+  delete [] fElemFstate;
 }
 
-void TabulatedDataManager::PrepareTable(const char* pnam, const char* reac) 
+TabulatedDataManager::TabulatedDataManager() :
+  fNelements(0),
+  fNmaterials(0),
+  fElemXsec(0),
+  fElemFstate(0),
+  fMatXsec(0)
+  // fgGeom(0)
 {
-  //no checks for particle and reaction for now
+}
 
-  TPartIndex* tp = (TPartIndex*)fxsec->Get("PartIndex");
-  const Int_t nbins = TPartIndex::I()->NEbins();
-  Int_t ipart = TPartIndex::I()->PartIndex(pnam);
+TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
+					   const char* xsecfilename,
+					   const char* finalsfilename) :
+  fNelements(0),
+  fNmaterials(0),
+  fElemXsec(0),
+  fElemFstate(0),
+  fMatXsec(0)
+  //, fgGeom(geom)
+{
+  //this is clone of TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, 
+  //                 const char* xsecfilename, const char* finalsfilename): 
+
+  std::cout << "TabulatedDataManager - constructor called." << std::endl;
+
+  if( fgGeom != geom ) { 
+     Fatal("TabulateDataManager", "Conflicting pointers to TGeoManager"); 
+  }
+
+  //Open xsec_FTFP_BERT.root file and fstate_FTFP_BERT.root
+  TFile *fxsec = TFile::Open(xsecfilename);
+  if (!fxsec) {
+    Fatal("TabulatedDataManager", "Cannot open %s", xsecfilename);
+  }   
+  fxsec->Get("PartIndex");
   
-  //setup for material (PbWO4) - the part should be generalized with G4Material
-  const Int_t max_element = 3;
-  const Int_t element[max_element] = {82,74,8};
-  const Int_t natom[max_element]   = {1,1,4};
-  const Float_t watom[max_element] = {207.2,183.84,16};
+  TFile *fstate = TFile::Open(finalsfilename);
+  if (!fstate) {
+    Fatal("TabulatedDataManager", "Cannot open %s", finalsfilename);
+  }   
   
-  Float_t tweight = 0.0;
-  Float_t weight[max_element]; 
-  for(Int_t ie = 0; ie < max_element ; ++ie) tweight += watom[ie]*natom[ie];
-
-  //number of final states sampled by VP
-  Int_t nsamp = 10;
+  //Load elements from geometry
+  TList *matlist = (TList*) geom->GetListOfMaterials();
   
-  mxsec = (double*) malloc((max_element+1)*nbins*sizeof(double));
-  fstrack_h = (GXTrack *) malloc (nbins*nsamp*max_element*sizeof(GXTrack));
+  TIter next(matlist);
+  TGeoMaterial *mat=0;
   
-  for(Int_t ie = 0; ie < max_element ; ++ie) {
-    
-    const char* mat = TPartIndex::I()->EleSymb(element[ie]);
-    
-    //cross section per element with the weight in [mm^-1]
-    weight[ie] = 6.02486*8.28*natom[ie]/tweight; 
-    TEXsec *mate = (TEXsec*)fxsec->Get(mat);
-    
-    Double_t emin = mate->Emin();
-    Double_t emax = mate->Emax();
-    Double_t delta = exp(log(emax/emin)/(nbins-1));
-    //xsec per element and the composite material
-    Int_t rcode = tp->ProcIndex(reac);
-    Double_t en=emin;
-    for(Int_t ib=0; ib < nbins; ++ib) {
-      Float_t xs = mate->XS(ipart,rcode,en);
-      mxsec[ib] += xs*weight[ie];
-      mxsec[ib+(ie+1)*nbins] = xs*weight[ie];
-      en*=delta;
-    }
-
-    TEFstate *fss = (TEFstate *) 
-      ffsta->Get(TPartIndex::I()->EleSymb(element[ie]));
-
-    Int_t ireac = TPartIndex::I()->ProcIndex(reac);
-    size_t dindex = 0;
-
-    for(Int_t ien=0; ien < TPartIndex::I()->NEbins(); ++ien) {
-      for(Int_t is=0; is<nsamp; ++is) {
-        dindex = is + nsamp*(ien + nbins+nbins*ie);       
-        
-        Float_t kerma=0;
-        Float_t w=0;
-        Float_t enr=0;
-        Int_t npart=0;
-        const Int_t *pid=0;
-        const Float_t *mom=0;
-        
-        // Test of energy conservation in inelastic
-        const Double_t *egrid = TPartIndex::I()->EGrid();
-        
-	Bool_t isurv = fss->GetReac(ipart, ireac, egrid[ien], is, npart, 
-				    w, kerma, enr, pid, mom);
-        if(mom) {
-          fstrack_h[dindex].px = mom[3*is];
-          fstrack_h[dindex].py = mom[3*is+1];
-          fstrack_h[dindex].pz = mom[3*is+2];
-          fstrack_h[dindex].E  = enr;
-        }
+  // Setting the energy grid in our current application (might be different than
+  // the one that we used to sample the x-sections from G4)
+  TPartIndex::I()->SetEnergyGrid(1e-3,1e3,100); // should be outside
+  
+  //INFO: print number of materials in the current TGeoManager
+  printf("#materials:= %d \n",matlist->GetSize());
+  
+  // First loop on all materials to mark used elements
+  TBits elements(NELEM);
+  while((mat = (TGeoMaterial*) next())) {
+    std::cout << "TabulatedDataManager> Checking material " << mat->GetName() << std::endl;
+    if(!mat->IsUsed() || mat->GetZ()<1.) continue;
+    fNmaterials++;
+    Int_t nelem = mat->GetNelements();
+    // Check if we are on the safe side; should exit otherwise        
+    if(nelem>MAXNELEMENTS){
+      Fatal("TabulatedDataManager",
+	    "Number of elements in %s is %d > MAXNELEMENTS=%d\n",
+	    mat->GetName(),nelem,MAXNELEMENTS);
+    } 
+    for(Int_t iel=0; iel<nelem; ++iel) {
+      Double_t ad;
+      Double_t zd;
+      Double_t wd;
+      mat->GetElementProp(ad,zd,wd,iel);
+      if (zd<1 || zd>NELEM) {
+	Fatal("TabulatedDataManager",
+	      "In material %s found element with z=%d > NELEM=%d",
+	      mat->GetName(), (Int_t)zd, NELEM);
       }
+      elements.SetBitNumber(zd);
+    }
+  }
+  fNelements = elements.CountBits();
+  fElemXsec = new TEXsec*[NELEM];
+  fElemFstate = new TEFstate *[NELEM];
+  fMatXsec = new TMXsec*[fNmaterials];
+  printf("Reading xsec and final states for %d elements in %d materials\n",
+	 fNelements, fNmaterials);
+  
+  // Loop elements and load corresponding xsec and final states
+  Int_t zel = elements.FirstSetBit();
+  Int_t nbits = elements.GetNbits();
+  TEXsec *exsec;
+  TEFstate *estate;
+
+  // Load elements xsec data in memory
+  ProcInfo_t  procInfo1, procInfo2;
+  gSystem->GetProcInfo(&procInfo1);
+  
+  while (zel<nbits) {
+    
+    exsec = TEXsec::GetElement(zel,0,fxsec);
+    fElemXsec[zel] = exsec;
+    fElemXsec[zel]-> SetIndex(zel); //quick access to the corresponding fstate 
+    estate = TEFstate::GetElement(zel,0,fstate);
+    fElemFstate[zel] = estate;
+    printf("   loaded xsec data and states for: %s\n", 
+	   TPartIndex::I()->EleSymb(zel));
+    zel = elements.FirstSetBit(zel+1);
+  }
+  
+  gSystem->GetProcInfo(&procInfo2);
+  // Long_t mem = (procInfo2.fMemResident - procInfo1.fMemResident)/1024;
+  fxsec->Close();
+  fstate->Close();
+
+  // xsec and states now in memory   
+  // Go through all materials in the geometry and form the associated TMXsec 
+  // objects. 
+
+  Int_t *z = new Int_t[MAXNELEMENTS];
+  Int_t *a = new Int_t[MAXNELEMENTS];
+  Float_t *w = new Float_t[MAXNELEMENTS];
+  fNmaterials = 0;
+  next.Reset();
+
+  while((mat = (TGeoMaterial*) next())) {
+    if(!mat->IsUsed()) continue;
+    Int_t nelem = mat->GetNelements();
+    // loop over the elements of the current material in order to obtain the
+    // z, a, w, arrays of the elements of this material
+    Double_t ad;
+    Double_t zd;
+    Double_t wd;
+    for(Int_t iel=0; iel<nelem; ++iel) {
+      mat->GetElementProp(ad,zd,wd,iel);
+      a[iel]=ad;
+      z[iel]=zd;
+      w[iel]=wd;
+    }
+    //Construct the TMXsec object that corresponds to the current material
+    TMXsec *mxs = new TMXsec(mat->GetName(),mat->GetTitle(),
+			     z,a,w,nelem,mat->GetDensity(),kTRUE);
+    fMatXsec[fNmaterials++] = mxs;       
+    // Connect to TGeoMaterial 
+    mat->SetFWExtension(new TGeoRCExtension(mxs));      
+  }// End of while
+  
+  delete [] z;
+  delete [] a;
+  delete [] w;
+  
+  Int_t nelements = TEXsec::NLdElems();
+  if (nelements != fNelements) Error("TabulatedDataManager",
+				     "Number of elements not matching");
+  
+  // INFO: print some info for checking  
+  printf("number of materials in fMatXsec[]:= %d\n", fNmaterials);
+  for(Int_t i=0; i<fNmaterials; ++i)
+    printf("   fMatXsec[%d]: %s\n",i,fMatXsec[i]->GetName());
+}
+
+G4double TabulatedDataManager::GetInteractionLength(G4int imat, 
+						    const G4Track& track)
+{
+  G4double x = DBL_MAX;
+
+  G4int inpid = track.GetDynamicParticle()->GetPDGcode();
+  G4int ipart = TPartIndex::I()->PartIndex(inpid);
+  G4double en = track.GetKineticEnergy();
+  
+  if (imat >= 0 ||imat < fNmaterials) x = fMatXsec[imat]->Xlength(ipart,en);
+  
+  return x;
+}
+
+void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp, 
+					     G4int imat, 
+					     const G4Track* atrack,
+					     G4int ireac)
+{
+  //select random atom
+  TGeoMaterial *mat = (TGeoMaterial*)fgGeom->GetListOfMaterials()->At(imat);
+  TMXsec *mxs = 
+    ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+
+  G4int inpid = atrack->GetDynamicParticle()->GetPDGcode();
+  G4int ipart = TPartIndex::I()->PartIndex(inpid);
+  G4double kineticEnergy = atrack->GetKineticEnergy();
+
+  G4int indexElem = mxs->SelectElement(ipart,ireac,kineticEnergy);
+  
+  if(indexElem<0) return;
+  
+  //sample secondaries and store to vdp
+  G4int nSecPart     = 0;  //number of secondary particles per reaction
+  // G4int nTotSecPart  = 0;  //total number of secondary particles in tracks
+  const G4int *pid   = 0;  //GeantV particle codes [nSecPart]
+  const G4float *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
+  Float_t  ener      = 0;  //energy at the fstate (Ekin of primary after the interc.)
+  G4float  kerma     = 0;  //released energy
+  G4float  weight    = 0;  //weight of the fstate (just a dummy parameter now)
+  char     isSurv    = 0;  //is the primary survived the interaction   
+
+  isSurv = fElemFstate[indexElem]->SampleReac(ipart, ireac, kineticEnergy, 
+				   nSecPart, weight, kerma, ener, pid, mom);
+  if(nSecPart>0) {
+
+    for(G4int is = 0 ; is < nSecPart ; ++is) {
+      G4int secPDG = TPartIndex::I()->PDG(pid[is]); //Geant V particle code
+
+      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+      G4double secMass  = secPartPDG->Mass();
+      G4double secPtot2 = mom[3*is]*mom[3*is]+mom[3*is+1]*mom[3*is+1]
+	                + mom[3*is+2]*mom[3*is+2]; //total P^2 [GeV^2]
+      // G4double secPtot  = TMath::Sqrt(secPtot2); //total P [GeV]
+      G4double secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
+      G4double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
+
+      GXTrack* secTrack = (GXTrack *) malloc(sizeof(GXTrack));
+      secTrack->id = secPDG;
+      secTrack->px = mom[3*is];
+      secTrack->py = mom[3*is+1];
+      secTrack->pz = mom[3*is+2];
+      secTrack->E  = secEkin;
+
+      vdp->push_back(secTrack);
     }
   }
 }

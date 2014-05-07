@@ -52,6 +52,13 @@
 #include "G4Colour.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
+
+//  Helper class to convert material to Root/Vector prototype
+#include "MaterialConverter.hh"
+#include <TGeoManager.h> 
+
+TGeoManager * DetectorConstruction::fgGeomMgrRoot= 0 ;         // Pointer to the geometry manager   
+
 //
 //***LOOK HERE FOR GDML PARSER
 //
@@ -78,9 +85,17 @@ DetectorConstruction::DetectorConstruction()
   // materials
   DefineMaterials();
   SetAbsorberMaterial("Lead");
-  SetGapMaterial("liquidArgon");
- 
-  // create commands for interactive definition of the calorimeter
+  SetGapMaterial("Scintillator"); 
+  // SetGapMaterial("liquidArgon");
+
+  //  Load the corresponding Root geometry - on failure report and continue4b
+  char* gdmlFileName = getenv("VP_GEOM_GDML");
+  if( gdmlFileName ) {
+     fgGeomMgrRoot = TGeoManager::Import(gdmlFileName);
+  }else{
+     G4cerr << "DetectorConstruction: Cannot find environment variable VP_GEOM_GDML for Root GDML file" << G4endl;
+  }
+ // create commands for interactive definition of the calorimeter
   detectorMessenger = new DetectorMessenger(this);
 }
 
@@ -90,10 +105,54 @@ DetectorConstruction::~DetectorConstruction()
 { delete detectorMessenger;}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#include "TabulatedDataManager.hh"
+#include "MaterialConverter.hh"
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-  return ConstructCalorimeter();
+  G4cout << " ** DetectorConstruction::Construct(): Start " << G4endl;
+  G4VPhysicalVolume* pvCalorimeter=   ConstructCalorimeter();
+
+  if( fgGeomMgrRoot ) { 
+     G4cout << "DetectorConstruction> A Root TGeoManager already exists. "  << G4endl;
+
+     TabulatedDataManager::SetTGeomManager( fgGeomMgrRoot ); 
+     MaterialConverter::SetTGeomManager( fgGeomMgrRoot ); 
+
+     bool onlyUsed= false;
+     MaterialConverter* matConverter = MaterialConverter::Instance();
+     matConverter->DumpListOfMaterials(onlyUsed=false);
+    
+     std::cout << " Connecting G4 materials to Root materials. "  << std::endl;
+     MaterialConverter::Instance()->ConnectG4andRootMaterials();
+     matConverter->DumpListOfMaterials(onlyUsed=false);
+  }else{
+    G4cout << "DetectorConstruction> Creating new TGeoManager."  << G4endl;
+    
+     char* gdmlFileName = getenv("VP_GEOM_GDML");
+     if( gdmlFileName ){
+       std::cout << " Creating empty TGeoManager by reading Root geometry from file " << gdmlFileName  << G4endl;
+       fgGeomMgrRoot = TGeoManager::Import(gdmlFileName);
+     }else{
+       std::cout << " Creating empty TGeoManager " << std::endl;
+       fgGeomMgrRoot = new TGeoManager();
+
+     }
+     TabulatedDataManager::SetTGeomManager( fgGeomMgrRoot );
+     MaterialConverter::SetTGeomManager( fgGeomMgrRoot );
+
+     bool onlyUsed= false;
+     MaterialConverter* matConverter = MaterialConverter::Instance();
+     matConverter->DumpListOfMaterials(onlyUsed=false);
+    
+     G4cout << " Constructing Root materials from materials. "  << G4endl;
+
+     // MaterialConverter::Instance()    ->CreateRootMaterials();
+     matConverter->CreateRootMaterials();
+     matConverter->DumpListOfMaterials(onlyUsed=false);
+  }
+  std::cout << " ** DetectorConstruction::Construct() Ended " << std::endl;
+  return pvCalorimeter;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -118,8 +177,9 @@ G4Element* H  = new G4Element("Hydrogen",symbol="H" , z= 1., a= 1.01*g/mole);
 G4Element* C  = new G4Element("Carbon"  ,symbol="C" , z= 6., a= 12.01*g/mole);
 G4Element* N  = new G4Element("Nitrogen",symbol="N" , z= 7., a= 14.01*g/mole);
 G4Element* O  = new G4Element("Oxygen"  ,symbol="O" , z= 8., a= 16.00*g/mole);
-G4Element* Si = new G4Element("Silicon",symbol="Si" , z= 14., a= 28.09*g/mole);
+  // G4Element* Si = new G4Element("Silicon",symbol="Si" , z= 14., a= 28.09*g/mole);
 
+#if DEFINE_DETAILED_ELEMENT
 //
 // define an Element from isotopes, by relative abundance 
 //
@@ -130,7 +190,8 @@ G4Isotope* U8 = new G4Isotope("U238", iz=92, n=238, a=238.03*g/mole);
 G4Element* U  = new G4Element("enriched Uranium",symbol="U",ncomponents=2);
 U->AddIsotope(U5, abundance= 90.*perCent);
 U->AddIsotope(U8, abundance= 10.*perCent);
-
+#endif
+  
 //
 // define simple materials
 //
@@ -149,12 +210,24 @@ H2O->AddElement(H, natoms=2);
 H2O->AddElement(O, natoms=1);
 // overwrite computed meanExcitationEnergy with ICRU recommended value 
 H2O->GetIonisation()->SetMeanExcitationEnergy(78.0*eV);
-
+  
 G4Material* Sci = 
 new G4Material("Scintillator", density= 1.032*g/cm3, ncomponents=2);
 Sci->AddElement(C, natoms=9);
 Sci->AddElement(H, natoms=10);
 
+//
+// define a material from elements.   case 2: mixture by fractional mass
+//
+
+G4Material* Air =
+new G4Material("Air"  , density= 1.290*mg/cm3, ncomponents=2);
+Air->AddElement(N, fractionmass=0.7);
+Air->AddElement(O, fractionmass=0.3);
+  
+  //  For now, do not use the materials below
+  // ---------------------------------------------
+#if 0
 G4Material* Myl = 
 new G4Material("Mylar", density= 1.397*g/cm3, ncomponents=3);
 Myl->AddElement(C, natoms=10);
@@ -165,15 +238,6 @@ G4Material* SiO2 =
 new G4Material("quartz",density= 2.200*g/cm3, ncomponents=2);
 SiO2->AddElement(Si, natoms=1);
 SiO2->AddElement(O , natoms=2);
-
-//
-// define a material from elements.   case 2: mixture by fractional mass
-//
-
-G4Material* Air = 
-new G4Material("Air"  , density= 1.290*mg/cm3, ncomponents=2);
-Air->AddElement(N, fractionmass=0.7);
-Air->AddElement(O, fractionmass=0.3);
 
 //
 // define a material from elements and/or others materials (mixture of mixtures)
@@ -218,13 +282,15 @@ beam->AddMaterial(Air, fractionmass=1.);
 //
 G4NistManager* man = G4NistManager::Instance();
 man->FindOrBuildMaterial("G4_SODIUM_IODIDE");
-
+#endif
+  
 // print table
 //
 G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 
 //default materials of the World
-defaultMaterial  = Vacuum;
+defaultMaterial  = Air;
+// defaultMaterial  = Vacuum;
   
 }
 

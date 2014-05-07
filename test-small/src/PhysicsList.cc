@@ -49,7 +49,7 @@ PhysicsList::PhysicsList():  G4VUserPhysicsList()
 			  , theNeutrons(0)
 			  , theBertiniNeutron(0)
 			  , theFTFPNeutron(0)
-			  , theLEPNeutron(0)
+                          // , theLEPNeutron(0)
 			  , thePiK(0)
 			  , theBertiniPiK(0)
 			  , theFTFPPiK(0)
@@ -69,7 +69,7 @@ PhysicsList::~PhysicsList()
   delete theNeutrons;
   delete theBertiniNeutron;
   delete theFTFPNeutron;
-  delete theLEPNeutron;    
+  // delete theLEPNeutron;
 
   delete thePiK;
   delete theBertiniPiK;
@@ -114,7 +114,7 @@ void PhysicsList::ConstructProcess()
   ConstructEM();
   ConstructDecay();
 
-  HadronPhysicsFTFP_BERT_WP();
+  //  HadronPhysicsFTFP_BERT_WP();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -144,6 +144,8 @@ void PhysicsList::ConstructProcess()
 
 #include "TabulatedProcess.hh"
 #include "VectorizedProcess.hh"
+#include "TabulatedDataManager.hh"
+#include "TPartIndex.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -169,28 +171,24 @@ void PhysicsList::ConstructEM()
       char* plname = getenv("PHYSLIST");
 
       if ( plname && strcmp(plname,"TabulatedPhysics")==0) {
-	//use tabulated physics
 	G4eIonisation* eIoniProc = new G4eIonisation();
 	TabulatedProcess* eIoniWrapperProc = 
 	  new TabulatedProcess(eIoniProc->GetProcessName(),
-			       eIoniProc->GetProcessType());
+			       eIoniProc->GetProcessType(),
+			       kIonisation);
 	eIoniWrapperProc->SetProcessSubType(eIoniProc->GetProcessSubType());
 	eIoniWrapperProc->RegisterProcess(eIoniProc);
 	ph->RegisterProcess(eIoniWrapperProc, particle);
 
-	//	G4ProcessManager* theProcMan = 
-	//	  G4Electron::Electron()->GetProcessManager();
-	//      theProcMan->AddDiscreteProcess(eIoniWrapperProc);
-	//      theProcMan->AddContinuousProcess(eIoniWrapperProc);
-	//@@@or	theProcMan->AddProcess(eIoniWrapperProc,-1,0,0);
-	
 	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
 	TabulatedProcess* eBremWrapperProc = 
 	  new TabulatedProcess(eBremProc->GetProcessName(),
-			       eBremProc->GetProcessType());
+			       eBremProc->GetProcessType(),
+			       kBrehms);
 	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
 	eBremWrapperProc->RegisterProcess(eBremProc);
 	ph->RegisterProcess(eBremWrapperProc, particle);
+	
       }
       else if ( plname && strcmp(plname,"VectorizedPhysics")==0) {
 	//use vectorized physics
@@ -310,9 +308,9 @@ void PhysicsList::HadronPhysicsFTFP_BERT_WP()
   theNeutrons->RegisterMe(theBertiniNeutron=new G4BertiniNeutronBuilder);
   theBertiniNeutron->SetMinEnergy(0.0*GeV);
   theBertiniNeutron->SetMaxEnergy(5*GeV);
-  theNeutrons->RegisterMe(theLEPNeutron=new G4LEPNeutronBuilder);
-  theLEPNeutron->SetMinInelasticEnergy(0.0*eV);   // no inelastic from LEP
-  theLEPNeutron->SetMaxInelasticEnergy(0.0*eV);  
+  // theNeutrons->RegisterMe(theLEPNeutron=new G4LEPNeutronBuilder);
+  // theLEPNeutron->SetMinInelasticEnergy(0.0*eV);   // no inelastic from LEP
+  // theLEPNeutron->SetMaxInelasticEnergy(0.0*eV);
 
   thePro=new G4ProtonBuilder_WP;
   theFTFPPro=new G4FTFPProtonBuilder(QuasiElastic);
