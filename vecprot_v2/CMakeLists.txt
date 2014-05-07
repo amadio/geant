@@ -3,6 +3,15 @@
 
 include_directories(inc)
 
+set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
+set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
+# Bug in VC (?), cannot compile without optimisation
+set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O1")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_FLAGS_MINSIZEREL}")
+set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_LINKER_FLAGS}")
+
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
