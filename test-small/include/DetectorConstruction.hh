@@ -36,6 +36,7 @@
 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
+#include <TGeoManager.h>
 
 class G4Box;
 class G4LogicalVolume;
@@ -138,7 +139,10 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     
      void DefineMaterials();
      void ComputeCalorParameters();
-     G4VPhysicalVolume* ConstructCalorimeter();     
+     G4VPhysicalVolume* ConstructCalorimeter();    
+
+private: 
+     static TGeoManager *fgGeomMgrRoot;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

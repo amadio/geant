@@ -118,7 +118,8 @@ TotalPhysicsProcess::PostStepDoIt(const G4Track& track, const G4Step& step)
 {
   // Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
   
-  static TGeoManager* tGeom= MaterialConverter::GetGeomMgr();
+  // static 
+  TGeoManager* tGeom= MaterialConverter::GetTGeomManager();
   fSecParticles.clear();
 
   // OLD, to be replaced - see below

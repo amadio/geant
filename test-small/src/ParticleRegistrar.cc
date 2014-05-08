@@ -84,7 +84,7 @@ TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
   
   // Get particle data
   G4String g4Name = particleDefinition->GetParticleName();
-  G4int pdgQ = G4int(particleDefinition->GetPDGCharge()/eplus);
+  G4int pdgQ = G4int(particleDefinition->GetPDGCharge()/CLHEP::eplus);
   // !! here we do not save dynamic charge but the static one
   G4String g4Type = particleDefinition->GetParticleType();
   G4String rootType = g4Type;
@@ -103,9 +103,9 @@ TParticlePDG *AddParticleToPdgDatabase(const G4String& name,
   // Add particle to TDatabasePDG
   return TDatabasePDG::Instance()
   ->AddParticle(name, g4Name,
-                particleDefinition->GetPDGMass()/GeV,
+                particleDefinition->GetPDGMass()/CLHEP::GeV,
                 particleDefinition->GetPDGStable(),
-                particleDefinition->GetPDGWidth()/GeV,
+                particleDefinition->GetPDGWidth()/CLHEP::GeV,
                 pdgQ*3, rootType, pdgEncoding);
 }
 

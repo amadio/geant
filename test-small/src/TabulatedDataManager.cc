@@ -19,30 +19,40 @@
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
 
-TabulatedDataManager* TabulatedDataManager::theInstance = 0;
+TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
+TGeoManager *TabulatedDataManager::fgGeom= 0 ;         // Pointer to the geometry manager   
 
 TabulatedDataManager* TabulatedDataManager::Instance()
 {
-  if (theInstance == 0) {
-    char* gdmlFileName = getenv("VP_GEOM_GDML");
+  if (fgInstance == 0) {
+    // char* gdmlFileName = getenv("VP_GEOM_GDML");
     char* xsecFileName = getenv("VP_DATA_XSEC");
     char* fstaFileName = getenv("VP_DATA_FSTA");
     
-    if(gdmlFileName && xsecFileName && fstaFileName) {    
-      TGeoManager* geom = TGeoManager::Import(gdmlFileName);
-      theInstance = new TabulatedDataManager(geom,xsecFileName,fstaFileName);
+    if( !fgGeom ) { 
+          // if(gdmlFileName && xsecFileName && fstaFileName) {    
+          // fGeom = TGeoManager::Import(gdmlFileName);
+
+          ::Error("TabulatedDataManager::Instance", "Missing pointer to TGeomManager");
+          return 0;
     }
-    else {
-      ::Error("TabulatedDataManager::Instance",
-	      "Missing VP_GEOM_GDML VP_DATA_XSEC VP_DATA_FSTA");
-      return 0;
+    else{
+       if(xsecFileName && fstaFileName) {
+          fgInstance = new TabulatedDataManager(fgGeom,xsecFileName,fstaFileName);
+       }
+       else {
+          ::Error("TabulatedDataManager::Instance",
+                  "Missing VP_DATA_XSEC VP_DATA_FSTA");
+          exit(1);
+          return 0;
+       }
     }
   }
-  return theInstance;
+  return fgInstance;
 }
 
 TabulatedDataManager::~TabulatedDataManager() {
-  theInstance = 0;
+  fgInstance = 0;
   delete [] fMatXsec;
   delete [] fElemXsec;
   delete [] fElemFstate;
@@ -53,8 +63,8 @@ TabulatedDataManager::TabulatedDataManager() :
   fNmaterials(0),
   fElemXsec(0),
   fElemFstate(0),
-  fMatXsec(0),
-  fGeom(0)
+  fMatXsec(0)
+  // fgGeom(0)
 {
 }
 
@@ -65,11 +75,17 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   fNmaterials(0),
   fElemXsec(0),
   fElemFstate(0),
-  fMatXsec(0),
-  fGeom(geom)
+  fMatXsec(0)
+  //, fgGeom(geom)
 {
   //this is clone of TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, 
   //                 const char* xsecfilename, const char* finalsfilename): 
+
+  std::cout << "TabulatedDataManager - constructor called." << std::endl;
+
+  if( fgGeom != geom ) { 
+     Fatal("TabulateDataManager", "Conflicting pointers to TGeoManager"); 
+  }
 
   //Open xsec_FTFP_BERT.root file and fstate_FTFP_BERT.root
   TFile *fxsec = TFile::Open(xsecfilename);
@@ -99,6 +115,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   // First loop on all materials to mark used elements
   TBits elements(NELEM);
   while((mat = (TGeoMaterial*) next())) {
+    std::cout << "TabulatedDataManager> Checking material " << mat->GetName() << std::endl;
     if(!mat->IsUsed() || mat->GetZ()<1.) continue;
     fNmaterials++;
     Int_t nelem = mat->GetNelements();
@@ -221,7 +238,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
 					     G4int ireac)
 {
   //select random atom
-  TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+  TGeoMaterial *mat = (TGeoMaterial*)fgGeom->GetListOfMaterials()->At(imat);
   TMXsec *mxs = 
     ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
 

@@ -49,7 +49,7 @@
 #include "G4NeutronBuilder_WP.hh"
 #include "G4BertiniNeutronBuilder.hh"
 #include "G4FTFPNeutronBuilder.hh"
-#include "G4LEPNeutronBuilder.hh"
+// #include "G4LEPNeutronBuilder.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -77,7 +77,7 @@ private:
   G4NeutronBuilder_WP * theNeutrons;
   G4BertiniNeutronBuilder * theBertiniNeutron;
   G4FTFPNeutronBuilder * theFTFPNeutron;
-  G4LEPNeutronBuilder * theLEPNeutron;        //needed for capture&fission
+  // G4LEPNeutronBuilder * theLEPNeutron;        //needed for capture&fission
  
   G4PiKBuilder_WP * thePiK;
   G4BertiniPiKBuilder * theBertiniPiK;
