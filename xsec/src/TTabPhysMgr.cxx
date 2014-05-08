@@ -173,12 +173,16 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename,
          z[iel]=zd;
          w[iel]=wd;
       }
+      if (nelem==0) {
+         mat->Dump();
+         Fatal("TTabPhysMgr","The material (%s) seems to have no elements",mat->GetName());
+      }
       //Construct the TMXsec object that corresponds to the current material
       TMXsec *mxs = new TMXsec(mat->GetName(),mat->GetTitle(),
-		       z,a,w,nelem,mat->GetDensity(),kTRUE);
+                               z,a,w,nelem,mat->GetDensity(),kTRUE);
       fMatXsec[fNmaterials++] = mxs;       
-      // Connect to TGeoMaterial 
-      mat->SetFWExtension(new TGeoRCExtension(mxs));      
+      // Connect to TGeoMaterial
+      mat->SetFWExtension(new TGeoRCExtension(mxs));
    }// End of while
    delete [] z;
    delete [] a;

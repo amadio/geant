@@ -94,7 +94,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    } else {
       //ratios[0]=1;
       fRatios[0]=1.0;
-      hnorm=TPartIndex::I()->WEle(z[0]);
+      hnorm = TPartIndex::I()->WEle(z[0]);
    }
 
    //   if(weight) printf("By weight: ");
