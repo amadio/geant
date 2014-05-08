@@ -1103,6 +1103,19 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
    TMath::Normalize(dir);
    fXposV[i] = point[0]; fYposV[i] = point[1]; fZposV[i] = point[2];
    fXdirV[i] = dir[0]; fYdirV[i] = dir[1]; fZdirV[i] = dir[2];
+
+
+   // alternative code with lean stepper would be:
+   // ( stepper header has to be included )
+   //   geantv::ConstBzFieldHelixStepper stepper( gPropagator->fBmag );
+   //   double xnew, ynew, znew;
+   //   double dxnew, dynew, dznew;
+   //   stepper.DoStep( fXposV[i], fYposV[i], fZposV[i],
+   //                   fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
+   //              xnew, ynew, znew, dxnew, dynew, dznew );
+   //  maybe normalize direction here
+   //   fXposV[i] = xnew; fYposV[i] = ynew; fZposV[i] = znew;
+   //   fXdirV[i] = dxnew; fYdirV[i] = dynew; fZdirV[i] = dznew;
 }
 
 //______________________________________________________________________________
