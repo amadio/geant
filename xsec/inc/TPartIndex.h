@@ -47,16 +47,16 @@ public:
    // Process name <- process index
    const Char_t* ProcName(Int_t proc) const;
    // Process index <- Process name
-   Int_t ProcIndex(const Char_t *reac) const {Int_t nr=fNProc;
-      while(nr--) if(!strcmp(reac,fPrName[nr])) break; return nr;}
+   Int_t ProcIndex(const Char_t *reac) const {Int_t nr=fgNProc;
+      while(nr--) if(!strcmp(reac,fgPrName[nr])) break; return nr;}
 
 
    // Process index <- G4 process*1000+subprocess
    Int_t ProcIndex(Int_t proccode) const;      
    // Process index <- G4 process*1000+subprocess
-   Int_t ProcCode(Int_t procindex) const {return fPCode[procindex];}
+   static Int_t ProcCode(Int_t procindex) /* const */ {return fgPCode[procindex];}
 
-   Short_t NProc() const {return fNProc;}
+   static Short_t NProc() /* const */ {return fgNProc;}
  
    // Fill the particle table
    void SetPartTable(const Int_t *vpdg, Int_t np);
@@ -91,10 +91,10 @@ public:
    Double_t EilDelta() const {return fEilDelta;}
    const Double_t* EGrid() const {return fEGrid;}
 
-   static const char* EleSymb(Int_t z) {return fEleSymbol[z-1];}
-   static const char* EleName(Int_t z) {return fEleName[z-1];}
-   static Float_t WEle(Int_t z) {return fWElem[z-1];}
-   static Int_t NElem() {return fNElem;}
+   static const char* EleSymb(Int_t z) {return fgEleSymbol[z-1];}
+   static const char* EleName(Int_t z) {return fgEleName[z-1];}
+   static Float_t WEle(Int_t z) {return fgWElem[z-1];}
+   static Int_t NElem() {return fgNElem;}
 
    void Print(Option_t *option="") const;
    //approximated formula for nuclear mass computation; for handling fragments
@@ -106,14 +106,14 @@ private:
    
    static TPartIndex *fgPartIndex;
 
-   static const Int_t   fNProc=FNPROC;    // Number of processes
-   static const char   *fPrName[FNPROC];  // Process name
-   static const Short_t fPCode[FNPROC];   // G4 process codes
+   static const Int_t   fgNProc=FNPROC;    // Number of processes
+   static const char   *fgPrName[FNPROC];  // Process name
+   static const Short_t fgPCode[FNPROC];   // G4 process codes
 
-   static const Int_t   fNElem=NELEM;       // Number of Elements
-   static const Char_t *fEleSymbol[NELEM]; // Symbol of Element
-   static const Char_t *fEleName[NELEM];   // Name of Element
-   static const Float_t fWElem[NELEM];     // Weight of a mole in grams
+   static const Int_t   fgNElem=NELEM;       // Number of Elements
+   static const Char_t *fgEleSymbol[NELEM]; // Symbol of Element
+   static const Char_t *fgEleName[NELEM];   // Name of Element
+   static const Float_t fgWElem[NELEM];     // Weight of a mole in grams
 
    Int_t    fNPart;         // Total number of particles
    Int_t   *fPDG;           // [fNPart] PDG code of all part

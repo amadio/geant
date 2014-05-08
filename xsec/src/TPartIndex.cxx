@@ -5,14 +5,14 @@
 
 ClassImp(TPartIndex)
 
-const char* TPartIndex::fPrName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
+const char* TPartIndex::fgPrName[FNPROC]={"Transport","MultScatt","Ionisation","Decay","inElastic",
 			   "Elastic","RestCapture","Brehms","PairProd","Annihilation",
 			   "CoulombScatt","Photoel","Compton","Conversion","Capture","Fission",
 					"Killer","Total"};
-const Short_t TPartIndex::fPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
+const Short_t TPartIndex::fgPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
 					  2012,2013,2014,4131,4141,7403,999};
 
-const char* TPartIndex::fEleSymbol[NELEM]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
+const char* TPartIndex::fgEleSymbol[NELEM]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
 				"Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V",
 				"Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se",
 				"Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh",
@@ -23,7 +23,7 @@ const char* TPartIndex::fEleSymbol[NELEM]={"H","He","Li","Be","B","C","N","O","F
 				"Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm",
 				"Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg",
 				"Cn","Uut","Fl","Uup","Lv","Uus","Uuo"};
-const char* TPartIndex::fEleName[NELEM]={"Hydrogen","Helium","Lithium","Beryllium","Boron",
+const char* TPartIndex::fgEleName[NELEM]={"Hydrogen","Helium","Lithium","Beryllium","Boron",
 				"Carbon","Nitrogen","Oxygen","Fluorine","Neon",
 				"Sodium","Magnesium","Aluminium","Silicon","Phosphorus",
 				"Sulfur","Chlorine","Argon","Potassium","Calcium",
@@ -48,21 +48,21 @@ const char* TPartIndex::fEleName[NELEM]={"Hydrogen","Helium","Lithium","Berylliu
 				"Flerovium","Ununpentium","Livermorium","Ununseptium",
 				"Ununoctium"};
 
-const Float_t TPartIndex::fWElem[NELEM]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
-					18.998,20.180,22.990,24.305,26.982,28.085,30.974,32.06,
-					35.45,39.948,39.098,40.078,44.956,47.867,50.942,51.996,
-					54.938,55.845,58.933,58.693,63.546,65.38,69.723,72.63,
-					74.922,78.96,79.904,83.798,85.468,87.62,88.906,91.224,
-					92.906,95.96,97.91,101.07,102.91,106.42,107.87,112.41,
-					114.82,118.71,121.76,127.60,126.90,131.29,132.91,137.33,
-					138.91,140.12,140.91,144.24,144.91,150.36,151.96,157.25,
-					158.93,162.50,164.93,167.26,168.93,173.05,174.97,178.49,
-					180.95,183.84,186.21,190.23,192.22,195.08,196.97,200.59,
-					204.38,207.2,208.98,208.98,209.99,222.02,223.02,226.03,
-					227.03,232.04,231.04,238.03,237.05,244.06,243.06,247.07,
-					247.07,251.08,252.08,257.10,258.10,259.10,262.11,265.12,
-					268.13,271.13,270,277.15,276.15,281.16,280.16,285.17,
-					284.18,289.19,288.19,293,294,294};
+const Float_t TPartIndex::fgWElem[NELEM]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
+                                          18.998,20.180,22.990,24.305,26.982,28.085,30.974,32.06,
+                                          35.45,39.948,39.098,40.078,44.956,47.867,50.942,51.996,
+                                          54.938,55.845,58.933,58.693,63.546,65.38,69.723,72.63,
+                                          74.922,78.96,79.904,83.798,85.468,87.62,88.906,91.224,
+                                          92.906,95.96,97.91,101.07,102.91,106.42,107.87,112.41,
+                                          114.82,118.71,121.76,127.60,126.90,131.29,132.91,137.33,
+                                          138.91,140.12,140.91,144.24,144.91,150.36,151.96,157.25,
+                                          158.93,162.50,164.93,167.26,168.93,173.05,174.97,178.49,
+                                          180.95,183.84,186.21,190.23,192.22,195.08,196.97,200.59,
+                                          204.38,207.2,208.98,208.98,209.99,222.02,223.02,226.03,
+                                          227.03,232.04,231.04,238.03,237.05,244.06,243.06,247.07,
+                                          247.07,251.08,252.08,257.10,258.10,259.10,262.11,265.12,
+                                          268.13,271.13,270,277.15,276.15,281.16,280.16,285.17,
+                                          284.18,289.19,288.19,293,294,294};
 
 TPartIndex* TPartIndex::fgPartIndex=0;
 
@@ -105,15 +105,15 @@ void TPartIndex::SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins) {
 
 //___________________________________________________________________
 Int_t TPartIndex::ProcIndex(Int_t proccode) const {
-   Short_t ip=fNProc;
-   while(ip--) if(fPCode[ip]==proccode) break;
+   Short_t ip=fgNProc;
+   while(ip--) if(fgPCode[ip]==proccode) break;
    return ip;
 }
 
 //___________________________________________________________________
 const Char_t *TPartIndex::ProcName(Int_t proc) const {
-   if(proc<0 || proc>=fNProc) return "Unknown";
-   return fPrName[proc];
+   if(proc<0 || proc>=fgNProc) return "Unknown";
+   return fgPrName[proc];
 }
 
 //___________________________________________________________________
@@ -155,12 +155,12 @@ void TPartIndex::Print(Option_t *option) const
       printf("Available reactions:\n");
       memset(line,0,120);
       strcat(line,"Total ");
-      for(Int_t i=0; i<fNProc; ++i) {
-	 if(strlen(line)+strlen(fPrName[i])+1>119) {
+      for(Int_t i=0; i<fgNProc; ++i) {
+	 if(strlen(line)+strlen(fgPrName[i])+1>119) {
 	    printf("%s\n",line);
 	    memset(line,0,120);
 	 }
-	 strcat(line,fPrName[i]);
+	 strcat(line,fgPrName[i]);
 	 strcat(line," ");
       }
       if(strlen(line)) printf("%s\n",line);
