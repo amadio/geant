@@ -120,8 +120,9 @@ namespace geantv
       // turns out to be same as:
       BaseDType phi = step /(R*invnorm);
 
-      BaseDType cosphi=cos(phi);
-      BaseDType sinphi=sin(phi);
+      BaseDType cosphi;
+      BaseDType sinphi;
+      sincos(phi, &sinphi, &cosphi);
 
       x = x0 + R*( -sina - ( -cosphi*sina - sinphi*cosa ));
       y = y0 + R*( cosa  - (-sina*sinphi + cosphi*cosa ));
