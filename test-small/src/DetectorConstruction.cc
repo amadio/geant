@@ -224,6 +224,10 @@ G4Material* Air =
 new G4Material("Air"  , density= 1.290*mg/cm3, ncomponents=2);
 Air->AddElement(N, fractionmass=0.7);
 Air->AddElement(O, fractionmass=0.3);
+
+G4Material* Vacuum =
+new G4Material("Galactic", z=1., a=1.01*g/mole,density= universe_mean_density,
+                           kStateGas, 2.73*kelvin, 3.e-18*pascal);
   
   //  For now, do not use the materials below
   // ---------------------------------------------
@@ -289,8 +293,8 @@ man->FindOrBuildMaterial("G4_SODIUM_IODIDE");
 G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 
 //default materials of the World
-defaultMaterial  = Air;
-// defaultMaterial  = Vacuum;
+//defaultMaterial  = Air;
+defaultMaterial  = Vacuum;
   
 }
 

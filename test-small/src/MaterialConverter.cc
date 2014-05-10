@@ -127,8 +127,11 @@ void MaterialConverter::ConnectG4andRootMaterials()
   ExpandG4Indices(nmaterials); // Ensure that G4MatIndex has the necessary space (known)
                                // fRootMatIndex.reserve(nmaterials);
   ExpandRtIndices(nmaterials); // Ensure that RTIndex    has the predicted space (true max tbd)
-  
+
+  std::cout<< "\n==================MATERIAL=CONVERTER=START================="<<std::endl;  
   for(G4int imatG4=0; imatG4<nmaterials; ++imatG4) {
+    std::cout<< "\n==========================================================="<<std::endl;
+             
     G4Material *g4mat = (*theG4MaterialTable)[imatG4];
     
     // Check the G4 index
@@ -148,14 +151,20 @@ void MaterialConverter::ConnectG4andRootMaterials()
     Int_t rtMatIdx= -1;
       
     // TGeoMaterial     *GetMaterial(const char *matname) const;
-    tgeoMaterial= fTGeomMgr->GetMaterial(g4mat->GetName()) ;
-      
+    //tgeoMaterial= fTGeomMgr->GetMaterial(g4mat->GetName()) ;
+    const G4String rootMatName = g4mat->GetName();//+'0'; 
+    tgeoMaterial= fTGeomMgr->GetMaterial(rootMatName) ;
+   
     if( tgeoMaterial != 0 ){
       // Find the Root index for this material ?
       rtMatIdx= tgeoMaterial->GetIndex();
 
-      std::cout << "MaterialConverter> Found Material with Name= "
-           << g4mat->GetName() << "  in TGeoManager. " << std::endl;
+      std::cout << "MaterialConverter::" << std::endl;
+      std::cout << "*** FOUND Material with Name= "
+                << g4mat->GetName() << "  in TGeoManager." << std::endl;
+      std::cout << "*** " << "Index of " << g4mat->GetName() 
+                << " in [ Geant4 , TGeoMgr ]= [ " << imatG4 << " , " 
+                << rtMatIdx << " ]"  << std::endl;
 
       // Could check here whether the material is correct, and
       // return an error if otherwise
@@ -165,27 +174,36 @@ void MaterialConverter::ConnectG4andRootMaterials()
     }
     else
     {
-      std::cout << "MaterialConverter> Did not find Material with  Name= " << g4mat->GetName() << "  in TGeoManager. " << std::endl;
+      std::cout << "MaterialConverter::" << std::endl;
+      std::cout << "*** Did NOT find Material with  Name= " 
+                << g4mat->GetName() << " in TGeoManager. " << std::endl;
+      std::cout << "*** " << g4mat->GetName() << " is composed from "<< numElements 
+                << " elements." << std::endl;
 
       if( numElements == 1 ) {
         tgeoMaterial =
-          new TGeoMaterial(g4mat->GetName(), g4mat->GetA(), g4mat->GetZ(),
+          new TGeoMaterial(rootMatName, g4mat->GetA(), g4mat->GetZ(),
                            g4mat->GetDensity(),   // Units => Root Units ?
                            g4mat->GetRadlen(),
                            g4mat->GetNuclearInterLength() );
       }else{
         // G4ElementVector* elementVec= g4mat->GetElementVector();
         const G4double*  g4elemFractions= g4mat->GetFractionVector();
-      
-        TGeoMixture *tgeoMixture = new TGeoMixture(g4mat->GetName(), numElements, g4mat->GetDensity() );
+        TGeoMixture *tgeoMixture = new TGeoMixture(rootMatName, numElements, 
+                                                   g4mat->GetDensity() );
         for( int ielem = 0; ielem < numElements ; ielem++ )
         {
           const G4Element* g4elem= g4mat->GetElement(ielem);
           tgeoMixture->AddElement(g4elem->GetA(), g4elem->GetZ(), g4elemFractions[ielem]);
         }
-        tgeoMaterial = tgeoMixture;
+        //tgeoMaterial = tgeoMixture;
       }
-      rtMatIdx= fTGeomMgr->AddMaterial(tgeoMaterial);
+      //rtMatIdx= fTGeomMgr->AddMaterial(tgeoMaterial); already added by the CTRs
+      rtMatIdx = fTGeomMgr->GetMaterialIndex(rootMatName);
+      std::cout << "*** " << g4mat->GetName() << " has been added to TGeoMgr!"<< std::endl;
+      std::cout << "*** " << "Index of " << g4mat->GetName() << " in [ Geant4 , TGeoMgr ]= [ " 
+                << imatG4 << " , " << rtMatIdx << " ]"  << std::endl;
+
     }
     
     // Create index for correspondence between G4 and TGeo Materials
@@ -194,9 +212,9 @@ void MaterialConverter::ConnectG4andRootMaterials()
     fRootMatIndices[imatG4]= rtMatIdx;
     ExpandG4Indices(rtMatIdx); // In case Root creates larger indices for some reason
     fG4MatIndices[rtMatIdx]= imatG4;
-    
-    std::cout << "MatConv> G4 Material # " << imatG4 << " corresponds to Root Material " << rtMatIdx << ".  Name= " << g4mat->GetName() << " " << std::endl;
   }
+  std::cout<< "\n===================MATERIAL=CONVERTER=END==================\n\n"<<std::endl;  
+
   // IdentifyUsedMaterials();
 
   fInitialized= true;
