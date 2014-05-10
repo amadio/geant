@@ -22,6 +22,10 @@
 #include "TParticlePDG.h"
 #include "TPartIndex.h"
 
+// DON'T DON'T DON'T DON'T DO THIS !!!!!
+// IT WILL MESS UP THE WHOLE XSEC LIBRARY AND THE PARTICLE TYPE MAPPING IN THE
+// TABULATED DATA STRUCTURE !!!!
+// SEE TPartIndex CODES AND UNDERSTAND WHAT IT IS FOR BEFORE USING IT !!!!!
 void RegisterG4Particles()
 {
   // Store the particle table into PartIndex
@@ -52,7 +56,9 @@ void RegisterG4Particles()
            << " for particle " << particleDef->GetParticleName() << std::endl;
      }
   }
-  TPartIndex::I()->SetPartTable(pPDG,np);
+//  DON'T MODIFY THIS! PDG ARRAY IN TPartIndex MUST BE AS IT IS IN THE 
+//  xsec_*.root FILE !!!
+//  TPartIndex::I()->SetPartTable(pPDG,np);
 }
 
 static TMap partDict;
