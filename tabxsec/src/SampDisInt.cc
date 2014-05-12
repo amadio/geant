@@ -419,6 +419,7 @@ G4int SampleOne(G4Material* material,
       
       // Update the PostStepPoint of Step according to ParticleChange
       aChange->UpdateStepForAlongStep(step);
+      step->UpdateTrack();
 
       // Check the energy loss during the Along Step
       if( std::fabs(gTrack->GetKineticEnergy() - e0) > 0.5*e0 ) {  
@@ -547,6 +548,8 @@ G4int SampleOne(G4Material* material,
            (const char *)pname,
            (const char *)material->GetName(),
            (const char *)name);
+   
+    //printf("KERMA 1 := %f kinEnergy 1:= %f\n", fs.kerma, gTrack->GetKineticEnergy());
     // !step->GetTrack()->GetMomentum() is a null-vector if the status is fStop...
     // because kinetic energy of the particle is set to zero. Momentum conservation
     // cannot be checked in these cases and will be skipped.!  	
@@ -652,7 +655,10 @@ G4int SampleOne(G4Material* material,
   G4int ntot = isurv+n+iextra;
   fs.npart = 0;
   fs.weight = 1; // for the moment all events have the same prob
-  fs.en = dpart->GetKineticEnergy();
+  fs.en = gTrack->GetKineticEnergy();
+  //printf("KERMA 2 := %f kinEnergy 2:= %f\n", fs.kerma, fs.en);
+     
+
   if(ntot) {
     fs.mom = new G4float[3*(ntot)];
     fs.pid = new G4int[ntot];
@@ -683,7 +689,23 @@ G4int SampleOne(G4Material* material,
   G4DynamicParticle *secs=0;
   
   // ----------------------------------- Generated secondaries ----------------------------
-
+      // post-interaction primary
+  if(verbose>1) {
+      G4cout << "POST INTERACTION INFO: " << G4endl; 
+      G4cout << "E-depo: gTrack->GetStep()->GetTotalEnergyDeposit() = "
+             <<  gTrack->GetStep()->GetTotalEnergyDeposit()
+             << G4endl;
+      if(gTrack->GetTrackStatus() == fAlive || gTrack->GetTrackStatus() == fStopButAlive) {
+       sec = gTrack->GetDynamicParticle();
+       pd = sec->GetDefinition();
+       G4cout << "Post-inter. primary "
+       << pd->GetParticleName() << " (" << pd->GetPDGEncoding() << ") "
+       << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
+       << " p= " << sec->Get4Momentum() << " Ekin =  " << sec->GetKineticEnergy()
+       << G4endl;
+      }
+  }
+ 
   if(n) secs = new G4DynamicParticle[n];
   
   for(G4int i=0; i<n; ++i) {
@@ -708,7 +730,7 @@ G4int SampleOne(G4Material* material,
       G4cout << " Sec[" << i << "]="
       << pd->GetParticleName() << " (" << pd->GetPDGEncoding() << ") "
       << " Z= " << pd->GetAtomicNumber() << " B= " << pd->GetBaryonNumber()
-      << " p= " << sec->Get4Momentum()
+      << " p= " << sec->Get4Momentum() << " Ekin =  " << sec->GetKineticEnergy()
       << G4endl;
     }
   }
