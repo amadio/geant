@@ -49,7 +49,7 @@ public:
 private:
   G4int                 fMaterialIndex;
   G4int                 fParticleId; 
-  G4VParticleChange*    fParticleChange;
+  G4ParticleChange*     fParticleChange;
   // G4ParticleDefinition* fSecDefinition;
   TabulatedDataManager* theDataManager;
   // TTabPhysMgr *pTTabPhysMgr;

@@ -18,6 +18,7 @@
 #include "TGeoManager.h"
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
+#include "G4ParticleChange.hh"
 
 TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
 TGeoManager *TabulatedDataManager::fgGeom= 0 ;         // Pointer to the geometry manager   
@@ -225,11 +226,11 @@ G4double TabulatedDataManager::GetInteractionLength(G4int imat,
 
   G4int inpid = track.GetDynamicParticle()->GetPDGcode();
   G4int ipart = TPartIndex::I()->PartIndex(inpid);
-  G4double en = track.GetKineticEnergy();
-  
+  G4double en = track.GetKineticEnergy()/CLHEP::GeV; //E is [GeV] in the tab.data
+
   if (imat >= 0 ||imat < fNmaterials) x = fMatXsec[imat]->Xlength(ipart,en);
-  
-  return x;
+
+  return x*cm; // length is in [cm] in the tab.data
 }
 
 void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp, 
@@ -286,3 +287,212 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
     }
   }
 }
+
+//sampling element for interaction and type of interaction on that element
+Int_t TabulatedDataManager::SampleInteraction(  const G4int gvmaterialindex, // root material index
+                                                const G4Track &atrack,
+                                                Int_t &reactionid) {    
+  G4int     partIndex;   // GV particle index 
+  G4double  kinEnergy;   // kinetic energy of the particle in GeV
+ 
+  partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->GetPDGEncoding() );
+  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV;
+ 
+  // sampling element for intercation based on element-wise relative tot-xsecs
+  // and sampling the interaction itself based on the relative total xsections 
+  // on the selected element
+  TEXsec *elemXsec = fMatXsec[gvmaterialindex]->SampleInt( partIndex, kinEnergy,
+                                                           reactionid);
+
+  std::cout<< "\n=========SAMPLING INTERACTION====USING=GV-TABPHYS=================\n" 
+           << "***  Particle is       = " << TPartIndex::I()->PartName(partIndex) << " \n"  
+           << "***  Particle E kin.   = " << kinEnergy << " [GeV]"                << " \n"
+           << "***  Selected element  = " << elemXsec->GetName()                  << " \n" 
+           << "***  Selected reaction = index: " << reactionid << " which is "
+           <<                      TPartIndex::I()->ProcName(reactionid)
+           << "\n==================================================================\n"
+           << std::endl;
+
+  return elemXsec->Index();
+}
+
+//sampling final state, put 2ndaries into the particle change, update primary, 
+//do proper transformations if necessary
+void TabulatedDataManager::SampleFinalState(const Int_t elementindex, 
+                       const Int_t reactionid, const G4Track &atrack, 
+                       G4ParticleChange *particlechange){
+
+  Int_t nSecPart     = 0;  //number of secondary particles per reaction
+  const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
+  const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
+  Float_t  energyFst = 0;  //energy at the fstate (Ekin of primary after the interc.)
+  Float_t  kerma     = 0;  //released energy
+  Float_t  weightFst = 0;  //weight of the fstate (just a dummy parameter now)
+  Char_t   isSurv    = 0;  //is the primary survived the interaction
+  
+  Int_t  partindex    = TPartIndex::I()->PartIndex(atrack.GetParticleDefinition()->GetPDGEncoding());
+  Double_t  kinEnergy = atrack.GetDynamicParticle()->GetKineticEnergy()/CLHEP::GeV;
+    std::cout << "EKINE " << kinEnergy << std::endl; 
+ 
+  isSurv = fElemFstate[elementindex]->SampleReac(partindex,
+                                                 reactionid,
+                                                 kinEnergy,
+                                                 nSecPart,
+                                                 weightFst,
+                                                 kerma,
+                                                 energyFst,
+                                                 pid,
+                                                 mom);
+  printf("NUM SECONDARIES:= %d  kerma %f  finalEkin %f \n", nSecPart, kerma, energyFst);
+
+  Double_t oldXdir = atrack.GetMomentumDirection().x();
+  Double_t oldYdir = atrack.GetMomentumDirection().y();
+  Double_t oldZdir = atrack.GetMomentumDirection().z();
+  
+  // Fill the particle change after transformation
+//!! THIS PART IS EXPERIMENTAL !!! JUST FOR TESTING AT THE MOMENT !!
+  // 1. update primaty
+  if(isSurv && (energyFst > 1.e-5) ) { //survived 
+    particlechange->ProposeTrackStatus(fAlive);
+    particlechange->ProposeLocalEnergyDeposit(kerma*GeV);
+    particlechange->ProposeNonIonizingEnergyDeposit(0.);
+
+    particlechange->ProposeEnergy(energyFst*GeV);
+    // rotate direction of primary particle
+        //Double_t mass     = track.GetDynamicParticle()->GetMass() 
+        Double_t secPtot2 = mom[0]*mom[0]+mom[1]*mom[1]+mom[2]*mom[2];//total P^2 [GeV^2]
+        Double_t secPtot  = std::sqrt(secPtot2);     //total P [GeV]
+        //Double_t secEtot  = ener + tracks.fMassV[t]; //total energy in [GeV]
+
+        //tracks.fPV[t]   = secPtot;		//momentum of this particle 
+        //tracks.fEV[t]   = secEtot;		//total E of this particle 
+        G4ThreeVector newDir(mom[0]/secPtot,mom[1]/secPtot,mom[2]/secPtot);
+        RotateNewTrack(oldXdir, oldYdir, oldZdir, newDir);
+        //tracks.fXdirV[t] = mom[0]/secPtot;	//dirx of this particle (before transform.)
+        //tracks.fYdirV[t] = mom[1]/secPtot;	//diry of this particle (before transform.)
+        //tracks.fZdirV[t] = mom[2]/secPtot;	//dirz of this particle (before transform.)
+        particlechange->ProposeMomentumDirection(newDir);
+
+  
+
+
+       particlechange->ProposeProperTime(atrack.GetProperTime());
+       particlechange->ProposePosition(atrack.GetPosition());
+       particlechange->ProposeGlobalTime(atrack.GetGlobalTime());
+       particlechange->ProposeEnergy(energyFst*GeV);
+
+  }
+  else {
+     particlechange->ProposeTrackStatus(fStopAndKill);
+     particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
+     particlechange->ProposeEnergy(0.0);  
+  }
+
+    particlechange->SetNumberOfSecondaries(0);
+
+  // 2. fill secondaries
+}   
+ 
+
+//_____________________________________________________________________________
+// (oldXdir, oldYdir, oldZdir) is the direction vector of parent track in lab. 
+// frame; direction vector of the current track, measured from local Z is 
+// already updated in GeantTrack_v tracks; here we rotate it to lab. frame
+void TabulatedDataManager::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, 
+       Double_t oldZdir, G4ThreeVector &newDir){
+
+     const Double_t one  = 1.0;  
+     const Double_t zero = 0.0; 
+     const Double_t amin = 1.0e-10; 
+     const Double_t one5 = 1.5; 
+     const Double_t half = 0.5; 
+
+     Double_t cosTheta0 = oldZdir; 
+     Double_t sinTheta0 = std::sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
+     Double_t cosPhi0;
+     Double_t sinPhi0;
+
+     if(sinTheta0 > amin) {
+       cosPhi0 = oldXdir/sinTheta0;
+       sinPhi0 = oldYdir/sinTheta0;                     
+     } else {
+       cosPhi0 = one;
+       sinPhi0 = zero;                     
+     }
+    
+     Double_t h0 = newDir.x(); //tracks.fXdirV[itrack];
+     Double_t h1 = sinTheta0*newDir.z() /*tracks.fZdirV[itrack]*/ + cosTheta0*h0;
+     Double_t h2 = newDir.y(); //tracks.fYdirV[itrack];
+ 
+     newDir.setX( h1*cosPhi0 - h2*sinPhi0 );
+     newDir.setY( h1*sinPhi0 + h2*cosPhi0 );
+     newDir.setZ( newDir.z()*cosTheta0 - h0*sinTheta0 );
+
+//  not realy necessary now because (fXdir,fYdir,fZdir) always 
+//  normalized at entry   
+     //renormalization: 
+/*   
+     Double_t delta = std::sqrt(newDir.x()*newDir.x() + newDir.y()*newDir.y() +
+                                  + newDir.z()*newDir.z() );  
+     newDir.setX( newDir.x()/delta );
+     newDir.setY( newDir.y()/delta );
+     newDir.setZ( newDir.z()/delta );
+*/
+     Double_t delta = one5-half*(newDir.x()*newDir.x() + newDir.y()*newDir.y() +
+                                  + newDir.z()*newDir.z() );  
+     newDir.setX( newDir.x()*delta );
+     newDir.setY( newDir.y()*delta );
+     newDir.setZ( newDir.z()*delta );
+
+}
+
+/*
+void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, 
+        Double_t phi)
+{
+     const Double_t one  = 1.0f;  
+     const Double_t zero = 0.0f; 
+     const Double_t amin = 1.0e-10f; 
+     const Double_t one5 = 1.5f; 
+     const Double_t half = 0.5f; 
+
+     Double_t cosTheta0 = tracks.fZdirV[itrack]; 
+     Double_t sinTheta0 = TMath::Sqrt(tracks.fXdirV[itrack]*tracks.fXdirV[itrack] +
+                                      tracks.fYdirV[itrack]*tracks.fYdirV[itrack]
+                                     );
+     Double_t cosPhi0;
+     Double_t sinPhi0;
+     Double_t cosTheta = TMath::Cos(theta);
+     Double_t sinTheta = TMath::Sin(theta);
+//     Double_t cosPhi = TMath::Cos(phi);
+//     Double_t sinPhi = TMath::Sin(phi);
+
+
+     if(sinTheta0 > amin) {
+       cosPhi0 = tracks.fXdirV[itrack]/sinTheta0;
+       sinPhi0 = tracks.fYdirV[itrack]/sinTheta0;                     
+     } else {
+       cosPhi0 = one;
+       sinPhi0 = zero;                     
+     }
+
+     Double_t h0 = sinTheta*TMath::Cos(phi);
+     Double_t h1 = sinTheta0*cosTheta + cosTheta0*h0;
+     Double_t h2 = sinTheta*TMath::Sin(phi);
+ 
+     tracks.fXdirV[itrack] = h1*cosPhi0 - h2*sinPhi0;
+     tracks.fYdirV[itrack] = h1*sinPhi0 + h2*cosPhi0;
+     tracks.fZdirV[itrack] = cosTheta*cosTheta0 - h0*sinTheta0;
+
+    //renormalization: ensure normality to avoid accumulated numerical errors
+    //                 due to sequential calls of rotation 
+     Double_t delta = one5-half*( tracks.fXdirV[itrack]*tracks.fXdirV[itrack] + 
+				  tracks.fYdirV[itrack]*tracks.fYdirV[itrack] +
+				  tracks.fZdirV[itrack]*tracks.fZdirV[itrack] );
+     tracks.fXdirV[itrack]*=delta;
+     tracks.fYdirV[itrack]*=delta;
+     tracks.fZdirV[itrack]*=delta;
+
+}
+*/
+ 
