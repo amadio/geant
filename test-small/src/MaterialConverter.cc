@@ -102,7 +102,8 @@ void MaterialConverter::CreateRootMaterials()
     
      // Int_t AddMaterial(const TGeoMaterial *material);  // Creates and returns the index of new material
      Int_t rtMatIdx= fTGeomMgr->AddMaterial(tgeoMaterial);
-     fRootMatIndices[imatG4]= rtMatIdx;
+//     fRootMatIndices[imatG4]= rtMatIdx;
+     fRootMatIndices.push_back(rtMatIdx);
      ExpandG4Indices(rtMatIdx); // In case Root creates larger indices for some reason
      fG4MatIndices[rtMatIdx]= imatG4;
 
@@ -224,7 +225,7 @@ MaterialConverter::IdentifyUsedMaterials()
   {
     G4LogicalVolume* logVol= logVolStore->at(iVol);
     G4Material*      matG4= logVol->GetMaterial();
-    Size_t           imatG4= matG4->GetIndex();
+    Int_t           imatG4= matG4->GetIndex();
     int              imatR= fRootMatIndices.at(imatG4);
     TGeoMaterial*    matRt=  (TGeoMaterial*)fTGeomMgr->GetListOfMaterials()->At(imatR);
     // (TGeoMaterial*) MaterialList->At(imat);
