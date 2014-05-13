@@ -96,3 +96,4 @@ endforeach()
 # (this avoids the need of typing the program name after make)
 #
 add_custom_target(ExtracXS DEPENDS tabxsec)
+install(TARGETS tabxsec DESTINATION bin)
