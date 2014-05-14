@@ -128,7 +128,7 @@ private:
    static TGListBox           *fParticleBox;    //! Particle list 
 
 
-   ClassDef(TEXsec,1)  // Element X-secs
+   ClassDef(TEXsec,2)  // Element X-secs
 
 };
 
