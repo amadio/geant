@@ -7,9 +7,8 @@
 # VECGEOM_LIBRARY_DIR    PATH to the library directory 
 
 # look if an environment variable VCROOT exists
-set(VECGEOMROOT $ENV{VECGEOMROOT})
 
-message(STATUS ${VECGEOMROOT})
+set(VECGEOMROOT $ENV{VECGEOMROOT})
 
 find_library(VECGEOM_LIBRARIES libvecgeom_cpp.a PATHS ${VECGEOMROOT}/lib)
 if (VECGEOM_LIBRARIES) 
