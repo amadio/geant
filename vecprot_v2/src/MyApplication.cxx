@@ -1,5 +1,11 @@
 #include "MyApplication.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/navigationstate.h"
+typedef vecgeom::NavigationState VolumePath_t;
+#else
 #include "TGeoBranchArray.h"
+typedef TGeoBranchArray VolumePath_t;
+#endif
 #include "TGeoNode.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
@@ -7,6 +13,7 @@
 #include "globals.h"
 #include "TH1.h"
 #include "TCanvas.h"
+#include <cassert>
 
 ClassImp(MyApplication)
 
@@ -53,12 +60,12 @@ Bool_t MyApplication::Initialize()
 //______________________________________________________________________________
 void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tracks)
 {
-// Application stepping manager. The thread id has to be used to manage storage
+    // Application stepping manager. The thread id has to be used to manage storage
 // of hits independently per thread.
    if (!fInitialized) return;     // FOR NOW
    // Loop all tracks, check if they are in the right volume and collect the
    // energy deposit and step length
-   TGeoNode *current;
+   TGeoNode const *current;
    Int_t idvol, idnode, ilev;
    for (Int_t i=0; i<npart; i++) {
 //      printf("%d=>\n", i);

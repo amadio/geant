@@ -5,6 +5,12 @@
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/navigationstate.h"
+#include "navigation/simple_navigator.h"
+#include "base/vector3d.h"
+#include "management/geo_manager.h"
+#endif
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
@@ -18,6 +24,7 @@ GeantScheduler::GeantScheduler()
                     fNvolumes(0),
                     fNpriority(0),
                     fBasketMgr(0),
+                    fGarbageCollector(0),
                     fNtracks(0)
 {
 // dummy
@@ -143,7 +150,7 @@ Int_t GeantScheduler::CollectPrioritizedTracks()
    Int_t ninjected = 0;
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++)
       ninjected += fBasketMgr[ibasket]->CollectPrioritizedTracks(fPriorityRange[0],fPriorityRange[1]);
-   return ninjected;   
+   return ninjected;
 }
 
 //______________________________________________________________________________

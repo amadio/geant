@@ -94,7 +94,7 @@ void GeantBasket::Print(Option_t *) const
 }
 
 //______________________________________________________________________________
-void GeantBasket::PrintTrack(Int_t itr, Bool_t input) const
+void GeantBasket::PrintTrack(Int_t /*itr*/, Bool_t /*input*/) const
 {
 // Print a given track.
 }

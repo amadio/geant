@@ -1,15 +1,18 @@
-void run(Int_t nthreads=4, Bool_t graphics=kFALSE, 
-         const char *geomfile="ExN03.root")
-//         const char *geomfile="../test-small/gdml/test-small-10Layers.gdml")
+void run(Int_t nthreads=1, Bool_t graphics=kFALSE, 
+//         const char *geomfile="gexam1.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
+	 const char *geomfile="ExN03.root")
 {
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");
    gSystem->Load("libThread");
    gSystem->Load("libGeom");
    gSystem->Load("libVMC");
-   gSystem->Load("libGeant_v");
-   gSystem->Load("libXsec");
+   //   gSystem->Load("../buildTGeo/lib/libGeant_v");
+   // gSystem->Load("../buildTGeo/lib/libXsec");
+   gSystem->Load("../lib/libGeant_v");
+   gSystem->Load("../lib/libXsec");
+
 
    Int_t ntotal   = 100;  // Number of events to be transported
    Int_t nbuffered  = 20;   // Number of buffered events

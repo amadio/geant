@@ -29,26 +29,31 @@ WorkloadManager *WorkloadManager::fgInstance = 0;
 
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(Int_t nthreads)
+                :TObject(),
+                 fNthreads(nthreads),
+                 fNbaskets(0),
+                 fBasketGeneration(0),
+                 fNbasketgen(0),
+                 fNidle(nthreads),
+                 fNminThreshold(10),
+                 fNqueued(0),
+                 fBtogo(0),
+                 fStarted(kFALSE),
+                 fFeederQ(0),
+                 fTransportedQ(0),
+                 fDoneQ(0),
+                 fListThreads(0),
+                 fFlushed(kFALSE),
+                 fFilling(kFALSE),
+                 fScheduler(0),
+                 fBroker(0)
 {
 // Private constructor.
-   fNthreads = nthreads;
-   fNbaskets = 0;
-   fBasketGeneration = 0;
-   fNbasketgen = 0;
-   fNidle = nthreads;
-   fNminThreshold = 10;
-   fNqueued = 0;
-   fBtogo = 0;
-   fStarted = kFALSE;
    fFeederQ = new dcqueue<GeantBasket>();
    fTransportedQ = new dcqueue<GeantBasket>();
    fDoneQ = new dcqueue<GeantBasket>();
    fgInstance = this;
-   fListThreads = 0;
-   fFlushed = kFALSE;
-   fFilling = kFALSE;
    fScheduler = new GeantScheduler();
-   fBroker = 0;
 }
 
 //______________________________________________________________________________
@@ -58,6 +63,7 @@ WorkloadManager::~WorkloadManager()
    delete fFeederQ;
    delete fTransportedQ;
    delete fDoneQ;
+   delete fScheduler;
    fgInstance = 0;
 }
 
@@ -399,15 +405,15 @@ void *WorkloadManager::TransportTracks(void *)
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
-   Int_t nprocesses = propagator->fNprocesses;
-   Int_t ninput, noutput;
+//   Int_t nprocesses = propagator->fNprocesses;
+//   Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
    // Create navigator if none serving this thread.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
    propagator->fWaiting[tid] = 1;
-   Int_t iev[500], itrack[500];
+//   Int_t iev[500], itrack[500];
    // TGeoBranchArray *crt[500], *nxt[500];
    while (1) {
       propagator->fWaiting[tid] = 1;
@@ -422,7 +428,7 @@ void *WorkloadManager::TransportTracks(void *)
       sch->GetTransportStat().AddTracks(basket->GetInputTracks());
 #endif         
       ntotransport = basket->GetNinput();  // all tracks to be transported 
-      ninput = ntotransport;
+//      ninput = ntotransport;
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
@@ -433,7 +439,7 @@ void *WorkloadManager::TransportTracks(void *)
       td->fVolume = basket->GetVolume();
       
       // Record tracks
-      ninput = ntotransport;
+//      ninput = ntotransport;
       if (basket->GetNoutput()) {
          Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter);
       } 
@@ -531,7 +537,7 @@ void *WorkloadManager::TransportTracks(void *)
       if (basket->GetNinput()) {
          Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
       }   
-      noutput = basket->GetNoutput();
+//      noutput = basket->GetNoutput();
 /*
       for(Int_t itr=0; itr<noutput; itr++) {
          if (TMath::IsNaN(output.fXdirV[itr])) {

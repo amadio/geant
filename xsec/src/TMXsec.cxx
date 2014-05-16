@@ -576,7 +576,7 @@ Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)
 
     for (Int_t i=0 ; i < fNElems-1 ; ++i) {
       //redundant, should be stored in a temporary array when calcuating totalxs
-      cross += fElems[i]->XS(pindex, rindex, energy)*fRatios[i]; 
+      cross += fElems[i]->XS(pindex, rindex, energy); 
       if (ranxs < cross) {
         iel = i;
         break;

@@ -56,6 +56,7 @@ void RegisterG4Particles()
            << " for particle " << particleDef->GetParticleName() << std::endl;
      }
   }
+
 //  DON'T MODIFY THIS! PDG ARRAY IN TPartIndex MUST BE AS IT IS IN THE 
 //  xsec_*.root FILE !!!
 //  TPartIndex::I()->SetPartTable(pPDG,np);

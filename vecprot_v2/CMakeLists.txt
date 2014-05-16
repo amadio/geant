@@ -3,6 +3,15 @@
 
 include_directories(inc)
 
+set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
+set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
+# Bug in VC (?), cannot compile without optimisation
+set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O1")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_FLAGS_MINSIZEREL}")
+set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_LINKER_FLAGS}")
+
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
@@ -57,7 +66,15 @@ ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 #
+
+#----------------------------------------------------------------------------
+# CUSTOMIZE COMPILATION IF VECGEOM IS USED
+
 add_library(Geant_v SHARED ${sources} G__Geant.cxx ${headers} G__Geant.h)
-target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom)
+if( VECGEOM_FOUND )
+target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+else()
+target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom )
+endif()
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)

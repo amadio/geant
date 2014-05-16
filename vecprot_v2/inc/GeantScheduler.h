@@ -35,7 +35,11 @@ protected:
    GeantTrackStat       fQStat;  //! Statistics for the queued tracks
    GeantTrackStat       fTStat;  //! Statistics for the transported tracks
 #endif   
-   
+
+private:
+   GeantScheduler(const GeantScheduler&);
+   GeantScheduler& operator=(const GeantScheduler&);
+  
 public:
    GeantScheduler();
    virtual ~GeantScheduler();

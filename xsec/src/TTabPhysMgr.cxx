@@ -2,7 +2,12 @@
 
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/navigationstate.h"
+#include "management/geo_manager.h"
+#else
 #include "TGeoBranchArray.h"
+#endif
 #include "GeantTrack.h"
 #include "globals.h"
 #include "GeantPropagator.h"
@@ -420,10 +425,13 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
 //          GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
           GeantTrack gTrack;
-          gTrack.fPath = new TGeoBranchArray();
+#ifdef USE_VECGEOM_NAVIGATOR
+          gTrack.fPath     = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
+          gTrack.fNextpath = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
+#else
+          gTrack.fPath     = new TGeoBranchArray();
           gTrack.fNextpath = new TGeoBranchArray();
-          
-
+#endif
           //set the new track properties
           gTrack.fEvent    = tracks.fEventV[t];
           gTrack.fEvslot   = tracks.fEvslotV[t];
@@ -535,12 +543,21 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
      if(secEkin >= energyLimit) { //insert secondary into tracks_v 
 //       GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
        GeantTrack gTrack;
-       gTrack.fPath = new TGeoBranchArray();
-       gTrack.fNextpath = new TGeoBranchArray();
 
-       //set the new track properties
-       gTrack.fEvent    = tracks.fEventV[iintrack];
-       gTrack.fEvslot   = tracks.fEvslotV[iintrack];
+#ifdef USE_VECGEOM_NAVIGATOR
+      gTrack.fPath     = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
+      gTrack.fNextpath = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
+#else
+      gTrack.fPath = new TGeoBranchArray();
+      gTrack.fNextpath = new TGeoBranchArray();
+    // should be
+      //gTrack.AllocPath();
+      //gTrack.AllocNextPath();
+#endif
+
+      //set the new track properties
+      gTrack.fEvent    = tracks.fEventV[iintrack];
+      gTrack.fEvslot   = tracks.fEvslotV[iintrack];
 //       gTrack.fParticle = nTotSecPart;          //index of this particle
        gTrack.fPDG      = secPDG;               //PDG code of this particle
        gTrack.fG5code   = pid[i];               //G5 index of this particle

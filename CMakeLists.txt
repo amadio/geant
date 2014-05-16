@@ -9,7 +9,11 @@ project(GEANTV)
 option(CUDA "Enable compilation for CUDA." OFF)
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
-set(OUTDIR $ENV{GEANT_OUTPUT_DIR})
+if( GEANT_OUTPUT_DIR )
+    set(OUTDIR ${GEANT_OUTPUT_DIR})
+else()
+    set(OUTDIR $ENV{GEANT_OUTPUT_DIR})
+endif()
 if(NOT OUTDIR)
   set(OUTDIR ${PROJECT_SOURCE_DIR})
 endif()
@@ -24,6 +28,23 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 find_package(ROOT REQUIRED)
 
 include_directories(${ROOT_INCLUDE_DIR})
+
+#----------------------------------------------------------------------------
+# Find VecGeom geometry headers library 
+#
+find_package(VecGeom REQUIRED)
+if( VECGEOM_FOUND )
+    find_package(Vc)
+    if ( VC_FOUND )
+    include_directories(${VC_INCLUDE_DIR})
+    endif()
+if( USE_VECGEOM_NAVIGATOR )
+    add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
+    set(GEANT5_CXX11_ENABLE "ON")
+endif() 
+   add_definitions( "-DVECGEOM_ROOT" )
+   include_directories(${VECGEOM_INCLUDE_DIR})
+endif()
 
 #----------------------------------------------------------------------------
 # Load macros

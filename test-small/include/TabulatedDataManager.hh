@@ -9,8 +9,6 @@
 #include "GXTrack.hh"
 #include "G4ParticleChange.hh"
 
-
-
 #define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
 
 class G4Track;
