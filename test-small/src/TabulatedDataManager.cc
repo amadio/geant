@@ -20,6 +20,9 @@
 #include "TGeoExtension.h"
 #include "G4ParticleChange.hh"
 
+using CLHEP::GeV;
+using CLHEP::cm;
+
 TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
 TGeoManager *TabulatedDataManager::fgGeom= 0 ;         // Pointer to the geometry manager   
 
