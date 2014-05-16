@@ -57,7 +57,7 @@ void ScatteringProcess::ComputeIntLen(TGeoMaterial *mat,
 }
 
 //______________________________________________________________________________
-void ScatteringProcess::PostStep(TGeoMaterial *mat,
+void ScatteringProcess::PostStep(TGeoMaterial */*mat*/,
                                  Int_t ntracks,
                                  GeantTrack_v &tracks, 
                                  Int_t &nout, 

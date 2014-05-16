@@ -24,6 +24,7 @@ GeantScheduler::GeantScheduler()
                     fNvolumes(0),
                     fNpriority(0),
                     fBasketMgr(0),
+                    fGarbageCollector(0),
                     fNtracks(0)
 {
 // dummy

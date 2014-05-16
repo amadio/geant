@@ -256,23 +256,23 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    if (threshold>256) threshold = 256;
    basket_mgr->SetThreshold(threshold);
    
-   const Double_t etamin = -3, etamax = 3;
+//   const Double_t etamin = -3, etamax = 3;
    Int_t ntracks = 0;
    Int_t ntotal = 0;
    Int_t ndispatched = 0;
    
    // Species generated for the moment N, P, e, photon
    const Int_t kMaxPart=9;
-   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
-   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
-   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
-   static Double_t pdgProb[9] = {0.};
-   Int_t pdgCount[9] = {0};
+//   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
+//   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
+//   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
+//   static Double_t pdgProb[9] = {0.};
+//   Int_t pdgCount[9] = {0};
 
    static Bool_t init=kTRUE;
    if(init) {
-      pdgProb[0]=pdgRelProb[0];
-      for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
+//      pdgProb[0]=pdgRelProb[0];
+//      for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
       init=kFALSE;
    }
    Int_t event = startevent;
@@ -291,7 +291,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.SetNextPath(a);
          track.SetEvent(event);
          track.SetEvslot(slot);
-         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
+//         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
 //         track.SetPDG(kMuonMinus); // G5code=28
 //         track.SetG5code(28);
 //         track.SetPDG(kMuonPlus); // G5code=27
@@ -342,10 +342,10 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       }
 //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
       event++;
-      for (Int_t i=0; i<kMaxPart; i++) {
+//      for (Int_t i=0; i<kMaxPart; i++) {
 //         Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
-         pdgCount[i] = 0;
-      }   
+//         pdgCount[i] = 0;
+//      }   
    }
    Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
            ntotal, startevent, startevent+nevents-1, ndispatched);

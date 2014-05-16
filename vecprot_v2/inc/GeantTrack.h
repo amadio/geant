@@ -205,8 +205,8 @@ public:
    VolumePath_t **fPathV; // paths for the particles in the geometry
    VolumePath_t **fNextpathV; // paths for next volumes
 
-   void AssignInBuffer(const char *buff, Int_t size);
-   void CopyToBuffer(const char *buff, Int_t size);
+   void AssignInBuffer(char *buff, Int_t size);
+   void CopyToBuffer(char *buff, Int_t size);
 
 public:   
    GeantTrack_v();

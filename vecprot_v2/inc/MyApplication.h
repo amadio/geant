@@ -28,6 +28,8 @@ private:
    Float_t              fLengthAbs[kNlayers]; // step length in every layer
    GeantFactory<MyHit> *fFactory; // Hits factory      
 
+   MyApplication(const MyApplication&); // Not implemented
+   MyApplication &operator=(const MyApplication&); // Not implemented
 public:
    MyApplication();
    virtual ~MyApplication() {}

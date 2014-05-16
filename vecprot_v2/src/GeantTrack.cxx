@@ -391,7 +391,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
    fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
    memset(fBuf, 0, size*sizeof(GeantTrack));
    memcpy(fBuf, track_v.fBuf, fNtracks*sizeof(GeantTrack));
-   AssignInBuffer(fBuf, size);
+   AssignInBuffer(&fBuf[0], size);
 }
 
 //______________________________________________________________________________
@@ -411,7 +411,7 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
       fSelected = track_v.fSelected;
       fCompact = track_v.fCompact;
       memcpy(fBuf, track_v.fBuf, size*sizeof(GeantTrack));
-      AssignInBuffer(fBuf, size);
+      AssignInBuffer(&fBuf[0], size);
 #ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif
@@ -427,14 +427,14 @@ GeantTrack_v::~GeantTrack_v()
 }
 
 //______________________________________________________________________________
-void GeantTrack_v::AssignInBuffer(const char *buff, Int_t size)
+void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
 {
 // Assign all internal class arrays in the supplied buffer, padded by supplied
 // size.
    const Int_t size_intn = size*sizeof(Int_t);
    const Int_t size_doublen = size*sizeof(Double_t);
    const Int_t size_booln = size*sizeof(Bool_t);
-   char *buf = (char*)buff;
+   char *buf = buff;
    fEventV = (Int_t*)buf;
    buf += size_intn;
    fEvslotV = (Int_t*)buf;
@@ -498,14 +498,14 @@ void GeantTrack_v::AssignInBuffer(const char *buff, Int_t size)
 }
 
 //______________________________________________________________________________
-void GeantTrack_v::CopyToBuffer(const char *buff, Int_t size)
+void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
 {
 // Copy existing track arrays into new buffer, padded by supplied size
    const Int_t size_int = fNtracks*sizeof(Int_t);
    const Int_t size_double = fNtracks*sizeof(Double_t);
    const Int_t size_intn = size*sizeof(Int_t);
    const Int_t size_doublen = size*sizeof(Double_t);
-   char *buf = (char*)buff;
+   char *buf = buff;
    memcpy(buf, fEventV, size_int);
    fEventV = (Int_t*)buf;
    buf += size_intn;
@@ -1125,7 +1125,6 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
    Double_t c = 0.;
    const Double_t *point = 0;
    const Double_t *newdir = 0;
-   const Double_t bmag = gPropagator->fBmag;
    GeantThreadData *td = gPropagator->fThreadData[tid];
    TGeoHelix *fieldp = td->fFieldPropagator;
    // Reset relevant variables
@@ -1204,12 +1203,11 @@ void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
-// provide here implementation calling VecGeom
 void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep,
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
                        VolumePath_t **pathin, VolumePath_t **pathout,
-                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk)
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v */*trk*/)
 {
    // Printf("In vec find next boundary and step\n");
     using vecgeom::SimpleNavigator;
@@ -1345,7 +1343,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
                        TGeoBranchArray **pathin, TGeoBranchArray **pathout,
-                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk)
+                       Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v */*trk*/)
 {
 // Vector version of TGeo FNB (To be implemented the vectorized navigator)
 // Apply to all particles (charged or not).
@@ -1771,7 +1769,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
    Int_t itr = 0;
    Int_t icrossed = 0;
    Int_t nsel = 0;
-   Double_t c, lmax;
+   Double_t lmax;
    const Double_t eps = 1.E-4; // 1 micron
    const Double_t bmag = gPropagator->fBmag;
 //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -1906,7 +1904,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
 // starting from a given stage.
    Int_t itr = 0;
    Int_t icrossed = 0;
-   Double_t step, c, lmax;
+   Double_t step, lmax;
    const Double_t eps = 1.E-4; // 1 micron
    const Double_t bmag = gPropagator->fBmag;
    for (itr=0; itr<fNtracks; itr++) {

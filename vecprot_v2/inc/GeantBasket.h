@@ -26,6 +26,9 @@ protected:
    GeantTrack_v      fTracksOut;           // Vector of output tracks
 //   GeantHit_v        fHits;                // Vector of produced hits
 
+private:
+   GeantBasket(const GeantBasket&);     // Not implemented
+   GeantBasket& operator=(const GeantBasket&);  // Not implemented
 public:
    GeantBasket();
    GeantBasket(Int_t size, GeantBasketMgr *mgr);
@@ -41,8 +44,8 @@ public:
    Bool_t            Contains(Int_t evstart, Int_t nevents=1) const;
    Int_t             GetNinput() const {return fTracksIn.GetNtracks();}
    Int_t             GetNoutput() const {return fTracksOut.GetNtracks();}
-   GeantTrack_v     &GetInputTracks() const {return (GeantTrack_v&)fTracksIn;}
-   GeantTrack_v     &GetOutputTracks() const {return (GeantTrack_v&)fTracksOut;}
+   GeantTrack_v     &GetInputTracks() {return fTracksIn;}
+   GeantTrack_v     &GetOutputTracks() {return fTracksOut;}
    GeantBasketMgr   *GetBasketMgr() const {return fManager;}
    TGeoVolume       *GetVolume() const;
    Bool_t            IsMixed() const {return TObject::TestBit(kMixed);}
@@ -75,7 +78,9 @@ protected:
    dcqueue<GeantBasket> fBaskets;            // queue of available baskets
    dcqueue<GeantBasket> *fFeeder;            // feeder queue to which baskets get injected
    TMutex            fMutex;                 // Mutex for this basket manager
-
+private:
+   GeantBasketMgr(const GeantBasketMgr&);    // Not implemented
+   GeantBasketMgr& operator=(const GeantBasketMgr&); // Not implemented
 public:
 
    GeantBasket      *GetNextBasket();
@@ -106,6 +111,6 @@ public:
    dcqueue<GeantBasket> *GetFeederQueue() const {return fFeeder;}
    void              SetThreshold(Int_t thr)      {fThreshold = thr;}
    
-   ClassDef(GeantBasketMgr,1)  // A path in geometry represented by the array of indices
+   ClassDef(GeantBasketMgr,0)  // A path in geometry represented by the array of indices
 };   
 #endif

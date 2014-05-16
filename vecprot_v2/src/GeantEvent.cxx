@@ -9,11 +9,13 @@ Int_t GeantEvent::AddTrack()
    Int_t itrack;
    fMutex.Lock();
    fNtracks++;
-   itrack = fNtracks-1;
+//   itrack = fNtracks-1;
+   itrack = fNtracks.load()-1;
    fMutex.UnLock();
    return itrack;
 }
 
+#if __cplusplus < 201103L
 //______________________________________________________________________________
 void GeantEvent::StopTrack()
 {
@@ -22,6 +24,7 @@ void GeantEvent::StopTrack()
    fNdone++;
    fMutex.UnLock();
 }
+#endif
 
 //______________________________________________________________________________
 void GeantEvent::Print(Option_t *) const
