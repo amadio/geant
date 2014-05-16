@@ -1170,6 +1170,17 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 #ifdef USE_VECGEOM_NAVIGATOR
  //  CheckLocationPathConsistency(i);
 #endif
+   // alternative code with lean stepper would be:
+   // ( stepper header has to be included )
+   //   geantv::ConstBzFieldHelixStepper stepper( gPropagator->fBmag );
+   //   double xnew, ynew, znew;
+   //   double dxnew, dynew, dznew;
+   //   stepper.DoStep( fXposV[i], fYposV[i], fZposV[i],
+   //                   fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
+   //              xnew, ynew, znew, dxnew, dynew, dznew );
+   //  maybe normalize direction here
+   //   fXposV[i] = xnew; fYposV[i] = ynew; fZposV[i] = znew;
+   //   fXdirV[i] = dxnew; fYdirV[i] = dynew; fZdirV[i] = dznew;
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -1496,7 +1507,7 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, TGeoBranchArray **start,
       end[itr]->InitFromNavigator(nav);
       return kFALSE;
    }
-	return kTRUE;
+   return kTRUE;
 }
 #endif
 
@@ -2011,6 +2022,7 @@ Double_t GeantTrack_v::SafeLength(Int_t i, Double_t eps)
    if (c < 1.E-10) return 1.E20;
    return 2.*TMath::Sqrt(eps/c);
 }
+
 
 //______________________________________________________________________________
 Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)

@@ -94,7 +94,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    } else {
       //ratios[0]=1;
       fRatios[0]=1.0;
-      hnorm=TPartIndex::I()->WEle(z[0]);
+      hnorm = TPartIndex::I()->WEle(z[0]);
    }
 
    //   if(weight) printf("By weight: ");
@@ -567,7 +567,8 @@ Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)
   if (fNElems>1) {
     Double_t totalxs = 0.;
     for (Int_t i=0 ; i < fNElems ; ++i) {
-      totalxs += fElems[i]->XS(pindex, rindex, energy);
+      // fRatios[i] is the relative #i-th atoms/volume; fRatios[] is normalized to 1. 
+      totalxs += fElems[i]->XS(pindex, rindex, energy)*fRatios[i];
     }
 
     Double_t ranxs = totalxs*gRandom->Rndm();

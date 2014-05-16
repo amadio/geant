@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-   <title>Coding Standard</title>
+   <title>Git Tips and Tricks</title>
 
 <body>
 
@@ -52,11 +52,11 @@
          </ul>
       </li>
       <li><a href="#The-gitconfig-file">The .gitconfig file</a></li>
-      <li><a href="suggested-work-flow-distributed-projects-nosy#A-suggested-work-flow-for-distributed-projects-NoSY">A suggested work flow for distributed projects: NoSY</a>
+      <li><a href="suggested-work-flow-distributed-projects-nosy.html#A-suggested-work-flow-for-distributed-projects-NoSY">A suggested work flow for distributed projects: NoSY</a>
          <ul>
-            <li><a href="suggested-work-flow-distributed-projects-nosy#Overview-2">Overview.</a></li>
-            <li><a href="suggested-work-flow-distributed-projects-nosy#Details-of-NoSY">Details of NoSY.</a></li>
-            <li><a href="suggested-work-flow-distributed-projects-nosy#Converting-to-NoSY-half-way-through-a-given-set-of-changes">Converting to NoSY half-way through a given set of changes.</a></li>
+            <li><a href="suggested-work-flow-distributed-projects-nosy.html#Overview-2">Overview.</a></li>
+            <li><a href="suggested-work-flow-distributed-projects-nosy.html#Details-of-NoSY">Details of NoSY.</a></li>
+            <li><a href="suggested-work-flow-distributed-projects-nosy.html#Converting-to-NoSY-half-way-through-a-given-set-of-changes">Converting to NoSY half-way through a given set of changes.</a></li>
          </ul>
       </li>
    </ul>
@@ -138,9 +138,9 @@
    <li>Move files from one part of your directory tree to another:<pre>git mv &lt;old-path&gt; &lt;new-path&gt;</pre></li>
    <li>Delete unwanted tracked files:<pre>git rm &lt;path&gt;</pre></li>
    <li>Add un-tracked files:<pre>git add &lt;un-tracked-file&gt;</pre></li>
-   <li>Stage a modified file for commit:<pre>git add &lt;file&gt;</pre></li>
+   <li>Stage a modified file(s) for commit:<pre>git add &lt;files&gt;</pre></li>
    <li>Commit currently-staged files:<pre>git commit -m &lt;log-message&gt;</pre></li>
-   <li>Commit only specific files (regardless of what is staged):<pre>git commit -m &lt;log-message&gt;</pre></li>
+   <li>Commit only specific files (regardless of what is staged):<pre>git commit -m &lt;log-message&gt; &lt;files&gt;</pre></li>
    <li>Commit all modified files:<pre>git commit -a -m &lt;log-message&gt;</pre></li>
    <li>Un-stage a previously staged (but not yet committed) file:<pre>git reset HEAD &lt;file&gt;</pre></li>
    <li>Examine a representation of your change tree with log files and patch descriptions:<pre>gitk</pre></li>

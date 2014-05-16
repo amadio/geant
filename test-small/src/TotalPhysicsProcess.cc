@@ -16,6 +16,7 @@ TotalPhysicsProcess::TTabPhysMgr* theTabPhysManager= 0;
 #include "G4Track.hh"
 #include "G4DynamicParticle.hh"
 #include "G4VParticleChange.hh"
+#include "G4ParticleChange.hh"
 #include "G4ProcessManager.hh"
 #include "G4ProcessType.hh"
 #include "G4ProcessVector.hh"
@@ -116,6 +117,49 @@ G4double TotalPhysicsProcess::GetMeanFreePath(const G4Track& track,
 G4VParticleChange* 
 TotalPhysicsProcess::PostStepDoIt(const G4Track& track, const G4Step& step)
 {
+
+  // Sampling element for interaction and type of interaction on that
+  Int_t reactionId   = -1;
+  Int_t elementIndex = -1;
+
+  elementIndex = theDataManager->SampleInteraction(fMaterialIndex, track, 
+                                                   reactionId);
+
+  // Go for the corresponding final states: THIS IS THE POINT WHERE TABULATED
+  // PHYSCICS DATA CAN BE REPLACED BY VECTORIZED FULL DISCRETE PHYSCICS LATER!!!
+  if( reactionId < 0 ) { // if there is no reaction for this particle
+    fParticleChange->SetNumberOfSecondaries(0);
+    // update primary information
+    fParticleChange->ProposeLocalEnergyDeposit(0.);
+    fParticleChange->ProposeNonIonizingEnergyDeposit(0.);
+    fParticleChange->ProposeTrackStatus(fAlive);
+ 
+    // TO DO:: need to be sure that everything remain the same
+   
+
+    fParticleChange->ProposeEnergy(track.GetKineticEnergy());
+    fParticleChange->ProposeMomentumDirection(track.GetMomentumDirection());
+    fParticleChange->ProposeProperTime(track.GetProperTime());
+    fParticleChange->ProposePosition(track.GetPosition());
+    fParticleChange->ProposeGlobalTime(track.GetGlobalTime());
+
+    fParticleChange->ProposeMass(track.GetDynamicParticle()->GetMass());
+    fParticleChange->ProposeCharge(track.GetDynamicParticle()->GetCharge());
+
+    return fParticleChange; 
+  }    
+
+  theDataManager->SampleFinalState(elementIndex, reactionId, track, 
+                                   fParticleChange);
+  
+  return fParticleChange;
+
+/* 
+  I PUT THE WHOLE EXISTING IMPLEMENTATION INTO COMMENT BECAUSE THERE ARE MANY 
+  PROBLEMS HERE RANGING FROM SIMPLE ZERO POINTER EXCEPTION TO SEMANTICALLY 
+  INCORRECT, INCOMPLETE IMPLEMENTATION. SEE THE CORRECT IMPLEMENTATION ABOVE AND 
+  THE CORRECT IMPLEMENTATION OF THE NECESSARY METHODS IN TabulatedDataManager!!!
+
   // Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
   
   // static 
@@ -204,6 +248,7 @@ TotalPhysicsProcess::PostStepDoIt(const G4Track& track, const G4Step& step)
 
   
   return fParticleChange;
+  */
 }
 
 void TotalPhysicsProcess::Print(const G4Step& step) 

@@ -37,8 +37,7 @@ class MaterialConverter
    int GetG4Material( int iRT)
          { iRT=std::min(iRT, fMaxRootMaterial); iRT=std::max(0,iRT); return fG4MatIndices[iRT]; } 
    int GetRootMaterial( int iG4)
-         { iG4=std::min(iG4, fMaxG4Material); iG4=std::max(0,iG4); return fG4MatIndices[iG4]; }
-  
+         { iG4=std::min(iG4, fMaxG4Material); iG4=std::max(0,iG4); return fRootMatIndices[iG4]; }  
    static TGeoManager*  GetTGeomManager() { return fTGeomMgr;}
    static void          SetTGeomManager(TGeoManager* existingGeomMgr) { fTGeomMgr= existingGeomMgr; }
 

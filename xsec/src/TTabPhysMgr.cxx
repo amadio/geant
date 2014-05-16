@@ -178,12 +178,16 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename,
          z[iel]=zd;
          w[iel]=wd;
       }
+      if (nelem==0) {
+         mat->Dump();
+         Fatal("TTabPhysMgr","The material (%s) seems to have no elements",mat->GetName());
+      }
       //Construct the TMXsec object that corresponds to the current material
       TMXsec *mxs = new TMXsec(mat->GetName(),mat->GetTitle(),
-		       z,a,w,nelem,mat->GetDensity(),kTRUE);
+                               z,a,w,nelem,mat->GetDensity(),kTRUE);
       fMatXsec[fNmaterials++] = mxs;       
-      // Connect to TGeoMaterial 
-      mat->SetFWExtension(new TGeoRCExtension(mxs));      
+      // Connect to TGeoMaterial
+      mat->SetFWExtension(new TGeoRCExtension(mxs));
    }// End of while
    delete [] z;
    delete [] a;
@@ -399,8 +403,16 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       // j=0 -> including stopped primary as well if isSurv = kTRUE; 
       // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above) 
       for(Int_t i = j; i < nSecPart; ++i) {
-        if(pid[i]>TPartIndex::I()->NPart())// skipp possible fragments; will be fiexed 
-          continue;    
+        if(pid[i]>=TPartIndex::I()->NPart()) { // fragment: put its Ekin to energy deposit
+          Int_t idummy     = pid[i] - 1000000000;
+          Int_t Z          = idummy/10000.;
+          Int_t A          = (idummy - Z*10000)/10.;
+          Double_t secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
+          Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+
+                              mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
+          tracks.fEdepV[t]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+          continue;
+        }
 
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
@@ -482,8 +494,8 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
         Int_t &nTotSecPart, Int_t tid)
 {
 
-// if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
-   return;
+   if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
+     return;
    
    Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
    TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
@@ -509,8 +521,16 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 
    //loop over the secondaries
    for(Int_t i = 0; i< nSecPart; ++i){
-     if(pid[i]>TPartIndex::I()->NPart())// skipp possible fragments; will be fiexed 
-       continue;    
+     if(pid[i]>=TPartIndex::I()->NPart()) { // fragment: put its Ekin to energy deposit
+       Int_t idummy            = pid[i] - 1000000000;
+       Int_t Z                 = idummy/10000.;
+       Int_t A                 = (idummy - Z*10000)/10.;
+       Double_t secMass        = TPartIndex::I()->GetAprxNuclearMass(Z, A);
+       Double_t secPtot2       = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+
+                                 mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
+       tracks.fEdepV[iintrack]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+       continue;
+     }
 
      Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);

@@ -3,6 +3,10 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(GEANTV)
 
+#----------------------------------------------------------------------------
+# Additional options
+
+option(CUDA "Enable compilation for CUDA." OFF)
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )
@@ -80,6 +84,30 @@ set(GEANT5_COMPILE_FLAGS            "${GEANT5_COMPILE_FLAGS_NOW} ${CXXSTD} ${GEA
 if(CUSTOM_ALLOCATOR)
   find_package(CAllocator)
 endif()
+if (CUDA)
+  find_package(CUDA REQUIRED)
+  include(FindCUDA)
+
+  if (NOT CUDA_ARCH)
+    set(CUDA_ARCH 35)
+  endif()
+  set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
+
+  #set(CUDA_NVCC_FLAGS --ptxas-options=-v)
+  set(
+    CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
+    -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"
+    -Xcudafe "--diag_suppress=initialization_not_reachable"
+  )
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G)
+  endif()
+  # set(CUDA_SEPARABLE_COMPILATION ON)
+  # set(CUDA_VERBOSE_BUILD ON)
+
+  message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
+
+endif()
 
 #---------------------------------------------------------------------------
 # Include directories
@@ -93,6 +121,10 @@ add_custom_target(_headers ALL)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (tabxsec)
-#add_subdirectory (geom_vec_tests)
+add_subdirectory (micromc)
 add_subdirectory (test-small)
+
+if (CUDA)
+  add_subdirectory (vecprot_v2/cuda)
+endif()
 

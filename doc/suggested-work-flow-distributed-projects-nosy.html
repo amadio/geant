@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+      <title>A suggested work flow for distributed projects NoSY</title>
+
+<body>
+
+      <a name="A-suggested-work-flow-for-distributed-projects-NoSY"></a>
+
+      <a name="Overview-2"></a>
+      <h3>Overview.<a href="#Overview-2" class="wiki-anchor">¶</a></h3>
+
+
+      <p>Building on the tips and other points explained <a href="GitTipsAndTricks.html">elsewhere</a>, this workflow
+      has the following advantages relative to always working on the master
+      branch:</p>
+
+
+      <ul>
+         <li>It is easy to keep track of upstream changes even when working on a protracted task.</li>
+         <li>The change tree remains simple, easy to understand at a glance and
+            even (mostly) linear (revision trees with multiple developers can
+            quickly start looking like a train switch yard)</li>
+         <li>Unsightly "merge with branch" commits are minimized.</li>
+         <li>It is easy to keep separate unrelated tasks upon which you may be working simultaneously.</li>
+         <li>Commits related to each other can be kept together or merged for increased clarity.</li>
+      </ul>
+
+
+      <p>For the purposes of having an easy-to-remember label, I will refer to this workflow as the "No Switch Yard" (<strong>NoSY</strong>) workflow.</p>
+
+
+      <a name="Details-of-NoSY"></a>
+      <h3>Details of NoSY.<a href="#Details-of-NoSY" class="wiki-anchor">¶</a></h3>
+
+
+      <p>For each <strong>specific, well-defined task</strong>:</p>
+
+
+      <ol>
+         <li>Create a local branch and switch to it:<pre>git checkout -b &lt;local-branch&gt;</pre></li>
+         <li>Work on the branch, both committing regularly and keeping up-to-date with the remote (eg):<pre>git fetch origin; git rebase origin/master</pre></li>
+         <li>When ready to push back to the main remote, <a href="#Squashing" class="wiki-page">squash</a> related commits (see above).</li>
+         <li>Change back to your master branch:<pre>git checkout master</pre></li>
+         <li>Make sure your master is up-to-date:<pre>git pull</pre></li>
+         <li>Merge with the branch:<pre>git merge --ff-only &lt;local-branch&gt;</pre>If this operation fails:
+            <ul>
+               <li>Swap back to the other branch<pre>git checkout &lt;local-branch&gt;</pre></li>
+               <li>Rebase again (upstream must have changed since your last rebase):<pre>git rebase origin/master</pre></li>
+               <li>Go back to step 4.</li>
+            </ul>
+         </li>
+         <li>Push changes to the master:<pre>git push</pre></li>
+         <li>Delete the branch:<pre>git branch -d &lt;local-branch&gt;</pre></li>
+      </ol>
+
+
+      <a name="Converting-to-NoSY-half-way-through-a-given-set-of-changes"></a>
+      <h3>Converting to NoSY half-way through a given set of changes.<a href="#Converting-to-NoSY-half-way-through-a-given-set-of-changes" class="wiki-anchor">¶</a></h3>
+
+
+      <p>Imagine that you have been making some commits to your local
+      repository on the master branch, and you realize (perhaps because your
+      project is turning out to be a bit more involved than you thought, or
+      because a slew of changes have just appeared upstream) that you might
+      have been better using <strong>NoSY</strong>. It's actually quite easy to swap to using <strong>NoSY</strong> without any disruption to your already-committed changes. Starting from your current position on the master branch:</p>
+
+
+      <ol>
+         <li>Stash your current changes if appropriate:<pre>git stash</pre></li>
+         <li>Create (but do not switch to) a branch which will contain all your local commits up to this point:<pre>git branch &lt;local-branch&gt;</pre></li>
+         <li>Download the latest metadata from the remote:<pre>git fetch origin</pre></li>
+         <li>Now, reset your local master branch directly to the current state of <code>origin/master</code>:<pre>git reset --hard origin/master</pre>Note that you have <strong>not</strong> lost your local commits: they are on your local branch already.</li>
+         <li>Switch to your local branch:<pre>git checkout &lt;local-branch&gt;</pre></li>
+         <li>Do an initial sync between your local branch and the remote, resolving conflicts if necessary:<pre>git rebase origin/master</pre></li>
+         <li>Apply your stash, again, resolving conflicts if necessary:<pre>git stash pop</pre></li>
+         <li>Pick up at step 2 of the <strong>NoSY</strong> workflow above.</li>
+      </ol>
+      </div>
+      
+      
+      
+      <p>
+      
+      Reproduced with permission from the following page:  https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/GitTipsAndTricks#A-suggested-work-flow-for-distributed-projects-NoSY
+      
+      by <span class="author">Chris Green</span>
+      
+      </p>
+      
+   </div>
