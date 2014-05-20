@@ -6,6 +6,8 @@
 #endif
 
 #include "sync_objects.h"
+#include "GeantObjectPool.h"
+#include "TGeoBranchArray.h"
  
 class GeantBasketMgr;
 class GeantBasket;
@@ -34,6 +36,8 @@ protected:
                      *fTransportedQ;       // queue of transported baskets
    dcqueue<GeantBasket> 
                      *fDoneQ;              // Thread "all work done" queue
+   GeantObjectPool<TGeoBranchArray>
+                     *fNavStates;          // Pool of navigation states                  
    static WorkloadManager *fgInstance;     // Singleton instance
    TList             *fListThreads;        // List of threads
    Bool_t             fFlushed;            // Buffer flushed

@@ -96,6 +96,7 @@ public:
    int                size_priority() const {return npriority;}
    int                size_objects() const {return nobjects;}
 #endif
+   void               delete_content();
    int                size() const;
    bool               empty() const;
    T*                 try_pop();
@@ -103,7 +104,21 @@ public:
    T*                 wait_and_pop_max(unsigned int nmax, unsigned int &n, T **array);
    void               pop_many(unsigned int n, T **array);
 };
-   
+
+template <class T>
+void dcqueue<T>::delete_content()
+{
+// Delete remaining objects in the queue.
+// Note that this has to be called on demand since the queue does not own objects.
+   T* obj;
+   the_mutex.Lock();
+   while ((obj = the_queue.back())) {
+      delete obj;
+      the_queue.pop_back();
+   }
+   the_mutex.UnLock();
+}
+        
 template <class T>
 void dcqueue<T>::push(T *data, bool priority)
 {

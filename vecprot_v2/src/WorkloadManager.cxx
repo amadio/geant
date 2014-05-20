@@ -42,6 +42,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fFeederQ(0),
                  fTransportedQ(0),
                  fDoneQ(0),
+                 fNavStates(0),
                  fListThreads(0),
                  fFlushed(kFALSE),
                  fFilling(kFALSE),
@@ -52,6 +53,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fFeederQ = new dcqueue<GeantBasket>();
    fTransportedQ = new dcqueue<GeantBasket>();
    fDoneQ = new dcqueue<GeantBasket>();
+   fNavStates = new GeantObjectPool<TGeoBranchArray>(1000*nthreads);
    fgInstance = this;
    fScheduler = new GeantScheduler();
 }
