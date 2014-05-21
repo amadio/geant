@@ -413,13 +413,16 @@ G4int SampleOne(G4Material* material,
                                                                        &fGPILSelection );
       
       // safetyPrx is output only for transportation - currently
-      
-      
+
       aChange = contdProc->AlongStepDoIt( *gTrack, *step );
-      
       // Update the PostStepPoint of Step according to ParticleChange
       aChange->UpdateStepForAlongStep(step);
-      step->UpdateTrack();
+
+      //ignore any energy loss along the step: so we don't update gTrack and 
+      // reset Edepo and clear particleChange before the discrete part. Along
+      // step energy loss will be computed in the MC from dE/dx
+      step->ResetTotalEnergyDeposit();
+      aChange->Clear(); 
 
       // Check the energy loss during the Along Step
       if( std::fabs(gTrack->GetKineticEnergy() - e0) > 0.5*e0 ) {  

@@ -1320,9 +1320,11 @@ int main(int argc,char** argv)
             // we still have a c*tau*gamma of 2.5e-3 microns!!
             G4double en=emin;
             for(G4int j=0; j<nbins; ++j) {
-              // Store dE/dx in GeV*g/cm^2
+              // Store in GeV*cm^2/g i.e. dE/dx * 1/density -> we will apply then
+              // Bragg's addition in TMXsec
               dedx[j] = (G4LossTableManager::Instance()
-                         ->GetDEDX(particle,en,couple)/GeV) / (mat->GetDensity()*cm3/g);
+                         ->GetDEDX(particle,en,couple)*(cm/GeV)) / (mat->GetDensity()*(cm3/g));
+
               en*=delta;
             }
             bdedx=TRUE;
