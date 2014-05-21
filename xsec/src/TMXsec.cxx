@@ -104,7 +104,10 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    for(Int_t i=0; i<fNElems; ++i) {
       //rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
       //ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
-      rdedx[i] = fRatios[i]*dens/fElems[i]->Dens();
+      if(fNElems > 1)
+        rdedx[i] = fRatios[i]/hnorm; // mass fraction 
+      else
+        rdedx[i] = 1.0; 
       fRatios[i]*=TMath::Na()*1e-24*dens/hnorm;
       //      printf("%d %f ",z[i],ratios[i]);
    }
@@ -168,7 +171,8 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	    fMSansig[ip*fNEbins+ie]+=asig*rdedx[iel];
 	    fMSlength[ip*fNEbins+ie]+=len*rdedx[iel];
 	    fMSlensig[ip*fNEbins+ie]+=lsig*rdedx[iel];
-	    fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
+	    fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*
+                                 rdedx[iel]*dens; //dE/dx [GeV/cm]; Bragg's rule 
 	 }
       }
    }
@@ -318,7 +322,7 @@ Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
 }
 
 //____________________________________________________________________________
-Float_t TMXsec::DEdx(Int_t part, Float_t en) {
+Float_t TMXsec::DEdx(Int_t part, Float_t en, Int_t &elemindx) {
   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx)
     return 0;
   else {
@@ -335,6 +339,11 @@ Float_t TMXsec::DEdx(Int_t part, Float_t en) {
             ibin, en1, en, en2);
       return TMath::Limits<Float_t>::Max();
     }
+    // set to the first element of this mix.: need to know at last one element
+    // to be able to check in EnergyLoss if there is NuclCaptAtRest in case of
+    // stopping  
+    elemindx = fElems[0]->Index(); 
+
     Double_t xrat = (en2-en)/(en2-en1);
     return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
   }

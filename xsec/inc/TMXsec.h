@@ -36,7 +36,7 @@ public:
    ~TMXsec();
    Float_t Xlength(Int_t part, Float_t en);
    Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
-   Float_t DEdx(Int_t part, Float_t en);
+   Float_t DEdx(Int_t part, Float_t en, Int_t &elemindx);
    Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
 
    void Eloss(Int_t ntracks, GeantTrack_v &tracks);

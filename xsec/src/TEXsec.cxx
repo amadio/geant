@@ -267,11 +267,12 @@ TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile* f) {
     } else {
         // We loaded the element, however we have to see whether
         // the energy grid is the right one
-        if(FloatDiff(TPartIndex::I()->Emin(),fElements[fNLdElems]->Emin(),1e-7) ||
-           FloatDiff(TPartIndex::I()->Emax(),fElements[fNLdElems]->Emax(),1e-7) ||
-           TPartIndex::I()->NEbins() != fElements[fNLdElems]->NEbins())
+        // NO, don't need to check. It will be loaded from xsec.root
+//        if(FloatDiff(TPartIndex::I()->Emin(),fElements[fNLdElems]->Emin(),1e-7) ||
+//           FloatDiff(TPartIndex::I()->Emax(),fElements[fNLdElems]->Emax(),1e-7) ||
+//           TPartIndex::I()->NEbins() != fElements[fNLdElems]->NEbins())
             // we have to resize the energy grid of the element
-            fElements[fNLdElems]->Resample();
+//            fElements[fNLdElems]->Resample();
         return fElements[fNLdElems++];
     }
 }
