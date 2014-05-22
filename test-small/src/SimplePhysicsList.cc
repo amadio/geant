@@ -123,12 +123,13 @@ void SimplePhysicsList::ConstructTotal()
     G4ProcessManager* pmanager = particle->GetProcessManager();
     // G4String particleName = particle->GetParticleName();
     
-    G4VDiscreteProcess* totalPhysics=
+    G4VRestContinuousDiscreteProcess* totalPhysics=
        new TotalPhysicsProcess(particle->GetParticleName());
 
     // ph->RegisterProcess( totalPhysics, particle);
+    pmanager->AddContinuousProcess( totalPhysics );
     pmanager->AddDiscreteProcess( totalPhysics );
-
+    pmanager->AddRestProcess( totalPhysics );
   }
 }
 
