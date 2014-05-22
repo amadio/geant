@@ -55,12 +55,47 @@
 
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTable.hh"
-void RegisterG4Particles(); 
+
+#include "TabulatedDataManager.hh"
+#include "TotalPhysicsProcess.hh"
+
+#include <unistd.h>
+
+void usage();
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc,char** argv)
 {
+
+  G4bool isBachMode           = FALSE;  // do we run in bach mode ?  ; 
+  char mFileName[512]         = "";     // macro filename (in case of bach mode) 
+  G4int tabPhysVerboseLevel   = 0;      // verbosity level in tabulated physics 
+  G4double tabPhysEnergyLimit = 3.0e-6; // low energy cut in tab. physics [GeV] 
+  
+  // parsing the arguments
+  int c; 
+  while ((c = getopt (argc, argv, "m:v:l:")) != -1)
+    switch (c) {
+      case 'm':
+        isBachMode = TRUE;
+        strncpy(mFileName,optarg,strlen(optarg));
+        mFileName[strlen(optarg)] = '\0';
+        break;
+      case 'v':
+        tabPhysVerboseLevel = atoi(optarg);
+        break;
+      case 'l':
+        tabPhysEnergyLimit = atof(optarg);
+        break;
+      case '?':
+        usage();
+        return 1;
+      default:
+        abort ();
+    }
+
+
   // Choose the Random engine
   //
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
@@ -95,8 +130,6 @@ int main(int argc,char** argv)
   runManager->Initialize();
 
   // MaterialConverter::Instance()->CreateRootMaterials();
-
-  RegisterG4Particles(); 
     
 #ifdef G4VIS_USE
   // Initialize visualization
@@ -109,14 +142,15 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (argc!=1)   // batch mode
-    {
+  // set some optional parameters in tabulated physics
+  TabulatedDataManager::SetVerboseLevel( tabPhysVerboseLevel );
+  TotalPhysicsProcess::SetEnergyLimit( tabPhysEnergyLimit ); 
+
+  if (isBachMode) {  // batch mode
       G4String command = "/control/execute ";
-      G4String fileName = argv[1];
+      G4String fileName = mFileName;
       UImanager->ApplyCommand(command+fileName);
-    }
-  else
-    {  // interactive mode : define UI session
+  } else {  // interactive mode : define UI session
 #ifdef G4UI_USE
       G4UIExecutive* ui = new G4UIExecutive(argc, argv);
 #ifdef G4VIS_USE
@@ -127,7 +161,7 @@ int main(int argc,char** argv)
       ui->SessionStart();
       delete ui;
 #endif
-    }
+  }
 
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
@@ -142,3 +176,26 @@ int main(int argc,char** argv)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+
+void usage()
+{
+  G4cout <<
+  "NAME" << G4endl <<
+  "    exampleN03 -- Geant4 with tabulated physics data " << G4endl << G4endl <<
+  "SYNOPSIS" << G4endl <<
+  "    exampleN03 [-l, -v, -m [file]] " << G4endl << G4endl <<
+  "DESCRIPTION" << G4endl <<
+  "    Run Geant4 /examples/novice/N03/exampleN03 with tabulated physics data " 
+        << G4endl << G4endl <<
+  "OPTIONS" << G4endl <<
+  "    -l low energy cut in tabulated physics [GeV] (default 3.0e-6)" 
+          << G4endl <<
+  "    -v verbosity level tabulated physics (only >=2 is used at the moment) " 
+          << G4endl <<
+  "    -m [file] if we run it in bach mode where file is the Geant4 macro file" 
+  << G4endl;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+
+
