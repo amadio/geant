@@ -99,9 +99,10 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename,
     Fatal("TTabPhysMgr", "Cannot open %s", finalsfilename);
  }   
 
- // Setting the energy grid in our current application (might be different than
- // the one that we used to sample the x-sections from G4)
- TPartIndex::I()->SetEnergyGrid(1e-3,1e3,100); // should be outside
+  // the common energy grid must be exactly the same as used in tabxsec for the 
+  // tabulated data (x-sections and final states) extraction because fstates 
+  // cannot be interpolated ! So get the correct grid from the xsec file.
+  fxsec->Get("PartIndex"); 
 
  //INFO: print number of materials in the current TGeoManager
  printf("#materials:= %d \n",matlist->GetSize());
