@@ -30,10 +30,9 @@ public:
   // CONTINUOUS PART OF THE TOTAL PROCESS:
   // continuous step limit: will be set to a high value in order to exculde from
   // the step selection (physics step will be determined by the Discrete part) 
+  // PreStepPoint momentumDirection will be changed according to the MSC model
   G4double GetContinuousStepLimit(const G4Track& track, G4double previousStepSize,
-                        G4double currentMinimumStep, G4double &currentSafety){
-    return DBL_MAX;
-  }
+                        G4double currentMinimumStep, G4double &currentSafety);
   // continuous process action: compute energy loss for charged particles from
   // dedx
   G4VParticleChange* AlongStepDoIt(const G4Track& track, const G4Step& step);

@@ -45,7 +45,9 @@ public:
    Float_t MS(Int_t ipart, Float_t energy);
 
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
-   Int_t SampleElement(Int_t tid);
+   Int_t SampleElement(Int_t tid); // based on # atoms/vol. for the prototype
+   Int_t SampleElement(); // based on # atoms/vol. for Geant4 with tab.phys. 
+
    Int_t SelectElement(Int_t pindex, Int_t rindex, Double_t energy);
 
    static Bool_t Prune();

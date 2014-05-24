@@ -47,8 +47,12 @@ public:
   //compute energy loss for charged particle from dE/dx and update particle change
   void EnergyLoss(G4int imat, const G4Track &atrack, const G4Step &astep, 
                   G4ParticleChange *particlechange, G4double energylimit);
+  void SampleFinalStateAtRest(const Int_t imat, const G4Track &atrack,
+                        G4ParticleChange *particlechange, Double_t energylimit);   
+  void ApplyMsc(G4int imat, const G4Track &atrack);
   void RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir, 
                 G4ThreeVector &newDir);
+  void RotateTrack(G4ThreeVector &newdir, Double_t costheta, Double_t phi);
 
  
   TEFstate **   GetElemFstate()   { return fElemFstate; }

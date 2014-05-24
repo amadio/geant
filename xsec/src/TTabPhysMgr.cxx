@@ -345,18 +345,20 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
    Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
 
-   Int_t nSecPart     = 0;  //number of secondary particles per reaction
    Int_t nTotSecPart  = 0;  //total number of secondary particles in tracks
-   const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
-   const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
-   Float_t  ener      = 0;  //energy at the fstate (Ekin of primary after the interc.)
-   Float_t  kerma     = 0;  //released energy
-   Float_t  weight    = 0;  //weight of the fstate (just a dummy parameter now)
-   Char_t   isSurv    = 0;  //is the primary survived the interaction 	
    
    for(Int_t t = 0; t < ntracks; ++t){
     if(tracks.fProcessV[t] < 0) //if reaction was not selected for this partilce
      continue;	
+
+    Int_t nSecPart     = 0;  //number of secondary particles per reaction
+    const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
+    const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
+    Float_t  ener      = 0;  //energy at the fstate (Ekin of primary after the interc.)
+    Float_t  kerma     = 0;  //released energy
+    Float_t  weight    = 0;  //weight of the fstate (just a dummy parameter now)
+    Char_t   isSurv    = 0;  //is the primary survived the interaction 	
+
 
      isSurv = fElemFstate[tracks.fEindexV[t]]->SampleReac(tracks.fG5codeV[t], 
 		tracks.fProcessV[t], tracks.fEV[t]-tracks.fMassV[t], 
@@ -375,15 +377,18 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 //        tracks.fStatusV[t] = kAlive;   //1. ener=Ekin > energyLimit -> Alive (need to update in tracks) 
  
         //update primary in tracks
-        Double_t secPtot2 = mom[0]*mom[0]+mom[1]*mom[1]+mom[2]*mom[2];//total P^2 [GeV^2]
+        Double_t px = mom[0];
+        Double_t py = mom[1];
+        Double_t pz = mom[2];
+        Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
         Double_t secPtot  = TMath::Sqrt(secPtot2);     //total P [GeV]
         Double_t secEtot  = ener + tracks.fMassV[t]; //total energy in [GeV]
 
         tracks.fPV[t]   = secPtot;		//momentum of this particle 
         tracks.fEV[t]   = secEtot;		//total E of this particle 
-        tracks.fXdirV[t] = mom[0]/secPtot;	//dirx of this particle (before transform.)
-        tracks.fYdirV[t] = mom[1]/secPtot;	//diry of this particle (before transform.)
-        tracks.fZdirV[t] = mom[2]/secPtot;	//dirz of this particle (before transform.)
+        tracks.fXdirV[t] = px/secPtot;	//dirx of this particle (before transform.)
+        tracks.fYdirV[t] = py/secPtot;	//diry of this particle (before transform.)
+        tracks.fZdirV[t] = pz/secPtot;	//dirz of this particle (before transform.)
 
         //Rotate parent track in tracks to original parent track's frame 
         //(a boost will be here as well; before the rotation)		           
@@ -409,8 +414,10 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           Int_t Z          = idummy/10000.;
           Int_t A          = (idummy - Z*10000)/10.;
           Double_t secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
-          Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+
-                              mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
+          Double_t px = mom[3*i];
+          Double_t py = mom[3*i+1];
+          Double_t pz = mom[3*i+2];
+          Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
           tracks.fEdepV[t]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
           continue;
         }
@@ -418,7 +425,10 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
         Double_t secMass  = secPartPDG->Mass();
-        Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
+        Double_t px = mom[3*i];
+        Double_t py = mom[3*i+1];
+        Double_t pz = mom[3*i+2];
+        Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
         Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
         Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
@@ -450,9 +460,9 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           gTrack.fXpos     = tracks.fXposV[t];     //rx of this particle (same as parent)
           gTrack.fYpos     = tracks.fYposV[t];     //ry of this particle (same as parent)
           gTrack.fZpos     = tracks.fZposV[t];     //rz of this particle (same as parent)
-          gTrack.fXdir     = mom[3*i]/secPtot;     //dirx of this particle (before transform.)
-          gTrack.fYdir     = mom[3*i+1]/secPtot;   //diry of this particle before transform.)
-          gTrack.fZdir     = mom[3*i+2]/secPtot;   //dirz of this particle before transform.)
+          gTrack.fXdir     = px/secPtot;     //dirx of this particle (before transform.)
+          gTrack.fYdir     = py/secPtot;     //diry of this particle before transform.)
+          gTrack.fZdir     = pz/secPtot;     //dirz of this particle before transform.)
           gTrack.fP        = secPtot;              //momentum of this particle 
           gTrack.fE        = secEtot;              //total E of this particle 
           gTrack.fEdep     = 0.;
@@ -465,12 +475,15 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           *gTrack.fPath    = *tracks.fPathV[t];
           *gTrack.fNextpath = *tracks.fPathV[t];
 
+          // Rotate new track to parent track's frame (a boost will be here as 
+          // well; before the rotation)		           
+          RotateNewTrack(oldXdir, oldYdir, oldZdir, gTrack);
+
           gPropagator->AddTrack(gTrack);
           tracks.AddTrack(gTrack);
 
-          //Rotate new track to parent track's frame (a boost will be here as well; before the rotation)		           
-          RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, nTotSecPart);
-           		 
+          //RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, nTotSecPart);
+		 
           ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
@@ -498,24 +511,44 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
    if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
      return;
    
-   Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();
+   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(3, rndArray);
+
    TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
 
 
-   Int_t nSecPart     = 0;   //number of secondary particles per reaction
+   Int_t nSecPart     = 0;  //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
    const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
-   Float_t  ener      = 0;	    //energy at the fstate
-   Float_t  kerma     = 0;	    //released energy
-   Float_t  weight    = 0;     //weight of the fstate (just a dummy parameter now)
-   Char_t   isSurv    = 0;	    //is the primary survived the interaction 	
-   
-   //sample RestCapture final states for this particle; it is the only at rest proc. at the moment
-   isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma, ener, pid, mom, randn);
-   //note: parent was already stopped because an at Rest process happend; -> primary is not in the list of secondaries
+   Float_t  ener      = 0;  //energy at the fstate
+   Float_t  kerma     = 0;  //released energy
+   Float_t  weight    = 0;  //weight of the fstate (just a dummy parameter now)
+   Char_t   isSurv    = 0;  //is the primary survived the interaction 	
+
+   Double_t randDirX;
+   Double_t randDirY;
+   Double_t randDirZ;
+   Double_t randSinTheta; 
+   Double_t randPhi; 
+
+   //sample RestCapture final states for this particle; it is the only at rest 
+   //proc. at the moment
+   isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma,
+                                             ener, pid, mom, rndArray[0]);
+   //note: parent was already stopped because an at Rest process happend; 
+   //      -> primary is not in the list of secondaries
 
    //isSurv should always be kFALSE here because primary was stopped -> just a check
-   if(isSurv) printf("A stopped particle survived its rest process in TTabPhysMgr::GetRestFinSates!\n"); 
+   if(isSurv) 
+     printf("A stopped particle survived its rest process in TTabPhysMgr::GetRestFinSates!\n"); 
+
+    if(nSecPart) {
+       randDirZ = 1.0-2.0*rndArray[1];     
+       randSinTheta = TMath::Sqrt(1.0-randDirZ*randDirZ);  
+       randPhi      = 2.0*TMath::Pi()*rndArray[2]; 
+       randDirX = randSinTheta*TMath::Cos(randPhi);
+       randDirY = randSinTheta*TMath::Sin(randPhi);
+    }
 
    //if tehere was any energy deposit add it to parent track doposited energy
    tracks.fEdepV[iintrack] += kerma;   
@@ -527,8 +560,10 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        Int_t Z                 = idummy/10000.;
        Int_t A                 = (idummy - Z*10000)/10.;
        Double_t secMass        = TPartIndex::I()->GetAprxNuclearMass(Z, A);
-       Double_t secPtot2       = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+
-                                 mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
+       Double_t px = mom[3*i];
+       Double_t py = mom[3*i+1];
+       Double_t pz = mom[3*i+2];
+       Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
        tracks.fEdepV[iintrack]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
        continue;
      }
@@ -536,7 +571,10 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
      Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
      Double_t secMass  = secPartPDG->Mass();
-     Double_t secPtot2 = mom[3*i]*mom[3*i]+mom[3*i+1]*mom[3*i+1]+mom[3*i+2]*mom[3*i+2];//total P^2 [GeV^2]
+     Double_t px = mom[3*i];
+     Double_t py = mom[3*i+1];
+     Double_t pz = mom[3*i+2];
+     Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
      Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
      Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
@@ -573,9 +611,9 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack.fXpos     = tracks.fXposV[iintrack];     //rx of this particle (same as parent)
        gTrack.fYpos     = tracks.fYposV[iintrack];     //ry of this particle (same as parent)
        gTrack.fZpos     = tracks.fZposV[iintrack];     //rz of this particle (same as parent)
-       gTrack.fXdir     = mom[3*i]/secPtot;     //dirx of this particle (before transform.)
-       gTrack.fYdir     = mom[3*i+1]/secPtot;   //diry of this particle before transform.)
-       gTrack.fZdir     = mom[3*i+2]/secPtot;   //dirz of this particle before transform.)
+       gTrack.fXdir     = px/secPtot;     //dirx of this particle (before transform.)
+       gTrack.fYdir     = py/secPtot;     //diry of this particle before transform.)
+       gTrack.fZdir     = pz/secPtot;     //dirz of this particle before transform.)
        gTrack.fP        = secPtot;              //momentum of this particle 
        gTrack.fE        = secEtot;              //total E of this particle 
        gTrack.fEdep     = 0.;
@@ -588,11 +626,14 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        *gTrack.fPath    = *tracks.fPathV[iintrack];
        *gTrack.fNextpath = *tracks.fPathV[iintrack];
 
+       // rotate at-rest secondary by a common random theta and random phi 
+       RotateNewTrack(randDirX, randDirY, randDirZ, gTrack);
+
        gPropagator->AddTrack(gTrack);
        tracks.AddTrack(gTrack);
 
-       //These are secodaries from Rest process -> were sampled at rest -> no rotation and boost
-      		 
+       //RotateNewTrack(randDirX, randDirY, randDirZ, tracks, nTotSecPart);
+		 
        ++nTotSecPart; //increase # of secondaries in tracks_v 
        // end if {secondary Ekin >= energyLimit}
      } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
@@ -605,17 +646,62 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 
 
 //_____________________________________________________________________________
+// FOR A SINGLE GeantTrack 
 // (oldXdir, oldYdir, oldZdir) is the direction vector of parent track in lab. 
 // frame; direction vector of the current track, measured from local Z is 
-// already updated in GeantTrack_v tracks; here we rotate it to lab. frame
+// already updated in GeantTrack track; here we rotate it to lab. frame
 void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
-     GeantTrack_v &tracks, Int_t itrack)
-{
-     const Double_t one  = 1.0f;  
-     const Double_t zero = 0.0f; 
-     const Double_t amin = 1.0e-10f; 
-//     const Double_t one5 = 1.5f; 
-//     const Double_t half = 0.5f; 
+                                 GeantTrack &track){
+     const Double_t one  = 1.0;  
+     const Double_t zero = 0.0; 
+     const Double_t amin = 1.0e-10; 
+     const Double_t one5 = 1.5; 
+     const Double_t half = 0.5; 
+
+     Double_t cosTheta0 = oldZdir; 
+     Double_t sinTheta0 = TMath::Sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
+     Double_t cosPhi0;
+     Double_t sinPhi0;
+
+     if(sinTheta0 > amin) {
+       cosPhi0 = oldXdir/sinTheta0;
+       sinPhi0 = oldYdir/sinTheta0;                     
+     } else {
+       cosPhi0 = one;
+       sinPhi0 = zero;                     
+     }
+    
+     Double_t h0 = track.fXdir;
+     Double_t h1 = sinTheta0*track.fZdir + cosTheta0*h0;
+     Double_t h2 = track.fYdir;
+ 
+     track.fXdir = h1*cosPhi0 - h2*sinPhi0;
+     track.fYdir = h1*sinPhi0 + h2*cosPhi0;
+     track.fZdir = track.fZdir*cosTheta0 - h0*sinTheta0;
+
+     //renormalization: -use 1-th order Taylor aprx. of 1/sqrt(x) around 1.0
+     // that should be almost exact since the vector almost normalized!  
+     Double_t delta = one5-half*( track.fXdir*track.fXdir + 
+				  track.fYdir*track.fYdir +
+				  track.fZdir*track.fZdir );
+     track.fXdir*=delta;
+     track.fYdir*=delta;
+     track.fZdir*=delta;
+
+}
+
+//______________________________________________________________________________
+// FOR THE itrack-th element of a GeantTrack_v   
+// (oldXdir, oldYdir, oldZdir) is the direction vector of parent track in lab. 
+// frame; direction vector of the current track, measured from local Z is 
+// already updated in GeantTrack track; here we rotate it to lab. frame
+void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
+                                 GeantTrack_v &tracks, Int_t itrack){
+     const Double_t one  = 1.0;  
+     const Double_t zero = 0.0; 
+     const Double_t amin = 1.0e-10; 
+     const Double_t one5 = 1.5; 
+     const Double_t half = 0.5; 
 
      Double_t cosTheta0 = oldZdir; 
      Double_t sinTheta0 = TMath::Sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
@@ -638,27 +724,76 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
      tracks.fYdirV[itrack] = h1*sinPhi0 + h2*cosPhi0;
      tracks.fZdirV[itrack] = tracks.fZdirV[itrack]*cosTheta0 - h0*sinTheta0;
 
-/* off now; not realy necessary now because (fXdir,fYdir,fZdir) always 
-            normalized at entry   
-     //renormalization: 
+     //renormalization: -use 1-th order Taylor aprx. of 1/sqrt(x) around 1.0
+     // that should be almost exact since the vector almost normalized!  
      Double_t delta = one5-half*( tracks.fXdirV[itrack]*tracks.fXdirV[itrack] + 
 				  tracks.fYdirV[itrack]*tracks.fYdirV[itrack] +
 				  tracks.fZdirV[itrack]*tracks.fZdirV[itrack] );
      tracks.fXdirV[itrack]*=delta;
      tracks.fYdirV[itrack]*=delta;
      tracks.fZdirV[itrack]*=delta;
-*/
+
 }
 
 
+//______________________________________________________________________________
+// FOR A SINGLE GeantTrack 
+// GeantTrack track contains the original direction in lab frame; theta and 
+// phi are the scattering angles measured form the particle local Z
+void TTabPhysMgr::RotateTrack(GeantTrack &track, Double_t theta, Double_t phi){
+     const Double_t one  = 1.0;  
+     const Double_t zero = 0.0; 
+     const Double_t amin = 1.0e-10; 
+     const Double_t one5 = 1.5; 
+     const Double_t half = 0.5; 
+
+     Double_t cosTheta0 = track.fZdir; 
+     Double_t sinTheta0 = TMath::Sqrt(track.fXdir*track.fXdir +track.fYdir*track.fYdir);
+     Double_t cosPhi0;
+     Double_t sinPhi0;
+     Double_t cosTheta = TMath::Cos(theta);
+     Double_t sinTheta = TMath::Sin(theta);
+
+
+     if(sinTheta0 > amin) {
+       cosPhi0 = track.fXdir/sinTheta0;
+       sinPhi0 = track.fYdir/sinTheta0;                     
+     } else {
+       cosPhi0 = one;
+       sinPhi0 = zero;                     
+     }
+
+     Double_t h0 = sinTheta*TMath::Cos(phi);
+     Double_t h1 = sinTheta0*cosTheta + cosTheta0*h0;
+     Double_t h2 = sinTheta*TMath::Sin(phi);
+ 
+     track.fXdir = h1*cosPhi0 - h2*sinPhi0;
+     track.fYdir = h1*sinPhi0 + h2*cosPhi0;
+     track.fZdir = cosTheta*cosTheta0 - h0*sinTheta0;
+
+    //renormalization: -ensure normality to avoid accumulated numerical errors
+    //    due to sequential calls of rotation; avoid 1/sqrt(x) computation by
+    //    using the 1-th order Taylor aprx. around 1.0 that should be almost 
+    //    exact since the vector almost normalized!
+     Double_t delta = one5-half*( track.fXdir*track.fXdir + 
+                                  track.fYdir*track.fYdir +
+				  track.fZdir*track.fZdir );
+     track.fXdir*=delta;
+     track.fYdir*=delta;
+     track.fZdir*=delta;
+}
+
+//______________________________________________________________________________
+// FOR THE itrack-th element of a GeantTrack_v   
+// GeantTrack_v contains the original direction in lab frame; theta and 
+// phi are the scattering angles measured form the particle local Z
 void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, 
-        Double_t phi)
-{
-     const Double_t one  = 1.0f;  
-     const Double_t zero = 0.0f; 
-     const Double_t amin = 1.0e-10f; 
-     const Double_t one5 = 1.5f; 
-     const Double_t half = 0.5f; 
+                              Double_t phi){
+     const Double_t one  = 1.0;  
+     const Double_t zero = 0.0; 
+     const Double_t amin = 1.0e-10; 
+     const Double_t one5 = 1.5; 
+     const Double_t half = 0.5; 
 
      Double_t cosTheta0 = tracks.fZdirV[itrack]; 
      Double_t sinTheta0 = TMath::Sqrt(tracks.fXdirV[itrack]*tracks.fXdirV[itrack] +
@@ -668,8 +803,6 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta
      Double_t sinPhi0;
      Double_t cosTheta = TMath::Cos(theta);
      Double_t sinTheta = TMath::Sin(theta);
-//     Double_t cosPhi = TMath::Cos(phi);
-//     Double_t sinPhi = TMath::Sin(phi);
 
 
      if(sinTheta0 > amin) {
@@ -688,15 +821,16 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta
      tracks.fYdirV[itrack] = h1*sinPhi0 + h2*cosPhi0;
      tracks.fZdirV[itrack] = cosTheta*cosTheta0 - h0*sinTheta0;
 
-    //renormalization: ensure normality to avoid accumulated numerical errors
-    //                 due to sequential calls of rotation 
+    //renormalization: -ensure normality to avoid accumulated numerical errors
+    //    due to sequential calls of rotation; avoid 1/sqrt(x) computation by
+    //    using the 1-th order Taylor aprx. around 1.0 that should be almost 
+    //    exact since the vector almost normalized!
      Double_t delta = one5-half*( tracks.fXdirV[itrack]*tracks.fXdirV[itrack] + 
 				  tracks.fYdirV[itrack]*tracks.fYdirV[itrack] +
 				  tracks.fZdirV[itrack]*tracks.fZdirV[itrack] );
      tracks.fXdirV[itrack]*=delta;
      tracks.fYdirV[itrack]*=delta;
      tracks.fZdirV[itrack]*=delta;
-
 }
 
 

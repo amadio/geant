@@ -39,6 +39,10 @@
 #include "PhysicsList.hh"
 #include "SimplePhysicsList.hh"
 
+#include "QBBC.hh"
+#include "FTFP_BERT.hh"
+#include "FTFP_BERT_HP.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "EventAction.hh"
@@ -68,14 +72,15 @@ void usage();
 int main(int argc,char** argv)
 {
 
-  G4bool isBachMode           = FALSE;  // do we run in bach mode ?  ; 
-  char mFileName[512]         = "";     // macro filename (in case of bach mode) 
+  G4bool isBachMode           = FALSE; // do we run in bach mode ?  ; 
+  char mFileName[512]         = "";    // macro filename (in case of bach mode) 
+  char physListName[512]      = "TABPHYS";  // physics list; default tabulated  
   G4int tabPhysVerboseLevel   = 0;      // verbosity level in tabulated physics 
   G4double tabPhysEnergyLimit = 3.0e-6; // low energy cut in tab. physics [GeV] 
   
   // parsing the arguments
   int c; 
-  while ((c = getopt (argc, argv, "m:v:l:")) != -1)
+  while ((c = getopt (argc, argv, "m:v:l:p:")) != -1)
     switch (c) {
       case 'm':
         isBachMode = TRUE;
@@ -88,6 +93,10 @@ int main(int argc,char** argv)
       case 'l':
         tabPhysEnergyLimit = atof(optarg);
         break;
+      case 'p':
+        strncpy(physListName,optarg,strlen(optarg));
+        physListName[strlen(optarg)] = '\0';
+        break; 
       case '?':
         usage();
         return 1;
@@ -112,9 +121,23 @@ int main(int argc,char** argv)
   //
   runManager->SetUserInitialization(new DetectorConstruction);
   //
-  // runManager->SetUserInitialization(new PhysicsList);
-  runManager->SetUserInitialization(new SimplePhysicsList);
-  
+
+  // Set physics list
+  if(!strcmp(physListName,"QBBC")) {
+    runManager->SetUserInitialization(new QBBC);
+  } else if(!strcmp(physListName,"FTFP_BERT")) {
+    runManager->SetUserInitialization(new FTFP_BERT);
+  } else if(!strcmp(physListName,"FTFP_BERT_HP")) {
+    runManager->SetUserInitialization(new FTFP_BERT_HP);
+  } else if(!strcmp(physListName,"TABPHYS")) {
+    runManager->SetUserInitialization(new SimplePhysicsList);  
+  } else {
+    G4cout << "Unknown physics list " << physListName << G4endl;
+    exit(1);
+  }
+
+  G4cout << "Physics List:  " << physListName << G4endl;
+
   // Set user action classes
   //
   runManager->SetUserAction(new PrimaryGeneratorAction);
@@ -180,20 +203,27 @@ int main(int argc,char** argv)
 void usage()
 {
   G4cout <<
+  "============================================================================"
+  << G4endl <<
   "NAME" << G4endl <<
-  "    exampleN03 -- Geant4 with tabulated physics data " << G4endl << G4endl <<
+  "    exampleN03 ----------------- Geant4 example --------------------------- " 
+       << G4endl << G4endl <<
   "SYNOPSIS" << G4endl <<
-  "    exampleN03 [-l, -v, -m [file]] " << G4endl << G4endl <<
+  "    exampleN03 [-l, -v, -m <FILE>, -p <NAME>] " << G4endl << G4endl <<
   "DESCRIPTION" << G4endl <<
-  "    Run Geant4 /examples/novice/N03/exampleN03 with tabulated physics data " 
+  "    Run Geant4 /examples/novice/N03/exampleN03 with optional physics list " 
         << G4endl << G4endl <<
   "OPTIONS" << G4endl <<
   "    -l low energy cut in tabulated physics [GeV] (default 3.0e-6)" 
           << G4endl <<
-  "    -v verbosity level tabulated physics (only >=2 is used at the moment) " 
+  "    -v verbosity level in tabulated physics (only >=2 is used at the moment)" 
           << G4endl <<
-  "    -m [file] if we run it in bach mode where file is the Geant4 macro file" 
-  << G4endl;
+  "    -m <FILE> if we run it in bach mode; file is the Geant4 macro file" 
+          << G4endl <<
+  "    -p <NAME> physics list: TABPHYS (default), QBBC, FTFP_BERT, FTFP_BERT_HP"
+  << G4endl <<  
+  "============================================================================"
+  << G4endl << G4endl; 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

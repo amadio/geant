@@ -86,13 +86,23 @@ int TotalPhysicsProcess::SetupForMaterial(const G4Track& track)
 #include "TEXsec.h"
 #include  "TList.h"
 
+//______________________________________________________________________________ 
+G4double TotalPhysicsProcess::GetContinuousStepLimit(const G4Track& track, 
+                                                     G4double previousStepSize,
+                                                     G4double currentMinimumStep,
+                                                     G4double &currentSafety){
+    G4int rootMatId = SetupForMaterial(track);
+    theDataManager->ApplyMsc(rootMatId, track);
+    return DBL_MAX;
+}
+
 //_____________________________________________________________________________
 G4VParticleChange* TotalPhysicsProcess::AlongStepDoIt(const G4Track& track, 
                                                       const G4Step& step){
    // init G4ParticleChange from current track
   fParticleChange->Initialize(track);
   // get rootgeom corresponding material index 
-  int rootMatId= SetupForMaterial(track);
+  G4int rootMatId= SetupForMaterial(track);
   // compute energy loss from dedx and update the particle change; set status to
   // fAlive, fStopButAlive or fStopAndKill if final Ekin> fgEnergyLimit, <fgEnergyLimit
   // and it doesn't have or has NuclearCaptureAtRest   
@@ -102,12 +112,19 @@ G4VParticleChange* TotalPhysicsProcess::AlongStepDoIt(const G4Track& track,
 }
 
 //______________________________________________________________________________
-G4VParticleChange* TotalPhysicsProcess::AtRestDoIt(const G4Track& track, 
-                                                    const G4Step& step){
+G4VParticleChange* TotalPhysicsProcess::AtRestDoIt(const G4Track &atrack, 
+                                                    const G4Step &astep){
    // DOES NOTHING AT THE MOMENT JUST KILLS THE TRACK!
    // init G4ParticleChange from current track
-   fParticleChange->Initialize(track); 
-   fParticleChange->ProposeTrackStatus(fStopAndKill);
+   fParticleChange->Initialize(atrack); 
+
+   // get rootgeom corresponding material index 
+   G4int rootMatId = SetupForMaterial(atrack);
+
+   // Sample final state for at rest process (we have only uclear capture at 
+   // rest) and fill the particle change 
+   theDataManager->SampleFinalStateAtRest(rootMatId, atrack, fParticleChange, 
+                                          fgEnergyLimit);
    return fParticleChange;
 }
 
@@ -116,7 +133,7 @@ G4double TotalPhysicsProcess::GetMeanFreePath(const G4Track& track,
                                               G4double , // previousStepSize,
                                               G4ForceCondition* condition){
   // get rootgeom corresponding material index 
-  int rootMatId= SetupForMaterial(track);
+  G4int rootMatId= SetupForMaterial(track);
 
   // condition is set to "Not Forced"
   *condition = NotForced;
@@ -134,11 +151,18 @@ G4VParticleChange* TotalPhysicsProcess::PostStepDoIt(const G4Track& track,
   // init G4ParticleChange from current track
   fParticleChange->Initialize(track);
 
+  // Check if it has survived the along-step-do-it part:
+  // If yes: early return
+  // If no : go on
+  if( track.GetTrackStatus() != fAlive )
+    return fParticleChange;
+
+
   // Sampling element for interaction and type of interaction on that
   Int_t reactionId   = -1;
   Int_t elementIndex = -1;
 
-  int rootMatId= SetupForMaterial(track);
+  G4int rootMatId= SetupForMaterial(track);
   elementIndex = theDataManager->SampleInteraction(rootMatId, track, 
                                                    reactionId);
 

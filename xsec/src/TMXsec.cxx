@@ -563,6 +563,21 @@ Int_t TMXsec::SampleElement(Int_t tid){
    return fElems[0]->Index(); 
 }
 
+// sample one of the elements based on #atoms/volue 
+// (same as above but with simple rng for Geant4) 
+//______________________________________________________________________________
+Int_t TMXsec::SampleElement(){
+   if( fNElems > 1){
+     Double_t randn = gRandom->Rndm();      
+     for(Int_t itr=0; itr<fNElems; ++itr)
+        if(fRatios[itr]>randn)
+          return  fElems[itr]->Index();// TTabPhysMgr index of the sampled elemet
+   }
+
+   return fElems[0]->Index(); 
+}
+
+
 //____________________________________________________________________________
 Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)  
 {
