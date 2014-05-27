@@ -14,13 +14,14 @@
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
-namespace vecgeom {
+ namespace vecgeom {
     class NavigationState;
-}
-typedef vecgeom::NavigationState VolumePath_t;
+ }
+ #include "navigation/navigationstate.h"
+ typedef vecgeom::NavigationState VolumePath_t;
 #else
-class TGeoBranchArray;
-typedef TGeoBranchArray VolumePath_t;
+ #include "TGeoBranchArray.h"       // needed due to templated pools
+ typedef TGeoBranchArray VolumePath_t;
 #endif
 
 
@@ -222,14 +223,15 @@ public:
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat      &GetTrackStat() {return fStat;}
 #endif   
-   Int_t     AddTrack(const GeantTrack &track);
-   Int_t     AddTrack(const GeantTrack_v &arr, Int_t i);
-   void      AddTracks(const GeantTrack_v &arr, Int_t istart, Int_t iend);
+   Int_t     AddTrack(GeantTrack &track, Bool_t import=kFALSE);
+   Int_t     AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import=kFALSE);
+   void      AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t import=kFALSE);
    void      CheckTracks();
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
    void      DeleteTrack(Int_t itr);
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
+   void      DeselectAll()        {fSelected.ResetAllBits(); fNselected = 0;}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
    Int_t     SortByStatus(TrackStatus_t status);

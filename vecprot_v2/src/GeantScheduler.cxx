@@ -6,15 +6,13 @@
 #include "GeantPropagator.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "navigation/navigationstate.h"
-#include "navigation/simple_navigator.h"
-#include "base/vector3d.h"
-#include "management/geo_manager.h"
+ #include "navigation/simple_navigator.h"
+ #include "base/vector3d.h"
+ #include "management/geo_manager.h"
 #endif
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
-#include "TGeoBranchArray.h"
 
 ClassImp(GeantScheduler)
 
@@ -94,7 +92,7 @@ void GeantScheduler::CreateBaskets()
 }
 
 //______________________________________________________________________________
-Int_t GeantScheduler::AddTrack(const GeantTrack &track)
+Int_t GeantScheduler::AddTrack(GeantTrack &track)
 {
 // Main method to inject generated tracks. Track status is kNew here.
    TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
@@ -138,7 +136,8 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
       basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
       fNtracks[output_id]++;
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);
-   }   
+   } 
+   tracks.Clear();
    return ninjected;
 }  
    

@@ -35,11 +35,11 @@ public:
    virtual ~GeantBasket();
    
    // Add track from generator or physics process
-   void              AddTrack(const GeantTrack &track);
+   void              AddTrack(GeantTrack &track);
    // Add track from a track_v array (copied)
-   void              AddTrack(const GeantTrack_v &tracks, Int_t itr);
+   void              AddTrack(GeantTrack_v &tracks, Int_t itr);
    // Add multiple tracks from a track_v array
-   void              AddTracks(const GeantTrack_v &tracks, Int_t istart, Int_t iend);
+   void              AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend);
    virtual void      Clear(Option_t *option="");
    Bool_t            Contains(Int_t evstart, Int_t nevents=1) const;
    Int_t             GetNinput() const {return fTracksIn.GetNtracks();}
@@ -93,8 +93,8 @@ public:
    
    virtual TGeoExtension *Grab() {return this;}
    virtual void           Release() const {delete this;}
-   Int_t             AddTrack(const GeantTrack &track, Bool_t priority=kFALSE);
-   Int_t             AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority=kFALSE);
+   Int_t             AddTrack(GeantTrack &track, Bool_t priority=kFALSE);
+   Int_t             AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority=kFALSE);
    Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
    Int_t             FlushPriorityBasket();
    Int_t             GarbageCollect();

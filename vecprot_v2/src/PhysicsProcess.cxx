@@ -16,11 +16,6 @@
 #include "TGeoMedium.h"
 #include "TGeoMaterial.h"
 #include "TGeoMatrix.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "navigation/navigationstate.h"
-#else
-#include "TGeoBranchArray.h"
-#endif
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "TGenPhaseSpace.h"

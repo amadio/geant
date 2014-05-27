@@ -43,7 +43,7 @@ private:
 public:
    GeantScheduler();
    virtual ~GeantScheduler();
-   Int_t                AddTrack(const GeantTrack &track);
+   Int_t                AddTrack(GeantTrack &track);
    Int_t                AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled);
    void                 AdjustBasketSize();
    void                 CreateBaskets();

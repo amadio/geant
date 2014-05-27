@@ -7,7 +7,7 @@
 
 #include "sync_objects.h"
 #include "GeantObjectPool.h"
-#include "TGeoBranchArray.h"
+#include "GeantTrack.h"
  
 class GeantBasketMgr;
 class GeantBasket;
@@ -36,7 +36,7 @@ protected:
                      *fTransportedQ;       // queue of transported baskets
    dcqueue<GeantBasket> 
                      *fDoneQ;              // Thread "all work done" queue
-   GeantObjectPool<TGeoBranchArray>
+   GeantObjectPool<VolumePath_t>
                      *fNavStates;          // Pool of navigation states                  
    static WorkloadManager *fgInstance;     // Singleton instance
    TList             *fListThreads;        // List of threads
@@ -53,7 +53,8 @@ public:
    dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
    dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
    dcqueue<GeantBasket> *DoneQueue() const {return fDoneQ;}
-   
+   GeantObjectPool<VolumePath_t>  
+                      *NavStates() const   {return fNavStates;}
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
    GeantScheduler     *GetScheduler() const {return fScheduler;}

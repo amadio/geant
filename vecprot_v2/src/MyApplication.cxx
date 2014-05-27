@@ -1,11 +1,4 @@
 #include "MyApplication.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "navigation/navigationstate.h"
-typedef vecgeom::NavigationState VolumePath_t;
-#else
-#include "TGeoBranchArray.h"
-typedef TGeoBranchArray VolumePath_t;
-#endif
 #include "TGeoNode.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"

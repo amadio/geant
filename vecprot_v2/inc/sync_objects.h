@@ -171,8 +171,14 @@ template <class T>
 T* dcqueue<T>::try_pop()
 {
 // Gets the back object from the queue. Returns 0 if none is available.
+   // Fast return...
    if(the_queue.empty()) return 0;
    the_mutex.Lock();
+   // We have to check again for robbery...
+   if(the_queue.empty()) {
+      the_mutex.UnLock();
+      return 0;
+   }   
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;

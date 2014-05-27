@@ -12,7 +12,7 @@
 #include "TThread.h"
 #include "TGeoManager.h"
 #include "TGeoNavigator.h"
-#include "TGeoBranchArray.h"
+#include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
 #include "GeantThreadData.h"
@@ -20,7 +20,9 @@
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
 #include "GeantVApplication.h"
-
+#if USE_VECGEOM_NAVIGATOR == 1
+ #include "management/geo_manager.h"
+#endif
 #include "TaskBroker.h"
 
 ClassImp(WorkloadManager)
@@ -53,7 +55,6 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fFeederQ = new dcqueue<GeantBasket>();
    fTransportedQ = new dcqueue<GeantBasket>();
    fDoneQ = new dcqueue<GeantBasket>();
-   fNavStates = new GeantObjectPool<TGeoBranchArray>(1000*nthreads);
    fgInstance = this;
    fScheduler = new GeantScheduler();
 }
@@ -73,6 +74,14 @@ WorkloadManager::~WorkloadManager()
 void WorkloadManager::CreateBaskets()
 {
 // Create the array of baskets
+   VolumePath_t *blueprint = 0;
+#if USE_VECGEOM_NAVIGATOR == 1
+      Printf("Max depth: %d", vecgeom::GeoManager::Instance().getMaxDepth());
+      blueprint = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
+#else
+      blueprint = new TGeoBranchArray(TGeoManager::GetMaxLevels());
+#endif   
+   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
    fScheduler->CreateBaskets();
 }
    

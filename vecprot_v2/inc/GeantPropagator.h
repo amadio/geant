@@ -97,15 +97,15 @@ public:
    // Temporary track for the current caller thread
    GeantTrack      &GetTempTrack(Int_t tid=-1);
    Int_t            AddTrack(GeantTrack &track);
-   Int_t            DispatchTrack(const GeantTrack &track);
+   Int_t            DispatchTrack(GeantTrack &track);
    void             StopTrack(GeantTrack *track);
    void             StopTrack(const GeantTrack_v &tracks, Int_t itr);
    Int_t            GetElossInd() const {return fElossInd;}
    UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");
-//#ifdef USE_VECGEOM_NAVIGATOR
+#if USE_VECGEOM_NAVIGATOR == 1
    Bool_t           LoadVecGeomGeometry();
-//#endif
+#endif
    Int_t            ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
    void             Initialize();
 //   void             InjectCollection(Int_t tid);

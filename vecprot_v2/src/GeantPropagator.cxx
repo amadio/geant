@@ -36,12 +36,12 @@
 #include "TGeoMatrix.h"
 #include <fenv.h>
 
-#include "navigation/navigationstate.h"
-#include "navigation/simple_navigator.h"
-#include "management/rootgeo_manager.h"
-#include "volumes/logical_volume.h"
-#include "volumes/placed_volume.h"
-#include "TGeoBranchArray.h"
+#if USE_VECGEOM_NAVIGATOR == 1
+ #include "navigation/simple_navigator.h"
+ #include "management/rootgeo_manager.h"
+ #include "volumes/logical_volume.h"
+ #include "volumes/placed_volume.h"
+#endif
 #include "TTree.h"
 #include "TFile.h"
 #include "TStopwatch.h"
@@ -166,7 +166,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track)
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::DispatchTrack(const GeantTrack &track)
+Int_t GeantPropagator::DispatchTrack(GeantTrack &track)
 {
 // Dispatch a registered track produced by the generator.
    return fWMgr->GetScheduler()->AddTrack(track);
@@ -392,13 +392,10 @@ void GeantPropagator::Initialize()
    // Initialize the process(es)
    fProcess->Initialize();
       
-//   if (!fProcesses) {
-//      fProcesses = new PhysicsProcess*[fNprocesses];
-//      fProcesses[0] = new ScatteringProcess("Scattering");
-//      fProcesses[1] = new ElossProcess("Eloss");
-//      fElossInd = 1;
-//      fProcesses[2] = new InteractionProcess("Interaction");
-//   }
+   // Initialize workload manager
+   fWMgr = WorkloadManager::Instance(fNthreads);
+   // Add some empty baskets in the queue
+   fWMgr->CreateBaskets();   // geometry should be created by now
 
    if(!fNtracks){
      fNtracks = new Int_t[fNevents];
@@ -413,9 +410,6 @@ void GeantPropagator::Initialize()
       fThreadData = new GeantThreadData*[fNthreads+1];
       for (Int_t i=0; i<fNthreads+1; i++) fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
    } 
-   fWMgr = WorkloadManager::Instance(fNthreads);
-   // Add some empty baskets in the queue
-//   fWMgr->AddEmptyBaskets(1000);
  // Initialize application
    fApplication->Initialize();
 }
@@ -429,10 +423,11 @@ UInt_t GeantPropagator::GetNwaiting() const
    return nwaiting;
 }
    
-//#ifdef USE_VECGEOM_NAVIGATOR
+#if USE_VECGEOM_NAVIGATOR == 1
 /**
  * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
  */
+//______________________________________________________________________________
 Bool_t GeantPropagator::LoadVecGeomGeometry()
 {
    if( vecgeom::GeoManager::Instance().world() == NULL )
@@ -443,14 +438,14 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
     Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
     std::vector<vecgeom::LogicalVolume *> v1;
     vecgeom::GeoManager::Instance().getAllLogicalVolumes( v1 );
-    Printf("Have logical volumes %d\n", v1.size() );
+    Printf("Have logical volumes %ld\n", v1.size() );
     std::vector<vecgeom::VPlacedVolume *> v2;
     vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
-    Printf("Have placed volumes %d\n", v2.size() );
+    Printf("Have placed volumes %ld\n", v2.size() );
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
    }
 }
-//#endif
+#endif
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
@@ -459,16 +454,16 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename)
 
     Printf("In Load Geometry");
    if (gGeoManager){
-//#ifdef USE_VECGEOM_NAVIGATOR
+#if USE_VECGEOM_NAVIGATOR == 1
        LoadVecGeomGeometry();
-//#endif
+#endif
        return kTRUE;
    }
    Printf("returning early");
    TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
    if (geom)
        {
-#ifdef USE_VECGEOM_NAVIGATOR
+#if USE_VECGEOM_NAVIGATOR == 1
           LoadVecGeomGeometry();
 #endif
           return kTRUE;
@@ -558,8 +553,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    else              Printf("  I/O disabled");
    if (fUsePhysics)  Printf("  Physics ON with %d processes", fNprocesses);
    else              Printf("  Physics OFF");
-   // Create the basket array
-   fWMgr->CreateBaskets();   // geometry should be created by now
 
    // Import the input events. This will start also populating the main queue
    if (!fEvents) {

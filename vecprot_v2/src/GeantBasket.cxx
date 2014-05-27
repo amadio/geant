@@ -13,7 +13,6 @@
 #include "TGeoManager.h"
 #include "TGeoVolume.h"
 #include "TGeoNavigator.h"
-#include "TGeoBranchArray.h"
 
 ClassImp(GeantBasket)
 
@@ -44,21 +43,21 @@ GeantBasket::~GeantBasket()
 }
    
 //______________________________________________________________________________
-void GeantBasket::AddTrack(const GeantTrack &track)
+void GeantBasket::AddTrack(GeantTrack &track)
 {
 // Add a new track to this basket;
    fTracksIn.AddTrack(track);
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTrack(const GeantTrack_v &tracks, Int_t itr)
+void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr)
 {
 // Add track from a track_v array
    fTracksIn.AddTrack(tracks, itr);
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTracks(const GeantTrack_v &tracks, Int_t istart, Int_t iend)
+void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend)
 {
 // Add multiple tracks from a track_v array
    fTracksIn.AddTracks(tracks, istart, iend);
@@ -142,7 +141,7 @@ GeantBasketMgr::~GeantBasketMgr()
 }   
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority)
+Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority)
 {
 // Copy directly from a track_v a track to the basket manager.
 #ifdef __STAT_DEBUG
@@ -175,7 +174,7 @@ Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t pri
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(const GeantTrack &track, Bool_t priority)
+Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority)
 {
 // Add a track to the volume basket manager. If the track number reaches the
 // threshold, the basket is added to the feeder queue and replaced by an empty 
@@ -303,6 +302,9 @@ GeantBasket *GeantBasketMgr::GetNextBasket()
 void GeantBasketMgr::RecycleBasket(GeantBasket *b)
 {
 // Recycle a basket.
+   if (b->GetNinput() || b->GetNoutput()) {
+      Printf("RecycleBasket: Error: ntracks!=0");
+   }   
    b->Clear();
    if (b->GetInputTracks().Capacity() < fThreshold) {
       b->GetInputTracks().Resize(fThreshold);
