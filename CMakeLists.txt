@@ -46,6 +46,10 @@ endif()
    include_directories(${VECGEOM_INCLUDE_DIR})
 endif()
 
+if( USE_ROOT )
+   add_definitions( "-DUSE_ROOT")
+endif()
+
 #----------------------------------------------------------------------------
 # Load macros
 #
