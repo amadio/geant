@@ -21,11 +21,11 @@ void run(Int_t nthreads=4, Bool_t graphics=kFALSE,
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
-   prop->fNaverage = 100;   // Average number of tracks per event
+   prop->fNaverage = 1000;   // Average number of tracks per event
    prop->fNperBasket = 32;   // Vector size
    prop->fEmin = 1.E-5; // [10KeV] energy cut
-//   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
-   prop->fEmax = 1.;
+   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
+//   prop->fEmax = 1.;
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 

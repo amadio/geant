@@ -1113,7 +1113,7 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep)
       fZposV[i] += crtstep[i]*fZdirV[i];
       fNstepsV[i]++;
 #ifdef USE_VECGEOM_NAVIGATOR
-      CheckLocationPathConsistency(i);
+//      CheckLocationPathConsistency(i);
 #endif
    }
    return icrossed;
@@ -1832,7 +1832,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
          gPropagator->fNsnextSteps++;  // should use atomics
          MarkRemoved(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
-            CheckLocationPathConsistency(itr);
+//            CheckLocationPathConsistency(itr);
 #endif
       }
    }
@@ -1967,7 +1967,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
             gPropagator->fNsnextSteps++;
             MarkRemoved(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
-            CheckLocationPathConsistency(itr);
+//            CheckLocationPathConsistency(itr);
 #endif
             continue;
          }
@@ -2018,7 +2018,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
             MarkRemoved(itr);
          }
 #ifdef USE_VECGEOM_NAVIGATOR
-         CheckLocationPathConsistency(itr);
+//         CheckLocationPathConsistency(itr);
 #endif
       }
    }
