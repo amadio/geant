@@ -135,6 +135,11 @@ void WorkloadManager::StartThreads()
    TThread *t = new TThread(WorkloadManager::MainScheduler);
    fListThreads->Add(t);
    t->Run();
+   if (GeantPropagator::Instance()->fUseMonitoring) {
+      t = new TThread(WorkloadManager::MonitoringThread);
+      fListThreads->Add(t);
+      t->Run();
+   }   
 }   
 
 //______________________________________________________________________________
@@ -145,6 +150,10 @@ void WorkloadManager::JoinThreads()
    for (Int_t ith=0; ith<fNthreads; ith++) ((TThread*)fListThreads->At(ith))->Join();
    // Join garbage collector
    ((TThread*)fListThreads->At(fNthreads))->Join();
+   // Join monitoring thread
+   if (GeantPropagator::Instance()->fUseMonitoring) {
+      ((TThread*)fListThreads->At(fNthreads+1))->Join();
+   }   
 }
    
 //______________________________________________________________________________
@@ -369,6 +378,10 @@ void *WorkloadManager::MainScheduler(void *)
          }   
       }   
    }
+   // Stop workers
+   for (Int_t i=0; i<propagator->fNthreads; i++) wm->FeederQueue()->push(0);
+   wm->TransportedQueue()->push(0);
+   wm->Stop();
    propagator->fApplication->Digitize(0);
       
    Printf("=== Scheduler: stopping threads === niter =%d\n", niter);
@@ -392,8 +405,6 @@ void *WorkloadManager::MainScheduler(void *)
 //      pad3->Modified();
 //      c1->Update();
    }   
-   for (Int_t i=0; i<propagator->fNthreads; i++) wm->FeederQueue()->push(0);
-   wm->TransportedQueue()->push(0);
    Printf("=== Scheduler: exiting ===");
    return 0;
 }        
@@ -721,4 +732,69 @@ finish:
    wm->DoneQueue()->push(0);
    Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
    return 0;
+}
+
+//______________________________________________________________________________
+void *WorkloadManager::MonitoringThread(void *)
+{
+// Thread providing basic monitoring for the scheduler.
+   const Double_t MByte = 1024.;
+   Printf("Started monitoring thread...");
+   GeantPropagator *propagator = GeantPropagator::Instance();
+   WorkloadManager *wm = WorkloadManager::Instance();
+   dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
+   Int_t ntotransport;
+   ProcInfo_t  procInfo;
+   Double_t rss;
+   
+   TCanvas *cmon = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("cscheduler");
+   cmon->Divide(2,2);
+   TH1I *hqueue = new TH1I("hqueue","Work queue load", 100,0.5,100.5);
+   hqueue->SetFillColor(kRed);
+   hqueue->SetLineColor(0);
+   hqueue->SetStats(kFALSE);
+   Int_t nqueue[100] = {0};
+   TH1F *hmem = new TH1F("hmem","Resident memory [MB]", 100,0.5,100.5);
+   hmem->SetFillColor(kMagenta);
+   hmem->SetLineColor(0);
+   hmem->SetStats(kFALSE);
+   Double_t nmem[100] = {0};
+   cmon->cd(1);
+   hqueue->Draw();
+   cmon->cd(2);
+   hmem->Draw();
+   cmon->Update();
+   Double_t stamp = 0.5;
+   Int_t i;
+   while (!wm->IsStopped()) { // exit condition here
+      i = Int_t(stamp);
+      gSystem->Sleep(50); // millisec
+      gSystem->GetProcInfo(&procInfo);
+      rss = procInfo.fMemResident/MByte;
+      ntotransport = feederQ->size_async();
+      if (stamp>100) {
+         memmove(nqueue, &nqueue[1], 99*sizeof(Int_t));
+         memmove(nmem, &nmem[1], 99*sizeof(Double_t));
+         nqueue[99] = ntotransport;
+         nmem[99] = rss;
+         hqueue->GetXaxis()->Set(100,stamp, stamp+100);
+         hmem->GetXaxis()->Set(100,stamp, stamp+100);
+         for (Int_t i=0; i<100; i++) {
+            hqueue->SetBinContent(i+1,nqueue[i]);
+            hmem->SetBinContent(i+1,nmem[i]);
+         }   
+      } else {
+         nqueue[i] = ntotransport;
+         nmem[i] = rss;
+         hqueue->SetBinContent(i+1,nqueue[i]);
+         hmem->SetBinContent(i+1,nmem[i]);
+      }   
+      cmon->cd(1);
+      hqueue->Draw();
+      cmon->cd(2);
+      hmem->Draw();
+      cmon->Modified();
+      cmon->Update();
+      stamp += 1;
+   }
 }

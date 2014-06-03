@@ -34,5 +34,6 @@ void run(Int_t nthreads=4, Bool_t graphics=kFALSE,
 //   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;
 //   prop->fDebugTrk = 1;
+   prop->fUseMonitoring = kTRUE;
    prop->PropagatorGeom(geomfile, nthreads, graphics);
 }   

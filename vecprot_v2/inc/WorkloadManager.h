@@ -30,6 +30,7 @@ protected:
    Int_t              fNqueued;            // Number of chunks queued
    Int_t             *fBtogo;              // array of baskets to be processed in the next generation
    Bool_t             fStarted;            // Start flag
+   Bool_t             fStopped;            // Stop flag
    dcqueue<GeantBasket> 
                      *fFeederQ;            // queue of transportable baskets
    dcqueue<GeantBasket>  
@@ -62,6 +63,8 @@ public:
                        Instance(Int_t nthreads=0);                    
    Bool_t              IsFlushed() const {return fFlushed;}
    Bool_t              IsFilling() const {return fFilling;}
+   Bool_t              IsStopped() const {return fStopped;}
+   void                Stop()            {fStopped = kTRUE;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
    void                Print(Option_t *option="") const;
@@ -71,6 +74,7 @@ public:
    void                StartThreads();
    void                JoinThreads();
    static void        *MainScheduler(void *arg);
+   static void        *MonitoringThread(void *arg);
    static void        *TransportTracks(void *arg);
    static void        *TransportTracksCoprocessor(void *arg);
    void                WaitWorkers();
