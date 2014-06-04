@@ -5,7 +5,7 @@
 #include "TGeoExtension.h"
 #include "TGeoVolume.h"
 #include "GeantTrack.h" 
-#include "sync_objects.h"
+#include "sync_objects.h" // includes <atomic.h>
 
 //==============================================================================
 // Basket of tracks in the same volume which are transported by a single thread
@@ -70,9 +70,15 @@ protected:
    GeantScheduler   *fScheduler;             // Scheduler for this basket
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNumber;                // Number assigned
+#if __cplusplus >= 201103L
+   std::atomic<int>  fThreshold;             // Adjustable transportability threshold
+   std::atomic<int>  fNbaskets;              // Number of baskets for this volume
+   std::atomic<int>  fNused;                 // Number of baskets in use
+#else
    Int_t             fThreshold;             // Adjustable transportability threshold
    Int_t             fNbaskets;              // Number of baskets for this volume
    Int_t             fNused;                 // Number of baskets in use
+#endif
    GeantBasket      *fCBasket;               // Current basket being filled
    GeantBasket      *fPBasket;               // Current priority basket being filled
    dcqueue<GeantBasket> fBaskets;            // queue of available baskets
@@ -98,10 +104,18 @@ public:
    Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
    Int_t             FlushPriorityBasket();
    Int_t             GarbageCollect();
+#if __cplusplus >= 201103L
+   Int_t             GetNbaskets() const          {return fNbaskets.load();}
+   Int_t             GetNused() const             {return fNused.load();}
+   Int_t             GetThreshold() const         {return fThreshold.load();}
+   void              SetThreshold(Int_t thr)      {fThreshold.store(thr);}
+#else
    Int_t             GetNbaskets() const          {return fNbaskets;}
    Int_t             GetNused() const             {return fNused;}
-   GeantScheduler   *GetScheduler() const         {return fScheduler;}
    Int_t             GetThreshold() const         {return fThreshold;}
+   void              SetThreshold(Int_t thr)      {fThreshold = thr;}
+#endif
+   GeantScheduler   *GetScheduler() const         {return fScheduler;}
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
    Int_t             GetNumber() const            {return fNumber;}
    TGeoVolume       *GetVolume() const            {return fVolume;}
@@ -109,7 +123,6 @@ public:
    void              RecycleBasket(GeantBasket *b);
    void              SetFeederQueue(dcqueue<GeantBasket> *queue) {fFeeder = queue;}
    dcqueue<GeantBasket> *GetFeederQueue() const {return fFeeder;}
-   void              SetThreshold(Int_t thr)      {fThreshold = thr;}
    
    ClassDef(GeantBasketMgr,0)  // A path in geometry represented by the array of indices
 };   

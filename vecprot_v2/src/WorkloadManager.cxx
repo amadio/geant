@@ -749,20 +749,34 @@ void *WorkloadManager::MonitoringThread(void *)
    
    TCanvas *cmon = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("cscheduler");
    cmon->Divide(2,2);
-   TH1I *hqueue = new TH1I("hqueue","Work queue load", 100,0.5,100.5);
+   TH1I *hqueue = new TH1I("hqueue","Work queue load", 100,0,100);
    hqueue->SetFillColor(kRed);
    hqueue->SetLineColor(0);
    hqueue->SetStats(kFALSE);
    Int_t nqueue[100] = {0};
-   TH1F *hmem = new TH1F("hmem","Resident memory [MB]", 100,0.5,100.5);
+   TH1F *hmem = new TH1F("hmem","Resident memory [MB]", 100,0,100);
    hmem->SetFillColor(kMagenta);
    hmem->SetLineColor(0);
    hmem->SetStats(kFALSE);
    Double_t nmem[100] = {0};
+   GeantScheduler *sch = wm->GetScheduler();
+   Int_t nvol = sch->GetNvolumes();
+   GeantBasketMgr **bmgr = sch->GetBasketManagers();
+   TH1I *hbaskets = new TH1I("hbaskets","Baskets per volume", nvol,0,nvol+1);
+   hbaskets->SetFillColor(kBlue);
+   hbaskets->SetLineColor(0);
+   hbaskets->SetStats(kFALSE);
+   TH1I *hbused = new TH1I("hbaskets","Baskets per volume", nvol,0,nvol+1);
+   hbused->SetFillColor(kRed);
+   hbused->SetLineColor(0);
+   hbused->SetStats(kFALSE);
    cmon->cd(1);
    hqueue->Draw();
    cmon->cd(2);
    hmem->Draw();
+   cmon->cd(3);
+   hbaskets->Draw();
+   hbused->Draw("SAME");
    cmon->Update();
    Double_t stamp = 0.5;
    Int_t i;
@@ -777,8 +791,8 @@ void *WorkloadManager::MonitoringThread(void *)
          memmove(nmem, &nmem[1], 99*sizeof(Double_t));
          nqueue[99] = ntotransport;
          nmem[99] = rss;
-         hqueue->GetXaxis()->Set(100,stamp, stamp+100);
-         hmem->GetXaxis()->Set(100,stamp, stamp+100);
+         hqueue->GetXaxis()->Set(100,stamp-100, stamp);
+         hmem->GetXaxis()->Set(100,stamp-100, stamp);
          for (Int_t i=0; i<100; i++) {
             hqueue->SetBinContent(i+1,nqueue[i]);
             hmem->SetBinContent(i+1,nmem[i]);
@@ -788,11 +802,18 @@ void *WorkloadManager::MonitoringThread(void *)
          nmem[i] = rss;
          hqueue->SetBinContent(i+1,nqueue[i]);
          hmem->SetBinContent(i+1,nmem[i]);
+      } 
+      for (Int_t j=0; j<nvol; j++) {
+         hbaskets->SetBinContent(j+1, bmgr[j]->GetNbaskets());
+         hbused->SetBinContent(j+1, bmgr[j]->GetNused());
       }   
       cmon->cd(1);
       hqueue->Draw();
       cmon->cd(2);
       hmem->Draw();
+      cmon->cd(3);
+      hbaskets->Draw();
+      hbused->Draw("SAME");
       cmon->Modified();
       cmon->Update();
       stamp += 1;

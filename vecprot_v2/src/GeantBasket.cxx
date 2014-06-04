@@ -282,18 +282,26 @@ GeantBasket *GeantBasketMgr::GetNextBasket()
    GeantBasket *next = fBaskets.try_pop();
    if (!next) {
       next = new GeantBasket(fThreshold+1, this);
+#if __cplusplus < 201103L
       fMutex.Lock();
-      // === critical section ===
+#endif      
+      // === critical section if atomics not supported ===
       fNbaskets++;
       fNused++;
       // === end critical section ===
+#if __cplusplus < 201103L
       fMutex.UnLock();
+#endif      
    } else {
+#if __cplusplus < 201103L
       fMutex.Lock();
-      // === critical section ===
+#endif      
+      // === critical section if atomics not supported ===
       fNused++;
       // === end critical section ===
+#if __cplusplus < 201103L
       fMutex.UnLock();
+#endif      
    }
    return next;
 }
@@ -313,11 +321,15 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b)
         b->GetOutputTracks().Resize(fThreshold); 
    }     
    fBaskets.push(b);
+#if __cplusplus < 201103L
    fMutex.Lock();
+#endif      
    // === critical section ===
    fNused--;
    // === end critical section ===
+#if __cplusplus < 201103L
    fMutex.UnLock();
+#endif      
 }   
 
 //______________________________________________________________________________

@@ -48,8 +48,10 @@ public:
    void                 AdjustBasketSize();
    void                 CreateBaskets();
    Int_t                CollectPrioritizedTracks();
+   GeantBasketMgr     **GetBasketManagers() const {return fBasketMgr;}
    GeantBasketMgr      *GetGarbageCollector() const {return fGarbageCollector;}
    Int_t                GetNpriority() const {return fNpriority;}
+   Int_t                GetNvolumes() const  {return fNvolumes;}
    void                 SetPriorityRange(Int_t min, Int_t max) {fPriorityRange[0]=min; fPriorityRange[1]=max;}
 #ifdef __STAT_DEBUG
    GeantTrackStat      &GetPendingStat() {return fPStat;}
