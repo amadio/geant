@@ -1448,7 +1448,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    for (Int_t i=0; i<ntracks; i++) {
       if (fPstepV[i]<1.E-10) {
-         Printf("Error pstep");
+         // Printf("Error pstep");
       }
       nav->ResetState();
       nav->SetCurrentPoint(x[i], y[i], z[i]);
