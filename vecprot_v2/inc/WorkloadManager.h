@@ -46,6 +46,7 @@ protected:
    GeantScheduler    *fScheduler;          // Main basket scheduler
 
    TaskBroker        *fBroker;             // Pointer to the coprocessor broker, this could be made a collection.
+   Int_t             *fWaiting;           //![fNthreads+1] Threads in waiting flag
 
    WorkloadManager(Int_t nthreads);
 public:
@@ -58,6 +59,7 @@ public:
                       *NavStates() const   {return fNavStates;}
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
+   Int_t              *GetWaiting() const  {return fWaiting;}
    GeantScheduler     *GetScheduler() const {return fScheduler;}
    static WorkloadManager *
                        Instance(Int_t nthreads=0);                    

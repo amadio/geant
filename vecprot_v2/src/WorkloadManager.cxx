@@ -49,7 +49,8 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fFlushed(kFALSE),
                  fFilling(kFALSE),
                  fScheduler(0),
-                 fBroker(0)
+                 fBroker(0),
+                 fWaiting(0)
 {
 // Private constructor.
    fFeederQ = new dcqueue<GeantBasket>();
@@ -57,6 +58,8 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
    fDoneQ = new dcqueue<GeantBasket>();
    fgInstance = this;
    fScheduler = new GeantScheduler();
+   fWaiting = new Int_t[fNthreads+1];
+   memset(fWaiting, 0, (fNthreads+1)*sizeof(Int_t));   
 }
 
 //______________________________________________________________________________
@@ -67,6 +70,7 @@ WorkloadManager::~WorkloadManager()
    delete fTransportedQ;
    delete fDoneQ;
    delete fScheduler;
+   delete [] fWaiting;
    fgInstance = 0;
 }
 
@@ -176,7 +180,6 @@ void *WorkloadManager::MainScheduler(void *)
 // Garbage collector thread, called by a single thread.
    GeantPropagator *propagator = GeantPropagator::Instance();
    
-   Bool_t graphics = propagator->fUseGraphics;
    Int_t nworkers = propagator->fNthreads;
 //   Int_t naverage = propagator->fNaverage;
 //   Int_t maxperevent = propagator->fMaxPerEvent;
@@ -194,6 +197,7 @@ void *WorkloadManager::MainScheduler(void *)
    GeantScheduler *sch = wm->GetScheduler();
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
+   Int_t *waiting = wm->GetWaiting();
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
    Int_t min_feeder = TMath::Max(20,3*nworkers); // setter/getter here ?
@@ -207,43 +211,25 @@ void *WorkloadManager::MainScheduler(void *)
    //   Int_t lastphase = -1;
    Int_t crtphase  = 0;
    
-   if (graphics) {
-      hnb = new TH1F("hnb","number of baskets in the transport queue; iteration#",200000,0,200000);
-      hnb->SetFillColor(kRed);
-      hnb->SetLineColor(0);
-      hworkers = new TH1F("hworkers","number of active workers; iteration#",200000,0,200000);
-      hworkers->SetLineColor(0);
-      hworkers->SetFillColor(kBlue);
-      htracks = new TH1F("htracks","number of tracks/basket; iteration#",200000,0,200000);
-      htracks->SetLineColor(0);
-      htracks->SetFillColor(kGreen);
-   }      
    Int_t niter = -1;
    UInt_t npop = 0;
    Double_t nperbasket;
    Int_t ninjected = 0;
-   Int_t nwaiting = 0;
    Int_t nnew = 0, ntot=0, nkilled=0;
    GeantBasket *output;
    GeantBasket **carray = new GeantBasket*[500];
+   waiting[nworkers] = 1;
    while ((output = (GeantBasket*)transportedQ->wait_and_pop_max(500,npop,carray))) {
+      waiting[nworkers] = 0;
       // Monitor the queues while there are tracks to transport
       niter++;
       ninjected = 0;
       nnew = 0;
       ntot = 0;
       nkilled = 0;
-      // Check first the queue of collectors
-//      ncollectors = npop+collector_queue->size_async();
-//      Printf("Popped %d collections, %d still in the queue", npop, ncollectors-npop);
-//      nempty = empty_queue->size_async();
-      // Process popped collections and flush their tracks
       for (UInt_t iout=0; iout<npop; iout++) {
          output = carray[iout];
-//         collector->Print();
-//         Printf("= collector has %d tracks", collector->GetNtracks());
          ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
-//         Printf("=== injected %d baskets", ninjected);
          // Recycle basket
 	      output->Recycle();	 
       }
@@ -318,8 +304,6 @@ void *WorkloadManager::MainScheduler(void *)
       
       ntotransport = feederQ->size_async();
       if (ntotransport<min_feeder || ntotransport>max_feeder) sch->AdjustBasketSize();
-      nwaiting = propagator->GetNwaiting();
-//      Printf("picked=%d ncoll=%d  ninjected=%d ntotransport=%d",npop, ncollectors,ninjected,ntotransport);
       if (ntotransport<min_feeder) {
      // Transport queue below the threshold
          if (crtphase<1) crtphase = 1;
@@ -355,11 +339,9 @@ void *WorkloadManager::MainScheduler(void *)
            ntotransport = feederQ->size_async();
            feederQ->set_countdown(ntotransport);
            Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event,dumped_event+4, ntotransport);
+           waiting[nworkers] = 1;
            continue;
         }
-        nwaiting = propagator->GetNwaiting();
-//        if (!ninjected && !ntotransport && !nnew && nwaiting==nworkers) break;
-//        direct_feed = (ntotransport==0)?kTRUE:kFALSE;
       }
       ntotransport = feederQ->size_async();
       if (ntotransport==0) {
@@ -368,15 +350,7 @@ void *WorkloadManager::MainScheduler(void *)
          if (countdown) feederQ->set_countdown(0);
       }
       nperbasket = 0;
-//      for (Int_t tid=0; tid<propagator->fNthreads; tid++) nperbasket += propagator->fTracksPerBasket[tid];
-//      nperbasket /= propagator->fNthreads;
-      if (graphics) {
-         if ((niter%10==0) && (niter/10<200000)) {
-            hnb->Fill(niter/10, ntotransport);
-            hworkers->Fill(niter/10, nworkers-nwaiting);
-            htracks->Fill(niter/10, nperbasket);
-         }   
-      }   
+      waiting[nworkers] = 1;
    }
    // Stop workers
    for (Int_t i=0; i<propagator->fNthreads; i++) wm->FeederQueue()->push(0);
@@ -384,28 +358,7 @@ void *WorkloadManager::MainScheduler(void *)
    wm->Stop();
    propagator->fApplication->Digitize(0);
       
-   Printf("=== Scheduler: stopping threads === niter =%d\n", niter);
-   if (graphics) {
-      c1 = new TCanvas("c2","c2",1200,1200);
-      c1->Divide(1,3);
-      c1->cd(1);
-      hnb->SetStats(kFALSE);
-      hnb->GetXaxis()->SetRangeUser(0,niter/10);
-      hnb->Draw();
-      c1->cd(2);
-      hworkers->SetStats(kFALSE);
-      hworkers->GetXaxis()->SetRangeUser(0,niter/10);
-      hworkers->Draw();
-      c1->cd(3);
-      htracks->SetStats(kFALSE);
-      htracks->GetXaxis()->SetRangeUser(0,niter/10);
-      htracks->Draw();
-//      pad1->Modified();
-//      pad2->Modified();
-//      pad3->Modified();
-//      c1->Update();
-   }   
-   Printf("=== Scheduler: exiting ===");
+   Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
    return 0;
 }        
 
@@ -427,6 +380,7 @@ void *WorkloadManager::TransportTracks(void *)
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
+   Int_t *waiting = wm->GetWaiting();
 //   Int_t nprocesses = propagator->fNprocesses;
 //   Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -434,13 +388,12 @@ void *WorkloadManager::TransportTracks(void *)
    // Create navigator if none serving this thread.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
-   propagator->fWaiting[tid] = 1;
 //   Int_t iev[500], itrack[500];
    // TGeoBranchArray *crt[500], *nxt[500];
    while (1) {
-      propagator->fWaiting[tid] = 1;
+      waiting[tid] = 1;
       basket = wm->FeederQueue()->wait_and_pop();
-      propagator->fWaiting[tid] = 0;
+      waiting[tid] = 0;
       // Check exit condition: null basket in the queue
       if (!basket) break;
       counter++;
@@ -613,6 +566,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
+   Int_t *waiting = wm->GetWaiting();
    //Int_t nprocesses = propagator->fNprocesses;
    // Int_t ninput;
    Int_t noutput;
@@ -621,7 +575,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    // Create navigator if none serving this thread.
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) nav = gGeoManager->AddNavigator();
-   propagator->fWaiting[tid] = 1;
+   waiting[tid] = 1;
    // Int_t iev[500], itrack[500];
    // TGeoBranchArray *crt[500], *nxt[500];
 
@@ -642,10 +596,10 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
             // more data ....
          }
       }
-      propagator->fWaiting[tid] = 1;
+      waiting[tid] = 1;
       //::Info("GPU","Waiting for next available basket.");
       basket = wm->FeederQueue()->wait_and_pop();
-      propagator->fWaiting[tid] = 0;
+      waiting[tid] = 0;
       // Check exit condition: null basket in the queue
       if (!basket) break;
       counter++;
@@ -746,6 +700,14 @@ void *WorkloadManager::MonitoringThread(void *)
    Int_t ntotransport;
    ProcInfo_t  procInfo;
    Double_t rss;
+   Double_t nmem[100] = {0};
+   GeantScheduler *sch = wm->GetScheduler();
+   Int_t nvol = sch->GetNvolumes();
+   Int_t nthreads = wm->GetNthreads();
+   Int_t *nworking = new Int_t[nthreads+1];
+   memset(nworking, 0, (nthreads+1)*sizeof(Int_t));
+   Int_t *waiting = wm->GetWaiting();
+   GeantBasketMgr **bmgr = sch->GetBasketManagers();
    
    TCanvas *cmon = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("cscheduler");
    cmon->Divide(2,2);
@@ -755,21 +717,30 @@ void *WorkloadManager::MonitoringThread(void *)
    hqueue->SetStats(kFALSE);
    Int_t nqueue[100] = {0};
    TH1F *hmem = new TH1F("hmem","Resident memory [MB]", 100,0,100);
-   hmem->SetFillColor(kMagenta);
-   hmem->SetLineColor(0);
+//   hmem->SetFillColor(kMagenta);
+   hmem->SetLineColor(kMagenta);
    hmem->SetStats(kFALSE);
-   Double_t nmem[100] = {0};
-   GeantScheduler *sch = wm->GetScheduler();
-   Int_t nvol = sch->GetNvolumes();
-   GeantBasketMgr **bmgr = sch->GetBasketManagers();
-   TH1I *hbaskets = new TH1I("hbaskets","Baskets per volume", nvol,0,nvol+1);
+   TH1I *hbaskets = new TH1I("hbaskets","Baskets per volume", nvol,0,nvol);
    hbaskets->SetFillColor(kBlue);
    hbaskets->SetLineColor(0);
    hbaskets->SetStats(kFALSE);
-   TH1I *hbused = new TH1I("hbaskets","Baskets per volume", nvol,0,nvol+1);
+   TH1I *hbused = new TH1I("hbused","Baskets per volume", nvol,0,nvol);
    hbused->SetFillColor(kRed);
+   hbused->SetFillStyle(3001);
    hbused->SetLineColor(0);
    hbused->SetStats(kFALSE);
+   TH1F *hconcurrency = new TH1F("hconcurrency","Concurrency plot", nthreads+1,0,nthreads+1);
+   hconcurrency->GetYaxis()->SetRangeUser(0,1);
+   hconcurrency->GetXaxis()->SetNdivisions(nthreads+1,kTRUE);
+   hconcurrency->GetYaxis()->SetNdivisions(10,kTRUE);
+   hconcurrency->SetFillColor(kGreen);
+   hconcurrency->SetLineColor(0);
+   hconcurrency->SetStats(kFALSE);
+   TH1F *hconcavg = new TH1F("hconcavg","Concurrency plot", nthreads+1,0,nthreads+1);
+   hconcavg->SetFillColor(kRed);
+   hconcavg->SetFillStyle(3001);
+   hconcavg->SetLineColor(0);
+   hconcavg->SetStats(kFALSE);
    cmon->cd(1);
    hqueue->Draw();
    cmon->cd(2);
@@ -777,9 +748,12 @@ void *WorkloadManager::MonitoringThread(void *)
    cmon->cd(3);
    hbaskets->Draw();
    hbused->Draw("SAME");
+   cmon->cd(4);
+   hconcurrency->Draw();
+   hconcavg->Draw("SAME");
    cmon->Update();
-   Double_t stamp = 0.5;
-   Int_t i;
+   Double_t stamp = 0.;
+   Int_t i, j, bin;
    while (!wm->IsStopped()) { // exit condition here
       i = Int_t(stamp);
       gSystem->Sleep(50); // millisec
@@ -793,9 +767,9 @@ void *WorkloadManager::MonitoringThread(void *)
          nmem[99] = rss;
          hqueue->GetXaxis()->Set(100,stamp-100, stamp);
          hmem->GetXaxis()->Set(100,stamp-100, stamp);
-         for (Int_t i=0; i<100; i++) {
-            hqueue->SetBinContent(i+1,nqueue[i]);
-            hmem->SetBinContent(i+1,nmem[i]);
+         for (j=0; j<100; j++) {
+            hqueue->SetBinContent(j+1,nqueue[j]);
+            hmem->SetBinContent(j+1,nmem[j]);
          }   
       } else {
          nqueue[i] = ntotransport;
@@ -803,9 +777,15 @@ void *WorkloadManager::MonitoringThread(void *)
          hqueue->SetBinContent(i+1,nqueue[i]);
          hmem->SetBinContent(i+1,nmem[i]);
       } 
-      for (Int_t j=0; j<nvol; j++) {
-         hbaskets->SetBinContent(j+1, bmgr[j]->GetNbaskets());
-         hbused->SetBinContent(j+1, bmgr[j]->GetNused());
+      for (j=0; j<nvol; j++) {
+         bin = hbaskets->GetXaxis()->FindBin(bmgr[j]->GetVolume()->GetName());
+         hbaskets->SetBinContent(bin, bmgr[j]->GetNbaskets());
+         hbused->SetBinContent(bin, bmgr[j]->GetNused());
+      }
+      for (j=0; j<nthreads+1; j++) {
+         nworking[j] += 1-waiting[j];
+         hconcurrency->SetBinContent(j+1, 1-waiting[j]);
+         hconcavg->SetBinContent(j+1, nworking[j]/(stamp+1));
       }   
       cmon->cd(1);
       hqueue->Draw();
@@ -814,8 +794,12 @@ void *WorkloadManager::MonitoringThread(void *)
       cmon->cd(3);
       hbaskets->Draw();
       hbused->Draw("SAME");
+      cmon->cd(4);
+      hconcurrency->Draw();
+      hconcavg->Draw("SAME");
       cmon->Modified();
       cmon->Update();
       stamp += 1;
    }
+   delete [] nworking;
 }

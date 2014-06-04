@@ -117,7 +117,6 @@ GeantPropagator::GeantPropagator()
                  fStoredTracks(0),
                  fNtracks(0),
                  fEvents(0),
-                 fWaiting(0),
                  fThreadData(0)
 {
 // Constructor
@@ -147,7 +146,6 @@ GeantPropagator::~GeantPropagator()
       for (i=0; i<fNthreads; i++) delete fThreadData[i];
       delete [] fThreadData;
    }   
-   delete [] fWaiting;
    delete fOutput;
    delete fOutFile;
    delete fTimer;
@@ -403,25 +401,12 @@ void GeantPropagator::Initialize()
      memset(fNtracks,0,fNevents*sizeof(Int_t));
    }   
    
-   if (!fWaiting) {
-      fWaiting = new UInt_t[fNthreads+1];
-      memset(fWaiting, 0, (fNthreads+1)*sizeof(UInt_t));
-   }  
    if (!fThreadData) {
       fThreadData = new GeantThreadData*[fNthreads+1];
       for (Int_t i=0; i<fNthreads+1; i++) fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
    } 
  // Initialize application
    fApplication->Initialize();
-}
-
-//______________________________________________________________________________
-UInt_t GeantPropagator::GetNwaiting() const
-{
-// Returns number of waiting threads. Must be called by a single scheduler.
-   UInt_t nwaiting = 0;
-   for (Int_t tid=0; tid<fNthreads; tid++) nwaiting += fWaiting[tid];
-   return nwaiting;
 }
    
 #if USE_VECGEOM_NAVIGATOR == 1
@@ -577,7 +562,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    gGeoManager->SetMaxThreads(nthreads);
    if (fUseMonitoring) {
       TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
-      TCanvas *cmon = new TCanvas("cscheduler","Scheduler monitor");
+      TCanvas *cmon = new TCanvas("cscheduler","Scheduler monitor", 900,600);
       capp->Update();
       cmon->Update();
    }

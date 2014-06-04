@@ -87,7 +87,6 @@ public:
    Int_t           *fNtracks;   //[fNevents] Number of tracks {array of [fNevents]}
    GeantEvent     **fEvents;    //![fNevents]    Array of events
 
-   UInt_t          *fWaiting;           //![fNthreads] Threads in waiting flag
    GeantThreadData **fThreadData; //![fNthreads]
    
    static GeantPropagator *fgInstance;
@@ -102,7 +101,6 @@ public:
    void             StopTrack(GeantTrack *track);
    void             StopTrack(const GeantTrack_v &tracks, Int_t itr);
    Int_t            GetElossInd() const {return fElossInd;}
-   UInt_t           GetNwaiting() const;
    Bool_t           LoadGeometry(const char *filename="geometry.root");
 #if USE_VECGEOM_NAVIGATOR == 1
    Bool_t           LoadVecGeomGeometry();
