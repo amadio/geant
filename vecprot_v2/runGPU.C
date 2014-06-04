@@ -101,13 +101,14 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
 {
    TFile::SetCacheFileDir("./files");
 
-   gSystem->Load("libPhysics.so");
-   gSystem->Load("libHist.so");
-   gSystem->Load("libThread.so");
-   gSystem->Load("libGeom.so");
-   gSystem->Load("libVMC.so");
-   gSystem->Load("libGeant.so");
-   gSystem->Load("libGeantCuda.so");
+   gSystem->Load("libPhysics");
+   gSystem->Load("libHist");
+   gSystem->Load("libThread");
+   gSystem->Load("libGeom");
+   gSystem->Load("libVMC");
+   gSystem->Load("libGeant_v");
+   gSystem->Load("libXsec");
+   gSystem->Load("libGeantCuda");
 
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
@@ -121,6 +122,12 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
 
    prop->fNaverage = 500;   // Average number of tracks per event
    prop->fNperBasket = 8;
+
+   prop->fEmin = 1.E-5; // [10KeV] energy cut
+//   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
+   prop->fEmax = 1.;
+   // Create the tab. phys process.
+   prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 
    prop->fApplication = new MyApplication();
 
