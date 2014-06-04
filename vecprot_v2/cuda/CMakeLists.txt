@@ -13,7 +13,7 @@ set(CUDA_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 #NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC -DGX_MULTI_OBJ_FILES
 
 if (CUDA_SEPARABLE_COMPILATION)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP -DGX_MULTI_OBJ_FILES)
 endif()
 
 CUDA_INCLUDE_DIRECTORIES( ${CudaCode}/GXTracking/SimCore/Common/include 
@@ -71,9 +71,9 @@ set(cuda_cxx_sources
     G__CudaGeant.cxx
 )
 
-#    ${CudaCode}/GXTracking/gpu/cuda/kernel/src/trackingTest2_kernel.cu
 
 set(cuda_sources
+    ${CudaCode}/GXTracking/gpu/cuda/kernel/src/trackingTest2_kernel.cu
     ${CudaCode}/GXTracking/gpu/cuda/kernel/src/random_kernel.cu
     ${CudaCode}/GXTracking/gpu/cuda/kernel/src/sort_kernel.cu
     ${CudaCode}/GXTracking/SimCore/EMPhysics/src/GXBrem.cu
