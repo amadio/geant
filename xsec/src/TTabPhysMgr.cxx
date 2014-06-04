@@ -3,8 +3,8 @@
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "navigation/navigationstate.h"
-#include "management/geo_manager.h"
+#include "navigation/NavigationState.h"
+#include "management/GeoManager.h"
 #else
 #include "TGeoBranchArray.h"
 #endif

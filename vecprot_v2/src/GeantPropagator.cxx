@@ -37,10 +37,10 @@
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1
- #include "navigation/simple_navigator.h"
- #include "management/rootgeo_manager.h"
- #include "volumes/logical_volume.h"
- #include "volumes/placed_volume.h"
+ #include "navigation/SimpleNavigator.h"
+ #include "management/RootGeoManager.h"
+ #include "volumes/LogicalVolume.h"
+ #include "volumes/PlacedVolume.h"
 #endif
 #include "TTree.h"
 #include "TFile.h"

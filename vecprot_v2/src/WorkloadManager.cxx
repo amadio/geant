@@ -21,7 +21,7 @@
 #include "GeantEvent.h"
 #include "GeantVApplication.h"
 #if USE_VECGEOM_NAVIGATOR == 1
- #include "management/geo_manager.h"
+ #include "management/GeoManager.h"
 #endif
 #include "TaskBroker.h"
 

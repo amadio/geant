@@ -3,12 +3,12 @@
 #include <execinfo.h>
 #if USE_VECGEOM_NAVIGATOR == 1
  #pragma message("Compiling against VecGeom")
- #include "navigation/simple_navigator.h"
- #include "volumes/placed_volume.h" // equivalent of TGeoNode
- #include "base/vector3d.h"
- #include "base/transformation3d.h"
- #include "base/global.h"
- #include "management/geo_manager.h"
+ #include "navigation/SimpleNavigator.h"
+ #include "volumes/PlacedVolume.h" // equivalent of TGeoNode
+ #include "base/Vector3D.h"
+ #include "base/Transformation3D.h"
+ #include "base/Global.h"
+ #include "management/GeoManager.h"
  #ifdef CROSSCHECK
   #include "TGeoNavigator.h"
   #include "TGeoNode.h"

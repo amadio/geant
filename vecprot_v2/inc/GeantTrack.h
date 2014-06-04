@@ -17,7 +17,7 @@
  namespace vecgeom {
     class NavigationState;
  }
- #include "navigation/navigationstate.h"
+ #include "navigation/NavigationState.h"
  typedef vecgeom::NavigationState VolumePath_t;
 #else
  #include "TGeoBranchArray.h"       // needed due to templated pools

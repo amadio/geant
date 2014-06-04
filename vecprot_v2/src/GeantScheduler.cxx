@@ -6,9 +6,9 @@
 #include "GeantPropagator.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
- #include "navigation/simple_navigator.h"
- #include "base/vector3d.h"
- #include "management/geo_manager.h"
+ #include "navigation/SimpleNavigator.h"
+ #include "base/Vector3D.h"
+ #include "management/GeoManager.h"
 #endif
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
