@@ -318,6 +318,15 @@ macro(CUDA_FIND_HELPER_FILE _name _extension)
   # CMAKE_CURRENT_LIST_FILE contains the full path to the file currently being
   # processed.  Using this variable, we can pull out the current path, and
   # provide a way to get access to the other files we need local to here.
+
+  # First search for also modified helper file.
+  get_filename_component(CMAKE_CURRENT_LIST_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+  set(CUDA_${_name} "${CMAKE_CURRENT_LIST_DIR}/FindCUDA/${_full_name}")
+  if(EXISTS "${CUDA_${_name}}")
+    # Set this variable as internal, so the user isn't bugged with it.
+    set(CUDA_${_name} ${CUDA_${_name}} CACHE INTERNAL "Location of ${_full_name}" FORCE)
+  else()
+
 # Note: The next two lines have been modified
 #  get_filename_component(CMAKE_CURRENT_LIST_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
   get_filename_component(CMAKE_CURRENT_LIST_DIR "${CMAKE_ROOT}/Modules/FindCUDA" PATH)
@@ -334,6 +343,8 @@ macro(CUDA_FIND_HELPER_FILE _name _extension)
   endif()
   # Set this variable as internal, so the user isn't bugged with it.
   set(CUDA_${_name} ${CUDA_${_name}} CACHE INTERNAL "Location of ${_full_name}" FORCE)
+
+  endif() # for modified helper files
 endmacro()
 
 #####################################################################
