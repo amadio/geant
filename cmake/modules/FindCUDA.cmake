@@ -1437,7 +1437,12 @@ function(CUDA_LINK_SEPARABLE_COMPILATION_OBJECTS output_file cuda_target options
 
 foreach(flag ${_cuda_host_flags} ${CMAKE_HOST_FLAGS} ${CMAKE_HOST_FLAGS_${build_configuration}})
   # Extra quotes are added around each flag to help nvcc parse out flags with spaces.
-  set(nvcc_host_compiler_flags "${nvcc_host_compiler_flags},\"${flag}\"")
+#  message(DEBUG: "Maybe Adding to nvcc_host_compiler_flag flag \"${flag}\" ")
+  if (NOT flag STREQUAL "-std=c++11") 
+#    message(DEBUG: "Adding to nvcc_host_compiler_flag flag \"${flag}\" ")
+    # NVCC can not yet handle the c++11 code correctly
+    set(nvcc_host_compiler_flags "${nvcc_host_compiler_flags},\"${flag}\"")
+  endif()
 endforeach()
 if (nvcc_host_compiler_flags)
   set(nvcc_host_compiler_flags "-Xcompiler" ${nvcc_host_compiler_flags})
