@@ -803,4 +803,6 @@ void *WorkloadManager::MonitoringThread(void *)
       stamp += 1;
    }
    delete [] nworking;
+   // Sleep a bit to let the graphics finish
+   gSystem->Sleep(50); // millisec
 }
