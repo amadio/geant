@@ -21,14 +21,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTDIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTDIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin)
 
-#----------------------------------------------------------------------------
-# Find ROOT and setup the libraries
-#
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
-find_package(ROOT REQUIRED)
-
-include_directories(${ROOT_INCLUDE_DIR})
-
 #----------------------------------------------------------------------------
 # Find VecGeom geometry headers library 
 #
@@ -45,6 +38,13 @@ endif()
    add_definitions( "-DVECGEOM_ROOT" )
    include_directories(${VECGEOM_INCLUDE_DIR})
 endif()
+
+#----------------------------------------------------------------------------
+# Find ROOT and setup the libraries
+#
+find_package(ROOT REQUIRED)
+
+include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR})
 
 if( USE_ROOT )
    add_definitions( "-DUSE_ROOT")
