@@ -1,4 +1,4 @@
-void run(Int_t nthreads=4, Bool_t graphics=kFALSE, 
+void run(Int_t nthreads=3, Bool_t graphics=kFALSE, 
 //         const char *geomfile="gexam1.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="ExN03.root")
@@ -15,7 +15,7 @@ void run(Int_t nthreads=4, Bool_t graphics=kFALSE,
 
 
    Int_t ntotal   = 100;  // Number of events to be transported
-   Int_t nbuffered  = 20;   // Number of buffered events
+   Int_t nbuffered  = 10;   // Number of buffered events
    TGeoManager::Import(geomfile);
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);

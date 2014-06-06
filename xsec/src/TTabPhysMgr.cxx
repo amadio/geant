@@ -327,7 +327,8 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 // 4.number of secondary trecks will be returned and original track status will 
 // be updated (if they have been killed or still alive) 
 
-   Double_t energyLimit = gPropagator->fEmin;
+   GeantPropagator *propagator = GeantPropagator::Instance();
+   Double_t energyLimit = propagator->fEmin;
 
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
@@ -342,7 +343,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 
    //2. at Rest story makes this part a bit complicated! (only 'trackable' secondaries can go to tracks)
    // tid-based rng
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   Double_t *rndArray = propagator->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
 
    Int_t nTotSecPart  = 0;  //total number of secondary particles in tracks
@@ -434,15 +435,8 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
-//          GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
-          GeantTrack gTrack;
-#ifdef USE_VECGEOM_NAVIGATOR
-          gTrack.fPath     = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
-          gTrack.fNextpath = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
-#else
-          gTrack.fPath     = new TGeoBranchArray();
-          gTrack.fNextpath = new TGeoBranchArray();
-#endif
+          GeantTrack &gTrack = propagator->GetTempTrack(tid);
+//          GeantTrack gTrack;
           //set the new track properties
           gTrack.fEvent    = tracks.fEventV[t];
           gTrack.fEvslot   = tracks.fEvslotV[t];
@@ -479,7 +473,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           // well; before the rotation)		           
           RotateNewTrack(oldXdir, oldYdir, oldZdir, gTrack);
 
-          gPropagator->AddTrack(gTrack);
+          propagator->AddTrack(gTrack);
           tracks.AddTrack(gTrack);
 
           //RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, nTotSecPart);
@@ -510,9 +504,10 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 
    if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
      return;
+   GeantPropagator *propagator =  GeantPropagator::Instance();
    
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(3, rndArray);
+   Double_t *rndArray = propagator->fThreadData[tid]->fDblArray;
+   propagator->fThreadData[tid]->fRndm->RndmArray(3, rndArray);
 
    TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
 
@@ -580,23 +575,10 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
      // Ekin of the i-th secondary is higher than the threshold
      if(secEkin >= energyLimit) { //insert secondary into tracks_v 
-//       GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
-       GeantTrack gTrack;
-
-#ifdef USE_VECGEOM_NAVIGATOR
-      gTrack.fPath     = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
-      gTrack.fNextpath = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
-#else
-      gTrack.fPath = new TGeoBranchArray();
-      gTrack.fNextpath = new TGeoBranchArray();
-    // should be
-      //gTrack.AllocPath();
-      //gTrack.AllocNextPath();
-#endif
-
+       GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
       //set the new track properties
-      gTrack.fEvent    = tracks.fEventV[iintrack];
-      gTrack.fEvslot   = tracks.fEvslotV[iintrack];
+       gTrack.fEvent    = tracks.fEventV[iintrack];
+       gTrack.fEvslot   = tracks.fEvslotV[iintrack];
 //       gTrack.fParticle = nTotSecPart;          //index of this particle
        gTrack.fPDG      = secPDG;               //PDG code of this particle
        gTrack.fG5code   = pid[i];               //G5 index of this particle

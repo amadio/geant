@@ -196,13 +196,6 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
    if (tid<0) tid = TGeoManager::ThreadId();
    GeantTrack &track = fThreadData[tid]->fTrack;
    track.Clear();
-#ifdef USE_VECGEOM_NAVIGATOR
-   track.fPath = new VolumePath_t( vecgeom::GeoManager::Instance().getMaxDepth() );
-   track.fNextpath = new VolumePath_t( vecgeom::GeoManager::Instance().getMaxDepth() );
-#else
-   track.fPath = new VolumePath_t();
-   track.fNextpath = new VolumePath_t();
-#endif
    return track;
 }
 

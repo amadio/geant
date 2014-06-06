@@ -223,6 +223,7 @@ void *WorkloadManager::MainScheduler(void *)
       waiting[nworkers] = 0;
       // Monitor the queues while there are tracks to transport
       niter++;
+//      if (niter==1000) exit(0);
       ninjected = 0;
       nnew = 0;
       ntot = 0;

@@ -53,14 +53,14 @@ void GeantBasket::AddTrack(GeantTrack &track)
 void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr)
 {
 // Add track from a track_v array
-   fTracksIn.AddTrack(tracks, itr);
+   fTracksIn.AddTrack(tracks, itr, kTRUE);
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend)
 {
 // Add multiple tracks from a track_v array
-   fTracksIn.AddTracks(tracks, istart, iend);
+   fTracksIn.AddTracks(tracks, istart, iend, kTRUE);
 }
    
 //______________________________________________________________________________
