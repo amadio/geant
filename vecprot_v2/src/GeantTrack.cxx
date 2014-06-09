@@ -354,7 +354,8 @@ GeantTrack_v::GeantTrack_v()
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(Int_t size)
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+            
+:fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),fProcessing(0),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -370,7 +371,7 @@ GeantTrack_v::GeantTrack_v(Int_t size)
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
              :fNtracks(track_v.fNtracks),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),fHoles(track_v.fHoles),
-              fSelected(track_v.fSelected),fCompact(track_v.fCompact),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+              fSelected(track_v.fSelected),fCompact(track_v.fCompact),fProcessing(0),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -403,6 +404,11 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
       fHoles = track_v.fHoles;
       fSelected = track_v.fSelected;
       fCompact = track_v.fCompact;
+#if __cplusplus >= 201103L
+      fProcessing.store(0);
+#else
+      fProcessing = 0;
+#endif            
       memcpy(fBuf, track_v.fBuf, size*sizeof(GeantTrack));
       AssignInBuffer(&fBuf[0], size);
 #ifdef __STAT_DEBUG_TRK
@@ -788,6 +794,68 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import)
    fStat.fNtracks[arr.fEvslotV[i]]++;
 #endif
 
+   return itrack;
+}
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
+{
+   // Add track from different array in a concurrent way. Assumes that this array
+   // Is currently being filled while held by the basket manager and NOT being
+   // transported.
+   // The array has to be compact and should have enough alocated space.
+   // Returns the location where the track was added.
+   if (!fCompact) {
+      Printf("Error in AddTrackSync: array not compact");
+      return -1;
+   }
+   if (fNtracks>=fMaxtracks) {
+      Printf("Error in AddTrackSync: cannot resize array");
+      return -1;
+   }   
+#ifdef VERBOSE
+   arr.PrintTrack( i );
+#endif
+   WorkloadManager *wm = WorkloadManager::Instance();
+   fProcessing++;
+   Int_t itrack = fNtracks++; // is this safe?
+
+   fEventV    [itrack] = arr.fEventV    [i];
+   fEvslotV   [itrack] = arr.fEvslotV   [i];
+   fParticleV [itrack] = arr.fParticleV [i];
+   fPDGV      [itrack] = arr.fPDGV      [i];
+   fG5codeV   [itrack] = arr.fG5codeV   [i];
+   fEindexV   [itrack] = arr.fEindexV   [i];
+   fChargeV   [itrack] = arr.fChargeV   [i];
+   fProcessV  [itrack] = arr.fProcessV  [i];
+   fIzeroV    [itrack] = arr.fIzeroV    [i];
+   fNstepsV   [itrack] = arr.fNstepsV   [i];
+   fSpeciesV  [itrack] = arr.fSpeciesV  [i];
+   fStatusV   [itrack] = arr.fStatusV   [i];
+   fMassV     [itrack] = arr.fMassV     [i];
+   fXposV     [itrack] = arr.fXposV     [i];
+   fYposV     [itrack] = arr.fYposV     [i];
+   fZposV     [itrack] = arr.fZposV     [i];
+   fXdirV     [itrack] = arr.fXdirV     [i];
+   fYdirV     [itrack] = arr.fYdirV     [i];
+   fZdirV     [itrack] = arr.fZdirV     [i];
+   fPV        [itrack] = arr.fPV        [i];
+   fEV        [itrack] = arr.fEV        [i];
+   fEdepV     [itrack] = arr.fEdepV     [i];
+   fPstepV    [itrack] = arr.fPstepV    [i];
+   fStepV     [itrack] = arr.fStepV     [i];
+   fSnextV    [itrack] = arr.fSnextV    [i];
+   fSafetyV   [itrack] = arr.fSafetyV   [i];
+   fFrombdrV  [itrack] = arr.fFrombdrV  [i];
+   fPendingV  [itrack] = arr.fPendingV  [i];
+   fPathV[itrack] = arr.fPathV[i];
+   arr.fPathV[i] = 0;
+   fNextpathV[itrack] = arr.fNextpathV[i];
+   arr.fNextpathV[i] = 0;
+
+#ifdef __STAT_DEBUG_TRK
+   fStat.fNtracks[arr.fEvslotV[i]]++;
+#endif
    return itrack;
 }
 

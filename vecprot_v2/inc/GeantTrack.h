@@ -9,6 +9,14 @@
 #include "GeantTrackStat.h"
 #endif   
 
+#if __cplusplus >= 201103L
+#include <atomic>
+#endif
+
+#ifndef ROOT_TMutex
+#include "TMutex.h"
+#endif
+
 #ifndef ALIGN_PADDING
 #define ALIGN_PADDING 32 
 #endif
@@ -96,7 +104,7 @@ public:
    Double_t           Gamma() const {return fMass?fE/fMass:TMath::Limits<double>::Max();}
    Double_t           GetPstep() const {return fPstep;}
    VolumePath_t*      GetPath() const {return fPath;}
-   VolumePath_t*	  GetNextPath() const {return fNextpath;}
+   VolumePath_t*      GetNextPath() const {return fNextpath;}
    Int_t              GetNsteps() const {return fNsteps;}
    Double_t           GetStep() const {return fStep;}
    Double_t           GetSnext() const {return fSnext;}
@@ -173,6 +181,12 @@ public:
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat fStat;  //! Statistics for the track container
 #endif   
+#if __cplusplus >= 201103L
+   std::atomic<int> fProcessing; // number of concurrently processing threads
+#else
+   Int_t     fProcessing; // number of concurrently processing threads
+#endif 
+   TMutex    fMutex;      // mutex for the concurrent operations  
    char     *fBuf;        // buffer holding tracks data
 
    Int_t    *fEventV;     // event numbers
@@ -225,6 +239,7 @@ public:
 #endif   
    Int_t     AddTrack(GeantTrack &track, Bool_t import=kFALSE);
    Int_t     AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import=kFALSE);
+   Int_t     AddTrackSync(GeantTrack_v &arr, Int_t i);
    void      AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t import=kFALSE);
    void      CheckTracks();
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
@@ -243,7 +258,11 @@ public:
    void      ClearSelection()     {fSelected.ResetAllBits();}
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
-      
+#if __cplusplus >= 201103L
+   Int_t     GetProcessing() const {return fProcessing.load();}
+#else
+   Int_t     GetProcessing() const {return fProcessing;}
+#endif            
    void PrintPointers() {
       printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }

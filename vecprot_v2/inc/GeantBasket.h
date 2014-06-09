@@ -70,6 +70,7 @@ protected:
    GeantScheduler   *fScheduler;             // Scheduler for this basket
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNumber;                // Number assigned
+   Int_t             fBcap;                  // max capacity of baskets held
 #if __cplusplus >= 201103L
    std::atomic<int>  fThreshold;             // Adjustable transportability threshold
    std::atomic<int>  fNbaskets;              // Number of baskets for this volume
@@ -104,6 +105,8 @@ public:
    Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
    Int_t             FlushPriorityBasket();
    Int_t             GarbageCollect();
+   void              SetBcap(Int_t capacity)      {fBcap = capacity;}
+   Int_t             GetBcap() const              {return fBcap;}
 #if __cplusplus >= 201103L
    Int_t             GetNbaskets() const          {return fNbaskets.load();}
    Int_t             GetNused() const             {return fNused.load();}

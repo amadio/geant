@@ -9,8 +9,11 @@ Int_t GeantEvent::AddTrack()
    Int_t itrack;
    fMutex.Lock();
    fNtracks++;
-//   itrack = fNtracks-1;
+#if __cplusplus >= 201103L
    itrack = fNtracks.load()-1;
+#else
+   itrack = fNtracks-1;
+#endif   
    fMutex.UnLock();
    return itrack;
 }

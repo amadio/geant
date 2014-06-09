@@ -118,6 +118,7 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fScheduler(sch),
                    fVolume(vol),
                    fNumber(number),
+		   fBcap(0),
                    fThreshold(0),
                    fNbaskets(0),
                    fNused(0),
@@ -128,6 +129,7 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fMutex()
 {
 // Constructor
+   fBcap = GeantPropagator::Instance()->fNperBasket + 1;
    fCBasket = GetNextBasket();
    fPBasket = GetNextBasket();
 }
@@ -281,7 +283,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket()
 // Returns next empy basket if any available, else create a new basket.
    GeantBasket *next = fBaskets.try_pop();
    if (!next) {
-      next = new GeantBasket(fThreshold+1, this);
+      next = new GeantBasket(fBcap, this);
 #if __cplusplus < 201103L
       fMutex.Lock();
 #endif      
