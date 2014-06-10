@@ -182,4 +182,9 @@ CUDA_ADD_LIBRARY(GeantCuda
                  SHARED
                  OPTIONS ${CUDA_ARCH}
 )
- 
+if( VECGEOM_FOUND )
+  target_link_libraries(GeantCuda ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+else()
+  target_link_libraries(GeantCuda ${ROOT_LIBRARIES} -lEG -lGeom )
+endif()
+
