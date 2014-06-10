@@ -506,7 +506,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
       if (input.fHoles.TestBitNumber(hostIdx))
          continue;
 
-      TGeoBranchArray *path = input.fPathV[hostIdx];
+      VolumePath_t *path = input.fPathV[hostIdx];
 //      if (path->GetLevel()>1) {
 //         fprintf(stderr,"DEBUG: for %d level is %d\n",trackin[hostIdx],path->GetLevel());
 //      }
@@ -635,8 +635,13 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
          TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
          if (!nav) nav = gGeoManager->AddNavigator();
 
+#ifdef USE_VECGEOM_NAVIGATOR
+         // Crap ...
+         // output.fPathV[fTrackId[devIdx]]->Init(&(array[0]),matrix,array.size()-1);
+#else
          static TGeoIdentity *matrix = new TGeoIdentity(); // NOTE: oh well ... later ...
          output.fPathV[fTrackId[devIdx]]->Init(&(array[0]),matrix,array.size()-1);
+#endif
          //fHostTracks[fTrackId[devIdx]]->fPath->Init(&(array[0]),&matrix,array.size()-1);
 #else // from CPU
          TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -644,7 +649,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
          TGeoNode *f_node = nav->FindNode(fTrack[devIdx].x, fTrack[devIdx].y, fTrack[devIdx].z);
          fHostTracks[fTrackId[devIdx]]->fPath->InitFromNavigator(gGeoManager->GetCurrentNavigator());
 #endif
-         TGeoBranchArray *path = output.fPathV[fTrackId[devIdx]];
+         VolumePath_t *path = output.fPathV[fTrackId[devIdx]];
             //fHostTracks[fTrackId[devIdx]]->fPath;
 //         if (fHostTracks[fTrackId[devIdx]]->fFrombdr)
 //            path = fHostTracks[fTrackId[devIdx]]->fNextPath;
@@ -653,6 +658,22 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
             printf("Problem (bdr=%d) with the level %d vs %d\n",
                    output.fFrombdrV[fTrackId[devIdx]],path->GetLevel(),(int)array.size()-1);
          }
+#ifdef USE_VECGEOM_NAVIGATOR
+         const TGeoNode *pnode = path->GetNode(0);
+         if (pnode != array[0]) {
+            printf("Problem (bdr=%d) with the first entry %p vs %p level = %d\n",
+                   output.fFrombdrV[fTrackId[devIdx]], pnode, array[0], path->GetLevel());
+            pnode->Print();
+            array[0]->Print();
+         }
+         
+         if (path->GetLevel() >= 1 && path->GetNode(1) != array[1]) {
+            pnode = path->GetNode(0);
+            printf("Problem (bdr=%d) with the second entry %p vs %p level = %d\n", output.fFrombdrV[fTrackId[devIdx]],pnode, array[1],path->GetLevel());
+            pnode->Print();
+            array[1]->Print();
+         }
+#else
          if (path->GetArray()[0] != array[0]) {
             printf("Problem (bdr=%d) with the first entry %p vs %p level = %d\n",
                    output.fFrombdrV[fTrackId[devIdx]], path->GetArray()[0], array[0], path->GetLevel());
@@ -664,6 +685,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
             path->GetArray()[1]->Print();
             array[1]->Print();
          }
+#endif
 
 
          // Let's reschedule it.
