@@ -93,7 +93,11 @@ if (CUDA)
   include(FindCUDA)
 
   if (NOT CUDA_ARCH)
-    set(CUDA_ARCH 35)
+    if (CUDA_SEPARABLE_COMPILATION)
+      set(CUDA_ARCH 50)
+    else()
+      set(CUDA_ARCH 35)
+    endif()
   endif()
   set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
 
