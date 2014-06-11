@@ -50,7 +50,7 @@ void GeantScheduler::AdjustBasketSize()
 {
 // Adjust the basket size to converge to Ntracks/2*Nthreads
    const Int_t min_size = 4;
-   const Int_t max_size = 256;
+   const Int_t max_size = gPropagator->fNperBasket;
    Int_t nthreads = gPropagator->fNthreads;
    Int_t nproposed;
    for (Int_t ib=0; ib<fNvolumes; ib++) {

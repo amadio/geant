@@ -490,8 +490,9 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
    Int_t    ipart; //G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
 
    // tid-based rng
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+   GeantPropagator *prop = GeantPropagator::Instance();
+   Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
+   prop->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
    for (Int_t t=0; t<ntracks; ++t) {
       ipart  = tracksin.fG5codeV[t];
@@ -521,7 +522,7 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
 	  Double_t xrat = (en2-energy)/(en2-en1);
 	  Double_t xnorm = 1.;
           while(iel<0) {
-	    Double_t ran = xnorm*gRandom->Rndm();
+	    Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
 	    Double_t xsum=0;
 	    for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
 	       xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];

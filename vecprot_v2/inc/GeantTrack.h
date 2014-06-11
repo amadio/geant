@@ -172,7 +172,11 @@ public:
 
 class GeantTrack_v {
 public:
-   Int_t     fNtracks;    // number of tracks contained
+#if __cplusplus >= 201103L
+   std::atomic_int   fNtracks;  // number of tracks contained
+#else
+   Int_t     fNtracks;    // number of tracks contained  
+#endif   
    Int_t     fMaxtracks;  // max size for tracks
    Int_t     fNselected;  // Number of selected tracks
    TBits     fHoles;      // Bits of holes
@@ -181,11 +185,6 @@ public:
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat fStat;  //! Statistics for the track container
 #endif   
-#if __cplusplus >= 201103L
-   std::atomic<int> fProcessing; // number of concurrently processing threads
-#else
-   Int_t     fProcessing; // number of concurrently processing threads
-#endif 
    TMutex    fMutex;      // mutex for the concurrent operations  
    char     *fBuf;        // buffer holding tracks data
 
@@ -232,12 +231,19 @@ public:
 
    Int_t     Capacity() const     {return fMaxtracks;}
    static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
+#if __cplusplus >= 201103L
+   Int_t     GetNtracks() const   {return fNtracks.load();}
+   void      SetNtracks(Int_t ntracks) {fNtracks.store(ntracks);}
+#else
    Int_t     GetNtracks() const   {return fNtracks;}
+   void      SetNtracks(Int_t ntracks) {fNtracks = ntracks;}
+#endif
    Int_t     GetNselected() const {return fNselected;}
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat      &GetTrackStat() {return fStat;}
 #endif   
    Int_t     AddTrack(GeantTrack &track, Bool_t import=kFALSE);
+   Int_t     AddTrackSync(GeantTrack &track);
    Int_t     AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import=kFALSE);
    Int_t     AddTrackSync(GeantTrack_v &arr, Int_t i);
    void      AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t import=kFALSE);
@@ -258,11 +264,6 @@ public:
    void      ClearSelection()     {fSelected.ResetAllBits();}
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
-#if __cplusplus >= 201103L
-   Int_t     GetProcessing() const {return fProcessing.load();}
-#else
-   Int_t     GetProcessing() const {return fProcessing;}
-#endif            
    void PrintPointers() {
       printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }

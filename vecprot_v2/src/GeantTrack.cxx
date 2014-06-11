@@ -340,7 +340,7 @@ ClassImp(GeantTrack_v)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -353,9 +353,8 @@ GeantTrack_v::GeantTrack_v()
 }
 
 //______________________________________________________________________________
-GeantTrack_v::GeantTrack_v(Int_t size)
-            
-:fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),fProcessing(0),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+GeantTrack_v::GeantTrack_v(Int_t size)            
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -370,8 +369,8 @@ GeantTrack_v::GeantTrack_v(Int_t size)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
-             :fNtracks(track_v.fNtracks),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),fHoles(track_v.fHoles),
-              fSelected(track_v.fSelected),fCompact(track_v.fCompact),fProcessing(0),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+             :fNtracks(0),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),fHoles(track_v.fHoles),
+              fSelected(track_v.fSelected),fCompact(track_v.fCompact),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -381,10 +380,19 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
 #ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif
+#if __cplusplus >= 201103L
+   fNtracks.store(track_v.fNtracks);
+#else   
+   fNtracks = track_v.fNtracks;
+#endif   
    Int_t size = track_v.fMaxtracks;
    fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
    memset(fBuf, 0, size*sizeof(GeantTrack));
+#if __cplusplus >= 201103L
+   memcpy(fBuf, track_v.fBuf, fNtracks.load()*sizeof(GeantTrack));
+#else   
    memcpy(fBuf, track_v.fBuf, fNtracks*sizeof(GeantTrack));
+#endif   
    AssignInBuffer(&fBuf[0], size);
 }
 
@@ -398,17 +406,16 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
          _mm_free(fBuf);
          fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
       }
+#if __cplusplus >= 201103L
+      fNtracks.store(track_v.fNtracks);
+#else   
       fNtracks = track_v.fNtracks;
+#endif   
       fMaxtracks = size;
       fNselected = track_v.fNselected;
       fHoles = track_v.fHoles;
       fSelected = track_v.fSelected;
       fCompact = track_v.fCompact;
-#if __cplusplus >= 201103L
-      fProcessing.store(0);
-#else
-      fProcessing = 0;
-#endif            
       memcpy(fBuf, track_v.fBuf, size*sizeof(GeantTrack));
       AssignInBuffer(&fBuf[0], size);
 #ifdef __STAT_DEBUG_TRK
@@ -500,8 +507,9 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
 void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
 {
 // Copy existing track arrays into new buffer, padded by supplied size
-   const Int_t size_int = fNtracks*sizeof(Int_t);
-   const Int_t size_double = fNtracks*sizeof(Double_t);
+   Int_t ntracks = GetNtracks();
+   const Int_t size_int = ntracks*sizeof(Int_t);
+   const Int_t size_double = ntracks*sizeof(Double_t);
    const Int_t size_intn = size*sizeof(Int_t);
    const Int_t size_doublen = size*sizeof(Double_t);
    char *buf = buff;
@@ -535,10 +543,10 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    memcpy(buf, fNstepsV, size_int);
    fNstepsV = (Int_t*)buf;
    buf += size_intn;
-   memcpy(buf, fSpeciesV, fNtracks*sizeof(Species_t));
+   memcpy(buf, fSpeciesV, ntracks*sizeof(Species_t));
    fSpeciesV = (Species_t*)buf;
    buf += size*sizeof(Species_t);
-   memcpy(buf, fStatusV, fNtracks*sizeof(TrackStatus_t));
+   memcpy(buf, fStatusV, ntracks*sizeof(TrackStatus_t));
    fStatusV = (TrackStatus_t*)buf;
    buf += size*sizeof(TrackStatus_t);
    memcpy(buf, fMassV, size_double);
@@ -583,16 +591,16 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    memcpy(buf, fSafetyV, size_double);
    fSafetyV = (Double_t*)buf;
    buf += size_doublen;
-   memcpy(buf, fFrombdrV, fNtracks*sizeof(Bool_t));
+   memcpy(buf, fFrombdrV, ntracks*sizeof(Bool_t));
    fFrombdrV = (Bool_t*)buf;
    buf += size*sizeof(Bool_t);
-   memcpy(buf, fPendingV, fNtracks*sizeof(Bool_t));
+   memcpy(buf, fPendingV, ntracks*sizeof(Bool_t));
    fPendingV = (Bool_t*)buf;
    buf += size*sizeof(Bool_t);
-   memcpy(buf, fPathV, fNtracks*sizeof(VolumePath_t*));
+   memcpy(buf, fPathV, ntracks*sizeof(VolumePath_t*));
    fPathV = (VolumePath_t**)buf;
    buf += size*sizeof(VolumePath_t*);
-   memcpy(buf, fNextpathV, fNtracks*sizeof(VolumePath_t*));
+   memcpy(buf, fNextpathV, ntracks*sizeof(VolumePath_t*));
    fNextpathV = (VolumePath_t**)buf;
    buf += size*sizeof(VolumePath_t*);
 }
@@ -633,7 +641,7 @@ void GeantTrack_v::Resize(Int_t newsize)
 {
 // Resize the container.
    Int_t size = round_up_align(newsize);
-   if (size<fNtracks) {
+   if (size<GetNtracks()) {
       Printf("Error: Cannot resize to less than current track content");
       return;
    }
@@ -670,9 +678,11 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t import)
    // imported just copy the pointers to the navigation states and reset the sources.
    // Returns the location where the track was added.
    WorkloadManager *wm = WorkloadManager::Instance();
-   Int_t itrack = fNtracks;
+   Int_t itrack = GetNtracks();
    if (!fCompact) itrack = fHoles.FirstSetBit();
-   if (itrack==fMaxtracks) Resize(2*fMaxtracks);
+   if (itrack==fMaxtracks) {
+      Resize(2*fMaxtracks);
+   }   
    fHoles.ResetBitNumber(itrack);
    fSelected.ResetBitNumber(itrack);
    fEventV    [itrack] = track.fEvent;
@@ -716,7 +726,63 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t import)
       fNextpathV[itrack] = wm->NavStates()->Borrow(); 
       *fNextpathV[itrack] = *track.fNextpath; 
    }   
-   if (itrack==fNtracks) fNtracks++;
+   fNtracks++;
+#ifdef __STAT_DEBUG_TRK
+   fStat.fNtracks[fEvslotV[itrack]]++;
+#endif
+   return itrack;
+}
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::AddTrackSync(GeantTrack &track)
+{
+   // Add track in a concurrent way. Assumes that this array
+   // Is currently being filled while held by the basket manager and NOT being
+   // transported.
+   // The array has to be compact and should have enough alocated space.
+   // Returns the location where the track was added.
+   if (!fCompact) {
+      Printf("Error in AddTrackSync: array not compact");
+      return -1;
+   }
+   if (GetNtracks()>=fMaxtracks) {
+      Printf("Error in AddTrackSync: cannot resize array");
+      return -1;
+   }   
+   WorkloadManager *wm = WorkloadManager::Instance();
+   Int_t itrack = fNtracks++;
+   fEventV    [itrack] = track.fEvent;
+   fEvslotV   [itrack] = track.fEvslot;
+   fParticleV [itrack] = track.fParticle;
+   fPDGV      [itrack] = track.fPDG;
+   fG5codeV   [itrack] = track.fG5code;
+   fEindexV   [itrack] = track.fEindex;
+   fChargeV   [itrack] = track.fCharge;
+   fProcessV  [itrack] = track.fProcess;
+   fIzeroV    [itrack] = track.fIzero;
+   fNstepsV   [itrack] = track.fNsteps;
+   fSpeciesV  [itrack] = track.fSpecies;
+   fStatusV   [itrack] = track.fStatus;
+   fMassV     [itrack] = track.fMass;
+   fXposV     [itrack] = track.fXpos;
+   fYposV     [itrack] = track.fYpos;
+   fZposV     [itrack] = track.fZpos;
+   fXdirV     [itrack] = track.fXdir;
+   fYdirV     [itrack] = track.fYdir;
+   fZdirV     [itrack] = track.fZdir;
+   fPV        [itrack] = track.fP;
+   fEV        [itrack] = track.fE;
+   fEdepV     [itrack] = track.fEdep;
+   fPstepV    [itrack] = track.fPstep;
+   fStepV     [itrack] = track.fStep;
+   fSnextV    [itrack] = track.fSnext;
+   fSafetyV   [itrack] = track.fSafety;
+   fFrombdrV  [itrack] = track.fFrombdr;
+   fPendingV  [itrack] = track.fPending;
+   fPathV[itrack] = track.fPath; 
+   track.fPath = 0;
+   fNextpathV[itrack] = track.fNextpath;
+   track.fNextpath = 0;
 #ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[fEvslotV[itrack]]++;
 #endif
@@ -740,56 +806,57 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import)
    arr.PrintTrack( i );
 #endif
    WorkloadManager *wm = WorkloadManager::Instance();
-   Int_t itrack = fNtracks;
+   Int_t itrack = GetNtracks();
    if (!fCompact) itrack = fHoles.FirstSetBit();
-   if (itrack==fMaxtracks) Resize(2*fMaxtracks);
+   if (itrack==fMaxtracks) {
+      Resize(2*fMaxtracks);
+   }   
    fHoles.ResetBitNumber(itrack);
 
-   fEventV    [fNtracks] = arr.fEventV    [i];
-   fEvslotV   [fNtracks] = arr.fEvslotV   [i];
-   fParticleV [fNtracks] = arr.fParticleV [i];
-   fPDGV      [fNtracks] = arr.fPDGV      [i];
-   fG5codeV   [fNtracks] = arr.fG5codeV   [i];
-   fEindexV   [fNtracks] = arr.fEindexV   [i];
-   fChargeV   [fNtracks] = arr.fChargeV   [i];
-   fProcessV  [fNtracks] = arr.fProcessV  [i];
-   fIzeroV    [fNtracks] = arr.fIzeroV    [i];
-   fNstepsV   [fNtracks] = arr.fNstepsV   [i];
-   fSpeciesV  [fNtracks] = arr.fSpeciesV  [i];
-   fStatusV   [fNtracks] = arr.fStatusV   [i];
-   fMassV     [fNtracks] = arr.fMassV     [i];
-   fXposV     [fNtracks] = arr.fXposV     [i];
-   fYposV     [fNtracks] = arr.fYposV     [i];
-   fZposV     [fNtracks] = arr.fZposV     [i];
-   fXdirV     [fNtracks] = arr.fXdirV     [i];
-   fYdirV     [fNtracks] = arr.fYdirV     [i];
-   fZdirV     [fNtracks] = arr.fZdirV     [i];
-   fPV        [fNtracks] = arr.fPV        [i];
-   fEV        [fNtracks] = arr.fEV        [i];
-   fEdepV     [fNtracks] = arr.fEdepV     [i];
-   fPstepV    [fNtracks] = arr.fPstepV    [i];
-   fStepV     [fNtracks] = arr.fStepV     [i];
-   fSnextV    [fNtracks] = arr.fSnextV    [i];
-   fSafetyV   [fNtracks] = arr.fSafetyV   [i];
-   fFrombdrV  [fNtracks] = arr.fFrombdrV  [i];
-   fPendingV  [fNtracks] = arr.fPendingV  [i];
+   fEventV    [itrack] = arr.fEventV    [i];
+   fEvslotV   [itrack] = arr.fEvslotV   [i];
+   fParticleV [itrack] = arr.fParticleV [i];
+   fPDGV      [itrack] = arr.fPDGV      [i];
+   fG5codeV   [itrack] = arr.fG5codeV   [i];
+   fEindexV   [itrack] = arr.fEindexV   [i];
+   fChargeV   [itrack] = arr.fChargeV   [i];
+   fProcessV  [itrack] = arr.fProcessV  [i];
+   fIzeroV    [itrack] = arr.fIzeroV    [i];
+   fNstepsV   [itrack] = arr.fNstepsV   [i];
+   fSpeciesV  [itrack] = arr.fSpeciesV  [i];
+   fStatusV   [itrack] = arr.fStatusV   [i];
+   fMassV     [itrack] = arr.fMassV     [i];
+   fXposV     [itrack] = arr.fXposV     [i];
+   fYposV     [itrack] = arr.fYposV     [i];
+   fZposV     [itrack] = arr.fZposV     [i];
+   fXdirV     [itrack] = arr.fXdirV     [i];
+   fYdirV     [itrack] = arr.fYdirV     [i];
+   fZdirV     [itrack] = arr.fZdirV     [i];
+   fPV        [itrack] = arr.fPV        [i];
+   fEV        [itrack] = arr.fEV        [i];
+   fEdepV     [itrack] = arr.fEdepV     [i];
+   fPstepV    [itrack] = arr.fPstepV    [i];
+   fStepV     [itrack] = arr.fStepV     [i];
+   fSnextV    [itrack] = arr.fSnextV    [i];
+   fSafetyV   [itrack] = arr.fSafetyV   [i];
+   fFrombdrV  [itrack] = arr.fFrombdrV  [i];
+   fPendingV  [itrack] = arr.fPendingV  [i];
    if (import) {
       // Just copy the pointers
-      fPathV[fNtracks] = arr.fPathV[i];
+      fPathV[itrack] = arr.fPathV[i];
       arr.fPathV[i] = 0;
-      fNextpathV[fNtracks] = arr.fNextpathV[i];
+      fNextpathV[itrack] = arr.fNextpathV[i];
       arr.fNextpathV[i] = 0;
    } else {
       // Copy the content
-      fPathV[fNtracks] = wm->NavStates()->Borrow();
-      *fPathV[fNtracks] = *arr.fPathV[i];
-      fNextpathV[fNtracks] = wm->NavStates()->Borrow();
-      *fNextpathV[fNtracks] = *arr.fNextpathV[i];
+      fPathV[itrack] = wm->NavStates()->Borrow();
+      *fPathV[itrack] = *arr.fPathV[i];
+      fNextpathV[itrack] = wm->NavStates()->Borrow();
+      *fNextpathV[itrack] = *arr.fNextpathV[i];
    }
-   fSelected.ResetBitNumber(fNtracks);
-   fHoles.ResetBitNumber(fNtracks);
-
-   if (itrack==fNtracks) fNtracks++;
+   fSelected.ResetBitNumber(itrack);
+   fHoles.ResetBitNumber(itrack);
+   fNtracks++;
 #ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[arr.fEvslotV[i]]++;
 #endif
@@ -809,7 +876,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
       Printf("Error in AddTrackSync: array not compact");
       return -1;
    }
-   if (fNtracks>=fMaxtracks) {
+   if (GetNtracks()>=fMaxtracks) {
       Printf("Error in AddTrackSync: cannot resize array");
       return -1;
    }   
@@ -817,8 +884,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
    arr.PrintTrack( i );
 #endif
    WorkloadManager *wm = WorkloadManager::Instance();
-   fProcessing++;
-   Int_t itrack = fNtracks++; // is this safe?
+   Int_t itrack = fNtracks++;
 
    fEventV    [itrack] = arr.fEventV    [i];
    fEvslotV   [itrack] = arr.fEvslotV   [i];
@@ -868,38 +934,41 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
 #endif
    WorkloadManager *wm = WorkloadManager::Instance();
    Int_t ncpy = iend-istart+1;
-   if (fNtracks+ncpy>=fMaxtracks) Resize(TMath::Max(2*fMaxtracks, fNtracks+ncpy));
-   memcpy(&fEventV    [fNtracks], &arr.fEventV    [istart], ncpy*sizeof(Int_t));
-   memcpy(&fEvslotV   [fNtracks], &arr.fEvslotV   [istart], ncpy*sizeof(Int_t));
-   memcpy(&fParticleV [fNtracks], &arr.fParticleV [istart], ncpy*sizeof(Int_t));
-   memcpy(&fPDGV      [fNtracks], &arr.fPDGV      [istart], ncpy*sizeof(Int_t));
-   memcpy(&fG5codeV   [fNtracks], &arr.fG5codeV   [istart], ncpy*sizeof(Int_t));
-   memcpy(&fEindexV   [fNtracks], &arr.fEindexV   [istart], ncpy*sizeof(Int_t));
-   memcpy(&fChargeV   [fNtracks], &arr.fChargeV   [istart], ncpy*sizeof(Int_t));
-   memcpy(&fProcessV  [fNtracks], &arr.fProcessV  [istart], ncpy*sizeof(Int_t));
-   memcpy(&fIzeroV    [fNtracks], &arr.fIzeroV    [istart], ncpy*sizeof(Int_t));
-   memcpy(&fNstepsV   [fNtracks], &arr.fNstepsV   [istart], ncpy*sizeof(Int_t));
-   memcpy(&fSpeciesV  [fNtracks], &arr.fSpeciesV  [istart], ncpy*sizeof(Species_t));
-   memcpy(&fStatusV   [fNtracks], &arr.fStatusV   [istart], ncpy*sizeof(TrackStatus_t));
-   memcpy(&fMassV     [fNtracks], &arr.fMassV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fXposV     [fNtracks], &arr.fXposV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fYposV     [fNtracks], &arr.fYposV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fZposV     [fNtracks], &arr.fZposV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fXdirV     [fNtracks], &arr.fXdirV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fYdirV     [fNtracks], &arr.fYdirV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fZdirV     [fNtracks], &arr.fZdirV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fPV        [fNtracks], &arr.fPV        [istart], ncpy*sizeof(Double_t));
-   memcpy(&fEV        [fNtracks], &arr.fEV        [istart], ncpy*sizeof(Double_t));
-   memcpy(&fEdepV     [fNtracks], &arr.fEdepV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fPstepV    [fNtracks], &arr.fPstepV    [istart], ncpy*sizeof(Double_t));
-   memcpy(&fStepV     [fNtracks], &arr.fStepV     [istart], ncpy*sizeof(Double_t));
-   memcpy(&fSnextV    [fNtracks], &arr.fSnextV    [istart], ncpy*sizeof(Double_t));
-   memcpy(&fSafetyV   [fNtracks], &arr.fSafetyV   [istart], ncpy*sizeof(Double_t));
-   memcpy(&fFrombdrV  [fNtracks], &arr.fFrombdrV  [istart], ncpy*sizeof(Bool_t));
-   memcpy(&fPendingV  [fNtracks], &arr.fPendingV  [istart], ncpy*sizeof(Bool_t));
+   Int_t ntracks = GetNtracks();
+   if (ntracks+ncpy>=fMaxtracks) {
+      Resize(TMath::Max(2*fMaxtracks, ntracks+ncpy));
+   }   
+   memcpy(&fEventV    [ntracks], &arr.fEventV    [istart], ncpy*sizeof(Int_t));
+   memcpy(&fEvslotV   [ntracks], &arr.fEvslotV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fParticleV [ntracks], &arr.fParticleV [istart], ncpy*sizeof(Int_t));
+   memcpy(&fPDGV      [ntracks], &arr.fPDGV      [istart], ncpy*sizeof(Int_t));
+   memcpy(&fG5codeV   [ntracks], &arr.fG5codeV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fEindexV   [ntracks], &arr.fEindexV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fChargeV   [ntracks], &arr.fChargeV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fProcessV  [ntracks], &arr.fProcessV  [istart], ncpy*sizeof(Int_t));
+   memcpy(&fIzeroV    [ntracks], &arr.fIzeroV    [istart], ncpy*sizeof(Int_t));
+   memcpy(&fNstepsV   [ntracks], &arr.fNstepsV   [istart], ncpy*sizeof(Int_t));
+   memcpy(&fSpeciesV  [ntracks], &arr.fSpeciesV  [istart], ncpy*sizeof(Species_t));
+   memcpy(&fStatusV   [ntracks], &arr.fStatusV   [istart], ncpy*sizeof(TrackStatus_t));
+   memcpy(&fMassV     [ntracks], &arr.fMassV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fXposV     [ntracks], &arr.fXposV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fYposV     [ntracks], &arr.fYposV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fZposV     [ntracks], &arr.fZposV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fXdirV     [ntracks], &arr.fXdirV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fYdirV     [ntracks], &arr.fYdirV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fZdirV     [ntracks], &arr.fZdirV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fPV        [ntracks], &arr.fPV        [istart], ncpy*sizeof(Double_t));
+   memcpy(&fEV        [ntracks], &arr.fEV        [istart], ncpy*sizeof(Double_t));
+   memcpy(&fEdepV     [ntracks], &arr.fEdepV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fPstepV    [ntracks], &arr.fPstepV    [istart], ncpy*sizeof(Double_t));
+   memcpy(&fStepV     [ntracks], &arr.fStepV     [istart], ncpy*sizeof(Double_t));
+   memcpy(&fSnextV    [ntracks], &arr.fSnextV    [istart], ncpy*sizeof(Double_t));
+   memcpy(&fSafetyV   [ntracks], &arr.fSafetyV   [istart], ncpy*sizeof(Double_t));
+   memcpy(&fFrombdrV  [ntracks], &arr.fFrombdrV  [istart], ncpy*sizeof(Bool_t));
+   memcpy(&fPendingV  [ntracks], &arr.fPendingV  [istart], ncpy*sizeof(Bool_t));
    if (import) {
       // Just copy the pointers
-      for(Int_t i = fNtracks, j = istart; i < (fNtracks+ncpy) ; ++i,++j) {
+      for(Int_t i = ntracks, j = istart; i < (ntracks+ncpy) ; ++i,++j) {
          fPathV[i] = arr.fPathV[j];
          arr.fPathV[j] = 0;
          fNextpathV[i] = arr.fNextpathV[j];
@@ -907,15 +976,15 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
       }
    } else {      
       // Copy the content
-      for(Int_t i = fNtracks, j = istart; i < (fNtracks+ncpy) ; ++i,++j) {
+      for(Int_t i = ntracks, j = istart; i < (ntracks+ncpy) ; ++i,++j) {
          fPathV[i] = wm->NavStates()->Borrow();
          fNextpathV[i] = wm->NavStates()->Borrow();
          *fPathV[i] = *arr.fPathV[j];
          *fNextpathV[i] = *arr.fNextpathV[j];
       }   
    }
-   fSelected.ResetBitNumber(fNtracks+ncpy-1);
-   fHoles.ResetBitNumber(fNtracks+ncpy-1);
+   fSelected.ResetBitNumber(ntracks+ncpy-1);
+   fHoles.ResetBitNumber(ntracks+ncpy-1);
    fNtracks += ncpy;
 }
 
@@ -1025,8 +1094,9 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
    for (Int_t i=from; i<=to; i++) fStat.fNtracks[fEvslotV[i]]--;
 #endif
    if (!fCompact) Printf("RemoveTracks: Not compact");
-   if (to >= fNtracks-1) {
-      Int_t nzero = fNtracks-from;
+   Int_t ntracks = GetNtracks();
+   if (to >= ntracks-1) {
+      Int_t nzero = ntracks-from;
       memset(&fPathV [from], 0, nzero*sizeof(VolumePath_t*));
       memset(&fNextpathV [from], 0, nzero*sizeof(VolumePath_t*));
    }
@@ -1072,20 +1142,24 @@ Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
 // Compact the holes in the array. Return number of active elements. This will
 // lose the track fields in the holes, so information from the holes has to be
 // copied beforehand
-   if (fNtracks == 0 || fCompact) return 0;
+   Int_t ntracks = GetNtracks();
+   if (ntracks == 0 || fCompact) return 0;
    fCompact = kTRUE;
    Int_t firsthole = fHoles.FirstSetBit();
-   while (firsthole<fNtracks) {
-      Int_t lastactive = fHoles.LastNullBit(fNtracks-1);
-      if (lastactive < fNtracks) {
+   while (firsthole<ntracks) {
+      Int_t lastactive = fHoles.LastNullBit(ntracks-1);
+      if (lastactive < ntracks) {
          // move last holes (if any)
-         if (moveto && (fNtracks-lastactive-1>0)) moveto->AddTracks(*this, lastactive+1, fNtracks-1, kTRUE);
-         fNtracks = lastactive+1;
-         if (firsthole==fNtracks) return fNtracks;
+         if (moveto && (ntracks-lastactive-1>0)) moveto->AddTracks(*this, lastactive+1, ntracks-1, kTRUE);
+         ntracks = lastactive+1;
+         if (firsthole==ntracks) {
+            SetNtracks(ntracks);
+            return ntracks;
+         }   
       } else {
          // No active tracks left. First copy the hole track to the output
-         if (moveto) moveto->AddTracks(*this, firsthole, firsthole+fNtracks-1, kTRUE);
-         fNtracks = 0;
+         if (moveto) moveto->AddTracks(*this, firsthole, firsthole+ntracks-1, kTRUE);
+         SetNtracks(0);
          return 0;
       }
       // replace content of first hole with the last active track
@@ -1094,11 +1168,12 @@ Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
       fHoles.SetBitNumber(firsthole, false);
       fHoles.SetBitNumber(lastactive, true);
       firsthole = fHoles.FirstSetBit(firsthole+1);
-      fNtracks--;
+      ntracks--;
    }
    fSelected.ResetAllBits();
    fNselected = 0;
-   return fNtracks;
+   SetNtracks(ntracks);
+   return ntracks;
 }
 
 //______________________________________________________________________________
@@ -1106,8 +1181,8 @@ Int_t GeantTrack_v::Reshuffle()
 {
 // Reshuffle tracks according the selection mask. The selected tracks will be
 // moved at the beginning of the array. Tracks should be compacted before.
-   if (fNtracks == 0) return 0;
-   fNselected = fNtracks;
+   if (GetNtracks() == 0) return 0;
+   fNselected = GetNtracks();
    Int_t firsthole = fSelected.FirstNullBit();
    while (firsthole<fNselected) {
       Int_t lastsel = fSelected.LastSetBit(fNselected-1);
@@ -1129,7 +1204,8 @@ Bool_t GeantTrack_v::Contains(Int_t evstart, Int_t nevents) const
 {
 // Check if the array contains tracks from a given event range
    Int_t evend = evstart+nevents;
-   for (Int_t itr=0; itr<fNtracks; itr++) {
+   Int_t ntracks = GetNtracks();
+   for (Int_t itr=0; itr<ntracks; itr++) {
       if (fEventV[itr]>=evstart && fEventV[itr]<evend) return kTRUE;
    }
    return kFALSE;
@@ -1140,14 +1216,15 @@ void GeantTrack_v::Clear(Option_t *)
 {
 // Clear track content and selections
    fNselected = 0;
-   if (fNtracks) {
-      memset(fPathV, 0, fNtracks*sizeof(VolumePath_t*));
-      memset(fNextpathV, 0, fNtracks*sizeof(VolumePath_t*));
+   Int_t ntracks = GetNtracks();
+   if (ntracks) {
+      memset(fPathV, 0, ntracks*sizeof(VolumePath_t*));
+      memset(fNextpathV, 0, ntracks*sizeof(VolumePath_t*));
    }   
    fHoles.ResetAllBits();
    fSelected.ResetAllBits();
    fCompact = kTRUE;
-   fNtracks = 0;
+   SetNtracks(0);
 #ifdef __STAT_DEBUG_TRK
    fStat.Reset();
 #endif
@@ -1604,14 +1681,15 @@ Int_t GeantTrack_v::SortByStatus(TrackStatus_t status)
 {
 // Sort tracks by a given status.
    Int_t nsel = 0;
-   for (Int_t itr=0; itr<fNtracks; itr++) {
+   Int_t ntracks = GetNtracks();
+   for (Int_t itr=0; itr<ntracks; itr++) {
       if (fStatusV[itr] == status) {
          Select(itr);
          nsel++;
       }
    }
    if (nsel) {
-      if (nsel<fNtracks) Reshuffle();
+      if (nsel<ntracks) Reshuffle();
       else DeselectAll();
    }   
    return nsel;
@@ -1623,7 +1701,8 @@ Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output)
 // Remove tracks with given status from the container to the output vector,
 // then compact.
    Int_t nremoved = 0;
-   for (Int_t itr=0; itr<fNtracks; itr++) {
+   Int_t ntracks = GetNtracks();
+   for (Int_t itr=0; itr<ntracks; itr++) {
       if (fStatusV[itr] == status) {
          MarkRemoved(itr);
          nremoved++;
@@ -1667,7 +1746,8 @@ void GeantTrack_v::PrintTrack(Int_t itr) const
 void GeantTrack_v::PrintTracks() const
 {
 // Print all tracks
-   for (Int_t i=0; i<fNtracks; i++) PrintTrack(i);
+   Int_t ntracks = GetNtracks();
+   for (Int_t i=0; i<ntracks; i++) PrintTrack(i);
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -1846,16 +1926,16 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
 // Propagate the ntracks in the current volume with their physics steps (already
 // computed)
 // Vectors are pushed downstream when efficient.
-
+   Int_t ntracks = GetNtracks();
    // Check if tracking the remaining tracks can be postponed
-   TransportAction_t action = PostponedAction(fNtracks);
+   TransportAction_t action = PostponedAction(ntracks);
    if (action==kPostpone) {
       PostponeTracks(output);
       return 0;
    }
    if (action != kVector) return PropagateTracksSingle(output,tid,0);
    // Compute transport length in geometry, limited by the physics step
-   ComputeTransportLength(fNtracks);
+   ComputeTransportLength(ntracks);
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
 
@@ -1869,7 +1949,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
 //   Int_t tid = nav->GetThreadId();
 //   GeantThreadData *td = gPropagator->fThreadData[tid];
    // Remove dead tracks, propagate neutrals
-   for (itr=0; itr<fNtracks; itr++) {
+   for (itr=0; itr<ntracks; itr++) {
       // Mark dead tracks for copy/removal
       if (fStatusV[itr] == kKilled) {
          MarkRemoved(itr);
@@ -1928,7 +2008,8 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
    // field with respect to straight propagation is less than epsilon.
    // Take the maximum between the safety and the "bending" safety
    nsel = 0;
-   Double_t *steps = GeantPropagator::Instance()->fThreadData[tid]->GetDblArray(fNtracks);
+   ntracks = GetNtracks();
+   Double_t *steps = GeantPropagator::Instance()->fThreadData[tid]->GetDblArray(ntracks);
    for (itr=0; itr<fNtracks; itr++) {
       lmax = SafeLength(itr, eps);
       lmax = TMath::Max(lmax, fSafetyV[itr]);
@@ -1940,7 +2021,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
 //      Printf("track %d: step=%g (safelen=%g)", itr, steps[itr], lmax);
    }
    // Propagate the vector of tracks
-   PropagateInVolume(fNtracks, steps, tid);
+   PropagateInVolume(ntracks, steps, tid);
 //         Printf("====== After PropagateInVolume:");
 //         PrintTracks();
    // Some tracks made it to physics steps (kPhysics)
@@ -1951,7 +2032,8 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
    //         -> keep in the container
 
    // Select tracks that made it to physics and copy to output
-   for (itr=0; itr<fNtracks; itr++) {
+   ntracks = GetNtracks();
+   for (itr=0; itr<ntracks; itr++) {
       if (fStatusV[itr] == kPhysics) {
          MarkRemoved(itr);
          fNstepsV[itr]++;
@@ -1961,7 +2043,8 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
    // Select tracks that are in flight or were propagated to boundary with
    // steps bigger than safety
    nsel = 0;
-   for (itr=0; itr<fNtracks; itr++) {
+   ntracks = GetNtracks();
+   for (itr=0; itr<ntracks; itr++) {
       if (fSafetyV[itr]<1.E-10 || fSnextV[itr]<1.E-10) {
          Select(itr);
          nsel++;
@@ -1969,7 +2052,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
    }
    // The selected tracks may have crossed the boundaries - check that
    if (nsel) {
-      if (nsel<fNtracks) Reshuffle();
+      if (nsel<GetNtracks()) Reshuffle();
       else DeselectAll();
       Bool_t *same = GeantPropagator::Instance()->fThreadData[tid]->GetBoolArray(nsel);
       NavIsSameLocation(nsel, fPathV, fNextpathV, same);
@@ -2001,7 +2084,8 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
    Double_t step, lmax;
    const Double_t eps = 1.E-4; // 1 micron
    const Double_t bmag = gPropagator->fBmag;
-   for (itr=0; itr<fNtracks; itr++) {
+   Int_t ntracks = GetNtracks();
+   for (itr=0; itr<ntracks; itr++) {
       // Mark dead tracks for copy/removal
       if (fStatusV[itr] == kKilled) {
          MarkRemoved(itr);
@@ -2120,11 +2204,11 @@ Double_t GeantTrack_v::SafeLength(Int_t i, Double_t eps)
 Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)
 {
 // Postpone transport of remaining tracks and copy them to the output.
-   Int_t npostponed = fNtracks;
-   for (Int_t itr=0; itr<fNtracks; itr++) fStatusV[itr] = kPostponed;
+   Int_t npostponed = GetNtracks();
+   for (Int_t itr=0; itr<npostponed; itr++) fStatusV[itr] = kPostponed;
    // Move these tracks to the output container
-   output.AddTracks(*this, 0, fNtracks-1, kTRUE);
-   RemoveTracks(0, fNtracks-1);
+   output.AddTracks(*this, 0, npostponed-1, kTRUE);
+   RemoveTracks(0, npostponed-1);
    Clear();
    return npostponed;
 }

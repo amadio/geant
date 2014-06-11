@@ -47,13 +47,15 @@ void GeantBasket::AddTrack(GeantTrack &track)
 {
 // Add a new track to this basket;
    fTracksIn.AddTrack(track);
+//   fTracksIn.AddTrackSync(track);
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr)
 {
 // Add track from a track_v array
-   fTracksIn.AddTrack(tracks, itr, kTRUE);
+//   fTracksIn.AddTrack(tracks, itr, kTRUE);
+   fTracksIn.AddTrackSync(tracks, itr);
 }
 
 //______________________________________________________________________________

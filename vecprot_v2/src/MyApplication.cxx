@@ -115,6 +115,7 @@ void MyApplication::Digitize(Int_t event)
 //   memset(fLengthAbs, 0, kNlayers*sizeof(Float_t));
 //   TCanvas *c1 = new TCanvas("Edep", "Energy deposition for ExN03", 700, 800);
    TCanvas *c1 = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("capp");
+   if (!c1) return;
    c1->Divide(1,2);
    TVirtualPad *pad = c1->cd(1);
    pad->SetGridx();

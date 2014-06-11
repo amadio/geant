@@ -245,7 +245,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    Int_t threshold = nevents*average/(2*fNthreads);
    threshold -= threshold%4;
    if (threshold<4) threshold = 4;
-   if (threshold>256) threshold = 256;
+   if (threshold>fNperBasket) threshold = fNperBasket;
    basket_mgr->SetThreshold(threshold);
    
 //   const Double_t etamin = -3, etamax = 3;

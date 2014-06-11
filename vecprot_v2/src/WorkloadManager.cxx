@@ -236,7 +236,7 @@ void *WorkloadManager::MainScheduler(void *)
       }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
-      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
+//      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
 #ifdef __STAT_DEBUG
            sch->GetPendingStat().Print();
            sch->GetQueuedStat().Print();
@@ -292,7 +292,7 @@ void *WorkloadManager::MainScheduler(void *)
             } else {
                npriority = sch->FlushPriorityBaskets();
                ninjected = npriority;
-               Printf("Flushed %d priority baskets", npriority);
+//               Printf("Flushed %d priority baskets", npriority);
 #ifdef __STAT_DEBUG
            Printf("After FlushPriorityBaskets:");
            sch->GetPendingStat().Print();
@@ -376,11 +376,16 @@ void *WorkloadManager::TransportTracks(void *)
    Int_t ntotransport;
    Int_t nextra_at_rest = 0;
    Int_t generation = 0;
+   Int_t ninjected = 0;
+   Int_t nnew = 0;
+   Int_t ntot = 0;
+   Int_t nkilled = 0;
    GeantBasket *basket = 0;
    Int_t tid = TGeoManager::ThreadId();
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
+   GeantScheduler *sch = wm->GetScheduler();
    Int_t *waiting = wm->GetWaiting();
 //   Int_t nprocesses = propagator->fNprocesses;
 //   Int_t ninput, noutput;
@@ -399,7 +404,6 @@ void *WorkloadManager::TransportTracks(void *)
       if (!basket) break;
       counter++;
 #ifdef __STAT_DEBUG
-      GeantScheduler *sch = wm->GetScheduler();
       sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
       sch->GetTransportStat().AddTracks(basket->GetInputTracks());
 #endif         
@@ -543,6 +547,7 @@ finish:
 #ifdef __STAT_DEBUG
       sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif         
+//      ninjected = sch->AddTracks(basket, ntot, nnew, nkilled);
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);
@@ -793,6 +798,7 @@ void *WorkloadManager::MonitoringThread(void *)
       cmon->cd(2);
       hmem->Draw();
       cmon->cd(3);
+      hbaskets->LabelsOption(">");
       hbaskets->Draw();
       hbused->Draw("SAME");
       cmon->cd(4);
@@ -804,5 +810,5 @@ void *WorkloadManager::MonitoringThread(void *)
    }
    delete [] nworking;
    // Sleep a bit to let the graphics finish
-   gSystem->Sleep(50); // millisec
+   gSystem->Sleep(10); // millisec
 }
