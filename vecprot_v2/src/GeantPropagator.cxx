@@ -378,7 +378,7 @@ void GeantPropagator::Initialize()
    gPropagator = GeantPropagator::Instance();
       
    if (!fProcess) {
-      Fatal("Initialize", "The physics process has to be initilaized before this");
+      Fatal("Initialize", "The physics process has to be initialized before this");
       return;
    }
    // Initialize the process(es)
@@ -578,6 +578,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
           fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
+#ifdef USE_VECGEOM_NAVIGATOR
+   Printf("=== Navigation done using VecGeom ====");
+#else
+   Printf("=== Navigation done using TGeo    ====");
+#endif
+
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
