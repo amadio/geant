@@ -812,4 +812,6 @@ void *WorkloadManager::MonitoringThread(void *)
    delete [] nworking;
    // Sleep a bit to let the graphics finish
    gSystem->Sleep(10); // millisec
+
+   return 0;
 }
