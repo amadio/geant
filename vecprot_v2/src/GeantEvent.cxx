@@ -6,28 +6,15 @@ ClassImp(GeantEvent)
 Int_t GeantEvent::AddTrack()
 {
 // Thread safe track addition
-   Int_t itrack;
-   fMutex.Lock();
-   fNtracks++;
 #if __cplusplus >= 201103L
-   itrack = fNtracks.load()-1;
+   return fNtracks++;
 #else
-   itrack = fNtracks-1;
-#endif   
+   fMutex.Lock();
+   Int_t itrack = fNtracks++;
    fMutex.UnLock();
    return itrack;
+#endif   
 }
-
-#if __cplusplus < 201103L
-//______________________________________________________________________________
-void GeantEvent::StopTrack()
-{
-// Thread safe track addition
-   fMutex.Lock();
-   fNdone++;
-   fMutex.UnLock();
-}
-#endif
 
 //______________________________________________________________________________
 void GeantEvent::Print(Option_t *) const

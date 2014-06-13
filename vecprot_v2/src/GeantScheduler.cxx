@@ -54,8 +54,8 @@ void GeantScheduler::AdjustBasketSize()
    Int_t nthreads = gPropagator->fNthreads;
    Int_t nproposed;
    for (Int_t ib=0; ib<fNvolumes; ib++) {
-      if (!fNtracks[ib]) continue;
-      nproposed = fNtracks[ib]/(2*nthreads);
+      if (!GetNtracks(ib)) continue;
+      nproposed = GetNtracks(ib)/(2*nthreads);
       nproposed -= nproposed%4;
       if (!nproposed) continue;
       if (nproposed<min_size)  nproposed = min_size;
@@ -73,8 +73,13 @@ void GeantScheduler::CreateBaskets()
    if (fBasketMgr) return;
    fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
    fBasketMgr = new GeantBasketMgr*[fNvolumes];
+#if __cplusplus >= 201103L
+   fNtracks = new std::atomic_int[fNvolumes];
+   for (Int_t i=0; i<fNvolumes; i++) fNtracks[i].store(0);
+#else   
    fNtracks = new Int_t[fNvolumes];
    memset(fNtracks,0,fNvolumes*sizeof(Int_t));
+#endif   
    dcqueue<GeantBasket> *feeder = WorkloadManager::Instance()->FeederQueue();
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;

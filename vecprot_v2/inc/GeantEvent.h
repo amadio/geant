@@ -12,10 +12,10 @@
 class GeantEvent : public TObject {
 private:
 #if __cplusplus >= 201103L
-   std::atomic<int>  fEvent;        // event number
-   std::atomic<int>  fSlot;         // fixed slot number
-   std::atomic<int>  fNtracks;      // number of tracks
-   std::atomic<int>  fNdone;        // number of done tracks
+   std::atomic_int  fEvent;        // event number
+   std::atomic_int  fSlot;         // fixed slot number
+   std::atomic_int  fNtracks;      // number of tracks
+   std::atomic_int  fNdone;        // number of done tracks
 #else
 // dummy declarations to cheat CINT
    int  fEvent;        // event number
@@ -48,7 +48,7 @@ public:
    void               SetSlot(Int_t islot) {fSlot = islot;}
    void               Reset() {fNtracks = fNdone = 0;}
    Bool_t             Transported() const {return ((fNtracks>0) && (fNtracks==fNdone));}
-   void               StopTrack();
+   void               StopTrack() {fMutex.Lock(); fNdone++; fMutex.UnLock();}
 #endif
    void               Print(Option_t *option="") const;
 

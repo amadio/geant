@@ -53,7 +53,8 @@ void GeantBasket::AddTrack(GeantTrack &track)
 //______________________________________________________________________________
 void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr)
 {
-// Add track from a track_v array
+// Add track from a track_v array.
+// Has to work concurrently
 //   fTracksIn.AddTrack(tracks, itr, kTRUE);
    fTracksIn.AddTrackSync(tracks, itr);
 }
@@ -120,10 +121,11 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fScheduler(sch),
                    fVolume(vol),
                    fNumber(number),
-		   fBcap(0),
+		             fBcap(0),
                    fThreshold(0),
                    fNbaskets(0),
                    fNused(0),
+                   fNfilling(0),
                    fCBasket(0),
                    fPBasket(0),
                    fBaskets(),
@@ -148,32 +150,75 @@ GeantBasketMgr::~GeantBasketMgr()
 Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority)
 {
 // Copy directly from a track_v a track to the basket manager.
+// Has to work concurrently
 #ifdef __STAT_DEBUG
       fScheduler->GetPendingStat().AddTrack(trackv, itr);
 #endif   
+#if __cplusplus < 201103L
+      fMutex.Lock();
+#endif  
+      fNfilling++;
+#if __cplusplus < 201103L
+      fMutex.UnLock();
+#endif      
    if (priority) {
+      fMutex.Lock();
       fPBasket->AddTrack(trackv, itr);
+      fMutex.UnLock();
       if (fPBasket->GetNinput() >= fThreshold) {
 #ifdef __STAT_DEBUG
          fScheduler->GetPendingStat().RemoveTracks(fPBasket->GetInputTracks());
          fScheduler->GetQueuedStat().AddTracks(fPBasket->GetInputTracks());
 #endif   
-         fFeeder->push(fPBasket, priority);
-         fPBasket = GetNextBasket();
+         // There may be another thread just filling this basket
+      fMutex.Lock();
+         GeantBasket *oldbasket = fPBasket;
+         GeantBasket *newbasket = GetNextBasket();
+         if (--fNfilling) {
+            // Another thread just adding -> drop new basket and return
+            Printf("concurrent AddTrack");
+            RecycleBasket(newbasket);
+            fMutex.UnLock();
+            return 0;
+         }
+         fPBasket = newbasket;  // There may be a race here  
+      fMutex.UnLock();
+         fFeeder->push(oldbasket, priority);
          return 1;
       }
    } else {
+      fMutex.Lock();
       fCBasket->AddTrack(trackv, itr);
+      fMutex.UnLock();
       if (fCBasket->GetNinput() >= fThreshold) {
 #ifdef __STAT_DEBUG
          fScheduler->GetPendingStat().RemoveTracks(fCBasket->GetInputTracks());
          fScheduler->GetQueuedStat().AddTracks(fCBasket->GetInputTracks());
 #endif   
-         fFeeder->push(fCBasket, priority);
-         fCBasket = GetNextBasket();
+         // There may be another thread just filling this basket
+      fMutex.Lock();
+         GeantBasket *oldbasket = fCBasket;
+         GeantBasket *newbasket = GetNextBasket();
+         if (--fNfilling) {
+            // Another thread just adding -> drop new basket and return
+            Printf("concurrent AddTrack");
+            RecycleBasket(newbasket);
+            fMutex.UnLock();
+            return 0;
+         }
+         fCBasket = newbasket; // race?
+      fMutex.UnLock();
+         fFeeder->push(oldbasket, priority);
          return 1;
       }
    }
+ #if __cplusplus < 201103L
+      fMutex.Lock();
+#endif  
+      fNfilling--;
+#if __cplusplus < 201103L
+      fMutex.UnLock();
+#endif        
    return 0;
 }
 

@@ -15,6 +15,10 @@
 
 #include <vector>
 
+#if __cplusplus >= 201103L
+#include <atomic>
+#endif
+
 class TTree;
 class TFile;
 class TStopwatch;
@@ -39,7 +43,11 @@ public:
    Int_t       fNthreads;    // Number of threads
    Int_t       fNevents;     // Number of buffered
    Int_t       fNtotal;      // Total number of events
-   Long64_t    fNtransported; // Number of transported tracks
+#if __cplusplus >= 201103L
+   std::atomic<Long64_t>    fNtransported; // Number of transported tracks
+#else
+   Long64_t    fNtransported; // Number of transported tracks   
+#endif   
    Long64_t    fNprimaries;  // Number of primary tracks
    Long64_t    fNsafeSteps;  // Number of fast steps within safety
    Long64_t    fNsnextSteps; // Number of steps where full snext computation is needed
@@ -95,10 +103,14 @@ public:
    virtual ~GeantPropagator();
    
    // Temporary track for the current caller thread
+#if __cplusplus >= 201103L
+   Long64_t         GetNtransported() const {return fNtransported.load();}
+#else
+   Long64_t         GetNtransported() const {return fNtransported;}
+#endif   
    GeantTrack      &GetTempTrack(Int_t tid=-1);
    Int_t            AddTrack(GeantTrack &track);
    Int_t            DispatchTrack(GeantTrack &track);
-   void             StopTrack(GeantTrack *track);
    void             StopTrack(const GeantTrack_v &tracks, Int_t itr);
    Int_t            GetElossInd() const {return fElossInd;}
    Bool_t           LoadGeometry(const char *filename="geometry.root");

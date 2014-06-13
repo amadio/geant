@@ -285,9 +285,9 @@ void *WorkloadManager::MainScheduler(void *)
                   feederQ->reset_countdown();
                   npriority = sch->FlushPriorityBaskets();
                   ninjected += npriority;
-                  Printf("Flushed %d priority baskets, resetting countdown", npriority);
+//                  Printf("Flushed %d priority baskets, resetting countdown", npriority);
                } else {
-                  Printf("Countdown is %d", feederQ->get_countdown());
+//                  Printf("Countdown is %d", feederQ->get_countdown());
                }
             } else {
                npriority = sch->FlushPriorityBaskets();
@@ -548,6 +548,7 @@ finish:
       sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif         
 //      ninjected = sch->AddTracks(basket, ntot, nnew, nkilled);
+//      Printf("thread %d: injected %d baskets", tid, ninjected);
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);

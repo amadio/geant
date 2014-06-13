@@ -114,6 +114,7 @@ void dcqueue<T>::delete_content()
    the_mutex.Lock();
    while ((obj = the_queue.back())) {
       delete obj;
+      nobjects--;
       the_queue.pop_back();
    }
    the_mutex.UnLock();
@@ -125,9 +126,9 @@ void dcqueue<T>::push(T *data, bool priority)
 // Push an pointer of type T* in the queue. If pushed with priority, the pointer
 // is put at the bask of the queue, otherwise to the front.
    the_mutex.Lock();
-   nobjects++;
    if (priority) {the_queue.push_back(data); npriority++;}
    else          the_queue.push_front(data);
+   nobjects++;
    the_condition_variable.Signal();
    the_mutex.UnLock();
 }
@@ -172,7 +173,7 @@ T* dcqueue<T>::try_pop()
 {
 // Gets the back object from the queue. Returns 0 if none is available.
    // Fast return...
-   if(the_queue.empty()) return 0;
+   if(empty_async()) return 0;
    the_mutex.Lock();
    // We have to check again for robbery...
    if(the_queue.empty()) {

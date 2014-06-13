@@ -72,13 +72,15 @@ protected:
    Int_t             fNumber;                // Number assigned
    Int_t             fBcap;                  // max capacity of baskets held
 #if __cplusplus >= 201103L
-   std::atomic<int>  fThreshold;             // Adjustable transportability threshold
-   std::atomic<int>  fNbaskets;              // Number of baskets for this volume
-   std::atomic<int>  fNused;                 // Number of baskets in use
+   std::atomic_int   fThreshold;             // Adjustable transportability threshold
+   std::atomic_int   fNbaskets;              // Number of baskets for this volume
+   std::atomic_int   fNused;                 // Number of baskets in use
+   std::atomic_int   fNfilling;              // Number of threads filling the baskets
 #else
    Int_t             fThreshold;             // Adjustable transportability threshold
    Int_t             fNbaskets;              // Number of baskets for this volume
    Int_t             fNused;                 // Number of baskets in use
+   Int_t             fNfilling;              // Number of threads filling the baskets
 #endif
    GeantBasket      *fCBasket;               // Current basket being filled
    GeantBasket      *fPBasket;               // Current priority basket being filled

@@ -1,5 +1,5 @@
 void run(Int_t nthreads=3, Bool_t graphics=kTRUE, 
-//         const char *geomfile="gexam1.root")
+//         const char *geomfile="simple_ecal.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="ExN03.root")
 {

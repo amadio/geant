@@ -172,15 +172,6 @@ Int_t GeantPropagator::DispatchTrack(GeantTrack &track)
 }   
    
 //______________________________________________________________________________
-void GeantPropagator::StopTrack(GeantTrack *track)
-{
-// Mark track as stopped for tracking.
-//   Printf("Stopping track %d", track->particle);
-   if (track->IsAlive()) fEvents[track->fEvslot]->StopTrack();
-   track->Kill();
-}
-
-//______________________________________________________________________________
 void GeantPropagator::StopTrack(const GeantTrack_v &tracks, Int_t itr)
 {
 // Mark track as stopped for tracking.
@@ -576,7 +567,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
-          fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
+          fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
 #ifdef USE_VECGEOM_NAVIGATOR
    Printf("=== Navigation done using VecGeom ====");
