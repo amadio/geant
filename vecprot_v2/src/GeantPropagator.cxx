@@ -377,6 +377,10 @@ void GeantPropagator::Initialize()
       
    // Initialize workload manager
    fWMgr = WorkloadManager::Instance(fNthreads);
+   if (fNthreads > fWMgr->GetNthreads()) {
+      Error("Initialize","Workload manager configured to support only %d thread but %d were requested, using only %d threads.",fWMgr->GetNthreads(),fNthreads,fWMgr->GetNthreads());
+      fNthreads = fWMgr->GetNthreads();
+   }
    // Add some empty baskets in the queue
    fWMgr->CreateBaskets();   // geometry should be created by now
 
