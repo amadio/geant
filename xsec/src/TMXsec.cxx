@@ -302,22 +302,22 @@ Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
    if(ipart >= TPartIndex::I()->NPartCharge())
      return  0.;
 
-   energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
-   energy=energy>=fEGrid[0]?energy:fEGrid[0];
+   Double_t adj_energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+   adj_energy=adj_energy>=fEGrid[0]?adj_energy:fEGrid[0];
 
-   ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+   ibin = TMath::Log(adj_energy/fEGrid[0])*fEilDelta;
    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
 
-   if(en1>energy || en2<energy) {
-     Error("MS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-           ibin, en1, energy, en2);
+   if(en1>adj_energy || en2<adj_energy) {
+     Error("MS","Wrong bin %d in interpolation: should be %g < %g < %g\n",
+           ibin, en1, adj_energy, en2);
       return  0.;
    }
 
-   Double_t xrat = (en2-energy)/(en2-en1);
+   Double_t xrat = (en2-adj_energy)/(en2-en1);
    return xrat*fMSangle[ipart*fNEbins+ibin]+(1-xrat)*fMSangle[ipart*fNEbins+ibin+1];
 }
 
