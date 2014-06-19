@@ -58,6 +58,18 @@ include(cmake/modules/GeantMacros.cmake)
 #----------------------------------------------------------------------------
 # Define compiler flags
 #
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ -ggdb")
+  if(APPLE) 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+  endif()
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+endif()
+
 get_property(GEANT5_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
 get_property(GEANT5_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
 set(GEANT5_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
