@@ -1,6 +1,9 @@
 #ifndef GEANT_SYNCOBJECTS
 #define GEANT_SYNCOBJECTS
 #include <deque>
+#if __cplusplus >= 201103L
+#include <atomic>
+#endif
 #include "TCondition.h"
 #include "TMutex.h"
 
@@ -60,40 +63,72 @@ public:
 //______________________________________________________________________________
 template <class T>
 class dcqueue {
-   deque<T*>         the_queue;  // Double-ended queue
-   mutable TMutex    the_mutex;  // General mutex for the queue
-   TCondition        the_condition_variable; // Condition
-   int               nobjects;   // Number of objects in the queue
-   int               npriority;  // Number of prioritized objects
-   int               countdown;  // Countdown counter for extracted objects
+   deque<T*>          the_queue;  // Double-ended queue
+   mutable TMutex     the_mutex;  // General mutex for the queue
+   TCondition         the_condition_variable; // Condition
+#if __cplusplus >= 201103L
+   std::atomic<int>   nobjects;   // Number of objects in the queue
+   std::atomic<int>   npriority;  // Number of prioritized objects
+   std::atomic<int>   countdown;  // Countdown counter for extracted objects
+#else
+   int                nobjects;   // Number of objects in the queue
+   int                npriority;  // Number of prioritized objects
+   int                countdown;  // Countdown counter for extracted objects
+#endif   
 public:
    dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),countdown(0) {}
    ~dcqueue() {}
    void               push(T *data, bool priority=false);
-   int                get_countdown() const {return countdown;}
+#if __cplusplus >= 201103L
+   int                get_countdown() const {return countdown.load(std::memory_order_relaxed);}   
+   void               reset_countdown() {countdown.store(-1,std::memory_order_relaxed);}
+   void               set_countdown(int n) {countdown.store(n,std::memory_order_relaxed);}
+   int                size_async() const {return nobjects.load(std::memory_order_relaxed);}
+   bool               empty_async() const {return (nobjects.load(std::memory_order_relaxed) == 0);}
+   int                size_priority() const {return npriority.load(std::memory_order_relaxed);}
+   int                size_objects() const {return nobjects.load(std::memory_order_relaxed);}
+#else
+   int                get_countdown() const {return countdown;}   
    void               reset_countdown() {countdown = -1;}
-   void               set_countdown(int n) {countdown=n;}
-   int                size() const;
+   void               set_countdown(int n) {countdown = n;}
    int                size_async() const {return nobjects;}
+   bool               empty_async() const {return (nobjects == 0);}
+   int                size_priority() const {return npriority;}
+   int                size_objects() const {return nobjects;}
+#endif
+   void               delete_content();
+   int                size() const;
    bool               empty() const;
-   bool               empty_async() const {return nobjects == 0;}
    T*                 try_pop();
    T*                 wait_and_pop();
    T*                 wait_and_pop_max(unsigned int nmax, unsigned int &n, T **array);
    void               pop_many(unsigned int n, T **array);
-   int                size_priority() const {return npriority;}
-   int                size_objects() const {return nobjects;}
 };
-   
+
+template <class T>
+void dcqueue<T>::delete_content()
+{
+// Delete remaining objects in the queue.
+// Note that this has to be called on demand since the queue does not own objects.
+   T* obj;
+   the_mutex.Lock();
+   while ((obj = the_queue.back())) {
+      delete obj;
+      nobjects--;
+      the_queue.pop_back();
+   }
+   the_mutex.UnLock();
+}
+        
 template <class T>
 void dcqueue<T>::push(T *data, bool priority)
 {
 // Push an pointer of type T* in the queue. If pushed with priority, the pointer
 // is put at the bask of the queue, otherwise to the front.
    the_mutex.Lock();
-   nobjects++;
    if (priority) {the_queue.push_back(data); npriority++;}
    else          the_queue.push_front(data);
+   nobjects++;
    the_condition_variable.Signal();
    the_mutex.UnLock();
 }
@@ -137,8 +172,14 @@ template <class T>
 T* dcqueue<T>::try_pop()
 {
 // Gets the back object from the queue. Returns 0 if none is available.
-   if(the_queue.empty()) return 0;
+   // Fast return...
+   if(empty_async()) return 0;
    the_mutex.Lock();
+   // We have to check again for robbery...
+   if(the_queue.empty()) {
+      the_mutex.UnLock();
+      return 0;
+   }   
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;

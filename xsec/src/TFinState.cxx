@@ -212,6 +212,17 @@ void TFinState::NormFinSateWeights(){
 Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
                              Float_t &en, const Int_t *&pid, const Float_t *&mom) const
 {
+
+  if(!fNFstates) { 
+    npart = 0;
+    weight = 0;
+    //kerma = 0; //keep current value that is the Ekin of the primary
+    en = 0;
+    pid = 0;
+    mom = 0;
+    return kFALSE;
+  }
+
   Double_t eta = gRandom->Rndm();
   Int_t finstat = fNFstates-1;
   for(Int_t i=0; i<fNFstates-1; ++i)
@@ -237,6 +248,17 @@ Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
 Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
                     Float_t &en, const Int_t *&pid, const Float_t *&mom, Double_t randn) const
 {
+
+  if(!fNFstates) { 
+    npart = 0;
+    weight = 0;
+    //kerma = 0; //keep current value that is the Ekin of the primary
+    en = 0;
+    pid = 0;
+    mom = 0;
+    return kFALSE;
+  }
+
   //Double_t eta = gRandom->Rndm();
   Int_t finstat = fNFstates-1;
   for(Int_t i=0; i<fNFstates-1; ++i)
@@ -265,7 +287,7 @@ Bool_t TFinState::GetReac(Int_t finstat, Int_t& npart, Float_t& weight, Float_t&
   if(!fNFstates) {
     npart = 0;
     weight = 0;
-    kerma = 0;
+    //kerma = 0; keep current value that is the Ekin of the primary 
     en = 0;
     pid = 0;
     mom = 0;

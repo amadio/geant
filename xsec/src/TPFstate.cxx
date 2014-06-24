@@ -137,7 +137,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
-    kerma=0;
+    kerma=en;
     npart=0;
     pid=0;
     mom=0;
@@ -158,6 +158,9 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     Double_t xrat = (en2-en)/(en2-en1);
     if(eta>xrat) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
+    // in case of any problems with the fstate sampling the primary will be 
+    // stopped so be prepared for this case and set kerma = en; 
+    kerma = en; 
     return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom);
   }
 }
@@ -169,7 +172,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
-    kerma=0;
+    kerma=en;
     npart=0;
     pid=0;
     mom=0;
@@ -190,6 +193,9 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     Double_t xrat = (en2-en)/(en2-en1);
     if(randn1>xrat) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
+    // in case of any problems with the fstate sampling the primary will be 
+    // stopped so be prepared for this case and set kerma = en; 
+    kerma = en; 
     return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom, randn2);
   }
 }
@@ -233,7 +239,7 @@ Bool_t TPFstate::GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
-    kerma=0;
+    kerma=en;
     npart=0;
     pid=0;
     mom=0;
@@ -252,6 +258,9 @@ Bool_t TPFstate::GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float
     }
     if(en-en1>en2-en) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
+    // in case of any problems with the fstate sampling the primary will be 
+    // stopped so be prepared for this case and set kerma = en; 
+    kerma = en; 
     return fFstat[ipoint].GetReac(ifs, npart, weight, kerma, enr, pid, mom);
   }
 }

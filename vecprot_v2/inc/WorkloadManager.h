@@ -6,6 +6,8 @@
 #endif
 
 #include "sync_objects.h"
+#include "GeantObjectPool.h"
+#include "GeantTrack.h"
  
 class GeantBasketMgr;
 class GeantBasket;
@@ -28,12 +30,15 @@ protected:
    Int_t              fNqueued;            // Number of chunks queued
    Int_t             *fBtogo;              // array of baskets to be processed in the next generation
    Bool_t             fStarted;            // Start flag
+   Bool_t             fStopped;            // Stop flag
    dcqueue<GeantBasket> 
                      *fFeederQ;            // queue of transportable baskets
    dcqueue<GeantBasket>  
                      *fTransportedQ;       // queue of transported baskets
    dcqueue<GeantBasket> 
                      *fDoneQ;              // Thread "all work done" queue
+   GeantObjectPool<VolumePath_t>
+                     *fNavStates;          // Pool of navigation states                  
    static WorkloadManager *fgInstance;     // Singleton instance
    TList             *fListThreads;        // List of threads
    Bool_t             fFlushed;            // Buffer flushed
@@ -41,6 +46,7 @@ protected:
    GeantScheduler    *fScheduler;          // Main basket scheduler
 
    TaskBroker        *fBroker;             // Pointer to the coprocessor broker, this could be made a collection.
+   Int_t             *fWaiting;           //![fNthreads+1] Threads in waiting flag
 
    WorkloadManager(Int_t nthreads);
 public:
@@ -49,14 +55,18 @@ public:
    dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
    dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
    dcqueue<GeantBasket> *DoneQueue() const {return fDoneQ;}
-   
+   GeantObjectPool<VolumePath_t>  
+                      *NavStates() const   {return fNavStates;}
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
+   Int_t              *GetWaiting() const  {return fWaiting;}
    GeantScheduler     *GetScheduler() const {return fScheduler;}
    static WorkloadManager *
                        Instance(Int_t nthreads=0);                    
    Bool_t              IsFlushed() const {return fFlushed;}
    Bool_t              IsFilling() const {return fFilling;}
+   Bool_t              IsStopped() const {return fStopped;}
+   void                Stop()            {fStopped = kTRUE;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
    void                Print(Option_t *option="") const;
@@ -66,6 +76,7 @@ public:
    void                StartThreads();
    void                JoinThreads();
    static void        *MainScheduler(void *arg);
+   static void        *MonitoringThread(void *arg);
    static void        *TransportTracks(void *arg);
    static void        *TransportTracksCoprocessor(void *arg);
    void                WaitWorkers();

@@ -5,10 +5,14 @@
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+ #include "navigation/SimpleNavigator.h"
+ #include "base/Vector3D.h"
+ #include "management/GeoManager.h"
+#endif
 #include "TGeoNode.h"
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
-#include "TGeoBranchArray.h"
 
 ClassImp(GeantScheduler)
 
@@ -18,6 +22,7 @@ GeantScheduler::GeantScheduler()
                     fNvolumes(0),
                     fNpriority(0),
                     fBasketMgr(0),
+                    fGarbageCollector(0),
                     fNtracks(0)
 {
 // dummy
@@ -45,12 +50,12 @@ void GeantScheduler::AdjustBasketSize()
 {
 // Adjust the basket size to converge to Ntracks/2*Nthreads
    const Int_t min_size = 4;
-   const Int_t max_size = 256;
+   const Int_t max_size = gPropagator->fNperBasket;
    Int_t nthreads = gPropagator->fNthreads;
    Int_t nproposed;
    for (Int_t ib=0; ib<fNvolumes; ib++) {
-      if (!fNtracks[ib]) continue;
-      nproposed = fNtracks[ib]/(2*nthreads);
+      if (!GetNtracks(ib)) continue;
+      nproposed = GetNtracks(ib)/(2*nthreads);
       nproposed -= nproposed%4;
       if (!nproposed) continue;
       if (nproposed<min_size)  nproposed = min_size;
@@ -68,8 +73,13 @@ void GeantScheduler::CreateBaskets()
    if (fBasketMgr) return;
    fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
    fBasketMgr = new GeantBasketMgr*[fNvolumes];
+#if __cplusplus >= 201103L
+   fNtracks = new std::atomic_int[fNvolumes];
+   for (Int_t i=0; i<fNvolumes; i++) fNtracks[i].store(0);
+#else   
    fNtracks = new Int_t[fNvolumes];
    memset(fNtracks,0,fNvolumes*sizeof(Int_t));
+#endif   
    dcqueue<GeantBasket> *feeder = WorkloadManager::Instance()->FeederQueue();
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
@@ -87,7 +97,7 @@ void GeantScheduler::CreateBaskets()
 }
 
 //______________________________________________________________________________
-Int_t GeantScheduler::AddTrack(const GeantTrack &track)
+Int_t GeantScheduler::AddTrack(GeantTrack &track)
 {
 // Main method to inject generated tracks. Track status is kNew here.
    TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
@@ -131,7 +141,8 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
       basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
       fNtracks[output_id]++;
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);
-   }   
+   } 
+   tracks.Clear();
    return ninjected;
 }  
    
@@ -143,7 +154,7 @@ Int_t GeantScheduler::CollectPrioritizedTracks()
    Int_t ninjected = 0;
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++)
       ninjected += fBasketMgr[ibasket]->CollectPrioritizedTracks(fPriorityRange[0],fPriorityRange[1]);
-   return ninjected;   
+   return ninjected;
 }
 
 //______________________________________________________________________________

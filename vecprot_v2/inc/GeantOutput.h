@@ -26,6 +26,10 @@ public:
    Double_t       *fSnext;                   //[fNtracks] Snext distance
    Double_t       *fSafety;                  //[fNtracks] Snext distance
 
+private:
+   GeantOutput(const GeantOutput&);  // Not implemented
+   GeantOutput &operator=(const GeantOutput&);  // Not implemented
+
 public:
    GeantOutput() : TObject(),fCpuTime(0),fVolId(-1),fBasketGeneration(0),fGeneration(0),fNtracks(0),fEvent(0),fInd(0),fProc(0),fX(0),fY(0),fZ(0),fPx(0),fPy(0),fPz(0),fE(0),fPstep(0),fStep(0),fSnext(0),fSafety(0) {}
    virtual ~GeantOutput();

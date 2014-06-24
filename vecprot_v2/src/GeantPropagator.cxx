@@ -34,7 +34,14 @@
 #include "TGeoNode.h"
 #include "TGeoMaterial.h"
 #include "TGeoMatrix.h"
-#include "TGeoBranchArray.h"
+#include <fenv.h>
+
+#if USE_VECGEOM_NAVIGATOR == 1
+ #include "navigation/SimpleNavigator.h"
+ #include "management/RootGeoManager.h"
+ #include "volumes/LogicalVolume.h"
+ #include "volumes/PlacedVolume.h"
+#endif
 #include "TTree.h"
 #include "TFile.h"
 #include "TStopwatch.h"
@@ -97,6 +104,7 @@ GeantPropagator::GeantPropagator()
                  fTransportOngoing(kFALSE),
                  fSingleTrack(kFALSE),
                  fFillTree(kFALSE),
+                 fUseMonitoring(kFALSE),
                  fTracksLock(),
                  fWMgr(0),
                  fApplication(0),
@@ -109,7 +117,6 @@ GeantPropagator::GeantPropagator()
                  fStoredTracks(0),
                  fNtracks(0),
                  fEvents(0),
-                 fWaiting(0),
                  fThreadData(0)
 {
 // Constructor
@@ -139,7 +146,6 @@ GeantPropagator::~GeantPropagator()
       for (i=0; i<fNthreads; i++) delete fThreadData[i];
       delete [] fThreadData;
    }   
-   delete [] fWaiting;
    delete fOutput;
    delete fOutFile;
    delete fTimer;
@@ -159,21 +165,12 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track)
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::DispatchTrack(const GeantTrack &track)
+Int_t GeantPropagator::DispatchTrack(GeantTrack &track)
 {
 // Dispatch a registered track produced by the generator.
    return fWMgr->GetScheduler()->AddTrack(track);
 }   
    
-//______________________________________________________________________________
-void GeantPropagator::StopTrack(GeantTrack *track)
-{
-// Mark track as stopped for tracking.
-//   Printf("Stopping track %d", track->particle);
-   if (track->IsAlive()) fEvents[track->fEvslot]->StopTrack();
-   track->Kill();
-}
-
 //______________________________________________________________________________
 void GeantPropagator::StopTrack(const GeantTrack_v &tracks, Int_t itr)
 {
@@ -190,31 +187,48 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
    if (tid<0) tid = TGeoManager::ThreadId();
    GeantTrack &track = fThreadData[tid]->fTrack;
    track.Clear();
-   track.fPath = new TGeoBranchArray();
-   track.fNextpath = new TGeoBranchArray();
    return track;
 }
-   
+
+
 //______________________________________________________________________________
 Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
 {
-// Import tracks from "somewhere". Here we just generate nevents.
-   static TGeoBranchArray *a = 0;
+   // Import tracks from "somewhere". Here we just generate nevents.
+   static VolumePath_t *a = 0;
+#ifdef USE_VECGEOM_NAVIGATOR
+   using vecgeom::SimpleNavigator;
+   using vecgeom::Vector3D;
+   using vecgeom::Precision;
+   using vecgeom::GeoManager;
+#endif 
+
    Int_t tid = TGeoManager::ThreadId();
    GeantThreadData *td = fThreadData[tid];
    TGeoVolume *vol = 0;
    if (!a) {
-      a = new TGeoBranchArray();
+#ifdef USE_VECGEOM_NAVIGATOR
+      a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
+      vecgeom::SimpleNavigator nav;
+      nav.LocatePoint( GeoManager::Instance().world(),
+    		  Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
+      vol = a->GetCurrentNode()->GetVolume();
+      td->fVolume = vol;
+#else
+      a = new VolumePath_t();
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
       if (!nav) nav = gGeoManager->AddNavigator();
       TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
-      *td->fMatrix = nav->GetCurrentMatrix();
+      // *td->fMatrix = nav->GetCurrentMatrix();
       vol = node->GetVolume();
       td->fVolume = vol;
       a->InitFromNavigator(nav);
-   } else {
-      TGeoNode *node = a->GetCurrentNode();
-      *td->fMatrix = a->GetMatrix();
+#endif
+
+   }
+   else {
+      TGeoNode const *node = a->GetCurrentNode();
+     // *td->fMatrix = a->GetMatrix();
       vol = node->GetVolume();
       td->fVolume = vol;
    }     
@@ -222,26 +236,26 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    Int_t threshold = nevents*average/(2*fNthreads);
    threshold -= threshold%4;
    if (threshold<4) threshold = 4;
-   if (threshold>256) threshold = 256;
+   if (threshold>fNperBasket) threshold = fNperBasket;
    basket_mgr->SetThreshold(threshold);
    
-   const Double_t etamin = -3, etamax = 3;
+//   const Double_t etamin = -3, etamax = 3;
    Int_t ntracks = 0;
    Int_t ntotal = 0;
    Int_t ndispatched = 0;
    
    // Species generated for the moment N, P, e, photon
    const Int_t kMaxPart=9;
-   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
-   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
-   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
-   static Double_t pdgProb[9] = {0.};
-   Int_t pdgCount[9] = {0};
+//   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
+//   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
+//   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
+//   static Double_t pdgProb[9] = {0.};
+//   Int_t pdgCount[9] = {0};
 
    static Bool_t init=kTRUE;
    if(init) {
-      pdgProb[0]=pdgRelProb[0];
-      for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
+//      pdgProb[0]=pdgRelProb[0];
+//      for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
       init=kFALSE;
    }
    Int_t event = startevent;
@@ -260,7 +274,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.SetNextPath(a);
          track.SetEvent(event);
          track.SetEvslot(slot);
-         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
+//         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
 //         track.SetPDG(kMuonMinus); // G5code=28
 //         track.SetG5code(28);
 //         track.SetPDG(kMuonPlus); // G5code=27
@@ -311,10 +325,10 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       }
 //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
       event++;
-      for (Int_t i=0; i<kMaxPart; i++) {
+//      for (Int_t i=0; i<kMaxPart; i++) {
 //         Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
-         pdgCount[i] = 0;
-      }   
+//         pdgCount[i] = 0;
+//      }   
    }
    Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
            ntotal, startevent, startevent+nevents-1, ndispatched);
@@ -355,56 +369,75 @@ void GeantPropagator::Initialize()
    gPropagator = GeantPropagator::Instance();
       
    if (!fProcess) {
-      Fatal("Initialize", "The physics process has to be initilaized before this");
+      Fatal("Initialize", "The physics process has to be initialized before this");
       return;
    }
    // Initialize the process(es)
    fProcess->Initialize();
       
-//   if (!fProcesses) {
-//      fProcesses = new PhysicsProcess*[fNprocesses];
-//      fProcesses[0] = new ScatteringProcess("Scattering");
-//      fProcesses[1] = new ElossProcess("Eloss");
-//      fElossInd = 1;
-//      fProcesses[2] = new InteractionProcess("Interaction");
-//   }
+   // Initialize workload manager
+   fWMgr = WorkloadManager::Instance(fNthreads);
+   // Add some empty baskets in the queue
+   fWMgr->CreateBaskets();   // geometry should be created by now
 
    if(!fNtracks){
      fNtracks = new Int_t[fNevents];
      memset(fNtracks,0,fNevents*sizeof(Int_t));
    }   
    
-   if (!fWaiting) {
-      fWaiting = new UInt_t[fNthreads+1];
-      memset(fWaiting, 0, (fNthreads+1)*sizeof(UInt_t));
-   }  
    if (!fThreadData) {
       fThreadData = new GeantThreadData*[fNthreads+1];
       for (Int_t i=0; i<fNthreads+1; i++) fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
    } 
-   fWMgr = WorkloadManager::Instance(fNthreads);
-   // Add some empty baskets in the queue
-//   fWMgr->AddEmptyBaskets(1000);
  // Initialize application
    fApplication->Initialize();
 }
-
-//______________________________________________________________________________
-UInt_t GeantPropagator::GetNwaiting() const
-{
-// Returns number of waiting threads. Must be called by a single scheduler.
-   UInt_t nwaiting = 0;
-   for (Int_t tid=0; tid<fNthreads; tid++) nwaiting += fWaiting[tid];
-   return nwaiting;
-}
    
+#if USE_VECGEOM_NAVIGATOR == 1
+/**
+ * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
+ */
+//______________________________________________________________________________
+Bool_t GeantPropagator::LoadVecGeomGeometry()
+{
+   if( vecgeom::GeoManager::Instance().world() == NULL )
+   {
+    Printf("Now loading VecGeom geometry\n");
+    vecgeom::RootGeoManager::Instance().LoadRootGeometry();
+    Printf("Loading VecGeom geometry done\n");
+    Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
+    std::vector<vecgeom::LogicalVolume *> v1;
+    vecgeom::GeoManager::Instance().getAllLogicalVolumes( v1 );
+    Printf("Have logical volumes %ld\n", v1.size() );
+    std::vector<vecgeom::VPlacedVolume *> v2;
+    vecgeom::GeoManager::Instance().getAllPlacedVolumes( v2 );
+    Printf("Have placed volumes %ld\n", v2.size() );
+    vecgeom::RootGeoManager::Instance().world()->PrintContent();
+   }
+}
+#endif
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
 // Load the detector geometry from file.
-   if (gGeoManager) return kTRUE;
+ // feenableexcept( FE_INVALID );
+
+    Printf("In Load Geometry");
+   if (gGeoManager){
+#if USE_VECGEOM_NAVIGATOR == 1
+       LoadVecGeomGeometry();
+#endif
+       return kTRUE;
+   }
+   Printf("returning early");
    TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
-   if (geom) return kTRUE;
+   if (geom)
+       {
+#if USE_VECGEOM_NAVIGATOR == 1
+          LoadVecGeomGeometry();
+#endif
+          return kTRUE;
+       }
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
    return kFALSE;
 }
@@ -490,8 +523,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    else              Printf("  I/O disabled");
    if (fUsePhysics)  Printf("  Physics ON with %d processes", fNprocesses);
    else              Printf("  Physics OFF");
-   // Create the basket array
-   fWMgr->CreateBaskets();   // geometry should be created by now
 
    // Import the input events. This will start also populating the main queue
    if (!fEvents) {
@@ -513,6 +544,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    // Loop baskets and transport particles until there is nothing to transport anymore
    fTransportOngoing = kTRUE;
    gGeoManager->SetMaxThreads(nthreads);
+   if (fUseMonitoring) {
+      TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
+      TCanvas *cmon = new TCanvas("cscheduler","Scheduler monitor", 900,600);
+      capp->Update();
+      cmon->Update();
+   }
    fTimer = new TStopwatch();
    fWMgr->StartThreads();
    fTimer->Start();
@@ -530,8 +567,14 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
-          fNprimaries, fNtransported, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
+          fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
+#ifdef USE_VECGEOM_NAVIGATOR
+   Printf("=== Navigation done using VecGeom ====");
+#else
+   Printf("=== Navigation done using TGeo    ====");
+#endif
+
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);

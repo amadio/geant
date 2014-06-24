@@ -13,7 +13,6 @@
 #include "TGeoManager.h"
 #include "TGeoVolume.h"
 #include "TGeoNavigator.h"
-#include "TGeoBranchArray.h"
 
 ClassImp(GeantBasket)
 
@@ -44,24 +43,27 @@ GeantBasket::~GeantBasket()
 }
    
 //______________________________________________________________________________
-void GeantBasket::AddTrack(const GeantTrack &track)
+void GeantBasket::AddTrack(GeantTrack &track)
 {
 // Add a new track to this basket;
    fTracksIn.AddTrack(track);
+//   fTracksIn.AddTrackSync(track);
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTrack(const GeantTrack_v &tracks, Int_t itr)
+void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr)
 {
-// Add track from a track_v array
-   fTracksIn.AddTrack(tracks, itr);
+// Add track from a track_v array.
+// Has to work concurrently
+//   fTracksIn.AddTrack(tracks, itr, kTRUE);
+   fTracksIn.AddTrackSync(tracks, itr);
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTracks(const GeantTrack_v &tracks, Int_t istart, Int_t iend)
+void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend)
 {
 // Add multiple tracks from a track_v array
-   fTracksIn.AddTracks(tracks, istart, iend);
+   fTracksIn.AddTracks(tracks, istart, iend, kTRUE);
 }
    
 //______________________________________________________________________________
@@ -94,7 +96,7 @@ void GeantBasket::Print(Option_t *) const
 }
 
 //______________________________________________________________________________
-void GeantBasket::PrintTrack(Int_t itr, Bool_t input) const
+void GeantBasket::PrintTrack(Int_t /*itr*/, Bool_t /*input*/) const
 {
 // Print a given track.
 }
@@ -119,9 +121,11 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fScheduler(sch),
                    fVolume(vol),
                    fNumber(number),
+		             fBcap(0),
                    fThreshold(0),
                    fNbaskets(0),
                    fNused(0),
+                   fNfilling(0),
                    fCBasket(0),
                    fPBasket(0),
                    fBaskets(),
@@ -129,6 +133,7 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fMutex()
 {
 // Constructor
+   fBcap = GeantPropagator::Instance()->fNperBasket + 1;
    fCBasket = GetNextBasket();
    fPBasket = GetNextBasket();
 }
@@ -142,40 +147,83 @@ GeantBasketMgr::~GeantBasketMgr()
 }   
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(const GeantTrack_v &trackv, Int_t itr, Bool_t priority)
+Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority)
 {
 // Copy directly from a track_v a track to the basket manager.
+// Has to work concurrently
 #ifdef __STAT_DEBUG
       fScheduler->GetPendingStat().AddTrack(trackv, itr);
 #endif   
+#if __cplusplus < 201103L
+      fMutex.Lock();
+#endif  
+      fNfilling++;
+#if __cplusplus < 201103L
+      fMutex.UnLock();
+#endif      
    if (priority) {
+      fMutex.Lock();
       fPBasket->AddTrack(trackv, itr);
+      fMutex.UnLock();
       if (fPBasket->GetNinput() >= fThreshold) {
 #ifdef __STAT_DEBUG
          fScheduler->GetPendingStat().RemoveTracks(fPBasket->GetInputTracks());
          fScheduler->GetQueuedStat().AddTracks(fPBasket->GetInputTracks());
 #endif   
-         fFeeder->push(fPBasket, priority);
-         fPBasket = GetNextBasket();
+         // There may be another thread just filling this basket
+      fMutex.Lock();
+         GeantBasket *oldbasket = fPBasket;
+         GeantBasket *newbasket = GetNextBasket();
+         if (--fNfilling) {
+            // Another thread just adding -> drop new basket and return
+            Printf("concurrent AddTrack");
+            RecycleBasket(newbasket);
+            fMutex.UnLock();
+            return 0;
+         }
+         fPBasket = newbasket;  // There may be a race here  
+      fMutex.UnLock();
+         fFeeder->push(oldbasket, priority);
          return 1;
       }
    } else {
+      fMutex.Lock();
       fCBasket->AddTrack(trackv, itr);
+      fMutex.UnLock();
       if (fCBasket->GetNinput() >= fThreshold) {
 #ifdef __STAT_DEBUG
          fScheduler->GetPendingStat().RemoveTracks(fCBasket->GetInputTracks());
          fScheduler->GetQueuedStat().AddTracks(fCBasket->GetInputTracks());
 #endif   
-         fFeeder->push(fCBasket, priority);
-         fCBasket = GetNextBasket();
+         // There may be another thread just filling this basket
+      fMutex.Lock();
+         GeantBasket *oldbasket = fCBasket;
+         GeantBasket *newbasket = GetNextBasket();
+         if (--fNfilling) {
+            // Another thread just adding -> drop new basket and return
+            Printf("concurrent AddTrack");
+            RecycleBasket(newbasket);
+            fMutex.UnLock();
+            return 0;
+         }
+         fCBasket = newbasket; // race?
+      fMutex.UnLock();
+         fFeeder->push(oldbasket, priority);
          return 1;
       }
    }
+ #if __cplusplus < 201103L
+      fMutex.Lock();
+#endif  
+      fNfilling--;
+#if __cplusplus < 201103L
+      fMutex.UnLock();
+#endif        
    return 0;
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(const GeantTrack &track, Bool_t priority)
+Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority)
 {
 // Add a track to the volume basket manager. If the track number reaches the
 // threshold, the basket is added to the feeder queue and replaced by an empty 
@@ -282,19 +330,27 @@ GeantBasket *GeantBasketMgr::GetNextBasket()
 // Returns next empy basket if any available, else create a new basket.
    GeantBasket *next = fBaskets.try_pop();
    if (!next) {
-      next = new GeantBasket(fThreshold+1, this);
+      next = new GeantBasket(fBcap, this);
+#if __cplusplus < 201103L
       fMutex.Lock();
-      // === critical section ===
+#endif      
+      // === critical section if atomics not supported ===
       fNbaskets++;
       fNused++;
       // === end critical section ===
+#if __cplusplus < 201103L
       fMutex.UnLock();
+#endif      
    } else {
+#if __cplusplus < 201103L
       fMutex.Lock();
-      // === critical section ===
+#endif      
+      // === critical section if atomics not supported ===
       fNused++;
       // === end critical section ===
+#if __cplusplus < 201103L
       fMutex.UnLock();
+#endif      
    }
    return next;
 }
@@ -303,6 +359,9 @@ GeantBasket *GeantBasketMgr::GetNextBasket()
 void GeantBasketMgr::RecycleBasket(GeantBasket *b)
 {
 // Recycle a basket.
+   if (b->GetNinput() || b->GetNoutput()) {
+      Printf("RecycleBasket: Error: ntracks!=0");
+   }   
    b->Clear();
    if (b->GetInputTracks().Capacity() < fThreshold) {
       b->GetInputTracks().Resize(fThreshold);
@@ -311,11 +370,15 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b)
         b->GetOutputTracks().Resize(fThreshold); 
    }     
    fBaskets.push(b);
+#if __cplusplus < 201103L
    fMutex.Lock();
+#endif      
    // === critical section ===
    fNused--;
    // === end critical section ===
+#if __cplusplus < 201103L
    fMutex.UnLock();
+#endif      
 }   
 
 //______________________________________________________________________________

@@ -10,12 +10,6 @@
 
 #ifdef __CINT__
 
-#ifdef __CLING__
-#include <string>
-#else
-#include "dll_stl/str.h" 	 
-#endif
-
 #pragma link C++ class TEFstate+;
 #pragma link C++ class TEXsec+;
 #pragma link C++ class TFinState+;

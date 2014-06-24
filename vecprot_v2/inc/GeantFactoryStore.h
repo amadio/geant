@@ -22,6 +22,8 @@ private:
    static GeantFactoryStore *fgInstance;  // Static instance of the store
    GeantFactoryStore(Int_t nclients);
    void                 RemoveFactory(Int_t islot);
+   GeantFactoryStore(const GeantFactoryStore&); // Not implemented
+   GeantFactoryStore &operator=(const GeantFactoryStore&); // Not implemented
 public:
    virtual ~GeantFactoryStore();
    

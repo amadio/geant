@@ -1,5 +1,4 @@
 #include "MyApplication.h"
-#include "TGeoBranchArray.h"
 #include "TGeoNode.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
@@ -7,6 +6,8 @@
 #include "globals.h"
 #include "TH1.h"
 #include "TCanvas.h"
+#include "TROOT.h"
+#include <cassert>
 
 ClassImp(MyApplication)
 
@@ -53,12 +54,12 @@ Bool_t MyApplication::Initialize()
 //______________________________________________________________________________
 void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tracks)
 {
-// Application stepping manager. The thread id has to be used to manage storage
+    // Application stepping manager. The thread id has to be used to manage storage
 // of hits independently per thread.
    if (!fInitialized) return;     // FOR NOW
    // Loop all tracks, check if they are in the right volume and collect the
    // energy deposit and step length
-   TGeoNode *current;
+   TGeoNode const *current;
    Int_t idvol, idnode, ilev;
    for (Int_t i=0; i<npart; i++) {
 //      printf("%d=>\n", i);
@@ -112,10 +113,14 @@ void MyApplication::Digitize(Int_t event)
 //   memset(fLengthGap, 0, kNlayers*sizeof(Float_t));
 //   memset(fEdepAbs, 0, kNlayers*sizeof(Float_t));
 //   memset(fLengthAbs, 0, kNlayers*sizeof(Float_t));
-   TCanvas *c1 = new TCanvas("Edep", "Energy deposition for ExN03", 700, 800);
-   c1->SetGridx();
-   c1->SetGridy();
-   c1->SetLogy();
+//   TCanvas *c1 = new TCanvas("Edep", "Energy deposition for ExN03", 700, 800);
+   TCanvas *c1 = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("capp");
+   if (!c1) return;
+   c1->Divide(1,2);
+   TVirtualPad *pad = c1->cd(1);
+   pad->SetGridx();
+   pad->SetGridy();
+   pad->SetLogy();
    TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 10, -0.5, 12.5);
    histeg->SetMarkerColor(kRed);
    histeg->SetMarkerStyle(2);
@@ -136,10 +141,11 @@ void MyApplication::Digitize(Int_t event)
    histeg->GetYaxis()->SetRangeUser(minval-0.1*minval,maxval+0.1*maxval);
    histeg->Draw("P");
    histea->Draw("SAMEP");
-   TCanvas *c2 = new TCanvas("Length", "Length in layers for ExN03", 700, 800);
-   c2->SetGridx();
-   c2->SetGridy();
-   c2->SetLogy();
+//   TCanvas *c2 = new TCanvas("Length", "Length in layers for ExN03", 700, 800);
+   pad = c1->cd(2);
+   pad->SetGridx();
+   pad->SetGridy();
+   pad->SetLogy();
    TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 10, -0.5, 12.5);
    histlg->SetMarkerColor(kRed);
    histlg->SetMarkerStyle(2);

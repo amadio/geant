@@ -36,7 +36,7 @@ public:
    ~TMXsec();
    Float_t Xlength(Int_t part, Float_t en);
    Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
-   Float_t DEdx(Int_t part, Float_t en);
+   Float_t DEdx(Int_t part, Float_t en, Int_t &elemindx);
    Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
 
    void Eloss(Int_t ntracks, GeantTrack_v &tracks);
@@ -45,7 +45,9 @@ public:
    Float_t MS(Int_t ipart, Float_t energy);
 
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
-   Int_t SampleElement(Int_t tid);
+   Int_t SampleElement(Int_t tid); // based on # atoms/vol. for the prototype
+   Int_t SampleElement(); // based on # atoms/vol. for Geant4 with tab.phys. 
+
    Int_t SelectElement(Int_t pindex, Int_t rindex, Double_t energy);
 
    static Bool_t Prune();

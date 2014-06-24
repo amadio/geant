@@ -37,6 +37,12 @@
 
 #include "DetectorConstruction.hh"
 #include "PhysicsList.hh"
+#include "SimplePhysicsList.hh"
+
+#include "QBBC.hh"
+#include "FTFP_BERT.hh"
+#include "FTFP_BERT_HP.hh"
+
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "EventAction.hh"
@@ -51,10 +57,54 @@
 #include "G4UIExecutive.hh"
 #endif
 
+#include "G4ParticleDefinition.hh"
+#include "G4ParticleTable.hh"
+
+#include "TabulatedDataManager.hh"
+#include "TotalPhysicsProcess.hh"
+
+#include <unistd.h>
+
+void usage();
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc,char** argv)
 {
+
+  G4bool isBachMode           = FALSE; // do we run in bach mode ?  ; 
+  char mFileName[512]         = "";    // macro filename (in case of bach mode) 
+  char physListName[512]      = "TABPHYS";  // physics list; default tabulated  
+  G4int tabPhysVerboseLevel   = 0;      // verbosity level in tabulated physics 
+  G4double tabPhysEnergyLimit = 3.0e-6; // low energy cut in tab. physics [GeV] 
+  
+  // parsing the arguments
+  int c; 
+  while ((c = getopt (argc, argv, "m:v:l:p:")) != -1)
+    switch (c) {
+      case 'm':
+        isBachMode = TRUE;
+        strncpy(mFileName,optarg,strlen(optarg));
+        mFileName[strlen(optarg)] = '\0';
+        break;
+      case 'v':
+        tabPhysVerboseLevel = atoi(optarg);
+        break;
+      case 'l':
+        tabPhysEnergyLimit = atof(optarg);
+        break;
+      case 'p':
+        strncpy(physListName,optarg,strlen(optarg));
+        physListName[strlen(optarg)] = '\0';
+        break; 
+      case '?':
+        usage();
+        return 1;
+      default:
+        abort ();
+    }
+
+
   // Choose the Random engine
   //
   CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
@@ -71,8 +121,23 @@ int main(int argc,char** argv)
   //
   runManager->SetUserInitialization(new DetectorConstruction);
   //
-  runManager->SetUserInitialization(new PhysicsList);
-    
+
+  // Set physics list
+  if(!strcmp(physListName,"QBBC")) {
+    runManager->SetUserInitialization(new QBBC);
+  } else if(!strcmp(physListName,"FTFP_BERT")) {
+    runManager->SetUserInitialization(new FTFP_BERT);
+  } else if(!strcmp(physListName,"FTFP_BERT_HP")) {
+    runManager->SetUserInitialization(new FTFP_BERT_HP);
+  } else if(!strcmp(physListName,"TABPHYS")) {
+    runManager->SetUserInitialization(new SimplePhysicsList);  
+  } else {
+    G4cout << "Unknown physics list " << physListName << G4endl;
+    exit(1);
+  }
+
+  G4cout << "Physics List:  " << physListName << G4endl;
+
   // Set user action classes
   //
   runManager->SetUserAction(new PrimaryGeneratorAction);
@@ -86,7 +151,9 @@ int main(int argc,char** argv)
   // Initialize G4 kernel
   //
   runManager->Initialize();
-  
+
+  // MaterialConverter::Instance()->CreateRootMaterials();
+    
 #ifdef G4VIS_USE
   // Initialize visualization
   G4VisManager* visManager = new G4VisExecutive;
@@ -98,14 +165,15 @@ int main(int argc,char** argv)
   // Get the pointer to the User Interface manager
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (argc!=1)   // batch mode
-    {
+  // set some optional parameters in tabulated physics
+  TabulatedDataManager::SetVerboseLevel( tabPhysVerboseLevel );
+  TotalPhysicsProcess::SetEnergyLimit( tabPhysEnergyLimit ); 
+
+  if (isBachMode) {  // batch mode
       G4String command = "/control/execute ";
-      G4String fileName = argv[1];
+      G4String fileName = mFileName;
       UImanager->ApplyCommand(command+fileName);
-    }
-  else
-    {  // interactive mode : define UI session
+  } else {  // interactive mode : define UI session
 #ifdef G4UI_USE
       G4UIExecutive* ui = new G4UIExecutive(argc, argv);
 #ifdef G4VIS_USE
@@ -116,7 +184,7 @@ int main(int argc,char** argv)
       ui->SessionStart();
       delete ui;
 #endif
-    }
+  }
 
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
@@ -131,3 +199,33 @@ int main(int argc,char** argv)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+
+void usage()
+{
+  G4cout <<
+  "============================================================================"
+  << G4endl <<
+  "NAME" << G4endl <<
+  "    exampleN03 ----------------- Geant4 example --------------------------- " 
+       << G4endl << G4endl <<
+  "SYNOPSIS" << G4endl <<
+  "    exampleN03 [-l, -v, -m <FILE>, -p <NAME>] " << G4endl << G4endl <<
+  "DESCRIPTION" << G4endl <<
+  "    Run Geant4 /examples/novice/N03/exampleN03 with optional physics list " 
+        << G4endl << G4endl <<
+  "OPTIONS" << G4endl <<
+  "    -l low energy cut in tabulated physics [GeV] (default 3.0e-6)" 
+          << G4endl <<
+  "    -v verbosity level in tabulated physics (only >=2 is used at the moment)" 
+          << G4endl <<
+  "    -m <FILE> if we run it in bach mode; file is the Geant4 macro file" 
+          << G4endl <<
+  "    -p <NAME> physics list: TABPHYS (default), QBBC, FTFP_BERT, FTFP_BERT_HP"
+  << G4endl <<  
+  "============================================================================"
+  << G4endl << G4endl; 
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+
+

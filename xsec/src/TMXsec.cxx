@@ -94,7 +94,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    } else {
       //ratios[0]=1;
       fRatios[0]=1.0;
-      hnorm=TPartIndex::I()->WEle(z[0]);
+      hnorm = TPartIndex::I()->WEle(z[0]);
    }
 
    //   if(weight) printf("By weight: ");
@@ -104,7 +104,10 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    for(Int_t i=0; i<fNElems; ++i) {
       //rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
       //ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
-      rdedx[i] = fRatios[i]*dens/fElems[i]->Dens();
+      if(fNElems > 1)
+        rdedx[i] = fRatios[i]/hnorm; // mass fraction 
+      else
+        rdedx[i] = 1.0; 
       fRatios[i]*=TMath::Na()*1e-24*dens/hnorm;
       //      printf("%d %f ",z[i],ratios[i]);
    }
@@ -168,7 +171,8 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	    fMSansig[ip*fNEbins+ie]+=asig*rdedx[iel];
 	    fMSlength[ip*fNEbins+ie]+=len*rdedx[iel];
 	    fMSlensig[ip*fNEbins+ie]+=lsig*rdedx[iel];
-	    fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*rdedx[iel];
+	    fDEdx[ip*fNEbins+ie]+=fElems[iel]->DEdx(ip,fEGrid[ie])*
+                                 rdedx[iel]*dens; //dE/dx [GeV/cm]; Bragg's rule 
 	 }
       }
    }
@@ -318,7 +322,7 @@ Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
 }
 
 //____________________________________________________________________________
-Float_t TMXsec::DEdx(Int_t part, Float_t en) {
+Float_t TMXsec::DEdx(Int_t part, Float_t en, Int_t &elemindx) {
   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx)
     return 0;
   else {
@@ -335,6 +339,11 @@ Float_t TMXsec::DEdx(Int_t part, Float_t en) {
             ibin, en1, en, en2);
       return TMath::Limits<Float_t>::Max();
     }
+    // set to the first element of this mix.: need to know at last one element
+    // to be able to check in EnergyLoss if there is NuclCaptAtRest in case of
+    // stopping  
+    elemindx = fElems[0]->Index(); 
+
     Double_t xrat = (en2-en)/(en2-en1);
     return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
   }
@@ -481,8 +490,9 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
    Int_t    ipart; //G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
 
    // tid-based rng
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+   GeantPropagator *prop = GeantPropagator::Instance();
+   Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
+   prop->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
    for (Int_t t=0; t<ntracks; ++t) {
       ipart  = tracksin.fG5codeV[t];
@@ -512,7 +522,7 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
 	  Double_t xrat = (en2-energy)/(en2-en1);
 	  Double_t xnorm = 1.;
           while(iel<0) {
-	    Double_t ran = xnorm*gRandom->Rndm();
+	    Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
 	    Double_t xsum=0;
 	    for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
 	       xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
@@ -554,6 +564,21 @@ Int_t TMXsec::SampleElement(Int_t tid){
    return fElems[0]->Index(); 
 }
 
+// sample one of the elements based on #atoms/volue 
+// (same as above but with simple rng for Geant4) 
+//______________________________________________________________________________
+Int_t TMXsec::SampleElement(){
+   if( fNElems > 1){
+     Double_t randn = gRandom->Rndm();      
+     for(Int_t itr=0; itr<fNElems; ++itr)
+        if(fRatios[itr]>randn)
+          return  fElems[itr]->Index();// TTabPhysMgr index of the sampled elemet
+   }
+
+   return fElems[0]->Index(); 
+}
+
+
 //____________________________________________________________________________
 Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)  
 {
@@ -567,7 +592,8 @@ Int_t TMXsec::SelectElement(Int_t pindex, Int_t rindex, Double_t energy)
   if (fNElems>1) {
     Double_t totalxs = 0.;
     for (Int_t i=0 ; i < fNElems ; ++i) {
-      totalxs += fElems[i]->XS(pindex, rindex, energy);
+      // fRatios[i] is the relative #i-th atoms/volume; fRatios[] is normalized to 1. 
+      totalxs += fElems[i]->XS(pindex, rindex, energy)*fRatios[i];
     }
 
     Double_t ranxs = totalxs*gRandom->Rndm();

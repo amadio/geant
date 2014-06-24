@@ -49,7 +49,7 @@ PhysicsList::PhysicsList():  G4VUserPhysicsList()
 			  , theNeutrons(0)
 			  , theBertiniNeutron(0)
 			  , theFTFPNeutron(0)
-			  , theLEPNeutron(0)
+                          // , theLEPNeutron(0)
 			  , thePiK(0)
 			  , theBertiniPiK(0)
 			  , theFTFPPiK(0)
@@ -69,7 +69,7 @@ PhysicsList::~PhysicsList()
   delete theNeutrons;
   delete theBertiniNeutron;
   delete theFTFPNeutron;
-  delete theLEPNeutron;    
+  // delete theLEPNeutron;
 
   delete thePiK;
   delete theBertiniPiK;
@@ -308,9 +308,9 @@ void PhysicsList::HadronPhysicsFTFP_BERT_WP()
   theNeutrons->RegisterMe(theBertiniNeutron=new G4BertiniNeutronBuilder);
   theBertiniNeutron->SetMinEnergy(0.0*GeV);
   theBertiniNeutron->SetMaxEnergy(5*GeV);
-  theNeutrons->RegisterMe(theLEPNeutron=new G4LEPNeutronBuilder);
-  theLEPNeutron->SetMinInelasticEnergy(0.0*eV);   // no inelastic from LEP
-  theLEPNeutron->SetMaxInelasticEnergy(0.0*eV);  
+  // theNeutrons->RegisterMe(theLEPNeutron=new G4LEPNeutronBuilder);
+  // theLEPNeutron->SetMinInelasticEnergy(0.0*eV);   // no inelastic from LEP
+  // theLEPNeutron->SetMaxInelasticEnergy(0.0*eV);
 
   thePro=new G4ProtonBuilder_WP;
   theFTFPPro=new G4FTFPProtonBuilder(QuasiElastic);

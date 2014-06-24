@@ -14,7 +14,7 @@
 // Data organized per thread
 //==============================================================================
 
-class TGeoHMatrix;
+//class TGeoHMatrix;
 class TGeoVolume;
 class TRandom;
 class TArrayI;
@@ -28,7 +28,6 @@ public:
    Int_t             fNprocesses;            //! Number of physics processes
    Int_t             fSizeDbl;               //! Size of array of doubles
    Int_t             fSizeBool;              //! Size of bool array
-   TGeoHMatrix      *fMatrix;                //! Current matrix per thread
    TGeoVolume       *fVolume;                //! Current volume per thread
    TRandom          *fRndm;                  //! Random generator for thread
    Bool_t           *fBoolArray;             //![5*fMaxPerBasket] Thread array of bools

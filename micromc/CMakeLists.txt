@@ -27,3 +27,4 @@ add_dependencies(micromc xseclib Geantlib_v)
 # (this avoids the need of typing the program name after make)
 #
 add_custom_target(MuMC DEPENDS micromc)
+install(TARGETS micromc DESTINATION bin)
