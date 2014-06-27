@@ -97,7 +97,7 @@ public:
    GeantBasket      *GetNextBasket();
 
 public:
-   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fThreshold(0), fNbaskets(0), 
+   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fThreshold(0), fNbaskets(0), 
                          fNused(0), fCBasket(0), fPBasket(0), fBaskets(), fFeeder(0), fMutex() {}
    GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
