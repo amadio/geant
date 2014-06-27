@@ -25,7 +25,8 @@ GeantThreadData::GeantThreadData()
              fProcStep(0),
              fFieldPropagator(0),
              fRotation(0),
-             fTrack(0)
+             fTrack(0),
+             fPath(0)
 {
 // I/O ctor.
 }
@@ -44,7 +45,8 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
              fProcStep(0),
              fFieldPropagator(0),
              fRotation(new TGeoRotation()),
-             fTrack(0)
+             fTrack(0),
+             fPath(0)
 {
 // Constructor
    GeantPropagator *propagator = GeantPropagator::Instance();
@@ -53,6 +55,7 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
    fProcStep  = new Double_t[fNprocesses*fMaxPerBasket];
    fFieldPropagator = new TGeoHelix(1,1);
    fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
+   fPath = new VolumePath_t(50); // hardcoded
 }
 
 //______________________________________________________________________________
@@ -66,6 +69,7 @@ GeantThreadData::~GeantThreadData()
    delete [] fProcStep;
    delete fFieldPropagator;
    delete fRotation;
+   delete fPath;
 }
 
 //______________________________________________________________________________

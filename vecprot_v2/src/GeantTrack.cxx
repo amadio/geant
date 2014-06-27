@@ -779,10 +779,12 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack &track)
    fSafetyV   [itrack] = track.fSafety;
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
-   fPathV[itrack] = track.fPath; 
-   track.fPath = 0;
-   fNextpathV[itrack] = track.fNextpath;
-   track.fNextpath = 0;
+   if (!fPathV[itrack]) {
+      fPathV[itrack] = wm->NavStates()->Borrow();
+      fNextpathV[itrack] = wm->NavStates()->Borrow();
+   }   
+   *fPathV[itrack] = *track.fPath; 
+   *fNextpathV[itrack] = *track.fNextpath;
 #ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[fEvslotV[itrack]]++;
 #endif

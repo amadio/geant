@@ -230,7 +230,7 @@ void *WorkloadManager::MainScheduler(void *)
       nkilled = 0;
       for (UInt_t iout=0; iout<npop; iout++) {
          output = carray[iout];
-         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
+//         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
          // Recycle basket
 	      output->Recycle();	 
       }
@@ -547,7 +547,7 @@ finish:
 #ifdef __STAT_DEBUG
       sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif         
-//      ninjected = sch->AddTracks(basket, ntot, nnew, nkilled);
+      ninjected = sch->AddTracks(basket, ntot, nnew, nkilled);
 //      Printf("thread %d: injected %d baskets", tid, ninjected);
       wm->TransportedQueue()->push(basket);
    }

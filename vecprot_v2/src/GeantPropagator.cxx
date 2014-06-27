@@ -195,7 +195,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
 Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
 {
    // Import tracks from "somewhere". Here we just generate nevents.
-   static VolumePath_t *a = 0;
+   static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
    using vecgeom::SimpleNavigator;
    using vecgeom::Vector3D;

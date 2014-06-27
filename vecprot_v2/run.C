@@ -21,7 +21,7 @@ void run(Int_t nthreads=3, Bool_t graphics=kTRUE,
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
-   prop->fNaverage = 1000;   // Average number of tracks per event
+   prop->fNaverage = 100;   // Average number of tracks per event
    prop->fNperBasket = 128;   // Vector size
    prop->fEmin = 1.E-5; // [10KeV] energy cut
 //   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
