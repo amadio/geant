@@ -52,7 +52,9 @@ public:
    GeantBasketMgr   *GetBasketMgr() const {return fManager;}
    TGeoVolume       *GetVolume() const;
    Bool_t            IsMixed() const {return TObject::TestBit(kMixed);}
-   Bool_t            IsAddingOp() const           {return (fAddingOp.load());}
+   inline Bool_t     IsAddingOp() const           {return (fAddingOp.load());}
+   inline Int_t      LockAddingOp()               {return ++fAddingOp;}
+   inline Int_t      UnLockAddingOp()             {return --fAddingOp;}
    virtual void      Print(Option_t *option="") const;
    void              PrintTrack(Int_t itr, Bool_t input=kTRUE) const;
    void              Recycle();
@@ -91,6 +93,8 @@ private:
    GeantBasketMgr& operator=(const GeantBasketMgr&); // Not implemented
 #if __cplusplus >= 201103L
    GeantBasket      *StealAndReplace(atomic_basket &current);
+   GeantBasket      *StealAndPin(atomic_basket &current);
+   Bool_t            StealMatching(atomic_basket &global, GeantBasket *content);
 #endif
 public:
 
