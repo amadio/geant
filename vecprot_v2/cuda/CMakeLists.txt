@@ -16,6 +16,7 @@ if (CUDA_SEPARABLE_COMPILATION)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP -DGX_MULTI_OBJ_FILES)
 endif()
 
+
 CUDA_INCLUDE_DIRECTORIES( ${CudaCode}/GXTracking/SimCore/Common/include 
        ${CudaCode}/GXTracking/SimCore/EMPhysics/include
        ${CudaCode}/GXTracking/SimCore/Geometry/include
@@ -72,6 +73,7 @@ set(cuda_cxx_sources
 )
 
 
+if (CUDA_SEPARABLE_COMPILATION)
 set(cuda_sources
     ${CudaCode}/GXTracking/gpu/cuda/kernel/src/trackingTest2_kernel.cu
     ${CudaCode}/GXTracking/gpu/cuda/kernel/src/random_kernel.cu
@@ -159,7 +161,12 @@ set(cuda_sources
     ${CUDA_SRCDIR}/util_kernel.cu
     ${CUDA_SRCDIR}/electron_kernel.cu
 )
-
+else()
+set(cuda_sources
+#    ${CudaCode}/GXTracking/gpu/cuda/kernel/src/trackingTest2_kernel.cu
+    ${CUDA_SRCDIR}/electron_kernel.cu
+)
+endif()
 
 
 ROOT_GENERATE_DICTIONARY(G__CudaGeant ${dict_headers} LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h)
