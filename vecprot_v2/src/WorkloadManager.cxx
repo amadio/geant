@@ -688,6 +688,9 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
 finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
+#ifdef __STAT_DEBUG
+      sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
+#endif         
       wm->TransportedQueue()->push(basket);
    }
    wm->DoneQueue()->push(0);
