@@ -581,6 +581,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
    GeantPropagator *propagator = GeantPropagator::Instance();
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
+   GeantScheduler *sch = wm->GetScheduler();
    Int_t *waiting = wm->GetWaiting();
    //Int_t nprocesses = propagator->fNprocesses;
    // Int_t ninput;
@@ -699,7 +700,14 @@ finish:
 #ifdef __STAT_DEBUG
       sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif         
+      Int_t ntot = 0;
+      Int_t nnew = 0;
+      Int_t nkilled = 0;
+      /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled);
       wm->TransportedQueue()->push(basket);
+      (void)ntot;
+      (void)nnew;
+      (void)nkilled;
    }
    wm->DoneQueue()->push(0);
    Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());

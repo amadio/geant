@@ -49,6 +49,7 @@ typedef double G4double;
 
 // To access the list of baskets.
 #include "WorkloadManager.h"
+#include "GeantScheduler.h"
 #include "GeantBasket.h"
 
 static void HandleCudaError( cudaError_t err,
@@ -574,6 +575,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 unsigned int CoprocessorBroker::TaskData::TrackToHost()
 {
    WorkloadManager *mgr = WorkloadManager::Instance();
+   GeantScheduler *sch = mgr->GetScheduler();
    std::vector<TGeoNode *> array;
    int last_logical = -1;
    int last_phys = -1;
@@ -707,6 +709,13 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
       }
    }
 
+   Int_t ntot = 0;
+   Int_t nnew = 0;
+   Int_t nkilled = 0;
+   /* Int_t ninjected = */ sch->AddTracks(fBasket, ntot, nnew, nkilled);
+   (void)ntot;
+   (void)nnew;
+   (void)nkilled;
    mgr->TransportedQueue()->push(fBasket);
    fBasket = 0;
    fThreadId = -1;
