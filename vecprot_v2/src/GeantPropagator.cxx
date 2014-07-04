@@ -185,6 +185,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
 // Returns a temporary track support for the physics processes, unique per
 // thread which can be used to add tracks produced by physics processes.
    if (tid<0) tid = TGeoManager::ThreadId();
+   if (tid > fNthreads) Fatal("GetTempTrack","Thread id %d is too large (max %d)",tid,fNthreads);
    GeantTrack &track = fThreadData[tid]->fTrack;
    track.Clear();
    return track;
@@ -204,6 +205,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 #endif 
 
    Int_t tid = TGeoManager::ThreadId();
+   if (tid > fNthreads) Fatal("ImportTracks","Thread id %d is too large (max %d)",tid,fNthreads);
    GeantThreadData *td = fThreadData[tid];
    TGeoVolume *vol = 0;
    if (!a) {
