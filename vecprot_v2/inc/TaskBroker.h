@@ -21,6 +21,8 @@ public:
    virtual void waitForTasks() = 0;
    
    virtual long GetTotalWork() = 0;
+
+   virtual int GetNstream() = 0;
 };
 
 

@@ -137,6 +137,8 @@ public:
 
    long GetTotalWork() { return fTotalWork; }
 
+   int GetNstream() { return fTaskData.size(); }
+
 private:
    char                  *fdGeometry; // Point to a GPGeomManager in GPU land.
    DevicePtr<GXFieldMap>  fdFieldMap;
@@ -216,9 +218,9 @@ private:
    TaskData *fNextTaskData;
    concurrent_queue fHelpers;
 
-   int fNblocks;
-   int fNthreads;
-   int fMaxTrackPerThread;
+   int fNblocks;  // Number of cuda blocks
+   int fNthreads; // Number of cuda threads
+   int fMaxTrackPerThread; // Max number of tracks per cuda threads
    int fTotalWork;
 };
 
