@@ -124,11 +124,15 @@ void WorkloadManager::StartThreads()
    fListThreads->SetOwner();
    Int_t ith = 0;
    if (fBroker) {
+     if (fBroker->GetNstream() > fNthreads) {
+        Fatal("StartThreads","The task broker is using too many threads (%d out of %d)",
+              fBroker->GetNstream(), fNthreads);
+     }
      Printf("Running with a coprocessor broker.");
      TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor,fBroker);
      fListThreads->Add(t);
      t->Run();
-     ++ith;
+     ith += fBroker->GetNstream() + 1;
    }
    for (; ith<fNthreads; ith++) {
       TThread *t = new TThread(WorkloadManager::TransportTracks);
@@ -150,13 +154,15 @@ void WorkloadManager::StartThreads()
 void WorkloadManager::JoinThreads()
 {
 // 
-   for (Int_t ith=0; ith<fNthreads; ith++) fFeederQ->push(0);
-   for (Int_t ith=0; ith<fNthreads; ith++) ((TThread*)fListThreads->At(ith))->Join();
+   int tojoin = fNthreads;
+   if (fBroker) tojoin -= fBroker->GetNstream();
+   for (Int_t ith=0; ith<tojoin; ith++) fFeederQ->push(0);
+   for (Int_t ith=0; ith<tojoin; ith++) ((TThread*)fListThreads->At(ith))->Join();
    // Join garbage collector
-   ((TThread*)fListThreads->At(fNthreads))->Join();
+   ((TThread*)fListThreads->At(tojoin))->Join();
    // Join monitoring thread
    if (GeantPropagator::Instance()->fUseMonitoring) {
-      ((TThread*)fListThreads->At(fNthreads+1))->Join();
+      ((TThread*)fListThreads->At(tojoin+1))->Join();
    }   
 }
    
@@ -166,6 +172,7 @@ void WorkloadManager::WaitWorkers()
 // Waiting point for the main thread until work gets done.
    fFilling = kFALSE;
    Int_t ntowait = fNthreads;
+   if (fBroker) ntowait -= fBroker->GetNstream();
    while(ntowait) {
       fDoneQ->wait_and_pop();
       ntowait--;
@@ -192,6 +199,7 @@ void *WorkloadManager::MainScheduler(void *)
    Bool_t prioritize = kFALSE;
    Bool_t countdown = kFALSE;
    WorkloadManager *wm = WorkloadManager::Instance();
+   if (wm->fBroker) nworkers -= wm->fBroker->GetNstream();
    dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
    dcqueue<GeantBasket> *transportedQ = wm->TransportedQueue();
    GeantScheduler *sch = wm->GetScheduler();
@@ -354,7 +362,7 @@ void *WorkloadManager::MainScheduler(void *)
       waiting[nworkers] = 1;
    }
    // Stop workers
-   for (Int_t i=0; i<propagator->fNthreads; i++) wm->FeederQueue()->push(0);
+   for (Int_t i=0; i<nworkers; i++) wm->FeederQueue()->push(0);
    wm->TransportedQueue()->push(0);
    wm->Stop();
    propagator->fApplication->Digitize(0);
