@@ -7,6 +7,10 @@
 //#include "gxtracking_kernel.cu"
 //cuda/kernel/src/trackingTest2_kernel.cu
 
+#ifndef CUDA_SEP_COMP
+#include "trackingTest2_kernel.cu"
+#endif
+
 int electron_gpu(curandState* devStates,
                  size_t nSteps,
                  size_t nElectrons,
