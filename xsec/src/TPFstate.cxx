@@ -133,7 +133,8 @@ Bool_t TPFstate::SetFinState(Int_t ibin, Int_t reac, const Int_t npart[], const 
 
 //______________________________________________________________________________
 Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid,
+                            const Float_t *&mom, Int_t& ebinindx) const
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
@@ -141,6 +142,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     npart=0;
     pid=0;
     mom=0;
+    ebinindx=-1;
     return kFALSE;
   } else {
     Double_t eta = gRandom->Rndm();
@@ -157,6 +159,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     }
     Double_t xrat = (en2-en)/(en2-en1);
     if(eta>xrat) ++ibin;
+    ebinindx = ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
     // in case of any problems with the fstate sampling the primary will be 
     // stopped so be prepared for this case and set kerma = en; 
@@ -168,7 +171,8 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
 //______________________________________________________________________________
 Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid,
-                            const Float_t *&mom, Double_t randn1, Double_t randn2) const
+                            const Float_t *&mom, Int_t& ebinindx, Double_t randn1,
+                            Double_t randn2) const
 {
   Int_t rnumber = fRdict[preac];
   if(rnumber==-1) {
@@ -176,6 +180,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     npart=0;
     pid=0;
     mom=0;
+    ebinindx=-1;
     return kFALSE;
   } else {
     //Double_t eta = randn1;
@@ -193,6 +198,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     Double_t xrat = (en2-en)/(en2-en1);
     if(randn1>xrat) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
+    ebinindx = ibin; 
     // in case of any problems with the fstate sampling the primary will be 
     // stopped so be prepared for this case and set kerma = en; 
     kerma = en; 

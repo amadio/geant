@@ -55,10 +55,11 @@ public:
   Bool_t HasRestCapture(Int_t partindex);
  
   Bool_t SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                    Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
+                    Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
+                    Int_t& ebinindx) const;
   Bool_t SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                     Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom, 
-                    Double_t randn1, Double_t randn2) const;
+                    Int_t& ebinindx, Double_t randn1, Double_t randn2) const;
   Bool_t SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
                     Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
   Bool_t SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,

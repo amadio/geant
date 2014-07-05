@@ -336,10 +336,6 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
    //1.	
    mxs->SampleInt(ntracks, tracks, tid);
 
-//   for(Int_t i = 0; i<ntracks;++i)
-//	printf("[%d]-th Fstate element name:= %s index:= %d\n",i ,fElemXsec[fstateindx[i]]->GetTitle(), fstateindx[i]);
-
-
 
    //2. at Rest story makes this part a bit complicated! (only 'trackable' secondaries can go to tracks)
    // tid-based rng
@@ -359,13 +355,15 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
     Float_t  kerma     = 0;  //released energy
     Float_t  weight    = 0;  //weight of the fstate (just a dummy parameter now)
     Char_t   isSurv    = 0;  //is the primary survived the interaction 	
+    Int_t    ebinindx  = -1; //energy bin index of the selected final state  
 
+    Double_t curPrimEkin = tracks.fEV[t]-tracks.fMassV[t];
+    isSurv = fElemFstate[tracks.fEindexV[t]]->SampleReac(tracks.fG5codeV[t], 
+		tracks.fProcessV[t], curPrimEkin, nSecPart, weight, kerma, ener, 
+                pid, mom, ebinindx, rndArray[2*t], rndArray[2*t+1]);
 
-     isSurv = fElemFstate[tracks.fEindexV[t]]->SampleReac(tracks.fG5codeV[t], 
-		tracks.fProcessV[t], tracks.fEV[t]-tracks.fMassV[t], 
-		nSecPart, weight, kerma, ener, pid, mom, rndArray[2*t], rndArray[2*t+1]);
-
-     tracks.fEdepV[t] += kerma;    //add the deposited energy (in the interaction) to the energy depositon	
+    // we should correct the kerma as well but we don't have enough information
+    tracks.fEdepV[t] += kerma;    	
 
     //if we have secondaries from the current interaction
     if(nSecPart){   
@@ -374,39 +372,78 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       Double_t oldZdir  = tracks.fZdirV[t];       //old Z direction of the primary
       Int_t j = 0;
 
-      if(isSurv && ener >= energyLimit){ //primary particle survived -> it is in the list of secondaries [0]: 
-//        tracks.fStatusV[t] = kAlive;   //1. ener=Ekin > energyLimit -> Alive (need to update in tracks) 
- 
-        //update primary in tracks
+      // setting the final state correction factor (we scale only the 3-momentums)
+      //-get mass of the primary   
+      Double_t primMass  = tracks.fMassV[t]; // mass [GeV]
+      //-compute corFactor = P_current/P_original = Pz_current/Pz_original 
+      // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...) 
+      Double_t orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx]; 
+      Double_t corFactor   = TMath::Sqrt( curPrimEkin*(curPrimEkin+2.0*primMass) /
+                                          (orgPrimEkin*(orgPrimEkin+2.0*primMass)) );
+      //-if corFactor is set here to 1.0 --> no correction of the final states
+      // corFactor = 1.0;
+    
+      // check if we need to correct the post-interaction Ekin of the primary:
+      // if the primary is survived and has non-zero Ekin --> compute its corrected Ekin
+      Double_t postEkinOfParimary = ener;
+      if(isSurv && (postEkinOfParimary > 0.0)) { //survived and not stopped 
+        // get corrected 3-momentum of the post-interaction primary
         Double_t px = mom[0];
         Double_t py = mom[1];
         Double_t pz = mom[2];
-        Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-        Double_t secPtot  = TMath::Sqrt(secPtot2);     //total P [GeV]
-        Double_t secEtot  = ener + tracks.fMassV[t]; //total energy in [GeV]
+        px *= corFactor;
+        py *= corFactor;
+        pz *= corFactor;
+        // compute corrected P^2 in [GeV^2]
+        Double_t postPrimP2 = px*px+py*py+pz*pz;
+        // recompute post-interaction Ekin of the primary with corrected 3-momentum
+        postEkinOfParimary = TMath::Sqrt(postPrimP2 + primMass*primMass) - primMass;
+      }
+ 
+       if(postEkinOfParimary > energyLimit) { // survived even after the correction and the E-limit.
+          // keep alive
+//         tracks.fStatusV[t] = kAlive; 
+        Double_t px = mom[0];
+        Double_t py = mom[1];
+        Double_t pz = mom[2];
+        px *= corFactor;
+        py *= corFactor;
+        pz *= corFactor;
+        // compute corrected P^2 in [GeV^2]
+        Double_t postPrimP2 = px*px+py*py+pz*pz;
+        // recompute post-interaction Ekin of the primary with corrected 3-momentum
+        postEkinOfParimary = TMath::Sqrt(postPrimP2 + primMass*primMass) - primMass;
 
-        tracks.fPV[t]   = secPtot;		//momentum of this particle 
-        tracks.fEV[t]   = secEtot;		//total E of this particle 
-        tracks.fXdirV[t] = px/secPtot;	//dirx of this particle (before transform.)
-        tracks.fYdirV[t] = py/secPtot;	//diry of this particle (before transform.)
-        tracks.fZdirV[t] = pz/secPtot;	//dirz of this particle (before transform.)
+          //update primary in tracks
+          Double_t secPtot  = TMath::Sqrt(postPrimP2);               //total P [GeV]
+          Double_t secEtot  = postEkinOfParimary + tracks.fMassV[t]; //total energy in [GeV]
+          tracks.fPV[t]    = secPtot;		//momentum of this particle 
+          tracks.fEV[t]    = secEtot;		//total E of this particle 
+          tracks.fXdirV[t] = px/secPtot;	//dirx of this particle (before transform.)
+          tracks.fYdirV[t] = py/secPtot;	//diry of this particle (before transform.)
+          tracks.fZdirV[t] = pz/secPtot;	//dirz of this particle (before transform.)
 
-        //Rotate parent track in tracks to original parent track's frame 
-        //(a boost will be here as well; before the rotation)		           
-        RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, t);
+          //Rotate parent track in tracks to original parent track's frame 
+          RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, t);
+          
+          // primary track is updated
+        } else {
+          // Primary particle is stopped  
+          //-set status of primary in tracks to kKilled;
+          tracks.fStatusV[t] = kKilled;
+          tracks.fEdepV[t] += postEkinOfParimary;
+          if( isSurv && fElemFstate[tracks.fEindexV[t]]->HasRestCapture(tracks.fG5codeV[t]) )
+             GetRestFinStates(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, nTotSecPart, tid);            
 
-        j = 1; 
-      } else { //2. (primary survived but Ekin < energyLimit) || (primary hasn't survived) -> kill in tracks and invoke at rest
-        tracks.fStatusV[t] = kKilled;   //set status of primary in tracks to kKilled;
-
-//      j = 0;
-//      tracks.fEdepV[t]  += ener;    //add the after interaction Ekin of the primary to the energy depositon	
-        //note: even if the primary in the list of secondaries, its energy (ener)
-        //      is lower than the energyLimit so it will be handled properly as 
-        //      the other secondaries
-      } 
-
-      //loop over the secondaries and put them into tracks:
+          //j = 0;
+          //note: even if the primary in the list of secondaries, its corrected energy
+          //      is lower than the energyLimit so it will be handled properly as 
+          //      the other secondaries (its atRest process will be invoked if 
+          //      it does have)
+        }
+      
+      if(isSurv) j=1;
+      //loop over the secondaries and put them into tracks if they good to track:
       // j=0 -> including stopped primary as well if isSurv = kTRUE; 
       // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above) 
       for(Int_t i = j; i < nSecPart; ++i) {
@@ -418,17 +455,22 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           Double_t px = mom[3*i];
           Double_t py = mom[3*i+1];
           Double_t pz = mom[3*i+2];
+          px *= corFactor;
+          py *= corFactor;
+          pz *= corFactor;
           Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
           tracks.fEdepV[t]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
           continue;
         }
-
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
         Double_t secMass  = secPartPDG->Mass();
         Double_t px = mom[3*i];
         Double_t py = mom[3*i+1];
         Double_t pz = mom[3*i+2];
+        px *= corFactor;
+        py *= corFactor;
+        pz *= corFactor;
         Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
         Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
         Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
@@ -469,15 +511,12 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           *gTrack.fPath    = *tracks.fPathV[t];
           *gTrack.fNextpath = *tracks.fPathV[t];
 
-          // Rotate new track to parent track's frame (a boost will be here as 
-          // well; before the rotation)		           
+          // Rotate new track to parent track's frame      
           RotateNewTrack(oldXdir, oldYdir, oldZdir, gTrack);
 
           propagator->AddTrack(gTrack);
           tracks.AddTrack(gTrack);
 
-          //RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, nTotSecPart);
-		 
           ++nTotSecPart;
         } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
@@ -488,7 +527,6 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
       tracks.fStatusV[t] = kKilled; //set status of primary in tracks to kKilled;
      }
-
    } //end loop over tracks   
 
   return nTotSecPart;
@@ -501,7 +539,6 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
         Int_t &nTotSecPart, Int_t tid)
 {
-
    if(!fIsRestProcOn)//Secondaries from rest proc. can be turned off
      return;
    GeantPropagator *propagator =  GeantPropagator::Instance();
@@ -510,7 +547,6 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
    propagator->fThreadData[tid]->fRndm->RndmArray(3, rndArray);
 
    TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
-
 
    Int_t nSecPart     = 0;  //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
@@ -620,8 +656,10 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        // end if {secondary Ekin >= energyLimit}
      } else { // {secondary Ekin < energyLimit} -> kill this secondary and call GetRestFinalSates
        tracks.fEdepV[iintrack] += secEkin;    //add the Ekin of this secondary to the energy depositon	
-       if( elemfstate->HasRestCapture(pid[i]) )
+//OFF TILL WE DON'T HAVE DECAY 
+/*      if( elemfstate->HasRestCapture(pid[i]) )
          GetRestFinStates(pid[i], mxs, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
+*/
      } 
    }//end loop over the secondaries
 }

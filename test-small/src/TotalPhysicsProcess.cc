@@ -180,6 +180,9 @@ G4VParticleChange* TotalPhysicsProcess::PostStepDoIt(const G4Track& track,
   // Sample final state for the sampled interaction and fill the particle change 
   theDataManager->SampleFinalState(elementIndex, reactionId, track, 
                                    fParticleChange, fgEnergyLimit );
+
+  // clear number of interaction length left (will set to -1) --> need to be resample 
+  ClearNumberOfInteractionLengthLeft();
   
   return fParticleChange;
 }
