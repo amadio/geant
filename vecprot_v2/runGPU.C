@@ -114,7 +114,7 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    Int_t nbuffered  = 10;   // Number of buffered events
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
-   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
+   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads + 6 /* for the cuda streams */);
    wmgr->SetNminThreshold(5*nthreads);
    CoprocessorBroker *gpuBroker = new CoprocessorBroker();
    gpuBroker->CudaSetup(32,128,1);
@@ -138,7 +138,7 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
  
    // This sets gGeomManager and hence superseeds the filename.
    VP_SimpleECal();
-   prop->PropagatorGeom("", nthreads + 3, graphics);
+   prop->PropagatorGeom("", nthreads + 6 /* for the cuda streams */, graphics);
 
    delete gGeoManager;
 }   
