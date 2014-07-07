@@ -101,7 +101,8 @@ Bool_t TEFstate::HasRestCapture(Int_t partindex)
 
 //______________________________________________________________________________
 Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid,
+                            const Float_t *&mom) const
 {
    if(kpart<TPartIndex::I()->NPartReac()){	
    	return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
@@ -132,17 +133,19 @@ Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
 
 //___________________________________________________________________
 Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
+                            Int_t& ebinindx) const
 {
-  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom);
+  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 }
 
 //___________________________________________________________________
 Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
                             Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
-                            Double_t randn1, Double_t randn2) const
+                            Int_t& ebinindx, Double_t randn1, Double_t randn2) const
 {
-  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, randn1, randn2);
+  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom,
+                                     ebinindx, randn1, randn2);
 }
 
 //___________________________________________________________________

@@ -105,7 +105,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
       //rdedx[i] = ratios[i]*dens/fElems[i]->Dens();
       //ratios[i]*=TMath::Na()*1e-24*dens/hnorm;
       if(fNElems > 1)
-        rdedx[i] = fRatios[i]/hnorm; // mass fraction 
+        rdedx[i] = fRatios[i]*TPartIndex::I()->WEle(z[i])/hnorm; // mass fraction 
       else
         rdedx[i] = 1.0; 
       fRatios[i]*=TMath::Na()*1e-24*dens/hnorm;

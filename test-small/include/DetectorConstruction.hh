@@ -92,6 +92,10 @@ class DetectorConstruction : public G4VUserDetectorConstruction
      const G4VPhysicalVolume* GetphysiWorld() {return physiWorld;};           
      const G4VPhysicalVolume* GetAbsorber()   {return physiAbsorber;};
      const G4VPhysicalVolume* GetGap()        {return physiGap;};
+
+  public:
+   
+     static G4double fTrackingCutInEnergy;
                  
   private:
      

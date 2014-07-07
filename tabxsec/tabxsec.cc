@@ -854,7 +854,9 @@ int main(int argc,char** argv)
         G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
         printf("Material = %s density = %g, natoms/cm3 = %g\n",
                (const char*) mat->GetName(),mat->GetDensity()*cm3/g,natomscm3);
-        
+        // use natomsmm3 directly from Geant4 instead of natomscm3 above
+        G4double natomsmm3 = (mat->GetVecNbOfAtomsPerVolume())[0]; //#atoms/mm3
+
         // get the couple table for em processes
         const G4MaterialCutsCouple* couple = 0;
         const G4MaterialCutsCouple* ctmp = 0;
@@ -1091,7 +1093,8 @@ int main(int argc,char** argv)
                       if(curxs>0) curxs = 1e10;
                       else curxs=0;
                     }
-                    pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                    //pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                     pxsec[nprxs*nbins+j] = curxs/natomsmm3/barn;
                     iszero &= (curxs<=0.);
                     if( /*particle == G4Electron::Electron() && */nsample) {
                       if(curxs) {
@@ -1155,7 +1158,8 @@ int main(int argc,char** argv)
                       if(curxs>0) curxs = 1e10;
                       else curxs=0;
                     }
-                    pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                    //pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                    pxsec[nprxs*nbins+j] = curxs/natomsmm3/barn;
                     iszero &= (curxs<=0.);
                     if( /*particle == G4Positron::Positron() &&*/ nsample) {
                       if(curxs) {
