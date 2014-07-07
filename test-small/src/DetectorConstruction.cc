@@ -53,11 +53,19 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
+// incs. for setting up regions to be able to set production cuts in energy
+#include "G4ProductionCuts.hh"
+#include "G4MaterialCutsCouple.hh"
+
+// incs. for setting up tracking cuts for gamma,e-,e+,p+
+#include "G4UserLimits.hh"
+
 //  Helper class to convert material to Root/Vector prototype
 #include "MaterialConverter.hh"
 #include <TGeoManager.h> 
 
-TGeoManager * DetectorConstruction::fgGeomMgrRoot= 0 ;         // Pointer to the geometry manager   
+TGeoManager * DetectorConstruction::fgGeomMgrRoot= 0 ; // Pointer to the geometry manager   
+G4double DetectorConstruction::fTrackingCutInEnergy = 3.e-6*GeV ;  // in [GeV]
 
 //
 //***LOOK HERE FOR GDML PARSER
@@ -310,6 +318,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
   G4LogicalVolumeStore::GetInstance()->Clean();
   G4SolidStore::GetInstance()->Clean();
 
+  // production cut with init value in [mm], will be set properly in main()
+  G4ProductionCuts pcut;
+  pcut.SetProductionCut(1.0*mm);
+
   // complete the Calor parameters definition
   ComputeCalorParameters();
   //     
@@ -418,6 +430,21 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
       logicAbsorber = new G4LogicalVolume(solidAbsorber,    //its solid
                                           AbsorberMaterial, //its material
                                           AbsorberMaterial->GetName()); //name
+
+      // setting up region to be able to set production cuts in energy 
+      G4Region *region = new G4Region(AbsorberMaterial->GetName());
+      region->AddRootLogicalVolume(logicAbsorber);
+      region->SetProductionCuts(new G4ProductionCuts(pcut));
+      region->RegisterMaterialCouplePair( AbsorberMaterial,
+                                          new G4MaterialCutsCouple( AbsorberMaterial,
+                                                                    new G4ProductionCuts(pcut)
+                                                                  )
+                                         );
+
+      // setting user limits to be able to set tracking cuts
+      logicAbsorber->SetUserLimits(new G4UserLimits(DBL_MAX, DBL_MAX, DBL_MAX, 
+                                                    fTrackingCutInEnergy, 0.0));
+
                                                 
       physiAbsorber = new G4PVPlacement(0,                 //no rotation
                           G4ThreeVector(-GapThickness/2,0.,0.),  //its position
@@ -441,6 +468,21 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
       logicGap = new G4LogicalVolume(solidGap,
                                            GapMaterial,
                                            GapMaterial->GetName());
+
+      // setting up region to be able to set production cuts in energy 
+      G4Region *region = new G4Region(GapMaterial->GetName());
+      region->AddRootLogicalVolume(logicGap);
+      region->SetProductionCuts(new G4ProductionCuts(pcut));
+      region->RegisterMaterialCouplePair( GapMaterial,
+                                          new G4MaterialCutsCouple( GapMaterial,
+                                                                    new G4ProductionCuts(pcut)
+                                                                  )
+                                         );
+
+      // setting user limits to be able to set tracking cuts
+      logicGap->SetUserLimits(new G4UserLimits(DBL_MAX, DBL_MAX, DBL_MAX, 
+                                               fTrackingCutInEnergy, 0.0));
+
                                            
       physiGap = new G4PVPlacement(0,                      //no rotation
                G4ThreeVector(AbsorberThickness/2,0.,0.),   //its position
