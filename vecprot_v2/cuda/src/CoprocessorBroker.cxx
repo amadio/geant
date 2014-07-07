@@ -761,8 +761,8 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    task->fCycles = 0;
    task->fCurrent = 0;
 
-   Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
-          stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
+   //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
+   //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
    fTotalWork += stream->fNStaged;
    int result = task->fKernel(stream->fdRandStates,
@@ -868,7 +868,8 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
          trackUsed += stream->fNStaged-before;
          unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
 
-         Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated %d idles %d cycles", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles);
+         //if (((*task)->fCycles % 10000) == 1) 
+         //   Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated %d idles %d cycles", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles);
 
          if (stream->fNStaged < stream->fChunkSize
              && !force) {
@@ -889,7 +890,7 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
                 && 2*idle > cycle               // Our input rate has drop in half
                 )
             {
-               Printf("(%d - GPU) ================= Launching idle Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, (*task)->Name(), stream->fStreamId, idle, cycle, stream->fNStaged);
+               // Printf("(%d - GPU) ================= Launching idle Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, (*task)->Name(), stream->fStreamId, idle, cycle, stream->fNStaged);
                // if we did not make any progress in a while, assume there is no 'interesting' track left and schedule the kernel.
             } else {
                // Continue to wait for more data ...
@@ -922,7 +923,7 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
          ++task;
       }
       if (heavy) {
-         Printf("(%d - GPU) ================= Launching heavy Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, heavy->Name(), heavy->fCurrent->fStreamId, heavy->fIdles, heavy->fCycles, heavy->fCurrent->fNStaged);
+         // Printf("(%d - GPU) ================= Launching heavy Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, heavy->Name(), heavy->fCurrent->fStreamId, heavy->fIdles, heavy->fCycles, heavy->fCurrent->fNStaged);
          launchTask(heavy);
       }
    }
