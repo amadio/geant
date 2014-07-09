@@ -44,6 +44,12 @@ public:
    TPartIndex();
    virtual ~TPartIndex();
 
+   // Database version
+   Int_t Version() const {return fVersion;}
+   Int_t VersionMajor() const {return fVersion/1000/1000;}
+   Int_t VersionMinor() const {return fVersion/1000-VersionMajor()*1000;}
+   Int_t VersionSub() const {return fVersion-VersionMajor()*1000000-VersionMinor()*1000;}
+
    // Process name <- process index
    const Char_t* ProcName(Int_t proc) const;
    // Process index <- Process name
@@ -105,6 +111,8 @@ private:
    TPartIndex& operator=(const TPartIndex&); // Not implemented
    
    static TPartIndex *fgPartIndex;
+
+   static const Int_t   fVersion=1000000;
 
    static const Int_t   fgNProc=FNPROC;    // Number of processes
    static const char   *fgPrName[FNPROC];  // Process name

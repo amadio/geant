@@ -165,6 +165,9 @@ void TPartIndex::Print(Option_t *option) const
       }
       if(strlen(line)) printf("%s\n",line);
    }
+   if(opt.Contains("version")) {
+      printf("Xsec database version %d.%d.%d\n",VersionMajor(),VersionMinor(),VersionSub());
+   }
 }
 
 //______________________________________________________________________________
@@ -177,6 +180,7 @@ void TPartIndex::Streamer(TBuffer &R__b)
       fDBPdg = 0;
       R__b.ReadClassBuffer(TPartIndex::Class(),this);
       fgPartIndex = this;
+      Print("version");
    } else {
       R__b.WriteClassBuffer(TPartIndex::Class(),this);
    }
