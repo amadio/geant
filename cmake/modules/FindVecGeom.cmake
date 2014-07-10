@@ -22,8 +22,6 @@ if (VECGEOM_LIBRARIES)
    message(STATUS "Found VecGeom in ${VECGEOM_LIBRARIES}")		
    message(STATUS "VECGEOM_INCLUDE_DIR = ${VECGEOM_INCLUDE_DIR}")
    message(STATUS "VECGEOM_LIBRARY_DIR = ${VECGEOM_LIBRARY_DIR}")
-# As vecgeom can be compiled with the coverage option, to be on the safe side we add -lgcov to the vecgeom libraries
-   set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} -lgcov)
 else()
    message(STATUS "VecGeom library not found; try to set a VECGEOMROOT environment variable to the base   installation path or add -DVECGEOMROOT = to the cmake command")	
 endif()
