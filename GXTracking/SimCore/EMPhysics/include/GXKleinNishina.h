@@ -4,8 +4,9 @@
 #include "GPTypeDef.h"
 #include "GPRandom.h"
 #include "GPThreeVector.h"
-
 #include "GXTrack.h"
+
+#include "GXVDiscreteSampling.h"
 
 class GXKleinNishina : public GXVDiscreteSampling
 {

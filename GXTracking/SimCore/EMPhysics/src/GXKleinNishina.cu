@@ -23,6 +23,10 @@ GXKleinNishina::GXKleinNishina(curandState* devState,
   fMinX = minEnergy;
   fMaxX = maxEnergy;
   fDeltaX = (fMaxX - fMinX)/fNrow;
+
+  fMinY = 0;
+  fMaxY = 0;
+  fDeltaY = 0;
 }
 
 FQUALIFIER
