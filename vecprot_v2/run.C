@@ -1,7 +1,10 @@
-void run(Int_t nthreads=4, Bool_t graphics=kFALSE, 
+void run(Int_t nthreads=4, 
+         Bool_t graphics=kFALSE, 
 //         const char *geomfile="simple_ecal.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
-	 const char *geomfile="ExN03.root")
+	 const char *geomfile="ExN03.root",
+	 const char *xsec="xsec.root",
+	 const char *fstate="fstate.root")
 {
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");
@@ -27,7 +30,7 @@ void run(Int_t nthreads=4, Bool_t graphics=kFALSE,
 //   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
    prop->fEmax = 0.03;
    // Create the tab. phys process.
-   prop->fProcess = new TTabPhysProcess("tab_phys", "xsec.root", "fstate.root");
+   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
 
    prop->fApplication = new MyApplication();
 
