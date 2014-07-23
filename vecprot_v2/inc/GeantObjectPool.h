@@ -12,6 +12,9 @@ class GeantObjectPool {
    dcqueue<T>        fPool;      // Concurrent queue used to pool objects
    T                *fBlueprint; // Blueprint object from which each new allocation 
                                  // will be copied from. Requires working CC.
+private:
+   GeantObjectPool(const GeantObjectPool&);
+   GeantObjectPool &operator=(const GeantObjectPool&);
 public:
    GeantObjectPool(Int_t ninitial, const T *refobj=0);
    ~GeantObjectPool();

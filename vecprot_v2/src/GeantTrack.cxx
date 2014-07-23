@@ -134,8 +134,8 @@ GeantTrack::GeantTrack(Int_t ipdg)
 {
 // Constructor
    WorkloadManager *wm = WorkloadManager::Instance();
-   fPath = wm->NavStates()->Borrow();
-   fNextpath = wm->NavStates()->Borrow();
+   fPath = wm->NavStates()->borrow();
+   fNextpath = wm->NavStates()->borrow();
 }
 
 //______________________________________________________________________________
@@ -174,9 +174,9 @@ GeantTrack::GeantTrack(const GeantTrack& other)
 {
 // Copy constructor
    WorkloadManager *wm = WorkloadManager::Instance();
-   fPath = wm->NavStates()->Borrow();
+   fPath = wm->NavStates()->borrow();
    *fPath = *other.fPath;
-   fNextpath = wm->NavStates()->Borrow();
+   fNextpath = wm->NavStates()->borrow();
    *fNextpath = *other.fNextpath;
 }
 
@@ -214,9 +214,9 @@ GeantTrack & GeantTrack::operator=(const GeantTrack &other)
       fFrombdr = other.fFrombdr;
       fPending = other.fPending;
       WorkloadManager *wm = WorkloadManager::Instance();
-      fPath = wm->NavStates()->Borrow();
+      fPath = wm->NavStates()->borrow();
       *fPath = *other.fPath;
-      fNextpath = wm->NavStates()->Borrow();
+      fNextpath = wm->NavStates()->borrow();
       *fNextpath = *other.fNextpath;
    }
    return *this;
@@ -227,8 +227,8 @@ GeantTrack::~GeantTrack()
 {
 // Destructor.
    WorkloadManager *wm = WorkloadManager::Instance();
-   wm->NavStates()->Return(fPath);
-   wm->NavStates()->Return(fNextpath);
+   wm->NavStates()->release(fPath);
+   wm->NavStates()->release(fNextpath);
 }
 
 //______________________________________________________________________________
@@ -264,9 +264,9 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
    fSafety = arr.fSafetyV[i];
    fFrombdr = arr.fFrombdrV[i];
    fPending = arr.fPendingV[i];
-   if (!fPath) fPath = wm->NavStates()->Borrow();
+   if (!fPath) fPath = wm->NavStates()->borrow();
    *fPath = *arr.fPathV[i]; 
-   if (!fNextpath) fNextpath = wm->NavStates()->Borrow();
+   if (!fNextpath) fNextpath = wm->NavStates()->borrow();
    *fNextpath = *arr.fNextpathV[i];
 }
 
@@ -721,9 +721,9 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t import)
       track.fNextpath = 0;
    } else {   
       // Copy the content
-      fPathV[itrack] = wm->NavStates()->Borrow();
+      fPathV[itrack] = wm->NavStates()->borrow();
       *fPathV[itrack] = *track.fPath; 
-      fNextpathV[itrack] = wm->NavStates()->Borrow(); 
+      fNextpathV[itrack] = wm->NavStates()->borrow(); 
       *fNextpathV[itrack] = *track.fNextpath; 
    }   
    fNtracks++;
@@ -780,8 +780,8 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack &track)
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
    if (!fPathV[itrack]) {
-      fPathV[itrack] = wm->NavStates()->Borrow();
-      fNextpathV[itrack] = wm->NavStates()->Borrow();
+      fPathV[itrack] = wm->NavStates()->borrow();
+      fNextpathV[itrack] = wm->NavStates()->borrow();
    }   
    *fPathV[itrack] = *track.fPath; 
    *fNextpathV[itrack] = *track.fNextpath;
@@ -851,9 +851,9 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import)
       arr.fNextpathV[i] = 0;
    } else {
       // Copy the content
-      fPathV[itrack] = wm->NavStates()->Borrow();
+      fPathV[itrack] = wm->NavStates()->borrow();
       *fPathV[itrack] = *arr.fPathV[i];
-      fNextpathV[itrack] = wm->NavStates()->Borrow();
+      fNextpathV[itrack] = wm->NavStates()->borrow();
       *fNextpathV[itrack] = *arr.fNextpathV[i];
    }
    fSelected.ResetBitNumber(itrack);
@@ -979,8 +979,8 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
    } else {      
       // Copy the content
       for(Int_t i = ntracks, j = istart; i < (ntracks+ncpy) ; ++i,++j) {
-         fPathV[i] = wm->NavStates()->Borrow();
-         fNextpathV[i] = wm->NavStates()->Borrow();
+         fPathV[i] = wm->NavStates()->borrow();
+         fNextpathV[i] = wm->NavStates()->borrow();
          *fPathV[i] = *arr.fPathV[j];
          *fNextpathV[i] = *arr.fNextpathV[j];
       }   
@@ -1081,9 +1081,9 @@ void GeantTrack_v::DeleteTrack(Int_t itr)
 // Delete branch arrays for this track. The track should not have a copy, this has
 // to be called after a killed track is removed by the scheduler.
    WorkloadManager *wm = WorkloadManager::Instance();
-   wm->NavStates()->Return(fPathV[itr]);
+   wm->NavStates()->release(fPathV[itr]);
    fPathV[itr] = 0;
-   wm->NavStates()->Return(fNextpathV[itr]); 
+   wm->NavStates()->release(fNextpathV[itr]); 
    fNextpathV[itr] = 0;
 }
 

@@ -41,6 +41,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fNqueued(0),
                  fBtogo(0),
                  fStarted(kFALSE),
+                 fStopped(kFALSE),
                  fFeederQ(0),
                  fTransportedQ(0),
                  fDoneQ(0),
@@ -71,6 +72,7 @@ WorkloadManager::~WorkloadManager()
    delete fDoneQ;
    delete fScheduler;
    delete [] fWaiting;
+   delete fNavStates;
    fgInstance = 0;
 }
 
@@ -85,7 +87,8 @@ void WorkloadManager::CreateBaskets()
 #else
       blueprint = new TGeoBranchArray(TGeoManager::GetMaxLevels());
 #endif   
-   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
+//   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
+   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
    fScheduler->CreateBaskets();
 }
    
@@ -366,7 +369,7 @@ void *WorkloadManager::MainScheduler(void *)
    wm->TransportedQueue()->push(0);
    wm->Stop();
    propagator->fApplication->Digitize(0);
-      
+   wm->NavStates()->statistics();
    Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
    return 0;
 }        

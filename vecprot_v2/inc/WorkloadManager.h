@@ -6,6 +6,7 @@
 #endif
 
 #include "sync_objects.h"
+#include "rr_pool.h"
 #include "GeantObjectPool.h"
 #include "GeantTrack.h"
  
@@ -37,7 +38,9 @@ protected:
                      *fTransportedQ;       // queue of transported baskets
    dcqueue<GeantBasket> 
                      *fDoneQ;              // Thread "all work done" queue
-   GeantObjectPool<VolumePath_t>
+//   GeantObjectPool<VolumePath_t>
+//                     *fNavStates;          // Pool of navigation states                  
+   rr_pool<VolumePath_t>
                      *fNavStates;          // Pool of navigation states                  
    static WorkloadManager *fgInstance;     // Singleton instance
    TList             *fListThreads;        // List of threads
@@ -55,7 +58,8 @@ public:
    dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
    dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
    dcqueue<GeantBasket> *DoneQueue() const {return fDoneQ;}
-   GeantObjectPool<VolumePath_t>  
+//   GeantObjectPool<VolumePath_t>  
+   rr_pool<VolumePath_t>  
                       *NavStates() const   {return fNavStates;}
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}

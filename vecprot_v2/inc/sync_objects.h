@@ -1,6 +1,7 @@
 #ifndef GEANT_SYNCOBJECTS
 #define GEANT_SYNCOBJECTS
 #include <deque>
+#include <cassert>
 #if __cplusplus >= 201103L
 #include <atomic>
 #endif
@@ -59,6 +60,97 @@ public:
    void               Print();
 };
 
+// Reference counted atomic pointer
+//______________________________________________________________________________
+template <class T>
+class ref_ptr {
+public:
+   T*                 fObjPtr;     // Object pointer
+#if __cplusplus >= 201103L
+   std::atomic_flag   fAcqLock;    // memory barrier to lock acquiring
+   std::atomic_flag   fXcgLock;    // memory barrier to lock exchanging
+   std::atomic_int    fRef;        // ref counter
+#endif   
+public:
+   ref_ptr() : fObjPtr(0),fAcqLock(false),fXcgLock(false),fRef(0) {}
+   ref_ptr(T* objptr) : fObjPtr(objptr),fAcqLock(false),fXcgLock(false),fRef(0) {}
+   
+   void               set(T* obj) {fObjPtr = obj;}
+   T*                 acquire();
+   void               clear_acq() {fAcqLock.clear();}
+   void               clear_xcg() {fXcgLock.clear();}
+   void               release();
+   void               release_and_wait();
+   bool               replace_and_wait(T* expected, T* newptr);
+};
+
+template <class T>
+inline T* ref_ptr<T>::acquire()
+{
+// Acquire the pointer while issuing a memory barrier for other possible clients
+  while (fAcqLock.test_and_set()) {};    // barrier here for other threads
+//__mutexed code start
+  T *cpy = fObjPtr; // private snapshot
+  fRef++;
+//__mutexed code end  
+  fAcqLock.clear();
+  return cpy;
+}  
+
+template <class T>
+inline void ref_ptr<T>::release()
+{
+// Release the copy of the pointer
+   fRef--;
+   assert(fRef.load()>=0);
+}
+
+template <class T>
+inline void ref_ptr<T>::release_and_wait()
+{
+// Release the copy of the pointer, but wait for everybody else to do it
+// This acts as a spinlock
+   fRef--;
+   while (fRef.load() > 0) {};
+   assert(fRef.load()>=0);
+}
+
+template <class T>
+inline bool ref_ptr<T>::replace_and_wait(T* expected, T* newptr)
+{
+// Atomically replace the pointer only if the old equals expected
+// and only when it is not used anymore. Returns true if the replacement
+// succeeded, in which case acquiring is blocked. The lock must be released
+// by the calling thread using clear() afterwards
+  if (fXcgLock.test_and_set()) {
+     // someone already passed for the same object
+     release();
+     while (fXcgLock.test_and_set()) {};
+     fXcgLock.clear();
+     assert(fRef.load()>=0);
+     return false;
+  }
+  // If someone has stolen the pointer, exit   
+  if (fObjPtr != expected) {
+     // you thief!
+     // Won't rely on expected pointer again
+     release();
+     assert(fRef.load()>=0);
+     fXcgLock.clear();
+     return false;
+  }   
+  // Thou shalt not pass
+  fObjPtr = newptr;
+  // go on, there's nothing to steal anymore
+  // Lock acquiring new references
+  while (fAcqLock.test_and_set()) {};
+  release_and_wait();
+  // now you're all mine...
+  fAcqLock.clear();
+  fXcgLock.clear();
+  return true;
+}
+
 // Data concurrent queue
 //______________________________________________________________________________
 template <class T>
@@ -67,19 +159,14 @@ class dcqueue {
    mutable TMutex     the_mutex;  // General mutex for the queue
    TCondition         the_condition_variable; // Condition
 #if __cplusplus >= 201103L
-   std::atomic<int>   nobjects;   // Number of objects in the queue
-   std::atomic<int>   npriority;  // Number of prioritized objects
-   std::atomic<int>   countdown;  // Countdown counter for extracted objects
-#else
-   int                nobjects;   // Number of objects in the queue
-   int                npriority;  // Number of prioritized objects
-   int                countdown;  // Countdown counter for extracted objects
-#endif   
+   std::atomic_int    nobjects;   // Number of objects in the queue
+   std::atomic_int    npriority;  // Number of prioritized objects
+   std::atomic_int    countdown;  // Countdown counter for extracted objects
+#endif
 public:
    dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),countdown(0) {}
    ~dcqueue() {}
    void               push(T *data, bool priority=false);
-#if __cplusplus >= 201103L
    int                get_countdown() const {return countdown.load(std::memory_order_relaxed);}   
    void               reset_countdown() {countdown.store(-1,std::memory_order_relaxed);}
    void               set_countdown(int n) {countdown.store(n,std::memory_order_relaxed);}
@@ -87,15 +174,6 @@ public:
    bool               empty_async() const {return (nobjects.load(std::memory_order_relaxed) == 0);}
    int                size_priority() const {return npriority.load(std::memory_order_relaxed);}
    int                size_objects() const {return nobjects.load(std::memory_order_relaxed);}
-#else
-   int                get_countdown() const {return countdown;}   
-   void               reset_countdown() {countdown = -1;}
-   void               set_countdown(int n) {countdown = n;}
-   int                size_async() const {return nobjects;}
-   bool               empty_async() const {return (nobjects == 0);}
-   int                size_priority() const {return npriority;}
-   int                size_objects() const {return nobjects;}
-#endif
    void               delete_content();
    int                size() const;
    bool               empty() const;

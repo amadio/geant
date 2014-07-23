@@ -39,7 +39,8 @@ public:
 template <class T>
 GeantBlock<T>::GeantBlock(Int_t size)
               :fSize(size),
-               fNext(0)
+               fNext(0),
+               fBlock()
 {
 // Constructor.
    fBlock.reserve(size);
@@ -86,6 +87,9 @@ private:
    Int_t                  fNthreads;  // Number of threads
    Int_t                  fBlockSize; // Block size
    GeantBlock<T>        **fBlocks;    // array of blocks used by different threads
+
+   GeantBlockArray(const GeantBlockArray&);
+   GeantBlockArray& operator=(const GeantBlockArray&);
 public:
    GeantBlockArray(Int_t nthreads, Int_t blocksize);
    ~GeantBlockArray();
@@ -124,8 +128,9 @@ class GeantFactory {
    friend class GeantFactoryStore;
    typedef void (*ProcessHitFunc_t)(const vector<T>&, int);
 private:
-  GeantFactory(Int_t nthreads, Int_t blocksize, ProcessHitFunc_t callback=0);
-
+   GeantFactory(Int_t nthreads, Int_t blocksize, ProcessHitFunc_t callback=0);
+   GeantFactory(const GeantFactory &);
+   GeantFactory &operator=(const GeantFactory &);
 public:
    Int_t                  fNslots;      // Number of event slots
    Int_t                  fNthreads;    // Max number of threads accessing the structure
@@ -147,7 +152,10 @@ GeantFactory<T>::GeantFactory(Int_t nslots, Int_t blocksize, ProcessHitFunc_t ca
               :fNslots(nslots),
                fNthreads(1),
                fBlockSize(blocksize),
-               fCallback(callback)
+               fCallback(callback),
+               fBlockA(0),
+               fPool(),
+               fOutputs()
 {
 // Constructor.
    // Reserve the space for the block arrays on event slots
