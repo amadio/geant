@@ -365,9 +365,11 @@ void *WorkloadManager::MainScheduler(void *)
       waiting[nworkers] = 1;
    }
    // Stop workers
+   gROOT->SetBit(TObject::kInvalidObject, kTRUE);
    for (Int_t i=0; i<nworkers; i++) wm->FeederQueue()->push(0);
    wm->TransportedQueue()->push(0);
    wm->Stop();
+   gROOT->SetBit(TObject::kInvalidObject, kFALSE);
    propagator->fApplication->Digitize(0);
    wm->NavStates()->statistics();
    Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
