@@ -371,7 +371,6 @@ void *WorkloadManager::MainScheduler(void *)
    wm->Stop();
    gROOT->SetBit(TObject::kInvalidObject, kFALSE);
    propagator->fApplication->Digitize(0);
-   wm->NavStates()->statistics();
    Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
    return 0;
 }        

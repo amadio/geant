@@ -84,6 +84,7 @@ protected:
    typedef std::atomic<GeantBasket*> atomic_basket;
    atomic_basket     fCBasket;               // Current basket being filled
    atomic_basket     fPBasket;               // Current priority basket being filled
+   std::atomic_flag  fLock;                  // atomic lock
 #endif
    dcqueue<GeantBasket> fBaskets;            // queue of available baskets
    dcqueue<GeantBasket> *fFeeder;            // feeder queue to which baskets get injected
@@ -102,7 +103,7 @@ public:
 
 public:
    GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fThreshold(0), fNbaskets(0), 
-                         fNused(0), fCBasket(0), fPBasket(0), fBaskets(), fFeeder(0), fMutex() {}
+                         fNused(0), fCBasket(0), fPBasket(0), fBaskets(), fLock(), fFeeder(0), fMutex() {}
    GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
    
