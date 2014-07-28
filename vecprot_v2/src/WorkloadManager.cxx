@@ -211,6 +211,7 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t *waiting = wm->GetWaiting();
 //   Int_t ntracksperbasket = propagator->fNperBasket;
    // Feeder threshold
+   // Model parameters here
    Int_t min_feeder = TMath::Max(20,3*nworkers); // setter/getter here ?
    Int_t max_feeder = 300; // ???
    // Number of tracks in the current basket
