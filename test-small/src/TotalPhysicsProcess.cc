@@ -91,8 +91,9 @@ G4double TotalPhysicsProcess::GetContinuousStepLimit(const G4Track& track,
                                                      G4double previousStepSize,
                                                      G4double currentMinimumStep,
                                                      G4double &currentSafety){
-    G4int rootMatId = SetupForMaterial(track);
-    theDataManager->ApplyMsc(rootMatId, track);
+// Temporary switch off MSC !!!
+//    G4int rootMatId = SetupForMaterial(track);
+//    theDataManager->ApplyMsc(rootMatId, track);
     return DBL_MAX;
 }
 

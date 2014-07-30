@@ -65,9 +65,10 @@ void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat,
                                GeantTrack_v &tracks, 
                                Int_t tid)
 {
+// Temporary switch off MSC !!!
    //Apply multiple scattering 
-   Int_t imat = mat->GetIndex();
-   fMgr->ApplyMsc(imat, ntracks, tracks, tid);
+//   Int_t imat = mat->GetIndex();
+//   fMgr->ApplyMsc(imat, ntracks, tracks, tid);
    
 } 
 
