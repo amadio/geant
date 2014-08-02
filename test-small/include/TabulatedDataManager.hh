@@ -61,7 +61,8 @@ public:
   TGeoManager*  GetTGeomManager() { return fgGeom; } 
 
   static void SetVerboseLevel(G4int level) {fgVerboseLevel = level;}
-
+  static G4long killedSecs;
+  
 private:
 
   static TabulatedDataManager* fgInstance;

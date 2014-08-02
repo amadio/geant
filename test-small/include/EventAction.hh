@@ -36,8 +36,10 @@
 
 #include "G4UserEventAction.hh"
 #include "globals.hh"
+#include "RunAction.hh"
+#include <time.h>
 
-class RunAction;
+//class RunAction;
 class EventActionMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -53,18 +55,32 @@ public:
     
   void AddAbs(G4double de, G4double dl) {EnergyAbs += de; TrackLAbs += dl;};
   void AddGap(G4double de, G4double dl) {EnergyGap += de; TrackLGap += dl;};
-                     
+  void FillPerStep(G4int isgap, G4int layer, G4double edepo, G4double steplength,
+                   G4int procIndex);
+  void AddOneStep(){ ++fNSteps; }                   
   void SetPrintModulo(G4int    val)  {printModulo = val;};
-    
+  static const G4int kNlayers = 10;
+  static const G4int kNProc  = 19; // 18+userCuts   
+
 private:
    RunAction*  runAct;
    
    G4double  EnergyAbs, EnergyGap;
    G4double  TrackLAbs, TrackLGap;
-                     
-   G4int     printModulo;
-                             
+   G4int     printModulo;                             
    EventActionMessenger*  eventMessenger;
+
+   // for one event
+   G4double  fEdepGap[kNlayers];   // Energy deposition per layer
+   G4double  fLengthGap[kNlayers]; // step length per layer
+   G4double  fEdepAbs[kNlayers];   // Energy deposition per layer
+   G4double  fLengthAbs[kNlayers]; // step length per layer
+
+   G4long    fNSteps;      
+
+   G4long    fProcStat[kNProc]; 
+
+   clock_t   startTime, endTime;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

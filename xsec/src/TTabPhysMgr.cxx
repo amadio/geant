@@ -432,7 +432,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           //-set status of primary in tracks to kKilled;
           tracks.fStatusV[t] = kKilled;
           tracks.fEdepV[t] += postEkinOfParimary;
-          if( isSurv && fElemFstate[tracks.fEindexV[t]]->HasRestCapture(tracks.fG5codeV[t]) )
+          if( fElemFstate[tracks.fEindexV[t]]->HasRestCapture(tracks.fG5codeV[t]) )
              GetRestFinStates(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, nTotSecPart, tid);            
 
           //j = 0;

@@ -37,6 +37,7 @@
 #include "G4UserRunAction.hh"
 #include "globals.hh"
 
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class G4Run;
@@ -51,6 +52,16 @@ public:
   void   EndOfRunAction(const G4Run*);
     
   void fillPerEvent(G4double, G4double, G4double, G4double); 
+  void fillPerEvent(G4double *EdepGap, G4double *LengthGap, G4double *EdepAbs, 
+                    G4double *LengthAbs, G4long numsteps, G4long *ProcStat,
+                    G4double time);
+
+  static const G4int kNlayers = 10;
+  static const G4int kNProc  = 19; // 18+userCuts   
+
+  static G4bool isStatistics;  // do you want stat. output ?
+  static G4bool isTabPhys;     // running with TABPHYS ?
+ 
 
 private:
   G4double sumEAbs, sum2EAbs;
@@ -58,6 +69,27 @@ private:
     
   G4double sumLAbs, sum2LAbs;
   G4double sumLGap, sum2LGap;    
+
+  // for the whole run
+  G4double  fSumEdepGap[kNlayers];   // Energy deposition per layer
+  G4double  fSumLengthGap[kNlayers]; // step length per layer
+  G4double  fSumEdepAbs[kNlayers];   // Energy deposition per layer
+  G4double  fSumLengthAbs[kNlayers]; // step length per layer
+  G4double  fSum2EdepGap[kNlayers];   // Energy deposition per layer
+  G4double  fSum2LengthGap[kNlayers]; // step length per layer
+  G4double  fSum2EdepAbs[kNlayers];   // Energy deposition per layer
+  G4double  fSum2LengthAbs[kNlayers]; // step length per layer
+  G4double  sum2LAbs0, sum2LGap0;            
+  G4double  sum2EAbs0, sum2EGap0;     
+
+  G4long    fSumNSteps, fSum2NSteps;      
+
+  G4long    fSumProcStat[kNProc];
+  G4long    fSum2ProcStat[kNProc];
+
+  G4long    fSumKilledSecs, fSum2KilledSecs;
+  
+  G4double  fSumTime, fSum2Time; 
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -96,7 +96,7 @@ int main(int argc,char** argv)
   
   // parsing the arguments
   int c; 
-  while ((c = getopt (argc, argv, "m:v:l:p:")) != -1)
+  while ((c = getopt (argc, argv, "m:v:l:p:s")) != -1)
     switch (c) {
       case 'm':
         isBachMode = TRUE;
@@ -112,7 +112,10 @@ int main(int argc,char** argv)
       case 'p':
         strncpy(physListName,optarg,strlen(optarg));
         physListName[strlen(optarg)] = '\0';
-        break; 
+        break;
+      case 's':
+        RunAction::isStatistics = TRUE; 
+        break;  
       case '?':
         usage();
         return 1;
@@ -138,6 +141,7 @@ int main(int argc,char** argv)
   // set tracking cut in case of G4 physics list (parameter given with -l flag)
   if(strcmp(physListName,"TABPHYS")) 
     DetectorConstruction::fTrackingCutInEnergy = tabPhysEnergyLimit*GeV; 
+
   runManager->SetUserInitialization(new DetectorConstruction);
   //
 
@@ -149,7 +153,8 @@ int main(int argc,char** argv)
   } else if(!strcmp(physListName,"FTFP_BERT_HP")) {
     runManager->SetUserInitialization(new FTFP_BERT_HP);
   } else if(!strcmp(physListName,"TABPHYS")) {
-    runManager->SetUserInitialization(new SimplePhysicsList);  
+    runManager->SetUserInitialization(new SimplePhysicsList);
+    RunAction::isTabPhys = TRUE;  
   } else {
     G4cout << "Unknown physics list " << physListName << G4endl;
     exit(1);
@@ -249,7 +254,7 @@ void usage()
   "    exampleN03 ----------------- Geant4 example --------------------------- " 
        << G4endl << G4endl <<
   "SYNOPSIS" << G4endl <<
-  "    exampleN03 [-l, -v, -m <FILE>, -p <NAME>] " << G4endl << G4endl <<
+  "    exampleN03 [-l, -v, -m <FILE>, -p <NAME>, -s] " << G4endl << G4endl <<
   "DESCRIPTION" << G4endl <<
   "    Run Geant4 /examples/novice/N03/exampleN03 with optional physics list " 
         << G4endl << G4endl <<
@@ -261,6 +266,8 @@ void usage()
   "    -m <FILE> if we run it in bach mode; file is the Geant4 macro file" 
           << G4endl <<
   "    -p <NAME> physics list: TABPHYS (default), QBBC, FTFP_BERT, FTFP_BERT_HP"
+          << G4endl <<
+  "    -s generate statistics"
   << G4endl <<  
   "============================================================================"
   << G4endl << G4endl; 

@@ -23,8 +23,12 @@
 #include "G4ParticleTable.hh"
 #include "Randomize.hh"
 
+#include "G4ProcessManager.hh"
+
 using CLHEP::GeV;
 using CLHEP::cm;
+
+G4long TabulatedDataManager:: killedSecs =0;
 
 TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
 TGeoManager *TabulatedDataManager::fgGeom= 0 ; // Pointer to the geometry manager   
@@ -265,6 +269,12 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
    G4double dedx  = fMatXsec[imat]->DEdx(partIndex, kinEnergy, firstElemIndx);
    G4double edepo = dedx*stepLength;
 
+   // set the G4 'step defined by process' to the selected discreate process name  
+   G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+   G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+   *strp = TPartIndex::I()->ProcName(2); //Ionization
+
+
    if( fgVerboseLevel >=2 )
      std::cout<< "\n=====COMPUTING ALONG-STEP ENERY LOSS==USING=GV-TABPHYS=(dE/dx)====\n" 
             << "***  Particle is       = " << 
@@ -281,7 +291,6 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
                                                        edepo << " [GeV]" << "\n"  
             << "\n==================================================================\n"
             << std::endl;
-
    // If Ekin-EnergyLoss is above the cut then update the current track.
    // Otherwise: particle is stopped, Ekin goes to energy deposit, status is set 
    // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
@@ -291,12 +300,25 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
      particlechange->ProposeTrackStatus(fAlive);
      particlechange->ProposeLocalEnergyDeposit(edepo*GeV); //from GeV->MeV
    } else {
+      // set the G4 'step defined by process' to the selected discreate process name  
+      //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+      //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+      //*strp = "UserSpecialCut";
+      if( (kinEnergy-edepo) > 1.e-6) 
+        ++killedSecs;
+
      particlechange->ProposeEnergy(0.0);
      particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
      if(fElemFstate[firstElemIndx]->HasRestCapture(partIndex) )
-       particlechange->ProposeTrackStatus(fStopButAlive);  
+       particlechange->ProposeTrackStatus(fStopButAlive);
      else
        particlechange->ProposeTrackStatus(fStopAndKill); 
+
+     // set the G4 'step defined by process' to the selected discreate process name  
+     //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+     //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+     //*strp = "UserSpecialCut";
+//     ++killedSecs;
    }    
 }
 
@@ -359,7 +381,16 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
                << "==================================================================\n"
                << std::endl;
 
-    
+
+    // set the G4 'step defined by process' to the selected discreate process name  
+    G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+    G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+    *strp = TPartIndex::I()->ProcName(reactionid);
+
+ /*   G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+    proc->SetProcessSubType(reactionid);
+    atrack.GetStep()->GetPostStepPoint()->SetProcessDefinedStep(proc);
+ */
     return elemXsec->Index();
   } else {
       std::cout<< "\n!!*******SAMPLING INTERACTION****USING*GV-TABPHYS***************!!\n" 
@@ -375,6 +406,8 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
       Fatal("TabulatedDataManager::SampleInteraction", "No element selected!");
     //return -1;
   }
+
+
 }
 
 //_____________________________________________________________________________
@@ -475,14 +508,27 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
       // Primary particle is stopped, Ekin goes to energy deposit, status is set 
       // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
       // have NuclearCaptureAtRest process.  
+       // set the G4 'step defined by process' to the selected discreate process name  
+       //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+       //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+       //*strp = "UserSpecialCut";
+       if(postEkinOfParimary > 1.e-6)
+         ++killedSecs;
+
       totEdepo += postEkinOfParimary;
       particlechange->ProposeEnergy(0.0);  
       particlechange->ProposeMomentumDirection(0.0,0.0,1.0); // not since <-Ekin =0.
-      if(isSurv && fElemFstate[elementindex]->HasRestCapture(partindex) ) {
+      if(fElemFstate[elementindex]->HasRestCapture(partindex) ) {
         particlechange->ProposeTrackStatus(fStopButAlive); 
-        std::cout<<partindex<<std::endl; 
+        //std::cout<<partindex<<std::endl; 
       }else
         particlechange->ProposeTrackStatus(fStopAndKill); 
+
+      // set the G4 'step defined by process' to the selected discreate process name  
+      //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+      //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+      //*strp = "UserSpecialCut";
+      //++killedSecs;
     }
 
   // go for the real secondary particles
@@ -533,6 +579,7 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
        Double_t secP2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
        // compute Ekin of the fragment and put to Edepo
        totEdepo += std::sqrt( secP2 + secMass*secMass) - secMass;
+       ++killedSecs;
        continue;
      }
 
@@ -592,6 +639,13 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
 
      } else { 
        totEdepo+=secEkin;
+       // set the G4 'step defined by process' to the selected discreate process name  
+       //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+       //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+       //*strp = "UserSpecialCut";
+       if(secEkin>1.e-6)
+         ++killedSecs; 
+
        if(fElemFstate[elementindex]->HasRestCapture(pid[isec]) ) { 
          ++totalNumSec;
       
@@ -638,6 +692,11 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
                         Double_t energylimit){
     // fist we kill the current track; its energy ahs already been put into depo
     particlechange->ProposeTrackStatus(fStopAndKill);
+
+    G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+    G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+    *strp = TPartIndex::I()->ProcName(6);// RestCapture
+
 
     // sample one of the elements of the current material based on the relative 
     // number atoms/volume
@@ -707,6 +766,7 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
        Double_t pz       = mom[3*isec+2];
        Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
        totEdepo += std::sqrt( secPtot2 + secMass*secMass) - secMass;
+       ++killedSecs;
        continue;
      }
    
@@ -760,7 +820,13 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
                   << std::endl;
 
      } else { 
-       totEdepo+=secEkin;
+       totEdepo+=secEkin;  
+       // set the G4 'step defined by process' to the selected discreate process name  
+       //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+       //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+       //*strp = "UserSpecialCut";
+       if(secEkin>1.e-6)
+         ++killedSecs; 
 //OFF TILL WE DON'T HAVE DECAY
 /*       if(fElemFstate[elementIndex]->HasRestCapture(partindex) ) { 
          ++totalNumSec;
