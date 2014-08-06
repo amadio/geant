@@ -34,14 +34,15 @@
    3.3 to run another example, replace the project name (i.e.,trackingTest2) 
        by one of following programs;
 
-       - EMPhysics    (EM processes) - lagacy program with old EM physics
-       - geometry     (Navigation) 
-       - rngTest      (Random number generation)
-       - stepper      (Adaptive step control algorithms)
-       - photonTest   (photon physics processes/models)
-       - electronTest (electron physics processes/models)
-       - dma          (different strategies for memory accesses)
-       - soa          (struct of array vs. array of struct)
+       - trackingTest3 (trackingTest2 + MagneticFieldTexture)
+       - EMPhysics     (EM processes) - lagacy program with old EM physics
+       - geometry      (Navigation) 
+       - rngTest       (Random number generation)
+       - stepper       (Adaptive step control algorithms)
+       - photonTest    (photon physics processes/models)
+       - electronTest  (electron physics processes/models)
+       - dma           (different strategies for memory accesses)
+       - soa           (struct of array vs. array of struct)
 
         example:
 
