@@ -38,6 +38,9 @@ public:
    Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
    Float_t DEdx(Int_t part, Float_t en, Int_t &elemindx);
    Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
+   Float_t Range(Int_t part, Float_t en, Int_t &elemindx);
+   Float_t Range(Int_t part, Float_t en);
+   Double_t InvRange(Int_t part, Double_t step);
 
    void Eloss(Int_t ntracks, GeantTrack_v &tracks);
    void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
@@ -74,6 +77,7 @@ private:
    Float_t        *fMSlength;  // [fNCharge] table of MS average lenght correction
    Float_t        *fMSlensig;  // [fNCharge] table of MS sigma lenght correction
    Double_t       *fRatios;    // [fNElems]  relative #atoms/volume; normalized
+   Float_t        *fRange;     // [fNCharge] ranges of the particle in this material
 
    ClassDef(TMXsec,1)  //Material X-secs
 
