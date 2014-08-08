@@ -39,6 +39,9 @@ public:
   //element index is the return and type will be in reactionid after termination   
   Int_t SampleInteraction(const G4int imat, const G4Track &atrack, 
                           Int_t &reactionid);
+  //Get range of the particle
+  G4double GetRange(const G4int imat, const G4Track &atrack);
+
   //sampling a tabulated final state, insert secondaries into the particle change 
   //after proper transforamtion, update properties of primary in track 
   void SampleFinalState(const Int_t elementindex, const Int_t reactionid,
@@ -62,7 +65,13 @@ public:
 
   static void SetVerboseLevel(G4int level) {fgVerboseLevel = level;}
   static G4long killedSecs;
-  
+  // use or not ranges, inv. ranges and along step limit
+  // will also change if the discrete interaction is selected by using the pre 
+  // or the post step energy:
+  //                -isUseRange = false post step Ekin is sused (def.)
+  //                -isUseRange = true  pre step Ekin is sused (when comp. to G4)   
+  static G4bool fgIsUseRange; 
+
 private:
 
   static TabulatedDataManager* fgInstance;

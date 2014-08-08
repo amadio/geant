@@ -25,7 +25,8 @@ TMXsec::TMXsec():
    fMSansig(0),
    fMSlength(0),
    fMSlensig(0),
-   fRatios(0)
+   fRatios(0),
+   fRange(0)
 {
 }
 
@@ -40,6 +41,7 @@ TMXsec::~TMXsec() {
    delete [] fMSlensig;
    delete [] fDEdx;
    delete [] fRatios;
+   delete [] fRange;
 }
 
 //____________________________________________________________________________
@@ -62,7 +64,8 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    fMSansig(0),
    fMSlength(0),
    fMSlensig(0),
-   fRatios(0)
+   fRatios(0),
+   fRange(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
@@ -123,6 +126,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    if(fNElems>1) {
       fNRelXS = npart*fNEbins*fNElems;
       fRelXS = new Float_t[fNRelXS];
+      memset(fRelXS,0,fNRelXS*sizeof(Float_t));
    }
    fNTotXL = npart*fNEbins;
    fTotXL = new Float_t[fNTotXL];
@@ -145,18 +149,18 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 Int_t ibin = ibase + ie*fNElems;
 	 if(fNElems>1) {
 	    for(Int_t iel=0; iel<fNElems; ++iel) {
-	       //fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*ratios[iel];
-               fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*fRatios[iel];
-	       fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
+               fRelXS[ibin+iel] = fElems[iel]->XS(ip,totindex,fEGrid[ie])*fRatios[iel]; 
+               fTotXL[ip*fNEbins+ie]+=fRelXS[ibin+iel];
 	    }
 	 } else {
-	    //fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*ratios[0];
-            fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*fRatios[0];
+           fTotXL[ip*fNEbins+ie] = fElems[0]->XS(ip,totindex,fEGrid[ie])*fRatios[0];
 	 }
 	 if(fTotXL[ip*fNEbins+ie]) {
 	    fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
 	    if(fNElems>1) for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
-	 }
+	 } else {
+             fTotXL[ip*fNEbins+ie]=TMath::Limits<Float_t>::Max();
+         }
       }
    }
    for(Int_t ip=0; ip<ncharge; ++ip) {
@@ -176,6 +180,22 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 }
       }
    }
+
+   // build range table with simple integration of 1/dedx
+   fRange = new Float_t[fNCharge];
+   memset(fRange,0,fNCharge*sizeof(Float_t));
+   for(Int_t ip=0; ip<ncharge; ++ip)
+      for(Int_t ie=0; ie<fNEbins; ++ie) {
+         if(ie == 0) {
+           // assume linear dependece
+           fRange[ip*fNEbins+ie] = 2.0*fEGrid[0]/fDEdx[ip*fNEbins+0];
+         } else {
+            Double_t csdarange = 2.0*fEGrid[0]/fDEdx[ip*fNEbins+0];
+           for(Int_t k =0; k<ie; ++k)
+              csdarange+=0.5*(1.0/fDEdx[ip*fNEbins+k]+1.0/fDEdx[ip*fNEbins+k+1])*(fEGrid[k+1]-fEGrid[k]);
+	    fRange[ip*fNEbins+ie]=csdarange; // in [cm]
+         }
+      }
 
    //normalization of fRatios[] to 1
    if(fNElems == 1) fRatios[0] = 1.0;
@@ -380,6 +400,59 @@ Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float
   return kTRUE;
 }
 
+//____________________________________________________________________________
+Float_t TMXsec::Range(Int_t part, Float_t en) {
+  Int_t elemindx;
+  return Range(part, en, elemindx);
+}
+
+//____________________________________________________________________________
+Float_t TMXsec::Range(Int_t part, Float_t en, Int_t &elemindx) {
+  if(part>=TPartIndex::I()->NPartCharge() || !fRange)
+    return -1.0;
+  else {
+    en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+    en=en>=fEGrid[0]?en:fEGrid[0];
+    Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+    ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+
+    Double_t en1 = fEGrid[ibin];
+    Double_t en2 = fEGrid[ibin+1];
+    if(en1>en || en2<en) {
+      Error("Range","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+            ibin, en1, en, en2);
+      return TMath::Limits<Float_t>::Max();
+    }
+
+    // set to the first element of this mix.: need to know at last one element
+    // to be able to check in EnergyLoss if there is NuclCaptAtRest in case of
+    // stopping
+    elemindx = fElems[0]->Index();
+
+    Double_t xrat = (en2-en)/(en2-en1);
+    return xrat*fRange[part*fNEbins+ibin]+(1-xrat)*fRange[part*fNEbins+ibin+1];
+  }
+}
+
+//____________________________________________________________________________
+Double_t TMXsec::InvRange(Int_t part, Double_t step) {
+  if(part>=TPartIndex::I()->NPartCharge() || !fRange)
+    return 0.;
+
+  Double_t minr = fRange[part*fNEbins]; //min available range i.e. for E_0
+  if(step >= minr ) {
+    Int_t i=0;
+    while(fRange[part*fNEbins+i]<step) ++i;
+
+    Double_t r1 = fRange[part*fNEbins+i-1];
+    Double_t r2 = fRange[part*fNEbins+i];
+    Double_t xrat = (r2-step)/(r2-r1);
+    return xrat*fEGrid[i-1]+(1-xrat)*fEGrid[i];
+  } else {
+    Double_t x = step/minr;
+    return fEGrid[0]*x*x;
+  }
+}
 
 //____________________________________________________________________________
 void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)

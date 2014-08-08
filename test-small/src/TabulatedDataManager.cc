@@ -28,10 +28,12 @@
 using CLHEP::GeV;
 using CLHEP::cm;
 
-G4long TabulatedDataManager:: killedSecs =0;
+
+G4long TabulatedDataManager::killedSecs =0;
 
 TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
 TGeoManager *TabulatedDataManager::fgGeom= 0 ; // Pointer to the geometry manager   
+G4bool TabulatedDataManager::fgIsUseRange = FALSE;
 
 const char* TabulatedDataManager::tStatus[] = {"fAlive", "fStopButAlive", 
                                                "fStopAndKill"};
@@ -249,7 +251,8 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
                                           GetPDGEncoding() );
   if(partIndex > TPartIndex::I()->NPartCharge())
     return;
-  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+  kinEnergy = astep.GetPreStepPoint()->GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+
 
   if (imat < 0 || imat >= fNmaterials) {
     std::cout<< "\n!!*******SAMPLING ENERY LOSS*****USING*GV-TABPHYS***************!!\n" 
@@ -261,18 +264,61 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
              << std::endl;
     Fatal("TabulatedDataManager::EnergyLoss", "Material index is out of range!");
+    exit(EXIT_FAILURE);
    }
-
-   // Get dE/dx and go for energy loss computation:
-   // We need to know one of the elements (index) to check if partice has AtRest 
-   G4int    firstElemIndx; 
-   G4double dedx  = fMatXsec[imat]->DEdx(partIndex, kinEnergy, firstElemIndx);
-   G4double edepo = dedx*stepLength;
 
    // set the G4 'step defined by process' to the selected discreate process name  
    G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
    G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
    *strp = TPartIndex::I()->ProcName(2); //Ionization
+
+
+   // We need to know one of the elements (index) to check if partice has AtRest
+   G4int firstElemIndx = -1;
+
+   G4double range0 = 0.0;
+   if(fgIsUseRange) {
+     range0 = fMatXsec[imat]->Range(partIndex, kinEnergy, firstElemIndx);
+     if(range0<0.) return; // there is no range -> there is no ionisation 
+
+     if(stepLength>=range0) {
+       particlechange->ProposeEnergy(0.0);
+       particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
+       if(fElemFstate[firstElemIndx]->HasRestCapture(partIndex) )
+         particlechange->ProposeTrackStatus(fStopButAlive);
+       else
+         particlechange->ProposeTrackStatus(fStopAndKill);
+       return;
+     }
+   }
+
+   // Get dE/dx and go for energy loss computation:
+   G4double dedx  = fMatXsec[imat]->DEdx(partIndex, kinEnergy, firstElemIndx);
+   G4double edepo = dedx*stepLength;
+   if(fgIsUseRange && edepo>0.01*kinEnergy) { // long step
+     G4double invrange = fMatXsec[imat]->InvRange(partIndex, range0-stepLength);
+     edepo = kinEnergy-invrange;
+   }
+
+   G4double finalEkin = kinEnergy-edepo;
+
+   // If Ekin-EnergyLoss is above the cut then update the current track.
+   // Otherwise: particle is stopped, Ekin goes to energy deposit, status is set
+   // to StopButAlive or StopAndKill depending on if the particle does/doesn't
+   // have NuclearCaptureAtRest process.
+
+   if( finalEkin > energylimit) {
+     particlechange->ProposeEnergy(finalEkin*GeV); //from GeV->MeV
+     particlechange->ProposeTrackStatus(fAlive);
+     particlechange->ProposeLocalEnergyDeposit(edepo*GeV); //from GeV->MeV
+   } else {
+     particlechange->ProposeEnergy(0.0);
+     particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
+     if(fElemFstate[firstElemIndx]->HasRestCapture(partIndex) )
+       particlechange->ProposeTrackStatus(fStopButAlive);
+     else
+       particlechange->ProposeTrackStatus(fStopAndKill);
+   }
 
 
    if( fgVerboseLevel >=2 )
@@ -285,41 +331,42 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
                                                " which is Ionisation. " << " \n"
             << "***  Material name     = " << fMatXsec[imat]->GetName() << " \n"
             << "***  Step lenght       = " << 
-                            astep.GetStepLength()/CLHEP::cm << "[cm]  " <<
                                      astep.GetStepLength()/cm << "[cm]" << " \n"
             << "***  dE/dx             = " << dedx << "[GeV/cm] Eloss:= " << 
                                                        edepo << " [GeV]" << "\n"  
             << "\n==================================================================\n"
             << std::endl;
-   // If Ekin-EnergyLoss is above the cut then update the current track.
-   // Otherwise: particle is stopped, Ekin goes to energy deposit, status is set 
-   // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
-   // have NuclearCaptureAtRest process.  
-   if( (kinEnergy-edepo) > energylimit) {
-     particlechange->ProposeEnergy((kinEnergy-edepo)*GeV); //from GeV->MeV
-     particlechange->ProposeTrackStatus(fAlive);
-     particlechange->ProposeLocalEnergyDeposit(edepo*GeV); //from GeV->MeV
-   } else {
-      // set the G4 'step defined by process' to the selected discreate process name  
-      //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-      //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-      //*strp = "UserSpecialCut";
-      if( (kinEnergy-edepo) > 1.e-6) 
-        ++killedSecs;
+}
 
-     particlechange->ProposeEnergy(0.0);
-     particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
-     if(fElemFstate[firstElemIndx]->HasRestCapture(partIndex) )
-       particlechange->ProposeTrackStatus(fStopButAlive);
-     else
-       particlechange->ProposeTrackStatus(fStopAndKill); 
+//_____________________________________________________________________________
+G4double TabulatedDataManager::GetRange(const G4int imat, const G4Track &atrack){
+  G4double x = DBL_MAX;
+  G4int    partIndex;   // GV particle index
+  G4double kinEnergy;   // kinetic energy of the particle in GeV
 
-     // set the G4 'step defined by process' to the selected discreate process name  
-     //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-     //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-     //*strp = "UserSpecialCut";
-//     ++killedSecs;
-   }    
+  partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
+                                          GetPDGEncoding() );
+  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+
+  if (imat < 0 || imat >= fNmaterials) {
+    std::cout<< "\n!!************GETTING-LINEAR-RANGE***USING*GV-TABPHYS************!!\n"
+             << "***  Particle is       = " <<
+                                   TPartIndex::I()->PartName(partIndex) << " \n"
+             << "***  Particle E kin.   = " << kinEnergy << " [GeV]"    << " \n"
+             << "***  Material index:   = " << imat
+                    << " OUT OF RANGE: [ 0 ," << fNmaterials  <<  " ]!" << " \n"
+             << "!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+             << std::endl;
+    Fatal("TabulatedDataManager::GetInteractionLength", "Material index is out of range!");
+    exit(EXIT_FAILURE);
+   }
+
+  // Get the linear range
+   if(partIndex>=TPartIndex::I()->NPartCharge())
+     return -1.0;
+
+   x = fMatXsec[imat]->Range(partIndex,kinEnergy);
+   return x; // from cm->mm
 }
 
 //_____________________________________________________________________________
@@ -332,7 +379,8 @@ G4double TabulatedDataManager::GetInteractionLength(G4int imat,
   partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
                                           GetPDGEncoding() );
   kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
- 
+
+
   if (imat < 0 || imat >= fNmaterials) {
     std::cout<< "\n!!********SAMPLING-INTERACTION-LENGTH***USING*GV-TABPHYS*********!!\n" 
              << "***  Particle is       = " << 
@@ -343,6 +391,7 @@ G4double TabulatedDataManager::GetInteractionLength(G4int imat,
              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
              << std::endl;
     Fatal("TabulatedDataManager::GetInteractionLength", "Material index is out of range!");
+    exit(EXIT_FAILURE);
    }
 
   // Get the total mean free path 
@@ -360,8 +409,14 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
  
   partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
                                           GetPDGEncoding() );
-  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
- 
+//  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+  // TO BE THE SAME AS G4 WITHOUT integral approach !!! IT IS DIFFERENT IT PROTO.
+  // BUT NO EFFECT IF THE TRACKING LIMIT IS HIGHER THAN 3keV
+  if(fgIsUseRange)
+     kinEnergy = atrack.GetStep()->GetPreStepPoint()->GetKineticEnergy()/GeV;
+  else
+     kinEnergy = atrack.GetStep()->GetPostStepPoint()->GetKineticEnergy()/GeV;
+
   // sampling element for intercation based on element-wise relative tot-xsecs
   // and sampling the interaction itself based on the relative total xsections 
   // on the selected element
@@ -381,16 +436,11 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
                << "==================================================================\n"
                << std::endl;
 
-
     // set the G4 'step defined by process' to the selected discreate process name  
-    G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-    G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-    *strp = TPartIndex::I()->ProcName(reactionid);
+      G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+      G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+      *strp = TPartIndex::I()->ProcName(reactionid);
 
- /*   G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-    proc->SetProcessSubType(reactionid);
-    atrack.GetStep()->GetPostStepPoint()->SetProcessDefinedStep(proc);
- */
     return elemXsec->Index();
   } else {
       std::cout<< "\n!!*******SAMPLING INTERACTION****USING*GV-TABPHYS***************!!\n" 
@@ -403,8 +453,8 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
                <<       TPartIndex::I()->ProcName(reactionid)           << " \n"
                << "!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                << std::endl;
-      Fatal("TabulatedDataManager::SampleInteraction", "No element selected!");
-    //return -1;
+     Fatal("TabulatedDataManager::SampleInteraction", "No element selected!");
+     exit(EXIT_FAILURE);
   }
 
 
@@ -508,13 +558,6 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
       // Primary particle is stopped, Ekin goes to energy deposit, status is set 
       // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
       // have NuclearCaptureAtRest process.  
-       // set the G4 'step defined by process' to the selected discreate process name  
-       //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-       //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-       //*strp = "UserSpecialCut";
-       if(postEkinOfParimary > 1.e-6)
-         ++killedSecs;
-
       totEdepo += postEkinOfParimary;
       particlechange->ProposeEnergy(0.0);  
       particlechange->ProposeMomentumDirection(0.0,0.0,1.0); // not since <-Ekin =0.
@@ -523,12 +566,6 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
         //std::cout<<partindex<<std::endl; 
       }else
         particlechange->ProposeTrackStatus(fStopAndKill); 
-
-      // set the G4 'step defined by process' to the selected discreate process name  
-      //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-      //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-      //*strp = "UserSpecialCut";
-      //++killedSecs;
     }
 
   // go for the real secondary particles
@@ -639,12 +676,7 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
 
      } else { 
        totEdepo+=secEkin;
-       // set the G4 'step defined by process' to the selected discreate process name  
-       //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-       //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-       //*strp = "UserSpecialCut";
-       if(secEkin>1.e-6)
-         ++killedSecs; 
+       ++killedSecs;
 
        if(fElemFstate[elementindex]->HasRestCapture(pid[isec]) ) { 
          ++totalNumSec;
@@ -821,12 +853,7 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
 
      } else { 
        totEdepo+=secEkin;  
-       // set the G4 'step defined by process' to the selected discreate process name  
-       //G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
-       //G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-       //*strp = "UserSpecialCut";
-       if(secEkin>1.e-6)
-         ++killedSecs; 
+       ++killedSecs;
 //OFF TILL WE DON'T HAVE DECAY
 /*       if(fElemFstate[elementIndex]->HasRestCapture(partindex) ) { 
          ++totalNumSec;

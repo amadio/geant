@@ -96,7 +96,7 @@ int main(int argc,char** argv)
   
   // parsing the arguments
   int c; 
-  while ((c = getopt (argc, argv, "m:v:l:p:s")) != -1)
+  while ((c = getopt (argc, argv, "m:v:l:p:sr")) != -1)
     switch (c) {
       case 'm':
         isBachMode = TRUE;
@@ -116,6 +116,9 @@ int main(int argc,char** argv)
       case 's':
         RunAction::isStatistics = TRUE; 
         break;  
+      case 'r':
+        TabulatedDataManager::fgIsUseRange = TRUE;
+        break;
       case '?':
         usage();
         return 1;
@@ -254,7 +257,8 @@ void usage()
   "    exampleN03 ----------------- Geant4 example --------------------------- " 
        << G4endl << G4endl <<
   "SYNOPSIS" << G4endl <<
-  "    exampleN03 [-l, -v, -m <FILE>, -p <NAME>, -s] " << G4endl << G4endl <<
+  "    exampleN03 [-l <value>, -v <value>, -m <FILE>, -p <NAME>, -s -r] "
+        << G4endl << G4endl <<
   "DESCRIPTION" << G4endl <<
   "    Run Geant4 /examples/novice/N03/exampleN03 with optional physics list " 
         << G4endl << G4endl <<
@@ -268,6 +272,18 @@ void usage()
   "    -p <NAME> physics list: TABPHYS (default), QBBC, FTFP_BERT, FTFP_BERT_HP"
           << G4endl <<
   "    -s generate statistics"
+          << G4endl <<
+  "    -r use ranges, inverse ranges, continuous step limitation and proper way"
+          << G4endl <<
+  "       of along step energy loss computation with 1% linear loss limit"
+          << G4endl <<
+  "       in the tabulated physics. The pre-setp energy will be used to sample"
+          << G4endl <<
+  "       the type of the discrete interaction at the post-step point that "
+          << G4endl <<
+  "       corresponds to G4 without using integral approach. (This flag need to"
+          << G4endl <<
+  "       be used if the tracking cut value [-l <value>] < 3 keV)."
   << G4endl <<  
   "============================================================================"
   << G4endl << G4endl; 

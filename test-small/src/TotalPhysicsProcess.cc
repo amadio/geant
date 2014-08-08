@@ -92,9 +92,25 @@ G4double TotalPhysicsProcess::GetContinuousStepLimit(const G4Track& track,
                                                      G4double currentMinimumStep,
                                                      G4double &currentSafety){
 // Temporary switch off MSC !!!
-//    G4int rootMatId = SetupForMaterial(track);
+    G4int rootMatId = SetupForMaterial(track);
 //    theDataManager->ApplyMsc(rootMatId, track);
-    return DBL_MAX;
+
+    if(!(TabulatedDataManager::fgIsUseRange)) {
+       return DBL_MAX;
+    } else {
+      G4double range =  theDataManager->GetRange(rootMatId, track); //in cm
+      if(range<0.)
+        return DBL_MAX;
+
+       G4double x = range; // will be in cm
+       // dRoverRange = 0.2
+       // finalRange 0.1 [cm]
+       G4double finR = 0.1;
+       if(x>finR)
+         return( x*0.2+finR*(0.8*(2.0-finR/x)))*cm;
+
+       return x*cm;
+    }
 }
 
 //_____________________________________________________________________________
@@ -115,6 +131,10 @@ G4VParticleChange* TotalPhysicsProcess::AlongStepDoIt(const G4Track& track,
 //______________________________________________________________________________
 G4VParticleChange* TotalPhysicsProcess::AtRestDoIt(const G4Track &atrack, 
                                                     const G4Step &astep){
+
+   // clear number of interaction length left (will set to -1) --> need to be resample 
+   ClearNumberOfInteractionLengthLeft();
+
    // DOES NOTHING AT THE MOMENT JUST KILLS THE TRACK!
    // init G4ParticleChange from current track
    fParticleChange->Initialize(atrack); 
@@ -138,7 +158,7 @@ G4double TotalPhysicsProcess::GetMeanFreePath(const G4Track& track,
 
   // condition is set to "Not Forced"
   *condition = NotForced;
-  
+
   G4double preStepLambda =
      theDataManager->GetInteractionLength(rootMatId,track); 
   return preStepLambda;
@@ -149,6 +169,9 @@ G4double TotalPhysicsProcess::GetMeanFreePath(const G4Track& track,
 G4VParticleChange* TotalPhysicsProcess::PostStepDoIt(const G4Track& track, 
                                                      const G4Step& step) {
 
+  // clear number of interaction length left (will set to -1) --> need to be resample 
+  ClearNumberOfInteractionLengthLeft();
+ 
   // init G4ParticleChange from current track
   fParticleChange->Initialize(track);
 
@@ -182,8 +205,6 @@ G4VParticleChange* TotalPhysicsProcess::PostStepDoIt(const G4Track& track,
   theDataManager->SampleFinalState(elementIndex, reactionId, track, 
                                    fParticleChange, fgEnergyLimit );
 
-  // clear number of interaction length left (will set to -1) --> need to be resample 
-  ClearNumberOfInteractionLengthLeft();
   
   return fParticleChange;
 }
