@@ -76,12 +76,20 @@ FQUALIFIER GXSeltzerBerger::~GXSeltzerBerger()
 }
 
 FQUALIFIER void
+GXSeltzerBerger::SampleByRandom(G4double kineticEnergy)
+{
+  fGammaEnergy = fMinY + kineticEnergy*GPUniformRand(fDevState, fThreadId);
+  fGammaSinTheta = SampleDirection(kineticEnergy);
+}
+
+FQUALIFIER void
 GXSeltzerBerger::GetSampleParameters(G4int Z,
 				     G4double kineticEnergy,
 				     G4int &irow, G4int &icol,
 				     G4double &t) 
 {
   irow = G4int((log(kineticEnergy) - log(fMinX))/fDeltaX);
+
   G4double r1 = (fNcol-1)*GPUniformRand(fDevState, fThreadId);
   icol = int(r1);
   t = r1 - 1.0*icol;
@@ -116,6 +124,22 @@ GXSeltzerBerger::SampleByInversePDF(int Z, double kineticEnergy)
   fGammaSinTheta = SampleDirection(kineticEnergy + fMass - fGammaEnergy);
 }
 
+FQUALIFIER void
+GXSeltzerBerger::SampleByInversePDFTexture(int Z, double kineticEnergy)
+{
+  //sample based on the inverse cumulative pdf
+  G4int irow = -1;
+  G4int icol = -1;
+  G4double t = 0.;
+
+  GetSampleParameters(Z,kineticEnergy,irow,icol,t);
+
+  //sample based on the inverse cumulataive pdf
+  G4double yhat = InversePDFTexture(irow,icol,fDeltaY,t);
+
+  fGammaEnergy =  sqrt(fmax(exp(fMinY +yhat) -fDensityCorr,0.0));
+  fGammaSinTheta = SampleDirection(kineticEnergy + fMass - fGammaEnergy);
+}
 
 FQUALIFIER void
 GXSeltzerBerger::SampleByInversePDFLinearInterpolation(int Z,
@@ -129,6 +153,23 @@ GXSeltzerBerger::SampleByInversePDFLinearInterpolation(int Z,
 
   //sample based on the inverse cumulataive pdf
   G4double yhat = InversePDFLinearInterpolation(irow,icol,fDeltaY,t);
+
+  fGammaEnergy = sqrt(fmax(exp(fMinY+ yhat)-fDensityCorr,0.0));
+  fGammaSinTheta = SampleDirection(kineticEnergy + fMass - fGammaEnergy);
+}
+
+FQUALIFIER void
+GXSeltzerBerger::SampleByInversePDFTextureLinearInterpolation(int Z,
+						       double kineticEnergy)
+{
+  G4int irow = -1;
+  G4int icol = -1;
+  G4double t = 0.;
+
+  GetSampleParameters(Z,kineticEnergy,irow,icol,t);
+
+  //sample based on the inverse cumulataive pdf
+  G4double yhat = InversePDFTextureLinearInterpolation(irow,icol,fDeltaY,t);
 
   fGammaEnergy = sqrt(fmax(exp(fMinY+ yhat)-fDensityCorr,0.0));
   fGammaSinTheta = SampleDirection(kineticEnergy + fMass - fGammaEnergy);
@@ -170,7 +211,7 @@ GXSeltzerBerger::SampleByAliasLinearInterpolation(G4int Z,
 FQUALIFIER void
 GXSeltzerBerger::SampleByCompositionRejection(int Z, 
 					      double energy,
-					      G4int& ntrial)
+					      G4int& counter)
 {
   // G4SeltzerBergerModel::SampleSecondaries
 
@@ -229,10 +270,90 @@ GXSeltzerBerger::SampleByCompositionRejection(int Z,
       if(xxx < -12. ) { v = 0.0; }
       else { v *= exp(xxx); }
     }
-    ++ntrial;
+    ++counter;
   } while (v < vmax*GPUniformRand(fDevState, fThreadId));
 
   fGammaEnergy = gammaEnergy; 
+  fGammaSinTheta = SampleDirection(totalEnergy-gammaEnergy);
+}
+
+FQUALIFIER void
+GXSeltzerBerger::SampleByAverageTrials(int Z, 
+				       G4int ntrials,
+				       double energy,
+				       G4int& counter)
+{
+  // G4SeltzerBergerModel::SampleSecondaries - only test purpose
+
+  G4double kineticEnergy = energy ;
+  G4double emin = fmin(fMinX, kineticEnergy);
+  G4double emax = fmin(fMaxX, kineticEnergy);
+  if(emin >= emax) { return; }
+
+  int currentZ = Z;
+  const G4double densityFactor =1.0;
+  
+  G4double totalEnergy = kineticEnergy + fMass;
+  G4double densityCorr = densityFactor*totalEnergy*totalEnergy;
+  G4double totMomentum = sqrt(kineticEnergy*(totalEnergy + electron_mass_c2));
+
+  G4double xmin = log(emin*emin + densityCorr);
+  G4double xmax = log(emax*emax + densityCorr);
+  G4double y = log(kineticEnergy/MeV);
+
+  G4double gammaEnergy, v; 
+
+  // majoranta
+  G4double x0 = emin/kineticEnergy;
+  G4double vmax = fDataSB[Z].Value(x0, y)*1.02;
+
+  const G4double epeaklimit= 300*MeV; 
+  const G4double elowlimit = 10*keV; 
+
+  // majoranta corrected for e-
+  bool isElectron = true;
+  if(isElectron && x0 < 0.97 && 
+     ((kineticEnergy > epeaklimit) || (kineticEnergy < elowlimit))) {
+    G4double ylim = fmin(fDataSB[Z].Value(0.97, 4*log(10.)),
+			 1.1*fDataSB[Z].Value(0.97, y)); 
+    if(ylim > vmax) { vmax = ylim; }
+  }
+  if(x0 < 0.05) { vmax *= 1.2; }
+  
+  G4double  grej = 0.;
+  G4double  vrej = 0.;
+
+  for(G4int i = 0 ; i < ntrials ; ++i) {
+
+    G4double auxrand = GPUniformRand(fDevState, fThreadId);
+    G4double x = exp(xmin + auxrand*(xmax - xmin))-densityCorr;
+    if(x < 0.0) { x = 0.0; }
+    gammaEnergy = sqrt(x);
+    G4double x1 = gammaEnergy/kineticEnergy;
+    v = fDataSB[Z].Value(x1, y);
+
+    // correction for positrons        
+    
+    if(!isElectron) {
+      G4double e1 = kineticEnergy - emin;
+      G4double invbeta1 = (e1 + fMass)/sqrt(e1*(e1 + 2*fMass));
+      G4double e2 = kineticEnergy - gammaEnergy;
+      G4double invbeta2 = (e2 + fMass)/sqrt(e2*(e2 + 2*fMass));
+      G4double xxx = twopi*fine_structure_const*currentZ*(invbeta1 - invbeta2); 
+      
+      if(xxx < -12. ) { v = 0.0; }
+      else { v *= exp(xxx); }
+    }
+
+    //dummy operation to ensure all calculation steps
+    grej += gammaEnergy;  
+    vrej += v;  
+
+    ++counter;
+  }
+  //  } while (v < vmax*GPUniformRand(fDevState, fThreadId));
+  //only for testing purpose - simulation result will be wrong !!!
+  fGammaEnergy = (grej/ntrials)*(vrej/(vmax*ntrials));
   fGammaSinTheta = SampleDirection(totalEnergy-gammaEnergy);
 }
 

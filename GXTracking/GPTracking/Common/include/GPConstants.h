@@ -46,6 +46,9 @@ CONSTTYPE const int nElements = 3;
 CONSTTYPE const int maximumNumberOfSecondaries = 2;
 CONSTTYPE const int nPhotonProcessMax = 3;
 
+CONSTTYPE const int NROW = 100;
+CONSTTYPE const int NCOL = 1000;
+
 //G4LEDATA for G4SeltzerBergerModel (Z: 1-92)
 CONSTTYPE const int maxElements = 92;
 CONSTTYPE const unsigned int numberOfXNodes = 32;

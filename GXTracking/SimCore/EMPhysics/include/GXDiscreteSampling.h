@@ -1,5 +1,5 @@
 #ifndef GXDiscreteSampling_H
-#define GXDiscreteSampling_H
+#define GXDiscreteSampling_H 1
 
 //----------------------------------------------------------------------------
 // Build tables to sample secondary particles of EM Physics processes.  These 
@@ -136,7 +136,7 @@ void BuildAliasTables(const G4int n,
 G4double KleinNishinaCrossSection(G4double energy0, 
 				  G4double energy1) 
 {
-  //based on Geant4 : G4KleinNishinaCompton
+  // based on Geant4 : G4KleinNishinaCompton
   // input  : energy0 (incomming photon energy)
   //          energy1 (scattered photon energy)
   // output : dsigma  (differential cross section) 
@@ -148,6 +148,64 @@ G4double KleinNishinaCrossSection(G4double energy0,
   G4double sint2   = onecost*(2.-onecost);
   G4double greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
   G4double dsigma = (epsilon + 1./epsilon)*greject;
+
+  return dsigma;
+}
+
+double MollerBhabhaCrossSection(G4double kineticEnergy, 
+				G4double deltaRayEnergy,
+				bool isElectron) 
+{
+  // based on Geant3 : Simulation of the delta-ray production (PHY331-1)
+  // input  : energy0 (incomming photon energy)
+  //          energy1 (scattered photon energy)
+  // output : dsigma  (differential cross section) 
+
+  G4double dcross = 0.0;
+
+  G4double tau = kineticEnergy/electron_mass_c2;
+  G4double gam = tau + 1.0;
+  G4double gamma2 = gam*gam;
+  G4double epsil = deltaRayEnergy/kineticEnergy;
+
+  if(isElectron) {
+    //Moller (e-e-) scattering
+    G4double fgam = (2*gam-1.0)/gamma2;
+    G4double x = 1/epsil;
+    G4double y = 1/(1.0-epsil);
+
+    dcross = (1-fgam + x*(x-fgam) + y*y*fgam);
+  }
+  else {
+    //Bhabha (e+e-) scattering
+    G4double beta2 = tau*(tau + 2)/gamma2;
+
+    G4double y   = 1.0/(1.0 + gam);
+    G4double y2  = y*y;
+    G4double y12 = 1.0 - 2.0*y;
+    G4double y122= y12*y12;
+    
+    G4double b1  = 2.0 - y2;
+    G4double b2  = y12*(3.0 + y2);
+    G4double b4  = y122*y12;
+    G4double b3  = b4 + y122;
+    
+    dcross = 1./(beta2*epsil*epsil) - b1/epsil + b2 - b3*epsil + b4*epsil*epsil;
+  }
+
+  return dcross;
+}
+
+G4double SeltzerBergerCrossSection(GPPhysics2DVector data,
+				   G4double z, 
+				   G4double w) 
+{
+  //based on Geant4 : G4KleinNishinaCompton
+  // input  : data (SeltzerBerger data)
+  //          z (ratio of photon energy to electron energy)
+  //          w (log of the incident electron energy)
+  // output : dsigma  (differential cross section) 
+  G4double dsigma = data.Value(z,w);
 
   return dsigma;
 }
@@ -170,6 +228,41 @@ void BuildPDF_KleinNishina(const G4int n,
   for(int i = 0; i < n ; ++i) {
     G4double y = yo + dy*i;
     G4double xsec = KleinNishinaCrossSection(x,y);
+    p[i] = xsec;
+    sum += xsec;
+  }
+
+  //normalization
+  sum = 1.0/sum;
+  for(int i = 0; i < n ; ++i) {
+    p[i] *= sum;
+  }
+}
+
+void BuildPDF_MollerBhabha(const G4int n, 
+			   G4double    x, 
+			   bool        b, 
+			   G4double   *p)
+{
+  // Build PDF based on MollerBhabha Formular
+  //
+  // input  :   n  (dimension)
+  //            x  (incident e-/e+ energy)
+  //            b  (electron flag)
+  // output : p[n] (probability distribution) 
+
+  //cutoffs for the delta ray production
+  G4double ymin = 1.0; 
+  G4double ymax = 0.5*x;
+  if(!b)   ymax += ymax;
+
+  G4double dy = (ymax - ymin)/(n-1);
+  G4double yo = ymin + 0.5*dy;
+  
+  G4double sum = 0.;
+  for(int i = 0; i < n ; ++i) {
+    G4double y = yo + dy*i;
+    G4double xsec = MollerBhabhaCrossSection(x,y,b);
     p[i] = xsec;
     sum += xsec;
   }
@@ -274,6 +367,44 @@ void BuildInversePDF_KleinNishinaModel(G4int Z,
   }
 }
 
+void BuildInversePDF_MollerBhabha(G4int Z, 
+				  const bool flag,
+				  const G4double xmin, 
+				  const G4double xmax,
+				  const G4int nrow,
+				  const G4int ncol,
+				  G4double **p,
+				  G4double **q)
+{
+  // Build the 2-dimensional probability density function (p) in [xmin,xmax] 
+  // and the inverse pdf (q) with the equal probable bin in [0,1]
+  //
+  // input  :  Z    (atomic number) - not used for the atomic independent model
+  //           flag (electron flag)
+  //           xmin (miminum energy)
+  //           xmax (maxinum energy)
+  //           nrow (number of input energy bins)
+  //           ncol (number of output energy bins)
+  //
+  // output :  p[nrow][ncol] (probability distribution) 
+  //           q[nrow][ncol] (inverse cumulative distribution) 
+
+  //build pdf  
+  G4double dx = (xmax - xmin)/nrow;
+  G4double xo =  xmin + 0.5*dx;
+
+  for(int i = 0; i < nrow ; ++i) {
+    G4double x = xo + dx*i;
+    BuildPDF_MollerBhabha(ncol,x,flag,p[i]);
+  }
+
+  //invert the cdf to sample the x for the given random draw(0,1] in F^{-1}(y)
+  for(int i = 0; i < nrow ; ++i) {
+    BuildInversePDF(ncol,p[i],q[i]); 
+    
+  }
+}
+
 void BuildInversePDF_SeltzerBerger(G4int Z, 
 				   GPPhysics2DVector* data, 
 				   G4double df,
@@ -342,6 +473,46 @@ void BuildAliasSamplingTable_KleinNishina(G4int Z,
   for(int i = 0; i < nrow ; ++i) {
     G4double x = xo + dx*i;
     BuildPDF_KleinNishina(ncol,x,p[i]);
+  }
+  
+  //build alias tables (alias and probability)
+  for(int i = 0; i < nrow ; ++i) {
+    BuildAliasTables(ncol,p[i],a[i],q[i]);
+  }
+}
+
+void BuildAliasSamplingTable_MollerBhabha(G4int Z, 
+					  const bool flag, 
+					  const G4double xmin, 
+					  const G4double xmax,
+					  const G4int nrow,
+					  const G4int ncol,
+					  G4double **p,
+					  G4int    **a,
+					  G4double **q)
+{
+  // Build the 2-dimensional probability density function (MollerBhabha pdf) 
+  // in [xmin,xmax] and the alias table (a) and probability (q) with (ncol-1) 
+  // equal probable events, each with likelihood 1/(ncol-1)
+  //
+  // input  :  Z    (atomic number) - not used for the atomic independent model
+  //           flag (electron flag)
+  //           xmin (miminum energy)
+  //           xmax (maxinum energy)
+  //           nrow (number of input energy bins)
+  //           ncol (number of output energy bins)
+  //
+  // output :  p[nrow][ncol] (probability distribution) 
+  //           a[nrow][ncol] (alias table) 
+  //           q[nrow][ncol] (non-alias probability) 
+
+  //build pdf  
+  G4double dx = (xmax - xmin)/nrow;
+  G4double xo =  xmin + 0.5*dx;
+
+  for(int i = 0; i < nrow ; ++i) {
+    G4double x = xo + dx*i;
+    BuildPDF_MollerBhabha(ncol,x,flag,p[i]);
   }
   
   //build alias tables (alias and probability)

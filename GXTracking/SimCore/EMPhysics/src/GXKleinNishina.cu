@@ -78,6 +78,13 @@ GXKleinNishina::GetSampleParameters(G4double kineticEnergy,
 }
 
 FQUALIFIER void
+GXKleinNishina::SampleByRandom(G4double kineticEnergy)
+{
+  fGammaEnergy = fMinY + kineticEnergy*GPUniformRand(fDevState, fThreadId);
+  fGammaSinTheta = SampleDirection(kineticEnergy,fGammaEnergy);
+}
+
+FQUALIFIER void
 GXKleinNishina::SampleByInversePDF(G4double kineticEnergy)
 {
   G4int irow = -1;
@@ -92,6 +99,20 @@ GXKleinNishina::SampleByInversePDF(G4double kineticEnergy)
   fGammaSinTheta = SampleDirection(kineticEnergy,fGammaEnergy);
 }
 
+FQUALIFIER void
+GXKleinNishina::SampleByInversePDFTexture(G4double kineticEnergy)
+{
+  G4int irow = -1;
+  G4int icol = -1;
+  G4double t = 0.;
+
+  GetSampleParameters(kineticEnergy,irow,icol,t);
+
+  G4double yhat = InversePDFTexture(irow,icol,fDeltaY,t);
+
+  fGammaEnergy = fMinY + yhat;
+  fGammaSinTheta = SampleDirection(kineticEnergy,fGammaEnergy);
+}
 
 FQUALIFIER void
 GXKleinNishina::SampleByInversePDFLinearInterpolation(G4double kineticEnergy)
@@ -104,6 +125,23 @@ GXKleinNishina::SampleByInversePDFLinearInterpolation(G4double kineticEnergy)
 
   //sample based on the inverse cumulataive pdf
   G4double yhat = InversePDFLinearInterpolation(irow,icol,fDeltaY,t);
+
+  fGammaEnergy = fMinY + yhat;
+  fGammaSinTheta = SampleDirection(kineticEnergy,fGammaEnergy);
+  
+}
+
+FQUALIFIER void
+GXKleinNishina::SampleByInversePDFTextureLinearInterpolation(G4double kineticEnergy)
+{
+  G4int irow = -1;
+  G4int icol = -1;
+  G4double t = 0.;
+
+  GetSampleParameters(kineticEnergy,irow,icol,t);
+
+  //sample based on the inverse cumulataive pdf
+  G4double yhat = InversePDFTextureLinearInterpolation(irow,icol,fDeltaY,t);
 
   fGammaEnergy = fMinY + yhat;
   fGammaSinTheta = SampleDirection(kineticEnergy,fGammaEnergy);
@@ -160,7 +198,7 @@ GXKleinNishina::SampleDirection(G4double energyIn, G4double energyOut) {
 
 FQUALIFIER void
 GXKleinNishina::SampleByCompositionRejection(G4double gamEnergy0,
-					     G4int& ntrial)
+					     G4int& counter)
 {
   G4double epsilon, epsilonsq, onecost, sint2, greject ;
   
@@ -170,7 +208,7 @@ GXKleinNishina::SampleByCompositionRejection(G4double gamEnergy0,
   G4double alpha1     = - log(eps0);
   G4double alpha2     = 0.5*(1.- epsilon0sq);
   
-  ntrial = 0 ;
+  counter = 0 ;
   
   do {
     if( alpha1/(alpha1+alpha2) > GPUniformRand(fDevState, fThreadId) ) {
@@ -186,9 +224,54 @@ GXKleinNishina::SampleByCompositionRejection(G4double gamEnergy0,
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilonsq);
     
-    ++ntrial;
+    ++counter;
     
   } while (greject < GPUniformRand(fDevState, fThreadId));
+  
+  fGammaEnergy = epsilon*gamEnergy0;
+  fGammaSinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);
+}
+
+FQUALIFIER void
+GXKleinNishina::SampleByAverageTrials(G4int ntrials,
+				      G4double gamEnergy0,
+				      G4int& counter)
+{
+  G4double epsilon, epsilonsq, onecost, sint2, greject ;
+  
+  G4double E0_m = gamEnergy0/electron_mass_c2 ;
+  G4double eps0       = 1./(1. + 2.*E0_m);
+  G4double epsilon0sq = eps0*eps0;
+  G4double alpha1     = - log(eps0);
+  G4double alpha2     = 0.5*(1.- epsilon0sq);
+  
+  counter = 0 ;
+
+  G4double  sepsi = 0.;
+  G4double  sgrej = 0.;
+  
+  for(G4int i = 0 ; i < ntrials ; ++i) {
+
+    if( alpha1/(alpha1+alpha2) > GPUniformRand(fDevState, fThreadId) ) {
+      epsilon   = exp(-alpha1*GPUniformRand(fDevState, fThreadId));
+      epsilonsq = epsilon*epsilon; 
+    } 
+    else {
+      epsilonsq = epsilon0sq+(1.- epsilon0sq)*GPUniformRand(fDevState,fThreadId);
+      epsilon   = sqrt(epsilonsq);
+    }
+    
+    onecost = (1.- epsilon)/(epsilon*E0_m);
+    sint2   = onecost*(2.-onecost);
+    greject = 1. - epsilon*sint2/(1.+ epsilonsq);
+    
+    sepsi += epsilon;
+    sgrej += greject;
+    
+    ++counter;
+  }    
+  //  } while (greject < GPUniformRand(fDevState, fThreadId));
+  epsilon = (epsilon/ntrials)*(sgrej/ntrials);
   
   fGammaEnergy = epsilon*gamEnergy0;
   fGammaSinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);

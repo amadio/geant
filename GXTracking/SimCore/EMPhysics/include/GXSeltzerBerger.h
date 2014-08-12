@@ -35,20 +35,30 @@ public:
   
   FQUALIFIER ~GXSeltzerBerger();
 
+
+
   FQUALIFIER void GetSampleParameters(G4int Z, G4double x, 
 				      G4int &irow, G4int &icol,
                                       G4double &t);
 
   //material dependency with Z for the future implementation
-
+  FQUALIFIER void SampleByRandom(G4double energy);
   FQUALIFIER void SampleByInversePDF(G4int Z, G4double energy);
   FQUALIFIER void SampleByInversePDFLinearInterpolation(G4int Z,
+							G4double energy);
+  FQUALIFIER void SampleByInversePDFTexture(G4int Z, G4double energy);
+  FQUALIFIER void SampleByInversePDFTextureLinearInterpolation(G4int Z,
 							G4double energy);
   FQUALIFIER void SampleByAlias(G4int Z, G4double energy);
   FQUALIFIER void SampleByAliasLinearInterpolation(G4int Z, G4double energy);
   
   FQUALIFIER void SampleByCompositionRejection(G4int Z, G4double energy,
 					       G4int& ntrial);
+  FQUALIFIER void SampleByAverageTrials(G4int Z,
+					int ntrials, 
+                                        G4double energy,
+                                        int& counter);
+
   FQUALIFIER G4double SampleDirection(G4double eTkin);
   
   FQUALIFIER G4double GetSecondaryEnergy();

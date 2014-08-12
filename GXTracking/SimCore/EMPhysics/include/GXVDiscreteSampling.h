@@ -29,6 +29,12 @@ public:
 				 G4double dy, G4double tt);
   FQUALIFIER G4double InversePDFLinearInterpolation(G4int irow, G4int icol, 
 						    G4double dy, G4double tt);
+  FQUALIFIER G4double InversePDFTexture(G4int irow, G4int icol, 
+				 G4double dy, G4double tt);
+  FQUALIFIER G4double InversePDFTextureLinearInterpolation(G4int irow,
+							   G4int icol, 
+							   G4double dy, 
+							   G4double tt);
   FQUALIFIER G4double Alias(G4int irow, G4int icol, 
 			    G4double dy, G4double tt);
   FQUALIFIER G4double AliasLinearInterpolation(G4int irow, G4int icol, 
