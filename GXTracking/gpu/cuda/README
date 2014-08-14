@@ -34,6 +34,7 @@
    3.3 to run another example, replace the project name (i.e.,trackingTest2) 
        by one of following programs;
 
+       - trackingTest4 (trackingTest3 + tree-wise reduction of physics process counters)
        - trackingTest3 (trackingTest2 + MagneticFieldTexture)
        - EMPhysics     (EM processes) - lagacy program with old EM physics
        - geometry      (Navigation) 
