@@ -584,10 +584,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 #endif
    Printf("Navstate pool usage statistics:");
    fWMgr->NavStates()->statistics();
-   gSystem->mkdir("results");
-   FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
-   fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
-   fclose(fp);
+//   gSystem->mkdir("results");
+//   FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
+//   fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
+//   fclose(fp);
    fOutFile = 0;
    fOutTree = 0;
 }
