@@ -195,6 +195,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
    G4double totalTracklAbs = 0.0;
    G4double totalEdepGap   = 0.0;
    G4double totalTracklGap = 0.0;
+   printf("%-10s %-15s %-15s %-15s %-15s\n","[#Layer]", "[Eabs]","[sig.]","[Egap]","[sig.]");
    for(G4int i=0; i<kNlayers; ++i) {
      G4double a = fSumEdepGap[i]/NbOfEvents;
        G4double rmsgap = fSum2EdepGap[i]/NbOfEvents-a*a;
@@ -206,7 +207,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
        else             rmsabs = 0.0;
      totalEdepAbs += fSumEdepAbs[i];
      totalEdepGap += fSumEdepGap[i]; 
-     printf("Layer %d: Eabs=%f sig.=%f  Egap=%f sig.=%f\n", i, b, rmsabs, a, rmsgap );
+     printf("%4d\t %.6f\t %.6f\t %.6f\t %.6f\n", i, b, rmsabs, a, rmsgap );
    }
    totalEdepAbs/=NbOfEvents;
    totalEdepGap/=NbOfEvents; 
@@ -227,6 +228,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
 
    std::cout<<"---------- Average Track length. in ABS and GAP [cm] ----------\n"
             <<std::endl;
+   printf("%-10s %-15s %-15s %-15s %-15s\n","[#Layer]", "[Labs]","[sig.]","[Lgap]","[sig.]");
    for(G4int i=0; i<kNlayers; ++i) {
      G4double a = fSumLengthGap[i]/NbOfEvents;
        G4double rmsgap = fSum2LengthGap[i]/NbOfEvents-a*a;
@@ -238,7 +240,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
        else             rmsabs = 0.0;
      totalTracklAbs += fSumLengthAbs[i];
      totalTracklGap += fSumLengthGap[i]; 
-     printf("Layer %d: Labs=%f sig.=%f  Lgap=%f sig.=%f\n", i, b, rmsabs, a, rmsgap );
+     printf("%4d\t %.6f\t %.6f\t %.6f\t %.6f\n", i, b, rmsabs, a, rmsgap );
    }
    totalTracklAbs/=NbOfEvents;
    totalTracklGap/=NbOfEvents; 
