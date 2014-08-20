@@ -160,6 +160,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
      matConverter->DumpListOfMaterials(onlyUsed=false);
   }
   std::cout << " ** DetectorConstruction::Construct() Ended " << std::endl;
+
+  // initialize magnetic field
+  SetMagField(1*CLHEP::kilogauss);
+
   return pvCalorimeter;
 }
 
