@@ -127,11 +127,11 @@ void MyApplication::Digitize(Int_t event)
    pad->SetGridx();
    pad->SetGridy();
    pad->SetLogy();
-   TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 10, -0.5, 12.5);
+   TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 12, 0.5, 12.5);
    histeg->SetMarkerColor(kRed);
    histeg->SetMarkerStyle(2);
    histeg->SetStats(kFALSE);
-   TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 10, -0.5, 12.5);
+   TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 12, 0.5, 12.5);
    histea->SetMarkerColor(kBlue);
    histea->SetMarkerStyle(4);
    histea->SetStats(kFALSE);
@@ -152,11 +152,11 @@ void MyApplication::Digitize(Int_t event)
    pad->SetGridx();
    pad->SetGridy();
    pad->SetLogy();
-   TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 10, -0.5, 12.5);
+   TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 12, 0.5, 12.5);
    histlg->SetMarkerColor(kRed);
    histlg->SetMarkerStyle(2);
    histlg->SetStats(kFALSE);
-   TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 10, -0.5, 12.5);
+   TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 12, 0.5, 12.5);
    histla->SetMarkerColor(kBlue);
    histla->SetMarkerStyle(4);
    histla->SetStats(kFALSE);
