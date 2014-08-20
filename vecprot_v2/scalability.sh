@@ -47,4 +47,5 @@ while [ "$ithr" -le "$MAXTHREADS" ]; do
 done
 
 $ROOTSYS/bin/root -b -q scalability.C+
+mv speedup.gif speedup`date "+_%b_%d_%Y_%H.%M"`.gif
 exit $?
