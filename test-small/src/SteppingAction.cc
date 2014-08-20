@@ -36,6 +36,7 @@
 
 #include "DetectorConstruction.hh"
 #include "EventAction.hh"
+//#include "CLHEP/Units/SystemOfUnits.h"
 
 #include "G4Step.hh"
 #include "G4RunManager.hh"
@@ -116,17 +117,17 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
   }
    
   //...
-  stepl = aStep->GetStepLength()/cm; // change to cm 
+  stepl = aStep->GetStepLength()/CLHEP::cm; // change to cm 
 // edep  /=GeV;                      // change to GeV
   if( volume == detector->GetGap() )
   {
-    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/cm;
+    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::cm;
     G4int layer = ( pos+7.5)/1.5;
     eventaction->FillPerStep(1, layer, edep, stepl, g5procIndex);
   }
   if( volume == detector->GetAbsorber() )
   {
-    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/cm;
+    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::cm;
     G4int layer = ( pos+7.5)/1.5;
     eventaction->FillPerStep(0, layer, edep, stepl, g5procIndex);  
   }
