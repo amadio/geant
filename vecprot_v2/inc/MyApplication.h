@@ -18,14 +18,15 @@ class GeantTrack_v;
 //______________________________________________________________________________
 class MyApplication : public GeantVApplication {
    static const Int_t kNlayers = 10;
+   static const Int_t kMaxThreads = 36;
 private:
    Bool_t               fInitialized; // initialized flag
    Int_t                fIdGap;       // ID for the gap volume
    Int_t                fIdAbs;       // ID for the absorber volume
-   Float_t              fEdepGap[kNlayers]; // Energy deposition per layer
-   Float_t              fLengthGap[kNlayers]; // step length in every layer
-   Float_t              fEdepAbs[kNlayers]; // Energy deposition per layer
-   Float_t              fLengthAbs[kNlayers]; // step length in every layer
+   Float_t              fEdepGap[kNlayers][kMaxThreads]; // Energy deposition per layer
+   Float_t              fLengthGap[kNlayers][kMaxThreads]; // step length in every layer
+   Float_t              fEdepAbs[kNlayers][kMaxThreads]; // Energy deposition per layer
+   Float_t              fLengthAbs[kNlayers][kMaxThreads]; // step length in every layer
    GeantFactory<MyHit> *fFactory; // Hits factory      
 
    MyApplication(const MyApplication&); // Not implemented
