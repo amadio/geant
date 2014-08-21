@@ -74,9 +74,28 @@ public:
    // Particle name <- G5 particle number
    const Char_t *PartName(Int_t i) const 
    {return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName();}
+
    // G5 particle index <- PDG code
-   Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
-      while(np--) if(fPDG[np]==pdg) break; return np;}
+   Int_t PartIndex(Int_t pdg) const {
+    //  Int_t np=fNPart; 
+    //  while(np--) if(fPDG[np]==pdg) break; return np;
+    //  temporary speed-up; need to make it more general later and change to 
+    //  properly ordered if-else structure
+     switch (pdg) {
+       case 11:  return 23; // e-
+            break; 
+       case -11: return 22;  // e+
+            break;
+       case 22:  return 42;  // gamma
+            break;
+       case 2212: return 32; // proton
+            break; 
+       default: 
+               Int_t np=fNPart; 
+               while(np--) if(fPDG[np]==pdg) break; return np;
+     }
+   }
+
    // G5 particle index <- particle name 
    Int_t PartIndex(const Char_t *partname) const {
       return PartIndex(PDG(partname));}
