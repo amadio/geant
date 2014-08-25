@@ -124,8 +124,8 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    prop->fNperBasket = 8;
 
    prop->fEmin = 1.E-5; // [10KeV] energy cut
-//   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
-   prop->fEmax = 1.;
+   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
+   // prop->fEmax = 1.;
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 
