@@ -20,6 +20,10 @@ class curandState;
 class DevicePtrBase
 {
    void *fPtr;
+   
+   DevicePtrBase(const DevicePtrBase&); // not implemented
+   DevicePtrBase &operator=(const DevicePtrBase&); // not implemented
+
 protected:
    void MemcpyToDevice(const void* what, unsigned long nbytes);
    void MemcpyToHostAsync(void* where, unsigned long nbytes, cudaStream_t stream);
@@ -27,7 +31,7 @@ protected:
 public:
    DevicePtrBase() : fPtr(0) {}
 
-   ~DevicePtrBase();
+   virtual ~DevicePtrBase();
 
    void Malloc(unsigned long size);
 };
@@ -113,11 +117,14 @@ class CoprocessorBroker : public TaskBroker
 {
 private:
    struct TaskData;
+
 public:
    struct Task;
    typedef TaskData *Stream;
    Stream GetNextStream();
 
+   CoprocessorBroker(const CoprocessorBroker&); // not implemented
+   CoprocessorBroker& operator=(const CoprocessorBroker&); // not implemented
 public:
    CoprocessorBroker();
    ~CoprocessorBroker();
@@ -147,6 +154,11 @@ private:
    DevicePtr<GPPhysics2DVector> fd_SeltzerBergerData;
 
    struct TaskData : public TaskBroker::TaskData, TObject {
+   private:
+      TaskData(const TaskData&); // not implemented
+      TaskData& operator=(const TaskData&); // not implemented
+   public:
+      
       TaskData();
       ~TaskData();
 
@@ -192,6 +204,9 @@ private:
 
 public:
    struct Task {
+   private:
+      Task(const Task&); // not implemented
+      Task& operator=(const Task&); // not implemented
    public:
       Task(kernelFunc_t kernel) : fCurrent(0), fKernel(kernel), fCycles(0), fIdles(0) {}
       virtual ~Task() {}
