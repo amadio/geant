@@ -145,6 +145,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     ebinindx=-1;
     return kFALSE;
   } else {
+    kerma = en;
     Double_t eta = gRandom->Rndm();
     en=en<fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
     en=en>fEGrid[0]?en:fEGrid[0];
@@ -163,7 +164,7 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     Int_t ipoint = rnumber*fNEbins + ibin;
     // in case of any problems with the fstate sampling the primary will be 
     // stopped so be prepared for this case and set kerma = en; 
-    kerma = en; 
+    //kerma = en; 
     return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom);
   }
 }

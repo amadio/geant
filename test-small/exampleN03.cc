@@ -96,7 +96,7 @@ int main(int argc,char** argv)
   
   // parsing the arguments
   int c; 
-  while ((c = getopt (argc, argv, "m:v:l:p:sr")) != -1)
+  while ((c = getopt (argc, argv, "m:v:l:p:r")) != -1)
     switch (c) {
       case 'm':
         isBachMode = TRUE;
@@ -113,9 +113,6 @@ int main(int argc,char** argv)
         strncpy(physListName,optarg,strlen(optarg));
         physListName[strlen(optarg)] = '\0';
         break;
-      case 's':
-        RunAction::isStatistics = TRUE; 
-        break;  
       case 'r':
         TabulatedDataManager::fgIsUseRange = TRUE;
         break;
@@ -141,7 +138,8 @@ int main(int argc,char** argv)
 
   // Set mandatory initialization classes
   //
-  // set tracking cut in case of G4 physics list (parameter given with -l flag)
+  // set tracking cut energy value in case of G4 physics list 
+  // (the energy value is the parameter given with -l flag in GeV)
   if(strcmp(physListName,"TABPHYS")) 
     DetectorConstruction::fTrackingCutInEnergy = tabPhysEnergyLimit*GeV; 
 
@@ -204,15 +202,14 @@ int main(int argc,char** argv)
   if(strcmp(physListName,"TABPHYS")) {
     // value is fixed now to 1 keV for consistency with the tabulated data
     setG4ProductionCut();  
-    // setting the tracking cuts (value has already been set in Det.Construction)
-    G4ProcessManager *pm = G4Gamma::Definition()->GetProcessManager();
-    pm->AddProcess(new G4UserSpecialCuts(),-1,-1,1);
-    pm = G4Electron::Definition()->GetProcessManager();
-    pm->AddProcess(new G4UserSpecialCuts(),-1,-1,1);
-    pm = G4Positron::Definition()->GetProcessManager();
-    pm->AddProcess(new G4UserSpecialCuts(),-1,-1,1);
-    pm = G4Proton::Definition()->GetProcessManager();
-    pm->AddProcess(new G4UserSpecialCuts(),-1,-1,1);
+    // setting the tracking cut energy for all registred particles 
+    // (value has already been set in Det.Construction)
+    G4ParticleDefinition* particle;
+    G4ProcessManager *pm;
+    G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();     
+    G4int np=theParticleTable->size();
+    for(G4int i=0;i<np;++i)
+     theParticleTable->GetParticle(i)->GetProcessManager()->AddProcess(new G4UserSpecialCuts(),-1,-1,1);     
   }
 
    
@@ -257,7 +254,7 @@ void usage()
   "    exampleN03 ----------------- Geant4 example --------------------------- " 
        << G4endl << G4endl <<
   "SYNOPSIS" << G4endl <<
-  "    exampleN03 [-l <value>, -v <value>, -m <FILE>, -p <NAME>, -s -r] "
+  "    exampleN03 [-l <value>, -v <value>, -m <FILE>, -p <NAME>, -r] "
         << G4endl << G4endl <<
   "DESCRIPTION" << G4endl <<
   "    Run Geant4 /examples/novice/N03/exampleN03 with optional physics list " 
@@ -270,8 +267,6 @@ void usage()
   "    -m <FILE> if we run it in bach mode; file is the Geant4 macro file" 
           << G4endl <<
   "    -p <NAME> physics list: TABPHYS (default), QBBC, FTFP_BERT, FTFP_BERT_HP"
-          << G4endl <<
-  "    -s generate statistics"
           << G4endl <<
   "    -r use ranges, inverse ranges, continuous step limitation and proper way"
           << G4endl <<

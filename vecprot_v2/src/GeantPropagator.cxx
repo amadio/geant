@@ -281,8 +281,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 //         track.SetG5code(28);
 //         track.SetPDG(kMuonPlus); // G5code=27
 //         track.SetG5code(27);
-//         track.SetPDG(kPiMinus); // G5code=28
-//         track.SetG5code(31);
+//         track.SetPDG(kPiPlus); // G5code=30
+//         track.SetG5code(30);
          track.SetPDG(kElectron); // G5code=23
          track.SetG5code(23); // just a hack -> will change with new physics list
 /*

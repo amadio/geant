@@ -79,8 +79,8 @@ void EventAction::BeginOfEventAction(const G4Event* evt)
   EnergyAbs = EnergyGap = 0.;
   TrackLAbs = TrackLGap = 0.;
 */
-  G4long sevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed();
-  G4long cevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEvent()+1; 
+  unsigned long sevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed();
+  unsigned long cevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEvent()+1; 
   G4float ratio = cevent/(G4float)sevent;
 //  std::cout<< cevent << "  " << sevent << std::endl;
   if( (cevent % (sevent/100+1) == 0) || (cevent==sevent) ) {
@@ -94,10 +94,7 @@ void EventAction::BeginOfEventAction(const G4Event* evt)
     std::cerr << "]\r" << std::flush;
   }
 
-
-  if(!RunAction::isStatistics)
-    return;
-
+#ifdef MAKESTAT
   // init at the beginning of each new event; for our historams  
   memset(fEdepGap,   0, kNlayers*sizeof(G4double));
   memset(fLengthGap, 0, kNlayers*sizeof(G4double));
@@ -106,11 +103,12 @@ void EventAction::BeginOfEventAction(const G4Event* evt)
 
   fNSteps = 0;
 
-  memset(fProcStat,  0, kNProc*sizeof(G4long));
+  memset(fProcStat,  0, kNProc*sizeof(unsigned long));
 
-  TabulatedDataManager::killedSecs = 0;
+  TabulatedDataManager::killedTracks = 0;
 
   startTime = clock();
+#endif
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -142,20 +140,18 @@ void EventAction::EndOfEventAction(const G4Event* evt)
        << G4endl;
   }
 */
-  // for our histograms
-  if(!RunAction::isStatistics)
-    return;
-
+#ifdef MAKESTAT
   endTime = clock();
   G4double time = ((G4double)(endTime-startTime)/CLOCKS_PER_SEC);  
   runAct->fillPerEvent(fEdepGap, fLengthGap, fEdepAbs, fLengthAbs, fNSteps, 
-                       fProcStat, time);
-  
+                       fProcStat, time);  
+#endif
 }  
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void EventAction::FillPerStep(G4int isgap, G4int layer, G4double edepo, 
                               G4double steplength,  G4int procIndex){
+#ifdef MAKESTAT    
     if(isgap) {
         fEdepGap  [layer] += edepo;
         fLengthGap[layer] += steplength;
@@ -165,6 +161,7 @@ void EventAction::FillPerStep(G4int isgap, G4int layer, G4double edepo,
     }
 
     ++fProcStat[procIndex];
+#endif
 }
 
 

@@ -37,6 +37,7 @@
 #include "G4UserRunAction.hh"
 #include "globals.hh"
 
+#include <time.h>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -53,17 +54,20 @@ public:
     
   void fillPerEvent(G4double, G4double, G4double, G4double); 
   void fillPerEvent(G4double *EdepGap, G4double *LengthGap, G4double *EdepAbs, 
-                    G4double *LengthAbs, G4long numsteps, G4long *ProcStat,
+                    G4double *LengthAbs, unsigned long numsteps, unsigned long *ProcStat,
                     G4double time);
-
+#ifdef MAKESTAT
   static const G4int kNlayers = 10;
   static const G4int kNProc  = 19; // 18+userCuts   
+#endif
 
-  static G4bool isStatistics;  // do you want stat. output ?
   static G4bool isTabPhys;     // running with TABPHYS ?
  
 
 private:
+  clock_t  fRunTime; // the total runtime 
+
+#ifdef MAKESTAT
   G4double sumEAbs, sum2EAbs;
   G4double sumEGap, sum2EGap;
     
@@ -82,14 +86,15 @@ private:
   G4double  sum2LAbs0, sum2LGap0;            
   G4double  sum2EAbs0, sum2EGap0;     
 
-  G4long    fSumNSteps, fSum2NSteps;      
+  unsigned long    fSumNSteps, fSum2NSteps;      
 
-  G4long    fSumProcStat[kNProc];
-  G4long    fSum2ProcStat[kNProc];
+  unsigned long    fSumProcStat[kNProc];
+  unsigned long    fSum2ProcStat[kNProc];
 
-  G4long    fSumKilledSecs, fSum2KilledSecs;
+  unsigned long    fSumKilledSecs, fSum2KilledSecs;
   
   G4double  fSumTime, fSum2Time; 
+#endif
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

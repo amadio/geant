@@ -1,11 +1,8 @@
-//
-// Authors: M. Nowak, S.Y. Jun & J. Apostolakis, April 2014
-//
 // Purpose:
 //    Single process to replace all (G4) physics processes using tabulations 
 //      of x-section and sampled reactions.
 // 
-// This must be the *only* discrete physics process registered for a particle 
+// This must be the *only* physics process registered for a particle 
 //    (it uses the total cross-section, summed over the G4/real physics processes)
 
 #ifndef TotalPhysicsProcess_HH

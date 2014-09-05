@@ -1,17 +1,7 @@
-//
-// Authors: M. Nowak, S.Y. Jun & J. Apostolakis, April 2014
-//
-//
-// Started from TabulatedPhysicsProcess
-
 #include "TotalPhysicsProcess.hh"
 #include "TabulatedDataManager.hh"
 #include "TabulatedPhysicsNameSpace.hh"
 
-#if 0
-#include "TTabPhysMgr.hh"
-TotalPhysicsProcess::TTabPhysMgr* theTabPhysManager= 0;
-#endif
 
 #include "G4Track.hh"
 #include "G4DynamicParticle.hh"

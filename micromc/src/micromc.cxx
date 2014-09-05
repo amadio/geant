@@ -1,3 +1,4 @@
+
 #include <TFile.h>
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
@@ -26,7 +27,7 @@ Int_t main (int argc, char *argv[]) {
    for(Int_t i=0; i<argc; ++i) {
       printf("argv[%d] = %s\n",i,argv[i]);
    }
-
+/*
    Int_t nevent=1;
    if(argc>1) sscanf(argv[1],"%d",&nevent);
 
@@ -69,9 +70,9 @@ Int_t main (int argc, char *argv[]) {
 	 a[iel]=ad;
 	 z[iel]=zd;
 	 w[iel]=wd;
-	 /*	 printf("Mixture %s element %s z %d a %d\n",
-		mat->GetName(), mat->GetElement(iel)->GetName(),
-		z[iel],a[iel]);*/
+	 //	 printf("Mixture %s element %s z %d a %d\n",
+	 //	mat->GetName(), mat->GetElement(iel)->GetName(),
+	 //	z[iel],a[iel]);
       }
       mxs = new TMXsec(mat->GetName(),mat->GetTitle(),
 		       z,a,w,nelem,mat->GetDensity(),kTRUE);
@@ -124,7 +125,7 @@ Int_t main (int argc, char *argv[]) {
 	    TMXsec *mx = ((TMXsec *)
 			  ((TGeoRCExtension*) 
 			   mat->GetFWExtension())->GetUserObject());
-	    Double_t xlen = mx->Xlength(track->fG5code,ken);
+	    Double_t xlen = mx->Xlength(track->fG5code,ken,TMath::Sqrt( (track->fE+track->fMass)*(track->fE-track->fMass) )  );
 	    Double_t pnext = pintl*xlen;
 	    current = geom->FindNextBoundaryAndStep(pnext);
 	    Double_t snext = geom->GetStep();
@@ -147,6 +148,7 @@ Int_t main (int argc, char *argv[]) {
 	 if(geom->IsOutside()) printf("Particle exited setup\n");
       }
    }
+*/   
    /*
    Double_t dir[3];
    Double_t pos[3];

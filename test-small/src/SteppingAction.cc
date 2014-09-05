@@ -70,7 +70,7 @@ SteppingAction::~SteppingAction()
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
   
-  
+#ifdef MAKESTAT      
   // get volume of the current step
   G4VPhysicalVolume* volume 
   = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
@@ -85,10 +85,6 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
   if (volume == detector->GetAbsorber()) eventaction->AddAbs(edep,stepl);
   if (volume == detector->GetGap())      eventaction->AddGap(edep,stepl);
 */ 
-
-  // for our histograms
-  if(!RunAction::isStatistics)
-    return;
 
   // determine which process happend
   G4int g5procIndex = -1;
@@ -133,7 +129,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
   }
  
   eventaction->AddOneStep();
-
+#endif
 
   //example of saving random number seed of this event, under condition
   //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent(); 

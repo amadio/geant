@@ -21,6 +21,14 @@ if(${USE_ROOT})
   add_definitions(-DUSE_ROOT)
 endif()
 
+option(MAKESTAT "Collect detailed statistics during exampleN03 run!" OFF)
+if(MAKESTAT)
+  add_definitions(-DMAKESTAT)
+  message(STATUS "MAKESTAT ON  : Detailed statistics IS collected during exampleN03 run!")
+else()
+  message(STATUS "MAKESTAT OFF : Detailed statistics IS NOT collected during exampleN03 run!")
+endif()
+
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #

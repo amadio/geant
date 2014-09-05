@@ -52,23 +52,28 @@ public:
 
   void  BeginOfEventAction(const G4Event*);
   void    EndOfEventAction(const G4Event*);
-    
+#ifdef MAKESTAT    
   void AddAbs(G4double de, G4double dl) {EnergyAbs += de; TrackLAbs += dl;};
   void AddGap(G4double de, G4double dl) {EnergyGap += de; TrackLGap += dl;};
+  void AddOneStep(){ ++fNSteps; }
+#endif
   void FillPerStep(G4int isgap, G4int layer, G4double edepo, G4double steplength,
-                   G4int procIndex);
-  void AddOneStep(){ ++fNSteps; }                   
+                   G4int procIndex);                   
   void SetPrintModulo(G4int    val)  {printModulo = val;};
+#ifdef MAKESTAT    
   static const G4int kNlayers = 10;
   static const G4int kNProc  = 19; // 18+userCuts   
+#endif
 
 private:
    RunAction*  runAct;
    
-   G4double  EnergyAbs, EnergyGap;
-   G4double  TrackLAbs, TrackLGap;
    G4int     printModulo;                             
    EventActionMessenger*  eventMessenger;
+
+#ifdef MAKESTAT
+   G4double  EnergyAbs, EnergyGap;
+   G4double  TrackLAbs, TrackLGap;
 
    // for one event
    G4double  fEdepGap[kNlayers];   // Energy deposition per layer
@@ -76,11 +81,12 @@ private:
    G4double  fEdepAbs[kNlayers];   // Energy deposition per layer
    G4double  fLengthAbs[kNlayers]; // step length per layer
 
-   G4long    fNSteps;      
+   unsigned long  fNSteps;      
 
-   G4long    fProcStat[kNProc]; 
+   unsigned long    fProcStat[kNProc]; 
 
    clock_t   startTime, endTime;
+#endif
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

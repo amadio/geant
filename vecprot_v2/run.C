@@ -1,5 +1,5 @@
-void run(Int_t nthreads=4, 
-         Bool_t graphics=kFALSE, 
+void run(Int_t nthreads=4,
+         Bool_t graphics=kFALSE,
 //         const char *geomfile="simple_ecal.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="ExN03.root",
@@ -26,7 +26,7 @@ void run(Int_t nthreads=4,
    wmgr->SetNminThreshold(5*nthreads);
    prop->fNaverage = 500;   // Average number of tracks per event
    prop->fNperBasket = 128;   // Vector size
-   prop->fEmin = 1.E-5; // [10KeV] energy cut
+   prop->fEmin = 3.E-6; // [3 KeV] energy cut
 //   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
    prop->fEmax = 0.03;
    // Create the tab. phys process.

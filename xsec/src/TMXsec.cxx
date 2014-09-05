@@ -1,10 +1,13 @@
 #include "TMXsec.h"
 #include "TPartIndex.h"
+#include "TPDecay.h"
 #include "TMath.h"
 #include "TRandom.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "GeantThreadData.h"
+
+#include <algorithm>
 
 ClassImp(TMXsec)
 
@@ -26,7 +29,9 @@ TMXsec::TMXsec():
    fMSlength(0),
    fMSlensig(0),
    fRatios(0),
-   fRange(0)
+   fRange(0),
+   fInvRangeTable(0),
+   fDecayTable(0)
 {
 }
 
@@ -42,12 +47,15 @@ TMXsec::~TMXsec() {
    delete [] fDEdx;
    delete [] fRatios;
    delete [] fRange;
+   for(Int_t i=0;i<TPartIndex::I()->NPartCharge();++i)
+     if(fInvRangeTable[i])
+       delete [] fInvRangeTable[i];
 }
 
 //____________________________________________________________________________
 TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], 
 	       const Int_t /*a*/[], const Float_t w[], Int_t nel, 
-	       Float_t dens, Bool_t weight):
+	       Float_t dens, Bool_t weight, const TPDecay *decaytable):
    TNamed(name,title),
    fNEbins(0),
    fNTotXL(0),
@@ -65,11 +73,13 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    fMSlength(0),
    fMSlensig(0),
    fRatios(0),
-   fRange(0)
+   fRange(0),
+   fInvRangeTable(0),
+   fDecayTable(0)
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
-
+   fDecayTable = decaytable;
    fNElems=nel;
    fElems = new TEXsec*[fNElems];
    memset(fElems,0,fNElems*sizeof(TEXsec*));
@@ -158,11 +168,32 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 	 if(fTotXL[ip*fNEbins+ie]) {
 	    fTotXL[ip*fNEbins+ie]=1./fTotXL[ip*fNEbins+ie];
 	    if(fNElems>1) for(Int_t iel=0; iel<fNElems; ++iel) fRelXS[ibin+iel]*=fTotXL[ip*fNEbins+ie];
-	 } else {
-             fTotXL[ip*fNEbins+ie]=TMath::Limits<Float_t>::Max();
-         }
+	 } //else {
+           //  fTotXL[ip*fNEbins+ie]=0.0;//TMath::Limits<Float_t>::Max();
+        // }
       }
    }
+  
+   // add contribution from decay to the total mean free path of particles that 
+   // have reactions other than decay; in case of particles that have only decay 
+   // the decay mean free path will be computed on the fly   
+   for(Int_t ip=0; ip<npart; ++ip)
+      if(fDecayTable->HasDecay(ip)) {
+         Int_t pdgcode = TPartIndex::I()->PDG(ip);
+         TParticlePDG* partPDG = TPartIndex::I()->DBPdg()->GetParticle(pdgcode); 
+         Double_t mass  = partPDG->Mass();   // mass of the particle [GeV]
+         Double_t cTauPerMass = fDecayTable->GetCTauPerMass(ip); // c*tau/mass [cm/GeV] 
+         Double_t lambda = 0.0;
+         for(Int_t ie=0; ie<fNEbins; ++ie) {
+            // decay mean free path [cm]: Ptotal*c*tau/mass  
+            lambda = TMath::Sqrt(fEGrid[ie]*(fEGrid[ie]+2.0*mass))*cTauPerMass;
+            if(fTotXL[ip*fNEbins+ie] > 0.0)
+              fTotXL[ip*fNEbins+ie] = fTotXL[ip*fNEbins+ie]*lambda/(fTotXL[ip*fNEbins+ie]+lambda); 
+            else
+              fTotXL[ip*fNEbins+ie] = lambda;
+         }
+      }    
+      
    for(Int_t ip=0; ip<ncharge; ++ip) {
       Float_t ang;
       Float_t asig;
@@ -181,21 +212,29 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
       }
    }
 
-   // build range table with simple integration of 1/dedx
+   // build range table with simple integration of 1/dedx and the corresponding 
+   // inverse range table 
    fRange = new Float_t[fNCharge];
    memset(fRange,0,fNCharge*sizeof(Float_t));
-   for(Int_t ip=0; ip<ncharge; ++ip)
+   fInvRangeTable = new std::vector< std::pair<Float_t,Double_t> >*[fNCharge];
+   memset(fInvRangeTable,0,fNCharge*sizeof(std::vector< std::pair<Float_t,Double_t> >*));
+   for(Int_t ip=0; ip<ncharge; ++ip) {
+      std::vector< std::pair<Float_t,Double_t> > *aTable = new std::vector< std::pair<Float_t,Double_t> >(); 
       for(Int_t ie=0; ie<fNEbins; ++ie) {
          if(ie == 0) {
            // assume linear dependece
            fRange[ip*fNEbins+ie] = 2.0*fEGrid[0]/fDEdx[ip*fNEbins+0];
          } else {
-            Double_t csdarange = 2.0*fEGrid[0]/fDEdx[ip*fNEbins+0];
-           for(Int_t k =0; k<ie; ++k)
-              csdarange+=0.5*(1.0/fDEdx[ip*fNEbins+k]+1.0/fDEdx[ip*fNEbins+k+1])*(fEGrid[k+1]-fEGrid[k]);
-	    fRange[ip*fNEbins+ie]=csdarange; // in [cm]
+            Double_t  xx=0.5*(1.0/fDEdx[ip*fNEbins+ie-1]+1.0/fDEdx[ip*fNEbins+ie])*(fEGrid[ie]-fEGrid[ie-1]);
+	    fRange[ip*fNEbins+ie]=fRange[ip*fNEbins+ie-1]+xx; // in [cm]
          }
+       // insert into particle inverse range table
+       aTable->push_back(std::make_pair(fRange[ip*fNEbins+ie],fEGrid[ie]));
       }
+     // insert into inverse range table and sort by the first element of pairs
+     std::sort(aTable->begin(), aTable->end());
+     fInvRangeTable[ip] = aTable;
+   }
 
    //normalization of fRatios[] to 1
    if(fNElems == 1) fRatios[0] = 1.0;
@@ -213,18 +252,18 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 }
 
 
+/*
 //____________________________________________________________________________
 Bool_t TMXsec::Prune() {
    // Prune elements
    for(Int_t iel=0; iel<TEXsec::NLdElems(); ++iel) TEXsec::Element(iel)->Prune();
    return kTRUE;
 }
+*/
 
 //____________________________________________________________________________
-Float_t TMXsec::Xlength(Int_t part, Float_t en) {
-  if(part>=TPartIndex::I()->NPartReac() || !fTotXL)
-    return TMath::Limits<Float_t>::Max();
-  else {
+Float_t TMXsec::Xlength(Int_t part, Float_t en, Double_t ptot) {
+  if(part<TPartIndex::I()->NPartReac()){
     en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
     en=en>=fEGrid[0]?en:fEGrid[0];
     Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
@@ -239,10 +278,16 @@ Float_t TMXsec::Xlength(Int_t part, Float_t en) {
       return TMath::Limits<Float_t>::Max();
     }
     Double_t xrat = (en2-en)/(en2-en1);
-    return xrat*fTotXL[part*fNEbins+ibin]+(1-xrat)*fTotXL[part*fNEbins+ibin+1];
+    Double_t x = xrat*fTotXL[part*fNEbins+ibin]+(1-xrat)*fTotXL[part*fNEbins+ibin+1]; 
+    return x;  
+  } else if (fDecayTable->HasDecay(part)) {
+    return ptot*fDecayTable->GetCTauPerMass(part); //Ptot*c*tau/mass [cm] 
+  } else {
+    return TMath::Limits<Float_t>::Max();  
   }
 }
 
+/*
 //____________________________________________________________________________
 Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[])
 {
@@ -270,51 +315,45 @@ Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Do
   }
   return kTRUE;
 }
+*/
 
 //______________________________________________________________________________
 void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 // Propose step for the first ntracks in the input vector of tracks and write to
 // tracks.fPstepV[]
-// -should be called only for particles with reaction (first fNPartReac particle 
-// in TPartIndex::fPDG[]); the case if partindex>=fNPartReac is handled in the if
 
-   Double_t  energy;	//Ekin
-   Int_t     ibin; 
-   Int_t     ipart;//G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
- 
-   // tid-based rng
+   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
    Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
-   
+
    for (Int_t i=0; i<ntracks; ++i) {
-      ipart  = tracks.fG5codeV[i];
-      if(ipart >= TPartIndex::I()->NPartReac() || !fTotXL) {
-        tracks.fPstepV[i] = -TMath::Limits<Float_t>::Max();
-      } else {
-        energy = tracks.fEV[i] - tracks.fMassV[i];
-        energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
-        energy=energy>=fEGrid[0]?energy:fEGrid[0];
+     Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
+     if(ipart<TPartIndex::I()->NPartReac()){ // can have different reactions + decay
+       Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
+       energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+       energy=energy>=fEGrid[0]?energy:fEGrid[0];
 
-        ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
-        ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+       Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta; // energy bin index
+       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 
-        Double_t en1 = fEGrid[ibin];
-        Double_t en2 = fEGrid[ibin+1];
+       Double_t en1 = fEGrid[ibin];
+       Double_t en2 = fEGrid[ibin+1];
 
-        Double_t xrat = (en2-energy)/(en2-en1);	
-        //get interpolated -(total mean free path)
-        tracks.fPstepV[i] = -(xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]);
-     }
-   }
-
-   //compute proposed step based on -(total mean free path)
-   for (Int_t i=0; i<ntracks; ++i) {
-      tracks.fPstepV[i] *= TMath::Log(rndArray[i]);
-   }
+       Double_t xrat = (en2-energy)/(en2-en1);	
+       //get interpolated -(total mean free path)
+       Double_t x = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]; 
+       tracks.fPstepV[i] = -1.*x*TMath::Log(rndArray[i]);
+    } else if (fDecayTable->HasDecay(ipart)) { // it has only decay 
+       Double_t x = tracks.fPV[i]*fDecayTable->GetCTauPerMass(ipart); //Ptot*c*tau/mass [cm]
+       tracks.fPstepV[i] = -1.*x*TMath::Log(rndArray[i]);
+    } else { // has no any interactions
+       tracks.fPstepV[i] = TMath::Limits<Double_t>::Max();  
+    }
+  }
 
 }
 
-//get MS angles   
+//get MS angles : NOT USED CURRENTLY (MS is not active)  
 //____________________________________________________________________________
 Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
    Int_t     ibin; 
@@ -342,7 +381,7 @@ Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
 }
 
 //____________________________________________________________________________
-Float_t TMXsec::DEdx(Int_t part, Float_t en, Int_t &elemindx) {
+Float_t TMXsec::DEdx(Int_t part, Float_t en) {
   if(part>=TPartIndex::I()->NPartCharge() || !fDEdx)
     return 0;
   else {
@@ -359,16 +398,13 @@ Float_t TMXsec::DEdx(Int_t part, Float_t en, Int_t &elemindx) {
             ibin, en1, en, en2);
       return TMath::Limits<Float_t>::Max();
     }
-    // set to the first element of this mix.: need to know at last one element
-    // to be able to check in EnergyLoss if there is NuclCaptAtRest in case of
-    // stopping  
-    elemindx = fElems[0]->Index(); 
 
     Double_t xrat = (en2-en)/(en2-en1);
     return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
   }
 }
 
+/*
 //____________________________________________________________________________
 Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]) {
   Double_t ene;
@@ -399,15 +435,10 @@ Bool_t TMXsec::DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float
   }
   return kTRUE;
 }
+*/
 
 //____________________________________________________________________________
 Float_t TMXsec::Range(Int_t part, Float_t en) {
-  Int_t elemindx;
-  return Range(part, en, elemindx);
-}
-
-//____________________________________________________________________________
-Float_t TMXsec::Range(Int_t part, Float_t en, Int_t &elemindx) {
   if(part>=TPartIndex::I()->NPartCharge() || !fRange)
     return -1.0;
   else {
@@ -421,13 +452,8 @@ Float_t TMXsec::Range(Int_t part, Float_t en, Int_t &elemindx) {
     if(en1>en || en2<en) {
       Error("Range","Wrong bin %d in interpolation: should be %f < %f < %f\n",
             ibin, en1, en, en2);
-      return TMath::Limits<Float_t>::Max();
+      return -1.0;
     }
-
-    // set to the first element of this mix.: need to know at last one element
-    // to be able to check in EnergyLoss if there is NuclCaptAtRest in case of
-    // stopping
-    elemindx = fElems[0]->Index();
 
     Double_t xrat = (en2-en)/(en2-en1);
     return xrat*fRange[part*fNEbins+ibin]+(1-xrat)*fRange[part*fNEbins+ibin+1];
@@ -435,48 +461,63 @@ Float_t TMXsec::Range(Int_t part, Float_t en, Int_t &elemindx) {
 }
 
 //____________________________________________________________________________
-Double_t TMXsec::InvRange(Int_t part, Double_t step) {
+Double_t TMXsec::InvRange(Int_t part, Float_t step) {
   if(part>=TPartIndex::I()->NPartCharge() || !fRange)
     return 0.;
 
   Double_t minr = fRange[part*fNEbins]; //min available range i.e. for E_0
   if(step >= minr ) {
-    Int_t i=0;
+/*    Int_t i=0;
     while(fRange[part*fNEbins+i]<step) ++i;
-
     Double_t r1 = fRange[part*fNEbins+i-1];
     Double_t r2 = fRange[part*fNEbins+i];
     Double_t xrat = (r2-step)/(r2-r1);
     return xrat*fEGrid[i-1]+(1-xrat)*fEGrid[i];
+*/
+    if(step>=fInvRangeTable[part]->back().first) 
+      return fInvRangeTable[part]->back().second; 
+    //if(x<=(*table)[0].first) return (*table)[0].second;
+
+    std::vector< std::pair<Float_t,Double_t> >::iterator itl,ith;
+    ith = std::lower_bound(fInvRangeTable[part]->begin(),
+                           fInvRangeTable[part]->end(),std::make_pair(step,0.0));   
+    itl = ith;
+    --itl;
+    Double_t rat = (ith->first-step)/(ith->first-itl->first);
+    return rat*itl->second + (1-rat)*ith->second;
+
   } else {
     Double_t x = step/minr;
     return fEGrid[0]*x*x;
   }
 }
 
+// Compute along step energy loss for charged particles using linear loss aprx. 
 //____________________________________________________________________________
 void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
 {
-// -should be called only charged particles (first fNPartCharge particle 
+// -should be called only for charged particles (first fNPartCharge particle 
 // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
 // Compute energy loss for the first ntracks in the input vector and update
-// tracks.fEV, tracks.fPV and tracks.EdepV
-   Double_t energy, dedx, edepo;
-   Int_t ibin, ipart;
+// tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the 
+// necessary at-rest process type if it has any. 
 
    Double_t energyLimit = GeantPropagator::Instance()->fEmin;
    for (Int_t i=0; i<ntracks; ++i) {
-      ipart = tracks.fG5codeV[i];
-      tracks.fProcessV[i] = -1;
+      Int_t ipart = tracks.fG5codeV[i];  // GV particle index/code
+      tracks.fProcessV[i] = -1;    // init process index to -1 i.e. no process
+      Double_t dedx       = 0.0;
 
-      if(ipart>=TPartIndex::I()->NPartCharge())
-       continue;
+      // just a check; can be removed if it is ensured before calling
+      if(ipart>=TPartIndex::I()->NPartCharge())// there is no energy loss nothing change
+        continue;
 
-      energy = tracks.fEV[i] - tracks.fMassV[i]; // tabulated on kinetic
-      if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins];
+      Double_t energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$ [GeV]
+      // get dedx value
+      if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins]; // protections
       else if (energy>=fEGrid[fNEbins-1]) dedx = fDEdx[ipart*fNEbins+fNEbins-1]; 
-      else {
-         ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+      else { // regular case
+         Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta; // energy bin index
          ibin = ibin<fNEbins-1?ibin:fNEbins-2;
          Double_t en1 = fEGrid[ibin];
          Double_t en2 = fEGrid[ibin+1];
@@ -486,141 +527,169 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
       // Update energy and momentum
       Double_t gammaold = tracks.Gamma(i);
       Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
-      edepo = tracks.fStepV[i]*dedx;
-      if (energy-edepo < energyLimit) {
+      Double_t edepo = tracks.fStepV[i]*dedx;  // compute energy loss using linera loss aprx.
+      Double_t newEkin = energy-edepo;         // new kinetic energy  
+      if (newEkin < energyLimit) {  // new Kinetic energy below tracking cut
         // Particle energy below threshold
-        tracks.fEdepV[i] += energy;
-        tracks.fEV[i] = tracks.fMassV[i];
-        tracks.fPV[i] = 0;
-        tracks.fStatusV[i] = kKilled;
-        //tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("RestCapture");
-        tracks.fProcessV[i] = 6; //kRestCapture will need to be called
-        tracks.fEindexV[i]  = fElems[0]->Index(); //set to the first element of this mix.
-      } else { 
-        tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("Ionisation");
-        //tracks.fEindexV[i]  = fElems[0]->Index(); //set to the first element of this mix.
-        tracks.fEdepV[i] += edepo; 
-        tracks.fEV[i] -= edepo;
+        tracks.fEdepV[i] += energy;       // put Ekin to edepo
+        tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
+        tracks.fPV[i] = 0;                // set Ptotal = 0
+        tracks.fStatusV[i] = kKilled;     // set status to killed 
+        // check if the particle stopped or just went below the tracking cut
+        if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
+          tracks.fProcessV[i] = -2; // possible at-rest process need to be called 
+        // else : i.e. 0 < newEkin < energyLimit just kill the track cause tracking cut
+      } else {  // track further: update energy, momentum, process etc.
+        // tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("Ionisation");
+        tracks.fProcessV[i] = 2;     // Ionisation
+        tracks.fEdepV[i] += edepo;   // add energy deposit 
+        tracks.fEV[i] -= edepo;      // update total energy 
         Double_t gammanew = tracks.Gamma(i);
         Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
         Double_t pnorm = bgnew/bgold;
-        tracks.fPV[i] *= pnorm;
+        tracks.fPV[i] *= pnorm;      // update total momentum
       }  
    }
 }   
 
 //____________________________________________________________________________
-TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac) {
-   if(part>=TPartIndex::I()->NPartReac() || !fTotXL) {
-      reac=-1;
-      return 0;
-   } else {
-      en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
-      en=en>=fEGrid[0]?en:fEGrid[0];
-      Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
-      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
-      //      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
-      //    Double_t en2 = en1*fEDelta;
-      Double_t en1 = fEGrid[ibin];
-      Double_t en2 = fEGrid[ibin+1];
-      if(en1>en || en2<en) {
-	 Error("SampleInt","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	       ibin, en1, en, en2);
-	 reac=-1;
-	 return 0;
+TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptot) {
+   if(part<TPartIndex::I()->NPartReac()) {
+      // first sample if deacy or something else if the particle can have decay 
+      Bool_t isDecay = kFALSE;
+      if(fDecayTable->HasDecay(part)) {
+        Double_t lambdaDecay = ptot*fDecayTable->GetCTauPerMass(part);
+        Double_t lambdaTotal = Xlength(part,en,ptot); // ptotal is not used now there
+        // $P(decay) =\lambda_{Total}/\lambda_{decay}$ 
+        if( gRandom->Rndm() < lambdaTotal/lambdaDecay )
+          isDecay = kTRUE;
       }
-      Int_t iel=-1;
-      if(fNElems==1) {
-	 iel=0;
+      if(isDecay) {
+        reac = 3; // decay 
+        return 0; // on nothing    
       } else {
-	 Double_t xrat = (en2-en)/(en2-en1);
-	 Double_t xnorm = 1.;
-	 while(iel<0) {
-	    Double_t ran = xnorm*gRandom->Rndm();
-	    Double_t xsum=0;
-	    for(Int_t i=0; i<fNElems; ++i) {
-	       xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
-	       if(ran<=xsum) {
-		  iel = i;
-		  break;
-	       }
-	    }
-	    xnorm = xsum;
-	 }
-      }
-      reac = fElems[iel]->SampleReac(part,en);
-      return fElems[iel];
-   }
+        en=en<=fEGrid[fNEbins-1]?en:fEGrid[fNEbins-1]*0.999;
+        en=en>=fEGrid[0]?en:fEGrid[0];
+        Int_t ibin = TMath::Log(en/fEGrid[0])*fEilDelta;
+        ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+        //      Double_t en1 = fEmin*TMath::Exp(fElDelta*ibin);
+        //    Double_t en2 = en1*fEDelta;
+        Double_t en1 = fEGrid[ibin];
+        Double_t en2 = fEGrid[ibin+1];
+        if(en1>en || en2<en) {
+	   Error("SampleInt","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+	         ibin, en1, en, en2);
+	   reac=-1;
+	   return 0;
+        }
+        Int_t iel=-1;
+        if(fNElems==1) {
+	   iel=0;
+        } else {
+	   Double_t xrat = (en2-en)/(en2-en1);
+	   Double_t xnorm = 1.;
+	   while(iel<0) {
+	      Double_t ran = xnorm*gRandom->Rndm();
+	      Double_t xsum=0;
+	      for(Int_t i=0; i<fNElems; ++i) {
+	         xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
+	         if(ran<=xsum) {
+		    iel = i;
+		    break;
+	         }
+	      }
+	      xnorm = xsum;
+	   }
+        }
+        reac = fElems[iel]->SampleReac(part,en);
+        return fElems[iel];
+      }      
+    } else if(fDecayTable->HasDecay(part)){
+      reac = 3; // decay 
+      return 0; // on nothing
+    } else {
+      reac = -1; // nothing 
+      return 0;  // on nothing  
+    }
 }
 
 //____________________________________________________________________________
 void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
-// -should be called only for particles with reaction (first fNPartReac particle 
-// in TPartIndex::fPDG[]); the case ipartindex>=fNPartReac is handled now in the if
-
-   Double_t energy; //Ekin
-   Int_t    ibin; 
-   Int_t    ipart; //G5 particle index i.e. index of the particle in TPartIndex::fPDG[]
+   Int_t nParticleWithReaction = TPartIndex::I()->NPartReac(); 
 
    // tid-based rng
    GeantPropagator *prop = GeantPropagator::Instance();
    Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
-   prop->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+   prop->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
 
-   for (Int_t t=0; t<ntracks; ++t) {
-      ipart  = tracksin.fG5codeV[t];
-      if(ipart>=TPartIndex::I()->NPartReac() || !fTotXL) {
-        //reac=-1;
-        tracksin.fProcessV[t] = -1;//this partilce doesn't have reaction
-        tracksin.fEindexV[t]  = -1;//no process -> no element selection
-        continue;
-      } else {
-        energy = tracksin.fEV[t] - tracksin.fMassV[t];
-        energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
-        energy=energy>=fEGrid[0]?energy:fEGrid[0];
+   for(Int_t t=0; t<ntracks; ++t) {
+     Int_t ipart  = tracksin.fG5codeV[t];
+     // if the particle can have both decay and something else 
+     if(ipart < nParticleWithReaction) {
+       Bool_t isDecay  = kFALSE; 
+       Double_t energy = tracksin.fEV[t] - tracksin.fMassV[t];  // Ekin [GeV]
+       if(fDecayTable->HasDecay(ipart)) {
+         Double_t ptotal = tracksin.fPV[t];                     // Ptotal [GeV]    
+         Double_t lambdaDecay = ptotal*fDecayTable->GetCTauPerMass(ipart);
+         // ptot is not used now in Xlength(ipart,energy,ptot) since ipart<nParticleWithReaction
+         Double_t lambdaTotal = Xlength(ipart,energy,ptotal); 
+         // $P(decay) =\lambda_{Total}/\lambda_{decay}$ 
+         if( rndArray[t] < lambdaTotal/lambdaDecay )
+           isDecay = kTRUE;
+       }
+       if(isDecay) {
+         tracksin.fProcessV[t] =  3; // decay  	 
+         tracksin.fEindexV[t]  = -1; // on nothing 
+       } else {
+         // not decay but something else; sample what else on what target    
+         energy = energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+         energy = energy>=fEGrid[0]?energy:fEGrid[0];
 
-        ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
-        ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+         Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+         ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 
-        Double_t en1 = fEGrid[ibin];
-        Double_t en2 = fEGrid[ibin+1];
+         Double_t en1 = fEGrid[ibin];
+         Double_t en2 = fEGrid[ibin+1];
 //1.
-        // this material/mixture (TMXsec object) is composed of fNElems elements	 	
-        Int_t iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this 		 
-        if(fNElems==1) {
-	  iel=0;
-        } else { //sampling one element based on the elemntal realtive X-secs that
-	       //have been normalized in CTR at the Ebins!; energy interp. is 
-	       //included now-> while loop is to avoid problems from interp. 
-	  Double_t xrat = (en2-energy)/(en2-en1);
-	  Double_t xnorm = 1.;
-          while(iel<0) {
-	    Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
-	    Double_t xsum=0;
-	    for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
-	       xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
-	       if(ran<=xsum) {
-		  iel = i;
-		  break;
-	       }
-	    }
-	    xnorm = xsum;
-          }
-        }
-        //at this point the index of the element is sampled:= iel
-        //the corresponding TEXsec* is fElems[iel] 
+         // this material/mixture (TMXsec object) is composed of fNElems elements	 	
+         Int_t iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this 		 
+         if(fNElems==1) {
+	   iel=0;
+         } else { //sampling one element based on the elemntal realtive X-secs that
+	          //have been normalized in CTR at the Ebins!; energy interp. is 
+	          //included now-> while loop is to avoid problems from interp. 
+	   Double_t xrat = (en2-energy)/(en2-en1);
+	   Double_t xnorm = 1.;
+           while(iel<0) {
+	     Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
+	     Double_t xsum=0;
+	     for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
+	        xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
+	        if(ran<=xsum) {
+		   iel = i;
+		   break;
+	        }
+	     }
+	     xnorm = xsum;
+           }
+         }
+         //at this point the index of the element is sampled:= iel
+         //the corresponding TEXsec* is fElems[iel] 
 
-        //sample the reaction by using the TEXsec* that corresponds to the iel-th
-        //element i.e. fElems[iel] for the current particle (with particle index of
-        //ipart) at the current energy; will retrun with the reaction index;
-        tracksin.fProcessV[t] = fElems[iel]->SampleReac(ipart, energy, rndArray[t]); 	 
-        tracksin.fEindexV[t]  = fElems[iel]->Index();//index of the selected element in TTabPhysMrg::fElemXsec[] 
-      
-        //INFO:
-        //printf("[%d]-th partcile is %s with Ekin of %f in %s :: %s happens on %s.\n",
-        //t, TPartIndex::I()->PartName(ipart), energy, this->GetName(), 
-        //TPartIndex::I()->ProcName(tracksin.fProcessV[t]),fElems[iel]->GetName() );	
-      }
+         //sample the reaction by using the TEXsec* that corresponds to the iel-th
+         //element i.e. fElems[iel] for the current particle (with particle index of
+         //ipart) at the current energy; will retrun with the reaction index;
+         tracksin.fProcessV[t] = fElems[iel]->SampleReac(ipart, energy, rndArray[ntracks+t]); 	 
+         tracksin.fEindexV[t]  = fElems[iel]->Index();//index of the selected element in TTabPhysMrg::fElemXsec[] 
+       }
+     } else if(fDecayTable->HasDecay(ipart)) {
+         // only decay can happen because ipart>nParticleWithReaction
+         tracksin.fProcessV[t] =  3; // decay  	 
+         tracksin.fEindexV[t]  = -1; // on nothing
+     } else { //nothing happens
+         tracksin.fProcessV[t] = -1; // nothing  	 
+         tracksin.fEindexV[t]  = -1; // on nothing
+     }
    }
 }
 

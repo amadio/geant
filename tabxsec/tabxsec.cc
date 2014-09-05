@@ -590,6 +590,12 @@ int main(int argc,char** argv)
       
       // Store the particle table into PartIndex
       TPartIndex::I()->SetPartTable(pPDG,np);
+      // Set PDG to GV code map
+      std::map<G4int,G4int> pdgToGVmap;
+      for(G4int i=0;i<np;++i)
+        pdgToGVmap[pPDG[i]]=i;
+      TPartIndex::I()->SetPDGToGVMap(pdgToGVmap);      
+
       // Check that "pions will be pions"
       printf("Code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
       
@@ -799,8 +805,27 @@ int main(int argc,char** argv)
         }
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
         TPDecay *decayTable = new TPDecay(nsample,np,decayfs);
+        // prepare and set the c*tau/mass [cm/GeV]
+        G4double *ctaupermass = new G4double[np]; 
+        G4double cc = c_light*(s/cm); // speed of light in [cm/s]
+        for(G4int i=0;i<np;++i) {
+          G4ParticleDefinition* g4PartDefinition = G4ParticleTable::GetParticleTable()->FindParticle(pPDG[i]);
+          if(g4PartDefinition) {
+            G4double mass = g4PartDefinition->GetPDGMass()/GeV;
+            ctaupermass[i] = mass;
+            G4double tau  = g4PartDefinition->GetPDGLifeTime()/s;
+            if(g4PartDefinition->GetPDGStable())
+              ctaupermass[i] = DBL_MAX;
+            else
+            ctaupermass[i] = (cc*tau)/mass; //c*tau/mass [cm/GeV]        
+          } else {
+            ctaupermass[i] = DBL_MAX;  
+          }           
+        }
+        decayTable->SetCTauPerMass(ctaupermass,np);
         fh->WriteObject(decayTable,"DecayTable");
         delete decayTable;
+        delete ctaupermass;
       }
       
       // From here on we tabulate the cross sections and sample the interactions
@@ -826,7 +851,10 @@ int main(int argc,char** argv)
       
       // TFinState rcaptfs[np];
       //TFinState rcaptfs[MAX_NP];
-      for(G4int imat=0; imat<nmaterials; ++imat) {
+//      for(G4int imat=0; imat<nmaterials; ++imat) {
+G4int ttt[]={0,5,81};
+for(G4int iii=0; iii<3; ++iii) {
+G4int imat = ttt[iii];
         TFinState rcaptfs[MAX_NP];
 
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
@@ -1148,7 +1176,11 @@ int main(int argc,char** argv)
                   G4bool iszero=TRUE;
                   for(G4int j=0; j<nbins; ++j) {
                     en1=en*delta;
-                    curxs = ptEm->CrossSectionPerVolume(en,couple);
+                    // take it only if active at en : resolve problem with e-,e+ CoulombScat
+                    if(en>=ptEm->MinKinEnergy()) 
+                      curxs = ptEm->CrossSectionPerVolume(en,couple);
+                    else
+                      curxs = 0.;
                     if(curxs < 0 || curxs > 1e10) {
                       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
                              (const char*) particle->GetParticleName(),
