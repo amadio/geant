@@ -84,9 +84,9 @@ DetectorConstruction::DetectorConstruction()
  magField(0)
 {
   // default parameter values of the calorimeter
-  AbsorberThickness = 10.*mm;
-  GapThickness      =  5.*mm;
-  NbOfLayers        = 10;
+  AbsorberThickness =  10.*mm; // 1.*mm;
+  GapThickness      =  5.*mm;  // .5*mm
+  NbOfLayers        =  10;     // 100
   CalorSizeYZ       = 10.*cm;
   ComputeCalorParameters();
   

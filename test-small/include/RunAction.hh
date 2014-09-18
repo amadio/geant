@@ -57,7 +57,7 @@ public:
                     G4double *LengthAbs, unsigned long numsteps, unsigned long *ProcStat,
                     G4double time);
 #ifdef MAKESTAT
-  static const G4int kNlayers = 10;
+  static const G4int kNlayers = 10; // 100
   static const G4int kNProc  = 19; // 18+userCuts   
 #endif
 

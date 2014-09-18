@@ -70,7 +70,7 @@ SteppingAction::~SteppingAction()
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
   
-#ifdef MAKESTAT      
+#ifdef MAKESTAT
   // get volume of the current step
   G4VPhysicalVolume* volume 
   = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
@@ -117,14 +117,14 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
 // edep  /=GeV;                      // change to GeV
   if( volume == detector->GetGap() )
   {
-    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::cm;
-    G4int layer = ( pos+7.5)/1.5;
+    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::mm;
+    G4int layer = (pos+75.)/15.;
     eventaction->FillPerStep(1, layer, edep, stepl, g5procIndex);
   }
   if( volume == detector->GetAbsorber() )
   {
-    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::cm;
-    G4int layer = ( pos+7.5)/1.5;
+    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::mm;
+    G4int layer = (pos+75.)/15.;
     eventaction->FillPerStep(0, layer, edep, stepl, g5procIndex);  
   }
  

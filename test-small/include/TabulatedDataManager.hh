@@ -87,7 +87,7 @@ private:
   static TabulatedDataManager* fgInstance;
 
   // current version number
-  static const Int_t fgVersion=1000001;
+  static const Int_t fgVersion=1000002;
 
   G4int            fNelements;    // Total number of elements in the geometry
   G4int            fNmaterials;   // Total number of materials in the geometry

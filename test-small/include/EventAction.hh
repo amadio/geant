@@ -61,7 +61,7 @@ public:
                    G4int procIndex);                   
   void SetPrintModulo(G4int    val)  {printModulo = val;};
 #ifdef MAKESTAT    
-  static const G4int kNlayers = 10;
+  static const G4int kNlayers = 10; // 100
   static const G4int kNProc  = 19; // 18+userCuts   
 #endif
 
