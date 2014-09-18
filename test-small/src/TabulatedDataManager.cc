@@ -355,7 +355,7 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
 #endif
      }
    }
-   
+
 
 
    if( fgVerboseLevel >=2 )
@@ -873,7 +873,7 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
         // if we need process statisctics
         G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
         G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
-        *strp = TPartIndex::I()->ProcName(9);// decay
+        *strp = TPartIndex::I()->ProcName(9);// annihilation
 #endif
 
         return;

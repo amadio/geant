@@ -177,7 +177,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
    // add contribution from decay to the total mean free path of particles that 
    // have reactions other than decay; in case of particles that have only decay 
    // the decay mean free path will be computed on the fly   
-   for(Int_t ip=0; ip<npart; ++ip)
+   for(Int_t ip=0; ip<npart; ++ip) {
       if(fDecayTable->HasDecay(ip)) {
          Int_t pdgcode = TPartIndex::I()->PDG(ip);
          TParticlePDG* partPDG = TPartIndex::I()->DBPdg()->GetParticle(pdgcode); 
@@ -192,7 +192,12 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
             else
               fTotXL[ip*fNEbins+ie] = lambda;
          }
-      }    
+      } else {
+         for(Int_t ie=0; ie<fNEbins; ++ie)
+            if(fTotXL[ip*fNEbins+ie] == 0.0)
+              fTotXL[ip*fNEbins+ie] = TMath::Limits<Float_t>::Max();
+      }
+   }
       
    for(Int_t ip=0; ip<ncharge; ++ip) {
       Float_t ang;

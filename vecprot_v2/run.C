@@ -16,7 +16,6 @@ void run(Int_t nthreads=4,
    gSystem->Load("../lib/libGeant_v");
    gSystem->Load("../lib/libXsec");
 
-
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
    TGeoManager::Import(geomfile);

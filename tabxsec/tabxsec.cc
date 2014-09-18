@@ -114,6 +114,7 @@ void usage()
   "     -E ene  energy of the particles generated in GeV" << G4endl <<
   "     -e num  number of Geant4 events to generate" << G4endl <<
   "     -s num  number of samples of the final state to generate and store in fstat.root (default 0, no file generated)" << G4endl <<
+  "     -d num  number of samples of the decay final state to generate and store in fstat.root (default 0, or -s)" << G4endl <<
   "     -v num  verbosity level (at the moment only 0, 1 and 2 are used)" << G4endl <<
   "     -x      generate the cross sections and store them in the file xsec.root" << G4endl <<
   "     -z nun  minimum Z of the material to treat (default 1)" << G4endl <<
@@ -145,6 +146,7 @@ int main(int argc,char** argv)
   feenableexcept(FE_OVERFLOW|FE_DIVBYZERO|FE_INVALID);
   
   G4int nsample=0;
+  G4int nsampleDecay=0;
   G4int ngener=0;
   G4int verbose=0;
   G4bool interact=FALSE;
@@ -164,11 +166,15 @@ int main(int argc,char** argv)
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:p:r")) != -1)
+  while ((c = getopt (argc, argv, "s:d:e:v:E:ixz:Z:n:k:K:p:r")) != -1)
     switch (c)
   {
     case 's':
       nsample=atoi(optarg);
+      nsampleDecay=nsample; // if no -d given 
+      break;
+    case 'd':
+      nsampleDecay=atoi(optarg); 
       break;
     case 'e':
       ngener=atoi(optarg);
@@ -225,6 +231,20 @@ int main(int argc,char** argv)
     ngener = 1;
   }
   
+  if(!nsample && nsampleDecay) {
+    G4cout << "You need to have at least 1 normal final state in order to sample "
+    << nsampleDecay << " decay final states." << G4endl; 
+    G4cout << "Setting nsample = 1" << G4endl;
+    nsample = 1;
+  }
+
+  if(nsample) {
+    G4cout << "Sampling " << nsampleDecay << " decay final states and " << nsample  
+    << " normal final states." << G4endl;
+  }
+
+
+
   /* end of getopt stuff */
   
   // Choose the Random engine
@@ -723,7 +743,7 @@ int main(int argc,char** argv)
       
       TFile *fh = 0;
       
-      if(nsample) {
+      if(nsampleDecay) {
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
         
         fh = new TFile("fstate.root","recreate");
@@ -787,14 +807,14 @@ int main(int argc,char** argv)
                   
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   
-                  if(nsample) {
+                  if(nsampleDecay) {
                     G4Material *matt = (*theMaterialTable)[0];
                     printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------------\n",
                            (const char *) particle->GetParticleName(),
                            (const char *) p->GetProcessName(),
                            (const char*) matt->GetName(),
                            en/GeV);
-                    SampDisInt(matt, pos, dp, de, p, nsample, verbose, decayfs[partindex]);
+                    SampDisInt(matt, pos, dp, de, p, nsampleDecay, verbose, decayfs[partindex]);
                   }
                   delete dp;
                   // ----------------------------------- Decay ---------------------------------------
@@ -804,7 +824,7 @@ int main(int argc,char** argv)
           }
         }
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
-        TPDecay *decayTable = new TPDecay(nsample,np,decayfs);
+        TPDecay *decayTable = new TPDecay(nsampleDecay,np,decayfs);
         // prepare and set the c*tau/mass [cm/GeV]
         G4double *ctaupermass = new G4double[np]; 
         G4double cc = c_light*(s/cm); // speed of light in [cm/s]
@@ -851,10 +871,7 @@ int main(int argc,char** argv)
       
       // TFinState rcaptfs[np];
       //TFinState rcaptfs[MAX_NP];
-//      for(G4int imat=0; imat<nmaterials; ++imat) {
-G4int ttt[]={0,5,81};
-for(G4int iii=0; iii<3; ++iii) {
-G4int imat = ttt[iii];
+      for(G4int imat=0; imat<nmaterials; ++imat) {
         TFinState rcaptfs[MAX_NP];
 
         if(verbose) printf("Material position %f %f %f\n",MaterialPosition[imat][0],MaterialPosition[imat][1],MaterialPosition[imat][2]);
