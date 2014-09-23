@@ -333,11 +333,28 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 
    for (Int_t i=0; i<ntracks; ++i) {
      Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
-     if(ipart<TPartIndex::I()->NPartReac()){ // can have different reactions + decay
-       Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
-       energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
-       energy=energy>=fEGrid[0]?energy:fEGrid[0];
+     Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
+     energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+     energy=energy>=fEGrid[0]?energy:fEGrid[0];
 
+     // continous step limit if any
+     Double_t cx = TMath::Limits<Double_t>::Max();  
+     if(ipart < TPartIndex::I()->NPartCharge()) {
+       Double_t range = Range(ipart, energy);
+       cx = range; 
+       if(cx<0.) {
+         cx = TMath::Limits<Double_t>::Max();
+       } else {
+         const Double_t dRR = .2;
+         const Double_t finRange =.1;
+         if(cx>finRange)
+           cx=cx*dRR+finRange*((1.-dRR)*(2.0-finRange/cx));
+       }     
+     }
+     tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
+
+     // discrete step limit 
+     if(ipart<TPartIndex::I()->NPartReac()){ // can have different reactions + decay
        Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta; // energy bin index
        ibin = ibin<fNEbins-1?ibin:fNEbins-2;
 
@@ -347,13 +364,17 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
        Double_t xrat = (en2-energy)/(en2-en1);	
        //get interpolated -(total mean free path)
        Double_t x = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]; 
-       tracks.fPstepV[i] = -1.*x*TMath::Log(rndArray[i]);
+       x *= -1.*TMath::Log(rndArray[i]);  
+       if(x<cx)      
+         tracks.fPstepV[i] = x;
     } else if (fDecayTable->HasDecay(ipart)) { // it has only decay 
        Double_t x = tracks.fPV[i]*fDecayTable->GetCTauPerMass(ipart); //Ptot*c*tau/mass [cm]
-       tracks.fPstepV[i] = -1.*x*TMath::Log(rndArray[i]);
-    } else { // has no any interactions
-       tracks.fPstepV[i] = TMath::Limits<Double_t>::Max();  
-    }
+       x = -1.*x*TMath::Log(rndArray[i]);
+       if(x<cx)      
+         tracks.fPstepV[i] = x;
+    } //else { // has no any interactions
+      // tracks.fPstepV[i] = TMath::Limits<Double_t>::Max();  
+   // }
   }
 
 }
@@ -518,6 +539,18 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
         continue;
 
       Double_t energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$ [GeV]
+      Double_t range  = Range(ipart, energy);
+      if(tracks.fStepV[i]>range) {
+        // Particle will stop
+        tracks.fEdepV[i] += energy;       // put Ekin to edepo
+        tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
+        tracks.fPV[i] = 0.;                // set Ptotal = 0
+        tracks.fStatusV[i] = kKilled;     // set status to killed 
+        // stopped: set proc. indx = -2 to inidicate that 
+        tracks.fProcessV[i] = -2; // possible at-rest process need to be called 
+        continue;
+      }
+
       // get dedx value
       if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins]; // protections
       else if (energy>=fEGrid[fNEbins-1]) dedx = fDEdx[ipart*fNEbins+fNEbins-1]; 
@@ -532,13 +565,18 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
       // Update energy and momentum
       Double_t gammaold = tracks.Gamma(i);
       Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
+
+
       Double_t edepo = tracks.fStepV[i]*dedx;  // compute energy loss using linera loss aprx.
+      if(edepo>0.01*energy) // long step: eloss > 1% of initial energy
+        edepo = energy-InvRange(ipart, range-tracks.fStepV[i]);
+
       Double_t newEkin = energy-edepo;         // new kinetic energy  
       if (newEkin < energyLimit) {  // new Kinetic energy below tracking cut
         // Particle energy below threshold
         tracks.fEdepV[i] += energy;       // put Ekin to edepo
         tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
-        tracks.fPV[i] = 0;                // set Ptotal = 0
+        tracks.fPV[i] = 0.;                // set Ptotal = 0
         tracks.fStatusV[i] = kKilled;     // set status to killed 
         // check if the particle stopped or just went below the tracking cut
         if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
