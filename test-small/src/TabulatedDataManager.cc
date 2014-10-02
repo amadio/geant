@@ -452,9 +452,9 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
 //  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
   // TO BE THE SAME AS G4 WITHOUT integral approach !!! IT IS DIFFERENT IT PROTO.
   // BUT NO EFFECT IF THE TRACKING LIMIT IS HIGHER THAN 3keV
-  if(fgIsUseRange)
-     kinEnergy = atrack.GetStep()->GetPreStepPoint()->GetKineticEnergy()/GeV;
-  else
+//  if(fgIsUseRange)
+//     kinEnergy = atrack.GetStep()->GetPreStepPoint()->GetKineticEnergy()/GeV;
+//  else
      kinEnergy = atrack.GetStep()->GetPostStepPoint()->GetKineticEnergy()/GeV;
 
   // sampling element for intercation based on element-wise relative tot-xsecs
