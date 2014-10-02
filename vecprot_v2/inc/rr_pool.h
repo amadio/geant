@@ -73,6 +73,8 @@ rr_pool<T>::rr_pool(int nslots, int capacity, const T *refobj)
       for (auto j=0; j<capacity; ++j) list->push_back(new T(*fBlueprint));
       fLists.push_back(list);
       std::atomic_flag *lock = new std::atomic_flag;
+      // Must expliticit initialize the atomic_flag to avoid valgring errors.
+      lock->clear();
       fLocks.push_back(lock);
    }
 }
