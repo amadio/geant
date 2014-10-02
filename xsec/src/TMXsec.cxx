@@ -277,11 +277,11 @@ Float_t TMXsec::Xlength(Int_t part, Float_t en, Double_t ptot) {
     //     Double_t en2 = en1*fEDelta;
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>en || en2<en) {
-      Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, en, en2);
-      return TMath::Limits<Float_t>::Max();
-    }
+//    if(en1>en || en2<en) {
+//      Error("Xlength","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, en, en2);
+//      return TMath::Limits<Float_t>::Max();
+//    }
     Double_t xrat = (en2-en)/(en2-en1);
     Double_t x = xrat*fTotXL[part*fNEbins+ibin]+(1-xrat)*fTotXL[part*fNEbins+ibin+1]; 
     return x;  
@@ -419,11 +419,11 @@ Float_t TMXsec::DEdx(Int_t part, Float_t en) {
     //     Double_t en2 = en1*fEDelta;
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>en || en2<en) {
-      Error("DEdx","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, en, en2);
-      return TMath::Limits<Float_t>::Max();
-    }
+//    if(en1>en || en2<en) {
+//      Error("DEdx","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, en, en2);
+//      return TMath::Limits<Float_t>::Max();
+//    }
 
     Double_t xrat = (en2-en)/(en2-en1);
     return xrat*fDEdx[part*fNEbins+ibin]+(1-xrat)*fDEdx[part*fNEbins+ibin+1];
@@ -475,11 +475,11 @@ Float_t TMXsec::Range(Int_t part, Float_t en) {
 
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>en || en2<en) {
-      Error("Range","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, en, en2);
-      return -1.0;
-    }
+//    if(en1>en || en2<en) {
+//      Error("Range","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, en, en2);
+//      return -1.0;
+//    }
 
     Double_t xrat = (en2-en)/(en2-en1);
     return xrat*fRange[part*fNEbins+ibin]+(1-xrat)*fRange[part*fNEbins+ibin+1];
@@ -619,12 +619,12 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptot) {
         //    Double_t en2 = en1*fEDelta;
         Double_t en1 = fEGrid[ibin];
         Double_t en2 = fEGrid[ibin+1];
-        if(en1>en || en2<en) {
-	   Error("SampleInt","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	         ibin, en1, en, en2);
-	   reac=-1;
-	   return 0;
-        }
+//        if(en1>en || en2<en) {
+//	   Error("SampleInt","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	         ibin, en1, en, en2);
+//	   reac=-1;
+//	   return 0;
+//        }
         Int_t iel=-1;
         if(fNElems==1) {
 	   iel=0;

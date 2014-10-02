@@ -607,58 +607,58 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        Double_t randDirX = randSinTheta*TMath::Cos(randPhi);
        Double_t randDirY = randSinTheta*TMath::Sin(randPhi);       
 
-       GeantTrack &gTrack1 = GeantPropagator::Instance()->GetTempTrack(tid);
-       GeantTrack &gTrack2 = GeantPropagator::Instance()->GetTempTrack(tid);
-
+    // need to do it one-by-one 
+    // 1. gamma   
+       GeantTrack &gTrack1 = propagator->GetTempTrack(tid);
        //set the new track properties: 2 gamma with m_{e}*c*c
-       gTrack1.fEvent   = gTrack2.fEvent   = tracks.fEventV[iintrack];
-       gTrack1.fEvslot  = gTrack2.fEvslot  = tracks.fEvslotV[iintrack];
+       gTrack1.fEvent   = tracks.fEventV[iintrack];
+       gTrack1.fEvslot  = tracks.fEvslotV[iintrack];
 //       gTrack.fParticle = nTotSecPart;          //index of this particle
-       gTrack1.fPDG     = gTrack2.fPDG     = 22;  //gamma PDG code
-       gTrack1.fG5code  = gTrack2.fG5code  = TPartIndex::I()->GetSpecGVIndex(2); //gamma G5 index
-       gTrack1.fEindex  = gTrack2.fEindex  = 0;
-       gTrack1.fCharge  = gTrack2.fCharge  = 0.; // e+ charge
-       gTrack1.fProcess = gTrack2.fProcess = 0;
-       gTrack1.fIzero   = gTrack2.fIzero   = 0;
-       gTrack1.fNsteps  = gTrack2.fNsteps  = 0;
+       gTrack1.fPDG     = 22;  //gamma PDG code
+       gTrack1.fG5code  = TPartIndex::I()->GetSpecGVIndex(2); //gamma G5 index
+       gTrack1.fEindex  = 0;
+       gTrack1.fCharge  = 0.; // charge
+       gTrack1.fProcess = 0;
+       gTrack1.fIzero   = 0;
+       gTrack1.fNsteps  = 0;
 //       gTrack.fSpecies  = 0;
-       gTrack1.fStatus  = gTrack2.fStatus  = kNew;   //status of this particle
-       gTrack1.fMass    = gTrack2.fMass    = 0.;              //mass of this particle
-       gTrack1.fXpos    = gTrack2.fXpos    = tracks.fXposV[iintrack];     //rx of this particle (same as parent)
-       gTrack1.fYpos    = gTrack2.fYpos    = tracks.fYposV[iintrack];     //ry of this particle (same as parent)
-       gTrack1.fZpos    = gTrack2.fZpos    = tracks.fZposV[iintrack];     //rz of this particle (same as parent)
+       gTrack1.fStatus  = kNew;   //status of this particle
+       gTrack1.fMass    = 0.;              //mass of this particle
+       gTrack1.fXpos    = tracks.fXposV[iintrack];     //rx of this particle (same as parent)
+       gTrack1.fYpos    = tracks.fYposV[iintrack];     //ry of this particle (same as parent)
+       gTrack1.fZpos    = tracks.fZposV[iintrack];     //rz of this particle (same as parent)
        gTrack1.fXdir    = randDirX;
-       gTrack2.fXdir    = -1.*randDirX;     
        gTrack1.fYdir    = randDirY;
-       gTrack2.fYdir    = -1.*randDirY;     
        gTrack1.fZdir    = randDirZ;
-       gTrack2.fZdir    = -1.*randDirZ;     
-       gTrack1.fP       = gTrack2.fP      = mecc;            //momentum of this particle 
-       gTrack1.fE       = gTrack2.fE      = mecc;           //total E of this particle 
-       gTrack1.fEdep    = gTrack2.fEdep   = 0.;
-       gTrack1.fPstep   = gTrack2.fPstep  = 0.;
-       gTrack1.fStep    = gTrack2.fStep   = 0.;
-       gTrack1.fSnext   = gTrack2.fSnext  = 0.;
-       gTrack1.fSafety  = gTrack2.fSafety = tracks.fSafetyV[iintrack];
-       gTrack1.fFrombdr = gTrack2.fFrombdr= tracks.fFrombdrV[iintrack];
-       gTrack1.fPending = gTrack2.fPending= kFALSE;
-       *gTrack1.fPath   = *gTrack2.fPath   = *tracks.fPathV[iintrack];
-       *gTrack1.fNextpath = *gTrack2.fNextpath = *tracks.fPathV[iintrack];
+       gTrack1.fP       = mecc;            //momentum of this particle 
+       gTrack1.fE       = mecc;           //total E of this particle 
+       gTrack1.fEdep    = 0.;
+       gTrack1.fPstep   = 0.;
+       gTrack1.fStep    = 0.;
+       gTrack1.fSnext   = 0.;
+       gTrack1.fSafety  = tracks.fSafetyV[iintrack];
+       gTrack1.fFrombdr = tracks.fFrombdrV[iintrack];
+       gTrack1.fPending = kFALSE;
+       *gTrack1.fPath   = *tracks.fPathV[iintrack];
+       *gTrack1.fNextpath = *tracks.fPathV[iintrack];
 
        gPropagator->AddTrack(gTrack1);
        tracks.AddTrack(gTrack1);
-       gPropagator->AddTrack(gTrack2);
-       tracks.AddTrack(gTrack2);
+
+    // 2. gamma : everything is the same but the direction
+       gTrack1.fXdir    = -1.*randDirX;     
+       gTrack1.fYdir    = -1.*randDirY;     
+       gTrack1.fZdir    = -1.*randDirZ;     
+
+       gPropagator->AddTrack(gTrack1);
+       tracks.AddTrack(gTrack1);
   
        nTotSecPart+=2;
-   
        return;
      } else {
        return; 
      }
    }
-   
-
    // If the stopped particle doesn't have nuclear capture at-rest then decay it
    if(!fHasNCaptureAtRest[partindex]) {
      // Decay at-rest

@@ -153,11 +153,11 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     ibin = ibin<fNEbins-1?ibin:fNEbins-2;
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>en || en2<en) {
-      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, en, en2);
-      return kFALSE;
-    }
+//    if(en1>en || en2<en) {
+//      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, en, en2);
+//      return kFALSE;
+//    }
     Double_t xrat = (en2-en)/(en2-en1);
     if(eta>xrat) ++ibin;
     ebinindx = ibin;
@@ -191,11 +191,11 @@ Bool_t TPFstate::SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weig
     ibin = ibin<fNEbins-1?ibin:fNEbins-2;
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>en || en2<en) {
-      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, en, en2);
-      return kFALSE;
-    }
+//    if(en1>en || en2<en) {
+//      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, en, en2);
+//      return kFALSE;
+//    }
     Double_t xrat = (en2-en)/(en2-en1);
     if(randn1>xrat) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
@@ -258,11 +258,11 @@ Bool_t TPFstate::GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float
     ibin = ibin<fNEbins-1?ibin:fNEbins-2;
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>en || en2<en) {
-      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, en, en2);
-      return kFALSE;
-    }
+//    if(en1>en || en2<en) {
+//      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, en, en2);
+//      return kFALSE;
+//    }
     if(en-en1>en2-en) ++ibin;
     Int_t ipoint = rnumber*fNEbins + ibin;
     // in case of any problems with the fstate sampling the primary will be 
@@ -332,10 +332,10 @@ Bool_t TPFstate::Resample() {
       ibin = ibin<oNEbins-1?ibin:oNEbins-2;
       Double_t en1 = oGrid[ibin];
       Double_t en2 = oGrid[ibin+1];
-      if(en1>en || en<en) {
-	 Error("Interp","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	       ibin, en1, en, en2);
-      }
+//      if(en1>en || en<en) {
+//	 Error("Interp","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	       ibin, en1, en, en2);
+//      }
       Double_t xrat = (en2-en)/(en2-en1);
       if(xrat<0.5) obins[ien]=ibin;
       else obins[ien]=ibin+1;
