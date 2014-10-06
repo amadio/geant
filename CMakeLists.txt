@@ -131,7 +131,7 @@ if (CUDA)
 
   if (VECGEOM_CUDA_LIBRARY)
      SET(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${CUDA_LIBRARIES} )
-     message(STATUS "Updated VecGeom libraries to ${VECGEOM_LIBRARIES)")
+     message(STATUS "Updated VecGeom libraries to ${VECGEOM_LIBRARIES}")
   endif()
 
   message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
