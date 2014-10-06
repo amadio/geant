@@ -134,7 +134,7 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fCBasket(0),
                    fPBasket(0),
                    fLock(),
-                   fBaskets(),
+                   fBaskets(8192),
                    fFeeder(0),
                    fMutex()
 {
@@ -396,8 +396,10 @@ Int_t GeantBasketMgr::GarbageCollect()
 GeantBasket *GeantBasketMgr::GetNextBasket()
 {
 // Returns next empy basket if any available, else create a new basket.
-   GeantBasket *next = fBaskets.try_pop();
-   if (!next) {
+//   GeantBasket *next = fBaskets.try_pop();
+   GeantBasket *next = 0;
+   Bool_t pulled = fBaskets.dequeue(next);
+   if (!pulled) {
       next = new GeantBasket(fBcap, this);
       // === critical section if atomics not supported ===
       fNbaskets++;
@@ -423,8 +425,12 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b)
       // Resize also the output array if needed
       if (b->GetOutputTracks().Capacity() < fThreshold)
         b->GetOutputTracks().Resize(fThreshold); 
-   }     
-   fBaskets.push(b);
+   }
+   if (!fBaskets.enqueue(b)) {
+      Printf("Fatal error: exceeded the size of the bounded queue for basket mgr: %s",
+      b->GetName());
+      exit(1);
+   }
    fNused--;
 }   
 

@@ -42,7 +42,7 @@ done
 ithr=1
 while [ "$ithr" -le "$MAXTHREADS" ]; do
  echo "NTHREADS $ithr" >> scalability.txt
- grep -o 'RT=[.0-9]*' run$ithr.log | sed -r 's/RT=//' >> scalability.txt
+ grep -o 'RT=[.0-9]*' run$ithr.log | sed 's/RT=//' >> scalability.txt
  ithr=$(($ithr + 1))
 done
 
