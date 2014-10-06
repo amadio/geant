@@ -21,7 +21,7 @@ if (VECGEOM_LIBRARIES)
    set(VECGEOM_LIBRARY_DIR ${VECGEOMROOT}/lib)
 
    if (CUDA)
-      find_library(VECGEOM_CUDA_LIBRARY libvecgeom_cuda.a PATHS ${VECGEOMROOT}/lib)
+      find_library(VECGEOM_CUDA_LIBRARY libvecgeomcuda.a PATHS ${VECGEOMROOT}/lib)
       if (VECGEOM_CUDA_LIBRARY)
          SET(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${VECGEOM_CUDA_LIBRARY} )
       endif()
