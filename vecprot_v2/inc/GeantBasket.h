@@ -104,7 +104,7 @@ public:
 
 public:
    GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fThreshold(0), fNbaskets(0), 
-                         fNused(0), fCBasket(0), fPBasket(0), fBaskets(8192), fLock(), fFeeder(0), fMutex() {}
+                         fNused(0), fCBasket(0), fPBasket(0), fLock(), fBaskets(2<<15), fFeeder(0), fMutex() {}
    GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
    
@@ -124,8 +124,8 @@ public:
    void              SetThreshold(Int_t thr)      {fThreshold.store(thr);}
    GeantBasket      *GetCBasket() const           {return fCBasket.load();}
    GeantBasket      *GetPBasket() const           {return fPBasket.load();}
-   void             *SetCBasket(GeantBasket* basket) {fCBasket.store(basket);}
-   void             *SetPBasket(GeantBasket* basket) {fPBasket.store(basket);}
+   void              SetCBasket(GeantBasket* basket) {fCBasket.store(basket);}
+   void              SetPBasket(GeantBasket* basket) {fPBasket.store(basket);}
 #endif   
    GeantScheduler   *GetScheduler() const         {return fScheduler;}
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}

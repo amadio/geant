@@ -134,7 +134,7 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fCBasket(0),
                    fPBasket(0),
                    fLock(),
-                   fBaskets(8192),
+                   fBaskets(2<<15),
                    fFeeder(0),
                    fMutex()
 {
@@ -228,7 +228,6 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority)
 {
 // Copy directly from a track_v a track to the basket manager.
 // Has to work concurrently
-   Int_t npush = 0;
    // Atomically pin the basket for the adding operation
    GeantBasket *oldb = StealAndPin(priority?fPBasket:fCBasket);
    // Now basket matches fP(C)Basket content and has the adding flag set  
@@ -254,7 +253,6 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority)
 // one. The feeder must be defined beforehand. Returns the number of dispatched
 // baskets
 // Has to work concurrently
-   Int_t npush = 0;
    // Atomically pin the basket for the adding operation
    GeantBasket *oldb = StealAndPin(priority?fPBasket:fCBasket);
    // Now basket matches fP(C)Basket content and has the adding flag set  

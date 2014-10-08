@@ -12,6 +12,8 @@ public:
   mpmc_bounded_queue(size_t buffer_size)
     : buffer_(new cell_t [buffer_size])
     , buffer_mask_(buffer_size - 1)
+    , enqueue_pos_(0)
+    , dequeue_pos_(0)
   {
     assert((buffer_size >= 2) &&
       ((buffer_size & (buffer_size - 1)) == 0));
@@ -86,6 +88,7 @@ private:
     std::atomic<size_t>   sequence_;
 #endif
     T                     data_;
+    cell_t(): sequence_(0), data_() {}
   };
 
   static size_t const     cacheline_size = 64;

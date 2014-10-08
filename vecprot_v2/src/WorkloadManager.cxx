@@ -105,7 +105,7 @@ WorkloadManager *WorkloadManager::Instance(Int_t nthreads)
 }
 
 //______________________________________________________________________________
-void WorkloadManager::Print(Option_t *option) const
+void WorkloadManager::Print(Option_t *) const
 {
 //
 }   
@@ -218,16 +218,13 @@ void *WorkloadManager::MainScheduler(void *)
 //   Int_t ntracksb = 0;
    // Number of priority baskets
    Int_t npriority;
-   TH1F *hnb=0, *hworkers=0, *htracks=0;
-   TCanvas *c1 = 0;
    //   Int_t lastphase = -1;
    Int_t crtphase  = 0;
    
    Int_t niter = -1;
    UInt_t npop = 0;
-   Double_t nperbasket;
    Int_t ninjected = 0;
-   Int_t nnew = 0, ntot=0, nkilled=0;
+//   Int_t nnew = 0, ntot=0, nkilled=0;
    GeantBasket *output;
    GeantBasket **carray = new GeantBasket*[500];
    waiting[nworkers] = 1;
@@ -237,9 +234,9 @@ void *WorkloadManager::MainScheduler(void *)
       niter++;
 //      if (niter==1000) exit(0);
       ninjected = 0;
-      nnew = 0;
-      ntot = 0;
-      nkilled = 0;
+//      nnew = 0;
+//      ntot = 0;
+//      nkilled = 0;
       for (UInt_t iout=0; iout<npop; iout++) {
          output = carray[iout];
 //         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
@@ -362,7 +359,6 @@ void *WorkloadManager::MainScheduler(void *)
          sch->GarbageCollect();
          if (countdown) feederQ->set_countdown(0);
       }
-      nperbasket = 0;
       waiting[nworkers] = 1;
    }
    // Stop workers
@@ -389,7 +385,7 @@ void *WorkloadManager::TransportTracks(void *)
    Int_t ntotransport;
    Int_t nextra_at_rest = 0;
    Int_t generation = 0;
-   Int_t ninjected = 0;
+//   Int_t ninjected = 0;
    Int_t nnew = 0;
    Int_t ntot = 0;
    Int_t nkilled = 0;
@@ -560,7 +556,8 @@ finish:
 #ifdef __STAT_DEBUG
       sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif         
-      ninjected = sch->AddTracks(basket, ntot, nnew, nkilled);
+//      ninjected = 
+      sch->AddTracks(basket, ntot, nnew, nkilled);
 //      Printf("thread %d: injected %d baskets", tid, ninjected);
       wm->TransportedQueue()->push(basket);
    }
@@ -725,7 +722,7 @@ void *WorkloadManager::MonitoringThread(void *)
 // Thread providing basic monitoring for the scheduler.
    const Double_t MByte = 1024.;
    Printf("Started monitoring thread...");
-   GeantPropagator *propagator = GeantPropagator::Instance();
+//   GeantPropagator *propagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
    dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
    Int_t ntotransport;
