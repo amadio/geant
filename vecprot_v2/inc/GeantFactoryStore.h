@@ -17,7 +17,7 @@ private:
    Int_t                fNclients;        // Number of thread clients
    Int_t                fNFactories;      // Number of factories stored
    Int_t                fCapacity;        // Store capacity
-   void               **fTypes;           // Factory types
+   const void         **fTypes;           // Factory types
    void               **fFactories;       // Stored factories
    static GeantFactoryStore *fgInstance;  // Static instance of the store
    GeantFactoryStore(Int_t nclients);
@@ -47,7 +47,7 @@ GeantFactory<T> *GeantFactoryStore::GetFactory(Int_t blocksize)
    TThread::Lock();
    if (fNFactories==fCapacity) {
       // Resize arrays
-      void **types = new void*[2*fCapacity];
+      const void **types = new const void*[2*fCapacity];
       memset(types, 0, 2*fCapacity*sizeof(void*));
       memcpy(types, fTypes, fNFactories*sizeof(void*));
       void **factories = new void*[2*fCapacity];
@@ -59,7 +59,7 @@ GeantFactory<T> *GeantFactoryStore::GetFactory(Int_t blocksize)
       fFactories = factories;
       fCapacity *= 2;
    }   
-   fTypes[fNFactories] = (void*)type;
+   fTypes[fNFactories] = (const void*)type;
    fFactories[fNFactories++] = factory;
    TThread::UnLock();
    return factory;

@@ -101,7 +101,7 @@ void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tra
 }
 
 //______________________________________________________________________________
-void MyApplication::Digitize(Int_t event)
+void MyApplication::Digitize(Int_t /* event */)
 {
 // User method to digitize a full event, which is at this stage fully transported
 //   printf("======= Statistics for event %d:\n", event);

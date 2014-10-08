@@ -247,7 +247,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    Int_t ndispatched = 0;
    
    // Species generated for the moment N, P, e, photon
-   const Int_t kMaxPart=9;
+//   const Int_t kMaxPart=9;
 //   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
 //   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
 //   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
@@ -422,6 +422,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
     Printf("Have placed volumes %ld\n", v2.size() );
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
    }
+   return true;
 }
 #endif
 //______________________________________________________________________________
@@ -572,8 +573,11 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Double_t efficiency = speedup/nthreads;
 //   fWMgr->Print();
    fWMgr->JoinThreads();
+
+#ifdef GEANTV_OUTPUT_RESULT_FILE
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
+#endif
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
           fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
@@ -584,10 +588,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 #endif
    Printf("Navstate pool usage statistics:");
    fWMgr->NavStates()->statistics();
-//   gSystem->mkdir("results");
-//   FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
-//   fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
-//   fclose(fp);
+#ifdef GEANTV_OUTPUT_RESULT_FILE
+   gSystem->mkdir("results");
+   FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
+   fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
+   fclose(fp);
+#endif
    fOutFile = 0;
    fOutTree = 0;
 }

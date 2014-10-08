@@ -885,7 +885,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
 #ifdef VERBOSE
    arr.PrintTrack( i );
 #endif
-   WorkloadManager *wm = WorkloadManager::Instance();
+   //WorkloadManager *wm = WorkloadManager::Instance();
    Int_t itrack = fNtracks++;
 
    fEventV    [itrack] = arr.fEventV    [i];
@@ -1039,7 +1039,7 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
 void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j)
 {
 // Replace content of track i with the one of track j
-   WorkloadManager *wm = WorkloadManager::Instance();
+   // WorkloadManager *wm = WorkloadManager::Instance();
    fEventV    [i] = fEventV    [j];
    fEvslotV   [i] = fEvslotV   [j];
    fParticleV [i] = fParticleV [j];
@@ -1722,7 +1722,7 @@ void GeantTrack_v::PrintTrack(Int_t itr) const
 #ifdef USE_VECGEOM_NAVIGATOR
       printf("Object %p, Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d izr=%d nstp=%d spc=%d status=%s mass=%g\
               xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
-              this, itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr],
+             (const void*)this, itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr],
               fG5codeV[itr], fChargeV[itr], fProcessV[itr],fIzeroV[itr],fNstepsV[itr],
               (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr],fYposV[itr],fZposV[itr],
               fXdirV[itr],fYdirV[itr],fZdirV[itr],fPV[itr],fEV[itr],fPstepV[itr], fStepV[itr], fSnextV[itr],fSafetyV[itr],
