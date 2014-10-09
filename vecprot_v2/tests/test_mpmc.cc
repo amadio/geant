@@ -36,15 +36,21 @@ double get_cpu_time(){
 void f(int n)
 {
    int ncnt = MAXCNT/NTHREADS;
+   size_t maxsize = 0;
+   size_t minsize = 1000000;
    int val;
    sumw[n] = 0;
    sumr[n] = 0;
    for (int cnt = 0; cnt < ncnt; ++cnt) {
-      if (!theQ.enqueue(cnt)) std::cout << "could not write" << std::endl;
-      else sumw[n] += cnt;
-      if (!theQ.dequeue(val)) std::cout << "could not read" << std::endl;
-      else sumr[n] += val;
+      while (!theQ.enqueue(cnt)) {}
+      sumw[n] += cnt;
+      while (!theQ.dequeue(val)) {}
+      sumr[n] += val;
+      size_t size = theQ.size();
+      if (size>maxsize) maxsize = size;
+      if (size<minsize) minsize = size;
    }
+   std::cout << "thr " << n << " maxsize = " << maxsize << "  minsize = " << minsize << std::endl;
 }
 
 void g(int n)

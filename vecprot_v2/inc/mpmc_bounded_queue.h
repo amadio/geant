@@ -14,6 +14,7 @@ public:
     , buffer_mask_(buffer_size - 1)
     , enqueue_pos_(0)
     , dequeue_pos_(0)
+    , nstored_(0)
   {
     assert((buffer_size >= 2) &&
       ((buffer_size & (buffer_size - 1)) == 0));
@@ -21,6 +22,7 @@ public:
       buffer_[i].sequence_.store(i, std::memory_order_relaxed);
     enqueue_pos_.store(0, std::memory_order_relaxed);
     dequeue_pos_.store(0, std::memory_order_relaxed);
+    nstored_.store(0, std::memory_order_relaxed);
   }
 
   ~mpmc_bounded_queue()
@@ -28,6 +30,11 @@ public:
     delete [] buffer_;
   }
 
+  size_t size() const
+  {
+    return nstored_.load(std::memory_order_relaxed);
+  }
+  
   bool enqueue(T const& data)
   {
     cell_t* cell;
@@ -50,6 +57,7 @@ public:
         pos = enqueue_pos_.load(std::memory_order_relaxed);
     }
     cell->data_ = data;
+    nstored_++;
     cell->sequence_.store(pos + 1, std::memory_order_release);
     return true;
   }
@@ -76,6 +84,7 @@ public:
         pos = dequeue_pos_.load(std::memory_order_relaxed);
     }
     data = cell->data_;
+    nstored_--;
     cell->sequence_.store
       (pos + buffer_mask_ + 1, std::memory_order_release);
     return true;
@@ -109,6 +118,10 @@ private:
   std::atomic<size_t>     dequeue_pos_;
 #endif
   cacheline_pad_t         pad3_;
+#if __cplusplus >= 201103L
+  std::atomic<size_t>     nstored_;
+#endif
+  cacheline_pad_t         pad4_;
 
   mpmc_bounded_queue(mpmc_bounded_queue const&);
   void operator = (mpmc_bounded_queue const&);
