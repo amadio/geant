@@ -36,8 +36,8 @@ double get_cpu_time(){
 void f(int n)
 {
    int ncnt = MAXCNT/NTHREADS;
-   size_t maxsize = 0;
-   size_t minsize = 1000000;
+//   size_t maxsize = 0;
+//   size_t minsize = 1000000;
    int val;
    sumw[n] = 0;
    sumr[n] = 0;
@@ -46,11 +46,11 @@ void f(int n)
       sumw[n] += cnt;
       while (!theQ.dequeue(val)) {}
       sumr[n] += val;
-      size_t size = theQ.size();
-      if (size>maxsize) maxsize = size;
-      if (size<minsize) minsize = size;
+//      size_t size = theQ.size();
+//      if (size>maxsize) maxsize = size;
+//      if (size<minsize) minsize = size;
    }
-   std::cout << "thr " << n << " maxsize = " << maxsize << "  minsize = " << minsize << std::endl;
+//   std::cout << "thr " << n << " maxsize = " << maxsize << "  minsize = " << minsize << std::endl;
 }
 
 void g(int n)
@@ -74,10 +74,14 @@ int main(int argc, char * argv[])
    sumw = new long[NTHREADS];
    sumr = new long[NTHREADS];
    int ncnt = MAXCNT/NTHREADS;
+   std::atomic<size_t> atomic_test(0);
+   bool lock_free = atomic_test.is_lock_free();
+   if (lock_free) std::cout << "std::atomic is lock free" << std::endl;
+   else           std::cout << "std::atomic is NOT lock free" << std::endl;
    values = new int[ncnt];
    for (auto i=0; i<ncnt; i++) values[i] = i;
    int val = 0;
-   for (auto i=0; i<1000; ++i) theQ.enqueue(val);
+//   for (auto i=0; i<1000; ++i) theQ.enqueue(val);
    std::vector<std::thread> v;
    double wall0 = get_wall_time(); 
    double cpu0  = get_cpu_time();  
@@ -95,16 +99,18 @@ int main(int argc, char * argv[])
    } 
    int extra = 0;
    while (theQ.dequeue(val)) {extra++; sumrt += val;}
-   std::cout << "extra = " << extra << std::endl;
+   std::cout << "mpmc atomic queue " << std::endl;
+   std::cout << "==================" << std::endl;   
    std::cout << "number of reads/writes: " << NTHREADS*ncnt << std::endl;
-   std::cout << "sumw = " << sumwt << "  sumr = " << sumrt << std::endl;
+   if (sumwt==sumrt) std::cout << "checksum matching: " << sumwt << std::endl;
+   else              std::cout << "checksum NOT matching: " << std::endl;
    std::cout << "wall time: " << wall1-wall0 << "   cpu time: " << cpu1-cpu0 << std::endl;
    std::cout << "transactions per second: " << 2*NTHREADS*ncnt/(wall1-wall0) << std::endl;
 //   std::cout << "speedup = " << (cpu1-cpu0)/(wall1-wall0) << std::endl;
    
    sumwt = sumrt = 0;
    val = 0;
-   for (auto i=0; i<1000; ++i) theDCQ.push(&val);
+//   for (auto i=0; i<1000; ++i) theDCQ.push(&val);
    std::vector<std::thread> v1;
    wall0 = get_wall_time(); 
    cpu0  = get_cpu_time();  
@@ -120,12 +126,14 @@ int main(int argc, char * argv[])
      sumwt += sumw[i];
      sumrt += sumr[i];
    } 
-   extra = 0;
+//   extra = 0;
    int *value1 = 0;
    while ((value1=theDCQ.try_pop())) {extra++; sumrt += *value1;}
-   std::cout << "extra = " << extra << std::endl;
+   std::cout << "mpmc mutex priority queue (dcqueue)" << std::endl;
+   std::cout << "===================================" << std::endl;   
    std::cout << "number of reads/writes: " << NTHREADS*ncnt << std::endl;
-   std::cout << "sumw = " << sumwt << "  sumr = " << sumrt << std::endl;
+   if (sumwt==sumrt) std::cout << "checksum matching: " << sumwt << std::endl;
+   else              std::cout << "checksum NOT matching: " << std::endl;
    std::cout << "wall time: " << wall1-wall0 << "   cpu time: " << cpu1-cpu0 << std::endl;
    std::cout << "transactions per second: " << 2*NTHREADS*ncnt/(wall1-wall0) << std::endl;
  //  std::cout << "speedup = " << (cpu1-cpu0)/(wall1-wall0) << std::endl;
