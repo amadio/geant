@@ -1,6 +1,7 @@
 #ifndef GPPhysicsTable_h
 #define GPPhysicsTable_h
 
+#include <cstddef>
 #include "GPConstants.h"
 
 class GPPhysicsVector {
