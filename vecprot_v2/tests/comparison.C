@@ -5,10 +5,13 @@
 #include "TF1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
+#include "TLegend.h"
+#include "TFrame.h"
 
 static int irun=0;
+TLegend *legend;
 
-void comparison(const char *fname="file.txt")
+void compare_perf(const char *fname)
 {
 // Makes scalability plot out of file scalability.txt
 // options:
@@ -21,7 +24,8 @@ void comparison(const char *fname="file.txt")
       printf("file %s not found\n", fname);
       return;
    }
-   
+   TString sfname = fname;
+   sfname.ReplaceAll(".txt","");
    char * line = NULL;
    int nres = -1;
    double time[100];
@@ -75,8 +79,9 @@ void comparison(const char *fname="file.txt")
    delete line;
 
    TH1F *hist = 0;
-   hist = new TH1F(Form("plot%d",irun), hname, nres, 0.5, nth[nres-1]+0.5);
-   hist->GetYaxis()->SetTitle(hname);
+   hist = new TH1F(Form("plot%d",irun), hname, nth[nres-1], 0.5, nth[nres-1]+0.5);
+   TString axname = hname(0,hname.Index("gcc"));
+   hist->GetYaxis()->SetTitle(axname);
    hist->GetYaxis()->SetRangeUser(4.E5, 1.E8);       
    hist->SetMarkerColor(irun);
    hist->SetFillColor(irun);
@@ -96,7 +101,11 @@ void comparison(const char *fname="file.txt")
    Bool_t found = false;
    c1 = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("results");
    if (c1) found = true;
-   else c1 = new TCanvas("results", "Results for different number of threads", 700, 800);
+   else {
+      c1 = new TCanvas("results", "Results for different number of threads", 1200, 600);
+      legend = new TLegend(0.55,0.65,0.76,0.82);
+   }   
+   c1->GetFrame()->SetFillColor(30);
    c1->SetGridx();
    c1->SetGridy();
    c1->SetLogy();
@@ -104,5 +113,17 @@ void comparison(const char *fname="file.txt")
      hist->Draw("E1BAR SAME");
    }  
    else hist->Draw("E1BAR");
+   legend->AddEntry(hist, sfname, "f");
+   legend->Draw();
    c1->SaveAs("comparison.gif");
 }
+
+void comparison()
+{
+   compare_perf("q_mutex_dcqueue.txt");
+   compare_perf("q_priority_atomic.txt");
+   compare_perf("q_mpmc_atomic.txt");
+   compare_perf("q_carray_lockfree.txt");
+   compare_perf("q_boost_lockfree.txt");
+}
+
