@@ -162,9 +162,10 @@ class dcqueue {
    std::atomic_int    nobjects;   // Number of objects in the queue
    std::atomic_int    npriority;  // Number of prioritized objects
    std::atomic_int    countdown;  // Countdown counter for extracted objects
+   int                nop;  // number of ops
 #endif
 public:
-   dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),countdown(0) {}
+   dcqueue(): the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),countdown(0), nop(0) {}
    ~dcqueue() {}
    void               push(T *data, bool priority=false);
    int                get_countdown() const {return countdown.load(std::memory_order_relaxed);}   
@@ -174,6 +175,7 @@ public:
    bool               empty_async() const {return (nobjects.load(std::memory_order_relaxed) == 0);}
    int                size_priority() const {return npriority.load(std::memory_order_relaxed);}
    int                size_objects() const {return nobjects.load(std::memory_order_relaxed);}
+   int                n_ops() const {return nop;}
    void               delete_content();
    int                size() const;
    bool               empty() const;
@@ -207,6 +209,7 @@ void dcqueue<T>::push(T *data, bool priority)
    if (priority) {the_queue.push_back(data); npriority++;}
    else          the_queue.push_front(data);
    nobjects++;
+   nop++;
    the_condition_variable.Signal();
    the_mutex.UnLock();
 }
@@ -240,6 +243,7 @@ T* dcqueue<T>::wait_and_pop()
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;
+   nop++;
    if (countdown>0) countdown--;
    if (npriority>0) npriority--;
    the_mutex.UnLock();
@@ -261,6 +265,7 @@ T* dcqueue<T>::try_pop()
    T *popped_value = the_queue.back();
    the_queue.pop_back();
    nobjects--;
+   nop++;
    if (countdown>0) countdown--;
    if (npriority>0) npriority--;
    the_mutex.UnLock();
