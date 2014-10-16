@@ -1,0 +1,11 @@
+###################################################
+# Batch running of events  
+###################################################
+
+# verbosity
+#/tracking/verbose 1
+/control/verbose 1
+/run/verbose 2
+
+# Shoot  
+/run/beamOn 1

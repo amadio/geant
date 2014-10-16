@@ -1,3 +1,5 @@
+#ifndef GEANT_MPMC_BOUNDED_QUEUE
+#define GEANT_MPMC_BOUNDED_QUEUE
 #if __cplusplus >= 201103L
 #include <atomic>
 #endif
@@ -126,4 +128,4 @@ private:
   mpmc_bounded_queue(mpmc_bounded_queue const&);
   void operator = (mpmc_bounded_queue const&);
 }; 
- 
+#endif

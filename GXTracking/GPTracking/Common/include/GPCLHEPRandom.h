@@ -2,6 +2,8 @@
 #define GPCLHEPRandom_H
 
 //CLHEP::RandFlat
+#include <math.h>
+#include <stdlib.h>
 
 namespace GPCLHEPRandFlat {
 

@@ -1,6 +1,7 @@
 #ifndef GPEMPhysicsUtils_H
 #define GPEMPhysicsUtils_H
 
+#include <cstdlib>
 #include <cmath>
 #include <ctime>
 #include "GPPhysicsTable.h"

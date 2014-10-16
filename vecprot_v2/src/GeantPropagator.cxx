@@ -581,6 +581,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
           fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
+   Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops())/rtime);
 #ifdef USE_VECGEOM_NAVIGATOR
    Printf("=== Navigation done using VecGeom ====");
 #else
