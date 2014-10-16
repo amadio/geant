@@ -306,6 +306,8 @@ int main (int argc, char* argv[])
       CpuFunc[k](track_c, nTracks, physicsTable, sbData, 
                  PDFX, PDFY, PDFA, PDFQ);
       //--------------------------------------------------------------
+      // This does the work on the CPU
+
       cudaEventRecord (stop,0);
       cudaEventSynchronize (stop);
       cudaEventElapsedTime (&elapsedTimeCPU[k],start,stop);
