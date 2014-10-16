@@ -50,8 +50,8 @@ private:
   G4int     fNcol;
 
   G4int    *fPDFA; 
-  G4double *fPDFX; 
-  G4double *fPDFY; 
+  G4double *fPDFX;  // Original distribution - not cummulative (e.g. X-section)
+  G4double *fPDFY;  // Inverse cummulative distribution function - or non-aliased pdf
 };
 
 #endif
