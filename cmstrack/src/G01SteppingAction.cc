@@ -139,7 +139,7 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	int hours = eta/3600;
 	int mins = (eta-hours*3600)/60;
 	int secs = eta-hours*3600-mins*60;
-	G4cout << "Still to go " << hours << ":" << mins << ":" << secs << G4endl;
+	printf("ETA %2.2dh%2.2dm%2.2ds\n",hours,mins,secs);
 	npleft = nremain;
      }
   }
