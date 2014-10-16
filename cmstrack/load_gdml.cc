@@ -41,9 +41,11 @@
 #include "VTfileio.h"
 
 #include <vector>
+#include <sys/stat.h>
 
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
+#include "Randomize.hh"
 
 #include "G4LogicalVolumeStore.hh"
 #include "G4TransportationManager.hh"
@@ -67,6 +69,8 @@
 
 int main(int argc,char **argv)
 {
+   struct stat sb;
+
    G4cout << G4endl;
    G4cout << "Usage: load_gdml <intput_gdml_file:mandatory>"
           << " <output_gdml_file:optional>" << G4endl;
@@ -97,7 +101,8 @@ int main(int argc,char **argv)
 
    runManager->SetUserInitialization(new G01DetectorConstruction(
                                      parser.GetWorldVolume()));
-   //   runManager->SetUserInitialization(new G01PhysicsList);
+ 
+  //   runManager->SetUserInitialization(new G01PhysicsList);
    runManager->SetUserInitialization(new FTFP_BERT);
    runManager->SetUserAction(new G01PrimaryGeneratorAction);
    runManager->SetUserAction(new G01EventAction);
@@ -109,6 +114,11 @@ int main(int argc,char **argv)
    {
       parser.Write(argv[2], G4TransportationManager::GetTransportationManager()->
                    GetNavigatorForTracking()->GetWorldVolume()->GetLogicalVolume());
+   }
+
+   if(!stat("random_start.rand",&sb)) {
+      printf("Setting the random number from file\n");
+      G4Random::restoreEngineStatus("random_start.rand");
    }
 
    G4UImanager* UImanager = G4UImanager::GetUIpointer();
@@ -141,7 +151,8 @@ int main(int argc,char **argv)
      double radl = glv->GetMaterial()->GetRadlen();
      region = new G4Region(G4String("Region_")+glv->GetName());
      region->AddRootLogicalVolume(glv);
-     if(ilv==1623) rcuts[ilv].SetProductionCut(0.5*radl);
+     // Lead Crystals are parametrised in reality
+     if(ilv==1623) rcuts[ilv].SetProductionCut(radl);
      else rcuts[ilv].SetProductionCut(0.25*radl);
      region->SetProductionCuts(&rcuts[ilv]);
     
@@ -187,6 +198,8 @@ int main(int argc,char **argv)
      delete ui;
 #endif
    }
+
+   G4Random::saveEngineStatus("random_end.rand");
 
    delete runManager;
    delete io;
