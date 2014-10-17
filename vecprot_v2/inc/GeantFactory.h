@@ -5,7 +5,7 @@
 #include <vector>
 #include <typeinfo>
 #include <TMutex.h>
-#include "sync_objects.h"
+#include "dcqueue.h"
 #include "WorkloadManager.h"
 #include "TGeoManager.h"
 
@@ -137,8 +137,8 @@ public:
    Int_t                  fBlockSize;   // Block size
    ProcessHitFunc_t       fCallback;    // User function to call back
    GeantBlockArray<T>   **fBlockA;      //[fNslots] arrays of data blocks
-   dcqueue< GeantBlock<T> > fPool;        // pool of empty/recycled blocks
-   dcqueue< GeantBlock<T> > fOutputs;     // pool of filled blocks
+   dcqueue< GeantBlock<T>* > fPool;        // pool of empty/recycled blocks
+   dcqueue< GeantBlock<T>* > fOutputs;     // pool of filled blocks
 
     ~GeantFactory();
    
@@ -193,12 +193,14 @@ T *GeantFactory<T>::NextFree(Int_t slot)
 // Returns the next free object
    // If the block is full put it 
    Int_t tid = TGeoManager::ThreadId(); // maybe put in calling sequence
+   GeantBlock<T>* block;
    if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used AND filled (by the same thread)
       fOutputs.push(fBlockA[slot]->At(tid));
-      fBlockA[slot]->AddAt(tid, fPool.wait_and_pop());
+      fPool.wait_and_pop(block);
+      fBlockA[slot]->AddAt(tid, block);
       // Keep the pool full
-      if (fPool.size_async() < fNthreads) AddFreeBlocks(fNthreads);
+      if (fPool.size_async() < size_t(fNthreads)) AddFreeBlocks(fNthreads);
    }   
    return fBlockA[slot]->At(tid)->NextFree();
 }

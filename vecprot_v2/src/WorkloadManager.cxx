@@ -42,6 +42,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fBtogo(0),
                  fStarted(kFALSE),
                  fStopped(kFALSE),
+                 fWorkDone(kFALSE),
                  fFeederQ(0),
                  fTransportedQ(0),
                  fDoneQ(0),
@@ -51,12 +52,14 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fFilling(kFALSE),
                  fScheduler(0),
                  fBroker(0),
-                 fWaiting(0)
+                 fWaiting(0),
+                 fMutexSch(new std::mutex),
+                 fCondSch(new std::condition_variable)
 {
 // Private constructor.
-   fFeederQ = new dcqueue<GeantBasket>();
-   fTransportedQ = new dcqueue<GeantBasket>();
-   fDoneQ = new dcqueue<GeantBasket>();
+   fFeederQ = new priority_queue<GeantBasket*>(1<<16);
+   fTransportedQ = new priority_queue<GeantBasket*>(1<<16);
+   fDoneQ = new priority_queue<GeantBasket*>(1<<10);
    fgInstance = this;
    fScheduler = new GeantScheduler();
    fWaiting = new Int_t[fNthreads+1];
@@ -176,8 +179,9 @@ void WorkloadManager::WaitWorkers()
    fFilling = kFALSE;
    Int_t ntowait = fNthreads;
    if (fBroker) ntowait -= fBroker->GetNstream();
+   GeantBasket *signal;
    while(ntowait) {
-      fDoneQ->wait_and_pop();
+      fDoneQ->wait_and_pop(signal);
       ntowait--;
       Printf("=== %d workers finished", fNthreads+1-ntowait);
    }
@@ -203,8 +207,8 @@ void *WorkloadManager::MainScheduler(void *)
    Bool_t countdown = kFALSE;
    WorkloadManager *wm = WorkloadManager::Instance();
    if (wm->fBroker) nworkers -= wm->fBroker->GetNstream();
-   dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
-   dcqueue<GeantBasket> *transportedQ = wm->TransportedQueue();
+   priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
+   priority_queue<GeantBasket*> *transportedQ = wm->TransportedQueue();
    GeantScheduler *sch = wm->GetScheduler();
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
@@ -222,13 +226,20 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t crtphase  = 0;
    
    Int_t niter = -1;
-   UInt_t npop = 0;
+   size_t npop = 0;
    Int_t ninjected = 0;
 //   Int_t nnew = 0, ntot=0, nkilled=0;
    GeantBasket *output;
    GeantBasket **carray = new GeantBasket*[500];
    waiting[nworkers] = 1;
-   while ((output = (GeantBasket*)transportedQ->wait_and_pop_max(500,npop,carray))) {
+   std::mutex *mutex_sch = wm->GetMutexSch();
+   std::condition_variable *cond_sch = wm->GetCondSch();
+   while (1) {
+      std::unique_lock<std::mutex> lk(*mutex_sch);
+      while (!wm->IsWorkDone()) cond_sch->wait(lk);
+      wm->SetWorkDone(false);
+      lk.unlock();
+//      transportedQ->wait_and_pop_max(500,npop,carray);
       waiting[nworkers] = 0;
       // Monitor the queues while there are tracks to transport
       niter++;
@@ -237,12 +248,12 @@ void *WorkloadManager::MainScheduler(void *)
 //      nnew = 0;
 //      ntot = 0;
 //      nkilled = 0;
-      for (UInt_t iout=0; iout<npop; iout++) {
-         output = carray[iout];
+//      for (size_t iout=0; iout<npop; iout++) {
+//         output = carray[iout];
 //         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
          // Recycle basket
-	      output->Recycle();	 
-      }
+//	      output->Recycle();	 
+//      }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
 //      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
@@ -396,6 +407,8 @@ void *WorkloadManager::TransportTracks(void *)
    WorkloadManager *wm = WorkloadManager::Instance();
    GeantScheduler *sch = wm->GetScheduler();
    Int_t *waiting = wm->GetWaiting();
+//   std::mutex *mutex_sch = wm->GetMutexSch();
+   std::condition_variable *cond_sch = wm->GetCondSch();
 //   Int_t nprocesses = propagator->fNprocesses;
 //   Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -407,7 +420,7 @@ void *WorkloadManager::TransportTracks(void *)
    // TGeoBranchArray *crt[500], *nxt[500];
    while (1) {
       waiting[tid] = 1;
-      basket = wm->FeederQueue()->wait_and_pop();
+      wm->FeederQueue()->wait_and_pop(basket);
       waiting[tid] = 0;
       // Check exit condition: null basket in the queue
       if (!basket) break;
@@ -559,7 +572,10 @@ finish:
 //      ninjected = 
       sch->AddTracks(basket, ntot, nnew, nkilled);
 //      Printf("thread %d: injected %d baskets", tid, ninjected);
-      wm->TransportedQueue()->push(basket);
+//      wm->TransportedQueue()->push(basket);
+      wm->SetWorkDone(true);
+      cond_sch->notify_one();
+      basket->Recycle();
    }
    wm->DoneQueue()->push(0);
    Printf("=== Thread %d: exiting ===", tid);
@@ -616,7 +632,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg)
       }
       waiting[tid] = 1;
       //::Info("GPU","Waiting for next available basket.");
-      basket = wm->FeederQueue()->wait_and_pop();
+      wm->FeederQueue()->wait_and_pop(basket);
       waiting[tid] = 0;
       // Check exit condition: null basket in the queue
       if (!basket) break;
@@ -724,7 +740,7 @@ void *WorkloadManager::MonitoringThread(void *)
    Printf("Started monitoring thread...");
 //   GeantPropagator *propagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
-   dcqueue<GeantBasket> *feederQ = wm->FeederQueue();
+   priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
    Int_t ntotransport;
    ProcInfo_t  procInfo;
    Double_t rss;

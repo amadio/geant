@@ -5,15 +5,21 @@
 #include "mpmc_bounded_queue.h"
 #endif
 
+#if __cplusplus >= 201103L
 #include <mutex>
 #include <condition_variable>
+#endif
 
 template<typename T>
 class priority_queue
 {
 public:
   priority_queue(size_t buffer_size) 
-  : main_q_(buffer_size),
+  : n_waiting_(0),
+    countdown_(0),
+    mutex_(),
+    cv_(),
+    main_q_(buffer_size),
     priority_q_(buffer_size) {}
   ~priority_queue()          {}
 
@@ -26,10 +32,15 @@ public:
    bool               empty() const {return empty_async();}
    bool               try_pop(T& data);
    void               wait_and_pop(T& data);
-  
+   size_t             get_countdown() const {return countdown_.load(std::memory_order_relaxed);}   
+   void               reset_countdown() {countdown_.store(-1,std::memory_order_relaxed);}
+   void               set_countdown(size_t n) {countdown_.store(n,std::memory_order_relaxed);}
+   size_t             n_ops() const {return 0;}
+
 private:
 #if __cplusplus >= 201103L
   std::atomic_int         n_waiting_;   // number of threads waiting  
+  std::atomic_int         countdown_;   // Countdown counter for extracted objects
   std::mutex              mutex_;       // mutex for starvation mode
   std::condition_variable cv_;          // condition variable
 #endif  
@@ -82,6 +93,7 @@ bool priority_queue<T>::try_pop(T& data)
 {
    bool popped = priority_q_.dequeue(data);
    if (!popped) popped = main_q_.dequeue(data);
+   if (popped && countdown_.load()>0) countdown_--;
    return popped;
 }
 
@@ -95,6 +107,7 @@ void priority_queue<T>::wait_and_pop(T& data)
   while (size_async()==0) cv_.wait(lk);
   while (!try_pop(data)) {}
   n_waiting_--;
+  if (countdown_.load()>0) countdown_--;
   lk.unlock();
 }
 #endif

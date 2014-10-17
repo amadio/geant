@@ -1,6 +1,6 @@
 #include "../inc/mpmc_bounded_queue.h"
 #include "../inc/priority_queue.h"
-#include "../inc/sync_objects.h"
+#include "../inc/dcqueue.h"
 #include <boost/lockfree/queue.hpp>
 #include "../inc/array_lock_free_queue.h"
 #include <thread>
@@ -28,7 +28,6 @@ boost::lockfree::queue<int> theBQ(1000);
 //ArrayLockFreeQueue<int, QSIZE> theRBQ;
 ArrayLockFreeQueue<int, 1024> theRBQ;
 dcqueue<int> theDCQ;
-int *values;
 std::ofstream ofs1, ofs2, ofs3, ofs4, ofs5;
 //std::chrono::milliseconds timespan(1);
 
@@ -126,9 +125,9 @@ void f4(int n)
    sumr[n] = 0;
    for (int cnt = 0; cnt < ncnt; ++cnt) {
       bool priority = ((cnt%3)==0);
-      theDCQ.push(values+cnt, priority);
+      theDCQ.push(cnt, priority);
       sumw[n] += cnt;
-      val = *theDCQ.wait_and_pop();
+      theDCQ.wait_and_pop(val);
       sumr[n] += val;
    }
 }
@@ -257,7 +256,7 @@ void performance()
 
 //======== mutex_dcqueue
    val = 0;
-   for (auto i=0; i<1000; ++i) theDCQ.push(&val);
+   for (auto i=0; i<1000; ++i) theDCQ.push(val);
    std::vector<std::thread> v1;
    wall0 = get_wall_time(); 
    cpu0  = get_cpu_time();  
@@ -274,8 +273,7 @@ void performance()
      sumrt += sumr[i];
    } 
 //   extra = 0;
-   int *value1 = 0;
-   while ((value1=theDCQ.try_pop())) {extra++; sumrt += *value1;}
+   while (theDCQ.try_pop(val)) {extra++; sumrt += val;}
    std::cout << "mutex_dcqueue" << std::endl;
    std::cout << "===================================" << std::endl;   
    std::cout << "number of reads/writes: " << NTHREADS*ncnt << std::endl;
@@ -332,9 +330,6 @@ int main(int argc, char * argv[])
    bool lock_free = atomic_test.is_lock_free();
    if (lock_free) std::cout << "std::atomic is lock free" << std::endl;
    else           std::cout << "std::atomic is NOT lock free" << std::endl;
-   values = new int[ncnt];
-   for (auto i=0; i<ncnt; ++i) values[i] = i;
-
    std::ifstream if1 ("q_mpmc_atomic.txt");
    bool exist = if1.good();
    if (exist) if1.close();
