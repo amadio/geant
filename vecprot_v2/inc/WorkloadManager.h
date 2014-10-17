@@ -97,7 +97,7 @@ public:
    static void        *TransportTracksCoprocessor(void *arg);
    void                WaitWorkers();
 private:
-   WorkloadManager(const WorkloadManager &);//no imp.	
+   WorkloadManager(const WorkloadManager &);//no imp.
    WorkloadManager& operator=(const WorkloadManager &);//no imp.
       
    

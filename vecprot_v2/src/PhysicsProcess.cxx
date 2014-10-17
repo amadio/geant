@@ -297,8 +297,8 @@ void InteractionProcess::PostStep(TGeoMaterial *mat,
    Double_t *rndArray = gPropagator->fThreadData[tid]->fDblArray;
    const Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
    const Double_t prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass,
-			       pimass, pimass, pimass, pimass, pimass, pimass,
-			       pimass, pimass, pimass, pimass, pimass, pimass};
+                               pimass, pimass, pimass, pimass, pimass, pimass,
+                               pimass, pimass, pimass, pimass, pimass, pimass};
    gPropagator->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
 
    Int_t nprod = 0;

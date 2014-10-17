@@ -213,7 +213,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
       vecgeom::SimpleNavigator nav;
       nav.LocatePoint( GeoManager::Instance().world(),
-    		  Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
+                       Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
       vol = a->GetCurrentNode()->GetVolume();
       td->fVolume = vol;
 #else
@@ -368,7 +368,7 @@ void GeantPropagator::Initialize()
 // Initialization
    fMaxPerEvent = 5*fNaverage;  
    fMaxTracks = fMaxPerEvent*fNevents;
-	
+
 // Initialize arrays here.
    gPropagator = GeantPropagator::Instance();
       
