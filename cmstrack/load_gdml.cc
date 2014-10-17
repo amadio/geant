@@ -152,7 +152,7 @@ int main(int argc,char **argv)
      region = new G4Region(G4String("Region_")+glv->GetName());
      region->AddRootLogicalVolume(glv);
      // Lead Crystals are parametrised in reality
-     if(ilv==1623) rcuts[ilv].SetProductionCut(radl);
+     if(ilv==1623) rcuts[ilv].SetProductionCut(2*radl);
      else rcuts[ilv].SetProductionCut(0.25*radl);
      region->SetProductionCuts(&rcuts[ilv]);
     
