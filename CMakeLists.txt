@@ -152,6 +152,7 @@ add_subdirectory (vecprot_v2)
 add_subdirectory (tabxsec)
 add_subdirectory (micromc)
 add_subdirectory (test-small)
+add_subdirectory (cmstrack)
 
 if (CUDA)
   add_subdirectory (vecprot_v2/cuda)
