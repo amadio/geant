@@ -51,6 +51,8 @@ G01PrimaryGeneratorAction::G01PrimaryGeneratorAction()
    pythia.readString("Beams:eCM = 7000.");
    pythia.readString("HardQCD:all = on");
    pythia.readString("PhaseSpace:pTHatMin = 20.");
+   pythia.readString("Random:setSeed = on");
+   pythia.readString("Random:seed = 0");
    pythia.init();
 }
 

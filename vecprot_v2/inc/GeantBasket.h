@@ -5,7 +5,7 @@
 #include "TGeoExtension.h"
 #include "TGeoVolume.h"
 #include "GeantTrack.h" 
-#include "sync_objects.h" // includes <atomic.h>
+#include "priority_queue.h"
 #include "mpmc_bounded_queue.h"
 
 //==============================================================================
@@ -88,7 +88,7 @@ protected:
    std::atomic_flag  fLock;                  // atomic lock
 #endif
    mpmc_bounded_queue<GeantBasket*> fBaskets;            // queue of available baskets
-   dcqueue<GeantBasket> *fFeeder;            // feeder queue to which baskets get injected
+   priority_queue<GeantBasket*> *fFeeder;           // feeder queue to which baskets get injected
    TMutex            fMutex;                 // Mutex for this basket manager
 private:
    GeantBasketMgr(const GeantBasketMgr&);    // Not implemented
@@ -133,8 +133,8 @@ public:
    TGeoVolume       *GetVolume() const            {return fVolume;}
    virtual void      Print(Option_t *option="") const;
    void              RecycleBasket(GeantBasket *b);
-   void              SetFeederQueue(dcqueue<GeantBasket> *queue) {fFeeder = queue;}
-   dcqueue<GeantBasket> *GetFeederQueue() const {return fFeeder;}
+   void              SetFeederQueue(priority_queue<GeantBasket*> *queue) {fFeeder = queue;}
+   priority_queue<GeantBasket*> *GetFeederQueue() const {return fFeeder;}
    
    ClassDef(GeantBasketMgr,0)  // A path in geometry represented by the array of indices
 };   

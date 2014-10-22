@@ -5,7 +5,7 @@
 #include "TObject.h"
 #endif
 
-#include "sync_objects.h"
+#include "priority_queue.h"
 #include "rr_pool.h"
 #include "GeantObjectPool.h"
 #include "GeantTrack.h"
@@ -32,11 +32,12 @@ protected:
    Int_t             *fBtogo;              // array of baskets to be processed in the next generation
    Bool_t             fStarted;            // Start flag
    Bool_t             fStopped;            // Stop flag
-   dcqueue<GeantBasket> 
+   Bool_t             fWorkDone;           // Flag that a worker has published some result
+   priority_queue<GeantBasket*> 
                      *fFeederQ;            // queue of transportable baskets
-   dcqueue<GeantBasket>  
+   priority_queue<GeantBasket*>  
                      *fTransportedQ;       // queue of transported baskets
-   dcqueue<GeantBasket> 
+   priority_queue<GeantBasket*> 
                      *fDoneQ;              // Thread "all work done" queue
 //   GeantObjectPool<VolumePath_t>
 //                     *fNavStates;          // Pool of navigation states                  
@@ -49,15 +50,19 @@ protected:
    GeantScheduler    *fScheduler;          // Main basket scheduler
 
    TaskBroker        *fBroker;             // Pointer to the coprocessor broker, this could be made a collection.
-   Int_t             *fWaiting;           //![fNthreads+1] Threads in waiting flag
-
+   Int_t             *fWaiting;            //![fNthreads+1] Threads in waiting flag
+#if __cplusplus >= 201103L
+   std::mutex        *fMutexSch;           // mutex for the scheduler
+   std::condition_variable
+                     *fCondSch;            // Wait condition for scheduler
+#endif
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
    void                CreateBaskets();
-   dcqueue<GeantBasket> *FeederQueue() const {return fFeederQ;}
-   dcqueue<GeantBasket> *TransportedQueue() const {return fTransportedQ;}
-   dcqueue<GeantBasket> *DoneQueue() const {return fDoneQ;}
+   priority_queue<GeantBasket*> *FeederQueue() const {return fFeederQ;}
+   priority_queue<GeantBasket*> *TransportedQueue() const {return fTransportedQ;}
+   priority_queue<GeantBasket*> *DoneQueue() const {return fDoneQ;}
 //   GeantObjectPool<VolumePath_t>  
    rr_pool<VolumePath_t>  
                       *NavStates() const   {return fNavStates;}
@@ -65,11 +70,18 @@ public:
    Int_t               GetNbaskets() const {return fNbaskets;}
    Int_t              *GetWaiting() const  {return fWaiting;}
    GeantScheduler     *GetScheduler() const {return fScheduler;}
+
+#if __cplusplus >= 201103L
+   std::mutex         *GetMutexSch() const {return fMutexSch;}
+   std::condition_variable *GetCondSch() const {return fCondSch;}
+#endif
    static WorkloadManager *
                        Instance(Int_t nthreads=0);                    
    Bool_t              IsFlushed() const {return fFlushed;}
    Bool_t              IsFilling() const {return fFilling;}
    Bool_t              IsStopped() const {return fStopped;}
+   Bool_t              IsWorkDone() const {return fWorkDone;}
+   void                SetWorkDone(Bool_t flag) {fWorkDone = flag;}
    void                Stop()            {fStopped = kTRUE;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}

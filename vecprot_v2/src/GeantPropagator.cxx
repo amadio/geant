@@ -55,7 +55,6 @@
 #include "TGenPhaseSpace.h"
 #include "GeantTrack.h"
 #include "GeantOutput.h"
-#include "sync_objects.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"
