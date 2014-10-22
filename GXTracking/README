@@ -3,10 +3,16 @@ This is the top level directory of the coprocessor prototype
 I. Description of files and directories 
 
 g4hpcbenchmarks/GXTracking
-|- backport          : same task for GXTracking but using the Geant4 library
+|- GUTracking        : template-based for Vector processes - version 1
+|- SimCore           : code ported to cpu, precursor       - version 0 
+|- README            : this file
 |- cmake             : cmake modules and templates
+|
+< Older stuff >
+|- GPTracking        : original GPU version of transportation 
+|- Validation        : validation subpackage (for SimCore ? )
+|- backport          : same task for GXTracking but using the Geant4 library
 |- FWCore            : initialization, task management and user applications 
-|- GPTracking        : development version of particle transportation engine 
 |- gpu               : gpu programming models
 |  |-cuda              : cuda driver
 |  |-openCL            : not implemented yet
@@ -15,9 +21,7 @@ g4hpcbenchmarks/GXTracking
 |  |-tbb               : not implemented yet
 |  |-cilkplus          : not implemented yet
 |  |-openCL            : not implemented yet
-|- README            : this file
-|- SimCore           : device-independent simulation codes
-|- Validation        : validation subpackage
+
 
 II. How to run applications of the coprocessor prototype
 

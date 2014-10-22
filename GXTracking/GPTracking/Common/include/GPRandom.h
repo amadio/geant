@@ -34,24 +34,21 @@ http://stackoverflow.com/questions/8796369/cuda-and-nvcc-using-the-preprocessor-
 //#define curandState int
 //#endif
 
+// Note:
+//  One random number generator state per *Block*
+// 
 
 inline
-FQUALIFIER G4double rand_wrapper(curandState* devStates, int id) {
-    
-#ifndef __CUDA_ARCH__
-  
+FQUALIFIER G4double rand_wrapper(curandState* devStates, int id) 
+{
+#ifndef __CUDA_ARCH__ 
   //#warning host-mode compilation for rand_wrapper
-  
-  G4double ran = GPCLHEPRandFlat::flat();
-  
+  G4double ran = GPCLHEPRandFlat::flat(); 
 #else
-    
   //#warning device-mode compilation for rand_wrapper
-      
   curandState localState = devStates[id];
   G4double ran = curand_uniform(&localState);
   devStates[id] = localState;
-  
 #endif
 
 #ifdef GPUNONRANDOM
@@ -62,20 +59,14 @@ FQUALIFIER G4double rand_wrapper(curandState* devStates, int id) {
 }
     
 inline
-FQUALIFIER G4double rand_wrapper(curandState* localState) {
-
+FQUALIFIER G4double rand_wrapper(curandState* localState) 
+{
 #ifndef __CUDA_ARCH__
-
   //#warning host-mode compilation for rand_wrapper
-
   G4double ran = GPCLHEPRandFlat::flat();
-  
 #else
-
   //#warning device-mode compilation for rand_wrapper
-
   G4double ran = curand_uniform(localState);
-
 #endif
 
 #ifdef GPUNONRANDOM
@@ -90,17 +81,12 @@ inline
 FQUALIFIER G4double rand_normal_wrapper(curandState* devStates, int id, 
 					double mean, double sigma)
 {
-
 #ifndef __CUDA_ARCH__
-
   G4double ran = GPCLHEPRandGauss::shoot(); 
-
 #else
-
   curandState localState = devStates[id];
   G4double ran = curand_normal(&localState);
   devStates[id] = localState;
-
 #endif
 
 #ifdef GPUNONRANDOM
@@ -114,17 +100,12 @@ inline
 FQUALIFIER G4int rand_poisson_wrapper(curandState* devStates, int id, 
 				      double lambda) 
 {
-
 #ifndef __CUDA_ARCH__
-
   G4double ran = GPCLHEPRandPoisson::shoot(lambda); 
-
 #else
-
   curandState localState = devStates[id];
   G4double ran = curand_poisson(&localState,lambda);
   devStates[id] = localState;
-
 #endif
 
 #ifdef GPUNONRANDOM
