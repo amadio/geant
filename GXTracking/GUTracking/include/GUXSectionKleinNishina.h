@@ -9,5 +9,34 @@ class GUXSectionKleinNishina
     FQUALIFIER GUXSectionKleinNishina();
     FQUALIFIER ~GUXSectionKleinNishina();
 
-    FQUALIFIER double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton );
+    FQUALIFIER double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
+
+
+
+private:
+	// no state since this class is calculating the diff cross section from a formula
+
+
 };
+
+// function implementing the cross section for KleinNishina
+// TODO: need to get electron properties from somewhere
+
+double CalculateDiffCrossSection( int Zelement, double energy0, 
+				  double energy1 ) const
+{
+  // based on Geant4 : G4KleinNishinaCompton
+  // input  : energy0 (incomming photon energy)
+  //          energy1 (scattered photon energy)
+  // output : dsigma  (differential cross section) 
+
+  double E0_m = energy0/electron_mass_c2 ;
+  double epsilon = energy1/energy0;
+
+  double onecost = (1.- epsilon)/(epsilon*E0_m);
+  double sint2   = onecost*(2.-onecost);
+  double greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
+  double dsigma = (epsilon + 1./epsilon)*greject;
+
+  return dsigma;
+}
