@@ -16,81 +16,78 @@
 
 class GUAliasSampler
 {
-  public: 
-  	GUAliasSampler(int    Zelement, 
-  		           double incomingMin, 
-  		           double incomingMax,
-  		           int    numEntriesIncoming,  // for 'energy' (or log) of projectile
-  		           int    numEntriesSampled   
-  		           );  
+public: 
+  GUAliasSampler(int    Zelement, 
+                 double incomingMin, 
+                 double incomingMax,
+                 int    numEntriesIncoming,  // for 'energy' (or log) of projectile
+                 int    numEntriesSampled 
+                 );  
 
-    template<class Backend>
-    typename Backend::Double_t
-    Sample( typename Backend::Double_t energyIn, 
-          	typename Backend::Double_t deltaY    ) const;  
+  template<class Backend>
+  typename Backend::Double_t
+  Sample( typename Backend::Double_t energyIn, 
+          typename Backend::Double_t deltaY    ) const;  
 
-			/* Builds (part) of our tables ( for one ene)
-			*
-			*/
-    void BuildRow( int numVal, double* differentialXSection, double xMin, double xMax );
-      // Builds all our table - must be called during initialisation 
-
-	void SetPdf( double const * pdf );
+  /* Builds (part) of our tables ( for one ene)
+   *
+  */
+   // Builds all our table - must be called during initialisation 
+  void SetPdf( double const * pdf );
+  void BuildRow( int numVal, double* differentialXSection, double xMin, double xMax );
 
 private:
 // Implementation methods: 
-	BuildPdfTable(); // QUESTION: This might depend on physics? So maybe we should place inside model? 
-	
-	BuildAliasTable( /*input: pdf constructed by Model */); // seems to be independent on model
-	
-    template<class Backend>
-    typename Backend::Double_t
-    Sample( typename Backend::Index_t  irow,   // ~ sampled value 
-		    typename Backend::Index_t  icol,   // ~ input Energy
-			typename Backend::Double_t binSize,
-			typename Backend::Double_t remainderX  //  in sampled variable
+  void BuildAliasTable( /*input: pdf constructed by Model */); // seems to be independent on model
+
+  template<class Backend>
+  typename Backend::Double_t
+  Sample( typename Backend::Index_t  irow,   // ~ sampled value 
+          typename Backend::Index_t  icol,   // ~ input Energy
+          typename Backend::Double_t binSize,
+          typename Backend::Double_t remainderX  //  in sampled variable
           ) const;
 
 private:
-    const int      fZelement; 
-
-    const double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
-    const double   fIncomingMax; // Max
-    const int      fInNumEntries;
-    const double   fInverseBinIncoming;
-    // const double   fInBinSize; 
-
-    //  For the sampled variable 
-    const int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
-    const double   fSampledBinSize; 
-    const double   fInverseBinSampled; 
-    // Values needed per bin 
-    //  -- Initialised how ??
-    double*  fSampledMin; // Minimum value of 'x' sampled variable
-    double*  fSampledMax; // Maximum value of 'x' sampled variable
-
-    // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
-	double * fpdfX; // Original distribution
-
-	double * fpdfY; // Non-alias probability ( sometimes called q in other code )
-	int    * fpdfA; // Alias table           -- could become Index_t ?
+  const int      fZelement; 
+  
+  const double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
+  const double   fIncomingMax; // Max
+  const int      fInNumEntries;
+  const double   fInverseBinIncoming;
+  // const double   fInBinSize; 
+  
+  //  For the sampled variable 
+  const int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
+  const double   fSampledBinSize; 
+  const double   fInverseBinSampled; 
+  // Values needed per bin 
+  //  -- Initialised how ??
+  double*  fSampledMin; // Minimum value of 'x' sampled variable
+  double*  fSampledMax; // Maximum value of 'x' sampled variable
+  
+  // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
+  double * fpdfX; // Original distribution
+  
+  double * fpdfY; // Non-alias probability ( sometimes called q in other code )
+  int    * fpdfA; // Alias table           -- could become Index_t ?
 };
 
 template<class Backend>
 GUAliasSampler::
 GUAliasSampler(int    Zelement, 
-  		           double incomingMin, 
-  		           double incomingMax,
-  		           int    numEntriesIncoming,  // for 'energy' (or log) of projectile
-  		           int    numEntriesSampled   
-  		           )  
+               double incomingMin, 
+               double incomingMax,
+               int    numEntriesIncoming,  // for 'energy' (or log) of projectile
+               int    numEntriesSampled   
+)  
   :
-    fIncomingMin( incomingMin ),
-    fIncomingMax( incomingMax ),
-    fInNumEntries(numEntriesIncoming), 
-    fInverseBinIncoming( numEntriesIncoming / incomingMax-incomingMin)
-	fSampledNumEntries( numEntriesSampled ),
-	fInverseBinSampled( 1.0 / (numEntriesSampled-1) )  // Careful - convention build / use table!
+  fIncomingMin( incomingMin ),
+  fIncomingMax( incomingMax ),
+  fInNumEntries(numEntriesIncoming), 
+  fInverseBinIncoming( numEntriesIncoming / incomingMax-incomingMin)
+  fSampledNumEntries( numEntriesSampled ),
+  fInverseBinSampled( 1.0 / (numEntriesSampled-1) )  // Careful - convention build / use table!
 {
 }
 
@@ -135,51 +132,113 @@ GUAliasSampler::GetBin(typename Backend::Double_t  kineticEnergy,
 template<class Backend>
 typename Backend::Double_t
 GUAliasSampler::SampleX( typename Backend::Index_t  irow, // Energy bin of incoming particle
-				  	     typename Backend::Index_t  icol, // Bin index for this 'x' sample
-					     typename Backend::Double_t rangeSampled, 
-					     typename Backend::Double_t fraction )
+                         typename Backend::Index_t  icol, // Bin index for this 'x' sample
+                         typename Backend::Double_t rangeSampled, 
+                         typename Backend::Double_t fraction )
 {
-	typedef typename Backend::Double_t Double_t;
-	typedef typename Backend::Bool_t   Bool_t;
-	typedef typename Backend::Index_t  Index_t;
-	typedef typename Backend::Int_t    Int_t;
-	
-	Double_t r1 = UniformRand(  );
-	
-	Double_t xd, xu;
-	Double_t binSampled = rangeSampled * fInverseBinSampled; 
-              // Was rangeSampled /(fSampledNumEntries-1);
-
-	Double_t probNA;   // Non-alias probability
-	Double_t aliasInd; //  This is really an integer -- could be Index_t !?  
-	// fill probNA from table
-	Index_t index = irow*fSampledNumEntries  + icol; 
-	
-	// Gather
-	for( int i=0;i < Double_t::Size; ++i )
-	{
-		int iEntry= ConverfractionoInteger(index[i]);
-		probNA[i]=    fPDFY[ iEntry ]; // index[i] ];
-	    aliasInd[i]=  fPDFA[ iEntry ]; // index[i] ];
-	}
-	// should investigate here whether gather is supported in Vc
-
-	Bool_t condition = r1 <= probNA;
-	
-	// if branch
-	
-	MaskedAssign( condition, icol*binSampled ,     xd );   // Stores into xd
-	MaskedAssign( condition, (icol+1)*binSampled , xu );   //        into xu
-
-	// else branch
-	
-	MaskedAssign( !condition,  aliasInd*binSampled    , xd );
-    MaskedAssign( !condition, (aliasInd+1)*binSampled , xu );
-
-    Double_t x = (1 - fraction) * xd + fraction * xu;
-
-    return x;
+  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Int_t    Int_t;
+  
+  Double_t r1 = UniformRand(  );
+  
+  Double_t xd, xu;
+  Double_t binSampled = rangeSampled * fInverseBinSampled; 
+        // Was rangeSampled /(fSampledNumEntries-1);
+  
+  Double_t probNA;   // Non-alias probability
+  Double_t aliasInd; //  This is really an integer -- could be Index_t !?  
+  // fill probNA from table
+  Index_t index = irow*fSampledNumEntries  + icol; 
+  
+  // Gather
+  for( int i=0;i < Double_t::Size; ++i )
+  {
+    int iEntry= ConverfractionoInteger(index[i]);
+    probNA[i]=    fPDFY[ iEntry ]; // index[i] ];
+    aliasInd[i]=  fPDFA[ iEntry ]; // index[i] ];
+  }
+  // should investigate here whether gather is supported in Vc
+  
+  Bool_t condition = r1 <= probNA;
+  
+  // if branch
+  
+  MaskedAssign( condition, icol*binSampled ,     xd );   // Stores into xd
+  MaskedAssign( condition, (icol+1)*binSampled , xu );   //        into xu
+  
+  // else branch
+  
+  MaskedAssign( !condition,  aliasInd*binSampled    , xd );
+  MaskedAssign( !condition, (aliasInd+1)*binSampled , xu );
+  
+  Double_t x = (1 - fraction) * xd + fraction * xu;
+  
+  return x;
 }
 
+void GUAliasSampler::BuildAliasTables(const G4int n,
+                                      G4double   *p)
+{
+  // Build alias and alias probability
+  //    
+  // Reference: (1) A.J. Walker, "An Efficient Method for Generating Discrete 
+  // Random Variables with General Distributions" ACM Trans. Math. Software, 3,
+  // 3, 253-256 (1977) (2) A.L. Edwards, J.A. Rathkopf, and R.K. Smidt, 
+  // "Extending the Alias Monte Carlo Sampling Method to General Distributions"
+  // UCRL-JC-104791 (1991)
+  //
+  // input :    n  (dimension of discrete outcomes)
+  //          p[n] (probability density function)
+  // output:  a[n] (alias)
+  //          q[n] (non-alias probability) 
 
+  //temporary array
+  G4double *ap = (G4double*)malloc(n*sizeof(G4double)); 
 
+  //likelihood per equal probable event
+  const G4double cp = 1.0/(n-1);
+
+  //initialize
+  for(int i = 0; i < n ; ++i) {
+    a[i] = -1;
+    ap[i] = p[i];
+  }
+  
+  //O(n) iterations
+  G4int iter = n;
+  
+  do {
+    int donor = 0;
+    int recip = 0;
+    
+    //have the better search algorithm?
+    for(int j = donor; j < n ; ++j) {
+      if(ap[j] >= cp) {
+        donor = j;
+        break;
+      }
+    }
+    
+    for(int j = recip; j < n ; ++j) {
+      if(ap[j] > 0.0 && ap[j] < cp) {
+        recip = j;
+        break;
+      }
+    }
+    
+    //alias and non-alias probability
+    a[recip] = donor;
+    q[recip] = n*ap[recip];
+    
+    //update pdf 
+    ap[donor] = ap[donor] - (cp-ap[recip]);
+    ap[recip] = 0.0;
+
+    --iter;
+  }
+  while (iter > 0);
+
+  free(ap);
+}
