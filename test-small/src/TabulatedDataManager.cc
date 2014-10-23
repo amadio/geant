@@ -1,6 +1,3 @@
-//
-// S.Y. Jun & J. Apostolakis, April 2014
-//
 #include "G4Track.hh"
 #include "TabulatedDataManager.hh"
 
@@ -14,6 +11,7 @@
 #include "TEXsec.h"
 #include "TMXsec.h"
 #include "TEFstate.h"
+#include "TPDecay.h"
 
 #include "TGeoManager.h"
 #include "TGeoMaterial.h"
@@ -23,11 +21,21 @@
 #include "G4ParticleTable.hh"
 #include "Randomize.hh"
 
+#include "G4ProcessManager.hh"
+
+#include "G4Gamma.hh"
+
 using CLHEP::GeV;
 using CLHEP::cm;
 
+#ifdef MAKESTAT
+unsigned long TabulatedDataManager::killedTracks =0;
+#endif
+
+
 TabulatedDataManager* TabulatedDataManager::fgInstance = 0;
 TGeoManager *TabulatedDataManager::fgGeom= 0 ; // Pointer to the geometry manager   
+G4bool TabulatedDataManager::fgIsUseRange = FALSE;
 
 const char* TabulatedDataManager::tStatus[] = {"fAlive", "fStopButAlive", 
                                                "fStopAndKill"};
@@ -67,6 +75,8 @@ TabulatedDataManager::~TabulatedDataManager() {
   delete [] fMatXsec;
   delete [] fElemXsec;
   delete [] fElemFstate;
+  delete    fDecay;
+  delete    fHasNCaptureAtRest;
 }
 
 TabulatedDataManager::TabulatedDataManager() :
@@ -74,7 +84,9 @@ TabulatedDataManager::TabulatedDataManager() :
   fNmaterials(0),
   fElemXsec(0),
   fElemFstate(0),
-  fMatXsec(0)
+  fMatXsec(0),
+  fDecay(0),
+  fHasNCaptureAtRest(0)
   // fgGeom(0)
 {
 }
@@ -86,7 +98,9 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   fNmaterials(0),
   fElemXsec(0),
   fElemFstate(0),
-  fMatXsec(0)
+  fMatXsec(0),
+  fDecay(0),
+  fHasNCaptureAtRest(0)
   //, fgGeom(geom)
 {
   //this is clone of TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, 
@@ -103,11 +117,30 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   if (!fxsec) {
     Fatal("TabulatedDataManager", "Cannot open %s", xsecfilename);
   }   
+
+  // Get the TPartIndex singleton object from the xsec file
   fxsec->Get("PartIndex");
+  // check version of the data files
+  if(fgVersion != TPartIndex::I()->Version()) {
+    std::cerr
+     <<"\n\n*************************************************************\n"
+     <<"  ---------------------------ERROR-----------------------------\n" 
+     <<"    Your xsec_*.root and fstate_*.root data files at           \n"
+     <<"    -> "<< xsecfilename                                     <<"\n"
+     <<"    -> "<< finalsfilename                                   <<"\n"                                             
+     <<"    Version is       : "<< TPartIndex::I()->VersionMajor()  <<"."
+                                << TPartIndex::I()->VersionMinor()  <<"."
+                                << TPartIndex::I()->VersionSub()     <<"\n"
+     <<"    Required version : " << GetVersion()                     <<"\n"
+     <<"    Update your xsec_*.root and fstate_*.root data files !     "
+     <<"\n*************************************************************\n\n";                    
+     exit(EXIT_FAILURE);  
+  }
   
   TFile *fstate = TFile::Open(finalsfilename);
   if (!fstate) {
     Fatal("TabulatedDataManager", "Cannot open %s", finalsfilename);
+    exit(EXIT_FAILURE);      
   }   
   
   //Load elements from geometry
@@ -116,11 +149,10 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   TIter next(matlist);
   TGeoMaterial *mat=0;
   
-  // the common energy grid must be exactly the same as used in tabxsec for the 
-  // tabulated data (x-sections and final states) extraction because fstates 
-  // cannot be interpolated ! So get the correct grid from the xsec file.
-  fxsec->Get("PartIndex"); 
-  
+
+  // get the decay table from the final state file
+  fDecay = (TPDecay*)fstate->Get("DecayTable");
+
   //INFO: print number of materials in the current TGeoManager
   printf("#materials:= %d \n",matlist->GetSize());
   
@@ -177,6 +209,13 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
     printf("   loaded xsec data and states for: %s\n", 
 	   TPartIndex::I()->EleSymb(zel));
     zel = elements.FirstSetBit(zel+1);
+    // init : does the particle have nuclear cpature at rest? array
+    if(!fHasNCaptureAtRest) {
+      G4int numParticles = TPartIndex::I()->NPart(); 
+      fHasNCaptureAtRest = new G4bool[numParticles];
+      for(G4int ip=0; ip<numParticles; ++ip)
+         fHasNCaptureAtRest[ip] = estate->HasRestCapture(ip);
+    }
   }
   
   gSystem->GetProcInfo(&procInfo2);
@@ -210,7 +249,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
     }
     //Construct the TMXsec object that corresponds to the current material
     TMXsec *mxs = new TMXsec(mat->GetName(),mat->GetTitle(),
-			     z,a,w,nelem,mat->GetDensity(),kTRUE);
+			     z,a,w,nelem,mat->GetDensity(),kTRUE,fDecay);
     fMatXsec[fNmaterials++] = mxs;       
     // Connect to TGeoMaterial 
     mat->SetFWExtension(new TGeoRCExtension(mxs));      
@@ -228,6 +267,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
   printf("number of materials in fMatXsec[]:= %d\n", fNmaterials);
   for(Int_t i=0; i<fNmaterials; ++i)
     printf("   fMatXsec[%d]: %s\n",i,fMatXsec[i]->GetName());
+
 }
 
 //_____________________________________________________________________________
@@ -237,9 +277,16 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
   G4int    partIndex;   // GV particle index 
   G4double kinEnergy;   // kinetic energy of the particle in GeV
  
+  G4double stepLength = astep.GetStepLength()/CLHEP::cm; // from mm->cm
+  if(stepLength <= 0.0) 
+    return;
+
   partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
                                           GetPDGEncoding() );
-  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+  if(partIndex >= TPartIndex::I()->NPartCharge())
+    return;
+  kinEnergy = astep.GetPreStepPoint()->GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+
 
   if (imat < 0 || imat >= fNmaterials) {
     std::cout<< "\n!!*******SAMPLING ENERY LOSS*****USING*GV-TABPHYS***************!!\n" 
@@ -251,13 +298,65 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
              << std::endl;
     Fatal("TabulatedDataManager::EnergyLoss", "Material index is out of range!");
+    exit(EXIT_FAILURE);
+   }
+
+#ifdef MAKESTAT
+     // set the G4 'step defined by process' to the selected discreate process name  
+     G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+     G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+     *strp = TPartIndex::I()->ProcName(2); //Ionization
+#endif   
+
+   G4double range0 = 0.0;
+   if(fgIsUseRange) {
+     range0 = fMatXsec[imat]->Range(partIndex, kinEnergy);
+     if(range0<0.) return; // there is no range -> there is no dE/dx 
+
+     if(stepLength>=range0) {
+       particlechange->ProposeEnergy(0.0);
+       particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
+       if( HasRestProcess(partIndex) )
+         particlechange->ProposeTrackStatus(fStopButAlive);
+       else
+         particlechange->ProposeTrackStatus(fStopAndKill);
+       return;
+     }
    }
 
    // Get dE/dx and go for energy loss computation:
-   // We need to know one of the elements (index) to check if partice has AtRest 
-   G4int    firstElemIndx; 
-   G4double dedx  = fMatXsec[imat]->DEdx(partIndex, kinEnergy, firstElemIndx);
-   G4double edepo = dedx*(astep.GetStepLength()/CLHEP::cm); // from mm->cm
+   G4double dedx  = fMatXsec[imat]->DEdx(partIndex, kinEnergy);
+   G4double edepo = dedx*stepLength;
+   if(fgIsUseRange && edepo>0.01*kinEnergy) { // long step
+     G4double invrange = fMatXsec[imat]->InvRange(partIndex, range0-stepLength);
+     edepo = kinEnergy-invrange;
+   }
+
+   G4double finalEkin = kinEnergy-edepo;
+
+   // If Ekin-EnergyLoss is above the cut then update the current track.
+   // Otherwise: particle is stopped, Ekin goes to energy deposit, status is set
+   // to StopButAlive or StopAndKill depending on if the particle does/doesn't
+   // have NuclearCaptureAtRest process.
+
+   if( finalEkin > energylimit) {
+     particlechange->ProposeEnergy(finalEkin*GeV); //from GeV->MeV
+     particlechange->ProposeTrackStatus(fAlive);
+     particlechange->ProposeLocalEnergyDeposit(edepo*GeV); //from GeV->MeV
+   } else {
+     particlechange->ProposeEnergy(0.0);
+     particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
+     if( finalEkin<=0.0 && HasRestProcess(partIndex) ){
+       particlechange->ProposeTrackStatus(fStopButAlive);
+     } else {  
+       particlechange->ProposeTrackStatus(fStopAndKill);
+#ifdef MAKESTAT
+       ++killedTracks;
+#endif
+     }
+   }
+
+
 
    if( fgVerboseLevel >=2 )
      std::cout<< "\n=====COMPUTING ALONG-STEP ENERY LOSS==USING=GV-TABPHYS=(dE/dx)====\n" 
@@ -269,29 +368,42 @@ void TabulatedDataManager::EnergyLoss(G4int imat, const G4Track &atrack,
                                                " which is Ionisation. " << " \n"
             << "***  Material name     = " << fMatXsec[imat]->GetName() << " \n"
             << "***  Step lenght       = " << 
-                            astep.GetStepLength()/CLHEP::cm << "[cm]  " <<
                                      astep.GetStepLength()/cm << "[cm]" << " \n"
             << "***  dE/dx             = " << dedx << "[GeV/cm] Eloss:= " << 
                                                        edepo << " [GeV]" << "\n"  
             << "\n==================================================================\n"
             << std::endl;
+}
 
-   // If Ekin-EnergyLoss is above the cut then update the current track.
-   // Otherwise: particle is stopped, Ekin goes to energy deposit, status is set 
-   // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
-   // have NuclearCaptureAtRest process.  
-   if( (kinEnergy-edepo) > energylimit) {
-     particlechange->ProposeEnergy((kinEnergy-edepo)*GeV); //from GeV->MeV
-     particlechange->ProposeTrackStatus(fAlive);
-     particlechange->ProposeLocalEnergyDeposit(edepo*GeV); //from GeV->MeV
-   } else {
-     particlechange->ProposeEnergy(0.0);
-     particlechange->ProposeLocalEnergyDeposit(kinEnergy*GeV);
-     if(fElemFstate[firstElemIndx]->HasRestCapture(partIndex) )
-       particlechange->ProposeTrackStatus(fStopButAlive);  
-     else
-       particlechange->ProposeTrackStatus(fStopAndKill); 
-   }    
+//_____________________________________________________________________________
+G4double TabulatedDataManager::GetRange(const G4int imat, const G4Track &atrack){
+  G4double x = DBL_MAX;
+  G4int    partIndex;   // GV particle index
+  G4double kinEnergy;   // kinetic energy of the particle in GeV
+
+  partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
+                                          GetPDGEncoding() );
+  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+
+  if (imat < 0 || imat >= fNmaterials) {
+    std::cout<< "\n!!************GETTING-LINEAR-RANGE***USING*GV-TABPHYS************!!\n"
+             << "***  Particle is       = " <<
+                                   TPartIndex::I()->PartName(partIndex) << " \n"
+             << "***  Particle E kin.   = " << kinEnergy << " [GeV]"    << " \n"
+             << "***  Material index:   = " << imat
+                    << " OUT OF RANGE: [ 0 ," << fNmaterials  <<  " ]!" << " \n"
+             << "!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+             << std::endl;
+    Fatal("TabulatedDataManager::GetInteractionLength", "Material index is out of range!");
+    exit(EXIT_FAILURE);
+   }
+
+  // Get the linear range
+   if(partIndex>=TPartIndex::I()->NPartCharge())
+     return -1.0;
+
+   x = fMatXsec[imat]->Range(partIndex,kinEnergy);
+   return x; // from cm->mm
 }
 
 //_____________________________________________________________________________
@@ -300,11 +412,13 @@ G4double TabulatedDataManager::GetInteractionLength(G4int imat,
   G4double x = DBL_MAX;
   G4int    partIndex;   // GV particle index 
   G4double kinEnergy;   // kinetic energy of the particle in GeV
- 
+  G4double ptotal;      // total momentum
+
   partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
                                           GetPDGEncoding() );
   kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
- 
+  ptotal    = atrack.GetDynamicParticle()->GetTotalMomentum()/CLHEP::GeV; // from MeV->GeV
+
   if (imat < 0 || imat >= fNmaterials) {
     std::cout<< "\n!!********SAMPLING-INTERACTION-LENGTH***USING*GV-TABPHYS*********!!\n" 
              << "***  Particle is       = " << 
@@ -315,10 +429,11 @@ G4double TabulatedDataManager::GetInteractionLength(G4int imat,
              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
              << std::endl;
     Fatal("TabulatedDataManager::GetInteractionLength", "Material index is out of range!");
+    exit(EXIT_FAILURE);
    }
 
   // Get the total mean free path 
-  x = fMatXsec[imat]->Xlength(partIndex,kinEnergy);
+  x = fMatXsec[imat]->Xlength(partIndex,kinEnergy,ptotal);
   return x*cm; // from cm->mm
 }
 
@@ -329,45 +444,63 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
                                                 Int_t &reactionid) {    
   G4int     partIndex;   // GV particle index 
   G4double  kinEnergy;   // kinetic energy of the particle in GeV
- 
+  G4double  ptotal;      // total momentum  
   partIndex = TPartIndex::I()->PartIndex( atrack.GetParticleDefinition()->
                                           GetPDGEncoding() );
-  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
- 
+  ptotal    = atrack.GetDynamicParticle()->GetTotalMomentum()/CLHEP::GeV; // from MeV->GeV
+
+//  kinEnergy = atrack.GetKineticEnergy()/CLHEP::GeV; // from MeV->GeV
+  // TO BE THE SAME AS G4 WITHOUT integral approach !!! IT IS DIFFERENT IT PROTO.
+  // BUT NO EFFECT IF THE TRACKING LIMIT IS HIGHER THAN 3keV
+//  if(fgIsUseRange)
+//     kinEnergy = atrack.GetStep()->GetPreStepPoint()->GetKineticEnergy()/GeV;
+//  else
+     kinEnergy = atrack.GetStep()->GetPostStepPoint()->GetKineticEnergy()/GeV;
+
   // sampling element for intercation based on element-wise relative tot-xsecs
   // and sampling the interaction itself based on the relative total xsections 
   // on the selected element
   TEXsec *elemXsec = fMatXsec[imat]->SampleInt( partIndex, kinEnergy, 
-                                                reactionid);
+                                                reactionid, ptotal);
 
-  if( elemXsec ) {                                                           
-    if( fgVerboseLevel >= 2)
+  // if deacy was selected -> elemXsec = NULL   
+  if( elemXsec || reactionid == 3) {                                                           
+    if( fgVerboseLevel >= 2) {
+      G4String elementName;
+      if(reactionid == 3)
+        elementName="nothing";
+      else
+        elementName=elemXsec->GetName(); 
       std::cout<< "\n=========SAMPLING INTERACTION====USING=GV-TABPHYS=================\n" 
                << "***  Particle is       = " << 
                                    TPartIndex::I()->PartName(partIndex) << " \n"  
                << "***  Particle E kin.   = " << kinEnergy << " [GeV]"  << " \n"
-               << "***  Selected element  = " << elemXsec->GetName()    << " \n" 
+               << "***  Selected element  = " << elementName            << " \n" 
                << "***  Selected reaction = index: " << reactionid 
                         << " which is " 
                         <<  TPartIndex::I()->ProcName(reactionid)       << " \n"
                << "==================================================================\n"
                << std::endl;
-
-    
-    return elemXsec->Index();
+    }
+#ifdef MAKESTAT
+    // set the G4 'step defined by process' to the selected discreate process name 
+      G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+      G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+      *strp = TPartIndex::I()->ProcName(reactionid);
+#endif
+    if(elemXsec) 
+      return elemXsec->Index();
+    else
+      return -1; // deacy -> no element selected
   } else {
       std::cout<< "\n!!*******SAMPLING INTERACTION****USING*GV-TABPHYS***************!!\n" 
                << "***  Particle is       = " << 
                                    TPartIndex::I()->PartName(partIndex) << " \n"  
                << "***  Particle E kin.   = " << kinEnergy << " [GeV]"  << " \n"
-               << "***  Selected element  = " << elemXsec->GetName()    << " \n" 
-               << "***  Selected reaction = index: " << reactionid 
-                        << " which is "
-               <<       TPartIndex::I()->ProcName(reactionid)           << " \n"
                << "!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                << std::endl;
-      Fatal("TabulatedDataManager::SampleInteraction", "No element selected!");
-    //return -1;
+     Fatal("TabulatedDataManager::SampleInteraction", "No element selected!");
+     exit(EXIT_FAILURE);
   }
 }
 
@@ -377,7 +510,6 @@ Int_t TabulatedDataManager::SampleInteraction(  const G4int imat,
 void TabulatedDataManager::SampleFinalState(const Int_t elementindex, 
                        const Int_t reactionid, const G4Track &atrack, 
                        G4ParticleChange *particlechange, Double_t energylimit){
-
   Double_t totEdepo  = 0.0;
   Int_t nSecPart     = 0;  //number of secondary particles per reaction
   const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
@@ -386,11 +518,22 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
   Float_t  kerma     = 0;  //released energy
   Float_t  weightFst = 0;  //weight of the fstate (just a dummy parameter now)
   Char_t   isSurv    = 0;  //is the primary survived the interaction
-  
+  Int_t    ebinindx  = -1; //energy bin index of the selected final state  
+
   Int_t  partindex    = TPartIndex::I()->PartIndex(
                               atrack.GetParticleDefinition()->GetPDGEncoding());
   Double_t  kinEnergy = atrack.GetDynamicParticle()->GetKineticEnergy()/CLHEP::GeV;
+
  
+  if(reactionid == 3){ //decay in fligth
+    SampleDecayInFlight(partindex, atrack, particlechange, energylimit); 
+    particlechange->ProposeEnergy(0.0);  
+    particlechange->ProposeMomentumDirection(0.0,0.0,1.0); // not since <-Ekin =0.
+    particlechange->ProposeTrackStatus(fStopAndKill);
+    return;
+  }
+
+
   isSurv = fElemFstate[elementindex]->SampleReac(partindex,
                                                  reactionid,
                                                  kinEnergy,
@@ -399,43 +542,102 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
                                                  kerma,
                                                  energyFst,
                                                  pid,
-                                                 mom);
+                                                 mom,
+                                                 ebinindx);
 
-  totEdepo = kerma;
-  // store original (pre-interaction) direction of the primary particle 
-  Double_t oldXdir = atrack.GetMomentumDirection().x();
-  Double_t oldYdir = atrack.GetMomentumDirection().y();
-  Double_t oldZdir = atrack.GetMomentumDirection().z();
-  
-  if(isSurv && (energyFst > energylimit) ) { //survived 
+  // it is the case of: pre-step energy sigma is not zero of this interaction
+  //                    but post step is zero-> we don't have final state for 
+  //                    this interaction at the postStep energy bin-> do nothing
+  // This can happen if interaction type is selected based on the pre-step energy 
+  // and there is some energy loss along the step. (i.e. when using ranges)
+  if(isSurv && energyFst<0) {
+    particlechange->ProposeEnergy(kinEnergy*GeV);  
+    particlechange->SetNumberOfSecondaries(0);
     particlechange->ProposeTrackStatus(fAlive);
-
-    particlechange->ProposeEnergy(energyFst*GeV); // from GeV->MeV
-    // rotate direction of primary particle
-    Double_t px       = mom[0];
-    Double_t py       = mom[1];
-    Double_t pz       = mom[2];
-    Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-    Double_t secPtot  = std::sqrt(secPtot2);     //total P [GeV]
-
-    G4ThreeVector newDir(px/secPtot, py/secPtot, pz/secPtot);
-    RotateNewTrack(oldXdir, oldYdir, oldZdir, newDir);
-    particlechange->ProposeMomentumDirection(newDir);
-  }
-  else {
-     // Particle is stopped, Ekin goes to energy deposit, status is set 
-     // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
-     // have NuclearCaptureAtRest process.  
-     totEdepo += kinEnergy;
-     particlechange->ProposeEnergy(0.0);  
-     particlechange->ProposeMomentumDirection(0.0,0.0,1.0); // not since <-Ekin =0.
-     if(fElemFstate[elementindex]->HasRestCapture(partindex) ) 
-       particlechange->ProposeTrackStatus(fStopButAlive);  
-     else
-       particlechange->ProposeTrackStatus(fStopAndKill); 
+    return;
   }
 
-  Int_t isec, j = 0;
+  // setting the final state correction factor (we scale only the 3-momentums)
+  //-get mass of the primary   
+     Int_t primPDG = TPartIndex::I()->PDG(partindex); //GV part.code -> PGD code
+     TParticlePDG *primPartPDG = TDatabasePDG::Instance()->GetParticle(primPDG);
+     Double_t primMass  = primPartPDG->Mass(); // mass [GeV]
+  //-compute corFactor = P_current/P_original = Pz_current/Pz_original 
+  // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...) 
+     Double_t orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx]; 
+     Double_t corFactor = std::sqrt( kinEnergy*(kinEnergy+2.0*primMass) /
+                                     (orgPrimEkin*(orgPrimEkin+2.0*primMass)) );
+
+  //-if corFactor is set here to 1.0 --> no correction of the final states
+  // corFactor = 1.0;
+
+
+  // we should correct the kerma as well but we don't have enough information
+    totEdepo = kerma;
+
+  // store original (pre-interaction) direction of the primary particle 
+    Double_t oldXdir = atrack.GetMomentumDirection().x();
+    Double_t oldYdir = atrack.GetMomentumDirection().y();
+    Double_t oldZdir = atrack.GetMomentumDirection().z();
+  
+  // set the non-corrected post-interaction Ekin. of the primary
+    Double_t postEkinOfParimary = energyFst; 
+
+  // check if we need to correct the post-interaction Ekin of the primary:
+  // if the primary is survived and has non-zero Ekin --> compute its corrected Ekin
+    if(isSurv && (postEkinOfParimary > 0.0) ) { //survived
+      // get corrected 3-momentum of the post-interaction primary
+      Double_t px = mom[0];
+      Double_t py = mom[1];
+      Double_t pz = mom[2];
+      px *= corFactor;
+      py *= corFactor;
+      pz *= corFactor;
+      // compute corrected P^2 in [GeV^2]
+      Double_t postPrimP2 = px*px+py*py+pz*pz;
+      // recompute post-interaction Ekin of the primary with corrected 3-momentum
+      postEkinOfParimary = std::sqrt(postPrimP2 + primMass*primMass) - primMass;
+    }
+
+    // now we can do the real job
+    if(postEkinOfParimary > energylimit) { // survived even after the correction and the E-limit.
+      Double_t px = mom[0];
+      Double_t py = mom[1];
+      Double_t pz = mom[2];
+      px *= corFactor;
+      py *= corFactor;
+      pz *= corFactor;
+      // compute corrected P^2 in [GeV^2]
+      Double_t postPrimP2 = px*px+py*py+pz*pz;
+
+      particlechange->ProposeTrackStatus(fAlive);
+      particlechange->ProposeEnergy(postEkinOfParimary*GeV); // from GeV->MeV
+      // rotate direction of primary particle
+      Double_t postPrimP  = std::sqrt(postPrimP2);     // total P [GeV]
+
+      G4ThreeVector newDir(px/postPrimP, py/postPrimP, pz/postPrimP);
+      RotateNewTrack(oldXdir, oldYdir, oldZdir, newDir);
+      particlechange->ProposeMomentumDirection(newDir);
+    } else {
+      // Primary particle is stopped, Ekin goes to energy deposit, status is set 
+      // to StopButAlive or StopAndKill depending on if the particle does/doesn't 
+      // have NuclearCaptureAtRest or Deacy processes.  
+      totEdepo += postEkinOfParimary;
+      particlechange->ProposeEnergy(0.0);  
+      particlechange->ProposeMomentumDirection(0.0,0.0,1.0); // not since <-Ekin =0.
+      if( isSurv && postEkinOfParimary<=0.0 && HasRestProcess(partindex) ) {
+        particlechange->ProposeTrackStatus(fStopButAlive); 
+      } else {
+        particlechange->ProposeTrackStatus(fStopAndKill); 
+#ifdef MAKESTAT
+        ++killedTracks;
+#endif
+      }  
+    }
+
+  // go for the real secondary particles
+  Int_t isec = 0;
+  Int_t j    = 0;
   if( isSurv ) ++j;  // skipp the first that is the post-interaction primary
 
   if( fgVerboseLevel >= 2)
@@ -470,25 +672,37 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
        Int_t Z           = idummy/10000.;
        Int_t A           = (idummy - Z*10000)/10.;
        Double_t secMass  = TPartIndex::I()->GetAprxNuclearMass(Z, A);
-       Double_t px       = mom[3*isec];
-       Double_t py       = mom[3*isec+1];
-       Double_t pz       = mom[3*isec+2];
-       Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-       totEdepo += TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+       // get corrected 3-momentum of the post-interaction primary
+       Double_t px = mom[3*isec];
+       Double_t py = mom[3*isec+1];
+       Double_t pz = mom[3*isec+2];
+       px *= corFactor;
+       py *= corFactor;
+       pz *= corFactor;
+       // compute corrected P^2 in [GeV^2]
+       Double_t secP2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
+       // compute Ekin of the fragment and put to Edepo
+       totEdepo += std::sqrt( secP2 + secMass*secMass) - secMass;
+#ifdef MAKESTAT
+       ++killedTracks;
+#endif
        continue;
      }
-
-
 
      Int_t secPDG = TPartIndex::I()->PDG(pid[isec]); //GV part.code -> PGD code
      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
      Double_t secMass  = secPartPDG->Mass(); // mass [GeV]
-     Double_t px       = mom[3*isec];
-     Double_t py       = mom[3*isec+1];
-     Double_t pz       = mom[3*isec+2];
-     Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-     Double_t secPtot  = TMath::Sqrt(secPtot2);       // total P [GeV]
-     Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total E [GeV]
+     // get corrected 3-momentum of the post-interaction primary
+     Double_t px = mom[3*isec];
+     Double_t py = mom[3*isec+1];
+     Double_t pz = mom[3*isec+2];
+     px *= corFactor;
+     py *= corFactor;
+     pz *= corFactor;
+     // compute corrected P^2 in [GeV^2]
+     Double_t secP2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
+     // compute Ekin of the secondary
+     Double_t secEtot  = std::sqrt(secP2 + secMass*secMass); //total E [GeV]
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
   
      // Check if Ekin of this secondary is above our energy limit and add it to 
@@ -504,7 +718,8 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
        G4ParticleDefinition *particleDef = 
                       G4ParticleTable::GetParticleTable()->FindParticle(secPDG);
 
-       G4ThreeVector newDir(px/secPtot, py/secPtot, pz/secPtot);
+       Double_t secP = std::sqrt(secP2);       // total P [GeV]
+       G4ThreeVector newDir(px/secP, py/secP, pz/secP);
        RotateNewTrack(oldXdir, oldYdir, oldZdir, newDir);
 
        G4DynamicParticle* dynamicParticle = 
@@ -528,9 +743,9 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
                   << "***  ______________________________________________________"
                   << std::endl;
 
-     } else { 
+     } else {
        totEdepo+=secEkin;
-       if(fElemFstate[elementindex]->HasRestCapture(partindex) ) { 
+       if( secEkin<=0.0 &&  HasRestProcess(pid[isec]) ) { 
          ++totalNumSec;
       
          G4ParticleDefinition *particleDef = 
@@ -548,7 +763,11 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
          secTrack->SetWeight(weight); 
          
          secTracks.push_back(secTrack);
-       } // else: do nothing just add secEkin to Edepo that is already done
+       } else {
+#ifdef MAKESTAT
+         ++killedTracks;
+#endif
+       }// else: do nothing just add secEkin to Edepo that is already done      
      }
   }
 
@@ -569,7 +788,11 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex,
   particlechange->ProposeLocalEnergyDeposit(totEdepo*GeV); // from GeV->MeV
 }   
 
-//We have only nuclear capture at rest 
+// Will be called only if the particle has decay or/and nuclear capture at rest!
+//We have only nuclear capture at rest that includes final states from possible
+//bound deacy as well (but we cannot see if it was nCapture or decay->always set
+//to nCapture) So do nuclear capture at rest if the partcle has nCapture at rest
+//and decay at rest otherwise. 
 //______________________________________________________________________________
 void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, 
                         const G4Track &atrack, G4ParticleChange *particlechange, 
@@ -577,14 +800,8 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
     // fist we kill the current track; its energy ahs already been put into depo
     particlechange->ProposeTrackStatus(fStopAndKill);
 
-    // sample one of the elements of the current material based on the relative 
-    // number atoms/volume
-    G4int elementIndex   =  fMatXsec[imat]->SampleElement();
-    // get the corresponding element-wise final state pointer  
-    TEFstate *elemfstate = fElemFstate[elementIndex]; 
-    // get the GV particle index
-    Int_t  partindex = TPartIndex::I()->PartIndex( 
-                              atrack.GetParticleDefinition()->GetPDGEncoding());
+    const Double_t mecc = 0.00051099906; //e- mass c2 in [GeV] 
+
     // sample one of the nuclear capture at rest final states for this particle
     // on the sampled element
     Double_t totEdepo  = 0.0;
@@ -595,8 +812,104 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
     Float_t  kerma     = 0;  //released energy
     Float_t  weightFst = 0;  //weight of the fstate (just a dummy parameter now)
     Char_t   isSurv    = 0;  //is the primary survived the interaction
+    G4int elementIndex = -1;
+    TEFstate *elemfstate = 0;
 
-    Double_t randn     = G4UniformRand();
+    // get the GV particle index
+    Int_t  partindex = TPartIndex::I()->PartIndex( 
+                              atrack.GetParticleDefinition()->GetPDGEncoding());
+
+    // check if particle is e+ : e+ annihilation at rest if $E_{limit}< m_{e}c^{2}$ 
+    if(partindex == TPartIndex::I()->GetSpecGVIndex(1)) {
+      if(energylimit < mecc) {
+        Double_t randDirZ = 1.0-2.0*G4UniformRand();     
+        Double_t randSinTheta = std::sqrt(1.0-randDirZ*randDirZ);  
+        Double_t randPhi      = G4UniformRand()*CLHEP::twopi; 
+        Double_t randDirX = randSinTheta*std::cos(randPhi);
+        Double_t randDirY = randSinTheta*std::sin(randPhi);
+
+        particlechange->SetNumberOfSecondaries(2);       
+
+        //--------------------------------------------------------------
+        G4ParticleDefinition *particleDef = G4Gamma::Definition(); 
+        G4ThreeVector dir(randDirX, randDirY, randDirZ);
+
+        G4DynamicParticle* dynamicParticle = 
+                        new G4DynamicParticle(particleDef, dir, mecc*GeV);        
+
+        particlechange->AddSecondary(dynamicParticle);
+
+        dynamicParticle = new G4DynamicParticle(particleDef, -1.*dir, mecc*GeV);        
+
+        particlechange->AddSecondary(dynamicParticle);
+        //---------------------------------------------------------------
+
+/*
+       std::vector<G4Track*> secTracks;
+       G4double time = atrack.GetGlobalTime();
+       G4double weight = particlechange->GetParentWeight();
+
+       G4Track* secTrack = 
+                       new G4Track(dynamicParticle, time, atrack.GetPosition());
+       secTrack->SetKineticEnergy(mecc*GeV);
+       secTrack->SetTrackStatus(fAlive);
+       secTrack->SetTouchableHandle(atrack.GetTouchableHandle());
+       secTrack->SetWeight(weight); 
+
+       particlechange->AddSecondary(secTrack);
+
+       dynamicParticle = new G4DynamicParticle(particleDef, -1.0*dir, mecc*GeV);        
+
+       secTrack = new G4Track(dynamicParticle, time, atrack.GetPosition());
+       secTrack->SetKineticEnergy(mecc*GeV);
+       secTrack->SetTrackStatus(fAlive);
+       secTrack->SetTouchableHandle(atrack.GetTouchableHandle());
+       secTrack->SetWeight(weight); 
+
+       particlechange->AddSecondary(secTrack);
+*/
+
+#ifdef MAKESTAT
+        // if we need process statisctics
+        G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+        G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+        *strp = TPartIndex::I()->ProcName(9);// annihilation
+#endif
+
+        return;
+      } else {
+        return; 
+      }
+    }
+
+    //see if the particle has nuclear capture at rest and decay it if it doesn't.
+    if(!fHasNCaptureAtRest[partindex]) { // decay
+      isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);      
+#ifdef MAKESTAT
+      // if we need process statisctics
+        G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+        G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+        *strp = TPartIndex::I()->ProcName(3);// decay
+#endif
+    } else { // nuclear capture at rest
+      // sample one of the elements of the current material based on the relative 
+      // number atoms/volume
+      elementIndex   =  fMatXsec[imat]->SampleElement();
+      // get the corresponding element-wise final state pointer  
+      elemfstate = fElemFstate[elementIndex]; 
+      Double_t randn = G4UniformRand();
+      isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weightFst, 
+                                              kerma, energyFst, pid, mom, randn);    
+#ifdef MAKESTAT
+      // if we need process statisctics
+        G4VProcess *proc = (*(atrack.GetParticleDefinition()->GetProcessManager()->GetProcessList()))[1];
+        G4String *strp = const_cast< G4String *>( &(proc->GetProcessName()));
+        *strp = TPartIndex::I()->ProcName(6);// RestCapture
+#endif
+    }
+
+
+    // Handle the final state !
 
     Double_t randDirX;
     Double_t randDirY;
@@ -604,15 +917,13 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
     Double_t randSinTheta; 
     Double_t randPhi; 
 
-    isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weightFst, 
-                                              kerma, energyFst, pid, mom, randn);
 
     if(nSecPart) {
        randDirZ = 1.0-2.0*G4UniformRand();     
-       randSinTheta = TMath::Sqrt(1.0-randDirZ*randDirZ);  
+       randSinTheta = std::sqrt(1.0-randDirZ*randDirZ);  
        randPhi      = G4UniformRand()*CLHEP::twopi; 
-       randDirX = randSinTheta*TMath::Cos(randPhi);
-       randDirY = randSinTheta*TMath::Sin(randPhi);
+       randDirX = randSinTheta*std::cos(randPhi);
+       randDirY = randSinTheta*std::sin(randPhi);
     }
 
    //isSurv should always be FALSE here because primary was stopped
@@ -644,7 +955,10 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
        Double_t py       = mom[3*isec+1];
        Double_t pz       = mom[3*isec+2];
        Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-       totEdepo += TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+       totEdepo += std::sqrt( secPtot2 + secMass*secMass) - secMass;
+#ifdef MAKESTAT
+       ++killedTracks;
+#endif
        continue;
      }
    
@@ -656,8 +970,8 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
      Double_t pz       = mom[3*isec+2];
      Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
 
-     Double_t secPtot  = TMath::Sqrt(secPtot2);       // total P [GeV]
-     Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total E [GeV]
+     Double_t secPtot  = std::sqrt(secPtot2);       // total P [GeV]
+     Double_t secEtot  = std::sqrt(secPtot2+ secMass*secMass); //total E [GeV]
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
   
      // Check if Ekin of this secondary is above our energy limit and add it to 
@@ -698,8 +1012,10 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
                   << std::endl;
 
      } else { 
-       totEdepo+=secEkin;
-       if(fElemFstate[elementIndex]->HasRestCapture(partindex) ) { 
+       totEdepo+=secEkin;  
+// THIS CAN CAUSE PROBLEMS IF THE AT REST OR nCAPTURE FINAL STATE CONTAINS RECURSION !!!
+// BUT THAT IS A BUG IN PHYSCICS THEN !!! 
+       if( secEkin<=0.0 && HasRestProcess(pid[isec]) ) { 
          ++totalNumSec;
       
          G4ParticleDefinition *particleDef = 
@@ -717,9 +1033,13 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
          secTrack->SetWeight(weight); 
          
          secTracks.push_back(secTrack);
-       } // else: do nothing just add secEkin to Edepo that is already done
+       } else { 
+#ifdef MAKESTAT
+         ++killedTracks;
+#endif
+       }// else: do nothing just add secEkin to Edepo that is already done
      }
-   }
+   } // end-loop over secondaries
 
   if( nSecPart && (fgVerboseLevel >= 2) )
     std::cout<<"============================================================\n"
@@ -734,6 +1054,129 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat,
   // Set the overall energy deposit  
   particlechange->ProposeLocalEnergyDeposit(totEdepo*GeV); // from GeV->MeV
 
+}
+
+void TabulatedDataManager::SampleDecayInFlight(const Int_t partindex, 
+                                               const G4Track &atrack, 
+                                               G4ParticleChange *particlechange, 
+                                               Double_t energylimit ) {
+    Int_t nSecPart     = 0;  //number of secondary particles per reaction
+    const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
+    const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
+    Char_t   isSurv    = 0;  //is the primary survived the interaction
+
+    isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);
+    // isSurv should always be FALSE here because primary was stopped
+    if( isSurv ) 
+      std::cout<< "\n---       A particle survived its decay!!!       ---\n"
+               << "---In TabulatedDataManager::SampleFinalStateAtRest---\n"
+               << std::endl;
+
+   if(nSecPart) { 
+      // Go for the secondaries
+     std::vector<G4Track*> secTracks;
+     G4int totalNumSec = 0;
+     G4double time     = atrack.GetGlobalTime();
+     G4double weight   = particlechange->GetParentWeight();
+     G4double totEdepo = 0.0;
+
+     G4double beta = atrack.GetDynamicParticle()->GetTotalMomentum()/
+                     atrack.GetTotalEnergy();
+     G4double bx   = atrack.GetMomentumDirection().x()*beta;
+     G4double by   = atrack.GetMomentumDirection().y()*beta; 
+     G4double bz   = atrack.GetMomentumDirection().z()*beta;
+     G4double b2   = bx*bx + by*by + bz*bz; //it is beta*beta
+     G4double gam  = 1.0 / std::sqrt(1.0 - b2);
+     G4double gam2 = b2>0.0 ? (gam - 1.0)/b2 : 0.0;
+
+     for(G4int isec=0; isec<nSecPart; ++isec) {
+       if(pid[isec]>=TPartIndex::I()->NPart()) { // fragment: put its Ekin to energy deposit
+         Int_t idummy      = pid[isec] - 1000000000;
+         Int_t Z           = idummy/10000.;
+         Int_t A           = (idummy - Z*10000)/10.;
+         Double_t secMass  = TPartIndex::I()->GetAprxNuclearMass(Z, A);
+         Double_t px       = mom[3*isec];
+         Double_t py       = mom[3*isec+1];
+         Double_t pz       = mom[3*isec+2];
+         Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
+         totEdepo += std::sqrt( secPtot2 + secMass*secMass) - secMass;
+#ifdef MAKESTAT
+         ++killedTracks;
+#endif
+         continue;
+       }
+
+       Int_t secPDG = TPartIndex::I()->PDG(pid[isec]); //GV part.code -> PGD code
+       TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+       Double_t secMass  = secPartPDG->Mass(); // mass [GeV]
+       Double_t px = mom[3*isec];
+       Double_t py = mom[3*isec+1];
+       Double_t pz = mom[3*isec+2];
+        // compute corrected P^2 in [GeV^2]
+       Double_t secP2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
+       Double_t secEtot  = std::sqrt(secP2 + secMass*secMass); //total E [GeV]
+        //Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
+
+       G4double bp = bx*px + by*py + bz*pz;
+       px      = px + gam2*bp*bx +gam*bx*secEtot;
+       py      = py + gam2*bp*by +gam*by*secEtot;
+       pz      = pz + gam2*bp*bz +gam*bz*secEtot;
+       secEtot = gam*(secEtot+bp);
+
+       G4double secPtot = std::sqrt((secEtot-secMass)*(secEtot+secMass));
+       G4double secEkin = secEtot-secMass;
+       if(secEkin > energylimit) {
+         G4ParticleDefinition *particleDef = 
+                      G4ParticleTable::GetParticleTable()->FindParticle(secPDG);
+
+         G4ThreeVector newDir(px/secPtot, py/secPtot, pz/secPtot);
+
+         G4DynamicParticle* dynamicParticle = 
+                        new G4DynamicParticle(particleDef, newDir, secEkin*GeV);        
+
+         G4Track* secTrack = 
+                        new G4Track(dynamicParticle, time, atrack.GetPosition());
+         secTrack->SetKineticEnergy(secEkin*GeV);
+         secTrack->SetTrackStatus(fAlive);
+         secTrack->SetTouchableHandle(atrack.GetTouchableHandle());
+         secTrack->SetWeight(weight); 
+         secTracks.push_back(secTrack);
+         ++totalNumSec;
+       } else {
+         totEdepo+=secEkin;
+         if(secEkin<=0.0 && HasRestProcess(pid[isec])) {   
+           ++totalNumSec;
+      
+           G4ParticleDefinition *particleDef = 
+                      G4ParticleTable::GetParticleTable()->FindParticle(secPDG);
+
+           G4ThreeVector newDir(0,0,1); // not important since Ekin = 0.;
+           G4DynamicParticle* dynamicParticle = 
+                               new G4DynamicParticle(particleDef, newDir, 0.0);        
+
+           G4Track* secTrack = new G4Track(dynamicParticle, time, 
+                                         atrack.GetPosition());
+           secTrack->SetKineticEnergy(0.0);
+           secTrack->SetTrackStatus(fStopButAlive);
+           secTrack->SetTouchableHandle(atrack.GetTouchableHandle());
+           secTrack->SetWeight(weight); 
+         
+           secTracks.push_back(secTrack);
+         } else { 
+#ifdef MAKESTAT
+           ++killedTracks;
+#endif
+         }// else: do nothing just add secEkin to Edepo that is already done
+       }                   
+     }
+
+     particlechange->SetNumberOfSecondaries(totalNumSec);
+     for(G4int i=0; i< totalNumSec; ++i)
+       particlechange->AddSecondary(secTracks[i]);
+
+     // Set the overall energy deposit  
+     particlechange->ProposeLocalEnergyDeposit(totEdepo*GeV); // from GeV->MeV
+   }
 }
 
 //______________________________________________________________________________
@@ -785,7 +1228,7 @@ void TabulatedDataManager::RotateNewTrack(Double_t oldxdir, Double_t oldydir,
      const Double_t half = 0.5; 
 
      Double_t cosTheta0 = oldzdir; 
-     Double_t sinTheta0 = TMath::Sqrt(oldxdir*oldxdir + oldydir*oldydir);
+     Double_t sinTheta0 = std::sqrt(oldxdir*oldxdir + oldydir*oldydir);
      Double_t cosPhi0;
      Double_t sinPhi0;
 
@@ -828,7 +1271,7 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, Double_t theta,
      const Double_t half = 0.5; 
 
      Double_t cosTheta0 = newdir.z(); //tracks.fZdirV[itrack]; 
-     Double_t sinTheta0 = TMath::Sqrt(newdir.x()*newdir.x() + 
+     Double_t sinTheta0 = std::sqrt(newdir.x()*newdir.x() + 
                                       newdir.y()*newdir.y());
      Double_t cosPhi0;
      Double_t sinPhi0;
@@ -844,9 +1287,9 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, Double_t theta,
        sinPhi0 = zero;                     
      }
 
-     Double_t h0 = sinTheta * TMath::Cos(phi);
+     Double_t h0 = sinTheta * std::cos(phi);
      Double_t h1 = sinTheta0*cosTheta + cosTheta0*h0;
-     Double_t h2 = sinTheta * TMath::Sin(phi);
+     Double_t h2 = sinTheta * std::sin(phi);
  
      newdir.setX( h1*cosPhi0 - h2*sinPhi0 );
      newdir.setY( h1*sinPhi0 + h2*cosPhi0 );
@@ -862,6 +1305,19 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, Double_t theta,
      newdir.setY( newdir.y() * delta );
      newdir.setZ( newdir.z() * delta );
 }
+
+//______________________________________________________________________________
+char* TabulatedDataManager::GetVersion(){
+    char *ver = new char[512];
+    sprintf(ver,"%d.%d.%d",VersionMajor(),VersionMinor(),VersionSub());
+    return ver;
+}
+
+
+G4bool TabulatedDataManager::HasRestProcess(Int_t gvindex){
+    return fDecay->HasDecay(gvindex) || fHasNCaptureAtRest[gvindex] ||
+           (gvindex == TPartIndex::I()->GetSpecGVIndex(1));
+} 
 
 
 // This is not for MISI. I don't know what is it for so I will keep it.
@@ -893,9 +1349,10 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
   G4float  kerma     = 0;  //released energy
   G4float  weight    = 0;  //weight of the fstate (just a dummy parameter now)
   char     isSurv    = 0;  //is the primary survived the interaction   
+  G4int    ebinindx  = -1;  
 
   isSurv = fElemFstate[indexElem]->SampleReac(ipart, ireac, kineticEnergy, 
-				   nSecPart, weight, kerma, ener, pid, mom);
+				   nSecPart, weight, kerma, ener, pid, mom, ebinindx);
   if(nSecPart>0) {
 
     for(G4int is = 0 ; is < nSecPart ; ++is) {
@@ -906,7 +1363,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
       G4double secPtot2 = mom[3*is]*mom[3*is]+mom[3*is+1]*mom[3*is+1]
 	                + mom[3*is+2]*mom[3*is+2]; //total P^2 [GeV^2]
       // G4double secPtot  = TMath::Sqrt(secPtot2); //total P [GeV]
-      G4double secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
+      G4double secEtot  = std::sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
       G4double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 
       GXTrack* secTrack = (GXTrack *) malloc(sizeof(GXTrack));

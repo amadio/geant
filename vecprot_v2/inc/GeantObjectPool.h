@@ -1,6 +1,6 @@
 #ifndef GEANT_OBJECTPOOL
 #define GEANT_OBJECTPOOL
-#include "sync_objects.h"
+#include "priority_queue.h"
 
 //______________________________________________________________________________
 // Concurrent pool of generic pre-alocated objects providing the borrow/return
@@ -9,9 +9,12 @@
 
 template <class T>
 class GeantObjectPool {
-   dcqueue<T>        fPool;      // Concurrent queue used to pool objects
+   priority_queue<T>        fPool;      // Concurrent queue used to pool objects
    T                *fBlueprint; // Blueprint object from which each new allocation 
                                  // will be copied from. Requires working CC.
+private:
+   GeantObjectPool(const GeantObjectPool&);
+   GeantObjectPool &operator=(const GeantObjectPool&);
 public:
    GeantObjectPool(Int_t ninitial, const T *refobj=0);
    ~GeantObjectPool();

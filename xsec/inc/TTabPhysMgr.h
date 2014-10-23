@@ -15,6 +15,7 @@
 class TEXsec;
 class TMXsec;
 class TEFstate;
+class TPDecay;
 class GeantTrack_v;
 class GeantTrack;
 class TGeoMaterial;
@@ -27,8 +28,10 @@ private:
    TEXsec         **fElemXsec;      // Array of x-section pointers per element
    TEFstate       **fElemFstate;    // Array of final state pointers per element
    TMXsec 	  **fMatXsec;	    // Array of x-section pointers per material	
+   TPDecay         *fDecay;        // Decay tables for each particles 
    TGeoManager     *fGeom;	    // Pointer to the geometry manager   
-   Bool_t          fIsRestProcOn;   // Use at rest process   
+   Bool_t          *fHasNCaptureAtRest; // do the particle have nCapture at rest?
+
 	
    static TTabPhysMgr *fgInstance;	    // Singleton instance
 
@@ -50,6 +53,10 @@ public:
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void  GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid);
+   void  SampleDecayInFlight(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
+            GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid );
+
+   Bool_t HasRestProcess(Int_t gvindex);
 
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack &track);
@@ -58,11 +65,19 @@ public:
    void  RotateTrack(GeantTrack &track, Double_t theta, Double_t phi);
    void  RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, Double_t phi);
 
-   void SetIsRestProcOn(Bool_t boolval){fIsRestProcOn = boolval;}
+
+   // get current version number
+   Int_t VersionMajor() const {return fgVersion/1000/1000;}
+   Int_t VersionMinor() const {return fgVersion/1000-VersionMajor()*1000;}
+   Int_t VersionSub()   const {return fgVersion-VersionMajor()*1000000-VersionMinor()*1000;}
+   char* GetVersion();
 
 private:
    TTabPhysMgr(const TTabPhysMgr &);//no imp.	
    TTabPhysMgr& operator=(const TTabPhysMgr &);//no imp.
+
+   // current version number
+   static const Int_t fgVersion=1000001;
 
    ClassDef(TTabPhysMgr,1)
 };

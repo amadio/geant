@@ -213,14 +213,22 @@ Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
                              Float_t &en, const Int_t *&pid, const Float_t *&mom) const
 {
 
-  if(!fNFstates) { 
+  if(!fNFstates) { // ensure that nothing happens 
     npart = 0;
     weight = 0;
     //kerma = 0; //keep current value that is the Ekin of the primary
-    en = 0;
+    //en = kerma;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    if(kerma<=0.0) { // if it is already stopped 
+       en = 0;
+       kerma = 0;
+       return kFALSE;
+    } else { 
+      en = -1.; // this case can be checked through if(en<0.)  
+      kerma = 0; 
+      return kTRUE;
+    }
   }
 
   Double_t eta = gRandom->Rndm();
@@ -230,6 +238,7 @@ Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
       finstat = i;
       break;
     }
+
   Int_t ipoint = 0;
   for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
 
@@ -249,14 +258,22 @@ Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
                     Float_t &en, const Int_t *&pid, const Float_t *&mom, Double_t randn) const
 {
 
-  if(!fNFstates) { 
+  if(!fNFstates) { // ensure that nothing happens 
     npart = 0;
     weight = 0;
     //kerma = 0; //keep current value that is the Ekin of the primary
-    en = 0;
+    //en = kerma;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    if(kerma<=0.0) { // if it is already stopped 
+       en = 0;
+       kerma = 0;
+       return kFALSE;
+    } else { 
+      en = -1.; // this case can be checked through if(en<0.)  
+      kerma = 0; 
+      return kTRUE;
+    }
   }
 
   //Double_t eta = gRandom->Rndm();
@@ -284,14 +301,22 @@ Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
 Bool_t TFinState::GetReac(Int_t finstat, Int_t& npart, Float_t& weight, Float_t& kerma,
                           Float_t &en, const Int_t *&pid, const Float_t *&mom) const
 {
-  if(!fNFstates) {
+  if(!fNFstates) { // ensure that nothing happens 
     npart = 0;
     weight = 0;
-    //kerma = 0; keep current value that is the Ekin of the primary 
-    en = 0;
+    //kerma = 0; //keep current value that is the Ekin of the primary
+    //en = kerma;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    if(kerma<=0.0) { // if it is already stopped 
+       en = 0;
+       kerma = 0;
+       return kFALSE;
+    } else { 
+      en = -1.; // this case can be checked through if(en<0.)  
+      kerma = 0; 
+      return kTRUE;
+    }
   } else {
     Int_t ipoint = 0;
     for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];

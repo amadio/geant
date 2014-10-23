@@ -24,6 +24,9 @@
 
 #include <TNamed.h>
 #include <TEXsec.h>
+#include <vector>
+
+class TPDecay;
 class GeantTrack_v;
 
 class TMXsec : public TNamed {
@@ -32,25 +35,27 @@ public:
    TMXsec();
    TMXsec(const Char_t* name, const Char_t *title,
 	  const Int_t z[], const Int_t a[], const Float_t w[], 
-	  Int_t nel, Float_t dens, Bool_t weight=kFALSE);
+	  Int_t nel, Float_t dens, Bool_t weight=kFALSE, const TPDecay *decaytable=0);
    ~TMXsec();
-   Float_t Xlength(Int_t part, Float_t en);
-   Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
-   Float_t DEdx(Int_t part, Float_t en, Int_t &elemindx);
-   Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
+   Float_t Xlength(Int_t part, Float_t en, Double_t ptot);
+//   Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
+   Float_t DEdx(Int_t part, Float_t en);
+//   Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
+   Float_t Range(Int_t part, Float_t en);
+   Double_t InvRange(Int_t part, Float_t step);
 
    void Eloss(Int_t ntracks, GeantTrack_v &tracks);
    void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid);
    Float_t MS(Int_t ipart, Float_t energy);
 
-   TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac);
+   TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptotal);
    Int_t SampleElement(Int_t tid); // based on # atoms/vol. for the prototype
    Int_t SampleElement(); // based on # atoms/vol. for Geant4 with tab.phys. 
 
    Int_t SelectElement(Int_t pindex, Int_t rindex, Double_t energy);
 
-   static Bool_t Prune();
+//   static Bool_t Prune();
    void Print(Option_t * opt="") const;
 
 private:
@@ -74,6 +79,9 @@ private:
    Float_t        *fMSlength;  // [fNCharge] table of MS average lenght correction
    Float_t        *fMSlensig;  // [fNCharge] table of MS sigma lenght correction
    Double_t       *fRatios;    // [fNElems]  relative #atoms/volume; normalized
+   Float_t        *fRange;     // [fNCharge] ranges of the particle in this material
+   std::vector< std::pair<Float_t,Double_t> > **fInvRangeTable; // [fNCharge] 
+   const TPDecay  *fDecayTable;// pointer to the decay table
 
    ClassDef(TMXsec,1)  //Material X-secs
 

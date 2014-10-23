@@ -93,10 +93,10 @@ void TPXsec::Interp(Double_t egrid[], Float_t value[], Int_t nbins,
    ibin = ibin<nbins-1?ibin:nbins-2;
    Double_t en1 = egrid[ibin];
    Double_t en2 = egrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("Interp","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-   }
+//   if(en1>en || en2<en) {
+//      Error("Interp","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	    ibin, en1, en, en2);
+//   }
    Double_t xrat = (en2-en)/(en2-en1);
    for(Int_t ival=0; ival<stride; ++ival) {
       result[ival] = xrat*value[ibin*stride+ival]+
@@ -289,11 +289,11 @@ Float_t TPXsec::DEdx(Double_t en) const {
    //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-      return 0;
-   }
+//   if(en1>en || en2<en) {
+//      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	    ibin, en1, en, en2);
+//      return 0;
+//   }
    Double_t xrat = (en2-en)/(en2-en1);
    Double_t dedx = xrat*fdEdx[ibin]+(1-xrat)*fdEdx[ibin+1];
    /*   printf("ibin %d en1 %f en %f en2 %f xs1 %f xs2 %f xrat %f xsec %f\n",
@@ -316,11 +316,11 @@ Bool_t TPXsec::MS(Double_t en, Float_t &ang, Float_t &asig,
    //  Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-      return 0;
-   }
+//   if(en1>en || en2<en) {
+//      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	    ibin, en1, en, en2);
+//      return 0;
+//   }
    Double_t xrat = (en2-en)/(en2-en1);
    ang = xrat*fMSangle[ibin]+(1-xrat)*fMSangle[ibin+1];
    asig = xrat*fMSansig[ibin]+(1-xrat)*fMSansig[ibin+1];
@@ -339,11 +339,12 @@ Int_t TPXsec::SampleReac(Double_t en)  const {
    //Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("SampleReac","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-      return 0;
-   }
+//   if(en1>en || en2<en) {
+//      Error("SampleReac","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	    ibin, en1, en, en2);
+//      return -1;
+//   }
+
    Double_t xrat = (en2-en)/(en2-en1);
    Double_t xnorm = 1.;
    while(1) {
@@ -367,11 +368,12 @@ Int_t TPXsec::SampleReac(Double_t en, Double_t randn)  const {
    //Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("SampleReac","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-      return 0;
-   }
+//   if(en1>en || en2<en) {
+//      Error("SampleReac","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	    ibin, en1, en, en2);
+//      return -1;
+//   }
+
    Double_t xrat = (en2-en)/(en2-en1);
    Double_t xnorm = 1.;
    while(1) {
@@ -399,11 +401,11 @@ Bool_t TPXsec::XS_v(Int_t npart, Int_t rindex, const Double_t en[], Double_t lam
     //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
     Double_t en1 = fEGrid[ibin];
     Double_t en2 = fEGrid[ibin+1];
-    if(en1>ene || en2<ene) {
-      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-            ibin, en1, ene, en2);
-      return 0;
-    }
+//    if(en1>ene || en2<ene) {
+//      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//            ibin, en1, ene, en2);
+//      return 0;
+//    }
     Double_t xrat = (en2-ene)/(en2-en1);
     
     Double_t xtot = (xrat*fTotXs[ibin]+(1-xrat)*fTotXs[ibin+1]);
@@ -434,11 +436,11 @@ Float_t TPXsec::XS(Int_t rindex, Double_t en) const {
 //   Double_t en2 = fEmin*TMath::Exp((ibin+1)/fEilDelta);
    Double_t en1 = fEGrid[ibin];
    Double_t en2 = fEGrid[ibin+1];
-   if(en1>en || en2<en) {
-      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
-	    ibin, en1, en, en2);
-      return 0;
-   }
+//   if(en1>en || en2<en) {
+//      Error("XS","Wrong bin %d in interpolation: should be %f < %f < %f\n",
+//	    ibin, en1, en, en2);
+//      return 0;
+//   }
    Double_t xrat = (en2-en)/(en2-en1);
 
    Double_t xtot = (xrat*fTotXs[ibin]+(1-xrat)*fTotXs[ibin+1]);

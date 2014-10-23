@@ -5,7 +5,8 @@
 #include "TGeoExtension.h"
 #include "TGeoVolume.h"
 #include "GeantTrack.h" 
-#include "sync_objects.h" // includes <atomic.h>
+#include "priority_queue.h"
+#include "mpmc_bounded_queue.h"
 
 //==============================================================================
 // Basket of tracks in the same volume which are transported by a single thread
@@ -21,10 +22,13 @@ public:
     kMixed =  BIT(14)       // Basked mixing tracks from different volumes
   };
 protected:
-   GeantBasketMgr   *fManager;         // Manager for the basket
+   GeantBasketMgr   *fManager;             // Manager for the basket
    GeantTrack_v      fTracksIn;            // Vector of input tracks
    GeantTrack_v      fTracksOut;           // Vector of output tracks
-//   GeantHit_v        fHits;                // Vector of produced hits
+//   GeantHit_v        fHits;              // Vector of produced hits
+#if __cplusplus >= 201103L
+   std::atomic_int   fAddingOp;            // Number of track adding ops
+#endif
 
 private:
    GeantBasket(const GeantBasket&);     // Not implemented
@@ -49,6 +53,9 @@ public:
    GeantBasketMgr   *GetBasketMgr() const {return fManager;}
    TGeoVolume       *GetVolume() const;
    Bool_t            IsMixed() const {return TObject::TestBit(kMixed);}
+   inline Bool_t     IsAddingOp() const           {return (fAddingOp.load());}
+   inline Int_t      LockAddingOp()               {return ++fAddingOp;}
+   inline Int_t      UnLockAddingOp()             {return --fAddingOp;}
    virtual void      Print(Option_t *option="") const;
    void              PrintTrack(Int_t itr, Bool_t input=kTRUE) const;
    void              Recycle();
@@ -75,28 +82,29 @@ protected:
    std::atomic_int   fThreshold;             // Adjustable transportability threshold
    std::atomic_int   fNbaskets;              // Number of baskets for this volume
    std::atomic_int   fNused;                 // Number of baskets in use
-   std::atomic_int   fNfilling;              // Number of threads filling the baskets
-#else
-   Int_t             fThreshold;             // Adjustable transportability threshold
-   Int_t             fNbaskets;              // Number of baskets for this volume
-   Int_t             fNused;                 // Number of baskets in use
-   Int_t             fNfilling;              // Number of threads filling the baskets
+   typedef std::atomic<GeantBasket*> atomic_basket;
+   atomic_basket     fCBasket;               // Current basket being filled
+   atomic_basket     fPBasket;               // Current priority basket being filled
+   std::atomic_flag  fLock;                  // atomic lock
 #endif
-   GeantBasket      *fCBasket;               // Current basket being filled
-   GeantBasket      *fPBasket;               // Current priority basket being filled
-   dcqueue<GeantBasket> fBaskets;            // queue of available baskets
-   dcqueue<GeantBasket> *fFeeder;            // feeder queue to which baskets get injected
+   mpmc_bounded_queue<GeantBasket*> fBaskets;            // queue of available baskets
+   priority_queue<GeantBasket*> *fFeeder;           // feeder queue to which baskets get injected
    TMutex            fMutex;                 // Mutex for this basket manager
 private:
    GeantBasketMgr(const GeantBasketMgr&);    // Not implemented
    GeantBasketMgr& operator=(const GeantBasketMgr&); // Not implemented
+#if __cplusplus >= 201103L
+   GeantBasket      *StealAndReplace(atomic_basket &current);
+   GeantBasket      *StealAndPin(atomic_basket &current);
+   Bool_t            StealMatching(atomic_basket &global, GeantBasket *content);
+#endif
 public:
 
    GeantBasket      *GetNextBasket();
 
 public:
-   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fThreshold(0), fNbaskets(0), 
-                         fNused(0), fCBasket(0), fPBasket(0), fBaskets(), fFeeder(0), fMutex() {}
+   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fThreshold(0), fNbaskets(0), 
+                         fNused(0), fCBasket(0), fPBasket(0), fLock(), fBaskets(2<<15), fFeeder(0), fMutex() {}
    GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
    
@@ -114,20 +122,19 @@ public:
    Int_t             GetNused() const             {return fNused.load();}
    Int_t             GetThreshold() const         {return fThreshold.load();}
    void              SetThreshold(Int_t thr)      {fThreshold.store(thr);}
-#else
-   Int_t             GetNbaskets() const          {return fNbaskets;}
-   Int_t             GetNused() const             {return fNused;}
-   Int_t             GetThreshold() const         {return fThreshold;}
-   void              SetThreshold(Int_t thr)      {fThreshold = thr;}
-#endif
+   GeantBasket      *GetCBasket() const           {return fCBasket.load();}
+   GeantBasket      *GetPBasket() const           {return fPBasket.load();}
+   void              SetCBasket(GeantBasket* basket) {fCBasket.store(basket);}
+   void              SetPBasket(GeantBasket* basket) {fPBasket.store(basket);}
+#endif   
    GeantScheduler   *GetScheduler() const         {return fScheduler;}
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
    Int_t             GetNumber() const            {return fNumber;}
    TGeoVolume       *GetVolume() const            {return fVolume;}
    virtual void      Print(Option_t *option="") const;
    void              RecycleBasket(GeantBasket *b);
-   void              SetFeederQueue(dcqueue<GeantBasket> *queue) {fFeeder = queue;}
-   dcqueue<GeantBasket> *GetFeederQueue() const {return fFeeder;}
+   void              SetFeederQueue(priority_queue<GeantBasket*> *queue) {fFeeder = queue;}
+   priority_queue<GeantBasket*> *GetFeederQueue() const {return fFeeder;}
    
    ClassDef(GeantBasketMgr,0)  // A path in geometry represented by the array of indices
 };   

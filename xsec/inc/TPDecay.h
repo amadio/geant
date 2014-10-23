@@ -37,15 +37,22 @@ public:
   
   Bool_t SampleDecay(Int_t pindex, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
   Bool_t GetDecay(Int_t pindex, Int_t ifs, Int_t &npart, const Int_t *&pid, const Float_t *&mom) const;
+  Bool_t HasDecay(Int_t pindex) const;
+  void SetCTauPerMass(Double_t *ctaupermass, Int_t np);
+  Double_t GetCTauPerMass(Int_t pindex) const {
+    // should check if it is initialized but we know what we are doing!
+    return fCTauPerMass[pindex];
+  }
   
 private:
   TPDecay(const TPDecay &); // Not implemented
   TPDecay& operator=(const TPDecay &); // Not implemented
   
-  Int_t          fNSamp;   // Number of samples
-  Int_t          fNPart;   // Number of particles
-  TFinState     *fDecay;   //[fNPart] array of particle final states to be sampled
-  
+  Int_t          fNSamp;         // Number of samples
+  Int_t          fNPart;         // Number of particles
+  TFinState     *fDecay;         // [fNPart] array of particle final states to be sampled
+  Double_t      *fCTauPerMass;   // [fNPart] precomputed c*tau/mass values [cm/GeV]  
+
   ClassDefNV(TPDecay,1)  // Element X-secs
   
 };

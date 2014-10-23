@@ -114,7 +114,7 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    Int_t nbuffered  = 10;   // Number of buffered events
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
-   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
+   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads + 6 /* for the cuda streams */);
    wmgr->SetNminThreshold(5*nthreads);
    CoprocessorBroker *gpuBroker = new CoprocessorBroker();
    gpuBroker->CudaSetup(32,128,1);
@@ -124,8 +124,8 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
    prop->fNperBasket = 8;
 
    prop->fEmin = 1.E-5; // [10KeV] energy cut
-//   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
-   prop->fEmax = 1.;
+   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
+   // prop->fEmax = 1.;
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 
@@ -138,7 +138,7 @@ void runGPU(Int_t nthreads=4, Bool_t graphics=kFALSE,
  
    // This sets gGeomManager and hence superseeds the filename.
    VP_SimpleECal();
-   prop->PropagatorGeom("", nthreads + 3, graphics);
+   prop->PropagatorGeom("", nthreads + 6 /* for the cuda streams */, graphics);
 
    delete gGeoManager;
 }   

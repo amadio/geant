@@ -1,4 +1,6 @@
 #include "GXMagneticField.h"
+#include "GPConstants.h"
+#include "GXMagneticFieldTexture.h"
 
 FQUALIFIER 
 void GXMagneticField_Constructor(GXMagneticField *This,
@@ -15,13 +17,6 @@ void GXMagneticField_GetFieldValue( GXMagneticField *This,
   //default values
   bField[0] = bField[1] = bField[2] = 0.;
 
-  //  double rho = std::sqrt(point[0]*point[0]+point[1]*point[1]); 
-
-  //magnetic field map array 
-  //  const int nbinR = 900+1;
-  const int nbinZ = 2*1600+1;
-  const int noffZ = 1600;
-
   //magnetic field unit
   const G4double tesla = 0.001;
 
@@ -37,27 +32,40 @@ void GXMagneticField_GetFieldValue( GXMagneticField *This,
   }
   else {
     int ir = int(rho);
-    G4double dr = rho - ir;
-  
     int iz = int(z + noffZ);
+
+#ifdef __CUDA_ARCH__
+    bField[2] = tesla*tex2D(texZ, z+0.5+noffZ, ir);
+#else
+    G4double lbv, ubv;
+    G4double dr = rho - ir;
     G4double dz = z + noffZ - iz;
-    
+
     int index = iz+ir*nbinZ;
+
+    lbv = This->fieldMap[index].Bz;
+    ubv = This->fieldMap[index+nbinZ].Bz;
     
-    G4double Bz_lb = This->fieldMap[index].Bz;
-    G4double Bz_ub = This->fieldMap[index+nbinZ].Bz;
-    
-    bField[2] = tesla*(Bz_lb + (Bz_ub-Bz_lb)*dz);  
-    
+    bField[2] = tesla * (lbv + (ubv-lbv)*dz);
+#endif
+
     if(rho>0) {
-      G4double Br_lb = This->fieldMap[index].Br;
-      G4double Br_ub = This->fieldMap[index+1].Br;
-      G4double tmp = tesla*(Br_lb + (Br_ub-Br_lb)*dr)/rho;
+      G4double tmp;
+#ifdef  __CUDA_ARCH__
+      G4double lookup_rho = rho;
+      if (iz > noffZ ) {
+        iz -= noffZ;
+        lookup_rho += nbinR;
+      }
+      tmp = tesla * tex2D(texR, lookup_rho+0.5, iz) / rho;
+#else
+      lbv = This->fieldMap[index].Br;
+      ubv = This->fieldMap[index+1].Br;
+      tmp = tesla * (lbv + (ubv-lbv)*dr) / rho;
+#endif
       bField[0] = tmp*x;
       bField[1] = tmp*y;
     }
   }
-  //use cuda texture memory for fieldMap
-
 }
 

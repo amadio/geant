@@ -11,7 +11,7 @@ GeantFactoryStore::GeantFactoryStore(Int_t nclients)
                    fFactories(0)
 {
 // Private constructor
-   fTypes = new void*[fCapacity];
+   fTypes = new const void*[fCapacity];
    fFactories = new void*[fCapacity];
    memset(fTypes, 0, fCapacity*sizeof(void*));
    memset(fFactories, 0, fCapacity*sizeof(void*));

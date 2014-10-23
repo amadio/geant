@@ -124,7 +124,7 @@ void SimplePhysicsList::ConstructTotal()
     // G4String particleName = particle->GetParticleName();
     
     G4VRestContinuousDiscreteProcess* totalPhysics=
-       new TotalPhysicsProcess(particle->GetParticleName());
+       new TotalPhysicsProcess("TabulatedPhysics");
 
     // ph->RegisterProcess( totalPhysics, particle);
     pmanager->AddContinuousProcess( totalPhysics );

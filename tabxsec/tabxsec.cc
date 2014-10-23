@@ -114,6 +114,7 @@ void usage()
   "     -E ene  energy of the particles generated in GeV" << G4endl <<
   "     -e num  number of Geant4 events to generate" << G4endl <<
   "     -s num  number of samples of the final state to generate and store in fstat.root (default 0, no file generated)" << G4endl <<
+  "     -d num  number of samples of the decay final state to generate and store in fstat.root (default 0, or -s)" << G4endl <<
   "     -v num  verbosity level (at the moment only 0, 1 and 2 are used)" << G4endl <<
   "     -x      generate the cross sections and store them in the file xsec.root" << G4endl <<
   "     -z nun  minimum Z of the material to treat (default 1)" << G4endl <<
@@ -145,6 +146,7 @@ int main(int argc,char** argv)
   feenableexcept(FE_OVERFLOW|FE_DIVBYZERO|FE_INVALID);
   
   G4int nsample=0;
+  G4int nsampleDecay=0;
   G4int ngener=0;
   G4int verbose=0;
   G4bool interact=FALSE;
@@ -164,11 +166,15 @@ int main(int argc,char** argv)
   /* end of getopt vars */
   
   /* getopt processing */
-  while ((c = getopt (argc, argv, "s:e:v:E:ixz:Z:n:k:K:p:r")) != -1)
+  while ((c = getopt (argc, argv, "s:d:e:v:E:ixz:Z:n:k:K:p:r")) != -1)
     switch (c)
   {
     case 's':
       nsample=atoi(optarg);
+      nsampleDecay=nsample; // if no -d given 
+      break;
+    case 'd':
+      nsampleDecay=atoi(optarg); 
       break;
     case 'e':
       ngener=atoi(optarg);
@@ -225,6 +231,20 @@ int main(int argc,char** argv)
     ngener = 1;
   }
   
+  if(!nsample && nsampleDecay) {
+    G4cout << "You need to have at least 1 normal final state in order to sample "
+    << nsampleDecay << " decay final states." << G4endl; 
+    G4cout << "Setting nsample = 1" << G4endl;
+    nsample = 1;
+  }
+
+  if(nsample) {
+    G4cout << "Sampling " << nsampleDecay << " decay final states and " << nsample  
+    << " normal final states." << G4endl;
+  }
+
+
+
   /* end of getopt stuff */
   
   // Choose the Random engine
@@ -590,6 +610,12 @@ int main(int argc,char** argv)
       
       // Store the particle table into PartIndex
       TPartIndex::I()->SetPartTable(pPDG,np);
+      // Set PDG to GV code map
+      std::map<G4int,G4int> pdgToGVmap;
+      for(G4int i=0;i<np;++i)
+        pdgToGVmap[pPDG[i]]=i;
+      TPartIndex::I()->SetPDGToGVMap(pdgToGVmap);      
+
       // Check that "pions will be pions"
       printf("Code %d part %s\n",211,TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(211)));
       
@@ -717,7 +743,7 @@ int main(int argc,char** argv)
       
       TFile *fh = 0;
       
-      if(nsample) {
+      if(nsampleDecay) {
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
         
         fh = new TFile("fstate.root","recreate");
@@ -781,14 +807,14 @@ int main(int argc,char** argv)
                   
                   G4DynamicParticle *dp = new G4DynamicParticle(particle,dirz,en);
                   
-                  if(nsample) {
+                  if(nsampleDecay) {
                     G4Material *matt = (*theMaterialTable)[0];
                     printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------------\n",
                            (const char *) particle->GetParticleName(),
                            (const char *) p->GetProcessName(),
                            (const char*) matt->GetName(),
                            en/GeV);
-                    SampDisInt(matt, pos, dp, de, p, nsample, verbose, decayfs[partindex]);
+                    SampDisInt(matt, pos, dp, de, p, nsampleDecay, verbose, decayfs[partindex]);
                   }
                   delete dp;
                   // ----------------------------------- Decay ---------------------------------------
@@ -798,9 +824,28 @@ int main(int argc,char** argv)
           }
         }
         // ------------------------------------------ Sample decays a la Geant4 ----------------------------------------
-        TPDecay *decayTable = new TPDecay(nsample,np,decayfs);
+        TPDecay *decayTable = new TPDecay(nsampleDecay,np,decayfs);
+        // prepare and set the c*tau/mass [cm/GeV]
+        G4double *ctaupermass = new G4double[np]; 
+        G4double cc = c_light*(s/cm); // speed of light in [cm/s]
+        for(G4int i=0;i<np;++i) {
+          G4ParticleDefinition* g4PartDefinition = G4ParticleTable::GetParticleTable()->FindParticle(pPDG[i]);
+          if(g4PartDefinition) {
+            G4double mass = g4PartDefinition->GetPDGMass()/GeV;
+            ctaupermass[i] = mass;
+            G4double tau  = g4PartDefinition->GetPDGLifeTime()/s;
+            if(g4PartDefinition->GetPDGStable())
+              ctaupermass[i] = DBL_MAX;
+            else
+            ctaupermass[i] = (cc*tau)/mass; //c*tau/mass [cm/GeV]        
+          } else {
+            ctaupermass[i] = DBL_MAX;  
+          }           
+        }
+        decayTable->SetCTauPerMass(ctaupermass,np);
         fh->WriteObject(decayTable,"DecayTable");
         delete decayTable;
+        delete ctaupermass;
       }
       
       // From here on we tabulate the cross sections and sample the interactions
@@ -854,7 +899,9 @@ int main(int argc,char** argv)
         G4double natomscm3 = (Avogadro*mat->GetDensity()*cm3)/(mat->GetA()*mole);
         printf("Material = %s density = %g, natoms/cm3 = %g\n",
                (const char*) mat->GetName(),mat->GetDensity()*cm3/g,natomscm3);
-        
+        // use natomsmm3 directly from Geant4 instead of natomscm3 above
+        G4double natomsmm3 = (mat->GetVecNbOfAtomsPerVolume())[0]; //#atoms/mm3
+
         // get the couple table for em processes
         const G4MaterialCutsCouple* couple = 0;
         const G4MaterialCutsCouple* ctmp = 0;
@@ -1091,7 +1138,8 @@ int main(int argc,char** argv)
                       if(curxs>0) curxs = 1e10;
                       else curxs=0;
                     }
-                    pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                    //pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                     pxsec[nprxs*nbins+j] = curxs/natomsmm3/barn;
                     iszero &= (curxs<=0.);
                     if( /*particle == G4Electron::Electron() && */nsample) {
                       if(curxs) {
@@ -1145,7 +1193,11 @@ int main(int argc,char** argv)
                   G4bool iszero=TRUE;
                   for(G4int j=0; j<nbins; ++j) {
                     en1=en*delta;
-                    curxs = ptEm->CrossSectionPerVolume(en,couple);
+                    // take it only if active at en : resolve problem with e-,e+ CoulombScat
+                    if(en>=ptEm->MinKinEnergy()) 
+                      curxs = ptEm->CrossSectionPerVolume(en,couple);
+                    else
+                      curxs = 0.;
                     if(curxs < 0 || curxs > 1e10) {
                       printf("%s %s on %s @ %f GeV: xs %14.7g\n",
                              (const char*) particle->GetParticleName(),
@@ -1155,7 +1207,8 @@ int main(int argc,char** argv)
                       if(curxs>0) curxs = 1e10;
                       else curxs=0;
                     }
-                    pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                    //pxsec[nprxs*nbins+j] = curxs*cm/natomscm3/barn;
+                    pxsec[nprxs*nbins+j] = curxs/natomsmm3/barn;
                     iszero &= (curxs<=0.);
                     if( /*particle == G4Positron::Positron() &&*/ nsample) {
                       if(curxs) {

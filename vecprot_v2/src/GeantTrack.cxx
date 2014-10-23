@@ -134,8 +134,8 @@ GeantTrack::GeantTrack(Int_t ipdg)
 {
 // Constructor
    WorkloadManager *wm = WorkloadManager::Instance();
-   fPath = wm->NavStates()->Borrow();
-   fNextpath = wm->NavStates()->Borrow();
+   fPath = wm->NavStates()->borrow();
+   fNextpath = wm->NavStates()->borrow();
 }
 
 //______________________________________________________________________________
@@ -174,9 +174,9 @@ GeantTrack::GeantTrack(const GeantTrack& other)
 {
 // Copy constructor
    WorkloadManager *wm = WorkloadManager::Instance();
-   fPath = wm->NavStates()->Borrow();
+   fPath = wm->NavStates()->borrow();
    *fPath = *other.fPath;
-   fNextpath = wm->NavStates()->Borrow();
+   fNextpath = wm->NavStates()->borrow();
    *fNextpath = *other.fNextpath;
 }
 
@@ -214,9 +214,9 @@ GeantTrack & GeantTrack::operator=(const GeantTrack &other)
       fFrombdr = other.fFrombdr;
       fPending = other.fPending;
       WorkloadManager *wm = WorkloadManager::Instance();
-      fPath = wm->NavStates()->Borrow();
+      fPath = wm->NavStates()->borrow();
       *fPath = *other.fPath;
-      fNextpath = wm->NavStates()->Borrow();
+      fNextpath = wm->NavStates()->borrow();
       *fNextpath = *other.fNextpath;
    }
    return *this;
@@ -227,8 +227,8 @@ GeantTrack::~GeantTrack()
 {
 // Destructor.
    WorkloadManager *wm = WorkloadManager::Instance();
-   wm->NavStates()->Return(fPath);
-   wm->NavStates()->Return(fNextpath);
+   wm->NavStates()->release(fPath);
+   wm->NavStates()->release(fNextpath);
 }
 
 //______________________________________________________________________________
@@ -264,9 +264,9 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
    fSafety = arr.fSafetyV[i];
    fFrombdr = arr.fFrombdrV[i];
    fPending = arr.fPendingV[i];
-   if (!fPath) fPath = wm->NavStates()->Borrow();
+   if (!fPath) fPath = wm->NavStates()->borrow();
    *fPath = *arr.fPathV[i]; 
-   if (!fNextpath) fNextpath = wm->NavStates()->Borrow();
+   if (!fNextpath) fNextpath = wm->NavStates()->borrow();
    *fNextpath = *arr.fNextpathV[i];
 }
 
@@ -721,9 +721,9 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t import)
       track.fNextpath = 0;
    } else {   
       // Copy the content
-      fPathV[itrack] = wm->NavStates()->Borrow();
+      fPathV[itrack] = wm->NavStates()->borrow();
       *fPathV[itrack] = *track.fPath; 
-      fNextpathV[itrack] = wm->NavStates()->Borrow(); 
+      fNextpathV[itrack] = wm->NavStates()->borrow(); 
       *fNextpathV[itrack] = *track.fNextpath; 
    }   
    fNtracks++;
@@ -779,10 +779,12 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack &track)
    fSafetyV   [itrack] = track.fSafety;
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
-   fPathV[itrack] = track.fPath; 
-   track.fPath = 0;
-   fNextpathV[itrack] = track.fNextpath;
-   track.fNextpath = 0;
+   if (!fPathV[itrack]) {
+      fPathV[itrack] = wm->NavStates()->borrow();
+      fNextpathV[itrack] = wm->NavStates()->borrow();
+   }   
+   *fPathV[itrack] = *track.fPath; 
+   *fNextpathV[itrack] = *track.fNextpath;
 #ifdef __STAT_DEBUG_TRK
    fStat.fNtracks[fEvslotV[itrack]]++;
 #endif
@@ -849,9 +851,9 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import)
       arr.fNextpathV[i] = 0;
    } else {
       // Copy the content
-      fPathV[itrack] = wm->NavStates()->Borrow();
+      fPathV[itrack] = wm->NavStates()->borrow();
       *fPathV[itrack] = *arr.fPathV[i];
-      fNextpathV[itrack] = wm->NavStates()->Borrow();
+      fNextpathV[itrack] = wm->NavStates()->borrow();
       *fNextpathV[itrack] = *arr.fNextpathV[i];
    }
    fSelected.ResetBitNumber(itrack);
@@ -883,7 +885,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
 #ifdef VERBOSE
    arr.PrintTrack( i );
 #endif
-   WorkloadManager *wm = WorkloadManager::Instance();
+   //WorkloadManager *wm = WorkloadManager::Instance();
    Int_t itrack = fNtracks++;
 
    fEventV    [itrack] = arr.fEventV    [i];
@@ -977,8 +979,8 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
    } else {      
       // Copy the content
       for(Int_t i = ntracks, j = istart; i < (ntracks+ncpy) ; ++i,++j) {
-         fPathV[i] = wm->NavStates()->Borrow();
-         fNextpathV[i] = wm->NavStates()->Borrow();
+         fPathV[i] = wm->NavStates()->borrow();
+         fNextpathV[i] = wm->NavStates()->borrow();
          *fPathV[i] = *arr.fPathV[j];
          *fNextpathV[i] = *arr.fNextpathV[j];
       }   
@@ -1037,7 +1039,7 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
 void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j)
 {
 // Replace content of track i with the one of track j
-   WorkloadManager *wm = WorkloadManager::Instance();
+   // WorkloadManager *wm = WorkloadManager::Instance();
    fEventV    [i] = fEventV    [j];
    fEvslotV   [i] = fEvslotV   [j];
    fParticleV [i] = fParticleV [j];
@@ -1079,9 +1081,9 @@ void GeantTrack_v::DeleteTrack(Int_t itr)
 // Delete branch arrays for this track. The track should not have a copy, this has
 // to be called after a killed track is removed by the scheduler.
    WorkloadManager *wm = WorkloadManager::Instance();
-   wm->NavStates()->Return(fPathV[itr]);
+   wm->NavStates()->release(fPathV[itr]);
    fPathV[itr] = 0;
-   wm->NavStates()->Return(fNextpathV[itr]); 
+   wm->NavStates()->release(fNextpathV[itr]); 
    fNextpathV[itr] = 0;
 }
 
@@ -1720,7 +1722,7 @@ void GeantTrack_v::PrintTrack(Int_t itr) const
 #ifdef USE_VECGEOM_NAVIGATOR
       printf("Object %p, Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d izr=%d nstp=%d spc=%d status=%s mass=%g\
               xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
-              this, itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr],
+             (const void*)this, itr, fEventV[itr],fEvslotV[itr], fParticleV[itr], fPDGV[itr],
               fG5codeV[itr], fChargeV[itr], fProcessV[itr],fIzeroV[itr],fNstepsV[itr],
               (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr],fYposV[itr],fZposV[itr],
               fXdirV[itr],fYdirV[itr],fZdirV[itr],fPV[itr],fEV[itr],fPstepV[itr], fStepV[itr], fSnextV[itr],fSafetyV[itr],

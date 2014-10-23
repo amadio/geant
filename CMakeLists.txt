@@ -106,6 +106,10 @@ if (CUDA)
 
   if (NOT CUDA_ARCH)
     if (CUDA_SEPARABLE_COMPILATION)
+      # Separable compilation will 'succeed' with sm50 and sm21 but sm50 is
+      # not supported by the K20 and sm21 is too old for our code ....
+      # The related bug is fixed in nvcc.  This fix will be part of nvcc
+      # released after June 2014 (so likely 6.0.2)
       set(CUDA_ARCH 50)
     else()
       set(CUDA_ARCH 35)
@@ -125,6 +129,11 @@ if (CUDA)
   # set(CUDA_SEPARABLE_COMPILATION ON)
   # set(CUDA_VERBOSE_BUILD ON)
 
+  if (VECGEOM_CUDA_LIBRARY)
+     SET(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${CUDA_LIBRARIES} )
+     message(STATUS "Updated VecGeom libraries to ${VECGEOM_LIBRARIES}")
+  endif()
+
   message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
 endif()
@@ -143,6 +152,7 @@ add_subdirectory (vecprot_v2)
 add_subdirectory (tabxsec)
 add_subdirectory (micromc)
 add_subdirectory (test-small)
+add_subdirectory (cmstrack)
 
 if (CUDA)
   add_subdirectory (vecprot_v2/cuda)

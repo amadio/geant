@@ -76,7 +76,8 @@ TPartIndex::TPartIndex():
    fNEbins(0),
    fEilDelta(0),
    fEGrid(0),
-   fDBPdg(TDatabasePDG::Instance())
+   fDBPdg(TDatabasePDG::Instance()),
+   fPDGToGVMap()
 { 
 }
 
@@ -132,6 +133,22 @@ Int_t TPartIndex::PDG(const Char_t* pname) const {Int_t nr=fNPart;
 }
 
 //______________________________________________________________________________
+Int_t TPartIndex::PartIndex(Int_t pdg) const {
+     switch (pdg) {
+       case 11:  return  fSpecGVIndices[0]; // e-
+            break; 
+       case -11: return  fSpecGVIndices[1];  // e+
+            break;
+       case 22:  return  fSpecGVIndices[2];  // gamma
+            break;
+       case 2212: return fSpecGVIndices[3]; // proton
+            break; 
+       default:   // look for in the map
+                  return fPDGToGVMap.find(pdg)->second;
+     }
+}
+
+//______________________________________________________________________________
 void TPartIndex::Print(Option_t *option) const
 {
    Char_t line[120];
@@ -165,6 +182,18 @@ void TPartIndex::Print(Option_t *option) const
       }
       if(strlen(line)) printf("%s\n",line);
    }
+   if(opt.Contains("version")) {
+      printf("Xsec database version %d.%d.%d\n",VersionMajor(),VersionMinor(),VersionSub());
+   }
+}
+
+//______________________________________________________________________________
+void TPartIndex::SetPDGToGVMap(std::map<Int_t,Int_t> &theMap){
+  fPDGToGVMap=theMap;
+  fSpecGVIndices[0] = fPDGToGVMap.find(11)->second;   // e-
+  fSpecGVIndices[1] = fPDGToGVMap.find(-11)->second;  // e+
+  fSpecGVIndices[2] = fPDGToGVMap.find(22)->second;   // gamma 
+  fSpecGVIndices[3] = fPDGToGVMap.find(2212)->second; // proton
 }
 
 //______________________________________________________________________________
@@ -177,6 +206,7 @@ void TPartIndex::Streamer(TBuffer &R__b)
       fDBPdg = 0;
       R__b.ReadClassBuffer(TPartIndex::Class(),this);
       fgPartIndex = this;
+      Print("version");
    } else {
       R__b.WriteClassBuffer(TPartIndex::Class(),this);
    }

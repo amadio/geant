@@ -38,10 +38,6 @@ void count_by_process_gpu(G4int nTracks, GXTrack *tracks,
     (nTracks, tracks, nbrem, nioni);
 }
 
-//-----------------------------------------------------------------------------
-// sort on CPU
-//-----------------------------------------------------------------------------
-
 void count_by_process_cpu(G4int nTracks, GXTrack *tracks,
 			  G4int *nbrem, G4int *nioni)
 {
@@ -59,11 +55,12 @@ void count_by_process_cpu(G4int nTracks, GXTrack *tracks,
 
 //-----------------------------------------------------------------------------
 // atomic add per block basis (by Azamat Mametjano - ANL)
-// assuming that threadsPerBlock = blocksPerGrid*(int) ?
 //-----------------------------------------------------------------------------
 
 __device__
 void warpReduce(volatile int *sdata, unsigned int tid) {
+  // smallest exec group is a warp of 32 threads
+  // no need to sync threads within a warp
   sdata[tid] += sdata[tid + 32];
   sdata[tid] += sdata[tid + 16];
   sdata[tid] += sdata[tid +  8];
@@ -78,12 +75,14 @@ void count_by_process_block_kernel(G4int nTracks, GXTrack *tracks,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
   
-  extern __shared__ int sb[];
-  int *si = &sb[blockDim.x];
+  // declare and initialize
+  extern __shared__ int sb[]; //shared memory nbrem counter
+  int *si = &sb[blockDim.x];  //shared memory nioni counter
   sb[threadIdx.x] = 0;
   si[threadIdx.x] = 0;
   __syncthreads();
 
+  // accumulate per-thread counters within a block's shared memory
   while(tid < nTracks) {
     if(tracks[tid].proc == 0 ) {
       sb[threadIdx.x] += 1;
@@ -93,27 +92,42 @@ void count_by_process_block_kernel(G4int nTracks, GXTrack *tracks,
     }    
     tid += blockDim.x * gridDim.x;
   }
-
   __syncthreads();
 
-  if (blockDim.x > 512 && threadIdx.x < 512) { sb[threadIdx.x]+=sb[threadIdx.x+512]; __syncthreads(); }
-  if (blockDim.x > 256 && threadIdx.x < 256) { sb[threadIdx.x]+=sb[threadIdx.x+256]; __syncthreads(); }
-  if (blockDim.x > 128 && threadIdx.x < 128) { sb[threadIdx.x]+=sb[threadIdx.x+128]; __syncthreads(); }
-  if (blockDim.x >  64 && threadIdx.x <  64) { sb[threadIdx.x]+=sb[threadIdx.x+ 64]; __syncthreads(); }
-  if (threadIdx.x < 32) { warpReduce(sb, threadIdx.x); }
-  if (threadIdx.x == 0) { atomicAdd(nbrem, sb[0]); }
-  
-  if (blockDim.x > 512 && threadIdx.x < 512) { si[threadIdx.x]+=si[threadIdx.x+512]; __syncthreads(); }
-  if (blockDim.x > 256 && threadIdx.x < 256) { si[threadIdx.x]+=si[threadIdx.x+256]; __syncthreads(); }
-  if (blockDim.x > 128 && threadIdx.x < 128) { si[threadIdx.x]+=si[threadIdx.x+128]; __syncthreads(); }
-  if (blockDim.x >  64 && threadIdx.x <  64) { si[threadIdx.x]+=si[threadIdx.x+ 64]; __syncthreads(); }
-  if (threadIdx.x < 32) { warpReduce(si, threadIdx.x); }
-  if (threadIdx.x == 0) { atomicAdd(nioni, si[0]); }
-
+  // tree-wise reduce within a block, global memory atomicAdd across blocks
+  // max threads per block is 1024 in any arch including Kepler (sm_35)
+  if (blockDim.x > 512 && threadIdx.x < 512 && threadIdx.x+512 < blockDim.x) {
+    sb[threadIdx.x]+=sb[threadIdx.x+512];
+    si[threadIdx.x]+=si[threadIdx.x+512];
+    __syncthreads();
+  }
+  if (blockDim.x > 256 && threadIdx.x < 256 && threadIdx.x+256 < blockDim.x) {
+    sb[threadIdx.x]+=sb[threadIdx.x+256];
+    si[threadIdx.x]+=si[threadIdx.x+256];
+    __syncthreads();
+  }
+  if (blockDim.x > 128 && threadIdx.x < 128 && threadIdx.x+128 < blockDim.x) {
+    sb[threadIdx.x]+=sb[threadIdx.x+128];
+    si[threadIdx.x]+=si[threadIdx.x+128];
+    __syncthreads();
+  }
+  if (blockDim.x >  64 && threadIdx.x <  64 && threadIdx.x+ 64 < blockDim.x) {
+    sb[threadIdx.x]+=sb[threadIdx.x+ 64];
+    si[threadIdx.x]+=si[threadIdx.x+ 64];
+    __syncthreads();
+  }
+  if (threadIdx.x < 32) {
+    warpReduce(sb, threadIdx.x);
+    warpReduce(si, threadIdx.x);
+  }
+  if (threadIdx.x == 0) {
+    atomicAdd(nbrem, sb[0]);
+    atomicAdd(nioni, si[0]);
+  }
 }
 
 //-----------------------------------------------------------------------------
-// wrapper for the block baisis count
+// wrapper for the block basis count
 //-----------------------------------------------------------------------------
 void count_by_process_block_gpu(G4int nTracks, GXTrack *tracks, 
 				G4int *nbrem, G4int *nioni, 
@@ -121,7 +135,7 @@ void count_by_process_block_gpu(G4int nTracks, GXTrack *tracks,
                                 cudaStream_t stream)
 {
   count_by_process_block_kernel<<< blocksPerGrid, threadsPerBlock, 
-     2*threadsPerBlock*sizeof(int), stream >>> (nTracks, tracks, nbrem, nioni);
+     2*threadsPerBlock*sizeof(G4int), stream >>> (nTracks, tracks, nbrem, nioni);
 }
 
 //-----------------------------------------------------------------------------

@@ -7,6 +7,12 @@ count_by_process_gpu(G4int nTracks, GXTrack *itracks,
 		     int blocksPerGrid, int threadsPerBlock,
                      cudaStream_t stream);
 
+void
+count_by_process_block_gpu(G4int nTracks, GXTrack *itracks,
+                           G4int *nbrem, G4int *nioni,
+                           int blocksPerGrid, int threadsPerBlock,
+                           cudaStream_t stream);
+
 void 
 count_by_process_cpu(G4int nTracks, GXTrack *itracks,
 		     G4int *nbrem, G4int *nioni);

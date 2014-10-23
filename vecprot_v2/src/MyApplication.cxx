@@ -23,10 +23,10 @@ MyApplication::MyApplication()
    GeantFactoryStore *store = GeantFactoryStore::Instance();
    fFactory = store->GetFactory<MyHit>(16); 
    printf("Created factory for MyHit");
-   memset(fEdepGap, 0, kNlayers*sizeof(Float_t));
-   memset(fLengthGap, 0, kNlayers*sizeof(Float_t));
-   memset(fEdepAbs, 0, kNlayers*sizeof(Float_t));
-   memset(fLengthAbs, 0, kNlayers*sizeof(Float_t));
+   memset(fEdepGap, 0, kNlayers*kMaxThreads*sizeof(Float_t));
+   memset(fLengthGap, 0, kNlayers*kMaxThreads*sizeof(Float_t));
+   memset(fEdepAbs, 0, kNlayers*kMaxThreads*sizeof(Float_t));
+   memset(fLengthAbs, 0, kNlayers*kMaxThreads*sizeof(Float_t));
 }
 
 //______________________________________________________________________________
@@ -72,12 +72,12 @@ void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tra
       idvol = current->GetVolume()->GetNumber();
       if (idvol == fIdGap) {
 //         tracks.PrintTrack(i);
-         fEdepGap[idnode-3] += tracks.fEdepV[i];
-         fLengthGap[idnode-3] += tracks.fStepV[i];
+         fEdepGap[idnode-3][tid] += tracks.fEdepV[i];
+         fLengthGap[idnode-3][tid] += tracks.fStepV[i];
       } else if (idvol == fIdAbs) {
 //         tracks.PrintTrack(i);
-         fEdepAbs[idnode-3] += tracks.fEdepV[i];
-         fLengthAbs[idnode-3] += tracks.fStepV[i];
+         fEdepAbs[idnode-3][tid] += tracks.fEdepV[i];
+         fLengthAbs[idnode-3][tid] += tracks.fStepV[i];
       }
    }   
    return;
@@ -101,18 +101,24 @@ void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v & tra
 }
 
 //______________________________________________________________________________
-void MyApplication::Digitize(Int_t event)
+void MyApplication::Digitize(Int_t /* event */)
 {
 // User method to digitize a full event, which is at this stage fully transported
-   printf("======= Statistics for event %d:\n", event);
+//   printf("======= Statistics for event %d:\n", event);
+   Printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
+   Printf("================================================================================");
+   Double_t nprim = (Double_t)gPropagator->fNprimaries;
    for (Int_t i=0; i<kNlayers; ++i) {
-      printf("Layer %d: Egap=%f   Lgap=%f   Eabs=%f   Labs=%f\n", i+3, 
-             fEdepGap[i], fLengthGap[i], fEdepAbs[i], fLengthAbs[i]);
+      for (Int_t tid=1; tid<kMaxThreads; ++tid) {
+         fEdepGap[i][0] += fEdepGap[i][tid];
+         fLengthGap[i][0] += fLengthGap[i][tid];
+         fEdepAbs[i][0] += fEdepAbs[i][tid];
+         fLengthAbs[i][0] += fLengthAbs[i][tid];
+      }
+      Printf("Layer %d: Egap=%f   Lgap=%f   Eabs=%f   Labs=%f", i+3, 
+             fEdepGap[i][0]*1000./nprim, fLengthGap[i][0]/nprim, fEdepAbs[i][0]*1000./nprim, fLengthAbs[i][0]/nprim);
    }
-//   memset(fEdepGap, 0, kNlayers*sizeof(Float_t));
-//   memset(fLengthGap, 0, kNlayers*sizeof(Float_t));
-//   memset(fEdepAbs, 0, kNlayers*sizeof(Float_t));
-//   memset(fLengthAbs, 0, kNlayers*sizeof(Float_t));
+   Printf("================================================================================");
 //   TCanvas *c1 = new TCanvas("Edep", "Energy deposition for ExN03", 700, 800);
    TCanvas *c1 = (TCanvas*)gROOT->GetListOfCanvases()->FindObject("capp");
    if (!c1) return;
@@ -121,17 +127,17 @@ void MyApplication::Digitize(Int_t event)
    pad->SetGridx();
    pad->SetGridy();
    pad->SetLogy();
-   TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 10, -0.5, 12.5);
+   TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 12, 0.5, 12.5);
    histeg->SetMarkerColor(kRed);
    histeg->SetMarkerStyle(2);
    histeg->SetStats(kFALSE);
-   TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 10, -0.5, 12.5);
+   TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 12, 0.5, 12.5);
    histea->SetMarkerColor(kBlue);
    histea->SetMarkerStyle(4);
    histea->SetStats(kFALSE);
    for (Int_t i=0; i<10; i++) {
-      histeg->SetBinContent(i+3,fEdepGap[i]*1000./(Double_t)gPropagator->fNprimaries);
-      histea->SetBinContent(i+3,fEdepAbs[i]*1000./(Double_t)gPropagator->fNprimaries);
+      histeg->SetBinContent(i+3,fEdepGap[i][0]*1000./nprim);
+      histea->SetBinContent(i+3,fEdepAbs[i][0]*1000./nprim);
    }
    Double_t minval = TMath::Min(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
    minval = TMath::Max(minval, 1.E-5);
@@ -146,17 +152,17 @@ void MyApplication::Digitize(Int_t event)
    pad->SetGridx();
    pad->SetGridy();
    pad->SetLogy();
-   TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 10, -0.5, 12.5);
+   TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 12, 0.5, 12.5);
    histlg->SetMarkerColor(kRed);
    histlg->SetMarkerStyle(2);
    histlg->SetStats(kFALSE);
-   TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 10, -0.5, 12.5);
+   TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 12, 0.5, 12.5);
    histla->SetMarkerColor(kBlue);
    histla->SetMarkerStyle(4);
    histla->SetStats(kFALSE);
    for (Int_t i=0; i<10; i++) {
-      histlg->SetBinContent(i+3,fLengthGap[i]/(Double_t)gPropagator->fNprimaries);
-      histla->SetBinContent(i+3,fLengthAbs[i]/(Double_t)gPropagator->fNprimaries);
+      histlg->SetBinContent(i+3,fLengthGap[i][0]/nprim);
+      histla->SetBinContent(i+3,fLengthAbs[i][0]/nprim);
    }
    histlg->GetXaxis()->SetTitle("Layer");
    histlg->GetYaxis()->SetTitle("Length per layer");

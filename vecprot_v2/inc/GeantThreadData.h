@@ -17,7 +17,6 @@
 //class TGeoHMatrix;
 class TGeoVolume;
 class TRandom;
-class TArrayI;
 class TGeoHelix;
 class TGeoRotation;
 
@@ -35,7 +34,8 @@ public:
    Double_t         *fProcStep;              //![fNprocesses*fMaxPerBasket] 
    TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
    TGeoRotation     *fRotation;              //! Rotation used by the field propagator
-   GeantTrack        fTrack;                 // Track support for this thread
+   GeantTrack        fTrack;                 //! Track support for this thread
+   VolumePath_t     *fPath;                  //! Volume path for the thread
 
 public:
    GeantThreadData();

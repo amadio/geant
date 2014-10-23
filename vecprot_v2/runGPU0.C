@@ -121,11 +121,11 @@ void runGPU0(Int_t nthreads=4, Bool_t graphics=kFALSE,
    //wmgr->SetTaskBroker(gpuBroker);
 
    prop->fNaverage = 500;   // Average number of tracks per event
-   prop->fNperBasket = 8;
+   prop->fNperBasket = 32;
 
    prop->fEmin = 1.E-5; // [10KeV] energy cut
-//   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
-   prop->fEmax = 1.;
+   prop->fEmax = 0.03; // [30MeV] used for now to select particle gun energy
+   // prop->fEmax = 1.;
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", "xsec_FTFP_BERT.root", "fstate_FTFP_BERT.root");
 
@@ -138,7 +138,7 @@ void runGPU0(Int_t nthreads=4, Bool_t graphics=kFALSE,
  
    // This sets gGeomManager and hence superseeds the filename.
    VP_SimpleECal();
-   prop->PropagatorGeom("", nthreads + 3, graphics);
+   prop->PropagatorGeom("", nthreads /* + 3 */, graphics);
 
    delete gGeoManager;
 }   

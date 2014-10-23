@@ -5,7 +5,7 @@
 #include <vector>
 #include <typeinfo>
 #include <TMutex.h>
-#include "sync_objects.h"
+#include "dcqueue.h"
 #include "WorkloadManager.h"
 #include "TGeoManager.h"
 
@@ -39,7 +39,8 @@ public:
 template <class T>
 GeantBlock<T>::GeantBlock(Int_t size)
               :fSize(size),
-               fNext(0)
+               fNext(0),
+               fBlock()
 {
 // Constructor.
    fBlock.reserve(size);
@@ -86,6 +87,9 @@ private:
    Int_t                  fNthreads;  // Number of threads
    Int_t                  fBlockSize; // Block size
    GeantBlock<T>        **fBlocks;    // array of blocks used by different threads
+
+   GeantBlockArray(const GeantBlockArray&);
+   GeantBlockArray& operator=(const GeantBlockArray&);
 public:
    GeantBlockArray(Int_t nthreads, Int_t blocksize);
    ~GeantBlockArray();
@@ -124,16 +128,17 @@ class GeantFactory {
    friend class GeantFactoryStore;
    typedef void (*ProcessHitFunc_t)(const vector<T>&, int);
 private:
-  GeantFactory(Int_t nthreads, Int_t blocksize, ProcessHitFunc_t callback=0);
-
+   GeantFactory(Int_t nthreads, Int_t blocksize, ProcessHitFunc_t callback=0);
+   GeantFactory(const GeantFactory &);
+   GeantFactory &operator=(const GeantFactory &);
 public:
    Int_t                  fNslots;      // Number of event slots
    Int_t                  fNthreads;    // Max number of threads accessing the structure
    Int_t                  fBlockSize;   // Block size
    ProcessHitFunc_t       fCallback;    // User function to call back
    GeantBlockArray<T>   **fBlockA;      //[fNslots] arrays of data blocks
-   dcqueue< GeantBlock<T> > fPool;        // pool of empty/recycled blocks
-   dcqueue< GeantBlock<T> > fOutputs;     // pool of filled blocks
+   dcqueue< GeantBlock<T>* > fPool;        // pool of empty/recycled blocks
+   dcqueue< GeantBlock<T>* > fOutputs;     // pool of filled blocks
 
     ~GeantFactory();
    
@@ -147,7 +152,10 @@ GeantFactory<T>::GeantFactory(Int_t nslots, Int_t blocksize, ProcessHitFunc_t ca
               :fNslots(nslots),
                fNthreads(1),
                fBlockSize(blocksize),
-               fCallback(callback)
+               fCallback(callback),
+               fBlockA(0),
+               fPool(),
+               fOutputs()
 {
 // Constructor.
    // Reserve the space for the block arrays on event slots
@@ -185,12 +193,14 @@ T *GeantFactory<T>::NextFree(Int_t slot)
 // Returns the next free object
    // If the block is full put it 
    Int_t tid = TGeoManager::ThreadId(); // maybe put in calling sequence
+   GeantBlock<T>* block;
    if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used AND filled (by the same thread)
       fOutputs.push(fBlockA[slot]->At(tid));
-      fBlockA[slot]->AddAt(tid, fPool.wait_and_pop());
+      fPool.wait_and_pop(block);
+      fBlockA[slot]->AddAt(tid, block);
       // Keep the pool full
-      if (fPool.size_async() < fNthreads) AddFreeBlocks(fNthreads);
+      if (fPool.size_async() < size_t(fNthreads)) AddFreeBlocks(fNthreads);
    }   
    return fBlockA[slot]->At(tid)->NextFree();
 }

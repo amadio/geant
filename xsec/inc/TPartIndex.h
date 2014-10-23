@@ -24,17 +24,18 @@
 
 #include "TObject.h"
 #include "TDatabasePDG.h"
+#include <map>
 
 #define DICLEN 12        // Number of process cross sections 
 #define FNPROC 18        // Number of total processes
 #define FNPART 464       // Total number of particles
-#define NELEM 118         // Total number of materials
+#define NELEM 118        // Total number of materials
 
+ 
 enum G5proc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
 	     kElastic, kRestCapture ,kBrehms, kPairProd, kAnnihilation,
 	     kCoulombScatt, kPhotoel, kCompton, kConversion, kCapture,
 	     kKiller, kTotal};
-
 
 class TPartIndex: public TNamed {
 
@@ -43,6 +44,12 @@ public:
       return fgPartIndex;}
    TPartIndex();
    virtual ~TPartIndex();
+
+   // Database version
+   Int_t Version() const {return fVersion;}
+   Int_t VersionMajor() const {return fVersion/1000/1000;}
+   Int_t VersionMinor() const {return fVersion/1000-VersionMajor()*1000;}
+   Int_t VersionSub() const {return fVersion-VersionMajor()*1000000-VersionMinor()*1000;}
 
    // Process name <- process index
    const Char_t* ProcName(Int_t proc) const;
@@ -68,9 +75,10 @@ public:
    // Particle name <- G5 particle number
    const Char_t *PartName(Int_t i) const 
    {return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName();}
+
    // G5 particle index <- PDG code
-   Int_t PartIndex(Int_t pdg) const {Int_t np=fNPart; 
-      while(np--) if(fPDG[np]==pdg) break; return np;}
+   Int_t PartIndex(Int_t pdg) const;
+
    // G5 particle index <- particle name 
    Int_t PartIndex(const Char_t *partname) const {
       return PartIndex(PDG(partname));}
@@ -100,11 +108,18 @@ public:
    //approximated formula for nuclear mass computation; for handling fragments
    Double_t GetAprxNuclearMass(Int_t Z, Int_t A);
 
+   void SetPDGToGVMap(std::map<Int_t,Int_t> &theMap);
+
+   // only for e-,e+,gamma and proton 
+   Int_t GetSpecGVIndex(Int_t indx){ return fSpecGVIndices[indx];}
+   
 private:
    TPartIndex(const TPartIndex&); // Not implemented
    TPartIndex& operator=(const TPartIndex&); // Not implemented
    
    static TPartIndex *fgPartIndex;
+
+   const Int_t   fVersion=1000001;
 
    static const Int_t   fgNProc=FNPROC;    // Number of processes
    static const char   *fgPrName[FNPROC];  // Process name
@@ -125,7 +140,10 @@ private:
    Double_t *fEGrid;        // [fNEbins] Common energy grid
 
    TDatabasePDG *fDBPdg;    // Pointer to the augmented pdg database
-
+   
+   std::map<Int_t,Int_t> fPDGToGVMap;   // PDG->GV code map
+   Int_t fSpecGVIndices[4]; // store GV codes of e-,e+,gamma and proton
+   
    ClassDef(TPartIndex,1)  // Particle Index
 
 };

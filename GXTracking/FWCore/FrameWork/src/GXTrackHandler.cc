@@ -75,7 +75,12 @@ void GXTrackHandler::GenerateRandomTracks(size_t nTracks, double photonFrac,
   for(size_t i = 0 ; i < theNumberOfTracks ; ++i){
     
     rho = ecalRmim + (ecalRmax-ecalRmim)*GPUniformRand(0,-1);
-    p = minP + (maxP - minP)*GPUniformRand(0,-1);
+    //    p = minP + (maxP - minP)*GPUniformRand(0,-1);
+    do {
+      p = minP - 0.2*(maxP - minP)*log(GPUniformRand(0,-1));
+    }
+    while (p>maxP);
+
     z = ecalZmax*(2*GPUniformRand(0,-1)-1.0);
     phi = twopi*GPUniformRand(0,-1);
     theta = std::atan(rho/z);

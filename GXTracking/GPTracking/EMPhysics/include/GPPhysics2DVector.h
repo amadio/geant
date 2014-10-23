@@ -1,6 +1,7 @@
 #ifndef GPPhysics2DVector_H
 #define GPPhysics2DVector_H 1
 
+#include <cstddef>
 #include "GPTypeDef.h"
 #include "GPConstants.h"
 

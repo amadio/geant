@@ -55,7 +55,6 @@
 #include "TGenPhaseSpace.h"
 #include "GeantTrack.h"
 #include "GeantOutput.h"
-#include "sync_objects.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"
@@ -185,6 +184,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
 // Returns a temporary track support for the physics processes, unique per
 // thread which can be used to add tracks produced by physics processes.
    if (tid<0) tid = TGeoManager::ThreadId();
+   if (tid > fNthreads) Fatal("GetTempTrack","Thread id %d is too large (max %d)",tid,fNthreads);
    GeantTrack &track = fThreadData[tid]->fTrack;
    track.Clear();
    return track;
@@ -195,7 +195,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid)
 Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot)
 {
    // Import tracks from "somewhere". Here we just generate nevents.
-   static VolumePath_t *a = 0;
+   static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
    using vecgeom::SimpleNavigator;
    using vecgeom::Vector3D;
@@ -204,6 +204,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 #endif 
 
    Int_t tid = TGeoManager::ThreadId();
+   if (tid > fNthreads) Fatal("ImportTracks","Thread id %d is too large (max %d)",tid,fNthreads);
    GeantThreadData *td = fThreadData[tid];
    TGeoVolume *vol = 0;
    if (!a) {
@@ -245,7 +246,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    Int_t ndispatched = 0;
    
    // Species generated for the moment N, P, e, photon
-   const Int_t kMaxPart=9;
+//   const Int_t kMaxPart=9;
 //   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
 //   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
 //   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
@@ -279,6 +280,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 //         track.SetG5code(28);
 //         track.SetPDG(kMuonPlus); // G5code=27
 //         track.SetG5code(27);
+//         track.SetPDG(kPiPlus); // G5code=30
+//         track.SetG5code(30);
          track.SetPDG(kElectron); // G5code=23
          track.SetG5code(23); // just a hack -> will change with new physics list
 /*
@@ -377,6 +380,10 @@ void GeantPropagator::Initialize()
       
    // Initialize workload manager
    fWMgr = WorkloadManager::Instance(fNthreads);
+   if (fNthreads > fWMgr->GetNthreads()) {
+      Error("Initialize","Workload manager configured to support only %d thread but %d were requested, using only %d threads.",fWMgr->GetNthreads(),fNthreads,fWMgr->GetNthreads());
+      fNthreads = fWMgr->GetNthreads();
+   }
    // Add some empty baskets in the queue
    fWMgr->CreateBaskets();   // geometry should be created by now
 
@@ -414,6 +421,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
     Printf("Have placed volumes %ld\n", v2.size() );
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
    }
+   return true;
 }
 #endif
 //______________________________________________________________________________
@@ -564,21 +572,28 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Double_t efficiency = speedup/nthreads;
 //   fWMgr->Print();
    fWMgr->JoinThreads();
+
+#ifdef GEANTV_OUTPUT_RESULT_FILE
    const char *geomname=geomfile;
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
+#endif
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
           fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
+   Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops())/rtime);
 #ifdef USE_VECGEOM_NAVIGATOR
    Printf("=== Navigation done using VecGeom ====");
 #else
    Printf("=== Navigation done using TGeo    ====");
 #endif
-
+   Printf("Navstate pool usage statistics:");
+   fWMgr->NavStates()->statistics();
+#ifdef GEANTV_OUTPUT_RESULT_FILE
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
    fprintf(fp,"%d %lld %lld %lld %g %g",single, fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
    fclose(fp);
+#endif
    fOutFile = 0;
    fOutTree = 0;
 }
