@@ -29,14 +29,20 @@ class GUAliasSampler
     Sample( typename Backend::Double_t energyIn, 
           	typename Backend::Double_t deltaY    ) const;  
 
+			/* Builds (part) of our tables ( for one ene)
+			*
+			*/
     void BuildRow( int numVal, double* differentialXSection, double xMin, double xMax );
       // Builds all our table - must be called during initialisation 
 
+	void SetPdf( double const * pdf );
+
 private:
 // Implementation methods: 
-	BuildPdfTable(); 
-	BuildAliasTable(); 
-
+	BuildPdfTable(); // QUESTION: This might depend on physics? So maybe we should place inside model? 
+	
+	BuildAliasTable( /*input: pdf constructed by Model */); // seems to be independent on model
+	
     template<class Backend>
     typename Backend::Double_t
     Sample( typename Backend::Index_t  irow,   // ~ sampled value 
@@ -66,7 +72,7 @@ private:
     // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
 	double * fpdfX; // Original distribution
 
-	double * fpdfY; // Non-alias probability 
+	double * fpdfY; // Non-alias probability ( sometimes called q in other code )
 	int    * fpdfA; // Alias table           -- could become Index_t ?
 };
 
