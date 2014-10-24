@@ -29,7 +29,6 @@ class TGHorizontalFrame;
 class TGListBox;
 class TGMainFrame;
 class TGraph;
-class TList;
 class TPXsec;
 class TRootEmbeddedCanvas;
 
