@@ -5,7 +5,6 @@
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
 #include <TGeoMaterial.h>
-#include <TList.h>
 
 #define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
 
