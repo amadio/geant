@@ -39,6 +39,9 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 #include "Pythia8/Pythia.h"
+
+#include "VTfileio.h"
+
 using namespace Pythia8;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -126,6 +129,7 @@ void G01PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
    position.set(0,0,0);
    vertex = new G4PrimaryVertex(position,0);
 
+   int nprim = 0;
    while (!pythia.next());
    for (int i = 0; i < pythia.event.size(); ++i)
       if (pythia.event[i].isFinal()) {
@@ -150,8 +154,11 @@ void G01PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 		<< pythia.event[i].m() << " energy " 
 		<< pythia.event[i].e() << G4endl;
 #endif
+	 ++nprim;
       }
    anEvent->AddPrimaryVertex(vertex); 
    pythia.stat();
+   VTfileio::I()->SetPrimaries(nprim);
+   printf("Generating event with %d primaries\n",nprim);
 #endif
 }
