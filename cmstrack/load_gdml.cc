@@ -143,6 +143,7 @@ int main(int argc,char **argv)
 
    const int nlv = lvs->size();
    G4ProductionCuts *rcuts = new G4ProductionCuts[nlv];
+   std::vector<G4double> dcuts(4);
 
    for( int ilv=0; ilv<nlv; ++ilv) 
    {
@@ -151,9 +152,16 @@ int main(int argc,char **argv)
      double radl = glv->GetMaterial()->GetRadlen();
      region = new G4Region(G4String("Region_")+glv->GetName());
      region->AddRootLogicalVolume(glv);
+     G4double cfact=0.25;
      // Lead Crystals are parametrised in reality
-     if(ilv==1623) rcuts[ilv].SetProductionCut(2*radl);
-     else rcuts[ilv].SetProductionCut(0.25*radl);
+     if(ilv==1623) cfact=2;
+     // This cone of copper very far needs high cuts
+     if(ilv==2891) cfact=4;
+     dcuts[0]=4*cfact*radl;
+     dcuts[1]=cfact*radl;
+     dcuts[2]=cfact*radl;
+     dcuts[3]=cfact*radl;
+     rcuts[ilv].SetProductionCuts(dcuts);
      region->SetProductionCuts(&rcuts[ilv]);
     
      G4GDMLAuxListType auxInfo = parser.GetVolumeAuxiliaryInformation(glv);
