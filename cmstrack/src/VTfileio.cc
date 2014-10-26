@@ -60,11 +60,13 @@ void VTfileio::NewTree(const char* name)
        fCurTree->Branch("surfid",&fSurfid,"surfid/b");
        fCurTree->Branch("process",&fProcess,"process/b");
        fCurTree->Branch("begend",&fBegEnd,"begend/b");
+       fCurTree->Branch("trid",&fTrid,"trid/i");
+       fCurTree->Branch("trpid",&fTrPid,"trpid/i");
     }
 
 void VTfileio::Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
 		    UShort_t lvid, double safety, double snext, double step, UChar_t surfid, 
-		    UChar_t process, UChar_t begend) {
+		    UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid) {
    fX = x;
    fY = y;
    fZ = z;
@@ -79,5 +81,7 @@ void VTfileio::Fill(double x, double y, double z, double px, double py, double p
    fSurfid = surfid;
    fProcess = process;
    fBegEnd = begend;
+   fTrid = trid;
+   fTrPid = trpid;
    fCurTree->Fill();
 }
