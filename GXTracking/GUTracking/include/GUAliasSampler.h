@@ -67,10 +67,10 @@ private:
   double*  fSampledMax; // Maximum value of 'x' sampled variable
   
   // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
-  double * fpdfX; // Original distribution
+  double * fpdf; // Original distribution
   
-  double * fpdfY; // Non-alias probability ( sometimes called q in other code )
-  int    * fpdfA; // Alias table           -- could become Index_t ?
+  double * fProbQ; // Non-alias probability ( sometimes called q in other code )
+  int    * fAlias; // Alias table           -- could become Index_t ?
 };
 
 template<class Backend>
@@ -119,9 +119,9 @@ Sample( typename Backend::Double_t energyIn ) const
 template<class Backend>
 FQUALIFIER void
 GUAliasSampler::GetBin(typename Backend::Double_t  kineticEnergy,
-				       typename Backend::Int_t    &irow, 
-				       typename Backend::Int_t    &icol,
-				       typename Backend::Double_t &t) 
+		       typename Backend::Int_t    &irow, 
+		       typename Backend::Int_t    &icol,
+		       typename Backend::Double_t &t) 
 {
   irow = floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
   G4double r1 = (fSampledNumEntries-1)*GPUniformRand(fDevState, fThreadId);
@@ -178,8 +178,9 @@ GUAliasSampler::SampleX( typename Backend::Index_t  irow, // Energy bin of incom
   return x;
 }
 
-void GUAliasSampler::BuildAliasTables(const G4int n,
-                                      G4double   *p)
+void GUAliasSampler::BuildAliasTables( const int nrow,
+                                       const int ncol,
+                                       double   *pdf )
 {
   // Build alias and alias probability
   //    
@@ -189,56 +190,64 @@ void GUAliasSampler::BuildAliasTables(const G4int n,
   // "Extending the Alias Monte Carlo Sampling Method to General Distributions"
   // UCRL-JC-104791 (1991)
   //
-  // input :    n  (dimension of discrete outcomes)
-  //          p[n] (probability density function)
-  // output:  a[n] (alias)
-  //          q[n] (non-alias probability) 
+  // input :  nrow             (multiplicity of alias tables)
+  //          ncol             (dimension of discrete outcomes)
+  //          pdf[nrow x ncol] (probability density function)
+  // output:  a[nrow x ncol]   (alias)
+  //          q[nrow x ncol]   (non-alias probability) 
+  //
+  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
+
 
   //temporary array
-  G4double *ap = (G4double*)malloc(n*sizeof(G4double)); 
+  double *ap = (double*)malloc(ncol*sizeof(double)); 
 
   //likelihood per equal probable event
-  const G4double cp = 1.0/(n-1);
+  const double cp = 1.0/(ncol-1);
 
-  //initialize
-  for(int i = 0; i < n ; ++i) {
-    a[i] = -1;
-    ap[i] = p[i];
-  }
-  
-  //O(n) iterations
-  G4int iter = n;
-  
-  do {
-    int donor = 0;
-    int recip = 0;
-    
-    //have the better search algorithm?
-    for(int j = donor; j < n ; ++j) {
-      if(ap[j] >= cp) {
-        donor = j;
-        break;
-      }
-    }
-    
-    for(int j = recip; j < n ; ++j) {
-      if(ap[j] > 0.0 && ap[j] < cp) {
-        recip = j;
-        break;
-      }
-    }
-    
-    //alias and non-alias probability
-    a[recip] = donor;
-    q[recip] = n*ap[recip];
-    
-    //update pdf 
-    ap[donor] = ap[donor] - (cp-ap[recip]);
-    ap[recip] = 0.0;
+  for(int ir = 0; ir < nrow ; ++ir) {
 
-    --iter;
+    //copy and initialize
+    for(int i = 0; i < nrow ; ++i) {
+      fpdf[ir*ncol+i] = pdf[ir*ncol+i];
+      a[i] = -1;
+      ap[i] = p[i];
+    }
+  
+    //O(n) iterations
+    int iter = n;
+  
+    do {
+      int donor = 0;
+      int recip = 0;
+    
+      //have the better search algorithm?
+      for(int j = donor; j < ncol ; ++j) {
+	if(ap[j] >= cp) {
+	  donor = j;
+	  break;
+	}
+      }
+    
+      for(int j = recip; j < ncol ; ++j) {
+	if(ap[j] > 0.0 && ap[j] < cp) {
+	  recip = j;
+	  break;
+	}
+      }
+    
+      //alias and non-alias probability
+      fpdfA[ir*ncol+recip] = donor;
+      fpdfQ[ir*ncol+recip] = ncol*ap[recip];
+    
+      //update pdf 
+      ap[donor] = ap[donor] - (cp-ap[recip]);
+      ap[recip] = 0.0;
+
+      --iter;
+    }
+    while (iter > 0);
   }
-  while (iter > 0);
 
   free(ap);
 }
