@@ -43,19 +43,20 @@ public:
 #ifndef __CUDA_ARCH__  //  Method relevant only for *Vector* implementation
   // void Interact(const double_v energyV, GUFourVector_v *newMomentumV, GXTrack_v* secondaryV) const;     
   // Vector version - stage 2 - Need the definition of these vector types
-  void Interact(int ntracks, 
-                const double* energyV, 
-                std::vector<GUFourVector> &outMomentumV,            
-                std::vector<GXTrack_v>    &outSecondaryV  ) const;     
-               // TODO: use SOA arrays for output
+  FQUALIFIER void 
+  Interact(int ntracks, 
+           const double* energyV, 
+           std::vector<GUFourVector> &outMomentumV,            
+           std::vector<GXTrack_v>    &outSecondaryV  ) const;     
+           // TODO: use SOA arrays for output
 #endif
   // configure the 'mode' ??
   // FQUALIFIER void UseOriginalSampler(bool useOriginal);  // 
   // FQUALIFIER bool UsingOriginalSampler() const; 
 
   // Initializes this class and its sampler 
-  FQUALIFIER void BuildPdfTable(); // QUESTION: This might depend on physics? So maybe we should place inside model? 
   FQUALIFIER void BuildTables(); 
+  FQUALIFIER void BuildPdfTable(); // QUESTION: This might depend on physics? So maybe we should place inside model? 
 private: 
   // Implementation methods 
   FQUALIFIER double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
@@ -68,7 +69,7 @@ private:
 
 private:
   GUAliasSampler *fAliasSampler; 
-  XSectionKleinNishina *fXSection;
+  //  GUXSectionKleinNishina *fXSection;
 
   // Helper data members for GPU random -- to be replaced by use of a GPU manager class
   int fThreadId;
@@ -88,20 +89,72 @@ private:
 };
 
 FQUALIFIER void 
-GUComptonKleinNishina::BuildTable(G4int Z, 
-                                  const G4double xmin, 
-                                  const G4double xmax,
-                                  const G4int nrow,
-                                  const G4int ncol,
-                                  G4double **p,
-                                  )
+GUComptonKleinNishina::BuildTable( int Z, 
+                                   const double xmin, 
+                                   const double xmax,
+                                   const int nrow,
+                                   const int ncol)
 {
-  
-  BuildPdfTable(Z,xmin,xmax,nrow,ncol,p); 
+  //for now, the model does not own pdf.  Otherwise, pdf should
+  //be the data member of *this
 
-  
-  fAliasSampler->BuildAliasTable(p);
+  double *pdf = (double*) malloc(nrow*ncol*sizeof(double));
 
+  BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
+  fAliasSampler->BuildAliasTables(nrow,ncol,pdf);
+
+  free(pdf);
+}
+
+FQUALIFIER void 
+GUComptonKleinNishina::BuildPdfTable(G4int Z, 
+                                     const G4double xmin, 
+                                     const G4double xmax,
+                                     const G4int nrow,
+                                     const G4int ncol,
+                                     G4double *p
+                                     )
+{
+  // Build the probability density function (KleinNishina pdf) 
+  // in the energy randge [xmin,xmax] with an equal bin size
+  //
+  // input  :  Z    (atomic number) - not used for the atomic independent model
+  //           xmin (miminum energy)
+  //           xmax (maxinum energy)
+  //           nrow (number of input energy bins)
+  //           ncol (number of output energy bins)
+  //
+  // output :  p[nrow][ncol] (probability distribution) 
+  //
+  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
+
+  //build pdf  
+  G4double dx = (xmax - xmin)/nrow;
+  G4double xo =  xmin + 0.5*dx;
+
+  for(int i = 0; i < nrow ; ++i) {
+    //for each input energy bin
+    G4double x = xo + dx*i;
+
+    double ymin = x/(1+2.0*x/electron_mass_c2);
+    double dy = (x - ymin)/(n-1);
+    double yo = ymin + 0.5*dy;
+  
+    double sum = 0.;
+    for(int j = 0; j < ncol ; ++j) {
+      //for each output energy bin
+      double y = yo + dy*j;
+      double xsec = CalculateDiffCrossSection(0,x,y);
+      p[i*ncol+j] = xsec;
+      sum += xsec;
+    }
+
+    //normalization
+    sum = 1.0/sum;
+    for(int j = 0; i < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
+    }
+  }
 }
 
 // function implementing the cross section for KleinNishina
@@ -126,54 +179,6 @@ GUComptonKleinNishina::CalculateDiffCrossSection( int Zelement,
   double dsigma = (epsilon + 1./epsilon)*greject;
 
   return dsigma;
-}
-
-FQUALIFIER void 
-GUComptonKleinNishina::BuildPdfTable(G4int Z, 
-                                     const G4double xmin, 
-                                     const G4double xmax,
-                                     const G4int nrow,
-                                     const G4int ncol,
-                                     G4double **p,
-                                     )
-{
-  // Build the 2-dimensional probability density function (KleinNishina pdf) 
-  // in [xmin,xmax] and the alias table (a) and probability (q) with (ncol-1) 
-  // equal probable events, each with likelihood 1/(ncol-1)
-  //
-  // input  :  Z    (atomic number) - not used for the atomic independent model
-  //           xmin (miminum energy)
-  //           xmax (maxinum energy)
-  //           nrow (number of input energy bins)
-  //           ncol (number of output energy bins)
-  //
-  // output :  p[nrow][ncol] (probability distribution) 
-
-  //build pdf  
-  G4double dx = (xmax - xmin)/nrow;
-  G4double xo =  xmin + 0.5*dx;
-
-  for(int i = 0; i < nrow ; ++i) {
-    G4double x = xo + dx*i;
-
-    double ymin = x/(1+2.0*x/electron_mass_c2);
-    double dy = (x - ymin)/(n-1);
-    double yo = ymin + 0.5*dy;
-  
-    double sum = 0.;
-    for(int j = 0; j < ncol ; ++j) {
-      double y = yo + dy*j;
-      double xsec = CalculateDiffCrossSection(0,x,y);
-      p[i][j] = xsec;
-      sum += xsec;
-    }
-
-    //normalization
-    sum = 1.0/sum;
-    for(int j = 0; i < ncol ; ++j) {
-      p[i][j] *= sum;
-    }
-  }
 }
 
 #endif
