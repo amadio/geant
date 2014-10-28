@@ -6,12 +6,12 @@ void lvid(Int_t nmax=1000) {
    T->Draw("lvid>>hlvid","","nodraw");
    Int_t *index = new Int_t[3500];
    Double_t *array = (Double_t*)hlvid->GetArray();
-   TMath::Sort(3500,array,&index[1]);
+   TMath::Sort(3500,array,index);
    TH1D *hlvidtop = new TH1D("hlvidtop","volume ids sorted by number of steps;lvidord;number of steps",nmax,1,nmax+1);
    TObjArray *volumes = (TObjArray*)gFile->Get("LogicalVolumes");
    for (Int_t i=0;i<nmax;i++) {
       Int_t ind = index[i];
-      hlvidtop->SetBinContent(i,array[ind]);
+      hlvidtop->SetBinContent(i+1,array[ind]);
       hlvidtop->GetXaxis()->SetBinLabel(i+1,volumes->At(ind)->GetName());
    }
    hlvidtop->GetXaxis()->SetRange(1,20);
@@ -39,7 +39,37 @@ void lvid(Int_t nmax=1000) {
    pave->Draw();
    c1->Print("c1.pdf");
    TCanvas *c2 = new TCanvas("c2","c2");
+   T->SetMarkerColor(kBlack);
    T->Draw("sign(y)*sqrt(sqrt(x*x+y*y)):sign(z)*sqrt(abs(z))","sqrt(x*x+y*y)<2500"); //fish eye view
+   T->SetMarkerColor(kRed);
+   T->Draw("sign(y)*sqrt(sqrt(x*x+y*y)):sign(z)*sqrt(abs(z))",Form("sqrt(x*x+y*y)<2500&&lvid==%-d",index[0]),"same");
+   T->SetMarkerColor(kBlue);
+   T->Draw("sign(y)*sqrt(sqrt(x*x+y*y)):sign(z)*sqrt(abs(z))",Form("sqrt(x*x+y*y)<2500&&lvid==%-d",index[1]),"same");
+   T->SetMarkerColor(kGreen);
+   T->Draw("sign(y)*sqrt(sqrt(x*x+y*y)):sign(z)*sqrt(abs(z))",Form("sqrt(x*x+y*y)<2500&&lvid==%-d",index[2]),"same");
+   T->SetMarkerColor(kCyan);
+   T->Draw("sign(y)*sqrt(sqrt(x*x+y*y)):sign(z)*sqrt(abs(z))",Form("sqrt(x*x+y*y)<2500&&lvid==%-d",index[3]),"same");
+
+   pave1 = new TPave(0.75,0.76,0.98,0.94,0,"brNDC");
+   pave1->SetShadowColor(0);
+   pave1->SetLineColor(0);
+   pave1->Draw();
+   TText *t1 = new TText();
+   t1->SetTextColor(kRed);
+   t1->SetTextSize(0.03);
+   t1->DrawTextNDC(0.77,0.90,Form("#1 volume %s",((TObjString*)volumes->At(index[0]))->GetString().Data()));
+   TText *t2 = new TText();
+   t2->SetTextColor(kBlue);
+   t2->SetTextSize(0.03);
+   t2->DrawTextNDC(0.77,0.86,Form("#2 volume %s",((TObjString*)volumes->At(index[1]))->GetString().Data()));
+   TText *t3 = new TText();
+   t3->SetTextColor(kGreen);
+   t3->SetTextSize(0.03);
+   t3->DrawTextNDC(0.77,0.82,Form("#3 volume %s",((TObjString*)volumes->At(index[2]))->GetString().Data()));
+   TText *t4 = new TText();
+   t4->SetTextColor(kCyan);
+   t4->SetTextSize(0.03);
+   t4->DrawTextNDC(0.77,0.78,Form("#4 volume %s",((TObjString*)volumes->At(index[3]))->GetString().Data()));
    //T->Draw("sign(y)*sqrt(x*x+y*y):z","sqrt(x*x+y*y)<2500");  //normal view
    c2->Print("c2.gif");
 }
