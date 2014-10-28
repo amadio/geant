@@ -31,6 +31,10 @@ if( USE_ROOT )
    add_definitions( "-DUSE_ROOT")
 endif()
 
+if( SNEXTG4 )
+  add_definitions("-DSNEXTG4")
+endif()
+
 #----------------------------------------------------------------------------
 # Find Pythia8 and setup the libraries
 #
