@@ -29,11 +29,8 @@
 /// \brief Implementation of the G01SteppingAction class
 
 #include "time.h"
-
 #include "VTfileio.h"
-
 #include "G01SteppingAction.hh"
-
 #include "G01DetectorConstruction.hh"
 
 #include "G4Step.hh"
@@ -139,8 +136,8 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 
   //  if(std::abs(xend.z())>11000) track->SetTrackStatus(fStopAndKill);
   int ivl = io->VolumeIndex(vstart->GetName().c_str());
-  if(ivl==2891 && track->GetKineticEnergy() > 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
-  if(ivl==1623 && track->GetKineticEnergy() > 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
+  if(ivl==2891 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
+  if(ivl==1623 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
   
   if(track->GetTrackStatus()==fStopAndKill || endOfTrack) {
 #if VERBOSE
@@ -149,7 +146,10 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
      if(begend==1) begend=3;
      else begend = 2;
   }
-  double snext = tr->GetLinearStepLength();
+  double snext = 0;
+#if defined(SNEXTG4)
+  snext = tr->GetLinearStepLength();
+#endif
 
   int iproc = io->ProcessIndex( step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName().c_str());
 
