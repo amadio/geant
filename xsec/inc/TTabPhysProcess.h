@@ -4,10 +4,6 @@
 // Generic process for tabulated physics
 //______________________________________________________________________________
 
-#ifndef ROOT_TNamed
-#include "TNamed.h"
-#endif
-
 #ifndef GEANT_PHYSICSPROCESS
 #include "PhysicsProcess.h"
 #endif

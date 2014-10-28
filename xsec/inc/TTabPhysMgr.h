@@ -1,7 +1,6 @@
 #ifndef ROOT_TTabPhysMgr
 #define ROOT_TTabPhysMgr
 
-#include <TFile.h>
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
 #include <TGeoMaterial.h>
@@ -27,7 +26,7 @@ private:
    TEXsec         **fElemXsec;      // Array of x-section pointers per element
    TEFstate       **fElemFstate;    // Array of final state pointers per element
    TMXsec 	  **fMatXsec;	    // Array of x-section pointers per material	
-   TPDecay         *fDecay;        // Decay tables for each particles 
+   TPDecay         *fDecay;         // Decay tables for each particles
    TGeoManager     *fGeom;	    // Pointer to the geometry manager   
    Bool_t          *fHasNCaptureAtRest; // do the particle have nCapture at rest?
 

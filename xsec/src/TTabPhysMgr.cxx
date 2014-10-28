@@ -2,6 +2,7 @@
 
 #include "TGeoMaterial.h"
 #include "TGeoExtension.h"
+
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
 #include "management/GeoManager.h"
@@ -9,15 +10,19 @@
 #include "TGeoBranchArray.h"
 #endif
 #include "GeantTrack.h"
+
 #include "globals.h"
 #include "GeantPropagator.h"
 #include "GeantThreadData.h"
+
 #include "TRandom.h"
 #include "TBits.h"
 #include "TStopwatch.h"
 #include "TError.h"
+#include "TFile.h"
 #include "TList.h"
 #include "TSystem.h"
+
 #include "TPartIndex.h"
 #include "TEXsec.h"
 #include "TMXsec.h"

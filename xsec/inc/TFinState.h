@@ -25,8 +25,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "TObject.h"
-#include "TDatabasePDG.h"
 #include "TPartIndex.h"
 
 class TFinState {

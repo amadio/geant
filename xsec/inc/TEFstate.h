@@ -23,8 +23,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+
 class TFile;
-class TGraph;
+
 class TPFstate;
 class TFinState;
 
