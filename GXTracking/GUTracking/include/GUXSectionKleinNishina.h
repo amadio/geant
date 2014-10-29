@@ -3,6 +3,8 @@
 // 
 // Independent output variable:  Energy of outgoing photon
 // 
+#include "GUTypeDef.h"
+
 class GUXSectionKleinNishina
 {
   public: 
@@ -10,7 +12,6 @@ class GUXSectionKleinNishina
     FQUALIFIER ~GUXSectionKleinNishina();
 
     FQUALIFIER double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
-
 
 
 private:
@@ -21,9 +22,11 @@ private:
 
 // function implementing the cross section for KleinNishina
 // TODO: need to get electron properties from somewhere
+const double electron_mass_c2 = 0.51;
 
+FQUALIFIER
 double CalculateDiffCrossSection( int Zelement, double energy0, 
-				  double energy1 ) const
+				  double energy1 )
 {
   // based on Geant4 : G4KleinNishinaCompton
   // input  : energy0 (incomming photon energy)

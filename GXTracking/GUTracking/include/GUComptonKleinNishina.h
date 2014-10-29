@@ -2,67 +2,61 @@
 #define GUComptonKleinNishina_H 1
 
 #include "GUTypeDef.h"
-#include "GPRandom.h"
-// #include "GPThreeVector.h"
-#include "GXTrack.h"
+#include "GUTrack.h"
 
-// #include "GXVDiscreteSampling.h"
 class GUAliasSampler; 
 
-class GUComptonKleinNishina  // : public GXVDiscreteSampling
+class GUComptonKleinNishina
 {
 public:
 
   FQUALIFIER GUComptonKleinNishina(); 
-
-  /*----------------
-			    double minE,   // Minimum E of model & table
-			    double maxE,   // Maximum E of model & table
-
-			    double dimRow,    // Number of table entries for one E
-			    int dimCol,    // Number of Energies in grid
-			    double *pdfX,  // Table of Original PDF 
-			    double *pdfY   // Table of Inverse Cumulative distribution
-
-          curandState* devState,
-          int threadId,
-
-			    int    *pdfA,
-			    double *pdfX,
-			    double *pdfY);
-    ---------------------
-    */
-  FQUALIFIER ~GXKleinNishina();
+  FQUALIFIER ~GUComptonKleinNishina();
   
   FQUALIFIER void GetSampleParameters(double x, int &irow, int &icol,
 				      double &t);
   // Generate secondaries 
   FQUALIFIER 
-  void Interact(double   energy,  GUFourVector   *newMomentum,  GXTrack*   secondary)  const;
+  void Interact(double   energy, /* GUFourVector   *newMomentum, */ 
+                GUTrack* secondary )  const;
 
 #ifndef __CUDA_ARCH__  //  Method relevant only for *Vector* implementation
-  // void Interact(const double_v energyV, GUFourVector_v *newMomentumV, GXTrack_v* secondaryV) const;     
   // Vector version - stage 2 - Need the definition of these vector types
   FQUALIFIER void 
   Interact(int ntracks, 
-           const double* energyV, 
-           std::vector<GUFourVector> &outMomentumV,            
-           std::vector<GXTrack_v>    &outSecondaryV  ) const;     
-           // TODO: use SOA arrays for output
+           const double* energyV,
+	   /* std::vector<GUFourVector> &outMomentumV, */ 
+           std::vector<GUTrack_v> &outSecondaryV  
+          ) const;     
+          // TODO: use SOA arrays for output
 #endif
   // configure the 'mode' ??
   // FQUALIFIER void UseOriginalSampler(bool useOriginal);  // 
   // FQUALIFIER bool UsingOriginalSampler() const; 
 
   // Initializes this class and its sampler 
-  FQUALIFIER void BuildTables(); 
-  FQUALIFIER void BuildPdfTable(); // QUESTION: This might depend on physics? So maybe we should place inside model? 
+  FQUALIFIER void BuildTable( int Z, 
+                              const double xmin, 
+                              const double xmax,
+                              const int nrow,
+			      const int ncol);
+  // QUESTION: This might depend on physics? So maybe we should place inside model? 
+
+  FQUALIFIER void BuildPdfTable(G4int Z, 
+                                const G4double xmin, 
+                                const G4double xmax,
+                                const G4int nrow,
+                                const G4int ncol,
+                                G4double *p);
+
 private: 
   // Implementation methods 
   FQUALIFIER double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
 
-  FQUALIFIER
-  void ConvertXtoFinalState(double energy, double sampledEphot, GUFourVector *newMomentum,  GXTrack*   secondary)  const;
+ FQUALIFIER
+   void ConvertXtoFinalState(/* double energy, double sampledEphot, 
+				GUFourVector *newMomentum, GXTrack* secondary 
+                              */) const;
   // Given the sampled output photon energy, create the output state
 
   FQUALIFIER double SampleDirection(double energyIn, double energyOutPhoton);
@@ -72,8 +66,8 @@ private:
   //  GUXSectionKleinNishina *fXSection;
 
   // Helper data members for GPU random -- to be replaced by use of a GPU manager class
+  randomState* fRandomState;
   int fThreadId;
-  // curandState* fDevState;
 
   double fMinX;
   double fMaxX;
@@ -87,6 +81,12 @@ private:
   int fNrow;
   int fNcol;
 };
+
+
+FQUALIFIER 
+GUComptonKleinNishina::GUComptonKleinNishina() 
+{
+}
 
 FQUALIFIER void 
 GUComptonKleinNishina::BuildTable( int Z, 
@@ -137,7 +137,7 @@ GUComptonKleinNishina::BuildPdfTable(G4int Z,
     G4double x = xo + dx*i;
 
     double ymin = x/(1+2.0*x/electron_mass_c2);
-    double dy = (x - ymin)/(n-1);
+    double dy = (x - ymin)/(ncol-1);
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;

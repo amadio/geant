@@ -24,13 +24,20 @@ typedef double G4double;
     #define SHAREDTYPE 
     #define CONSTTYPE  __attribute__ ((target(mic)))
     #define GNULL 0
-#else
+#elif USE_CUDA
     #define GLOBALFUNC __global__
     #define GLOBALTYPE 
     #define SHAREDTYPE __shared__
     #define CONSTTYPE  
     #define GNULL 0
     #define FQUALIFIER __host__ __device__
+#else
+    #define GLOBALFUNC
+    #define GLOBALTYPE 
+    #define SHAREDTYPE
+    #define CONSTTYPE  
+    #define GNULL 0
+    #define FQUALIFIER
 #endif
 
 // Variable Type Qualifer 
