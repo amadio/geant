@@ -41,7 +41,6 @@ public:
 
   //private:
 // Implementation methods: 
-//  void BuildAliasTable( /*input: pdf constructed by Model */); // seems to be independent on model
   void BuildAliasTables( const int nrow, const int ncol, double   *pdf );
 
   template<class Backend>
@@ -58,13 +57,6 @@ public:
 	  typename Backend::Int_t     &irow, 
 	  typename Backend::Int_t     &icol,
           typename Backend::Double_t  &t);
-
-
-//  SampleX( typename Backend::Index_t  irow,   // ~ sampled value 
-//          typename Backend::Index_t  icol,   // ~ input Energy
-//          typename Backend::Double_t binSize,
-//          typename Backend::Double_t remainderX  //  in sampled variable
-//          ) const;
 
 private:
   const int      fZelement; 
@@ -127,7 +119,6 @@ Sample( typename Backend::Double_t energyIn,
   // MinY = kineticEnergy/(1+2.0*kineticEnergy/electron_mass_c2);
   // MaxY = kineticEnergy;
   // DeltaY = fMaxY - fMinY;
-
   //  Double_t deltaY= fSampledMax[irow] - fSampledMin[irow]; 
 
   Double_t x = SampleX( irow, icol, deltaY, fraction);
@@ -135,12 +126,6 @@ Sample( typename Backend::Double_t energyIn,
   return x; 
 }
 
-//template<class Backend>
-//FQUALIFIER void
-//GUAliasSampler::GetBin(typename Backend::Double_t  kineticEnergy,
-//		       typename Backend::Int_t    &irow, 
-//		       typename Backend::Int_t    &icol,
-//		       typename Backend::Double_t &t) 
 template<class Backend>
 FQUALIFIER void
 GUAliasSampler::
@@ -157,19 +142,6 @@ GetBin(typename Backend::Double_t  kineticEnergy,
   icol = floor(r1);
   t = r1 - 1.0*icol;
 }
-
-//template<class Backend>
-//typename Backend::Double_t
-//GUAliasSampler::SampleX( typename Backend::Index_t  irow, // Energy bin of incoming particle
-//                         typename Backend::Index_t  icol, // Bin index for this 'x' sample
-//                         typename Backend::Double_t rangeSampled, 
-//                         typename Backend::Double_t fraction )
-//template<class Backend>
-//typename Backend::Double_t
-//GUAliasSampler::SampleX( typename Backend::Int_t  irow, // Energy bin of incoming particle
-//                         typename Backend::Int_t  icol, // Bin index for this 'x' sample
-//                         typename Backend::Double_t rangeSampled, 
-//                         typename Backend::Double_t fraction )
 
 template<class Backend>
 typename Backend::Double_t
@@ -220,7 +192,6 @@ SampleX( typename Backend::Int_t  irow,   // ~ sampled value
   MaskedAssign( !condition,  aliasInd*binSampled    , xd );
   MaskedAssign( !condition, (aliasInd+1)*binSampled , xu );
   
-  //  Double_t x = (1 - fraction) * xd + fraction * xu;
   Double_t x = (1 - remainderX) * xd + remainderX* xu;
   
   return x;
