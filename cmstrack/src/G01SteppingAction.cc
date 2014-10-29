@@ -82,6 +82,7 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   static G4double cpsi = 1./CLOCKS_PER_SEC;
   static char volold[132]=" ";
   static int ivl;
+  static int ish;
 
   // Get the navigators
   static G4Transportation* tr = dynamic_cast<G4Transportation*>(G4ProcessTable::GetProcessTable()->FindProcess("Transportation",G4Geantino::Geantino()));
@@ -123,7 +124,7 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	cpustep = clock();
      }
      if(trpid==0) {
-	printf("#%d %s energy %g MeV ",trid,
+	printf("#%d %-15s %g MeV ",trid,
 	       track->GetDynamicParticle()->GetParticleDefinition()->GetParticleName().c_str(),
 	       track->GetTotalEnergy());
 	if(trid<io->GetPrimaries()) {
@@ -144,10 +145,11 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   //  if(std::abs(xend.z())>11000) track->SetTrackStatus(fStopAndKill);
   if(strcmp(vstart->GetName().c_str(),volold)) {
      ivl = io->VolumeIndex(vstart->GetName().c_str());
+     ish = io->ShapeIndex(vstart->GetSolid()->GetEntityType().c_str());
      strncpy(volold,vstart->GetName().c_str(),131);
   }
-  if(ivl==2891 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
-  if(ivl==1623 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
+  //  if(ivl==2891 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
+  // if(ivl==1623 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
   
   if(track->GetTrackStatus()==fStopAndKill || endOfTrack) {
 #if VERBOSE
@@ -165,7 +167,7 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 
   io->Fill(xstart.x(), xstart.y(), xstart.z(), pstart.x(), pstart.y(), pstart.z(), 
 	   track->GetParticleDefinition()->GetPDGEncoding(),
-	   ivl,step->GetPreStepPoint()->GetSafety(), snext, step->GetStepLength(), 0, iproc, begend,
+	   ivl,ish,step->GetPreStepPoint()->GetSafety(), snext, step->GetStepLength(), 0, iproc, begend,
 	   trid,trpid,(clock()-cputrack)*cpsi,(clock()-cpustep)*cpsi);
   cpustep=clock();
 
