@@ -1,6 +1,7 @@
 #include "GeantTrack.h"
 #include "globals.h"
 #include <execinfo.h>
+
 #if USE_VECGEOM_NAVIGATOR == 1
  #pragma message("Compiling against VecGeom")
  #include "navigation/SimpleNavigator.h"
@@ -18,9 +19,9 @@
  #include <iostream>
  #include "TGeoNavigator.h"
  #include "TGeoNode.h"
+ #include "TGeoManager.h"
 #endif
 
-#include "TGeoManager.h"
 #include "WorkloadManager.h"
 
 #ifdef __STAT_DEBUG_TRK
