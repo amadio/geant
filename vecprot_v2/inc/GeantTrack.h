@@ -22,11 +22,8 @@
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
- namespace vecgeom {
-    class NavigationState;
- }
  #include "navigation/NavigationState.h"
- typedef vecgeom::NavigationState VolumePath_t;
+ typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
 #else
  #include "TGeoBranchArray.h"       // needed due to templated pools
  typedef TGeoBranchArray VolumePath_t;
