@@ -19,14 +19,21 @@ class VTfileio {
    void OutFile(TFile* f) {fOutFile=f;}
    TTree* CurTree() const {return fCurTree;}
    void CurTree(TTree* f) {fCurTree=f;}
-   int VolumeIndex(const char* volname) const;
+   inline int VolumeIndex(const char* volname) const {
+   //   for(int iv=0; iv<fVolumeDictionary->GetEntries(); ++iv)
+      for(int iv=fVolumeDictionary->GetEntries()-1; iv>-1; --iv)
+	 if(!strcmp(((TObjString*) fVolumeDictionary->At(iv))->GetString().Data(),volname)) return iv;
+      return -1;
+   }
+
    int ProcessIndex(const char* procname) const;
    TObjArray *GetVolumeDictionary() {return fVolumeDictionary;}
    TObjArray *GetProcessDictionary() {return fProcessDictionary;}
    void WriteDictionaries();
    void Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
 	     UShort_t lvid, double safety, double snext, double step, UChar_t surfid, 
-	     UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid);
+	     UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid, Double_t cputime,
+	     Double_t cpustep);
    Bool_t IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
       else return kFALSE;}
    void SetNewEvent() {fNewEvent=kTRUE;}
@@ -53,6 +60,9 @@ class VTfileio {
    UChar_t fBegEnd;      // Beginning or end of track
    UInt_t  fTrid;        // Track ID
    UInt_t  fTrPid;       // Track Parend ID
+   Double_t fCPUtime;    // CPU time used since start of track
+   Double_t fCPUstep;    // CPU time used for current step
+ 
    //
    Bool_t  fNewEvent;    // if new event
    Int_t   fNprimaries;  // Number of primaries
