@@ -1363,11 +1363,11 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 #ifdef USE_VECGEOM_NAVIGATOR
 void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const
 {
-    vecgeom::NavigationState a( vecgeom::GeoManager::Instance().getMaxDepth() );
+    VECGEOM_NAMESPACE::NavigationState a( VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth() );
     a.Clear();
-    vecgeom::SimpleNavigator nav;
-    nav.LocatePoint( vecgeom::GeoManager::Instance().world(),
-                   vecgeom::Vector3D<vecgeom::Precision>( fXposV[itr], fYposV[itr], fZposV[itr] ), a, true );
+    VECGEOM_NAMESPACE::SimpleNavigator nav;
+    nav.LocatePoint( VECGEOM_NAMESPACE::GeoManager::Instance().world(),
+                   VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>( fXposV[itr], fYposV[itr], fZposV[itr] ), a, true );
     if( a.Top() != NULL && a.Top() != fPathV[itr]->Top() )
     {
        Printf("INCONSISTENT LOCATION PATH PAIR PRODUCED FOR TRACK %d",itr);
@@ -1388,10 +1388,10 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
                        Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v */*trk*/)
 {
    // Printf("In vec find next boundary and step\n");
-    using vecgeom::SimpleNavigator;
-    using vecgeom::Precision;
-    using vecgeom::Vector3D;
-    using vecgeom::GeoManager;
+    using VECGEOM_NAMESPACE::SimpleNavigator;
+    using VECGEOM_NAMESPACE::Precision;
+    using VECGEOM_NAMESPACE::Vector3D;
+    using VECGEOM_NAMESPACE::GeoManager;
     typedef Vector3D<Precision> Vector3D_t;
 
     //     VolumePath_t * a = new VolumePath_t( GeoManager::Instance().getMaxDepth() );
@@ -1608,8 +1608,8 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  
      Printf("In NavIsSameLocation single %p for track %d", this, itr );
 #endif
      // TODO: We should provide this function as a static function
-    vecgeom::SimpleNavigator simplenav;
-    vecgeom::NavigationState tmpstate( *end[itr] );
+    VECGEOM_NAMESPACE::SimpleNavigator simplenav;
+    VECGEOM_NAMESPACE::NavigationState tmpstate( *end[itr] );
 
     // cross check with answer from ROOT
 #ifdef CROSSCHECK
@@ -1619,7 +1619,7 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  
 
     // TODO: not using the direction yet here !!
     bool samepath = simplenav.HasSamePath(
-                     vecgeom::Vector3D<vecgeom::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
+                     VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
                      *start[itr],
                      tmpstate);
     if( !samepath )
@@ -1642,7 +1642,7 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  
     if( rootsame != samepath )
     {
         Printf("INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
-        std::cout << vecgeom::Vector3D<vecgeom::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]) << "\n";
+        std::cout << VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]) << "\n";
         Printf("old state");sb->Print();
         nav->ResetState();
         nav->SetLastSafetyForPoint(0,0,0,0);
@@ -1834,12 +1834,12 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    //nav->FindNextBoundaryAndStep( Math::Min(1.E20, fPstepV[itr]), !fFrombdrV[itr] );
 
    //
-   using vecgeom::SimpleNavigator;
-   using vecgeom::Precision;
-   using vecgeom::Vector3D;
+   using VECGEOM_NAMESPACE::SimpleNavigator;
+   using VECGEOM_NAMESPACE::Precision;
+   using VECGEOM_NAMESPACE::Vector3D;
    typedef Vector3D<Precision> Vector3D_t;
 
-   vecgeom::SimpleNavigator nav;
+   VECGEOM_NAMESPACE::SimpleNavigator nav;
    double step;
    nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
                                Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]),
@@ -1879,12 +1879,12 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    fNextpathV[itr]->InitFromNavigator(nav);
 
 #ifdef CROSSCHECK
-   vecgeom::NavigationState vecgeom_in_state( vecgeom::GeoManager::Instance().getMaxDepth() );
-   vecgeom::NavigationState vecgeom_out_state( vecgeom::GeoManager::Instance().getMaxDepth() );
+   VECGEOM_NAMESPACE::NavigationState vecgeom_in_state( VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth() );
+   VECGEOM_NAMESPACE::NavigationState vecgeom_out_state( VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth() );
    vecgeom_in_state = *fPathV[itr];
-   vecgeom::SimpleNavigator vecnav;
+   VECGEOM_NAMESPACE::SimpleNavigator vecnav;
    double vecgeom_step;
-   typedef vecgeom::Vector3D<vecgeom::Precision> Vector3D_t;
+   typedef VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision> Vector3D_t;
    vecnav.FindNextBoundaryAndStep( Vector3D_t( fXposV[itr], fYposV[itr], fZposV[itr] ) /* global pos */,
                        Vector3D_t( fXdirV[itr], fYdirV[itr], fZdirV[itr] ) /* global dir */,
                        vecgeom_in_state, vecgeom_out_state /* the paths */,
