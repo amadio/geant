@@ -213,7 +213,7 @@ void *WorkloadManager::MainScheduler(void *)
    WorkloadManager *wm = WorkloadManager::Instance();
    if (wm->fBroker) nworkers -= wm->fBroker->GetNstream();
    priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
-   priority_queue<GeantBasket*> *transportedQ = wm->TransportedQueue();
+   //priority_queue<GeantBasket*> *transportedQ = wm->TransportedQueue();
    GeantScheduler *sch = wm->GetScheduler();
    // Number of baskets in the queue to transport
    Int_t ntotransport = 0;
@@ -231,11 +231,11 @@ void *WorkloadManager::MainScheduler(void *)
    Int_t crtphase  = 0;
    
    Int_t niter = -1;
-   size_t npop = 0;
+//   size_t npop = 0;
    Int_t ninjected = 0;
 //   Int_t nnew = 0, ntot=0, nkilled=0;
-   GeantBasket *output;
-   GeantBasket **carray = new GeantBasket*[500];
+//   GeantBasket *output;
+//   GeantBasket **carray = new GeantBasket*[500];
    waiting[nworkers] = 1;
    std::mutex *mutex_sch = wm->GetMutexSch();
    std::condition_variable *cond_sch = wm->GetCondSch();
@@ -378,11 +378,11 @@ void *WorkloadManager::MainScheduler(void *)
       waiting[nworkers] = 1;
    }
    // Stop workers
-   gROOT->SetBit(TObject::kInvalidObject, kTRUE);
+   //gROOT->SetBit(TObject::kInvalidObject, kTRUE);
    for (Int_t i=0; i<nworkers; i++) wm->FeederQueue()->push(0);
    wm->TransportedQueue()->push(0);
    wm->Stop();
-   gROOT->SetBit(TObject::kInvalidObject, kFALSE);
+   //gROOT->SetBit(TObject::kInvalidObject, kFALSE);
    propagator->fApplication->Digitize(0);
    Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
    return 0;
