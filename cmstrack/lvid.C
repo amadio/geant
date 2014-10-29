@@ -1,7 +1,7 @@
-void lvid(Int_t nmax=1000) {
+void lvid(Int_t event=0, Int_t nmax=1000) {
    if (gFile == 0) new TFile ("event03.root");
    if (gFile == 0) return;
-   TTree *T = (TTree*)gFile->Get("Event0000");
+   TTree *T = (TTree*)gFile->Get(Form("Event%4.4d",event));
    TH1D *hlvid = new TH1D("hlvid","number of steps per lvid;lvid;number of steps",3500,0.01,3500.01);
    T->Draw("lvid>>hlvid","","nodraw");
    Int_t *index = new Int_t[3500];
