@@ -24,12 +24,6 @@ VTfileio::~VTfileio() {
    delete fProcessDictionary;
 }
 
-int VTfileio::VolumeIndex(const char* volname) const {
-   for(int iv=0; iv<fVolumeDictionary->GetEntries(); ++iv)
-      if(((TObjString*) fVolumeDictionary->At(iv))->GetString() == volname) return iv;
-   return -1;
-}
-
 void VTfileio::WriteDictionaries() {
    fVolumeDictionary->Write("LogicalVolumes",TObject::kSingleKey);
    fProcessDictionary->Write("ProcessDictionary",TObject::kSingleKey);
@@ -62,11 +56,14 @@ void VTfileio::NewTree(const char* name)
        fCurTree->Branch("begend",&fBegEnd,"begend/b");
        fCurTree->Branch("trid",&fTrid,"trid/i");
        fCurTree->Branch("trpid",&fTrPid,"trpid/i");
+       fCurTree->Branch("cputime",&fCPUtime,"cputime/D");
+       fCurTree->Branch("cpustep",&fCPUstep,"cpustep/D");
     }
 
 void VTfileio::Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
 		    UShort_t lvid, double safety, double snext, double step, UChar_t surfid, 
-		    UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid) {
+		    UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid, Double_t cputime,
+		    Double_t cpustep) {
    fX = x;
    fY = y;
    fZ = z;
@@ -83,5 +80,7 @@ void VTfileio::Fill(double x, double y, double z, double px, double py, double p
    fBegEnd = begend;
    fTrid = trid;
    fTrPid = trpid;
+   fCPUtime = cputime;
+   fCPUstep = cpustep;
    fCurTree->Fill();
 }

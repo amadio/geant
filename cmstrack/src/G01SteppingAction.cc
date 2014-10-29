@@ -77,6 +77,11 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
    // Get the tree to fill
   static VTfileio * io = VTfileio::I();
   static clock_t cputime;
+  static clock_t cpustep=clock();
+  static clock_t cputrack;
+  static G4double cpsi = 1./CLOCKS_PER_SEC;
+  static char volold[132]=" ";
+  static int ivl;
 
   // Get the navigators
   static G4Transportation* tr = dynamic_cast<G4Transportation*>(G4ProcessTable::GetProcessTable()->FindProcess("Transportation",G4Geantino::Geantino()));
@@ -111,16 +116,18 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 
   int begend = 0;
   if(track->GetCurrentStepNumber()==1) {
+     cputrack = clock();
      if(io->IsNewEvent()) {
 	printf("Total primaries = %d\n",io->GetPrimaries());
 	cputime = clock();
+	cpustep = clock();
      }
      if(trpid==0) {
 	printf("#%d %s energy %g MeV ",trid,
 	       track->GetDynamicParticle()->GetParticleDefinition()->GetParticleName().c_str(),
 	       track->GetTotalEnergy());
 	if(trid<io->GetPrimaries()) {
-	   int eta = trid*(clock()-cputime)/(io->GetPrimaries()-trid)/CLOCKS_PER_SEC;
+	   int eta = trid*(clock()-cputime)*cpsi/(io->GetPrimaries()-trid);
 	   int hours = eta/3600;
 	   int mins = (eta-hours*3600)/60;
 	   int secs = eta-hours*3600-mins*60;
@@ -135,7 +142,10 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   }
 
   //  if(std::abs(xend.z())>11000) track->SetTrackStatus(fStopAndKill);
-  int ivl = io->VolumeIndex(vstart->GetName().c_str());
+  if(strcmp(vstart->GetName().c_str(),volold)) {
+     ivl = io->VolumeIndex(vstart->GetName().c_str());
+     strncpy(volold,vstart->GetName().c_str(),131);
+  }
   if(ivl==2891 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
   if(ivl==1623 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
   
@@ -156,7 +166,8 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   io->Fill(xstart.x(), xstart.y(), xstart.z(), pstart.x(), pstart.y(), pstart.z(), 
 	   track->GetParticleDefinition()->GetPDGEncoding(),
 	   ivl,step->GetPreStepPoint()->GetSafety(), snext, step->GetStepLength(), 0, iproc, begend,
-	   trid,trpid);
+	   trid,trpid,(clock()-cputrack)*cpsi,(clock()-cpustep)*cpsi);
+  cpustep=clock();
 
 #if VERBOSE
   G4cout.setf(std::ios::scientific);
