@@ -252,8 +252,8 @@ void *WorkloadManager::MainScheduler(void *)
 //         output = carray[iout];
 //         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
          // Recycle basket
-         output->Recycle();
-      }
+//         output->Recycle();
+//  }
       // If there were events to be dumped, check their status here
       ntotransport = feederQ->size_async();
 //      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d. QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
