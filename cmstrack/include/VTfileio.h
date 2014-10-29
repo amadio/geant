@@ -5,8 +5,8 @@
 
 class TFile;
 class TTree;
-#include "TObjArray.h"
-#include "TObjString.h"
+#include "THashList.h"
+#include "TNamed.h"
 
 #include "G4String.hh"
  
@@ -19,19 +19,37 @@ class VTfileio {
    void OutFile(TFile* f) {fOutFile=f;}
    TTree* CurTree() const {return fCurTree;}
    void CurTree(TTree* f) {fCurTree=f;}
+
    inline int VolumeIndex(const char* volname) const {
-   //   for(int iv=0; iv<fVolumeDictionary->GetEntries(); ++iv)
-      for(int iv=fVolumeDictionary->GetEntries()-1; iv>-1; --iv)
-	 if(!strcmp(((TObjString*) fVolumeDictionary->At(iv))->GetString().Data(),volname)) return iv;
-      return -1;
+      TObject *obj=fVolumeDictionary->FindObject(volname);
+      if(obj) return obj->GetUniqueID();
+      else return -1;
+   }
+
+   inline int ShapeIndex(const char* shapename) const {
+      TObject *obj=fShapeDictionary->FindObject(shapename);
+      if(obj) return obj->GetUniqueID();
+      else return -1;
+   }
+
+   inline int ProcessIndex(const char* procname) {
+      TObject *obj=fProcessDictionary->FindObject(procname);
+      if(obj) return obj->GetUniqueID();
+      Int_t nproc = fProcessDictionary->GetEntries();
+      TNamed *nam = new TNamed(procname,procname);
+      nam->SetUniqueID(nproc);
+      fProcessDictionary->Add(nam);
+      return nproc;
    }
 
    int ProcessIndex(const char* procname) const;
-   TObjArray *GetVolumeDictionary() {return fVolumeDictionary;}
-   TObjArray *GetProcessDictionary() {return fProcessDictionary;}
+   THashList *GetVolumeDictionary() {return fVolumeDictionary;}
+   void AddVolume(const char *volname);
+   void AddShape(const char *shapename);
+   THashList *GetProcessDictionary() {return fProcessDictionary;}
    void WriteDictionaries();
    void Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
-	     UShort_t lvid, double safety, double snext, double step, UChar_t surfid, 
+	     UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, UChar_t surfid, 
 	     UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid, Double_t cputime,
 	     Double_t cpustep);
    Bool_t IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
@@ -51,7 +69,8 @@ class VTfileio {
    double fPy;           // y momentum
    double fPz;           // z momentum
    Short_t fPID;         // PDG particle id
-   UShort_t  fLVid;      // logical volume id
+   UShort_t fLVid;       // logical volume id
+   UShort_t fShapeid;    // shape id 
    double fSafety;       // safety
    double fSnext;        // snext
    double fStep;         // step
@@ -66,8 +85,9 @@ class VTfileio {
    //
    Bool_t  fNewEvent;    // if new event
    Int_t   fNprimaries;  // Number of primaries
-   TObjArray *fVolumeDictionary; // dictionary of volumes
-   TObjArray *fProcessDictionary; // dictionary of processes
+   THashList *fVolumeDictionary;  // dictionary of volumes
+   THashList *fShapeDictionary;   // dictionary of shapes
+   THashList *fProcessDictionary; // dictionary of processes
 };
 
 #endif

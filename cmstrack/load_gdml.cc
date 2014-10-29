@@ -134,8 +134,6 @@ int main(int argc,char **argv)
 
    io->OutFile(new TFile("cmstrack.root","recreate"));
 
-   TObjArray *lv = io->GetVolumeDictionary();
-
    G4Region *region = G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
    G4ProductionCuts *wcuts = new G4ProductionCuts;
    wcuts->SetProductionCut(1*cm); // same cuts for gamma, e- and e+
@@ -148,15 +146,16 @@ int main(int argc,char **argv)
    for( int ilv=0; ilv<nlv; ++ilv) 
    {
      G4LogicalVolume *glv = (*lvs)[ilv];
-     lv->Add(new TObjString(glv->GetName()));
+     io->AddVolume(glv->GetName());
+     io->AddShape(glv->GetSolid()->GetEntityType().c_str());
      double radl = glv->GetMaterial()->GetRadlen();
      region = new G4Region(G4String("Region_")+glv->GetName());
      region->AddRootLogicalVolume(glv);
      G4double cfact=0.25;
      // Lead Crystals are parametrised in reality
-     if(ilv==1623) cfact=2;
+     //     if(ilv==1623) cfact=2;
      // This cone of copper very far needs high cuts
-     if(ilv==2891) cfact=4;
+     // if(ilv==2891) cfact=4;
      dcuts[0]=4*cfact*radl;
      dcuts[1]=cfact*radl;
      dcuts[2]=cfact*radl;
