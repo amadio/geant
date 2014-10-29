@@ -140,12 +140,14 @@ endif()
 #---------------------------------------------------------------------------
 # Include directories
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
+include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
 add_custom_target(_headers ALL)
 
+add_subdirectory (base)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (tabxsec)
