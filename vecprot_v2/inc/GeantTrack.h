@@ -1,6 +1,8 @@
 #ifndef GEANT_TRACK
 #define GEANT_TRACK
 
+#include "Geant/Config.h"
+
 //#include "globals.h"
 #include "TMath.h"
 #include "TBits.h"
