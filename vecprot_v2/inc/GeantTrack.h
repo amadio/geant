@@ -44,7 +44,7 @@ enum Species_t {kHadron, kLepton};
 class GeantTrack_v;
 
 //______________________________________________________________________________
-class GeantTrack : public TObject {
+class GeantTrack {
 public:
    Int_t    fEvent;     // event number
    Int_t    fEvslot;    // event slot
@@ -128,7 +128,7 @@ public:
    Species_t          Species() const {return fSpecies;}
    TrackStatus_t      Status() const  {return fStatus;}
    
-   virtual void       Clear(Option_t *option="");
+   void               Clear(Option_t *option="");
    Double_t           X() const {return fXpos;}
    Double_t           Y() const {return fYpos;}
    Double_t           Z() const {return fZpos;}
@@ -161,7 +161,7 @@ public:
    void               SetPath(VolumePath_t const * const path);
    void               SetNextPath(VolumePath_t const * const path);
    
-   ClassDef(GeantTrack, 1)      // The track
+   ClassDefNV(GeantTrack, 1)      // The track
 };
 
 //______________________________________________________________________________
@@ -224,7 +224,7 @@ public:
    GeantTrack_v(Int_t size);
    GeantTrack_v(const GeantTrack_v &track_v);
    GeantTrack_v &operator=(const GeantTrack_v &track_v);
-   virtual ~GeantTrack_v();
+   ~GeantTrack_v();
 
    Int_t     Capacity() const     {return fMaxtracks;}
    static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
@@ -255,7 +255,7 @@ public:
    Int_t     SortByStatus(TrackStatus_t status);
    Int_t     RemoveByStatus(TrackStatus_t status, GeantTrack_v &output);
    Bool_t    IsSelected(Int_t i)  {return fSelected.TestBitNumber(i);}
-   virtual void      Clear(Option_t *option="");
+   void      Clear(Option_t *option="");
    Int_t     Compact(GeantTrack_v *moveto=0);
    Bool_t    Contains(Int_t evstart, Int_t nevents=1) const;
    void      ClearSelection()     {fSelected.ResetAllBits();}
@@ -312,7 +312,7 @@ public:
       return (num+ALIGN_PADDING-remainder);
    }  
 
-   ClassDef(GeantTrack_v, 1)      // SOA for GeantTrack class           
+   ClassDefNV(GeantTrack_v, 1)      // SOA for GeantTrack class
 };
 
 #endif

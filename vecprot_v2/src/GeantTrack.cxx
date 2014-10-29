@@ -54,8 +54,7 @@ ClassImp(GeantTrack)
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack()
-           :TObject(),
-            fEvent(-1),
+           :fEvent(-1),
             fEvslot(-1),
             fParticle(-1),
             fPDG(0),
@@ -110,8 +109,7 @@ GeantTrack::GeantTrack()
      }
 //______________________________________________________________________________
 GeantTrack::GeantTrack(Int_t ipdg)
-           :TObject(),
-            fEvent(-1),
+           :fEvent(-1),
             fEvslot(-1),
             fParticle(-1),
             fPDG(ipdg),
@@ -150,8 +148,7 @@ GeantTrack::GeantTrack(Int_t ipdg)
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack(const GeantTrack& other)
-           :TObject(other),
-            fEvent(other.fEvent),
+           :fEvent(other.fEvent),
             fEvslot(other.fEvslot),
             fParticle(other.fParticle),
             fPDG(other.fPDG),
