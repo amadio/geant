@@ -119,8 +119,6 @@ public:
 #endif
    Int_t            ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
    void             Initialize();
-//   void             InjectCollection(Int_t tid);
-//   GeantBasket     *InjectBasket(GeantBasket *basket);
    static 
    GeantPropagator *Instance(Int_t ntotal=0, Int_t nbuffered=0);
    void             ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
