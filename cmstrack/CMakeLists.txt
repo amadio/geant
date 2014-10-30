@@ -40,7 +40,6 @@ endif()
 #
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ROOTSYS}/cmake/modules)
-set(PYTHIA8_DIR /usr/local/pythia8186)
 find_package(Pythia8 REQUIRED)
 
 #----------------------------------------------------------------------------
