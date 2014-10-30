@@ -31,8 +31,8 @@ GeantBasket::GeantBasket()
 GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
             :TObject(),
              fManager(mgr),
-             fTracksIn(size),
-             fTracksOut(size),
+             fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
+             fTracksOut(size, GeantPropagator::Instance()->fMaxDepth),
              fAddingOp(0)
 {
 // ctor.

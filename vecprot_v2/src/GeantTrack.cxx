@@ -133,9 +133,14 @@ GeantTrack::GeantTrack(Int_t ipdg)
             fNextpath(0)
 {
 // Constructor
-   WorkloadManager *wm = WorkloadManager::Instance();
-   fPath = wm->NavStates()->borrow();
-   fNextpath = wm->NavStates()->borrow();
+   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+#if USE_VECGEOM_NAVIGATOR == 1
+   fPath = new VolumePath_t(maxdepth);
+   fNextpath = new VolumePath_t(maxdepth);
+#else
+   fPath = VolumePath_t::MakeInstance(maxdepth);
+   fNextpath = VolumePath_t::MakeInstance(maxdepth);
+#endif
 }
 
 //______________________________________________________________________________
@@ -173,10 +178,15 @@ GeantTrack::GeantTrack(const GeantTrack& other)
             fNextpath(0)
 {
 // Copy constructor
-   WorkloadManager *wm = WorkloadManager::Instance();
-   fPath = wm->NavStates()->borrow();
+   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+#if USE_VECGEOM_NAVIGATOR == 1
+   fPath = new VolumePath_t(maxdepth);
+   fNextpath = new VolumePath_t(maxdepth);
+#else
+   fPath = VolumePath_t::MakeInstance(maxdepth);
+   fNextpath = VolumePath_t::MakeInstance(maxdepth);
+#endif   
    *fPath = *other.fPath;
-   fNextpath = wm->NavStates()->borrow();
    *fNextpath = *other.fNextpath;
 }
 
@@ -213,10 +223,15 @@ GeantTrack & GeantTrack::operator=(const GeantTrack &other)
       fSafety = other.fSafety;
       fFrombdr = other.fFrombdr;
       fPending = other.fPending;
-      WorkloadManager *wm = WorkloadManager::Instance();
-      fPath = wm->NavStates()->borrow();
+      Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+#if USE_VECGEOM_NAVIGATOR == 1
+      fPath = new VolumePath_t(maxdepth);
+      fNextpath = new VolumePath_t(maxdepth);
+#else
+      fPath = VolumePath_t::MakeInstance(maxdepth);
+      fNextpath = VolumePath_t::MakeInstance(maxdepth);
+#endif   
       *fPath = *other.fPath;
-      fNextpath = wm->NavStates()->borrow();
       *fNextpath = *other.fNextpath;
    }
    return *this;
@@ -226,16 +241,19 @@ GeantTrack & GeantTrack::operator=(const GeantTrack &other)
 GeantTrack::~GeantTrack()
 {
 // Destructor.
-   WorkloadManager *wm = WorkloadManager::Instance();
-   wm->NavStates()->release(fPath);
-   wm->NavStates()->release(fNextpath);
+#if USE_VECGEOM_NAVIGATOR == 1
+   delete fPath;
+   delete fNextpath;
+#else
+   VolumePath_t::ReleaseInstance(fPath);
+   VolumePath_t::ReleaseInstance(fNextpath);
+#endif   
 }
 
 //______________________________________________________________________________
 void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
 {
 // Fill track from array
-   WorkloadManager *wm = WorkloadManager::Instance();
    fEvent = arr.fEventV[i];
    fEvslot = arr.fEvslotV[i];
    fParticle = arr.fParticleV[i];
@@ -264,9 +282,9 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
    fSafety = arr.fSafetyV[i];
    fFrombdr = arr.fFrombdrV[i];
    fPending = arr.fPendingV[i];
-   if (!fPath) fPath = wm->NavStates()->borrow();
+//   if (!fPath) fPath = wm->NavStates()->borrow();
    *fPath = *arr.fPathV[i]; 
-   if (!fNextpath) fNextpath = wm->NavStates()->borrow();
+//   if (!fNextpath) fNextpath = wm->NavStates()->borrow();
    *fNextpath = *arr.fNextpathV[i];
 }
 
@@ -340,7 +358,8 @@ ClassImp(GeantTrack_v)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),
+              fMaxDepth(0),fBufSize(0),fVPstart(0), fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -353,8 +372,9 @@ GeantTrack_v::GeantTrack_v()
 }
 
 //______________________________________________________________________________
-GeantTrack_v::GeantTrack_v(Int_t size)            
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),
+              fMaxDepth(maxdepth),fBufSize(0),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -369,8 +389,9 @@ GeantTrack_v::GeantTrack_v(Int_t size)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
-             :fNtracks(0),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),fHoles(track_v.fHoles),
-              fSelected(track_v.fSelected),fCompact(track_v.fCompact),fMutex(),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+             :fNtracks(0),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),
+              fHoles(track_v.fHoles),fSelected(track_v.fSelected),fCompact(track_v.fCompact),
+              fMaxDepth(track_v.fMaxDepth),fBufSize(track_v.fBufSize),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -384,16 +405,15 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
    fNtracks.store(track_v.fNtracks);
 #else   
    fNtracks = track_v.fNtracks;
-#endif   
-   Int_t size = track_v.fMaxtracks;
-   fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
-   memset(fBuf, 0, size*sizeof(GeantTrack));
+#endif  
+   fBuf = (char*)_mm_malloc(fBufSize, ALIGN_PADDING);
+   memset(fBuf, 0, fBufSize);
 #if __cplusplus >= 201103L
-   memcpy(fBuf, track_v.fBuf, fNtracks.load()*sizeof(GeantTrack));
+   memcpy(fBuf, track_v.fBuf, fBufSize);
 #else   
-   memcpy(fBuf, track_v.fBuf, fNtracks*sizeof(GeantTrack));
-#endif   
-   AssignInBuffer(&fBuf[0], size);
+   memcpy(fBuf, track_v.fBuf, fBufSize);
+#endif
+   AssignInBuffer(&fBuf[0], fMaxtracks);
 }
 
 //______________________________________________________________________________
@@ -401,16 +421,18 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
 {
 // Assignment operator
    if (&track_v != this) {
-      Int_t size = track_v.fMaxtracks;
-      if (fMaxtracks<size) {
-         _mm_free(fBuf);
-         fBuf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
-      }
 #if __cplusplus >= 201103L
       fNtracks.store(track_v.fNtracks);
 #else   
       fNtracks = track_v.fNtracks;
 #endif   
+      Int_t size = track_v.fMaxtracks;
+      fMaxDepth = track_v.fMaxDepth;
+      fBufSize = track_v.fBufSize;
+      if (fMaxtracks<size) {
+         _mm_free(fBuf);
+         fBuf = (char*)_mm_malloc(fBufSize, ALIGN_PADDING);
+      }
       fMaxtracks = size;
       fNselected = track_v.fNselected;
       fHoles = track_v.fHoles;
@@ -429,6 +451,11 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
 GeantTrack_v::~GeantTrack_v()
 {
 // Destructor.
+   Int_t ntracks = GetNtracks();
+   for (auto i=0; i<ntracks; ++i) {
+      VolumePath_t::ReleaseInstance(fPathV[i]);
+      VolumePath_t::ReleaseInstance(fNextpathV[i]);
+   }   
    _mm_free(fBuf);
 }
 
@@ -501,6 +528,11 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
    buf += size*sizeof(VolumePath_t*);
    fNextpathV = (VolumePath_t**)buf;
    buf += size*sizeof(VolumePath_t*);
+   fVPstart = buf;
+   size_t taken = buf-buff;
+   size_t expected = size*sizeof(GeantTrack);
+   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);
+   for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstance(fMaxDepth, buf+i*size_vpath);
 }
 
 //______________________________________________________________________________
@@ -603,6 +635,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    memcpy(buf, fNextpathV, ntracks*sizeof(VolumePath_t*));
    fNextpathV = (VolumePath_t**)buf;
    buf += size*sizeof(VolumePath_t*);
+   fVPstart = buf;
 }
 
 //______________________________________________________________________________
@@ -641,20 +674,22 @@ void GeantTrack_v::Resize(Int_t newsize)
 {
 // Resize the container.
    Int_t size = round_up_align(newsize);
+   Int_t size_nav = 2*size*VolumePath_t::SizeOf(fMaxDepth);
    if (size<GetNtracks()) {
       Printf("Error: Cannot resize to less than current track content");
       return;
    }
+   fBufSize = size*sizeof(GeantTrack)+size_nav;
    if (!fCompact) Compact();
    fHoles.ResetBitNumber(size-1);
    fSelected.ResetBitNumber(size-1);
-   char* buf = (char*)_mm_malloc(size*sizeof(GeantTrack), ALIGN_PADDING);
-   memset(buf, 0, size*sizeof(GeantTrack));
+   char* buf = (char*)_mm_malloc(fBufSize, ALIGN_PADDING);
+   memset(buf, 0, fBufSize);
+   fMaxtracks = size;
    if (!fBuf) {
       // All arrays are contiguous in a single buffer and aligned with the
       // same padding ALIGN_PADDING
       fBuf = buf;
-      fMaxtracks = size;
       AssignInBuffer(buf, size);
       memset( fPathV, 0, size * sizeof(VolumePath_t*) );
       memset( fNextpathV, 0, size * sizeof(VolumePath_t*) );
@@ -663,10 +698,6 @@ void GeantTrack_v::Resize(Int_t newsize)
       CopyToBuffer(buf, size);
       _mm_free(fBuf);
       fBuf = buf;
-//      UInt_t increase = size - fMaxtracks;
-//      memset( fPathV+fMaxtracks, 0, increase * sizeof(VolumePath_t*) );
-//      memset( fNextpathV+fMaxtracks, 0, increase * sizeof(VolumePath_t*) );
-      fMaxtracks = size;
    }
 }
 

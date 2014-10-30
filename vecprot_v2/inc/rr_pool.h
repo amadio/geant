@@ -66,11 +66,13 @@ rr_pool<T>::rr_pool(int nslots, int capacity, const T *refobj)
 {
 //! Constructor.
    rrlist_t *list;
-   fBlueprint = new T(*refobj); // uses CC
+//   fBlueprint = new T(*refobj); // uses CC
+   fBlueprint = T::MakeCopy(*refobj);
    for (auto i=0; i<nslots; ++i) {
       list = new rrlist_t;
       list->reserve(capacity);
-      for (auto j=0; j<capacity; ++j) list->push_back(new T(*fBlueprint));
+//      for (auto j=0; j<capacity; ++j) list->push_back(new T(*fBlueprint));
+      for (auto j=0; j<capacity; ++j) list->push_back(T::MakeCopy(*fBlueprint));
       fLists.push_back(list);
       std::atomic_flag *lock = new std::atomic_flag;
       // Must expliticit initialize the atomic_flag to avoid valgring errors.
@@ -112,7 +114,8 @@ T* rr_pool<T>::borrow()
    if (list->empty()) {
       fLocks[islot]->clear(std::memory_order_release);
       fInew++;
-      return new T(*fBlueprint);
+//      return new T(*fBlueprint);
+      return T::MakeCopy(*fBlueprint);
    }
    retobj = list->back();
    list->pop_back();

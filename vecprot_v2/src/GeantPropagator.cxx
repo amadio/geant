@@ -92,6 +92,7 @@ GeantPropagator::GeantPropagator()
                  fNperBasket(10),
                  fMaxPerBasket(10000),
                  fMaxPerEvent(0),
+                 fMaxDepth(0),
                  fNaverage(0.),
                  fVertex(),
                  fEmin(1.E-4), // 100 KeV
@@ -216,7 +217,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       vol = a->GetCurrentNode()->GetVolume();
       td->fVolume = vol;
 #else
-      a = new VolumePath_t();
+      a = VolumePath_t::MakeInstance(fMaxDepth);
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
       if (!nav) nav = gGeoManager->AddNavigator();
       TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
@@ -427,23 +428,14 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
-// Load the detector geometry from file.
- // feenableexcept( FE_INVALID );
-
-    Printf("In Load Geometry");
-   if (gGeoManager){
-#if USE_VECGEOM_NAVIGATOR == 1
-       LoadVecGeomGeometry();
-#endif
-       return kTRUE;
-   }
-   Printf("returning early");
+// Load the detector geometry from file, unless already loaded.
    TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
    if (geom)
        {
 #if USE_VECGEOM_NAVIGATOR == 1
           LoadVecGeomGeometry();
 #endif
+          fMaxDepth = TGeoManager::GetMaxLevels();
           return kTRUE;
        }
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
