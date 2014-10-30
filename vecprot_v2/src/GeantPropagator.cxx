@@ -46,8 +46,6 @@
 #include "TFile.h"
 #include "TStopwatch.h"
 #include "TBits.h"
-#include "TGLSAViewer.h"
-#include "TControlBar.h"
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TDatabasePDG.h"
@@ -351,16 +349,6 @@ GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered)
    }   
    return fgInstance;
 }
-
-/*
-//______________________________________________________________________________
-GeantPropagator *GeantPropagator::Instance()
-{
-// Single instance of the propagator
-   if (!fgInstance) fgInstance = new GeantPropagator();
-   return fgInstance;
-}
-*/
    
 //______________________________________________________________________________
 void GeantPropagator::Initialize()
@@ -645,29 +633,3 @@ void DrawNextBasket()
    }
    gROOT->SetInterrupt(kTRUE);      
 }   
-
-//______________________________________________________________________________
-void Stop()
-{
-// Stop the process timer loop.
-   gROOT->SetInterrupt(kTRUE);
-}   
-
-//______________________________________________________________________________
-void Menu(const char *file="geometry.root")
-{
-// Start a TControl bar menu
-   GeantPropagator *propagator = GeantPropagator::Instance();
-   if (!gGeoManager) propagator->LoadGeometry(file);
-   gGeoManager->SetVisLevel(1);
-   gGeoManager->GetTopVolume()->Draw("ogl");
-   TGLSAViewer *viewer = (TGLSAViewer *)gPad->GetViewer3D();
-   viewer->SetResetCamerasOnUpdate(kFALSE);
-   TControlBar *bar = new TControlBar("vertical", "Propagator",100,10);
-   bar->AddButton("Run","PropagatorGeom()", "You can run this only once"); 
-   bar->AddButton("ShowTracks", "DrawNextBasket()", "Draw next generation of baskets");
-   bar->AddButton("Stop", "Stop()", "Stop drawing.");
-   bar->Show();
-   gROOT->SaveContext();
-   Printf("=== Maybe press 'w' for wireframe mode ===\n");
-}
