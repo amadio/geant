@@ -35,6 +35,7 @@ class GeantBasketMgr;
 class WorkloadManager;
 class GeantThreadData;
 class GeantVApplication;
+class PrimaryGenerator;
 
 class GeantPropagator : public TObject
 {
@@ -90,6 +91,7 @@ public:
    PhysicsProcess  *fProcess;   // For now the only generic process pointing to the tabulated physics
 //   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack_v    *fStoredTracks;    //! Stored array of tracks (history?)
+   PrimaryGenerator *fPrimaryGenerator;
 
    // Data per event
    Int_t           *fNtracks;   //[fNevents] Number of tracks {array of [fNevents]}
