@@ -61,6 +61,7 @@
 #include "GeantFactoryStore.h"
 #include "GeantEvent.h"
 #include "GeantScheduler.h"
+#include "PrimaryGenerator.h"
 
 GeantPropagator *gPropagator = 0;
    
@@ -113,6 +114,7 @@ GeantPropagator::GeantPropagator()
 //                 fProcesses(0),
                  fProcess(0),
                  fStoredTracks(0),
+                 fPrimaryGenerator(0),
                  fNtracks(0),
                  fEvents(0),
                  fThreadData(0)

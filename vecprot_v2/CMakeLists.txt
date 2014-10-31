@@ -50,6 +50,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
 )   
 
 #file(GLOB sources src/*.cxx)
