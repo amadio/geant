@@ -579,7 +579,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Printf("=== Navigation done using TGeo    ====");
 #endif
    Printf("Navstate pool usage statistics:");
-   fWMgr->NavStates()->statistics();
+//   fWMgr->NavStates()->statistics();
 #ifdef GEANTV_OUTPUT_RESULT_FILE
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");

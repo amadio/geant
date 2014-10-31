@@ -46,7 +46,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fFeederQ(0),
                  fTransportedQ(0),
                  fDoneQ(0),
-                 fNavStates(0),
+//                 fNavStates(0),
                  fListThreads(0),
                  fFlushed(kFALSE),
                  fFilling(kFALSE),
@@ -75,7 +75,7 @@ WorkloadManager::~WorkloadManager()
    delete fDoneQ;
    delete fScheduler;
    delete [] fWaiting;
-   delete fNavStates;
+//   delete fNavStates;
    fgInstance = 0;
 }
 
@@ -91,7 +91,7 @@ void WorkloadManager::CreateBaskets()
       blueprint = VolumePath_t::MakeInstance(TGeoManager::GetMaxLevels());
 #endif   
 //   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
-   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
+//   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
    fScheduler->CreateBaskets();
 #if USE_VECGEOM_NAVIGATOR == 1
    delete blueprint;

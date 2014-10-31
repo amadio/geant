@@ -6,7 +6,7 @@
 #endif
 
 #include "priority_queue.h"
-#include "rr_pool.h"
+//#include "rr_pool.h"
 #include "GeantObjectPool.h"
 #include "GeantTrack.h"
  
@@ -41,8 +41,8 @@ protected:
                      *fDoneQ;              // Thread "all work done" queue
 //   GeantObjectPool<VolumePath_t>
 //                     *fNavStates;          // Pool of navigation states                  
-   rr_pool<VolumePath_t>
-                     *fNavStates;          // Pool of navigation states                  
+//   rr_pool<VolumePath_t>
+//                     *fNavStates;          // Pool of navigation states                  
    static WorkloadManager *fgInstance;     // Singleton instance
    TList             *fListThreads;        // List of threads
    Bool_t             fFlushed;            // Buffer flushed
@@ -64,8 +64,8 @@ public:
    priority_queue<GeantBasket*> *TransportedQueue() const {return fTransportedQ;}
    priority_queue<GeantBasket*> *DoneQueue() const {return fDoneQ;}
 //   GeantObjectPool<VolumePath_t>  
-   rr_pool<VolumePath_t>  
-                      *NavStates() const   {return fNavStates;}
+//   rr_pool<VolumePath_t>  
+//                      *NavStates() const   {return fNavStates;}
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
    Int_t              *GetWaiting() const  {return fWaiting;}
