@@ -12,7 +12,7 @@ include_directories(inc)
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/*.cxx)
-file(GLOB headers inc/T*.h)
+file(GLOB headers inc/T*.h inc/GunGenerator.h)
 
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG}")
