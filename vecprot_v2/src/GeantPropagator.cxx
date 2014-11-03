@@ -208,14 +208,21 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    if (tid > fNthreads) Fatal("ImportTracks","Thread id %d is too large (max %d)",tid,fNthreads);
    GeantThreadData *td = fThreadData[tid];
    TGeoVolume *vol = 0;
+   
+//   const Double_t etamin = -3, etamax = 3;
+   Int_t ntracks = 0;
+   Int_t ntotal = 0;
+   Int_t ndispatched = 0;
+
+   // the code below should be executed per track, as the primary vertex can change.
    if (!a) {
 #ifdef USE_VECGEOM_NAVIGATOR
-      a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
-      vecgeom::SimpleNavigator nav;
-      nav.LocatePoint( GeoManager::Instance().world(),
-                       Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
-      vol = a->GetCurrentNode()->GetVolume();
-      td->fVolume = vol;
+     a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
+     vecgeom::SimpleNavigator nav;
+     nav.LocatePoint( GeoManager::Instance().world(),
+		      Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
+     vol = a->GetCurrentNode()->GetVolume();
+     td->fVolume = vol;
 #else
       a = VolumePath_t::MakeInstance(fMaxDepth);
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -229,22 +236,19 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 
    }
    else {
-      TGeoNode const *node = a->GetCurrentNode();
+     TGeoNode const *node = a->GetCurrentNode();
      // *td->fMatrix = a->GetMatrix();
-      vol = node->GetVolume();
-      td->fVolume = vol;
+     vol = node->GetVolume();
+     td->fVolume = vol;
    }     
+
    GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
    Int_t threshold = nevents*average/(2*fNthreads);
    threshold -= threshold%4;
    if (threshold<4) threshold = 4;
    if (threshold>fNperBasket) threshold = fNperBasket;
    basket_mgr->SetThreshold(threshold);
-   
-//   const Double_t etamin = -3, etamax = 3;
-   Int_t ntracks = 0;
-   Int_t ntotal = 0;
-   Int_t ndispatched = 0;
+
    
    // Species generated for the moment N, P, e, photon
 //   const Int_t kMaxPart=9;
@@ -261,8 +265,10 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       init=kFALSE;
    }
    Int_t event = startevent;
-   for (Int_t slot=startslot; slot<startslot+nevents; slot++) {
-      ntracks = td->fRndm->Poisson(average);
+   for (Int_t slot=startslot; slot<startslot+nevents; slot++) {   
+     //     ntracks = td->fRndm->Poisson(average);
+     ntracks = fPrimaryGenerator->NextEvent();
+
       ntotal += ntracks;
       fNprimaries += ntracks;
       if (!fEvents[slot]) fEvents[slot] = new GeantEvent();
@@ -276,6 +282,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.SetNextPath(a);
          track.SetEvent(event);
          track.SetEvslot(slot);
+	 fPrimaryGenerator->GetTrack(i, track);
+
 //         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
 //         track.SetPDG(kMuonMinus); // G5code=28
 //         track.SetG5code(28);
@@ -283,8 +291,13 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 //         track.SetG5code(27);
 //         track.SetPDG(kPiPlus); // G5code=30
 //         track.SetG5code(30);
+
+
+/*
          track.SetPDG(kElectron); // G5code=23
          track.SetG5code(23); // just a hack -> will change with new physics list
+*/
+
 /*
          for(Int_t j=0; j<kMaxPart; ++j) {
             if(prob <= pdgProb[j]) {
@@ -296,6 +309,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
             }
          }   
 */
+
+/*
          if(!track.fPDG) Fatal("ImportTracks","No particle generated!");
          TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track.fPDG);
          track.SetCharge(part->Charge()/3.);
@@ -303,12 +318,14 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fXpos = fVertex[0];
          track.fYpos = fVertex[1];
          track.fZpos = fVertex[2];
+*/
+
 //         track.fE = fKineTF1->GetRandom()+part->Mass();
 //         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
-         track.fE = fEmax /*30MeV*/ +part->Mass();  //e-
+//         track.fE = fEmax /*30MeV*/ +part->Mass();  //e-
 //         track.fE = 0.3 /*300MeV*/ +part->Mass();  //mu+
-         Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
-         track.SetP(p);
+//         Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
+//         track.SetP(p);
 /*
          Double_t eta = td->fRndm->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
          Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
@@ -318,9 +335,11 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.fYdir = TMath::Sin(theta)*TMath::Sin(phi);
          track.fZdir = TMath::Cos(theta);
 */
+/*
          track.fXdir = 1.;
          track.fYdir = 0.;
          track.fZdir = 0.;
+*/
          track.fFrombdr = kFALSE;
          track.fStatus = kAlive;
          
@@ -334,8 +353,9 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 //         pdgCount[i] = 0;
 //      }   
    }
+
    Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
-           ntotal, startevent, startevent+nevents-1, ndispatched);
+	  ntotal, startevent, startevent+nevents-1, ndispatched);
    return ndispatched;
 }
 
@@ -504,7 +524,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
       return;
    }
    called = kTRUE;
-   
+
+   fPrimaryGenerator->InitPrimaryGenerator();   
 //   Int_t itrack;
 
    if (fSingleTrack) Printf("==== Executing in single track loop mode using %d threads ====", fNthreads);
