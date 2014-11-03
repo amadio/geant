@@ -4,6 +4,7 @@
 
 #include "TPartIndex.h"
 #include "PrimaryGenerator.h"
+#include "TRandom.h"
 
 class TParticlePDG;
 class GeantTrack;
@@ -30,9 +31,10 @@ class GunGenerator: public PrimaryGenerator{
 
   Int_t numberoftracks;
     
+  TRandom* rndgen;
  public:
     GunGenerator();
-    GunGenerator(Int_t partpdg, Double_t partekin, 
+    GunGenerator(Int_t aver, Int_t partpdg, Double_t partekin, 
                  Double_t xpos, Double_t ypos, Double_t zpos,
                  Double_t xdir, Double_t ydir, Double_t zdir);
 
@@ -40,7 +42,7 @@ class GunGenerator: public PrimaryGenerator{
 
   // set one GeantTrack primary track properties
     virtual void InitPrimaryGenerator();
-    virtual Int_t NextEvent()=0;
+    virtual Int_t NextEvent();
     virtual void GetTrack(Int_t n, GeantTrack &gtrack);
 
  private:
