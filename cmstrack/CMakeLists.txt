@@ -54,7 +54,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(load_gdml load_gdml.cc ${sources} ${headers})
-target_link_libraries(load_gdml ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
+target_link_libraries(load_gdml ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom
   ${PYTHIA8_LIBRARIES})
 
 #----------------------------------------------------------------------------
