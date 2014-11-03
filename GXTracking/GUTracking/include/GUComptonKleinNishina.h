@@ -17,16 +17,17 @@ public:
 				      double &t);
   // Generate secondaries 
   FQUALIFIER 
-  void Interact(double   energy, /* GUFourVector   *newMomentum, */ 
+  void Interact(GUTrack& projectile,    // In/Out: Updated to new state - choice
+                int      targetElement, // Q: Need Material index instead ? Both int => careful
                 GUTrack* secondary )  const;
 
 #ifndef __CUDA_ARCH__  //  Method relevant only for *Vector* implementation
   // Vector version - stage 2 - Need the definition of these vector types
   FQUALIFIER void 
-  Interact(int ntracks, 
-           const double* energyV,
-	   /* std::vector<GUFourVector> &outMomentumV, */ 
-           std::vector<GUTrack_v> &outSecondaryV  
+  Interact( // int ntracks,
+            GUTrack_v& inProjectile,    // In/Out
+            const int *targetElements,  // Number equal to num of tracks
+            GUTrack_v* outSecondaryV    // Empty vector for secondaries
           ) const;     
           // TODO: use SOA arrays for output
 #endif
@@ -35,19 +36,19 @@ public:
   // FQUALIFIER bool UsingOriginalSampler() const; 
 
   // Initializes this class and its sampler 
-  FQUALIFIER void BuildTable( int Z, 
-                              const double xmin, 
+  FQUALIFIER void BuildTable( int Z,
+                              const double xmin,
                               const double xmax,
                               const int nrow,
 			      const int ncol);
   // QUESTION: This might depend on physics? So maybe we should place inside model? 
 
-  FQUALIFIER void BuildPdfTable(G4int Z, 
-                                const G4double xmin, 
-                                const G4double xmax,
-                                const G4int nrow,
-                                const G4int ncol,
-                                G4double *p);
+  FQUALIFIER void BuildPdfTable(int Z,
+                                const double xmin,
+                                const double xmax,
+                                const int nrow,
+                                const int ncol,
+                                double *p);
 
 private: 
   // Implementation methods 
@@ -107,12 +108,12 @@ GUComptonKleinNishina::BuildTable( int Z,
 }
 
 FQUALIFIER void 
-GUComptonKleinNishina::BuildPdfTable(G4int Z, 
-                                     const G4double xmin, 
-                                     const G4double xmax,
-                                     const G4int nrow,
-                                     const G4int ncol,
-                                     G4double *p
+GUComptonKleinNishina::BuildPdfTable(int Z, 
+                                     const double xmin, 
+                                     const double xmax,
+                                     const int nrow,
+                                     const int ncol,
+                                     double *p
                                      )
 {
   // Build the probability density function (KleinNishina pdf) 
@@ -129,12 +130,12 @@ GUComptonKleinNishina::BuildPdfTable(G4int Z,
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
   //build pdf  
-  G4double dx = (xmax - xmin)/nrow;
-  G4double xo =  xmin + 0.5*dx;
+  double dx = (xmax - xmin)/nrow;
+  double xo =  xmin + 0.5*dx;
 
   for(int i = 0; i < nrow ; ++i) {
     //for each input energy bin
-    G4double x = xo + dx*i;
+    double x = xo + dx*i;
 
     double ymin = x/(1+2.0*x/electron_mass_c2);
     double dy = (x - ymin)/(ncol-1);
@@ -165,7 +166,7 @@ GUComptonKleinNishina::CalculateDiffCrossSection( int Zelement,
                                                   double energy0, 
                                                   double energy1 ) const
 {
-  // based on Geant4 : G4KleinNishinaCompton
+  // based on Geant4 : KleinNishinaCompton
   // input  : energy0 (incomming photon energy)
   //          energy1 (scattered photon energy)
   // output : dsigma  (differential cross section) 
