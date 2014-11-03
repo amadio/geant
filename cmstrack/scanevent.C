@@ -1,9 +1,6 @@
 void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
 {
 
-   TGeoManager::Import("cms.gdml");
-   gGeoManager->Export("cms.root");
-
    double fX;            // x position
    double fY;            // y position
    double fZ;            // z position
@@ -11,42 +8,58 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
    double fPy;           // y momentum
    double fPz;           // z momentum
    Short_t fPID;         // PDG particle id
-   UShort_t  fLVid;      // logical volume id
+   UShort_t fLVid;       // logical volume id
+   UShort_t fShapeid;    // shape id 
    double fSafety;       // safety
    double fSnext;        // snext
    double fStep;         // step
    UChar_t fSurfid;      // surface id
    UChar_t fProcess;     // Process
    UChar_t fBegEnd;      // Beginning or end of track
+   UInt_t  fTrid;        // Track ID
+   UInt_t  fTrPid;       // Track Parend ID
+   Double_t fCPUtime;    // CPU time used since start of track
+   Double_t fCPUstep;    // CPU time used for current step
+
+   TGeoManager::Import("cmstrack.root");
 
    TFile *f = new TFile("cmstrack.root","read");
+
    char evname[10];
    snprintf(evname,10,"Event%4.4d",event);
    printf("%s\n",evname);
    TTree *ev = (TTree*) f->Get(evname);
    // ev->Print();
 
-   ev->SetBranchAddress("x",&fX);
-   ev->SetBranchAddress("y",&fY);
-   ev->SetBranchAddress("z",&fZ);
-   ev->SetBranchAddress("px",&fPx);
-   ev->SetBranchAddress("py",&fPy);
-   ev->SetBranchAddress("pz",&fPz);
-   ev->SetBranchAddress("pid",&fPID);
-   ev->SetBranchAddress("lvid",&fLVid);
-   ev->SetBranchAddress("safety",&fSafety);
-   ev->SetBranchAddress("snext",&fSnext);
-   ev->SetBranchAddress("step",&fStep);
-   ev->SetBranchAddress("surfid",&fSurfid);
-   ev->SetBranchAddress("process",&fProcess);
-   ev->SetBranchAddress("begend",&fBegEnd);
+   ev->Branch("x",&fX,"x/D");
+   ev->Branch("y",&fY,"y/D");
+   ev->Branch("z",&fZ,"z/D");
+   ev->Branch("px",&fPx,"px/D");
+   ev->Branch("py",&fPy,"py/D");
+   ev->Branch("pz",&fPz,"px/D");
+   ev->Branch("pid",&fPID,"pid/S");
+   ev->Branch("lvid",&fLVid,"lvid/s");
+   ev->Branch("shapeid",&fShapeid,"shapeid/s");
+   ev->Branch("safety",&fSafety,"safety/D");
+   ev->Branch("snext",&fSnext,"snext/D");
+   ev->Branch("step",&fStep,"step/D");
+   ev->Branch("surfid",&fSurfid,"surfid/b");
+   ev->Branch("process",&fProcess,"process/b");
+   ev->Branch("begend",&fBegEnd,"begend/b");
+   ev->Branch("trid",&fTrid,"trid/i");
+   ev->Branch("trpid",&fTrPid,"trpid/i");
+   ev->Branch("cputime",&fCPUtime,"cputime/D");
+   ev->Branch("cpustep",&fCPUstep,"cpustep/D");
 
-   TObjArray lv;
+   THashList lv;
    lv.Read("LogicalVolumes");
-   //   lv.Print();
-   TObjArray lp;
+   // lv.Print();
+   THashList lp;
    lp.Read("ProcessDictionary");
    // lp.Print();
+   THashList ls;
+   ls.Read("ShapeDictionary");
+   // ls.Print();
    TDatabasePDG * pdg = TDatabasePDG::Instance();
    // pdg->Print();
 
@@ -54,8 +67,9 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
    TH1F *hstep = new TH1F("hstep","Difference of distance to boundary",100,0,0);
    for(int ipoint=0; ipoint<ev->GetEntries(); ++ipoint) {
       ev->GetEntry(ipoint);
+      printf("------> %d\n",fLVid);
       TParticlePDG *particle = pdg->GetParticle(fPID);
-      const char* gvol = ((TObjString*)lv->At(fLVid))->GetString()->Data();
+      const char *gvol = (TNamed*) lv.At(fLVid))->GetName();
 
       double point[3];
       double dir[3];
@@ -80,9 +94,9 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
 	 }
 	 printf("x(%9.3g,%9.3g,%9.3g) ", fX, fY, fZ);
 	 printf("p(%9.3g,%9.3g,%9.3g) ", fPx, fPy, fPz);
-	 printf("%-9.9s",((TObjString*)lp->At(fProcess))->GetString()->Data());
+	 printf("%-9.9s",(TNamed*)lp.At(fProcess)->GetName());
 	 printf(" sf %9.3g sn %9.3g st %9.3g",fSafety, fSnext, fStep);
-	 printf(" lvl %s (%s)",gvol,
+	 printf(" lvl %s(%d) (%s)",gvol,fLVid,
 		&(gGeoManager->GetVolume(gvol)->GetShape()->ClassName())[4]);
 	 printf("\n");
 	 if(fBegEnd==2 || fBegEnd==3) {

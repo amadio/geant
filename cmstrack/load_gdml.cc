@@ -37,6 +37,7 @@
 
 #include "TObjArray.h"
 #include "TObjString.h"
+#include "TGeoManager.h"
 #include "TFile.h"
 #include "VTfileio.h"
 
@@ -133,6 +134,10 @@ int main(int argc,char **argv)
    VTfileio * io = VTfileio::I();
 
    io->OutFile(new TFile("cmstrack.root","recreate"));
+
+   // Create root file
+   TGeoManager::Import("cms.gdml");
+   gGeoManager->Write(gGeoManager->GetName());
 
    G4Region *region = G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
    G4ProductionCuts *wcuts = new G4ProductionCuts;
