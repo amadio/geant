@@ -93,9 +93,9 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack){
   Double_t p = TMath::Sqrt((gtrack.E()-gtrack.Mass())*(gtrack.E()+gtrack.Mass()));
         
   gtrack.SetP(p);
-  gtrack.fXdir = 1.;
-  gtrack.fYdir = 0.;
-  gtrack.fZdir = 0.;
+  gtrack.fXdir = genpart->momentum().px()/p;
+  gtrack.fYdir = genpart->momentum().py()/p;
+  gtrack.fZdir = genpart->momentum().pz()/p;
 
 }
 
