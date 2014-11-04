@@ -35,6 +35,10 @@ if( SNEXTG4 )
   add_definitions("-DSNEXTG4")
 endif()
 
+if ( NAVTEST ) 
+  add_definitions("-DNAVTEST")
+endif()
+
 #----------------------------------------------------------------------------
 # Find Pythia8 and setup the libraries
 #
