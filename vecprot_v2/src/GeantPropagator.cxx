@@ -217,12 +217,12 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    // the code below should be executed per track, as the primary vertex can change.
    if (!a) {
 #ifdef USE_VECGEOM_NAVIGATOR
-     a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
-     vecgeom::SimpleNavigator nav;
-     nav.LocatePoint( GeoManager::Instance().world(),
-		      Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
-     vol = a->GetCurrentNode()->GetVolume();
-     td->fVolume = vol;
+      a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
+      vecgeom::SimpleNavigator nav;
+      nav.LocatePoint( GeoManager::Instance().GetWorld(),
+                       Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
+      vol = a->GetCurrentNode()->GetVolume();
+      td->fVolume = vol;
 #else
       a = VolumePath_t::MakeInstance(fMaxDepth);
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -418,7 +418,7 @@ void GeantPropagator::Initialize()
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadVecGeomGeometry()
 {
-   if( vecgeom::GeoManager::Instance().world() == NULL )
+   if( vecgeom::GeoManager::Instance().GetWorld() == NULL )
    {
     Printf("Now loading VecGeom geometry\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
