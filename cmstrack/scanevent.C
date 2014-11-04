@@ -1,3 +1,12 @@
+#include <stdio.h>
+
+#include <TDatabasePDG.h>
+#include <TFile.h>
+#include <TGeoManager.h>
+#include <TH1F.h>
+#include <THashList.h>
+#include <TTree.h>
+
 void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
 {
 
@@ -29,37 +38,34 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
    snprintf(evname,10,"Event%4.4d",event);
    printf("%s\n",evname);
    TTree *ev = (TTree*) f->Get(evname);
-   // ev->Print();
+   ev->Print();
 
-   ev->Branch("x",&fX,"x/D");
-   ev->Branch("y",&fY,"y/D");
-   ev->Branch("z",&fZ,"z/D");
-   ev->Branch("px",&fPx,"px/D");
-   ev->Branch("py",&fPy,"py/D");
-   ev->Branch("pz",&fPz,"px/D");
-   ev->Branch("pid",&fPID,"pid/S");
-   ev->Branch("lvid",&fLVid,"lvid/s");
-   ev->Branch("shapeid",&fShapeid,"shapeid/s");
-   ev->Branch("safety",&fSafety,"safety/D");
-   ev->Branch("snext",&fSnext,"snext/D");
-   ev->Branch("step",&fStep,"step/D");
-   ev->Branch("surfid",&fSurfid,"surfid/b");
-   ev->Branch("process",&fProcess,"process/b");
-   ev->Branch("begend",&fBegEnd,"begend/b");
-   ev->Branch("trid",&fTrid,"trid/i");
-   ev->Branch("trpid",&fTrPid,"trpid/i");
-   ev->Branch("cputime",&fCPUtime,"cputime/D");
-   ev->Branch("cpustep",&fCPUstep,"cpustep/D");
+   ev->SetBranchAddress("x",&fX);
+   ev->SetBranchAddress("y",&fY);
+   ev->SetBranchAddress("z",&fZ);
+   ev->SetBranchAddress("px",&fPx);
+   ev->SetBranchAddress("py",&fPy);
+   ev->SetBranchAddress("pz",&fPz);
+   ev->SetBranchAddress("pid",&fPID);
+   ev->SetBranchAddress("lvid",&fLVid);
+   ev->SetBranchAddress("shapeid",&fShapeid);
+   ev->SetBranchAddress("safety",&fSafety);
+   ev->SetBranchAddress("snext",&fSnext);
+   ev->SetBranchAddress("step",&fStep);
+   ev->SetBranchAddress("surfid",&fSurfid);
+   ev->SetBranchAddress("process",&fProcess);
+   ev->SetBranchAddress("begend",&fBegEnd);
+   ev->SetBranchAddress("trid",&fTrid);
+   ev->SetBranchAddress("trpid",&fTrPid);
+   ev->SetBranchAddress("cputime",&fCPUtime);
+   ev->SetBranchAddress("cpustep",&fCPUstep);
 
-   THashList lv;
-   lv.Read("LogicalVolumes");
-   // lv.Print();
-   THashList lp;
-   lp.Read("ProcessDictionary");
-   // lp.Print();
-   THashList ls;
-   ls.Read("ShapeDictionary");
-   // ls.Print();
+   THashList *lv = (THashList *) f->Get("LogicalVolumes");
+   // lv->Print();
+   THashList *lp = (THashList *) f->Get("ProcessDictionary");
+   // lp->Print();
+   THashList *ls = (THashList *) f->Get("ShapeDictionary");
+   // ls->Print();
    TDatabasePDG * pdg = TDatabasePDG::Instance();
    // pdg->Print();
 
@@ -67,24 +73,27 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
    TH1F *hstep = new TH1F("hstep","Difference of distance to boundary",100,0,0);
    for(int ipoint=0; ipoint<ev->GetEntries(); ++ipoint) {
       ev->GetEntry(ipoint);
-      printf("------> %d\n",fLVid);
       TParticlePDG *particle = pdg->GetParticle(fPID);
-      const char *gvol = (TNamed*) lv.At(fLVid))->GetName();
+      const char *gvol = lv->At(fLVid)->GetName();
 
       double point[3];
       double dir[3];
-      double norm = sqrt(1./(fPx*fPx+fPy*fPy+fPz*fPz));
-      point[0]=fX*0.1;point[1]=fY*0.1;point[2]=fZ*0.1;
-      dir[0]=fPx*norm;dir[1]=fPy*norm;dir[2]=fPz*norm;
-      const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
-      if(strcmp(rvol,gvol)) {
-	 printf("ROOT vol %s != Geant4 vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,fSafety, fSnext, fStep);
-	 nmiss++;
-      } else if(strcmp(rvol,"SIC1")) {
-	 gGeoManager->FindNextBoundaryAndStep();
-	 hstep->Fill(gGeoManager->GetStep()/10-fStep);
+      double norm = sqrt(fPx*fPx+fPy*fPy+fPz*fPz);
+      if(norm>1e-10 && fSafety > 5e-10) {
+	 norm=1./norm;
+	 point[0]=fX*0.1;point[1]=fY*0.1;point[2]=fZ*0.1;
+	 dir[0]=fPx*norm;dir[1]=fPy*norm;dir[2]=fPz*norm;
+	 const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
+	 //	 printf("Now in %s\n",rvol);
+	 if(strcmp(rvol,gvol)) {
+	    printf("ROOT vol %s != Geant4 vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,fSafety, fSnext, fStep);
+	    nmiss++;
+	 } else {
+	    //	    printf("%f %f %f %f\n",fPx,fPy,fPz,norm);
+	    gGeoManager->FindNextBoundaryAndStep();
+	    hstep->Fill(gGeoManager->GetStep()*10-fStep);
+	 }
       }
-
       if(verbose) {
 	 if(fBegEnd==1 || fBegEnd==3) {
 	    printf("========================================================= start ");
@@ -94,7 +103,7 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
 	 }
 	 printf("x(%9.3g,%9.3g,%9.3g) ", fX, fY, fZ);
 	 printf("p(%9.3g,%9.3g,%9.3g) ", fPx, fPy, fPz);
-	 printf("%-9.9s",(TNamed*)lp.At(fProcess)->GetName());
+	 printf("%-9.9s",lp->At(fProcess)->GetName());
 	 printf(" sf %9.3g sn %9.3g st %9.3g",fSafety, fSnext, fStep);
 	 printf(" lvl %s(%d) (%s)",gvol,fLVid,
 		&(gGeoManager->GetVolume(gvol)->GetShape()->ClassName())[4]);
@@ -107,6 +116,6 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
 	 }
       }
    }
-   printf("Mismatch %10.3g\%\n",(100.*nmiss)/ev->GetEntries());
+   printf("Mismatch %10.3g%%\n",(100.*nmiss)/ev->GetEntries());
    hstep->Draw();
 }
