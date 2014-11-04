@@ -1,18 +1,34 @@
 #----------------------------------------------------------------------------
 # Setup the project
 
+
+#----------------------------------------------------------------------------
+# Find HepMC (required package)
+#
+find_package(HepMC QUIET)
+if(HepMC_FOUND)
+  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
+  include_directories(inc ${HEPMC_INCLUDE_DIR})
+else()
+  include_directories(inc)
+endif()
+
 #----------------------------------------------------------------------------
 # Setup include directory for this project
 #
 
-include_directories(inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources src/*.cxx)
-file(GLOB headers inc/T*.h inc/GunGenerator.h)
+if(HepMC_FOUND)
+  file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/HepMCGenerator.cxx)
+  file(GLOB headers inc/T*.h inc/GunGenerator.h inc/HepMCGenerator.h)
+else()
+  file(GLOB sources src/T*.cxx src/GunGenerator.cxx)
+  file(GLOB headers inc/T*.h inc/GunGenerator.h)
+endif()
 
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG}")
@@ -23,14 +39,26 @@ set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "
 set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "${GEANT5_COMPILE_FLAGS}")
 
 include_directories(inc)
-ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
+
+if(HepMC_FOUND)
+  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsmcLinkDef.h)
+else()
+  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
+endif()
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_library(Xsec SHARED ${sources} xsecCint.cxx ${headers} xsecCint.h)
-target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-                           ${ROOT_LIBRARIES} -lEG -lGui -lGeom)
+
+if(HepMC_FOUND)
+  target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
+    ${ROOT_LIBRARIES} -lEG -lGui -lGeom ${HEPMC_LIBRARIES})
+else()
+  target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
+    ${ROOT_LIBRARIES} -lEG -lGui -lGeom)
+endif()
+
 add_dependencies(Xsec Geantlib_v)
 
 add_headers("${headers}")
