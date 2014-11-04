@@ -20,13 +20,15 @@ VTfileio::VTfileio(): fOutFile(0), fCurTree(0),
 
 VTfileio::~VTfileio() {
    if(fCurTree) fCurTree->Write(); 
-   delete fCurTree; 
    WriteDictionaries();
    fOutFile->Close();
+   //   delete fCurTree; 
    fVolumeDictionary->Delete();
    fProcessDictionary->Delete();
+   fShapeDictionary->Delete();
    delete fVolumeDictionary;
    delete fProcessDictionary;
+   delete fShapeDictionary;
 }
 
 void VTfileio::AddVolume(const char* volname) {

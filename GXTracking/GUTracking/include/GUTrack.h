@@ -4,7 +4,9 @@
 struct GUTrack
 {
   int status;
-  int id;
+  int particleType;
+  int id;            // counter
+  int parentId;      // id of parent
   int proc;
   double x; 
   double y;
@@ -19,8 +21,11 @@ struct GUTrack
 
 struct GUTrack_v
 {
+  int numTracks;
   int *status;
+  int *particleType;
   int *id;
+  int *parentId;
   int *proc;
   double *x; 
   double *y;
