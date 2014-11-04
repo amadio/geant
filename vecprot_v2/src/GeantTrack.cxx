@@ -1364,7 +1364,7 @@ void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const
     VECGEOM_NAMESPACE::NavigationState a( VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth() );
     a.Clear();
     VECGEOM_NAMESPACE::SimpleNavigator nav;
-    nav.LocatePoint( VECGEOM_NAMESPACE::GeoManager::Instance().world(),
+    nav.LocatePoint( VECGEOM_NAMESPACE::GeoManager::Instance().GetWorld(),
                    VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>( fXposV[itr], fYposV[itr], fZposV[itr] ), a, true );
     if( a.Top() != NULL && a.Top() != fPathV[itr]->Top() )
     {
@@ -1405,7 +1405,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 #endif
 
       //    	a->Clear();
-      //    	nav.LocatePoint( GeoManager::Instance().world(),
+      //    	nav.LocatePoint( GeoManager::Instance().GetWorld(),
       //    			Vector3D_t( x[i], y[i], z[i] ), *a, true );
       //        if( a->Top() != NULL && a->Top() != pathin[i]->Top() )
       //         {
