@@ -28,6 +28,8 @@
 /// \file G01SteppingAction.cc
 /// \brief Implementation of the G01SteppingAction class
 
+#include "TGeoManager.h"
+
 #include "time.h"
 #include "VTfileio.h"
 #include "G01SteppingAction.hh"
@@ -40,6 +42,8 @@
 #include "G4Transportation.hh"
 #include "G4ProcessTable.hh"
 #include "G4Geantino.hh"
+#include "G4TouchableHistory.hh"
+#include "G4AffineTransform.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -90,9 +94,12 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 
   // We get the info at the beg of step
   G4StepPoint *startStep = step->GetPreStepPoint();
+  
+  //  const G4TouchableHandle touchhandle = startStep->GetTouchableHandle();
+  // const G4VTouchable *touch = touchhandle();
+  const G4VTouchable *touch = startStep->GetTouchableHandle()();
 
-  G4LogicalVolume* vstart = startStep->GetTouchableHandle()
-     ->GetVolume()->GetLogicalVolume();
+  G4LogicalVolume* vstart = touch->GetVolume()->GetLogicalVolume();
 
   G4VPhysicalVolume *v2 
      = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
@@ -143,10 +150,11 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   }
 
   //  if(std::abs(xend.z())>11000) track->SetTrackStatus(fStopAndKill);
-  if(strcmp(vstart->GetName().c_str(),volold)) {
-     ivl = io->VolumeIndex(vstart->GetName().c_str());
+  const char *gvol = vstart->GetName().c_str();
+  if(strcmp(gvol,volold)) {
+     ivl = io->VolumeIndex(gvol);
      ish = io->ShapeIndex(vstart->GetSolid()->GetEntityType().c_str());
-     strncpy(volold,vstart->GetName().c_str(),131);
+     strncpy(volold,gvol,131);
   }
   //  if(ivl==2891 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
   // if(ivl==1623 && track->GetKineticEnergy() < 1*CLHEP::MeV) track->SetTrackStatus(fStopAndKill);
@@ -165,9 +173,10 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 
   int iproc = io->ProcessIndex( step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName().c_str());
 
+  G4double safety = step->GetPreStepPoint()->GetSafety();
   io->Fill(xstart.x(), xstart.y(), xstart.z(), pstart.x(), pstart.y(), pstart.z(), 
 	   track->GetParticleDefinition()->GetPDGEncoding(),
-	   ivl,ish,step->GetPreStepPoint()->GetSafety(), snext, step->GetStepLength(), 0, iproc, begend,
+	   ivl,ish,safety, snext, step->GetStepLength(), 0, iproc, begend,
 	   trid,trpid,(clock()-cputrack)*cpsi,(clock()-cpustep)*cpsi);
   cpustep=clock();
 
@@ -179,6 +188,64 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	 << " status " << track->GetTrackStatus() << " " 
 	 << step->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName() << " snext " << snext  << G4endl;
   G4cout.unsetf(std::ios::scientific);
+#endif
+#if NAVTEST
+  G4double point[3];
+  G4double dir[3];
+  G4double norm = pstart.mag();
+  if(norm>1e-10 && safety > 5e-10) {
+     norm=1./norm;
+     point[0]=xstart.x()*0.1;point[1]=xstart.y()*0.1;point[2]=xstart.z()*0.1;
+     dir[0]=pstart.x()*norm;dir[1]=pstart.y()*norm;dir[2]=pstart.z()*norm;
+     const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
+     //	 printf("Now in %s\n",rvol);
+     if(strcmp(rvol,gvol)) {
+	printf("\nROOT vol %s != Geant4 vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,safety, snext, step->GetStepLength());
+	// Root part
+	const char *rpath = gGeoManager->GetPath();
+	printf("ROOT path %s\n",rpath);
+	char rpoint[2048] = "\0";
+	for ( Int_t i=0; i<gGeoManager->GetLevel(); ++i) {
+	   Double_t plocal[3];
+	   gGeoManager->GetMotherMatrix(gGeoManager->GetLevel()-1-i)->MasterToLocal(point,plocal);
+	   strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",plocal[0],plocal[1],plocal[2]));
+	}
+	printf("%s\n",rpoint);
+	const G4NavigationHistory *navhistory = touch->GetHistory();
+	char gpath[1024] = "\0";
+	char gpoint[2048] = "\0";
+	for ( G4int i=0; i<=navhistory->GetDepth(); i++ ) {
+	   if(navhistory->GetVolume(i) != 0) {
+	      strcat(gpath,"/");
+	      strcat(gpath,navhistory->GetVolume(i)->GetName().c_str());
+	      strcat(gpath,"_");
+	      switch(navhistory->GetVolumeType(i)) {
+	      case kNormal:
+		 strcat(gpath,"n");
+		 break;
+	      case kReplica:
+		 strcat(gpath,"n");
+		 break;
+	      case kParameterised:
+		 strcat(gpath,"p");
+		 break;
+	      }
+	      strcat(gpath,Form("%d",navhistory->GetReplicaNo(i)));
+	      G4AffineTransform gtr = navhistory->GetTransform(i);
+	      G4ThreeVector ptr = gtr.TransformPoint(xstart);
+	      strcat(gpoint,Form("/%8.03g,%8.03g,%8.03g",ptr.x()*.1,ptr.y()*.1,ptr.z()*.1));
+	   } else 
+	      strcat(gpath,"/<Null>");
+	}
+	printf("G4   path %s\n",gpath);
+	printf("%s\n",gpoint);
+	//	G4cout << "G4 path " << *navhistory << " Root path " << rpath << G4endl;
+     } else {
+	//	    printf("%f %f %f %f\n",fPx,fPy,fPz,norm);
+	gGeoManager->FindNextBoundaryAndStep();
+	//	hstep->Fill(gGeoManager->GetStep()*10-fStep);
+     }
+  }
 #endif
 
   G4double edep = step->GetTotalEnergyDeposit();
