@@ -84,20 +84,13 @@ void WorkloadManager::CreateBaskets()
 {
 // Create the array of baskets
    VolumePath_t *blueprint = 0;
-#if USE_VECGEOM_NAVIGATOR == 1
-      Printf("Max depth: %d", vecgeom::GeoManager::Instance().getMaxDepth());
-      blueprint = new vecgeom::NavigationState( vecgeom::GeoManager::Instance().getMaxDepth() );
-#else
-      blueprint = VolumePath_t::MakeInstance(TGeoManager::GetMaxLevels());
-#endif   
+   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+   Printf("Max depth: %d", maxdepth);
+   blueprint = VolumePath_t::MakeInstance(maxdepth);
 //   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
 //   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
    fScheduler->CreateBaskets();
-#if USE_VECGEOM_NAVIGATOR == 1
-   delete blueprint;
-#else
    VolumePath_t::ReleaseInstance(blueprint);
-#endif        
 }
    
 //______________________________________________________________________________

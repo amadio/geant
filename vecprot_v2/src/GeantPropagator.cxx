@@ -216,15 +216,14 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 
    // the code below should be executed per track, as the primary vertex can change.
    if (!a) {
+      a = VolumePath_t::MakeInstance(fMaxDepth);
 #ifdef USE_VECGEOM_NAVIGATOR
-      a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
       vecgeom::SimpleNavigator nav;
       nav.LocatePoint( GeoManager::Instance().GetWorld(),
                        Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
       vol = a->GetCurrentNode()->GetVolume();
       td->fVolume = vol;
 #else
-      a = VolumePath_t::MakeInstance(fMaxDepth);
       TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
       if (!nav) nav = gGeoManager->AddNavigator();
       TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);

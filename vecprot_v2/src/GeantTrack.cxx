@@ -142,13 +142,8 @@ GeantTrack::GeantTrack(Int_t ipdg)
 {
 // Constructor
    Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
-#if USE_VECGEOM_NAVIGATOR == 1
-   fPath = new VolumePath_t(maxdepth);
-   fNextpath = new VolumePath_t(maxdepth);
-#else
    fPath = VolumePath_t::MakeInstance(maxdepth);
    fNextpath = VolumePath_t::MakeInstance(maxdepth);
-#endif
 }
 
 //______________________________________________________________________________
@@ -186,13 +181,8 @@ GeantTrack::GeantTrack(const GeantTrack& other)
 {
 // Copy constructor
    Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
-#if USE_VECGEOM_NAVIGATOR == 1
-   fPath = new VolumePath_t(maxdepth);
-   fNextpath = new VolumePath_t(maxdepth);
-#else
    fPath = VolumePath_t::MakeInstance(maxdepth);
    fNextpath = VolumePath_t::MakeInstance(maxdepth);
-#endif   
    *fPath = *other.fPath;
    *fNextpath = *other.fNextpath;
 }
@@ -231,13 +221,8 @@ GeantTrack & GeantTrack::operator=(const GeantTrack &other)
       fFrombdr = other.fFrombdr;
       fPending = other.fPending;
       Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
-#if USE_VECGEOM_NAVIGATOR == 1
-      fPath = new VolumePath_t(maxdepth);
-      fNextpath = new VolumePath_t(maxdepth);
-#else
       fPath = VolumePath_t::MakeInstance(maxdepth);
       fNextpath = VolumePath_t::MakeInstance(maxdepth);
-#endif   
       *fPath = *other.fPath;
       *fNextpath = *other.fNextpath;
    }
@@ -248,13 +233,8 @@ GeantTrack & GeantTrack::operator=(const GeantTrack &other)
 GeantTrack::~GeantTrack()
 {
 // Destructor.
-#if USE_VECGEOM_NAVIGATOR == 1
-   delete fPath;
-   delete fNextpath;
-#else
    VolumePath_t::ReleaseInstance(fPath);
    VolumePath_t::ReleaseInstance(fNextpath);
-#endif   
 }
 
 //______________________________________________________________________________
