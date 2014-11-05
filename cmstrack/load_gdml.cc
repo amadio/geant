@@ -51,6 +51,7 @@
 #include "G4LogicalVolumeStore.hh"
 #include "G4TransportationManager.hh"
 #include "G4RegionStore.hh"
+#include "G4PhysicalVolumeStore.hh"
 
 #include "G01PrimaryGeneratorAction.hh"
 #include "G01DetectorConstruction.hh"
@@ -183,6 +184,13 @@ int main(int argc,char **argv)
    
    io->WriteDictionaries();
 
+#if NAVTEST
+   // check overlaps
+   //   const G4PhysicalVolumeStore *pvs = G4PhysicalVolumeStore::GetInstance();
+   //for (G4PhysicalVolumeStore::const_iterator it = pvs->begin() ; it != pvs->end(); ++it) {
+   //   (*it)->CheckOverlaps(1000,1e-3,FALSE,1);
+   //}
+#endif
    //
    // End of Auxiliary Information block
    //
@@ -212,6 +220,10 @@ int main(int argc,char **argv)
    }
 
    G4Random::saveEngineStatus("random_end.rand");
+
+   parser.Write("finalgdml.gdml", G4TransportationManager::GetTransportationManager()->
+		GetNavigatorForTracking()->GetWorldVolume()->GetLogicalVolume());
+
 
    delete runManager;
    delete io;
