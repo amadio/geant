@@ -141,7 +141,7 @@ int main(int argc,char **argv)
 
    G4Region *region = G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
    G4ProductionCuts *wcuts = new G4ProductionCuts;
-   wcuts->SetProductionCut(1*cm); // same cuts for gamma, e- and e+
+   wcuts->SetProductionCut(1*CLHEP::cm); // same cuts for gamma, e- and e+
    region->SetProductionCuts(wcuts);
 
    const int nlv = lvs->size();
