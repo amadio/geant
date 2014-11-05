@@ -215,7 +215,8 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	char gpath[1024] = "\0";
 	char gpoint[2048] = "\0";
 	for ( G4int i=0; i<=navhistory->GetDepth(); i++ ) {
-	   if(navhistory->GetVolume(i) != 0) {
+	   if(navhistory->GetVolume(i)) {
+	      navhistory->GetVolume(i)->CheckOverlaps(1000,1e-3,FALSE,1);
 	      strcat(gpath,"/");
 	      strcat(gpath,navhistory->GetVolume(i)->GetName().c_str());
 	      strcat(gpath,"_");
