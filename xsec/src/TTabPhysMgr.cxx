@@ -63,7 +63,7 @@ TTabPhysMgr::~TTabPhysMgr()
 
 //______________________________________________________________________________
 TTabPhysMgr::TTabPhysMgr():
-             TObject(),
+   //             TObject(),
              fNelements(0),
              fNmaterials(0),
              fElemXsec(0),
@@ -80,7 +80,7 @@ TTabPhysMgr::TTabPhysMgr():
 //______________________________________________________________________________
 TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename, 
                          const char* finalsfilename):
-             TObject(),
+   //             TObject(),
              fNelements(0),
              fNmaterials(0),
              fElemXsec(0),
@@ -679,9 +679,9 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
                                                ener, pid, mom, rndArray[0]);    
    } 
 
-   Double_t randDirX;
-   Double_t randDirY;
-   Double_t randDirZ;
+   Double_t randDirX=0;
+   Double_t randDirY=0;
+   Double_t randDirZ=1;
    Double_t randSinTheta; 
    Double_t randPhi; 
 
@@ -695,8 +695,8 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
    // for a random rotation   
    if(nSecPart) {
        randDirZ = 1.0-2.0*rndArray[1];     
-       randSinTheta = TMath::Sqrt(1.0-randDirZ*randDirZ);  
-       randPhi      = 2.0*TMath::Pi()*rndArray[2]; 
+       randSinTheta = TMath::Sqrt((1.0-randDirZ)*(1.0+randDirZ));  
+       randPhi      = TMath::TwoPi()*rndArray[2]; 
        randDirX = randSinTheta*TMath::Cos(randPhi);
        randDirY = randSinTheta*TMath::Sin(randPhi);
    }

@@ -18,7 +18,7 @@ class GeantTrack_v;
 class GeantTrack;
 class TGeoMaterial;
 
-class TTabPhysMgr : public TObject
+class TTabPhysMgr
 {
 private:
    Int_t            fNelements;     // Total number of elements in the geometry
@@ -37,7 +37,7 @@ public:
    TTabPhysMgr();
    TTabPhysMgr(TGeoManager* geom, const char* xsecfilename, 
 	       const char* finalsfilename);
-   ~TTabPhysMgr();
+   virtual ~TTabPhysMgr();
    static TTabPhysMgr* Instance(TGeoManager* geom=0, const char* xsecfilename=0, 
                                    const char* finalsfilename=0);
    // Rotation+boost utility
