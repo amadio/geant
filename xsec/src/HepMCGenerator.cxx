@@ -38,8 +38,6 @@ HepMCGenerator::HepMCGenerator(std::string& filename)
 //______________________________________________________________________________
 HepMCGenerator::~HepMCGenerator()
 {
-    input_file->close();
-
     delete input_file;
 }
 
@@ -53,9 +51,7 @@ Int_t HepMCGenerator::NextEvent(){
     //
     HepMC::GenEvent evt(HepMC::Units::GEV,HepMC::Units::MM);
     
-    input_file->fill_next_event(evt);
-    
-    if(input_file->rdstate()) Fatal("ImportTracks","No more particles to read!");
+    if(!(input_file->fill_next_event(evt))) Fatal("ImportTracks","No more particles to read!");
     
     std::cout<<std::endl<<"Find all stable particles: "<<std::endl;
 

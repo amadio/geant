@@ -19,7 +19,7 @@ class HepMCGenerator: public PrimaryGenerator{
  private:
 
 #if __cplusplus >= 201103L
-    HepMC::IO_FileBase* input_file;
+    HepMC::IO_Base* input_file;
     HepMC::FindParticles* search;
 #endif
     
