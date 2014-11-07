@@ -6,6 +6,8 @@
 
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"
+#include "HepMC/IO/IO_GenEvent.h"
+#include "HepMC/IO/IO_RootStreamer.h"
 
 
 ClassImp(HepMCGenerator)
@@ -19,7 +21,18 @@ HepMCGenerator::HepMCGenerator(): input_file(0)
 //______________________________________________________________________________
 HepMCGenerator::HepMCGenerator(std::string& filename)
 {
-    input_file = new HepMC::IO_GenEvent(filename, std::ios::in);
+  if (filename.substr(filename.find_last_of(".") + 1) == "hepmc3")
+    {
+      input_file = new HepMC::IO_GenEvent(filename, std::ios::in);
+    }
+  else if (filename.substr(filename.find_last_of(".") + 1) == "root")
+    {
+      input_file = new HepMC::IO_RootStreamer(filename, std::ios::in);
+    }
+  else
+    {
+      std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
+    }
 }
 
 //______________________________________________________________________________
