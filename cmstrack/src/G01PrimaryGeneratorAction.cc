@@ -36,13 +36,16 @@
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
+namespace protect_CLHEP {
 #include "G4SystemOfUnits.hh"
+}
 #include "Randomize.hh"
 #include "Pythia8/Pythia.h"
 
 #include "VTfileio.h"
 
 using namespace Pythia8;
+using protect_CLHEP::GeV;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
