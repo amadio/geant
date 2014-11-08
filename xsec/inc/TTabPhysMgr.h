@@ -77,7 +77,7 @@ private:
    // current version number
    static const Int_t fgVersion=1000001;
 
-   ClassDef(TTabPhysMgr,1)
+   ClassDef(TTabPhysMgr,2)
 };
 
 #endif
