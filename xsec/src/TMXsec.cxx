@@ -33,6 +33,8 @@ TMXsec::TMXsec():
    fInvRangeTable(0),
    fDecayTable(0)
 {
+   fName[0]='\0';
+   fTitle[0]='\0';
 }
 
 //____________________________________________________________________________
@@ -56,7 +58,6 @@ TMXsec::~TMXsec() {
 TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], 
 	       const Int_t /*a*/[], const Float_t w[], Int_t nel, 
 	       Float_t dens, Bool_t weight, const TPDecay *decaytable):
-   TNamed(name,title),
    fNEbins(0),
    fNTotXL(0),
    fNCharge(0),
@@ -79,6 +80,10 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[],
 {
    // Create a mixture material, we support only natural materials for the moment
    // so we ignore a (i.e. we consider it == 0)
+
+   strncpy(fName,name,31);
+   strncpy(fTitle,title,127);
+
    fDecayTable = decaytable;
    fNElems=nel;
    fElems = new TEXsec*[fNElems];

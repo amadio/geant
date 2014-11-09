@@ -30,7 +30,7 @@
 class TPDecay;
 class GeantTrack_v;
 
-class TMXsec : public TNamed {
+class TMXsec {
 
 public:
    TMXsec();
@@ -38,6 +38,8 @@ public:
 	  const Int_t z[], const Int_t a[], const Float_t w[], 
 	  Int_t nel, Float_t dens, Bool_t weight=kFALSE, const TPDecay *decaytable=0);
    ~TMXsec();
+   const Char_t* GetName() const {return fName;}
+   const Char_t* GetTitle() const {return fTitle;}
    Float_t Xlength(Int_t part, Float_t en, Double_t ptot);
 //   Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
    Float_t DEdx(Int_t part, Float_t en);
@@ -63,6 +65,8 @@ private:
    TMXsec(const TMXsec&);      // Not implemented
    TMXsec& operator=(const TMXsec&);      // Not implemented
 
+   char            fName[32];  // cross section name
+   char            fTitle[128];// cross section title
    Int_t           fNEbins;    // number of energy bins
    Int_t           fNTotXL;    // dimension of fTotXL
    Int_t           fNCharge;   // dimension of tables for charged particles
@@ -88,5 +92,17 @@ private:
 
 };
 
+class TOMXsec : public TObject {
+public:
+ TOMXsec(TMXsec* mxsec): fMXsec(mxsec) {}
+ ~TOMXsec() {delete fMXsec;}
+ TMXsec* MXsec() const {return fMXsec;}
+
+private:
+   TOMXsec(const TOMXsec&); // Not implemented
+   TOMXsec& operator=(const TOMXsec&); // Not implemented
+
+   TMXsec *fMXsec;
+};
 
 #endif

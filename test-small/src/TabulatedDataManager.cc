@@ -252,7 +252,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager* geom,
 			     z,a,w,nelem,mat->GetDensity(),kTRUE,fDecay);
     fMatXsec[fNmaterials++] = mxs;       
     // Connect to TGeoMaterial 
-    mat->SetFWExtension(new TGeoRCExtension(mxs));      
+    mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));      
   }// End of while
   
   delete [] z;
@@ -1330,7 +1330,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
   //select random atom
   TGeoMaterial *mat = (TGeoMaterial*)fgGeom->GetListOfMaterials()->At(imat);
   TMXsec *mxs = 
-    ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+     ((TOMXsec*) ((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 
   G4int inpid = atrack->GetDynamicParticle()->GetPDGcode();
   G4int ipart = TPartIndex::I()->PartIndex(inpid);

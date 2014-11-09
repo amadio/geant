@@ -63,7 +63,6 @@ TTabPhysMgr::~TTabPhysMgr()
 
 //______________________________________________________________________________
 TTabPhysMgr::TTabPhysMgr():
-   //             TObject(),
              fNelements(0),
              fNmaterials(0),
              fElemXsec(0),
@@ -223,7 +222,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager* geom, const char* xsecfilename,
                                z,a,w,nelem,mat->GetDensity(),kTRUE,fDecay);
       fMatXsec[fNmaterials++] = mxs;       
       // Connect to TGeoMaterial
-      mat->SetFWExtension(new TGeoRCExtension(mxs));
+      mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));
    }// End of while
    delete [] z;
    delete [] a;
@@ -267,7 +266,7 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
 // Input: material index, number of tracks in the tracks vector to be used
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 //   static Int_t icnt=0;
    Double_t msTheta;
    Double_t msPhi;
