@@ -17,7 +17,7 @@ void TimingInfo(Float_t cpu,Int_t z,Int_t pdg,Int_t proc,Float_t en, Int_t np)
   
   if(first) {
     f = new TFile("timing.root","recreate");
-    TPartIndex::I()->Write();
+    f->WriteObjectAny(TPartIndex::I(),"TPartIndex","PartIndex");
     t = new TTree("G4time","G4 timings");
     t->Branch("cpu",&scpu,"cpu/F");
     t->Branch("z",&sz,"z/I");

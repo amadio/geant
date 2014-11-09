@@ -1444,7 +1444,7 @@ int main(int argc,char** argv)
         TFile *fh = new TFile("xsec.root","recreate");
         fh->SetCompressionLevel(0);
         //allElements->Add(TPartIndex::I());
-        TPartIndex::I()->Write("PartIndex");
+	fh->WriteObjectAny((const void *)TPartIndex::I(),"TPartIndex","PartIndex");
         allElements->Write();
         fh->Write();
         fh->Close();

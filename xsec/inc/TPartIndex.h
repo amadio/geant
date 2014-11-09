@@ -37,7 +37,7 @@ enum G5proc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
 	     kCoulombScatt, kPhotoel, kCompton, kConversion, kCapture,
 	     kKiller, kTotal};
 
-class TPartIndex: public TNamed {
+class TPartIndex {
 
 public:
    static TPartIndex *I() {if(!fgPartIndex) fgPartIndex=new TPartIndex();
