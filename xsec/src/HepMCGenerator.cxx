@@ -84,7 +84,7 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack){
   gtrack.SetCharge(part->Charge()/3.);
   gtrack.SetMass(part->Mass());
 
-  if ((HepMC::GenVertex*)genpart->production_vertex())
+  if ((bool)genpart->production_vertex())
     {
       gtrack.fXpos = genpart->production_vertex()->position().x();
       gtrack.fYpos = genpart->production_vertex()->position().y();
