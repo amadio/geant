@@ -89,6 +89,8 @@
 #include <TFinState.h>
 #include "TPDecay.h"
 
+#include "base/Vector.h"
+
 #include <unistd.h>
 
 extern char *optarg;
@@ -98,6 +100,7 @@ extern int opterr;
 extern int optreset;
 
 using namespace CLHEP;
+using vecgeom::Vector;
 
 void usage()
 {
@@ -861,8 +864,9 @@ int main(int argc,char** argv)
       G4int npr=0;
       // G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
       //   GetNavigatorForTracking();
-      TList *allElements = new TList();
-      allElements->SetOwner();
+      Vector<TEXsec*> allElements;
+	 //TList *allElements = new TList();
+      //      allElements->SetOwner();
       TEXsec *mxsec=0;
       TEFstate *mfstate=0;
       Int_t totfs=0;
@@ -891,7 +895,7 @@ int main(int argc,char** argv)
         G4double dens = mat->GetDensity()*cm3/g;
         
         // Create container class for the x-sections of this material
-        allElements->Add(mxsec =
+        allElements.push_back(mxsec =
                          new TEXsec(mat->GetZ(),amat,dens,npreac));
         if(nsample)
           mfstate = new TEFstate(mat->GetZ(),amat,dens);
@@ -1444,8 +1448,8 @@ int main(int argc,char** argv)
         TFile *fh = new TFile("xsec.root","recreate");
         fh->SetCompressionLevel(0);
         //allElements->Add(TPartIndex::I());
-	fh->WriteObjectAny((const void *)TPartIndex::I(),"TPartIndex","PartIndex");
-        allElements->Write();
+	fh->WriteObject(TPartIndex::I(),"PartIndex");
+        fh->WriteObject(&allElements,"Elements");
         fh->Write();
         fh->Close();
       }
@@ -1453,7 +1457,7 @@ int main(int argc,char** argv)
         fh->Write();
         fh->Close();
       }
-      delete allElements;
+      //      delete allElements;
 
       totsize += nbins*nmaterials;
       totsize /= 0.25*1024*1024;

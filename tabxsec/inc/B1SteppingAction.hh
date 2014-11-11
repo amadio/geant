@@ -67,6 +67,9 @@ class B1SteppingAction : public G4UserSteppingAction
     G4double GetEnergy() const { return fEnergy; }
    
   private:
+    B1SteppingAction(const B1SteppingAction&); // Not implemented
+    B1SteppingAction& operator=(const B1SteppingAction&); // Not implemented
+
     static B1SteppingAction* fgInstance;  
   
     G4LogicalVolume* fVolume;
