@@ -28,7 +28,9 @@ GunGenerator::GunGenerator():
   fMass(0),
   fCharge(0),
   fPTotal(0),
-  fETotal(0)
+  fETotal(0),
+  numberoftracks(0),
+  rndgen(0)
 {}
 
 GunGenerator::GunGenerator(Int_t aver, Int_t partpdg, Double_t partekin, 
@@ -48,7 +50,9 @@ GunGenerator::GunGenerator(Int_t aver, Int_t partpdg, Double_t partekin,
   fMass(0),
   fCharge(0),
   fPTotal(0),
-  fETotal(0)
+  fETotal(0),
+  numberoftracks(0),
+  rndgen(0)
 {
   // ensure normality of the direction vector
   Double_t norm = TMath::Sqrt(fXDir*fXDir+fYDir*fYDir+fZDir*fZDir);
@@ -100,7 +104,7 @@ Int_t GunGenerator::NextEvent(){
 }
 
 //______________________________________________________________________________
-void GunGenerator::GetTrack(Int_t n, GeantTrack &gtrack){
+void GunGenerator::GetTrack(Int_t /*n*/, GeantTrack &gtrack){
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
 

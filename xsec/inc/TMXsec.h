@@ -37,7 +37,7 @@ public:
    TMXsec(const Char_t* name, const Char_t *title,
 	  const Int_t z[], const Int_t a[], const Float_t w[], 
 	  Int_t nel, Float_t dens, Bool_t weight=kFALSE, const TPDecay *decaytable=0);
-   ~TMXsec();
+   virtual ~TMXsec();
    const Char_t* GetName() const {return fName;}
    const Char_t* GetTitle() const {return fTitle;}
    Float_t Xlength(Int_t part, Float_t en, Double_t ptot);

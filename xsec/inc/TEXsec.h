@@ -22,7 +22,6 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include "TNamed.h"
 #include "TPartIndex.h"
 class TFile;
 class TGHorizontalFrame;
@@ -32,14 +31,14 @@ class TGraph;
 class TPXsec;
 class TRootEmbeddedCanvas;
 
-class TEXsec : public TNamed {
+class TEXsec {
 public:
 
    enum {kCutGamma, kCutElectron, kCutPositron, kCutProton};
 
    TEXsec();
    TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np);
-   ~TEXsec();
+   virtual ~TEXsec();
    Bool_t AddPart(Int_t kpart, Int_t pdg, Int_t nxsec);
    Bool_t AddPartXS(Int_t kpart, const Float_t xsec[], const Int_t dict[]);
    Bool_t AddPartIon(Int_t kpart, const Float_t dedx[]);
@@ -97,6 +96,9 @@ public:
    static TEXsec *Element(Int_t i) {
       if(i<0 || i>=fNLdElems) return 0; return fElements[i];}
 
+   const Char_t *GetName() const {return fName;}
+   const Char_t *GetTitle() const {return fTitle;}
+
    static TEXsec *GetElement(Int_t z, Int_t a=0, TFile *f=0);
    static TEXsec **GetElements() {return fElements;}
 
@@ -104,18 +106,21 @@ private:
    TEXsec(const TEXsec &); // Not implemented
    TEXsec& operator=(const TEXsec &); // Not implemented
 
-   Int_t          fEle;     // Element code Z*10000+A*10+metastable level
-   Int_t	  fIndex;   // Index of this in TTabPhysMgr::fElemXsec 
-   Float_t        fDens;    // Density in g/cm3
-   Double_t       fAtcm3;   // Atoms per cubic cm unit density
-   Double_t       fEmin;    // Minimum of the energy Grid
-   Double_t       fEmax;    // Maximum of the energy Grid
-   Int_t          fNEbins;  // Number of log steps in energy
-   Double_t       fEilDelta; // Inverse log energy step
-   const Double_t *fEGrid;  //! Common energy grid
-   Int_t          fNRpart;  // Number of particles with reaction
-   TPXsec        *fPXsec;   // [fNRpart] Cross section table per particle
-   Float_t        fCuts[4]; // Production cuts "a la G4"
+   Char_t         fName[32];   // Name
+   Char_t         fTitle[128]; // Title
+
+   Int_t          fEle;        // Element code Z*10000+A*10+metastable level
+   Int_t	  fIndex;      // Index of this in TTabPhysMgr::fElemXsec 
+   Float_t        fDens;       // Density in g/cm3
+   Double_t       fAtcm3;      // Atoms per cubic cm unit density
+   Double_t       fEmin;       // Minimum of the energy Grid
+   Double_t       fEmax;       // Maximum of the energy Grid
+   Int_t          fNEbins;     // Number of log steps in energy
+   Double_t       fEilDelta;   // Inverse log energy step
+   const Double_t *fEGrid;     //! Common energy grid
+   Int_t          fNRpart;     // Number of particles with reaction
+   TPXsec        *fPXsec;      // [fNRpart] Cross section table per particle
+   Float_t        fCuts[4];    // Production cuts "a la G4"
 
    static Int_t   fNLdElems; //! number of loaded elements
    static TEXsec *fElements[NELEM]; //! databases of elements

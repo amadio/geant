@@ -50,11 +50,12 @@ fEGrid(TPartIndex::I()->EGrid()),
 fNRpart(0),
 fPXsec(0)
 {
+   fName[0]='\0';
+   fTitle[0]='\0';
 }
 
 //___________________________________________________________________
 TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np):
-TNamed(TPartIndex::I()->EleSymb(z),TPartIndex::I()->EleName(z)),
 fEle(z*10000+a*10),
 fIndex(-1),
 fDens(dens),
@@ -67,7 +68,9 @@ fEGrid(TPartIndex::I()->EGrid()),
 fNRpart(np),
 fPXsec(new TPXsec[fNRpart])
 {
-    memset(fCuts,0,4*sizeof(Float_t));
+   strncpy(fName,TPartIndex::I()->EleSymb(z),31);
+   strncpy(fTitle,TPartIndex::I()->EleName(z),127);
+   memset(fCuts,0,4*sizeof(Float_t));
 }
 
 //___________________________________________________________________

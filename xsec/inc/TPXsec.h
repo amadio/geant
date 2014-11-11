@@ -29,7 +29,7 @@ class TPXsec {
 public:
    TPXsec();
    TPXsec(Int_t pdg, Int_t nxsec);
-   ~TPXsec();
+   virtual ~TPXsec();
    void Print(Option_t *opt="") const;
    const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
    Bool_t SetPart(Int_t pdg, Int_t nxsec);

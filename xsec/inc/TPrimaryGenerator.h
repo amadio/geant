@@ -30,7 +30,7 @@ class TPrimaryGenerator{
   TPrimaryGenerator(Int_t partpdg, Double_t partekin, Double_t xpos, 
                     Double_t ypos, Double_t zpos, Double_t xdir, Double_t ydir,
                     Double_t zdir);
-  ~TPrimaryGenerator();
+  virtual ~TPrimaryGenerator();
   
   void SetEkin(Double_t partekin){ fPartEkin = partekin; }
   Double_t GetEkin()const {return fPartEkin;}
