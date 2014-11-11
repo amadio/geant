@@ -15,7 +15,7 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
-if(${USE_ROOT})
+if(USE_ROOT)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ../cmake/modules)
   find_package(ROOT REQUIRED)
   add_definitions(-DUSE_ROOT)
