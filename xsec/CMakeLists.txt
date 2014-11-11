@@ -8,10 +8,10 @@
 find_package(HepMC QUIET)
 if(HepMC_FOUND)
   message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
-  include_directories(inc ${HEPMC_INCLUDE_DIR})
-else()
-  include_directories(inc)
+  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
+
+include_directories(inc)
 
 #----------------------------------------------------------------------------
 # Setup include directory for this project
