@@ -32,16 +32,16 @@ include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources src/*.cc src/*.c src/*.cxx)
+file(GLOB sources tabxsec.cc src/*.cc src/*.c src/*.cxx)
 file(GLOB headers inc/*.hh src/*.h)
 
 get_property(G4_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_MINISIZEREL    "${CMAKE_CXX_FLAGS_MINISIZEREL}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "${CMAKE_EXE_LINKER_FLAGS}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "-std=c++11 ${CMAKE_CXX_FLAGS}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_DEBUG          "-std=c++11 ${CMAKE_CXX_FLAGS_DEBUG}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_MINISIZEREL    "-std=c++11 ${CMAKE_CXX_FLAGS_MINISIZEREL}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELEASE        "-std=c++11 ${CMAKE_CXX_FLAGS_RELEASE}")
+set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELWITHDEBINFO "-std=c++11 ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "-std=c++11 ${CMAKE_EXE_LINKER_FLAGS}")
 
 if (Geant4_VERSION_MAJOR LESS 10)
    set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS}")
@@ -50,12 +50,12 @@ else()
 endif()
 
 set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
-set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_NOW_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_NOW_FLAGS_DEBUG}")
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_NOW_FLAGS_MINSIZEREL}")
-set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_NOW_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
+set(CMAKE_CXX_FLAGS                "-std=c++11 ${GEANT5_CXX_NOW_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG          "-std=c++11 ${GEANT5_CXX_NOW_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "-std=c++11 ${GEANT5_CXX_NOW_FLAGS_MINSIZEREL}")
+set(CMAKE_CXX_FLAGS_RELEASE        "-std=c++11 ${GEANT5_CXX_NOW_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-std=c++11 ${GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_EXE_LINKER_FLAGS         "-std=c++11 ${GEANT5_EXE_NOW_LINKER_FLAGS}")
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
