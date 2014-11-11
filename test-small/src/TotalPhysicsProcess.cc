@@ -42,12 +42,12 @@ TotalPhysicsProcess::TotalPhysicsProcess(G4String processName) :
   G4VRestContinuousDiscreteProcess(processName,fGeneral),
   fMaterialIndex(-1),
   fParticleId(0),
-  fParticleChange(new G4ParticleChange())
-  // fParticleChange(0)
+  fParticleChange(new G4ParticleChange()),
+  theDataManager(TabulatedDataManager::Instance()),
+  fSecParticles()
 {
   // fSecDefinition = G4Geantino::Geantino();
   // theDataManager = 0;
-  theDataManager = TabulatedDataManager::Instance();
   if( ! theDataManager ){
     G4cerr << "ERROR TotalPhysicsProcess constructor> Cannot obtain instance of Tabulated DAta Manager. Fatal Error." << G4endl;
     static int count =0;
