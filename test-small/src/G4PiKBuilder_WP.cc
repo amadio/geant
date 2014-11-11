@@ -45,33 +45,34 @@
 #include "TabulatedHadronProcess.hh"
 
 G4PiKBuilder_WP::
-G4PiKBuilder_WP(): wasActivated(false) 
-{  
-  thePionPlusInelastic=new G4PionPlusInelasticProcess;
-  thePionMinusInelastic=new G4PionMinusInelasticProcess;
-  theKaonPlusInelastic=new G4KaonPlusInelasticProcess;
-  theKaonMinusInelastic=new G4KaonMinusInelasticProcess;
-  theKaonZeroLInelastic=new G4KaonZeroLInelasticProcess;
-  theKaonZeroSInelastic=new G4KaonZeroSInelasticProcess;
+G4PiKBuilder_WP(): wasActivated(false),
+  thePionPlusInelastic(new G4PionPlusInelasticProcess),
+  thePionMinusInelastic(new G4PionMinusInelasticProcess),
+  theKaonPlusInelastic(new G4KaonPlusInelasticProcess),
+  theKaonMinusInelastic(new G4KaonMinusInelasticProcess),
+  theKaonZeroLInelastic(new G4KaonZeroLInelasticProcess),
+  theKaonZeroSInelastic(new G4KaonZeroSInelasticProcess),
 
-  theWrappedPionPlusInelastic = 
+  theWrappedPionPlusInelastic(
     new TabulatedHadronProcess(thePionPlusInelastic->GetProcessName(),
-			       thePionPlusInelastic->GetProcessType());
-  theWrappedPionMinusInelastic =
+			       thePionPlusInelastic->GetProcessType())),
+  theWrappedPionMinusInelastic(
     new TabulatedHadronProcess(thePionMinusInelastic->GetProcessName(),
-			       thePionMinusInelastic->GetProcessType());
-  theWrappedKaonPlusInelastic  = 
+			       thePionMinusInelastic->GetProcessType())),
+  theWrappedKaonPlusInelastic(
     new TabulatedHadronProcess(theKaonPlusInelastic->GetProcessName(),
-			       theKaonPlusInelastic->GetProcessType());
-  theWrappedKaonMinusInelastic = 
+			       theKaonPlusInelastic->GetProcessType())),
+  theWrappedKaonMinusInelastic(
     new TabulatedHadronProcess(theKaonMinusInelastic->GetProcessName(),
-			       theKaonMinusInelastic->GetProcessType());
-  theWrappedKaonZeroLInelastic = 
+			       theKaonMinusInelastic->GetProcessType())),
+  theWrappedKaonZeroLInelastic(
     new TabulatedHadronProcess(theKaonZeroLInelastic->GetProcessName(),
-			       theKaonZeroLInelastic->GetProcessType());
-  theWrappedKaonZeroSInelastic = 
+			       theKaonZeroLInelastic->GetProcessType())),
+  theWrappedKaonZeroSInelastic(
     new TabulatedHadronProcess(theKaonZeroSInelastic->GetProcessName(),
-			       theKaonZeroSInelastic->GetProcessType());
+			       theKaonZeroSInelastic->GetProcessType())),
+		   theModelCollections(0)
+{  
 }
 
 G4PiKBuilder_WP::

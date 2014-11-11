@@ -22,6 +22,8 @@ public:
   void Print(const G4Step& astep);
 
 private:
+  VectorizedProcess(const VectorizedProcess&); // Not implemented
+  VectorizedProcess& operator=(const VectorizedProcess&); // Not implemented
   G4VParticleChange* particleChange;
 };
 

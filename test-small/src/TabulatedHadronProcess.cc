@@ -16,9 +16,9 @@
 TabulatedHadronProcess::TabulatedHadronProcess(G4String processName, 
 				   G4ProcessType processType) :
   G4WrapperProcess(processName,processType),
-  particleChange(0)
+  particleChange(0),
+  theDataManager(TabulatedDataManager::Instance())
 {
-  theDataManager = TabulatedDataManager::Instance();
 }
 
 TabulatedHadronProcess::~TabulatedHadronProcess() {

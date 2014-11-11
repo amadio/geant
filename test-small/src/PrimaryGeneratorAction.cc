@@ -46,15 +46,16 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction()
+PrimaryGeneratorAction::PrimaryGeneratorAction():
+   particleGun(new G4ParticleGun(1)),
+   Detector((DetectorConstruction*)
+	    G4RunManager::GetRunManager()->GetUserDetectorConstruction()),
+   gunMessenger(new PrimaryGeneratorMessenger(this)),
+   rndmFlag("off")
 {
   G4int n_particle = 1;
-  particleGun  = new G4ParticleGun(n_particle);
-  Detector = (DetectorConstruction*)
-             G4RunManager::GetRunManager()->GetUserDetectorConstruction();  
   
   //create a messenger for this class
-  gunMessenger = new PrimaryGeneratorMessenger(this);
 
   // default particle kinematic
 
@@ -67,9 +68,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   particleGun->SetParticleEnergy(50.*MeV);
   G4double position = -0.5*(Detector->GetWorldSizeX());
   particleGun->SetParticlePosition(G4ThreeVector(position,0.*cm,0.*cm));
-  
-  rndmFlag = "off";
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

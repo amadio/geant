@@ -52,6 +52,9 @@ public:
   void SetNewValue(G4UIcommand*, G4String);
     
 private:
+  EventActionMessenger(const EventActionMessenger&); // Not implemented
+  EventActionMessenger& operator=(const EventActionMessenger&); // Not implemented
+
   EventAction*          eventAction;
   G4UIdirectory*        eventDir;   
   G4UIcmdWithAnInteger* PrintCmd;    

@@ -55,6 +55,9 @@ public:
 #endif
 
 private:
+  HistogramManager(const HistogramManager&); // Not implemented
+  HistogramManager& operator=(const HistogramManager&); // Not implemented
+   
   static HistogramManager* theInstance;
 
 };

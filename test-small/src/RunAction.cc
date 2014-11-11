@@ -45,7 +45,8 @@ G4bool RunAction::isTabPhys = FALSE;     // running with TABPHYS ?
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction()
+RunAction::RunAction():
+   fRunTime(0)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

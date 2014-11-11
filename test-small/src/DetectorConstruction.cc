@@ -81,13 +81,19 @@ DetectorConstruction::DetectorConstruction()
  solidLayer(0),logicLayer(0),physiLayer(0),
  solidAbsorber(0),logicAbsorber(0),physiAbsorber(0),
  solidGap (0),logicGap (0),physiGap (0),
- magField(0)
+ magField(0),
+ AbsorberThickness(10*mm), // 1*mm
+ GapThickness(5*mm),   // 0.5*mm
+ NbOfLayers(10),    // 100
+ LayerThickness(0),
+ CalorSizeYZ(10*cm),
+ CalorThickness(0),
+ WorldSizeYZ(0),
+ WorldSizeX(0),
+ detectorMessenger(0)
 {
   // default parameter values of the calorimeter
-  AbsorberThickness =  10.*mm; // 1.*mm;
-  GapThickness      =  5.*mm;  // .5*mm
-  NbOfLayers        =  10;     // 100
-  CalorSizeYZ       = 10.*cm;
+
   ComputeCalorParameters();
   
   // materials

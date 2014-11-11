@@ -38,10 +38,11 @@ TabulatedProcess::TabulatedProcess(G4String processName,
   G4WrapperProcess(processName,processType),
   fMaterialIndex(-1),
   fReaction(kTotal),
-  fParticleChange(0)
+  fParticleChange(0),
+  fSecDefinition(G4Geantino::Geantino()),
+  theDataManager(0),
+  fSecParticles()
 {
-  fSecDefinition = G4Geantino::Geantino();
-  theDataManager = 0;
   fSecParticles.reserve(5);
 }
 
@@ -51,10 +52,11 @@ TabulatedProcess::TabulatedProcess(G4String processName,
   G4WrapperProcess(processName,processType),
   fMaterialIndex(-1),
   fReaction(reactionIndex),
-  fParticleChange(0)
+  fParticleChange(0),
+  fSecDefinition(G4Geantino::Geantino()),
+  theDataManager(TabulatedDataManager::Instance()),
+  fSecParticles()
 {
-  fSecDefinition = G4Geantino::Geantino();
-  theDataManager = TabulatedDataManager::Instance();
   fSecParticles.reserve(5);
 }
 

@@ -13,7 +13,27 @@ HistogramManager* HistogramManager::Instance()
   return theInstance;
 }
 
-HistogramManager::HistogramManager() 
+HistogramManager::HistogramManager():
+   theHistFile(0),
+   p_xsec_eBrem(0),
+   p_xsec_eIoni(0),
+   p_xsec_compt(0),
+   p_xsec_phot(0),
+   p_xsec_conv(0),
+   p_xsec_hBrems(0),
+   p_xsec_hIoni(0),
+   p_xsec_hadElastic(0),
+   p_xsec_hPairProd(0),
+   p_xsec_pim_Inelastic(0),
+   p_xsec_pip_Inelastic(0),
+   p_xsec_N_Inelastic(0),
+   p_dedx_eBrem(0),
+   p_dedx_eIoni(0),
+   p_nsec_pim_Inelastic(0),
+   p_esec_pim_Inelastic(0),
+   h_esec_pim_Inelastic(0),
+   h_secKE_eBrem(0),
+   h_secKE_compt(0)
 {
 }
 
@@ -26,7 +46,7 @@ HistogramManager::~HistogramManager()
 #endif
 }
 
-void HistogramManager::BookHistograms(std::string fileName) 
+void HistogramManager::BookHistograms(std::string fileName)
 {
 #ifdef USE_ROOT
 

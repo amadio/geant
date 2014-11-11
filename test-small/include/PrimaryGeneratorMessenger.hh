@@ -52,6 +52,9 @@ public:
   void SetNewValue(G4UIcommand*, G4String);
     
 private:
+  PrimaryGeneratorMessenger(const PrimaryGeneratorMessenger&); // Not implemented
+  PrimaryGeneratorMessenger& operator=(const PrimaryGeneratorMessenger&); // Not implemented
+
   PrimaryGeneratorAction* Action;
   G4UIdirectory*          gunDir; 
   G4UIcmdWithAString*     RndmCmd;

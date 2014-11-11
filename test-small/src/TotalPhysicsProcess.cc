@@ -40,7 +40,9 @@ G4double TotalPhysicsProcess::fgEnergyLimit = 3.0e-6;
 
 TotalPhysicsProcess::TotalPhysicsProcess(G4String processName) :
   G4VRestContinuousDiscreteProcess(processName,fGeneral),
-  fMaterialIndex(-1)
+  fMaterialIndex(-1),
+  fParticleId(0),
+  fParticleChange(new G4ParticleChange())
   // fParticleChange(0)
 {
   // fSecDefinition = G4Geantino::Geantino();
@@ -52,7 +54,6 @@ TotalPhysicsProcess::TotalPhysicsProcess(G4String processName) :
     if ( ++ count > 5 ) { exit(1); }
   }
   fSecParticles.reserve(5);
-  fParticleChange= new G4ParticleChange();
 }
 
 TotalPhysicsProcess::~TotalPhysicsProcess() {

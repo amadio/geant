@@ -59,13 +59,13 @@
  }
 
  G4ProtonBuilder_WP::
- G4ProtonBuilder_WP(): wasActivated(false)  
- {
-   theProtonInelastic=new G4ProtonInelasticProcess;
-
-   theWrappedProtonInelastic = 
+ G4ProtonBuilder_WP(): wasActivated(false),
+    theProtonInelastic(new G4ProtonInelasticProcess),
+    theWrappedProtonInelastic(
      new TabulatedHadronProcess(theProtonInelastic->GetProcessName(),
-				theProtonInelastic->GetProcessType());
+				theProtonInelastic->GetProcessType())),
+    theModelCollections(0)
+ {
  }
 
  G4ProtonBuilder_WP::

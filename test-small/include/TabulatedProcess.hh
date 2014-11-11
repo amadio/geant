@@ -38,6 +38,9 @@ public:
   void Print(const G4Step& astep);
 
 private:
+  TabulatedProcess(const TabulatedProcess&); // Not implemented
+  TabulatedProcess& operator=(const TabulatedProcess&); // Not implemented
+
   G4int                 fMaterialIndex;
   G5proc                fReaction;
   G4VParticleChange*    fParticleChange;

@@ -66,6 +66,8 @@ public:
   void SetCuts();
    
 private:
+   PhysicsList(const PhysicsList&); // Not implemented
+   PhysicsList& operator=(const PhysicsList&); // Not implemented
 
   // these methods Construct physics processes and register them
   void ConstructDecay();

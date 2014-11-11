@@ -83,6 +83,8 @@ public:
   char* GetVersion();
 
 private:
+  TabulatedDataManager(const TabulatedDataManager&);
+  TabulatedDataManager& operator=(const TabulatedDataManager&);
 
   static TabulatedDataManager* fgInstance;
 

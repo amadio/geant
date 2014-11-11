@@ -51,6 +51,9 @@ public:
   void UserSteppingAction(const G4Step*);
     
 private:
+  SteppingAction(const SteppingAction&); // Not implemented   
+  SteppingAction& operator=(const SteppingAction&); // Not implemented   
+
   DetectorConstruction* detector;
   EventAction*          eventaction;  
 

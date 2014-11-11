@@ -60,6 +60,9 @@ class G4PiKBuilder_WP
     void RegisterMe(G4VPiKBuilder * aB) {theModelCollections.push_back(aB);}
 
   private:
+   G4PiKBuilder_WP(const G4PiKBuilder_WP&); // Not implemented
+   G4PiKBuilder_WP& operator=(const G4PiKBuilder_WP&); // Not implemented
+
     G4PionPlusInelasticProcess*  thePionPlusInelastic;
     G4PionMinusInelasticProcess* thePionMinusInelastic;
     G4KaonPlusInelasticProcess*  theKaonPlusInelastic;

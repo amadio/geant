@@ -46,14 +46,14 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction()                                         
+SteppingAction::SteppingAction():                                        
+   detector((DetectorConstruction*)
+	    G4RunManager::GetRunManager()->GetUserDetectorConstruction()),
+   eventaction((EventAction*)
+	       G4RunManager::GetRunManager()->GetUserEventAction()),
+   doAnalysis(getenv("DO_STEPPING_ANALYSIS")),
+   fSteppingAnalysis(0)
 {
-  detector = (DetectorConstruction*)
-             G4RunManager::GetRunManager()->GetUserDetectorConstruction();
-  eventaction = (EventAction*)
-                G4RunManager::GetRunManager()->GetUserEventAction();          
-
-  doAnalysis = getenv("DO_STEPPING_ANALYSIS");
   if (doAnalysis) fSteppingAnalysis = new SteppingAnalysis();
 
 }

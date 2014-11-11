@@ -27,6 +27,9 @@ public:
 
   void Print(const G4Step& astep);
 private:
+  TabulatedHadronProcess(const TabulatedHadronProcess&); // Not implemented
+  TabulatedHadronProcess& operator=(const TabulatedHadronProcess&); // Not implemented
+
   G4VParticleChange* particleChange;
   TabulatedDataManager* theDataManager;
 };

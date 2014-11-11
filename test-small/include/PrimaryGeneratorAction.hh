@@ -54,6 +54,9 @@ public:
   void SetRndmFlag(G4String val) { rndmFlag = val;}
 
 private:
+  PrimaryGeneratorAction(const PrimaryGeneratorAction&); // Not implemented
+  PrimaryGeneratorAction& operator=(const PrimaryGeneratorAction&); // Not implemented
+
   G4ParticleGun*           particleGun;  //pointer a to G4  class
   DetectorConstruction*    Detector;     //pointer to the geometry
     

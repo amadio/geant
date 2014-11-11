@@ -62,6 +62,9 @@ class G4NeutronBuilder_WP
     void RegisterMe(G4VNeutronBuilder * aB) {theModelCollections.push_back(aB);}
 
   private:
+    G4NeutronBuilder_WP(const G4NeutronBuilder_WP&); // Not implemented
+    G4NeutronBuilder_WP& operator=(const G4NeutronBuilder_WP&); // Not implemented
+
     G4NeutronInelasticProcess * theNeutronInelastic;
     G4HadronFissionProcess * theNeutronFission;
     G4HadronCaptureProcess  * theNeutronCapture;

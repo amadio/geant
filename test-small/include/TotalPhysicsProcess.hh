@@ -66,6 +66,9 @@ public:
   static void SetEnergyLimit(G4double energyLimit){fgEnergyLimit = energyLimit;}
 
 private:
+  TotalPhysicsProcess(const TotalPhysicsProcess&); // Not implemented
+  TotalPhysicsProcess& operator=(const TotalPhysicsProcess&); // Not implemented
+
   G4int                 fMaterialIndex;
   G4int                 fParticleId; 
   G4ParticleChange*     fParticleChange;

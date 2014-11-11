@@ -34,9 +34,10 @@
 #include "G4TrackVector.hh"
 #include "TabulatedProcess.hh"
 
-SteppingAnalysis::SteppingAnalysis()
+SteppingAnalysis::SteppingAnalysis():
+   theHisto(HistogramManager::Instance())
+
 {
-  theHisto = HistogramManager::Instance();
   theHisto->BookHistograms();
 }
 

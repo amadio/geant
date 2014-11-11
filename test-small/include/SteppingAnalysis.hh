@@ -27,6 +27,9 @@ public:
 
 //root
 private:
+  SteppingAnalysis(const SteppingAnalysis&); // Not implemented
+  SteppingAnalysis& operator=(const SteppingAnalysis&); // Not implemented
+
   //histogram Manager
   HistogramManager* theHisto;
  

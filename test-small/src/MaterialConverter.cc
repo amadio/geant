@@ -22,7 +22,10 @@ TGeoManager* MaterialConverter::fTGeomMgr= 0;
 MaterialConverter::MaterialConverter():
    fMaxG4Material(0),
    fMaxRootMaterial(0),
-   fInitialized(false)
+   fInitialized(false),
+   fRootMatIndices(),
+   fG4MatIndices(),
+   fUsedExistingGeomMgr(true)
 { 
    int defSize= 4; // Must be at least 1
    fRootMatIndices.reserve(defSize); 

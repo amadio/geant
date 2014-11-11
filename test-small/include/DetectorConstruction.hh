@@ -99,6 +99,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
                  
   private:
      
+     DetectorConstruction(const DetectorConstruction&); // Not implemented
+     DetectorConstruction& operator=(const DetectorConstruction&); // Not implemented
+
      G4Material*        AbsorberMaterial;
      G4double           AbsorberThickness;
      

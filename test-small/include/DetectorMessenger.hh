@@ -55,6 +55,9 @@ class DetectorMessenger: public G4UImessenger
     void SetNewValue(G4UIcommand*, G4String);
     
   private:
+    DetectorMessenger(const DetectorMessenger&); // Not implemented
+    DetectorMessenger& operator=(const DetectorMessenger&); // Not implemented
+
     DetectorConstruction* Detector;
     
     G4UIdirectory*             N03Dir;

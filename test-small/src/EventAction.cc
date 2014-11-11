@@ -48,11 +48,11 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-EventAction::EventAction()
+EventAction::EventAction():
+   runAct((RunAction*)G4RunManager::GetRunManager()->GetUserRunAction()),
+   eventMessenger(new EventActionMessenger(this)),
+   printModulo(1)
 {
-  runAct = (RunAction*)G4RunManager::GetRunManager()->GetUserRunAction();
-  eventMessenger = new EventActionMessenger(this);
-  printModulo = 1;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -66,6 +66,9 @@ public:
 #endif
 
 private:
+   EventAction(const EventAction&); // Not implemented
+   EventAction& operator=(const EventAction&); // Not implemented
+   
    RunAction*  runAct;
    
    G4int     printModulo;                             

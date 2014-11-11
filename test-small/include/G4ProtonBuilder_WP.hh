@@ -60,6 +60,9 @@ class G4ProtonBuilder_WP
     void RegisterMe(G4VProtonBuilder * aB) {theModelCollections.push_back(aB);}
 
   private:
+    G4ProtonBuilder_WP(const G4ProtonBuilder_WP&); // Not Implemented
+    G4ProtonBuilder_WP& operator=(const G4ProtonBuilder_WP&); // Not Implemented
+   
     G4ProtonInelasticProcess * theProtonInelastic;
 
     TabulatedHadronProcess* theWrappedProtonInelastic;
