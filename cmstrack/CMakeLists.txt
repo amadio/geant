@@ -44,13 +44,21 @@ endif()
 #
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ROOTSYS}/cmake/modules)
-find_package(Pythia8 REQUIRED)
+# this is a mess for the moment... fixing it by hand
+# eiher we write our own findPythia8 or we fix the root one for the
+# newest pythia8
+#find_package(Pythia8 REQUIRED)
+if(NOT DEFINED ENV{PYTHIA8_DIR})
+  MESSAGE(FATAL_ERROR "Please set PYTHIA8_DIR")
+endif()
+set(PYTHIA8_INCLUDE_DIR $ENV{PYTHIA8_DIR}/include)
+set(PYTHIA8_LIBRARIES "-L$ENV{PYTHIA8_DIR}/lib -lpythia8")
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${PROJECT_SOURCE_DIR}/include 
-                    ${Geant4_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
