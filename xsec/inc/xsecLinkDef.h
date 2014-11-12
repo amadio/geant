@@ -22,5 +22,10 @@
 #pragma link C++ class TTabPhysProcess+;
 #pragma link C++ class TPrimaryGenerator+;
 #pragma link C++ class GunGenerator+;
+#ifdef HEPMC
+#pragma link C++ class HepMCGenerator+;
+#endif
+
+//#pragma link C++ class vecgeom::Vector+;
 
 #endif

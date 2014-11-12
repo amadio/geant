@@ -22,12 +22,14 @@ include_directories(inc)
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
+file(GLOB sources src/T*.cxx src/GunGenerator.cxx)
+#file(GLOB headers inc/T*.h inc/GunGenerator.h ${VC_INCLUDE_DIR}/base/Vector.h)
+file(GLOB headers inc/T*.h inc/GunGenerator.h)
+
 if(HepMC_FOUND)
-  file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/HepMCGenerator.cxx)
-  file(GLOB headers inc/T*.h inc/GunGenerator.h inc/HepMCGenerator.h)
-else()
-  file(GLOB sources src/T*.cxx src/GunGenerator.cxx)
-  file(GLOB headers inc/T*.h inc/GunGenerator.h)
+  add_definitions(-DHEPMC)
+  set(sources "${sources} src/HepMCGenerator.cxx")
+  set(headers "${headers} inc/HepMCGenerator.h")
 endif()
 
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
@@ -40,11 +42,7 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 
 include_directories(inc)
 
-if(HepMC_FOUND)
-  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsmcLinkDef.h)
-else()
-  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
-endif()
+ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
