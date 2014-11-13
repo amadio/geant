@@ -23,8 +23,9 @@ include_directories(inc)
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/T*.cxx src/GunGenerator.cxx)
-#file(GLOB headers inc/T*.h inc/GunGenerator.h ${VC_INCLUDE_DIR}/base/Vector.h)
 file(GLOB headers inc/T*.h inc/GunGenerator.h)
+
+#set(headers ${headers} ${VC_INCLUDE_DIR}/base/Vector.h)
 
 if(HepMC_FOUND)
   add_definitions(-DHEPMC)
@@ -41,7 +42,6 @@ set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "
 set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "${GEANT5_COMPILE_FLAGS}")
 
 include_directories(inc)
-
 ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
 
 #----------------------------------------------------------------------------
