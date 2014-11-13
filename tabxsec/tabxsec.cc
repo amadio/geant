@@ -351,7 +351,7 @@ int main(int argc,char** argv)
       }      
 
       printf("Found %d particles\n",np);
-      
+            
       // These quantities could be defined via program options
       const G4int maxproc = 10;  // max of 10 proc per particle
       emin = emin*GeV;
@@ -428,20 +428,31 @@ int main(int argc,char** argv)
       unsigned int ilast= 0; 
       unsigned int numIons= 0;
 
+      // Create our own vector of particles - since the particle table is not const in Geant4
+      // New particles can be added during interaction generation and then everything is
+      // messed up in the particle table.
+      //
+      // We did not decide yet how to deal with the generated particles that are not in the
+      // initial list. For the moment we ignore them and assign the energy to the kerma
+      // A better solution may be found later
+      
+      std::vector<G4ParticleDefinition*> particleVector;
+
       for(G4int i=0; i<np; ++i) {
         // G4cout << " i = " << i << G4endl;
-        particle = theParticleTable->GetParticle(i);
-        // G4cout << " Particle[ " << i << " ]: address " << particle ; 
-           // <<  G4endl;
+	 particle = theParticleTable->GetParticle(i);
+	//         G4cout << " Particle[ " << i << " ]: address " << particle ; 
+	//  <<  G4endl;
         if( (particle != 0) && (particle->GetBaryonNumber()<5) ){ 
           pdpdg[igood] = AddParticleToPdgDatabase(particle->GetParticleName(),particle);
+	  particleVector.push_back(particle);
           ilast= igood;
           igood++;
           // G4cout << " Good particle[" << igood << " ]: " << particle->GetParticleName() << G4endl;
           npLastOK = i; 
         }else{
           if( particle->GetBaryonNumber() >= 4 ){
-            // G4cout << " Ignoring ion      " << particle->GetParticleName() << G4endl;
+	     // G4cout << " Ignoring ion      " << particle->GetParticleName() << G4endl;
             numIons++;
           }
           if( particle == 0 ){
@@ -542,6 +553,9 @@ int main(int argc,char** argv)
       np= igood; 
       std::cout << "Reset np to " << igood << std::endl;
 
+      printf("Particle Vector has %lu contents.\n", particleVector.size() );
+      if( particleVector.size() == 0 ) { printf("Cannot work without particles."); exit(1); }
+
       TPartIndex::I()->SetNPartReac(npreac);
       TPartIndex::I()->SetNPartCharge(npchar);
       TPartIndex::I()->SetEnergyGrid(emin/GeV,emax/GeV,nbins);
@@ -615,8 +629,9 @@ int main(int argc,char** argv)
       TPartIndex::I()->SetPartTable(pPDG,np);
       // Set PDG to GV code map
       std::map<G4int,G4int> pdgToGVmap;
-      for(G4int i=0;i<np;++i)
+      for(G4int i=0;i<np;++i) 
         pdgToGVmap[pPDG[i]]=i;
+
       TPartIndex::I()->SetPDGToGVMap(pdgToGVmap);      
 
       // Check that "pions will be pions"
@@ -719,22 +734,6 @@ int main(int argc,char** argv)
       }
       
       for(G4int i=0; i<4; ++i) delete converter[i];
-      
-      // Create our own vector of particles - since the particle table is not const in Geant4
-      // New particles can be added during interaction generation and then everything is
-      // messed up in the particle table.
-      //
-      // We did not decide yet how to deal with the generated particles that are not in the
-      // initial list. For the moment we ignore them and assign the energy to the kerma
-      // A better solution may be found later
-      
-      std::vector<G4ParticleDefinition*> particleVector;
-      for(G4int i=0; i<np; ++i) {
-        // particleVector[i] = theParticleTable->GetParticle(i);
-        particleVector.push_back( theParticleTable->GetParticle(i) );
-      }
-      printf("Particle Vector has %lu contents.\n", particleVector.size() );
-      if( particleVector.size() == 0 ) { printf("Cannot work without particles."); exit(1); }
       
       // Here we call BeamOn to be sure to initalise cross sections.
       // This is still not enough but it is necessary
@@ -865,8 +864,6 @@ int main(int argc,char** argv)
       // G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
       //   GetNavigatorForTracking();
       Vector<TEXsec*> allElements;
-	 //TList *allElements = new TList();
-      //      allElements->SetOwner();
       TEXsec *mxsec=0;
       TEFstate *mfstate=0;
       Int_t totfs=0;
@@ -895,8 +892,8 @@ int main(int argc,char** argv)
         G4double dens = mat->GetDensity()*cm3/g;
         
         // Create container class for the x-sections of this material
-        allElements.push_back(mxsec =
-                         new TEXsec(mat->GetZ(),amat,dens,npreac));
+        allElements.push_back(
+			      mxsec = new TEXsec(mat->GetZ(),amat,dens,npreac));
         if(nsample)
           mfstate = new TEFstate(mat->GetZ(),amat,dens);
         
@@ -957,9 +954,8 @@ int main(int argc,char** argv)
           
           // if the particle is a generic ion we bail out
           if(!strcmp("GenericIon",(const char *)particle->GetParticleName())) continue;
-          
-          G4int partindex = TPartIndex::I()->PartIndex(pdpdg[i]->PdgCode());
-          // printf("partindex %d pdg %d\n",partindex,pdpdg[i]->PdgCode());
+	  
+	  G4int partindex = TPartIndex::I()->PartIndex(particle->GetPDGEncoding());
           if(partindex<0) {
             printf("Error, unknown PDG %d for %s\n",particle->GetPDGEncoding(),
                    (const char *)particle->GetParticleName());
@@ -1119,7 +1115,7 @@ int main(int argc,char** argv)
                 G4VEnergyLossProcess *ptEloss = dynamic_cast<G4VEnergyLossProcess*>(p);
                 if(ptEloss) {
 		  ptEloss->SetIntegral(false);
-                  // if(verbose>2)
+		  if(verbose>2)
                     printf("Mat %s Part [%3d] %s adding ELoss process %s [%d,%d]\n",
                            (const char*) mat->GetName(), i, (const char*) particle->GetParticleName(),
                            (const char*) p->GetProcessName(),
@@ -1254,7 +1250,7 @@ int main(int argc,char** argv)
                   }
                   
                 } else if(p->GetProcessSubType() == 10) {
-                  // Multiple scattering, let's see what we can do here
+		   // Multiple scattering, let's see what we can do here
                   
                   // First check particle and process
                   if(!particle->GetPDGCharge()) {
@@ -1271,6 +1267,11 @@ int main(int argc,char** argv)
                   memset(mslsig,0,nbins*sizeof(G4float));
                   for(G4int j=0; j<nbins; ++j) {
                     
+		     printf("-------------------------------------------------  Sampling %s %s on %s @ %11.4e GeV ---------------------------------------\n",
+			    (const char *) particle->GetParticleName(),
+			    (const char *) pms->GetProcessName(),
+			    (const char *) mat->GetName(),
+			    en/GeV);
                     // Define the step size - as ftrR * range
                     G4double maxStep= 1.0*cm;
                     G4double ftrR= 0.1;
@@ -1443,6 +1444,11 @@ int main(int argc,char** argv)
         }
       } // end of material loop
       
+      if(nsample) {
+        fh->Write();
+        fh->Close();
+      }
+
       // Write all cross sections
       if(xsecs) {
         TFile *fh = new TFile("xsec.root","recreate");
@@ -1450,10 +1456,6 @@ int main(int argc,char** argv)
         //allElements->Add(TPartIndex::I());
 	fh->WriteObject(TPartIndex::I(),"PartIndex");
         fh->WriteObject(&allElements,"Elements");
-        fh->Write();
-        fh->Close();
-      }
-      if(nsample) {
         fh->Write();
         fh->Close();
       }
