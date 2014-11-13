@@ -863,7 +863,8 @@ int main(int argc,char** argv)
       G4int npr=0;
       // G4Navigator *nav = G4TransportationManager::GetTransportationManager()->
       //   GetNavigatorForTracking();
-      Vector<TEXsec*> allElements;
+      TEXsec **allElements = new TEXsec*[nmaterials];
+      //      Vector<TEXsec*> allElements;
       TEXsec *mxsec=0;
       TEFstate *mfstate=0;
       Int_t totfs=0;
@@ -872,6 +873,7 @@ int main(int argc,char** argv)
       
       // TFinState rcaptfs[np];
       //TFinState rcaptfs[MAX_NP];
+      G4int nmat = 0;
       for(G4int imat=0; imat<nmaterials; ++imat) {
         TFinState rcaptfs[MAX_NP];
 
@@ -892,8 +894,7 @@ int main(int argc,char** argv)
         G4double dens = mat->GetDensity()*cm3/g;
         
         // Create container class for the x-sections of this material
-        allElements.push_back(
-			      mxsec = new TEXsec(mat->GetZ(),amat,dens,npreac));
+	allElements[nmat++] = mxsec = new TEXsec(mat->GetZ(),amat,dens,npreac);
         if(nsample)
           mfstate = new TEFstate(mat->GetZ(),amat,dens);
         
@@ -1455,7 +1456,7 @@ int main(int argc,char** argv)
         fh->SetCompressionLevel(0);
         //allElements->Add(TPartIndex::I());
 	fh->WriteObject(TPartIndex::I(),"PartIndex");
-        fh->WriteObject(&allElements,"Elements");
+	for(G4int im=0; im<nmat; ++im) fh->WriteObject(allElements[im],allElements[im]->GetName());
         fh->Write();
         fh->Close();
       }
