@@ -1,7 +1,7 @@
 #ifndef GEANT_TRACK
 #define GEANT_TRACK
 
-#include "Geant/Config.h"
+//#include "Geant/Config.h"
 
 //#include "globals.h"
 #include "TMath.h"
@@ -167,11 +167,12 @@ public:
 
 class GeantTrack_v {
 public:
+   static size_t const     cacheline_size = 64;
+   typedef char            cacheline_pad_t [cacheline_size];
 #if __cplusplus >= 201103L
    std::atomic_int   fNtracks;  // number of tracks contained
-#else
-   Int_t     fNtracks;    // number of tracks contained  
 #endif
+   cacheline_pad_t         pad0_;
    Int_t     fMaxtracks;  // max size for tracks
    Int_t     fNselected;  // Number of selected tracks
    TBits     fHoles;      // Bits of holes
@@ -232,13 +233,8 @@ public:
    size_t    BufferSize() const   {return fBufSize;}
    Int_t     Capacity() const     {return fMaxtracks;}
    static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
-#if __cplusplus >= 201103L
    Int_t     GetNtracks() const   {return fNtracks.load();}
    void      SetNtracks(Int_t ntracks) {fNtracks.store(ntracks);}
-#else
-   Int_t     GetNtracks() const   {return fNtracks;}
-   void      SetNtracks(Int_t ntracks) {fNtracks = ntracks;}
-#endif
    Int_t     GetNselected() const {return fNselected;}
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat      &GetTrackStat() {return fStat;}

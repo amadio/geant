@@ -46,13 +46,11 @@ public:
    Int_t       fNtotal;      // Total number of events
 #if __cplusplus >= 201103L
    std::atomic<Long64_t>    fNtransported; // Number of transported tracks
-#else
-   Long64_t    fNtransported; // Number of transported tracks   
+   std::atomic<Long64_t>    fNprimaries;  // Number of primary tracks
+   std::atomic<Long64_t>    fNsafeSteps;  // Number of fast steps within safety
+   std::atomic<Long64_t>    fNsnextSteps; // Number of steps where full snext computation is needed
+   std::atomic<Long64_t>    fNphysSteps;  // Number of steps to physics process
 #endif   
-   Long64_t    fNprimaries;  // Number of primary tracks
-   Long64_t    fNsafeSteps;  // Number of fast steps within safety
-   Long64_t    fNsnextSteps; // Number of steps where full snext computation is needed
-   Long64_t    fNphysSteps;  // Number of steps to physics process
    Int_t       fNprocesses;  // Number of active processes
    Int_t       fElossInd;    // Index of eloss process
    Int_t       fNstart;      // Cumulated initial number of tracks

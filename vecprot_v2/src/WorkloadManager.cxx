@@ -42,7 +42,6 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fBtogo(0),
                  fStarted(kFALSE),
                  fStopped(kFALSE),
-                 fWorkDone(kFALSE),
                  fFeederQ(0),
                  fTransportedQ(0),
                  fDoneQ(0),
@@ -54,7 +53,8 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fBroker(0),
                  fWaiting(0),
                  fMutexSch(new std::mutex),
-                 fCondSch(new std::condition_variable)
+                 fCondSch(new std::condition_variable),
+                 fWorkDone(false)
 {
 // Private constructor.
    fFeederQ = new priority_queue<GeantBasket*>(1<<16);
@@ -389,7 +389,7 @@ void *WorkloadManager::TransportTracks(void *)
 //      TString sslist;
 //   const Int_t max_idle = 1;
 //   Int_t indmin, indmax;
-   static Int_t counter=0;
+   static std::atomic<int> counter(0);
    Int_t ntotnext, ncross;
    Int_t ntotransport;
    Int_t nextra_at_rest = 0;
@@ -432,7 +432,7 @@ void *WorkloadManager::TransportTracks(void *)
       GeantTrack_v &input = basket->GetInputTracks();
       GeantTrack_v &output = basket->GetOutputTracks();
       if (!ntotransport) goto finish;      // input list empty
-//      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter);
+//      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport, counter.load());
 //      basket->Print();
 //      Printf("==========================================");
 //      propagator->fTracksPerBasket[tid] = ntotransport;
@@ -441,7 +441,7 @@ void *WorkloadManager::TransportTracks(void *)
       // Record tracks
 //      ninput = ntotransport;
       if (basket->GetNoutput()) {
-         Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter);
+         Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter.load());
       } 
 //      if (counter==1) input.PrintTracks();  
 /*
@@ -535,7 +535,7 @@ void *WorkloadManager::TransportTracks(void *)
 */
       // Check
       if (basket->GetNinput()) {
-         Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter);
+         Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter.load());
       }   
 //      noutput = basket->GetNoutput();
 /*
@@ -555,7 +555,7 @@ void *WorkloadManager::TransportTracks(void *)
             }
          }
          if (!found)  {
-            Printf("Track %d of event %d not found, counter=%d", itrack[itr],iev[itr], counter);
+            Printf("Track %d of event %d not found, counter=%d", itrack[itr],iev[itr], counter.load());
 //            output.PrintTracks();
          }   
       }

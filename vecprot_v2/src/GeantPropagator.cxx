@@ -580,7 +580,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
 #endif
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
-          fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
+          fNprimaries.load(), fNtransported.load(), fNsafeSteps.load(), fNsnextSteps.load(),fNphysSteps.load(),rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops())/rtime);
 #ifdef USE_VECGEOM_NAVIGATOR
