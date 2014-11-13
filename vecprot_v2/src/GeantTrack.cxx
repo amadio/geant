@@ -16,6 +16,9 @@
   #include "TGeoNode.h"
  #endif
 namespace Math {
+#ifndef GEANT_CUDA_BOTH_CODE
+#define GEANT_CUDA_BOTH_CODE
+#endif
  template <typename T> GEANT_CUDA_BOTH_CODE T Min(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Min(val1,val2); }
  template <typename T> GEANT_CUDA_BOTH_CODE T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
 }
@@ -1340,20 +1343,24 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 #ifdef USE_VECGEOM_NAVIGATOR
 void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const
 {
-    VECGEOM_NAMESPACE::NavigationState a( VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth() );
-    a.Clear();
+    VECGEOM_NAMESPACE::NavigationState *a = VECGEOM_NAMESPACE::NavigationState::MakeInstance(
+             VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth() );
+    a->Clear();
     VECGEOM_NAMESPACE::SimpleNavigator nav;
     nav.LocatePoint( VECGEOM_NAMESPACE::GeoManager::Instance().GetWorld(),
-                   VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>( fXposV[itr], fYposV[itr], fZposV[itr] ), a, true );
-    if( a.Top() != NULL && a.Top() != fPathV[itr]->Top() )
+                   VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>( fXposV[itr], fYposV[itr], fZposV[itr] ), *a, true );
+    if( a->Top() != NULL && a->Top() != fPathV[itr]->Top() )
     {
        Printf("INCONSISTENT LOCATION PATH PAIR PRODUCED FOR TRACK %d",itr);
        Printf("REAL");
-       a.GetCurrentNode()->Print();
+       a->GetCurrentNode()->Print();
        Printf("REPORTED");
        fPathV[itr]->GetCurrentNode()->Print();
    //  print_trace();
     }
+
+    // release object
+    VECGEOM_NAMESPACE::NavigationState::ReleaseInstance( a );
 }
 #endif
 
@@ -1586,7 +1593,13 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  
 #endif
      // TODO: We should provide this function as a static function
     VECGEOM_NAMESPACE::SimpleNavigator simplenav;
-    VECGEOM_NAMESPACE::NavigationState tmpstate( *end[itr] );
+
+    // this creates a tmpstate and copies in the state from end[itr]
+    // we should avoid the creation of a state object here and rather use
+    // some thread data?
+    // was: VECGEOM_NAMESPACE::NavigationState tmpstate( *end[itr] );
+    // new:
+    VECGEOM_NAMESPACE::NavigationState * tmpstate = VECGEOM_NAMESPACE::NavigationState::MakeInstance(end[itr]->GetMaxLevel());
 
     // cross check with answer from ROOT
 #ifdef CROSSCHECK
@@ -1598,12 +1611,12 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  
     bool samepath = simplenav.HasSamePath(
                      VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr],fYposV[itr],fZposV[itr]),
                      *start[itr],
-                     tmpstate);
+                     *tmpstate);
     if( !samepath )
     {
        //Printf("CORRECTING STATE FOR TRACK %d", itr);
       // start[itr]->GetCurrentNode()->Print();
-       *end[itr]=tmpstate;
+       tmpstate->CopyTo(end[itr]);
       // end[itr]->GetCurrentNode()->Print();
       // assert(end[itr]->Top() != start[itr]->Top());
     }
@@ -1643,6 +1656,8 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  
     delete sb;
     delete eb;
 #endif // CROSSCHECK
+    VECGEOM_NAMESPACE::NavigationState::ReleaseInstance( tmpstate );
+
     return samepath;
 }
 #else
