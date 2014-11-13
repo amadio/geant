@@ -223,7 +223,7 @@ public:
 
 private:
    GeantTrack_v(const GeantTrack_v &track_v); // not allowed
-   GeantTrack_v &operator=(const vecprot_v2/inc/GeantTrack.hGeantTrack_v &track_v); // not allowed
+   GeantTrack_v &operator=(const GeantTrack_v &track_v); // not allowed
 
 public:   
    GeantTrack_v();
