@@ -190,6 +190,9 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   G4cout.unsetf(std::ios::scientific);
 #endif
 #if NAVTEST
+  static int nstep = 0;
+  static int nfail = 0;
+  ++nstep;
   G4double point[3];
   G4double dir[3];
   G4double norm = pstart.mag();
@@ -198,22 +201,21 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
      point[0]=xstart.x()*0.1;point[1]=xstart.y()*0.1;point[2]=xstart.z()*0.1;
      dir[0]=pstart.x()*norm;dir[1]=pstart.y()*norm;dir[2]=pstart.z()*norm;
      const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
-
-     G4TouchableHandle coldHandle;
-     GetNavigator()->LocateGlobalPointAndUpdateTouchableHandle(xstart,dstart,coldHandle,false);
-     G4VTouchable *coldTouch = coldHandle();
+     G4TouchableHistory *coldTouch = new G4TouchableHistory();
+     GetNavigator()->LocateGlobalPointAndUpdateTouchable(xstart,dstart,coldTouch,false);
      const char *cvol="\0";
-     if(coldTouch) 
-	cvol = coldTouch->GetVolume()->GetLogicalVolume()->GetName().c_str();
+     cvol = coldTouch->GetVolume()->GetLogicalVolume()->GetName().c_str();
 
      //	 printf("Now in %s\n",rvol);
      if(strcmp(rvol,gvol) || strcmp(rvol,cvol)) {
-	printf("==========================================  MISMATCH ==========================================\n");
+	++nfail;
+	printf("========================================== MISMATCH %5.1f%% ==========================================\n",100.*nfail/nstep);
 	printf("ROOT vol %s Geant4 vol %s Geant 4 cold vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,cvol,safety, snext, step->GetStepLength());
 	// Root part
 	const char *rpath = gGeoManager->GetPath();
 	printf("ROOT    path %s\n",rpath);
 	char rpoint[2048] = "\0";
+	strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",point[0],point[1],point[2]));
 	for ( Int_t i=0; i<gGeoManager->GetLevel(); ++i) {
 	   Double_t plocal[3];
 	   gGeoManager->GetMotherMatrix(gGeoManager->GetLevel()-1-i)->MasterToLocal(point,plocal);
