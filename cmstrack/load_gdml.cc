@@ -112,11 +112,17 @@ int main(int argc,char **argv)
 
    runManager->Initialize();
 
+   G4VPhysicalVolume* world = G4TransportationManager::GetTransportationManager()->
+      GetNavigatorForTracking()->GetWorldVolume();
+
    if (argc>=3)
    {
-      parser.Write(argv[2], G4TransportationManager::GetTransportationManager()->
-                   GetNavigatorForTracking()->GetWorldVolume()->GetLogicalVolume());
+      parser.Write(argv[2], world->GetLogicalVolume());
    }
+
+   G4Navigator *secondNavigator = new G4Navigator();
+   secondNavigator->SetWorldVolume(world);
+   G01SteppingAction::Instance()->SetNavigator(secondNavigator);
 
    if(!stat("random_start.rand",&sb)) {
       printf("Setting the random number from file\n");

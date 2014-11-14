@@ -35,6 +35,7 @@
 #include "globals.hh"
 
 class G4LogicalVolume;
+class G4Navigator;
 
 /// Stepping action class
 /// 
@@ -61,9 +62,14 @@ class G01SteppingAction : public G4UserSteppingAction
 
     // get methods
     G4double GetEnergy() const { return fEnergy; }
+
+    G4Navigator* GetNavigator() const {return fNavigator;}
+    void SetNavigator(G4Navigator *nav) {fNavigator=nav;}
    
   private:
     static G01SteppingAction* fgInstance;  
+
+    G4Navigator *fNavigator;
   
     G4double  fEnergy;
 };

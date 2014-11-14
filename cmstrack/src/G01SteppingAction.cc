@@ -198,12 +198,21 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
      point[0]=xstart.x()*0.1;point[1]=xstart.y()*0.1;point[2]=xstart.z()*0.1;
      dir[0]=pstart.x()*norm;dir[1]=pstart.y()*norm;dir[2]=pstart.z()*norm;
      const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
+
+     G4TouchableHandle coldHandle;
+     GetNavigator()->LocateGlobalPointAndUpdateTouchableHandle(xstart,dstart,coldHandle,false);
+     G4VTouchable *coldTouch = coldHandle();
+     const char *cvol="\0";
+     if(coldTouch) 
+	cvol = coldTouch->GetVolume()->GetLogicalVolume()->GetName().c_str();
+
      //	 printf("Now in %s\n",rvol);
-     if(strcmp(rvol,gvol)) {
-	printf("\nROOT vol %s != Geant4 vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,safety, snext, step->GetStepLength());
+     if(strcmp(rvol,gvol) || strcmp(rvol,cvol)) {
+	printf("==========================================  MISMATCH ==========================================\n");
+	printf("ROOT vol %s Geant4 vol %s Geant 4 cold vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,cvol,safety, snext, step->GetStepLength());
 	// Root part
 	const char *rpath = gGeoManager->GetPath();
-	printf("ROOT path %s\n",rpath);
+	printf("ROOT    path %s\n",rpath);
 	char rpoint[2048] = "\0";
 	for ( Int_t i=0; i<gGeoManager->GetLevel(); ++i) {
 	   Double_t plocal[3];
@@ -211,12 +220,13 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	   strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",plocal[0],plocal[1],plocal[2]));
 	}
 	printf("%s\n",rpoint);
+	// Geant4 live part
 	const G4NavigationHistory *navhistory = touch->GetHistory();
 	char gpath[1024] = "\0";
 	char gpoint[2048] = "\0";
 	for ( G4int i=0; i<=navhistory->GetDepth(); i++ ) {
 	   if(navhistory->GetVolume(i)) {
-	      navhistory->GetVolume(i)->CheckOverlaps(1000,1e-3,FALSE,1);
+	      //	      navhistory->GetVolume(i)->CheckOverlaps(1000,1e-3,FALSE,1);
 	      strcat(gpath,"/");
 	      strcat(gpath,navhistory->GetVolume(i)->GetName().c_str());
 	      strcat(gpath,"_");
@@ -238,8 +248,44 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	   } else 
 	      strcat(gpath,"/<Null>");
 	}
-	printf("G4   path %s\n",gpath);
+	printf("G4      path %s\n",gpath);
 	printf("%s\n",gpoint);
+	// Geant4 "cold start"
+	gpath[0] = '\0';
+	gpoint[0] = '\0';
+	if(coldTouch) {
+	   const G4NavigationHistory *coldHistory = coldTouch->GetHistory();
+	   for ( G4int i=0; i<=coldHistory->GetDepth(); i++ ) {
+	      if(coldHistory->GetVolume(i)) {
+		 //	      coldHistory->GetVolume(i)->CheckOverlaps(1000,1e-3,FALSE,1);
+		 strcat(gpath,"/");
+		 strcat(gpath,coldHistory->GetVolume(i)->GetName().c_str());
+		 strcat(gpath,"_");
+		 switch(coldHistory->GetVolumeType(i)) {
+		 case kNormal:
+		    strcat(gpath,"n");
+		    break;
+		 case kReplica:
+		    strcat(gpath,"n");
+		    break;
+		 case kParameterised:
+		    strcat(gpath,"p");
+		    break;
+		 }
+		 strcat(gpath,Form("%d",coldHistory->GetReplicaNo(i)));
+		 G4AffineTransform gtr = coldHistory->GetTransform(i);
+		 G4ThreeVector ptr = gtr.TransformPoint(xstart);
+		 strcat(gpoint,Form("/%8.03g,%8.03g,%8.03g",ptr.x()*.1,ptr.y()*.1,ptr.z()*.1));
+	      } else 
+		 strcat(gpath,"/<Null>");
+	   }
+	} else {
+	   strcat(gpath,"<Null>");
+	   strcat(gpoint,"<Null>");
+	}
+	printf("G4 cold path %s\n",gpath);
+	printf("%s\n",gpoint);
+
 	//	G4cout << "G4 path " << *navhistory << " Root path " << rpath << G4endl;
      } else {
 	//	    printf("%f %f %f %f\n",fPx,fPy,fPz,norm);
