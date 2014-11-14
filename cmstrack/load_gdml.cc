@@ -55,6 +55,7 @@
 
 #include "G01PrimaryGeneratorAction.hh"
 #include "G01DetectorConstruction.hh"
+#include "G01Field.hh"
 #include "FTFP_BERT.hh"
 #include "G01EventAction.hh"
 #include "G01SteppingAction.hh"
@@ -109,6 +110,17 @@ int main(int argc,char **argv)
    runManager->SetUserAction(new G01PrimaryGeneratorAction);
    runManager->SetUserAction(new G01EventAction);
    runManager->SetUserAction(new G01SteppingAction);
+
+  //-------------------------------------------------------------------------
+  // Magnetic field
+  //-------------------------------------------------------------------------
+
+   G01Field* myField = new G01Field;
+   G4FieldManager* fieldMgr
+      = G4TransportationManager::GetTransportationManager()->
+      GetFieldManager();
+   fieldMgr->SetDetectorField(myField);
+   fieldMgr->CreateChordFinder(myField);
 
    runManager->Initialize();
 
