@@ -15,10 +15,6 @@
 #include <atomic>
 #endif
 
-#ifndef ROOT_TMutex
-#include "TMutex.h"
-#endif
-
 #ifndef ALIGN_PADDING
 #define ALIGN_PADDING 32 
 #endif
@@ -171,20 +167,24 @@ public:
 
 class GeantTrack_v {
 public:
+   static size_t const     cacheline_size = 64;
+   typedef char            cacheline_pad_t [cacheline_size];
 #if __cplusplus >= 201103L
    std::atomic_int   fNtracks;  // number of tracks contained
-#else
-   Int_t     fNtracks;    // number of tracks contained  
-#endif   
+#endif
+   cacheline_pad_t         pad0_;
    Int_t     fMaxtracks;  // max size for tracks
    Int_t     fNselected;  // Number of selected tracks
    TBits     fHoles;      // Bits of holes
    TBits     fSelected;   // Mask of selected tracks for the current operation
    Bool_t    fCompact;    // Flag marking the compactness
+   
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat fStat;  //! Statistics for the track container
 #endif   
-   TMutex    fMutex;      // mutex for the concurrent operations  
+   Int_t     fMaxDepth;   // Maximum geometry depth allowed
+   size_t    fBufSize;    // Size of the internal buffer
+   char     *fVPstart;    // address of volume path buffer
    char     *fBuf;        // buffer holding tracks data
 
    Int_t    *fEventV;     // event numbers
@@ -221,22 +221,20 @@ public:
    void AssignInBuffer(char *buff, Int_t size);
    void CopyToBuffer(char *buff, Int_t size);
 
+private:
+   GeantTrack_v(const GeantTrack_v &track_v); // not allowed
+   GeantTrack_v &operator=(const GeantTrack_v &track_v); // not allowed
+
 public:   
    GeantTrack_v();
-   GeantTrack_v(Int_t size);
-   GeantTrack_v(const GeantTrack_v &track_v);
-   GeantTrack_v &operator=(const GeantTrack_v &track_v);
-   ~GeantTrack_v();
+   GeantTrack_v(Int_t size, Int_t maxdepth);
+   virtual ~GeantTrack_v();
 
+   size_t    BufferSize() const   {return fBufSize;}
    Int_t     Capacity() const     {return fMaxtracks;}
    static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
-#if __cplusplus >= 201103L
    Int_t     GetNtracks() const   {return fNtracks.load();}
    void      SetNtracks(Int_t ntracks) {fNtracks.store(ntracks);}
-#else
-   Int_t     GetNtracks() const   {return fNtracks;}
-   void      SetNtracks(Int_t ntracks) {fNtracks = ntracks;}
-#endif
    Int_t     GetNselected() const {return fNselected;}
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat      &GetTrackStat() {return fStat;}

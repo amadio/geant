@@ -11,7 +11,6 @@ if(HepMC_FOUND)
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
 
-include_directories(inc)
 
 #----------------------------------------------------------------------------
 # Setup include directory for this project
@@ -42,7 +41,12 @@ set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "
 set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "${GEANT5_COMPILE_FLAGS}")
 
 include_directories(inc)
-ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
+
+if(HepMC_FOUND)
+  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsmcLinkDef.h)
+else()
+  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
+endif()
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries

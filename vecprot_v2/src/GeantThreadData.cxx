@@ -55,7 +55,7 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
    fProcStep  = new Double_t[fNprocesses*fMaxPerBasket];
    fFieldPropagator = new TGeoHelix(1,1);
    fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
-   fPath = new VolumePath_t(50); // hardcoded
+   fPath = VolumePath_t::MakeInstance(propagator->fMaxDepth);
 }
 
 //______________________________________________________________________________
@@ -69,7 +69,7 @@ GeantThreadData::~GeantThreadData()
    delete [] fProcStep;
    delete fFieldPropagator;
    delete fRotation;
-   delete fPath;
+   VolumePath_t::ReleaseInstance(fPath);
 }
 
 //______________________________________________________________________________

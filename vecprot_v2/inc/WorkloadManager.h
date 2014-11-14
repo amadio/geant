@@ -6,7 +6,7 @@
 #endif
 
 #include "priority_queue.h"
-#include "rr_pool.h"
+//#include "rr_pool.h"
 #include "GeantObjectPool.h"
 #include "GeantTrack.h"
  
@@ -32,7 +32,6 @@ protected:
    Int_t             *fBtogo;              // array of baskets to be processed in the next generation
    Bool_t             fStarted;            // Start flag
    Bool_t             fStopped;            // Stop flag
-   Bool_t             fWorkDone;           // Flag that a worker has published some result
    priority_queue<GeantBasket*> 
                      *fFeederQ;            // queue of transportable baskets
    priority_queue<GeantBasket*>  
@@ -41,8 +40,8 @@ protected:
                      *fDoneQ;              // Thread "all work done" queue
 //   GeantObjectPool<VolumePath_t>
 //                     *fNavStates;          // Pool of navigation states                  
-   rr_pool<VolumePath_t>
-                     *fNavStates;          // Pool of navigation states                  
+//   rr_pool<VolumePath_t>
+//                     *fNavStates;          // Pool of navigation states                  
    static WorkloadManager *fgInstance;     // Singleton instance
    TList             *fListThreads;        // List of threads
    Bool_t             fFlushed;            // Buffer flushed
@@ -55,6 +54,7 @@ protected:
    std::mutex        *fMutexSch;           // mutex for the scheduler
    std::condition_variable
                      *fCondSch;            // Wait condition for scheduler
+   std::atomic<bool>  fWorkDone;           // Flag that a worker has published some result
 #endif
    WorkloadManager(Int_t nthreads);
 public:
@@ -64,8 +64,8 @@ public:
    priority_queue<GeantBasket*> *TransportedQueue() const {return fTransportedQ;}
    priority_queue<GeantBasket*> *DoneQueue() const {return fDoneQ;}
 //   GeantObjectPool<VolumePath_t>  
-   rr_pool<VolumePath_t>  
-                      *NavStates() const   {return fNavStates;}
+//   rr_pool<VolumePath_t>  
+//                      *NavStates() const   {return fNavStates;}
    Int_t               GetNthreads() const {return fNthreads;}
    Int_t               GetNbaskets() const {return fNbaskets;}
    Int_t              *GetWaiting() const  {return fWaiting;}
@@ -80,8 +80,8 @@ public:
    Bool_t              IsFlushed() const {return fFlushed;}
    Bool_t              IsFilling() const {return fFilling;}
    Bool_t              IsStopped() const {return fStopped;}
-   Bool_t              IsWorkDone() const {return fWorkDone;}
-   void                SetWorkDone(Bool_t flag) {fWorkDone = flag;}
+   Bool_t              IsWorkDone() const {return fWorkDone.load();}
+   void                SetWorkDone(Bool_t flag) {fWorkDone.store(flag);}
    void                Stop()            {fStopped = kTRUE;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}

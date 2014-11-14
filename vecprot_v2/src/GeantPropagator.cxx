@@ -91,6 +91,7 @@ GeantPropagator::GeantPropagator()
                  fNperBasket(10),
                  fMaxPerBasket(10000),
                  fMaxPerEvent(0),
+                 fMaxDepth(0),
                  fNaverage(0.),
                  fVertex(),
                  fEmin(1.E-4), // 100 KeV
@@ -215,22 +216,21 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
 
    // the code below should be executed per track, as the primary vertex can change.
    if (!a) {
+      a = VolumePath_t::MakeInstance(fMaxDepth);
 #ifdef USE_VECGEOM_NAVIGATOR
-      a = new VolumePath_t( GeoManager::Instance().getMaxDepth()  );
       vecgeom::SimpleNavigator nav;
       nav.LocatePoint( GeoManager::Instance().GetWorld(),
                        Vector3D<Precision>(fVertex[0],fVertex[1],fVertex[2]), *a, true );
       vol = a->GetCurrentNode()->GetVolume();
       td->fVolume = vol;
 #else
-     a = new VolumePath_t();
-     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-     if (!nav) nav = gGeoManager->AddNavigator();
-     TGeoNode *node = nav->FindNode(fVertex[0],fVertex[1],fVertex[2]);
-     // *td->fMatrix = nav->GetCurrentMatrix();
-     vol = node->GetVolume();
-     td->fVolume = vol;
-     a->InitFromNavigator(nav);
+      TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+      if (!nav) nav = gGeoManager->AddNavigator();
+      TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
+      // *td->fMatrix = nav->GetCurrentMatrix();
+      vol = node->GetVolume();
+      td->fVolume = vol;
+      a->InitFromNavigator(nav);
 #endif
 
    }
@@ -437,23 +437,14 @@ Bool_t GeantPropagator::LoadVecGeomGeometry()
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename)
 {
-// Load the detector geometry from file.
- // feenableexcept( FE_INVALID );
-
-    Printf("In Load Geometry");
-   if (gGeoManager){
-#if USE_VECGEOM_NAVIGATOR == 1
-       LoadVecGeomGeometry();
-#endif
-       return kTRUE;
-   }
-   Printf("returning early");
+// Load the detector geometry from file, unless already loaded.
    TGeoManager *geom = (gGeoManager)? gGeoManager : TGeoManager::Import(filename);
    if (geom)
        {
 #if USE_VECGEOM_NAVIGATOR == 1
           LoadVecGeomGeometry();
 #endif
+          fMaxDepth = TGeoManager::GetMaxLevels();
           return kTRUE;
        }
    ::Error("LoadGeometry","Cannot load geometry from file %s", filename);
@@ -589,7 +580,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    if(strstr(geomfile,"http://root.cern.ch/files/")) geomname=geomfile+strlen("http://root.cern.ch/files/");
 #endif
    Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, phys steps: %lld, RT=%gs, CP=%gs", 
-          fNprimaries, GetNtransported(), fNsafeSteps, fNsnextSteps,fNphysSteps,rtime,ctime);
+          fNprimaries.load(), fNtransported.load(), fNsafeSteps.load(), fNsnextSteps.load(),fNphysSteps.load(),rtime,ctime);
    Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
    Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops())/rtime);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -598,7 +589,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    Printf("=== Navigation done using TGeo    ====");
 #endif
    Printf("Navstate pool usage statistics:");
-   fWMgr->NavStates()->statistics();
+//   fWMgr->NavStates()->statistics();
 #ifdef GEANTV_OUTPUT_RESULT_FILE
    gSystem->mkdir("results");
    FILE *fp = fopen(Form("results/%s_%d.dat",geomname,single),"w");
