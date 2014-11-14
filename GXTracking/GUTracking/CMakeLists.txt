@@ -234,7 +234,6 @@ include_directories(${CMAKE_SOURCE_DIR}
 )
 
 set(SRC_CPP_RELATIVE
-  src/AOS3D.cpp
   src/GUTrackHandler.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
@@ -298,7 +297,7 @@ endif()
 #------------------------------------------------------------------------------
 
 set(EXECUTABLES
-  ${CMAKE_SOURCE_DIR}/test/${Project}.cpp
+  ${CMAKE_SOURCE_DIR}/test/${Project}.cc
 )
 
 set_source_files_properties(
