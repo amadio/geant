@@ -303,7 +303,7 @@ Int_t TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t 
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
    mxs->Eloss(ntracks, tracks);
 
    //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
@@ -323,7 +323,7 @@ void TTabPhysMgr::ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, I
 // Sample free flight/proposed step for the firts ntracks tracks and store them 
 // in tracks.fPstepV  
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
    mxs->ProposeStep(ntracks, tracks, tid);
 }
 
@@ -360,7 +360,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
    Double_t energyLimit = propagator->fEmin;
 
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = ((TMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject());
+   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 
    //1. sampling: a. decay or something else
    //             b. if else then what on what target?

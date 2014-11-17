@@ -3,8 +3,8 @@ void run(Int_t nthreads=4,
 //         const char *geomfile="simple_ecal.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="ExN03.root",
-	 const char *xsec="xsec_FTFP_BERT.root",
-	 const char *fstate="fstate_FTFP_BERT.root")
+	 const char *xsec="xsec_FTFP_BERT_G496p02.root",
+	 const char *fstate="fstate_FTFP_BERT_G496p02.root")
 {
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");

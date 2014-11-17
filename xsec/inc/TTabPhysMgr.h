@@ -75,7 +75,7 @@ private:
    TTabPhysMgr& operator=(const TTabPhysMgr &);//no imp.
 
    // current version number
-   static const Int_t fgVersion=1000001;
+   static const Int_t fgVersion=1000002;
 
    ClassDef(TTabPhysMgr,2)
 };

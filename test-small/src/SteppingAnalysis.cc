@@ -1,7 +1,7 @@
 #include <string>
 
 #include "SteppingAnalysis.hh"
-#include "HistogramManager.hh"
+//#include "HistogramManager.hh"
 
 #include "G4SystemOfUnits.hh"
 #include "G4Step.hh"
@@ -35,15 +35,15 @@
 #include "TabulatedProcess.hh"
 
 SteppingAnalysis::SteppingAnalysis():
-   theHisto(HistogramManager::Instance())
+   theHisto(0)
 
 {
-  theHisto->BookHistograms();
+  //theHisto->BookHistograms();
 }
 
 SteppingAnalysis::~SteppingAnalysis() 
 {
-  if(theHisto) delete theHisto;
+//  if(theHisto) delete theHisto;
 }
 
 void SteppingAnalysis::DoIt(const G4Step * theStep) 

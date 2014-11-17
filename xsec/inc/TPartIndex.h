@@ -119,7 +119,7 @@ private:
    
    static TPartIndex *fgPartIndex;
 
-   const Int_t   fVersion=1000001;
+   const Int_t   fVersion=1000002;
 
    static const Int_t   fgNProc=FNPROC;    // Number of processes
    static const char   *fgPrName[FNPROC];  // Process name
