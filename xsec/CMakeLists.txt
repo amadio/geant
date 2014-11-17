@@ -11,7 +11,6 @@ if(HepMC_FOUND)
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
 
-
 #----------------------------------------------------------------------------
 # Setup include directory for this project
 #
@@ -28,8 +27,10 @@ file(GLOB headers inc/T*.h inc/GunGenerator.h)
 
 if(HepMC_FOUND)
   add_definitions(-DHEPMC)
-  set(sources "${sources} src/HepMCGenerator.cxx")
-  set(headers "${headers} inc/HepMCGenerator.h")
+  file(GLOB _mcg_cxx src/HepMCGenerator.cxx)
+  file(GLOB _mcg_h   src/HepMCGenerator.cxx)
+  set(sources ${sources} ${_mcg_cxx})
+  set(headers ${headers} ${_mcg_h})
 endif()
 
 set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
