@@ -39,6 +39,7 @@
 #include "PhysicsList.hh"
 #include "SimplePhysicsList.hh"
 
+#include "G4StepLimiterPhysics.hh"
 #include "QBBC.hh"
 #include "FTFP_BERT.hh"
 #include "FTFP_BERT_HP.hh"
@@ -148,11 +149,20 @@ int main(int argc,char** argv)
 
   // Set physics list
   if(!strcmp(physListName,"QBBC")) {
-    runManager->SetUserInitialization(new QBBC);
+    G4VModularPhysicsList* physicsList = new QBBC;
+    physicsList->RegisterPhysics(new G4StepLimiterPhysics());
+    runManager->SetUserInitialization(physicsList); 
+//    runManager->SetUserInitialization(new QBBC);
   } else if(!strcmp(physListName,"FTFP_BERT")) {
-    runManager->SetUserInitialization(new FTFP_BERT);
+    G4VModularPhysicsList* physicsList = new FTFP_BERT;
+    physicsList->RegisterPhysics(new G4StepLimiterPhysics());
+    runManager->SetUserInitialization(physicsList); 
+//    runManager->SetUserInitialization(new FTFP_BERT);
   } else if(!strcmp(physListName,"FTFP_BERT_HP")) {
-    runManager->SetUserInitialization(new FTFP_BERT_HP);
+    G4VModularPhysicsList* physicsList = new FTFP_BERT_HP;
+    physicsList->RegisterPhysics(new G4StepLimiterPhysics());
+    runManager->SetUserInitialization(physicsList); 
+//    runManager->SetUserInitialization(new FTFP_BERT_HP);
   } else if(!strcmp(physListName,"TABPHYS")) {
     runManager->SetUserInitialization(new SimplePhysicsList);
     RunAction::isTabPhys = TRUE;  
@@ -172,7 +182,7 @@ int main(int argc,char** argv)
   runManager->SetUserAction(new EventAction);
   //
   runManager->SetUserAction(new SteppingAction);
-  
+
   // Initialize G4 kernel
   //
   runManager->Initialize();
@@ -191,7 +201,6 @@ int main(int argc,char** argv)
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
 
-
   // set some optional parameters in tabulated physics in case of TABPHYS 
   if(!strcmp(physListName,"TABPHYS")) {
     TabulatedDataManager::SetVerboseLevel( tabPhysVerboseLevel );
@@ -204,15 +213,14 @@ int main(int argc,char** argv)
     setG4ProductionCut();  
     // setting the tracking cut energy for all registred particles 
     // (value has already been set in Det.Construction)
-    G4ParticleDefinition* particle;
-    G4ProcessManager *pm;
-    G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();     
-    G4int np=theParticleTable->size();
-    for(G4int i=0;i<np;++i)
-     theParticleTable->GetParticle(i)->GetProcessManager()->AddProcess(new G4UserSpecialCuts(),-1,-1,1);     
+//   done in a different way: see physics list setting above!
+//    G4ParticleDefinition* particle;
+//    G4ProcessManager *pm;
+//    G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();     
+//    G4int np=theParticleTable->size();
+//    for(G4int i=0;i<np;++i) {
+//     theParticleTable->GetParticle(i)->GetProcessManager()->AddProcess(new G4UserSpecialCuts(),-1,-1,1);     
   }
-
-   
 
   if (isBachMode) {  // batch mode
       G4String command = "/control/execute ";
