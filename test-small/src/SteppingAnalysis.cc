@@ -96,23 +96,23 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	G4eBremsstrahlung* eproc = (G4eBremsstrahlung*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_eBrem->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_eBrem->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
 	dedx = eproc->GetDEDX(kineticEnergy,couple);
-	theHisto->p_dedx_eBrem->Fill(logKineticEnergy,dedx);
+	//	theHisto->p_dedx_eBrem->Fill(logKineticEnergy,dedx);
 	
 	// secondaries
 	for (unsigned int isec = 0 ; isec < fSecondaryVector->size() ; isec++){
 	  G4Track* fSecondaryTrack = (*fSecondaryVector)[isec];
 	  secondaryKE = fSecondaryTrack->GetKineticEnergy()/GeV;
-	  theHisto->h_secKE_eBrem->Fill(log10(secondaryKE));
+	  //	  theHisto->h_secKE_eBrem->Fill(log10(secondaryKE));
 	}
       }
       if (procName == "eBremeBrem") {
 	TabulatedProcess* eproc = (TabulatedProcess*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_eBrem->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_eBrem->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
 	/*
 	dedx = eproc->GetDEDX(kineticEnergy,couple);
@@ -130,17 +130,17 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	G4eIonisation* eproc = (G4eIonisation*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if (meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_eIoni->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_eIoni->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
 	dedx = eproc->GetDEDX(kineticEnergy,couple);
-	theHisto->p_dedx_eIoni->Fill(logKineticEnergy,dedx);
+	//	theHisto->p_dedx_eIoni->Fill(logKineticEnergy,dedx);
       }
 
       if (procName == "eIonieIoni") {
 	TabulatedProcess* eproc = (TabulatedProcess*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if (meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_eIoni->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_eIoni->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
 	//	dedx = eproc->GetDEDX(kineticEnergy,couple);
 	//	theHisto->p_dedx_eIoni->Fill(logKineticEnergy,dedx);
@@ -154,28 +154,28 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	G4ComptonScattering* eproc = (G4ComptonScattering*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_compt->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_compt->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
 	
 	// secondaries
 	for (unsigned int isec = 0 ; isec < fSecondaryVector->size() ; isec++){
 	  G4Track* fSecondaryTrack = (*fSecondaryVector)[isec];
 	  secondaryKE = fSecondaryTrack->GetKineticEnergy()/GeV;
-	  theHisto->h_secKE_compt->Fill(log10(secondaryKE));
+	  //	  theHisto->h_secKE_compt->Fill(log10(secondaryKE));
 	}
       }
       if(procName == "phot") {
 	G4PhotoElectricEffect* eproc = (G4PhotoElectricEffect*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_phot->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_phot->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
       }
       if(procName == "conv") {
 	G4GammaConversion* eproc = (G4GammaConversion*) proc;
 	meanFreePath = eproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_conv->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_conv->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
       }
     }
@@ -187,7 +187,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_hBrems->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_hBrems->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
       }
       if(procName == "hIoni") {
@@ -195,7 +195,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_hIoni->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_hIoni->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
       }
       if(procName == "hPairProd") {
@@ -203,7 +203,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->MeanFreePath(*atrack);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_hPairProd->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_hPairProd->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
       }
       if(procName == "hadElastic") {
@@ -211,7 +211,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->GetMeanFreePath(*atrack,previousStepSize,&aCondition);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_hadElastic->Fill(logKineticEnergy,1.0/meanFreePath);
+	   //	  theHisto->p_xsec_hadElastic->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
       }
       if(procName == "pi-Inelastic") {
@@ -220,18 +220,18 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->GetMeanFreePath(*atrack,previousStepSize,&aCondition);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_pim_Inelastic->Fill(logKineticEnergy,
-					       1./meanFreePath);
-	  theHisto->p_nsec_pim_Inelastic->Fill(logKineticEnergy,
-					       fSecondaryVector->size());
+	   //	  theHisto->p_xsec_pim_Inelastic->Fill(logKineticEnergy,
+	   //					       1./meanFreePath);
+	   //	  theHisto->p_nsec_pim_Inelastic->Fill(logKineticEnergy,
+	   //					       fSecondaryVector->size());
 
 	  for (unsigned int isec = 0; isec < fSecondaryVector->size();isec++) {
 	    G4Track* fSecondaryTrack = (*fSecondaryVector)[isec];
 	    secondaryKE = fSecondaryTrack->GetKineticEnergy()/GeV;
 	    if(secondaryKE>0.0) {
-	      theHisto->p_esec_pim_Inelastic->Fill(logKineticEnergy,
-						   secondaryKE);
-	      theHisto->h_esec_pim_Inelastic->Fill(log10(secondaryKE/GeV));
+	       //	      theHisto->p_esec_pim_Inelastic->Fill(logKineticEnergy,
+	       //			   secondaryKE);
+	       //	      theHisto->h_esec_pim_Inelastic->Fill(log10(secondaryKE/GeV));
 	    }
 	  }
 	}
@@ -241,8 +241,8 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->GetMeanFreePath(*atrack,previousStepSize,&aCondition);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_pip_Inelastic->Fill(logKineticEnergy,
-					       1./meanFreePath);
+	   //	  theHisto->p_xsec_pip_Inelastic->Fill(logKineticEnergy,
+	   //					       1./meanFreePath);
 	}
       }
       if(procName == "neutronInelastic") {
@@ -250,7 +250,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	meanFreePath = 
 	  hproc->GetMeanFreePath(*atrack,previousStepSize,&aCondition);
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
-	  theHisto->p_xsec_N_Inelastic->Fill(logKineticEnergy,1./meanFreePath);
+	   //	  theHisto->p_xsec_N_Inelastic->Fill(logKineticEnergy,1./meanFreePath);
 	}
       }
     }
