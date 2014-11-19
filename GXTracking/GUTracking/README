@@ -6,6 +6,7 @@
 
    #vc (minimal)
    export Vc_DIR=${VC_INSTALL_DIR}
+   export VecGeom_DIR=${VECGEOM_INSTALL_DIR}
 
    #
    #root (if ROOT=ON)
@@ -20,7 +21,7 @@
 
    mkdir bin 
    cd bin
-   cmake -DProject=GUTrackingTest -DROOT=ON -DVc_DIR=${Vc_DIR} ..
+   cmake -DProject=GUTrackingTest -DROOT=ON -DVECGEOMROOT=${VecGecm_DIR} -DVc_DIR=${Vc_DIR} ..
    make
    ./GUTrackingTest
 
