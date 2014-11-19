@@ -176,7 +176,10 @@ endif()
 # Backend configuration
 #------------------------------------------------------------------------------
 
-if (VC_ACCELERATION OR Vc)
+find_package(VecGeom REQUIRED)
+if( VECGEOM_FOUND )
+
+  if (VC_ACCELERATION OR Vc)
 
   find_package(Vc REQUIRED)
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})
@@ -186,6 +189,7 @@ if (VC_ACCELERATION OR Vc)
     set(SRC_EXTERNAL ${SRC_EXTERNAL} source/backend/vc/Backend.cpp)
   endif()
 
+  endif()
 endif()
 
 if (Cilk)
