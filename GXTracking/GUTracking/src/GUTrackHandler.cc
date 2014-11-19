@@ -1,11 +1,13 @@
 #include "GUTrackHandler.h"
 #include "GURandom.h"
 #include <cmath>
+#include <iostream>
+#include "mm_malloc.h"
 
 GUTrackHandler::GUTrackHandler()
   : fNumberOfTracks(0),
     fTrack_aos(0),
-    fTrack_soa(0)
+    fBuffer(0)
 {
 }
 
@@ -27,65 +29,67 @@ void GUTrackHandler::SetNumberOfTracks(size_t nTracks)
 void GUTrackHandler::Deallocate()
 {
   if(fNumberOfTracks > 0) {
-    free(fTrack_aos);  
-    free(fTrack_soa);  
+    _mm_free(fTrack_aos);  
+    _mm_free(fBuffer);  
   }
 }
 
 void GUTrackHandler::Allocate(size_t nTracks)
 {
   SetNumberOfTracks(nTracks);
+
   if(fNumberOfTracks > 0) {
-    fTrack_aos = (GUTrack *) malloc (fNumberOfTracks*sizeof(GUTrack));
-    char* buffer_soa = (char *) malloc (sizeof(int)+
-				fNumberOfTracks*sizeof(GUTrack));
+    fTrack_aos = (GUTrack *)_mm_malloc (fNumberOfTracks*sizeof(GUTrack),32);
+
+    char* fBuffer = (char *) _mm_malloc (sizeof(int)+
+					fNumberOfTracks*sizeof(GUTrack),
+					32);
 
     const int offset_int = fNumberOfTracks*sizeof(int);
     const int offset_double = fNumberOfTracks*sizeof(double);
 
-    char* buffer = buffer_soa;
-    buffer += sizeof(int);
+    fBuffer += sizeof(int);
+    
+    fTrack_soa.status       = (int*)fBuffer; 
+    fBuffer += offset_int;
 
-    fTrack_soa->status       = (int*) buffer; 
-    buffer += offset_int;
+    fTrack_soa.particleType = (int*) fBuffer;
+    fBuffer += offset_int;
 
-    fTrack_soa->particleType = (int*) buffer;
-    buffer += offset_int;
+    fTrack_soa.id           = (int*) fBuffer;
+    fBuffer += offset_int;
 
-    fTrack_soa->id           = (int*) buffer;
-    buffer += offset_int;
+    fTrack_soa.parentId     = (int*) fBuffer;
+    fBuffer += offset_int;
 
-    fTrack_soa->parentId     = (int*) buffer;
-    buffer += offset_int;
+    fTrack_soa.proc         = (int*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->proc         = (int*) buffer;
-    buffer += offset_double;
+    fTrack_soa.x            = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->x            = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.y            = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->y            = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.z            = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->z            = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.px           = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->px           = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.py           = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->py           = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.pz           = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->pz           = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.E            = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->E            = (double*) buffer;
-    buffer += offset_double;
+    fTrack_soa.q            = (double*) fBuffer;
+    fBuffer += offset_double;
 
-    fTrack_soa->q            = (double*) buffer;
-    buffer += offset_double;
-
-    fTrack_soa->s            = (double*) buffer;
+    fTrack_soa.s            = (double*) fBuffer;
   }
 }
 
@@ -118,7 +122,7 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
   double const ecalRmax = 1520.;
   double const ecalZmax = 3000.;
 
-  fTrack_soa->numTracks = fNumberOfTracks;
+  fTrack_soa.numTracks = fNumberOfTracks;
 
   for(size_t i = 0 ; i < fNumberOfTracks ; ++i){
     
@@ -135,23 +139,24 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     sinphi = std::sin(phi);
     sintheta = std::sin(theta);
     
-    (fTrack_soa->status)[i]       = fTrack_aos[i].status = 0;
-    (fTrack_soa->proc)[i]         = fTrack_aos[i].proc = -1;
-    (fTrack_soa->particleType)[i] = fTrack_aos[i].particleType = -1;
-    (fTrack_soa->id)[i]           = fTrack_aos[i].id = i+1;
-    (fTrack_soa->parentId)[i]     = fTrack_aos[i].parentId = 0;
-    (fTrack_soa->x)[i]            = fTrack_aos[i].x = rho*cosphi;
-    (fTrack_soa->y)[i]            = fTrack_aos[i].y = rho*sinphi; 
-    (fTrack_soa->z)[i]            = fTrack_aos[i].z = z; 
+    (fTrack_soa.status)[i]       = fTrack_aos[i].status = 0;
+    (fTrack_soa.proc)[i]         = fTrack_aos[i].proc = -1;
+    (fTrack_soa.particleType)[i] = fTrack_aos[i].particleType = -1;
+    (fTrack_soa.id)[i]           = fTrack_aos[i].id = i+1;
+    (fTrack_soa.parentId)[i]     = fTrack_aos[i].parentId = 0;
+    (fTrack_soa.x)[i]            = fTrack_aos[i].x = rho*cosphi;
+    (fTrack_soa.y)[i]            = fTrack_aos[i].y = rho*sinphi; 
+    (fTrack_soa.z)[i]            = fTrack_aos[i].z = z; 
 
-    (fTrack_soa->q)[i]            = fTrack_aos[i].q = -11;
-    (fTrack_soa->s)[i]            = fTrack_aos[i].s = 1.0; 
+    (fTrack_soa.q)[i]            = fTrack_aos[i].q = -11;
+    (fTrack_soa.s)[i]            = fTrack_aos[i].s = 1.0; 
     		    		    
-    (fTrack_soa->px)[i] = fTrack_aos[i].px = p*sintheta*cosphi;
-    (fTrack_soa->py)[i] = fTrack_aos[i].py = p*sintheta*sinphi;
-    (fTrack_soa->pz)[i] = fTrack_aos[i].pz = p*std::cos(theta);
+    (fTrack_soa.px)[i] = fTrack_aos[i].px = p*sintheta*cosphi;
+    (fTrack_soa.py)[i] = fTrack_aos[i].py = p*sintheta*sinphi;
+    (fTrack_soa.pz)[i] = fTrack_aos[i].pz = p*std::cos(theta);
     
     mass = electron_mass_c2*fTrack_aos[i].q*fTrack_aos[i].q;
-    (fTrack_soa->E)[i]  = fTrack_aos[i].E  = p*p/(sqrt(p*p + mass*mass) + mass);
+    (fTrack_soa.E)[i]  = fTrack_aos[i].E  = p*p/(sqrt(p*p + mass*mass) + mass);
+
   }
 }

@@ -19,7 +19,8 @@ public:
   void Deallocate();
   void Reallocate(size_t nTracks);
 
-  GUTrack* GetTracks() {return fTrack_aos; };
+  GUTrack*   GetAoSTracks() {return fTrack_aos; };
+  GUTrack_v& GetSoATracks() {return fTrack_soa; };
 
   void FillOneTrack(GUTrack* aTrack);
   void GenerateRandomTracks(size_t nTracks, 
@@ -29,8 +30,9 @@ public:
 private:
 
   size_t fNumberOfTracks;
-  GUTrack *fTrack_aos;
-  GUTrack_v *fTrack_soa;
+  GUTrack*  fTrack_aos;
+  GUTrack_v fTrack_soa;
+  char*     fBuffer;
 };
 
 #endif

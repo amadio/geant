@@ -55,8 +55,8 @@ endif()
 if(NOT DEFINED PYTHIA8_DIR)
   MESSAGE(FATAL_ERROR "Please set PYTHIA8_DIR")
 endif()
-set(PYTHIA8_INCLUDE_DIR $ENV{PYTHIA8_DIR}/include)
-set(PYTHIA8_LIBRARIES "-L$ENV{PYTHIA8_DIR}/lib -lpythia8 -llhapdfdummy")
+set(PYTHIA8_INCLUDE_DIR ${PYTHIA8_DIR}/include)
+set(PYTHIA8_LIBRARIES "-L${PYTHIA8_DIR}/lib -lpythia8 -llhapdfdummy")
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project

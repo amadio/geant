@@ -60,6 +60,7 @@
 #include "G4RToEConvForProton.hh"
 #include "G4RegionStore.hh"
 #include "G4EmProcessOptions.hh"
+#include "G4Version.hh"
 
 #include "G4Proton.hh"
 
@@ -1195,7 +1196,11 @@ int main(int argc,char** argv)
                   for(G4int j=0; j<nbins; ++j) {
                     en1=en*delta;
                     // take it only if active at en : resolve problem with e-,e+ CoulombScat
+#if G4VERSION_NUMBER < 1010
                     if(en>=ptEm->MinKinEnergy()) 
+#else
+                    if(en>=G4EmParameters::Instance()->MinKinEnergy()) 
+#endif
                       curxs = ptEm->CrossSectionPerVolume(en,couple);
                     else
                       curxs = 0.;

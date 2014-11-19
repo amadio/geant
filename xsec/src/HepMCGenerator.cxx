@@ -38,7 +38,6 @@ HepMCGenerator::HepMCGenerator(std::string& filename)
 //______________________________________________________________________________
 HepMCGenerator::~HepMCGenerator()
 {
-    input_file->close();
 }
 
 

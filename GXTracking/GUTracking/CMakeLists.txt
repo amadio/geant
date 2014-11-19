@@ -105,8 +105,6 @@ if (VECPHYS_VECTOR)
       "${VECPHYS_COMPILATION_FLAGS_CLANG} -m${VECPHYS_VECTOR}")
 endif()
 
-################################################################################
-
 #------------------------------------------------------------------------------
 # Backend specific
 #------------------------------------------------------------------------------
@@ -235,6 +233,8 @@ include_directories(${CMAKE_SOURCE_DIR}
 
 set(SRC_CPP_RELATIVE
   src/GUTrackHandler.cc
+  src/GUComptonKleinNishina.cc
+  src/GUAliasSampler.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
