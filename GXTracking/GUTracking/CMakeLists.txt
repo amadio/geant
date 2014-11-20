@@ -178,6 +178,7 @@ endif()
 
 find_package(VecGeom REQUIRED)
 if( VECGEOM_FOUND )
+  include_directories(${VECGEOM_INCLUDE_DIR})
 
   if (VC_ACCELERATION OR Vc)
 
