@@ -89,7 +89,9 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
   static int ish;
 
   // Get the navigators
+#if defined(SNEXTG4)
   static G4Transportation* tr = dynamic_cast<G4Transportation*>(G4ProcessTable::GetProcessTable()->FindProcess("Transportation",G4Geantino::Geantino()));
+#endif
   //  static G4EventManager *em = G4EventManager::GetEventManager();
 
   // We get the info at the beg of step
