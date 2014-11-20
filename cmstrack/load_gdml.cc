@@ -87,6 +87,7 @@ int main(int argc,char **argv)
    }
 
    G4GDMLParser parser;
+   //   parser.SetStripFlag(false);
 
 // Uncomment the following if wish to avoid names stripping
 // parser.SetStripFlag(false);
@@ -155,7 +156,7 @@ int main(int argc,char **argv)
    io->OutFile(new TFile("cmstrack.root","recreate"));
 
    // Create root file
-   TGeoManager::Import("cms.gdml");
+   TGeoManager::Import(argv[1]);
    gGeoManager->Write(gGeoManager->GetName());
 
    G4Region *region = G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
@@ -167,13 +168,17 @@ int main(int argc,char **argv)
    G4ProductionCuts *rcuts = new G4ProductionCuts[nlv];
    std::vector<G4double> dcuts(4);
 
+   printf("Setting cuts for %d logical volumes\n",nlv);
+
+   char regname[14];
    for( int ilv=0; ilv<nlv; ++ilv) 
    {
      G4LogicalVolume *glv = (*lvs)[ilv];
      io->AddVolume(glv->GetName());
      io->AddShape(glv->GetSolid()->GetEntityType().c_str());
      double radl = glv->GetMaterial()->GetRadlen();
-     region = new G4Region(G4String("Region_")+glv->GetName());
+     snprintf(regname,13,"Region_%4.4d_",ilv);
+     region = new G4Region(G4String(regname)+glv->GetName());
      region->AddRootLogicalVolume(glv);
      G4double cfact=0.25;
      // Lead Crystals are parametrised in reality

@@ -1,14 +1,15 @@
 void lvid(Int_t event=0, Int_t nmax=1000) {
    if (gFile == 0) new TFile ("event03.root");
    if (gFile == 0) return;
-   TTree *T = (TTree*)gFile->Get(Form("Event%4.4d",event));
-   TH1D *hlvid = new TH1D("hlvid","number of steps per lvid;lvid;number of steps",3500,0.01,3500.01);
-   T->Draw("lvid>>hlvid","","nodraw");
-   Int_t *index = new Int_t[3500];
-   Double_t *array = (Double_t*)hlvid->GetArray();
-   TMath::Sort(3500,array,index);
-   TH1D *hlvidtop = new TH1D("hlvidtop","volume ids sorted by number of steps;lvidord;number of steps",nmax,1,nmax+1);
    TObjArray *volumes = (TObjArray*)gFile->Get("LogicalVolumes");
+   Int_t nlv = (volumes->GetEntries()/500+1)*500;
+   TTree *T = (TTree*)gFile->Get(Form("Event%4.4d",event));
+   TH1D *hlvid = new TH1D("hlvid","number of steps per lvid;lvid;number of steps",nlv,0.01,nlv+0.01);
+   T->Draw("lvid>>hlvid","","nodraw");
+   Int_t *index = new Int_t[nlv];
+   Double_t *array = (Double_t*)hlvid->GetArray();
+   TMath::Sort(nlv,array,index);
+   TH1D *hlvidtop = new TH1D("hlvidtop","volume ids sorted by number of steps;lvidord;number of steps",nmax,1,nmax+1);
    for (Int_t i=0;i<nmax;i++) {
       Int_t ind = index[i];
       hlvidtop->SetBinContent(i+1,array[ind]);
@@ -28,14 +29,15 @@ void lvid(Int_t event=0, Int_t nmax=1000) {
    printf("percent = %g\n",percent);
    TPaveText *pave = new TPaveText(0.5,0.4,0.85,0.85,"brNDC");
    Double_t nsteps = hlvid->GetEntries();
-   pave->AddText(Form("per cent of steps in    1 lvids = %g",100*hlvidtop->Integral(1,   1)/nsteps));
-   pave->AddText(Form("per cent of steps in    5 lvids = %g",100*hlvidtop->Integral(1,   5)/nsteps));
-   pave->AddText(Form("per cent of steps in   10 lvids = %g",100*hlvidtop->Integral(1,  10)/nsteps));
-   pave->AddText(Form("per cent of steps in   50 lvids = %g",100*hlvidtop->Integral(1,  50)/nsteps));
-   pave->AddText(Form("per cent of steps in  100 lvids = %g",100*hlvidtop->Integral(1, 100)/nsteps));
-   pave->AddText(Form("per cent of steps in  200 lvids = %g",100*hlvidtop->Integral(1, 200)/nsteps));
-   pave->AddText(Form("per cent of steps in  500 lvids = %g",100*hlvidtop->Integral(1, 500)/nsteps));
-   pave->AddText(Form("per cent of steps in 1000 lvids = %g",100*hlvidtop->Integral(1,1000)/nsteps));
+   pave->SetTextAlign(12);
+   pave->AddText(Form("per cent of steps in    1 lvids = %5.1f",100*hlvidtop->Integral(1,   1)/nsteps));
+   pave->AddText(Form("per cent of steps in    5 lvids = %5.1f",100*hlvidtop->Integral(1,   5)/nsteps));
+   pave->AddText(Form("per cent of steps in   10 lvids = %5.1f",100*hlvidtop->Integral(1,  10)/nsteps));
+   pave->AddText(Form("per cent of steps in   50 lvids = %5.1f",100*hlvidtop->Integral(1,  50)/nsteps));
+   pave->AddText(Form("per cent of steps in  100 lvids = %5.1f",100*hlvidtop->Integral(1, 100)/nsteps));
+   pave->AddText(Form("per cent of steps in  200 lvids = %5.1f",100*hlvidtop->Integral(1, 200)/nsteps));
+   pave->AddText(Form("per cent of steps in  500 lvids = %5.1f",100*hlvidtop->Integral(1, 500)/nsteps));
+   pave->AddText(Form("per cent of steps in 1000 lvids = %5.1f",100*hlvidtop->Integral(1,1000)/nsteps));
    pave->Draw();
    c1->Print("c1.pdf");
    TCanvas *c2 = new TCanvas("c2","c2");

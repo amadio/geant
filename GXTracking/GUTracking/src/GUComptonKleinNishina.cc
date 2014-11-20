@@ -40,6 +40,9 @@ GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     Vc::double_v EVc( &inProjectile.E[i]); // loads energies into a VC-"register" type called EVc
     Vc::double_v deltaVc(0.1*i);
     Vc::double_v xVc = fAliasSampler->Sample<kVc>(EVc,deltaVc);
+
+    //TODO: write back result xVc somewhere
+    // xVc.store(/* some address*/);
   }
 }    
 

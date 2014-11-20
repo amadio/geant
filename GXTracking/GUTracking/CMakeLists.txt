@@ -176,7 +176,11 @@ endif()
 # Backend configuration
 #------------------------------------------------------------------------------
 
-if (VC_ACCELERATION OR Vc)
+find_package(VecGeom REQUIRED)
+if( VECGEOM_FOUND )
+  include_directories(${VECGEOM_INCLUDE_DIR})
+
+  if (VC_ACCELERATION OR Vc)
 
   find_package(Vc REQUIRED)
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})
@@ -186,6 +190,7 @@ if (VC_ACCELERATION OR Vc)
     set(SRC_EXTERNAL ${SRC_EXTERNAL} source/backend/vc/Backend.cpp)
   endif()
 
+  endif()
 endif()
 
 if (Cilk)
@@ -219,8 +224,7 @@ if (ROOT)
   link_directories(${ROOT_LIBRARY_DIR})
   link_directories(${ROOT_LIBRARY_DIR}/root) # For natively installed ROOT
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL}
-      Cint Core MathCore RIO Thread Geom Gui Net Hist Graf Graf3d Gpad Tree
-      Rint Postscript Matrix Physics m dl)
+      ${ROOT_LIBRARIES} Geom)
 endif()
 
 #------------------------------------------------------------------------------

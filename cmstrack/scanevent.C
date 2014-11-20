@@ -6,8 +6,10 @@
 #include <TH1F.h>
 #include <THashList.h>
 #include <TTree.h>
+#include <TRandom.h>
+#include <TMath.h>
 
-void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
+void scanevent(Int_t event=0, Bool_t verbose=kFALSE, double zlim=1e10)
 {
 
    double fX;            // x position
@@ -71,7 +73,13 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
 
    int nmiss = 0;
    TH1F *hstep = new TH1F("hstep","Difference of distance to boundary",100,0,0);
-   for(int ipoint=0; ipoint<ev->GetEntries(); ++ipoint) {
+   int npoint = ev->GetEntries();
+   double dperc = 2;
+   int dpoint = 0.01*2*npoint+0.5;
+   for(int ipoint=0; ipoint<npoint; ++ipoint) {
+	
+      if(!(ipoint%dpoint)) printf("Now at %3d%%\n",(int)(100.*ipoint/npoint+0.5));
+	 
       ev->GetEntry(ipoint);
       TParticlePDG *particle = pdg->GetParticle(fPID);
       const char *gvol = lv->At(fLVid)->GetName();
@@ -79,16 +87,55 @@ void scanevent(Int_t event=0, Bool_t verbose=kFALSE)
       double point[3];
       double dir[3];
       double norm = sqrt(fPx*fPx+fPy*fPy+fPz*fPz);
-      if(norm>1e-10 && fSafety > 5e-10) {
-	 norm=1./norm;
-	 point[0]=fX*0.1;point[1]=fY*0.1;point[2]=fZ*0.1;
-	 dir[0]=fPx*norm;dir[1]=fPy*norm;dir[2]=fPz*norm;
-	 const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
-	 //	 printf("Now in %s\n",rvol);
-	 if(strcmp(rvol,gvol)) {
-	    printf("ROOT vol %s != Geant4 vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,fSafety, fSnext, fStep);
-	    nmiss++;
+      if(fSafety > 5e-10 && TMath::Abs(fZ)<zlim) {
+	 if(norm>1e-10) {
+	    norm=1./norm;
+	    dir[0]=fPx*norm;dir[1]=fPy*norm;dir[2]=fPz*norm;
 	 } else {
+	    const double phi = gRandom->Rndm()*TMath::TwoPi();
+	    double costh = 1-2*gRandom->Rndm();
+	    double sinth = TMath::Sqrt((1+costh)*(1-costh));
+	    dir[0] = sinth*TMath::Cos(phi);
+	    dir[1] = sinth*TMath::Sin(phi);
+	    dir[2] = costh;
+	 }
+	 point[0]=fX*0.1;point[1]=fY*0.1;point[2]=fZ*0.1;
+	 const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
+
+	 char rvols [1024];
+	 int lrvol = strlen(rvol);
+	 //
+	 // problem: sometimes root adds an hex number at the end of the name
+	 // if there is a hex number at the end of the file, we create a new
+	 // name without the last four chars
+	 // if the root name does not match either G4 live or G4 cold, we 
+	 // check the root name without the four last hex chars
+	 //
+	 strcpy(rvols,rvol);
+	 bool numbers=lrvol>4;
+	 if(numbers)
+	    for(int i=lrvol-4; i<lrvol; ++i) 
+	       numbers &= (('0'<=rvol[i] && rvol[i]<='9') || ('a'<=rvol[i] && rvol[i]<='f'));
+	 if(numbers) rvols[strlen(rvol)-4]='\0';
+
+
+	 //	 printf("Now in %s\n",rvol);
+	 if(strcmp(rvol,gvol)&&strcmp(rvols,gvol)) {
+	    ++nmiss;
+	    printf("ROOT vol %s != Geant4 vol %s sf %9.3g sn %9.3g st %9.3g mmiss ppm %7.1f\n",rvol,gvol,fSafety, fSnext, fStep, 1000000.*nmiss/npoint);
+	    const char *rpath = gGeoManager->GetPath();
+	    printf("ROOT    path %s\n",rpath);
+	    char rpoint[2048];
+	    rpoint[0]='\0';
+	    strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",point[0],point[1],point[2]));
+	    for ( Int_t i=0; i<gGeoManager->GetLevel(); ++i) {
+	       Double_t plocal[3];
+	       gGeoManager->GetMotherMatrix(gGeoManager->GetLevel()-1-i)->MasterToLocal(point,plocal);
+	       strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",plocal[0],plocal[1],plocal[2]));
+	    }
+	    printf("%s\n",rpoint);
+
+	 } else if(norm>1e-10) {
 	    //	    printf("%f %f %f %f\n",fPx,fPy,fPz,norm);
 	    gGeoManager->FindNextBoundaryAndStep();
 	    hstep->Fill(gGeoManager->GetStep()*10-fStep);

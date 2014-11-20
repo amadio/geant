@@ -42,17 +42,18 @@ class G01DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
  
-    G01DetectorConstruction(G4VPhysicalVolume *setWorld = 0)
-    {   
-      fWorld = setWorld;
-    }
+   G01DetectorConstruction(G4VPhysicalVolume *setWorld = 0):
+      fWorld(setWorld)
+   {}
 
-    virtual G4VPhysicalVolume *Construct()
-    {
+   virtual G4VPhysicalVolume *Construct()
+   {
       return fWorld;
-    }
+   }
 
-  private:
+private:
+   G01DetectorConstruction(const G01DetectorConstruction&); // Not implemented
+   G01DetectorConstruction& operator=(const G01DetectorConstruction&); // Not implemented
 
     G4VPhysicalVolume *fWorld;
 };
