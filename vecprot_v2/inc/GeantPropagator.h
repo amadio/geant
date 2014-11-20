@@ -28,7 +28,7 @@ class TGeoVolume;
 class TGeoHelix;
 class PhysicsProcess;
 class GeantTrack;
-struct GeantEvent;
+class GeantEvent;  
 class GeantBasket;
 class GeantOutput;
 class GeantBasketMgr;
