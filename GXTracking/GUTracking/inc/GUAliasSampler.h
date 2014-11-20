@@ -50,8 +50,8 @@ public:
 
   template<class Backend>
   typename Backend::Double_t
-  SampleX( typename Backend::Int_t  irow,   // ~ sampled value 
-           typename Backend::Int_t  icol,   // ~ input Energy
+  SampleX( typename Backend::Index_t  irow,   // ~ sampled value
+           typename Backend::Index_t  icol,   // ~ input Energy
            typename Backend::Double_t binSize,
            typename Backend::Double_t remainderX  //  in sampled variable
           ) const;
@@ -59,8 +59,8 @@ public:
   template<class Backend>
   FQUALIFIER void
   GetBin( typename Backend::Double_t  kineticEnergy,
-	  typename Backend::Int_t     &irow, 
-	  typename Backend::Int_t     &icol,
+	  typename Backend::Index_t     &irow,
+	  typename Backend::Index_t     &icol,
           typename Backend::Double_t  &t) const;
 
 private:
@@ -98,8 +98,9 @@ Sample( typename Backend::Double_t energyIn,
 {
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::Index_t  Index_t;
 
-  Int_t     irow, icol;
+  Index_t   irow, icol;
   Double_t  fraction;
 
   GetBin<Backend>(energyIn, irow, icol, fraction);
@@ -112,28 +113,28 @@ template<class Backend>
 FQUALIFIER void
 GUAliasSampler::
 GetBin(typename Backend::Double_t  kineticEnergy,
-       typename Backend::Int_t     &irow,
-       typename Backend::Int_t     &icol,
+       typename Backend::Index_t   &irow,
+       typename Backend::Index_t   &icol,
        typename Backend::Double_t  &t) const
 {
   typedef typename Backend::Double_t Double_t;
 
-  irow = floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
+  irow = VECGEOM_NAMESPACE::Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
   Double_t r1 = (fSampledNumEntries-1)*GUUniformRand(0, -1);
-  icol = floor(r1);
+  icol = VECGEOM_NAMESPACE::Floor(r1);
   t = r1 - 1.0*icol;
 }
 
 template<class Backend>
 typename Backend::Double_t
 GUAliasSampler::
-SampleX( typename Backend::Int_t  irow,   // ~ sampled value
-         typename Backend::Int_t  icol,   // ~ input Energy
+SampleX( typename Backend::Index_t  irow,   // ~ sampled value
+         typename Backend::Index_t  icol,   // ~ input Energy
          typename Backend::Double_t rangeSampled,
          typename Backend::Double_t remainderX  //  in sampled variable
         ) const
 {
-  typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::Index_t    Index_t;
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t   Bool_t;
   //  typedef typename Backend::Index_t  Index_t;
@@ -148,7 +149,7 @@ SampleX( typename Backend::Int_t  irow,   // ~ sampled value
   Double_t aliasInd; //  This is really an integer -- could be Index_t !?
   // fill probNA from table
   //  Index_t index = irow*fSampledNumEntries  + icol;
-  Int_t index = irow*fSampledNumEntries  + icol;
+  Index_t index = irow*fSampledNumEntries  + icol;
 
   // Gather
   for( int i=0;i < Double_t::Size; ++i )
@@ -156,8 +157,8 @@ SampleX( typename Backend::Int_t  irow,   // ~ sampled value
     //    int iEntry= ConverfractionoInteger(index[i]);
     //    probNA[i]=    fPDFY[ iEntry ]; // index[i] ];
     //    aliasInd[i]=  fPDFA[ iEntry ]; // index[i] ];
-    probNA[i]=    fProbQ[ index[i] ];
-    aliasInd[i]=  fAlias[ index[i] ];
+    probNA[i]=    fProbQ[ (int) index[i] ];
+    aliasInd[i]=  fAlias[ (int) index[i] ];
   }
   // should investigate here whether gather is supported in Vc
 
@@ -165,13 +166,13 @@ SampleX( typename Backend::Int_t  irow,   // ~ sampled value
 
   // if branch
 
-  MaskedAssign( condition, icol*binSampled ,     xd );   // Stores into xd
-  MaskedAssign( condition, (icol+1)*binSampled , xu );   //        into xu
+  MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
+  MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
 
   // else branch
 
-  MaskedAssign( !condition,  aliasInd*binSampled    , xd );
-  MaskedAssign( !condition, (aliasInd+1)*binSampled , xu );
+  MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
+  MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
   Double_t x = (1 - remainderX) * xd + remainderX* xu;
 

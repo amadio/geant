@@ -13,7 +13,9 @@ GUAliasSampler(int    Zelement,
   fInNumEntries(numEntriesIncoming), 
   fInverseBinIncoming( numEntriesIncoming / incomingMax-incomingMin),
   fSampledNumEntries( numEntriesSampled ),
-  fInverseBinSampled( 1.0 / (numEntriesSampled-1) )  // Careful - convention build / use table!
+  fInverseBinSampled( 1.0 / (numEntriesSampled-1) ),  // Careful - convention build / use table!
+  fZelement(Zelement),
+  fSampledBinSize(/* WHAT TO PUT HERE ?? */)
 {
 }
 
