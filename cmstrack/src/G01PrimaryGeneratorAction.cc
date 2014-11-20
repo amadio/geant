@@ -52,7 +52,8 @@ using protect_CLHEP::GeV;
 static Pythia pythia;
 
 G01PrimaryGeneratorAction::G01PrimaryGeneratorAction()
-   : G4VUserPrimaryGeneratorAction(), fEnergy(1*GeV), fVerbose(FALSE)
+   : G4VUserPrimaryGeneratorAction(), // fEnergy(1*GeV), 
+     fVerbose(FALSE)
 {
    pythia.readString("Beams:eCM = 7000.");
    pythia.readString("HardQCD:all = on");

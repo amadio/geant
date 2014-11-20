@@ -58,7 +58,7 @@ class G01PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
   private:
 
-   G4double fEnergy;
+   // G4double fEnergy;
    G4bool   fVerbose;
 };
 
