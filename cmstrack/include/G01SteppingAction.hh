@@ -67,6 +67,9 @@ class G01SteppingAction : public G4UserSteppingAction
     void SetNavigator(G4Navigator *nav) {fNavigator=nav;}
    
   private:
+   G01SteppingAction(const G01SteppingAction&); // Not implemented
+   G01SteppingAction& operator=(const G01SteppingAction&); // Not implemented
+   
     static G01SteppingAction* fgInstance;  
 
     G4Navigator *fNavigator;

@@ -58,6 +58,9 @@ class VTfileio {
    void SetPrimaries(int prim) {fNprimaries=prim;}
    int  GetPrimaries() const {return fNprimaries;}
  private:
+   VTfileio(const VTfileio &); // Not implemented
+   VTfileio& operator=(const VTfileio &); // Not implemented
+
    VTfileio();
    static VTfileio *fgInstance;
    TFile *fOutFile; // output file

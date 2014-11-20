@@ -60,9 +60,10 @@ G01SteppingAction* G01SteppingAction::Instance()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G01SteppingAction::G01SteppingAction()
-: G4UserSteppingAction(),
-  fEnergy(0.)
+G01SteppingAction::G01SteppingAction(): 
+   G4UserSteppingAction(),
+   fNavigator(0),
+   fEnergy(0)
 { 
   fgInstance = this;
 }
