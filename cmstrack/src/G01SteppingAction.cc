@@ -207,10 +207,34 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
      cvol = coldTouch->GetVolume()->GetLogicalVolume()->GetName().c_str();
 
      //	 printf("Now in %s\n",rvol);
-     if(strcmp(rvol,gvol) || strcmp(rvol,cvol)) {
+     char rvols [1024];
+     G4int lrvol = strlen(rvol);
+
+     // problem: sometimes root adds an hex number at the end of the name
+     // if there is a hex number at the end of the file, we create a new
+     // name without the last four chars
+     // if the root name does not match either G4 live or G4 cold, we 
+     // check the root name without the four last hex chars
+     strcpy(rvols,rvol);
+     G4bool numbers=lrvol>4;
+     if(numbers)
+	for(int i=lrvol-4; i<lrvol; ++i) 
+	   numbers &= (('0'<=rvol[i] && rvol[i]<='9') || ('a'<=rvol[i] && rvol[i]<='f'));
+     if(numbers) rvols[strlen(rvol)-4]='\0';
+
+     G4bool rhgdiff=false;
+     G4bool rcgdiff=false;
+
+     rhgdiff = strcmp(rvol,gvol);
+     if(rhgdiff && numbers) rhgdiff = strcmp(rvols,gvol);
+
+     rcgdiff = strcmp(rvol,cvol);
+     if(rcgdiff && numbers) rcgdiff = strcmp(rvols,cvol);
+
+     if(rhgdiff || rcgdiff) {
 	++nfail;
-	printf("========================================== MISMATCH %5.1f%% ==========================================\n",100.*nfail/nstep);
-	printf("ROOT vol %s Geant4 vol %s Geant 4 cold vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,gvol,cvol,safety, snext, step->GetStepLength());
+	printf("========================================== MISMATCH %6.1f ppm ==========================================\n",1000000.*nfail/nstep);
+	printf("ROOT vol %s/%s Geant4 vol %s Geant 4 cold vol %s sf %9.3g sn %9.3g st %9.3g\n",rvol,rvols,gvol,cvol,safety, snext, step->GetStepLength());
 	// Root part
 	const char *rpath = gGeoManager->GetPath();
 	printf("ROOT    path %s\n",rpath);
