@@ -32,6 +32,9 @@ public:
                  int    numEntriesSampled 
                  );  
 
+  ~GUAliasSampler();
+  void PrintTable();
+
   template<class Backend>
   typename Backend::Double_t
   Sample( typename Backend::Double_t energyIn, 
@@ -74,8 +77,8 @@ private:
   
   //  For the sampled variable 
   const int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
-  const double   fSampledBinSize; 
   const double   fInverseBinSampled; 
+  const double   fSampledBinSize; 
   // Values needed per bin 
   //  -- Initialised how ??
   double*  fSampledMin; // Minimum value of 'x' sampled variable
@@ -97,7 +100,6 @@ Sample( typename Backend::Double_t energyIn,
     typename Backend::Double_t deltaY ) const
 {
   typedef typename Backend::Double_t Double_t;
-  typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Index_t  Index_t;
 
   Index_t   irow, icol;
@@ -120,7 +122,7 @@ GetBin(typename Backend::Double_t  kineticEnergy,
   typedef typename Backend::Double_t Double_t;
 
   irow = VECGEOM_NAMESPACE::Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
-  Double_t r1 = (fSampledNumEntries-1)*GUUniformRand(0, -1);
+  Double_t r1 = (fSampledNumEntries-1)*Double_t::Random();
   icol = VECGEOM_NAMESPACE::Floor(r1);
   t = r1 - 1.0*icol;
 }
@@ -134,12 +136,11 @@ SampleX( typename Backend::Index_t  irow,   // ~ sampled value
          typename Backend::Double_t remainderX  //  in sampled variable
         ) const
 {
-  typedef typename Backend::Index_t    Index_t;
-  typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t   Bool_t;
-  //  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
 
-  Double_t r1 = GUUniformRand(0,-1);
+  Double_t r1 = Double_t::Random();//GUUniformRand(0,-1);
 
   Double_t xd, xu;
   Double_t binSampled = rangeSampled * fInverseBinSampled;
@@ -157,6 +158,7 @@ SampleX( typename Backend::Index_t  irow,   // ~ sampled value
     //    int iEntry= ConverfractionoInteger(index[i]);
     //    probNA[i]=    fPDFY[ iEntry ]; // index[i] ];
     //    aliasInd[i]=  fPDFA[ iEntry ]; // index[i] ];
+    
     probNA[i]=    fProbQ[ (int) index[i] ];
     aliasInd[i]=  fAlias[ (int) index[i] ];
   }
@@ -178,6 +180,5 @@ SampleX( typename Backend::Index_t  irow,   // ~ sampled value
 
   return x;
 }
-
 
 #endif

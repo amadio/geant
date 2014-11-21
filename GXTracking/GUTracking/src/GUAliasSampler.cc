@@ -8,22 +8,32 @@ GUAliasSampler(int    Zelement,
                int    numEntriesSampled   
 )  
   :
+  fZelement(Zelement),
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
   fInNumEntries(numEntriesIncoming), 
-  fInverseBinIncoming( numEntriesIncoming / incomingMax-incomingMin),
+  fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
   fSampledNumEntries( numEntriesSampled ),
   fInverseBinSampled( 1.0 / (numEntriesSampled-1) ),  // Careful - convention build / use table!
-  fZelement(Zelement),
-  fSampledBinSize(/* WHAT TO PUT HERE ?? */)
+  fSampledBinSize(1.0/* WHAT TO PUT HERE ?? */)
 {
+  fpdf = new double [fInNumEntries*fSampledNumEntries];
+  fProbQ = new double [fInNumEntries*fSampledNumEntries];
+  fAlias = new int [fInNumEntries*fSampledNumEntries];
 }
 
+GUAliasSampler::~GUAliasSampler()
+{
+  if(fpdf)   delete [] fpdf;
+  if(fProbQ) delete [] fProbQ;
+  if(fAlias) delete [] fAlias;
+}
 
 void GUAliasSampler::BuildAliasTables( const int nrow,
                                        const int ncol,
                                        double   *pdf )
 {
+
   // Build alias and alias probability
   //    
   // Reference: (1) A.J. Walker, "An Efficient Method for Generating Discrete 
@@ -40,7 +50,6 @@ void GUAliasSampler::BuildAliasTables( const int nrow,
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-
   //temporary array
   int *a = (int*)malloc(ncol*sizeof(int)); 
   double *ap = (double*)malloc(ncol*sizeof(double)); 
@@ -51,12 +60,12 @@ void GUAliasSampler::BuildAliasTables( const int nrow,
   for(int ir = 0; ir < nrow ; ++ir) {
 
     //copy and initialize
-    for(int i = 0; i < nrow ; ++i) {
+    for(int i = 0; i < ncol ; ++i) {
       fpdf[ir*ncol+i] = pdf[ir*ncol+i];
       a[i] = -1;
       ap[i] = pdf[ir*ncol+i];
     }
-  
+
     //O(n) iterations
     int iter = ncol;
   
@@ -86,8 +95,8 @@ void GUAliasSampler::BuildAliasTables( const int nrow,
       //update pdf 
       ap[donor] = ap[donor] - (cp-ap[recip]);
       ap[recip] = 0.0;
-
       --iter;
+
     }
     while (iter > 0);
   }

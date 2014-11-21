@@ -30,6 +30,10 @@ int main(int argc, char* argv[]) {
 
   model->Interact(track_in,targetElements,&track_out);
 
+  for(int j = 0; j < ntrack ; ++j) {
+    std::cout << "secondary E " <<  (track_out.E)[j] << std::endl;
+  }
+
   delete handler_in;
   delete handler_out;
   delete model;

@@ -5,18 +5,33 @@
 #include "backend/Backend.h"
 #include "backend/vc/Backend.h"
 
-const double electron_mass_c2 = 0.5;
+//move constants to a common header
+static const double electron_mass_c2 = 0.5;
 
 using namespace VECGEOM_NAMESPACE;
 
 FQUALIFIER 
 GUComptonKleinNishina::GUComptonKleinNishina() 
+  :
+  fRandomState(0), fThreadId(-1),
+  fMinX(1.0), fMaxX(1001), fDeltaX(0.1),
+  fMinY(0.), fMaxY(0.), fDeltaY(0.),
+  fNrow(100), fNcol(100)
 {
+  fAliasSampler = new GUAliasSampler(10,fMinX,fMaxX,fNrow,fNcol);
+
+  //eventually arguments of BuildTable should be replaced by members of *this
+  //and dropped from the function signature. Same for BuildPdfTable
+  BuildTable(10,fMinX,fMaxX,fNrow,fNcol);   
+
 }
+
+//need another Ctor with setable parameters
 
 FQUALIFIER 
 GUComptonKleinNishina::~GUComptonKleinNishina() 
 {
+  if(fAliasSampler) delete fAliasSampler;
 }
 
 FQUALIFIER 
@@ -35,14 +50,31 @@ GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
           GUTrack_v* outSecondaryV    // Empty vector for secondaries
           ) const
 {
-  //gather
+  Vc::double_v EVc;
+  Vc::double_v deltaVc = 0.1d; //temproary - this should be dy in BuildPdfTable
+
   for(int i=0; i < inProjectile.numTracks/Vc::double_v::Size ; ++i) {
-    Vc::double_v EVc( &inProjectile.E[i]); // loads energies into a VC-"register" type called EVc
-    Vc::double_v deltaVc(0.1*i);
+
+    // loads energies into a VC-"register" type called EVc
+    // Vc::double_v EVc( &inProjectile.E[i*Vc::double_v::Size]); 
+
+    //gather
+    for(int j = 0; j < Vc::double_v::Size ; ++j) {
+      EVc[j] = inProjectile.E[ i*Vc::double_v::Size + j];
+    }
+
     Vc::double_v xVc = fAliasSampler->Sample<kVc>(EVc,deltaVc);
 
     //TODO: write back result xVc somewhere
     // xVc.store(/* some address*/);
+
+    //store only secondary energy for now
+    //evaluate the scattered angle based on xV
+
+    //scatter
+    for(int j = 0; j < Vc::double_v::Size ; ++j) {
+      outSecondaryV->E[ i*Vc::double_v::Size + j] = xVc[j]; 
+    }
   }
 }    
 
@@ -53,15 +85,14 @@ GUComptonKleinNishina::BuildTable( int Z,
                                    const int nrow,
                                    const int ncol)
 {
-  //for now, the model does not own pdf.  Otherwise, pdf should
-  //be the data member of *this
-
-  double *pdf = (double*) malloc(nrow*ncol*sizeof(double));
+  //for now, the model does not own pdf.  Otherwise, pdf should be the 
+  //data member of *this and set its point to the fpdf of fAliasSampler 
+  double *pdf = new double [nrow*ncol];
 
   BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
   fAliasSampler->BuildAliasTables(nrow,ncol,pdf);
 
-  free(pdf);
+  delete [] pdf;
 }
 
 FQUALIFIER void 
@@ -90,6 +121,7 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
   double dx = (xmax - xmin)/nrow;
   double xo =  xmin + 0.5*dx;
 
+
   for(int i = 0; i < nrow ; ++i) {
     //for each input energy bin
     double x = xo + dx*i;
@@ -99,6 +131,7 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
+
     for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
@@ -109,7 +142,8 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
 
     //normalization
     sum = 1.0/sum;
-    for(int j = 0; i < ncol ; ++j) {
+
+    for(int j = 0; j < ncol ; ++j) {
       p[i*ncol+j] *= sum;
     }
   }

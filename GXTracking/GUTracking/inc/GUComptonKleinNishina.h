@@ -13,12 +13,13 @@ public:
   FQUALIFIER GUComptonKleinNishina(); 
   FQUALIFIER ~GUComptonKleinNishina();
   
-  FQUALIFIER void GetSampleParameters(double x, int &irow, int &icol,
-				      double &t);
+  FQUALIFIER 
+  void GetSampleParameters(double x, int &irow, int &icol,double &t);
+
   // Generate secondaries 
   FQUALIFIER 
   void Interact(GUTrack& projectile,    // In/Out: Updated to new state - choice
-                int      targetElement, // Q: Need Material index instead ? Both int => careful
+                int      targetElement, // Q: Need Material index instead ? 
                 GUTrack* secondary )  const;
 
 #ifndef __CUDA_ARCH__  //  Method relevant only for *Vector* implementation
