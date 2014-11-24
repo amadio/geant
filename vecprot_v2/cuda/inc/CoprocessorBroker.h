@@ -115,43 +115,8 @@ class GeantBasket;
 
 class CoprocessorBroker : public TaskBroker
 {
-private:
-   struct TaskData;
-
 public:
    struct Task;
-   typedef TaskData *Stream;
-   Stream GetNextStream();
-
-   CoprocessorBroker(const CoprocessorBroker&); // not implemented
-   CoprocessorBroker& operator=(const CoprocessorBroker&); // not implemented
-public:
-   CoprocessorBroker();
-   ~CoprocessorBroker();
-
-   bool UploadGeometry(GPVGeometry *geom);
-   bool UploadMagneticField(GXFieldMap** fieldMap);
-
-   bool UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ);
-
-   bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
-
-   bool IsValid() { return fNthreads > 0; }
-   void runTask(int threadid, GeantBasket &basket);
-   Stream launchTask(bool wait = false);
-   Stream launchTask(Task *task, bool wait = false);
-   void waitForTasks();
-
-   long GetTotalWork() { return fTotalWork; }
-
-   int GetNstream() { return fTaskData.size(); }
-
-private:
-   char                  *fdGeometry; // Point to a GPGeomManager in GPU land.
-   DevicePtr<GXFieldMap>  fdFieldMap;
-
-   DevicePtr<GPPhysicsTable>    fd_PhysicsTable;
-   DevicePtr<GPPhysics2DVector> fd_SeltzerBergerData;
 
    struct TaskData : public TaskBroker::TaskData, TObject {
    private:
@@ -201,6 +166,40 @@ private:
 
       ClassDef(TaskData,0);
    };
+
+public:
+   typedef TaskData *Stream;
+   Stream GetNextStream();
+
+   CoprocessorBroker(const CoprocessorBroker&); // not implemented
+   CoprocessorBroker& operator=(const CoprocessorBroker&); // not implemented
+public:
+   CoprocessorBroker();
+   ~CoprocessorBroker();
+
+   bool UploadGeometry(GPVGeometry *geom);
+   bool UploadMagneticField(GXFieldMap** fieldMap);
+
+   bool UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ);
+
+   bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
+
+   bool IsValid() { return fNthreads > 0; }
+   void runTask(int threadid, GeantBasket &basket);
+   Stream launchTask(bool wait = false);
+   Stream launchTask(Task *task, bool wait = false);
+   void waitForTasks();
+
+   long GetTotalWork() { return fTotalWork; }
+
+   int GetNstream() { return fTaskData.size(); }
+
+private:
+   char                  *fdGeometry; // Point to a GPGeomManager in GPU land.
+   DevicePtr<GXFieldMap>  fdFieldMap;
+
+   DevicePtr<GPPhysicsTable>    fd_PhysicsTable;
+   DevicePtr<GPPhysics2DVector> fd_SeltzerBergerData;
 
 public:
    struct Task {
