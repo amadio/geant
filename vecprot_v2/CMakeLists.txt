@@ -65,7 +65,7 @@ set(headers
 #string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
 
 #ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h)
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 #
@@ -73,7 +73,7 @@ ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF inc/LinkDef.h)
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
 
-add_library(Geant_v SHARED ${sources} G__Geant.cxx ${headers} G__Geant.h)
+add_library(Geant_v SHARED ${sources} G__Geant.cxx)
 if( VECGEOM_FOUND )
 target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 # Bug in VC (?), cannot compile without optimisation

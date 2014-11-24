@@ -44,15 +44,15 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 include_directories(inc)
 
 if(HepMC_FOUND)
-  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsmcLinkDef.h)
+  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsmcLinkDef.h)
 else()
-  ROOT_GENERATE_DICTIONARY(xsecCint ${headers} LINKDEF inc/xsecLinkDef.h)
+  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h)
 endif()
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_library(Xsec SHARED ${sources} xsecCint.cxx ${headers} xsecCint.h)
+add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
 if(HepMC_FOUND)
   target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  

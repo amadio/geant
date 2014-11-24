@@ -69,7 +69,7 @@ set(dict_headers ${CUDA_INCDIR}/CoprocessorBroker.h)
 
 set(cuda_cxx_sources
     ${CUDA_SRCDIR}/CoprocessorBroker.cxx
-    G__CudaGeant.cxx
+    G__GeantCuda.cxx
 )
 
 
@@ -169,7 +169,10 @@ set(cuda_sources
 endif()
 
 
-ROOT_GENERATE_DICTIONARY(G__CudaGeant ${dict_headers} LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers} 
+                MODULE libGeantCuda 
+                LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h
+                OPTIONS -I${CUDA_INCLUDE_DIRS} )
 
 # add the command to generate the source code
 add_custom_command (
