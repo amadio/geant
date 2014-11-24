@@ -267,6 +267,7 @@ public:
    void PrintTrack(Int_t itr) const;
    void PrintTracks() const;
 
+   GEANT_CUDA_DEVICE_CODE
    void      NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, 
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
@@ -285,12 +286,10 @@ public:
    Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
    Int_t     PostponeTracks(GeantTrack_v &output);
    //void      PropagateBack(Int_t itr, Double_t crtstep);
-#ifndef __CINT__
    GEANT_CUDA_DEVICE_CODE
    void      ComputeTransportLength(Int_t ntracks);
    GEANT_CUDA_DEVICE_CODE
    void      ComputeTransportLengthSingle(Int_t itr);
-#endif
    void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
    void      PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid);
    Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);

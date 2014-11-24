@@ -1362,6 +1362,7 @@ void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
+GEANT_CUDA_DEVICE_CODE
 void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep,
                        const Double_t *x, const Double_t *y, const Double_t *z,
                        const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
