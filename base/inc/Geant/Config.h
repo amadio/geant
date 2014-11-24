@@ -12,7 +12,7 @@
   // Compiling with nvcc
   #define GEANT_NVCC
   #ifdef __CUDA_ARCH__
-    #define GEANT_CUDA_DEVICE
+     #define GEANT_CUDA_DEVICE_BUILD
   #endif
   #define GEANT_CUDA_DEVICE_CODE __device__
   #define GEANT_CUDA_HOST_CODE __host__

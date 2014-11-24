@@ -1752,21 +1752,24 @@ void GeantTrack_v::PrintTracks() const
 
 #ifdef USE_VECGEOM_NAVIGATOR
 
+GEANT_CUDA_DEVICE_CODE
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 {
-	static Int_t icalls = 0;
-    icalls++;
-    Int_t itr;
-    // call the vector interface of GeantTrack_v
-    NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
-                                 fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
-    // now we should have updated everything
+#ifndef GEANT_CUDA_DEVICE_BUILD
+   static std::atomic<int> icalls(0);
+   ++icalls;
+#endif
+   Int_t itr;
+   // call the vector interface of GeantTrack_v
+   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV,
+                              fPathV, fNextpathV, fSnextV, fSafetyV, fFrombdrV, this);
+   // now we should have updated everything
 
-    // perform a couple of additional checks/ set status flags and so on
-    for (itr=0; itr<ntracks; ++itr) {
-         if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
-         if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
-      }
+   // perform a couple of additional checks/ set status flags and so on
+   for (itr=0; itr<ntracks; ++itr) {
+      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr]<1.E-6) || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
+      if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
+   }
 }
 #else
 //______________________________________________________________________________
@@ -1805,15 +1808,17 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks)
 
 
 #ifdef USE_VECGEOM_NAVIGATOR
+GEANT_CUDA_DEVICE_CODE
 void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
 {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
-   static Int_t icalls = 0;
-   icalls++;
-
-      // inits navigator with current state
+#ifndef GEANT_CUDA_DEVICE_BUILD
+   static std::atomic<int> icalls(0);
+   ++icalls;
+#endif
+   // inits navigator with current state
    //TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    //nav->ResetState();
    //nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
