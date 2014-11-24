@@ -381,7 +381,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
 #ifdef __STAT_DEBUG_TRK
    fStat.InitArrays(gPropagator->fNevents);
 #endif
-#if __cplusplus >= 201103L
+#ifndef GEANT_CUDA_DEVICE_BUILD
    fNtracks.store(track_v.fNtracks);
 #else   
    fNtracks = track_v.fNtracks;
@@ -396,7 +396,7 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
 {
 // Assignment operator
    if (&track_v != this) {
-#if __cplusplus >= 201103L
+#ifndef GEANT_CUDA_DEVICE_BUILD
       fNtracks.store(track_v.fNtracks);
 #else   
       fNtracks = track_v.fNtracks;
@@ -689,6 +689,7 @@ void GeantTrack_v::Resize(Int_t newsize)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
 {
    // Add new track to the array. If addition is done on top of non-compact array,
@@ -698,7 +699,11 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
    Int_t itrack = GetNtracks();
    if (!fCompact) itrack = fHoles.FirstSetBit();
    if (itrack==fMaxtracks) {
+#ifndef GEANT_CUDA_DEVICE_BUILD
       Resize(2*fMaxtracks);
+#else
+      printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
+#endif
    }   
    fHoles.ResetBitNumber(itrack);
    fSelected.ResetBitNumber(itrack);
@@ -801,6 +806,7 @@ void GeantTrack_v::GetTrack(Int_t i, GeantTrack &track) const {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
 {
    // Add track from different array
@@ -813,7 +819,11 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
    Int_t itrack = GetNtracks();
    if (!fCompact) itrack = fHoles.FirstSetBit();
    if (itrack==fMaxtracks) {
+#ifndef GEANT_CUDA_DEVICE_BUILD
       Resize(2*fMaxtracks);
+#else
+      printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
+#endif
    }   
    fHoles.ResetBitNumber(itrack);
    fSelected.ResetBitNumber(itrack);
@@ -1074,7 +1084,9 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
 #ifdef __STAT_DEBUG_TRK
    for (Int_t i=from; i<=to; i++) fStat.fNtracks[fEvslotV[i]]--;
 #endif
+#ifndef GEANT_CUDA_DEVICE_BUILD
    if (!fCompact) Printf("RemoveTracks: Not compact");
+#endif
    Int_t ntracks = GetNtracks();
    if (to >= ntracks-1) {
       Int_t nzero = ntracks-from;
@@ -1261,6 +1273,7 @@ void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 {
 // Propagate the selected track with crtstep value. The method is to be called
@@ -1281,19 +1294,25 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
    if (fPstepV[i]<1.E-10) {
       fPstepV[i] = 0;
       fStatusV[i] = kPhysics;
+#ifndef GEANT_CUDA_DEVICE_BUILD
       gPropagator->fNphysSteps++;
+#endif
    }
    fSafetyV[i] -= crtstep;
    if (fSafetyV[i]<1.E-10) {
       fSafetyV[i] = 0;
+#ifndef GEANT_CUDA_DEVICE_BUILD
       if (!fFrombdrV[i]) gPropagator->fNsafeSteps++;
+#endif
    }
    fSnextV[i] -= crtstep;
    if (fSnextV[i]<1.E-10) {
       fSnextV[i] = 0;
       if (fFrombdrV[i]) {
          fStatusV[i] = kBoundary;
+#ifndef GEANT_CUDA_DEVICE_BUILD
          gPropagator->fNsnextSteps++;
+#endif
       }
    }
    fStepV[i] += crtstep;
@@ -1577,6 +1596,7 @@ void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t **start, Volume
 
 #ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t ** start,  VolumePath_t ** end)
 {
 #ifdef VERBOSE
@@ -1973,7 +1993,9 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
          fZposV[itr] += fSnextV[itr]*fZdirV[itr];
          fSnextV[itr] = 0;
          fNstepsV[itr]++;
+#ifndef GEANT_CUDA_DEVICE_BUILD
          gPropagator->fNsnextSteps++;  // should use atomics
+#endif
          MarkRemoved(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
 //            CheckLocationPathConsistency(itr);
@@ -2071,6 +2093,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage)
 {
 // Propagate the tracks with their selected steps in a single loop,
@@ -2112,7 +2135,9 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
             fZposV[itr] += fSnextV[itr]*fZdirV[itr];
             fSnextV[itr] = 0;
             fNstepsV[itr]++;
+#ifndef GEANT_CUDA_DEVICE_BUILD
             gPropagator->fNsnextSteps++;
+#endif
             MarkRemoved(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
 //            CheckLocationPathConsistency(itr);
@@ -2132,7 +2157,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
          // Select step to propagate as the minimum among the "safe" step and:
          // the straight distance to boundary (if frombdr=1) or the proposed  physics
          // step (frombdr=0)
-         step = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr]+10*TGeoShape::Tolerance())
+         step = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr]+10*gTolerance)
                                  : Math::Min(lmax, fPstepV[itr]);
 //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
          PropagateInVolumeSingle(itr,step,tid);
@@ -2214,6 +2239,7 @@ Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output)
 {
    // Postpone transport of a track and copy it to the output.

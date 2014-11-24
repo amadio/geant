@@ -251,7 +251,9 @@ class GeantTrack_v {
 public:
    static size_t const     cacheline_size = 64;
    typedef char            cacheline_pad_t [cacheline_size];
-#if __cplusplus >= 201103L
+#ifdef GEANT_CUDA_DEVICE_BUILD
+   int   fNtracks;  // number of tracks contained
+#else
    std::atomic_int   fNtracks;  // number of tracks contained
 #endif
    cacheline_pad_t         pad0_;
@@ -315,18 +317,27 @@ public:
    size_t    BufferSize() const   {return fBufSize;}
    Int_t     Capacity() const     {return fMaxtracks;}
    static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
+#ifdef GEANT_CUDA_DEVICE_BUILD
+   GEANT_CUDA_DEVICE_CODE
+   Int_t     GetNtracks() const   {return fNtracks; }
+   void      SetNtracks(Int_t ntracks) {fNtracks = ntracks;}
+#else
    Int_t     GetNtracks() const   {return fNtracks.load();}
    void      SetNtracks(Int_t ntracks) {fNtracks.store(ntracks);}
+#endif
    Int_t     GetNselected() const {return fNselected;}
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat      &GetTrackStat() {return fStat;}
 #endif   
+   GEANT_CUDA_DEVICE_CODE
    Int_t     AddTrack(GeantTrack &track, Bool_t import=kFALSE);
    Int_t     AddTrackSync(GeantTrack &track);
+   GEANT_CUDA_DEVICE_CODE
    Int_t     AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import=kFALSE);
    Int_t     AddTrackSync(GeantTrack_v &arr, Int_t i);
    void      AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t import=kFALSE);
    void      CheckTracks();
+   GEANT_CUDA_DEVICE_CODE
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
    void      DeleteTrack(Int_t itr);
@@ -356,6 +367,7 @@ public:
                        VolumePath_t **pathin, VolumePath_t **pathout,
                        Double_t *step, Double_t *safe, Bool_t *isonbdr, const GeantTrack_v *trk);
    void      NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
+   GEANT_CUDA_DEVICE_CODE
    Bool_t    NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end);
 
    //void InspectGeometryState(Int_t itr) const;
@@ -365,6 +377,7 @@ public:
 #endif
 
    TransportAction_t PostponedAction(Int_t ntracks) const;
+   GEANT_CUDA_DEVICE_CODE
    Int_t     PostponeTrack(Int_t itr, GeantTrack_v &output);
    Int_t     PostponeTracks(GeantTrack_v &output);
    //void      PropagateBack(Int_t itr, Double_t crtstep);
@@ -373,9 +386,11 @@ public:
    GEANT_CUDA_DEVICE_CODE
    void      ComputeTransportLengthSingle(Int_t itr);
    void      PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
+   GEANT_CUDA_DEVICE_CODE
    void      PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid);
    Int_t     PropagateStraight(Int_t ntracks, Double_t *crtstep);
    Int_t     PropagateTracks(GeantTrack_v &output, Int_t tid);
+   GEANT_CUDA_DEVICE_CODE
    Int_t     PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage=0);
    
    void      Resize(Int_t newsize);
@@ -384,12 +399,16 @@ public:
    void      SwapTracks(Int_t i, Int_t j);
 // Track methods
    Double_t           Beta(Int_t i)  const {return fPV[i]/fEV[i];}
+   GEANT_CUDA_DEVICE_CODE
    Double_t           Curvature(Int_t i) const;
+   GEANT_CUDA_DEVICE_CODE
    Double_t           SafeLength(Int_t i, Double_t eps=1.E-4);
    Double_t           Gamma(Int_t i) const {return fMassV[i]?fEV[i]/fMassV[i]:TMath::Limits<double>::Max();}
    Double_t           Px(Int_t i) const {return fPV[i]*fXdirV[i];}
    Double_t           Py(Int_t i) const {return fPV[i]*fYdirV[i];}
+   GEANT_CUDA_DEVICE_CODE
    Double_t           Pz(Int_t i) const {return fPV[i]*fZdirV[i];}
+   GEANT_CUDA_DEVICE_CODE
    Double_t           Pt(Int_t i) const {return fPV[i]*Math::Sqrt(fXdirV[i]*fXdirV[i]+fYdirV[i]*fYdirV[i]);}
    static Int_t round_up_align(Int_t num) {
       int remainder = num % ALIGN_PADDING;
