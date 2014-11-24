@@ -15,20 +15,13 @@
   #include "TGeoNavigator.h"
   #include "TGeoNode.h"
  #endif
-namespace Math {
- template <typename T> GEANT_CUDA_BOTH_CODE T Min(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Min(val1,val2); }
- template <typename T> GEANT_CUDA_BOTH_CODE T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
-}
+
 #else // TGeoNavigator as default
  #pragma message("Compiling against TGeo")
  #include <iostream>
  #include "TGeoNavigator.h"
  #include "TGeoNode.h"
  #include "TGeoManager.h"
-namespace Math {
- template <typename T> T Min(T const &val1, T const &val2) { return TMath::Min(val1,val2); }
- template <typename T> T Max(T const &val1, T const &val2) { return TMath::Max(val1,val2); }
-}
 #endif
 
 #include "WorkloadManager.h"
@@ -315,7 +308,7 @@ Double_t GeantTrack::Curvature() const
 // Curvature
    if (fCharge==0) return 0.;
    const Double_t tiny = 1.E-30;
-   return TMath::Abs(kB2C*fCharge*gPropagator->fBmag/(Pt()+tiny));
+   return Math::Abs(kB2C*fCharge*gPropagator->fBmag/(Pt()+tiny));
 }
 
 //______________________________________________________________________________
@@ -1309,7 +1302,7 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 // NOTE: vectorized treatment in TGeoHelix -> todo
    fieldp->SetXYcurvature(c);
    fieldp->SetCharge(fChargeV[i]);
-   fieldp->SetHelixStep(std::fabs(TMath::TwoPi()*Pz(i)/(c*Pt(i))));
+   fieldp->SetHelixStep(std::fabs(Math::TwoPi()*Pz(i)/(c*Pt(i))));
    fieldp->InitPoint(fXposV[i],fYposV[i],fZposV[i]);
    fieldp->InitDirection(fXdirV[i],fYdirV[i], fZdirV[i]);
    fieldp->UpdateHelix();
@@ -1318,7 +1311,7 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
    newdir = fieldp->GetCurrentDirection();
    Double_t dir[3] = {0};
    memcpy(dir,newdir,3*sizeof(Double_t));
-   TMath::Normalize(dir);
+   Math::Normalize(dir);
    fXposV[i] = point[0]; fYposV[i] = point[1]; fZposV[i] = point[2];
    fXdirV[i] = dir[0]; fYdirV[i] = dir[1]; fZdirV[i] = dir[2];
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -2180,26 +2173,30 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
 //   Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
 //   PrintTracks();
    // Compact remaining tracks and move the removed oned to the output container
+#ifndef GEANT_CUDA_DEVICE_BUILD
    if (!fCompact) Compact(&output);
+#endif
    return icrossed;
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Double_t GeantTrack_v::Curvature(Int_t i) const
 {
 // Curvature assuming constant field is along Z
    const Double_t tiny = 1.E-30;
-   return TMath::Abs(kB2C*fChargeV[i]*gPropagator->fBmag/(Pt(i)+tiny));
+   return Math::Abs(kB2C*fChargeV[i]*gPropagator->fBmag/(Pt(i)+tiny));
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Double_t GeantTrack_v::SafeLength(Int_t i, Double_t eps)
 {
 // Returns the propagation length in field such that the propagated point is
 // shifted less than eps with respect to the linear propagation.
    Double_t c = Curvature(i);
    if (c < 1.E-10) return 1.E20;
-   return 2.*TMath::Sqrt(eps/c);
+   return 2.*Math::Sqrt(eps/c);
 }
 
 
