@@ -80,7 +80,7 @@ void GeantScheduler::CreateBaskets()
    fNtracks = new Int_t[fNvolumes];
    memset(fNtracks,0,fNvolumes*sizeof(Int_t));
 #endif   
-   priority_queue<GeantBasket*> *feeder = WorkloadManager::Instance()->FeederQueue();
+   Geant::priority_queue<GeantBasket*> *feeder = WorkloadManager::Instance()->FeederQueue();
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
    GeantBasketMgr *basket_mgr;

@@ -32,11 +32,11 @@ protected:
    Int_t             *fBtogo;              // array of baskets to be processed in the next generation
    Bool_t             fStarted;            // Start flag
    Bool_t             fStopped;            // Stop flag
-   priority_queue<GeantBasket*> 
+   Geant::priority_queue<GeantBasket*>
                      *fFeederQ;            // queue of transportable baskets
-   priority_queue<GeantBasket*>  
+   Geant::priority_queue<GeantBasket*>
                      *fTransportedQ;       // queue of transported baskets
-   priority_queue<GeantBasket*> 
+   Geant::priority_queue<GeantBasket*>
                      *fDoneQ;              // Thread "all work done" queue
 //   GeantObjectPool<VolumePath_t>
 //                     *fNavStates;          // Pool of navigation states                  
@@ -60,9 +60,9 @@ protected:
 public:
    virtual ~WorkloadManager();
    void                CreateBaskets();
-   priority_queue<GeantBasket*> *FeederQueue() const {return fFeederQ;}
-   priority_queue<GeantBasket*> *TransportedQueue() const {return fTransportedQ;}
-   priority_queue<GeantBasket*> *DoneQueue() const {return fDoneQ;}
+   Geant::priority_queue<GeantBasket*> *FeederQueue() const {return fFeederQ;}
+   Geant::priority_queue<GeantBasket*> *TransportedQueue() const {return fTransportedQ;}
+   Geant::priority_queue<GeantBasket*> *DoneQueue() const {return fDoneQ;}
 //   GeantObjectPool<VolumePath_t>  
 //   rr_pool<VolumePath_t>  
 //                      *NavStates() const   {return fNavStates;}

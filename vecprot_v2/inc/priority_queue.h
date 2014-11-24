@@ -10,6 +10,8 @@
 #include <condition_variable>
 #endif
 
+namespace Geant {
+
 template<typename T>
 class priority_queue
 {
@@ -110,4 +112,7 @@ void priority_queue<T>::wait_and_pop(T& data)
   if (countdown_.load()>0) countdown_--;
   lk.unlock();
 }
+
+}
+
 #endif

@@ -57,9 +57,9 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fWorkDone(false)
 {
 // Private constructor.
-   fFeederQ = new priority_queue<GeantBasket*>(1<<16);
-   fTransportedQ = new priority_queue<GeantBasket*>(1<<16);
-   fDoneQ = new priority_queue<GeantBasket*>(1<<10);
+   fFeederQ = new Geant::priority_queue<GeantBasket*>(1<<16);
+   fTransportedQ = new Geant::priority_queue<GeantBasket*>(1<<16);
+   fDoneQ = new Geant::priority_queue<GeantBasket*>(1<<10);
    fgInstance = this;
    fScheduler = new GeantScheduler();
    fWaiting = new Int_t[fNthreads+1];
@@ -205,7 +205,7 @@ void *WorkloadManager::MainScheduler(void *)
    Bool_t countdown = kFALSE;
    WorkloadManager *wm = WorkloadManager::Instance();
    if (wm->fBroker) nworkers -= wm->fBroker->GetNstream();
-   priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
+   Geant::priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
    //priority_queue<GeantBasket*> *transportedQ = wm->TransportedQueue();
    GeantScheduler *sch = wm->GetScheduler();
    // Number of baskets in the queue to transport
@@ -738,7 +738,7 @@ void *WorkloadManager::MonitoringThread(void *)
    Printf("Started monitoring thread...");
 //   GeantPropagator *propagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
-   priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
+   Geant::priority_queue<GeantBasket*> *feederQ = wm->FeederQueue();
    Int_t ntotransport;
    ProcInfo_t  procInfo;
    Double_t rss;

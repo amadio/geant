@@ -9,7 +9,7 @@
 
 template <class T>
 class GeantObjectPool {
-   priority_queue<T>        fPool;      // Concurrent queue used to pool objects
+   Geant::priority_queue<T>        fPool;      // Concurrent queue used to pool objects
    T                *fBlueprint; // Blueprint object from which each new allocation 
                                  // will be copied from. Requires working CC.
 private:
