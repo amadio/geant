@@ -69,8 +69,7 @@ void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat,
 // Temporary switch off MSC !!!
    (void)mat; (void)ntracks; (void)tracks; (void)tid;
    //Apply multiple scattering 
-//   Int_t imat = mat->GetIndex();
-//   fMgr->ApplyMsc(imat, ntracks, tracks, tid);
+//   fMgr->ApplyMsc(mat, ntracks, tracks, tid);
    
 } 
 
@@ -84,8 +83,8 @@ void TTabPhysProcess::Eloss(TGeoMaterial *mat,
                             Int_t tid)
 {
 // Fill energy loss for the tracks according their fStepV
-   Int_t imat = mat->GetIndex();
-   nout = fMgr->Eloss(imat, ntracks, tracks, tid);
+
+   nout = fMgr->Eloss(mat, ntracks, tracks, tid);
 }
 
 //______________________________________________________________________________
@@ -96,8 +95,8 @@ void TTabPhysProcess::ComputeIntLen(TGeoMaterial *mat,
                                       Int_t tid)
 {
 // Tabulated cross section generic process computation of interaction length.
-   Int_t imat = mat->GetIndex();
-   fMgr->ProposeStep(imat, ntracks, tracks, tid);
+
+   fMgr->ProposeStep(mat, ntracks, tracks, tid);
 }                                      
 
 //______________________________________________________________________________

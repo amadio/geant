@@ -261,12 +261,12 @@ void TTabPhysMgr::TransformLF(Int_t /*indref*/, GeantTrack_v &/*tracks*/,
 // NOT ACTIVE NOW
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
+void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 // Compute MSC angle at the beginning of the step and apply it to the vector
 // of tracks.
 // Input: material index, number of tracks in the tracks vector to be used
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
-   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+ 
    TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 //   static Int_t icnt=0;
    Double_t msTheta;
@@ -301,10 +301,10 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-Int_t TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
+Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
-   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+
    TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
    mxs->Eloss(ntracks, tracks);
 
@@ -320,11 +320,11 @@ Int_t TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t 
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Sample free flight/proposed step for the firts ntracks tracks and store them 
 // in tracks.fPstepV  
-   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+
    TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
    mxs->ProposeStep(ntracks, tracks, tid);
 }
