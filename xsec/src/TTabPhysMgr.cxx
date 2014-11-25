@@ -291,7 +291,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 //   Double_t dir[3] = {0.,0.,0.};
    for(Int_t i = 0; i < ntracks; ++i){
       msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
-      msPhi = 2.*TMath::Pi()*rndArray[i];
+      msPhi = 2.*Math::Pi()*rndArray[i];
 /*
       if (icnt<100 && mat->GetZ()>10) {
          Printf("theta=%g  phi=%g", msTheta*TMath::RadToDeg(), msPhi*TMath::RadToDeg());
@@ -451,7 +451,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
       //-compute corFactor = P_current/P_original = Pz_current/Pz_original 
       // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...) 
       Double_t orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx]; 
-      Double_t corFactor   = TMath::Sqrt( curPrimEkin*(curPrimEkin+2.0*primMass) /
+      Double_t corFactor   = Math::Sqrt( curPrimEkin*(curPrimEkin+2.0*primMass) /
                                           (orgPrimEkin*(orgPrimEkin+2.0*primMass)) );
       //-if corFactor is set here to 1.0 --> no correction of the final states
       // corFactor = 1.0;
@@ -470,7 +470,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         // compute corrected P^2 in [GeV^2]
         Double_t postPrimP2 = px*px+py*py+pz*pz;
         // recompute post-interaction Ekin of the primary with corrected 3-momentum
-        postEkinOfParimary = TMath::Sqrt(postPrimP2 + primMass*primMass) - primMass;
+        postEkinOfParimary = Math::Sqrt(postPrimP2 + primMass*primMass) - primMass;
       }
  
       if(postEkinOfParimary > energyLimit) { // survived even after the correction and the E-limit.
@@ -485,10 +485,10 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         // compute corrected P^2 in [GeV^2]
         Double_t postPrimP2 = px*px+py*py+pz*pz;
         // recompute post-interaction Ekin of the primary with corrected 3-momentum
-        postEkinOfParimary = TMath::Sqrt(postPrimP2 + primMass*primMass) - primMass;
+        postEkinOfParimary = Math::Sqrt(postPrimP2 + primMass*primMass) - primMass;
 
         //update primary in tracks
-        Double_t secPtot  = TMath::Sqrt(postPrimP2);               //total P [GeV]
+        Double_t secPtot  = Math::Sqrt(postPrimP2);               //total P [GeV]
         Double_t secEtot  = postEkinOfParimary + tracks.fMassV[t]; //total energy in [GeV]
         tracks.fPV[t]    = secPtot;		//momentum of this particle 
         tracks.fEV[t]    = secEtot;		//total E of this particle 
@@ -527,7 +527,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
           py *= corFactor;
           pz *= corFactor;
           Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-          tracks.fEdepV[t]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+          tracks.fEdepV[t]+= Math::Sqrt( secPtot2 + secMass*secMass) - secMass;
           continue;
         }
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); //Geant V particle code -> particle PGD code
@@ -540,8 +540,8 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
         py *= corFactor;
         pz *= corFactor;
         Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-        Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
-        Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
+        Double_t secPtot  = Math::Sqrt(secPtot2);//total P [GeV]
+        Double_t secEtot  = Math::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
@@ -631,11 +631,11 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
    // check if particle is e+ : e+ annihilation at rest if $E_{limit}< m_{e}c^{2}$ 
    if(partindex == TPartIndex::I()->GetSpecGVIndex(1) ) { 
      if(energyLimit < mecc) {
-       Double_t randDirZ = 1.0-2.0*rndArray[0];     
-       Double_t randSinTheta = TMath::Sqrt(1.0-randDirZ*randDirZ);  
-       Double_t randPhi      = 2.0*rndArray[1]*TMath::Pi(); 
-       Double_t randDirX = randSinTheta*TMath::Cos(randPhi);
-       Double_t randDirY = randSinTheta*TMath::Sin(randPhi);       
+       Double_t randDirZ = 1.0-2.0*rndArray[0];
+       Double_t randSinTheta = Math::Sqrt(1.0-randDirZ*randDirZ);
+       Double_t randPhi      = 2.0*rndArray[1]*Math::Pi();
+       Double_t randDirX = randSinTheta*Math::Cos(randPhi);
+       Double_t randDirY = randSinTheta*Math::Sin(randPhi);
 
     // need to do it one-by-one 
     // 1. gamma   
@@ -718,11 +718,11 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 
    // for a random rotation   
    if(nSecPart) {
-       randDirZ = 1.0-2.0*rndArray[1];     
-       randSinTheta = TMath::Sqrt((1.0-randDirZ)*(1.0+randDirZ));  
-       randPhi      = TMath::TwoPi()*rndArray[2]; 
-       randDirX = randSinTheta*TMath::Cos(randPhi);
-       randDirY = randSinTheta*TMath::Sin(randPhi);
+       randDirZ = 1.0-2.0*rndArray[1];
+       randSinTheta = Math::Sqrt((1.0-randDirZ)*(1.0+randDirZ));
+       randPhi      = Math::TwoPi()*rndArray[2];
+       randDirX = randSinTheta*Math::Cos(randPhi);
+       randDirY = randSinTheta*Math::Sin(randPhi);
    }
 
    //if tehere was any energy deposit add it to parent track doposited energy
@@ -739,7 +739,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        Double_t py = mom[3*i+1];
        Double_t pz = mom[3*i+2];
        Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-       tracks.fEdepV[iintrack]+= TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+       tracks.fEdepV[iintrack]+= Math::Sqrt( secPtot2 + secMass*secMass) - secMass;
        continue;
      }
 
@@ -750,8 +750,8 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
      Double_t py = mom[3*i+1];
      Double_t pz = mom[3*i+2];
      Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-     Double_t secPtot  = TMath::Sqrt(secPtot2);//total P [GeV]
-     Double_t secEtot  = TMath::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
+     Double_t secPtot  = Math::Sqrt(secPtot2);//total P [GeV]
+     Double_t secEtot  = Math::Sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
      // Ekin of the i-th secondary is higher than the threshold
      if(secEkin > energyLimit) { //insert secondary into tracks_v 
@@ -828,7 +828,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
      Double_t by   = tracks.fYdirV[iintrack]*beta; 
      Double_t bz   = tracks.fZdirV[iintrack]*beta;
      Double_t b2   = bx*bx + by*by + bz*bz; //it is beta*beta
-     Double_t gam  = 1.0 / TMath::Sqrt(1.0 - b2);
+     Double_t gam  = 1.0 / Math::Sqrt(1.0 - b2);
      Double_t gam2 = b2>0.0 ? (gam - 1.0)/b2 : 0.0;
 
      for(Int_t isec=0; isec<nSecPart; ++isec) {
@@ -841,7 +841,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
          Double_t py       = mom[3*isec+1];
          Double_t pz       = mom[3*isec+2];
          Double_t secPtot2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-         tracks.fEdepV[iintrack] += TMath::Sqrt( secPtot2 + secMass*secMass) - secMass;
+         tracks.fEdepV[iintrack] += Math::Sqrt( secPtot2 + secMass*secMass) - secMass;
          continue;
        }
 
@@ -852,7 +852,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
        Double_t py = mom[3*isec+1];
        Double_t pz = mom[3*isec+2];
        Double_t secP2 = px*px+py*py+pz*pz;  //total P^2 [GeV^2]
-       Double_t secEtot  = TMath::Sqrt(secP2 + secMass*secMass); //total E [GeV]
+       Double_t secEtot  = Math::Sqrt(secP2 + secMass*secMass); //total E [GeV]
         //Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 
        Double_t bp = bx*px + by*py + bz*pz;
@@ -861,7 +861,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
        pz      = pz + gam2*bp*bz +gam*bz*secEtot;
        secEtot = gam*(secEtot+bp);
 
-       Double_t secPtot = TMath::Sqrt((secEtot-secMass)*(secEtot+secMass));
+       Double_t secPtot = Math::Sqrt((secEtot-secMass)*(secEtot+secMass));
        Double_t secEkin = secEtot-secMass;
        if(secEkin > energyLimit) { //insert secondary into tracks_v 
          GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
@@ -927,7 +927,7 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
      const Double_t half = 0.5; 
 
      Double_t cosTheta0 = oldZdir; 
-     Double_t sinTheta0 = TMath::Sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
+     Double_t sinTheta0 = Math::Sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
      Double_t cosPhi0;
      Double_t sinPhi0;
 
@@ -973,7 +973,7 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
      const Double_t half = 0.5; 
 
      Double_t cosTheta0 = oldZdir; 
-     Double_t sinTheta0 = TMath::Sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
+     Double_t sinTheta0 = Math::Sqrt(oldXdir*oldXdir + oldYdir*oldYdir);
      Double_t cosPhi0;
      Double_t sinPhi0;
 
@@ -1017,11 +1017,11 @@ void TTabPhysMgr::RotateTrack(GeantTrack &track, Double_t theta, Double_t phi){
      const Double_t half = 0.5; 
 
      Double_t cosTheta0 = track.fZdir; 
-     Double_t sinTheta0 = TMath::Sqrt(track.fXdir*track.fXdir +track.fYdir*track.fYdir);
+     Double_t sinTheta0 = Math::Sqrt(track.fXdir*track.fXdir +track.fYdir*track.fYdir);
      Double_t cosPhi0;
      Double_t sinPhi0;
-     Double_t cosTheta = TMath::Cos(theta);
-     Double_t sinTheta = TMath::Sin(theta);
+     Double_t cosTheta = Math::Cos(theta);
+     Double_t sinTheta = Math::Sin(theta);
 
 
      if(sinTheta0 > amin) {
@@ -1032,9 +1032,9 @@ void TTabPhysMgr::RotateTrack(GeantTrack &track, Double_t theta, Double_t phi){
        sinPhi0 = zero;                     
      }
 
-     Double_t h0 = sinTheta*TMath::Cos(phi);
+     Double_t h0 = sinTheta*Math::Cos(phi);
      Double_t h1 = sinTheta0*cosTheta + cosTheta0*h0;
-     Double_t h2 = sinTheta*TMath::Sin(phi);
+     Double_t h2 = sinTheta*Math::Sin(phi);
  
      track.fXdir = h1*cosPhi0 - h2*sinPhi0;
      track.fYdir = h1*sinPhi0 + h2*cosPhi0;
@@ -1066,13 +1066,13 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta
      const Double_t half = 0.5; 
 
      Double_t cosTheta0 = tracks.fZdirV[itrack]; 
-     Double_t sinTheta0 = TMath::Sqrt(tracks.fXdirV[itrack]*tracks.fXdirV[itrack] +
-                                      tracks.fYdirV[itrack]*tracks.fYdirV[itrack]
+     Double_t sinTheta0 = Math::Sqrt(tracks.fXdirV[itrack]*tracks.fXdirV[itrack] +
+                                     tracks.fYdirV[itrack]*tracks.fYdirV[itrack]
                                      );
      Double_t cosPhi0;
      Double_t sinPhi0;
-     Double_t cosTheta = TMath::Cos(theta);
-     Double_t sinTheta = TMath::Sin(theta);
+     Double_t cosTheta = Math::Cos(theta);
+     Double_t sinTheta = Math::Sin(theta);
 
 
      if(sinTheta0 > amin) {
@@ -1083,9 +1083,9 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta
        sinPhi0 = zero;                     
      }
 
-     Double_t h0 = sinTheta*TMath::Cos(phi);
+     Double_t h0 = sinTheta*Math::Cos(phi);
      Double_t h1 = sinTheta0*cosTheta + cosTheta0*h0;
-     Double_t h2 = sinTheta*TMath::Sin(phi);
+     Double_t h2 = sinTheta*Math::Sin(phi);
  
      tracks.fXdirV[itrack] = h1*cosPhi0 - h2*sinPhi0;
      tracks.fYdirV[itrack] = h1*sinPhi0 + h2*cosPhi0;
