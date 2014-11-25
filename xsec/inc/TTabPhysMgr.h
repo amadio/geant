@@ -1,5 +1,7 @@
-#ifndef ROOT_TTabPhysMgr
-#define ROOT_TTabPhysMgr
+#ifndef GEANT_TTabPhysMgr
+#define GEANT_TTabPhysMgr
+
+#include "Geant/Config.h"
 
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
@@ -80,4 +82,4 @@ private:
    ClassDef(TTabPhysMgr,2)
 };
 
-#endif
+#endif // GEANT_TTabPhysMgr

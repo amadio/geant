@@ -4,6 +4,8 @@
 // Generic process for tabulated physics
 //______________________________________________________________________________
 
+#include "Geant/Config.h"
+
 #ifndef GEANT_PHYSICSPROCESS
 #include "PhysicsProcess.h"
 #endif

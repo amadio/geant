@@ -5,6 +5,8 @@
 // - energy loss as continuous process
 // - generic interaction as discrete process, producing secondaries
 
+#include "Geant/Config.h"
+
 #ifndef ROOT_TNamed
 #include "TNamed.h"
 #endif
