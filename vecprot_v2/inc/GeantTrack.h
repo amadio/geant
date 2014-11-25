@@ -3,6 +3,9 @@
 
 #include "Geant/Config.h"
 
+// Include VecGeom's math ...
+#include "backend/Backend.h"
+
 //#include "globals.h"
 #include "TMath.h"
 #include "TBits.h"
@@ -27,7 +30,6 @@
  typedef TGeoBranchArray VolumePath_t;
 #endif
 
-#if USE_VECGEOM_NAVIGATOR == 1
 namespace Math {
    template <typename T> GEANT_CUDA_BOTH_CODE inline T Min(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Min(val1,val2); }
    template <typename T> GEANT_CUDA_BOTH_CODE inline T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
@@ -98,17 +100,6 @@ namespace Math {
    constexpr GEANT_CUDA_BOTH_CODE inline VECGEOM_NAMESPACE::Precision TwoPi() { return 2*3.14159265358979323846; }
 
 }
-#else // TGeoNavigator as default
-namespace Math {
-   template <typename T> inline T Min(T const &val1, T const &val2) { return TMath::Min(val1,val2); }
-   template <typename T> inline T Max(T const &val1, T const &val2) { return TMath::Max(val1,val2); }
-   template <typename T> inline T Sqrt(T const &val) { return TMath::Sqrt(val); }
-   template <typename T> inline T Abs(T const &val) { return TMath::Abs(val); }
-   template <typename T> inline T Normalize(T val[3]) { return TMath::Normalize(val); }
-   inline Double_t TwoPi() { return TMath::TwoPi(); }
-}
-#endif
-
 
 const Double_t kB2C = -0.299792458e-3;
 enum TrackStatus_t {kAlive, kKilled, kInFlight, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew};
