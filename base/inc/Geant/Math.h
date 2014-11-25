@@ -11,6 +11,8 @@ namespace Math {
    template <typename T> GEANT_CUDA_BOTH_CODE inline T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
    template <typename T> GEANT_CUDA_BOTH_CODE inline T Sqrt(T const &val) { return VECGEOM_NAMESPACE::Sqrt(val); }
    template <typename T> GEANT_CUDA_BOTH_CODE inline T Abs(T const &val) { return VECGEOM_NAMESPACE::Abs(val); }
+   template <typename T> GEANT_CUDA_BOTH_CODE inline T Cos(T const &val) { return VECGEOM_NAMESPACE::cos(val); }
+   template <typename T> GEANT_CUDA_BOTH_CODE inline T Sin(T const &val) { return VECGEOM_NAMESPACE::sin(val); }
 
 //  template <typename T> GEANT_CUDA_BOTH_CODE inline T Normalize(T const &val[3]) { return VECGEOM_NAMESPACE::Normalize(val); }
 //  GEANT_CUDA_BOTH_CODE VECGEOM_NAMESPACE::Precision inline TwoPi() { return VECGEOM_NAMESPACE::TwoPi(); }
