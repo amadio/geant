@@ -696,11 +696,11 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
      isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);      
    } else {
      // It has nuclear capture at rest so invoke that
-     // sample one element of the material 
-     TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)]; 
+     // sample one element of the material
+     TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)];
      // stample final state for nuclear capture at-rest
      isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma,
-                                               ener, pid, mom, rndArray[0]);    
+                                               ener, pid, mom, rndArray[0]);
    } 
 
    Double_t randDirX=0;
