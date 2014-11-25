@@ -31,6 +31,9 @@
 
 #include <iostream>
 
+#include "base/RNG.h"
+#include "Geant/Math.h"
+
 ClassImp(TTabPhysMgr)
 
 TTabPhysMgr* TTabPhysMgr::fgInstance = 0;

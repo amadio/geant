@@ -22,7 +22,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TNamed.h>
+#include "Geant/Config.h"
 
 #include <TEXsec.h>
 #include <vector>
