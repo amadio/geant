@@ -1,6 +1,8 @@
 #ifndef TabulatedDataManager_HH
 #define TabulatedDataManager_HH 1
 
+#include "Geant/Config.h"
+
 #include "globals.hh"
 #include <TGeoManager.h>
 #include "GXTrack.hh"
