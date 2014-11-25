@@ -53,18 +53,22 @@ public:
    void  ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
    Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   GEANT_CUDA_DEVICE_CODE
    void  GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid);
    void  SampleDecayInFlight(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid );
 
+   GEANT_CUDA_DEVICE_CODE
    Bool_t HasRestProcess(Int_t gvindex);
 
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack &track);
+   GEANT_CUDA_DEVICE_CODE
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack_v &tracks, Int_t itrack);
    void  RotateTrack(GeantTrack &track, Double_t theta, Double_t phi);
+   GEANT_CUDA_DEVICE_CODE
    void  RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, Double_t phi);
 
 

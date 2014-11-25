@@ -270,13 +270,23 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 // Input: material index, number of tracks in the tracks vector to be used
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
  
+#ifndef GEANT_CUDA_DEVICE_BUILD
    TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+#else
+   TMXsec *mxs = 0; // NOTE: we need to get it from somewhere ....
+   assert(mxs!=0);
+#endif
 //   static Int_t icnt=0;
    Double_t msTheta;
    Double_t msPhi;
 
+#ifndef GEANT_CUDA_DEVICE_BUILD
    Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
    GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+#else
+   Double_t *rndArray = 0; // NOTE: we need to get it from somewhere ....
+   VECGEOM_NAMESPACE::RNG::Instance().uniform_array(ntracks,rndArray,0.,1.);
+#endif
 
 //   Double_t dir[3] = {0.,0.,0.};
    for(Int_t i = 0; i < ntracks; ++i){
@@ -308,7 +318,12 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
 
+#ifndef GEANT_CUDA_DEVICE_BUILD
    TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+#else
+   TMXsec *mxs = 0; // NOTE: we need to get it from somewhere ....
+   assert(mxs!=0);
+#endif
    mxs->Eloss(ntracks, tracks);
 
    //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
@@ -589,16 +604,21 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 // Will be called only if the particle has decay or/and nuclear capture at-rest
 //______________________________________________________________________________
 //will be called recursively if necessary
-void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs, 
-        Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
-        Int_t &nTotSecPart, Int_t tid){
+GEANT_CUDA_DEVICE_CODE
+void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
+        Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack,
+        Int_t &nTotSecPart, Int_t tid) {
    // current track should have already been killed before calling  
    const Double_t mecc = 0.00051099906; //e- mass c2 in [GeV] 
 
    GeantPropagator *propagator =  GeantPropagator::Instance();
    
-   Double_t *rndArray = propagator->fThreadData[tid]->fDblArray;
+   Double_t rndArray[3];
+#ifndef GEANT_CUDA_DEVICE_BUILD
    propagator->fThreadData[tid]->fRndm->RndmArray(3, rndArray);
+#else
+   VECGEOM_NAMESPACE::RNG::Instance().uniform_array(3,rndArray,0.,1.);
+#endif
 
    Int_t nSecPart     = 0;  //number of secondary particles per reaction
    const Int_t   *pid = 0;  //GeantV particle codes [nSecPart]
@@ -943,6 +963,7 @@ void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t ol
 // (oldXdir, oldYdir, oldZdir) is the direction vector of parent track in lab. 
 // frame; direction vector of the current track, measured from local Z is 
 // already updated in GeantTrack track; here we rotate it to lab. frame
+GEANT_CUDA_DEVICE_CODE
 void TTabPhysMgr::RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
                                  GeantTrack_v &tracks, Int_t itrack){
      const Double_t one  = 1.0;  
@@ -1035,6 +1056,7 @@ void TTabPhysMgr::RotateTrack(GeantTrack &track, Double_t theta, Double_t phi){
 // FOR THE itrack-th element of a GeantTrack_v   
 // GeantTrack_v contains the original direction in lab frame; theta and 
 // phi are the scattering angles measured form the particle local Z
+GEANT_CUDA_DEVICE_CODE
 void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, 
                               Double_t phi){
      const Double_t one  = 1.0;  
@@ -1089,6 +1111,7 @@ char* TTabPhysMgr::GetVersion(){
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Bool_t TTabPhysMgr::HasRestProcess(Int_t gvindex){
     return fDecay->HasDecay(gvindex) || fHasNCaptureAtRest[gvindex] ||
            (gvindex == TPartIndex::I()->GetSpecGVIndex(1));
