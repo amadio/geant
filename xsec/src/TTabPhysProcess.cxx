@@ -89,10 +89,10 @@ void TTabPhysProcess::Eloss(TGeoMaterial *mat,
 
 //______________________________________________________________________________
 void TTabPhysProcess::ComputeIntLen(TGeoMaterial *mat, 
-                                      Int_t ntracks, 
-                                      GeantTrack_v &tracks,
-                                      Double_t */*lengths*/, 
-                                      Int_t tid)
+                                    Int_t ntracks,
+                                    GeantTrack_v &tracks,
+                                    Double_t */*lengths*/,
+                                    Int_t tid)
 {
 // Tabulated cross section generic process computation of interaction length.
 
@@ -101,10 +101,10 @@ void TTabPhysProcess::ComputeIntLen(TGeoMaterial *mat,
 
 //______________________________________________________________________________
 void TTabPhysProcess::PostStep(TGeoMaterial *mat,
-                                 Int_t ntracks,
-                                 GeantTrack_v &tracks, 
-                                 Int_t &nout, 
-                                 Int_t tid)
+                               Int_t ntracks,
+                               GeantTrack_v &tracks,
+                               Int_t &nout,
+                               Int_t tid)
 {
 // Do post-step actions on particle after generic tabxsec process. 
 // Surviving tracks copied in trackout.
@@ -114,9 +114,9 @@ void TTabPhysProcess::PostStep(TGeoMaterial *mat,
 
 //______________________________________________________________________________
 void TTabPhysProcess::AtRest(Int_t /*ntracks*/,
-                                 GeantTrack_v &/*tracks*/, 
-                                 Int_t &/*nout*/, 
-                                 Int_t /*tid*/)
+                             GeantTrack_v &/*tracks*/,
+                             Int_t &/*nout*/,
+                             Int_t /*tid*/)
 {
 // Do at rest actions on particle after generic tabxsec process. 
 // Daughter tracks copied in trackout.
