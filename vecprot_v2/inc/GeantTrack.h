@@ -104,7 +104,7 @@ namespace Math {
    template <typename T> inline T Max(T const &val1, T const &val2) { return TMath::Max(val1,val2); }
    template <typename T> inline T Sqrt(T const &val) { return TMath::Sqrt(val); }
    template <typename T> inline T Abs(T const &val) { return TMath::Abs(val); }
-   template <typename T> inline T Normalize(T const &val) { return TMath::Normalize(val); }
+   template <typename T> inline T Normalize(T val[3]) { return TMath::Normalize(val); }
    inline Double_t TwoPi() { return TMath::TwoPi(); }
 }
 #endif
