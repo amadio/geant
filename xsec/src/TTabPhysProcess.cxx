@@ -60,6 +60,7 @@ void TTabPhysProcess::Initialize()
 
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat, 
                                Int_t ntracks, 
                                GeantTrack_v &tracks, 
@@ -75,6 +76,7 @@ void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat,
 
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 void TTabPhysProcess::Eloss(TGeoMaterial *mat,
                             Int_t ntracks, 
                             GeantTrack_v &tracks, 

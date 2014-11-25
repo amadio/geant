@@ -260,6 +260,7 @@ void TTabPhysMgr::TransformLF(Int_t /*indref*/, GeantTrack_v &/*tracks*/,
 
 // NOT ACTIVE NOW
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 // Compute MSC angle at the beginning of the step and apply it to the vector
 // of tracks.
@@ -299,6 +300,7 @@ void TTabPhysMgr::ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 Int_t TTabPhysMgr::Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array

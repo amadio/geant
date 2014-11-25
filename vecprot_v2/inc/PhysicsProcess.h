@@ -48,11 +48,13 @@ public:
                              GeantTrack_v &/*tracks*/, 
                              Int_t &/*nout*/, 
                              Int_t /*tid*/)                             {}
+  GEANT_CUDA_DEVICE_CODE
   virtual void Eloss(        TGeoMaterial */*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
                              Int_t &/*nout*/,
                              Int_t /*tid*/)                                 {}
+  GEANT_CUDA_DEVICE_CODE
   virtual void ApplyMsc(     TGeoMaterial */*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,

@@ -31,7 +31,9 @@ public:
   virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
   virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
   virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  GEANT_CUDA_DEVICE_CODE
   virtual void Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  GEANT_CUDA_DEVICE_CODE
   virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
 
 private:
