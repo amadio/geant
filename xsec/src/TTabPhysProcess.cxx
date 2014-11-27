@@ -99,18 +99,35 @@ void TTabPhysProcess::ComputeIntLen(TGeoMaterial *mat,
    fMgr->ProposeStep(mat, ntracks, tracks, tid);
 }                                      
 
+
 //______________________________________________________________________________
-void TTabPhysProcess::PostStep(TGeoMaterial *mat,
-                               Int_t ntracks,
-                               GeantTrack_v &tracks,
-                               Int_t &nout,
-                               Int_t tid)
+void TTabPhysProcess::PostStepTypeOfIntrActSampling(TGeoMaterial *mat,
+                                                    Int_t ntracks,
+                                                    GeantTrack_v &tracks,
+                                                    Int_t tid)
 {
-// Do post-step actions on particle after generic tabxsec process. 
-// Surviving tracks copied in trackout.
+   // # smapling: target atom and type of the interaction for each primary tracks
+   //             all inf. regarding output of sampling is stored in the tracks  
    Int_t imat = mat->GetIndex();
-   nout = fMgr->SampleInt(imat, ntracks, tracks, tid);
+   fMgr->SampleTypeOfInteractions(imat, ntracks, tracks, tid);
 }
+
+
+//______________________________________________________________________________
+void TTabPhysProcess::PostStepFinalStateSampling(TGeoMaterial *mat,
+                                                 Int_t ntracks,
+                                                 GeantTrack_v &tracks,
+                                                 Int_t &nout,
+                                                 Int_t tid)
+{
+   // # sampling final states for each primary tracks based on target atom and
+   //    interaction type sampled in SampleTypeOfInteractionsInt;
+   // # upadting primary track properties and inserting secondary tracks;
+   // # return: number of inserted secondary tracks  
+   Int_t imat = mat->GetIndex();
+   nout = fMgr->SampleFinalStates(imat, ntracks, tracks, tid);
+}
+
 
 //______________________________________________________________________________
 void TTabPhysProcess::AtRest(Int_t /*ntracks*/,

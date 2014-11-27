@@ -357,28 +357,11 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
    return 0;
 }
 
+// smapling: target atom and type of the interaction for each primary tracks
 //______________________________________________________________________________
-Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks,
+                                            GeantTrack_v &tracks, Int_t tid)
 {
-// 0. ntracks contains particles with status of Alive 
-// 1.Sampling the element of the material for interaction based on the relative 
-// total X-secs of the elements; Sampling the type of the interaction (on the 
-// sampled element) based on the realtive total X-secs of the interactions ;
-// OUT:-indices of the TEXsec* in fElemXsec, that correspond to the sampled 
-//      elements, will be in GeantTrack_v::fEindexV array; GeantTrack_v::fEindexV[i] 
-//      will be -1 if no reaction for i-th particle
-//     -the G5 reaction indices will be in GeantTrack_v::fProcessV array; 
-//      GeantTrack_v::fEindexV[i] will be -1 if no reaction for i-th particle     
-// 2.Sampling the finale states for the selected interaction and store the secondary
-// tracks in tracks; only those traks go into tracks that can pass the energyLimit,
-// Rest process final states will be sampled in case of those secondaries that 
-// stopped. So the status of tracks can be only kAlive in tracks  
-// 4.number of secondary tracks will be returned and original track status will 
-// be updated (if they have been killed) 
-
-   GeantPropagator *propagator = GeantPropagator::Instance();
-   Double_t energyLimit = propagator->fEmin;
-
    TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
    TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 
@@ -387,8 +370,18 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
    //   output of sampling is stored in the tracks 	
    mxs->SampleInt(ntracks, tracks, tid);
 
+}
 
-   //2.
+
+//______________________________________________________________________________
+Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, 
+                                     GeantTrack_v &tracks, Int_t tid)
+{
+   GeantPropagator *propagator = GeantPropagator::Instance();
+   Double_t energyLimit = propagator->fEmin;
+
+   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
  
    // tid-based rng
    Double_t *rndArray = propagator->fThreadData[tid]->fDblArray;
@@ -599,7 +592,39 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
    } //end loop over tracks   
 
   return nTotSecPart;
+
 }
+
+/*
+//______________________________________________________________________________
+Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+{
+// 0. ntracks contains particles with status of Alive 
+// 1.Sampling the element of the material for interaction based on the relative 
+// total X-secs of the elements; Sampling the type of the interaction (on the 
+// sampled element) based on the realtive total X-secs of the interactions ;
+// OUT:-indices of the TEXsec* in fElemXsec, that correspond to the sampled 
+//      elements, will be in GeantTrack_v::fEindexV array; GeantTrack_v::fEindexV[i] 
+//      will be -1 if no reaction for i-th particle
+//     -the G5 reaction indices will be in GeantTrack_v::fProcessV array; 
+//      GeantTrack_v::fEindexV[i] will be -1 if no reaction for i-th particle     
+// 2.Sampling the finale states for the selected interaction and store the secondary
+// tracks in tracks; only those traks go into tracks that can pass the energyLimit,
+// Rest process final states will be sampled in case of those secondaries that 
+// stopped. So the status of tracks can be only kAlive in tracks  
+// 4.number of secondary tracks will be returned and original track status will 
+// be updated (if they have been killed) 
+
+   // # smapling: target atom and type of the interaction for each primary tracks
+   SampleTypeOfInteractions(imat, ntracks, tracks, tid);
+
+   // # sampling final states for each primary tracks based on target atom and
+   //    interaction type sampled in SampleTypeOfInteractionsInt;
+   // # upadting primary track properties and inserting secondary tracks;
+   // # return: number of inserted secondary tracks  
+   return SampleFinalStates(imat, ntracks, tracks, tid);
+}
+*/
 
 // Will be called only if the particle has decay or/and nuclear capture at-rest
 //______________________________________________________________________________
