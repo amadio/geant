@@ -51,7 +51,7 @@ GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
           ) const
 {
   Vc::double_v EVc;
-  Vc::double_v deltaVc = 0.1d; //temproary - this should be dy in BuildPdfTable
+  Vc::double_v deltaVc = 0.1; //temporary - this should be dy in BuildPdfTable
 
   for(int i=0; i < inProjectile.numTracks/Vc::double_v::Size ; ++i) {
 
