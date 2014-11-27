@@ -510,7 +510,40 @@ void *WorkloadManager::TransportTracks(void *)
          if (nphys) {
             // Do post step actions for particles suffering a given process.
             // Surviving particles are added to the output array
-            propagator->Process()->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
+            //propagator->Process()->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
+            
+            // first: sample target and type of interaction for each primary tracks 
+            propagator->Process()->PostStepTypeOfIntrActSampling( 
+                                            td->fVolume->GetMaterial(), 
+                                            nphys,
+                                            output,
+                                            tid);
+
+            //
+            // TODO: vectorized final state sampling can be inserted here through 
+            //       a proper interface code that will:
+            //         1. select the necessary primary tracks based on the alrady
+            //            sampled interaction type
+            //         2. take all the member of the selected primary tracks that
+            //            necessary for sampling the final states
+            //         3. call the appropriate vector physics code that will 
+            //            perform the physics interaction itself
+            //         4. update properties of the selected primary tracks,  
+            //            insert secondary tracks into the track vector and set 
+            //            'ntotnext' to the value of the number of secondary tracks
+            //            inserted to the track vector       
+            //
+
+            // second: sample final states (based on the inf. regarding sampled
+            //         target and type of interaction above), insert them into 
+            //         the track vector, update primary tracks; 
+            propagator->Process()->PostStepFinalStateSampling(
+                                            td->fVolume->GetMaterial(),
+                                            nphys,
+                                            output,
+                                            ntotnext,
+                                            tid); 
+
             if (0 /*ntotnext*/) {
                printf("============= Basket: %s\n", basket->GetName());
                output.PrintTracks();

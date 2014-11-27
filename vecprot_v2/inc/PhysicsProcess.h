@@ -5,6 +5,8 @@
 // - energy loss as continuous process
 // - generic interaction as discrete process, producing secondaries
 
+#include "Geant/Config.h"
+
 #ifndef ROOT_TNamed
 #include "TNamed.h"
 #endif
@@ -37,20 +39,41 @@ public:
                              GeantTrack_v &tracks,
                              Double_t *lengths, 
                              Int_t tid)                             = 0;
+  
   virtual void PostStep(     TGeoMaterial *mat,
                              Int_t ntracks,
                              GeantTrack_v &tracks, 
                              Int_t &nout, 
                              Int_t tid)                             = 0;
+
+  // # smapling: -target atom and type of the interaction for each primary tracks 
+  //             -all inf. regarding sampling output is stored in the tracks
+  virtual void PostStepTypeOfIntrActSampling(     TGeoMaterial *mat,
+                                                  Int_t ntracks,
+                                                  GeantTrack_v &tracks, 
+                                                  Int_t tid)        = 0;
+
+  // # sampling final states for each primary tracks based on target atom and
+  //    interaction type sampled by PostStepTypeOfIntrActSampling;
+  // # upadting primary track properties and inserting secondary tracks;
+  // # number of inserted secondary tracks will be stored in nout at termination 
+  virtual void PostStepFinalStateSampling(        TGeoMaterial *mat, 
+                                                  Int_t ntracks, 
+                                                  GeantTrack_v &tracks,
+                                                  Int_t &nout, 
+                                                  Int_t tid)        = 0;
+
   virtual void AtRest(       Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
                              Int_t &/*nout*/, 
                              Int_t /*tid*/)                             {}
+  GEANT_CUDA_DEVICE_CODE
   virtual void Eloss(        TGeoMaterial */*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
                              Int_t &/*nout*/,
                              Int_t /*tid*/)                                 {}
+  GEANT_CUDA_DEVICE_CODE
   virtual void ApplyMsc(     TGeoMaterial */*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
@@ -69,6 +92,18 @@ public:
   
   virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
   virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  // dummy methods just keep these ancient Scattering class;
+  // however, we shouldn't need them anymore !!! so we should remove this class 
+  virtual void PostStepTypeOfIntrActSampling( TGeoMaterial* /* mat */, 
+                                              Int_t /* ntracks*/, 
+                                              GeantTrack_v &/* tracks*/,
+                                              Int_t /*tid*/) {}
+  virtual void PostStepFinalStateSampling(    TGeoMaterial* /* mat */, 
+                                              Int_t /* ntracks*/, 
+                                              GeantTrack_v &/* tracks*/,
+                                              Int_t & /*nout*/,
+                                              Int_t /*tid*/) {}
+
   ClassDef(ScatteringProcess,1)    // Single scattering process
 };
 
@@ -85,6 +120,19 @@ public:
 //  void                PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin=1e-2, Double_t bgmax=1e6);
   virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
   virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  // dummy methods just keep these ancient ElossProcess class;
+  // however, we shouldn't need them anymore !!! so we should remove this class 
+  virtual void PostStepTypeOfIntrActSampling( TGeoMaterial* /* mat */, 
+                                              Int_t /* ntracks*/, 
+                                              GeantTrack_v &/* tracks*/,
+                                              Int_t /*tid*/) {}
+  virtual void PostStepFinalStateSampling(    TGeoMaterial* /* mat */, 
+                                              Int_t /* ntracks*/, 
+                                              GeantTrack_v &/* tracks*/,
+                                              Int_t & /*nout*/,
+                                              Int_t /*tid*/) {}
+
+
   ClassDef(ElossProcess,1)    // Energy loss process
 };
 
@@ -106,6 +154,19 @@ public:
   
   virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
   virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  // dummy methods just keep these ancient InteractionProcess class;
+  // however, we shouldn't need them anymore !!! so we should remove this class 
+  virtual void PostStepTypeOfIntrActSampling( TGeoMaterial* /* mat */, 
+                                              Int_t /* ntracks*/, 
+                                              GeantTrack_v &/* tracks*/,
+                                              Int_t /*tid*/) {}
+  virtual void PostStepFinalStateSampling(    TGeoMaterial* /* mat */, 
+                                              Int_t /* ntracks*/, 
+                                              GeantTrack_v &/* tracks*/,
+                                              Int_t & /*nout*/,
+                                              Int_t /*tid*/) {}
+
+
   ClassDef(InteractionProcess,1)    // Single scattering process
 };
 

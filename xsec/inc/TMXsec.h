@@ -22,7 +22,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TNamed.h>
+#include "Geant/Config.h"
 
 #include <TEXsec.h>
 #include <vector>
@@ -47,9 +47,11 @@ public:
    Float_t Range(Int_t part, Float_t en);
    Double_t InvRange(Int_t part, Float_t step);
 
+   GEANT_CUDA_DEVICE_CODE
    void Eloss(Int_t ntracks, GeantTrack_v &tracks);
    void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid);
+   GEANT_CUDA_DEVICE_CODE
    Float_t MS(Int_t ipart, Float_t energy);
 
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptotal);

@@ -1,5 +1,7 @@
-#ifndef ROOT_TTabPhysMgr
-#define ROOT_TTabPhysMgr
+#ifndef GEANT_TTabPhysMgr
+#define GEANT_TTabPhysMgr
+
+#include "Geant/Config.h"
 
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
@@ -44,23 +46,42 @@ public:
    void TransformLF(Int_t indref, GeantTrack_v &tracks, Int_t nproducts, Int_t 
             indprod, GeantTrack_v &output);//not. imp. but done
    // API used by particle transport
-   void  ApplyMsc(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   Int_t Eloss(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   void  ProposeStep(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   GEANT_CUDA_DEVICE_CODE
+   void  ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   GEANT_CUDA_DEVICE_CODE
+   Int_t Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   void  ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
-   Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+
+   // # sampling target, type of interaction, final states;
+   // # updating primary track properties and inserting secondary tracks;  
+  // Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+
+   // # smapling: target atom and type of the interaction for each primary tracks
+   void  SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+
+   // # sampling final states for each primary tracks based on target atom and
+   //    interaction type sampled in SampleTypeOfInteractionsInt;
+   // # upadting primary track properties and inserting secondary tracks;
+   // # return: number of inserted secondary tracks  
+   Int_t SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+
+   GEANT_CUDA_DEVICE_CODE
    void  GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid);
    void  SampleDecayInFlight(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
             GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, Int_t tid );
 
+   GEANT_CUDA_DEVICE_CODE
    Bool_t HasRestProcess(Int_t gvindex);
 
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack &track);
+   GEANT_CUDA_DEVICE_CODE
    void  RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir,
             GeantTrack_v &tracks, Int_t itrack);
    void  RotateTrack(GeantTrack &track, Double_t theta, Double_t phi);
+   GEANT_CUDA_DEVICE_CODE
    void  RotateTrack(GeantTrack_v &tracks, Int_t itrack, Double_t theta, Double_t phi);
 
 
@@ -80,4 +101,4 @@ private:
    ClassDef(TTabPhysMgr,2)
 };
 
-#endif
+#endif // GEANT_TTabPhysMgr

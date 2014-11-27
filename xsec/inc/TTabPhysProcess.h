@@ -4,6 +4,8 @@
 // Generic process for tabulated physics
 //______________________________________________________________________________
 
+#include "Geant/Config.h"
+
 #ifndef GEANT_PHYSICSPROCESS
 #include "PhysicsProcess.h"
 #endif
@@ -27,9 +29,36 @@ public:
 
   virtual void Initialize();
   virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
-  virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+
+  // # dummy method: PostStep has been splitted up into two parts (see below)     
+  virtual void PostStep( TGeoMaterial* /*mat*/ , 
+                         Int_t /*ntracks*/, 
+                         GeantTrack_v& /*tracks */,
+                         Int_t& /*nout*/,
+                         Int_t /*tid*/) {}
+
+  // # smapling: -target atom and type of the interaction for each primary tracks 
+  //             -all inf. regarding sampling output is stored in the tracks
+  virtual void PostStepTypeOfIntrActSampling( TGeoMaterial *mat,
+                                              Int_t ntracks, 
+                                              GeantTrack_v &tracks, 
+                                              Int_t tid);
+
+  // # sampling final states for each primary tracks based on target atom and
+  //    interaction type sampled by PostStepTypeOfIntrActSampling;
+  // # upadting primary track properties and inserting secondary tracks;
+  // # number of inserted secondary tracks will be stored in nout at termination 
+  virtual void PostStepFinalStateSampling( TGeoMaterial *mat,
+                                           Int_t ntracks, 
+                                           GeantTrack_v &tracks,
+                                           Int_t &nout, 
+                                           Int_t tid);
+
+
   virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  GEANT_CUDA_DEVICE_CODE
   virtual void Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  GEANT_CUDA_DEVICE_CODE
   virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
 
 private:
