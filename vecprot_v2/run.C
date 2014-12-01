@@ -15,6 +15,8 @@ void run(Int_t nthreads=4,
    // gSystem->Load("../buildTGeo/lib/libXsec");
    gSystem->Load("../lib/libGeant_v");
    gSystem->Load("../lib/libXsec");
+   // for vector physics - OFF now
+   // gSystem->Load("../lib/libVphysproc");
 
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
@@ -30,7 +32,12 @@ void run(Int_t nthreads=4,
    prop->fEmax = 0.03;
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
+
+   // for vector physics -OFF now
+   // prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin);
+
    prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
+
 
    prop->fApplication = new MyApplication();
 

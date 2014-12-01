@@ -13,6 +13,15 @@ endif()
 
 option(CUDA "Enable compilation for CUDA." OFF)
 
+option(USE_VECPHYS "Enable activation of vector physics." OFF)
+if(USE_VECPHYS)
+  add_definitions(-DUSE_VECPHYS)
+  message(STATUS "USE_VECPHYS ON  : Vector physics is active !")
+else()
+  message(STATUS "USE_VECPHYS OFF : Vector physics is NOT active !")
+endif()
+
+
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )
     set(OUTDIR ${GEANT_OUTPUT_DIR})
@@ -160,5 +169,9 @@ add_subdirectory (cmstrack)
 
 if (CUDA)
   add_subdirectory (vecprot_v2/cuda)
+endif()
+
+if(USE_VECPHYS)
+ add_subdirectory (vectphysproc)
 endif()
 

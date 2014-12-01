@@ -36,7 +36,7 @@ class WorkloadManager;
 class GeantThreadData;
 class GeantVApplication;
 class PrimaryGenerator;
-
+ 
 class GeantPropagator : public TObject
 {
 public:
@@ -88,10 +88,11 @@ public:
    TStopwatch      *fTimer;     // Timer
    
    PhysicsProcess  *fProcess;   // For now the only generic process pointing to the tabulated physics
+   PhysicsProcess  *fVectorPhysicsProcess; // interface to vector physics final state sampling
 //   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
    GeantTrack_v    *fStoredTracks;    //! Stored array of tracks (history?)
    PrimaryGenerator *fPrimaryGenerator;
-
+ 
    // Data per event
    Int_t           *fNtracks;   //[fNevents] Number of tracks {array of [fNevents]}
    GeantEvent     **fEvents;    //![fNevents]    Array of events

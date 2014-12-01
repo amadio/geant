@@ -12,10 +12,9 @@ find_program(ROOT_CONFIG_EXECUTABLE root-config
 
 if(NOT ROOT_CONFIG_EXECUTABLE)
   set(ROOT_FOUND FALSE)
-  message(STATUS "ROOT ${ROOT_VERSION} not found in ${ROOTSYS}")
+  message(STATUS "ROOT ${ROOT_VERSION} not found in $ENV{ROOTSYS}")
 else()    
   set(ROOT_FOUND TRUE)
-  message(STATUS "Found ROOT ${ROOT_VERSION} in ${ROOTSYS}")
 
   execute_process(
     COMMAND ${ROOT_CONFIG_EXECUTABLE} --prefix 
@@ -56,6 +55,7 @@ endif()
 
 
 include(CMakeMacroParseArguments)
+
 find_program(ROOTCINT_EXECUTABLE rootcint PATHS $ENV{ROOTSYS}/bin)
 find_program(GENREFLEX_EXECUTABLE genreflex PATHS $ENV{ROOTSYS}/bin)
 find_package(GCCXML)
@@ -63,10 +63,12 @@ find_package(GCCXML)
 #----------------------------------------------------------------------------
 # function ROOT_GENERATE_DICTIONARY( dictionary   
 #                                    header1 header2 ... 
+#                                    MODULE module DEPENDENCIES dep1 dep2
 #                                    LINKDEF linkdef1 ... 
 #                                    OPTIONS opt1...)
 function(ROOT_GENERATE_DICTIONARY dictionary)
-  CMAKE_PARSE_ARGUMENTS(ARG "" "" "LINKDEF;OPTIONS" "" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(ARG "MULTIDICT" "MODULE" "LINKDEF;OPTIONS;DEPENDENCIES" "" ${ARGN})
+
   #---Get the list of header files-------------------------
   set(headerfiles)
   foreach(fp ${ARG_UNPARSED_ARGUMENTS})
@@ -81,12 +83,22 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
       set(headerfiles ${headerfiles} ${fp})
     endif()
   endforeach()
+
   #---Get the list of include directories------------------
   get_directory_property(incdirs INCLUDE_DIRECTORIES)
   set(includedirs) 
   foreach( d ${incdirs})    
    set(includedirs ${includedirs} -I${d})
   endforeach()
+
+  #---Get the list of definitions---------------------------
+  get_directory_property(defs COMPILE_DEFINITIONS)
+  foreach( d ${defs})
+   if((NOT d MATCHES "=") AND (NOT d MATCHES "^[$]<.*>$")) # avoid generator expressions
+     set(definitions ${definitions} -D${d})
+   endif()
+  endforeach()
+
   #---Get LinkDef.h file------------------------------------
   set(linkdefs)
   foreach( f ${ARG_LINKDEF})
@@ -100,11 +112,56 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
       endif()
     endif()
   endforeach()
+
+  #---Build the names for library, pcm and rootmap file ----
+  get_filename_component(dict_base_name ${dictionary} NAME_WE)
+  if(dict_base_name MATCHES "^G__")
+    string(SUBSTRING ${dictionary} 3 -1 deduced_arg_module)
+    set(deduced_arg_module lib${deduced_arg_module})
+  else()
+    set(deduced_arg_module ${dict_base_name})
+  endif()
+
+  #---Set the library output directory-----------------------
+  if(DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(library_output_dir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+  else()
+    set(library_output_dir ${CMAKE_CURRENT_BINARY_DIR})
+  endif()
+
+  if(ARG_MODULE)
+    set(library_name ${libprefix}${ARG_MODULE}${libsuffix})
+    if(ARG_MULTIDICT)
+      set(newargs -s ${library_output_dir}/${library_name} -multiDict)
+      set(pcm_name ${library_output_dir}/${libprefix}${ARG_MODULE}_${dictionary}_rdict.pcm)
+      set(rootmap_name ${library_output_dir}/${libprefix}${deduced_arg_module}.rootmap)
+    else()
+      set(newargs -s ${library_output_dir}/${library_name})
+      set(pcm_name ${library_output_dir}/${libprefix}${ARG_MODULE}_rdict.pcm)
+      set(rootmap_name ${library_output_dir}/${libprefix}${ARG_MODULE}.rootmap)
+    endif()
+  else()
+    set(library_name ${libprefix}${deduced_arg_module}${libsuffix})
+    set(pcm_name ${library_output_dir}/${libprefix}${dictionary}_rdict.pcm)
+    set(rootmap_name ${library_output_dir}/${libprefix}${deduced_arg_module}.rootmap)
+  endif()
+
+  set(rootmapargs -rml ${library_name} -rmf ${rootmap_name})
+
+  #---Get the library and module dependencies-----------------
+  if(ARG_DEPENDENCIES)
+    foreach(dep ${ARG_DEPENDENCIES})
+      set(newargs ${newargs} -m  ${libprefix}${dep}_rdict.pcm)
+    endforeach()
+  endif()
+
   #---call rootcint------------------------------------------
-  add_custom_command(OUTPUT ${dictionary}.cxx ${dictionary}.h
-                     COMMAND ${ROOTCINT_EXECUTABLE} -cint -f  ${dictionary}.cxx 
-                                          -c ${ARG_OPTIONS} ${includedirs} ${headerfiles} ${linkdefs} 
-                     DEPENDS ${headerfiles} ${linkdefs})
+  add_custom_command(OUTPUT ${dictionary}.cxx ${pcm_name} ${rootmap_name}
+                     COMMAND ${ROOTCINT_EXECUTABLE} -f  ${dictionary}.cxx -c ${newargs} ${rootmapargs}
+                                        ${ARG_OPTIONS} ${definitions} ${includedirs} ${headerfiles} ${linkdefs}
+                     DEPENDS ${headerfiles} ${linkdef} ${ROOTCINTDEP})
+#  get_filename_component(dictname ${dictionary} NAME)
+
 endfunction()
 
 #----------------------------------------------------------------------------
@@ -145,20 +202,9 @@ function(REFLEX_GENERATE_DICTIONARY dictionary)
   endforeach()
   #---Nanes and others---------------------------------------
   set(gensrcdict ${dictionary}.cpp)
-  if(MSVC)
-    set(gccxmlopts "--gccxmlopt=\"--gccxml-compiler cl\"")
-  else()
-    #set(gccxmlopts "--gccxmlopt=\'--gccxml-cxxflags -m64 \'")
-    set(gccxmlopts)
-  endif()  
-  #set(rootmapname ${dictionary}Dict.rootmap)
-  #set(rootmapopts --rootmap=${rootmapname} --rootmap-lib=${libprefix}${dictionary}Dict)
-  #---Check GCCXML and get path-----------------------------
-  if(GCCXML)
-    get_filename_component(gccxmlpath ${GCCXML} PATH)
-  else()
-    message(WARNING "GCCXML not found. Install and setup your environment to find 'gccxml' executable")
-  endif()
+  set(rootmapname ${dictionary}Dict.rootmap)
+  set(rootmapopts --rootmap=${rootmapname} --rootmap-lib=${libprefix}${dictionary}Dict)
+
   #---Actual command----------------------------------------
   add_custom_command(OUTPUT ${gensrcdict} ${rootmapname}     
                      COMMAND ${GENREFLEX_EXECUTABLE} ${headerfiles} -o ${gensrcdict} ${gccxmlopts} ${rootmapopts} --select=${selectionfile}

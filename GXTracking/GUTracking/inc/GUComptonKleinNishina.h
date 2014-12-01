@@ -3,6 +3,7 @@
 
 #include "GUTypeDef.h"
 #include "GUTrack.h"
+#include "GURandom.h"
 
 class GUAliasSampler; 
 
