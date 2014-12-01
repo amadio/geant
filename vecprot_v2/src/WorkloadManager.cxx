@@ -533,7 +533,14 @@ void *WorkloadManager::TransportTracks(void *)
             //            'ntotnext' to the value of the number of secondary tracks
             //            inserted to the track vector       
             //
-
+#if USE_VECPHYS == 1
+            propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(
+                                            td->fVolume->GetMaterial(),
+                                            nphys,
+                                            output,
+                                            ntotnext,
+                                            tid);
+#endif
             // second: sample final states (based on the inf. regarding sampled
             //         target and type of interaction above), insert them into 
             //         the track vector, update primary tracks; 

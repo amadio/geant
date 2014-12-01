@@ -63,6 +63,7 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
+
 GeantPropagator *gPropagator = 0;
    
 ClassImp(GeantPropagator)
@@ -113,6 +114,7 @@ GeantPropagator::GeantPropagator()
                  fTimer(0),
 //                 fProcesses(0),
                  fProcess(0),
+                 fVectorPhysicsProcess(0),
                  fStoredTracks(0),
                  fPrimaryGenerator(0),
                  fNtracks(0),
@@ -132,6 +134,11 @@ GeantPropagator::~GeantPropagator()
 // Destructor
    Int_t i;
    delete fProcess;
+
+#if USE_VECPHYS == 1
+   delete fVectorPhysicsProcess;
+#endif
+
 //   if (fProcesses) {
 //     for (i=0; i<fNprocesses; i++) delete fProcesses[i];
 //     delete [] fProcesses;
@@ -387,7 +394,10 @@ void GeantPropagator::Initialize()
    }
    // Initialize the process(es)
    fProcess->Initialize();
-      
+#if USE_VECPHYS == 1
+ fVectorPhysicsProcess->Initialize();
+#endif
+
    // Initialize workload manager
    fWMgr = WorkloadManager::Instance(fNthreads);
    if (fNthreads > fWMgr->GetNthreads()) {
