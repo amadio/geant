@@ -7,27 +7,27 @@
 #include "PhysicsProcess.h"
 #endif
 
-// Geant-V related
-class TGeoMaterial;
+// GeantV related
+class TGeoMaterial; // ROOT: we won't use this
 class GeantTrack_v;
 
 // Interface to vector physics models
 class GVComptonProcess;
 
-//______________________________________________________________________________
 class GVectorPhysicsProcess : public PhysicsProcess
 {
 private:
-  GVComptonProcess    *fVComptonProcess; 
-  double               fEnergyLimit;       // tracking cut in kinetic energy [GeV]
+  GVComptonProcess    **fVComptonProcess; 
+  double                fEnergyLimit;       // tracking cut in kinetic energy [GeV]
+  int                   fNumThreads;        // number of working threads
 
 public:
   GVectorPhysicsProcess();
-  GVectorPhysicsProcess(double energyLimit);
+  GVectorPhysicsProcess(double energyLimit, int numThreads);
   virtual ~GVectorPhysicsProcess();
 
   virtual void Initialize();
-  virtual void PostStepFinalStateSampling( TGeoMaterial *mat,
+  virtual void PostStepFinalStateSampling( TGeoMaterial* /*mat*/,
                                            Int_t ntracks, 
                                            GeantTrack_v &tracks,
                                            Int_t &nout, 
@@ -72,7 +72,8 @@ private:
    GVectorPhysicsProcess (const GVectorPhysicsProcess  &);//no imp.	
    GVectorPhysicsProcess & operator=(const GVectorPhysicsProcess  &);//no imp.
 
-ClassDef(GVectorPhysicsProcess,1)
+   // we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed
+   ClassDef(GVectorPhysicsProcess,1)
 };
 
 #endif
