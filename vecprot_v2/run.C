@@ -34,7 +34,7 @@ void run(Int_t nthreads=4,
    prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
 
    // for vector physics -OFF now
-   // prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin);
+   // prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin, nthreads);
 
    prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
 

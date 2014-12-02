@@ -22,23 +22,22 @@ struct GUTrack
 
 struct GUTrack_v
 {
-  int numTracks;
-  int *status;
+  int capacity;        // max number of tracks that can be stored
+  int numTracks;       // real number of tracks stored
+  int *status;         // status of the track: alive or killed (possible at rest ???)
   int *particleType;
-  int *id;
-  int *parentId;
-  int *proc;
-  double *x; 
+  int *id;             
+  int *parentId;       // index of the corresponding parent track in GeantTrack_v 
+  int *proc;           // process index (not really necessary)
+  double *x;           // (x,y,z) position
   double *y;
   double *z;
-  double *px;
+  double *px;          // momentum (px,py,pz)
   double *py;
   double *pz;
-  double *E;
-  double *q;
-  double *s;
-  double *fPdgV;        // PDG code
-
+  double *E;           // total energy 
+  double *q;           // charge ???
+  double *s;           // ???
 } ;
 
 #endif
