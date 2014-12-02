@@ -1,4 +1,5 @@
 #include "GUTrackHandler.h"
+#include "GUConstants.h"
 #include "GURandom.h"
 #include <cmath>
 #include <iostream>
@@ -116,7 +117,6 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
   double sintheta;
 
   //constants - move to a header file
-  double const electron_mass_c2 = 0.510998910;
   double const pi = 3.14159265358979323846;
   double const ecalRmim = 1290.; 
   double const ecalRmax = 1520.;

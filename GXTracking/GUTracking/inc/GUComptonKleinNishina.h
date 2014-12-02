@@ -2,6 +2,7 @@
 #define GUComptonKleinNishina_H 1
 
 #include "GUTypeDef.h"
+#include "GUConstants.h"
 #include "GUTrack.h"
 #include "GURandom.h"
 
@@ -33,10 +34,9 @@ public:
           ) const;     
           // TODO: use SOA arrays for output
 #endif
-  // configure the 'mode' ??
-  // FQUALIFIER void UseOriginalSampler(bool useOriginal);  // 
-  // FQUALIFIER bool UsingOriginalSampler() const; 
-
+  FQUALIFIER void SampleByCompositionRejection(double energyIn,
+					       double& energyOut,
+					       double& sinTheta);
   // Initializes this class and its sampler 
   FQUALIFIER void BuildTable( int Z,
                               const double xmin,
@@ -62,7 +62,10 @@ private:
                               */) const;
   // Given the sampled output photon energy, create the output state
 
-  FQUALIFIER double SampleDirection(double energyIn, double energyOutPhoton);
+  template<class Backend>
+  typename Backend::Double_t
+  SampleSinTheta(typename Backend::Double_t energyIn,
+                 typename Backend::Double_t energyOut) const; 
 
 private:
   GUAliasSampler *fAliasSampler; 
@@ -85,5 +88,35 @@ private:
   int fNcol;
 };
 
-#endif
+//Implementation
 
+template<class Backend>
+typename Backend::Double_t
+GUComptonKleinNishina::
+SampleSinTheta(typename Backend::Double_t energyIn,
+               typename Backend::Double_t energyOut) const
+{
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
+
+  //angle of the scatterred photon
+
+  Double_t epsilon = energyOut/energyIn;
+
+  Bool_t condition = epsilon > Vc::One;
+  MaskedAssign( condition, 1.0 , &epsilon );
+
+  Double_t E0_m    = inv_electron_mass_c2*energyIn;
+  Double_t onecost = (Vc::One - epsilon)/(epsilon*E0_m);
+  Double_t sint2   = onecost*(2.-onecost);
+
+  Double_t sinTheta;
+  Bool_t condition2 = sint2 < Vc::Zero;
+
+  MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
+  MaskedAssign( !condition2, Vc::sqrt(sint2), &sinTheta );   
+  
+  return sinTheta;
+}
+
+#endif

@@ -5,9 +5,6 @@
 #include "backend/Backend.h"
 #include "backend/vc/Backend.h"
 
-//move constants to a common header
-static const double electron_mass_c2 = 0.5;
-
 using namespace VECGEOM_NAMESPACE;
 
 FQUALIFIER 
@@ -51,7 +48,7 @@ GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
           ) const
 {
   Vc::double_v EVc;
-  Vc::double_v deltaVc = 0.1; //temporary - this should be dy in BuildPdfTable
+  Vc::double_v deltaVc; //temporary - this should be dy in BuildPdfTable
 
   for(int i=0; i < inProjectile.numTracks/Vc::double_v::Size ; ++i) {
 
@@ -61,6 +58,7 @@ GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     //gather
     for(int j = 0; j < Vc::double_v::Size ; ++j) {
       EVc[j] = inProjectile.E[ i*Vc::double_v::Size + j];
+      deltaVc[j] =  EVc[j] - EVc[j]/(1+2.0*EVc[j]*inv_electron_mass_c2);
     }
 
     Vc::double_v xVc = fAliasSampler->Sample<kVc>(EVc,deltaVc);
@@ -70,10 +68,15 @@ GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
 
     //store only secondary energy for now
     //evaluate the scattered angle based on xV
+    Vc::double_v angleVc = SampleSinTheta<kVc>(EVc,xVc);
 
-    //scatter
+    //need to rotate the angle with respect to the line of flight
+
+    //scatter 
     for(int j = 0; j < Vc::double_v::Size ; ++j) {
       outSecondaryV->E[ i*Vc::double_v::Size + j] = xVc[j]; 
+
+      //fill also (x,y,z) and (px,py,pz), q and etc
     }
   }
 }    
@@ -126,7 +129,7 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
     //for each input energy bin
     double x = xo + dx*i;
 
-    double ymin = x/(1+2.0*x/electron_mass_c2);
+    double ymin = x/(1+2.0*x*inv_electron_mass_c2);
     double dy = (x - ymin)/(ncol-1);
     double yo = ymin + 0.5*dy;
   
@@ -162,7 +165,7 @@ GUComptonKleinNishina::CalculateDiffCrossSection( int Zelement,
   //          energy1 (scattered photon energy)
   // output : dsigma  (differential cross section) 
 
-  double E0_m = energy0/electron_mass_c2 ;
+  double E0_m = energy0*inv_electron_mass_c2 ;
   double epsilon = energy1/energy0;
 
   double onecost = (1.- epsilon)/(epsilon*E0_m);
@@ -171,4 +174,38 @@ GUComptonKleinNishina::CalculateDiffCrossSection( int Zelement,
   double dsigma = (epsilon + 1./epsilon)*greject;
 
   return dsigma;
+}
+
+FQUALIFIER void
+GUComptonKleinNishina::SampleByCompositionRejection(double energyIn,
+						    double& energyOut,
+						    double& sinTheta)
+{
+  double epsilon, epsilonsq, onecost, sint2, greject ;
+  
+  double E0_m = energyIn*inv_electron_mass_c2 ;
+  double eps0       = 1./(1. + 2.*E0_m);
+  double epsilon0sq = eps0*eps0;
+  double alpha1     = - log(eps0);
+  double alpha2     = 0.5*(1.- epsilon0sq);
+  
+  do {
+    if( alpha1/(alpha1+alpha2) > GUUniformRand(0, -1) ) {
+      epsilon   = exp(-alpha1*GUUniformRand(0, -1));
+      epsilonsq = epsilon*epsilon; 
+    } 
+    else {
+      epsilonsq = epsilon0sq+(1.- epsilon0sq)*GUUniformRand(0,-1)
+;
+      epsilon   = sqrt(epsilonsq);
+    }
+    
+    onecost = (1.- epsilon)/(epsilon*E0_m);
+    sint2   = onecost*(2.-onecost);
+    greject = 1. - epsilon*sint2/(1.+ epsilonsq);
+    
+  } while (greject < GUUniformRand(0, -1));
+  
+  energyOut = epsilon*energyIn;
+  sinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);
 }

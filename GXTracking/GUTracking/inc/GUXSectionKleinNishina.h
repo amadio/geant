@@ -4,6 +4,7 @@
 // Independent output variable:  Energy of outgoing photon
 // 
 #include "GUTypeDef.h"
+#include "GUConstants.h"
 
 class GUXSectionKleinNishina
 {
@@ -22,7 +23,6 @@ private:
 
 // function implementing the cross section for KleinNishina
 // TODO: need to get electron properties from somewhere
-const double electron_mass_c2 = 0.51;
 
 FQUALIFIER
 double CalculateDiffCrossSection( int Zelement, double energy0, 
@@ -33,7 +33,7 @@ double CalculateDiffCrossSection( int Zelement, double energy0,
   //          energy1 (scattered photon energy)
   // output : dsigma  (differential cross section) 
 
-  double E0_m = energy0/electron_mass_c2 ;
+  double E0_m = inv_electron_mass_c2*energy0;
   double epsilon = energy1/energy0;
 
   double onecost = (1.- epsilon)/(epsilon*E0_m);
