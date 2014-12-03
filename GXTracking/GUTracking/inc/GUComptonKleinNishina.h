@@ -5,6 +5,9 @@
 #include "GUConstants.h"
 #include "GUTrack.h"
 #include "GURandom.h"
+#include "GURandom.h"
+
+#include "backend/vc/Backend.h"
 
 class GUAliasSampler; 
 
