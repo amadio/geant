@@ -73,7 +73,9 @@ public:
 #endif   
    Int_t                FlushPriorityBaskets();
    Int_t                GarbageCollect();
-   
+   void                 PrintSize() const;
+   size_t               Sizeof() const;
+      
    ClassDef(GeantScheduler, 1)      // Main basket scheduler
 };   
 #endif

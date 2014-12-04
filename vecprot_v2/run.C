@@ -26,7 +26,13 @@ void run(Int_t nthreads=4,
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
    prop->fNaverage = 500;   // Average number of tracks per event
-   prop->fNperBasket = 128;   // Vector size
+   
+   // Initial vector size, this is no longer an important model parameter, 
+   // because is gets dynamically modified to accomodate the track flow
+   prop->fNperBasket = 16;   // Initial vector size
+
+   // This is now the most important parameter for memory considerations
+   prop->fMaxPerBasket = 256;   // Initial vector size
    prop->fEmin = 3.E-6; // [3 KeV] energy cut
 //   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
    prop->fEmax = 0.03;
@@ -46,4 +52,5 @@ void run(Int_t nthreads=4,
 //   prop->fDebugTrk = 1;
    prop->fUseMonitoring = graphics;
    prop->PropagatorGeom(geomfile, nthreads, graphics);
+   delete prop;
 }   

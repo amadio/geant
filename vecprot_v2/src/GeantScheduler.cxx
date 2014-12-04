@@ -39,7 +39,10 @@ GeantScheduler::~GeantScheduler()
 {
 // dtor.
    if (fBasketMgr) {
-      for (Int_t ib=0; ib<fNvolumes; ib++) delete fBasketMgr[ib];
+      for (Int_t ib=0; ib<fNvolumes; ib++) {
+         fBasketMgr[ib]->GetVolume()->SetFWExtension(0);
+         delete fBasketMgr[ib];
+      }   
    }   
    delete [] fBasketMgr;
    delete [] fNtracks;
@@ -49,6 +52,7 @@ GeantScheduler::~GeantScheduler()
 void GeantScheduler::AdjustBasketSize()
 {
 // Adjust the basket size to converge to Ntracks/2*Nthreads
+   return;
    const Int_t min_size = 4;
    const Int_t max_size = gPropagator->fNperBasket;
    Int_t nthreads = gPropagator->fNthreads;
@@ -151,6 +155,7 @@ Int_t GeantScheduler::CollectPrioritizedTracks()
 {
 // Send the signal to all basket managers to prioritize all pending tracks
 // if any within the priority range.
+//   PrintSize();
    Int_t ninjected = 0;
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++)
       ninjected += fBasketMgr[ibasket]->CollectPrioritizedTracks(fPriorityRange[0],fPriorityRange[1]);
@@ -172,9 +177,30 @@ Int_t GeantScheduler::FlushPriorityBaskets()
 Int_t GeantScheduler::GarbageCollect()
 {
 // Flush all filled baskets in the work queue.
+//   PrintSize();
    Int_t ninjected = 0;
    for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++) {
       ninjected += fBasketMgr[ibasket]->GarbageCollect();
    }
    return ninjected;
+}
+
+//______________________________________________________________________________
+size_t GeantScheduler::Sizeof() const
+{
+// Returns size of the scheduler, including allocated baskets
+   size_t size = sizeof(GeantScheduler); 
+   for (auto i=0; i<fNvolumes; ++i) size += fBasketMgr[i]->Sizeof();
+   if (fGarbageCollector) size += fGarbageCollector->Sizeof();
+   return size;
+}   
+
+//______________________________________________________________________________
+void GeantScheduler::PrintSize() const
+{
+// Prints detailed breakdown of size allocated
+   size_t size = Sizeof();
+   Printf("Size of scheduler: %ld bytes", size);
+   for (auto i=0; i<fNvolumes; ++i) fBasketMgr[i]->PrintSize();
+   if (fGarbageCollector) fGarbageCollector->PrintSize();
 }

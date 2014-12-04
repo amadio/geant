@@ -875,6 +875,7 @@ void *WorkloadManager::MonitoringThread(void *)
       hmem->Draw();
       cmon->cd(3);
       hbaskets->LabelsOption(">");
+      hbaskets->GetXaxis()->SetRangeUser(0,10);
       hbaskets->Draw();
       hbused->Draw("SAME");
       cmon->cd(4);

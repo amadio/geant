@@ -29,6 +29,7 @@ protected:
 #if __cplusplus >= 201103L
    std::atomic_int   fAddingOp;            // Number of track adding ops
 #endif
+   Int_t             fThreshold;           // Transport threshold
 
 private:
    GeantBasket(const GeantBasket&);     // Not implemented
@@ -51,6 +52,7 @@ public:
    GeantTrack_v     &GetInputTracks() {return fTracksIn;}
    GeantTrack_v     &GetOutputTracks() {return fTracksOut;}
    GeantBasketMgr   *GetBasketMgr() const {return fManager;}
+   Int_t             GetThreshold() const {return fThreshold;}
    TGeoVolume       *GetVolume() const;
    Bool_t            IsMixed() const {return TObject::TestBit(kMixed);}
    inline Bool_t     IsAddingOp() const           {return (fAddingOp.load());}
@@ -59,7 +61,10 @@ public:
    virtual void      Print(Option_t *option="") const;
    void              PrintTrack(Int_t itr, Bool_t input=kTRUE) const;
    void              Recycle();
+   size_t            Sizeof() const {return fTracksIn.Sizeof() + fTracksOut.Sizeof()+
+                                     sizeof(TObject)+sizeof(GeantBasketMgr*)+sizeof(std::atomic_int);}
    void              SetMixed(Bool_t flag) {TObject::SetBit(kMixed, flag);}
+   void              SetThreshold(Int_t threshold);
    
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
 };
@@ -78,6 +83,7 @@ protected:
    TGeoVolume       *fVolume;                // Volume for which applies
    Int_t             fNumber;                // Number assigned
    Int_t             fBcap;                  // max capacity of baskets held
+   Int_t             fQcap;                  // queue capacity
 #if __cplusplus >= 201103L
    std::atomic_int   fThreshold;             // Adjustable transportability threshold
    std::atomic_int   fNbaskets;              // Number of baskets for this volume
@@ -85,10 +91,11 @@ protected:
    typedef std::atomic<GeantBasket*> atomic_basket;
    atomic_basket     fCBasket;               // Current basket being filled
    atomic_basket     fPBasket;               // Current priority basket being filled
-   std::atomic_flag  fLock;                  // atomic lock
+   std::atomic_flag  fLock;                  // atomic lock for stealing current basket
+   std::atomic_flag  fQLock;                 // atomic lock for increasing queue size
 #endif
-   mpmc_bounded_queue<GeantBasket*> fBaskets;            // queue of available baskets
-   Geant::priority_queue<GeantBasket*> *fFeeder;           // feeder queue to which baskets get injected
+   mpmc_bounded_queue<GeantBasket*>    *fBaskets;  // queue of available baskets
+   Geant::priority_queue<GeantBasket*> *fFeeder;   // feeder queue to which baskets get injected
    TMutex            fMutex;                 // Mutex for this basket manager
 private:
    GeantBasketMgr(const GeantBasketMgr&);    // Not implemented
@@ -98,18 +105,19 @@ private:
    GeantBasket      *StealAndPin(atomic_basket &current);
    Bool_t            StealMatching(atomic_basket &global, GeantBasket *content);
 #endif
+   Bool_t            IncreaseQueueSize(Int_t newsize);
 public:
 
    GeantBasket      *GetNextBasket();
 
 public:
-   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fThreshold(0), fNbaskets(0), 
-                         fNused(0), fCBasket(0), fPBasket(0), fLock(), fBaskets(2<<15), fFeeder(0), fMutex() {}
+   GeantBasketMgr() : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fThreshold(0), fNbaskets(0), 
+                         fNused(0), fCBasket(0), fPBasket(0), fLock(), fQLock(), fBaskets(0), fFeeder(0), fMutex() {}
    GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
    virtual ~GeantBasketMgr();
    
    virtual TGeoExtension *Grab() {return this;}
-   virtual void           Release() const {delete this;}
+   virtual void           Release() const {}
    Int_t             AddTrack(GeantTrack &track, Bool_t priority=kFALSE);
    Int_t             AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority=kFALSE);
    Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
@@ -134,6 +142,10 @@ public:
    virtual void      Print(Option_t *option="") const;
    void              RecycleBasket(GeantBasket *b);
    void              SetFeederQueue(Geant::priority_queue<GeantBasket*> *queue) {fFeeder = queue;}
+   size_t            Sizeof() const {GeantBasket *c = GetCBasket(); 
+                                     return (c) ? (sizeof(GeantBasketMgr)+(2+GetNbaskets())*c->Sizeof()) :
+                                                   sizeof(GeantBasketMgr);}
+   void              PrintSize() const;
    Geant::priority_queue<GeantBasket*> *GetFeederQueue() const {return fFeeder;}
    
    ClassDef(GeantBasketMgr,0)  // A path in geometry represented by the array of indices

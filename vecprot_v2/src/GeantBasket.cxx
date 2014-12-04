@@ -22,7 +22,8 @@ GeantBasket::GeantBasket()
              fManager(0),
              fTracksIn(),
              fTracksOut(),
-             fAddingOp(0)
+             fAddingOp(0),
+             fThreshold(0)
 {
 // dummy ctor.
 }
@@ -33,7 +34,8 @@ GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
              fManager(mgr),
              fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
              fTracksOut(size, GeantPropagator::Instance()->fMaxDepth),
-             fAddingOp(0)
+             fAddingOp(0), 
+             fThreshold(size)
 {
 // ctor.
 }
@@ -115,6 +117,17 @@ void GeantBasket::Recycle()
 }
 
 //______________________________________________________________________________
+void GeantBasket::SetThreshold(Int_t threshold)
+{
+// Set transport threshold for the basket
+   if (threshold>fThreshold) {
+      if (fTracksIn.Capacity() < threshold) fTracksIn.Resize(threshold);
+      if (fTracksOut.Capacity() < threshold) fTracksOut.Resize(threshold);
+   }
+   fThreshold = threshold;
+}   
+
+//______________________________________________________________________________
 // Basket manager for a given volume. Holds a list of free baskets stored in a
 // concurrent queue
 //______________________________________________________________________________
@@ -128,18 +141,21 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
                    fVolume(vol),
                    fNumber(number),
                    fBcap(0),
+                   fQcap(32),
                    fThreshold(0),
                    fNbaskets(0),
                    fNused(0),
                    fCBasket(0),
                    fPBasket(0),
                    fLock(),
-                   fBaskets(2<<15),
+                   fQLock(),
+                   fBaskets(0),
                    fFeeder(0),
                    fMutex()
 {
 // Constructor
-   fBcap = GeantPropagator::Instance()->fNperBasket + 1;
+   fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
+   fBaskets = new mpmc_bounded_queue<GeantBasket*>(fQcap);
    SetCBasket(GetNextBasket());
    SetPBasket(GetNextBasket());
 }
@@ -148,8 +164,10 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
 GeantBasketMgr::~GeantBasketMgr()
 {
 // Clean up
-//   delete fCBasket;
-//   delete fPBasket;
+   delete GetCBasket();
+   delete GetPBasket();
+   GeantBasket *basket;
+   while (fBaskets->dequeue(basket)) delete basket;
 }   
 
 //______________________________________________________________________________
@@ -232,7 +250,7 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority)
    GeantBasket *oldb = StealAndPin(priority?fPBasket:fCBasket);
    // Now basket matches fP(C)Basket content and has the adding flag set  
    oldb->AddTrack(trackv, itr);
-   if (oldb->GetNinput() >= fThreshold) {
+   if (oldb->GetNinput() >= oldb->GetThreshold()) {
       oldb->UnLockAddingOp();
       if (StealMatching(priority?fPBasket:fCBasket, oldb)) { 
          // we fully own now oldb
@@ -257,7 +275,7 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority)
    GeantBasket *oldb = StealAndPin(priority?fPBasket:fCBasket);
    // Now basket matches fP(C)Basket content and has the adding flag set  
    oldb->AddTrack(track);
-   if (oldb->GetNinput() >= fThreshold) {
+   if (oldb->GetNinput() >= oldb->GetThreshold()) {
       oldb->UnLockAddingOp();
       if (StealMatching(priority?fPBasket:fCBasket, oldb)) { 
          // we fully own now oldb
@@ -394,9 +412,18 @@ Int_t GeantBasketMgr::GarbageCollect()
 GeantBasket *GeantBasketMgr::GetNextBasket()
 {
 // Returns next empy basket if any available, else create a new basket.
-//   GeantBasket *next = fBaskets.try_pop();
+//   GeantBasket *next = fBaskets->try_pop();
    GeantBasket *next = 0;
-   Bool_t pulled = fBaskets.dequeue(next);
+   const Int_t nthreads = GeantPropagator::Instance()->fNthreads;
+   Int_t threshold = fThreshold.load();
+   Int_t threshold_new = threshold*fNused.load()/nthreads;
+   if (threshold_new<fBcap && (threshold_new-threshold)>4) {
+      Int_t remainder = threshold_new%4;
+      if (remainder>0) threshold_new += 4-remainder;
+      fThreshold.store(threshold_new);
+//      Printf("volume %s:      ntotal=%d   nused=%d   thres=%d", GetName(), fNbaskets.load(), fNused.load(), threshold_new);
+   }
+   Bool_t pulled = fBaskets->dequeue(next);
    if (!pulled) {
       next = new GeantBasket(fBcap, this);
       // === critical section if atomics not supported ===
@@ -408,6 +435,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket()
       fNused++;
       // === end critical section ===
    }
+   next->SetThreshold(fThreshold.load());
    return next;
 }
 
@@ -416,21 +444,50 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b)
 {
 // Recycle a basket.
 //   assert(!b->GetNinput());
-//   assert(!b->IsAddingOp()); 
-   b->Clear();
-   if (b->GetInputTracks().Capacity() < fThreshold) {
-      b->GetInputTracks().Resize(fThreshold);
-      // Resize also the output array if needed
-      if (b->GetOutputTracks().Capacity() < fThreshold)
-        b->GetOutputTracks().Resize(fThreshold); 
+//   assert(!b->IsAddingOp());
+   const Int_t nthreads = GeantPropagator::Instance()->fNthreads;
+   Int_t threshold = fThreshold.load();
+   Int_t threshold_new = threshold*fNused.load()/nthreads;
+   if (threshold_new>4 && (threshold_new-threshold)<-4) {
+      Int_t remainder = threshold_new%4;
+      threshold_new -= remainder;
+      fThreshold.store(threshold_new);
+//      Printf("volume %s:      ntotal=%d   nused=%d   thres=%d    size=%ld", GetName(), fNbaskets.load(), fNused.load(), threshold_new, Sizeof());
    }
-   if (!fBaskets.enqueue(b)) {
-      Printf("Fatal error: exceeded the size of the bounded queue for basket mgr: %s",
-      b->GetName());
-      exit(1);
+   b->Clear();
+   Int_t nbaskets = fNbaskets.load();
+//   Int_t nused = fNused.load();
+   if (nbaskets > fQcap) {
+//      Printf("######## Increasing queue size for %s to %d ########", GetName(), 2*fQcap);
+      IncreaseQueueSize(2*fQcap);
+   }   
+   if (!fBaskets->enqueue(b)) {
+      // The queue is full - > delete the basket
+//      Printf("=== ALARM %s: threshold=%d", GetName(), fThreshold.load());
+      Printf("Deleting basket %p for %s", (void*)b, GetName());
+      delete b;
+      fNbaskets--;
+//      Printf("Fatal error: exceeded the size of the bounded queue for basket mgr: %s",
+//      b->GetName());
+//      exit(1);
    }
    fNused--;
 }   
+
+//______________________________________________________________________________
+Bool_t GeantBasketMgr::IncreaseQueueSize(Int_t newsize)
+{
+// Increase dynamically the queue size
+   auto oldbaskets = fBaskets;
+   if (fQLock.test_and_set(std::memory_order_acquire)) return kFALSE;
+   if (newsize <= fQcap) return kFALSE;
+   fBaskets = new mpmc_bounded_queue<GeantBasket*>(newsize);
+   fQcap = newsize;
+   fQLock.clear(std::memory_order_release);
+   GeantBasket *next;
+   while (oldbaskets->dequeue(next)) if (!fBaskets->enqueue(next)) delete next;
+   return kTRUE;
+}
 
 //______________________________________________________________________________
 void GeantBasketMgr::Print(Option_t *) const
@@ -441,3 +498,12 @@ void GeantBasketMgr::Print(Option_t *) const
           GetCBasket()->GetNinput(), GetCBasket()->GetNoutput());
 }
 
+//______________________________________________________________________________
+void GeantBasketMgr::PrintSize() const
+{
+// Print detailed info about size.
+   size_t size = Sizeof();
+   size_t sizeb = 0;
+   if (GetCBasket()) sizeb = GetCBasket()->Sizeof();
+   Printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
+}

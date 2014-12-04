@@ -20,6 +20,13 @@
 #define ALIGN_PADDING 32 
 #endif
 
+/*
+#ifndef VECCORE_BITSET_H
+ #include "VecCore/BitSet.h"
+ typedef VecCore::BitSet BitSet;
+#endif
+*/
+ 
 #ifdef USE_VECGEOM_NAVIGATOR
  #include "navigation/NavigationState.h"
  typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
@@ -258,6 +265,7 @@ public:
    GEANT_CUDA_DEVICE_CODE
    void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
+   size_t    Sizeof() const       {return sizeof(GeantTrack_v) + fBufSize;}
    void      DeleteTrack(Int_t itr);
    void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
    void      DeselectAll()        {fSelected.ResetAllBits(); fNselected = 0;}
