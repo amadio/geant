@@ -34,8 +34,6 @@ protected:
    GeantBasketMgr      *fGarbageCollector;    // Garbage collector manager
 #if __cplusplus >= 201103L
    std::atomic_int     *fNtracks;             //[fNvolumes] Number of tracks per volume
-#else
-   Int_t               *fNtracks;             //[fNvolumes] Number of tracks per volume
 #endif
    Int_t                fPriorityRange[2];    // Prioritized events
 #ifdef __STAT_DEBUG
@@ -55,13 +53,12 @@ public:
    Int_t                AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled);
    void                 AdjustBasketSize();
    void                 CreateBaskets();
+   void                 CleanBaskets();
    Int_t                CollectPrioritizedTracks();
    GeantBasketMgr     **GetBasketManagers() const {return fBasketMgr;}
    GeantBasketMgr      *GetGarbageCollector() const {return fGarbageCollector;}
 #if __cplusplus >= 201103L
    Int_t                GetNtracks(Int_t ib) {return fNtracks[ib].load();}
-#else   
-   Int_t                GetNtracks(Int_t ib) {return fNtracks[ib];}
 #endif
    Int_t                GetNpriority() const {return fNpriority;}
    Int_t                GetNvolumes() const  {return fNvolumes;}

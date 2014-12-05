@@ -52,9 +52,8 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
                  fScheduler(0),
                  fBroker(0),
                  fWaiting(0),
-                 fMutexSch(new std::mutex),
-                 fCondSch(new std::condition_variable),
-                 fWorkDone(false)
+                 fSchLocker(),
+                 fGbcLocker()
 {
 // Private constructor.
    fFeederQ = new Geant::priority_queue<GeantBasket*>(1<<16);
@@ -138,15 +137,22 @@ void WorkloadManager::StartThreads()
      t->Run();
      ith += fBroker->GetNstream() + 1;
    }
+   // Start CPU transport threads
    for (; ith<fNthreads; ith++) {
       TThread *t = new TThread(WorkloadManager::TransportTracks);
       fListThreads->Add(t);
       t->Run();
    }
 //   gSystem->Sleep(1000);
+   // Start scheduler(s)
    TThread *t = new TThread(WorkloadManager::MainScheduler);
    fListThreads->Add(t);
    t->Run();
+   // Start garbage collector
+   t = new TThread(WorkloadManager::GarbageCollectorThread);
+   fListThreads->Add(t);
+   t->Run();
+   // Start monitoring thread
    if (GeantPropagator::Instance()->fUseMonitoring) {
       t = new TThread(WorkloadManager::MonitoringThread);
       fListThreads->Add(t);
@@ -162,11 +168,13 @@ void WorkloadManager::JoinThreads()
    if (fBroker) tojoin -= fBroker->GetNstream();
    for (Int_t ith=0; ith<tojoin; ith++) fFeederQ->push(0);
    for (Int_t ith=0; ith<tojoin; ith++) ((TThread*)fListThreads->At(ith))->Join();
-   // Join garbage collector
+   // Join scheduler
    ((TThread*)fListThreads->At(tojoin))->Join();
+   // Join garbage collector
+   ((TThread*)fListThreads->At(tojoin+1))->Join();
    // Join monitoring thread
    if (GeantPropagator::Instance()->fUseMonitoring) {
-      ((TThread*)fListThreads->At(tojoin+1))->Join();
+      ((TThread*)fListThreads->At(tojoin+2))->Join();
    }   
 }
    
@@ -230,17 +238,26 @@ void *WorkloadManager::MainScheduler(void *)
 //   GeantBasket *output;
 //   GeantBasket **carray = new GeantBasket*[500];
    waiting[nworkers] = 1;
-   std::mutex *mutex_sch = wm->GetMutexSch();
-   std::condition_variable *cond_sch = wm->GetCondSch();
+   condition_locker &sched_locker = wm->GetSchLocker();
+   condition_locker &gbc_locker = wm->GetGbcLocker();
+   ProcInfo_t  procInfo;
+   Double_t rss;
+   const Double_t MByte = 1024.;
    while (1) {
-      std::unique_lock<std::mutex> lk(*mutex_sch);
-      while (!wm->IsWorkDone()) cond_sch->wait(lk);
-      wm->SetWorkDone(false);
-      lk.unlock();
+      sched_locker.Wait();
+      niter++;
+      // Check if memory is blowing up...
+      if ((niter%50) == 0) {
+         gSystem->GetProcInfo(&procInfo);
+         rss = procInfo.fMemResident/MByte;
+         if (rss > propagator->fMaxRes) {
+//            Printf("Resident memory reached user limit of %g GB, cleaning baskets...", propagator->fMaxRes);
+            gbc_locker.StartOne();
+         }   
+      }   
 //      transportedQ->wait_and_pop_max(500,npop,carray);
       waiting[nworkers] = 0;
       // Monitor the queues while there are tracks to transport
-      niter++;
 //      if (niter==1000) exit(0);
       ninjected = 0;
 //      nnew = 0;
@@ -375,6 +392,7 @@ void *WorkloadManager::MainScheduler(void *)
    for (Int_t i=0; i<nworkers; i++) wm->FeederQueue()->push(0);
    wm->TransportedQueue()->push(0);
    wm->Stop();
+   gbc_locker.StartOne();
    //gROOT->SetBit(TObject::kInvalidObject, kFALSE);
    propagator->fApplication->Digitize(0);
    Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
@@ -405,8 +423,7 @@ void *WorkloadManager::TransportTracks(void *)
    WorkloadManager *wm = WorkloadManager::Instance();
    GeantScheduler *sch = wm->GetScheduler();
    Int_t *waiting = wm->GetWaiting();
-//   std::mutex *mutex_sch = wm->GetMutexSch();
-   std::condition_variable *cond_sch = wm->GetCondSch();
+   condition_locker &sched_locker = wm->GetSchLocker();
 //   Int_t nprocesses = propagator->fNprocesses;
 //   Int_t ninput, noutput;
 //   Bool_t useDebug = propagator->fUseDebug;
@@ -611,8 +628,7 @@ finish:
       sch->AddTracks(basket, ntot, nnew, nkilled);
 //      Printf("thread %d: injected %d baskets", tid, ninjected);
 //      wm->TransportedQueue()->push(basket);
-      wm->SetWorkDone(true);
-      cond_sch->notify_one();
+      sched_locker.StartOne();
       basket->Recycle();
    }
    wm->DoneQueue()->push(0);
@@ -767,6 +783,21 @@ finish:
    }
    wm->DoneQueue()->push(0);
    Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
+   return 0;
+}
+
+//______________________________________________________________________________
+void *WorkloadManager::GarbageCollectorThread(void *)
+{
+// This threads can be triggered to do garbage collection of unused baskets
+   WorkloadManager *wm = WorkloadManager::Instance();
+   condition_locker &gbc_locker = wm->GetGbcLocker();
+   GeantScheduler *sch = wm->GetScheduler();
+   while (1) {
+      gbc_locker.Wait();
+      if (wm->IsStopped()) break;
+      sch->CleanBaskets();
+   }   
    return 0;
 }
 

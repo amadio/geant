@@ -187,6 +187,7 @@ public:
    TBits     fHoles;      // Bits of holes
    TBits     fSelected;   // Mask of selected tracks for the current operation
    Bool_t    fCompact;    // Flag marking the compactness
+   Bool_t    fMixed;      // Contains tracks in mixed volumes
    
 #ifdef __STAT_DEBUG_TRK
    GeantTrackStat fStat;  //! Statistics for the track container
@@ -271,6 +272,7 @@ public:
    void      DeselectAll()        {fSelected.ResetAllBits(); fNselected = 0;}
    void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
+   void      SetMixed(Bool_t flag) {fMixed = flag;}
    Int_t     SortByStatus(TrackStatus_t status);
    Int_t     RemoveByStatus(TrackStatus_t status, GeantTrack_v &output);
    Bool_t    IsSelected(Int_t i)  {return fSelected.TestBitNumber(i);}
@@ -280,6 +282,7 @@ public:
    void      ClearSelection()     {fSelected.ResetAllBits();}
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
+   Bool_t    IsMixed() const   {return fMixed;}
    void PrintPointers() {
       printf("fEventV=%p fFrombdrV=%p\n",  (void*)fEventV,(void*)fFrombdrV);
    }

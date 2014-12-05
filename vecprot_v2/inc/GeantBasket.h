@@ -121,6 +121,7 @@ public:
    Int_t             AddTrack(GeantTrack &track, Bool_t priority=kFALSE);
    Int_t             AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority=kFALSE);
    Int_t             CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
+   void              CleanBaskets(Int_t ntoclean);
    Int_t             FlushPriorityBasket();
    Int_t             GarbageCollect();
    void              SetBcap(Int_t capacity)      {fBcap = capacity;}
@@ -143,7 +144,7 @@ public:
    void              RecycleBasket(GeantBasket *b);
    void              SetFeederQueue(Geant::priority_queue<GeantBasket*> *queue) {fFeeder = queue;}
    size_t            Sizeof() const {GeantBasket *c = GetCBasket(); 
-                                     return (c) ? (sizeof(GeantBasketMgr)+(2+GetNbaskets())*c->Sizeof()) :
+                                     return (c) ? (sizeof(GeantBasketMgr)+(GetNbaskets())*c->Sizeof()) :
                                                    sizeof(GeantBasketMgr);}
    void              PrintSize() const;
    Geant::priority_queue<GeantBasket*> *GetFeederQueue() const {return fFeeder;}

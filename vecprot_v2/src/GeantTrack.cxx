@@ -338,7 +338,7 @@ ClassImp(GeantTrack_v)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),fMixed(false),
               fMaxDepth(0),fBufSize(0),fVPstart(0), fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
@@ -353,7 +353,7 @@ GeantTrack_v::GeantTrack_v()
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true),
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true), fMixed(false),
               fMaxDepth(maxdepth),fBufSize(0),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
@@ -370,7 +370,7 @@ GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
              :fNtracks(0),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),
-              fHoles(track_v.fHoles),fSelected(track_v.fSelected),fCompact(track_v.fCompact),
+              fHoles(track_v.fHoles),fSelected(track_v.fSelected),fCompact(track_v.fCompact),fMixed(track_v.fMixed),
               fMaxDepth(track_v.fMaxDepth),fBufSize(track_v.fBufSize),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
@@ -413,6 +413,7 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
       fHoles = track_v.fHoles;
       fSelected = track_v.fSelected;
       fCompact = track_v.fCompact;
+      fMixed = track_v.fMixed;
       memcpy(fBuf, track_v.fBuf, size*sizeof(GeantTrack));
       AssignInBuffer(&fBuf[0], size);
 #ifdef __STAT_DEBUG_TRK

@@ -63,6 +63,7 @@ public:
    Int_t       fMaxPerBasket; // Maximum number of tracks per basket
    Int_t       fMaxPerEvent; // Maximum number of tracks per event
    Int_t       fMaxDepth;    // Maximum geometry depth
+   Double_t    fMaxRes;      // Maximum resident memory allowed [MBytes]
    
    Double_t    fNaverage;    // Average number of tracks per event
    Double_t    fVertex[3];   // Vertex position

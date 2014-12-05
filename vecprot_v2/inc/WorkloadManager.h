@@ -6,8 +6,8 @@
 #endif
 
 #include "priority_queue.h"
-//#include "rr_pool.h"
-#include "GeantObjectPool.h"
+#include "condition_locker.h"
+
 #include "GeantTrack.h"
  
 class GeantBasketMgr;
@@ -18,7 +18,6 @@ class TaskBroker;
 // Main work manager class. This creates and manages all the worker threads,
 // has pointers to the synchronization objects, but also to the currently
 // transported baskets.
-
 //______________________________________________________________________________
 class WorkloadManager : public TObject {
 protected:
@@ -50,12 +49,8 @@ protected:
 
    TaskBroker        *fBroker;             // Pointer to the coprocessor broker, this could be made a collection.
    Int_t             *fWaiting;            //![fNthreads+1] Threads in waiting flag
-#if __cplusplus >= 201103L
-   std::mutex        *fMutexSch;           // mutex for the scheduler
-   std::condition_variable
-                     *fCondSch;            // Wait condition for scheduler
-   std::atomic<bool>  fWorkDone;           // Flag that a worker has published some result
-#endif
+   condition_locker   fSchLocker;          // Scheduler locker
+   condition_locker   fGbcLocker;          // Garbage collector locker
    WorkloadManager(Int_t nthreads);
 public:
    virtual ~WorkloadManager();
@@ -70,18 +65,14 @@ public:
    Int_t               GetNbaskets() const {return fNbaskets;}
    Int_t              *GetWaiting() const  {return fWaiting;}
    GeantScheduler     *GetScheduler() const {return fScheduler;}
+   condition_locker   &GetSchLocker() {return fSchLocker;}
+   condition_locker   &GetGbcLocker() {return fGbcLocker;}
 
-#if __cplusplus >= 201103L
-   std::mutex         *GetMutexSch() const {return fMutexSch;}
-   std::condition_variable *GetCondSch() const {return fCondSch;}
-#endif
    static WorkloadManager *
                        Instance(Int_t nthreads=0);                    
    Bool_t              IsFlushed() const {return fFlushed;}
    Bool_t              IsFilling() const {return fFilling;}
    Bool_t              IsStopped() const {return fStopped;}
-   Bool_t              IsWorkDone() const {return fWorkDone.load();}
-   void                SetWorkDone(Bool_t flag) {fWorkDone.store(flag);}
    void                Stop()            {fStopped = kTRUE;}
    void                SetFlushed(Bool_t flag) {fFlushed = flag;}
    Int_t               GetBasketGeneration() const {return fBasketGeneration;}
@@ -92,6 +83,7 @@ public:
    void                StartThreads();
    void                JoinThreads();
    static void        *MainScheduler(void *arg);
+   static void        *GarbageCollectorThread(void *arg);
    static void        *MonitoringThread(void *arg);
    static void        *TransportTracks(void *arg);
    static void        *TransportTracksCoprocessor(void *arg);

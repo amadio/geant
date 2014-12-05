@@ -77,13 +77,8 @@ void GeantScheduler::CreateBaskets()
    if (fBasketMgr) return;
    fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
    fBasketMgr = new GeantBasketMgr*[fNvolumes];
-#if __cplusplus >= 201103L
    fNtracks = new std::atomic_int[fNvolumes];
    for (Int_t i=0; i<fNvolumes; i++) fNtracks[i].store(0);
-#else   
-   fNtracks = new Int_t[fNvolumes];
-   memset(fNtracks,0,fNvolumes*sizeof(Int_t));
-#endif   
    Geant::priority_queue<GeantBasket*> *feeder = WorkloadManager::Instance()->FeederQueue();
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
@@ -98,6 +93,22 @@ void GeantScheduler::CreateBaskets()
 //      Printf("basket %s: %p feeder=%p", basket_mgr->GetName(), basket_mgr, basket_mgr->GetFeederQueue());
       fBasketMgr[icrt++] = basket_mgr;
    }
+   const size_t MB = 1048576;
+   size_t size = Sizeof()/MB;
+   Printf("Size of scheduler including initial baskets: %ld MB", size);
+//   PrintSize();
+}
+
+//______________________________________________________________________________
+void GeantScheduler::CleanBaskets()
+{
+// Clean part of the queued baskets for inactive volumes
+   for (auto ivol=0; ivol<fNvolumes; ++ivol) {
+      if (!fBasketMgr[ivol]->GetNused()) {
+         Int_t ntoclean = fBasketMgr[ivol]->GetNbaskets()/2;
+         fBasketMgr[ivol]->CleanBaskets(ntoclean);
+      }
+   }   
 }
 
 //______________________________________________________________________________

@@ -156,8 +156,8 @@ GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t numbe
 // Constructor
    fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
    fBaskets = new mpmc_bounded_queue<GeantBasket*>(fQcap);
-   SetCBasket(GetNextBasket());
-   SetPBasket(GetNextBasket());
+   SetCBasket(new GeantBasket(fBcap, this));
+   SetPBasket(new GeantBasket(fBcap, this));
 }
 
 //______________________________________________________________________________
@@ -473,6 +473,18 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b)
    }
    fNused--;
 }   
+//______________________________________________________________________________
+void GeantBasketMgr::CleanBaskets(Int_t ntoclean)
+{
+// Clean a number of recycled baskets to free some memory
+   GeantBasket *toclean;
+   for (auto i=0; i<ntoclean; i++) {
+      if (fBaskets->dequeue(toclean)) {
+         delete toclean;
+         fNbaskets--;
+      }
+   }      
+}
 
 //______________________________________________________________________________
 Bool_t GeantBasketMgr::IncreaseQueueSize(Int_t newsize)

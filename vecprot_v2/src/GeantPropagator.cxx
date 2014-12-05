@@ -93,6 +93,7 @@ GeantPropagator::GeantPropagator()
                  fMaxPerBasket(256),
                  fMaxPerEvent(0),
                  fMaxDepth(0),
+                 fMaxRes(10000.),
                  fNaverage(0.),
                  fVertex(),
                  fEmin(1.E-4), // 100 KeV
