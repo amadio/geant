@@ -13,13 +13,13 @@
 ClassImp(HepMCGenerator)
 
 //______________________________________________________________________________
-HepMCGenerator::HepMCGenerator(): input_file(0)
+HepMCGenerator::HepMCGenerator(): input_file(0), search(0)
 {
 }
 
 
 //______________________________________________________________________________
-HepMCGenerator::HepMCGenerator(std::string& filename)
+HepMCGenerator::HepMCGenerator(std::string& filename): input_file(0), search(0)
 {
   if (filename.substr(filename.find_last_of(".") + 1) == "hepmc3")
     {
@@ -38,6 +38,8 @@ HepMCGenerator::HepMCGenerator(std::string& filename)
 //______________________________________________________________________________
 HepMCGenerator::~HepMCGenerator()
 {
+   delete input_file;
+   delete search;
 }
 
 
@@ -48,6 +50,9 @@ void HepMCGenerator::InitPrimaryGenerator(){
 //______________________________________________________________________________
 Int_t HepMCGenerator::NextEvent(){
     //
+    // Delete previous event
+    delete search;
+    
     HepMC::GenEvent evt(HepMC::Units::GEV,HepMC::Units::MM);
     
     if(!(input_file->fill_next_event(evt))) Fatal("ImportTracks","No more particles to read!");

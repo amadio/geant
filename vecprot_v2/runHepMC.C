@@ -32,7 +32,8 @@ void runHepMC(Int_t nthreads=4,
    prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
 
    //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
-   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.root");
+   std::string fname = "pp14TeVminbias.root";
+   prop->fPrimaryGenerator = new HepMCGenerator(fname);
    //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
 
    prop->fApplication = new MyApplication();
