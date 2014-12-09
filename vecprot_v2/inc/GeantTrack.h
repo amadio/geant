@@ -20,12 +20,10 @@
 #define ALIGN_PADDING 32 
 #endif
 
-/*
 #ifndef VECCORE_BITSET_H
  #include "VecCore/BitSet.h"
  typedef VecCore::BitSet BitSet;
 #endif
-*/
  
 #ifdef USE_VECGEOM_NAVIGATOR
  #include "navigation/NavigationState.h"
@@ -184,8 +182,8 @@ public:
    cacheline_pad_t         pad0_;
    Int_t     fMaxtracks;  // max size for tracks
    Int_t     fNselected;  // Number of selected tracks
-   TBits     fHoles;      // Bits of holes
-   TBits     fSelected;   // Mask of selected tracks for the current operation
+   BitSet   *fHoles;      // Bits of holes
+   BitSet   *fSelected;   // Mask of selected tracks for the current operation
    Bool_t    fCompact;    // Flag marking the compactness
    Bool_t    fMixed;      // Contains tracks in mixed volumes
    
@@ -264,22 +262,22 @@ public:
    void      AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t import=kFALSE);
    void      CheckTracks();
    GEANT_CUDA_DEVICE_CODE
-   void      MarkRemoved(Int_t i) {fHoles.SetBitNumber(i); fCompact=kFALSE;}
+   void      MarkRemoved(Int_t i) {fHoles->SetBitNumber(i); fCompact=kFALSE;}
    void      RemoveTracks(Int_t from, Int_t to);
    size_t    Sizeof() const       {return sizeof(GeantTrack_v) + fBufSize;}
    void      DeleteTrack(Int_t itr);
-   void      Deselect(Int_t i)    {fSelected.SetBitNumber(i, kFALSE);}
-   void      DeselectAll()        {fSelected.ResetAllBits(); fNselected = 0;}
-   void      Select(Int_t i)      {fSelected.SetBitNumber(i);}
+   void      Deselect(Int_t i)    {fSelected->SetBitNumber(i, kFALSE);}
+   void      DeselectAll()        {fSelected->ResetAllBits(); fNselected = 0;}
+   void      Select(Int_t i)      {fSelected->SetBitNumber(i);}
    void      SelectTracks(Int_t n) {fNselected = n;}
    void      SetMixed(Bool_t flag) {fMixed = flag;}
    Int_t     SortByStatus(TrackStatus_t status);
    Int_t     RemoveByStatus(TrackStatus_t status, GeantTrack_v &output);
-   Bool_t    IsSelected(Int_t i)  {return fSelected.TestBitNumber(i);}
+   Bool_t    IsSelected(Int_t i)  {return fSelected->TestBitNumber(i);}
    void      Clear(Option_t *option="");
    Int_t     Compact(GeantTrack_v *moveto=0);
    Bool_t    Contains(Int_t evstart, Int_t nevents=1) const;
-   void      ClearSelection()     {fSelected.ResetAllBits();}
+   void      ClearSelection()     {fSelected->ResetAllBits();}
    void      GetTrack(Int_t i, GeantTrack &track) const;
    Bool_t    IsCompact() const {return fCompact;}
    Bool_t    IsMixed() const   {return fMixed;}

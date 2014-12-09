@@ -338,8 +338,8 @@ ClassImp(GeantTrack_v)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(),fSelected(),fCompact(true),fMixed(false),
-              fMaxDepth(0),fBufSize(0),fVPstart(0), fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(0),fSelected(0),fCompact(true),fMixed(false),
+              fMaxDepth(0),fBufSize(0),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
               fXdirV(0),fYdirV(0),fZdirV(0),fPV(0),fEV(0),fEdepV(0),fPstepV(0),fStepV(0),
@@ -353,7 +353,7 @@ GeantTrack_v::GeantTrack_v()
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
-             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(size),fSelected(size),fCompact(true), fMixed(false),
+             :fNtracks(0),fMaxtracks(0),fNselected(0),fHoles(0),fSelected(0),fCompact(true), fMixed(false),
               fMaxDepth(maxdepth),fBufSize(0),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
@@ -370,7 +370,7 @@ GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
              :fNtracks(0),fMaxtracks(track_v.fMaxtracks),fNselected(track_v.fNselected),
-              fHoles(track_v.fHoles),fSelected(track_v.fSelected),fCompact(track_v.fCompact),fMixed(track_v.fMixed),
+              fHoles(0),fSelected(0),fCompact(track_v.fCompact),fMixed(track_v.fMixed),
               fMaxDepth(track_v.fMaxDepth),fBufSize(track_v.fBufSize),fVPstart(0),fBuf(0),fEventV(0),fEvslotV(0),fParticleV(0),
               fPDGV(0),fG5codeV(0),fEindexV(0),fChargeV(0),fProcessV(0),fIzeroV(0),fNstepsV(0),
               fSpeciesV(0),fStatusV(0),fMassV(0),fXposV(0),fYposV(0),fZposV(0),
@@ -410,8 +410,8 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
       }
       fMaxtracks = size;
       fNselected = track_v.fNselected;
-      fHoles = track_v.fHoles;
-      fSelected = track_v.fSelected;
+      fHoles = 0;
+      fSelected = 0;
       fCompact = track_v.fCompact;
       fMixed = track_v.fMixed;
       memcpy(fBuf, track_v.fBuf, size*sizeof(GeantTrack));
@@ -508,6 +508,11 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
    size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);
    // Allocate VolumePath_t objects in the reserved buffer space
    for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstance(fMaxDepth, buf+i*size_vpath);
+   buf += 2*size*size_vpath;
+   size_t size_bits = BitSet::SizeOf((( (size ? size : 8) -1)/8) + 1);
+   fHoles = BitSet::MakeInstanceAt(size, buf);
+   buf += size_bits;
+   fSelected = BitSet::MakeInstanceAt(size, buf);
 }
 
 //______________________________________________________________________________
@@ -620,10 +625,21 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
       nextpathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+(size+i)*size_vpath);
       fPathV[i]->CopyTo(pathV[i]);
       fNextpathV[i]->CopyTo(nextpathV[i]);
+      VolumePath_t::ReleaseInstance(fPathV[i]);
+      VolumePath_t::ReleaseInstance(fNextpathV[i]);
    }
    // Set the new pointers to arrays
    fPathV = pathV;
    fNextpathV = nextpathV;
+   buf += 2*size*size_vpath;
+   size_t size_bits = BitSet::SizeOf((( (size ? size : 8) -1)/8) + 1);
+   BitSet *holes = BitSet::MakeCopyAt(*fHoles, buf);
+   BitSet::ReleaseInstance(fHoles);
+   fHoles = holes;
+   buf += size_bits;
+   BitSet *selected = BitSet::MakeInstanceAt(size, buf);
+   BitSet::ReleaseInstance(fSelected);
+   fSelected = selected;
 }
 
 //______________________________________________________________________________
@@ -663,14 +679,14 @@ void GeantTrack_v::Resize(Int_t newsize)
 // Resize the container.
    Int_t size = round_up_align(newsize);
    Int_t size_nav = 2*size*VolumePath_t::SizeOf(fMaxDepth);
+   Int_t size_bits = 2*BitSet::SizeOf((( (size ? size : 8) -1)/8) + 1);
    if (size<GetNtracks()) {
       Printf("Error: Cannot resize to less than current track content");
       return;
    }
-   fBufSize = size*sizeof(GeantTrack)+size_nav;
+   fBufSize = size*sizeof(GeantTrack) + size_nav + size_bits;
    if (!fCompact) Compact();
-   fHoles.ResetBitNumber(size-1);
-   fSelected.ResetBitNumber(size-1);
+   
    char* buf = (char*)_mm_malloc(fBufSize, ALIGN_PADDING);
    memset(buf, 0, fBufSize);
    fMaxtracks = size;
@@ -687,6 +703,8 @@ void GeantTrack_v::Resize(Int_t newsize)
       _mm_free(fBuf);
       fBuf = buf;
    }
+   fHoles->ResetAllBits();
+   fSelected->ResetAllBits();
 }
 
 //______________________________________________________________________________
@@ -698,7 +716,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
    // imported just copy the pointers to the navigation states and reset the sources.
    // Returns the location where the track was added.
    Int_t itrack = GetNtracks();
-   if (!fCompact) itrack = fHoles.FirstSetBit();
+   if (!fCompact) itrack = fHoles->FirstSetBit();
    if (itrack==fMaxtracks) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
       Resize(2*fMaxtracks);
@@ -706,8 +724,8 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
       printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
 #endif
    }   
-   fHoles.ResetBitNumber(itrack);
-   fSelected.ResetBitNumber(itrack);
+   fHoles->ResetBitNumber(itrack);
+   fSelected->ResetBitNumber(itrack);
    fEventV    [itrack] = track.fEvent;
    fEvslotV   [itrack] = track.fEvslot;
    fParticleV [itrack] = track.fParticle;
@@ -818,7 +836,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
    arr.PrintTrack( i );
 #endif
    Int_t itrack = GetNtracks();
-   if (!fCompact) itrack = fHoles.FirstSetBit();
+   if (!fCompact) itrack = fHoles->FirstSetBit();
    if (itrack==fMaxtracks) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
       Resize(2*fMaxtracks);
@@ -826,8 +844,8 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
       printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
 #endif
    }   
-   fHoles.ResetBitNumber(itrack);
-   fSelected.ResetBitNumber(itrack);
+   fHoles->ResetBitNumber(itrack);
+   fSelected->ResetBitNumber(itrack);
 
    fEventV    [itrack] = arr.fEventV    [i];
    fEvslotV   [itrack] = arr.fEvslotV   [i];
@@ -975,8 +993,8 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
       arr.fPathV[j]->CopyTo(fPathV[i]);
       arr.fNextpathV[j]->CopyTo(fNextpathV[i]);
    }
-   fSelected.ResetBitNumber(ntracks+ncpy-1);
-   fHoles.ResetBitNumber(ntracks+ncpy-1);
+   fSelected->ResetBitNumber(ntracks+ncpy-1);
+   fHoles->ResetBitNumber(ntracks+ncpy-1);
    fNtracks += ncpy;
 }
 
@@ -1020,9 +1038,9 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j)
    tbool = fPendingV [i]; fPendingV  [i] = fPendingV  [j]; fPendingV  [j] = tbool;
    tptr = fPathV     [i]; fPathV     [i] = fPathV     [j]; fPathV     [j] = tptr;
    tptr = fNextpathV [i]; fNextpathV [i] = fNextpathV [j]; fNextpathV [j] = tptr;
-   Bool_t sel = fSelected.TestBitNumber(j);
-   fSelected.SetBitNumber(j, fSelected.TestBitNumber(i));
-   fSelected.SetBitNumber(i, sel);
+   Bool_t sel = fSelected->TestBitNumber(j);
+   fSelected->SetBitNumber(j, fSelected->TestBitNumber(i));
+   fSelected->SetBitNumber(i, sel);
 }
 
 //______________________________________________________________________________
@@ -1062,7 +1080,7 @@ void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j)
 //   if (!fNextpathV[i]) fNextpathV[i] = wm->NavStates()->Borrow();
    fPathV[i] = fPathV[j]; //fPathV[j] = 0;
    fNextpathV[i] = fNextpathV[j]; //fNextpathV[j] = 0;
-   fSelected.SetBitNumber(i, fSelected.TestBitNumber(j));
+   fSelected->SetBitNumber(i, fSelected->TestBitNumber(j));
 }
 
 //______________________________________________________________________________
@@ -1126,7 +1144,7 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to)
    memmove(&fPathV     [from], &fPathV     [to+1], ncpy*sizeof(VolumePath_t*));
    memmove(&fNextpathV [from], &fNextpathV [to+1], ncpy*sizeof(VolumePath_t*));
    fNtracks -= to-from+1;
-   fSelected.ResetAllBits();
+   fSelected->ResetAllBits();
    fNselected = 0;
 }
 
@@ -1139,9 +1157,9 @@ Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
    Int_t ntracks = GetNtracks();
    if (ntracks == 0 || fCompact) return 0;
    fCompact = kTRUE;
-   Int_t firsthole = fHoles.FirstSetBit();
+   Int_t firsthole = fHoles->FirstSetBit();
    while (firsthole<ntracks) {
-      Int_t lastactive = fHoles.LastNullBit(ntracks-1);
+      Int_t lastactive = fHoles->LastNullBit(ntracks-1);
       if (lastactive < ntracks) {
          // move last holes (if any)
          if (moveto && (ntracks-lastactive-1>0)) moveto->AddTracks(*this, lastactive+1, ntracks-1, kTRUE);
@@ -1159,12 +1177,12 @@ Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
       // replace content of first hole with the last active track
       if (moveto) moveto->AddTrack(*this, firsthole, kTRUE);
       ReplaceTrack(firsthole, lastactive);
-      fHoles.SetBitNumber(firsthole, false);
-      fHoles.SetBitNumber(lastactive, true);
-      firsthole = fHoles.FirstSetBit(firsthole+1);
+      fHoles->SetBitNumber(firsthole, false);
+      fHoles->SetBitNumber(lastactive, true);
+      firsthole = fHoles->FirstSetBit(firsthole+1);
       ntracks--;
    }
-   fSelected.ResetAllBits();
+   fSelected->ResetAllBits();
    fNselected = 0;
    SetNtracks(ntracks);
    return ntracks;
@@ -1177,17 +1195,17 @@ Int_t GeantTrack_v::Reshuffle()
 // moved at the beginning of the array. Tracks should be compacted before.
    if (GetNtracks() == 0) return 0;
    fNselected = GetNtracks();
-   Int_t firsthole = fSelected.FirstNullBit();
+   Int_t firsthole = fSelected->FirstNullBit();
    while (firsthole<fNselected) {
-      Int_t lastsel = fSelected.LastSetBit(fNselected-1);
+      Int_t lastsel = fSelected->LastSetBit(fNselected-1);
       if (lastsel >= fNselected) return 0;
       fNselected = lastsel+1;
       if (firsthole==fNselected) return fNselected;
       // exchange tracks pointed by firsthole and lastactive
       SwapTracks(firsthole, lastsel);
-      fSelected.SetBitNumber(firsthole, true);
-      fSelected.SetBitNumber(lastsel, false);
-      firsthole = fSelected.FirstNullBit(firsthole+1);
+      fSelected->SetBitNumber(firsthole, true);
+      fSelected->SetBitNumber(lastsel, false);
+      firsthole = fSelected->FirstNullBit(firsthole+1);
       fNselected--;
    }
    return fNselected;
@@ -1215,8 +1233,8 @@ void GeantTrack_v::Clear(Option_t *)
       memset(fPathV, 0, ntracks*sizeof(VolumePath_t*));
       memset(fNextpathV, 0, ntracks*sizeof(VolumePath_t*));
    }   
-   fHoles.ResetAllBits();
-   fSelected.ResetAllBits();
+   fHoles->ResetAllBits();
+   fSelected->ResetAllBits();
    fCompact = kTRUE;
    SetNtracks(0);
 #ifdef __STAT_DEBUG_TRK
