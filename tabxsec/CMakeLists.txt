@@ -62,7 +62,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
 target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES}
-${ROOT_LIBRARIES} -lEG ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
+${ROOT_LIBRARIES} -lEG ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
 add_dependencies(tabxsec xseclib)
 
 #----------------------------------------------------------------------------

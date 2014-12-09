@@ -72,7 +72,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 #
 add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
 target_link_libraries(exampleN03 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
-                                 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v -lGeom -lEG)
+                                 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v -lGeom -lEG)
 add_dependencies(exampleN03 xseclib Geantlib_v)
 
 #----------------------------------------------------------------------------

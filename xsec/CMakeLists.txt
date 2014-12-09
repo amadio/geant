@@ -62,6 +62,8 @@ else()
     ${ROOT_LIBRARIES} -lEG -lGui -lGeom)
 endif()
 
+set(XSEC_LINK_LIBS "-lXsec" ${HEPMC_LIBRARIES} PARENT_SCOPE)
+
 add_dependencies(Xsec Geantlib_v)
 
 add_headers("${headers}")
