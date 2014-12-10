@@ -516,7 +516,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
       ++count;
 
-      if (input.fHoles.TestBitNumber(hostIdx))
+      if (input.fHoles->TestBitNumber(hostIdx))
          continue;
 
       VolumePath_t *path = input.fPathV[hostIdx];
@@ -934,7 +934,7 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
       for(unsigned int hostIdx = 0 ;hostIdx < nTracks;
           ++hostIdx ) {
 
-         if (input.fHoles.TestBitNumber(hostIdx))
+         if (input.fHoles->TestBitNumber(hostIdx))
             continue;
 
          input.PostponeTrack(hostIdx,output);
