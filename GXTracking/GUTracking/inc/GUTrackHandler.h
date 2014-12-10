@@ -17,7 +17,7 @@ public:
   GUTrackHandler(size_t nTracks);
   ~GUTrackHandler();
 
-  void   SetNumberOfTracks(size_t nTracks);
+  void   SetNumberOfTracks(size_t nTracks);     // Dangerous - must be *private*
   size_t GetNumberOfTracks() {return fNumberOfTracks; };
 
   void Allocate(size_t nTracks);
