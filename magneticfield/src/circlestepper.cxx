@@ -7,8 +7,8 @@
 
 #include <cmath>
 #include <iostream>
-#include "vdt/sin.h"
-#include "vdt/cos.h"
+// #include "vdt/sin.h"
+// #include "vdt/cos.h"
 
 inline
 void steponcircle( int charge, double R, double x0, double y0, double dx0, double dy0, double step,
@@ -25,7 +25,7 @@ void steponcircle( int charge, double R, double x0, double y0, double dx0, doubl
   y = y0 + R*( cosa  - (-sina*sinphi + cosphi*cosa ));
   dx = dx0 * cosphi - dy0 * sinphi;
   dy = dx0 * sinphi + dy0 * cosphi;
- }
+}
 
 void steponcircle_v( int const * __restrict__ c, double const *__restrict__ R, double const * __restrict__ x0,
         double const * __restrict__ y0, double const * __restrict__ dx0, double const * __restrict__ dy0, double * __restrict__ step,

@@ -1,41 +1,17 @@
 //
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
 //
 
-#ifndef TMagInt_Driver_Def
-#define TMagInt_Driver_Def
+#ifndef TIntegrationDriver_Def
+#define TIntegrationDriver_Def
 
 // #include "G4Types.hh"
 // #include "G4Pow.hh"
-#include "G4FieldTrack.hh"
+#include "GUFieldTrack.hh"
 #include <iomanip>
 #include "globals.hh"
 // #include "G4SystemOfUnits.hh"
 // #include "G4GeometryTolerance.hh"
-#include "sqrt.h"
+// #include "sqrt.h"
 // #include "fastonebigheader.h"
 #include "TCommonType.hh"
 
@@ -49,7 +25,7 @@
 
 template
 <class Stepper>
-class TMagInt_Driver // : public G4MagInt_Driver
+class TIntegrationDriver // : public GUIntegrationDriver
 { 
     //  Stepsize can increase by no more than 5.0
     //           and decrease by no more than 1/10. = 0.1
@@ -68,10 +44,10 @@ class TMagInt_Driver // : public G4MagInt_Driver
     
     static const size_t Nvar = Stepper::Nvar;
     typedef StaticVector<double, Nvar> BlazeVec;
-    typedef BlazePairType<Nvar> BlazeOutVec; 
+    typedef BlazePairType<Nvar>        BlazeOutVec; 
 
     inline bool
-        AccurateAdvance(G4FieldTrack& y_current,
+        AccurateAdvance(GUFieldTrack& y_current,
                 double     hstep,
                 double     eps,
                 double hinitial=0.0 );
@@ -81,7 +57,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
     // QuickAdvance just tries one Step - it does not ensure accuracy
     //
     bool  QuickAdvance(       
-            G4FieldTrack& y_posvel,         // INOUT
+            GUFieldTrack& y_posvel,         // INOUT
             const BlazeVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
@@ -100,7 +76,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
     //----------------------------------------------------------------------
 
     bool  QuickAdvance(       
-            G4FieldTrack& y_posvel,         // INOUT
+            GUFieldTrack& y_posvel,         // INOUT
             const BlazeVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
@@ -111,7 +87,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
     //  Constructor
     //
 
-    TMagInt_Driver( double                hminimum, 
+    TIntegrationDriver( double                hminimum, 
             T_Stepper *pStepper,
             int                   numComponents=6,
             int                   statisticsVerbose=1)
@@ -126,7 +102,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
         fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
         fSumH_sm(0.0), fSumH_lg(0.0),
         fVerboseLevel(0), 
-        G4MagInt_Driver(hminimum, pStepper, numComponents, statisticsVerbose)
+        GUIntegrationDriver(hminimum, pStepper, numComponents, statisticsVerbose)
     {  
         // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
         // is required. For proper time of flight and spin,  fMinNoVars must be 12
@@ -155,7 +131,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
     // ---------------------------------------------------------
     //  Destructor
     //
-    ~TMagInt_Driver()
+    ~TIntegrationDriver()
     { 
         if( fStatisticsVerboseLevel > 1 )
         {
@@ -169,15 +145,15 @@ class TMagInt_Driver // : public G4MagInt_Driver
     inline double GetHmin()   const { return fMinimumStep; } 
     inline double Hmin()      const { return fMinimumStep; }
     inline double GetSafety() const { return safety; }
-    inline double GetPshrnk() const { return pshrnk; } 
-    inline double GetPgrow()  const { return pgrow; }
+    inline double GetPowerShrink() const { return fPowerShrink; } 
+    inline double GetPowerGrow()  const { return fPowerGrow; }
     inline double GetErrcon() const { return errcon; }
     inline void SetHmin(double newval) { fMinimumStep = newval;         } 
 
     inline
         double ComputeAndSetErrcon()
         {
-            errcon = G4Pow::GetInstance()->G4Pow::powA(max_stepping_increase/GetSafety(),1.0/GetPgrow());
+            errcon = G4Pow::GetInstance()->G4Pow::powA(max_stepping_increase/GetSafety(),1.0/GetPowerGrow());
             return errcon;
         } 
 
@@ -185,15 +161,15 @@ class TMagInt_Driver // : public G4MagInt_Driver
         void ReSetParameters(double new_safety=0.9)
         {
             safety = new_safety;
-            pshrnk = -1.0 /
+            fPowerShrink = -1.0 /
                 pIntStepper->T_Stepper::IntegratorOrder();
-            pgrow  = -1.0 / (1.0 + 
+            fPowerGrow  = -1.0 / (1.0 + 
                     pIntStepper->T_Stepper::IntegratorOrder());
             ComputeAndSetErrcon();
         }
 
     inline void SetSafety(double val) { safety=val;     ComputeAndSetErrcon(); }
-    inline void SetPgrow(double  val) { pgrow=val;     ComputeAndSetErrcon();  }
+    inline void SetPowerGrow(double  val) { fPowerGrow=val;     ComputeAndSetErrcon();  }
     inline void SetErrcon(double val) { errcon=val; }
 
     inline void RenewStepperAndAdjust(T_Stepper *pItsStepper) 
@@ -208,9 +184,9 @@ class TMagInt_Driver // : public G4MagInt_Driver
     inline void SetMaxNoSteps(int val) { fMaxNoSteps= val; }
 
     inline
-        BlazeVec GetDerivatives(const G4FieldTrack &y_curr)
+        BlazeVec GetDerivatives(const GUFieldTrack &y_curr)
         { 
-            double  tmpValArr[G4FieldTrack::ncompSVEC];
+            double  tmpValArr[GUFieldTrack::ncompSVEC];
             y_curr.DumpToArray(tmpValArr);
             BlazeVec tmpValArrv(Nvar, tmpValArr);
             return pIntStepper->
@@ -245,7 +221,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
         }
         else
         { 
-            G4cerr << "Warning: SmallestFraction not changed. " << std::endl
+            std::cerr << "Warning: SmallestFraction not changed. " << std::endl
                 << "  Proposed value was " << newFraction << std::endl
                 << "  Value must be between 1.e-8 and 1.e-16" << std::endl;
         }
@@ -347,13 +323,13 @@ class TMagInt_Driver // : public G4MagInt_Driver
         //                                 stepTaken(hdid)  - last step taken
         //                                 nextStep (hnext) - proposal for size
     {
-        G4FieldTrack  StartFT(G4ThreeVector(0,0,0),
-                G4ThreeVector(0,0,0), 0., 0., 0., 0. );
-        G4FieldTrack  CurrentFT (StartFT);
+        GUFieldTrack  StartFT(ThreeVector(0,0,0),
+                ThreeVector(0,0,0), 0., 0., 0., 0. );
+        GUFieldTrack  CurrentFT (StartFT);
 
         StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
         StartFT.SetCurveLength( xstart);
-        double CurrentArrv[G4FieldTrack::ncompSVEC];
+        double CurrentArrv[GUFieldTrack::ncompSVEC];
         for(size_t i = 0; i < fNoVars; i ++) 
         {CurrentArrv[i] = CurrentArr[i];}
         CurrentFT.LoadFromArray( CurrentArrv, fNoIntegrationVariables); 
@@ -365,8 +341,8 @@ class TMagInt_Driver // : public G4MagInt_Driver
     // ---------------------------------------------------------------------------
 
     void PrintStatus(
-            const G4FieldTrack&  StartFT,
-            const G4FieldTrack&  CurrentFT, 
+            const GUFieldTrack&  StartFT,
+            const GUFieldTrack&  CurrentFT, 
             double             requestStep, 
             int                subStepNo)
     {
@@ -375,10 +351,10 @@ class TMagInt_Driver // : public G4MagInt_Driver
         int oldPrec= std::cout.precision(noPrecision);
         // std::cout.setf(ios_base::fixed,ios_base::floatfield);
 
-        const G4ThreeVector StartPosition=       StartFT.GetPosition();
-        const G4ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
-        const G4ThreeVector CurrentPosition=     CurrentFT.GetPosition();
-        const G4ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
+        const ThreeVector StartPosition=       StartFT.GetPosition();
+        const ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
+        const ThreeVector CurrentPosition=     CurrentFT.GetPosition();
+        const ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
 
         double  DotStartCurrentVeloc= StartUnitVelocity.dot(CurrentUnitVelocity);
 
@@ -390,7 +366,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
             subStepNo = - subStepNo;        // To allow printing banner
 
             std::cout << std::setw( 6)  << " " << std::setw( 25)
-                << " TMagInt_Driver: Current Position  and  Direction" << " "
+                << " TIntegrationDriver: Current Position  and  Direction" << " "
                 << std::endl; 
             std::cout << std::setw( 5) << "Step#" << " "
                 << std::setw( 7) << "s-curve" << " "
@@ -442,7 +418,7 @@ class TMagInt_Driver // : public G4MagInt_Driver
 
     // ---------------------------------------------------------------------------
     void PrintStat_Aux(
-            const G4FieldTrack&  aFieldTrack,
+            const GUFieldTrack&  aGUFieldTrack,
             double             requestStep, 
             double             step_len,
             int                subStepNo,
@@ -474,8 +450,8 @@ class TMagInt_Driver // : public G4MagInt_Driver
 
     private:
 
-    TMagInt_Driver(const TMagInt_Driver&);
-    TMagInt_Driver& operator=(const TMagInt_Driver&);
+    TIntegrationDriver(const TIntegrationDriver&);
+    TIntegrationDriver& operator=(const TIntegrationDriver&);
     // Private copy constructor and assignment operator.
 
     private:
@@ -490,14 +466,14 @@ class TMagInt_Driver // : public G4MagInt_Driver
     //  below this fraction the current step will be the last 
 
     const int  fNoIntegrationVariables;  // Number of Variables in integration
-    const int  fMinNoVars;               // Minimum number for FieldTrack
+    const int  fMinNoVars;               // Minimum number for GUFieldTrack
     const int  fNoVars;                  // Full number of variable
 
     int   fMaxNoSteps;
 
     double safety;
-    double pshrnk;   //  exponent for shrinking
-    double pgrow;    //  exponent for growth
+    double fPowerShrink;   //  exponent for shrinking
+    double fPowerGrow;    //  exponent for growth
     double errcon;
     // Parameters used to grow and shrink trial stepsize.
 
@@ -563,7 +539,7 @@ OneGoodStep(BlazeVec &y,        // InOut
     static G4ThreadLocal int tot_no_trials=0; 
     const int max_trials=100; 
 
-    G4ThreeVector Spin(y[9],y[10],y[11]);
+    ThreeVector Spin(y[9],y[10],y[11]);
     bool     hasSpin= (Spin.mag2() > 0.0); 
 
     for (iter=0; iter<max_trials ;iter++)
@@ -598,7 +574,7 @@ OneGoodStep(BlazeVec &y,        // InOut
         if ( errmax_sq <= 1.0 )  { break; } // Step succeeded. 
 
         // Step failed; compute the size of retrial Step.
-        htemp = GetSafety()*h* G4Pow::GetInstance()->G4Pow::powA( errmax_sq, 0.5*GetPshrnk() );
+        htemp = GetSafety()*h* G4Pow::GetInstance()->G4Pow::powA( errmax_sq, 0.5*GetPowerShrink() );
 
         if (htemp >= 0.1*h)  { h = htemp; }  // Truncation error too large,
         else  { h = 0.1*h; }                 // reduce stepsize, but no more
@@ -606,9 +582,9 @@ OneGoodStep(BlazeVec &y,        // InOut
         xnew = x + h;
         if(xnew == x)
         {
-            G4cerr << "G4MagIntegratorDriver::OneGoodStep:" << std::endl
+            std::cerr << "GVIntegratorDriver::OneGoodStep:" << std::endl
                 << "  Stepsize underflow in Stepper " << std::endl ;
-            G4cerr << "  Step's start x=" << x << " and end x= " << xnew 
+            std::cerr << "  Step's start x=" << x << " and end x= " << xnew 
                 << " are equal !! " << std::endl
                 <<"  Due to step-size= " << h 
                 << " . Note that input step was " << htry << std::endl;
@@ -626,7 +602,7 @@ OneGoodStep(BlazeVec &y,        // InOut
     // Compute size of next Step
     if (errmax_sq > errcon*errcon)
     { 
-        hnext = GetSafety()*h*G4Pow::GetInstance()->G4Pow::powA(errmax_sq, 0.5*GetPgrow());
+        hnext = GetSafety()*h*G4Pow::GetInstance()->G4Pow::powA(errmax_sq, 0.5*GetPowerGrow());
     }
     else
     {
@@ -646,7 +622,7 @@ OneGoodStep(BlazeVec &y,        // InOut
 // 
 double 
 template <class Stepper>
-TMagInt_Driver::ComputeNewStepSize( 
+TIntegrationDriver::ComputeNewStepSize( 
         double  errMaxNorm,    // max error  (normalised)
         double  hstepCurrent)  // current step size
 {
@@ -656,10 +632,10 @@ TMagInt_Driver::ComputeNewStepSize(
     if(errMaxNorm > 1.0 )
     {
         // Step failed; compute the size of retrial Step.
-        hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPshrnk()) ;
+        hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerShrink()) ;
     } else if(errMaxNorm > 0.0 ) {
         // Compute size of next Step for a successful step
-        hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPgrow()) ;
+        hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerGrow()) ;
     } else {
         // if error estimate is zero (possible) or negative (dubious)
         hnew = max_stepping_increase * hstepCurrent; 
@@ -677,7 +653,7 @@ TMagInt_Driver::ComputeNewStepSize(
 //
 double 
 template <class Stepper>
-TMagInt_Driver::ComputeNewStepSize_WithinLimits( 
+TIntegrationDriver::ComputeNewStepSize_WithinLimits( 
         double  errMaxNorm,    // max error  (normalised)
         double  hstepCurrent)  // current step size
 {
@@ -687,7 +663,7 @@ TMagInt_Driver::ComputeNewStepSize_WithinLimits(
     if (errMaxNorm > 1.0 )
     {
         // Step failed; compute the size of retrial Step.
-        hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPshrnk()) ;
+        hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerShrink()) ;
 
         if (hnew < max_stepping_decrease*hstepCurrent)
         {
@@ -700,7 +676,7 @@ TMagInt_Driver::ComputeNewStepSize_WithinLimits(
     {
         // Compute size of next Step for a successful step
         if (errMaxNorm > errcon)
-        { hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPgrow()); }
+        { hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerGrow()); }
         else  // No more than a factor of 5 increase
         { hnew = max_stepping_increase * hstepCurrent; }
     }
@@ -710,7 +686,7 @@ TMagInt_Driver::ComputeNewStepSize_WithinLimits(
 bool
 template
 <class Stepper>
-class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
+class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
         double     hstep,
         double     eps,
         double hinitial=0.0 )
@@ -727,13 +703,13 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
 #ifdef DEBUG_FIELD
     static int dbg=1;
     static int nStpPr=50;   // For debug printing of long integrations
-    double ySubStepStart[G4FieldTrack::ncompSVEC];
-    G4FieldTrack  yFldTrkStart(y_current);
+    double ySubStepStart[GUFieldTrack::ncompSVEC];
+    GUFieldTrack  yFldTrkStart(y_current);
 #endif
 
     BlazeVec y; 
     BlazeVec dydx;
-    double ystart[G4FieldTrack::ncompSVEC], yEnd[G4FieldTrack::ncompSVEC]; 
+    double ystart[GUFieldTrack::ncompSVEC], yEnd[GUFieldTrack::ncompSVEC]; 
     double  x1, x2;
     bool succeeded = true, lastStepSucceeded;
 
@@ -742,7 +718,7 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
     int  noFullIntegr=0, noSmallIntegr = 0 ;
     static G4ThreadLocal int  noGoodSteps =0 ;  // Bad = chord > curve-len 
 
-    G4FieldTrack yStartFT(y_current);
+    GUFieldTrack yStartFT(y_current);
 
     //  Ensure that hstep > 0
     //
@@ -790,7 +766,7 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
 
     do
     {
-        G4ThreeVector StartPos( y[0], y[1], y[2] );
+        ThreeVector StartPos( y[0], y[1], y[2] );
 
 #ifdef DEBUG_FIELD
         double xSubStepStart= x; 
@@ -822,10 +798,10 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
         }
         else
         {
-            G4FieldTrack yFldTrk( G4ThreeVector(0,0,0), 
-                    G4ThreeVector(0,0,0), 0., 0., 0., 0. );
+            GUFieldTrack yFldTrk( ThreeVector(0,0,0), 
+                    ThreeVector(0,0,0), 0., 0., 0., 0. );
             double dchord_step, dyerr, dyerr_len;   // What to do with these ?
-            double yv[G4FieldTrack::ncompSVEC];
+            double yv[GUFieldTrack::ncompSVEC];
             for(size_t i = 0; i < Nvar; i ++){ yv[i] = y[i];}
             yFldTrk.LoadFromArray(yv, fNoIntegrationVariables); 
             yFldTrk.SetCurveLength( x );
@@ -874,7 +850,7 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
         if (lastStepSucceeded)  { noFullIntegr++; }
         else                    { noSmallIntegr++; }
 
-        G4ThreeVector EndPos( y[0], y[1], y[2] );
+        ThreeVector EndPos( y[0], y[1], y[2] );
 
 #ifdef  DEBUG_FIELD
         if( (dbg>0) && (dbg<=2) && (nstp>nStpPr))
@@ -903,7 +879,7 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
                 if (dbg)
                 {
                     WarnEndPointTooFar ( endPointDist, hdid, eps, dbg ); 
-                    G4cerr << "  Total steps:  bad " << fNoBadSteps
+                    std::cerr << "  Total steps:  bad " << fNoBadSteps
                         << " good " << noGoodSteps << " current h= " << hdid
                         << std::endl;
                     PrintStatus( ystart, x1, y, x, hstep, no_warnings?nstp:-nstp);  
@@ -1003,7 +979,7 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
 #ifdef DEBUG_FIELD
     if( dbg && no_warnings )
     {
-        G4cerr << "TMagIntegratorDriver exit status: no-steps " << nstp <<std::endl;
+        std::cerr << "TMagIntegratorDriver exit status: no-steps " << nstp <<std::endl;
         PrintStatus( yEnd, x1, y, x, hstep, nstp);
     }
 #endif
@@ -1013,9 +989,9 @@ class TMagInt_Driver::AccurateAdvance(G4FieldTrack& y_current,
 
 
 bool
-template <class Stepper> TMagInt_Driver::
+template <class Stepper> TIntegrationDriver::
 QuickAdvance(       
-            G4FieldTrack& y_posvel,         // INOUT
+            GUFieldTrack& y_posvel,         // INOUT
             const BlazeVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
@@ -1029,7 +1005,7 @@ QuickAdvance(
     no_call ++; 
 
     // Move data into array
-    double yarrin[G4FieldTrack::ncompSVEC]; 
+    double yarrin[GUFieldTrack::ncompSVEC]; 
     y_posvel.DumpToArray( yarrin );      //  yarrin  <== y_posvel 
     s_start = y_posvel.GetCurveLength();
 
@@ -1044,7 +1020,7 @@ QuickAdvance(
     //                         *********
 
     // Put back the values.  yarrout ==> y_posvel
-    double yarrout[G4FieldTrack::ncompSVEC];
+    double yarrout[GUFieldTrack::ncompSVEC];
     for(size_t i = 0; i < Nvar; i ++){ yarrout[i] = yVec.out[i]; }
         y_posvel.LoadFromArray( yarrout, fNoIntegrationVariables );
     y_posvel.SetCurveLength( s_start + hstep );
@@ -1099,8 +1075,8 @@ void PrintStatisticsReport()
     int noPrecBig= 6;
     int oldPrec= std::cout.precision(noPrecBig);
 
-    std::cout << "TMagInt_Driver Statistics of steps undertaken. " << std::endl;
-    std::cout << "TMagInt_Driver: Number of Steps: "
+    std::cout << "TIntegrationDriver Statistics of steps undertaken. " << std::endl;
+    std::cout << "TIntegrationDriver: Number of Steps: "
         << " Total= " <<  fNoTotalSteps
         << " Bad= "   <<  fNoBadSteps 
         << " Small= " <<  fNoSmallSteps 
@@ -1142,15 +1118,15 @@ void PrintStatisticsReport()
 
 
 void PrintStat_Aux(
-        const G4FieldTrack&  aFieldTrack,
+        const GUFieldTrack&  aGUFieldTrack,
         double             requestStep, 
         double             step_len,
         int                subStepNo,
         double             subStepSize,
         double             dotVeloc_StartCurr)
 {
-    const G4ThreeVector Position=      aFieldTrack.GetPosition();
-    const G4ThreeVector UnitVelocity=  aFieldTrack.GetMomentumDir();
+    const ThreeVector Position=      aGUFieldTrack.GetPosition();
+    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDir();
 
     if( subStepNo >= 0)
     {
@@ -1160,7 +1136,7 @@ void PrintStat_Aux(
     {
         std::cout << std::setw( 5) << "Start" << " ";
     }
-    double curveLen= aFieldTrack.GetCurveLength();
+    double curveLen= aGUFieldTrack.GetCurveLength();
     std::cout << std::setw( 7) << curveLen;
     std::cout << std::setw( 9) << Position.x() << " "
         << std::setw( 9) << Position.y() << " "
@@ -1173,7 +1149,7 @@ void PrintStat_Aux(
     std::cout.precision(6);
     std::cout << std::setw(10) << dotVeloc_StartCurr << " ";
     std::cout.precision(oldprec);
-    std::cout << std::setw( 7) << aFieldTrack.GetKineticEnergy();
+    std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
     std::cout << std::setw(12) << step_len << " ";
 
     static G4ThreadLocal double oldCurveLength= 0.0;
@@ -1206,4 +1182,4 @@ void PrintStat_Aux(
 }
 
 
-#endif /* TMagInt_Driver_Def */
+#endif /* TIntegrationDriver_Def */

@@ -1,10 +1,12 @@
-#ifndef TUniformMagField_HH
-#define TUniformMagField_HH
+//  
+//  First version:      (Josh) - GSoC 2014 project
+//  Current version:  J. Apostolakis
 
-
+#ifndef TUniformMagField_H
+#define TUniformMagField_H
 
 // #include "G4Types.hh"
-// #include "G4ThreeVector.hh"
+// #include "ThreeVector.h"
 // #include "G4MagneticField.hh"
 // #include "G4PhysicalConstants.hh"
 

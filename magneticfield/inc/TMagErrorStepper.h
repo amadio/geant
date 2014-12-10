@@ -2,47 +2,47 @@
 #define TMAGERRORSTEPPER_HH
 
 #include "G4Types.hh"
-#include "G4MagIntegratorStepper.hh"
-#include "G4ThreeVector.hh"
+#include "GVVIntegratorStepper.hh"
+#include "ThreeVector.h"
 #include "G4LineSection.hh"
 
 template
 <class T_Stepper, class T_Equation, int N>
-class TMagErrorStepper // : public G4MagIntegratorStepper
+class TMagErrorStepper // : public GVVIntegratorStepper
 {
     public:  // with description
 
         TMagErrorStepper(T_Equation *EqRhs, 
-                G4int numberOfVariables, 
-                G4int numStateVariables=12)
-            : G4MagIntegratorStepper(
+                int numberOfVariables, 
+                int numStateVariables=12)
+            : GVVIntegratorStepper(
                     EqRhs, numberOfVariables, numStateVariables),
             fEquation_Rhs(EqRhs)
         {
-            // G4int nvar = std::max(this->GetNumberOfVariables(), 8);
+            // int nvar = std::max(this->GetNumberOfVariables(), 8);
         }
 
         virtual ~TMagErrorStepper() {;}
 
 
-        inline void RightHandSide(G4double y[], G4double dydx[]) 
+        inline void RightHandSide(double y[], double dydx[]) 
         {fEquation_Rhs->T_Equation::RightHandSide(y, dydx);}
 
-        inline void Stepper( const G4double yInput[],
-                const G4double dydx[],
-                G4double hstep,
-                G4double yOutput[],
-                G4double yError []      )
+        inline void Stepper( const double yInput[],
+                const double dydx[],
+                double hstep,
+                double yOutput[],
+                double yError []      )
             // The stepper for the Runge Kutta integration. The stepsize 
             // is fixed, with the Step size given by h.
             // Integrates ODE starting values y[0 to 6].
             // Outputs yout[] and its estimated error yerr[].
         {  
-            const G4int maxvar= GetNumberOfStateVariables();
+            const int maxvar= GetNumberOfStateVariables();
 
-            G4int i;
+            int i;
             // correction for Richardson Extrapolation.
-            //G4double  correction = 1. / ( (1 << 
+            //double  correction = 1. / ( (1 << 
               //          static_cast<T_Stepper*>(this)->T_Stepper::IntegratorOrder()) -1 );
             //  Saving yInput because yInput and yOutput can be aliases for same array
 
@@ -54,7 +54,7 @@ class TMagErrorStepper // : public G4MagIntegratorStepper
             for(i=N;i<maxvar;i++) yOutput[i]=yInput[i];
             // yError[7] = 0.0;         
 
-            G4double halfStep = hstep * 0.5; 
+            double halfStep = hstep * 0.5; 
 
             // Do two half steps
 
@@ -64,7 +64,7 @@ class TMagErrorStepper // : public G4MagIntegratorStepper
 
             // Store midpoint, chord calculation
 
-            fMidPoint = G4ThreeVector( yMiddle[0],  yMiddle[1],  yMiddle[2]); 
+            fMidPoint = ThreeVector( yMiddle[0],  yMiddle[1],  yMiddle[2]); 
 
             // Do a full Step
 	    //            static_cast<T_Stepper*>(this)->T_Stepper::DumbStepper(yInitial, dydx, hstep, yOneStep);
@@ -77,13 +77,13 @@ class TMagErrorStepper // : public G4MagIntegratorStepper
                     // Richardson Extrapolation  
             }
 
-            fInitialPoint = G4ThreeVector( yInitial[0], yInitial[1], yInitial[2]); 
-            fFinalPoint   = G4ThreeVector( yOutput[0],  yOutput[1],  yOutput[2]); 
+            fInitialPoint = ThreeVector( yInitial[0], yInitial[1], yInitial[2]); 
+            fFinalPoint   = ThreeVector( yOutput[0],  yOutput[1],  yOutput[2]); 
 
             return ;
         }
 
-        G4double DistChord() const 
+        double DistChord() const 
         {
             // Estimate the maximum distance from the curve to the chord
             //
@@ -93,7 +93,7 @@ class TMagErrorStepper // : public G4MagIntegratorStepper
             //  Method below is good only for angle deviations < 2 pi, 
             //   This restriction should not a problem for the Runge cutta methods, 
             //   which generally cannot integrate accurately for large angle deviations.
-            G4double distLine, distChord; 
+            double distLine, distChord; 
 
             if (fInitialPoint != fFinalPoint) {
                 distLine= G4LineSection::Distline( fMidPoint, fInitialPoint, fFinalPoint );
@@ -118,14 +118,14 @@ class TMagErrorStepper // : public G4MagIntegratorStepper
     private:
 
         // STATE
-        G4ThreeVector fInitialPoint, fMidPoint, fFinalPoint;
+        ThreeVector fInitialPoint, fMidPoint, fFinalPoint;
         // Data stored in order to find the chord
 
         // Dependent Objects, owned --- part of the STATE 
-        G4double yInitial[N<8?8:N];
-        G4double yMiddle[N<8?8:N];
-        G4double dydxMid[N<8?8:N];
-        G4double yOneStep[N<8?8:N];
+        double yInitial[N<8?8:N];
+        double yMiddle[N<8?8:N];
+        double dydxMid[N<8?8:N];
+        double yOneStep[N<8?8:N];
         // The following arrays are used only for temporary storage
         // they are allocated at the class level only for efficiency -
         // so that calls to new and delete are not made in Stepper().

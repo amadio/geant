@@ -2,31 +2,35 @@
 //
 // $Id: GVIntegratorDriver.cxx
 //
-// Implementation for class GVIntegrationDriver
+// Implementation for class GUIntegrationDriver
 //   Tracking in space dependent magnetic field
 //
 // History of major changes:
 //  8 Dec 14  J. Apostolakis:   First version
 // --------------------------------------------------------------------
 
+#include <iostream>
 #include <iomanip>
 
-#include "globals.hh"
+// #include "globals.hh"
 // #include "G4SystemOfUnits.hh"
 // #include "G4GeometryTolerance.hh"
-#include "GVIntegratorDriver.hh"
-#include "FieldTrack.hh"
+#include "GUFieldTrack.h"
+#include "GUIntegrationDriver.h"
 
 //  Stepsize can increase by no more than 5.0
 //           and decrease by no more than 1/10. = 0.1
 //
-const double GVIntegrationDriver::max_stepping_increase = 5.0;
-const double GVIntegrationDriver::max_stepping_decrease = 0.1;
+constexpr double GUIntegrationDriver::max_stepping_increase = 5.0;
+constexpr double GUIntegrationDriver::max_stepping_decrease = 0.1;
+
+constexpr double perMillion  = 1.0e-6; 
+constexpr double perThousand = 1.0e-3;
 
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper
 //
-const G4int  GVIntegrationDriver::fMaxStepBase = 250;  // Was 5000
+const int  GUIntegrationDriver::fMaxStepBase = 250;  // Was 5000
 
 #ifndef G4NO_FIELD_STATISTICS
 #define GVFLD_STATS  1
@@ -34,16 +38,16 @@ const G4int  GVIntegrationDriver::fMaxStepBase = 250;  // Was 5000
 
 // To add much printing for debugging purposes, uncomment the following
 // and set verbose level to 1 or higher value !
-// #define  GVDEBUG_FIELD 1    
+// #define  GUDEBUG_FIELD 1    
 
 // ---------------------------------------------------------
 
 //  Constructor
 //
-GVIntegrationDriver::GVIntegrationDriver( double                hminimum, 
-                                  GVVIntegratorStepper *pStepper,
-                                  G4int                   numComponents,
-                                  G4int                   statisticsVerbose)
+GUIntegrationDriver::GUIntegrationDriver( double                hminimum, 
+                                  GUVIntegrationStepper *pStepper,
+                                  int                   numComponents,
+                                  int                   statisticsVerbose)
   : fSmallestFraction( 1.0e-12 ), 
     fSurfaceTolerance( 1.0e-6) , 
     fNoIntegrationVariables(numComponents), 
@@ -63,13 +67,13 @@ GVIntegrationDriver::GVIntegrationDriver( double                hminimum,
   RenewStepperAndAdjust( pStepper );
   fMinimumStep= hminimum;
   fMaxNoSteps = fMaxStepBase / pIntStepper->IntegratorOrder();
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
   fVerboseLevel=2;
 #endif
 
   if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) )
   {
-    G4cout << "MagIntDriver version: Accur-Adv: "
+     std::cout << "MagIntDriver version: Accur-Adv: "
            << "invE_nS, QuickAdv-2sqrt with Statistics "
 #ifdef GVFLD_STATS
            << " enabled "
@@ -84,7 +88,7 @@ GVIntegrationDriver::GVIntegrationDriver( double                hminimum,
 
 //  Destructor
 //
-GVIntegrationDriver::~GVIntegrationDriver()
+GUIntegrationDriver::~GUIntegrationDriver()
 { 
   if( fStatisticsVerboseLevel > 1 )
   {
@@ -96,7 +100,7 @@ GVIntegrationDriver::~GVIntegrationDriver()
 // ---------------------------------------------------------
 
 bool
-GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
+GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
                                  double     hstep,
                                  double     eps,
                                  double hinitial )
@@ -107,28 +111,29 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
   // interval. RightHandSide is the right-hand side of ODE system. 
   // The source is similar to odeint routine from NRC p.721-722 .
 
-  G4int nstp, i, no_warnings=0;
+  int nstp, i, no_warnings=0;
   double x, hnext, hdid, h;
 
-#ifdef GVDEBUG_FIELD
-  static G4int dbg=1;
-  static G4int nStpPr=50;   // For debug printing of long integrations
-  double ySubStepStart[G4FieldTrack::ncompSVEC];
-  G4FieldTrack  yFldTrkStart(y_current);
+#ifdef GUDEBUG_FIELD
+  static int dbg=1;
+  static int nStpPr=50;   // For debug printing of long integrations
+  double ySubStepStart[GUFieldTrack::ncompSVEC];
+  GUFieldTrack  yFldTrkStart(y_current);
 #endif
 
-  double y[G4FieldTrack::ncompSVEC], dydx[G4FieldTrack::ncompSVEC];
-  double ystart[G4FieldTrack::ncompSVEC], yEnd[G4FieldTrack::ncompSVEC]; 
+  double y[GUFieldTrack::ncompSVEC], dydx[GUFieldTrack::ncompSVEC];
+  double ystart[GUFieldTrack::ncompSVEC], yEnd[GUFieldTrack::ncompSVEC]; 
   double  x1, x2;
   bool succeeded = true, lastStepSucceeded;
 
   double startCurveLength;
 
-  G4int  noFullIntegr=0, noSmallIntegr = 0 ;
-  static G4ThreadLocal G4int  noGoodSteps =0 ;  // Bad = chord > curve-len 
-  const  G4int  nvar= fNoVars;
+  int  noFullIntegr=0, noSmallIntegr = 0 ;
+  // G4ThreadLocal
+  static int  noGoodSteps =0 ;  // Bad = chord > curve-len 
+  const  int  nvar= fNoVars;
 
-  G4FieldTrack yStartFT(y_current);
+  GUFieldTrack yStartFT(y_current);
 
   //  Ensure that hstep > 0
   //
@@ -136,20 +141,13 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
   { 
     if(hstep==0.0)
     {
-      std::ostringstream message;
-      message << "Proposed step is zero; hstep = " << hstep << " !";
-      G4Exception("GVIntegrationDriver::AccurateAdvance()", 
-                  "GeomField1001", JustWarning, message);
+      std::cerr << "Proposed step is zero; hstep = " << hstep << " !";
       return succeeded; 
     }
     else
     { 
-      std::ostringstream message;
-      message << "Invalid run condition." << std::endl
-              << "Proposed step is negative; hstep = " << hstep << "." << std::endl
-              << "Requested step cannot be negative! Aborting event.";
-      G4Exception("GVIntegrationDriver::AccurateAdvance()", 
-                  "GeomField0003", EventMustBeAborted, message);
+      std::cerr << "Invalid run condition." << std::endl
+                << "Proposed step is negative; hstep = " << hstep << "." << std::endl;
       return false;
     }
   }
@@ -179,9 +177,9 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
 
   do
   {
-    G4ThreeVector StartPos( y[0], y[1], y[2] );
+    ThreeVector StartPos( y[0], y[1], y[2] );
 
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
     double xSubStepStart= x; 
     for (i=0;i<nvar;i++)  { ySubStepStart[i] = y[i]; }
     yFldTrkStart.LoadFromArray(y, fNoIntegrationVariables);
@@ -201,7 +199,7 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
       OneGoodStep(y,dydx,x,h,eps,hdid,hnext) ;
       //--------------------------------------
       lastStepSucceeded= (hdid == h);   
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
       if (dbg>2) {
         PrintStatus( ySubStepStart, xSubStepStart, y, x, h,  nstp); // Only
       }
@@ -209,43 +207,46 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
     }
     else
     {
-      G4FieldTrack yFldTrk( G4ThreeVector(0,0,0), 
-                            G4ThreeVector(0,0,0), 0., 0., 0., 0. );
-      double dchord_step, dyerr, dyerr_len;   // What to do with these ?
+      GUFieldTrack yFldTrk( ThreeVector(0,0,0), 
+                            ThreeVector(0,0,0), 0., 0., 0., 0. );
+      double dchord_step, dyerr_len_sq, dyerr_mom_rel_sq;   // What to do with these ?
       yFldTrk.LoadFromArray(y, fNoIntegrationVariables); 
       yFldTrk.SetCurveLength( x );
 
-      QuickAdvance( yFldTrk, dydx, h, dchord_step, dyerr_len ); 
-      //-----------------------------------------------------
+      QuickAdvance( yFldTrk, dydx, h, dchord_step, dyerr_len_sq, dyerr_mom_rel_sq ); 
+      //----------------------------------------------------------------
 
       yFldTrk.DumpToArray(y);    
 
+
 #ifdef GVFLD_STATS
-      fNoSmallSteps++; 
+      fNoSmallSteps++;
+      double dyerr_len = std::sqrt(dyerr_len_sq); 
       if ( dyerr_len > fDyerr_max)  { fDyerr_max= dyerr_len; }
       fDyerrPos_smTot += dyerr_len;
       fSumH_sm += h;  // Length total for 'small' steps
       if (nstp<=1)  { fNoInitialSmallSteps++; }
 #endif
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
       if (dbg>1)
       {
         if(fNoSmallSteps<2) { PrintStatus(ySubStepStart, x1, y, x, h, -nstp); }
-        G4cout << "Another sub-min step, no " << fNoSmallSteps 
+        std::cout << "Another sub-min step, no " << fNoSmallSteps 
                << " of " << fNoTotalSteps << " this time " << nstp << std::endl; 
         PrintStatus( ySubStepStart, x1, y, x, h,  nstp);   // Only this
-        G4cout << " dyerr= " << dyerr_len << " relative = " << dyerr_len / h 
+        std::cout << " dyerr= " << dyerr_len << " relative = " << dyerr_len / h 
                << " epsilon= " << eps << " hstep= " << hstep 
                << " h= " << h << " hmin= " << fMinimumStep << std::endl;
       }
 #endif        
-      if( h == 0.0 )
-      { 
-        G4Exception("GVIntegrationDriver::AccurateAdvance()",
-                    "GeomField0003", FatalException,
-                    "Integration Step became Zero!"); 
+      if( h == 0.0 ){
+         std::cerr << "ERROR in G4UIntegationDriver::AccurateAdvance: integration failure. " << std::endl;
+         std::cerr << "Integration Step became Zero!" << std::endl;
+         exit(1); 
       }
-      dyerr = dyerr_len / h;
+      double dyerr_sq = std::min( dyerr_len_sq / (h*h) , dyerr_mom_rel_sq ); 
+      double dyerr = std::sqrt(dyerr_sq); 
+      // dyerr = dyerr_len / h;
       hdid= h;
       x += hdid;
 
@@ -259,14 +260,14 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
     if (lastStepSucceeded)  { noFullIntegr++; }
     else                    { noSmallIntegr++; }
 
-    G4ThreeVector EndPos( y[0], y[1], y[2] );
+    ThreeVector EndPos( y[0], y[1], y[2] );
 
-#ifdef  GVDEBUG_FIELD
+#ifdef  GUDEBUG_FIELD
     if( (dbg>0) && (dbg<=2) && (nstp>nStpPr))
     {
-      if( nstp==nStpPr )  { G4cout << "***** Many steps ****" << std::endl; }
-      G4cout << "MagIntDrv: " ; 
-      G4cout << "hdid="  << std::setw(12) << hdid  << " "
+      if( nstp==nStpPr )  { std::cout << "***** Many steps ****" << std::endl; }
+      std::cout << "MagIntDrv: " ; 
+      std::cout << "hdid="  << std::setw(12) << hdid  << " "
              << "hnext=" << std::setw(12) << hnext << " " 
 	     << "hstep=" << std::setw(12) << hstep << " (requested) " 
 	     << std::endl;
@@ -275,7 +276,7 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
 #endif
 
     // Check the endpoint
-    double endPointDist= (EndPos-StartPos).mag(); 
+    double endPointDist= (EndPos-StartPos).Mag(); 
     if ( endPointDist >= hdid*(1.+perMillion) )
     {
       fNoBadSteps++;
@@ -284,7 +285,7 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
       // we understand how small difference occur.
       if ( endPointDist >= hdid*(1.+perThousand) )
       { 
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
         if (dbg)
         {
           WarnEndPointTooFar ( endPointDist, hdid, eps, dbg ); 
@@ -314,7 +315,7 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
       // Check the proposed next stepsize
       if(std::fabs(hnext) <= Hmin())
       {
-#ifdef  GVDEBUG_FIELD
+#ifdef  GUDEBUG_FIELD
         // If simply a very small interval is being integrated, do not warn
         if( (x < x2 * (1-eps) ) &&        // The last step can be small: OK
             (std::fabs(hstep) > Hmin()) ) // and if we are asked, it's OK
@@ -345,17 +346,17 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
       {
         // Cannot progress - accept this as last step - by default
         lastStep = true;
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
         if (dbg>2)
         {
-          int prec= G4cout.precision(12); 
-          G4cout << "Warning: GVIntegratorDriver::AccurateAdvance"
+          int prec= std::cout.precision(12); 
+          std::cout << "Warning: GVIntegratorDriver::AccurateAdvance"
                  << std::endl
                  << "  Integration step 'h' became "
                  << h << " due to roundoff. " << std::endl
 		 << " Calculated as difference of x2= "<< x2 << " and x=" << x
                  << "  Forcing termination of advance." << std::endl;
-          G4cout.precision(prec);
+          std::cout.precision(prec);
         }          
 #endif
       }
@@ -376,7 +377,7 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
   {
     no_warnings++;
     succeeded = false;
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
     if (dbg)
     {
       WarnTooManyStep( x1, x2, x );  //  Issue WARNING
@@ -385,7 +386,7 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
 #endif
   }
 
-#ifdef GVDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
   if( dbg && no_warnings )
   {
     std::cerr << "GVIntegratorDriver exit status: no-steps " << nstp <<std::endl;
@@ -399,16 +400,18 @@ GVIntegrationDriver::AccurateAdvance(G4FieldTrack& y_current,
 // ---------------------------------------------------------
 
 void
-GVIntegrationDriver::WarnSmallStepSize( double hnext, double hstep, 
+GUIntegrationDriver::WarnSmallStepSize( double hnext, double hstep, 
                                     double h, double xDone,
-                                    G4int nstp)
+                                    int nstp)
 {
-  static G4ThreadLocal G4int noWarningsIssued =0;
-  const  G4int maxNoWarnings =  10;   // Number of verbose warnings
-  std::ostringstream message;
+  static int noWarningsIssued =0;   // thread_local
+  const  int maxNoWarnings =  10;   // Number of verbose warnings
+  // std::ostringstream message;
+  // typedef std::cerr message;
+  std::cerr << " WARNING from GUIntegrationDriver::WarnSmallStepSize() " << std::endl;
   if( (noWarningsIssued < maxNoWarnings) || fVerboseLevel > 10 )
   {
-    message << "The stepsize for the next iteration, " << hnext
+    std::cerr << "The stepsize for the next iteration, " << hnext
             << ", is too small - in Step number " << nstp << "." << std::endl
             << "The minimum for the driver is " << Hmin()  << std::endl
             << "Requested integr. length was " << hstep << " ." << std::endl
@@ -417,43 +420,44 @@ GVIntegrationDriver::WarnSmallStepSize( double hnext, double hstep,
   }
   else
   {
-    message << "Too small 'next' step " << hnext
+    std::cerr << "Too small 'next' step " << hnext
             << ", step-no: " << nstp << std::endl
             << ", this sub-step: " << h     
             << ",  req_tot_len: " << hstep 
             << ", done: " << xDone << ", min: " << Hmin();
   }
-  G4Exception("GVIntegrationDriver::WarnSmallStepSize()", "GeomField1001",
-              JustWarning, message);
+  // G4Exception("GUIntegrationDriver::WarnSmallStepSize()", "GeomField1001",
+  //             JustWarning, message);
   noWarningsIssued++;
 }
 
 // ---------------------------------------------------------
 
 void
-GVIntegrationDriver::WarnTooManyStep( double x1start, 
+GUIntegrationDriver::WarnTooManyStep( double x1start, 
                                   double x2end, 
                                   double xCurrent)
 {
-    std::ostringstream message;
-    message << "The number of steps used in the Integration driver"
-            << " (Runge-Kutta) is too many." << std::endl
-            << "Integration of the interval was not completed !" << std::endl
-            << "Only a " << (xCurrent-x1start)*100/(x2end-x1start)
-            << " % fraction of it was done.";
-    G4Exception("GVIntegrationDriver::WarnTooManyStep()", "GeomField1001",
-                JustWarning, message);
+   // std::ostringstream message;
+   std::cerr << "WARNING from GUIntegrationDriver::WarnTooManyStep()" << std::endl;
+   std::cerr << "The number of steps used in the Integration driver"
+             << " (Runge-Kutta) is too many." << std::endl
+             << "Integration of the interval was not completed !" << std::endl
+             << "Only a " << (xCurrent-x1start)*100/(x2end-x1start)
+             << " % fraction of it was done." << std::endl;
+   // G4Exception("GUIntegrationDriver::WarnTooManyStep()", "GeomField1001",
+   //             JustWarning, message);
 }
 
 // ---------------------------------------------------------
 
 void
-GVIntegrationDriver::WarnEndPointTooFar (double endPointDist, 
+GUIntegrationDriver::WarnEndPointTooFar (double endPointDist, 
                                      double   h , 
                                      double  eps,
-                                     G4int     dbg)
+                                     int     dbg)
 {
-  static G4ThreadLocal double maxRelError=0.0;
+  static  double maxRelError=0.0; // thread_local
   bool isNewMax, prNewMax;
 
   isNewMax = endPointDist > (1.0 + maxRelError) * h;
@@ -463,28 +467,29 @@ GVIntegrationDriver::WarnEndPointTooFar (double endPointDist,
   if( dbg && (h > fSurfaceTolerance) 
           && ( (dbg>1) || prNewMax || (endPointDist >= h*(1.+eps) ) ) )
   { 
-    static G4ThreadLocal G4int noWarnings = 0;
-    std::ostringstream message;
+    static int noWarnings = 0;  // thread_local
+    // std::ostringstream message;
+    std::cerr << "WARNING in GUIntegrationDriver::WarnEndPointTooFar()" << std::endl;
     if( (noWarnings ++ < 10) || (dbg>2) )
     {
-      message << "The integration produced an end-point which " << std::endl
+      std::cerr << "The integration produced an end-point which " << std::endl
               << "is further from the start-point than the curve length."
               << std::endl;
     }
-    message << "  Distance of endpoints = " << endPointDist
-            << ", curve length = " << h << std::endl
-            << "  Difference (curveLen-endpDist)= " << (h - endPointDist)
-            << ", relative = " << (h-endPointDist) / h 
-            << ", epsilon =  " << eps;
-    G4Exception("GVIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
-                JustWarning, message);
+    std::cerr << "  Distance of endpoints = " << endPointDist
+              << ", curve length = " << h << std::endl
+              << "  Difference (curveLen-endpDist)= " << (h - endPointDist)
+              << ", relative = " << (h-endPointDist) / h 
+              << ", epsilon =  " << eps << std::endl;
+    // G4Exception("GUIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
+    //             JustWarning, message);
   }
 }
 
 // ---------------------------------------------------------
 
 void
-GVIntegrationDriver::OneGoodStep(      double y[],        // InOut
+GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
                              const double dydx[],
                                    double& x,         // InOut
                                    double htry,
@@ -509,59 +514,61 @@ GVIntegrationDriver::OneGoodStep(      double y[],        // InOut
   double errmax_sq;
   double h, htemp, xnew ;
 
-  double yerr[G4FieldTrack::ncompSVEC], ytemp[G4FieldTrack::ncompSVEC];
+  double yerr[GUFieldTrack::ncompSVEC], ytemp[GUFieldTrack::ncompSVEC];
 
   h = htry ; // Set stepsize to the initial trial value
 
   double inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
 
   double errpos_sq=0.0;    // square of displacement error
-  double errvel_sq=0.0;    // square of momentum vector difference
+  double errmom_sq=0.0;    // square of momentum vector difference
   double errspin_sq=0.0;   // square of spin vector difference
 
-  G4int iter;
+  int iter;
 
-  static G4ThreadLocal G4int tot_no_trials=0; 
-  const G4int max_trials=100; 
+  static int tot_no_trials=0;  // thread_local
+  const int max_trials=100; 
 
-  G4ThreeVector Spin(y[9],y[10],y[11]);
-  double   spin_mag2 =Spin.mag2() ;
-  bool     hasSpin= (spin_mag2 > 0.0); 
+  // ThreeVector Spin(y[9],y[10],y[11]);
+  // double   spin_mag2 =Spin.Mag2() ;
+  // bool     hasSpin= (spin_mag2 > 0.0); 
 
   for (iter=0; iter<max_trials ;iter++)
   {
     tot_no_trials++;
-    pIntStepper-> Stepper(y,dydx,h,ytemp,yerr); 
+    pIntStepper-> Step(y,dydx,h,ytemp,yerr); 
     //            *******
     double eps_pos = eps_rel_max * std::max(h, fMinimumStep); 
     double inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos); 
 
     // Evaluate accuracy
     //
-    errpos_sq =  sqr(yerr[0]) + sqr(yerr[1]) + sqr(yerr[2]) ;
+    errpos_sq =  yerr[0]*yerr[0] + yerr[1]*yerr[1] + yerr[2]*yerr[2] ; 
     errpos_sq *= inv_eps_pos_sq; // Scale relative to required tolerance
 
     // Accuracy for momentum
-    double magvel_sq=  sqr(y[3]) + sqr(y[4]) + sqr(y[5]) ;
-    double sumerr_sq =  sqr(yerr[3]) + sqr(yerr[4]) + sqr(yerr[5]) ; 
-    if( magvel_sq > 0.0 ) { 
-       errvel_sq = sumerr_sq / magvel_sq; 
+    double magmom_sq=  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
+    double sumerr_sq=  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
+    if( magmom_sq > 0.0 ) { 
+       // double inv_magmom_sq = 1.0 / magmom_sq; 
+       // errmom_sq = sumerr_sq * inv_magmom_sq;
+       errmom_sq = sumerr_sq / magmom_sq; 
     }else{
-       std::cerr << "** G4MagIntegrationDriver: found case of zero momentum." 
-              << " iteration=  " << iter << " h= " << h << std::endl; 
-       errvel_sq = sumerr_sq; 
+       std::cerr << "** GUIntegrationDriver: found case of zero momentum." 
+                 << " iteration=  " << iter << " h= " << h << std::endl; 
+       errmom_sq = sumerr_sq; 
     }
-    errvel_sq *= inv_eps_vel_sq;
-    errmax_sq = std::max( errpos_sq, errvel_sq ); // Square of maximum error
+    errmom_sq *= inv_eps_vel_sq;
+    errmax_sq = std::max( errpos_sq, errmom_sq ); // Square of maximum error
 
-    if( hasSpin )
-    { 
-      // Accuracy for spin
-      errspin_sq =  ( sqr(yerr[9]) + sqr(yerr[10]) + sqr(yerr[11]) )
-                    /  spin_mag2; // ( sqr(y[9]) + sqr(y[10]) + sqr(y[11]) );
-      errspin_sq *= inv_eps_vel_sq;
-      errmax_sq = std::max( errmax_sq, errspin_sq ); 
-    }
+    // if( hasSpin )
+    // { 
+    //    // Accuracy for spin
+    //     errspin_sq =  ( sqr(yerr[9]) + sqr(yerr[10]) + sqr(yerr[11]) )
+    //                     /  spin_mag2; // ( sqr(y[9]) + sqr(y[10]) + sqr(y[11]) );
+    //   errspin_sq *= inv_eps_vel_sq;
+    //   errmax_sq = std::max( errmax_sq, errspin_sq ); 
+    // }
 
     if ( errmax_sq <= 1.0 )  { break; } // Step succeeded. 
 
@@ -588,7 +595,7 @@ GVIntegrationDriver::OneGoodStep(      double y[],        // InOut
   // Sum of squares of position error // and momentum dir (underestimated)
   fSumH_lg += h; 
   fDyerrPos_lgTot += errpos_sq;
-  fDyerrVel_lgTot += errvel_sq * h * h; 
+  fDyerrVel_lgTot += errmom_sq * h * h; 
 #endif
 
   // Compute size of next Step
@@ -602,30 +609,32 @@ GVIntegrationDriver::OneGoodStep(      double y[],        // InOut
   }
   x += (hdid = h);
 
-  for(G4int k=0;k<fNoIntegrationVariables;k++) { y[k] = ytemp[k]; }
+  for(int k=0;k<fNoIntegrationVariables;k++) { y[k] = ytemp[k]; }
 
   return;
 }   // end of  OneGoodStep .............................
 
 //----------------------------------------------------------------------
 
+#define SQR(a)   ((a)*(a))
+
 // QuickAdvance just tries one Step - it does not ensure accuracy
 //
-bool  GVIntegrationDriver::QuickAdvance(       
-                            G4FieldTrack& y_posvel,         // INOUT
+bool  GUIntegrationDriver::QuickAdvance(       
+                            GUFieldTrack& y_posvel,         // INOUT
                             const double     dydx[],  
                                   double     hstep,       // In
                                   double&    dchord_step,
                                   double&    dyerr_pos_sq,
                                   double&    dyerr_mom_rel_sq )  
 {
-  double dyerr_pos_sq, dyerr_mom_rel_sq;  
-  double yerr_vec[G4FieldTrack::ncompSVEC],
-           yarrin[G4FieldTrack::ncompSVEC], yarrout[G4FieldTrack::ncompSVEC]; 
+  // double dyerr_pos_sq, dyerr_mom_rel_sq;  
+  double yerr_vec[GUFieldTrack::ncompSVEC],
+           yarrin[GUFieldTrack::ncompSVEC], yarrout[GUFieldTrack::ncompSVEC]; 
   double s_start;
   double dyerr_mom_sq, vel_mag_sq, inv_vel_mag_sq;
 
-  static G4ThreadLocal G4int no_call=0; 
+  static int no_call=0;  // thread_local 
   no_call ++; 
 
   // Move data into array
@@ -633,8 +642,8 @@ bool  GVIntegrationDriver::QuickAdvance(
   s_start = y_posvel.GetCurveLength();
 
   // Do an Integration Step
-  pIntStepper-> Stepper(yarrin, dydx, hstep, yarrout, yerr_vec) ; 
-  //            *******
+  pIntStepper-> Step(yarrin, dydx, hstep, yarrout, yerr_vec) ; 
+  //            ****
 
   // Estimate curve-chord distance
   dchord_step= pIntStepper-> DistChord();
@@ -644,20 +653,20 @@ bool  GVIntegrationDriver::QuickAdvance(
   y_posvel.LoadFromArray( yarrout, fNoIntegrationVariables );
   y_posvel.SetCurveLength( s_start + hstep );
 
-#ifdef  GVDEBUG_FIELD
+#ifdef  GUDEBUG_FIELD
   if(fVerboseLevel>2)
   {
-    G4cout << "G4MagIntDrv: Quick Advance" << std::endl;
+    std::cout << "G4MagIntDrv: Quick Advance" << std::endl;
     PrintStatus( yarrin, s_start, yarrout, s_start+hstep, hstep,  1); 
   }
 #endif
 
   // A single measure of the error   
   //      TO-DO :  account for  energy,  spin, ... ? 
-  vel_mag_sq   = ( sqr(yarrout[3])+sqr(yarrout[4])+sqr(yarrout[5]) );
+  vel_mag_sq   = ( SQR(yarrout[3])+SQR(yarrout[4])+SQR(yarrout[5]) );
   inv_vel_mag_sq = 1.0 / vel_mag_sq; 
-  dyerr_pos_sq = ( sqr(yerr_vec[0])+sqr(yerr_vec[1])+sqr(yerr_vec[2]));
-  dyerr_mom_sq = ( sqr(yerr_vec[3])+sqr(yerr_vec[4])+sqr(yerr_vec[5]));
+  dyerr_pos_sq = ( SQR(yerr_vec[0])+SQR(yerr_vec[1])+SQR(yerr_vec[2]));
+  dyerr_mom_sq = ( SQR(yerr_vec[3])+SQR(yerr_vec[4])+SQR(yerr_vec[5]));
   dyerr_mom_rel_sq = dyerr_mom_sq * inv_vel_mag_sq;
 
   // Calculate also the change in the momentum squared also ???
@@ -670,14 +679,14 @@ bool  GVIntegrationDriver::QuickAdvance(
   dyerr_len_sq /= eps ;
 
   // Look at the velocity deviation ?
-  //  sqr(yerr_vec[3])+sqr(yerr_vec[4])+sqr(yerr_vec[5]));
+  //  SQR(yerr_vec[3])+SQR(yerr_vec[4])+SQR(yerr_vec[5]));
 
   // Set suggested new step
   hstep= ComputeNewStepSize( dyerr_len, hstep);
 #endif
 
 #if 0
-  if( dyerr_pos_sq > ( dyerr_mom_rel_sq * sqr(hstep) ) )
+  if( dyerr_pos_sq > ( dyerr_mom_rel_sq * SQR(hstep) ) )
   {
     dyerr = std::sqrt(dyerr_pos_sq);
   }
@@ -694,7 +703,7 @@ bool  GVIntegrationDriver::QuickAdvance(
 // --------------------------------------------------------------------------
 
 #ifdef QUICK_ADV_ARRAY_IN_AND_OUT
-bool  GVIntegrationDriver::QuickAdvance(       
+bool  GUIntegrationDriver::QuickAdvance(       
                                   double     yarrin[],    // In
                             const double     dydx[],  
                                   double     hstep,       // In
@@ -702,10 +711,13 @@ bool  GVIntegrationDriver::QuickAdvance(
                                   double&    dchord_step,
                                   double&    dyerr )      // In length
 {
-  G4Exception("GVIntegrationDriver::QuickAdvance()", "GeomField0001",
-              FatalException, "Not yet implemented.");
-  dyerr = dchord_step = hstep * yarrin[0] * dydx[0];
-  yarrout[0]= yarrin[0];
+   std::cerr << "ERROR in GUIntegrationDriver::QuickAdvance()" << std::endl;
+   std::cerr << "      Method is not yet implemented." << std::endl;
+
+   //            FatalException, "Not yet implemented.");
+   dyerr = dchord_step = hstep * yarrin[0] * dydx[0];
+   yarrout[0]= yarrin[0];
+   exit(1); 
 }
 #endif 
 
@@ -715,7 +727,7 @@ bool  GVIntegrationDriver::QuickAdvance(
 //   within  certain factors
 // 
 double 
-GVIntegrationDriver::ComputeNewStepSize( 
+GUIntegrationDriver::ComputeNewStepSize( 
                           double  errMaxNorm,    // max error  (normalised)
                           double  hstepCurrent)  // current step size
 {
@@ -745,7 +757,7 @@ GVIntegrationDriver::ComputeNewStepSize(
 // They are kept separate currently for optimisation.
 //
 double 
-GVIntegrationDriver::ComputeNewStepSize_WithinLimits( 
+GUIntegrationDriver::ComputeNewStepSize_WithinLimits( 
                           double  errMaxNorm,    // max error  (normalised)
                           double  hstepCurrent)  // current step size
 {
@@ -777,20 +789,20 @@ GVIntegrationDriver::ComputeNewStepSize_WithinLimits(
 
 // ---------------------------------------------------------------------------
 
-void GVIntegrationDriver::PrintStatus( const double*   StartArr,  
+void GUIntegrationDriver::PrintStatus( const double*   StartArr,  
                                    double          xstart,
                                    const double*   CurrentArr, 
                                    double          xcurrent,
                                    double          requestStep, 
-                                   G4int             subStepNo)
+                                   int             subStepNo)
   // Potentially add as arguments:  
   //                                 <dydx>           - as Initial Force
   //                                 stepTaken(hdid)  - last step taken
   //                                 nextStep (hnext) - proposal for size
 {
-   G4FieldTrack  StartFT(G4ThreeVector(0,0,0),
-                 G4ThreeVector(0,0,0), 0., 0., 0., 0. );
-   G4FieldTrack  CurrentFT (StartFT);
+   GUFieldTrack  StartFT(ThreeVector(0,0,0),
+                 ThreeVector(0,0,0), 0., 0., 0., 0. );
+   GUFieldTrack  CurrentFT (StartFT);
 
    StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
    StartFT.SetCurveLength( xstart);
@@ -802,23 +814,23 @@ void GVIntegrationDriver::PrintStatus( const double*   StartArr,
 
 // ---------------------------------------------------------------------------
 
-void GVIntegrationDriver::PrintStatus(
-                  const G4FieldTrack&  StartFT,
-                  const G4FieldTrack&  CurrentFT, 
+void GUIntegrationDriver::PrintStatus(
+                  const GUFieldTrack&  StartFT,
+                  const GUFieldTrack&  CurrentFT, 
                   double             requestStep, 
-                  G4int                subStepNo)
+                  int                subStepNo)
 {
-    G4int verboseLevel= fVerboseLevel;
-    static G4ThreadLocal G4int noPrecision= 5;
-    G4int oldPrec= G4cout.precision(noPrecision);
-    // G4cout.setf(ios_base::fixed,ios_base::floatfield);
+    int verboseLevel= fVerboseLevel;
+    static int noPrecision= 5;  // thread_local ? 
+    int oldPrec= std::cout.precision(noPrecision);
+    // std::cout.setf(ios_base::fixed,ios_base::floatfield);
 
-    const G4ThreeVector StartPosition=       StartFT.GetPosition();
-    const G4ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
-    const G4ThreeVector CurrentPosition=     CurrentFT.GetPosition();
-    const G4ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
+    const ThreeVector StartPosition=       StartFT.GetPosition();
+    const ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
+    const ThreeVector CurrentPosition=     CurrentFT.GetPosition();
+    const ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
 
-    double  DotStartCurrentVeloc= StartUnitVelocity.dot(CurrentUnitVelocity);
+    double  DotStartCurrentVeloc= StartUnitVelocity.Dot(CurrentUnitVelocity);
 
     double step_len= CurrentFT.GetCurveLength() - StartFT.GetCurveLength();
     double subStepSize = step_len;
@@ -827,10 +839,10 @@ void GVIntegrationDriver::PrintStatus(
     {
        subStepNo = - subStepNo;        // To allow printing banner
 
-       G4cout << std::setw( 6)  << " " << std::setw( 25)
-              << " GVIntegrationDriver: Current Position  and  Direction" << " "
+       std::cout << std::setw( 6)  << " " << std::setw( 25)
+              << " GUIntegrationDriver: Current Position  and  Direction" << " "
               << std::endl; 
-       G4cout << std::setw( 5) << "Step#" << " "
+       std::cout << std::setw( 5) << "Step#" << " "
               << std::setw( 7) << "s-curve" << " "
               << std::setw( 9) << "X(mm)" << " "
               << std::setw( 9) << "Y(mm)" << " "  
@@ -857,7 +869,7 @@ void GVIntegrationDriver::PrintStatus(
 
     if( verboseLevel <= 3 )
     {
-      G4cout.precision(noPrecision);
+      std::cout.precision(noPrecision);
       PrintStat_Aux( CurrentFT, requestStep, step_len, 
                      subStepNo, subStepSize, DotStartCurrentVeloc );
       //*************
@@ -867,57 +879,57 @@ void GVIntegrationDriver::PrintStatus(
     {
        //  Multi-line output
        
-       // G4cout << "Current  Position is " << CurrentPosition << std::endl 
+       // std::cout << "Current  Position is " << CurrentPosition << std::endl 
        //    << " and UnitVelocity is " << CurrentUnitVelocity << std::endl;
-       // G4cout << "Step taken was " << step_len  
+       // std::cout << "Step taken was " << step_len  
        //    << " out of PhysicalStep= " <<  requestStep << std::endl;
-       // G4cout << "Final safety is: " << safety << std::endl;
-       // G4cout << "Chord length = " << (CurrentPosition-StartPosition).mag()
+       // std::cout << "Final safety is: " << safety << std::endl;
+       // std::cout << "Chord length = " << (CurrentPosition-StartPosition).mag()
        //        << std::endl << std::endl; 
     }
-    G4cout.precision(oldPrec);
+    std::cout.precision(oldPrec);
 }
 
 // ---------------------------------------------------------------------------
 
-void GVIntegrationDriver::PrintStat_Aux(
-                  const G4FieldTrack&  aFieldTrack,
+void GUIntegrationDriver::PrintStat_Aux(
+                  const GUFieldTrack&  aGUFieldTrack,
                   double             requestStep, 
                   double             step_len,
-                  G4int                subStepNo,
+                  int                subStepNo,
                   double             subStepSize,
                   double             dotVeloc_StartCurr)
 {
-    const G4ThreeVector Position=      aFieldTrack.GetPosition();
-    const G4ThreeVector UnitVelocity=  aFieldTrack.GetMomentumDir();
+    const ThreeVector Position=      aGUFieldTrack.GetPosition();
+    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDir();
  
     if( subStepNo >= 0)
     {
-       G4cout << std::setw( 5) << subStepNo << " ";
+       std::cout << std::setw( 5) << subStepNo << " ";
     }
     else
     {
-       G4cout << std::setw( 5) << "Start" << " ";
+       std::cout << std::setw( 5) << "Start" << " ";
     }
-    double curveLen= aFieldTrack.GetCurveLength();
-    G4cout << std::setw( 7) << curveLen;
-    G4cout << std::setw( 9) << Position.x() << " "
+    double curveLen= aGUFieldTrack.GetCurveLength();
+    std::cout << std::setw( 7) << curveLen;
+    std::cout << std::setw( 9) << Position.x() << " "
            << std::setw( 9) << Position.y() << " "
            << std::setw( 9) << Position.z() << " "
            << std::setw( 8) << UnitVelocity.x() << " "
            << std::setw( 8) << UnitVelocity.y() << " "
            << std::setw( 8) << UnitVelocity.z() << " ";
-    G4int oldprec= G4cout.precision(3);
-    G4cout << std::setw( 8) << UnitVelocity.mag2()-1.0 << " ";
-    G4cout.precision(6);
-    G4cout << std::setw(10) << dotVeloc_StartCurr << " ";
-    G4cout.precision(oldprec);
-    G4cout << std::setw( 7) << aFieldTrack.GetKineticEnergy();
-    G4cout << std::setw(12) << step_len << " ";
+    int oldprec= std::cout.precision(3);
+    std::cout << std::setw( 8) << UnitVelocity.Mag2()-1.0 << " ";
+    std::cout.precision(6);
+    std::cout << std::setw(10) << dotVeloc_StartCurr << " ";
+    std::cout.precision(oldprec);
+    std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
+    std::cout << std::setw(12) << step_len << " ";
 
-    static G4ThreadLocal double oldCurveLength= 0.0;
-    static G4ThreadLocal double oldSubStepLength= 0.0;
-    static G4ThreadLocal G4int oldSubStepNo= -1;
+    static double oldCurveLength= 0.0;    // thread_local
+    static double oldSubStepLength= 0.0; // thread_local
+    static int oldSubStepNo= -1;// thread_local
 
     double subStep_len=0.0;
     if( curveLen > oldCurveLength )
@@ -931,28 +943,28 @@ void GVIntegrationDriver::PrintStat_Aux(
     oldCurveLength= curveLen;
     oldSubStepLength= subStep_len;
 
-    G4cout << std::setw(12) << subStep_len << " "; 
-    G4cout << std::setw(12) << subStepSize << " "; 
+    std::cout << std::setw(12) << subStep_len << " "; 
+    std::cout << std::setw(12) << subStepSize << " "; 
     if( requestStep != -1.0 )
     {
-      G4cout << std::setw( 9) << requestStep << " ";
+      std::cout << std::setw( 9) << requestStep << " ";
     }
     else
     {
-       G4cout << std::setw( 9) << " InitialStep " << " ";
+       std::cout << std::setw( 9) << " InitialStep " << " ";
     }
-    G4cout << std::endl;
+    std::cout << std::endl;
 }
 
 // ---------------------------------------------------------------------------
 
-void GVIntegrationDriver::PrintStatisticsReport()
+void GUIntegrationDriver::PrintStatisticsReport()
 {
-  G4int noPrecBig= 6;
-  G4int oldPrec= G4cout.precision(noPrecBig);
+  int noPrecBig= 6;
+  int oldPrec= std::cout.precision(noPrecBig);
 
-  G4cout << "GVIntegrationDriver Statistics of steps undertaken. " << std::endl;
-  G4cout << "GVIntegrationDriver: Number of Steps: "
+  std::cout << "GUIntegrationDriver Statistics of steps undertaken. " << std::endl;
+  std::cout << "GUIntegrationDriver: Number of Steps: "
          << " Total= " <<  fNoTotalSteps
          << " Bad= "   <<  fNoBadSteps 
          << " Small= " <<  fNoSmallSteps 
@@ -960,7 +972,7 @@ void GVIntegrationDriver::PrintStatisticsReport()
          << std::endl;
 
 #ifdef GVFLD_STATS
-  G4cout << "MID dyerr: " 
+  std::cout << "MID dyerr: " 
          << " maximum= " << fDyerr_max 
          << " Sum small= " << fDyerrPos_smTot 
          << " std::sqrt(Sum large^2): pos= " << std::sqrt(fDyerrPos_lgTot)
@@ -970,10 +982,10 @@ void GVIntegrationDriver::PrintStatisticsReport()
          << std::endl;
 
 #if 0
-  G4int noPrecSmall=4; 
+  int noPrecSmall=4; 
   // Single line precis of statistics ... optional
-  G4cout.precision(noPrecSmall);
-  G4cout << "MIDnums: " << fMinimumStep
+  std::cout.precision(noPrecSmall);
+  std::cout << "MIDnums: " << fMinimumStep
          << "   " << fNoTotalSteps 
          << "  "  <<  fNoSmallSteps
          << "  "  << fNoSmallSteps-fNoInitialSmallSteps
@@ -989,12 +1001,12 @@ void GVIntegrationDriver::PrintStatisticsReport()
 #endif 
 #endif 
 
- G4cout.precision(oldPrec);
+ std::cout.precision(oldPrec);
 }
  
 // ---------------------------------------------------------------------------
 
-void GVIntegrationDriver::SetSmallestFraction(double newFraction)
+void GUIntegrationDriver::SetSmallestFraction(double newFraction)
 {
   if( (newFraction > 1.e-16) && (newFraction < 1e-8) )
   {

@@ -1,8 +1,8 @@
-#ifndef TCLASSRK4_H
-#define TCLASSRK4_H
+#ifndef TCLASSICALRK4_H
+#define TCLASSICALRK4_H
 
-#include "TMagErrorStepper.hh"
-#include "G4ThreeVector.hh"
+#include "TMagErrorStepper.h"
+#include "ThreeVector.h"
 
 // #define  INTEGRATOR_CORRECTION   (1./((1<<2)-1))
 
@@ -17,7 +17,7 @@ class TClassicalRK4 : public  TMagErrorStepper
         inline double IntegratorCorrection() { return 1./((1<<4)-1); }
 
         TClassicalRK4(T_Equation *EqRhs, 
-                      G4int numberOfVariables = 8)
+                      int numberOfVariables = 8)
             : TMagErrorStepper
               <TClassicalRK4<T_Equation, N>, T_Equation, N>
               (EqRhs, numberOfVariables),
@@ -34,7 +34,7 @@ class TClassicalRK4 : public  TMagErrorStepper
 
         __attribute__((always_inline)) 
         void 
-        RightHandSide(G4double y[], G4double dydx[]) const 
+        RightHandSide(double y[], double dydx[]) const 
         { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
 
 
@@ -42,10 +42,10 @@ class TClassicalRK4 : public  TMagErrorStepper
         // It is used by the MagErrorStepper stepper.
 
 
-	void  DumbStepper( const G4double  yIn[],
-                     const G4double  dydx[],
-                     G4double  h,
-			   G4double  yOut[]);
+	void  DumbStepper( const double  yIn[],
+                     const double  dydx[],
+                     double  h,
+			   double  yOut[]);
 
 
     public:  // without description
@@ -60,14 +60,14 @@ class TClassicalRK4 : public  TMagErrorStepper
 
     private:
 
-        // G4int fNumberOfVariables ; // is set default to 6 in constructor
+        // int fNumberOfVariables ; // is set default to 6 in constructor
         // scratch space - not state 
-  //  G4double dydxm[N<8?8:N]; 
-  //   G4double dydxt[N<8?8:N]; 
-  //    G4double yt[N<8?8:N]; 
-  G4double dydxm[N]; 
-  G4double dydxt[N]; 
-  G4double yt[N]; 
+  //  double dydxm[N<8?8:N]; 
+  //   double dydxt[N<8?8:N]; 
+  //    double yt[N<8?8:N]; 
+  double dydxm[N]; 
+  double dydxt[N]; 
+  double yt[N]; 
 
 
   T_Equation *fEquation_Rhs;
@@ -89,10 +89,10 @@ template <class T_Equation, int N>
 #else
 //	__attribute__((noinline))
 #endif 
-	void TClassicalRK4<T_Equation,N>::DumbStepper( const G4double  yIn[],
-                     const G4double  dydx[],
-                     G4double  h,
-                     G4double  yOut[])
+	void TClassicalRK4<T_Equation,N>::DumbStepper( const double  yIn[],
+                     const double  dydx[],
+                     double  h,
+                     double  yOut[])
         // Given values for the variables y[0,..,n-1] and their derivatives
         // dydx[0,...,n-1] known at x, use the classical 4th Runge-Kutta
         // method to advance the solution over an interval h and return the
@@ -102,8 +102,8 @@ template <class T_Equation, int N>
         // NRC p. 712-713 .
         {
 
-            G4int i;
-            G4double  hh = h*0.5 , h6 = h/6.;
+            int i;
+            double  hh = h*0.5 , h6 = h/6.;
 
             // Initialise time to t0, needed when it is not updated by the integration.
             //        [ Note: Only for time dependent fields (usually electric) 
