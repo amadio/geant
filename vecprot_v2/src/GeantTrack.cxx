@@ -507,7 +507,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
    fVPstart = buf;
    size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);
    // Allocate VolumePath_t objects in the reserved buffer space
-   for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstance(fMaxDepth, buf+i*size_vpath);
+   for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstanceAt(fMaxDepth, buf+i*size_vpath);
    buf += 2*size*size_vpath;
    size_t size_bits = BitSet::SizeOfInstance(size);
    fHoles = BitSet::MakeInstanceAt(size, buf);
@@ -618,7 +618,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    fVPstart = buf;
    size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);
    // Allocate VolumePath_t objects in the reserved buffer space
-   for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstance(fMaxDepth, fVPstart+i*size_vpath);
+   for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstanceAt(fMaxDepth, fVPstart+i*size_vpath);
    // Copy existing path and nextpath into new buffer
    for (auto i=0; i<ntracks; ++i) {
       pathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+i*size_vpath);      
