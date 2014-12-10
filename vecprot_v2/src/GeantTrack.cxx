@@ -509,7 +509,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
    // Allocate VolumePath_t objects in the reserved buffer space
    for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstance(fMaxDepth, buf+i*size_vpath);
    buf += 2*size*size_vpath;
-   size_t size_bits = BitSet::SizeOf((( (size ? size : 8) -1)/8) + 1);
+   size_t size_bits = BitSet::SizeOfInstance(size);
    fHoles = BitSet::MakeInstanceAt(size, buf);
    buf += size_bits;
    fSelected = BitSet::MakeInstanceAt(size, buf);
@@ -632,7 +632,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    fPathV = pathV;
    fNextpathV = nextpathV;
    buf += 2*size*size_vpath;
-   size_t size_bits = BitSet::SizeOf((( (size ? size : 8) -1)/8) + 1);
+   size_t size_bits = BitSet::SizeOfInstance(size);
    BitSet *holes = BitSet::MakeCopyAt(*fHoles, buf);
    BitSet::ReleaseInstance(fHoles);
    fHoles = holes;
@@ -679,7 +679,7 @@ void GeantTrack_v::Resize(Int_t newsize)
 // Resize the container.
    Int_t size = round_up_align(newsize);
    Int_t size_nav = 2*size*VolumePath_t::SizeOf(fMaxDepth);
-   Int_t size_bits = 2*BitSet::SizeOf((( (size ? size : 8) -1)/8) + 1);
+   size_t size_bits = 2*BitSet::SizeOfInstance(size);
    if (size<GetNtracks()) {
       Printf("Error: Cannot resize to less than current track content");
       return;
