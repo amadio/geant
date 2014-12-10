@@ -154,6 +154,9 @@ endif()
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 
+# Work around VecCore not being its own project yet.
+include_directories("${VECGEOM_INCLUDE_DIR}/VecCore")
+
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
