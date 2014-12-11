@@ -17,9 +17,6 @@
 #pragma link C++ class GeantVApplication+;
 #pragma link C++ class WorkloadManager+;
 #pragma link C++ class PhysicsProcess+;
-#pragma link C++ class ScatteringProcess+;
-#pragma link C++ class ElossProcess+;
-#pragma link C++ class InteractionProcess+;
 #pragma link C++ class MyHit+;
 #pragma link C++ class MyApplication+;
 

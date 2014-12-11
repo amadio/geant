@@ -95,29 +95,29 @@ int testPerformance()
     int nreps=1000;
 
     geantv::ConstBzFieldHelixStepper stepper(10.);
-//
-//    vx_ = &dyn[0];
-//       ET_TIME_THIS( "ROOT performance",
-//               testTGeoHelix(px,py,pz,dx,dy,dz,charges,mom,steps,
-//               pxn,pyn,pzn,dxn,dyn,dzn, np);, nreps, true
-//      )
-//
-//
-//    ET_TIME_THIS( "scalar performance",
-//            for(int i=0;i<np;++i)
-//            {
-//               stepper.DoStep(px[i],py[i],pz[i],dx[i],dy[i],dz[i],charges[i],mom[i],steps[i],
-//               pxn[i],pyn[i],pzn[i],dxn[i],dyn[i],dzn[i]);
-//            }
-//    , nreps
-//    , true
-//    )
-//
-//    vx_ = &dzn[0];
-//    ET_TIME_THIS( "vector performance",
-//            stepper.DoStep_v(px,py,pz,dx,dy,dz,charges,mom,steps,
-//            pxn,pyn,pzn,dxn,dyn,dzn, np);, nreps, true
-//   )
+
+   vx_ = &dyn[0];
+      ET_TIME_THIS( "ROOT performance",
+              testTGeoHelix(px,py,pz,dx,dy,dz,charges,mom,steps,
+              pxn,pyn,pzn,dxn,dyn,dzn, np);, nreps, true
+     )
+
+
+   ET_TIME_THIS( "scalar performance",
+           for(int i=0;i<np;++i)
+           {
+              stepper.DoStep(px[i],py[i],pz[i],dx[i],dy[i],dz[i],charges[i],mom[i],steps[i],
+              pxn[i],pyn[i],pzn[i],dxn[i],dyn[i],dzn[i]);
+           }
+   , nreps
+   , true
+   )
+
+   vx_ = &dzn[0];
+   ET_TIME_THIS( "vector performance",
+           stepper.DoStep_v(px,py,pz,dx,dy,dz,charges,mom,steps,
+           pxn,pyn,pzn,dxn,dyn,dzn, np);, nreps, true
+  )
 
     for(int i=0;i<1000;++i)
     {

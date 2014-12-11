@@ -33,7 +33,6 @@
 #include "TGeoVoxelFinder.h"
 #include "TGeoNode.h"
 #include "TGeoMaterial.h"
-#include "TGeoMatrix.h"
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1

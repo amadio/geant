@@ -3,11 +3,11 @@
 #include "GeantBasket.h"
 #include "GeantPropagator.h"
 
-#include "TGeoMatrix.h"
+//#include "TGeoMatrix.h"
 #include "TArrayI.h"
 #include "TGeoVolume.h"
 #include "TRandom.h"
-#include "TGeoHelix.h"
+//#include "TGeoHelix.h"
 
 ClassImp(GeantThreadData)
 
@@ -23,8 +23,8 @@ GeantThreadData::GeantThreadData()
              fBoolArray(0),
              fDblArray(0),
              fProcStep(0),
-             fFieldPropagator(0),
-             fRotation(0),
+//             fFieldPropagator(0),
+//             fRotation(0),
              fTrack(0),
              fPath(0)
 {
@@ -43,8 +43,8 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
              fBoolArray(0),
              fDblArray(0),
              fProcStep(0),
-             fFieldPropagator(0),
-             fRotation(new TGeoRotation()),
+//             fFieldPropagator(0),
+//             fRotation(new TGeoRotation()),
              fTrack(0),
              fPath(0)
 {
@@ -53,8 +53,8 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
    fDblArray  = new Double_t[fSizeDbl];
    fBoolArray = new Bool_t[fSizeBool];
    fProcStep  = new Double_t[fNprocesses*fMaxPerBasket];
-   fFieldPropagator = new TGeoHelix(1,1);
-   fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
+//   fFieldPropagator = new TGeoHelix(1,1);
+//   fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
    fPath = VolumePath_t::MakeInstance(propagator->fMaxDepth);
 }
 
@@ -67,8 +67,8 @@ GeantThreadData::~GeantThreadData()
    delete [] fBoolArray;
    delete [] fDblArray;
    delete [] fProcStep;
-   delete fFieldPropagator;
-   delete fRotation;
+//   delete fFieldPropagator;
+//   delete fRotation;
    VolumePath_t::ReleaseInstance(fPath);
 }
 

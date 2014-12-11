@@ -31,7 +31,8 @@
 #endif
 
 #include "GeantThreadData.h"
-#include "TGeoHelix.h"
+//#include "TGeoHelix.h"
+#include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
 #ifdef __INTEL_COMPILER
@@ -1293,7 +1294,7 @@ void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
+void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*tid*/)
 {
 // Propagate the selected track with crtstep value. The method is to be called
 // only with  charged tracks in magnetic field.The method decreases the fPstepV
@@ -1302,11 +1303,11 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
 // - physics step (bdr=0)
 // - safety step (bdr=0)
 // - snext step (bdr=1)
-   Double_t c = 0.;
-   const Double_t *point = 0;
-   const Double_t *newdir = 0;
-   GeantThreadData *td = gPropagator->fThreadData[tid];
-   TGeoHelix *fieldp = td->fFieldPropagator;
+//   Double_t c = 0.;
+//   const Double_t *point = 0;
+//   const Double_t *newdir = 0;
+//   GeantThreadData *td = gPropagator->fThreadData[tid];
+//   TGeoHelix *fieldp = td->fFieldPropagator;
    // Reset relevant variables
    fStatusV[i] = kInFlight;
    fPstepV[i] -= crtstep;
@@ -1336,36 +1337,41 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid)
    }
    fStepV[i] += crtstep;
    // Set curvature, charge
-   c = Curvature(i);
+//   c = Curvature(i);
+//    Double_t dir[3] = {0};
 // NOTE: vectorized treatment in TGeoHelix -> todo
-   fieldp->SetXYcurvature(c);
-   fieldp->SetCharge(fChargeV[i]);
-   fieldp->SetHelixStep(std::fabs(Math::TwoPi()*Pz(i)/(c*Pt(i))));
-   fieldp->InitPoint(fXposV[i],fYposV[i],fZposV[i]);
-   fieldp->InitDirection(fXdirV[i],fYdirV[i], fZdirV[i]);
-   fieldp->UpdateHelix();
-   fieldp->Step(crtstep);
-   point = fieldp->GetCurrentPoint();
-   newdir = fieldp->GetCurrentDirection();
-   Double_t dir[3] = {0};
-   memcpy(dir,newdir,3*sizeof(Double_t));
-   Math::Normalize(dir);
-   fXposV[i] = point[0]; fYposV[i] = point[1]; fZposV[i] = point[2];
-   fXdirV[i] = dir[0]; fYdirV[i] = dir[1]; fZdirV[i] = dir[2];
+//    fieldp->SetXYcurvature(c);
+//    fieldp->SetCharge(fChargeV[i]);
+//    fieldp->SetHelixStep(std::fabs(Math::TwoPi()*Pz(i)/(c*Pt(i))));
+//    fieldp->InitPoint(fXposV[i],fYposV[i],fZposV[i]);
+//    fieldp->InitDirection(fXdirV[i],fYdirV[i], fZdirV[i]);
+//    fieldp->UpdateHelix();
+//    fieldp->Step(crtstep);
+//    point = fieldp->GetCurrentPoint();
+//    newdir = fieldp->GetCurrentDirection();
+//    memcpy(dir,newdir,3*sizeof(Double_t));
+//    Math::Normalize(dir);
+//    fXposV[i] = point[0]; fYposV[i] = point[1]; fZposV[i] = point[2];
+//    fXdirV[i] = dir[0]; fYdirV[i] = dir[1]; fZdirV[i] = dir[2];
 #ifdef USE_VECGEOM_NAVIGATOR
  //  CheckLocationPathConsistency(i);
 #endif
    // alternative code with lean stepper would be:
    // ( stepper header has to be included )
-   //   geantv::ConstBzFieldHelixStepper stepper( gPropagator->fBmag );
-   //   double xnew, ynew, znew;
-   //   double dxnew, dynew, dznew;
-   //   stepper.DoStep( fXposV[i], fYposV[i], fZposV[i],
-   //                   fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
-   //              xnew, ynew, znew, dxnew, dynew, dznew );
+      geantv::ConstBzFieldHelixStepper stepper( gPropagator->fBmag );
+      double posnew[3];
+      double dirnew[3];
+      stepper.DoStep( fXposV[i], fYposV[i], fZposV[i],
+                      fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
+                 posnew[0], posnew[1], posnew[2], dirnew[0], dirnew[1], dirnew[2] );
    //  maybe normalize direction here
-   //   fXposV[i] = xnew; fYposV[i] = ynew; fZposV[i] = znew;
-   //   fXdirV[i] = dxnew; fYdirV[i] = dynew; fZdirV[i] = dznew;
+      Math::Normalize(dirnew);
+//      double diffpos = (xnew-point[0])*(xnew-point[0])+(ynew-point[1])*(ynew-point[1])+(znew-point[2])*(znew-point[2]);
+//      if (diffpos>1.E-4) {
+//         Printf("difference in pos = %g", diffpos);
+//      }   
+     fXposV[i] = posnew[0]; fYposV[i] = posnew[1]; fZposV[i] = posnew[2];
+     fXdirV[i] = dirnew[0]; fYdirV[i] = dirnew[1]; fZdirV[i] = dirnew[2];
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR

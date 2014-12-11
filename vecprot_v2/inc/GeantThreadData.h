@@ -17,8 +17,8 @@
 //class TGeoHMatrix;
 class TGeoVolume;
 class TRandom;
-class TGeoHelix;
-class TGeoRotation;
+//class TGeoHelix;
+//class TGeoRotation;
 
 //______________________________________________________________________________
 class GeantThreadData : public TObject {
@@ -32,8 +32,8 @@ public:
    Bool_t           *fBoolArray;             //![5*fMaxPerBasket] Thread array of bools
    Double_t         *fDblArray;              //![5*fMaxPerBasket] Thread array of doubles
    Double_t         *fProcStep;              //![fNprocesses*fMaxPerBasket] 
-   TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
-   TGeoRotation     *fRotation;              //! Rotation used by the field propagator
+//   TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
+//   TGeoRotation     *fRotation;              //! Rotation used by the field propagator
    GeantTrack        fTrack;                 //! Track support for this thread
    VolumePath_t     *fPath;                  //! Volume path for the thread
 

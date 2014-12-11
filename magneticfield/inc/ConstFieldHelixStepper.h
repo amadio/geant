@@ -25,7 +25,7 @@ namespace geantv
       double fBz;
 
     public:
-      ConstBzFieldHelixStepper( double Bz ) : fBz(Bz) {}
+      ConstBzFieldHelixStepper( double Bz = 0. ) : fBz(Bz) {}
 
       void SetBz( double Bz ){ fBz = Bz; }
       double GetBz() const { return fBz; }
@@ -109,7 +109,7 @@ namespace geantv
       BaseDType dt = sqrt((dx0*dx0) + (dy0*dy0));
       BaseDType invnorm=1./dt;
       // radius has sign and determines the sense of rotation
-      BaseDType R = momentum*dt/((kB2C_local*BaseDType(charge))*(fBz));
+      BaseDType R = (momentum*dt+1E-30)/((kB2C_local*BaseDType(charge))*(fBz));
 
       BaseDType cosa= dx0*invnorm;
       BaseDType sina= dy0*invnorm;
@@ -192,6 +192,6 @@ namespace geantv
    // might need to provide more general class in which the constant field has arbitrary direction
 
 
-}; // end geantv namespace
+} // end geantv namespace
 
 #endif /* CONSTFIELDHELIXSTEPPER_H_ */

@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 
-include_directories(inc)
+include_directories(inc ../magneticfield/inc)
 
 set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
 set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")

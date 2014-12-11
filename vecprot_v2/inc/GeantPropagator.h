@@ -22,10 +22,7 @@
 class TTree;
 class TFile;
 class TStopwatch;
-class TGeoHMatrix;
-class TGeoRotation;
 class TGeoVolume;
-class TGeoHelix;
 class PhysicsProcess;
 class GeantTrack;
 class GeantEvent;  
