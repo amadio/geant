@@ -464,7 +464,7 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b)
    if (!fBaskets->enqueue(b)) {
       // The queue is full - > delete the basket
 //      Printf("=== ALARM %s: threshold=%d", GetName(), fThreshold.load());
-      Printf("Deleting basket %p for %s", (void*)b, GetName());
+//      Printf("Deleting basket %p for %s", (void*)b, GetName());
       delete b;
       fNbaskets--;
 //      Printf("Fatal error: exceeded the size of the bounded queue for basket mgr: %s",
