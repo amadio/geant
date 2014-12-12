@@ -105,20 +105,16 @@ namespace geantv
              ) const
   {
       const double kB2C_local = -0.299792458e-3;
+      const double kSmall = 1.E-30;
       // could do a fast square root here
-      BaseDType dt = sqrt((dx0*dx0) + (dy0*dy0));
+      BaseDType dt = sqrt((dx0*dx0) + (dy0*dy0)) + kSmall;
       BaseDType invnorm=1./dt;
       // radius has sign and determines the sense of rotation
-      BaseDType R = (momentum*dt+1E-30)/((kB2C_local*BaseDType(charge))*(fBz));
+      BaseDType R = momentum*dt/((kB2C_local*BaseDType(charge))*(fBz));
 
       BaseDType cosa= dx0*invnorm;
       BaseDType sina= dy0*invnorm;
-      BaseDType helixgradient = dz0*invnorm*abs(R);
-
-      // could try to use fast inverse square root here
-      // BaseDType phi = step/( R*sqrt(1 + dz0*dz0*invnorm*invnorm ) );
-      // turns out to be same as:
-      BaseDType phi = step /(R*invnorm);
+      BaseDType phi = step * BaseDType(charge) * fBz * kB2C_local / momentum;
 
       BaseDType cosphi;
       BaseDType sinphi;
@@ -126,7 +122,7 @@ namespace geantv
 
       x = x0 + R*( -sina - ( -cosphi*sina - sinphi*cosa ));
       y = y0 + R*( cosa  - (-sina*sinphi + cosphi*cosa ));
-      z = z0 + helixgradient*phi;
+      z = z0 + step * dz0;
 
       dx = dx0 * cosphi - sinphi * dy0;
       dy = dx0 * sinphi + cosphi * dy0;

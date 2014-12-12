@@ -5,7 +5,7 @@
  *      Author: swenzel
  */
 
-
+// g++ TestConstBzStepper.cxx -o TestConstBzStepper -O3 -std=c++11 -I$VCROOT/include -I`root-config --incdir` `root-config --libs` -lGeom $VCROOT/lib/libVc.a
 
 #include "../inc/ConstFieldHelixStepper.h"
 #include "mmalloc.h"
