@@ -264,7 +264,7 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i)
    fFrombdr = arr.fFrombdrV[i];
    fPending = arr.fPendingV[i];
 //   if (!fPath) fPath = wm->NavStates()->borrow();
-   *fPath = *arr.fPathV[i]; 
+   *fPath = *arr.fPathV[i];
 //   if (!fNextpath) fNextpath = wm->NavStates()->borrow();
    *fNextpath = *arr.fNextpathV[i];
 }
@@ -384,9 +384,9 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
 #endif
 #ifndef GEANT_CUDA_DEVICE_BUILD
    fNtracks.store(track_v.fNtracks);
-#else   
+#else
    fNtracks = track_v.fNtracks;
-#endif  
+#endif
    fBuf = (char*)_mm_malloc(fBufSize, ALIGN_PADDING);
    memcpy(fBuf, track_v.fBuf, fBufSize);
    AssignInBuffer(&fBuf[0], fMaxtracks);
@@ -399,9 +399,9 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v)
    if (&track_v != this) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
       fNtracks.store(track_v.fNtracks);
-#else   
+#else
       fNtracks = track_v.fNtracks;
-#endif   
+#endif
       Int_t size = track_v.fMaxtracks;
       fMaxDepth = track_v.fMaxDepth;
       fBufSize = track_v.fBufSize;
@@ -432,7 +432,7 @@ GeantTrack_v::~GeantTrack_v()
    for (auto i=0; i<ntracks; ++i) {
       VolumePath_t::ReleaseInstance(fPathV[i]);
       VolumePath_t::ReleaseInstance(fNextpathV[i]);
-   }   
+   }
    _mm_free(fBuf);
 }
 
@@ -622,7 +622,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstanceAt(fMaxDepth, fVPstart+i*size_vpath);
    // Copy existing path and nextpath into new buffer
    for (auto i=0; i<ntracks; ++i) {
-      pathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+i*size_vpath);      
+      pathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+i*size_vpath);
       nextpathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+(size+i)*size_vpath);
       fPathV[i]->CopyTo(pathV[i]);
       fNextpathV[i]->CopyTo(nextpathV[i]);
@@ -687,7 +687,7 @@ void GeantTrack_v::Resize(Int_t newsize)
    }
    fBufSize = size*sizeof(GeantTrack) + size_nav + size_bits;
    if (!fCompact) Compact();
-   
+
    char* buf = (char*)_mm_malloc(fBufSize, ALIGN_PADDING);
    memset(buf, 0, fBufSize);
    fMaxtracks = size;
@@ -724,7 +724,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
 #else
       printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
 #endif
-   }   
+   }
    fHoles->ResetBitNumber(itrack);
    fSelected->ResetBitNumber(itrack);
    fEventV    [itrack] = track.fEvent;
@@ -756,7 +756,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    track.fPath->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -808,7 +808,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack &track)
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    track.fPath->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -844,7 +844,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
 #else
       printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
 #endif
-   }   
+   }
    fHoles->ResetBitNumber(itrack);
    fSelected->ResetBitNumber(itrack);
 
@@ -877,7 +877,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
    fFrombdrV  [itrack] = arr.fFrombdrV  [i];
    fPendingV  [itrack] = arr.fPendingV  [i];
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    arr.fPathV[i]->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -935,7 +935,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
    fFrombdrV  [itrack] = arr.fFrombdrV  [i];
    fPendingV  [itrack] = arr.fPendingV  [i];
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    arr.fPathV[i]->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -957,7 +957,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
    Int_t ntracks = GetNtracks();
    if (ntracks+ncpy>=fMaxtracks) {
       Resize(Math::Max(2*fMaxtracks, ntracks+ncpy));
-   }   
+   }
    memcpy(&fEventV    [ntracks], &arr.fEventV    [istart], ncpy*sizeof(Int_t));
    memcpy(&fEvslotV   [ntracks], &arr.fEvslotV   [istart], ncpy*sizeof(Int_t));
    memcpy(&fParticleV [ntracks], &arr.fParticleV [istart], ncpy*sizeof(Int_t));
@@ -987,9 +987,9 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
    memcpy(&fFrombdrV  [ntracks], &arr.fFrombdrV  [istart], ncpy*sizeof(Bool_t));
    memcpy(&fPendingV  [ntracks], &arr.fPendingV  [istart], ncpy*sizeof(Bool_t));
 
-   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    for (auto i=ntracks, j=istart; i < (ntracks+ncpy); ++i,++j) {
-      fPathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+i*size_vpath);      
+      fPathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+i*size_vpath);
       fNextpathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+i)*size_vpath);
       arr.fPathV[j]->CopyTo(fPathV[i]);
       arr.fNextpathV[j]->CopyTo(fNextpathV[i]);
@@ -1092,7 +1092,7 @@ void GeantTrack_v::DeleteTrack(Int_t /*itr*/)
 //   WorkloadManager *wm = WorkloadManager::Instance();
 //   wm->NavStates()->release(fPathV[itr]);
 //   fPathV[itr] = 0;
-//   wm->NavStates()->release(fNextpathV[itr]); 
+//   wm->NavStates()->release(fNextpathV[itr]);
 //   fNextpathV[itr] = 0;
 }
 
@@ -1168,7 +1168,7 @@ Int_t GeantTrack_v::Compact(GeantTrack_v *moveto)
          if (firsthole==ntracks) {
             SetNtracks(ntracks);
             return ntracks;
-         }   
+         }
       } else {
          // No active tracks left. First copy the hole track to the output
          if (moveto) moveto->AddTracks(*this, firsthole, firsthole+ntracks-1, kTRUE);
@@ -1233,7 +1233,7 @@ void GeantTrack_v::Clear(Option_t *)
    if (ntracks) {
       memset(fPathV, 0, ntracks*sizeof(VolumePath_t*));
       memset(fNextpathV, 0, ntracks*sizeof(VolumePath_t*));
-   }   
+   }
    fHoles->ResetAllBits();
    fSelected->ResetAllBits();
    fCompact = kTRUE;
@@ -1369,7 +1369,7 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*ti
 //      double diffpos = (xnew-point[0])*(xnew-point[0])+(ynew-point[1])*(ynew-point[1])+(znew-point[2])*(znew-point[2]);
 //      if (diffpos>1.E-4) {
 //         Printf("difference in pos = %g", diffpos);
-//      }   
+//      }
      fXposV[i] = posnew[0]; fYposV[i] = posnew[1]; fZposV[i] = posnew[2];
      fXdirV[i] = dirnew[0]; fYdirV[i] = dirnew[1]; fZdirV[i] = dirnew[2];
 }
@@ -1730,7 +1730,7 @@ Int_t GeantTrack_v::SortByStatus(TrackStatus_t status)
    if (nsel) {
       if (nsel<ntracks) Reshuffle();
       else DeselectAll();
-   }   
+   }
    return nsel;
 }
 
@@ -1944,7 +1944,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
    // if outside detector or enormous step mark particle as exiting the detector
    if (fNextpathV[itr]->IsOutside() || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
    if (fSnextV[itr]>2.*gTolerance) fIzeroV[itr] = 0;
-}   
+}
 #endif
 //______________________________________________________________________________
 TransportAction_t GeantTrack_v::PostponedAction(Int_t ntracks) const
