@@ -506,7 +506,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size)
    fNextpathV = (VolumePath_t**)buf;
    buf += size*sizeof(VolumePath_t*);
    fVPstart = buf;
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    // Allocate VolumePath_t objects in the reserved buffer space
    for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstanceAt(fMaxDepth, buf+i*size_vpath);
    buf += 2*size*size_vpath;
@@ -617,7 +617,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size)
    VolumePath_t** nextpathV = (VolumePath_t**)buf;
    buf += size*sizeof(VolumePath_t*);
    fVPstart = buf;
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
    // Allocate VolumePath_t objects in the reserved buffer space
    for (auto i=0; i<2*size; ++i) VolumePath_t::MakeInstanceAt(fMaxDepth, fVPstart+i*size_vpath);
    // Copy existing path and nextpath into new buffer
@@ -679,7 +679,7 @@ void GeantTrack_v::Resize(Int_t newsize)
 {
 // Resize the container.
    Int_t size = round_up_align(newsize);
-   Int_t size_nav = 2*size*VolumePath_t::SizeOf(fMaxDepth);
+   Int_t size_nav = 2*size*VolumePath_t::SizeOfInstance(fMaxDepth);
    size_t size_bits = 2*BitSet::SizeOfInstance(size);
    if (size<GetNtracks()) {
       Printf("Error: Cannot resize to less than current track content");
@@ -756,7 +756,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/)
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    track.fPath->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -808,7 +808,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack &track)
    fFrombdrV  [itrack] = track.fFrombdr;
    fPendingV  [itrack] = track.fPending;
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    track.fPath->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -877,7 +877,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/)
    fFrombdrV  [itrack] = arr.fFrombdrV  [i];
    fPendingV  [itrack] = arr.fPendingV  [i];
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    arr.fPathV[i]->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -935,7 +935,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i)
    fFrombdrV  [itrack] = arr.fFrombdrV  [i];
    fPendingV  [itrack] = arr.fPendingV  [i];
    // Copy the volume paths
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
    fPathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+itrack*size_vpath);
    arr.fPathV[i]->CopyTo(fPathV[itrack]);
    fNextpathV[itrack] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+itrack)*size_vpath);
@@ -987,7 +987,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
    memcpy(&fFrombdrV  [ntracks], &arr.fFrombdrV  [istart], ncpy*sizeof(Bool_t));
    memcpy(&fPendingV  [ntracks], &arr.fPendingV  [istart], ncpy*sizeof(Bool_t));
 
-   size_t size_vpath = VolumePath_t::SizeOf(fMaxDepth);   
+   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);   
    for (auto i=ntracks, j=istart; i < (ntracks+ncpy); ++i,++j) {
       fPathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+i*size_vpath);      
       fNextpathV[i] = reinterpret_cast<VolumePath_t*>(fVPstart+(fMaxtracks+i)*size_vpath);
