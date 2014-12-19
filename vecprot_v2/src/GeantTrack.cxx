@@ -1956,6 +1956,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr)
 
    // if outside detector or enormous step mark particle as exiting the detector
    if (fNextpathV[itr]->IsOutside() || fSnextV[itr]>1.E19) fStatusV[itr] = kExitingSetup;
+}   
 #endif
 //______________________________________________________________________________
 TransportAction_t GeantTrack_v::PostponedAction(Int_t ntracks) const
