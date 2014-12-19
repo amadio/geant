@@ -44,6 +44,8 @@ enum TransportAction_t {
 // types
 enum Species_t {kHadron, kLepton};
 
+class TGeoMaterial;
+class TGeoVolume;
 class GeantTrack_v;
 
 //______________________________________________________________________________
@@ -57,7 +59,7 @@ public:
    Int_t    fEindex;    // element index
    Int_t    fCharge;    // particle charge
    Int_t    fProcess;   // current process
-   Int_t    fIzero;     // number of small steps used to catch errors
+   Int_t    fVindex;    // current volume index
    Int_t    fNsteps;    // number of steps made
    Species_t fSpecies;  // particle species
    TrackStatus_t fStatus; // track status
@@ -70,6 +72,7 @@ public:
    Double_t fZdir;
    Double_t fP;         // momentum
    Double_t fE;         // energy
+   Double_t fTime;      // time
    Double_t fEdep;      // energy deposition in the step
    Double_t fPstep;     // selected physical step
    Double_t fStep;      // current step
@@ -103,6 +106,8 @@ public:
    Int_t              EIndex() const {return fEindex;}
    Double_t           Gamma() const {return fMass?fE/fMass:TMath::Limits<double>::Max();}
    Double_t           GetPstep() const {return fPstep;}
+   TGeoVolume*        GetVolume() const;
+   TGeoMaterial*      GetMaterial() const;
    VolumePath_t*      GetPath() const {return fPath;}
    VolumePath_t*      GetNextPath() const {return fNextpath;}
    Int_t              GetNsteps() const {return fNsteps;}
@@ -111,7 +116,7 @@ public:
    Double_t           GetSafety() const {return fSafety;}
    Bool_t             IsAlive() const {return (fStatus != kKilled);}
    Bool_t             IsOnBoundary() const {return (fStatus == kBoundary);}
-   Int_t              Izero() const {return fIzero;}
+   Int_t              Vindex() const {return fVindex;}
    void               Kill()        {fStatus = kKilled;}
    Double_t           Mass() const {return fMass;}
    Double_t           P() const {return fP;}
@@ -130,12 +135,12 @@ public:
    void               Print(Int_t trackindex=0) const;
    Species_t          Species() const {return fSpecies;}
    TrackStatus_t      Status() const  {return fStatus;}
+   Double_t           Time() const {return fTime;}
    
    void               Clear(Option_t *option="");
    Double_t           X() const {return fXpos;}
    Double_t           Y() const {return fYpos;}
    Double_t           Z() const {return fZpos;}
-   Bool_t             ZeroCounter() const {return fIzero;}
    
    void               ReadFromVector(const GeantTrack_v &arr, Int_t i);
    void               SetEvent(Int_t event) {fEvent = event;}
@@ -146,7 +151,7 @@ public:
    void               SetEindex(Int_t ind) {fEindex = ind;}
    void               SetCharge(Int_t charge) {fCharge = charge;} 
    void               SetProcess(Int_t process) {fProcess = process;}
-   void               SetIzero(Int_t izero) {fIzero = izero;}
+   void               SetVindex(Int_t ind) {fVindex = ind;}
    void               SetNsteps(Int_t nsteps) {fNsteps = nsteps;}
    void               SetSpecies(Species_t   species) {fSpecies = species;}
    void               SetStatus(TrackStatus_t &status) {fStatus = status;}
@@ -155,6 +160,7 @@ public:
    void               SetDirection(Double_t dx, Double_t dy, Double_t dz) {fXdir=dx; fYdir=dy; fZdir=dz;}
    void               SetP(Double_t p) {fP=p;}
    void               SetE(Double_t e) {fE = e;}
+   void               SetTime(Double_t time) {fTime = time;}
    void               SetEdep(Double_t edep) {fEdep = edep;}
    void               SetPstep(Double_t pstep) {fPstep = pstep;}
    void               SetSnext(Double_t snext) {fSnext = snext;}
@@ -203,7 +209,7 @@ public:
    Int_t    *fEindexV;    // Element indices
    Int_t    *fChargeV;    // particle charges
    Int_t    *fProcessV;   // current process
-   Int_t    *fIzeroV;     // number of small steps used to catch errors
+   Int_t    *fVindexV;    // volume index
    Int_t    *fNstepsV;    // number of steps made
    Species_t *fSpeciesV;  // particle species
    TrackStatus_t *fStatusV; // track statuses
@@ -216,6 +222,7 @@ public:
    Double_t *fZdirV;
    Double_t *fPV;         // momenta
    Double_t *fEV;         // energies
+   Double_t *fTimeV;      // Time
    Double_t *fEdepV;      // Energy depositions
    Double_t *fPstepV;     // selected physical steps
    Double_t *fStepV;      // current steps
@@ -337,6 +344,8 @@ public:
    Double_t           Pz(Int_t i) const {return fPV[i]*fZdirV[i];}
    GEANT_CUDA_DEVICE_CODE
    Double_t           Pt(Int_t i) const {return fPV[i]*Math::Sqrt(fXdirV[i]*fXdirV[i]+fYdirV[i]*fYdirV[i]);}
+   TGeoVolume*        GetVolume(Int_t i) const;
+   TGeoMaterial*      GetMaterial(Int_t i) const;
    static Int_t round_up_align(Int_t num) {
       int remainder = num % ALIGN_PADDING;
       if (remainder == 0) return num;

@@ -422,6 +422,7 @@ void *WorkloadManager::TransportTracks(void *)
    GeantThreadData *td = propagator->fThreadData[tid];
    WorkloadManager *wm = WorkloadManager::Instance();
    GeantScheduler *sch = wm->GetScheduler();
+   TGeoMaterial *mat = 0;
    Int_t *waiting = wm->GetWaiting();
    condition_locker &sched_locker = wm->GetSchLocker();
 //   Int_t nprocesses = propagator->fNprocesses;
@@ -453,29 +454,24 @@ void *WorkloadManager::TransportTracks(void *)
 //      basket->Print();
 //      Printf("==========================================");
 //      propagator->fTracksPerBasket[tid] = ntotransport;
-      td->fVolume = basket->GetVolume();
+      td->fVolume = 0;
+      mat = 0;
+      if (!basket->IsMixed()) {
+         td->fVolume = basket->GetVolume();
+         mat = td->fVolume->GetMaterial();
+      }   
       
       // Record tracks
 //      ninput = ntotransport;
       if (basket->GetNoutput()) {
          Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter.load());
       } 
-//      if (counter==1) input.PrintTracks();  
-/*
-      for (Int_t itr=0; itr<ntotransport; itr++) {
-         iev[itr] = input.fEventV[itr];
-         itrack[itr] = input.fParticleV[itr];
-         // crt[itr] = input.fPathV[itr];
-         // nxt[itr] = input.fNextpathV[itr];
-         if (TMath::IsNaN(input.fXdirV[itr])) {
-            Printf("Error: track %d has NaN", itr);
-         }   
-      }
-*/
       // Select the discrete physics process for all particles in the basket
-      if (propagator->fUsePhysics) propagator->ProposeStep(ntotransport, input, tid);
-      // Apply msc for charged tracks
-      propagator->ApplyMsc(ntotransport, input, tid);
+      if (propagator->fUsePhysics) {
+         propagator->ProposeStep(ntotransport, input, tid);
+         // Apply msc for charged tracks
+         propagator->ApplyMsc(ntotransport, input, tid);
+      }   
       
       ncross = 0;
       generation = 0;
@@ -503,35 +499,22 @@ void *WorkloadManager::TransportTracks(void *)
       // new generated particles at this point.
       if (propagator->fUsePhysics) {
          nextra_at_rest = 0;
-         gPropagator->Process()->Eloss(td->fVolume->GetMaterial(), output.GetNtracks(), output, nextra_at_rest, tid);
+         gPropagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, tid);
 //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
-      }   
-/*
-      if (propagator->fUsePhysics) {
-         for (Int_t iproc=0; iproc<nprocesses; iproc++) {
-            if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) {
-               Int_t nafter = 0;
-               gPropagator->Process(iproc)->PostStep(td->fVolume->GetMaterial(), output.GetNtracks(), output, nafter, tid);
-               // Now we may also have particles killed by energy threshold
-            }   
-         }      
-      }
-*/
-      // Now we may also have particles killed by energy threshold
-      // Do post-step actions on remaining particles
-      // Loop all processes to group particles per process
+         // Now we may also have particles killed by energy threshold
+         // Do post-step actions on remaining particles
+         // to do: group particles per process
 
-      if (propagator->fUsePhysics) {
-         // Discrete processes only
-         Int_t nphys = output.SortByStatus(kPhysics);
-         if (nphys) {
-            // Do post step actions for particles suffering a given process.
-            // Surviving particles are added to the output array
-            //propagator->Process()->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
+         if (propagator->fUsePhysics) {
+            // Discrete processes only
+            Int_t nphys = output.SortByStatus(kPhysics);
+            if (nphys) {
+               // Do post step actions for particles suffering a given process.
+               // Surviving particles are added to the output array
             
-            // first: sample target and type of interaction for each primary tracks 
-            propagator->Process()->PostStepTypeOfIntrActSampling( 
-                                            td->fVolume->GetMaterial(), 
+               // first: sample target and type of interaction for each primary tracks 
+               propagator->Process()->PostStepTypeOfIntrActSampling( 
+                                            mat, 
                                             nphys,
                                             output,
                                             tid);
@@ -551,8 +534,8 @@ void *WorkloadManager::TransportTracks(void *)
             //            inserted to the track vector       
             //
 #if USE_VECPHYS == 1
-            propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(
-                                            td->fVolume->GetMaterial(),
+               propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(
+                                            mat,
                                             nphys,
                                             output,
                                             ntotnext,
@@ -561,62 +544,25 @@ void *WorkloadManager::TransportTracks(void *)
             // second: sample final states (based on the inf. regarding sampled
             //         target and type of interaction above), insert them into 
             //         the track vector, update primary tracks; 
-            propagator->Process()->PostStepFinalStateSampling(
-                                            td->fVolume->GetMaterial(),
+               propagator->Process()->PostStepFinalStateSampling(
+                                            mat,
                                             nphys,
                                             output,
                                             ntotnext,
                                             tid); 
 
-            if (0 /*ntotnext*/) {
-               printf("============= Basket: %s\n", basket->GetName());
-               output.PrintTracks();
+               if (0 /*ntotnext*/) {
+                  printf("============= Basket: %s\n", basket->GetName());
+                  output.PrintTracks();
+               }   
             }   
          }
       }
       gPropagator->fApplication->StepManager(tid, output.GetNtracks(), output);   
-/*
-      if (propagator->fUsePhysics) {
-         // Discrete processes only
-         Int_t nphys = output.SortByStatus(kPhysics);
-         if (nphys) {
-            for (Int_t iproc=0; iproc<nprocesses; iproc++) {
-               if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) continue;
-//               propagator->SelectTracksForProcess(iproc, ntotransport, particles, ntodo, parttodo);
-               // Do post step actions for particles suffering a given process.
-               // Surviving particles are added to the output array
-               propagator->Process(iproc)->PostStep(td->fVolume->GetMaterial(), nphys, output, ntotnext, tid);
-            }
-         }
-      }
-*/
       // Check
       if (basket->GetNinput()) {
          Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter.load());
       }   
-//      noutput = basket->GetNoutput();
-/*
-      for(Int_t itr=0; itr<noutput; itr++) {
-         if (TMath::IsNaN(output.fXdirV[itr])) {
-            Printf("Error: track %d has NaN", itr);
-         }   
-      }   
-      for (Int_t itr=0; itr<ninput; itr++) {         
-         Bool_t found = kFALSE;
-         for(Int_t i=0; i<noutput; i++) {
-            if (output.fEventV[i] == iev[itr]) {
-               if (output.fParticleV[i] == itrack[itr]) {
-                  found = true;
-                  break;
-               }   
-            }
-         }
-         if (!found)  {
-            Printf("Track %d of event %d not found, counter=%d", itrack[itr],iev[itr], counter.load());
-//            output.PrintTracks();
-         }   
-      }
-*/      
 
 finish:
 //      basket->Clear();

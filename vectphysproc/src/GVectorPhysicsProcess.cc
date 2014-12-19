@@ -54,7 +54,7 @@ void GVectorPhysicsProcess::Initialize()
 }
 
 //------------------------------------------------------------------------------
-void GVectorPhysicsProcess::PostStepFinalStateSampling( TGeoMaterial *mat,
+void GVectorPhysicsProcess::PostStepFinalStateSampling( TGeoMaterial */*mat*/,
                                                         Int_t ntracks, 
                                                         GeantTrack_v &tracks,
                                                         Int_t &nout, 

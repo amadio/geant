@@ -152,7 +152,8 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
       if (fPriorityRange[0]>=0 &&
           tracks.fEventV[itr]>=fPriorityRange[0] &&
           tracks.fEventV[itr]<=fPriorityRange[1]) priority = kTRUE;
-      vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();    
+      vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();
+      tracks.fVindexV[itr] = vol->GetNumber();
       basket_mgr = static_cast<GeantBasketMgr*>(vol->GetFWExtension());
       fNtracks[output_id]++;
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);

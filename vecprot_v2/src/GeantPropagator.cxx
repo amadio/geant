@@ -112,7 +112,6 @@ GeantPropagator::GeantPropagator()
                  fOutTree(0),
                  fOutFile(0),
                  fTimer(0),
-//                 fProcesses(0),
                  fProcess(0),
                  fVectorPhysicsProcess(0),
                  fStoredTracks(0),
@@ -138,11 +137,6 @@ GeantPropagator::~GeantPropagator()
 #if USE_VECPHYS == 1
    delete fVectorPhysicsProcess;
 #endif
-
-//   if (fProcesses) {
-//     for (i=0; i<fNprocesses; i++) delete fProcesses[i];
-//     delete [] fProcesses;
-//   }  
 
    if (fEvents) {
       for (i=0; i<fNevents; i++) delete fEvents[i];
@@ -243,7 +237,6 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    }
    else {
      TGeoNode const *node = a->GetCurrentNode();
-     // *td->fMatrix = a->GetMatrix();
      vol = node->GetVolume();
      td->fVolume = vol;
    }     
@@ -255,21 +248,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
    if (threshold>fNperBasket) threshold = fNperBasket;
    basket_mgr->SetThreshold(threshold);
 
-   
-   // Species generated for the moment N, P, e, photon
-//   const Int_t kMaxPart=9;
-//   const Int_t pdgGen[9] =        {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
-//   const Double_t pdgRelProb[9] = {   1.,       1.,      1.,        1.,       1.,          1.,        1.,        1.,     1.};
-//   const Species_t pdgSpec[9] =    {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
-//   static Double_t pdgProb[9] = {0.};
-//   Int_t pdgCount[9] = {0};
-
    static Bool_t init=kTRUE;
-   if(init) {
-//      pdgProb[0]=pdgRelProb[0];
-//      for(Int_t i=1; i<kMaxPart; ++i) pdgProb[i]=pdgProb[i-1]+pdgRelProb[i];
-      init=kFALSE;
-   }
+   if(init) init=kFALSE;
    Int_t event = startevent;
    for (Int_t slot=startslot; slot<startslot+nevents; slot++) {   
      //     ntracks = td->fRndm->Poisson(average);
@@ -288,76 +268,13 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track.SetNextPath(a);
          track.SetEvent(event);
          track.SetEvslot(slot);
-	 fPrimaryGenerator->GetTrack(i, track);
-
-//         Double_t prob=td->fRndm->Uniform(0.,pdgProb[kMaxPart-1]);
-//         track.SetPDG(kMuonMinus); // G5code=28
-//         track.SetG5code(28);
-//         track.SetPDG(kMuonPlus); // G5code=27
-//         track.SetG5code(27);
-//         track.SetPDG(kPiPlus); // G5code=30
-//         track.SetG5code(30);
-
-
-/*
-         track.SetPDG(kElectron); // G5code=23
-         track.SetG5code(23); // just a hack -> will change with new physics list
-*/
-
-/*
-         for(Int_t j=0; j<kMaxPart; ++j) {
-            if(prob <= pdgProb[j]) {
-               track.SetPDG(pdgGen[j]);
-               track.SetSpecies(pdgSpec[j]);
-//            Printf("Generating a %s",TDatabasePDG::Instance()->GetParticle(track->pdg)->GetName());
-               pdgCount[j]++;
-               break;
-            }
-         }   
-*/
-
-/*
-         if(!track.fPDG) Fatal("ImportTracks","No particle generated!");
-         TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(track.fPDG);
-         track.SetCharge(part->Charge()/3.);
-         track.SetMass(part->Mass());
-         track.fXpos = fVertex[0];
-         track.fYpos = fVertex[1];
-         track.fZpos = fVertex[2];
-*/
-
-//         track.fE = fKineTF1->GetRandom()+part->Mass();
-//         track.fE = 0.03 /*30MeV*/ +part->Mass();  //e-
-//         track.fE = fEmax /*30MeV*/ +part->Mass();  //e-
-//         track.fE = 0.3 /*300MeV*/ +part->Mass();  //mu+
-//         Double_t p = TMath::Sqrt((track.E()-track.Mass())*(track.E()+track.Mass()));
-//         track.SetP(p);
-/*
-         Double_t eta = td->fRndm->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
-         Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
-         //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
-         Double_t phi = TMath::TwoPi()*td->fRndm->Rndm();
-         track.fXdir = TMath::Sin(theta)*TMath::Cos(phi);
-         track.fYdir = TMath::Sin(theta)*TMath::Sin(phi);
-         track.fZdir = TMath::Cos(theta);
-*/
-/*
-         track.fXdir = 1.;
-         track.fYdir = 0.;
-         track.fZdir = 0.;
-*/
+         fPrimaryGenerator->GetTrack(i, track);
          track.fFrombdr = kFALSE;
          track.fStatus = kAlive;
-         
          AddTrack(track);
          ndispatched += DispatchTrack(track);
       }
-//      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
       event++;
-//      for (Int_t i=0; i<kMaxPart; i++) {
-//         Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(), pdgCount[i]);
-//         pdgCount[i] = 0;
-//      }   
    }
 
    Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.",
@@ -466,7 +383,9 @@ void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
 {
 // Apply multiple scattering for charged particles.
    GeantThreadData *td = fThreadData[tid];
-   fProcess->ApplyMsc(td->fVolume->GetMaterial(), ntracks, tracks, tid);
+   TGeoMaterial *mat = 0;
+   if (td->fVolume) mat = td->fVolume->GetMaterial();
+   fProcess->ApplyMsc(mat, ntracks, tracks, tid);
 }   
 
 //______________________________________________________________________________
@@ -478,38 +397,10 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid
    for (Int_t i=0; i<ntracks; ++i) {
       tracks.fStepV[i] = 0.;
       tracks.fEdepV[i] = 0.;
-   }   
-   fProcess->ComputeIntLen(td->fVolume->GetMaterial(), ntracks, tracks, 0, tid);
-
-/*
-   static const Double_t maxlen = TMath::Limits<double>::Max();   
-   Double_t pstep;
-   Int_t iproc;
-   GeantThreadData *td = fThreadData[tid];
-   Double_t *procStep;
-   // Fill interaction lengths for all processes and all particles
-   for (iproc=0; iproc<fNprocesses; iproc++) {
-      if (fProcesses[iproc]->IsType(PhysicsProcess::kContinuous)) continue;
-      procStep = td->GetProcStep(iproc);
-      fProcesses[iproc]->ComputeIntLen(td->fVolume->GetMaterial(), ntracks, tracks, procStep, tid);
    }
-   // Loop tracks and select process
-   for (Int_t i=0; i<ntracks; i++) {
-      // reset total step
-      tracks.fStepV[i] = 0.;
-      tracks.fPstepV[i] = maxlen;
-      tracks.fProcessV[i] = -1;
-      for (iproc=0; iproc<fNprocesses; iproc++) {
-         if (fProcesses[iproc]->IsType(PhysicsProcess::kContinuous)) continue;
-         procStep = td->GetProcStep(iproc);
-         pstep = procStep[i];
-         if (pstep < tracks.fPstepV[i]) {
-            tracks.fPstepV[i] = pstep;
-            tracks.fProcessV[i] = iproc;
-         }
-      }
-   }      
-*/
+   TGeoMaterial *mat = 0;
+   if (td->fVolume) mat = td->fVolume->GetMaterial();
+   fProcess->ComputeIntLen(mat, ntracks, tracks, 0, tid);
 }
 
 //______________________________________________________________________________
@@ -609,59 +500,3 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
    fOutFile = 0;
    fOutTree = 0;
 }
-
-//______________________________________________________________________________
-Bool_t DrawData(Int_t color = kRed)
-{
-// Draw a given generation of track points.
-   static Long64_t ientry = 0;
-   Long64_t nentries = gPropagator->fOutTree->GetEntries();
-   if (ientry==nentries) return kFALSE;   
-   TPolyMarker3D *pmgen = new TPolyMarker3D();
-   pmgen->SetMarkerColor(color);
-   Int_t nread = 0;
-   Int_t ibgen = 0;
-   while (ientry<nentries) {
-      gPropagator->fOutTree->GetEntry(ientry++);
-      if (!nread++) {
-         ibgen = gPropagator->fOutput->fBasketGeneration;
-      }   
-      if (gPropagator->fOutput->fBasketGeneration > ibgen) {
-         ientry--;
-         break;
-      }      
-      for (Int_t itrack=0; itrack<gPropagator->fOutput->fNtracks; itrack++) 
-         pmgen->SetNextPoint(gPropagator->fOutput->fX[itrack], gPropagator->fOutput->fY[itrack],gPropagator->fOutput->fZ[itrack]);
-   }
-   Printf("basket generation #%d\n", ibgen);
-   pmgen->Draw("SAME");
-   if (ientry==nentries) return kFALSE;
-   return kTRUE;
-}
-
-//______________________________________________________________________________
-void DrawNextBasket()
-{
-// Draw next basket
-   Bool_t drawn = kTRUE;
-   if (!gPropagator->fOutFile) gPropagator->fOutFile = new TFile("output.root");
-   if (!gPropagator->fOutTree) {
-      gPropagator->fOutTree = (TTree*)gPropagator->fOutFile->Get("TK");
-      gPropagator->fOutput = new GeantOutput();
-      gPropagator->fOutTree->SetBranchAddress("gen", &gPropagator->fOutput);
-   }   
-   TProcessEventTimer *timer = new TProcessEventTimer(1);
-   gROOT->SetInterrupt(kFALSE);
-   
-   while (drawn) {
-      if (gROOT->IsInterrupted()) break;
-      if (timer->ProcessEvents()) continue;
-      drawn = DrawData(Int_t(8*gRandom->Rndm())+1);
-      gPad->Modified();
-      gPad->Update();
-      if (!drawn) {
-         Printf("That was the last basket...\n");
-      }
-   }
-   gROOT->SetInterrupt(kTRUE);      
-}   

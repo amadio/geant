@@ -384,6 +384,60 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 
 }
 
+//______________________________________________________________________________
+void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, Int_t tid){
+// Propose step for a single track in the input vector of tracks and write to
+// tracks.fPstepV[]
+
+   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
+   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
+   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(1, rndArray);
+
+   Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
+   Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
+   energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+   energy=energy>=fEGrid[0]?energy:fEGrid[0];
+
+   // continous step limit if any
+   Double_t cx = TMath::Limits<Double_t>::Max();  
+   if(ipart < TPartIndex::I()->NPartCharge()) {
+     Double_t range = Range(ipart, energy);
+     cx = range; 
+     if(cx<0.) {
+       cx = TMath::Limits<Double_t>::Max();
+     } else {
+       const Double_t dRR = .2;
+       const Double_t finRange =.1;
+       if(cx>finRange)
+         cx=cx*dRR+finRange*((1.-dRR)*(2.0-finRange/cx));
+     }     
+   }
+   tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
+
+   // discrete step limit 
+   if(ipart<TPartIndex::I()->NPartReac()){ // can have different reactions + decay
+     Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta; // energy bin index
+     ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+
+     Double_t en1 = fEGrid[ibin];
+     Double_t en2 = fEGrid[ibin+1];
+
+     Double_t xrat = (en2-energy)/(en2-en1);	
+     //get interpolated -(total mean free path)
+     Double_t x = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]; 
+     x *= -1.*TMath::Log(rndArray[0]);  
+     if(x<cx)      
+       tracks.fPstepV[i] = x;
+   } else if (fDecayTable->HasDecay(ipart)) { // it has only decay 
+     Double_t x = tracks.fPV[i]*fDecayTable->GetCTauPerMass(ipart); //Ptot*c*tau/mass [cm]
+     x = -1.*x*TMath::Log(rndArray[0]);
+     if(x<cx)      
+       tracks.fPstepV[i] = x;
+   } //else { // has no any interactions
+      // tracks.fPstepV[i] = TMath::Limits<Double_t>::Max();  
+   // }
+}
+
 //get MS angles : NOT USED CURRENTLY (MS is not active)  
 //____________________________________________________________________________
 Float_t TMXsec::MS(Int_t ipart, Float_t energy) {
@@ -738,6 +792,84 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
          tracksin.fProcessV[t] = -1; // nothing  	 
          tracksin.fEindexV[t]  = -1; // on nothing
      }
+   }
+}
+
+//____________________________________________________________________________
+void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, Int_t tid){
+// Sample the interaction for a single particle at a time.
+   Int_t nParticleWithReaction = TPartIndex::I()->NPartReac(); 
+
+   // tid-based rng
+   GeantPropagator *prop = GeantPropagator::Instance();
+   Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
+   prop->fThreadData[tid]->fRndm->RndmArray(2, rndArray);
+
+   Int_t ipart  = tracksin.fG5codeV[t];
+   // if the particle can have both decay and something else 
+   if(ipart < nParticleWithReaction) {
+     Bool_t isDecay  = kFALSE; 
+     Double_t energy = tracksin.fEV[t] - tracksin.fMassV[t];  // Ekin [GeV]
+     if(fDecayTable->HasDecay(ipart)) {
+       Double_t ptotal = tracksin.fPV[t];                     // Ptotal [GeV]    
+       Double_t lambdaDecay = ptotal*fDecayTable->GetCTauPerMass(ipart);
+       // ptot is not used now in Xlength(ipart,energy,ptot) since ipart<nParticleWithReaction
+       Double_t lambdaTotal = Xlength(ipart,energy,ptotal); 
+       // $P(decay) =\lambda_{Total}/\lambda_{decay}$ 
+       if( rndArray[0] < lambdaTotal/lambdaDecay )
+         isDecay = kTRUE;
+     }
+     if(isDecay) {
+       tracksin.fProcessV[t] =  3; // decay  	 
+       tracksin.fEindexV[t]  = -1; // on nothing 
+     } else {
+       // not decay but something else; sample what else on what target    
+       energy = energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
+       energy = energy>=fEGrid[0]?energy:fEGrid[0];
+       Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta;
+       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+
+       Double_t en1 = fEGrid[ibin];
+       Double_t en2 = fEGrid[ibin+1];
+//1.
+       // this material/mixture (TMXsec object) is composed of fNElems elements	 	
+       Int_t iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this 		 
+       if(fNElems==1) {
+	      iel=0;
+       } else { //sampling one element based on the elemntal realtive X-secs that
+	          //have been normalized in CTR at the Ebins!; energy interp. is 
+	          //included now-> while loop is to avoid problems from interp. 
+         Double_t xrat = (en2-energy)/(en2-en1);
+	      Double_t xnorm = 1.;
+         while(iel<0) {
+           Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
+           Double_t xsum=0;
+           for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
+	          xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
+	          if(ran<=xsum) {
+               iel = i;
+               break;
+             }
+	        }
+           xnorm = xsum;
+         }
+       }
+         //at this point the index of the element is sampled:= iel
+         //the corresponding TEXsec* is fElems[iel] 
+
+         //sample the reaction by using the TEXsec* that corresponds to the iel-th
+         //element i.e. fElems[iel] for the current particle (with particle index of
+         //ipart) at the current energy; will retrun with the reaction index;
+         tracksin.fProcessV[t] = fElems[iel]->SampleReac(ipart, energy, rndArray[1]); 	 
+         tracksin.fEindexV[t]  = fElems[iel]->Index();//index of the selected element in TTabPhysMrg::fElemXsec[] 
+     }
+   } else if(fDecayTable->HasDecay(ipart)) {
+     // only decay can happen because ipart>nParticleWithReaction
+     tracksin.fProcessV[t] =  3; // decay  	 
+     tracksin.fEindexV[t]  = -1; // on nothing
+   } else { //nothing happens
+     tracksin.fProcessV[t] = -1; // nothing  	 
+     tracksin.fEindexV[t]  = -1; // on nothing
    }
 }
 

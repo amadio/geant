@@ -61,13 +61,11 @@ void TTabPhysProcess::Initialize()
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysProcess::ApplyMsc(TGeoMaterial *mat, 
-                               Int_t ntracks, 
-                               GeantTrack_v &tracks, 
-                               Int_t tid)
+void TTabPhysProcess::ApplyMsc(TGeoMaterial */*mat*/, 
+                               Int_t /*ntracks*/, 
+                               GeantTrack_v &/*tracks*/, 
+                               Int_t /*tid*/)
 {
-// Temporary switch off MSC !!!
-   (void)mat; (void)ntracks; (void)tracks; (void)tid;
    //Apply multiple scattering 
 //   fMgr->ApplyMsc(mat, ntracks, tracks, tid);
    

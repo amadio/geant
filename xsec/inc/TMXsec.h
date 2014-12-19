@@ -50,7 +50,9 @@ public:
    GEANT_CUDA_DEVICE_CODE
    void Eloss(Int_t ntracks, GeantTrack_v &tracks);
    void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+   void	ProposeStepSingle(Int_t itr, GeantTrack_v &tracks, Int_t tid);
    void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid);
+   void	SampleSingleInt(Int_t itr, GeantTrack_v &tracksin, Int_t tid);
    GEANT_CUDA_DEVICE_CODE
    Float_t MS(Int_t ipart, Float_t energy);
 

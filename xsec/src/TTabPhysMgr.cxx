@@ -270,10 +270,11 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 // Input: material index, number of tracks in the tracks vector to be used
 // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
  
+   TMXsec *mxs = 0;
 #ifndef GEANT_CUDA_DEVICE_BUILD
-   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   if (mat) mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 #else
-   TMXsec *mxs = 0; // NOTE: we need to get it from somewhere ....
+   // NOTE: we need to get it from somewhere ....
    assert(mxs!=0);
 #endif
 //   static Int_t icnt=0;
@@ -289,7 +290,17 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 #endif
 
 //   Double_t dir[3] = {0.,0.,0.};
+   if (mxs) {
+      for(Int_t i = 0; i < ntracks; ++i){
+         msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
+         msPhi = 2.*Math::Pi()*rndArray[i];
+         RotateTrack(tracks, i, msTheta, msPhi);
+      }   
+      return;   
+   }
+   // Mixed tracks in different volumes
    for(Int_t i = 0; i < ntracks; ++i){
+      mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
       msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
       msPhi = 2.*Math::Pi()*rndArray[i];
 /*
@@ -314,25 +325,38 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
+Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+{
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
 
+   TMXsec *mxs = 0;
 #ifndef GEANT_CUDA_DEVICE_BUILD
-   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   if (mat) mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
 #else
-   TMXsec *mxs = 0; // NOTE: we need to get it from somewhere ....
+   // NOTE: we need to get it from somewhere ....
    assert(mxs!=0);
 #endif
-   mxs->Eloss(ntracks, tracks);
-
-   //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
    Int_t nTotSecPart  = 0;  //total number of new tracks
    Double_t energyLimit = gPropagator->fEmin;    
-   for(Int_t i = 0; i < ntracks; ++i)
-     if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
-       GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
-                        nTotSecPart, tid);  
+   if (mxs) {
+     mxs->Eloss(ntracks, tracks);
+     //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
+     for(Int_t i = 0; i < ntracks; ++i)
+       if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
+         GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
+                          nTotSecPart, tid);
+       return nTotSecPart;                   
+   }
+   // Mixed tracks in different volumes
+   for(Int_t i = 0; i < ntracks; ++i){
+      mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
+      mxs->Eloss(ntracks, tracks);
+     //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
+      if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
+        GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
+                          nTotSecPart, tid);
+   }                       
 
    return nTotSecPart;
 }
@@ -343,8 +367,21 @@ void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tr
 // Sample free flight/proposed step for the firts ntracks tracks and store them 
 // in tracks.fPstepV  
 
-   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
-   mxs->ProposeStep(ntracks, tracks, tid);
+   TMXsec *mxs = 0;
+#ifndef GEANT_CUDA_DEVICE_BUILD
+   if (mat) {
+      mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   }   
+#endif
+   if (mxs) {
+      mxs->ProposeStep(ntracks, tracks, tid);
+      return;
+   }
+   // Mixed tracks in different volumes
+   for(Int_t i = 0; i < ntracks; ++i){
+      mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
+      mxs->ProposeStepSingle(i, tracks, tid);
+   }   
 }
 
 
@@ -549,7 +586,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
           gTrack.fEindex   = 0;
           gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
           gTrack.fProcess  = 0;
-          gTrack.fIzero    = 0;
+          gTrack.fVindex   = tracks.fVindexV[t];
           gTrack.fNsteps   = 0;
 //          gTrack.fSpecies  = 0;
           gTrack.fStatus   = kNew;                 //status of this particle
@@ -562,6 +599,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
           gTrack.fZdir     = pz/secPtot;     //dirz of this particle before transform.)
           gTrack.fP        = secPtot;              //momentum of this particle 
           gTrack.fE        = secEtot;              //total E of this particle 
+          gTrack.fTime     = tracks.fTimeV[t];     // global time
           gTrack.fEdep     = 0.;
           gTrack.fPstep    = 0.;
           gTrack.fStep     = 0.;
@@ -674,7 +712,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack1.fEindex  = 0;
        gTrack1.fCharge  = 0.; // charge
        gTrack1.fProcess = 0;
-       gTrack1.fIzero   = 0;
+       gTrack1.fVindex  = tracks.fVindexV[iintrack];
        gTrack1.fNsteps  = 0;
 //       gTrack.fSpecies  = 0;
        gTrack1.fStatus  = kNew;   //status of this particle
@@ -687,6 +725,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack1.fZdir    = randDirZ;
        gTrack1.fP       = mecc;            //momentum of this particle 
        gTrack1.fE       = mecc;           //total E of this particle 
+       gTrack1.fTime    = tracks.fTimeV[iintrack]; //total time of this particle
        gTrack1.fEdep    = 0.;
        gTrack1.fPstep   = 0.;
        gTrack1.fStep    = 0.;
@@ -790,7 +829,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack.fEindex   = 0;
        gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
        gTrack.fProcess  = 0;
-       gTrack.fIzero    = 0;
+       gTrack.fVindex   = tracks.fVindexV[iintrack]; // volume index
        gTrack.fNsteps   = 0;
 //       gTrack.fSpecies  = 0;
        gTrack.fStatus   = kNew;                 //status of this particle
@@ -803,6 +842,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack.fZdir     = pz/secPtot;     //dirz of this particle before transform.)
        gTrack.fP        = secPtot;              //momentum of this particle 
        gTrack.fE        = secEtot;              //total E of this particle 
+       gTrack.fTime     = tracks.fTimeV[iintrack]; //global time for this particle 
        gTrack.fEdep     = 0.;
        gTrack.fPstep    = 0.;
        gTrack.fStep     = 0.;
@@ -899,7 +939,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
          gTrack.fEindex   = 0;
          gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
          gTrack.fProcess  = -1;
-         gTrack.fIzero    = 0;
+         gTrack.fVindex   = tracks.fVindexV[iintrack];
          gTrack.fNsteps   = 0;
 //         gTrack.fSpecies  = 0;
          gTrack.fStatus   = kNew;                 //status of this particle
@@ -912,6 +952,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
          gTrack.fZdir     = pz/secPtot;     //dirz of this particle before transform.)
          gTrack.fP        = secPtot;              //momentum of this particle 
          gTrack.fE        = secEtot;              //total E of this particle 
+         gTrack.fTime     = tracks.fTimeV[iintrack]; // global time for this track
          gTrack.fEdep     = 0.;
          gTrack.fPstep    = 0.;
          gTrack.fStep     = 0.;
