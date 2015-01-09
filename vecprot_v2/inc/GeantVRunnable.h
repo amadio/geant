@@ -1,17 +1,41 @@
+//===--- GeantVRunnable.h - Geant-V -----------------------------*- C++ -*-===//
+//
+//                     Geant-V Prototype               
+//
+//===----------------------------------------------------------------------===//
+/**
+ * @file GeantVRunnable.h
+ * @brief Implementation of general interface to concurrent runnables. A runnable
+ * is an object embedding data which is processed by the Run() method.
+ * Running the object may produce a new runnable.
+ * @author Andrei Gheata 
+ */
+//===----------------------------------------------------------------------===//
+
 #ifndef GEANT_VRUNNABLE
 #define GEANT_VRUNNABLE
 
-//______________________________________________________________________________
-//   GeantVRunnable - A general interface to concurrent runnables. A runnable
-//                    is an object embedding data which is processed by the Run()
-//                    method. Running the object may produce a new runnable.
-//______________________________________________________________________________
-
+/**
+ * @brief Class GeantVRunnable
+ * @details A general interface to concurrent runnables. A runnable
+ * is an object embedding data which is processed by the Run()
+ * method. Running the object may produce a new runnable.
+ */
 class GeantVRunnable {
 public:
-   GeantVRunnable();
-   ~GeantVRunnable();
-   virtual GeantVRunnable *Run() = 0;
+  
+  /**
+   * @brief GeantVRunnable constructor
+   */
+  GeantVRunnable();
 
-   ClassDef(GeantVRunnable, 1)      // ABC for concurrent runnables
+  /**
+   * @brief GeantVRunnable destructor
+   */
+  ~GeantVRunnable();
+
+  /** @brief Run function */
+  virtual GeantVRunnable *Run() = 0;
+
+  ClassDef(GeantVRunnable, 1) // ABC for concurrent runnables
 };
