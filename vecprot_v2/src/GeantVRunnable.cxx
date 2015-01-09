@@ -2,10 +2,7 @@
 
 ClassImp(GeantVRunnable)
 
-//______________________________________________________________________________
-GeantRunnable::GeantRunnable()
-{
-// Dummy constructor.
+    //______________________________________________________________________________
+    GeantRunnable::GeantRunnable() {
+  // Dummy constructor.
 }
-
-
