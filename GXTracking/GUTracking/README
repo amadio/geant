@@ -8,7 +8,6 @@
    export Vc_DIR=${VC_INSTALL_DIR}
    export VecGeom_DIR=${VECGEOM_INSTALL_DIR}
 
-   #
    #root (if ROOT=ON)
    source ${ROOT_INSTALL_DIR}/bin/thisroot.sh
 
@@ -21,7 +20,8 @@
 
    mkdir bin 
    cd bin
-   cmake -DProject=GUTrackingTest -DROOT=ON -DVECGEOMROOT=${VecGecm_DIR} -DVc_DIR=${Vc_DIR} ..
+   cmake -DProject=GUTrackingTest -DROOT=ON -DVECGEOMROOT=${VecGecm_DIR} \
+         -DVc_DIR=${Vc_DIR} ..
    make
    ./GUTrackingTest
 
@@ -29,3 +29,18 @@
 
    # set a vector instruction set
    -DVECPHYS_VECTOR=sse
+
+4. How to run GeantV with GUTracking (libvecphys.a)
+   
+   - build your physics library (libvecphys) into GUTracking/build
+   - build GeantV with a -DUSE_VECPHYS=ON option whch will build a libVphysproc 
+
+   - activate following the two lines in run.C:
+
+   gSystem->Load("../lib/libVphysproc"); //to load the vector physics interface lib
+   prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin, nthreads);
+
+  - run the prototype
+
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/phihome/syjun/products.vproot6
+    root.exe -b -l -q 'run.C(4)'

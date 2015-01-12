@@ -4,7 +4,7 @@ GUAliasSampler::
 GUAliasSampler(int    Zelement, 
                double incomingMin, 
                double incomingMax,
-               int    numEntriesIncoming,  // for 'energy' (or log) of projectile
+               int    numEntriesIncoming, // for 'energy' (or log) of projectile
                int    numEntriesSampled   
 )  
   :
@@ -27,6 +27,17 @@ GUAliasSampler::~GUAliasSampler()
   if(fpdf)   delete [] fpdf;
   if(fProbQ) delete [] fProbQ;
   if(fAlias) delete [] fAlias;
+}
+
+FQUALIFIER 
+void GUAliasSampler::GetAlias(int  index, 
+	                      double &probNA,  
+	                      int &aliasInd 
+	                      ) const 
+{
+  //gather for alias table lookups
+  probNA =    fProbQ[ index ];
+  aliasInd =  fAlias[ index ];
 }
 
 void GUAliasSampler::BuildAliasTables( const int nrow,

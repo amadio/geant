@@ -5,7 +5,9 @@
 #include "GUConstants.h"
 #include "GUTrack.h"
 #include "GURandom.h"
+#include "GURandom.h"
 
+#include "backend/scalar/Backend.h"
 #include "backend/vc/Backend.h"
 
 class GUAliasSampler; 
@@ -14,7 +16,7 @@ class GUComptonKleinNishina
 {
 public:
 
-  FQUALIFIER GUComptonKleinNishina(); 
+  FQUALIFIER GUComptonKleinNishina(int threadId = -1); 
   FQUALIFIER ~GUComptonKleinNishina();
   
   FQUALIFIER 
@@ -25,6 +27,12 @@ public:
   void Interact(GUTrack& projectile,    // In/Out: Updated to new state - choice
                 int      targetElement, // Q: Need Material index instead ? 
                 GUTrack* secondary )  const;
+
+  FQUALIFIER 
+  void InteractG4(GUTrack& inProjectile,
+                  int      targetElement,
+                  GUTrack* outSecondary );
+
 
 #ifndef __CUDA_ARCH__  //  Method relevant only for *Vector* implementation
   // Vector version - stage 2 - Need the definition of these vector types
@@ -116,7 +124,8 @@ SampleSinTheta(typename Backend::Double_t energyIn,
   Bool_t condition2 = sint2 < Vc::Zero;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
-  MaskedAssign( !condition2, Vc::sqrt(sint2), &sinTheta );   
+  //  MaskedAssign( !condition2, Vc::sqrt(sint2), &sinTheta );   
+  MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   
   
   return sinTheta;
 }

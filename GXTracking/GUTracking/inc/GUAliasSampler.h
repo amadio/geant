@@ -35,11 +35,6 @@ public:
   ~GUAliasSampler();
   void PrintTable();
 
-  template<class Backend>
-  typename Backend::Double_t
-  Sample( typename Backend::Double_t energyIn, 
-          typename Backend::Double_t deltaY    ) const;  
-
   /* Builds (part) of our tables ( for one ene)
    *
   */
@@ -52,19 +47,34 @@ public:
   void BuildAliasTables( const int nrow, const int ncol, double   *pdf );
 
   template<class Backend>
+  FQUALIFIER void
+  SampleBin( typename Backend::Double_t  kineticEnergy,
+	     typename Backend::Index_t   &index,
+	     typename Backend::Index_t   &icol,
+             typename Backend::Double_t  &fraction) const;
+
+
+  template<class Backend>
   typename Backend::Double_t
-  SampleX( typename Backend::Index_t  irow,   // ~ sampled value
-           typename Backend::Index_t  icol,   // ~ input Energy
-           typename Backend::Double_t binSize,
-           typename Backend::Double_t remainderX  //  in sampled variable
-          ) const;
+  SampleX(typename Backend::Double_t rangeSampled, 
+          typename Backend::Double_t probNA,   // ~ sampled value
+          typename Backend::Double_t aliasInd, // ~ input Energy
+          typename Backend::Index_t  icol,     // ~ input Energy
+          typename Backend::Double_t fraction  //  in sampled variable
+	  ) const;
 
   template<class Backend>
   FQUALIFIER void
-  GetBin( typename Backend::Double_t  kineticEnergy,
-	  typename Backend::Index_t     &irow,
-	  typename Backend::Index_t     &icol,
-          typename Backend::Double_t  &t) const;
+  GatherAlias(typename Backend::Index_t  index, 
+              typename Backend::Double_t &probNA,  
+              typename Backend::Double_t &aliasInd 
+	      ) const;
+
+  FQUALIFIER void
+  GetAlias(int  index, 
+    	   double &probNA,  
+	   int &aliasInd 
+	   ) const;
 
 private:
   const int      fZelement; 
@@ -94,77 +104,61 @@ private:
 // implementation of template functions
 
 template<class Backend>
-typename Backend::Double_t
+FQUALIFIER void
 GUAliasSampler::
-Sample( typename Backend::Double_t energyIn,
-    typename Backend::Double_t deltaY ) const
+SampleBin(typename Backend::Double_t kineticEnergy,
+          typename Backend::Index_t  &index,    // ~ sampled value
+          typename Backend::Index_t  &icol,     // ~ input Energy
+          typename Backend::Double_t &fraction  //  in sampled variable
+         ) const
 {
-  typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
 
-  Index_t   irow, icol;
-  Double_t  fraction;
+  Index_t irow = VECGEOM_NAMESPACE::Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
+  //  Double_t r1 = (fSampledNumEntries-1)*Double_t::Random();
+  Double_t r1 = (fSampledNumEntries-1)*VECGEOM_NAMESPACE::UniformRandom(Backend::kOne);
+  icol = VECGEOM_NAMESPACE::Floor(r1);
+  fraction = r1 - 1.0*icol;
 
-  GetBin<Backend>(energyIn, irow, icol, fraction);
-  Double_t x = SampleX<Backend>( irow, icol, deltaY, fraction);
-
-  return x;
+  // Was rangeSampled /(fSampledNumEntries-1);
+  index = irow*fSampledNumEntries  + icol;
 }
 
 template<class Backend>
 FQUALIFIER void
 GUAliasSampler::
-GetBin(typename Backend::Double_t  kineticEnergy,
-       typename Backend::Index_t   &irow,
-       typename Backend::Index_t   &icol,
-       typename Backend::Double_t  &t) const
+GatherAlias(typename Backend::Index_t  index, 
+            typename Backend::Double_t &probNA,  
+            typename Backend::Double_t &aliasInd 
+           ) const 
 {
-  typedef typename Backend::Double_t Double_t;
-
-  irow = VECGEOM_NAMESPACE::Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
-  Double_t r1 = (fSampledNumEntries-1)*Double_t::Random();
-  icol = VECGEOM_NAMESPACE::Floor(r1);
-  t = r1 - 1.0*icol;
+  //gather for alias table lookups
+  for(int i = 0; i < Vc::double_v::Size ; ++i) {
+    probNA[i]=    fProbQ[ (int) index[i] ];
+    aliasInd[i]=  fAlias[ (int) index[i] ];
+  }
 }
 
 template<class Backend>
 typename Backend::Double_t
 GUAliasSampler::
-SampleX( typename Backend::Index_t  irow,   // ~ sampled value
-         typename Backend::Index_t  icol,   // ~ input Energy
-         typename Backend::Double_t rangeSampled,
-         typename Backend::Double_t remainderX  //  in sampled variable
-        ) const
+SampleX(typename Backend::Double_t rangeSampled, 
+        typename Backend::Double_t probNA,   // ~ sampled value
+        typename Backend::Double_t aliasInd, // ~ input Energy
+        typename Backend::Index_t  icol,     // ~ input Energy
+        typename Backend::Double_t fraction  //  in sampled variable
+       ) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  Double_t r1 = Double_t::Random();//GUUniformRand(0,-1);
 
-  Double_t xd, xu;
-  Double_t binSampled = rangeSampled * fInverseBinSampled;
-        // Was rangeSampled /(fSampledNumEntries-1);
-
-  Double_t probNA;   // Non-alias probability
-  Double_t aliasInd; //  This is really an integer -- could be Index_t !?
-  // fill probNA from table
-  //  Index_t index = irow*fSampledNumEntries  + icol;
-  Index_t index = irow*fSampledNumEntries  + icol;
-
-  // Gather
-  for( int i=0;i < Double_t::Size; ++i )
-  {
-    //    int iEntry= ConverfractionoInteger(index[i]);
-    //    probNA[i]=    fPDFY[ iEntry ]; // index[i] ];
-    //    aliasInd[i]=  fPDFA[ iEntry ]; // index[i] ];
-    
-    probNA[i]=    fProbQ[ (int) index[i] ];
-    aliasInd[i]=  fAlias[ (int) index[i] ];
-  }
-  // should investigate here whether gather is supported in Vc
+  Double_t r1 = VECGEOM_NAMESPACE::UniformRandom(Backend::kOne);//GUUniformRand(0,-1);
 
   Bool_t condition = r1 <= probNA;
+  Double_t xd, xu;
+  Double_t binSampled = rangeSampled * fInverseBinSampled;
 
   // if branch
 
@@ -176,7 +170,7 @@ SampleX( typename Backend::Index_t  irow,   // ~ sampled value
   MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
   MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
-  Double_t x = (1 - remainderX) * xd + remainderX* xu;
+  Double_t x = (1 - fraction) * xd + fraction* xu;
 
   return x;
 }
