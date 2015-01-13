@@ -49,10 +49,14 @@ GUIntegrationDriver::GUIntegrationDriver( double                hminimum,
                                   int                   numComponents,
                                   int                   statisticsVerbose)
   : fSmallestFraction( 1.0e-12 ), 
-    fSurfaceTolerance( 1.0e-6) , 
-    fNoIntegrationVariables(numComponents), 
-    fMinNoVars(12), 
+    fNoIntegrationVariables(numComponents),
+    fMinNoVars(12),
     fNoVars( std::max( fNoIntegrationVariables, fMinNoVars )),
+    fSafetyFactor(0.9),
+    fPowerShrink(0.0),   //  exponent for shrinking
+    fPowerGrow(0.0),    //  exponent for growth
+    fErrcon(0.0),
+    fSurfaceTolerance( 1.0e-6),
     fStatisticsVerboseLevel(statisticsVerbose),
     fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
     fNoInitialSmallSteps(0), 
@@ -522,7 +526,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
 
   double errpos_sq=0.0;    // square of displacement error
   double errmom_sq=0.0;    // square of momentum vector difference
-  double errspin_sq=0.0;   // square of spin vector difference
+  //double errspin_sq=0.0;   // square of spin vector difference
 
   int iter;
 
@@ -599,7 +603,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
 #endif
 
   // Compute size of next Step
-  if (errmax_sq > errcon*errcon)
+  if (errmax_sq > fErrcon*fErrcon)
   { 
     hnext = GetSafety()*h*std::pow(errmax_sq, 0.5*GetPowerGrow());
   }
@@ -779,7 +783,7 @@ GUIntegrationDriver::ComputeNewStepSize_WithinLimits(
   else
   {
     // Compute size of next Step for a successful step
-    if (errMaxNorm > errcon)
+    if (errMaxNorm > fErrcon)
      { hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerGrow()); }
     else  // No more than a factor of 5 increase
      { hnew = max_stepping_increase * hstepCurrent; }
@@ -825,9 +829,9 @@ void GUIntegrationDriver::PrintStatus(
     int oldPrec= std::cout.precision(noPrecision);
     // std::cout.setf(ios_base::fixed,ios_base::floatfield);
 
-    const ThreeVector StartPosition=       StartFT.GetPosition();
+  // const ThreeVector StartPosition=       StartFT.GetPosition();
     const ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
-    const ThreeVector CurrentPosition=     CurrentFT.GetPosition();
+  // const ThreeVector CurrentPosition=     CurrentFT.GetPosition();
     const ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
 
     double  DotStartCurrentVeloc= StartUnitVelocity.Dot(CurrentUnitVelocity);

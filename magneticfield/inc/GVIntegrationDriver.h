@@ -14,6 +14,7 @@
 #ifndef GUIntegrationDriver_Def
 #define GUIntegrationDriver_Def
 
+// #include "G4Types.hh"
 #include "GUFieldTrack.h"
 
 // class GUVIntegrationStepper;
@@ -22,7 +23,7 @@
 class GUIntegrationDriver
 {
    public:  // with description
-     GUIntegrationDriver( double                hminimum, 
+     GUIntegrationDriver( double            hminimum, 
                       GUVIntegrationStepper *pItsStepper,
                       int                   numberOfComponents=6,
                       int                   statisticsVerbosity=1);
@@ -52,14 +53,13 @@ class GUIntegrationDriver
 
 
      // Auxiliary methods
-     inline double GetHmin()        const { return fMinimumStep; } 
-     inline double GetSafety()      const { return fSafetyFactor; }
-     inline double GetPowerShrink() const { return fPowerShrink; }
-     inline double GetPowerGrow()   const { return fPowerGrow; } 
-     inline double GetErrcon()      const { return fErrcon; }
-     
+     inline double GetHmin() const;
+     inline double Hmin() const;     // Obsolete
+     inline double GetSafety() const;
+     inline double GetPowerShrink() const;
+     inline double GetPowerGrow() const;
+     inline double GetErrcon() const;
      inline void   GetDerivatives( const GUFieldTrack &y_curr,     // const, INput
-                                       double    charge, 
                                        double    dydx[]   );  //       OUTput
         // Accessors.
 
@@ -71,12 +71,12 @@ class GUIntegrationDriver
         //  i) sets the exponents (fPowerGrow & fPowerShrink), 
         //     using the current Stepper's order, 
         // ii) sets the safety
-        // ii) calculates "fErrcon" according to the above values.
+        // ii) calculates "errcon" according to the above values.
 
-     inline void SetSafety(double valS) ;       // {fSafetyFactor= valS; }
-     inline void SetPowerShrink(double valPs) ; // { fPowerShrink= valPs; } 
-     inline void SetPowerGrow (double valPg) ;  // { fPowerGrow= valPg; }
-     inline void SetErrcon(double valEc) ;      // { fErrcon= valEc; }
+     inline void SetSafety(double valS);
+     inline void SetPowerShrink(double valPs);
+     inline void SetPowerGrow (double valPg);
+     inline void SetErrcon(double valEc);
         // When setting safety or fPowerGrow, errcon will be set to a 
         // compatible value.
 
@@ -111,18 +111,18 @@ class GUIntegrationDriver
         // Limit the next step's size within a range around the current one.
 
      inline int    GetMaxNoSteps() const;
-     inline void   SetMaxNoSteps( int val); 
+     inline void     SetMaxNoSteps( int val); 
         //  Modify and Get the Maximum number of Steps that can be
         //   taken for the integration of a single segment -
         //   (ie a single call to AccurateAdvance).
 
    public:  // without description
 
-     inline void SetHmin(double newMin) { fMinimumStep= newMin; }
-     inline void SetVerboseLevel(int lev) { fVerboseLevel= lev; }
-     inline int  GetVerboseLevel() const { return fVerboseLevel; }
+     inline void SetHmin(double newval);
+     inline void SetVerboseLevel(int newLevel); 
+     inline double GetVerboseLevel() const;
 
-     inline double GetSmallestFraction() const { return fSmallestFraction; } 
+     inline double GetSmallestFraction() const; 
      void     SetSmallestFraction( double val ); 
 
    protected:  // without description
@@ -193,7 +193,7 @@ class GUIntegrationDriver
      double fSafetyFactor;
      double fPowerShrink;   //  exponent for shrinking
      double fPowerGrow;    //  exponent for growth
-     double fErrcon;
+     double errcon;
         // Parameters used to grow and shrink trial stepsize.
 
      double fSurfaceTolerance; 
@@ -224,14 +224,53 @@ class GUIntegrationDriver
 
 // #include "GVIntegratorDriver.icc"
 
+inline
+double GUIntegrationDriver::GetHmin() const
+{
+      return fMinimumStep;
+} 
 
+inline
+double GUIntegrationDriver::Hmin() const
+{
+      return fMinimumStep;
+}
 
+inline
+double GUIntegrationDriver::GetSafety() const
+{
+      return fSafetyFactor;
+}
+
+inline
+double GUIntegrationDriver::GetPowerShrink() const
+{
+      return fPowerShrink;
+} 
+
+inline
+double GUIntegrationDriver::GetPowerGrow() const
+{
+      return fPowerGrow;
+}
+ 
+inline
+double GUIntegrationDriver::GetErrcon() const
+{
+      return errcon;
+}
+
+inline
+void GUIntegrationDriver::SetHmin(double newval)
+{
+      fMinimumStep = newval;
+} 
 
 inline
 double GUIntegrationDriver::ComputeAndSetErrcon()
 {
-      fErrcon = std::pow(max_stepping_increase/fSafetyFactor,1.0/fPowerGrow);
-      return fErrcon;
+      errcon = std::pow(max_stepping_increase/fSafetyFactor,1.0/fPowerGrow);
+      return errcon;
 } 
 
 inline
@@ -260,7 +299,7 @@ void GUIntegrationDriver::SetPowerGrow(double  val)
 inline
 void GUIntegrationDriver::SetErrcon(double val)
 { 
-      fErrcon=val;
+      errcon=val;
 }
 
 inline
@@ -296,11 +335,30 @@ void GUIntegrationDriver::SetMaxNoSteps(int val)
 
 inline
 void GUIntegrationDriver::GetDerivatives(const GUFieldTrack &y_curr, // const, INput
-                                               double       charge, 
-                                               double       dydx[])  // OUTput
+                                           double     dydx[])  // OUTput
 { 
   double  tmpValArr[GUFieldTrack::ncompSVEC];
   y_curr.DumpToArray( tmpValArr  );
-  pIntStepper -> RightHandSide( tmpValArr , charge, dydx );
+  pIntStepper -> RightHandSide( tmpValArr , dydx );
 }
+
+inline
+double GUIntegrationDriver::GetVerboseLevel() const
+{
+      return fVerboseLevel;
+} 
+
+inline 
+void GUIntegrationDriver::SetVerboseLevel(int newLevel)
+{
+      fVerboseLevel= newLevel;
+}
+
+inline
+double GUIntegrationDriver::GetSmallestFraction() const
+{
+      return fSmallestFraction; 
+} 
+
+
 #endif /* GUIntegrationDriver_Def */

@@ -72,10 +72,10 @@ class GUVField
        // return the value of the field in the array fieldArr.
        //  Notes: 
        //   1) The 'Point' vector has the following structure:
-       //        Point[0]  is  x  ( position, in Geant4 units )
+       //        Point[0]  is  x  ( position, in agreed units )
        //        Point[1]  is  y
        //        Point[2]  is  z
-       //        Point[3]  is  t  ( time,  in Geant4 units )
+       //        Point[3]  is  t  ( time,  in agreed units )
        //   2) The convention for the components of the field
        //      array 'fieldArr' are determined by the type of field.
        //      See for example the class GUVElectroMagneticField.
@@ -96,6 +96,6 @@ class GUVField
        //    - a pure magnetic field should return "false"
     
       virtual GUVField* Clone() const;
-      //Implements cloning, needed by GUV MT
+      //Implements cloning, potentially needed for MT - ??
 };
 #endif /* GUVFIELD_HH */

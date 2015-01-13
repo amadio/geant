@@ -46,7 +46,7 @@ class GUVIntegrationStepper
         // Estimate the maximum distance of a chord from the true path
         // over the segment last integrated.
 
-        virtual void ComputeRightHandSide( const double y[], double dydx[] ); 
+        virtual void ComputeRightHandSide( const double y[], double charge, double dydx[] ); 
         // Must compute the RightHandSide as in the method below
         // Optionally can cache the input y[] and the dydx[] values computed.
 
@@ -56,7 +56,7 @@ class GUVIntegrationStepper
         // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
         // Simple utility function to (re)normalise 'unit spin' vector.
 
-        inline void RightHandSide( const double y[], double dydx[] );   
+        inline void RightHandSide( const double y[], double charge, double dydx[] );   
         // Utility method to supply the standard Evaluation of the
         // Right Hand side of the associated equation.
 

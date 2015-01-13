@@ -88,14 +88,14 @@ void steponhelix( int charge, double R,
 
 int main()
 {
-  double x0,y0,z0,dx0,dy0,dz0, x,y,z, dx,dy,dz;
+  double x0,y0,z0,dx0,dy0,dz0, x,y, dx,dy;
 
   x0=10;
   y0=5;
   z0=0.;
   dx0=-0.5;
   dy0=-0.5;
-  dz0=0.2;
+  dz0= 0.2;
   double R=10;
 
   

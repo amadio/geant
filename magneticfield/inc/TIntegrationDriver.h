@@ -30,8 +30,8 @@ class TIntegrationDriver // : public GUIntegrationDriver
     //  Stepsize can increase by no more than 5.0
     //           and decrease by no more than 1/10. = 0.1
     //
-    static const double max_stepping_increase = 5.0;
-    static const double max_stepping_decrease = 0.1;
+    static const double max_step_increase = 5.0;
+    static const double max_step_decrease = 0.1;
 
     //  The (default) maximum number of steps is Base
     //  divided by the order of Stepper
@@ -53,26 +53,6 @@ class TIntegrationDriver // : public GUIntegrationDriver
                 double hinitial=0.0 );
 
     // ---------------------------------------------------------
-
-    // QuickAdvance just tries one Step - it does not ensure accuracy
-    //
-    bool  QuickAdvance(       
-            GUFieldTrack& y_posvel,         // INOUT
-            const BlazeVec &dydx,  
-            double     hstep,       // In
-            double&    dchord_step,
-            double&    dyerr_pos_sq,
-            double&    dyerr_mom_rel_sq )  
-    {
-        G4Exception("QuickAdvance()", "GeomField0001",
-                FatalException, "Not yet implemented."); 
-
-        // Use the parameters of this method, to please compiler
-        dchord_step = dyerr_pos_sq = hstep * hstep * dydx[0]; 
-        dyerr_mom_rel_sq = y_posvel.GetPosition().mag2();
-        return true;
-    }
-
     //----------------------------------------------------------------------
 
     bool  QuickAdvance(       
@@ -86,47 +66,10 @@ class TIntegrationDriver // : public GUIntegrationDriver
 
     //  Constructor
     //
-
     TIntegrationDriver( double                hminimum, 
             T_Stepper *pStepper,
             int                   numComponents=6,
-            int                   statisticsVerbose=1)
-        : fSmallestFraction( 1.0e-12 ), 
-        fNoIntegrationVariables(numComponents), 
-        fMinNoVars(12), 
-        fNoVars( std::max( fNoIntegrationVariables, fMinNoVars )),
-        fStatisticsVerboseLevel(statisticsVerbose),
-        fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
-        fNoInitialSmallSteps(0), 
-        fDyerr_max(0.0), fDyerr_mx2(0.0), 
-        fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
-        fSumH_sm(0.0), fSumH_lg(0.0),
-        fVerboseLevel(0), 
-        GUIntegrationDriver(hminimum, pStepper, numComponents, statisticsVerbose)
-    {  
-        // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
-        // is required. For proper time of flight and spin,  fMinNoVars must be 12
-
-        RenewStepperAndAdjust( pStepper );
-        fMinimumStep= hminimum;
-        fMaxNoSteps = fMaxStepBase / 
-            pIntStepper->T_Stepper::IntegratorOrder();
-#ifdef DEBUG_FIELD
-        fVerboseLevel=2;
-#endif
-
-        if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) )
-        {
-            std::cout << "MagIntDriver version: Accur-Adv: "
-                << "invE_nS, QuickAdv-2sqrt with Statistics "
-#ifdef FIELD_STATS
-                << " enabled "
-#else
-                << " disabled "
-#endif
-                << std::endl;
-        }
-    }
+            int                   statisticsVerbose=1);
 
     // ---------------------------------------------------------
     //  Destructor
@@ -153,7 +96,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
     inline
         double ComputeAndSetErrcon()
         {
-            errcon = G4Pow::GetInstance()->G4Pow::powA(max_stepping_increase/GetSafety(),1.0/GetPowerGrow());
+            errcon = std::pow(max_step_increase/fSafety,1.0/fPowerGrow);
             return errcon;
         } 
 
@@ -162,7 +105,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
         {
             safety = new_safety;
             fPowerShrink = -1.0 /
-                pIntStepper->T_Stepper::IntegratorOrder();
+                    pIntStepper->T_Stepper::IntegratorOrder();
             fPowerGrow  = -1.0 / (1.0 + 
                     pIntStepper->T_Stepper::IntegratorOrder());
             ComputeAndSetErrcon();
@@ -231,32 +174,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
     void
         WarnSmallStepSize( double hnext, double hstep, 
                 double h, double xDone,
-                int nstp)
-        {
-            static G4ThreadLocal int noWarningsIssued =0;
-            const  int maxNoWarnings =  10;   // Number of verbose warnings
-            std::ostringstream message;
-            if( (noWarningsIssued < maxNoWarnings) || fVerboseLevel > 10 )
-            {
-                message << "The stepsize for the next iteration, " << hnext
-                    << ", is too small - in Step number " << nstp << "." << std::endl
-                    << "The minimum for the driver is " << Hmin()  << std::endl
-                    << "Requested integr. length was " << hstep << " ." << std::endl
-                    << "The size of this sub-step was " << h     << " ." << std::endl
-                    << "The integrations has already gone " << xDone;
-            }
-            else
-            {
-                message << "Too small 'next' step " << hnext
-                    << ", step-no: " << nstp << std::endl
-                    << ", this sub-step: " << h     
-                    << ",  req_tot_len: " << hstep 
-                    << ", done: " << xDone << ", min: " << Hmin();
-            }
-            G4Exception("WarnSmallStepSize()", "GeomField1001",
-                    JustWarning, message);
-            noWarningsIssued++;
-        }
+                int nstp);
 
     // ---------------------------------------------------------
     void
@@ -340,6 +258,9 @@ class TIntegrationDriver // : public GUIntegrationDriver
 
     // ---------------------------------------------------------------------------
 
+
+template
+<class Stepper>
     void PrintStatus(
             const GUFieldTrack&  StartFT,
             const GUFieldTrack&  CurrentFT, 
@@ -352,11 +273,11 @@ class TIntegrationDriver // : public GUIntegrationDriver
         // std::cout.setf(ios_base::fixed,ios_base::floatfield);
 
         const ThreeVector StartPosition=       StartFT.GetPosition();
-        const ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
+        const ThreeVector StartMomentumDir=   StartFT.GetMomentumDir();
         const ThreeVector CurrentPosition=     CurrentFT.GetPosition();
-        const ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
+        const ThreeVector CurrentMomentumDir= CurrentFT.GetMomentumDir();
 
-        double  DotStartCurrentVeloc= StartUnitVelocity.dot(CurrentUnitVelocity);
+        double  DotStartCurrentVeloc= StartMomentumDir.dot(CurrentMomentumDir);
 
         double step_len= CurrentFT.GetCurveLength() - StartFT.GetCurveLength();
         double subStepSize = step_len;
@@ -406,7 +327,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
             //  Multi-line output
 
             // std::cout << "Current  Position is " << CurrentPosition << std::endl 
-            //    << " and UnitVelocity is " << CurrentUnitVelocity << std::endl;
+            //    << " and MomentumDir is " << CurrentMomentumDir << std::endl;
             // std::cout << "Step taken was " << step_len  
             //    << " out of PhysicalStep= " <<  requestStep << std::endl;
             // std::cout << "Final safety is: " << safety << std::endl;
@@ -418,7 +339,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
 
     // ---------------------------------------------------------------------------
     void PrintStat_Aux(
-            const GUFieldTrack&  aGUFieldTrack,
+            const GUFieldTrack&  aFieldTrack,
             double             requestStep, 
             double             step_len,
             int                subStepNo,
@@ -498,6 +419,47 @@ class TIntegrationDriver // : public GUIntegrationDriver
 
 };
 
+class TIntegrationDriver::
+  TIntegrationDriver( double hminimum, 
+                Stepper *pStepper,
+                int                   numComponents=6,
+                int                   statisticsVerbose=1)
+        : fSmallestFraction( 1.0e-12 ), 
+        fNoIntegrationVariables(numComponents), 
+        fMinNoVars(12), 
+        fNoVars( std::max( fNoIntegrationVariables, fMinNoVars )),
+        fStatisticsVerboseLevel(statisticsVerbose),
+        fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
+        fNoInitialSmallSteps(0), 
+        fDyerr_max(0.0), fDyerr_mx2(0.0), 
+        fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
+        fSumH_sm(0.0), fSumH_lg(0.0),
+        fVerboseLevel(0), 
+        GUIntegrationDriver(hminimum, pStepper, numComponents, statisticsVerbose)
+{  
+    // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
+    // is required. For proper time of flight and spin,  fMinNoVars must be 12
+
+    RenewStepperAndAdjust( pStepper );
+    MinimumStep= hminimum;
+    fMaxNoSteps = fMaxStepBase / 
+    pIntStepper->T_Stepper::IntegratorOrder();
+#ifdef DEBUG_FIELD
+    fVerboseLevel=2;
+#endif
+
+    if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) )
+    {
+            std::cout << "MagIntDriver version: Accur-Adv: "
+                << "invE_nS, QuickAdv-2sqrt with Statistics "
+#ifdef FIELD_STATS
+                << " enabled "
+#else
+                << " disabled "
+#endif
+                << std::endl;
+    }
+}
 
 void
 OneGoodStep(BlazeVec &y,        // InOut
@@ -606,7 +568,7 @@ OneGoodStep(BlazeVec &y,        // InOut
     }
     else
     {
-        hnext = max_stepping_increase*h ; // No more than a factor of 5 increase
+        hnext = max_step_increase*h ; // No more than a factor of 5 increase
     }
     x += (hdid = h);
 
@@ -638,7 +600,7 @@ TIntegrationDriver::ComputeNewStepSize(
         hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerGrow()) ;
     } else {
         // if error estimate is zero (possible) or negative (dubious)
-        hnew = max_stepping_increase * hstepCurrent; 
+        hnew = max_step_increase * hstepCurrent; 
     }
 
     return hnew;
@@ -665,9 +627,9 @@ TIntegrationDriver::ComputeNewStepSize_WithinLimits(
         // Step failed; compute the size of retrial Step.
         hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerShrink()) ;
 
-        if (hnew < max_stepping_decrease*hstepCurrent)
+        if (hnew < max_step_decrease*hstepCurrent)
         {
-            hnew = max_stepping_decrease*hstepCurrent ;
+            hnew = max_step_decrease*hstepCurrent ;
             // reduce stepsize, but no more
             // than this factor (value= 1/10)
         }
@@ -678,7 +640,7 @@ TIntegrationDriver::ComputeNewStepSize_WithinLimits(
         if (errMaxNorm > errcon)
         { hnew = GetSafety()*hstepCurrent*G4Pow::GetInstance()->G4Pow::powA(errMaxNorm,GetPowerGrow()); }
         else  // No more than a factor of 5 increase
-        { hnew = max_stepping_increase * hstepCurrent; }
+        { hnew = max_step_increase * hstepCurrent; }
     }
     return hnew;
 }
@@ -1070,7 +1032,9 @@ QuickAdvance(
     return true;
 }
 
-void PrintStatisticsReport()
+void 
+template <class Stepper> TIntegrationDriver::
+PrintStatisticsReport()
 {
     int noPrecBig= 6;
     int oldPrec= std::cout.precision(noPrecBig);
@@ -1116,17 +1080,49 @@ void PrintStatisticsReport()
     std::cout.precision(oldPrec);
 }
 
+void
+template <class Stepper> TIntegrationDriver::
+        WarnSmallStepSize( double hnext, double hstep, 
+                double h, double xDone,
+                int nstp)
+        {
+            static G4ThreadLocal int noWarningsIssued =0;
+            const  int maxNoWarnings =  10;   // Number of verbose warnings
+            std::ostringstream message;
+            if( (noWarningsIssued < maxNoWarnings) || fVerboseLevel > 10 )
+            {
+                message << "The stepsize for the next iteration, " << hnext
+                    << ", is too small - in Step number " << nstp << "." << std::endl
+                    << "The minimum for the driver is " << Hmin()  << std::endl
+                    << "Requested integr. length was " << hstep << " ." << std::endl
+                    << "The size of this sub-step was " << h     << " ." << std::endl
+                    << "The integrations has already gone " << xDone;
+            }
+            else
+            {
+                message << "Too small 'next' step " << hnext
+                    << ", step-no: " << nstp << std::endl
+                    << ", this sub-step: " << h     
+                    << ",  req_tot_len: " << hstep 
+                    << ", done: " << xDone << ", min: " << Hmin();
+            }
+            G4Exception("WarnSmallStepSize()", "GeomField1001",
+                    JustWarning, message);
+            noWarningsIssued++;
+        }
 
-void PrintStat_Aux(
-        const GUFieldTrack&  aGUFieldTrack,
+void
+template <class Stepper> TIntegrationDriver::
+ PrintStat_Aux(
+        const GUFieldTrack&  aFieldTrack,
         double             requestStep, 
         double             step_len,
         int                subStepNo,
         double             subStepSize,
         double             dotVeloc_StartCurr)
 {
-    const ThreeVector Position=      aGUFieldTrack.GetPosition();
-    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDir();
+    const ThreeVector Position=      aFieldTrack.GetPosition();
+    const ThreeVector MomentumDir=   aFieldTrack.GetMomentumDir();
 
     if( subStepNo >= 0)
     {
@@ -1136,20 +1132,20 @@ void PrintStat_Aux(
     {
         std::cout << std::setw( 5) << "Start" << " ";
     }
-    double curveLen= aGUFieldTrack.GetCurveLength();
+    double curveLen= aFieldTrack.GetCurveLength();
     std::cout << std::setw( 7) << curveLen;
     std::cout << std::setw( 9) << Position.x() << " "
         << std::setw( 9) << Position.y() << " "
         << std::setw( 9) << Position.z() << " "
-        << std::setw( 8) << UnitVelocity.x() << " "
-        << std::setw( 8) << UnitVelocity.y() << " "
-        << std::setw( 8) << UnitVelocity.z() << " ";
+        << std::setw( 8) << MomentumDir.x() << " "
+        << std::setw( 8) << MomentumDir.y() << " "
+        << std::setw( 8) << MomentumDir.z() << " ";
     int oldprec= std::cout.precision(3);
-    std::cout << std::setw( 8) << UnitVelocity.mag2()-1.0 << " ";
+    std::cout << std::setw( 8) << MomentumDir.mag2()-1.0 << " ";
     std::cout.precision(6);
     std::cout << std::setw(10) << dotVeloc_StartCurr << " ";
     std::cout.precision(oldprec);
-    std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
+    std::cout << std::setw( 7) << aFieldTrack.GetKineticEnergy();
     std::cout << std::setw(12) << step_len << " ";
 
     static G4ThreadLocal double oldCurveLength= 0.0;

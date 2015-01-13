@@ -26,11 +26,11 @@ class  GUFieldTrack
    public:  // with description
 
      GUFieldTrack( const ThreeVector& pPosition, 
-                         double       LaboratoryTimeOfFlight,
                    const ThreeVector& pMomentumDirection,
-                         double       kineticEnergy,
+                         double       momentum,
                          double       restMass_c2,
-                         double       charge, 
+                         double       charge,
+                         double       laboratoryTimeOfFlight= 0.0,
                          double       curve_length= 0.0); 
 
      GUFieldTrack( const GUFieldTrack&   pFieldTrack ); 
@@ -43,13 +43,9 @@ class  GUFieldTrack
      UpdateState( const ThreeVector& pPosition, 
                         double       LaboratoryTimeOfFlight,
                   const ThreeVector& pMomentumDirection,
-                        double       kineticEnergy); 
+                        double       momentum); 
         //  Update four-vectors for space/time and momentum/energy
         //    Also resets curve length.
-     inline
-     void  UpdateFourMomentum( double             kineticEnergy, 
-                               const ThreeVector& momentumDirection ); 
-        //  Update momentum (and direction), and kinetic energy 
 
      void SetCharge(double charge) { fCharge= charge; }
 
@@ -63,8 +59,8 @@ class  GUFieldTrack
      inline double       GetCurveLength() const;
        // Distance along curve of point.
 
-     inline ThreeVector  GetPolarization()   const; 
-     inline void           SetPolarization( const ThreeVector& vecPol );
+     // inline ThreeVector  GetPolarization()   const; 
+     // inline void         SetPolarization( const ThreeVector& vecPol );
 
      inline double       GetLabTimeOfFlight() const;
      inline double       GetProperTimeOfFlight() const;
@@ -75,10 +71,14 @@ class  GUFieldTrack
      inline void SetMomentum(ThreeVector nMomDir);
        // Does change mom-dir too.
 
+     inline void SetCurvePnt(const ThreeVector& pPosition, 
+                             const ThreeVector& pMomentum,  
+                                   double       s_curve );
+
      inline void SetMomentumDir(ThreeVector nMomDir);
        // Does NOT change Momentum or Velocity Vector.
 
-     inline void SetRestMass(double Mass_c2) { fRestMass_c2= Mass_c2; }
+     // inline void SetRestMass(double Mass_c2) { fRestMass_c2= Mass_c2; }
 
        // Access
      inline double GetCharge() const { return fCharge; } 
@@ -94,7 +94,7 @@ class  GUFieldTrack
 
    public: // without description
 
-     enum { ncompSVEC = 12 };
+     static constexpr int ncompSVEC = 12;
        // Needed and should be used only for RK integration driver
 
      inline void DumpToArray(double valArr[ncompSVEC]) const; 
@@ -103,27 +103,16 @@ class  GUFieldTrack
      friend  std::ostream&
              operator<<( std::ostream& os, const GUFieldTrack& SixVec);
 
-   public:  // Obsolete methods -- due to potential confusion with PDG spin
-     inline void  InitialiseSpin( const ThreeVector& vecPolarization )
-           { SetPolarization( vecPolarization );  } 
-     inline ThreeVector  GetSpin()   const { return GetPolarization(); } 
-     inline void SetSpin(ThreeVector vSpin){ SetPolarization(vSpin); }
-
-
-
-   private: // Implementation method -- Obsolete
-     inline GUFieldTrack& SetCurvePnt(const ThreeVector& pPosition, 
-                                      const ThreeVector& pMomentum,
-                                      double       s_curve );
    private:
 
      double  SixVector[6];
      double  fDistanceAlongCurve;  // distance along curve of point
-     double  fKineticEnergy;
-     double  fRestMass_c2;
+     double  fMomentum;
+     // double  fKineticEnergy;
+     // double  fRestMass_c2;
      double  fLabTimeOfFlight;
      double  fProperTimeOfFlight;
-     ThreeVector fPolarization;
+     // ThreeVector fPolarization;
      ThreeVector fMomentumDir;
      // double  fInitialMomentumMag;  // At 'track' creation.
      // double  fLastMomentumMag;     // From last Update (for checking.)
@@ -143,12 +132,13 @@ class  GUFieldTrack
 inline
 GUFieldTrack::GUFieldTrack( const GUFieldTrack&  rStVec  )
  : fDistanceAlongCurve( rStVec.fDistanceAlongCurve),
-   fKineticEnergy( rStVec.fKineticEnergy ),
-   fRestMass_c2( rStVec.fRestMass_c2),
+   fMomentum( rStVec.fMomentum ),
+   // fKineticEnergy( rStVec.fKineticEnergy ),
+   // fRestMass_c2( rStVec.fRestMass_c2),
    fLabTimeOfFlight( rStVec.fLabTimeOfFlight ), 
    fProperTimeOfFlight( rStVec.fProperTimeOfFlight ), 
    // fMomentumModulus( rStVec.fMomentumModulus ),
-   fPolarization( rStVec.fPolarization ), 
+   // fPolarization( rStVec.fPolarization ), 
    fMomentumDir( rStVec.fMomentumDir ), 
    fCharge( rStVec.fCharge )
 {
@@ -170,7 +160,7 @@ GUFieldTrack::~GUFieldTrack()
   // delete fpChargeState; 
 }
 
-inline GUFieldTrack& 
+inline void
 GUFieldTrack::SetCurvePnt(const ThreeVector& pPosition, 
                           const ThreeVector& pMomentum,  
                                 double       s_curve )
@@ -183,11 +173,14 @@ GUFieldTrack::SetCurvePnt(const ThreeVector& pPosition,
   SixVector[4] = pMomentum.y(); 
   SixVector[5] = pMomentum.z(); 
 
-  fMomentumDir = pMomentum.Unit();
+  if( pMomentum.Mag2() > 0.0 )
+    fMomentumDir = pMomentum.Unit();
+  else
+    fMomentumDir = ThreeVector( 0.0, 0.0, 0.0);
 
   fDistanceAlongCurve= s_curve;
 
-  return *this;
+  // return *this;
 } 
 
 inline
@@ -206,10 +199,17 @@ void GUFieldTrack::SetPosition( ThreeVector pPosition)
 } 
 
 inline
+void GUFieldTrack::SetMomentum( ThreeVector vMomentum) 
+{
+   SixVector[3] = vMomentum.x(); 
+   SixVector[4] = vMomentum.y(); 
+   SixVector[5] = vMomentum.z(); 
+} 
+
+#if 0
+inline
 const ThreeVector& GUFieldTrack::GetMomentumDir() const 
 {
-   // ThreeVector myMomentum( SixVector[3], SixVector[4], SixVector[5] );
-   // return myVelocity;
    return fMomentumDir;
 } 
 
@@ -218,6 +218,7 @@ ThreeVector GUFieldTrack::GetMomentumDirection() const
 {
    return fMomentumDir;
 } 
+#endif
 
 inline
 double  GUFieldTrack::GetCurveLength() const 
@@ -231,29 +232,17 @@ void GUFieldTrack::SetCurveLength(double nCurve_s)
      fDistanceAlongCurve= nCurve_s;  
 }
 
-inline
-double  GUFieldTrack::GetKineticEnergy() const
-{
-   return fKineticEnergy;
-}
+// inline double GUFieldTrack::GetKineticEnergy() const
+// { return fKineticEnergy; }
 
-inline
-void GUFieldTrack::SetKineticEnergy(double newKinEnergy)
-{
-   fKineticEnergy=newKinEnergy;
-}
+// inline void GUFieldTrack::SetKineticEnergy(double newKinEnergy)
+// {  fKineticEnergy=newKinEnergy; }
 
-inline
-ThreeVector GUFieldTrack::GetPolarization() const
-{
-   return fPolarization;
-}
+// inline ThreeVector GUFieldTrack::GetPolarization() const
+// { return fPolarization; }
 
-inline
-void GUFieldTrack::SetPolarization(const ThreeVector& vecPlz)
-{
-   fPolarization= vecPlz;
-}
+// inline void GUFieldTrack::SetPolarization(const ThreeVector& vecPlz)
+// { fPolarization= vecPlz; }
 
 inline
 double GUFieldTrack::GetLabTimeOfFlight() const
@@ -280,26 +269,10 @@ void GUFieldTrack::SetProperTimeOfFlight(double nTOF)
 }
 
 inline
-void GUFieldTrack::SetMomentumDir(ThreeVector newMomDir)
-{
-   fMomentumDir= newMomDir;
-}
-
-inline
 ThreeVector GUFieldTrack::GetMomentum() const 
 {
    return ThreeVector( SixVector[3], SixVector[4], SixVector[5] );
 } 
-
-inline
-void GUFieldTrack::SetMomentum(ThreeVector pMomentum)
-{
-  SixVector[3] = pMomentum.x(); 
-  SixVector[4] = pMomentum.y(); 
-  SixVector[5] = pMomentum.z(); 
-
-  fMomentumDir = pMomentum.Unit(); 
-}
 
 // Dump values to array
 //  
@@ -322,17 +295,14 @@ void GUFieldTrack::DumpToArray(double valArr[ncompSVEC] ) const
   // valArr[6]= mass_in_Kg;
 
   // The following components may or may not be integrated.
-  valArr[6]= fKineticEnergy; 
+  // valArr[6]= fKineticEnergy; 
 
   // valArr[6]=fEnergy;  // When it is integrated over, do this ...
   valArr[7]=fLabTimeOfFlight;
   valArr[8]=fProperTimeOfFlight;
-  valArr[9]=fPolarization.x();
-  valArr[10]=fPolarization.y();
-  valArr[11]=fPolarization.z();
-  // valArr[13]=fMomentumDir.x(); 
-  // valArr[14]=fMomentumDir.y();
-  // valArr[15]=fMomentumDir.z();
+  // valArr[9]=fPolarization.x();
+  // valArr[10]=fPolarization.y();
+  // valArr[11]=fPolarization.z();
   // valArr[]=fDistanceAlongCurve; 
 }
 
@@ -349,12 +319,12 @@ GUFieldTrack & GUFieldTrack::operator = ( const GUFieldTrack& rStVec )
   SixVector[5]= rStVec.SixVector[5];
   SetCurveLength( rStVec.GetCurveLength() );
 
-  fKineticEnergy= rStVec.fKineticEnergy;
-  fRestMass_c2= rStVec.fRestMass_c2;
+  // fKineticEnergy= rStVec.fKineticEnergy;
+  // fRestMass_c2= rStVec.fRestMass_c2;
   SetLabTimeOfFlight( rStVec.GetLabTimeOfFlight()  ); 
   SetProperTimeOfFlight( rStVec.GetProperTimeOfFlight()  ); 
-  SetPolarization( rStVec.GetPolarization() );
-  fMomentumDir= rStVec.fMomentumDir;
+  // SetPolarization( rStVec.GetPolarization() );
+  // fMomentumDir= rStVec.fMomentumDir;
 
   fCharge= rStVec.fCharge;
   // (*Fpchargestate)= *(rStVec.fpChargeState);
@@ -362,21 +332,22 @@ GUFieldTrack & GUFieldTrack::operator = ( const GUFieldTrack& rStVec )
   return *this;
 }
 
+#if 0   
 inline void 
-GUFieldTrack::UpdateFourMomentum( double             kineticEnergy, 
+GUFieldTrack::UpdateFourMomentum( double momentum_mag, 
 				  const ThreeVector& momentumDirection )
 {
-  double momentum_mag  = std::sqrt(kineticEnergy*kineticEnergy
-                            +2.0*fRestMass_c2*kineticEnergy);
+  // double momentum_mag  = std::sqrt(kineticEnergy*kineticEnergy
+  //                       +2.0*fRestMass_c2*kineticEnergy);
   ThreeVector momentumVector= momentum_mag * momentumDirection; 
 
-  // SetMomentum( momentumVector );  // Set direction (from unit): used sqrt, div
-  SixVector[3] = momentumVector.x(); 
-  SixVector[4] = momentumVector.y(); 
-  SixVector[5] = momentumVector.z(); 
+  SetMomentum( momentumVector ); 
+  // SixVector[3] = momentumVector.x(); 
+  // SixVector[4] = momentumVector.y(); 
+  // SixVector[5] = momentumVector.z(); 
 
-  fMomentumDir=   momentumDirection; // Set directly to avoid inaccuracy.
-  fKineticEnergy= kineticEnergy;
+  // fMomentumDir=   momentumDirection; // Set directly to avoid inaccuracy.
+  // fKineticEnergy= kineticEnergy;
 }
 
 inline void GUFieldTrack::UpdateState( const ThreeVector& position, 
@@ -392,5 +363,6 @@ inline void GUFieldTrack::UpdateState( const ThreeVector& position,
 
   UpdateFourMomentum( kineticEnergy, momentumDirection); 
 }
+#endif
 
 #endif  /* End of ifndef GUFieldTrack_HH */

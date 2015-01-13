@@ -1,21 +1,21 @@
 #ifndef TMAGERRORSTEPPER_HH
 #define TMAGERRORSTEPPER_HH
 
-#include "G4Types.hh"
-#include "GVVIntegratorStepper.hh"
+// #include "G4Types.hh"
+#include "GUVIntegrationStepper.h"
 #include "ThreeVector.h"
-#include "G4LineSection.hh"
+// #include "G4LineSection.hh"
 
 template
 <class T_Stepper, class T_Equation, int N>
-class TMagErrorStepper // : public GVVIntegratorStepper
+class TMagErrorStepper : public GUVIntegrationStepper
 {
     public:  // with description
 
         TMagErrorStepper(T_Equation *EqRhs, 
                 int numberOfVariables, 
                 int numStateVariables=12)
-            : GVVIntegratorStepper(
+            : GUVIntegrationStepper(
                     EqRhs, numberOfVariables, numStateVariables),
             fEquation_Rhs(EqRhs)
         {
@@ -26,7 +26,7 @@ class TMagErrorStepper // : public GVVIntegratorStepper
 
 
         inline void RightHandSide(double y[], double dydx[]) 
-        {fEquation_Rhs->T_Equation::RightHandSide(y, dydx);}
+              { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
 
         inline void Stepper( const double yInput[],
                 const double dydx[],
@@ -83,6 +83,7 @@ class TMagErrorStepper // : public GVVIntegratorStepper
             return ;
         }
 
+#ifdef OPT_CHORD_FUNCTIONALITY        
         double DistChord() const 
         {
             // Estimate the maximum distance from the curve to the chord
@@ -96,7 +97,7 @@ class TMagErrorStepper // : public GVVIntegratorStepper
             double distLine, distChord; 
 
             if (fInitialPoint != fFinalPoint) {
-                distLine= G4LineSection::Distline( fMidPoint, fInitialPoint, fFinalPoint );
+                distLine= GULineSection::Distline( fMidPoint, fInitialPoint, fFinalPoint );
                 // This is a class method that gives distance of Mid 
                 //  from the Chord between the Initial and Final points.
 
@@ -107,7 +108,7 @@ class TMagErrorStepper // : public GVVIntegratorStepper
 
             return distChord;
         }
-
+#endif
 
     private:
 

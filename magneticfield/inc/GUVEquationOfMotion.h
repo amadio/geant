@@ -1,32 +1,4 @@
 //
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-//
-// $Id: GUVEquationOfMotion.hh 71664 2013-06-20 08:36:05Z gcosmo $
-//
-//
 // class GUVEquationOfMotion
 //
 // Class description:
@@ -35,7 +7,7 @@
 // motion of a particle in a field.
 
 // History:
-// - Created. J.Apostolakis
+// - Created. J.Apostolakis     Dec 2014/Jan 2015
 // -------------------------------------------------------------------
 
 #ifndef GUV_EquationOfMotion_DEF
@@ -54,6 +26,7 @@ class GUVEquationOfMotion
 
      virtual void EvaluateRhsGivenB( const  double y[],
                                      const  double B[3],
+                                     double charge,
                                      double dydx[] ) const = 0;
        // Given the value of the  field "B", this function 
        // calculates the value of the derivative dydx.
@@ -61,14 +34,15 @@ class GUVEquationOfMotion
        // This is the _only_ function a subclass must define.
        // The other two functions use Rhs_givenB.
 
-     virtual void SetChargeMomentumMass(double particleCharge,
-                                        double MomentumXc,
-                                        double MassXc2) = 0;
-       // Set the charge, momentum and mass of the current particle
-       // --> used to set the equation's coefficients ...
+     // virtual void SetChargeMomentumMass(double particleCharge,
+     //                                    double MomentumXc,
+     //                                    double MassXc2) = 0;
+     //   // Set the charge, momentum and mass of the current particle
+     //   // --> used to set the equation's coefficients ...
 
      inline
      void RightHandSide( const  double y[],
+                                double charge ,
                                 double dydx[] ) const;
        // This calculates the value of the derivative dydx at y.
        // It is the usual enquiry function.
@@ -77,26 +51,67 @@ class GUVEquationOfMotion
 
      void EvaluateRhsReturnB( const  double y[],
                               double dydx[],
-                              double Field[]  ) const;
+                              double charge,
+                              double Field[] ) const;
        // Same as RHS above, but also returns the value of B.
        // Should be made the new default ? after putting dydx & B in a class.
 
-     void GetFieldValue( const  double Point[4],
-                                double Field[] )  const;
+     void GetFieldValue( const double Point[4],
+                               double Field[] )  const;
        // Obtain only the field - the stepper assumes it is pure Magnetic.
        // Not protected, because GUVRKG3_Stepper uses it directly.
 
-     const GUVField* GetFieldObj() const;
-     void           SetFieldObj(GUVField* pField);
+     const GUVField* GetFieldObj() const {return fField;}
+           GUVField* GetFieldObj()       {return fField;} 
+     void            SetFieldObj(GUVField* pField){fField=pField;}
+
+  public:
+     static const  int idxTime=3;  // Convention for location of time 't' in vector
 
   private:
      // const int GUVmaximum_number_of_field_components = 24;
      enum { GUVmaximum_number_of_field_components = 24 } ;
 
-     GUVField *itsField;
+     GUVField *fField;
 
 };
 
-#include "GUVEquationOfMotion.icc"
+// #include "GUVEquationOfMotion.icc"
+
+//  Inline implementation 
+//
+// -------------------------------------------------------------------
+
+inline
+GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField) 
+  :fField(pField)
+{}
+
+inline
+void GUVEquationOfMotion::GetFieldValue( const  double Point[4],
+                             double Field[] ) const
+{
+    fField-> GetFieldValue( Point, Field );
+}
+
+inline
+void 
+GUVEquationOfMotion::RightHandSide( const  double y[],
+           double charge, double dydx[]  ) const
+{
+     double Field[GUVmaximum_number_of_field_components];   
+     double PositionAndTime[4];
+
+     // Position
+     PositionAndTime[0] = y[0];
+     PositionAndTime[1] = y[1];
+     PositionAndTime[2] = y[2];
+     // Global Time
+     PositionAndTime[3] = y[idxTime];  // See GUVFieldTrack::LoadFromArray
+
+     GetFieldValue(PositionAndTime, Field) ;
+     EvaluateRhsGivenB( y, Field, charge, dydx );
+}
+
 
 #endif /* GUV_EquationOfMotion_DEF */
