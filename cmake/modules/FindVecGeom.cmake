@@ -1,37 +1,27 @@
-# Finds VecGeom installation ( the vectorized geometry library )
-# This module sets up VecGeom information 
-# It defines:
-# VECGEOM_FOUND          If the library is found
-# VECGEOM_INCLUDE_DIR    PATH to the include directory
-# VECGEOM_LIBRARIES      Most common libraries
-# VECGEOM_LIBRARY_DIR    PATH to the library directory 
+# Locate the VecGeom library. 
+#
+# This file is meant to be copied into projects that want to use VecGeom. It will
+# search for VecGeomConfig.cmake, which ships with VecGeom and which will provide 
+# up-to-date buildsystem changes. 
+#
+# This module defines the following variables:
+# VECGEOM_FOUND
+# VECGEOM_INCLUDE_DIR
+# VECGEOM_LIBRARIES
+# VECGEOM_DEFINITIONS
+# VECGEOM_VERSION_MAJOR # not yet
+# VECGEOM_VERSION_MINOR # not yet
+# VECGEOM_VERSION_PATCH # not yet
+# VECGEOM_VERSION # not yet
+# VECGEOM_VERSION_STRING # not yet
+# VECGEOM_INSTALL_DIR
+# VECGEOM_LIB_DIR
+# VECGEOM_CMAKE_MODULES_DIR
+#
 
-# look if an environment variable VCROOT exists
+find_package(VecGeom ${VecGeom_FIND_VERSION} NO_MODULE PATHS $ENV{HOME} $ENV{VECGEOMROOT})
 
-set(VECGEOMROOT $ENV{VECGEOMROOT})
-
-find_library(VECGEOM_LIBRARIES libvecgeom.a PATHS ${VECGEOMROOT}/lib)
-# find_library(USOLIDS_LIBRARIES libusolids.a PATHS ${VECGEOMROOT}/lib)
-# if (VECGEOM_LIBRARIES AND USOLIDS_LIBRARIES) 
-if (VECGEOM_LIBRARIES) 
-   set(VECGEOM_FOUND TRUE)	
-   string(REPLACE "/lib/libvecgeom.a" "" VECGEOMROOT  ${VECGEOM_LIBRARIES})
-#   set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${USOLIDS_LIBRARIES})
-   set(VECGEOM_INCLUDE_DIR ${VECGEOMROOT}/include)
-   set(VECGEOM_LIBRARY_DIR ${VECGEOMROOT}/lib)
-
-   if (CUDA)
-      find_library(VECGEOM_CUDA_LIBRARY libvecgeomcuda.a PATHS ${VECGEOMROOT}/lib)
-      if (VECGEOM_CUDA_LIBRARY)
-         SET(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${VECGEOM_CUDA_LIBRARY} )
-      endif()
-   endif()
-   message(STATUS "Found VecGeom in ${VECGEOMROOT} with ${VECGEOM_LIBRARIES}")
-   message(STATUS "VECGEOM_INCLUDE_DIR = ${VECGEOM_INCLUDE_DIR}")
-   message(STATUS "VECGEOM_LIBRARY_DIR = ${VECGEOM_LIBRARY_DIR}")
-else()
-   message(STATUS "VecGeom library not found; try to set a VECGEOMROOT environment variable to the base   installation path or add -DVECGEOMROOT = to the cmake command")	
-endif()
-
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
 

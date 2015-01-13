@@ -7,7 +7,7 @@ set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}"
 set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
-set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O1")
+set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O0")
 endif()
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_FLAGS_MINSIZEREL}")
 set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_FLAGS_RELEASE}")
@@ -77,7 +77,7 @@ add_library(Geant_v SHARED ${sources} G__Geant.cxx)
 if( VECGEOM_FOUND )
 target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 # Bug in VC (?), cannot compile without optimisation
-#set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O1")
+#set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O0")
 else()
 target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom )
 endif()
