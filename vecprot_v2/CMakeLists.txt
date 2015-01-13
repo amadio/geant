@@ -1,7 +1,9 @@
 #----------------------------------------------------------------------------
 # Setup the project
 
-include_directories(inc ../magneticfield/inc)
+include_directories(inc)
+include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
+## else: include_directories(inc ../magneticfield/inc)
 
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
@@ -70,11 +72,11 @@ if (CUDA)
 else()
   add_library(Geant_v SHARED ${sources} G__Geant.cxx)
 
-target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom)
+target_link_libraries(Geant_v Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom )
 
 if( VECGEOM_FOUND )
-  target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-
+  target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  
    if (VECGEOM_GEANT4)
       find_package(Geant4 REQUIRED gdml)
       include(${Geant4_USE_FILE})

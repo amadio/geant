@@ -404,6 +404,7 @@ add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
 add_subdirectory (tabxsec)
+add_subdirectory (magneticfield)
 
 add_subdirectory (test-small)
 add_subdirectory (test-complex)
