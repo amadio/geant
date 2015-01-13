@@ -43,12 +43,11 @@ find_package(VecGeom REQUIRED)
 if( VECGEOM_FOUND )
     find_package(Vc)
     if ( VC_FOUND )
-    include_directories( AFTER SYSTEM ${VC_INCLUDE_DIR})
+        include_directories( AFTER SYSTEM ${VC_INCLUDE_DIR})
     endif()
     if( USE_VECGEOM_NAVIGATOR )
      add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
      endif() 
-   add_definitions( "-DVECGEOM_ROOT" )
    include_directories(${VECGEOM_INCLUDE_DIR})
 else()
    message(FATAL_ERROR "Required VecGeom library not found")
@@ -155,7 +154,7 @@ include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 
 # Work around VecCore not being its own project yet.
-include_directories("${VECGEOM_INCLUDE_DIR}/VecCore")
+include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
 
 #----------------------------------------------------------------------------
 # Add subdirectories
