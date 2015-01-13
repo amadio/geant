@@ -11,21 +11,8 @@ endif()
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #----------------------------------------------------------------------------
-set(headers 
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ConstFieldHelixStepper.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GVIntegratorDriver.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TClassicalRK4.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TIntegratorDriver.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TMagFieldEquation.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TSimpleRunge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TUniformMagField.h
-)
-
-set(sources
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/FieldSetup.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/circlestepper.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TestConstBzStepper.cxx
-)
+file(GLOB sources src/*.cxx) # (T*.cxx src/GU*.cxx)
+file(GLOB headers inc/*.h)   # (T*.h inc/GU*.h)
 
 #----------------------------------------------------------------------------
 # Set include directories
@@ -45,8 +32,13 @@ message(STATUS "Include directories: ${inc_dirs}")
 #----------------------------------------------------------------------------
 # Add traget library and dependencies
 #----------------------------------------------------------------------------
-## add_library(Vmagfield SHARED ${sources} vMagFieldDict.cxx)
+add_library(Vmagfield SHARED ${sources} ) ## vMagFieldDict.cxx)
 target_link_libraries(Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-add_custom_target(VectMagField DEPENDS Vmagfield)
+add_headers("${headers}")
+## add_dependencies
+
+add_subdirectory(test)
+
+## add_custom_target(VectMagField DEPENDS Vmagfield)
 
