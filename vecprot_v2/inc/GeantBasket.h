@@ -32,10 +32,10 @@ public:
 
   /**
    * @enum EbasketFlags
-   * @details Basked mixing tracks from different volumes
+   * @details Flags marking up different types of baskets
    */
   enum EBasketFlags {
-    kMixed = BIT(14) 
+    kMixed = BIT(14)        /** Basket mixing tracks from different volumes */
   };
 
 protected:
@@ -44,9 +44,9 @@ protected:
   GeantTrack_v fTracksOut;  /** Vector of output tracks */
 //GeantHit_v        fHits;  /** Vector of produced hits */
 #if __cplusplus >= 201103L
-  std::atomic_int fAddingOp; /** Number of track adding ops */
+  std::atomic_int fAddingOp; /** Number of concurrent track adding operations */
 #endif
-  Int_t fThreshold; /** Transport threshold */
+  Int_t fThreshold; /** Current transport threshold */
 
 private:
 
@@ -57,14 +57,14 @@ private:
   GeantBasket &operator=(const GeantBasket &);
 public:
   
-  /** @brief Simple GeantBasket constructor */
+  /** @brief Default GeantBasket constructor */
   GeantBasket();
   
   /**
-   * @brief GeantBasket parameterized constructor 
+   * @brief GeantBasket standard constructor 
    * 
-   * @param size Size of created GeantBasket
-   * @param mgr  GeantBasket manager for basket
+   * @param size Imitial size of input/output track arrays
+   * @param mgr  Basket manager handling this basket
    */
   GeantBasket(Int_t size, GeantBasketMgr *mgr);
   
@@ -72,129 +72,128 @@ public:
   virtual ~GeantBasket();
 
   /**
-   * @brief Function that add track to basket
-   * @details Add track from generator or physics process
+   * @brief Add a scalar track to basket input.
+   * @details Add concurrently track from generator or physics process
    * 
-   * @param track Track from generator or physics process
+   * @param track Reference to track object
    */
   void AddTrack(GeantTrack &track);
   
   /**
-   * @brief Function that add track to basket
-   * @details Add track from a track_v array (copied)
+   * @bref Add a track from vector container to basket input.
+   * @details Add concurrently a track to basket input.
    * 
-   * @param tracks Track from a track_v array 
-   * @param itr Track ID
+   * @param tracks Array of tracks to copy from.
+   * @param itr Track id.
    */
   void AddTrack(GeantTrack_v &tracks, Int_t itr);
   
-  // Add multiple tracks from a track_v array
   /**
-   * @brief Function that add multiple tracks to basket
+   * @brief Function to add multiple tracks to basket
    * @details Add multiple tracks from a track_v array
    * 
    * @param tracks Tracks from a track_v array 
-   * @param istart Start track ID 
-   * @param iend End track ID
+   * @param istart Start track id 
+   * @param iend End track id
    */
   void AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend);
   
-  /** @brief Virtual function for cleaning */
+  /** @brief Virtual function for clearing the basket */
   virtual void Clear(Option_t *option = "");
   
   /**
-   * @brief Function of basket containing
+   * @brief Check if a basket contains tracks in a given event range
    * 
-   * @param evstart  Start event ID ?????
-   * @param nevents Number of events (by default 1)
+   * @param evstart Start event id.
+   * @param nevents Number of events (default 1)
    */
   Bool_t Contains(Int_t evstart, Int_t nevents = 1) const;
   
   /**
-   * @brief Function that return number of N tracks in vector of input tracks
-   * @return Number of N input tracks
+   * @brief Function returning the number of input tracks
+   * @return Number of input tracks
    */
   Int_t GetNinput() const { return fTracksIn.GetNtracks(); }
   
   /**
-   * @brief Function that return number of N tracks in vector of output tracks
-   * @return Number of N output tracks
+   * @brief Function returning the number of output tracks
+   * @return Number of output tracks
    */
   Int_t GetNoutput() const { return fTracksOut.GetNtracks(); }
   
   /**
-   * @brief Function that return vector of input tracks
-   * @return Vector of N input tracks
+   * @brief Function returning a reference to the vector of input tracks
+   * @return Reference to input vector of tracks
    */
   GeantTrack_v &GetInputTracks() { return fTracksIn; }
   
   /**
-   * @brief Function for definition vector of output tracks
-   * @return Vector of N output tracks
+   * @brief Function returning a reference to the vector of output tracks
+   * @return Reference to output vector of tracks
    */
   GeantTrack_v &GetOutputTracks() { return fTracksOut; }
   
   /**
-   * @brief Function for definition basket manager 
-   * @return Manager for the basket
+   * @brief Function returning the manager of the basket
+   * @return Pointer to manager of the basket
    */
   GeantBasketMgr *GetBasketMgr() const { return fManager; }
   
   /**
-   * @brief Function for definition threshold
-   * @return  Value of transport threshold
+   * @brief Function for defining basket transportability threshold
+   * @return  Value of transportability threshold
    */
   Int_t GetThreshold() const { return fThreshold; }
   
   /**
-   * @brief Function that return volume
-   * @return TGeoVolume object
+   * @brief Function returning the volume for this basket
+   * @return Pointer to associated logical volume
    */
   TGeoVolume *GetVolume() const;
   
   /**
-   * @brief Function that return flag if tracks are mixed or not
-   * @return Boolean value if ((fBits & kMixed) != 0);
+   * @brief Function returning the mixed tracks property.
+   * @return Boolean value if the tracks are mixed from several volumes
    */
   Bool_t IsMixed() const { return TObject::TestBit(kMixed); }
   
   /**
-   * @brief Load number of track adding ops
-   * @return fAddingOp -> number of track adding ops
+   * @brief Atomic snapshot of the number of concurrent track adding operations
+   * @return Number of track adding operations
    */
   inline Bool_t IsAddingOp() const { return (fAddingOp.load()); }
   
   /**
-   * @brief Lock number of track adding ops
-   * @return fAddingOp -> Number of track adding ops
+   * @brief Atomic increment of the number of track adding operations
+   * @return Number of concurrent track adding operations
    */
   inline Int_t LockAddingOp() { return ++fAddingOp; }
   
   /**
-   * @brief Unlock number of track adding ops
-   * @return fAddingOp -> Number of track adding ops
+   * @brief Atomic decrement of the number of track adding operations
+   * @return Number of concurrent track adding operations remaining
    */
   inline Int_t UnLockAddingOp() { return --fAddingOp; }
   
   /**
-   * @brief Simple print function
+   * @brief Print the basket content
    */
   virtual void Print(Option_t *option = "") const;
   
   /**
-   * @brief Function of printing track
+   * @brief Print the parameters for a given track
    * 
-   * @param itr Track ID
-   * @param input Flag that checks if input exist
+   * @param itr Track id.
+   * @param input Refer to input or output track (default input)
    */
   void PrintTrack(Int_t itr, Bool_t input = kTRUE) const;
   
-  /** @brief Recycle function */
+  /** @brief Recycle this basket */
   void Recycle();
   
   /**
-   * @brief  Function that provides size of basket
-   * @return Sum of tracks inside of basket & outside tracks & size of GeantBasketMgr & size of atomic<int>
+   * @brief  Function that providing the size of this basket in bytes
+   * @return Sum of sizes of all tracks (input and output) + data members
    */
   size_t Sizeof() const {
     return fTracksIn.Sizeof() + fTracksOut.Sizeof() + sizeof(TObject) + sizeof(GeantBasketMgr *) +
@@ -202,16 +201,16 @@ public:
   }
 
   /**
-   * @brief Function that set flag if tracks are mixed
+   * @brief Flag the basket to contain tracks that are mixed from different volumes
    * 
-   * @param flag Flag that provides kMixed 
+   * @param flag Boolean flag.
    */ 
   void SetMixed(Bool_t flag) { TObject::SetBit(kMixed, flag); }
   
   /**
-   * @brief Function that set threshold for basket
+   * @brief Function to change the transportability threshold for the basket
    * 
-   * @param threshold Threshold
+   * @param threshold New threshold value
    */
   void SetThreshold(Int_t threshold);
 
@@ -221,16 +220,17 @@ public:
 class GeantScheduler;
 
 /**
- * @brief Class of basket manager
+ * @brief Class managing all baskets for a given logical volume
  * @details Basket manager for a given volume. Holds a list of free baskets stored in a
- * concurrent queue
+ * concurrent queue, a current basket to be filled and a priority basket used
+ * in priority mode.
  */
 class GeantBasketMgr : public TGeoExtension {
 protected:
   GeantScheduler *fScheduler; /** Scheduler for this basket */
   TGeoVolume *fVolume;        /** Volume for which applies */
-  Int_t fNumber;              /** Number assigned */
-  Int_t fBcap;                /** Max capacity of baskets held */
+  Int_t fNumber;              /** Number matching the volume index */
+  Int_t fBcap;                /** Maximum capacity of baskets held */
   Int_t fQcap;                /** Queue capacity */
 #if __cplusplus >= 201103L
   std::atomic_int fThreshold; /** Adjustable transportability threshold */
@@ -255,30 +255,33 @@ private:
 #if __cplusplus >= 201103L
 
   /**
-   * @brief Steal and Replace function
+   * @brief Attempt to steal the current filled basket and replace it
    *  
-   * @param current Current atomic basket
+   * @param current Current atomic basket to be replaced
+   * @return Released basket pointer if operation succeeded, 0 if not
    */
   GeantBasket *StealAndReplace(atomic_basket &current);
 
   /**
-   * @brief Steal and Pin function
+   * @brief The caller thread steals temporarily the basket to mark a track addition
    * 
-   * @param current Current atomic basket
+   * @param current Current atomic basket to be pinned to a thread for track adding
+   * @return Current basket being pinned
    */
   GeantBasket *StealAndPin(atomic_basket &current);
 
   /**
-   * @brief Steal matching function
+   * @brief Attempt to steal a global basket matching the content
    * 
    * @param global Global atomic basket
    * @param content Content of GeantBasket 
+   * @return Flag marking the success/failure of the steal operation
    */
   Bool_t StealMatching(atomic_basket &global, GeantBasket *content);
 #endif
 
   /**
-   * @brief Function increasing queue size 
+   * @brief Function for increasing the current queue size 
    * 
    * @param newsize New size of queue  
    */
@@ -287,17 +290,24 @@ private:
 public:
 
   /**
-   * @brief Get next basket 
-   * @details Get pointer to next Basket
+   * @brief Get next free basket 
+   * @details Get pointer to next free basket
    */
   GeantBasket *GetNextBasket();
 
 public:
 
-  /** @brief GeantBasketMgr constructor */
+  /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
       : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fThreshold(0), fNbaskets(0),
         fNused(0), fCBasket(0), fPBasket(0), fLock(), fQLock(), fBaskets(0), fFeeder(0), fMutex() {}
+
+  /** @brief GeantBasketMgr normal constructor 
+   *
+   * @param sch Scheduler dealing with this basket manager
+   * @param vol Volume associated with this
+   * @param number Number for the basket manager
+  */
   GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
   
   /** @brief Destructor of GeantBasketMgr */
@@ -305,16 +315,19 @@ public:
   
   /**
    * @brief Grab function
-   * @details Function to interface for getting a reference (grab)
-   * @return Pointer to the extension
+   * @details Interface of TGeoExtension for getting a reference to this from TGeoVolume
+   * @return Pointer to the base class
    */
   virtual TGeoExtension *Grab() { return this; }
 
-  /** @brief Method called always when the pointer to the extension is not needed */
+  /** 
+   * @brief Release function
+   * @details Interface of TGeoExtension to signal releasing ownership of this from TGeoVolume
+   */
   virtual void Release() const {}
 
   /**
-   * @brief Function that add track to basket
+   * @brief Function adding a track to basket up to the basket threshold
    * 
    * @param track  Track that should be added to basket
    * @param priority Set priority (by default kFALSE)
@@ -322,44 +335,44 @@ public:
   Int_t AddTrack(GeantTrack &track, Bool_t priority = kFALSE);
 
   /**
-   * @brief Function that add track to basket
+   * @brief Function adding an indexed track to basket up to the basket threshold
    * 
-   * @param trackv Track from track_v array that should be added to basket
-   * @param itr Track ID
+   * @param trackv Array of tracks containing the track to be added
+   * @param itr Track id
    * @param priority Set priority (by default kFALSE)
    */
   Int_t AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority = kFALSE);
 
   /**
-   * @brief Collection of prioterized tracks
+   * @brief Garbage collection of prioritized tracks in an event range
    * 
-   * @param evmin Minimum quantity of events
-   * @param evmax Maximum quantity of events
+   * @param evmin Minimum event index
+   * @param evmax Maximum event index
    */
   Int_t CollectPrioritizedTracks(Int_t evmin, Int_t evmax);
 
   /**
-   * @brief Function that clean baskets
+   * @brief Function cleaning a number of free baskets
    * 
    * @param ntoclean Number of baskets to be cleaned
    */
   void CleanBaskets(Int_t ntoclean);
 
-  /** @brief Function that flush only priority baskets */
+  /** @brief Function flushing to the work queue only priority baskets */
   Int_t FlushPriorityBasket();
 
-  /** @brief Function of collection of garbage */
+  /** @brief Function doing full collection to work queue of non-empty baskets*/
   Int_t GarbageCollect();
 
   /**
    * @brief Function that set capacity of baskets
    * 
-   * @param capacity Capacity of baskets tjat should be set
+   * @param capacity Capacity of baskets to be set
    */
   void SetBcap(Int_t capacity) { fBcap = capacity; }
 
   /**
-   * @brief Function that return capacity of baskets
+   * @brief Function that returns the capacity of baskets
    * @return Maximum capacity of baskets held
    */
   Int_t GetBcap() const { return fBcap; }
@@ -367,97 +380,97 @@ public:
 #if __cplusplus >= 201103L
 
    /**
-    * @brief Get number of baskets
+    * @brief Snapshot of the number of baskets
     * @return Number of baskets
     */
   Int_t GetNbaskets() const { return fNbaskets.load(); }
 
   /**
-   * @brief Get number of baskets in use
+   * @brief Snapshot of the number of baskets in use
    * @return number of baskets in use
    */
   Int_t GetNused() const { return fNused.load(); }
 
   /**
-   * @brief Function that get threshold 
-   * @return Threshold that should be load
+   * @brief Snapshot of the current basket threshold 
+   * @return Threshold value
    */
   Int_t GetThreshold() const { return fThreshold.load(); }
 
   /**
-   * @brief Function that set threshold
+   * @brief Function to set transportability threshold
    * 
    * @param thr Threshold that should be set
    */
   void SetThreshold(Int_t thr) { fThreshold.store(thr); }
 
   /**
-   * @brief Function that will load current basket
+   * @brief Function that will load the current basket
    * @return Load current basket
    */
   GeantBasket *GetCBasket() const { return fCBasket.load(); }
 
   /**
-   * @brief Function that will load priority basket
+   * @brief Function that will load the priority basket
    * @return Load priority basket 
    */
   GeantBasket *GetPBasket() const { return fPBasket.load(); }
 
   /**
-   * @brief Function that set current basket
+   * @brief Function to set current basket
    * 
-   * @param basket Basket that should be set as current
+   * @param basket Basket to be set as current
    */
   void SetCBasket(GeantBasket *basket) { fCBasket.store(basket); }
 
   /**
-   * @brief Function that set basket as priority basket 
+   * @brief Function to set the priority basket 
    * 
-   * @param basket Basket that will be stored as priority
+   * @param basket Basket that will be set as priority basket
    */
   void SetPBasket(GeantBasket *basket) { fPBasket.store(basket); }
 #endif
 
   /**
-   * @brief Function that return scheduler
+   * @brief Function that returns the scheduler
    * @return Scheduler for basket
    */
   GeantScheduler *GetScheduler() const { return fScheduler; }
 
-  /** @brief Function that return name of volume */
+  /** @brief Function that returns the name of volume */
   const char *GetName() const { return (fVolume) ? fVolume->GetName() : ClassName(); }
 
   /**
-   * @brief Function that return number assigned to basket
+   * @brief Function that returns the number assigned to basket
    * @return Number assigned to basket
    */
   Int_t GetNumber() const { return fNumber; }
 
   /**
-   * @brief Function that return volume
+   * @brief Function that returns the associated volume pointer
    * @return Volume for which applies basket
    */
   TGeoVolume *GetVolume() const { return fVolume; }
 
-  /** @brief Print function */
+  /** @brief Print the current basket */
   virtual void Print(Option_t *option = "") const;
 
   /**
-   * @brief Recycle current Basket
+   * @brief Recycles a given basket
    * 
    * @param b Pointer to current GeantBasket for recycling
    */
   void RecycleBasket(GeantBasket *b);
 
   /**
-   * @brief Function that set feeder queue
+   * @brief Function setting the feeder work queue
    * 
    * @param queue priority_queue for GeantBasket
    */
   void SetFeederQueue(Geant::priority_queue<GeantBasket *> *queue) { fFeeder = queue; }
 
   /**
-   * @brief Function Sizeof() of current basket that had being filled
+   * @brief Function returning the size of the basket being filled
    * @return Size of basket
    */
   size_t Sizeof() const {

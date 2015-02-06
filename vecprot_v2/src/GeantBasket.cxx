@@ -16,51 +16,60 @@
 
 ClassImp(GeantBasket)
 
-    //______________________________________________________________________________
-    GeantBasket::GeantBasket()
+//______________________________________________________________________________
+GeantBasket::GeantBasket()
     : TObject(), fManager(0), fTracksIn(), fTracksOut(), fAddingOp(0), fThreshold(0) {
-  // dummy ctor.
+  // Dummy ctor.
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
     : TObject(), fManager(mgr), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
       fTracksOut(size, GeantPropagator::Instance()->fMaxDepth), fAddingOp(0), fThreshold(size) {
-  // ctor.
+  // Default constructor.
 }
 
 //______________________________________________________________________________
 GeantBasket::~GeantBasket() {
-  // dtor.
+  // Destructor.
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTrack(GeantTrack &track) {
-  // Add a new track to this basket;
+  // Add a new track to this basket. Has to work concurrently.
+
+  // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(track);
-  //   assert(fAddingOp.load()>0);
+#ifdef GeantV_SCH_DEBUG  
+  assert(fAddingOp.load()>0);
+#endif
   fTracksIn.AddTrackSync(track);
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr) {
-  // Add track from a track_v array.
-  // Has to work concurrently
+  // Add track from a track_v array. Has to work concurrently.
+
+  // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(tracks, itr, kTRUE);
-  //   assert(fAddingOp.load()>0);
+#ifdef GeantV_SCH_DEBUG  
+  assert(fAddingOp.load()>0);
+#endif
   fTracksIn.AddTrackSync(tracks, itr);
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend) {
-  // Add multiple tracks from a track_v array. Not used
-  //   assert(fAddingOp.load()>0);
+  // Add multiple tracks from a track_v array.
+#ifdef GeantV_SCH_DEBUG  
+  assert(fAddingOp.load()>0);
+#endif
   fTracksIn.AddTracks(tracks, istart, iend, kTRUE);
 }
 
 //______________________________________________________________________________
 void GeantBasket::Clear(Option_t *option) {
-  // Clear basket;
+  // Clear basket content.
   SetMixed(kFALSE);
   fTracksIn.Clear(option);
   fTracksOut.Clear(option);
@@ -68,7 +77,8 @@ void GeantBasket::Clear(Option_t *option) {
 
 //______________________________________________________________________________
 Bool_t GeantBasket::Contains(Int_t evstart, Int_t nevents) const {
-  // Checks if any of the array of tracks belongs to the given event.
+  // Checks if any of the tracks in the input array belongs to the given event 
+  // range.
   return fTracksIn.Contains(evstart, nevents);
 }
 
