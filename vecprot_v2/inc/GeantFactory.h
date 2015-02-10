@@ -23,7 +23,6 @@
 #include <cassert>
 #include <typeinfo>
 #include <type_traits>
-#include <TMutex.h>
 #include "dcqueue.h"
 #include "WorkloadManager.h"
 #include "TGeoManager.h"

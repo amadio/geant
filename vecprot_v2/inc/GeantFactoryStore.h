@@ -1,11 +1,12 @@
-//===--- GeantFactoryStore.h - Geant-V --------------------------*- C++ -*-===//
+//===--- GeantFactoryStore.h - GeantV --------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantFactoryStore.h
- * @brief Implementation of store of factories holding by one factory per user type in Geant-V prototype
+ * @brief Implementation of store keeping factories one factory per user type 
+ * in GeantV prototype
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
@@ -13,8 +14,8 @@
 #ifndef GEANT_FACTORYSTORE
 #define GEANT_FACTORYSTORE
 
-#include <Rtypes.h>
 #include <typeinfo>
+#include <mutex>
 
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
@@ -24,62 +25,62 @@
  * @brief Class GeantFactoryStore
  * @details  Store of factories holding one factory per user type.
  */
-class GeantFactoryStore : public TObject {
+class GeantFactoryStore {
 private:
-  Int_t fNclients;                      /** Number of thread clients */
-  Int_t fNFactories;                    /** Number of factories stored */
-  Int_t fCapacity;                      /** Store capacity */
+  int          fNclients;               /** Number of thread clients */
+  int          fNFactories;             /** Number of factories stored */
+  int          fCapacity;               /** Store capacity */
   const void **fTypes;                  /** Factory types */
-  void **fFactories;                    /** Stored factories */
+  void       **fFactories;              /** Stored factories */
+  std::mutex   fMutex;                  /** Mutex for factory creation */
   static GeantFactoryStore *fgInstance; /** Static instance of the store */
   
   /**
-   * @brief Constructor GeantFactoryStore
+   * @brief Constructor for GeantFactoryStore
    * 
    * @param nclients Number of thread clients 
    */
-  GeantFactoryStore(Int_t nclients);
+  GeantFactoryStore(int nclients);
   
   /**
-   * @brief Function of removal factory
+   * @brief Function for removing a factory
    * 
-   * @param islot Slot ID
+   * @param islot Factory slot
    */
-  void RemoveFactory(Int_t islot);
+  void RemoveFactory(int islot);
 
   /**
-   * @brief Constructor GeantFactoryStore
-   * 
-   * @todo Still needs to be implemented
-   */
+   * @brief Constructor GeantFactoryStore */
   GeantFactoryStore(const GeantFactoryStore &);
 
   /**
-   * @brief Implementation of operator=
-   * 
-   * @todo Still needs to be implemented
-   */
+   * @brief Operator= not allowed */
   GeantFactoryStore &operator=(const GeantFactoryStore &);
 public:
   
-  /** @brief Destructor GeantFactoryStore */
-  virtual ~GeantFactoryStore();
+  /** 
+  * @brief Destructor GeantFactoryStore */
+  ~GeantFactoryStore();
   
   /**
-   * @brief  Function that creates object of instance for factory
+   * @brief  Function that creates one instance of the factory store
    * 
    * @param nclients Number of thread clients (by default 1)
    */
-  static GeantFactoryStore *Instance(Int_t nclients = 1);
+  static GeantFactoryStore *Instance(int nclients = 1);
   
   /**
    * @brief Templated function that return factory object
    * 
+   * @tparam Data type for the factory
    * @param blocksize Size of block
    */
-  template <class T> GeantFactory<T> *GetFactory(Int_t blocksize);
+  template <class T> GeantFactory<T> *GetFactory(int blocksize);
   
-  /** @brief Function that provides deletion of factory */
+  /** @brief Function that provides deletion of factory of the provided type 
+   *
+   * @tparam Data type for the factory
+  */
   template <class T> void DeleteFactory();
 };
 
@@ -87,14 +88,14 @@ public:
  * @details Returns existing factory for the user type or create new one.
  * @return Factory object
  */
-template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(Int_t blocksize) {
+template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(int blocksize) {
   const std::type_info *type = &typeid(T);
   for (Int_t i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type)
       return (GeantFactory<T> *)fFactories[i];
   }
   GeantFactory<T> *factory = new GeantFactory<T>(fNclients, blocksize);
-  TThread::Lock();
+  fMutex.lock();
   if (fNFactories == fCapacity) {
     // Resize arrays
     const void **types = new const void *[2 * fCapacity];
@@ -111,16 +112,17 @@ template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(Int_t blocksiz
   }
   fTypes[fNFactories] = (const void *)type;
   fFactories[fNFactories++] = factory;
-  TThread::UnLock();
+  fMutex.unlock();
   return factory;
 }
 
 /**
- * @todo Add some small details for doxygen
+ * @details Checks the typeid of the provided type and deletes the
+ * corresponding factory if it finds one
  */
 template <class T> void GeantFactoryStore::DeleteFactory() {
   const std::type_info *type = &typeid(T);
-  for (Int_t i = 0; i < fNFactories; i++) {
+  for (int i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type) {
       GeantFactory<T> *factory = (GeantFactory<T> *)fFactories[i];
       delete factory;
