@@ -22,7 +22,7 @@
 class GeantEvent;
 class GeantHitBlock;
 
-/** @brief Class GeantEventData responsible for Data organized per thread */
+/** @brief Class GeantEventData responsible for event data organized per thread */
 class GeantEventData : public TObject {
 public:
   GeantEvent *fEvent;                 /** Event pointer */
@@ -43,7 +43,7 @@ public:
    */
   void AddHitBlock(GeantHitBlock *block);
 
-  /** @brief Function of cleaning hits */
+  /** @brief Function of clearing hits */
   void ClearHits();
 
   ClassDef(GeantEventData, 1) // Data per event

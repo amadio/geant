@@ -5,7 +5,7 @@
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantEvent.h
- * @brief Implementation of event for Geant-V prototype
+ * @brief Implementation of event for GeantV prototype
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
@@ -29,133 +29,75 @@ private:
   std::atomic_int fSlot;    /** Fixed slot number */
   std::atomic_int fNtracks; /** Number of tracks */
   std::atomic_int fNdone;   /** Number of done tracks */
-#else
-  // dummy declarations to cheat CINT
-  int fEvent;   /** Event number */
-  int fSlot;    /** Fixed slot number */
-  int fNtracks; /** Number of tracks */
-  int fNdone;   /** Number of done tracks */
 #endif
   TMutex fMutex; /** mutex for this event */
 
 public:
 
-  /** @brief GeantEvent constructor initialization */
+  /** @brief GeantEvent default constructor */
   GeantEvent() : fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fMutex() {}
-  
-  /**
-   * @brief GeantEvent parametrized constructor initialization
-   * 
-   * @param ntr Number of threads
-   */
-  GeantEvent(Int_t ntr) : fEvent(0), fSlot(0), fNtracks(ntr), fNdone(0), fMutex() {}
-  
+    
   /** @brief GeantEvent destructor */
   ~GeantEvent() {}
   
-  /* @brief Function of adding tracks */
+  /* @brief Function for accounting adding a new track */
   Int_t AddTrack();
 #if __cplusplus >= 201103L
   
   /**
-   * @brief Function that returns number of event
-   * @return Number of event
+   * @brief Function that returns the event number
+   * @return Event number
    */
   Int_t GetEvent() const { return fEvent.load(); }
   
   /**
-   * @brief Function that returns fixed number of slot
-   * @return Number of slot
+   * @brief Function that returns the number of slot
+   * @return Slot number
    */
   Int_t GetSlot() const { return fSlot.load(); }
   
   /**
-   * @brief Function that returns number of tracks
+   * @brief Function that returns the number of transported tracks
+   * @return Number of transported tracks
+   */
+  Int_t GetNdone() const { return fNdone.load(); }
+
+  /**
+   * @brief Function that returns the number of tracks
    * @return Number of tracks
    */
   Int_t GetNtracks() const { return fNtracks.load(); }
   
   /**
-   * @brief Function that set number of event
+   * @brief Function to set the event number
    * 
-   * @param event Event that should be numbered
+   * @param event Event number to be set
    */
   void SetEvent(Int_t event) { fEvent.store(event); }
   
   /**
-   * @brief Function that setnumber of slot
+   * @brief Function to set the slot number
    * 
-   * @param islot Slot that should be numbered
+   * @param islot Slot number to be set
    */
   void SetSlot(Int_t islot) { fSlot.store(islot); }
   
-  /** @brief Reset function */
+  /** @brief Reset the event */
   void Reset() {
     fNtracks.store(0);
     fNdone.store(0);
   }
 
   /**
-   * @brief Function that check transportation of tracks
-   * @return Boolean value that shows if track is transported or not
+   * @brief Function to check if all tracks in the event were transported
+   * @return Boolean value that shows if event is fully transported or not
    */
   Bool_t Transported() const { return ((fNtracks.load() > 0) && (fNtracks == fNdone)); }
   
   /**
-   * @brief Function that stop processing of track
+   * @brief Function to signal that a trach was stopped
    */
   void StopTrack() { fNdone++; }
-#else
-  
-  /**
-   * @brief Function that returns number of event
-   * @return Number of event
-   */
-  Int_t GetEvent() const { return fEvent; }
-  
-  /**
-   * @brief Function that returns fixed number of slot
-   * @return Number of slot
-   */
-  Int_t GetSlot() const { return fSlot; }
-  
-  /**
-   * @brief Function that returns number of tracks
-   * @return Number of tracks
-   */
-  Int_t GetNtracks() const { return fNtracks; }
-  
-  /**
-   * @brief Function that set number of event
-   * 
-   * @param event Event that should be numbered
-   */
-  void SetEvent(Int_t event) { fEvent = event; }
-  
-  /**
-   * @brief Function that setnumber of slot
-   * 
-   * @param islot Slot that should be numbered
-   */
-  void SetSlot(Int_t islot) { fSlot = islot; }
-  
-  /** @brief Reset function */
-  void Reset() { fNtracks = fNdone = 0; }
-  
-  /**
-   * @brief Function that check transportation of tracks
-   * @return Boolean value that shows if track is transported or not
-   */
-  Bool_t Transported() const { return ((fNtracks > 0) && (fNtracks == fNdone)); }
-  
- /**
-   * @brief Function that stop processing of track
-   */
-  void StopTrack() {
-    fMutex.Lock();
-    fNdone++;
-    fMutex.UnLock();
-  }
 #endif
 
   /** @brief Print function */
