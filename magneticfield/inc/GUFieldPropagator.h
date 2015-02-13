@@ -10,7 +10,8 @@ class GUVField;
 class GUFieldPropagator
 {
   public: 
-    GUFieldPropagator(GUVField *);
+    // GUFieldPropagator(GUVField *); // First idea -- sidelined, at least for now
+    GUFieldPropagator(GUIntegrationDriver* driver); // (GUVField* field)
     virtual ~GUFieldPropagator() {}   //  Likely needed - to enable use of templated classes
     void SetCharge(double charge)  { fCharge= charge;} 
     void InitPoint(double x, double y, double z) { fInitialPosition= ThreeVector(x,y,z);}
@@ -39,9 +40,12 @@ private:
     double      fMomentumMag;          // Assume constant value (for now)
     double      fInitialCurvature;
     double      fStepLength;
+
     double      fCurrentPoint[3];
     double      fCurrentDirection[3];
-
+    // ThreeVector fCurrentPoint; 
+    // ThreeVector fCurrentDirection;
+    
     GUIntegrationDriver* fDriver;
 };
 
@@ -53,7 +57,7 @@ class GUFieldPropagatorPool
 {
   public:
     // Access methods
-    static GUFieldPropagatorPool* CreateOrFind(int numThreads);
+    // static GUFieldPropagator* CreateOrFind(int numThreads);
       // It can be called from many threads -- same value must be returned
       //  numThreads must be constant between calls
 
@@ -65,6 +69,7 @@ class GUFieldPropagatorPool
     GUFieldPropagatorPool() {} // , void** banks=0 );  // Ensure one per thread
     ~GUFieldPropagatorPool() {} 
 
+    // void Extend(int); 
   private:
     static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
 

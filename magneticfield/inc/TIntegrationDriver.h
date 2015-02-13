@@ -43,7 +43,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
     typedef Stepper T_Stepper;
     
     static const size_t Nvar = Stepper::Nvar;
-    typedef StaticVector<double, Nvar> BlazeVec;
+    typedef StaticVector<double, Nvar> StateVec;
     typedef BlazePairType<Nvar>        BlazeOutVec; 
 
     inline bool
@@ -57,7 +57,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
 
     bool  QuickAdvance(       
             GUFieldTrack& y_posvel,         // INOUT
-            const BlazeVec &dydx,  
+            const StateVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
             double&    dyerr );
@@ -96,7 +96,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
     inline
         double ComputeAndSetErrcon()
         {
-            errcon = std::pow(max_step_increase/fSafety,1.0/fPowerGrow);
+            errcon = std::pow(max_step_increase/safety,1.0/fPowerGrow);
             return errcon;
         } 
 
@@ -127,11 +127,11 @@ class TIntegrationDriver // : public GUIntegrationDriver
     inline void SetMaxNoSteps(int val) { fMaxNoSteps= val; }
 
     inline
-        BlazeVec GetDerivatives(const GUFieldTrack &y_curr)
+        StateVec GetDerivatives(const GUFieldTrack &y_curr)
         { 
             double  tmpValArr[GUFieldTrack::ncompSVEC];
             y_curr.DumpToArray(tmpValArr);
-            BlazeVec tmpValArrv(Nvar, tmpValArr);
+            StateVec tmpValArrv(Nvar, tmpValArr);
             return pIntStepper->
                 T_Stepper::RightHandSide(tmpValArrv);
         }
@@ -141,8 +141,8 @@ class TIntegrationDriver // : public GUIntegrationDriver
     inline double GetSmallestFraction() const { return fSmallestFraction; } 
 
     void
-        OneGoodStep(BlazeVec &y,        // InOut
-                const BlazeVec &dydx,
+        OneGoodStep(StateVec &y,        // InOut
+                const StateVec &dydx,
                 double& x,         // InOut
                 double htry,
                 double eps_rel_max,
@@ -232,7 +232,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
 
     void PrintStatus( const double*   StartArr,  
             double          xstart,
-            const BlazeVec   &CurrentArr, 
+            const StateVec   &CurrentArr, 
             double          xcurrent,
             double          requestStep, 
             int             subStepNo)
@@ -356,7 +356,7 @@ template
 #ifdef QUICK_ADV_TWO
     bool  QuickAdvance(       
             double     yarrin[],    // In
-            const BlazeVec     &dydx,  
+            const StateVec     &dydx,  
             double     hstep,       // In
             double     yarrout[],
             double&    dchord_step,
@@ -462,8 +462,8 @@ class TIntegrationDriver::
 }
 
 void
-OneGoodStep(BlazeVec &y,        // InOut
-        const BlazeVec &dydx,
+OneGoodStep(StateVec &y,        // InOut
+        const StateVec &dydx,
         double& x,         // InOut
         double htry,
         double eps_rel_max,
@@ -669,8 +669,8 @@ class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     GUFieldTrack  yFldTrkStart(y_current);
 #endif
 
-    BlazeVec y; 
-    BlazeVec dydx;
+    StateVec y; 
+    StateVec dydx;
     double ystart[GUFieldTrack::ncompSVEC], yEnd[GUFieldTrack::ncompSVEC]; 
     double  x1, x2;
     bool succeeded = true, lastStepSucceeded;
@@ -954,7 +954,7 @@ bool
 template <class Stepper> TIntegrationDriver::
 QuickAdvance(       
             GUFieldTrack& y_posvel,         // INOUT
-            const BlazeVec &dydx,  
+            const StateVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
             double&    dyerr )
@@ -971,7 +971,7 @@ QuickAdvance(
     y_posvel.DumpToArray( yarrin );      //  yarrin  <== y_posvel 
     s_start = y_posvel.GetCurveLength();
 
-    BlazeVec yarrinv(Nvar, yarrin);
+    StateVec yarrinv(Nvar, yarrin);
     // Do an Integration Step
     BlazeOutVec yVec(pIntStepper->
                      T_Stepper::StepWithError(yarrinv, dydx, hstep)); 

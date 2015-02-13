@@ -19,51 +19,50 @@ template
 <class Field, unsigned int Size>
 class TMagFieldEquation : public GUVEquationOfMotion
 {
-    public:
-        typedef Field T_Field;
-        static const unsigned int  N   = Size;
-        static constexpr  double meter    = 100.0; // ASSUME centimeter native unit
-        static constexpr  double second   = 1.0;   // ASSUME second  is native unit
-        static constexpr double c_light  = 2.99792458e+8 * meter/second; // Units TBC
-        static constexpr double eplus    = 1.0 ;   // Units TBC
-        static constexpr double fCof     = eplus * c_light ;
+   public:
+     typedef Field T_Field;
+     static const unsigned int  N   = Size;
+     static constexpr double meter   = 100.0; // ASSUME centimeter native unit
+     static constexpr double second  = 1.0;   // ASSUME second  is native unit
+     static constexpr double c_light = 2.99792458e+8 * meter/second; // Units TBC
+     static constexpr double eplus   = 1.0 ;   // Units TBC
+     static constexpr double fCof    = eplus * c_light ;
    
-        TMagFieldEquation(T_Field* f) { itsField = f; }
-        ~TMagFieldEquation()  {}  // Was virtual - but now no inheritance
+     TMagFieldEquation(T_Field* f) : GUVEquationOfMotion(f) { itsField = f; }
+     ~TMagFieldEquation()  {}  // Was virtual - but now no inheritance
 
-        REALLY_INLINE          // inline __attribute__((always_inline))           
-        void GetFieldValue(const double Point[4],
-                                 double Value[]) const
-        {
-            itsField->T_Field::GetFieldValue(Point, Value);
-        }
+     REALLY_INLINE  // inline __attribute__((always_inline))     
+     void GetFieldValue(const double Point[4],
+     double Value[]) const {
+        itsField->T_Field::GetFieldValue(Point, Value);
+     }
 
-        // #ifdef INLINERHS
-        // #pragma message "INLINING RHS"
-        REALLY_INLINE
-        //  #else
-        // #pragma message "NOT INLINING RHS"
-        // #endif
-           void RightHandSide(const double y[], double charge, double dydx[] ) const;
+     REALLY_INLINE
+     void RightHandSide(const double y[], double charge, double dydx[] ) const;
 
-        REALLY_INLINE
-        void TEvaluateRhsGivenB( const double y[],
-                                 const double B[3],
-                                 double charge, 
-                                 double dydx[] ) const;
+     REALLY_INLINE
+     void TEvaluateRhsGivenB( const double y[],
+                              const double B[3],
+                              double charge, 
+                              double dydx[] ) const;
 
-    private:
-        enum { G4maximum_number_of_field_components = 24 };
-        T_Field *itsField;
+     // virtual
+     void EvaluateRhsGivenB( const double y[],
+                             const double B[3],
+                             double charge, 
+                             double dydx[] ) const
+     { EvaluateRhsGivenB( y, B, charge, dydx); }
+     
+   private:
+     enum { G4maximum_number_of_field_components = 24 };
+     T_Field *itsField;
 };
 
 #include <cmath>
 
 template 
 <class Field, unsigned int Size>
-#ifdef INLINERHS
-  inline __attribute__((always_inline))
-#endif
+REALLY_INLINE
    void  TMagFieldEquation<Field, Size>
    ::TEvaluateRhsGivenB( const double y[],
                          const double B[3],
@@ -89,24 +88,18 @@ template
 
 template 
 <class Field, unsigned int Size>
-#ifdef INLINERHS
-       inline __attribute__((always_inline)) 
-#endif
+REALLY_INLINE
 void
-   TMagFieldEquation<Field,Size> // <class Field, unsigned int Size>
-   ::RightHandSide(const double y[], double charge, double dydx[] ) const
+TMagFieldEquation<Field,Size> // <class Field, unsigned int Size>
+::RightHandSide(const double y[], double charge, double dydx[] ) const
 {
-      double Point[4];  //G4maximum_number_of_field_components]; 
-      double  PositionAndTime[3];
-      PositionAndTime[0] = y[0];
-      PositionAndTime[1] = y[1];
-      PositionAndTime[2] = y[2];
-      // PositionAndTime[3] = y[7];    // Tim
-      GetFieldValue(PositionAndTime, Point) ;
-      TEvaluateRhsGivenB(y, Point, dydx);
+    double Point[4];  //G4maximum_number_of_field_components]; 
+    double  PositionAndTime[3];
+    PositionAndTime[0] = y[0];
+    PositionAndTime[1] = y[1];
+    PositionAndTime[2] = y[2];
+    // PositionAndTime[3] = y[7];    // Tim
+    GetFieldValue(PositionAndTime, Point) ;
+    TEvaluateRhsGivenB(y, Point, dydx);
 }
-
 #endif  // TMAGFIELDEQUATION_H 
-
-
-

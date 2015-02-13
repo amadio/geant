@@ -1,15 +1,22 @@
 #include "FieldEquationFactory.h"
 
-#include "GUVEquationOfMotion.h"
-#include "TMagFieldEquation.h"
+// Base types
 #include "GUVField.h"
+#include "GUVEquationOfMotion.h"
+
+// Concrete Types
+#include "TUniformMagField.h"
+#include "TMagFieldEquation.h"
 
 GUVEquationOfMotion*
-FieldEquationFactory::CreateMagEquation(GUVField *field, int NumEq)
+FieldEquationFactory::CreateMagEquation(GUVField *field) // , int NumEq)
 {
+   const int NumComp= 6;
    GUVEquationOfMotion *eq= 0;
-   if( dynamic_cast<GUUniformMagField>(field) != 0 ) {
-      eq= TMagFieldEquation<GUUniformMagField,NumEq>(field); 
+
+   TUniformMagField* unifMagFld= dynamic_cast<TUniformMagField*>(field);
+   if( unifMagFld != 0 ){
+      eq= new TMagFieldEquation<TUniformMagField,NumComp>(unifMagFld); 
    }
    return eq; 
 }

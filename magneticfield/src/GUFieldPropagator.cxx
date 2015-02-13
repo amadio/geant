@@ -2,6 +2,8 @@
 //  Simple interface class to GUIntegrationDriver (with does Runge Kutta integration)
 //   that follows the interface of TGeoHelix
 //
+#include <iostream>  // for  cout / cerr 
+
 #include "GUFieldPropagator.h"
 #include "GUVEquationOfMotion.h"
 #include "GUVIntegrationStepper.h"
@@ -11,14 +13,23 @@
 // #include "TClassicalRK4.h"
 
 GUFieldPropagator::GUFieldPropagator(GUIntegrationDriver* driver) // (GUVField* field)
+   : fInitialPosition(), fInitialDirection(),
+     fMomentumMag(0.0), fInitialCurvature(0.0), fStepLength(0.0)
+     //, fCurrentPoint(0.0, 0.0, 0.0), fCurrentDirection(0.0, 0.0, 0.0)
 {
    // Must create the Driver, Stepper and Equation ??
 
    constexpr int NumEq= 6;
-   TMagFieldEquation *pEquation = TMagFieldEquation<ConstMagField,NumEq>(uniformField);
-  // GUVEquationOfMotion*  pEquation= EquationFactory::CreateMagEquation(field, NumEq);
-  // GUVIntegrationStepper = new TClassicalRK4<pEquation,NumEq>;
-  // fDriver  = new GUIntegrationDriver();
+   // TMagFieldEquation *pEquation = TMagFieldEquation<ConstMagField,NumEq>(uniformField);
+   // GUVEquationOfMotion*  pEquation= EquationFactory::CreateMagEquation(field, NumEq);
+   // GUVIntegrationStepper = new TClassicalRK4<pEquation,NumEq>;
+   // fDriver  = new GUIntegrationDriver();
+   fDriver = driver;
+
+   for( int i=0; i<3; i++) {
+      fCurrentPoint[i]= 0.0;
+      fCurrentDirection[i]= 0.0;
+   }
 }
 
 // Make a step from current point along the path and compute new point, direction and angle
@@ -30,17 +41,24 @@ void GUFieldPropagator::Step(double step)
   GUFieldTrack fieldTr( fInitialPosition, 
                         fInitialDirection,
                         fMomentumMag,
-                        fRestMass,
+                        // fRestMass,
                         fCharge, 
                         0.0,  // time
                         0.0); // s_0  
 
+  // Call the driver HERE
+  
   // fInitialCurvature; 
-  
+  ThreeVector endPoint= fieldTr.GetPosition();
+  ThreeVector endDir  = fieldTr.GetMomentumDirection();
 
-  fCurrentPoint[0]= fieldTr.GetPosition();
-  fCurrentDirection[3]= fieldTr.GetMomentumDirection();
-  
+  for ( int i=0; i<3; i++) { 
+     fCurrentPoint[i]=     endPoint[i];
+     fCurrentDirection[i]= endDir[i];
+  }
+
+  std::cerr << " Incomplete METHOD -- must call Driver / etc for integratio. "  << std::endl;
+  exit(1);
 }
 
 static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
@@ -59,7 +77,9 @@ GUFieldPropagatorPool::Instance()
    return &sInstance;
 }
 
-GUFieldPropagatorPool* 
+#if 0
+//// ---------------------  Postpone handling of multiple 
+GUFieldPropagator* 
 GUFieldPropagatorPool::CreateOrFind( int noNeeded ) // , void** banks )
 {
   static int numberCreated= -1;
@@ -74,6 +94,7 @@ GUFieldPropagatorPool::CreateOrFind( int noNeeded ) // , void** banks )
     numberCreated= noNeeded;
   }
 }
+#endif
 
 GUFieldPropagator* GUFieldPropagatorPool::GetPropagator(int num)
 {
@@ -83,6 +104,7 @@ GUFieldPropagator* GUFieldPropagatorPool::GetPropagator(int num)
    return fFieldPropagatorVec[num];
 }
 
+#if 0
 void GUFieldPropagatorPool::Extend(int noNeeded)
 {
     int num= fFieldPropagatorVec.size();
@@ -94,3 +116,4 @@ void GUFieldPropagatorPool::Extend(int noNeeded)
       fFieldPropagatorVec.push_back( new GUFieldPropagator() );
     }
 }
+#endif 

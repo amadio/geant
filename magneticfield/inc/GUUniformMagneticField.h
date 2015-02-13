@@ -24,30 +24,58 @@
 // ********************************************************************
 //
 //
-// $Id: GUVIntegrationStepper.cc 66356 2012-12-18 09:02:32Z gcosmo $
+// $Id: GUUniformMagField.hh 67605 2013-02-26 20:20:03Z adotti $
 //
-// --------------------------------------------------------------------
-
-#include "GUVIntegrationStepper.h"
-
-// Constructor for stepper abstract base class. 
 // 
+// class GUUniformMagField
+//
+// Class description:
+//
+// Class for creation of Uniform Magnetic Field.
 
-GUVIntegrationStepper::GUVIntegrationStepper(GUVEquationOfMotion* Equation,
-					       int       num_integration_vars,
-					       int       num_state_vars)
-  : fEquation_Rhs(Equation),
-    fNoIntegrationVariables(num_integration_vars),
-    fNoStateVariables(num_state_vars)
-    // fNumberOfVariables( std::max(num_var,fNoStateVariables) )
-{
-}
+// History:
+// - 30.01.97 V.Grichine, Created.
+// - 01.08.97 J.Apostolakis, cleanup, new 3-vector constructor, 
+//            and removal of helix-stepper (to separate file).
+// - 05.11.97 G.Cosmo, added copy constructor and assignment operator.
 
-GUVIntegrationStepper::~GUVIntegrationStepper()
-{
-}
+#ifndef GUUNIFORMMAGFIELD_HH
+#define GUUNIFORMMAGFIELD_HH
 
-void GUVIntegrationStepper::ComputeRightHandSide( const double y[], double charge, double dydx[] ) 
+#include "GUTypes.h"
+#include "ThreeVector.h"
+#include "GUMagneticField.h"
+
+class GUUniformMagField : public GUMagneticField
 {
-   this->RightHandSide( y, charge, dydx );
-}
+  public:  // with description
+  
+    GUUniformMagField(const ThreeVector& FieldVector );
+      // A field with value equal to FieldVector.
+
+    GUUniformMagField(double vField,
+                      double vTheta,
+                      double vPhi     ) ;
+
+    virtual ~GUUniformMagField() ;
+
+    GUUniformMagField(const GUUniformMagField &p);
+    GUUniformMagField& operator = (const GUUniformMagField &p);
+      // Copy constructor and assignment operator.
+
+    virtual void GetFieldValue(const double yTrack[4],
+                                     double *MagField) const ;
+
+    void SetFieldValue(const ThreeVector& newFieldValue);
+
+    ThreeVector GetConstantFieldValue() const;
+      // Return the field value
+    
+    virtual GUUniformMagField* Clone() const;
+
+  private:
+
+    double fFieldComponents[3] ;
+};
+
+#endif

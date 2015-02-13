@@ -6,7 +6,7 @@ class GUVField;
 
 class FieldEquationFactory
 {
-   static GUVEquationOfMotion*  CreateMagEquation(GUVField *field, int NumEq);
+   static GUVEquationOfMotion* CreateMagEquation(GUVField *field); // , int NumEq);
 };
 
 #endif

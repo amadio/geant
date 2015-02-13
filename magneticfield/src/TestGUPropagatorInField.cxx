@@ -9,9 +9,11 @@
 #include "mmalloc.h"
 #include "TGeoHelix.h"
 
+#include "GUFieldPropagator.h"
+
 #define ET_TIMER_RESULT_VAR      vx_
 #define ET_TIMER_RESULT_VAR_TYPE double*
-#include "Timer.h"
+// #include "Timer.h"
 
 void testGUFieldPropagator(double * px, double * py, double * pz,
                            double * dx, double * dy, double * dz,

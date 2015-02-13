@@ -47,7 +47,7 @@ class GUVEquationOfMotion
        // This calculates the value of the derivative dydx at y.
        // It is the usual enquiry function.
        // ---------------------------
-       // (It is not virtual, but calls the virtual function above.)
+       // (It uses the virtual function above.)
 
      void EvaluateRhsReturnB( const  double y[],
                               double dydx[],

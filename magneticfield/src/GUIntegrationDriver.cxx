@@ -117,6 +117,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
 
   int nstp, i, no_warnings=0;
   double x, hnext, hdid, h;
+  double charge= y_current.GetCharge(); 
 
 #ifdef GUDEBUG_FIELD
   static int dbg=1;
@@ -193,7 +194,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     // Old method - inline call to Equation of Motion
     //   pIntStepper->RightHandSide( y, dydx );
     // New method allows to cache field, or state (eg momentum magnitude)
-    pIntStepper->ComputeRightHandSide( y, dydx );
+    pIntStepper->ComputeRightHandSide( y, charge, dydx );
     fNoTotalSteps++;
 
     // Perform the Integration
@@ -317,7 +318,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     else
     {
       // Check the proposed next stepsize
-      if(std::fabs(hnext) <= Hmin())
+      if(std::fabs(hnext) <= fMinimumStep)
       {
 #ifdef  GUDEBUG_FIELD
         // If simply a very small interval is being integrated, do not warn
@@ -333,7 +334,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
         }
 #endif
         // Make sure that the next step is at least Hmin.
-        h = Hmin();
+        h = fMinimumStep;
       }
       else
       {
@@ -417,7 +418,7 @@ GUIntegrationDriver::WarnSmallStepSize( double hnext, double hstep,
   {
     std::cerr << "The stepsize for the next iteration, " << hnext
             << ", is too small - in Step number " << nstp << "." << std::endl
-            << "The minimum for the driver is " << Hmin()  << std::endl
+            << "The minimum for the driver is " << GetHmin()  << std::endl
             << "Requested integr. length was " << hstep << " ." << std::endl
             << "The size of this sub-step was " << h     << " ." << std::endl
             << "The integrations has already gone " << xDone;
@@ -428,7 +429,7 @@ GUIntegrationDriver::WarnSmallStepSize( double hnext, double hstep,
             << ", step-no: " << nstp << std::endl
             << ", this sub-step: " << h     
             << ",  req_tot_len: " << hstep 
-            << ", done: " << xDone << ", min: " << Hmin();
+            << ", done: " << xDone << ", min: " << GetHmin();
   }
   // G4Exception("GUIntegrationDriver::WarnSmallStepSize()", "GeomField1001",
   //             JustWarning, message);
@@ -830,9 +831,9 @@ void GUIntegrationDriver::PrintStatus(
     // std::cout.setf(ios_base::fixed,ios_base::floatfield);
 
   // const ThreeVector StartPosition=       StartFT.GetPosition();
-    const ThreeVector StartUnitVelocity=   StartFT.GetMomentumDir();
+    const ThreeVector StartUnitVelocity=   StartFT.GetMomentumDirection();
   // const ThreeVector CurrentPosition=     CurrentFT.GetPosition();
-    const ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDir();
+    const ThreeVector CurrentUnitVelocity= CurrentFT.GetMomentumDirection();
 
     double  DotStartCurrentVeloc= StartUnitVelocity.Dot(CurrentUnitVelocity);
 
@@ -905,7 +906,7 @@ void GUIntegrationDriver::PrintStat_Aux(
                   double             dotVeloc_StartCurr)
 {
     const ThreeVector Position=      aGUFieldTrack.GetPosition();
-    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDir();
+    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDirection();
  
     if( subStepNo >= 0)
     {
@@ -928,7 +929,7 @@ void GUIntegrationDriver::PrintStat_Aux(
     std::cout.precision(6);
     std::cout << std::setw(10) << dotVeloc_StartCurr << " ";
     std::cout.precision(oldprec);
-    std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
+    // std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
     std::cout << std::setw(12) << step_len << " ";
 
     static double oldCurveLength= 0.0;    // thread_local

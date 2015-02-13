@@ -8,17 +8,17 @@
 GUFieldTrack::
 GUFieldTrack( const ThreeVector& pPosition, 
               const ThreeVector& pMomentumDirection,
-			          double       momentum, // kineticEnergy,
+                    double       momentum, // kineticEnergy,
 			          // double       restMass_c2,
-                double       charge, 
-                double       LaboratoryTimeOfFlight,
-                double       curve_length )
-                //     const ThreeVector& vecPolarization,
-                //     double       magnetic_dipole_moment,
-                //     double       curve_length,
-                //     double       pdgSpin )
+                    double       charge, 
+                    double       LaboratoryTimeOfFlight,
+                    double       curve_length )
+        // const ThreeVector& vecPolarization,
+        // double       magnetic_dipole_moment,
+        // double       curve_length,
+        // double       pdgSpin )
 :  fDistanceAlongCurve(curve_length),
-   fMomentum(momentum),
+   fMomentumMag(momentum),
    // fKineticEnergy(kineticEnergy), fRestMass_c2(restMass_c2),
    fLabTimeOfFlight(LaboratoryTimeOfFlight), 
    fProperTimeOfFlight(0.),
@@ -71,6 +71,12 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
      valArr[i]= 0.0; 
   }
 
+#if 1  
+  SetCurvePnt( ThreeVector( valArr[0], valArr[1], valArr[2]),
+               ThreeVector( valArr[3], valArr[4], valArr[5]),
+               0 ); // DistanceAlongCurve
+
+#else  
   SixVector[0]=valArr[0];
   SixVector[1]=valArr[1];
   SixVector[2]=valArr[2];
@@ -82,7 +88,8 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
 
   double momentum_square= Momentum.Mag2();
   fMomentumDir= Momentum.Unit();
-
+#endif
+  
   // fKineticEnergy = momentum_square / 
   //                 (std::sqrt(momentum_square+fRestMass_c2*fRestMass_c2)
   //                  + fRestMass_c2 ); 
@@ -94,6 +101,7 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
 
   fLabTimeOfFlight=valArr[7];
   fProperTimeOfFlight=valArr[8];
+
   // ThreeVector  vecPolarization= ThreeVector(valArr[9],valArr[10],valArr[11]);
   //  SetPolarization( vecPolarization ); 
 
@@ -109,12 +117,13 @@ std::ostream& operator<<( std::ostream& os, const GUFieldTrack& SixVec)
                   << SixV[2] << " ";  // Position
      os << " P= " << SixV[3] << " " << SixV[4] << " "
                   << SixV[5] << " ";  // Momentum
-     os << " Pmag= "
-        << ThreeVector(SixV[3], SixV[4], SixV[5]).Mag(); // mom magnitude
-     os << " Ekin= " << SixVec.fKineticEnergy ;
-     os << " m0= " <<   SixVec.fRestMass_c2;
-     os << " Pdir= " <<  SixVec.fMomentumDir.Mag();
-     os << " PolV= " << SixVec.GetPolarization(); 
+     ThreeVector momentum(SixV[3], SixV[4], SixV[5]);
+     double momentumMag= momentum.Mag();
+     os << " Pmag= " << momentumMag;     
+     // os << " Ekin= " << SixVec.fKineticEnergy ;
+     // os << " m0= " <<   SixVec.fRestMass_c2;
+     os << " Pdir= " <<  ( momentumMag > 0 ? momentum.Unit() : momentum );
+     // os << " PolV= " << SixVec.GetPolarization(); 
      os << " l= " <<    SixVec.GetCurveLength();
      os << " t_lab= " << SixVec.fLabTimeOfFlight; 
      os << " t_proper= " << SixVec.fProperTimeOfFlight ; 

@@ -1,29 +1,3 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-//
 // $Id: GUVField.hh 68055 2013-03-13 14:43:28Z gcosmo $
 //
 //
@@ -47,13 +21,6 @@
 // enable the integration of a particle's position, momentum and, optionally, 
 // spin.  For this a field and its equation of motion must follow the
 // same convention for the order of field components in the array "fieldArr"
-// -------------------------------------------------------------------
-// History:
-// - Created:  John Apostolakis, 10.03.1997
-// - Modified: 
-//   V. Grichine     8 Nov 2001: Extended "Point" arg to [4] array to add time
-//   J. Apostolakis  5 Nov 2003: Added virtual method DoesFieldChangeEnergy()
-//   J. Apostolakis 31 Aug 2004: Information on convention for components
 // -------------------------------------------------------------------
 
 #ifndef GUVFIELD_HH
@@ -80,22 +47,46 @@ class GUVField
        //      array 'fieldArr' are determined by the type of field.
        //      See for example the class GUVElectroMagneticField.
 
-      GUVField();
+      inline
+      GUVField( int NumberOfComponents, bool changesEnergy );
+      inline
       GUVField( const GUVField & );
       virtual ~GUVField();
-      inline GUVField& operator = (const GUVField &p); 
+      // inline GUVField& operator = (const GUVField &p); 
 
      // A field signature function that can be used to insure
      // that the Equation of motion object and the GUVField object
      // have the same "field signature"?
- 
-      virtual bool   DoesFieldChangeEnergy() const= 0 ;
-       //  Each type/class of field should respond this accordingly
-       //  For example:
-       //    - an electric field     should return "true"
-       //    - a pure magnetic field should return "false"
-    
+
+      bool   DoesFieldChangeEnergy() const { return fChangesEnergy; } 
+      int    GetNumberOfComponents() const { return fNumberOfComponents; } 
+
+      GUVField& operator = (const GUVField &p); // Useful ?
+      
       virtual GUVField* Clone() const;
-      //Implements cloning, potentially needed for MT - ??
+        // Implements cloning, likely needed for MT 
+
+private:
+      bool fChangesEnergy; 
+       //  Each type/class of field set this accordingly:
+       //    - an electric field     - "true"
+       //    - a pure magnetic field - "false"
+
+      const int  fNumberOfComponents; // E.g.  B -> N=3 , ie x,y,z 
+                                     //       E+B -> N=6 
+
 };
+
+inline GUVField::GUVField( int NumberOfComponents, bool changesEnergy )
+   : fNumberOfComponents(NumberOfComponents),
+     fChangesEnergy(changesEnergy)
+{
+}
+
+inline GUVField::GUVField( const GUVField &field )
+   : fNumberOfComponents(field.fNumberOfComponents)
+{
+   // *this = field; 
+   fChangesEnergy= field.fChangesEnergy;
+}
 #endif /* GUVFIELD_HH */

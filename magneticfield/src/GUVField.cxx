@@ -5,9 +5,6 @@
 #include "GUVField.h"
 #include <iostream>
 
-GUVField::GUVField( )
-{
-}
  
 GUVField::~GUVField()
 {
@@ -16,11 +13,10 @@ GUVField::~GUVField()
 GUVField& GUVField::operator = (const GUVField &p)
 {
    if (&p == this) return *this;
+   // this->fNumberOfComponents= p.fNumberOfComponents;  // Cannot change this !!
+   // assert( this->fNumberOfComponents == p.fNumberOfComponents); 
+   this->fChangesEnergy=      p.fChangesEnergy;   
    return *this;
-}
-
-GUVField::GUVField (const GUVField &p)
-{
 }
 
 GUVField* GUVField::Clone() const

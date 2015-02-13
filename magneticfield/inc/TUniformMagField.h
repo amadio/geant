@@ -5,18 +5,19 @@
 #ifndef TUniformMagField_H
 #define TUniformMagField_H
 
-// #include "G4Types.hh"
-// #include "ThreeVector.h"
-// #include "G4MagneticField.hh"
-// #include "G4PhysicalConstants.hh"
+#include "GUVMagneticField.h"
+#include <iostream>
 
-#include "ThreeVector.hh"  // Or whatever defines such a class
+#include "ThreeVector.h"  // Or whatever defines such a class
+#include "Constants.h"  //   For pi & twopi - Temporary solution ..
 
-class TUniformMagField // : public G4MagneticField
+class TUniformMagField : public GUVMagneticField
+
 {
     public:  // with description
 
-        TUniformMagField(const ThreeVector& FieldVector ) 
+        TUniformMagField(const ThreeVector& FieldVector )
+           : GUVMagneticField() //NumberOfComponents(3)
             // A field with value equal to FieldVector.
         {
             fFieldComponents[0] = FieldVector.x();
@@ -24,20 +25,9 @@ class TUniformMagField // : public G4MagneticField
             fFieldComponents[2] = FieldVector.z();
         }
 
-
         TUniformMagField(double vField,
-                double vTheta,
-                double vPhi     ) 
-        {
-            if ( (vField<0) || (vTheta<0) || (vTheta>pi) || (vPhi<0) || (vPhi>twopi) )
-            {
-                Exception("TUniformMagField::TUniformMagField()",
-                        "GeomField0002", FatalException, "Invalid parameters.") ;
-            }
-            fFieldComponents[0] = vField*std::sin(vTheta)*std::cos(vPhi) ;
-            fFieldComponents[1] = vField*std::sin(vTheta)*std::sin(vPhi) ;
-            fFieldComponents[2] = vField*std::cos(vTheta) ;
-        }
+                         double vTheta,
+                         double vPhi     );
 
         // virtual 
         ~TUniformMagField() {}
@@ -57,20 +47,21 @@ class TUniformMagField // : public G4MagneticField
                 fFieldComponents[i] = p.fFieldComponents[i];
             return *this;
         }
-
-        inline void GetFieldValue(const double [4], // yTrack[4],
-                double *B) const 
+        
+        // virtual
+        void GetFieldValue(const double [4], // yTrack[4],
+                                 double *B) const 
         {
             B[0]= fFieldComponents[0] ;
             B[1]= fFieldComponents[1] ;
             B[2]= fFieldComponents[2] ;
         }
 
-        void SetFieldValue(const ThreeVector& newFieldVector)
+        void SetFieldValue(const ThreeVector& fieldValue)
         {
-            fFieldComponents[0] = newFieldVector.x();
-            fFieldComponents[1] = newFieldVector.y();
-            fFieldComponents[2] = newFieldVector.z();
+            fFieldComponents[0] = fieldValue.x();
+            fFieldComponents[1] = fieldValue.y();
+            fFieldComponents[2] = fieldValue.z();
         }
 
         ThreeVector GetConstantFieldValue() const
@@ -82,7 +73,8 @@ class TUniformMagField // : public G4MagneticField
         }
         // Return the field value
 
-        virtual TUniformMagField* Clone() const
+        // virtual
+        TUniformMagField* Clone() const
         { 
             return new TUniformMagField( ThreeVector(this->fFieldComponents[0],
                         this->fFieldComponents[1],
@@ -90,8 +82,28 @@ class TUniformMagField // : public G4MagneticField
         }
 
     private:
-
-        double fFieldComponents[3] ;
+        double fFieldComponents[3];
 };
 
+TUniformMagField::TUniformMagField(double vField,
+                                   double vTheta,
+                                   double vPhi     ) 
+{
+   if ( (vField<0) || (vTheta<0) || (vTheta>pi) || (vPhi<0) || (vPhi>twopi) )
+   {
+      // Exception("TUniformMagField::TUniformMagField()",
+      //     "GeomField0002", FatalException, "Invalid parameters.") ;
+      std::cerr << "ERROR in TUniformMagField::TUniformMagField()"
+                << "Invalid parameter(s): expect " << std::endl;
+      std::cerr << " - Theta angle: Value = " << vTheta
+                << "  Expected between 0 <= theta <= pi = " << pi << std::endl;
+      std::cerr << " - Phi   angle: Value = " << vPhi
+                << "  Expected between 0 <=  phi  <= 2*pi = " << twopi << std::endl;
+      std::cerr << " - Magnitude vField: Value = " << vField
+                         << "  Expected vField > 0 " << twopi << std::endl;
+   }
+   fFieldComponents[0] = vField*std::sin(vTheta)*std::cos(vPhi) ;
+   fFieldComponents[1] = vField*std::sin(vTheta)*std::sin(vPhi) ;
+   fFieldComponents[2] = vField*std::cos(vTheta) ;
+}
 #endif
