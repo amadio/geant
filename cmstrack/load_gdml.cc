@@ -68,10 +68,11 @@
 #include "G4UIExecutive.hh"
 #endif
 
-#include "G4GDMLParser.hh"
+#include "MyGDMLWriteStructure.hh"
 
 int main(int argc,char **argv)
 {
+   using CLHEP::s;
    struct stat sb;
 
    G4cout << G4endl;
@@ -86,13 +87,14 @@ int main(int argc,char **argv)
       return -1;
    }
 
-   G4GDMLParser parser;
+   MyGDMLWriteStructure GDMLWS;
+   G4GDMLParser parser(new G4GDMLReadStructure(), new MyGDMLWriteStructure());
    //   parser.SetStripFlag(false);
 
 // Uncomment the following if wish to avoid names stripping
 // parser.SetStripFlag(false);
 
-   parser.Read(argv[1]);
+   parser.Read(argv[1],FALSE);
    
    if (argc>4)
    {
@@ -127,11 +129,6 @@ int main(int argc,char **argv)
 
    G4VPhysicalVolume* world = G4TransportationManager::GetTransportationManager()->
       GetNavigatorForTracking()->GetWorldVolume();
-
-   if (argc>=3)
-   {
-      parser.Write(argv[2], world->GetLogicalVolume());
-   }
 
    G4Navigator *secondNavigator = new G4Navigator();
    secondNavigator->SetWorldVolume(world);
@@ -170,6 +167,7 @@ int main(int argc,char **argv)
 
    printf("Setting cuts for %d logical volumes\n",nlv);
 
+   G4double tlim = 1e-6*s;
    char regname[14];
    for( int ilv=0; ilv<nlv; ++ilv) 
    {
@@ -191,6 +189,7 @@ int main(int argc,char **argv)
      dcuts[3]=cfact*radl;
      rcuts[ilv].SetProductionCuts(dcuts);
      region->SetProductionCuts(&rcuts[ilv]);
+     glv->SetUserLimits(new G4UserLimits(DBL_MAX, DBL_MAX, tlim, 0., cfact*radl));
     
      G4GDMLAuxListType auxInfo = parser.GetVolumeAuxiliaryInformation(glv);
      std::vector<G4GDMLAuxPairType>::const_iterator ipair = auxInfo.begin();
@@ -218,6 +217,11 @@ int main(int argc,char **argv)
    // End of Auxiliary Information block
    //
    ////////////////////////////////////////////////////////////////////////
+
+   if (argc>=3)
+   {
+      parser.Write(argv[2], world->GetLogicalVolume());
+   }
 
    if (argc==4)   // batch mode  
    {

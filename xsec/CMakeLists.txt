@@ -11,6 +11,8 @@ if(HepMC_FOUND)
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
 
+set(HepMC_FOUND NO)
+
 #----------------------------------------------------------------------------
 # Setup include directory for this project
 #

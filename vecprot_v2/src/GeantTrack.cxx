@@ -15,14 +15,14 @@
   #include "TGeoNavigator.h"
   #include "TGeoNode.h"
  #endif
-#endif
-//#else // TGeoNavigator as default
+//#endif
+#else // TGeoNavigator as default
  #pragma message("Compiling against TGeo")
  #include <iostream>
  #include "TGeoNavigator.h"
  #include "TGeoNode.h"
- #include "TGeoManager.h"
-//#endif
+#endif
+#include "TGeoManager.h"
 
 #include "WorkloadManager.h"
 
