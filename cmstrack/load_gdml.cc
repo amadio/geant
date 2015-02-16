@@ -87,7 +87,6 @@ int main(int argc,char **argv)
       return -1;
    }
 
-   MyGDMLWriteStructure GDMLWS;
    G4GDMLParser parser(new G4GDMLReadStructure(), new MyGDMLWriteStructure());
    //   parser.SetStripFlag(false);
 
@@ -192,15 +191,15 @@ int main(int argc,char **argv)
      glv->SetUserLimits(new G4UserLimits(DBL_MAX, DBL_MAX, tlim, 0., cfact*radl));
     
      G4GDMLAuxListType auxInfo = parser.GetVolumeAuxiliaryInformation(glv);
-     std::vector<G4GDMLAuxPairType>::const_iterator ipair = auxInfo.begin();
-     for( ipair = auxInfo.begin(); ipair != auxInfo.end(); ipair++ )
-     {
-       G4String str=ipair->type;
-       G4String val=ipair->value;
-       G4cout << " Auxiliary Information is found for Logical Volume :  "
-              << glv->GetName() << G4endl;
-       G4cout << " Name of Auxiliary type is     :  " << str << G4endl;
-       G4cout << " Associated Auxiliary value is :  " << val << G4endl;
+     if(!auxInfo.empty()) {
+	G4cout << " Auxiliary Information is found for Logical Volume :  "
+	       << glv->GetName() << G4endl;
+	std::vector<G4GDMLAuxPairType>::const_iterator ipair = auxInfo.begin();
+	for( ipair = auxInfo.begin(); ipair != auxInfo.end(); ipair++ ) {
+	   G4String str=ipair->type;
+	   G4String val=ipair->value;
+	   G4cout << str << " = " << val << G4endl;
+	}
      }
    }
    
