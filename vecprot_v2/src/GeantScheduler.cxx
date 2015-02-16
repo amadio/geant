@@ -16,9 +16,9 @@
 
 ClassImp(GeantScheduler)
 
-    //______________________________________________________________________________
-    GeantScheduler::GeantScheduler()
-    : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNtracks(0) {
+//______________________________________________________________________________
+GeantScheduler::GeantScheduler()
+  : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNtracks(0) {
   // dummy
   fPriorityRange[0] = fPriorityRange[1] = -1;
 #ifdef __STAT_DEBUG

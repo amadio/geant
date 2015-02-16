@@ -23,32 +23,32 @@ public:
   Int_t fBasketGeneration; /** Current generation of baskets to be flushed */
   Int_t fGeneration;       /** Current generation for one basket */
   Int_t fNtracks;          /** Number of tracks in current generation */
-  Int_t *fEvent;           /** [fNtracks] Event */
-  Int_t *fInd;             /** [fNtracks] Track indices */
-  Int_t *fProc;            /** [fNtracks] Selected processes for each track */
-  Double_t *fX;            /** [fNtracks] X positions */
-  Double_t *fY;            /** [fNtracks] Y positions */
-  Double_t *fZ;            /** [fNtracks] Z positions */
-  Double_t *fPx;           /** [fNtracks] Px */
-  Double_t *fPy;           /** [fNtracks] Py */
-  Double_t *fPz;           /** [fNtracks] Pz */
-  Double_t *fE;            /** [fNtracks] E */
-  Double_t *fPstep;        /** [fNtracks] Physics step selected */
-  Double_t *fStep;         /** [fNtracks] Current step */
-  Double_t *fSnext;        /** [fNtracks] Snext distance */
-  Double_t *fSafety;       /** [fNtracks] Snext distance */
+  Int_t *fEvent;           //[fNtracks] /** Event */
+  Int_t *fInd;             //[fNtracks] /** Track indices */
+  Int_t *fProc;            //[fNtracks] /** Selected processes for each track */
+  Double_t *fX;            //[fNtracks] /** X positions */
+  Double_t *fY;            //[fNtracks] /** Y positions */
+  Double_t *fZ;            //[fNtracks] /** Z positions */
+  Double_t *fPx;           //[fNtracks] /** Px */
+  Double_t *fPy;           //[fNtracks] /** Py */
+  Double_t *fPz;           //[fNtracks] /** Pz */
+  Double_t *fE;            //[fNtracks] /** E */
+  Double_t *fPstep;        //[fNtracks] /** Physics step selected */
+  Double_t *fStep;         //[fNtracks] /** Current step */
+  Double_t *fSnext;        //[fNtracks] /** Snext distance */
+  Double_t *fSafety;       //[fNtracks] /** Snext distance */
 
 private:
 
   /**
-   * @brief GeantOutput constructor
-   * @todo Not implemented
+   * @brief GeantOutput copy constructor
+   * @details Not allowed
    */
   GeantOutput(const GeantOutput &);
   
   /**
-   * @brief Function of operator =
-   * @todo Not implemented
+   * @brief Assignment operator
+   * @details Not allowed
    */
   GeantOutput &operator=(const GeantOutput &); 
 

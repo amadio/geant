@@ -71,7 +71,7 @@ ClassImp(GeantPropagator)
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
     : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0),
-      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fNprocesses(3), fElossInd(0), fNstart(0),
+      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fNprocesses(3), fNstart(0),
       fMaxTracks(0), // change
       fMaxThreads(100), fNminThreshold(10), fDebugTrk(-1), fMaxSteps(10000), fNperBasket(16),
       fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fMaxRes(10000.), fNaverage(0.), fVertex(),
