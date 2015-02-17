@@ -29,6 +29,9 @@
 /// \brief Implementation of the G01SteppingAction class
 
 #include "TGeoManager.h"
+#include "TGeoExtension.h"
+#include "TObjString.h"
+#include "TMap.h"
 
 #include "time.h"
 #include "VTfileio.h"
@@ -203,7 +206,13 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
      norm=1./norm;
      point[0]=xstart.x()*0.1;point[1]=xstart.y()*0.1;point[2]=xstart.z()*0.1;
      dir[0]=pstart.x()*norm;dir[1]=pstart.y()*norm;dir[2]=pstart.z()*norm;
-     const char* rvol = gGeoManager->InitTrack(point,dir)->GetVolume()->GetName();
+     TGeoVolume *rgvol = gGeoManager->InitTrack(point,dir)->GetVolume();
+     TGeoRCExtension *rcext = (TGeoRCExtension*) rgvol->GetUserExtension();
+     if(rcext) {
+	TMap *uext = (TMap*) rcext->GetUserObject();
+	printf("pcutep = %s\n",((TObjString *)uext->GetValue("pcutep"))->GetString().Data());
+     }
+     const char* rvol = rgvol->GetName();
      G4TouchableHistory *coldTouch = new G4TouchableHistory();
      GetNavigator()->LocateGlobalPointAndUpdateTouchable(xstart,dstart,coldTouch,false);
      const char *cvol="\0";
