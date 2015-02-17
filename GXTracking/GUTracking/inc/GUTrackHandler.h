@@ -4,6 +4,11 @@
 #include "GUTrack.h"
 #include "stddef.h"
 
+#include "backend/Backend.h"
+
+
+namespace vecphys {
+
 class GUTrackHandler 
 {
 public:
@@ -34,5 +39,7 @@ private:
   GUTrack_v fTrack_soa;
   char*     fBuffer;
 };
+
+} // end namespace vecphys
 
 #endif

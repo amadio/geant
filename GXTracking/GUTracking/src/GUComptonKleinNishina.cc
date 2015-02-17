@@ -3,19 +3,22 @@
 #include <iostream>
 
 #include "backend/Backend.h"
-#include "backend/vc/Backend.h"
 
-using namespace VECGEOM_NAMESPACE;
+namespace vecphys {
+inline namespace VECPHYS_IMPL_NAMESPACE {
 
-FQUALIFIER 
-GUComptonKleinNishina::GUComptonKleinNishina(int threadId) 
+VECPHYS_CUDA_HEADER_BOTH 
+GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId) 
   :
-  fRandomState(0), fThreadId(threadId),
-  fMinX(1.0), fMaxX(1001), fDeltaX(0.1),
-  fMinY(0.), fMaxY(0.), fDeltaY(0.),
-  fNrow(100), fNcol(100)
+  fRandomState(states), fThreadId(threadId),
+  fMinX(1.), fMaxX(1001.), fDeltaX(0.1), 
+  fMinY(0.), fMaxY(1001.), fDeltaY(0.1),
+  fNrow(100), fNcol(100) 
 {
-  fAliasSampler = new GUAliasSampler(10,fMinX,fMaxX,fNrow,fNcol);
+  //replace hard coded numbers by default constants
+
+  fAliasSampler = new GUAliasSampler(fRandomState,fThreadId,
+                                     10,fMinX,fMaxX,fNrow,fNcol);
 
   //eventually arguments of BuildTable should be replaced by members of *this
   //and dropped from the function signature. Same for BuildPdfTable
@@ -25,28 +28,30 @@ GUComptonKleinNishina::GUComptonKleinNishina(int threadId)
 
 //need another Ctor with setable parameters
 
-FQUALIFIER 
+VECPHYS_CUDA_HEADER_BOTH 
 GUComptonKleinNishina::~GUComptonKleinNishina() 
 {
   if(fAliasSampler) delete fAliasSampler;
 }
 
-FQUALIFIER 
+#ifdef __CUDA_ARCH__ 
+
+VECPHYS_CUDA_HEADER_BOTH 
 void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
                                      int      targetElement,
                                      GUTrack* outSecondary ) const
 {
-  double EVc;
-  double deltaVc; //temporary - this should be dy in BuildPdfTable
+  double energyIn;
+  double deltaE; //temporary - this should be dy in BuildPdfTable
 
-  EVc = inProjectile.E;
-  deltaVc =  EVc - EVc/(1+2.0*EVc*inv_electron_mass_c2);
+  energyIn = inProjectile.E;
+  deltaE =  energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
 
   int index;
   int icol;
   double fraction;
 
-  fAliasSampler->SampleBin<kScalar>(EVc,index,icol,fraction);
+  fAliasSampler->SampleBin<kCuda>(energyIn,index,icol,fraction);
 
   double probNA;   // Non-alias probability
   int aliasInd; 
@@ -54,98 +59,151 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
   //  This is really an integer -- could be In  
   fAliasSampler->GetAlias(index,probNA,aliasInd);
 
-  //TODO: write back result xVc somewhere
-  // xVc.store(/* some address*/);
-  double xVc = fAliasSampler->SampleX<kScalar>(deltaVc,probNA,aliasInd,
+  //TODO: write back result energyOut somewhere
+  double energyOut = fAliasSampler->SampleX<kCuda>(deltaE,probNA,aliasInd,
 					       icol,fraction);
 
   //store only secondary energy for now
   //evaluate the scattered angle based on xV
-  double angleVc = SampleSinTheta<kScalar>(EVc,xVc);
+  double sinTheta = SampleSinTheta<kCuda>(energyIn,energyOut);
 
   //need to rotate the angle with respect to the line of flight
-  outSecondary->E = xVc; 
-  outSecondary->px = angleVc; //temporarily
-  
+  outSecondary->E = energyOut; 
+  //rotate the angle along the line of flight and fill
+  //other variables of the scondary,(px,py,pz) and etc 
+  outSecondary->px = sinTheta; //temporary 
 }
 
-FQUALIFIER void 
+#else
+
+void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
+                                     int      targetElement,
+                                     GUTrack* outSecondary ) const
+{
+  double energyIn;
+  double deltaE; //temporary - this should be dy in BuildPdfTable
+
+  energyIn = inProjectile.E;
+  deltaE =  energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
+
+  int index;
+  int icol;
+  double fraction;
+
+  fAliasSampler->SampleBin<kScalar>(energyIn,index,icol,fraction);
+
+  double probNA;   // Non-alias probability
+  int aliasInd; 
+
+  //  This is really an integer -- could be In  
+  fAliasSampler->GetAlias(index,probNA,aliasInd);
+
+  //TODO: write back result energyOut somewhere
+  double energyOut = fAliasSampler->SampleX<kScalar>(deltaE,probNA,aliasInd,
+					       icol,fraction);
+
+  //store only secondary energy for now
+  //evaluate the scattered angle based on xV
+  double sinTheta = SampleSinTheta<kScalar>(energyIn,energyOut);
+
+  //need to rotate the angle with respect to the line of flight
+  outSecondary->E = energyOut; 
+  outSecondary->px = sinTheta; //temporary 
+}
+
+#ifdef VECPHYS_VC 
+
+void 
 GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
           const int *targetElements,  // Number equal to num of tracks
           GUTrack_v* outSecondaryV    // Empty vector for secondaries
           ) const
 {
-  std::cout << "From GUComptonKleinNishina::Interact" << std::endl;
-
-  Vc::double_v EVc;
-  Vc::double_v deltaVc; //temporary - this should be dy in BuildPdfTable
-
+  Vc::double_v energyIn;
+  Vc::double_v deltaE; //temporary - this should be dy in BuildPdfTable
   Vc::Vector<Precision> index;
   Vc::Vector<Precision> icol;
   Vc::double_v fraction;
 
   for(int i=0; i < inProjectile.numTracks/Vc::double_v::Size ; ++i) {
 
-    // loads energies into a VC-"register" type called EVc
-    // Vc::double_v EVc( &inProjectile.E[i*Vc::double_v::Size]); 
-
     //gather
+    // loads energies into a VC-"register" type called energyIn
     for(int j = 0; j < Vc::double_v::Size ; ++j) {
-      EVc[j] = inProjectile.E[ i*Vc::double_v::Size + j];
-      deltaVc[j] =  EVc[j] - EVc[j]/(1+2.0*EVc[j]*inv_electron_mass_c2);
-
+      energyIn[j] = inProjectile.E[ i*Vc::double_v::Size + j];
+      deltaE[j] = energyIn[j] - energyIn[j]/(1+2.0*energyIn[j]*inv_electron_mass_c2);
     }
 
-    //    Vc::double_v xVc = fAliasSampler->Sample<kVc>(EVc,deltaVc);
-    fAliasSampler->SampleBin<kVc>(EVc,index,icol,fraction);
+    fAliasSampler->SampleBin<kVc>(energyIn,index,icol,fraction);
 
     Vc::Vector<Precision> probNA;   // Non-alias probability
-    Vc::Vector<Precision> aliasInd; //  This is really an integer -- could be Index_t !?
+    Vc::Vector<Precision> aliasInd; // This is really an integer -- could be Index_t !?
 
     //gather for alias table lookups
     fAliasSampler->GatherAlias<kVc>(index,probNA,aliasInd);
 
-    Vc::double_v xVc = fAliasSampler->SampleX<kVc>(deltaVc,probNA,aliasInd,
+    Vc::double_v energyOut = fAliasSampler->SampleX<kVc>(deltaE,probNA,aliasInd,
 						   icol,fraction);
 
-    //TODO: write back result xVc somewhere
-    // xVc.store(/* some address*/);
+    //TODO: write back result energyOut somewhere
 
     //store only secondary energy for now
     //evaluate the scattered angle based on xV
-    Vc::double_v angleVc = SampleSinTheta<kVc>(EVc,xVc);
+    //    Vc::double_v sinTheta = SampleSinTheta<kVc>(energyIn,energyOut);
 
     //need to rotate the angle with respect to the line of flight
 
     //scatter 
     for(int j = 0; j < Vc::double_v::Size ; ++j) {
-
-      outSecondaryV->E[ i*Vc::double_v::Size + j] = xVc[j]; 
-      //fill also (x,y,z) and (px,py,pz), q and etc
-      outSecondaryV->px[ i*Vc::double_v::Size + j] = angleVc[j]; //tmeporarily
+      outSecondaryV->E[ i*Vc::double_v::Size + j] = energyOut[j]; 
+      //rotate the angle along the line of flight and fill
+      //other variables of the scondary,(px,py,pz) and etc 
     }
   }
 }    
 
-FQUALIFIER 
+#endif
+
+#endif
+
+
+#ifdef __CUDA_ARCH__ 
+VECPHYS_CUDA_HEADER_BOTH 
 void GUComptonKleinNishina::InteractG4(GUTrack& inProjectile,
                                        int      targetElement,
                                        GUTrack* outSecondary )
 {
-  double EVc;
+  //  double energyIn;
+  Precision energyIn;
 
-  EVc = inProjectile.E;
+  energyIn = inProjectile.E;
 
-  double xVc;
-  double angleVc;
-  SampleByCompositionRejection(EVc,xVc,angleVc);
+  Precision energyOut;
+  Precision angleVc;
+  SampleByCompositionRejection<kCuda>(energyIn,energyOut,angleVc);
 
-  outSecondary->E = xVc; 
-  outSecondary->px = angleVc; //tmeporarily
+  outSecondary->E = energyOut; 
   
 }
+#else
+void GUComptonKleinNishina::InteractG4(GUTrack& inProjectile,
+                                       int      targetElement,
+                                       GUTrack* outSecondary )
+{
+  Precision energyIn;
 
-FQUALIFIER void 
+  energyIn = inProjectile.E;
+
+  Precision energyOut;
+  Precision angleVc;
+  SampleByCompositionRejection<kScalar>(energyIn,energyOut,angleVc);
+
+  outSecondary->E = energyOut; 
+  
+}
+#endif
+
+VECPHYS_CUDA_HEADER_BOTH void 
 GUComptonKleinNishina::BuildTable( int Z, 
                                    const double xmin, 
                                    const double xmax,
@@ -162,7 +220,7 @@ GUComptonKleinNishina::BuildTable( int Z,
   delete [] pdf;
 }
 
-FQUALIFIER void 
+VECPHYS_CUDA_HEADER_BOTH void 
 GUComptonKleinNishina::BuildPdfTable(int Z, 
                                      const double xmin, 
                                      const double xmax,
@@ -219,7 +277,7 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
 // function implementing the cross section for KleinNishina
 // TODO: need to get electron properties from somewhere
 
-FQUALIFIER double 
+VECPHYS_CUDA_HEADER_BOTH double 
 GUComptonKleinNishina::CalculateDiffCrossSection( int Zelement, 
                                                   double energy0, 
                                                   double energy1 ) const
@@ -240,35 +298,6 @@ GUComptonKleinNishina::CalculateDiffCrossSection( int Zelement,
   return dsigma;
 }
 
-FQUALIFIER void
-GUComptonKleinNishina::SampleByCompositionRejection(double energyIn,
-						    double& energyOut,
-						    double& sinTheta)
-{
-  double epsilon, epsilonsq, onecost, sint2, greject ;
-  
-  double E0_m = energyIn*inv_electron_mass_c2 ;
-  double eps0       = 1./(1. + 2.*E0_m);
-  double epsilon0sq = eps0*eps0;
-  double alpha1     = - log(eps0);
-  double alpha2     = 0.5*(1.- epsilon0sq);
-  
-  do {
-    if( alpha1/(alpha1+alpha2) > GUUniformRand(0, -1) ) {
-      epsilon   = exp(-alpha1*GUUniformRand(0, -1));
-      epsilonsq = epsilon*epsilon; 
-    } 
-    else {
-      epsilonsq = epsilon0sq+(1.- epsilon0sq)*GUUniformRand(0,-1);
-      epsilon   = sqrt(epsilonsq);
-    }
-    
-    onecost = (1.- epsilon)/(epsilon*E0_m);
-    sint2   = onecost*(2.-onecost);
-    greject = 1. - epsilon*sint2/(1.+ epsilonsq);
-    
-  } while (greject < GUUniformRand(0, -1));
-  
-  energyOut = epsilon*energyIn;
-  sinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);
-}
+
+} // end namespace impl
+} // end namespace vecphys

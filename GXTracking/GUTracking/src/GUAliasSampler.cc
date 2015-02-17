@@ -1,13 +1,20 @@
 #include "GUAliasSampler.h"
 
+namespace vecphys {
+inline namespace VECPHYS_IMPL_NAMESPACE {
+
+VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::
-GUAliasSampler(int    Zelement, 
+GUAliasSampler(Random_t* states, int threadId,
+               int    Zelement, 
                double incomingMin, 
                double incomingMax,
                int    numEntriesIncoming, // for 'energy' (or log) of projectile
                int    numEntriesSampled   
 )  
   :
+  fRandomState(states), 
+  fThreadId(threadId),
   fZelement(Zelement),
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
@@ -20,8 +27,10 @@ GUAliasSampler(int    Zelement,
   fpdf = new double [fInNumEntries*fSampledNumEntries];
   fProbQ = new double [fInNumEntries*fSampledNumEntries];
   fAlias = new int [fInNumEntries*fSampledNumEntries];
+
 }
 
+VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::~GUAliasSampler()
 {
   if(fpdf)   delete [] fpdf;
@@ -29,22 +38,27 @@ GUAliasSampler::~GUAliasSampler()
   if(fAlias) delete [] fAlias;
 }
 
-FQUALIFIER 
-void GUAliasSampler::GetAlias(int  index, 
-	                      double &probNA,  
-	                      int &aliasInd 
-	                      ) const 
+VECPHYS_CUDA_HEADER_BOTH
+void GUAliasSampler::PrintTable()
+{
+  ;
+}
+
+VECPHYS_CUDA_HEADER_BOTH
+void GUAliasSampler::GetAlias(int    index, 
+                              double &probNA,  
+                              int    &aliasInd) const 
 {
   //gather for alias table lookups
   probNA =    fProbQ[ index ];
   aliasInd =  fAlias[ index ];
 }
 
+VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::BuildAliasTables( const int nrow,
                                        const int ncol,
                                        double   *pdf )
 {
-
   // Build alias and alias probability
   //    
   // Reference: (1) A.J. Walker, "An Efficient Method for Generating Discrete 
@@ -115,3 +129,6 @@ void GUAliasSampler::BuildAliasTables( const int nrow,
   free(a);
   free(ap);
 }
+
+} // end namespace impl
+} // end namespace vecphys

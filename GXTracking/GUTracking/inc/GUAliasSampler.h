@@ -16,81 +16,81 @@
 // 
 //  Based on first alias sampler by Soon Y. Jun - July 2014
 #include "backend/Backend.h"
-#include "backend/vc/Backend.h"
 
-#include "GURandom.h"
+namespace vecphys {
 
-using namespace VECGEOM_NAMESPACE;
+inline namespace VECPHYS_IMPL_NAMESPACE {
 
 class GUAliasSampler
 {
 public: 
-  GUAliasSampler(int    Zelement, 
+
+  VECPHYS_CUDA_HEADER_BOTH
+  GUAliasSampler(Random_t* states, int threadId,
+                 int    Zelement, 
                  double incomingMin, 
                  double incomingMax,
-                 int    numEntriesIncoming,  // for 'energy' (or log) of projectile
+                 int    numEntriesIncoming, // 'energy' (or log) of projectile
                  int    numEntriesSampled 
                  );  
 
+  VECPHYS_CUDA_HEADER_BOTH
   ~GUAliasSampler();
+
+  VECPHYS_CUDA_HEADER_BOTH
   void PrintTable();
 
-  /* Builds (part) of our tables ( for one ene)
-   *
-  */
-   // Builds all our table - must be called during initialisation 
-  //  void SetPdf( double const * pdf );
-  //  void BuildRow( int numVal, double* differentialXSection, double xMin, double xMax );
+  VECPHYS_CUDA_HEADER_BOTH
+  void GetAlias(int     index, 
+                double &probNA,  
+                int    &aliasInd) const;
 
-  //private:
-// Implementation methods: 
+  VECPHYS_CUDA_HEADER_BOTH
   void BuildAliasTables( const int nrow, const int ncol, double   *pdf );
 
+  // Backend Implementation:
   template<class Backend>
-  FQUALIFIER void
-  SampleBin( typename Backend::Double_t  kineticEnergy,
-	     typename Backend::Index_t   &index,
-	     typename Backend::Index_t   &icol,
-             typename Backend::Double_t  &fraction) const;
-
+  VECPHYS_CUDA_HEADER_BOTH
+  void SampleBin( typename Backend::Double_t  kineticEnergy,
+                  typename Backend::Index_t   &index,
+                  typename Backend::Index_t   &icol,
+                  typename Backend::Double_t  &fraction) const;
 
   template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t
   SampleX(typename Backend::Double_t rangeSampled, 
-          typename Backend::Double_t probNA,   // ~ sampled value
-          typename Backend::Double_t aliasInd, // ~ input Energy
-          typename Backend::Index_t  icol,     // ~ input Energy
-          typename Backend::Double_t fraction  //  in sampled variable
-	  ) const;
+          typename Backend::Double_t probNA,   
+          typename Backend::Double_t aliasInd, 
+          typename Backend::Index_t  icol,     
+          typename Backend::Double_t fraction  
+          ) const;
 
+
+  //#ifndef VECPHYS_NVCC
   template<class Backend>
-  FQUALIFIER void
+  void
   GatherAlias(typename Backend::Index_t  index, 
               typename Backend::Double_t &probNA,  
               typename Backend::Double_t &aliasInd 
-	      ) const;
-
-  FQUALIFIER void
-  GetAlias(int  index, 
-    	   double &probNA,  
-	   int &aliasInd 
-	   ) const;
+              ) const;
 
 private:
+  Random_t*      fRandomState;
+  int            fThreadId;
+
   const int      fZelement; 
   
   const double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
   const double   fIncomingMax; // Max
   const int      fInNumEntries;
   const double   fInverseBinIncoming;
-  // const double   fInBinSize; 
   
   //  For the sampled variable 
   const int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
   const double   fInverseBinSampled; 
   const double   fSampledBinSize; 
-  // Values needed per bin 
-  //  -- Initialised how ??
+
   double*  fSampledMin; // Minimum value of 'x' sampled variable
   double*  fSampledMax; // Maximum value of 'x' sampled variable
   
@@ -101,11 +101,11 @@ private:
   int    * fAlias; // Alias table           -- could become Index_t ?
 };
 
-// implementation of template functions
+// Backend Implementation
 
 template<class Backend>
-FQUALIFIER void
-GUAliasSampler::
+VECPHYS_CUDA_HEADER_BOTH
+void GUAliasSampler::
 SampleBin(typename Backend::Double_t kineticEnergy,
           typename Backend::Index_t  &index,    // ~ sampled value
           typename Backend::Index_t  &icol,     // ~ input Energy
@@ -115,10 +115,9 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  Index_t irow = VECGEOM_NAMESPACE::Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
-  //  Double_t r1 = (fSampledNumEntries-1)*Double_t::Random();
-  Double_t r1 = (fSampledNumEntries-1)*VECGEOM_NAMESPACE::UniformRandom(Backend::kOne);
-  icol = VECGEOM_NAMESPACE::Floor(r1);
+  Index_t irow = Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom(fRandomState,fThreadId);
+  icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
   // Was rangeSampled /(fSampledNumEntries-1);
@@ -126,35 +125,21 @@ SampleBin(typename Backend::Double_t kineticEnergy,
 }
 
 template<class Backend>
-FQUALIFIER void
-GUAliasSampler::
-GatherAlias(typename Backend::Index_t  index, 
-            typename Backend::Double_t &probNA,  
-            typename Backend::Double_t &aliasInd 
-           ) const 
-{
-  //gather for alias table lookups
-  for(int i = 0; i < Vc::double_v::Size ; ++i) {
-    probNA[i]=    fProbQ[ (int) index[i] ];
-    aliasInd[i]=  fAlias[ (int) index[i] ];
-  }
-}
-
-template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH
 typename Backend::Double_t
 GUAliasSampler::
 SampleX(typename Backend::Double_t rangeSampled, 
-        typename Backend::Double_t probNA,   // ~ sampled value
-        typename Backend::Double_t aliasInd, // ~ input Energy
-        typename Backend::Index_t  icol,     // ~ input Energy
-        typename Backend::Double_t fraction  //  in sampled variable
+        typename Backend::Double_t probNA,   
+        typename Backend::Double_t aliasInd, 
+        typename Backend::Index_t  icol,     
+        typename Backend::Double_t fraction  
        ) const
 {
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
 
 
-  Double_t r1 = VECGEOM_NAMESPACE::UniformRandom(Backend::kOne);//GUUniformRand(0,-1);
+  Double_t r1 = UniformRandom(fRandomState,fThreadId);
 
   Bool_t condition = r1 <= probNA;
   Double_t xd, xu;
@@ -174,5 +159,25 @@ SampleX(typename Backend::Double_t rangeSampled,
 
   return x;
 }
+
+#ifndef VECPHYS_NVCC
+
+template<class Backend>
+void GUAliasSampler::
+GatherAlias(typename Backend::Index_t  index, 
+            typename Backend::Double_t &probNA,  
+            typename Backend::Double_t &aliasInd 
+           ) const 
+{
+  //gather for alias table lookups - (backend type has no ptr arithmetic)
+  for(int i = 0; i < Backend::kSize ; ++i) {
+    probNA[i]=    fProbQ[ (int) index[i] ];
+    aliasInd[i]=  fAlias[ (int) index[i] ];
+  }
+}
+#endif
+
+} // end namespace impl
+} // end namespace vecphys
 
 #endif

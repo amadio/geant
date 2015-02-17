@@ -1,9 +1,12 @@
 #include "GUTrackHandler.h"
 #include "GUConstants.h"
-#include "GURandom.h"
 #include <cmath>
 #include <iostream>
 #include "mm_malloc.h"
+
+#include "backend/Backend.h"
+
+namespace vecphys {
 
 GUTrackHandler::GUTrackHandler()
   : fNumberOfTracks(0),
@@ -126,14 +129,14 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
 
   for(size_t i = 0 ; i < fNumberOfTracks ; ++i){
     
-    rho = ecalRmim + (ecalRmax-ecalRmim)*GUUniformRand(0,-1);
+    rho = ecalRmim + (ecalRmax-ecalRmim)*UniformRandom(0,-1);
     do {
-      p = minP - 0.2*(maxP - minP)*log(GUUniformRand(0,-1));
+      p = minP - 0.2*(maxP - minP)*log(UniformRandom(0,-1));
     }
     while (p>maxP);
 
-    z = ecalZmax*(2*GUUniformRand(0,-1)-1.0);
-    phi = 2*pi*GUUniformRand(0,-1);
+    z = ecalZmax*(2*UniformRandom(0,-1)-1.0);
+    phi = 2*pi*UniformRandom(0,-1);
     theta = std::atan(rho/z);
     cosphi = std::cos(phi);
     sinphi = std::sin(phi);
@@ -160,3 +163,5 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
 
   }
 }
+
+} // end namespace vecphys
