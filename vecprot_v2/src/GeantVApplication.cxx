@@ -2,11 +2,8 @@
 
 ClassImp(GeantVApplication)
 
-//______________________________________________________________________________
-GeantVApplication::GeantVApplication()
-                  :TObject()
-{
-// Ctor..
+    //______________________________________________________________________________
+    GeantVApplication::GeantVApplication()
+    : TObject() {
+  // Ctor..
 }
-
-
