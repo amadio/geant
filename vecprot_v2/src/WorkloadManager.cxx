@@ -265,17 +265,16 @@ void *WorkloadManager::MainScheduler(void *) {
     // Check and mark finished events
     for (Int_t ievt = 0; ievt < nbuffered; ievt++) {
       GeantEvent *evt = propagator->fEvents[ievt];
-      if (prioritize && ievt == dumped_event)
-        evt->Print();
       if (finished.TestBitNumber(evt->GetEvent()))
         continue;
       if (evt->Transported()) {
+        evt->Print();
         // Digitizer (delete for now)
         Int_t ntracks = propagator->fNtracks[ievt];
         Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
         //            propagator->fApplication->Digitize(evt->GetEvent());
         //            for (Int_t itrack=0;
-        //            itrack--------------------------------------------------<ntracks; itrack++) {
+        //            itrack<ntracks; itrack++) {
         //               delete propagator->fTracks[maxperevent*ievt+itrack];
         //               propagator->fTracks[maxperevent*ievt+itrack] = 0;
         //            }
@@ -373,7 +372,7 @@ void *WorkloadManager::MainScheduler(void *) {
     }
     ntotransport = feederQ->size_async();
     if (ntotransport == 0) {
-      Printf("Garbage collection");
+      // Printf("Garbage collection");
       sch->GarbageCollect();
       if (countdown)
         feederQ->set_countdown(0);
