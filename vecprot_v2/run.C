@@ -6,15 +6,15 @@ void run(Int_t nthreads=4,
 	 const char *xsec="xsec_FTFP_BERT.root",
 	 const char *fstate="fstate_FTFP_BERT.root")
 {
-   gSystem->Load("libPhysics");
-   gSystem->Load("libHist");
-   gSystem->Load("libThread");
-   gSystem->Load("libGeom");
-   gSystem->Load("libVMC");
+//   gSystem->Load("libPhysics");
+//   gSystem->Load("libHist");
+//   gSystem->Load("libThread");
+//   gSystem->Load("libGeom");
+//   gSystem->Load("libVMC");
    //   gSystem->Load("../buildTGeo/lib/libGeant_v");
    // gSystem->Load("../buildTGeo/lib/libXsec");
-   gSystem->Load("../lib/libGeant_v");
-   gSystem->Load("../lib/libXsec");
+//   gSystem->Load("../lib/libGeant_v");
+//   gSystem->Load("../lib/libXsec");
    // for vector physics - OFF now
    // gSystem->Load("../lib/libVphysproc");
 

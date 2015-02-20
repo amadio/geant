@@ -19,7 +19,7 @@ ClassImp(GeantBasket)
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
     : TObject(), fManager(0), fTracksIn(), fTracksOut(), fAddingOp(0), fThreshold(0) {
-  // Dummy ctor.
+  // Dummy constructor.
 }
 
 //______________________________________________________________________________
@@ -27,6 +27,7 @@ GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
     : TObject(), fManager(mgr), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
       fTracksOut(size, GeantPropagator::Instance()->fMaxDepth), fAddingOp(0), fThreshold(size) {
   // Default constructor.
+  if (!mgr->GetVolume()) SetMixed(true);
 }
 
 //______________________________________________________________________________
@@ -124,8 +125,8 @@ void GeantBasket::SetThreshold(Int_t threshold) {
 
 ClassImp(GeantBasketMgr)
 
-    //______________________________________________________________________________
-    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number)
+//______________________________________________________________________________
+GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number)
     : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32),
       fThreshold(0), fNbaskets(0), fNused(0), fCBasket(0), fPBasket(0), fLock(), fQLock(),
       fBaskets(0), fFeeder(0), fMutex() {

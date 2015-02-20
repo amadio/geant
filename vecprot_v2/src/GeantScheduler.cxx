@@ -31,6 +31,7 @@ GeantScheduler::GeantScheduler()
 //______________________________________________________________________________
 GeantScheduler::~GeantScheduler() {
   // dtor.
+  delete fGarbageCollector;
   if (fBasketMgr) {
     for (Int_t ib = 0; ib < fNvolumes; ib++) {
       fBasketMgr[ib]->GetVolume()->SetFWExtension(0);
@@ -77,6 +78,7 @@ void GeantScheduler::CreateBaskets() {
   for (Int_t i = 0; i < fNvolumes; i++)
     fNtracks[i].store(0);
   Geant::priority_queue<GeantBasket *> *feeder = WorkloadManager::Instance()->FeederQueue();
+  fGarbageCollector = new GeantBasketMgr(this, 0, 0);
   TIter next(gGeoManager->GetListOfVolumes());
   TGeoVolume *vol;
   GeantBasketMgr *basket_mgr;
