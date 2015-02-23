@@ -809,7 +809,8 @@ void *WorkloadManager::MonitoringThread(void *) {
   GeantBasketMgr **bmgr = sch->GetBasketManagers();
 
   TCanvas *cmon = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("cscheduler");
-  cmon->Divide(2, dmon);
+  if (nmon == 1) cmon->Divide(1,1);
+  else cmon->Divide(2, dmon);
   TH1I *hqueue = 0;
   Int_t nqueue[100] = {0};
   Int_t ipad = 0;
@@ -968,6 +969,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     }  
     if (htracksmax) {
       cmon->cd(++ipad);
+      htracksmax->GetXaxis()->SetTitle("Event slot");
       htracksmax->Draw();
       htracks->Draw("SAME");
     }  
