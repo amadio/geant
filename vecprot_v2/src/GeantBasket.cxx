@@ -269,6 +269,31 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority) {
 }
 
 //______________________________________________________________________________
+Int_t GeantBasketMgr::GarbageCollectEvents(Int_t evmin, Int_t evmax, GeantBasketMgr *gc) {
+  // Garbage collect tracks from the given event range. The basket gc should
+  // be thread local
+  if (!GetCBasket()->GetNinput())
+    return 0;
+  GeantBasket *cbasket = 0;
+  while (cbasket == 0)
+    cbasket = StealAndReplace(fCBasket);
+  // cbasket is now thread local
+  // Loop all tracks in the current basket and mark for copy the ones belonging
+  // to the desired events
+  GeantTrack_v &tracks = cbasket->GetInputTracks();
+  Int_t ntracks = tracks.GetNtracks();
+  Int_t icoll = 0;
+  for (Int_t itr = 0; itr < ntracks; itr++) {
+    if (tracks.fEventV[itr] >= evmin && tracks.fEventV[itr] <= evmax) {
+      tracks.MarkRemoved(itr);
+      icoll++;
+    }
+  }
+  if (icoll) tracks.Compact(&gc->GetCBasket()->GetInputTracks());
+  return icoll;
+}
+
+//______________________________________________________________________________
 Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax) {
   // Move current basket tracks to priority one.
   // *** NONE *** This should be done for all basket managers only once when

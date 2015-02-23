@@ -344,6 +344,15 @@ public:
   Int_t AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority = kFALSE);
 
   /**
+   * @brief Thread local garbage collection of tracks from prioritized events
+   *
+   * @param evmin Minimum event index
+   * @param evmax Maximum event index
+   * @param gc Garbage collector basket
+   */
+  Int_t GarbageCollectEvents(Int_t evmin, Int_t evmax, GeantBasketMgr *gc);
+
+  /**
    * @brief Garbage collection of prioritized tracks in an event range
    * 
    * @param evmin Minimum event index

@@ -49,6 +49,8 @@ protected:
   GeantBasketMgr *fGarbageCollector; /** Garbage collector manager */
 #if __cplusplus >= 201103L
   std::atomic_int *fNtracks; /**[fNvolumes] Number of tracks per volume */
+  std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
+  std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
 #endif
   Int_t fPriorityRange[2]; /** Prioritized events */
 #ifdef __STAT_DEBUG
@@ -108,6 +110,9 @@ public:
   /** @brief Function to clean baskets */
   void CleanBaskets();
 
+  /** @brief Function to collect all tracks from prioritized events */
+  Int_t CollectPrioritizedPerThread();
+
   /** @brief Function to collection prioritized tracks and inject into transport queue */
   Int_t CollectPrioritizedTracks();
 
@@ -132,6 +137,18 @@ public:
    * @return return number of tracks per volume
    */
   Int_t GetNtracks(Int_t ib) { return fNtracks[ib].load(); }
+
+  /**
+   * @brief Getter for collecting flag
+   * @return Value of fCollecting flag
+   */
+   Bool_t IsCollecting() const { return fCollecting.load(); }
+   
+  /**
+   * @brief Setter for collecting flag
+   */
+   void SetCollecting(Bool_t flag) { fCollecting.store(flag); }
+   
 #endif
 
   /**

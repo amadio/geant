@@ -18,7 +18,7 @@ ClassImp(GeantScheduler)
 
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
-  : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNtracks(0) {
+  : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNtracks(0), fCrtMgr(0), fCollecting(false) {
   // dummy
   fPriorityRange[0] = fPriorityRange[1] = -1;
 #ifdef __STAT_DEBUG
@@ -158,6 +158,29 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
   }
   tracks.Clear();
   return ninjected;
+}
+
+//______________________________________________________________________________
+Int_t GeantScheduler::CollectPrioritizedPerThread() {
+  // Collect all tracks from prioritized events. Called concurrently by worker
+  // threads. The thread getting to process the last basket manager resets the
+  // collection process. The method performs work steal.
+  Int_t ncollected = 0;
+  Int_t imgr;
+  // The IsCollecting flag can only be set by the scheduler thread, but can be
+  // reset by any worker
+  while (IsCollecting()) {
+    imgr = ++fCrtMgr;
+    if (imgr >= fNvolumes) return ncollected;
+    if (imgr == fNvolumes-1) {
+      SetCollecting(false);
+      fCrtMgr.store(0);
+    }  
+    // Process current basket manager
+    ncollected += fBasketMgr[imgr]->GarbageCollectEvents(fPriorityRange[0],
+      fPriorityRange[1], fGarbageCollector);
+  }
+  return ncollected;
 }
 
 //______________________________________________________________________________
