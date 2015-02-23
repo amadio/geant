@@ -32,11 +32,11 @@ ClassImp(WorkloadManager)
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(Int_t nthreads)
     : TObject(), fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0),
-      fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fStarted(kFALSE),
-      fStopped(kFALSE), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
-      //                 fNavStates(0),
-      fListThreads(0), fFlushed(kFALSE), fFilling(kFALSE), fScheduler(0), fBroker(0), fWaiting(0),
-      fSchLocker(), fGbcLocker() {
+      fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fStarted(false),
+      fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
+      fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0), 
+      fMonMemory(0), fMonBasketsPerVol(0), fMonConcurrency(0), fMonTracksPerEvent(0),
+      fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker() {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -100,7 +100,7 @@ void WorkloadManager::SetTaskBroker(TaskBroker *broker) {
 //______________________________________________________________________________
 void WorkloadManager::StartThreads() {
   // Start the threads
-  fStarted = kTRUE;
+  fStarted = true;
   if (fListThreads)
     return;
   fListThreads = new TList();
@@ -163,7 +163,7 @@ void WorkloadManager::JoinThreads() {
 //______________________________________________________________________________
 void WorkloadManager::WaitWorkers() {
   // Waiting point for the main thread until work gets done.
-  fFilling = kFALSE;
+  fFilling = false;
   Int_t ntowait = fNthreads;
   if (fBroker)
     ntowait -= fBroker->GetNstream();
@@ -190,8 +190,8 @@ void *WorkloadManager::MainScheduler(void *) {
   Int_t last_event = nbuffered;
   Int_t max_events = propagator->fNtotal;
   TBits finished(max_events);
-  Bool_t prioritize = kFALSE;
-  Bool_t countdown = kFALSE;
+  Bool_t prioritize = false;
+  Bool_t countdown = false;
   WorkloadManager *wm = WorkloadManager::Instance();
   if (wm->fBroker)
     nworkers -= wm->fBroker->GetNstream();
@@ -296,14 +296,14 @@ void *WorkloadManager::MainScheduler(void *) {
       if (first_not_transported > dumped_event) {
         // Priority events digitized, exit prioritized regime
         Printf("= stopped prioritizing");
-        prioritize = kFALSE;
+        prioritize = false;
         sch->SetPriorityRange(-1, -1);
       } else {
         // Flush priority baskets if the countdown is zero
         //            npriority = sch->GetNpriority();
         if (countdown) {
           if (feederQ->get_countdown() == 0) {
-            countdown = kFALSE;
+            countdown = false;
             feederQ->reset_countdown();
             npriority = sch->FlushPriorityBaskets();
             ninjected += npriority;
@@ -360,8 +360,8 @@ void *WorkloadManager::MainScheduler(void *) {
         sch->GetQueuedStat().Print();
         sch->GetTransportStat().Print();
 #endif
-        prioritize = kTRUE;
-        countdown = kTRUE;
+        prioritize = true;
+        countdown = true;
         ntotransport = feederQ->size_async();
         feederQ->set_countdown(ntotransport);
         Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event, dumped_event + 4,
@@ -380,13 +380,13 @@ void *WorkloadManager::MainScheduler(void *) {
     waiting[nworkers] = 1;
   }
   // Stop workers
-  // gROOT->SetBit(TObject::kInvalidObject, kTRUE);
+  // gROOT->SetBit(TObject::kInvalidObject, true);
   for (Int_t i = 0; i < nworkers; i++)
     wm->FeederQueue()->push(0);
   wm->TransportedQueue()->push(0);
   wm->Stop();
   gbc_locker.StartOne();
-  // gROOT->SetBit(TObject::kInvalidObject, kFALSE);
+  // gROOT->SetBit(TObject::kInvalidObject, false);
   propagator->fApplication->Digitize(0);
   Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
   return 0;
@@ -627,7 +627,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
       ::Info("GPU", "Waiting (2) for next available stream.");
       stream = broker->GetNextStream();
     }
-    // lastToClear = kFALSE;
+    // lastToClear = false;
     if (!basket) {
       if (0 != broker->launchTask(/* wait= */ true)) {
         // We ran something, new basket might be available.
@@ -737,12 +737,64 @@ void *WorkloadManager::GarbageCollectorThread(void *) {
 }
 
 //______________________________________________________________________________
+Int_t WorkloadManager::GetMonFeatures() const
+{
+  // Get the number of monitored features
+  return (fMonQueue + 
+          fMonMemory + 
+          fMonBasketsPerVol + 
+          fMonConcurrency + 
+          fMonTracksPerEvent);
+}          
+
+//______________________________________________________________________________
+bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const
+{
+  // Check if a given feature is monitored
+  switch (feature) {
+    case kMonQueue:
+      return fMonQueue;
+    case kMonMemory:
+      return fMonMemory;
+    case kMonBasketsPerVol:
+      return fMonBasketsPerVol;
+    case kMonConcurrency:
+      return fMonConcurrency;
+    case kMonTracksPerEvent:
+      return fMonTracksPerEvent;
+  }
+  return false;
+}      
+
+//______________________________________________________________________________
+void WorkloadManager::SetMonitored(EGeantMonitoringType feature, bool flag)
+{
+// Enable/disable monitoring for a feature
+  int value = (int)flag;
+  switch (feature) {
+    case kMonQueue:
+      fMonQueue = value;
+    case kMonMemory:
+      fMonMemory = value;
+    case kMonBasketsPerVol:
+      fMonBasketsPerVol = value;
+    case kMonConcurrency:
+      fMonConcurrency = value;
+    case kMonTracksPerEvent:
+      fMonTracksPerEvent = value;
+  }
+}
+
+//______________________________________________________________________________
 void *WorkloadManager::MonitoringThread(void *) {
   // Thread providing basic monitoring for the scheduler.
   const Double_t MByte = 1024.;
   Printf("Started monitoring thread...");
-  //   GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = GeantPropagator::Instance();
   WorkloadManager *wm = WorkloadManager::Instance();
+  Int_t nmon = wm->GetMonFeatures();
+  if (!nmon) return 0;
+  Int_t dmon = 0.5*nmon + nmon%2;
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   Int_t ntotransport;
   ProcInfo_t procInfo;
@@ -757,102 +809,175 @@ void *WorkloadManager::MonitoringThread(void *) {
   GeantBasketMgr **bmgr = sch->GetBasketManagers();
 
   TCanvas *cmon = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("cscheduler");
-  cmon->Divide(2, 2);
-  TH1I *hqueue = new TH1I("hqueue", "Work queue load", 100, 0, 100);
-  hqueue->SetFillColor(kRed);
-  hqueue->SetLineColor(0);
-  hqueue->SetStats(kFALSE);
+  cmon->Divide(2, dmon);
+  TH1I *hqueue = 0;
   Int_t nqueue[100] = {0};
-  TH1F *hmem = new TH1F("hmem", "Resident memory [MB]", 100, 0, 100);
-  //   hmem->SetFillColor(kMagenta);
-  hmem->SetLineColor(kMagenta);
-  hmem->SetStats(kFALSE);
-  TH1I *hbaskets = new TH1I("hbaskets", "Baskets per volume", nvol, 0, nvol);
-  hbaskets->SetFillColor(kBlue);
-  hbaskets->SetLineColor(0);
-  hbaskets->SetStats(kFALSE);
-  TH1I *hbused = new TH1I("hbused", "Baskets per volume", nvol, 0, nvol);
-  hbused->SetFillColor(kRed);
-  hbused->SetFillStyle(3001);
-  hbused->SetLineColor(0);
-  hbused->SetStats(kFALSE);
-  TH1F *hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
-  hconcurrency->GetYaxis()->SetRangeUser(0, 1);
-  hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, kTRUE);
-  hconcurrency->GetYaxis()->SetNdivisions(10, kTRUE);
-  hconcurrency->SetFillColor(kGreen);
-  hconcurrency->SetLineColor(0);
-  hconcurrency->SetStats(kFALSE);
-  TH1F *hconcavg = new TH1F("hconcavg", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
-  hconcavg->SetFillColor(kRed);
-  hconcavg->SetFillStyle(3001);
-  hconcavg->SetLineColor(0);
-  hconcavg->SetStats(kFALSE);
-  cmon->cd(1);
-  hqueue->Draw();
-  cmon->cd(2);
-  hmem->Draw();
-  cmon->cd(3);
-  hbaskets->Draw();
-  hbused->Draw("SAME");
-  cmon->cd(4);
-  hconcurrency->Draw();
-  hconcavg->Draw("SAME");
+  Int_t ipad = 0;
+  if (wm->IsMonitored(WorkloadManager::kMonQueue)) {
+    hqueue = new TH1I("hqueue", "Work queue load", 100, 0, 100);
+    hqueue->SetFillColor(kRed);
+    hqueue->SetLineColor(0);
+    hqueue->SetStats(false);
+    cmon->cd(++ipad);
+    hqueue->Draw();
+  }  
+  TH1F *hmem = 0;
+  if (wm->IsMonitored(WorkloadManager::kMonMemory)) {
+    hmem = new TH1F("hmem", "Resident memory [MB]", 100, 0, 100);
+    // hmem->SetFillColor(kMagenta);
+    hmem->SetLineColor(kMagenta);
+    hmem->SetStats(false);
+    cmon->cd(++ipad);
+    hmem->Draw();
+  }  
+  TH1I *hbaskets = 0;
+  TH1I *hbused = 0;
+  if (wm->IsMonitored(WorkloadManager::kMonBasketsPerVol)) {
+    hbaskets = new TH1I("hbaskets", "Baskets per volume", nvol, 0, nvol);
+    hbaskets->SetFillColor(kBlue);
+    hbaskets->SetLineColor(0);
+    hbaskets->SetStats(false);
+    hbused = new TH1I("hbused", "Baskets per volume", nvol, 0, nvol);
+    hbused->SetFillColor(kRed);
+    hbused->SetFillStyle(3001);
+    hbused->SetLineColor(0);
+    hbused->SetStats(false);
+    cmon->cd(++ipad);
+    hbaskets->Draw();
+    hbused->Draw("SAME");
+  }    
+  TH1F *hconcurrency = 0;
+  TH1F *hconcavg = 0;
+  if (wm->IsMonitored(WorkloadManager::kMonConcurrency)) {  
+    hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
+    hconcurrency->GetYaxis()->SetRangeUser(0, 1);
+    hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, true);
+    hconcurrency->GetYaxis()->SetNdivisions(10, true);
+    hconcurrency->SetFillColor(kGreen);
+    hconcurrency->SetLineColor(0);
+    hconcurrency->SetStats(false);
+    hconcavg = new TH1F("hconcavg", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
+    hconcavg->SetFillColor(kRed);
+    hconcavg->SetFillStyle(3001);
+    hconcavg->SetLineColor(0);
+    hconcavg->SetStats(false);
+    cmon->cd(++ipad);
+    hconcurrency->Draw();
+    hconcavg->Draw("SAME");
+  }  
+  TH1I *htracksmax = 0;
+  TH1I *htracks = 0;
+  Int_t nbuffered = propagator->fNevents;
+  if (wm->IsMonitored(WorkloadManager::kMonTracksPerEvent)) {
+    htracksmax = new TH1I("htracksmax", "Tracks in flight", nbuffered, 0, nbuffered);
+    htracksmax->SetFillColor(kBlue);
+    htracksmax->SetLineColor(0);
+    htracksmax->SetStats(false);
+    htracks = new TH1I("htracks", "Tracks in flight", nbuffered, 0, nbuffered);
+    htracks->SetFillColor(kRed);
+    htracks->SetFillStyle(3001);
+    htracks->SetLineColor(0);
+    htracks->SetStats(false);
+    cmon->cd(++ipad)->SetLogy();
+    htracksmax->Draw();
+    htracks->Draw("SAME");
+  }    
   cmon->Update();
   Double_t stamp = 0.;
   Int_t i, j, bin;
+  Int_t nmaxtot;
   while (!wm->IsStopped()) { // exit condition here
     i = Int_t(stamp);
+    ipad = 0;
     gSystem->Sleep(50); // millisec
+    
     gSystem->GetProcInfo(&procInfo);
     rss = procInfo.fMemResident / MByte;
     ntotransport = feederQ->size_async();
+    // Fill histograms
     if (stamp > 100) {
-      memmove(nqueue, &nqueue[1], 99 * sizeof(Int_t));
-      memmove(nmem, &nmem[1], 99 * sizeof(Double_t));
-      nqueue[99] = ntotransport;
-      nmem[99] = rss;
-      hqueue->GetXaxis()->Set(100, stamp - 100, stamp);
-      hmem->GetXaxis()->Set(100, stamp - 100, stamp);
-      for (j = 0; j < 100; j++) {
-        hqueue->SetBinContent(j + 1, nqueue[j]);
-        hmem->SetBinContent(j + 1, nmem[j]);
+      if (hqueue) {
+        memmove(nqueue, &nqueue[1], 99 * sizeof(Int_t));
+        nqueue[99] = ntotransport;
+        hqueue->GetXaxis()->Set(100, stamp - 100, stamp);
+        for (j = 0; j < 100; j++)
+          hqueue->SetBinContent(j + 1, nqueue[j]);
+      }
+      if (hmem) {    
+        memmove(nmem, &nmem[1], 99 * sizeof(Double_t));
+        nmem[99] = rss;
+        hmem->GetXaxis()->Set(100, stamp - 100, stamp);
+        for (j = 0; j < 100; j++)
+          hmem->SetBinContent(j + 1, nmem[j]);
       }
     } else {
-      nqueue[i] = ntotransport;
-      nmem[i] = rss;
-      hqueue->SetBinContent(i + 1, nqueue[i]);
-      hmem->SetBinContent(i + 1, nmem[i]);
+      if (hqueue) {
+        nqueue[i] = ntotransport;
+        hqueue->SetBinContent(i + 1, nqueue[i]);
+      }  
+      if (hmem) {    
+        nmem[i] = rss;
+        hmem->SetBinContent(i + 1, nmem[i]);
+      }  
     }
-    for (j = 0; j < nvol; j++) {
-      bin = hbaskets->GetXaxis()->FindBin(bmgr[j]->GetVolume()->GetName());
-      hbaskets->SetBinContent(bin, bmgr[j]->GetNbaskets());
-      hbused->SetBinContent(bin, bmgr[j]->GetNused());
+    if (hbaskets) {
+      for (j = 0; j < nvol; j++) {
+        bin = hbaskets->GetXaxis()->FindBin(bmgr[j]->GetVolume()->GetName());
+        hbaskets->SetBinContent(bin, bmgr[j]->GetNbaskets());
+        hbused->SetBinContent(bin, bmgr[j]->GetNused());
+      }
     }
-    for (j = 0; j < nthreads + 1; j++) {
-      nworking[j] += 1 - waiting[j];
-      hconcurrency->SetBinContent(j + 1, 1 - waiting[j]);
-      hconcavg->SetBinContent(j + 1, nworking[j] / (stamp + 1));
+    if (hconcurrency) {
+      for (j = 0; j < nthreads + 1; j++) {
+        nworking[j] += 1 - waiting[j];
+        hconcurrency->SetBinContent(j + 1, 1 - waiting[j]);
+        hconcavg->SetBinContent(j + 1, nworking[j] / (stamp + 1));
+      }
     }
-    cmon->cd(1);
-    hqueue->Draw();
-    cmon->cd(2);
-    hmem->Draw();
-    cmon->cd(3);
-    hbaskets->LabelsOption(">");
-    hbaskets->GetXaxis()->SetRangeUser(0, 10);
-    hbaskets->Draw();
-    hbused->Draw("SAME");
-    cmon->cd(4);
-    hconcurrency->Draw();
-    hconcavg->Draw("SAME");
+    if (htracksmax) {
+      nmaxtot = 1;
+      for (j = 0; j < nbuffered; j++) {
+        GeantEvent *evt = propagator->fEvents[j];
+        Int_t nmax = evt->GetNmax();
+        nmaxtot = TMath::Max(nmax, nmaxtot);
+        htracksmax->SetBinContent(j + 1, nmax);
+        htracks->SetBinContent(j + 1, evt->GetNinflight());
+      }
+      htracksmax->GetYaxis()->SetRangeUser(1, 10*nmaxtot);
+    }
+    // Now draw all histograms
+    if (hqueue) {
+      cmon->cd(++ipad);
+      hqueue->Draw();
+    }
+    if (hmem) {  
+      cmon->cd(++ipad);
+      hmem->Draw();
+    }
+    if (hbaskets) {  
+      cmon->cd(++ipad);
+      hbaskets->LabelsOption(">");
+      hbaskets->GetXaxis()->SetRangeUser(0, 10);
+      hbaskets->Draw();
+      hbused->Draw("SAME");
+    }
+    if (hconcurrency) {
+      cmon->cd(++ipad);
+      hconcurrency->Draw();
+      hconcavg->Draw("SAME");
+    }  
+    if (htracksmax) {
+      cmon->cd(++ipad);
+      htracksmax->Draw();
+      htracks->Draw("SAME");
+    }  
     cmon->Modified();
     cmon->Update();
     stamp += 1;
   }
   delete[] nworking;
   // Sleep a bit to let the graphics finish
-  gSystem->Sleep(10); // millisec
+  gSystem->Sleep(100); // millisec
 
   return 0;
 }

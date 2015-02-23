@@ -29,13 +29,14 @@ private:
   std::atomic_int fSlot;    /** Fixed slot number */
   std::atomic_int fNtracks; /** Number of tracks */
   std::atomic_int fNdone;   /** Number of done tracks */
+  std::atomic_int fNmax;    /** Maximum number of tracks in flight */
 #endif
   TMutex fMutex; /** mutex for this event */
 
 public:
 
   /** @brief GeantEvent default constructor */
-  GeantEvent() : fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fMutex() {}
+  GeantEvent() : fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0), fMutex() {}
     
   /** @brief GeantEvent destructor */
   ~GeantEvent() {}
@@ -57,6 +58,12 @@ public:
   Int_t GetSlot() const { return fSlot.load(); }
   
   /**
+   * @brief Function that returns the number of tracks in flight
+   * @return Number of tracks in flight
+   */
+  Int_t GetNinflight() const { return fNtracks.load() - fNdone.load(); }
+
+  /**
    * @brief Function that returns the number of transported tracks
    * @return Number of transported tracks
    */
@@ -68,6 +75,12 @@ public:
    */
   Int_t GetNtracks() const { return fNtracks.load(); }
   
+  /**
+   * @brief Function that returns the max number of tracks in flight
+   * @return Maximum number of tracks in flight
+   */
+  Int_t GetNmax() const { return fNmax.load(); }
+
   /**
    * @brief Function to set the event number
    * 
@@ -86,6 +99,7 @@ public:
   void Reset() {
     fNtracks.store(0);
     fNdone.store(0);
+    fNmax.store(0);
   }
 
   /**

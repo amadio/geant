@@ -35,6 +35,19 @@ class TaskBroker;
  * transported baskets.
  */
 class WorkloadManager : public TObject {
+public:
+
+  /**
+   * @brief Monitoring type
+   */
+enum EGeantMonitoringType {
+  kMonQueue = 0,
+  kMonMemory,
+  kMonBasketsPerVol,
+  kMonConcurrency,
+  kMonTracksPerEvent
+};
+
 protected:
   Int_t fNthreads;         /** Number of managed threads */
   Int_t fNbaskets;         /** Total number of baskets */
@@ -44,19 +57,20 @@ protected:
   Int_t fNminThreshold;    /** Minimum number of tracks in a basket to trigger transport */
   Int_t fNqueued;          /** Number of chunks queued */
   Int_t *fBtogo;           /** Array of baskets to be processed in the next generation */
-  Bool_t fStarted;         /** Start flag */
-  Bool_t fStopped;         /** Stop flag */
+  bool fStarted;         /** Start flag */
+  bool fStopped;         /** Stop flag */
   Geant::priority_queue<GeantBasket *> *fFeederQ;      /** Queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *fTransportedQ; /** Queue of transported baskets */
   Geant::priority_queue<GeantBasket *> *fDoneQ;        /** Thread "all work done" queue */
-                                                       //   GeantObjectPool<VolumePath_t>
-  //                     *fNavStates;          /** Pool of navigation states */
-  //   rr_pool<VolumePath_t>
-  //                     *fNavStates;          /** Pool of navigation states */
   static WorkloadManager *fgInstance; /** Singleton instance */
   TList *fListThreads;                /** List of threads */
-  Bool_t fFlushed;                    /** Buffer flushed */
-  Bool_t fFilling;                    /** Worker queue is filling */
+  bool fFlushed;                    /** Buffer flushed */
+  bool fFilling;                    /** Worker queue is filling */
+  Int_t  fMonQueue;                   /** Monitor the work queue */
+  Int_t  fMonMemory;                  /** Monitor the memory */
+  Int_t  fMonBasketsPerVol;           /** Monitor baskets per volume */
+  Int_t  fMonConcurrency;             /** Monitor concurrency */
+  Int_t  fMonTracksPerEvent;          /** Monitor tracks status per event */
   GeantScheduler *fScheduler;         /** Main basket scheduler */
 
   TaskBroker *fBroker; /** Pointer to the coprocessor broker, this could be made a collection. */
@@ -104,6 +118,15 @@ public:
   /** @brief Function that returns threads in waiting flag */
   Int_t *GetWaiting() const { return fWaiting; }
 
+  /** @brief Function returning the number of monitored features */
+  Int_t GetMonFeatures() const;
+
+  /** @brief Check if a monitoring feature is enabled */
+  bool IsMonitored(EGeantMonitoringType feature) const;
+
+  /** @brief Enable monitoring a feature */
+  void SetMonitored(EGeantMonitoringType feature, bool flag = true);
+
   /** @brief Function that returns main basket scheduler */
   GeantScheduler *GetScheduler() const { return fScheduler; }
 
@@ -121,13 +144,13 @@ public:
   static WorkloadManager *Instance(Int_t nthreads = 0);
 
   /** @brief Function that check if buffer is flushed */
-  Bool_t IsFlushed() const { return fFlushed; }
+  bool IsFlushed() const { return fFlushed; }
 
   /** @brief Function that check if worker queue is filling */
-  Bool_t IsFilling() const { return fFilling; }
+  bool IsFilling() const { return fFilling; }
 
   /** @brief Function that check stop flag */
-  Bool_t IsStopped() const { return fStopped; }
+  bool IsStopped() const { return fStopped; }
   
   /**
    * @brief Function that provide stop process by setting Stop flag = True
@@ -139,7 +162,7 @@ public:
    * 
    * @param flag Flag for buffer flushing
    */
-  void SetFlushed(Bool_t flag) { fFlushed = flag; }
+  void SetFlushed(bool flag) { fFlushed = flag; }
 
   /** @brief Function that returns basket generation */
   Int_t GetBasketGeneration() const { return fBasketGeneration; }

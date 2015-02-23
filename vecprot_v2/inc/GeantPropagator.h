@@ -84,7 +84,8 @@ public:
   Bool_t fTransportOngoing; /** Flag for ongoing transport */
   Bool_t fSingleTrack;      /** Use single track transport mode */
   Bool_t fFillTree;         /** Enable I/O */
-  Bool_t fUseMonitoring;    /** Monitoring thread */
+  Bool_t fUseMonitoring;    /** Monitoring different features */
+  Bool_t fUseAppMonitoring; /** Monitoring the application */
   TMutex fTracksLock;       /** Mutex for adding tracks */
 
   WorkloadManager *fWMgr;          /** Workload manager */

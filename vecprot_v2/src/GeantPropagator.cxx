@@ -79,6 +79,7 @@ GeantPropagator::GeantPropagator()
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE),
       fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE),
+      fUseAppMonitoring(kFALSE),
       fTracksLock(), fWMgr(0), fApplication(0), fOutput(0), fOutTree(0), fOutFile(0), fTimer(0),
       fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0),
       fEvents(0), fThreadData(0) {
@@ -426,12 +427,14 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = kTRUE;
   gGeoManager->SetMaxThreads(nthreads);
-  if (fUseMonitoring) {
-    TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
+  if (fUseMonitoring) {    
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
-    capp->Update();
     cmon->Update();
   }
+  if (fUseAppMonitoring) {
+    TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
+    capp->Update();
+  }  
   fTimer = new TStopwatch();
   fWMgr->StartThreads();
   fTimer->Start();

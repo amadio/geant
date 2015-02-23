@@ -1,7 +1,4 @@
 void run(Int_t nthreads=4,
-         Bool_t graphics=kFALSE,
-//         const char *geomfile="simple_ecal.root")
-//         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="ExN03.root",
 	 const char *xsec="xsec_FTFP_BERT.root",
 	 const char *fstate="fstate_FTFP_BERT.root")
@@ -24,7 +21,15 @@ void run(Int_t nthreads=4,
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
+   // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
+   wmgr->SetMonitored(WorkloadManager::kMonQueue,          false);
+   wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
+   wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
+   wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
+   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
+   Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
+   prop->fUseMonitoring = graphics;
    prop->fNaverage = 500;   // Average number of tracks per event
    
    // Initial vector size, this is no longer an important model parameter, 
@@ -50,7 +55,9 @@ void run(Int_t nthreads=4,
 //   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;
 //   prop->fDebugTrk = 1;
-   prop->fUseMonitoring = graphics;
+
+   // Monitor the application
+   prop->fUseAppMonitoring = false;
    prop->PropagatorGeom(geomfile, nthreads, graphics);
    delete prop;
 }   
