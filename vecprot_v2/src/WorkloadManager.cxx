@@ -887,7 +887,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   Double_t stamp = 0.;
   Int_t i, j, bin;
   Int_t nmaxtot;
-  while (!wm->IsStopped()) { // exit condition here
+  while (1) { // exit condition here
     i = Int_t(stamp);
     ipad = 0;
     gSystem->Sleep(50); // millisec
@@ -976,6 +976,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     cmon->Modified();
     cmon->Update();
     stamp += 1;
+    if (wm->IsStopped()) break;
   }
   delete[] nworking;
   // Sleep a bit to let the graphics finish

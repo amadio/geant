@@ -23,11 +23,11 @@ void run(Int_t nthreads=4,
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
-   wmgr->SetMonitored(WorkloadManager::kMonQueue,          false);
+   wmgr->SetMonitored(WorkloadManager::kMonQueue,          true);
    wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
-   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
+   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, true);
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;
    prop->fNaverage = 500;   // Average number of tracks per event
