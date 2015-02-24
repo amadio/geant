@@ -106,7 +106,9 @@ void TTabPhysProcess::PostStepTypeOfIntrActSampling(TGeoMaterial *mat,
 {
    // # smapling: target atom and type of the interaction for each primary tracks
    //             all inf. regarding output of sampling is stored in the tracks  
-   Int_t imat = mat->GetIndex();
+   Int_t imat = -1;
+   if (mat)
+     imat = mat->GetIndex();
    fMgr->SampleTypeOfInteractions(imat, ntracks, tracks, tid);
 }
 
@@ -122,7 +124,9 @@ void TTabPhysProcess::PostStepFinalStateSampling(TGeoMaterial *mat,
    //    interaction type sampled in SampleTypeOfInteractionsInt;
    // # upadting primary track properties and inserting secondary tracks;
    // # return: number of inserted secondary tracks  
-   Int_t imat = mat->GetIndex();
+   Int_t imat = -1;
+   if (mat)
+     imat = mat->GetIndex();
    nout = fMgr->SampleFinalStates(imat, ntracks, tracks, tid);
 }
 

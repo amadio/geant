@@ -370,17 +370,17 @@ void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tr
    TMXsec *mxs = 0;
 #ifndef GEANT_CUDA_DEVICE_BUILD
    if (mat) {
-      mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+     mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
    }   
 #endif
    if (mxs) {
-      mxs->ProposeStep(ntracks, tracks, tid);
-      return;
+     mxs->ProposeStep(ntracks, tracks, tid);
+     return;
    }
    // Mixed tracks in different volumes
    for(Int_t i = 0; i < ntracks; ++i){
-      mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
-      mxs->ProposeStepSingle(i, tracks, tid);
+     mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
+     mxs->ProposeStepSingle(i, tracks, tid);
    }   
 }
 
@@ -399,14 +399,25 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
 void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks,
                                             GeantTrack_v &tracks, Int_t tid)
 {
-   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   TGeoMaterial *mat = 0;
+   TMXsec *mxs = 0;
+   if (imat>=0) {
+     mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+     mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   }  
 
    //1. sampling: a. decay or something else
    //             b. if else then what on what target?
    //   output of sampling is stored in the tracks 	
-   mxs->SampleInt(ntracks, tracks, tid);
-
+   if (mxs) {
+     mxs->SampleInt(ntracks, tracks, tid);
+     return;
+   }
+   // Mixed tracks in different volumes
+   for(Int_t i = 0; i < ntracks; ++i){
+     mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
+     mxs->SampleSingleInt(i, tracks, tid);
+   }  
 }
 
 
@@ -417,8 +428,12 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
    GeantPropagator *propagator = GeantPropagator::Instance();
    Double_t energyLimit = propagator->fEmin;
 
-   TGeoMaterial *mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
-   TMXsec *mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   TGeoMaterial *mat = 0;
+   TMXsec *mxs = 0;
+   if (imat >= 0) {
+     mat = (TGeoMaterial*)fGeom->GetListOfMaterials()->At(imat);
+     mxs = ((TOMXsec*)((TGeoRCExtension*)mat->GetFWExtension())->GetUserObject())->MXsec();
+   }  
  
    // tid-based rng
    Double_t *rndArray = propagator->fThreadData[tid]->fDblArray;
@@ -439,6 +454,9 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
     Float_t  weight    = 0;  //weight of the fstate (just a dummy parameter now)
     Char_t   isSurv    = 0;  //is the primary survived the interaction 	
     Int_t    ebinindx  = -1; //energy bin index of the selected final state  
+    
+    // Deal with mixed tracks case
+    if (!mxs) mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(t)->GetFWExtension())->GetUserObject())->MXsec();
 
     // firts check the results of interaction sampling:
     if(tracks.fProcessV[t] == 3) {

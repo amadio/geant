@@ -27,7 +27,8 @@ GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
     : TObject(), fManager(mgr), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
       fTracksOut(size, GeantPropagator::Instance()->fMaxDepth), fAddingOp(0), fThreshold(size) {
   // Default constructor.
-  if (!mgr->GetVolume()) SetMixed(true);
+  if (!mgr->GetVolume()) 
+    SetMixed(true);
 }
 
 //______________________________________________________________________________
