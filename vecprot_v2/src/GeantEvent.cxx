@@ -1,13 +1,12 @@
 #include "GeantEvent.h"
-
-ClassImp(GeantEvent)
+#include <iostream>
 
 //______________________________________________________________________________
-Int_t GeantEvent::AddTrack() {
+int GeantEvent::AddTrack() {
   // Thread safe track addition
-  Int_t ntracks = ++fNtracks;
-  Int_t ninflight = ntracks - fNdone.load();
-  Int_t nmax = fNmax.load();
+  int ntracks = ++fNtracks;
+  int ninflight = ntracks - fNdone.load();
+  int nmax = fNmax.load();
   // Thread safe update of the max number of tracks in flight
   while ( fNmax < ninflight && !fNmax.compare_exchange_weak(nmax, ninflight) )
     ;
@@ -15,7 +14,18 @@ Int_t GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
-void GeantEvent::Print(Option_t *) const {
+void GeantEvent::StopTrack() {
+  // Mark one track as stopped. Check if event has to be prioritized.
+  fNdone++;
+  if (!fPrioritize) {
+    if (GetNinflight() < fPriorityThr*GetNmax()) 
+      fPrioritize = true;
+  }
+}
+
+//______________________________________________________________________________
+void GeantEvent::Print(const char *) const {
   // Print events content
-  Printf("Event %d: %d tracks transported, %d max in flight", GetEvent(), GetNtracks(), GetNmax());
+  std::cout << "Event " << GetEvent() << ": " << GetNtracks() << 
+    " tracks transported, max in flight " <<  GetNmax() << std::endl;
 }

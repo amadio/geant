@@ -42,7 +42,6 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEvent.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/WorkloadManager.h 

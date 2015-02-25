@@ -13,110 +13,114 @@
 #ifndef GEANT_EVENT
 #define GEANT_EVENT
 
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
-
-#ifndef ROOT_TMutex
-#include "TMutex.h"
-#endif
 
 /** @brief Class GeantEvent that decribes events */
-class GeantEvent : public TObject {
+class GeantEvent {
 private:
-#if __cplusplus >= 201103L
+  bool            fPrioritize;  /** Prioritize this event */
+  float           fPriorityThr; /** Priority threshold in percent of max in flight */
   std::atomic_int fEvent;   /** Event number */
   std::atomic_int fSlot;    /** Fixed slot number */
   std::atomic_int fNtracks; /** Number of tracks */
   std::atomic_int fNdone;   /** Number of done tracks */
   std::atomic_int fNmax;    /** Maximum number of tracks in flight */
-#endif
-  TMutex fMutex; /** mutex for this event */
-
 public:
 
   /** @brief GeantEvent default constructor */
-  GeantEvent() : fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0), fMutex() {}
+  GeantEvent() : fPrioritize(false), fPriorityThr(0.05), fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0) {}
     
   /** @brief GeantEvent destructor */
   ~GeantEvent() {}
   
   /* @brief Function for accounting adding a new track */
-  Int_t AddTrack();
-#if __cplusplus >= 201103L
+  int AddTrack();
   
   /**
    * @brief Function that returns the event number
    * @return Event number
    */
-  Int_t GetEvent() const { return fEvent.load(); }
+  int GetEvent() const { return fEvent.load(); }
   
   /**
    * @brief Function that returns the number of slot
    * @return Slot number
    */
-  Int_t GetSlot() const { return fSlot.load(); }
+  int GetSlot() const { return fSlot.load(); }
   
   /**
    * @brief Function that returns the number of tracks in flight
    * @return Number of tracks in flight
    */
-  Int_t GetNinflight() const { return fNtracks.load() - fNdone.load(); }
+  int GetNinflight() const { return fNtracks.load() - fNdone.load(); }
 
   /**
    * @brief Function that returns the number of transported tracks
    * @return Number of transported tracks
    */
-  Int_t GetNdone() const { return fNdone.load(); }
+  int GetNdone() const { return fNdone.load(); }
 
   /**
    * @brief Function that returns the number of tracks
    * @return Number of tracks
    */
-  Int_t GetNtracks() const { return fNtracks.load(); }
+  int GetNtracks() const { return fNtracks.load(); }
   
   /**
    * @brief Function that returns the max number of tracks in flight
    * @return Maximum number of tracks in flight
    */
-  Int_t GetNmax() const { return fNmax.load(); }
+  int GetNmax() const { return fNmax.load(); }
+  
+  /**
+   * @brief Getter for priority flag
+   * @return Priority flag value
+   */
+  bool IsPrioritized() const { return fPrioritize; }
+  
+  /**
+   * @brief Getter for priority threshold
+   * @return Priority flag value
+   */
+  float GetPriorityThr() const { return fPriorityThr; }
+  
+  /** @brief Setter for priority threshold */
+  void SetPriorityThr(float threshold) { fPriorityThr = threshold; }
 
   /**
    * @brief Function to set the event number
    * 
    * @param event Event number to be set
    */
-  void SetEvent(Int_t event) { fEvent.store(event); }
+  void SetEvent(int event) { fEvent.store(event); }
   
   /**
    * @brief Function to set the slot number
    * 
    * @param islot Slot number to be set
    */
-  void SetSlot(Int_t islot) { fSlot.store(islot); }
+  void SetSlot(int islot) { fSlot.store(islot); }
   
   /** @brief Reset the event */
   void Reset() {
     fNtracks.store(0);
     fNdone.store(0);
     fNmax.store(0);
+    fPrioritize = false;
   }
 
   /**
    * @brief Function to check if all tracks in the event were transported
    * @return Boolean value that shows if event is fully transported or not
    */
-  Bool_t Transported() const { return ((fNtracks.load() > 0) && (fNtracks == fNdone)); }
+  bool Transported() const { return ((fNtracks.load() > 0) && (fNtracks == fNdone)); }
   
   /**
    * @brief Function to signal that a trach was stopped
    */
-  void StopTrack() { fNdone++; }
-#endif
+  void StopTrack();
 
   /** @brief Print function */
-  void Print(Option_t *option = "") const;
-
-  ClassDef(GeantEvent, 1) // The G5 event
+  void Print(const char *option = "") const;
 };
 #endif

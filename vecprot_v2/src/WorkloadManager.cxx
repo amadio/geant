@@ -414,6 +414,7 @@ void *WorkloadManager::TransportTracks(void *) {
   GeantThreadData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
+  GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0);
   TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
   condition_locker &sched_locker = wm->GetSchLocker();
@@ -561,6 +562,7 @@ void *WorkloadManager::TransportTracks(void *) {
     basket->Recycle();
   }
   wm->DoneQueue()->push(0);
+  delete prioritizer;
   Printf("=== Thread %d: exiting ===", tid);
   return 0;
 }

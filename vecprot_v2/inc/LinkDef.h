@@ -16,7 +16,6 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class GeantEvent+;
 #pragma link C++ class GeantTrack+;
 #pragma link C++ class GeantTrack_v+;
 #pragma link C++ class GeantTrackStat+;
