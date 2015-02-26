@@ -7,9 +7,10 @@
 # $CMAKE_BUILD_TYPE    // CMake build type: Debug, Release 
 # $CMAKE_INSTALL_PREFIX // Installation prefix for CMake (Jenkins trigger)
 # CC and CXX (In Jenkins this step has been done authomaticly)
-# Enviroment for name of build for CERN CDash: 
+# export $LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH (for GeantV libraries)
+# Enviroment for name of build for CERN CDash:
 # $LABEL                // Name of node (Jenkins trigger)
-# Name of $BACKEND     // Backend for Geant-V (CUDA/Scalar/..)
+# Name of $BACKEND     // Backend for Geant-V (VecGeom/ROOT or CUDA)
 
 cmake_minimum_required(VERSION 2.8)
 ###################################################################
@@ -67,7 +68,7 @@ ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
 find_program(CTEST_GIT_COMMAND NAMES git)
 if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-  set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone http://git.cern.ch/pub/VecGeom ${CTEST_SOURCE_DIRECTORY}")
+  set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone http://git.cern.ch/pub/geant ${CTEST_SOURCE_DIRECTORY}")
 endif()
 set(CTEST_GIT_UPDATE_COMMAND "${CTEST_GIT_COMMAND}")
 
