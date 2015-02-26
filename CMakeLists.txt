@@ -13,6 +13,13 @@ endif()
 
 option(CUDA "Enable compilation for CUDA." OFF)
 
+option(DATA_DOWNLOAD "Enable data download" OFF)
+
+option(CTEST "Enable CTest when building." OFF)
+if (CTEST)
+  set (DATA_DOWNLOAD ON)
+endif()
+
 option(USE_VECPHYS "Enable activation of vector physics." OFF)
 if(USE_VECPHYS)
   add_definitions(-DUSE_VECPHYS)
@@ -61,13 +68,70 @@ find_package(ROOT REQUIRED)
 include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR})
 
 if( USE_ROOT )
-   add_definitions( "-DUSE_ROOT")
+   add_definitions("-DUSE_ROOT")
 endif()
 
 #----------------------------------------------------------------------------
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
+
+#---------------------------------------------------------------------------
+# Include creation and submission to dashboard cdash.cern.ch
+
+include(CTest)
+
+if (CTEST)
+  message(STATUS "Testing with CTest enabled.")
+  enable_testing()
+endif()
+
+#---------------------------------------------------------------------------
+# Set data to be dowloaded
+
+ function(DATA_DOWNLOAD)
+    set(DATA_FILE data.tar.gz)
+    if(APPLE)
+      execute_process(COMMAND curl -o ${DATA_FILE} ${DATA_URL})      
+    else()  
+      execute_process(COMMAND wget -q ${DATA_URL} -O ${DATA_FILE})
+    endif()
+ endfunction(DATA_DOWNLOAD)
+
+message(STATUS "Downloading data files")
+if(DATA_DOWNLOAD)
+  set(DATA_URL "http://mnovak.web.cern.ch/mnovak/data/data.tar.gz")
+  set(EXPECTED_MD5SUM "8de0246795899f373c08c721161b8d42")
+message(STATUS "Searching for already downloaded data file(s)")
+find_file(DATA_FILE data.tar.gz ${CMAKE_BINARY_DIR})
+  if(DATA_FILE STREQUAL "DATA_FILE-NOTFOUND")
+    message("File not found: data.tar.gz")
+    DATA_DOWNLOAD()
+  else()
+    message("File found:" ${DATA_FILE})
+    if(APPLE)
+      execute_process(COMMAND md5sum ${DATA_FILE} OUTPUT_VARIABLE MD5SUM)
+      string(LENGTH ${MD5SUM} MD5LENGTH)
+      MATH(EXPR START "${MD5LENGTH} - 33")
+      string(SUBSTRING ${MD5SUM} ${START} 32 MD5SUM)         
+    else()
+      execute_process(COMMAND md5sum ${DATA_FILE} OUTPUT_VARIABLE MD5SUM)
+      string(SUBSTRING ${MD5SUM} 0 32 MD5SUM)
+    endif()
+    if(MD5SUM STREQUAL EXPECTED_MD5SUM)
+      message("MD5sum of file is matching")
+    else()
+      message("MD5sum of file is not matching " ${EXPECTED_MD5SUM})
+      DATA_DOWNLOAD()
+    endif()
+  endif()
+
+message("Untar data.tar.gz")
+execute_process(COMMAND tar xzf ${CMAKE_BINARY_DIR}/data.tar.gz -C ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/)
+#execute_process(COMMAND rm -rf ${CMAKE_BINARY_DIR}/data.tar.gz)
+endif()
+
+################################################################################
 
 #----------------------------------------------------------------------------
 # Define compiler flags
@@ -152,6 +216,7 @@ endif()
 # Include directories
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 include_directories("${PROJECT_SOURCE_DIR}/base/inc")
+include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
 
 # Work around VecCore not being its own project yet.
 include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
@@ -177,3 +242,6 @@ if(USE_VECPHYS)
  add_subdirectory (vectphysproc)
 endif()
 
+if(CTEST)
+  add_subdirectory(vecprot_v2/tests)
+endif()
