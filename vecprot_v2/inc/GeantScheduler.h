@@ -99,7 +99,7 @@ public:
    * @param nnew Number of new tracks
    * @param nkilled Number of killed tracks
    */
-  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled);
+  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantBasketMgr *prioritizer);
 
   /** @brief Function to adjust the basket size automatically */
   void AdjustBasketSize();
@@ -110,8 +110,11 @@ public:
   /** @brief Function to clean baskets */
   void CleanBaskets();
 
-  /** @brief Function to collect all tracks from prioritized events */
-  Int_t CollectPrioritizedPerThread();
+  /** 
+   * @brief Function to collect all tracks from prioritized events 
+   * @param collector Garbage collector (one per worker thread)
+   */
+  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector);
 
   /** @brief Function to collection prioritized tracks and inject into transport queue */
   Int_t CollectPrioritizedTracks();

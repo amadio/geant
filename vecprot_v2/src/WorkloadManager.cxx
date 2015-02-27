@@ -430,7 +430,8 @@ void *WorkloadManager::TransportTracks(void *) {
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
     waiting[tid] = 1;
-    wm->FeederQueue()->wait_and_pop(basket);
+    if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport();
+    else wm->FeederQueue()->wait_and_pop(basket);
     waiting[tid] = 0;
     // Check exit condition: null basket in the queue
     if (!basket)
@@ -555,7 +556,7 @@ void *WorkloadManager::TransportTracks(void *) {
     sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif
     //      ninjected =
-    sch->AddTracks(basket, ntot, nnew, nkilled);
+    sch->AddTracks(basket, ntot, nnew, nkilled, prioritizer);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
     sched_locker.StartOne();
@@ -584,6 +585,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   GeantThreadData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
+  GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0);
   Int_t *waiting = wm->GetWaiting();
   // Int_t nprocesses = propagator->fNprocesses;
   // Int_t ninput;
@@ -712,12 +714,13 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     Int_t ntot = 0;
     Int_t nnew = 0;
     Int_t nkilled = 0;
-    /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled);
+    /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled, prioritizer);
     wm->TransportedQueue()->push(basket);
     (void)ntot;
     (void)nnew;
     (void)nkilled;
   }
+  delete prioritizer;
   wm->DoneQueue()->push(0);
   Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
   return 0;

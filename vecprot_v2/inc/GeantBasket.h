@@ -232,6 +232,8 @@ protected:
   Int_t fNumber;              /** Number matching the volume index */
   Int_t fBcap;                /** Maximum capacity of baskets held */
   Int_t fQcap;                /** Queue capacity */
+  Bool_t fActive;             /** Activity flag for generating baskets */
+  Bool_t fCollector;          /** Mark this manager as event collector */
 #if __cplusplus >= 201103L
   std::atomic_int fThreshold; /** Adjustable transportability threshold */
   std::atomic_int fNbaskets;  /** Number of baskets for this volume */
@@ -299,7 +301,7 @@ public:
 
   /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
-      : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fThreshold(0), fNbaskets(0),
+      : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0), fNbaskets(0),
         fNused(0), fCBasket(0), fPBasket(0), fLock(), fQLock(), fBaskets(0), fFeeder(0), fMutex() {}
 
   /** @brief GeantBasketMgr normal constructor 
@@ -308,7 +310,7 @@ public:
    * @param vol Volume associated with this
    * @param number Number for the basket manager
   */
-  GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number);
+  GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector=false);
   
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
@@ -325,6 +327,13 @@ public:
    * @details Interface of TGeoExtension to signal releasing ownership of this from TGeoVolume
    */
   virtual void Release() const {}
+
+  /**
+   * @brief Activate this basket manager for generating baskets
+   * @details Activation happens on threshold on percentage of tracks transported
+   * in the associated volume and threshold on total number of tracks (learning phase)
+   */
+  void Activate();
 
   /**
    * @brief Function adding a track to basket up to the basket threshold
@@ -344,13 +353,22 @@ public:
   Int_t AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority = kFALSE);
 
   /**
+   * @brief Function adding by a unique thread a track to the basket manager up to the basket threshold
+   * 
+   * @param trackv Array of tracks containing the track to be added
+   * @param itr Track id
+   * @param priority Set priority (by default kFALSE)
+   */
+  Int_t AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority = kFALSE);
+
+  /**
    * @brief Thread local garbage collection of tracks from prioritized events
    *
    * @param evmin Minimum event index
    * @param evmax Maximum event index
    * @param gc Garbage collector basket
    */
-  Int_t GarbageCollectEvents(Int_t evmin, Int_t evmax, GeantBasketMgr *gc);
+  Int_t CollectPrioritizedTracksNew(GeantBasketMgr *gc);
 
   /**
    * @brief Garbage collection of prioritized tracks in an event range
@@ -407,6 +425,27 @@ public:
   Int_t GetThreshold() const { return fThreshold.load(); }
 
   /**
+   * @brief Check if the basket manager has tracks filled and pending threshold
+   * @return True if the current basket holds tracks
+   */
+   Bool_t HasTracks() const { return GetCBasket()->GetNinput(); }
+
+  /**
+   * @brief Getter for activity (manager generating baskets)
+   * @return Value for activity flag
+   */
+   Bool_t IsActive() const { return fActive; }
+
+  /**
+   * @brief Getter for garbage collector status
+   * @return Value for collector flag
+   */
+   Bool_t IsCollector() const { return fCollector; }
+
+  /** @brief Setter for garbage collector status */
+   void SetCollector() { fCollector = true; }
+
+  /**
    * @brief Function to set transportability threshold
    * 
    * @param thr Threshold that should be set
@@ -418,6 +457,18 @@ public:
    * @return Load current basket
    */
   GeantBasket *GetCBasket() const { return fCBasket.load(); }
+  
+  /**
+   * @brief Get the current basket in non-thread safe way to send for transport.
+   * @details Method called only by the thread owning this manager that should
+   * have fCollector=true
+   * @return Current basket
+   */
+  GeantBasket *GetBasketForTransport() { 
+    GeantBasket *basket = GetCBasket();
+    SetCBasket(GetNextBasket());
+    return basket;
+  }  
 
   /**
    * @brief Function that will load the priority basket

@@ -1,10 +1,7 @@
 void runCMS(Int_t nthreads=4,
-         Bool_t graphics=kTRUE,
-//         const char *geomfile="simple_ecal.root")
-//         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="../cmstrack/cms2015.root",
-	 const char *xsec="xsec_FTFP_BERT.root",
-	 const char *fstate="fstate_FTFP_BERT.root")
+	 const char *xsec="xsec_FTFP_BERT_G496p02_10mev.root",
+	 const char *fstate="fstate_FTFP_BERT_G496p02_10mev.root")
 {
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");
@@ -16,13 +13,21 @@ void runCMS(Int_t nthreads=4,
    gSystem->Load("../lib/libGeant_v");
    gSystem->Load("../lib/libXsec");
 
-   Int_t ntotal   = 5;  // Number of events to be transported
-   Int_t nbuffered  = 2;   // Number of buffered events
+   Int_t ntotal   = 20;  // Number of events to be transported
+   Int_t nbuffered  = 10;   // Number of buffered events
    TGeoManager::Import(geomfile);
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
+   // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
+   wmgr->SetMonitored(WorkloadManager::kMonQueue,          true);
+   wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
+   wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
+   wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
+   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, true);
+   Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
+   prop->fUseMonitoring = graphics;
 //   prop->fNaverage = 400;   // Average number of tracks per event
    
    // Initial vector size, this is no longer an important model parameter, 
@@ -36,9 +41,9 @@ void runCMS(Int_t nthreads=4,
    prop->fMaxRes = 4000;
 
 //   prop->fEmin = 3.E-6; // [3 KeV] energy cut
-   prop->fEmin = 1.E-3; // [1 MeV] energy cut
+   prop->fEmin = 0.01; // [10 MeV] energy cut
 //   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
-   prop->fEmax = 0.05;
+   prop->fEmax = 0.01; // 10 MeV
    // Create the tab. phys process.
    prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
 //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
