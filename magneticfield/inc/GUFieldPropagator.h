@@ -71,6 +71,6 @@ class GUFieldPropagatorPool
 
     // void Extend(int); 
   private:
-    static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
+    // static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
 
 };

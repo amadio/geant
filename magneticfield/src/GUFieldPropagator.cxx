@@ -61,7 +61,7 @@ void GUFieldPropagator::Step(double step)
   exit(1);
 }
 
-static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
+// static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
 // May change to c-array for CUDA ... but likely CPU only
 
 /// --------------  GUFieldPropagatorPool ------------------------------------
@@ -94,7 +94,6 @@ GUFieldPropagatorPool::CreateOrFind( int noNeeded ) // , void** banks )
     numberCreated= noNeeded;
   }
 }
-#endif
 
 GUFieldPropagator* GUFieldPropagatorPool::GetPropagator(int num)
 {
@@ -103,6 +102,7 @@ GUFieldPropagator* GUFieldPropagatorPool::GetPropagator(int num)
   
    return fFieldPropagatorVec[num];
 }
+#endif
 
 #if 0
 void GUFieldPropagatorPool::Extend(int noNeeded)
