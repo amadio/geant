@@ -329,7 +329,7 @@ void *WorkloadManager::MainScheduler(void *) {
     ntotransport = feederQ->size_async();
     if (ntotransport < min_feeder || ntotransport > max_feeder)
       sch->AdjustBasketSize();
-    if (ntotransport < min_feeder) {
+    if (0 /*ntotransport < min_feeder*/) {
       // Transport queue below the threshold
       if (crtphase < 1)
         crtphase = 1;
@@ -414,7 +414,9 @@ void *WorkloadManager::TransportTracks(void *) {
   GeantThreadData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
-  GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0);
+  GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0, true);
+  prioritizer->SetThreshold(propagator->fNperBasket);
+  prioritizer->SetFeederQueue(wm->FeederQueue());
   TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
   condition_locker &sched_locker = wm->GetSchLocker();

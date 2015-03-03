@@ -15,7 +15,7 @@ void run(Int_t nthreads=4,
    // for vector physics - OFF now
    // gSystem->Load("../lib/libVphysproc");
 
-   Int_t ntotal   = 20;  // Number of events to be transported
+   Int_t ntotal   = 100;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
    TGeoManager::Import(geomfile);
    

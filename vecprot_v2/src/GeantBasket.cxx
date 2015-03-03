@@ -28,7 +28,7 @@ GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
     : TObject(), fManager(mgr), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
       fTracksOut(size, GeantPropagator::Instance()->fMaxDepth), fAddingOp(0), fThreshold(size) {
   // Default constructor.
-  if (!mgr->GetVolume()) 
+  if (!mgr->GetVolume() || mgr->IsCollector()) 
     SetMixed(true);
 }
 
@@ -73,7 +73,7 @@ void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend) {
 //______________________________________________________________________________
 void GeantBasket::Clear(Option_t *option) {
   // Clear basket content.
-  SetMixed(kFALSE);
+  SetMixed(fManager->IsCollector());
   fTracksIn.Clear(option);
   fTracksOut.Clear(option);
 }
@@ -160,6 +160,7 @@ void GeantBasketMgr::Activate()
   SetCBasket(basket);
   if (fCollector) {
     basket->SetMixed(true);
+    Printf("Created collector basket manager");
     return;
   }  
   SetPBasket(new GeantBasket(fBcap, this));
@@ -460,7 +461,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket() {
   const Int_t nthreads = GeantPropagator::Instance()->fNthreads;
   Int_t threshold = fThreshold.load();
   Int_t threshold_new = threshold * fNused.load() / nthreads;
-  if (threshold_new < fBcap && (threshold_new - threshold) > 4) {
+  if ((!fCollector) && (threshold_new < fBcap) && ((threshold_new - threshold) > 4)) {
     Int_t remainder = threshold_new % 4;
     if (remainder > 0)
       threshold_new += 4 - remainder;
@@ -493,7 +494,7 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b) {
   const Int_t nthreads = GeantPropagator::Instance()->fNthreads;
   Int_t threshold = fThreshold.load();
   Int_t threshold_new = threshold * fNused.load() / nthreads;
-  if (threshold_new > 4 && (threshold_new - threshold) < -4) {
+  if ((!fCollector) && (threshold_new > 4) && ((threshold_new - threshold) < -4)) {
     Int_t remainder = threshold_new % 4;
     threshold_new -= remainder;
     fThreshold.store(threshold_new);
