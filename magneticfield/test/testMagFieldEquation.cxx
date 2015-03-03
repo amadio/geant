@@ -1,36 +1,47 @@
 //
 //
+#include "GUVEquationOfMotion.h"
+
 #include "TMagFieldEquation.h"
 #include "TUniformMagField.h"
 
-GUVEquationOfMotion*  CreateFieldAndEquation();
-bool  TestEquation(TGUVEquationOfMotion* );
+GUVEquationOfMotion*  CreateFieldAndEquation(ThreeVector constFieldValue);
+bool  TestEquation(GUVEquationOfMotion* );
 
 const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
-main()
+ThreeVector    FieldValue(0.0, 0.0, 1.0);
+
+int
+main( int, char** )
 {
-  CreateFieldAndEquation();
-  TestEquation();  
+  GUVEquationOfMotion* eq= CreateFieldAndEquation( FieldValue );
+  TestEquation(eq);
+
+  return 1;
 }
 
-ThreeVector    FieldValue(0.0, 0.0, 1.0);
-GUField*       pField;
+// GUVField*       pField;
 
 GUVEquationOfMotion* CreateFieldAndEquation(ThreeVector FieldValue)
 {
   TUniformMagField*     ConstBfield= new TUniformMagField( FieldValue );
 
-  pField = ConstBField; 
-  GUVEquationOfMotion*  magEquation= TMagFieldEquation<TUniformMagField, Nposmom>;
+  // pField = ConstBfield; 
+  GUVEquationOfMotion*  magEquation= new TMagFieldEquation<TUniformMagField, Nposmom>(ConstBfield);
+  return magEquation;
 }
 
-G4int gVerbose= 1;
+int gVerbose= 1;
 
 bool TestEquation(GUVEquationOfMotion* equation)
 {
-  ThreeVector PositionVec( 1., 2., 3.);
-  ThreeVector MomentumVec( 0., 0., 1.);
+  const double perMillion = 1e-6;
+  bool   hasError= false;  // Return value
+  
+  ThreeVector PositionVec( 1., 2.,  3.);  // initial
+  ThreeVector MomentumVec( 0., 0.1, 1.);
+  ThreeVector FieldVec( 0., 0., 1.);  // Magnetic field value (constant)
 
   double PositionTime[4] = { PositionVec.x(), PositionVec.y(), PositionVec.z(), 0.0};
   // double PositionTime[4] = { 1., 2., 3., 4.};
@@ -38,9 +49,9 @@ bool TestEquation(GUVEquationOfMotion* equation)
   PositionTime[1]= PositionVec.y();
   PositionTime[2]= PositionVec.z();
 
-  double magField[3];
+  // double magField[3];
 
-  double dydx[Nposmem]
+  double dydx[Nposmom];
   double PositionMomentum[Nposmom];
 
   double charge= -1;
@@ -52,33 +63,41 @@ bool TestEquation(GUVEquationOfMotion* equation)
   PositionMomentum[4]= MomentumVec[1];  
   PositionMomentum[5]= MomentumVec[2];
 
-  FieldArr[3]= { FieldVec.x(), FieldVec.y(), FieldVec.z() };
+  double FieldArr[3]= { FieldVec.x(), FieldVec.y(), FieldVec.z() };
 
-  equation->EvaluateRHSGivenB( PositionTime, FieldArr, charge, dydx );
+  equation->EvaluateRhsGivenB( PositionTime, FieldArr, charge, dydx );
 
-  ThreeVector  Force( dydx[3], dydx[4], dydx[5]);
+  ThreeVector  ForceVec( dydx[3], dydx[4], dydx[5]);
 
   // Check result
-  MdotF= MomentumVec.dot(Force);
-  BdotF= FieldVec.dot(Force); 
+  double MdotF= MomentumVec.Dot(ForceVec);
+  double BdotF= FieldVec.Dot(ForceVec); 
 
-  if( std::fabs(MdotF) > perMillion * Momentum.Mag() * Force.Mag() )
+
+  
+  if( std::fabs(MdotF) > perMillion * MomentumVec.Mag() * ForceVec.Mag() )
   { 
-    std::cerr << "ERROR: Force due to magnetic field is not perpendicular to momentum!!" 
+     std::cerr << "ERROR: Force due to magnetic field is not perpendicular to momentum!!"  << std::endl;
+     hasError= true;
   }
   else if ( gVerbose )
   {
-    std::cout << " Success:  Good (near zero) dot product momentum . force " << G4endl;
+     std::cout << " Success:  Good (near zero) dot product momentum . force " << std::endl;
   }
-  if( std::fabs(BdotF) > perMillion * Field.Mag() * Force.Mag() )
+  if( std::fabs(BdotF) > perMillion * FieldVec.Mag() * ForceVec.Mag() )
   { 
-    std::cerr << "ERROR: Force due to magnetic field is not perpendicular to B field!" 
-    std::cerr << " Vectors:  BField   Force " << G4endl;
-    for ( i=0; i<3; i++ )
-      std::cerr << "   [" << setwidth() << i << "] << Bfield(i) << " " << Force(i) << G4endl;    
+    std::cerr << "ERROR: Force due to magnetic field is not perpendicular to B field!"
+              << std::endl; 
+    std::cerr << " Vectors:  BField   Force " << std::endl;
+    for ( int i=0; i<3; i++ )
+      std::cerr << "   [" << i << "] " << FieldVec[i] << " " << ForceVec[i] << std::endl;
+
+    hasError= true;
   }
   else if ( gVerbose )
   {
-    std::cout << " Success:  Good (near zero) dot product magnetic-field . force " << G4endl;
+    std::cout << " Success:  Good (near zero) dot product magnetic-field . force " << std::endl;
   }
+
+  return hasError;
 }

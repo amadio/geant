@@ -21,15 +21,18 @@ add_executable(testMagFieldEquation testMagFieldEquation.cxx) ## ${sources} ${he
 target_link_libraries(testMagFieldEquation Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testMagFieldEquation")
 
-add_executable(testFieldPropagator TestGUFieldPropagator.cxx) ## ${sources} ${headers})
-target_link_libraries(testFieldPropagator Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-# ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
-# add_dependencies(micromc xseclib Geantlib_v)
-message(STATUS "Created target for testFieldPropagator")
+## add_executable(testFieldPropagator TestGUFieldPropagator.cxx) ## ${sources} ${headers})
+## target_link_libraries(testFieldPropagator Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+## # ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
+## # add_dependencies(micromc xseclib Geantlib_v)
+## message(STATUS "Created target for testFieldPropagator")
 
 #----------------------------------------------------------------------------
 # Add program to the project targets
 # (this avoids the need of typing the program name after make)
 #
-add_custom_target(testFP DEPENDS testFieldPropagator)
-install(TARGETS testFieldPropagator DESTINATION bin)
+#add_custom_target(testFP DEPENDS testFieldPropagator)
+#install(TARGETS testFieldPropagator DESTINATION bin)
+
+add_custom_target(testMagEq DEPENDS testMagFieldEquation)
+install(TARGETS testMagFieldEquation DESTINATION bin)

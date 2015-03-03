@@ -14,6 +14,8 @@ class GUVMagneticField : public GUVField
    virtual void  GetFieldValue( const  double  Point[4],
                                        double* Field ) const = 0;
    virtual GUVField* Clone() const;
+
+   GUVMagneticField& operator = (const GUVMagneticField &p);
 };
 
 #endif
