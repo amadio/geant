@@ -51,7 +51,7 @@ class TMagFieldEquation : public GUVEquationOfMotion
                              const double B[3],
                              double charge, 
                              double dydx[] ) const
-     { EvaluateRhsGivenB( y, B, charge, dydx); }
+     { TEvaluateRhsGivenB( y, B, charge, dydx); }
      
    private:
      enum { G4maximum_number_of_field_components = 24 };
