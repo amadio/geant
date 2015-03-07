@@ -17,7 +17,13 @@
 //  Based on first alias sampler by Soon Y. Jun - July 2014
 #include "backend/Backend.h"
 
+#include "GUAliasTable.h"
+
 namespace vecphys {
+
+VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
+
+  //VECPHYS_DEVICE_FORWARD_DECLARE( class GUAliasTable; )
 
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
@@ -35,6 +41,16 @@ public:
                  );  
 
   VECPHYS_CUDA_HEADER_BOTH
+  GUAliasSampler(Random_t* states, int threadId,
+                 int    Zelement, 
+                 double incomingMin, 
+                 double incomingMax,
+                 int    numEntriesIncoming, // 'energy' (or log) of projectile
+                 int    numEntriesSampled, 
+                 GUAliasTable* table 
+                 );  
+
+  VECPHYS_CUDA_HEADER_BOTH
   ~GUAliasSampler();
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -47,6 +63,12 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH
   void BuildAliasTables( const int nrow, const int ncol, double   *pdf );
+
+  VECPHYS_CUDA_HEADER_BOTH
+  GUAliasTable* GetAliasTable(){ return (fAliasTable) ? fAliasTable: NULL ;}
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetAliasTable(GUAliasTable* table) { fAliasTable = table ;}
 
   // Backend Implementation:
   template<class Backend>
@@ -79,26 +101,24 @@ private:
   Random_t*      fRandomState;
   int            fThreadId;
 
-  const int      fZelement; 
+  int      fZelement; 
   
-  const double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
-  const double   fIncomingMax; // Max
-  const int      fInNumEntries;
-  const double   fInverseBinIncoming;
+  double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
+  double   fIncomingMax; // Max
+  int      fInNumEntries;
+  double   fInverseBinIncoming;
   
   //  For the sampled variable 
-  const int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
-  const double   fInverseBinSampled; 
-  const double   fSampledBinSize; 
+  int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
+  double   fInverseBinSampled; 
+  double   fSampledBinSize; 
 
   double*  fSampledMin; // Minimum value of 'x' sampled variable
   double*  fSampledMax; // Maximum value of 'x' sampled variable
   
   // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
-  double * fpdf; // Original distribution
-  
-  double * fProbQ; // Non-alias probability ( sometimes called q in other code )
-  int    * fAlias; // Alias table           -- could become Index_t ?
+  GUAliasTable* fAliasTable;
+
 };
 
 // Backend Implementation
@@ -138,7 +158,6 @@ SampleX(typename Backend::Double_t rangeSampled,
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
 
-
   Double_t r1 = UniformRandom(fRandomState,fThreadId);
 
   Bool_t condition = r1 <= probNA;
@@ -171,8 +190,8 @@ GatherAlias(typename Backend::Index_t  index,
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
   for(int i = 0; i < Backend::kSize ; ++i) {
-    probNA[i]=    fProbQ[ (int) index[i] ];
-    aliasInd[i]=  fAlias[ (int) index[i] ];
+    probNA[i]=    fAliasTable->fProbQ[ (int) index[i] ];
+    aliasInd[i]=  fAliasTable->fAlias[ (int) index[i] ];
   }
 }
 #endif

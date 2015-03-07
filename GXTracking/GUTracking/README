@@ -4,6 +4,11 @@
 
 1. setup 
 
+   #gcc (if 4.8+ is not a default)
+   export CXX=/usr/local/gcc-4.8.2/bin/g++
+   export CC=/usr/local/gcc-4.8.2/bin/gcc
+   export LD_LIBRARY_PATH=/usr/local/gcc-4.8.2/lib64:${LD_LIBRARY_PATH}
+   
    #vc (minimal)
    export Vc_DIR=${VC_INSTALL_DIR}
    #VecGeom (not required)
@@ -12,16 +17,11 @@
    #root (if ROOT=ON)
    source ${ROOT_INSTALL_DIR}/bin/thisroot.sh
 
-   #gcc (if 4.8+ is not a default)
-   export CXX=/usr/local/gcc-4.8.2/bin/g++
-   export CC=/usr/local/gcc-4.8.2/bin/gcc
-   export LD_LIBRARY_PATH=/usr/local/gcc-4.8.2/lib64:${LD_LIBRARY_PATH}
-   
-2. How to build an example benchmaker of GUTracking/test
+2. How to build and run an example benchmaker of GUTracking/test
 
    mkdir build
    cd build
-   cmake ../VecPhys -DBENCHMARK=ON -DCUDA=ON -DVc_DIR=${Vc_DIR}
+   cmake -DBENCHMARK=ON -DCUDA=ON -DVc_DIR=${Vc_DIR} ..
    make
    ./GUModelBenchmark [ntracks] [nrepetitions]
 
