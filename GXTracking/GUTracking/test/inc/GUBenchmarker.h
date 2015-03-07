@@ -5,6 +5,8 @@
 
 namespace vecphys {
 
+class GUTrackHandler;
+
 class GUBenchmarker {
 
 public:
@@ -22,6 +24,7 @@ public:
 private:
     
   int  RunBenchmarkInteract();
+  void RunGeant4();
   void RunScalar();
   void RunVector();
 
@@ -30,6 +33,8 @@ private:
 #endif
 
 private:
+  GUTrackHandler *fTrackHandler;
+
   int fNtracks;
   unsigned fRepetitions;
   int fVerbosity;

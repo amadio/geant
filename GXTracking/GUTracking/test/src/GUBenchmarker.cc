@@ -10,15 +10,15 @@ namespace vecphys {
 
 GUBenchmarker::GUBenchmarker()
     : fNtracks(4992),
-      fRepetitions(10),
+      fRepetitions(1),
       fVerbosity(1)
 {
-  ;
+  fTrackHandler = new GUTrackHandler();
 }
 
 GUBenchmarker::~GUBenchmarker() 
 {
-  ;
+  delete fTrackHandler;
 }
 
 int GUBenchmarker::RunBenchmark() {
@@ -35,7 +35,9 @@ int GUBenchmarker::RunBenchmarkInteract() {
 
   int mismatches = 0;
 
+  fTrackHandler->GenerateRandomTracks(fNtracks);
   // Run all benchmarks
+  RunGeant4();
   RunScalar();
   RunVector();
 
@@ -47,62 +49,106 @@ int GUBenchmarker::RunBenchmarkInteract() {
 
 void GUBenchmarker::RunScalar() 
 {
-  GUTrackHandler *handler_in = new GUTrackHandler();
-  handler_in->GenerateRandomTracks(fNtracks);
-
-  GUTrack* track_aos = handler_in->GetAoSTracks();
-  GUTrack* track_aos_out = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
+  //prepare input tracks
+  GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
+  GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
+  itrack_aos = fTrackHandler->GetAoSTracks();
 
   int *targetElements = new int [fNtracks];
   for(int i = 0 ; i < fNtracks ; ++i) {
     targetElements[i] = i ;
   }
 
+  GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
+
   Stopwatch timer;
-  timer.Start();
+
+  for (unsigned r = 0; r < fRepetitions; ++r) {
+
+    timer.Start();
+
+    //AOS
+    for(int i = 0 ; i < fNtracks ; ++i) {
+      model->Interact<kScalar>(itrack_aos[i],targetElements[i],otrack_aos[i]);
+    }
+
+    Precision elapsedScalar = timer.Stop();
+
+    if (fVerbosity > 0) {
+      printf("Scalar Task %d >: %6.3fs\n",r,elapsedScalar);
+    }
+
+    if (fVerbosity > 1) {
+      for(unsigned i = 0; i < 8 ; ++i) {
+        printf(" E[%d]= %f\n",i,otrack_aos[i].E);
+      }
+    }
+  }
+
+  free(itrack_aos);
+  free(otrack_aos);
+}
+
+void GUBenchmarker::RunGeant4() 
+{
+  GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
+  GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
+  itrack_aos = fTrackHandler->GetAoSTracks();
+
+  int *targetElements = new int [fNtracks];
+  for(int i = 0 ; i < fNtracks ; ++i) {
+    targetElements[i] = i ;
+  }
 
   vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
 
+  Stopwatch timer;
   for (unsigned r = 0; r < fRepetitions; ++r) {
+    timer.Start();
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
-      model->Interact(track_aos[i],targetElements[i],&track_aos_out[i]);
+      model->InteractG4<kScalar>(itrack_aos[i],targetElements[i],otrack_aos[i]);
+    }
+
+    Precision elapsedScalar = timer.Stop();
+    if (fVerbosity > 0) {
+      printf("Geant4 Task %d >: %6.3fs\n",r,elapsedScalar);
     }
   }
-  Precision elapsedScalar = timer.Stop();
-  if (fVerbosity > 0) {
-    printf("Scalar: %6.3fs\n",elapsedScalar);
+
+  if (fVerbosity > 1) {
+    for(unsigned i = 0; i < 4 ; ++i) printf(" E[%d]= %f\n",i,otrack_aos[i].E);
   }
 }
 
 void GUBenchmarker::RunVector()
 {
-  GUTrackHandler *handler_in = new GUTrackHandler();
-  handler_in->GenerateRandomTracks(fNtracks);
-
-  GUTrack_v track_in = handler_in->GetSoATracks();
-
+  //input SOA tracks
+  GUTrack_v track_in = fTrackHandler->GetSoATracks();
   GUTrackHandler *handler_out = new GUTrackHandler(fNtracks);
   GUTrack_v track_out = handler_out->GetSoATracks();
-
-  //put GUComptonProcess here which will call
-  vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
 
   int *targetElements = new int[fNtracks];
   for(int i = 0 ; i < fNtracks ; ++i) {
     targetElements[i] = i ;
   }
 
+  vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
+
   Stopwatch timer;
-  timer.Start();
   for (unsigned r = 0; r < fRepetitions; ++r) {
-    //SOA
-    model->Interact(track_in,targetElements,&track_out);
+    timer.Start();
+
+    model->Interact(track_in,targetElements,track_out);
+
+    Precision elapsedVector = timer.Stop();
+    if (fVerbosity > 0) {
+      printf("Vector Task %d >: %6.3fs\n",r,elapsedVector);
+    }
   }
-  Precision elapsedVector = timer.Stop();
-  timer.Start();
-  if (fVerbosity > 0) {
-    printf("Vector: %6.3fs\n",elapsedVector);
+
+  if (fVerbosity > 1) {
+    for(unsigned i = 0; i < 4 ; ++i) printf(" E[%d]= %f\n",i,(track_out.E)[i]);
   }
 }
 
