@@ -48,8 +48,6 @@ void GUBenchmarker::RunCuda()
   cudaMalloc((void**)&table_d,table_h->SizeOfTable());
   table_h->Relocate(table_d);
 
-  //prepre input tracks
-  GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
   int *targetElements = new int [fNtracks];
@@ -62,13 +60,11 @@ void GUBenchmarker::RunCuda()
   cudaMemcpy(targetElements_d, targetElements, fNtracks*sizeof(int), 
                cudaMemcpyHostToDevice);
 
+  //allocate memory for input/output tracks
   GUTrack *itrack_d;
   GUTrack *otrack_d;
   cudaMalloc((void**)&itrack_d, fNtracks*sizeof(GUTrack));
   cudaMalloc((void**)&otrack_d, fNtracks*sizeof(GUTrack));
-
-  cudaMemcpy(itrack_d, itrack_aos, fNtracks*sizeof(GUTrack), 
-               cudaMemcpyHostToDevice);
 
   //set the default number of threads and thread blocks - should be setable
   int theNBlocks  =  26;
@@ -76,13 +72,18 @@ void GUBenchmarker::RunCuda()
 
   //prepare random engines on the device
   Random_t* randomStates = 0;
-
   cudaMalloc(&randomStates, theNBlocks*theNThreads* sizeof(curandState));
   GUCurand_Init(randomStates, time(NULL), theNBlocks, theNThreads);
 
   Stopwatch timer;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
+
+    fTrackHandler->GenerateRandomTracks(fNtracks);
+    GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
+    cudaMemcpy(itrack_d, itrack_aos, fNtracks*sizeof(GUTrack), 
+                 cudaMemcpyHostToDevice);
+
     timer.Start();
     vecphys::cuda::BenchmarkCudaKernel<<<theNBlocks, theNThreads>>>(
 				       randomStates,table_d,fNtracks,
@@ -90,14 +91,16 @@ void GUBenchmarker::RunCuda()
     cudaDeviceSynchronize();
     Precision elapsedCuda = timer.Stop();
 
+    cudaMemcpy(otrack_aos, otrack_d, fNtracks*sizeof(GUTrack), 
+               cudaMemcpyDeviceToHost);
+
     if (fVerbosity > 0) {
       printf("CUDA   Task %d >: %6.3fs\n",r,elapsedCuda);
     }
+
   }
 
   if (fVerbosity > 1) {
-    cudaMemcpy(otrack_aos, otrack_d, fNtracks*sizeof(GUTrack), 
-               cudaMemcpyDeviceToHost);
     for(unsigned i = 0; i < 4 ; ++i) printf(" E[%d]= %f\n",i,otrack_aos[i].E);
   }
 

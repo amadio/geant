@@ -3,8 +3,6 @@
 #include "GUComptonKleinNishina.h"
 #include <iostream>
 
-#include "GUAliasSamplerGeneric.h"
-
 #include "backend/Backend.h"
 
 namespace vecphys {
