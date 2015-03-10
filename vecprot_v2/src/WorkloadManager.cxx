@@ -269,15 +269,10 @@ void *WorkloadManager::MainScheduler(void *) {
         continue;
       if (evt->Transported()) {
         evt->Print();
-        // Digitizer (delete for now)
+        // Digitizer (todo)
         Int_t ntracks = propagator->fNtracks[ievt];
         Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
         //            propagator->fApplication->Digitize(evt->GetEvent());
-        //            for (Int_t itrack=0;
-        //            itrack<ntracks; itrack++) {
-        //               delete propagator->fTracks[maxperevent*ievt+itrack];
-        //               propagator->fTracks[maxperevent*ievt+itrack] = 0;
-        //            }
         finished.SetBitNumber(evt->GetEvent());
         if (last_event < max_events) {
           Printf("=> Importing event %d", last_event);
@@ -410,11 +405,13 @@ void *WorkloadManager::TransportTracks(void *) {
   Int_t nkilled = 0;
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
+  Printf("=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantThreadData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0, true);
+  td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fNperBasket);
   prioritizer->SetFeederQueue(wm->FeederQueue());
   TGeoMaterial *mat = 0;
@@ -934,6 +931,16 @@ void *WorkloadManager::MonitoringThread(void *) {
         hbaskets->SetBinContent(bin, bmgr[j]->GetNbaskets());
         hbused->SetBinContent(bin, bmgr[j]->GetNused());
       }
+      int nbaskets_mixed = 0;
+      int nused_mixed = 0;
+      for (j=0; j<nthreads; j++) {
+        GeantThreadData *td = propagator->fThreadData[j];
+        nbaskets_mixed += td->fBmgr->GetNbaskets();
+	     nused_mixed += td->fBmgr->GetNused();
+      }
+      bin = hbaskets->GetXaxis()->FindBin("MIXED");
+      hbaskets->SetBinContent(bin, nbaskets_mixed);
+      hbused->SetBinContent(bin, nused_mixed);      
     }
     if (hconcurrency) {
       for (j = 0; j < nthreads + 1; j++) {

@@ -48,9 +48,12 @@ protected:
   GeantBasketMgr **fBasketMgr;       /** Array of basket managers */
   GeantBasketMgr *fGarbageCollector; /** Garbage collector manager */
 #if __cplusplus >= 201103L
-  std::atomic_int *fNtracks; /**[fNvolumes] Number of tracks per volume */
+  Int_t           *fNstvol;  /**[fNvolumes] Number of steps per volume */
+  Int_t           *fIstvol;  /**[fNvolumes] Sorted index of number of steps per volume */
+  std::atomic_int  fNsteps;  /** Total number of tracks steps */
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
+  std::atomic_flag fLearning;        /** Flag marking the learning phase */
 #endif
   Int_t fPriorityRange[2]; /** Prioritized events */
 #ifdef __STAT_DEBUG
@@ -80,6 +83,9 @@ public:
 
   /** GeantScheduler destructor */
   virtual ~GeantScheduler();
+
+  /** @brief Activate basket managers based on distribution of steps */
+  void ActivateBasketManagers();
 
   /**
    * @brief Schedule a new track
@@ -134,12 +140,11 @@ public:
 #if __cplusplus >= 201103L
 
   /**
-   * @brief Function to return N tracks per volume
+   * @brief Getter for total number of steps
    * 
-   * @param ib Basket manager id
-   * @return return number of tracks per volume
+   * @return Number of steps
    */
-  Int_t GetNtracks(Int_t ib) { return fNtracks[ib].load(); }
+  Int_t GetNsteps() const { return fNsteps.load(); }
 
   /**
    * @brief Getter for collecting flag
@@ -151,6 +156,22 @@ public:
    * @brief Setter for collecting flag
    */
    void SetCollecting(Bool_t flag) { fCollecting.store(flag); }
+
+  /**
+   * @brief Getter for learning flag
+   * @return Value of fLearning flag
+   */
+   Bool_t IsLearning() { 
+     bool learning = fLearning.test_and_set(std::memory_order_acquire);
+     if (!learning) fLearning.clear(std::memory_order_release);
+     return learning; }
+   
+  /**
+   * @brief Setter for the learning flag
+   */
+   void SetLearning(Bool_t flag) { 
+     if (flag) fLearning.test_and_set(std::memory_order_acquire);
+     else fLearning.clear(std::memory_order_release); }
    
 #endif
 

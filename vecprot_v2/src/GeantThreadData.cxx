@@ -11,13 +11,11 @@
 
 ClassImp(GeantThreadData)
 
-    //______________________________________________________________________________
-    GeantThreadData::GeantThreadData()
+//______________________________________________________________________________
+GeantThreadData::GeantThreadData()
     : TObject(), fMaxPerBasket(0), fNprocesses(0), fSizeDbl(0), fSizeBool(0), fVolume(0), fRndm(0),
       fBoolArray(0), fDblArray(0), fProcStep(0),
-      //             fFieldPropagator(0),
-      //             fRotation(0),
-      fTrack(0), fPath(0) {
+      fTrack(0), fPath(0), fBmgr(0) {
   // I/O ctor.
 }
 
@@ -26,9 +24,7 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
     : TObject(), fMaxPerBasket(maxperbasket), fNprocesses(maxprocesses), fSizeDbl(5 * maxperbasket),
       fSizeBool(5 * maxperbasket), fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0),
       fProcStep(0),
-      //             fFieldPropagator(0),
-      //             fRotation(new TGeoRotation()),
-      fTrack(0), fPath(0) {
+      fTrack(0), fPath(0), fBmgr(0) {
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
   fDblArray = new Double_t[fSizeDbl];

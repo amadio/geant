@@ -28,7 +28,7 @@ private:
 public:
 
   /** @brief GeantEvent default constructor */
-  GeantEvent() : fPrioritize(false), fPriorityThr(0.05), fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0) {}
+  GeantEvent() : fPrioritize(false), fPriorityThr(0.01), fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0) {}
     
   /** @brief GeantEvent destructor */
   ~GeantEvent() {}

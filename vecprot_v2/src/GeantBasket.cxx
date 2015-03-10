@@ -130,13 +130,13 @@ ClassImp(GeantBasketMgr)
 //______________________________________________________________________________
 GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector)
     : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32),
-      fActive(kFALSE), fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fCBasket(0), fPBasket(0), fLock(), fQLock(),
-      fBaskets(0), fFeeder(0), fMutex() {
+      fActive(kFALSE), fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), 
+      fCBasket(0), fPBasket(0), fLock(), fQLock(), fBaskets(0), fFeeder(0), fMutex() {
   // Constructor
   fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
   fBaskets = new mpmc_bounded_queue<GeantBasket *>(fQcap);
   // The line below to be removed when the automatic activation schema in place
-  /*if (collector) */ 
+  if (collector) 
     Activate();
 }
 
@@ -161,9 +161,11 @@ void GeantBasketMgr::Activate()
   if (fCollector) {
     basket->SetMixed(true);
     Printf("Created collector basket manager");
+    fActive = true;
     return;
   }  
   SetPBasket(new GeantBasket(fBcap, this));
+  fActive = true;
 }   
 
 //______________________________________________________________________________

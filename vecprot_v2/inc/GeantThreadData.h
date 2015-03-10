@@ -23,9 +23,7 @@
 
 class TGeoVolume;
 class TRandom;
-// class TGeoHMatrix;
-// class TGeoHelix;
-// class TGeoRotation;
+class GeantBasketMgr;
 
 /**
  * @brief Class GeantThreadData
@@ -43,10 +41,9 @@ public:
   Bool_t *fBoolArray;  /** [5*fMaxPerBasket] Thread array of bools */
   Double_t *fDblArray; /** [5*fMaxPerBasket] Thread array of doubles */
   Double_t *fProcStep; /** [fNprocesses*fMaxPerBasket] */
-  //   TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
-  //   TGeoRotation     *fRotation;              //! Rotation used by the field propagator
   GeantTrack fTrack;   /** Track support for this thread */
   VolumePath_t *fPath; /** Volume path for the thread */
+  GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */  
 
 public:
 

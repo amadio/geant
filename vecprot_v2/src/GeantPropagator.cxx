@@ -74,7 +74,7 @@ GeantPropagator::GeantPropagator()
       fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fNprocesses(3), fNstart(0),
       fMaxTracks(0), // change
       fMaxThreads(100), fNminThreshold(10), fDebugTrk(-1), fMaxSteps(10000), fNperBasket(16),
-      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fMaxRes(10000.), fNaverage(0.), fVertex(),
+      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(1000000), fMaxRes(10000.), fNaverage(0.), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE),
@@ -237,6 +237,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       fPrimaryGenerator->GetTrack(i, track);
       track.fFrombdr = kFALSE;
       track.fStatus = kAlive;
+      track.fVindex = vol->GetNumber();
       AddTrack(track);
       ndispatched += DispatchTrack(track);
     }

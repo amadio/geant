@@ -1,7 +1,10 @@
 #include "GeantScheduler.h"
+
+#include "TMath.h"
 #include "GeantBasket.h"
 #include "globals.h"
 #include "GeantTrack.h"
+#include "GeantThreadData.h"
 #include "GeantEvent.h"
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
@@ -19,9 +22,11 @@ ClassImp(GeantScheduler)
 
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
-  : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNtracks(0), fCrtMgr(0), fCollecting(false) {
-  // dummy
+  : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0),
+    fNstvol(0), fIstvol(0), fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning() {
+  // Default constructor
   fPriorityRange[0] = fPriorityRange[1] = -1;
+  SetLearning(false);
 #ifdef __STAT_DEBUG
   fPStat.InitArrays(GeantPropagator::Instance()->fNevents);
   fQStat.InitArrays(GeantPropagator::Instance()->fNevents);
@@ -40,13 +45,57 @@ GeantScheduler::~GeantScheduler() {
     }
   }
   delete[] fBasketMgr;
-  delete[] fNtracks;
+  delete[] fNstvol;
+  delete[] fIstvol;
+}
+
+//______________________________________________________________________________
+void GeantScheduler::ActivateBasketManagers()
+{
+// Activate basket managers based on the distribution of steps in corresponding
+// volumes.
+  TMath::Sort(fNvolumes, fNstvol, fIstvol);
+  int ntot = 0;
+  int nsum = 0;
+  double threshold = 0.9;
+  for (auto i=0; i<fNvolumes; i++) ntot += fNstvol[i];
+  int nthreshold = ntot*threshold;
+  int nactive = 0;
+  for (auto i=0; i<fNvolumes; ++i) {
+    nsum += fNstvol[fIstvol[i]];
+    TGeoVolume *vol = gGeoManager->GetVolume(fIstvol[i]);
+    GeantBasketMgr *mgr = (GeantBasketMgr*)vol->GetFWExtension();
+    mgr->Activate();
+    nactive++;
+    if (nsum > nthreshold) break;
+  }
+  threshold = double(nsum)/ntot;
+  Printf("Activated %d volumes accounting for %4.1f%% of track steps", nactive, threshold);
+  int nprint = 10;
+  if (nprint > fNvolumes) nprint = fNvolumes;
+  for (auto i=0; i<nprint; ++i) {
+    TGeoVolume *vol = gGeoManager->GetVolume(fIstvol[i]);
+    Printf("  * %s: %d steps", vol->GetName(), fNstvol[fIstvol[i]]);
+  }
+  // Now clean some of the mixed baskets
+  GeantPropagator *propagator = GeantPropagator::Instance();
+  int nthreads = propagator->fNthreads;
+  GeantThreadData **td = propagator->fThreadData;
+  for (auto i=0; i<nthreads; ++i) {
+    int ntoclean = td[i]->fBmgr->GetNbaskets();
+    while (ntoclean>nthreads) {
+      td[i]->fBmgr->CleanBaskets(ntoclean);  
+      ntoclean = td[i]->fBmgr->GetNbaskets();
+    }  
+//    Printf("thread %d: before %d after %d", i, ntoclean, td[i]->fBmgr->GetNbaskets());
+  }  
 }
 
 //______________________________________________________________________________
 void GeantScheduler::AdjustBasketSize() {
   // Adjust the basket size to converge to Ntracks/2*Nthreads
   return;     // !!!!!!!!!!!!!!! NOT needed anymore !!!!!!!!!!!!!!!
+/*
   const Int_t min_size = 4;
   const Int_t max_size = gPropagator->fNperBasket;
   Int_t nthreads = gPropagator->fNthreads;
@@ -66,6 +115,7 @@ void GeantScheduler::AdjustBasketSize() {
     //       fBasketMgr[ib]->GetName(), fNtracks[ib], fBasketMgr[ib]->GetThreshold(), nproposed);
     fBasketMgr[ib]->SetThreshold(nproposed);
   }
+*/
 }
 
 //______________________________________________________________________________
@@ -75,11 +125,11 @@ void GeantScheduler::CreateBaskets() {
     return;
   fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
   fBasketMgr = new GeantBasketMgr *[fNvolumes];
-  fNtracks = new std::atomic_int[fNvolumes];
-  for (Int_t i = 0; i < fNvolumes; i++)
-    fNtracks[i].store(0);
+  fNstvol = new Int_t[fNvolumes];
+  fIstvol = new Int_t[fNvolumes];
+  memset(fNstvol, 0, fNvolumes*sizeof(Int_t));
+  memset(fIstvol, 0, fNvolumes*sizeof(Int_t));
   Geant::priority_queue<GeantBasket *> *feeder = WorkloadManager::Instance()->FeederQueue();
-//  fGarbageCollector = new GeantBasketMgr(this, 0, 0);
   TIter next(gGeoManager->GetListOfVolumes());
   TGeoVolume *vol;
   GeantBasketMgr *basket_mgr;
@@ -115,9 +165,13 @@ void GeantScheduler::CleanBaskets() {
 Int_t GeantScheduler::AddTrack(GeantTrack &track) {
   // Main method to inject generated tracks. Track status is kNew here.
   TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
+  Int_t ivol = vol->GetNumber();
+  fNstvol[ivol]++;
+  fNsteps++;
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
-  fNtracks[basket_mgr->GetNumber()]++;
-  return basket_mgr->AddTrack(track, kFALSE);
+  // Activate the basket manager
+  basket_mgr->Activate(); 
+  return basket_mgr->AddTrack(track, false);
 }
 
 //______________________________________________________________________________
@@ -131,7 +185,6 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
   Int_t ntracks = tracks.GetNtracks();
   ntot += ntracks;
   GeantBasketMgr *basket_mgr = 0;
-  Int_t output_id = output->GetBasketMgr()->GetNumber();
   TGeoVolume *vol = 0;
   for (Int_t itr = 0; itr < ntracks; itr++) {
     // We have to collect the killed tracks
@@ -140,13 +193,9 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
       nkilled++;
       gPropagator->StopTrack(tracks, itr);
       tracks.DeleteTrack(itr);
-      fNtracks[output_id]--;
       continue;
     }
-    if (tracks.fStatusV[itr] != kNew)
-      fNtracks[output_id]--;
-    else
-      nnew++;
+    if (tracks.fStatusV[itr] == kNew) nnew++;
     tracks.fStatusV[itr] = kAlive;
     
     priority = kFALSE;
@@ -154,16 +203,27 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
 //        tracks.fEventV[itr] <= fPriorityRange[1])
 //      priority = kTRUE;
 
+    vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();
+    Int_t ivol = vol->GetNumber();
+    tracks.fVindexV[itr] = ivol;
+    fNstvol[ivol]++;
+    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+    Int_t nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
     if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
       ninjected += prioritizer->AddTrackSingleThread(tracks, itr, true);
       continue;
     }
-    vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();
-    tracks.fVindexV[itr] = vol->GetNumber();
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
-    fNtracks[output_id]++;
-    ninjected += basket_mgr->AddTrack(tracks, itr, priority);
+    if (nsteps>propagator->fLearnSteps &&
+        !fLearning.test_and_set(std::memory_order_acquire)) {
+      Printf("=== Learning phase of %d steps completed ===", propagator->fLearnSteps);
+      // Here comes the algorithm activating basket managers...
+      ActivateBasketManagers();
+    }  
+    if (basket_mgr->IsActive()) 
+      ninjected += basket_mgr->AddTrack(tracks, itr, priority);
+    else 
+      ninjected += prioritizer->AddTrackSingleThread(tracks, itr, false);
   }
   tracks.Clear();
   return ninjected;
@@ -219,7 +279,8 @@ Int_t GeantScheduler::GarbageCollect() {
   //   PrintSize();
   Int_t ninjected = 0;
   for (Int_t ibasket = 0; ibasket < fNvolumes; ibasket++) {
-    ninjected += fBasketMgr[ibasket]->GarbageCollect();
+    if (fBasketMgr[ibasket]->IsActive())
+      ninjected += fBasketMgr[ibasket]->GarbageCollect();
   }
   return ninjected;
 }
