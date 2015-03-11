@@ -43,17 +43,22 @@ void GUTrackHandler::Allocate(size_t nTracks)
   SetNumberOfTracks(nTracks);
 
   if(fNumberOfTracks > 0) {
+    //allocation for aos
     fTrack_aos = (GUTrack *)_mm_malloc (fNumberOfTracks*sizeof(GUTrack),32);
 
+
+    //allocation for soa
     char* fBuffer = (char *) _mm_malloc (sizeof(int)+
 					fNumberOfTracks*sizeof(GUTrack),
 					32);
 
-    const int offset_int = fNumberOfTracks*sizeof(int);
+    const int offset_int    = fNumberOfTracks*sizeof(int);
     const int offset_double = fNumberOfTracks*sizeof(double);
 
+    //stride for GUTrack_v.numTracks
     fBuffer += sizeof(int);
     
+    //set ptr to each element of GUTrack_v
     fTrack_soa.status       = (int*)fBuffer; 
     fBuffer += offset_int;
 

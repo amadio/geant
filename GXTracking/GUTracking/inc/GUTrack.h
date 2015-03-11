@@ -17,12 +17,10 @@ struct GUTrack
   double E;
   double q;          // charge ? 
   double s;          // step length ??
-  double pdg;        // 
 } ;
 
 struct GUTrack_v
 {
-  int capacity;        // max number of tracks that can be stored
   int numTracks;       // real number of tracks stored
   int *status;         // status of the track: alive or killed (possible at rest ???)
   int *particleType;
