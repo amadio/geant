@@ -21,7 +21,7 @@ void runCMS(Int_t nthreads=4,
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
-   wmgr->SetMonitored(WorkloadManager::kMonQueue,          false);
+   wmgr->SetMonitored(WorkloadManager::kMonQueue,          true);
    wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  true);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
@@ -51,6 +51,7 @@ void runCMS(Int_t nthreads=4,
    std::string s = "pp14TeVminbias.root";
    prop->fPrimaryGenerator = new HepMCGenerator(s);
    //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
+   prop->fLearnSteps = 100000;
 
    prop->fApplication = new MyApplication();
 

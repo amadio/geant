@@ -49,7 +49,6 @@ void run(Int_t nthreads=4,
 
    prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
    // Number of steps for learning phase
-   prop->fLearnSteps = 0;
    prop->fLearnSteps = 1000;
 
 

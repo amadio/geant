@@ -58,19 +58,29 @@ void GeantScheduler::ActivateBasketManagers()
   int ntot = 0;
   int nsum = 0;
   double threshold = 0.9;
-  for (auto i=0; i<fNvolumes; i++) ntot += fNstvol[i];
-  int nthreshold = ntot*threshold;
   int nactive = 0;
+  for (auto i=0; i<fNvolumes; i++) {
+    ntot += fNstvol[i];
+    TGeoVolume *vol = gGeoManager->GetVolume(i);
+    GeantBasketMgr *mgr = (GeantBasketMgr*)vol->GetFWExtension();
+    if (mgr->IsActive()) {
+      nsum += fNstvol[i];
+      nactive++;
+    }
+  }  
+  int nthreshold = ntot*threshold;
   for (auto i=0; i<fNvolumes; ++i) {
-    nsum += fNstvol[fIstvol[i]];
     TGeoVolume *vol = gGeoManager->GetVolume(fIstvol[i]);
     GeantBasketMgr *mgr = (GeantBasketMgr*)vol->GetFWExtension();
-    mgr->Activate();
-    nactive++;
+    if (!mgr->IsActive()) {
+      mgr->Activate();
+      nsum += fNstvol[fIstvol[i]];
+      nactive++;
+    }  
     if (nsum > nthreshold) break;
   }
   threshold = double(nsum)/ntot;
-  Printf("Activated %d volumes accounting for %4.1f%% of track steps", nactive, threshold);
+  Printf("Activated %d volumes accounting for %4.1f%% of track steps", nactive, 100*threshold);
   int nprint = 10;
   if (nprint > fNvolumes) nprint = fNvolumes;
   for (auto i=0; i<nprint; ++i) {
@@ -221,11 +231,13 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
       ninjected += prioritizer->AddTrackSingleThread(tracks, itr, true);
       continue;
     }
-    if (nsteps>propagator->fLearnSteps &&
+    if (propagator->fLearnSteps && (nsteps%propagator->fLearnSteps)==0 &&
         !fLearning.test_and_set(std::memory_order_acquire)) {
       Printf("=== Learning phase of %d steps completed ===", propagator->fLearnSteps);
       // Here comes the algorithm activating basket managers...
       ActivateBasketManagers();
+      propagator->fLearnSteps *= 4;
+      fLearning.clear();
     }  
     if (basket_mgr->IsActive()) 
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);
