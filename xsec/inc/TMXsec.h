@@ -48,7 +48,9 @@ public:
    Double_t InvRange(Int_t part, Float_t step);
 
    GEANT_CUDA_DEVICE_CODE
-   void Eloss(Int_t ntracks, GeantTrack_v &tracks);
+   void  Eloss(Int_t ntracks, GeantTrack_v &tracks);
+   GEANT_CUDA_DEVICE_CODE
+   void  ElossSingle(Int_t itrack, GeantTrack_v &tracks);
    void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
    void	ProposeStepSingle(Int_t itr, GeantTrack_v &tracks, Int_t tid);
    void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid);

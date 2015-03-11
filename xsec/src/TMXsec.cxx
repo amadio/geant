@@ -654,6 +654,81 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
    }
 }   
 
+// Compute along step energy loss for charged particles using linear loss aprx. 
+//____________________________________________________________________________
+void TMXsec::ElossSingle(Int_t i, GeantTrack_v &tracks)
+{
+// -should be called only for charged particles (first fNPartCharge particle 
+// in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
+// Compute energy loss for the first ntracks in the input vector and update
+// tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the 
+// necessary at-rest process type if it has any. 
+
+   Double_t energyLimit = GeantPropagator::Instance()->fEmin;
+   Int_t ipart = tracks.fG5codeV[i];  // GV particle index/code
+   tracks.fProcessV[i] = -1;    // init process index to -1 i.e. no process
+   Double_t dedx       = 0.0;
+
+   // just a check; can be removed if it is ensured before calling
+   if(ipart>=TPartIndex::I()->NPartCharge())// there is no energy loss nothing change
+     return;
+
+   Double_t energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$ [GeV]
+   Double_t range  = Range(ipart, energy);
+   if(tracks.fStepV[i]>range) {
+     // Particle will stop
+     tracks.fEdepV[i] += energy;       // put Ekin to edepo
+     tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
+     tracks.fPV[i] = 0.;                // set Ptotal = 0
+     tracks.fStatusV[i] = kKilled;     // set status to killed 
+     // stopped: set proc. indx = -2 to inidicate that 
+     tracks.fProcessV[i] = -2; // possible at-rest process need to be called 
+     return;
+   }
+
+   // get dedx value
+   if (energy<=fEGrid[0]) dedx = fDEdx[ipart*fNEbins]; // protections
+   else if (energy>=fEGrid[fNEbins-1]) dedx = fDEdx[ipart*fNEbins+fNEbins-1]; 
+   else { // regular case
+      Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta; // energy bin index
+      ibin = ibin<fNEbins-1?ibin:fNEbins-2;
+      Double_t en1 = fEGrid[ibin];
+      Double_t en2 = fEGrid[ibin+1];
+      Double_t xrat = (en2-energy)/(en2-en1);
+      dedx = xrat*fDEdx[ipart*fNEbins+ibin]+(1-xrat)*fDEdx[ipart*fNEbins+ibin+1];
+   }
+   // Update energy and momentum
+   Double_t gammaold = tracks.Gamma(i);
+   Double_t bgold = TMath::Sqrt((gammaold-1)*(gammaold+1));
+
+
+   Double_t edepo = tracks.fStepV[i]*dedx;  // compute energy loss using linera loss aprx.
+   if(edepo>0.01*energy) // long step: eloss > 1% of initial energy
+     edepo = energy-InvRange(ipart, range-tracks.fStepV[i]);
+
+   Double_t newEkin = energy-edepo;         // new kinetic energy  
+   if (newEkin < energyLimit) {  // new Kinetic energy below tracking cut
+     // Particle energy below threshold
+     tracks.fEdepV[i] += energy;       // put Ekin to edepo
+     tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
+     tracks.fPV[i] = 0.;                // set Ptotal = 0
+     tracks.fStatusV[i] = kKilled;     // set status to killed 
+     // check if the particle stopped or just went below the tracking cut
+     if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
+       tracks.fProcessV[i] = -2; // possible at-rest process need to be called 
+     // else : i.e. 0 < newEkin < energyLimit just kill the track cause tracking cut
+   } else {  // track further: update energy, momentum, process etc.
+     // tracks.fProcessV[i] = TPartIndex::I()->ProcIndex("Ionisation");
+     tracks.fProcessV[i] = 2;     // Ionisation
+     tracks.fEdepV[i] += edepo;   // add energy deposit 
+     tracks.fEV[i] -= edepo;      // update total energy 
+     Double_t gammanew = tracks.Gamma(i);
+     Double_t bgnew = TMath::Sqrt((gammanew-1)*(gammanew+1));
+     Double_t pnorm = bgnew/bgold;
+     tracks.fPV[i] *= pnorm;      // update total momentum
+   }  
+}   
+
 //____________________________________________________________________________
 TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptot) {
    if(part<TPartIndex::I()->NPartReac()) {

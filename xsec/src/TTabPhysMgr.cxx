@@ -351,7 +351,7 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
    // Mixed tracks in different volumes
    for(Int_t i = 0; i < ntracks; ++i){
       mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
-      mxs->Eloss(ntracks, tracks);
+      mxs->ElossSingle(i, tracks);
      //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
       if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
         GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
