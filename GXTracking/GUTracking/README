@@ -27,6 +27,9 @@
 
 3. Other important options
 
+   # turn on histogramming (with BENCHMARK=ON)
+   -DROOT=ON
+
    # set a vector instruction set
    -DVECPHYS_VECTOR=sse
 

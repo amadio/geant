@@ -42,9 +42,6 @@
   #undef VECPHYS_VC
   #undef VECPHYS_VC_ACCELERATION
   #undef VECPHYS_CILK
-  #undef VECPHYS_ROOT
-  #undef VECPHYS_USOLIDS
-  #undef VECPHYS_GEANT4
   #undef VECPHYS_BENCHMARK
 #else
   // Not compiling with NVCC

@@ -185,6 +185,9 @@ if (NO_SPECIALIZATION)
   set(VECPHYS_COMPILATION_FLAGS
       "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_NO_SPECIALIZATION")
 endif()
+if (ROOT)
+  set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_ROOT")
+endif()
 
 # Pass flags to compilers
 if (GNU)
@@ -244,6 +247,15 @@ if (CUDA)
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${VECPHYS_NVCC_COMPILATION_FLAGS})
 endif()
 
+if (ROOT)
+  find_package(ROOT REQUIRED)
+
+  include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR} )
+  link_directories(${ROOT_LIBRARY_DIR})
+  set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL}
+      ${ROOT_LIBRARIES} )
+endif()
+
 # until VecCore is separated from VecPhys (then it become something
 # ${VecCore_DIR}/include
 #include_directories(${CMAKE_SOURCE_DIR}/VecCore/inc )
@@ -299,6 +311,11 @@ if (BENCHMARK)
     test/src/GUBenchmarker.cc
     src/GUTrackHandler.cc
   )
+  if (ROOT) 
+  set(SRC_CPP ${SRC_CPP}
+    src/GUHistogram.cc
+  )
+  endif()
   set(SRC_CUDA ${SRC_CUDA}
     test/src/GUBenchmarker.cu
     test/src/GUCurand.cu
