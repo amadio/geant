@@ -169,8 +169,15 @@ Int_t GeantScheduler::AddTrack(GeantTrack &track) {
   fNstvol[ivol]++;
   fNsteps++;
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
-  // Activate the basket manager
-  basket_mgr->Activate(); 
+  // If no learning phase requested, activate all basket managers
+  GeantPropagator *propagator = GeantPropagator::Instance();
+  if ((propagator->fLearnSteps==0) &&
+        !fLearning.test_and_set(std::memory_order_acquire)) {
+    for (ivol=0; ivol < fNvolumes; ++ivol) fBasketMgr[ivol]->Activate();
+  } else {
+    // Activate the basket manager
+    basket_mgr->Activate(); 
+  }    	
   return basket_mgr->AddTrack(track, false);
 }
 

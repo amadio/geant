@@ -842,12 +842,13 @@ void *WorkloadManager::MonitoringThread(void *) {
     hbaskets->SetFillColor(kBlue);
     hbaskets->SetLineColor(0);
     hbaskets->SetStats(false);
+//    hbaskets->GetYaxis()->SetRangeUser(1,10000);
     hbused = new TH1I("hbused", "Baskets per volume", nvol, 0, nvol);
     hbused->SetFillColor(kRed);
     hbused->SetFillStyle(3001);
     hbused->SetLineColor(0);
     hbused->SetStats(false);
-    cmon->cd(++ipad);
+    cmon->cd(++ipad)->SetLogy();
     hbaskets->Draw();
     hbused->Draw("SAME");
   }    

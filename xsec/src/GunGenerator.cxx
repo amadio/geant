@@ -91,7 +91,10 @@ void GunGenerator::InitPrimaryGenerator(){
 //______________________________________________________________________________
 Int_t GunGenerator::NextEvent(){
     //
-    numberoftracks = rndgen->Poisson(average);
+    if (average==1)
+      numberoftracks = 1;
+    else  
+      numberoftracks = rndgen->Poisson(average);
     // here are generate an event with ntracks
 
     for( Int_t nn=1; nn<=numberoftracks; nn++ ) {

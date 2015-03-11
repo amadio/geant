@@ -438,7 +438,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   }  
   fTimer = new TStopwatch();
   fWMgr->StartThreads();
-  fTimer->Start();
+  fTimer->Start();  
+  // Wake up the main scheduler once to avoid blocking the system
+  condition_locker &sched_locker = fWMgr->GetSchLocker();
+  sched_locker.StartOne();
   fWMgr->WaitWorkers();
   fTimer->Stop();
   Double_t rtime = fTimer->RealTime();
