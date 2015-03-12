@@ -124,7 +124,8 @@ done
 
 # if no patch has been generated all is ok, clean up the file stub and exit
 if [ ! -s "$patch" ] ; then
-    printf "Files in this commit comply with the clang-format rules.\n"
+    printf "Files in this commit comply with the clang-format rules
+    .\n"
     rm -f "$patch"
     exit 0
 fi
@@ -134,10 +135,24 @@ printf "\nThe following differences were found between the code to commit "
 printf "and the clang-format rules:\n\n"
 cat "$patch"
 
-printf "\nYou can apply these changes with:\n git apply $patch\n"
-printf "(may need to be called from the root directory of your repository)\n"
-printf "Aborting commit. Apply changes and commit again or skip checking with"
-printf " --no-verify (not recommended).\n"
+# Allows us to read user input below, assigns stdin to keyboard
+exec < /dev/tty
 
-exit 1
+while true; do
+    read -p "Do you want to install patch? [Y/N]" yn
+        case $yn in
+            [Yy] ) git apply $patch; break
+            ;;
+            [Nn] ) printf "\nYou can apply these changes with:\n git apply $patch\n";
+            printf "(may need to be called from the root directory of your repository)\n";
+            printf "Aborting commit. Apply changes and commit again or skip checking with";
+            printf " --no-verify (not recommended).\n";break
+            ;;
+            * ) echo "Please answer yes or no."
+            ;;
+    esac
+done
+
+
+
 
