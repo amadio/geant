@@ -50,6 +50,7 @@ protected:
 #if __cplusplus >= 201103L
   Int_t           *fNstvol;  /**[fNvolumes] Number of steps per volume */
   Int_t           *fIstvol;  /**[fNvolumes] Sorted index of number of steps per volume */
+  Int_t           *fNvect;   /**[256] Number of tracks basketized in vectors of given size */
   std::atomic_int  fNsteps;  /** Total number of tracks steps */
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
@@ -172,6 +173,12 @@ public:
    void SetLearning(Bool_t flag) { 
      if (flag) fLearning.test_and_set(std::memory_order_acquire);
      else fLearning.clear(std::memory_order_release); }
+
+  /**
+   * @brief Getter for array fNvect
+   * @return Pointer to fNvect array
+   */
+  Int_t *GetNvect() { return fNvect; } 
    
 #endif
 

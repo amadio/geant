@@ -23,10 +23,12 @@ ClassImp(GeantScheduler)
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
   : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0),
-    fNstvol(0), fIstvol(0), fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning() {
+    fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning() {
   // Default constructor
   fPriorityRange[0] = fPriorityRange[1] = -1;
   SetLearning(false);
+  fNvect = new Int_t[257];
+  memset(fNvect, 0, 257*sizeof(int));
 #ifdef __STAT_DEBUG
   fPStat.InitArrays(GeantPropagator::Instance()->fNevents);
   fQStat.InitArrays(GeantPropagator::Instance()->fNevents);
@@ -47,6 +49,7 @@ GeantScheduler::~GeantScheduler() {
   delete[] fBasketMgr;
   delete[] fNstvol;
   delete[] fIstvol;
+  delete[] fNvect;
 }
 
 //______________________________________________________________________________
@@ -57,6 +60,7 @@ void GeantScheduler::ActivateBasketManagers()
   TMath::Sort(fNvolumes, fNstvol, fIstvol);
   int ntot = 0;
   int nsum = 0;
+  // Percent of steps to activate basketized volumes
   double threshold = 0.9;
   int nactive = 0;
   for (auto i=0; i<fNvolumes; i++) {

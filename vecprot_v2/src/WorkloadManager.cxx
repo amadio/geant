@@ -35,7 +35,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
       fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fStarted(false),
       fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
       fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0), 
-      fMonMemory(0), fMonBasketsPerVol(0), fMonConcurrency(0), fMonTracksPerEvent(0),
+      fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0),
       fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker() {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -410,6 +410,7 @@ void *WorkloadManager::TransportTracks(void *) {
   GeantThreadData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
+  Int_t *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0, true);
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fNperBasket);
@@ -456,6 +457,9 @@ void *WorkloadManager::TransportTracks(void *) {
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
       mat = td->fVolume->GetMaterial();
+      if (ntotransport < 257) nvect[ntotransport] += ntotransport;
+    } else {
+      nvect[1] += ntotransport;
     }
 
     // Record tracks
@@ -747,6 +751,7 @@ Int_t WorkloadManager::GetMonFeatures() const
   return (fMonQueue + 
           fMonMemory + 
           fMonBasketsPerVol + 
+	  fMonVectors +
           fMonConcurrency + 
           fMonTracksPerEvent);
 }          
@@ -762,6 +767,8 @@ bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const
       return fMonMemory;
     case kMonBasketsPerVol:
       return fMonBasketsPerVol;
+    case kMonVectors:
+      return fMonVectors;  
     case kMonConcurrency:
       return fMonConcurrency;
     case kMonTracksPerEvent:
@@ -782,6 +789,8 @@ void WorkloadManager::SetMonitored(EGeantMonitoringType feature, bool flag)
       fMonMemory = value;
     case kMonBasketsPerVol:
       fMonBasketsPerVol = value;
+    case kMonVectors:
+      fMonVectors = value;  
     case kMonConcurrency:
       fMonConcurrency = value;
     case kMonTracksPerEvent:
@@ -806,6 +815,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   Double_t nmem[100] = {0};
   GeantScheduler *sch = wm->GetScheduler();
   Int_t nvol = sch->GetNvolumes();
+  Int_t *nvect = sch->GetNvect();
   Int_t nthreads = wm->GetNthreads();
   Int_t *nworking = new Int_t[nthreads + 1];
   memset(nworking, 0, (nthreads + 1) * sizeof(Int_t));
@@ -851,7 +861,16 @@ void *WorkloadManager::MonitoringThread(void *) {
     cmon->cd(++ipad)->SetLogy();
     hbaskets->Draw();
     hbused->Draw("SAME");
-  }    
+  }
+  TH1I *hvectors = 0;    
+  if (wm->IsMonitored(WorkloadManager::kMonVectors)) {
+    hvectors = new TH1I("hvectors", "Tracks in vectors of given size", 257, 0, 257);
+    hvectors->SetFillColor(kBlue);
+    hvectors->SetLineColor(0);
+    hvectors->SetStats(false);
+    cmon->cd(++ipad)->SetLogy();
+    hvectors->Draw();
+  }
   TH1F *hconcurrency = 0;
   TH1F *hconcavg = 0;
   if (wm->IsMonitored(WorkloadManager::kMonConcurrency)) {  
@@ -943,6 +962,21 @@ void *WorkloadManager::MonitoringThread(void *) {
       hbaskets->SetBinContent(bin, nbaskets_mixed);
       hbused->SetBinContent(bin, nused_mixed);      
     }
+    if (hvectors) {
+      int vmax = 0;
+      int ymax = 0;
+      // mixed tracks
+     // hvectors->SetBinContent(1, nvect[1]);
+      for (j=1; j<257; ++j) {
+        if (nvect[j]>0) {
+	  if (j>vmax) vmax=j;
+	}
+	if (nvect[j]>ymax) ymax = nvect[j];
+        hvectors->SetBinContent(j+1, nvect[j]);
+      }
+      hvectors->GetXaxis()->SetRangeUser(-5,vmax);
+      hvectors->GetYaxis()->SetRangeUser(1,1.2*ymax);
+    }
     if (hconcurrency) {
       for (j = 0; j < nthreads + 1; j++) {
         nworking[j] += 1 - waiting[j];
@@ -977,6 +1011,10 @@ void *WorkloadManager::MonitoringThread(void *) {
       hbaskets->Draw();
       hbused->Draw("SAME");
     }
+    if (hvectors) {
+      cmon->cd(++ipad);
+      hvectors->Draw();
+    }  
     if (hconcurrency) {
       cmon->cd(++ipad);
       hconcurrency->Draw();
@@ -994,6 +1032,9 @@ void *WorkloadManager::MonitoringThread(void *) {
     if (wm->IsStopped()) break;
   }
   delete[] nworking;
+  double sumvect = 0.;
+  for (i=0; i<257; ++i) sumvect += nvect[i];
+  Printf("=== Percent of tracks transported in single track mode: %g%%", 100.*nvect[1]/sumvect);
   // Sleep a bit to let the graphics finish
   gSystem->Sleep(100); // millisec
 

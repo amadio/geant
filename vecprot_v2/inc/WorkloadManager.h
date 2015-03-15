@@ -44,6 +44,7 @@ enum EGeantMonitoringType {
   kMonQueue = 0,
   kMonMemory,
   kMonBasketsPerVol,
+  kMonVectors,
   kMonConcurrency,
   kMonTracksPerEvent
 };
@@ -69,6 +70,7 @@ protected:
   Int_t  fMonQueue;                   /** Monitor the work queue */
   Int_t  fMonMemory;                  /** Monitor the memory */
   Int_t  fMonBasketsPerVol;           /** Monitor baskets per volume */
+  Int_t  fMonVectors;                 /** Monitor vector scheduling */
   Int_t  fMonConcurrency;             /** Monitor concurrency */
   Int_t  fMonTracksPerEvent;          /** Monitor tracks status per event */
   GeantScheduler *fScheduler;         /** Main basket scheduler */

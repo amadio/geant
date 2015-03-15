@@ -23,9 +23,10 @@ void run(Int_t nthreads=4,
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
-   wmgr->SetMonitored(WorkloadManager::kMonQueue,          false);
+   wmgr->SetMonitored(WorkloadManager::kMonQueue,          true);
    wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
+   wmgr->SetMonitored(WorkloadManager::kMonVectors,        true);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
    wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
@@ -49,7 +50,7 @@ void run(Int_t nthreads=4,
 
    prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
    // Number of steps for learning phase
-   prop->fLearnSteps = 1000;
+   prop->fLearnSteps = 10000;
 
 
    prop->fApplication = new MyApplication();

@@ -23,7 +23,8 @@ void runCMS(Int_t nthreads=4,
    wmgr->SetNminThreshold(5*nthreads);
    wmgr->SetMonitored(WorkloadManager::kMonQueue,          true);
    wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
-   wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  true);
+   wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
+   wmgr->SetMonitored(WorkloadManager::kMonVectors,        true);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
    wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
@@ -51,7 +52,7 @@ void runCMS(Int_t nthreads=4,
    std::string s = "pp14TeVminbias.root";
    prop->fPrimaryGenerator = new HepMCGenerator(s);
    //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
-   prop->fLearnSteps = 100000;
+   prop->fLearnSteps = 1000000;
 
    prop->fApplication = new MyApplication();
 
