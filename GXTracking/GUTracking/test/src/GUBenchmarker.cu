@@ -7,9 +7,14 @@
 #include "GUComptonKleinNishina.h"
 #include "GUTrackHandler.h"
 
+#ifdef VECPHYS_ROOT
+#include "GUHistogram.h"
+#endif
+
 #include "GUCurand.h"
 
 namespace vecphys {
+
 inline namespace cuda {
 
 __global__
@@ -35,10 +40,14 @@ void BenchmarkCudaKernel(Random_t* devStates,
 
 void GUBenchmarker::RunCuda()
 {
+#ifdef VECPHYS_ROOT
+  GUHistogram* histogram = new GUHistogram("cuda.root");
+#endif
+
   cudaDeviceReset();
 
   //set 1024 megabytes on the heap (global mememory) 
-  cudaThreadSetLimit(cudaLimitMallocHeapSize, 1024*1024*1024);
+  //  cudaThreadSetLimit(cudaLimitMallocHeapSize, 1024*1024*1024);
 
   //prepare table
   GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
@@ -90,18 +99,21 @@ void GUBenchmarker::RunCuda()
 				       itrack_d, targetElements_d,otrack_d);
     cudaDeviceSynchronize();
     Precision elapsedCuda = timer.Stop();
+    if (fVerbosity > 0) {
+      printf("CUDA   Task %d > %6.3f sec\n",r,elapsedCuda);
+    }
 
     cudaMemcpy(otrack_aos, otrack_d, fNtracks*sizeof(GUTrack), 
                cudaMemcpyDeviceToHost);
 
-    if (fVerbosity > 0) {
-      printf("CUDA   Task %d >: %6.3fs\n",r,elapsedCuda);
+#ifdef VECPHYS_ROOT
+    histogram->ftime->Fill(elapsedCuda); 
+    for(int i = 0 ; i < fNtracks ; ++i) {
+      histogram->fenergy->Fill(otrack_aos[i].E); 
+      histogram->fangle->Fill(otrack_aos[i].pz/otrack_aos[i].E);
     }
+#endif    
 
-  }
-
-  if (fVerbosity > 1) {
-    for(unsigned i = 0; i < 4 ; ++i) printf(" E[%d]= %f\n",i,otrack_aos[i].E);
   }
 
   cudaFree(randomStates);
@@ -113,7 +125,11 @@ void GUBenchmarker::RunCuda()
   free(table_h);
   free(targetElements);
   free(otrack_aos);
+
   //  delete model;
+#ifdef VECPHYS_ROOT
+  delete histogram;
+#endif
 }
 
 } // end of vecphys namespace

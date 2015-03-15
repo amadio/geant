@@ -49,15 +49,13 @@ public:
                   int      targetElement,
                   GUTrack& outSecondary );
 
-#ifndef __CUDA_ARCH__  //  Method relevant only for *Vector* implementation
   // Vector version - stage 2 - Need the definition of these vector types
-  void 
-  Interact( // int ntracks,
-            GUTrack_v& inProjectile,    // In/Out
-            const int *targetElements,  // Number equal to num of tracks
-            GUTrack_v& outSecondaryV    // Empty vector for secondaries
-          )const;     
-          // TODO: use SOA arrays for output
+#ifndef VECPHYS_NVCC
+  template <typename Backend>
+  void Interact(GUTrack_v& inProjectile,    // In/Out
+                const int *targetElements,  // Number equal to num of tracks
+                GUTrack_v& outSecondaryV    // Empty vector for secondaries
+                )const;     
 #endif
 
   // Initializes this class and its sampler 
@@ -196,8 +194,6 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
   Double_t vhat = sinTheta*sin(phi);
   Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  //  Bool_t positive = ( pt > Backend::kZero );
-  //  Bool_t negative = ( zhat < Backend::kZero );
   Bool_t positive = ( pt > 0. );
   Bool_t negative = ( zhat < 0. );
 
@@ -230,18 +226,15 @@ SampleSinTheta(typename Backend::Double_t energyIn,
 
   Double_t epsilon = energyOut/energyIn;
 
-  //  Bool_t condition = epsilon > Backend::kOne;
   Bool_t condition = epsilon > 1.0;
 
   MaskedAssign( condition, 1.0 , &epsilon );
 
   Double_t E0_m    = inv_electron_mass_c2*energyIn;
-  //  Double_t onecost = (Backend::kOne - epsilon)/(epsilon*E0_m);
   Double_t onecost = (1.0 - epsilon)/(epsilon*E0_m);
   Double_t sint2   = onecost*(2.-onecost);
 
   Double_t sinTheta = 0.5;
-  //  Bool_t condition2 = sint2 < Backend::kZero;
   Bool_t condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
@@ -281,7 +274,6 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilonsq);
     
-    //  } while (greject < 0.5);
   } while (greject < UniformRandom(fRandomState,fThreadId));
   
   energyOut = epsilon*energyIn;
@@ -305,7 +297,6 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
   double fraction;
 
   fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
-  //  fAliasSampler->SampleBin(energyIn,index,icol,fraction);
 
   double probNA;   // Non-alias probability
   int aliasInd; 
@@ -313,19 +304,96 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
   //  This is really an integer -- could be In  
   fAliasSampler->GetAlias(index,probNA,aliasInd);
 
-  //TODO: write back result energyOut somewhere
   double energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
 					       icol,fraction);
 
-  //store only secondary energy for now
-  //evaluate the scattered angle based on xV
+  //calcuate the scattered angle
   double sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
 
-  //  printf("energyOut = %f\n",energyOut);
-
+  //update final states of the primary and store the secondary 
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
                                 inProjectile,outSecondary);
 }
+
+#ifndef VECPHYS_NVCC
+template <typename Backend>
+void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
+                                      const int *targetElements,  // Number equal to num of tracks
+                                      GUTrack_v& outSecondary    // Empty vector for secondaries
+                                      ) const
+{
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t energyIn;
+  Double_t deltaE; //temporary - this should be dy in BuildPdfTable
+  Index_t  index;
+  Index_t  icol;
+  Double_t fraction;
+
+  Double_t px, py, pz;
+
+  for(int i=0; i < inProjectile.numTracks/Double_t::Size ; ++i) {
+    
+    //gather
+    // loads energies into a VC-"register" type called energyIn
+    for(int j = 0; j < Double_t::Size ; ++j) {
+      energyIn[j] = inProjectile.E[ i*Double_t::Size + j];
+      deltaE[j] = energyIn[j] - energyIn[j]/(1+2.0*energyIn[j]*inv_electron_mass_c2);
+
+      px[j] =  inProjectile.px[ i*Double_t::Size + j];
+      py[j] =  inProjectile.py[ i*Double_t::Size + j];
+      pz[j] =  inProjectile.pz[ i*Double_t::Size + j];
+    }
+
+    fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
+
+    Double_t probNA;   // Non-alias probability
+    Double_t aliasInd; // This is really an integer -- could be Index_t !?
+
+    //gather for alias table lookups
+    fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
+
+    Double_t energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
+						         icol,fraction);
+
+    //calcuate the scattered angle
+    Double_t sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
+
+    //need to rotate the angle with respect to the line of flight
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
+
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
+
+    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+    //scatter 
+    for(int j = 0; j < Double_t::Size ; ++j) {
+      int it = i*Double_t::Size + j;
+
+      //update primary
+      inProjectile.E[it]  = energyOut[j];
+      inProjectile.px[it] = energyOut[j]*uhat[j];
+      inProjectile.py[it] = energyOut[j]*vhat[j];
+      inProjectile.pz[it] = energyOut[j]*what[j];
+
+      //create secondary
+      double secE = energyIn[j] - energyOut[j]; 
+      outSecondary.E[it]  = secE;
+      outSecondary.px[it] = secE*(xhat[j]-uhat[j]);
+      outSecondary.py[it] = secE*(yhat[j]-vhat[j]);
+      outSecondary.pz[it] = secE*(zhat[j]-what[j]);
+      //fill other information
+    }
+  }
+}    
+
+#endif
 
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH 
@@ -367,7 +435,6 @@ void GUComptonKleinNishina::InteractG4(GUTrack& inProjectile,
                                        int      targetElement,
                                        GUTrack& outSecondary )
 {
-  //  double energyIn;
   Precision energyIn;
 
   energyIn = inProjectile.E;
