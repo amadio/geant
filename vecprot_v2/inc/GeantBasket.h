@@ -240,7 +240,6 @@ protected:
   std::atomic_int fNused;     /** Number of baskets in use */
   typedef std::atomic<GeantBasket *> atomic_basket;
   atomic_basket fCBasket;  /** Current basket being filled */
-  atomic_basket fPBasket;  /** Current priority basket being filled */
   std::atomic_flag fLock;  /** Atomic lock for stealing current basket */
   std::atomic_flag fQLock; /** Atomic lock for increasing queue size */
 #endif
@@ -302,7 +301,7 @@ public:
   /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
       : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0), fNbaskets(0),
-        fNused(0), fCBasket(0), fPBasket(0), fLock(), fQLock(), fBaskets(0), fFeeder(0), fMutex() {}
+        fNused(0), fCBasket(0), fLock(), fQLock(), fBaskets(0), fFeeder(0), fMutex() {}
 
   /** @brief GeantBasketMgr normal constructor 
    *
@@ -471,24 +470,12 @@ public:
   }  
 
   /**
-   * @brief Function that will load the priority basket
-   * @return Load priority basket 
-   */
-  GeantBasket *GetPBasket() const { return fPBasket.load(); }
-
-  /**
    * @brief Function to set current basket
    * 
    * @param basket Basket to be set as current
    */
   void SetCBasket(GeantBasket *basket) { fCBasket.store(basket); }
 
-  /**
-   * @brief Function to set the priority basket 
-   * 
-   * @param basket Basket that will be set as priority basket
-   */
-  void SetPBasket(GeantBasket *basket) { fPBasket.store(basket); }
 #endif
 
   /**
