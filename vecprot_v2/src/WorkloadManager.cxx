@@ -812,7 +812,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   Int_t ntotransport;
   ProcInfo_t procInfo;
   Double_t rss;
-  Double_t nmem[100] = {0};
+  Double_t nmem[101] = {0};
   GeantScheduler *sch = wm->GetScheduler();
   Int_t nvol = sch->GetNvolumes();
   Int_t *nvect = sch->GetNvect();
@@ -826,7 +826,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   if (nmon == 1) cmon->Divide(1,1);
   else cmon->Divide(2, dmon);
   TH1I *hqueue = 0;
-  Int_t nqueue[100] = {0};
+  Int_t nqueue[101] = {0};
   Int_t ipad = 0;
   if (wm->IsMonitored(WorkloadManager::kMonQueue)) {
     hqueue = new TH1I("hqueue", "Work queue load", 100, 0, 100);
