@@ -159,7 +159,12 @@ set(GEANT5_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} -std=c++1
 set(GEANT5_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11")
 set(GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -std=c++11")
 set(GEANT5_EXE_NOW_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} -std=c++11")
-set(GEANT5_WARNING_FLAGS "-W -Wall -Weffc++ -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
+if (CUDA)
+   # Currently we are stuck with gcc 4.8 and a broken Weffc++ so let's not us it there
+   set(GEANT5_WARNING_FLAGS "-W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
+else()
+   set(GEANT5_WARNING_FLAGS "-W -Wall -Weffc++ -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
+endif()
 
 set(GEANT5_CXX_FLAGS                "${CMAKE_CXX_FLAGS} ${GEANT5_WARNING_FLAGS}")
 set(GEANT5_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ${GEANT5_WARNING_FLAGS}")
@@ -208,6 +213,9 @@ if (CUDA)
      message(STATUS "Updated VecGeom libraries to ${VECGEOM_LIBRARIES}")
   endif()
 
+  include_directories(AFTER SYSTEM ${CUDA_INCLUDE_DIRS})
+  message(STATUS "Adde to include directorys:  ${CUDA_INCLUDE_DIRS}")
+
   message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
 endif()
@@ -220,6 +228,9 @@ include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
 
 # Work around VecCore not being its own project yet.
 include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
+
+message(STATUS "VECGEOM_INSTALL_DIR is -${VECGEOM_INSTALL_DIR}-")
+message(STATUS "VECGEOM_INCLUDE_DIR is -${VECGEOM_INCLUDE_DIR}-")
 
 #----------------------------------------------------------------------------
 # Add subdirectories

@@ -72,13 +72,22 @@ ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkD
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
 
-add_library(Geant_v SHARED ${sources} G__Geant.cxx)
-if( VECGEOM_FOUND )
-target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-# Bug in VC (?), cannot compile without optimisation
-#set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O0")
+if (CUDA)
+  CUDA_ADD_LIBRARY(Geant_v
+                 ${sources} G__Geant.cxx
+                 SHARED
+                 OPTIONS ${CUDA_ARCH}
+  )
 else()
-target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom )
+  add_library(Geant_v SHARED ${sources} G__Geant.cxx)
+endif()
+
+if( VECGEOM_FOUND )
+  target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  # Bug in VC (?), cannot compile without optimisation
+  #set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O0")
+else()
+  target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom )
 endif()
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)
