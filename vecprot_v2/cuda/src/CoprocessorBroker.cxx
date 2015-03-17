@@ -244,9 +244,10 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 
 
 CoprocessorBroker::TaskData::TaskData() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
-                                                  fStreamId(0),
-                                                  fThreadId(-1),
-                                                  fBasket(0), fQueue(0)
+                                          fPrioritizer(0),
+                                          fStreamId(0),
+                                          fThreadId(-1),
+                                          fBasket(0), fQueue(0)
 {
    // Default constructor.
 }
@@ -576,6 +577,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
 {
    WorkloadManager *mgr = WorkloadManager::Instance();
    GeantScheduler *sch = mgr->GetScheduler();
+   condition_locker &sched_locker = mgr->GetSchLocker();
    std::vector<TGeoNode *> array;
    int last_logical = -1;
    int last_phys = -1;
@@ -712,11 +714,13 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    Int_t ntot = 0;
    Int_t nnew = 0;
    Int_t nkilled = 0;
-   /* Int_t ninjected = */ sch->AddTracks(fBasket, ntot, nnew, nkilled);
+   /* Int_t ninjected = */ sch->AddTracks(fBasket, ntot, nnew, nkilled, fPrioritizer);
    (void)ntot;
    (void)nnew;
    (void)nkilled;
-   mgr->TransportedQueue()->push(fBasket);
+   //mgr->TransportedQueue()->push(fBasket);
+   sched_locker.StartOne();
+   fBasket->Recycle();
    fBasket = 0;
    fThreadId = -1;
    return fNStaged;

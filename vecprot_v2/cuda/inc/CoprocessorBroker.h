@@ -59,6 +59,8 @@ public:
 #endif
 };
 
+class GeantBasketMgr;
+
 class GPGeomManager;
 class GXFieldMap;
 class GPPhysicsTable;
@@ -141,6 +143,7 @@ public:
       int                   *fLogIndex;
       unsigned int           fChunkSize; // Max number of track for this stream
       unsigned int           fNStaged;   // How many track have been copied to the scratch area so far.
+      GeantBasketMgr        *fPrioritizer;
 
       unsigned int  fStreamId;
       cudaStream_t  fStream;

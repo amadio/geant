@@ -436,7 +436,7 @@ void *WorkloadManager::TransportTracks(void *) {
     // Check exit condition: null basket in the queue
     if (!basket)
       break;
-    counter++;
+    ++counter;
 #ifdef __STAT_DEBUG
     sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
     sch->GetTransportStat().AddTracks(basket->GetInputTracks());
@@ -578,21 +578,32 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   //      TString sslist;
   //   const Int_t max_idle = 1;
   //   Int_t indmin, indmax;
-  static Int_t counter = 0;
+  static std::atomic<int> counter(0);
   // Int_t ntotnext, ncross;
   Int_t ntotransport;
+  //Int_t nextra_at_rest = 0;
   Int_t generation = 0;
+  //   Int_t ninjected = 0;
+  Int_t nnew = 0;
+  Int_t ntot = 0;
+  Int_t nkilled = 0;
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantThreadData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
-  GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0);
+  Int_t *nvect = sch->GetNvect();
+  //GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0);
+  td->fBmgr = nullptr; // prioritizer;
+  // prioritizer->SetThreshold(propagator->fNperBasket);
+  // prioritizer->SetFeederQueue(wm->FeederQueue());
+  TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
+  condition_locker &sched_locker = wm->GetSchLocker();
   // Int_t nprocesses = propagator->fNprocesses;
   // Int_t ninput;
-  Int_t noutput;
+  // Int_t noutput;
   //   Bool_t useDebug = propagator->fUseDebug;
   //   Printf("(%d) WORKER started", tid);
   // Create navigator if none serving this thread.
@@ -604,6 +615,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   // TGeoBranchArray *crt[500], *nxt[500];
 
   TaskBroker *broker = reinterpret_cast<TaskBroker *>(arg);
+  //broker->SetPrioritizer(prioritizer);
   while (1) {
 
     // ::Info("GPU","Waiting (1) for next available stream.");
@@ -623,12 +635,14 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     }
     waiting[tid] = 1;
     //::Info("GPU","Waiting for next available basket.");
-    wm->FeederQueue()->wait_and_pop(basket);
+    // if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport();
+    // else
+       wm->FeederQueue()->wait_and_pop(basket);
     waiting[tid] = 0;
     // Check exit condition: null basket in the queue
     if (!basket)
       break;
-    counter++;
+    ++counter;
 
     if (!stream) {
       ::Info("GPU", "Waiting (2) for next available stream.");
@@ -644,6 +658,10 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
       }
     }
 
+#ifdef __STAT_DEBUG
+    sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
+    sch->GetTransportStat().AddTracks(basket->GetInputTracks());
+#endif
     ntotransport = basket->GetNinput(); // all tracks to be transported
     // ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
@@ -655,12 +673,20 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     //      basket->Print();
     //      Printf("==========================================");
     //      propagator->fTracksPerBasket[tid] = ntotransport;
-    td->fVolume = basket->GetVolume();
+    td->fVolume = 0;
+    mat = 0;
+    if (!basket->IsMixed()) {
+      td->fVolume = basket->GetVolume();
+      mat = td->fVolume->GetMaterial();
+      if (ntotransport < 257) nvect[ntotransport] += ntotransport;
+    } else {
+      nvect[1] += ntotransport;
+    }
 
     // Record tracks
     // ninput = ntotransport;
     if (basket->GetNoutput()) {
-      Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter);
+       Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter.load());
     }
     //      if (counter==1) input.PrintTracks();
     for (Int_t itr = 0; itr < ntotransport; itr++) {
@@ -699,13 +725,15 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     // Check
     if (basket->GetNinput()) {
       Printf("Ouch (coproc): ninput=%d noutput=%d counter=%d", basket->GetNinput(),
-             basket->GetNoutput(), counter);
+             basket->GetNoutput(), counter.load());
     }
-    noutput = basket->GetNoutput();
-    for (Int_t itr = 0; itr < noutput; itr++) {
-      if (TMath::IsNaN(output.fXdirV[itr])) {
-        Printf("Error: track %d has NaN", itr);
-      }
+    {
+       auto noutput = basket->GetNoutput();
+       for (Int_t itr = 0; itr < noutput; itr++) {
+          if (TMath::IsNaN(output.fXdirV[itr])) {
+             Printf("Error: track %d has NaN", itr);
+          }
+       }
     }
 
   finish:
@@ -714,16 +742,16 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
 #ifdef __STAT_DEBUG
     sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif
-    Int_t ntot = 0;
-    Int_t nnew = 0;
-    Int_t nkilled = 0;
-    /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled, prioritizer);
-    wm->TransportedQueue()->push(basket);
+    /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled, nullptr /* prioritizer */);
+    //      Printf("thread %d: injected %d baskets", tid, ninjected);
+    //wm->TransportedQueue()->push(basket);
     (void)ntot;
     (void)nnew;
     (void)nkilled;
+    sched_locker.StartOne();
+    basket->Recycle();
   }
-  delete prioritizer;
+  //delete prioritizer;
   wm->DoneQueue()->push(0);
   Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
   return 0;
