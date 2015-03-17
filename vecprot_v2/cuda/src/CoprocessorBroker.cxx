@@ -51,6 +51,7 @@ typedef double G4double;
 #include "WorkloadManager.h"
 #include "GeantScheduler.h"
 #include "GeantBasket.h"
+#include "globals.h"
 
 static void HandleCudaError( cudaError_t err,
                              const char *file,
@@ -275,7 +276,8 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
 
    HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gPropagator_fBmag", &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
 
-   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gTolerance", &(TGeoShape::Tolerance()), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
+   double tolerance = TGeoShape::Tolerance();
+   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gTolerance", &(tolerance), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
 
    //prepare random engines on the device
    fdRandStates.Alloc( nblocks*nthreads );
