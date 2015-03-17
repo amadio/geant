@@ -65,6 +65,8 @@ INCLUDE_DIRECTORIES(
        ${CudaCode}/GXTracking/GPTracking/Geometry/include
        ${CudaCode}/GXTracking/GPTracking/Material/include
        ${CUDA_INCDIR}
+       ${CudaCode}/xsec/inc
+       ${CudaCode}/magneticfield/inc
 )
 
 
@@ -170,8 +172,7 @@ set(cuda_sources
 )
 else()
 set(cuda_sources
-#    ${CudaCode}/GXTracking/gpu/cuda/kernel/src/trackingTest2_kernel.cu
-    ${CUDA_SRCDIR}/electron_kernel.cu
+    ${CUDA_SRCDIR}/SingleSource.cu
 )
 endif()
 
