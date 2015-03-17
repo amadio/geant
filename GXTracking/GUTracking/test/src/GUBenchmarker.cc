@@ -15,7 +15,7 @@ namespace vecphys {
 GUBenchmarker::GUBenchmarker()
     : fNtracks(4992),
       fRepetitions(1),
-      fVerbosity(1)
+      fVerbosity(0)
 {
   fTrackHandler = new GUTrackHandler();
 }
@@ -32,14 +32,15 @@ int GUBenchmarker::RunBenchmark() {
 }
 
 int GUBenchmarker::RunBenchmarkInteract() {
-  if (fVerbosity > 0) {
-    printf("RunBenchmarkInteract: Ntracks = %d, fRepetitions = %d\n",
+  // if (fVerbosity > 0) {
+  printf("RunBenchmarkInteract: Ntracks = %d, fRepetitions = %d\n",
 	   fNtracks,fRepetitions);
-  }
+  // }
 
   int mismatches = 0;
 
   // Run all benchmarks
+  CheckTimer();
   RunGeant4();
   RunScalar();
   RunVector();
@@ -66,6 +67,8 @@ void GUBenchmarker::RunScalar()
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
   Stopwatch timer;
+  Precision elapsedScalarTotal= 0.0;
+  Precision elapsedScalarTotal2= 0.0;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
     //prepare input tracks
@@ -80,10 +83,15 @@ void GUBenchmarker::RunScalar()
     }
 
     Precision elapsedScalar = timer.Stop();
+    elapsedScalarTotal  += elapsedScalar;
+    elapsedScalarTotal2 += elapsedScalar*elapsedScalar;
+    
+#ifdef VERBOSE
     if (fVerbosity > 0) {
       printf("Scalar Task %d > %6.3f sec\n",r,elapsedScalar);
     }
-
+#endif
+    
 #ifdef VECPHYS_ROOT
     histogram->ftime->Fill(elapsedScalar);
     for(int i = 0 ; i < fNtracks ; ++i) {
@@ -95,6 +103,7 @@ void GUBenchmarker::RunScalar()
   }
   free(otrack_aos);
 
+  printf("Scalar Task Total time of %3d reps = %6.3f sec\n", fRepetitions, elapsedScalarTotal);
   delete model;
 
 #ifdef VECPHYS_ROOT
@@ -117,6 +126,8 @@ void GUBenchmarker::RunGeant4()
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
   Stopwatch timer;
+  Precision  elapsedG4Total = 0.0;
+
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
     fTrackHandler->GenerateRandomTracks(fNtracks);
@@ -129,10 +140,13 @@ void GUBenchmarker::RunGeant4()
     }
 
     Precision elapsedG4 = timer.Stop();
+    elapsedG4Total += elapsedG4;
+#ifdef VERBOSE
     if (fVerbosity > 0) {
       printf("Geant4 Task %d > %6.3f sec\n",r,elapsedG4);
     }
-
+#endif
+    
 #ifdef VECPHYS_ROOT
     histogram->ftime->Fill(elapsedG4);
     for(int i = 0 ; i < fNtracks ; ++i) {
@@ -142,6 +156,8 @@ void GUBenchmarker::RunGeant4()
 #endif    
 
   }
+  printf("Geant4 Task: Total time of %3d reps = %6.3f sec , per iter/per track: %8.4g sec\n",
+    fRepetitions ,elapsedG4Total, elapsedG4Total/fRepetitions );
 
   free(otrack_aos);
   delete model;
@@ -167,6 +183,8 @@ void GUBenchmarker::RunVector()
   vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
 
   Stopwatch timer;
+  Precision elapsedVectorTotal= 0.0;
+
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
     fTrackHandler->GenerateRandomTracks(fNtracks);
@@ -177,10 +195,12 @@ void GUBenchmarker::RunVector()
     model->Interact<kVc>(itrack_soa,targetElements,otrack_soa);
 
     Precision elapsedVector = timer.Stop();
+    elapsedVectorTotal += elapsedVector;
+#ifdef VERBOSE
     if (fVerbosity > 0) {
       printf("Vector Task %d > %6.3f sec\n",r,elapsedVector);
     }
-
+#endif
 #ifdef VECPHYS_ROOT
     histogram->ftime->Fill(elapsedVector);
     for(int i = 0 ; i < fNtracks ; ++i) {
@@ -191,10 +211,25 @@ void GUBenchmarker::RunVector()
 
   }
 
+  printf("Vector Task Total time of %3d reps = %6.3f sec\n",fRepetitions ,elapsedVectorTotal);
+
   delete model;
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
 }
+
+void GUBenchmarker::CheckTimer()
+{
+  Stopwatch timer;
+  Precision elapsedNullTotal= 0.0;
+
+  for (unsigned r = 0; r < fRepetitions; ++r) {
+    timer.Start();
+    Precision elapsedNull = timer.Stop();
+    elapsedNullTotal += elapsedNull;
+  }
+  printf("Null Task Timer: Total time of %3d reps = %6.3f sec\n",fRepetitions ,elapsedNullTotal);
+} 
 
 } // end namespace vecphys

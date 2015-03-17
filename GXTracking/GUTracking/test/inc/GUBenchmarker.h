@@ -27,6 +27,7 @@ private:
   void RunGeant4();
   void RunScalar();
   void RunVector();
+  void CheckTimer();
 
 #ifdef VECPHYS_CUDA
   void RunCuda();

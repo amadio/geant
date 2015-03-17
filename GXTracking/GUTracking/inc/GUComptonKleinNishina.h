@@ -6,6 +6,13 @@
 #include "GUConstants.h"
 #include "GUTrack.h"
 
+// add the sincos function on MAC because sincos is not part of math.h
+#ifdef __APPLE__ // possibly other conditions
+inline void sincos(double x, double *s, double *c){
+  __sincos(x,s,c);
+}
+#endif
+
 namespace vecphys {
 
   //VECPHYS_DEVICE_DECLARE_CONV( GUComptonKleinNishina )
@@ -190,8 +197,11 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
 
   Double_t pt = xhat*xhat + yhat*yhat;
 
-  Double_t uhat = sinTheta*cos(phi);
-  Double_t vhat = sinTheta*sin(phi);
+  Double_t cosphi, sinphi;
+  sincos(phi, &sinphi, &cosphi);
+
+  Double_t uhat = sinTheta*cosphi; // cos(phi);
+  Double_t vhat = sinTheta*sinphi; // sin(phi);
   Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Bool_t positive = ( pt > 0. );
