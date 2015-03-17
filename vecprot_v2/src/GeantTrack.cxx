@@ -2182,7 +2182,11 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
   Int_t icrossed = 0;
   Double_t step, lmax;
   const Double_t eps = 1.E-4; // 1 micron
+#ifdef GEANT_CUDA_DEVICE_BUILD
+  const Double_t bmag = gPropagator_fBmag;
+#else
   const Double_t bmag = gPropagator->fBmag;
+#endif
   Int_t ntracks = GetNtracks();
   for (itr = 0; itr < ntracks; itr++) {
     // Mark dead tracks for copy/removal
@@ -2295,7 +2299,12 @@ GEANT_CUDA_DEVICE_CODE
 Double_t GeantTrack_v::Curvature(Int_t i) const {
   // Curvature assuming constant field is along Z
   const Double_t tiny = 1.E-30;
-  return Math::Abs(kB2C * fChargeV[i] * gPropagator->fBmag / (Pt(i) + tiny));
+#ifdef GEANT_CUDA_DEVICE_BUILD
+  const Double_t bmag = gPropagator_fBmag;
+#else
+  const Double_t bmag = gPropagator->fBmag;
+#endif
+  return Math::Abs(kB2C * fChargeV[i] * bmag / (Pt(i) + tiny));
 }
 
 //______________________________________________________________________________
