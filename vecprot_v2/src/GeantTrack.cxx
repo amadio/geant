@@ -46,7 +46,11 @@
 #endif
 #include <cassert>
 
+#ifdef GEANT_CUDA_DEVICE_BUILD
+__constant__ double gTolerance;
+#else
 const Double_t gTolerance = TGeoShape::Tolerance();
+#endif
 
 ClassImp(GeantTrack)
 
@@ -658,7 +662,7 @@ void GeantTrack_v::Resize(Int_t newsize) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/) {
   // Add new track to the array. If addition is done on top of non-compact array,
   // the track will be inserted without updating the number of tracks. If track is
@@ -778,7 +782,7 @@ void GeantTrack_v::GetTrack(Int_t i, GeantTrack &track) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/) {
 // Add track from different array
 // If addition is done on top of non-compact array,
@@ -1312,7 +1316,7 @@ void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*tid*/) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
@@ -1426,7 +1430,7 @@ void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const {
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep,
                                               const Double_t *x, const Double_t *y,
                                               const Double_t *z, const Double_t *dirx,
@@ -1855,7 +1859,7 @@ void GeantTrack_v::PrintTracks() const {
 
 #ifdef USE_VECGEOM_NAVIGATOR
 
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::ComputeTransportLength(Int_t ntracks) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
   static std::atomic<int> icalls(0);
@@ -1888,7 +1892,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks) {
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
@@ -2183,7 +2187,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
@@ -2304,7 +2308,7 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 Double_t GeantTrack_v::Curvature(Int_t i) const {
   // Curvature assuming constant field is along Z
   const Double_t tiny = 1.E-30;
@@ -2317,7 +2321,7 @@ Double_t GeantTrack_v::Curvature(Int_t i) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 Double_t GeantTrack_v::SafeLength(Int_t i, Double_t eps) {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.
@@ -2341,7 +2345,7 @@ Int_t GeantTrack_v::PostponeTracks(GeantTrack_v &output) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output) {
   // Postpone transport of a track and copy it to the output.
   // Returns where in the output the track was added.

@@ -18,7 +18,7 @@
 
 //#include "globals.h"
 #include "TMath.h"
-#include "TBits.h"
+//#include "TBits.h"
 
 #ifdef __STAT_DEBUG
 #include "GeantTrackStat.h"
@@ -630,7 +630,7 @@ public:
   }    
 
 #ifdef GEANT_CUDA_DEVICE_BUILD
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /** @brief  Function that returned number of tracks contained  */
   Int_t GetNtracks() const { return fNtracks; }
@@ -653,7 +653,7 @@ public:
   /** @brief  Function that return track statistics */
   GeantTrackStat &GetTrackStat() { return fStat; }
 #endif
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Add track function
@@ -669,7 +669,7 @@ public:
    * @param track Track that should be added
    */
   Int_t AddTrackSync(GeantTrack &track);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Add track function
@@ -700,7 +700,7 @@ public:
   
   /** @brief Function that check track */
   void CheckTracks();
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief  Function that mark removed bit number 'i' through value of bits of holes and flag marking the compactness
@@ -840,7 +840,7 @@ public:
   /** @brief Function that print all tracks */
   void PrintTracks() const;
 
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function for navigation that find next boundary and step
@@ -875,7 +875,7 @@ public:
    * @param same Boolean flag that check same location
    */
   void NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function for navigation that check if location is the same or not for single track
@@ -905,7 +905,7 @@ public:
    * @param ntracks Number of tracks
    */
   TransportAction_t PostponedAction(Int_t ntracks) const;
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that provides postponed action for track
@@ -922,7 +922,7 @@ public:
    */
   Int_t PostponeTracks(GeantTrack_v &output);
   // void      PropagateBack(Int_t itr, Double_t crtstep);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that compute transport length
@@ -930,7 +930,7 @@ public:
    * @param ntracks Number of tracks
    */
   void ComputeTransportLength(Int_t ntracks);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that compute single transport length ?????
@@ -947,7 +947,7 @@ public:
    * @param tid Track ID 
    */
   void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function of propagation of track in volume
@@ -973,7 +973,7 @@ public:
    * @param tid Track ID
    */
   Int_t PropagateTracks(GeantTrack_v &output, Int_t tid);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
 
   Int_t PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage = 0);
@@ -1002,14 +1002,14 @@ public:
    * @param  i Input bit number 'i'
    */
   Double_t Beta(Int_t i) const { return fPV[i] / fEV[i]; }
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /** 
    * @brief Function that return curvature in different areas of geometry
    * @param  i Input bit number 'i'
    */
   Double_t Curvature(Int_t i) const;
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /** @brief Function that return safe length */
   Double_t SafeLength(Int_t i, Double_t eps = 1.E-4);
@@ -1033,14 +1033,14 @@ public:
    * @param  i Input bit number 'i'
    */
   Double_t Py(Int_t i) const { return fPV[i] * fYdirV[i]; }
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /** 
    * @brief Function that return Z projection of momentum value
    * @param  i Input bit number 'i'
    */
   Double_t Pz(Int_t i) const { return fPV[i] * fZdirV[i]; }
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
 
   /** 
    * @brief Function that return module of momentum value 

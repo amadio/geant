@@ -275,6 +275,8 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
 
    HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gPropagator_fBmag", &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
 
+   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gTolerance", &(TGeoShape::Tolerance()), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
+
    //prepare random engines on the device
    fdRandStates.Alloc( nblocks*nthreads );
    curand_setup_gpu(fdRandStates, time(NULL), nblocks, nthreads);
