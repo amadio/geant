@@ -1411,11 +1411,13 @@ void GeantTrack_v::CheckLocationPathConsistency(Int_t itr) const {
                   *a, true);
   if (a->Top() != NULL && a->Top() != fPathV[itr]->Top()) {
     Printf("INCONSISTENT LOCATION PATH PAIR PRODUCED FOR TRACK %d", itr);
+#ifdef VECGEOM_ROOT
     Printf("REAL");
     a->GetCurrentNode()->Print();
     Printf("REPORTED");
     fPathV[itr]->GetCurrentNode()->Print();
     //  print_trace();
+#endif
   }
 
   // release object
