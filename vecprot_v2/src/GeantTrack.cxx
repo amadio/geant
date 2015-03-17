@@ -32,7 +32,11 @@
 
 #include "GeantThreadData.h"
 //#include "TGeoHelix.h"
+#ifdef GEANT_NVCC
+#warning "ConstFieldHelixStepper required but not compileable in NVCC."
+#else
 #include "ConstFieldHelixStepper.h"
+#endif
 #include "GeantScheduler.h"
 
 #ifdef __INTEL_COMPILER
@@ -1372,11 +1376,13 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*ti
 #endif
   // alternative code with lean stepper would be:
   // ( stepper header has to be included )
+#ifndef GEANT_NVCC
   geantv::ConstBzFieldHelixStepper stepper(gPropagator->fBmag);
   double posnew[3];
   double dirnew[3];
   stepper.DoStep(fXposV[i], fYposV[i], fZposV[i], fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i],
                  fPV[i], crtstep, posnew[0], posnew[1], posnew[2], dirnew[0], dirnew[1], dirnew[2]);
+
   //  maybe normalize direction here
   Math::Normalize(dirnew);
   //      double diffpos =
@@ -1390,6 +1396,7 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*ti
   fXdirV[i] = dirnew[0];
   fYdirV[i] = dirnew[1];
   fZdirV[i] = dirnew[2];
+#endif
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
