@@ -205,7 +205,7 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
   Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Bool_t positive = ( pt > 0. );
-  Bool_t negative = ( zhat < 0. );
+  Bool_t negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
@@ -214,12 +214,14 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
     zr = -phat*uhat + zhat*what;
   }
-  else if(negative) {
+  else if(negativeZ) {
     xr = -xhat;
     yr =  yhat;
     zr = -zhat;
   }  
-
+  // What about if !positive && !negativeZ ??
+  // else {  ???
+  // }
 }
 
 template<class Backend>
@@ -342,18 +344,27 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
   Double_t fraction;
 
   Double_t px, py, pz;
+  int ibase= 0; // -Double_t::Size;
 
   for(int i=0; i < inProjectile.numTracks/Double_t::Size ; ++i) {
+    // ibase= i*Double_t::Size;
     
     //gather
     // loads energies into a VC-"register" type called energyIn
+    
+    int jloc= ibase;
     for(int j = 0; j < Double_t::Size ; ++j) {
-      energyIn[j] = inProjectile.E[ i*Double_t::Size + j];
+      // int jloc= i*Double_t::Size + j;
+      // int jloc= ibase + j;
+      
+      energyIn[j] = inProjectile.E[jloc]; // i*Double_t::Size + j];
       deltaE[j] = energyIn[j] - energyIn[j]/(1+2.0*energyIn[j]*inv_electron_mass_c2);
 
-      px[j] =  inProjectile.px[ i*Double_t::Size + j];
-      py[j] =  inProjectile.py[ i*Double_t::Size + j];
-      pz[j] =  inProjectile.pz[ i*Double_t::Size + j];
+      px[j] =  inProjectile.px[ jloc ]; // [i*Double_t::Size + j];
+      py[j] =  inProjectile.py[ jloc ]; // [i*Double_t::Size + j];
+      pz[j] =  inProjectile.pz[ jloc ]; // [i*Double_t::Size + j];
+      
+      jloc++;
     }
 
     fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
@@ -400,6 +411,7 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
       outSecondary.pz[it] = secE*(zhat[j]-what[j]);
       //fill other information
     }
+    ibase+= Double_t::Size;
   }
 }    
 
