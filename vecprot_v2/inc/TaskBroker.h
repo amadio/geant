@@ -41,6 +41,14 @@ public:
   /** @brief Virtual function that get next stream */
   virtual Stream GetNextStream() = 0;
 
+  /** @brief Virtual function that adds a track from a basket to be handled by the broker
+   *
+   * @param itr Track index
+   * @param basket Reference to basket to copy from (output array)
+   * @return Task broker took ownership of the track or not
+   */ 
+  virtual bool addTrack(int itr, GeantBasket &basket) = 0;
+  
   /**
    * @brief Virtual function that provides run task
    * 

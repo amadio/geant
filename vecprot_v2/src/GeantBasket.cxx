@@ -206,11 +206,11 @@ GeantBasket *GeantBasketMgr::StealAndPin(atomic_basket &current) {
   GeantBasket *oldb = 0;
   while (1) {
     // the 2 lines below should be atomically coupled
-    while (fLock.test_and_set(std::memory_order_acquire))
+//    while (fLock.test_and_set(std::memory_order_acquire))
       ;
     oldb = current.load();
     oldb->LockAddingOp();
-    fLock.clear(std::memory_order_release);
+//    fLock.clear(std::memory_order_release);
     // If no steal happened in between return basket pointer
     if (oldb == current.load())
       return oldb;
@@ -223,11 +223,7 @@ Bool_t GeantBasketMgr::StealMatching(atomic_basket &global, GeantBasket *content
   // Steal the global basket if it has the right matching content
   // Prepare replacement
   GeantBasket *newb = GetNextBasket();
-  while (fLock.test_and_set(std::memory_order_acquire))
-    ;
-  Bool_t stolen = global.compare_exchange_strong(content, newb);
-  fLock.clear(std::memory_order_release);
-  if (stolen) {
+  if (global.compare_exchange_strong(content, newb)) {
     // Basket stolen
     while (content->IsAddingOp()) {
     };
