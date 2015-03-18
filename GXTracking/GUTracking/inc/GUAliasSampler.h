@@ -180,34 +180,36 @@ SampleX(typename Backend::Double_t rangeSampled,
   return x;
 }
 
-#ifndef VECPHYS_NVCC
+// General method - to be used for scalar & CUDA-type backends
 template<class Backend>
 inline
-void GUAliasSampler::
-GatherAlias(typename Backend::Index_t  index, 
-            typename Backend::Double_t &probNA,  
-            typename Backend::Double_t &aliasInd 
-           ) const 
-{
-  //gather for alias table lookups - (backend type has no ptr arithmetic)
-  for(int i = 0; i < Backend::kSize ; ++i) {
-    probNA[i]=    fAliasTable->fProbQ[ (int) index[i] ];
-    aliasInd[i]=  fAliasTable->fAlias[ (int) index[i] ];
-  }
-}
-#endif
-
-template<>
-inline
   void GUAliasSampler::
-  GatherAlias<kScalar>(typename kScalar::Index_t  index,
-                       typename kScalar::Double_t &probNA,
-                       typename kScalar::Double_t &aliasInd
+  GatherAlias(typename Backend::Index_t  index,
+                       typename Backend::Double_t &probNA,
+                       typename Backend::Double_t &aliasInd
                       ) const
 {
   probNA=    fAliasTable->fProbQ[ (int) index ];
   aliasInd=  fAliasTable->fAlias[ (int) index ];
 }
+
+// Specialisation for all vector backends - Vc for now
+#ifndef VECPHYS_NVCC
+template<>
+inline
+void GUAliasSampler::
+GatherAlias<kVc>(typename kVc::Index_t  index, 
+            typename kVc::Double_t &probNA,  
+            typename kVc::Double_t &aliasInd 
+           ) const 
+{
+  //gather for alias table lookups - (backend type has no ptr arithmetic)
+  for(int i = 0; i < kVc::kSize ; ++i) {
+    probNA[i]=    fAliasTable->fProbQ[ (int) index[i] ];
+    aliasInd[i]=  fAliasTable->fAlias[ (int) index[i] ];
+  }
+}
+#endif
 
 } // end namespace impl
 } // end namespace vecphys
