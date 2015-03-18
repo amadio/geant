@@ -92,6 +92,7 @@ public:
   //#ifndef VECPHYS_NVCC
   template<class Backend>
   inline
+  VECPHYS_CUDA_HEADER_BOTH
   void
   GatherAlias(typename Backend::Index_t  index, 
               typename Backend::Double_t &probNA,  
@@ -183,8 +184,8 @@ SampleX(typename Backend::Double_t rangeSampled,
 // General method - to be used for scalar & CUDA-type backends
 template<class Backend>
 inline
-  void GUAliasSampler::
-  GatherAlias(typename Backend::Index_t  index,
+void GUAliasSampler::
+GatherAlias(typename Backend::Index_t  index,
                        typename Backend::Double_t &probNA,
                        typename Backend::Double_t &aliasInd
                       ) const
@@ -197,6 +198,7 @@ inline
 #ifndef VECPHYS_NVCC
 template<>
 inline
+VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t  index, 
             typename kVc::Double_t &probNA,  
