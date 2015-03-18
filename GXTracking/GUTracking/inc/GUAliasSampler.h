@@ -91,6 +91,7 @@ public:
 
   //#ifndef VECPHYS_NVCC
   template<class Backend>
+  inline
   void
   GatherAlias(typename Backend::Index_t  index, 
               typename Backend::Double_t &probNA,  
@@ -180,8 +181,8 @@ SampleX(typename Backend::Double_t rangeSampled,
 }
 
 #ifndef VECPHYS_NVCC
-
 template<class Backend>
+inline
 void GUAliasSampler::
 GatherAlias(typename Backend::Index_t  index, 
             typename Backend::Double_t &probNA,  
@@ -195,6 +196,18 @@ GatherAlias(typename Backend::Index_t  index,
   }
 }
 #endif
+
+template<>
+inline
+  void GUAliasSampler::
+  GatherAlias<kScalar>(typename kScalar::Index_t  index,
+                       typename kScalar::Double_t &probNA,
+                       typename kScalar::Double_t &aliasInd
+                      ) const
+{
+  probNA=    fAliasTable->fProbQ[ (int) index ];
+  aliasInd=  fAliasTable->fAlias[ (int) index ];
+}
 
 } // end namespace impl
 } // end namespace vecphys
