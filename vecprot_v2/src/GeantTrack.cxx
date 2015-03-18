@@ -2031,7 +2031,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
     return 0;
   }
   if (action != kVector)
-    return PropagateTracksSingle(output, tid, 0);
+    return PropagateTracksScalar(output, tid, 0);
   // Compute transport length in geometry, limited by the physics step
   ComputeTransportLength(ntracks);
   //         Printf("====== After ComputeTransportLength:");
@@ -2096,7 +2096,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
   case kDone:
     return icrossed;
   case kSingle:
-    icrossed += PropagateTracksSingle(output, tid, 1);
+    icrossed += PropagateTracksScalar(output, tid, 1);
     return icrossed;
   case kPostpone:
     PostponeTracks(output);
@@ -2188,10 +2188,10 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage) {
+Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, Int_t tid, Int_t stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
-  Int_t itr = 0;
+
   Int_t icrossed = 0;
   Double_t step, lmax;
   const Double_t eps = 1.E-4; // 1 micron
@@ -2200,20 +2200,19 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
 #else
   const Double_t bmag = gPropagator->fBmag;
 #endif
-  Int_t ntracks = GetNtracks();
-  for (itr = 0; itr < ntracks; itr++) {
-    // Mark dead tracks for copy/removal
-    if (fStatusV[itr] == kKilled) {
-      MarkRemoved(itr);
-      continue;
-    }
-    // Compute transport length in geometry, limited by the physics step
-    ComputeTransportLengthSingle(itr);
-    //      Printf("====== After ComputeTransportLengthSingle:");
-    //      PrintTrack(itr);
-    // Stage 0: straight propagation
-    if (stage == 0) {
-      if (fChargeV[itr] == 0 || bmag < 1.E-10) {
+
+  // Mark dead tracks for copy/removal
+  if (fStatusV[itr] == kKilled) {
+     MarkRemoved(itr);
+     return icrossed;
+  }
+  // Compute transport length in geometry, limited by the physics step
+  ComputeTransportLengthSingle(itr);
+  //      Printf("====== After ComputeTransportLengthSingle:");
+  //      PrintTrack(itr);
+  // Stage 0: straight propagation
+  if (stage == 0) {
+     if (fChargeV[itr] == 0 || bmag < 1.E-10) {
         // Do straight propagation to physics process or boundary
         if (fFrombdrV[itr]) {
           //*fPathV[itr] = *fNextpathV[itr];
@@ -2223,13 +2222,13 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
             fStatusV[itr] = kBoundary;
           icrossed++;
         } else {
-          fStatusV[itr] = kPhysics;
+           fStatusV[itr] = kPhysics;
         }
         fPstepV[itr] -= fSnextV[itr];
         fStepV[itr] += fSnextV[itr];
         fSafetyV[itr] -= fSnextV[itr];
         if (fSafetyV[itr] < 0.)
-          fSafetyV[itr] = 0;
+           fSafetyV[itr] = 0;
         fXposV[itr] += fSnextV[itr] * fXdirV[itr];
         fYposV[itr] += fSnextV[itr] * fYdirV[itr];
         fZposV[itr] += fSnextV[itr] * fZdirV[itr];
@@ -2240,48 +2239,48 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
 #endif
         MarkRemoved(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
-//            CheckLocationPathConsistency(itr);
+        //            CheckLocationPathConsistency(itr);
 #endif
-        continue;
-      }
-    }
-    // Stage 1: mag field propagation for tracks with pstep<safety
-    if (stage <= 1) {
-      // REMAINING ONLY CHARGED TRACKS IN MAG. FIELD
-      // New algorithm: we use the track sagitta to estimate the "bending" error,
-      // i.e. what is the propagated length for which the track deviation in magnetic
-      // field with respect to straight propagation is less than epsilon.
-      // Take the maximum between the safety and the "bending" safety
-      lmax = SafeLength(itr, eps);
-      lmax = Math::Max(lmax, fSafetyV[itr]);
-      // Select step to propagate as the minimum among the "safe" step and:
-      // the straight distance to boundary (if frombdr=1) or the proposed  physics
-      // step (frombdr=0)
-      step = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr] + 10 * gTolerance)
-                              : Math::Min(lmax, fPstepV[itr]);
-      //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
-      PropagateInVolumeSingle(itr, step, tid);
-      //      Printf("====== After PropagateInVolumeSingle:");
-      //      PrintTrack(itr);
-      // The track may have made it to physics steps (kPhysics)
-      //         -> remove and copy to output
-      // The track may have been propagated with step greater than safety
-      //         -> check possible crossing via NavIsSameLocation
-      // The track may have been propagated with step less than safety
-      //         -> keep in the container
+        return icrossed;
+     }
+  }
+  // Stage 1: mag field propagation for tracks with pstep<safety
+  if (stage <= 1) {
+     // REMAINING ONLY CHARGED TRACKS IN MAG. FIELD
+     // New algorithm: we use the track sagitta to estimate the "bending" error,
+     // i.e. what is the propagated length for which the track deviation in magnetic
+     // field with respect to straight propagation is less than epsilon.
+     // Take the maximum between the safety and the "bending" safety
+     lmax = SafeLength(itr, eps);
+     lmax = Math::Max(lmax, fSafetyV[itr]);
+     // Select step to propagate as the minimum among the "safe" step and:
+     // the straight distance to boundary (if frombdr=1) or the proposed  physics
+     // step (frombdr=0)
+     step = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr] + 10 * gTolerance)
+        : Math::Min(lmax, fPstepV[itr]);
+     //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
+     PropagateInVolumeSingle(itr, step, tid);
+     //      Printf("====== After PropagateInVolumeSingle:");
+     //      PrintTrack(itr);
+     // The track may have made it to physics steps (kPhysics)
+     //         -> remove and copy to output
+     // The track may have been propagated with step greater than safety
+     //         -> check possible crossing via NavIsSameLocation
+     // The track may have been propagated with step less than safety
+     //         -> keep in the container
 
-      // Select tracks that made it to physics and copy to output
-      if (fStatusV[itr] == kPhysics) {
+     // Select tracks that made it to physics and copy to output
+     if (fStatusV[itr] == kPhysics) {
         MarkRemoved(itr);
         fNstepsV[itr]++;
-        continue;
-      }
-      // Select tracks that are in flight or were propagated to boundary with
-      // steps bigger than safety
-      if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
+        return icrossed;
+     }
+     // Select tracks that are in flight or were propagated to boundary with
+     // steps bigger than safety
+     if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
         Bool_t same = NavIsSameLocationSingle(itr, fPathV, fNextpathV);
         if (same)
-          continue;
+           return icrossed;
         // Boundary crossed -> update current path
         //*fPathV[itr] = *fNextpathV[itr];
         fStatusV[itr] = kBoundary;
@@ -2291,11 +2290,24 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
         icrossed++;
         fNstepsV[itr]++;
         MarkRemoved(itr);
-      }
+     }
 #ifdef USE_VECGEOM_NAVIGATOR
-//         CheckLocationPathConsistency(itr);
+     //         CheckLocationPathConsistency(itr);
 #endif
-    }
+  }
+  return icrossed;
+}
+
+//______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+Int_t GeantTrack_v::PropagateTracksScalar(GeantTrack_v &output, Int_t tid, Int_t stage) {
+  // Propagate the tracks with their selected steps in a single loop,
+  // starting from a given stage.
+
+  Int_t icrossed = 0;
+  Int_t ntracks = GetNtracks();
+  for (Int_t itr = 0; itr < ntracks; itr++) {
+     icrossed += PropagateSingleTrack(output, itr, tid, stage);
   }
 //   Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
 //   PrintTracks();

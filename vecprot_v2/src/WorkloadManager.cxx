@@ -485,7 +485,7 @@ void *WorkloadManager::TransportTracks(void *) {
       //         input.PrintTracks();
       // Propagate all remaining tracks
       if (basket->IsMixed())
-        ncross += input.PropagateTracksSingle(output, tid);
+        ncross += input.PropagateTracksScalar(output, tid);
       else
         ncross += input.PropagateTracks(output, tid);
       ntotransport = input.GetNtracks();

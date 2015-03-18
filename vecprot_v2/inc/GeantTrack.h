@@ -973,10 +973,13 @@ public:
    * @param tid Track ID
    */
   Int_t PropagateTracks(GeantTrack_v &output, Int_t tid);
+
+
   GEANT_CUDA_BOTH_CODE
+  Int_t PropagateTracksScalar(GeantTrack_v &output, Int_t tid, Int_t stage = 0);
 
-
-  Int_t PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t stage = 0);
+  GEANT_CUDA_BOTH_CODE
+  Int_t PropagateSingleTrack(GeantTrack_v &output, Int_t itr, Int_t tid, Int_t stage);
 
   /** 
    * @brief Resize function
