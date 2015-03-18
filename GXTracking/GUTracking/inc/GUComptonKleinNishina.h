@@ -307,38 +307,6 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
                                 inProjectile,outSecondary);
 }
   
-#if 0
-{
-  double energyIn;
-  double deltaE; //temporary - this should be dy in BuildPdfTable
-
-  energyIn = inProjectile.E;
-  deltaE =  energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
-
-  int index;
-  int icol;
-  double fraction;
-
-  fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
-
-  double probNA;   // Non-alias probability
-  int aliasInd; 
-
-  //  This is really an integer -- could be In  
-  fAliasSampler->GetAlias(index,probNA,aliasInd);
-
-  double energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-					       icol,fraction);
-
-  //calcuate the scattered angle
-  double sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
-
-  //update final states of the primary and store the secondary 
-  ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
-                                inProjectile,outSecondary);
-}
-#endif
-  
 #ifndef VECPHYS_NVCC
 template <typename Backend>
 void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
@@ -399,90 +367,6 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     ibase+= Double_t::Size;
   }
 }    
-#if 0
-{
-  typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
-
-  Double_t energyIn;
-  Double_t deltaE; //temporary - this should be dy in BuildPdfTable
-  Index_t  index;
-  Index_t  icol;
-  Double_t fraction;
-
-  Double_t px, py, pz;
-  int ibase= 0;
-
-  for(int i=0; i < inProjectile.numTracks/Double_t::Size ; ++i) {
-    // ibase= i*Double_t::Size;
-    
-    //gather
-    // loads energies into a VC-"register" type called energyIn
-    
-    int jloc= ibase;
-    for(int j = 0; j < Double_t::Size ; ++j) {
-      // int jloc= i*Double_t::Size + j;
-      // int jloc= ibase + j;
-      
-      energyIn[j] = inProjectile.E[jloc]; // i*Double_t::Size + j];
-      deltaE[j] = energyIn[j] - energyIn[j]/(1+2.0*energyIn[j]*inv_electron_mass_c2);
-
-      px[j] =  inProjectile.px[ jloc ]; // [i*Double_t::Size + j];
-      py[j] =  inProjectile.py[ jloc ]; // [i*Double_t::Size + j];
-      pz[j] =  inProjectile.pz[ jloc ]; // [i*Double_t::Size + j];
-      
-      jloc++;
-    }
-
-    fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
-
-    Double_t probNA;   // Non-alias probability
-    Double_t aliasInd; // This is really an integer -- could be Index_t !?
-
-    //gather for alias table lookups
-    fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
-
-    Double_t energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-                     icol,fraction);
-
-    //calcuate the scattered angle
-    Double_t sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
-
-    //need to rotate the angle with respect to the line of flight
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
-
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
-
-    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
-
-    //scatter 
-    for(int j = 0; j < Double_t::Size ; ++j) {
-      int it = i*Double_t::Size + j;
-
-      //update primary
-      inProjectile.E[it]  = energyOut[j];
-      inProjectile.px[it] = energyOut[j]*uhat[j];
-      inProjectile.py[it] = energyOut[j]*vhat[j];
-      inProjectile.pz[it] = energyOut[j]*what[j];
-
-      //create secondary
-      double secE = energyIn[j] - energyOut[j]; 
-      outSecondary.E[it]  = secE;
-      outSecondary.px[it] = secE*(xhat[j]-uhat[j]);
-      outSecondary.py[it] = secE*(yhat[j]-vhat[j]);
-      outSecondary.pz[it] = secE*(zhat[j]-what[j]);
-      //fill other information
-    }
-    ibase+= Double_t::Size;
-  }
-}    
-#endif
-
 #endif
 
 template <typename Backend>
