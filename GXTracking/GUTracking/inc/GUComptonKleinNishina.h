@@ -168,8 +168,8 @@ GUComptonKleinNishina::InteractKernel(typename Backend::Double_t energyIn,
   Double_t probNA ;
   Double_t aliasInd;
 
-  //this does not work
-  //  fAliasSampler->GatherAliasTable<Backend>(index,probNA,aliasInd);
+  //this did not used to work - Fixed SW
+  fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
   
   Double_t deltaE;
   deltaE = energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
@@ -298,6 +298,17 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
                                      int      targetElement,
                                      GUTrack& outSecondary ) const
 {
+  double energyIn= inProjectile.E;
+  double energyOut, sinTheta;
+  InteractKernel<Backend>(energyIn, energyOut, sinTheta);
+  
+  //update final states of the primary and store the secondary
+  ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
+                                inProjectile,outSecondary);
+}
+  
+#if 0
+{
   double energyIn;
   double deltaE; //temporary - this should be dy in BuildPdfTable
 
@@ -326,13 +337,69 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
                                 inProjectile,outSecondary);
 }
-
+#endif
+  
 #ifndef VECPHYS_NVCC
 template <typename Backend>
 void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
                                       const int *targetElements,  // Number equal to num of tracks
                                       GUTrack_v& outSecondary    // Empty vector for secondaries
                                       ) const
+{
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  int ibase= 0;
+  int numChunks= (inProjectile.numTracks/Double_t::Size);
+
+  for(int i=0; i < numChunks ; ++i) {
+    Double_t energyIn(inProjectile.E[ibase]);
+    Double_t px(inProjectile.px[ibase]);
+    Double_t py(inProjectile.py[ibase]);
+    Double_t pz(inProjectile.pz[ibase]);
+    Double_t sinTheta;
+    Double_t energyOut;
+
+    InteractKernel<Backend>(energyIn, energyOut, sinTheta);
+
+    //need to rotate the angle with respect to the line of flight
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
+
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
+
+    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+    // Update primary
+    energyOut.store(&inProjectile.E[ibase]);
+    Double_t pxFinal, pyFinal, pzFinal;
+     
+    pxFinal= energyOut*uhat;
+    pyFinal= energyOut*vhat;
+    pzFinal= energyOut*what;
+    pxFinal.store(&inProjectile.px[ibase]);
+    pyFinal.store(&inProjectile.py[ibase]);
+    pzFinal.store(&inProjectile.pz[ibase]);
+
+    // create Secondary
+    Double_t secE = energyIn - energyOut; 
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
+
+    secE.store(&outSecondary.E[ibase]);
+    pxSec.store(&outSecondary.px[ibase]);
+    pySec.store(&outSecondary.py[ibase]);
+    pzSec.store(&outSecondary.pz[ibase]);
+
+    ibase+= Double_t::Size;
+  }
+}    
+#if 0
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
@@ -344,7 +411,7 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
   Double_t fraction;
 
   Double_t px, py, pz;
-  int ibase= 0; // -Double_t::Size;
+  int ibase= 0;
 
   for(int i=0; i < inProjectile.numTracks/Double_t::Size ; ++i) {
     // ibase= i*Double_t::Size;
@@ -376,7 +443,7 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
 
     Double_t energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-						         icol,fraction);
+                     icol,fraction);
 
     //calcuate the scattered angle
     Double_t sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
@@ -414,6 +481,7 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     ibase+= Double_t::Size;
   }
 }    
+#endif
 
 #endif
 

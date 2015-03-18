@@ -1,6 +1,7 @@
 #include "GUTrackHandler.h"
 #include "GUConstants.h"
 #include <cmath>
+#include <cassert>
 #include <iostream>
 #include "mm_malloc.h"
 
@@ -38,67 +39,100 @@ void GUTrackHandler::Deallocate()
   }
 }
 
+#undef NDEBUG
+// Makes sure that assert are used, even in Release mode
+
 void GUTrackHandler::Allocate(size_t nTracks)
 {
+  const int blockSize = 32;
   SetNumberOfTracks(nTracks);
 
   if(fNumberOfTracks > 0) {
+    unsigned int numAlloc = ((fNumberOfTracks-1) / blockSize + 1 ) * blockSize;
+
+    // std::cout << " Allocating " << numAlloc << " tracks - vs actual number= " << fNumberOfTracks << std::endl;
+    unsigned int memSizeAlloc= numAlloc*sizeof(GUTrack);
+
     //allocation for aos
-    fTrack_aos = (GUTrack *)_mm_malloc (fNumberOfTracks*sizeof(GUTrack),32);
-
-
+    fTrack_aos = (GUTrack *)_mm_malloc (memSizeAlloc, blockSize);
+ 
+    memSizeAlloc += blockSize;
     //allocation for soa
-    char* fBuffer = (char *) _mm_malloc (sizeof(int)+
-					fNumberOfTracks*sizeof(GUTrack),
-					32);
+    char* soaBuffer = (char *) _mm_malloc (
+            memSizeAlloc,  // sizeof(int)+fNumberOfTracks*sizeof(GUTrack),
+					  blockSize);
+    fBuffer = soaBuffer; 
 
     const int offset_int    = fNumberOfTracks*sizeof(int);
     const int offset_double = fNumberOfTracks*sizeof(double);
 
+    assert( blockSize >= sizeof(int) );
+
     //stride for GUTrack_v.numTracks
-    fBuffer += sizeof(int);
-    
+    soaBuffer += blockSize;  // std::max( blockSize, sizeof(int) ); 
+    assert( (long) soaBuffer % blockSize == 0 );
+
     //set ptr to each element of GUTrack_v
-    fTrack_soa.status       = (int*)fBuffer; 
-    fBuffer += offset_int;
+    fTrack_soa.status       = (int*)soaBuffer; 
+    soaBuffer += offset_int;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.particleType = (int*) fBuffer;
-    fBuffer += offset_int;
+    fTrack_soa.particleType = (int*) soaBuffer;
+    soaBuffer += offset_int;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.id           = (int*) fBuffer;
-    fBuffer += offset_int;
+    fTrack_soa.id           = (int*) soaBuffer;
+    soaBuffer += offset_int;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.parentId     = (int*) fBuffer;
-    fBuffer += offset_int;
+    fTrack_soa.parentId     = (int*) soaBuffer;
+    soaBuffer += offset_int;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.proc         = (int*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.proc         = (int*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.x            = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.x            = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.y            = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.y            = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.z            = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.z            = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.px           = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.px           = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.py           = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.py           = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.pz           = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.pz           = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.E            = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.E            = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.q            = (double*) fBuffer;
-    fBuffer += offset_double;
+    fTrack_soa.q            = (double*) soaBuffer;
+    soaBuffer += offset_double;
+    assert( (long) soaBuffer % blockSize == 0 );
 
-    fTrack_soa.s            = (double*) fBuffer;
+    fTrack_soa.s            = (double*) soaBuffer;
+#if 0    
+    std::cout << " soaBuffer start = " << (long) soaBuffer  << std::endl;
+    std::cout << "   Trial end     = " << ((long) soaBuffer + offset_double ) << std::endl;
+    std::cout << "   Real  end     = " << ((long) fBuffer + memSizeAlloc ) << std::endl;
+#endif    
+    assert( (long) soaBuffer + offset_double <= (long) fBuffer + memSizeAlloc );
+
   }
 }
 
