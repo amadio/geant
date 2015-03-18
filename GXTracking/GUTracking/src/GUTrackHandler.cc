@@ -44,7 +44,7 @@ void GUTrackHandler::Deallocate()
 
 void GUTrackHandler::Allocate(size_t nTracks)
 {
-  const int blockSize = 32;
+  const int blockSize = 64;
   SetNumberOfTracks(nTracks);
 
   if(fNumberOfTracks > 0) {
