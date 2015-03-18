@@ -28,6 +28,7 @@ private:
   void RunScalar();
   void RunVector();
   void CheckTimer();
+  void CheckRandom();
 
 #ifdef VECPHYS_CUDA
   void RunCuda();

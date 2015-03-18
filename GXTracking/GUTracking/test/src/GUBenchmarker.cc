@@ -41,6 +41,8 @@ int GUBenchmarker::RunBenchmarkInteract() {
 
   // Run all benchmarks
   CheckTimer();
+  CheckRandom();
+
   RunGeant4();
   RunScalar();
   RunVector();
@@ -231,5 +233,54 @@ void GUBenchmarker::CheckTimer()
   }
   printf("Null Task Timer: Total time of %3d reps = %6.3f sec\n",fRepetitions ,elapsedNullTotal);
 } 
+
+#include <Vc/Vc>
+  using Vc::double_v;
+
+void GUBenchmarker::CheckRandom() 
+{
+  size_t nsample = 1000000;
+
+  //test Vc random
+  std::cout << "Vc::Size  = " <<  Vc::Vector<Precision>::Size << std::endl;
+
+  Stopwatch timer; 
+  timer.Start();
+
+  double_v a, b, c;
+
+  for (size_t i = 0; i < nsample ; ++i) {
+    a = double_v::Random();
+    b = double_v::Random();
+    c += a + b;
+  }
+
+  timer.Stop();
+
+  double vctime =  timer.Elapsed();
+
+  std::cout << "vector sum  = " <<  c[0] + c[1] << std::endl;
+
+  timer.Start();
+
+  //test scalar random
+  double sa = 0;
+  double sb = 0;
+  double sc = 0;
+
+  for (size_t i = 0; i < nsample*2; ++i) {
+    sa = (double)rand()/RAND_MAX;
+    sb = (double)rand()/RAND_MAX;
+    sc += sa + sb;
+  }
+
+  timer.Stop();
+
+  double srtime =  timer.Elapsed();
+
+  std::cout << "scalar sum  = " <<  sc << std::endl;
+  std::cout << "time for sampling " << nsample << " random numbers: "
+    << "(Vc,rand) = (" << vctime << ":" << srtime << ")" <<std::endl;
+}
 
 } // end namespace vecphys
