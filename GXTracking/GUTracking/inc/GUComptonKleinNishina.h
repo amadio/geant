@@ -346,7 +346,6 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
                                       GUTrack_v& outSecondary    // Empty vector for secondaries
                                       ) const
 {
-  typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
   int ibase= 0;
