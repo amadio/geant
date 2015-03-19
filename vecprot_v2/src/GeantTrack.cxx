@@ -237,13 +237,13 @@ Double_t GeantTrack::Curvature() const {
 //______________________________________________________________________________
 TGeoVolume *GeantTrack::GetVolume() const {
   // Current material the track is into
-  return (gGeoManager->GetVolume(fVindex));
+  return ((TGeoVolume*)gGeoManager->GetListOfVolumes()->At(fVindex));
 }
 
 //______________________________________________________________________________
 TGeoMaterial *GeantTrack::GetMaterial() const {
   // Current material the track is into
-  TGeoMedium *med = gGeoManager->GetVolume(fVindex)->GetMedium();
+  TGeoMedium *med = GetVolume()->GetMedium();
   if (!med)
     return 0;
   return med->GetMaterial();
@@ -2285,13 +2285,13 @@ Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output) {
 //______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
   // Current material the track is into
-  return (gGeoManager->GetVolume(fVindexV[i]));
+  return ((TGeoVolume*)gGeoManager->GetListOfVolumes()->At(fVindexV[i]));
 }
 
 //______________________________________________________________________________
 TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
   // Current material the track is into
-  TGeoMedium *med = gGeoManager->GetVolume(fVindexV[i])->GetMedium();
+  TGeoMedium *med = GetVolume(i)->GetMedium();
   if (!med)
     return 0;
   return med->GetMaterial();

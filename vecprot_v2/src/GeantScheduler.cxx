@@ -98,11 +98,11 @@ void GeantScheduler::ActivateBasketManagers()
   int nthreads = propagator->fNthreads;
   GeantThreadData **td = propagator->fThreadData;
   for (auto i=0; i<nthreads; ++i) {
-    int ntoclean = td[i]->fBmgr->GetNbaskets();
-    while (ntoclean>nthreads) {
+    int ntoclean = td[i]->fBmgr->GetNqueued();
+    //while (ntoclean>nthreads) {
       td[i]->fBmgr->CleanBaskets(ntoclean);  
-      ntoclean = td[i]->fBmgr->GetNbaskets();
-    }  
+    //  ntoclean = td[i]->fBmgr->GetNbaskets();
+    //}
 //    Printf("thread %d: before %d after %d", i, ntoclean, td[i]->fBmgr->GetNbaskets());
   }  
 }
@@ -181,10 +181,10 @@ void GeantScheduler::CleanBaskets() {
 Int_t GeantScheduler::AddTrack(GeantTrack &track) {
   // Main method to inject generated tracks. Track status is kNew here.
   TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
-  Int_t ivol = vol->GetNumber();
+  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+  Int_t ivol = basket_mgr->GetNumber();
   fNstvol[ivol]++;
   fNsteps++;
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
   // If no learning phase requested, activate all basket managers
   GeantPropagator *propagator = GeantPropagator::Instance();
   if ((propagator->fLearnSteps==0) &&
@@ -227,10 +227,10 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
 //      priority = kTRUE;
 
     vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();
-    Int_t ivol = vol->GetNumber();
+    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+    Int_t ivol = basket_mgr->GetNumber();
     tracks.fVindexV[itr] = ivol;
     fNstvol[ivol]++;
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
     Int_t nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
     if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
