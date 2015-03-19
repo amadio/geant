@@ -63,9 +63,11 @@ void GeantScheduler::ActivateBasketManagers()
   // Percent of steps to activate basketized volumes
   double threshold = 0.9;
   int nactive = 0;
+  TObjArray *vlist = gGeoManager->GetListOfVolumes();
+  TGeoVolume *vol;
   for (auto i=0; i<fNvolumes; i++) {
     ntot += fNstvol[i];
-    TGeoVolume *vol = gGeoManager->GetVolume(i);
+    vol = (TGeoVolume*)vlist->At(i);
     GeantBasketMgr *mgr = (GeantBasketMgr*)vol->GetFWExtension();
     if (mgr->IsActive()) {
       nsum += fNstvol[i];
@@ -74,7 +76,7 @@ void GeantScheduler::ActivateBasketManagers()
   }  
   int nthreshold = ntot*threshold;
   for (auto i=0; i<fNvolumes; ++i) {
-    TGeoVolume *vol = gGeoManager->GetVolume(fIstvol[i]);
+    vol = (TGeoVolume*)vlist->At(fIstvol[i]);
     GeantBasketMgr *mgr = (GeantBasketMgr*)vol->GetFWExtension();
     if (!mgr->IsActive()) {
       mgr->Activate();
@@ -88,7 +90,7 @@ void GeantScheduler::ActivateBasketManagers()
   int nprint = 10;
   if (nprint > fNvolumes) nprint = fNvolumes;
   for (auto i=0; i<nprint; ++i) {
-    TGeoVolume *vol = gGeoManager->GetVolume(fIstvol[i]);
+    vol = (TGeoVolume*)vlist->At(fIstvol[i]);
     Printf("  * %s: %d steps", vol->GetName(), fNstvol[fIstvol[i]]);
   }
   // Now clean some of the mixed baskets
