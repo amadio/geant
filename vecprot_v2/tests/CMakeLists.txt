@@ -34,7 +34,7 @@ set(headers
    ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/WorkloadManager.h 
    ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantVApplication.h 
    ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantTrackStat.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/MyApplication.h 
+   ${CMAKE_SOURCE_DIR}/examples/inc/ExN03Application.h 
    ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/MyHit.h 
    ${CMAKE_SOURCE_DIR}/inc/PrimaryGenerator.h
    ${CMAKE_SOURCE_DIR}/xsec/inc/GunGenerator.h
@@ -57,9 +57,9 @@ macro(build_executables EXECUTABLES)
     get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
     add_executable(${TARGET_NAME} ${EXECUTABLE})
     if(VECGEOM_FOUND)
-      target_link_libraries(${TARGET_NAME} ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} -lXsec -lGeant_v)
+      target_link_libraries(${TARGET_NAME} ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} -lXsec -lGeant_v -lGeantExamples)
     else()
-      target_link_libraries(${TARGET_NAME} ${ROOT_LIBRARIES} -lEG -lGeom -lXsec -lGeant_v)
+      target_link_libraries(${TARGET_NAME} ${ROOT_LIBRARIES} -lEG -lGeom -lXsec -lGeant_v -lGeantExamples)
     endif()
     set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
   endforeach()
