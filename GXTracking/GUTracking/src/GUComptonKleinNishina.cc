@@ -14,16 +14,21 @@ GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId)
   fRandomState(states), fThreadId(threadId),
   fMinX(1.), fMaxX(1001.), fDeltaX(0.1), 
   fMinY(0.), fMaxY(1001.), fDeltaY(0.1),
+  fMaxZelement(100),       // Elements up to Z=100
   fNrow(100), fNcol(100) 
 {
   //replace hard coded numbers by default constants
+  fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
+                                     fMaxZelement,
+                                     fMinX, fMaxX,
+                                     fNrow, fNcol);
 
-  fAliasSampler = new GUAliasSampler(fRandomState,fThreadId,
-                                     10,fMinX,fMaxX,fNrow,fNcol);
-
-  //eventually arguments of BuildTable should be replaced by members of *this
-  //and dropped from the function signature. Same for BuildPdfTable
-  BuildTable(10,fMinX,fMaxX,fNrow,fNcol);   
+  for( int z= 1; z < fMaxZelement; ++z)
+  {
+    //eventually arguments of BuildTable should be replaced by members of *this
+    //  and dropped from the function signature. Same for BuildPdfTable
+    BuildOneTable(z, fMinX, fMaxX, fNrow, fNcol);
+  }
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
@@ -49,7 +54,7 @@ GUComptonKleinNishina::~GUComptonKleinNishina()
 
 
 VECPHYS_CUDA_HEADER_BOTH void 
-GUComptonKleinNishina::BuildTable( int Z, 
+GUComptonKleinNishina::BuildOneTable( int Z, 
                                    const double xmin, 
                                    const double xmax,
                                    const int nrow,
@@ -60,7 +65,7 @@ GUComptonKleinNishina::BuildTable( int Z,
   double *pdf = new double [nrow*ncol];
 
   BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
-  fAliasSampler->BuildAliasTables(nrow,ncol,pdf);
+  fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
 
   delete [] pdf;
 }
