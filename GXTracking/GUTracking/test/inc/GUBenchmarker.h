@@ -24,6 +24,9 @@ public:
 private:
     
   int  RunBenchmarkInteract();
+
+  void PrepareTargetElements(int *targetElements, int ntracks);
+  
   void RunGeant4();
   void RunScalar();
   void RunVector();
@@ -40,7 +43,6 @@ private:
   int fNtracks;
   unsigned fRepetitions;
   int fVerbosity;
-
 };
 
 } // end namespace vecphys

@@ -67,11 +67,11 @@ public:
 
   // Initializes this class and its sampler 
   VECPHYS_CUDA_HEADER_BOTH
-  void BuildTable( int Z,
-                              const double xmin,
-                              const double xmax,
-                              const int nrow,
-			      const int ncol);
+  void BuildOneTable( int Z,
+                      const double xmin,
+                      const double xmax,
+                      const int nrow,
+                      const int ncol);
   // QUESTION: This might depend on physics? So maybe we should place inside model? 
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -85,8 +85,9 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
   InteractKernel(typename Backend::Double_t energyIn, 
+                 typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
-		 typename Backend::Double_t& sinTheta) const;
+                 typename Backend::Double_t& sinTheta) const;
 
 
   template<class Backend>
@@ -99,8 +100,8 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void SampleByCompositionRejection(typename Backend::Double_t energyIn,
-				    typename Backend::Double_t& energyOut,
-				    typename Backend::Double_t& sinTheta);
+                                    typename Backend::Double_t& energyOut,
+                                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -122,10 +123,10 @@ private:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void ConvertXtoFinalState(double energyIn, 
-			    double energyOut, 
-			    double sinTheta, 
-			    GUTrack& primary, 
-			    GUTrack& secondary) const;
+                            double energyOut, 
+                            double sinTheta, 
+                            GUTrack& primary, 
+                            GUTrack& secondary) const;
 
 private:
   GUAliasSampler* fAliasSampler; 
@@ -142,6 +143,8 @@ private:
   Precision fMaxY;
   Precision fDeltaY;
 
+  Precision fMaxZelement; // 
+  
   //Sampling Tables
   int fNrow;
   int fNcol;
@@ -151,9 +154,10 @@ private:
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH void 
-GUComptonKleinNishina::InteractKernel(typename Backend::Double_t energyIn, 
+GUComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn, 
+                                      typename Backend::Index_t   zElement,
                                       typename Backend::Double_t& energyOut,
-				      typename Backend::Double_t& sinTheta)
+                                          typename Backend::Double_t& sinTheta)
                                       const
 {
   typedef typename Backend::Index_t  Index_t;
@@ -165,17 +169,17 @@ GUComptonKleinNishina::InteractKernel(typename Backend::Double_t energyIn,
 
   fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
 
-  Double_t probNA ;
+  Double_t probNA;
   Double_t aliasInd;
 
   //this did not used to work - Fixed SW
-  fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
+  fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t deltaE;
   deltaE = energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
 
   energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-  	 					       icol,fraction);
+                                                       icol,fraction);
   sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
 }    
 
@@ -259,8 +263,8 @@ template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUComptonKleinNishina::
 SampleByCompositionRejection(typename Backend::Double_t  energyIn,
-			     typename Backend::Double_t& energyOut,
-			     typename Backend::Double_t& sinTheta)
+                             typename Backend::Double_t& energyOut,
+                             typename Backend::Double_t& sinTheta)
 {
   typedef typename Backend::Double_t Double_t;
 
@@ -300,7 +304,7 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
 {
   double energyIn= inProjectile.E;
   double energyOut, sinTheta;
-  InteractKernel<Backend>(energyIn, energyOut, sinTheta);
+  InteractKernel<Backend>(energyIn, targetElement, energyOut, sinTheta);
   
   //update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
@@ -315,7 +319,12 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
                                       ) const
 {
   typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Index_t  Index_t;
 
+  for(int j = 0; j < inProjectile.numTracks  ; ++j) {
+     assert( (targetElements[j] > 0)  && (targetElements[j] <= fMaxZelement) );
+  }
+  
   int ibase= 0;
   int numChunks= (inProjectile.numTracks/Double_t::Size);
 
@@ -326,8 +335,9 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     Double_t pz(inProjectile.pz[ibase]);
     Double_t sinTheta;
     Double_t energyOut;
+    Index_t  zElement(targetElements[ibase]);
 
-    InteractKernel<Backend>(energyIn, energyOut, sinTheta);
+    InteractKernel<Backend>(energyIn, zElement, energyOut, sinTheta);
 
     //need to rotate the angle with respect to the line of flight
     Double_t invp = 1./energyIn;
@@ -373,7 +383,7 @@ VECPHYS_CUDA_HEADER_BOTH
 void GUComptonKleinNishina::ConvertXtoFinalState(double energyIn, 
                                                  double energyOut, 
                                                  double sinTheta, 
-				                 GUTrack& inProjectile,
+                                                 GUTrack& inProjectile,
                                                  GUTrack& outSecondary ) const
 {
   //need to rotate the angle with respect to the line of flight

@@ -61,9 +61,7 @@ void GUBenchmarker::RunScalar()
 #endif
 
   int *targetElements = new int [fNtracks];
-  for(int i = 0 ; i < fNtracks ; ++i) {
-    targetElements[i] = i ;
-  }
+  // PrepareTargetElements( targetElements, fNtracks);
 
   GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
@@ -72,7 +70,11 @@ void GUBenchmarker::RunScalar()
   Precision elapsedScalarTotal= 0.0;
   Precision elapsedScalarTotal2= 0.0;
 
-  for (unsigned r = 0; r < fRepetitions; ++r) {
+  for (unsigned r = 0; r < fRepetitions; ++r)
+  {
+    PrepareTargetElements(targetElements, fNtracks);
+    // In 'random' mode, it should change for every iteration
+     
     //prepare input tracks
     fTrackHandler->GenerateRandomTracks(fNtracks);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
@@ -81,7 +83,7 @@ void GUBenchmarker::RunScalar()
 
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
-      model->Interact<kScalar>(itrack_aos[i],targetElements[i],otrack_aos[i]);
+      model->Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
     }
 
     Precision elapsedScalar = timer.Stop();
@@ -113,6 +115,75 @@ void GUBenchmarker::RunScalar()
 #endif
 }
 
+static int fElementMode = 20;
+
+void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
+{
+   int mainElement = 8;   // Oxygen
+   constexpr int NumFx = 16;
+   constexpr int maxElement = 100;  // Should obtain it from elsewhere ...
+   
+   int Element[NumFx] = { 82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 92 };  
+                      //  Pb   W  O  N  C  Al  Ar, Ti  Fe  Cu  Zn  Cd  Xe  Gd  Au   U
+
+   static int noCalls=0 ;
+   // static int lastIndex= 1;
+
+   noCalls++;
+   
+   bool report = (noCalls == 1 );
+   
+   if( (fElementMode == 0) || (fElementMode > maxElement ) )     //  All Elements
+   {
+      if( report ) 
+         std::cout << " Generating Target Elements with Random mode - mode # = " << fElementMode
+                   << " numFx= " << NumFx << std::endl;
+      
+      for(int i = 0 ; i < ntracks ; ++i) {
+         targetElements[i] = ( i % maxElement) + 1 ;
+      }
+   }
+   else if( fElementMode == 1 )
+   {
+      if( report ) 
+         std::cout << " Constant Target Element - mode # = " << fElementMode
+                   << " numFx= " << NumFx << std::endl;
+      
+      for(int i = 0 ; i < ntracks ; ++i) {
+         targetElements[i] = mainElement;
+      }
+   }
+   else if( fElementMode <= NumFx )
+   {
+      int numElements = fElementMode;
+      if( report )
+         std::cout << " Generating Target Elements from table of elements "
+                   << " - mode # = " << fElementMode << std::endl
+                   << " Using " << numElements << " number of elements. " << std::endl;
+      int indEl;
+      for(int i = 0 ; i < ntracks ; ++i) {
+         indEl = ( i % numElements ) ;
+         targetElements[i] = Element[ indEl ]; 
+      }
+      // lastIndex= indEl; 
+      
+   }else{
+      // Cycle through different numbers of elements
+      int numElements = fElementMode;
+      if( report )      
+         std::cout << " Generating Target Elements cycling through "
+                   << " - mode # = " << fElementMode << std::endl
+                   << " Using " << numElements << " number of elements. " << std::endl;
+      for(int i = 0 ; i < ntracks ; ++i) {
+         targetElements[i] = 
+            ( (i * 101 + (noCalls%numElements) * 97 ) % numElements ) + 1;
+
+         assert ( (targetElements[i] > 0)  &&  (targetElements[i] <= numElements) );
+      }
+      // lastIndex= indEl; 
+   }
+}
+   
 void GUBenchmarker::RunGeant4() 
 {
 #ifdef VECPHYS_ROOT
@@ -120,9 +191,7 @@ void GUBenchmarker::RunGeant4()
 #endif
 
   int *targetElements = new int [fNtracks];
-  for(int i = 0 ; i < fNtracks ; ++i) {
-    targetElements[i] = i ;
-  }
+  // PrepareTargetElements(targetElements, fNtracks);
 
   vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
@@ -131,6 +200,8 @@ void GUBenchmarker::RunGeant4()
   Precision  elapsedG4Total = 0.0;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
+    PrepareTargetElements(targetElements, fNtracks);
+    // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
@@ -178,16 +249,16 @@ void GUBenchmarker::RunVector()
   GUTrack_v otrack_soa = handler_out->GetSoATracks();
 
   int *targetElements = new int[fNtracks];
-  for(int i = 0 ; i < fNtracks ; ++i) {
-    targetElements[i] = i ;
-  }
-
+  // PrepareTargetElements( targetElements, fNtracks);
+  
   vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
 
   Stopwatch timer;
   Precision elapsedVectorTotal= 0.0;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
+    PrepareTargetElements(targetElements, fNtracks);
+    // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks);
     GUTrack_v itrack_soa = fTrackHandler->GetSoATracks();

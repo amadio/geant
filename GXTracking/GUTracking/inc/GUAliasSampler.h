@@ -25,31 +25,35 @@ VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
 
   //VECPHYS_DEVICE_FORWARD_DECLARE( class GUAliasTable; )
 
-inline namespace VECPHYS_IMPL_NAMESPACE {
+inline namespace VECPHYS_IMPL_NAMESPACE
+{
 
 class GUAliasSampler
 {
 public: 
 
   VECPHYS_CUDA_HEADER_BOTH
-  GUAliasSampler(Random_t* states, int threadId,
-                 int    Zelement, 
-                 double incomingMin, 
-                 double incomingMax,
-                 int    numEntriesIncoming, // 'energy' (or log) of projectile
-                 int    numEntriesSampled 
-                 );  
+  GUAliasSampler(Random_t* states,
+                 int       threadId,
+                 int       maxZelement,   //  ==> Now For all Z
+                 double    incomingMin, 
+                 double    incomingMax,
+                 int       numEntriesIncoming,  // 'energy' (or log) of projectile
+                 int       numEntriesSampled 
+                 );
 
+  /*****
   VECPHYS_CUDA_HEADER_BOTH
   GUAliasSampler(Random_t* states, int threadId,
-                 int    Zelement, 
+                 // int    Zelement,   //  ==> Now For all Z
                  double incomingMin, 
                  double incomingMax,
                  int    numEntriesIncoming, // 'energy' (or log) of projectile
                  int    numEntriesSampled, 
                  GUAliasTable* table 
                  );  
-
+   *****/
+  
   VECPHYS_CUDA_HEADER_BOTH
   ~GUAliasSampler();
 
@@ -57,19 +61,22 @@ public:
   void PrintTable();
 
   VECPHYS_CUDA_HEADER_BOTH
-  void GetAlias(int     index, 
+  void GetAlias(int     index,
+                int     zElement,
                 double &probNA,  
                 int    &aliasInd) const;
 
-  VECPHYS_CUDA_HEADER_BOTH
-  void BuildAliasTables( const int nrow, const int ncol, double   *pdf );
+  int GetMaxZ() const { return fMaxZelement; }
 
   VECPHYS_CUDA_HEADER_BOTH
-  GUAliasTable* GetAliasTable(){ return (fAliasTable) ? fAliasTable: NULL ;}
+  void BuildAliasTable( int z, int nrow, int ncol, const double *pdf );
 
   VECPHYS_CUDA_HEADER_BOTH
-  void SetAliasTable(GUAliasTable* table) { fAliasTable = table ;}
+  GUAliasTable* GetAliasTable(int z){ return (fAliasTable && z < fMaxZelement && z>0) ? fAliasTable[z]: NULL ;}
 
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetAliasTable(int z, GUAliasTable* table) { if( table && z < fMaxZelement && z>0) { delete fAliasTable[z]; fAliasTable[z] = table ;} }
+  
   // Backend Implementation:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -94,7 +101,8 @@ public:
   inline
   VECPHYS_CUDA_HEADER_BOTH
   void
-  GatherAlias(typename Backend::Index_t  index, 
+  GatherAlias(typename Backend::Index_t   index, 
+              typename Backend::Index_t   zElement,
               typename Backend::Double_t &probNA,  
               typename Backend::Double_t &aliasInd 
               ) const;
@@ -102,25 +110,25 @@ public:
 private:
   Random_t*      fRandomState;
   int            fThreadId;
-
-  int      fZelement; 
+ 
+  int      fMaxZelement; 
   
   double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
-  double   fIncomingMax; // Max
+  // double   fIncomingMax; // Max
   int      fInNumEntries;
   double   fInverseBinIncoming;
   
   //  For the sampled variable 
   int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
   double   fInverseBinSampled; 
-  double   fSampledBinSize; 
+  // double   fSampledBinSize; 
 
-  double*  fSampledMin; // Minimum value of 'x' sampled variable
-  double*  fSampledMax; // Maximum value of 'x' sampled variable
+  // double*  fSampledMin; // Minimum value of 'x' sampled variable
+  // double*  fSampledMax; // Maximum value of 'x' sampled variable
   
   // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
-  GUAliasTable* fAliasTable;
-
+  GUAliasTable** fAliasTable;    // GUAliasTable* fAliasTable[];
+  // std::vector <GUAliasTable*>fAliasTable; 
 };
 
 // Backend Implementation
@@ -181,34 +189,52 @@ SampleX(typename Backend::Double_t rangeSampled,
   return x;
 }
 
-// General method - to be used for scalar & CUDA-type backends
+// General method - to be used for scalar-type' backends
+//                  i.e. currently: scalar & CUDA
 template<class Backend>
 inline
 void GUAliasSampler::
-GatherAlias(typename Backend::Index_t  index,
-                       typename Backend::Double_t &probNA,
-                       typename Backend::Double_t &aliasInd
-                      ) const
+GatherAlias(typename Backend::Index_t    index,
+            typename Backend::Index_t    zElement,
+            typename Backend::Double_t  &probNA,
+            typename Backend::Double_t  &aliasInd
+           ) const
 {
-  probNA=    fAliasTable->fProbQ[ (int) index ];
-  aliasInd=  fAliasTable->fAlias[ (int) index ];
+#if 0   
+  if( zElement <= 0  || zElement > fMaxZelement )
+  {
+     std::cout << " Illegal zElement = " << zElement << std::endl;
+  }
+#endif     
+  assert( zElement > 0  && zElement <= fMaxZelement );
+   
+  probNA=    fAliasTable[(int)zElement]->fProbQ[ (int) index ];
+  aliasInd=  fAliasTable[(int)zElement]->fAlias[ (int) index ];
 }
 
-// Specialisation for all vector backends - Vc for now
+// Specialisation for all vector-type backends - Vc for now
 #ifndef VECPHYS_NVCC
 template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
-GatherAlias<kVc>(typename kVc::Index_t  index, 
-            typename kVc::Double_t &probNA,  
-            typename kVc::Double_t &aliasInd 
-           ) const 
+GatherAlias<kVc>(typename kVc::Index_t    index, 
+                 typename kVc::Index_t    zElement,
+                 typename kVc::Double_t  &probNA,  
+                 typename kVc::Double_t  &aliasInd
+                ) const 
 {
+
+   
   //gather for alias table lookups - (backend type has no ptr arithmetic)
-  for(int i = 0; i < kVc::kSize ; ++i) {
-    probNA[i]=    fAliasTable->fProbQ[ (int) index[i] ];
-    aliasInd[i]=  fAliasTable->fAlias[ (int) index[i] ];
+  for(int i = 0; i < kVc::kSize ; ++i) 
+  {
+    int z= zElement[i];
+    int ind = index[i];
+    assert( z > 0  && z <= fMaxZelement );
+    
+    probNA[i]=    fAliasTable[z]->fProbQ[ ind ]; // (int) index[i] ];
+    aliasInd[i]=  fAliasTable[z]->fAlias[ ind ]; // (int) index[i] ];
   }
 }
 #endif
