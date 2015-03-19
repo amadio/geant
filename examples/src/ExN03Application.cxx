@@ -1,4 +1,4 @@
-#include "MyApplication.h"
+#include "ExN03Application.h"
 #include "TGeoNode.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
@@ -9,10 +9,10 @@
 #include "TROOT.h"
 #include <cassert>
 
-ClassImp(MyApplication)
+ClassImp(ExN03Application)
 
     //______________________________________________________________________________
-    MyApplication::MyApplication()
+    ExN03Application::ExN03Application()
     : GeantVApplication(), fInitialized(kFALSE), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
@@ -25,7 +25,7 @@ ClassImp(MyApplication)
 }
 
 //______________________________________________________________________________
-Bool_t MyApplication::Initialize() {
+Bool_t ExN03Application::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return kTRUE;
@@ -48,7 +48,7 @@ Bool_t MyApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) {
+void ExN03Application::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   if (!fInitialized)
@@ -99,7 +99,7 @@ void MyApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &trac
 }
 
 //______________________________________________________________________________
-void MyApplication::Digitize(Int_t /* event */) {
+void ExN03Application::Digitize(Int_t /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");

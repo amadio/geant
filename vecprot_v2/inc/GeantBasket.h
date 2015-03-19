@@ -418,6 +418,12 @@ public:
   Int_t GetNused() const { return fNused.load(); }
 
   /**
+   * @brief Snapshot of the number queued baskets
+   * @return number of baskets queued
+   */
+  Int_t GetNqueued() const { return fBaskets->size(); }
+
+  /**
    * @brief Snapshot of the current basket threshold 
    * @return Threshold value
    */

@@ -237,7 +237,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       fPrimaryGenerator->GetTrack(i, track);
       track.fFrombdr = kFALSE;
       track.fStatus = kAlive;
-      track.fVindex = vol->GetNumber();
+      track.fVindex = basket_mgr->GetNumber();
       AddTrack(track);
       ndispatched += DispatchTrack(track);
     }

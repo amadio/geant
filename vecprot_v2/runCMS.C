@@ -12,6 +12,7 @@ void runCMS(Int_t nthreads=4,
    // gSystem->Load("../buildTGeo/lib/libXsec");
    gSystem->Load("../lib/libGeant_v");
    gSystem->Load("../lib/libXsec");
+   gSystem->Load("../lib/libGeantExamples");
 
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
@@ -54,7 +55,7 @@ void runCMS(Int_t nthreads=4,
    //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
    prop->fLearnSteps = 1000000;
 
-   prop->fApplication = new MyApplication();
+   prop->fApplication = new ExN03Application();
 
 //   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;
