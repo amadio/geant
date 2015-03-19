@@ -175,11 +175,11 @@ GUComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
   //this did not used to work - Fixed SW
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
-  Double_t deltaE;
-  deltaE = energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
+  Double_t mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
+  Double_t deltaE = energyIn - mininumE;
 
-  energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-                                                       icol,fraction);
+  energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
+					        aliasInd,icol,fraction);
   sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
 }    
 
@@ -223,9 +223,11 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
     yr =  yhat;
     zr = -zhat;
   }  
-  // What about if !positive && !negativeZ ??
-  // else {  ???
-  // }
+  else {
+    xr = xhat;
+    yr = yhat;
+    zr = zhat;
+  }
 }
 
 template<class Backend>
