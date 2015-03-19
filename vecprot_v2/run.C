@@ -12,6 +12,7 @@ void run(Int_t nthreads=4,
    // gSystem->Load("../buildTGeo/lib/libXsec");
    gSystem->Load("../lib/libGeant_v");
    gSystem->Load("../lib/libXsec");
+   gSystem->Load("../lib/libGeantExamples");
    // for vector physics - OFF now
    // gSystem->Load("../lib/libVphysproc");
 
@@ -53,7 +54,7 @@ void run(Int_t nthreads=4,
    prop->fLearnSteps = 10000;
 
 
-   prop->fApplication = new MyApplication();
+   prop->fApplication = new ExN03Application();
 
 //   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;

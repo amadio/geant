@@ -1,17 +1,17 @@
-//===--- MyApplication.h - Geant-V ------------------------------*- C++ -*-===//
+//===--- ExN03Application.h - Geant-V ------------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file MyApplication.h
- * @brief Implementation of typical application for Geant-V prototype 
+ * @file ExN03Application.h
+ * @brief Implementation of Geant4 example N03 application for Geant-V prototype 
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_MYAPPLICATION
-#define GEANT_MYAPPLICATION
+#ifndef GEANT_ExN03Application
+#define GEANT_ExN03Application
 
 #ifndef GEANT_VAPPLICATION
 #include "GeantVApplication.h"
@@ -27,8 +27,8 @@
 
 class GeantTrack_v;
 
-/** @brief MyApplication class */
-class MyApplication : public GeantVApplication {
+/** @brief ExN03Application class */
+class ExN03Application : public GeantVApplication {
   static const Int_t kNlayers = 10;
   static const Int_t kMaxThreads = 36;
 
@@ -43,23 +43,23 @@ private:
   GeantFactory<MyHit> *fFactory;             /** Hits factory */
   
   /**
-   * @brief Copy constructor MyApplication
+   * @brief Copy constructor ExN03Application
    * * @todo Still not implemented
    */
-  MyApplication(const MyApplication &);
+  ExN03Application(const ExN03Application &);
 
   /**
    * @brief Operator=
    * @todo Still not implemented
    */
-  MyApplication &operator=(const MyApplication &);
+  ExN03Application &operator=(const ExN03Application &);
 public:
 
-  /** @brief Constructor MyApplication */
-  MyApplication();
+  /** @brief Constructor ExN03Application */
+  ExN03Application();
 
-  /** @brief Destructor MyApplication */
-  virtual ~MyApplication() {}
+  /** @brief Destructor ExN03Application */
+  virtual ~ExN03Application() {}
 
   /**
    * @brief Function of initialization
@@ -82,6 +82,6 @@ public:
    */
   virtual void Digitize(Int_t event);
 
-  ClassDef(MyApplication, 1) // User application
+  ClassDef(ExN03Application, 1) // User application
 };
 #endif

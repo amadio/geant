@@ -32,7 +32,6 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantVApplication.cxx 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantFactoryStore.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/MyApplication.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
 )     
      
@@ -47,7 +46,6 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/WorkloadManager.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
 )   
