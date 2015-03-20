@@ -6,9 +6,19 @@
 #include "GUComptonKleinNishina.h"
 #include "GUTrackHandler.h"
 
+#define  VECPHYS_ROOT 1
+
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
 #endif
+
+static int fElementMode = 1;
+//   Values:
+//   1  - Single material
+//   
+
+static double minP= 1.0, maxP=1.0;
+static bool   verbose = false;
 
 namespace vecphys {
 
@@ -66,6 +76,8 @@ void GUBenchmarker::RunScalar()
   GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
+  if( verbose ) std::cout << "Scalar Run" << std::endl;
+  
   Stopwatch timer;
   Precision elapsedScalarTotal= 0.0;
   Precision elapsedScalarTotal2= 0.0;
@@ -76,14 +88,18 @@ void GUBenchmarker::RunScalar()
     // In 'random' mode, it should change for every iteration
      
     //prepare input tracks
-    fTrackHandler->GenerateRandomTracks(fNtracks);
+    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);    
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
 
     timer.Start();
 
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
-      model->Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+       if( verbose ) std::cout << " E_in = "  << itrack_aos[i].E
+                               << " elem = "  << targetElements[i];
+       model->Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+       if( verbose )  std::cout << " E_out = "  << itrack_aos[i].E
+                                << " E_elec = " << otrack_aos[i].E  << std::endl;
     }
 
     Precision elapsedScalar = timer.Stop();
@@ -115,7 +131,7 @@ void GUBenchmarker::RunScalar()
 #endif
 }
 
-static int fElementMode = 20;
+
 
 void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
 {
@@ -146,8 +162,8 @@ void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
    else if( fElementMode == 1 )
    {
       if( report ) 
-         std::cout << " Constant Target Element - mode # = " << fElementMode
-                   << " numFx= " << NumFx << std::endl;
+         std::cout << " Using *Constant* Target Element - mode # = " << fElementMode
+                   << " Element used is Z= " << mainElement << std::endl;
       
       for(int i = 0 ; i < ntracks ; ++i) {
          targetElements[i] = mainElement;
@@ -176,7 +192,7 @@ void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
                    << " Using " << numElements << " number of elements. " << std::endl;
       for(int i = 0 ; i < ntracks ; ++i) {
          targetElements[i] = 
-            ( (i * 101 + (noCalls%numElements) * 97 ) % numElements ) + 1;
+            ( (i * 101 + (noCalls%numElements) * 59 ) % numElements ) + 1;
 
          assert ( (targetElements[i] > 0)  &&  (targetElements[i] <= numElements) );
       }
@@ -199,17 +215,24 @@ void GUBenchmarker::RunGeant4()
   Stopwatch timer;
   Precision  elapsedG4Total = 0.0;
 
+  if( verbose ) 
+     std::cout << " Geant4 Run Output " << std::endl;
+  
   for (unsigned r = 0; r < fRepetitions; ++r) {
     PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
 
-    fTrackHandler->GenerateRandomTracks(fNtracks);
+    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
 
     timer.Start();
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
+       if( verbose ) std::cout << " E_in = "  << itrack_aos[i].E
+                               << " elem = "  << targetElements[i];
       model->InteractG4<kScalar>(itrack_aos[i],targetElements[i],otrack_aos[i]);
+      if( verbose )  std::cout << " E_out = "  << itrack_aos[i].E
+                               <<  " E_elec = " << otrack_aos[i].E  << std::endl;
     }
 
     Precision elapsedG4 = timer.Stop();
@@ -260,7 +283,8 @@ void GUBenchmarker::RunVector()
     PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
 
-    fTrackHandler->GenerateRandomTracks(fNtracks);
+    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
+    
     GUTrack_v itrack_soa = fTrackHandler->GetSoATracks();
 
     timer.Start();

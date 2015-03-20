@@ -190,10 +190,18 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     double sintheta, tantheta, costheta; 
 
     rho = ecalRmim + (ecalRmax-ecalRmim)*UniformRandom(0,-1);
-    do {
-      p = minP - 0.2*(maxP - minP)*log(UniformRandom(0,-1));
+
+    if( minP == maxP )
+    {
+       p= maxP;
     }
-    while (p>maxP);
+    else
+    {
+       do {
+          p = minP - 0.2*(maxP - minP)*log(UniformRandom(0,-1));
+       }
+       while (p>maxP);
+    }
 
     z = ecalZmax*(2*UniformRandom(0,-1)-1.0);
     phi = 2*pi*UniformRandom(0,-1);
@@ -222,7 +230,7 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     (fTrack_soa.py)[i] = fTrack_aos[i].py = p*sintheta*sinphi;
     (fTrack_soa.pz)[i] = fTrack_aos[i].pz = p*costheta; // std::cos(theta);
     
-    mass = electron_mass_c2*fTrack_aos[i].q*fTrack_aos[i].q;
+    mass = 0; // electron_mass_c2*fTrack_aos[i].q*fTrack_aos[i].q;
     (fTrack_soa.E)[i]  = fTrack_aos[i].E  = p*p/(sqrt(p*p + mass*mass) + mass);
 
   }
