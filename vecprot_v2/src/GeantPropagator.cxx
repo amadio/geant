@@ -460,9 +460,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   if (strstr(geomfile, "http://root.cern.ch/files/"))
     geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
-  Printf("=== Transported: %lld primaries/%lld tracks,  safety steps: %lld,  snext steps: %lld, "
+  Int_t nsteps = fWMgr->GetScheduler()->GetNsteps();
+  Printf("=== Transported: %lld primaries/%lld tracks,  total steps: %d, safety steps: %lld,  snext steps: %lld, "
          "phys steps: %lld, RT=%gs, CP=%gs",
-         fNprimaries.load(), fNtransported.load(), fNsafeSteps.load(), fNsnextSteps.load(),
+         fNprimaries.load(), fNtransported.load(), nsteps, fNsafeSteps.load(), fNsnextSteps.load(),
          fNphysSteps.load(), rtime, ctime);
   Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup,
          efficiency);

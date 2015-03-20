@@ -1323,7 +1323,7 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*ti
     fPstepV[i] = 0;
     fStatusV[i] = kPhysics;
 #ifndef GEANT_CUDA_DEVICE_BUILD
-    gPropagator->fNphysSteps++;
+ //   gPropagator->fNphysSteps++;
 #endif
   }
   fSafetyV[i] -= crtstep;

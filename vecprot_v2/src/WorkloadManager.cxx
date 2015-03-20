@@ -500,7 +500,7 @@ void *WorkloadManager::TransportTracks(void *) {
     // new generated particles at this point.
     if (propagator->fUsePhysics) {
       nextra_at_rest = 0;
-      gPropagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, tid);
+      propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, tid);
       //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
       // Now we may also have particles killed by energy threshold
       // Do post-step actions on remaining particles
@@ -510,6 +510,7 @@ void *WorkloadManager::TransportTracks(void *) {
         // Discrete processes only
         Int_t nphys = output.SortByStatus(kPhysics);
         if (nphys) {
+	  propagator->fNphysSteps += nphys;
           // Do post step actions for particles suffering a given process.
           // Surviving particles are added to the output array
 
