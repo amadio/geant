@@ -403,6 +403,7 @@ void *WorkloadManager::TransportTracks(void *) {
   Int_t nnew = 0;
   Int_t ntot = 0;
   Int_t nkilled = 0;
+  Int_t nphys = 0;
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
   Printf("=== Worker thread %d created ===", tid);
@@ -499,7 +500,14 @@ void *WorkloadManager::TransportTracks(void *) {
     // Post-step actions by continuous processes for all particles. There are no
     // new generated particles at this point.
     if (propagator->fUsePhysics) {
+      nphys = 0;
       nextra_at_rest = 0;
+      // count phyics steps here 
+      Int_t nout = output.GetNtracks();
+      for (auto i=0; i<nout; ++i) if (output.fStatusV[i] == kPhysics) nphys++;
+      if (nphys)
+        propagator->fNphysSteps += nphys;
+
       propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, tid);
       //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
       // Now we may also have particles killed by energy threshold
@@ -508,9 +516,9 @@ void *WorkloadManager::TransportTracks(void *) {
 
       if (propagator->fUsePhysics) {
         // Discrete processes only
-        Int_t nphys = output.SortByStatus(kPhysics);
+        nphys = output.SortByLimitingDiscreteProcess();  // only those that kPhysics and not continous limit
         if (nphys) {
-	  propagator->fNphysSteps += nphys;
+	  //propagator->fNphysSteps += nphys;  dont do it here because dont count those killed in eloss
           // Do post step actions for particles suffering a given process.
           // Surviving particles are added to the output array
 

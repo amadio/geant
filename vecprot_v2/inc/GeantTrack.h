@@ -753,6 +753,12 @@ public:
   Int_t SortByStatus(TrackStatus_t status);
 
   /**
+   * @brief Sorting function for tracks where the step was limited by discrete processes
+   * 
+   * @return Number of selected tracks
+   */
+  Int_t SortByLimitingDiscreteProcess();
+  /**
    * @brief Function for removal tracks according status
    * 
    * @param status Track status to be selected for removal
