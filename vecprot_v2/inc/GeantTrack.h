@@ -33,7 +33,7 @@
 #endif
 
 #ifndef VECCORE_BITSET_H
-#include "VecCore/BitSet.h"
+#include "BitSet.h"
 typedef VecCore::BitSet BitSet;
 #endif
 
@@ -752,6 +752,12 @@ public:
    */
   Int_t SortByStatus(TrackStatus_t status);
 
+  /**
+   * @brief Sorting function for tracks where the step was limited by discrete processes
+   * 
+   * @return Number of selected tracks
+   */
+  Int_t SortByLimitingDiscreteProcess();
   /**
    * @brief Function for removal tracks according status
    * 

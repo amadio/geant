@@ -1748,6 +1748,28 @@ Int_t GeantTrack_v::SortByStatus(TrackStatus_t status) {
   return nsel;
 }
 
+
+//______________________________________________________________________________
+Int_t GeantTrack_v::SortByLimitingDiscreteProcess() {
+  // Sort tracks for which the step was limited by discrete processes.
+  Int_t nsel = 0;
+  Int_t ntracks = GetNtracks();
+  for (Int_t itr = 0; itr < ntracks; itr++) {
+    if (fStatusV[itr] == kPhysics && (fEindexV[itr]==1000 || fProcessV[itr]==-2)) {
+      Select(itr);
+      nsel++;
+    }
+  }
+  if (nsel) {
+    if (nsel < ntracks)
+      Reshuffle();
+    else
+      DeselectAll();
+  }
+  return nsel;
+}
+
+
 //______________________________________________________________________________
 Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output) {
   // Remove tracks with given status from the container to the output vector,

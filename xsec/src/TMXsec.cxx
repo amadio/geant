@@ -343,6 +343,7 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
      energy=energy>=fEGrid[0]?energy:fEGrid[0];
 
      // continous step limit if any
+     tracks.fEindexV[i] = -1;  // Flag continous step limit  
      Double_t cx = TMath::Limits<Double_t>::Max();  
      if(ipart < TPartIndex::I()->NPartCharge()) {
        Double_t range = Range(ipart, energy);
@@ -354,10 +355,10 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
          const Double_t finRange =.1;
          if(cx>finRange)
            cx=cx*dRR+finRange*((1.-dRR)*(2.0-finRange/cx));
-       }     
+       }
      }
      tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
-
+ 
      // discrete step limit 
      if(ipart<TPartIndex::I()->NPartReac()){ // can have different reactions + decay
        Int_t ibin = TMath::Log(energy/fEGrid[0])*fEilDelta; // energy bin index
@@ -370,16 +371,18 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
        //get interpolated -(total mean free path)
        Double_t x = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]; 
        x *= -1.*TMath::Log(rndArray[i]);  
-       if(x<cx)      
+       if(x<cx){      
          tracks.fPstepV[i] = x;
+         tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
+       }
     } else if (fDecayTable->HasDecay(ipart)) { // it has only decay 
        Double_t x = tracks.fPV[i]*fDecayTable->GetCTauPerMass(ipart); //Ptot*c*tau/mass [cm]
        x = -1.*x*TMath::Log(rndArray[i]);
-       if(x<cx)      
+       if(x<cx) {      
          tracks.fPstepV[i] = x;
-    } //else { // has no any interactions
-      // tracks.fPstepV[i] = TMath::Limits<Double_t>::Max();  
-   // }
+         tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
+       }
+    }
   }
 
 }
@@ -399,6 +402,7 @@ void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, Int_t tid){
    energy=energy>=fEGrid[0]?energy:fEGrid[0];
 
    // continous step limit if any
+   tracks.fEindexV[i] = -1;  // Flag continous step limit  
    Double_t cx = TMath::Limits<Double_t>::Max();  
    if(ipart < TPartIndex::I()->NPartCharge()) {
      Double_t range = Range(ipart, energy);
@@ -426,16 +430,18 @@ void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, Int_t tid){
      //get interpolated -(total mean free path)
      Double_t x = xrat*fTotXL[ipart*fNEbins+ibin]+(1-xrat)*fTotXL[ipart*fNEbins+ibin+1]; 
      x *= -1.*TMath::Log(rndArray[0]);  
-     if(x<cx)      
+     if(x<cx){      
        tracks.fPstepV[i] = x;
+       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
+     }
    } else if (fDecayTable->HasDecay(ipart)) { // it has only decay 
      Double_t x = tracks.fPV[i]*fDecayTable->GetCTauPerMass(ipart); //Ptot*c*tau/mass [cm]
      x = -1.*x*TMath::Log(rndArray[0]);
-     if(x<cx)      
+     if(x<cx){      
        tracks.fPstepV[i] = x;
-   } //else { // has no any interactions
-      // tracks.fPstepV[i] = TMath::Limits<Double_t>::Max();  
-   // }
+       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
+     }
+   }
 }
 
 //get MS angles : NOT USED CURRENTLY (MS is not active)  
@@ -638,7 +644,7 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
         tracks.fPV[i] = 0.;                // set Ptotal = 0
         tracks.fStatusV[i] = kKilled;     // set status to killed 
         // check if the particle stopped or just went below the tracking cut
-        if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
+       if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
           tracks.fProcessV[i] = -2; // possible at-rest process need to be called 
         // else : i.e. 0 < newEkin < energyLimit just kill the track cause tracking cut
       } else {  // track further: update energy, momentum, process etc.
@@ -714,7 +720,7 @@ void TMXsec::ElossSingle(Int_t i, GeantTrack_v &tracks)
      tracks.fPV[i] = 0.;                // set Ptotal = 0
      tracks.fStatusV[i] = kKilled;     // set status to killed 
      // check if the particle stopped or just went below the tracking cut
-     if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
+    if (newEkin<=0.0) // stopped: set proc. indx = -2 to inidicate that 
        tracks.fProcessV[i] = -2; // possible at-rest process need to be called 
      // else : i.e. 0 < newEkin < energyLimit just kill the track cause tracking cut
    } else {  // track further: update energy, momentum, process etc.
@@ -800,6 +806,13 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
    prop->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
 
    for(Int_t t=0; t<ntracks; ++t) {
+/*
+     if(tracksin.fEindexV[t] < 0){ // continous step limited this step 
+         tracksin.fProcessV[t] = -1; // nothing  	 
+         tracksin.fEindexV[t]  = -1; // on nothing  
+       continue;
+     }
+*/
      Int_t ipart  = tracksin.fG5codeV[t];
      // if the particle can have both decay and something else 
      if(ipart < nParticleWithReaction) {
@@ -879,7 +892,13 @@ void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, Int_t tid){
    GeantPropagator *prop = GeantPropagator::Instance();
    Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
    prop->fThreadData[tid]->fRndm->RndmArray(2, rndArray);
-
+/*
+   if(tracksin.fEindexV[t] < 0){ // continous step limited this step 
+       tracksin.fProcessV[t] = -1; // nothing  	 
+       tracksin.fEindexV[t]  = -1; // on nothing  
+     return;
+   }
+*/
    Int_t ipart  = tracksin.fG5codeV[t];
    // if the particle can have both decay and something else 
    if(ipart < nParticleWithReaction) {
