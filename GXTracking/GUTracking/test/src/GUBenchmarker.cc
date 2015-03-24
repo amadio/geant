@@ -17,8 +17,27 @@ static int fElementMode = 1;
 //   1  - Single material
 //   
 
-static double minP= 1.0, maxP=1.0;
-static bool   verbose = false;
+// static double minP= 1.0, maxP=1.0;  // Units = GeV
+// GU & GeantV Default Energy Unit = GeV
+constexpr double GeV = 1.0;
+constexpr double MeV = 0.001  * GeV;
+constexpr double KeV = 1.0e-6 * GeV;
+
+static double minP= 1000.*MeV;  // 1.0 * GeV;
+// static double minP= 50.*KeV, maxP= minP; // 0.5 * MeV; // ie = 500.*KeV;
+// static double minP= 500.*KeV, maxP= 0.5 * MeV; // ie = 500.*KeV;
+static double maxP= minP; 
+//  Equal maxp & minP ==> monoenergetic beam
+
+static bool   verbose = false; // true;
+
+// #define UNIT_CORRECTION 1000
+
+#ifdef UNIT_CORRECTION
+//  Use this option to check whether the 'G4' option has a unit error
+const double unitFactor = UNIT_CORRECTION;
+//  Trial: Can use value of 1000 case conversion from GeV to MeV is needed.
+#endif
 
 namespace vecphys {
 
@@ -35,13 +54,15 @@ GUBenchmarker::~GUBenchmarker()
   delete fTrackHandler;
 }
 
-int GUBenchmarker::RunBenchmark() {
+int GUBenchmarker::RunBenchmark()
+{
   int errorcode=0;
   errorcode+=RunBenchmarkInteract();
   return (errorcode)? 1 : 0;
 }
 
-int GUBenchmarker::RunBenchmarkInteract() {
+int GUBenchmarker::RunBenchmarkInteract()
+{
   // if (fVerbosity > 0) {
   printf("RunBenchmarkInteract: Ntracks = %d, fRepetitions = %d\n",
 	   fNtracks,fRepetitions);
@@ -67,7 +88,7 @@ int GUBenchmarker::RunBenchmarkInteract() {
 void GUBenchmarker::RunScalar() 
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram *histogram = new GUHistogram("scalar.root");
+  GUHistogram *histogram = new GUHistogram("scalar.root", maxP);  // maxE= maxP (photon)    
 #endif
 
   int *targetElements = new int [fNtracks];
@@ -82,56 +103,68 @@ void GUBenchmarker::RunScalar()
   Precision elapsedScalarTotal= 0.0;
   Precision elapsedScalarTotal2= 0.0;
 
+  Precision* incomingEn = new Precision[fNtracks];
+
   for (unsigned r = 0; r < fRepetitions; ++r)
   {
     PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
      
     //prepare input tracks
-    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);    
+    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
+
+    for(int i = 0 ; i < fNtracks ; ++i) {
+       incomingEn[i] = itrack_aos[i].E;
+    }
 
     timer.Start();
 
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
-       if( verbose ) std::cout << " E_in = "  << itrack_aos[i].E
-                               << " elem = "  << targetElements[i];
        model->Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
-       if( verbose )  std::cout << " E_out = "  << itrack_aos[i].E
-                                << " E_elec = " << otrack_aos[i].E  << std::endl;
+       // if( verbose ) {
+       //    std::cout << " E_in = "  << incomingEn[i] 
+       //              << " elem = "  << targetElements[i];
+       //    std::cout << " E_out = "  << itrack_aos[i].E
+       //              << " E_elec = " << otrack_aos[i].E  << std::endl;
+       // }
     }
 
     Precision elapsedScalar = timer.Stop();
     elapsedScalarTotal  += elapsedScalar;
     elapsedScalarTotal2 += elapsedScalar*elapsedScalar;
     
-#ifdef VERBOSE
     if (fVerbosity > 0) {
       printf("Scalar Task %d > %6.3f sec\n",r,elapsedScalar);
     }
-#endif
     
 #ifdef VECPHYS_ROOT
-    histogram->ftime->Fill(elapsedScalar);
+    histogram->RecordTime(elapsedScalar);
     for(int i = 0 ; i < fNtracks ; ++i) {
-      histogram->fenergy->Fill(otrack_aos[i].E);
-      histogram->fangle->Fill(otrack_aos[i].pz/otrack_aos[i].E);
-    }
+       // histogram->fenergy->Fill(otrack_aos[i].E);
+       // histogram->fangle->Fill(otrack_aos[i].pz/otrack_aos[i].E);
+       histogram->RecordHistos( incomingEn[i],
+                                itrack_aos[i].E,                  // Outgoing gamma  energy
+                                itrack_aos[i].pz/itrack_aos[i].E, // Outgoing gamma  u_z 
+                                otrack_aos[i].E,                  // Electron  energy
+                                otrack_aos[i].pz/otrack_aos[i].E); // Electron  u_z
+    }    
 #endif    
 
   }
   free(otrack_aos);
 
+  // double averageScalar = elapsedScalarTotal  / fRepetitions;
+  // double averSqrScalar = elapsedScalarTotal2 / fRepetitions;  
   printf("Scalar Task Total time of %3d reps = %6.3f sec\n", fRepetitions, elapsedScalarTotal);
   delete model;
 
+  delete[] incomingEn; 
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
 }
-
-
 
 void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
 {
@@ -203,7 +236,7 @@ void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
 void GUBenchmarker::RunGeant4() 
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram *histogram = new GUHistogram("geant4.root");
+  GUHistogram *histogram = new GUHistogram("geant4.root", maxP);  // maxE= maxP (photon)
 #endif
 
   int *targetElements = new int [fNtracks];
@@ -217,6 +250,16 @@ void GUBenchmarker::RunGeant4()
 
   if( verbose ) 
      std::cout << " Geant4 Run Output " << std::endl;
+
+  Precision* incomingEn = new Precision[fNtracks];
+
+
+#ifdef UNIT_CORRECTION
+  const double  invFactor = 1.0 / unitFactor;
+
+  if( unitFactor != 1.0 ) 
+     std::cout << " Using TRIAL Unit factor =  " << unitFactor << std::endl;
+#endif
   
   for (unsigned r = 0; r < fRepetitions; ++r) {
     PrepareTargetElements(targetElements, fNtracks);
@@ -225,30 +268,72 @@ void GUBenchmarker::RunGeant4()
     fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
 
+    for(int i = 0 ; i < fNtracks ; ++i) {
+       incomingEn[i] = itrack_aos[i].E;   // Record the unaltered value
+#ifdef UNIT_CORRECTION
+       itrack_aos[i].E  *= unitFactor;
+       itrack_aos[i].px *= unitFactor;
+       itrack_aos[i].py *= unitFactor;
+       itrack_aos[i].pz *= unitFactor;
+#endif
+       // incomingEn[i] = itrack_aos[i].E;  // Record the altered value
+    }
+    
     timer.Start();
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
-       if( verbose ) std::cout << " E_in = "  << itrack_aos[i].E
-                               << " elem = "  << targetElements[i];
-      model->InteractG4<kScalar>(itrack_aos[i],targetElements[i],otrack_aos[i]);
-      if( verbose )  std::cout << " E_out = "  << itrack_aos[i].E
-                               <<  " E_elec = " << otrack_aos[i].E  << std::endl;
+
+      model->InteractG4<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+      //     **********
     }
 
     Precision elapsedG4 = timer.Stop();
     elapsedG4Total += elapsedG4;
-#ifdef VERBOSE
     if (fVerbosity > 0) {
       printf("Geant4 Task %d > %6.3f sec\n",r,elapsedG4);
     }
-#endif
     
 #ifdef VECPHYS_ROOT
-    histogram->ftime->Fill(elapsedG4);
-    for(int i = 0 ; i < fNtracks ; ++i) {
-      histogram->fenergy->Fill(otrack_aos[i].E);
-      histogram->fangle->Fill(otrack_aos[i].pz/otrack_aos[i].E);
-    }
+    histogram->RecordTime(elapsedG4);
+    for(int i = 0 ; i < fNtracks ; ++i)
+    {
+#ifdef UNIT_CORRECTION
+       // incomingEn[i]    *= invFactor; // (if) Recorded the altered value
+       itrack_aos[i].E  *= invFactor;
+       itrack_aos[i].px *= invFactor;
+       itrack_aos[i].py *= invFactor;
+       itrack_aos[i].pz *= invFactor;
+
+       otrack_aos[i].E  *= invFactor;
+       otrack_aos[i].px *= invFactor;
+       otrack_aos[i].py *= invFactor;
+       otrack_aos[i].pz *= invFactor;
+#endif
+       histogram->RecordHistos( incomingEn[i],
+                                itrack_aos[i].E,                  // Outgoing gamma  energy
+                                itrack_aos[i].pz/itrack_aos[i].E, // Outgoing gamma  u_z    
+                                otrack_aos[i].E,                  // Electron  energy
+                                otrack_aos[i].pz/otrack_aos[i].E); // Electron  u_z
+
+       if( verbose )
+       {
+          ReportInteraction( incomingEn[i],
+                             targetElements[i],                             
+                             itrack_aos[i].E,                  // Outgoing gamma  energy
+                             itrack_aos[i].pz/itrack_aos[i].E, // Outgoing gamma  u_z    
+                             otrack_aos[i].E,                  // Electron  energy
+                             otrack_aos[i].pz/otrack_aos[i].E); // Electron  u_z
+          
+          printf( " E_in = %8.5f  elem = %4d E_out = %8.4g  E_elec = %8.4g  Sum(E_out)= %8.4g  Diff(In-Out)= %8.3g \n",
+                  incomingEn[i], 
+                  targetElements[i], 
+                  itrack_aos[i].E,
+                  otrack_aos[i].E,
+                  itrack_aos[i].E + otrack_aos[i].E, 
+                  incomingEn[i] - ( itrack_aos[i].E + otrack_aos[i].E )
+                ); 
+       }
+    }    
 #endif    
 
   }
@@ -256,6 +341,8 @@ void GUBenchmarker::RunGeant4()
     fRepetitions ,elapsedG4Total, elapsedG4Total/fRepetitions );
 
   free(otrack_aos);
+
+  delete[] incomingEn;
   delete model;
 #ifdef VECPHYS_ROOT
   delete histogram;
@@ -265,7 +352,7 @@ void GUBenchmarker::RunGeant4()
 void GUBenchmarker::RunVector()
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram *histogram = new GUHistogram("vector.root");
+  GUHistogram *histogram = new GUHistogram("vector.root", maxP);  // maxE= maxP (photon)  
 #endif
   //output SOA tracks
   GUTrackHandler *handler_out = new GUTrackHandler(fNtracks);
@@ -273,10 +360,11 @@ void GUBenchmarker::RunVector()
 
   int *targetElements = new int[fNtracks];
   // PrepareTargetElements( targetElements, fNtracks);
+  Precision* incomingEn = new Precision[fNtracks];
   
   vecphys::cxx::GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
 
-  Stopwatch timer;
+   Stopwatch timer;
   Precision elapsedVectorTotal= 0.0;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
@@ -287,29 +375,52 @@ void GUBenchmarker::RunVector()
     
     GUTrack_v itrack_soa = fTrackHandler->GetSoATracks();
 
+    for(int i = 0 ; i < fNtracks ; ++i) {
+       incomingEn[i] = itrack_soa.E[i];
+    }
+    
     timer.Start();
 
     model->Interact<kVc>(itrack_soa,targetElements,otrack_soa);
 
     Precision elapsedVector = timer.Stop();
     elapsedVectorTotal += elapsedVector;
-#ifdef VERBOSE
     if (fVerbosity > 0) {
       printf("Vector Task %d > %6.3f sec\n",r,elapsedVector);
     }
-#endif
 #ifdef VECPHYS_ROOT
-    histogram->ftime->Fill(elapsedVector);
+    // histogram->ftime->Fill(elapsedVector);
     for(int i = 0 ; i < fNtracks ; ++i) {
-      histogram->fenergy->Fill(otrack_soa.E[i]);
-      histogram->fangle->Fill(otrack_soa.pz[i]/otrack_soa.E[i]);
+       // histogram->fenergy->Fill(otrack_soa.E[i]);
+       // histogram->fangle->Fill(otrack_soa.pz[i]/otrack_soa.E[i]);
     }
+
+    histogram->RecordTime(elapsedVector);
+    for(int i = 0 ; i < fNtracks ; ++i) {
+      // histogram->fenergy->Fill(otrack_aos[i].E);
+      // histogram->fangle->Fill(otrack_aos[i].pz/otrack_aos[i].E);
+
+       histogram->RecordHistos( incomingEn[i],
+                                itrack_soa.E[i],                  // Outgoing gamma  energy
+                                itrack_soa.pz[i]/itrack_soa.E[i], // Outgoing gamma  u_z    
+                                otrack_soa.E[i],                  // Electron  energy
+                                otrack_soa.pz[i]/otrack_soa.E[i]); // Electron  u_z
+
+       if( verbose )
+          GUBenchmarker::ReportInteraction( incomingEn[i],
+                                            targetElements[i], 
+                                itrack_soa.E[i],                  // Outgoing gamma  energy
+                                itrack_soa.pz[i]/itrack_soa.E[i], // Outgoing gamma  u_z    
+                                otrack_soa.E[i],                  // Electron  energy
+                                otrack_soa.pz[i]/otrack_soa.E[i]); // Electron  u_z          
+    } 
 #endif
 
   }
 
   printf("Vector Task Total time of %3d reps = %6.3f sec\n",fRepetitions ,elapsedVectorTotal);
 
+  delete[] incomingEn;
   delete model;
 #ifdef VECPHYS_ROOT
   delete histogram;
@@ -376,6 +487,33 @@ void GUBenchmarker::CheckRandom()
   std::cout << "scalar sum  = " <<  sc << std::endl;
   std::cout << "time for sampling " << nsample << " random numbers: "
     << "(Vc,rand) = (" << vctime << ":" << srtime << ")" <<std::endl;
+}
+
+void
+GUBenchmarker::ReportInteraction( double incomingEnergy,
+                                  int    targetElement,
+                                  double GammaOut_E,
+                                  double GammaOut_Pz,
+                                  double electron_En,
+                                  double electron_Pz,
+                                  bool   print_Uz
+   )
+{
+   double GammaOut_Uz = GammaOut_E  > 0.0 ? GammaOut_Pz / GammaOut_E : -2.0  ;
+   double electron_Uz = electron_En > 0.0 ? electron_Pz / electron_En : -2.0  ;
+   double SumEout=      GammaOut_E + electron_En;
+   
+   printf( " E_in = %8.5f  elem = %4d E_out = %8.4g  E_elec = %8.4g  Sum(E_out)= %8.4g  Diff(In-Out)= %8.3g   ",
+           incomingEnergy,
+           targetElement,
+           GammaOut_E,
+           electron_En,
+           SumEout,
+           incomingEnergy - SumEout
+      );
+   if( print_Uz )
+      printf(" |  g.uz= %8.4g e-.uz = %8.4g",  GammaOut_Uz, electron_Uz );
+   printf("\n"); 
 }
 
 } // end namespace vecphys
