@@ -23,11 +23,14 @@ constexpr double GeV = 1.0;
 constexpr double MeV = 0.001  * GeV;
 constexpr double KeV = 1.0e-6 * GeV;
 
-static double minP= 1000.*MeV;  // 1.0 * GeV;
-// static double minP= 50.*KeV, maxP= minP; // 0.5 * MeV; // ie = 500.*KeV;
-// static double minP= 500.*KeV, maxP= 0.5 * MeV; // ie = 500.*KeV;
-static double maxP= minP; 
+// Mono-energetic test
+constexpr double defaultMinP= 50.*KeV;
+constexpr double defaultMaxP= defaultMinP;     // 0.5 * MeV; // ie = 500.*KeV;
 //  Equal maxp & minP ==> monoenergetic beam
+
+// 'Broad spectrum' test 
+// static double defaultMinP=   5.0 * KeV;
+// static double defaultMaxP= 500.0 * MeV;
 
 static bool   verbose = false; // true;
 
@@ -44,7 +47,9 @@ namespace vecphys {
 GUBenchmarker::GUBenchmarker()
     : fNtracks(4992),
       fRepetitions(1),
-      fVerbosity(0)
+      fVerbosity(0),
+      fMinP(defaultMinP),   // (0.1*MeV),
+      fMaxP(defaultMaxP)   // (1000.*MeV)
 {
   fTrackHandler = new GUTrackHandler();
 }
@@ -88,7 +93,7 @@ int GUBenchmarker::RunBenchmarkInteract()
 void GUBenchmarker::RunScalar() 
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram *histogram = new GUHistogram("scalar.root", maxP);  // maxE= maxP (photon)    
+  GUHistogram *histogram = new GUHistogram("scalar.root", fMaxP);  // maxE= maxP (photon)    
 #endif
 
   int *targetElements = new int [fNtracks];
@@ -111,7 +116,7 @@ void GUBenchmarker::RunScalar()
     // In 'random' mode, it should change for every iteration
      
     //prepare input tracks
-    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
+    fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
 
     for(int i = 0 ; i < fNtracks ; ++i) {
@@ -236,7 +241,7 @@ void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
 void GUBenchmarker::RunGeant4() 
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram *histogram = new GUHistogram("geant4.root", maxP);  // maxE= maxP (photon)
+  GUHistogram *histogram = new GUHistogram("geant4.root", fMaxP);  // maxE= maxP (photon)
 #endif
 
   int *targetElements = new int [fNtracks];
@@ -265,7 +270,7 @@ void GUBenchmarker::RunGeant4()
     PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
 
-    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
+    fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
 
     for(int i = 0 ; i < fNtracks ; ++i) {
@@ -352,7 +357,7 @@ void GUBenchmarker::RunGeant4()
 void GUBenchmarker::RunVector()
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram *histogram = new GUHistogram("vector.root", maxP);  // maxE= maxP (photon)  
+  GUHistogram *histogram = new GUHistogram("vector.root", fMaxP);  // maxE= fMaxP (photon)  
 #endif
   //output SOA tracks
   GUTrackHandler *handler_out = new GUTrackHandler(fNtracks);
@@ -371,7 +376,7 @@ void GUBenchmarker::RunVector()
     PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
 
-    fTrackHandler->GenerateRandomTracks(fNtracks, minP, maxP);
+    fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
     
     GUTrack_v itrack_soa = fTrackHandler->GetSoATracks();
 

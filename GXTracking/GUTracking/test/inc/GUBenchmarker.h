@@ -21,6 +21,11 @@ public:
     fRepetitions = repetitions; 
   }
 
+  void SetMinP(double pMin) { fMinP= pMin; }
+  void SetMaxP(double pMax) { fMaxP= pMax; }
+
+  void SetMonoEnergeticBeam(double E){ SetMinP(E); SetMaxP(E); } // For gamma only now!
+
 private:
     
   int  RunBenchmarkInteract();
@@ -52,6 +57,8 @@ private:
   int fNtracks;
   unsigned fRepetitions;
   int fVerbosity;
+
+  double fMinP, fMaxP;  // Minimum and Maximum momentum of primaries
 };
 
 } // end namespace vecphys
