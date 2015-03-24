@@ -107,6 +107,9 @@ public:
               typename Backend::Double_t &aliasInd 
               ) const;
 
+  int GetNumEntries()      const { return fInNumEntries; }      // 'Input' values:  E', log(E')
+  int GetSamplesPerEntry() const { return fSampledNumEntries;}
+  
 private:
   Random_t*      fRandomState;
   int            fThreadId;
@@ -114,12 +117,12 @@ private:
   int      fMaxZelement; 
   
   double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
-  // double   fIncomingMax; // Max
+  double   fIncomingMax; // Max
   int      fInNumEntries;
   double   fInverseBinIncoming;
   
   //  For the sampled variable 
-  int      fSampledNumEntries;   //  Old name fNcol  (number of Columns)
+  const    int fSampledNumEntries;   //  Old name fNcol  (number of Columns)
   double   fInverseBinSampled; 
   // double   fSampledBinSize; 
 
