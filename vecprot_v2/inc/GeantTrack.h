@@ -33,7 +33,7 @@
 #endif
 
 #ifndef VECCORE_BITSET_H
-#include "VecCore/BitSet.h"
+#include "BitSet.h"
 typedef VecCore::BitSet BitSet;
 #endif
 

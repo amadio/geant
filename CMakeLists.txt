@@ -229,7 +229,7 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
 
 
 # Work around VecCore not being its own project yet.
-include_directories("${VECGEOM_INSTALL_DIR}/include")
+include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
 
 message(STATUS "VECGEOM_INSTALL_DIR is -${VECGEOM_INSTALL_DIR}-")
 message(STATUS "VECGEOM_INCLUDE_DIR is -${VECGEOM_INCLUDE_DIR}-")
