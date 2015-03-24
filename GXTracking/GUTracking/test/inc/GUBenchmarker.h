@@ -37,6 +37,15 @@ private:
   void RunCuda();
 #endif
 
+protected:
+  void
+  ReportInteraction( double incomingEnergy, int    targetElement,
+                     double GammaOut_E,     double GammaOut_Pz,
+                     double electron_En,    double electron_Pz,
+                     bool   print_Uz= false
+     );
+  // Print results - one per line, to enable debugging
+
 private:
   GUTrackHandler *fTrackHandler;
 
