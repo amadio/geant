@@ -189,7 +189,7 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     double cosphi, sinphi;
     double sintheta, tantheta, costheta; 
 
-    rho = ecalRmim + (ecalRmax-ecalRmim)*UniformRandom(0,-1);
+    rho = ecalRmim + (ecalRmax-ecalRmim)*UniformRandom<Precision>(0,-1);
 
     if( minP == maxP )
     {
@@ -198,13 +198,13 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     else
     {
        do {
-          p = minP - 0.2*(maxP - minP)*log(UniformRandom(0,-1));
+	 p = minP - 0.2*(maxP - minP)*log(UniformRandom<Precision>(0,-1));
        }
        while (p>maxP);
     }
 
-    z = ecalZmax*(2*UniformRandom(0,-1)-1.0);
-    phi = 2*pi*UniformRandom(0,-1);
+    z = ecalZmax*(2*UniformRandom<Precision>(0,-1)-1.0);
+    phi = 2*pi*UniformRandom<Precision>(0,-1);
     tantheta = rho/z;
     theta = std::atan(tantheta); // (rho/z);
 

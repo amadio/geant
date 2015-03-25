@@ -42,7 +42,6 @@ public:
                  int       numEntriesSampled 
                  );
 
-  /*****
   VECPHYS_CUDA_HEADER_BOTH
   GUAliasSampler(Random_t* states, int threadId,
                  // int    Zelement,   //  ==> Now For all Z
@@ -52,7 +51,6 @@ public:
                  int    numEntriesSampled, 
                  GUAliasTable* table 
                  );  
-   *****/
   
   VECPHYS_CUDA_HEADER_BOTH
   ~GUAliasSampler();
@@ -149,7 +147,7 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Double_t Double_t;
 
   Index_t irow = Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
-  Double_t r1 = (fSampledNumEntries-1)*UniformRandom(fRandomState,fThreadId);
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
@@ -171,7 +169,7 @@ SampleX(typename Backend::Double_t rangeSampled,
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
 
-  Double_t r1 = UniformRandom(fRandomState,fThreadId);
+  Double_t r1 = UniformRandom<Backend>(fRandomState,fThreadId);
 
   Bool_t condition = r1 <= probNA;
   Double_t xd, xu;

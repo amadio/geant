@@ -197,7 +197,7 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t   Bool_t;
 
-  Double_t phi = UniformRandom(fRandomState,fThreadId);
+  Double_t phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
   Double_t pt = xhat*xhat + yhat*yhat;
 
@@ -279,12 +279,12 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
   Double_t alpha2     = 0.5*(1.- epsilon0sq);
   
   do {
-    if( alpha1/(alpha1+alpha2) > UniformRandom(fRandomState,fThreadId) ) {
-      epsilon   = exp(-alpha1*UniformRandom(fRandomState,fThreadId));
+    if( alpha1/(alpha1+alpha2) > UniformRandom<Backend>(fRandomState,fThreadId) ) {
+      epsilon   = exp(-alpha1*UniformRandom<Backend>(fRandomState,fThreadId));
       epsilonsq = epsilon*epsilon; 
     } 
     else {
-      epsilonsq = epsilon0sq+(1.- epsilon0sq)*UniformRandom(fRandomState,fThreadId);
+      epsilonsq = epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,fThreadId);
       epsilon   = sqrt(epsilonsq);
     }
     
@@ -292,7 +292,7 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilonsq);
     
-  } while (greject < UniformRandom(fRandomState,fThreadId));
+  } while (greject < UniformRandom<Backend>(fRandomState,fThreadId));
   
   energyOut = epsilon*energyIn;
   sinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);

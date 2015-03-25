@@ -161,9 +161,10 @@ VcPrecision Floor( VcPrecision const &val ){
   return Vc::floor( val );
 }
 
+template <typename Type>
 VECPHYS_INLINE
-  VcPrecision UniformRandom(Random_t* state,  VcInt val){
-  return kVc::Double_t::Random( );
+VcPrecision UniformRandom(Random_t* state, VcInt val){
+  return kVc::Double_t::Random();
 }
 
 } // End inline namespace

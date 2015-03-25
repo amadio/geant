@@ -187,6 +187,7 @@ Precision Floor( Precision val ){
     return std::floor(val);
 }
 
+template <typename Type>
 VECPHYS_CUDA_HEADER_BOTH
 VECPHYS_INLINE
 Precision UniformRandom(Random_t* states, int tid){
