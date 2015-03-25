@@ -27,7 +27,8 @@ void BenchmarkCudaKernel(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,10,1.,1001.,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.,1001.,100,100,table);
+
   GUComptonKleinNishina model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
@@ -41,7 +42,7 @@ void BenchmarkCudaKernel(Random_t* devStates,
 void GUBenchmarker::RunCuda()
 {
 #ifdef VECPHYS_ROOT
-  GUHistogram* histogram = new GUHistogram("cuda.root");
+  GUHistogram* histogram = new GUHistogram("cuda.root", fMaxP);
 #endif
 
   cudaDeviceReset();
@@ -51,7 +52,7 @@ void GUBenchmarker::RunCuda()
 
   //prepare table
   GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
-  GUAliasTable* table_h =  model->GetSampler()->GetAliasTable();
+  GUAliasTable* table_h =  model->GetSampler()->GetAliasTable(8);
 
   GUAliasTable* table_d;
   cudaMalloc((void**)&table_d,table_h->SizeOfTable());
@@ -86,12 +87,18 @@ void GUBenchmarker::RunCuda()
 
   Stopwatch timer;
 
+  Precision* incomingEn = new Precision[fNtracks];
+
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
     fTrackHandler->GenerateRandomTracks(fNtracks);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
     cudaMemcpy(itrack_d, itrack_aos, fNtracks*sizeof(GUTrack), 
                  cudaMemcpyHostToDevice);
+
+    for(int i = 0 ; i < fNtracks ; ++i) {
+      incomingEn[i] = itrack_aos[i].E;
+    }
 
     timer.Start();
     vecphys::cuda::BenchmarkCudaKernel<<<theNBlocks, theNThreads>>>(
@@ -107,10 +114,14 @@ void GUBenchmarker::RunCuda()
                cudaMemcpyDeviceToHost);
 
 #ifdef VECPHYS_ROOT
-    histogram->ftime->Fill(elapsedCuda); 
+    histogram->RecordTime(elapsedCuda);
+
     for(int i = 0 ; i < fNtracks ; ++i) {
-      histogram->fenergy->Fill(otrack_aos[i].E); 
-      histogram->fangle->Fill(otrack_aos[i].pz/otrack_aos[i].E);
+       histogram->RecordHistos( incomingEn[i],
+                                itrack_aos[i].E,   
+                                itrack_aos[i].pz/itrack_aos[i].E, 
+                                otrack_aos[i].E,                  
+                                otrack_aos[i].pz/otrack_aos[i].E);
     }
 #endif    
 
@@ -127,6 +138,7 @@ void GUBenchmarker::RunCuda()
   free(otrack_aos);
 
   //  delete model;
+  delete[] incomingEn; 
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif

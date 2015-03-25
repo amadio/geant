@@ -37,7 +37,6 @@ GUAliasSampler(Random_t* states, int threadId,
   }
 }
 
-/************          
 VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
@@ -62,9 +61,8 @@ GUAliasSampler(Random_t* states, int threadId,
 {
   // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
   // For multiple elements, this should be a vector of GUAliasTable
-  fAliasTable = table;
+  fAliasTable[0] = table;
 }
- *************/
 
 VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::~GUAliasSampler()
