@@ -1431,6 +1431,11 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 
   SimpleNavigator nav;
   for (Int_t i = 0; i < ntracks; ++i) {
+    if (safe[i] > pstep[i]) {
+       step[i] = pstep[i];
+       isonbdr[i] = false;
+       continue;
+    }   
 #ifdef VERBOSE
     if (pstep[i] < 0.) {
       std::cerr << " NEGATIVE PSTEP " << pstep[i] << "\n";
@@ -1570,9 +1575,15 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
   //    pathout = final path after propagation to next boundary
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   for (Int_t i = 0; i < ntracks; i++) {
-    if (fPstepV[i] < 1.E-10) {
+//    if (fPstepV[i] < 1.E-10) {
       // Printf("Error pstep");
-    }
+//    }
+    // Check if current safety allows for pstep
+    if (safe[i] > pstep[i]) {
+       step[i] = pstep[i];
+       isonbdr[i] = false;
+       continue;
+    }   
     nav->ResetState();
     nav->SetCurrentPoint(x[i], y[i], z[i]);
     nav->SetCurrentDirection(dirx[i], diry[i], dirz[i]);

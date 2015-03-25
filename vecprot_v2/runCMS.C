@@ -1,7 +1,7 @@
 void runCMS(Int_t nthreads=4,
 	 const char *geomfile="../cmstrack/cms2015.root",
-	 const char *xsec="xsec_FTFP_BERT_G496p02_10mev.root",
-	 const char *fstate="fstate_FTFP_BERT_G496p02_10mev.root")
+	 const char *xsec="xsec_FTFP_BERT_G496p02_1mev.root",
+	 const char *fstate="fstate_FTFP_BERT_G496p02_1mev.root")
 {
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");
@@ -23,9 +23,9 @@ void runCMS(Int_t nthreads=4,
    // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
    wmgr->SetMonitored(WorkloadManager::kMonQueue,          true);
-   wmgr->SetMonitored(WorkloadManager::kMonMemory,         false);
+   wmgr->SetMonitored(WorkloadManager::kMonMemory,         true);
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
-   wmgr->SetMonitored(WorkloadManager::kMonVectors,        true);
+   wmgr->SetMonitored(WorkloadManager::kMonVectors,        false);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
    wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
@@ -55,7 +55,7 @@ void runCMS(Int_t nthreads=4,
    //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
    prop->fLearnSteps = 1000000;
 
-   prop->fApplication = new ExN03Application();
+   prop->fApplication = new CMSApplication();
 
 //   gROOT->ProcessLine(".x factory.C+");   
 //   prop->fUseDebug = kTRUE;

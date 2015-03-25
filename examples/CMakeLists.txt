@@ -16,10 +16,12 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_LINKER_FLAGS}")
 #
 set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/ExN03Application.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/CMSApplication.cxx
 )     
      
 set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h 
 )   
 
 #file(GLOB sources src/*.cxx)

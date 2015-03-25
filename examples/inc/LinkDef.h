@@ -17,5 +17,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class ExN03Application+;
+#pragma link C++ class CMSApplication+;
 
 #endif
