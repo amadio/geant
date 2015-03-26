@@ -1766,7 +1766,7 @@ Int_t GeantTrack_v::SortByLimitingDiscreteProcess() {
   Int_t nsel = 0;
   Int_t ntracks = GetNtracks();
   for (Int_t itr = 0; itr < ntracks; itr++) {
-    if (fStatusV[itr] == kPhysics && (fEindexV[itr]==1000 || fProcessV[itr]==-2)) {
+    if (fStatusV[itr] == kPhysics && fEindexV[itr]==1000) {
       Select(itr);
       nsel++;
     }

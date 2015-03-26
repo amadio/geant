@@ -32,6 +32,9 @@ class HepMCGenerator: public PrimaryGenerator{
     virtual void InitPrimaryGenerator();
     virtual Int_t NextEvent();
     virtual void GetTrack(Int_t n, GeantTrack &gtrack);
+ // used from Geant4 test-complex to take one primary track
+    void GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &tpz, Double_t &te,
+                  Double_t &x0, Double_t &y0, Double_t &z0, Int_t &pdg);
 
  private:
 
