@@ -46,26 +46,25 @@ Int_t HepMCGenerator::NextEvent() {
   if (!(input_file->fill_next_event(evt)))
     Fatal("ImportTracks", "No more particles to read!");
 
-  std::cout << std::endl
-            << "Find all stable particles: " << std::endl;
+//  std::cout << std::endl
+//            << "Find all stable particles: " << std::endl;
 
   search = new HepMC::FindParticles(evt, HepMC::FIND_ALL, HepMC::STATUS == 1 && HepMC::STATUS_SUBCODE == 0);
 
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
-    genpart->print();
+//    genpart->print();
   }
 
   Int_t ntracks = search->results().size();
 
   std::cout << std::endl
             << "Number of stable particles " << ntracks << std::endl;
-
+//ntracks = 1;
   return ntracks;
 }
 
 //______________________________________________________________________________
 void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
-
   const HepMC::GenParticlePtr &genpart = search->results()[n];
 
   // here I have to create GeantTracks
@@ -97,4 +96,31 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
   gtrack.fXdir = genpart->momentum().px() / p;
   gtrack.fYdir = genpart->momentum().py() / p;
   gtrack.fZdir = genpart->momentum().pz() / p;
+
 }
+
+//______________________________________________________________________________
+void HepMCGenerator::GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &tpz, Double_t &te,
+                              Double_t &x0, Double_t &y0, Double_t &z0, Int_t &pdg) {
+  const HepMC::GenParticlePtr &genpart = search->results()[n];
+  // here I have to create GeantTracks
+  pdg = genpart->pdg_id();
+  if ((bool)genpart->production_vertex()) {
+    // current default unit is [mm] that is the default Geant4 length unit as well
+    x0 = genpart->production_vertex()->position().x();
+    y0 = genpart->production_vertex()->position().y();
+    z0 = genpart->production_vertex()->position().z();
+  } else {
+    x0 = 0.0;
+    y0 = 0.0;
+    z0 = 0.0;
+  }
+
+  // current default unit is [GeV] so change it to [MeV] for default Geant4 energy unit 
+  tpx = genpart->momentum().px()*1000.0;
+  tpy = genpart->momentum().py()*1000.0;
+  tpz = genpart->momentum().pz()*1000.0;     
+  te  = genpart->momentum().e() *1000.0;
+
+}
+
