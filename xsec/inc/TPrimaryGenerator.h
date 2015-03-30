@@ -52,7 +52,6 @@ class TPrimaryGenerator{
   Double_t GetParticleCharge()  const{return fCharge;}
   Double_t GetparticlePTotal()  const{return fPTotal;}
   Double_t GetparticleETotal()  const{return fETotal;}
-  
 
   // set one GeantTrack primary track properties
   void InitPrimaryTrack(GeantTrack &gtrack);

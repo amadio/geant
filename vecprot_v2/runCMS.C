@@ -15,7 +15,7 @@ void runCMS(Int_t nthreads=4,
    gSystem->Load("../lib/libGeantExamples");
 
    Int_t ntotal   = 20;  // Number of events to be transported
-   Int_t nbuffered  = 10;   // Number of buffered events
+   Int_t nbuffered  = 5;   // Number of buffered events
    TGeoManager::Import(geomfile);
    
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
@@ -27,7 +27,7 @@ void runCMS(Int_t nthreads=4,
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false);
    wmgr->SetMonitored(WorkloadManager::kMonVectors,        false);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
-   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
+   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, true);
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;
 //   prop->fNaverage = 400;   // Average number of tracks per event
@@ -43,7 +43,7 @@ void runCMS(Int_t nthreads=4,
    prop->fMaxRes = 4000;
 
 //   prop->fEmin = 3.E-6; // [3 KeV] energy cut
-   prop->fEmin = 0.01; // [10 MeV] energy cut
+   prop->fEmin = 0.001; // [10 MeV] energy cut
 //   prop->fEmax = 0.03.; // [30MeV] used for now to select particle gun energy
    prop->fEmax = 0.01; // 10 MeV
    // Create the tab. phys process.
@@ -52,6 +52,8 @@ void runCMS(Int_t nthreads=4,
    //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
    std::string s = "pp14TeVminbias.root";
    prop->fPrimaryGenerator = new HepMCGenerator(s);
+   prop->fPrimaryGenerator->SetEtaRange(-2.,2.);
+//   prop->fPrimaryGenerator->SetMomRange(0.,0.5);
    //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
    prop->fLearnSteps = 1000000;
 

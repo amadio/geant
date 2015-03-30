@@ -26,7 +26,7 @@ class GeantHitBlock;
 class GeantEventData : public TObject {
 public:
   GeantEvent *fEvent;                 /** Event pointer */
-  vector<GeantHitBlock *> fHitBlocks; /** Hit blocks */
+  std::vector<GeantHitBlock *> fHitBlocks; /** Hit blocks */
   // GeantDigitBlock   **fDigitBlocks;           //! Digit blocks
 public:
   
