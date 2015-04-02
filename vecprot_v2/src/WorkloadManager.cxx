@@ -504,7 +504,8 @@ void *WorkloadManager::TransportTracks(void *) {
       nextra_at_rest = 0;
       // count phyics steps here 
       Int_t nout = output.GetNtracks();
-      for (auto i=0; i<nout; ++i) if (output.fStatusV[i] == kPhysics) nphys++;
+      for (auto itr=0; itr<nout; ++itr) 
+        if (output.fStatusV[itr] == kPhysics) nphys++;
       if (nphys)
         propagator->fNphysSteps += nphys;
 
@@ -560,6 +561,10 @@ void *WorkloadManager::TransportTracks(void *) {
     if (basket->GetNinput()) {
       Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter.load());
     }
+    // Update geometry path for crossing tracks
+    ntotnext = output.GetNtracks();
+    for (auto itr=0; itr<ntotnext; ++itr) 
+      if (output.fStatusV[itr] == kBoundary) *output.fPathV[itr] = *output.fNextpathV[itr];
 
   finish:
 //      basket->Clear();

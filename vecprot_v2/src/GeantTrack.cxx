@@ -1265,7 +1265,7 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep) {
   Int_t icrossed = 0;
   for (Int_t i = 0; i < ntracks; i++) {
     if (fFrombdrV[i]) {
-      *fPathV[i] = *fNextpathV[i];
+      //*fPathV[i] = *fNextpathV[i];
       fStatusV[i] = kBoundary;
       icrossed++;
     }
@@ -1327,13 +1327,12 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*ti
 #endif
   }
   fSafetyV[i] -= crtstep;
-  if (fSafetyV[i] < 1.E-10) {
+  if (fSafetyV[i] < 1.E-10)
     fSafetyV[i] = 0;
 #ifndef GEANT_CUDA_DEVICE_BUILD
-    if (!fFrombdrV[i])
+  else if (!fFrombdrV[i])
       gPropagator->fNsafeSteps++;
 #endif
-  }
   fSnextV[i] -= crtstep;
   if (fSnextV[i] < 1.E-10) {
     fSnextV[i] = 0;
@@ -1898,6 +1897,12 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
   using VECGEOM_NAMESPACE::Vector3D;
   typedef Vector3D<Precision> Vector3D_t;
 
+  if (fPstepV[itr] < fSafetyV[itr]) {
+    fSnextV[itr] = fPstepV[itr];
+    *fNextpathV[itr] = *fPathV[itr];
+    fFrombdrV[itr] = false;
+    return;
+  }
   VECGEOM_NAMESPACE::SimpleNavigator nav;
   double step;
   nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
@@ -1922,8 +1927,15 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
 void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
   // Computes snext and safety for a single track. For charged tracks these are the only
   // computed values, while for neutral ones the next node is checked and the boundary flag is set
-  // if
-  // closer than the proposed physics step.
+  // if closer than the proposed physics step.
+
+  // In case the proposed step is within safety, no need to compute distance to next boundary
+  if (fPstepV[itr] < fSafetyV[itr]) {
+    fSnextV[itr] = fPstepV[itr];
+    *fNextpathV[itr] = *fPathV[itr];
+    fFrombdrV[itr] = false;
+    return;
+  }
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();
   nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
@@ -2028,8 +2040,8 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
     if (fChargeV[itr] == 0 || bmag < 1.E-10) {
       // Do straight propagation to physics process or boundary
       if (fFrombdrV[itr]) {
-        *fPathV[itr] = *fNextpathV[itr];
-        if (fPathV[itr]->IsOutside())
+        // *fPathV[itr] = *fNextpathV[itr];
+        if (fNextpathV[itr]->IsOutside())
           fStatusV[itr] = kExitingSetup;
         else
           fStatusV[itr] = kBoundary;
@@ -2136,9 +2148,9 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
       if (same[itr])
         continue;
       // Boundary crossed -> update current path
-      *fPathV[itr] = *fNextpathV[itr];
+      //*fPathV[itr] = *fNextpathV[itr];
       fStatusV[itr] = kBoundary;
-      if (fPathV[itr]->IsOutside())
+      if (fNextpathV[itr]->IsOutside())
         fStatusV[itr] = kExitingSetup;
       fFrombdrV[itr] = kTRUE;
       icrossed++;
@@ -2179,8 +2191,8 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
       if (fChargeV[itr] == 0 || bmag < 1.E-10) {
         // Do straight propagation to physics process or boundary
         if (fFrombdrV[itr]) {
-          *fPathV[itr] = *fNextpathV[itr];
-          if (fPathV[itr]->IsOutside())
+          //*fPathV[itr] = *fNextpathV[itr];
+          if (fNextpathV[itr]->IsOutside())
             fStatusV[itr] = kExitingSetup;
           else
             fStatusV[itr] = kBoundary;
@@ -2246,9 +2258,9 @@ Int_t GeantTrack_v::PropagateTracksSingle(GeantTrack_v &output, Int_t tid, Int_t
         if (same)
           continue;
         // Boundary crossed -> update current path
-        *fPathV[itr] = *fNextpathV[itr];
+        //*fPathV[itr] = *fNextpathV[itr];
         fStatusV[itr] = kBoundary;
-        if (fPathV[itr]->IsOutside())
+        if (fNextpathV[itr]->IsOutside())
           fStatusV[itr] = kExitingSetup;
         fFrombdrV[itr] = kTRUE;
         icrossed++;
