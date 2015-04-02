@@ -84,8 +84,7 @@ GeantPropagator::GeantPropagator()
       fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0),
       fEvents(0), fThreadData(0) {
   // Constructor
-  fVertex[0] = -8.;
-  fVertex[1] = fVertex[2] = 0.;
+  fVertex[0] = fVertex[1] = fVertex[2] = 0.;
   //   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,0.2);
   fgInstance = this;
 }

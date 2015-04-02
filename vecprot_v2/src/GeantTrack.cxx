@@ -2022,7 +2022,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
   Int_t icrossed = 0;
   Int_t nsel = 0;
   Double_t lmax;
-  const Double_t eps = 1.E-4; // 1 micron
+  const Double_t eps = 1.E-3; // 10 micron
   const Double_t bmag = gPropagator->fBmag;
   //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   //   Int_t tid = nav->GetThreadId();
