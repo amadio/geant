@@ -82,6 +82,9 @@ public:
    */
   virtual void Digitize(Int_t event);
 
+  /** @brief User FinishRun function */
+  virtual void FinishRun() {}
+
   ClassDef(ExN03Application, 1) // User application
 };
 #endif

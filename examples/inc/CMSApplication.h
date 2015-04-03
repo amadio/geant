@@ -14,9 +14,12 @@
 #define GEANT_CMSApplication
 
 #include <map>
+#include <mutex>
 #ifndef GEANT_VAPPLICATION
 #include "GeantVApplication.h"
 #endif
+
+class TH1F;
 
 class GeantTrack_v;
 
@@ -27,6 +30,13 @@ class CMSApplication : public GeantVApplication {
   static const Int_t kNECALModules = 36;
   static const Int_t kNHCALModules = 100;
 
+public:
+enum EScoreType {
+  kNoScore = 0,
+  kScoreStep,
+  kScoreEdep
+};  
+
 private:
   Bool_t fInitialized;                            /** Initialized flag */
   Bool_t  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
@@ -36,6 +46,18 @@ private:
   Int_t fHCALid[kNHCALModules];                   /** HCAL volume id's */
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
   std::map<int,int> fHCALMap;                     /** Map of ECAL modules */
+  std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
+  EScoreType fScore;                              /** Entity for scoring */
+  TH1F   *fFluxElec;                              /** Flux histogram for electrons */
+  TH1F   *fFluxGamma;                             /** Flux histogram for gammas */
+  TH1F   *fFluxP;                                 /** Flux histogram for protons */
+  TH1F   *fFluxPi;                                /** Flux histogram for pions */
+  TH1F   *fFluxK;                                 /** Flux histogram for kaons */
+  TH1F   *fEdepElec;                              /** Edep histogram for electrons */
+  TH1F   *fEdepGamma;                             /** Edep histogram for gammas */
+  TH1F   *fEdepP;                                 /** Edep histogram for protons */
+  TH1F   *fEdepPi;                                /** Edep histogram for pions */
+  TH1F   *fEdepK;                                 /** Edep histogram for kaons */
   
   /**
    * @brief Copy constructor CMSApplication
@@ -56,17 +78,18 @@ public:
   /** @brief Destructor CMSApplication */
   virtual ~CMSApplication() {}
 
-  /**
-   * @brief Function of initialization
-   */
+  /** @brief Initialization function */
   virtual Bool_t Initialize();
 
+  /** @brief Set scoring type */
+  void SetScoreType(EScoreType type) { fScore = type; }
+  
   /**
-   * @brief Function that provides step manager 
+   * @brief Callback function for user scoring 
    * 
-   * @param tid ?????
-   * @param npart ?????
-   * @param tracks GeantV tracks
+   * @param tid Thread id.
+   * @param npart Number of tracks
+   * @param tracks GeantV track container
    */
   virtual void StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks);
 
@@ -76,6 +99,9 @@ public:
    * @param event Event that should be digitized
    */
   virtual void Digitize(Int_t event);
+
+  /** @brief User FinishRun function */
+  virtual void FinishRun();
 
   ClassDef(CMSApplication, 1) // User application
 };

@@ -13,13 +13,49 @@ ClassImp(CMSApplication)
 
 //______________________________________________________________________________
 CMSApplication::CMSApplication()
-: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap() {
+: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kScoreStep),
+    fFluxElec(0), fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0),
+    fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
   memset(fSensFlags, 0, kNvolumes*sizeof(Bool_t));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(Float_t));
   memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(Float_t));
   memset(fECALid, 0, kNECALModules*sizeof(Int_t));
   memset(fHCALid, 0, kNHCALModules*sizeof(Int_t));
+  if (fScore == kNoScore)
+    return;
+  TH1::AddDirectory(false);
+  fFluxElec = new TH1F("hFluxElec", "e+/e- flux/primary in ECAL", 100, 0., 1000.);
+  fFluxElec->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fFluxElec->GetYaxis()->SetTitle("flux [particles/cm^2/primary]");
+  fFluxGamma = new TH1F("hFluxGamma", "Gamma flux/primary in ECAL", 100, 0., 1000.);
+  fFluxGamma->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fFluxGamma->GetYaxis()->SetTitle("flux [particles/cm^2/primary]");
+  fFluxP = new TH1F("hFluxP", "Proton flux/primary in ECAL", 100, 0., 1000.);
+  fFluxP->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fFluxP->GetYaxis()->SetTitle("flux [particles/cm^2/primary]");
+  fFluxPi = new TH1F("hFluxPi", "Pion flux/primary in ECAL", 100, 0., 1000.);
+  fFluxPi->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fFluxPi->GetYaxis()->SetTitle("flux [particles/cm^2/primary]");
+  fFluxK = new TH1F("hFluxK", "Kaon flux/primary in ECAL", 100, 0., 1000.);
+  fFluxK->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fFluxK->GetYaxis()->SetTitle("flux [particles/cm^2/primary]");
+  fEdepElec = new TH1F("hEdepElec", "Electron energy deposit density/primary in ECAL", 100, 0., 1000.);
+  fEdepElec->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fEdepElec->GetYaxis()->SetTitle("Energy deposit density [MeV/cm^3/primary]");
+  fEdepGamma = new TH1F("hEdepGamma", "Gamma energy deposit density/primary in ECAL", 100, 0., 1000.);
+  fEdepGamma->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fEdepGamma->GetYaxis()->SetTitle("Energy deposit density [MeV/cm^3/primary]");
+  fEdepP = new TH1F("hEdepP", "Proton energy deposit density/primary in ECAL", 100, 0., 1000.);
+  fEdepP->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fEdepP->GetYaxis()->SetTitle("Energy deposit density [MeV/cm^3/primary]");
+  fEdepPi = new TH1F("hEdepPi", "Pion energy deposit density/primary in ECAL", 100, 0., 1000.);
+  fEdepPi->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fEdepPi->GetYaxis()->SetTitle("Energy deposit density [MeV/cm^3/primary]");
+  fEdepK = new TH1F("hEdepK", "Kaon energy deposit density/primary in ECAL", 100, 0., 1000.);
+  fEdepK->GetXaxis()->SetTitle("Momentum [MeV/c]");
+  fEdepK->GetYaxis()->SetTitle("Energy deposit density[MeV/cm^3/primary]");
+  TH1::AddDirectory(true);
 }
 
 //______________________________________________________________________________
@@ -60,6 +96,9 @@ Bool_t CMSApplication::Initialize() {
 void CMSApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
+  static GeantPropagator *propagator = GeantPropagator::Instance();
+  if (fScore == kNoScore)
+    return;
   if (!fInitialized)
     return; // FOR NOW
   // Loop all tracks, check if they are in the right volume and collect the
@@ -68,25 +107,76 @@ void CMSApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tra
   Int_t idtype;
   Int_t mod;
   TGeoVolume *vol;
-  for (Int_t i = 0; i < npart; i++) {
-    vol = tracks.GetVolume(i);
+  for (Int_t itr = 0; itr < npart; itr++) {
+    vol = tracks.GetVolume(itr);
     ivol = vol->GetNumber();
     idtype = 0;
-    if (!fSensFlags[ivol]) continue;
-    if (vol->GetName()[0] == 'E') idtype = 1;
-    else idtype = 2;
-    switch (idtype) {
-      case 1:
-        mod = fECALMap.find(ivol)->second;
-        fEdepECAL[mod][tid] += tracks.fEdepV[i];
-        break;
-      case 2:
-        mod = fHCALMap.find(ivol)->second;
-        fEdepHCAL[mod][tid] += tracks.fEdepV[i];
-        break;
-    }
-  }
-  //   Printf("Thread %d produced %d hits", tid, nhits);
+    if (fSensFlags[ivol]) {
+      if (vol->GetName()[0] == 'E') idtype = 1;
+      else idtype = 2;
+      switch (idtype) {
+        case 1:
+          mod = fECALMap.find(ivol)->second;
+          fEdepECAL[mod][tid] += tracks.fEdepV[itr];
+          break;
+        case 2:
+          mod = fHCALMap.find(ivol)->second;
+          fEdepHCAL[mod][tid] += tracks.fEdepV[itr];
+          break;
+      }
+    }  
+    // Score in ECAL
+    if (idtype==1) {
+      // Add scored entity
+      if (fScore == kScoreStep)
+        tracks.fTimeV[itr] += tracks.fStepV[itr];
+      else if (fScore == kScoreEdep) 
+        tracks.fTimeV[itr] += tracks.fEdepV[itr];
+      else continue;		
+      // Detect if last step in volume
+      if (tracks.fStatusV[itr] == kBoundary) {
+        //Printf("Scoring (%f, %f)", tracks.fPV[itr], tracks.fTimeV[itr]);
+        // Score length and reset
+        if (propagator->fNthreads > 1)
+          fMHist.lock();
+	Double_t capacity = 0.;
+	capacity = vol->GetShape()->Capacity();
+	if (TMath::Abs(tracks.fPDGV[itr]) == 11) {
+	  if (fScore == kScoreStep)
+	    fFluxElec->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
+	  else if (fScore == kScoreEdep) 
+	    fEdepElec->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
+	}    
+	else if (tracks.fPDGV[itr] == 22) {
+	  if (fScore == kScoreStep)
+            fFluxGamma->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
+	  else if (fScore == kScoreEdep) 
+            fEdepGamma->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
+	}    
+	else if (tracks.fPDGV[itr] == 2212) {
+	  if (fScore == kScoreStep)
+	    fFluxP->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
+	  else if (fScore == kScoreEdep) 
+	    fEdepP->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
+	}
+	else if (TMath::Abs(tracks.fPDGV[itr]) == 211) {
+	  if (fScore == kScoreStep)
+	    fFluxPi->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
+	  else if (fScore == kScoreEdep) 
+	    fEdepPi->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
+	}
+	else if (TMath::Abs(tracks.fPDGV[itr]) == 321) {
+	  if (fScore == kScoreStep)
+	    fFluxK->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
+	  else if (fScore == kScoreEdep) 
+	    fEdepK->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
+        }
+	if (propagator->fNthreads > 1)
+          fMHist.unlock();
+        tracks.fTimeV[itr] = 0;
+      }
+    }        
+  } 
 }
 
 //______________________________________________________________________________
@@ -111,65 +201,38 @@ void CMSApplication::Digitize(Int_t /* event */) {
     Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fHCALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
   }
   Printf("================================================================================");
-  //   TCanvas *c1 = new TCanvas("Edep", "Energy deposition for CMS", 700, 800);
-/*
-  TCanvas *c1 = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("capp");
-  if (!c1)
+}
+
+//______________________________________________________________________________
+void CMSApplication::FinishRun()
+{  
+  if (fScore == kNoScore)
     return;
-  c1->Divide(1, 2);
-  TVirtualPad *pad = c1->cd(1);
-  pad->SetGridx();
-  pad->SetGridy();
-  pad->SetLogy();
-  TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 12, 0.5, 12.5);
-  histeg->SetMarkerColor(kRed);
-  histeg->SetMarkerStyle(2);
-  histeg->SetStats(kFALSE);
-  TH1F *histea =
-      new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 12, 0.5, 12.5);
-  histea->SetMarkerColor(kBlue);
-  histea->SetMarkerStyle(4);
-  histea->SetStats(kFALSE);
-  for (Int_t i = 0; i < 10; i++) {
-    histeg->SetBinContent(i + 3, fEdepGap[i][0] * 1000. / nprim);
-    histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
+  TCanvas *c1 = new TCanvas("CMS test", "Simple scoring in CMS geometry", 700, 1200);
+  Double_t norm = GeantPropagator::Instance()->fNprimaries.load();
+  if (fScore == kScoreStep) {
+    c1->Divide(2,3);
+    c1->cd(1)->SetLogy();
+    fFluxElec->DrawNormalized("9",norm);
+    c1->cd(2)->SetLogy();
+    fFluxGamma->DrawNormalized("9",norm);
+    c1->cd(3)->SetLogy();
+    fFluxP->DrawNormalized("9",norm);
+    c1->cd(4)->SetLogy();
+    fFluxPi->DrawNormalized("9",norm);
+    c1->cd(5)->SetLogy();
+    fFluxK->DrawNormalized("9",norm); 
+  } else if (fScore == kScoreEdep) {
+    c1->Divide(2,3);
+    c1->cd(1)->SetLogy();
+    fEdepElec->DrawNormalized("9",norm);
+    c1->cd(2)->SetLogy();
+    fEdepGamma->DrawNormalized("9",norm);
+    c1->cd(3)->SetLogy();
+    fEdepP->DrawNormalized("9",norm);
+    c1->cd(4)->SetLogy();
+    fEdepPi->DrawNormalized("9",norm);
+    c1->cd(5)->SetLogy();
+    fEdepK->DrawNormalized("9",norm);   
   }
-  Double_t minval = TMath::Min(histeg->GetBinContent(histeg->GetMinimumBin()),
-                               histea->GetBinContent(histea->GetMinimumBin()));
-  minval = TMath::Max(minval, 1.E-5);
-  Double_t maxval = TMath::Max(histeg->GetBinContent(histeg->GetMaximumBin()),
-                               histea->GetBinContent(histea->GetMaximumBin()));
-  histeg->GetXaxis()->SetTitle("Layer");
-  histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
-  histeg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);
-  histeg->Draw("P");
-  histea->Draw("SAMEP");
-  //   TCanvas *c2 = new TCanvas("Length", "Length in layers for CMS", 700, 800);
-  pad = c1->cd(2);
-  pad->SetGridx();
-  pad->SetGridy();
-  pad->SetLogy();
-  TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 12, 0.5, 12.5);
-  histlg->SetMarkerColor(kRed);
-  histlg->SetMarkerStyle(2);
-  histlg->SetStats(kFALSE);
-  TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 12, 0.5, 12.5);
-  histla->SetMarkerColor(kBlue);
-  histla->SetMarkerStyle(4);
-  histla->SetStats(kFALSE);
-  for (Int_t i = 0; i < 10; i++) {
-    histlg->SetBinContent(i + 3, fLengthGap[i][0] / nprim);
-    histla->SetBinContent(i + 3, fLengthAbs[i][0] / nprim);
-  }
-  histlg->GetXaxis()->SetTitle("Layer");
-  histlg->GetYaxis()->SetTitle("Length per layer");
-  minval = TMath::Min(histlg->GetBinContent(histlg->GetMinimumBin()),
-                      histla->GetBinContent(histla->GetMinimumBin()));
-  minval = TMath::Max(minval, 1.E-5);
-  maxval = TMath::Max(histlg->GetBinContent(histlg->GetMaximumBin()),
-                      histla->GetBinContent(histla->GetMaximumBin()));
-  histlg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);
-  histlg->Draw("P");
-  histla->Draw("SAMEP");
-*/
 }

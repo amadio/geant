@@ -191,6 +191,9 @@ public:
   /** @brief Function that return volume */
   TGeoVolume *GetVolume() const;
 
+  /** @brief Function that return next volume */
+  TGeoVolume *GetNextVolume() const;
+
   /** @brief Function that return material */
   TGeoMaterial *GetMaterial() const;
 
@@ -1035,6 +1038,12 @@ public:
   * @param  i Input bit number 'i'
   */
   TGeoVolume *GetVolume(Int_t i) const;
+
+ /** 
+  * @brief Function that returnes next TGeoVolume
+  * @param  i Input bit number 'i'
+  */
+  TGeoVolume *GetNextVolume(Int_t i) const;
 
   /** 
    * @brief Function that returnes TGeoMaterial 

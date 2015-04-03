@@ -236,8 +236,14 @@ Double_t GeantTrack::Curvature() const {
 
 //______________________________________________________________________________
 TGeoVolume *GeantTrack::GetVolume() const {
-  // Current material the track is into
+  // Current volume the track is into
   return ((TGeoVolume*)gGeoManager->GetListOfVolumes()->At(fVindex));
+}
+
+//______________________________________________________________________________
+TGeoVolume *GeantTrack::GetNextVolume() const {
+  // Next volume the track is entering
+  return fNextpath->GetCurrentNode()->GetVolume();
 }
 
 //______________________________________________________________________________
@@ -1896,13 +1902,13 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
   using VECGEOM_NAMESPACE::Precision;
   using VECGEOM_NAMESPACE::Vector3D;
   typedef Vector3D<Precision> Vector3D_t;
-
+/*
   if (fPstepV[itr] < fSafetyV[itr]) {
     fSnextV[itr] = fPstepV[itr];
     *fNextpathV[itr] = *fPathV[itr];
     fFrombdrV[itr] = false;
     return;
-  }
+  }*/
   VECGEOM_NAMESPACE::SimpleNavigator nav;
   double step;
   nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
@@ -2022,7 +2028,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
   Int_t icrossed = 0;
   Int_t nsel = 0;
   Double_t lmax;
-  const Double_t eps = 1.E-3; // 10 micron
+  const Double_t eps = 1.E-2; // 100 micron
   const Double_t bmag = gPropagator->fBmag;
   //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   //   Int_t tid = nav->GetThreadId();
@@ -2329,8 +2335,14 @@ Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output) {
 
 //______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
-  // Current material the track is into
+  // Current volume the track is into
   return ((TGeoVolume*)gGeoManager->GetListOfVolumes()->At(fVindexV[i]));
+}
+
+//______________________________________________________________________________
+TGeoVolume *GeantTrack_v::GetNextVolume(Int_t i) const {
+  // Next volume the track is getting into
+  return fNextpathV[i]->GetCurrentNode()->GetVolume();
 }
 
 //______________________________________________________________________________

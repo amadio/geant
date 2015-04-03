@@ -34,10 +34,10 @@ public:
   virtual Bool_t Initialize() = 0;
 
   /**
-   * @brief Function of step manager
+   * @brief User callback function for scoring
    * 
-   * @param tid  ??????
-   * @param npart ??????
+   * @param tid  Thread ID
+   * @param npart Number of tracks
    * @param tracks Set of tracks
    */
   virtual void StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) = 0;
@@ -48,6 +48,9 @@ public:
    * @param event Event for digitization
    */
   virtual void Digitize(Int_t event) = 0;
+
+  /** @brief User FinishRun function */
+  virtual void FinishRun() = 0;
 
   ClassDef(GeantVApplication, 1) // User application
 };

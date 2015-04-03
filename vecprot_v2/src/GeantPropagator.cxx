@@ -466,13 +466,14 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
          fNphysSteps.load(), rtime, ctime);
   Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup,
          efficiency);
-  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
+//  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
+  fApplication->FinishRun();
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");
 #else
   Printf("=== Navigation done using TGeo    ====");
 #endif
-  Printf("Navstate pool usage statistics:");
+//  Printf("Navstate pool usage statistics:");
 //   fWMgr->NavStates()->statistics();
 #ifdef GEANTV_OUTPUT_RESULT_FILE
   gSystem->mkdir("results");
