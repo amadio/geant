@@ -59,8 +59,8 @@ void runCMS(Int_t nthreads=4,
 
    CMSApplication *app = new CMSApplication();
 //   app->SetScoreType(CMSApplication::kNoScore);
-//   app->SetScoreType(CMSApplication::kScoreStep);
-   app->SetScoreType(CMSApplication::kScoreEdep);
+   app->SetScoreType(CMSApplication::kScoreStep);
+//   app->SetScoreType(CMSApplication::kScoreEdep);
    prop->fApplication = app;
 
 //   gROOT->ProcessLine(".x factory.C+");   
