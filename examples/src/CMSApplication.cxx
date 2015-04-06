@@ -7,6 +7,7 @@
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
+#include "TFile.h"
 #include <cassert>
 
 ClassImp(CMSApplication)
@@ -212,8 +213,10 @@ void CMSApplication::FinishRun()
   Double_t norm = 1./GeantPropagator::Instance()->fNprimaries.load();
   TVirtualPad *pad;
   TString name;
+  TFile *f = 0;
   if (fScore == kScoreStep) {
     name = "FluxECAL.pdf";
+    f = TFile::Open("FluxECAL.root","RECREATE");
     c1->Divide(2,3);
     pad = c1->cd(1);
     pad->SetLogx();
@@ -245,8 +248,14 @@ void CMSApplication::FinishRun()
     fFluxK->Sumw2();
     fFluxK->Scale(norm);
     fFluxK->Draw("9");
+    fFluxElec->Write();
+    fFluxGamma->Write();
+    fFluxP->Write();
+    fFluxPi->Write();
+    fFluxK->Write();
   } else if (fScore == kScoreEdep) {
     name = "EdepECAL.pdf";
+    f = TFile::Open("EdepECAL.root","RECREATE");
     c1->Divide(2,3);
     pad = c1->cd(1);
     pad->SetLogx();
@@ -278,6 +287,12 @@ void CMSApplication::FinishRun()
     fEdepK->Sumw2();
     fEdepK->Scale(norm);
     fEdepK->Draw("9");
+    fEdepElec->Write();
+    fEdepGamma->Write();
+    fEdepP->Write();
+    fEdepPi->Write();
+    fEdepK->Write();
   }
   c1->SaveAs(name);
+  f->Close();
 }

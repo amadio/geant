@@ -2107,8 +2107,10 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
     // step (frombdr=0)
-    steps[itr] = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr] + 10 * TGeoShape::Tolerance())
+    steps[itr] = (fFrombdrV[itr]) ? Math::Min(lmax, TMath::Max(fSnextV[itr],1.E-4))
                                   : Math::Min(lmax, fPstepV[itr]);
+//    if (fFrombdrV[itr] && steps[itr]<1.E-8) steps[itr] = 1.E-3;
+    //Printf("snext=%g lmax=%g", fSnextV[itr], lmax);
     //      Printf("track %d: step=%g (safelen=%g)", itr, steps[itr], lmax);
   }
   // Propagate the vector of tracks
