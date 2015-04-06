@@ -51,10 +51,10 @@ EventAction::EventAction():
    fRunAct((RunAction*)G4RunManager::GetRunManager()->GetUserRunAction())
 {
   fNumPysLimStepsEvent  = 0;   // number of steps limited by physics
-  fNumSecsEvent         = 0;       // number of primaries
-  fNumPrimsEvent        = 0;
-  fNumTotalStepsEvent   = 0;
-  fNumAllStepsEvent     = 0;
+  fNumSecsEvent         = 0;   // number of secondaries
+  fNumPrimsEvent        = 0;   // number of primaries
+  fNumTotalStepsEvent   = 0;   // total number of steps (possible limit condition)
+  fNumAllStepsEvent     = 0;   // number of all steps 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -69,28 +69,27 @@ void EventAction::BeginOfEventAction(const G4Event* evt)
  std::cout<< "----- Event number = "        << evt->GetEventID() 
           << "  with number of primaries = "<< evt->GetPrimaryVertex()->GetNumberOfParticle()
           << std::endl;
+
   fNumPysLimStepsEvent  = 0;   // number of steps limited by physics
-  fNumSecsEvent         = 0;   // number of primaries
+  fNumSecsEvent         = 0;   // number of secondaries
   fNumTotalStepsEvent   = 0;   // number of steps
   fNumAllStepsEvent     = 0;
-//  TabulatedDataManager::killedTracks = 0;
+
   fNumPrimsEvent        = evt->GetPrimaryVertex()->GetNumberOfParticle();   // number of secondaries  
 }
 
 void EventAction::FillPerSteps(unsigned long nphyssteps, unsigned long nsecs, unsigned long ntotal,
                                unsigned long nall){
   fNumPysLimStepsEvent += nphyssteps;   // number of steps limited by physics
-  fNumSecsEvent        += nsecs;        // number of primaries
+  fNumSecsEvent        += nsecs;        // number of secondaries
   fNumTotalStepsEvent  += ntotal;
   fNumAllStepsEvent    += nall;
 }
 
-
+void EventAction::EndOfEventAction(const G4Event* /*evt*/){
+  fRunAct->FillPerEvent(fNumPysLimStepsEvent, fNumPrimsEvent, fNumSecsEvent, fNumTotalStepsEvent, fNumAllStepsEvent);
+}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EventAction::EndOfEventAction(const G4Event* /*evt*/)
-{
-  fRunAct->RunAction::FillPerEvent(fNumPysLimStepsEvent, fNumPrimsEvent, fNumSecsEvent, fNumTotalStepsEvent, 
-                                   fNumAllStepsEvent);  
-}  
+void EventAction::FillHistSteps(const G4Step *step){ fRunAct->FillHist(step); }
 

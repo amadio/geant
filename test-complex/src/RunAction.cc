@@ -36,6 +36,9 @@
 #include "G4UnitsTable.hh"
 #include "TabulatedDataManager.hh"
 
+#include "CMSApp.hh"
+#include "G4Step.hh"
+
 #include "TPartIndex.h"
 
 #include <time.h>
@@ -48,15 +51,14 @@ G4bool RunAction::isTabPhys = FALSE;     // running with TABPHYS ?
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 RunAction::RunAction():
-   fRunTime(0)
-{
-  fNumPysLimStepsRun  = 0;   // number of steps limited by physics
-  fNumPrimsRun        = 0;   // number of secondaries  
-  fNumSecsRun         = 0;   // number of primaries
-  fNumTotalStepsRun   = 0;   // total number of steps   
-  fNumAllStepsRun     = 0;   // number of ALL steps
-
-}
+  fRunTime(0),
+  fNumPysLimStepsRun(0),   // number of steps limited by physics
+  fNumPrimsRun(0),         // number of primaries  
+  fNumSecsRun(0),          // number of secondaries
+  fNumTotalStepsRun(0),    // total number of steps   
+  fNumAllStepsRun(0),      // number of ALL steps
+  fCMSApp(0)
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -76,12 +78,15 @@ void RunAction::BeginOfRunAction(const G4Run* aRun)
   //G4RunManager::GetRunManager()->SetRandomNumberStore(true);
 
   fNumPysLimStepsRun  = 0;   // number of steps limited by physics
-  fNumPrimsRun        = 0;   // number of secondaries  
-  fNumSecsRun         = 0;   // number of primaries
+  fNumPrimsRun        = 0;   // number of primaries  
+  fNumSecsRun         = 0;   // number of secondaries
   fNumTotalStepsRun   = 0;   // total number of steps   
   fNumAllStepsRun     = 0;   // number of ALL steps
 
   fRunTime=clock();
+
+  fCMSApp = new CMSApp();
+  fCMSApp->Initialize();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -90,12 +95,15 @@ void RunAction::FillPerEvent(unsigned long nphyssteps, unsigned long nprims,
                              unsigned long nsecs, unsigned long ntotal, unsigned long nall){
 
   fNumPysLimStepsRun += nphyssteps;  // number of steps limited by physics
-  fNumPrimsRun       += nprims;      // number of secondaries  
-  fNumSecsRun        += nsecs;       // number of primaries
+  fNumPrimsRun       += nprims;      // number of primaries  
+  fNumSecsRun        += nsecs;       // number of secondaries
   fNumTotalStepsRun  += ntotal;      // total number of steps   
   fNumAllStepsRun    += nall;        // number of ALL steps
 
 }
+
+
+void RunAction::FillHist(const G4Step *step) {fCMSApp->SteppingAction(step);}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -119,141 +127,13 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
   std::cout<<"======  TOTAL NUMBER OF STEPS LIMITED BY PHYSICS = " << fNumPysLimStepsRun  << std::endl;
 //  std::cout<<"======  TOTAL NUMBER OF ALL STEPS                = " << fNumAllStepsRun     << std::endl;
   std::cout<<"-----------------------------------------------------------------"          <<std::endl;
-/*
-   std::cout<<"\n======================= RUN STAT ==============================\n"
-            <<"---------- Average Energy Depo. in ABS and GAP [MeV] ----------\n"
-            <<std::endl;
-   G4double totalEdepAbs   = 0.0;
-   G4double totalTracklAbs = 0.0;
-   G4double totalEdepGap   = 0.0;
-   G4double totalTracklGap = 0.0;
-   printf("%-10s %-15s %-15s %-15s %-15s\n","[#Layer]", "[Eabs]","[sig.]","[Egap]","[sig.]");
-   for(G4int i=0; i<kNlayers; ++i) {
-     G4double a = fSumEdepGap[i]/NbOfEvents;
-       G4double rmsgap = fSum2EdepGap[i]/NbOfEvents-a*a;
-       if(rmsgap > 0.0) rmsgap = std::sqrt(rmsgap);
-       else             rmsgap = 0.0;
-     G4double b = fSumEdepAbs[i]/NbOfEvents;
-       G4double rmsabs = fSum2EdepAbs[i]/NbOfEvents-b*b;
-       if(rmsabs > 0.0) rmsabs = std::sqrt(rmsabs);
-       else             rmsabs = 0.0;
-     totalEdepAbs += fSumEdepAbs[i];
-     totalEdepGap += fSumEdepGap[i]; 
-     printf("%4d\t %.6f\t %.6f\t %.6f\t %.6f\n", i, b, rmsabs, a, rmsgap );
-   }
-   totalEdepAbs/=NbOfEvents;
-   totalEdepGap/=NbOfEvents; 
-   sum2EAbs0/=NbOfEvents;
-   sum2EGap0/=NbOfEvents;
-   G4double rmsabs0 = sum2EAbs0 - totalEdepAbs*totalEdepAbs; 
-   if(rmsabs0 > 0.0) rmsabs0 = std::sqrt(rmsabs0);
-   else              rmsabs0 = 0.0;
-   G4double rmsgap0 = sum2EGap0 - totalEdepGap*totalEdepGap; 
-   if(rmsgap0 > 0.0) rmsgap0 = std::sqrt(rmsgap0);
-   else              rmsgap0 = 0.0;
-   
-   std::cout<<"______________________________________________________________\n"
-            <<"TOTAL X: Eabs="<< totalEdepAbs << "  sig.="<<rmsabs0<<  "   Egap=" 
-            << totalEdepGap << "  sig.="<< rmsgap0  <<"\n" 
-            <<"--------------------------------------------------------------\n"
-            << std::endl;
 
-   std::cout<<"---------- Average Track length. in ABS and GAP [cm] ----------\n"
-            <<std::endl;
-   printf("%-10s %-15s %-15s %-15s %-15s\n","[#Layer]", "[Labs]","[sig.]","[Lgap]","[sig.]");
-   for(G4int i=0; i<kNlayers; ++i) {
-     G4double a = fSumLengthGap[i]/NbOfEvents;
-       G4double rmsgap = fSum2LengthGap[i]/NbOfEvents-a*a;
-       if(rmsgap > 0.0) rmsgap = std::sqrt(rmsgap);
-       else             rmsgap = 0.0;
-     G4double b = fSumLengthAbs[i]/NbOfEvents;
-       G4double rmsabs = fSum2LengthAbs[i]/NbOfEvents-b*b;
-       if(rmsabs > 0.0) rmsabs = std::sqrt(rmsabs);
-       else             rmsabs = 0.0;
-     totalTracklAbs += fSumLengthAbs[i];
-     totalTracklGap += fSumLengthGap[i]; 
-     printf("%4d\t %.6f\t %.6f\t %.6f\t %.6f\n", i, b, rmsabs, a, rmsgap );
-   }
-   totalTracklAbs/=NbOfEvents;
-   totalTracklGap/=NbOfEvents; 
-   sum2LAbs0/=NbOfEvents;
-   sum2LGap0/=NbOfEvents;
-   rmsabs0 = sum2LAbs0 - totalTracklAbs*totalTracklAbs; 
-   if(rmsabs0 > 0.0) rmsabs0 = std::sqrt(rmsabs0);
-   else              rmsabs0 = 0.0;
-   rmsgap0 = sum2LGap0 - totalTracklGap*totalTracklGap; 
-   if(rmsgap0 > 0.0) rmsgap0 = std::sqrt(rmsgap0);
-   else              rmsgap0 = 0.0;
-   
-   std::cout<<"______________________________________________________________\n"
-            <<"TOTAL X: Labs="<< totalTracklAbs << "  sig.="<<rmsabs0 <<"   Lgap=" 
-            << totalTracklGap << "  sig.="<< rmsgap0 << "\n" 
-            <<"--------------------------------------------------------------\n"
-            << std::endl;
+  fCMSApp->EndOfRunAction(fNumPrimsRun);
 
-
-   G4double avrgNSteps = fSumNSteps/((G4double)NbOfEvents);
-   G4double rms = fSum2NSteps/((G4double)NbOfEvents) - avrgNSteps*avrgNSteps;
-   if(rms>0.0) rms = std::sqrt(rms);
-   else        rms = 0.0;
-   std::cout<<"------------------- Number of steps --------------------------\n"
-            <<" Average # steps = "<< avrgNSteps << " sig.= "<< rms 
-            <<"  Total # steps = " << fSumNSteps <<"\n" 
-            <<"--------------------------------------------------------------\n"
-            << std::endl;
-
-   G4double a = fSumTime/((G4double)NbOfEvents);
-   G4double s = fSum2Time/((G4double)NbOfEvents);
-   rms = s-a*a;
-   if(rms>0.0) rms = std::sqrt(rms);
-   else        rms = 0.0;
-   std::cout<<"-------------------- Run time in [s] --------------------------\n"
-            <<" Average time/event = "<< a << " sig.= "<< rms 
-            <<"  Total = " << fSumTime <<"\n" 
-            <<"--------------------------------------------------------------\n"
-            << std::endl;
-
-
-   std::cout<<"------------------ Process Number Stat. -----------------------\n"
-            <<" [G5 Proc. Name]     [Total # ]      [Average #]       [Sigma] \n"  
-            << std::endl;
-   for(G4int i=0; i<kNProc; ++i) {
-      a = fSumProcStat[i]/((G4double)NbOfEvents);
-      s = fSum2ProcStat[i]/((G4double)NbOfEvents);
-      rms = s-a*a;
-      if(rms>0.0) rms = std::sqrt(rms);
-      else        rms = 0.0;
-      if(i!=kNProc-1) // userCut 
-        printf(" %-13s: %14lu %14.3f %14.3f\n",TPartIndex::I()->ProcName(i),fSumProcStat[i], a,rms);
-      else 
-        printf(" %-13s: %14lu %14.3f %14.3f\n","UserCut", fSumProcStat[i], a, rms);
-   }
-   std::cout<<"---------------------------------------------------------------\n"
-            << std::endl;
-   if(isTabPhys) {
-   std::cout<<"---Step and UserCut # corr. (when compared to G4) (estimate)---\n"
-            <<"==============================================================="
-            << std::endl;
-     a = fSumKilledSecs/((G4double)NbOfEvents);
-     s = fSum2KilledSecs/((G4double)NbOfEvents); 
-     rms = s-a*a;
-     if(rms>0.0) rms = std::sqrt(rms);
-     else        rms = 0.0;
-     std::cout<<" Average #/event = "<< a << " sig.= "<< rms 
-              <<"  Total # = " << fSumKilledSecs <<"\n" 
-              <<"---------------------------------------------------------------\n"
-              << std::endl;
-   }
-
-
-   std::cout<<"==============================================================="
-            << std::endl;
-*/
-
- G4int sevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed();
- std::cerr << "<----- Run " << aRun->GetRunID() << " has finished the simulation of " <<
-              sevent << " events! ---->\n";
+  G4int sevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed();
+  std::cerr << "<----- Run " << aRun->GetRunID() << " has finished the simulation of " << sevent << " events! ---->\n";
 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+

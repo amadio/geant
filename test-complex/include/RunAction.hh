@@ -42,6 +42,8 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class G4Run;
+class CMSApp;
+class G4Step;
 
 class RunAction : public G4UserRunAction
 {
@@ -57,7 +59,7 @@ public:
   void FillPerEvent(unsigned long nphyssteps, unsigned long nprims, 
                     unsigned long nsecs, unsigned long ntotal, unsigned long nall);
 
-
+  void FillHist(const G4Step *);
 
 private:
   clock_t  fRunTime; // the total runtime 
@@ -66,9 +68,11 @@ private:
   unsigned long    fNumSecsRun;          // number of primaries
   unsigned long    fNumTotalStepsRun;    // number of total steps 
   unsigned long    fNumAllStepsRun;      // number of ALL steps
-//  unsigned long    fSumNTracks;    
 
-  G4double  fSumTime;//, fSum2Time; 
+  G4double  fSumTime;
+
+  // The CMS application 
+  CMSApp   *fCMSApp; 
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

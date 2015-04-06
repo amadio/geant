@@ -39,6 +39,8 @@
 #include "RunAction.hh"
 #include <time.h>
 
+#include "G4Step.hh"
+
 class RunAction;
 //class EventActionMessenger;
 
@@ -54,22 +56,22 @@ public:
   void  EndOfEventAction(const G4Event*);
 
 private:
-   EventAction(const EventAction&); // Not implemented
-   EventAction &operator=(const EventAction&); // Not implemented
+  EventAction(const EventAction&); // Not implemented
+  EventAction &operator=(const EventAction&); // Not implemented
    
-   RunAction *fRunAct;
+  RunAction *fRunAct;
    
-//   EventActionMessenger*  eventMessenger;
-
   unsigned long  fNumPysLimStepsEvent;   // number of steps limited by physics
-  unsigned long  fNumPrimsEvent;         // number of secondaries  
-  unsigned long  fNumSecsEvent;          // number of primaries
+  unsigned long  fNumPrimsEvent;         // number of primaries
+  unsigned long  fNumSecsEvent;          // number of secondaries
   unsigned long  fNumTotalStepsEvent;
   unsigned long  fNumAllStepsEvent;      
 
 public:
   void FillPerSteps(unsigned long nphyssteps, unsigned long nsecs, unsigned long ntotal,
                     unsigned long nall);
+  void FillHistSteps(const G4Step *step);
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

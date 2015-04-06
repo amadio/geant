@@ -26,8 +26,6 @@
 //  Complex geometry test as a modified Geant4 example.
 //  Original Geant4 example: examples/extended/persistency/gdml/G01
 //
-
-
 #include <vector>
 
 #include "G4RunManager.hh"
@@ -87,6 +85,8 @@
 
 #include <getopt.h>
 
+#include "CMSApp.hh"
+#include "LogicalVolumeHandler.hh"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 void AddRegionsToLogicalVols(G4double trackingCutInEnergy);
@@ -141,6 +141,7 @@ int main(int argc,char **argv)
   // Get the geometry from the GDML file
   //
   G4GDMLParser parser;
+  //parser.SetStripFlag(FALSE);
   parser.Read(geomFile);
 
   //
@@ -148,12 +149,14 @@ int main(int argc,char **argv)
   //
   G4RunManager * runManager = new G4RunManager;
 
+
   //
   // Set mandatory initialization classes:
   //   DetectorConstruction, PhysicsList
   //
   runManager->SetUserInitialization(new DetectorConstruction(
                                     parser.GetWorldVolume()));
+
 
 
   // WITH G4 10.x
@@ -196,7 +199,10 @@ int main(int argc,char **argv)
   TabulatedDataManager::fgIsUseRange = TRUE;
   SteppingAction::fgTrackingCutInEnergy = fTrackingCutInEnergy;  
   //G4SteppingManager::fgProductionCutInEnergy = fProductionCutInEnergy;
-  
+ 
+
+  CMSApp::fgIsScoreActive = TRUE;
+ 
   // 
   // Set user action classes
   //
@@ -214,6 +220,12 @@ int main(int argc,char **argv)
   runManager->Initialize();
   G4cout<< "----> Run manager has been initialized. " <<G4endl;
 
+  // 
+  // Check logical volumes that are used in teh geometry 
+  //
+  LogicalVolumeHandler::Instance(); // just for initialization
+
+ 
   // 
   // When running with Geant4 physics list:
   //   -loop over the LogicalVolumes and define a G4Region for each of them

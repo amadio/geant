@@ -69,7 +69,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
   unsigned long numSecs        = 0;
   unsigned long numTotal       = 0;
   
-  if(aStep->GetPreStepPoint()->GetKineticEnergy() > fgTrackingCutInEnergy  )   // get good number of secondaries
+//  if(aStep->GetPreStepPoint()->GetKineticEnergy() > fgTrackingCutInEnergy  )   // get good number of secondaries
   {
     // determine which process happend
     G4VProcess const *g4proc = aStep->GetPostStepPoint()->GetProcessDefinedStep();
@@ -89,14 +89,18 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
          for(unsigned int i = 0; i<aStep->GetSecondaryInCurrentStep()->size(); ++i)
             if((*aStep->GetSecondaryInCurrentStep())[i]->GetKineticEnergy() > fgTrackingCutInEnergy)
                ++numSecs; 
+
        }
+       fEventaction->FillHistSteps(aStep);
     } else { // G4 Physics
        if( g4procCode != 1091 && G4String("UserSpecialCut") != pNameStr ){   //not transportation nt trackingCut
          ++numPysLimSteps;                 
          for(unsigned int i = 0; i<aStep->GetSecondaryInCurrentStep()->size(); ++i)
             if((*aStep->GetSecondaryInCurrentStep())[i]->GetKineticEnergy() > fgTrackingCutInEnergy)
                ++numSecs; 
+
        }
+       fEventaction->FillHistSteps(aStep);
     }
     numTotal = 1; 
   }

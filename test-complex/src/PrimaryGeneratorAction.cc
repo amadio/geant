@@ -73,9 +73,9 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(std::string& filename)
 
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
-  if(!fParticleGun)
+  if(fParticleGun)
   delete fParticleGun;
-  if(!fHepMCGenerator)
+  if(fHepMCGenerator)
   delete fHepMCGenerator;
 }
 
