@@ -6,6 +6,7 @@
 #include "G4PhysicalVolumeStore.hh"
 #include "G4TransportationManager.hh"
 
+//#include <cstdio>
 
 LogicalVolumeHandler* LogicalVolumeHandler::fgInstance = 0;
 
@@ -41,6 +42,17 @@ void  LogicalVolumeHandler::Initialize(){
  for(G4int i = 0; i< thesize; ++i)
   fLogicVolToIndex[(*lvolstore)[i]] = i;
 
+/*
+ // write this into file 
+ FILE* f;
+ f=fopen("/home/mnovak/opt/Data/GV/usedlogvolmask","r");
+ for(unsigned int i = 0; i < fIsLogicalVolumeUsedMask.size(); ++i ){
+    G4int the = 0;
+    fscanf(f,"%d",&the);
+    if(the) fIsLogicalVolumeUsedMask[i]=TRUE;
+ }
+ fclose(f);
+*/
  // loop over the G4PhysicalVolume-s, get their G4LogicalVolume* and see if they are used in 
  // the geometry or not; set a mask value to TRUE if they are used 
  for(unsigned int ivol = 0; ivol < pvolstore->size(); ++ivol)
@@ -50,10 +62,23 @@ void  LogicalVolumeHandler::Initialize(){
  // the world logical volume is always used 
  fIsLogicalVolumeUsedMask[fLogicVolToIndex.find(lworld)->second] = TRUE; // world is used 
 
+
  // count number of used logical volumes 
  G4int numUsedLogicalVols = 0;
  for(unsigned int i = 0; i < fIsLogicalVolumeUsedMask.size(); ++i )
     if(fIsLogicalVolumeUsedMask[i]) ++numUsedLogicalVols;
+
+/*
+ // write this into file 
+ FILE* f;
+ f=fopen("usedlogvolmask","w");
+ for(unsigned int i = 0; i < fIsLogicalVolumeUsedMask.size(); ++i ){
+    if(i!=0 && i%100 == 0) fprintf(f,"\n");
+    if(fIsLogicalVolumeUsedMask[i]) fprintf(f,"1 ");
+    else fprintf(f,"0 ");
+ }
+ fclose(f);
+*/
 
  std::cout<< " ####   Number of logical volumes used = "
           << numUsedLogicalVols << "  out of the " 
