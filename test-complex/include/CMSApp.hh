@@ -34,8 +34,7 @@ private:
   TH1F   *fEdepP;                                 /** Edep histogram for protons */
   TH1F   *fEdepPi;                                /** Edep histogram for pions */
   TH1F   *fEdepK;                                 /** Edep histogram for kaons */ 
-  G4double fCumStepLength;
-  G4double fCumEnergyDepo;
+
   /**
    * @brief Copy constructor CMSApp
    * * @todo Still not implemented

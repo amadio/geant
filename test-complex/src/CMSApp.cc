@@ -26,8 +26,7 @@ CMSApp::CMSApp()
 : fInitialized(FALSE), 
   fECALMap(), fHCALMap(),
   fFluxElec(0), fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0),
-  fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0),
-  fCumStepLength(0), fCumEnergyDepo(0) {
+  fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
   memset(fSensFlags, 0, kNvolumes*sizeof(G4bool));
   memset(fEdepECAL, 0, kNECALModules*sizeof(G4double));
@@ -157,44 +156,31 @@ void CMSApp::SteppingAction(const G4Step *step) {
 
   // Score in ECAL
   if (idtype==1) {
-    // detect if first step in volume then 
-    // start to collect cumulative step length and energy deposit  
-    if(step->GetTrack()->GetCurrentStepNumber() == 1 || step->GetPreStepPoint()->GetStepStatus() == fGeomBoundary) {
-      fCumStepLength = step->GetStepLength() / CLHEP::cm;
-      fCumEnergyDepo = step->GetTotalEnergyDeposit() / CLHEP::MeV;
-    } else { 
-      fCumStepLength += step->GetStepLength() / CLHEP::cm;
-      fCumEnergyDepo += step->GetTotalEnergyDeposit() / CLHEP::MeV;
-    }
-
-    // detect if last step in volume
-    if(step->GetPostStepPoint()->GetStepStatus() == fGeomBoundary) {
       G4double capacity = fCubicVolumes[ivol];
       const G4Track           *track = step->GetTrack();
       const G4DynamicParticle *dpart = track->GetDynamicParticle();
       G4int thePDG = track->GetParticleDefinition()->GetPDGEncoding();
       if( std::abs(thePDG)       == 11  ) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
-	  fFluxElec->Fill(totMomentum, fCumStepLength/capacity);
-	  fEdepElec->Fill(totMomentum, fCumEnergyDepo/capacity);
+	  fFluxElec->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
+	  fEdepElec->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
       } else if( thePDG          == 22  ) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
-          fFluxGamma->Fill(totMomentum, fCumStepLength/capacity);
-          fEdepGamma->Fill(totMomentum, fCumEnergyDepo/capacity);
+          fFluxGamma->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
+          fEdepGamma->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
       } else if( thePDG          == 2212) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
-	  fFluxP->Fill(totMomentum, fCumStepLength/capacity);
-	  fEdepP->Fill(totMomentum, fCumEnergyDepo/capacity);
+	  fFluxP->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
+	  fEdepP->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
       } else if(std::abs(thePDG) == 211 ) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
-	  fFluxPi->Fill(totMomentum, fCumStepLength/capacity);
-	  fEdepPi->Fill(totMomentum, fCumEnergyDepo/capacity);
+	  fFluxPi->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
+	  fEdepPi->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
       } else if(std::abs(thePDG) == 321 ) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
-	  fFluxK->Fill(totMomentum, fCumStepLength/capacity);
-	  fEdepK->Fill(totMomentum, fCumEnergyDepo/capacity);
+	  fFluxK->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
+	  fEdepK->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
       }
-    }
   } 
 }
 
