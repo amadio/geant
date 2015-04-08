@@ -14,7 +14,7 @@ ClassImp(CMSApplication)
 
 //______________________________________________________________________________
 CMSApplication::CMSApplication()
-: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kScoreStep),
+: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore),
     fFluxElec(0), fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0),
     fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
@@ -23,8 +23,6 @@ CMSApplication::CMSApplication()
   memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(Float_t));
   memset(fECALid, 0, kNECALModules*sizeof(Int_t));
   memset(fHCALid, 0, kNHCALModules*sizeof(Int_t));
-  if (fScore == kNoScore)
-    return;
   TH1::AddDirectory(false);
   fFluxElec = new TH1F("hFluxElec", "e+/e- flux/primary in ECAL", 50, 0., 2500.);
   fFluxElec->GetXaxis()->SetTitle("Momentum [MeV/c]");
@@ -129,54 +127,33 @@ void CMSApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tra
     // Score in ECAL
     if (idtype==1) {
       // Add scored entity
-      if (fScore == kScoreStep)
-        tracks.fTimeV[itr] += tracks.fStepV[itr];
-      else if (fScore == kScoreEdep) 
-        tracks.fTimeV[itr] += tracks.fEdepV[itr];
-      else continue;		
-      // Detect if last step in volume
-      if (tracks.fStatusV[itr] == kBoundary) {
-        //Printf("Scoring (%f, %f)", tracks.fPV[itr], tracks.fTimeV[itr]);
-        // Score length and reset
-        if (propagator->fNthreads > 1)
-          fMHist.lock();
-	Double_t capacity = 0.;
-	capacity = vol->GetShape()->Capacity();
-	if (TMath::Abs(tracks.fPDGV[itr]) == 11) {
-	  if (fScore == kScoreStep)
-	    fFluxElec->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
-	  else if (fScore == kScoreEdep) 
-	    fEdepElec->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
-	}    
-	else if (tracks.fPDGV[itr] == 22) {
-	  if (fScore == kScoreStep)
-            fFluxGamma->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
-	  else if (fScore == kScoreEdep) 
-            fEdepGamma->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
-	}    
-	else if (tracks.fPDGV[itr] == 2212) {
-	  if (fScore == kScoreStep)
-	    fFluxP->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
-	  else if (fScore == kScoreEdep) 
-	    fEdepP->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
-	}
-	else if (TMath::Abs(tracks.fPDGV[itr]) == 211) {
-	  if (fScore == kScoreStep)
-	    fFluxPi->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
-	  else if (fScore == kScoreEdep) 
-	    fEdepPi->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
-	}
-	else if (TMath::Abs(tracks.fPDGV[itr]) == 321) {
-	  if (fScore == kScoreStep)
-	    fFluxK->Fill(1000.*tracks.fPV[itr], tracks.fTimeV[itr]/capacity);
-	  else if (fScore == kScoreEdep) 
-	    fEdepK->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fTimeV[itr]/capacity);
-        }
-	if (propagator->fNthreads > 1)
-          fMHist.unlock();
-        tracks.fTimeV[itr] = 0;
+      if (propagator->fNthreads > 1)
+        fMHist.lock();
+      Double_t capacity = 0.;
+      capacity = vol->GetShape()->Capacity();
+      if (TMath::Abs(tracks.fPDGV[itr]) == 11) {
+        fFluxElec->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
+        fEdepElec->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
+      }    
+      else if (tracks.fPDGV[itr] == 22) {
+        fFluxGamma->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
+        fEdepGamma->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
+      }    
+      else if (tracks.fPDGV[itr] == 2212) {
+        fFluxP->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
+        fEdepP->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
       }
-    }        
+      else if (TMath::Abs(tracks.fPDGV[itr]) == 211) {
+        fFluxPi->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
+        fEdepPi->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
+      }
+      else if (TMath::Abs(tracks.fPDGV[itr]) == 321) {
+        fFluxK->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
+        fEdepK->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
+      }
+      if (propagator->fNthreads > 1)
+        fMHist.unlock();
+    }
   } 
 }
 
@@ -209,90 +186,77 @@ void CMSApplication::FinishRun()
 {  
   if (fScore == kNoScore)
     return;
-  TCanvas *c1 = new TCanvas("CMS test", "Simple scoring in CMS geometry", 700, 1200);
+  TCanvas *c1 = new TCanvas("CMS test flux", "Simple scoring in CMS geometry", 700, 1200);
   Double_t norm = 1./GeantPropagator::Instance()->fNprimaries.load();
   TVirtualPad *pad;
-  TString name;
-  TFile *f = 0;
-  if (fScore == kScoreStep) {
-    name = "FluxECAL.pdf";
-    f = TFile::Open("FluxECAL.root","RECREATE");
-    c1->Divide(2,3);
-    pad = c1->cd(1);
-    pad->SetLogx();
-    pad->SetLogy();
-    fFluxElec->Sumw2();
-    fFluxElec->Scale(norm);
-    fFluxElec->Draw("9");
-    pad = c1->cd(2);
-    pad->SetLogx();
-    pad->SetLogy();
-    fFluxGamma->Sumw2();
-    fFluxGamma->Scale(norm);
-    fFluxGamma->Draw("9");
-    pad = c1->cd(3);
-    pad->SetLogx();
-    pad->SetLogy();
-    fFluxP->Sumw2();
-    fFluxP->Scale(norm);
-    fFluxP->Draw("9");
-    pad = c1->cd(4);
-    pad->SetLogx();
-    pad->SetLogy();
-    fFluxPi->Sumw2();
-    fFluxPi->Scale(norm);
-    fFluxPi->Draw("9");
-    pad = c1->cd(5);
-    pad->SetLogx();
-    pad->SetLogy();
-    fFluxK->Sumw2();
-    fFluxK->Scale(norm);
-    fFluxK->Draw("9");
-    fFluxElec->Write();
-    fFluxGamma->Write();
-    fFluxP->Write();
-    fFluxPi->Write();
-    fFluxK->Write();
-  } else if (fScore == kScoreEdep) {
-    name = "EdepECAL.pdf";
-    f = TFile::Open("EdepECAL.root","RECREATE");
-    c1->Divide(2,3);
-    pad = c1->cd(1);
-    pad->SetLogx();
-    pad->SetLogy();
-    fEdepElec->Sumw2();
-    fEdepElec->Scale(norm);
-    fEdepElec->Draw("9");
-    pad = c1->cd(2);
-    pad->SetLogx();
-    pad->SetLogy();
-    fEdepGamma->Sumw2();
-    fEdepGamma->Scale(norm);
-    fEdepGamma->Draw("9");
-    pad = c1->cd(3);
-    pad->SetLogx();
-    pad->SetLogy();
-    fEdepP->Sumw2();
-    fEdepP->Scale(norm);
-    fEdepP->Draw("9");
-    pad = c1->cd(4);
-    pad->SetLogx();
-    pad->SetLogy();
-    fEdepPi->Sumw2();
-    fEdepPi->Scale(norm);
-    fEdepPi->Draw("9");
-    pad = c1->cd(5);
-    pad->SetLogx();
-    pad->SetLogy();
-    fEdepK->Sumw2();
-    fEdepK->Scale(norm);
-    fEdepK->Draw("9");
-    fEdepElec->Write();
-    fEdepGamma->Write();
-    fEdepP->Write();
-    fEdepPi->Write();
-    fEdepK->Write();
-  }
-  c1->SaveAs(name);
+  TFile *f = TFile::Open("ScoreECAL.root","RECREATE");
+  c1->Divide(2,3);
+  pad = c1->cd(1);
+  pad->SetLogx();
+  pad->SetLogy();
+  fFluxElec->Sumw2();
+  fFluxElec->Scale(norm);
+  fFluxElec->Draw("9");
+  pad = c1->cd(2);
+  pad->SetLogx();
+  pad->SetLogy();
+  fFluxGamma->Sumw2();
+  fFluxGamma->Scale(norm);
+  fFluxGamma->Draw("9");
+  pad = c1->cd(3);
+  pad->SetLogx();
+  pad->SetLogy();
+  fFluxP->Sumw2();
+  fFluxP->Scale(norm);
+  fFluxP->Draw("9");
+  pad = c1->cd(4);
+  pad->SetLogx();
+  pad->SetLogy();
+  fFluxPi->Sumw2();
+  fFluxPi->Scale(norm);
+  fFluxPi->Draw("9");
+  pad = c1->cd(5);
+  pad->SetLogx();
+  pad->SetLogy();
+  fFluxK->Sumw2();
+  fFluxK->Scale(norm);
+  fFluxK->Draw("9");
+  fFluxElec->Write();
+  fFluxGamma->Write();
+  fFluxP->Write();
+  fFluxPi->Write();
+  fFluxK->Write();
+
+  TCanvas *c2 = new TCanvas("CMS test edep", "Simple scoring in CMS geometry", 700, 1200);
+  c2->Divide(2,2);
+  pad = c2->cd(1);
+  pad->SetLogx();
+  pad->SetLogy();
+  fEdepElec->Sumw2();
+  fEdepElec->Scale(norm);
+  fEdepElec->Draw("9");
+  pad = c2->cd(2);
+  pad->SetLogx();
+  pad->SetLogy();
+  fEdepP->Sumw2();
+  fEdepP->Scale(norm);
+  fEdepP->Draw("9");
+  pad = c2->cd(3);
+  pad->SetLogx();
+  pad->SetLogy();
+  fEdepPi->Sumw2();
+  fEdepPi->Scale(norm);
+  fEdepPi->Draw("9");
+  pad = c2->cd(4);
+  pad->SetLogx();
+  pad->SetLogy();
+  fEdepK->Sumw2();
+  fEdepK->Scale(norm);
+  fEdepK->Draw("9");
+  fEdepElec->Write();
+  fEdepGamma->Write();
+  fEdepP->Write();
+  fEdepPi->Write();
+  fEdepK->Write();
   f->Close();
 }

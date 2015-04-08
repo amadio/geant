@@ -33,8 +33,7 @@ class CMSApplication : public GeantVApplication {
 public:
 enum EScoreType {
   kNoScore = 0,
-  kScoreStep,
-  kScoreEdep
+  kScore
 };  
 
 private:
