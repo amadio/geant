@@ -24,7 +24,7 @@ constexpr double MeV = 0.001  * GeV;
 constexpr double KeV = 1.0e-6 * GeV;
 
 // Mono-energetic test
-constexpr double defaultMinP= 50.*KeV;
+constexpr double defaultMinP= 500;
 constexpr double defaultMaxP= defaultMinP;     // 0.5 * MeV; // ie = 500.*KeV;
 //  Equal maxp & minP ==> monoenergetic beam
 
