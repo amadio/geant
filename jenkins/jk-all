@@ -8,7 +8,8 @@ env | sort | sed 's/:/:?     /g' | tr '?' '\n'
 echo "--------------------------------------------------------------------------------------"
 
 #---Run the CTest script depending on the compiler------------------------------------------
-ctest -VV -S $WORKSPACE/geantv-ctest.cmake,Nightly || true
+ctest -VV -S ${THIS}/../geantv-ctest.cmake,Nightly || true
+
 
 
 
