@@ -48,15 +48,59 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ROOTSYS}/cmake/modules)
 # eiher we write our own findPythia8 or we fix the root one for the
 # newest pythia8
 #find_package(Pythia8 REQUIRED)
-if(NOT DEFINED PYTHIA8_DIR)
-  set(PYTHIA8_DIR $ENV{PYTHIA8_DIR})
-endif()
+####### pmendez
+#if(NOT DEFINED PYTHIA8_DIR)
+#  set(PYTHIA8_DIR $ENV{PYTHIA8_DIR})
+#endif()
 
-if(NOT DEFINED PYTHIA8_DIR)
-  MESSAGE(FATAL_ERROR "Please set PYTHIA8_DIR")
-endif()
-set(PYTHIA8_INCLUDE_DIR ${PYTHIA8_DIR}/include)
-set(PYTHIA8_LIBRARIES "-L${PYTHIA8_DIR}/lib -lpythia8 -llhapdfdummy")
+#if(NOT DEFINED PYTHIA8_DIR)
+#  MESSAGE(FATAL_ERROR "Please set PYTHIA8_DIR")
+#endif()
+#set(PYTHIA8_INCLUDE_DIR ${PYTHIA8_DIR}/include)
+#set(PYTHIA8_LIBRARIES "-L${PYTHIA8_DIR}/lib -lpythia8 -llhapdfdummy")
+######### pmendez
+et(_pythia8dirs ${PYTHIA8_DIR} $ENV{PYTHIA8_DIR} /usr /opt/pythia8)
+
+find_path(PYTHIA8_INCLUDE_DIR
+          NAMES Pythia.h Pythia8/Pythia.h
+          HINTS ${_pythia8dirs}
+          PATH_SUFFIXES include
+          DOC "Specify the directory containing Pythia.h.")
+
+find_library(PYTHIA8_LIBRARY
+             NAMES pythia8 Pythia8
+             HINTS ${_pythia8dirs}
+             PATH_SUFFIXES lib
+             DOC "Specify the Pythia8 library here.")
+
+find_library(PYTHIA8_hepmcinterface_LIBRARY
+             NAMES hepmcinterface pythia8tohepmc
+             HINTS ${_pythia8dirs}
+             PATH_SUFFIXES lib)
+
+find_library(PYTHIA8_lhapdfdummy_LIBRARY
+             NAMES lhapdfdummy
+             HINTS ${_pythia8dirs}
+             PATH_SUFFIXES lib)
+
+foreach(_lib PYTHIA8_LIBRARY PYTHIA8_hepmcinterface_LIBRARY PYTHIA8_lhapdfdummy_LIBRARY)
+  if(${_lib})
+    set(PYTHIA8_LIBRARIES ${PYTHIA8_LIBRARIES} ${${_lib}})
+  endif()
+endforeach()
+set(PYTHIA8_INCLUDE_DIRS ${PYTHIA8_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR}/Pythia8 )
+
+# handle the QUIETLY and REQUIRED arguments and set PYTHIA8_FOUND to TRUE if
+# all listed variables are TRUE
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Pythia8 DEFAULT_MSG PYTHIA8_INCLUDE_DIR PYTHIA8_LIBRARY)
+mark_as_advanced(PYTHIA8_INCLUDE_DIR PYTHIA8_LIBRARY PYTHIA8_hepmcinterface_LIBRARY PYTHIA8_lhapdfdummy_LIBRARY)
+
+
+
+
+
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
