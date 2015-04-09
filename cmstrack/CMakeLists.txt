@@ -59,7 +59,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ROOTSYS}/cmake/modules)
 #set(PYTHIA8_INCLUDE_DIR ${PYTHIA8_DIR}/include)
 #set(PYTHIA8_LIBRARIES "-L${PYTHIA8_DIR}/lib -lpythia8 -llhapdfdummy")
 ######### pmendez
-et(_pythia8dirs ${PYTHIA8_DIR} $ENV{PYTHIA8_DIR} /usr /opt/pythia8)
+set(_pythia8dirs ${PYTHIA8_DIR} $ENV{PYTHIA8_DIR} /usr /opt/pythia8)
 
 find_path(PYTHIA8_INCLUDE_DIR
           NAMES Pythia.h Pythia8/Pythia.h
