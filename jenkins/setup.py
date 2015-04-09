@@ -175,10 +175,8 @@ def directory_names():
                if "MCGenerators" in directory:
                   Flag = False
 
-               if "castor" in directory:
-                  directory = directory + '/usr'
-               if "alien" in directory:
-                  directory = directory + '/api'
+               if "VecGeom" in directory:
+                  directory = directory + '/lib/CMake/VecGeom'
 
                dirlist.append(directory);
 
