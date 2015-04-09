@@ -135,7 +135,7 @@ def default_bt():
 
 def directories():
    dir_hash = []
-   packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators']
+   packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators','VecGeom']
    for dirs in os.listdir(rootDir):
       if os.path.isfile(dirs):
          pass
