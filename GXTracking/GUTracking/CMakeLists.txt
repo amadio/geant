@@ -274,7 +274,7 @@ set(SRC_CPP_RELATIVE
   src/GUComptonKleinNishina.cc
 #  src/GUPhysicsModel.cc
   src/GUAliasTable.cc
-  src/GUElement.cc
+#  src/GUElement.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
