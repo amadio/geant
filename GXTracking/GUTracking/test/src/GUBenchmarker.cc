@@ -6,8 +6,6 @@
 #include "GUComptonKleinNishina.h"
 #include "GUTrackHandler.h"
 
-#define  VECPHYS_ROOT 1
-
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
 #endif

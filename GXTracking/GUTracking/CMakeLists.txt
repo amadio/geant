@@ -116,7 +116,7 @@ set(VECPHYS_COMPILATION_FLAGS_CLANG
     "${VECPHYS_COMPILATION_FLAGS_CLANG} -ffast-math -ftree-vectorize")
 endif()
 set(VECPHYS_COMPILATION_FLAGS_INTEL
-    "${VECPHYS_COMPILATION_FLAGS_INTEL} -xHost")
+    "${VECPHYS_COMPILATION_FLAGS_INTEL} ")
 if (VECPHYS_VECTOR)
   message(STATUS "Compiling with vector instruction set ${VECPHYS_VECTOR}")
   set(VECPHYS_COMPILATION_FLAGS_GNU
@@ -274,6 +274,7 @@ set(SRC_CPP_RELATIVE
   src/GUComptonKleinNishina.cc
 #  src/GUPhysicsModel.cc
   src/GUAliasTable.cc
+  src/GUElement.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})

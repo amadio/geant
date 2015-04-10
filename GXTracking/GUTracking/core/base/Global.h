@@ -10,7 +10,8 @@
 #include <cmath>
 #include <float.h>
 #include <limits>
-#include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
 
 #define VECPHYS

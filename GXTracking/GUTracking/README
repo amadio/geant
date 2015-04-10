@@ -47,3 +47,12 @@
 
     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/phihome/syjun/products.vproot6
     root.exe -b -l -q 'run.C(4)'
+
+5. How to build and run the benchmaker (GUModelBenchmark) on Intel Xeon Phi
+   
+export COMP_FLAGS="-DBENCHMARK=ON -DROOT=OFF -DVc_DIR=path_to_icc_Vc"
+export CXX_FLAGS="-mmic"
+export C_FLAGS="$CXX_FLAGS"
+
+cmake ../ -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc \
+          -DCMAKE_C_FLAGS="$C_FLAGS" -DCMAKE_CXX_FLAGS="$CXX_FLAGS" $COMP_FLAGS

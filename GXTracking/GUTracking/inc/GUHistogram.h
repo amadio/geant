@@ -1,8 +1,10 @@
 #ifndef GUHistogram_H
 #define GUHistogram_H 1
 
+#ifdef VECPHYS_ROOT
 #include "TFile.h"
 #include "TH1F.h"
+#endif
 
 namespace vecphys {
 
@@ -20,6 +22,11 @@ public:
                      double EnElectron,
                      double angleElectron);
 
+#ifdef VECPHYS_ROOT
+private:
+  void BookHistograms( double maxEnergy );
+  TFile* fHistFile;
+
 private:
   TH1F*  ftime;
   TH1F*  fenergyPrimary;
@@ -28,11 +35,7 @@ private:
   TH1F*  fenergyElec;
   TH1F*  fangleElec;  
   
-private:
-  void BookHistograms( double maxEnergy );
-
-private:
-  TFile* fHistFile;
+#endif
 };
 
 } // end namespace vecphys
