@@ -3,10 +3,19 @@
 
 // Implementation of TaskBroker for CUDA devices.
 
+#ifndef GEANT_CONFIG_H
+#include "Geant/Config.h"
+#endif
 
 #ifndef GEANT_TASKBROKER
 #include "TaskBroker.h"
 #endif
+
+// This should be part of a global (configure time generated) header.
+#ifndef VECGEOM_CUDA
+#define VECGEOM_CUDA
+#endif
+#include "backend/cuda/Interface.h"
 
 #ifndef __CINT__
 #include <cuda.h>
@@ -71,6 +80,9 @@ class GPPhysics2DVector;
 struct GXTrack;
 class GXTrackLiason;
 
+class TaskWorkspace;
+class GeantTrack_v;
+
 const unsigned int kMaxNumStep = 1;
 const unsigned int kMaxSecondaryPerStep = 2; // maxSecondaryPerStep;
 
@@ -79,7 +91,7 @@ class SecondariesTable
 public:
    DevicePtr<int> fDevStackSize;
    //DevicePtr<int> fDevOffset;
-   DevicePtr<GXTrack> fDevTracks;
+   DevicePtr<GeantTrack_v> fDevTracks;
 
    void Alloc(size_t maxTracks);
    void ToDevice() {
@@ -88,6 +100,7 @@ public:
    }
 };
 
+#ifdef GXTRACKING_KERNELS
 typedef
 int (*kernelFunc_t)(curandState* devStates,
                     size_t nSteps,
@@ -107,11 +120,22 @@ int (*kernelFunc_t)(curandState* devStates,
 
                     int nBlocks, int nThreads,
                     cudaStream_t stream);
+#else
+typedef
+int (*kernelFunc_t)(DevicePtr<TaskWorkspace> &workSpace,
+                    size_t ntracks,
+                    DevicePtr<GeantTrack_v> &input,
+                    DevicePtr<GeantTrack_v> &output,
+
+                    int nBlocks, int nThreads,
+                    cudaStream_t stream);
+#endif
 
 class GeantTrack;
 class GeantTrack_v;
 class GeantBasket;
 
+#include "GeantTrack.h"
 #include "TObject.h"
 #include "sync_objects.h"
 
@@ -131,34 +155,40 @@ public:
 
       bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread);
 
+      unsigned int AddTrack(Task *task,
+                            GeantBasket &basket,
+                            unsigned int hostIdx);
       unsigned int TrackToDevice(Task *task, int tid,
                                  GeantBasket &basket,
                                  unsigned int startIdx);
 
       unsigned int TrackToHost();
 
-      GXTrack               *fTrack;
-      int                   *fTrackId;   // unique indentifier of the track on the CPU
-      int                   *fPhysIndex;
-      int                   *fLogIndex;
+      GeantBasketMgr        *fBasketMgr;
+      GeantBasket           *fInputBasket;
+      GeantBasket           *fOutputBasket; // Work manager track (pre)-queue
+
       unsigned int           fChunkSize; // Max number of track for this stream
       unsigned int           fNStaged;   // How many track have been copied to the scratch area so far.
       GeantBasketMgr        *fPrioritizer;
 
+      int           fThreadId;
       unsigned int  fStreamId;
       cudaStream_t  fStream;
-      DevicePtr<curandState> fdRandStates;
-      DevicePtr<GXTrack>     fDevTrack;
-      DevicePtr<GXTrack>     fDevAltTrack;
-      DevicePtr<int>         fDevTrackPhysIndex;
-      DevicePtr<int>         fDevTrackLogIndex;
-      DevicePtr<int[10]>     fDevScratch;       // For communication internal to the kernel
-      DevicePtr<GXTrackLiason> fDevTrackTempSpace;// For communication internal to the kernel
-      SecondariesTable       fDevSecondaries;
 
-      int          fThreadId;
+      DevicePtr<TaskWorkspace> fDevTaskWorkspace;
+      DevicePtr<GeantTrack_v>  fDevTrackInput;
+      vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf() {
+         char *basket = (char*)&(*fDevTrackInput);
+         return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );
+      }
+      DevicePtr<GeantTrack_v>  fDevTrackOutput;
+      vecgeom::cxx::DevicePtr<char> GetDevTrackOutputtBuf() {
+         char *basket = (char*)&(*fDevTrackOutput);
+         return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );
+      }
+      SecondariesTable         fDevSecondaries;
 
-      GeantBasket           *fBasket; // Work manager track (pre)-queue
       concurrent_queue      *fQueue;  // Queue recording whether this helper is available or not.
 
       void ResetNStaged() { fNStaged = 0; }
@@ -188,6 +218,7 @@ public:
    bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
 
    bool IsValid() { return fNthreads > 0; }
+   bool AddTrack(GeantBasket &input, unsigned int trkid);
    void runTask(int threadid, GeantBasket &basket);
    Stream launchTask(bool wait = false);
    Stream launchTask(Task *task, bool wait = false);
@@ -210,10 +241,13 @@ public:
       Task(const Task&); // not implemented
       Task& operator=(const Task&); // not implemented
    public:
-      Task(kernelFunc_t kernel) : fCurrent(0), fKernel(kernel), fCycles(0), fIdles(0) {}
+      Task(kernelFunc_t kernel) : fCurrent(0), fPrevNStaged(0), fKernel(kernel), fCycles(0), fIdles(0) {}
       virtual ~Task() {}
 
+      bool IsReadyForLaunch(unsigned int ntasks);
+
       TaskData     *fCurrent;  // Holder of the data to be sent to the GPU, not owned.
+      unsigned int  fPrevNStaged; // Value of fCurrent->fNStaged at the time of the last call to IsReadyForLaunch
       kernelFunc_t  fKernel;   // wrapper around the cuda call to the kernel.
       unsigned int  fCycles;   // Number of times we put track in the taskData without launching (age of the data).
       unsigned int  fIdles;   // Number of times we processed basket without putting track in the taskData.

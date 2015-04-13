@@ -66,6 +66,20 @@ static void HandleCudaError( cudaError_t err,
 #define HANDLE_CUDA_ERROR( err ) (HandleCudaError( err, __FILE__, __LINE__ ))
 
 struct GeneralTask : public CoprocessorBroker::Task {
+   GeneralTask() : Task( PropagateGeantTrack_gpu ) {}
+
+   const char *Name() { return "GeneralTask"; }
+   bool Select(GeantTrack_v &host_track, int track)
+   {
+      // Currently we can only handle electron, which we pretend are the only
+      // particle to have charge -1.
+
+      return -1 == host_track.fChargeV[track];
+   }
+};
+
+#ifdef GXTRACKING_KERNELS
+struct GeneralTask : public CoprocessorBroker::Task {
    GeneralTask() : Task( tracking_gpu ) {}
 
    const char *Name() { return "GeneralTask"; }
@@ -134,6 +148,7 @@ struct EnergyElectronSingleTask : public CoprocessorBroker::Task {
       return -1 == host_track.fChargeV[track] && host_track.fEV[track] > fThresHold;
    }
 };
+#endif
 
 
 #if 0
@@ -244,11 +259,13 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 }
 
 
-CoprocessorBroker::TaskData::TaskData() : fTrack(0),fTrackId(0),fPhysIndex(0),fLogIndex(0),fNStaged(0),
+CoprocessorBroker::TaskData::TaskData() : fBasketMgr(new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true)),
+                                          fInputBasket(0),fOutputBasket(0),
+                                          fChunkSize(0),fNStaged(0),
                                           fPrioritizer(0),
-                                          fStreamId(0),
                                           fThreadId(-1),
-                                          fBasket(0), fQueue(0)
+                                          fStreamId(0),
+                                          fQueue(0)
 {
    // Default constructor.
 }
@@ -257,16 +274,12 @@ CoprocessorBroker::TaskData::~TaskData() {
    // Destructor.
 
    // We do not own fQueue.
-   // We do not own fTrackCollection.
-   // We do not own the fBasket (or do we?)
+   // We do not own the fBasket(s) (or do we?)
+   // We do not own fPrioritizer
 
-   delete [] fTrack;
-   delete [] fTrackId;
-   delete [] fPhysIndex;
-   delete [] fLogIndex;
+   delete fBasketMgr;
    HANDLE_CUDA_ERROR( cudaStreamDestroy(fStream) );
 }
-
 
 bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
@@ -274,32 +287,21 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fStreamId = streamid;
    HANDLE_CUDA_ERROR( cudaStreamCreate(&fStream) );
 
-   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gPropagator_fBmag", &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
-
-   double tolerance = TGeoShape::Tolerance();
-   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gTolerance", &(tolerance), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
-
    //prepare random engines on the device
-   fdRandStates.Alloc( nblocks*nthreads );
-   curand_setup_gpu(fdRandStates, time(NULL), nblocks, nthreads);
+   // fdRandStates.Alloc( nblocks*nthreads );
+   // curand_setup_gpu(fdRandStates, time(NULL), nblocks, nthreads);
 
    unsigned int maxTrackPerKernel = nblocks*nthreads*maxTrackPerThread;
    fChunkSize = maxTrackPerKernel;
-   fDevTrack.Alloc(maxTrackPerKernel);
-   fDevAltTrack.Alloc(maxTrackPerKernel);
-   fDevTrackPhysIndex.Alloc(maxTrackPerKernel);
-   fDevTrackLogIndex.Alloc(maxTrackPerKernel);
-   fDevSecondaries.Alloc(maxTrackPerKernel);
 
-   fDevScratch.Alloc(1);
-   fDevTrackTempSpace.Alloc(maxTrackPerKernel);
+   //fDevTaskWorkspace.Alloc(maxTrackPerKernel);
+   fDevTrackInput.Alloc(maxTrackPerKernel);
+   fDevTrackOutput.Alloc(maxTrackPerKernel);
+   // fDevSecondaries.Alloc(maxTrackPerKernel);
+   fBasketMgr->SetBcap(maxTrackPerKernel);
 
-   fTrack = new GXTrack[maxTrackPerKernel];
-   fTrackId = new int[maxTrackPerKernel];
-   fPhysIndex = new int[maxTrackPerKernel];
-   fLogIndex = new int[maxTrackPerKernel];
-
-
+   fInputBasket = fBasketMgr->GetNextBasket();
+   fOutputBasket = fBasketMgr->GetNextBasket();
    return true;
 }
 
@@ -471,11 +473,19 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    fNthreads = nthreads;
    fMaxTrackPerThread = maxTrackPerThread;
 
-   //fTasks.push_back(new GeneralTask());
+   fTasks.push_back(new GeneralTask());
+   /*
    fTasks.push_back(new EnergyElectronTask(6));
    fTasks.push_back(new EnergyElectronTask(4));
    fTasks.push_back(new EnergyElectronTask(2));
    fTasks.push_back(new EnergyElectronTask(0));
+   */
+
+   // Initialize global constants.
+   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gPropagator_fBmag", &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
+
+   double tolerance = TGeoShape::Tolerance();
+   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gTolerance", &(tolerance), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
 
    //initialize the stream
    for(unsigned int i=0; i < 2+fTasks.size(); ++i) {
@@ -495,6 +505,28 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
 //    return -1 == track.charge;
 // }
 
+
+unsigned int CoprocessorBroker::TaskData::AddTrack(CoprocessorBroker::Task *task,
+                                                   GeantBasket &basket,
+                                                   unsigned int hostIdx)
+{
+
+   if (!fInputBasket) {
+      GeantBasketMgr *bmgr = basket.GetBasketMgr();
+      fInputBasket = bmgr->GetNextBasket();
+   }
+
+   GeantTrack_v &input = basket.GetInputTracks();
+
+   //  if (input.fHoles->TestBitNumber(hostIdx)) return 0;
+   if (task->Select(input,hostIdx)) {
+      fInputBasket->AddTrack(input,hostIdx);
+      ++fNStaged;
+      return 1;
+   }
+   return 0;
+}
+
 unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task *task,
                                                         int tid,
                                                         GeantBasket &basket,
@@ -508,12 +540,12 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
       return 0;
    }
 
-   if (!fBasket) {
+   if (!fInputBasket) {
       GeantBasketMgr *bmgr = basket.GetBasketMgr();
-      fBasket = bmgr->GetNextBasket();
+      fInputBasket = bmgr->GetNextBasket();
    }
 
-   unsigned int start = fNStaged;
+   //unsigned int start = fNStaged;
    unsigned int count = 0;
    GeantTrack_v &input = basket.GetInputTracks();
    unsigned int basketSize = input.GetNtracks();
@@ -526,55 +558,23 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
       if (input.fHoles->TestBitNumber(hostIdx))
          continue;
 
-      VolumePath_t *path = input.fPathV[hostIdx];
-//      if (path->GetLevel()>1) {
-//         fprintf(stderr,"DEBUG: for %d level is %d\n",trackin[hostIdx],path->GetLevel());
-//      }
-      //fprintf(stderr,"DEBUG8: See track #%d\n",trackin[hostIdx]);
-      TGeoVolume *logVol = path->GetCurrentNode()->GetVolume();
-      int volumeIndex = ((GeantBasketMgr*)(logVol->GetFWExtension()))->GetNumber();
-
       if (task->Select(input,hostIdx)) {
 
-         fTrack[fNStaged].x  = input.fXposV[hostIdx];
-         fTrack[fNStaged].y  = input.fYposV[hostIdx];
-         fTrack[fNStaged].z  = input.fZposV[hostIdx];
-         fTrack[fNStaged].px = input.fXdirV[hostIdx];
-         fTrack[fNStaged].py = input.fYdirV[hostIdx];
-         fTrack[fNStaged].pz = input.fZdirV[hostIdx];
-         fTrack[fNStaged].q  = input.fChargeV[hostIdx];
-         fTrack[fNStaged].s  = input.fStepV[hostIdx];
-         fTrack[fNStaged].E  = input.fEV[hostIdx];
-         if (fTrack[fNStaged].s == 0) {
-            // humm cheat for now :(
-            fTrack[fNStaged].s = 1.0+1*(2.0*rand()/RAND_MAX-1.0);
-         }
-         fLogIndex[fNStaged] = volumeIndex;
-
-         // Finds the node index.
-         int nodeIndex;
-         if (gGeoManager->GetTopVolume() == logVol || path->GetLevel() == 0) {
-            nodeIndex = 0; // humm why?
-         } else {
-            TGeoVolume *mother = path->GetNode(path->GetLevel()-1)->GetVolume();
-            nodeIndex = mother->GetNodes()->IndexOf(path->GetCurrentNode());
-         }
-         fPhysIndex[fNStaged] = nodeIndex;
-
-         fTrackId[fNStaged] = input.PostponeTrack(hostIdx,fBasket->GetOutputTracks());
+         fInputBasket->AddTrack(input,hostIdx);
 
          ++fNStaged;
       }
    }
 
-   // count = min(fChunkSize,basketSize-startIdx);
-   int ntrack = fNStaged - start;
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrack+start, fTrack+start, ntrack*sizeof(GXTrack),
-                                     cudaMemcpyHostToDevice, fStream));
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, ntrack*sizeof(int),
-                                     cudaMemcpyHostToDevice, fStream));
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, ntrack*sizeof(int),
-                                     cudaMemcpyHostToDevice, fStream));
+   // Track sub-ranges are not consecutive in memory.
+   // // count = min(fChunkSize,basketSize-startIdx);
+   // int ntrack = fNStaged - start;
+   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevInputTrack+start, input+start, ntrack*sizeof(GXTrack),
+   //                                   cudaMemcpyHostToDevice, fStream));
+   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, ntrack*sizeof(int),
+   //                                   cudaMemcpyHostToDevice, fStream));
+   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, ntrack*sizeof(int),
+   //                                   cudaMemcpyHostToDevice, fStream));
 
    return count;
 }
@@ -584,153 +584,59 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    WorkloadManager *mgr = WorkloadManager::Instance();
    GeantScheduler *sch = mgr->GetScheduler();
    condition_locker &sched_locker = mgr->GetSchLocker();
-   std::vector<TGeoNode *> array;
-   int last_logical = -1;
-   int last_phys = -1;
-   GeantTrack_v &output = fBasket->GetOutputTracks();
-   // unsigned int basketSize = output.GetNtracks();
-   for(unsigned int devIdx = 0;
-       devIdx < fNStaged;
-       ++devIdx) {
-      if ( fTrackId[devIdx] < 0 ) {
-         // fprintf(stderr,"DEBUG: missig a track %d %d\n",devIdx,fTrackId[devIdx]);
-         continue;
-      }
-      output.fXposV[fTrackId[devIdx]] = fTrack[devIdx].x;
-      output.fYposV[fTrackId[devIdx]] = fTrack[devIdx].y;
-      output.fZposV[fTrackId[devIdx]] = fTrack[devIdx].z;
-      output.fXdirV[fTrackId[devIdx]] = fTrack[devIdx].px;
-      output.fYdirV[fTrackId[devIdx]] = fTrack[devIdx].py;
-      output.fZdirV[fTrackId[devIdx]] = fTrack[devIdx].pz;
-      output.fChargeV[fTrackId[devIdx]] = fTrack[devIdx].q;
-      output.fStepV[fTrackId[devIdx]] = fTrack[devIdx].s;
-      output.fEV[fTrackId[devIdx]] = fTrack[devIdx].E;
 
-      // NOTE: need to update the path ....
-
-      if (fLogIndex[devIdx] == -1) {
-         // The track/particle is done.
-         // fprintf(stderr,"DEBUG: stopping %d in basket %d %d:%d - isalive %d\n", fTrackId[devIdx],fLogIndex[devIdx],
-         //         fHostTracks[fTrackId[devIdx]]->event,fTrackId[devIdx],fHostTracks[fTrackId[devIdx]]->IsAlive())
-         //gPropagator->StopTrack(gPropagator->fTracks[fTrackId[devIdx]]);
-
-         // Note: could also have been kExitingSetup
-         output.fStatusV[fTrackId[devIdx]] = kKilled;
-      } else if (1) {
-         output.fStatusV[fTrackId[devIdx]] = kAlive;
-
-         if (array.size() && last_logical == fLogIndex[devIdx] && last_phys == fPhysIndex[devIdx]) {
-            // Use the already setup array
-         } else {
-            // NOTE: to do a full rebuild, I would really need to calculate
-            // the path (in term of indexes and matrix) on the GPU.
-            last_phys = fPhysIndex[devIdx];
-            last_logical = fLogIndex[devIdx];
-            array.clear();
-
-            TGeoNode *node = gGeoManager->GetTopNode();
-            array.push_back( node );
-
-            // NOTE: cheating .. what we really need to do is to find the
-            // logical volume/node for each and every level.
-
-            // For each level do something like::
-            {
-               TGeoVolume *volume = node->GetVolume();
-               if (!volume->GetNodes()) {
-                  Fatal("CoprocessorBroker::TaskData::TrackToHost","Unexpectedly in a leaf node...");
-               }
-               // Was:
-               //TGeoVolume *sub_volume = mgr->GetBasketArray()[fLogIndex[devIdx]]->GetVolume();
-               // Could be:
-               //TGeoVolume *sub_volume = wm->GetSchduler()->fBasketMgr[fLogIndex[devIdx]]->GetVolume();
-               TGeoVolume *sub_volume = (TGeoVolume*) gGeoManager->GetListOfVolumes()->At(fLogIndex[devIdx]);
-               if (sub_volume != volume) {
-
-                  node = (TGeoNode*) volume->GetNodes()->At( fPhysIndex[devIdx]);
-                  array.push_back( node );
-               }
-            }
-         }
-#if 1 // from GPU
-         // NOTE: somehow adding the navigator makes the result much more stable!
-         TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-         if (!nav) nav = gGeoManager->AddNavigator();
-
-#ifdef USE_VECGEOM_NAVIGATOR
-         // Crap ...
-         // output.fPathV[fTrackId[devIdx]]->Init(&(array[0]),matrix,array.size()-1);
-#else
-         static TGeoIdentity *matrix = new TGeoIdentity(); // NOTE: oh well ... later ...
-         output.fPathV[fTrackId[devIdx]]->Init(&(array[0]),matrix,array.size()-1);
-#endif
-         //fHostTracks[fTrackId[devIdx]]->fPath->Init(&(array[0]),&matrix,array.size()-1);
-#else // from CPU
-         TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-         if (!nav) nav = gGeoManager->AddNavigator();
-         TGeoNode *f_node = nav->FindNode(fTrack[devIdx].x, fTrack[devIdx].y, fTrack[devIdx].z);
-         fHostTracks[fTrackId[devIdx]]->fPath->InitFromNavigator(gGeoManager->GetCurrentNavigator());
-#endif
-         VolumePath_t *path = output.fPathV[fTrackId[devIdx]];
-            //fHostTracks[fTrackId[devIdx]]->fPath;
-//         if (fHostTracks[fTrackId[devIdx]]->fFrombdr)
-//            path = fHostTracks[fTrackId[devIdx]]->fNextPath;
-
-         if (path->GetLevel() != (long)(array.size())-1) {
-            printf("Problem (bdr=%d) with the level %d vs %d\n",
-                   output.fFrombdrV[fTrackId[devIdx]],path->GetLevel(),(int)array.size()-1);
-         }
-#ifdef USE_VECGEOM_NAVIGATOR
-         const TGeoNode *pnode = path->GetNode(0);
-         if (pnode != array[0]) {
-            printf("Problem (bdr=%d) with the first entry %p vs %p level = %d\n",
-                   output.fFrombdrV[fTrackId[devIdx]], pnode, array[0], path->GetLevel());
-            pnode->Print();
-            array[0]->Print();
-         }
-         
-         if (path->GetLevel() >= 1 && path->GetNode(1) != array[1]) {
-            pnode = path->GetNode(0);
-            printf("Problem (bdr=%d) with the second entry %p vs %p level = %d\n", output.fFrombdrV[fTrackId[devIdx]],pnode, array[1],path->GetLevel());
-            pnode->Print();
-            array[1]->Print();
-         }
-#else
-         if (path->GetArray()[0] != array[0]) {
-            printf("Problem (bdr=%d) with the first entry %p vs %p level = %d\n",
-                   output.fFrombdrV[fTrackId[devIdx]], path->GetArray()[0], array[0], path->GetLevel());
-            path->GetArray()[0]->Print();
-            array[0]->Print();
-         }
-         if (path->GetLevel() >= 1 && path->GetArray()[1] != array[1]) {
-            printf("Problem (bdr=%d) with the second entry %p vs %p level = %d\n", output.fFrombdrV[fTrackId[devIdx]],path->GetArray()[1], array[1],path->GetLevel());
-            path->GetArray()[1]->Print();
-            array[1]->Print();
-         }
-#endif
-
-
-         // Let's reschedule it.
-         // fprintf(stderr,"DEBUG: rescheduling %d in basket %d\n",fTrackId[devIdx],fLogIndex[devIdx]);
-         // fTrackCollection->AddTrack(fTrackId[devIdx],
-                                    // mgr->GetBasketArray()[fLogIndex[devIdx]]);
-      }
-   }
 
    Int_t ntot = 0;
    Int_t nnew = 0;
    Int_t nkilled = 0;
-   /* Int_t ninjected = */ sch->AddTracks(fBasket, ntot, nnew, nkilled, fPrioritizer);
+   /* Int_t ninjected = */ sch->AddTracks(fOutputBasket, ntot, nnew, nkilled, nullptr /* fPrioritizer */);
    (void)ntot;
    (void)nnew;
    (void)nkilled;
    //mgr->TransportedQueue()->push(fBasket);
    sched_locker.StartOne();
-   fBasket->Recycle();
-   fBasket = 0;
+   // fOutputBasket->Recycle();
+   // fOutputBasket = 0;
+   fOutputBasket->Clear();
    fThreadId = -1;
    return fNStaged;
 }
+
+bool CoprocessorBroker::Task::IsReadyForLaunch(unsigned int ntasks)
+{
+   // Return true if the stream ought to be launch because it is either full or
+   // filling slowly, etc.
+
+   if (fCurrent->fNStaged == fCurrent->fChunkSize)
+      return true;
+
+   // We do not have enough tracks
+
+   if ( fPrevNStaged == fCurrent->fNStaged ) {
+      ++( fIdles );
+   } else {
+      fIdles = 0;
+   }
+   ++( fCycles );
+   fPrevNStaged = fCurrent->fNStaged;
+
+   unsigned int idle = fIdles;
+   unsigned int cycle = fCycles;
+   if (fCurrent->fNStaged                // There is something
+       && idle > (ntasks-1)     // We are beyond the expected/normal number of idles cycles
+       && cycle > (fCurrent->fChunkSize / fCurrent->fNStaged)  // To fill we need at least that many cycles
+       && 2*idle > cycle               // Our input rate has drop in half
+       )
+   {
+      // Printf("(%d - GPU) ================= Launching idle Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, (*task)->Name(), stream->fStreamId, idle, cycle, stream->fNStaged);
+      // if we did not make any progress in a while, assume there is no 'interesting' track left and schedule the kernel.
+      return true;
+   }
+
+   // Continue to wait for more data ...
+   return false;
+}
+
 
 // typedef void(CUDART_CB * cudaStreamCallback_t)(cudaStream_t stream, cudaError_t status, void
 //                                                *userData)
@@ -774,38 +680,29 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
    //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
+   //HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput->fBuf, stream->fInputBasket->fBuf, stream->fInputBasket->fBufSize,
+   //                                  cudaMemcpyHostToDevice, *stream));
+
    fTotalWork += stream->fNStaged;
-   int result = task->fKernel(stream->fdRandStates,
-                              1 /* nSteps */,
+   DevicePtr<TaskWorkspace> nullDevicePtr;
+   int result = task->fKernel(nullDevicePtr,
                               stream->fNStaged,
-                              stream->fDevTrack,
-                              stream->fDevAltTrack,
-                              stream->fDevTrackLogIndex,
-                              stream->fDevTrackPhysIndex,
-                              stream->fDevSecondaries.fDevTracks,
-                              stream->fDevSecondaries.fDevStackSize,
-
-                              &( (*stream->fDevScratch)[0] ),
-                              stream->fDevTrackTempSpace,
-
-                              (GPGeomManager*)fdGeometry, fdFieldMap,
-                              fd_PhysicsTable, fd_SeltzerBergerData,
+                              stream->fDevTrackInput,
+                              stream->fDevTrackOutput,
 
                               fNblocks,fNthreads,*stream);
 
+   if (!result) return stream;
+
    // Bring back the number of secondaries created.
-   int stackSize;
-   stream->fDevSecondaries.fDevStackSize.FromDevice(&stackSize, *stream);
+   // int stackSize;
+   // stream->fDevSecondaries.fDevStackSize.FromDevice(&stackSize, *stream);
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
-   if (result == 0) {
-      stream->fDevTrack.FromDevice( stream->fTrack, stream->fNStaged, *stream );
-   } else {
-      stream->fDevAltTrack.FromDevice( stream->fTrack, stream->fNStaged, *stream );
-   }
-   stream->fDevTrackPhysIndex.FromDevice( stream->fPhysIndex, stream->fNStaged, *stream );
-   stream->fDevTrackLogIndex.FromDevice( stream->fLogIndex, stream->fNStaged, *stream );
+   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackOutput->fBuf, stream->fOutputBasket->fBuf,
+   //                                   stream->fOutputBasket->fBufSize,
+   //                                   cudaMemcpyHostToDevice, *stream));
 
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));
@@ -835,6 +732,59 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
    // Return the last stream used ....
    return stream;
 }
+
+
+bool CoprocessorBroker::AddTrack(GeantBasket &input, unsigned int trkid)
+{
+   // return true if the track has been add to one of the coprocessor's task.
+
+   bool force = false;
+   //unsigned int nTracks = 1;
+   unsigned int trackUsed = 0;
+   //unsigned int trackStart = 0;
+
+   TaskColl_t::iterator task = fTasks.begin();
+   TaskColl_t::iterator end = fTasks.end();
+   while( task != end ) {
+
+      if ((*task)->fCurrent == 0) {
+         if (fNextTaskData) {
+            (*task)->fCurrent = fNextTaskData;
+         } else {
+            // If we do not yet have a TaskData, wait for one.
+            // Consequence: if we are very busy we hang on to this
+            // track until one of the task finishes.
+            // It is likely better to returned that we could not
+            // handle the track.
+            (*task)->fCurrent = GetNextStream();
+         }
+         fNextTaskData = 0;
+         if (!(*task)->fCurrent) break;
+      }
+
+      TaskData *stream = (*task)->fCurrent;
+
+      unsigned int before = stream->fNStaged;
+      /* unsigned int count = */ stream->AddTrack(*task,input,trkid);
+      trackUsed += stream->fNStaged-before;
+      // unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+      if ( !force && !(*task)->IsReadyForLaunch(fTasks.size()) ) {
+         // Continue to wait for more data ...
+         break;
+      }
+
+      launchTask(*task);
+
+      ++task;
+   }
+
+   // Missing compared to runTask si the scheduling of the most loaded task
+   // if nothing new at all in a while.
+
+   if (trackUsed) return true;
+   else return false;
+}
+
 
 void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
                                 // unsigned int nTracks, int volumeIndex, GeantTrack **tracks, int *trackin)
@@ -876,41 +826,17 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
                                                     basket,
                                                     trackStart);
          trackUsed += stream->fNStaged-before;
-         unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+         // unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
 
-         //if (((*task)->fCycles % 10000) == 1) 
+         //if (((*task)->fCycles % 10000) == 1)
          //   Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated %d idles %d cycles", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles);
 
-         if (stream->fNStaged < stream->fChunkSize
-             && !force) {
-            // We do not have enough tracks
-
-            if ( before == stream->fNStaged ) {
-               ++( (*task)->fIdles );
-            } else {
-               (*task)->fIdles = 0;
-            }
-            ++( (*task)->fCycles );
-
-            unsigned int idle = (*task)->fIdles;
-            unsigned int cycle = (*task)->fCycles;
-            if (stream->fNStaged                // There is something
-                && idle > (fTasks.size()-1)     // We are beyond the expected/normal number of idles cycles
-                && cycle > (stream->fChunkSize / nTracks)  // To fill we need at least that many cycles
-                && 2*idle > cycle               // Our input rate has drop in half
-                )
-            {
-               // Printf("(%d - GPU) ================= Launching idle Task %s Stream %d Idle=%d cycle=%d accumulated=%d", threadid, (*task)->Name(), stream->fStreamId, idle, cycle, stream->fNStaged);
-               // if we did not make any progress in a while, assume there is no 'interesting' track left and schedule the kernel.
-            } else {
-               // Continue to wait for more data ...
-               break;
-            }
+         if ( !force && !(*task)->IsReadyForLaunch(fTasks.size()) ) {
+            // Continue to wait for more data ...
+            break;
          }
 
-         if (stream->fNStaged) {
-            launchTask(*task);
-         }
+         launchTask(*task);
          trackLeft  -= count;
          trackStart += count;
       }

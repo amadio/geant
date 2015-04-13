@@ -5,6 +5,8 @@ class GXFieldMap;
 class GPPhysicsTable;
 struct GXTrack;
 
+class TaskWorkspace;
+
 #include <cuda.h>
 #include <curand.h>
 #include "random_kernel.h"
@@ -66,3 +68,11 @@ int electron_multistage_gpu(curandState* devStates,
 
                  int nBlocks, int nThreads,
                  cudaStream_t stream);
+
+int PropagateGeantTrack_gpu(DevicePtr<TaskWorkspace> &workSpace,
+                            size_t ntracks,
+                            DevicePtr<GeantTrack_v> &input,
+                            DevicePtr<GeantTrack_v> &output,
+
+                            int nBlocks, int nThreads,
+                            cudaStream_t stream);
