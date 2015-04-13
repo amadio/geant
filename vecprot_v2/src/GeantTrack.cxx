@@ -54,8 +54,8 @@ const Double_t gTolerance = TGeoShape::Tolerance();
 
 ClassImp(GeantTrack)
 
-    //______________________________________________________________________________
-    GeantTrack::GeantTrack()
+//______________________________________________________________________________
+GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fG5code(0), fEindex(0), fCharge(0),
       fProcess(-1), fVindex(0), fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0),
       fYpos(0), fZpos(0), fXdir(0), fYdir(0), fZdir(0), fP(0), fE(0), fTime(0), fEdep(0),
@@ -81,6 +81,7 @@ void print_trace(void) {
 
   free(strings);
 }
+
 //______________________________________________________________________________
 GeantTrack::GeantTrack(Int_t ipdg)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fG5code(0), fEindex(0), fCharge(0),

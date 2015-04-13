@@ -567,7 +567,7 @@ public:
 
   /**
    * @brief Function that copy to current buffer
-   * 
+   *
    * @param buff Buffer to be copied to
    * @param size Size of buffer
    */
@@ -591,9 +591,9 @@ public:
   /** @brief GeantTrack_v constructor */
   GeantTrack_v();
 
-  /** 
+  /**
    * @brief GeantTrack_v parametrized constructor
-   * 
+   *
    * @param size Size of track
    * @param maxdepth Maximum allowed geometry depth
    */
@@ -619,7 +619,7 @@ public:
 
   /**
    * @brief Function that compare 2 tracks
-   * 
+   *
    * @param tr1 First track
    * @param i1 Bit number 'i1'
    * @param tr2 Second track
@@ -671,7 +671,7 @@ public:
 
   /**
    * @brief Add track function
-   * 
+   *
    * @param track Track that should be added
    * @param import Flag for importing (by default False)
    */
@@ -679,7 +679,7 @@ public:
 
   /**
    * @brief Add & synctrack function
-   * 
+   *
    * @param track Track that should be added
    */
   Int_t AddTrackSync(GeantTrack &track);
@@ -687,8 +687,8 @@ public:
 
   /**
    * @brief Add track function
-   * 
-   * @param arr Array of tracks 
+   *
+   * @param arr Array of tracks
    * @param i  Bit number 'i'
    * @param import Flag for importing (by default False)
    */
@@ -696,7 +696,7 @@ public:
 
   /**
    * @brief Add & synctrack function
-   * 
+   *
    * @param arr Track array
    * @param i Bit number 'i'
    */
@@ -704,21 +704,21 @@ public:
 
   /**
    * @brief Add track function
-   * 
+   *
    * @param arr Track array
    * @param istart Start index of tracks (Start bit number 'i')
    * @param iend End index of tracks (End bit number 'i')
-   * @param import Import flag (by default False) 
+   * @param import Import flag (by default False)
    */
   void AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t import = kFALSE);
-  
+
   /** @brief Function that check track */
   void CheckTracks();
   GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief  Function that mark removed bit number 'i' through value of bits of holes and flag marking the compactness
-   * 
+   *
    * @param i Bit number 'i'
    */
   void MarkRemoved(Int_t i) {
@@ -728,7 +728,7 @@ public:
 
   /**
    * @brief Function that removes tracks
-   * 
+   *
    * @param from Start index of tracks to be removed
    * @param to End index of tracks to be removed
    */
@@ -739,14 +739,14 @@ public:
 
   /**
    * @brief Function that delete track
-   * 
+   *
    * @param itr Track ID
    */
   void DeleteTrack(Int_t itr);
 
   /**
    * @brief Function that deselect bit number 'i' from value
-   * 
+   *
    * @param i Bit number i
    */
   void Deselect(Int_t i) { fSelected->SetBitNumber(i, kFALSE); }
@@ -759,7 +759,7 @@ public:
 
   /**
    * @brief Function that select bit number 'i' to be value
-   * 
+   *
    * @param i Bit number i
    */
   void Select(Int_t i) { fSelected->SetBitNumber(i); }
@@ -767,21 +767,21 @@ public:
   /**
    * @brief  Function that select tracks
    * @details Function that select tracks
-   * 
+   *
    * @param n Number of tracks to be selected
    */
   void SelectTracks(Int_t n) { fNselected = n; }
 
   /**
    * @brief Set if tracks are in mixed volumes through fMixed flag
-   * 
+   *
    * @param flag Flag that shows if it is contained tracks in mixed volumes
    */
   void SetMixed(Bool_t flag) { fMixed = flag; }
 
   /**
    * @brief Sorting function for track status
-   * 
+   *
    * @param status Track status to be checked
    */
   Int_t SortByStatus(TrackStatus_t status);
@@ -794,15 +794,15 @@ public:
   Int_t SortByLimitingDiscreteProcess();
   /**
    * @brief Function for removal tracks according status
-   * 
+   *
    * @param status Track status to be selected for removal
-   * @param output Output array of tracks 
+   * @param output Output array of tracks
    */
   Int_t RemoveByStatus(TrackStatus_t status, GeantTrack_v &output);
 
   /**
-   * @brief Selection function 
-   * 
+   * @brief Selection function
+   *
    * @param i Bit number 'i' to be value
    */
   Bool_t IsSelected(Int_t i) { return fSelected->TestBitNumber(i); }
@@ -810,7 +810,7 @@ public:
   /** @brief Clear function */
   void Clear(Option_t *option = "");
 
-  /** 
+  /**
    * @brief Compact function
    * @param  moveto ???????
    */
@@ -818,7 +818,7 @@ public:
 
   /**
    * @brief Contain function
-   * 
+   *
    * @param evstart Event to start from
    * @param nevents Numbe rof evets (by default 1)
    */
@@ -829,7 +829,7 @@ public:
 
   /**
    * @brief Function that return track
-   * 
+   *
    * @param i Bit number 'i'
    * @param track Track to be returned
    */
@@ -846,7 +846,7 @@ public:
 
   /**
    * @brief Function that print track
-   * 
+   *
    * @param itr Track ID
    */
   void PrintTrack(Int_t itr) const;
@@ -858,7 +858,7 @@ public:
 
   /**
    * @brief Function for navigation that find next boundary and step
-   * 
+   *
    * @param ntracks Number of tracks
    * @param pstep Previos step
    * @param x X position
@@ -871,7 +871,7 @@ public:
    * @param pathout Path outside in the volume
    * @param step Step to be proccessed
    * @param safe Safety distance
-   * @param isonbdr 
+   * @param isonbdr
    * @param trk Track
    */
   void NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, const Double_t *x,
@@ -879,10 +879,10 @@ public:
                                   const Double_t *diry, const Double_t *dirz, VolumePath_t **pathin,
                                   VolumePath_t **pathout, Double_t *step, Double_t *safe,
                                   Bool_t *isonbdr, const GeantTrack_v *trk);
-  
+
   /**
    * @brief Function for navigation that check if location is the same or not
-   * 
+   *
    * @param ntracks Number of tracks
    * @param start Start volume path
    * @param end End volume path
@@ -893,7 +893,7 @@ public:
 
   /**
    * @brief Function for navigation that check if location is the same or not for single track
-   * 
+   *
    * @param itr Track ID
    * @param start Start volume path
    * @param end End volume path
@@ -907,7 +907,7 @@ public:
 
   /**
    * @brief Function that check if location path's consistency
-   * 
+   *
    * @param itr Track ID
    */
   void CheckLocationPathConsistency(Int_t itr) const;
@@ -915,7 +915,7 @@ public:
 
   /**
    * @brief Function that provides postponed action for tracks
-   * 
+   *
    * @param ntracks Number of tracks
    */
   TransportAction_t PostponedAction(Int_t ntracks) const;
@@ -923,15 +923,15 @@ public:
 
   /**
    * @brief Function that provides postponed action for track
-   * 
+   *
    * @param itr Track ID
-   * @param output Output of tracks 
+   * @param output Output of tracks
    */
   Int_t PostponeTrack(Int_t itr, GeantTrack_v &output);
 
   /**
    * @brief Function that provides postponed action for all track
-   * 
+   *
    * @param output Output of tracks
    */
   Int_t PostponeTracks(GeantTrack_v &output);
@@ -940,7 +940,7 @@ public:
 
   /**
    * @brief Function that compute transport length
-   * 
+   *
    * @param ntracks Number of tracks
    */
   void ComputeTransportLength(Int_t ntracks);
@@ -948,24 +948,24 @@ public:
 
   /**
    * @brief Function that compute single transport length ?????
-   * 
+   *
    * @param itr Track ID
    */
   void ComputeTransportLengthSingle(Int_t itr);
 
   /**
    * @brief Function of propagation in volume
-   * 
+   *
    * @param ntracks Number of tracks
    * @param crtstep ??????
-   * @param tid Track ID 
+   * @param tid Track ID
    */
   void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
   GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function of propagation of track in volume
-   * 
+   *
    * @param i Bit number 'i'
    * @param crtstep ???????
    * @param tid Track ID
@@ -973,8 +973,8 @@ public:
   void PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid);
 
   /**
-   * @brief Popagation function in straight trajectories 
-   * 
+   * @brief Popagation function in straight trajectories
+   *
    * @param ntracks Number of tracks
    * @param crtstep  ?????
    */
@@ -982,7 +982,7 @@ public:
 
   /**
    * @brief Function of propagation of tracks
-   * 
+   *
    * @param output Output array of tracks
    * @param tid Track ID
    */
@@ -995,7 +995,7 @@ public:
   GEANT_CUDA_BOTH_CODE
   Int_t PropagateSingleTrack(GeantTrack_v &output, Int_t itr, Int_t tid, Int_t stage);
 
-  /** 
+  /**
    * @brief Resize function
    * @param newsize New size to be resized
    */
@@ -1007,21 +1007,21 @@ public:
   /** @brief Reshuffle function */
   Int_t Reshuffle();
 
-  /** 
+  /**
    * @brief Function that swap tracks at positions i and j
    * @param i Input bit number 'i'
    * @param j Input bit number 'j'
    */
   void SwapTracks(Int_t i, Int_t j);
-  
-  /** 
+
+  /**
    * @brief Function that return beta value
    * @param  i Input bit number 'i'
    */
   Double_t Beta(Int_t i) const { return fPV[i] / fEV[i]; }
   GEANT_CUDA_BOTH_CODE
 
-  /** 
+  /**
    * @brief Function that return curvature in different areas of geometry
    * @param  i Input bit number 'i'
    */
@@ -1031,7 +1031,7 @@ public:
   /** @brief Function that return safe length */
   Double_t SafeLength(Int_t i, Double_t eps = 1.E-4);
 
-  /** 
+  /**
    * @brief Function that return gamma value
    * @param  i Input bit number 'i'
    */
@@ -1039,48 +1039,48 @@ public:
     return fMassV[i] ? fEV[i] / fMassV[i] : TMath::Limits<double>::Max();
   }
 
-  /** 
+  /**
    * @brief Function that return X projection of momentum value
    * @param  i Input bit number 'i'
    */
   Double_t Px(Int_t i) const { return fPV[i] * fXdirV[i]; }
 
-  /** 
+  /**
    * @brief Function that return Y projection of momentum value
    * @param  i Input bit number 'i'
    */
   Double_t Py(Int_t i) const { return fPV[i] * fYdirV[i]; }
   GEANT_CUDA_BOTH_CODE
 
-  /** 
+  /**
    * @brief Function that return Z projection of momentum value
    * @param  i Input bit number 'i'
    */
   Double_t Pz(Int_t i) const { return fPV[i] * fZdirV[i]; }
   GEANT_CUDA_BOTH_CODE
 
-  /** 
-   * @brief Function that return module of momentum value 
+  /**
+   * @brief Function that return module of momentum value
    * @param  i Input bit number 'i'
    */
   Double_t Pt(Int_t i) const {
     return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]);
   }
 
- /** 
+ /**
   * @brief Function that returnes TGeoVolume
   * @param  i Input bit number 'i'
   */
   TGeoVolume *GetVolume(Int_t i) const;
 
- /** 
+ /**
   * @brief Function that returnes next TGeoVolume
   * @param  i Input bit number 'i'
   */
   TGeoVolume *GetNextVolume(Int_t i) const;
 
-  /** 
-   * @brief Function that returnes TGeoMaterial 
+  /**
+   * @brief Function that returnes TGeoMaterial
    * @param  i Input bit number 'i'
    */
   TGeoMaterial *GetMaterial(Int_t i) const;
