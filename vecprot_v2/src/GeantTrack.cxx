@@ -317,6 +317,35 @@ GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
 }
 
 //______________________________________________________________________________
+GeantTrack_v *GeantTrack_v::MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth)
+{
+   return new (addr) GeantTrack_v(addr,nTracks,maxdepth);
+}
+
+
+//______________________________________________________________________________
+GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth)
+    : fNtracks(0), fMaxtracks(nTracks), fNselected(0), fHoles(0), fSelected(0), fCompact(true),
+      fMixed(false), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0),
+      fEvslotV(0), fParticleV(0), fPDGV(0), fG5codeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
+      fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
+      fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0),
+      fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+
+// Constructor with maximum capacity.
+#ifdef __STAT_DEBUG_TRK
+  fStat.InitArrays(gPropagator->fNevents);
+#endif
+
+  fBuf = ((char*)addr) + sizeof(GeantTrack_v);
+  fBufSize = SizeOfInstance(nTracks, maxdepth);
+  memset(fBuf, 0, fBufSize);
+  AssignInBuffer(fBuf, nTracks);
+  memset(fPathV, 0, nTracks * sizeof(VolumePath_t *));
+  memset(fNextpathV, 0, nTracks * sizeof(VolumePath_t *));
+}
+
+//______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
     : fNtracks(0), fMaxtracks(track_v.fMaxtracks), fNselected(track_v.fNselected), fHoles(0),
       fSelected(0), fCompact(track_v.fCompact), fMixed(track_v.fMixed),
@@ -628,16 +657,25 @@ void GeantTrack_v::CheckTracks() {
 }
 
 //______________________________________________________________________________
+size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
+   // return the contiguous memory size needed to hold a GeantTrack_v
+
+   size_t size = round_up_align(nTracks);
+   size_t size_nav = 2 * size * VolumePath_t::SizeOfInstance(maxdepth);
+   size_t size_bits = 2 * BitSet::SizeOfInstance(size);
+
+   return size * sizeof(GeantTrack) + size_nav + size_bits;
+}
+
+//______________________________________________________________________________
 void GeantTrack_v::Resize(Int_t newsize) {
   // Resize the container.
   Int_t size = round_up_align(newsize);
-  Int_t size_nav = 2 * size * VolumePath_t::SizeOfInstance(fMaxDepth);
-  size_t size_bits = 2 * BitSet::SizeOfInstance(size);
   if (size < GetNtracks()) {
     Printf("Error: Cannot resize to less than current track content");
     return;
   }
-  fBufSize = size * sizeof(GeantTrack) + size_nav + size_bits;
+  fBufSize = SizeOfInstance(size, fMaxDepth);
   if (!fCompact)
     Compact();
 

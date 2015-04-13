@@ -581,6 +581,11 @@ private:
   /** @brief Operator = */
   GeantTrack_v &operator=(const GeantTrack_v &track_v);
 
+  /**
+   * @brief GeantTrack constructor based on a provided single buffer.
+   */
+   GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth);
+
 public:
 
   /** @brief GeantTrack_v constructor */
@@ -594,9 +599,18 @@ public:
    */
   GeantTrack_v(Int_t size, Int_t maxdepth);
 
+  /**
+   * @brief GeantTrack MakeInstance based on a provided single buffer.
+   */
+  GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth);
+
   /** @brief GeantTrack_v destructor */
   virtual ~GeantTrack_v();
-  
+
+
+  /** @brief return the contiguous memory size needed to hold a GeantTrack_v */
+  static size_t SizeOfInstance(size_t nTracks, size_t maxdepth);
+
   /** @brief  Function that returned buffer size  */
   size_t BufferSize() const { return fBufSize; }
 
