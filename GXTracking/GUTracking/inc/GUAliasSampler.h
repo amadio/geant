@@ -19,7 +19,7 @@
 
 #include "GUAliasTable.h"
 
-#define   CHECK   1
+//#define   CHECK   
 //  Uncomment to provide checking of indices and information about their failures
 
 namespace vecphys {
@@ -217,10 +217,11 @@ GatherAlias(typename Backend::Index_t    index,
   }
 #endif
   assert( (zElement > 0)  && (zElement <= fMaxZelement) );
-   
+
   int     intIndex= (int) index;
-  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
+   
 #ifdef CHECK
+  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
   // if( (intIndex < 0) || (intIndex > tableSize) )
   // {
   //    std::cout << " Illegal index = " << intIndex << " vs tablesize = " << tableSize << std::endl;
@@ -229,7 +230,7 @@ GatherAlias(typename Backend::Index_t    index,
   //           index    <min  >max       name    name Max
   INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
 #endif
-  assert( (intIndex >= 0) && (intIndex < tableSize) );
+  //  assert( (intIndex >= 0) && (intIndex < tableSize) );
 
   probNA=    fAliasTable[(int)zElement]->fProbQ[ intIndex ];
   aliasInd=  fAliasTable[(int)zElement]->fAlias[ intIndex ];
@@ -253,7 +254,7 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
     int z= zElement[i];
     int ind = index[i];
     assert( z > 0  && z <= fMaxZelement );
-    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
+    //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
 
     probNA[i]=    fAliasTable[z]->fProbQ[ ind ]; // (int) index[i] ];
     aliasInd[i]=  fAliasTable[z]->fAlias[ ind ]; // (int) index[i] ];

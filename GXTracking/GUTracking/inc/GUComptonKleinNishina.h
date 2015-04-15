@@ -324,7 +324,7 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
 	   energyIn,fMinX,fMaxX);
   }
 #endif 
-  assert( (energyIn >= fMinX)  && (energyIn <= fMaxX) );
+  //  assert( (energyIn >= fMinX)  && (energyIn <= fMaxX) );
   InteractKernel<Backend>(energyIn, targetElement, energyOut, sinTheta);
   
   //update final states of the primary and store the secondary
