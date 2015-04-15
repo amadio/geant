@@ -12,8 +12,8 @@ VECPHYS_CUDA_HEADER_BOTH
 GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId) 
   :
   fRandomState(states), fThreadId(threadId),
-  fMinX(1.), fMaxX(1001.), fDeltaX(0.1), 
-  fMinY(0.), fMaxY(1001.), fDeltaY(0.1),
+  fMinX(1.e-8),  fMaxX(1000.), // fDeltaX(0.1), 
+  // fMinY(1.e-8),  fMaxY(1001.), fDeltaY(0.1),
   fMaxZelement(100),       // Elements up to Z=100
   fNrow(100), fNcol(100) 
 {
@@ -36,8 +36,8 @@ GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId,
                                              GUAliasSampler* sampler) 
   :
   fRandomState(states), fThreadId(threadId),
-  fMinX(1.), fMaxX(1001.), fDeltaX(0.1), 
-  fMinY(0.), fMaxY(1001.), fDeltaY(0.1),
+  fMinX(1.e-8),  fMaxX(1000.), fDeltaX(0.1), 
+  // fMinY(1.e-8),  fMaxY(1001.), fDeltaY(0.1),  
   fNrow(100), fNcol(100) 
 {
   //replace hard coded numbers by default constants
