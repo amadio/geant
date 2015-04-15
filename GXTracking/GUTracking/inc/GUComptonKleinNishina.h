@@ -34,15 +34,13 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~GUComptonKleinNishina();
 
-  VECPHYS_CUDA_HEADER_BOTH
-  GUAliasSampler* GetSampler() {return fAliasSampler;}
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
+  // VECPHYS_CUDA_HEADER_BOTH
+  // void GetSampleParameters(double x, int &irow, int &icol,double &t);
+  //  --> Apparent method above is neither defined, nor used ... 
   
-  VECPHYS_CUDA_HEADER_BOTH
-  void GetSampleParameters(double x, int &irow, int &icol,double &t);
-
+  // Core Interface methods
+  // -------------------------------------------
+  
   // Generate secondaries 
   template <typename Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -65,23 +63,8 @@ public:
                 )const;     
 #endif
 
-  // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_BOTH
-  void BuildOneTable( int Z,
-                      const double xmin,
-                      const double xmax,
-                      const int nrow,
-                      const int ncol);
-  // QUESTION: This might depend on physics? So maybe we should place inside model? 
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void BuildPdfTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol,
-                     double *p);
-
+  // Core method(s)
+  // -------------------------------------------  
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
   InteractKernel(typename Backend::Double_t energyIn, 
@@ -90,19 +73,43 @@ public:
                  typename Backend::Double_t& sinTheta) const;
 
 
-  template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t
-  SampleSinTheta(typename Backend::Double_t energyIn,
-                 typename Backend::Double_t energyOut) const; 
-
-
+  // Alternative Implementation method(s) - for reference/comparisons
+  // ----------------------------------------------------------------
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void SampleByCompositionRejection(typename Backend::Double_t energyIn,
                                     typename Backend::Double_t& energyOut,
                                     typename Backend::Double_t& sinTheta);
 
+  //  Initialisation methods
+  // -------------------------------------------
+
+  // Initializes this class and its sampler 
+  VECPHYS_CUDA_HEADER_BOTH
+  void BuildOneTable( int Z,
+                      const double xmin,
+                      const double xmax,
+                      const int nrow,
+                      const int ncol);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void BuildPdfTable(int Z,
+                     const double xmin,
+                     const double xmax,
+                     const int nrow,
+                     const int ncol,
+                     double *p);
+  
+public:
+  // Auxiliary methods
+  VECPHYS_CUDA_HEADER_BOTH
+  GUAliasSampler* GetSampler() {return fAliasSampler;}
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
+
+public:
+  // Implementation methods - used to implement Interact
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void
@@ -113,6 +120,12 @@ public:
               typename Backend::Double_t &xr,
               typename Backend::Double_t &yr,
               typename Backend::Double_t &zr) const;
+
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t
+  SampleSinTheta(typename Backend::Double_t energyIn,
+                 typename Backend::Double_t energyOut) const; 
 
 private: 
   // Implementation methods 
@@ -135,13 +148,11 @@ private:
   Random_t* fRandomState;
   int       fThreadId;
 
-  Precision fMinX;   // E Minimum ?? - lowest energy for projectile ??
+  Precision fMinX;   // E Minimum - lowest energy for projectile
   Precision fMaxX;
-  Precision fDeltaX;
+  // Precision fDeltaX;
 
-  Precision fMinY;
-  Precision fMaxY;
-  Precision fDeltaY;
+  // Precision fMinY, fMaxY, fDeltaY;  // Energy limits for outgoing particles ? Not used
 
   Precision fMaxZelement; // 
   
