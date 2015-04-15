@@ -36,7 +36,7 @@ GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId,
                                              GUAliasSampler* sampler) 
   :
   fRandomState(states), fThreadId(threadId),
-  fMinX(1.e-8),  fMaxX(1000.), fDeltaX(0.1), 
+  fMinX(1.e-8),  fMaxX(1000.), // fDeltaX(0.1), 
   // fMinY(1.e-8),  fMaxY(1001.), fDeltaY(0.1),  
   fNrow(100), fNcol(100) 
 {
