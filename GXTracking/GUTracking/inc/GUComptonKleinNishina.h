@@ -135,7 +135,7 @@ private:
   Random_t* fRandomState;
   int       fThreadId;
 
-  Precision fMinX;
+  Precision fMinX;   // E Minimum ?? - lowest energy for projectile ??
   Precision fMaxX;
   Precision fDeltaX;
 
@@ -306,6 +306,15 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
 {
   double energyIn= inProjectile.E;
   double energyOut, sinTheta;
+#ifdef CHECK
+  if( (energyIn <= fMinX) || (energyIn > fMaxX) )
+  {
+     std::cout << " Illegal input Energy = " << energyIn
+               << " min= " << fMinX << " max= " << fMaxX
+               << std::endl;
+  }
+#endif 
+  assert( (energyIn >= fMinX)  && (energyIn <= fMaxX) );
   InteractKernel<Backend>(energyIn, targetElement, energyOut, sinTheta);
   
   //update final states of the primary and store the secondary
