@@ -195,10 +195,8 @@ SampleX(typename Backend::Double_t rangeSampled,
 
 #define INDEX_CHECK( AnIndex, BminVal, CmaxVal, DindexName, EmaxName ) \
    if( (AnIndex < BminVal) || (AnIndex > CmaxVal) ){                   \
-     std::cout << " Illegal " << DindexName << " = " << AnIndex        \
-               << " vs min = " << BminVal << " and "                   \
-               << " max ( " << EmaxName << ") = " << CmaxVal           \
-               << std::endl;  \
+     printf(" Illegal %s = %d vs min = %d and max ( %s ) = %d\n",      \
+	    DindexName,AnIndex,BminVal,EmaxName,CmaxVal);              \
    }
 
 // Scalar method - to be used ONLY for 'scalar-type' backends
@@ -215,7 +213,7 @@ GatherAlias(typename Backend::Index_t    index,
 #ifdef CHECK
   if( zElement <= 0  || zElement > fMaxZelement )
   {
-     std::cout << " Illegal zElement = " << zElement << std::endl;
+    printf(" Illegal zElement = %d\n",zElement);
   }
 #endif
   assert( (zElement > 0)  && (zElement <= fMaxZelement) );

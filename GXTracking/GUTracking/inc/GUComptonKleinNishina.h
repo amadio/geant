@@ -320,9 +320,8 @@ void GUComptonKleinNishina::Interact(GUTrack& inProjectile,
 #ifdef CHECK
   if( (energyIn <= fMinX) || (energyIn > fMaxX) )
   {
-     std::cout << " Illegal input Energy = " << energyIn
-               << " min= " << fMinX << " max= " << fMaxX
-               << std::endl;
+    printf(" Illegal input Energy = %f min = %f max = %f\n",
+	   energyIn,fMinX,fMaxX);
   }
 #endif 
   assert( (energyIn >= fMinX)  && (energyIn <= fMaxX) );
