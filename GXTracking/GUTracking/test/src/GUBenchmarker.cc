@@ -468,7 +468,13 @@ void GUBenchmarker::CheckRandom()
 
   double vctime =  timer.Elapsed();
 
-  std::cout << "vector sum  = " <<  c[0] + c[1] << std::endl;
+  double sumC= 0.0;
+  for (size_t i = 0; i <  Vc::Vector<Precision>::Size ; ++i) {
+     sumC += c[i]; 
+  }
+  
+  // std::cout << "vector sum  = " <<  c[0] + c[1] << std::endl;
+  std::cout << "vector sum  = " <<  sumC << std::endl;
 
   timer.Start();
 

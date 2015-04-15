@@ -9,7 +9,8 @@ constexpr double GeV = 1.0;
 constexpr double MeV = 0.001 * GeV;
 constexpr double KeV = 0.001 * MeV;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
   //default run
   int ntracks = 4992;
