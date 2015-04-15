@@ -19,6 +19,9 @@
 
 #include "GUAliasTable.h"
 
+#define   CHECK   1
+//  Uncomment to provide checking of indices and information about their failures
+
 namespace vecphys {
 
 VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
@@ -190,7 +193,7 @@ SampleX(typename Backend::Double_t rangeSampled,
   return x;
 }
 
-// General method - to be used for scalar-type' backends
+// Scalar method - to be used ONLY for 'scalar-type' backends
 //                  i.e. currently: scalar & CUDA
 template<class Backend>
 inline
@@ -201,16 +204,39 @@ GatherAlias(typename Backend::Index_t    index,
             typename Backend::Double_t  &aliasInd
            ) const
 {
-#if 0   
+  // typedef typename Backend::Double_t  Double_t;
+  // typedef typename Backend::Int_t     Int_t;
+#ifdef CHECK
   if( zElement <= 0  || zElement > fMaxZelement )
   {
      std::cout << " Illegal zElement = " << zElement << std::endl;
   }
-#endif     
-  assert( zElement > 0  && zElement <= fMaxZelement );
+#endif
+  assert( (zElement > 0)  && (zElement <= fMaxZelement) );
    
-  probNA=    fAliasTable[(int)zElement]->fProbQ[ (int) index ];
-  aliasInd=  fAliasTable[(int)zElement]->fAlias[ (int) index ];
+  int     intIndex= (int) index;
+  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
+#ifdef CHECK
+#define INDEX_CHECK( AnIndex, BminVal, CmaxVal, DindexName, EmaxName ) \
+   if( (AnIndex < BminVal) || (AnIndex > CmaxVal) ){                   \
+     std::cout << " Illegal " << DindexName << " = " << AnIndex        \
+               << " vs min = " << BminVal << " and "                   \
+               << " max ( " << EmaxName << ") = " << CmaxVal           \
+               << std::endl;  \
+   }
+
+  //           index    <min  >max       name    name Max
+  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
+   
+  // if( (intIndex < 0) || (intIndex > tableSize) )
+  // {
+  //    std::cout << " Illegal index = " << intIndex << " vs tablesize = " << tableSize << std::endl;
+  // }
+#endif
+  assert( (intIndex >= 0) && (intIndex < tableSize) );
+
+  probNA=    fAliasTable[(int)zElement]->fProbQ[ intIndex ];
+  aliasInd=  fAliasTable[(int)zElement]->fAlias[ intIndex ];
 }
 
 // Specialisation for all vector-type backends - Vc for now
@@ -225,15 +251,14 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
                  typename kVc::Double_t  &aliasInd
                 ) const 
 {
-
-   
   //gather for alias table lookups - (backend type has no ptr arithmetic)
   for(int i = 0; i < kVc::kSize ; ++i) 
   {
     int z= zElement[i];
     int ind = index[i];
     assert( z > 0  && z <= fMaxZelement );
-    
+    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
+
     probNA[i]=    fAliasTable[z]->fProbQ[ ind ]; // (int) index[i] ];
     aliasInd[i]=  fAliasTable[z]->fAlias[ ind ]; // (int) index[i] ];
   }
