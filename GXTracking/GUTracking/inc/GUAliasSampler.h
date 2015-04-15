@@ -193,6 +193,14 @@ SampleX(typename Backend::Double_t rangeSampled,
   return x;
 }
 
+#define INDEX_CHECK( AnIndex, BminVal, CmaxVal, DindexName, EmaxName ) \
+   if( (AnIndex < BminVal) || (AnIndex > CmaxVal) ){                   \
+     std::cout << " Illegal " << DindexName << " = " << AnIndex        \
+               << " vs min = " << BminVal << " and "                   \
+               << " max ( " << EmaxName << ") = " << CmaxVal           \
+               << std::endl;  \
+   }
+
 // Scalar method - to be used ONLY for 'scalar-type' backends
 //                  i.e. currently: scalar & CUDA
 template<class Backend>
@@ -204,8 +212,6 @@ GatherAlias(typename Backend::Index_t    index,
             typename Backend::Double_t  &aliasInd
            ) const
 {
-  // typedef typename Backend::Double_t  Double_t;
-  // typedef typename Backend::Int_t     Int_t;
 #ifdef CHECK
   if( zElement <= 0  || zElement > fMaxZelement )
   {
@@ -217,21 +223,13 @@ GatherAlias(typename Backend::Index_t    index,
   int     intIndex= (int) index;
   int     tableSize= fAliasTable[zElement]->SizeOfGrid();
 #ifdef CHECK
-#define INDEX_CHECK( AnIndex, BminVal, CmaxVal, DindexName, EmaxName ) \
-   if( (AnIndex < BminVal) || (AnIndex > CmaxVal) ){                   \
-     std::cout << " Illegal " << DindexName << " = " << AnIndex        \
-               << " vs min = " << BminVal << " and "                   \
-               << " max ( " << EmaxName << ") = " << CmaxVal           \
-               << std::endl;  \
-   }
-
-  //           index    <min  >max       name    name Max
-  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
-   
   // if( (intIndex < 0) || (intIndex > tableSize) )
   // {
   //    std::cout << " Illegal index = " << intIndex << " vs tablesize = " << tableSize << std::endl;
   // }
+  
+  //           index    <min  >max       name    name Max
+  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
 #endif
   assert( (intIndex >= 0) && (intIndex < tableSize) );
 
