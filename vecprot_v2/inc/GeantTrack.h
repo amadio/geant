@@ -612,6 +612,23 @@ public:
    * @param i2 Bit number 'i2'
    */
   static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
+  
+  /**
+   * @brief Implementation of memcpy skipping the alignment check.
+   */
+//   void *memcpy_align(void *dst, const void *src, size_t len) {return memcpy(dst,src,len);}
+  static void *memcpy_align(void *dst, const void *src, size_t len) 
+  __attribute__((always_inline)) 
+  {
+    return memcpy(dst,src,len);
+    size_t i;
+    long *d = (long *)dst;
+    const long *s = (const long *)src;
+    for (i=0; i<1+len/sizeof(long); ++i)
+      d[i] = s[i];
+    return dst;
+  }    
+
 #ifdef GEANT_CUDA_DEVICE_BUILD
   GEANT_CUDA_DEVICE_CODE
 
