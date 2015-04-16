@@ -3,36 +3,25 @@
 #include "GeantBasket.h"
 #include "GeantPropagator.h"
 
-//#include "TGeoMatrix.h"
 #include "TArrayI.h"
 #include "TGeoVolume.h"
 #include "TRandom.h"
-//#include "TGeoHelix.h"
 
 ClassImp(GeantThreadData)
 
 //______________________________________________________________________________
 GeantThreadData::GeantThreadData()
-    : TObject(), fMaxPerBasket(0), fNprocesses(0), fSizeDbl(0), fSizeBool(0), fVolume(0), fRndm(0),
-      fBoolArray(0), fDblArray(0), fProcStep(0),
-      fTrack(0), fPath(0), fBmgr(0) {
-  // I/O ctor.
-}
-
-//______________________________________________________________________________
-GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses)
-    : TObject(), fMaxPerBasket(maxperbasket), fNprocesses(maxprocesses), fSizeDbl(5 * maxperbasket),
-      fSizeBool(5 * maxperbasket), fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0),
-      fProcStep(0),
-      fTrack(0), fPath(0), fBmgr(0) {
+    : TObject(), fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), 
+      fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0), fTrack(0), 
+      fPath(0), fBmgr(0), fPool() {
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
-  fDblArray = new Double_t[fSizeDbl];
+  fNthreads = propagator->fNthreads;
+  fMaxDepth = propagator->fMaxDepth;
+  fSizeBool = fSizeDbl = 5 * propagator->fMaxPerBasket;
   fBoolArray = new Bool_t[fSizeBool];
-  fProcStep = new Double_t[fNprocesses * fMaxPerBasket];
-  //   fFieldPropagator = new TGeoHelix(1,1);
-  //   fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
-  fPath = VolumePath_t::MakeInstance(propagator->fMaxDepth);
+  fDblArray = new Double_t[fSizeDbl];
+  fPath = VolumePath_t::MakeInstance(fMaxDepth);
 }
 
 //______________________________________________________________________________
@@ -42,9 +31,6 @@ GeantThreadData::~GeantThreadData() {
   delete fRndm;
   delete[] fBoolArray;
   delete[] fDblArray;
-  delete[] fProcStep;
-  //   delete fFieldPropagator;
-  //   delete fRotation;
   VolumePath_t::ReleaseInstance(fPath);
 }
 
@@ -57,6 +43,7 @@ Double_t *GeantThreadData::GetDblArray(Int_t size) {
   Double_t *array = new Double_t[size];
   delete[] fDblArray;
   fDblArray = array;
+  fSizeDbl = size;
   return fDblArray;
 }
 
@@ -69,5 +56,34 @@ Bool_t *GeantThreadData::GetBoolArray(Int_t size) {
   Bool_t *array = new Bool_t[size];
   delete[] fBoolArray;
   fBoolArray = array;
+  fSizeBool = size;
   return fBoolArray;
 }
+
+//______________________________________________________________________________
+GeantBasket *GeantThreadData::GetNextBasket(int capacity) {
+  // Gets next free basket from the queue, or create one
+  if (fPool.empty()) return new GeantBasket(capacity, fMaxDepth);
+  GeantBasket *basket = fPool.back();
+  fPool.pop_back();
+  return basket;
+}  
+
+//______________________________________________________________________________
+void GeantThreadData::RecycleBasket(GeantBasket *b) {
+  // Recycle a basket.
+  fPool.push_back(b);
+}
+
+//______________________________________________________________________________
+void GeantThreadData::CleanBaskets(size_t ntoclean) {
+  // Clean a number of recycled baskets to free some memory
+  GeantBasket *b;
+  size_t ntodo = TMath::Min(fPool.size(), ntoclean);
+  for (size_t i=0; i<ntodo; i++) {
+    b = fPool.back();
+    delete b;
+    fPool.pop_back();
+  }
+}
+  

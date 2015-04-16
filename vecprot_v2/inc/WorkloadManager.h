@@ -58,8 +58,9 @@ protected:
   Int_t fNminThreshold;    /** Minimum number of tracks in a basket to trigger transport */
   Int_t fNqueued;          /** Number of chunks queued */
   Int_t *fBtogo;           /** Array of baskets to be processed in the next generation */
-  bool fStarted;         /** Start flag */
-  bool fStopped;         /** Stop flag */
+  Int_t fSchId;            /** Thread id for the scheduler */
+  bool fStarted;           /** Start flag */
+  bool fStopped;           /** Stop flag */
   Geant::priority_queue<GeantBasket *> *fFeederQ;      /** Queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *fTransportedQ; /** Queue of transported baskets */
   Geant::priority_queue<GeantBasket *> *fDoneQ;        /** Thread "all work done" queue */
@@ -131,6 +132,12 @@ public:
 
   /** @brief Function that returns main basket scheduler */
   GeantScheduler *GetScheduler() const { return fScheduler; }
+
+  /** @brief Get the scheduler thread id */
+  Int_t GetSchId() const { return fSchId; }
+
+  /** @brief Set scheduler thread id */
+  void SetSchId(Int_t id) { fSchId = id; }
 
   /** @brief Function that returns scheduler locker */
   condition_locker &GetSchLocker() { return fSchLocker; }

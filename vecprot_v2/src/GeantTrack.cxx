@@ -1341,7 +1341,7 @@ Int_t GeantTrack_v::PropagateStraight(Int_t ntracks, Double_t *crtstep) {
 }
 
 //______________________________________________________________________________
-void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid) {
+void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, GeantThreadData *td) {
   // Propagate the selected tracks with crtstep values. The method is to be called
   // only with  charged tracks in magnetic field. The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -1350,13 +1350,13 @@ void GeantTrack_v::PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int
   // - safety step (bdr=0)
   // - snext step (bdr=1)
   for (Int_t i = 0; i < ntracks; i++) {
-    PropagateInVolumeSingle(i, crtstep[i], tid);
+    PropagateInVolumeSingle(i, crtstep[i], td);
   }
 }
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t /*tid*/) {
+void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantThreadData */*td*/) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -2058,7 +2058,7 @@ TransportAction_t GeantTrack_v::PostponedAction(Int_t ntracks) const {
 }
 
 //______________________________________________________________________________
-Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
+Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantThreadData *td) {
   // Propagate the ntracks in the current volume with their physics steps (already
   // computed)
   // Vectors are pushed downstream when efficient.
@@ -2070,7 +2070,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
     return 0;
   }
   if (action != kVector)
-    return PropagateTracksScalar(output, tid, 0);
+    return PropagateTracksScalar(output, td, 0);
   // Compute transport length in geometry, limited by the physics step
   ComputeTransportLength(ntracks);
   //         Printf("====== After ComputeTransportLength:");
@@ -2082,9 +2082,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
   Double_t lmax;
   const Double_t eps = 1.E-2; // 100 micron
   const Double_t bmag = gPropagator->fBmag;
-  //   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  //   Int_t tid = nav->GetThreadId();
-  //   GeantThreadData *td = gPropagator->fThreadData[tid];
+
   // Remove dead tracks, propagate neutrals
   for (itr = 0; itr < ntracks; itr++) {
     // Mark dead tracks for copy/removal
@@ -2135,7 +2133,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
   case kDone:
     return icrossed;
   case kSingle:
-    icrossed += PropagateTracksScalar(output, tid, 1);
+    icrossed += PropagateTracksScalar(output, td, 1);
     return icrossed;
   case kPostpone:
     PostponeTracks(output);
@@ -2152,7 +2150,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
   // Take the maximum between the safety and the "bending" safety
   nsel = 0;
   ntracks = GetNtracks();
-  Double_t *steps = GeantPropagator::Instance()->fThreadData[tid]->GetDblArray(ntracks);
+  Double_t *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < fNtracks; itr++) {
     lmax = SafeLength(itr, eps);
     lmax = Math::Max(lmax, fSafetyV[itr]);
@@ -2166,7 +2164,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
     //      Printf("track %d: step=%g (safelen=%g)", itr, steps[itr], lmax);
   }
   // Propagate the vector of tracks
-  PropagateInVolume(ntracks, steps, tid);
+  PropagateInVolume(ntracks, steps, td);
   //         Printf("====== After PropagateInVolume:");
   //         PrintTracks();
   // Some tracks made it to physics steps (kPhysics)
@@ -2202,7 +2200,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
       Reshuffle();
     else
       DeselectAll();
-    Bool_t *same = GeantPropagator::Instance()->fThreadData[tid]->GetBoolArray(nsel);
+    Bool_t *same = td->GetBoolArray(nsel);
     NavIsSameLocation(nsel, fPathV, fNextpathV, same);
     for (itr = 0; itr < nsel; itr++) {
       if (same[itr])
@@ -2227,7 +2225,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, Int_t tid) {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, Int_t tid, Int_t stage) {
+Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, GeantThreadData *td, Int_t stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
@@ -2298,7 +2296,7 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, I
      step = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr] + 10 * gTolerance)
         : Math::Min(lmax, fPstepV[itr]);
      //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
-     PropagateInVolumeSingle(itr, step, tid);
+     PropagateInVolumeSingle(itr, step, td);
      //      Printf("====== After PropagateInVolumeSingle:");
      //      PrintTrack(itr);
      // The track may have made it to physics steps (kPhysics)
@@ -2339,14 +2337,14 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, I
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-Int_t GeantTrack_v::PropagateTracksScalar(GeantTrack_v &output, Int_t tid, Int_t stage) {
+Int_t GeantTrack_v::PropagateTracksScalar(GeantTrack_v &output, GeantThreadData *td, Int_t stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
   Int_t icrossed = 0;
   Int_t ntracks = GetNtracks();
   for (Int_t itr = 0; itr < ntracks; itr++) {
-     icrossed += PropagateSingleTrack(output, itr, tid, stage);
+     icrossed += PropagateSingleTrack(output, itr, td, stage);
   }
 //   Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
 //   PrintTracks();

@@ -173,7 +173,7 @@ public:
    * @param startevent Start event
    * @param startslot Start slot
    */
-  Int_t ImportTracks(Int_t nevents, Double_t average, Int_t startevent = 0, Int_t startslot = 0);
+  Int_t ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot, GeantThreadData *td);
   
   /** @brief Initialization function */
   void Initialize();
@@ -191,18 +191,18 @@ public:
    * 
    * @param ntracks Number of ttracks
    * @param tracks Vector of tracks 
-   * @param tid Thread id
+   * @param td Thread data
    */
-  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
   
   /**
    * @brief Apply multiple scattering process
    * 
    * @param ntracks Number of tracks
    * @param tracks Vector of tracks
-   * @param tid Thread id
+   * @param td Thread data
    */
-  void ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+  void ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
   //   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
   
   /**

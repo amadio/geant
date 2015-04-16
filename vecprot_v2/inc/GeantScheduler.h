@@ -33,6 +33,7 @@ class concurrent_queue;
 class GeantTrack;
 class GeantBasket;
 class GeantBasketMgr;
+class GeantThreadData;
 
 /**
  * @brief Class GeantScheduler
@@ -105,8 +106,9 @@ public:
    * @param ntot Total number of tracks
    * @param nnew Number of new tracks
    * @param nkilled Number of killed tracks
+   * @param td Thread data
    */
-  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantBasketMgr *prioritizer);
+  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantThreadData *td);
 
   /** @brief Function to adjust the basket size automatically */
   void AdjustBasketSize();

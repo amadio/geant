@@ -97,7 +97,8 @@ void GeantScheduler::ActivateBasketManagers()
   GeantPropagator *propagator = GeantPropagator::Instance();
   int nthreads = propagator->fNthreads;
   GeantThreadData **td = propagator->fThreadData;
-  for (auto i=0; i<nthreads; ++i) {
+  for (auto i=0; i<nthreads+1; ++i) {
+    if (!td[i]->fBmgr) continue;
     int ntoclean = td[i]->fBmgr->GetNqueued();
     //while (ntoclean>nthreads) {
       td[i]->fBmgr->CleanBaskets(ntoclean);  
@@ -198,7 +199,7 @@ Int_t GeantScheduler::AddTrack(GeantTrack &track) {
 }
 
 //______________________________________________________________________________
-Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantBasketMgr *prioritizer) {
+Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantThreadData *td) {
   // Main re-dispatch method. Add all tracks and inject baskets if above threshold.
   // Returns the number of injected baskets.
   Int_t ninjected = 0;
@@ -234,7 +235,7 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
     Int_t nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
     if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
-      ninjected += prioritizer->AddTrackSingleThread(tracks, itr, true);
+      ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, true);
       continue;
     }
     if (propagator->fLearnSteps && (nsteps%propagator->fLearnSteps)==0 &&
@@ -248,7 +249,7 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
     if (basket_mgr->IsActive()) 
       ninjected += basket_mgr->AddTrack(tracks, itr, priority);
     else 
-      ninjected += prioritizer->AddTrackSingleThread(tracks, itr, false);
+      ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, false);
   }
   tracks.Clear();
   return ninjected;

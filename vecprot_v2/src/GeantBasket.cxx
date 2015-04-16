@@ -33,6 +33,13 @@ GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
 }
 
 //______________________________________________________________________________
+GeantBasket::GeantBasket(Int_t size, Int_t depth)
+    : TObject(), fManager(0), fTracksIn(size, depth), fTracksOut(size, depth), 
+      fAddingOp(0), fThreshold(size) {
+  // Default constructor.
+}
+
+//______________________________________________________________________________
 GeantBasket::~GeantBasket() {
   // Destructor.
 }

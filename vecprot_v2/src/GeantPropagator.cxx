@@ -155,7 +155,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid) {
 
 //______________________________________________________________________________
 Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent,
-                                    Int_t startslot) {
+                                    Int_t startslot, GeantThreadData *thread_data) {
   // Import tracks from "somewhere". Here we just generate nevents.
   static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -165,17 +165,16 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
   using vecgeom::GeoManager;
 #endif
 
-  Int_t tid = TGeoManager::ThreadId();
-  if (tid > fNthreads)
-    Fatal("ImportTracks", "Thread id %d is too large (max %d)", tid, fNthreads);
-  GeantThreadData *td = fThreadData[tid];
   TGeoVolume *vol = 0;
-
-  //   const Double_t etamin = -3, etamax = 3;
   Int_t ntracks = 0;
   Int_t ntotal = 0;
   Int_t ndispatched = 0;
-
+  GeantThreadData *td = thread_data;
+  if (td == 0) {
+    Int_t tid = TGeoManager::ThreadId();
+    td = fThreadData[tid];
+    td->fTid = tid;
+  }  
   // the code below should be executed per track, as the primary vertex can change.
   if (!a) {
     a = VolumePath_t::MakeInstance(fMaxDepth);
@@ -190,7 +189,6 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
     if (!nav)
       nav = gGeoManager->AddNavigator();
     TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
-    // *td->fMatrix = nav->GetCurrentMatrix();
     vol = node->GetVolume();
     td->fVolume = vol;
     a->InitFromNavigator(nav);
@@ -216,9 +214,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
     init = kFALSE;
   Int_t event = startevent;
   for (Int_t slot = startslot; slot < startslot + nevents; slot++) {
-    //     ntracks = td->fRndm->Poisson(average);
     ntracks = fPrimaryGenerator->NextEvent();
-
     ntotal += ntracks;
     fNprimaries += ntracks;
     if (!fEvents[slot])
@@ -228,7 +224,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
     fEvents[slot]->Reset();
 
     for (Int_t i = 0; i < ntracks; i++) {
-      GeantTrack &track = GetTempTrack(tid);
+      GeantTrack &track = td->GetTrack();
       track.SetPath(a);
       track.SetNextPath(a);
       track.SetEvent(event);
@@ -300,7 +296,7 @@ void GeantPropagator::Initialize() {
   if (!fThreadData) {
     fThreadData = new GeantThreadData *[fNthreads + 1];
     for (Int_t i = 0; i < fNthreads + 1; i++)
-      fThreadData[i] = new GeantThreadData(fMaxPerBasket, 3);
+      fThreadData[i] = new GeantThreadData();
   }
   // Initialize application
   fApplication->Initialize();
@@ -344,19 +340,17 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, Int_t tid) {
+void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td) {
   // Apply multiple scattering for charged particles.
-  GeantThreadData *td = fThreadData[tid];
   TGeoMaterial *mat = 0;
   if (td->fVolume)
     mat = td->fVolume->GetMaterial();
-  fProcess->ApplyMsc(mat, ntracks, tracks, tid);
+  fProcess->ApplyMsc(mat, ntracks, tracks, td);
 }
 
 //______________________________________________________________________________
-void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid) {
+void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td) {
   // Generate all physics steps for the tracks in trackin.
-  GeantThreadData *td = fThreadData[tid];
   // Reset the current step length to 0
   for (Int_t i = 0; i < ntracks; ++i) {
     tracks.fStepV[i] = 0.;
@@ -365,7 +359,7 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid
   TGeoMaterial *mat = 0;
   if (td->fVolume)
     mat = td->fVolume->GetMaterial();
-  fProcess->ComputeIntLen(mat, ntracks, tracks, 0, tid);
+  fProcess->ComputeIntLen(mat, ntracks, tracks, 0, td);
 }
 
 //______________________________________________________________________________
@@ -413,7 +407,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     memset(fEvents, 0, fNevents * sizeof(GeantEvent *));
   }
 
-  ImportTracks(fNevents, fNaverage, 0, 0);
+  ImportTracks(fNevents, fNaverage, 0, 0, 0);
 
   // Initialize tree
   fOutput = new GeantOutput();

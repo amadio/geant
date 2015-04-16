@@ -79,6 +79,7 @@ enum Species_t { kHadron, kLepton };
 class TGeoMaterial;
 class TGeoVolume;
 class GeantTrack_v;
+class GeantThreadData;
 
 /**
  * @brief Class GeantTrack
@@ -960,8 +961,8 @@ public:
    * @param crtstep ??????
    * @param tid Track ID
    */
-  void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, Int_t tid);
-  GEANT_CUDA_BOTH_CODE
+  void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, GeantThreadData *td);
+  GEANT_CUDA_DEVICE_CODE
 
   /**
    * @brief Function of propagation of track in volume
@@ -970,7 +971,7 @@ public:
    * @param crtstep ???????
    * @param tid Track ID
    */
-  void PropagateInVolumeSingle(Int_t i, Double_t crtstep, Int_t tid);
+  void PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantThreadData *td);
 
   /**
    * @brief Popagation function in straight trajectories
@@ -986,14 +987,13 @@ public:
    * @param output Output array of tracks
    * @param tid Track ID
    */
-  Int_t PropagateTracks(GeantTrack_v &output, Int_t tid);
-
-
-  GEANT_CUDA_BOTH_CODE
-  Int_t PropagateTracksScalar(GeantTrack_v &output, Int_t tid, Int_t stage = 0);
+  Int_t PropagateTracks(GeantTrack_v &output, GeantThreadData *td);
 
   GEANT_CUDA_BOTH_CODE
-  Int_t PropagateSingleTrack(GeantTrack_v &output, Int_t itr, Int_t tid, Int_t stage);
+  Int_t PropagateTracksScalar(GeantTrack_v &output, GeantThreadData *td, Int_t stage = 0);
+
+  GEANT_CUDA_BOTH_CODE
+  Int_t PropagateSingleTrack(GeantTrack_v &output, Int_t itr, GeantThreadData *td, Int_t stage);
 
   /**
    * @brief Resize function

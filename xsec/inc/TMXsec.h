@@ -29,6 +29,7 @@
 
 class TPDecay;
 class GeantTrack_v;
+class GeantThreadData;
 
 class TMXsec {
 
@@ -51,15 +52,15 @@ public:
    void  Eloss(Int_t ntracks, GeantTrack_v &tracks);
    GEANT_CUDA_DEVICE_CODE
    void  ElossSingle(Int_t itrack, GeantTrack_v &tracks);
-   void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
-   void	ProposeStepSingle(Int_t itr, GeantTrack_v &tracks, Int_t tid);
-   void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid);
-   void	SampleSingleInt(Int_t itr, GeantTrack_v &tracksin, Int_t tid);
+   void	ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+   void	ProposeStepSingle(Int_t itr, GeantTrack_v &tracks, GeantThreadData *td);
+   void	SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantThreadData *td);
+   void	SampleSingleInt(Int_t itr, GeantTrack_v &tracksin, GeantThreadData *td);
    GEANT_CUDA_DEVICE_CODE
    Float_t MS(Int_t ipart, Float_t energy);
 
    TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptotal);
-   Int_t SampleElement(Int_t tid); // based on # atoms/vol. for the prototype
+   Int_t SampleElement(GeantThreadData *td); // based on # atoms/vol. for the prototype
    Int_t SampleElement(); // based on # atoms/vol. for Geant4 with tab.phys. 
 
    Int_t SelectElement(Int_t pindex, Int_t rindex, Double_t energy);

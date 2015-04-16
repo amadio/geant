@@ -28,21 +28,21 @@ public:
   virtual ~TTabPhysProcess() {}
 
   virtual void Initialize();
-  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, Int_t tid);
+  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, GeantThreadData *td);
 
   // # dummy method: PostStep has been splitted up into two parts (see below)     
   virtual void PostStep( TGeoMaterial* /*mat*/ , 
                          Int_t /*ntracks*/, 
                          GeantTrack_v& /*tracks */,
                          Int_t& /*nout*/,
-                         Int_t /*tid*/) {}
+                         GeantThreadData */*td*/) {}
 
   // # smapling: -target atom and type of the interaction for each primary tracks 
   //             -all inf. regarding sampling output is stored in the tracks
   virtual void PostStepTypeOfIntrActSampling( TGeoMaterial *mat,
                                               Int_t ntracks, 
                                               GeantTrack_v &tracks, 
-                                              Int_t tid);
+                                              GeantThreadData *td);
 
   // # sampling final states for each primary tracks based on target atom and
   //    interaction type sampled by PostStepTypeOfIntrActSampling;
@@ -52,14 +52,14 @@ public:
                                            Int_t ntracks, 
                                            GeantTrack_v &tracks,
                                            Int_t &nout, 
-                                           Int_t tid);
+                                           GeantThreadData *td);
 
 
-  virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantThreadData *td);
   GEANT_CUDA_DEVICE_CODE
-  virtual void Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, Int_t tid);
+  virtual void Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantThreadData *td);
   GEANT_CUDA_DEVICE_CODE
-  virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid);
+  virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
 
 private:
    TTabPhysProcess(const TTabPhysProcess &);//no imp.	

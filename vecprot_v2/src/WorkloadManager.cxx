@@ -32,8 +32,8 @@ ClassImp(WorkloadManager)
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(Int_t nthreads)
     : TObject(), fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0),
-      fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fStarted(false),
-      fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
+      fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fSchId(nthreads), 
+      fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
       fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0), 
       fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0),
       fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker() {
@@ -180,7 +180,16 @@ void WorkloadManager::WaitWorkers() {
 void *WorkloadManager::MainScheduler(void *) {
   // Garbage collector thread, called by a single thread.
   GeantPropagator *propagator = GeantPropagator::Instance();
-
+  WorkloadManager *wm = WorkloadManager::Instance();
+  condition_locker &sched_locker = wm->GetSchLocker();
+  condition_locker &gbc_locker = wm->GetGbcLocker();
+  // Wait for the start signal
+//  sched_locker.Wait();
+  Int_t tid = TGeoManager::ThreadId();
+  wm->SetSchId(tid);
+  Printf("=== Scheduler thread %d created ===", tid);
+  GeantThreadData *td = propagator->fThreadData[tid];
+  td->fTid = tid;
   Int_t nworkers = propagator->fNthreads;
   //   Int_t naverage = propagator->fNaverage;
   //   Int_t maxperevent = propagator->fMaxPerEvent;
@@ -192,7 +201,6 @@ void *WorkloadManager::MainScheduler(void *) {
   TBits finished(max_events);
   Bool_t prioritize = false;
   Bool_t countdown = false;
-  WorkloadManager *wm = WorkloadManager::Instance();
   if (wm->fBroker)
     nworkers -= wm->fBroker->GetNstream();
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
@@ -220,8 +228,6 @@ void *WorkloadManager::MainScheduler(void *) {
   //   GeantBasket *output;
   //   GeantBasket **carray = new GeantBasket*[500];
   waiting[nworkers] = 1;
-  condition_locker &sched_locker = wm->GetSchLocker();
-  condition_locker &gbc_locker = wm->GetGbcLocker();
   ProcInfo_t procInfo;
   Double_t rss;
   const Double_t MByte = 1024.;
@@ -276,7 +282,7 @@ void *WorkloadManager::MainScheduler(void *) {
         finished.SetBitNumber(evt->GetEvent());
         if (last_event < max_events) {
           Printf("=> Importing event %d", last_event);
-          ninjected += propagator->ImportTracks(1, propagator->fNaverage, last_event, ievt);
+          ninjected += propagator->ImportTracks(1, propagator->fNaverage, last_event, ievt, td);
           last_event++;
         }
       }
@@ -409,6 +415,8 @@ void *WorkloadManager::TransportTracks(void *) {
   Printf("=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantThreadData *td = propagator->fThreadData[tid];
+  td->fTid = tid;
+  Int_t nworkers = propagator->fNthreads;
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
   Int_t *nvect = sch->GetNvect();
@@ -419,6 +427,8 @@ void *WorkloadManager::TransportTracks(void *) {
   TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
   condition_locker &sched_locker = wm->GetSchLocker();
+  // The last worker wakes the scheduler
+  if (tid == nworkers-1) sched_locker.StartOne();
   //   Int_t nprocesses = propagator->fNprocesses;
   //   Int_t ninput, noutput;
   //   Bool_t useDebug = propagator->fUseDebug;
@@ -470,9 +480,9 @@ void *WorkloadManager::TransportTracks(void *) {
     }
     // Select the discrete physics process for all particles in the basket
     if (propagator->fUsePhysics) {
-      propagator->ProposeStep(ntotransport, input, tid);
+      propagator->ProposeStep(ntotransport, input, td);
       // Apply msc for charged tracks
-      propagator->ApplyMsc(ntotransport, input, tid);
+      propagator->ApplyMsc(ntotransport, input, td);
     }
 
     ncross = 0;
@@ -485,9 +495,9 @@ void *WorkloadManager::TransportTracks(void *) {
       //         input.PrintTracks();
       // Propagate all remaining tracks
       if (basket->IsMixed())
-        ncross += input.PropagateTracksScalar(output, tid);
+        ncross += input.PropagateTracksScalar(output, td);
       else
-        ncross += input.PropagateTracks(output, tid);
+        ncross += input.PropagateTracks(output, td);
       ntotransport = input.GetNtracks();
     }
     // All tracks are now in the output track vector. Possible statuses:
@@ -509,7 +519,7 @@ void *WorkloadManager::TransportTracks(void *) {
       if (nphys)
         propagator->fNphysSteps += nphys;
 
-      propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, tid);
+      propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, td);
       //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
       // Now we may also have particles killed by energy threshold
       // Do post-step actions on remaining particles
@@ -524,7 +534,7 @@ void *WorkloadManager::TransportTracks(void *) {
           // Surviving particles are added to the output array
 
           // first: sample target and type of interaction for each primary tracks
-          propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, tid);
+          propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, td);
 
 //
 // TODO: vectorized final state sampling can be inserted here through
@@ -542,12 +552,12 @@ void *WorkloadManager::TransportTracks(void *) {
 //
 #if USE_VECPHYS == 1
           propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output,
-                                                                        ntotnext, tid);
+                                                                        ntotnext, td);
 #endif
           // second: sample final states (based on the inf. regarding sampled
           //         target and type of interaction above), insert them into
           //         the track vector, update primary tracks;
-          propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, tid);
+          propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
           if (0 /*ntotnext*/) {
             printf("============= Basket: %s\n", basket->GetName());
@@ -573,7 +583,7 @@ void *WorkloadManager::TransportTracks(void *) {
     sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
 #endif
     //      ninjected =
-    sch->AddTracks(basket, ntot, nnew, nkilled, prioritizer);
+    sch->AddTracks(basket, ntot, nnew, nkilled, td);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
     sched_locker.StartOne();
@@ -612,7 +622,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   td->fBmgr = nullptr; // prioritizer;
   // prioritizer->SetThreshold(propagator->fNperBasket);
   // prioritizer->SetFeederQueue(wm->FeederQueue());
-  TGeoMaterial *mat = 0;
+  // TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
   condition_locker &sched_locker = wm->GetSchLocker();
   // Int_t nprocesses = propagator->fNprocesses;
@@ -688,10 +698,10 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     //      Printf("==========================================");
     //      propagator->fTracksPerBasket[tid] = ntotransport;
     td->fVolume = 0;
-    mat = 0;
+    //mat = 0;
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
-      mat = td->fVolume->GetMaterial();
+      //mat = td->fVolume->GetMaterial();
       if (ntotransport < 257) nvect[ntotransport] += ntotransport;
     } else {
       nvect[1] += ntotransport;
@@ -827,14 +837,19 @@ void WorkloadManager::SetMonitored(EGeantMonitoringType feature, bool flag)
   switch (feature) {
     case kMonQueue:
       fMonQueue = value;
+      break;
     case kMonMemory:
       fMonMemory = value;
+      break;
     case kMonBasketsPerVol:
       fMonBasketsPerVol = value;
+      break;
     case kMonVectors:
-      fMonVectors = value;  
+      fMonVectors = value;
+      break;
     case kMonConcurrency:
       fMonConcurrency = value;
+      break;
     case kMonTracksPerEvent:
       fMonTracksPerEvent = value;
   }

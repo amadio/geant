@@ -264,7 +264,7 @@ void TTabPhysMgr::TransformLF(Int_t /*indref*/, GeantTrack_v &/*tracks*/,
 // NOT ACTIVE NOW
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
+void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td){
 // Compute MSC angle at the beginning of the step and apply it to the vector
 // of tracks.
 // Input: material index, number of tracks in the tracks vector to be used
@@ -282,8 +282,8 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
    Double_t msPhi;
 
 #ifndef GEANT_CUDA_DEVICE_BUILD
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+   Double_t *rndArray = td->fDblArray;
+   td->fRndm->RndmArray(ntracks, rndArray);
 #else
    Double_t *rndArray = 0; // NOTE: we need to get it from somewhere ....
    VECGEOM_NAMESPACE::RNG::Instance().uniform_array(ntracks,rndArray,0.,1.);
@@ -325,7 +325,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td)
 {
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
@@ -345,7 +345,7 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
      for(Int_t i = 0; i < ntracks; ++i)
        if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
          GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
-                          nTotSecPart, tid);
+                          nTotSecPart, td);
        return nTotSecPart;                   
    }
    // Mixed tracks in different volumes
@@ -355,14 +355,14 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
      //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
       if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
         GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
-                          nTotSecPart, tid);
+                          nTotSecPart, td);
    }                       
 
    return nTotSecPart;
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td)
 {
 // Sample free flight/proposed step for the firts ntracks tracks and store them 
 // in tracks.fPstepV  
@@ -374,13 +374,13 @@ void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tr
    }   
 #endif
    if (mxs) {
-     mxs->ProposeStep(ntracks, tracks, tid);
+     mxs->ProposeStep(ntracks, tracks, td);
      return;
    }
    // Mixed tracks in different volumes
    for(Int_t i = 0; i < ntracks; ++i){
      mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
-     mxs->ProposeStepSingle(i, tracks, tid);
+     mxs->ProposeStepSingle(i, tracks, td);
    }   
 }
 
@@ -397,7 +397,7 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
 // smapling: target atom and type of the interaction for each primary tracks
 //______________________________________________________________________________
 void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks,
-                                            GeantTrack_v &tracks, Int_t tid)
+                                            GeantTrack_v &tracks, GeantThreadData *td)
 {
    TGeoMaterial *mat = 0;
    TMXsec *mxs = 0;
@@ -410,20 +410,20 @@ void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks,
    //             b. if else then what on what target?
    //   output of sampling is stored in the tracks 	
    if (mxs) {
-     mxs->SampleInt(ntracks, tracks, tid);
+     mxs->SampleInt(ntracks, tracks, td);
      return;
    }
    // Mixed tracks in different volumes
    for(Int_t i = 0; i < ntracks; ++i){
      mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
-     mxs->SampleSingleInt(i, tracks, tid);
+     mxs->SampleSingleInt(i, tracks, td);
    }  
 }
 
 
 //______________________________________________________________________________
 Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, 
-                                     GeantTrack_v &tracks, Int_t tid)
+                                     GeantTrack_v &tracks, GeantThreadData *td)
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
    Double_t energyLimit = propagator->fEmin;
@@ -436,8 +436,8 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
    }  
  
    // tid-based rng
-   Double_t *rndArray = propagator->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
+   Double_t *rndArray = td->fDblArray;
+   td->fRndm->RndmArray(2*ntracks, rndArray);
 
    Int_t nTotSecPart  = 0;  //total number of secondary particles in tracks
    
@@ -465,7 +465,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
       tracks.fStatusV[t] = kKilled;
       // sample in-flight decay final state 
       SampleDecayInFlight(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, 
-                          nTotSecPart, tid);            
+                          nTotSecPart, td);            
       continue;
     }
 
@@ -555,7 +555,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
         // if the primary is stopped i.e. Ekin <= 0 then call at-rest if it has 
         if( isSurv && postEkinOfParimary<=0.0 && HasRestProcess(tracks.fG5codeV[t]) ) 
           GetRestFinStates(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, 
-                           nTotSecPart, tid);  
+                           nTotSecPart, td);  
       }
       
       if(isSurv) j=1;
@@ -593,7 +593,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
         Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if(secEkin >= energyLimit) { //insert secondary into OUT tracks_v and rotate 
-          GeantTrack &gTrack = propagator->GetTempTrack(tid);
+          GeantTrack &gTrack = td->GetTrack();
 //          GeantTrack gTrack;
           //set the new track properties
           gTrack.fEvent    = tracks.fEventV[t];
@@ -639,7 +639,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
           tracks.fEdepV[t]   += secEkin;    //add the Ekin of this secondary to the energy depositon	
           // is secEkin <=0 then call at-rest process if the sec. particle has any     
           if( secEkin<=0.0 && HasRestProcess(pid[i]) )
-            GetRestFinStates(pid[i], mxs, energyLimit, tracks, t, nTotSecPart, tid); 
+            GetRestFinStates(pid[i], mxs, energyLimit, tracks, t, nTotSecPart, td); 
         } 
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
@@ -653,7 +653,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
 
 /*
 //______________________________________________________________________________
-Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Int_t tid)
+Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td)
 {
 // 0. ntracks contains particles with status of Alive 
 // 1.Sampling the element of the material for interaction based on the relative 
@@ -672,13 +672,13 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 // be updated (if they have been killed) 
 
    // # smapling: target atom and type of the interaction for each primary tracks
-   SampleTypeOfInteractions(imat, ntracks, tracks, tid);
+   SampleTypeOfInteractions(imat, ntracks, tracks, td);
 
    // # sampling final states for each primary tracks based on target atom and
    //    interaction type sampled in SampleTypeOfInteractionsInt;
    // # upadting primary track properties and inserting secondary tracks;
    // # return: number of inserted secondary tracks  
-   return SampleFinalStates(imat, ntracks, tracks, tid);
+   return SampleFinalStates(imat, ntracks, tracks, td);
 }
 */
 
@@ -688,15 +688,12 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, In
 GEANT_CUDA_DEVICE_CODE
 void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack,
-        Int_t &nTotSecPart, Int_t tid) {
+        Int_t &nTotSecPart, GeantThreadData *td) {
    // current track should have already been killed before calling  
    const Double_t mecc = 0.00051099906; //e- mass c2 in [GeV] 
-
-   GeantPropagator *propagator =  GeantPropagator::Instance();
-   
    Double_t rndArray[3];
 #ifndef GEANT_CUDA_DEVICE_BUILD
-   propagator->fThreadData[tid]->fRndm->RndmArray(3, rndArray);
+   td->fRndm->RndmArray(3, rndArray);
 #else
    VECGEOM_NAMESPACE::RNG::Instance().uniform_array(3,rndArray,0.,1.);
 #endif
@@ -720,7 +717,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 
     // need to do it one-by-one 
     // 1. gamma   
-       GeantTrack &gTrack1 = propagator->GetTempTrack(tid);
+       GeantTrack &gTrack1 = td->GetTrack();
        //set the new track properties: 2 gamma with m_{e}*c*c
        gTrack1.fEvent   = tracks.fEventV[iintrack];
        gTrack1.fEvslot  = tracks.fEvslotV[iintrack];
@@ -779,7 +776,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
    } else {
      // It has nuclear capture at rest so invoke that
      // sample one element of the material
-     TEFstate *elemfstate = fElemFstate[mxs->SampleElement(tid)];
+     TEFstate *elemfstate = fElemFstate[mxs->SampleElement(td)];
      // stample final state for nuclear capture at-rest
      isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weight, kerma,
                                                ener, pid, mom, rndArray[0]);
@@ -837,7 +834,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
      Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
      // Ekin of the i-th secondary is higher than the threshold
      if(secEkin > energyLimit) { //insert secondary into tracks_v 
-       GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
+       GeantTrack &gTrack = td->GetTrack();
       //set the new track properties
        gTrack.fEvent    = tracks.fEventV[iintrack];
        gTrack.fEvslot   = tracks.fEvslotV[iintrack];
@@ -883,7 +880,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        tracks.fEdepV[iintrack] += secEkin;
        // check if it is a stopped particle and call at-rest sampling if necessary
        if( secEkin<=0.0 && HasRestProcess(pid[i]) )
-         GetRestFinStates(pid[i], mxs, energyLimit, tracks, iintrack, nTotSecPart, tid);  //RECURSION
+         GetRestFinStates(pid[i], mxs, energyLimit, tracks, iintrack, nTotSecPart, td);  //RECURSION
      } 
    }//end loop over the secondaries
 }
@@ -891,7 +888,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 //______________________________________________________________________________
 void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs, 
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
-        Int_t &nTotSecPart, Int_t tid ) {
+        Int_t &nTotSecPart, GeantThreadData *td ) {
     Int_t nSecPart     = 0;  //number of secondary particles per reaction
     const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
     const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
@@ -947,7 +944,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
        Double_t secPtot = Math::Sqrt((secEtot-secMass)*(secEtot+secMass));
        Double_t secEkin = secEtot-secMass;
        if(secEkin > energyLimit) { //insert secondary into tracks_v 
-         GeantTrack &gTrack = GeantPropagator::Instance()->GetTempTrack(tid);
+         GeantTrack &gTrack = td->GetTrack();
          //set the new track properties
          gTrack.fEvent    = tracks.fEventV[iintrack];
          gTrack.fEvslot   = tracks.fEvslotV[iintrack];
@@ -990,7 +987,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
          tracks.fEdepV[iintrack] += secEkin;
          // check if it is a stopped particle and call at-rest sampling if necessary
          if( secEkin<=0.0 && HasRestProcess(pid[isec]) )
-           GetRestFinStates(pid[isec], mxs, energyLimit, tracks, iintrack, nTotSecPart, tid); 
+           GetRestFinStates(pid[isec], mxs, energyLimit, tracks, iintrack, nTotSecPart, td); 
        }
      }// end loop over secondaries
    }// end if has secondaries                   

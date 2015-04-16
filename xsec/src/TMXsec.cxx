@@ -328,13 +328,13 @@ Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Do
 */
 
 //______________________________________________________________________________
-void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
+void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td){
 // Propose step for the first ntracks in the input vector of tracks and write to
 // tracks.fPstepV[]
 
    // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(ntracks, rndArray);
+   Double_t *rndArray = td->fDblArray;
+   td->fRndm->RndmArray(ntracks, rndArray);
 
    for (Int_t i=0; i<ntracks; ++i) {
      Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
@@ -388,13 +388,13 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, Int_t tid){
 }
 
 //______________________________________________________________________________
-void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, Int_t tid){
+void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, GeantThreadData *td){
 // Propose step for a single track in the input vector of tracks and write to
 // tracks.fPstepV[]
 
    // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
-   Double_t *rndArray = GeantPropagator::Instance()->fThreadData[tid]->fDblArray;
-   GeantPropagator::Instance()->fThreadData[tid]->fRndm->RndmArray(1, rndArray);
+   Double_t *rndArray = td->fDblArray;
+   td->fRndm->RndmArray(1, rndArray);
 
    Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
    Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
@@ -797,13 +797,12 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptot) {
 }
 
 //____________________________________________________________________________
-void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
+void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantThreadData *td){
    Int_t nParticleWithReaction = TPartIndex::I()->NPartReac(); 
 
    // tid-based rng
-   GeantPropagator *prop = GeantPropagator::Instance();
-   Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
-   prop->fThreadData[tid]->fRndm->RndmArray(2*ntracks, rndArray);
+   Double_t *rndArray = td->fDblArray;
+   td->fRndm->RndmArray(2*ntracks, rndArray);
 
    for(Int_t t=0; t<ntracks; ++t) {
 /*
@@ -851,7 +850,7 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
 	   Double_t xrat = (en2-energy)/(en2-en1);
 	   Double_t xnorm = 1.;
            while(iel<0) {
-	     Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
+	     Double_t ran = xnorm*td->fRndm->Rndm();
 	     Double_t xsum=0;
 	     for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
 	        xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
@@ -884,14 +883,13 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, Int_t tid){
 }
 
 //____________________________________________________________________________
-void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, Int_t tid){
+void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, GeantThreadData *td){
 // Sample the interaction for a single particle at a time.
    Int_t nParticleWithReaction = TPartIndex::I()->NPartReac(); 
 
    // tid-based rng
-   GeantPropagator *prop = GeantPropagator::Instance();
-   Double_t *rndArray = prop->fThreadData[tid]->fDblArray;
-   prop->fThreadData[tid]->fRndm->RndmArray(2, rndArray);
+   Double_t *rndArray = td->fDblArray;
+   td->fRndm->RndmArray(2, rndArray);
 /*
    if(tracksin.fEindexV[t] < 0){ // continous step limited this step 
        tracksin.fProcessV[t] = -1; // nothing  	 
@@ -936,7 +934,7 @@ void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, Int_t tid){
          Double_t xrat = (en2-energy)/(en2-en1);
 	      Double_t xnorm = 1.;
          while(iel<0) {
-           Double_t ran = xnorm*prop->fThreadData[tid]->fRndm->Rndm();
+           Double_t ran = xnorm*td->fRndm->Rndm();
            Double_t xsum=0;
            for(Int_t i=0; i<fNElems; ++i) { // simple sampling from discrete p.
 	          xsum+=xrat*fRelXS[ibin*fNElems+i]+(1-xrat)*fRelXS[(ibin+1)*fNElems+i];
@@ -969,9 +967,9 @@ void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, Int_t tid){
 
 // sample one of the elements based on #atoms/volue 
 //______________________________________________________________________________
-Int_t TMXsec::SampleElement(Int_t tid){
+Int_t TMXsec::SampleElement(GeantThreadData *td){
    if( fNElems > 1){
-     Double_t randn = GeantPropagator::Instance()->fThreadData[tid]->fRndm->Rndm();      
+     Double_t randn = td->fRndm->Rndm();      
      for(Int_t itr=0; itr<fNElems; ++itr)
         if(fRatios[itr]>randn)
           return  fElems[itr]->Index();// TTabPhysMgr index of the sampled elemet

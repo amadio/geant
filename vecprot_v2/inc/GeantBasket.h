@@ -67,6 +67,14 @@ public:
    * @param mgr  Basket manager handling this basket
    */
   GeantBasket(Int_t size, GeantBasketMgr *mgr);
+
+  /**
+   * @brief GeantBasket standard constructor 
+   * 
+   * @param size Initial size of input/output track arrays
+   * @param depth Maximum geometry depth
+   */
+  GeantBasket(Int_t size, Int_t depth);
   
   /** @brief GeantBasket destructor */
   virtual ~GeantBasket();
@@ -138,6 +146,11 @@ public:
    * @return Pointer to manager of the basket
    */
   GeantBasketMgr *GetBasketMgr() const { return fManager; }
+
+  /**
+   * @brief Function setting the manager of the basket
+   */
+  void SetBasketMgr(GeantBasketMgr *mgr) { fManager = mgr; }
   
   /**
    * @brief Function for defining basket transportability threshold
