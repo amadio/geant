@@ -446,7 +446,7 @@ install(FILES
   DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 # Install headers and libraries
-foreach(FOLDER base benchmarking src backend)
+foreach(FOLDER core/backend core/base src test)
   install(DIRECTORY ${FOLDER} DESTINATION ${INSTALL_INCLUDE_DIR})
 endforeach()
 install(TARGETS vecphys DESTINATION ${INSTALL_LIB_DIR})
