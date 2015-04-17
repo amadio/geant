@@ -147,7 +147,7 @@ public:
    * 
    * @param track Track that should be dispatched
    */
-  Int_t DispatchTrack(GeantTrack &track);
+  Int_t DispatchTrack(GeantTrack &track, GeantThreadData *td);
 
   /**
    * @brief  Function for marking a track as stopped

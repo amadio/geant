@@ -94,7 +94,7 @@ public:
    * 
    * @param track Track to be scheduled
    */
-  Int_t AddTrack(GeantTrack &track);
+  Int_t AddTrack(GeantTrack &track, GeantThreadData *td);
 
   /**
    * @brief Re-schedule all tracks from an output basket
@@ -116,17 +116,14 @@ public:
   /** @brief Function to create initially baskets */
   void CreateBaskets();
 
-  /** @brief Function to clean baskets */
-  void CleanBaskets();
-
   /** 
    * @brief Function to collect all tracks from prioritized events 
    * @param collector Garbage collector (one per worker thread)
    */
-  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector);
+  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector, GeantThreadData *td);
 
   /** @brief Function to collection prioritized tracks and inject into transport queue */
-  Int_t CollectPrioritizedTracks();
+  Int_t CollectPrioritizedTracks(GeantThreadData *td);
 
   /**
    * @brief Getter for the array of basket managers
@@ -231,7 +228,7 @@ public:
   Int_t FlushPriorityBaskets();
 
   /** @brief Garbage collection function */
-  Int_t GarbageCollect();
+  Int_t GarbageCollect(GeantThreadData *td);
 
   /** @brief Function to print size */
   void PrintSize() const;

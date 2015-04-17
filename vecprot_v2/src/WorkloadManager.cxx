@@ -354,7 +354,7 @@ void *WorkloadManager::MainScheduler(void *) {
         sch->GetQueuedStat().Print();
         sch->GetTransportStat().Print();
 #endif
-        ninjected += sch->CollectPrioritizedTracks();
+        ninjected += sch->CollectPrioritizedTracks(td);
 #ifdef __STAT_DEBUG
         Printf("After CollectPrioritizedTracks:");
         sch->GetPendingStat().Print();
@@ -374,7 +374,7 @@ void *WorkloadManager::MainScheduler(void *) {
     ntotransport = feederQ->size_async();
     if (ntotransport == 0) {
       // Printf("Garbage collection");
-      sch->GarbageCollect();
+      sch->GarbageCollect(td);
       if (countdown)
         feederQ->set_countdown(0);
     }
@@ -441,7 +441,7 @@ void *WorkloadManager::TransportTracks(void *) {
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
     waiting[tid] = 1;
-    if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport();
+    if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport(td);
     else wm->FeederQueue()->wait_and_pop(basket);
     waiting[tid] = 0;
     // Check exit condition: null basket in the queue
@@ -587,7 +587,7 @@ void *WorkloadManager::TransportTracks(void *) {
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
     sched_locker.StartOne();
-    basket->Recycle();
+    basket->Recycle(td);
   }
   wm->DoneQueue()->push(0);
   delete prioritizer;
@@ -659,7 +659,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     }
     waiting[tid] = 1;
     //::Info("GPU","Waiting for next available basket.");
-    // if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport();
+    // if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport(td);
     // else
        wm->FeederQueue()->wait_and_pop(basket);
     waiting[tid] = 0;
@@ -773,7 +773,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     (void)nnew;
     (void)nkilled;
     sched_locker.StartOne();
-    basket->Recycle();
+    basket->Recycle(td);
   }
   //delete prioritizer;
   wm->DoneQueue()->push(0);
@@ -791,7 +791,8 @@ void *WorkloadManager::GarbageCollectorThread(void *) {
     gbc_locker.Wait();
     if (wm->IsStopped())
       break;
-    sch->CleanBaskets();
+// todo: cleaning with thread based recycle queues
+//    sch->CleanBaskets();
   }
   return 0;
 }

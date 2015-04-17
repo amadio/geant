@@ -128,9 +128,9 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track) {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::DispatchTrack(GeantTrack &track) {
+Int_t GeantPropagator::DispatchTrack(GeantTrack &track, GeantThreadData *td) {
   // Dispatch a registered track produced by the generator.
-  return fWMgr->GetScheduler()->AddTrack(track);
+  return fWMgr->GetScheduler()->AddTrack(track, td);
 }
 
 //______________________________________________________________________________
@@ -234,7 +234,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       track.fStatus = kAlive;
       track.fVindex = basket_mgr->GetNumber();
       AddTrack(track);
-      ndispatched += DispatchTrack(track);
+      ndispatched += DispatchTrack(track, thread_data);
     }
     event++;
   }
@@ -295,8 +295,10 @@ void GeantPropagator::Initialize() {
 
   if (!fThreadData) {
     fThreadData = new GeantThreadData *[fNthreads + 1];
-    for (Int_t i = 0; i < fNthreads + 1; i++)
+    for (Int_t i = 0; i < fNthreads + 1; i++) {
       fThreadData[i] = new GeantThreadData();
+      fThreadData[i]->fTid = i;
+    }  
   }
   // Initialize application
   fApplication->Initialize();
@@ -407,7 +409,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     memset(fEvents, 0, fNevents * sizeof(GeantEvent *));
   }
 
-  ImportTracks(fNevents, fNaverage, 0, 0, 0);
+  ImportTracks(fNevents, fNaverage, 0, 0, fThreadData[0]);
 
   // Initialize tree
   fOutput = new GeantOutput();

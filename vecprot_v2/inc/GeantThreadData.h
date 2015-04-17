@@ -78,10 +78,10 @@ public:
    
 
   /**
-   * @brief Get next free basket or create one with requested capacity
+   * @brief Get next free basket or null if not available
    * @details Get pointer to next free basket
    */
-  GeantBasket *GetNextBasket(Int_t capacity);
+  GeantBasket *GetNextBasket();
 
   /**
    * @brief Recycles a given basket
@@ -94,8 +94,9 @@ public:
    * @brief Function cleaning a number of free baskets
    * 
    * @param ntoclean Number of baskets to be cleaned
+   * @return Number of baskets actually cleaned
    */
-  void CleanBaskets(size_t ntoclean);
+  Int_t CleanBaskets(size_t ntoclean);
 
 private:
 

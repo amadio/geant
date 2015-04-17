@@ -61,9 +61,9 @@ Bool_t *GeantThreadData::GetBoolArray(Int_t size) {
 }
 
 //______________________________________________________________________________
-GeantBasket *GeantThreadData::GetNextBasket(int capacity) {
-  // Gets next free basket from the queue, or create one
-  if (fPool.empty()) return new GeantBasket(capacity, fMaxDepth);
+GeantBasket *GeantThreadData::GetNextBasket() {
+  // Gets next free basket from the queue.
+  if (fPool.empty()) return 0;
   GeantBasket *basket = fPool.back();
   fPool.pop_back();
   return basket;
@@ -76,14 +76,17 @@ void GeantThreadData::RecycleBasket(GeantBasket *b) {
 }
 
 //______________________________________________________________________________
-void GeantThreadData::CleanBaskets(size_t ntoclean) {
+Int_t GeantThreadData::CleanBaskets(size_t ntoclean) {
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;
+  Int_t ncleaned = 0;
   size_t ntodo = TMath::Min(fPool.size(), ntoclean);
   for (size_t i=0; i<ntodo; i++) {
     b = fPool.back();
     delete b;
+    ncleaned++;
     fPool.pop_back();
   }
+  return ncleaned;
 }
   
