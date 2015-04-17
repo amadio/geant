@@ -178,7 +178,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  Index_t irow = Floor((Log(kineticEnergy) - Log(fIncomingMin))*fInverseBinIncoming);
+  Index_t irow = Floor((Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming);
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
