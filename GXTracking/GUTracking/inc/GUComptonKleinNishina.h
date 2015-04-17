@@ -99,6 +99,14 @@ public:
                      const int nrow,
                      const int ncol,
                      double *p);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void BuildLogPdfTable(int Z,
+                        const double xmin,
+                        const double xmax,
+                        const int nrow,
+                        const int ncol,
+                        double *p);
   
 public:
   // Auxiliary methods

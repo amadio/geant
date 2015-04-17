@@ -88,6 +88,13 @@ public:
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
+  void SampleLogBin( typename Backend::Double_t  kineticEnergy,
+                     typename Backend::Index_t   &index,
+                     typename Backend::Index_t   &icol,
+                     typename Backend::Double_t  &fraction) const;
+
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t
   SampleX(typename Backend::Double_t rangeSampled, 
           typename Backend::Double_t probNA,   
@@ -121,6 +128,7 @@ private:
   double   fIncomingMax; // Max
   int      fInNumEntries;
   double   fInverseBinIncoming;
+  double   fInverseLogBinIncoming;
   
   //  For the sampled variable 
   const    int fSampledNumEntries;   //  Old name fNcol  (number of Columns)
@@ -150,6 +158,27 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Double_t Double_t;
 
   Index_t irow = Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
+  icol = Floor(r1);
+  fraction = r1 - 1.0*icol;
+
+  // Was rangeSampled /(fSampledNumEntries-1);
+  index = irow*fSampledNumEntries  + icol;
+}
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH
+void GUAliasSampler::
+SampleLogBin(typename Backend::Double_t kineticEnergy,
+             typename Backend::Index_t  &index,    // ~ sampled value
+             typename Backend::Index_t  &icol,     // ~ input Energy
+             typename Backend::Double_t &fraction  //  in sampled variable
+             ) const
+{
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Index_t irow = Floor((Log(kineticEnergy) - Log(fIncomingMin))*fInverseBinIncoming);
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;

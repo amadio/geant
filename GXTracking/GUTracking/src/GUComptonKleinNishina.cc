@@ -96,12 +96,12 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
   double dx = (xmax - xmin)/nrow;
   double xo =  xmin + 0.5*dx;
 
-
   for(int i = 0; i < nrow ; ++i) {
     //for each input energy bin
     double x = xo + dx*i;
 
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
+
     double dy = (x - ymin)/(ncol-1);
     double yo = ymin + 0.5*dy;
   
@@ -123,6 +123,61 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
     }
   }
 }
+
+VECPHYS_CUDA_HEADER_BOTH void 
+GUComptonKleinNishina::BuildLogPdfTable(int Z, 
+                                        const double xmin, 
+                                        const double xmax,
+                                        const int nrow,
+                                        const int ncol,
+                                        double *p)
+{
+  // Build the probability density function (KleinNishina pdf) 
+  // in the energy randge [xmin,xmax] with an equal bin size
+  //
+  // input  :  Z    (atomic number) - not used for the atomic independent model
+  //           xmin (miminum energy)
+  //           xmax (maxinum energy)
+  //           nrow (number of input energy bins)
+  //           ncol (number of output energy bins)
+  //
+  // output :  p[nrow][ncol] (probability distribution) 
+  //
+  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
+
+  //build pdf: logarithmic scale in the input energy bin  
+
+  double logxmin = log(xmin);
+  double dx = (log(xmax) - logxmin)/nrow;
+  double xo =  logxmin + 0.5*dx;
+
+  for(int i = 0; i < nrow ; ++i) {
+    //for each input energy bin
+    double x = exp(xo + dx*i);
+
+    double ymin = x/(1+2.0*x*inv_electron_mass_c2);
+    double dy = (x - ymin)/(ncol-1);
+    double yo = ymin + 0.5*dy;
+  
+    double sum = 0.;
+
+    for(int j = 0; j < ncol ; ++j) {
+      //for each output energy bin
+      double y = yo + dy*j;
+      double xsec = CalculateDiffCrossSection(Z,x,y);
+      p[i*ncol+j] = xsec;
+      sum += xsec;
+    }
+
+    //normalization
+    sum = 1.0/sum;
+
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
+    }
+  }
+}
+
 
 // function implementing the cross section for KleinNishina
 // TODO: need to get electron properties from somewhere
