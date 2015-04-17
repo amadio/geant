@@ -89,3 +89,13 @@ else()
 endif()
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)
+
+find_package(HepMC REQUIRED)
+include_directories("${HEPMC_INCLUDE_DIR}")
+
+add_executable(CMSApp CMSApp.cc)
+
+target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+       ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
+
+add_dependencies(CMSApp Geant_v Xsec GeantExamples)
