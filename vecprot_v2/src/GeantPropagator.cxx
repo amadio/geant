@@ -71,10 +71,10 @@ ClassImp(GeantPropagator)
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
     : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0),
-      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fNprocesses(3), fNstart(0),
+      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), fDoneEvents(0), fNprocesses(3), fNstart(0),
       fMaxTracks(0), // change
       fMaxThreads(100), fNminThreshold(10), fDebugTrk(-1), fMaxSteps(10000), fNperBasket(16),
-      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(1000000), fMaxRes(10000.), fNaverage(0.), fVertex(),
+      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(1000000), fLastEvent(0), fMaxRes(10000.), fNaverage(0.), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE),
@@ -85,7 +85,6 @@ GeantPropagator::GeantPropagator()
       fEvents(0), fThreadData(0) {
   // Constructor
   fVertex[0] = fVertex[1] = fVertex[2] = 0.;
-  //   for (Int_t i=0; i<3; i++) fVertex[i] = gRandom->Gaus(0.,0.2);
   fgInstance = this;
 }
 
@@ -94,7 +93,7 @@ GeantPropagator::~GeantPropagator() {
   // Destructor
   Int_t i;
   delete fProcess;
-
+  BitSet::ReleaseInstance(fDoneEvents);
 #if USE_VECPHYS == 1
   delete fVectorPhysicsProcess;
 #endif
@@ -154,8 +153,44 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid) {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent,
-                                    Int_t startslot, GeantThreadData *thread_data) {
+Int_t GeantPropagator::Feeder(GeantThreadData *td) {
+  // Feeder called by any thread to inject the next event(s)
+  // Only one thread at a time
+  if (fFeederLock.test_and_set(std::memory_order_acquire)) return 0;
+  Int_t nbaskets = 0;
+  if (!fLastEvent) {
+    nbaskets = ImportTracks(fNevents, 0, 0, td);
+    fLastEvent = fNevents;
+    fFeederLock.clear(std::memory_order_release);
+    return nbaskets;
+  }       
+  // Check and mark finished events
+  for (Int_t islot = 0; islot < fNevents; islot++) {
+    GeantEvent *evt = fEvents[islot];
+    if (fDoneEvents->TestBitNumber(evt->GetEvent()))
+        continue;
+      if (evt->Transported()) {
+        evt->Print();
+        // Digitizer (todo)
+        Int_t ntracks = fNtracks[islot];
+        Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
+        //            propagator->fApplication->Digitize(evt->GetEvent());
+        fDoneEvents->SetBitNumber(evt->GetEvent());
+        if (fLastEvent < fNtotal) {
+          Printf("=> Importing event %d", fLastEvent);
+          nbaskets += ImportTracks(1, fLastEvent, islot, td);
+          fLastEvent++;
+        }
+      }
+    }
+  
+  fFeederLock.clear(std::memory_order_release);
+  return nbaskets;
+}
+
+//______________________________________________________________________________
+Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, 
+                                    GeantThreadData *thread_data) {
   // Import tracks from "somewhere". Here we just generate nevents.
   static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -201,13 +236,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
   }
 
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
-  Int_t threshold = nevents * average / (2 * fNthreads);
-  threshold -= threshold % 4;
-  if (threshold < 4)
-    threshold = 4;
-  if (threshold > fNperBasket)
-    threshold = fNperBasket;
-  basket_mgr->SetThreshold(threshold);
+  basket_mgr->SetThreshold(fNperBasket);
 
   static Bool_t init = kTRUE;
   if (init)
@@ -266,7 +295,7 @@ void GeantPropagator::Initialize() {
 
   // Initialize arrays here.
   gPropagator = GeantPropagator::Instance();
-
+  fDoneEvents = BitSet::MakeInstance(fNtotal);
   if (!fProcess) {
     Fatal("Initialize", "The physics process has to be initialized before this");
     return;
@@ -409,7 +438,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     memset(fEvents, 0, fNevents * sizeof(GeantEvent *));
   }
 
-  ImportTracks(fNevents, fNaverage, 0, 0, fThreadData[0]);
+//  Feeder(fThreadData[0]);
 
   // Initialize tree
   fOutput = new GeantOutput();

@@ -26,10 +26,7 @@
 #endif
 
 #include <vector>
-
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
 
 class TTree;
 class TFile;
@@ -52,13 +49,13 @@ public:
   Int_t fNthreads; /** Number of worker threads */
   Int_t fNevents;  /** Number of buffered events */
   Int_t fNtotal;   /** Total number of events to be transported */
-#if __cplusplus >= 201103L
   std::atomic<Long64_t> fNtransported; /** Number of transported tracks */
   std::atomic<Long64_t> fNprimaries;   /** Number of primary tracks */
   std::atomic<Long64_t> fNsafeSteps;   /** Number of fast steps within safety */
   std::atomic<Long64_t> fNsnextSteps;  /** Number of steps where full snext computation is needed */
   std::atomic<Long64_t> fNphysSteps;   /** Number of steps to physics process */
-#endif
+  std::atomic_flag      fFeederLock;   /** Atomic flag to protect the particle feeder */
+  BitSet               *fDoneEvents;   /** Array of bits marking done events */
   Int_t fNprocesses;        /** Number of active physics processes */
   Int_t fNstart;            /** Cumulated initial number of tracks */
   Int_t fMaxTracks;         /** Maximum number of tracks per event */
@@ -71,6 +68,7 @@ public:
   Int_t fMaxPerEvent;       /** Maximum number of tracks per event */
   Int_t fMaxDepth;          /** Maximum geometry depth */
   Int_t fLearnSteps;        /** Number of steps needed for the learning phase */ 
+  Int_t fLastEvent;         /** Last transported event */
   
   Double_t fMaxRes;         /** Maximum resident memory allowed [MBytes] */
   Double_t fNaverage;       /** Average number of tracks per event */
@@ -118,14 +116,11 @@ public:
   /** @brief GeantPropagator destructor */
   virtual ~GeantPropagator();
 
-#if __cplusplus >= 201103L
-
   /**
    * @brief Function that returns the number of transported tracks (C++11)
    * @return Number of transported tracks
    */
   Long64_t GetNtransported() const { return fNtransported.load(); }
-#endif
 
   /**
    * @brief Function that returns a temporary track object per thread
@@ -166,6 +161,16 @@ public:
 #endif
 
   /**
+   * @brief Feeder for importing tracks 
+   * 
+   * @param td Thread data object
+   * @param init Flag specifying if this is the first call
+   * @return Number of injected baskets
+   */
+  Int_t Feeder(GeantThreadData *td);
+
+
+  /**
    * @brief Function for importing tracks 
    * 
    * @param nevents Number of events
@@ -173,7 +178,7 @@ public:
    * @param startevent Start event
    * @param startslot Start slot
    */
-  Int_t ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot, GeantThreadData *td);
+  Int_t ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, GeantThreadData *td);
   
   /** @brief Initialization function */
   void Initialize();
@@ -221,6 +226,9 @@ public:
    */
   void PropagatorGeom(const char *geomfile = "geometry.root", Int_t nthreads = 4,
                       Bool_t graphics = kFALSE, Bool_t single = kFALSE);
+
+  /** @brief Function checking if transport is completed */
+  Bool_t TransportCompleted() const { return ((Int_t)fDoneEvents->FirstNullBit() >= fNtotal);}
 
 private:
 

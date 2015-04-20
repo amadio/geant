@@ -36,7 +36,7 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
       fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
       fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0), 
       fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0),
-      fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker() {
+      fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker(), fLastEvent(0) {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -235,7 +235,7 @@ void *WorkloadManager::MainScheduler(void *) {
     sched_locker.Wait();
     niter++;
     // Check if memory is blowing up...
-    if ((niter % 50) == 0) {
+    if ((propagator->fMaxRes>0) && ((niter % 50) == 0)) {
       gSystem->GetProcInfo(&procInfo);
       rss = procInfo.fMemResident / MByte;
       if (rss > propagator->fMaxRes) {
@@ -269,27 +269,9 @@ void *WorkloadManager::MainScheduler(void *) {
 #endif
 
     // Check and mark finished events
-    for (Int_t ievt = 0; ievt < nbuffered; ievt++) {
-      GeantEvent *evt = propagator->fEvents[ievt];
-      if (finished.TestBitNumber(evt->GetEvent()))
-        continue;
-      if (evt->Transported()) {
-        evt->Print();
-        // Digitizer (todo)
-        Int_t ntracks = propagator->fNtracks[ievt];
-        Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
-        //            propagator->fApplication->Digitize(evt->GetEvent());
-        finished.SetBitNumber(evt->GetEvent());
-        if (last_event < max_events) {
-          Printf("=> Importing event %d", last_event);
-          ninjected += propagator->ImportTracks(1, propagator->fNaverage, last_event, ievt, td);
-          last_event++;
-        }
-      }
-    }
+    propagator->Feeder(td);
     // Exit condition
-    if (finished.FirstNullBit() >= (UInt_t)max_events)
-      break;
+    if (propagator->TransportCompleted()) break;
 
     // In case some events were transported with priority, check if they finished
     if (prioritize) {
@@ -424,6 +406,8 @@ void *WorkloadManager::TransportTracks(void *) {
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fNperBasket);
   prioritizer->SetFeederQueue(wm->FeederQueue());
+  // Start the feeder
+  propagator->Feeder(td);
   TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
   condition_locker &sched_locker = wm->GetSchLocker();
