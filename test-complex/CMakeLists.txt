@@ -3,10 +3,6 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(TESTCOMPLEX)
 
-#----------------------------------------------------------------------------
-# Find Geant4 package, batch mode only
-#
-find_package(Geant4 REQUIRED gdml)
 
 #----------------------------------------------------------------------------
 # Find HepMC (required package)
@@ -16,6 +12,11 @@ if(HepMC_FOUND)
   message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
+
+#----------------------------------------------------------------------------
+# Find Geant4 package, batch mode only
+#
+find_package(Geant4 REQUIRED gdml)
 
 
 #----------------------------------------------------------------------------
