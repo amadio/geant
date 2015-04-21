@@ -14,16 +14,19 @@ int GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
-void GeantEvent::StopTrack() {
-  // Mark one track as stopped. Check if event has to be prioritized.
+bool GeantEvent::StopTrack() {
+  // Mark one track as stopped. Check if event has to be prioritized and return
+  // true in this case.
   fNdone++;
   if (!fPrioritize) {
     if (GetNinflight() < fPriorityThr*GetNmax()) {
       fPrioritize = true;
       std::cout << "### Event " << GetEvent() << " prioritized at " <<
         100.*fPriorityThr << " % threshold" << std::endl;
+      return true;  
     }  
   }
+  return false;
 }
 
 //______________________________________________________________________________

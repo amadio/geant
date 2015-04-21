@@ -71,10 +71,10 @@ ClassImp(GeantPropagator)
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
     : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0),
-      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), fDoneEvents(0), fNprocesses(3), fNstart(0),
-      fMaxTracks(0), // change
+      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), 
+      fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
       fMaxThreads(100), fNminThreshold(10), fDebugTrk(-1), fMaxSteps(10000), fNperBasket(16),
-      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(1000000), fLastEvent(0), fMaxRes(10000.), fNaverage(0.), fVertex(),
+      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(1000000), fLastEvent(0), fMaxRes(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE),
@@ -136,7 +136,7 @@ Int_t GeantPropagator::DispatchTrack(GeantTrack &track, GeantThreadData *td) {
 void GeantPropagator::StopTrack(const GeantTrack_v &tracks, Int_t itr) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
-  fEvents[tracks.fEvslotV[itr]]->StopTrack();
+  if (fEvents[tracks.fEvslotV[itr]]->StopTrack()) fPriorityEvents++;
 }
 
 //______________________________________________________________________________
@@ -156,7 +156,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid) {
 Int_t GeantPropagator::Feeder(GeantThreadData *td) {
   // Feeder called by any thread to inject the next event(s)
   // Only one thread at a time
-  if (fFeederLock.test_and_set(std::memory_order_acquire)) return 0;
+  if (fFeederLock.test_and_set(std::memory_order_acquire)) return -1;
   Int_t nbaskets = 0;
   if (!fLastEvent) {
     nbaskets = ImportTracks(fNevents, 0, 0, td);
@@ -170,6 +170,7 @@ Int_t GeantPropagator::Feeder(GeantThreadData *td) {
     if (fDoneEvents->TestBitNumber(evt->GetEvent()))
         continue;
       if (evt->Transported()) {
+        fPriorityEvents--;
         evt->Print();
         // Digitizer (todo)
         Int_t ntracks = fNtracks[islot];
@@ -323,8 +324,8 @@ void GeantPropagator::Initialize() {
   }
 
   if (!fThreadData) {
-    fThreadData = new GeantThreadData *[fNthreads + 1];
-    for (Int_t i = 0; i < fNthreads + 1; i++) {
+    fThreadData = new GeantThreadData *[fNthreads];
+    for (Int_t i = 0; i < fNthreads; i++) {
       fThreadData[i] = new GeantThreadData();
       fThreadData[i]->fTid = i;
     }  
@@ -464,8 +465,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   fWMgr->StartThreads();
   fTimer->Start();  
   // Wake up the main scheduler once to avoid blocking the system
-  condition_locker &sched_locker = fWMgr->GetSchLocker();
-  sched_locker.StartOne();
+//  condition_locker &sched_locker = fWMgr->GetSchLocker();
+//  sched_locker.StartOne();
   fWMgr->WaitWorkers();
   fTimer->Stop();
   Double_t rtime = fTimer->RealTime();
@@ -489,7 +490,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
          "phys steps: %lld, RT=%gs, CP=%gs",
          fNprimaries.load(), fNtransported.load(), nsteps, fNsafeSteps.load(), fNsnextSteps.load(),
          fNphysSteps.load(), rtime, ctime);
-  Printf("   nthreads=%d + 1 garbage collector speed-up=%f  efficiency=%f", nthreads, speedup,
+  Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup,
          efficiency);
 //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
   fApplication->FinishRun();

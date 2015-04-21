@@ -46,7 +46,8 @@ enum EGeantMonitoringType {
   kMonBasketsPerVol,
   kMonVectors,
   kMonConcurrency,
-  kMonTracksPerEvent
+  kMonTracksPerEvent,
+  kMonTracks
 };
 
 protected:
@@ -74,6 +75,7 @@ protected:
   Int_t  fMonVectors;                 /** Monitor vector scheduling */
   Int_t  fMonConcurrency;             /** Monitor concurrency */
   Int_t  fMonTracksPerEvent;          /** Monitor tracks status per event */
+  Int_t  fMonTracks;                  /** Monitor number of tracks */
   GeantScheduler *fScheduler;         /** Main basket scheduler */
 
   TaskBroker *fBroker; /** Pointer to the coprocessor broker, this could be made a collection. */
@@ -119,8 +121,18 @@ public:
   /** @brief Function that returns total number of baskets */
   Int_t GetNbaskets() const { return fNbaskets; }
 
-  /** @brief Function that returns threads in waiting flag */
+  /** @brief Function that returns threads in waiting array */
   Int_t *GetWaiting() const { return fWaiting; }
+
+  /** @brief Function that returns number of waiting threads */
+  Int_t GetNwaiting() const { 
+    Int_t nwaiting = 0; 
+    for (int i=0; i<fNthreads; ++i) nwaiting += fWaiting[i]; 
+    return nwaiting; 
+  }
+
+  /** @brief Function that returns number of threads actually working */
+  Int_t GetNworking() const { return (fNthreads - GetNwaiting()); }
 
   /** @brief Function returning the number of monitored features */
   Int_t GetMonFeatures() const;

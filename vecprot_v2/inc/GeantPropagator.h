@@ -55,6 +55,7 @@ public:
   std::atomic<Long64_t> fNsnextSteps;  /** Number of steps where full snext computation is needed */
   std::atomic<Long64_t> fNphysSteps;   /** Number of steps to physics process */
   std::atomic_flag      fFeederLock;   /** Atomic flag to protect the particle feeder */
+  std::atomic_int       fPriorityEvents; /** Number of prioritized events */
   BitSet               *fDoneEvents;   /** Array of bits marking done events */
   Int_t fNprocesses;        /** Number of active physics processes */
   Int_t fNstart;            /** Cumulated initial number of tracks */
@@ -115,6 +116,12 @@ public:
 
   /** @brief GeantPropagator destructor */
   virtual ~GeantPropagator();
+
+  /**
+   * @brief Function that returns the number of transported tracks (C++11)
+   * @return Number of transported tracks
+   */
+  Int_t GetNpriority() const { return fPriorityEvents.load(); }
 
   /**
    * @brief Function that returns the number of transported tracks (C++11)

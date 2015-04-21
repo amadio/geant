@@ -56,6 +56,7 @@ protected:
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning;        /** Flag marking the learning phase */
+  std::atomic_flag fGBCLock;         /** Flag marking that garbage collector is busy */
 #endif
   Int_t fPriorityRange[2]; /** Prioritized events */
 #ifdef __STAT_DEBUG

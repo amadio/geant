@@ -117,8 +117,10 @@ public:
   
   /**
    * @brief Function to signal that a trach was stopped
+   *
+   * @return Flag true if stopping qa track started priority mode for the event
    */
-  void StopTrack();
+  bool StopTrack();
 
   /** @brief Print function */
   void Print(const char *option = "") const;

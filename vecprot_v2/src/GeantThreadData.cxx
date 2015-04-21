@@ -11,7 +11,7 @@ ClassImp(GeantThreadData)
 
 //______________________________________________________________________________
 GeantThreadData::GeantThreadData()
-    : TObject(), fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), 
+    : TObject(), fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),  
       fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0), fTrack(0), 
       fPath(0), fBmgr(0), fPool() {
   // Constructor
@@ -80,13 +80,19 @@ Int_t GeantThreadData::CleanBaskets(size_t ntoclean) {
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;
   Int_t ncleaned = 0;
-  size_t ntodo = TMath::Min(fPool.size(), ntoclean);
+  size_t ntodo = 0;
+  if (ntoclean==0) 
+    ntodo = fPool.size()/2;
+  else 
+    ntodo = TMath::Min(fPool.size(), ntoclean);
   for (size_t i=0; i<ntodo; i++) {
     b = fPool.back();
     delete b;
     ncleaned++;
     fPool.pop_back();
   }
+  fToClean = false;
+//  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
 }
   

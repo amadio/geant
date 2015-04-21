@@ -23,7 +23,8 @@ ClassImp(GeantScheduler)
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
   : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0),
-    fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning() {
+    fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning(ATOMIC_FLAG_INIT), 
+    fGBCLock(ATOMIC_FLAG_INIT) {
   // Default constructor
   fPriorityRange[0] = fPriorityRange[1] = -1;
   SetLearning(false);
@@ -279,11 +280,15 @@ Int_t GeantScheduler::FlushPriorityBaskets() {
 Int_t GeantScheduler::GarbageCollect(GeantThreadData *td) {
   // Flush all filled baskets in the work queue.
   //   PrintSize();
+  // Only one thread at a time
+  if (fGBCLock.test_and_set(std::memory_order_acquire)) return 0;
+//  Printf("=== Garbage collect");
   Int_t ninjected = 0;
   for (Int_t ibasket = 0; ibasket < fNvolumes; ibasket++) {
     if (fBasketMgr[ibasket]->IsActive())
       ninjected += fBasketMgr[ibasket]->GarbageCollect(td);
   }
+  fGBCLock.clear(std::memory_order_release);
   return ninjected;
 }
 

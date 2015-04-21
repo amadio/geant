@@ -14,7 +14,7 @@ void runCMS(Int_t nthreads=4,
    gSystem->Load("../lib/libXsec");
    gSystem->Load("../lib/libGeantExamples");
 
-   Int_t ntotal   = 20;  // Number of events to be transported
+   Int_t ntotal   = 10;  // Number of events to be transported
    Int_t nbuffered  = 5;   // Number of buffered events
    TGeoManager::Import(geomfile);
    
@@ -28,6 +28,7 @@ void runCMS(Int_t nthreads=4,
    wmgr->SetMonitored(WorkloadManager::kMonVectors,        false);
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false);
    wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false);
+   wmgr->SetMonitored(WorkloadManager::kMonTracks,         false);
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;
 //   prop->fNaverage = 400;   // Average number of tracks per event

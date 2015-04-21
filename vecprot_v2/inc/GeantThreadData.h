@@ -40,6 +40,7 @@ public:
   Int_t fMaxDepth;     /** Maximum geometry depth */
   Int_t fSizeBool;     /** Size of bool array */
   Int_t fSizeDbl;      /** Size of dbl array */
+  Bool_t fToClean;     /** Flag set when the basket queue is to be cleaned */
   TGeoVolume *fVolume; /** Current volume per thread */
   TRandom *fRndm;      /** Random generator for thread */
   Bool_t *fBoolArray;  /** [fSizeBool] Thread array of bools */
@@ -82,6 +83,12 @@ public:
    * @details Get pointer to next free basket
    */
   GeantBasket *GetNextBasket();
+
+  /** @brief Setter for the toclean flag */
+  void SetToClean(Bool_t flag) { fToClean = flag; }
+
+  /** @brief Getter for the toclean flag */
+  bool NeedsToClean() const { return fToClean; }
 
   /**
    * @brief Recycles a given basket
