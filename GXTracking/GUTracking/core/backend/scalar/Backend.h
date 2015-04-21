@@ -183,6 +183,18 @@ Precision tan(const Precision radians) {
 
 VECPHYS_CUDA_HEADER_BOTH
 VECPHYS_INLINE
+Precision Log(const Precision x) {
+  return std::log(x);
+}
+
+VECPHYS_CUDA_HEADER_BOTH
+VECPHYS_INLINE
+Precision Exp(const Precision x) {
+  return std::exp(x);
+}
+
+VECPHYS_CUDA_HEADER_BOTH
+VECPHYS_INLINE
 Precision Floor( Precision val ){
     return std::floor(val);
 }

@@ -635,7 +635,7 @@ public:
   static void *memcpy_align(void *dst, const void *src, size_t len) 
   __attribute__((always_inline)) 
   {
-    return memcpy(dst,src,len);
+//    return memcpy(dst,src,len);
     size_t i;
     long *d = (long *)dst;
     const long *s = (const long *)src;

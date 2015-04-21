@@ -131,6 +131,16 @@ VcPrecision tan(VcPrecision const &radians) {
 }
 
 VECPHYS_INLINE
+VcPrecision Log(VcPrecision const &x) {
+  return Vc::log(x);
+}
+
+VECPHYS_INLINE
+VcPrecision Exp(VcPrecision const &x) {
+  return Vc::exp(x);
+}
+
+VECPHYS_INLINE
 Precision Pow(Precision const &x, Precision arg) {
    return std::pow(x,arg);
 }
