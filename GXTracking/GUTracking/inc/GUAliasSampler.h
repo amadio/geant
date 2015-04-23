@@ -18,6 +18,7 @@
 #include "backend/Backend.h"
 
 #include "GUAliasTable.h"
+#include "GUAliasTableManager.h"
 
 //#define   CHECK   
 //  Uncomment to provide checking of indices and information about their failures
@@ -35,7 +36,7 @@ class GUAliasSampler
 {
 public: 
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECPHYS_CUDA_HEADER_HOST
   GUAliasSampler(Random_t* states,
                  int       threadId,
                  int       maxZelement,   //  ==> Now For all Z
@@ -54,6 +55,16 @@ public:
                  int    numEntriesSampled, 
                  GUAliasTable* table 
                  );  
+
+  VECPHYS_CUDA_HEADER_BOTH
+  GUAliasSampler(Random_t* states, int threadId,
+                 // int    Zelement,   //  ==> Now For all Z
+                 double incomingMin, 
+                 double incomingMax,
+                 int    numEntriesIncoming, // 'energy' (or log) of projectile
+                 int    numEntriesSampled, 
+                 GUAliasTableManager* table 
+                 );  
   
   VECPHYS_CUDA_HEADER_BOTH
   ~GUAliasSampler();
@@ -69,7 +80,7 @@ public:
 
   int GetMaxZ() const { return fMaxZelement; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECPHYS_CUDA_HEADER_HOST
   void BuildAliasTable( int z, int nrow, int ncol, const double *pdf );
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -78,6 +89,9 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   void SetAliasTable(int z, GUAliasTable* table) { if( table && z < fMaxZelement && z>0) { delete fAliasTable[z]; fAliasTable[z] = table ;} }
   
+  VECPHYS_CUDA_HEADER_BOTH
+  GUAliasTableManager* GetAliasTableManager(){ return fAliasTableManager ;}
+
   // Backend Implementation:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -140,6 +154,7 @@ private:
   
   // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
   GUAliasTable** fAliasTable;    // GUAliasTable* fAliasTable[];
+  GUAliasTableManager* fAliasTableManager; // GUAliasTable* fAliasTable[];
   // std::vector <GUAliasTable*>fAliasTable; 
 };
 
@@ -245,24 +260,22 @@ GatherAlias(typename Backend::Index_t    index,
     printf(" Illegal zElement = %d\n",zElement);
   }
 #endif
-  assert( (zElement > 0)  && (zElement <= fMaxZelement) );
+  //  assert( (zElement > 0)  && (zElement <= fMaxZelement) );
 
   int     intIndex= (int) index;
    
 #ifdef CHECK
   int     tableSize= fAliasTable[zElement]->SizeOfGrid();
-  // if( (intIndex < 0) || (intIndex > tableSize) )
-  // {
-  //    std::cout << " Illegal index = " << intIndex << " vs tablesize = " << tableSize << std::endl;
-  // }
-  
-  //           index    <min  >max       name    name Max
   INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
 #endif
   //  assert( (intIndex >= 0) && (intIndex < tableSize) );
 
-  probNA=    fAliasTable[(int)zElement]->fProbQ[ intIndex ];
-  aliasInd=  fAliasTable[(int)zElement]->fAlias[ intIndex ];
+  //  probNA=    fAliasTable[(int)zElement]->fProbQ[ intIndex ];
+  //  aliasInd=  fAliasTable[(int)zElement]->fAlias[ intIndex ];
+
+  int tableIndex = fAliasTableManager->GetTableIndex(zElement);
+  probNA=   (fAliasTableManager->GetAliasTable(tableIndex))->fProbQ[ intIndex ];
+  aliasInd= (fAliasTableManager->GetAliasTable(tableIndex))->fAlias[ intIndex ];
 }
 
 // Specialisation for all vector-type backends - Vc for now
@@ -285,8 +298,12 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
     assert( z > 0  && z <= fMaxZelement );
     //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
 
-    probNA[i]=    fAliasTable[z]->fProbQ[ ind ]; // (int) index[i] ];
-    aliasInd[i]=  fAliasTable[z]->fAlias[ ind ]; // (int) index[i] ];
+    //    probNA[i]=    fAliasTable[z]->fProbQ[ ind ]; // (int) index[i] ];
+    //    aliasInd[i]=  fAliasTable[z]->fAlias[ ind ]; // (int) index[i] ];
+
+    int tableIndex = fAliasTableManager->GetTableIndex(z);
+    probNA[i]=   (fAliasTableManager->GetAliasTable(tableIndex))->fProbQ[ ind ];
+    aliasInd[i]= (fAliasTableManager->GetAliasTable(tableIndex))->fAlias[ ind ];
   }
 }
 #endif
