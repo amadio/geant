@@ -20,7 +20,8 @@
 #
 
 find_package(VecGeom ${VecGeom_FIND_VERSION} NO_MODULE PATHS $ENV{HOME} $ENV{VECGEOMROOT})
-
+set (VECGEOM_INCLUDE_DIR $ENV{VECGEOMROOT}/include/VecCore)
+include_directories(${VECGEOM_INCLUDE_DIR})
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
