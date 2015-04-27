@@ -55,7 +55,8 @@ if( VECGEOM_FOUND )
     if( USE_VECGEOM_NAVIGATOR )
      add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
      endif() 
-   include_directories(${VECGEOM_INCLUDE_DIR})
+   include_directories("${VECGEOM_INCLUDE_DIR}/VecGeom")
+#   include_directories(${VECGEOM_INCLUDE_DIR})
 else()
    message(FATAL_ERROR "Required VecGeom library not found")
 endif()
@@ -230,7 +231,7 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
 
 # Work around VecCore not being its own project yet.
 include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
-include_directories("${VECGEOM_INCLUDE_DIR}/include/VecCore")
+
 
 message(STATUS "VECGEOM_INSTALL_DIR is -${VECGEOM_INSTALL_DIR}-")
 message(STATUS "VECGEOM_INCLUDE_DIR is -${VECGEOM_INCLUDE_DIR}-")
