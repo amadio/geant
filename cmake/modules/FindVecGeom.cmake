@@ -21,7 +21,7 @@
 
 
 find_package(VecGeom ${VecGeom_FIND_VERSION} NO_MODULE PATHS $ENV{HOME} $ENV{VECGEOMROOT} )
-include_directories(${VECGEOM_INCLUDE_DIR})
+
 
 
 include(FindPackageHandleStandardArgs)
