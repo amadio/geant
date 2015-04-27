@@ -174,7 +174,7 @@ def directory_names():
                   Flag = False
                if "MCGenerators" in directory:
                   Flag = False
-
+               
                if "VecGeom" in directory:
                   vecgeom_include_dir = directory + '/include/VecCore'
                   vecgeom_dir = directory + '/lib/CMake/VecGeom'
