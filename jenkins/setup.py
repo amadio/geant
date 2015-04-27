@@ -176,10 +176,10 @@ def directory_names():
                   Flag = False
 
                if "VecGeom" in directory:
-                  directory = directory + '/lib/CMake/VecGeom'
                   vecgeom_include_dir = directory + '/include/VecCore'
                   print '%s=%s' % ("export VECGEOM_INCLUDE_DIR", vecgeom_include_dir)
-               dirlist.append(directory);
+                  directory = directory + '/lib/CMake/VecGeom'
+                  dirlist.append(directory);
 
 #######               
                for subdirName, subsubdirList, fileList2 in os.walk(directory):
