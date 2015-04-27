@@ -19,10 +19,11 @@
 # VECGEOM_CMAKE_MODULES_DIR
 #
 
-find_package(VecGeom ${VecGeom_FIND_VERSION} NO_MODULE PATHS $ENV{HOME} $ENV{VECGEOMROOT})
-set(VECGEOM_INCLUDE_DIR ${VECGEOMROOT}/include/VecCore)
 
+find_package(VecGeom ${VecGeom_FIND_VERSION} NO_MODULE PATHS $ENV{HOME} $ENV{VECGEOMROOT} )
 include_directories(${VECGEOM_INCLUDE_DIR})
+
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
