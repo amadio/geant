@@ -1964,7 +1964,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
     return;
   }*/
   VECGEOM_NAMESPACE::SimpleNavigator nav;
-  double step;
+  double step = 0.0;
   nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
                               Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]), *fPathV[itr],
                               *fNextpathV[itr], Math::Min(1.E20, fPstepV[itr]), step);
