@@ -24,7 +24,7 @@ typedef double G4double;
 #include "GPPhysics2DVector.h"
 
 #include "GPPhysicsTable.h"
-#include "GPPhysicsTableType.h"
+//#include "GPPhysicsTableType.h"
 
 #include "GeantTrack.h"
 
