@@ -324,6 +324,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
   return true;
 }
 #endif
+
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename) {
   // Load the detector geometry from file, unless already loaded.
