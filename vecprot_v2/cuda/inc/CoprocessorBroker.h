@@ -210,7 +210,7 @@ public:
    CoprocessorBroker();
    ~CoprocessorBroker();
 
-   bool UploadGeometry(GPVGeometry *geom);
+   bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
    bool UploadMagneticField(GXFieldMap** fieldMap);
 
    bool UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ);

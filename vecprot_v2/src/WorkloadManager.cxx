@@ -90,12 +90,24 @@ void WorkloadManager::Print(Option_t *) const {
   //
 }
 
-//______________________________________________________________________________
 void WorkloadManager::SetTaskBroker(TaskBroker *broker) {
   // Register the broker if it is valid.
   if (broker && broker->IsValid())
     fBroker = broker;
 }
+
+#if USE_VECGEOM_NAVIGATOR == 1
+//______________________________________________________________________________
+Bool_t WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
+  /**
+   * @brief Tell the task broker(s) to load the geometry.
+   * 
+   * @param Volume to load
+   */
+   if (fBroker) return fBroker->UploadGeometry(volume);
+   return true;
+}
+#endif
 
 //______________________________________________________________________________
 void WorkloadManager::StartThreads() {

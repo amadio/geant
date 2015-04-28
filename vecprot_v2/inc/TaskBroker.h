@@ -19,6 +19,12 @@
  * @{
  */
 class GeantBasket;
+namespace vecgeom {
+   inline namespace cxx {
+      class VPlacedVolume;
+   }
+}
+
 
 /**
  * @brief Class TaskBroker
@@ -75,6 +81,10 @@ public:
 
    /** @brief Tell the tasks which priotizer to use */
    virtual int SetPrioritizer() = 0;
+
+   /** @brief Prepare the geometry for the device and upload it to the device's memory */
+   virtual bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
+
 };
 
 #endif // GEANT_TASKBROKER

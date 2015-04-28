@@ -320,6 +320,9 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
     Printf("Have placed volumes %ld\n", v2.size());
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
+
+    Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    return fWMgr->LoadGeometry();
   }
   return true;
 }

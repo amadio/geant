@@ -29,7 +29,7 @@ class TaskBroker;
 
 
 /**
- * @brief WorlloadManager class
+ * @brief WorkloadManager class
  * @details Main work manager class. This creates and manages all the worker threads,
  * has pointers to the synchronization objects, but also to the currently
  * transported baskets.
@@ -186,6 +186,15 @@ public:
    */
   void SetTaskBroker(TaskBroker *broker);
 
+#if USE_VECGEOM_NAVIGATOR == 1
+  /**
+   * @brief Tell the task broker(s) to load the geometry.
+   * 
+   * @param Volume to load
+   */
+  Bool_t LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
+#endif
+   
   /** @brief Function that return minimum number of tracks in a basket to trigger transport */
   Int_t GetNminThreshold() const { return fNminThreshold; }
 
