@@ -32,9 +32,9 @@ ClassImp(WorkloadManager)
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(Int_t nthreads)
     : TObject(), fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0),
-      fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fSchId(nthreads), 
+      fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fSchId(nthreads),
       fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
-      fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0), 
+      fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0),
       fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0),
       fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker() {
   // Private constructor.
@@ -101,7 +101,7 @@ void WorkloadManager::SetTaskBroker(TaskBroker *broker) {
 Bool_t WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
   /**
    * @brief Tell the task broker(s) to load the geometry.
-   * 
+   *
    * @param Volume to load
    */
    if (fBroker) return fBroker->UploadGeometry(volume);
@@ -524,9 +524,9 @@ void *WorkloadManager::TransportTracks(void *) {
     if (propagator->fUsePhysics) {
       nphys = 0;
       nextra_at_rest = 0;
-      // count phyics steps here 
+      // count phyics steps here
       Int_t nout = output.GetNtracks();
-      for (auto itr=0; itr<nout; ++itr) 
+      for (auto itr=0; itr<nout; ++itr)
         if (output.fStatusV[itr] == kPhysics) nphys++;
       if (nphys)
         propagator->fNphysSteps += nphys;
@@ -585,7 +585,7 @@ void *WorkloadManager::TransportTracks(void *) {
     }
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
-    for (auto itr=0; itr<ntotnext; ++itr) 
+    for (auto itr=0; itr<ntotnext; ++itr)
       if (output.fStatusV[itr] == kBoundary) *output.fPathV[itr] = *output.fNextpathV[itr];
 
   finish:
@@ -812,13 +812,13 @@ void *WorkloadManager::GarbageCollectorThread(void *) {
 Int_t WorkloadManager::GetMonFeatures() const
 {
   // Get the number of monitored features
-  return (fMonQueue + 
-          fMonMemory + 
-          fMonBasketsPerVol + 
+  return (fMonQueue +
+          fMonMemory +
+          fMonBasketsPerVol +
 	  fMonVectors +
-          fMonConcurrency + 
+          fMonConcurrency +
           fMonTracksPerEvent);
-}          
+}
 
 //______________________________________________________________________________
 bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const
@@ -832,14 +832,14 @@ bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const
     case kMonBasketsPerVol:
       return fMonBasketsPerVol;
     case kMonVectors:
-      return fMonVectors;  
+      return fMonVectors;
     case kMonConcurrency:
       return fMonConcurrency;
     case kMonTracksPerEvent:
       return fMonTracksPerEvent;
   }
   return false;
-}      
+}
 
 //______________________________________________________________________________
 void WorkloadManager::SetMonitored(EGeantMonitoringType feature, bool flag)
@@ -904,7 +904,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     hqueue->SetStats(false);
     cmon->cd(++ipad);
     hqueue->Draw();
-  }  
+  }
   TH1F *hmem = 0;
   if (wm->IsMonitored(WorkloadManager::kMonMemory)) {
     hmem = new TH1F("hmem", "Resident memory [MB]", 100, 0, 100);
@@ -913,7 +913,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     hmem->SetStats(false);
     cmon->cd(++ipad);
     hmem->Draw();
-  }  
+  }
   TH1I *hbaskets = 0;
   TH1I *hbused = 0;
   if (wm->IsMonitored(WorkloadManager::kMonBasketsPerVol)) {
@@ -931,7 +931,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     hbaskets->Draw();
     hbused->Draw("SAME");
   }
-  TH1I *hvectors = 0;    
+  TH1I *hvectors = 0;
   if (wm->IsMonitored(WorkloadManager::kMonVectors)) {
     hvectors = new TH1I("hvectors", "Tracks in vectors of given size", 257, 0, 257);
     hvectors->SetFillColor(kBlue);
@@ -942,7 +942,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   }
   TH1F *hconcurrency = 0;
   TH1F *hconcavg = 0;
-  if (wm->IsMonitored(WorkloadManager::kMonConcurrency)) {  
+  if (wm->IsMonitored(WorkloadManager::kMonConcurrency)) {
     hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
     hconcurrency->GetYaxis()->SetRangeUser(0, 1);
     hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, true);
@@ -958,7 +958,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     cmon->cd(++ipad);
     hconcurrency->Draw();
     hconcavg->Draw("SAME");
-  }  
+  }
   TH1I *htracksmax = 0;
   TH1I *htracks = 0;
   Int_t nbuffered = propagator->fNevents;
@@ -975,7 +975,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     cmon->cd(++ipad)->SetLogy();
     htracksmax->Draw();
     htracks->Draw("SAME");
-  }    
+  }
   cmon->Update();
   Double_t stamp = 0.;
   Int_t i, j, bin;
@@ -984,7 +984,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     i = Int_t(stamp);
     ipad = 0;
     gSystem->Sleep(50); // millisec
-    
+
     gSystem->GetProcInfo(&procInfo);
     rss = procInfo.fMemResident / MByte;
     ntotransport = feederQ->size_async();
@@ -997,7 +997,7 @@ void *WorkloadManager::MonitoringThread(void *) {
         for (j = 0; j < 100; j++)
           hqueue->SetBinContent(j + 1, nqueue[j]);
       }
-      if (hmem) {    
+      if (hmem) {
         memmove(nmem, &nmem[1], 99 * sizeof(Double_t));
         nmem[99] = rss;
         hmem->GetXaxis()->Set(100, stamp - 100, stamp);
@@ -1008,11 +1008,11 @@ void *WorkloadManager::MonitoringThread(void *) {
       if (hqueue) {
         nqueue[i] = ntotransport;
         hqueue->SetBinContent(i + 1, nqueue[i]);
-      }  
-      if (hmem) {    
+      }
+      if (hmem) {
         nmem[i] = rss;
         hmem->SetBinContent(i + 1, nmem[i]);
-      }  
+      }
     }
     if (hbaskets) {
       for (j = 0; j < nvol; j++) {
@@ -1029,7 +1029,7 @@ void *WorkloadManager::MonitoringThread(void *) {
       }
       bin = hbaskets->GetXaxis()->FindBin("MIXED");
       hbaskets->SetBinContent(bin, nbaskets_mixed);
-      hbused->SetBinContent(bin, nused_mixed);      
+      hbused->SetBinContent(bin, nused_mixed);
     }
     if (hvectors) {
       int vmax = 0;
@@ -1069,11 +1069,11 @@ void *WorkloadManager::MonitoringThread(void *) {
       cmon->cd(++ipad);
       hqueue->Draw();
     }
-    if (hmem) {  
+    if (hmem) {
       cmon->cd(++ipad);
       hmem->Draw();
     }
-    if (hbaskets) {  
+    if (hbaskets) {
       cmon->cd(++ipad);
       hbaskets->LabelsOption(">");
       hbaskets->GetXaxis()->SetRangeUser(0, 10);
@@ -1083,18 +1083,18 @@ void *WorkloadManager::MonitoringThread(void *) {
     if (hvectors) {
       cmon->cd(++ipad);
       hvectors->Draw();
-    }  
+    }
     if (hconcurrency) {
       cmon->cd(++ipad);
       hconcurrency->Draw();
       hconcavg->Draw("SAME");
-    }  
+    }
     if (htracksmax) {
       cmon->cd(++ipad);
       htracksmax->GetXaxis()->SetTitle("Event slot");
       htracksmax->Draw();
       htracks->Draw("SAME");
-    }  
+    }
     cmon->Modified();
     cmon->Update();
     stamp += 1;

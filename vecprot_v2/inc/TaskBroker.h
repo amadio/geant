@@ -1,12 +1,12 @@
 //===--- TaskBroker.h - Geant-V ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file TaskBroker.h
- * @brief Implementation of task broker in Geant-V prototype 
- * @author Andrei Gheata 
+ * @brief Implementation of task broker in Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 

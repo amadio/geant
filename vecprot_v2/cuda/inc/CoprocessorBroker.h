@@ -29,7 +29,7 @@ class curandState;
 class DevicePtrBase
 {
    void *fPtr;
-   
+
    DevicePtrBase(const DevicePtrBase&); // not implemented
    DevicePtrBase &operator=(const DevicePtrBase&); // not implemented
 
@@ -149,7 +149,7 @@ public:
       TaskData(const TaskData&); // not implemented
       TaskData& operator=(const TaskData&); // not implemented
    public:
-      
+
       TaskData();
       ~TaskData();
 

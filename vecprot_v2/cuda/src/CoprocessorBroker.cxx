@@ -57,12 +57,12 @@ typedef double G4double;
 
 static void HandleCudaError( cudaError_t err,
                              const char *file,
-                             int line ) { 
+                             int line ) {
     if (err != cudaSuccess) {
-       Fatal("Cuda","%s (%d) in %s at line %d\n", cudaGetErrorString( err ), err, 
+       Fatal("Cuda","%s (%d) in %s at line %d\n", cudaGetErrorString( err ), err,
              file, line );
        exit( EXIT_FAILURE );
-    }   
+    }
 }
 
 #define HANDLE_CUDA_ERROR( err ) (HandleCudaError( err, __FILE__, __LINE__ ))

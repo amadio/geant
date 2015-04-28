@@ -174,7 +174,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
     Int_t tid = TGeoManager::ThreadId();
     td = fThreadData[tid];
     td->fTid = tid;
-  }  
+  }
   // the code below should be executed per track, as the primary vertex can change.
   if (!a) {
     a = VolumePath_t::MakeInstance(fMaxDepth);
@@ -425,17 +425,17 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = kTRUE;
   gGeoManager->SetMaxThreads(nthreads);
-  if (fUseMonitoring) {    
+  if (fUseMonitoring) {
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
     cmon->Update();
   }
   if (fUseAppMonitoring) {
     TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
     capp->Update();
-  }  
+  }
   fTimer = new TStopwatch();
   fWMgr->StartThreads();
-  fTimer->Start();  
+  fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
   condition_locker &sched_locker = fWMgr->GetSchLocker();
   sched_locker.StartOne();
