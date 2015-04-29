@@ -31,7 +31,7 @@ ClassImp(WorkloadManager)
 
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(Int_t nthreads)
-    : TObject(), fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0),
+    : fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0),
       fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fSchId(nthreads),
       fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
       fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0),

@@ -34,7 +34,7 @@ class TaskBroker;
  * has pointers to the synchronization objects, but also to the currently
  * transported baskets.
  */
-class WorkloadManager : public TObject {
+class WorkloadManager {
 public:
 
   /**
@@ -262,6 +262,5 @@ private:
    */
   WorkloadManager &operator=(const WorkloadManager &);
 
-  ClassDef(WorkloadManager, 0) // The work manager class.
 };
 #endif
