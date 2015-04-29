@@ -298,8 +298,6 @@ void GeantPropagator::Initialize() {
     for (Int_t i = 0; i < fNthreads + 1; i++)
       fThreadData[i] = new GeantThreadData();
   }
-  // Initialize application
-  fApplication->Initialize();
 }
 
 #if USE_VECGEOM_NAVIGATOR == 1
@@ -379,10 +377,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     Printf("No user application attached - aborting");
     return;
   }
+  Initialize();
   // Initialize geometry and current volume
   if (!LoadGeometry(geomfile))
     return;
-  Initialize();
+  // Initialize application
+  fApplication->Initialize();
   if (called) {
     Printf("Sorry, you can call this only once per session.");
     return;
