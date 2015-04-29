@@ -6,7 +6,7 @@
 #include "PrimaryGenerator.h"
 
 #if __cplusplus >= 201103L
-#include "HepMC/IO/IO_FileBase.h"
+#include "HepMC/Reader.h"
 #include "HepMC/GenEvent.h"
 #include "HepMC/Search/FindParticles.h"
 #endif
@@ -19,7 +19,7 @@ class HepMCGenerator: public PrimaryGenerator{
  private:
 
 #if __cplusplus >= 201103L
-    HepMC::IO_Base* input_file;
+    HepMC::Reader* input_file;
     HepMC::FindParticles* search;
 #endif
     
