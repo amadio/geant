@@ -19,7 +19,8 @@ inline namespace cuda {
 
 __global__
 void BenchmarkCudaKernel(Random_t* devStates,
-                         GUAliasTable* table,
+			 //                         GUAliasTable* table,
+                         GUAliasTableManager* table,
 			 int nTrackSize, 
                          GUTrack* itrack, 
 			 int* targetElements, 
@@ -41,34 +42,28 @@ void BenchmarkCudaKernel(Random_t* devStates,
 
 void GUBenchmarker::RunCuda()
 {
-#ifdef VECPHYS_ROOT
-  GUHistogram* histogram = new GUHistogram("cuda.root", fMaxP);
-#endif
-
   cudaDeviceReset();
 
   //set 1024 megabytes on the heap (global mememory) 
   //  cudaThreadSetLimit(cudaLimitMallocHeapSize, 1024*1024*1024);
 
-  //prepare table
-  GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
-  GUAliasTable* table_h =  model->GetSampler()->GetAliasTable(8);
-
-  GUAliasTable* table_d;
-  cudaMalloc((void**)&table_d,table_h->SizeOfTable());
-  table_h->Relocate(table_d);
-
-  GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
+#ifdef VECPHYS_ROOT
+  GUHistogram* histogram = new GUHistogram("cuda.root", fMaxP);
+#endif
 
   int *targetElements = new int [fNtracks];
-  for(int i = 0 ; i < fNtracks ; ++i) {
-    targetElements[i] = i ;
-  }
-  
   int *targetElements_d;
-  cudaMalloc((void**)&targetElements_d, fNtracks*sizeof(int));
-  cudaMemcpy(targetElements_d, targetElements, fNtracks*sizeof(int), 
-               cudaMemcpyHostToDevice);
+
+  //prepare table
+  GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
+
+  GUAliasTableManager* tableM_h = model->GetSampler()->GetAliasTableManager();
+  GUAliasTableManager* tableM_d;
+  cudaMalloc((void**)&tableM_d, tableM_h->SizeOfManager());
+
+  tableM_h->Relocate(tableM_d);
+  
+  GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
   //allocate memory for input/output tracks
   GUTrack *itrack_d;
@@ -86,12 +81,20 @@ void GUBenchmarker::RunCuda()
   GUCurand_Init(randomStates, time(NULL), theNBlocks, theNThreads);
 
   Stopwatch timer;
+  Precision elapsedCudaTotal= 0.0;
 
   Precision* incomingEn = new Precision[fNtracks];
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
-    fTrackHandler->GenerateRandomTracks(fNtracks);
+    PrepareTargetElements(targetElements, fNtracks);
+
+    //H2D
+    cudaMalloc((void**)&targetElements_d, fNtracks*sizeof(int));
+    cudaMemcpy(targetElements_d, targetElements, fNtracks*sizeof(int), 
+               cudaMemcpyHostToDevice);
+
+    fTrackHandler->GenerateRandomTracks(fNtracks,fMinP, fMaxP);
     GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
     cudaMemcpy(itrack_d, itrack_aos, fNtracks*sizeof(GUTrack), 
                  cudaMemcpyHostToDevice);
@@ -102,14 +105,18 @@ void GUBenchmarker::RunCuda()
 
     timer.Start();
     vecphys::cuda::BenchmarkCudaKernel<<<theNBlocks, theNThreads>>>(
-				       randomStates,table_d,fNtracks,
-				       itrack_d, targetElements_d,otrack_d);
+				       randomStates,tableM_d,fNtracks,
+    				       itrack_d, targetElements_d,otrack_d);
     cudaDeviceSynchronize();
     Precision elapsedCuda = timer.Stop();
+    elapsedCudaTotal += elapsedCuda;
+
     if (fVerbosity > 0) {
       printf("CUDA   Task %d > %6.3f sec\n",r,elapsedCuda);
     }
 
+    cudaMemcpy(itrack_aos, itrack_d, fNtracks*sizeof(GUTrack), 
+               cudaMemcpyDeviceToHost);
     cudaMemcpy(otrack_aos, otrack_d, fNtracks*sizeof(GUTrack), 
                cudaMemcpyDeviceToHost);
 
@@ -127,13 +134,15 @@ void GUBenchmarker::RunCuda()
 
   }
 
+  printf("Cuda   Task Total time of %3d reps = %6.3f sec\n",fRepetitions ,elapsedCudaTotal);
+
   cudaFree(randomStates);
   cudaFree(itrack_d);
   cudaFree(otrack_d);
-  cudaFree(table_d);
+  cudaFree(tableM_d);
   cudaFree(targetElements_d);
 
-  free(table_h);
+  free(tableM_h);
   free(targetElements);
   free(otrack_aos);
 

@@ -3,7 +3,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_BOTH
+VECPHYS_CUDA_HEADER_HOST
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
                int    maxZelement, 
@@ -28,6 +28,9 @@ GUAliasSampler(Random_t* states, int threadId,
   // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
   // For multiple elements, this should be a vector of GUAliasTable
   // fAliasTable = new (GUAliasTable*)[maxZelement+1];
+
+  fAliasTableManager = new GUAliasTableManager(maxZelement);
+
   fAliasTable = (GUAliasTable**) malloc( (maxZelement+1)*sizeof(GUAliasTable*) ); 
 
   for( int z=1; z<maxZelement; z++)
@@ -66,6 +69,33 @@ GUAliasSampler(Random_t* states, int threadId,
 }
 
 VECPHYS_CUDA_HEADER_BOTH
+GUAliasSampler::
+GUAliasSampler(Random_t* states, int threadId,
+               // int    Zelement, 
+               double incomingMin, 
+               double incomingMax,
+               int    numEntriesIncoming, // for 'energy' (or log) of projectile
+               int    numEntriesSampled,   
+               GUAliasTableManager* tableManager
+)  
+  :
+  fRandomState(states), 
+  fThreadId(threadId),
+  // fZelement(Zelement),
+  fIncomingMin( incomingMin ),
+  fIncomingMax( incomingMax ),
+  fInNumEntries(numEntriesIncoming), 
+  fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
+  fSampledNumEntries( numEntriesSampled ),
+  fInverseBinSampled( 1.0 / (numEntriesSampled-1) )  // Careful - convention build / use table!
+  // fSampledBinSize(1.0 ) // ?? WHAT TO PUT HERE ?? 
+{
+  // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
+  // For multiple elements, this should be a vector of GUAliasTable
+  fAliasTableManager = tableManager;
+}
+
+VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::~GUAliasSampler()
 {
    if(fAliasTable)
@@ -76,6 +106,9 @@ GUAliasSampler::~GUAliasSampler()
       delete fAliasTable;
       fAliasTable= (GUAliasTable**) 0;
    }
+
+   //   if(fAliasTableManager)  delete fAliasTableManager;
+
 }
 
 VECPHYS_CUDA_HEADER_BOTH
@@ -113,7 +146,7 @@ void GUAliasSampler::GetAlias(int    index,
   aliasInd =  fAliasTable[zElement]->fAlias[ index ];
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECPHYS_CUDA_HEADER_HOST
 void GUAliasSampler::BuildAliasTable( int Zelement,
                                       int nrow,
                                       int ncol,
@@ -135,8 +168,6 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  // std::cout << " GUAliasSampler - building table for element Z= " << Zelement << std::endl;
-   
   //temporary array
   int *a     = (int*)   malloc(ncol*sizeof(int)); 
   double *ap = (double*)malloc(ncol*sizeof(double)); 
@@ -144,10 +175,9 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
   //likelihood per equal probable event
   const double cp = 1.0/(ncol-1);
 
-  // std::cout << " Pointer fAliasTable[ Z= " << Zelement << " ] > " << fAliasTable[Zelement] << std::endl; 
-  // std::cout << "  fAliasTable[ Z= " << Zelement << " ]->fpdf = " << fAliasTable[Zelement]->fpdf << std::endl;
+  GUAliasTable* aliasTable = fAliasTable[Zelement];
 
-  GUAliasTable* aliasTable= fAliasTable[Zelement];
+  GUAliasTable* table = new GUAliasTable(nrow*ncol);
 
   for(int ir = 0; ir < nrow ; ++ir) {
 
@@ -157,6 +187,7 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
        // fAliasTable[Zelement]->fpdf[ir*ncol+i] = pdf[ir*ncol+i];
        int ipos= ir*ncol+i;
        aliasTable->fpdf[ipos] = pdf[ipos];
+       table->fpdf[ipos] = pdf[ipos];
        // aliasTable->fpdf[ir*ncol+i] = pdf[ir*ncol+i];       
 
        a[i] = -1;
@@ -188,11 +219,11 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
       //alias and non-alias probability
 
       // fAliasTable[Zelement]         
-      aliasTable
-         ->fAlias[ir*ncol+recip] = donor;
+      aliasTable->fAlias[ir*ncol+recip] = donor;
+      table->fAlias[ir*ncol+recip] = donor;
       // fAliasTable[Zelement]
-      aliasTable
-         ->fProbQ[ir*ncol+recip] = ncol*ap[recip];
+      aliasTable->fProbQ[ir*ncol+recip] = ncol*ap[recip];
+      table->fProbQ[ir*ncol+recip] = ncol*ap[recip];
     
       //update pdf 
       ap[donor] = ap[donor] - (cp-ap[recip]);
@@ -202,6 +233,8 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
     }
     while (iter > 0);
   }
+
+  fAliasTableManager->AddAliasTable(Zelement,table);
 
   free(a);
   free(ap);

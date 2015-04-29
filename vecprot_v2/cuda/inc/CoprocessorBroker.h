@@ -29,7 +29,7 @@ class curandState;
 class DevicePtrBase
 {
    void *fPtr;
-   
+
    DevicePtrBase(const DevicePtrBase&); // not implemented
    DevicePtrBase &operator=(const DevicePtrBase&); // not implemented
 
@@ -149,7 +149,7 @@ public:
       TaskData(const TaskData&); // not implemented
       TaskData& operator=(const TaskData&); // not implemented
    public:
-      
+
       TaskData();
       ~TaskData();
 
@@ -210,7 +210,7 @@ public:
    CoprocessorBroker();
    ~CoprocessorBroker();
 
-   bool UploadGeometry(GPVGeometry *geom);
+   bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
    bool UploadMagneticField(GXFieldMap** fieldMap);
 
    bool UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ);

@@ -23,7 +23,7 @@ class GUConversionBetheHeitler
 {
 public:
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECPHYS_CUDA_HEADER_HOST
   GUConversionBetheHeitler(Random_t* states, int threadId = -1); 
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -85,14 +85,14 @@ public:
   // -------------------------------------------
 
   // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECPHYS_CUDA_HEADER_HOST
   void BuildOneTable( int Z,
                       const double xmin,
                       const double xmax,
                       const int nrow,
                       const int ncol);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECPHYS_CUDA_HEADER_HOST
   void BuildPdfTable(int Z,
                      const double xmin,
                      const double xmax,

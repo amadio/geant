@@ -174,9 +174,12 @@ def directory_names():
                   Flag = False
                if "MCGenerators" in directory:
                   Flag = False
-
+               
                if "VecGeom" in directory:
-                  directory = directory + '/lib/CMake/VecGeom'
+                  vecgeom_include_dir = directory + '/include/VecCore'
+                  vecgeom_dir = directory + '/lib/CMake/VecGeom'
+                  print '%s=%s' % ("export VECGEOM_INCLUDE_DIR", vecgeom_include_dir)
+                  print '%s=%s' % ("export VecGeom_DIR", vecgeom_dir)
 
                dirlist.append(directory);
 

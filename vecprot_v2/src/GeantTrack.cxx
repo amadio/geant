@@ -243,6 +243,7 @@ Double_t GeantTrack::Curvature() const {
   return Math::Abs(kB2C * fCharge * gPropagator->fBmag / (Pt() + tiny));
 }
 
+#ifdef VECGEOM_ROOT
 //______________________________________________________________________________
 TGeoVolume *GeantTrack::GetVolume() const {
   // Current volume the track is into
@@ -263,6 +264,7 @@ TGeoMaterial *GeantTrack::GetMaterial() const {
     return 0;
   return med->GetMaterial();
 }
+#endif
 
 //______________________________________________________________________________
 void GeantTrack::SetPath(VolumePath_t const *const path) {
@@ -1962,7 +1964,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
     return;
   }*/
   VECGEOM_NAMESPACE::SimpleNavigator nav;
-  double step;
+  double step = 0.0;
   nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
                               Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]), *fPathV[itr],
                               *fNextpathV[itr], Math::Min(1.E20, fPstepV[itr]), step);
@@ -2406,6 +2408,7 @@ Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output) {
   return new_itr;
 }
 
+#ifdef VECGEOM_ROOT
 //______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
   // Current volume the track is into
@@ -2426,3 +2429,4 @@ TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
     return 0;
   return med->GetMaterial();
 }
+#endif

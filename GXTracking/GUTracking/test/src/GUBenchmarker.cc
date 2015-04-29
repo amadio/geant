@@ -5,6 +5,7 @@
 #include "GUAliasSampler.h"
 #include "GUComptonKleinNishina.h"
 #include "GUTrackHandler.h"
+#include "SystemOfUnits.h"
 
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
@@ -14,21 +15,6 @@ static int fElementMode = 1;
 //   Values:
 //   1  - Single material
 //   
-
-// static double minP= 1.0, maxP=1.0;  // Units = GeV
-// GU & GeantV Default Energy Unit = GeV
-constexpr double GeV = 1.0;
-constexpr double MeV = 0.001  * GeV;
-constexpr double KeV = 1.0e-6 * GeV;
-
-// Mono-energetic test
-constexpr double defaultMinP= 500;
-constexpr double defaultMaxP= defaultMinP;     // 0.5 * MeV; // ie = 500.*KeV;
-//  Equal maxp & minP ==> monoenergetic beam
-
-// 'Broad spectrum' test 
-// static double defaultMinP=   5.0 * KeV;
-// static double defaultMaxP= 500.0 * MeV;
 
 static bool   verbose = false; // true;
 
@@ -42,12 +28,21 @@ const double unitFactor = UNIT_CORRECTION;
 
 namespace vecphys {
 
+// Mono-energetic test
+constexpr double defaultMinP = 500.*MeV;
+constexpr double defaultMaxP = defaultMinP;
+//  Equal maxp & minP ==> monoenergetic beam
+
+// 'Broad spectrum' test 
+// static double defaultMinP=   5.0 * KeV;
+// static double defaultMaxP= 500.0 * MeV;
+
 GUBenchmarker::GUBenchmarker()
     : fNtracks(4992),
       fRepetitions(1),
       fVerbosity(0),
-      fMinP(defaultMinP),   // (0.1*MeV),
-      fMaxP(defaultMaxP)   // (1000.*MeV)
+      fMinP(defaultMinP),  
+      fMaxP(defaultMaxP)   
 {
   fTrackHandler = new GUTrackHandler();
 }
@@ -59,6 +54,7 @@ GUBenchmarker::~GUBenchmarker()
 
 int GUBenchmarker::RunBenchmark()
 {
+  printf("fMinP = %f, fMaxP = %f \n",fMinP, fMaxP);
   int errorcode=0;
   errorcode+=RunBenchmarkInteract();
   return (errorcode)? 1 : 0;
@@ -95,7 +91,6 @@ void GUBenchmarker::RunScalar()
 #endif
 
   int *targetElements = new int [fNtracks];
-  // PrepareTargetElements( targetElements, fNtracks);
 
   GUComptonKleinNishina *model = new GUComptonKleinNishina(0,-1);
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
@@ -126,12 +121,6 @@ void GUBenchmarker::RunScalar()
     //AOS
     for(int i = 0 ; i < fNtracks ; ++i) {
        model->Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
-       // if( verbose ) {
-       //    std::cout << " E_in = "  << incomingEn[i] 
-       //              << " elem = "  << targetElements[i];
-       //    std::cout << " E_out = "  << itrack_aos[i].E
-       //              << " E_elec = " << otrack_aos[i].E  << std::endl;
-       // }
     }
 
     Precision elapsedScalar = timer.Stop();
