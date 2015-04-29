@@ -51,6 +51,7 @@ typedef double G4double;
 #include "WorkloadManager.h"
 #include "GeantScheduler.h"
 #include "GeantBasket.h"
+#include "GeantThreadData.h"
 #include "globals.h"
 
 #include "management/CudaManager.h"
@@ -296,7 +297,9 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    unsigned int maxTrackPerKernel = nblocks*nthreads*maxTrackPerThread;
    fChunkSize = maxTrackPerKernel;
 
-   //fDevTaskWorkspace.Alloc(maxTrackPerKernel);
+   unsigned int maxThreads = nblocks*nthreads;
+
+   fDevTaskWorkspace.Alloc(maxThreads);
    fDevTrackInput.Alloc(maxTrackPerKernel);
    fDevTrackOutput.Alloc(maxTrackPerKernel);
    // fDevSecondaries.Alloc(maxTrackPerKernel);
