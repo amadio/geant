@@ -7,13 +7,14 @@ export LC_ALL=en_US.UTF-8
 THIS=$(dirname ${BASH_SOURCE[0]})
 
 # first arguments is the source directory
-if [ $# -ge 4 ]; then
+if [ $# -ge 5 ]; then
   LABEL=$1 ; shift
   COMPILER=$1 ; shift
   BUILDTYPE=$1 ; shift
   EXTERNALS=$1 ; shift
+  WORKSPACE=$1 ; shift
 else
-  echo "$0: expecting 4 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS]"
+  echo "$0: expecting 5 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE]"
   return
 fi
 
@@ -48,5 +49,5 @@ then
 
 fi
 
-echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS}
-eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS}`
+echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE}
+eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE}`
