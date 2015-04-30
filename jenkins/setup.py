@@ -240,7 +240,7 @@ if __name__ == "__main__":
    os.environ["CMAKE_PREFIX_PATH_ALL"] = directory_names()[0]
    os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]
 #   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
-   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+workspace+"/geant/lib"+":"+os.environ["LD_LIBRARY_PATH"]
+   os.environ["LD_LIBRARY_PATH_ALL"] = workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
    prefix = os.environ["CMAKE_PREFIX_PATH_ALL"]
    path = os.environ["PATH_ALL"]
    ld_libs = os.environ["LD_LIBRARY_PATH_ALL"]
