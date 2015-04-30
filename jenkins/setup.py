@@ -38,7 +38,7 @@ def main(argv):
          external = arg
 
       elif opt in ("-w"):
-         external = arg
+         workspace = arg
    
    if build == 'Release' : build_type = 'opt'
    elif build == 'Debug' : build_type = 'dbg'
@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
    os.environ["CMAKE_PREFIX_PATH_ALL"] = directory_names()[0]
    os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]
-# original   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
+#   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
    os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+workspace+"/geant/lib"+":"+os.environ["LD_LIBRARY_PATH"]
    prefix = os.environ["CMAKE_PREFIX_PATH_ALL"]
    path = os.environ["PATH_ALL"]
