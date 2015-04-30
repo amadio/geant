@@ -319,8 +319,8 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     Printf("Have placed volumes %ld\n", v2.size());
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
 
-    Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
-    return fWMgr->LoadGeometry();
+    //Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    //return fWMgr->LoadGeometry();
   }
   return true;
 }
@@ -377,10 +377,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     Printf("No user application attached - aborting");
     return;
   }
-  Initialize();
   // Initialize geometry and current volume
   if (!LoadGeometry(geomfile))
     return;
+  Initialize();
   // Initialize application
   fApplication->Initialize();
   if (called) {
