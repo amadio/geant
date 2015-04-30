@@ -71,6 +71,10 @@ if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
   set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone http://git.cern.ch/pub/geant ${CTEST_SOURCE_DIRECTORY}")
 endif()
 set(CTEST_GIT_UPDATE_COMMAND "${CTEST_GIT_COMMAND}")
+if(NOT "$ENV{GIT_COMMIT}" STREQUAL "")
+   set(CTEST_CHECKOUT_COMMAND "cmake -E chdir ${CTEST_SOURCE_DIRECTORY} ${CTEST_GIT_COMMAND} checkout -f $ENV{GIT_PREVIOUS_COMMIT}")
+   set(CTEST_GIT_UPDATE_CUSTOM  ${CTEST_GIT_COMMAND} checkout -f $ENV{GIT_COMMIT})
+endif()
 
 #########################################################
 ## Output language
@@ -82,7 +86,8 @@ include(ProcessorCount)
 ProcessorCount(N)
 if(NOT N EQUAL 0)
   if(NOT WIN32)
-    set(CTEST_BUILD_FLAGS -j${N})
+#    set(CTEST_BUILD_FLAGS -j${N})
+
   endif(NOT WIN32)
   set(ctest_test_args ${ctest_test_args} PARALLEL_LEVEL ${N})
 endif()

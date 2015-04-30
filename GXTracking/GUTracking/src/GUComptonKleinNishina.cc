@@ -8,7 +8,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_HOST
 GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId) 
   :
   fRandomState(states), fThreadId(threadId),
@@ -23,7 +23,7 @@ GUComptonKleinNishina::GUComptonKleinNishina(Random_t* states, int threadId)
                                      fMinX, fMaxX,
                                      fNrow, fNcol);
 
-  for( int z= 1; z < fMaxZelement; ++z)
+  for( int z= 1 ; z < fMaxZelement; ++z)
   {
     //eventually arguments of BuildTable should be replaced by members of *this
     //  and dropped from the function signature. Same for BuildPdfTable
@@ -53,7 +53,7 @@ GUComptonKleinNishina::~GUComptonKleinNishina()
 }
 
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_HOST void 
 GUComptonKleinNishina::BuildOneTable( int Z, 
                                    const double xmin, 
                                    const double xmax,
@@ -65,12 +65,13 @@ GUComptonKleinNishina::BuildOneTable( int Z,
   double *pdf = new double [nrow*ncol];
 
   BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
+
   fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
 
   delete [] pdf;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_HOST void 
 GUComptonKleinNishina::BuildPdfTable(int Z, 
                                      const double xmin, 
                                      const double xmax,
@@ -124,7 +125,7 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
   }
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_HOST void 
 GUComptonKleinNishina::BuildLogPdfTable(int Z, 
                                         const double xmin, 
                                         const double xmax,

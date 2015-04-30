@@ -7,7 +7,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_BOTH GUConversionBetheHeitler::
+VECPHYS_CUDA_HEADER_HOST GUConversionBetheHeitler::
 GUConversionBetheHeitler(Random_t* states, int threadId) 
   :
   fRandomState(states), fThreadId(threadId),
@@ -49,7 +49,7 @@ GUConversionBetheHeitler::~GUConversionBetheHeitler()
   if(fAliasSampler) delete fAliasSampler;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_HOST void 
 GUConversionBetheHeitler::BuildOneTable( int Z, 
                                          const double xmin, 
                                          const double xmax,
@@ -66,7 +66,7 @@ GUConversionBetheHeitler::BuildOneTable( int Z,
   delete [] pdf;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_HOST void 
 GUConversionBetheHeitler::BuildPdfTable(int Z, 
                                         const double xmin, 
                                         const double xmax,

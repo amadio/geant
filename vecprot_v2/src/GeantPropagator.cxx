@@ -174,7 +174,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
     Int_t tid = TGeoManager::ThreadId();
     td = fThreadData[tid];
     td->fTid = tid;
-  }  
+  }
   // the code below should be executed per track, as the primary vertex can change.
   if (!a) {
     a = VolumePath_t::MakeInstance(fMaxDepth);
@@ -298,8 +298,6 @@ void GeantPropagator::Initialize() {
     for (Int_t i = 0; i < fNthreads + 1; i++)
       fThreadData[i] = new GeantThreadData();
   }
-  // Initialize application
-  fApplication->Initialize();
 }
 
 #if USE_VECGEOM_NAVIGATOR == 1
@@ -320,10 +318,14 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
     Printf("Have placed volumes %ld\n", v2.size());
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
+
+    //Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    //return fWMgr->LoadGeometry();
   }
   return true;
 }
 #endif
+
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename) {
   // Load the detector geometry from file, unless already loaded.
@@ -379,6 +381,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   if (!LoadGeometry(geomfile))
     return;
   Initialize();
+  // Initialize application
+  fApplication->Initialize();
   if (called) {
     Printf("Sorry, you can call this only once per session.");
     return;
@@ -421,17 +425,17 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = kTRUE;
   gGeoManager->SetMaxThreads(nthreads);
-  if (fUseMonitoring) {    
+  if (fUseMonitoring) {
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
     cmon->Update();
   }
   if (fUseAppMonitoring) {
     TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
     capp->Update();
-  }  
+  }
   fTimer = new TStopwatch();
   fWMgr->StartThreads();
-  fTimer->Start();  
+  fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
   condition_locker &sched_locker = fWMgr->GetSchLocker();
   sched_locker.StartOne();

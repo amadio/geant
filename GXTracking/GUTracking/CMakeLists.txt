@@ -276,6 +276,7 @@ set(SRC_CPP_RELATIVE
 #  src/GUPhysicsModel.cc
   src/GUAliasTable.cc
 #  src/GUElement.cc
+  src/GUAliasTableManager.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})

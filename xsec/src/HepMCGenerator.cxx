@@ -6,8 +6,8 @@
 
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"
-#include "HepMC/IO/IO_GenEvent.h"
-#include "HepMC/IO/IO_Root.h"
+#include "HepMC/ReaderAscii.h"
+#include "HepMC/ReaderRoot.h"
 
 ClassImp(HepMCGenerator)
 
@@ -18,9 +18,9 @@ HepMCGenerator::HepMCGenerator()
 //______________________________________________________________________________
 HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0) {
   if (filename.substr(filename.find_last_of(".") + 1) == "hepmc3") {
-    input_file = new HepMC::IO_GenEvent(filename, std::ios::in);
+    input_file = new HepMC::ReaderAscii(filename);
   } else if (filename.substr(filename.find_last_of(".") + 1) == "root") {
-    input_file = new HepMC::IO_Root(filename, std::ios::in);
+    input_file = new HepMC::ReaderRoot(filename);
   } else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
@@ -43,13 +43,13 @@ Int_t HepMCGenerator::NextEvent() {
 
   HepMC::GenEvent evt(HepMC::Units::GEV, HepMC::Units::MM);
 
-  if (!(input_file->fill_next_event(evt)))
+  if (!(input_file->read_event(evt)))
     Fatal("ImportTracks", "No more particles to read!");
 
 //  std::cout << std::endl
 //            << "Find all stable particles: " << std::endl;
 
-  search = new HepMC::FindParticles(evt, HepMC::FIND_ALL, HepMC::STATUS == 1 && HepMC::STATUS_SUBCODE == 0);
+  search = new HepMC::FindParticles(evt, HepMC::FIND_ALL, HepMC::STATUS == 1); // && HepMC::STATUS_SUBCODE == 0);
 
   Int_t ntracks = 0;
   Double_t eta, phi, pmom = 0;

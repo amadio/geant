@@ -24,7 +24,7 @@ typedef double G4double;
 #include "GPPhysics2DVector.h"
 
 #include "GPPhysicsTable.h"
-#include "GPPhysicsTableType.h"
+//#include "GPPhysicsTableType.h"
 
 #include "GeantTrack.h"
 
@@ -53,14 +53,16 @@ typedef double G4double;
 #include "GeantBasket.h"
 #include "globals.h"
 
+#include "management/CudaManager.h"
+
 static void HandleCudaError( cudaError_t err,
                              const char *file,
-                             int line ) { 
+                             int line ) {
     if (err != cudaSuccess) {
-       Fatal("Cuda","%s (%d) in %s at line %d\n", cudaGetErrorString( err ), err, 
+       Fatal("Cuda","%s (%d) in %s at line %d\n", cudaGetErrorString( err ), err,
              file, line );
        exit( EXIT_FAILURE );
-    }   
+    }
 }
 
 #define HANDLE_CUDA_ERROR( err ) (HandleCudaError( err, __FILE__, __LINE__ ))
@@ -362,13 +364,18 @@ CoprocessorBroker::~CoprocessorBroker()
 
 }
 
-bool CoprocessorBroker::UploadGeometry(GPVGeometry *geom)
+bool CoprocessorBroker::UploadGeometry(vecgeom::VPlacedVolume const *const volume)
 {
    // Prepare the geometry for the device and upload it to the device's memory.
 
-   HANDLE_CUDA_ERROR(cudaMalloc( (void**)&fdGeometry, geom->size() ));
-   geom->relocate( fdGeometry );
-   HANDLE_CUDA_ERROR(cudaMemcpy(fdGeometry, geom->getBuffer(), geom->size(), cudaMemcpyHostToDevice));
+   //CudaManager::Instance().set_verbose(3);
+
+   if (volume) vecgeom::CudaManager::Instance().LoadGeometry(volume);
+   else        vecgeom::CudaManager::Instance().LoadGeometry();
+   vecgeom::CudaManager::Instance().Synchronize();
+
+   //CudaManager::Instance().PrintGeometry();
+   //std::cout << std::flush;
 
    return true;
 }
@@ -376,35 +383,39 @@ bool CoprocessorBroker::UploadGeometry(GPVGeometry *geom)
 bool CoprocessorBroker::UploadMagneticField(GXFieldMap** fieldMap)
 {
 
-   printf("Creating magnetic field map on the GPU device\n");
-   //prepare fiesldMap array: fieldMap[nbinZ][nbinR];
-   GXFieldMap *bmap_h = (GXFieldMap *) malloc (nbinZ*nbinR*sizeof(GXFieldMap));
-   for (int i = 0 ; i < nbinZ ; i++) {
-      for (int j = 0 ; j < nbinR ; j++) {
-         bmap_h[i+j*nbinZ].Bz = fieldMap[i][j].Bz;
-         bmap_h[i+j*nbinZ].Br = fieldMap[i][j].Br;
-      }
-   }
+   fprintf(stderr, "Magnetic field uploading not implemented yet.\n");
 
-   printf("Copying data from host to device\n");
+//    printf("Creating magnetic field map on the GPU device\n");
+//    //prepare fiesldMap array: fieldMap[nbinZ][nbinR];
+//    GXFieldMap *bmap_h = (GXFieldMap *) malloc (nbinZ*nbinR*sizeof(GXFieldMap));
+//    for (int i = 0 ; i < nbinZ ; i++) {
+//       for (int j = 0 ; j < nbinR ; j++) {
+//          bmap_h[i+j*nbinZ].Bz = fieldMap[i][j].Bz;
+//          bmap_h[i+j*nbinZ].Br = fieldMap[i][j].Br;
+//       }
+//    }
 
-//   cudaMalloc((void**)&fdFieldMap, nbinZ*nbinR*sizeof(GXFieldMap)) ;
-//   cudaMemcpy(fdFieldMap,bmap_h,nbinZ*nbinR*sizeof(GXFieldMap),
-//              cudaMemcpyHostToDevice);
-   fdFieldMap.Alloc(nbinZ*nbinR);
-   fdFieldMap.ToDevice(bmap_h,nbinZ*nbinR);
-   free(bmap_h);
+//    printf("Copying data from host to device\n");
+
+// //   cudaMalloc((void**)&fdFieldMap, nbinZ*nbinR*sizeof(GXFieldMap)) ;
+// //   cudaMemcpy(fdFieldMap,bmap_h,nbinZ*nbinR*sizeof(GXFieldMap),
+// //              cudaMemcpyHostToDevice);
+//    fdFieldMap.Alloc(nbinZ*nbinR);
+//    fdFieldMap.ToDevice(bmap_h,nbinZ*nbinR);
+//    free(bmap_h);
 
    return true;
 }
 
 bool CoprocessorBroker::UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ)
 {
-   fd_PhysicsTable.Alloc(nTables);
-   fd_PhysicsTable.ToDevice(table,nTables);
+   fprintf(stderr, "Physics table uploading not implemented yet.\n");
 
-   fd_SeltzerBergerData.Alloc(maxZ);
-   fd_SeltzerBergerData.ToDevice(sbData,maxZ);
+   // fd_PhysicsTable.Alloc(nTables);
+   // fd_PhysicsTable.ToDevice(table,nTables);
+
+   // fd_SeltzerBergerData.Alloc(maxZ);
+   // fd_SeltzerBergerData.ToDevice(sbData,maxZ);
 
    return true;
 }
@@ -414,46 +425,41 @@ void setup(CoprocessorBroker *broker,
            int nz   = 3,
            double density = 8.28)
 {
-   //1. Create the geometry.
-   GPVGeometry *geom = new GPSimpleEcal(nphi,nz,density);
-   geom->create();
 
-   broker->UploadGeometry(geom);
+   // //2. Read magnetic field map
+   // const char* fieldMapFile = getenv("GP_BFIELD_MAP");
+   // fieldMapFile = (fieldMapFile) ? fieldMapFile : "data/cmsExp.mag.3_8T";
+   // GXFieldMap** fieldMap = ReadFieldMap(fieldMapFile);
 
-   //2. Read magnetic field map
-   const char* fieldMapFile = getenv("GP_BFIELD_MAP");
-   fieldMapFile = (fieldMapFile) ? fieldMapFile : "data/cmsExp.mag.3_8T";
-   GXFieldMap** fieldMap = ReadFieldMap(fieldMapFile);
+   // //3. Create magnetic field on the device
+   // broker->UploadMagneticField(fieldMap);
 
-   //3. Create magnetic field on the device
-   broker->UploadMagneticField(fieldMap);
+   // // 4. Prepare EM physics tables
+   // GPPhysicsTable physicsTable[kNumberPhysicsTable];
 
-   // 4. Prepare EM physics tables
-   GPPhysicsTable physicsTable[kNumberPhysicsTable];
+   // TString filename;
+   // for(int it = 0 ; it < kNumberPhysicsTable ; ++it) {
+   //    filename.Form("data/%s",GPPhysicsTableName[it]);
+   //    readTableAndSetSpline(&physicsTable[it],filename);
+   // }
 
-   TString filename;
-   for(int it = 0 ; it < kNumberPhysicsTable ; ++it) {
-      filename.Form("data/%s",GPPhysicsTableName[it]);
-      readTableAndSetSpline(&physicsTable[it],filename);
-   }
+   // //G4SeltzerBergerModel data
+   // unsigned int maxZ = 92;
+   // GPPhysics2DVector* sbData = new GPPhysics2DVector[maxZ];
 
-   //G4SeltzerBergerModel data
-   unsigned int maxZ = 92;
-   GPPhysics2DVector* sbData = new GPPhysics2DVector[maxZ];
+   // char sbDataFile[256];
+   // for(unsigned int iZ = 0 ; iZ < maxZ ; ++iZ) {
+   //    sprintf(sbDataFile,"data/brem_SB/br%d",iZ+1);
+   //    std::ifstream fin(sbDataFile);
+   //    G4bool check = RetrieveSeltzerBergerData(fin, &sbData[iZ]);
+   //    if(!check) {
+   //       printf("Failed To open SeltzerBerger Data file for Z= %d\n",iZ+1);
+   //    }
+   // }
+   // printf("Copying GPPhysicsTable data from host to device\n");
+   // broker->UploadPhysicsTable(physicsTable,kNumberPhysicsTable,sbData,maxZ);
 
-   char sbDataFile[256];
-   for(unsigned int iZ = 0 ; iZ < maxZ ; ++iZ) {
-      sprintf(sbDataFile,"data/brem_SB/br%d",iZ+1);
-      std::ifstream fin(sbDataFile);
-      G4bool check = RetrieveSeltzerBergerData(fin, &sbData[iZ]);
-      if(!check) {
-         printf("Failed To open SeltzerBerger Data file for Z= %d\n",iZ+1);
-      }
-   }
-   printf("Copying GPPhysicsTable data from host to device\n");
-   broker->UploadPhysicsTable(physicsTable,kNumberPhysicsTable,sbData,maxZ);
-
-   delete [] sbData;
+   // delete [] sbData;
 
 }
 

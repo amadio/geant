@@ -1,12 +1,12 @@
 //===--- WorkloadManager.h - Geant-V ----------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file WorkloadManager.h
- * @brief Definition of workload manager in Geant-V prototype  
- * @author Andrei Gheata 
+ * @brief Definition of workload manager in Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -29,12 +29,12 @@ class TaskBroker;
 
 
 /**
- * @brief WorlloadManager class
+ * @brief WorkloadManager class
  * @details Main work manager class. This creates and manages all the worker threads,
  * has pointers to the synchronization objects, but also to the currently
  * transported baskets.
  */
-class WorkloadManager : public TObject {
+class WorkloadManager {
 public:
 
   /**
@@ -81,9 +81,9 @@ protected:
   condition_locker fSchLocker; /** Scheduler locker */
   condition_locker fGbcLocker; /** Garbage collector locker */
 
-  /** 
+  /**
    * @brief WorkloadManager parameterized constructor
-   * 
+   *
    * @param  nthreads Number of threads foe workload manager
    */
   WorkloadManager(Int_t nthreads);
@@ -98,12 +98,12 @@ public:
 
   /** @brief Function for feeder queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *FeederQueue() const { return fFeederQ; }
-  
+
   /**
    * @brief Function that provides trasported queue for baskets
    */
   Geant::priority_queue<GeantBasket *> *TransportedQueue() const { return fTransportedQ; }
-  
+
   /**
    * @brief Function that provides thread's "all work done" queue
    */
@@ -111,7 +111,7 @@ public:
   //   GeantObjectPool<VolumePath_t>
   //   rr_pool<VolumePath_t>
   //                      *NavStates() const   {return fNavStates;}
-  
+
   /** @brief Function that returns number of managed threads */
   Int_t GetNthreads() const { return fNthreads; }
 
@@ -147,7 +147,7 @@ public:
 
   /**
    * @brief Function that create workload manager instance
-   * 
+   *
    * @param nthreads Number of threads (by default 0)
    */
   static WorkloadManager *Instance(Int_t nthreads = 0);
@@ -160,7 +160,7 @@ public:
 
   /** @brief Function that check stop flag */
   bool IsStopped() const { return fStopped; }
-  
+
   /**
    * @brief Function that provide stop process by setting Stop flag = True
    */
@@ -168,7 +168,7 @@ public:
 
   /**
    * @brief Function that provides buffer flushing
-   * 
+   *
    * @param flag Flag for buffer flushing
    */
   void SetFlushed(bool flag) { fFlushed = flag; }
@@ -181,17 +181,26 @@ public:
 
   /**
    * @brief  Function that set task broker
-   * 
-   * @param broker Broker to be set 
+   *
+   * @param broker Broker to be set
    */
   void SetTaskBroker(TaskBroker *broker);
+
+#if USE_VECGEOM_NAVIGATOR == 1
+  /**
+   * @brief Tell the task broker(s) to load the geometry.
+   *
+   * @param Volume to load
+   */
+  Bool_t LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
+#endif
 
   /** @brief Function that return minimum number of tracks in a basket to trigger transport */
   Int_t GetNminThreshold() const { return fNminThreshold; }
 
   /**
    * @brief Function that set minimum number of tracks in the basket to trigger transport
-   * 
+   *
    * @param thr Thread for minimum value of threshold
    */
   void SetNminThreshold(Int_t thr) { fNminThreshold = thr; }
@@ -204,35 +213,35 @@ public:
 
   /**
    * @brief Function that provides main scheduler
-   *  
+   *
    * @param arg Arguments to be passed in the function
    */
   static void *MainScheduler(void *arg);
 
   /**
    * @brief Function that provides garbage collector thread
-   * 
+   *
    * @param arg Arguments to be passed in the function
    */
   static void *GarbageCollectorThread(void *arg);
 
   /**
    * @brief Function that provides monitoring thread
-   * 
+   *
    * @param arg Arguments to be passed in the function
    */
   static void *MonitoringThread(void *arg);
 
   /**
    * @brief Function that provides transporting tracks
-   * 
+   *
    * @param arg Arguments to be passed in the function
    */
   static void *TransportTracks(void *arg);
 
   /**
    * @brief Function that provides transport tracks in coprocessor
-   * 
+   *
    * @param arg Arguments to be passed in the function
    */
   static void *TransportTracksCoprocessor(void *arg);
@@ -253,6 +262,5 @@ private:
    */
   WorkloadManager &operator=(const WorkloadManager &);
 
-  ClassDef(WorkloadManager, 0) // The work manager class.
 };
 #endif

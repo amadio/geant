@@ -189,6 +189,7 @@ public:
   /** @brief Function that return selected physical step */
   Double_t GetPstep() const { return fPstep; }
 
+#ifdef VECGEOM_ROOT
   /** @brief Function that return volume */
   TGeoVolume *GetVolume() const;
 
@@ -197,6 +198,7 @@ public:
 
   /** @brief Function that return material */
   TGeoMaterial *GetMaterial() const;
+#endif
 
   /** @brief Function that return path in volume */
   VolumePath_t *GetPath() const { return fPath; }
@@ -635,7 +637,7 @@ public:
   static void *memcpy_align(void *dst, const void *src, size_t len) 
   __attribute__((always_inline)) 
   {
-    return memcpy(dst,src,len);
+//    return memcpy(dst,src,len);
     size_t i;
     long *d = (long *)dst;
     const long *s = (const long *)src;
@@ -920,7 +922,6 @@ public:
    * @param ntracks Number of tracks
    */
   TransportAction_t PostponedAction(Int_t ntracks) const;
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that provides postponed action for track
@@ -928,6 +929,7 @@ public:
    * @param itr Track ID
    * @param output Output of tracks
    */
+  GEANT_CUDA_BOTH_CODE
   Int_t PostponeTrack(Int_t itr, GeantTrack_v &output);
 
   /**
@@ -937,21 +939,21 @@ public:
    */
   Int_t PostponeTracks(GeantTrack_v &output);
   // void      PropagateBack(Int_t itr, Double_t crtstep);
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that compute transport length
    *
    * @param ntracks Number of tracks
    */
-  void ComputeTransportLength(Int_t ntracks);
   GEANT_CUDA_BOTH_CODE
+  void ComputeTransportLength(Int_t ntracks);
 
   /**
    * @brief Function that compute single transport length ?????
    *
    * @param itr Track ID
    */
+  GEANT_CUDA_BOTH_CODE
   void ComputeTransportLengthSingle(Int_t itr);
 
   /**
@@ -962,7 +964,6 @@ public:
    * @param tid Track ID
    */
   void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, GeantThreadData *td);
-  GEANT_CUDA_DEVICE_CODE
 
   /**
    * @brief Function of propagation of track in volume
@@ -971,6 +972,7 @@ public:
    * @param crtstep ???????
    * @param tid Track ID
    */
+  GEANT_CUDA_BOTH_CODE
   void PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantThreadData *td);
 
   /**
@@ -1067,6 +1069,7 @@ public:
     return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]);
   }
 
+#ifdef VECGEOM_ROOT
  /**
   * @brief Function that returnes TGeoVolume
   * @param  i Input bit number 'i'
@@ -1084,6 +1087,7 @@ public:
    * @param  i Input bit number 'i'
    */
   TGeoMaterial *GetMaterial(Int_t i) const;
+#endif
 
   /**
    * @brief Function round up align ?????

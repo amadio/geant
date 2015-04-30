@@ -9,7 +9,7 @@ system = platform.system()
 
 # --------------------- Setting command lines options 
 def main(argv):
-   global compiler, build_type, op_sys, external, rootDir
+   global compiler, build_type, op_sys, external, rootDir, workspace
    global comp, build
 
    compiler = ''
@@ -18,11 +18,12 @@ def main(argv):
    external = ''
    build = ''
    comp = ''
+   workspace = ''
 
-   opts, args = getopt.getopt(argv,"hc:b:o:v:")
+   opts, args = getopt.getopt(argv,"hc:b:o:v:w:")
    for opt, arg in opts:
       if opt == '-h':
-         print 'setup.py -c <compiler> -b <build_type> -o <operating_system> -v <external>'
+         print 'setup.py -c <compiler> -b <build_type> -o <operating_system> -v <external> -w <workspace>'
          sys.exit()
       elif opt in ("-c"):
          comp = arg
@@ -36,6 +37,8 @@ def main(argv):
       elif opt in ("-v"):
          external = arg
 
+      elif opt in ("-w"):
+         workspace = arg
    
    if build == 'Release' : build_type = 'opt'
    elif build == 'Debug' : build_type = 'dbg'
@@ -174,9 +177,12 @@ def directory_names():
                   Flag = False
                if "MCGenerators" in directory:
                   Flag = False
-
+               
                if "VecGeom" in directory:
-                  directory = directory + '/lib/CMake/VecGeom'
+                  vecgeom_include_dir = directory + '/include/VecCore'
+                  vecgeom_dir = directory + '/lib/CMake/VecGeom'
+                  print '%s=%s' % ("export VECGEOM_INCLUDE_DIR", vecgeom_include_dir)
+                  print '%s=%s' % ("export VecGeom_DIR", vecgeom_dir)
 
                dirlist.append(directory);
 
@@ -233,8 +239,8 @@ if __name__ == "__main__":
 
    os.environ["CMAKE_PREFIX_PATH_ALL"] = directory_names()[0]
    os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]
-   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
-      
+#   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
+   os.environ["LD_LIBRARY_PATH_ALL"] = workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
    prefix = os.environ["CMAKE_PREFIX_PATH_ALL"]
    path = os.environ["PATH_ALL"]
    ld_libs = os.environ["LD_LIBRARY_PATH_ALL"]
