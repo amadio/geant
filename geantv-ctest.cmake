@@ -145,6 +145,12 @@ ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Built.")
 ctest_submit(PARTS Build)
 
+message(" -- Make ${MODEL} - ${CTEST_BUILD_NAME} --")
+execute_process(COMMAND make VERBOSE=1 RESULT_VARIABLE ExitCode)
+CheckExitCode()
+
+
+
 message(" -- Install ${MODEL} - ${CTEST_BUILD_NAME} --")
 execute_process(COMMAND make install  WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}  RESULT_VARIABLE ExitCode)
 CheckExitCode()
