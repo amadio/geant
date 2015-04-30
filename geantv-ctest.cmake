@@ -86,7 +86,8 @@ include(ProcessorCount)
 ProcessorCount(N)
 if(NOT N EQUAL 0)
   if(NOT WIN32)
-    set(CTEST_BUILD_FLAGS -j${N})
+#    set(CTEST_BUILD_FLAGS -j${N})
+
   endif(NOT WIN32)
   set(ctest_test_args ${ctest_test_args} PARALLEL_LEVEL ${N})
 endif()
@@ -144,12 +145,6 @@ ctest_submit(PARTS Update Configure Notes)
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Built.")
 ctest_submit(PARTS Build)
-
-message(" -- Make ${MODEL} - ${CTEST_BUILD_NAME} --")
-execute_process(COMMAND make VERBOSE=1 RESULT_VARIABLE ExitCode)
-CheckExitCode()
-
-
 
 message(" -- Install ${MODEL} - ${CTEST_BUILD_NAME} --")
 execute_process(COMMAND make install  WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}  RESULT_VARIABLE ExitCode)
