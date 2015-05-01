@@ -285,18 +285,25 @@ void GeantPropagator::Initialize() {
           fWMgr->GetNthreads(), fNthreads, fWMgr->GetNthreads());
     fNthreads = fWMgr->GetNthreads();
   }
-  // Add some empty baskets in the queue
-  fWMgr->CreateBaskets(); // geometry should be created by now
 
   if (!fNtracks) {
     fNtracks = new Int_t[fNevents];
     memset(fNtracks, 0, fNevents * sizeof(Int_t));
   }
 
+}
+
+//______________________________________________________________________________
+void GeantPropagator::InitializeAfterGeom() {
+  // Initialization, part two.
+
+  // Add some empty baskets in the queue
+  fWMgr->CreateBaskets(); // geometry must be created by now
+
   if (!fThreadData) {
     fThreadData = new GeantThreadData *[fNthreads + 1];
     for (Int_t i = 0; i < fNthreads + 1; i++)
-      fThreadData[i] = new GeantThreadData();
+      fThreadData[i] = new GeantThreadData(); // geometry must be created by now
   }
 }
 
@@ -381,6 +388,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   // Initialize geometry and current volume
   if (!LoadGeometry(geomfile))
     return;
+  InitializeAfterGeom();
   // Initialize application
   fApplication->Initialize();
   if (called) {
