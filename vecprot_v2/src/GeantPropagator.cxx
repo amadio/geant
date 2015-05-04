@@ -290,7 +290,6 @@ void GeantPropagator::Initialize() {
     fNtracks = new Int_t[fNevents];
     memset(fNtracks, 0, fNevents * sizeof(Int_t));
   }
-
 }
 
 //______________________________________________________________________________
