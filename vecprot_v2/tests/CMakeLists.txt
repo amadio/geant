@@ -71,7 +71,7 @@ function(add_to_ctest EXECUTABLES)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       if(TARGET_NAME STREQUAL "executable_test")
       	add_test(NAME ${TARGET_NAME} 
-		COMMAND  $<TARGET_FILE:${TARGET_NAME}> 4 false ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/ExN03.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/xsec_FTFP_BERT.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/fstate_FTFP_BERT.root)
+		COMMAND  $<TARGET_FILE:${TARGET_NAME}> 4 ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/ExN03.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/xsec_FTFP_BERT.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/fstate_FTFP_BERT.root)
       else()
       	add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
       endif()
