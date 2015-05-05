@@ -5,8 +5,6 @@ class GXFieldMap;
 class GPPhysicsTable;
 struct GXTrack;
 
-class TaskWorkspace;
-
 #include <cuda.h>
 #include <curand.h>
 #include "random_kernel.h"

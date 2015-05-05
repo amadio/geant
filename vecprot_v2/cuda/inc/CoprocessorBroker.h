@@ -80,7 +80,8 @@ class GPPhysics2DVector;
 struct GXTrack;
 class GXTrackLiason;
 
-class TaskWorkspace;
+class GeantThreadData;
+using TaskWorkspace = GeantThreadData;
 class GeantTrack_v;
 
 const unsigned int kMaxNumStep = 1;
@@ -176,8 +177,8 @@ public:
       unsigned int  fStreamId;
       cudaStream_t  fStream;
 
-      DevicePtr<TaskWorkspace> fDevTaskWorkspace;
-      DevicePtr<GeantTrack_v>  fDevTrackInput;
+      DevicePtr<GeantThreadData> fDevTaskWorkspace;
+      DevicePtr<GeantTrack_v>    fDevTrackInput;
       vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf() {
          char *basket = (char*)&(*fDevTrackInput);
          return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );

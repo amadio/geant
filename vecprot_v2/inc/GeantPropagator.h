@@ -110,6 +110,20 @@ public:
 
   static GeantPropagator *fgInstance;
 
+  /** @brief Initialization function */
+  void Initialize();
+
+  /** @brief Initialization function */
+  void InitializeAfterGeom();
+
+  /** @brief Function for loading geometry */
+  Bool_t LoadGeometry(const char *filename = "geometry.root");
+#if USE_VECGEOM_NAVIGATOR == 1
+
+  /** @brief Function for loading VecGeom geometry */
+  Bool_t LoadVecGeomGeometry();
+#endif
+
 public:
 
   /** @brief GeantPropagator constructor */
@@ -157,14 +171,6 @@ public:
    */
   void StopTrack(const GeantTrack_v &tracks, Int_t itr);
 
-  /** @brief Function for loading geometry */
-  Bool_t LoadGeometry(const char *filename = "geometry.root");
-#if USE_VECGEOM_NAVIGATOR == 1
-
-  /** @brief Function for loading VecGeom geometry */
-  Bool_t LoadVecGeomGeometry();
-#endif
-
   /**
    * @brief Function for importing tracks 
    * 
@@ -174,9 +180,6 @@ public:
    * @param startslot Start slot
    */
   Int_t ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot, GeantThreadData *td);
-  
-  /** @brief Initialization function */
-  void Initialize();
   
   /**
    * @brief Instance function returning the singleton pointer
