@@ -125,7 +125,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
   std::cout<<"======  TOTAL NUMBER OF SECONDARY TRANSPORTED    = " << fNumSecsRun         << std::endl;
   std::cout<<"======  TOTAL NUMBER OF STEPS                    = " << fNumTotalStepsRun   << std::endl;
   std::cout<<"======  TOTAL NUMBER OF STEPS LIMITED BY PHYSICS = " << fNumPysLimStepsRun  << std::endl;
-//  std::cout<<"======  TOTAL NUMBER OF ALL STEPS                = " << fNumAllStepsRun     << std::endl;
+  std::cout<<"======  TOTAL NUMBER OF ALL STEPS                = " << fNumAllStepsRun     << std::endl;
   std::cout<<"-----------------------------------------------------------------"          <<std::endl;
 
   fCMSApp->EndOfRunAction(fNumPrimsRun);

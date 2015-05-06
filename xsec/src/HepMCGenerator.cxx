@@ -119,7 +119,6 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
 
     // here I have to create GeantTracks
     int pdg = genpart->pdg_id();
-
     gtrack.SetPDG(pdg);
 
     gtrack.SetG5code(TPartIndex::I()->PartIndex(pdg));

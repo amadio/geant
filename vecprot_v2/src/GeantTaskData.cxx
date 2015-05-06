@@ -1,4 +1,4 @@
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "globals.h"
 #include "GeantBasket.h"
 #include "GeantPropagator.h"
@@ -7,10 +7,10 @@
 #include "TGeoVolume.h"
 #include "TRandom.h"
 
-ClassImp(GeantThreadData)
+ClassImp(GeantTaskData)
 
 //______________________________________________________________________________
-GeantThreadData::GeantThreadData()
+GeantTaskData::GeantTaskData()
     : TObject(), fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),  
       fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0), fTrack(0), 
       fPath(0), fBmgr(0), fPool() {
@@ -25,7 +25,7 @@ GeantThreadData::GeantThreadData()
 }
 
 //______________________________________________________________________________
-GeantThreadData::~GeantThreadData() {
+GeantTaskData::~GeantTaskData() {
   // Destructor
   //  delete fMatrix;
   delete fRndm;
@@ -35,7 +35,7 @@ GeantThreadData::~GeantThreadData() {
 }
 
 //______________________________________________________________________________
-Double_t *GeantThreadData::GetDblArray(Int_t size) {
+Double_t *GeantTaskData::GetDblArray(Int_t size) {
   // Return memory storage for an array of doubles of at least "size" length which
   // is thread-specific
   if (size < fSizeDbl)
@@ -48,7 +48,7 @@ Double_t *GeantThreadData::GetDblArray(Int_t size) {
 }
 
 //______________________________________________________________________________
-Bool_t *GeantThreadData::GetBoolArray(Int_t size) {
+Bool_t *GeantTaskData::GetBoolArray(Int_t size) {
   // Return memory storage for an array of bool of at least "size" length which
   // is thread-specific
   if (size < fSizeBool)
@@ -61,7 +61,7 @@ Bool_t *GeantThreadData::GetBoolArray(Int_t size) {
 }
 
 //______________________________________________________________________________
-GeantBasket *GeantThreadData::GetNextBasket() {
+GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
   if (fPool.empty()) return 0;
   GeantBasket *basket = fPool.back();
@@ -70,13 +70,13 @@ GeantBasket *GeantThreadData::GetNextBasket() {
 }  
 
 //______________________________________________________________________________
-void GeantThreadData::RecycleBasket(GeantBasket *b) {
+void GeantTaskData::RecycleBasket(GeantBasket *b) {
   // Recycle a basket.
   fPool.push_back(b);
 }
 
 //______________________________________________________________________________
-Int_t GeantThreadData::CleanBaskets(size_t ntoclean) {
+Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;
   Int_t ncleaned = 0;

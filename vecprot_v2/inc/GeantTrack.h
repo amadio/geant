@@ -79,7 +79,7 @@ enum Species_t { kHadron, kLepton };
 class TGeoMaterial;
 class TGeoVolume;
 class GeantTrack_v;
-class GeantThreadData;
+class GeantTaskData;
 
 /**
  * @brief Class GeantTrack
@@ -639,6 +639,7 @@ public:
     size_t i;
     long *d = (long *)dst;
     const long *s = (const long *)src;
+    // The copy below handles the tail if any, but it is unsafe is dst is not aligned
     for (i=0; i<1+len/sizeof(long); ++i)
       d[i] = s[i];
     return dst;
@@ -850,10 +851,10 @@ public:
    *
    * @param itr Track ID
    */
-  void PrintTrack(Int_t itr) const;
+  void PrintTrack(Int_t itr, const char *msg="") const;
 
   /** @brief Function that print all tracks */
-  void PrintTracks() const;
+  void PrintTracks(const char *msg="") const;
 
   GEANT_CUDA_BOTH_CODE
 
@@ -961,7 +962,7 @@ public:
    * @param crtstep ??????
    * @param tid Track ID
    */
-  void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, GeantThreadData *td);
+  void PropagateInVolume(Int_t ntracks, const Double_t *crtstep, GeantTaskData *td);
   GEANT_CUDA_DEVICE_CODE
 
   /**
@@ -971,7 +972,7 @@ public:
    * @param crtstep ???????
    * @param tid Track ID
    */
-  void PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantThreadData *td);
+  void PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantTaskData *td);
 
   /**
    * @brief Popagation function in straight trajectories
@@ -987,13 +988,13 @@ public:
    * @param output Output array of tracks
    * @param tid Track ID
    */
-  Int_t PropagateTracks(GeantTrack_v &output, GeantThreadData *td);
+  Int_t PropagateTracks(GeantTrack_v &output, GeantTaskData *td);
 
   GEANT_CUDA_BOTH_CODE
-  Int_t PropagateTracksScalar(GeantTrack_v &output, GeantThreadData *td, Int_t stage = 0);
+  Int_t PropagateTracksScalar(GeantTrack_v &output, GeantTaskData *td, Int_t stage = 0);
 
   GEANT_CUDA_BOTH_CODE
-  Int_t PropagateSingleTrack(GeantTrack_v &output, Int_t itr, GeantThreadData *td, Int_t stage);
+  Int_t PropagateSingleTrack(GeantTrack_v &output, Int_t itr, GeantTaskData *td, Int_t stage);
 
   /**
    * @brief Resize function
@@ -1084,6 +1085,15 @@ public:
    * @param  i Input bit number 'i'
    */
   TGeoMaterial *GetMaterial(Int_t i) const;
+  
+  /** @brief Function allowing to set a breakpoint on a given step */
+  bool BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps=1, const char* msg="", Int_t itr=-1);
+  
+  /**
+   * @brief Check consistency of track navigation
+   * @param  itr Track number to be checked
+   */
+  Bool_t CheckNavConsistency(Int_t itr);
 
   /**
    * @brief Function round up align ?????

@@ -104,7 +104,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
     }
     numTotal = 1; 
   }
-
+//printf("FillPerStep: numPhys=%ld numSecs=%ld, numTotal=%ld\n", numPysLimSteps, numSecs, numTotal); 
   fEventaction->FillPerSteps(numPysLimSteps, numSecs, numTotal, 1); 
 
   //example of saving random number seed of this event, under condition

@@ -55,8 +55,9 @@
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "GeantVApplication.h"
+#include "StdApplication.h"
 #include "GeantFactoryStore.h"
 #include "GeantEvent.h"
 #include "GeantScheduler.h"
@@ -73,14 +74,15 @@ GeantPropagator::GeantPropagator()
     : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0),
       fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), 
       fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
-      fMaxThreads(100), fNminThreshold(10), fDebugTrk(-1), fMaxSteps(10000), fNperBasket(16),
-      fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(1000000), fLastEvent(0), fMaxRes(0), fNaverage(0), fVertex(),
+      fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1),
+      fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), 
+      fLearnSteps(0), fLastEvent(0), fMaxRes(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
-      fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE),
-      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE),
-      fUseAppMonitoring(kFALSE),
-      fTracksLock(), fWMgr(0), fApplication(0), fOutput(0), fOutTree(0), fOutFile(0), fTimer(0),
+      fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE), 
+      fTransportOngoing(kFALSE), 
+      fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE),
+      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fOutput(0), fOutTree(0), fOutFile(0), fTimer(0),
       fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0),
       fEvents(0), fThreadData(0) {
   // Constructor
@@ -127,7 +129,7 @@ Int_t GeantPropagator::AddTrack(GeantTrack &track) {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::DispatchTrack(GeantTrack &track, GeantThreadData *td) {
+Int_t GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
   // Dispatch a registered track produced by the generator.
   return fWMgr->GetScheduler()->AddTrack(track, td);
 }
@@ -153,7 +155,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid) {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::Feeder(GeantThreadData *td) {
+Int_t GeantPropagator::Feeder(GeantTaskData *td) {
   // Feeder called by any thread to inject the next event(s)
   // Only one thread at a time
   if (fFeederLock.test_and_set(std::memory_order_acquire)) return -1;
@@ -191,7 +193,7 @@ Int_t GeantPropagator::Feeder(GeantThreadData *td) {
 
 //______________________________________________________________________________
 Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, 
-                                    GeantThreadData *thread_data) {
+                                    GeantTaskData *thread_data) {
   // Import tracks from "somewhere". Here we just generate nevents.
   static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -205,7 +207,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
   Int_t ntracks = 0;
   Int_t ntotal = 0;
   Int_t ndispatched = 0;
-  GeantThreadData *td = thread_data;
+  GeantTaskData *td = thread_data;
   if (td == 0) {
     Int_t tid = TGeoManager::ThreadId();
     td = fThreadData[tid];
@@ -324,13 +326,21 @@ void GeantPropagator::Initialize() {
   }
 
   if (!fThreadData) {
-    fThreadData = new GeantThreadData *[fNthreads];
+    fThreadData = new GeantTaskData *[fNthreads];
     for (Int_t i = 0; i < fNthreads; i++) {
-      fThreadData[i] = new GeantThreadData();
+      fThreadData[i] = new GeantTaskData();
       fThreadData[i]->fTid = i;
+//      for (Int_t j=0; j<1000; j++) {
+//        GeantBasket *b = new GeantBasket(fNperBasket, fMaxDepth);
+//        fThreadData[i]->RecycleBasket(b);
+//      }
     }  
   }
   // Initialize application
+  if (fUseStdScoring) {
+    fStdApplication = new StdApplication();
+    fStdApplication->Initialize();
+  }  
   fApplication->Initialize();
 }
 
@@ -372,7 +382,7 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td) {
+void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Apply multiple scattering for charged particles.
   TGeoMaterial *mat = 0;
   if (td->fVolume)
@@ -381,7 +391,7 @@ void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantThreadD
 }
 
 //______________________________________________________________________________
-void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td) {
+void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Generate all physics steps for the tracks in trackin.
   // Reset the current step length to 0
   for (Int_t i = 0; i < ntracks; ++i) {
@@ -494,6 +504,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
          efficiency);
 //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
   fApplication->FinishRun();
+  if (fStdApplication) fStdApplication->FinishRun();
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");
 #else

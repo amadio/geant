@@ -33,7 +33,7 @@ class concurrent_queue;
 class GeantTrack;
 class GeantBasket;
 class GeantBasketMgr;
-class GeantThreadData;
+class GeantTaskData;
 
 /**
  * @brief Class GeantScheduler
@@ -95,7 +95,7 @@ public:
    * 
    * @param track Track to be scheduled
    */
-  Int_t AddTrack(GeantTrack &track, GeantThreadData *td);
+  Int_t AddTrack(GeantTrack &track, GeantTaskData *td);
 
   /**
    * @brief Re-schedule all tracks from an output basket
@@ -109,7 +109,7 @@ public:
    * @param nkilled Number of killed tracks
    * @param td Thread data
    */
-  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantThreadData *td);
+  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantTaskData *td);
 
   /** @brief Function to adjust the basket size automatically */
   void AdjustBasketSize();
@@ -121,10 +121,10 @@ public:
    * @brief Function to collect all tracks from prioritized events 
    * @param collector Garbage collector (one per worker thread)
    */
-  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector, GeantThreadData *td);
+  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector, GeantTaskData *td);
 
   /** @brief Function to collection prioritized tracks and inject into transport queue */
-  Int_t CollectPrioritizedTracks(GeantThreadData *td);
+  Int_t CollectPrioritizedTracks(GeantTaskData *td);
 
   /**
    * @brief Getter for the array of basket managers
@@ -229,7 +229,7 @@ public:
   Int_t FlushPriorityBaskets();
 
   /** @brief Garbage collection function */
-  Int_t GarbageCollect(GeantThreadData *td);
+  Int_t GarbageCollect(GeantTaskData *td, Bool_t force=false);
 
   /** @brief Function to print size */
   void PrintSize() const;

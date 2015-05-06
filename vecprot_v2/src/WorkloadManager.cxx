@@ -15,7 +15,7 @@
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "PhysicsProcess.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
@@ -204,11 +204,12 @@ void *WorkloadManager::TransportTracks(void *) {
   Int_t ntot = 0;
   Int_t nkilled = 0;
   Int_t nphys = 0;
+  Int_t ngcoll = 0;
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
   Printf("=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
-  GeantThreadData *td = propagator->fThreadData[tid];
+  GeantTaskData *td = propagator->fThreadData[tid];
   td->fTid = tid;
   Int_t nworkers = propagator->fNthreads;
   WorkloadManager *wm = WorkloadManager::Instance();
@@ -252,12 +253,23 @@ void *WorkloadManager::TransportTracks(void *) {
 //         gbc_locker.StartOne();
          break;
        }
-//       sched_locker.StartOne(); // signal the scheduler who does now thread stopping
     }
     waiting[tid] = 1;
     if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport(td);
     else {
-      if (feederQ->size_async() <= 1) sch->GarbageCollect(td);
+      if ((int)feederQ->size_async() < nworkers) {
+        sch->GarbageCollect(td);
+        ngcoll++;
+      }
+      // Too many garbage collections - enter priority mode
+      if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
+        ngcoll = 0;
+        for (Int_t slot=0; slot<propagator->fNevents; slot++) 
+          propagator->fEvents[slot]->Prioritize();
+        while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
+          ;
+          
+      }
       wm->FeederQueue()->wait_and_pop(basket);
     }  
     waiting[tid] = 0;
@@ -266,10 +278,6 @@ void *WorkloadManager::TransportTracks(void *) {
     if (!basket)
       break;
     ++counter;
-#ifdef __STAT_DEBUG
-    sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
-    sch->GetTransportStat().AddTracks(basket->GetInputTracks());
-#endif
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
@@ -289,12 +297,6 @@ void *WorkloadManager::TransportTracks(void *) {
       if (ntotransport < 257) nvect[ntotransport] += ntotransport;
     } else {
       nvect[1] += ntotransport;
-    }
-
-    // Record tracks
-    //      ninput = ntotransport;
-    if (basket->GetNoutput()) {
-      Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter.load());
     }
     // Select the discrete physics process for all particles in the basket
     if (propagator->fUsePhysics) {
@@ -384,22 +386,27 @@ void *WorkloadManager::TransportTracks(void *) {
         }
       }
     }
-    gPropagator->fApplication->StepManager(tid, output.GetNtracks(), output);
-    // Check
-    if (basket->GetNinput()) {
-      Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter.load());
-    }
+    if (gPropagator->fStdApplication) gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+    gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
-    for (auto itr=0; itr<ntotnext; ++itr) 
+#ifdef BUG_HUNT
+    for (auto itr=0; itr<ntotnext; ++itr) {
+      bool valid = output.CheckNavConsistency(itr);
+      if (!valid) {
+        valid = true;
+      }
+    }
+    // First breakpoint to be set
+    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, prop->fDebugRep, "EndStep");
+#endif    
+    for (auto itr=0; itr<ntotnext; ++itr) {
+      output.fNstepsV[itr]++;
       if (output.fStatusV[itr] == kBoundary) *output.fPathV[itr] = *output.fNextpathV[itr];
-
+    }  
   finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-#ifdef __STAT_DEBUG
-    sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
-#endif
     //      ninjected =
     sch->AddTracks(basket, ntot, nnew, nkilled, td);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
@@ -432,7 +439,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
   GeantPropagator *propagator = GeantPropagator::Instance();
-  GeantThreadData *td = propagator->fThreadData[tid];
+  GeantTaskData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
   Int_t *nvect = sch->GetNvect();
@@ -500,10 +507,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
       }
     }
 
-#ifdef __STAT_DEBUG
-    sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
-    sch->GetTransportStat().AddTracks(basket->GetInputTracks());
-#endif
     ntotransport = basket->GetNinput(); // all tracks to be transported
     // ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
@@ -581,9 +584,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-#ifdef __STAT_DEBUG
-    sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
-#endif
     /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled, nullptr /* prioritizer */);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //wm->TransportedQueue()->push(basket);
@@ -624,7 +624,7 @@ void *WorkloadManager::GarbageCollectorThread(void *) {
     if (rss > threshold && (rss/rsslast > thr_increase)) {
       rsslast = rss;
       for (Int_t tid=0; tid<nthreads; tid++) {
-        GeantThreadData *td = propagator->fThreadData[tid];
+        GeantTaskData *td = propagator->fThreadData[tid];
         td->SetToClean(true);
       }
     }
@@ -885,7 +885,7 @@ void *WorkloadManager::MonitoringThread(void *) {
       int nbaskets_mixed = 0;
       int nused_mixed = 0;
       for (j=0; j<nthreads; j++) {
-        GeantThreadData *td = propagator->fThreadData[j];
+        GeantTaskData *td = propagator->fThreadData[j];
         nbaskets_mixed += td->fBmgr->GetNbaskets();
 	     nused_mixed += td->fBmgr->GetNused();
       }

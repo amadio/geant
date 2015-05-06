@@ -51,7 +51,7 @@ void run(Int_t nthreads=4,
 
    prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
    // Number of steps for learning phase
-   prop->fLearnSteps = 10000;
+   prop->fLearnSteps = 0;
 
 
    prop->fApplication = new ExN03Application();
@@ -60,6 +60,8 @@ void run(Int_t nthreads=4,
 //   prop->fUseDebug = kTRUE;
 //   prop->fDebugTrk = 1;
 
+// Activate standard scoring   
+   prop->fUseStdScoring = true;
    // Monitor the application
    prop->fUseAppMonitoring = false;
    prop->PropagatorGeom(geomfile, nthreads, graphics);

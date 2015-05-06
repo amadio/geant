@@ -3,7 +3,9 @@
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
+#include "GeantTaskData.h"
 #include "globals.h"
+#include "TProfile.h"
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
@@ -14,7 +16,8 @@ ClassImp(CMSApplication)
 
 //______________________________________________________________________________
 CMSApplication::CMSApplication()
-: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore),
+: GeantVApplication(), fInitialized(kFALSE),
+    fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore),
     fFluxElec(0), fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0),
     fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
@@ -92,14 +95,13 @@ Bool_t CMSApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void CMSApplication::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) {
+void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   static GeantPropagator *propagator = GeantPropagator::Instance();
-  if (fScore == kNoScore)
+  Int_t tid = td->fTid;
+  if ((!fInitialized) || (fScore == kNoScore))
     return;
-  if (!fInitialized)
-    return; // FOR NOW
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   Int_t ivol;
@@ -228,7 +230,7 @@ void CMSApplication::FinishRun()
   fFluxK->Write();
 
   TCanvas *c2 = new TCanvas("CMS test edep", "Simple scoring in CMS geometry", 700, 1200);
-  c2->Divide(2,2);
+  c2->Divide(2,3);
   pad = c2->cd(1);
   pad->SetLogx();
   pad->SetLogy();
@@ -253,10 +255,18 @@ void CMSApplication::FinishRun()
   fEdepK->Sumw2();
   fEdepK->Scale(norm);
   fEdepK->Draw("9");
+  pad = c2->cd(5);
+  pad->SetLogx();
+  pad->SetLogy();
+  fEdepGamma->Sumw2();
+  fEdepGamma->Scale(norm);
+  fEdepGamma->Draw("9");
   fEdepElec->Write();
   fEdepGamma->Write();
   fEdepP->Write();
   fEdepPi->Write();
   fEdepK->Write();
+
+  // Close file
   f->Close();
 }

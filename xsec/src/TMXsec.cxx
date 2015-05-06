@@ -5,7 +5,7 @@
 #include "TRandom.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 
 #include <algorithm>
 
@@ -328,7 +328,7 @@ Bool_t TMXsec::Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Do
 */
 
 //______________________________________________________________________________
-void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td){
+void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td){
 // Propose step for the first ntracks in the input vector of tracks and write to
 // tracks.fPstepV[]
 
@@ -388,7 +388,7 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *t
 }
 
 //______________________________________________________________________________
-void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, GeantThreadData *td){
+void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, GeantTaskData *td){
 // Propose step for a single track in the input vector of tracks and write to
 // tracks.fPstepV[]
 
@@ -797,7 +797,7 @@ TEXsec* TMXsec::SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptot) {
 }
 
 //____________________________________________________________________________
-void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantThreadData *td){
+void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTaskData *td){
    Int_t nParticleWithReaction = TPartIndex::I()->NPartReac(); 
 
    // tid-based rng
@@ -883,7 +883,7 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantThreadData *t
 }
 
 //____________________________________________________________________________
-void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, GeantThreadData *td){
+void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, GeantTaskData *td){
 // Sample the interaction for a single particle at a time.
    Int_t nParticleWithReaction = TPartIndex::I()->NPartReac(); 
 
@@ -967,7 +967,7 @@ void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, GeantThreadData *t
 
 // sample one of the elements based on #atoms/volue 
 //______________________________________________________________________________
-Int_t TMXsec::SampleElement(GeantThreadData *td){
+Int_t TMXsec::SampleElement(GeantTaskData *td){
    if( fNElems > 1){
      Double_t randn = td->fRndm->Rndm();      
      for(Int_t itr=0; itr<fNElems; ++itr)

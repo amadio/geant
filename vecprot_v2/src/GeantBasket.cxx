@@ -5,7 +5,7 @@
 #include "GeantEvent.h"
 #include "GeantPropagator.h"
 #include "GeantScheduler.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 
@@ -111,7 +111,7 @@ void GeantBasket::PrintTrack(Int_t /*itr*/, Bool_t /*input*/) const {
 }
 
 //______________________________________________________________________________
-void GeantBasket::Recycle(GeantThreadData *td) {
+void GeantBasket::Recycle(GeantTaskData *td) {
   // Recycle the basket to the volume scheduler.
   fManager->RecycleBasket(this, td);
 }
@@ -169,7 +169,7 @@ void GeantBasketMgr::Activate()
 }   
 
 //______________________________________________________________________________
-GeantBasket *GeantBasketMgr::StealAndReplace(atomic_basket &current, GeantThreadData *td) {
+GeantBasket *GeantBasketMgr::StealAndReplace(atomic_basket &current, GeantTaskData *td) {
   // Steal the current pointer content and replace with a new basket from the
   // pool. If the operation succeeds, returns the released basket which is now
   // thread local
@@ -224,7 +224,7 @@ GeantBasket *GeantBasketMgr::StealAndPin(atomic_basket &current) {
 
 //______________________________________________________________________________
 Bool_t GeantBasketMgr::StealMatching(atomic_basket &global, GeantBasket *content,
-                        GeantThreadData *td) {
+                        GeantTaskData *td) {
   // Steal the global basket if it has the right matching content
   // Prepare replacement
   GeantBasket *newb = GetNextBasket(td);
@@ -240,7 +240,7 @@ Bool_t GeantBasketMgr::StealMatching(atomic_basket &global, GeantBasket *content
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantThreadData *td) {
+Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td) {
   // Copy directly from a track_v a track to the basket manager.
   // Has to work concurrently
   // Atomically pin the basket for the adding operation
@@ -263,7 +263,7 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority,
 
 //______________________________________________________________________________
 Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority,
-                       GeantThreadData *td) {
+                       GeantTaskData *td) {
   // Copy directly from a track_v a track to the basket manager. It is 
   // assumed that this manager is only handled by a single thread.
   GeantBasket *cbasket = GetCBasket();
@@ -277,7 +277,7 @@ Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool
 }
   
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantThreadData *td) {
+Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td) {
   // Add a track to the volume basket manager. If the track number reaches the
   // threshold, the basket is added to the feeder queue and replaced by an empty
   // one. The feeder must be defined beforehand. Returns the number of dispatched
@@ -302,7 +302,7 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantThreadDa
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantThreadData *td) {
+Int_t GeantBasketMgr::CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantTaskData *td) {
   // Garbage collect tracks from the given event range. The basket gc should
   // be thread local
   if (!GetCBasket()->GetNinput())
@@ -328,7 +328,7 @@ Int_t GeantBasketMgr::CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantThrea
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantThreadData *td) {
+Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantTaskData *td) {
   // Move current basket tracks to priority one.
   // *** NONE *** This should be done for all basket managers only once when
   // starting prioritizing an event range.
@@ -385,7 +385,7 @@ Int_t GeantBasketMgr::FlushPriorityBasket() {
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::GarbageCollect(GeantThreadData *td) {
+Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
   // Copy all priority tracks to the current basket and flush to queue
   GeantBasket *cbasket = 0;
   // We want to steal fCBasket
@@ -404,7 +404,7 @@ Int_t GeantBasketMgr::GarbageCollect(GeantThreadData *td) {
 }
 
 //______________________________________________________________________________
-GeantBasket *GeantBasketMgr::GetNextBasket(GeantThreadData *td) {
+GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
   // Returns next empy basket if any available, else create a new basket.
   GeantBasket *next = 0;
   const Int_t nthreads = td->fNthreads;
@@ -434,7 +434,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantThreadData *td) {
 }
 
 //______________________________________________________________________________
-void GeantBasketMgr::RecycleBasket(GeantBasket *b, GeantThreadData *td) {
+void GeantBasketMgr::RecycleBasket(GeantBasket *b, GeantTaskData *td) {
   // Recycle a basket.
   //   assert(!b->GetNinput());
   //   assert(!b->IsAddingOp());
@@ -453,7 +453,7 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b, GeantThreadData *td) {
   fNused--;
 }
 //______________________________________________________________________________
-void GeantBasketMgr::CleanBaskets(Int_t ntoclean, GeantThreadData *td) {
+void GeantBasketMgr::CleanBaskets(Int_t ntoclean, GeantTaskData *td) {
   // Clean a number of recycled baskets to free some memory
   Int_t ncleaned = td->CleanBaskets(ntoclean);
   fNbaskets -= ncleaned;

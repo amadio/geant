@@ -1,17 +1,17 @@
-//===--- GeantThreadData.h - Geant-V ----------------------------*- C++ -*-===//
+//===--- GeantTaskData.h - Geant-V ----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantThreadData.h
+ * @file GeantTaskData.h
  * @brief Implementation of data organized per thread Geant-V prototype 
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_THREADDATA
-#define GEANT_THREADDATA
+#ifndef GEANT_TASKDATA
+#define GEANT_TASKDATA
 
 #ifndef ROOT_TObject
 #include "TObject.h"
@@ -29,11 +29,11 @@ class GeantBasketMgr;
 class GeantBasket;
 
 /**
- * @brief Class GeantThreadData
+ * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
  * 
  */
-class GeantThreadData : public TObject {
+class GeantTaskData : public TObject {
 public:
   Int_t fTid;          /** Thread unique id */
   Int_t fNthreads;     /** Number of transport threads */
@@ -52,11 +52,11 @@ public:
 
 public:
 
-  /** @brief GeantThreadData constructor */
-  GeantThreadData();
+  /** @brief GeantTaskData constructor */
+  GeantTaskData();
 
-  /** @brief GeantThreadData destructor */
-  virtual ~GeantThreadData();
+  /** @brief GeantTaskData destructor */
+  virtual ~GeantTaskData();
 
   /**
    * @brief Function that return double array
@@ -108,17 +108,17 @@ public:
 private:
 
   /**
-   * @brief Constructor GeantThreadData
+   * @brief Constructor GeantTaskData
    * @todo Still not implemented
    */
-  GeantThreadData(const GeantThreadData &);
+  GeantTaskData(const GeantTaskData &);
 
   /**
    * @brief Operator &operator=
    * @todo Still not implemented
    */
-  GeantThreadData &operator=(const GeantThreadData &);
+  GeantTaskData &operator=(const GeantTaskData &);
 
-  ClassDef(GeantThreadData, 1) // Stateful data organized per thread
+  ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 #endif

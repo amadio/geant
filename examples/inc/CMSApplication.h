@@ -20,8 +20,11 @@
 #endif
 
 class TH1F;
+class TH1D;
+class TProfile;
 
 class GeantTrack_v;
+class GeantTaskData;
 
 /** @brief CMSApplication class */
 class CMSApplication : public GeantVApplication {
@@ -90,7 +93,7 @@ public:
    * @param npart Number of tracks
    * @param tracks GeantV track container
    */
-  virtual void StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks);
+  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
   /**
    * @brief Function of digitization

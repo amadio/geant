@@ -39,7 +39,7 @@ class GeantBasket;
 class GeantOutput;
 class GeantBasketMgr;
 class WorkloadManager;
-class GeantThreadData;
+class GeantTaskData;
 class GeantVApplication;
 class PrimaryGenerator;
 
@@ -62,7 +62,10 @@ public:
   Int_t fMaxTracks;         /** Maximum number of tracks per event */
   Int_t fMaxThreads;        /** Maximum number of threads */
   Int_t fNminThreshold;     /** Threshold for starting transporting a basket */
+  Int_t fDebugEvt;          /** Event to debug */
   Int_t fDebugTrk;          /** Track to debug */
+  Int_t fDebugStp;          /** Step to start debugging */
+  Int_t fDebugRep;          /** Number of steps to debug */
   Int_t fMaxSteps;          /** Maximum number of steps per track */
   Int_t fNperBasket;        /** Number of tracks per basket */
   Int_t fMaxPerBasket;      /** Maximum number of tracks per basket */
@@ -81,6 +84,7 @@ public:
   Bool_t fUsePhysics;       /** Enable/disable physics */
   Bool_t fUseDebug;         /** Use debug mode */
   Bool_t fUseGraphics;      /** Graphics mode */
+  Bool_t fUseStdScoring;    /** Use standard scoring */
   Bool_t fTransportOngoing; /** Flag for ongoing transport */
   Bool_t fSingleTrack;      /** Use single track transport mode */
   Bool_t fFillTree;         /** Enable I/O */
@@ -90,6 +94,7 @@ public:
 
   WorkloadManager *fWMgr;          /** Workload manager */
   GeantVApplication *fApplication; /** User application */
+  GeantVApplication *fStdApplication; /** Standard application */
   GeantOutput *fOutput;            /** Output object */
  
   TTree *fOutTree;          /** Output tree */
@@ -105,7 +110,7 @@ public:
   // Data per event
   Int_t *fNtracks;      /** ![fNevents] Number of tracks {array of [fNevents]} */
   GeantEvent **fEvents; /** ![fNevents]    Array of events */
-  GeantThreadData **fThreadData; /** ![fNthreads] Data private to threads */
+  GeantTaskData **fThreadData; /** ![fNthreads] Data private to threads */
 
   static GeantPropagator *fgInstance;
 
@@ -149,7 +154,7 @@ public:
    * 
    * @param track Track that should be dispatched
    */
-  Int_t DispatchTrack(GeantTrack &track, GeantThreadData *td);
+  Int_t DispatchTrack(GeantTrack &track, GeantTaskData *td);
 
   /**
    * @brief  Function for marking a track as stopped
@@ -174,7 +179,7 @@ public:
    * @param init Flag specifying if this is the first call
    * @return Number of injected baskets
    */
-  Int_t Feeder(GeantThreadData *td);
+  Int_t Feeder(GeantTaskData *td);
 
 
   /**
@@ -185,7 +190,7 @@ public:
    * @param startevent Start event
    * @param startslot Start slot
    */
-  Int_t ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, GeantThreadData *td);
+  Int_t ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, GeantTaskData *td);
   
   /** @brief Initialization function */
   void Initialize();
@@ -205,7 +210,7 @@ public:
    * @param tracks Vector of tracks 
    * @param td Thread data
    */
-  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   
   /**
    * @brief Apply multiple scattering process
@@ -214,7 +219,7 @@ public:
    * @param tracks Vector of tracks
    * @param td Thread data
    */
-  void ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+  void ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   //   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
   
   /**

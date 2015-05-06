@@ -26,6 +26,7 @@
 #endif
 
 class GeantTrack_v;
+class GeantTaskData;
 
 /** @brief ExN03Application class */
 class ExN03Application : public GeantVApplication {
@@ -73,7 +74,7 @@ public:
    * @param npart ?????
    * @param tracks GeantV tracks
    */
-  virtual void StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks);
+  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
   /**
    * @brief Function of digitization

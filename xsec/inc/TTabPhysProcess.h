@@ -14,6 +14,7 @@ class TGeoMaterial;
 class GeantTrack;
 class GeantTrack_v;
 class TTabPhysMgr;
+class GeantTaskData;
 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess
@@ -28,21 +29,21 @@ public:
   virtual ~TTabPhysProcess() {}
 
   virtual void Initialize();
-  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, GeantThreadData *td);
+  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, GeantTaskData *td);
 
   // # dummy method: PostStep has been splitted up into two parts (see below)     
   virtual void PostStep( TGeoMaterial* /*mat*/ , 
                          Int_t /*ntracks*/, 
                          GeantTrack_v& /*tracks */,
                          Int_t& /*nout*/,
-                         GeantThreadData */*td*/) {}
+                         GeantTaskData */*td*/) {}
 
   // # smapling: -target atom and type of the interaction for each primary tracks 
   //             -all inf. regarding sampling output is stored in the tracks
   virtual void PostStepTypeOfIntrActSampling( TGeoMaterial *mat,
                                               Int_t ntracks, 
                                               GeantTrack_v &tracks, 
-                                              GeantThreadData *td);
+                                              GeantTaskData *td);
 
   // # sampling final states for each primary tracks based on target atom and
   //    interaction type sampled by PostStepTypeOfIntrActSampling;
@@ -52,14 +53,14 @@ public:
                                            Int_t ntracks, 
                                            GeantTrack_v &tracks,
                                            Int_t &nout, 
-                                           GeantThreadData *td);
+                                           GeantTaskData *td);
 
 
-  virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantThreadData *td);
+  virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantTaskData *td);
   GEANT_CUDA_DEVICE_CODE
-  virtual void Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantThreadData *td);
+  virtual void Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantTaskData *td);
   GEANT_CUDA_DEVICE_CODE
-  virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+  virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
 private:
    TTabPhysProcess(const TTabPhysProcess &);//no imp.	

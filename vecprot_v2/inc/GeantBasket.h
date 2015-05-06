@@ -22,7 +22,7 @@
 
 class TGeoVolume;
 class GeantBasketMgr;
-class GeantThreadData;
+class GeantTaskData;
 
 /**
  * @brief Class GeantBasket descripting basic operations with baskets
@@ -203,7 +203,7 @@ public:
   void PrintTrack(Int_t itr, Bool_t input = kTRUE) const;
   
   /** @brief Recycle this basket */
-  void Recycle(GeantThreadData *td);
+  void Recycle(GeantTaskData *td);
   
   /**
    * @brief  Function that providing the size of this basket in bytes
@@ -275,7 +275,7 @@ private:
    * @param td Thread data
    * @return Released basket pointer if operation succeeded, 0 if not
    */
-  GeantBasket *StealAndReplace(atomic_basket &current, GeantThreadData *td);
+  GeantBasket *StealAndReplace(atomic_basket &current, GeantTaskData *td);
 
   /**
    * @brief The caller thread steals temporarily the basket to mark a track addition
@@ -292,7 +292,7 @@ private:
    * @param content Content of GeantBasket 
    * @return Flag marking the success/failure of the steal operation
    */
-  Bool_t StealMatching(atomic_basket &global, GeantBasket *content, GeantThreadData *td);
+  Bool_t StealMatching(atomic_basket &global, GeantBasket *content, GeantTaskData *td);
 #endif
 
 public:
@@ -301,7 +301,7 @@ public:
    * @brief Get next free basket 
    * @details Get pointer to next free basket
    */
-  GeantBasket *GetNextBasket(GeantThreadData *td);
+  GeantBasket *GetNextBasket(GeantTaskData *td);
 
 public:
 
@@ -347,7 +347,7 @@ public:
    * @param track  Track that should be added to basket
    * @param priority Set priority (by default kFALSE)
    */
-  Int_t AddTrack(GeantTrack &track, Bool_t priority, GeantThreadData *td);
+  Int_t AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td);
 
   /**
    * @brief Function adding an indexed track to basket up to the basket threshold
@@ -356,7 +356,7 @@ public:
    * @param itr Track id
    * @param priority Set priority (by default kFALSE)
    */
-  Int_t AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantThreadData *td);
+  Int_t AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td);
 
   /**
    * @brief Function adding by a unique thread a track to the basket manager up to the basket threshold
@@ -365,7 +365,7 @@ public:
    * @param itr Track id
    * @param priority Set priority (by default kFALSE)
    */
-  Int_t AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantThreadData *td);
+  Int_t AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td);
 
   /**
    * @brief Thread local garbage collection of tracks from prioritized events
@@ -374,7 +374,7 @@ public:
    * @param evmax Maximum event index
    * @param gc Garbage collector basket
    */
-  Int_t CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantThreadData *td);
+  Int_t CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantTaskData *td);
 
   /**
    * @brief Garbage collection of prioritized tracks in an event range
@@ -382,20 +382,20 @@ public:
    * @param evmin Minimum event index
    * @param evmax Maximum event index
    */
-  Int_t CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantThreadData *td);
+  Int_t CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantTaskData *td);
 
   /**
    * @brief Function cleaning a number of free baskets
    * 
    * @param ntoclean Number of baskets to be cleaned
    */
-  void CleanBaskets(Int_t ntoclean, GeantThreadData *td);
+  void CleanBaskets(Int_t ntoclean, GeantTaskData *td);
 
   /** @brief Function flushing to the work queue only priority baskets */
   Int_t FlushPriorityBasket();
 
   /** @brief Function doing full collection to work queue of non-empty baskets*/
-  Int_t GarbageCollect(GeantThreadData *td);
+  Int_t GarbageCollect(GeantTaskData *td);
 
   /**
    * @brief Function that set capacity of baskets
@@ -470,7 +470,7 @@ public:
    * have fCollector=true
    * @return Current basket
    */
-  GeantBasket *GetBasketForTransport(GeantThreadData *td) { 
+  GeantBasket *GetBasketForTransport(GeantTaskData *td) { 
     GeantBasket *basket = GetCBasket();
     SetCBasket(GetNextBasket(td));
     return basket;
@@ -514,7 +514,7 @@ public:
    * 
    * @param b Pointer to current GeantBasket for recycling
    */
-  void RecycleBasket(GeantBasket *b, GeantThreadData *td);
+  void RecycleBasket(GeantBasket *b, GeantTaskData *td);
 
   /**
    * @brief Function setting the feeder work queue

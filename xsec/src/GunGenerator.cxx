@@ -7,8 +7,6 @@
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 #include "GeantTrack.h"
-#include "GeantThreadData.h"
-
 
 ClassImp(GunGenerator)
 

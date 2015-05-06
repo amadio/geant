@@ -6,7 +6,7 @@
 #include "TTabPhysProcess.h"
 
 #include "TTabPhysMgr.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "GeantVApplication.h"
 #include "WorkloadManager.h"
 #include "TMath.h"
@@ -64,7 +64,7 @@ GEANT_CUDA_DEVICE_CODE
 void TTabPhysProcess::ApplyMsc(TGeoMaterial */*mat*/, 
                                Int_t /*ntracks*/, 
                                GeantTrack_v &/*tracks*/, 
-                               GeantThreadData */*td*/)
+                               GeantTaskData */*td*/)
 {
    //Apply multiple scattering 
 //   fMgr->ApplyMsc(mat, ntracks, tracks, td);
@@ -78,7 +78,7 @@ void TTabPhysProcess::Eloss(TGeoMaterial *mat,
                             Int_t ntracks, 
                             GeantTrack_v &tracks, 
                             Int_t &nout, 
-                            GeantThreadData *td)
+                            GeantTaskData *td)
 {
 // Fill energy loss for the tracks according their fStepV
 
@@ -90,7 +90,7 @@ void TTabPhysProcess::ComputeIntLen(TGeoMaterial *mat,
                                     Int_t ntracks,
                                     GeantTrack_v &tracks,
                                     Double_t */*lengths*/,
-                                    GeantThreadData *td)
+                                    GeantTaskData *td)
 {
 // Tabulated cross section generic process computation of interaction length.
 
@@ -102,7 +102,7 @@ void TTabPhysProcess::ComputeIntLen(TGeoMaterial *mat,
 void TTabPhysProcess::PostStepTypeOfIntrActSampling(TGeoMaterial *mat,
                                                     Int_t ntracks,
                                                     GeantTrack_v &tracks,
-                                                    GeantThreadData *td)
+                                                    GeantTaskData *td)
 {
    // # smapling: target atom and type of the interaction for each primary tracks
    //             all inf. regarding output of sampling is stored in the tracks  
@@ -118,7 +118,7 @@ void TTabPhysProcess::PostStepFinalStateSampling(TGeoMaterial *mat,
                                                  Int_t ntracks,
                                                  GeantTrack_v &tracks,
                                                  Int_t &nout,
-                                                 GeantThreadData *td)
+                                                 GeantTaskData *td)
 {
    // # sampling final states for each primary tracks based on target atom and
    //    interaction type sampled in SampleTypeOfInteractionsInt;
@@ -135,7 +135,7 @@ void TTabPhysProcess::PostStepFinalStateSampling(TGeoMaterial *mat,
 void TTabPhysProcess::AtRest(Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
                              Int_t &/*nout*/,
-                             GeantThreadData */*td*/)
+                             GeantTaskData */*td*/)
 {
 // Do at rest actions on particle after generic tabxsec process. 
 // Daughter tracks copied in trackout.

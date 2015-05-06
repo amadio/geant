@@ -35,3 +35,14 @@ void GeantEvent::Print(const char *) const {
   std::cout << "Event " << GetEvent() << ": " << GetNtracks() << 
     " tracks transported, max in flight " <<  GetNmax() << std::endl;
 }
+
+//______________________________________________________________________________
+void GeantEvent::Prioritize() {
+  // Prioritize the event
+  if (fPrioritize) return;
+  if (GetNinflight()) {
+    std::cout << "### Event " << GetEvent() << " forced prioritized" << std::endl;
+    fPrioritize = true;
+  }
+}
+  

@@ -100,7 +100,10 @@ public:
    * @param islot Slot number to be set
    */
   void SetSlot(int islot) { fSlot.store(islot); }
-  
+
+  /** @brief Prioritize the event */
+  void Prioritize();
+ 
   /** @brief Reset the event */
   void Reset() {
     fNtracks.store(0);

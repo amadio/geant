@@ -13,7 +13,7 @@
 
 #include "globals.h"
 #include "GeantPropagator.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 
 #include "TRandom.h"
 #include "TBits.h"
@@ -264,7 +264,7 @@ void TTabPhysMgr::TransformLF(Int_t /*indref*/, GeantTrack_v &/*tracks*/,
 // NOT ACTIVE NOW
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td){
+void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td){
 // Compute MSC angle at the beginning of the step and apply it to the vector
 // of tracks.
 // Input: material index, number of tracks in the tracks vector to be used
@@ -325,7 +325,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td)
+Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td)
 {
 // Apply energy loss for the input material for ntracks in the vector of 
 // tracks. Output: modified tracks.fEV array
@@ -362,7 +362,7 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td)
+void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td)
 {
 // Sample free flight/proposed step for the firts ntracks tracks and store them 
 // in tracks.fPstepV  
@@ -397,7 +397,7 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v &/*tracksin*/, Ge
 // smapling: target atom and type of the interaction for each primary tracks
 //______________________________________________________________________________
 void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks,
-                                            GeantTrack_v &tracks, GeantThreadData *td)
+                                            GeantTrack_v &tracks, GeantTaskData *td)
 {
    TGeoMaterial *mat = 0;
    TMXsec *mxs = 0;
@@ -423,7 +423,7 @@ void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks,
 
 //______________________________________________________________________________
 Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, 
-                                     GeantTrack_v &tracks, GeantThreadData *td)
+                                     GeantTrack_v &tracks, GeantTaskData *td)
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
    Double_t energyLimit = propagator->fEmin;
@@ -465,7 +465,9 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
       tracks.fStatusV[t] = kKilled;
       // sample in-flight decay final state 
       SampleDecayInFlight(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, 
-                          nTotSecPart, td);            
+                          nTotSecPart, td);
+      tracks.fPV[t] = 0.;
+      tracks.fEV[t] = tracks.fMassV[t];                               
       continue;
     }
 
@@ -552,6 +554,8 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
         //-set status of primary in tracks to kKilled;
         tracks.fStatusV[t] = kKilled;
         tracks.fEdepV[t] += postEkinOfParimary;
+        tracks.fPV[t] = 0.;
+        tracks.fEV[t] = tracks.fMassV[t];
         // if the primary is stopped i.e. Ekin <= 0 then call at-rest if it has 
         if( isSurv && postEkinOfParimary<=0.0 && HasRestProcess(tracks.fG5codeV[t]) ) 
           GetRestFinStates(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, 
@@ -644,6 +648,8 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
       } //end loop over the secondaries
      } else { //nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
       tracks.fStatusV[t] = kKilled; //set status of primary in tracks to kKilled;
+      tracks.fPV[t] = 0;
+      tracks.fEV[t] = tracks.fMassV[t];
      }
    } //end loop over tracks   
 
@@ -653,7 +659,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
 
 /*
 //______________________________________________________________________________
-Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td)
+Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td)
 {
 // 0. ntracks contains particles with status of Alive 
 // 1.Sampling the element of the material for interaction based on the relative 
@@ -688,7 +694,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Ge
 GEANT_CUDA_DEVICE_CODE
 void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack,
-        Int_t &nTotSecPart, GeantThreadData *td) {
+        Int_t &nTotSecPart, GeantTaskData *td) {
    // current track should have already been killed before calling  
    const Double_t mecc = 0.00051099906; //e- mass c2 in [GeV] 
    Double_t rndArray[3];
@@ -888,7 +894,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
 //______________________________________________________________________________
 void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs, 
         Double_t energyLimit, GeantTrack_v &tracks, Int_t iintrack, 
-        Int_t &nTotSecPart, GeantThreadData *td ) {
+        Int_t &nTotSecPart, GeantTaskData *td ) {
     Int_t nSecPart     = 0;  //number of secondary particles per reaction
     const Int_t *pid   = 0;  //GeantV particle codes [nSecPart]
     const Float_t *mom = 0;  //momentum vectors the secondaries [3*nSecPart]
