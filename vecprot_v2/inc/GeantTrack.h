@@ -632,7 +632,7 @@ public:
    * @brief Implementation of memcpy skipping the alignment check.
    */
 //   void *memcpy_align(void *dst, const void *src, size_t len) {return memcpy(dst,src,len);}
-  static void *memcpy_align(void *dst, const void *src, size_t len) 
+  static void *memcpy_align(void *__restrict__ dst, const void *__restrict__ src, size_t len) 
   __attribute__((always_inline)) 
   {
 //    return memcpy(dst,src,len);
