@@ -124,8 +124,8 @@ public:
   virtual ~GeantPropagator();
 
   /**
-   * @brief Function that returns the number of transported tracks (C++11)
-   * @return Number of transported tracks
+   * @brief Function that returns the number of prioritized events (C++11)
+   * @return Number of prioritized events
    */
   Int_t GetNpriority() const { return fPriorityEvents.load(); }
 

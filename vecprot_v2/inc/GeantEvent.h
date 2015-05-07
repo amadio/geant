@@ -103,7 +103,7 @@ public:
   void SetSlot(int islot) { fSlot.store(islot); }
 
   /** @brief Prioritize the event */
-  void Prioritize();
+  bool Prioritize();
  
   /** @brief Reset the event */
   void Reset() {

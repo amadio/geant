@@ -1487,11 +1487,12 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 
   SimpleNavigator nav;
   for (Int_t i = 0; i < ntracks; ++i) {
+    // Check if current safety allows for the proposed step
     if (safe[i] > pstep[i]) {
        step[i] = pstep[i];
        isonbdr[i] = false;
        continue;
-    }   
+    }
 #ifdef VERBOSE
     if (pstep[i] < 0.) {
       std::cerr << " NEGATIVE PSTEP " << pstep[i] << "\n";
@@ -1523,7 +1524,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
     nav.FindNextBoundaryAndStep(Vector3D_t(x[i], y[i], z[i]) /* global pos */,
                                 Vector3D_t(dirx[i], diry[i], dirz[i]) /* global dir */, *pathin[i],
                                 *pathout[i] /* the paths */, Math::Min(1.E20, pstep[i]), step[i]);
-    step[i] = Math::Max(2. * gTolerance, step[i]);
+    step[i] = Math::Max(2. * gTolerance, step[i]+ 2. * gTolerance);
     safe[i] = (isonbdr[i]) ? 0 : nav.GetSafety(Vector3D_t(x[i], y[i], z[i]), *pathin[i]);
     safe[i] = (safe[i] < 0) ? 0. : safe[i];
 
@@ -1914,9 +1915,9 @@ void GeantTrack_v::PrintTrack(Int_t itr, const char *msg) const {
                            "exitSetup", "physics", "postponed", "new"};
 #ifdef USE_VECGEOM_NAVIGATOR
   printf(
-      "Object %p, Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g\
+      "===%s=== Object %p, Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g\
               xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
-      (const void *)this, itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr],
+      msg, (const void *)this, itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr],
       fG5codeV[itr], fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr],
       (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr], fYposV[itr],
       fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr], fTimeV[itr],
@@ -2132,7 +2133,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
   Int_t icrossed = 0;
   Int_t nsel = 0;
   Double_t lmax;
-  const Double_t eps = 1.E-4; // 100 micron
+  const Double_t eps = 1.E-2; // 100 micron
   const Double_t bmag = gPropagator->fBmag;
 
   // Remove dead tracks, propagate neutrals
@@ -2290,7 +2291,7 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, G
 
   Int_t icrossed = 0;
   Double_t step, lmax;
-  const Double_t eps = 1.E-4; // 1 micron
+  const Double_t eps = 1.E-2; // 1 micron
 #ifdef GEANT_CUDA_DEVICE_BUILD
   const Double_t bmag = gPropagator_fBmag;
 #else
@@ -2363,7 +2364,7 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, G
      // Select step to propagate as the minimum among the "safe" step and:
      // the straight distance to boundary (if frombdr=1) or the proposed  physics
      // step (frombdr=0)
-     step = (fFrombdrV[itr]) ? Math::Min(lmax, fSnextV[itr] + 10 * gTolerance)
+     step = (fFrombdrV[itr]) ? Math::Min(lmax, TMath::Max(fSnextV[itr],1.E-4))
         : Math::Min(lmax, fPstepV[itr]);
      //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
      PropagateInVolumeSingle(itr, step, td);
@@ -2505,6 +2506,10 @@ Bool_t GeantTrack_v::CheckNavConsistency(Int_t itr)
 {
   // Check consistency of navigation state for a given track.
   // Debugging purpose
+#ifdef USE_VECGEOM_NAVIGATOR
+// TO IMPLEMENT WIRH VECGEOM
+  return true;
+#else
   Double_t point[3], local[3];
   point[0] = fXposV[itr];
   point[1] = fYposV[itr];
@@ -2535,6 +2540,7 @@ Bool_t GeantTrack_v::CheckNavConsistency(Int_t itr)
     }
   }
   return true;
+#endif
 }
 
 //______________________________________________________________________________

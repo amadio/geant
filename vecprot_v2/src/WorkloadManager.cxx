@@ -195,7 +195,7 @@ void *WorkloadManager::TransportTracks(void *) {
   //   const Int_t max_idle = 1;
   //   Int_t indmin, indmax;
   static std::atomic<int> counter(0);
-  Int_t ntotnext, ncross;
+  Int_t ntotnext, ncross, nbaskets;
   Int_t ntotransport;
   Int_t nextra_at_rest = 0;
   Int_t generation = 0;
@@ -242,7 +242,8 @@ void *WorkloadManager::TransportTracks(void *) {
     // Call the feeder if in priority mode
     if (!prioritizer->HasTracks() && 
         (propagator->GetNpriority() || wm->GetNworking()==1)) {
-       propagator->Feeder(td);
+       if (propagator->Feeder(td))
+         ngcoll = 0;
        // Check exit condition
        if (propagator->TransportCompleted()) {
          for (Int_t i = 0; i < nworkers; i++)
@@ -255,9 +256,14 @@ void *WorkloadManager::TransportTracks(void *) {
        }
     }
     waiting[tid] = 1;
-    if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport(td);
-    else {
-      if ((int)feederQ->size_async() < nworkers) {
+    nbaskets = feederQ->size_async();
+    if (nbaskets > nworkers) ngcoll = 0;
+    // If prioritizer has work, just do it
+    if (prioritizer->HasTracks()) {
+      basket = prioritizer->GetBasketForTransport(td);
+      ngcoll = 0;
+    } else {
+      if (nbaskets < 1) {
         sch->GarbageCollect(td);
         ngcoll++;
       }
@@ -265,13 +271,13 @@ void *WorkloadManager::TransportTracks(void *) {
       if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
         ngcoll = 0;
         for (Int_t slot=0; slot<propagator->fNevents; slot++) 
-          propagator->fEvents[slot]->Prioritize();
+          if (propagator->fEvents[slot]->Prioritize()) propagator->fPriorityEvents++;
         while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
           ;
           
       }
       wm->FeederQueue()->wait_and_pop(basket);
-    }  
+    }
     waiting[tid] = 0;
     if (td->NeedsToClean()) td->CleanBaskets(0);
     // Check exit condition: null basket in the queue

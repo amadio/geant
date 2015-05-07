@@ -176,7 +176,7 @@ Int_t GeantPropagator::Feeder(GeantTaskData *td) {
         evt->Print();
         // Digitizer (todo)
         Int_t ntracks = fNtracks[islot];
-        Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
+        Printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
         //            propagator->fApplication->Digitize(evt->GetEvent());
         fDoneEvents->SetBitNumber(evt->GetEvent());
         if (fLastEvent < fNtotal) {
