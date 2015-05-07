@@ -73,6 +73,7 @@ public:
   Int_t fMaxDepth;          /** Maximum geometry depth */
   Int_t fLearnSteps;        /** Number of steps needed for the learning phase */ 
   Int_t fLastEvent;         /** Last transported event */
+  Float_t fPriorityThr;     /** Threshold for prioritizing events */
   
   Double_t fMaxRes;         /** Maximum resident memory allowed [MBytes] */
   Double_t fNaverage;       /** Average number of tracks per event */

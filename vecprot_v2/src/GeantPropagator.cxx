@@ -76,7 +76,7 @@ GeantPropagator::GeantPropagator()
       fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
       fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1),
       fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), 
-      fLearnSteps(0), fLastEvent(0), fMaxRes(0), fNaverage(0), fVertex(),
+      fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fMaxRes(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE), 
@@ -254,6 +254,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
     fEvents[slot]->SetSlot(slot);
     fEvents[slot]->SetEvent(event);
     fEvents[slot]->Reset();
+    // Set priority threshold to non-default value
+    if (fPriorityThr > 0) fEvents[slot]->SetPriorityThr(fPriorityThr);
 
     for (Int_t i = 0; i < ntracks; i++) {
       GeantTrack &track = td->GetTrack();
@@ -279,14 +281,19 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
 //______________________________________________________________________________
 GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered) {
   // Single instance of the propagator
-  if (!fgInstance)
-    fgInstance = new GeantPropagator();
-  if (ntotal)
-    fgInstance->fNtotal = ntotal;
-  if (nbuffered) {
-    fgInstance->fNevents = nbuffered;
-    GeantFactoryStore::Instance(nbuffered);
+  if (fgInstance) return fgInstance;
+  if (ntotal<=0 || nbuffered<=0) {
+    Printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
+    return 0;
   }
+  fgInstance = new GeantPropagator();
+  fgInstance->fNtotal = ntotal;
+  fgInstance->fNevents = nbuffered;
+  if (nbuffered > ntotal) {
+    Printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
+    fgInstance->fNevents = ntotal;
+  }  
+  GeantFactoryStore::Instance(nbuffered);
   return fgInstance;
 }
 

@@ -39,10 +39,11 @@ void GeantEvent::Print(const char *) const {
 //______________________________________________________________________________
 void GeantEvent::Prioritize() {
   // Prioritize the event
-  if (fPrioritize) return;
+  if (fLock.test_and_set(std::memory_order_acquire) || fPrioritize) return;
   if (GetNinflight()) {
     std::cout << "### Event " << GetEvent() << " forced prioritized" << std::endl;
     fPrioritize = true;
   }
+  fLock.clear(std::memory_order_release);
 }
   

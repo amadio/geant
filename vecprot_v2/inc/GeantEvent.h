@@ -18,17 +18,18 @@
 /** @brief Class GeantEvent that decribes events */
 class GeantEvent {
 private:
-  bool            fPrioritize;  /** Prioritize this event */
-  float           fPriorityThr; /** Priority threshold in percent of max in flight */
-  std::atomic_int fEvent;   /** Event number */
-  std::atomic_int fSlot;    /** Fixed slot number */
-  std::atomic_int fNtracks; /** Number of tracks */
-  std::atomic_int fNdone;   /** Number of done tracks */
-  std::atomic_int fNmax;    /** Maximum number of tracks in flight */
+  bool             fPrioritize;  /** Prioritize this event */
+  float            fPriorityThr; /** Priority threshold in percent of max in flight */
+  std::atomic_int  fEvent;   /** Event number */
+  std::atomic_int  fSlot;    /** Fixed slot number */
+  std::atomic_int  fNtracks; /** Number of tracks */
+  std::atomic_int  fNdone;   /** Number of done tracks */
+  std::atomic_int  fNmax;    /** Maximum number of tracks in flight */
+  std::atomic_flag fLock;   /** Lock for priority forcing */
 public:
 
   /** @brief GeantEvent default constructor */
-  GeantEvent() : fPrioritize(false), fPriorityThr(0.01), fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0) {}
+  GeantEvent() : fPrioritize(false), fPriorityThr(0.01), fEvent(0), fSlot(0), fNtracks(0), fNdone(0), fNmax(0), fLock() {}
     
   /** @brief GeantEvent destructor */
   ~GeantEvent() {}
