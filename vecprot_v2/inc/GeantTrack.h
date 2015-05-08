@@ -231,6 +231,13 @@ public:
   /** @brief Function that return mass value */
   Double_t Mass() const { return fMass; }
 
+  /** @brief Function to normalize direction */
+  void Normalize()   __attribute__((always_inline)) 
+  {
+    Double_t norm = 1./TMath::Sqrt(fXdir*fXdir+fYdir*fYdir+fZdir*fZdir);
+    fXdir *= norm; fYdir *= norm; fZdir *= norm;
+  }
+
   /** @brief Function that return momentum value */
   Double_t P() const { return fP; }
 
@@ -757,6 +764,13 @@ public:
   void DeselectAll() {
     fSelected->ResetAllBits();
     fNselected = 0;
+  }
+
+  /** @brief Function to normalize direction */
+  void Normalize(Int_t itr)   __attribute__((always_inline)) 
+  {
+    Double_t norm = 1./TMath::Sqrt(fXdirV[itr]*fXdirV[itr]+fYdirV[itr]*fYdirV[itr]+fZdirV[itr]*fZdirV[itr]);
+    fXdirV[itr] *= norm; fYdirV[itr] *= norm; fZdirV[itr] *= norm;
   }
 
   /**

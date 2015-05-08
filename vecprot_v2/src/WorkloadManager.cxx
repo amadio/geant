@@ -396,6 +396,11 @@ void *WorkloadManager::TransportTracks(void *) {
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
+
+    // Normalize directions
+    for (auto itr=0; itr<ntotnext; ++itr)
+      output.Normalize(itr);
+    
 #ifdef BUG_HUNT
     for (auto itr=0; itr<ntotnext; ++itr) {
       bool valid = output.CheckNavConsistency(itr);
