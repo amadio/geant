@@ -195,6 +195,15 @@ public:
   /** @brief  Setter for task broker */
   void SetTaskBroker(TaskBroker *broker);
 
+#if USE_VECGEOM_NAVIGATOR == 1
+  /**
+   * @brief Tell the task broker(s) to load the geometry.
+   * 
+   * @param Volume to load
+   */
+  Bool_t LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
+#endif   
+
   /** @brief Getter for the global transport threshold */
   Int_t GetNminThreshold() const { return fNminThreshold; }
 
