@@ -26,7 +26,7 @@
 class TGeoMaterial;
 class GeantTrack;
 class GeantTrack_v;
-class GeantThreadData;
+class GeantTaskData;
 
 #include "TMutex.h"
 
@@ -80,7 +80,7 @@ public:
    * @param td Thread data
    */
   virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
-                             Double_t *lengths, GeantThreadData *td) = 0;
+                             Double_t *lengths, GeantTaskData *td) = 0;
 
   /**
    * @brief Function that provides posterior steps
@@ -92,7 +92,7 @@ public:
    * @param td Thread data
    */
   virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout,
-                        GeantThreadData *td) = 0;
+                        GeantTaskData *td) = 0;
 
   /**
    * @brief Post step type of intraction sampling function
@@ -106,7 +106,7 @@ public:
    * @param td  Thread data
    */
   virtual void PostStepTypeOfIntrActSampling(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
-                                             GeantThreadData *td) = 0;
+                                             GeantTaskData *td) = 0;
 
   /**
    * @brief Post step final state sampling function
@@ -122,27 +122,27 @@ public:
    * @param td Thread data
    */
   virtual void PostStepFinalStateSampling(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
-                                          Int_t &nout, GeantThreadData *td) = 0;
+                                          Int_t &nout, GeantTaskData *td) = 0;
 
   /**
    * @todo  Need to be implemented
    */
   virtual void AtRest(Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, Int_t & /*nout*/,
-                      GeantThreadData */*td*/) {}
+                      GeantTaskData */*td*/) {}
   GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
   virtual void Eloss(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/,
-                     Int_t & /*nout*/, GeantThreadData */*td*/) {}
+                     Int_t & /*nout*/, GeantTaskData */*td*/) {}
   GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
   virtual void ApplyMsc(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/,
-                        GeantThreadData */*td*/) {}
+                        GeantTaskData */*td*/) {}
 
   ClassDef(PhysicsProcess, 1) // Physics process base class
 };

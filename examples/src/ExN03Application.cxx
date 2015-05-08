@@ -3,6 +3,7 @@
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
+#include "GeantTaskData.h"
 #include "globals.h"
 #include "TH1.h"
 #include "TCanvas.h"
@@ -11,8 +12,8 @@
 
 ClassImp(ExN03Application)
 
-    //______________________________________________________________________________
-    ExN03Application::ExN03Application()
+//______________________________________________________________________________
+ExN03Application::ExN03Application()
     : GeantVApplication(), fInitialized(kFALSE), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
@@ -48,13 +49,14 @@ Bool_t ExN03Application::Initialize() {
 }
 
 //______________________________________________________________________________
-void ExN03Application::StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) {
+void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   if (!fInitialized)
     return; // FOR NOW
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
+  Int_t tid = td->fTid;
   TGeoNode const *current;
   Int_t idvol, idnode, ilev;
   for (Int_t i = 0; i < npart; i++) {

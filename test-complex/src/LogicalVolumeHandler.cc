@@ -42,17 +42,18 @@ void  LogicalVolumeHandler::Initialize(){
  for(G4int i = 0; i< thesize; ++i)
   fLogicVolToIndex[(*lvolstore)[i]] = i;
 
-/*
+
  // write this into file 
  FILE* f;
- f=fopen("/home/mnovak/opt/Data/GV/usedlogvolmask","r");
+ f=fopen("/home/agheata/geant/bin/usedlogvolmask","r");
  for(unsigned int i = 0; i < fIsLogicalVolumeUsedMask.size(); ++i ){
     G4int the = 0;
     fscanf(f,"%d",&the);
     if(the) fIsLogicalVolumeUsedMask[i]=TRUE;
  }
  fclose(f);
-*/
+
+/*
  // loop over the G4PhysicalVolume-s, get their G4LogicalVolume* and see if they are used in 
  // the geometry or not; set a mask value to TRUE if they are used 
  for(unsigned int ivol = 0; ivol < pvolstore->size(); ++ivol)
@@ -61,7 +62,7 @@ void  LogicalVolumeHandler::Initialize(){
 
  // the world logical volume is always used 
  fIsLogicalVolumeUsedMask[fLogicVolToIndex.find(lworld)->second] = TRUE; // world is used 
-
+*/
 
  // count number of used logical volumes 
  G4int numUsedLogicalVols = 0;

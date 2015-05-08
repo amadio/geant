@@ -46,7 +46,8 @@ enum EGeantMonitoringType {
   kMonBasketsPerVol,
   kMonVectors,
   kMonConcurrency,
-  kMonTracksPerEvent
+  kMonTracksPerEvent,
+  kMonTracks
 };
 
 protected:
@@ -74,12 +75,14 @@ protected:
   Int_t  fMonVectors;                 /** Monitor vector scheduling */
   Int_t  fMonConcurrency;             /** Monitor concurrency */
   Int_t  fMonTracksPerEvent;          /** Monitor tracks status per event */
+  Int_t  fMonTracks;                  /** Monitor number of tracks */
   GeantScheduler *fScheduler;         /** Main basket scheduler */
 
   TaskBroker *fBroker; /** Pointer to the coprocessor broker, this could be made a collection. */
   Int_t *fWaiting;     /** ![fNthreads+1] Threads in waiting flag */
   condition_locker fSchLocker; /** Scheduler locker */
   condition_locker fGbcLocker; /** Garbage collector locker */
+  Int_t  fLastEvent;                  /** Last transported event */
 
   /**
    * @brief WorkloadManager parameterized constructor
@@ -118,8 +121,18 @@ public:
   /** @brief Function that returns total number of baskets */
   Int_t GetNbaskets() const { return fNbaskets; }
 
-  /** @brief Function that returns threads in waiting flag */
+  /** @brief Function that returns threads in waiting array */
   Int_t *GetWaiting() const { return fWaiting; }
+
+  /** @brief Function that returns number of waiting threads */
+  Int_t GetNwaiting() const { 
+    Int_t nwaiting = 0; 
+    for (int i=0; i<fNthreads; ++i) nwaiting += fWaiting[i]; 
+    return nwaiting; 
+  }
+
+  /** @brief Function that returns number of threads actually working */
+  Int_t GetNworking() const { return (fNthreads - GetNwaiting()); }
 
   /** @brief Function returning the number of monitored features */
   Int_t GetMonFeatures() const;
@@ -160,17 +173,17 @@ public:
 
   /** @brief Function that check stop flag */
   bool IsStopped() const { return fStopped; }
+  
+  /** @brief Getter for last transported event */
+  Int_t LastEvent() const { return fLastEvent; }
 
-  /**
-   * @brief Function that provide stop process by setting Stop flag = True
-   */
+  /** @brief Setter for last transported event */
+  void SetLastEvent(Int_t n) { fLastEvent = n; }
+
+  /** @brief Function that provide stop process by setting Stop flag = True */
   void Stop() { fStopped = kTRUE; }
 
-  /**
-   * @brief Function that provides buffer flushing
-   *
-   * @param flag Flag for buffer flushing
-   */
+  /** @brief Setter for buffer flushing */
   void SetFlushed(bool flag) { fFlushed = flag; }
 
   /** @brief Function that returns basket generation */
@@ -179,43 +192,22 @@ public:
   /** @brief Print function */
   void Print(Option_t *option = "") const;
 
-  /**
-   * @brief  Function that set task broker
-   *
-   * @param broker Broker to be set
-   */
+  /** @brief  Setter for task broker */
   void SetTaskBroker(TaskBroker *broker);
 
-#if USE_VECGEOM_NAVIGATOR == 1
-  /**
-   * @brief Tell the task broker(s) to load the geometry.
-   *
-   * @param Volume to load
-   */
-  Bool_t LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
-#endif
-
-  /** @brief Function that return minimum number of tracks in a basket to trigger transport */
+  /** @brief Getter for the global transport threshold */
   Int_t GetNminThreshold() const { return fNminThreshold; }
 
-  /**
-   * @brief Function that set minimum number of tracks in the basket to trigger transport
-   *
-   * @param thr Thread for minimum value of threshold
-   */
+  /** @brief Setter for the global transport threshold */
   void SetNminThreshold(Int_t thr) { fNminThreshold = thr; }
 
   /** @brief Function that provides start process of threads  */
   void StartThreads();
 
-  /** @brief Function that provides join process of threads */
+  /** @brief Joins all threads at the end of processing */
   void JoinThreads();
 
-  /**
-   * @brief Function that provides main scheduler
-   *
-   * @param arg Arguments to be passed in the function
-   */
+  /** @brief Thread function for the main scheduler */
   static void *MainScheduler(void *arg);
 
   /**

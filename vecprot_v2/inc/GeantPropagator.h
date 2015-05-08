@@ -26,10 +26,7 @@
 #endif
 
 #include <vector>
-
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
 
 class TTree;
 class TFile;
@@ -42,7 +39,7 @@ class GeantBasket;
 class GeantOutput;
 class GeantBasketMgr;
 class WorkloadManager;
-class GeantThreadData;
+class GeantTaskData;
 class GeantVApplication;
 class PrimaryGenerator;
 
@@ -52,25 +49,31 @@ public:
   Int_t fNthreads; /** Number of worker threads */
   Int_t fNevents;  /** Number of buffered events */
   Int_t fNtotal;   /** Total number of events to be transported */
-#if __cplusplus >= 201103L
   std::atomic<Long64_t> fNtransported; /** Number of transported tracks */
   std::atomic<Long64_t> fNprimaries;   /** Number of primary tracks */
   std::atomic<Long64_t> fNsafeSteps;   /** Number of fast steps within safety */
   std::atomic<Long64_t> fNsnextSteps;  /** Number of steps where full snext computation is needed */
   std::atomic<Long64_t> fNphysSteps;   /** Number of steps to physics process */
-#endif
+  std::atomic_flag      fFeederLock;   /** Atomic flag to protect the particle feeder */
+  std::atomic_int       fPriorityEvents; /** Number of prioritized events */
+  BitSet               *fDoneEvents;   /** Array of bits marking done events */
   Int_t fNprocesses;        /** Number of active physics processes */
   Int_t fNstart;            /** Cumulated initial number of tracks */
   Int_t fMaxTracks;         /** Maximum number of tracks per event */
   Int_t fMaxThreads;        /** Maximum number of threads */
   Int_t fNminThreshold;     /** Threshold for starting transporting a basket */
+  Int_t fDebugEvt;          /** Event to debug */
   Int_t fDebugTrk;          /** Track to debug */
+  Int_t fDebugStp;          /** Step to start debugging */
+  Int_t fDebugRep;          /** Number of steps to debug */
   Int_t fMaxSteps;          /** Maximum number of steps per track */
   Int_t fNperBasket;        /** Number of tracks per basket */
   Int_t fMaxPerBasket;      /** Maximum number of tracks per basket */
   Int_t fMaxPerEvent;       /** Maximum number of tracks per event */
   Int_t fMaxDepth;          /** Maximum geometry depth */
   Int_t fLearnSteps;        /** Number of steps needed for the learning phase */ 
+  Int_t fLastEvent;         /** Last transported event */
+  Float_t fPriorityThr;     /** Threshold for prioritizing events */
   
   Double_t fMaxRes;         /** Maximum resident memory allowed [MBytes] */
   Double_t fNaverage;       /** Average number of tracks per event */
@@ -82,6 +85,7 @@ public:
   Bool_t fUsePhysics;       /** Enable/disable physics */
   Bool_t fUseDebug;         /** Use debug mode */
   Bool_t fUseGraphics;      /** Graphics mode */
+  Bool_t fUseStdScoring;    /** Use standard scoring */
   Bool_t fTransportOngoing; /** Flag for ongoing transport */
   Bool_t fSingleTrack;      /** Use single track transport mode */
   Bool_t fFillTree;         /** Enable I/O */
@@ -91,6 +95,7 @@ public:
 
   WorkloadManager *fWMgr;          /** Workload manager */
   GeantVApplication *fApplication; /** User application */
+  GeantVApplication *fStdApplication; /** Standard application */
   GeantOutput *fOutput;            /** Output object */
  
   TTree *fOutTree;          /** Output tree */
@@ -106,7 +111,7 @@ public:
   // Data per event
   Int_t *fNtracks;      /** ![fNevents] Number of tracks {array of [fNevents]} */
   GeantEvent **fEvents; /** ![fNevents]    Array of events */
-  GeantThreadData **fThreadData; /** ![fNthreads] Data private to threads */
+  GeantTaskData **fThreadData; /** ![fNthreads] Data private to threads */
 
   static GeantPropagator *fgInstance;
 
@@ -132,14 +137,17 @@ public:
   /** @brief GeantPropagator destructor */
   virtual ~GeantPropagator();
 
-#if __cplusplus >= 201103L
+  /**
+   * @brief Function that returns the number of prioritized events (C++11)
+   * @return Number of prioritized events
+   */
+  Int_t GetNpriority() const { return fPriorityEvents.load(); }
 
   /**
    * @brief Function that returns the number of transported tracks (C++11)
    * @return Number of transported tracks
    */
   Long64_t GetNtransported() const { return fNtransported.load(); }
-#endif
 
   /**
    * @brief Function that returns a temporary track object per thread
@@ -161,7 +169,7 @@ public:
    * 
    * @param track Track that should be dispatched
    */
-  Int_t DispatchTrack(GeantTrack &track);
+  Int_t DispatchTrack(GeantTrack &track, GeantTaskData *td);
 
   /**
    * @brief  Function for marking a track as stopped
@@ -172,6 +180,16 @@ public:
   void StopTrack(const GeantTrack_v &tracks, Int_t itr);
 
   /**
+   * @brief Feeder for importing tracks 
+   * 
+   * @param td Thread data object
+   * @param init Flag specifying if this is the first call
+   * @return Number of injected baskets
+   */
+  Int_t Feeder(GeantTaskData *td);
+
+
+  /**
    * @brief Function for importing tracks 
    * 
    * @param nevents Number of events
@@ -179,7 +197,7 @@ public:
    * @param startevent Start event
    * @param startslot Start slot
    */
-  Int_t ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot, GeantThreadData *td);
+  Int_t ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, GeantTaskData *td);
   
   /**
    * @brief Instance function returning the singleton pointer
@@ -196,7 +214,7 @@ public:
    * @param tracks Vector of tracks 
    * @param td Thread data
    */
-  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   
   /**
    * @brief Apply multiple scattering process
@@ -205,7 +223,7 @@ public:
    * @param tracks Vector of tracks
    * @param td Thread data
    */
-  void ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+  void ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   //   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
   
   /**
@@ -224,6 +242,9 @@ public:
    */
   void PropagatorGeom(const char *geomfile = "geometry.root", Int_t nthreads = 4,
                       Bool_t graphics = kFALSE, Bool_t single = kFALSE);
+
+  /** @brief Function checking if transport is completed */
+  Bool_t TransportCompleted() const { return ((Int_t)fDoneEvents->FirstNullBit() >= fNtotal);}
 
 private:
 

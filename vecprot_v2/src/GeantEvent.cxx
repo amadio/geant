@@ -14,16 +14,19 @@ int GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
-void GeantEvent::StopTrack() {
-  // Mark one track as stopped. Check if event has to be prioritized.
+bool GeantEvent::StopTrack() {
+  // Mark one track as stopped. Check if event has to be prioritized and return
+  // true in this case.
   fNdone++;
   if (!fPrioritize) {
     if (GetNinflight() < fPriorityThr*GetNmax()) {
       fPrioritize = true;
       std::cout << "### Event " << GetEvent() << " prioritized at " <<
         100.*fPriorityThr << " % threshold" << std::endl;
+      return true;  
     }  
   }
+  return false;
 }
 
 //______________________________________________________________________________
@@ -32,3 +35,16 @@ void GeantEvent::Print(const char *) const {
   std::cout << "Event " << GetEvent() << ": " << GetNtracks() << 
     " tracks transported, max in flight " <<  GetNmax() << std::endl;
 }
+
+//______________________________________________________________________________
+bool GeantEvent::Prioritize() {
+  // Prioritize the event
+  if (fLock.test_and_set(std::memory_order_acquire) || fPrioritize) return false;
+  if (GetNinflight()) {
+    std::cout << "### Event " << GetEvent() << " forced prioritized" << std::endl;
+    fPrioritize = true;
+  }
+  fLock.clear(std::memory_order_release);
+  return true;
+}
+  

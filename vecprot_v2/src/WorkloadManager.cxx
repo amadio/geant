@@ -15,7 +15,7 @@
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "PhysicsProcess.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
@@ -35,8 +35,8 @@ WorkloadManager::WorkloadManager(Int_t nthreads)
       fNidle(nthreads), fNminThreshold(10), fNqueued(0), fBtogo(0), fSchId(nthreads),
       fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0), fDoneQ(0),
       fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0),
-      fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0),
-      fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker() {
+      fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0),
+      fScheduler(0), fBroker(0), fWaiting(0), fSchLocker(), fGbcLocker(), fLastEvent(0) {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -118,38 +118,41 @@ void WorkloadManager::StartThreads() {
   fListThreads = new TList();
   fListThreads->SetOwner();
   Int_t ith = 0;
+  TThread *t;
   if (fBroker) {
     if (fBroker->GetNstream() > fNthreads) {
       Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)",
             fBroker->GetNstream(), fNthreads);
     }
     Printf("Running with a coprocessor broker.");
-    TThread *t = new TThread(WorkloadManager::TransportTracksCoprocessor, fBroker);
+    t = new TThread(WorkloadManager::TransportTracksCoprocessor, fBroker);
     fListThreads->Add(t);
     t->Run();
     ith += fBroker->GetNstream() + 1;
   }
   // Start CPU transport threads
   for (; ith < fNthreads; ith++) {
-    TThread *t = new TThread(WorkloadManager::TransportTracks);
+    t = new TThread(WorkloadManager::TransportTracks);
     fListThreads->Add(t);
     t->Run();
   }
   //   gSystem->Sleep(1000);
   // Start scheduler(s)
-  TThread *t = new TThread(WorkloadManager::MainScheduler);
-  fListThreads->Add(t);
-  t->Run();
-  // Start garbage collector
-  t = new TThread(WorkloadManager::GarbageCollectorThread);
-  fListThreads->Add(t);
-  t->Run();
+//  t = new TThread(WorkloadManager::MainScheduler);
+//  fListThreads->Add(t);
+//  t->Run();
   // Start monitoring thread
   if (GeantPropagator::Instance()->fUseMonitoring) {
     t = new TThread(WorkloadManager::MonitoringThread);
     fListThreads->Add(t);
     t->Run();
   }
+  // Start garbage collector
+  if ( GeantPropagator::Instance()->fMaxRes > 0 ) {
+    t = new TThread(WorkloadManager::GarbageCollectorThread);
+    fListThreads->Add(t);
+    t->Run();
+  }  
 }
 
 //______________________________________________________________________________
@@ -163,13 +166,14 @@ void WorkloadManager::JoinThreads() {
   for (Int_t ith = 0; ith < tojoin; ith++)
     ((TThread *)fListThreads->At(ith))->Join();
   // Join scheduler
-  ((TThread *)fListThreads->At(tojoin))->Join();
-  // Join garbage collector
-  ((TThread *)fListThreads->At(tojoin + 1))->Join();
+//  ((TThread *)fListThreads->At(tojoin))->Join();
   // Join monitoring thread
   if (GeantPropagator::Instance()->fUseMonitoring) {
-    ((TThread *)fListThreads->At(tojoin + 2))->Join();
+    ((TThread *)fListThreads->At(tojoin++))->Join();
   }
+  // Join garbage collector
+  if ( GeantPropagator::Instance()->fMaxRes > 0 )
+    ((TThread *)fListThreads->At(tojoin++))->Join();
 }
 
 //______________________________________________________________________________
@@ -183,7 +187,7 @@ void WorkloadManager::WaitWorkers() {
   while (ntowait) {
     fDoneQ->wait_and_pop(signal);
     ntowait--;
-    Printf("=== %d workers finished", fNthreads + 1 - ntowait);
+    Printf("=== %d workers finished", fNthreads - ntowait);
   }
   //   fBasketGeneration++;
 }
@@ -191,217 +195,7 @@ void WorkloadManager::WaitWorkers() {
 //______________________________________________________________________________
 void *WorkloadManager::MainScheduler(void *) {
   // Garbage collector thread, called by a single thread.
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  WorkloadManager *wm = WorkloadManager::Instance();
-  condition_locker &sched_locker = wm->GetSchLocker();
-  condition_locker &gbc_locker = wm->GetGbcLocker();
-  // Wait for the start signal
-//  sched_locker.Wait();
-  Int_t tid = TGeoManager::ThreadId();
-  wm->SetSchId(tid);
-  Printf("=== Scheduler thread %d created ===", tid);
-  GeantThreadData *td = propagator->fThreadData[tid];
-  td->fTid = tid;
-  Int_t nworkers = propagator->fNthreads;
-  //   Int_t naverage = propagator->fNaverage;
-  //   Int_t maxperevent = propagator->fMaxPerEvent;
-  Int_t dumped_event = -1;
-  Int_t first_not_transported = 0;
-  Int_t nbuffered = propagator->fNevents;
-  Int_t last_event = nbuffered;
-  Int_t max_events = propagator->fNtotal;
-  TBits finished(max_events);
-  Bool_t prioritize = false;
-  Bool_t countdown = false;
-  if (wm->fBroker)
-    nworkers -= wm->fBroker->GetNstream();
-  Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
-  // priority_queue<GeantBasket*> *transportedQ = wm->TransportedQueue();
-  GeantScheduler *sch = wm->GetScheduler();
-  // Number of baskets in the queue to transport
-  Int_t ntotransport = 0;
-  Int_t *waiting = wm->GetWaiting();
-  //   Int_t ntracksperbasket = propagator->fNperBasket;
-  // Feeder threshold
-  // Model parameters here
-  Int_t min_feeder = TMath::Max(20, 3 * nworkers); // setter/getter here ?
-  Int_t max_feeder = 300;                          // ???
-  // Number of tracks in the current basket
-  //   Int_t ntracksb = 0;
-  // Number of priority baskets
-  Int_t npriority;
-  //   Int_t lastphase = -1;
-  Int_t crtphase = 0;
-
-  Int_t niter = -1;
-  //   size_t npop = 0;
-  Int_t ninjected = 0;
-  //   Int_t nnew = 0, ntot=0, nkilled=0;
-  //   GeantBasket *output;
-  //   GeantBasket **carray = new GeantBasket*[500];
-  waiting[nworkers] = 1;
-  ProcInfo_t procInfo;
-  Double_t rss;
-  const Double_t MByte = 1024.;
-  while (1) {
-    sched_locker.Wait();
-    niter++;
-    // Check if memory is blowing up...
-    if ((niter % 50) == 0) {
-      gSystem->GetProcInfo(&procInfo);
-      rss = procInfo.fMemResident / MByte;
-      if (rss > propagator->fMaxRes) {
-        //            Printf("Resident memory reached user limit of %g GB, cleaning baskets...",
-        //            propagator->fMaxRes);
-        gbc_locker.StartOne();
-      }
-    }
-    //      transportedQ->wait_and_pop_max(500,npop,carray);
-    waiting[nworkers] = 0;
-    // Monitor the queues while there are tracks to transport
-    //      if (niter==1000) exit(0);
-    ninjected = 0;
-    //      nnew = 0;
-    //      ntot = 0;
-    //      nkilled = 0;
-    //      for (size_t iout=0; iout<npop; iout++) {
-    //         output = carray[iout];
-    //         ninjected += sch->AddTracks(output, ntot, nnew, nkilled);
-    // Recycle basket
-    //         output->Recycle();
-    //  }
-    // If there were events to be dumped, check their status here
-    ntotransport = feederQ->size_async();
-//      Printf("#%d: feeder=%p Processed %d baskets (%d tracks, %d new, %d killed)-> injected %d.
-//      QS=%d", niter, feederQ, npop, ntot, nnew, nkilled, ninjected, ntotransport);
-#ifdef __STAT_DEBUG
-    sch->GetPendingStat().Print();
-    sch->GetQueuedStat().Print();
-    sch->GetTransportStat().Print();
-#endif
-
-    // Check and mark finished events
-    for (Int_t ievt = 0; ievt < nbuffered; ievt++) {
-      GeantEvent *evt = propagator->fEvents[ievt];
-      if (finished.TestBitNumber(evt->GetEvent()))
-        continue;
-      if (evt->Transported()) {
-        evt->Print();
-        // Digitizer (todo)
-        Int_t ntracks = propagator->fNtracks[ievt];
-        Printf("= digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
-        //            propagator->fApplication->Digitize(evt->GetEvent());
-        finished.SetBitNumber(evt->GetEvent());
-        if (last_event < max_events) {
-          Printf("=> Importing event %d", last_event);
-          ninjected += propagator->ImportTracks(1, propagator->fNaverage, last_event, ievt, td);
-          last_event++;
-        }
-      }
-    }
-    // Exit condition
-    if (finished.FirstNullBit() >= (UInt_t)max_events)
-      break;
-
-    // In case some events were transported with priority, check if they finished
-    if (prioritize) {
-      first_not_transported = finished.FirstNullBit();
-      if (first_not_transported > dumped_event) {
-        // Priority events digitized, exit prioritized regime
-        Printf("= stopped prioritizing");
-        prioritize = false;
-        sch->SetPriorityRange(-1, -1);
-      } else {
-        // Flush priority baskets if the countdown is zero
-        //            npriority = sch->GetNpriority();
-        if (countdown) {
-          if (feederQ->get_countdown() == 0) {
-            countdown = false;
-            feederQ->reset_countdown();
-            npriority = sch->FlushPriorityBaskets();
-            ninjected += npriority;
-            //                  Printf("Flushed %d priority baskets, resetting countdown",
-            //                  npriority);
-          } else {
-            //                  Printf("Countdown is %d", feederQ->get_countdown());
-          }
-        } else {
-          npriority = sch->FlushPriorityBaskets();
-          ninjected = npriority;
-//               Printf("Flushed %d priority baskets", npriority);
-#ifdef __STAT_DEBUG
-          Printf("After FlushPriorityBaskets:");
-          sch->GetPendingStat().Print();
-          sch->GetQueuedStat().Print();
-          sch->GetTransportStat().Print();
-#endif
-        }
-      }
-    }
-
-    ntotransport = feederQ->size_async();
-    if (ntotransport < min_feeder || ntotransport > max_feeder)
-      sch->AdjustBasketSize();
-    if (0 /*ntotransport < min_feeder*/) {
-      // Transport queue below the threshold
-      if (crtphase < 1)
-        crtphase = 1;
-      // Set the countdown to the number of remaining objects
-
-      // In case no new events were injected and we are not in a the priority regime
-      // and below lowest watermark in this iteration, make a garbage collection
-      //        if (!nnew && !prioritize && ntotransport<nworkers) {
-
-      //           ninjected += sch->GarbageCollect();
-      //           Printf("Garbage collection injected %d baskets", ninjected);
-
-      //        }
-      if (!prioritize && last_event < max_events) {
-        // Start prioritized regime
-        dumped_event = finished.FirstNullBit();
-        sch->SetPriorityRange(dumped_event, dumped_event + 4);
-#ifdef __STAT_DEBUG
-        Printf("Before CollectPrioritizedTracks:");
-        sch->GetPendingStat().Print();
-        sch->GetQueuedStat().Print();
-        sch->GetTransportStat().Print();
-#endif
-        ninjected += sch->CollectPrioritizedTracks();
-#ifdef __STAT_DEBUG
-        Printf("After CollectPrioritizedTracks:");
-        sch->GetPendingStat().Print();
-        sch->GetQueuedStat().Print();
-        sch->GetTransportStat().Print();
-#endif
-        prioritize = true;
-        countdown = true;
-        ntotransport = feederQ->size_async();
-        feederQ->set_countdown(ntotransport);
-        Printf("====== Prioritizing events %d to %d, countdown=%d", dumped_event, dumped_event + 4,
-               ntotransport);
-        waiting[nworkers] = 1;
-        continue;
-      }
-    }
-    ntotransport = feederQ->size_async();
-    if (ntotransport == 0) {
-      // Printf("Garbage collection");
-      sch->GarbageCollect();
-      if (countdown)
-        feederQ->set_countdown(0);
-    }
-    waiting[nworkers] = 1;
-  }
-  // Stop workers
-  // gROOT->SetBit(TObject::kInvalidObject, true);
-  for (Int_t i = 0; i < nworkers; i++)
-    wm->FeederQueue()->push(0);
-  wm->TransportedQueue()->push(0);
-  wm->Stop();
-  gbc_locker.StartOne();
-  // gROOT->SetBit(TObject::kInvalidObject, false);
-  propagator->fApplication->Digitize(0);
-  Printf("=== Scheduler: stopping threads and exiting === niter =%d\n", niter);
+  Printf("=== Scheduler: stopping threads and exiting ===");
   return 0;
 }
 
@@ -413,7 +207,7 @@ void *WorkloadManager::TransportTracks(void *) {
   //   const Int_t max_idle = 1;
   //   Int_t indmin, indmax;
   static std::atomic<int> counter(0);
-  Int_t ntotnext, ncross;
+  Int_t ntotnext, ncross, nbaskets;
   Int_t ntotransport;
   Int_t nextra_at_rest = 0;
   Int_t generation = 0;
@@ -422,25 +216,30 @@ void *WorkloadManager::TransportTracks(void *) {
   Int_t ntot = 0;
   Int_t nkilled = 0;
   Int_t nphys = 0;
+  Int_t ngcoll = 0;
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
   Printf("=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
-  GeantThreadData *td = propagator->fThreadData[tid];
+  GeantTaskData *td = propagator->fThreadData[tid];
   td->fTid = tid;
   Int_t nworkers = propagator->fNthreads;
   WorkloadManager *wm = WorkloadManager::Instance();
+  Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   GeantScheduler *sch = wm->GetScheduler();
   Int_t *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0, true);
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fNperBasket);
-  prioritizer->SetFeederQueue(wm->FeederQueue());
+  prioritizer->SetFeederQueue(feederQ);
+  // Start the feeder
+  propagator->Feeder(td);
   TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
-  condition_locker &sched_locker = wm->GetSchLocker();
+//  condition_locker &sched_locker = wm->GetSchLocker();
+//  condition_locker &gbc_locker = wm->GetGbcLocker();
   // The last worker wakes the scheduler
-  if (tid == nworkers-1) sched_locker.StartOne();
+//  if (tid == nworkers-1) sched_locker.StartOne();
   //   Int_t nprocesses = propagator->fNprocesses;
   //   Int_t ninput, noutput;
   //   Bool_t useDebug = propagator->fUseDebug;
@@ -452,18 +251,51 @@ void *WorkloadManager::TransportTracks(void *) {
   //   Int_t iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
+    // Call the feeder if in priority mode
+    if (!prioritizer->HasTracks() && 
+        (propagator->GetNpriority() || wm->GetNworking()==1)) {
+       if (propagator->Feeder(td))
+         ngcoll = 0;
+       // Check exit condition
+       if (propagator->TransportCompleted()) {
+         for (Int_t i = 0; i < nworkers; i++)
+           wm->FeederQueue()->push(0);
+         wm->TransportedQueue()->push(0);
+         wm->Stop();
+//         sched_locker.StartOne(); // signal the scheduler who has to exit
+//         gbc_locker.StartOne();
+         break;
+       }
+    }
     waiting[tid] = 1;
-    if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport();
-    else wm->FeederQueue()->wait_and_pop(basket);
+    nbaskets = feederQ->size_async();
+    if (nbaskets > nworkers) ngcoll = 0;
+    // If prioritizer has work, just do it
+    if (prioritizer->HasTracks()) {
+      basket = prioritizer->GetBasketForTransport(td);
+      ngcoll = 0;
+    } else {
+      if (nbaskets < 1) {
+        sch->GarbageCollect(td);
+        ngcoll++;
+      }
+      // Too many garbage collections - enter priority mode
+      if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
+        ngcoll = 0;
+        for (Int_t slot=0; slot<propagator->fNevents; slot++) 
+          if (propagator->fEvents[slot]->Prioritize()) propagator->fPriorityEvents++;
+        while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
+          ;
+          
+      }
+      wm->FeederQueue()->wait_and_pop(basket);
+    }
     waiting[tid] = 0;
+    if (td->NeedsToClean()) td->CleanBaskets(0);
     // Check exit condition: null basket in the queue
     if (!basket)
       break;
     ++counter;
-#ifdef __STAT_DEBUG
-    sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
-    sch->GetTransportStat().AddTracks(basket->GetInputTracks());
-#endif
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
@@ -483,12 +315,6 @@ void *WorkloadManager::TransportTracks(void *) {
       if (ntotransport < 257) nvect[ntotransport] += ntotransport;
     } else {
       nvect[1] += ntotransport;
-    }
-
-    // Record tracks
-    //      ninput = ntotransport;
-    if (basket->GetNoutput()) {
-      Printf("Ouch: noutput=%d counter=%d", basket->GetNoutput(), counter.load());
     }
     // Select the discrete physics process for all particles in the basket
     if (propagator->fUsePhysics) {
@@ -578,28 +404,38 @@ void *WorkloadManager::TransportTracks(void *) {
         }
       }
     }
-    gPropagator->fApplication->StepManager(tid, output.GetNtracks(), output);
-    // Check
-    if (basket->GetNinput()) {
-      Printf("Ouch: ninput=%d counter=%d", basket->GetNinput(), counter.load());
-    }
+    if (gPropagator->fStdApplication) gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+    gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
-    for (auto itr=0; itr<ntotnext; ++itr)
-      if (output.fStatusV[itr] == kBoundary) *output.fPathV[itr] = *output.fNextpathV[itr];
 
+    // Normalize directions
+    for (auto itr=0; itr<ntotnext; ++itr)
+      output.Normalize(itr);
+    
+#ifdef BUG_HUNT
+    for (auto itr=0; itr<ntotnext; ++itr) {
+      bool valid = output.CheckNavConsistency(itr);
+      if (!valid) {
+        valid = true;
+      }
+    }
+    // First breakpoint to be set
+    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, prop->fDebugRep, "EndStep");
+#endif    
+    for (auto itr=0; itr<ntotnext; ++itr) {
+      output.fNstepsV[itr]++;
+      if (output.fStatusV[itr] == kBoundary) *output.fPathV[itr] = *output.fNextpathV[itr];
+    }
   finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-#ifdef __STAT_DEBUG
-    sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
-#endif
     //      ninjected =
     sch->AddTracks(basket, ntot, nnew, nkilled, td);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
-    sched_locker.StartOne();
-    basket->Recycle();
+//    sched_locker.StartOne();
+    basket->Recycle(td);
   }
   wm->DoneQueue()->push(0);
   delete prioritizer;
@@ -626,7 +462,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   GeantBasket *basket = 0;
   Int_t tid = TGeoManager::ThreadId();
   GeantPropagator *propagator = GeantPropagator::Instance();
-  GeantThreadData *td = propagator->fThreadData[tid];
+  GeantTaskData *td = propagator->fThreadData[tid];
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
   Int_t *nvect = sch->GetNvect();
@@ -636,7 +472,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   // prioritizer->SetFeederQueue(wm->FeederQueue());
   // TGeoMaterial *mat = 0;
   Int_t *waiting = wm->GetWaiting();
-  condition_locker &sched_locker = wm->GetSchLocker();
+//  condition_locker &sched_locker = wm->GetSchLocker();
   // Int_t nprocesses = propagator->fNprocesses;
   // Int_t ninput;
   // Int_t noutput;
@@ -671,7 +507,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     }
     waiting[tid] = 1;
     //::Info("GPU","Waiting for next available basket.");
-    // if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport();
+    // if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport(td);
     // else
        wm->FeederQueue()->wait_and_pop(basket);
     waiting[tid] = 0;
@@ -694,10 +530,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
       }
     }
 
-#ifdef __STAT_DEBUG
-    sch->GetQueuedStat().RemoveTracks(basket->GetInputTracks());
-    sch->GetTransportStat().AddTracks(basket->GetInputTracks());
-#endif
     ntotransport = basket->GetNinput(); // all tracks to be transported
     // ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
@@ -775,17 +607,14 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-#ifdef __STAT_DEBUG
-    sch->GetTransportStat().RemoveTracks(basket->GetOutputTracks());
-#endif
     /* Int_t ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled, nullptr /* prioritizer */);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //wm->TransportedQueue()->push(basket);
     (void)ntot;
     (void)nnew;
     (void)nkilled;
-    sched_locker.StartOne();
-    basket->Recycle();
+//    sched_locker.StartOne();
+    basket->Recycle(td);
   }
   //delete prioritizer;
   wm->DoneQueue()->push(0);
@@ -796,14 +625,33 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
 //______________________________________________________________________________
 void *WorkloadManager::GarbageCollectorThread(void *) {
   // This threads can be triggered to do garbage collection of unused baskets
+  static Double_t rsslast = 0;
+  Double_t rss;
+  ProcInfo_t procInfo;
+  const Double_t MByte = 1024.;
+  const double_t thr_increase = 1.05;
+  GeantPropagator *propagator = GeantPropagator::Instance();
   WorkloadManager *wm = WorkloadManager::Instance();
-  condition_locker &gbc_locker = wm->GetGbcLocker();
-  GeantScheduler *sch = wm->GetScheduler();
+  Int_t nthreads = propagator->fNthreads;
+  Double_t threshold = propagator->fMaxRes;
+  if (threshold == 0) return 0;
+//  condition_locker &gbc_locker = wm->GetGbcLocker();
   while (1) {
-    gbc_locker.Wait();
+//    gbc_locker.Wait();
     if (wm->IsStopped())
       break;
-    sch->CleanBaskets();
+// todo: cleaning with thread based recycle queues
+    gSystem->GetProcInfo(&procInfo);
+    rss = procInfo.fMemResident / MByte;
+//    Printf("### Checking mem: %g MBytes", rss);
+    if (rss > threshold && (rss/rsslast > thr_increase)) {
+      rsslast = rss;
+      for (Int_t tid=0; tid<nthreads; tid++) {
+        GeantTaskData *td = propagator->fThreadData[tid];
+        td->SetToClean(true);
+      }
+    }
+    gSystem->Sleep(1000); // millisec
   }
   return 0;
 }
@@ -815,10 +663,11 @@ Int_t WorkloadManager::GetMonFeatures() const
   return (fMonQueue +
           fMonMemory +
           fMonBasketsPerVol +
-	  fMonVectors +
+          fMonVectors +
           fMonConcurrency +
-          fMonTracksPerEvent);
-}
+          fMonTracksPerEvent +
+          fMonTracks);
+}          
 
 //______________________________________________________________________________
 bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const
@@ -837,6 +686,8 @@ bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const
       return fMonConcurrency;
     case kMonTracksPerEvent:
       return fMonTracksPerEvent;
+    case kMonTracks:
+      return fMonTracks;
   }
   return false;
 }
@@ -864,6 +715,9 @@ void WorkloadManager::SetMonitored(EGeantMonitoringType feature, bool flag)
       break;
     case kMonTracksPerEvent:
       fMonTracksPerEvent = value;
+      break;
+    case kMonTracks:
+      fMonTracks = value;
   }
 }
 
@@ -976,6 +830,16 @@ void *WorkloadManager::MonitoringThread(void *) {
     htracksmax->Draw();
     htracks->Draw("SAME");
   }
+  TH1I *htrackstot = 0;
+  Int_t ntrackstot[101] = {0};
+  if (wm->IsMonitored(WorkloadManager::kMonTracks)) {
+    htrackstot = new TH1I("htrackstot", "Total number of tracks alive", 100, 0, 100);
+    htrackstot->SetFillColor(kRed);
+    htrackstot->SetLineColor(0);
+    htrackstot->SetStats(false);
+    cmon->cd(++ipad);
+    htrackstot->Draw();
+  }
   cmon->Update();
   Double_t stamp = 0.;
   Int_t i, j, bin;
@@ -984,13 +848,10 @@ void *WorkloadManager::MonitoringThread(void *) {
     i = Int_t(stamp);
     ipad = 0;
     gSystem->Sleep(50); // millisec
-
-    gSystem->GetProcInfo(&procInfo);
-    rss = procInfo.fMemResident / MByte;
-    ntotransport = feederQ->size_async();
     // Fill histograms
     if (stamp > 100) {
       if (hqueue) {
+        ntotransport = feederQ->size_async();
         memmove(nqueue, &nqueue[1], 99 * sizeof(Int_t));
         nqueue[99] = ntotransport;
         hqueue->GetXaxis()->Set(100, stamp - 100, stamp);
@@ -998,20 +859,44 @@ void *WorkloadManager::MonitoringThread(void *) {
           hqueue->SetBinContent(j + 1, nqueue[j]);
       }
       if (hmem) {
+        gSystem->GetProcInfo(&procInfo);
+        rss = procInfo.fMemResident / MByte;
         memmove(nmem, &nmem[1], 99 * sizeof(Double_t));
         nmem[99] = rss;
         hmem->GetXaxis()->Set(100, stamp - 100, stamp);
         for (j = 0; j < 100; j++)
           hmem->SetBinContent(j + 1, nmem[j]);
       }
+      if (htrackstot) {
+        // Count tracks for all event slots
+        Int_t ntr = 0;
+        for (Int_t slot=0; slot<propagator->fNevents; slot++)
+          ntr += propagator->fEvents[slot]->GetNinflight();
+        memmove(ntrackstot, &ntrackstot[1], 99 * sizeof(Int_t));
+        ntrackstot[99] = ntr;
+        htrackstot->GetXaxis()->Set(100, stamp - 100, stamp);
+        for (j = 0; j < 100; j++)
+          htrackstot->SetBinContent(j + 1, ntrackstot[j]);
+      }
     } else {
       if (hqueue) {
+        ntotransport = feederQ->size_async();
         nqueue[i] = ntotransport;
         hqueue->SetBinContent(i + 1, nqueue[i]);
       }
       if (hmem) {
+        gSystem->GetProcInfo(&procInfo);
+        rss = procInfo.fMemResident / MByte;
         nmem[i] = rss;
         hmem->SetBinContent(i + 1, nmem[i]);
+      }
+      if (htrackstot) {
+        // Count tracks for all event slots
+        Int_t ntr = 0;
+        for (Int_t slot=0; slot<propagator->fNevents; slot++)
+          ntr += propagator->fEvents[slot]->GetNinflight();
+        ntrackstot[i] = ntr;
+        htrackstot->SetBinContent(i + 1, ntrackstot[i]);
       }
     }
     if (hbaskets) {
@@ -1023,7 +908,7 @@ void *WorkloadManager::MonitoringThread(void *) {
       int nbaskets_mixed = 0;
       int nused_mixed = 0;
       for (j=0; j<nthreads; j++) {
-        GeantThreadData *td = propagator->fThreadData[j];
+        GeantTaskData *td = propagator->fThreadData[j];
         nbaskets_mixed += td->fBmgr->GetNbaskets();
 	     nused_mixed += td->fBmgr->GetNused();
       }
@@ -1094,6 +979,10 @@ void *WorkloadManager::MonitoringThread(void *) {
       htracksmax->GetXaxis()->SetTitle("Event slot");
       htracksmax->Draw();
       htracks->Draw("SAME");
+    }
+    if (htrackstot) {
+      cmon->cd(++ipad);
+      htrackstot->Draw();
     }
     cmon->Modified();
     cmon->Update();

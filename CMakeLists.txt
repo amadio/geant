@@ -28,6 +28,15 @@ else()
   message(STATUS "USE_VECPHYS OFF : Vector physics is NOT active !")
 endif()
 
+option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
+#---------------------------------------------------------------------------
+# Debuging options
+if(BUG_HUNT)
+  add_definitions(-DBUG_HUNT)
+  message(STATUS "BUG_HUNT ON  : Bug hunting mode !")
+else()
+  message(STATUS "BUG_HUNT OFF  : No bug hunting...")
+endif() 
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )

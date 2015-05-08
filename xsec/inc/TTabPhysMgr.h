@@ -18,7 +18,7 @@ class TEFstate;
 class TPDecay;
 class GeantTrack_v;
 class GeantTrack;
-class GeantThreadData;
+class GeantTaskData;
 class TGeoMaterial;
 
 class TTabPhysMgr
@@ -48,30 +48,30 @@ public:
             indprod, GeantTrack_v &output);//not. imp. but done
    // API used by particle transport
    GEANT_CUDA_DEVICE_CODE
-   void  ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+   void  ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
    GEANT_CUDA_DEVICE_CODE
-   Int_t Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
-   void  ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+   Int_t Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
+   void  ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
    Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout);//not. imp.
 
    // # sampling target, type of interaction, final states;
    // # updating primary track properties and inserting secondary tracks;  
-  // Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+  // Int_t SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
    // # smapling: target atom and type of the interaction for each primary tracks
-   void  SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+   void  SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
    // # sampling final states for each primary tracks based on target atom and
    //    interaction type sampled in SampleTypeOfInteractionsInt;
    // # upadting primary track properties and inserting secondary tracks;
    // # return: number of inserted secondary tracks  
-   Int_t SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantThreadData *td);
+   Int_t SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
    GEANT_CUDA_DEVICE_CODE
    void  GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
-            GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, GeantThreadData *td);
+            GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, GeantTaskData *td);
    void  SampleDecayInFlight(Int_t partindex, TMXsec *mxs, Double_t energyLimit,
-            GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, GeantThreadData *td );
+            GeantTrack_v &tracks, Int_t iintrack, Int_t &nTotSecPart, GeantTaskData *td );
 
    GEANT_CUDA_DEVICE_CODE
    Bool_t HasRestProcess(Int_t gvindex);

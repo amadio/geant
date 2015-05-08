@@ -19,6 +19,7 @@
 
 class GeantHitBlock;
 class GeantTrack_v;
+class GeantTaskData;
 
 /** @brief GeantVApplication class */
 class GeantVApplication : public TObject {
@@ -40,7 +41,7 @@ public:
    * @param npart Number of tracks
    * @param tracks Set of tracks
    */
-  virtual void StepManager(Int_t tid, Int_t npart, const GeantTrack_v &tracks) = 0;
+  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) = 0;
 
   /**
    * @brief Function of digitization

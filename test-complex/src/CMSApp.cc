@@ -205,6 +205,28 @@ void CMSApp::EndOfRunAction(G4int numprims) {
     return;
 
   TFile tf("hists.root","recreate");
+   fFluxElec->Scale(onePerPrims);
+   fFluxGamma->Scale(onePerPrims);
+   fFluxP->Scale(onePerPrims);
+   fFluxPi->Scale(onePerPrims);
+   fFluxK->Scale(onePerPrims); 
+   fEdepElec->Scale(onePerPrims);
+   fEdepGamma->Scale(onePerPrims);
+   fEdepP->Scale(onePerPrims);
+   fEdepPi->Scale(onePerPrims);
+   fEdepK->Scale(onePerPrims);   
+
+   fFluxElec->Sumw2();
+   fFluxGamma->Sumw2();
+   fFluxP->Sumw2();
+   fFluxPi->Sumw2();
+   fFluxK->Sumw2(); 
+   fEdepElec->Sumw2();
+   fEdepGamma->Sumw2();
+   fEdepP->Sumw2();
+   fEdepPi->Sumw2();
+   fEdepK->Sumw2();   
+
    fFluxElec->Write();
    fFluxGamma->Write();
    fFluxP->Write();

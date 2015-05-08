@@ -33,7 +33,7 @@ class concurrent_queue;
 class GeantTrack;
 class GeantBasket;
 class GeantBasketMgr;
-class GeantThreadData;
+class GeantTaskData;
 
 /**
  * @brief Class GeantScheduler
@@ -56,6 +56,7 @@ protected:
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning;        /** Flag marking the learning phase */
+  std::atomic_flag fGBCLock;         /** Flag marking that garbage collector is busy */
 #endif
   Int_t fPriorityRange[2]; /** Prioritized events */
 #ifdef __STAT_DEBUG
@@ -94,7 +95,7 @@ public:
    * 
    * @param track Track to be scheduled
    */
-  Int_t AddTrack(GeantTrack &track);
+  Int_t AddTrack(GeantTrack &track, GeantTaskData *td);
 
   /**
    * @brief Re-schedule all tracks from an output basket
@@ -108,7 +109,7 @@ public:
    * @param nkilled Number of killed tracks
    * @param td Thread data
    */
-  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantThreadData *td);
+  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantTaskData *td);
 
   /** @brief Function to adjust the basket size automatically */
   void AdjustBasketSize();
@@ -116,17 +117,14 @@ public:
   /** @brief Function to create initially baskets */
   void CreateBaskets();
 
-  /** @brief Function to clean baskets */
-  void CleanBaskets();
-
   /** 
    * @brief Function to collect all tracks from prioritized events 
    * @param collector Garbage collector (one per worker thread)
    */
-  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector);
+  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector, GeantTaskData *td);
 
   /** @brief Function to collection prioritized tracks and inject into transport queue */
-  Int_t CollectPrioritizedTracks();
+  Int_t CollectPrioritizedTracks(GeantTaskData *td);
 
   /**
    * @brief Getter for the array of basket managers
@@ -231,7 +229,7 @@ public:
   Int_t FlushPriorityBaskets();
 
   /** @brief Garbage collection function */
-  Int_t GarbageCollect();
+  Int_t GarbageCollect(GeantTaskData *td, Bool_t force=false);
 
   /** @brief Function to print size */
   void PrintSize() const;

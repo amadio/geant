@@ -1,17 +1,17 @@
-//===--- GeantThreadData.h - Geant-V ----------------------------*- C++ -*-===//
+//===--- GeantTaskData.h - Geant-V ----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantThreadData.h
+ * @file GeantTaskData.h
  * @brief Implementation of data organized per thread Geant-V prototype 
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_THREADDATA
-#define GEANT_THREADDATA
+#ifndef GEANT_TASKDATA
+#define GEANT_TASKDATA
 
 #ifndef ROOT_TObject
 #include "TObject.h"
@@ -29,17 +29,18 @@ class GeantBasketMgr;
 class GeantBasket;
 
 /**
- * @brief Class GeantThreadData
+ * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
  * 
  */
-class GeantThreadData : public TObject {
+class GeantTaskData : public TObject {
 public:
   Int_t fTid;          /** Thread unique id */
   Int_t fNthreads;     /** Number of transport threads */
   Int_t fMaxDepth;     /** Maximum geometry depth */
   Int_t fSizeBool;     /** Size of bool array */
   Int_t fSizeDbl;      /** Size of dbl array */
+  Bool_t fToClean;     /** Flag set when the basket queue is to be cleaned */
   TGeoVolume *fVolume; /** Current volume per thread */
   TRandom *fRndm;      /** Random generator for thread */
   Bool_t *fBoolArray;  /** [fSizeBool] Thread array of bools */
@@ -51,11 +52,11 @@ public:
 
 public:
 
-  /** @brief GeantThreadData constructor */
-  GeantThreadData();
+  /** @brief GeantTaskData constructor */
+  GeantTaskData();
 
-  /** @brief GeantThreadData destructor */
-  virtual ~GeantThreadData();
+  /** @brief GeantTaskData destructor */
+  virtual ~GeantTaskData();
 
   /**
    * @brief Function that return double array
@@ -78,10 +79,16 @@ public:
    
 
   /**
-   * @brief Get next free basket or create one with requested capacity
+   * @brief Get next free basket or null if not available
    * @details Get pointer to next free basket
    */
-  GeantBasket *GetNextBasket(Int_t capacity);
+  GeantBasket *GetNextBasket();
+
+  /** @brief Setter for the toclean flag */
+  void SetToClean(Bool_t flag) { fToClean = flag; }
+
+  /** @brief Getter for the toclean flag */
+  bool NeedsToClean() const { return fToClean; }
 
   /**
    * @brief Recycles a given basket
@@ -94,23 +101,24 @@ public:
    * @brief Function cleaning a number of free baskets
    * 
    * @param ntoclean Number of baskets to be cleaned
+   * @return Number of baskets actually cleaned
    */
-  void CleanBaskets(size_t ntoclean);
+  Int_t CleanBaskets(size_t ntoclean);
 
 private:
 
   /**
-   * @brief Constructor GeantThreadData
+   * @brief Constructor GeantTaskData
    * @todo Still not implemented
    */
-  GeantThreadData(const GeantThreadData &);
+  GeantTaskData(const GeantTaskData &);
 
   /**
    * @brief Operator &operator=
    * @todo Still not implemented
    */
-  GeantThreadData &operator=(const GeantThreadData &);
+  GeantTaskData &operator=(const GeantTaskData &);
 
-  ClassDef(GeantThreadData, 1) // Stateful data organized per thread
+  ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 #endif

@@ -19,7 +19,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_LINKER_FLAGS}")
 # NB: headers are included so they will show up in IDEs
 #
 set(sources
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantThreadData.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrack.cxx 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantBasket.cxx  
    ${CMAKE_CURRENT_SOURCE_DIR}/src/sync_objects.cxx
@@ -33,10 +33,11 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantFactoryStore.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
 )     
      
 set(headers
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantThreadData.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcess.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h 
@@ -47,6 +48,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
 )   
 
