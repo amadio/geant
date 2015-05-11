@@ -224,6 +224,9 @@ public:
    /** @brief Function that check if track is on boundary */
   Bool_t IsOnBoundary() const { return (fStatus == kBoundary); }
 
+  /** @brief  Check direction normalization within tolerance */
+  Bool_t IsNormalized(Double_t tolerance = 1.E-8) const;
+
   /** @brief Function that return current volume index */
   Int_t Vindex() const { return fVindex; }
 
@@ -624,8 +627,11 @@ public:
   /** @brief  Function that returned buffer size  */
   size_t BufferSize() const { return fBufSize; }
 
-    /** @brief  Function that returned max size for tracks */
+  /** @brief  Function that returned max size for tracks */
   Int_t Capacity() const { return fMaxtracks; }
+
+  /** @brief  Check direction normalization within tolerance */
+  Bool_t IsNormalized(Int_t itr, Double_t tolerance = 1.E-8) const;
 
   /**
    * @brief Function that compare 2 tracks

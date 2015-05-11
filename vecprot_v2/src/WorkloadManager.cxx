@@ -316,6 +316,7 @@ void *WorkloadManager::TransportTracks(void *) {
     } else {
       nvect[1] += ntotransport;
     }
+
     // Select the discrete physics process for all particles in the basket
     if (propagator->fUsePhysics) {
       propagator->ProposeStep(ntotransport, input, td);
@@ -409,9 +410,9 @@ void *WorkloadManager::TransportTracks(void *) {
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
 
-    // Normalize directions
-    for (auto itr=0; itr<ntotnext; ++itr)
-      output.Normalize(itr);
+    // Normalize directions (should be not needed)
+//    for (auto itr=0; itr<ntotnext; ++itr)
+//      output.Normalize(itr);
     
 #ifdef BUG_HUNT
     for (auto itr=0; itr<ntotnext; ++itr) {

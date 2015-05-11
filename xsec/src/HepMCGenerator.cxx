@@ -118,7 +118,7 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
     if (itr++<n) continue;
 
     // here I have to create GeantTracks
-    int pdg = genpart->pdg_id();
+    int pdg = genpart->pid();
     gtrack.SetPDG(pdg);
 
     gtrack.SetG5code(TPartIndex::I()->PartIndex(pdg));
@@ -139,12 +139,18 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
 
     gtrack.fE = genpart->momentum().e(); // e- 30MeV
 
+    // Compute momentum from energy/mass
     Double_t p = TMath::Sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
+    // Momentum from generator
+    Double_t ptrack = TMath::Sqrt(genpart->momentum().px()*genpart->momentum().px() +
+                             genpart->momentum().py()*genpart->momentum().py() +
+                             genpart->momentum().pz()*genpart->momentum().pz());
 
     gtrack.SetP(p);
-    gtrack.fXdir = genpart->momentum().px() / p;
-    gtrack.fYdir = genpart->momentum().py() / p;
-    gtrack.fZdir = genpart->momentum().pz() / p;
+    // Correctly normalize direction
+    gtrack.fXdir = genpart->momentum().px() / ptrack;
+    gtrack.fYdir = genpart->momentum().py() / ptrack;
+    gtrack.fZdir = genpart->momentum().pz() / ptrack;
     return;
   }
 }
@@ -155,7 +161,7 @@ void HepMCGenerator::GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &t
 
   const HepMC::GenParticlePtr &genpart = search->results()[n];
   // here I have to create GeantTracks
-  pdg = genpart->pdg_id();
+  pdg = genpart->pid();
   if ((bool)genpart->production_vertex()) {
     // current default unit is [mm] that is the default Geant4 length unit as well
     x0 = genpart->production_vertex()->position().x();

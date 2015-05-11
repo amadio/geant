@@ -264,6 +264,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
       track.SetEvent(event);
       track.SetEvslot(slot);
       fPrimaryGenerator->GetTrack(i, track);
+      if (!track.IsNormalized()) track.Print();
       track.fFrombdr = kFALSE;
       track.fStatus = kAlive;
       track.fVindex = basket_mgr->GetNumber();

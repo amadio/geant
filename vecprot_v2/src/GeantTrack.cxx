@@ -267,6 +267,18 @@ TGeoMaterial *GeantTrack::GetMaterial() const {
 #endif
 
 //______________________________________________________________________________
+Bool_t GeantTrack::IsNormalized(Double_t tolerance) const
+{
+// Check if track direction is normalized within tolerance
+  Double_t norm = fXdir*fXdir +
+                  fYdir*fYdir +
+                  fZdir*fZdir;
+  if (Math::Abs(1.-norm) > tolerance) return kFALSE;
+  return kTRUE;
+}
+
+
+//______________________________________________________________________________
 void GeantTrack::SetPath(VolumePath_t const *const path) {
   // Set path.
   *fPath = *path;
@@ -290,8 +302,8 @@ void GeantTrack::Print(Int_t) const {
 
 ClassImp(GeantTrack_v)
 
-    //______________________________________________________________________________
-    GeantTrack_v::GeantTrack_v()
+//______________________________________________________________________________
+GeantTrack_v::GeantTrack_v()
     : fNtracks(0), fMaxtracks(0), fNselected(0), fHoles(0), fSelected(0), fCompact(true),
       fMixed(false), fMaxDepth(0), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0),
       fParticleV(0), fPDGV(0), fG5codeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0),
@@ -651,6 +663,17 @@ Bool_t GeantTrack_v::IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_
   if (tr1.fPendingV[i1] != tr2.fPendingV[i2])
     return false;
   return true;
+}
+
+//______________________________________________________________________________
+Bool_t GeantTrack_v::IsNormalized(Int_t itr, Double_t tolerance) const
+{
+// Check if track direction is normalized within tolerance
+  Double_t norm = fXdirV[itr]*fXdirV[itr] +
+                  fYdirV[itr]*fYdirV[itr] +
+                  fZdirV[itr]*fZdirV[itr];
+  if (Math::Abs(1.-norm) > tolerance) return kFALSE;
+  return kTRUE;
 }
 
 //______________________________________________________________________________
