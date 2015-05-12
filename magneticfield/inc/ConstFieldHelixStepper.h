@@ -9,7 +9,6 @@
 #define CONSTFIELDHELIXSTEPPER_H_
 
 
-#include <Vc/Vc>
 
 // add the sincos function on MAC because sincos is not part of math.h
 #ifdef __APPLE__ // possibly other conditions
@@ -66,14 +65,17 @@ namespace geantv
        /**
         * basket version of dostep
         * version that takes plain arrays as input; suited for current Geant-V
-        */
-        void DoStep_v( double const * /*posx*/, double const * /*posy*/, double const * /*posz*/,
-                       double const * /*dirx*/, double const * /*diry*/, double const * /*dirz*/,
-                       int const * /*charge*/, double const * /*momentum*/, double const * /*step*/,
-                       double * /*newsposx*/, double * /*newposy*/, double * /*newposz*/,
-                       double * /*newdirx*/, double * /*newdiry*/, double * /*newdirz*/,
-                       int np
-                    ) const ;
+	* 
+	* SW: for the moment (12.5.2015) commenting this out as not used 
+	*
+	*/
+       //void DoStep_v( double const * /*posx*/, double const * /*posy*/, double const * /*posz*/,
+       //               double const * /*dirx*/, double const * /*diry*/, double const * /*dirz*/,
+       //              int const * /*charge*/, double const * /*momentum*/, double const * /*step*/,
+       //              double * /*newsposx*/, double * /*newposy*/, double * /*newposz*/,
+       //              double * /*newdirx*/, double * /*newdiry*/, double * /*newdirz*/,
+       //              int np
+       //           ) const ;
 
         // in future will offer versions that take containers as input
 
@@ -140,6 +142,9 @@ namespace geantv
   /**
    * basket version of dostep
    */
+  /*
+   SW: commented out due to explicit Vc dependence and since it is not currently used
+       leaving the code here to show how one would dispatch to the kernel with Vc
 #define _R_ __restrict__
   void ConstBzFieldHelixStepper::DoStep_v(
                         double const * _R_ posx, double const * _R_ posy, double const * _R_ posz,
@@ -190,7 +195,7 @@ namespace geantv
        }
        // tail part: tobedone
    }
-
+  */
 
    //TODO: above stepper is tailored/specialized to B=(0,0,Bz) in the global frame of reference
    // might need to provide more general class in which the constant field has arbitrary direction
