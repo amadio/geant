@@ -402,6 +402,18 @@ Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
   }
   return 0;
 }
+//______________________________________________________________________________
+void GeantBasketMgr::CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td)
+{
+// Creates new basket for this manager
+  for (auto i=0; i<nbaskets; ++i) {
+    GeantBasket *next = new GeantBasket(fBcap, this);
+    if (fCollector) next->SetMixed(kTRUE);
+    fNbaskets++;
+    next->SetThreshold(fThreshold.load());
+    td->RecycleBasket(next);
+  }  
+}
 
 //______________________________________________________________________________
 GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {

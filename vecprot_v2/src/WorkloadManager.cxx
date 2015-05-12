@@ -292,6 +292,13 @@ void *WorkloadManager::TransportTracks(void *) {
     }
     waiting[tid] = 0;
     if (td->NeedsToClean()) td->CleanBaskets(0);
+    else {
+      // Check if there are at least 2 free baskets for this thread
+      if (td->fPool.size() < 10) {
+        if (basket->GetBasketMgr()) basket->GetBasketMgr()->CreateEmptyBaskets(2,td);
+	else td->fBmgr->CreateEmptyBaskets(10,td);
+      }	
+    }
     // Check exit condition: null basket in the queue
     if (!basket)
       break;

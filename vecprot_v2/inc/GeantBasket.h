@@ -303,6 +303,11 @@ public:
    */
   GeantBasket *GetNextBasket(GeantTaskData *td);
 
+  /**
+   * @brief Create a number of empty baskets 
+   */
+  void CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td);
+
 public:
 
   /** @brief GeantBasketMgr dummy constructor */
