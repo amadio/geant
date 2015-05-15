@@ -62,7 +62,7 @@ GUComptonKleinNishina::BuildOneTable( int Z,
 {
   //for now, the model does not own pdf.  Otherwise, pdf should be the 
   //data member of *this and set its point to the fpdf of fAliasSampler 
-  double *pdf = new double [nrow*ncol];
+  double *pdf = new double [(nrow+1)*ncol];
 
   BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
 
@@ -95,11 +95,11 @@ GUComptonKleinNishina::BuildPdfTable(int Z,
 
   //build pdf  
   double dx = (xmax - xmin)/nrow;
-  double xo =  xmin + 0.5*dx;
+  //  double xo =  xmin + 0.5*dx;
 
-  for(int i = 0; i < nrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = xo + dx*i;
+    double x = dx*i;
 
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
 
@@ -150,11 +150,10 @@ GUComptonKleinNishina::BuildLogPdfTable(int Z,
 
   double logxmin = log(xmin);
   double dx = (log(xmax) - logxmin)/nrow;
-  double xo =  logxmin + 0.5*dx;
 
-  for(int i = 0; i < nrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = exp(xo + dx*i);
+    double x = exp(logxmin + dx*i);
 
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
     double dy = (x - ymin)/(ncol-1);

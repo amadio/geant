@@ -20,14 +20,9 @@
 #include "GUAliasTable.h"
 #include "GUAliasTableManager.h"
 
-//#define   CHECK   
-//  Uncomment to provide checking of indices and information about their failures
-
 namespace vecphys {
 
 VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
-
-  //VECPHYS_DEVICE_FORWARD_DECLARE( class GUAliasTable; )
 
 inline namespace VECPHYS_IMPL_NAMESPACE
 {
@@ -53,16 +48,6 @@ public:
                  double incomingMax,
                  int    numEntriesIncoming, // 'energy' (or log) of projectile
                  int    numEntriesSampled, 
-                 GUAliasTable* table 
-                 );  
-
-  VECPHYS_CUDA_HEADER_BOTH
-  GUAliasSampler(Random_t* states, int threadId,
-                 // int    Zelement,   //  ==> Now For all Z
-                 double incomingMin, 
-                 double incomingMax,
-                 int    numEntriesIncoming, // 'energy' (or log) of projectile
-                 int    numEntriesSampled, 
                  GUAliasTableManager* table 
                  );  
   
@@ -72,23 +57,11 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   void PrintTable();
 
-  VECPHYS_CUDA_HEADER_BOTH
-  void GetAlias(int     index,
-                int     zElement,
-                double &probNA,  
-                int    &aliasInd) const;
-
   int GetMaxZ() const { return fMaxZelement; }
 
   VECPHYS_CUDA_HEADER_HOST
   void BuildAliasTable( int z, int nrow, int ncol, const double *pdf );
 
-  VECPHYS_CUDA_HEADER_BOTH
-  GUAliasTable* GetAliasTable(int z){ return (fAliasTable && z < fMaxZelement && z>0) ? fAliasTable[z]: NULL ;}
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetAliasTable(int z, GUAliasTable* table) { if( table && z < fMaxZelement && z>0) { delete fAliasTable[z]; fAliasTable[z] = table ;} }
-  
   VECPHYS_CUDA_HEADER_BOTH
   GUAliasTableManager* GetAliasTableManager(){ return fAliasTableManager ;}
 
@@ -147,15 +120,7 @@ private:
   //  For the sampled variable 
   const    int fSampledNumEntries;   //  Old name fNcol  (number of Columns)
   double   fInverseBinSampled; 
-  // double   fSampledBinSize; 
-
-  // double*  fSampledMin; // Minimum value of 'x' sampled variable
-  // double*  fSampledMax; // Maximum value of 'x' sampled variable
-  
-  // Effective 2-dimensional arrays - size is fInNumEntries * fSampledNumEntries
-  GUAliasTable** fAliasTable;    // GUAliasTable* fAliasTable[];
-  GUAliasTableManager* fAliasTableManager; // GUAliasTable* fAliasTable[];
-  // std::vector <GUAliasTable*>fAliasTable; 
+  GUAliasTableManager* fAliasTableManager; 
 };
 
 // Backend Implementation
@@ -171,8 +136,18 @@ SampleBin(typename Backend::Double_t kineticEnergy,
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t Bool_t;
 
-  Index_t irow = Floor((kineticEnergy - fIncomingMin)*fInverseBinIncoming);
+  Double_t r0 = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
+  Index_t  irow = Floor(r0);
+  Double_t ff = r0 -1.0*irow;  
+  Double_t u1 = UniformRandom<Backend>(fRandomState,fThreadId);
+
+  Bool_t condition = u1 <= ff ;
+  // if branch
+  MaskedAssign( condition, irow , &irow );   // Stores into xd
+  MaskedAssign( condition, irow + 1 , &irow );   //        into xu
+
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
@@ -265,13 +240,10 @@ GatherAlias(typename Backend::Index_t    index,
   int     intIndex= (int) index;
    
 #ifdef CHECK
-  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
-  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
+  //  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
+  //  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
 #endif
   //  assert( (intIndex >= 0) && (intIndex < tableSize) );
-
-  //  probNA=    fAliasTable[(int)zElement]->fProbQ[ intIndex ];
-  //  aliasInd=  fAliasTable[(int)zElement]->fAlias[ intIndex ];
 
   int tableIndex = fAliasTableManager->GetTableIndex(zElement);
   probNA=   (fAliasTableManager->GetAliasTable(tableIndex))->fProbQ[ intIndex ];
@@ -297,9 +269,6 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
     int ind = index[i];
     assert( z > 0  && z <= fMaxZelement );
     //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
-
-    //    probNA[i]=    fAliasTable[z]->fProbQ[ ind ]; // (int) index[i] ];
-    //    aliasInd[i]=  fAliasTable[z]->fAlias[ ind ]; // (int) index[i] ];
 
     int tableIndex = fAliasTableManager->GetTableIndex(z);
     probNA[i]=   (fAliasTableManager->GetAliasTable(tableIndex))->fProbQ[ ind ];

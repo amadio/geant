@@ -58,7 +58,7 @@ GUConversionBetheHeitler::BuildOneTable( int Z,
 {
   //for now, the model does not own pdf.  Otherwise, pdf should be the 
   //data member of *this and set its point to the fpdf of fAliasSampler 
-  double *pdf = new double [nrow*ncol];
+  double *pdf = new double [(nrow+1)*ncol];
 
   BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
   fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
@@ -89,11 +89,10 @@ GUConversionBetheHeitler::BuildPdfTable(int Z,
 
   //build pdf  
   double dx = (xmax - xmin)/nrow;
-  double xo =  xmin + 0.5*dx;
 
-  for(int i = 0; i < nrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = xo + dx*i;
+    double x = xmin + dx*i;
 
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;
