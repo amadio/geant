@@ -5,6 +5,7 @@
 
 #include "GUConstants.h"
 #include "GUTrack.h"
+#include "SystemOfUnits.h"
 
 // add the sincos function on MAC because sincos is not part of math.h
 #ifdef __APPLE__ // possibly other conditions
@@ -134,6 +135,12 @@ public:
   typename Backend::Double_t
   SampleSinTheta(typename Backend::Double_t energyIn,
                  typename Backend::Double_t energyOut) const; 
+
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t 
+  TotalCrossSection(typename Backend::Double_t energy,
+                    typename Backend::Double_t Z) const;
 
 private: 
   // Implementation methods 
@@ -458,6 +465,46 @@ void GUComptonKleinNishina::InteractG4(GUTrack& inProjectile,
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
                                 inProjectile,outSecondary);
   
+}
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH
+typename Backend::Double_t 
+GUComptonKleinNishina::
+TotalCrossSection(typename Backend::Double_t energy,
+                  typename Backend::Double_t Z) const
+{
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t sigma = 0.;
+
+  //low energy limit
+  Bool_t condition = energy > 10*keV;
+  MaskedAssign( !condition, 0.0 , &sigma );
+
+  if(Any(condition)) {
+    Double_t Z2 =  Z*Z;
+    //put coff's to a constant header
+    Double_t p1 =  2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z2;
+    Double_t p2 = -1.8300e-1 + -1.0205e-2*Z +  6.8241e-5*Z2;
+    Double_t p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
+    Double_t p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
+ 
+    Double_t X = energy/electron_mass_c2;
+    Double_t X2 = X*Z;
+
+    Double_t tmpsigma = p1*log(1.+2.*X)/X
+          + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
+    tmpsigma *= Z*barn;
+
+    MaskedAssign( condition, tmpsigma , &sigma );
+  }
+
+  // 5% level improvements for low energy at 10-40keV for Hydrogen
+  // and at 10-15keV for all Z    
+
+  return sigma;
 }
 
 } // end namespace impl

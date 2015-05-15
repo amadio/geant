@@ -21,8 +21,12 @@ VECPHYS_GLOBAL double ms = 1.e-3*s;
 VECPHYS_GLOBAL double MeV = 1.0;
 VECPHYS_GLOBAL double TeV = 1.e+6*MeV;
 VECPHYS_GLOBAL double GeV = 1.e+3*MeV;
-VECPHYS_GLOBAL double KeV = 1.e-3*MeV;
+VECPHYS_GLOBAL double keV = 1.e-3*MeV;
 VECPHYS_GLOBAL double  eV = 1.e-6*MeV;
+
+//
+VECPHYS_GLOBAL double barn = 1.e-28*m*m;
+VECPHYS_GLOBAL double microbarn = 1.e-6*barn;
 
 } // end namespace vecphys
 
