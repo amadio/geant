@@ -60,7 +60,7 @@ GUConversionBetheHeitler::BuildOneTable( int Z,
   //data member of *this and set its point to the fpdf of fAliasSampler 
   double *pdf = new double [(nrow+1)*ncol];
 
-  BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
+  BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
   fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
 
   delete [] pdf;
@@ -93,6 +93,62 @@ GUConversionBetheHeitler::BuildPdfTable(int Z,
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = xmin + dx*i;
+
+    double ymin = electron_mass_c2;
+    double ymax = x - electron_mass_c2;
+
+    double dy = (ymax - ymin)/(ncol-1); //!!!this should be passed to sampler?
+    double yo = ymin + 0.5*dy;
+  
+    double sum = 0.;
+
+    for(int j = 0; j < ncol ; ++j) {
+      //for each output energy bin
+      double y = yo + dy*j;
+      double xsec = CalculateDiffCrossSection(Z,x,y);
+      p[i*ncol+j] = xsec;
+      sum += xsec;
+    }
+
+    //normalization
+    sum = 1.0/sum;
+
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
+    }
+  }
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
+GUConversionBetheHeitler::BuildLogPdfTable(int Z, 
+                                           const double xmin, 
+                                           const double xmax,
+                                           const int nrow,
+                                           const int ncol,
+                                           double *p)
+{
+  // Build the probability density function (BetheHeitler pdf) 
+  // in the energy randge [xmin,xmax] with an equal bin size
+  //
+  // input  :  Z    (atomic number) 
+  //           xmin (miminum photon energy)
+  //           xmax (maxinum photon energy)
+  //           nrow (number of input energy bins)
+  //           ncol (number of output energy bins)
+  //
+  // output :  p[nrow][ncol] (probability distribution) 
+  //
+  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
+
+  //build pdf: logarithmic scale in the input energy bin  
+
+  double logxmin = log(xmin);
+
+  double dx = (log(xmax) - logxmin)/nrow;
+
+  for(int i = 0; i <= nrow ; ++i) {
+    //for each input energy bin
+    double x = exp(logxmin + dx*i);
 
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;

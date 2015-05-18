@@ -8,31 +8,35 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_HOST
 GUMollerBhabha::GUMollerBhabha(Random_t* states, int threadId) 
   :
   fRandomState(states), fThreadId(threadId),
-  fMinX(1.), fMaxX(1001.), fDeltaX(0.1), 
-  fMinY(0.), fMaxY(1001.), fDeltaY(0.1),
+  fMinX(1.e-8), fMaxX(1.e+3), // fDeltaX(0.1), 
+  fMaxZelement(100),       // Elements up to Z=100
   fNrow(100), fNcol(100) 
 {
   //replace hard coded numbers by default constants
 
   fAliasSampler = new GUAliasSampler(fRandomState,fThreadId,
-                                     10,fMinX,fMaxX,fNrow,fNcol);
+                                     fMaxZelement,
+                                     fMinX,fMaxX,
+                                     fNrow,fNcol);
 
-  //eventually arguments of BuildTable should be replaced by members of *this
-  //and dropped from the function signature. Same for BuildPdfTable
-  BuildTable(10,fMinX,fMaxX,fNrow,fNcol);   
+  for( int z= 1 ; z < fMaxZelement; ++z)
+  {
+    //eventually arguments of BuildTable should be replaced by members of *this
+    //  and dropped from the function signature. Same for BuildPdfTable
+    BuildOneTable(z, fMinX, fMaxX, fNrow, fNcol);
+  }
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
 GUMollerBhabha::GUMollerBhabha(Random_t* states, int threadId,
-                                             GUAliasSampler* sampler) 
+                               GUAliasSampler* sampler) 
   :
   fRandomState(states), fThreadId(threadId),
-  fMinX(1.), fMaxX(1001.), fDeltaX(0.1), 
-  fMinY(0.), fMaxY(1001.), fDeltaY(0.1),
+  fMinX(1.e-8), fMaxX(1.e+3), // fDeltaX(0.1), 
   fNrow(100), fNcol(100) 
 {
   //replace hard coded numbers by default constants
@@ -48,31 +52,31 @@ GUMollerBhabha::~GUMollerBhabha()
 }
 
 
-VECPHYS_CUDA_HEADER_BOTH void 
-GUMollerBhabha::BuildTable( int Z, 
-                                   const double xmin, 
-                                   const double xmax,
-                                   const int nrow,
-                                   const int ncol)
+VECPHYS_CUDA_HEADER_HOST void 
+GUMollerBhabha::BuildOneTable( int Z, 
+                               const double xmin, 
+                               const double xmax,
+                               const int nrow,
+                               const int ncol)
 {
   //for now, the model does not own pdf.  Otherwise, pdf should be the 
   //data member of *this and set its point to the fpdf of fAliasSampler 
-  double *pdf = new double [nrow*ncol];
+  double *pdf = new double [(nrow+1)*ncol];
 
-  BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
-  fAliasSampler->BuildAliasTables(nrow,ncol,pdf);
+  BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
+  fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
 
   delete [] pdf;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_HOST void 
 GUMollerBhabha::BuildPdfTable(int Z, 
-                                     const double xmin, 
-                                     const double xmax,
-                                     const int nrow,
-                                     const int ncol,
-                                     double *p
-                                     )
+                              const double xmin, 
+                              const double xmax,
+                              const int nrow,
+                              const int ncol,
+                              double *p
+                              )
 {
   // Build the probability density function (MollerBhabha pdf) 
   // in the energy randge [xmin,xmax] with an equal bin size
@@ -89,15 +93,15 @@ GUMollerBhabha::BuildPdfTable(int Z,
 
   //build pdf  
   double dx = (xmax - xmin)/nrow;
-  double xo =  xmin + 0.5*dx;
+  //  double xo =  xmin + 0.5*dx;
 
-
-  for(int i = 0; i < nrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = xo + dx*i;
+    double x = dx*i;
 
-    double ymin = x/(1+2.0*x*inv_electron_mass_c2);
-    double dy = (x - ymin)/(ncol-1);
+    //e-e- (Moller) only for now
+    double ymin = 0.1*keV; // minimum delta-ray energy which should be setable
+    double dy = (x/2.0 - ymin)/(ncol-1); //maximum x/2.0
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
@@ -105,7 +109,62 @@ GUMollerBhabha::BuildPdfTable(int Z,
     for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
-      double xsec = CalculateDiffCrossSection(0,x,y);
+      double xsec = CalculateDiffCrossSection(Z,x,y);
+      p[i*ncol+j] = xsec;
+      sum += xsec;
+    }
+
+    //normalization
+    sum = 1.0/sum;
+
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
+    }
+  }
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
+GUMollerBhabha::BuildLogPdfTable(int Z, 
+                                 const double xmin, 
+                                 const double xmax,
+                                 const int nrow,
+                                 const int ncol,
+                                 double *p
+                                 )
+{
+  // Build the probability density function (MollerBhabha pdf) 
+  // in the energy randge [xmin,xmax] with an equal bin size
+  //
+  // input  :  Z    (atomic number) - not used for the atomic independent model
+  //           xmin (miminum energy)
+  //           xmax (maxinum energy)
+  //           nrow (number of input energy bins)
+  //           ncol (number of output energy bins)
+  //
+  // output :  p[nrow][ncol] (probability distribution) 
+  //
+  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
+
+  //build pdf  
+  double logxmin = log(xmin);
+  double dx = (log(xmax) - logxmin)/nrow;
+  //  double xo =  xmin + 0.5*dx;
+
+  for(int i = 0; i <= nrow ; ++i) {
+    //for each input energy bin
+    double x = exp(logxmin + dx*i);
+
+    //e-e- (Moller) only for now
+    double ymin = 0.1*keV; // minimum delta-ray energy which should be setable
+    double dy = (x/2.0 - ymin)/(ncol-1); //maximum x/2.0
+    double yo = ymin + 0.5*dy;
+  
+    double sum = 0.;
+
+    for(int j = 0; j < ncol ; ++j) {
+      //for each output energy bin
+      double y = yo + dy*j;
+      double xsec = CalculateDiffCrossSection(Z,x,y);
       p[i*ncol+j] = xsec;
       sum += xsec;
     }

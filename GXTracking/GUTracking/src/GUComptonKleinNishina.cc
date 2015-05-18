@@ -64,8 +64,7 @@ GUComptonKleinNishina::BuildOneTable( int Z,
   //data member of *this and set its point to the fpdf of fAliasSampler 
   double *pdf = new double [(nrow+1)*ncol];
 
-  BuildPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
-
+  BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
   fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
 
   delete [] pdf;

@@ -28,7 +28,7 @@ void BenchmarkCudaKernel(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.,1001.,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table);
 
   GUComptonKleinNishina model(devStates,tid,&sampler);
 

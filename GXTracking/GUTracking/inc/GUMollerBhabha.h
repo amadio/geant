@@ -5,6 +5,7 @@
 
 #include "GUConstants.h"
 #include "GUTrack.h"
+#include "SystemOfUnits.h"
 
 namespace vecphys {
 
@@ -17,7 +18,7 @@ class GUMollerBhabha
 {
 public:
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECPHYS_CUDA_HEADER_HOST
   GUMollerBhabha(Random_t* states, int threadId = -1); 
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -26,15 +27,6 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH
   ~GUMollerBhabha();
-
-  VECPHYS_CUDA_HEADER_BOTH
-  GUAliasSampler* GetSampler() {return fAliasSampler;}
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
-  
-  VECPHYS_CUDA_HEADER_BOTH
-  void GetSampleParameters(double x, int &irow, int &icol,double &t);
 
   // Generate secondaries 
   template <typename Backend>
@@ -58,16 +50,36 @@ public:
                 )const;     
 #endif
 
-  // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_BOTH
-  void BuildTable( int Z,
-                              const double xmin,
-                              const double xmax,
-                              const int nrow,
-			      const int ncol);
-  // QUESTION: This might depend on physics? So maybe we should place inside model? 
+  // Core method(s)
+  // -------------------------------------------  
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernel(typename Backend::Double_t energyIn, 
+                 typename Backend::Index_t   zElement,
+                 typename Backend::Double_t& energyOut,
+                 typename Backend::Double_t& sinTheta) const;
 
+
+  // Alternative Implementation method(s) - for reference/comparisons
+  // ----------------------------------------------------------------
+  template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
+  void SampleByCompositionRejection(typename Backend::Double_t energyIn,
+                                    typename Backend::Double_t& energyOut,
+                                    typename Backend::Double_t& sinTheta);
+
+  //  Initialisation methods
+  // -------------------------------------------
+
+  // Initializes this class and its sampler 
+  VECPHYS_CUDA_HEADER_HOST
+  void BuildOneTable( int Z,
+                      const double xmin,
+                      const double xmax,
+                      const int nrow,
+                      const int ncol);
+
+  VECPHYS_CUDA_HEADER_HOST
   void BuildPdfTable(int Z,
                      const double xmin,
                      const double xmax,
@@ -75,26 +87,24 @@ public:
                      const int ncol,
                      double *p);
 
-  template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::Double_t energyIn, 
-                 typename Backend::Double_t& energyOut,
-		 typename Backend::Double_t& sinTheta) const;
+  VECPHYS_CUDA_HEADER_HOST
+  void BuildLogPdfTable(int Z,
+                        const double xmin,
+                        const double xmax,
+                        const int nrow,
+                        const int ncol,
+                        double *p);
 
-
-  template<class Backend>
+public:
+  // Auxiliary methods
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t
-  SampleSinTheta(typename Backend::Double_t energyIn,
-                 typename Backend::Double_t energyOut) const; 
+  GUAliasSampler* GetSampler() {return fAliasSampler;}
 
-
-  template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void SampleByCompositionRejection(typename Backend::Double_t energyIn,
-				    typename Backend::Double_t& energyOut,
-				    typename Backend::Double_t& sinTheta);
+  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
 
+public:
+  // Implementation methods - used to implement Interact
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void
@@ -106,11 +116,18 @@ public:
               typename Backend::Double_t &yr,
               typename Backend::Double_t &zr) const;
 
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t
+  SampleSinTheta(typename Backend::Double_t energyIn,
+                 typename Backend::Double_t energyOut) const; 
+
+
 private: 
   // Implementation methods 
 
   VECPHYS_CUDA_HEADER_BOTH
-  double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
+  double CalculateDiffCrossSection( int Zelement, double Ein, double Eout) const;
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -129,11 +146,13 @@ private:
 
   Precision fMinX;
   Precision fMaxX;
-  Precision fDeltaX;
+  //  Precision fDeltaX;
 
-  Precision fMinY;
-  Precision fMaxY;
-  Precision fDeltaY;
+  //  Precision fMinY;
+  //  Precision fMaxY;
+  //  Precision fDeltaY;
+
+  Precision fMaxZelement; 
 
   //Sampling Tables
   int fNrow;
@@ -143,29 +162,63 @@ private:
 //Implementation
 
 template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+GUMollerBhabha::InteractKernel(typename Backend::Double_t  energyIn, 
+                               typename Backend::Index_t   zElement,
+                               typename Backend::Double_t& energyOut,
+                               typename Backend::Double_t& sinTheta)
+                               const
+{
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Index_t   index;
+  Index_t   icol;
+  Double_t  fraction;
+
+  fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
+
+  Double_t probNA;
+  Double_t aliasInd;
+
+  //this did not used to work - Fixed SW
+  fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
+  
+  Double_t mininumE = 0.1*keV;
+  Double_t deltaE = energyIn/2.0 - mininumE;
+
+  energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
+                                                aliasInd,icol,fraction);
+  sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
+}    
+
+template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 void
 GUMollerBhabha::RotateAngle(typename Backend::Double_t sinTheta,
-                                   typename Backend::Double_t xhat,
-                                   typename Backend::Double_t yhat,
-                                   typename Backend::Double_t zhat,
-                                   typename Backend::Double_t &xr,
-                                   typename Backend::Double_t &yr,
-                                   typename Backend::Double_t &zr) const
+                            typename Backend::Double_t xhat,
+                            typename Backend::Double_t yhat,
+                            typename Backend::Double_t zhat,
+                            typename Backend::Double_t &xr,
+                            typename Backend::Double_t &yr,
+                            typename Backend::Double_t &zr) const
 {
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t   Bool_t;
 
-  Double_t phi = UniformRandom(fRandomState,fThreadId);
+  Double_t phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
   Double_t pt = xhat*xhat + yhat*yhat;
 
-  Double_t uhat = sinTheta*cos(phi);
-  Double_t vhat = sinTheta*sin(phi);
+  Double_t cosphi, sinphi;
+  sincos(phi, &sinphi, &cosphi);
+
+  Double_t uhat = sinTheta*cosphi; // cos(phi);
+  Double_t vhat = sinTheta*sinphi; // sin(phi);
   Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Bool_t positive = ( pt > 0. );
-  Bool_t negative = ( zhat < 0. );
+  Bool_t negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
@@ -174,12 +227,16 @@ GUMollerBhabha::RotateAngle(typename Backend::Double_t sinTheta,
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
     zr = -phat*uhat + zhat*what;
   }
-  else if(negative) {
+  else if(negativeZ) {
     xr = -xhat;
     yr =  yhat;
     zr = -zhat;
   }  
-
+  else {
+    xr = xhat;
+    yr = yhat;
+    zr = zhat;
+  }
 }
 
 template<class Backend>
@@ -221,7 +278,7 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
   typedef typename Backend::Double_t Double_t;
 
   //cut energy
-  Double_t tmin = 1.0;  
+  Double_t tmin = 0.1*keV; // minimum delta-ray energy which should be setable  
   //  Double_t tmax = fLimit*energyIn; //fLimit=0.5 for e- and 1 for e+
   Double_t tmax = 0.5*energyIn; //fLimit=0.5 for e- and 1 for e+
 
@@ -246,11 +303,11 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
   grej = 1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
   
   do {
-    q = UniformRandom(fRandomState, fThreadId);
+    q =  UniformRandom<Backend>(fRandomState,fThreadId);
     x = xmin*xmax/(xmin*(1.0 - q) + xmax*q);
     y = 1.0 - x;
     z = 1.0 - gg*x + x*x*(1.0 - gg + (1.0 - gg*y)/(y*y));
-  } while (grej * UniformRandom(fRandomState,fThreadId) > z);
+  } while (grej * UniformRandom<Backend>(fRandomState,fThreadId) > z);
   
   energyOut = x*energyIn;
 
@@ -265,82 +322,54 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUMollerBhabha::Interact(GUTrack& inProjectile,
-                                     int      targetElement,
-                                     GUTrack& outSecondary ) const
+                              int      targetElement,
+                              GUTrack& outSecondary ) const
 {
-  double energyIn;
-  double deltaE; //temporary - this should be dy in BuildPdfTable
-
-  energyIn = inProjectile.E;
-  deltaE =  energyIn - energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
-
-  int index;
-  int icol;
-  double fraction;
-
-  fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
-
-  double probNA;   // Non-alias probability
-  int aliasInd; 
-
-  //  This is really an integer -- could be In  
-  fAliasSampler->GetAlias(index,probNA,aliasInd);
-
-  double energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-					       icol,fraction);
-
-  //calcuate the scattered angle
-  double sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
-
-  //update final states of the primary and store the secondary 
+  double energyIn= inProjectile.E;
+  double energyOut, sinTheta;
+#ifdef CHECK
+  if( (energyIn <= fMinX) || (energyIn > fMaxX) )
+  {
+    printf(" Illegal input Energy = %f min = %f max = %f\n",
+           energyIn,fMinX,fMaxX);
+  }
+#endif 
+  //  assert( (energyIn >= fMinX)  && (energyIn <= fMaxX) );
+  InteractKernel<Backend>(energyIn, targetElement, energyOut, sinTheta);
+  
+  //update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
                                 inProjectile,outSecondary);
+
 }
 
 #ifndef VECPHYS_NVCC
 template <typename Backend>
 void GUMollerBhabha::Interact( GUTrack_v& inProjectile,    // In/Out
-                                      const int *targetElements,  // Number equal to num of tracks
-                                      GUTrack_v& outSecondary    // Empty vector for secondaries
+                               const int *targetElements,  // Number equal to num of tracks
+                               GUTrack_v& outSecondary    // Empty vector for secondaries
                                       ) const
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  Double_t energyIn;
-  Double_t deltaE; //temporary - this should be dy in BuildPdfTable
-  Index_t  index;
-  Index_t  icol;
-  Double_t fraction;
+  for(int j = 0; j < inProjectile.numTracks  ; ++j) {
+     assert( (targetElements[j] > 0)  && (targetElements[j] <= fMaxZelement) );
+  }
+  
+  int ibase= 0;
+  int numChunks= (inProjectile.numTracks/Double_t::Size);
 
-  Double_t px, py, pz;
+  for(int i=0; i < numChunks ; ++i) {
+    Double_t energyIn(inProjectile.E[ibase]);
+    Double_t px(inProjectile.px[ibase]);
+    Double_t py(inProjectile.py[ibase]);
+    Double_t pz(inProjectile.pz[ibase]);
+    Double_t sinTheta;
+    Double_t energyOut;
+    Index_t  zElement(targetElements[ibase]);
 
-  for(int i=0; i < inProjectile.numTracks/Double_t::Size ; ++i) {
-    
-    //gather
-    // loads energies into a VC-"register" type called energyIn
-    for(int j = 0; j < Double_t::Size ; ++j) {
-      energyIn[j] = inProjectile.E[ i*Double_t::Size + j];
-      deltaE[j] = energyIn[j] - energyIn[j]/(1+2.0*energyIn[j]*inv_electron_mass_c2);
-
-      px[j] =  inProjectile.px[ i*Double_t::Size + j];
-      py[j] =  inProjectile.py[ i*Double_t::Size + j];
-      pz[j] =  inProjectile.pz[ i*Double_t::Size + j];
-    }
-
-    fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
-
-    Double_t probNA;   // Non-alias probability
-    Double_t aliasInd; // This is really an integer -- could be Index_t !?
-
-    //gather for alias table lookups
-    fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
-
-    Double_t energyOut = fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,
-						         icol,fraction);
-
-    //calcuate the scattered angle
-    Double_t sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
+    InteractKernel<Backend>(energyIn, zElement, energyOut, sinTheta);
 
     //need to rotate the angle with respect to the line of flight
     Double_t invp = 1./energyIn;
@@ -354,24 +383,28 @@ void GUMollerBhabha::Interact( GUTrack_v& inProjectile,    // In/Out
 
     RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
-    //scatter 
-    for(int j = 0; j < Double_t::Size ; ++j) {
-      int it = i*Double_t::Size + j;
+    // Update primary
+    energyOut.store(&inProjectile.E[ibase]);
+    Double_t pxFinal, pyFinal, pzFinal;
+     
+    pxFinal= energyOut*uhat;
+    pyFinal= energyOut*vhat;
+    pzFinal= energyOut*what;
+    pxFinal.store(&inProjectile.px[ibase]);
+    pyFinal.store(&inProjectile.py[ibase]);
+    pzFinal.store(&inProjectile.pz[ibase]);
+    // create Secondary
+    Double_t secE = energyIn - energyOut; 
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
 
-      //update primary
-      inProjectile.E[it]  = energyOut[j];
-      inProjectile.px[it] = energyOut[j]*uhat[j];
-      inProjectile.py[it] = energyOut[j]*vhat[j];
-      inProjectile.pz[it] = energyOut[j]*what[j];
+    secE.store(&outSecondary.E[ibase]);
+    pxSec.store(&outSecondary.px[ibase]);
+    pySec.store(&outSecondary.py[ibase]);
+    pzSec.store(&outSecondary.pz[ibase]);
 
-      //create secondary
-      double secE = energyIn[j] - energyOut[j]; 
-      outSecondary.E[it]  = secE;
-      outSecondary.px[it] = secE*(xhat[j]-uhat[j]);
-      outSecondary.py[it] = secE*(yhat[j]-vhat[j]);
-      outSecondary.pz[it] = secE*(zhat[j]-what[j]);
-      //fill other information
-    }
+    ibase+= Double_t::Size;
   }
 }    
 

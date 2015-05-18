@@ -47,6 +47,7 @@ GUAliasSampler(Random_t* states, int threadId,
   fIncomingMax( incomingMax ),
   fInNumEntries(numEntriesIncoming), 
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
+  fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-log(incomingMin))),
   fSampledNumEntries( numEntriesSampled ),
   fInverseBinSampled( 1.0 / (numEntriesSampled-1) )  // Careful - convention build / use table!
 {

@@ -101,6 +101,15 @@ public:
                      const int ncol,
                      double *p);
   
+
+  VECPHYS_CUDA_HEADER_HOST
+  void BuildLogPdfTable(int Z,
+                        const double xmin,
+                        const double xmax,
+                        const int nrow,
+                        const int ncol,
+                        double *p);
+
 public:
   // Auxiliary methods
   VECPHYS_CUDA_HEADER_BOTH
@@ -200,7 +209,7 @@ GUConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   Index_t   icol;
   Double_t  fraction;
 
-  fAliasSampler->SampleBin<Backend>(energyIn,index,icol,fraction);
+  fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
 
   Double_t probNA;
   Double_t aliasInd;

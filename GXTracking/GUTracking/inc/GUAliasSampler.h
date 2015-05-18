@@ -91,7 +91,6 @@ public:
           ) const;
 
 
-  //#ifndef VECPHYS_NVCC
   template<class Backend>
   inline
   VECPHYS_CUDA_HEADER_BOTH
@@ -138,15 +137,16 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t Bool_t;
 
-  Double_t r0 = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
-  Index_t  irow = Floor(r0);
-  Double_t ff = r0 -1.0*irow;  
+  //select the alias table for incoming energy 
+  Double_t eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
+  Index_t  irow  = Floor(eloc);
+  Double_t efrac = eloc -1.0*irow;  
   Double_t u1 = UniformRandom<Backend>(fRandomState,fThreadId);
 
-  Bool_t condition = u1 <= ff ;
+  Bool_t condition = u1 <= efrac ;
   // if branch
-  MaskedAssign( condition, irow , &irow );   // Stores into xd
-  MaskedAssign( condition, irow + 1 , &irow );   //        into xu
+  MaskedAssign( condition, irow , &irow ); // at the lower edge
+  MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
 
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
   icol = Floor(r1);
@@ -167,8 +167,20 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t Bool_t;
 
-  Index_t irow = Floor((Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming);
+  //select the alias table for incoming energy 
+  Double_t eloc = (Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming;
+  Index_t  irow = Floor(eloc);
+  Double_t efrac = eloc -1.0*irow;  
+  Double_t u1 = UniformRandom<Backend>(fRandomState,fThreadId);
+
+  Bool_t condition = u1 <= efrac ;
+
+  MaskedAssign( condition, irow , &irow );     // at the lower edge 
+  MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
+
+  //select the sampling bin
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
