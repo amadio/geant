@@ -273,6 +273,7 @@ set(SRC_CPP_RELATIVE
   src/GUAliasSampler.cc
   src/GUComptonKleinNishina.cc
   src/GUConversionBetheHeitler.cc
+  src/GUPhotoElectronSauterGavrila.cc
   src/GUMollerBhabha.cc
 #  src/GUPhysicsModel.cc
   src/GUAliasTable.cc
