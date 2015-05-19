@@ -1,12 +1,12 @@
 //===--- GeantTrack.h - Geant-V ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantTrack.h
- * @brief Implementation of track for Geant-V prototype 
- * @author Andrei Gheata 
+ * @brief Implementation of track for Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -110,7 +110,7 @@ public:
   Double_t fTime;   /** Time */
   Double_t fEdep;   /** Energy deposition in the step */
   Double_t fPstep;  /** Selected physical step */
-  Double_t fStep;   /** Current step */ 
+  Double_t fStep;   /** Current step */
   Double_t fSnext;  /** Straight distance to next boundary */
   Double_t fSafety; /** Safe distance to any boundary */
   Bool_t fFrombdr;  /** True if starting from boundary */
@@ -124,7 +124,7 @@ public:
   GeantTrack();
 
   /**
-   * @brief GeantTrack copy constructor 
+   * @brief GeantTrack copy constructor
    */
   GeantTrack(const GeantTrack &other);
 
@@ -133,14 +133,14 @@ public:
 
   /**
    * @brief GeantTrack parametrized constructor
-   * 
+   *
    * @param ipdg ??????
    */
   GeantTrack(Int_t ipdg);
 
   /** @brief GeantTrack destructor */
   ~GeantTrack();
-  
+
   /** @brief Function that return beta value */
   Double_t Beta() const { return fP / fE; }
 
@@ -205,7 +205,7 @@ public:
 
   /** @brief Function that return next path in volume */
   VolumePath_t *GetNextPath() const { return fNextpath; }
-  
+
   /** @brief Function that return number of physical step made */
   Int_t GetNsteps() const { return fNsteps; }
 
@@ -232,12 +232,12 @@ public:
 
   /** @brief Function that set status killed to track */
   void Kill() { fStatus = kKilled; }
-  
+
   /** @brief Function that return mass value */
   Double_t Mass() const { return fMass; }
 
   /** @brief Function to normalize direction */
-  void Normalize()   __attribute__((always_inline)) 
+  void Normalize()   __attribute__((always_inline))
   {
     Double_t norm = 1./TMath::Sqrt(fXdir*fXdir+fYdir*fYdir+fZdir*fZdir);
     fXdir *= norm; fYdir *= norm; fZdir *= norm;
@@ -257,7 +257,7 @@ public:
 
   /** @brief Function that return module momentum's value */
   Double_t Pt() const { return fP * Math::Sqrt(fXdir * fXdir + fYdir * fYdir); }
-  
+
   /** @brief Function that return index of corresponding particle */
   Int_t Particle() const { return fParticle; }
 
@@ -291,7 +291,7 @@ public:
 
   /** Function that return time */
   Double_t Time() const { return fTime; }
-  
+
   /** Clear function */
   void Clear(Option_t *option = "");
 
@@ -303,10 +303,10 @@ public:
 
   /** @brief Function that return Z coordinate */
   Double_t Z() const { return fZpos; }
-  
+
   /**
    * @brief Function that read track from vector
-   * 
+   *
    * @param arr Array of tracks
    * @param i Position to read
    */
@@ -314,98 +314,98 @@ public:
 
   /**
    * @brief Function that set event number
-   * 
+   *
    * @param event Event that should be set as fEvent
    */
   void SetEvent(Int_t event) { fEvent = event; }
 
   /**
    * @brief Function that set event slot number
-   * 
+   *
    * @param slot Event slot that should be set as fEvslot
    */
   void SetEvslot(Int_t slot) { fEvslot = slot; }
 
   /**
    * @brief Function that set particle index
-   * 
+   *
    * @param particle Particle that should be set as fParticle
    */
   void SetParticle(Int_t particle) { fParticle = particle; }
 
   /**
    * @brief Function that set particle pdg code
-   * 
-   * @param pdg Particle pdg code that should be set as fPDG 
+   *
+   * @param pdg Particle pdg code that should be set as fPDG
    */
   void SetPDG(Int_t pdg) { fPDG = pdg; }
 
   /**
    * @brief Function that set G5 particle code
-   * 
+   *
    * @param g5code G5 particle code that should be set as fG5code
    */
   void SetG5code(Int_t g5code) { fG5code = g5code; }
 
   /**
    * @brief Function that set element index
-   * 
+   *
    * @param ind Element index that should be set as fEindex
    */
   void SetEindex(Int_t ind) { fEindex = ind; }
 
   /**
    * @brief Function that set charge
-   * 
+   *
    * @param charge Charge that should be set as fCharge
    */
   void SetCharge(Int_t charge) { fCharge = charge; }
 
   /**
-   * @brief Function that set process 
-   * 
+   * @brief Function that set process
+   *
    * @param process Process that should be set as fProcess
    */
   void SetProcess(Int_t process) { fProcess = process; }
 
   /**
    * @brief Function that set current volume index
-   * 
+   *
    * @param ind Current volume index that should be set as fVindex
    */
   void SetVindex(Int_t ind) { fVindex = ind; }
 
   /**
    * @brief Function that set current step
-   * 
+   *
    * @param nsteps Current step hat should be set as fNsteps
    */
   void SetNsteps(Int_t nsteps) { fNsteps = nsteps; }
 
   /**
    * @brief Function that set current species
-   * 
+   *
    * @param species Current species hat should be set as fSpecies
    */
   void SetSpecies(Species_t species) { fSpecies = species; }
 
   /**
    * @brief Function that set track status
-   * 
+   *
    * @param status Current track status that should be set as fStatus
    */
   void SetStatus(TrackStatus_t &status) { fStatus = status; }
 
   /**
    * @brief Function that set mass
-   * 
+   *
    * @param mass Current mass that should be set as fMass
    */
   void SetMass(Double_t mass) { fMass = mass; }
 
   /**
    * @brief Function that set X, Y, Z positions
-   * 
+   *
    * @param x X position
    * @param y Y position
    * @param z Z position
@@ -418,7 +418,7 @@ public:
 
   /**
    * @brief [Function that set X, Y, Z directions
-   * 
+   *
    * @param dx X direction
    * @param dy Y direction
    * @param dz Z direction
@@ -431,77 +431,77 @@ public:
 
   /**
    * @brief Function that set momentum
-   * 
+   *
    * @param p Current momentum should be set as fP
    */
   void SetP(Double_t p) { fP = p; }
 
   /**
    * @brief Function that set energy
-   * 
+   *
    * @param e Current E should be set as fE
    */
   void SetE(Double_t e) { fE = e; }
 
   /**
    * @brief Function that set time
-   * 
+   *
    * @param time Current time should be set as fTime
    */
   void SetTime(Double_t time) { fTime = time; }
 
   /**
    * @brief Function that set energy deposition
-   * 
+   *
    * @param edep Current energy deposition should be set as fEdep
    */
   void SetEdep(Double_t edep) { fEdep = edep; }
 
   /**
    * @brief Function that set current physical step
-   * 
+   *
    * @param pstep Current physical step should be set as fPstep
    */
   void SetPstep(Double_t pstep) { fPstep = pstep; }
 
   /**
    * @brief Function that set straight distance to next boundary
-   * 
+   *
    * @param snext Straight distance to next boundary should be set as fSnext
    */
   void SetSnext(Double_t snext) { fSnext = snext; }
 
   /**
    * @brief Function that set safe distance to any boundary
-   * 
+   *
    * @param safety Safe distance to any boundary hould be set as fSafety
    */
   void SetSafety(Double_t safety) { fSafety = safety; }
 
   /**
    * @brief Function that set starting from boundary flag
-   * 
-   * @param flag Flag that is true if starting from boundary 
+   *
+   * @param flag Flag that is true if starting from boundary
    */
   void SetFrombdr(Bool_t flag) { fFrombdr = flag; }
 
   /**
    * @brief Function that set pending status
-   * 
+   *
    * @param flag Flag that should be set pending
    */
   void SetPending(Bool_t flag) { fPending = flag; }
 
   /**
    * @brief Function that set next path
-   * 
+   *
    * @param path Volume path
    */
   void SetPath(VolumePath_t const *const path);
 
   /**
    * @brief Function that set next volume path
-   * 
+   *
    * @param path Volume path
    */
   void SetNextPath(VolumePath_t const *const path);
@@ -511,7 +511,7 @@ public:
 
 /**
  * @brief SOA for GeantTrack used at processing time
- * 
+ *
  */
 class GeantTrack_v {
 public:
@@ -569,10 +569,10 @@ public:
   Bool_t *fPendingV;
   VolumePath_t **fPathV;     /** Paths for the particles in the geometry */
   VolumePath_t **fNextpathV; /** Paths for next volumes */
-  
+
   /**
    * @brief Function that assign in current buffer
-   * 
+   *
    * @param buff Buffer to be assigned to
    * @param size Size of buffer
    */
@@ -642,13 +642,13 @@ public:
    * @param i2 Bit number 'i2'
    */
   static Bool_t IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_v &tr2, Int_t i2);
-  
+
   /**
    * @brief Implementation of memcpy skipping the alignment check.
    */
 //   void *memcpy_align(void *dst, const void *src, size_t len) {return memcpy(dst,src,len);}
-  static void *memcpy_align(void *__restrict__ dst, const void *__restrict__ src, size_t len) 
-  __attribute__((always_inline)) 
+  static void *memcpy_align(void *__restrict__ dst, const void *__restrict__ src, size_t len)
+  __attribute__((always_inline))
   {
 //    return memcpy(dst,src,len);
     size_t i;
@@ -658,12 +658,12 @@ public:
     for (i=0; i<1+len/sizeof(long); ++i)
       d[i] = s[i];
     return dst;
-  }    
+  }
 
 #ifdef GEANT_CUDA_DEVICE_BUILD
-  GEANT_CUDA_BOTH_CODE
 
   /** @brief  Function that returned number of tracks contained  */
+  GEANT_CUDA_BOTH_CODE
   Int_t GetNtracks() const { return fNtracks; }
 
   /** @brief  Function that set number of tracks contained  */
@@ -684,7 +684,6 @@ public:
   /** @brief  Function that return track statistics */
   GeantTrackStat &GetTrackStat() { return fStat; }
 #endif
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Add track function
@@ -692,6 +691,7 @@ public:
    * @param track Track that should be added
    * @param import Flag for importing (by default False)
    */
+  GEANT_CUDA_BOTH_CODE
   Int_t AddTrack(GeantTrack &track, Bool_t import = kFALSE);
 
   /**
@@ -700,7 +700,6 @@ public:
    * @param track Track that should be added
    */
   Int_t AddTrackSync(GeantTrack &track);
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Add track function
@@ -709,6 +708,7 @@ public:
    * @param i  Bit number 'i'
    * @param import Flag for importing (by default False)
    */
+  GEANT_CUDA_BOTH_CODE
   Int_t AddTrack(GeantTrack_v &arr, Int_t i, Bool_t import = kFALSE);
 
   /**
@@ -731,13 +731,13 @@ public:
 
   /** @brief Function that check track */
   void CheckTracks();
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief  Function that mark removed bit number 'i' through value of bits of holes and flag marking the compactness
    *
    * @param i Bit number 'i'
    */
+  GEANT_CUDA_BOTH_CODE
   void MarkRemoved(Int_t i) {
     fHoles->SetBitNumber(i);
     fCompact = kFALSE;
@@ -775,7 +775,7 @@ public:
   }
 
   /** @brief Function to normalize direction */
-  void Normalize(Int_t itr)   __attribute__((always_inline)) 
+  void Normalize(Int_t itr)   __attribute__((always_inline))
   {
     Double_t norm = 1./TMath::Sqrt(fXdirV[itr]*fXdirV[itr]+fYdirV[itr]*fYdirV[itr]+fZdirV[itr]*fZdirV[itr]);
     fXdirV[itr] *= norm; fYdirV[itr] *= norm; fZdirV[itr] *= norm;
@@ -812,7 +812,7 @@ public:
 
   /**
    * @brief Sorting function for tracks where the step was limited by discrete processes
-   * 
+   *
    * @return Number of selected tracks
    */
   Int_t SortByLimitingDiscreteProcess();
@@ -878,7 +878,6 @@ public:
   /** @brief Function that print all tracks */
   void PrintTracks(const char *msg="") const;
 
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function for navigation that find next boundary and step
@@ -898,6 +897,7 @@ public:
    * @param isonbdr
    * @param trk Track
    */
+  GEANT_CUDA_BOTH_COD
   void NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, const Double_t *x,
                                   const Double_t *y, const Double_t *z, const Double_t *dirx,
                                   const Double_t *diry, const Double_t *dirz, VolumePath_t **pathin,
@@ -913,7 +913,6 @@ public:
    * @param same Boolean flag that check same location
    */
   void NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function for navigation that check if location is the same or not for single track
@@ -922,6 +921,7 @@ public:
    * @param start Start volume path
    * @param end End volume path
    */
+  GEANT_CUDA_BOTH_CODE
   Bool_t NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end);
 
 // void InspectGeometryState(Int_t itr) const;
@@ -1043,16 +1043,16 @@ public:
    * @param  i Input bit number 'i'
    */
   Double_t Beta(Int_t i) const { return fPV[i] / fEV[i]; }
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that return curvature in different areas of geometry
    * @param  i Input bit number 'i'
    */
-  Double_t Curvature(Int_t i) const;
   GEANT_CUDA_BOTH_CODE
+  Double_t Curvature(Int_t i) const;
 
   /** @brief Function that return safe length */
+  GEANT_CUDA_BOTH_CODE
   Double_t SafeLength(Int_t i, Double_t eps = 1.E-4);
 
   /**
@@ -1074,19 +1074,19 @@ public:
    * @param  i Input bit number 'i'
    */
   Double_t Py(Int_t i) const { return fPV[i] * fYdirV[i]; }
-  GEANT_CUDA_BOTH_CODE
 
   /**
    * @brief Function that return Z projection of momentum value
    * @param  i Input bit number 'i'
    */
-  Double_t Pz(Int_t i) const { return fPV[i] * fZdirV[i]; }
   GEANT_CUDA_BOTH_CODE
+  Double_t Pz(Int_t i) const { return fPV[i] * fZdirV[i]; }
 
   /**
    * @brief Function that return module of momentum value
    * @param  i Input bit number 'i'
    */
+  GEANT_CUDA_BOTH_CODE
   Double_t Pt(Int_t i) const {
     return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]);
   }
@@ -1110,10 +1110,10 @@ public:
    */
   TGeoMaterial *GetMaterial(Int_t i) const;
 #endif
-  
+
   /** @brief Function allowing to set a breakpoint on a given step */
   bool BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps=1, const char* msg="", Int_t itr=-1);
-  
+
   /**
    * @brief Check consistency of track navigation
    * @param  itr Track number to be checked
