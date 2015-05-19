@@ -50,16 +50,7 @@ const Double_t kB2C = -0.299792458e-3;
 /**
  * @enum TrackStatus_t
  */
-enum TrackStatus_t {
-  kAlive,
-  kKilled,
-  kInFlight,
-  kBoundary,
-  kExitingSetup,
-  kPhysics,
-  kPostponed,
-  kNew
-};
+enum TrackStatus_t { kAlive, kKilled, kInFlight, kBoundary, kExitingSetup, kPhysics, kPostponed, kNew };
 
 /**
  * @enum TransportAction_t
@@ -102,24 +93,23 @@ public:
   Double_t fXpos;        /** X position */
   Double_t fYpos;        /** Y position */
   Double_t fZpos;        /** Z position */
-  Double_t fXdir;   /** X direction */
-  Double_t fYdir;   /** Y direction */
-  Double_t fZdir;   /** Z direction */
-  Double_t fP;      /** Momentum */
-  Double_t fE;      /** Energy */
-  Double_t fTime;   /** Time */
-  Double_t fEdep;   /** Energy deposition in the step */
-  Double_t fPstep;  /** Selected physical step */
-  Double_t fStep;   /** Current step */
-  Double_t fSnext;  /** Straight distance to next boundary */
-  Double_t fSafety; /** Safe distance to any boundary */
-  Bool_t fFrombdr;  /** True if starting from boundary */
+  Double_t fXdir;        /** X direction */
+  Double_t fYdir;        /** Y direction */
+  Double_t fZdir;        /** Z direction */
+  Double_t fP;           /** Momentum */
+  Double_t fE;           /** Energy */
+  Double_t fTime;        /** Time */
+  Double_t fEdep;        /** Energy deposition in the step */
+  Double_t fPstep;       /** Selected physical step */
+  Double_t fStep;        /** Current step */
+  Double_t fSnext;       /** Straight distance to next boundary */
+  Double_t fSafety;      /** Safe distance to any boundary */
+  Bool_t fFrombdr;       /** True if starting from boundary */
   Bool_t fPending;
   VolumePath_t *fPath;
   VolumePath_t *fNextpath;
 
 public:
-
   /** @brief GeantTrack constructor  */
   GeantTrack();
 
@@ -177,10 +167,10 @@ public:
   /** @brief Function that return true if starting from boundary */
   Bool_t FromBoundary() const { return fFrombdr; }
 
-   /** @brief Function that return G5 particle code */
+  /** @brief Function that return G5 particle code */
   Int_t G5code() const { return fG5code; }
 
-   /** @brief Function that return element index */
+  /** @brief Function that return element index */
   Int_t EIndex() const { return fEindex; }
 
   /** @brief Function that return gamma value*/
@@ -209,7 +199,7 @@ public:
   /** @brief Function that return number of physical step made */
   Int_t GetNsteps() const { return fNsteps; }
 
-   /** @brief Function that return physical step */
+  /** @brief Function that return physical step */
   Double_t GetStep() const { return fStep; }
 
   /** @brief Function that return straight distance to next boundary */
@@ -221,7 +211,7 @@ public:
   /** @brief Function that check if track is alive */
   Bool_t IsAlive() const { return (fStatus != kKilled); }
 
-   /** @brief Function that check if track is on boundary */
+  /** @brief Function that check if track is on boundary */
   Bool_t IsOnBoundary() const { return (fStatus == kBoundary); }
 
   /** @brief  Check direction normalization within tolerance */
@@ -237,10 +227,11 @@ public:
   Double_t Mass() const { return fMass; }
 
   /** @brief Function to normalize direction */
-  void Normalize()   __attribute__((always_inline))
-  {
-    Double_t norm = 1./TMath::Sqrt(fXdir*fXdir+fYdir*fYdir+fZdir*fZdir);
-    fXdir *= norm; fYdir *= norm; fZdir *= norm;
+  void Normalize() __attribute__((always_inline)) {
+    Double_t norm = 1. / TMath::Sqrt(fXdir * fXdir + fYdir * fYdir + fZdir * fZdir);
+    fXdir *= norm;
+    fYdir *= norm;
+    fZdir *= norm;
   }
 
   /** @brief Function that return momentum value */
@@ -587,7 +578,6 @@ public:
   void CopyToBuffer(char *buff, Int_t size);
 
 private:
-
   /** @brief Copy constructor (not allowed) */
   GeantTrack_v(const GeantTrack_v &track_v);
 
@@ -597,10 +587,9 @@ private:
   /**
    * @brief GeantTrack constructor based on a provided single buffer.
    */
-   GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth);
+  GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth);
 
 public:
-
   /** @brief GeantTrack_v constructor */
   GeantTrack_v();
 
@@ -619,7 +608,6 @@ public:
 
   /** @brief GeantTrack_v destructor */
   virtual ~GeantTrack_v();
-
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v */
   static size_t SizeOfInstance(size_t nTracks, size_t maxdepth);
@@ -646,16 +634,15 @@ public:
   /**
    * @brief Implementation of memcpy skipping the alignment check.
    */
-//   void *memcpy_align(void *dst, const void *src, size_t len) {return memcpy(dst,src,len);}
+  //   void *memcpy_align(void *dst, const void *src, size_t len) {return memcpy(dst,src,len);}
   static void *memcpy_align(void *__restrict__ dst, const void *__restrict__ src, size_t len)
-  __attribute__((always_inline))
-  {
-//    return memcpy(dst,src,len);
+      __attribute__((always_inline)) {
+    //    return memcpy(dst,src,len);
     size_t i;
     long *d = (long *)dst;
     const long *s = (const long *)src;
     // The copy below handles the tail if any, but it is unsafe is dst is not aligned
-    for (i=0; i<1+len/sizeof(long); ++i)
+    for (i = 0; i < 1 + len / sizeof(long); ++i)
       d[i] = s[i];
     return dst;
   }
@@ -673,11 +660,11 @@ public:
   /** @brief  Function that returned number of tracks contained  C++11 */
   Int_t GetNtracks() const { return fNtracks.load(); }
 
-   /** @brief  Function that set number of tracks contained  C++11 */
+  /** @brief  Function that set number of tracks contained  C++11 */
   void SetNtracks(Int_t ntracks) { fNtracks.store(ntracks); }
 #endif
 
-   /** @brief  Function that return number of selected tracks  */
+  /** @brief  Function that return number of selected tracks  */
   Int_t GetNselected() const { return fNselected; }
 #ifdef __STAT_DEBUG_TRK
 
@@ -775,10 +762,11 @@ public:
   }
 
   /** @brief Function to normalize direction */
-  void Normalize(Int_t itr)   __attribute__((always_inline))
-  {
-    Double_t norm = 1./TMath::Sqrt(fXdirV[itr]*fXdirV[itr]+fYdirV[itr]*fYdirV[itr]+fZdirV[itr]*fZdirV[itr]);
-    fXdirV[itr] *= norm; fYdirV[itr] *= norm; fZdirV[itr] *= norm;
+  void Normalize(Int_t itr) __attribute__((always_inline)) {
+    Double_t norm = 1. / TMath::Sqrt(fXdirV[itr] * fXdirV[itr] + fYdirV[itr] * fYdirV[itr] + fZdirV[itr] * fZdirV[itr]);
+    fXdirV[itr] *= norm;
+    fYdirV[itr] *= norm;
+    fZdirV[itr] *= norm;
   }
 
   /**
@@ -873,11 +861,10 @@ public:
    *
    * @param itr Track ID
    */
-  void PrintTrack(Int_t itr, const char *msg="") const;
+  void PrintTrack(Int_t itr, const char *msg = "") const;
 
   /** @brief Function that print all tracks */
-  void PrintTracks(const char *msg="") const;
-
+  void PrintTracks(const char *msg = "") const;
 
   /**
    * @brief Function for navigation that find next boundary and step
@@ -897,11 +884,10 @@ public:
    * @param isonbdr
    * @param trk Track
    */
-  GEANT_CUDA_BOTH_COD
-  void NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, const Double_t *x,
-                                  const Double_t *y, const Double_t *z, const Double_t *dirx,
-                                  const Double_t *diry, const Double_t *dirz, VolumePath_t **pathin,
-                                  VolumePath_t **pathout, Double_t *step, Double_t *safe,
+  GEANT_CUDA_BOTH_CODE
+  void NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pstep, const Double_t *x, const Double_t *y,
+                                  const Double_t *z, const Double_t *dirx, const Double_t *diry, const Double_t *dirz,
+                                  VolumePath_t **pathin, VolumePath_t **pathout, Double_t *step, Double_t *safe,
                                   Bool_t *isonbdr, const GeantTrack_v *trk);
 
   /**
@@ -1059,9 +1045,7 @@ public:
    * @brief Function that return gamma value
    * @param  i Input bit number 'i'
    */
-  Double_t Gamma(Int_t i) const {
-    return fMassV[i] ? fEV[i] / fMassV[i] : TMath::Limits<double>::Max();
-  }
+  Double_t Gamma(Int_t i) const { return fMassV[i] ? fEV[i] / fMassV[i] : TMath::Limits<double>::Max(); }
 
   /**
    * @brief Function that return X projection of momentum value
@@ -1087,21 +1071,19 @@ public:
    * @param  i Input bit number 'i'
    */
   GEANT_CUDA_BOTH_CODE
-  Double_t Pt(Int_t i) const {
-    return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]);
-  }
+  Double_t Pt(Int_t i) const { return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]); }
 
 #ifdef VECGEOM_ROOT
- /**
-  * @brief Function that returnes TGeoVolume
-  * @param  i Input bit number 'i'
-  */
+  /**
+   * @brief Function that returnes TGeoVolume
+   * @param  i Input bit number 'i'
+   */
   TGeoVolume *GetVolume(Int_t i) const;
 
- /**
-  * @brief Function that returnes next TGeoVolume
-  * @param  i Input bit number 'i'
-  */
+  /**
+   * @brief Function that returnes next TGeoVolume
+   * @param  i Input bit number 'i'
+   */
   TGeoVolume *GetNextVolume(Int_t i) const;
 
   /**
@@ -1112,7 +1094,7 @@ public:
 #endif
 
   /** @brief Function allowing to set a breakpoint on a given step */
-  bool BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps=1, const char* msg="", Int_t itr=-1);
+  bool BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps = 1, const char *msg = "", Int_t itr = -1);
 
   /**
    * @brief Check consistency of track navigation
