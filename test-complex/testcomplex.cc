@@ -93,7 +93,8 @@ void AddRegionsToLogicalVols(G4double trackingCutInEnergy);
 void SetG4ProductionCut(G4double ethresh);
 void usage();
 void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFile,
-              std::string &g4macroFile, G4double &cutvalue, std::string &physListName);
+              std::string &g4macroFile, G4double &cutvalue, std::string &physListName,
+              int &scoreType);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -105,11 +106,12 @@ int main(int argc,char **argv)
   std::string g4macroFile  = "";        // Geant4 macro file  
   std::string physListName = "TABPHYS"; // physics list name 
   G4double cutvalue        = 0.;        // common tracking and production cut [GeV]
-
+  G4int scoreType          = 0;         // score type flag             
   //
   // Parsing arguments
   // 
-  parsearg(argc, argv,  geomFile, eventFile, g4macroFile,cutvalue, physListName);
+  parsearg(argc, argv,  geomFile, eventFile, g4macroFile,cutvalue, physListName,
+           scoreType);
   //
   // Print information 
   //
@@ -123,6 +125,7 @@ int main(int argc,char **argv)
   "|           Geant4 macro        : "<< g4macroFile            << G4endl <<
   "|           Physics list        : "<< physListName           << G4endl <<
   "|           Low energy cut[GeV] : "<< cutvalue               << G4endl <<
+  "|           Score type          : "<< scoreType              << G4endl <<  
   "|           Xsec data file      : "<< getenv("VP_DATA_XSEC") << G4endl << 
   "|           Fstate data file    : "<< getenv("VP_DATA_FSTA") << G4endl << 
   "-----------------------------------------------------------------------------"
@@ -199,10 +202,12 @@ int main(int argc,char **argv)
   TabulatedDataManager::fgIsUseRange = TRUE;
   SteppingAction::fgTrackingCutInEnergy = fTrackingCutInEnergy;  
   //G4SteppingManager::fgProductionCutInEnergy = fProductionCutInEnergy;
- 
 
-  CMSApp::fgIsScoreActive = TRUE;
+  CMSApp::fgIsScoreActive = FALSE; 
+  if(scoreType > 1)
+    CMSApp::fgIsScoreActive = TRUE;
  
+  RunAction::fgScoreTypeFlag = scoreType;
   // 
   // Set user action classes
   //
@@ -238,7 +243,7 @@ int main(int argc,char **argv)
   }
 
   //
-  // Execute the given Geant4 macro file
+  // Execute the given Geant4 macro files
   // 
   if(std::string("TABPHYS") != physListName) {
     G4cout << G4endl <<
@@ -457,6 +462,11 @@ void usage()
   " --physListName <NAME> : physics list: TABPHYS (default), FTFP_BERT, FTFP_BERT\n"
   "                         _HP, QBBC                                              "
           << G4endl <<  
+  " --scoreType    [VALUE]: type of scoring:                                     \n"
+  "                          0 : no scoring, only run-time is reported (default) \n"
+  "                          1 : option 1 plus step statistics                   \n"
+  "                          2 : option 2 plus histograms in CMS ECAL            \n"
+          << G4endl <<        
   " --info                : print all information regarding testcomplex          \n"
   << G4endl <<  
   "============================================================================"
@@ -464,7 +474,8 @@ void usage()
 }
 
 void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFile,
-              std::string &g4macroFile, G4double &cutvalue, std::string &physListName){
+              std::string &g4macroFile, G4double &cutvalue, std::string &physListName,
+              int &scoreType){
     if(argc != 2 && argc < 5) {
       G4cout << G4endl <<
       "**************************************************************************"
@@ -486,6 +497,7 @@ void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFi
         {"geantMacro"    ,  required_argument, 0,  0 },
         {"lowEnergyCut"  ,  required_argument, 0,  0 },
         {"physListName"  ,  required_argument, 0,  0 },
+        {"scoreType"     ,  required_argument, 0,  0 }, 
         {"info"          ,  no_argument      , 0,  0 },
         {0               ,  0                , 0,  0 }
     };
@@ -509,7 +521,9 @@ void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFi
                               break;
                           case  4  : physListName = optarg; 
                               break;
-                          case  5  : usage();
+                          case  5  : scoreType    = atof(optarg);
+                              break;
+                          case  6  : usage();
                                      exit(EXIT_SUCCESS); 
                               break;
                         }

@@ -54,12 +54,17 @@ public:
   void BeginOfRunAction(const G4Run*);
   void EndOfRunAction(const G4Run*);
 
-  static G4bool isTabPhys;     // running with TABPHYS ?
- 
   void FillPerEvent(unsigned long nphyssteps, unsigned long nprims, 
                     unsigned long nsecs, unsigned long ntotal, unsigned long nall);
 
   void FillHist(const G4Step *);
+
+  static G4bool isTabPhys;     // running with TABPHYS ?
+
+  // 0 -> just run-time is reported 
+  // 1 -> run-time and step statistics
+  // 2 -> run-time, step statistics and CMS ECAL histograms
+  static G4int fgScoreTypeFlag; 
 
 private:
   clock_t  fRunTime; // the total runtime 

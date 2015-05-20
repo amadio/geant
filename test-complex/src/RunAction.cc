@@ -46,7 +46,7 @@
 
 
 G4bool RunAction::isTabPhys = FALSE;     // running with TABPHYS ?
-
+G4int  RunAction::fgScoreTypeFlag = 0;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -69,6 +69,10 @@ RunAction::~RunAction()
 
 void RunAction::BeginOfRunAction(const G4Run* aRun)
 { 
+  if(fgScoreTypeFlag > 1){ 
+    fCMSApp = new CMSApp();
+    fCMSApp->Initialize();
+  }
 
   G4int sevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed();
   std::cerr << "<----- Run " << aRun->GetRunID() << " has started and will simulate " <<
@@ -84,9 +88,6 @@ void RunAction::BeginOfRunAction(const G4Run* aRun)
   fNumAllStepsRun     = 0;   // number of ALL steps
 
   fRunTime=clock();
-
-  fCMSApp = new CMSApp();
-  fCMSApp->Initialize();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -119,16 +120,18 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
             <<"\n--------------------------------------------------------------\n"
             << std::endl;
 
+  if(fgScoreTypeFlag > 0) {
+    std::cout<<"\n-----------------------------------------------------------------"        <<std::endl;
+    std::cout<<"======  TOTAL NUMBER OF PRIMARY TRANSPORTED      = " << fNumPrimsRun        << std::endl;
+    std::cout<<"======  TOTAL NUMBER OF SECONDARY TRANSPORTED    = " << fNumSecsRun         << std::endl;
+    std::cout<<"======  TOTAL NUMBER OF STEPS                    = " << fNumTotalStepsRun   << std::endl;
+    std::cout<<"======  TOTAL NUMBER OF STEPS LIMITED BY PHYSICS = " << fNumPysLimStepsRun  << std::endl;
+    //std::cout<<"======  TOTAL NUMBER OF ALL STEPS                = " << fNumAllStepsRun     << std::endl;
+    std::cout<<"-----------------------------------------------------------------"          <<std::endl;
+  }
 
-  std::cout<<"\n-----------------------------------------------------------------"        <<std::endl;
-  std::cout<<"======  TOTAL NUMBER OF PRIMARY TRANSPORTED      = " << fNumPrimsRun        << std::endl;
-  std::cout<<"======  TOTAL NUMBER OF SECONDARY TRANSPORTED    = " << fNumSecsRun         << std::endl;
-  std::cout<<"======  TOTAL NUMBER OF STEPS                    = " << fNumTotalStepsRun   << std::endl;
-  std::cout<<"======  TOTAL NUMBER OF STEPS LIMITED BY PHYSICS = " << fNumPysLimStepsRun  << std::endl;
-  std::cout<<"======  TOTAL NUMBER OF ALL STEPS                = " << fNumAllStepsRun     << std::endl;
-  std::cout<<"-----------------------------------------------------------------"          <<std::endl;
-
-  fCMSApp->EndOfRunAction(fNumPrimsRun);
+  if(fgScoreTypeFlag > 1)
+    fCMSApp->EndOfRunAction(fNumPrimsRun);
 
   G4int sevent = G4RunManager::GetRunManager()->GetCurrentRun()->GetNumberOfEventToBeProcessed();
   std::cerr << "<----- Run " << aRun->GetRunID() << " has finished the simulation of " << sevent << " events! ---->\n";

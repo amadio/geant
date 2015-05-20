@@ -26,7 +26,9 @@ class LogicalVolumeHandler{
 
  private:
    static LogicalVolumeHandler* fgInstance;
-   std::vector<G4bool> fIsLogicalVolumeUsedMask;          /** Mask for used logical volumes */
-   std::map<G4LogicalVolume*,G4int> fLogicVolToIndex;     /** Map G4LogicalVolume* -> its index in the store */
+   // temporary solution (till Geant4-10.2.beta) to get rid of the used logical // 
+   // volume check that can take 8-10 minutes                                   //
+   static const G4bool fgIsLogicalVolumeUsedMask[];         /** Mask for used logical volumes */
+   std::map<G4LogicalVolume*,G4int> fLogicVolToIndex;       /** Map G4LogicalVolume* -> its index in the store */
  };
 #endif

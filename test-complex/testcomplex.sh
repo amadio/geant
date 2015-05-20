@@ -24,11 +24,17 @@ LOWENERGYCUT="0.01"
 # (OPTIONAL) Physics list name: Tabulated physics is the default
 PHYSLISTNAME="TABPHYS"
 #################################################################
+
+#################################################################
+# Set the required score type (0 is default i.e. no scoring)
+SCORETYPEFLAG="0"
+#################################################################
  
 ./testcomplex \
 --geomFile $GEOMFILE \
 --eventFile $EVENTFILE \
 --geantMacro $GEANTMACRO \
 --lowEnergyCut $LOWENERGYCUT \
---physListName $PHYSLISTNAME
+--physListName $PHYSLISTNAME \
+--scoreType $SCORETYPEFLAG
 

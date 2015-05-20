@@ -65,11 +65,14 @@ SteppingAction::~SteppingAction()
 void SteppingAction::UserSteppingAction(const G4Step* aStep)
 {
 
+  if(!RunAction::fgScoreTypeFlag)
+    return;
+
   unsigned long numPysLimSteps = 0;
   unsigned long numSecs        = 0;
   unsigned long numTotal       = 0;
   
-//  if(aStep->GetPreStepPoint()->GetKineticEnergy() > fgTrackingCutInEnergy  )   // get good number of secondaries
+  if(aStep->GetPreStepPoint()->GetKineticEnergy() > fgTrackingCutInEnergy  )   // get good number of secondaries
   {
     // determine which process happend
     G4VProcess const *g4proc = aStep->GetPostStepPoint()->GetProcessDefinedStep();
@@ -91,7 +94,8 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
                ++numSecs; 
 
        }
-       fEventaction->FillHistSteps(aStep);
+       if(RunAction::fgScoreTypeFlag > 1)
+         fEventaction->FillHistSteps(aStep);
     } else { // G4 Physics
        if( g4procCode != 1091 && G4String("UserSpecialCut") != pNameStr ){   //not transportation nt trackingCut
          ++numPysLimSteps;                 
@@ -100,12 +104,14 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
                ++numSecs; 
 
        }
-       fEventaction->FillHistSteps(aStep);
+       if(RunAction::fgScoreTypeFlag > 1)
+         fEventaction->FillHistSteps(aStep);
     }
     numTotal = 1; 
   }
 //printf("FillPerStep: numPhys=%ld numSecs=%ld, numTotal=%ld\n", numPysLimSteps, numSecs, numTotal); 
-  fEventaction->FillPerSteps(numPysLimSteps, numSecs, numTotal, 1); 
+  if(RunAction::fgScoreTypeFlag > 0)
+    fEventaction->FillPerSteps(numPysLimSteps, numSecs, numTotal, 1); 
 
   //example of saving random number seed of this event, under condition
   //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent(); 
