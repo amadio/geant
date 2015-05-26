@@ -47,11 +47,11 @@ set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 file(GLOB sources tabxsec.cc src/*.cc src/*.c src/*.cxx)
 file(GLOB headers inc/*.hh src/*.h)
 
-set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_NOW_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_NOW_FLAGS_DEBUG}")
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_NOW_FLAGS_MINSIZEREL}")
-set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_NOW_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANTV_CXX_NOW_FLAGS_MINSIZEREL}")
+set(CMAKE_CXX_FLAGS_RELEASE        "${GEANTV_CXX_NOW_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 
 
 #----------------------------------------------------------------------------
@@ -63,7 +63,7 @@ target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRA
                               -lEG ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
 add_dependencies(tabxsec xseclib)
 
-set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

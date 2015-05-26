@@ -67,7 +67,7 @@ endif()
 if( VECGEOM_FOUND )
   target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
   # Bug in VC (?), cannot compile without optimisation
-  #set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O0")
+  #set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_FLAGS_DEBUG} -O0")
 else()
   target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom )
 endif()
