@@ -18,10 +18,10 @@ endif()
 #
 find_package(Geant4 REQUIRED gdml)
 
-
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
+message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
 #----------------------------------------------------------------------------
@@ -29,20 +29,42 @@ include(${Geant4_USE_FILE})
 #
 include_directories(${PROJECT_SOURCE_DIR}/include 
                     ${Geant4_INCLUDE_DIR})
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
-
 
 #----------------------------------------------------------------------------
 # Define compiler flags : already done in the main CMakeLists
 #
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=c++11")
+if(CMAKE_BUILD_TYPE MATCHES None)
+  set(_cf ${CMAKE_CXX_FLAGS})
+elseif(CMAKE_BUILD_TYPE MATCHES Debug)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+elseif(CMAKE_BUILD_TYPE MATCHES MiniSizeRel)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINISIZEREL})
+endif()
+
+separate_arguments(_cf)
+set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
+
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+
+set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_NOW_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_NOW_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_NOW_FLAGS_MINSIZEREL}")
+set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_NOW_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(testcomplex testcomplex.cc ${sources} ${headers})
+set_target_properties(tabxsec PROPERTIES LINK_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 target_link_libraries(testcomplex ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeom -lEG )
+
+set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
