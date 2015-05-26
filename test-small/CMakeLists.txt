@@ -32,6 +32,7 @@ endif()
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
+message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
 #----------------------------------------------------------------------------
@@ -42,38 +43,41 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${ROOT_INCLUDE_DIR}
                     ${PROJECT_SOURCE_DIR}/../xsec/inc 
 )
+
+if(CMAKE_BUILD_TYPE MATCHES None)
+  set(_cf ${CMAKE_CXX_FLAGS})
+elseif(CMAKE_BUILD_TYPE MATCHES Debug)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+elseif(CMAKE_BUILD_TYPE MATCHES MiniSizeRel)
+   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINISIZEREL})
+endif()
+
+separate_arguments(_cf)
+set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
+
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
-get_property(G4_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_MINISIZEREL    "${CMAKE_CXX_FLAGS_MINISIZEREL}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
-set_source_files_properties(${sources} PROPERTY CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-set_source_files_properties(${sources} PROPERTY CMAKE_EXEC_LINKER_FLAGS        "${CMAKE_EXE_LINKER_FLAGS}")
-
-if (Geant4_VERSION_MAJOR LESS 10)
-   set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS}")
-else()
-   set_source_files_properties(${sources} PROPERTY COMPILE_DEFINITIONS            "${G4_COMPILE_DEFINITIONS} -DG4MULTITHREADED")
-endif()
-
-set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
 set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_NOW_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_NOW_FLAGS_MINSIZEREL}")
 set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_NOW_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
+set_target_properties(tabxsec PROPERTIES LINK_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 target_link_libraries(exampleN03 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
                                  -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v -lGeom -lEG)
 add_dependencies(exampleN03 xseclib Geantlib_v)
+
+set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
