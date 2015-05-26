@@ -3,16 +3,10 @@
 
 include_directories(inc ../magneticfield/inc)
 
-set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANT5_COMPILE_DEFINITIONS}")
-set(CMAKE_CXX_FLAGS                "${GEANT5_CXX_FLAGS}")
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
-set(CMAKE_CXX_FLAGS_DEBUG          "${GEANT5_CXX_FLAGS_DEBUG} -O0")
+set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 endif()
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANT5_CXX_FLAGS_MINSIZEREL}")
-set(CMAKE_CXX_FLAGS_RELEASE        "${GEANT5_CXX_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_LINKER_FLAGS}")
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -52,18 +46,6 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
 )   
 
-#file(GLOB sources src/*.cxx)
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/GeantFactory.cxx" "" sources "${sources}")
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/GeantHitBlock.cxx" "" sources "${sources}")
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskManager.cxx" "" sources "${sources}")
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/src/GeantVRunnable.cxx" "" sources "${sources}")
-
-#file(GLOB headers inc/*.h)
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEMGamma.h" "" headers "${headers}")
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/ComptonCrossSection.h" "" headers "${headers}")
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
-
-#ROOT_GENERATE_DICTIONARY(G__Geant ${headers} LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h)
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
