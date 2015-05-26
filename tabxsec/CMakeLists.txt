@@ -22,19 +22,12 @@ endif()
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
-if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-# Difficult call... sanitize compiler flags in case G4 has been built with Clang 
-  STRING(REPLACE "-Qunused-arguments" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-endif()
-
 include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-
-
 
 if(CMAKE_BUILD_TYPE MATCHES None)
   set(_cf ${CMAKE_CXX_FLAGS})
@@ -66,8 +59,8 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANT5_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
-target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES}
-${ROOT_LIBRARIES} -lEG ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
+target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
+                              -lEG ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
 add_dependencies(tabxsec xseclib)
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANT5_EXE_NOW_LINKER_FLAGS}")
