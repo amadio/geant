@@ -73,6 +73,9 @@ else()
 endif()
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)
+install(TARGETS Geant_v DESTINATION lib)
+install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap 
+              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
 
 find_package(HepMC REQUIRED)
 include_directories("${HEPMC_INCLUDE_DIR}")

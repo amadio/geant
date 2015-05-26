@@ -46,3 +46,7 @@ target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
 add_dependencies(GeantExamples Geantlib_v)
 
 add_custom_target(Exampleslib DEPENDS GeantExamples)
+
+install(TARGETS GeantExamples DESTINATION lib)
+install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.rootmap 
+              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples_rdict.pcm DESTINATION lib)

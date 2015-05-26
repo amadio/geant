@@ -63,4 +63,7 @@ add_dependencies(Xsec Geantlib_v)
 add_headers("${headers}")
 
 add_custom_target(xseclib DEPENDS Xsec)
+install(TARGETS Xsec DESTINATION lib)
+install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
+              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
 
