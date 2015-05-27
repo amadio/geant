@@ -32,7 +32,7 @@ include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 if(CMAKE_BUILD_TYPE MATCHES None)
   set(_cf ${CMAKE_CXX_FLAGS})
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+   set(_cf "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
    set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
@@ -40,12 +40,15 @@ elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
 elseif(CMAKE_BUILD_TYPE MATCHES MiniSizeRel)
    set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINISIZEREL})
 endif()
+#separate_arguments(_cf)
+message(${_cf})
 
-separate_arguments(_cf)
-set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
+file(GLOB c_sources src/*.c)
 
-file(GLOB sources tabxsec.cc src/*.cc src/*.c src/*.cxx)
+file(GLOB sources tabxsec.cc src/*.cc src/*.cxx)
 file(GLOB headers inc/*.hh src/*.h)
+
+set_property(SOURCE ${sources} PROPERTY COMPILE_FLAGS ${_cf})
 
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
@@ -57,7 +60,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(tabxsec tabxsec.cc ${sources} ${headers})
+add_executable(tabxsec tabxsec.cc ${sources} ${c_sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
                               -lEG ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
