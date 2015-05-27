@@ -30,18 +30,16 @@ include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
 #
 
 if(CMAKE_BUILD_TYPE MATCHES None)
-  set(_cf ${CMAKE_CXX_FLAGS})
+  set(_cf "${CMAKE_CXX_FLAGS}")
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
    set(_cf "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
-   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+   set(_cf "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+   set(_cf "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 elseif(CMAKE_BUILD_TYPE MATCHES MiniSizeRel)
-   set(_cf ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINISIZEREL})
+   set(_cf "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINISIZEREL}")
 endif()
-#separate_arguments(_cf)
-message(${_cf})
 
 file(GLOB c_sources src/*.c)
 
