@@ -63,7 +63,12 @@ add_dependencies(Xsec Geantlib_v)
 add_headers("${headers}")
 
 add_custom_target(xseclib DEPENDS Xsec)
-install(TARGETS Xsec DESTINATION lib)
+if(APPLE) 
+# for some reason the installation process alters the libraries on Mac, and the program fails
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.dylib DESTINATION lib)
+else()
+  install(TARGETS Xsec DESTINATION lib)
+endif()
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
 

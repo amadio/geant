@@ -73,7 +73,12 @@ else()
 endif()
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)
-install(TARGETS Geant_v DESTINATION lib)
+if(APPLE) 
+# for some reason the installation process alters the libraries on Mac, and the program fails
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.dylib DESTINATION lib)
+else()
+  install(TARGETS Geant_v DESTINATION lib)
+endif()
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
 

@@ -47,6 +47,11 @@ add_dependencies(GeantExamples Geantlib_v)
 
 add_custom_target(Exampleslib DEPENDS GeantExamples)
 
-install(TARGETS GeantExamples DESTINATION lib)
+if(APPLE) 
+# for some reason the installation process alters the libraries on Mac, and the program fails
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.dylib DESTINATION lib)
+else()
+  install(TARGETS GeantExamples DESTINATION lib)
+endif()
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples_rdict.pcm DESTINATION lib)
