@@ -101,8 +101,7 @@ int main(int argc, char **argv) {
 
   G4RunManager *runManager = new G4RunManager;
 
-  runManager->SetUserInitialization(
-      new G01DetectorConstruction(parser.GetWorldVolume()));
+  runManager->SetUserInitialization(new G01DetectorConstruction(parser.GetWorldVolume()));
 
   //   runManager->SetUserInitialization(new G01PhysicsList);
   runManager->SetUserInitialization(new FTFP_BERT);
@@ -115,16 +114,14 @@ int main(int argc, char **argv) {
   //-------------------------------------------------------------------------
 
   G01Field *myField = new G01Field;
-  G4FieldManager *fieldMgr =
-      G4TransportationManager::GetTransportationManager()->GetFieldManager();
+  G4FieldManager *fieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
   fieldMgr->SetDetectorField(myField);
   fieldMgr->CreateChordFinder(myField);
 
   runManager->Initialize();
 
-  G4VPhysicalVolume *world = G4TransportationManager::GetTransportationManager()
-                                 ->GetNavigatorForTracking()
-                                 ->GetWorldVolume();
+  G4VPhysicalVolume *world =
+      G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()->GetWorldVolume();
 
   G4Navigator *secondNavigator = new G4Navigator();
   secondNavigator->SetWorldVolume(world);
@@ -152,8 +149,7 @@ int main(int argc, char **argv) {
   TGeoManager::Import(argv[1]);
   gGeoManager->Write(gGeoManager->GetName());
 
-  G4Region *region =
-      G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
+  G4Region *region = G4RegionStore::GetInstance()->GetRegion("DefaultRegionForTheWorld");
   G4ProductionCuts *wcuts = new G4ProductionCuts;
   wcuts->SetProductionCut(1 * CLHEP::cm); // same cuts for gamma, e- and e+
   region->SetProductionCuts(wcuts);
@@ -185,19 +181,18 @@ int main(int argc, char **argv) {
     dcuts[3] = cfact * radl;
     rcuts[ilv].SetProductionCuts(dcuts);
     region->SetProductionCuts(&rcuts[ilv]);
-    glv->SetUserLimits(
-        new G4UserLimits(DBL_MAX, DBL_MAX, tlim, 0., cfact * radl));
+    glv->SetUserLimits(new G4UserLimits(DBL_MAX, DBL_MAX, tlim, 0., cfact * radl));
 
     G4GDMLAuxListType auxInfo = parser.GetVolumeAuxiliaryInformation(glv);
     if (!auxInfo.empty()) {
-      G4cout << " Auxiliary Information is found for Logical Volume :  "
-             << glv->GetName() << G4endl;
-      std::vector<G4GDMLAuxPairType>::const_iterator ipair = auxInfo.begin();
-      for (ipair = auxInfo.begin(); ipair != auxInfo.end(); ipair++) {
-        G4String str = ipair->type;
-        G4String val = ipair->value;
-        G4cout << str << " = " << val << G4endl;
-      }
+      //      G4cout << " Auxiliary Information is found for Logical Volume :  "
+      //         << glv->GetName() << G4endl;
+      //  std::vector<G4GDMLAuxPairType>::const_iterator ipair = auxInfo.begin();
+      //  for (ipair = auxInfo.begin(); ipair != auxInfo.end(); ipair++) {
+      //    G4String str = ipair->type;
+      //    G4String val = ipair->value;
+      //    G4cout << str << " = " << val << G4endl;
+      // }
     }
   }
 
@@ -244,11 +239,10 @@ int main(int argc, char **argv) {
 
   G4Random::saveEngineStatus("random_end.rand");
 
-  parser.Write("finalgdml.gdml",
-               G4TransportationManager::GetTransportationManager()
-                   ->GetNavigatorForTracking()
-                   ->GetWorldVolume()
-                   ->GetLogicalVolume());
+  parser.Write("finalgdml.gdml", G4TransportationManager::GetTransportationManager()
+                                     ->GetNavigatorForTracking()
+                                     ->GetWorldVolume()
+                                     ->GetLogicalVolume());
 
   delete runManager;
   delete io;
