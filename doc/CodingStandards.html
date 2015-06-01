@@ -330,7 +330,7 @@ respectively.</p>
 command.</p>
 <p>A minimal documentation comment:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// \brief Does foo and bar.</span>
-<span class="kt">void</span> <span class="nf">fooBar</span><span class="p">(</span><span class="kt">bool</span> <span class="n">Baz</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">FooBar</span><span class="p">(</span><span class="kt">bool</span> <span class="n">Baz</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>A documentation comment that uses all Doxygen features in a preferred way:</p>
@@ -340,14 +340,14 @@ command.</p>
 <span class="c1">///</span>
 <span class="c1">/// Typical usage:</span>
 <span class="c1">/// \code</span>
-<span class="c1">///   fooBar(false, "quux", Res);</span>
+<span class="c1">///   FooBar(false, "quux", Res);</span>
 <span class="c1">/// \endcode</span>
 <span class="c1">///</span>
 <span class="c1">/// \param Quux kind of foo to do.</span>
 <span class="c1">/// \param [out] Result filled with bar sequence on foo success.</span>
 <span class="c1">///</span>
 <span class="c1">/// \returns true on success.</span>
-<span class="kt">bool</span> <span class="nf">fooBar</span><span class="p">(</span><span class="kt">bool</span> <span class="n">Baz</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Quux</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="nf">FooBar</span><span class="p">(</span><span class="kt">bool</span> <span class="n">Baz</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Quux</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Don’t duplicate the documentation comment in the header file and in the
@@ -366,14 +366,14 @@ to the correct declaration.</p>
 <span class="c1">/// Something - An abstraction for some complicated thing.</span>
 <span class="k">class</span> <span class="nc">Something</span> <span class="p">{</span>
 <span class="nl">public:</span>
-  <span class="c1">/// fooBar - Does foo and bar.</span>
-  <span class="kt">void</span> <span class="n">fooBar</span><span class="p">();</span>
+  <span class="c1">/// FooBar - Does foo and bar.</span>
+  <span class="kt">void</span> <span class="n">FooBar</span><span class="p">();</span>
 <span class="p">};</span>
 
 <span class="c1">// In Something.cpp:</span>
 
-<span class="c1">/// fooBar - Does foo and bar.</span>
-<span class="kt">void</span> <span class="n">Something</span><span class="o">::</span><span class="n">fooBar</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+<span class="c1">/// FooBar - Does foo and bar.</span>
+<span class="kt">void</span> <span class="n">Something</span><span class="o">::</span><span class="n">FooBar</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
 </pre></div>
 </div>
 <p>Correct:</p>
@@ -383,13 +383,13 @@ to the correct declaration.</p>
 <span class="k">class</span> <span class="nc">Something</span> <span class="p">{</span>
 <span class="nl">public:</span>
   <span class="c1">/// \brief Does foo and bar.</span>
-  <span class="kt">void</span> <span class="n">fooBar</span><span class="p">();</span>
+  <span class="kt">void</span> <span class="n">FooBar</span><span class="p">();</span>
 <span class="p">};</span>
 
 <span class="c1">// In Something.cpp:</span>
 
 <span class="c1">// Builds a B-tree in order to do foo.  See paper by...</span>
-<span class="kt">void</span> <span class="n">Something</span><span class="o">::</span><span class="n">fooBar</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+<span class="kt">void</span> <span class="n">Something</span><span class="o">::</span><span class="n">FooBar</span><span class="p">()</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
 </pre></div>
 </div>
 <p>It is not required to use additional Doxygen features, but sometimes it might
@@ -407,8 +407,8 @@ groups to organize within a class.</li>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Something</span> <span class="p">{</span>
   <span class="c1">/// \name Functions that do Foo.</span>
   <span class="c1">/// @{</span>
-  <span class="kt">void</span> <span class="n">fooBar</span><span class="p">();</span>
-  <span class="kt">void</span> <span class="nf">fooBaz</span><span class="p">();</span>
+  <span class="kt">void</span> <span class="n">FooBar</span><span class="p">();</span>
+  <span class="kt">void</span> <span class="nf">FooBaz</span><span class="p">();</span>
   <span class="c1">/// @}</span>
   <span class="p">...</span>
 <span class="p">};</span>
@@ -520,9 +520,9 @@ understood for formatting nested function calls. Examples:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">foo</span><span class="p">({</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">});</span>
 
 <span class="n">NS</span><span class="o">::</span><span class="n">Constant</span> <span class="o">*</span><span class="n">Mask</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">NS</span><span class="o">::</span><span class="n">ConstantInt</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">NS</span><span class="o">::</span><span class="n">Type</span><span class="o">::</span><span class="n">getInt32Ty</span><span class="p">(</span><span class="n">getContext</span><span class="p">()),</span> <span class="mi">0</span><span class="p">),</span>
-    <span class="n">NS</span><span class="o">::</span><span class="n">ConstantInt</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">NS</span><span class="o">::</span><span class="n">Type</span><span class="o">::</span><span class="n">getInt32Ty</span><span class="p">(</span><span class="n">getContext</span><span class="p">()),</span> <span class="mi">1</span><span class="p">),</span>
-    <span class="n">NS</span><span class="o">::</span><span class="n">ConstantInt</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">NS</span><span class="o">::</span><span class="n">Type</span><span class="o">::</span><span class="n">getInt32Ty</span><span class="p">(</span><span class="n">getContext</span><span class="p">()),</span> <span class="mi">2</span><span class="p">)};</span>
+    <span class="n">NS</span><span class="o">::</span><span class="n">ConstantInt</span><span class="o">::</span><span class="n">Get</span><span class="p">(</span><span class="n">NS</span><span class="o">::</span><span class="n">Type</span><span class="o">::</span><span class="n">GetInt32Ty</span><span class="p">(</span><span class="n">GetContext</span><span class="p">()),</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">NS</span><span class="o">::</span><span class="n">ConstantInt</span><span class="o">::</span><span class="n">Get</span><span class="p">(</span><span class="n">NS</span><span class="o">::</span><span class="n">Type</span><span class="o">::</span><span class="n">GetInt32Ty</span><span class="p">(</span><span class="n">GetContext</span><span class="p">()),</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">NS</span><span class="o">::</span><span class="n">ConstantInt</span><span class="o">::</span><span class="n">Get</span><span class="p">(</span><span class="n">NS</span><span class="o">::</span><span class="n">Type</span><span class="o">::</span><span class="n">GetInt32Ty</span><span class="p">(</span><span class="n">GetContext</span><span class="p">()),</span> <span class="mi">2</span><span class="p">)};</span>
 </pre></div>
 </div>
 <p>This formatting scheme also makes it particularly easy to get predictable,
@@ -546,7 +546,7 @@ good thorough set of warnings, and stick to it.  At least in the case of
 <tt class="docutils literal"><span class="pre">gcc</span></tt>, it is possible to work around any spurious errors by changing the
 syntax of the code slightly.  For example, a warning that annoys me occurs when
 I write code like this:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">V</span> <span class="o">=</span> <span class="n">getValue</span><span class="p">())</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">V</span> <span class="o">=</span> <span class="n">GetValue</span><span class="p">())</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -555,7 +555,7 @@ I write code like this:</p>
 probably mistyped it.  In most cases, I haven’t, and I really don’t want the
 spurious errors.  To fix this particular problem, I rewrite the code like
 this:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span> <span class="p">((</span><span class="n">V</span> <span class="o">=</span> <span class="n">getValue</span><span class="p">()))</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span> <span class="p">((</span><span class="n">V</span> <span class="o">=</span> <span class="n">GetValue</span><span class="p">()))</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -624,8 +624,8 @@ members are declared public.</li>
   <span class="kt">int</span> <span class="n">Data</span><span class="p">;</span>
 <span class="nl">public:</span>
   <span class="n">Foo</span><span class="p">()</span> <span class="o">:</span> <span class="n">Data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
-  <span class="kt">int</span> <span class="n">getData</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Data</span><span class="p">;</span> <span class="p">}</span>
-  <span class="kt">void</span> <span class="n">setData</span><span class="p">(</span><span class="kt">int</span> <span class="n">D</span><span class="p">)</span> <span class="p">{</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">D</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">int</span> <span class="n">GetData</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Data</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">void</span> <span class="n">SetData</span><span class="p">(</span><span class="kt">int</span> <span class="n">D</span><span class="p">)</span> <span class="p">{</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">D</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">};</span>
 
 <span class="c1">// Bar isn't POD, but it does look like a struct.</span>
@@ -692,15 +692,15 @@ expensive.</p>
 <p>As a rule of thumb, use <tt class="docutils literal"><span class="pre">auto</span> <span class="pre">&amp;</span></tt> unless you need to copy the result, and use
 <tt class="docutils literal"><span class="pre">auto</span> <span class="pre">*</span></tt> when copying pointers.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Typically there's no reason to copy.</span>
-<span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span><span class="n">Val</span> <span class="o">:</span> <span class="n">Container</span><span class="p">)</span> <span class="p">{</span> <span class="n">observe</span><span class="p">(</span><span class="n">Val</span><span class="p">);</span> <span class="p">}</span>
-<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">Val</span> <span class="o">:</span> <span class="n">Container</span><span class="p">)</span> <span class="p">{</span> <span class="n">Val</span><span class="p">.</span><span class="n">change</span><span class="p">();</span> <span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span><span class="n">val</span> <span class="o">:</span> <span class="n">container</span><span class="p">)</span> <span class="p">{</span> <span class="n">Observe</span><span class="p">(</span><span class="n">val</span><span class="p">);</span> <span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">val</span> <span class="o">:</span> <span class="n">container</span><span class="p">)</span> <span class="p">{</span> <span class="n">val</span><span class="p">.</span><span class="n">Change</span><span class="p">();</span> <span class="p">}</span>
 
 <span class="c1">// Remove the reference if you really want a new copy.</span>
-<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">Val</span> <span class="o">:</span> <span class="n">Container</span><span class="p">)</span> <span class="p">{</span> <span class="n">Val</span><span class="p">.</span><span class="n">change</span><span class="p">();</span> <span class="n">saveSomewhere</span><span class="p">(</span><span class="n">Val</span><span class="p">);</span> <span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">val</span> <span class="o">:</span> <span class="n">container</span><span class="p">)</span> <span class="p">{</span> <span class="n">val</span><span class="p">.</span><span class="n">Change</span><span class="p">();</span> <span class="n">SaveSomewhere</span><span class="p">(</span><span class="n">val</span><span class="p">);</span> <span class="p">}</span>
 
 <span class="c1">// Copy pointers, but make it clear that they're pointers.</span>
-<span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="o">*</span><span class="n">Ptr</span> <span class="o">:</span> <span class="n">Container</span><span class="p">)</span> <span class="p">{</span> <span class="n">observe</span><span class="p">(</span><span class="o">*</span><span class="n">Ptr</span><span class="p">);</span> <span class="p">}</span>
-<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">*</span><span class="n">Ptr</span> <span class="o">:</span> <span class="n">Container</span><span class="p">)</span> <span class="p">{</span> <span class="n">Ptr</span><span class="o">-&gt;</span><span class="n">change</span><span class="p">();</span> <span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">:</span> <span class="n">container</span><span class="p">)</span> <span class="p">{</span> <span class="n">Observe</span><span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">);</span> <span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">:</span> <span class="n">container</span><span class="p">)</span> <span class="p">{</span> <span class="n">ptr</span><span class="o">-&gt;</span><span class="n">Change</span><span class="p">();</span> <span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -764,9 +764,9 @@ reduce indentation where possible when it doesn’t make it more difficult to
 understand the code.  One great way to do this is by making use of early exits
 and the <tt class="docutils literal"><span class="pre">continue</span></tt> keyword in long loops.  As an example of using an early
 exit from a function, consider this “bad” code:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">Value</span> <span class="o">*</span><span class="nf">doSomething</span><span class="p">(</span><span class="n">Instruction</span> <span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">TerminatorInst</span><span class="o">&gt;</span><span class="p">(</span><span class="n">I</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
-      <span class="n">I</span><span class="o">-&gt;</span><span class="n">hasOneUse</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">doOtherThing</span><span class="p">(</span><span class="n">I</span><span class="p">))</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Value</span> <span class="o">*</span><span class="nf">DoSomething</span><span class="p">(</span><span class="n">Instruction</span> <span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IsA</span><span class="o">&lt;</span><span class="n">TerminatorInst</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+      <span class="n">i</span><span class="o">-&gt;</span><span class="n">HasOneUse</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">DoOtherThing</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="p">{</span>
     <span class="p">...</span> <span class="n">some</span> <span class="kt">long</span> <span class="n">code</span> <span class="p">....</span>
   <span class="p">}</span>
 
@@ -785,18 +785,18 @@ reading the top of the function, it isn’t clear what the result is if the
 predicate isn’t true; you have to read to the end of the function to know that
 it returns null.</p>
 <p>It is much preferred to format the code like this:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">Value</span> <span class="o">*</span><span class="nf">doSomething</span><span class="p">(</span><span class="n">Instruction</span> <span class="o">*</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Value</span> <span class="o">*</span><span class="nf">DoSomething</span><span class="p">(</span><span class="n">Instruction</span> <span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">// Terminators never need 'something' done to them because ...</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">TerminatorInst</span><span class="o">&gt;</span><span class="p">(</span><span class="n">I</span><span class="p">))</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">IsA</span><span class="o">&lt;</span><span class="n">TerminatorInst</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="c1">// We conservatively avoid transforming instructions with multiple uses</span>
   <span class="c1">// because goats like cheese.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">hasOneUse</span><span class="p">())</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">i</span><span class="o">-&gt;</span><span class="n">HasOneUse</span><span class="p">())</span>
     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="c1">// This is really just here for example.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">doOtherThing</span><span class="p">(</span><span class="n">I</span><span class="p">))</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">DoOtherThing</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="p">...</span> <span class="n">some</span> <span class="kt">long</span> <span class="n">code</span> <span class="p">....</span>
@@ -805,11 +805,11 @@ it returns null.</p>
 </div>
 <p>This fixes these problems.  A similar problem frequently happens in <tt class="docutils literal"><span class="pre">for</span></tt>
 loops.  A silly example is something like this:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">E</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">II</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">II</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">BinaryOperator</span> <span class="o">*</span><span class="n">BO</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">BinaryOperator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">II</span><span class="p">))</span> <span class="p">{</span>
-    <span class="n">Value</span> <span class="o">*</span><span class="n">LHS</span> <span class="o">=</span> <span class="n">BO</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-    <span class="n">Value</span> <span class="o">*</span><span class="n">RHS</span> <span class="o">=</span> <span class="n">BO</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">LHS</span> <span class="o">!=</span> <span class="n">RHS</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">ii</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">e</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">ii</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">ii</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">BinaryOperator</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">BinaryOperator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ii</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">Value</span> <span class="o">*</span><span class="n">lhs</span> <span class="o">=</span> <span class="n">bo</span><span class="o">-&gt;</span><span class="n">GetOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="n">Value</span> <span class="o">*</span><span class="n">rhs</span> <span class="o">=</span> <span class="n">bo</span><span class="o">-&gt;</span><span class="n">GetOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">lhs</span> <span class="o">!=</span> <span class="n">rhs</span><span class="p">)</span> <span class="p">{</span>
       <span class="p">...</span>
     <span class="p">}</span>
   <span class="p">}</span>
@@ -823,13 +823,13 @@ nested very quickly. Meaning that the reader of the code has to keep a lot of
 context in their brain to remember what is going immediately on in the loop,
 because they don’t know if/when the <tt class="docutils literal"><span class="pre">if</span></tt> conditions will have <tt class="docutils literal"><span class="pre">else</span></tt>s etc.
 It is strongly preferred to structure the loop like this:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">E</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">II</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">II</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">BinaryOperator</span> <span class="o">*</span><span class="n">BO</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">BinaryOperator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">II</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">BO</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">ii</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">e</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">ii</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">ii</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">BinaryOperator</span> <span class="o">*</span><span class="n">bo</span> <span class="o">=</span> <span class="n">dynamic_cast</span><span class="o">&lt;</span><span class="n">BinaryOperator</span><span class="o">*</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ii</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">bo</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
 
-  <span class="n">Value</span> <span class="o">*</span><span class="n">LHS</span> <span class="o">=</span> <span class="n">BO</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-  <span class="n">Value</span> <span class="o">*</span><span class="n">RHS</span> <span class="o">=</span> <span class="n">BO</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">LHS</span> <span class="o">==</span> <span class="n">RHS</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+  <span class="n">Value</span> <span class="o">*</span><span class="n">lhs</span> <span class="o">=</span> <span class="n">bo</span><span class="o">-&gt;</span><span class="n">GetOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">Value</span> <span class="o">*</span><span class="n">rhs</span> <span class="o">=</span> <span class="n">bo</span><span class="o">-&gt;</span><span class="n">GetOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">lhs</span> <span class="o">==</span> <span class="n">rhs</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
 
   <span class="p">...</span>
 <span class="p">}</span>
@@ -850,7 +850,7 @@ flow — like <tt class="docutils literal"><span class="pre">return</span></tt>,
 example, this is <em>bad</em>:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="sc">'J'</span>: <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">Signed</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">Context</span><span class="p">.</span><span class="n">getsigjmp_bufType</span><span class="p">();</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetSigJmpBufType</span><span class="p">();</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">Type</span><span class="p">.</span><span class="n">isNull</span><span class="p">())</span> <span class="p">{</span>
       <span class="n">Error</span> <span class="o">=</span> <span class="n">ASTContext</span><span class="o">::</span><span class="n">GE_Missing_sigjmp_buf</span><span class="p">;</span>
       <span class="k">return</span> <span class="nf">QualType</span><span class="p">();</span>
@@ -858,7 +858,7 @@ example, this is <em>bad</em>:</p>
       <span class="k">break</span><span class="p">;</span>
     <span class="p">}</span>
   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">Context</span><span class="p">.</span><span class="n">getjmp_bufType</span><span class="p">();</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetSigJmpBufType</span><span class="p">();</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">Type</span><span class="p">.</span><span class="n">isNull</span><span class="p">())</span> <span class="p">{</span>
       <span class="n">Error</span> <span class="o">=</span> <span class="n">ASTContext</span><span class="o">::</span><span class="n">GE_Missing_jmp_buf</span><span class="p">;</span>
       <span class="k">return</span> <span class="nf">QualType</span><span class="p">();</span>
@@ -872,13 +872,13 @@ example, this is <em>bad</em>:</p>
 <p>It is better to write it like this:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="sc">'J'</span>:
   <span class="k">if</span> <span class="p">(</span><span class="n">Signed</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">Context</span><span class="p">.</span><span class="n">getsigjmp_bufType</span><span class="p">();</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetSigJmpBufType</span><span class="p">();</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">Type</span><span class="p">.</span><span class="n">isNull</span><span class="p">())</span> <span class="p">{</span>
       <span class="n">Error</span> <span class="o">=</span> <span class="n">ASTContext</span><span class="o">::</span><span class="n">GE_Missing_sigjmp_buf</span><span class="p">;</span>
       <span class="k">return</span> <span class="nf">QualType</span><span class="p">();</span>
     <span class="p">}</span>
   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">Context</span><span class="p">.</span><span class="n">getjmp_bufType</span><span class="p">();</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetJmpBufType</span><span class="p">();</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">Type</span><span class="p">.</span><span class="n">isNull</span><span class="p">())</span> <span class="p">{</span>
       <span class="n">Error</span> <span class="o">=</span> <span class="n">ASTContext</span><span class="o">::</span><span class="n">GE_Missing_jmp_buf</span><span class="p">;</span>
       <span class="k">return</span> <span class="nf">QualType</span><span class="p">();</span>
@@ -890,9 +890,9 @@ example, this is <em>bad</em>:</p>
 <p>Or better yet (in this case) as:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="sc">'J'</span>:
   <span class="k">if</span> <span class="p">(</span><span class="n">Signed</span><span class="p">)</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">Context</span><span class="p">.</span><span class="n">getsigjmp_bufType</span><span class="p">();</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetSigJmpBufType</span><span class="p">();</span>
   <span class="k">else</span>
-    <span class="n">Type</span> <span class="o">=</span> <span class="n">Context</span><span class="p">.</span><span class="n">getjmp_bufType</span><span class="p">();</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">context</span><span class="p">.</span><span class="n">GetJmpBufType</span><span class="p">();</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">Type</span><span class="p">.</span><span class="n">isNull</span><span class="p">())</span> <span class="p">{</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">Signed</span> <span class="o">?</span> <span class="n">ASTContext</span><span class="o">::</span><span class="n">GE_Missing_sigjmp_buf</span> <span class="o">:</span>
@@ -911,14 +911,14 @@ of when reading the code.</p>
 <p>It is very common to write small loops that just compute a boolean value.  There
 are a number of ways that people commonly write these, but an example of this
 sort of thing is:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">FoundFoo</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">BarList</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">BarList</span><span class="p">[</span><span class="n">I</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">isFoo</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">FoundFoo</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">foundFoo</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">barList</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">barList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">IsFoo</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">foundFoo</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
 
-<span class="k">if</span> <span class="p">(</span><span class="n">FoundFoo</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">foundFoo</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -928,15 +928,15 @@ of this sort of loop, we strongly prefer to use a predicate function (which may
 be <a class="reference internal" href="#static">static</a>) that uses <a class="reference internal" href="#early-exits">early exits</a> to compute the predicate.  We prefer the
 code to be structured like this:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// \returns true if the specified list has an element that is a foo.</span>
-<span class="k">static</span> <span class="kt">bool</span> <span class="nf">containsFoo</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Bar</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">List</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">List</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="n">I</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">isFoo</span><span class="p">())</span>
+<span class="k">static</span> <span class="kt">bool</span> <span class="nf">ContainsFoo</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Bar</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">list</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">list</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">IsFoo</span><span class="p">())</span>
       <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
   <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
 <span class="p">}</span>
 <span class="p">...</span>
 
-<span class="k">if</span> <span class="p">(</span><span class="n">containsFoo</span><span class="p">(</span><span class="n">BarList</span><span class="p">))</span> <span class="p">{</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">ContainsFoo</span><span class="p">(</span><span class="n">barList</span><span class="p">))</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -947,7 +947,7 @@ More importantly, it <em>forces you to pick a name</em> for the function, and fo
 you to write a comment for it.  In this silly example, this doesn’t add much
 value.  However, if the condition is complex, this can make it a lot easier for
 the reader to understand the code that queries for this predicate.  Instead of
-being faced with the in-line details of how we check to see if the BarList
+being faced with the in-line details of how we check to see if the barList
 contains a foo, we can trust the function name and continue reading with better
 locality.</p>
 </div>
@@ -999,10 +999,10 @@ for a type template name, as it is a standard well known choice.
 
 <li><p class="first"><strong>Function names</strong> should be verb phrases (as they represent actions), and
 command-like function should be imperative.  The name should be camel case,
-and start with an upper case letter (e.g. <tt class="docutils literal"><span class="pre">openFile()</span></tt> or <tt class="docutils literal"><span class="pre">isFoo()</span></tt>).</p>
+and start with an upper case letter (e.g. <tt class="docutils literal"><span class="pre">OpenFile()</span></tt> or <tt class="docutils literal"><span class="pre">IsFoo()</span></tt>).</p>
 </li>
 <li><p class="first"><strong>Enum declarations</strong> (e.g. <tt class="docutils literal"><span class="pre">enum</span> <span class="pre">Foo</span> <span class="pre">{...}</span></tt>) are types, so they should
-follow the naming conventions for types and start with an <strong>E</strong>.  A common use for enums is as a
+follow the naming conventions for types and start with an <strong>e</strong>.  A common use for enums is as a
 discriminator for a union, or an indicator of a subclass.  When an enum is
 used for something like this, it should have a <tt class="docutils literal"><span class="pre">Kind</span></tt> suffix
 (e.g. <tt class="docutils literal"><span class="pre">EValueKind</span></tt>).</p>
@@ -1059,22 +1059,22 @@ are using, so it doesn’t cost anything to use it.</p>
 the assertion statement, which is printed if the assertion is tripped. This
 helps the poor debugger make sense of why an assertion is being made and
 enforced, and hopefully what to do about it.  Here is one complete example:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kr">inline</span> <span class="n">Value</span> <span class="o">*</span><span class="nf">GetOperand</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">assert</span><span class="p">(</span><span class="n">I</span> <span class="o">&lt;</span> <span class="n">Operands</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"getOperand() out of range!"</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">Operands</span><span class="p">[</span><span class="n">I</span><span class="p">];</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kr">inline</span> <span class="n">Value</span> <span class="o">*</span><span class="nf">GetOperand</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">gOperands</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"GetOperand() out of range!"</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">gOperands</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Here are more examples:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">assert</span><span class="p">(</span><span class="n">Ty</span><span class="o">-&gt;</span><span class="n">IsPointerType</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"Can't allocate a non-pointer type!"</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">assert</span><span class="p">(</span><span class="n">ty</span><span class="o">-&gt;</span><span class="n">IsPointerType</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"Can't allocate a non-pointer type!"</span><span class="p">);</span>
 
-<span class="n">assert</span><span class="p">((</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Shl</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Shr</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">"ShiftInst Opcode invalid!"</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">((</span><span class="n">opcode</span> <span class="o">==</span> <span class="n">kShl</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">kShr</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">"ShiftInst Opcode invalid!"</span><span class="p">);</span>
 
 <span class="n">assert</span><span class="p">(</span><span class="n">idx</span> <span class="o">&lt;</span> <span class="n">GetNumSuccessors</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"Successor # out of range!"</span><span class="p">);</span>
 
-<span class="n">assert</span><span class="p">(</span><span class="n">V1</span><span class="p">.</span><span class="n">GetType</span><span class="p">()</span> <span class="o">==</span> <span class="n">V2</span><span class="p">.</span><span class="n">GetType</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"Constant types must be identical!"</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">v1</span><span class="p">.</span><span class="n">GetType</span><span class="p">()</span> <span class="o">==</span> <span class="n">v2</span><span class="p">.</span><span class="n">GetType</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">"Constant types must be identical!"</span><span class="p">);</span>
 
-<span class="n">assert</span><span class="p">(</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">PHINode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Succ</span><span class="o">-&gt;</span><span class="n">front</span><span class="p">())</span> <span class="o">&amp;&amp;</span> <span class="s">"Only works on PHId BBs!"</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">IsA</span><span class="o">&lt;</span><span class="n">PhiNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">succ</span><span class="o">-&gt;</span><span class="n">front</span><span class="p">())</span> <span class="o">&amp;&amp;</span> <span class="s">"Only works on PHId BBs!"</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>You get the idea.</p>
@@ -1097,11 +1097,11 @@ code for this branch. If the compiler does not support this, it will fall back
 to the “abort” implementation.</p>
 <p>Another issue is that values used only by assertions will produce an “unused
 value” warning when assertions are disabled.  For example, this code will warn:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Size</span> <span class="o">=</span> <span class="n">V</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
-<span class="n">assert</span><span class="p">(</span><span class="n">Size</span> <span class="o">&gt;</span> <span class="mi">42</span> <span class="o">&amp;&amp;</span> <span class="s">"Vector smaller than it should be"</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">size</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">42</span> <span class="o">&amp;&amp;</span> <span class="s">"Vector smaller than it should be"</span><span class="p">);</span>
 
-<span class="kt">bool</span> <span class="n">NewToSet</span> <span class="o">=</span> <span class="n">Myset</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Value</span><span class="p">);</span>
-<span class="n">assert</span><span class="p">(</span><span class="n">NewToSet</span> <span class="o">&amp;&amp;</span> <span class="s">"The value shouldn't be in the set yet"</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="n">newToSet</span> <span class="o">=</span> <span class="n">myset</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">newToSet</span> <span class="o">&amp;&amp;</span> <span class="s">"The value shouldn't be in the set yet"</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>These are two interesting different cases. In the first case, the call to
@@ -1111,10 +1111,10 @@ itself.  In the second case, the side effects of the call must happen whether
 the assert is enabled or not.  In this case, the value should be cast to void to
 disable the warning.  To be specific, it is preferred to write the code like
 this:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">assert</span><span class="p">(</span><span class="n">V</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">42</span> <span class="o">&amp;&amp;</span> <span class="s">"Vector smaller than it should be"</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">assert</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">42</span> <span class="o">&amp;&amp;</span> <span class="s">"Vector smaller than it should be"</span><span class="p">);</span>
 
-<span class="kt">bool</span> <span class="n">NewToSet</span> <span class="o">=</span> <span class="n">Myset</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Value</span><span class="p">);</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">NewToSet</span><span class="p">;</span>
-<span class="n">assert</span><span class="p">(</span><span class="n">NewToSet</span> <span class="o">&amp;&amp;</span> <span class="s">"The value shouldn't be in the set yet"</span><span class="p">);</span>
+<span class="kt">bool</span> <span class="n">newToSet</span> <span class="o">=</span> <span class="n">myset</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Value</span><span class="p">);</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">newToSet</span><span class="p">;</span>
+<span class="n">assert</span><span class="p">(</span><span class="n">newToSet</span> <span class="o">&amp;&amp;</span> <span class="s">"The value shouldn't be in the set yet"</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -1163,23 +1163,23 @@ emulated with macros and may be coming in C++‘0x) we end up writing a lot of
 loops that manually iterate from begin to end on a variety of containers or
 through other data structures.  One common mistake is to write a loop in this
 style:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">BasicBlock</span> <span class="o">*</span><span class="n">BB</span> <span class="o">=</span> <span class="p">...</span>
-<span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-  <span class="p">...</span> <span class="n">use</span> <span class="n">I</span> <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">BasicBlock</span> <span class="o">*</span><span class="n">bb</span> <span class="o">=</span> <span class="p">...</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">i</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+  <span class="p">...</span> <span class="n">use</span> <span class="n">i</span> <span class="p">...</span>
 </pre></div>
 </div>
-<p>The problem with this construct is that it evaluates “<tt class="docutils literal"><span class="pre">BB-&gt;end()</span></tt>” every time
+<p>The problem with this construct is that it evaluates “<tt class="docutils literal"><span class="pre">bb-&gt;end()</span></tt>” every time
 through the loop.  Instead of writing the loop like this, we strongly prefer
 loops to be written so that they evaluate it once before the loop starts.  A
 convenient way to do this is like so:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">BasicBlock</span> <span class="o">*</span><span class="n">BB</span> <span class="o">=</span> <span class="p">...</span>
-<span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">E</span> <span class="o">=</span> <span class="n">BB</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-  <span class="p">...</span> <span class="n">use</span> <span class="n">I</span> <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">BasicBlock</span> <span class="o">*</span><span class="n">bb</span> <span class="o">=</span> <span class="p">...</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">BasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">i</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">e</span> <span class="o">=</span> <span class="n">bb</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+  <span class="p">...</span> <span class="n">use</span> <span class="n">i</span> <span class="p">...</span>
 </pre></div>
 </div>
 <p>The observant may quickly point out that these two loops may have different
 semantics: if the container (a basic block in this case) is being mutated, then
-“<tt class="docutils literal"><span class="pre">BB-&gt;end()</span></tt>” may change its value every time through the loop and the second
+“<tt class="docutils literal"><span class="pre">bb-&gt;end()</span></tt>” may change its value every time through the loop and the second
 loop may not in fact be correct.  If you actually do depend on this behavior,
 please write the loop in the first form and add a comment indicating that you
 did it intentionally.</p>
@@ -1261,23 +1261,23 @@ statements, but not in normal function call expressions and function-like
 macros.  For example, this is good:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">...</span>
 <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">100</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">...</span>
-<span class="k">while</span> <span class="p">(</span><span class="n">LLVMRocks</span><span class="p">)</span> <span class="p">...</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">gGeantRocks</span><span class="p">)</span> <span class="p">...</span>
 
-<span class="n">somefunc</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="n">Somefunc</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
 <span class="n">assert</span><span class="p">(</span><span class="mi">3</span> <span class="o">!=</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="s">"laws of math are failing me"</span><span class="p">);</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">92</span><span class="p">)</span> <span class="o">+</span> <span class="n">bar</span><span class="p">(</span><span class="n">X</span><span class="p">);</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">92</span><span class="p">)</span> <span class="o">+</span> <span class="n">Bar</span><span class="p">(</span><span class="n">X</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>and this is bad:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">if</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">...</span>
-<span class="k">for</span><span class="p">(</span><span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">I</span> <span class="o">!=</span> <span class="mi">100</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">...</span>
-<span class="k">while</span><span class="p">(</span><span class="n">LLVMRocks</span><span class="p">)</span> <span class="p">...</span>
+<span class="k">for</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">100</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">...</span>
+<span class="k">while</span><span class="p">(</span><span class="n">gGeantRocks</span><span class="p">)</span> <span class="p">...</span>
 
-<span class="n">somefunc</span> <span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="n">Somefunc</span> <span class="p">(</span><span class="mi">42</span><span class="p">);</span>
 <span class="n">assert</span> <span class="p">(</span><span class="mi">3</span> <span class="o">!=</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="s">"laws of math are failing me"</span><span class="p">);</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">foo</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">92</span><span class="p">)</span> <span class="o">+</span> <span class="n">bar</span> <span class="p">(</span><span class="n">x</span><span class="p">);</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">Foo</span> <span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">92</span><span class="p">)</span> <span class="o">+</span> <span class="n">Bar</span> <span class="p">(</span><span class="n">x</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The reason for doing this is not completely arbitrary.  This style makes control
@@ -1287,7 +1287,7 @@ function name (as in the last example) makes it appear that the code might bind
 the arguments of the left-hand-side of a binary operator with the argument list
 of a function and the name of the right side.  More specifically, it is easy to
 misread the “<tt class="docutils literal"><span class="pre">A</span></tt>” example as:</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">foo</span> <span class="p">((</span><span class="mi">42</span><span class="p">,</span> <span class="mi">92</span><span class="p">)</span> <span class="o">+</span> <span class="n">bar</span><span class="p">)</span> <span class="p">(</span><span class="n">x</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">Foo</span> <span class="p">((</span><span class="mi">42</span><span class="p">,</span> <span class="mi">92</span><span class="p">)</span> <span class="o">+</span> <span class="n">Bar</span><span class="p">)</span> <span class="p">(</span><span class="n">x</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>when skimming through the code.  By avoiding a space in a function, we avoid
@@ -1296,7 +1296,7 @@ this misinterpretation.</p>
 <p>We prefer to not put white space after the opening parathensis and before
 the closing parathensis and to put white space surrounding operators:</p>
 
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">foo</span>(<span class="kt">int</span> <span class="n">a</span>, <span class="kt">float</span> <span class="n">b</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Foo</span>(<span class="kt">int</span> <span class="n">a</span>, <span class="kt">float</span> <span class="n">b</span><span class="p">);</span>
 for (<span class="kt">int</span> <span class="n">i</span> = <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span>; <span class="o">++</span><span class="n">i</span>) <span class="c1">// No padding whitespace</span>
 </pre></div>
 </div>
@@ -1371,7 +1371,7 @@ good:</p>
 <span class="p">...</span>
 <span class="nl">public:</span>
   <span class="n">StringSort</span><span class="p">(...)</span>
-  <span class="kt">bool</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">RHS</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">rhs</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 <span class="p">};</span>
 <span class="p">}</span> <span class="c1">// end anonymous namespace</span>
 
@@ -1379,7 +1379,7 @@ good:</p>
   <span class="p">...</span>
 <span class="p">}</span>
 
-<span class="kt">bool</span> <span class="n">StringSort</span><span class="o">::</span><span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">RHS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<span class="kt">bool</span> <span class="n">StringSort</span><span class="o">::</span><span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">rhs</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -1391,14 +1391,14 @@ good:</p>
 <span class="p">...</span>
 <span class="nl">public:</span>
   <span class="n">StringSort</span><span class="p">(...)</span>
-  <span class="kt">bool</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">RHS</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">rhs</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 <span class="p">};</span>
 
 <span class="kt">void</span> <span class="nf">RunHelper</span><span class="p">()</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 
-<span class="kt">bool</span> <span class="n">StringSort</span><span class="o">::</span><span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">RHS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<span class="kt">bool</span> <span class="n">StringSort</span><span class="o">::</span><span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">rhs</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 
@@ -1438,7 +1438,7 @@ with spaces on both side.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="o">*</span> <span class="k">const</span> var1<span class="p">;</span> <span class="c1">// This is BAD</span>
 <span class="kt">int</span> <span class="o">*</span><span class="k">const</span> a<span class="p">;</span>
 <span class="kt">int</span> <span class="o">*</span>a<span class="p">;</span>
-<span class="k">const</span> std::vector&lt;<span class="kt">int</span>&gt; &amp;getContent() const<span class="p">;</span>
+<span class="k">const</span> std::vector&lt;<span class="kt">int</span>&gt; &amp;GetContent() const<span class="p">;</span>
 </pre></div>
 
 <p>The preferred way to place brackes is to put the opening brace last on the line,
@@ -1449,7 +1449,7 @@ the opening brace at the beginning of the next line.
    we do y
 <span class="p">}</span>
 
-<span class="kt">int</span> function<span class="p">(</span><span class="kt">int</span> x<span class="p">)</span>
+<span class="kt">int</span> Function<span class="p">(</span><span class="kt">int</span> x<span class="p">)</span>
 <span class="p">{</span>
    body of function
 <span class="p">}</span>
@@ -1460,7 +1460,7 @@ maximum line length of the source file.  When ever possible, it should be writte
 line.  When needed, new lines need to be aligned with the opening parentheses.</p>
 
 <div class="highlight-c++"><div class="highlight"><pre>
-<span class="kt">void</span> foo(<span class="kt">int</span> a0, <span class="kt">int</span> a1<span class="p">,</span> <span class="kt">int</span> a2<span class="p">,</span> <span class="kt">int</span> a3<span class="p">,</span>
+<span class="kt">void</span> Foo(<span class="kt">int</span> a0, <span class="kt">int</span> a1<span class="p">,</span> <span class="kt">int</span> a2<span class="p">,</span> <span class="kt">int</span> a3<span class="p">,</span>
          <span class="kt">int</span> a4<span class="p">,</span> <span class="kt">int</span> a5) <span class="k">const</span><span class="p">;</span>
 </pre></div>
 
