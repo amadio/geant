@@ -974,7 +974,9 @@ nouns and start with lower-case letter (e.g. <tt class="docutils literal"><span 
 nouns and start with an upper-case letter (e.g. <tt class="docutils literal"><span class="pre">TextFileReader</span></tt>).</p>
 </li>
 <li><p class="first"><strong>Typedefs</strong> should follow the type
-  names rules and end in a trailing <strong>_t</strong>.
+  names rules and end in a trailing <strong>_t</strong> or if they indicates
+  types that are 'intrisinc' vectors (on some platforms) the typedef should end
+  in a trailing <strong>_v</strong>.
 </li>
 <li><p class="first"><strong>Variable names</strong> should be nouns (as they represent state).  The name should
 be camel case, and start with a lower case letter if it is a local
