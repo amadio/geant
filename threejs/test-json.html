@@ -1,0 +1,102 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <div id="Stats-output"></div>
+		<script src="three.js-master/build/three.min.js"></script>
+        <script src="three.js-master/examples/js/libs/stats.min.js"></script>
+		<script>
+var 
+    shapeObjectUrl = "geo-box.json",
+    scene = new THREE.Scene(),
+    camera = new     THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight, 0.1, 1000),
+    renderer = new THREE.WebGLRenderer(),
+    axes = new THREE.AxisHelper(100),
+    loader = new THREE.JSONLoader();
+    
+var stats = initStats();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+scene.add(axes);
+
+var planeGeometry = new THREE.PlaneGeometry(350, 200, 1, 1);
+var planeMaterial = new THREE.MeshLambertMaterial({color:0xffffff});
+var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+var mesh
+
+var sphereGeometry = new THREE.SphereGeometry(30, 20, 20);
+var sphereMaterial = new THREE.MeshLambertMaterial({color:
+0x7777ff});
+var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+sphere.position.x = 100;
+sphere.position.y = 5;
+sphere.position.z = -30;
+scene.add(sphere)
+
+//plane.rotation.x = -0.5 * Math.PI;
+plane.position.x = 15
+plane.position.y = 0
+plane.position.z = -50
+scene.add(plane);
+ 
+var spotLight = new THREE.SpotLight( 0xffffff );
+spotLight.position.set( -160, 0, 250 );
+scene.add( spotLight ); 
+
+camera.position.x = 10;
+camera.position.y = 30;
+camera.position.z = 200;
+plane.receiveShadow = true;
+spotLight.castShadow = true;
+sphere.castShadow = true;
+
+renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMapEnabled = true;
+
+loader.load( shapeObjectUrl, 
+    function ( geometry, materials ) {
+        console.log(geometry, materials);
+        //mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial({ color: 0x00ff00 , wireframe: true}) );
+        mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial({ color: 0x00ff00,wireframe: true}) );
+        scene.add( mesh );
+        //mesh.castShadow = true;
+        render();
+        console.log(mesh);
+});
+
+var step=0;
+var xpos=sphere.position.x
+var ypos=sphere.position.y
+var render = function () {
+    stats.update();
+    
+     mesh.rotation.x += 0.002;
+     mesh.rotation.y += 0.002;
+     mesh.rotation.z += 0.002;
+        
+     step+=0.04;
+     sphere.position.x = xpos+( 10*(Math.cos(step)));
+     sphere.position.y = ypos+( 10*Math.abs(Math.sin(step)));
+    
+    requestAnimationFrame(render);
+    renderer.render(scene, camera);
+};
+
+function initStats() {
+var stats = new Stats();
+stats.setMode(0);
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+document.getElementById("Stats-output").appendChild( stats.domElement );
+return stats;
+}
+		</script>
+	</body>
+</html>
