@@ -12,7 +12,7 @@ GUConversionBetheHeitler(Random_t* states, int threadId)
   :
   fRandomState(states), fThreadId(threadId),
   fMinX(1.e-8),  fMaxX(1000.), 
-  fMaxZelement(100),       // Elements up to Z=100
+  fMaxZelement(maximumZ),
   fNrow(100), fNcol(100) 
 {
   //replace hard coded numbers by default constants

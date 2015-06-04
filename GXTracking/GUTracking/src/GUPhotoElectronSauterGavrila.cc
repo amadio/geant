@@ -14,7 +14,7 @@ GUPhotoElectronSauterGavrila::GUPhotoElectronSauterGavrila(Random_t* states, int
   fRandomState(states), fThreadId(threadId),
   fMinX(1.e-8),  fMaxX(1000.), // fDeltaX(0.1), 
   // fMinY(1.e-8),  fMaxY(1001.), fDeltaY(0.1),
-  fMaxZelement(100),       // Elements up to Z=100
+  fMaxZelement(maximumZ),
   fNrow(100), fNcol(100) 
 {
   //replace hard coded numbers by default constants
@@ -98,7 +98,7 @@ GUPhotoElectronSauterGavrila::BuildPdfTable(int Z,
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = dx*i;
+    double x = xmin + dx*i;
 
     const double ymin = -1.0;
     const double dy = 2.0/(ncol-1);
