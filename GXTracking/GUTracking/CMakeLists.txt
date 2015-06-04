@@ -275,10 +275,12 @@ set(SRC_CPP_RELATIVE
   src/GUConversionBetheHeitler.cc
   src/GUPhotoElectronSauterGavrila.cc
   src/GUMollerBhabha.cc
+  src/GUSeltzerBerger.cc
 #  src/GUPhysicsModel.cc
   src/GUAliasTable.cc
 #  src/GUElement.cc
   src/GUAliasTableManager.cc
+  src/Physics2DVector.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
