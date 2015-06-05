@@ -45,7 +45,7 @@ then
 #  export CTEST_BUILD_OPTIONS="-DUSE_VECGEOM_NAVIGATOR=OFF '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON "
   export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON " 
   export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
-  export BACKEND=VecGeomNavigator
+#  export BACKEND=VecGeomNavigator
   export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
 
 fi
