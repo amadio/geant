@@ -25,6 +25,14 @@
    make
    ./GUModelBenchmark [ntracks] [nrepetitions]
 
+2.1 data file
+   Download required data files for testing the SeltzerBerger model
+   wget http://geant4.cern.ch/support/source/G4EMLOW.6.42.tar.gz 
+   tar xzf G4EMLOW.6.42.tar.gz brem_SB
+   mkdir data ; cp -r G4EMLOW6.42/brem_SB data/brem_SB
+  (will introduce the env for the target data directory and put an option
+   to get the file through cmake configuration)
+
 3. Other important options
 
    # turn on histogramming (with BENCHMARK=ON)
