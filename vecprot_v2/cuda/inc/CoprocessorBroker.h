@@ -80,8 +80,8 @@ class GPPhysics2DVector;
 struct GXTrack;
 class GXTrackLiason;
 
-class GeantThreadData;
-using TaskWorkspace = GeantThreadData;
+class GeantTaskData;
+using TaskWorkspace = GeantTaskData;
 class GeantTrack_v;
 
 const unsigned int kMaxNumStep = 1;
@@ -165,7 +165,7 @@ public:
 
       unsigned int TrackToHost();
 
-      GeantBasketMgr        *fBasketMgr;
+      GeantTaskData         *fGeantTaskData;
       GeantBasket           *fInputBasket;
       GeantBasket           *fOutputBasket; // Work manager track (pre)-queue
 
@@ -177,7 +177,7 @@ public:
       unsigned int  fStreamId;
       cudaStream_t  fStream;
 
-      vecgeom::cxx::DevicePtr<GeantThreadData> fDevTaskWorkspace;
+      vecgeom::cxx::DevicePtr<GeantTaskData> fDevTaskWorkspace;
       vecgeom::cxx::DevicePtr<GeantTrack_v>    fDevTrackInput;
       vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf() {
          char *basket = (char*)&(*fDevTrackInput);

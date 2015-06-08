@@ -27,6 +27,7 @@ typedef double G4double;
 //#include "GPPhysicsTableType.h"
 
 #include "GeantTrack.h"
+#include "GeantTaskData.h"
 
 #include "GXTrack.h"
 #include "GXTrackLiason.h"
@@ -262,7 +263,7 @@ bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSplin
 }
 
 
-CoprocessorBroker::TaskData::TaskData() : fBasketMgr(new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true)),
+CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fInputBasket(0),fOutputBasket(0),
                                           fChunkSize(0),fNStaged(0),
                                           fPrioritizer(0),
@@ -280,12 +281,18 @@ CoprocessorBroker::TaskData::~TaskData() {
    // We do not own the fBasket(s) (or do we?)
    // We do not own fPrioritizer
 
-   delete fBasketMgr;
+   delete fGeantTaskData;
    HANDLE_CUDA_ERROR( cudaStreamDestroy(fStream) );
 }
 
 bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
+
+   fGeantTaskData = new GeantTaskData();
+   fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
+   fGeantTaskData->fNthreads = nthreads;
+   fGeantTaskData->fMaxDepth = maxTrackPerThread;
+   fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
 
    fStreamId = streamid;
    HANDLE_CUDA_ERROR( cudaStreamCreate(&fStream) );
@@ -311,13 +318,10 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fDevTrackOutput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
    fDevTrackOutput.Construct(maxTrackPerKernel,maxdepth);
 
-   // fDevSecondaries.Alloc(maxTrackPerKernel);
-   fBasketMgr->SetBcap(maxTrackPerKernel);
-
-   fInputBasket = new GeantBasket(maxTrackPerKernel,fBasketMgr);
+   fInputBasket = new GeantBasket(maxTrackPerKernel,fGeantTaskData->fBmgr);
    fInputBasket->SetMixed(kTRUE);
    // fInputBasket->SetThreshold(fThreshold.load());
-   fOutputBasket = new GeantBasket(maxTrackPerKernel,fBasketMgr);
+   fOutputBasket = new GeantBasket(maxTrackPerKernel,fGeantTaskData->fBmgr);
    fOutputBasket->SetMixed(kTRUE);
    // fOutputBasket->SetThreshold(fThreshold.load());
 
@@ -536,7 +540,7 @@ unsigned int CoprocessorBroker::TaskData::AddTrack(CoprocessorBroker::Task *task
 
    if (!fInputBasket) {
       GeantBasketMgr *bmgr = basket.GetBasketMgr();
-      fInputBasket = bmgr->GetNextBasket();
+      fInputBasket = bmgr->GetNextBasket(fGeantTaskData);
    }
 
    GeantTrack_v &input = basket.GetInputTracks();
@@ -565,7 +569,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
    if (!fInputBasket) {
       GeantBasketMgr *bmgr = basket.GetBasketMgr();
-      fInputBasket = bmgr->GetNextBasket();
+      fInputBasket = bmgr->GetNextBasket(fGeantTaskData);
    }
 
    //unsigned int start = fNStaged;
