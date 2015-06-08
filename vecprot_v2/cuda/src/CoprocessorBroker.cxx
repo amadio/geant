@@ -700,8 +700,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //                                  cudaMemcpyHostToDevice, *stream));
 
    fTotalWork += stream->fNStaged;
-   DevicePtr<TaskWorkspace> nullDevicePtr;
-   int result = task->fKernel(nullDevicePtr,
+   int result = task->fKernel(stream->fDevTaskWorkspace,
                               stream->fNStaged,
                               stream->fDevTrackInput,
                               stream->fDevTrackOutput,
