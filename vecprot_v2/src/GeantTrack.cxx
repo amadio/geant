@@ -342,7 +342,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth)
 #endif
 
   fBuf = ((char *)addr) + sizeof(GeantTrack_v);
-  fBufSize = SizeOfInstance(nTracks, maxdepth);
+  fBufSize = BufferSize(nTracks, maxdepth);
   memset(fBuf, 0, fBufSize);
   AssignInBuffer(fBuf, nTracks);
   memset(fPathV, 0, nTracks * sizeof(VolumePath_t *));
@@ -668,14 +668,21 @@ void GeantTrack_v::CheckTracks() {
 }
 
 //______________________________________________________________________________
-size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
-  // return the contiguous memory size needed to hold a GeantTrack_v
+size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
+  // return the contiguous memory size needed to hold a GeantTrack_v's data
 
   size_t size = round_up_align(nTracks);
   size_t size_nav = 2 * size * VolumePath_t::SizeOfInstance(maxdepth);
   size_t size_bits = 2 * BitSet::SizeOfInstance(size);
 
   return size * sizeof(GeantTrack) + size_nav + size_bits;
+}
+
+//______________________________________________________________________________
+size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
+   // return the contiguous memory size needed to hold a GeantTrack_v
+
+   return sizeof(GeantTrack_v)+BufferSize(nTracks,maxdepth);
 }
 
 //______________________________________________________________________________
@@ -686,7 +693,7 @@ void GeantTrack_v::Resize(Int_t newsize) {
     Printf("Error: Cannot resize to less than current track content");
     return;
   }
-  fBufSize = SizeOfInstance(size, fMaxDepth);
+  fBufSize = BufferSize(size, fMaxDepth);
   if (!fCompact)
     Compact();
 

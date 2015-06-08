@@ -609,11 +609,14 @@ public:
   /** @brief GeantTrack_v destructor */
   virtual ~GeantTrack_v();
 
-  /** @brief return the contiguous memory size needed to hold a GeantTrack_v */
+  /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
   static size_t SizeOfInstance(size_t nTracks, size_t maxdepth);
 
-  /** @brief  Function that returned buffer size  */
+  /** @brief  Function that returns the buffer size  */
   size_t BufferSize() const { return fBufSize; }
+
+  /** @brief  Function that returns buffer size needed to hold the data for nTracks and maxdepth */
+  static size_t BufferSize(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returned max size for tracks */
   Int_t Capacity() const { return fMaxtracks; }
