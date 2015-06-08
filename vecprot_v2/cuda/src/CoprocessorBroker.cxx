@@ -299,21 +299,28 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
 
    unsigned int maxThreads = nblocks*nthreads;
 
-   fDevTaskWorkspace.Alloc(maxThreads);
+   fDevTaskWorkspace.Allocate(maxThreads);
    fDevTaskWorkspace.ConstructArray(maxThreads);
 
+   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+
    // need to allocate enough for one object containing many tracks ...
-   fDevTrackInput.Malloc(GeantTrack_v::SizeOf(maxTrackPerKernel,maxdepth) );
+   fDevTrackInput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
    fDevTrackInput.Construct(maxTrackPerKernel,maxdepth);
 
-   fDevTrackOutput.Malloc(GeantTrack_v::SizeOf(maxTrackPerKernel,maxdepth) );
+   fDevTrackOutput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
    fDevTrackOutput.Construct(maxTrackPerKernel,maxdepth);
 
    // fDevSecondaries.Alloc(maxTrackPerKernel);
    fBasketMgr->SetBcap(maxTrackPerKernel);
 
-   fInputBasket = fBasketMgr->GetNextBasket();
-   fOutputBasket = fBasketMgr->GetNextBasket();
+   fInputBasket = new GeantBasket(maxTrackPerKernel,fBasketMgr);
+   fInputBasket->SetMixed(kTRUE);
+   // fInputBasket->SetThreshold(fThreshold.load());
+   fOutputBasket = new GeantBasket(maxTrackPerKernel,fBasketMgr);
+   fOutputBasket->SetMixed(kTRUE);
+   // fOutputBasket->SetThreshold(fThreshold.load());
+
    return true;
 }
 
@@ -696,8 +703,16 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
    //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
-   //HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput->fBuf, stream->fInputBasket->fBuf, stream->fInputBasket->fBufSize,
-   //                                  cudaMemcpyHostToDevice, *stream));
+   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput.GetPtr()->fBuf,
+                                     stream->fInputBasket->GetInputTracks().GetBuf(),
+                                     stream->fInputBasket->GetInputTracks().BufferSize(),
+                                     cudaMemcpyHostToDevice, *stream));
+   // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact, stream->fInputBasket->fMixed
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput,
+                                     &(stream->fInputBasket.GetInputTracks()),
+                                     sizeof(Int_t)*2+sizefo(Bool_t)*2,
+                                     cudaMemcpyHostToDevice, *stream));
 
    fTotalWork += stream->fNStaged;
    int result = task->fKernel(stream->fDevTaskWorkspace,
@@ -715,9 +730,15 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
-   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackOutput->fBuf, stream->fOutputBasket->fBuf,
-   //                                   stream->fOutputBasket->fBufSize,
-   //                                   cudaMemcpyHostToDevice, *stream));
+   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fOutputBasket.GetOutputTracks(),
+                                     stream->fDevTrackOutput.GetPtr(),
+                                     sizeof(Int_t)*2+sizeo(Bool_t)*2,
+                                     cudaMemcpyHostToDevice, *stream));
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fOutputBasket.GetOutputTracks()->GetBuf(),
+                                     stream->fDevTrackOutput.GetPtr()->GetBuf(),
+                                     stream->fOutputBasket.GetOutputTracks()->BufferSize(),
+                                     cudaMemcpyHostToDevice, *stream));
 
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));

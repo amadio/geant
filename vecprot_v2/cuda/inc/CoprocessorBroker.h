@@ -177,13 +177,13 @@ public:
       unsigned int  fStreamId;
       cudaStream_t  fStream;
 
-      DevicePtr<GeantThreadData> fDevTaskWorkspace;
-      DevicePtr<GeantTrack_v>    fDevTrackInput;
+      vecgeom::cxx::DevicePtr<GeantThreadData> fDevTaskWorkspace;
+      vecgeom::cxx::DevicePtr<GeantTrack_v>    fDevTrackInput;
       vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf() {
          char *basket = (char*)&(*fDevTrackInput);
          return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );
       }
-      DevicePtr<GeantTrack_v>  fDevTrackOutput;
+      vecgeom::cxx::DevicePtr<GeantTrack_v>  fDevTrackOutput;
       vecgeom::cxx::DevicePtr<char> GetDevTrackOutputtBuf() {
          char *basket = (char*)&(*fDevTrackOutput);
          return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );
