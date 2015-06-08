@@ -513,13 +513,13 @@ public:
 #else
   std::atomic_int fNtracks; /** number of tracks contained */
 #endif
-  cacheline_pad_t pad0_;
-  Int_t fMaxtracks;  /** Max size for tracks */
   Int_t fNselected;  /** Number of selected tracks */
-  BitSet *fHoles;    /** Bits of holes */
-  BitSet *fSelected; /** Mask of selected tracks for the current operation */
   Bool_t fCompact;   /** Flag marking the compactness */
   Bool_t fMixed;     /** Contains tracks in mixed volumes */
+  cacheline_pad_t pad0_;
+  Int_t fMaxtracks;  /** Max size for tracks */
+  BitSet *fHoles;    /** Bits of holes */
+  BitSet *fSelected; /** Mask of selected tracks for the current operation */
 
 #ifdef __STAT_DEBUG_TRK
   GeantTrackStat fStat; /** Statistics for the track container */
