@@ -29,7 +29,7 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
 )     
-     
+
 set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcess.h 
@@ -51,18 +51,17 @@ ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkD
 #----------------------------------------------------------------------------
 #
 
+set(GEANTV_HEADERS ${headers} )
+set(GEANTV_SOURCES ${sources} )
+
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
 
 if (CUDA)
-  CUDA_ADD_LIBRARY(Geant_v
-                 ${sources} G__Geant.cxx
-                 SHARED
-                 OPTIONS ${CUDA_ARCH}
-  )
+  # See vecprot_v2/cuda/CMakeLists.txt
+  add_subdirectory (cuda)
 else()
   add_library(Geant_v SHARED ${sources} G__Geant.cxx)
-endif()
 
 if( VECGEOM_FOUND )
   target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
@@ -81,6 +80,8 @@ else()
 endif()
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
+
+endif()
 
 find_package(HepMC REQUIRED)
 include_directories("${HEPMC_INCLUDE_DIR}")

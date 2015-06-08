@@ -6,6 +6,12 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
+# Steer the name of the library (main library replacement or
+# plug-in).
+
+set(GeantCudaLib Geant_v) # or GeantCuda
+set(GeantCudaReplace ON)
+
 set(CudaCode ${PROJECT_SOURCE_DIR})
 set(CUDA_SRCDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CUDA_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
@@ -168,11 +174,22 @@ set(cuda_sources
 )
 endif()
 
+if (GeantCudaReplace)
+   set (dict_headers ${dict_headers}
+         ${GEANTV_HEADERS}
+         # ${XSEC_HEADERS}
+   )
+  set (cuda_cxx_sources ${cuda_cxx_sources}
+         ${GEANTV_SOURCES}
+         # ${XSEC_SOURCES}
+   )
+  set (extra_dict_options -DGEANTCUDA_REPLACE)
+endif()
 
-ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers} 
-                MODULE libGeantCuda 
+ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers}
+                MODULE lib${GeantCudaLib}
                 LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h
-                OPTIONS -I${CUDA_INCLUDE_DIRS} )
+                OPTIONS -I${CUDA_INCLUDE_DIRS} ${extra_dict_options} )
 
 # add the command to generate the source code
 add_custom_command (
@@ -187,14 +204,24 @@ add_custom_command (
 #  DEPENDS 
 )
 
-CUDA_ADD_LIBRARY(GeantCuda
-                 ${cuda_sources} ${cuda_cxx_sources}
+
+CUDA_ADD_LIBRARY( ${GeantCudaLib}
+                  ${cuda_sources} ${cuda_cxx_sources}
                  SHARED
                  OPTIONS ${CUDA_ARCH}
 )
+
 if( VECGEOM_FOUND )
-  target_link_libraries(GeantCuda ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  target_link_libraries(${GeantCudaLib} ${ROOT_LIBRARIES} -lEG -lGeom -lGui  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 else()
-  target_link_libraries(GeantCuda ${ROOT_LIBRARIES} -lEG -lGeom )
+  target_link_libraries(${GeantCudaLib} ${ROOT_LIBRARIES} -lEG -lGeom -lGui )
 endif()
 
+add_custom_target(Geantlib_v DEPENDS ${GeantCudaLib})
+
+if(APPLE)
+# for some reason the installation process alters the libraries on Mac, and the program fails
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${GeantCudaLib}.dylib DESTINATION lib)
+else()
+  install(TARGETS ${GeantCudaLib} DESTINATION lib)
+endif()

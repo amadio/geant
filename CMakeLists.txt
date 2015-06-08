@@ -260,10 +260,6 @@ add_subdirectory (cmstrack)
 add_subdirectory (test-complex)
 #add_subdirectory (Nudy)
 
-if (CUDA)
-  add_subdirectory (vecprot_v2/cuda)
-endif()
-
 if(USE_VECPHYS)
  add_subdirectory (vectphysproc)
 endif()
