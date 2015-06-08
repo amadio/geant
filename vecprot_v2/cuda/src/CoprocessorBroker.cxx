@@ -708,14 +708,14 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
    // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput.GetPtr()->fBuf,
-                                     stream->fInputBasket->GetInputTracks().GetBuf(),
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput.GetPtr()+1 /*+sizeof(GeantTrack_v)*/,
+                                     &(stream->fInputBasket->GetInputTracks())+1 /*+sizeof(GeantTrack_v)*/,
                                      stream->fInputBasket->GetInputTracks().BufferSize(),
                                      cudaMemcpyHostToDevice, *stream));
    // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact, stream->fInputBasket->fMixed
    HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput,
-                                     &(stream->fInputBasket.GetInputTracks()),
-                                     sizeof(Int_t)*2+sizefo(Bool_t)*2,
+                                     &(stream->fInputBasket->GetInputTracks()),
+                                     sizeof(Int_t)*2+sizeof(Bool_t)*2,
                                      cudaMemcpyHostToDevice, *stream));
 
    fTotalWork += stream->fNStaged;
@@ -735,13 +735,13 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
 
    // Bring back the modified tracks.
    // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fOutputBasket.GetOutputTracks(),
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(&(stream->fOutputBasket->GetOutputTracks()),
                                      stream->fDevTrackOutput.GetPtr(),
-                                     sizeof(Int_t)*2+sizeo(Bool_t)*2,
+                                     sizeof(Int_t)*2+sizeof(Bool_t)*2,
                                      cudaMemcpyHostToDevice, *stream));
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fOutputBasket.GetOutputTracks()->GetBuf(),
-                                     stream->fDevTrackOutput.GetPtr()->GetBuf(),
-                                     stream->fOutputBasket.GetOutputTracks()->BufferSize(),
+   HANDLE_CUDA_ERROR(cudaMemcpyAsync(&(stream->fOutputBasket->GetOutputTracks())+1 /*+sizeof(GeantTrack_v)*/,
+                                     stream->fDevTrackOutput.GetPtr()+1 /*+sizeof(GeantTrack_v)*/,
+                                     stream->fOutputBasket->GetOutputTracks().BufferSize(),
                                      cudaMemcpyHostToDevice, *stream));
 
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
