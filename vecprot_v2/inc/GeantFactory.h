@@ -40,7 +40,7 @@ using namespace std;
 */
 template <typename T> class GeantBlock {
 private:
-  const int fSize;      /** Fixed size */
+  int       fSize;      /** Fixed size */
   int       fNext;      /** Index of next free block */
   vector<T> fBlock;     /** vector of user block objects */
 
@@ -53,19 +53,30 @@ public:
    * 
    * @param size  Size for the array of blocks
    */
-  GeantBlock(Int_t size) : fSize(size), fNext(0), fBlock() {
+  GeantBlock() : fSize(0), fNext(0), fBlock() {
     static_assert(!std::is_polymorphic<T>::value, "Cannot use polymorphic types as GeantBlock");
     static_assert(std::is_default_constructible<T>::value, "Type used in GeantBlock must have default ctor.");
     static_assert(std::is_copy_constructible<T>::value, "Type used in GeantBlock must be copy constructible");
-    assert(size>0);
-    fBlock.reserve(size);
-    for (Int_t i = 0; i < size; i++) fBlock.push_back(T());
   }  
 
   /**
    * @brief Destructor for GeantBlock */
   ~GeantBlock() {fBlock.clear();}
-  
+
+ /**
+   * @brief Initialize the block for the given size.
+   * @details Reserves the vector of user block objects and fills it with default objects of type T.
+   *
+   * @param size  Size for the array of blocks
+   */
+  void Initialize(Int_t size)
+  {
+    assert(size>0);
+    fSize = size;
+    fBlock.reserve(size);
+    for (Int_t i = 0; i < size; i++) fBlock.push_back(T());
+  }
+
   /**
    * @brief Add an object of type T at a given index in the block vector.
    * @details Copy the content of object pointed by p at a given index or at the 
@@ -150,7 +161,11 @@ public:
   GeantBlockArray(Int_t nthreads, Int_t blocksize) 
         : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0) {
     fBlocks = new GeantBlock<T> *[nthreads];
-    for (Int_t i = 0; i < nthreads; i++) fBlocks[i] = new GeantBlock<T>(blocksize);
+    for (Int_t i = 0; i < nthreads; i++)
+      {
+	fBlocks[i] = new GeantBlock<T>();
+	fBlocks[i]->Initialize(blocksize);
+      }
   }
         
 
@@ -261,7 +276,11 @@ public:
   void AddFreeBlocks(Int_t nblocks) 
   {
     for (Int_t i = 0; i < nblocks; i++)
-      fPool.push(new GeantBlock<T>(fBlockSize));
+      {
+	GeantBlock<T>* block = new GeantBlock<T>();
+	block->Initialize(fBlockSize);
+	fPool.push(block);
+      }
   }
   
   /**
