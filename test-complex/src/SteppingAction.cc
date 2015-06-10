@@ -90,7 +90,7 @@ void SteppingAction::UserSteppingAction(const G4Step *aStep) {
       }
       if (RunAction::fgScoreTypeFlag > 1)
         fEventaction->FillHistSteps(aStep);
-    } else { // G4 Physics
+    } else {                                                              // G4 Physics
       if (g4procCode != 1091 && G4String("UserSpecialCut") != pNameStr) { // not transportation nt trackingCut
         ++numPysLimSteps;
         for (unsigned int i = 0; i < aStep->GetSecondaryInCurrentStep()->size(); ++i)
