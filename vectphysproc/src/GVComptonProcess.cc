@@ -223,7 +223,7 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v& gTrackV, int tid){
     // A process with the same secondary can define its base properties here
     // like Compton: the only possible secondary is e-
     const int    secPDG    = 11;                                 // e- PDG code
-    const int    secG5code = TPartIndex::I()->PartIndex(secPDG); // e- G5 code 
+    const int    secGVcode = TPartIndex::I()->PartIndex(secPDG); // e- GV code 
     // the rest mass and charge of the secondary particle in a general way
     const double secMass   =                                     // e- rest mass  
          TPartIndex::I()->DBPdg()->Instance()->GetParticle(secPDG)->Mass(); 
@@ -247,7 +247,7 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v& gTrackV, int tid){
         double secPtot = std::sqrt(kinE*(kinE + 2.*secMass)); // total P [GeV] 
         double invSecPtot = 1./secPtot;                       // inv. total P [1/GeV]
         gTrack.fPDG      = secPDG;                            // PDG code  
-        gTrack.fG5code   = TPartIndex::I()->PartIndex(secPDG);// corresponding G5 code 
+        gTrack.fGVcode   = TPartIndex::I()->PartIndex(secPDG);// corresponding GV code 
         gTrack.fCharge   = secCharge;                         // charge  
         gTrack.fMass     = secMass;                           // rest mass [GeV] 
         gTrack.fXdir     = fSecondaryTracks->px[isec]*secPtot;// direction (x,y,z)
@@ -276,7 +276,7 @@ void GVComptonProcess::SetGeantTrack(GeantTrack& left, GeantTrack_v& right, int 
     left.fEvent    = right.fEventV[ip];                     // same as parent 
     left.fEvslot   = right.fEvslotV[ip];                    // same as parent 
 //    left.fPDG      = secPDG;                              // will be set 
-//    left.fG5code   = TPartIndex::I()->PartIndex(secPDG);  // will be set
+//    left.fGVcode   = TPartIndex::I()->PartIndex(secPDG);  // will be set
     left.fEindex   = -1;                                    // init
 //    left.fCharge   = secCharge;                           // will be set 
     left.fProcess  = -1;                                    // init

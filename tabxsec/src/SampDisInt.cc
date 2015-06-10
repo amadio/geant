@@ -848,15 +848,15 @@ G4int SampleOne(G4Material* material,
     for(G4int i=0; i<n; ++i) {
       G4ParticleDefinition *pd = secs[i].GetDefinition();
       G4int enc = pd->GetPDGEncoding();
-      G4int g5pid = 0;
-      if(enc>1000000000 && enc<2000000000) g5pid = enc;
-      else g5pid = TPartIndex::I()->PartIndex(enc);
-      if(g5pid<0) {
+      G4int gVpid = 0;
+      if(enc>1000000000 && enc<2000000000) gVpid = enc;
+      else gVpid = TPartIndex::I()->PartIndex(enc);
+      if(gVpid<0) {
         // If there is Ion we put it in the output stack. However we have to handle it afterwards...
         fs.kerma+=secs[i].GetKineticEnergy();
       } else {
         G4int ip=fs.npart;
-        fs.pid[ip] = g5pid;
+        fs.pid[ip] = gVpid;
         fs.mom[3*ip]   = secs[i].Get4Momentum()[0];
         fs.mom[3*ip+1] = secs[i].Get4Momentum()[1];
         fs.mom[3*ip+2] = secs[i].Get4Momentum()[2];

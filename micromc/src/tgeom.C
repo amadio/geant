@@ -49,7 +49,7 @@ Int_t tgeom (Char_t *geofile="http://root.cern.ch/files/cms.root") {
       next.Reset();
       GeantTrack *tr=0;
       while((tr=(GeantTrack*)next())) {
-	 Int_t G5index = TPartIndex::I()->PartIndex(tr->pdg);
+	 Int_t GVindex = TPartIndex::I()->PartIndex(tr->pdg);
 	 tr->Direction(dir);
 	 x[0]=tr->xpos;
 	 x[1]=tr->ypos;
@@ -59,7 +59,7 @@ Int_t tgeom (Char_t *geofile="http://root.cern.ch/files/cms.root") {
 	 Double_t ken = 
 	 while(!geom->IsOutside()) {
 	    mat = current->GetVolume()->GetMaterial();
-	    Double_t xlen = mat->GetUserField()->Xlength(G5index,;
+	    Double_t xlen = mat->GetUserField()->Xlength(GVindex,;
 	    nexnode = geom->FindNextBoundaryAndStep(xlen);
 	    Double_t snext = geom->GetStep();
 	    if(snext>xlen) {
@@ -84,8 +84,8 @@ void GenerateEvent(Double_t avemult) {
    const npart=NPART;
    static const Char_t* partnam[NPART] = {"pi+","pi-","proton","antiproton","neutron","antineutron","e-","e+","gamma"
 				    "mu+","mu-"};
-   static Int_t G5part[NPART];
-   static Float_t G5prob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
+   static Int_t GVpart[NPART];
+   static Float_t GVprob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
 
    const Double_t etamin = -3, etamax = 3;
 
@@ -93,12 +93,12 @@ void GenerateEvent(Double_t avemult) {
    if(first) {
       Double_t sumprob=0;
       for(Int_t ip=0; ip<npart; ++ip) {
-	 G5part[ip] = TPartIndex::I()->PartIndex(partnam[ip]);
-	 sumprob += G5prob[ip];
+	 GVpart[ip] = TPartIndex::I()->PartIndex(partnam[ip]);
+	 sumprob += GVprob[ip];
       }
       for(Int_t ip=0; ip<npart; ++ip) {
-	 G5prob[ip]/=sumprob;
-	 if(ip) G5Prob[i]+=G5prob[ip-1];
+	 GVprob[ip]/=sumprob;
+	 if(ip) GVProb[i]+=GVprob[ip-1];
       }
    }
    

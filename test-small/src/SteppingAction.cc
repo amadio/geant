@@ -87,27 +87,27 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
 */ 
 
   // determine which process happend
-  G4int g5procIndex = -1;
+  G4int gVprocIndex = -1;
   G4VProcess const *g4proc = aStep->GetPostStepPoint()->GetProcessDefinedStep();
-  if(!RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to G5  
+  if(!RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to GV  
     if(G4String("UserSpecialCut") != g4proc->GetProcessName()) {
        G4int g4procCode  = g4proc->GetProcessType()*1000+g4proc->GetProcessSubType();
-       g5procIndex = TPartIndex::I()->ProcIndex(g4procCode);
+       gVprocIndex = TPartIndex::I()->ProcIndex(g4procCode);
     } else {
-       g5procIndex = 18; // max -> userCut
+       gVprocIndex = 18; // max -> userCut
     }
   } else { // running with tabulated phys.
     if(G4String("UserSpecialCut") != g4proc->GetProcessName()) {
        if(G4String("Transportation") == g4proc->GetProcessName())
-         g5procIndex = 0;
+         gVprocIndex = 0;
        else   
-         g5procIndex = TPartIndex::I()->ProcIndex(g4proc->GetProcessName());
+         gVprocIndex = TPartIndex::I()->ProcIndex(g4proc->GetProcessName());
     } else {
-       g5procIndex = 18; // max -> userCut
+       gVprocIndex = 18; // max -> userCut
     }    
   }
   
-  if(g5procIndex < 0) {
+  if(gVprocIndex < 0) {
     std::cout<< "Unknown process [ "<< g4proc->GetProcessName()  <<" ] in SteppingAction::UserSteppingAction !" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -119,13 +119,13 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
   {
     G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::mm;
     G4int layer = (pos+75.)/15.;
-    eventaction->FillPerStep(1, layer, edep, stepl, g5procIndex);
+    eventaction->FillPerStep(1, layer, edep, stepl, gVprocIndex);
   }
   if( volume == detector->GetAbsorber() )
   {
     G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::mm;
     G4int layer = (pos+75.)/15.;
-    eventaction->FillPerStep(0, layer, edep, stepl, g5procIndex);  
+    eventaction->FillPerStep(0, layer, edep, stepl, gVprocIndex);  
   }
  
   eventaction->AddOneStep();

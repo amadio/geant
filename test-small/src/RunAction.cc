@@ -262,7 +262,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
 
 
    std::cout<<"------------------ Process Number Stat. -----------------------\n"
-            <<" [G5 Proc. Name]     [Total # ]      [Average #]       [Sigma] \n"  
+            <<" [GV Proc. Name]     [Total # ]      [Average #]       [Sigma] \n"  
             << std::endl;
    for(G4int i=0; i<kNProc; ++i) {
       a = fSumProcStat[i]/((G4double)NbOfEvents);

@@ -334,9 +334,9 @@ public:
   /**
    * @brief Function that set GV particle code
    *
-   * @param g5code GV particle code that should be set as fGVcode
+   * @param gVcode GV particle code that should be set as fGVcode
    */
-  void SetGVcode(Int_t g5code) { fGVcode = g5code; }
+  void SetGVcode(Int_t gVcode) { fGVcode = gVcode; }
 
   /**
    * @brief Function that set element index

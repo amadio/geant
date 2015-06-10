@@ -31,7 +31,7 @@ Int_t rsampling(const char *el="O",const char *part="proton",Int_t nrep=100000)
    Double_t *x = new Double_t[nbins];
    TH1F **histos = new TH1F*[nproc];
 
-   TMultiGraph *tmg= new TMultiGraph("G5","G5");
+   TMultiGraph *tmg= new TMultiGraph("GV","GV");
    TGraph *gr=0;
 
    TEXsec * o = (TEXsec*)f->Get(el);

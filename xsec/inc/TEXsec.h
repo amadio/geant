@@ -16,7 +16,7 @@
 //                                                                      //
 // TEXSec                                                               //
 //                                                                      //
-// X-section for G5 per material                                        //
+// X-section for GV per material                                        //
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////

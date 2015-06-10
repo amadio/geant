@@ -9,7 +9,7 @@
 #include "GXTrack.hh"
 
 #include "TPartIndex.h"
-// for G5proc index
+// for GVproc index
 
 class TabulatedDataManager;
 class G4VParticleChange;
@@ -21,7 +21,7 @@ public:
 
   TabulatedProcess(G4String procName, G4ProcessType procType);	
   TabulatedProcess(G4String procName, G4ProcessType procType, 
-		   G5proc indexReac);	
+		   GVproc indexReac);	
   virtual ~TabulatedProcess();	
 
   // Override PostStepGetPhysicalInteractionLength method
@@ -42,7 +42,7 @@ private:
   TabulatedProcess& operator=(const TabulatedProcess&); // Not implemented
 
   G4int                 fMaterialIndex;
-  G5proc                fReaction;
+  GVproc                fReaction;
   G4VParticleChange*    fParticleChange;
   G4ParticleDefinition* fSecDefinition;
   TabulatedDataManager* theDataManager;

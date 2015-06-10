@@ -48,7 +48,7 @@ TabulatedProcess::TabulatedProcess(G4String processName,
 
 TabulatedProcess::TabulatedProcess(G4String processName, 
 				   G4ProcessType processType,
-				   G5proc reactionIndex) :
+				   GVproc reactionIndex) :
   G4WrapperProcess(processName,processType),
   fMaterialIndex(-1),
   fReaction(reactionIndex),

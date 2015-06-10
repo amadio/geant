@@ -86,7 +86,7 @@ void SteppingAction::UserSteppingAction(const G4Step* aStep)
       g4procCode = 0;
       pNameStr   = "Nothing"; // the important is that the name is Not UserSpecialCut
     }
-    if(RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to G5  
+    if(RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to GV  
        if(g4procCode != 1091){
          ++numPysLimSteps;         
          for(unsigned int i = 0; i<aStep->GetSecondaryInCurrentStep()->size(); ++i)
