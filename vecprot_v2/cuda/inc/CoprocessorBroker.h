@@ -123,10 +123,10 @@ int (*kernelFunc_t)(curandState* devStates,
                     cudaStream_t stream);
 #else
 typedef
-int (*kernelFunc_t)(DevicePtr<TaskWorkspace> &workSpace,
+int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<TaskWorkspace> &workSpace,
                     size_t ntracks,
-                    DevicePtr<GeantTrack_v> &input,
-                    DevicePtr<GeantTrack_v> &output,
+                    vecgeom::cxx::DevicePtr<GeantTrack_v> &input,
+                    vecgeom::cxx::DevicePtr<GeantTrack_v> &output,
 
                     int nBlocks, int nThreads,
                     cudaStream_t stream);
