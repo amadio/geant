@@ -211,6 +211,9 @@ public:
    CoprocessorBroker();
    ~CoprocessorBroker();
 
+   bool addTrack(int itr, GeantBasket &basket) { return false; }
+   int SetPrioritizer() { return 0; }
+
    bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
    bool UploadMagneticField(GXFieldMap** fieldMap);
 
