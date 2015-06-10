@@ -81,7 +81,7 @@ public:
   Int_t fEvslot;         /** Event slot */
   Int_t fParticle;       /** Index of corresponding particle */
   Int_t fPDG;            /** Particle pdg code */
-  Int_t fG5code;         /** G5 particle code */
+  Int_t fGVcode;         /** GV particle code */
   Int_t fEindex;         /** Element index */
   Int_t fCharge;         /** Particle charge */
   Int_t fProcess;        /** Current process */
@@ -167,8 +167,8 @@ public:
   /** @brief Function that return true if starting from boundary */
   Bool_t FromBoundary() const { return fFrombdr; }
 
-  /** @brief Function that return G5 particle code */
-  Int_t G5code() const { return fG5code; }
+  /** @brief Function that return GV particle code */
+  Int_t GVcode() const { return fGVcode; }
 
   /** @brief Function that return element index */
   Int_t EIndex() const { return fEindex; }
@@ -332,11 +332,11 @@ public:
   void SetPDG(Int_t pdg) { fPDG = pdg; }
 
   /**
-   * @brief Function that set G5 particle code
+   * @brief Function that set GV particle code
    *
-   * @param g5code G5 particle code that should be set as fG5code
+   * @param g5code GV particle code that should be set as fGVcode
    */
-  void SetG5code(Int_t g5code) { fG5code = g5code; }
+  void SetGVcode(Int_t g5code) { fGVcode = g5code; }
 
   /**
    * @brief Function that set element index
@@ -533,7 +533,7 @@ public:
   Int_t *fEvslotV;         /** Event slots */
   Int_t *fParticleV;       /** Indices of corresponding particles */
   Int_t *fPDGV;            /** Particle pdg codes */
-  Int_t *fG5codeV;         /** G5 internal codes */
+  Int_t *fGVcodeV;         /** GV internal codes */
   Int_t *fEindexV;         /** Element indices */
   Int_t *fChargeV;         /** Particle charges */
   Int_t *fProcessV;        /** Current process */

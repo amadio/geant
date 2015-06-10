@@ -110,7 +110,7 @@ void GunGenerator::GetTrack(Int_t /*n*/, GeantTrack &gtrack){
   // they are all the same here, so no dependence on n
 
      gtrack.SetPDG(fPDG);
-     gtrack.SetG5code(fGVPartIndex); 
+     gtrack.SetGVcode(fGVPartIndex); 
      gtrack.fXpos = fXPos;
      gtrack.fYpos = fYPos;
      gtrack.fZpos = fZPos;

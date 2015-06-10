@@ -17,7 +17,7 @@
 //                                                                      //
 // TPXSec                                                               //
 //                                                                      //
-// X-section for G5 per particle                                        //
+// X-section for GV per particle                                        //
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////

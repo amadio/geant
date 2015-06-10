@@ -337,7 +337,7 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td)
    td->fRndm->RndmArray(ntracks, rndArray);
 
    for (Int_t i=0; i<ntracks; ++i) {
-     Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
+     Int_t ipart  = tracks.fGVcodeV[i]; // GV particle index/code 
      Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
      energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
      energy=energy>=fEGrid[0]?energy:fEGrid[0];
@@ -396,7 +396,7 @@ void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, GeantTaskData *td)
    Double_t *rndArray = td->fDblArray;
    td->fRndm->RndmArray(1, rndArray);
 
-   Int_t ipart  = tracks.fG5codeV[i]; // GV particle index/code 
+   Int_t ipart  = tracks.fGVcodeV[i]; // GV particle index/code 
    Double_t energy = tracks.fEV[i] - tracks.fMassV[i];  // $E_{kin}$
    energy=energy<=fEGrid[fNEbins-1]?energy:fEGrid[fNEbins-1]*0.999;
    energy=energy>=fEGrid[0]?energy:fEGrid[0];
@@ -595,7 +595,7 @@ void TMXsec::Eloss(Int_t ntracks, GeantTrack_v &tracks)
 
    Double_t energyLimit = GeantPropagator::Instance()->fEmin;
    for (Int_t i=0; i<ntracks; ++i) {
-      Int_t ipart = tracks.fG5codeV[i];  // GV particle index/code
+      Int_t ipart = tracks.fGVcodeV[i];  // GV particle index/code
       tracks.fProcessV[i] = -1;    // init process index to -1 i.e. no process
       Double_t dedx       = 0.0;
 
@@ -671,7 +671,7 @@ void TMXsec::ElossSingle(Int_t i, GeantTrack_v &tracks)
 // necessary at-rest process type if it has any. 
 
    Double_t energyLimit = GeantPropagator::Instance()->fEmin;
-   Int_t ipart = tracks.fG5codeV[i];  // GV particle index/code
+   Int_t ipart = tracks.fGVcodeV[i];  // GV particle index/code
    tracks.fProcessV[i] = -1;    // init process index to -1 i.e. no process
    Double_t dedx       = 0.0;
 
@@ -812,7 +812,7 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTaskData *td)
        continue;
      }
 */
-     Int_t ipart  = tracksin.fG5codeV[t];
+     Int_t ipart  = tracksin.fGVcodeV[t];
      // if the particle can have both decay and something else 
      if(ipart < nParticleWithReaction) {
        Bool_t isDecay  = kFALSE; 
@@ -897,7 +897,7 @@ void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, GeantTaskData *td)
      return;
    }
 */
-   Int_t ipart  = tracksin.fG5codeV[t];
+   Int_t ipart  = tracksin.fGVcodeV[t];
    // if the particle can have both decay and something else 
    if(ipart < nParticleWithReaction) {
      Bool_t isDecay  = kFALSE; 

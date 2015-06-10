@@ -121,7 +121,7 @@ void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
     int pdg = genpart->pid();
     gtrack.SetPDG(pdg);
 
-    gtrack.SetG5code(TPartIndex::I()->PartIndex(pdg));
+    gtrack.SetGVcode(TPartIndex::I()->PartIndex(pdg));
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
 
     gtrack.SetCharge(part->Charge() / 3.);

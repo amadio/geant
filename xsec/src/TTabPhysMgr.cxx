@@ -292,7 +292,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 //   Double_t dir[3] = {0.,0.,0.};
    if (mxs) {
       for(Int_t i = 0; i < ntracks; ++i){
-         msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
+         msTheta = mxs->MS(tracks.fGVcodeV[i], tracks.fEV[i]-tracks.fMassV[i]);
          msPhi = 2.*Math::Pi()*rndArray[i];
          RotateTrack(tracks, i, msTheta, msPhi);
       }   
@@ -301,7 +301,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
    // Mixed tracks in different volumes
    for(Int_t i = 0; i < ntracks; ++i){
       mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
-      msTheta = mxs->MS(tracks.fG5codeV[i], tracks.fEV[i]-tracks.fMassV[i]);
+      msTheta = mxs->MS(tracks.fGVcodeV[i], tracks.fEV[i]-tracks.fMassV[i]);
       msPhi = 2.*Math::Pi()*rndArray[i];
 /*
       if (icnt<100 && mat->GetZ()>10) {
@@ -343,8 +343,8 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
      mxs->Eloss(ntracks, tracks);
      //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
      for(Int_t i = 0; i < ntracks; ++i)
-       if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
-         GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
+       if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fGVcodeV[i]) )
+         GetRestFinStates(tracks.fGVcodeV[i], mxs, energyLimit, tracks, i, 
                           nTotSecPart, td);
        return nTotSecPart;                   
    }
@@ -353,8 +353,8 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
       mxs = ((TOMXsec*)((TGeoRCExtension*)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
       mxs->ElossSingle(i, tracks);
      //call atRest sampling for tracks that have been stopped by Eloss and has at-rest
-      if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fG5codeV[i]) )
-        GetRestFinStates(tracks.fG5codeV[i], mxs, energyLimit, tracks, i, 
+      if( tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fGVcodeV[i]) )
+        GetRestFinStates(tracks.fGVcodeV[i], mxs, energyLimit, tracks, i, 
                           nTotSecPart, td);
    }                       
 
@@ -464,7 +464,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
       // kill the primary tarck
       tracks.fStatusV[t] = kKilled;
       // sample in-flight decay final state 
-      SampleDecayInFlight(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, 
+      SampleDecayInFlight(tracks.fGVcodeV[t], mxs, energyLimit, tracks, t, 
                           nTotSecPart, td);
       tracks.fPV[t] = 0.;
       tracks.fEV[t] = tracks.fMassV[t];                               
@@ -473,7 +473,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
 
     // not decay but something else was selected
     Double_t curPrimEkin = tracks.fEV[t]-tracks.fMassV[t];
-    isSurv = fElemFstate[tracks.fEindexV[t]]->SampleReac(tracks.fG5codeV[t], 
+    isSurv = fElemFstate[tracks.fEindexV[t]]->SampleReac(tracks.fGVcodeV[t], 
 		tracks.fProcessV[t], curPrimEkin, nSecPart, weight, kerma, ener, 
                 pid, mom, ebinindx, rndArray[2*t], rndArray[2*t+1]);
 
@@ -557,8 +557,8 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
         tracks.fPV[t] = 0.;
         tracks.fEV[t] = tracks.fMassV[t];
         // if the primary is stopped i.e. Ekin <= 0 then call at-rest if it has 
-        if( isSurv && postEkinOfParimary<=0.0 && HasRestProcess(tracks.fG5codeV[t]) ) 
-          GetRestFinStates(tracks.fG5codeV[t], mxs, energyLimit, tracks, t, 
+        if( isSurv && postEkinOfParimary<=0.0 && HasRestProcess(tracks.fGVcodeV[t]) ) 
+          GetRestFinStates(tracks.fGVcodeV[t], mxs, energyLimit, tracks, t, 
                            nTotSecPart, td);  
       }
       
@@ -604,7 +604,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks,
           gTrack.fEvslot   = tracks.fEvslotV[t];
 //          gTrack.fParticle = nTotSecPart;          //index of this particle
           gTrack.fPDG      = secPDG;               //PDG code of this particle
-          gTrack.fG5code   = pid[i];               //G5 index of this particle
+          gTrack.fGVcode   = pid[i];               //GV index of this particle
           gTrack.fEindex   = 0;
           gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
           gTrack.fProcess  = 0;
@@ -668,7 +668,7 @@ Int_t TTabPhysMgr::SampleInt(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, Ge
 // OUT:-indices of the TEXsec* in fElemXsec, that correspond to the sampled 
 //      elements, will be in GeantTrack_v::fEindexV array; GeantTrack_v::fEindexV[i] 
 //      will be -1 if no reaction for i-th particle
-//     -the G5 reaction indices will be in GeantTrack_v::fProcessV array; 
+//     -the GV reaction indices will be in GeantTrack_v::fProcessV array; 
 //      GeantTrack_v::fEindexV[i] will be -1 if no reaction for i-th particle     
 // 2.Sampling the finale states for the selected interaction and store the secondary
 // tracks in tracks; only those traks go into tracks that can pass the energyLimit,
@@ -729,7 +729,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack1.fEvslot  = tracks.fEvslotV[iintrack];
 //       gTrack.fParticle = nTotSecPart;          //index of this particle
        gTrack1.fPDG     = 22;  //gamma PDG code
-       gTrack1.fG5code  = TPartIndex::I()->GetSpecGVIndex(2); //gamma G5 index
+       gTrack1.fGVcode  = TPartIndex::I()->GetSpecGVIndex(2); //gamma GV index
        gTrack1.fEindex  = 0;
        gTrack1.fCharge  = 0.; // charge
        gTrack1.fProcess = 0;
@@ -846,7 +846,7 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs,
        gTrack.fEvslot   = tracks.fEvslotV[iintrack];
 //       gTrack.fParticle = nTotSecPart;          //index of this particle
        gTrack.fPDG      = secPDG;               //PDG code of this particle
-       gTrack.fG5code   = pid[i];               //G5 index of this particle
+       gTrack.fGVcode   = pid[i];               //GV index of this particle
        gTrack.fEindex   = 0;
        gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
        gTrack.fProcess  = 0;
@@ -956,7 +956,7 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs,
          gTrack.fEvslot   = tracks.fEvslotV[iintrack];
 //         gTrack.fParticle = nTotSecPart;          //index of this particle
          gTrack.fPDG      = secPDG;                 //PDG code of this particle
-         gTrack.fG5code   = pid[isec];              //G5 index of this particle
+         gTrack.fGVcode   = pid[isec];              //GV index of this particle
          gTrack.fEindex   = 0;
          gTrack.fCharge   = secPartPDG->Charge()/3.; //charge of this particle
          gTrack.fProcess  = -1;

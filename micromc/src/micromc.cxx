@@ -125,7 +125,7 @@ Int_t main (int argc, char *argv[]) {
 	    TMXsec *mx = ((TMXsec *)
 			  ((TGeoRCExtension*) 
 			   mat->GetFWExtension())->GetUserObject());
-	    Double_t xlen = mx->Xlength(track->fG5code,ken,TMath::Sqrt( (track->fE+track->fMass)*(track->fE-track->fMass) )  );
+	    Double_t xlen = mx->Xlength(track->fGVcode,ken,TMath::Sqrt( (track->fE+track->fMass)*(track->fE-track->fMass) )  );
 	    Double_t pnext = pintl*xlen;
 	    current = geom->FindNextBoundaryAndStep(pnext);
 	    Double_t snext = geom->GetStep();
@@ -134,7 +134,7 @@ Int_t main (int argc, char *argv[]) {
 	       //phys wins
 	       Int_t reac;
 	       mat->Print();
-	       TEXsec *el = mx->SampleInt(track->fG5code,ken,reac);
+	       TEXsec *el = mx->SampleInt(track->fGVcode,ken,reac);
 	       printf("particle does a %s on %s\n",TPartIndex::I()->ProcName(reac),el->GetName());
 	       break;
 	    } else {
@@ -160,7 +160,7 @@ Int_t main (int argc, char *argv[]) {
       next.Reset();
       GeantTrack *tr=0;
       while((tr=(GeantTrack*)next())) {
-	 Int_t G5index = TPartIndex::I()->PartIndex(tr->pdg);
+	 Int_t GVindex = TPartIndex::I()->PartIndex(tr->pdg);
 	 tr->Direction(dir);
 	 x[0]=tr->xpos;
 	 x[1]=tr->ypos;
@@ -177,12 +177,12 @@ Int_t main (int argc, char *argv[]) {
 void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
    static Bool_t first=kTRUE;
    static const Int_t kMaxPart=NPART;
-   static const Char_t* G5name[NPART] = {"pi+","pi-","proton","antiproton","neutron","antineutron","e-","e+",
+   static const Char_t* GVname[NPART] = {"pi+","pi-","proton","antiproton","neutron","antineutron","e-","e+",
 					 "gamma", "mu+","mu-"};
-   static const Species_t G5species[NPART] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, 
+   static const Species_t GVspecies[NPART] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, 
 					      kLepton, kLepton, kLepton, kLepton, kLepton};
-   static Int_t G5part[NPART];
-   static Float_t G5prob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
+   static Int_t GVpart[NPART];
+   static Float_t GVprob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
 
    const Double_t etamin = -3, etamax = 3;
 
@@ -190,13 +190,13 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
    if(first) {
       Double_t sumprob=0;
       for(Int_t ip=0; ip<kMaxPart; ++ip) {
-	 G5part[ip] = TPartIndex::I()->PartIndex(G5name[ip]);
-	 printf("part %s code %d\n",G5name[ip],G5part[ip]);
-	 sumprob += G5prob[ip];
+	 GVpart[ip] = TPartIndex::I()->PartIndex(GVname[ip]);
+	 printf("part %s code %d\n",GVname[ip],GVpart[ip]);
+	 sumprob += GVprob[ip];
       }
       for(Int_t ip=0; ip<kMaxPart; ++ip) {
-	 G5prob[ip]/=sumprob;
-	 if(ip) G5prob[ip]+=G5prob[ip-1];
+	 GVprob[ip]/=sumprob;
+	 if(ip) GVprob[ip]+=GVprob[ip-1];
       }
       first=kFALSE;
    }
@@ -209,10 +209,10 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
       GeantTrack *track=&particleStack[hwmark++];
       Double_t prob = gRandom->Uniform();
       for(Int_t j=0; j<kMaxPart; ++j) {
-	 if(prob <= G5prob[j]) {
-	    track->fG5code = G5part[j];
-	    track->fPDG = TPartIndex::I()->PDG(G5part[j]);
-	    track->fSpecies = G5species[j];
+	 if(prob <= GVprob[j]) {
+	    track->fGVcode = GVpart[j];
+	    track->fPDG = TPartIndex::I()->PDG(GVpart[j]);
+	    track->fSpecies = GVspecies[j];
 	    printf("Generating a %s\n",TDatabasePDG::Instance()->GetParticle(track->fPDG)->GetName());
 	    //	    pdgCount[j]++;
 	    break;

@@ -339,7 +339,7 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
   TObjArray *rnames = reactions.Tokenize("|");
   Int_t nreac = rnames->GetEntries();
   snprintf(gtitle, 199, "%s %s on %s", part, reactions.ReplaceAll("|", ",").Data(), GetTitle());
-  TMultiGraph *tmg = new TMultiGraph("G5", gtitle);
+  TMultiGraph *tmg = new TMultiGraph("GV", gtitle);
   TLine **line = new TLine *[nreac];
   TText **text = new TText *[nreac];
   Float_t lstartx = 0.7;
@@ -352,10 +352,10 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
     tc->SetGrid();
     same = kFALSE;
   } else {
-    tc = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("G5canvas");
+    tc = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("GVcanvas");
     //   if(!tc) tc = (TCanvas*)gROOT->GetListOfCanvases()->At(0);
     if (!tc) {
-      tc = new TCanvas("G5canvas", gtitle, 600, 400);
+      tc = new TCanvas("GVcanvas", gtitle, 600, 400);
       tc->SetLogx();
       tc->SetLogy();
       tc->SetGrid();

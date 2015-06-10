@@ -56,7 +56,7 @@ ClassImp(GeantTrack)
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack()
-    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fG5code(0), fEindex(0), fCharge(0),
+    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0),
       fProcess(-1), fVindex(0), fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0),
       fYpos(0), fZpos(0), fXdir(0), fYdir(0), fZdir(0), fP(0), fE(0), fTime(0), fEdep(0),
       fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false), fPending(false), fPath(0),
@@ -84,7 +84,7 @@ void print_trace(void) {
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack(Int_t ipdg)
-    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fG5code(0), fEindex(0), fCharge(0),
+    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0),
       fProcess(-1), fVindex(0), fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0),
       fYpos(0), fZpos(0), fXdir(0), fYdir(0), fZdir(0), fP(0), fE(0), fTime(0), fEdep(0),
       fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false), fPending(false), fPath(0),
@@ -98,7 +98,7 @@ GeantTrack::GeantTrack(Int_t ipdg)
 //______________________________________________________________________________
 GeantTrack::GeantTrack(const GeantTrack &other)
     : fEvent(other.fEvent), fEvslot(other.fEvslot), fParticle(other.fParticle), fPDG(other.fPDG),
-      fG5code(other.fG5code), fEindex(other.fEindex), fCharge(other.fCharge),
+      fGVcode(other.fGVcode), fEindex(other.fEindex), fCharge(other.fCharge),
       fProcess(other.fProcess), fVindex(other.fVindex), fNsteps(other.fNsteps),
       fSpecies(other.fSpecies), fStatus(other.fStatus), fMass(other.fMass), fXpos(other.fXpos),
       fYpos(other.fYpos), fZpos(other.fZpos), fXdir(other.fXdir), fYdir(other.fYdir),
@@ -121,7 +121,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fEvslot = other.fEvslot;
     fParticle = other.fParticle;
     fPDG = other.fPDG;
-    fG5code = other.fG5code;
+    fGVcode = other.fGVcode;
     fEindex = other.fEindex;
     fCharge = other.fCharge;
     fProcess = other.fProcess;
@@ -169,7 +169,7 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, Int_t i) {
   fEvslot = arr.fEvslotV[i];
   fParticle = arr.fParticleV[i];
   fPDG = arr.fPDGV[i];
-  fG5code = arr.fG5codeV[i];
+  fGVcode = arr.fGVcodeV[i];
   fEindex = arr.fEindexV[i];
   fCharge = arr.fChargeV[i];
   fProcess = arr.fProcessV[i];
@@ -207,7 +207,7 @@ void GeantTrack::Clear(Option_t *) {
   fEvslot = -1;
   fParticle = -1;
   fPDG = 0;
-  fG5code = 0;
+  fGVcode = 0;
   fEindex = 0;
   fCharge = 0;
   fProcess = -1;
@@ -306,7 +306,7 @@ ClassImp(GeantTrack_v)
 GeantTrack_v::GeantTrack_v()
     : fNtracks(0), fMaxtracks(0), fNselected(0), fHoles(0), fSelected(0), fCompact(true),
       fMixed(false), fMaxDepth(0), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0),
-      fParticleV(0), fPDGV(0), fG5codeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0),
+      fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0),
       fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0),
       fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0),
       fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -320,7 +320,7 @@ GeantTrack_v::GeantTrack_v()
 GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
     : fNtracks(0), fMaxtracks(0), fNselected(0), fHoles(0), fSelected(0), fCompact(true),
       fMixed(false), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0),
-      fEvslotV(0), fParticleV(0), fPDGV(0), fG5codeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
+      fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
       fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0),
       fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -342,7 +342,7 @@ GeantTrack_v *GeantTrack_v::MakeInstanceAt(void *addr, unsigned int nTracks, Int
 GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth)
     : fNtracks(0), fMaxtracks(nTracks), fNselected(0), fHoles(0), fSelected(0), fCompact(true),
       fMixed(false), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0),
-      fEvslotV(0), fParticleV(0), fPDGV(0), fG5codeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
+      fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
       fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0),
       fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -365,7 +365,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
     : fNtracks(0), fMaxtracks(track_v.fMaxtracks), fNselected(track_v.fNselected), fHoles(0),
       fSelected(0), fCompact(track_v.fCompact), fMixed(track_v.fMixed),
       fMaxDepth(track_v.fMaxDepth), fBufSize(track_v.fBufSize), fVPstart(0), fBuf(0), fEventV(0),
-      fEvslotV(0), fParticleV(0), fPDGV(0), fG5codeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
+      fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0),
       fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0),
       fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -441,7 +441,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size) {
   buf += size_intn;
   fPDGV = (Int_t *)buf;
   buf += size_intn;
-  fG5codeV = (Int_t *)buf;
+  fGVcodeV = (Int_t *)buf;
   buf += size_intn;
   fEindexV = (Int_t *)buf;
   buf += size_intn;
@@ -528,8 +528,8 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size) {
   memcpy_align(buf, fPDGV, size_int);
   fPDGV = (Int_t *)buf;
   buf += size_intn;
-  memcpy_align(buf, fG5codeV, size_int);
-  fG5codeV = (Int_t *)buf;
+  memcpy_align(buf, fGVcodeV, size_int);
+  fGVcodeV = (Int_t *)buf;
   buf += size_intn;
   memcpy_align(buf, fEindexV, size_int);
   fEindexV = (Int_t *)buf;
@@ -642,11 +642,11 @@ Bool_t GeantTrack_v::IsSame(const GeantTrack_v &tr1, Int_t i1, const GeantTrack_
   // Compare two tracks.
   Long64_t chk1, chk2;
   chk1 = tr1.fEventV[i1] + tr1.fEvslotV[i1] + tr1.fParticleV[i1] + tr1.fPDGV[i1] +
-         tr1.fG5codeV[i1] + tr1.fEindexV[i1] + tr1.fChargeV[i1] + tr1.fProcessV[i1] +
+         tr1.fGVcodeV[i1] + tr1.fEindexV[i1] + tr1.fChargeV[i1] + tr1.fProcessV[i1] +
          tr1.fVindexV[i1] + tr1.fNstepsV[i1] + (Long64_t)tr1.fSpeciesV[i1] +
          (Long64_t)tr1.fStatusV[i1];
   chk2 = tr2.fEventV[i2] + tr2.fEvslotV[i2] + tr2.fParticleV[i2] + tr2.fPDGV[i2] +
-         tr2.fG5codeV[i2] + tr2.fEindexV[i2] + tr2.fChargeV[i2] + tr2.fProcessV[i2] +
+         tr2.fGVcodeV[i2] + tr2.fEindexV[i2] + tr2.fChargeV[i2] + tr2.fProcessV[i2] +
          tr2.fVindexV[i2] + tr2.fNstepsV[i2] + (Long64_t)tr2.fSpeciesV[i2] +
          (Long64_t)tr2.fStatusV[i2];
   if (chk1 != chk2)
@@ -748,7 +748,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack &track, Bool_t /*import*/) {
   fEvslotV[itrack] = track.fEvslot;
   fParticleV[itrack] = track.fParticle;
   fPDGV[itrack] = track.fPDG;
-  fG5codeV[itrack] = track.fG5code;
+  fGVcodeV[itrack] = track.fGVcode;
   fEindexV[itrack] = track.fEindex;
   fChargeV[itrack] = track.fCharge;
   fProcessV[itrack] = track.fProcess;
@@ -801,7 +801,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack &track) {
   fEvslotV[itrack] = track.fEvslot;
   fParticleV[itrack] = track.fParticle;
   fPDGV[itrack] = track.fPDG;
-  fG5codeV[itrack] = track.fG5code;
+  fGVcodeV[itrack] = track.fGVcode;
   fEindexV[itrack] = track.fEindex;
   fChargeV[itrack] = track.fCharge;
   fProcessV[itrack] = track.fProcess;
@@ -872,7 +872,7 @@ Int_t GeantTrack_v::AddTrack(GeantTrack_v &arr, Int_t i, Bool_t /*import*/) {
   fEvslotV[itrack] = arr.fEvslotV[i];
   fParticleV[itrack] = arr.fParticleV[i];
   fPDGV[itrack] = arr.fPDGV[i];
-  fG5codeV[itrack] = arr.fG5codeV[i];
+  fGVcodeV[itrack] = arr.fGVcodeV[i];
   fEindexV[itrack] = arr.fEindexV[i];
   fChargeV[itrack] = arr.fChargeV[i];
   fProcessV[itrack] = arr.fProcessV[i];
@@ -931,7 +931,7 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i) {
   fEvslotV[itrack] = arr.fEvslotV[i];
   fParticleV[itrack] = arr.fParticleV[i];
   fPDGV[itrack] = arr.fPDGV[i];
-  fG5codeV[itrack] = arr.fG5codeV[i];
+  fGVcodeV[itrack] = arr.fGVcodeV[i];
   fEindexV[itrack] = arr.fEindexV[i];
   fChargeV[itrack] = arr.fChargeV[i];
   fProcessV[itrack] = arr.fProcessV[i];
@@ -985,7 +985,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t
   memcpy_align(&fEvslotV[ntracks], &arr.fEvslotV[istart], ncpy * sizeof(Int_t));
   memcpy_align(&fParticleV[ntracks], &arr.fParticleV[istart], ncpy * sizeof(Int_t));
   memcpy_align(&fPDGV[ntracks], &arr.fPDGV[istart], ncpy * sizeof(Int_t));
-  memcpy_align(&fG5codeV[ntracks], &arr.fG5codeV[istart], ncpy * sizeof(Int_t));
+  memcpy_align(&fGVcodeV[ntracks], &arr.fGVcodeV[istart], ncpy * sizeof(Int_t));
   memcpy_align(&fEindexV[ntracks], &arr.fEindexV[istart], ncpy * sizeof(Int_t));
   memcpy_align(&fChargeV[ntracks], &arr.fChargeV[istart], ncpy * sizeof(Int_t));
   memcpy_align(&fProcessV[ntracks], &arr.fProcessV[istart], ncpy * sizeof(Int_t));
@@ -1042,9 +1042,9 @@ void GeantTrack_v::SwapTracks(Int_t i, Int_t j) {
   tint = fPDGV[i];
   fPDGV[i] = fPDGV[j];
   fPDGV[j] = tint;
-  tint = fG5codeV[i];
-  fG5codeV[i] = fG5codeV[j];
-  fG5codeV[j] = tint;
+  tint = fGVcodeV[i];
+  fGVcodeV[i] = fGVcodeV[j];
+  fGVcodeV[j] = tint;
   tint = fEindexV[i];
   fEindexV[i] = fEindexV[j];
   fEindexV[j] = tint;
@@ -1136,7 +1136,7 @@ void GeantTrack_v::ReplaceTrack(Int_t i, Int_t j) {
   fEvslotV[i] = fEvslotV[j];
   fParticleV[i] = fParticleV[j];
   fPDGV[i] = fPDGV[j];
-  fG5codeV[i] = fG5codeV[j];
+  fGVcodeV[i] = fGVcodeV[j];
   fEindexV[i] = fEindexV[j];
   fChargeV[i] = fChargeV[j];
   fProcessV[i] = fProcessV[j];
@@ -1202,7 +1202,7 @@ void GeantTrack_v::RemoveTracks(Int_t from, Int_t to) {
   memmove(&fEvslotV[from], &fEvslotV[to + 1], ncpy * sizeof(Int_t));
   memmove(&fParticleV[from], &fParticleV[to + 1], ncpy * sizeof(Int_t));
   memmove(&fPDGV[from], &fPDGV[to + 1], ncpy * sizeof(Int_t));
-  memmove(&fG5codeV[from], &fG5codeV[to + 1], ncpy * sizeof(Int_t));
+  memmove(&fGVcodeV[from], &fGVcodeV[to + 1], ncpy * sizeof(Int_t));
   memmove(&fEindexV[from], &fEindexV[to + 1], ncpy * sizeof(Int_t));
   memmove(&fChargeV[from], &fChargeV[to + 1], ncpy * sizeof(Int_t));
   memmove(&fProcessV[from], &fProcessV[to + 1], ncpy * sizeof(Int_t));
@@ -1943,7 +1943,7 @@ void GeantTrack_v::PrintTrack(Int_t itr, const char *msg) const {
       "===%s=== Object %p, Track %d: evt=%d slt=%d part=%d pdg=%d g5c=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g\
               xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
       msg, (const void *)this, itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr],
-      fG5codeV[itr], fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr],
+      fGVcodeV[itr], fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr],
       (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr], fYposV[itr],
       fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr], fTimeV[itr],
       fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fFrombdrV[itr]);
@@ -1958,7 +1958,7 @@ void GeantTrack_v::PrintTrack(Int_t itr, const char *msg) const {
          "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
          "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n pth=%s npth=%s\n",
          msg, itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fEindexV[itr],
-         fG5codeV[itr], fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr],
+         fGVcodeV[itr], fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr],
          (Int_t)fSpeciesV[itr], status[Int_t(fStatusV[itr])], fMassV[itr], fXposV[itr], fYposV[itr],
          fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr], fTimeV[itr],
          fEdepV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fFrombdrV[itr],

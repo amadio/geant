@@ -32,7 +32,7 @@
 #define NELEM 118        // Total number of materials
 
  
-enum G5proc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
+enum GVproc {kTransport, kMultScatt, kIonisation, kDecay, kinElastic,
 	     kElastic, kRestCapture ,kBrehms, kPairProd, kAnnihilation,
 	     kCoulombScatt, kPhotoel, kCompton, kConversion, kCapture,
 	     kKiller, kTotal};
@@ -68,18 +68,18 @@ public:
    // Fill the particle table
    void SetPartTable(const Int_t *vpdg, Int_t np);
    
-   // PDG code <- G5 particle number
+   // PDG code <- GV particle number
    Int_t PDG(Int_t i) const {return fPDG[i];}
    // PDG code <- particle name 
    Int_t PDG(const Char_t* pname) const;
-   // Particle name <- G5 particle number
+   // Particle name <- GV particle number
    const Char_t *PartName(Int_t i) const 
    {return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName();}
 
-   // G5 particle index <- PDG code
+   // GV particle index <- PDG code
    Int_t PartIndex(Int_t pdg) const;
 
-   // G5 particle index <- particle name 
+   // GV particle index <- particle name 
    Int_t PartIndex(const Char_t *partname) const {
       return PartIndex(PDG(partname));}
    // Number of particles 
