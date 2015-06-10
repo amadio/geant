@@ -1,10 +1,16 @@
 // The following in ROOT v6 equivalent to gSystem->Load("../lib/libGeant_v");
 // R__LOAD_LIBRARY(libGeant_v)
 
+#ifndef COPROCESSOR_REQUEST
+#define COPROCESSOR_REQUEST false
+#endif
+
 void run(Int_t nthreads=4,
 	 const char *geomfile="ExN03.root",
 	 const char *xsec="xsec_FTFP_BERT.root",
-	 const char *fstate="fstate_FTFP_BERT.root")
+	 const char *fstate="fstate_FTFP_BERT.root",
+         bool coprocessor = COPROCESSOR_REQUEST
+         )
 {
    // Those library used to need to be loaded explicitly and are now
    // automatically loaded by ROOT.
@@ -34,6 +40,16 @@ void run(Int_t nthreads=4,
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    // Monitor different features
    wmgr->SetNminThreshold(5*nthreads);
+   if (coprocessor) {
+#ifdef GEANTCUDA_REPLACE
+      CoprocessorBroker *gpuBroker = new CoprocessorBroker();
+      gpuBroker->CudaSetup(32,128,1);
+      wmgr->SetTaskBroker(gpuBroker);
+#else
+      std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
+#endif
+   }
+
    wmgr->SetMonitored(WorkloadManager::kMonQueue,          true & (!performance));
    wmgr->SetMonitored(WorkloadManager::kMonMemory,         false & (!performance));
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false & (!performance));
