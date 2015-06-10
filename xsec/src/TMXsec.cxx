@@ -346,7 +346,7 @@ void TMXsec::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td)
         tracks.fPstepV[i] = x;
         tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
       }
-    } else if (fDecayTable->HasDecay(ipart)) { // it has only decay
+    } else if (fDecayTable->HasDecay(ipart)) {                         // it has only decay
       Double_t x = tracks.fPV[i] * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
       x = -1. * x * TMath::Log(rndArray[i]);
       if (x < cx) {
@@ -404,7 +404,7 @@ void TMXsec::ProposeStepSingle(Int_t i, GeantTrack_v &tracks, GeantTaskData *td)
       tracks.fPstepV[i] = x;
       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
     }
-  } else if (fDecayTable->HasDecay(ipart)) { // it has only decay
+  } else if (fDecayTable->HasDecay(ipart)) {                         // it has only decay
     Double_t x = tracks.fPV[i] * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
     x = -1. * x * TMath::Log(rndArray[0]);
     if (x < cx) {
@@ -841,9 +841,9 @@ void TMXsec::SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTaskData *td)
       }
     } else if (fDecayTable->HasDecay(ipart)) {
       // only decay can happen because ipart>nParticleWithReaction
-      tracksin.fProcessV[t] = 3; // decay
-      tracksin.fEindexV[t] = -1; // on nothing
-    } else { // nothing happens
+      tracksin.fProcessV[t] = 3;  // decay
+      tracksin.fEindexV[t] = -1;  // on nothing
+    } else {                      // nothing happens
       tracksin.fProcessV[t] = -1; // nothing
       tracksin.fEindexV[t] = -1;  // on nothing
     }
@@ -925,9 +925,9 @@ void TMXsec::SampleSingleInt(Int_t t, GeantTrack_v &tracksin, GeantTaskData *td)
     }
   } else if (fDecayTable->HasDecay(ipart)) {
     // only decay can happen because ipart>nParticleWithReaction
-    tracksin.fProcessV[t] = 3; // decay
-    tracksin.fEindexV[t] = -1; // on nothing
-  } else { // nothing happens
+    tracksin.fProcessV[t] = 3;  // decay
+    tracksin.fEindexV[t] = -1;  // on nothing
+  } else {                      // nothing happens
     tracksin.fProcessV[t] = -1; // nothing
     tracksin.fEindexV[t] = -1;  // on nothing
   }

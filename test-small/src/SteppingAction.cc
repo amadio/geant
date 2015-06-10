@@ -26,7 +26,7 @@
 //
 // $Id$
 //
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -46,96 +46,89 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction():                                        
-   detector((DetectorConstruction*)
-	    G4RunManager::GetRunManager()->GetUserDetectorConstruction()),
-   eventaction((EventAction*)
-	       G4RunManager::GetRunManager()->GetUserEventAction()),
-   doAnalysis(getenv("DO_STEPPING_ANALYSIS")),
-   fSteppingAnalysis(0)
-{
-  if (doAnalysis) fSteppingAnalysis = new SteppingAnalysis();
-
+SteppingAction::SteppingAction()
+    : detector((DetectorConstruction *)G4RunManager::GetRunManager()->GetUserDetectorConstruction()),
+      eventaction((EventAction *)G4RunManager::GetRunManager()->GetUserEventAction()),
+      doAnalysis(getenv("DO_STEPPING_ANALYSIS")), fSteppingAnalysis(0) {
+  if (doAnalysis)
+    fSteppingAnalysis = new SteppingAnalysis();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::~SteppingAction()
-{ 
-  if (doAnalysis) delete fSteppingAnalysis;
+SteppingAction::~SteppingAction() {
+  if (doAnalysis)
+    delete fSteppingAnalysis;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void SteppingAction::UserSteppingAction(const G4Step* aStep)
-{
-  
+void SteppingAction::UserSteppingAction(const G4Step *aStep) {
+
 #ifdef MAKESTAT
   // get volume of the current step
-  G4VPhysicalVolume* volume 
-  = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
-  
+  G4VPhysicalVolume *volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit();
-  
+
   G4double stepl = 0.;
-/*  if (aStep->GetTrack()->GetDefinition()->GetPDGCharge() != 0.)
-    stepl = aStep->GetStepLength();
-      
-  if (volume == detector->GetAbsorber()) eventaction->AddAbs(edep,stepl);
-  if (volume == detector->GetGap())      eventaction->AddGap(edep,stepl);
-*/ 
+  /*  if (aStep->GetTrack()->GetDefinition()->GetPDGCharge() != 0.)
+      stepl = aStep->GetStepLength();
+
+    if (volume == detector->GetAbsorber()) eventaction->AddAbs(edep,stepl);
+    if (volume == detector->GetGap())      eventaction->AddGap(edep,stepl);
+  */
 
   // determine which process happend
   G4int gVprocIndex = -1;
   G4VProcess const *g4proc = aStep->GetPostStepPoint()->GetProcessDefinedStep();
-  if(!RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to GV  
-    if(G4String("UserSpecialCut") != g4proc->GetProcessName()) {
-       G4int g4procCode  = g4proc->GetProcessType()*1000+g4proc->GetProcessSubType();
-       gVprocIndex = TPartIndex::I()->ProcIndex(g4procCode);
+  if (!RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to GV
+    if (G4String("UserSpecialCut") != g4proc->GetProcessName()) {
+      G4int g4procCode = g4proc->GetProcessType() * 1000 + g4proc->GetProcessSubType();
+      gVprocIndex = TPartIndex::I()->ProcIndex(g4procCode);
     } else {
-       gVprocIndex = 18; // max -> userCut
+      gVprocIndex = 18; // max -> userCut
     }
   } else { // running with tabulated phys.
-    if(G4String("UserSpecialCut") != g4proc->GetProcessName()) {
-       if(G4String("Transportation") == g4proc->GetProcessName())
-         gVprocIndex = 0;
-       else   
-         gVprocIndex = TPartIndex::I()->ProcIndex(g4proc->GetProcessName());
+    if (G4String("UserSpecialCut") != g4proc->GetProcessName()) {
+      if (G4String("Transportation") == g4proc->GetProcessName())
+        gVprocIndex = 0;
+      else
+        gVprocIndex = TPartIndex::I()->ProcIndex(g4proc->GetProcessName());
     } else {
-       gVprocIndex = 18; // max -> userCut
-    }    
+      gVprocIndex = 18; // max -> userCut
+    }
   }
-  
-  if(gVprocIndex < 0) {
-    std::cout<< "Unknown process [ "<< g4proc->GetProcessName()  <<" ] in SteppingAction::UserSteppingAction !" << std::endl;
+
+  if (gVprocIndex < 0) {
+    std::cout << "Unknown process [ " << g4proc->GetProcessName() << " ] in SteppingAction::UserSteppingAction !"
+              << std::endl;
     exit(EXIT_FAILURE);
   }
-   
+
   //...
-  stepl = aStep->GetStepLength()/CLHEP::cm; // change to cm 
-// edep  /=GeV;                      // change to GeV
-  if( volume == detector->GetGap() )
-  {
-    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::mm;
-    G4int layer = (pos+75.)/15.;
+  stepl = aStep->GetStepLength() / CLHEP::cm; // change to cm
+                                              // edep  /=GeV;                      // change to GeV
+  if (volume == detector->GetGap()) {
+    G4double pos = aStep->GetPreStepPoint()->GetPosition().x() / CLHEP::mm;
+    G4int layer = (pos + 75.) / 15.;
     eventaction->FillPerStep(1, layer, edep, stepl, gVprocIndex);
   }
-  if( volume == detector->GetAbsorber() )
-  {
-    G4double pos = aStep->GetPreStepPoint()->GetPosition().x()/CLHEP::mm;
-    G4int layer = (pos+75.)/15.;
-    eventaction->FillPerStep(0, layer, edep, stepl, gVprocIndex);  
+  if (volume == detector->GetAbsorber()) {
+    G4double pos = aStep->GetPreStepPoint()->GetPosition().x() / CLHEP::mm;
+    G4int layer = (pos + 75.) / 15.;
+    eventaction->FillPerStep(0, layer, edep, stepl, gVprocIndex);
   }
- 
+
   eventaction->AddOneStep();
 #endif
 
-  //example of saving random number seed of this event, under condition
-  //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent(); 
+  // example of saving random number seed of this event, under condition
+  //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();
 
-//   Don't do !! 
-//  if(doAnalysis) fSteppingAnalysis->DoIt(aStep);
+  //   Don't do !!
+  //  if(doAnalysis) fSteppingAnalysis->DoIt(aStep);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

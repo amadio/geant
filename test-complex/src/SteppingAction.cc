@@ -26,7 +26,7 @@
 //
 // $Id$
 //
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -48,72 +48,64 @@ double SteppingAction::fgTrackingCutInEnergy = 0.01; // tracking cut in GeV defa
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction():                                        
-   fDetector((DetectorConstruction*)
-	    G4RunManager::GetRunManager()->GetUserDetectorConstruction()),
-   fEventaction((EventAction*)
-	       G4RunManager::GetRunManager()->GetUserEventAction())
-{}
+SteppingAction::SteppingAction()
+    : fDetector((DetectorConstruction *)G4RunManager::GetRunManager()->GetUserDetectorConstruction()),
+      fEventaction((EventAction *)G4RunManager::GetRunManager()->GetUserEventAction()) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::~SteppingAction()
-{}
+SteppingAction::~SteppingAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void SteppingAction::UserSteppingAction(const G4Step* aStep)
-{
+void SteppingAction::UserSteppingAction(const G4Step *aStep) {
 
-  if(!RunAction::fgScoreTypeFlag)
+  if (!RunAction::fgScoreTypeFlag)
     return;
 
   unsigned long numPysLimSteps = 0;
-  unsigned long numSecs        = 0;
-  unsigned long numTotal       = 0;
-  
-  if(aStep->GetPreStepPoint()->GetKineticEnergy() > fgTrackingCutInEnergy  )   // get good number of secondaries
+  unsigned long numSecs = 0;
+  unsigned long numTotal = 0;
+
+  if (aStep->GetPreStepPoint()->GetKineticEnergy() > fgTrackingCutInEnergy) // get good number of secondaries
   {
     // determine which process happend
     G4VProcess const *g4proc = aStep->GetPostStepPoint()->GetProcessDefinedStep();
     G4int g4procCode;
     G4String pNameStr;
-    if(g4proc)  // if NULL -> it was user special cut along the step that was limited by NOT transportation  
+    if (g4proc) // if NULL -> it was user special cut along the step that was limited by NOT transportation
     {
-      g4procCode   = g4proc->GetProcessType()*1000+g4proc->GetProcessSubType();
-      pNameStr  = g4proc->GetProcessName();
+      g4procCode = g4proc->GetProcessType() * 1000 + g4proc->GetProcessSubType();
+      pNameStr = g4proc->GetProcessName();
     } else {
       g4procCode = 0;
-      pNameStr   = "Nothing"; // the important is that the name is Not UserSpecialCut
+      pNameStr = "Nothing"; // the important is that the name is Not UserSpecialCut
     }
-    if(RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to GV  
-       if(g4procCode != 1091){
-         ++numPysLimSteps;         
-         for(unsigned int i = 0; i<aStep->GetSecondaryInCurrentStep()->size(); ++i)
-            if((*aStep->GetSecondaryInCurrentStep())[i]->GetKineticEnergy() > fgTrackingCutInEnergy)
-               ++numSecs; 
-
-       }
-       if(RunAction::fgScoreTypeFlag > 1)
-         fEventaction->FillHistSteps(aStep);
+    if (RunAction::isTabPhys) { // running with G4 phys. list. convert G4ProcName to GV
+      if (g4procCode != 1091) {
+        ++numPysLimSteps;
+        for (unsigned int i = 0; i < aStep->GetSecondaryInCurrentStep()->size(); ++i)
+          if ((*aStep->GetSecondaryInCurrentStep())[i]->GetKineticEnergy() > fgTrackingCutInEnergy)
+            ++numSecs;
+      }
+      if (RunAction::fgScoreTypeFlag > 1)
+        fEventaction->FillHistSteps(aStep);
     } else { // G4 Physics
-       if( g4procCode != 1091 && G4String("UserSpecialCut") != pNameStr ){   //not transportation nt trackingCut
-         ++numPysLimSteps;                 
-         for(unsigned int i = 0; i<aStep->GetSecondaryInCurrentStep()->size(); ++i)
-            if((*aStep->GetSecondaryInCurrentStep())[i]->GetKineticEnergy() > fgTrackingCutInEnergy)
-               ++numSecs; 
-
-       }
-       if(RunAction::fgScoreTypeFlag > 1)
-         fEventaction->FillHistSteps(aStep);
+      if (g4procCode != 1091 && G4String("UserSpecialCut") != pNameStr) { // not transportation nt trackingCut
+        ++numPysLimSteps;
+        for (unsigned int i = 0; i < aStep->GetSecondaryInCurrentStep()->size(); ++i)
+          if ((*aStep->GetSecondaryInCurrentStep())[i]->GetKineticEnergy() > fgTrackingCutInEnergy)
+            ++numSecs;
+      }
+      if (RunAction::fgScoreTypeFlag > 1)
+        fEventaction->FillHistSteps(aStep);
     }
-    numTotal = 1; 
+    numTotal = 1;
   }
-//printf("FillPerStep: numPhys=%ld numSecs=%ld, numTotal=%ld\n", numPysLimSteps, numSecs, numTotal); 
-  if(RunAction::fgScoreTypeFlag > 0)
-    fEventaction->FillPerSteps(numPysLimSteps, numSecs, numTotal, 1); 
+  // printf("FillPerStep: numPhys=%ld numSecs=%ld, numTotal=%ld\n", numPysLimSteps, numSecs, numTotal);
+  if (RunAction::fgScoreTypeFlag > 0)
+    fEventaction->FillPerSteps(numPysLimSteps, numSecs, numTotal, 1);
 
-  //example of saving random number seed of this event, under condition
-  //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent(); 
+  // example of saving random number seed of this event, under condition
+  //// if (condition) G4RunManager::GetRunManager()->rndmSaveThisEvent();
 }
-

@@ -33,54 +33,32 @@
 #include "TDatabasePDG.h"
 #include "TPartIndex.h"
 
-TabulatedProcess::TabulatedProcess(G4String processName, 
-				   G4ProcessType processType) :
-  G4WrapperProcess(processName,processType),
-  fMaterialIndex(-1),
-  fReaction(kTotal),
-  fParticleChange(0),
-  fSecDefinition(G4Geantino::Geantino()),
-  theDataManager(0),
-  fSecParticles()
-{
+TabulatedProcess::TabulatedProcess(G4String processName, G4ProcessType processType)
+    : G4WrapperProcess(processName, processType), fMaterialIndex(-1), fReaction(kTotal), fParticleChange(0),
+      fSecDefinition(G4Geantino::Geantino()), theDataManager(0), fSecParticles() {
   fSecParticles.reserve(5);
 }
 
-TabulatedProcess::TabulatedProcess(G4String processName, 
-				   G4ProcessType processType,
-				   GVproc reactionIndex) :
-  G4WrapperProcess(processName,processType),
-  fMaterialIndex(-1),
-  fReaction(reactionIndex),
-  fParticleChange(0),
-  fSecDefinition(G4Geantino::Geantino()),
-  theDataManager(TabulatedDataManager::Instance()),
-  fSecParticles()
-{
+TabulatedProcess::TabulatedProcess(G4String processName, G4ProcessType processType, GVproc reactionIndex)
+    : G4WrapperProcess(processName, processType), fMaterialIndex(-1), fReaction(reactionIndex), fParticleChange(0),
+      fSecDefinition(G4Geantino::Geantino()), theDataManager(TabulatedDataManager::Instance()), fSecParticles() {
   fSecParticles.reserve(5);
 }
 
-TabulatedProcess::~TabulatedProcess() 
-{
-}
+TabulatedProcess::~TabulatedProcess() {}
 
-G4double
-TabulatedProcess::PostStepGetPhysicalInteractionLength(const G4Track& track,
-						   G4double previousStepSize,
-						   G4ForceCondition* condition)
-{
+G4double TabulatedProcess::PostStepGetPhysicalInteractionLength(const G4Track &track, G4double previousStepSize,
+                                                                G4ForceCondition *condition) {
   // Call to ensure that the process is correctly initialised - temporary
-  pRegProcess->PostStepGetPhysicalInteractionLength(track,
-						    previousStepSize,
-						    condition);
+  pRegProcess->PostStepGetPhysicalInteractionLength(track, previousStepSize, condition);
 
   SetupForMaterial(track);
 
-  if ( (previousStepSize <=0.0) || (theNumberOfInteractionLengthLeft<=0.0)) {
+  if ((previousStepSize <= 0.0) || (theNumberOfInteractionLengthLeft <= 0.0)) {
     // beggining of tracking (or just after DoIt of this process)
     ResetNumberOfInteractionLengthLeft();
-  } else if ( previousStepSize > 0.0) {
-    // subtract NumberOfInteractionLengthLeft 
+  } else if (previousStepSize > 0.0) {
+    // subtract NumberOfInteractionLengthLeft
     SubtractNumberOfInteractionLengthLeft(previousStepSize);
   } else {
     // zero step
@@ -94,7 +72,7 @@ TabulatedProcess::PostStepGetPhysicalInteractionLength(const G4Track& track,
   currentInteractionLength = MeanFreePath(track);
 
   G4double value;
-  if (currentInteractionLength <DBL_MAX) {
+  if (currentInteractionLength < DBL_MAX) {
     value = theNumberOfInteractionLengthLeft * currentInteractionLength;
   } else {
     value = DBL_MAX;
@@ -102,25 +80,23 @@ TabulatedProcess::PostStepGetPhysicalInteractionLength(const G4Track& track,
   return value;
 }
 
-int TabulatedProcess::SetupForMaterial(const G4Track& track)
-{
-  //get the material index for the current volume
+int TabulatedProcess::SetupForMaterial(const G4Track &track) {
+  // get the material index for the current volume
 
-  G4Material* materialG4= track.GetMaterial();
+  G4Material *materialG4 = track.GetMaterial();
 
-  static MaterialConverter *sMatConverter= MaterialConverter::Instance(); 
-  fMaterialIndex= sMatConverter->GetRootMaterial( materialG4->GetIndex() ) ;
- 
-  return fMaterialIndex; 
+  static MaterialConverter *sMatConverter = MaterialConverter::Instance();
+  fMaterialIndex = sMatConverter->GetRootMaterial(materialG4->GetIndex());
+
+  return fMaterialIndex;
 }
 
-G4double TabulatedProcess::MeanFreePath(const G4Track& track)
-{
+G4double TabulatedProcess::MeanFreePath(const G4Track &track) {
   // G4double energy = track.GetKineticEnergy()/GeV;
 
-  int rootMatId= SetupForMaterial(track);
+  int rootMatId = SetupForMaterial(track);
 
-  //Find the number of particles with reactions
+  // Find the number of particles with reactions
   //
   // int pdgEncoding= track.GetParticleDefinition()->GetPDGEncoding();
 
@@ -131,89 +107,77 @@ G4double TabulatedProcess::MeanFreePath(const G4Track& track)
   //  particleRt = TDatabasePDG::Instance()->GetParticle(pdgEncoding);
   // static TPartIndex* partIdx= TPartIndex::I();
   // Int_t partId = partIdx->PartIndex( pdgEncoding ); // GeantVparticle index
-  
+
   // std::cout << " Particle Indices:  pdg= " << pdgEncoding << " rootId = "  << partId << std::endl;
   // std::cout << " Number of Particles: " << partIdx->NPart() << std::endl;
-  
-  G4double preStepLambda =
-     theDataManager->GetInteractionLength(rootMatId,track);
+
+  G4double preStepLambda = theDataManager->GetInteractionLength(rootMatId, track);
 
   // theDataManager->GetInteractionLength(rootMatId,partId,energy);
   return preStepLambda;
 }
 
-G4VParticleChange* 
-TabulatedProcess::PostStepDoIt(const G4Track& track, const G4Step& step)
-{
+G4VParticleChange *TabulatedProcess::PostStepDoIt(const G4Track &track, const G4Step &step) {
   // process PostStepDoIt for the original process
   fParticleChange = pRegProcess->PostStepDoIt(track, step);
 
-  //implementation for the wrapper process
+  // implementation for the wrapper process
 
   theNumberOfInteractionLengthLeft = -1.0;
 
   fSecParticles.clear();
-  theDataManager->SampleSecondaries(&fSecParticles,fMaterialIndex,
-				    &track,fReaction);
+  theDataManager->SampleSecondaries(&fSecParticles, fMaterialIndex, &track, fReaction);
 
   G4int num = fSecParticles.size();
-  if(num > 0) {
+  if (num > 0) {
     fParticleChange->SetNumberOfSecondaries(num);
     G4double time = track.GetGlobalTime();
     G4double weight = fParticleChange->GetParentWeight();
 
-    for(G4int is = 0 ; is < num ; ++is) {
-      //create G4DaynamicParticle for EM processes
+    for (G4int is = 0; is < num; ++is) {
+      // create G4DaynamicParticle for EM processes
       ResetSecondaryDefinition(fSecParticles[is]->id);
-      G4ThreeVector secMomentum(fSecParticles[is]->px,
-				fSecParticles[is]->py,
-				fSecParticles[is]->px);
+      G4ThreeVector secMomentum(fSecParticles[is]->px, fSecParticles[is]->py, fSecParticles[is]->px);
 
-      G4DynamicParticle* dynamicParticle = 
-	new G4DynamicParticle(fSecDefinition,secMomentum.unit(),
-			      fSecParticles[is]->E);        
+      G4DynamicParticle *dynamicParticle =
+          new G4DynamicParticle(fSecDefinition, secMomentum.unit(), fSecParticles[is]->E);
 
-      G4Track* t = new G4Track(dynamicParticle, time, track.GetPosition());
+      G4Track *t = new G4Track(dynamicParticle, time, track.GetPosition());
       t->SetTouchableHandle(track.GetTouchableHandle());
-      t->SetWeight(weight); 
+      t->SetWeight(weight);
 
       fParticleChange->AddSecondary(t);
     }
   }
 
-  //changes for the primary particle
+  // changes for the primary particle
 
   return fParticleChange;
 }
 
-void TabulatedProcess::ResetSecondaryDefinition(G4int pid) 
-{
-  //only for gamma/electron/photon for the standard EM processes
+void TabulatedProcess::ResetSecondaryDefinition(G4int pid) {
+  // only for gamma/electron/photon for the standard EM processes
 
   switch (pid) {
   case 22:
-    fSecDefinition = G4Gamma::Gamma(); 
+    fSecDefinition = G4Gamma::Gamma();
     break;
   case 11:
-    fSecDefinition = G4Electron::Electron(); 
+    fSecDefinition = G4Electron::Electron();
     break;
   case -11:
-    fSecDefinition = G4Positron::Positron(); 
+    fSecDefinition = G4Positron::Positron();
     break;
   default:
     break;
   }
 }
 
-void TabulatedProcess::Print(const G4Step& step) 
-{
-  G4StepPoint* postStepPoint = step.GetPostStepPoint();
-  std::cout << "TabulatedProcess ProcName, E, dE, x, StepLength Nsec " 
-	    << postStepPoint->GetProcessDefinedStep()->GetProcessName() << " " 
-	    << postStepPoint->GetKineticEnergy()/MeV  << " " 
-	    << step.GetTotalEnergyDeposit()/MeV  << " " 
-	    << postStepPoint->GetPosition() << " "  
-	    << step.GetStepLength() << " " 
-	    << fParticleChange->GetNumberOfSecondaries() << std::endl;
+void TabulatedProcess::Print(const G4Step &step) {
+  G4StepPoint *postStepPoint = step.GetPostStepPoint();
+  std::cout << "TabulatedProcess ProcName, E, dE, x, StepLength Nsec "
+            << postStepPoint->GetProcessDefinedStep()->GetProcessName() << " "
+            << postStepPoint->GetKineticEnergy() / MeV << " " << step.GetTotalEnergyDeposit() / MeV << " "
+            << postStepPoint->GetPosition() << " " << step.GetStepLength() << " "
+            << fParticleChange->GetNumberOfSecondaries() << std::endl;
 }
-
