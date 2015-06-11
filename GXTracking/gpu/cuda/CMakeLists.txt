@@ -17,6 +17,8 @@ SET(PROJECT_TOP_DIR "./../../")
 #------------------------------------------------------------------------------
 FIND_PACKAGE(CUDA REQUIRED)
 
+add_definitions(-DUSE_ROOT)
+
 if(${USE_ROOT})
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_TOP_DIR}/cmake/Modules)
   find_package(ROOT REQUIRED)
