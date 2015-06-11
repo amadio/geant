@@ -128,7 +128,7 @@ private:
   static TGListBox *fReactionBox;      //! Reaction list
   static TGListBox *fParticleBox;      //! Particle list
 
-  ClassDef(TEXsec, 2) // Element X-secs
+  ClassDef(TEXsec, 3) // Element X-secs
 };
 
 #endif
