@@ -98,7 +98,7 @@ public:
    * 
    * @param index Index to read from
    */
-  T *At(Int_t index) const { return &fBlock[index]; }
+  const T *  At(Int_t index) const { return &fBlock[index]; }
 
   /** @brief Clear function 
   * @details Clear all data and free the block. Note that the objects are not 
