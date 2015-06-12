@@ -32,11 +32,7 @@
 
 #include "GeantTaskData.h"
 //#include "TGeoHelix.h"
-#ifdef GEANT_NVCC
-#warning "ConstFieldHelixStepper required but not compileable in NVCC."
-#else
 #include "ConstFieldHelixStepper.h"
-#endif
 #include "GeantScheduler.h"
 
 #ifdef __INTEL_COMPILER
@@ -1431,8 +1427,11 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantTaskD
 #endif
 // alternative code with lean stepper would be:
 // ( stepper header has to be included )
-#ifndef GEANT_NVCC
+#ifdef GEANT_CUDA_DEVICE_BUILD
+  geantv::ConstBzFieldHelixStepper stepper(gPropagator_fBmag);
+#else
   geantv::ConstBzFieldHelixStepper stepper(gPropagator->fBmag);
+#endif
   double posnew[3];
   double dirnew[3];
   stepper.DoStep(fXposV[i], fYposV[i], fZposV[i], fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
@@ -1451,7 +1450,6 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantTaskD
   fXdirV[i] = dirnew[0];
   fYdirV[i] = dirnew[1];
   fZdirV[i] = dirnew[2];
-#endif
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -2358,7 +2356,7 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, G
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
     // step (frombdr=0)
-    step = (fFrombdrV[itr]) ? Math::Min(lmax, TMath::Max(fSnextV[itr], 1.E-4)) : Math::Min(lmax, fPstepV[itr]);
+    step = (fFrombdrV[itr]) ? Math::Min(lmax, Math::Max(fSnextV[itr], 1.E-4)) : Math::Min(lmax, fPstepV[itr]);
     //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
     PropagateInVolumeSingle(itr, step, td);
     //      Printf("====== After PropagateInVolumeSingle:");
