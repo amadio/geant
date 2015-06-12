@@ -575,6 +575,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
    //unsigned int start = fNStaged;
    unsigned int count = 0;
    GeantTrack_v &input = basket.GetInputTracks();
+   GeantTrack_v &gputracks( fInputBasket->GetInputTracks() );
    unsigned int basketSize = input.GetNtracks();
    for(unsigned int hostIdx = startIdx;
        fNStaged < fChunkSize && hostIdx < basketSize;
@@ -587,7 +588,11 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
       if (task->Select(input,hostIdx)) {
 
-         fInputBasket->AddTrack(input,hostIdx);
+         Int_t t = fInputBasket->GetInputTracks().AddTrack(input,hostIdx);
+
+         // Prepare the navigation state pointers in the basket
+         gputracks.fPathV[t]->ConvertToGPUPointers();
+         gputracks.fNextpathV[t]->ConvertToGPUPointers();
 
          ++fNStaged;
       }
@@ -612,6 +617,13 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    GeantScheduler *sch = mgr->GetScheduler();
    condition_locker &sched_locker = mgr->GetSchLocker();
 
+   // Fix the navigation state pointers in the output basket
+   GeantTrack_v &output( fOutputBasket->GetOutputTracks() );
+   for(Int_t t = 0; t < output.fMaxtracks; ++t) {
+      // if (output.fHoles->TestBitNumber(t) continue;
+      output.fPathV[t]->ConvertToCPUPointers();
+      output.fNextpathV[t]->ConvertToCPUPointers();
+   }
 
    Int_t ntot = 0;
    Int_t nnew = 0;
