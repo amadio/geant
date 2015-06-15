@@ -15,6 +15,30 @@ class GeantTaskData;
 #include <curand.h>
 #include "random_kernel.h"
 
+namespace Geant {
+namespace cuda {
+
+#ifdef GEANT_NVCC
+   template <typename DataType, typename... ArgsTypes>
+   __global__
+   void MakeInstanceAtOnGpu(DataType *addr, ArgsTypes... params) {
+      DataType::MakeInstanceAt(addr, params...);
+   }
+
+   template <typename DataType, typename... ArgsTypes>
+   void MakeInstanceAt(DataType *addr, ArgsTypes... params)
+   {
+      MakeInstanceAtOnGpu<<<1, 1>>>(addr, params...);
+   }
+#else
+   template <typename DataType, typename... ArgsTypes>
+      void MakeInstanceAt(DataType *addr, ArgsTypes... params);
+#endif
+
+} // cuda
+} // Geant
+
+
 int tracking_gpu(curandState* devStates,
                  size_t nSteps,
                  size_t nElectrons,
