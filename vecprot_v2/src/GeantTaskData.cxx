@@ -13,7 +13,7 @@ ClassImp(GeantTaskData)
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0),
+      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0,maxDepth),
       fPath(0), fBmgr(0), fPool() {
   // Constructor
   fNthreads = nthreads;

@@ -124,11 +124,20 @@ public:
   GeantTrack &operator=(const GeantTrack &other);
 
   /**
-   * @brief GeantTrack parametrized constructor
-   *
-   * @param ipdg ??????
-   */
+  * @brief GeantTrack parametrized constructor
+  *
+  * @param ipdg ??????
+  */
   GeantTrack(Int_t ipdg);
+
+  /**
+  * @brief GeantTrack parametrized constructor
+  *
+  * @param ipdg ??????
+  * @param maxdepth ??????
+  */
+  GEANT_CUDA_BOTH_CODE
+  GeantTrack(Int_t ipdg,Int_t maxdepth);
 
   /** @brief GeantTrack destructor */
   ~GeantTrack();

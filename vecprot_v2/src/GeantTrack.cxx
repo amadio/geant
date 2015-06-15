@@ -88,6 +88,18 @@ GeantTrack::GeantTrack(Int_t ipdg)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+GeantTrack::GeantTrack(Int_t ipdg,Int_t maxdepth)
+    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
+      fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false),
+      fPending(false), fPath(0), fNextpath(0) {
+  // Constructor
+  fPath = VolumePath_t::MakeInstance(maxdepth);
+  fNextpath = VolumePath_t::MakeInstance(maxdepth);
+}
+
+//______________________________________________________________________________
 GeantTrack::GeantTrack(const GeantTrack &other)
     : fEvent(other.fEvent), fEvslot(other.fEvslot), fParticle(other.fParticle), fPDG(other.fPDG),
       fGVcode(other.fGVcode), fEindex(other.fEindex), fCharge(other.fCharge), fProcess(other.fProcess),

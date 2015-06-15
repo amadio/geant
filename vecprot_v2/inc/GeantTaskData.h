@@ -80,12 +80,11 @@ public:
    * @param size Size of boolean array
    */
   Bool_t *GetBoolArray(Int_t size);
-  
+
   /**
    * @brief Get the cleared storedtrack
    */
   GeantTrack &GetTrack() { fTrack.Clear(); return fTrack; }
-   
 
   /**
    * @brief Get next free basket or null if not available
