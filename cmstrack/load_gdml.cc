@@ -45,6 +45,7 @@
 #include <sys/stat.h>
 
 #include "G4RunManager.hh"
+#include "G4FieldManager.hh"
 #include "G4UImanager.hh"
 #include "Randomize.hh"
 
