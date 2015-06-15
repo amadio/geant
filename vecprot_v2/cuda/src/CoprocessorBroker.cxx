@@ -305,18 +305,21 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fChunkSize = maxTrackPerKernel;
 
    unsigned int maxThreads = nblocks*nthreads;
+   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+
+   // See also:
+   //   GeantPropagator *propagator = GeantPropagator::Instance();
+   //   propagator->fMaxPerBasket;
 
    fDevTaskWorkspace.Allocate(maxThreads);
-   fDevTaskWorkspace.ConstructArray(maxThreads);
-
-   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+   fDevTaskWorkspace.ConstructArray(maxThreads, maxThreads, maxdepth, maxTrackPerKernel);
 
    // need to allocate enough for one object containing many tracks ...
    fDevTrackInput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
-   fDevTrackInput.Construct(maxTrackPerKernel,maxdepth);
+   Geant::cuda::MakeInstanceAt(fDevTrackInput.GetPtr(),maxTrackPerKernel,maxdepth);
 
    fDevTrackOutput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
-   fDevTrackOutput.Construct(maxTrackPerKernel,maxdepth);
+   Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(),maxTrackPerKernel,maxdepth);
 
    fInputBasket = new GeantBasket(maxTrackPerKernel,fGeantTaskData->fBmgr);
    fInputBasket->SetMixed(kTRUE);
