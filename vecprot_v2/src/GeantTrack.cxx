@@ -339,7 +339,7 @@ GeantTrack_v *GeantTrack_v::MakeInstanceAt(void *addr, unsigned int nTracks, Int
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth)
-    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(nTracks), fHoles(0), fSelected(0),
+    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(round_up_align(nTracks)), fHoles(0), fSelected(0),
       fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
       fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
       fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
@@ -682,7 +682,7 @@ GEANT_CUDA_BOTH_CODE
 size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack_v's data
 
-  size_t size = round_up_align(nTracks);
+  size_t size = round_up_align(nTracks); // When called internally this ought to be a nop
   size_t size_nav = 2 * size * VolumePath_t::SizeOfInstance(maxdepth);
   size_t size_bits = 2 * BitSet::SizeOfInstance(size);
 
