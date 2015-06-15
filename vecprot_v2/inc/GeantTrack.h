@@ -47,6 +47,8 @@ typedef TGeoBranchArray VolumePath_t;
 
 const Double_t kB2C = -0.299792458e-3;
 
+GEANT_DEVICE_CONSTANT double gTolerance;
+
 /**
  * @enum TrackStatus_t
  */

@@ -484,6 +484,8 @@ void setup(CoprocessorBroker *broker,
 
 }
 
+void CoprocessorBrokerInitConstant();
+
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
 {
    int deviceCount = 0;
@@ -509,10 +511,7 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    */
 
    // Initialize global constants.
-   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gPropagator_fBmag", &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
-
-   double tolerance = TGeoShape::Tolerance();
-   HANDLE_CUDA_ERROR( cudaMemcpyToSymbol("gTolerance", &(tolerance), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
+   CoprocessorBrokerInitConstant();
 
    //initialize the stream
    for(unsigned int i=0; i < 2+fTasks.size(); ++i) {

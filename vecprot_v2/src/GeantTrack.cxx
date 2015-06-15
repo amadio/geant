@@ -42,9 +42,7 @@
 #endif
 #include <cassert>
 
-#ifdef GEANT_CUDA_DEVICE_BUILD
-__constant__ double gTolerance;
-#else
+#ifndef GEANT_NVCC
 const Double_t gTolerance = TGeoShape::Tolerance();
 #endif
 
