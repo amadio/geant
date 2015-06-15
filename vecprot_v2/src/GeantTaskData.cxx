@@ -22,13 +22,17 @@ GeantTaskData::GeantTaskData()
   fBoolArray = new Bool_t[fSizeBool];
   fDblArray = new Double_t[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
+  fRndm = new TRandom();
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 GeantTaskData::~GeantTaskData() {
   // Destructor
   //  delete fMatrix;
+#ifndef GEANT_NVCC
   delete fRndm;
+#endif
   delete[] fBoolArray;
   delete[] fDblArray;
   VolumePath_t::ReleaseInstance(fPath);
@@ -60,6 +64,7 @@ Bool_t *GeantTaskData::GetBoolArray(Int_t size) {
   return fBoolArray;
 }
 
+#ifndef GEANT_NVCC
 //______________________________________________________________________________
 GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
@@ -96,4 +101,4 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
 //  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
 }
-  
+#endif

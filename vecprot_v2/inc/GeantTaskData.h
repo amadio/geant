@@ -48,15 +48,20 @@ public:
   GeantTrack fTrack;   /** Track support for this thread */
   VolumePath_t *fPath; /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
-  std::deque<GeantBasket*> fPool; /** Pool of empty baskets */  
+#ifdef GEANT_NVCC
+   char fPool[sizeof(std::deque<GeantBasket*>)]; // Use the same space ...
+#else
+   std::deque<GeantBasket*> fPool; /** Pool of empty baskets */
+#endif
 
 public:
 
-  /** @brief GeantTaskData constructor */
+   /** @brief GeantTaskData constructor */
   GeantTaskData();
 
   /** @brief GeantTaskData destructor */
-  virtual ~GeantTaskData();
+  GEANT_CUDA_DEVICE_CODE
+  ~GeantTaskData();
 
   /**
    * @brief Function that return double array
