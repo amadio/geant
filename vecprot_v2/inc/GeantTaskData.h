@@ -59,6 +59,10 @@ public:
    /** @brief GeantTaskData constructor */
   GeantTaskData();
 
+  /** @brief GeantTaskData constructor */
+  GEANT_CUDA_DEVICE_CODE
+  GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
+
   /** @brief GeantTaskData destructor */
   GEANT_CUDA_DEVICE_CODE
   ~GeantTaskData();

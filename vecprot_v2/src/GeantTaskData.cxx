@@ -10,6 +10,24 @@
 ClassImp(GeantTaskData)
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
+GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0),
+      fPath(0), fBmgr(0), fPool() {
+  // Constructor
+  fNthreads = nthreads;
+  fMaxDepth = maxDepth;
+  fSizeBool = fSizeDbl = 5 * maxPerBasket;
+  fBoolArray = new Bool_t[fSizeBool];
+  fDblArray = new Double_t[fSizeDbl];
+  fPath = VolumePath_t::MakeInstance(fMaxDepth);
+#ifndef GEANT_NVCC
+  fRndm = new TRandom();
+#endif
+}
+
+//______________________________________________________________________________
 GeantTaskData::GeantTaskData()
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0),
