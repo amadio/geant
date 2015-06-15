@@ -33,7 +33,7 @@ class GeantBasket;
  * @details Class descripting data organized per thread
  * 
  */
-class GeantTaskData : public TObject {
+class GeantTaskData {
 public:
   Int_t fTid;          /** Thread unique id */
   Int_t fNthreads;     /** Number of transport threads */
@@ -119,6 +119,6 @@ private:
    */
   GeantTaskData &operator=(const GeantTaskData &);
 
-  ClassDef(GeantTaskData, 1) // Stateful data organized per thread
+   // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 #endif

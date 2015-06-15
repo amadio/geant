@@ -11,8 +11,8 @@ ClassImp(GeantTaskData)
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData()
-    : TObject(), fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),  
-      fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0), fTrack(0), 
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0),
       fPath(0), fBmgr(0), fPool() {
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
