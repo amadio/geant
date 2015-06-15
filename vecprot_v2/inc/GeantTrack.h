@@ -140,6 +140,7 @@ public:
   GeantTrack(Int_t ipdg,Int_t maxdepth);
 
   /** @brief GeantTrack destructor */
+  GEANT_CUDA_BOTH_CODE
   ~GeantTrack();
 
   /** @brief Function that return beta value */
@@ -578,6 +579,7 @@ public:
    * @param buff Buffer to be assigned to
    * @param size Size of buffer
    */
+  GEANT_CUDA_BOTH_CODE
   void AssignInBuffer(char *buff, Int_t size);
 
   /**
@@ -598,6 +600,7 @@ private:
   /**
    * @brief GeantTrack constructor based on a provided single buffer.
    */
+  GEANT_CUDA_BOTH_CODE
   GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth);
 
 public:
@@ -615,18 +618,21 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth);
+  GEANT_CUDA_BOTH_CODE
+  static GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth);
 
   /** @brief GeantTrack_v destructor */
   virtual ~GeantTrack_v();
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
+  GEANT_CUDA_BOTH_CODE
   static size_t SizeOfInstance(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returns the buffer size  */
   size_t BufferSize() const { return fBufSize; }
 
   /** @brief  Function that returns buffer size needed to hold the data for nTracks and maxdepth */
+  GEANT_CUDA_BOTH_CODE
   static size_t BufferSize(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returned max size for tracks */
@@ -1092,6 +1098,7 @@ public:
 #endif
 
   /** @brief Function allowing to set a breakpoint on a given step */
+  GEANT_CUDA_BOTH_CODE
   bool BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps = 1, const char *msg = "", Int_t itr = -1);
 
   /**
@@ -1104,6 +1111,7 @@ public:
    * @brief Function round up align ?????
    * @param num Number ?????
    */
+  GEANT_CUDA_BOTH_CODE
   static Int_t round_up_align(Int_t num) {
     int remainder = num % ALIGN_PADDING;
     if (remainder == 0)
