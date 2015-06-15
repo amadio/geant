@@ -428,6 +428,7 @@ GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::AssignInBuffer(char *buff, Int_t size) {
   // Assign all internal class arrays in the supplied buffer, padded by supplied
   // size.
+
   const Int_t size_intn = size * sizeof(Int_t);
   const Int_t size_doublen = size * sizeof(Double_t);
   const Int_t size_booln = size * sizeof(Bool_t);
@@ -494,15 +495,24 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size) {
   buf += size * sizeof(VolumePath_t *);
   fNextpathV = (VolumePath_t **)buf;
   buf += size * sizeof(VolumePath_t *);
+  
+  // Now the start of objects, we need to align the memory.
+  buf = round_up_align(buf);
   fVPstart = buf;
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
   // Allocate VolumePath_t objects in the reserved buffer space
   for (auto i = 0; i < 2 * size; ++i)
     VolumePath_t::MakeInstanceAt(fMaxDepth, buf + i * size_vpath);
   buf += 2 * size * size_vpath;
+
+  // Now the start of objects, we need to align the memory.
+  buf = round_up_align(buf);
   size_t size_bits = BitSet::SizeOfInstance(size);
   fHoles = BitSet::MakeInstanceAt(size, buf);
   buf += size_bits;
+
+  // Now the start of objects, we need to align the memory.
+  buf = round_up_align(buf);
   fSelected = BitSet::MakeInstanceAt(size, buf);
 }
 
@@ -608,6 +618,9 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size) {
   //   memcpy(buf, fNextpathV, ntracks*sizeof(VolumePath_t*));
   VolumePath_t **nextpathV = (VolumePath_t **)buf;
   buf += size * sizeof(VolumePath_t *);
+
+  // Now the start of objects, we need to align the memory.
+  buf = round_up_align(buf);
   fVPstart = buf;
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
   // Allocate VolumePath_t objects in the reserved buffer space
@@ -626,11 +639,17 @@ void GeantTrack_v::CopyToBuffer(char *buff, Int_t size) {
   fPathV = pathV;
   fNextpathV = nextpathV;
   buf += 2 * size * size_vpath;
+
+  // Now the start of objects, we need to align the memory.
+  buf = round_up_align(buf);
   size_t size_bits = BitSet::SizeOfInstance(size);
   BitSet *holes = BitSet::MakeCopyAt(*fHoles, buf);
   BitSet::ReleaseInstance(fHoles);
   fHoles = holes;
   buf += size_bits;
+
+  // Now the start of objects, we need to align the memory.
+  buf = round_up_align(buf);
   BitSet *selected = BitSet::MakeInstanceAt(size, buf);
   BitSet::ReleaseInstance(fSelected);
   fSelected = selected;
@@ -684,9 +703,14 @@ size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
 
   size_t size = round_up_align(nTracks); // When called internally this ought to be a nop
   size_t size_nav = 2 * size * VolumePath_t::SizeOfInstance(maxdepth);
-  size_t size_bits = 2 * BitSet::SizeOfInstance(size);
+  // NOTE: Most likely the 'real' problem here is that BitSet::SizeOfInstance return
+  // a number that is as small as possible rather than a number that is usuable to
+  // be able to make array of BitSet.
+  size_t size_bits = 2 * round_up_align(BitSet::SizeOfInstance(size));
 
-  return size * sizeof(GeantTrack) + size_nav + size_bits;
+  // Since we already round nTracks, we only need to round the last two
+  // to have the proper space for object alignment
+  return size * sizeof(GeantTrack) + round_up_align(size_nav) + size_bits;
 }
 
 //______________________________________________________________________________

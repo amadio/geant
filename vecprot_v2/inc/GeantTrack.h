@@ -1119,6 +1119,14 @@ public:
     return (num + ALIGN_PADDING - remainder);
   }
 
+  GEANT_CUDA_BOTH_CODE
+  static char* round_up_align(char *buf) {
+    long remainder = ((long)buf) % ALIGN_PADDING;
+    if (remainder == 0)
+      return buf;
+    return (buf + ALIGN_PADDING - remainder);
+  }
+
   ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
 };
 
