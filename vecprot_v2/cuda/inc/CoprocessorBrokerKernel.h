@@ -4,6 +4,12 @@ class GPVGeometry;
 class GXFieldMap;
 class GPPhysicsTable;
 struct GXTrack;
+class GXTrackLiason;
+class GPGeomManager;
+class PPhysics2DVector;
+class GPPhysics2DVector;
+
+class GeantTaskData;
 
 #include <cuda.h>
 #include <curand.h>
@@ -67,10 +73,10 @@ int electron_multistage_gpu(curandState* devStates,
                  int nBlocks, int nThreads,
                  cudaStream_t stream);
 
-int PropagateGeantTrack_gpu(vecgeom::DevicePtr<TaskWorkspace> &workSpace,
+int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<GeantTaskData> &workSpace,
                             size_t ntracks,
-                            vecgeom::DevicePtr<GeantTrack_v> &input,
-                            vecgeom::DevicePtr<GeantTrack_v> &output,
+                            vecgeom::cxx::DevicePtr<GeantTrack_v> &input,
+                            vecgeom::cxx::DevicePtr<GeantTrack_v> &output,
 
                             int nBlocks, int nThreads,
                             cudaStream_t stream);
