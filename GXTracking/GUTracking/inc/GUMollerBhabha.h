@@ -447,15 +447,15 @@ void GUMollerBhabha::ConvertXtoFinalState(double energyIn,
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUMollerBhabha::InteractG4(GUTrack& inProjectile,
-                                       int      targetElement,
-                                       GUTrack& outSecondary )
+                                int      targetElement,
+                                GUTrack& outSecondary )
 {
   Precision energyIn;
 
   energyIn = inProjectile.E;
 
-  Precision energyOut;
-  Precision sinTheta;
+  Precision energyOut = -999.;
+  Precision sinTheta = -999.;
   SampleByCompositionRejection<Backend>(energyIn,energyOut,sinTheta);
 
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,

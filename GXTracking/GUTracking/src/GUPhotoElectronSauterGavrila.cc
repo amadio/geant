@@ -67,6 +67,8 @@ GUPhotoElectronSauterGavrila::BuildOneTable( int Z,
   BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
   fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
 
+  
+
   delete [] pdf;
 }
 
@@ -154,7 +156,7 @@ GUPhotoElectronSauterGavrila::BuildLogPdfTable(int Z,
     double x = exp(logxmin + dx*i);
 
     const double ymin = -1.0;
-    const double dy = 2./(ncol-1);
+    const double dy = 2./(ncol-1); 
     const double yo = ymin + 0.5*dy;
   
     double sum = 0.;
@@ -163,6 +165,7 @@ GUPhotoElectronSauterGavrila::BuildLogPdfTable(int Z,
       //for each output energy bin
       double y = yo + dy*j;
       double xsec = CalculateDiffCrossSectionK(Z,x,y);
+
       p[i*ncol+j] = xsec;
       sum += xsec;
     }

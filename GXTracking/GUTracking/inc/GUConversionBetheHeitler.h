@@ -136,8 +136,8 @@ public:
   void
   SampleSinTheta(typename Backend::Double_t energyElectron,
                  typename Backend::Double_t energyPositron,
-		 typename Backend::Double_t sinThetaElectron,
-		 typename Backend::Double_t sinThetaPositron) const; 
+		 typename Backend::Double_t& sinThetaElectron,
+		 typename Backend::Double_t& sinThetaPositron) const; 
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -224,14 +224,17 @@ GUConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
 					        aliasInd,icol,fraction);
 
-  Bool_t condition = 0.5 > UniformRandom<Backend>(fRandomState,fThreadId);
+
+  Double_t r1 = UniformRandom<Backend>(fRandomState,fThreadId);
+  Bool_t condition = 0.5 > r1;
+
   MaskedAssign( condition, energyOut, &energyElectron);     
   MaskedAssign( condition, energyIn - energyOut, &energyPositron);     
 
   MaskedAssign(!condition, energyOut, &energyPositron);     
   MaskedAssign(!condition, energyIn - energyOut, &energyElectron);     
   
-  SampleSinTheta<Backend>(energyIn,energyElectron,energyPositron,
+  SampleSinTheta<Backend>(energyElectron,energyPositron,
                           sinThetaElectron, sinThetaPositron);
 }    
 
@@ -288,8 +291,8 @@ void
 GUConversionBetheHeitler::
 SampleSinTheta(typename Backend::Double_t energyElectron,
                typename Backend::Double_t energyPositron,
-	       typename Backend::Double_t sinThetaElectron,
-	       typename Backend::Double_t sinThetaPositron) const
+	       typename Backend::Double_t& sinThetaElectron,
+	       typename Backend::Double_t& sinThetaPositron) const
 {
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
@@ -299,7 +302,8 @@ SampleSinTheta(typename Backend::Double_t energyElectron,
   Double_t u;
   const double a1 = 0.625 , a2 = 3.*a1 , d = 27. ;
 
-  Bool_t condition = 9./(9. + d) > UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_t r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
+  Bool_t condition = 9./(9. + d) > r1;
   MaskedAssign( condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a1, &u );
   MaskedAssign(!condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
@@ -397,15 +401,18 @@ SampleByCompositionRejection(typename Backend::Int_t     elementZ,
   }
 
   //move to the constant file
-  const double twopi = 2.*3.14159265358979323846;
+  //  const double twopi = 2.*3.14159265358979323846;
 
   double TetEl = u*electron_mass_c2/energyElectron;
   double TetPo = u*electron_mass_c2/energyPositron;
-  double Phi  = twopi * UniformRandom<Backend>(fRandomState,fThreadId);
 
   //return sinTheta
   sinThetaElectron = sin(TetEl);
   sinThetaPositron =-sin(TetPo);
+
+  // direction
+  //  double Phi  = twopi * UniformRandom<Backend>(fRandomState,fThreadId);
+  //
 
 }
 
@@ -426,10 +433,12 @@ void GUConversionBetheHeitler::Interact(GUTrack& inProjectile,
   }
 #endif 
   //  assert( (energyIn >= fMinX)  && (energyIn <= fMaxX) );
-  InteractKernel<Backend>(energyIn, targetElement,energyElectron, energyPositron, sinThetaElectron, sinThetaPositron);
+  InteractKernel<Backend>(energyIn, targetElement, energyElectron, energyPositron, 
+                          sinThetaElectron, sinThetaPositron);
   
   //update final states of the primary and store the secondary
-  ConvertXtoFinalState<Backend>(energyIn,energyElectron, energyPositron,sinThetaElectron,sinThetaPositron,
+  ConvertXtoFinalState<Backend>(energyIn,energyElectron, energyPositron,
+                                sinThetaElectron,sinThetaPositron,
                                 inProjectile,outSecondary);
 }
   
@@ -555,11 +564,17 @@ void GUConversionBetheHeitler::InteractG4(GUTrack& inProjectile,
 
   energyIn = inProjectile.E;
 
-  Precision energyOut;
-  Precision sinTheta;
-  SampleByCompositionRejection<Backend>(energyIn,energyOut,sinTheta);
+  Precision energyElectron;
+  Precision energyPositron;
+  Precision sinThetaElectron;
+  Precision sinThetaPositron;
 
-  ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
+  SampleByCompositionRejection<Backend>(targetElement,energyIn,
+                                        energyElectron,energyPositron,
+					sinThetaElectron,sinThetaPositron);
+
+  ConvertXtoFinalState<Backend>(energyIn,energyElectron,energyPositron,
+                                sinThetaElectron,sinThetaPositron,
                                 inProjectile,outSecondary);
   
 }

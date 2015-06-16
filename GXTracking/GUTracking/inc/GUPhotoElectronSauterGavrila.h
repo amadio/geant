@@ -70,7 +70,7 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
   InteractKernel(typename Backend::Double_t energyIn, 
-                 typename Backend::Index_t   zElement,
+                 typename Backend::Index_t  zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta) const;
 
@@ -148,7 +148,7 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t 
   GetPhotoElectronEnergy(typename Backend::Double_t energyIn,
-                         typename Backend::Int_t zElement) const;
+                         typename Backend::Index_t zElement) const;
 
 private: 
   // Implementation methods 
@@ -192,7 +192,7 @@ private:
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUPhotoElectronSauterGavrila::
-InteractKernel(typename Backend::Double_t energyIn, 
+InteractKernel(typename Backend::Double_t  energyIn, 
                typename Backend::Index_t   zElement,
                typename Backend::Double_t& energyOut,
                typename Backend::Double_t& sinTheta) const
@@ -201,7 +201,7 @@ InteractKernel(typename Backend::Double_t energyIn,
   typedef typename Backend::Double_t Double_t;
 
   //energy of photo-electron: Sandia parameterization
-  energyOut = GetPhotoElecticEnergy(energyIn,zElement) ;
+  energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement) ;
 
   //sample angular distribution of photo-electron
 
@@ -214,7 +214,6 @@ InteractKernel(typename Backend::Double_t energyIn,
   Double_t probNA;
   Double_t aliasInd;
 
-  //this did not used to work - Fixed SW
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t mininum = -1.0;
@@ -501,7 +500,7 @@ TotalCrossSection(typename Backend::Double_t energy,
 
   fCumulInterval[0] = 1;
 
-  //scan
+  //scan - move it to constructor or use pre-built table
   for (int iz = 1; iz < 101; ++iz) {     
     fCumulInterval[iz] = fCumulInterval[iz-1] + fNbOfIntervals[iz];
   }
@@ -543,7 +542,7 @@ VECPHYS_CUDA_HEADER_BOTH
 typename Backend::Double_t
 GUPhotoElectronSauterGavrila::
 GetPhotoElectronEnergy(typename Backend::Double_t energy,
-                       typename Backend::Int_t  zElement) const
+                       typename Backend::Index_t  zElement) const
 {
   // this method is not vectorizable and only for the scalar backend
 
@@ -583,7 +582,7 @@ VECPHYS_CUDA_HEADER_BOTH
 typename kVc::Double_t
 GUPhotoElectronSauterGavrila::
 GetPhotoElectronEnergy<kVc>(typename kVc::Double_t energy,
-                            typename kVc::Int_t  zElement) const
+                            typename kVc::Index_t  zElement) const
 {
   kVc::Double_t energyOut;
 
@@ -593,6 +592,7 @@ GetPhotoElectronEnergy<kVc>(typename kVc::Double_t energy,
 
   return energyOut;
 }
+
 #endif
 
 } // end namespace impl

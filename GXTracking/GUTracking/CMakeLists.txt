@@ -316,6 +316,7 @@ endif()
 if (BENCHMARK)
   set(SRC_CPP ${SRC_CPP}
     test/src/GUBenchmarker.cc
+    test/src/GUBenchmarker_cpu.cc
     src/GUTrackHandler.cc
   )
   if (ROOT) 
@@ -325,6 +326,7 @@ if (BENCHMARK)
   endif()
   set(SRC_CUDA ${SRC_CUDA}
     test/src/GUBenchmarker.cu
+    test/src/GUBenchmarker_gpu.cu
     test/src/GUCurand.cu
   )
 endif()

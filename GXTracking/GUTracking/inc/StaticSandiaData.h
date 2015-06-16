@@ -1477,7 +1477,7 @@ const double funitc[5] = {keV,
 		          cm*cm*keV*keV*keV/gram,     
 		          cm*cm*keV*keV*keV*keV/gram};
 
-int    fCumulInterval[101]  = {0};
+//int    fCumulInterval[101]  = {0};
 
 // G4AtomicShells.hh + G4AtomicShells.cc
 

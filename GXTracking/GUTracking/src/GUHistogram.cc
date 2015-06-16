@@ -15,36 +15,39 @@ GUHistogram::~GUHistogram()
   fHistFile->Close();
 }
 
-void GUHistogram::BookHistograms( double maxE )
+void GUHistogram::BookHistograms(double maxE)
 {
-  const char* dir= "Benchmark";
-  fHistFile->mkdir(dir); // ("Benchmark");
-  fHistFile->cd(dir);    // "Benchmark");
+  for(int i = 0 ; i < kNumberPhysicsModel ; ++i) {
+    
+    fHistFile->mkdir(GUPhysicsModelName[i]); 
+    fHistFile->cd(GUPhysicsModelName[i]);   
 
-  ftime          = new TH1F("ftime",           "Elapsed time",     100, 0.,  0.001);
-  fenergyPrimary = new TH1F("Energy_primary",  "Energy Primary",   100, 0.,  1.1 * maxE);  
-  fenergyGam     = new TH1F("Energy_gammaOut", "Energy Gamma/Out", 100, 0.,  1.1 * maxE);
-  fangleGam      = new TH1F("Angle_gamma",     "Angle  Gamma",     100, -1.0,  1.0);
-  fenergyElec    = new TH1F("Energy_elec",     "Energy Electron",  100, 0., maxE);
-  fangleElec     = new TH1F("Angle_elec",      "Angle  Electron",  100, -1.0,  1.0);  
+    fTime[i]       = new TH1F("Time",     "Time",     100, 0.,  0.001);
+    fEnergyIn[i]   = new TH1F("EnergyIn", "EnergyIn", 100, 0.,  1.1 * maxE);  
+    fEnergyOut1[i] = new TH1F("EnergyOut1","EnergyOut1", 100, 0.,  1.1 * maxE);
+    fEnergyOut2[i] = new TH1F("EnergyOut2","EnergyOut2", 100, 0.,  1.1 * maxE);
+    fAngleOut1[i]  = new TH1F("AngleOut1","AngleOut1", 100, -1.,  1.0);
+    fAngleOut2[i]  = new TH1F("AngleOut2","AngleOut2", 100, -1.,  1.0);
+  }
 }
 
-void GUHistogram::RecordHistos( double EnPrimary,
-                                double EnFinalGamma,
-                                double angleGamma,    
-                                double EnElectron,
-                                double angleElectron)
+void GUHistogram::RecordHistos(int imodel,
+                               double energyIn,
+                               double energyOut1,
+                               double AngleOut1,    
+                               double energyOut2,
+                               double AngleOut2)
 {
-   fenergyPrimary->Fill(EnPrimary);
-   fenergyGam->Fill(EnFinalGamma);
-   fangleGam->Fill(angleGamma);
-   fenergyElec->Fill(EnElectron);
-   fangleElec->Fill(angleElectron);
+  fEnergyIn[imodel]->Fill(energyIn);
+  fEnergyOut1[imodel]->Fill(energyOut1);
+  fEnergyOut2[imodel]->Fill(energyOut2);
+  fAngleOut1[imodel]->Fill(AngleOut1);
+  fAngleOut2[imodel]->Fill(AngleOut2);
 }
 
-void GUHistogram::RecordTime( double elapsedTime )
+void GUHistogram::RecordTime(int imodel, double elapsedTime)
 {
-    ftime->Fill(elapsedTime);
+  fTime[imodel]->Fill(elapsedTime);
 }
    
 } // end namespace vecphys

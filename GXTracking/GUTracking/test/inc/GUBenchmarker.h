@@ -5,6 +5,7 @@
 
 namespace vecphys {
 
+  //class GUTrack;
 class GUTrackHandler;
 
 class GUBenchmarker {
@@ -42,6 +43,7 @@ private:
   void RunCuda();
 #endif
 
+
 protected:
   void
   ReportInteraction( double incomingEnergy, int    targetElement,
@@ -52,6 +54,8 @@ protected:
   // Print results - one per line, to enable debugging
 
 private:
+  ///phihome/syjun/devel/sbTest/test/src/GUBenchmarker.cc:1:  GUComptonKleinNishina *fmodel;
+
   GUTrackHandler *fTrackHandler;
 
   int fNtracks;

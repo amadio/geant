@@ -7,6 +7,8 @@
 #include "GUTrack.h"
 //#include "SystemOfUnits.h"
 
+#include "GUAliasSampler.h"
+
 // add the sincos function on MAC because sincos is not part of math.h
 #ifdef __APPLE__ // possibly other conditions
 inline void sincos(double x, double *s, double *c){
@@ -17,7 +19,7 @@ inline void sincos(double x, double *s, double *c){
 namespace vecphys {
 
   //VECPHYS_DEVICE_DECLARE_CONV( GUComptonKleinNishina )
-VECPHYS_DEVICE_FORWARD_DECLARE( class GUAliasSampler; )
+  //VECPHYS_DEVICE_FORWARD_DECLARE( class GUAliasSampler; )
 
 inline namespace VECPHYS_IMPL_NAMESPACE {
 

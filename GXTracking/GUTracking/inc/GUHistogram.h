@@ -6,34 +6,36 @@
 #include "TH1F.h"
 #endif
 
+#include "GUPhysicsModelName.h"
+
 namespace vecphys {
 
 class GUHistogram 
 {
 public:
  
-  GUHistogram(std::string fileName, double maxEnergy );
+  GUHistogram(std::string fileName, double maxEnergy);
   ~GUHistogram();
 
-  void RecordTime( double );
-  void RecordHistos( double EnPrimary,
-                     double EnFinalGamma,
-                     double angleGamma,    
-                     double EnElectron,
-                     double angleElectron);
+  void RecordTime(int imodel, double elapsedTime);
+  void RecordHistos(int imodel,
+                    double energyIn,
+                    double energyOut1,
+                    double AngleOut1,    
+                    double energyOut2,
+                    double AngleOut2);
 
 #ifdef VECPHYS_ROOT
 private:
-  void BookHistograms( double maxEnergy );
+  void BookHistograms(double maxEnergy);
   TFile* fHistFile;
 
-private:
-  TH1F*  ftime;
-  TH1F*  fenergyPrimary;
-  TH1F*  fenergyGam;
-  TH1F*  fangleGam;
-  TH1F*  fenergyElec;
-  TH1F*  fangleElec;  
+  TH1F*  fTime[kNumberPhysicsModel];
+  TH1F*  fEnergyIn[kNumberPhysicsModel];
+  TH1F*  fEnergyOut1[kNumberPhysicsModel];
+  TH1F*  fEnergyOut2[kNumberPhysicsModel];
+  TH1F*  fAngleOut1[kNumberPhysicsModel];
+  TH1F*  fAngleOut2[kNumberPhysicsModel];
   
 #endif
 };

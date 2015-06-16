@@ -22,7 +22,9 @@
 
 namespace vecphys {
 
-VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
+  //VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
+
+  //class GUAliasSampler;
 
 inline namespace VECPHYS_IMPL_NAMESPACE
 {
@@ -279,6 +281,12 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
   {
     int z= zElement[i];
     int ind = index[i];
+
+    if(ind < 0) {
+      // printf("Warning: negative index! - in GUPhotoElectronSauterGavrila\n");
+      ind = 0;
+    }
+
     assert( z > 0  && z <= fMaxZelement );
     //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
 
