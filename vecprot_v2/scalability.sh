@@ -34,7 +34,7 @@ while [ "$ithr" -le "$MAXTHREADS" ]; do
  for count in {1..4} 
  do
   echo -ne "=== threads=$ithr  count=$count ===\r"
-  root -b -q run.C\($ithr\,false,\"$GEOMFILE\",\"$XSEC\",\"$FSTATE\"\) >> run$ithr.log 2>>run$ithr.log
+  root -b -q run.C\($ithr\,\"$GEOMFILE\",\"$XSEC\",\"$FSTATE\"\) >> run$ithr.log 2>>run$ithr.log
  done
  ithr=$(($ithr + 1))
 done 

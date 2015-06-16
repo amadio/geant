@@ -19,14 +19,7 @@
 #include "TObject.h"
 #endif
 
-#ifdef __STAT_DEBUG
-#include "GeantTrackStat.h"
-#endif
-
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
-
 #include "TMutex.h"
 
 class concurrent_queue;
@@ -48,7 +41,6 @@ protected:
   Int_t fNpriority;                  /** Number of priority baskets held */
   GeantBasketMgr **fBasketMgr;       /** Array of basket managers */
   GeantBasketMgr *fGarbageCollector; /** Garbage collector manager */
-#if __cplusplus >= 201103L
   Int_t           *fNstvol;  /**[fNvolumes] Number of steps per volume */
   Int_t           *fIstvol;  /**[fNvolumes] Sorted index of number of steps per volume */
   Int_t           *fNvect;   /**[256] Number of tracks basketized in vectors of given size */
@@ -57,13 +49,7 @@ protected:
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning;        /** Flag marking the learning phase */
   std::atomic_flag fGBCLock;         /** Flag marking that garbage collector is busy */
-#endif
   Int_t fPriorityRange[2]; /** Prioritized events */
-#ifdef __STAT_DEBUG
-  GeantTrackStat fPStat; /** Statistics for the pending tracks */
-  GeantTrackStat fQStat; /** Statistics for the queued tracks */
-  GeantTrackStat fTStat; /** Statistics for the transported tracks */
-#endif
 
 private:
 
@@ -117,15 +103,6 @@ public:
   /** @brief Function to create initially baskets */
   void CreateBaskets();
 
-  /** 
-   * @brief Function to collect all tracks from prioritized events 
-   * @param collector Garbage collector (one per worker thread)
-   */
-  Int_t CollectPrioritizedPerThread(GeantBasketMgr *collector, GeantTaskData *td);
-
-  /** @brief Function to collection prioritized tracks and inject into transport queue */
-  Int_t CollectPrioritizedTracks(GeantTaskData *td);
-
   /**
    * @brief Getter for the array of basket managers
    * return Array of basket managers
@@ -137,8 +114,6 @@ public:
    * @return Garbage collector manager
    */
   GeantBasketMgr *GetGarbageCollector() const { return fGarbageCollector; }
-
-#if __cplusplus >= 201103L
 
   /**
    * @brief Getter for total number of steps
@@ -180,8 +155,6 @@ public:
    */
   Int_t *GetNvect() { return fNvect; } 
    
-#endif
-
   /**
    * @brief Function to return N priority baskets per volume
    * @return Number of priority baskets held
@@ -204,29 +177,6 @@ public:
     fPriorityRange[0] = min;
     fPriorityRange[1] = max;
   }
-#ifdef __STAT_DEBUG
-
-  /**
-   * @brief [Function to return statistic of pending tracks
-   * @return Statistics for the pending tracks
-   */
-  GeantTrackStat &GetPendingStat() { return fPStat; }
-
-  /**
-   * @brief Function to return statistic of queued tracks
-   * @return Statistics for the queued tracks
-   */
-  GeantTrackStat &GetQueuedStat() { return fQStat; }
-
-  /**
-   * @brief Function to return statistic of transported tracks
-   * @return Statistics for the transported tracks
-   */
-  GeantTrackStat &GetTransportStat() { return fTStat; }
-#endif
-
-  /** @brief Function to flush list of priority tracks */
-  Int_t FlushPriorityBaskets();
 
   /** @brief Garbage collection function */
   Int_t GarbageCollect(GeantTaskData *td, Bool_t force=false);

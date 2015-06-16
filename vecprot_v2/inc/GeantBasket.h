@@ -41,13 +41,22 @@ public:
 
 protected:
   GeantBasketMgr *fManager; /** Manager for the basket */
+public:
+  std::atomic_int fNcopying; /** Number tracks copying concurrently */
+  std::atomic_int fNbooked; /** Number of slots booked for copying */
+  std::atomic_int fNcopied; /** Number of tracks copied */
+  std::atomic_int fNused;   /** Number of threads using the basket */
+//  int               fNcopying; /** Number tracks copying concurrently */
+//  int               fNbooked; /** Number of slots booked for copying */
+  int               fNstalled; /** Number of stalling ops */
+  std::atomic_flag fLock;  /** Atomic lock for stealing current basket */
+  std::atomic_flag fDispatched; /** Atomic flag marking the basket as dispatched */
+  std::atomic_bool fReplaced; /** Flag marking replacement of basket */
+  Int_t fThreshold; /** Current transport threshold */
+protected:
+//GeantHit_v        fHits;  /** Vector of produced hits */
   GeantTrack_v fTracksIn;   /** Vector of input tracks */
   GeantTrack_v fTracksOut;  /** Vector of output tracks */
-//GeantHit_v        fHits;  /** Vector of produced hits */
-#if __cplusplus >= 201103L
-  std::atomic_int fAddingOp; /** Number of concurrent track adding operations */
-#endif
-  Int_t fThreshold; /** Current transport threshold */
 
 private:
 
@@ -64,7 +73,7 @@ public:
   /**
    * @brief GeantBasket standard constructor 
    * 
-   * @param size Imitial size of input/output track arrays
+   * @param size Initial size of input/output track arrays
    * @param mgr  Basket manager handling this basket
    */
   GeantBasket(Int_t size, GeantBasketMgr *mgr);
@@ -85,8 +94,9 @@ public:
    * @details Add concurrently track from generator or physics process
    * 
    * @param track Reference to track object
+   * @return Track index;
    */
-  void AddTrack(GeantTrack &track);
+  Int_t AddTrack(GeantTrack &track);
   
   /**
    * @bref Add a track from vector container to basket input.
@@ -94,8 +104,9 @@ public:
    * 
    * @param tracks Array of tracks to copy from.
    * @param itr Track id.
+   * @return Track index;
    */
-  void AddTrack(GeantTrack_v &tracks, Int_t itr);
+  Int_t AddTrack(GeantTrack_v &tracks, Int_t itr);
   
   /**
    * @brief Function to add multiple tracks to basket
@@ -107,8 +118,27 @@ public:
    */
   void AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend);
   
+  /** @brief Book a slot and return number of slots booked */
+  Int_t BookSlot() { return ( fNbooked.fetch_add(1, std::memory_order_seq_cst) + 1 ); }
+//  Int_t BookSlot() { return ( ++fNbooked ); }
+
+  /** @brief Get number of booked slots */
+  Int_t GetNbooked() { return ( fNbooked.load() ); }
+//  Int_t GetNbooked() { return fNbooked; }
+
   /** @brief Virtual function for clearing the basket */
   virtual void Clear(Option_t *option = "");
+
+  /** @brief Clear number of booked slots */
+  void ClearAllBooked() { fNbooked.store(0, std::memory_order_release); }
+//  void ClearAllBooked() { fNbooked = 0; }
+
+  /** @brief Clear the last booking */
+  Int_t ClearLastBooking() { return ( fNbooked.fetch_sub(1, std::memory_order_seq_cst) - 1 );}
+//  Int_t ClearLastBooking() { return ( --fNbooked );}
+  
+  int AddStalled() { return (++fNstalled);}
+  void ClearStalled() { fNstalled = 0;}
   
   /**
    * @brief Check if a basket contains tracks in a given event range
@@ -172,23 +202,28 @@ public:
   Bool_t IsMixed() const { return TObject::TestBit(kMixed); }
   
   /**
-   * @brief Atomic snapshot of the number of concurrent track adding operations
-   * @return Number of track adding operations
+   * @brief Check if tracks are being copied
+   * @return Track copy flag
    */
-  inline Bool_t IsAddingOp() const { return (fAddingOp.load()); }
+  inline Bool_t IsCopying() const { return (fNcopying.load(std::memory_order_seq_cst)); }
+//  inline Bool_t IsCopying() const { return fNcopying; }
+  inline Int_t GetNcopying() const { return fNcopying.load(); }
+//  inline Int_t GetNcopying() const { return fNcopying; }
+
+  /**
+   * @brief Mark start of copy operation
+   * @return Number of concurrent track copy operations
+   */
+  inline Int_t StartCopying() { return ( fNcopying.fetch_add(1, std::memory_order_seq_cst) + 1 ); }
+//  inline Int_t StartCopying() { return ( ++fNcopying ); }
   
   /**
-   * @brief Atomic increment of the number of track adding operations
-   * @return Number of concurrent track adding operations
+   * @brief Mark stop of copy operation
+   * @return Number of concurrent track copy operations remaining
    */
-  inline Int_t LockAddingOp() { return ++fAddingOp; }
-  
-  /**
-   * @brief Atomic decrement of the number of track adding operations
-   * @return Number of concurrent track adding operations remaining
-   */
-  inline Int_t UnLockAddingOp() { return --fAddingOp; }
-  
+  inline Int_t StopCopying() { return ( fNcopying.fetch_sub(1, std::memory_order_seq_cst) - 1 ); }
+//  inline Int_t StopCopying() { return ( --fNcopying ); }
+
   /**
    * @brief Print the basket content
    */
@@ -228,6 +263,27 @@ public:
    */
   void SetThreshold(Int_t threshold);
 
+  /** @brief Try to get the dispatch lock for the basket */
+  Bool_t TryDispatch() { 
+    return (!fDispatched.test_and_set(std::memory_order_acquire));
+  }
+
+  /** @brief Acquire basket spinlock when freed (blocking) */
+  inline void lock() __attribute__((always_inline)) {
+    while (fLock.test_and_set(std::memory_order_acquire));
+  }
+   
+
+  /** @brief Release basket spinlock when */
+  inline void unlock() __attribute__((always_inline)) {
+    fLock.clear(std::memory_order_release);
+  }
+
+  /** @brief Try to acquire basket spinlock non-blocking. The caller must clear only if true*/
+  inline bool try_lock() __attribute__((always_inline)) {
+    return (!fLock.test_and_set(std::memory_order_acquire));
+  }
+
   ClassDef(GeantBasket, 1) // A basket containing tracks in the same geomety volume
 };
 
@@ -248,17 +304,16 @@ protected:
   Int_t fQcap;                /** Queue capacity */
   Bool_t fActive;             /** Activity flag for generating baskets */
   Bool_t fCollector;          /** Mark this manager as event collector */
-#if __cplusplus >= 201103L
   std::atomic_int fThreshold; /** Adjustable transportability threshold */
   std::atomic_int fNbaskets;  /** Number of baskets for this volume */
   std::atomic_int fNused;     /** Number of baskets in use */
   typedef std::atomic<GeantBasket *> atomic_basket;
   atomic_basket fCBasket;  /** Current basket being filled */
-  std::atomic_flag fLock;  /** Atomic lock for stealing current basket */
-  std::atomic_flag fQLock; /** Atomic lock for increasing queue size */
-#endif
+  std::atomic_flag fDLock; /** Atomic lock for working with dispatch list */
+  std::atomic_flag fStealLock; /** Atomic lock for stealing the current basket */
   Geant::priority_queue<GeantBasket *> *fFeeder; /** Feeder queue to which baskets get injected */
-  TMutex fMutex;                                 /** Mutex for this basket manager */
+  std::vector<GeantBasket *> fDispatchList; /** list of baskets to be dispatched */
+
 private:
 
   /** @todo Still not implemented */
@@ -266,34 +321,42 @@ private:
 
   /** @todo Still not implemented operator = */          
   GeantBasketMgr &operator=(const GeantBasketMgr &);
-#if __cplusplus >= 201103L
 
   /**
-   * @brief Attempt to steal the current filled basket and replace it
-   *  
-   * @param current Current atomic basket to be replaced
-   * @param td Thread data
-   * @return Released basket pointer if operation succeeded, 0 if not
-   */
-  GeantBasket *StealAndReplace(atomic_basket &current, GeantTaskData *td);
-
-  /**
-   * @brief The caller thread steals temporarily the basket to mark a track addition
+   * @brief The caller thread books the basket held by the atomic for track addition
    * 
-   * @param current Current atomic basket to be pinned to a thread for track adding
-   * @return Current basket being pinned
+   * @param current Current atomic basket to be booked
+   * @return Number of booked slots
+   * @return Basket actually booked
    */
-  GeantBasket *StealAndPin(atomic_basket &current);
+  GeantBasket *BookBasket(atomic_basket &current, GeantTaskData *td, Int_t &nbooked, Int_t &ncopying);
 
   /**
-   * @brief Attempt to steal a global basket matching the content
+   * @brief Attempt to replace the atomic content of the basket with new one
    * 
-   * @param global Global atomic basket
-   * @param content Content of GeantBasket 
-   * @return Flag marking the success/failure of the steal operation
+   * @param current Current atomic basket
+   * @param expected Expected content
+   * @param strong Type of compare exchange operation
+   * @param td Task data
+   * @return True if replacement made by the call
    */
-  Bool_t StealMatching(atomic_basket &global, GeantBasket *content, GeantTaskData *td);
-#endif
+  bool ReplaceBasket(atomic_basket &current, GeantBasket *expected, bool strong, GeantTaskData *td);
+
+  /** @brief Acquire basket spinlock when freed (blocking) */
+  inline void lock_steal() __attribute__((always_inline)) {
+    while (fStealLock.test_and_set(std::memory_order_acquire));
+  }
+   
+
+  /** @brief Release basket spinlock when */
+  inline void unlock_steal() __attribute__((always_inline)) {
+    fStealLock.clear(std::memory_order_release);
+  }
+
+  /** @brief Try to acquire basket spinlock non-blocking. The caller must clear only if true*/
+  inline bool try_lock_steal() __attribute__((always_inline)) {
+    return (!fStealLock.test_and_set(std::memory_order_acquire));
+  }
 
 public:
 
@@ -313,7 +376,7 @@ public:
   /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
       : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0), fNbaskets(0),
-        fNused(0), fCBasket(0), fLock(), fQLock(), fFeeder(0), fMutex() {}
+        fNused(0), fCBasket(0), fDLock(), fStealLock(), fFeeder(0), fDispatchList() {}
 
   /** @brief GeantBasketMgr normal constructor 
    *
@@ -326,6 +389,29 @@ public:
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
   
+  void AddToDispatch(GeantBasket *basket) {
+    CheckStalled();
+    while (fDLock.test_and_set(std::memory_order_acquire));
+    fDispatchList.push_back(basket);
+    fDLock.clear(std::memory_order_release);
+  }
+  void RemoveFromDispatch(GeantBasket *basket) {
+    while (fDLock.test_and_set(std::memory_order_acquire));
+    basket->ClearStalled();
+    fDispatchList.erase(std::remove(fDispatchList.begin(), fDispatchList.end(), basket), fDispatchList.end());
+    fDLock.clear(std::memory_order_release);
+  }
+  
+  void CheckStalled() {    
+    while (fDLock.test_and_set(std::memory_order_acquire));
+    for (auto basket : fDispatchList) { 
+      int stalled = 0;
+      if (basket->fNcopied.load() == basket->GetThreshold()) stalled = basket->AddStalled();
+      if (stalled > 1) Printf("basket %p stalled %d ncpy=%d", (void*)basket, stalled, basket->GetNcopying());
+    }
+    fDLock.clear(std::memory_order_release);
+  }
+
   /**
    * @brief Grab function
    * @details Interface of TGeoExtension for getting a reference to this from TGeoVolume
@@ -373,31 +459,11 @@ public:
   Int_t AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td);
 
   /**
-   * @brief Thread local garbage collection of tracks from prioritized events
-   *
-   * @param evmin Minimum event index
-   * @param evmax Maximum event index
-   * @param gc Garbage collector basket
-   */
-  Int_t CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantTaskData *td);
-
-  /**
-   * @brief Garbage collection of prioritized tracks in an event range
-   * 
-   * @param evmin Minimum event index
-   * @param evmax Maximum event index
-   */
-  Int_t CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantTaskData *td);
-
-  /**
    * @brief Function cleaning a number of free baskets
    * 
    * @param ntoclean Number of baskets to be cleaned
    */
   void CleanBaskets(Int_t ntoclean, GeantTaskData *td);
-
-  /** @brief Function flushing to the work queue only priority baskets */
-  Int_t FlushPriorityBasket();
 
   /** @brief Function doing full collection to work queue of non-empty baskets*/
   Int_t GarbageCollect(GeantTaskData *td);
@@ -414,8 +480,6 @@ public:
    * @return Maximum capacity of baskets held
    */
   Int_t GetBcap() const { return fBcap; }
-
-#if __cplusplus >= 201103L
 
    /**
     * @brief Snapshot of the number of baskets
@@ -487,8 +551,6 @@ public:
    * @param basket Basket to be set as current
    */
   void SetCBasket(GeantBasket *basket) { fCBasket.store(basket); }
-
-#endif
 
   /**
    * @brief Function that returns the scheduler

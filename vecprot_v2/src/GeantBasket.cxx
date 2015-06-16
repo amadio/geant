@@ -20,24 +20,30 @@ ClassImp(GeantBasket)
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
-    : TObject(), fManager(0), fTracksIn(), fTracksOut(), fAddingOp(0), fThreshold(0) {
+    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fNstalled(0), fLock(), 
+      fDispatched(), fReplaced(false), fThreshold(0), fTracksIn(), fTracksOut() {
   // Dummy constructor.
+  fLock.clear();
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
-    : TObject(), fManager(mgr), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
-      fTracksOut(size, GeantPropagator::Instance()->fMaxDepth), fAddingOp(0), fThreshold(size) {
+    : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fNstalled(0), fLock(), fDispatched(), 
+      fReplaced(false), fThreshold(size),
+      fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
+      fTracksOut(size, GeantPropagator::Instance()->fMaxDepth) {
   // Default constructor.
   if (!mgr->GetVolume() || mgr->IsCollector()) 
     SetMixed(true);
+  fLock.clear();
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(Int_t size, Int_t depth)
-    : TObject(), fManager(0), fTracksIn(size, depth), fTracksOut(size, depth), 
-      fAddingOp(0), fThreshold(size) {
+    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fNstalled(0), fLock(),
+      fDispatched(), fReplaced(false), fThreshold(size), fTracksIn(size, depth), fTracksOut(size, depth) {
   // Default constructor.
+  fLock.clear();
 }
 
 //______________________________________________________________________________
@@ -46,44 +52,44 @@ GeantBasket::~GeantBasket() {
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTrack(GeantTrack &track) {
+Int_t GeantBasket::AddTrack(GeantTrack &track) {
   // Add a new track to this basket. Has to work concurrently.
 
   // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(track);
-#ifdef GeantV_SCH_DEBUG  
-  assert(fAddingOp.load()>0);
-#endif
-  fTracksIn.AddTrackSync(track);
+  return ( fTracksIn.AddTrackSync(track) );
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr) {
+Int_t GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr) {
   // Add track from a track_v array. Has to work concurrently.
 
   // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(tracks, itr, kTRUE);
-#ifdef GeantV_SCH_DEBUG  
-  assert(fAddingOp.load()>0);
-#endif
-  fTracksIn.AddTrackSync(tracks, itr);
+  return ( fTracksIn.AddTrackSync(tracks, itr) );
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend) {
   // Add multiple tracks from a track_v array.
-#ifdef GeantV_SCH_DEBUG  
-  assert(fAddingOp.load()>0);
-#endif
   fTracksIn.AddTracks(tracks, istart, iend, kTRUE);
 }
 
 //______________________________________________________________________________
 void GeantBasket::Clear(Option_t *option) {
   // Clear basket content.
+  lock();
   SetMixed(fManager->IsCollector());
   fTracksIn.Clear(option);
   fTracksOut.Clear(option);
+  fNbooked.store(0);
+  fNcopying.store(0);
+  fNcopied.store(0);
+  fNused.store(0);
+  fReplaced.store(false);
+  fDispatched.clear(std::memory_order_release);
+  fReplaced.store(false);
+  unlock();
 }
 
 //______________________________________________________________________________
@@ -139,8 +145,10 @@ ClassImp(GeantBasketMgr)
 GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector)
     : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32),
       fActive(kFALSE), fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), 
-      fCBasket(0), fLock(), fQLock(), fFeeder(0), fMutex() {
+      fCBasket(0), fDLock(), fStealLock(), fFeeder(0), fDispatchList() {
   // Constructor
+  fDLock.clear();
+  fStealLock.clear();
   fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
   // The line below to be removed when the automatic activation schema in place
   if (collector) 
@@ -163,101 +171,169 @@ void GeantBasketMgr::Activate()
   SetCBasket(basket);
   if (fCollector) {
     basket->SetMixed(true);
-    Printf("Created collector basket manager");
+//    Printf("Created collector basket manager");
   }  
   fActive = true;
 }   
 
 //______________________________________________________________________________
-GeantBasket *GeantBasketMgr::StealAndReplace(atomic_basket &current, GeantTaskData *td) {
-  // Steal the current pointer content and replace with a new basket from the
-  // pool. If the operation succeeds, returns the released basket which is now
-  // thread local
-  GeantBasket *newb, *oldb;
-  // Backup cbasket. If a steal happened it does not matter
-  newb = GetNextBasket(td); // backup new basket to avoid leak
-  oldb = current.load();  // both local vars, so identical content
-  // Check if fPBasket pointer was stolen by other thread
-  while (fLock.test_and_set(std::memory_order_acquire))
-    ;
-  Bool_t stolen = current.compare_exchange_strong(oldb, newb);
-  fLock.clear(std::memory_order_release);
-  if (stolen) {
-    // No steal: current points now to newbasket which takes all new
-    // tracks. We can push the backed-up old basket to the queue, but
-    // only AFTER any ongoing track addition finishes.
-    while (oldb->IsAddingOp()) {
-    }; // new AddTrack go all to newbasket
-    // Someone may still have a copy of the old basket  and haven't
-    // started yet adding tracks to it
-    // We are finally the owner of oldb
-    //      assert (!oldb->IsAddingOp());
-    return oldb;
-  } else {
-    // Current basket stolen by other thread: we need to recicle the new one
-    // and ignore the backed-up old basket which was injected by the other thread
-    //      assert(!newb->IsAddingOp());
-    newb->Recycle(td);
+GeantBasket *GeantBasketMgr::BookBasket(atomic_basket &current, GeantTaskData *td,
+                                        Int_t &nbooked, Int_t &ncopying) {
+  // The method books a basket for track addition. It checks that
+  // the basket was not replaced by other thread just after booking, in which 
+  // case it retries. Booking of a valid slot is eventually guaranteed.
+  
+  // Do a read from current
+  GeantBasket *basket = 0;
+  while (1) {
+    // Read current basket in non-replace mode and mark as copying (busy)
+    lock_steal();
+    basket = current.load();
+    basket->fNused++;
+    // Book a slot for copying.
+    ncopying = ++basket->fNcopying;
+    nbooked = ++basket->fNbooked;
+    unlock_steal();
+    // At this point the booking slot may be greater that the threshold
+    // Validate booking only if slot is within threshold
+    if (nbooked <= basket->fThreshold) return basket;
+//      if (nbooked == 1) AddToDispatch(basket);
+    // At this point booked slot is out of range
+    // No slot available, release copying
+    ncopying = --basket->fNcopying;
+    // The first one who finds an invalid slot tries to replace basket in none else did it
+    // The statement below should stand for at least one. Managing the
+    // replacement is NOT critical here, but just an optimisation 
+    if ( nbooked > basket->fThreshold )
+      ReplaceBasket(current, basket, false, td);
+    // Release completely basket
+    basket->fNused--;
   }
+}
+
+//______________________________________________________________________________
+bool GeantBasketMgr::ReplaceBasket(atomic_basket &current, GeantBasket *expected, bool strong, 
+                                   GeantTaskData *td)
+{
+  // Replace content of current with a new basket, if not already done. Returns true only
+  // if replacement was performed by this.
+  if (expected->fReplaced.load() || (current.load() != expected)) return false;
+  GeantBasket *newb = GetNextBasket(td);
+  bool replaced_by_me = false;
+  lock_steal();
+  // The compare exchange below can be intruding into setting copying busy flag - prevent that
+  if (strong) replaced_by_me = fCBasket.compare_exchange_strong(expected, newb);
+  else        replaced_by_me = fCBasket.compare_exchange_weak(expected, newb);
+  if (replaced_by_me) 
+    expected->fReplaced.store(true);
+  unlock_steal();
+  if (!replaced_by_me) newb->Recycle(td);
+  return replaced_by_me;
+}   
+  
+//______________________________________________________________________________
+Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td) {
+  // Add a track to the current basket. If the track number reaches the
+  // threshold, the basket is added to the feeder queue and replaced by an empty
+  // one. Returns the number of dispatched baskets
+  // Has to work concurrently
+  Int_t nbooked = 0;
+  Int_t ncopying = 0;
+  Int_t ncopied = 0;
+  GeantBasket *basket = 0;
+
+  // 1. Booking phase. Increments copying counter and number of slots. Anyone
+  //    can steal the basket, but not push it.
+  basket = BookBasket(fCBasket, td, nbooked, ncopying);
+
+  // 2. Track adding phase - basket not pushable
+  basket->AddTrack(trackv, itr);
+//  Int_t ncopied = basket->TrackCopied();
+  // Write to copying counter and reading from booking counter must be coupled 
+#ifdef BASKETIZER_DEBUG
+  assert(ncopying > 0);
+  assert(nbooked > 0);
+#endif  
+  basket->fNcopying--;
+  // Update ncopied counter
+  ncopied = basket->fNcopied.load(std::memory_order_relaxed);
+  while (!basket->fNcopied.compare_exchange_weak(ncopied, ncopied+1, std::memory_order_relaxed)) ;
+  ncopied++; // now contains the new value when changed by THIS thread
+
+  // 3. Last thread that completed the copy AND all slots are booked
+  // has to submit the basket. The condition should ALWAYS be true for a single thread
+  if (ncopied >= basket->GetThreshold()) {
+    ReplaceBasket(fCBasket, basket, true, td);
+#ifdef BASKETIZER_DEBUG
+//    assert(basket->fReplaced.load());
+#endif
+    // We can safely push the filled basket
+    if (basket->TryDispatch()) {
+//      RemoveFromDispatch(basket);
+//      basket->Clear();
+      // Spin till copying finished (should not spin)
+      while (basket->fNcopying.load()) ;
+      // Release basket
+      basket->fNused--;
+      fFeeder->push(basket, priority);
+      return 1;
+    }
+  }
+  // Release basket
+  basket->fNused--;
   return 0;
 }
 
 //______________________________________________________________________________
-GeantBasket *GeantBasketMgr::StealAndPin(atomic_basket &current) {
-  // The method pins non-atomically the basket to the caller while adding the
-  // fAddingOp flag. It makes sure that no StealAndReplace operation happened
-  // on the pinned basket.
-  GeantBasket *oldb = 0;
-  while (1) {
-    // the 2 lines below should be atomically coupled
-//    while (fLock.test_and_set(std::memory_order_acquire))
-      ;
-    oldb = current.load();
-    oldb->LockAddingOp();
-//    fLock.clear(std::memory_order_release);
-    // If no steal happened in between return basket pointer
-    if (oldb == current.load())
-      return oldb;
-    oldb->UnLockAddingOp();
-  }
-}
-
-//______________________________________________________________________________
-Bool_t GeantBasketMgr::StealMatching(atomic_basket &global, GeantBasket *content,
-                        GeantTaskData *td) {
-  // Steal the global basket if it has the right matching content
-  // Prepare replacement
-  GeantBasket *newb = GetNextBasket(td);
-  if (global.compare_exchange_strong(content, newb)) {
-    // Basket stolen
-    while (content->IsAddingOp()) {
-    };
-    return kTRUE;
-  } else {
-    newb->Recycle(td);
-  }
-  return kFALSE;
-}
-
-//______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td) {
-  // Copy directly from a track_v a track to the basket manager.
+Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td) {
+  // Add a track to the current basket. If the track number reaches the
+  // threshold, the basket is added to the feeder queue and replaced by an empty
+  // one. Returns the number of dispatched baskets
   // Has to work concurrently
-  // Atomically pin the basket for the adding operation
-  GeantBasket *oldb = StealAndPin(fCBasket);
-  // Now basket matches fP(C)Basket content and has the adding flag set
-  oldb->AddTrack(trackv, itr);
-  if (oldb->GetNinput() >= oldb->GetThreshold()) {
-    oldb->UnLockAddingOp();
-    if (StealMatching(fCBasket, oldb, td)) {
-      // we fully own now oldb
-      //         assert(!oldb->IsAddingOp());
-      fFeeder->push(oldb, priority);
+  Int_t nbooked = 0;
+  Int_t ncopying = 0;
+  Int_t ncopied = 0;
+  GeantBasket *basket = 0;
+
+  // 1. Booking phase. Increments copying counter and number of slots. Anyone
+  //    can steal the basket, but not push it.
+  basket = BookBasket(fCBasket, td, nbooked, ncopying);
+
+  // 2. Track adding phase - basket not pushable
+  basket->AddTrack(track);
+//  Int_t ncopied = basket->TrackCopied();
+  // Write to copying counter and reading from booking counter must be coupled 
+#ifdef BASKETIZER_DEBUG
+  assert(ncopying > 0);
+  assert(nbooked > 0);
+#endif
+  basket->fNcopying--;
+  // Update ncopied counter
+  ncopied = basket->fNcopied.load(std::memory_order_relaxed);
+  while (!basket->fNcopied.compare_exchange_weak(ncopied, ncopied+1, std::memory_order_relaxed)) ;
+  ncopied++; // now contains the new value when changed by THIS thread
+
+  // 3. Last thread that completed the copy AND all slots are booked
+  // has to submit the basket. The condition should ALWAYS be true for a single thread
+  if (ncopied >= basket->GetThreshold()) {
+    ReplaceBasket(fCBasket, basket, true, td);
+#ifdef BASKETIZER_DEBUG
+//    assert(basket->fReplaced.load());
+#endif
+    // We can safely push the filled basket
+    if (basket->TryDispatch()) {
+//      RemoveFromDispatch(basket);
+//      basket->Clear();
+      // Spin till copying finished (should not spin)
+      while (basket->fNcopying.load()) ;
+      // Release basket
+      basket->fNused--;
+      fFeeder->push(basket, priority);
       return 1;
-    } else
-      return 0;
+    }
   }
-  oldb->UnLockAddingOp();
+  // Release basket
+  basket->fNused--;
   return 0;
 }
 
@@ -269,6 +345,7 @@ Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool
   GeantBasket *cbasket = GetCBasket();
   cbasket->GetInputTracks().AddTrack(trackv, itr);
   if (cbasket->GetNinput() >= cbasket->GetThreshold()) {
+    assert(cbasket->TryDispatch());
     fFeeder->push(cbasket, priority);    
     SetCBasket(GetNextBasket(td));
     return 1;
@@ -277,131 +354,37 @@ Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool
 }
   
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td) {
-  // Add a track to the volume basket manager. If the track number reaches the
-  // threshold, the basket is added to the feeder queue and replaced by an empty
-  // one. The feeder must be defined beforehand. Returns the number of dispatched
-  // baskets
-  // Has to work concurrently
-  // Atomically pin the basket for the adding operation
-  GeantBasket *oldb = StealAndPin(fCBasket);
-  // Now basket matches fP(C)Basket content and has the adding flag set
-  oldb->AddTrack(track);
-  if (oldb->GetNinput() >= oldb->GetThreshold()) {
-    oldb->UnLockAddingOp();
-    if (StealMatching(fCBasket, oldb, td)) {
-      // we fully own now oldb
-      //         assert(!oldb->IsAddingOp());
-      fFeeder->push(oldb, priority);
-      return 1;
-    } else
-      return 0;
-  }
-  oldb->UnLockAddingOp();
-  return 0;
-}
-
-//______________________________________________________________________________
-Int_t GeantBasketMgr::CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantTaskData *td) {
-  // Garbage collect tracks from the given event range. The basket gc should
-  // be thread local
-  if (!GetCBasket()->GetNinput())
-    return 0;
-  GeantBasket *cbasket = 0;
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  while (cbasket == 0)
-    cbasket = StealAndReplace(fCBasket, td);
-  // cbasket is now thread local
-  // Loop all tracks in the current basket and mark for copy the ones belonging
-  // to the desired events
-  GeantTrack_v &tracks = cbasket->GetInputTracks();
-  Int_t ntracks = tracks.GetNtracks();
-  Int_t icoll = 0;
-  for (Int_t itr = 0; itr < ntracks; itr++) {
-    if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized() ) {
-      tracks.MarkRemoved(itr);
-      icoll++;
-    }
-  }
-  if (icoll) tracks.Compact(&gc->GetCBasket()->GetInputTracks());
-  return icoll;
-}
-
-//______________________________________________________________________________
-Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantTaskData *td) {
-  // Move current basket tracks to priority one.
-  // *** NONE *** This should be done for all basket managers only once when
-  // starting prioritizing an event range.
-  // Lock and swap containers
-  if (!GetCBasket()->GetNinput())
-    return 0;
-  //   Printf("=== CollectPrioritized");
-  //   Print();
-  GeantBasket *cbasket = 0, *basket;
-  Int_t npush = 0;
-  // We want to steal fCBasket
-  while (cbasket == 0)
-    cbasket = StealAndReplace(fCBasket, td);
-  // cbasket is now thread local
-  GeantTrack_v &tracks = cbasket->GetInputTracks();
-  Int_t ntracks = tracks.GetNtracks();
-  // Inject cbasket if it contains tracks with priority 
-  for (Int_t itr = 0; itr < ntracks; itr++) {
-    if (tracks.fEventV[itr] >= evmin && tracks.fEventV[itr] <= evmax) {
-      fFeeder->push(cbasket, kTRUE);
-      return 1;
-    }
-  }
-  // if cbasket empty -> just recycle
-  if (cbasket->GetNinput() == 0) {
-    cbasket->Recycle(td);
-    //         Print();
-    return npush;
-  }
-  // cbasket has to be merged back into fCBasket. Most profitable is to
-  // exchange the pointer held by fCBasket (which is most likely empty if
-  // no other thread was adding on top) with cbasket.
-  cbasket = fCBasket.exchange(cbasket);
-  while (cbasket->IsAddingOp()) {
-  }; // wait possible adding to finish
-  // Now add cbasket content on top of fCBasket
-  GeantTrack_v &ctracks = cbasket->GetInputTracks();
-  ntracks = ctracks.GetNtracks();
-  for (Int_t itr = 0; itr < ntracks; itr++) {
-    basket = StealAndPin(fCBasket);
-    basket->AddTrack(ctracks, itr);
-    basket->UnLockAddingOp();
-  }
-  ctracks.Clear();
-  cbasket->Recycle(td);
-  //   Print();
-  return npush;
-}
-
-//______________________________________________________________________________
-Int_t GeantBasketMgr::FlushPriorityBasket() {
-  // Flush the baskets containing tracks. Returns the number of dispatched baskets.
-  return 0;
-}
-
-//______________________________________________________________________________
 Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
   // Copy all priority tracks to the current basket and flush to queue
-  GeantBasket *cbasket = 0;
   // We want to steal fCBasket
-  if (GetCBasket()->GetNinput()) {
-    while (cbasket == 0)
-      cbasket = StealAndReplace(fCBasket, td);
-    Int_t ntracks = cbasket->GetNinput();
-    if (ntracks) {
-      //            assert(!cbasket->IsAddingOp());
-      fFeeder->push(cbasket, kFALSE);
+//  CheckStalled();
+//  int nstalled = fDispatchList.size();
+//  if (nstalled) Printf(" === %s: %d baskets stalled", GetName(), nstalled);
+//  for (auto basket1 : fDispatchList) Printf("   %p: %d/%d", (void*)basket1, basket1->fNcopied.load(), basket1->GetThreshold());
+  lock_steal();
+  GeantBasket *basket = fCBasket.load();
+  basket->fNused++;
+  Int_t nbooked = basket->fNbooked.load();
+  unlock_steal();
+  if (nbooked) {
+    ReplaceBasket(fCBasket, basket, true, td);
+#ifdef BASKETIZER_DEBUG
+//    assert(basket->fReplaced.load());
+#endif
+    if (basket->TryDispatch()) {
+      // Spin till copying finished (should not spin)
+      while (basket->fNcopying.load()) ;
+      // Release basket
+      basket->fNused--;
+      fFeeder->push(basket, false);
       return 1;
     }
-    cbasket->Recycle(td);
   }
+  // Release basket
+  basket->fNused--;
   return 0;
-}
+}  
+
 //______________________________________________________________________________
 void GeantBasketMgr::CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td)
 {
@@ -448,8 +431,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
 //______________________________________________________________________________
 void GeantBasketMgr::RecycleBasket(GeantBasket *b, GeantTaskData *td) {
   // Recycle a basket.
-  //   assert(!b->GetNinput());
-  //   assert(!b->IsAddingOp());
+  b->Clear();
   Int_t nthreads = td->fNthreads;
   Int_t threshold = fThreshold.load();
   Int_t threshold_new = threshold * fNused.load() / nthreads;
@@ -460,7 +442,6 @@ void GeantBasketMgr::RecycleBasket(GeantBasket *b, GeantTaskData *td) {
     //      Printf("volume %s:      ntotal=%d   nused=%d   thres=%d    size=%ld", GetName(),
     //      fNbaskets.load(), fNused.load(), threshold_new, Sizeof());
   }
-  b->Clear();
   td->RecycleBasket(b);
   fNused--;
 }

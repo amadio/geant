@@ -65,6 +65,7 @@ GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
   if (fPool.empty()) return 0;
   GeantBasket *basket = fPool.back();
+  basket->Clear();
   fPool.pop_back();
   return basket;
 }  

@@ -275,7 +275,7 @@ void *WorkloadManager::TransportTracks(void *) {
       basket = prioritizer->GetBasketForTransport(td);
       ngcoll = 0;
     } else {
-      if (nbaskets < 1) {
+      if ( (nbaskets < 1) && (!propagator->IsFeeding()) ) {
         sch->GarbageCollect(td);
         ngcoll++;
       }
@@ -290,18 +290,18 @@ void *WorkloadManager::TransportTracks(void *) {
       }
       wm->FeederQueue()->wait_and_pop(basket);
     }
+    // Check exit condition: null basket in the queue
+    if (!basket)
+      break;
     waiting[tid] = 0;
     if (td->NeedsToClean()) td->CleanBaskets(0);
     else {
       // Check if there are at least 2 free baskets for this thread
       if (td->fPool.size() < 10) {
         if (basket->GetBasketMgr()) basket->GetBasketMgr()->CreateEmptyBaskets(2,td);
-	else td->fBmgr->CreateEmptyBaskets(10,td);
+        else td->fBmgr->CreateEmptyBaskets(10,td);
       }	
     }
-    // Check exit condition: null basket in the queue
-    if (!basket)
-      break;
     ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
@@ -443,6 +443,10 @@ void *WorkloadManager::TransportTracks(void *) {
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
 //    sched_locker.StartOne();
+    // Make sure the basket is not recycled before gets released by basketizer
+    // This should not happen vey often, just when some threads are highly 
+    // demoted ant the basket makes it through the whole cycle before being fully released
+    while (basket->fNused.load()) ;
     basket->Recycle(td);
   }
   wm->DoneQueue()->push(0);

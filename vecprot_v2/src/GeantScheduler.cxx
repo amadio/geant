@@ -30,11 +30,6 @@ GeantScheduler::GeantScheduler()
   SetLearning(false);
   fNvect = new Int_t[257];
   memset(fNvect, 0, 257*sizeof(int));
-#ifdef __STAT_DEBUG
-  fPStat.InitArrays(GeantPropagator::Instance()->fNevents);
-  fQStat.InitArrays(GeantPropagator::Instance()->fNevents);
-  fTStat.InitArrays(GeantPropagator::Instance()->fNevents);
-#endif
 }
 
 //______________________________________________________________________________
@@ -233,50 +228,6 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
 }
 
 //______________________________________________________________________________
-Int_t GeantScheduler::CollectPrioritizedPerThread(GeantBasketMgr *collector, GeantTaskData *td) {
-  // Collect all tracks from prioritized events. Called concurrently by worker
-  // threads. The thread getting to process the last basket manager resets the
-  // collection process. The method performs work steal.
-  Int_t ncollected = 0;
-  Int_t imgr;
-  // The IsCollecting flag can only be set by the scheduler thread, but can be
-  // reset by any worker
-  while (IsCollecting()) {
-    imgr = ++fCrtMgr;
-    if (imgr >= fNvolumes) return ncollected;
-    if (imgr == fNvolumes-1) {
-      SetCollecting(false);
-      fCrtMgr.store(0);
-    }  
-    // Process current basket manager
-    ncollected += fBasketMgr[imgr]->CollectPrioritizedTracksNew(collector, td);
-  }
-  return ncollected;
-}
-
-//______________________________________________________________________________
-Int_t GeantScheduler::CollectPrioritizedTracks(GeantTaskData *td) {
-  // Send the signal to all basket managers to prioritize all pending tracks
-  // if any within the priority range.
-  //   PrintSize();
-  Int_t ninjected = 0;
-  for (Int_t ibasket = 0; ibasket < fNvolumes; ibasket++)
-    ninjected +=
-        fBasketMgr[ibasket]->CollectPrioritizedTracks(fPriorityRange[0], fPriorityRange[1], td);
-  return ninjected;
-}
-
-//______________________________________________________________________________
-Int_t GeantScheduler::FlushPriorityBaskets() {
-  // Flush all non-empty priority baskets.
-  Int_t ninjected = 0;
-  for (Int_t ibasket = 0; ibasket < fNvolumes; ibasket++) {
-    ninjected += fBasketMgr[ibasket]->FlushPriorityBasket();
-  }
-  return ninjected;
-}
-
-//______________________________________________________________________________
 Int_t GeantScheduler::GarbageCollect(GeantTaskData *td, bool force) {
   // Flush all filled baskets in the work queue.
   //   PrintSize();
@@ -287,13 +238,13 @@ Int_t GeantScheduler::GarbageCollect(GeantTaskData *td, bool force) {
   } else {
     if (fGBCLock.test_and_set(std::memory_order_acquire)) return 0;
   }
-//  Printf("=== Garbage collect");
   Int_t ninjected = 0;
   for (Int_t ibasket = 0; ibasket < fNvolumes; ibasket++) {
     if (fBasketMgr[ibasket]->IsActive())
       ninjected += fBasketMgr[ibasket]->GarbageCollect(td);
   }
   fGBCLock.clear(std::memory_order_release);
+  Printf("=== Garbage collect: %d baskets", ninjected);
   return ninjected;
 }
 

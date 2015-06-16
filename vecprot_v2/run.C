@@ -32,7 +32,7 @@ void run(Int_t nthreads=4,
    wmgr->SetMonitored(WorkloadManager::kMonQueue,          true & (!performance));
    wmgr->SetMonitored(WorkloadManager::kMonMemory,         false & (!performance));
    wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonVectors,        true & (!performance));
+   wmgr->SetMonitored(WorkloadManager::kMonVectors,        false & (!performance));
    wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false & (!performance));
    wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false & (!performance));
    Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;

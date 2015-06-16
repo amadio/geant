@@ -188,6 +188,13 @@ public:
    */
   Int_t Feeder(GeantTaskData *td);
 
+  /** @brief Check if transport is feeding with new tracks. */
+  inline Bool_t IsFeeding() { 
+    Bool_t feeding = fFeederLock.test_and_set(std::memory_order_acquire);
+    if (feeding) return kTRUE;
+    fFeederLock.clear(std::memory_order_release);
+    return kFALSE;
+  }  
 
   /**
    * @brief Function for importing tracks 
