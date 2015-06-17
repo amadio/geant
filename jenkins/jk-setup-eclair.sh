@@ -18,15 +18,6 @@ else
   echo "$0: expecting 5 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [BACKEND]"
   return
 fi
-echo '++++++++++++++++++++++++++++++'
-echo $LABEL
-echo $COMPILER
-echo $BUILDTYPE
-echo $EXTERNALS
-echo $WORKSPACE
-echo $BACKEND
-echo '++++++++++++++++++++++++++++++'
-
 
 if [ $LABEL == slc6 ] || [ $LABEL == cc7 ]
 then
@@ -44,9 +35,9 @@ then
 
   ARCH=$(uname -m)
   . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
-  export FC=gfortran
-  export CXX=`which g++`
-  export CC=`which gcc`
+  #export FC=gfortran
+  #export CXX=`which g++`
+  #export CC=`which gcc`
 
   export CMAKE_SOURCE_DIR=$WORKSPACE/geant
   export CMAKE_BINARY_DIR=$WORKSPACE/geant/builds
@@ -64,4 +55,30 @@ fi
 echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE}
 eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE}`
 
-cmake ../ $CTEST_BUILD_OPTION && make -j 24
+############## Eclair setings ###################
+
+#set -e
+
+export PROJECT_ROOT=${WORKSPACE}
+export ANALYSIS_DIR=${WORKSPACE}/geant/jenkins
+export OUTPUT_DIR=${WORKSPACE}/GeantV
+mkdir -p ${OUTPUT_DIR}
+export PB_OUTPUT=${OUTPUT_DIR}/REPORT.@FRAME@.pb
+export ECLAIR_DIAGNOSTICS_OUTPUT=${OUTPUT_DIR}/DIAGNOSTICS.txt
+export ECL_CONFIG_FILE=${ANALYSIS_DIR}/GeantV.ecl
+rm -f ${ECLAIR_DIAGNOSTICS_OUTPUT}
+rm -f ${OUTPUT_DIR}/REPORT.*.pb
+
+export CC=/usr/bin/cc
+export CXX=/usr/bin/c++
+export AS=/usr/bin/as
+export LD=/usr/bin/ld
+export AR=/usr/bin/ar
+
+eclair_env +begin +end -eval-file=${ECL_CONFIG_FILE} -- 'cmake ../ $CTEST_BUILD_OPTION && make -j 24' || true
+
+cd ${OUTPUT_DIR}
+rm -f REPORTS.db
+eclair_report -create-db=REPORTS.db *.pb -load
+rm -rf eclair_output
+eclair_report -db=REPORTS.db -output=eclair_output/@TAG@.etr -reports
