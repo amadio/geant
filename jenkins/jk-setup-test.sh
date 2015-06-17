@@ -18,6 +18,15 @@ else
   echo "$0: expecting 5 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [BACKEND]"
   return
 fi
+echo '++++++++++++++++++++++++++++++'
+echo $LABEL
+echo $COMPILER
+echo $BUILDTYPE
+echo $EXTERNALS
+echo $WORKSPACE
+echo $BACKEND
+echo '++++++++++++++++++++++++++++++'
+
 
 if [ $LABEL == slc6 ] || [ $LABEL == cc7 ] 
 then
