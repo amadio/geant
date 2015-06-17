@@ -4,7 +4,7 @@
 # $CTEST_BUILD_OPTIONS // CMake flags for Geant-V build
 # $CMAKE_SOURCE_DIR    // CMake source directory
 # $CMAKE_BINARY_DIR    // CMake binary directory
-# $CMAKE_BUILD_TYPE    // CMake build type: Debug, Release 
+# $CMAKE_BUILD_TYPE    // CMake build type: Debug, Release
 # $CMAKE_INSTALL_PREFIX // Installation prefix for CMake (Jenkins trigger)
 # CC and CXX (In Jenkins this step has been done authomaticly)
 # export $LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH (for GeantV libraries)
@@ -13,6 +13,9 @@
 # Name of $BACKEND     // Backend for Geant-V (VecGeom/ROOT or CUDA)
 
 cmake_minimum_required(VERSION 2.8)
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "1000")
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "1000")
+set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE "50000")
 ###################################################################
 macro(CheckExitCode)
   if(NOT ${ExitCode} EQUAL 0)
@@ -51,12 +54,12 @@ set(WITH_MEMCHECK FALSE)
 set(WITH_COVERAGE FALSE)
 
 #######################################################
-# CTest/CMake settings 
+# CTest/CMake settings
 
 set(CTEST_TEST_TIMEOUT 3600)
 set(CTEST_BUILD_CONFIGURATION "$ENV{CMAKE_BUILD_TYPE}")
 set(CMAKE_INSTALL_PREFIX "$ENV{CMAKE_INSTALL_PREFIX}")
-set(CTEST_SOURCE_DIRECTORY "$ENV{CMAKE_SOURCE_DIR}")  
+set(CTEST_SOURCE_DIRECTORY "$ENV{CMAKE_SOURCE_DIR}")
 set(CTEST_BINARY_DIRECTORY "$ENV{CMAKE_BINARY_DIR}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 set(CTEST_BUILD_OPTIONS "$ENV{CTEST_BUILD_OPTIONS}")
