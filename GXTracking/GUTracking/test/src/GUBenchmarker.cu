@@ -7,6 +7,9 @@
 
 #include "GUAliasSampler.h"
 #include "GUComptonKleinNishina.h"
+#include "GUConversionBetheHeitler.h"
+#include "GUPhotoElectronSauterGavrila.h"
+#include "GUMollerBhabha.h"
 #include "GUSeltzerBerger.h"
 #include "Physics2DVector.h"
 #include "GUTrackHandler.h"
@@ -33,17 +36,42 @@ void GUBenchmarker::RunCuda()
   int *targetElements = new int [fNtracks];
   int *targetElements_d;
 
-  //prepare table - To do: for each model
-  GUSeltzerBerger *model = new GUSeltzerBerger(0,-1);
+  //prepare table - this step may be move to the physics list later
+  GUComptonKleinNishina *KleinNishina = new GUComptonKleinNishina(0,-1);
+  GUConversionBetheHeitler *BetheHeitler = new GUConversionBetheHeitler(0,-1);
+  GUPhotoElectronSauterGavrila *SauterGavrila = new GUPhotoElectronSauterGavrila(0,-1);
+  GUMollerBhabha *MollerBhabha = new GUMollerBhabha(0,-1);
+  GUSeltzerBerger *SeltzerBerger = new GUSeltzerBerger(0,-1);
 
+  GUAliasTableManager** tableM_h = 
+    (GUAliasTableManager**) malloc(kNumberPhysicsModel*sizeof(GUAliasTableManager*)); 
+
+  tableM_h[kKleinNishina] = KleinNishina->GetSampler()->GetAliasTableManager();
+  tableM_h[kBetheHeitler] = BetheHeitler->GetSampler()->GetAliasTableManager();
+  tableM_h[kSauterGavrila]= SauterGavrila->GetSampler()->GetAliasTableManager();
+  tableM_h[kMollerBhabha] = MollerBhabha->GetSampler()->GetAliasTableManager();
+  tableM_h[kSeltzerBerger]= SeltzerBerger->GetSampler()->GetAliasTableManager();
+
+  GUAliasTableManager** tableM_d;
+  cudaMalloc((void**)&tableM_d,kNumberPhysicsModel*sizeof(GUAliasTableManager*));
+
+  GUAliasTableManager* temp_d[kNumberPhysicsModel];
+  for(int i = 0 ; i < kNumberPhysicsModel ; ++i) {
+    cudaMalloc((void**)&temp_d[i],tableM_h[i]->SizeOfManager());
+    tableM_h[i]->Relocate(temp_d[i]);
+  }
+  cudaMemcpy(tableM_d,temp_d,sizeof(GUAliasTableManager*)*kNumberPhysicsModel,
+             cudaMemcpyHostToDevice);
+
+  /*
   GUAliasTableManager* tableM_h = model->GetSampler()->GetAliasTableManager();
   GUAliasTableManager* tableM_d;
   cudaMalloc((void**)&tableM_d, tableM_h->SizeOfManager());
-
   tableM_h->Relocate(tableM_d);
+  */
   
   //SeltzerBerger data
-  Physics2DVector* sbData = model->GetSBData();
+  Physics2DVector* sbData = SeltzerBerger->GetSBData();
   Physics2DVector* sbData_d;
   cudaMalloc((void**)&sbData_d,maximumZ*sizeof(Physics2DVector));
   cudaMemcpy(sbData_d, sbData, maximumZ*sizeof(Physics2DVector),

@@ -16,7 +16,7 @@ inline namespace cuda {
 
 __global__
 void KernelKleinNishina(Random_t* devStates,
-                        GUAliasTableManager* table,
+                        GUAliasTableManager** table,
                         Physics2DVector* sbData,
 			int nTrackSize, 
                         GUTrack* itrack, 
@@ -25,7 +25,7 @@ void KernelKleinNishina(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kKleinNishina]);
   GUComptonKleinNishina model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
@@ -36,7 +36,7 @@ void KernelKleinNishina(Random_t* devStates,
 
 __global__
 void KernelBetheHeitler(Random_t* devStates,
-                        GUAliasTableManager* table,
+                        GUAliasTableManager** table,
                         Physics2DVector* sbData,
 			int nTrackSize, 
                         GUTrack* itrack, 
@@ -45,7 +45,7 @@ void KernelBetheHeitler(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kBetheHeitler]);
   GUConversionBetheHeitler model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
@@ -56,7 +56,7 @@ void KernelBetheHeitler(Random_t* devStates,
 
 __global__
 void KernelSauterGavrila(Random_t* devStates,
-                         GUAliasTableManager* table,
+                         GUAliasTableManager** table,
                          Physics2DVector* sbData,
 			 int nTrackSize, 
                          GUTrack* itrack, 
@@ -65,7 +65,7 @@ void KernelSauterGavrila(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kSauterGavrila]);
   GUPhotoElectronSauterGavrila model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
@@ -76,7 +76,7 @@ void KernelSauterGavrila(Random_t* devStates,
 
 __global__
 void KernelMollerBhabha(Random_t* devStates,
-                        GUAliasTableManager* table,
+                        GUAliasTableManager** table,
                         Physics2DVector* sbData,
 			int nTrackSize, 
                         GUTrack* itrack, 
@@ -85,7 +85,7 @@ void KernelMollerBhabha(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kMollerBhabha]);
   GUMollerBhabha model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
@@ -96,7 +96,7 @@ void KernelMollerBhabha(Random_t* devStates,
 
 __global__
 void KernelSeltzerBerger(Random_t* devStates,
-                         GUAliasTableManager* table,
+                         GUAliasTableManager** table,
                          Physics2DVector* sbData,
 			 int nTrackSize, 
                          GUTrack* itrack, 
@@ -105,7 +105,7 @@ void KernelSeltzerBerger(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kSeltzerBerger]);
   GUSeltzerBerger model(devStates,tid,&sampler,sbData);
 
   while (tid < nTrackSize) {
@@ -121,7 +121,7 @@ void KernelSeltzerBerger(Random_t* devStates,
 Precision CudaKleinNishina(int blocksPerGrid, 
                            int threadsPerBlock,
                            Random_t* devStates,
-                           GUAliasTableManager* table,
+                           GUAliasTableManager** table,
                            Physics2DVector* sbData,
 			   int nTrackSize, 
                            GUTrack* itrack, 
@@ -146,7 +146,7 @@ Precision CudaKleinNishina(int blocksPerGrid,
 Precision CudaBetheHeitler(int blocksPerGrid, 
                            int threadsPerBlock,
                            Random_t* devStates,
-                           GUAliasTableManager* table,
+                           GUAliasTableManager** table,
                            Physics2DVector* sbData,
 			   int nTrackSize, 
                            GUTrack* itrack, 
@@ -171,7 +171,7 @@ Precision CudaBetheHeitler(int blocksPerGrid,
 Precision CudaSauterGavrila(int blocksPerGrid, 
                             int threadsPerBlock,
                             Random_t* devStates,
-                            GUAliasTableManager* table,
+                            GUAliasTableManager** table,
                             Physics2DVector* sbData,
 			    int nTrackSize, 
                             GUTrack* itrack, 
@@ -196,7 +196,7 @@ Precision CudaSauterGavrila(int blocksPerGrid,
 Precision CudaMollerBhabha(int blocksPerGrid, 
                            int threadsPerBlock,
                            Random_t* devStates,
-                           GUAliasTableManager* table,
+                           GUAliasTableManager** table,
                            Physics2DVector* sbData,
 			   int nTrackSize, 
                            GUTrack* itrack, 
@@ -221,7 +221,7 @@ Precision CudaMollerBhabha(int blocksPerGrid,
 Precision CudaSeltzerBerger(int blocksPerGrid, 
                             int threadsPerBlock,
                             Random_t* devStates,
-                            GUAliasTableManager* table,
+                            GUAliasTableManager** table,
                             Physics2DVector* sbData,
 			    int nTrackSize, 
                             GUTrack* itrack, 
