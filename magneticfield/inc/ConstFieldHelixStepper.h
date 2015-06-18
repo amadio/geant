@@ -18,7 +18,7 @@ void sincos(double x, double *s, double *c) {
 #endif
 
 
-namespace geantv
+namespace geant
 {
 
   /**
@@ -203,6 +203,6 @@ namespace geantv
    // might need to provide more general class in which the constant field has arbitrary direction
 
 
-} // end geantv namespace
+} // end geant namespace
 
 #endif /* CONSTFIELDHELIXSTEPPER_H_ */
