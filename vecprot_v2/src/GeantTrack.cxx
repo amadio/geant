@@ -376,7 +376,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
 #else
   fNtracks = track_v.fNtracks;
 #endif
-  fBuf = (char *)_mm_malloc(fBufSize, ALIGN_PADDING);
+  fBuf = (char *)_mm_malloc(fBufSize, GEANT_ALIGN_PADDING);
   memcpy(fBuf, track_v.fBuf, fBufSize);
   AssignInBuffer(&fBuf[0], fMaxtracks);
 }
@@ -395,7 +395,7 @@ GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v) {
     fBufSize = track_v.fBufSize;
     if (fMaxtracks < size) {
       _mm_free(fBuf);
-      fBuf = (char *)_mm_malloc(fBufSize, ALIGN_PADDING);
+      fBuf = (char *)_mm_malloc(fBufSize, GEANT_ALIGN_PADDING);
     }
     fMaxtracks = size;
     fNselected = track_v.fNselected;
@@ -733,12 +733,12 @@ void GeantTrack_v::Resize(Int_t newsize) {
   if (!fCompact)
     Compact();
 
-  char *buf = (char *)_mm_malloc(fBufSize, ALIGN_PADDING);
+  char *buf = (char *)_mm_malloc(fBufSize, GEANT_ALIGN_PADDING);
   memset(buf, 0, fBufSize);
   fMaxtracks = size;
   if (!fBuf) {
     // All arrays are contiguous in a single buffer and aligned with the
-    // same padding ALIGN_PADDING
+    // same padding GEANT_ALIGN_PADDING
     fBuf = buf;
     AssignInBuffer(buf, size);
     memset(fPathV, 0, size * sizeof(VolumePath_t *));

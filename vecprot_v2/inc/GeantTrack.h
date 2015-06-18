@@ -28,8 +28,8 @@
 #include <atomic>
 #endif
 
-#ifndef ALIGN_PADDING
-#define ALIGN_PADDING 32
+#ifndef GEANT_ALIGN_PADDING
+#define GEANT_ALIGN_PADDING 32
 #endif
 
 #ifndef VECCORE_BITSET_H
@@ -1113,18 +1113,18 @@ public:
    */
   GEANT_CUDA_BOTH_CODE
   static Int_t round_up_align(Int_t num) {
-    int remainder = num % ALIGN_PADDING;
+    int remainder = num % GEANT_ALIGN_PADDING;
     if (remainder == 0)
       return num;
-    return (num + ALIGN_PADDING - remainder);
+    return (num + GEANT_ALIGN_PADDING - remainder);
   }
 
   GEANT_CUDA_BOTH_CODE
   static char* round_up_align(char *buf) {
-    long remainder = ((long)buf) % ALIGN_PADDING;
+    long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
     if (remainder == 0)
       return buf;
-    return (buf + ALIGN_PADDING - remainder);
+    return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
   ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
