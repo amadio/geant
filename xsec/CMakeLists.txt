@@ -25,6 +25,9 @@ endif()
 file(GLOB sources src/T*.cxx src/GunGenerator.cxx)
 file(GLOB headers inc/T*.h inc/GunGenerator.h)
 
+#set(XSEC_HEADERS ${headers} PARENT_SCOPE)
+#set(XSEC_SOURCES ${sources} PARENT_SCOPE)
+
 #set(headers ${headers} ${VC_INCLUDE_DIR}/base/Vector.h)
 
 if(HepMC_FOUND)
