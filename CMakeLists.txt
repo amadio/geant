@@ -225,7 +225,7 @@ if (CUDA)
   endif()
 
   include_directories(AFTER SYSTEM ${CUDA_INCLUDE_DIRS})
-  message(STATUS "Adde to include directorys:  ${CUDA_INCLUDE_DIRS}")
+  message(STATUS "Addde to include directories:  ${CUDA_INCLUDE_DIRS}")
 
   message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
