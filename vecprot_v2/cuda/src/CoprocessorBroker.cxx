@@ -269,6 +269,7 @@ CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fPrioritizer(0),
                                           fThreadId(-1),
                                           fStreamId(0),
+                                          fStream(nullptr),
                                           fQueue(0)
 {
    // Default constructor.
