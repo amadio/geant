@@ -175,22 +175,22 @@ struct PhotonTask : public CoprocessorBroker::Task {
 #endif
 
 void DevicePtrBase::Malloc(unsigned long size) {
-   HANDLE_CUDA_ERROR( cudaMalloc((void**)&fPtr,size) );
+   GEANT_CUDA_ERROR( cudaMalloc((void**)&fPtr,size) );
 }
 
 DevicePtrBase::~DevicePtrBase() {
-   if (fPtr) HANDLE_CUDA_ERROR( cudaFree(fPtr) );
+   if (fPtr) GEANT_CUDA_ERROR( cudaFree(fPtr) );
 }
 
 void DevicePtrBase::MemcpyToDevice(const void* what, unsigned long nbytes)
 {
-   HANDLE_CUDA_ERROR(cudaMemcpy(fPtr,what,nbytes,
+   GEANT_CUDA_ERROR(cudaMemcpy(fPtr,what,nbytes,
                                 cudaMemcpyHostToDevice) );
 }
 
 void DevicePtrBase::MemcpyToHostAsync(void* where, unsigned long nbytes, cudaStream_t stream)
 {
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(where, fPtr, nbytes, cudaMemcpyDeviceToHost, stream));
+   GEANT_CUDA_ERROR(cudaMemcpyAsync(where, fPtr, nbytes, cudaMemcpyDeviceToHost, stream));
 }
 
 // void SecondariesTable::Alloc(size_t maxTracks)
@@ -287,7 +287,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
 
    fStreamId = streamid;
-   HANDLE_CUDA_ERROR( cudaStreamCreate(&fStream) );
+   GEANT_CUDA_ERROR( cudaStreamCreate(&fStream) );
 
    //prepare random engines on the device
    // fdRandStates.Alloc( nblocks*nthreads );
@@ -360,7 +360,7 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
 
 CoprocessorBroker::~CoprocessorBroker()
 {
-   HANDLE_CUDA_ERROR( cudaDeviceSynchronize() );
+   GEANT_CUDA_ERROR( cudaDeviceSynchronize() );
    for(unsigned int i = 0; i < fTasks.size(); ++i) {
       delete fTasks[i];
    }
@@ -370,7 +370,7 @@ CoprocessorBroker::~CoprocessorBroker()
    }
    fTaskData.clear();
 
-   HANDLE_CUDA_ERROR( cudaFree(fdGeometry) );
+   GEANT_CUDA_ERROR( cudaFree(fdGeometry) );
 //   cudaFree(fdFieldMap);
 //   cudaFree(fd_eBremTable);
 //   cudaFree(fd_eIoniTable);
@@ -595,11 +595,11 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
    // Track sub-ranges are not consecutive in memory.
    // // count = min(fChunkSize,basketSize-startIdx);
    // int ntrack = fNStaged - start;
-   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevInputTrack+start, input+start, ntrack*sizeof(GXTrack),
+   // GEANT_CUDA_ERROR(cudaMemcpyAsync(fDevInputTrack+start, input+start, ntrack*sizeof(GXTrack),
    //                                   cudaMemcpyHostToDevice, fStream));
-   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, ntrack*sizeof(int),
+   // GEANT_CUDA_ERROR(cudaMemcpyAsync(fDevTrackLogIndex+start, fLogIndex+start, ntrack*sizeof(int),
    //                                   cudaMemcpyHostToDevice, fStream));
-   // HANDLE_CUDA_ERROR(cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, ntrack*sizeof(int),
+   // GEANT_CUDA_ERROR(cudaMemcpyAsync(fDevTrackPhysIndex+start, fPhysIndex+start, ntrack*sizeof(int),
    //                                   cudaMemcpyHostToDevice, fStream));
 
    return count;
@@ -733,12 +733,12 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // Bring back the modified tracks.
    FromDevice(&(stream->fOutputBasket->GetOutputTracks()), stream->fDevTrackOutput.GetPtr(), *stream);
 
-   HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
-   HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));
+   GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
+   GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));
 
    if (wait) {
       // Use this when you need to insure the printf are actually printed.
-      HANDLE_CUDA_ERROR(cudaStreamSynchronize(*stream));
+      GEANT_CUDA_ERROR(cudaStreamSynchronize(*stream));
    }
    // cudaDeviceSynchronize
 
@@ -914,7 +914,7 @@ void CoprocessorBroker::waitForTasks()
 
    for(unsigned int i=0; i < fTaskData.size(); ++i) {
       if (fTaskData[i]->fNStaged) {
-         HANDLE_CUDA_ERROR(cudaStreamSynchronize(*fTaskData[i]));
+         GEANT_CUDA_ERROR(cudaStreamSynchronize(*fTaskData[i]));
       }
    }
 }
