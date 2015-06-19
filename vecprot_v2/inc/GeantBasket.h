@@ -46,12 +46,8 @@ public:
   std::atomic_int fNbooked; /** Number of slots booked for copying */
   std::atomic_int fNcopied; /** Number of tracks copied */
   std::atomic_int fNused;   /** Number of threads using the basket */
-//  int               fNcopying; /** Number tracks copying concurrently */
-//  int               fNbooked; /** Number of slots booked for copying */
-  int               fNstalled; /** Number of stalling ops */
-  std::atomic_flag fLock;  /** Atomic lock for stealing current basket */
+  size_t          fIbook0; /** Start slot number */
   std::atomic_flag fDispatched; /** Atomic flag marking the basket as dispatched */
-  std::atomic_bool fReplaced; /** Flag marking replacement of basket */
   Int_t fThreshold; /** Current transport threshold */
 protected:
 //GeantHit_v        fHits;  /** Vector of produced hits */
@@ -120,26 +116,13 @@ public:
   
   /** @brief Book a slot and return number of slots booked */
   Int_t BookSlot() { return ( fNbooked.fetch_add(1, std::memory_order_seq_cst) + 1 ); }
-//  Int_t BookSlot() { return ( ++fNbooked ); }
 
   /** @brief Get number of booked slots */
   Int_t GetNbooked() { return ( fNbooked.load() ); }
-//  Int_t GetNbooked() { return fNbooked; }
 
   /** @brief Virtual function for clearing the basket */
   virtual void Clear(Option_t *option = "");
 
-  /** @brief Clear number of booked slots */
-  void ClearAllBooked() { fNbooked.store(0, std::memory_order_release); }
-//  void ClearAllBooked() { fNbooked = 0; }
-
-  /** @brief Clear the last booking */
-  Int_t ClearLastBooking() { return ( fNbooked.fetch_sub(1, std::memory_order_seq_cst) - 1 );}
-//  Int_t ClearLastBooking() { return ( --fNbooked );}
-  
-  int AddStalled() { return (++fNstalled);}
-  void ClearStalled() { fNstalled = 0;}
-  
   /**
    * @brief Check if a basket contains tracks in a given event range
    * 
@@ -268,22 +251,6 @@ public:
     return (!fDispatched.test_and_set(std::memory_order_acquire));
   }
 
-  /** @brief Acquire basket spinlock when freed (blocking) */
-  inline void lock() __attribute__((always_inline)) {
-    while (fLock.test_and_set(std::memory_order_acquire));
-  }
-   
-
-  /** @brief Release basket spinlock when */
-  inline void unlock() __attribute__((always_inline)) {
-    fLock.clear(std::memory_order_release);
-  }
-
-  /** @brief Try to acquire basket spinlock non-blocking. The caller must clear only if true*/
-  inline bool try_lock() __attribute__((always_inline)) {
-    return (!fLock.test_and_set(std::memory_order_acquire));
-  }
-
   ClassDef(GeantBasket, 1) // A basket containing tracks in the same geomety volume
 };
 
@@ -307,10 +274,9 @@ protected:
   std::atomic_int fThreshold; /** Adjustable transportability threshold */
   std::atomic_int fNbaskets;  /** Number of baskets for this volume */
   std::atomic_int fNused;     /** Number of baskets in use */
+  std::atomic<size_t> fIbook; /** Booking index */
   typedef std::atomic<GeantBasket *> atomic_basket;
   atomic_basket fCBasket;  /** Current basket being filled */
-  std::atomic_flag fDLock; /** Atomic lock for working with dispatch list */
-  std::atomic_flag fStealLock; /** Atomic lock for stealing the current basket */
   Geant::priority_queue<GeantBasket *> *fFeeder; /** Feeder queue to which baskets get injected */
   std::vector<GeantBasket *> fDispatchList; /** list of baskets to be dispatched */
 
@@ -329,34 +295,25 @@ private:
    * @return Number of booked slots
    * @return Basket actually booked
    */
-  GeantBasket *BookBasket(atomic_basket &current, GeantTaskData *td, Int_t &nbooked, Int_t &ncopying);
-
+  GeantBasket *BookBasket(GeantTaskData *td);
+  
   /**
-   * @brief Attempt to replace the atomic content of the basket with new one
+   * @brief Attempt to replace the atomic content of the basket with new one, strong CAS
    * 
-   * @param current Current atomic basket
-   * @param expected Expected content
-   * @param strong Type of compare exchange operation
+   * @param expected expected value for book index
    * @param td Task data
    * @return True if replacement made by the call
    */
-  bool ReplaceBasket(atomic_basket &current, GeantBasket *expected, bool strong, GeantTaskData *td);
-
-  /** @brief Acquire basket spinlock when freed (blocking) */
-  inline void lock_steal() __attribute__((always_inline)) {
-    while (fStealLock.test_and_set(std::memory_order_acquire));
-  }
-   
-
-  /** @brief Release basket spinlock when */
-  inline void unlock_steal() __attribute__((always_inline)) {
-    fStealLock.clear(std::memory_order_release);
-  }
-
-  /** @brief Try to acquire basket spinlock non-blocking. The caller must clear only if true*/
-  inline bool try_lock_steal() __attribute__((always_inline)) {
-    return (!fStealLock.test_and_set(std::memory_order_acquire));
-  }
+  bool ReplaceBasketStrong(size_t expected, GeantTaskData *td);
+  
+  /**
+   * @brief Attempt to replace the atomic content of the basket with new one, weak CAS
+   * 
+   * @param expected expected value for book index
+   * @param td Task data
+   * @return True if replacement made by the call
+   */
+  bool ReplaceBasketWeak(size_t expected, GeantTaskData *td);
 
 public:
 
@@ -376,7 +333,7 @@ public:
   /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
       : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0), fNbaskets(0),
-        fNused(0), fCBasket(0), fDLock(), fStealLock(), fFeeder(0), fDispatchList() {}
+        fNused(0), fIbook(0), fCBasket(0), fFeeder(0), fDispatchList() {}
 
   /** @brief GeantBasketMgr normal constructor 
    *
@@ -389,29 +346,6 @@ public:
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
   
-  void AddToDispatch(GeantBasket *basket) {
-    CheckStalled();
-    while (fDLock.test_and_set(std::memory_order_acquire));
-    fDispatchList.push_back(basket);
-    fDLock.clear(std::memory_order_release);
-  }
-  void RemoveFromDispatch(GeantBasket *basket) {
-    while (fDLock.test_and_set(std::memory_order_acquire));
-    basket->ClearStalled();
-    fDispatchList.erase(std::remove(fDispatchList.begin(), fDispatchList.end(), basket), fDispatchList.end());
-    fDLock.clear(std::memory_order_release);
-  }
-  
-  void CheckStalled() {    
-    while (fDLock.test_and_set(std::memory_order_acquire));
-    for (auto basket : fDispatchList) { 
-      int stalled = 0;
-      if (basket->fNcopied.load() == basket->GetThreshold()) stalled = basket->AddStalled();
-      if (stalled > 1) Printf("basket %p stalled %d ncpy=%d", (void*)basket, stalled, basket->GetNcopying());
-    }
-    fDLock.clear(std::memory_order_release);
-  }
-
   /**
    * @brief Grab function
    * @details Interface of TGeoExtension for getting a reference to this from TGeoVolume
