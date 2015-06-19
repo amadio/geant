@@ -74,6 +74,7 @@ set(CUDA_DATA_FILE ${PROJECT_SOURCE_DIR}/data/Lambda.eBrem.e-.asc)
 set(dict_headers ${CUDA_INCDIR}/CoprocessorBroker.h)
 
 set(cuda_cxx_sources
+    ${CUDA_SRCDIR}/GeantCudaUtils.cxx
     ${CUDA_SRCDIR}/CoprocessorBroker.cxx
     G__GeantCuda.cxx
 )
