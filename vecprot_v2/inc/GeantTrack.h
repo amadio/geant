@@ -54,8 +54,6 @@ typedef TGeoBranchArray VolumePath_t;
 
 const Double_t kB2C = -0.299792458e-3;
 
-GEANT_DEVICE_CONSTANT double gTolerance;
-
 /**
  * @enum TrackStatus_t
  */
@@ -81,6 +79,8 @@ class TGeoVolume;
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
+
+GEANT_DEVICE_CONSTANT double gTolerance;
 
 class GeantTrack_v;
 class GeantTaskData;

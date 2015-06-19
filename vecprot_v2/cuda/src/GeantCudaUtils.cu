@@ -23,5 +23,12 @@ void Fatal(const char *location, const char *va_(fmt), ...)
 #endif
 }
 
-} // cxx
+void CoprocessorBrokerInitConstant() {
+   GEANT_CUDA_ERROR( cudaMemcpyToSymbol(gPropagator_fBmag, &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
+
+   double tolerance = TGeoShape::Tolerance();
+   GEANT_CUDA_ERROR( cudaMemcpyToSymbol(gTolerance, &(tolerance), sizeof(double), size_t(0), cudaMemcpyHostToDevice) );
+}
+
+} // cuda
 } // Geant

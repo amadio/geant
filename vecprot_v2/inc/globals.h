@@ -19,7 +19,6 @@
 R__EXTERN GeantPropagator *gPropagator; /** Propagator class */
 
 #ifdef GEANT_NVCC
-//__device__
 __constant__ double gPropagator_fBmag;
 #endif
 

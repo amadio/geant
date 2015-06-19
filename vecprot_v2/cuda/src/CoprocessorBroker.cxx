@@ -294,7 +294,9 @@ void setup(CoprocessorBroker *broker,
 
 }
 
-void CoprocessorBrokerInitConstant();
+namespace Geant { namespace cuda {
+      void CoprocessorBrokerInitConstant();
+} }
 
 /** @brief Create the baskets for each stream */
 void CoprocessorBroker::CreateBaskets()
@@ -320,6 +322,9 @@ void CoprocessorBroker::CreateBaskets()
    }
 
    cudaDeviceSetLimit( cudaLimitStackSize, 2*4096 );
+
+   // Initialize global constants.
+   Geant::cuda::CoprocessorBrokerInitConstant();
 }
 
 
@@ -338,10 +343,6 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    fNblocks = nblocks;
    fNthreads = nthreads;
    fMaxTrackPerThread = maxTrackPerThread;
-
-
-   // Initialize global constants.
-   CoprocessorBrokerInitConstant();
 
    return true;
 }

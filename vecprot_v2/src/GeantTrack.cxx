@@ -42,12 +42,12 @@
 #endif
 #include <cassert>
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 #ifndef GEANT_NVCC
 const Double_t gTolerance = TGeoShape::Tolerance();
 #endif
-
-namespace Geant {
-inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack()

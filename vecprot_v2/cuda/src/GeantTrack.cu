@@ -6,8 +6,6 @@
 #include "GeantTaskData.h"
 #include "CoprocessorBrokerKernel.h"
 
-void CoprocessorBrokerInitConstant() {}
-
 namespace Geant {
 
 inline namespace cuda {
