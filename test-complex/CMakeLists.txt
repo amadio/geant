@@ -66,6 +66,8 @@ target_link_libraries(testcomplex ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -L${CMAK
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 
+add_dependencies(testcomplex Geant_v Xsec)
+
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build TESTCOMPLEX. This is so that we can run the executable directly because it
