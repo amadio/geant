@@ -1468,9 +1468,9 @@ void GeantTrack_v::PropagateInVolumeSingle(Int_t i, Double_t crtstep, GeantTaskD
 // alternative code with lean stepper would be:
 // ( stepper header has to be included )
 #ifdef GEANT_CUDA_DEVICE_BUILD
-  geant::ConstBzFieldHelixStepper stepper(gPropagator_fBmag);
+  Geant::ConstBzFieldHelixStepper stepper(gPropagator_fBmag);
 #else
-  geant::ConstBzFieldHelixStepper stepper(gPropagator->fBmag);
+  Geant::ConstBzFieldHelixStepper stepper(gPropagator->fBmag);
 #endif
   double posnew[3];
   double dirnew[3];

@@ -18,7 +18,7 @@ void sincos(double x, double *s, double *c) {
 #endif
 
 
-namespace geant
+namespace Geant
 {
 
   /**
