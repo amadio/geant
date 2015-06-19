@@ -16,10 +16,10 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class GeantTrack+;
-#pragma link C++ class GeantTrack_v+;
+#pragma link C++ class Geant::cxx::GeantTrack+;
+#pragma link C++ class Geant::cxx::GeantTrack_v+;
 #pragma link C++ class GeantTrackStat+;
-#pragma link C++ class GeantTaskData+;
+#pragma link C++ class Geant::cxx::GeantTaskData+;
 #pragma link C++ class GeantBasket+;
 #pragma link C++ class GeantScheduler+;
 #pragma link C++ class GeantPropagator+;

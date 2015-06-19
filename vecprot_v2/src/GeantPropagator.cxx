@@ -63,6 +63,8 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
+using namespace Geant;
+
 GeantPropagator *gPropagator = 0;
 
 ClassImp(GeantPropagator)

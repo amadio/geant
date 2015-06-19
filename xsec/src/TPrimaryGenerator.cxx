@@ -71,7 +71,7 @@ void TPrimaryGenerator::SetParticleXYZDir(Double_t xdir, Double_t ydir, Double_t
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::InitPrimaryTrack(GeantTrack &gtrack) {
+void TPrimaryGenerator::InitPrimaryTrack(Geant::GeantTrack &gtrack) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.fXpos = fXPos;

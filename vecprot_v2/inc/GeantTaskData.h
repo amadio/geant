@@ -33,6 +33,8 @@ class GeantBasket;
  * @details Class descripting data organized per thread
  * 
  */
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
   Int_t fTid;          /** Thread unique id */
@@ -129,4 +131,6 @@ private:
 
    // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif

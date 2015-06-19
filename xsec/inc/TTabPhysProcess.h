@@ -11,10 +11,9 @@
 #endif
 
 class TGeoMaterial;
-class GeantTrack;
-class GeantTrack_v;
 class TTabPhysMgr;
-class GeantTaskData;
+
+#include "GeantFwd.h"
 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess

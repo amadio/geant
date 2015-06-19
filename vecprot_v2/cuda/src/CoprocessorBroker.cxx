@@ -52,28 +52,19 @@ typedef double G4double;
 #include "WorkloadManager.h"
 #include "GeantScheduler.h"
 #include "GeantBasket.h"
-#include "GeantThreadData.h"
+#include "GeantTaskData.h"
 #include "globals.h"
 
 #include "management/CudaManager.h"
+#include "GeantCudaUtils.h"
 
-static void HandleCudaError( cudaError_t err,
-                             const char *file,
-                             int line ) {
-    if (err != cudaSuccess) {
-       Fatal("Cuda","%s (%d) in %s at line %d\n", cudaGetErrorString( err ), err,
-             file, line );
-       exit( EXIT_FAILURE );
-    }
-}
-
-#define HANDLE_CUDA_ERROR( err ) (HandleCudaError( err, __FILE__, __LINE__ ))
+using namespace Geant;
 
 struct GeneralTask : public CoprocessorBroker::Task {
    GeneralTask() : Task( PropagateGeantTrack_gpu ) {}
 
    const char *Name() { return "GeneralTask"; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -87,7 +78,7 @@ struct GeneralTask : public CoprocessorBroker::Task {
    GeneralTask() : Task( tracking_gpu ) {}
 
    const char *Name() { return "GeneralTask"; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -106,7 +97,7 @@ struct EnergyTask : public CoprocessorBroker::Task {
    }
 
    const char *Name() { return fName; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -125,7 +116,7 @@ struct EnergyElectronTask : public CoprocessorBroker::Task {
    }
 
    const char *Name() { return fName; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -144,7 +135,7 @@ struct EnergyElectronSingleTask : public CoprocessorBroker::Task {
    }
 
    const char *Name() { return fName; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -160,7 +151,7 @@ struct ElectronTask : public CoprocessorBroker::Task {
    ElectronTask() : Task( tracking_electron_gpu ) {}
 
    const char *Name() { return "ElectronTask"; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -173,7 +164,7 @@ struct PhotonTask : public CoprocessorBroker::Task {
    PhotonTask() : Task( tracking_photon_gpu ) {}
 
    const char *Name() { return "PhotonTask"; }
-   bool Select(GeantTrack_v &host_track, int track)
+   bool Select(Geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle photon, which we pretend are the only
       // particle to have charge 0.
@@ -202,12 +193,12 @@ void DevicePtrBase::MemcpyToHostAsync(void* where, unsigned long nbytes, cudaStr
    HANDLE_CUDA_ERROR(cudaMemcpyAsync(where, fPtr, nbytes, cudaMemcpyDeviceToHost, stream));
 }
 
-void SecondariesTable::Alloc(size_t maxTracks)
-{
-   fDevStackSize.Alloc();
-   //fDevOffset.Alloc();
-   fDevTracks.Alloc(maxTracks * kMaxNumStep * kMaxSecondaryPerStep);
-}
+// void SecondariesTable::Alloc(size_t maxTracks)
+// {
+//    fDevStackSize.Alloc();
+//    //fDevOffset.Alloc();
+//    fDevTracks.Alloc(maxTracks * kMaxNumStep * kMaxSecondaryPerStep);
+// }
 
 GXFieldMap **ReadFieldMap(const char *fieldMapFile)
 {
@@ -283,13 +274,13 @@ CoprocessorBroker::TaskData::~TaskData() {
    // We do not own fPrioritizer
 
    delete fGeantTaskData;
-   HANDLE_CUDA_ERROR( cudaStreamDestroy(fStream) );
+   GEANT_CUDA_ERROR( cudaStreamDestroy(fStream) );
 }
 
 bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
 
-   fGeantTaskData = new GeantTaskData();
+   fGeantTaskData = new Geant::GeantTaskData();
    fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
    fGeantTaskData->fNthreads = nthreads;
    fGeantTaskData->fMaxDepth = maxTrackPerThread;
@@ -316,10 +307,10 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fDevTaskWorkspace.ConstructArray(maxThreads, maxThreads, maxdepth, maxTrackPerKernel);
 
    // need to allocate enough for one object containing many tracks ...
-   fDevTrackInput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
+   fDevTrackInput.Malloc(Geant::GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
    Geant::cuda::MakeInstanceAt(fDevTrackInput.GetPtr(),maxTrackPerKernel,maxdepth);
 
-   fDevTrackOutput.Malloc(GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
+   fDevTrackOutput.Malloc(Geant::GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
    Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(),maxTrackPerKernel,maxdepth);
 
    fInputBasket = new GeantBasket(maxTrackPerKernel,fGeantTaskData->fBmgr);
@@ -722,16 +713,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
    //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
-   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput.GetPtr()+1 /*+sizeof(GeantTrack_v)*/,
-                                     &(stream->fInputBasket->GetInputTracks())+1 /*+sizeof(GeantTrack_v)*/,
-                                     stream->fInputBasket->GetInputTracks().BufferSize(),
-                                     cudaMemcpyHostToDevice, *stream));
-   // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact, stream->fInputBasket->fMixed
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(stream->fDevTrackInput,
-                                     &(stream->fInputBasket->GetInputTracks()),
-                                     sizeof(Int_t)*2+sizeof(Bool_t)*2,
-                                     cudaMemcpyHostToDevice, *stream));
+   ToDevice(stream->fDevTrackInput.GetPtr(), &(stream->fInputBasket->GetInputTracks()), *stream);
 
    fTotalWork += stream->fNStaged;
    int result = task->fKernel(stream->fDevTaskWorkspace,
@@ -749,15 +731,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
-   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(&(stream->fOutputBasket->GetOutputTracks()),
-                                     stream->fDevTrackOutput.GetPtr(),
-                                     sizeof(Int_t)*2+sizeof(Bool_t)*2,
-                                     cudaMemcpyHostToDevice, *stream));
-   HANDLE_CUDA_ERROR(cudaMemcpyAsync(&(stream->fOutputBasket->GetOutputTracks())+1 /*+sizeof(GeantTrack_v)*/,
-                                     stream->fDevTrackOutput.GetPtr()+1 /*+sizeof(GeantTrack_v)*/,
-                                     stream->fOutputBasket->GetOutputTracks().BufferSize(),
-                                     cudaMemcpyHostToDevice, *stream));
+   FromDevice(&(stream->fOutputBasket->GetOutputTracks()), stream->fDevTrackOutput.GetPtr(), *stream);
 
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
    HANDLE_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));

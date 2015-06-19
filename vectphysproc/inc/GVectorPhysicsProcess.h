@@ -9,7 +9,8 @@
 
 // GeantV related
 class TGeoMaterial; // ROOT: we won't use this
-class GeantTrack_v;
+
+#include "GeantFwd.h"
 
 // Interface to vector physics models
 class GVComptonProcess;
@@ -22,6 +23,8 @@ private:
   int                   fNumThreads;        // number of working threads
 
 public:
+  using GeantTrack_v = Geant::GeantTrack_v;
+
   GVectorPhysicsProcess();
   GVectorPhysicsProcess(double energyLimit, int numThreads);
   virtual ~GVectorPhysicsProcess();

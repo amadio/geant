@@ -185,8 +185,8 @@ if (GeantCudaReplace)
          # ${XSEC_SOURCES}
    )
    # Remove source that are (indirectly) compiled by nvcc.
-   list(REMOVE_ITEM  cuda_cxx_sources ${CMAKE_HOME_DIRECTORY}/vecprot_v2/src/GeantTrack.cxx)
-   list(REMOVE_ITEM  cuda_cxx_sources ${CMAKE_HOME_DIRECTORY}/vecprot_v2/src/GeantTaskData.cxx)
+#   list(REMOVE_ITEM  cuda_cxx_sources ${CMAKE_HOME_DIRECTORY}/vecprot_v2/src/GeantTrack.cxx)
+#   list(REMOVE_ITEM  cuda_cxx_sources ${CMAKE_HOME_DIRECTORY}/vecprot_v2/src/GeantTaskData.cxx)
 
    set (extra_dict_options -DGEANTCUDA_REPLACE)
 endif()

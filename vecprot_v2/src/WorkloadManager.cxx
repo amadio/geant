@@ -25,6 +25,8 @@
 #endif
 #include "TaskBroker.h"
 
+using namespace Geant;
+
 ClassImp(WorkloadManager)
 
     WorkloadManager *WorkloadManager::fgInstance = 0;
@@ -121,8 +123,8 @@ void WorkloadManager::StartThreads() {
   TThread *t;
   if (fBroker) {
     if (fBroker->GetNstream() > fNthreads) {
-      Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)",
-            fBroker->GetNstream(), fNthreads);
+       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)",
+               fBroker->GetNstream(), fNthreads);
     }
     Printf("Running with a coprocessor broker.");
     t = new TThread(WorkloadManager::TransportTracksCoprocessor, fBroker);
@@ -221,7 +223,7 @@ void *WorkloadManager::TransportTracks(void *) {
   Int_t tid = TGeoManager::ThreadId();
   Printf("=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
-  GeantTaskData *td = propagator->fThreadData[tid];
+  Geant::GeantTaskData *td = propagator->fThreadData[tid];
   td->fTid = tid;
   Int_t nworkers = propagator->fNthreads;
   WorkloadManager *wm = WorkloadManager::Instance();

@@ -12,14 +12,15 @@
 //#include "GUTrackHandler.h"
 // #include "GUComptonKleinNishina.h"
 
-class GeantTrack;
-class GeantTrack_v;
+#include "GeantFwd.h"
 class GUComptonKleinNishina;
 class GUTrack_v;
 
 class GVComptonProcess
 {
   public:
+        using GeantTrack_v = Geant::GeantTrack_v;
+
   	FQUALIFIER GVComptonProcess();
   	FQUALIFIER GVComptonProcess(int processId, double energyLimit, 
                                     int maxnumtracks);

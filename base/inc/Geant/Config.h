@@ -19,12 +19,16 @@
   #define GEANT_CUDA_BOTH_CODE __host__ __device__
   #define GEANT_DEVICE_CONSTANT __constant__
 
+  #define GEANT_IMPL_NAMESPACE cuda
+
 #else
   // Not compiling with NVCC
    #define GEANT_CUDA_DEVICE_CODE
    #define GEANT_CUDA_HOST_CODE
    #define GEANT_CUDA_BOTH_CODE 
-  #define GEANT_DEVICE_CONSTANT extern const
+   #define GEANT_DEVICE_CONSTANT extern const
+
+   #define GEANT_IMPL_NAMESPACE cxx
 
 #endif
 

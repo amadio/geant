@@ -7,7 +7,8 @@
 #include "TGeoVolume.h"
 #include "TRandom.h"
 
-ClassImp(GeantTaskData)
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
@@ -119,4 +120,9 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
 //  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
 }
+
 #endif
+
+} // GEANT_IMPL_NAMESPACE
+} // geant
+

@@ -16,7 +16,7 @@
 #include "TMath.h"
 
 class TParticlePDG;
-class GeantTrack;
+#include "GeantFwd.h"
 
 /**
  * @brief Class of primary generators
@@ -54,7 +54,7 @@ public:
   * @param n Track index
   * @param gtrack track
   */
-  virtual void GetTrack(Int_t n, GeantTrack &gtrack) = 0;
+  virtual void GetTrack(Int_t n, Geant::GeantTrack &gtrack) = 0;
 
  /** @brief Getter for eta cut flag */
   Bool_t   HasEtaCut() const { return fEtaCut; }

@@ -18,6 +18,10 @@
 /** @brief GeantOutput class */
 class GeantOutput : public TObject {
 public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
+
   Double_t fCpuTime;       /** CPU time */
   Int_t fVolId;            /** Volume transporting this generation */
   Int_t fBasketGeneration; /** Current generation of baskets to be flushed */

@@ -46,7 +46,8 @@
 const Double_t gTolerance = TGeoShape::Tolerance();
 #endif
 
-ClassImp(GeantTrack)
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack()
@@ -300,8 +301,6 @@ void GeantTrack::Print(Int_t) const {
          fParticle, fEvent, fProcess, fPstep, fCharge, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, P(), fE, fSnext,
          fSafety, fNsteps);
 }
-
-ClassImp(GeantTrack_v)
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
@@ -2603,3 +2602,7 @@ Bool_t GeantTrack_v::BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps, 
   // Put breakpoint at line below
   return true;
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
+

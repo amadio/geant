@@ -7,7 +7,6 @@
 #include "TRandom.h"
 
 class TParticlePDG;
-class GeantTrack;
 
 class GunGenerator: public PrimaryGenerator{
  private:
@@ -43,7 +42,7 @@ class GunGenerator: public PrimaryGenerator{
   // set one GeantTrack primary track properties
     virtual void InitPrimaryGenerator();
     virtual Int_t NextEvent();
-    virtual void GetTrack(Int_t n, GeantTrack &gtrack);
+    virtual void GetTrack(Int_t n, Geant::GeantTrack &gtrack);
 
  private:
 

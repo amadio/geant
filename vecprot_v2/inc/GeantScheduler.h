@@ -23,10 +23,10 @@
 #include "TMutex.h"
 
 class concurrent_queue;
-class GeantTrack;
 class GeantBasket;
 class GeantBasketMgr;
-class GeantTaskData;
+
+#include "GeantFwd.h"
 
 /**
  * @brief Class GeantScheduler
@@ -36,6 +36,10 @@ class GeantTaskData;
  * 
  */
 class GeantScheduler : public TObject {
+public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 protected:
   Int_t fNvolumes;                   /** Number of active volumes in the geometry */
   Int_t fNpriority;                  /** Number of priority baskets held */

@@ -17,6 +17,8 @@ Double_t SampleMaxwell(Double_t emean);
 void IncreaseStack();
 void VertexIn(TGeoBBox *bbox, Double_t ori[3]);
 
+using namespace Geant;
+
 static Int_t stacksize = 100;
 static Int_t hwmark = 0;
 static GeantTrack *particleStack = new GeantTrack[stacksize];

@@ -71,8 +71,21 @@ enum Species_t { kHadron, kLepton };
 
 class TGeoMaterial;
 class TGeoVolume;
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantTrack_v;
 class GeantTaskData;
+
+#if ROOT_VERSION_CODE <= ROOT_VERSION(6,04,00)
+// Work around bug in ROOT v6.04
+#ifdef G__DICTIONARY
+class GeantTrack;
+using Track = GeantTrack;
+using Track_v = GeantTrack_v;
+#endif
+#endif
 
 /**
  * @brief Class GeantTrack

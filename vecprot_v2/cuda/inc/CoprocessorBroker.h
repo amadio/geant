@@ -80,9 +80,17 @@ class GPPhysics2DVector;
 struct GXTrack;
 class GXTrackLiason;
 
-class GeantTaskData;
-using TaskWorkspace = GeantTaskData;
-class GeantTrack_v;
+#include "GeantFwd.h"
+
+namespace Geant {
+#ifdef GEANT__NVCC
+inline
+#endif
+namespace cuda {
+   class GeantTrack_v;
+   class GeantTaskData;
+}
+}
 
 const unsigned int kMaxNumStep = 1;
 const unsigned int kMaxSecondaryPerStep = 2; // maxSecondaryPerStep;
@@ -92,7 +100,7 @@ class SecondariesTable
 public:
    DevicePtr<int> fDevStackSize;
    //DevicePtr<int> fDevOffset;
-   DevicePtr<GeantTrack_v> fDevTracks;
+   DevicePtr<Geant::cuda::GeantTrack_v> fDevTracks;
 
    void Alloc(size_t maxTracks);
    void ToDevice() {
@@ -123,17 +131,15 @@ int (*kernelFunc_t)(curandState* devStates,
                     cudaStream_t stream);
 #else
 typedef
-int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<TaskWorkspace> &workSpace,
+int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace,
                     size_t ntracks,
-                    vecgeom::cxx::DevicePtr<GeantTrack_v> &input,
-                    vecgeom::cxx::DevicePtr<GeantTrack_v> &output,
+                    vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
+                    vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,
 
                     int nBlocks, int nThreads,
                     cudaStream_t stream);
 #endif
 
-class GeantTrack;
-class GeantTrack_v;
 class GeantBasket;
 
 #include "GeantTrack.h"
@@ -165,7 +171,7 @@ public:
 
       unsigned int TrackToHost();
 
-      GeantTaskData         *fGeantTaskData;
+      Geant::GeantTaskData  *fGeantTaskData;
       GeantBasket           *fInputBasket;
       GeantBasket           *fOutputBasket; // Work manager track (pre)-queue
 
@@ -177,16 +183,16 @@ public:
       unsigned int  fStreamId;
       cudaStream_t  fStream;
 
-      vecgeom::cxx::DevicePtr<GeantTaskData> fDevTaskWorkspace;
-      vecgeom::cxx::DevicePtr<GeantTrack_v>    fDevTrackInput;
+      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> fDevTaskWorkspace;
+      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>  fDevTrackInput;
       vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf() {
          char *basket = (char*)&(*fDevTrackInput);
-         return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );
+         return vecgeom::DevicePtr<char>( basket+ vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf() );
       }
-      vecgeom::cxx::DevicePtr<GeantTrack_v>  fDevTrackOutput;
+      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>  fDevTrackOutput;
       vecgeom::cxx::DevicePtr<char> GetDevTrackOutputtBuf() {
          char *basket = (char*)&(*fDevTrackOutput);
-         return vecgeom::DevicePtr<char>( basket+sizeof(GeantTrack_v) );
+         return vecgeom::DevicePtr<char>( basket+  vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf() );
       }
       SecondariesTable         fDevSecondaries;
 
@@ -257,7 +263,7 @@ public:
       unsigned int  fIdles;   // Number of times we processed basket without putting track in the taskData.
 
       virtual const char *Name() = 0; // Id of the task.
-      virtual bool Select(GeantTrack_v &host_track, int track) = 0; // Selection routine.
+      virtual bool Select(Geant::cxx::GeantTrack_v &host_track, int track) = 0; // Selection routine.
    };
 
 private:
