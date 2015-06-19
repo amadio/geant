@@ -45,6 +45,13 @@ typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
 typedef TGeoBranchArray VolumePath_t;
 #endif
 
+#ifdef GEANT_CUDA
+#ifndef GEANT_CUDAUTILS_H
+#include "GeantCudaUtils.h"
+#endif
+#include "backend/cuda/Interface.h"
+#endif
+
 const Double_t kB2C = -0.299792458e-3;
 
 GEANT_DEVICE_CONSTANT double gTolerance;
@@ -644,6 +651,9 @@ public:
   /** @brief  Function that returns the buffer size  */
   size_t BufferSize() const { return fBufSize; }
 
+  /** @brief  Return the address of the data memory buffer  */
+  void* Buffer() const { return fBuf; }
+
   /** @brief  Function that returns buffer size needed to hold the data for nTracks and maxdepth */
   GEANT_CUDA_BOTH_CODE
   static size_t BufferSize(size_t nTracks, size_t maxdepth);
@@ -1142,5 +1152,20 @@ public:
 
   ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
 };
+} // GEANT_IMPL_NAMESPACE
+
+#ifdef GEANT_CUDA
+#ifdef GEANT_NVCC
+   namespace cxx { class GeantTrack_v; }
+#else
+   namespace cuda { class GeantTrack_v; }
+#endif
+
+   bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream);
+   bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream);
+   void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source);
+#endif
+
+} // Geant
 
 #endif

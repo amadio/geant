@@ -9,6 +9,7 @@
 void CoprocessorBrokerInitConstant() {}
 
 namespace Geant {
+
 inline namespace cuda {
 
    template void MakeInstanceAt(GeantTrack_v *addr, unsigned int, int);

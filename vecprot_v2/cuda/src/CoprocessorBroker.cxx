@@ -501,6 +501,11 @@ void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
    helper->TrackToHost();
 }
 
+void FromDeviceTrackConversion(cudaStream_t /* stream */, cudaError_t status, void *userData)
+{
+   CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
+   FromDeviceConversion(&(helper->fOutputBasket->GetOutputTracks()), helper->fDevTrackOutput);
+}
 
 CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
 {
@@ -528,7 +533,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
    //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
-   ToDevice(stream->fDevTrackInput.GetPtr(), &(stream->fInputBasket->GetInputTracks()), *stream);
+   ToDevice(stream->fDevTrackInput, &(stream->fInputBasket->GetInputTracks()), *stream);
 
    fTotalWork += stream->fNStaged;
    int result = task->fKernel(stream->fDevTaskWorkspace,
@@ -546,7 +551,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
-   FromDevice(&(stream->fOutputBasket->GetOutputTracks()), stream->fDevTrackOutput.GetPtr(), *stream);
+   FromDevice(&(stream->fOutputBasket->GetOutputTracks()), stream->fDevTrackOutput, *stream);
 
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));
