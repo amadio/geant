@@ -138,25 +138,6 @@ struct PhotonTask : public CoprocessorBroker::Task {
 };
 #endif
 
-void DevicePtrBase::Malloc(unsigned long size) {
-   GEANT_CUDA_ERROR( cudaMalloc((void**)&fPtr,size) );
-}
-
-DevicePtrBase::~DevicePtrBase() {
-   if (fPtr) GEANT_CUDA_ERROR( cudaFree(fPtr) );
-}
-
-void DevicePtrBase::MemcpyToDevice(const void* what, unsigned long nbytes)
-{
-   GEANT_CUDA_ERROR(cudaMemcpy(fPtr,what,nbytes,
-                                cudaMemcpyHostToDevice) );
-}
-
-void DevicePtrBase::MemcpyToHostAsync(void* where, unsigned long nbytes, cudaStream_t stream)
-{
-   GEANT_CUDA_ERROR(cudaMemcpyAsync(where, fPtr, nbytes, cudaMemcpyDeviceToHost, stream));
-}
-
 CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fInputBasket(0),fOutputBasket(0),
                                           fChunkSize(0),fNStaged(0),

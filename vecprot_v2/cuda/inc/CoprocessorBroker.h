@@ -26,48 +26,6 @@ class cudaStream_t;
 class curandState;
 #endif
 
-class DevicePtrBase
-{
-   void *fPtr;
-
-   DevicePtrBase(const DevicePtrBase&); // not implemented
-   DevicePtrBase &operator=(const DevicePtrBase&); // not implemented
-
-protected:
-   void MemcpyToDevice(const void* what, unsigned long nbytes);
-   void MemcpyToHostAsync(void* where, unsigned long nbytes, cudaStream_t stream);
-   void *GetPtr() const { return fPtr; }
-public:
-   DevicePtrBase() : fPtr(0) {}
-
-   virtual ~DevicePtrBase();
-
-   void Malloc(unsigned long size);
-};
-
-template <typename T>
-class DevicePtr : public DevicePtrBase
-{
-public:
-   void Alloc(unsigned long nelems = 1) {
-      Malloc(nelems*sizeof(T));
-   }
-   void ToDevice(const T* what, unsigned long nelems = 1) {
-      MemcpyToDevice(what,nelems*sizeof(T));
-   }
-   void FromDevice(T* where,cudaStream_t stream) {
-      // Async since we past a stream.
-      MemcpyToHostAsync(where,sizeof(T),stream);
-   }
-   void FromDevice(T* where, unsigned long nelems , cudaStream_t stream) {
-      // Async since we past a stream.
-      MemcpyToHostAsync(where,nelems*sizeof(T),stream);
-   }
-#ifndef __CINT__
-   operator T*() const { return reinterpret_cast<T*>(GetPtr()); }
-#endif
-};
-
 class GeantBasketMgr;
 #include "GeantFwd.h"
 
