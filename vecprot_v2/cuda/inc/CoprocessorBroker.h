@@ -69,17 +69,6 @@ public:
 };
 
 class GeantBasketMgr;
-
-class GPGeomManager;
-class GXFieldMap;
-class GPPhysicsTable;
-class GPVGeometry;
-class GXFieldMap;
-class GPPhysicsTable;
-class GPPhysics2DVector;
-struct GXTrack;
-class GXTrackLiason;
-
 #include "GeantFwd.h"
 
 namespace Geant {
@@ -95,41 +84,7 @@ namespace cuda {
 const unsigned int kMaxNumStep = 1;
 const unsigned int kMaxSecondaryPerStep = 2; // maxSecondaryPerStep;
 
-class SecondariesTable
-{
-public:
-   DevicePtr<int> fDevStackSize;
-   //DevicePtr<int> fDevOffset;
-   DevicePtr<Geant::cuda::GeantTrack_v> fDevTracks;
 
-   void Alloc(size_t maxTracks);
-   void ToDevice() {
-      cudaMemset(fDevStackSize,0,sizeof(int));
-      //cudaMemset(fDevOffset,0,sizeof(int));
-   }
-};
-
-#ifdef GXTRACKING_KERNELS
-typedef
-int (*kernelFunc_t)(curandState* devStates,
-                    size_t nSteps,
-                    size_t nTrackSize,
-                    GXTrack *track, GXTrack *altTrack,
-                    int *logVolumeIndices,
-                    int *physVolumeIndices,
-                    GXTrack *secondaries, int *secStackSize,
-
-                    int *scratch, // array of 10
-                    GXTrackLiason *scratchTrack,
-
-                    GPGeomManager* geomManager,
-                    GXFieldMap* magMap,
-                    GPPhysicsTable* PhysicsTable,
-                    GPPhysics2DVector* SeltzerBergerTable,
-
-                    int nBlocks, int nThreads,
-                    cudaStream_t stream);
-#else
 typedef
 int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace,
                     size_t ntracks,
@@ -138,8 +93,6 @@ int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpa
 
                     int nBlocks, int nThreads,
                     cudaStream_t stream);
-#endif
-
 class GeantBasket;
 
 #include "GeantTrack.h"
@@ -185,6 +138,9 @@ public:
 
       vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> fDevTaskWorkspace;
       vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>  fDevTrackInput;
+
+      concurrent_queue      *fQueue;  // Queue recording whether this helper is available or not.
+
       vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf() {
          char *basket = (char*)&(*fDevTrackInput);
          return vecgeom::DevicePtr<char>( basket+ vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf() );
@@ -194,9 +150,6 @@ public:
          char *basket = (char*)&(*fDevTrackOutput);
          return vecgeom::DevicePtr<char>( basket+  vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf() );
       }
-      SecondariesTable         fDevSecondaries;
-
-      concurrent_queue      *fQueue;  // Queue recording whether this helper is available or not.
 
       void ResetNStaged() { fNStaged = 0; }
       operator cudaStream_t() { return fStream; }
@@ -221,9 +174,9 @@ public:
    int SetPrioritizer() { return 0; }
 
    bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
-   bool UploadMagneticField(GXFieldMap** fieldMap);
+   // bool UploadMagneticField(FieldMap** fieldMap);
 
-   bool UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ);
+   //bool UploadPhysicsTable(const PhysicsTable *table, unsigned int nTables, Physics2DVector* sbData, size_t maxZ);
 
    bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
 
@@ -240,10 +193,6 @@ public:
 
 private:
    char                  *fdGeometry; // Point to a GPGeomManager in GPU land.
-   DevicePtr<GXFieldMap>  fdFieldMap;
-
-   DevicePtr<GPPhysicsTable>    fd_PhysicsTable;
-   DevicePtr<GPPhysics2DVector> fd_SeltzerBergerData;
 
 public:
    struct Task {

@@ -1,45 +1,9 @@
 #include "CoprocessorBroker.h"
 
-
-// Needed by GXEMPhysicsUtils.h for now
 #include <iostream>
 #include <fstream>
-typedef double G4double;
-
-#include "GPConstants.h"
-#include "GXFieldMap.h"
-#include "GXFieldMapData.h"
-
-#include "GXTrack.h"
-#include "GPThreeVector.h"
-
-//Geometry
-#include "GPVGeometry.h"
-#include "GPUserGeometry.h"
-#include "GPSimpleEcal.h"
-#include "GPVPhysicalVolume.h"
-
-//EMPhysics
-#include "GPConstants.h"
-#include "GPPhysics2DVector.h"
-
-#include "GPPhysicsTable.h"
-//#include "GPPhysicsTableType.h"
-
-#include "GeantTrack.h"
-#include "GeantTaskData.h"
-
-#include "GXTrack.h"
-#include "GXTrackLiason.h"
-
-#include "GPEMPhysicsUtils.h"
-//#include "GXRunManager.h"
-//#include "GPEMPhysicsUtils.h"
-
 #include <vector>
 #include <math.h>
-
-// #include <cuda_runtime.h>
 
 #include "CoprocessorBrokerKernel.h"
 
@@ -193,67 +157,6 @@ void DevicePtrBase::MemcpyToHostAsync(void* where, unsigned long nbytes, cudaStr
    GEANT_CUDA_ERROR(cudaMemcpyAsync(where, fPtr, nbytes, cudaMemcpyDeviceToHost, stream));
 }
 
-// void SecondariesTable::Alloc(size_t maxTracks)
-// {
-//    fDevStackSize.Alloc();
-//    //fDevOffset.Alloc();
-//    fDevTracks.Alloc(maxTracks * kMaxNumStep * kMaxSecondaryPerStep);
-// }
-
-GXFieldMap **ReadFieldMap(const char *fieldMapFile)
-{
-   GXFieldMap** fieldMap;
-   fieldMap = (GXFieldMap **) malloc (nbinZ*sizeof(GXFieldMap *));
-   for (int j = 0 ; j < nbinZ ; j++) {
-      fieldMap[j] = (GXFieldMap *) malloc (nbinR*sizeof(GXFieldMap));
-   }
-   std::ifstream ifile(fieldMapFile, std::ios::in | std::ios::binary | std::ios::ate);
-   if (ifile.is_open()) {
-
-      //field map structure
-      GXFieldMapData fd;
-
-      std::ifstream::pos_type fsize = ifile.tellg();
-      size_t dsize = sizeof(GXFieldMapData);
-
-      long int ngrid = fsize/dsize;
-      ifile.seekg (0,  std::ios::beg);
-
-      std::cout << "... transportation ... Loading magnetic field map: "
-      << fieldMapFile << std::endl;
-
-      for(int i = 0 ; i < ngrid ; i++) {
-         ifile.read((char *)&fd, sizeof(GXFieldMapData));
-
-         //check validity of input data
-         if(abs(fd.iz) > noffZ || fd.ir > nbinR) {
-            std::cout << " Field Map Array Out of Range" << std::endl;
-         }
-         else {
-            fieldMap[noffZ+fd.iz][fd.ir].Bz = fd.Bz;
-            fieldMap[noffZ+fd.iz][fd.ir].Br = fd.Br;
-         }
-      }
-      ifile.close();
-   } else {
-      Error("ReadFieldMap","Could not open the file %s\n",fieldMapFile);
-   }
-   return fieldMap;
-}
-
-bool ReadPhysicsTable(GPPhysicsTable &table, const char *filename, bool useSpline)
-{
-
-   readTable(&table,filename);
-   unsigned int nv = table.nPhysicsVector;
-   for(unsigned int j=0; j < nv; j++){
-      table.physicsVectors[j].SetSpline(useSpline);
-   }
-   //  GPPhysicsTable_Print(&table);
-   return true;
-}
-
-
 CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fInputBasket(0),fOutputBasket(0),
                                           fChunkSize(0),fNStaged(0),
@@ -396,86 +299,17 @@ bool CoprocessorBroker::UploadGeometry(vecgeom::VPlacedVolume const *const volum
    return true;
 }
 
-bool CoprocessorBroker::UploadMagneticField(GXFieldMap** fieldMap)
-{
-
-   fprintf(stderr, "Magnetic field uploading not implemented yet.\n");
-
-//    printf("Creating magnetic field map on the GPU device\n");
-//    //prepare fiesldMap array: fieldMap[nbinZ][nbinR];
-//    GXFieldMap *bmap_h = (GXFieldMap *) malloc (nbinZ*nbinR*sizeof(GXFieldMap));
-//    for (int i = 0 ; i < nbinZ ; i++) {
-//       for (int j = 0 ; j < nbinR ; j++) {
-//          bmap_h[i+j*nbinZ].Bz = fieldMap[i][j].Bz;
-//          bmap_h[i+j*nbinZ].Br = fieldMap[i][j].Br;
-//       }
-//    }
-
-//    printf("Copying data from host to device\n");
-
-// //   cudaMalloc((void**)&fdFieldMap, nbinZ*nbinR*sizeof(GXFieldMap)) ;
-// //   cudaMemcpy(fdFieldMap,bmap_h,nbinZ*nbinR*sizeof(GXFieldMap),
-// //              cudaMemcpyHostToDevice);
-//    fdFieldMap.Alloc(nbinZ*nbinR);
-//    fdFieldMap.ToDevice(bmap_h,nbinZ*nbinR);
-//    free(bmap_h);
-
-   return true;
-}
-
-bool CoprocessorBroker::UploadPhysicsTable(const GPPhysicsTable *table, unsigned int nTables, GPPhysics2DVector* sbData, size_t maxZ)
-{
-   fprintf(stderr, "Physics table uploading not implemented yet.\n");
-
-   // fd_PhysicsTable.Alloc(nTables);
-   // fd_PhysicsTable.ToDevice(table,nTables);
-
-   // fd_SeltzerBergerData.Alloc(maxZ);
-   // fd_SeltzerBergerData.ToDevice(sbData,maxZ);
-
-   return true;
-}
-
 void setup(CoprocessorBroker *broker,
            int nphi = 4,
            int nz   = 3,
            double density = 8.28)
 {
 
-   // //2. Read magnetic field map
-   // const char* fieldMapFile = getenv("GP_BFIELD_MAP");
-   // fieldMapFile = (fieldMapFile) ? fieldMapFile : "data/cmsExp.mag.3_8T";
-   // GXFieldMap** fieldMap = ReadFieldMap(fieldMapFile);
+   // 2. Read magnetic field map
 
-   // //3. Create magnetic field on the device
-   // broker->UploadMagneticField(fieldMap);
+   // 3. Create magnetic field on the device
 
-   // // 4. Prepare EM physics tables
-   // GPPhysicsTable physicsTable[kNumberPhysicsTable];
-
-   // TString filename;
-   // for(int it = 0 ; it < kNumberPhysicsTable ; ++it) {
-   //    filename.Form("data/%s",GPPhysicsTableName[it]);
-   //    readTableAndSetSpline(&physicsTable[it],filename);
-   // }
-
-   // //G4SeltzerBergerModel data
-   // unsigned int maxZ = 92;
-   // GPPhysics2DVector* sbData = new GPPhysics2DVector[maxZ];
-
-   // char sbDataFile[256];
-   // for(unsigned int iZ = 0 ; iZ < maxZ ; ++iZ) {
-   //    sprintf(sbDataFile,"data/brem_SB/br%d",iZ+1);
-   //    std::ifstream fin(sbDataFile);
-   //    G4bool check = RetrieveSeltzerBergerData(fin, &sbData[iZ]);
-   //    if(!check) {
-   //       printf("Failed To open SeltzerBerger Data file for Z= %d\n",iZ+1);
-   //    }
-   // }
-   // printf("Copying GPPhysicsTable data from host to device\n");
-   // broker->UploadPhysicsTable(physicsTable,kNumberPhysicsTable,sbData,maxZ);
-
-   // delete [] sbData;
+   // 4. Prepare EM physics tables
 
 }
 
@@ -821,12 +655,6 @@ void CoprocessorBroker::runTask(int threadid, GeantBasket &basket)
    bool force = false;
 
    unsigned int nTracks = basket.GetNinput();
-   //<<<---------------------------------------------------------->>>
-//         fprintf(stderr,"round = %d count1 = %d fNchunk=%d nTracks=%d\n",
-//                 round,count1,fNchunk,nTracks);
-//         cudaMemcpyAsync(track_d0, track_h+i, count1*sizeof(GXTrack),
-//                         cudaMemcpyHostToDevice, stream0);
-//
 
    unsigned int trackUsed = 0;
    TaskColl_t::iterator task = fTasks.begin();
