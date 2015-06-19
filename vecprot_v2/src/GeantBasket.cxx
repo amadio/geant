@@ -227,7 +227,7 @@ bool GeantBasketMgr::ReplaceBasket(atomic_basket &current, GeantBasket *expected
   if (replaced_by_me) 
     expected->fReplaced.store(true);
   unlock_steal();
-  if (!replaced_by_me) newb->Recycle(td);
+  if (!replaced_by_me) td->RecycleBasket(newb);
   return replaced_by_me;
 }   
   
@@ -275,7 +275,7 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority,
       while (basket->fNcopying.load()) ;
       // Release basket
       basket->fNused--;
-      fFeeder->push(basket, priority);
+      Push(basket, priority, td);
       return 1;
     }
   }
@@ -328,7 +328,7 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData
       while (basket->fNcopying.load()) ;
       // Release basket
       basket->fNused--;
-      fFeeder->push(basket, priority);
+      Push(basket, priority, td);
       return 1;
     }
   }
@@ -346,7 +346,7 @@ Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool
   cbasket->GetInputTracks().AddTrack(trackv, itr);
   if (cbasket->GetNinput() >= cbasket->GetThreshold()) {
     assert(cbasket->TryDispatch());
-    fFeeder->push(cbasket, priority);    
+    Push(cbasket, priority, td);
     SetCBasket(GetNextBasket(td));
     return 1;
   }
@@ -376,7 +376,7 @@ Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
       while (basket->fNcopying.load()) ;
       // Release basket
       basket->fNused--;
-      fFeeder->push(basket, false);
+      Push(basket, false, td);
       return 1;
     }
   }
@@ -399,9 +399,10 @@ void GeantBasketMgr::CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
-  // Returns next empy basket if any available, else create a new basket.
-  GeantBasket *next = 0;
+void GeantBasketMgr::Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td)
+{
+// Called whenever a basket has to be pushed to the queue. Recalculates
+// threshold for the basket manager.
   const Int_t nthreads = td->fNthreads;
   Int_t threshold = fThreshold.load();
   Int_t threshold_new = threshold * fNused.load() / nthreads;
@@ -410,20 +411,21 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
     if (remainder > 0)
       threshold_new += 4 - remainder;
     fThreshold.store(threshold_new);
-    //      Printf("volume %s:      ntotal=%d   nused=%d   thres=%d", GetName(), fNbaskets.load(),
-    //      fNused.load(), threshold_new);
   }
-  next = td->GetNextBasket();
+  fNused++;
+  fFeeder->push(basket, priority);
+}   
+
+//______________________________________________________________________________
+GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
+  // Returns next empy basket if any available, else create a new basket.
+  GeantBasket *next = td->GetNextBasket();
   if (!next) {
     next = new GeantBasket(fBcap, this);
-    if (fCollector) next->SetMixed(kTRUE);
     fNbaskets++;
-    fNused++;
-  } else {
-    if (fCollector) next->SetMixed(kTRUE);
-    else            next->SetBasketMgr(this);
-    fNused++;
   }
+  if (fCollector) next->SetMixed(kTRUE);
+  else            next->SetBasketMgr(this);
   next->SetThreshold(fThreshold.load());
   return next;
 }

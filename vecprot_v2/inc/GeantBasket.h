@@ -577,6 +577,13 @@ public:
   virtual void Print(Option_t *option = "") const;
 
   /**
+   * @brief Push the basket to the queue recalculating threshold
+   * @param basket Basket to be pushed
+   * @param priority Priority on or off
+   */
+   void Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td);
+
+  /**
    * @brief Recycles a given basket
    * 
    * @param b Pointer to current GeantBasket for recycling
