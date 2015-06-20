@@ -299,6 +299,9 @@ void CoprocessorBrokerInitConstant();
 /** @brief Create the baskets for each stream */
 void CoprocessorBroker::CreateBaskets()
 {
+   // We must be called after the geometry has been loaded
+   // so we can use the proper maximum depth
+   // and over-ride the cudaLimitStackSize.
 
    fTasks.push_back(new GeneralTask());
    /*
@@ -316,6 +319,7 @@ void CoprocessorBroker::CreateBaskets()
       fTaskData.push_back(data);
    }
 
+   cudaDeviceSetLimit( cudaLimitStackSize, 2*4096 );
 }
 
 
