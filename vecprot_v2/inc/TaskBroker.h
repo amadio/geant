@@ -44,6 +44,9 @@ public:
   virtual bool IsValid() = 0;
   typedef TaskData *Stream;
 
+  /** @brief Create the baskets for each stream */
+  virtual void CreateBaskets() = 0;
+
   /** @brief Virtual function that get next stream */
   virtual Stream GetNextStream() = 0;
 

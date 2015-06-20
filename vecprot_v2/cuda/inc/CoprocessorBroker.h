@@ -131,6 +131,9 @@ public:
    bool addTrack(int itr, GeantBasket &basket) { return false; }
    int SetPrioritizer() { return 0; }
 
+   /** @brief Create the baskets for each stream */
+   void CreateBaskets();
+
    bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
    // bool UploadMagneticField(FieldMap** fieldMap);
 

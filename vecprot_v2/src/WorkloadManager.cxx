@@ -72,6 +72,8 @@ void WorkloadManager::CreateBaskets() {
   //   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
   fScheduler->CreateBaskets();
   VolumePath_t::ReleaseInstance(blueprint);
+
+  if (fBroker) fBroker->CreateBaskets();
 }
 
 //______________________________________________________________________________

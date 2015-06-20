@@ -296,6 +296,29 @@ void setup(CoprocessorBroker *broker,
 
 void CoprocessorBrokerInitConstant();
 
+/** @brief Create the baskets for each stream */
+void CoprocessorBroker::CreateBaskets()
+{
+
+   fTasks.push_back(new GeneralTask());
+   /*
+   fTasks.push_back(new EnergyElectronTask(6));
+   fTasks.push_back(new EnergyElectronTask(4));
+   fTasks.push_back(new EnergyElectronTask(2));
+   fTasks.push_back(new EnergyElectronTask(0));
+   */
+
+   //initialize the stream
+   for(unsigned int i=0; i < 2+fTasks.size(); ++i) {
+      TaskData *data = new TaskData();
+      data->CudaSetup(i,fNblocks,fNthreads,fMaxTrackPerThread);
+      data->Push(&fHelpers);
+      fTaskData.push_back(data);
+   }
+
+}
+
+
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
 {
    int deviceCount = 0;
@@ -312,24 +335,10 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
    fNthreads = nthreads;
    fMaxTrackPerThread = maxTrackPerThread;
 
-   fTasks.push_back(new GeneralTask());
-   /*
-   fTasks.push_back(new EnergyElectronTask(6));
-   fTasks.push_back(new EnergyElectronTask(4));
-   fTasks.push_back(new EnergyElectronTask(2));
-   fTasks.push_back(new EnergyElectronTask(0));
-   */
 
    // Initialize global constants.
    CoprocessorBrokerInitConstant();
 
-   //initialize the stream
-   for(unsigned int i=0; i < 2+fTasks.size(); ++i) {
-      TaskData *data = new TaskData();
-      data->CudaSetup(i,nblocks,nthreads,maxTrackPerThread);
-      data->Push(&fHelpers);
-      fTaskData.push_back(data);
-   }
    return true;
 }
 
