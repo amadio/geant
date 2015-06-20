@@ -163,11 +163,12 @@ CoprocessorBroker::TaskData::~TaskData() {
 
 bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
+   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
 
    fGeantTaskData = new Geant::GeantTaskData();
    fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
    fGeantTaskData->fNthreads = nthreads;
-   fGeantTaskData->fMaxDepth = maxTrackPerThread;
+   fGeantTaskData->fMaxDepth = maxdepth;
    fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
 
    fStreamId = streamid;
@@ -181,7 +182,6 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fChunkSize = maxTrackPerKernel;
 
    unsigned int maxThreads = nblocks*nthreads;
-   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
 
    // See also:
    //   GeantPropagator *propagator = GeantPropagator::Instance();
