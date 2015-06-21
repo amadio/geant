@@ -624,7 +624,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     // Record tracks
     // ninput = ntotransport;
     if (basket->GetNoutput()) {
-       Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter.load());
+       Geant::Warning("TransportTracksCoprocessor","Output Track_v not empty noutput=%d counter=%d", basket->GetNoutput(), counter.load());
     }
     //      if (counter==1) input.PrintTracks();
     for (Int_t itr = 0; itr < ntotransport; itr++) {
@@ -666,14 +666,14 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
 
     // Check
     if (basket->GetNinput()) {
-      Printf("Ouch (coproc): ninput=%d noutput=%d counter=%d", basket->GetNinput(),
+       Geant::Warning("TransportTracksCoprocessor","Input Track_v not empty: ninput=%d noutput=%d counter=%d", basket->GetNinput(),
              basket->GetNoutput(), counter.load());
     }
     {
        auto noutput = basket->GetNoutput();
        for (Int_t itr = 0; itr < noutput; itr++) {
           if (TMath::IsNaN(output.fXdirV[itr])) {
-             Printf("Error: track %d has NaN", itr);
+             Geant::Error("TransportTracksCoprocessor","Track %d has NaN", itr);
           }
        }
     }

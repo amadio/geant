@@ -84,6 +84,13 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
    template <typename... ArgsTypes>
    GEANT_CUDA_BOTH_CODE
+   void Warning(const char *location, const char *msgfmt, ArgsTypes... params)
+   {
+      MessageHandler(EMsgLevel::kWarning,location,msgfmt, params...);
+   }
+
+   template <typename... ArgsTypes>
+   GEANT_CUDA_BOTH_CODE
    void Error(const char *location, const char *msgfmt, ArgsTypes... params)
    {
       MessageHandler(EMsgLevel::kError,location,msgfmt, params...);
