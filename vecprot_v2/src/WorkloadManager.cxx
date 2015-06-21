@@ -1,4 +1,5 @@
 #include "WorkloadManager.h"
+#include "Geant/Error.h"
 
 #include "TSystem.h"
 #include "TROOT.h"

@@ -1,5 +1,6 @@
 #include "GeantTrack.h"
 #include "globals.h"
+#include "Geant/Error.h"
 #include <execinfo.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1

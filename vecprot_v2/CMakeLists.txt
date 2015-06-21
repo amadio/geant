@@ -13,6 +13,7 @@ endif()
 # NB: headers are included so they will show up in IDEs
 #
 set(sources
+   ${CMAKE_HOME_DIRECTORY}/base/src/Error.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrack.cxx 
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantBasket.cxx  
@@ -28,9 +29,12 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
+
 )     
 
 set(headers
+   ${CMAKE_HOME_DIRECTORY}/base/inc/Geant/Config.h
+   ${CMAKE_HOME_DIRECTORY}/base/inc/Geant/Error.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcess.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h 
