@@ -417,6 +417,9 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
          gputracks.fPathV[t]->ConvertToGPUPointers();
          gputracks.fNextpathV[t]->ConvertToGPUPointers();
 
+         // fTrackId[fNStaged] = input.PostponeTrack(hostIdx,fBasket->GetOutputTracks());
+         input.MarkRemoved(hostIdx);
+
          ++fNStaged;
       }
    }
