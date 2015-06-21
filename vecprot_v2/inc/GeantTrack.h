@@ -80,7 +80,21 @@ class TGeoVolume;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-GEANT_DEVICE_CONSTANT double gTolerance;
+namespace host_constant {
+   extern const double gTolerance;
+}
+#ifdef GEANT_NVCC
+namespace device_constant {
+   __constant__ double gTolerance;
+}
+#endif
+#ifdef GEANT_CUDA_DEVICE_BUILD
+using device_constant::gTolerance;
+#else
+using host_constant::gTolerance;
+#endif
+
+// GEANT_DEVICE_CONSTANT double gTolerance;
 
 class GeantTrack_v;
 class GeantTaskData;

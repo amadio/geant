@@ -45,9 +45,9 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifndef GEANT_NVCC
-const Double_t gTolerance = TGeoShape::Tolerance();
-#endif
+namespace host_constant {
+   const Double_t gTolerance = TGeoShape::Tolerance();
+}
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack()
