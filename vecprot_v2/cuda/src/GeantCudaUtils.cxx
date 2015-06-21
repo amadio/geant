@@ -9,19 +9,16 @@
 namespace Geant {
 inline namespace cxx {
 
-void Fatal(const char *location, const char *va_(fmt), ...)
+   // Code to be compiled only by gcc (i.e. not nvcc).
+
+void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *va_(fmt), ...)
 {
-   // Use this function in case of a fatal error. It will abort the program.
+    // Currently we use the ROOT message handler on the host/gcc code.
 
    va_list ap;
    va_start(ap,va_(fmt));
-   ::Fatal(location, va_(fmt), ap);
+   ::ErrorHandler((Int_t)level,location, va_(fmt), ap);
    va_end(ap);
-#ifdef GEANT_CUDA_DEVICE_BUILD
-   cudaThreadExit();
-#else
-   exit( EXIT_FAILURE );
-#endif
 }
 
 } // cxx

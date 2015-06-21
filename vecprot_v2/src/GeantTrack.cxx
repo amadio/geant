@@ -1949,6 +1949,7 @@ Int_t GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output) {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::PrintTrack(Int_t itr, const char *msg) const {
   // Print info for a given track
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};

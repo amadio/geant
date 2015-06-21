@@ -888,6 +888,7 @@ public:
    *
    * @param itr Track ID
    */
+  GEANT_CUDA_BOTH_CODE
   void PrintTrack(Int_t itr, const char *msg = "") const;
 
   /** @brief Function that print all tracks */
