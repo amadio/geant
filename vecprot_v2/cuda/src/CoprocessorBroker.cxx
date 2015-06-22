@@ -443,6 +443,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    GeantScheduler *sch = mgr->GetScheduler();
    condition_locker &sched_locker = mgr->GetSchLocker();
 
+   FromDeviceConversion(&(fOutputBasket->GetOutputTracks()), fDevTrackOutput);
+
    // Fix the navigation state pointers in the output basket
    GeantTrack_v &output( fOutputBasket->GetOutputTracks() );
    for(Int_t t = 0; t < output.fMaxtracks; ++t) {
