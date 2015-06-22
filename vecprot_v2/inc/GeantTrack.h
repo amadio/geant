@@ -734,6 +734,16 @@ public:
   Int_t AddTrackSync(GeantTrack_v &arr, Int_t i);
 
   /**
+   * @brief AddAt & synctrack function
+   *
+   * @param itrack which location to write the track to
+   * @param arr input Track array
+   * @param i Bit number 'i'
+   */
+  GEANT_CUDA_BOTH_CODE
+  Int_t AddTrackSyncAt(Int_t itrack, GeantTrack_v &arr, Int_t i);
+
+  /**
    * @brief Add track function
    *
    * @param arr Track array

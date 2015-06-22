@@ -994,6 +994,82 @@ Int_t GeantTrack_v::AddTrackSync(GeantTrack_v &arr, Int_t i) {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+Int_t GeantTrack_v::AddTrackSyncAt(Int_t itrack, GeantTrack_v &arr, Int_t i) {
+  // Add track from different array in a concurrent way. Assumes that this array
+  // Is currently being filled while held by the basket manager and NOT being
+  // transported.
+  // The array has to be compact and should have enough alocated space.
+  // Returns the location where the track was added.
+  // This *assumes* that no track has been yet added to this array slot.
+  // During the use of this routines (likely on a coprocessor where multiple
+  // threads are accessing the same GeantTrack_v, the GeantTrack_v is in 
+  // a somewhat unsual state, where the array is not compact but fHole
+  // is not maintain properly (See non concurrent save code comment out
+  // below.
+
+  assert(itrack < fMaxtracks);
+#ifdef VERBOSE
+  arr.PrintTrack(i);
+#endif
+
+  // Technically, after setting fHoles to all on,
+  // we really should be doing:
+  //   fHoles->ResetBitNumber(itrack);
+  //   fSelected->ResetBitNumber(itrack);
+  // which use bit operation which are not (yet?)
+  // done atomically,
+  // and we should do:
+  //   atomically: fNtracks = max(fNtracks,itrack)
+
+#ifdef GEANT_CUDA_DEVICE_BUILD
+  atomicAdd(&fNtracks,1);
+#else
+  ++fNtracks;
+#endif
+
+  fEventV[itrack] = arr.fEventV[i];
+  fEvslotV[itrack] = arr.fEvslotV[i];
+  fParticleV[itrack] = arr.fParticleV[i];
+  fPDGV[itrack] = arr.fPDGV[i];
+  fGVcodeV[itrack] = arr.fGVcodeV[i];
+  fEindexV[itrack] = arr.fEindexV[i];
+  fChargeV[itrack] = arr.fChargeV[i];
+  fProcessV[itrack] = arr.fProcessV[i];
+  fVindexV[itrack] = arr.fVindexV[i];
+  fNstepsV[itrack] = arr.fNstepsV[i];
+  fSpeciesV[itrack] = arr.fSpeciesV[i];
+  fStatusV[itrack] = arr.fStatusV[i];
+  fMassV[itrack] = arr.fMassV[i];
+  fXposV[itrack] = arr.fXposV[i];
+  fYposV[itrack] = arr.fYposV[i];
+  fZposV[itrack] = arr.fZposV[i];
+  fXdirV[itrack] = arr.fXdirV[i];
+  fYdirV[itrack] = arr.fYdirV[i];
+  fZdirV[itrack] = arr.fZdirV[i];
+  fPV[itrack] = arr.fPV[i];
+  fEV[itrack] = arr.fEV[i];
+  fTimeV[itrack] = arr.fTimeV[i];
+  fEdepV[itrack] = arr.fEdepV[i];
+  fPstepV[itrack] = arr.fPstepV[i];
+  fStepV[itrack] = arr.fStepV[i];
+  fSnextV[itrack] = arr.fSnextV[i];
+  fSafetyV[itrack] = arr.fSafetyV[i];
+  fFrombdrV[itrack] = arr.fFrombdrV[i];
+  fPendingV[itrack] = arr.fPendingV[i];
+  // Copy the volume paths
+  size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
+  fPathV[itrack] = reinterpret_cast<VolumePath_t *>(fVPstart + itrack * size_vpath);
+  arr.fPathV[i]->CopyTo(fPathV[itrack]);
+  fNextpathV[itrack] = reinterpret_cast<VolumePath_t *>(fVPstart + (fMaxtracks + itrack) * size_vpath);
+  arr.fNextpathV[i]->CopyTo(fNextpathV[itrack]);
+#ifdef __STAT_DEBUG_TRK
+  fStat.fNtracks[arr.fEvslotV[i]]++;
+#endif
+  return itrack;
+}
+
+//______________________________________________________________________________
 void GeantTrack_v::AddTracks(GeantTrack_v &arr, Int_t istart, Int_t iend, Bool_t /*import*/) {
 // Add tracks from different array. Single thread at a time.
 #ifdef __STAT_DEBUG_TRK

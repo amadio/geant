@@ -49,6 +49,8 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t ntracks,Geant::
       input->ComputeTransportLengthSingle(itr);
       input->PropagateSingleTrack(*output,itr,td,0);
 
+      output->AddTrackSyncAt(itr,*input,itr);
+
       itr += blockDim.x * gridDim.x;
    }
 
