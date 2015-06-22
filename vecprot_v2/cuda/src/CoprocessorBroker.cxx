@@ -458,7 +458,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    Int_t ntot = 0;
    Int_t nnew = 0;
    Int_t nkilled = 0;
-   /* Int_t ninjected = */ sch->AddTracks(fOutputBasket, ntot, nnew, nkilled, nullptr /* fPrioritizer */);
+   /* Int_t ninjected = */ sch->AddTracks(fOutputBasket, ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
    (void)nkilled;
