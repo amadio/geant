@@ -34,6 +34,14 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t ntracks,Geant::
    unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
    Geant::GeantTaskData *td = &(workSpace[tid]);
 
+   // Test whether we use up too much memory already
+   char *ptr1 = (char*)vecgeom::cuda::NavigationState::MakeInstance(3);
+   char *ptr2 = new char[48];
+   if (ptr1==0 || ptr2==0) {
+         printf("DEBUG-GPU-4: tid=%d ptr1=%p ptr2=%p\n",tid,ptr1,ptr2);
+         return;
+   } else { delete [] ptr1; delete [] ptr2; }
+
    unsigned int itr = tid;
    while(itr < ntracks) {
       input->ComputeTransportLengthSingle(itr);
