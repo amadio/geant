@@ -2632,6 +2632,9 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
    //            ((const char*)source->fPathV[hostIdx]) - destBuf,  ((const char*)source->fPathV[hostIdx]) - offset);
    // }
 
+
+   assert( ((void*)source) == ((void*)(&(source->fNtracks))));
+
    // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
    GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf(),
                                     source->Buffer(),

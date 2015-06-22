@@ -642,7 +642,7 @@ public:
   static GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth);
 
   /** @brief GeantTrack_v destructor */
-  virtual ~GeantTrack_v();
+  ~GeantTrack_v();
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
   GEANT_CUDA_BOTH_CODE
