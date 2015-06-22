@@ -2620,8 +2620,10 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
    for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
       // Technically this offset is a 'guess' and depends on the
       // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
-      source->fPathV[hostIdx] = (VolumePath_t*)(((char*)source->fPathV[hostIdx]) + offset);
-      source->fNextpathV[hostIdx] = (VolumePath_t*)(((char*)source->fNextpathV[hostIdx]) + offset);
+      if (source->fPathV[hostIdx])
+         source->fPathV[hostIdx] = (VolumePath_t*)(((char*)source->fPathV[hostIdx]) + offset);
+      if (source->fNextpathV[hostIdx])
+         source->fNextpathV[hostIdx] = (VolumePath_t*)(((char*)source->fNextpathV[hostIdx]) + offset);
    }
    // const char* destBuf =  ((const char*)dest.GetPtr()+vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
    // const char* sourBuf =  (const char*)source->Buffer();
@@ -2655,8 +2657,8 @@ void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda:
    for(int hostIdx = 0; hostIdx < dest->GetNtracks(); ++hostIdx ) {
       // Technically this offset is a 'guess' and depends on the
       // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
-      dest->fPathV[hostIdx] = (VolumePath_t*)(((char*)dest->fPathV[hostIdx]) + offset);
-      dest->fNextpathV[hostIdx] = (VolumePath_t*)(((char*)dest->fNextpathV[hostIdx]) + offset);
+      if (dest->fPathV[hostIdx]) dest->fPathV[hostIdx] = (VolumePath_t*)(((char*)dest->fPathV[hostIdx]) + offset);
+      if (dest->fNextpathV[hostIdx]) dest->fNextpathV[hostIdx] = (VolumePath_t*)(((char*)dest->fNextpathV[hostIdx]) + offset);
    }
 }
 

@@ -447,8 +447,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    GeantTrack_v &output( fOutputBasket->GetOutputTracks() );
    for(Int_t t = 0; t < output.fMaxtracks; ++t) {
       // if (output.fHoles->TestBitNumber(t) continue;
-      output.fPathV[t]->ConvertToCPUPointers();
-      output.fNextpathV[t]->ConvertToCPUPointers();
+      if (output.fPathV[t]) output.fPathV[t]->ConvertToCPUPointers();
+      if (output.fNextpathV[t]) output.fNextpathV[t]->ConvertToCPUPointers();
    }
 
    Int_t ntot = 0;
