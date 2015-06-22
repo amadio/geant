@@ -522,6 +522,12 @@ void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
    helper->TrackToHost();
 }
 
+void ClearTrack_v(cudaStream_t /* stream */, cudaError_t status, void *userData)
+{
+   Geant::GeantTrack_v *tracks = (Geant::GeantTrack_v*)userData;
+   tracks->Clear();
+}
+
 void FromDeviceTrackConversion(cudaStream_t /* stream */, cudaError_t status, void *userData)
 {
    CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
@@ -555,6 +561,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
 
    ToDevice(stream->fDevTrackInput, &(stream->fInputBasket->GetInputTracks()), *stream);
+   GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, ClearTrack_v, &(stream->fInputBasket->GetInputTracks()), 0 ));
 
    fTotalWork += stream->fNStaged;
    int result = task->fKernel(stream->fDevTaskWorkspace,
