@@ -188,7 +188,9 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    //   propagator->fMaxPerBasket;
 
    fDevTaskWorkspace.Allocate(maxThreads);
-   fDevTaskWorkspace.ConstructArray(maxThreads, maxThreads, maxdepth, maxTrackPerKernel);
+   fDevTaskWorkspace.ConstructArray(maxThreads, maxThreads, maxdepth,
+                                    (unsigned int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e. maxTrackPerThread) unless we need space for extras/new tracks ...
+                                    );
 
    // need to allocate enough for one object containing many tracks ...
    fDevTrackInput.Malloc(Geant::GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
