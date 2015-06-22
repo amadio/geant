@@ -1,6 +1,10 @@
 // See also GeantCudaUtils.cxx
 
 #include "GeantCudaUtils.h"
+#include "GeantPropagator.h"
+#include "GeantTrack.h"
+#include "globals.h"
+#include "TGeoShape.h"
 
 namespace Geant {
 inline namespace cuda {

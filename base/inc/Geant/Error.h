@@ -17,6 +17,8 @@
 #include "Geant/Config.h"
 #endif
 
+#include <cstdio>
+
 namespace Geant {
    enum class EMsgLevel {
       kUnset    =  -1,
