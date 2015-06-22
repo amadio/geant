@@ -2667,11 +2667,11 @@ bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrac
    GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
                                     source.GetPtr(),
                                     sizeof(Int_t)*2+sizeof(Bool_t)*2,
-                                    cudaMemcpyHostToDevice, stream));
+                                    cudaMemcpyDeviceToHost, stream));
    GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(),
                                     ((char*)source.GetPtr()) + bufferOffset,
                                     dest->BufferSize(),
-                                    cudaMemcpyHostToDevice, stream));
+                                    cudaMemcpyDeviceToHost, stream));
    return true;
 }
 #endif
