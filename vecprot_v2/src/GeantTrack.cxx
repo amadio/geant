@@ -1415,6 +1415,7 @@ Bool_t GeantTrack_v::Contains(Int_t evstart, Int_t nevents) const {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::Clear(Option_t *) {
   // Clear track content and selections
   fNselected = 0;

@@ -581,6 +581,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // Bring back the modified tracks.
    FromDevice(&(stream->fOutputBasket->GetOutputTracks()), stream->fDevTrackOutput, *stream);
 
+   Clear_gpu(stream->fDevTrackOutput, 1, 1, *stream);
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, StreamReset, stream, 0 ));
 

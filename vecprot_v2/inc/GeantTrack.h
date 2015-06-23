@@ -681,6 +681,7 @@ public:
   Int_t GetNtracks() const { return fNtracks; }
 
   /** @brief  Function that set number of tracks contained  */
+  GEANT_CUDA_BOTH_CODE
   void SetNtracks(Int_t ntracks) { fNtracks = ntracks; }
 #else
 
@@ -857,6 +858,7 @@ public:
   Bool_t IsSelected(Int_t i) { return fSelected->TestBitNumber(i); }
 
   /** @brief Clear function */
+  GEANT_CUDA_BOTH_CODE
   void Clear(Option_t *option = "");
 
   /**

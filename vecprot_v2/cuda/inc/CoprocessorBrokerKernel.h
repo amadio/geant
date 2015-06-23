@@ -110,3 +110,14 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
 
                             int nBlocks, int nThreads,
                             cudaStream_t stream);
+namespace Geant {
+#ifdef GEANT_NVCC
+inline
+#endif
+namespace cuda {
+
+   int Clear_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &tracks,
+                 int nBlocks, int nThreads,
+                 cudaStream_t stream);
+} // cuda
+} // Geant
