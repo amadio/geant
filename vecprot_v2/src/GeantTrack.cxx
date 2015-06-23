@@ -2693,7 +2693,8 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
    // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
    //       == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
 
-   long offset = ((const char*)dest.GetPtr()+vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf()) - (const char*)source->Buffer();
+   size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+   long offset = ((const char*)dest.GetPtr()+bufferOffset) - (const char*)source->Buffer();
    for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
       // Technically this offset is a 'guess' and depends on the
       // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
@@ -2713,7 +2714,7 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
    assert( ((void*)source) == ((void*)(&(source->fNtracks))));
 
    // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf(),
+   GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + bufferOffset,
                                     source->Buffer(),
                                     source->BufferSize(),
                                     cudaMemcpyHostToDevice, stream));
@@ -2733,7 +2734,7 @@ void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda:
    // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
    //        == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
 
-   long offset = (const char*)dest->Buffer() - (((const char*)source.GetPtr()) + bufferOffset);
+   long offset = ((const char*)dest->Buffer()) - (((const char*)source.GetPtr()) + bufferOffset);
    for(int hostIdx = 0; hostIdx < dest->GetNtracks(); ++hostIdx ) {
       // Technically this offset is a 'guess' and depends on the
       // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
