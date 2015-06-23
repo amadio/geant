@@ -445,6 +445,10 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    GeantScheduler *sch = mgr->GetScheduler();
    condition_locker &sched_locker = mgr->GetSchLocker();
 
+   if (fOutputBasket->GetOutputTracks().GetNtracks() > fOutputBasket->GetOutputTracks().Capacity())
+      Fatal("CoprocessorBroker::TaskData::TrackToHost","Request size in output track buffer is too large ( %d > %d )",
+            fOutputBasket->GetOutputTracks().GetNtracks(), fOutputBasket->GetOutputTracks().Capacity());
+
    FromDeviceConversion(&(fOutputBasket->GetOutputTracks()), fDevTrackOutput);
 
    // Fix the navigation state pointers in the output basket
