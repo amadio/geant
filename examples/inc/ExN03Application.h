@@ -25,8 +25,7 @@
 #include "MyHit.h"
 #endif
 
-class GeantTrack_v;
-class GeantTaskData;
+#include "GeantFwd.h"
 
 /** @brief ExN03Application class */
 class ExN03Application : public GeantVApplication {

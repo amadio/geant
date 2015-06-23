@@ -94,7 +94,7 @@ int testPerformance()
     vx_ = &dxn[0];
     int nreps=1000;
 
-    geantv::ConstBzFieldHelixStepper stepper(10.);
+    Geant::ConstBzFieldHelixStepper stepper(10.);
 
    vx_ = &dyn[0];
       ET_TIME_THIS( "ROOT performance",

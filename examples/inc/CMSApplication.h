@@ -23,8 +23,7 @@ class TH1F;
 class TH1D;
 class TProfile;
 
-class GeantTrack_v;
-class GeantTaskData;
+#include "Geant/Config.h"
 
 /** @brief CMSApplication class */
 class CMSApplication : public GeantVApplication {

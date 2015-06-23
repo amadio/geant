@@ -95,7 +95,7 @@ Int_t HepMCGenerator::NextEvent() {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(Int_t n, GeantTrack &gtrack) {
+void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
   Int_t itr = 0;
   Double_t eta, phi, pmom = 0;

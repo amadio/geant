@@ -159,6 +159,8 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif()
 
+# set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+
 get_property(GEANTV_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
 get_property(GEANTV_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
 set(GEANTV_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
@@ -223,7 +225,7 @@ if (CUDA)
   endif()
 
   include_directories(AFTER SYSTEM ${CUDA_INCLUDE_DIRS})
-  message(STATUS "Adde to include directorys:  ${CUDA_INCLUDE_DIRS}")
+  message(STATUS "Addde to include directories:  ${CUDA_INCLUDE_DIRS}")
 
   message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
@@ -259,10 +261,6 @@ add_subdirectory (micromc)
 add_subdirectory (cmstrack)
 add_subdirectory (test-complex)
 #add_subdirectory (Nudy)
-
-if (CUDA)
-  add_subdirectory (vecprot_v2/cuda)
-endif()
 
 if(USE_VECPHYS)
  add_subdirectory (vectphysproc)

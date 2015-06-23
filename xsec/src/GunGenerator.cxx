@@ -73,7 +73,7 @@ Int_t GunGenerator::NextEvent() {
 }
 
 //______________________________________________________________________________
-void GunGenerator::GetTrack(Int_t /*n*/, GeantTrack &gtrack) {
+void GunGenerator::GetTrack(Int_t /*n*/, Geant::GeantTrack &gtrack) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
 

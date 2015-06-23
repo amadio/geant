@@ -12,10 +12,9 @@
 #endif
 
 class TParticlePDG;
-class GeantTrack;
 
 
-class HepMCGenerator: public PrimaryGenerator{
+class HepMCGenerator: public PrimaryGenerator {
  private:
 
 #if __cplusplus >= 201103L
@@ -31,7 +30,7 @@ class HepMCGenerator: public PrimaryGenerator{
   // set one GeantTrack primary track properties
     virtual void InitPrimaryGenerator();
     virtual Int_t NextEvent();
-    virtual void GetTrack(Int_t n, GeantTrack &gtrack);
+    virtual void GetTrack(Int_t n, Geant::GeantTrack &gtrack);
  // used from Geant4 test-complex to take one primary track
     void GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &tpz, Double_t &te,
                   Double_t &x0, Double_t &y0, Double_t &z0, Int_t &pdg);

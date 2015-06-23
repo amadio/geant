@@ -33,7 +33,9 @@ class GeantBasket;
  * @details Class descripting data organized per thread
  * 
  */
-class GeantTaskData : public TObject {
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+class GeantTaskData {
 public:
   Int_t fTid;          /** Thread unique id */
   Int_t fNthreads;     /** Number of transport threads */
@@ -48,15 +50,24 @@ public:
   GeantTrack fTrack;   /** Track support for this thread */
   VolumePath_t *fPath; /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
-  std::deque<GeantBasket*> fPool; /** Pool of empty baskets */  
+#ifdef GEANT_NVCC
+   char fPool[sizeof(std::deque<GeantBasket*>)]; // Use the same space ...
+#else
+   std::deque<GeantBasket*> fPool; /** Pool of empty baskets */
+#endif
 
 public:
 
-  /** @brief GeantTaskData constructor */
+   /** @brief GeantTaskData constructor */
   GeantTaskData();
 
+  /** @brief GeantTaskData constructor */
+  GEANT_CUDA_DEVICE_CODE
+  GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
+
   /** @brief GeantTaskData destructor */
-  virtual ~GeantTaskData();
+  GEANT_CUDA_DEVICE_CODE
+  ~GeantTaskData();
 
   /**
    * @brief Function that return double array
@@ -71,12 +82,11 @@ public:
    * @param size Size of boolean array
    */
   Bool_t *GetBoolArray(Int_t size);
-  
+
   /**
    * @brief Get the cleared storedtrack
    */
   GeantTrack &GetTrack() { fTrack.Clear(); return fTrack; }
-   
 
   /**
    * @brief Get next free basket or null if not available
@@ -119,6 +129,8 @@ private:
    */
   GeantTaskData &operator=(const GeantTaskData &);
 
-  ClassDef(GeantTaskData, 1) // Stateful data organized per thread
+   // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif

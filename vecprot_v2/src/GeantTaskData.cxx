@@ -7,12 +7,31 @@
 #include "TGeoVolume.h"
 #include "TRandom.h"
 
-ClassImp(GeantTaskData)
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+//______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
+GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0,maxDepth),
+      fPath(0), fBmgr(0), fPool() {
+  // Constructor
+  fNthreads = nthreads;
+  fMaxDepth = maxDepth;
+  fSizeBool = fSizeDbl = 5 * maxPerBasket;
+  fBoolArray = new Bool_t[fSizeBool];
+  fDblArray = new Double_t[fSizeDbl];
+  fPath = VolumePath_t::MakeInstance(fMaxDepth);
+#ifndef GEANT_NVCC
+  fRndm = new TRandom();
+#endif
+}
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData()
-    : TObject(), fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),  
-      fVolume(0), fRndm(new TRandom()), fBoolArray(0), fDblArray(0), fTrack(0), 
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0),
       fPath(0), fBmgr(0), fPool() {
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
@@ -22,13 +41,17 @@ GeantTaskData::GeantTaskData()
   fBoolArray = new Bool_t[fSizeBool];
   fDblArray = new Double_t[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
+  fRndm = new TRandom();
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
 GeantTaskData::~GeantTaskData() {
   // Destructor
   //  delete fMatrix;
+#ifndef GEANT_NVCC
   delete fRndm;
+#endif
   delete[] fBoolArray;
   delete[] fDblArray;
   VolumePath_t::ReleaseInstance(fPath);
@@ -60,6 +83,7 @@ Bool_t *GeantTaskData::GetBoolArray(Int_t size) {
   return fBoolArray;
 }
 
+#ifndef GEANT_NVCC
 //______________________________________________________________________________
 GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
@@ -96,4 +120,9 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
 //  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
 }
-  
+
+#endif
+
+} // GEANT_IMPL_NAMESPACE
+} // geant
+

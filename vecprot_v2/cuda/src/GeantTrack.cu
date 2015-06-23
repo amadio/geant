@@ -1,0 +1,39 @@
+
+#include "GeantCudaUtils.h"
+#include "backend/cuda/Interface.h"
+
+#include "GeantTrack.h"
+#include "GeantTaskData.h"
+#include "CoprocessorBrokerKernel.h"
+
+namespace Geant {
+
+inline namespace cuda {
+
+   template void MakeInstanceAt(GeantTrack_v *addr, unsigned int, int);
+
+   __global__
+   void Clear(GeantTrack_v *tracks) {
+      tracks->Clear();
+   }
+
+   int Clear_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &tracks,
+         int blocksPerGrid, int threadsPerBlock,
+         cudaStream_t stream)
+   {
+      Clear<<< blocksPerGrid, threadsPerBlock, 0 , stream >>>(tracks);
+      GEANT_CUDA_ERROR( cudaGetLastError() );
+      return 1;
+   }
+
+} // cuda
+} // Geant
+
+namespace vecgeom {
+namespace cxx {
+   template size_t DevicePtr<Geant::cuda::GeantTaskData>::SizeOf();
+   template void DevicePtr<Geant::cuda::GeantTaskData>::ConstructArray(unsigned long, unsigned int, int, unsigned int) const;
+   template size_t DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+} // cxx
+} // vecgeom
+

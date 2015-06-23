@@ -16,13 +16,16 @@ class TEXsec;
 class TMXsec;
 class TEFstate;
 class TPDecay;
-class GeantTrack_v;
-class GeantTrack;
-class GeantTaskData;
 class TGeoMaterial;
+
+#include "GeantFwd.h"
 
 class TTabPhysMgr
 {
+public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 private:
    Int_t            fNelements;     // Total number of elements in the geometry
    Int_t            fNmaterials;    // Total number of materials in the geometry	

@@ -27,12 +27,14 @@
 #include <vector>
 
 class TPDecay;
-class GeantTrack_v;
-class GeantTaskData;
+#include "GeantFwd.h"
 
 class TMXsec {
-
 public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
+
   TMXsec();
   TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], const Int_t a[], const Float_t w[], Int_t nel,
          Float_t dens, Bool_t weight = kFALSE, const TPDecay *decaytable = 0);

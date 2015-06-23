@@ -18,7 +18,7 @@ void sincos(double x, double *s, double *c) {
 #endif
 
 
-namespace geantv
+namespace Geant
 {
 
   /**
@@ -32,6 +32,7 @@ namespace geantv
       double fBz;
 
     public:
+      GEANT_CUDA_BOTH_CODE
       ConstBzFieldHelixStepper( double Bz = 0. ) : fBz(Bz) {}
 
       void SetBz( double Bz ){ fBz = Bz; }
@@ -55,6 +56,7 @@ namespace geantv
        template<typename BaseType, typename BaseIType>
        inline
        __attribute__((always_inline))
+       GEANT_CUDA_BOTH_CODE
        void DoStep( BaseType const & /*posx*/, BaseType const & /*posy*/, BaseType const & /*posz*/,
                     BaseType const & /*dirx*/, BaseType const & /*diry*/, BaseType const & /*dirz*/,
                     BaseIType const & /*charge*/, BaseType const & /*momentum*/, BaseType const & /*step*/,
@@ -201,6 +203,6 @@ namespace geantv
    // might need to provide more general class in which the constant field has arbitrary direction
 
 
-} // end geantv namespace
+} // end geant namespace
 
 #endif /* CONSTFIELDHELIXSTEPPER_H_ */

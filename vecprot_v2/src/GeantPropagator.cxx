@@ -63,6 +63,8 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
+using namespace Geant;
+
 GeantPropagator *gPropagator = 0;
 
 ClassImp(GeantPropagator)
@@ -377,7 +379,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     Printf("Have placed volumes %ld\n", v2.size());
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
 
-    Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    if (fWMgr->GetTaskBroker()) Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
     return fWMgr->LoadGeometry();
   }
   return true;

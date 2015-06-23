@@ -21,8 +21,7 @@
 #include "TMutex.h"
 #endif
 
-class GeantTrack;
-class GeantTrack_v;
+#include "GeantFwd.h"
 
 /**
  * @brief Class GeantTrackStat
@@ -31,6 +30,10 @@ class GeantTrack_v;
  */
 class GeantTrackStat : public TObject {
 public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
+
   Int_t fNslots;   /** Number of event slots */
   Int_t *fNtracks; /** [fNslots] Number of tracks from an event */
   Int_t *fNsteps;  /**[fNslots] Cumulated number of steps per event */

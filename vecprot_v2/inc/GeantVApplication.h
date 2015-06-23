@@ -18,12 +18,14 @@
 #endif
 
 class GeantHitBlock;
-class GeantTrack_v;
-class GeantTaskData;
+#include "GeantFwd.h"
 
 /** @brief GeantVApplication class */
 class GeantVApplication : public TObject {
 public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
   
   /** @brief GeantVApplication constructor */	
   GeantVApplication();

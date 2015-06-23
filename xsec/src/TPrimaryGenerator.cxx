@@ -7,8 +7,8 @@
 
 ClassImp(TPrimaryGenerator)
 
-    //______________________________________________________________________________
-    TPrimaryGenerator::TPrimaryGenerator()
+//______________________________________________________________________________
+TPrimaryGenerator::TPrimaryGenerator()
     : fPDG(11),                        // PDG code of the primary: 11 -> e-
       fPartEkin(0.03),                 // kinetic energy of the primary [GeV] : 30 MeV
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
@@ -71,7 +71,7 @@ void TPrimaryGenerator::SetParticleXYZDir(Double_t xdir, Double_t ydir, Double_t
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::InitPrimaryTrack(GeantTrack &gtrack) {
+void TPrimaryGenerator::InitPrimaryTrack(Geant::GeantTrack &gtrack) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.fXpos = fXPos;

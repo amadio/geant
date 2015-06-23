@@ -4,10 +4,9 @@
 #include "TPartIndex.h"
 
 class TParticlePDG;
-class GeantTrack;
+#include "GeantFwd.h"
 
-
-class TPrimaryGenerator{
+class TPrimaryGenerator {
  private:
   Int_t     fPDG;             // PDG code of parimary particles
   Double_t  fPartEkin;        // kinetic energy of the primary [GeV]
@@ -54,7 +53,7 @@ class TPrimaryGenerator{
   Double_t GetparticleETotal()  const{return fETotal;}
 
   // set one GeantTrack primary track properties
-  void InitPrimaryTrack(GeantTrack &gtrack);
+  void InitPrimaryTrack(Geant::GeantTrack &gtrack);
 
  private:
    void InitPrimaryGenerator();

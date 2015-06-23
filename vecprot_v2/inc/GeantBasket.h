@@ -22,7 +22,7 @@
 
 class TGeoVolume;
 class GeantBasketMgr;
-class GeantTaskData;
+#include "GeantFwd.h"
 
 /**
  * @brief Class GeantBasket descripting basic operations with baskets
@@ -30,6 +30,10 @@ class GeantTaskData;
  */
 class GeantBasket : public TObject {
 public:
+
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 
   /**
    * @enum EbasketFlags
@@ -263,6 +267,11 @@ class GeantScheduler;
  * in priority mode.
  */
 class GeantBasketMgr : public TGeoExtension {
+public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
+
 protected:
   GeantScheduler *fScheduler; /** Scheduler for this basket */
   TGeoVolume *fVolume;        /** Volume for which applies */

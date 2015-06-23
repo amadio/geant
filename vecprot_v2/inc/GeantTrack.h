@@ -28,8 +28,8 @@
 #include <atomic>
 #endif
 
-#ifndef ALIGN_PADDING
-#define ALIGN_PADDING 32
+#ifndef GEANT_ALIGN_PADDING
+#define GEANT_ALIGN_PADDING 32
 #endif
 
 #ifndef VECCORE_BITSET_H
@@ -43,6 +43,13 @@ typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
 #else
 #include "TGeoBranchArray.h" // needed due to templated pools
 typedef TGeoBranchArray VolumePath_t;
+#endif
+
+#ifdef GEANT_CUDA
+#ifndef GEANT_CUDAUTILS_H
+#include "GeantCudaUtils.h"
+#endif
+#include "backend/cuda/Interface.h"
 #endif
 
 const Double_t kB2C = -0.299792458e-3;
@@ -69,8 +76,23 @@ enum Species_t { kHadron, kLepton };
 
 class TGeoMaterial;
 class TGeoVolume;
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+GEANT_DECLARE_CONSTANT(double,gTolerance);
+
 class GeantTrack_v;
 class GeantTaskData;
+
+#if ROOT_VERSION_CODE <= ROOT_VERSION(6,04,00)
+// Work around bug in ROOT v6.04
+#ifdef G__DICTIONARY
+class GeantTrack;
+using Track = GeantTrack;
+using Track_v = GeantTrack_v;
+#endif
+#endif
 
 /**
  * @brief Class GeantTrack
@@ -122,13 +144,23 @@ public:
   GeantTrack &operator=(const GeantTrack &other);
 
   /**
-   * @brief GeantTrack parametrized constructor
-   *
-   * @param ipdg ??????
-   */
+  * @brief GeantTrack parametrized constructor
+  *
+  * @param ipdg ??????
+  */
   GeantTrack(Int_t ipdg);
 
+  /**
+  * @brief GeantTrack parametrized constructor
+  *
+  * @param ipdg ??????
+  * @param maxdepth ??????
+  */
+  GEANT_CUDA_BOTH_CODE
+  GeantTrack(Int_t ipdg,Int_t maxdepth);
+
   /** @brief GeantTrack destructor */
+  GEANT_CUDA_BOTH_CODE
   ~GeantTrack();
 
   /** @brief Function that return beta value */
@@ -567,6 +599,7 @@ public:
    * @param buff Buffer to be assigned to
    * @param size Size of buffer
    */
+  GEANT_CUDA_BOTH_CODE
   void AssignInBuffer(char *buff, Int_t size);
 
   /**
@@ -587,6 +620,7 @@ private:
   /**
    * @brief GeantTrack constructor based on a provided single buffer.
    */
+  GEANT_CUDA_BOTH_CODE
   GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth);
 
 public:
@@ -604,18 +638,24 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth);
+  GEANT_CUDA_BOTH_CODE
+  static GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, Int_t maxdepth);
 
   /** @brief GeantTrack_v destructor */
-  virtual ~GeantTrack_v();
+  ~GeantTrack_v();
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
+  GEANT_CUDA_BOTH_CODE
   static size_t SizeOfInstance(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returns the buffer size  */
   size_t BufferSize() const { return fBufSize; }
 
+  /** @brief  Return the address of the data memory buffer  */
+  void* Buffer() const { return fBuf; }
+
   /** @brief  Function that returns buffer size needed to hold the data for nTracks and maxdepth */
+  GEANT_CUDA_BOTH_CODE
   static size_t BufferSize(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returned max size for tracks */
@@ -641,6 +681,7 @@ public:
   Int_t GetNtracks() const { return fNtracks; }
 
   /** @brief  Function that set number of tracks contained  */
+  GEANT_CUDA_BOTH_CODE
   void SetNtracks(Int_t ntracks) { fNtracks = ntracks; }
 #else
 
@@ -692,6 +733,16 @@ public:
    * @param i Bit number 'i'
    */
   Int_t AddTrackSync(GeantTrack_v &arr, Int_t i);
+
+  /**
+   * @brief AddAt & synctrack function
+   *
+   * @param itrack which location to write the track to
+   * @param arr input Track array
+   * @param i Bit number 'i'
+   */
+  GEANT_CUDA_BOTH_CODE
+  Int_t AddTrackSyncAt(Int_t itrack, GeantTrack_v &arr, Int_t i);
 
   /**
    * @brief Add track function
@@ -807,6 +858,7 @@ public:
   Bool_t IsSelected(Int_t i) { return fSelected->TestBitNumber(i); }
 
   /** @brief Clear function */
+  GEANT_CUDA_BOTH_CODE
   void Clear(Option_t *option = "");
 
   /**
@@ -848,6 +900,7 @@ public:
    *
    * @param itr Track ID
    */
+  GEANT_CUDA_BOTH_CODE
   void PrintTrack(Int_t itr, const char *msg = "") const;
 
   /** @brief Function that print all tracks */
@@ -1081,6 +1134,7 @@ public:
 #endif
 
   /** @brief Function allowing to set a breakpoint on a given step */
+  GEANT_CUDA_BOTH_CODE
   bool BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps = 1, const char *msg = "", Int_t itr = -1);
 
   /**
@@ -1093,14 +1147,38 @@ public:
    * @brief Function round up align ?????
    * @param num Number ?????
    */
+  GEANT_CUDA_BOTH_CODE
   static Int_t round_up_align(Int_t num) {
-    int remainder = num % ALIGN_PADDING;
+    int remainder = num % GEANT_ALIGN_PADDING;
     if (remainder == 0)
       return num;
-    return (num + ALIGN_PADDING - remainder);
+    return (num + GEANT_ALIGN_PADDING - remainder);
+  }
+
+  GEANT_CUDA_BOTH_CODE
+  static char* round_up_align(char *buf) {
+    long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
+    if (remainder == 0)
+      return buf;
+    return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
   ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
 };
+} // GEANT_IMPL_NAMESPACE
+
+#ifdef GEANT_CUDA
+#ifdef GEANT_NVCC
+   namespace cxx { class GeantTrack_v; }
+#else
+   namespace cuda { class GeantTrack_v; }
+#endif
+
+   bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream);
+   bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream);
+   void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source);
+#endif
+
+} // Geant
 
 #endif

@@ -24,9 +24,7 @@
 #endif
 
 class TGeoMaterial;
-class GeantTrack;
-class GeantTrack_v;
-class GeantTaskData;
+#include "GeantFwd.h"
 
 #include "TMutex.h"
 
@@ -35,6 +33,9 @@ class GeantTaskData;
  */
 class PhysicsProcess : public TNamed {
 public:
+
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 
   /**
    * @enum EProcessType

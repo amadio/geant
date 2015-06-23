@@ -33,18 +33,21 @@ class TFile;
 class TStopwatch;
 class TGeoVolume;
 class PhysicsProcess;
-class GeantTrack;
 class GeantEvent;
 class GeantBasket;
 class GeantOutput;
 class GeantBasketMgr;
 class WorkloadManager;
-class GeantTaskData;
 class GeantVApplication;
 class PrimaryGenerator;
 
+#include "GeantFwd.h"
+
 class GeantPropagator : public TObject {
 public:
+  using GeantTrack = Geant::GeantTrack;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
   // data members to be made private
   Int_t fNthreads; /** Number of worker threads */
   Int_t fNevents;  /** Number of buffered events */
