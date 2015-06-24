@@ -57,7 +57,7 @@ public:
     static_assert(!std::is_polymorphic<T>::value, "Cannot use polymorphic types as GeantBlock");
     static_assert(std::is_default_constructible<T>::value, "Type used in GeantBlock must have default ctor.");
     static_assert(std::is_copy_constructible<T>::value, "Type used in GeantBlock must be copy constructible");
-  }  
+  }
 
   /**
    * @brief Destructor for GeantBlock */
@@ -310,7 +310,11 @@ public:
    * 
    * @param block Block that should be recycled
    */
-  void Recycle(GeantBlock<T> *block) { fPool.push(block); }
+  void Recycle(GeantBlock<T> *block)
+    {
+      block->Clear();
+      fPool.push(block);
+    }
 };
 
 #endif
