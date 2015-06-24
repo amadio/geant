@@ -52,9 +52,6 @@ void GUTrackHandler::Deallocate()
 void GUTrackHandler::Allocate(size_t nTracks)
 {
   const int blockSize = 64;  // Bytes
-  // const int blockInts = blockSize / sizeof(int);
-  // const int blockDbls = blockSize / sizeof(double);
-  // const int blockMin = blockSizeBytes / std::max( sizeof(int), sizeof(double));
 
   SetNumberOfTracks(nTracks);
 
@@ -233,6 +230,47 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     mass = 0; // electron_mass_c2*fTrack_aos[i].q*fTrack_aos[i].q;
     (fTrack_soa.E)[i]  = fTrack_aos[i].E  = p*p/(sqrt(p*p + mass*mass) + mass);
 
+  }
+}
+
+void GUTrackHandler::CopyAoSTracks(GUTrack* fromAoS, GUTrack* toAoS) 
+{
+  for(size_t i = 0 ; i < fNumberOfTracks ; ++i){
+    toAoS[i].status       = fromAoS[i].status       ;
+    toAoS[i].proc         = fromAoS[i].proc         ;
+    toAoS[i].particleType = fromAoS[i].particleType ;
+    toAoS[i].id           = fromAoS[i].id           ;
+    toAoS[i].parentId     = fromAoS[i].parentId     ;
+    toAoS[i].x            = fromAoS[i].x            ;
+    toAoS[i].y            = fromAoS[i].y            ; 
+    toAoS[i].z            = fromAoS[i].z            ; 
+    toAoS[i].q            = fromAoS[i].q            ;
+    toAoS[i].s            = fromAoS[i].s            ; 
+    toAoS[i].px           = fromAoS[i].px           ; 
+    toAoS[i].py           = fromAoS[i].py           ;
+    toAoS[i].pz           = fromAoS[i].pz           ;
+    toAoS[i].E            = fromAoS[i].E            ;
+  }
+}
+
+void GUTrackHandler::CopySoATracks(GUTrack_v& fromSoA, GUTrack_v& toSoA) 
+{
+  toSoA.numTracks = fromSoA.numTracks;
+  for(size_t i = 0 ; i < fNumberOfTracks ; ++i){
+    (toSoA.status)[i]       = (fromSoA.status)[i]       ;
+    (toSoA.proc)[i]         = (fromSoA.proc)[i]         ;
+    (toSoA.particleType)[i] = (fromSoA.particleType)[i] ;
+    (toSoA.id)[i]           = (fromSoA.id)[i]           ;
+    (toSoA.parentId)[i]     = (fromSoA.parentId)[i]     ;
+    (toSoA.x)[i]            = (fromSoA.x)[i]            ;
+    (toSoA.y)[i]            = (fromSoA.y)[i]            ;
+    (toSoA.z)[i]            = (fromSoA.z)[i]            ;
+    (toSoA.q)[i]            = (fromSoA.q)[i]            ;
+    (toSoA.s)[i]            = (fromSoA.s)[i]            ;
+    (toSoA.px)[i]           = (fromSoA.px)[i]           ;
+    (toSoA.py)[i]           = (fromSoA.py)[i]           ;
+    (toSoA.pz)[i]           = (fromSoA.pz)[i]           ;
+    (toSoA.E)[i]            = (fromSoA.E)[i]            ;
   }
 }
 

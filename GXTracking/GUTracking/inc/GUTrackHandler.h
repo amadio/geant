@@ -30,7 +30,8 @@ public:
   void FillOneTrack(GUTrack* aTrack);
   void GenerateRandomTracks(size_t nTracks, 
 			    double minP=20.0, double maxP = 1000.);
-  void CopyTrack(GUTrack *This, GUTrack *track);
+  void CopyAoSTracks(GUTrack *fromAoS, GUTrack *toAoS);
+  void CopySoATracks(GUTrack_v& fromSoA, GUTrack_v& toSoA);
 
 private:
 
