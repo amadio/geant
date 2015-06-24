@@ -272,6 +272,7 @@ include_directories(${CMAKE_SOURCE_DIR}
 set(SRC_CPP_RELATIVE
   src/GUAliasSampler.cc
   src/GUComptonKleinNishina.cc
+  src/GVComptonKleinNishina.cc
   src/GUConversionBetheHeitler.cc
   src/GUPhotoElectronSauterGavrila.cc
   src/GUMollerBhabha.cc
@@ -281,6 +282,7 @@ set(SRC_CPP_RELATIVE
 #  src/GUElement.cc
   src/GUAliasTableManager.cc
   src/Physics2DVector.cc
+  src/GUEmModelBase.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})

@@ -96,8 +96,8 @@ void GUBenchmarker::RunScalar()
   if( verbose ) std::cout << "Scalar Run" << std::endl;
   
   int *targetElements = new int [fNtracks];
+  GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
-  Precision* incomingEn = new Precision[fNtracks];
 
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
@@ -110,19 +110,10 @@ void GUBenchmarker::RunScalar()
      
     //prepare input tracks
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
+    GUTrack* track_aos = fTrackHandler->GetAoSTracks();
 
-    bool first = true;
     for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-
-      GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
-
-      if (first) {
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          incomingEn[i] = itrack_aos[i].E;
-        }
-        first = false;
-      }
-
+      fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
       elapsedT[k] = 0.0;
       elapsedT[k] = ScalarKernelFunc[k](fNtracks,itrack_aos,targetElements,
                                         otrack_aos);
@@ -131,7 +122,7 @@ void GUBenchmarker::RunScalar()
 #ifdef VECPHYS_ROOT
       histogram->RecordTime(k,elapsedT[k]);
       for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,incomingEn[k],
+        histogram->RecordHistos(k,track_aos[i].E,
 	  		        itrack_aos[i].E,
 			        itrack_aos[i].pz/itrack_aos[i].E,
 			        otrack_aos[i].E,
@@ -140,14 +131,15 @@ void GUBenchmarker::RunScalar()
 #endif    
     }
   }
-  free(otrack_aos);
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
     printf("%s  Scalar Total time of %3d reps = %6.3f sec\n",
            GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
   }
 
-  delete[] incomingEn; 
+  free(itrack_aos);
+  free(otrack_aos);
+  delete [] targetElements;
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
@@ -162,8 +154,8 @@ void GUBenchmarker::RunGeant4()
   if( verbose ) std::cout << " Geant4 Run Output " << std::endl;
 
   int *targetElements = new int [fNtracks];
+  GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
-  Precision* incomingEn = new Precision[fNtracks];
 
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
@@ -175,18 +167,10 @@ void GUBenchmarker::RunGeant4()
     // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
+    GUTrack* track_aos = fTrackHandler->GetAoSTracks();
 
-    bool first = true;
     for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-
-      GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
-
-      if (first) {
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          incomingEn[i] = itrack_aos[i].E;
-        }
-        first = false;
-      }
+      fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
 
       elapsedT[k] = 0.0;
       elapsedT[k] = G4KernelFunc[k](fNtracks,itrack_aos,targetElements,
@@ -196,7 +180,7 @@ void GUBenchmarker::RunGeant4()
 #ifdef VECPHYS_ROOT
       histogram->RecordTime(k,elapsedT[k]);
       for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,incomingEn[k],
+        histogram->RecordHistos(k,track_aos[i].E,
 	  		        itrack_aos[i].E,
 			        itrack_aos[i].pz/itrack_aos[i].E,
 			        otrack_aos[i].E,
@@ -211,9 +195,9 @@ void GUBenchmarker::RunGeant4()
            GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
   }
 
+  free(itrack_aos);
   free(otrack_aos);
-
-  delete[] incomingEn;
+  delete [] targetElements;
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
@@ -229,8 +213,10 @@ void GUBenchmarker::RunVector()
   GUTrackHandler *handler_out = new GUTrackHandler(fNtracks);
   GUTrack_v otrack_soa = handler_out->GetSoATracks();
 
+  GUTrackHandler *handler_in = new GUTrackHandler(fNtracks);
+  GUTrack_v itrack_soa = handler_in->GetSoATracks();
+
   int *targetElements = new int[fNtracks];
-  Precision* incomingEn = new Precision[fNtracks];
   
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
@@ -242,18 +228,10 @@ void GUBenchmarker::RunVector()
     // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
+    GUTrack_v& track_soa = fTrackHandler->GetSoATracks();
     
-    bool first = true;
     for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-
-      GUTrack_v itrack_soa = fTrackHandler->GetSoATracks();
-
-      if (first) {
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          incomingEn[i] = itrack_soa.E[i];
-        }
-        first = false;
-      }
+      fTrackHandler->CopySoATracks(track_soa,itrack_soa);
 
       elapsedT[k] = 0.0;
       elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,otrack_soa);
@@ -262,7 +240,7 @@ void GUBenchmarker::RunVector()
 #ifdef VECPHYS_ROOT
       histogram->RecordTime(k,elapsedT[k]);
       for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,incomingEn[k],
+        histogram->RecordHistos(k,track_soa.E[i],
 	  		        itrack_soa.E[i],
 			        itrack_soa.pz[i]/itrack_soa.E[i],
 			        otrack_soa.E[i],
@@ -276,8 +254,9 @@ void GUBenchmarker::RunVector()
     printf("%s  Vector Total time of %3d reps = %6.3f sec\n",
            GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
   }
-
-  delete[] incomingEn;
+  delete handler_in;
+  delete handler_out;
+  delete [] targetElements;
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif

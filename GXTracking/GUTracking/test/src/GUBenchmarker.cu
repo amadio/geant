@@ -7,6 +7,7 @@
 
 #include "GUAliasSampler.h"
 #include "GUComptonKleinNishina.h"
+#include "GVComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
 #include "GUMollerBhabha.h"
@@ -38,6 +39,7 @@ void GUBenchmarker::RunCuda()
 
   //prepare table - this step may be move to the physics list later
   GUComptonKleinNishina *KleinNishina = new GUComptonKleinNishina(0,-1);
+  GVComptonKleinNishina *VKleinNishina = new GVComptonKleinNishina(0,-1);
   GUConversionBetheHeitler *BetheHeitler = new GUConversionBetheHeitler(0,-1);
   GUPhotoElectronSauterGavrila *SauterGavrila = new GUPhotoElectronSauterGavrila(0,-1);
   GUMollerBhabha *MollerBhabha = new GUMollerBhabha(0,-1);
@@ -46,11 +48,12 @@ void GUBenchmarker::RunCuda()
   GUAliasTableManager** tableM_h = 
     (GUAliasTableManager**) malloc(kNumberPhysicsModel*sizeof(GUAliasTableManager*)); 
 
-  tableM_h[kKleinNishina] = KleinNishina->GetSampler()->GetAliasTableManager();
-  tableM_h[kBetheHeitler] = BetheHeitler->GetSampler()->GetAliasTableManager();
-  tableM_h[kSauterGavrila]= SauterGavrila->GetSampler()->GetAliasTableManager();
-  tableM_h[kMollerBhabha] = MollerBhabha->GetSampler()->GetAliasTableManager();
-  tableM_h[kSeltzerBerger]= SeltzerBerger->GetSampler()->GetAliasTableManager();
+  tableM_h[kKleinNishina]  = KleinNishina->GetSampler()->GetAliasTableManager();
+  tableM_h[kVKleinNishina] = VKleinNishina->GetSampler()->GetAliasTableManager();
+  tableM_h[kBetheHeitler]  = BetheHeitler->GetSampler()->GetAliasTableManager();
+  tableM_h[kSauterGavrila] = SauterGavrila->GetSampler()->GetAliasTableManager();
+  tableM_h[kMollerBhabha]  = MollerBhabha->GetSampler()->GetAliasTableManager();
+  tableM_h[kSeltzerBerger] = SeltzerBerger->GetSampler()->GetAliasTableManager();
 
   GUAliasTableManager** tableM_d;
   cudaMalloc((void**)&tableM_d,kNumberPhysicsModel*sizeof(GUAliasTableManager*));
@@ -77,6 +80,7 @@ void GUBenchmarker::RunCuda()
   cudaMemcpy(sbData_d, sbData, maximumZ*sizeof(Physics2DVector),
              cudaMemcpyHostToDevice);
 
+  GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
   //allocate memory for input/output tracks
@@ -94,8 +98,6 @@ void GUBenchmarker::RunCuda()
   cudaMalloc(&randomStates, theNBlocks*theNThreads* sizeof(curandState));
   GUCurand_Init(randomStates, time(NULL), theNBlocks, theNThreads);
 
-  Precision* incomingEn = new Precision[fNtracks];
-
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
 
@@ -111,20 +113,12 @@ void GUBenchmarker::RunCuda()
                cudaMemcpyHostToDevice);
 
     fTrackHandler->GenerateRandomTracks(fNtracks,fMinP, fMaxP);
+    GUTrack* track_aos = fTrackHandler->GetAoSTracks();
 
-    bool first = true;
     for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
 
-      GUTrack* itrack_aos = fTrackHandler->GetAoSTracks();
-      cudaMemcpy(itrack_d, itrack_aos, fNtracks*sizeof(GUTrack), 
+      cudaMemcpy(itrack_d, track_aos, fNtracks*sizeof(GUTrack), 
                    cudaMemcpyHostToDevice);
-
-      if (first) {
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          incomingEn[i] = itrack_aos[i].E;
-        }
-        first = false;
-      }
 
       elapsedT[k] = 0.0;
       elapsedT[k] = CudaKernelFunc[k](theNBlocks, theNThreads, randomStates,
@@ -140,7 +134,7 @@ void GUBenchmarker::RunCuda()
 #ifdef VECPHYS_ROOT
       histogram->RecordTime(k,elapsedT[k]);
       for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,incomingEn[k],
+        histogram->RecordHistos(k,track_aos[i].E,
 	  		        itrack_aos[i].E,
 			        itrack_aos[i].pz/itrack_aos[i].E,
 			        otrack_aos[i].E,
@@ -163,10 +157,10 @@ void GUBenchmarker::RunCuda()
 
   free(tableM_h);
   free(targetElements);
+  free(itrack_aos);
   free(otrack_aos);
 
   //  delete model;
-  delete[] incomingEn; 
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif

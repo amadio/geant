@@ -2,6 +2,7 @@
 #include "GUHistogram.h"
 
 #include "GUComptonKleinNishina.h"
+#include "GVComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
 #include "GUMollerBhabha.h"
@@ -17,6 +18,28 @@ Precision ScalarKleinNishina(int ntracks,
 			     GUTrack* otrack_aos)
 {
   static vecphys::cxx::GUComptonKleinNishina model(0,-1);
+
+  static Stopwatch timer;
+  Precision elapsedTime = 0.0;
+
+  timer.Start();
+
+  for(int i = 0 ; i < ntracks ; ++i) {
+
+    model.Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+  }
+
+  elapsedTime = timer.Stop();
+
+  return elapsedTime;
+}
+
+Precision ScalarVKleinNishina(int ntracks, 
+	                      GUTrack* itrack_aos,
+			      int *targetElements,
+			      GUTrack* otrack_aos)
+{
+  static vecphys::cxx::GVComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -138,6 +161,25 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
 
 }
 
+Precision VectorVKleinNishina(GUTrack_v& itrack_soa,
+			      int *targetElements,
+			      GUTrack_v& otrack_soa)
+{
+  static vecphys::cxx::GVComptonKleinNishina model(0,-1);
+
+  static Stopwatch timer;
+  Precision elapsedTime = 0.0;
+
+  timer.Start();
+
+  model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+
+  elapsedTime = timer.Stop();
+
+  return elapsedTime;
+
+}
+
 Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
 			     int *targetElements,
 			     GUTrack_v& otrack_soa)
@@ -221,6 +263,27 @@ Precision G4KleinNishina(int ntracks,
 			 GUTrack* otrack_aos)
 {
   static vecphys::cxx::GUComptonKleinNishina model(0,-1);
+
+  static Stopwatch timer;
+  Precision elapsedTime = 0.0;
+
+  timer.Start();
+
+  for(int i = 0 ; i < ntracks ; ++i) {
+    model.InteractG4<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+  }
+
+  elapsedTime = timer.Stop();
+
+  return elapsedTime;
+}
+
+Precision G4VKleinNishina(int ntracks, 
+	                  GUTrack* itrack_aos,
+                          int *targetElements,
+			  GUTrack* otrack_aos)
+{
+  static vecphys::cxx::GVComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
