@@ -106,7 +106,7 @@ public:
   char *GetVersion();
 
 private:
-  TTabPhysMgr(const TTabPhysMgr &); // no imp.
+  TTabPhysMgr(const TTabPhysMgr &);            // no imp.
   TTabPhysMgr &operator=(const TTabPhysMgr &); // no imp.
 
   // current version number

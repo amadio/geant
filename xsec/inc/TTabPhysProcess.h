@@ -66,7 +66,7 @@ public:
   virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
 private:
-  TTabPhysProcess(const TTabPhysProcess &); // no imp.
+  TTabPhysProcess(const TTabPhysProcess &);            // no imp.
   TTabPhysProcess &operator=(const TTabPhysProcess &); // no imp.
 
   ClassDef(TTabPhysProcess, 1) // Generic tabulated physics process
