@@ -23,8 +23,20 @@
 #include "TNamed.h"
 #endif
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "base/Global.h"
+namespace vecgeom {
+  inline namespace VECGEOM_IMPL_NAMESPACE {
+  class Medium;
+  class Material;
+  }
+}
+typedef vecgeom::Material TGeoMaterial;
+typedef vecgeom::Medium TGeoMedium;
+#else
 class TGeoMaterial;
 #include "GeantFwd.h"
+#endif
 
 #include "TMutex.h"
 

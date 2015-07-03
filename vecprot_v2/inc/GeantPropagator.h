@@ -31,7 +31,13 @@
 class TTree;
 class TFile;
 class TStopwatch;
+#ifdef USE_VECGEOM_NAVIGATOR
+using vecgeom::LogicalVolume;
+class LogicalVolume;
+typedef vecgeom::LogicalVolume TGeoVolume;
+#else
 class TGeoVolume;
+#endif
 class PhysicsProcess;
 class GeantEvent;
 class GeantBasket;

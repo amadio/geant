@@ -23,7 +23,13 @@
 
 #include <deque>
 
+#ifdef USE_VECGEOM_NAVIGATOR
+using vecgeom::LogicalVolume;
+class LogicalVolume;
+typedef vecgeom::LogicalVolume TGeoVolume;
+#else
 class TGeoVolume;
+#endif
 class TRandom;
 class GeantBasketMgr;
 class GeantBasket;

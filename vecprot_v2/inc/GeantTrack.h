@@ -16,8 +16,10 @@
 #include "Geant/Config.h"
 #include "Geant/Math.h"
 
-//#include "globals.h"
 #include "TMath.h"
+
+//#include "globals.h"
+#include "volumes/Material.h"
 //#include "TBits.h"
 
 #ifdef __STAT_DEBUG
@@ -74,8 +76,15 @@ enum TransportAction_t {
  */
 enum Species_t { kHadron, kLepton };
 
-class TGeoMaterial;
+#ifdef USE_VECGEOM_NAVIGATOR
+typedef vecgeom::Material TGeoMaterial;
+using vecgeom::LogicalVolume;
+class LogicalVolume;
+typedef vecgeom::LogicalVolume TGeoVolume;
+#else
 class TGeoVolume;
+class TGeoMaterial;
+#endif
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -211,10 +220,10 @@ public:
   /** @brief Function that return selected physical step */
   Double_t GetPstep() const { return fPstep; }
 
-#ifdef VECGEOM_ROOT
   /** @brief Function that return volume */
   TGeoVolume *GetVolume() const;
 
+#ifdef VECGEOM_ROOT
   /** @brief Function that return next volume */
   TGeoVolume *GetNextVolume() const;
 
@@ -1113,25 +1122,26 @@ public:
   GEANT_CUDA_BOTH_CODE
   Double_t Pt(Int_t i) const { return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]); }
 
-#ifdef VECGEOM_ROOT
   /**
    * @brief Function that returnes TGeoVolume
    * @param  i Input bit number 'i'
    */
   TGeoVolume *GetVolume(Int_t i) const;
 
+#ifdef VECGEOM_ROOT
   /**
    * @brief Function that returnes next TGeoVolume
    * @param  i Input bit number 'i'
    */
   TGeoVolume *GetNextVolume(Int_t i) const;
 
+#endif
+
   /**
    * @brief Function that returnes TGeoMaterial
    * @param  i Input bit number 'i'
    */
   TGeoMaterial *GetMaterial(Int_t i) const;
-#endif
 
   /** @brief Function allowing to set a breakpoint on a given step */
   GEANT_CUDA_BOTH_CODE

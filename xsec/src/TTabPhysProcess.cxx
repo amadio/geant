@@ -12,10 +12,17 @@
 #include "TMath.h"
 #include "globals.h"
 #include "GeantTrack.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/NavigationState.h"
+#include "management/GeoManager.h"
+typedef vecgeom::GeoManager TGeoManager;
+#define gGeoManager &vecgeom::GeoManager::Instance()
+#else
 #include "TGeoMedium.h"
 #include "TGeoMaterial.h"
-#include "TGeoMatrix.h"
 #include "TGeoBranchArray.h"
+#endif
+#include "TGeoMatrix.h"
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
 

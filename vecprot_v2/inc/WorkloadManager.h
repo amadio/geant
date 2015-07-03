@@ -76,6 +76,7 @@ protected:
   Int_t  fMonConcurrency;             /** Monitor concurrency */
   Int_t  fMonTracksPerEvent;          /** Monitor tracks status per event */
   Int_t  fMonTracks;                  /** Monitor number of tracks */
+  Int_t  fMaxThreads;                /** Maximum number of threads */
   GeantScheduler *fScheduler;         /** Main basket scheduler */
 
   TaskBroker *fBroker; /** Pointer to the coprocessor broker, this could be made a collection. */
@@ -206,6 +207,21 @@ public:
    */
   Bool_t LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
 #endif   
+
+   void SetMaxThreads(int nthreads) {
+      fMaxThreads = nthreads;
+#ifndef USE_VECGEOM_NAVIGATOR
+      gGeoManager->SetMaxThreads(nthreads);
+#endif
+   }
+
+   Int_t ThreadId() {
+#ifdef USE_VECGEOM_NAVIGATOR
+      return 1;
+#else
+      return TGeoManager::ThreadId();
+#endif
+   }
 
   /** @brief Getter for the global transport threshold */
   Int_t GetNminThreshold() const { return fNminThreshold; }

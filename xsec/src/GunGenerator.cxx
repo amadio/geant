@@ -1,6 +1,12 @@
 #include "GunGenerator.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "management/GeoManager.h"
+typedef vecgeom::GeoManager TGeoManager;
+#define gGeoManager &vecgeom::GeoManager::Instance()
+#else
 #include "TGeoManager.h"
+#endif
 
 #include "TMath.h"
 #include "TRandom.h"

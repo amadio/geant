@@ -53,10 +53,10 @@ add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
 if(HepMC_FOUND)
   target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-    ${ROOT_LIBRARIES} -lEG -lGui -lGeom ${HEPMC_LIBRARIES})
+    ${ROOT_LIBRARIES} -lEG -lGui -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 else()
   target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-    ${ROOT_LIBRARIES} -lEG -lGui -lGeom)
+    ${ROOT_LIBRARIES} -lEG -lGui -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 endif()
 
 set(XSEC_LINK_LIBS "-lXsec" ${HEPMC_LIBRARIES} PARENT_SCOPE)

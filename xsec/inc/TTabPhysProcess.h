@@ -10,7 +10,21 @@
 #include "PhysicsProcess.h"
 #endif
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "base/Global.h"
+namespace vecgeom {
+  inline namespace VECGEOM_IMPL_NAMESPACE {
+  class Material;
+  class GeoManager;
+  }
+}
+typedef vecgeom::Material TGeoMaterial;
+typedef vecgeom::GeoManager TGeoManager;
+#else
 class TGeoMaterial;
+#endif
+class GeantTrack;
+class GeantTrack_v;
 class TTabPhysMgr;
 
 #include "GeantFwd.h"

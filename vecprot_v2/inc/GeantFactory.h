@@ -25,7 +25,10 @@
 #include <type_traits>
 #include "dcqueue.h"
 #include "WorkloadManager.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#else
 #include "TGeoManager.h"
+#endif
 
 using namespace std;
 
@@ -291,7 +294,7 @@ public:
    */
   T *NextFree(Int_t slot)
   {
-    Int_t tid = TGeoManager::ThreadId(); // maybe put in calling sequence
+    Int_t tid = WorkloadManager::Instance()->ThreadId(); // maybe put in calling sequence
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used and filled (by the same thread)

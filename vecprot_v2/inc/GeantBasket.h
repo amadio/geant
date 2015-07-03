@@ -15,12 +15,16 @@
 
 #include "TObject.h"
 #include "TGeoExtension.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/LogicalVolume.h"
+typedef vecgeom::LogicalVolume TGeoVolume;
+#else
 #include "TGeoVolume.h"
+#endif
 #include "GeantTrack.h"
 #include "priority_queue.h"
 #include "mpmc_bounded_queue.h"
 
-class TGeoVolume;
 class GeantBasketMgr;
 #include "GeantFwd.h"
 

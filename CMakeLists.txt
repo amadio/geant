@@ -1,4 +1,4 @@
- #----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(GEANTV)
@@ -29,6 +29,8 @@ else()
 endif()
 
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
+
+option(USE_VECGEOM_NAVIGATOR "Use the navigaator from VecGeom" OFF)
 #---------------------------------------------------------------------------
 # Debuging options
 if(BUG_HUNT)
@@ -254,13 +256,13 @@ add_custom_target(_headers ALL)
 add_subdirectory (base)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
-add_subdirectory (examples)
+#add_subdirectory (examples)
 add_subdirectory (tabxsec)
-add_subdirectory (micromc)
+#add_subdirectory (micromc)
 #add_subdirectory (test-small)
-add_subdirectory (cmstrack)
-add_subdirectory (test-complex)
-#add_subdirectory (Nudy)
+#add_subdirectory (cmstrack)
+#add_subdirectory (test-complex)
+add_subdirectory (Nudy)
 
 if(USE_VECPHYS)
  add_subdirectory (vectphysproc)

@@ -17,13 +17,17 @@
 #include "TGeoNode.h"
 #endif
 //#endif
+#include "volumes/Medium.h"
+typedef vecgeom::Medium TGeoMedium;
 #else // TGeoNavigator as default
 #pragma message("Compiling against TGeo")
 #include <iostream>
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
 #endif
+#ifndef USE_VECGEOM_NAVIGATOR
 #include "TGeoManager.h"
+#endif
 
 #include "WorkloadManager.h"
 
@@ -46,9 +50,13 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+#ifdef USE_VECGEOM_NAVIGATOR
+const Double_t gTolerance = vecgeom::kTolerance;
+#else
 namespace host_constant {
    const Double_t gTolerance = TGeoShape::Tolerance();
 }
+#endif
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack()
@@ -269,6 +277,14 @@ TGeoMaterial *GeantTrack::GetMaterial() const {
   if (!med)
     return 0;
   return med->GetMaterial();
+}
+#else
+//______________________________________________________________________________
+TGeoVolume *GeantTrack::GetVolume() const {
+  // Current volume the track is into
+   vector<TGeoVolume*> vlist;
+   vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
+   return vlist[fVindex];
 }
 #endif
 
@@ -2602,10 +2618,21 @@ TGeoVolume *GeantTrack_v::GetNextVolume(Int_t i) const {
   return fNextpathV[i]->GetCurrentNode()->GetVolume();
 }
 
+#else
+
+//______________________________________________________________________________
+TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
+  // Current volume the track is into
+   vector<TGeoVolume*> vlist;
+   vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
+   return vlist[fVindexV[i]];
+}
+
+
 //______________________________________________________________________________
 TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
   // Current material the track is into
-  TGeoMedium *med = GetVolume(i)->GetMedium();
+   TGeoMedium *med = (TGeoMedium*)GetVolume(i)->getUserExtensionPtr();
   if (!med)
     return 0;
   return med->GetMaterial();

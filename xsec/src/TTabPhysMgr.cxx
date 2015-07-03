@@ -1,14 +1,16 @@
 #include "TTabPhysMgr.h"
 
-#include "TGeoMaterial.h"
-#include "TGeoExtension.h"
-
 #ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Material.h"
 #include "navigation/NavigationState.h"
 #include "management/GeoManager.h"
 #else
+#include "TGeoMaterial.h"
 #include "TGeoBranchArray.h"
 #endif
+
+#include "TGeoExtension.h"
+
 #include "GeantTrack.h"
 
 #include "globals.h"
@@ -80,9 +82,13 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   TStopwatch timer;
   timer.Start();
   // Load elements from geometry
+#ifdef USE_VECGEOM_NAVIGATOR
+  vector<vecgeom::Material*> matlist = vecgeom::Material::GetMaterials();
+#else
   TList *matlist = (TList *)geom->GetListOfMaterials();
 
   TIter next(matlist);
+#endif
   TGeoMaterial *mat = 0;
 
   // Open xsec_FTFP_BERT.root file (or other phys.lists)
@@ -115,12 +121,21 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   // get the decay table from the final state file
   fDecay = (TPDecay *)fstate->Get("DecayTable");
 
+#ifdef USE_VECGEOM_NAVIGATOR
+  printf("#materials:= %lu \n",matlist.size());
+#else
   // INFO: print number of materials in the current TGeoManager
   printf("#materials:= %d \n", matlist->GetSize());
+#endif
 
   // First loop on all materials to mark used elements
   TBits elements(NELEM);
+#ifdef USE_VECGEOM_NAVIGATOR
+  for(int i=0; i<matlist.size(); ++i) {
+     mat = matlist[i];
+#else
   while ((mat = (TGeoMaterial *)next())) {
+#endif
     if (!mat->IsUsed() || mat->GetZ() < 1.)
       continue;
     fNmaterials++;
@@ -181,8 +196,13 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   Int_t *a = new Int_t[MAXNELEMENTS];
   Float_t *w = new Float_t[MAXNELEMENTS];
   fNmaterials = 0;
+#ifdef USE_VECGEOM_NAVIGATOR
+  for(int i=0; i<matlist.size(); ++i) {
+     mat = matlist[i];
+#else
   next.Reset();
   while ((mat = (TGeoMaterial *)next())) {
+#endif
     if (!mat->IsUsed())
       continue;
     Int_t nelem = mat->GetNelements();
@@ -285,7 +305,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
     msPhi = 2. * Math::Pi() * rndArray[i];
     /*
           if (icnt<100 && mat->GetZ()>10) {
-             Printf("theta=%g  phi=%g", msTheta*TMath::RadToDeg(), msPhi*TMath::RadToDeg());
+             Printf("theta=%g  phi=%g", msTheta*vecgeom::Materialh::RadToDeg(), msPhi*vecgeom::Materialh::RadToDeg());
              dir[0] = tracks.fXdirV[i];
              dir[1] = tracks.fYdirV[i];
              dir[2] = tracks.fZdirV[i];
@@ -296,8 +316,8 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
           if (icnt<100 && mat->GetZ()>10) {
              icnt++;
              Double_t dot = dir[0]*tracks.fXdirV[i] + dir[1]*tracks.fYdirV[i] +dir[2]*tracks.fZdirV[i];
-             Double_t angle = TMath::ACos(dot)*TMath::RadToDeg();
-             Printf("new angle=%g   delta=%g", angle, TMath::Abs(angle-msTheta*TMath::RadToDeg()));
+             Double_t angle = vecgeom::Materialh::ACos(dot)*vecgeom::Materialh::RadToDeg();
+             Printf("new angle=%g   delta=%g", angle, vecgeom::Materialh::Abs(angle-msTheta*vecgeom::Materialh::RadToDeg()));
           }
     */
   }
@@ -375,7 +395,11 @@ void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack
   TGeoMaterial *mat = 0;
   TMXsec *mxs = 0;
   if (imat >= 0) {
+#ifdef USE_VECGEOM_NAVIGATOR
+     mat = vecgeom::Material::GetMaterials()[imat];
+#else
     mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
+#endif
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
   }
 
@@ -401,7 +425,11 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
   TGeoMaterial *mat = 0;
   TMXsec *mxs = 0;
   if (imat >= 0) {
+#ifdef USE_VECGEOM_NAVIGATOR
+    mat = vecgeom::Material::GetMaterials()[imat];
+#else
     mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
+#endif
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
   }
 

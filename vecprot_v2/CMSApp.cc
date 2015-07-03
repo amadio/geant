@@ -8,9 +8,16 @@
 #include "HepMC/HepMC.h"
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#define RESTORE_USE_VECGEOM_NAVIGATOR
+#undef USE_VECGEOM_NAVIGATOR
+#endif
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 #include "TTabPhysProcess.h"
+#ifdef RESTORE_USE_VEGEOM_NAVIGATOR
+#define USE_VECGEOM_NAVIGATOR
+#endif
 #include "CMSApplication.h"
 
 static int n_events   = 1;

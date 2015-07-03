@@ -11,8 +11,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TThread.h"
-#include "TGeoManager.h"
-#include "TGeoNavigator.h"
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
@@ -23,6 +21,10 @@
 #include "GeantVApplication.h"
 #if USE_VECGEOM_NAVIGATOR == 1
 #include "management/GeoManager.h"
+#include "volumes/Medium.h"
+#else
+#include "TGeoManager.h"
+#include "TGeoNavigator.h"
 #endif
 #include "TaskBroker.h"
 
@@ -223,7 +225,7 @@ void *WorkloadManager::TransportTracks(void *) {
   Int_t nphys = 0;
   Int_t ngcoll = 0;
   GeantBasket *basket = 0;
-  Int_t tid = TGeoManager::ThreadId();
+  Int_t tid = Instance()->ThreadId();
   Printf("=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
@@ -250,9 +252,13 @@ void *WorkloadManager::TransportTracks(void *) {
   //   Bool_t useDebug = propagator->fUseDebug;
   //   Printf("(%d) WORKER started", tid);
   // Create navigator if none serving this thread.
+#ifdef USE_VECGEOM_NAVIGATOR
+  // Suppose I do not need a new navigator for VecGeom... otherwise how it ever worked... ?
+#else
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
+#endif
   //   Int_t iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
@@ -323,7 +329,11 @@ void *WorkloadManager::TransportTracks(void *) {
     mat = 0;
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
+#ifdef USE_VECGEOM_NAVIGATOR
+      mat = ((TGeoMedium*) td->fVolume->getUserExtensionPtr())->GetMaterial();
+#else
       mat = td->fVolume->GetMaterial();
+#endif
       if (ntotransport < 257) nvect[ntotransport] += ntotransport;
     } else {
       nvect[1] += ntotransport;
@@ -480,8 +490,10 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   Int_t nkilled = 0;
   Int_t ngcoll = 0;
   GeantBasket *basket = 0;
-  Int_t tid = TGeoManager::ThreadId();
+
+  Int_t tid = Instance()->ThreadId();
   Printf("=== Worker thread %d created for Coprocessor ===", tid);
+
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantTaskData *td = propagator->fThreadData[tid];
   td->fTid = tid;
@@ -504,10 +516,14 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   // Int_t noutput;
   //   Bool_t useDebug = propagator->fUseDebug;
   //   Printf("(%d) WORKER started", tid);
+#ifdef USE_VECGEOM_NAVIGATOR
+  // Suppose I do not need a navigator, otherwise how it would have ever worked?
+#else
   // Create navigator if none serving this thread.
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
+#endif
   waiting[tid] = 1;
   // Int_t iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];

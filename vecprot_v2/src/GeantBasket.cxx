@@ -11,10 +11,13 @@
 
 #include "TThread.h"
 #include "TArrayI.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#else
 #include "TGeoNode.h"
 #include "TGeoManager.h"
 #include "TGeoVolume.h"
 #include "TGeoNavigator.h"
+#endif
 
 ClassImp(GeantBasket)
 

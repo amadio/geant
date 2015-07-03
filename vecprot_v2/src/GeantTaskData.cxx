@@ -4,7 +4,12 @@
 #include "GeantPropagator.h"
 
 #include "TArrayI.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/LogicalVolume.h"
+typedef vecgeom::LogicalVolume TGeoVolume;
+#else
 #include "TGeoVolume.h"
+#endif
 #include "TRandom.h"
 
 namespace Geant {

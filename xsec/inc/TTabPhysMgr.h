@@ -3,9 +3,7 @@
 
 #include "Geant/Config.h"
 
-#include <TGeoExtension.h>
-#include <TGeoManager.h>
-#include <TGeoMaterial.h>
+#include "TStorage.h"
 
 #define MAXNELEMENTS 20 //max number of elements in one material(TMXsec)
 
@@ -16,7 +14,25 @@ class TEXsec;
 class TMXsec;
 class TEFstate;
 class TPDecay;
-class TGeoMaterial;
+
+class GeantTrack_v;
+class GeantTrack;
+class GeantTaskData;
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "base/Global.h"
+#include "management/GeoManager.h"
+namespace vecgeom {
+  inline namespace VECGEOM_IMPL_NAMESPACE {
+  class Medium;
+  class Material;
+  }
+}
+typedef vecgeom::Material TGeoMaterial;
+typedef vecgeom::GeoManager TGeoManager;
+#else
+class TGeoManager;
+class TGeoMagerial;
+#endif
 
 #include "GeantFwd.h"
 

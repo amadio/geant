@@ -24,22 +24,24 @@
 #include "TVirtualPad.h"
 #include "TMath.h"
 #include "TError.h"
-#include "TGeoManager.h"
 #include "TGeoHelix.h"
 #include "TPolyMarker3D.h"
 #include "TCanvas.h"
 #include "TRandom.h"
-#include "TGeoVolume.h"
-#include "TGeoVoxelFinder.h"
-#include "TGeoNode.h"
-#include "TGeoMaterial.h"
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1
 #include "navigation/SimpleNavigator.h"
-#include "management/RootGeoManager.h"
+//#include "management/RootGeoManager.h"
 #include "volumes/LogicalVolume.h"
 #include "volumes/PlacedVolume.h"
+#include "volumes/Medium.h"
+#else
+#include "TGeoVolume.h"
+#include "TGeoManager.h"
+#include "TGeoVoxelFinder.h"
+#include "TGeoNode.h"
+#include "TGeoMaterial.h"
 #endif
 #include "TTree.h"
 #include "TFile.h"
@@ -148,7 +150,7 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid) {
   // Returns a temporary track support for the physics processes, unique per
   // thread which can be used to add tracks produced by physics processes.
   if (tid < 0)
-    tid = TGeoManager::ThreadId();
+    tid = WorkloadManager::Instance()->ThreadId();
   if (tid > fNthreads)
     Fatal("GetTempTrack", "Thread id %d is too large (max %d)", tid, fNthreads);
   GeantTrack &track = fThreadData[tid]->fTrack;
@@ -211,7 +213,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
   Int_t ndispatched = 0;
   GeantTaskData *td = thread_data;
   if (td == 0) {
-    Int_t tid = TGeoManager::ThreadId();
+    Int_t tid = WorkloadManager::Instance()->ThreadId();
     td = fThreadData[tid];
     td->fTid = tid;
   }
@@ -222,7 +224,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
     vecgeom::SimpleNavigator nav;
     nav.LocatePoint(GeoManager::Instance().GetWorld(),
                     Vector3D<Precision>(fVertex[0], fVertex[1], fVertex[2]), *a, true);
-    vol = a->GetCurrentNode()->GetVolume();
+    vol = const_cast<TGeoVolume*>(a->Top()->GetLogicalVolume());
     td->fVolume = vol;
 #else
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -235,12 +237,20 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
 #endif
 
   } else {
+#ifdef USE_VECGEOM_NAVIGATOR
+    vol = const_cast<TGeoVolume*>(a->Top()->GetLogicalVolume());
+#else
     TGeoNode const *node = a->GetCurrentNode();
     vol = node->GetVolume();
+#endif
     td->fVolume = vol;
   }
 
+#ifdef USE_VECGEOM_NAVIGATOR
+  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->getBasketManagerPtr());
+#else
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+#endif
   basket_mgr->SetThreshold(fNperBasket);
 
   static Bool_t init = kTRUE;
@@ -368,7 +378,11 @@ void GeantPropagator::InitializeAfterGeom() {
 Bool_t GeantPropagator::LoadVecGeomGeometry() {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
     Printf("Now loading VecGeom geometry\n");
+#ifdef USE_VECGEOM_NAVIGATOR
+    // Load the geometry somehow!
+#else
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
+#endif
     Printf("Loading VecGeom geometry done\n");
     Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
     std::vector<vecgeom::LogicalVolume *> v1;
@@ -377,7 +391,11 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     std::vector<vecgeom::VPlacedVolume *> v2;
     vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
     Printf("Have placed volumes %ld\n", v2.size());
+#ifdef USE_VECGEOM_NAVIGATOR
+    std::cout << vecgeom::GeoManager::Instance().GetWorld() << endl;
+#else
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
+#endif
 
     if (fWMgr->GetTaskBroker()) Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
     return fWMgr->LoadGeometry();
@@ -386,27 +404,39 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
 }
 #endif
 
+#ifndef USE_VECGEOM_GEOMETRY
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename) {
   // Load the detector geometry from file, unless already loaded.
-  TGeoManager *geom = (gGeoManager) ? gGeoManager : TGeoManager::Import(filename);
+#ifdef USE_VECGEOM_NAVIGATOR
+   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
+#else
+   TGeoManager *geom = (gGeoManager) ? gGeoManager : TGeoManager::Import(filename);
+#endif
   if (geom) {
 #if USE_VECGEOM_NAVIGATOR == 1
     LoadVecGeomGeometry();
-#endif
+    fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
+#else
     fMaxDepth = TGeoManager::GetMaxLevels();
+#endif
     return kTRUE;
   }
   ::Error("LoadGeometry", "Cannot load geometry from file %s", filename);
   return kFALSE;
 }
+#endif
 
 //______________________________________________________________________________
 void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Apply multiple scattering for charged particles.
   TGeoMaterial *mat = 0;
   if (td->fVolume)
+#ifdef USE_VECGEOM_NAVIGATOR
+    mat = ((TGeoMedium *)td->fVolume->getUserExtensionPtr())->GetMaterial();
+#else
     mat = td->fVolume->GetMaterial();
+#endif
   fProcess->ApplyMsc(mat, ntracks, tracks, td);
 }
 
@@ -420,7 +450,11 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTask
   }
   TGeoMaterial *mat = 0;
   if (td->fVolume)
+#ifdef USE_VECGEOM_NAVIGATOR
+    mat = ((TGeoMedium*) td->fVolume->getUserExtensionPtr())->GetMaterial();;
+#else
     mat = td->fVolume->GetMaterial();
+#endif
   fProcess->ComputeIntLen(mat, ntracks, tracks, 0, td);
 }
 
@@ -485,7 +519,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = kTRUE;
-  gGeoManager->SetMaxThreads(nthreads);
+  WorkloadManager::Instance()->SetMaxThreads(nthreads);
   if (fUseMonitoring) {
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
     cmon->Update();
