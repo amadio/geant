@@ -35,8 +35,8 @@ typedef vecgeom::Material TGeoMaterial;
 typedef vecgeom::Medium TGeoMedium;
 #else
 class TGeoMaterial;
-#include "GeantFwd.h"
 #endif
+#include "GeantFwd.h"
 
 #include "TMutex.h"
 
