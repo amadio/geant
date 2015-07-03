@@ -196,6 +196,7 @@ public:
    */
   Int_t Feeder(GeantTaskData *td);
 
+<<<<<<< HEAD
   /** @brief Check if transport is feeding with new tracks. */
   inline Bool_t IsFeeding() {
     Bool_t feeding = fFeederLock.test_and_set(std::memory_order_acquire);
@@ -205,6 +206,8 @@ public:
     return kFALSE;
   }
 
+=======
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   /**
    * @brief Function for importing tracks
    *

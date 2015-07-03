@@ -106,7 +106,11 @@ public:
   char *GetVersion();
 
 private:
+<<<<<<< HEAD
   TTabPhysMgr(const TTabPhysMgr &);            // no imp.
+=======
+  TTabPhysMgr(const TTabPhysMgr &); // no imp.
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   TTabPhysMgr &operator=(const TTabPhysMgr &); // no imp.
 
   // current version number

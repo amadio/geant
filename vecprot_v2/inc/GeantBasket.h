@@ -48,6 +48,7 @@ public:
 
 protected:
   GeantBasketMgr *fManager; /** Manager for the basket */
+<<<<<<< HEAD
 public:
   std::atomic_int fNcopying;    /** Number tracks copying concurrently */
   std::atomic_int fNbooked;     /** Number of slots booked for copying */
@@ -60,6 +61,15 @@ protected:
   // GeantHit_v        fHits;  /** Vector of produced hits */
   GeantTrack_v fTracksIn;  /** Vector of input tracks */
   GeantTrack_v fTracksOut; /** Vector of output tracks */
+=======
+  GeantTrack_v fTracksIn;   /** Vector of input tracks */
+  GeantTrack_v fTracksOut;  /** Vector of output tracks */
+// GeantHit_v        fHits;  /** Vector of produced hits */
+#if __cplusplus >= 201103L
+  std::atomic_int fAddingOp; /** Number of concurrent track adding operations */
+#endif
+  Int_t fThreshold; /** Current transport threshold */
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
 private:
   /** @todo Still not implemented */
@@ -75,7 +85,11 @@ public:
   /**
    * @brief GeantBasket standard constructor
    *
+<<<<<<< HEAD
    * @param size Initial size of input/output track arrays
+=======
+   * @param size Imitial size of input/output track arrays
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
    * @param mgr  Basket manager handling this basket
    */
   GeantBasket(Int_t size, GeantBasketMgr *mgr);
@@ -98,7 +112,11 @@ public:
    * @param track Reference to track object
    * @return Track index;
    */
+<<<<<<< HEAD
   Int_t AddTrack(GeantTrack &track);
+=======
+  void AddTrack(GeantTrack &track);
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
   /**
    * @bref Add a track from vector container to basket input.
@@ -108,7 +126,11 @@ public:
    * @param itr Track id.
    * @return Track index;
    */
+<<<<<<< HEAD
   Int_t AddTrack(GeantTrack_v &tracks, Int_t itr);
+=======
+  void AddTrack(GeantTrack_v &tracks, Int_t itr);
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
   /**
    * @brief Function to add multiple tracks to basket
@@ -120,12 +142,15 @@ public:
    */
   void AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend);
 
+<<<<<<< HEAD
   /** @brief Book a slot and return number of slots booked */
   Int_t BookSlot() { return (fNbooked.fetch_add(1, std::memory_order_seq_cst) + 1); }
 
   /** @brief Get number of booked slots */
   Int_t GetNbooked() { return (fNbooked.load()); }
 
+=======
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   /** @brief Virtual function for clearing the basket */
   virtual void Clear(Option_t *option = "");
 
@@ -194,24 +219,36 @@ public:
    * @brief Check if tracks are being copied
    * @return Track copy flag
    */
+<<<<<<< HEAD
   inline Bool_t IsCopying() const { return (fNcopying.load(std::memory_order_seq_cst)); }
   //  inline Bool_t IsCopying() const { return fNcopying; }
   inline Int_t GetNcopying() const { return fNcopying.load(); }
   //  inline Int_t GetNcopying() const { return fNcopying; }
+=======
+  inline Bool_t IsAddingOp() const { return (fAddingOp.load()); }
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
   /**
    * @brief Mark start of copy operation
    * @return Number of concurrent track copy operations
    */
+<<<<<<< HEAD
   inline Int_t StartCopying() { return (fNcopying.fetch_add(1, std::memory_order_seq_cst) + 1); }
   //  inline Int_t StartCopying() { return ( ++fNcopying ); }
+=======
+  inline Int_t LockAddingOp() { return ++fAddingOp; }
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
   /**
    * @brief Mark stop of copy operation
    * @return Number of concurrent track copy operations remaining
    */
+<<<<<<< HEAD
   inline Int_t StopCopying() { return (fNcopying.fetch_sub(1, std::memory_order_seq_cst) - 1); }
   //  inline Int_t StopCopying() { return ( --fNcopying ); }
+=======
+  inline Int_t UnLockAddingOp() { return --fAddingOp; }
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
   /**
    * @brief Print the basket content
@@ -287,8 +324,12 @@ protected:
   typedef std::atomic<GeantBasket *> atomic_basket;
   atomic_basket fCBasket;                        /** Current basket being filled */
   Geant::priority_queue<GeantBasket *> *fFeeder; /** Feeder queue to which baskets get injected */
+<<<<<<< HEAD
   std::vector<GeantBasket *> fDispatchList;      /** list of baskets to be dispatched */
 
+=======
+  TMutex fMutex;                                 /** Mutex for this basket manager */
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 private:
   /** @todo Still not implemented */
   GeantBasketMgr(const GeantBasketMgr &);
@@ -297,29 +338,52 @@ private:
   GeantBasketMgr &operator=(const GeantBasketMgr &);
 
   /**
+<<<<<<< HEAD
    * @brief The caller thread books the basket held by the atomic for track addition
    *
    * @param current Current atomic basket to be booked
    * @return Number of booked slots
    * @return Basket actually booked
+=======
+   * @brief Attempt to steal the current filled basket and replace it
+   *
+   * @param current Current atomic basket to be replaced
+   * @param td Thread data
+   * @return Released basket pointer if operation succeeded, 0 if not
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
    */
   GeantBasket *BookBasket(GeantTaskData *td);
 
   /**
+<<<<<<< HEAD
    * @brief Attempt to replace the atomic content of the basket with new one, strong CAS
    *
    * @param expected expected value for book index
    * @param td Task data
    * @return True if replacement made by the call
+=======
+   * @brief The caller thread steals temporarily the basket to mark a track addition
+   *
+   * @param current Current atomic basket to be pinned to a thread for track adding
+   * @return Current basket being pinned
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
    */
   bool ReplaceBasketStrong(size_t expected, GeantTaskData *td);
 
   /**
+<<<<<<< HEAD
    * @brief Attempt to replace the atomic content of the basket with new one, weak CAS
    *
    * @param expected expected value for book index
    * @param td Task data
    * @return True if replacement made by the call
+=======
+   * @brief Attempt to steal a global basket matching the content
+   *
+   * @param global Global atomic basket
+   * @param content Content of GeantBasket
+   * @return Flag marking the success/failure of the steal operation
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
    */
   bool ReplaceBasketWeak(size_t expected, GeantTaskData *td);
 
@@ -339,7 +403,11 @@ public:
   /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
       : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0),
+<<<<<<< HEAD
         fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0), fDispatchList() {}
+=======
+        fNbaskets(0), fNused(0), fCBasket(0), fLock(), fQLock(), fFeeder(0), fMutex() {}
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 
   /** @brief GeantBasketMgr normal constructor
    *
@@ -399,6 +467,26 @@ public:
   Int_t AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td);
 
   /**
+<<<<<<< HEAD
+=======
+   * @brief Thread local garbage collection of tracks from prioritized events
+   *
+   * @param evmin Minimum event index
+   * @param evmax Maximum event index
+   * @param gc Garbage collector basket
+   */
+  Int_t CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantTaskData *td);
+
+  /**
+   * @brief Garbage collection of prioritized tracks in an event range
+   *
+   * @param evmin Minimum event index
+   * @param evmax Maximum event index
+   */
+  Int_t CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantTaskData *td);
+
+  /**
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
    * @brief Function cleaning a number of free baskets
    *
    * @param ntoclean Number of baskets to be cleaned
@@ -421,6 +509,11 @@ public:
    */
   Int_t GetBcap() const { return fBcap; }
 
+<<<<<<< HEAD
+=======
+#if __cplusplus >= 201103L
+
+>>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   /**
    * @brief Snapshot of the number of baskets
    * @return Number of baskets
