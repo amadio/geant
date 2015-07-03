@@ -40,12 +40,8 @@ GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(Int_t size, Int_t depth)
-<<<<<<< HEAD
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
       fThreshold(size), fTracksIn(size, depth), fTracksOut(size, depth) {
-=======
-    : TObject(), fManager(0), fTracksIn(size, depth), fTracksOut(size, depth), fAddingOp(0), fThreshold(size) {
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   // Default constructor.
 }
 
@@ -55,7 +51,6 @@ GeantBasket::~GeantBasket() {
 }
 
 //______________________________________________________________________________
-<<<<<<< HEAD
 Int_t GeantBasket::AddTrack(GeantTrack &track) {
   // Add a new track to this basket. Has to work concurrently.
 
@@ -71,41 +66,11 @@ Int_t GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr) {
   // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(tracks, itr, kTRUE);
   return (fTracksIn.AddTrackSync(tracks, itr));
-=======
-void GeantBasket::AddTrack(GeantTrack &track) {
-// Add a new track to this basket. Has to work concurrently.
-
-// Activating the line below adds non-concurrently an input track
-//   fTracksIn.AddTrack(track);
-#ifdef GeantV_SCH_DEBUG
-  assert(fAddingOp.load() > 0);
-#endif
-  fTracksIn.AddTrackSync(track);
-}
-
-//______________________________________________________________________________
-void GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr) {
-// Add track from a track_v array. Has to work concurrently.
-
-// Activating the line below adds non-concurrently an input track
-//   fTracksIn.AddTrack(tracks, itr, kTRUE);
-#ifdef GeantV_SCH_DEBUG
-  assert(fAddingOp.load() > 0);
-#endif
-  fTracksIn.AddTrackSync(tracks, itr);
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend) {
-<<<<<<< HEAD
   // Add multiple tracks from a track_v array.
-=======
-// Add multiple tracks from a track_v array.
-#ifdef GeantV_SCH_DEBUG
-  assert(fAddingOp.load() > 0);
-#endif
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   fTracksIn.AddTracks(tracks, istart, iend, kTRUE);
 }
 
@@ -175,13 +140,8 @@ ClassImp(GeantBasketMgr)
     //______________________________________________________________________________
     GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector)
     : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
-<<<<<<< HEAD
       fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
       fDispatchList() {
-=======
-      fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fCBasket(0), fLock(), fQLock(), fFeeder(0),
-      fMutex() {
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   // Constructor
   fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
   // The line below to be removed when the automatic activation schema in place
@@ -205,17 +165,12 @@ void GeantBasketMgr::Activate() {
   SetCBasket(basket);
   if (fCollector) {
     basket->SetMixed(true);
-<<<<<<< HEAD
     //    Printf("Created collector basket manager");
-=======
-    Printf("Created collector basket manager");
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   }
   fActive = true;
 }
 
 //______________________________________________________________________________
-<<<<<<< HEAD
 GeantBasket *GeantBasketMgr::BookBasket(GeantTaskData *td) {
   // The method books a basket for track addition. It checks that
   // the basket was not replaced by other thread just after booking, in which
@@ -250,42 +205,10 @@ GeantBasket *GeantBasketMgr::BookBasket(GeantTaskData *td) {
     ReplaceBasketWeak(ibook, td);
     // Release completely basket
     basket->fNused.fetch_sub(1, std::memory_order_relaxed);
-=======
-GeantBasket *GeantBasketMgr::StealAndReplace(atomic_basket &current, GeantTaskData *td) {
-  // Steal the current pointer content and replace with a new basket from the
-  // pool. If the operation succeeds, returns the released basket which is now
-  // thread local
-  GeantBasket *newb, *oldb;
-  // Backup cbasket. If a steal happened it does not matter
-  newb = GetNextBasket(td); // backup new basket to avoid leak
-  oldb = current.load();    // both local vars, so identical content
-  // Check if fPBasket pointer was stolen by other thread
-  while (fLock.test_and_set(std::memory_order_acquire))
-    ;
-  Bool_t stolen = current.compare_exchange_strong(oldb, newb);
-  fLock.clear(std::memory_order_release);
-  if (stolen) {
-    // No steal: current points now to newbasket which takes all new
-    // tracks. We can push the backed-up old basket to the queue, but
-    // only AFTER any ongoing track addition finishes.
-    while (oldb->IsAddingOp()) {
-    }; // new AddTrack go all to newbasket
-    // Someone may still have a copy of the old basket  and haven't
-    // started yet adding tracks to it
-    // We are finally the owner of oldb
-    //      assert (!oldb->IsAddingOp());
-    return oldb;
-  } else {
-    // Current basket stolen by other thread: we need to recicle the new one
-    // and ignore the backed-up old basket which was injected by the other thread
-    //      assert(!newb->IsAddingOp());
-    newb->Recycle(td);
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   }
 }
 
 //______________________________________________________________________________
-<<<<<<< HEAD
 bool GeantBasketMgr::ReplaceBasketWeak(size_t expected, GeantTaskData *td) {
   // Try to replace the basket if the index is matching the expected value.
   GeantBasket *basket = fCBasket.load(std::memory_order_relaxed);
@@ -300,30 +223,11 @@ bool GeantBasketMgr::ReplaceBasketWeak(size_t expected, GeantTaskData *td) {
     fCBasket.store(newb, std::memory_order_relaxed);
   } else {
     td->RecycleBasket(newb);
-=======
-GeantBasket *GeantBasketMgr::StealAndPin(atomic_basket &current) {
-  // The method pins non-atomically the basket to the caller while adding the
-  // fAddingOp flag. It makes sure that no StealAndReplace operation happened
-  // on the pinned basket.
-  GeantBasket *oldb = 0;
-  while (1) {
-    // the 2 lines below should be atomically coupled
-    //    while (fLock.test_and_set(std::memory_order_acquire))
-    ;
-    oldb = current.load();
-    oldb->LockAddingOp();
-    //    fLock.clear(std::memory_order_release);
-    // If no steal happened in between return basket pointer
-    if (oldb == current.load())
-      return oldb;
-    oldb->UnLockAddingOp();
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   }
   return replaced_by_me;
 }
 
 //______________________________________________________________________________
-<<<<<<< HEAD
 bool GeantBasketMgr::ReplaceBasketStrong(size_t expected, GeantTaskData *td) {
   // Try to replace the basket if the index is matching the expected value.
   GeantBasket *basket = fCBasket.load(std::memory_order_relaxed);
@@ -331,11 +235,6 @@ bool GeantBasketMgr::ReplaceBasketStrong(size_t expected, GeantTaskData *td) {
     return false;
   // The basket is matching the expected index,
   // now try to replace with new basket
-=======
-Bool_t GeantBasketMgr::StealMatching(atomic_basket &global, GeantBasket *content, GeantTaskData *td) {
-  // Steal the global basket if it has the right matching content
-  // Prepare replacement
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   GeantBasket *newb = GetNextBasket(td);
   newb->fIbook0 = expected + basket->GetThreshold();
   bool replaced_by_me = fIbook.compare_exchange_strong(expected, newb->fIbook0);
@@ -385,23 +284,6 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority,
 }
 
 //______________________________________________________________________________
-<<<<<<< HEAD
-=======
-Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td) {
-  // Copy directly from a track_v a track to the basket manager. It is
-  // assumed that this manager is only handled by a single thread.
-  GeantBasket *cbasket = GetCBasket();
-  cbasket->GetInputTracks().AddTrack(trackv, itr);
-  if (cbasket->GetNinput() >= cbasket->GetThreshold()) {
-    fFeeder->push(cbasket, priority);
-    SetCBasket(GetNextBasket(td));
-    return 1;
-  }
-  return 0;
-}
-
-//______________________________________________________________________________
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
 Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td) {
   // Add a track to the current basket. If the track number reaches the
   // threshold, the basket is added to the feeder queue and replaced by an empty
@@ -431,7 +313,6 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData
       basket->fNused.fetch_sub(1, std::memory_order_relaxed);
       Push(basket, priority, td);
       return 1;
-<<<<<<< HEAD
     }
   }
   // Release basket
@@ -450,86 +331,6 @@ Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool
     Push(cbasket, priority, td);
     SetCBasket(GetNextBasket(td));
     return 1;
-=======
-    } else
-      return 0;
-  }
-  oldb->UnLockAddingOp();
-  return 0;
-}
-
-//______________________________________________________________________________
-Int_t GeantBasketMgr::CollectPrioritizedTracksNew(GeantBasketMgr *gc, GeantTaskData *td) {
-  // Garbage collect tracks from the given event range. The basket gc should
-  // be thread local
-  if (!GetCBasket()->GetNinput())
-    return 0;
-  GeantBasket *cbasket = 0;
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  while (cbasket == 0)
-    cbasket = StealAndReplace(fCBasket, td);
-  // cbasket is now thread local
-  // Loop all tracks in the current basket and mark for copy the ones belonging
-  // to the desired events
-  GeantTrack_v &tracks = cbasket->GetInputTracks();
-  Int_t ntracks = tracks.GetNtracks();
-  Int_t icoll = 0;
-  for (Int_t itr = 0; itr < ntracks; itr++) {
-    if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
-      tracks.MarkRemoved(itr);
-      icoll++;
-    }
-  }
-  if (icoll)
-    tracks.Compact(&gc->GetCBasket()->GetInputTracks());
-  return icoll;
-}
-
-//______________________________________________________________________________
-Int_t GeantBasketMgr::CollectPrioritizedTracks(Int_t evmin, Int_t evmax, GeantTaskData *td) {
-  // Move current basket tracks to priority one.
-  // *** NONE *** This should be done for all basket managers only once when
-  // starting prioritizing an event range.
-  // Lock and swap containers
-  if (!GetCBasket()->GetNinput())
-    return 0;
-  //   Printf("=== CollectPrioritized");
-  //   Print();
-  GeantBasket *cbasket = 0, *basket;
-  Int_t npush = 0;
-  // We want to steal fCBasket
-  while (cbasket == 0)
-    cbasket = StealAndReplace(fCBasket, td);
-  // cbasket is now thread local
-  GeantTrack_v &tracks = cbasket->GetInputTracks();
-  Int_t ntracks = tracks.GetNtracks();
-  // Inject cbasket if it contains tracks with priority
-  for (Int_t itr = 0; itr < ntracks; itr++) {
-    if (tracks.fEventV[itr] >= evmin && tracks.fEventV[itr] <= evmax) {
-      fFeeder->push(cbasket, kTRUE);
-      return 1;
-    }
-  }
-  // if cbasket empty -> just recycle
-  if (cbasket->GetNinput() == 0) {
-    cbasket->Recycle(td);
-    //         Print();
-    return npush;
-  }
-  // cbasket has to be merged back into fCBasket. Most profitable is to
-  // exchange the pointer held by fCBasket (which is most likely empty if
-  // no other thread was adding on top) with cbasket.
-  cbasket = fCBasket.exchange(cbasket);
-  while (cbasket->IsAddingOp()) {
-  }; // wait possible adding to finish
-  // Now add cbasket content on top of fCBasket
-  GeantTrack_v &ctracks = cbasket->GetInputTracks();
-  ntracks = ctracks.GetNtracks();
-  for (Int_t itr = 0; itr < ntracks; itr++) {
-    basket = StealAndPin(fCBasket);
-    basket->AddTrack(ctracks, itr);
-    basket->UnLockAddingOp();
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   }
   return 0;
 }
@@ -594,20 +395,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
   GeantBasket *next = td->GetNextBasket();
   if (!next) {
     next = new GeantBasket(fBcap, this);
-<<<<<<< HEAD
     fNbaskets++;
-=======
-    if (fCollector)
-      next->SetMixed(kTRUE);
-    fNbaskets++;
-    fNused++;
-  } else {
-    if (fCollector)
-      next->SetMixed(kTRUE);
-    else
-      next->SetBasketMgr(this);
-    fNused++;
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   }
   if (fCollector)
     next->SetMixed(kTRUE);

@@ -124,11 +124,8 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
   //  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
 }
-<<<<<<< HEAD
 
 #endif
 
 } // GEANT_IMPL_NAMESPACE
 } // geant
-=======
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles

@@ -464,14 +464,11 @@ void *WorkloadManager::TransportTracks(void *) {
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
     //    sched_locker.StartOne();
-<<<<<<< HEAD
     // Make sure the basket is not recycled before gets released by basketizer
     // This should not happen vey often, just when some threads are highly
     // demoted ant the basket makes it through the whole cycle before being fully released
     while (basket->fNused.load())
       ;
-=======
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
     basket->Recycle(td);
   }
   wm->DoneQueue()->push(0);
@@ -512,13 +509,8 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   GeantScheduler *sch = wm->GetScheduler();
   Int_t *nvect = sch->GetNvect();
-<<<<<<< HEAD
   GeantBasketMgr *prioritizer = nullptr; // new GeantBasketMgr(sch, 0, 0);
   td->fBmgr = nullptr;                   // prioritizer;
-=======
-  // GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0);
-  td->fBmgr = nullptr; // prioritizer;
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
   // prioritizer->SetThreshold(propagator->fNperBasket);
   // prioritizer->SetFeederQueue(wm->FeederQueue());
   // Start the feeder
@@ -580,7 +572,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
       }
     }
     waiting[tid] = 1;
-<<<<<<< HEAD
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
@@ -604,12 +595,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
       }
       wm->FeederQueue()->wait_and_pop(basket);
     }
-=======
-    //::Info("GPU","Waiting for next available basket.");
-    // if (prioritizer->HasTracks()) basket = prioritizer->GetBasketForTransport(td);
-    // else
-    wm->FeederQueue()->wait_and_pop(basket);
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
     waiting[tid] = 0;
     if (td->NeedsToClean())
       td->CleanBaskets(0);
@@ -666,12 +651,8 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
     // Record tracks
     // ninput = ntotransport;
     if (basket->GetNoutput()) {
-<<<<<<< HEAD
       Geant::Warning("TransportTracksCoprocessor", "Output Track_v not empty noutput=%d counter=%d",
                      basket->GetNoutput(), counter.load());
-=======
-      Printf("Ouch (coproc): noutput=%d counter=%d", basket->GetNoutput(), counter.load());
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
     }
     //      if (counter==1) input.PrintTracks();
     for (Int_t itr = 0; itr < ntotransport; itr++) {
@@ -712,23 +693,14 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
 
     // Check
     if (basket->GetNinput()) {
-<<<<<<< HEAD
       Geant::Warning("TransportTracksCoprocessor", "Input Track_v not empty: ninput=%d noutput=%d counter=%d",
                      basket->GetNinput(), basket->GetNoutput(), counter.load());
-=======
-      Printf("Ouch (coproc): ninput=%d noutput=%d counter=%d", basket->GetNinput(), basket->GetNoutput(),
-             counter.load());
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
     }
     {
       auto noutput = basket->GetNoutput();
       for (Int_t itr = 0; itr < noutput; itr++) {
         if (TMath::IsNaN(output.fXdirV[itr])) {
-<<<<<<< HEAD
           Geant::Error("TransportTracksCoprocessor", "Track %d has NaN", itr);
-=======
-          Printf("Error: track %d has NaN", itr);
->>>>>>> GEANT-133 Replacement of ROOT Materials completed -- but it just compiles
         }
       }
     }
