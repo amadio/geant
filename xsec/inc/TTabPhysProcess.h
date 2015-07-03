@@ -13,10 +13,10 @@
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/Global.h"
 namespace vecgeom {
-  inline namespace VECGEOM_IMPL_NAMESPACE {
-  class Material;
-  class GeoManager;
-  }
+inline namespace VECGEOM_IMPL_NAMESPACE {
+class Material;
+class GeoManager;
+}
 }
 typedef vecgeom::Material TGeoMaterial;
 typedef vecgeom::GeoManager TGeoManager;
@@ -30,44 +30,34 @@ class TTabPhysMgr;
 #include "GeantFwd.h"
 
 //______________________________________________________________________________
-class TTabPhysProcess : public PhysicsProcess
-{
+class TTabPhysProcess : public PhysicsProcess {
 private:
-  TTabPhysMgr           *fMgr;            //! Tabulated physics manager
-  TString                fXsecFileName;   // Name of Xsec file
-  TString                fFinalSFileName; // Name of final states file
+  TTabPhysMgr *fMgr;       //! Tabulated physics manager
+  TString fXsecFileName;   // Name of Xsec file
+  TString fFinalSFileName; // Name of final states file
 public:
   TTabPhysProcess();
   TTabPhysProcess(const char *name, const char *fxsec, const char *ffstate);
   virtual ~TTabPhysProcess() {}
 
   virtual void Initialize();
-  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths, GeantTaskData *td);
+  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths,
+                             GeantTaskData *td);
 
-  // # dummy method: PostStep has been splitted up into two parts (see below)     
-  virtual void PostStep( TGeoMaterial* /*mat*/ , 
-                         Int_t /*ntracks*/, 
-                         GeantTrack_v& /*tracks */,
-                         Int_t& /*nout*/,
-                         GeantTaskData */*td*/) {}
+  // # dummy method: PostStep has been splitted up into two parts (see below)
+  virtual void PostStep(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks */, Int_t & /*nout*/,
+                        GeantTaskData * /*td*/) {}
 
-  // # smapling: -target atom and type of the interaction for each primary tracks 
+  // # smapling: -target atom and type of the interaction for each primary tracks
   //             -all inf. regarding sampling output is stored in the tracks
-  virtual void PostStepTypeOfIntrActSampling( TGeoMaterial *mat,
-                                              Int_t ntracks, 
-                                              GeantTrack_v &tracks, 
-                                              GeantTaskData *td);
+  virtual void PostStepTypeOfIntrActSampling(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
   // # sampling final states for each primary tracks based on target atom and
   //    interaction type sampled by PostStepTypeOfIntrActSampling;
   // # upadting primary track properties and inserting secondary tracks;
-  // # number of inserted secondary tracks will be stored in nout at termination 
-  virtual void PostStepFinalStateSampling( TGeoMaterial *mat,
-                                           Int_t ntracks, 
-                                           GeantTrack_v &tracks,
-                                           Int_t &nout, 
-                                           GeantTaskData *td);
-
+  // # number of inserted secondary tracks will be stored in nout at termination
+  virtual void PostStepFinalStateSampling(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout,
+                                          GeantTaskData *td);
 
   virtual void AtRest(Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantTaskData *td);
   GEANT_CUDA_DEVICE_CODE
@@ -76,10 +66,10 @@ public:
   virtual void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
 private:
-   TTabPhysProcess(const TTabPhysProcess &);//no imp.	
-   TTabPhysProcess& operator=(const TTabPhysProcess &);//no imp.
+  TTabPhysProcess(const TTabPhysProcess &); // no imp.
+  TTabPhysProcess &operator=(const TTabPhysProcess &); // no imp.
 
-  ClassDef(TTabPhysProcess,1)    // Generic tabulated physics process
-};   
+  ClassDef(TTabPhysProcess, 1) // Generic tabulated physics process
+};
 
 #endif

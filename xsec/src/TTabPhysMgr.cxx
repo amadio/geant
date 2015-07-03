@@ -81,9 +81,9 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   fgInstance = this;
   TStopwatch timer;
   timer.Start();
-  // Load elements from geometry
+// Load elements from geometry
 #ifdef USE_VECGEOM_NAVIGATOR
-  vector<vecgeom::Material*> matlist = vecgeom::Material::GetMaterials();
+  vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
 #else
   TList *matlist = (TList *)geom->GetListOfMaterials();
 
@@ -122,7 +122,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   fDecay = (TPDecay *)fstate->Get("DecayTable");
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  printf("#materials:= %lu \n",matlist.size());
+  printf("#materials:= %lu \n", matlist.size());
 #else
   // INFO: print number of materials in the current TGeoManager
   printf("#materials:= %d \n", matlist->GetSize());
@@ -131,8 +131,8 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   // First loop on all materials to mark used elements
   TBits elements(NELEM);
 #ifdef USE_VECGEOM_NAVIGATOR
-  for(int i=0; i<matlist.size(); ++i) {
-     mat = matlist[i];
+  for (int i = 0; i < matlist.size(); ++i) {
+    mat = matlist[i];
 #else
   while ((mat = (TGeoMaterial *)next())) {
 #endif
@@ -197,8 +197,8 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   Float_t *w = new Float_t[MAXNELEMENTS];
   fNmaterials = 0;
 #ifdef USE_VECGEOM_NAVIGATOR
-  for(int i=0; i<matlist.size(); ++i) {
-     mat = matlist[i];
+  for (int i = 0; i < matlist.size(); ++i) {
+    mat = matlist[i];
 #else
   next.Reset();
   while ((mat = (TGeoMaterial *)next())) {
@@ -317,7 +317,8 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
              icnt++;
              Double_t dot = dir[0]*tracks.fXdirV[i] + dir[1]*tracks.fYdirV[i] +dir[2]*tracks.fZdirV[i];
              Double_t angle = vecgeom::Materialh::ACos(dot)*vecgeom::Materialh::RadToDeg();
-             Printf("new angle=%g   delta=%g", angle, vecgeom::Materialh::Abs(angle-msTheta*vecgeom::Materialh::RadToDeg()));
+             Printf("new angle=%g   delta=%g", angle,
+       vecgeom::Materialh::Abs(angle-msTheta*vecgeom::Materialh::RadToDeg()));
           }
     */
   }
@@ -396,7 +397,7 @@ void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack
   TMXsec *mxs = 0;
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
-     mat = vecgeom::Material::GetMaterials()[imat];
+    mat = vecgeom::Material::GetMaterials()[imat];
 #else
     mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
 #endif

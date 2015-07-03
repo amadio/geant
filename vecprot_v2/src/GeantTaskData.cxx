@@ -18,9 +18,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
-    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0,maxDepth),
-      fPath(0), fBmgr(0), fPool() {
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
+      fBoolArray(0), fDblArray(0), fTrack(0, maxDepth), fPath(0), fBmgr(0), fPool() {
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
@@ -35,9 +34,8 @@ GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData()
-    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(0), fRndm(nullptr), fBoolArray(0), fDblArray(0), fTrack(0),
-      fPath(0), fBmgr(0), fPool() {
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
+      fBoolArray(0), fDblArray(0), fTrack(0), fPath(0), fBmgr(0), fPool() {
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
   fNthreads = propagator->fNthreads;
@@ -52,8 +50,8 @@ GeantTaskData::GeantTaskData()
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::~GeantTaskData() {
-  // Destructor
-  //  delete fMatrix;
+// Destructor
+//  delete fMatrix;
 #ifndef GEANT_NVCC
   delete fRndm;
 #endif
@@ -92,12 +90,13 @@ Bool_t *GeantTaskData::GetBoolArray(Int_t size) {
 //______________________________________________________________________________
 GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
-  if (fPool.empty()) return 0;
+  if (fPool.empty())
+    return 0;
   GeantBasket *basket = fPool.back();
-//  basket->Clear();
+  //  basket->Clear();
   fPool.pop_back();
   return basket;
-}  
+}
 
 //______________________________________________________________________________
 void GeantTaskData::RecycleBasket(GeantBasket *b) {
@@ -111,18 +110,18 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
   GeantBasket *b;
   Int_t ncleaned = 0;
   size_t ntodo = 0;
-  if (ntoclean==0) 
-    ntodo = fPool.size()/2;
-  else 
+  if (ntoclean == 0)
+    ntodo = fPool.size() / 2;
+  else
     ntodo = TMath::Min(fPool.size(), ntoclean);
-  for (size_t i=0; i<ntodo; i++) {
+  for (size_t i = 0; i < ntodo; i++) {
     b = fPool.back();
     delete b;
     ncleaned++;
     fPool.pop_back();
   }
   fToClean = false;
-//  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
+  //  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
 }
 
@@ -130,4 +129,3 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
 
 } // GEANT_IMPL_NAMESPACE
 } // geant
-

@@ -89,12 +89,12 @@ class TGeoMaterial;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-GEANT_DECLARE_CONSTANT(double,gTolerance);
+GEANT_DECLARE_CONSTANT(double, gTolerance);
 
 class GeantTrack_v;
 class GeantTaskData;
 
-#if ROOT_VERSION_CODE <= ROOT_VERSION(6,04,00)
+#if ROOT_VERSION_CODE <= ROOT_VERSION(6, 04, 00)
 // Work around bug in ROOT v6.04
 #ifdef G__DICTIONARY
 class GeantTrack;
@@ -166,7 +166,7 @@ public:
   * @param maxdepth ??????
   */
   GEANT_CUDA_BOTH_CODE
-  GeantTrack(Int_t ipdg,Int_t maxdepth);
+  GeantTrack(Int_t ipdg, Int_t maxdepth);
 
   /** @brief GeantTrack destructor */
   GEANT_CUDA_BOTH_CODE
@@ -554,9 +554,9 @@ public:
 #else
   std::atomic_int fNtracks; /** number of tracks contained */
 #endif
-  Int_t fNselected;  /** Number of selected tracks */
-  Bool_t fCompact;   /** Flag marking the compactness */
-  Bool_t fMixed;     /** Contains tracks in mixed volumes */
+  Int_t fNselected; /** Number of selected tracks */
+  Bool_t fCompact;  /** Flag marking the compactness */
+  Bool_t fMixed;    /** Contains tracks in mixed volumes */
   cacheline_pad_t pad0_;
   Int_t fMaxtracks;  /** Max size for tracks */
   BitSet *fHoles;    /** Bits of holes */
@@ -661,7 +661,7 @@ public:
   size_t BufferSize() const { return fBufSize; }
 
   /** @brief  Return the address of the data memory buffer  */
-  void* Buffer() const { return fBuf; }
+  void *Buffer() const { return fBuf; }
 
   /** @brief  Function that returns buffer size needed to hold the data for nTracks and maxdepth */
   GEANT_CUDA_BOTH_CODE
@@ -1166,7 +1166,7 @@ public:
   }
 
   GEANT_CUDA_BOTH_CODE
-  static char* round_up_align(char *buf) {
+  static char *round_up_align(char *buf) {
     long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
     if (remainder == 0)
       return buf;
@@ -1179,14 +1179,18 @@ public:
 
 #ifdef GEANT_CUDA
 #ifdef GEANT_NVCC
-   namespace cxx { class GeantTrack_v; }
+namespace cxx {
+class GeantTrack_v;
+}
 #else
-   namespace cuda { class GeantTrack_v; }
+namespace cuda {
+class GeantTrack_v;
+}
 #endif
 
-   bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream);
-   bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream);
-   void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source);
+bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream);
+bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream);
+void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source);
 #endif
 
 } // Geant

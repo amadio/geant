@@ -1,12 +1,12 @@
 //===--- GeantBasket.h - Geant-V --------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantBasket.h
  * @brief Implementation of baskets of tracks for Geant-V prototype
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -34,7 +34,6 @@ class GeantBasketMgr;
  */
 class GeantBasket : public TObject {
 public:
-
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
@@ -44,125 +43,124 @@ public:
    * @details Flags marking up different types of baskets
    */
   enum EBasketFlags {
-    kMixed = BIT(14)        /** Basket mixing tracks from different volumes */
+    kMixed = BIT(14) /** Basket mixing tracks from different volumes */
   };
 
 protected:
   GeantBasketMgr *fManager; /** Manager for the basket */
 public:
-  std::atomic_int fNcopying; /** Number tracks copying concurrently */
-  std::atomic_int fNbooked; /** Number of slots booked for copying */
-  std::atomic_int fNcopied; /** Number of tracks copied */
-  std::atomic_int fNused;   /** Number of threads using the basket */
-  size_t          fIbook0; /** Start slot number */
+  std::atomic_int fNcopying;    /** Number tracks copying concurrently */
+  std::atomic_int fNbooked;     /** Number of slots booked for copying */
+  std::atomic_int fNcopied;     /** Number of tracks copied */
+  std::atomic_int fNused;       /** Number of threads using the basket */
+  size_t fIbook0;               /** Start slot number */
   std::atomic_flag fDispatched; /** Atomic flag marking the basket as dispatched */
-  Int_t fThreshold; /** Current transport threshold */
+  Int_t fThreshold;             /** Current transport threshold */
 protected:
-//GeantHit_v        fHits;  /** Vector of produced hits */
-  GeantTrack_v fTracksIn;   /** Vector of input tracks */
-  GeantTrack_v fTracksOut;  /** Vector of output tracks */
+  // GeantHit_v        fHits;  /** Vector of produced hits */
+  GeantTrack_v fTracksIn;  /** Vector of input tracks */
+  GeantTrack_v fTracksOut; /** Vector of output tracks */
 
 private:
-
   /** @todo Still not implemented */
   GeantBasket(const GeantBasket &);
 
   /** @todo Still not implemented operator = */
   GeantBasket &operator=(const GeantBasket &);
+
 public:
-  
   /** @brief Default GeantBasket constructor */
   GeantBasket();
-  
+
   /**
-   * @brief GeantBasket standard constructor 
-   * 
+   * @brief GeantBasket standard constructor
+   *
    * @param size Initial size of input/output track arrays
    * @param mgr  Basket manager handling this basket
    */
   GeantBasket(Int_t size, GeantBasketMgr *mgr);
 
   /**
-   * @brief GeantBasket standard constructor 
-   * 
+   * @brief GeantBasket standard constructor
+   *
    * @param size Initial size of input/output track arrays
    * @param depth Maximum geometry depth
    */
   GeantBasket(Int_t size, Int_t depth);
-  
+
   /** @brief GeantBasket destructor */
   virtual ~GeantBasket();
 
   /**
    * @brief Add a scalar track to basket input.
    * @details Add concurrently track from generator or physics process
-   * 
+   *
    * @param track Reference to track object
    * @return Track index;
    */
   Int_t AddTrack(GeantTrack &track);
-  
+
   /**
    * @bref Add a track from vector container to basket input.
    * @details Add concurrently a track to basket input.
-   * 
+   *
    * @param tracks Array of tracks to copy from.
    * @param itr Track id.
    * @return Track index;
    */
   Int_t AddTrack(GeantTrack_v &tracks, Int_t itr);
-  
+
   /**
    * @brief Function to add multiple tracks to basket
    * @details Add multiple tracks from a track_v array
-   * 
-   * @param tracks Tracks from a track_v array 
-   * @param istart Start track id 
+   *
+   * @param tracks Tracks from a track_v array
+   * @param istart Start track id
    * @param iend End track id
    */
   void AddTracks(GeantTrack_v &tracks, Int_t istart, Int_t iend);
-  
+
   /** @brief Book a slot and return number of slots booked */
-  Int_t BookSlot() { return ( fNbooked.fetch_add(1, std::memory_order_seq_cst) + 1 ); }
+  Int_t BookSlot() { return (fNbooked.fetch_add(1, std::memory_order_seq_cst) + 1); }
 
   /** @brief Get number of booked slots */
-  Int_t GetNbooked() { return ( fNbooked.load() ); }
+  Int_t GetNbooked() { return (fNbooked.load()); }
 
   /** @brief Virtual function for clearing the basket */
   virtual void Clear(Option_t *option = "");
 
   /**
    * @brief Check if a basket contains tracks in a given event range
-   * 
+   *
    * @param evstart Start event id.
    * @param nevents Number of events (default 1)
    */
   Bool_t Contains(Int_t evstart, Int_t nevents = 1) const;
-  
+
   /**
    * @brief Function returning the number of input tracks
    * @return Number of input tracks
    */
   Int_t GetNinput() const { return fTracksIn.GetNtracks(); }
-  
+
   /**
    * @brief Function returning the number of output tracks
    * @return Number of output tracks
    */
   Int_t GetNoutput() const { return fTracksOut.GetNtracks(); }
-  
+
   /**
    * @brief Function returning a reference to the vector of input tracks
    * @return Reference to input vector of tracks
    */
   GeantTrack_v &GetInputTracks() { return fTracksIn; }
-  
+
   /**
    * @brief Function returning a reference to the vector of output tracks
    * @return Reference to output vector of tracks
    */
   GeantTrack_v &GetOutputTracks() { return fTracksOut; }
-  
+
   /**
    * @brief Function returning the manager of the basket
    * @return Pointer to manager of the basket
@@ -173,64 +171,64 @@ public:
    * @brief Function setting the manager of the basket
    */
   void SetBasketMgr(GeantBasketMgr *mgr) { fManager = mgr; }
-  
+
   /**
    * @brief Function for defining basket transportability threshold
    * @return  Value of transportability threshold
    */
   Int_t GetThreshold() const { return fThreshold; }
-  
+
   /**
    * @brief Function returning the volume for this basket
    * @return Pointer to associated logical volume
    */
   TGeoVolume *GetVolume() const;
-  
+
   /**
    * @brief Function returning the mixed tracks property.
    * @return Boolean value if the tracks are mixed from several volumes
    */
   Bool_t IsMixed() const { return TObject::TestBit(kMixed); }
-  
+
   /**
    * @brief Check if tracks are being copied
    * @return Track copy flag
    */
   inline Bool_t IsCopying() const { return (fNcopying.load(std::memory_order_seq_cst)); }
-//  inline Bool_t IsCopying() const { return fNcopying; }
+  //  inline Bool_t IsCopying() const { return fNcopying; }
   inline Int_t GetNcopying() const { return fNcopying.load(); }
-//  inline Int_t GetNcopying() const { return fNcopying; }
+  //  inline Int_t GetNcopying() const { return fNcopying; }
 
   /**
    * @brief Mark start of copy operation
    * @return Number of concurrent track copy operations
    */
-  inline Int_t StartCopying() { return ( fNcopying.fetch_add(1, std::memory_order_seq_cst) + 1 ); }
-//  inline Int_t StartCopying() { return ( ++fNcopying ); }
-  
+  inline Int_t StartCopying() { return (fNcopying.fetch_add(1, std::memory_order_seq_cst) + 1); }
+  //  inline Int_t StartCopying() { return ( ++fNcopying ); }
+
   /**
    * @brief Mark stop of copy operation
    * @return Number of concurrent track copy operations remaining
    */
-  inline Int_t StopCopying() { return ( fNcopying.fetch_sub(1, std::memory_order_seq_cst) - 1 ); }
-//  inline Int_t StopCopying() { return ( --fNcopying ); }
+  inline Int_t StopCopying() { return (fNcopying.fetch_sub(1, std::memory_order_seq_cst) - 1); }
+  //  inline Int_t StopCopying() { return ( --fNcopying ); }
 
   /**
    * @brief Print the basket content
    */
   virtual void Print(Option_t *option = "") const;
-  
+
   /**
    * @brief Print the parameters for a given track
-   * 
+   *
    * @param itr Track id.
    * @param input Refer to input or output track (default input)
    */
   void PrintTrack(Int_t itr, Bool_t input = kTRUE) const;
-  
+
   /** @brief Recycle this basket */
   void Recycle(GeantTaskData *td);
-  
+
   /**
    * @brief  Function that providing the size of this basket in bytes
    * @return Sum of sizes of all tracks (input and output) + data members
@@ -242,22 +240,20 @@ public:
 
   /**
    * @brief Flag the basket to contain tracks that are mixed from different volumes
-   * 
+   *
    * @param flag Boolean flag.
-   */ 
+   */
   void SetMixed(Bool_t flag) { TObject::SetBit(kMixed, flag); }
-  
+
   /**
    * @brief Function to change the transportability threshold for the basket
-   * 
+   *
    * @param threshold New threshold value
    */
   void SetThreshold(Int_t threshold);
 
   /** @brief Try to get the dispatch lock for the basket */
-  Bool_t TryDispatch() { 
-    return (!fDispatched.test_and_set(std::memory_order_acquire));
-  }
+  Bool_t TryDispatch() { return (!fDispatched.test_and_set(std::memory_order_acquire)); }
 
   ClassDef(GeantBasket, 1) // A basket containing tracks in the same geomety volume
 };
@@ -289,39 +285,38 @@ protected:
   std::atomic_int fNused;     /** Number of baskets in use */
   std::atomic<size_t> fIbook; /** Booking index */
   typedef std::atomic<GeantBasket *> atomic_basket;
-  atomic_basket fCBasket;  /** Current basket being filled */
+  atomic_basket fCBasket;                        /** Current basket being filled */
   Geant::priority_queue<GeantBasket *> *fFeeder; /** Feeder queue to which baskets get injected */
-  std::vector<GeantBasket *> fDispatchList; /** list of baskets to be dispatched */
+  std::vector<GeantBasket *> fDispatchList;      /** list of baskets to be dispatched */
 
 private:
-
   /** @todo Still not implemented */
   GeantBasketMgr(const GeantBasketMgr &);
 
-  /** @todo Still not implemented operator = */          
+  /** @todo Still not implemented operator = */
   GeantBasketMgr &operator=(const GeantBasketMgr &);
 
   /**
    * @brief The caller thread books the basket held by the atomic for track addition
-   * 
+   *
    * @param current Current atomic basket to be booked
    * @return Number of booked slots
    * @return Basket actually booked
    */
   GeantBasket *BookBasket(GeantTaskData *td);
-  
+
   /**
    * @brief Attempt to replace the atomic content of the basket with new one, strong CAS
-   * 
+   *
    * @param expected expected value for book index
    * @param td Task data
    * @return True if replacement made by the call
    */
   bool ReplaceBasketStrong(size_t expected, GeantTaskData *td);
-  
+
   /**
    * @brief Attempt to replace the atomic content of the basket with new one, weak CAS
-   * 
+   *
    * @param expected expected value for book index
    * @param td Task data
    * @return True if replacement made by the call
@@ -329,36 +324,34 @@ private:
   bool ReplaceBasketWeak(size_t expected, GeantTaskData *td);
 
 public:
-
   /**
-   * @brief Get next free basket 
+   * @brief Get next free basket
    * @details Get pointer to next free basket
    */
   GeantBasket *GetNextBasket(GeantTaskData *td);
 
   /**
-   * @brief Create a number of empty baskets 
+   * @brief Create a number of empty baskets
    */
   void CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td);
 
 public:
-
   /** @brief GeantBasketMgr dummy constructor */
   GeantBasketMgr()
-      : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0), fNbaskets(0),
-        fNused(0), fIbook(0), fCBasket(0), fFeeder(0), fDispatchList() {}
+      : fScheduler(0), fVolume(0), fNumber(0), fBcap(0), fQcap(0), fActive(false), fCollector(false), fThreshold(0),
+        fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0), fDispatchList() {}
 
-  /** @brief GeantBasketMgr normal constructor 
+  /** @brief GeantBasketMgr normal constructor
    *
    * @param sch Scheduler dealing with this basket manager
    * @param vol Volume associated with this
    * @param number Number for the basket manager
   */
-  GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector=false);
-  
+  GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector = false);
+
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
-  
+
   /**
    * @brief Grab function
    * @details Interface of TGeoExtension for getting a reference to this from TGeoVolume
@@ -366,7 +359,7 @@ public:
    */
   virtual TGeoExtension *Grab() { return this; }
 
-  /** 
+  /**
    * @brief Release function
    * @details Interface of TGeoExtension to signal releasing ownership of this from TGeoVolume
    */
@@ -381,7 +374,7 @@ public:
 
   /**
    * @brief Function adding a track to basket up to the basket threshold
-   * 
+   *
    * @param track  Track that should be added to basket
    * @param priority Set priority (by default kFALSE)
    */
@@ -389,7 +382,7 @@ public:
 
   /**
    * @brief Function adding an indexed track to basket up to the basket threshold
-   * 
+   *
    * @param trackv Array of tracks containing the track to be added
    * @param itr Track id
    * @param priority Set priority (by default kFALSE)
@@ -398,7 +391,7 @@ public:
 
   /**
    * @brief Function adding by a unique thread a track to the basket manager up to the basket threshold
-   * 
+   *
    * @param trackv Array of tracks containing the track to be added
    * @param itr Track id
    * @param priority Set priority (by default kFALSE)
@@ -407,7 +400,7 @@ public:
 
   /**
    * @brief Function cleaning a number of free baskets
-   * 
+   *
    * @param ntoclean Number of baskets to be cleaned
    */
   void CleanBaskets(Int_t ntoclean, GeantTaskData *td);
@@ -417,7 +410,7 @@ public:
 
   /**
    * @brief Function that set capacity of baskets
-   * 
+   *
    * @param capacity Capacity of baskets to be set
    */
   void SetBcap(Int_t capacity) { fBcap = capacity; }
@@ -428,10 +421,10 @@ public:
    */
   Int_t GetBcap() const { return fBcap; }
 
-   /**
-    * @brief Snapshot of the number of baskets
-    * @return Number of baskets
-    */
+  /**
+   * @brief Snapshot of the number of baskets
+   * @return Number of baskets
+   */
   Int_t GetNbaskets() const { return fNbaskets.load(); }
 
   /**
@@ -441,7 +434,7 @@ public:
   Int_t GetNused() const { return fNused.load(); }
 
   /**
-   * @brief Snapshot of the current basket threshold 
+   * @brief Snapshot of the current basket threshold
    * @return Threshold value
    */
   Int_t GetThreshold() const { return fThreshold.load(); }
@@ -450,26 +443,26 @@ public:
    * @brief Check if the basket manager has tracks filled and pending threshold
    * @return True if the current basket holds tracks
    */
-   Bool_t HasTracks() const { return GetCBasket()->GetNinput(); }
+  Bool_t HasTracks() const { return GetCBasket()->GetNinput(); }
 
   /**
    * @brief Getter for activity (manager generating baskets)
    * @return Value for activity flag
    */
-   Bool_t IsActive() const { return fActive; }
+  Bool_t IsActive() const { return fActive; }
 
   /**
    * @brief Getter for garbage collector status
    * @return Value for collector flag
    */
-   Bool_t IsCollector() const { return fCollector; }
+  Bool_t IsCollector() const { return fCollector; }
 
   /** @brief Setter for garbage collector status */
-   void SetCollector() { fCollector = true; }
+  void SetCollector() { fCollector = true; }
 
   /**
    * @brief Function to set transportability threshold
-   * 
+   *
    * @param thr Threshold that should be set
    */
   void SetThreshold(Int_t thr) { fThreshold.store(thr); }
@@ -479,22 +472,22 @@ public:
    * @return Load current basket
    */
   GeantBasket *GetCBasket() const { return fCBasket.load(); }
-  
+
   /**
    * @brief Get the current basket in non-thread safe way to send for transport.
    * @details Method called only by the thread owning this manager that should
    * have fCollector=true
    * @return Current basket
    */
-  GeantBasket *GetBasketForTransport(GeantTaskData *td) { 
+  GeantBasket *GetBasketForTransport(GeantTaskData *td) {
     GeantBasket *basket = GetCBasket();
     SetCBasket(GetNextBasket(td));
     return basket;
-  }  
+  }
 
   /**
    * @brief Function to set current basket
-   * 
+   *
    * @param basket Basket to be set as current
    */
   void SetCBasket(GeantBasket *basket) { fCBasket.store(basket); }
@@ -528,18 +521,18 @@ public:
    * @param basket Basket to be pushed
    * @param priority Priority on or off
    */
-   void Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td);
+  void Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td);
 
   /**
    * @brief Recycles a given basket
-   * 
+   *
    * @param b Pointer to current GeantBasket for recycling
    */
   void RecycleBasket(GeantBasket *b, GeantTaskData *td);
 
   /**
    * @brief Function setting the feeder work queue
-   * 
+   *
    * @param queue priority_queue for GeantBasket
    */
   void SetFeederQueue(Geant::priority_queue<GeantBasket *> *queue) { fFeeder = queue; }
@@ -557,7 +550,7 @@ public:
   void PrintSize() const;
 
   /**
-   * @brief Function GetFeederQueue() 
+   * @brief Function GetFeederQueue()
    * @return Feeder queue to which baskets get injected
    */
   Geant::priority_queue<GeantBasket *> *GetFeederQueue() const { return fFeeder; }

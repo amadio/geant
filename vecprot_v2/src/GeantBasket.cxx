@@ -21,29 +21,27 @@
 
 ClassImp(GeantBasket)
 
-//______________________________________________________________________________
-GeantBasket::GeantBasket()
-    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), 
-      fDispatched(), fThreshold(0), fTracksIn(), fTracksOut() {
+    //______________________________________________________________________________
+    GeantBasket::GeantBasket()
+    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+      fThreshold(0), fTracksIn(), fTracksOut() {
   // Dummy constructor.
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(Int_t size, GeantBasketMgr *mgr)
-    : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), 
-      fDispatched(), fThreshold(size),
-      fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
+    : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+      fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
       fTracksOut(size, GeantPropagator::Instance()->fMaxDepth) {
   // Default constructor.
-  if (!mgr->GetVolume() || mgr->IsCollector()) 
+  if (!mgr->GetVolume() || mgr->IsCollector())
     SetMixed(true);
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(Int_t size, Int_t depth)
-    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), 
-      fDispatched(), fThreshold(size), 
-      fTracksIn(size, depth), fTracksOut(size, depth) {
+    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+      fThreshold(size), fTracksIn(size, depth), fTracksOut(size, depth) {
   // Default constructor.
 }
 
@@ -58,7 +56,7 @@ Int_t GeantBasket::AddTrack(GeantTrack &track) {
 
   // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(track);
-  return ( fTracksIn.AddTrackSync(track) );
+  return (fTracksIn.AddTrackSync(track));
 }
 
 //______________________________________________________________________________
@@ -67,7 +65,7 @@ Int_t GeantBasket::AddTrack(GeantTrack_v &tracks, Int_t itr) {
 
   // Activating the line below adds non-concurrently an input track
   //   fTracksIn.AddTrack(tracks, itr, kTRUE);
-  return ( fTracksIn.AddTrackSync(tracks, itr) );
+  return (fTracksIn.AddTrackSync(tracks, itr));
 }
 
 //______________________________________________________________________________
@@ -92,7 +90,7 @@ void GeantBasket::Clear(Option_t *option) {
 
 //______________________________________________________________________________
 Bool_t GeantBasket::Contains(Int_t evstart, Int_t nevents) const {
-  // Checks if any of the tracks in the input array belongs to the given event 
+  // Checks if any of the tracks in the input array belongs to the given event
   // range.
   return fTracksIn.Contains(evstart, nevents);
 }
@@ -139,15 +137,15 @@ void GeantBasket::SetThreshold(Int_t threshold) {
 
 ClassImp(GeantBasketMgr)
 
-//______________________________________________________________________________
-GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector)
-    : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32),
-      fActive(kFALSE), fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0),
-      fCBasket(0), fFeeder(0), fDispatchList() {
+    //______________________________________________________________________________
+    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector)
+    : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
+      fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
+      fDispatchList() {
   // Constructor
   fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
   // The line below to be removed when the automatic activation schema in place
-  if (collector) 
+  if (collector)
     Activate();
 }
 
@@ -158,26 +156,26 @@ GeantBasketMgr::~GeantBasketMgr() {
 }
 
 //______________________________________________________________________________
-void GeantBasketMgr::Activate()
-{
+void GeantBasketMgr::Activate() {
   // Activate the manager for generating baskets.
-  if (fActive) return;
+  if (fActive)
+    return;
   GeantBasket *basket;
   basket = new GeantBasket(fBcap, this);
   SetCBasket(basket);
   if (fCollector) {
     basket->SetMixed(true);
-//    Printf("Created collector basket manager");
-  }  
+    //    Printf("Created collector basket manager");
+  }
   fActive = true;
-}   
+}
 
 //______________________________________________________________________________
 GeantBasket *GeantBasketMgr::BookBasket(GeantTaskData *td) {
   // The method books a basket for track addition. It checks that
-  // the basket was not replaced by other thread just after booking, in which 
+  // the basket was not replaced by other thread just after booking, in which
   // case it retries. Booking of a valid slot is eventually guaranteed.
-  
+
   // Do a read from current
   GeantBasket *basket = 0;
   Int_t nbooked;
@@ -195,10 +193,11 @@ GeantBasket *GeantBasketMgr::BookBasket(GeantTaskData *td) {
       basket->fNcopying.fetch_sub(1, std::memory_order_relaxed);
       basket->fNused.fetch_sub(1, std::memory_order_relaxed);
       continue;
-    }  
+    }
     // Validate booking only if slot is within threshold
     nbooked = basket->fNbooked.fetch_add(1, std::memory_order_relaxed) + 1;
-    if (nbooked <= basket->fThreshold) return basket;
+    if (nbooked <= basket->fThreshold)
+      return basket;
     // At this point booked slot is out of range
     // No slot available, release copying
     basket->fNcopying.fetch_sub(1, std::memory_order_relaxed);
@@ -210,13 +209,12 @@ GeantBasket *GeantBasketMgr::BookBasket(GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-bool GeantBasketMgr::ReplaceBasketWeak(size_t expected,
-                                   GeantTaskData *td)
-{
-// Try to replace the basket if the index is matching the expected value.
+bool GeantBasketMgr::ReplaceBasketWeak(size_t expected, GeantTaskData *td) {
+  // Try to replace the basket if the index is matching the expected value.
   GeantBasket *basket = fCBasket.load(std::memory_order_relaxed);
-  if (basket->fIbook0 != expected) return false;
-  // The basket is matching the expected index, 
+  if (basket->fIbook0 != expected)
+    return false;
+  // The basket is matching the expected index,
   // now try to replace with new basket
   GeantBasket *newb = GetNextBasket(td);
   newb->fIbook0 = expected + basket->GetThreshold();
@@ -225,18 +223,17 @@ bool GeantBasketMgr::ReplaceBasketWeak(size_t expected,
     fCBasket.store(newb, std::memory_order_relaxed);
   } else {
     td->RecycleBasket(newb);
-  }  
+  }
   return replaced_by_me;
-}   
+}
 
 //______________________________________________________________________________
-bool GeantBasketMgr::ReplaceBasketStrong(size_t expected,
-                                   GeantTaskData *td)
-{
-// Try to replace the basket if the index is matching the expected value.
+bool GeantBasketMgr::ReplaceBasketStrong(size_t expected, GeantTaskData *td) {
+  // Try to replace the basket if the index is matching the expected value.
   GeantBasket *basket = fCBasket.load(std::memory_order_relaxed);
-  if (basket->fIbook0 != expected) return false;
-  // The basket is matching the expected index, 
+  if (basket->fIbook0 != expected)
+    return false;
+  // The basket is matching the expected index,
   // now try to replace with new basket
   GeantBasket *newb = GetNextBasket(td);
   newb->fIbook0 = expected + basket->GetThreshold();
@@ -245,9 +242,9 @@ bool GeantBasketMgr::ReplaceBasketStrong(size_t expected,
     fCBasket.store(newb, std::memory_order_relaxed);
   } else {
     td->RecycleBasket(newb);
-  }  
+  }
   return replaced_by_me;
-}   
+}
 
 //______________________________________________________________________________
 Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td) {
@@ -263,11 +260,11 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack_v &trackv, Int_t itr, Bool_t priority,
 
   // 2. Track adding phase - basket not pushable
   basket->AddTrack(trackv, itr);
-  
+
   // 3. Release copying so that basket can be pushed by garbage collector if need be
   basket->fNcopying.fetch_sub(1, std::memory_order_relaxed);
   // Update ncopied counter
-  ncopied = basket->fNcopied.fetch_add(1, std::memory_order_relaxed)+1;
+  ncopied = basket->fNcopied.fetch_add(1, std::memory_order_relaxed) + 1;
 
   // 4. Last thread that completed the copy AND all slots are booked
   // has to submit the basket. The condition should ALWAYS be true for a single thread
@@ -300,11 +297,11 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData
 
   // 2. Track adding phase - basket not pushable
   basket->AddTrack(track);
-  
+
   // 3. Release copying so that basket can be pushed by garbage collector if need be
   basket->fNcopying.fetch_sub(1, std::memory_order_relaxed);
   // Update ncopied counter
-  ncopied = basket->fNcopied.fetch_add(1, std::memory_order_relaxed)+1;
+  ncopied = basket->fNcopied.fetch_add(1, std::memory_order_relaxed) + 1;
 
   // 4. Last thread that completed the copy AND all slots are booked
   // has to submit the basket. The condition should ALWAYS be true for a single thread
@@ -324,9 +321,8 @@ Int_t GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData
 }
 
 //______________________________________________________________________________
-Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority,
-                       GeantTaskData *td) {
-  // Copy directly from a track_v a track to the basket manager. It is 
+Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool_t priority, GeantTaskData *td) {
+  // Copy directly from a track_v a track to the basket manager. It is
   // assumed that this manager is only handled by a single thread.
   GeantBasket *cbasket = GetCBasket();
   cbasket->GetInputTracks().AddTrack(trackv, itr);
@@ -338,7 +334,7 @@ Int_t GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, Int_t itr, Bool
   }
   return 0;
 }
-  
+
 //______________________________________________________________________________
 Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
   // Copy all priority tracks to the current basket and flush to queue
@@ -350,7 +346,8 @@ Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
     ReplaceBasketStrong(basket->fIbook0, td);
     if (basket->TryDispatch()) {
       // Spin till copying finished
-      while (basket->fNcopying.load(std::memory_order_relaxed)) ;
+      while (basket->fNcopying.load(std::memory_order_relaxed))
+        ;
       // Release basket
       basket->fNused.fetch_sub(1, std::memory_order_relaxed);
       Push(basket, false, td);
@@ -360,26 +357,25 @@ Int_t GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
   // Release basket
   basket->fNused.fetch_sub(1, std::memory_order_relaxed);
   return 0;
-}  
-
-//______________________________________________________________________________
-void GeantBasketMgr::CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td)
-{
-// Creates new basket for this manager
-  for (auto i=0; i<nbaskets; ++i) {
-    GeantBasket *next = new GeantBasket(fBcap, this);
-    if (fCollector) next->SetMixed(kTRUE);
-    fNbaskets++;
-    next->SetThreshold(fThreshold.load(std::memory_order_relaxed));
-    td->RecycleBasket(next);
-  }  
 }
 
 //______________________________________________________________________________
-void GeantBasketMgr::Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td)
-{
-// Called whenever a basket has to be pushed to the queue. Recalculates
-// threshold for the basket manager.
+void GeantBasketMgr::CreateEmptyBaskets(Int_t nbaskets, GeantTaskData *td) {
+  // Creates new basket for this manager
+  for (auto i = 0; i < nbaskets; ++i) {
+    GeantBasket *next = new GeantBasket(fBcap, this);
+    if (fCollector)
+      next->SetMixed(kTRUE);
+    fNbaskets++;
+    next->SetThreshold(fThreshold.load(std::memory_order_relaxed));
+    td->RecycleBasket(next);
+  }
+}
+
+//______________________________________________________________________________
+void GeantBasketMgr::Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td) {
+  // Called whenever a basket has to be pushed to the queue. Recalculates
+  // threshold for the basket manager.
   const Int_t nthreads = td->fNthreads;
   Int_t threshold = fThreshold.load(std::memory_order_relaxed);
   Int_t threshold_new = threshold * fNused.load(std::memory_order_relaxed) / nthreads;
@@ -391,7 +387,7 @@ void GeantBasketMgr::Push(GeantBasket *basket, Bool_t priority, GeantTaskData *t
   }
   fNused++;
   fFeeder->push(basket, priority);
-}   
+}
 
 //______________________________________________________________________________
 GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
@@ -401,8 +397,10 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
     next = new GeantBasket(fBcap, this);
     fNbaskets++;
   }
-  if (fCollector) next->SetMixed(kTRUE);
-  else            next->SetBasketMgr(this);
+  if (fCollector)
+    next->SetMixed(kTRUE);
+  else
+    next->SetBasketMgr(this);
   next->SetThreshold(fThreshold.load(std::memory_order_relaxed));
   return next;
 }
@@ -432,8 +430,7 @@ void GeantBasketMgr::CleanBaskets(Int_t ntoclean, GeantTaskData *td) {
 //______________________________________________________________________________
 void GeantBasketMgr::Print(Option_t *) const {
   // Print info about the basket content.
-  Printf("Bsk_mgr %s: current: in=%d out=%d", GetName(),
-         GetCBasket()->GetNinput(), GetCBasket()->GetNoutput());
+  Printf("Bsk_mgr %s: current: in=%d out=%d", GetName(), GetCBasket()->GetNinput(), GetCBasket()->GetNoutput());
 }
 
 //______________________________________________________________________________

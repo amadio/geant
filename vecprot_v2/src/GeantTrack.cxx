@@ -54,7 +54,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 const Double_t gTolerance = vecgeom::kTolerance;
 #else
 namespace host_constant {
-   const Double_t gTolerance = TGeoShape::Tolerance();
+const Double_t gTolerance = TGeoShape::Tolerance();
 }
 #endif
 
@@ -99,7 +99,7 @@ GeantTrack::GeantTrack(Int_t ipdg)
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-GeantTrack::GeantTrack(Int_t ipdg,Int_t maxdepth)
+GeantTrack::GeantTrack(Int_t ipdg, Int_t maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false),
@@ -282,9 +282,9 @@ TGeoMaterial *GeantTrack::GetMaterial() const {
 //______________________________________________________________________________
 TGeoVolume *GeantTrack::GetVolume() const {
   // Current volume the track is into
-   vector<TGeoVolume*> vlist;
-   vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
-   return vlist[fVindex];
+  vector<TGeoVolume *> vlist;
+  vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
+  return vlist[fVindex];
 }
 #endif
 
@@ -321,7 +321,7 @@ void GeantTrack::Print(Int_t) const {
 
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
-    : fNtracks(0), fNselected(0), fCompact(true),fMixed(false), fMaxtracks(0), fHoles(0), fSelected(0), fMaxDepth(0),
+    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(0), fHoles(0), fSelected(0), fMaxDepth(0),
       fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0),
       fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0),
@@ -335,7 +335,7 @@ GeantTrack_v::GeantTrack_v()
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(Int_t size, Int_t maxdepth)
     : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(0), fHoles(0), fSelected(0),
-      fMaxDepth(maxdepth), fBufSize(0),  fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
+      fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
       fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
       fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -355,11 +355,12 @@ GeantTrack_v *GeantTrack_v::MakeInstanceAt(void *addr, unsigned int nTracks, Int
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth)
-    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(round_up_align(nTracks)), fHoles(0), fSelected(0),
-      fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
-      fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
-      fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(round_up_align(nTracks)), fHoles(0),
+      fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0),
+      fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0),
+      fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0),
+      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0),
+      fNextpathV(0) {
 
 // Constructor with maximum capacity.
 #ifdef __STAT_DEBUG_TRK
@@ -377,8 +378,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, Int_t maxdepth)
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
     : fNtracks(0), fNselected(track_v.fNselected), fCompact(track_v.fCompact), fMixed(track_v.fMixed),
-      fMaxtracks(track_v.fMaxtracks), fHoles(0), fSelected(0),
-      fMaxDepth(track_v.fMaxDepth), fBufSize(track_v.fBufSize),
+      fMaxtracks(track_v.fMaxtracks), fHoles(0), fSelected(0), fMaxDepth(track_v.fMaxDepth), fBufSize(track_v.fBufSize),
       fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0),
       fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0),
       fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0),
@@ -511,7 +511,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, Int_t size) {
   buf += size * sizeof(VolumePath_t *);
   fNextpathV = (VolumePath_t **)buf;
   buf += size * sizeof(VolumePath_t *);
-  
+
   // Now the start of objects, we need to align the memory.
   buf = round_up_align(buf);
   fVPstart = buf;
@@ -732,9 +732,9 @@ size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
-   // return the contiguous memory size needed to hold a GeantTrack_v
+  // return the contiguous memory size needed to hold a GeantTrack_v
 
-   return sizeof(GeantTrack_v)+BufferSize(nTracks,maxdepth);
+  return sizeof(GeantTrack_v) + BufferSize(nTracks, maxdepth);
 }
 
 //______________________________________________________________________________
@@ -1019,7 +1019,7 @@ Int_t GeantTrack_v::AddTrackSyncAt(Int_t itrack, GeantTrack_v &arr, Int_t i) {
   // Returns the location where the track was added.
   // This *assumes* that no track has been yet added to this array slot.
   // During the use of this routines (likely on a coprocessor where multiple
-  // threads are accessing the same GeantTrack_v, the GeantTrack_v is in 
+  // threads are accessing the same GeantTrack_v, the GeantTrack_v is in
   // a somewhat unsual state, where the array is not compact but fHole
   // is not maintain properly (See non concurrent save code comment out
   // below.
@@ -1029,17 +1029,17 @@ Int_t GeantTrack_v::AddTrackSyncAt(Int_t itrack, GeantTrack_v &arr, Int_t i) {
   arr.PrintTrack(i);
 #endif
 
-  // Technically, after setting fHoles to all on,
-  // we really should be doing:
-  //   fHoles->ResetBitNumber(itrack);
-  //   fSelected->ResetBitNumber(itrack);
-  // which use bit operation which are not (yet?)
-  // done atomically,
-  // and we should do:
-  //   atomically: fNtracks = max(fNtracks,itrack)
+// Technically, after setting fHoles to all on,
+// we really should be doing:
+//   fHoles->ResetBitNumber(itrack);
+//   fSelected->ResetBitNumber(itrack);
+// which use bit operation which are not (yet?)
+// done atomically,
+// and we should do:
+//   atomically: fNtracks = max(fNtracks,itrack)
 
 #ifdef GEANT_CUDA_DEVICE_BUILD
-  atomicAdd(&fNtracks,1);
+  atomicAdd(&fNtracks, 1);
 #else
   ++fNtracks;
 #endif
@@ -2623,16 +2623,15 @@ TGeoVolume *GeantTrack_v::GetNextVolume(Int_t i) const {
 //______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
   // Current volume the track is into
-   vector<TGeoVolume*> vlist;
-   vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
-   return vlist[fVindexV[i]];
+  vector<TGeoVolume *> vlist;
+  vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
+  return vlist[fVindexV[i]];
 }
-
 
 //______________________________________________________________________________
 TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
   // Current material the track is into
-   TGeoMedium *med = (TGeoMedium*)GetVolume(i)->getUserExtensionPtr();
+  TGeoMedium *med = (TGeoMedium *)GetVolume(i)->getUserExtensionPtr();
   if (!med)
     return 0;
   return med->GetMaterial();
@@ -2714,78 +2713,68 @@ Bool_t GeantTrack_v::BreakOnStep(Int_t evt, Int_t trk, Int_t stp, Int_t nsteps, 
 #ifdef GEANT_CUDA
 #ifndef GEANT_NVCC
 
-bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream)
-{
-   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
-   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
-   //       == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
+bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream) {
+  // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
+  // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
+  //       == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
 
-   size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
-   long offset = ((const char*)dest.GetPtr()+bufferOffset) - (const char*)source->Buffer();
-   for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
-      // Technically this offset is a 'guess' and depends on the
-      // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
-      if (source->fPathV[hostIdx])
-         source->fPathV[hostIdx] = (VolumePath_t*)(((char*)source->fPathV[hostIdx]) + offset);
-      if (source->fNextpathV[hostIdx])
-         source->fNextpathV[hostIdx] = (VolumePath_t*)(((char*)source->fNextpathV[hostIdx]) + offset);
-   }
-   // const char* destBuf =  ((const char*)dest.GetPtr()+vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
-   // const char* sourBuf =  (const char*)source->Buffer();
-   // for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
-   //    fprintf(stderr,"Track[%d] : val=%p diff=%p off=%p\n", hostIdx, source->fPathV[hostIdx],
-   //            ((const char*)source->fPathV[hostIdx]) - destBuf,  ((const char*)source->fPathV[hostIdx]) - offset);
-   // }
+  size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+  long offset = ((const char *)dest.GetPtr() + bufferOffset) - (const char *)source->Buffer();
+  for (int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx) {
+    // Technically this offset is a 'guess' and depends on the
+    // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
+    if (source->fPathV[hostIdx])
+      source->fPathV[hostIdx] = (VolumePath_t *)(((char *)source->fPathV[hostIdx]) + offset);
+    if (source->fNextpathV[hostIdx])
+      source->fNextpathV[hostIdx] = (VolumePath_t *)(((char *)source->fNextpathV[hostIdx]) + offset);
+  }
+  // const char* destBuf =  ((const char*)dest.GetPtr()+vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+  // const char* sourBuf =  (const char*)source->Buffer();
+  // for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
+  //    fprintf(stderr,"Track[%d] : val=%p diff=%p off=%p\n", hostIdx, source->fPathV[hostIdx],
+  //            ((const char*)source->fPathV[hostIdx]) - destBuf,  ((const char*)source->fPathV[hostIdx]) - offset);
+  // }
 
+  assert(((void *)source) == ((void *)(&(source->fNtracks))));
 
-   assert( ((void*)source) == ((void*)(&(source->fNtracks))));
+  // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
+  GEANT_CUDA_ERROR(cudaMemcpyAsync(((char *)dest.GetPtr()) + bufferOffset, source->Buffer(), source->BufferSize(),
+                                   cudaMemcpyHostToDevice, stream));
+  // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact,
+  // stream->fInputBasket->fMixed
+  GEANT_CUDA_ERROR(
+      cudaMemcpyAsync(dest, source, sizeof(Int_t) * 2 + sizeof(Bool_t) * 2, cudaMemcpyHostToDevice, stream));
 
-   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + bufferOffset,
-                                    source->Buffer(),
-                                    source->BufferSize(),
-                                    cudaMemcpyHostToDevice, stream));
-   // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact, stream->fInputBasket->fMixed
-   GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
-                                    source,
-                                    sizeof(Int_t)*2+sizeof(Bool_t)*2,
-                                    cudaMemcpyHostToDevice, stream));
-
-   return true;
+  return true;
 }
 
-void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source)
-{
-   size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
-   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
-   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
-   //        == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
+void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source) {
+  size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+  // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
+  // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
+  //        == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
 
-   long offset = ((const char*)dest->Buffer()) - (((const char*)source.GetPtr()) + bufferOffset);
-   for(int hostIdx = 0; hostIdx < dest->GetNtracks(); ++hostIdx ) {
-      // Technically this offset is a 'guess' and depends on the
-      // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
-      if (dest->fPathV[hostIdx]) dest->fPathV[hostIdx] = (VolumePath_t*)(((char*)dest->fPathV[hostIdx]) + offset);
-      if (dest->fNextpathV[hostIdx]) dest->fNextpathV[hostIdx] = (VolumePath_t*)(((char*)dest->fNextpathV[hostIdx]) + offset);
-   }
+  long offset = ((const char *)dest->Buffer()) - (((const char *)source.GetPtr()) + bufferOffset);
+  for (int hostIdx = 0; hostIdx < dest->GetNtracks(); ++hostIdx) {
+    // Technically this offset is a 'guess' and depends on the
+    // host (cxx) and device (cuda) GeantTrack_v to be strictly aligned.
+    if (dest->fPathV[hostIdx])
+      dest->fPathV[hostIdx] = (VolumePath_t *)(((char *)dest->fPathV[hostIdx]) + offset);
+    if (dest->fNextpathV[hostIdx])
+      dest->fNextpathV[hostIdx] = (VolumePath_t *)(((char *)dest->fNextpathV[hostIdx]) + offset);
+  }
 }
 
-bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream)
-{
-   size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
-   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-   GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
-                                    source.GetPtr(),
-                                    sizeof(Int_t)*2+sizeof(Bool_t)*2,
-                                    cudaMemcpyDeviceToHost, stream));
-   GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(),
-                                    ((char*)source.GetPtr()) + bufferOffset,
-                                    dest->BufferSize(),
-                                    cudaMemcpyDeviceToHost, stream));
-   return true;
+bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream) {
+  size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+  // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
+  GEANT_CUDA_ERROR(
+      cudaMemcpyAsync(dest, source.GetPtr(), sizeof(Int_t) * 2 + sizeof(Bool_t) * 2, cudaMemcpyDeviceToHost, stream));
+  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(), ((char *)source.GetPtr()) + bufferOffset, dest->BufferSize(),
+                                   cudaMemcpyDeviceToHost, stream));
+  return true;
 }
 #endif
 #endif
 
 } // Geant
-

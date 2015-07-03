@@ -1,6 +1,6 @@
 //===--- PhysicsProcess.h - Geant-V -----------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
@@ -11,7 +11,7 @@
  * 1. Single scattering as a discrete process;
  * 2. Energy loss as continuous process;
  * 3. Generic interaction as discrete process, producing secondaries.
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -26,10 +26,10 @@
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/Global.h"
 namespace vecgeom {
-  inline namespace VECGEOM_IMPL_NAMESPACE {
-  class Medium;
-  class Material;
-  }
+inline namespace VECGEOM_IMPL_NAMESPACE {
+class Medium;
+class Material;
+}
 }
 typedef vecgeom::Material TGeoMaterial;
 typedef vecgeom::Medium TGeoMedium;
@@ -45,7 +45,6 @@ class TGeoMaterial;
  */
 class PhysicsProcess : public TNamed {
 public:
-
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
 
@@ -56,15 +55,14 @@ public:
   enum EProcessType { kDiscrete = BIT(14), kContinuous = BIT(15) };
 
 public:
-
   /**
-   * @brief PhysicsProcess constructor 
+   * @brief PhysicsProcess constructor
    */
   PhysicsProcess() : TNamed() {}
 
   /**
    * @brief PhysicsProcess parametrized constructor
-   * 
+   *
    * @param name Name of physics process
    */
   PhysicsProcess(const char *name) : TNamed(name, "") {}
@@ -74,7 +72,7 @@ public:
 
   /**
    * @brief Function that check type
-   * 
+   *
    * @param type EProcessType type
    * @return Boolean value -> (Bool_t) ((fBits & type) != 0);
    */
@@ -85,34 +83,33 @@ public:
 
   /**
    * @brief Function that compute length of interaction ?????
-   * 
+   *
    * @param mat TGeoMaterial material
    * @param ntracks Number of tracks
    * @param tracks Vector of tracks_v
    * @param lengths Partial process lengths
    * @param td Thread data
    */
-  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
-                             Double_t *lengths, GeantTaskData *td) = 0;
+  virtual void ComputeIntLen(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths,
+                             GeantTaskData *td) = 0;
 
   /**
    * @brief Function that provides posterior steps
-   * 
+   *
    * @param mat TGeoMaterial material
    * @param ntracks Number of tracks
    * @param tracks Vector of tracks_v
    * @param nout Number of surviving tracks
    * @param td Thread data
    */
-  virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout,
-                        GeantTaskData *td) = 0;
+  virtual void PostStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantTaskData *td) = 0;
 
   /**
    * @brief Post step type of intraction sampling function
    * @details Sampling:
    * 1. Target atom and type of the interaction for each primary tracks
    * 2. All inf. regarding sampling output is stored in the tracks
-   * 
+   *
    * @param mat TGeoMaterial material
    * @param ntracks Number of tracks
    * @param tracks Vector of tracks_v
@@ -127,35 +124,33 @@ public:
    * interaction type sampled by PostStepTypeOfIntrActSampling;
    * updating primary track properties and inserting secondary tracks;
    * number of inserted secondary tracks will be stored in nout at termination;
-   * 
+   *
    * @param mat TGeoMaterial material
    * @param ntracks Number of tracks
    * @param tracks Vector of tracks_v
    * @param nout Number of tracks in the output
    * @param td Thread data
    */
-  virtual void PostStepFinalStateSampling(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
-                                          Int_t &nout, GeantTaskData *td) = 0;
+  virtual void PostStepFinalStateSampling(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout,
+                                          GeantTaskData *td) = 0;
 
   /**
    * @todo  Need to be implemented
    */
-  virtual void AtRest(Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, Int_t & /*nout*/,
-                      GeantTaskData */*td*/) {}
+  virtual void AtRest(Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, Int_t & /*nout*/, GeantTaskData * /*td*/) {}
   GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
-  virtual void Eloss(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/,
-                     Int_t & /*nout*/, GeantTaskData */*td*/) {}
+  virtual void Eloss(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, Int_t & /*nout*/,
+                     GeantTaskData * /*td*/) {}
   GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
-  virtual void ApplyMsc(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/,
-                        GeantTaskData */*td*/) {}
+  virtual void ApplyMsc(TGeoMaterial * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
 
   ClassDef(PhysicsProcess, 1) // Physics process base class
 };

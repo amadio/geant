@@ -1,12 +1,12 @@
 //===--- GeantTaskData.h - Geant-V ----------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantTaskData.h
- * @brief Implementation of data organized per thread Geant-V prototype 
- * @author Andrei Gheata 
+ * @brief Implementation of data organized per thread Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -37,34 +37,33 @@ class GeantBasket;
 /**
  * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
- * 
+ *
  */
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
-  Int_t fTid;          /** Thread unique id */
-  Int_t fNthreads;     /** Number of transport threads */
-  Int_t fMaxDepth;     /** Maximum geometry depth */
-  Int_t fSizeBool;     /** Size of bool array */
-  Int_t fSizeDbl;      /** Size of dbl array */
-  Bool_t fToClean;     /** Flag set when the basket queue is to be cleaned */
-  TGeoVolume *fVolume; /** Current volume per thread */
-  TRandom *fRndm;      /** Random generator for thread */
-  Bool_t *fBoolArray;  /** [fSizeBool] Thread array of bools */
-  Double_t *fDblArray; /** [fSizeDbl] Thread array of doubles */
-  GeantTrack fTrack;   /** Track support for this thread */
-  VolumePath_t *fPath; /** Volume path for the thread */
+  Int_t fTid;            /** Thread unique id */
+  Int_t fNthreads;       /** Number of transport threads */
+  Int_t fMaxDepth;       /** Maximum geometry depth */
+  Int_t fSizeBool;       /** Size of bool array */
+  Int_t fSizeDbl;        /** Size of dbl array */
+  Bool_t fToClean;       /** Flag set when the basket queue is to be cleaned */
+  TGeoVolume *fVolume;   /** Current volume per thread */
+  TRandom *fRndm;        /** Random generator for thread */
+  Bool_t *fBoolArray;    /** [fSizeBool] Thread array of bools */
+  Double_t *fDblArray;   /** [fSizeDbl] Thread array of doubles */
+  GeantTrack fTrack;     /** Track support for this thread */
+  VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
 #ifdef GEANT_NVCC
-   char fPool[sizeof(std::deque<GeantBasket*>)]; // Use the same space ...
+  char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
 #else
-   std::deque<GeantBasket*> fPool; /** Pool of empty baskets */
+  std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
 #endif
 
 public:
-
-   /** @brief GeantTaskData constructor */
+  /** @brief GeantTaskData constructor */
   GeantTaskData();
 
   /** @brief GeantTaskData constructor */
@@ -77,14 +76,14 @@ public:
 
   /**
    * @brief Function that return double array
-   * 
+   *
    * @param size Size of double array
    */
   Double_t *GetDblArray(Int_t size);
 
   /**
    * @brief Function that return boolean array
-   * 
+   *
    * @param size Size of boolean array
    */
   Bool_t *GetBoolArray(Int_t size);
@@ -92,7 +91,10 @@ public:
   /**
    * @brief Get the cleared storedtrack
    */
-  GeantTrack &GetTrack() { fTrack.Clear(); return fTrack; }
+  GeantTrack &GetTrack() {
+    fTrack.Clear();
+    return fTrack;
+  }
 
   /**
    * @brief Get next free basket or null if not available
@@ -108,21 +110,20 @@ public:
 
   /**
    * @brief Recycles a given basket
-   * 
+   *
    * @param b Pointer to current GeantBasket for recycling
    */
   void RecycleBasket(GeantBasket *b);
 
   /**
    * @brief Function cleaning a number of free baskets
-   * 
+   *
    * @param ntoclean Number of baskets to be cleaned
    * @return Number of baskets actually cleaned
    */
   Int_t CleanBaskets(size_t ntoclean);
 
 private:
-
   /**
    * @brief Constructor GeantTaskData
    * @todo Still not implemented
@@ -135,7 +136,7 @@ private:
    */
   GeantTaskData &operator=(const GeantTaskData &);
 
-   // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
+  // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

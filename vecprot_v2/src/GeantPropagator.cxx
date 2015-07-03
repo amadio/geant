@@ -75,20 +75,18 @@ ClassImp(GeantPropagator)
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0),
-      fNsafeSteps(0), fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), 
-      fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
-      fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1),
-      fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), 
-      fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fMaxRes(0), fNaverage(0), fVertex(),
+    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0), fNsafeSteps(0),
+      fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), fPriorityEvents(0), fDoneEvents(0),
+      fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1),
+      fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0),
+      fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fMaxRes(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
-      fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE), 
-      fTransportOngoing(kFALSE), 
-      fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE),
-      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fOutput(0), fOutTree(0), fOutFile(0), fTimer(0),
-      fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0),
-      fEvents(0), fThreadData(0) {
+      fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
+      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE),
+      fUseAppMonitoring(kFALSE), fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fOutput(0), fOutTree(0),
+      fOutFile(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0),
+      fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fVertex[0] = fVertex[1] = fVertex[2] = 0.;
   fgInstance = this;
@@ -142,7 +140,8 @@ Int_t GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
 void GeantPropagator::StopTrack(const GeantTrack_v &tracks, Int_t itr) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
-  if (fEvents[tracks.fEvslotV[itr]]->StopTrack()) fPriorityEvents++;
+  if (fEvents[tracks.fEvslotV[itr]]->StopTrack())
+    fPriorityEvents++;
 }
 
 //______________________________________________________________________________
@@ -162,42 +161,42 @@ GeantTrack &GeantPropagator::GetTempTrack(Int_t tid) {
 Int_t GeantPropagator::Feeder(GeantTaskData *td) {
   // Feeder called by any thread to inject the next event(s)
   // Only one thread at a time
-  if (fFeederLock.test_and_set(std::memory_order_acquire)) return -1;
+  if (fFeederLock.test_and_set(std::memory_order_acquire))
+    return -1;
   Int_t nbaskets = 0;
   if (!fLastEvent) {
     nbaskets = ImportTracks(fNevents, 0, 0, td);
     fLastEvent = fNevents;
     fFeederLock.clear(std::memory_order_release);
     return nbaskets;
-  }       
+  }
   // Check and mark finished events
   for (Int_t islot = 0; islot < fNevents; islot++) {
     GeantEvent *evt = fEvents[islot];
     if (fDoneEvents->TestBitNumber(evt->GetEvent()))
-        continue;
-      if (evt->Transported()) {
-        fPriorityEvents--;
-        evt->Print();
-        // Digitizer (todo)
-        Int_t ntracks = fNtracks[islot];
-        Printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
-        //            propagator->fApplication->Digitize(evt->GetEvent());
-        fDoneEvents->SetBitNumber(evt->GetEvent());
-        if (fLastEvent < fNtotal) {
-          Printf("=> Importing event %d", fLastEvent);
-          nbaskets += ImportTracks(1, fLastEvent, islot, td);
-          fLastEvent++;
-        }
+      continue;
+    if (evt->Transported()) {
+      fPriorityEvents--;
+      evt->Print();
+      // Digitizer (todo)
+      Int_t ntracks = fNtracks[islot];
+      Printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
+      //            propagator->fApplication->Digitize(evt->GetEvent());
+      fDoneEvents->SetBitNumber(evt->GetEvent());
+      if (fLastEvent < fNtotal) {
+        Printf("=> Importing event %d", fLastEvent);
+        nbaskets += ImportTracks(1, fLastEvent, islot, td);
+        fLastEvent++;
       }
     }
-  
+  }
+
   fFeederLock.clear(std::memory_order_release);
   return nbaskets;
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, 
-                                    GeantTaskData *thread_data) {
+Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t startslot, GeantTaskData *thread_data) {
   // Import tracks from "somewhere". Here we just generate nevents.
   static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -222,9 +221,9 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
     a = VolumePath_t::MakeInstance(fMaxDepth);
 #ifdef USE_VECGEOM_NAVIGATOR
     vecgeom::SimpleNavigator nav;
-    nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                    Vector3D<Precision>(fVertex[0], fVertex[1], fVertex[2]), *a, true);
-    vol = const_cast<TGeoVolume*>(a->Top()->GetLogicalVolume());
+    nav.LocatePoint(GeoManager::Instance().GetWorld(), Vector3D<Precision>(fVertex[0], fVertex[1], fVertex[2]), *a,
+                    true);
+    vol = const_cast<TGeoVolume *>(a->Top()->GetLogicalVolume());
     td->fVolume = vol;
 #else
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -238,7 +237,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
 
   } else {
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = const_cast<TGeoVolume*>(a->Top()->GetLogicalVolume());
+    vol = const_cast<TGeoVolume *>(a->Top()->GetLogicalVolume());
 #else
     TGeoNode const *node = a->GetCurrentNode();
     vol = node->GetVolume();
@@ -267,7 +266,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
     fEvents[slot]->SetEvent(event);
     fEvents[slot]->Reset();
     // Set priority threshold to non-default value
-    if (fPriorityThr > 0) fEvents[slot]->SetPriorityThr(fPriorityThr);
+    if (fPriorityThr > 0)
+      fEvents[slot]->SetPriorityThr(fPriorityThr);
 
     for (Int_t i = 0; i < ntracks; i++) {
       GeantTrack &track = td->GetTrack();
@@ -276,7 +276,8 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
       track.SetEvent(event);
       track.SetEvslot(slot);
       fPrimaryGenerator->GetTrack(i, track);
-      if (!track.IsNormalized()) track.Print();
+      if (!track.IsNormalized())
+        track.Print();
       track.fFrombdr = kFALSE;
       track.fStatus = kAlive;
       track.fVindex = basket_mgr->GetNumber();
@@ -294,8 +295,9 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
 //______________________________________________________________________________
 GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered) {
   // Single instance of the propagator
-  if (fgInstance) return fgInstance;
-  if (ntotal<=0 || nbuffered<=0) {
+  if (fgInstance)
+    return fgInstance;
+  if (ntotal <= 0 || nbuffered <= 0) {
     Printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
     return 0;
   }
@@ -305,7 +307,7 @@ GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered) {
   if (nbuffered > ntotal) {
     Printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
     fgInstance->fNevents = ntotal;
-  }  
+  }
   GeantFactoryStore::Instance(nbuffered);
   return fgInstance;
 }
@@ -356,10 +358,10 @@ void GeantPropagator::InitializeAfterGeom() {
     for (Int_t i = 0; i < fNthreads; i++) {
       fThreadData[i] = new GeantTaskData();
       fThreadData[i]->fTid = i;
-//      for (Int_t j=0; j<1000; j++) {
-//        GeantBasket *b = new GeantBasket(fNperBasket, fMaxDepth);
-//        fThreadData[i]->RecycleBasket(b);
-//      }
+      //      for (Int_t j=0; j<1000; j++) {
+      //        GeantBasket *b = new GeantBasket(fNperBasket, fMaxDepth);
+      //        fThreadData[i]->RecycleBasket(b);
+      //      }
     }
   }
   // Initialize application
@@ -379,7 +381,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
     Printf("Now loading VecGeom geometry\n");
 #ifdef USE_VECGEOM_NAVIGATOR
-    // Load the geometry somehow!
+// Load the geometry somehow!
 #else
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
 #endif
@@ -397,7 +399,8 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
 #endif
 
-    if (fWMgr->GetTaskBroker()) Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    if (fWMgr->GetTaskBroker())
+      Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
     return fWMgr->LoadGeometry();
   }
   return true;
@@ -407,11 +410,11 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
 #ifndef USE_VECGEOM_GEOMETRY
 //______________________________________________________________________________
 Bool_t GeantPropagator::LoadGeometry(const char *filename) {
-  // Load the detector geometry from file, unless already loaded.
+// Load the detector geometry from file, unless already loaded.
 #ifdef USE_VECGEOM_NAVIGATOR
-   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
+  vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
 #else
-   TGeoManager *geom = (gGeoManager) ? gGeoManager : TGeoManager::Import(filename);
+  TGeoManager *geom = (gGeoManager) ? gGeoManager : TGeoManager::Import(filename);
 #endif
   if (geom) {
 #if USE_VECGEOM_NAVIGATOR == 1
@@ -451,7 +454,8 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTask
   TGeoMaterial *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((TGeoMedium*) td->fVolume->getUserExtensionPtr())->GetMaterial();;
+    mat = ((TGeoMedium *)td->fVolume->getUserExtensionPtr())->GetMaterial();
+  ;
 #else
     mat = td->fVolume->GetMaterial();
 #endif
@@ -459,8 +463,7 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTask
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_t graphics,
-                                     Bool_t single) {
+void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_t graphics, Bool_t single) {
   // Propagate fNevents in the volume containing the vertex.
   // Simulate 2 physics processes up to exiting the current volume.
   static Bool_t called = kFALSE;
@@ -506,7 +509,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     memset(fEvents, 0, fNevents * sizeof(GeantEvent *));
   }
 
-//  Feeder(fThreadData[0]);
+  //  Feeder(fThreadData[0]);
 
   // Initialize tree
   fOutput = new GeantOutput();
@@ -532,8 +535,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   fWMgr->StartThreads();
   fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
-//  condition_locker &sched_locker = fWMgr->GetSchLocker();
-//  sched_locker.StartOne();
+  //  condition_locker &sched_locker = fWMgr->GetSchLocker();
+  //  sched_locker.StartOne();
   fWMgr->WaitWorkers();
   fTimer->Stop();
   Double_t rtime = fTimer->RealTime();
@@ -555,13 +558,13 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   Int_t nsteps = fWMgr->GetScheduler()->GetNsteps();
   Printf("=== Transported: %lld primaries/%lld tracks,  total steps: %d, safety steps: %lld,  snext steps: %lld, "
          "phys steps: %lld, RT=%gs, CP=%gs",
-         fNprimaries.load(), fNtransported.load(), nsteps, fNsafeSteps.load(), fNsnextSteps.load(),
-         fNphysSteps.load(), rtime, ctime);
-  Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup,
-         efficiency);
-//  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
+         fNprimaries.load(), fNtransported.load(), nsteps, fNsafeSteps.load(), fNsnextSteps.load(), fNphysSteps.load(),
+         rtime, ctime);
+  Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
+  //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
   fApplication->FinishRun();
-  if (fStdApplication) fStdApplication->FinishRun();
+  if (fStdApplication)
+    fStdApplication->FinishRun();
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");
 #else
@@ -572,8 +575,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 #ifdef GEANTV_OUTPUT_RESULT_FILE
   gSystem->mkdir("results");
   FILE *fp = fopen(Form("results/%s_%d.dat", geomname, single), "w");
-  fprintf(fp, "%d %lld %lld %lld %g %g", single, fNsafeSteps, fNsnextSteps, fNphysSteps, rtime,
-          ctime);
+  fprintf(fp, "%d %lld %lld %lld %g %g", single, fNsafeSteps, fNsnextSteps, fNphysSteps, rtime, ctime);
   fclose(fp);
 #endif
   fOutFile = 0;
