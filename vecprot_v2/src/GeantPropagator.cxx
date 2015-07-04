@@ -223,11 +223,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
     vecgeom::SimpleNavigator nav;
     nav.LocatePoint(GeoManager::Instance().GetWorld(), Vector3D<Precision>(fVertex[0], fVertex[1], fVertex[2]), *a,
                     true);
-#ifdef VECGEOM_ROOT
     vol = const_cast<TGeoVolume *>(a->Top()->GetLogicalVolume());
-#else
-    vol = a->Top()->GetLogicalVolume();
-#endif
     td->fVolume = vol;
 #else
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
