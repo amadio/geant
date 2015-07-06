@@ -1450,6 +1450,11 @@ void GeantTrack_v::PropagateInVolume(int ntracks, const double *crtstep, GeantTa
   }
 }
 
+#include "GUFieldPropagator.h"
+// #include "GUFieldPropagatorPool.h"
+
+// #define RUNGE_KUTTA  1 
+
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData * /*td*/) {
@@ -1460,6 +1465,22 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   // - physics step (bdr=0)
   // - safety step (bdr=0)
   // - snext step (bdr=1)
+
+   Double_t c = 0.;
+   const Double_t *point = 0;
+   const Double_t *newdir = 0;
+
+#ifndef RUNGE_KUTTA
+   GeantThreadData *td = gPropagator->fThreadData[tid];
+   
+   TGeoHelix *fieldp = td->fFieldPropagator;
+#else
+   static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::CreateOrFind(gPropagator->fNthreads);
+   assert( fieldPropPool );  // Cannot be zero
+  
+   GUFieldPropagator *fieldp = fieldPropPool->GetPropagator(tid);
+#endif
+   
   // Reset relevant variables
   fStatusV[i] = kInFlight;
   fPstepV[i] -= crtstep;
