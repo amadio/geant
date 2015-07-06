@@ -18,8 +18,12 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc)
 
 add_executable(testMagFieldEquation testMagFieldEquation.cxx) ## ${sources} ${headers})
-target_link_libraries(testMagFieldEquation Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+target_link_libraries(testMagFieldEquation Vmagfield ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testMagFieldEquation")
+
+add_executable(testTClassicalRK4 testTClassicalRK4.cxx) ## ${sources} ${headers})
+target_link_libraries(testTClassicalRK4 Vmagfield ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+message(STATUS "Created target for testTClassicalRK4")
 
 ## add_executable(testFieldPropagator TestGUFieldPropagator.cxx) ## ${sources} ${headers})
 ## target_link_libraries(testFieldPropagator Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
