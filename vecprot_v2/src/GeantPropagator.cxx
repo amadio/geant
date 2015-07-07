@@ -32,6 +32,7 @@
 
 #if USE_VECGEOM_NAVIGATOR == 1
 #include "navigation/SimpleNavigator.h"
+void loadrootgeometry();
 //#include "management/RootGeoManager.h"
 #include "volumes/LogicalVolume.h"
 #include "volumes/PlacedVolume.h"
@@ -380,11 +381,7 @@ void GeantPropagator::InitializeAfterGeom() {
 Bool_t GeantPropagator::LoadVecGeomGeometry() {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
     Printf("Now loading VecGeom geometry\n");
-#ifdef USE_VECGEOM_NAVIGATOR
-// Load the geometry somehow!
-#else
-    vecgeom::RootGeoManager::Instance().LoadRootGeometry();
-#endif
+    loadrootgeometry();
     Printf("Loading VecGeom geometry done\n");
     Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
     std::vector<vecgeom::LogicalVolume *> v1;
