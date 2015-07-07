@@ -248,6 +248,8 @@ include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
 message(STATUS "VECGEOM_INSTALL_DIR is -${VECGEOM_INSTALL_DIR}-")
 message(STATUS "VECGEOM_INCLUDE_DIR is -${VECGEOM_INCLUDE_DIR}-")
 
+string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
