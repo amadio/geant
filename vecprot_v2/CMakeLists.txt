@@ -30,7 +30,7 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/loadrootgeometry.cxx
-
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/loadvecgeomgeometry.cxx
 )     
 
 set(headers
@@ -97,3 +97,10 @@ target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXse
        ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
 
 add_dependencies(CMSApp Geant_v Xsec GeantExamples)
+
+add_executable(runApp runApp.cc)
+
+target_link_libraries(runApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+       ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
+
+add_dependencies(runApp Geant_v Xsec GeantExamples)

@@ -333,7 +333,7 @@ void *WorkloadManager::TransportTracks(void *) {
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
 #ifdef USE_VECGEOM_NAVIGATOR
-      mat = ((TGeoMedium *)td->fVolume->getUserExtensionPtr())->GetMaterial();
+      mat = ((TGeoMedium *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
 #else
       mat = td->fVolume->GetMaterial();
 #endif

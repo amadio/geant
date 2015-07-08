@@ -384,6 +384,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     loadrootgeometry();
     Printf("Loading VecGeom geometry done\n");
     Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
+    // Create the tab. phys process.
     std::vector<vecgeom::LogicalVolume *> v1;
     vecgeom::GeoManager::Instance().getAllLogicalVolumes(v1);
     Printf("Have logical volumes %ld\n", v1.size());
@@ -395,12 +396,12 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
 #else
     vecgeom::RootGeoManager::Instance().world()->PrintContent();
 #endif
-
-    if (fWMgr->GetTaskBroker())
-      Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
-    return fWMgr->LoadGeometry();
   }
-  return true;
+  if (fWMgr && fWMgr->GetTaskBroker()) {
+    Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    return fWMgr->LoadGeometry();
+  } else
+    return true;
 }
 #endif
 
@@ -433,7 +434,7 @@ void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantTaskDat
   TGeoMaterial *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((TGeoMedium *)td->fVolume->getUserExtensionPtr())->GetMaterial();
+    mat = ((TGeoMedium *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
 #else
     mat = td->fVolume->GetMaterial();
 #endif
@@ -451,7 +452,7 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTask
   TGeoMaterial *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((TGeoMedium *)td->fVolume->getUserExtensionPtr())->GetMaterial();
+    mat = ((TGeoMedium *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
   ;
 #else
     mat = td->fVolume->GetMaterial();

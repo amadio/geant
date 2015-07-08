@@ -136,6 +136,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
 #else
   while ((mat = (TGeoMaterial *)next())) {
 #endif
+    cout << mat->GetName() << "used " << mat->IsUsed() << " Z " << mat->GetZ() << endl;
     if (!mat->IsUsed() || mat->GetZ() < 1.)
       continue;
     fNmaterials++;
@@ -222,7 +223,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
       Fatal("TTabPhysMgr", "The material (%s) seems to have no elements", mat->GetName());
     }
     // Construct the TMXsec object that corresponds to the current material
-    TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetTitle(), z, a, w, nelem, mat->GetDensity(), kTRUE, fDecay);
+    TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetName(), z, a, w, nelem, mat->GetDensity(), kTRUE, fDecay);
     fMatXsec[fNmaterials++] = mxs;
     // Connect to TGeoMaterial
     mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));
