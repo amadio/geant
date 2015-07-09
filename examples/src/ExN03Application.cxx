@@ -19,8 +19,8 @@ typedef vecgeom::VPlacedVolume TGeoNode;
 
 ClassImp(ExN03Application)
 
-//______________________________________________________________________________
-ExN03Application::ExN03Application()
+    //______________________________________________________________________________
+    ExN03Application::ExN03Application()
     : GeantVApplication(), fInitialized(kFALSE), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
@@ -40,7 +40,7 @@ Bool_t ExN03Application::Initialize() {
 #ifndef USE_VECGEOM_NAVIGATOR
   if (!gGeoManager) {
 #else
-  if(!GeoManager::Instance().GetWorld()) {
+  if (!GeoManager::Instance().GetWorld()) {
 #endif
     Error("Initialize", "Geometry not loaded");
     return kFALSE;
@@ -54,8 +54,7 @@ Bool_t ExN03Application::Initialize() {
 #endif
 
   if (!lvGap || !lvAbs) {
-    Error("Initialize",
-          "Logical volumes for gap and absorber not found - do you use the right geometry");
+    Error("Initialize", "Logical volumes for gap and absorber not found - do you use the right geometry");
     return kFALSE;
   }
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -81,12 +80,12 @@ void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, Gean
   TGeoNode const *current;
   Int_t idvol, idnode, ilev;
   for (Int_t i = 0; i < npart; i++) {
-    //      printf("%d=>\n", i);
-    //      tracks.PrintTrack(i);
+//      printf("%d=>\n", i);
+//      tracks.PrintTrack(i);
 #ifndef USE_VECGEOM_NAVIGATOR
     ilev = tracks.fPathV[i]->GetLevel();
 #else
-    ilev = tracks.fPathV[i]->GetCurrentLevel()-1;
+    ilev = tracks.fPathV[i]->GetCurrentLevel() - 1;
 #endif
     if (ilev < 1)
       continue;
@@ -165,8 +164,7 @@ void ExN03Application::Digitize(Int_t /* event */) {
   histeg->SetMarkerColor(kRed);
   histeg->SetMarkerStyle(2);
   histeg->SetStats(kFALSE);
-  TH1F *histea =
-      new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 12, 0.5, 12.5);
+  TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 12, 0.5, 12.5);
   histea->SetMarkerColor(kBlue);
   histea->SetMarkerStyle(4);
   histea->SetStats(kFALSE);
@@ -174,11 +172,11 @@ void ExN03Application::Digitize(Int_t /* event */) {
     histeg->SetBinContent(i + 3, fEdepGap[i][0] * 1000. / nprim);
     histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
   }
-  Double_t minval = TMath::Min(histeg->GetBinContent(histeg->GetMinimumBin()),
-                               histea->GetBinContent(histea->GetMinimumBin()));
+  Double_t minval =
+      TMath::Min(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
   minval = TMath::Max(minval, 1.E-5);
-  Double_t maxval = TMath::Max(histeg->GetBinContent(histeg->GetMaximumBin()),
-                               histea->GetBinContent(histea->GetMaximumBin()));
+  Double_t maxval =
+      TMath::Max(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
   histeg->GetXaxis()->SetTitle("Layer");
   histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
   histeg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);
@@ -203,11 +201,9 @@ void ExN03Application::Digitize(Int_t /* event */) {
   }
   histlg->GetXaxis()->SetTitle("Layer");
   histlg->GetYaxis()->SetTitle("Length per layer");
-  minval = TMath::Min(histlg->GetBinContent(histlg->GetMinimumBin()),
-                      histla->GetBinContent(histla->GetMinimumBin()));
+  minval = TMath::Min(histlg->GetBinContent(histlg->GetMinimumBin()), histla->GetBinContent(histla->GetMinimumBin()));
   minval = TMath::Max(minval, 1.E-5);
-  maxval = TMath::Max(histlg->GetBinContent(histlg->GetMaximumBin()),
-                      histla->GetBinContent(histla->GetMaximumBin()));
+  maxval = TMath::Max(histlg->GetBinContent(histlg->GetMaximumBin()), histla->GetBinContent(histla->GetMaximumBin()));
   histlg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);
   histlg->Draw("P");
   histla->Draw("SAMEP");
