@@ -213,13 +213,7 @@ public:
 #endif
   }
 
-  Int_t ThreadId() {
-#ifdef USE_VECGEOM_NAVIGATOR
-    return 1;
-#else
-    return TGeoManager::ThreadId();
-#endif
-  }
+   Int_t ThreadId(); 
 
   /** @brief Getter for the global transport threshold */
   Int_t GetNminThreshold() const { return fNminThreshold; }
