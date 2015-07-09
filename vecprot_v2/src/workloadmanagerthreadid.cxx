@@ -9,13 +9,10 @@ using namespace Geant;
 
 ClassImp(WorkloadManager)
 
-
-int WorkloadManager::ThreadId() {
-     gGeoManager->SetMultiThread();
-     return TGeoManager::ThreadId();
-  }
+    int WorkloadManager::ThreadId() {
+  gGeoManager->SetMultiThread();
+  return TGeoManager::ThreadId();
+}
 #ifdef RESTORE_USE_VEGEOM_NAVIGATOR
 #define USE_VECGEOM_NAVIGATOR
 #endif
-
-

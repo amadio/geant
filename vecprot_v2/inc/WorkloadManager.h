@@ -213,7 +213,7 @@ public:
 #endif
   }
 
-   Int_t ThreadId(); 
+  Int_t ThreadId();
 
   /** @brief Getter for the global transport threshold */
   Int_t GetNminThreshold() const { return fNminThreshold; }
