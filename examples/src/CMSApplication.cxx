@@ -1,5 +1,17 @@
 #include "CMSApplication.h"
+#include "ExN03Application.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "management/GeoManager.h"
+#include "volumes/LogicalVolume.h"
+using vecgeom::GeoManager;
+typedef vecgeom::VPlacedVolume TGeoNode;
+#include "volumes/Medium.h"
+typedef vecgeom::Medium TGeoMedium;
+#include "volumes/Material.h"
+typedef vecgeom::Material TGeoMaterial;
+#else
 #include "TGeoNode.h"
+#endif
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
@@ -71,7 +83,11 @@ Bool_t CMSApplication::Initialize() {
   Int_t necal = 0;
   Int_t nhcal = 0;
   for (Int_t ivol=0; ivol<kNvolumes; ++ivol) {
+#ifdef USE_VECGEOM_NAVIGATOR
+    vol = GeoManager::Instance().FindLogicalVolume(ivol);
+#else
     vol = gGeoManager->GetVolume(ivol);
+#endif
     svol = vol->GetName();
     // ECAL cells
     if (svol.BeginsWith("EBRY") || svol.BeginsWith("EFRY")) {
@@ -81,7 +97,12 @@ Bool_t CMSApplication::Initialize() {
       necal++;
     }
     // HCAL cells
+#ifdef USE_VECGEOM_NAVIGATOR
+    if (vol->getTrackingMediumPtr()) 
+       smat = ((vecgeom::Medium*)vol->getTrackingMediumPtr())->GetMaterial()->GetName();
+#else
     if (vol->GetMedium()) smat = vol->GetMaterial()->GetName();
+#endif
     if (smat == "Scintillator") {
       fSensFlags[ivol] = true;
       fHCALMap[ivol] = nhcal;
@@ -110,7 +131,11 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
   TGeoVolume *vol;
   for (Int_t itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
+#ifdef USE_VECGEOM_NAVIGATOR
+    ivol = vol->id();
+#else
     ivol = vol->GetNumber();
+#endif
     idtype = 0;
     if (fSensFlags[ivol]) {
       if (vol->GetName()[0] == 'E') idtype = 1;
@@ -132,7 +157,11 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
       if (propagator->fNthreads > 1)
         fMHist.lock();
       Double_t capacity = 0.;
+#ifdef USE_VECGEOM_NAVIGATOR
+      capacity = 1.;
+#else
       capacity = vol->GetShape()->Capacity();
+#endif
       if (TMath::Abs(tracks.fPDGV[itr]) == 11) {
         fFluxElec->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
         fEdepElec->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
@@ -170,7 +199,11 @@ void CMSApplication::Digitize(Int_t /* event */) {
     for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
     }
+#ifdef USE_VECGEOM_NAVIGATOR
+    Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fECALid[i])->GetName(), fEdepECAL[i][0] * 1000. / nprim);
+#else
     Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fECALid[i])->GetName(), fEdepECAL[i][0] * 1000. / nprim);
+#endif
   }
   Printf("Energy deposit in HCAL [MeV/primary] ");
   Printf("================================================================================");
@@ -178,7 +211,11 @@ void CMSApplication::Digitize(Int_t /* event */) {
     for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
       fEdepHCAL[i][0] += fEdepHCAL[i][tid];
     }
+#ifdef USE_VECGEOM_NAVIGATOR
+    Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fECALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
+#else
     Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fHCALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
+#endif
   }
   Printf("================================================================================");
 }

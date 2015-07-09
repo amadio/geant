@@ -1,5 +1,12 @@
 #include "ExN03Application.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "management/GeoManager.h"
+#include "volumes/LogicalVolume.h"
+using vecgeom::GeoManager;
+typedef vecgeom::VPlacedVolume TGeoNode;
+#else
 #include "TGeoNode.h"
+#endif
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
@@ -30,20 +37,34 @@ Bool_t ExN03Application::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return kTRUE;
+#ifndef USE_VECGEOM_NAVIGATOR
   if (!gGeoManager) {
+#else
+  if(!GeoManager::Instance().GetWorld()) {
+#endif
     Error("Initialize", "Geometry not loaded");
     return kFALSE;
   }
+#ifndef USE_VECGEOM_NAVIGATOR
   TGeoVolume *lvGap = gGeoManager->GetVolume("liquidArgon");
   TGeoVolume *lvAbs = gGeoManager->GetVolume("Lead");
+#else
+  TGeoVolume *lvGap = GeoManager::Instance().FindLogicalVolume("liquidArgon");
+  TGeoVolume *lvAbs = GeoManager::Instance().FindLogicalVolume("Lead");
+#endif
 
   if (!lvGap || !lvAbs) {
     Error("Initialize",
           "Logical volumes for gap and absorber not found - do you use the right geometry");
     return kFALSE;
   }
+#ifndef USE_VECGEOM_NAVIGATOR
   fIdGap = lvGap->GetNumber();
   fIdAbs = lvAbs->GetNumber();
+#else
+  fIdGap = lvGap->id();
+  fIdAbs = lvAbs->id();
+#endif
   fInitialized = kTRUE;
   return kTRUE;
 }
@@ -62,14 +83,27 @@ void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, Gean
   for (Int_t i = 0; i < npart; i++) {
     //      printf("%d=>\n", i);
     //      tracks.PrintTrack(i);
+#ifndef USE_VECGEOM_NAVIGATOR
     ilev = tracks.fPathV[i]->GetLevel();
+#else
+    ilev = tracks.fPathV[i]->GetCurrentLevel()-1;
+#endif
     if (ilev < 1)
       continue;
+#ifndef USE_VECGEOM_NAVIGATOR
     current = tracks.fPathV[i]->GetCurrentNode();
+#else
+    current = tracks.fPathV[i]->Top();
+#endif
     if (!current)
       continue;
+#ifndef USE_VECGEOM_NAVIGATOR
     idnode = tracks.fPathV[i]->GetNode(ilev - 1)->GetNumber();
     idvol = current->GetVolume()->GetNumber();
+#else
+    idnode = tracks.fPathV[i]->At(ilev - 1)->id();
+    idvol = current->GetLogicalVolume()->id();
+#endif
     if (idvol == fIdGap) {
       //         tracks.PrintTrack(i);
       fEdepGap[idnode - 3][tid] += tracks.fEdepV[i];
