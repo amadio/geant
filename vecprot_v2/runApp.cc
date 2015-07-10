@@ -29,7 +29,7 @@
 void loadvecgeomgeometry(GeantPropagator *prop);
 
 int main() {
-  Int_t nthreads = 4;
+  Int_t nthreads = 2;
   const char *geomfile = "ExN03.root";
   const char *xsec = "xsec_FTFP_BERT.root";
   const char *fstate = "fstate_FTFP_BERT.root";
@@ -54,12 +54,16 @@ int main() {
   // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
   //=============================================================================
   Bool_t performance = true;
+  double vt[3]={-8,0,0};
 
   Int_t ntotal = 50;    // Number of events to be transported
   Int_t nbuffered = 10; // Number of buffered events (tunable [1,ntotal])
   TGeoManager::Import(geomfile);
 
   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
+  prop->fVertex[0]=vt[0];
+  prop->fVertex[1]=vt[1];
+  prop->fVertex[2]=vt[2];
   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
   // Monitor different features
   wmgr->SetNminThreshold(5 * nthreads);
@@ -105,7 +109,7 @@ int main() {
   // for vector physics -OFF now
   // prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin, nthreads);
 
-  prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
+  prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, vt[0], vt[1], vt[2], 1, 0, 0);
 
   // Number of steps for learning phase (tunable [0, 1e6])
   // if set to 0 disable learning phase
