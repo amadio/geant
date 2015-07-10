@@ -2631,7 +2631,7 @@ TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
 //______________________________________________________________________________
 TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
   // Current material the track is into
-  TGeoMedium *med = (TGeoMedium *)GetVolume(i)->getUserExtensionPtr();
+  TGeoMedium *med = (TGeoMedium *)GetVolume(i)->getTrackingMediumPtr();
   if (!med)
     return 0;
   return med->GetMaterial();
