@@ -6,6 +6,7 @@
 
 #include "HepMC/HepMC.h"
 #include "GunGenerator.h"
+#include "base/messagelogger.h"
 #include "HepMCGenerator.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #define RESTORE_USE_VECGEOM_NAVIGATOR
@@ -29,7 +30,7 @@
 void loadvecgeomgeometry(GeantPropagator *prop);
 
 int main() {
-  Int_t nthreads = 2;
+  Int_t nthreads = 15;
   const char *geomfile = "ExN03.root";
   const char *xsec = "xsec_FTFP_BERT.root";
   const char *fstate = "fstate_FTFP_BERT.root";
@@ -133,4 +134,6 @@ int main() {
   prop->fUseAppMonitoring = false;
   prop->PropagatorGeom(geomfile, nthreads, graphics);
   delete prop;
+
+  vecgeom::messagelogger::I()->summary(std::cout, "a");
 }
