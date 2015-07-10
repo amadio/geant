@@ -54,16 +54,16 @@ int main() {
   // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
   //=============================================================================
   Bool_t performance = true;
-  double vt[3]={-8,0,0};
+  double vt[3] = {-8, 0, 0};
 
   Int_t ntotal = 50;    // Number of events to be transported
   Int_t nbuffered = 10; // Number of buffered events (tunable [1,ntotal])
   TGeoManager::Import(geomfile);
 
   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
-  prop->fVertex[0]=vt[0];
-  prop->fVertex[1]=vt[1];
-  prop->fVertex[2]=vt[2];
+  prop->fVertex[0] = vt[0];
+  prop->fVertex[1] = vt[1];
+  prop->fVertex[2] = vt[2];
   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
   // Monitor different features
   wmgr->SetNminThreshold(5 * nthreads);
