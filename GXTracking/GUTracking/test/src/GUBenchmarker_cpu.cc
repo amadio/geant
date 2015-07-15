@@ -2,7 +2,7 @@
 #include "GUHistogram.h"
 
 #include "GUComptonKleinNishina.h"
-#include "GVComptonKleinNishina.h"
+#include "ComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
 #include "GUMollerBhabha.h"
@@ -39,7 +39,7 @@ Precision ScalarVKleinNishina(int ntracks,
 			      int *targetElements,
 			      GUTrack* otrack_aos)
 {
-  static vecphys::cxx::GVComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -165,7 +165,7 @@ Precision VectorVKleinNishina(GUTrack_v& itrack_soa,
 			      int *targetElements,
 			      GUTrack_v& otrack_soa)
 {
-  static vecphys::cxx::GVComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -283,7 +283,7 @@ Precision G4VKleinNishina(int ntracks,
                           int *targetElements,
 			  GUTrack* otrack_aos)
 {
-  static vecphys::cxx::GVComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;

@@ -44,7 +44,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 ################################################################################
-SET(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-6.5")
+SET(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-7.0")
 
 # Determine backend
 
@@ -272,7 +272,7 @@ include_directories(${CMAKE_SOURCE_DIR}
 set(SRC_CPP_RELATIVE
   src/GUAliasSampler.cc
   src/GUComptonKleinNishina.cc
-  src/GVComptonKleinNishina.cc
+  src/ComptonKleinNishina.cc
   src/GUConversionBetheHeitler.cc
   src/GUPhotoElectronSauterGavrila.cc
   src/GUMollerBhabha.cc
@@ -282,7 +282,7 @@ set(SRC_CPP_RELATIVE
 #  src/GUElement.cc
   src/GUAliasTableManager.cc
   src/Physics2DVector.cc
-  src/GUEmModelBase.cc
+  src/EmModelBase.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
