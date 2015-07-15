@@ -7,7 +7,7 @@
 
 #include "GUAliasSampler.h"
 #include "GUComptonKleinNishina.h"
-#include "GVComptonKleinNishina.h"
+#include "ComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
 #include "GUMollerBhabha.h"
@@ -39,7 +39,7 @@ void GUBenchmarker::RunCuda()
 
   //prepare table - this step may be move to the physics list later
   GUComptonKleinNishina *KleinNishina = new GUComptonKleinNishina(0,-1);
-  GVComptonKleinNishina *VKleinNishina = new GVComptonKleinNishina(0,-1);
+  ComptonKleinNishina *VKleinNishina = new ComptonKleinNishina(0,-1);
   GUConversionBetheHeitler *BetheHeitler = new GUConversionBetheHeitler(0,-1);
   GUPhotoElectronSauterGavrila *SauterGavrila = new GUPhotoElectronSauterGavrila(0,-1);
   GUMollerBhabha *MollerBhabha = new GUMollerBhabha(0,-1);
@@ -117,6 +117,7 @@ void GUBenchmarker::RunCuda()
 
     for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
 
+      fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
       cudaMemcpy(itrack_d, track_aos, fNtracks*sizeof(GUTrack), 
                    cudaMemcpyHostToDevice);
 

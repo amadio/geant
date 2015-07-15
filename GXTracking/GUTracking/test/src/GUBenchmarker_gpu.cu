@@ -1,7 +1,7 @@
 #include "base/Stopwatch.h"
 
 #include "GUComptonKleinNishina.h"
-#include "GVComptonKleinNishina.h"
+#include "ComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
 #include "GUMollerBhabha.h"
@@ -47,7 +47,7 @@ void KernelVKleinNishina(Random_t* devStates,
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kVKleinNishina]);
-  GVComptonKleinNishina model(devStates,tid,&sampler);
+  ComptonKleinNishina model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
