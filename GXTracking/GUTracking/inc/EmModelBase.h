@@ -15,8 +15,8 @@ class EmModelBase {
 public:
 
   VECPHYS_CUDA_HEADER_BOTH 
-  EmModelBase(EmModel * model, Random_t* states, int tid) 
-    : fModel(model), fRandomState(states), fThreadId(tid) {};
+  EmModelBase(Random_t* states, int tid) 
+    : fRandomState(states), fThreadId(tid) {};
 
   //scalar
   template <typename Backend>
@@ -62,10 +62,6 @@ private:
                             GUTrack& secondary);
 
   //data members
-
-private:
-  EmModel *const fModel; // to keep a pointer of implementation class
-
 protected:
   Random_t* fRandomState;
   int       fThreadId;
@@ -82,7 +78,7 @@ void EmModelBase<EmModel>::Interact(GUTrack& inProjectile,
   double energyIn= inProjectile.E;
   double energyOut, sinTheta;
 
-  fModel->EmModel::template InteractKernel<Backend>(energyIn,targetElement,energyOut,sinTheta);
+  static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,targetElement,energyOut,sinTheta);
 
   //update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
@@ -115,7 +111,7 @@ void EmModelBase<EmModel>::Interact( GUTrack_v& inProjectile,
     Double_t energyOut;
     Index_t  zElement(targetElements[ibase]);
 
-    fModel->EmModel::template InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
+    static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
 
     //need to rotate the angle with respect to the line of flight
     Double_t invp = 1./energyIn;
@@ -168,7 +164,7 @@ void EmModelBase<EmModel>::InteractG4(GUTrack& inProjectile,
   Precision energyOut;
   Precision sinTheta;
 
-  fModel->EmModel::SampleByCompositionRejection(energyIn,energyOut,sinTheta);
+  static_cast<EmModel*>(this)->SampleByCompositionRejection(energyIn,energyOut,sinTheta);
 
   //update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
