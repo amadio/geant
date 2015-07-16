@@ -11,7 +11,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
 ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid) 
-  : EmModelBase<ComptonKleinNishina>(this,states,tid),
+  : EmModelBase<ComptonKleinNishina>(states,tid),
   fMinX(1.e-8),  fMaxX(1000.), // fDeltaX(0.1), 
   fMaxZelement(maximumZ),
   fNrow(100), fNcol(100) 
@@ -31,7 +31,7 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid)
 VECPHYS_CUDA_HEADER_BOTH 
 ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid,
                                          GUAliasSampler* sampler) 
-  : EmModelBase<ComptonKleinNishina>(this,states,tid),
+  : EmModelBase<ComptonKleinNishina>(states,tid),
   fMinX(1.e-8),  fMaxX(1000.), // fDeltaX(0.1), 
   fNrow(100), fNcol(100) 
 {
