@@ -12,14 +12,27 @@ typedef vecgeom::LogicalVolume TGeoVolume;
 #endif
 #include "TRandom.h"
 
+#include "base/SOA3D.h"
+
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
+<<<<<<< HEAD
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
       fBoolArray(0), fDblArray(0), fTrack(0, maxDepth), fPath(0), fBmgr(0), fPool() {
+=======
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0,maxDepth),
+      fPath(0), fBmgr(0), fPool(),
+      fSOA3Dworkspace1( new vecgeom::SOA3D<vecgeom::Precision>(5*maxPerBasket) ),
+      fSOA3Dworkspace2( new vecgeom::SOA3D<vecgeom::Precision>(5*maxPerBasket) ),
+      fSizeInt( 5*maxPerBasket ),
+      fIntArray( new int[fSizeInt] )
+      {
+>>>>>>> thread specific workspace data for vector navigation + minor refactoring
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
@@ -34,15 +47,28 @@ GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData()
+<<<<<<< HEAD
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
       fBoolArray(0), fDblArray(0), fTrack(0), fPath(0), fBmgr(0), fPool() {
+=======
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0),
+      fPath(0), fBmgr(0), fPool(),
+      fSOA3Dworkspace1(),
+      fSOA3Dworkspace2(),
+      fSizeInt(0),
+      fIntArray(nullptr) {
+>>>>>>> thread specific workspace data for vector navigation + minor refactoring
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
   fNthreads = propagator->fNthreads;
   fMaxDepth = propagator->fMaxDepth;
-  fSizeBool = fSizeDbl = 5 * propagator->fMaxPerBasket;
+  fSizeBool = fSizeDbl = fSizeInt = 5 * propagator->fMaxPerBasket;
   fBoolArray = new Bool_t[fSizeBool];
   fDblArray = new Double_t[fSizeDbl];
+  fIntArray = new int[fSizeInt];
+  fSOA3Dworkspace1 = new vecgeom::SOA3D<double>( fSizeInt );
+  fSOA3Dworkspace2 = new vecgeom::SOA3D<double>( fSizeInt );
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
   fRndm = new TRandom();
 }
@@ -57,41 +83,17 @@ GeantTaskData::~GeantTaskData() {
 #endif
   delete[] fBoolArray;
   delete[] fDblArray;
+  delete[] fIntArray;
+  delete fSOA3Dworkspace1;
+  delete fSOA3Dworkspace2;
   VolumePath_t::ReleaseInstance(fPath);
-}
-
-//______________________________________________________________________________
-Double_t *GeantTaskData::GetDblArray(Int_t size) {
-  // Return memory storage for an array of doubles of at least "size" length which
-  // is thread-specific
-  if (size < fSizeDbl)
-    return fDblArray;
-  Double_t *array = new Double_t[size];
-  delete[] fDblArray;
-  fDblArray = array;
-  fSizeDbl = size;
-  return fDblArray;
-}
-
-//______________________________________________________________________________
-Bool_t *GeantTaskData::GetBoolArray(Int_t size) {
-  // Return memory storage for an array of bool of at least "size" length which
-  // is thread-specific
-  if (size < fSizeBool)
-    return fBoolArray;
-  Bool_t *array = new Bool_t[size];
-  delete[] fBoolArray;
-  fBoolArray = array;
-  fSizeBool = size;
-  return fBoolArray;
 }
 
 #ifndef GEANT_NVCC
 //______________________________________________________________________________
 GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
-  if (fPool.empty())
-    return 0;
+  if (fPool.empty()) return nullptr;
   GeantBasket *basket = fPool.back();
   //  basket->Clear();
   fPool.pop_back();
