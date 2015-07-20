@@ -12,6 +12,7 @@
 #include "base/Transformation3D.h"
 #include "base/Global.h"
 #include "management/GeoManager.h"
+#include "base/SOA3D.h"
 #ifdef CROSSCHECK
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
@@ -1861,17 +1862,17 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 #endif // USE_VECGEOM_NAVIGATOR
 
 //______________________________________________________________________________
-void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same) {
+void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same, GeantTaskData *td) {
   // Implementation of TGeoNavigator::IsSameLocation with vector input
   for (Int_t i = 0; i < ntracks; i++) {
-    same[i] = NavIsSameLocationSingle(i, start, end);
+    same[i] = NavIsSameLocationSingle(i, start, end, td);
   }
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end) {
+Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
 #ifdef VERBOSE
   Printf("In NavIsSameLocation single %p for track %d", this, itr);
 #endif
@@ -1883,8 +1884,8 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, Vo
   // some thread data?
   // was: VECGEOM_NAMESPACE::NavigationState tmpstate( *end[itr] );
   // new:
-  VECGEOM_NAMESPACE::NavigationState *tmpstate =
-      VECGEOM_NAMESPACE::NavigationState::MakeInstance(end[itr]->GetMaxLevel());
+  VECGEOM_NAMESPACE::NavigationState *tmpstate = td->GetPath();
+      // VECGEOM_NAMESPACE::NavigationState::MakeInstance(end[itr]->GetMaxLevel());
 
 // cross check with answer from ROOT
 #ifdef CROSSCHECK
@@ -1939,13 +1940,13 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, Vo
   delete sb;
   delete eb;
 #endif // CROSSCHECK
-  VECGEOM_NAMESPACE::NavigationState::ReleaseInstance(tmpstate);
+  // VECGEOM_NAMESPACE::NavigationState::ReleaseInstance(tmpstate);
 
   return samepath;
 }
 #else
 //______________________________________________________________________________
-Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end) {
+Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
   // Implementation of TGeoNavigator::IsSameLocation for single particle
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();
@@ -2070,26 +2071,70 @@ void GeantTrack_v::PrintTracks(const char *msg) const {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::ComputeTransportLength(Int_t ntracks) {
+void GeantTrack_v::ComputeTransportLength(Int_t ntracks, GeantTaskData *td) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
   static std::atomic<int> icalls(0);
   ++icalls;
 #endif
-  Int_t itr;
+
+#if 0
+  // Printf("In vec find next boundary and step\n");
+   using VECGEOM_NAMESPACE::SimpleNavigator;
+   using VECGEOM_NAMESPACE::Precision;
+   using VECGEOM_NAMESPACE::Vector3D;
+   using VECGEOM_NAMESPACE::GeoManager;
+   using VECGEOM_NAMESPACE::SOA3D;
+   typedef Vector3D<Precision> Vector3D_t;
+   typedef SOA3D<double> SOA3D_t;
+
+   SimpleNavigator nav;
+   // TODO: vectorize loop
+   for (Int_t i = 0; i < ntracks; ++i) {
+     // Check if current safety allows for the proposed step
+     if (fSafetyV[i] > fPstepV[i]) {
+       fSnextV[i] = fPstepV[i];
+       fFrombdrV[i] = false;
+       continue;
+     }
+   }
+
+   // call the vector interface
+   // we need to transform our arrays to SOA
+    nav.FindNextBoundaryAndStep(SOA3D_t(const_cast<double*>(fXposV),const_cast<double*>(fYposV),const_cast<double*>(fZposV),ntracks),
+                                SOA3D_t(const_cast<double*>(fXdirV),const_cast<double*>(fYdirV),const_cast<double*>(fZdirV),ntracks),
+                                *td->GetSOA3DWorkspace1(ntracks),
+                                *td->GetSOA3DWorkspace2(ntracks),
+                                fPathV,
+                                fNextpathV,
+                                fPstepV,
+                                fSafetyV,
+                                fSnextV,
+                                td->GetIntArray(ntracks));
+
+   // rectify some parts ( as in the scalar case )
+   // TODO: vectorize loop
+   for (unsigned int itr = 0; itr < ntracks; ++itr) {
+     fSnextV[itr] = Math::Max(2. * gTolerance, fSnextV[itr] + 2. * gTolerance);
+     fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
+     if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
+           fStatusV[itr] = kExitingSetup;
+   }
+#else
+  // OLD version calling the looped implementation
   // call the vector interface of GeantTrack_v
   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV, fPathV, fNextpathV,
                              fSnextV, fSafetyV, fFrombdrV, this);
-  // now we should have updated everything
 
   // perform a couple of additional checks/ set status flags and so on
-  for (itr = 0; itr < ntracks; ++itr) {
-    if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
-      fStatusV[itr] = kExitingSetup;
+  for (int itr = 0; itr < ntracks; ++itr) {
+      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
+            fStatusV[itr] = kExitingSetup;
   }
+#endif
 }
 #else
 //______________________________________________________________________________
-void GeantTrack_v::ComputeTransportLength(Int_t ntracks) {
+void GeantTrack_v::ComputeTransportLength(Int_t ntracks, GeantTaskData *td) {
   // Computes snext and safety for an array of tracks. For charged tracks these are the only
   // computed values, while for neutral ones the next node is checked and the boundary flag is set
   // if
@@ -2103,7 +2148,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks) {
 
 #ifdef USE_VECGEOM_NAVIGATOR
 GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
+void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
@@ -2152,7 +2197,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
   // force track to cross under certain conditions
 }
 #else
-void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr) {
+void GeantTrack_v::ComputeTransportLengthSingle(Int_t itr, GeantTaskData *) {
   // Computes snext and safety for a single track. For charged tracks these are the only
   // computed values, while for neutral ones the next node is checked and the boundary flag is set
   // if closer than the proposed physics step.
@@ -2232,7 +2277,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
   GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
 #endif
-  ComputeTransportLength(ntracks);
+  ComputeTransportLength(ntracks, td);
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
 #ifdef BUG_HUNT
@@ -2366,7 +2411,7 @@ Int_t GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
     else
       DeselectAll();
     Bool_t *same = td->GetBoolArray(nsel);
-    NavIsSameLocation(nsel, fPathV, fNextpathV, same);
+    NavIsSameLocation(nsel, fPathV, fNextpathV, same, td);
     for (itr = 0; itr < nsel; itr++) {
       if (same[itr]) {
         fFrombdrV[itr] = kFALSE;
@@ -2411,7 +2456,7 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, G
   GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateSingle", itr);
 #endif
-  ComputeTransportLengthSingle(itr);
+  ComputeTransportLengthSingle(itr, td);
 #ifdef BUG_HUNT
   BreakOnStep(0, 15352, 0, 10, "AfterCompTranspLenSingle");
 #endif
@@ -2494,7 +2539,7 @@ Int_t GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, Int_t itr, G
     // Select tracks that are in flight or were propagated to boundary with
     // steps bigger than safety
     if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
-      Bool_t same = NavIsSameLocationSingle(itr, fPathV, fNextpathV);
+      Bool_t same = NavIsSameLocationSingle(itr, fPathV, fNextpathV, td);
       if (same) {
         fFrombdrV[itr] = kFALSE;
         return icrossed;

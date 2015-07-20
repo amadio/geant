@@ -938,7 +938,7 @@ public:
    * @param end End volume path
    * @param same Boolean flag that check same location
    */
-  void NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same);
+  void NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same, GeantTaskData * /*td*/);
 
   /**
    * @brief Function for navigation that check if location is the same or not for single track
@@ -948,7 +948,7 @@ public:
    * @param end End volume path
    */
   GEANT_CUDA_BOTH_CODE
-  Bool_t NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end);
+  Bool_t NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData * /*td*/);
 
 // void InspectGeometryState(Int_t itr) const;
 // void InspectIsSameLocation(Int_t itr) const;
@@ -990,10 +990,10 @@ public:
   /**
    * @brief Function that compute transport length
    *
-   * @param ntracks Number of tracks
+   * @param ntracks Number of tracks and TaskData object ( with preallocated thread/task local workspaces )
    */
   GEANT_CUDA_BOTH_CODE
-  void ComputeTransportLength(Int_t ntracks);
+  void ComputeTransportLength(Int_t ntracks, GeantTaskData *);
 
   /**
    * @brief Function that compute single transport length ?????
@@ -1001,7 +1001,7 @@ public:
    * @param itr Track ID
    */
   GEANT_CUDA_BOTH_CODE
-  void ComputeTransportLengthSingle(Int_t itr);
+  void ComputeTransportLengthSingle(Int_t itr, GeantTaskData *);
 
   /**
    * @brief Function of propagation in volume
