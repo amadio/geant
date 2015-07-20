@@ -138,19 +138,20 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy 
   Double_t eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
   Index_t  irow  = Floor(eloc);
   Double_t efrac = eloc -1.0*irow;  
-  Double_t u1 = UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t condition = u1 <= efrac ;
   // if branch
   MaskedAssign( condition, irow , &irow ); // at the lower edge
   MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
 
-  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
@@ -170,12 +171,14 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy 
   Double_t eloc = (Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming;
   Index_t  irow = Floor(eloc);
   Double_t efrac = eloc -1.0*irow;  
-  Double_t u1 = UniformRandom<Backend>(fRandomState,fThreadId);
+  
+  Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t condition = u1 <= efrac ;
 
@@ -183,7 +186,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
 
   //select the sampling bin
-  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
@@ -202,10 +205,11 @@ SampleX(typename Backend::Double_t rangeSampled,
         typename Backend::Double_t fraction  
        ) const
 {
+  typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
 
-  Double_t r1 = UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t condition = r1 <= probNA;
   Double_t xd, xu;

@@ -23,7 +23,7 @@ struct kVc {
 
   const static Bool_t kTrue;
   const static Bool_t kFalse;
-  constexpr static bool early_returns = false;
+  constexpr static bool early_returns = true;
 
   constexpr static int kSize = kVc::Double_t::Size;
   const static Double_t kOne;

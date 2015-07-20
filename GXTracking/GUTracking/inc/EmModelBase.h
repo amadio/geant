@@ -16,32 +16,53 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH 
   EmModelBase(Random_t* states, int tid) 
-    : fRandomState(states), fThreadId(tid) {};
+    : fRandomState(states), fThreadId(tid), fLowEnergyLimit(0.) {};
 
   //scalar
   template <typename Backend>
   VECPHYS_CUDA_HEADER_BOTH 
-  void Interact(GUTrack& projectile,   
-                int      targetElement,
-                GUTrack& secondary );
+  void AtomicCrossSection(GUTrack&  projectile,   
+                          const int targetElement,
+                          double&   sigma);
+
+  template <typename Backend>
+  VECPHYS_CUDA_HEADER_BOTH 
+  void Interact(GUTrack&  projectile,   
+                const int targetElement,
+                GUTrack&  secondary );
 
   //vector
 #ifndef VECPHYS_NVCC
   template <typename Backend>
+  void AtomicCrossSection(GUTrack_v& inProjectile,  
+                          const int* targetElements,
+                          double*    sigma);     
+
+  template <typename Backend>
   void Interact(GUTrack_v& inProjectile,  
-                const int *targetElements,
-                GUTrack_v& outSecondaryV );     
+                const int* targetElements,
+                GUTrack_v& outSecondaryV);     
 #endif
 
   //validation 
   template <typename Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void InteractG4(GUTrack& inProjectile,
-                  int      targetElement,
-                  GUTrack& outSecondary );
+  void AtomicCrossSectionG4(GUTrack&  inProjectile,
+                            const int targetElement,
+                            double&   sigma);
 
+  template <typename Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  void InteractG4(GUTrack&  inProjectile,
+                  const int targetElement,
+                  GUTrack&  outSecondary);
+
+protected:
+  // Auxiliary methods
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetLowEnergyLimit(double lowLimit) { fLowEnergyLimit = lowLimit; }
+  
 private:
-
   // Implementation methods
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -65,15 +86,32 @@ private:
 protected:
   Random_t* fRandomState;
   int       fThreadId;
+
+  double    fLowEnergyLimit;  
 };
 
 //Implementation
+
 template <class EmModel>
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH 
-void EmModelBase<EmModel>::Interact(GUTrack& inProjectile,
-			            int      targetElement,
-			            GUTrack& outSecondary ) 
+void EmModelBase<EmModel>::AtomicCrossSection(GUTrack&  inProjectile,
+                                              const int targetElement,
+                                              double&   sigma ) 
+{
+  sigma = 0.;
+  double energyIn= inProjectile.E;
+  if(energyIn > fLowEnergyLimit) {
+    static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,targetElement,sigma);
+  }
+}
+
+template <class EmModel>
+template <typename Backend>
+VECPHYS_CUDA_HEADER_BOTH 
+void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
+                                    const int targetElement,
+                                    GUTrack&  outSecondary ) 
 {
   double energyIn= inProjectile.E;
   double energyOut, sinTheta;
@@ -88,9 +126,9 @@ void EmModelBase<EmModel>::Interact(GUTrack& inProjectile,
 #ifndef VECPHYS_NVCC
 template <class EmModel>
 template <typename Backend>
-void EmModelBase<EmModel>::Interact( GUTrack_v& inProjectile,  
-			             const int *targetElements,
-			             GUTrack_v& outSecondary) 
+void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
+                                              const int* targetElements,
+                                              double*    sigma) 
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
@@ -103,10 +141,43 @@ void EmModelBase<EmModel>::Interact( GUTrack_v& inProjectile,
   int numChunks= (inProjectile.numTracks/Double_t::Size);
 
   for(int i=0; i < numChunks ; ++i) {
-    Double_t energyIn(inProjectile.E[ibase]);
-    Double_t px(inProjectile.px[ibase]);
-    Double_t py(inProjectile.py[ibase]);
-    Double_t pz(inProjectile.pz[ibase]);
+    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_t sigmaOut;
+    Index_t  zElement(targetElements[ibase]);
+
+    static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement,sigmaOut);
+
+    sigmaOut.store(&sigma[ibase]);
+    ibase+= Double_t::Size;
+  }
+
+  //leftover - do scalar
+  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+    static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i],sigma[i]);
+  }
+}
+
+template <class EmModel>
+template <typename Backend>
+void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,  
+                                    const int* targetElements,
+                                    GUTrack_v& outSecondary) 
+{
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  for(int j = 0; j < inProjectile.numTracks  ; ++j) {
+    assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
+  }
+
+  int ibase= 0;
+  int numChunks= (inProjectile.numTracks/Double_t::Size);
+
+  for(int i= 0; i < numChunks ; ++i) {
+    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_t px(&inProjectile.px[ibase]);
+    Double_t py(&inProjectile.py[ibase]);
+    Double_t pz(&inProjectile.pz[ibase]);
     Double_t sinTheta;
     Double_t energyOut;
     Index_t  zElement(targetElements[ibase]);
@@ -149,15 +220,64 @@ void EmModelBase<EmModel>::Interact( GUTrack_v& inProjectile,
 
     ibase+= Double_t::Size;
   }
+
+  //leftover - do scalar (temporary)
+  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+
+    double senergyIn= inProjectile.E[i];
+    double senergyOut, ssinTheta;
+
+    static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+
+    //need to rotate the angle with respect to the line of flight
+    double sinvp = 1./senergyIn;
+    double sxhat = inProjectile.px[i]*sinvp;
+    double syhat = inProjectile.py[i]*sinvp;
+    double szhat = inProjectile.pz[i]*sinvp;
+
+    double suhat = 0.;
+    double svhat = 0.;
+    double swhat = 0.;
+
+    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
+
+    //update primary
+    inProjectile.E[i]  = senergyOut;
+    inProjectile.px[i] = senergyOut*suhat;
+    inProjectile.py[i] = senergyOut*svhat;
+    inProjectile.pz[i] = senergyOut*swhat;
+
+    //create secondary
+    outSecondary.E[i]  = (senergyIn-senergyOut); 
+    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
+    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
+    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
+    //fill other information
+  }
 }
 #endif
 
 template <class EmModel>
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH 
-void EmModelBase<EmModel>::InteractG4(GUTrack& inProjectile,
-                                      int      targetElement,
-                                      GUTrack& outSecondary )
+void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack&  inProjectile,
+                                                const int targetElement,
+                                                double&   sigma)
+{
+  sigma = 0.;
+  double energyIn = inProjectile.E;
+
+  if(energyIn > fLowEnergyLimit) {
+    static_cast<EmModel*>(this)->GetG4CrossSection(energyIn,targetElement,sigma);
+  }
+}
+
+template <class EmModel>
+template <typename Backend>
+VECPHYS_CUDA_HEADER_BOTH 
+void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
+                                      const int targetElement,
+                                      GUTrack&  outSecondary)
 {
 
   Precision energyIn = inProjectile.E;
@@ -182,10 +302,11 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
                                   typename Backend::Double_t &yr,
                                   typename Backend::Double_t &zr)
 {
+  typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t   Bool_t;
 
-  Double_t phi = UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_t phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   Double_t pt = xhat*xhat + yhat*yhat;
 
   Double_t cosphi, sinphi;
