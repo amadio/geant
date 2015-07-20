@@ -24,7 +24,7 @@ struct kScalar {
 
   const static bool kTrue = true;
   const static bool kFalse = false;
-  const static bool early_returns = false;
+  const static bool early_returns = true;
 
   const static int kSize = 1;
 #ifdef VECPHYS_STD_CXX11

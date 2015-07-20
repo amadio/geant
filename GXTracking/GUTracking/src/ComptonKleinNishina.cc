@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "backend/Backend.h"
+#include "GUG4TypeDef.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -16,6 +17,9 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid)
   fMaxZelement(maximumZ),
   fNrow(100), fNcol(100) 
 {
+  //initialization
+  SetLowEnergyLimit(10.*keV);
+
   //replace hard coded numbers by default constants
   fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fMaxZelement,
                                      fMinX, fMaxX, fNrow, fNcol);
@@ -35,6 +39,9 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid,
   fMinX(1.e-8),  fMaxX(1000.), // fDeltaX(0.1), 
   fNrow(100), fNcol(100) 
 {
+  //initialization
+  SetLowEnergyLimit(10.*keV);
+
   //replace hard coded numbers by default constants
   fAliasSampler = sampler;
 }
@@ -189,6 +196,50 @@ ComptonKleinNishina::CalculateDiffCrossSection(int Zelement,
   double dsigma = (epsilon + 1./epsilon)*greject;
 
   return dsigma;
+}
+
+VECPHYS_CUDA_HEADER_BOTH void 
+ComptonKleinNishina::GetG4CrossSection(double  gammaEnergy, 
+                                       const int Z,
+                                       double& xSection)
+{
+  //G4KleinNishinaModel::ComputeCrossSectionPerAtom - Genat4 10.1.p2
+
+  const G4double dT0 = keV;
+  const G4double a = 20.0 , b = 230.0 , c = 440.0;
+
+  /*  
+  G4double p1Z = Z*(d1 + e1*Z + f1*Z*Z);
+  G4double p2Z = Z*(d2 + e2*Z + f2*Z*Z);
+  G4double p3Z = Z*(d3 + e3*Z + f3*Z*Z); 
+  G4double p4Z = Z*(d4 + e4*Z + f4*Z*Z);
+  */
+
+  G4double p1Z = Z*( 2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z*Z)*barn;
+  G4double p2Z = Z*(-1.8300e-1 + -1.0205e-2*Z +  6.8241e-5*Z*Z)*barn;
+  G4double p3Z = Z*( 6.7527    + -7.3913e-2*Z +  6.0480e-5*Z*Z)*barn;
+  G4double p4Z = Z*(-1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z*Z)*barn;
+
+  G4double T0  = 15.0*keV; 
+  if (Z < 1.5) { T0 = 40.0*keV; } 
+
+  G4double X   = Max(gammaEnergy, T0) / electron_mass_c2;
+  xSection = p1Z*G4Log(1.+2.*X)/X
+               + (p2Z + p3Z*X + p4Z*X*X)/(1. + a*X + b*X*X + c*X*X*X);
+    
+  //  modification for low energy. (special case for Hydrogen)
+  if (gammaEnergy < T0) {
+    X = (T0+dT0) / electron_mass_c2 ;
+    G4double sigma = p1Z*G4Log(1.+2*X)/X
+                    + (p2Z + p3Z*X + p4Z*X*X)/(1. + a*X + b*X*X + c*X*X*X);
+    G4double   c1 = -T0*(sigma-xSection)/(xSection*dT0);             
+    G4double   c2 = 0.150; 
+    if (Z > 1.5) { c2 = 0.375-0.0556*G4Log(1.0*Z); }
+    G4double    y = G4Log(gammaEnergy/T0);
+    xSection *= G4Exp(-y*(c1+c2*y));          
+  }
+  if(xSection < 0.0) { xSection = 0.0; }
+  //  return xSection;
 }
 
 VECPHYS_CUDA_HEADER_BOTH void 
