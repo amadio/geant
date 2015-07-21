@@ -2141,7 +2141,7 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks, GeantTaskData *td) {
   // closer than the proposed physics step.
 
   for (Int_t i = 0; i < ntracks; ++i) {
-    ComputeTransportLengthSingle(i);
+    ComputeTransportLengthSingle(i, td);
   }
 }
 #endif
