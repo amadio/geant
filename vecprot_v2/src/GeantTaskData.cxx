@@ -20,10 +20,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
-<<<<<<< HEAD
-    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
-      fBoolArray(0), fDblArray(0), fTrack(0, maxDepth), fPath(0), fBmgr(0), fPool() {
-=======
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0,maxDepth),
       fPath(0), fBmgr(0), fPool(),
@@ -32,7 +28,6 @@ GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
       fSizeInt( 5*maxPerBasket ),
       fIntArray( new int[fSizeInt] )
       {
->>>>>>> thread specific workspace data for vector navigation + minor refactoring
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
@@ -47,10 +42,6 @@ GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData()
-<<<<<<< HEAD
-    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
-      fBoolArray(0), fDblArray(0), fTrack(0), fPath(0), fBmgr(0), fPool() {
-=======
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0),
       fPath(0), fBmgr(0), fPool(),
@@ -58,7 +49,6 @@ GeantTaskData::GeantTaskData()
       fSOA3Dworkspace2(),
       fSizeInt(0),
       fIntArray(nullptr) {
->>>>>>> thread specific workspace data for vector navigation + minor refactoring
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
   fNthreads = propagator->fNthreads;
