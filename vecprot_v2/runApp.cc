@@ -134,6 +134,7 @@ int main() {
   prop->fUseAppMonitoring = false;
   prop->PropagatorGeom(geomfile, nthreads, graphics);
   delete prop;
-
+#ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::messagelogger::I()->summary(std::cout, "a");
+#endif
 }

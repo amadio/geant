@@ -75,7 +75,7 @@ void GeantScheduler::ActivateBasketManagers() {
     vol = vlist[i];
     GeantBasketMgr *mgr = (GeantBasketMgr *)vol->getBasketManagerPtr();
 #else
-    vol = (TGeoVolume *)vlist[i]->At(i);
+    vol = (TGeoVolume *)vlist[i].At(i);
     GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetFWExtension();
 #endif
     if (mgr->IsActive()) {

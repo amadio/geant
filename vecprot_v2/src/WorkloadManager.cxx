@@ -19,7 +19,7 @@
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
 #include "GeantVApplication.h"
-#if USE_VECGEOM_NAVIGATOR == 1
+#if USE_VECGEOM_NAVIGATOR
 #include "management/GeoManager.h"
 #include "volumes/Medium.h"
 #else

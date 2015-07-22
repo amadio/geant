@@ -6,6 +6,7 @@
 #include "management/GeoManager.h"
 #else
 #include "TGeoMaterial.h"
+#include "TGeoManager.h"
 #include "TGeoBranchArray.h"
 #endif
 

@@ -31,7 +31,7 @@ typedef vecgeom::Material TGeoMaterial;
 typedef vecgeom::GeoManager TGeoManager;
 #else
 class TGeoManager;
-class TGeoMagerial;
+class TGeoMaterial;
 #endif
 
 #include "GeantFwd.h"

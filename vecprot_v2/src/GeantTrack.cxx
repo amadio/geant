@@ -3,7 +3,7 @@
 #include "Geant/Error.h"
 #include <execinfo.h>
 
-#if USE_VECGEOM_NAVIGATOR == 1
+#ifdef USE_VECGEOM_NAVIGATOR
 #pragma message("Compiling against VecGeom")
 #include "backend/Backend.h"
 #include "navigation/SimpleNavigator.h"
@@ -25,9 +25,6 @@ typedef vecgeom::Medium TGeoMedium;
 #include <iostream>
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
-#endif
-#ifndef USE_VECGEOM_NAVIGATOR
-#include "TGeoManager.h"
 #endif
 
 #include "WorkloadManager.h"
@@ -279,7 +276,8 @@ TGeoMaterial *GeantTrack::GetMaterial() const {
     return 0;
   return med->GetMaterial();
 }
-#else
+#endif
+#ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
 TGeoVolume *GeantTrack::GetVolume() const {
   // Current volume the track is into
@@ -1878,7 +1876,8 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(Int_t ntracks, const Double_t *pst
 #endif // USE_VECGEOM_NAVIGATOR
 
 //______________________________________________________________________________
-void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same, GeantTaskData *td) {
+void GeantTrack_v::NavIsSameLocation(Int_t ntracks, VolumePath_t **start, VolumePath_t **end, Bool_t *same,
+                                     GeantTaskData *td) {
   // Implementation of TGeoNavigator::IsSameLocation with vector input
   for (Int_t i = 0; i < ntracks; i++) {
     same[i] = NavIsSameLocationSingle(i, start, end, td);
@@ -1901,7 +1900,7 @@ Bool_t GeantTrack_v::NavIsSameLocationSingle(Int_t itr, VolumePath_t **start, Vo
   // was: VECGEOM_NAMESPACE::NavigationState tmpstate( *end[itr] );
   // new:
   VECGEOM_NAMESPACE::NavigationState *tmpstate = td->GetPath();
-      // VECGEOM_NAMESPACE::NavigationState::MakeInstance(end[itr]->GetMaxLevel());
+// VECGEOM_NAMESPACE::NavigationState::MakeInstance(end[itr]->GetMaxLevel());
 
 // cross check with answer from ROOT
 #ifdef CROSSCHECK
@@ -2143,8 +2142,8 @@ void GeantTrack_v::ComputeTransportLength(Int_t ntracks, GeantTaskData *td) {
 
   // perform a couple of additional checks/ set status flags and so on
   for (int itr = 0; itr < ntracks; ++itr) {
-      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
-            fStatusV[itr] = kExitingSetup;
+    if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
+      fStatusV[itr] = kExitingSetup;
   }
 #endif
 }
@@ -2652,19 +2651,14 @@ Int_t GeantTrack_v::PostponeTrack(Int_t itr, GeantTrack_v &output) {
 
 #ifdef VECGEOM_ROOT
 //______________________________________________________________________________
-TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
-  // Current volume the track is into
-  return ((TGeoVolume *)gGeoManager->GetListOfVolumes()->At(fVindexV[i]));
-}
-
-//______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetNextVolume(Int_t i) const {
   // Next volume the track is getting into
   return fNextpathV[i]->GetCurrentNode()->GetVolume();
 }
 
-#else
+#endif
 
+#ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
   // Current volume the track is into
@@ -2677,6 +2671,22 @@ TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
 TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
   // Current material the track is into
   TGeoMedium *med = (TGeoMedium *)GetVolume(i)->getTrackingMediumPtr();
+  if (!med)
+    return 0;
+  return med->GetMaterial();
+}
+#else
+
+//______________________________________________________________________________
+TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
+  // Current volume the track is into
+  return ((TGeoVolume *)gGeoManager->GetListOfVolumes()->At(fVindexV[i]));
+}
+
+//______________________________________________________________________________
+TGeoMaterial *GeantTrack_v::GetMaterial(Int_t i) const {
+  // Current material the track is into
+  TGeoMedium *med = (TGeoMedium *)GetVolume(i)->GetMedium();
   if (!med)
     return 0;
   return med->GetMaterial();
