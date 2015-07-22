@@ -11,7 +11,6 @@
 #include "TGeoExtension.h"
 #endif
 
-
 #include "GeantTrack.h"
 
 #include "globals.h"
@@ -226,9 +225,9 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
     // Construct the TMXsec object that corresponds to the current material
     TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetName(), z, a, w, nelem, mat->GetDensity(), kTRUE, fDecay);
     fMatXsec[fNmaterials++] = mxs;
-    // Connect to TGeoMaterial
+// Connect to TGeoMaterial
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat->SetXsecPtr(static_cast<void*>(new TOMXsec(mxs)));
+    mat->SetXsecPtr(static_cast<void *>(new TOMXsec(mxs)));
 #else
     mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));
 #endif
