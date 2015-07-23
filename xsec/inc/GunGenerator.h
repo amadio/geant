@@ -6,7 +6,12 @@
 #include "PrimaryGenerator.h"
 #include "TRandom.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+using vecgeom::Particle;
+#else
 class TParticlePDG;
+#endif
 
 class GunGenerator: public PrimaryGenerator{
  private:
@@ -22,7 +27,11 @@ class GunGenerator: public PrimaryGenerator{
   Double_t  fZDir;
   // additional members
   Int_t     fGVPartIndex;     // GV particle index of the primary
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle      *fPartPDG;
+#else
   TParticlePDG  *fPartPDG;
+#endif
   Double_t  fMass;            // rest mass of the primary [GeV]
   Double_t  fCharge;          // charge of the primary 
   Double_t  fPTotal;          // total momentum of the primary [GeV]
