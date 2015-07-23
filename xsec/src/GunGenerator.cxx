@@ -54,9 +54,9 @@ GunGenerator::~GunGenerator() { delete rndgen; }
 void GunGenerator::InitPrimaryGenerator() {
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
-  // set TDatabasePDG ptr
+// set TDatabasePDG ptr
 #ifdef USE_VECGEOM_NAVIGATOR
-  fPartPDG = const_cast<Particle*>(&Particle::GetParticle(fPDG));
+  fPartPDG = const_cast<Particle *>(&Particle::GetParticle(fPDG));
 #else
   fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
 #endif
