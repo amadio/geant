@@ -52,6 +52,9 @@ GunGenerator::~GunGenerator() { delete rndgen; }
 
 //______________________________________________________________________________
 void GunGenerator::InitPrimaryGenerator() {
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle::CreateParticles();
+#endif
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
 // set TDatabasePDG ptr

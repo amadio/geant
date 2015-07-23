@@ -104,8 +104,8 @@ int main() {
   prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  // Create particles
-  Particle::CreateParticles();
+// Create particles
+//  Particle::CreateParticles();
 #endif
 
   // Create the tab. phys process.

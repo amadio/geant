@@ -2,7 +2,9 @@
 #include "TPrimaryGenerator.h"
 
 #include "TMath.h"
-#ifndef USE_VECGEOM_NAVIGATOR
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+#else
 #include "TDatabasePDG.h"
 #endif
 #include "GeantTrack.h"
@@ -49,6 +51,9 @@ void TPrimaryGenerator::SetParticleByPDGCode(Int_t pdgcode) {
 
 //______________________________________________________________________________
 void TPrimaryGenerator::InitPrimaryGenerator() {
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle::CreateParticles();
+#endif
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
 // set TDatabasePDG ptr

@@ -153,9 +153,13 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], const I
     }
   }
 
-  // add contribution from decay to the total mean free path of particles that
-  // have reactions other than decay; in case of particles that have only decay
-  // the decay mean free path will be computed on the fly
+// add contribution from decay to the total mean free path of particles that
+// have reactions other than decay; in case of particles that have only decay
+// the decay mean free path will be computed on the fly
+#ifdef USE_VECGEOM_NAVIGATOR
+  if (Particle::GetParticle(11).Mass() <= 0)
+    Particle::CreateParticles();
+#endif
   for (Int_t ip = 0; ip < npart; ++ip) {
     if (fDecayTable->HasDecay(ip)) {
       Int_t pdgcode = TPartIndex::I()->PDG(ip);

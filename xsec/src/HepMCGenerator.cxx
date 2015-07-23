@@ -29,6 +29,9 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
   } else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle::CreateParticles();
+#endif
 }
 
 //______________________________________________________________________________
