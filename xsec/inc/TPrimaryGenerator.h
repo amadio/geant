@@ -12,69 +12,72 @@ class TParticlePDG;
 #include "GeantFwd.h"
 
 class TPrimaryGenerator {
- private:
-  Int_t     fPDG;             // PDG code of parimary particles
-  Double_t  fPartEkin;        // kinetic energy of the primary [GeV]
-  Double_t  fXPos;            // (x,y,z) position of the primary particles 
-  Double_t  fYPos;
-  Double_t  fZPos;
-  Double_t  fXDir;            // direction vector of the primary particles
-  Double_t  fYDir;
-  Double_t  fZDir;
+private:
+  Int_t fPDG;         // PDG code of parimary particles
+  Double_t fPartEkin; // kinetic energy of the primary [GeV]
+  Double_t fXPos;     // (x,y,z) position of the primary particles
+  Double_t fYPos;
+  Double_t fZPos;
+  Double_t fXDir; // direction vector of the primary particles
+  Double_t fYDir;
+  Double_t fZDir;
   // additional members
-  Int_t     fGVPartIndex;     // GV particle index of the primary
+  Int_t fGVPartIndex; // GV particle index of the primary
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle      *fPartPDG;
+  Particle *fPartPDG;
 #else
-  TParticlePDG  *fPartPDG;
+  TParticlePDG *fPartPDG;
 #endif
-  Double_t  fMass;            // rest mass of the primary [GeV]
-  Double_t  fCharge;          // charge of the primary 
-  Double_t  fPTotal;          // total momentum of the primary [GeV]
-  Double_t  fETotal;          // total energy of the primary [GeV]
+  Double_t fMass;   // rest mass of the primary [GeV]
+  Double_t fCharge; // charge of the primary
+  Double_t fPTotal; // total momentum of the primary [GeV]
+  Double_t fETotal; // total energy of the primary [GeV]
 
- public:
+public:
   TPrimaryGenerator();
-  TPrimaryGenerator(Int_t partpdg, Double_t partekin, Double_t xpos, 
-                    Double_t ypos, Double_t zpos, Double_t xdir, Double_t ydir,
-                    Double_t zdir);
+  TPrimaryGenerator(Int_t partpdg, Double_t partekin, Double_t xpos, Double_t ypos, Double_t zpos, Double_t xdir,
+                    Double_t ydir, Double_t zdir);
   virtual ~TPrimaryGenerator();
-  
-  void SetEkin(Double_t partekin){ fPartEkin = partekin; }
-  Double_t GetEkin()const {return fPartEkin;}
-  void  SetParticleByPDGCode(Int_t pdgcode);
-  Int_t GetParticlePDGCode()const{return fPDG;} 
-  void  SetParticleXYZPosition(Double_t x, Double_t y, Double_t z){fXPos=x; fYPos=y; fZPos=z;} 
-  Double_t GetParticleXPos()const{return fXPos;}
-  Double_t GetParticleYPos()const{return fYPos;}
-  Double_t GetParticleZPos()const{return fZPos;}
-  void  SetParticleXYZDir(Double_t xdir, Double_t ydir, Double_t zdir);
-  Double_t GetParticleXDir()const{return fXDir;}
-  Double_t GetParticleYDir()const{return fYDir;}
-  Double_t GetParticleZDir()const{return fZDir;}
+
+  void SetEkin(Double_t partekin) { fPartEkin = partekin; }
+  Double_t GetEkin() const { return fPartEkin; }
+  void SetParticleByPDGCode(Int_t pdgcode);
+  Int_t GetParticlePDGCode() const { return fPDG; }
+  void SetParticleXYZPosition(Double_t x, Double_t y, Double_t z) {
+    fXPos = x;
+    fYPos = y;
+    fZPos = z;
+  }
+  Double_t GetParticleXPos() const { return fXPos; }
+  Double_t GetParticleYPos() const { return fYPos; }
+  Double_t GetParticleZPos() const { return fZPos; }
+  void SetParticleXYZDir(Double_t xdir, Double_t ydir, Double_t zdir);
+  Double_t GetParticleXDir() const { return fXDir; }
+  Double_t GetParticleYDir() const { return fYDir; }
+  Double_t GetParticleZDir() const { return fZDir; }
 
   // --
-  Int_t GetParticleGVIndex()    const{return fGVPartIndex;} 
+  Int_t GetParticleGVIndex() const { return fGVPartIndex; }
 #ifdef USE_VECGEOM_NAVIGATOR
-  const Particle* GetParticlePDG() const {return fPartPDG;}
+  const Particle *GetParticlePDG() const { return fPartPDG; }
 #else
-  TParticlePDG* GetParticlePDG()const{return fPartPDG;}
+  TParticlePDG *GetParticlePDG() const { return fPartPDG; }
 #endif
-  Double_t GetParticleMass()    const{return fMass;}
-  Double_t GetParticleCharge()  const{return fCharge;}
-  Double_t GetparticlePTotal()  const{return fPTotal;}
-  Double_t GetparticleETotal()  const{return fETotal;}
+  Double_t GetParticleMass() const { return fMass; }
+  Double_t GetParticleCharge() const { return fCharge; }
+  Double_t GetparticlePTotal() const { return fPTotal; }
+  Double_t GetparticleETotal() const { return fETotal; }
 
   // set one GeantTrack primary track properties
   void InitPrimaryTrack(Geant::GeantTrack &gtrack);
 
- private:
-   void InitPrimaryGenerator();
+private:
+  void InitPrimaryGenerator();
 
-   TPrimaryGenerator(const TPrimaryGenerator &);//no imp.	
-   TPrimaryGenerator& operator=(const TPrimaryGenerator &);//no imp.
+  TPrimaryGenerator(const TPrimaryGenerator &); // no imp.
+  TPrimaryGenerator &operator=(const TPrimaryGenerator &); // no imp.
 
-   ClassDef(TPrimaryGenerator,1)
+  ClassDef(TPrimaryGenerator, 1)
 };
 
 #endif
