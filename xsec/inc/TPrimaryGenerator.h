@@ -3,7 +3,12 @@
 
 #include "TPartIndex.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+using vecgeom::Particle;
+#else
 class TParticlePDG;
+#endif
 #include "GeantFwd.h"
 
 class TPrimaryGenerator {
@@ -18,7 +23,11 @@ class TPrimaryGenerator {
   Double_t  fZDir;
   // additional members
   Int_t     fGVPartIndex;     // GV particle index of the primary
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle      *fPartPDG;
+#else
   TParticlePDG  *fPartPDG;
+#endif
   Double_t  fMass;            // rest mass of the primary [GeV]
   Double_t  fCharge;          // charge of the primary 
   Double_t  fPTotal;          // total momentum of the primary [GeV]
@@ -46,7 +55,11 @@ class TPrimaryGenerator {
 
   // --
   Int_t GetParticleGVIndex()    const{return fGVPartIndex;} 
+#ifdef USE_VECGEOM_NAVIGATOR
+  const Particle* GetParticlePDG() const {return fPartPDG;}
+#else
   TParticlePDG* GetParticlePDG()const{return fPartPDG;}
+#endif
   Double_t GetParticleMass()    const{return fMass;}
   Double_t GetParticleCharge()  const{return fCharge;}
   Double_t GetparticlePTotal()  const{return fPTotal;}
