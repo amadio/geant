@@ -15,7 +15,6 @@
 
 #include "TMath.h"
 
-class TParticlePDG;
 #include "GeantFwd.h"
 
 /**
