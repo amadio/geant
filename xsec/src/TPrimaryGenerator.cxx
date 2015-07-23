@@ -2,7 +2,9 @@
 #include "TPrimaryGenerator.h"
 
 #include "TMath.h"
+#ifndef USE_VECGEOM_NAVIGATOR
 #include "TDatabasePDG.h"
+#endif
 #include "GeantTrack.h"
 
 ClassImp(TPrimaryGenerator)
@@ -50,7 +52,11 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
   // set TDatabasePDG ptr
+#ifdef USE_VECGEOM_NAVIGATOR
+  fPartPDG  = const_cast<Particle*>(&Particle::GetParticle(fPDG));
+#else
   fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
+#endif
   // set rest mass [GeV]
   fMass = fPartPDG->Mass();
   // set charge
