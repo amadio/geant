@@ -14,10 +14,11 @@
 #endif
 #include "WorkloadManager.h"
 #include "TTabPhysProcess.h"
-#ifdef RESTORE_USE_VEGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+#include "GeantPropagator.h"
+#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
 #define USE_VECGEOM_NAVIGATOR
 #endif
-#include "GeantPropagator.h"
 #include "ExN03Application.h"
 
 // The following in ROOT v6 equivalent to gSystem->Load("../lib/libGeant_v");
@@ -101,6 +102,11 @@ int main() {
 
   prop->fEmin = 3.E-6; // [3 KeV] energy cut
   prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
+
+#ifdef USE_VECGEOM_NAVIGATOR
+  // Create particles
+  Particle::CreateParticles();
+#endif
 
   // Create the tab. phys process.
   loadvecgeomgeometry(prop);
