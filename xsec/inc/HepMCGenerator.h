@@ -11,8 +11,12 @@
 #include "HepMC/Search/FindParticles.h"
 #endif
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+using vecgeom::Particle;
+#else
 class TParticlePDG;
-
+#endif
 
 class HepMCGenerator: public PrimaryGenerator {
  private:
