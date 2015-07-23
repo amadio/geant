@@ -624,16 +624,16 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
         }
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
 #ifdef USE_VECGEOM_NAVIGATOR
-	const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+        const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
 #else
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
 #endif
         Double_t secMass = secPartPDG->Mass();
-	/*	static std::mutex m;
-	m.lock();
-	cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG << endl;
-	m.unlock();
-	*/
+        /*	static std::mutex m;
+        m.lock();
+        cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG << endl;
+        m.unlock();
+        */
         Double_t px = mom[3 * i];
         Double_t py = mom[3 * i + 1];
         Double_t pz = mom[3 * i + 2];
