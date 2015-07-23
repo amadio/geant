@@ -22,9 +22,6 @@ typedef vecgeom::GeoManager TGeoManager;
 #include "TGeoMaterial.h"
 #include "TGeoBranchArray.h"
 #endif
-#include "TGeoMatrix.h"
-#include "TDatabasePDG.h"
-#include "TPDGCode.h"
 
 ClassImp(TTabPhysProcess)
 
