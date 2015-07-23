@@ -6,6 +6,10 @@
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+using vecgeom::Particle;
+#endif
 
 #include <algorithm>
 
@@ -155,7 +159,11 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], const I
   for (Int_t ip = 0; ip < npart; ++ip) {
     if (fDecayTable->HasDecay(ip)) {
       Int_t pdgcode = TPartIndex::I()->PDG(ip);
+ #ifdef USE_VECGEOM_NAVIGATOR
+      const Particle *const &partPDG = &Particle::GetParticle(pdgcode);
+#else
       TParticlePDG *partPDG = TPartIndex::I()->DBPdg()->GetParticle(pdgcode);
+#endif
       Double_t mass = partPDG->Mass();                        // mass of the particle [GeV]
       Double_t cTauPerMass = fDecayTable->GetCTauPerMass(ip); // c*tau/mass [cm/GeV]
       Double_t lambda = 0.0;
