@@ -1,7 +1,12 @@
 #include "HepMCGenerator.h"
 
 #include "TMath.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+using vecgeom::Particle;
+#else
 #include "TDatabasePDG.h"
+#endif
 #include "GeantTrack.h"
 
 #include "HepMC/GenParticle.h"
@@ -24,6 +29,9 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
   } else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle::CreateParticles();
+#endif
 }
 
 //______________________________________________________________________________
@@ -133,7 +141,11 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
     gtrack.SetPDG(pdg);
 
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(pdg));
+#ifdef USE_VECGEOM_NAVIGATOR
+    const Particle *const &part = &Particle::GetParticle(gtrack.fPDG);
+#else
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
+#endif
 
     gtrack.SetCharge(part->Charge() / 3.);
     gtrack.SetMass(part->Mass());
