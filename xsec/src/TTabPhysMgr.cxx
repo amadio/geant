@@ -4,6 +4,8 @@
 #include "volumes/Material.h"
 #include "navigation/NavigationState.h"
 #include "management/GeoManager.h"
+#include "volumes/Particle.h"
+using vecgeom::Particle;
 #else
 #include "TGeoMaterial.h"
 #include "TGeoManager.h"
@@ -621,8 +623,17 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
           continue;
         }
         Int_t secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
+#ifdef USE_VECGEOM_NAVIGATOR
+	const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+#else
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+#endif
         Double_t secMass = secPartPDG->Mass();
+	/*	static std::mutex m;
+	m.lock();
+	cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG << endl;
+	m.unlock();
+	*/
         Double_t px = mom[3 * i];
         Double_t py = mom[3 * i + 1];
         Double_t pz = mom[3 * i + 2];
@@ -864,7 +875,11 @@ void TTabPhysMgr::GetRestFinStates(Int_t partindex, TMXsec *mxs, Double_t energy
     }
 
     Int_t secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
+#ifdef USE_VECGEOM_NAVIGATOR
+    const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+#else
     TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+#endif
     Double_t secMass = secPartPDG->Mass();
     Double_t px = mom[3 * i];
     Double_t py = mom[3 * i + 1];
@@ -965,7 +980,11 @@ void TTabPhysMgr::SampleDecayInFlight(Int_t partindex, TMXsec *mxs, Double_t ene
       }
 
       Int_t secPDG = TPartIndex::I()->PDG(pid[isec]); // GV part.code -> PGD code
+#ifdef USE_VECGEOM_NAVIGATOR
+      const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+#else
       TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
+#endif
       Double_t secMass = secPartPDG->Mass(); // mass [GeV]
       Double_t px = mom[3 * isec];
       Double_t py = mom[3 * isec + 1];
