@@ -74,7 +74,7 @@ public:
 private:
   void InitPrimaryGenerator();
 
-  TPrimaryGenerator(const TPrimaryGenerator &); // no imp.
+  TPrimaryGenerator(const TPrimaryGenerator &);            // no imp.
   TPrimaryGenerator &operator=(const TPrimaryGenerator &); // no imp.
 
   ClassDef(TPrimaryGenerator, 1)
