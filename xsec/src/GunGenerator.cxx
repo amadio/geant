@@ -10,8 +10,13 @@ typedef vecgeom::GeoManager TGeoManager;
 
 #include "TMath.h"
 #include "TRandom.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
+using vecgeom::Particle;
+#else
 #include "TDatabasePDG.h"
 #include "TPDGCode.h"
+#endif
 #include "GeantTrack.h"
 
 ClassImp(GunGenerator)
@@ -50,7 +55,11 @@ void GunGenerator::InitPrimaryGenerator() {
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
   // set TDatabasePDG ptr
+#ifdef USE_VECGEOM_NAVIGATOR
+  fPartPDG = const_cast<Particle*>(&Particle::GetParticle(fPDG));
+#else
   fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
+#endif
   // set rest mass [GeV]
   fMass = fPartPDG->Mass();
   // set charge
