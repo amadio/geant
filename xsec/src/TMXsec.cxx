@@ -159,7 +159,7 @@ TMXsec::TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], const I
   for (Int_t ip = 0; ip < npart; ++ip) {
     if (fDecayTable->HasDecay(ip)) {
       Int_t pdgcode = TPartIndex::I()->PDG(ip);
- #ifdef USE_VECGEOM_NAVIGATOR
+#ifdef USE_VECGEOM_NAVIGATOR
       const Particle *const &partPDG = &Particle::GetParticle(pdgcode);
 #else
       TParticlePDG *partPDG = TPartIndex::I()->DBPdg()->GetParticle(pdgcode);
