@@ -54,7 +54,7 @@ public:
   virtual void GetTrack(Int_t n, Geant::GeantTrack &gtrack);
 
 private:
-  GunGenerator(const GunGenerator &); // no imp.
+  GunGenerator(const GunGenerator &);            // no imp.
   GunGenerator &operator=(const GunGenerator &); // no imp.
 
   ClassDef(GunGenerator, 1)
