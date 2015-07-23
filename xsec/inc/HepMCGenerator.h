@@ -39,7 +39,7 @@ public:
                 Double_t &z0, Int_t &pdg);
 
 private:
-  HepMCGenerator(const HepMCGenerator &); // no imp.
+  HepMCGenerator(const HepMCGenerator &);            // no imp.
   HepMCGenerator &operator=(const HepMCGenerator &); // no imp.
 
   ClassDef(HepMCGenerator, 1)
