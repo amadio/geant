@@ -103,11 +103,6 @@ int main() {
   prop->fEmin = 3.E-6; // [3 KeV] energy cut
   prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
-#ifdef USE_VECGEOM_NAVIGATOR
-// Create particles
-//  Particle::CreateParticles();
-#endif
-
   // Create the tab. phys process.
   loadvecgeomgeometry(prop);
   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
