@@ -35,8 +35,8 @@ private:
 
 public:
   TPrimaryGenerator();
-  TPrimaryGenerator(int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir,
-                    double ydir, double zdir);
+  TPrimaryGenerator(int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir, double ydir,
+                    double zdir);
   virtual ~TPrimaryGenerator();
 
   void SetEkin(double partekin) { fPartEkin = partekin; }

@@ -5,9 +5,9 @@
 #include "volumes/Particle.h"
 using vecgeom::Particle;
 #else
- #include "TGeoManager.h"
- #include "TGeoBranchArray.h"
- #include "TGeoExtension.h"
+#include "TGeoManager.h"
+#include "TGeoBranchArray.h"
+#include "TGeoExtension.h"
 #endif
 
 #include "GeantTrack.h"
@@ -37,7 +37,7 @@ using vecgeom::Particle;
 
 ClassImp(TTabPhysMgr)
 
-void loadvecgeomgeometry(GeantPropagator *);
+    void loadvecgeomgeometry(GeantPropagator *);
 TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
 
 //______________________________________________________________________________
@@ -69,7 +69,7 @@ TTabPhysMgr::TTabPhysMgr()
     : fNelements(0), fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0),
 #ifndef USE_VECGEOM_NAVIGATOR
       fGeom(0),
-#endif      
+#endif
       fHasNCaptureAtRest(0) {
   // Dummy ctor.
   fgInstance = this;
@@ -77,11 +77,10 @@ TTabPhysMgr::TTabPhysMgr()
 
 //______________________________________________________________________________
 TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
-    : fNelements(0),
-      fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0), 
+    : fNelements(0), fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0),
 #ifndef USE_VECGEOM_NAVIGATOR
-      fGeom(0), 
-#endif      
+      fGeom(0),
+#endif
       fHasNCaptureAtRest(0) {
 
   fgInstance = this;
@@ -94,7 +93,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
 #else
   fGeom = gGeoManager;
   if (!fGeom)
-    Fatal("TTabPhysMgr", "No geometry");  
+    Fatal("TTabPhysMgr", "No geometry");
   TList *matlist = (TList *)fGeom->GetListOfMaterials();
   TIter next(matlist);
 #endif
@@ -647,7 +646,8 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
         Double_t secMass = secPartPDG->Mass();
         /*	static std::mutex m;
         m.lock();
-        std::cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG << std::endl;
+        std::cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG <<
+        std::endl;
         m.unlock();
         */
         Double_t px = mom[3 * i];

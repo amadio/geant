@@ -22,8 +22,8 @@ class GeantTaskData;
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/Global.h"
 #else
- class TGeoManager;
- class TGeoMaterial;
+class TGeoManager;
+class TGeoMaterial;
 #endif
 
 #include "GeantFwd.h"
@@ -35,15 +35,15 @@ public:
   using GeantTaskData = Geant::GeantTaskData;
 
 private:
-  int fNelements;           // Total number of elements in the geometry
-  int fNmaterials;          // Total number of materials in the geometry
-  TEXsec **fElemXsec;         // Array of x-section pointers per element
-  TEFstate **fElemFstate;     // Array of final state pointers per element
-  TMXsec **fMatXsec;          // Array of x-section pointers per material
-  TPDecay *fDecay;            // Decay tables for each particles
+  int fNelements;         // Total number of elements in the geometry
+  int fNmaterials;        // Total number of materials in the geometry
+  TEXsec **fElemXsec;     // Array of x-section pointers per element
+  TEFstate **fElemFstate; // Array of final state pointers per element
+  TMXsec **fMatXsec;      // Array of x-section pointers per material
+  TPDecay *fDecay;        // Decay tables for each particles
 #ifndef USE_VECGEOM_NAVIGATOR
-  TGeoManager *fGeom;         // Pointer to the geometry manager
-#endif  
+  TGeoManager *fGeom; // Pointer to the geometry manager
+#endif
   bool *fHasNCaptureAtRest; // do the particle have nCapture at rest?
 
   static TTabPhysMgr *fgInstance; // Singleton instance

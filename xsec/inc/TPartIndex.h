@@ -97,9 +97,9 @@ public:
   int PDG(int i) const { return fPDG[i]; }
   // PDG code <- particle name
   int PDG(const char *pname) const;
-  // Particle name <- GV particle number
+// Particle name <- GV particle number
 #ifdef USE_VECGEOM_NAVIGATOR
-  const char *PartName(int i) const {return Particle::GetParticle(fPDG[i]).Name();}
+  const char *PartName(int i) const { return Particle::GetParticle(fPDG[i]).Name(); }
 #else
   const char *PartName(int i) const { return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName(); }
 #endif
@@ -148,9 +148,9 @@ private:
 
   const int fVersion = 1000002;
 
-  static const int fgNProc = FNPROC;  // Number of processes
-  static const char *fgPrName[FNPROC];  // Process name
-  static const short fgPCode[FNPROC]; // G4 process codes
+  static const int fgNProc = FNPROC;   // Number of processes
+  static const char *fgPrName[FNPROC]; // Process name
+  static const short fgPCode[FNPROC];  // G4 process codes
 
   static const int fgNElem = NELEM;      // Number of Elements
   static const char *fgEleSymbol[NELEM]; // Symbol of Element
@@ -169,11 +169,11 @@ private:
 #ifdef USE_VECGEOM_NAVIGATOR
   Particle *fDBPdg; // Pointer to the augmented pdg database
 #else
-  TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
+  TDatabasePDG *fDBPdg;   // Pointer to the augmented pdg database
 #endif
 
   std::map<int, int> fPDGToGVMap; // PDG->GV code map
-  int fSpecGVIndices[4];            // store GV codes of e-,e+,gamma and proton
+  int fSpecGVIndices[4];          // store GV codes of e-,e+,gamma and proton
 
 #ifdef USE_VECGEOM_NAVIGATOR
   ClassDef(TPartIndex, 100) // Particle Index

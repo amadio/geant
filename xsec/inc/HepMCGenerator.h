@@ -34,8 +34,7 @@ public:
   virtual int NextEvent();
   virtual void GetTrack(int n, Geant::GeantTrack &gtrack);
   // used from Geant4 test-complex to take one primary track
-  void GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0,
-                double &z0, int &pdg);
+  void GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0, double &z0, int &pdg);
 
 private:
   HepMCGenerator(const HepMCGenerator &);            // no imp.

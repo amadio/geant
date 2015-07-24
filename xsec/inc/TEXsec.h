@@ -37,8 +37,7 @@ public:
   bool AddPart(int kpart, int pdg, int nxsec);
   bool AddPartXS(int kpart, const float xsec[], const int dict[]);
   bool AddPartIon(int kpart, const float dedx[]);
-  bool AddPartMS(int kpart, const float angle[], const float ansig[], const float length[],
-                   const float lensig[]);
+  bool AddPartMS(int kpart, const float angle[], const float ansig[], const float length[], const float lensig[]);
 
   int Ele() const { return fEle; }
   int Index() const { return fIndex; }
@@ -60,9 +59,7 @@ public:
   int SampleReac(int pindex, double en) const;
   int SampleReac(int pindex, double en, double randn) const;
 
-  static bool FloatDiff(double a, double b, double prec) {
-    return fabs(a - b) > 0.5 * fabs(a + b) * prec;
-  }
+  static bool FloatDiff(double a, double b, double prec) { return fabs(a - b) > 0.5 * fabs(a + b) * prec; }
 
   const float *Cuts() const { return fCuts; }
   bool SetCuts(const double cuts[4]) {
@@ -113,10 +110,10 @@ private:
   double fEilDelta;     // Inverse log energy step
   const double *fEGrid; //! Common energy grid
   int fNRpart;          // Number of particles with reaction
-  TPXsec *fPXsec;         // [fNRpart] Cross section table per particle
+  TPXsec *fPXsec;       // [fNRpart] Cross section table per particle
   float fCuts[4];       // Production cuts "a la G4"
 
-  static int fNLdElems;          //! number of loaded elements
+  static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
 
   static TGMainFrame *fMain;           //! Main window

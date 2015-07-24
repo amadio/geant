@@ -46,8 +46,7 @@ public:
   int SampleReac(double en, double randn) const;
 
   void Dump() const;
-  void Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en,
-              float result[]);
+  void Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en, float result[]);
 
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
@@ -76,9 +75,9 @@ private:
   float *fTotXs;        // [fNTotXs] table of total x-sec
   float *fXSecs;        // [fNXSecs] table of partial x-sec
   int fRdict[FNPROC];   // reaction dictionary from reaction number to position
-                          // in the X-sec array
+                        // in the X-sec array
   int fRmap[FNPROC];    // reaction map, from reaction position in the X-sec
-                          // array to the raction number
+                        // array to the raction number
 
   ClassDef(TPXsec, 1) // Particle X-secs
 };

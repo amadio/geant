@@ -43,8 +43,8 @@ private:
 
 public:
   GunGenerator();
-  GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir,
-               double ydir, double zdir);
+  GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir, double ydir,
+               double zdir);
 
   ~GunGenerator();
 

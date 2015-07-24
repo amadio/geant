@@ -33,9 +33,8 @@ public:
   bool AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[]);
   bool AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
 
-  bool AddPartFS(int kpart, int ibin, int reac, const int npart[], const float weight[],
-                   const float kerma[], const float en[], const char surv[], const int pid[],
-                   const float mom[]);
+  bool AddPartFS(int kpart, int ibin, int reac, const int npart[], const float weight[], const float kerma[],
+                 const float en[], const char surv[], const int pid[], const float mom[]);
 
   int Ele() const { return fEle; }
   double Dens() const { return fDens; }
@@ -50,20 +49,18 @@ public:
   void SetRestCaptFstate(int kpart, const TFinState &fstate);
   bool HasRestCapture(int partindex);
 
-  bool SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr,
-                    const int *&pid, const float *&mom, int &ebinindx) const;
-  bool SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr,
-                    const int *&pid, const float *&mom, int &ebinindx, double randn1, double randn2) const;
-  bool SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr,
-                              const int *&pid, const float *&mom) const;
-  bool SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr,
-                              const int *&pid, const float *&mom, double randn) const;
-  bool GetReac(int pindex, int preac, float en, int ifs, int &npart, float &weight, float &kerma,
-                 float &enr, const int *&pid, const float *&mom) const;
+  bool SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                  const float *&mom, int &ebinindx) const;
+  bool SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                  const float *&mom, int &ebinindx, double randn1, double randn2) const;
+  bool SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                            const float *&mom) const;
+  bool SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                            const float *&mom, double randn) const;
+  bool GetReac(int pindex, int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
+               const int *&pid, const float *&mom) const;
 
-  static bool FloatDiff(double a, double b, double prec) {
-    return fabs(a - b) > 0.5 * fabs(a + b) * prec;
-  }
+  static bool FloatDiff(double a, double b, double prec) { return fabs(a - b) > 0.5 * fabs(a + b) * prec; }
 
   void Draw(const char *option);
   bool Resample();
@@ -95,9 +92,9 @@ private:
   const double *fEGrid; //! Common energy grid
   int fNEFstat;         // Number of sampled final states
   int fNRpart;          // Number of particles with reaction
-  TPFstate *fPFstate;     // [fNRpart] Final state table per particle
+  TPFstate *fPFstate;   // [fNRpart] Final state table per particle
 
-  static int fNLdElems;            //! number of loaded elements
+  static int fNLdElems;              //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
 
   ClassDefNV(TEFstate, 1) // Element X-secs

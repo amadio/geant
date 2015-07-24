@@ -33,8 +33,8 @@ public:
   using GeantTaskData = Geant::GeantTaskData;
 
   TMXsec();
-  TMXsec(const char *name, const char *title, const int z[], const int a[], const float w[], int nel,
-         float dens, bool weight = kFALSE, const TPDecay *decaytable = 0);
+  TMXsec(const char *name, const char *title, const int z[], const int a[], const float w[], int nel, float dens,
+         bool weight = kFALSE, const TPDecay *decaytable = 0);
   virtual ~TMXsec();
   const char *GetName() const { return fName; }
   const char *GetTitle() const { return fTitle; }
@@ -69,8 +69,8 @@ private:
   TMXsec(const TMXsec &);            // Not implemented
   TMXsec &operator=(const TMXsec &); // Not implemented
 
-  char fName[32];         // cross section name
-  char fTitle[128];       // cross section title
+  char fName[32];       // cross section name
+  char fTitle[128];     // cross section title
   int fNEbins;          // number of energy bins
   int fNTotXL;          // dimension of fTotXL
   int fNCharge;         // dimension of tables for charged particles
@@ -78,19 +78,19 @@ private:
   double fEilDelta;     // logarithmic energy delta
   const double *fEGrid; //! Energy grid
 
-  int fNElems;                                              // Number of elements
-  TEXsec **fElems;                                            // [fNElems] List of elements composing this material
-  float *fTotXL;                                            // [fNTotXL] Total x-sec for this material
-  float *fRelXS;                                            // [fNRelXS] Relative x-sec for this material
-  float *fDEdx;                                             // [fNCharge] Ionisation energy loss for this material
-  float *fMSangle;                                          // [fNCharge] table of MS average angle
-  float *fMSansig;                                          // [fNCharge] table of MS sigma angle
-  float *fMSlength;                                         // [fNCharge] table of MS average lenght correction
-  float *fMSlensig;                                         // [fNCharge] table of MS sigma lenght correction
-  double *fRatios;                                          // [fNElems]  relative #atoms/volume; normalized
-  float *fRange;                                            // [fNCharge] ranges of the particle in this material
+  int fNElems;                                            // Number of elements
+  TEXsec **fElems;                                        // [fNElems] List of elements composing this material
+  float *fTotXL;                                          // [fNTotXL] Total x-sec for this material
+  float *fRelXS;                                          // [fNRelXS] Relative x-sec for this material
+  float *fDEdx;                                           // [fNCharge] Ionisation energy loss for this material
+  float *fMSangle;                                        // [fNCharge] table of MS average angle
+  float *fMSansig;                                        // [fNCharge] table of MS sigma angle
+  float *fMSlength;                                       // [fNCharge] table of MS average lenght correction
+  float *fMSlensig;                                       // [fNCharge] table of MS sigma lenght correction
+  double *fRatios;                                        // [fNElems]  relative #atoms/volume; normalized
+  float *fRange;                                          // [fNCharge] ranges of the particle in this material
   std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
-  const TPDecay *fDecayTable;                                 // pointer to the decay table
+  const TPDecay *fDecayTable;                             // pointer to the decay table
 
   ClassDef(TMXsec, 1) // Material X-secs
 };
