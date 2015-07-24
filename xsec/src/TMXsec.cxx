@@ -45,8 +45,8 @@ TMXsec::~TMXsec() {
 }
 
 //____________________________________________________________________________
-TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a*/[], const float w[],
-               int nel, float dens, bool weight, const TPDecay *decaytable)
+TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a*/[], const float w[], int nel,
+               float dens, bool weight, const TPDecay *decaytable)
     : fNEbins(0), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(TPartIndex::I()->EilDelta()),
       fEGrid(TPartIndex::I()->EGrid()), fNElems(0), fElems(0), fTotXL(0), fRelXS(0), fDEdx(0), fMSangle(0), fMSansig(0),
       fMSlength(0), fMSlensig(0), fRatios(0), fRange(0), fInvRangeTable(0), fDecayTable(0) {
@@ -346,7 +346,7 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
     tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
 
     // discrete step limit
-    if (ipart < TPartIndex::I()->NPartReac()) {                // can have different reactions + decay
+    if (ipart < TPartIndex::I()->NPartReac()) {       // can have different reactions + decay
       int ibin = log(energy / fEGrid[0]) * fEilDelta; // energy bin index
       ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
 
@@ -361,7 +361,7 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
         tracks.fPstepV[i] = x;
         tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
       }
-    } else if (fDecayTable->HasDecay(ipart)) {                         // it has only decay
+    } else if (fDecayTable->HasDecay(ipart)) {                       // it has only decay
       double x = tracks.fPV[i] * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
       x = -1. * x * log(rndArray[i]);
       if (x < cx) {
@@ -404,7 +404,7 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
   tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
 
   // discrete step limit
-  if (ipart < TPartIndex::I()->NPartReac()) {                // can have different reactions + decay
+  if (ipart < TPartIndex::I()->NPartReac()) {       // can have different reactions + decay
     int ibin = log(energy / fEGrid[0]) * fEilDelta; // energy bin index
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
 
@@ -419,7 +419,7 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
       tracks.fPstepV[i] = x;
       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
     }
-  } else if (fDecayTable->HasDecay(ipart)) {                         // it has only decay
+  } else if (fDecayTable->HasDecay(ipart)) {                       // it has only decay
     double x = tracks.fPV[i] * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
     x = -1. * x * log(rndArray[0]);
     if (x < cx) {
@@ -578,7 +578,7 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
   double energyLimit = GeantPropagator::Instance()->fEmin;
   for (int i = 0; i < ntracks; ++i) {
     int ipart = tracks.fGVcodeV[i]; // GV particle index/code
-    tracks.fProcessV[i] = -1;         // init process index to -1 i.e. no process
+    tracks.fProcessV[i] = -1;       // init process index to -1 i.e. no process
     double dedx = 0.0;
 
     // just a check; can be removed if it is ensured before calling
@@ -603,7 +603,7 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
       dedx = fDEdx[ipart * fNEbins]; // protections
     else if (energy >= fEGrid[fNEbins - 1])
       dedx = fDEdx[ipart * fNEbins + fNEbins - 1];
-    else {                                                     // regular case
+    else {                                            // regular case
       int ibin = log(energy / fEGrid[0]) * fEilDelta; // energy bin index
       ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
       double en1 = fEGrid[ibin];
@@ -616,11 +616,11 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
     double bgold = sqrt((gammaold - 1) * (gammaold + 1));
 
     double edepo = tracks.fStepV[i] * dedx; // compute energy loss using linera loss aprx.
-    if (edepo > 0.01 * energy)                // long step: eloss > 1% of initial energy
+    if (edepo > 0.01 * energy)              // long step: eloss > 1% of initial energy
       edepo = energy - InvRange(ipart, range - tracks.fStepV[i]);
 
     double newEkin = energy - edepo; // new kinetic energy
-    if (newEkin < energyLimit) {       // new Kinetic energy below tracking cut
+    if (newEkin < energyLimit) {     // new Kinetic energy below tracking cut
       // Particle energy below threshold
       tracks.fEdepV[i] += energy;       // put Ekin to edepo
       tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
@@ -654,7 +654,7 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks) {
 
   double energyLimit = GeantPropagator::Instance()->fEmin;
   int ipart = tracks.fGVcodeV[i]; // GV particle index/code
-  tracks.fProcessV[i] = -1;         // init process index to -1 i.e. no process
+  tracks.fProcessV[i] = -1;       // init process index to -1 i.e. no process
   double dedx = 0.0;
 
   // just a check; can be removed if it is ensured before calling
@@ -679,7 +679,7 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks) {
     dedx = fDEdx[ipart * fNEbins]; // protections
   else if (energy >= fEGrid[fNEbins - 1])
     dedx = fDEdx[ipart * fNEbins + fNEbins - 1];
-  else {                                                     // regular case
+  else {                                            // regular case
     int ibin = log(energy / fEGrid[0]) * fEilDelta; // energy bin index
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     double en1 = fEGrid[ibin];
@@ -692,11 +692,11 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks) {
   double bgold = sqrt((gammaold - 1) * (gammaold + 1));
 
   double edepo = tracks.fStepV[i] * dedx; // compute energy loss using linera loss aprx.
-  if (edepo > 0.01 * energy)                // long step: eloss > 1% of initial energy
+  if (edepo > 0.01 * energy)              // long step: eloss > 1% of initial energy
     edepo = energy - InvRange(ipart, range - tracks.fStepV[i]);
 
   double newEkin = energy - edepo; // new kinetic energy
-  if (newEkin < energyLimit) {       // new Kinetic energy below tracking cut
+  if (newEkin < energyLimit) {     // new Kinetic energy below tracking cut
     // Particle energy below threshold
     tracks.fEdepV[i] += energy;       // put Ekin to edepo
     tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0

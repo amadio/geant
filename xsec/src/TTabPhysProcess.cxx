@@ -20,8 +20,8 @@
 
 ClassImp(TTabPhysProcess)
 
-//______________________________________________________________________________
-TTabPhysProcess::TTabPhysProcess()
+    //______________________________________________________________________________
+    TTabPhysProcess::TTabPhysProcess()
     : PhysicsProcess(), fMgr(0), fXsecFileName(), fFinalSFileName()
 
 {

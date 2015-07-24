@@ -595,13 +595,13 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         postEkinOfParimary = sqrt(postPrimP2 + primMass * primMass) - primMass;
 
         // update primary in tracks
-        double secPtot = sqrt(postPrimP2);                // total P [GeV]
+        double secPtot = sqrt(postPrimP2);                      // total P [GeV]
         double secEtot = postEkinOfParimary + tracks.fMassV[t]; // total energy in [GeV]
-        tracks.fPV[t] = secPtot;                                  // momentum of this particle
-        tracks.fEV[t] = secEtot;                                  // total E of this particle
-        tracks.fXdirV[t] = px / secPtot;                          // dirx of this particle (before transform.)
-        tracks.fYdirV[t] = py / secPtot;                          // diry of this particle (before transform.)
-        tracks.fZdirV[t] = pz / secPtot;                          // dirz of this particle (before transform.)
+        tracks.fPV[t] = secPtot;                                // momentum of this particle
+        tracks.fEV[t] = secEtot;                                // total E of this particle
+        tracks.fXdirV[t] = px / secPtot;                        // dirx of this particle (before transform.)
+        tracks.fYdirV[t] = py / secPtot;                        // diry of this particle (before transform.)
+        tracks.fZdirV[t] = pz / secPtot;                        // dirz of this particle (before transform.)
 
         // Rotate parent track in tracks to original parent track's frame
         RotateNewTrack(oldXdir, oldYdir, oldZdir, tracks, t);
@@ -658,10 +658,10 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         px *= corFactor;
         py *= corFactor;
         pz *= corFactor;
-        double secPtot2 = px * px + py * py + pz * pz;             // total P^2 [GeV^2]
+        double secPtot2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
         double secPtot = sqrt(secPtot2);                     // total P [GeV]
         double secEtot = sqrt(secPtot2 + secMass * secMass); // total energy in [GeV]
-        double secEkin = secEtot - secMass;                        // kinetic energy in [GeV]
+        double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
           GeantTrack &gTrack = td->GetTrack();
@@ -758,8 +758,8 @@ int TTabPhysMgr::SampleInt(int imat, int ntracks, GeantTrack_v &tracks, GeantTas
 //______________________________________________________________________________
 // will be called recursively if necessary
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks,
-                                   int iintrack, int &nTotSecPart, GeantTaskData *td) {
+void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks, int iintrack,
+                                   int &nTotSecPart, GeantTaskData *td) {
   // current track should have already been killed before calling
   const double mecc = 0.00051099906; // e- mass c2 in [GeV]
   double rndArray[3];
@@ -902,10 +902,10 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     double px = mom[3 * i];
     double py = mom[3 * i + 1];
     double pz = mom[3 * i + 2];
-    double secPtot2 = px * px + py * py + pz * pz;             // total P^2 [GeV^2]
+    double secPtot2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
     double secPtot = sqrt(secPtot2);                     // total P [GeV]
     double secEtot = sqrt(secPtot2 + secMass * secMass); // total energy in [GeV]
-    double secEkin = secEtot - secMass;                        // kinetic energy in [GeV]
+    double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
     // Ekin of the i-th secondary is higher than the threshold
     if (secEkin > energyLimit) { // insert secondary into tracks_v
       GeantTrack &gTrack = td->GetTrack();
@@ -1007,7 +1007,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
       double px = mom[3 * isec];
       double py = mom[3 * isec + 1];
       double pz = mom[3 * isec + 2];
-      double secP2 = px * px + py * py + pz * pz;             // total P^2 [GeV^2]
+      double secP2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
       double secEtot = sqrt(secP2 + secMass * secMass); // total E [GeV]
       // double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 
@@ -1116,8 +1116,7 @@ void TTabPhysMgr::RotateNewTrack(double oldXdir, double oldYdir, double oldZdir,
 // frame; direction vector of the current track, measured from local Z is
 // already updated in GeantTrack track; here we rotate it to lab. frame
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysMgr::RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack_v &tracks,
-                                 int itrack) {
+void TTabPhysMgr::RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack_v &tracks, int itrack) {
   const double one = 1.0;
   const double zero = 0.0;
   const double amin = 1.0e-10;
@@ -1147,10 +1146,9 @@ void TTabPhysMgr::RotateNewTrack(double oldXdir, double oldYdir, double oldZdir,
 
   // renormalization: -use 1-th order Taylor aprx. of 1/sqrt(x) around 1.0
   // that should be almost exact since the vector almost normalized!
-  double delta =
-      one5 -
-      half * (tracks.fXdirV[itrack] * tracks.fXdirV[itrack] + tracks.fYdirV[itrack] * tracks.fYdirV[itrack] +
-              tracks.fZdirV[itrack] * tracks.fZdirV[itrack]);
+  double delta = one5 -
+                 half * (tracks.fXdirV[itrack] * tracks.fXdirV[itrack] + tracks.fYdirV[itrack] * tracks.fYdirV[itrack] +
+                         tracks.fZdirV[itrack] * tracks.fZdirV[itrack]);
   tracks.fXdirV[itrack] *= delta;
   tracks.fYdirV[itrack] *= delta;
   tracks.fZdirV[itrack] *= delta;
@@ -1240,10 +1238,9 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, int itrack, double theta, do
   //    due to sequential calls of rotation; avoid 1/sqrt(x) computation by
   //    using the 1-th order Taylor aprx. around 1.0 that should be almost
   //    exact since the vector almost normalized!
-  double delta =
-      one5 -
-      half * (tracks.fXdirV[itrack] * tracks.fXdirV[itrack] + tracks.fYdirV[itrack] * tracks.fYdirV[itrack] +
-              tracks.fZdirV[itrack] * tracks.fZdirV[itrack]);
+  double delta = one5 -
+                 half * (tracks.fXdirV[itrack] * tracks.fXdirV[itrack] + tracks.fYdirV[itrack] * tracks.fYdirV[itrack] +
+                         tracks.fZdirV[itrack] * tracks.fZdirV[itrack]);
   tracks.fXdirV[itrack] *= delta;
   tracks.fYdirV[itrack] *= delta;
   tracks.fZdirV[itrack] *= delta;

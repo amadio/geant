@@ -21,8 +21,8 @@ ClassImp(TPrimaryGenerator)
 }
 
 //______________________________________________________________________________
-TPrimaryGenerator::TPrimaryGenerator(int partpdg, double partekin, double xpos, double ypos, double zpos,
-                                     double xdir, double ydir, double zdir)
+TPrimaryGenerator::TPrimaryGenerator(int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir,
+                                     double ydir, double zdir)
     : fPDG(partpdg),                         // PDG code of the primary particle
       fPartEkin(partekin),                   // kinetic energy of the primary [GeV]
       fXPos(xpos),                           // (x,y,z) position of the primary particles

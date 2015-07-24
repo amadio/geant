@@ -29,8 +29,8 @@ ClassImp(GunGenerator)
       fYDir(0.), fZDir(1.), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0),
       numberoftracks(0), rndgen(0) {}
 
-GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos,
-                           double xdir, double ydir, double zdir)
+GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir,
+                           double ydir, double zdir)
     : average(aver), fPDG(partpdg),          // PDG code of the primary particle
       fPartEkin(partekin),                   // kinetic energy of the primary [GeV]
       fXPos(xpos),                           // (x,y,z) position of the primary particles

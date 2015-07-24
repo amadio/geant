@@ -67,14 +67,12 @@ bool TEXsec::AddPart(int kpart, int pdg, int nxsec) { return fPXsec[kpart].SetPa
 
 //___________________________________________________________________
 bool TEXsec::AddPartMS(int kpart, const float angle[], const float ansig[], const float length[],
-                         const float lensig[]) {
+                       const float lensig[]) {
   return fPXsec[kpart].SetPartMS(angle, ansig, length, lensig);
 }
 
 //___________________________________________________________________
-bool TEXsec::AddPartXS(int kpart, const float xsec[], const int dict[]) {
-  return fPXsec[kpart].SetPartXS(xsec, dict);
-}
+bool TEXsec::AddPartXS(int kpart, const float xsec[], const int dict[]) { return fPXsec[kpart].SetPartXS(xsec, dict); }
 
 //___________________________________________________________________
 bool TEXsec::AddPartIon(int kpart, const float dedx[]) { return fPXsec[kpart].SetPartIon(dedx); }
@@ -177,9 +175,7 @@ bool TEXsec::Lambda_v(int npart, int pindex, const double en[], double lam[]) co
 int TEXsec::SampleReac(int pindex, double en) const { return fPXsec[pindex].SampleReac(en); }
 
 //___________________________________________________________________
-int TEXsec::SampleReac(int pindex, double en, double randn) const {
-  return fPXsec[pindex].SampleReac(en, randn);
-}
+int TEXsec::SampleReac(int pindex, double en, double randn) const { return fPXsec[pindex].SampleReac(en, randn); }
 
 //___________________________________________________________________
 TGraph *TEXsec::MSGraph(const char *part, const char *what, float emin, float emax, int nbin) const {
