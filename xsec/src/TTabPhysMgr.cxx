@@ -237,7 +237,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
     fMatXsec[fNmaterials++] = mxs;
 // Connect to Material
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat->SetXsecPtr(static_cast<void *>(new TOMXsec(mxs)));
+    mat->SetXsecPtr(static_cast<void *>(mxs));
 #else
     mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));
 #endif
@@ -288,7 +288,7 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks,
 #ifndef GEANT_CUDA_DEVICE_BUILD
   if (mat)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -320,7 +320,7 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks,
   // Mixed tracks in different volumes
   for (Int_t i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    mxs = ((TOMXsec *)(tracks.GetMaterial(i)->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)tracks.GetMaterial(i)->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -357,7 +357,7 @@ Int_t TTabPhysMgr::Eloss(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, G
 #ifndef GEANT_CUDA_DEVICE_BUILD
   if (mat)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -378,7 +378,7 @@ Int_t TTabPhysMgr::Eloss(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, G
   // Mixed tracks in different volumes
   for (Int_t i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    mxs = ((TOMXsec *)(tracks.GetMaterial(i)->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)tracks.GetMaterial(i)->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -408,7 +408,7 @@ void TTabPhysMgr::ProposeStep(Material_t *mat, Int_t ntracks, GeantTrack_v &trac
          << " xsecptr:" << mat->GetXsecPtr() << std::endl;
     m.unlock();
     */
-    mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -421,7 +421,7 @@ void TTabPhysMgr::ProposeStep(Material_t *mat, Int_t ntracks, GeantTrack_v &trac
   // Mixed tracks in different volumes
   for (Int_t i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    mxs = ((TOMXsec *)(tracks.GetMaterial(i)->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)tracks.GetMaterial(i)->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -445,7 +445,7 @@ void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
     mat = vecgeom::Material::GetMaterials()[imat];
-    mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
@@ -462,7 +462,7 @@ void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack
   // Mixed tracks in different volumes
   for (Int_t i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    mxs = ((TOMXsec *)(tracks.GetMaterial(i)->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)tracks.GetMaterial(i)->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
 #endif
@@ -480,7 +480,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
     mat = vecgeom::Material::GetMaterials()[imat];
-    mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
+    mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mat = (Material_t *)fGeom->GetListOfMaterials()->At(imat);
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
@@ -510,7 +510,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
     // Deal with mixed tracks case
     if (!mxs)
 #ifdef USE_VECGEOM_NAVIGATOR
-      mxs = ((TOMXsec *)(tracks.GetMaterial(t)->GetXsecPtr()))->MXsec();
+      mxs = (TMXsec *)tracks.GetMaterial(t)->GetXsecPtr();
 #else
       mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(t)->GetFWExtension())->GetUserObject())->MXsec();
 #endif

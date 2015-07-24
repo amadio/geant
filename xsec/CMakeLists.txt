@@ -40,11 +40,7 @@ endif()
 
 include_directories(inc)
 
-if(HepMC_FOUND)
-  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsmcLinkDef.h)
-else()
-  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h)
-endif()
+ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries

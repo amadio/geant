@@ -1,7 +1,10 @@
 #include <TPartIndex.h>
-#include <TString.h>
-#include <TDatabasePDG.h>
-#include "TMath.h"
+#include <string>
+#include <algorithm>
+#include <TBuffer.h>
+
+using std::transform;
+using std::string;
 
 ClassImp(TPartIndex)
 
@@ -9,7 +12,7 @@ const char* TPartIndex::fgPrName[FNPROC]={"Transport","MultScatt","Ionisation","
 			   "Elastic","RestCapture","Brehms","PairProd","Annihilation",
 			   "CoulombScatt","Photoel","Compton","Conversion","Capture","Fission",
 					"Killer","Total"};
-const Short_t TPartIndex::fgPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
+const short TPartIndex::fgPCode[FNPROC]={1091,2010,2002,6201,4121,4111,4151,2003,2004,2005,2001,
 					  2012,2013,2014,4131,4141,7403,999};
 
 const char* TPartIndex::fgEleSymbol[NELEM]={"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg",
@@ -48,7 +51,7 @@ const char* TPartIndex::fgEleName[NELEM]={"Hydrogen","Helium","Lithium","Berylli
 				"Flerovium","Ununpentium","Livermorium","Ununseptium",
 				"Ununoctium"};
 
-const Float_t TPartIndex::fgWElem[NELEM]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
+const float TPartIndex::fgWElem[NELEM]={1.008,4.0026,6.94,9.0122,10.81,12.011,14.007,15.999,
                                           18.998,20.180,22.990,24.305,26.982,28.085,30.974,32.06,
                                           35.45,39.948,39.098,40.078,44.956,47.867,50.942,51.996,
                                           54.938,55.845,58.933,58.693,63.546,65.38,69.723,72.63,
@@ -75,7 +78,11 @@ TPartIndex::TPartIndex():
    fNEbins(0),
    fEilDelta(0),
    fEGrid(0),
+#ifdef USE_VECGEOM_NAVIGATOR
+   fDBPdg(0),
+#else
    fDBPdg(TDatabasePDG::Instance()),
+#endif
    fPDGToGVMap()
 { 
 }
@@ -90,49 +97,53 @@ TPartIndex::~TPartIndex() {
 
 
 //___________________________________________________________________
-void TPartIndex::SetEnergyGrid(Double_t emin, Double_t emax, Int_t nbins) {
+void TPartIndex::SetEnergyGrid(double emin, double emax, int nbins) {
    fNEbins = nbins;
-   fEilDelta = (fNEbins-1)/TMath::Log(emax/emin);
+   fEilDelta = (fNEbins-1)/log(emax/emin);
    delete [] fEGrid;
-   fEGrid = new Double_t[fNEbins];
-   Double_t en=emin;
-   Double_t edelta=TMath::Exp(1/fEilDelta);
-   for(Int_t i=0; i<fNEbins; ++i) {
+   fEGrid = new double[fNEbins];
+   double en=emin;
+   double edelta=exp(1/fEilDelta);
+   for(int i=0; i<fNEbins; ++i) {
       fEGrid[i]=en;
       en*=edelta;
    }
 }
 
 //___________________________________________________________________
-Int_t TPartIndex::ProcIndex(Int_t proccode) const {
-   Short_t ip=fgNProc;
+int TPartIndex::ProcIndex(int proccode) const {
+   short ip=fgNProc;
    while(ip--) if(fgPCode[ip]==proccode) break;
    return ip;
 }
 
 //___________________________________________________________________
-const Char_t *TPartIndex::ProcName(Int_t proc) const {
+const char *TPartIndex::ProcName(int proc) const {
    if(proc<0 || proc>=fgNProc) return "Unknown";
    return fgPrName[proc];
 }
 
 //___________________________________________________________________
-void TPartIndex::SetPartTable(const Int_t *vpdg, Int_t np) {
+void TPartIndex::SetPartTable(const int *vpdg, int np) {
    fNPart = np;
    delete [] fPDG;
-   fPDG = new Int_t[fNPart];
-   for(Int_t i=0; i<fNPart; ++i) 
+   fPDG = new int[fNPart];
+   for(int i=0; i<fNPart; ++i) 
       fPDG[i]=vpdg[i];
 }
 
 //______________________________________________________________________________
-Int_t TPartIndex::PDG(const Char_t* pname) const {Int_t nr=fNPart;
+int TPartIndex::PDG(const char* pname) const {int nr=fNPart;
+#ifdef USE_VECGEOM_NAVIGATOR
+   while(nr--) if(!strcmp(pname,fDBPdg->GetParticle(fPDG[nr]).Name())) return fPDG[nr];
+#else
    while(nr--) if(!strcmp(pname,fDBPdg->GetParticle(fPDG[nr])->GetName())) return fPDG[nr];
+#endif
    return -12345678;
 }
 
 //______________________________________________________________________________
-Int_t TPartIndex::PartIndex(Int_t pdg) const {
+int TPartIndex::PartIndex(int pdg) const {
      switch (pdg) {
        case 11:  return  fSpecGVIndices[0]; // e-
             break; 
@@ -148,16 +159,20 @@ Int_t TPartIndex::PartIndex(Int_t pdg) const {
 }
 
 //______________________________________________________________________________
-void TPartIndex::Print(Option_t *option) const
+void TPartIndex::Print(const char *option) const
 {
-   Char_t line[120];
-   TString opt = option;
-   opt.ToLower();
-   if(opt.Contains("particles")) {
+   char line[120];
+   string opt = option;
+   transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+   if(opt.find("particles") != string::npos) {
       printf("Available particles:\n");
       memset(line,0,120);
-      for(Int_t i=0; i<fNPart; ++i) {
+      for(int i=0; i<fNPart; ++i) {
+#ifdef USE_VECGEOM_NAVIGATOR
+	 const char *name = fDBPdg->GetParticle(fPDG[i]).Name();
+#else
 	 const char *name = fDBPdg->GetParticle(fPDG[i])->GetName();
+#endif
 	 if(strlen(line)+strlen(name)+1>119) {
 	    printf("%s\n",line);
 	    memset(line,0,120);
@@ -167,11 +182,11 @@ void TPartIndex::Print(Option_t *option) const
       }
       if(strlen(line)) printf("%s\n",line);
    }
-   if(opt.Contains("reactions")) {
+   if(opt.find("reactions") != string::npos) {
       printf("Available reactions:\n");
       memset(line,0,120);
       strcat(line,"Total ");
-      for(Int_t i=0; i<fgNProc; ++i) {
+      for(int i=0; i<fgNProc; ++i) {
 	 if(strlen(line)+strlen(fgPrName[i])+1>119) {
 	    printf("%s\n",line);
 	    memset(line,0,120);
@@ -181,13 +196,13 @@ void TPartIndex::Print(Option_t *option) const
       }
       if(strlen(line)) printf("%s\n",line);
    }
-   if(opt.Contains("version")) {
+   if(opt.find("version") != string::npos) {
       printf("Xsec database version %d.%d.%d\n",VersionMajor(),VersionMinor(),VersionSub());
    }
 }
 
 //______________________________________________________________________________
-void TPartIndex::SetPDGToGVMap(std::map<Int_t,Int_t> &theMap){
+void TPartIndex::SetPDGToGVMap(std::map<int,int> &theMap){
   fPDGToGVMap=theMap;
   fSpecGVIndices[0] = fPDGToGVMap.find(11)->second;   // e-
   fSpecGVIndices[1] = fPDGToGVMap.find(-11)->second;  // e+
@@ -216,26 +231,26 @@ void TPartIndex::Streamer(TBuffer &R__b)
 //taken from J.M. Pearson: Nuclear Mass Models (jina web /pearson_MassSchool)  
 //accuracy about +-few MeV
 //______________________________________________________________________________
-Double_t TPartIndex::GetAprxNuclearMass(Int_t Z, Int_t A){
-   const Double_t a_vol  = -0.01569755;        //volume    term coef. [GeV] 
-   const Double_t a_surf =  0.01766269;        //surface   term coef. [GeV]
-   const Double_t a_c    =  0.0007070236;      //Coulomb   term coef. [GeV]
-   const Double_t a_sym  =  0.026308165;       //asymmetry term coef. [GeV]
-   const Double_t a_ss   = -0.017003132;       //surface-sym. term coef. [GeV]
-   const Double_t massp  =  0.938272;          //mass of proton  [GeV]
-   const Double_t massn  =  0.939565;          //mass of neutron [GeV]
+double TPartIndex::GetAprxNuclearMass(int Z, int A){
+   const double a_vol  = -0.01569755;        //volume    term coef. [GeV] 
+   const double a_surf =  0.01766269;        //surface   term coef. [GeV]
+   const double a_c    =  0.0007070236;      //Coulomb   term coef. [GeV]
+   const double a_sym  =  0.026308165;       //asymmetry term coef. [GeV]
+   const double a_ss   = -0.017003132;       //surface-sym. term coef. [GeV]
+   const double massp  =  0.938272;          //mass of proton  [GeV]
+   const double massn  =  0.939565;          //mass of neutron [GeV]
 
-   Int_t N = A - Z;                        // #neutrons
-   Double_t delta = 0.0;                   // if A is odd
+   int N = A - Z;                        // #neutrons
+   double delta = 0.0;                   // if A is odd
 
    if( (N&1) && (Z&1))                     // (N,Z) are odd
      delta = 0.0025;
    else if( (!(N&1)) && (!(Z&1)) )         // (N,Z) are even  
      delta = -0.0025; 
 
-   Double_t Ap13  = TMath::Power(A,1/3.);  // A^{1/3}
-   Double_t Ap23  = Ap13*Ap13;             // A^{2/3}
-   Double_t dummy = (N-Z)/(1.*A);
+   double Ap13  = pow(A,1/3.);  // A^{1/3}
+   double Ap23  = Ap13*Ap13;             // A^{2/3}
+   double dummy = (N-Z)/(1.*A);
 
    return Z*massp + N*massn + ( a_vol*A + a_surf*Ap23 + a_c*Z*Z/Ap13 + 
                                (a_sym*A +a_ss*Ap23)*dummy*dummy + delta );  

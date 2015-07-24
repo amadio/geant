@@ -14,6 +14,7 @@
 #define GEANTV_PrimaryGenerator_h
 
 #include "TMath.h"
+#include "TNamed.h"
 
 #include "GeantFwd.h"
 
