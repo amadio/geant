@@ -9,6 +9,7 @@
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
 #ifdef USE_VECGEOM_NAVIGATOR
+#include "base/messagelogger.h"
 #define RESTORE_USE_VECGEOM_NAVIGATOR
 #undef USE_VECGEOM_NAVIGATOR
 #endif
@@ -215,5 +216,8 @@ int main(int argc, char *argv[]) {
   propagator->fUseMonitoring = monitor;
   propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
 
+#ifdef USE_VECGEOM_NAVIGATOR
+  vecgeom::messagelogger::I()->summary(std::cout, "a");
+#endif
   return 0;
 }
