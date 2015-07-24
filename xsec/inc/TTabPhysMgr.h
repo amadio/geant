@@ -42,7 +42,7 @@ private:
   TMXsec **fMatXsec;          // Array of x-section pointers per material
   TPDecay *fDecay;            // Decay tables for each particles
 #ifndef USE_VECGEOM_NAVIGATOR
-  TGeoManager_t *fGeom;        // Pointer to the geometry manager
+  TGeoManager *fGeom;         // Pointer to the geometry manager
 #endif  
   Bool_t *fHasNCaptureAtRest; // do the particle have nCapture at rest?
 

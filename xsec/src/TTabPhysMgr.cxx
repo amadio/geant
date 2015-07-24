@@ -145,7 +145,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
 #else
   while ((mat = (Material_t *)next())) {
 #endif
-    cout << mat->GetName() << "used " << mat->IsUsed() << " Z " << mat->GetZ() << endl;
+    std::cout << mat->GetName() << "used " << mat->IsUsed() << " Z " << mat->GetZ() << std::endl;
     if (!mat->IsUsed() || mat->GetZ() < 1.)
       continue;
     fNmaterials++;
@@ -403,9 +403,9 @@ void TTabPhysMgr::ProposeStep(Material_t *mat, Int_t ntracks, GeantTrack_v &trac
     /*
     static std::mutex m;
     m.lock();
-    cout << __FILE__ << "::" << __func__ <<"::mat:" << mat->GetName()
+    std::cout << __FILE__ << "::" << __func__ <<"::mat:" << mat->GetName()
          << " vol:" << vecgeom::GeoManager::Instance().FindLogicalVolume(tracks.fVindexV[0])->GetName()
-         << " xsecptr:" << mat->GetXsecPtr() << endl;
+         << " xsecptr:" << mat->GetXsecPtr() << std::endl;
     m.unlock();
     */
     mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
@@ -647,7 +647,7 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
         Double_t secMass = secPartPDG->Mass();
         /*	static std::mutex m;
         m.lock();
-        cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG << endl;
+        std::cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG << std::endl;
         m.unlock();
         */
         Double_t px = mom[3 * i];

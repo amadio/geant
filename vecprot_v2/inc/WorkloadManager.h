@@ -17,6 +17,10 @@
 #include "priority_queue.h"
 #include "condition_locker.h"
 
+#ifndef USE_VECGEOM_NAVIGATOR
+#include "TGeoManager.h"
+#endif
+
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 

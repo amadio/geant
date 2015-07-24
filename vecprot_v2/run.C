@@ -30,9 +30,9 @@ void run(Int_t nthreads=4,
 //=============================================================================
 // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
 //=============================================================================
-   Bool_t performance = false;
+   Bool_t performance = true;
 
-   Int_t ntotal   = 10;  // Number of events to be transported
+   Int_t ntotal   = 50;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
    
