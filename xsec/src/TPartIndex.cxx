@@ -225,11 +225,11 @@ void TPartIndex::Streamer(TBuffer &R__b) {
 double TPartIndex::GetAprxNuclearMass(int Z, int A) {
   const double a_vol = -0.01569755; // volume    term coef. [GeV]
   const double a_surf = 0.01766269; // surface   term coef. [GeV]
-  const double a_c = 0.0007070236; // Coulomb   term coef. [GeV]
+  const double a_c = 0.0007070236;  // Coulomb   term coef. [GeV]
   const double a_sym = 0.026308165; // asymmetry term coef. [GeV]
   const double a_ss = -0.017003132; // surface-sym. term coef. [GeV]
-  const double massp = 0.938272; // mass of proton  [GeV]
-  const double massn = 0.939565; // mass of neutron [GeV]
+  const double massp = 0.938272;    // mass of proton  [GeV]
+  const double massn = 0.939565;    // mass of neutron [GeV]
 
   int N = A - Z;      // #neutrons
   double delta = 0.0; // if A is odd
