@@ -53,6 +53,8 @@ void help() {
   printf("\n\n");
 }
 
+void loadvecgeomgeometry(GeantPropagator *prop);
+
 int main(int argc, char *argv[]) {
   std::string cms_geometry_filename("cms2015.root");
   std::string xsec_filename("xsec_FTFP_BERT_G496p02_1mev.root");
@@ -181,6 +183,7 @@ int main(int argc, char *argv[]) {
   propagator->fEmin = 0.001; // [10 MeV] energy cut
   propagator->fEmax = 0.01;  // 10 MeV
 
+  loadvecgeomgeometry(propagator);
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {
