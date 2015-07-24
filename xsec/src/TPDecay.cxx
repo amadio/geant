@@ -17,7 +17,7 @@ TPDecay::TPDecay():
 }
 
 //___________________________________________________________________
-TPDecay::TPDecay(Int_t nsample, Int_t npart, TFinState *decay):
+TPDecay::TPDecay(int nsample, int npart, TFinState *decay):
     fNSamp(nsample),
     fNPart(npart),
     fDecay(decay),
@@ -28,46 +28,46 @@ TPDecay::TPDecay(Int_t nsample, Int_t npart, TFinState *decay):
 
 //___________________________________________________________________
 TPDecay::~TPDecay() {
-//  Int_t npart = TPartIndex::I()->NPart();
-//  for(Int_t i=0; i<npart; ++i) 
+//  int npart = TPartIndex::I()->NPart();
+//  for(int i=0; i<npart; ++i) 
 //    if(fDecayLambdaTable[i]) 
 //     delete [] fDecayLambdaTable[i];
 //  delete [] fDecayLambdaTable;
 }
 
 //___________________________________________________________________
-Bool_t TPDecay::SampleDecay(Int_t pindex, Int_t &npart,
-                            const Int_t *&pid, const Float_t *&mom) const
+bool TPDecay::SampleDecay(int pindex, int &npart,
+                            const int *&pid, const float *&mom) const
 {
-  Float_t kerma;
-  Float_t weight;
-  Float_t en;
+  float kerma;
+  float weight;
+  float en;
   return fDecay[pindex].SampleReac(npart, weight, kerma, en, pid, mom);
 }
 
 //___________________________________________________________________
-Bool_t TPDecay::GetDecay(Int_t pindex, Int_t ifs, Int_t &npart,
-                         const Int_t *&pid, const Float_t *&mom) const
+bool TPDecay::GetDecay(int pindex, int ifs, int &npart,
+                         const int *&pid, const float *&mom) const
 {
-  Float_t kerma;
-  Float_t weight;
-  Float_t en;
+  float kerma;
+  float weight;
+  float en;
   return fDecay[pindex].GetReac(ifs,npart, weight, kerma, en, pid, mom);
 }
 
 //___________________________________________________________________
-Bool_t TPDecay::HasDecay(Int_t pindex) const {
+bool TPDecay::HasDecay(int pindex) const {
   if(fDecay[pindex].GetNsecs()==0)
     return kFALSE;
 
   return kTRUE;
 }
 
-void  TPDecay::SetCTauPerMass(Double_t *ctaupermass, Int_t np){
+void  TPDecay::SetCTauPerMass(double *ctaupermass, int np){
   if(!fCTauPerMass)
     delete fCTauPerMass;
-  fCTauPerMass = new Double_t[np];
-  for(Int_t ip=0; ip<np; ++ip)
+  fCTauPerMass = new double[np];
+  for(int ip=0; ip<np; ++ip)
      fCTauPerMass[ip] = ctaupermass[ip];
 }
 

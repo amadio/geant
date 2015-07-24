@@ -1,7 +1,5 @@
-
 #include "TPrimaryGenerator.h"
 
-#include "TMath.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "volumes/Particle.h"
 #else
@@ -23,15 +21,15 @@ ClassImp(TPrimaryGenerator)
 }
 
 //______________________________________________________________________________
-TPrimaryGenerator::TPrimaryGenerator(Int_t partpdg, Double_t partekin, Double_t xpos, Double_t ypos, Double_t zpos,
-                                     Double_t xdir, Double_t ydir, Double_t zdir)
+TPrimaryGenerator::TPrimaryGenerator(int partpdg, double partekin, double xpos, double ypos, double zpos,
+                                     double xdir, double ydir, double zdir)
     : fPDG(partpdg),                         // PDG code of the primary particle
       fPartEkin(partekin),                   // kinetic energy of the primary [GeV]
       fXPos(xpos),                           // (x,y,z) position of the primary particles
       fYPos(ypos), fZPos(zpos), fXDir(xdir), // direction vector of the primary particles
       fYDir(ydir), fZDir(zdir), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0) {
   // ensure normality of the direction vector
-  Double_t norm = TMath::Sqrt(fXDir * fXDir + fYDir * fYDir + fZDir * fZDir);
+  double norm = sqrt(fXDir * fXDir + fYDir * fYDir + fZDir * fZDir);
   fXDir /= norm;
   fYDir /= norm;
   fZDir /= norm;
@@ -43,7 +41,7 @@ TPrimaryGenerator::TPrimaryGenerator(Int_t partpdg, Double_t partekin, Double_t 
 TPrimaryGenerator::~TPrimaryGenerator() {}
 
 //______________________________________________________________________________
-void TPrimaryGenerator::SetParticleByPDGCode(Int_t pdgcode) {
+void TPrimaryGenerator::SetParticleByPDGCode(int pdgcode) {
   fPDG = pdgcode;
   // update all remaining members
   InitPrimaryGenerator();
@@ -69,13 +67,13 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
   // set total momentum [GeV]
-  fPTotal = TMath::Sqrt((fETotal - fMass) * (fETotal + fMass));
+  fPTotal = sqrt((fETotal - fMass) * (fETotal + fMass));
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::SetParticleXYZDir(Double_t xdir, Double_t ydir, Double_t zdir) {
+void TPrimaryGenerator::SetParticleXYZDir(double xdir, double ydir, double zdir) {
   // ensure normality of the direction vector
-  Double_t norm = TMath::Sqrt(xdir * xdir + ydir * ydir + zdir * zdir);
+  double norm = sqrt(xdir * xdir + ydir * ydir + zdir * zdir);
   fXDir = xdir / norm;
   fYDir = ydir / norm;
   fZDir = zdir / norm;

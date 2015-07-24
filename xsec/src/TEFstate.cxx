@@ -15,6 +15,9 @@
 #include <TString.h>
 #include <TText.h>
 
+#include "base/Global.h"
+using vecgeom::kAvogadro;
+
 ClassImp(TEFstate)
 
 
@@ -22,7 +25,7 @@ TEFstate* TEFstate::fElements[NELEM]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-Int_t TEFstate::fNLdElems=0; 
+int TEFstate::fNLdElems=0; 
 
 
 //___________________________________________________________________
@@ -42,10 +45,10 @@ TEFstate::TEFstate():
 }
 
 //___________________________________________________________________
-TEFstate::TEFstate(Int_t z, Int_t a, Float_t dens):
+TEFstate::TEFstate(int z, int a, float dens):
    fEle(z*10000+a*10),
    fDens(dens),
-   fAtcm3(fDens*TMath::Na()*1e-24/TPartIndex::I()->WEle(z)),
+   fAtcm3(fDens*kAvogadro*1e-24/TPartIndex::I()->WEle(z)),
    fEmin(TPartIndex::I()->Emin()),
    fEmax(TPartIndex::I()->Emax()),
    fNEbins(TPartIndex::I()->NEbins()),
@@ -63,13 +66,13 @@ TEFstate::~TEFstate() {
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[])
+bool TEFstate::AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[])
 {
    return fPFstate[kpart].SetPart(pdg,nfstat,nreac,dict);
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[])
+bool TEFstate::AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[])
 {
   if(!fNEFstat) fNEFstat = nfstat;
   else if(fNEFstat != nfstat) {
@@ -79,20 +82,20 @@ Bool_t TEFstate::AddPart(Int_t kpart, Int_t pdg, Int_t nfstat, Int_t nreac, cons
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::AddPartFS(Int_t kpart, Int_t ibin, Int_t reac, const Int_t npart[], const Float_t weight[],
-                           const Float_t kerma[], const Float_t en[], const Char_t surv[], const Int_t pid[],
-                           const Float_t mom[])
+bool TEFstate::AddPartFS(int kpart, int ibin, int reac, const int npart[], const float weight[],
+                           const float kerma[], const float en[], const char surv[], const int pid[],
+                           const float mom[])
 {
   return fPFstate[kpart].SetFinState(ibin, reac, npart, weight, kerma, en, surv, pid, mom);
 }
 
 //_____________________________________________________________________________
-void TEFstate::SetRestCaptFstate(Int_t kpart, const TFinState &fstate){
+void TEFstate::SetRestCaptFstate(int kpart, const TFinState &fstate){
 	fPFstate[kpart].SetRestCaptFstate(fstate);
 }
 
 //______________________________________________________________________________
-Bool_t TEFstate::HasRestCapture(Int_t partindex)
+bool TEFstate::HasRestCapture(int partindex)
 {
   if( partindex<TPartIndex::I()->NPartReac() ) 
     return fPFstate[partindex].HasRestCaptFstat();
@@ -100,9 +103,9 @@ Bool_t TEFstate::HasRestCapture(Int_t partindex)
 }
 
 //______________________________________________________________________________
-Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid,
-                            const Float_t *&mom) const
+bool TEFstate::SampleRestCaptFstate(int kpart,int& npart, float& weight,
+                            float& kerma, float &enr, const int *&pid,
+                            const float *&mom) const
 {
    if(kpart<TPartIndex::I()->NPartReac()){	
    	return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
@@ -116,9 +119,9 @@ Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
 }
 
 //______________________________________________________________________________
-Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid, 
-                            const Float_t *&mom, Double_t randn) const
+bool TEFstate::SampleRestCaptFstate(int kpart,int& npart, float& weight,
+                            float& kerma, float &enr, const int *&pid, 
+                            const float *&mom, double randn) const
 {
    if(kpart<TPartIndex::I()->NPartReac()){	
    	return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom, randn);
@@ -132,35 +135,35 @@ Bool_t TEFstate::SampleRestCaptFstate(Int_t kpart,Int_t& npart, Float_t& weight,
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
-                            Int_t& ebinindx) const
+bool TEFstate::SampleReac(int pindex, int preac, float en, int& npart, float& weight,
+                            float& kerma, float &enr, const int *&pid, const float *&mom,
+                            int& ebinindx) const
 {
   return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::SampleReac(Int_t pindex, Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                            Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom,
-                            Int_t& ebinindx, Double_t randn1, Double_t randn2) const
+bool TEFstate::SampleReac(int pindex, int preac, float en, int& npart, float& weight,
+                            float& kerma, float &enr, const int *&pid, const float *&mom,
+                            int& ebinindx, double randn1, double randn2) const
 {
   return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom,
                                      ebinindx, randn1, randn2);
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::GetReac(Int_t pindex, Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
-                         Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const
+bool TEFstate::GetReac(int pindex, int preac, float en, int ifs, int& npart, float& weight,
+                         float& kerma, float &enr, const int *&pid, const float *&mom) const
 {
   return fPFstate[pindex].GetReac(preac, en, ifs, npart, weight, kerma, enr, pid, mom);
 }
 
 
 //___________________________________________________________________
-TEFstate *TEFstate::GetElement(Int_t z, Int_t a, TFile* f) {
+TEFstate *TEFstate::GetElement(int z, int a, TFile* f) {
    //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
-   Int_t ecode = z*10000+a*10;
-   for(Int_t el=0; el<fNLdElems; ++el) 
+   int ecode = z*10000+a*10;
+   for(int el=0; el<fNLdElems; ++el) 
       if(ecode == fElements[el]->Ele()) 
 	 return fElements[el];
 
@@ -186,17 +189,17 @@ TEFstate *TEFstate::GetElement(Int_t z, Int_t a, TFile* f) {
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::Prune()
+bool TEFstate::Prune()
 {
-   for(Int_t ip=0; ip<fNRpart; ++ip)
+   for(int ip=0; ip<fNRpart; ++ip)
       fPFstate[ip].Prune();
    return kTRUE;
 }
 
 //___________________________________________________________________
-Bool_t TEFstate::Resample()
+bool TEFstate::Resample()
 {
-   for(Int_t ip=0; ip<fNRpart; ++ip)
+   for(int ip=0; ip<fNRpart; ++ip)
       fPFstate[ip].Resample();
    fEmin = TPartIndex::I()->Emin();
    fEmax = TPartIndex::I()->Emax();
@@ -206,7 +209,7 @@ Bool_t TEFstate::Resample()
 }
 
 //___________________________________________________________________
-void TEFstate::Draw(Option_t */*option*/)
+void TEFstate::Draw(const char */*option*/)
 {
 }
 

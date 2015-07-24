@@ -3,9 +3,9 @@
 #include "TEXsec.h"
 #include "TFile.h"
 #include "TGraph.h"
+#include "TMath.h"
 #include "TH1F.h"
 #include "TLine.h"
-#include "TMath.h"
 #include "TMultiGraph.h"
 #include <TObjArray.h>
 #include <TObjString.h>
@@ -20,6 +20,9 @@
 #include <TGListBox.h>
 #include <TGLabel.h>
 #include <TRootEmbeddedCanvas.h>
+#include "base/Global.h"
+using vecgeom::kAvogadro;
+using std::numeric_limits;
 
 ClassImp(TEXsec)
 
@@ -29,7 +32,7 @@ ClassImp(TEXsec)
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-Int_t TEXsec::fNLdElems = 0;
+int TEXsec::fNLdElems = 0;
 
 TGMainFrame *TEXsec::fMain = 0;
 TGHorizontalFrame *TEXsec::fSecond = 0;
@@ -46,44 +49,44 @@ TEXsec::TEXsec()
 }
 
 //___________________________________________________________________
-TEXsec::TEXsec(Int_t z, Int_t a, Float_t dens, Int_t np)
-    : fEle(z * 10000 + a * 10), fIndex(-1), fAtcm3(dens * TMath::Na() * 1e-24 / TPartIndex::I()->WEle(z)),
+TEXsec::TEXsec(int z, int a, float dens, int np)
+    : fEle(z * 10000 + a * 10), fIndex(-1), fAtcm3(dens * kAvogadro * 1e-24 / TPartIndex::I()->WEle(z)),
       fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()), fNEbins(TPartIndex::I()->NEbins()),
       fEilDelta(TPartIndex::I()->EilDelta()), fEGrid(TPartIndex::I()->EGrid()), fNRpart(np),
       fPXsec(new TPXsec[fNRpart]) {
   strncpy(fName, TPartIndex::I()->EleSymb(z), 31);
   strncpy(fTitle, TPartIndex::I()->EleName(z), 127);
-  memset(fCuts, 0, 4 * sizeof(Float_t));
+  memset(fCuts, 0, 4 * sizeof(float));
 }
 
 //___________________________________________________________________
 TEXsec::~TEXsec() { delete[] fPXsec; }
 
 //___________________________________________________________________
-Bool_t TEXsec::AddPart(Int_t kpart, Int_t pdg, Int_t nxsec) { return fPXsec[kpart].SetPart(pdg, nxsec); }
+bool TEXsec::AddPart(int kpart, int pdg, int nxsec) { return fPXsec[kpart].SetPart(pdg, nxsec); }
 
 //___________________________________________________________________
-Bool_t TEXsec::AddPartMS(Int_t kpart, const Float_t angle[], const Float_t ansig[], const Float_t length[],
-                         const Float_t lensig[]) {
+bool TEXsec::AddPartMS(int kpart, const float angle[], const float ansig[], const float length[],
+                         const float lensig[]) {
   return fPXsec[kpart].SetPartMS(angle, ansig, length, lensig);
 }
 
 //___________________________________________________________________
-Bool_t TEXsec::AddPartXS(Int_t kpart, const Float_t xsec[], const Int_t dict[]) {
+bool TEXsec::AddPartXS(int kpart, const float xsec[], const int dict[]) {
   return fPXsec[kpart].SetPartXS(xsec, dict);
 }
 
 //___________________________________________________________________
-Bool_t TEXsec::AddPartIon(Int_t kpart, const Float_t dedx[]) { return fPXsec[kpart].SetPartIon(dedx); }
+bool TEXsec::AddPartIon(int kpart, const float dedx[]) { return fPXsec[kpart].SetPartIon(dedx); }
 
 //___________________________________________________________________
-Float_t TEXsec::XS(Int_t pindex, Int_t rindex, Float_t en) const { return fPXsec[pindex].XS(rindex, en); }
+float TEXsec::XS(int pindex, int rindex, float en) const { return fPXsec[pindex].XS(rindex, en); }
 
 //___________________________________________________________________
-Float_t TEXsec::DEdx(Int_t pindex, Float_t en) const { return fPXsec[pindex].DEdx(en); }
+float TEXsec::DEdx(int pindex, float en) const { return fPXsec[pindex].DEdx(en); }
 
 //___________________________________________________________________
-Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, Float_t &len, Float_t &lsig) const {
+bool TEXsec::MS(int pindex, float en, float &ang, float &asig, float &len, float &lsig) const {
   return fPXsec[pindex].MS(en, ang, asig, len, lsig);
 }
 
@@ -91,24 +94,24 @@ Bool_t TEXsec::MS(Int_t pindex, Float_t en, Float_t &ang, Float_t &asig, Float_t
 void TEXsec::DumpPointers() const {
   printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n", fEle, fEmin, fEmax, fNEbins, fEilDelta,
          fNRpart);
-  for (Int_t i = 0; i < fNRpart; ++i)
+  for (int i = 0; i < fNRpart; ++i)
     fPXsec[i].Dump();
 }
 
 //___________________________________________________________________
-TGraph *TEXsec::XSGraph(const char *part, const char *reac, Float_t emin, Float_t emax, Int_t nbin) const {
-  Char_t title[200];
-  const Double_t delta = TMath::Exp(TMath::Log(emax / emin) / (nbin - 1));
-  Float_t *xsec = new Float_t[nbin];
-  Float_t *energy = new Float_t[nbin];
-  Double_t en = emin;
-  Int_t pindex = TPartIndex::I()->PartIndex(part);
+TGraph *TEXsec::XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const {
+  char title[200];
+  const double delta = exp(log(emax / emin) / (nbin - 1));
+  float *xsec = new float[nbin];
+  float *energy = new float[nbin];
+  double en = emin;
+  int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
     Error("XSGraph", "Unknown particle %s\n", part);
     return 0;
   }
-  Int_t proc = TPartIndex::I()->ProcIndex(reac);
-  for (Int_t i = 0; i < nbin; ++i) {
+  int proc = TPartIndex::I()->ProcIndex(reac);
+  for (int i = 0; i < nbin; ++i) {
     energy[i] = en;
     xsec[i] = XS(pindex, proc, en);
     en *= delta;
@@ -123,18 +126,18 @@ TGraph *TEXsec::XSGraph(const char *part, const char *reac, Float_t emin, Float_
 }
 
 //___________________________________________________________________
-TGraph *TEXsec::DEdxGraph(const char *part, Float_t emin, Float_t emax, Int_t nbin) const {
-  Char_t title[200];
-  const Double_t delta = TMath::Exp(TMath::Log(emax / emin) / (nbin - 1));
-  Float_t *dedx = new Float_t[nbin];
-  Float_t *energy = new Float_t[nbin];
-  Double_t en = emin;
-  Int_t pindex = TPartIndex::I()->PartIndex(part);
+TGraph *TEXsec::DEdxGraph(const char *part, float emin, float emax, int nbin) const {
+  char title[200];
+  const double delta = exp(log(emax / emin) / (nbin - 1));
+  float *dedx = new float[nbin];
+  float *energy = new float[nbin];
+  double en = emin;
+  int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
     Error("DEdxGraph", "Unknown particle %s\n", part);
     return 0;
   }
-  for (Int_t i = 0; i < nbin; ++i) {
+  for (int i = 0; i < nbin; ++i) {
     energy[i] = en;
     dedx[i] = DEdx(pindex, en);
     en *= delta;
@@ -149,49 +152,49 @@ TGraph *TEXsec::DEdxGraph(const char *part, Float_t emin, Float_t emax, Int_t nb
 }
 
 //___________________________________________________________________
-Float_t TEXsec::Lambda(Int_t pindex, Double_t en) const {
-  Double_t xs = fPXsec[pindex].XS(TPartIndex::I()->NProc() - 1, en);
-  return xs ? 1. / (fAtcm3 * xs) : TMath::Limits<Float_t>::Max();
+float TEXsec::Lambda(int pindex, double en) const {
+  double xs = fPXsec[pindex].XS(TPartIndex::I()->NProc() - 1, en);
+  return xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
 }
 
 //___________________________________________________________________
-Bool_t TEXsec::Lambda_v(Int_t npart, const Int_t pindex[], const Double_t en[], Double_t lam[]) const {
-  const Int_t itot = TPartIndex::I()->NProc() - 1;
-  for (Int_t ip = 0; ip < npart; ++ip) {
-    Double_t xs = fPXsec[pindex[ip]].XS(itot, en[ip]);
-    lam[ip] = xs ? 1. / (fAtcm3 * xs) : TMath::Limits<Float_t>::Max();
+bool TEXsec::Lambda_v(int npart, const int pindex[], const double en[], double lam[]) const {
+  const int itot = TPartIndex::I()->NProc() - 1;
+  for (int ip = 0; ip < npart; ++ip) {
+    double xs = fPXsec[pindex[ip]].XS(itot, en[ip]);
+    lam[ip] = xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
   }
   return kTRUE;
 }
 
 //___________________________________________________________________
-Bool_t TEXsec::Lambda_v(Int_t npart, Int_t pindex, const Double_t en[], Double_t lam[]) const {
-  const Int_t itot = TPartIndex::I()->NProc() - 1;
+bool TEXsec::Lambda_v(int npart, int pindex, const double en[], double lam[]) const {
+  const int itot = TPartIndex::I()->NProc() - 1;
   return fPXsec[pindex].XS_v(npart, itot, en, lam);
 }
 
 //___________________________________________________________________
-Int_t TEXsec::SampleReac(Int_t pindex, Double_t en) const { return fPXsec[pindex].SampleReac(en); }
+int TEXsec::SampleReac(int pindex, double en) const { return fPXsec[pindex].SampleReac(en); }
 
 //___________________________________________________________________
-Int_t TEXsec::SampleReac(Int_t pindex, Double_t en, Double_t randn) const {
+int TEXsec::SampleReac(int pindex, double en, double randn) const {
   return fPXsec[pindex].SampleReac(en, randn);
 }
 
 //___________________________________________________________________
-TGraph *TEXsec::MSGraph(const char *part, const char *what, Float_t emin, Float_t emax, Int_t nbin) const {
-  Char_t title[200];
-  const Char_t *whatname[4] = {"MSangle", "MSangle_sig", "MSCorr", "MSCorr_sig"};
-  const Double_t delta = TMath::Exp(TMath::Log(emax / emin) / (nbin - 1));
-  Float_t *mscat = new Float_t[nbin];
-  Float_t *energy = new Float_t[nbin];
-  Double_t en = emin;
-  Int_t pindex = TPartIndex::I()->PartIndex(part);
+TGraph *TEXsec::MSGraph(const char *part, const char *what, float emin, float emax, int nbin) const {
+  char title[200];
+  const char *whatname[4] = {"MSangle", "MSangle_sig", "MSCorr", "MSCorr_sig"};
+  const double delta = exp(log(emax / emin) / (nbin - 1));
+  float *mscat = new float[nbin];
+  float *energy = new float[nbin];
+  double en = emin;
+  int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
     Error("MSGraph", "Unknown particle %s\n", part);
     return 0;
   }
-  Int_t iopt = 4;
+  int iopt = 4;
   while (iopt--)
     if (!strcmp(whatname[iopt], what))
       break;
@@ -200,8 +203,8 @@ TGraph *TEXsec::MSGraph(const char *part, const char *what, Float_t emin, Float_
           whatname[2], whatname[3]);
     return 0;
   }
-  for (Int_t i = 0; i < nbin; ++i) {
-    Float_t answ[4];
+  for (int i = 0; i < nbin; ++i) {
+    float answ[4];
     energy[i] = en;
     MS(pindex, en, answ[0], answ[1], answ[2], answ[3]);
     mscat[i] = answ[iopt];
@@ -217,10 +220,10 @@ TGraph *TEXsec::MSGraph(const char *part, const char *what, Float_t emin, Float_
 }
 
 //___________________________________________________________________
-TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile *f) {
+TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
   //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
-  Int_t ecode = z * 10000 + a * 10;
-  for (Int_t el = 0; el < fNLdElems; ++el)
+  int ecode = z * 10000 + a * 10;
+  for (int el = 0; el < fNLdElems; ++el)
     if (ecode == fElements[el]->Ele())
       return fElements[el];
 
@@ -248,15 +251,15 @@ TEXsec *TEXsec::GetElement(Int_t z, Int_t a, TFile *f) {
 }
 
 //___________________________________________________________________
-Bool_t TEXsec::Prune() {
-  for (Int_t ip = 0; ip < fNRpart; ++ip)
+bool TEXsec::Prune() {
+  for (int ip = 0; ip < fNRpart; ++ip)
     fPXsec[ip].Prune();
   return kTRUE;
 }
 
 //___________________________________________________________________
-Bool_t TEXsec::Resample() {
-  for (Int_t ip = 0; ip < fNRpart; ++ip)
+bool TEXsec::Resample() {
+  for (int ip = 0; ip < fNRpart; ++ip)
     fPXsec[ip].Resample();
   fEmin = TPartIndex::I()->Emin();
   fEmax = TPartIndex::I()->Emax();
@@ -266,7 +269,7 @@ Bool_t TEXsec::Resample() {
 }
 
 //___________________________________________________________________
-void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
+void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
 {
   // Draw cross sections and other physics quantities for this material
   //
@@ -281,44 +284,44 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
   // CoulombScatt,Photoel,Compton,Conversion,Capture,Killer,dEdx,MSangle,MSlength
   const EColor col[14] = {kBlack,  kGray,   kRed,  kGreen, kBlue,   kMagenta, kCyan,
                           kOrange, kSpring, kTeal, kAzure, kViolet, kPink};
-  Char_t title[200];
-  Char_t gtitle[200];
+  char title[200];
+  char gtitle[200];
 
   TString opt = option;
 
-  static Int_t isame = 0;
+  static int isame = 0;
 
   TObjArray *sections = opt.Tokenize(":");
   TString sec1 = ((TObjString *)sections->At(0))->GetName();
   TString sec2;
   if (sections->GetEntries() > 1)
     sec2 = ((TObjString *)sections->At(1))->GetName();
-  Bool_t same = sec2.Contains("same");
+  bool same = sec2.Contains("same");
 
   TObjArray *token = sec1.Tokenize(",");
-  Int_t narg = token->GetEntries();
+  int narg = token->GetEntries();
   if (narg < 2) {
     Info("Draw", "%s", help.Data());
     return;
   }
-  const Char_t *part = ((TObjString *)token->At(0))->GetName();
+  const char *part = ((TObjString *)token->At(0))->GetName();
   TString reactions = ((TObjString *)token->At(1))->GetName();
 
-  Float_t emin = TPartIndex::I()->Emin();
+  float emin = TPartIndex::I()->Emin();
   if (narg > 2)
     sscanf(((TObjString *)token->At(2))->GetName(), "%f", &emin);
-  Float_t emax = TPartIndex::I()->Emax();
+  float emax = TPartIndex::I()->Emax();
   if (narg > 3)
     sscanf(((TObjString *)token->At(3))->GetName(), "%f", &emax);
-  Int_t nbin = 100;
+  int nbin = 100;
   if (narg > 4)
     sscanf(((TObjString *)token->At(4))->GetName(), "%d", &nbin);
-  Int_t mode = 0;
+  int mode = 0;
   if (narg > 5)
     sscanf(((TObjString *)token->At(5))->GetName(), "%d", &mode);
   if (gFile)
     gFile->Get("PartIndex");
-  Int_t pindex = TPartIndex::I()->PartIndex(part);
+  int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
     Error("Draw", "Unknown particle %s\n", part);
     return;
@@ -328,7 +331,7 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
   }
   if (reactions.Contains("All") || reactions.Contains("*")) {
     TString allrea = "";
-    for (Int_t i = 0; i < TPartIndex::I()->NProc() - 1; ++i) {
+    for (int i = 0; i < TPartIndex::I()->NProc() - 1; ++i) {
       if (XS(pindex, i, emin) >= 0)
         allrea = allrea + TPartIndex::I()->ProcName(i) + "|";
     }
@@ -337,12 +340,12 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
     reactions.ReplaceAll("*", allrea);
   }
   TObjArray *rnames = reactions.Tokenize("|");
-  Int_t nreac = rnames->GetEntries();
+  int nreac = rnames->GetEntries();
   snprintf(gtitle, 199, "%s %s on %s", part, reactions.ReplaceAll("|", ",").Data(), GetTitle());
   TMultiGraph *tmg = new TMultiGraph("GV", gtitle);
   TLine **line = new TLine *[nreac];
   TText **text = new TText *[nreac];
-  Float_t lstartx = 0.7;
+  float lstartx = 0.7;
 
   TCanvas *tc;
   if (mode) {
@@ -375,22 +378,22 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
 
   if (isame == 2 || isame == 3)
     lstartx = 0.3;
-  const Float_t lendx = lstartx + 0.05;
-  const Float_t tstartx = lstartx + 0.07;
-  Float_t lstarty = 0.85;
+  const float lendx = lstartx + 0.05;
+  const float tstartx = lstartx + 0.07;
+  float lstarty = 0.85;
   if (isame == 1 || isame == 3)
     lstarty = 0.4;
-  const Float_t lstepy = 0.03;
-  Int_t coff = isame;
-  Char_t ytitle[50];
-  Double_t ymin = 1e10;
-  for (Int_t j = 0; j < nreac; ++j) {
-    const Char_t *reac = ((TObjString *)rnames->At(j))->GetName();
+  const float lstepy = 0.03;
+  int coff = isame;
+  char ytitle[50];
+  double ymin = 1e10;
+  for (int j = 0; j < nreac; ++j) {
+    const char *reac = ((TObjString *)rnames->At(j))->GetName();
     TGraph *tg;
     if (TString(reac).BeginsWith("MS")) {
       tg = MSGraph(part, reac, emin, emax, nbin);
-      for (Int_t i = 0; i < tg->GetN(); ++i) {
-        Double_t y = tg->GetY()[i];
+      for (int i = 0; i < tg->GetN(); ++i) {
+        double y = tg->GetY()[i];
         if (y > 0 && y < ymin)
           ymin = y;
       }
@@ -410,8 +413,8 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
     } else if (!strcmp(reac, "dEdx")) {
       snprintf(ytitle, 49, "GeV/cm / g/cm^3");
       tg = DEdxGraph(part, emin, emax, nbin);
-      for (Int_t i = 0; i < tg->GetN(); ++i) {
-        Double_t y = tg->GetY()[i];
+      for (int i = 0; i < tg->GetN(); ++i) {
+        double y = tg->GetY()[i];
         if (y > 0 && y < ymin)
           ymin = y;
       }
@@ -432,8 +435,8 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
         return;
       }
       tg = XSGraph(part, reac, emin, emax, nbin);
-      for (Int_t i = 0; i < tg->GetN(); ++i) {
-        Double_t y = tg->GetY()[i];
+      for (int i = 0; i < tg->GetN(); ++i) {
+        double y = tg->GetY()[i];
         if (y > 0 && y < ymin)
           ymin = y;
       }
@@ -449,7 +452,7 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
       text[j] = new TText(tstartx, lstarty - lstepy * j, reac);
     }
   }
-  const Char_t *gopt = 0;
+  const char *gopt = 0;
   if (strlen(sec2.Data()))
     gopt = sec2.Data();
   else
@@ -463,11 +466,11 @@ void TEXsec::Draw(Option_t *option) // mode=0->terminal, mode=1->viewer
     ((TAxis *)tmg->GetHistogram()->GetYaxis())->CenterTitle();
   }
   TText **ptext = new TText *[nreac];
-  Char_t string[100] = {"\0"};
+  char string[100] = {"\0"};
   if (same) {
     snprintf(string, 99, "%s on %s", part, GetTitle());
   }
-  for (Int_t j = 0; j < nreac; ++j) {
+  for (int j = 0; j < nreac; ++j) {
     line[j]->SetBit(TLine::kLineNDC);
     line[j]->Draw();
     line[j]->SetLineColor(col[(coff + j) % 14]);
@@ -506,10 +509,10 @@ void TEXsec::Viewer() {
     fVertical->AddFrame(lParticle, new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
 
     fParticleBox = new TGListBox(fVertical);
-    fParticleBox->Connect("Selected(Int_t)", "TEXsec", this,
+    fParticleBox->Connect("Selected(int)", "TEXsec", this,
                           "UpdateReactions()"); // when the user changes the particle with the mouse
 
-    for (Int_t i = 0; i < TPartIndex::I()->NPartReac(); i++) {
+    for (int i = 0; i < TPartIndex::I()->NPartReac(); i++) {
       fParticleBox->AddEntry(TPartIndex::I()->PartName(i), i); // adding all the particles of the list
     }
 
@@ -526,7 +529,7 @@ void TEXsec::Viewer() {
     fVertical->AddFrame(lReaction, new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
 
     fReactionBox = new TGListBox(fVertical, 90);
-    fReactionBox->Connect("Selected(Int_t)", "TEXsec", this, "PreDraw()");
+    fReactionBox->Connect("Selected(int)", "TEXsec", this, "PreDraw()");
     this->UpdateReactions();
     fReactionBox->Resize(150, 160);
     fReactionBox->SetMultipleSelections(kTRUE);
@@ -558,7 +561,7 @@ void TEXsec::Viewer() {
 //___________________________________________________________________
 void TEXsec::SelectAll() {
 
-  for (Int_t i = 0; i < fReactionBox->GetNumberOfEntries(); i++) {
+  for (int i = 0; i < fReactionBox->GetNumberOfEntries(); i++) {
     if (!fReactionBox->GetEntry(i)->IsActive()) {
       fReactionBox->GetEntry(i)->Toggle();
     }
@@ -569,7 +572,7 @@ void TEXsec::SelectAll() {
 
 //___________________________________________________________________
 void TEXsec::DeselectAll() {
-  for (Int_t i = 0; i < fReactionBox->GetNumberOfEntries(); i++) {
+  for (int i = 0; i < fReactionBox->GetNumberOfEntries(); i++) {
     if (fReactionBox->GetEntry(i)->IsActive()) {
       fReactionBox->GetEntry(i)->Toggle();
     }
@@ -583,8 +586,8 @@ void TEXsec::UpdateReactions() // when the user changes the selected particle
 {
   fReactionBox->RemoveAll();
   if (fParticleBox->GetSelected() > -1) { // if a particle is selected
-    Int_t nb = 0;
-    for (Int_t i = 0; i < TPartIndex::I()->NProc() - 1; ++i) {
+    int nb = 0;
+    for (int i = 0; i < TPartIndex::I()->NProc() - 1; ++i) {
       if (XS(TPartIndex::I()->PartIndex(((TGTextLBEntry *)fParticleBox->GetSelectedEntry())->GetTitle()), i,
              0.0000000001) >= 0) {
         fReactionBox->AddEntry(TPartIndex::I()->ProcName(i),
@@ -607,7 +610,7 @@ void TEXsec::PreDraw() // preparation of Draw() in the viewer, generation of the
     TString opt = ((TGTextLBEntry *)fParticleBox->GetSelectedEntry())->GetTitle();
 
     opt += ",Total|";
-    for (Int_t i = 0; i < fReactionBox->GetNumberOfEntries(); i++) {
+    for (int i = 0; i < fReactionBox->GetNumberOfEntries(); i++) {
       if (fReactionBox->GetEntry(i)->IsActive()) {
         opt += ((TGTextLBEntry *)fReactionBox->GetEntry(i))->GetTitle();
         opt += "|";
