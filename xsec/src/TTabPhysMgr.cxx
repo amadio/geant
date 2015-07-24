@@ -206,6 +206,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   next.Reset();
   while ((mat = (TGeoMaterial *)next())) {
 #endif
+     //    std::cout << __FILE__ << "::" << __func__ << "::Loading xsec for " << mat->GetName() << std::endl;
     if (!mat->IsUsed())
       continue;
     Int_t nelem = mat->GetNelements();
@@ -392,6 +393,14 @@ void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tr
 #ifndef GEANT_CUDA_DEVICE_BUILD
   if (mat) {
 #ifdef USE_VECGEOM_NAVIGATOR
+     /*
+     static std::mutex m;
+     m.lock();
+     cout << __FILE__ << "::" << __func__ <<"::mat:" << mat->GetName() 
+	  << " vol:" << vecgeom::GeoManager::Instance().FindLogicalVolume(tracks.fVindexV[0])->GetName() 
+	  << " xsecptr:" << mat->GetXsecPtr() << endl;
+     m.unlock();
+     */
     mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
