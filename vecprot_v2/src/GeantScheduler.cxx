@@ -160,8 +160,8 @@ void GeantScheduler::CreateBaskets() {
   Int_t icrt = 0;
   Int_t nperbasket = gPropagator->fNperBasket;
 #ifdef USE_VECGEOM_NAVIGATOR
-  for (int it=0; it<fNvolumes; ++it) {
-    vol = const_cast<TGeoVolume*>(vecgeom::GeoManager::Instance().FindLogicalVolume(it));
+  for (int it = 0; it < fNvolumes; ++it) {
+    vol = const_cast<TGeoVolume *>(vecgeom::GeoManager::Instance().FindLogicalVolume(it));
 #else
   TIter next(gGeoManager->GetListOfVolumes());
   while ((vol = (TGeoVolume *)next())) {
