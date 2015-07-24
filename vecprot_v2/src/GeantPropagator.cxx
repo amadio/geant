@@ -385,12 +385,8 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
     Printf("Loading VecGeom geometry done\n");
     Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
     // Create the tab. phys process.
-    std::vector<vecgeom::LogicalVolume *> v1;
-    vecgeom::GeoManager::Instance().getAllLogicalVolumes(v1);
-    Printf("Have logical volumes %ld\n", v1.size());
-    std::vector<vecgeom::VPlacedVolume *> v2;
-    vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
-    Printf("Have placed volumes %ld\n", v2.size());
+    Printf("Have logical volumes %d\n", vecgeom::GeoManager::Instance().GetLogicalVolumesCount());
+    Printf("Have placed volumes %d\n", vecgeom::GeoManager::Instance().GetPlacedVolumesCount());
 #ifdef USE_VECGEOM_NAVIGATOR
     std::cout << vecgeom::GeoManager::Instance().GetWorld() << endl;
 #else

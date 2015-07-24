@@ -62,17 +62,14 @@ void GeantScheduler::ActivateBasketManagers() {
   // Percent of steps to activate basketized volumes
   double threshold = 0.9;
   int nactive = 0;
-#ifdef USE_VECGEOM_NAVIGATOR
-  std::vector<TGeoVolume *> vlist;
-  vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
-#else
+#ifndef USE_VECGEOM_NAVIGATOR
   TObjArray *vlist = gGeoManager->GetListOfVolumes();
 #endif
-  TGeoVolume *vol;
+  const TGeoVolume *vol;
   for (auto i = 0; i < fNvolumes; i++) {
     ntot += fNstvol[i];
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = vlist[i];
+    vol = vecgeom::GeoManager::Instance().FindLogicalVolume(i);
     GeantBasketMgr *mgr = (GeantBasketMgr *)vol->getBasketManagerPtr();
 #else
     vol = (TGeoVolume *)vlist->At(i);
@@ -86,7 +83,7 @@ void GeantScheduler::ActivateBasketManagers() {
   int nthreshold = ntot * threshold;
   for (auto i = 0; i < fNvolumes; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = vlist[fIstvol[i]];
+    vol = vecgeom::GeoManager::Instance().FindLogicalVolume(fIstvol[i]);
     GeantBasketMgr *mgr = (GeantBasketMgr *)vol->getBasketManagerPtr();
 #else
     vol = (TGeoVolume *)vlist->At(fIstvol[i]);
@@ -107,7 +104,7 @@ void GeantScheduler::ActivateBasketManagers() {
     nprint = fNvolumes;
   for (auto i = 0; i < nprint; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = vlist[fIstvol[i]];
+    vol = vecgeom::GeoManager::Instance().FindLogicalVolume(fIstvol[i]);
 #else
     vol = (TGeoVolume *)vlist->At(fIstvol[i]);
 #endif
@@ -148,9 +145,7 @@ void GeantScheduler::CreateBaskets() {
   if (fBasketMgr)
     return;
 #ifdef USE_VECGEOM_NAVIGATOR
-  std::vector<TGeoVolume *> vlist;
-  vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
-  fNvolumes = vlist.size();
+  fNvolumes = vecgeom::GeoManager::Instance().GetLogicalVolumesCount();
 #else
   fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
 #endif
@@ -165,8 +160,8 @@ void GeantScheduler::CreateBaskets() {
   Int_t icrt = 0;
   Int_t nperbasket = gPropagator->fNperBasket;
 #ifdef USE_VECGEOM_NAVIGATOR
-  for (std::vector<TGeoVolume *>::iterator it = vlist.begin(); it != vlist.end(); ++it) {
-    vol = *it;
+  for (int it=0; it<fNvolumes; ++it) {
+    vol = const_cast<TGeoVolume*>(vecgeom::GeoManager::Instance().FindLogicalVolume(it));
 #else
   TIter next(gGeoManager->GetListOfVolumes());
   while ((vol = (TGeoVolume *)next())) {

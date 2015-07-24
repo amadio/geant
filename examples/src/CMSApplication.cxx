@@ -96,8 +96,9 @@ Bool_t CMSApplication::Initialize() {
     }
 // HCAL cells
 #ifdef USE_VECGEOM_NAVIGATOR
+    cout << __func__ << "::vol " << vol->GetName() << endl;
     if (vol->getTrackingMediumPtr())
-      smat = ((vecgeom::Medium *)vol->getTrackingMediumPtr())->GetMaterial()->GetName();
+       smat = ((vecgeom::Medium *)vol->getTrackingMediumPtr())->GetMaterial()->GetName();
 #else
     if (vol->GetMedium())
       smat = vol->GetMaterial()->GetName();

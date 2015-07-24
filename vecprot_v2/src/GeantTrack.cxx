@@ -281,9 +281,10 @@ TGeoMaterial *GeantTrack::GetMaterial() const {
 //______________________________________________________________________________
 TGeoVolume *GeantTrack::GetVolume() const {
   // Current volume the track is into
-  vector<TGeoVolume *> vlist;
-  vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
-  return vlist[fVindex];
+   if(fVindex!=vecgeom::GeoManager::Instance().FindLogicalVolume(fVindex)->id())
+      std::cout << __FILE__ << "::" << __func__ << ":: mismatch: index:" <<fVindex << " id():"
+		<< vecgeom::GeoManager::Instance().FindLogicalVolume(fVindex)->id() <<std::endl;
+  return vecgeom::GeoManager::Instance().FindLogicalVolume(fVindex);
 }
 #endif
 
@@ -2662,9 +2663,10 @@ TGeoVolume *GeantTrack_v::GetNextVolume(Int_t i) const {
 //______________________________________________________________________________
 TGeoVolume *GeantTrack_v::GetVolume(Int_t i) const {
   // Current volume the track is into
-  vector<TGeoVolume *> vlist;
-  vecgeom::GeoManager::Instance().getAllLogicalVolumes(vlist);
-  return vlist[fVindexV[i]];
+   if(fVindexV[i]!=vecgeom::GeoManager::Instance().FindLogicalVolume(fVindexV[i])->id())
+      std::cout << __FILE__ << "::" << __func__ << ":: mismatch: index:" <<fVindexV[i] << " id():"
+		<< vecgeom::GeoManager::Instance().FindLogicalVolume(fVindexV[i])->id() <<std::endl;
+  return vecgeom::GeoManager::Instance().FindLogicalVolume(fVindexV[i]);
 }
 
 //______________________________________________________________________________
