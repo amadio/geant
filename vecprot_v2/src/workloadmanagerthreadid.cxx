@@ -7,8 +7,6 @@
 #include "WorkloadManager.h"
 using namespace Geant;
 
-ClassImp(WorkloadManager)
-
     int WorkloadManager::ThreadId() {
   gGeoManager->SetMultiThread();
   return TGeoManager::ThreadId();

@@ -62,30 +62,29 @@ int main() {
   Int_t nbuffered = 10; // Number of buffered events (tunable [1,ntotal])
   TGeoManager::Import(geomfile);
 
-  GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
+  GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
   prop->fVertex[0] = vt[0];
   prop->fVertex[1] = vt[1];
   prop->fVertex[2] = vt[2];
-  WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
   // Monitor different features
-  wmgr->SetNminThreshold(5 * nthreads);
+  prop->SetNminThreshold(5 * nthreads);
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
     CoprocessorBroker *gpuBroker = new CoprocessorBroker();
     gpuBroker->CudaSetup(32, 128, 1);
-    wmgr->SetTaskBroker(gpuBroker);
+    prop->SetTaskBroker(gpuBroker);
 #else
     std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
   }
 
-  wmgr->SetMonitored(WorkloadManager::kMonQueue, true & (!performance));
-  wmgr->SetMonitored(WorkloadManager::kMonMemory, false & (!performance));
-  wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol, false & (!performance));
-  wmgr->SetMonitored(WorkloadManager::kMonVectors, false & (!performance));
-  wmgr->SetMonitored(WorkloadManager::kMonConcurrency, false & (!performance));
-  wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false & (!performance));
-  Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
+  prop->SetMonitored(GeantPropagator::kMonQueue, true & (!performance));
+  prop->SetMonitored(GeantPropagator::kMonMemory, false & (!performance));
+  prop->SetMonitored(GeantPropagator::kMonBasketsPerVol, false & (!performance));
+  prop->SetMonitored(GeantPropagator::kMonVectors, false & (!performance));
+  prop->SetMonitored(GeantPropagator::kMonConcurrency, false & (!performance));
+  prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
+  Bool_t graphics = (prop->GetMonFeatures()) ? true : false;
   prop->fUseMonitoring = graphics;
   prop->fNaverage = 500; // Average number of tracks per event
 

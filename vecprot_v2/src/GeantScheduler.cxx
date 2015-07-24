@@ -65,7 +65,7 @@ void GeantScheduler::ActivateBasketManagers() {
 #ifndef USE_VECGEOM_NAVIGATOR
   TObjArray *vlist = gGeoManager->GetListOfVolumes();
 #endif
-  const TGeoVolume *vol;
+  const Volume_t *vol;
   for (auto i = 0; i < fNvolumes; i++) {
     ntot += fNstvol[i];
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -155,16 +155,16 @@ void GeantScheduler::CreateBaskets() {
   memset(fNstvol, 0, fNvolumes * sizeof(Int_t));
   memset(fIstvol, 0, fNvolumes * sizeof(Int_t));
   Geant::priority_queue<GeantBasket *> *feeder = WorkloadManager::Instance()->FeederQueue();
-  TGeoVolume *vol;
+  Volume_t *vol;
   GeantBasketMgr *basket_mgr;
   Int_t icrt = 0;
   Int_t nperbasket = gPropagator->fNperBasket;
 #ifdef USE_VECGEOM_NAVIGATOR
   for (int it = 0; it < fNvolumes; ++it) {
-    vol = const_cast<TGeoVolume *>(vecgeom::GeoManager::Instance().FindLogicalVolume(it));
+    vol = const_cast<Volume_t *>(vecgeom::GeoManager::Instance().FindLogicalVolume(it));
 #else
   TIter next(gGeoManager->GetListOfVolumes());
-  while ((vol = (TGeoVolume *)next())) {
+  while ((vol = (Volume_t *)next())) {
 #endif
     basket_mgr = new GeantBasketMgr(this, vol, icrt);
     basket_mgr->SetThreshold(nperbasket);
@@ -188,10 +188,10 @@ void GeantScheduler::CreateBaskets() {
 Int_t GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
 // Main method to inject generated tracks. Track status is kNew here.
 #ifdef USE_VECGEOM_NAVIGATOR
-  TGeoVolume *vol = const_cast<TGeoVolume *>(track.fPath->Top()->GetLogicalVolume());
+  Volume_t *vol = const_cast<Volume_t *>(track.fPath->Top()->GetLogicalVolume());
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->getBasketManagerPtr());
 #else
-  TGeoVolume *vol = track.fPath->GetCurrentNode()->GetVolume();
+  Volume_t *vol = track.fPath->GetCurrentNode()->GetVolume();
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
 #endif
   Int_t ivol = basket_mgr->GetNumber();
@@ -220,7 +220,7 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
   Int_t ntracks = tracks.GetNtracks();
   ntot += ntracks;
   GeantBasketMgr *basket_mgr = 0;
-  TGeoVolume *vol = 0;
+  Volume_t *vol = 0;
   for (Int_t itr = 0; itr < ntracks; itr++) {
     // We have to collect the killed tracks
     if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside()) {
@@ -239,7 +239,7 @@ Int_t GeantScheduler::AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, I
 //      priority = kTRUE;
 
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = const_cast<TGeoVolume *>(tracks.fPathV[itr]->Top()->GetLogicalVolume());
+    vol = const_cast<Volume_t *>(tracks.fPathV[itr]->Top()->GetLogicalVolume());
     basket_mgr = static_cast<GeantBasketMgr *>(vol->getBasketManagerPtr());
 #else
     vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();

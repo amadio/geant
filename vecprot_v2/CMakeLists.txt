@@ -44,7 +44,6 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/WorkloadManager.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h 

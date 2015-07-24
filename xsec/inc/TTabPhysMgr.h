@@ -18,20 +18,12 @@ class TPDecay;
 class GeantTrack_v;
 class GeantTrack;
 class GeantTaskData;
+#include "Geant/Typedefs.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/Global.h"
-#include "management/GeoManager.h"
-namespace vecgeom {
-inline namespace VECGEOM_IMPL_NAMESPACE {
-class Medium;
-class Material;
-}
-}
-typedef vecgeom::Material TGeoMaterial;
-typedef vecgeom::GeoManager TGeoManager;
 #else
-class TGeoManager;
-class TGeoMaterial;
+ class TGeoManager;
+ class TGeoMaterial;
 #endif
 
 #include "GeantFwd.h"
@@ -49,25 +41,27 @@ private:
   TEFstate **fElemFstate;     // Array of final state pointers per element
   TMXsec **fMatXsec;          // Array of x-section pointers per material
   TPDecay *fDecay;            // Decay tables for each particles
-  TGeoManager *fGeom;         // Pointer to the geometry manager
+#ifndef USE_VECGEOM_NAVIGATOR
+  TGeoManager_t *fGeom;        // Pointer to the geometry manager
+#endif  
   Bool_t *fHasNCaptureAtRest; // do the particle have nCapture at rest?
 
   static TTabPhysMgr *fgInstance; // Singleton instance
 
 public:
   TTabPhysMgr();
-  TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char *finalsfilename);
+  TTabPhysMgr(const char *xsecfilename, const char *finalsfilename);
   virtual ~TTabPhysMgr();
-  static TTabPhysMgr *Instance(TGeoManager *geom = 0, const char *xsecfilename = 0, const char *finalsfilename = 0);
+  static TTabPhysMgr *Instance(const char *xsecfilename = 0, const char *finalsfilename = 0);
   // Rotation+boost utility
   void TransformLF(Int_t indref, GeantTrack_v &tracks, Int_t nproducts, Int_t indprod,
                    GeantTrack_v &output); // not. imp. but done
   // API used by particle transport
   GEANT_CUDA_DEVICE_CODE
-  void ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
+  void ApplyMsc(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   GEANT_CUDA_DEVICE_CODE
-  Int_t Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
-  void ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
+  Int_t Eloss(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
+  void ProposeStep(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   Int_t SampleDecay(Int_t ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout); // not. imp.
 
   // # sampling target, type of interaction, final states;

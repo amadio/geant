@@ -13,9 +13,7 @@
 #include "TArrayI.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #else
-#include "TGeoNode.h"
 #include "TGeoManager.h"
-#include "TGeoVolume.h"
 #include "TGeoNavigator.h"
 #endif
 
@@ -96,7 +94,7 @@ Bool_t GeantBasket::Contains(Int_t evstart, Int_t nevents) const {
 }
 
 //______________________________________________________________________________
-TGeoVolume *GeantBasket::GetVolume() const {
+Volume_t *GeantBasket::GetVolume() const {
   // Returns volume for this basket
   return fManager->GetVolume();
 }
@@ -138,7 +136,7 @@ void GeantBasket::SetThreshold(Int_t threshold) {
 ClassImp(GeantBasketMgr)
 
     //______________________________________________________________________________
-    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector)
+    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, Int_t number, Bool_t collector)
     : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
       fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
       fDispatchList() {

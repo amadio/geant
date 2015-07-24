@@ -15,12 +15,7 @@
 
 #include "TObject.h"
 #include "TGeoExtension.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/LogicalVolume.h"
-typedef vecgeom::LogicalVolume TGeoVolume;
-#else
-#include "TGeoVolume.h"
-#endif
+#include "Geant/Typedefs.h"
 #include "GeantTrack.h"
 #include "priority_queue.h"
 #include "mpmc_bounded_queue.h"
@@ -182,7 +177,7 @@ public:
    * @brief Function returning the volume for this basket
    * @return Pointer to associated logical volume
    */
-  TGeoVolume *GetVolume() const;
+  Volume_t *GetVolume() const;
 
   /**
    * @brief Function returning the mixed tracks property.
@@ -274,7 +269,7 @@ public:
 
 protected:
   GeantScheduler *fScheduler; /** Scheduler for this basket */
-  TGeoVolume *fVolume;        /** Volume for which applies */
+  Volume_t *fVolume;          /** Volume for which applies */
   Int_t fNumber;              /** Number matching the volume index */
   Int_t fBcap;                /** Maximum capacity of baskets held */
   Int_t fQcap;                /** Queue capacity */
@@ -347,14 +342,14 @@ public:
    * @param vol Volume associated with this
    * @param number Number for the basket manager
   */
-  GeantBasketMgr(GeantScheduler *sch, TGeoVolume *vol, Int_t number, Bool_t collector = false);
+  GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, Int_t number, Bool_t collector = false);
 
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
 
   /**
    * @brief Grab function
-   * @details Interface of TGeoExtension for getting a reference to this from TGeoVolume
+   * @details Interface of TGeoExtension for getting a reference to this from Volume
    * @return Pointer to the base class
    */
   virtual TGeoExtension *Grab() { return this; }
@@ -511,7 +506,7 @@ public:
    * @brief Function that returns the associated volume pointer
    * @return Volume for which applies basket
    */
-  TGeoVolume *GetVolume() const { return fVolume; }
+  Volume_t *GetVolume() const { return fVolume; }
 
   /** @brief Print the current basket */
   virtual void Print(Option_t *option = "") const;

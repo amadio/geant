@@ -16,8 +16,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class Geant::cxx::GeantTrack+;
-#pragma link C++ class Geant::cxx::GeantTrack_v+;
+//#pragma link C++ class Geant::cxx::GeantTrack+;
+//#pragma link C++ class Geant::cxx::GeantTrack_v+;
 #pragma link C++ class GeantTrackStat+;
 #pragma link C++ class Geant::cxx::GeantTaskData+;
 #pragma link C++ class GeantBasket+;
@@ -26,7 +26,7 @@
 #pragma link C++ class GeantBasketMgr+;
 #pragma link C++ class GeantOutput+;
 #pragma link C++ class GeantVApplication+;
-#pragma link C++ class WorkloadManager+;
+//#pragma link C++ class WorkloadManager+;
 #pragma link C++ class PhysicsProcess+;
 #pragma link C++ class StdApplication+;
 #pragma link C++ class MyHit+;

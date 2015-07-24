@@ -2,13 +2,11 @@
 #define GVECTORPHYSICSPROCESS_H
 
 #include "Geant/Config.h"
+#include "Geant/Typedefs.h"
 
 #ifndef GEANT_PHYSICSPROCESS
 #include "PhysicsProcess.h"
 #endif
-
-// GeantV related
-class TGeoMaterial; // ROOT: we won't use this
 
 #include "GeantFwd.h"
 
@@ -30,7 +28,7 @@ public:
   virtual ~GVectorPhysicsProcess();
 
   virtual void Initialize();
-  virtual void PostStepFinalStateSampling( TGeoMaterial* /*mat*/,
+  virtual void PostStepFinalStateSampling( Material_t* /*mat*/,
                                            Int_t ntracks, 
                                            GeantTrack_v &tracks,
                                            Int_t &nout, 
@@ -38,19 +36,19 @@ public:
 
   // these are not active !!! 
   //
-  virtual void ComputeIntLen(TGeoMaterial * /*mat*/,
+  virtual void ComputeIntLen(Material_t * /*mat*/,
                              Int_t /*ntracks*/, 
                              GeantTrack_v & /*tracks*/,
                              Double_t * /*lengths*/, 
                              Int_t /*tid*/)                            {}
   
-  virtual void PostStep(     TGeoMaterial * /*mat*/,
+  virtual void PostStep(     Material_t * /*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
                              Int_t & /*nout*/, 
                              Int_t /*tid*/)                            {}         
 
-  virtual void PostStepTypeOfIntrActSampling(     TGeoMaterial * /*mat*/,
+  virtual void PostStepTypeOfIntrActSampling(     Material_t * /*mat*/,
                                                   Int_t /*ntracks*/,
                                                   GeantTrack_v & /*tracks*/, 
                                                   Int_t /*tid*/)       {} 
@@ -60,13 +58,13 @@ public:
                              Int_t &/*nout*/, 
                              Int_t /*tid*/)                             {}
 
-  virtual void Eloss(        TGeoMaterial */*mat*/,
+  virtual void Eloss(        Material_t */*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
                              Int_t &/*nout*/,
                              Int_t /*tid*/)                             {}
 
-  virtual void ApplyMsc(     TGeoMaterial */*mat*/,
+  virtual void ApplyMsc(     Material_t */*mat*/,
                              Int_t /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
                              Int_t /*tid*/)                             {}

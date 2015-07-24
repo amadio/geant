@@ -23,13 +23,8 @@
 
 #include <deque>
 
-#ifdef USE_VECGEOM_NAVIGATOR
-using vecgeom::LogicalVolume;
-class LogicalVolume;
-typedef vecgeom::LogicalVolume TGeoVolume;
-#else
-class TGeoVolume;
-#endif
+#include "Geant/Typedefs.h"
+
 class TRandom;
 class GeantBasketMgr;
 class GeantBasket;
@@ -52,7 +47,7 @@ public:
   Int_t fSizeBool;       /** Size of bool array */
   Int_t fSizeDbl;        /** Size of dbl array */
   Bool_t fToClean;       /** Flag set when the basket queue is to be cleaned */
-  TGeoVolume *fVolume;   /** Current volume per thread */
+  Volume_t *fVolume;     /** Current volume per thread */
   TRandom *fRndm;        /** Random generator for thread */
   Bool_t *fBoolArray;    /** [fSizeBool] Thread array of bools */
   Double_t *fDblArray;   /** [fSizeDbl] Thread array of doubles */

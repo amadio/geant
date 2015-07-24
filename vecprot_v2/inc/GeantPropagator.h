@@ -28,29 +28,36 @@
 #include <vector>
 #include <atomic>
 
+#include "Geant/Typedefs.h"
+
 class TTree;
 class TFile;
 class TStopwatch;
-#ifdef USE_VECGEOM_NAVIGATOR
-using vecgeom::LogicalVolume;
-class LogicalVolume;
-typedef vecgeom::LogicalVolume TGeoVolume;
-#else
-class TGeoVolume;
-#endif
 class PhysicsProcess;
 class GeantEvent;
 class GeantBasket;
-class GeantOutput;
 class GeantBasketMgr;
 class WorkloadManager;
 class GeantVApplication;
 class PrimaryGenerator;
+class TaskBroker;
 
 #include "GeantFwd.h"
 
 class GeantPropagator : public TObject {
 public:
+  /**
+   * @brief Monitoring type
+   */
+  enum EGeantMonitoringType {
+    kMonQueue = 0,
+    kMonMemory,
+    kMonBasketsPerVol,
+    kMonVectors,
+    kMonConcurrency,
+    kMonTracksPerEvent,
+    kMonTracks
+  };
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
@@ -97,7 +104,6 @@ public:
   Bool_t fUseStdScoring;    /** Use standard scoring */
   Bool_t fTransportOngoing; /** Flag for ongoing transport */
   Bool_t fSingleTrack;      /** Use single track transport mode */
-  Bool_t fFillTree;         /** Enable I/O */
   Bool_t fUseMonitoring;    /** Monitoring different features */
   Bool_t fUseAppMonitoring; /** Monitoring the application */
   TMutex fTracksLock;       /** Mutex for adding tracks */
@@ -105,10 +111,7 @@ public:
   WorkloadManager *fWMgr;             /** Workload manager */
   GeantVApplication *fApplication;    /** User application */
   GeantVApplication *fStdApplication; /** Standard application */
-  GeantOutput *fOutput;               /** Output object */
 
-  TTree *fOutTree;    /** Output tree */
-  TFile *fOutFile;    /** Output file */
   TStopwatch *fTimer; /** Timer */
 
   PhysicsProcess *fProcess;              /** For now the only generic process pointing to the tabulated physics */
@@ -221,7 +224,7 @@ public:
    * @param ntotal Total number of tracks
    * @param nbuffered Number of buffered tracks
    */
-  static GeantPropagator *Instance(Int_t ntotal = 0, Int_t nbuffered = 0);
+  static GeantPropagator *Instance(Int_t ntotal = 0, Int_t nbuffered = 0, Int_t nthreads = 0);
 
   /**
    * @brief Propose the physics step for an array of tracks
@@ -258,6 +261,24 @@ public:
    */
   void PropagatorGeom(const char *geomfile = "geometry.root", Int_t nthreads = 4, Bool_t graphics = kFALSE,
                       Bool_t single = kFALSE);
+
+  /** @brief Function returning the number of monitored features */
+  int GetMonFeatures() const;
+
+  /** @brief Check if a monitoring feature is enabled */
+  bool IsMonitored(GeantPropagator::EGeantMonitoringType feature) const;
+
+  /** @brief Enable monitoring a feature */
+  void SetMonitored(EGeantMonitoringType feature, bool flag = true);
+
+  /** @brief Setter for the global transport threshold */
+  void SetNminThreshold(int thr);
+
+  /** @brief  Getter for task broker */
+  TaskBroker *GetTaskBroker();
+
+  /** @brief  Setter for task broker */
+  void SetTaskBroker(TaskBroker *broker);
 
   /** @brief Function checking if transport is completed */
   Bool_t TransportCompleted() const { return ((Int_t)fDoneEvents->FirstNullBit() >= fNtotal); }

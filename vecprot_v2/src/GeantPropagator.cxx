@@ -18,43 +18,26 @@
 //
 #include "GeantPropagator.h"
 
-#include "TSystem.h"
-#include "TROOT.h"
 #include "TTimer.h"
-#include "TVirtualPad.h"
-#include "TMath.h"
 #include "TError.h"
-#include "TGeoHelix.h"
-#include "TPolyMarker3D.h"
+#include "TStopwatch.h"
 #include "TCanvas.h"
-#include "TRandom.h"
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1
-#include "navigation/SimpleNavigator.h"
-void loadrootgeometry();
-//#include "management/RootGeoManager.h"
-#include "volumes/LogicalVolume.h"
-#include "volumes/PlacedVolume.h"
-#include "volumes/Medium.h"
+ #include "navigation/SimpleNavigator.h"
+ void loadrootgeometry();
+ //#include "management/RootGeoManager.h"
+ #include "volumes/PlacedVolume.h"
 #else
-#include "TGeoVolume.h"
-#include "TGeoManager.h"
-#include "TGeoVoxelFinder.h"
-#include "TGeoNode.h"
-#include "TGeoMaterial.h"
+ #include "TGeoVolume.h"
+ #include "TGeoManager.h"
+ #include "TGeoVoxelFinder.h"
+ #include "TGeoNode.h"
+ #include "TGeoMaterial.h"
 #endif
-#include "TTree.h"
-#include "TFile.h"
-#include "TStopwatch.h"
-#include "TBits.h"
-#include "TCanvas.h"
-#include "TH1.h"
-#include "TDatabasePDG.h"
-#include "TPDGCode.h"
-#include "TGenPhaseSpace.h"
+
 #include "GeantTrack.h"
-#include "GeantOutput.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"
@@ -84,9 +67,9 @@ GeantPropagator::GeantPropagator()
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
-      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE),
-      fUseAppMonitoring(kFALSE), fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fOutput(0), fOutTree(0),
-      fOutFile(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0),
+      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fUseMonitoring(kFALSE),
+      fUseAppMonitoring(kFALSE), fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0),
+      fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0),
       fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fVertex[0] = fVertex[1] = fVertex[2] = 0.;
@@ -114,8 +97,6 @@ GeantPropagator::~GeantPropagator() {
       delete fThreadData[i];
     delete[] fThreadData;
   }
-  delete fOutput;
-  delete fOutFile;
   delete fTimer;
   delete fWMgr;
   delete fApplication;
@@ -207,7 +188,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
   using vecgeom::GeoManager;
 #endif
 
-  TGeoVolume *vol = 0;
+  Volume_t *vol = 0;
   Int_t ntracks = 0;
   Int_t ntotal = 0;
   Int_t ndispatched = 0;
@@ -224,7 +205,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
     vecgeom::SimpleNavigator nav;
     nav.LocatePoint(GeoManager::Instance().GetWorld(), Vector3D<Precision>(fVertex[0], fVertex[1], fVertex[2]), *a,
                     true);
-    vol = const_cast<TGeoVolume *>(a->Top()->GetLogicalVolume());
+    vol = const_cast<Volume_t *>(a->Top()->GetLogicalVolume());
     td->fVolume = vol;
 #else
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -238,7 +219,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
 
   } else {
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = const_cast<TGeoVolume *>(a->Top()->GetLogicalVolume());
+    vol = const_cast<Volume_t *>(a->Top()->GetLogicalVolume());
 #else
     TGeoNode const *node = a->GetCurrentNode();
     vol = node->GetVolume();
@@ -294,7 +275,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Int_t startevent, Int_t start
 }
 
 //______________________________________________________________________________
-GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered) {
+GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered, Int_t nthreads) {
   // Single instance of the propagator
   if (fgInstance)
     return fgInstance;
@@ -305,10 +286,14 @@ GeantPropagator *GeantPropagator::Instance(Int_t ntotal, Int_t nbuffered) {
   fgInstance = new GeantPropagator();
   fgInstance->fNtotal = ntotal;
   fgInstance->fNevents = nbuffered;
+  fgInstance->fNthreads = nthreads;
   if (nbuffered > ntotal) {
     Printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
     fgInstance->fNevents = ntotal;
   }
+  // Initialize workload manager
+  fgInstance->fWMgr = WorkloadManager::Instance(nthreads);
+  // Instantiate factory store
   GeantFactoryStore::Instance(nbuffered);
   return fgInstance;
 }
@@ -331,15 +316,6 @@ void GeantPropagator::Initialize() {
 #if USE_VECPHYS == 1
   fVectorPhysicsProcess->Initialize();
 #endif
-
-  // Initialize workload manager
-  fWMgr = WorkloadManager::Instance(fNthreads);
-  if (fNthreads > fWMgr->GetNthreads()) {
-    Error("Initialize", "Workload manager configured to support only %d thread but %d were "
-                        "requested, using only %d threads.",
-          fWMgr->GetNthreads(), fNthreads, fWMgr->GetNthreads());
-    fNthreads = fWMgr->GetNthreads();
-  }
 
   if (!fNtracks) {
     fNtracks = new Int_t[fNevents];
@@ -427,10 +403,10 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename) {
 //______________________________________________________________________________
 void GeantPropagator::ApplyMsc(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Apply multiple scattering for charged particles.
-  TGeoMaterial *mat = 0;
+  Material_t *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((TGeoMedium *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
+    mat = ((Medium_t *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
 #else
     mat = td->fVolume->GetMaterial();
 #endif
@@ -445,10 +421,10 @@ void GeantPropagator::ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTask
     tracks.fStepV[i] = 0.;
     tracks.fEdepV[i] = 0.;
   }
-  TGeoMaterial *mat = 0;
+  Material_t *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((TGeoMedium *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
+    mat = ((Medium_t *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
   ;
 #else
     mat = td->fVolume->GetMaterial();
@@ -488,10 +464,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
     Printf("==== Executing in single track loop mode using %d threads ====", fNthreads);
   else
     Printf("==== Executing in vectorized mode using %d threads ====", fNthreads);
-  if (fFillTree)
-    Printf("  I/O enabled - disable if comparing single track loop with vectorized modes");
-  else
-    Printf("  I/O disabled");
   if (fUsePhysics)
     Printf("  Physics ON with %d processes", fNprocesses);
   else
@@ -504,15 +476,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   }
 
   //  Feeder(fThreadData[0]);
-
-  // Initialize tree
-  fOutput = new GeantOutput();
-  fOutput->Init(fMaxTracks);
-  if (fFillTree) {
-    fOutFile = new TFile("output.root", "RECREATE");
-    fOutTree = new TTree("TK", "Transport track data");
-    fOutTree->Branch("gen", &fOutput);
-  }
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = kTRUE;
@@ -535,9 +498,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   fTimer->Stop();
   Double_t rtime = fTimer->RealTime();
   Double_t ctime = fTimer->CpuTime();
-  if (fFillTree)
-    fOutTree->AutoSave();
-  delete fOutFile;
   //   fTimer->Print();
   Double_t speedup = ctime / rtime;
   Double_t efficiency = speedup / nthreads;
@@ -566,12 +526,42 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 #endif
 //  Printf("Navstate pool usage statistics:");
 //   fWMgr->NavStates()->statistics();
-#ifdef GEANTV_OUTPUT_RESULT_FILE
-  gSystem->mkdir("results");
-  FILE *fp = fopen(Form("results/%s_%d.dat", geomname, single), "w");
-  fprintf(fp, "%d %lld %lld %lld %g %g", single, fNsafeSteps, fNsnextSteps, fNphysSteps, rtime, ctime);
-  fclose(fp);
-#endif
-  fOutFile = 0;
-  fOutTree = 0;
 }
+
+//______________________________________________________________________________
+Int_t GeantPropagator::GetMonFeatures() const {
+  // Get the number of monitored features
+  return fWMgr->GetMonFeatures();
+}  
+
+//______________________________________________________________________________
+bool GeantPropagator::IsMonitored(EGeantMonitoringType feature) const {
+  // Check if a given feature is monitored
+  return fWMgr->IsMonitored(feature);
+}  
+
+//______________________________________________________________________________
+void GeantPropagator::SetMonitored(EGeantMonitoringType feature, bool flag) {
+  // Enable monitoring a feature  
+  fWMgr->SetMonitored(feature, flag);
+}
+
+//______________________________________________________________________________
+void GeantPropagator::SetNminThreshold(int thr) {
+  // Setter for the global transport threshold
+  fWMgr->SetNminThreshold(thr);
+}
+
+//______________________________________________________________________________
+void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
+  // Setter for task broker
+  fWMgr->SetTaskBroker(broker);
+}
+
+//______________________________________________________________________________
+TaskBroker *GeantPropagator::GetTaskBroker() {
+  // Getter for task broker
+  return fWMgr->GetTaskBroker();
+}
+  
+

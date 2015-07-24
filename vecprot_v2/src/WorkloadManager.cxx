@@ -10,7 +10,8 @@
 #include "TList.h"
 #include "TFile.h"
 #include "TTree.h"
-#include "TThread.h"
+#include "TMath.h"
+//#include "TThread.h"
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
@@ -30,15 +31,13 @@
 
 using namespace Geant;
 
-ClassImp(WorkloadManager)
-
-    WorkloadManager *WorkloadManager::fgInstance = 0;
+WorkloadManager *WorkloadManager::fgInstance = 0;
 
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(Int_t nthreads)
     : fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads), fNminThreshold(10),
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
-      fDoneQ(0), fListThreads(0), fFlushed(false), fFilling(false), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0),
+      fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0),
       fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0), fScheduler(0), fBroker(0), fWaiting(0),
       fSchLocker(), fGbcLocker(), fLastEvent(0) {
   // Private constructor.
@@ -120,28 +119,28 @@ Bool_t WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume)
 void WorkloadManager::StartThreads() {
   // Start the threads
   fStarted = true;
-  if (fListThreads)
+  if (!fListThreads.empty())
     return;
-  fListThreads = new TList();
-  fListThreads->SetOwner();
   Int_t ith = 0;
-  TThread *t;
+//  TThread *t;
   if (fBroker) {
     if (fBroker->GetNstream() > fNthreads) {
       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
               fNthreads);
     }
     Printf("Running with a coprocessor broker.");
-    t = new TThread(WorkloadManager::TransportTracksCoprocessor, fBroker);
-    fListThreads->Add(t);
-    t->Run();
+    fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
+//    t = new TThread(WorkloadManager::TransportTracksCoprocessor, fBroker);
+//    fListThreads->Add(t);
+//    t->Run();
     ith += fBroker->GetNstream() + 1;
   }
   // Start CPU transport threads
   for (; ith < fNthreads; ith++) {
-    t = new TThread(WorkloadManager::TransportTracks);
-    fListThreads->Add(t);
-    t->Run();
+    fListThreads.emplace_back(WorkloadManager::TransportTracks);
+//    t = new TThread(WorkloadManager::TransportTracks);
+//    fListThreads->Add(t);
+//    t->Run();
   }
   //   gSystem->Sleep(1000);
   // Start scheduler(s)
@@ -150,15 +149,17 @@ void WorkloadManager::StartThreads() {
   //  t->Run();
   // Start monitoring thread
   if (GeantPropagator::Instance()->fUseMonitoring) {
-    t = new TThread(WorkloadManager::MonitoringThread);
-    fListThreads->Add(t);
-    t->Run();
+    fListThreads.emplace_back(WorkloadManager::MonitoringThread);
+//    t = new TThread(WorkloadManager::MonitoringThread);
+//    fListThreads->Add(t);
+//    t->Run();
   }
   // Start garbage collector
   if (GeantPropagator::Instance()->fMaxRes > 0) {
-    t = new TThread(WorkloadManager::GarbageCollectorThread);
-    fListThreads->Add(t);
-    t->Run();
+    fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
+//    t = new TThread(WorkloadManager::GarbageCollectorThread);
+//    fListThreads->Add(t);
+//    t->Run();
   }
 }
 
@@ -170,6 +171,11 @@ void WorkloadManager::JoinThreads() {
     tojoin -= fBroker->GetNstream();
   for (Int_t ith = 0; ith < tojoin; ith++)
     fFeederQ->push(0);
+    
+   for (auto& t : fListThreads) {
+      t.join();
+   }
+/*    
   for (Int_t ith = 0; ith < tojoin; ith++)
     ((TThread *)fListThreads->At(ith))->Join();
   // Join scheduler
@@ -181,6 +187,7 @@ void WorkloadManager::JoinThreads() {
   // Join garbage collector
   if (GeantPropagator::Instance()->fMaxRes > 0)
     ((TThread *)fListThreads->At(tojoin++))->Join();
+*/
 }
 
 //______________________________________________________________________________
@@ -207,7 +214,7 @@ void *WorkloadManager::MainScheduler(void *) {
 }
 
 //______________________________________________________________________________
-void *WorkloadManager::TransportTracks(void *) {
+void *WorkloadManager::TransportTracks() {
   // Thread propagating all tracks from a basket.
   //      char slist[256];
   //      TString sslist;
@@ -241,7 +248,7 @@ void *WorkloadManager::TransportTracks(void *) {
   prioritizer->SetFeederQueue(feederQ);
   // Start the feeder
   propagator->Feeder(td);
-  TGeoMaterial *mat = 0;
+  Material_t *mat = 0;
   Int_t *waiting = wm->GetWaiting();
 //  condition_locker &sched_locker = wm->GetSchLocker();
 //  condition_locker &gbc_locker = wm->GetGbcLocker();
@@ -333,7 +340,7 @@ void *WorkloadManager::TransportTracks(void *) {
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
 #ifdef USE_VECGEOM_NAVIGATOR
-      mat = ((TGeoMedium *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
+      mat = ((Medium_t *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
 #else
       mat = td->fVolume->GetMaterial();
 #endif
@@ -478,7 +485,7 @@ void *WorkloadManager::TransportTracks(void *) {
 }
 
 //______________________________________________________________________________
-void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
+void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   // Thread propagating all tracks from a basket.
   //      char slist[256];
   //      TString sslist;
@@ -535,7 +542,6 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
   // Int_t iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];
 
-  TaskBroker *broker = reinterpret_cast<TaskBroker *>(arg);
   // broker->SetPrioritizer(prioritizer);
   while (1) {
 
@@ -744,7 +750,7 @@ void *WorkloadManager::TransportTracksCoprocessor(void *arg) {
 }
 
 //______________________________________________________________________________
-void *WorkloadManager::GarbageCollectorThread(void *) {
+void *WorkloadManager::GarbageCollectorThread() {
   // This threads can be triggered to do garbage collection of unused baskets
   static Double_t rsslast = 0;
   Double_t rss;
@@ -785,57 +791,57 @@ Int_t WorkloadManager::GetMonFeatures() const {
 }
 
 //______________________________________________________________________________
-bool WorkloadManager::IsMonitored(EGeantMonitoringType feature) const {
+bool WorkloadManager::IsMonitored(GeantPropagator::EGeantMonitoringType feature) const {
   // Check if a given feature is monitored
   switch (feature) {
-  case kMonQueue:
+  case GeantPropagator::kMonQueue:
     return fMonQueue;
-  case kMonMemory:
+  case GeantPropagator::kMonMemory:
     return fMonMemory;
-  case kMonBasketsPerVol:
+  case GeantPropagator::kMonBasketsPerVol:
     return fMonBasketsPerVol;
-  case kMonVectors:
+  case GeantPropagator::kMonVectors:
     return fMonVectors;
-  case kMonConcurrency:
+  case GeantPropagator::kMonConcurrency:
     return fMonConcurrency;
-  case kMonTracksPerEvent:
+  case GeantPropagator::kMonTracksPerEvent:
     return fMonTracksPerEvent;
-  case kMonTracks:
+  case GeantPropagator::kMonTracks:
     return fMonTracks;
   }
   return false;
 }
 
 //______________________________________________________________________________
-void WorkloadManager::SetMonitored(EGeantMonitoringType feature, bool flag) {
+void WorkloadManager::SetMonitored(GeantPropagator::EGeantMonitoringType feature, bool flag) {
   // Enable/disable monitoring for a feature
   int value = (int)flag;
   switch (feature) {
-  case kMonQueue:
+  case GeantPropagator::kMonQueue:
     fMonQueue = value;
     break;
-  case kMonMemory:
+  case GeantPropagator::kMonMemory:
     fMonMemory = value;
     break;
-  case kMonBasketsPerVol:
+  case GeantPropagator::kMonBasketsPerVol:
     fMonBasketsPerVol = value;
     break;
-  case kMonVectors:
+  case GeantPropagator::kMonVectors:
     fMonVectors = value;
     break;
-  case kMonConcurrency:
+  case GeantPropagator::kMonConcurrency:
     fMonConcurrency = value;
     break;
-  case kMonTracksPerEvent:
+  case GeantPropagator::kMonTracksPerEvent:
     fMonTracksPerEvent = value;
     break;
-  case kMonTracks:
+  case GeantPropagator::kMonTracks:
     fMonTracks = value;
   }
 }
 
 //______________________________________________________________________________
-void *WorkloadManager::MonitoringThread(void *) {
+void *WorkloadManager::MonitoringThread() {
   // Thread providing basic monitoring for the scheduler.
   const Double_t MByte = 1024.;
   Printf("Started monitoring thread...");
@@ -867,7 +873,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   TH1I *hqueue = 0;
   Int_t nqueue[101] = {0};
   Int_t ipad = 0;
-  if (wm->IsMonitored(WorkloadManager::kMonQueue)) {
+  if (wm->IsMonitored(GeantPropagator::kMonQueue)) {
     hqueue = new TH1I("hqueue", "Work queue load", 100, 0, 100);
     hqueue->SetFillColor(kRed);
     hqueue->SetLineColor(0);
@@ -876,7 +882,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     hqueue->Draw();
   }
   TH1F *hmem = 0;
-  if (wm->IsMonitored(WorkloadManager::kMonMemory)) {
+  if (wm->IsMonitored(GeantPropagator::kMonMemory)) {
     hmem = new TH1F("hmem", "Resident memory [MB]", 100, 0, 100);
     // hmem->SetFillColor(kMagenta);
     hmem->SetLineColor(kMagenta);
@@ -886,7 +892,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   }
   TH1I *hbaskets = 0;
   TH1I *hbused = 0;
-  if (wm->IsMonitored(WorkloadManager::kMonBasketsPerVol)) {
+  if (wm->IsMonitored(GeantPropagator::kMonBasketsPerVol)) {
     hbaskets = new TH1I("hbaskets", "Baskets per volume", nvol, 0, nvol);
     hbaskets->SetFillColor(kBlue);
     hbaskets->SetLineColor(0);
@@ -902,7 +908,7 @@ void *WorkloadManager::MonitoringThread(void *) {
     hbused->Draw("SAME");
   }
   TH1I *hvectors = 0;
-  if (wm->IsMonitored(WorkloadManager::kMonVectors)) {
+  if (wm->IsMonitored(GeantPropagator::kMonVectors)) {
     hvectors = new TH1I("hvectors", "Tracks in vectors of given size", 257, 0, 257);
     hvectors->SetFillColor(kBlue);
     hvectors->SetLineColor(0);
@@ -912,7 +918,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   }
   TH1F *hconcurrency = 0;
   TH1F *hconcavg = 0;
-  if (wm->IsMonitored(WorkloadManager::kMonConcurrency)) {
+  if (wm->IsMonitored(GeantPropagator::kMonConcurrency)) {
     hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
     hconcurrency->GetYaxis()->SetRangeUser(0, 1);
     hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, true);
@@ -932,7 +938,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   TH1I *htracksmax = 0;
   TH1I *htracks = 0;
   Int_t nbuffered = propagator->fNevents;
-  if (wm->IsMonitored(WorkloadManager::kMonTracksPerEvent)) {
+  if (wm->IsMonitored(GeantPropagator::kMonTracksPerEvent)) {
     htracksmax = new TH1I("htracksmax", "Tracks in flight", nbuffered, 0, nbuffered);
     htracksmax->SetFillColor(kBlue);
     htracksmax->SetLineColor(0);
@@ -948,7 +954,7 @@ void *WorkloadManager::MonitoringThread(void *) {
   }
   TH1I *htrackstot = 0;
   Int_t ntrackstot[101] = {0};
-  if (wm->IsMonitored(WorkloadManager::kMonTracks)) {
+  if (wm->IsMonitored(GeantPropagator::kMonTracks)) {
     htrackstot = new TH1I("htrackstot", "Total number of tracks alive", 100, 0, 100);
     htrackstot->SetFillColor(kRed);
     htrackstot->SetLineColor(0);

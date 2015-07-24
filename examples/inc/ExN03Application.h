@@ -25,6 +25,8 @@
 #include "MyHit.h"
 #endif
 
+#include "Geant/Typedefs.h"
+
 #include "GeantFwd.h"
 
 /** @brief ExN03Application class */

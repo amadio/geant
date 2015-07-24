@@ -1,16 +1,8 @@
 #include "CMSApplication.h"
 #include "ExN03Application.h"
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "management/GeoManager.h"
-#include "volumes/LogicalVolume.h"
-using vecgeom::GeoManager;
-typedef vecgeom::VPlacedVolume TGeoNode;
-#include "volumes/Medium.h"
-typedef vecgeom::Medium TGeoMedium;
-#include "volumes/Material.h"
-typedef vecgeom::Material TGeoMaterial;
-#else
-#include "TGeoNode.h"
+ #include "management/GeoManager.h"
+ using vecgeom::GeoManager;
 #endif
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
@@ -26,10 +18,10 @@ typedef vecgeom::Material TGeoMaterial;
 
 ClassImp(CMSApplication)
 
-    //______________________________________________________________________________
-    CMSApplication::CMSApplication()
-    : GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
-      fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
+//______________________________________________________________________________
+CMSApplication::CMSApplication()
+: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
+  fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
   memset(fSensFlags, 0, kNvolumes * sizeof(Bool_t));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(Float_t));
@@ -76,7 +68,7 @@ Bool_t CMSApplication::Initialize() {
   if (fInitialized)
     return kTRUE;
   // Loop unique volume id's
-  TGeoVolume *vol;
+  Volume_t *vol;
   TString svol, smat;
   Int_t necal = 0;
   Int_t nhcal = 0;
@@ -128,7 +120,7 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
   Int_t ivol;
   Int_t idtype;
   Int_t mod;
-  TGeoVolume *vol;
+  Volume_t *vol;
   for (Int_t itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
 #ifdef USE_VECGEOM_NAVIGATOR

@@ -1,16 +1,13 @@
 #include "TTabPhysMgr.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Material.h"
 #include "navigation/NavigationState.h"
-#include "management/GeoManager.h"
 #include "volumes/Particle.h"
 using vecgeom::Particle;
 #else
-#include "TGeoMaterial.h"
-#include "TGeoManager.h"
-#include "TGeoBranchArray.h"
-#include "TGeoExtension.h"
+ #include "TGeoManager.h"
+ #include "TGeoBranchArray.h"
+ #include "TGeoExtension.h"
 #endif
 
 #include "GeantTrack.h"
@@ -40,18 +37,19 @@ using vecgeom::Particle;
 
 ClassImp(TTabPhysMgr)
 
-    TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
+void loadvecgeomgeometry(GeantPropagator *);
+TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
 
 //______________________________________________________________________________
-TTabPhysMgr *TTabPhysMgr::Instance(TGeoManager *geom, const char *xsecfilename, const char *finalsfilename) {
+TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsfilename) {
   // Access to instance of TTabPhysMgr
   if (fgInstance)
     return fgInstance;
-  if (!(geom && xsecfilename && finalsfilename)) {
-    ::Error("TTabPhysMgr::Instance", "Create TTabPhysMgr instance providing geometry and xsec files");
+  if (!(xsecfilename && finalsfilename)) {
+    ::Error("TTabPhysMgr::Instance", "Create TTabPhysMgr instance providing xsec files");
     return 0;
   }
-  fgInstance = new TTabPhysMgr(geom, xsecfilename, finalsfilename);
+  fgInstance = new TTabPhysMgr(xsecfilename, finalsfilename);
   return fgInstance;
 }
 
@@ -68,30 +66,39 @@ TTabPhysMgr::~TTabPhysMgr() {
 
 //______________________________________________________________________________
 TTabPhysMgr::TTabPhysMgr()
-    : fNelements(0), fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0), fGeom(0),
+    : fNelements(0), fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0),
+#ifndef USE_VECGEOM_NAVIGATOR
+      fGeom(0),
+#endif      
       fHasNCaptureAtRest(0) {
   // Dummy ctor.
   fgInstance = this;
 }
 
 //______________________________________________________________________________
-TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char *finalsfilename)
-    : //             TObject(),
-      fNelements(0),
-      fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0), fGeom(geom), fHasNCaptureAtRest(0) {
+TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
+    : fNelements(0),
+      fNmaterials(0), fElemXsec(0), fElemFstate(0), fMatXsec(0), fDecay(0), 
+#ifndef USE_VECGEOM_NAVIGATOR
+      fGeom(0), 
+#endif      
+      fHasNCaptureAtRest(0) {
 
   fgInstance = this;
   TStopwatch timer;
   timer.Start();
 // Load elements from geometry
 #ifdef USE_VECGEOM_NAVIGATOR
+  loadvecgeomgeometry(GeantPropagator::Instance());
   vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
 #else
-  TList *matlist = (TList *)geom->GetListOfMaterials();
-
+  fGeom = gGeoManager;
+  if (!fGeom)
+    Fatal("TTabPhysMgr", "No geometry");  
+  TList *matlist = (TList *)fGeom->GetListOfMaterials();
   TIter next(matlist);
 #endif
-  TGeoMaterial *mat = 0;
+  Material_t *mat = 0;
 
   // Open xsec_FTFP_BERT.root file (or other phys.lists)
   TFile *fxsec = TFile::Open(xsecfilename);
@@ -126,7 +133,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
 #ifdef USE_VECGEOM_NAVIGATOR
   printf("#materials:= %lu \n", matlist.size());
 #else
-  // INFO: print number of materials in the current TGeoManager
+  // INFO: print number of materials in the current GeoManager
   printf("#materials:= %d \n", matlist->GetSize());
 #endif
 
@@ -136,7 +143,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
   for (int i = 0; i < matlist.size(); ++i) {
     mat = matlist[i];
 #else
-  while ((mat = (TGeoMaterial *)next())) {
+  while ((mat = (Material_t *)next())) {
 #endif
     cout << mat->GetName() << "used " << mat->IsUsed() << " Z " << mat->GetZ() << endl;
     if (!mat->IsUsed() || mat->GetZ() < 1.)
@@ -204,7 +211,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
     mat = matlist[i];
 #else
   next.Reset();
-  while ((mat = (TGeoMaterial *)next())) {
+  while ((mat = (Material_t *)next())) {
 #endif
     //    std::cout << __FILE__ << "::" << __func__ << "::Loading xsec for " << mat->GetName() << std::endl;
     if (!mat->IsUsed())
@@ -228,7 +235,7 @@ TTabPhysMgr::TTabPhysMgr(TGeoManager *geom, const char *xsecfilename, const char
     // Construct the TMXsec object that corresponds to the current material
     TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetName(), z, a, w, nelem, mat->GetDensity(), kTRUE, fDecay);
     fMatXsec[fNmaterials++] = mxs;
-// Connect to TGeoMaterial
+// Connect to Material
 #ifdef USE_VECGEOM_NAVIGATOR
     mat->SetXsecPtr(static_cast<void *>(new TOMXsec(mxs)));
 #else
@@ -271,7 +278,7 @@ void TTabPhysMgr::TransformLF(Int_t /*indref*/, GeantTrack_v & /*tracks*/, Int_t
 // NOT ACTIVE NOW
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
+void TTabPhysMgr::ApplyMsc(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Compute MSC angle at the beginning of the step and apply it to the vector
   // of tracks.
   // Input: material index, number of tracks in the tracks vector to be used
@@ -342,7 +349,7 @@ void TTabPhysMgr::ApplyMsc(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &track
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
+Int_t TTabPhysMgr::Eloss(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Apply energy loss for the input material for ntracks in the vector of
   // tracks. Output: modified tracks.fEV array
 
@@ -385,7 +392,7 @@ Int_t TTabPhysMgr::Eloss(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks,
 }
 
 //______________________________________________________________________________
-void TTabPhysMgr::ProposeStep(TGeoMaterial *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
+void TTabPhysMgr::ProposeStep(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Sample free flight/proposed step for the firts ntracks tracks and store them
   // in tracks.fPstepV
 
@@ -433,7 +440,7 @@ Int_t TTabPhysMgr::SampleDecay(Int_t /*ntracks*/, GeantTrack_v & /*tracksin*/, G
 // smapling: target atom and type of the interaction for each primary tracks
 //______________________________________________________________________________
 void TTabPhysMgr::SampleTypeOfInteractions(Int_t imat, Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
-  TGeoMaterial *mat = 0;
+  Material_t *mat = 0;
   TMXsec *mxs = 0;
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -468,14 +475,14 @@ Int_t TTabPhysMgr::SampleFinalStates(Int_t imat, Int_t ntracks, GeantTrack_v &tr
   GeantPropagator *propagator = GeantPropagator::Instance();
   Double_t energyLimit = propagator->fEmin;
 
-  TGeoMaterial *mat = 0;
+  Material_t *mat = 0;
   TMXsec *mxs = 0;
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
     mat = vecgeom::Material::GetMaterials()[imat];
     mxs = ((TOMXsec *)(mat->GetXsecPtr()))->MXsec();
 #else
-    mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
+    mat = (Material_t *)fGeom->GetListOfMaterials()->At(imat);
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
 #endif
   }

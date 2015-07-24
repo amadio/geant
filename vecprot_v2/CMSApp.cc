@@ -164,12 +164,12 @@ int main(int argc, char *argv[]) {
 
   propagator->fUseMonitoring = monitor;
 
-  wmanager->SetMonitored(WorkloadManager::kMonQueue, monitor);
-  wmanager->SetMonitored(WorkloadManager::kMonMemory, monitor);
-  wmanager->SetMonitored(WorkloadManager::kMonBasketsPerVol, monitor);
-  wmanager->SetMonitored(WorkloadManager::kMonVectors, monitor);
-  wmanager->SetMonitored(WorkloadManager::kMonConcurrency, monitor);
-  wmanager->SetMonitored(WorkloadManager::kMonTracksPerEvent, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
 
   // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow

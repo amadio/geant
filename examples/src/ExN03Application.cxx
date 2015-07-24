@@ -1,12 +1,9 @@
 #include "ExN03Application.h"
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "management/GeoManager.h"
-#include "volumes/LogicalVolume.h"
-using vecgeom::GeoManager;
-typedef vecgeom::VPlacedVolume TGeoNode;
-#else
-#include "TGeoNode.h"
+ #include "management/GeoManager.h"
+ using vecgeom::GeoManager;
 #endif
+#include "TGeoNode.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
@@ -46,11 +43,11 @@ Bool_t ExN03Application::Initialize() {
     return kFALSE;
   }
 #ifndef USE_VECGEOM_NAVIGATOR
-  TGeoVolume *lvGap = gGeoManager->GetVolume("liquidArgon");
-  TGeoVolume *lvAbs = gGeoManager->GetVolume("Lead");
+  Volume_t *lvGap = gGeoManager->GetVolume("liquidArgon");
+  Volume_t *lvAbs = gGeoManager->GetVolume("Lead");
 #else
-  TGeoVolume *lvGap = GeoManager::Instance().FindLogicalVolume("liquidArgon");
-  TGeoVolume *lvAbs = GeoManager::Instance().FindLogicalVolume("Lead");
+  Volume_t *lvGap = GeoManager::Instance().FindLogicalVolume("liquidArgon");
+  Volume_t *lvAbs = GeoManager::Instance().FindLogicalVolume("Lead");
 #endif
 
   if (!lvGap || !lvAbs) {
@@ -77,7 +74,7 @@ void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, Gean
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   Int_t tid = td->fTid;
-  TGeoNode const *current;
+  Node_t const *current;
   Int_t idvol, idnode, ilev;
   for (Int_t i = 0; i < npart; i++) {
 //      printf("%d=>\n", i);

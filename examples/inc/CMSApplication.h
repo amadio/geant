@@ -24,6 +24,7 @@ class TH1D;
 class TProfile;
 
 #include "Geant/Config.h"
+#include "Geant/Typedefs.h"
 
 /** @brief CMSApplication class */
 class CMSApplication : public GeantVApplication {
