@@ -1,16 +1,13 @@
-// @(#)root/base:$Id: $
 // Author: Federico Carminati   27/05/13
 
 /*************************************************************************
  * Copyright (C) 1995-2000, fca                                          *
  * All rights reserved.                                                  *
  *                                                                       *
- * For the licensing terms see $ROOTSYS/LICENSE.                         *
- * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_TPartIndex
-#define ROOT_TPartIndex
+#ifndef TPartIndex_H
+#define TPartIndex_H
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -117,7 +114,9 @@ public:
   void SetNPartCharge(int nc) { fNpCharge = nc; }
   int NPartReac() const { return fNpReac; }
   int NPartCharge() const { return fNpCharge; }
-  //  TDatabasePDG *DBPdg() const { return fDBPdg; }
+#ifndef USE_VECGEOM_NAVIGATOR
+  TDatabasePDG *DBPdg() const { return fDBPdg; }
+#endif
 
   void SetEnergyGrid(double emin, double emax, int nbins);
   int NEbins() const { return fNEbins; }
