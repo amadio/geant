@@ -151,7 +151,7 @@ public:
 private:
   char fName[12];      // Material name
   int fMAT;            // MAT number
-  int fZA;             // Standard identifier ZA = 1000.0 × Z + A
+  int fZA;             // Standard identifier ZA = 1000.0 x Z + A
   double fAWR;         // Material mass in atomic units
   char fLRP;           // True if resonance parameters given in File 2
   bool fLFI;           // True if this material is fissile
