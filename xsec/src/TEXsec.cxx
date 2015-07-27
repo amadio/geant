@@ -23,6 +23,7 @@
 #include "base/Global.h"
 using vecgeom::kAvogadro;
 using std::numeric_limits;
+using std::max;
 
 ClassImp(TEXsec)
 
@@ -437,7 +438,7 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
           ymin = y;
       }
       // a x-sec less than 1nb makes little sense...
-      ymin = ymin < 2e-9 ? 2e-9 : ymin;
+      ymin = max<double>(ymin,2e-9);
       snprintf(title, 199, "%s %s on %s", part, reac, GetTitle());
       tg->SetName(title);
       tg->SetTitle(title);

@@ -38,6 +38,9 @@
 #endif
 #include <cassert>
 
+using std::max;
+using std::min;
+
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -245,7 +248,7 @@ double GeantTrack::Curvature() const {
   if (fCharge == 0)
     return 0.;
   const double tiny = 1.E-30;
-  return Math::Abs(kB2C * fCharge * gPropagator->fBmag / (Pt() + tiny));
+  return fabs(kB2C * fCharge * gPropagator->fBmag / (Pt() + tiny));
 }
 
 #ifdef VECGEOM_ROOT
@@ -285,7 +288,7 @@ Volume_t *GeantTrack::GetVolume() const {
 bool GeantTrack::IsNormalized(double tolerance) const {
   // Check if track direction is normalized within tolerance
   double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
-  if (Math::Abs(1. - norm) > tolerance)
+  if (fabs(1. - norm) > tolerance)
     return false;
   return true;
 }
@@ -678,7 +681,7 @@ bool GeantTrack_v::IsSame(const GeantTrack_v &tr1, int i1, const GeantTrack_v &t
 bool GeantTrack_v::IsNormalized(int itr, double tolerance) const {
   // Check if track direction is normalized within tolerance
   double norm = fXdirV[itr] * fXdirV[itr] + fYdirV[itr] * fYdirV[itr] + fZdirV[itr] * fZdirV[itr];
-  if (Math::Abs(1. - norm) > tolerance)
+  if (fabs(1. - norm) > tolerance)
     return false;
   return true;
 }
@@ -1052,7 +1055,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, int istart, int iend, bool /*imp
   int ncpy = iend - istart + 1;
   int ntracks = GetNtracks();
   if (ntracks + ncpy >= fMaxtracks) {
-    Resize(Math::Max(2 * fMaxtracks, ntracks + ncpy));
+     Resize(max<double>(2 * fMaxtracks, ntracks + ncpy));
   }
   memcpy(&fEventV[ntracks], &arr.fEventV[istart], ncpy * sizeof(int));
   memcpy(&fEvslotV[ntracks], &arr.fEvslotV[istart], ncpy * sizeof(int));
@@ -1494,7 +1497,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 // NOTE: vectorized treatment in TGeoHelix -> todo
 //    fieldp->SetXYcurvature(c);
 //    fieldp->SetCharge(fChargeV[i]);
-//    fieldp->SetHelixStep(std::fabs(Math::TwoPi()*Pz(i)/(c*Pt(i))));
+//    fieldp->SetHelixStep(std::fabs(kTwoPi*Pz(i)/(c*Pt(i))));
 //    fieldp->InitPoint(fXposV[i],fYposV[i],fZposV[i]);
 //    fieldp->InitDirection(fXdirV[i],fYdirV[i], fZdirV[i]);
 //    fieldp->UpdateHelix();
@@ -1614,10 +1617,10 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     //      assert( a->Top() == pathin[i]->Top() );
     nav.FindNextBoundaryAndStep(Vector3D_t(x[i], y[i], z[i]) /* global pos */,
                                 Vector3D_t(dirx[i], diry[i], dirz[i]) /* global dir */, *pathin[i],
-                                *pathout[i] /* the paths */, Math::Min(1.E20, pstep[i]), step[i]);
-    step[i] = Math::Max(2. * gTolerance, step[i] + 2. * gTolerance);
+                                *pathout[i] /* the paths */, min<double>(1.E20, pstep[i]), step[i]);
+    step[i] = max<double>(2. * gTolerance, step[i] + 2. * gTolerance);
     safe[i] = (isonbdr[i]) ? 0 : nav.GetSafety(Vector3D_t(x[i], y[i], z[i]), *pathin[i]);
-    safe[i] = (safe[i] < 0) ? 0. : safe[i];
+    safe[i] = max<double>(safe[i],0);
 
 #ifdef CROSSCHECK
     //************
@@ -1630,8 +1633,8 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     TGeoBranchArray *tmp = pathin[i]->ToTGeoBranchArray();
     tmp->UpdateNavigator(rootnav);
     delete tmp;
-    rootnav->FindNextBoundaryAndStep(Math::Min(1.E20, pstep[i]), !isonbdr[i]);
-    double stepcmp = Math::Max(2 * gTolerance, rootnav->GetStep());
+    rootnav->FindNextBoundaryAndStep(min<double>(1.E20, pstep[i]), !isonbdr[i]);
+    double stepcmp = max<double>(2 * gTolerance, rootnav->GetStep());
     double safecmp = rootnav->GetSafeDistance();
     // pathin[i]->GetCurrentNode()->Print();
     // Printf("## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[i], step[i], stepcmp);
@@ -1748,16 +1751,16 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     while (nextnode) {
       lastnode = nextnode;
       // Compute distance to next boundary and propagate internally
-      nextnode = nav->FindNextBoundaryAndStep(Math::Min(1.E20, pstep[itr]), !isonbdr[itr]);
+      nextnode = nav->FindNextBoundaryAndStep(min<double>(1.E20, pstep[itr]), !isonbdr[itr]);
       snext = nav->GetStep();
       // Adjust step to be non-negative and cross the boundary
-      step[itr] = Math::Max(2 * gTolerance, snext + 2 * gTolerance);
+      step[itr] = max<double>(2 * gTolerance, snext + 2 * gTolerance);
       // Check for repeated small steps starting from boundary
       if (isonbdr[itr] && (snext < 1.E-8) && (pstep[itr] > 1.E-8)) {
         ismall++;
         if ((ismall < 3) && (nextnode != lastnode)) {
           // Make sure we don't have a thin layer artefact so repeat search
-          nextnode = nav->FindNextBoundaryAndStep(Math::Min(1.E20, pstep[itr] - snext), !isonbdr[itr]);
+	   nextnode = nav->FindNextBoundaryAndStep(min<double>(1.E20, pstep[itr] - snext), !isonbdr[itr]);
           snext = nav->GetStep();
           step[itr] += snext;
           // If step still small, repeat
@@ -1812,8 +1815,8 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     typedef VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision> Vector3D_t;
     vecnav.FindNextBoundaryAndStep(Vector3D_t(x[itr], y[itr], z[itr]) /* global pos */,
                                    Vector3D_t(dirx[itr], diry[itr], dirz[itr]) /* global dir */, vecgeom_in_state,
-                                   vecgeom_out_state /* the paths */, Math::Min(1.E20, pstep[itr]), vecgeom_step);
-    vecgeom_step = Math::Max(2 * gTolerance, vecgeom_step);
+                                   vecgeom_out_state /* the paths */, min<double>(1.E20, pstep[itr]), vecgeom_step);
+    vecgeom_step = max<double>(2 * gTolerance, vecgeom_step);
     double vecgeom_safety;
     vecgeom_safety = vecnav.GetSafety(Vector3D_t(x[itr], y[itr], z[itr]), vecgeom_in_state);
     vecgeom_safety = (vecgeom_safety < 0) ? 0. : vecgeom_safety;
@@ -2080,7 +2083,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
    // rectify some parts ( as in the scalar case )
    // TODO: vectorize loop
    for (unsigned int itr = 0; itr < ntracks; ++itr) {
-     fSnextV[itr] = Math::Max(2. * gTolerance, fSnextV[itr] + 2. * gTolerance);
+      fSnextV[itr] = max<double>(2. * gTolerance, fSnextV[itr] + 2. * gTolerance);
      fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
            fStatusV[itr] = kExitingSetup;
@@ -2129,7 +2132,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
   // nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
   // fPathV[itr]->UpdateNavigator(nav);
   // nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
-  // nav->FindNextBoundaryAndStep( Math::Min(1.E20, fPstepV[itr]), !fFrombdrV[itr] );
+  // nav->FindNextBoundaryAndStep( min<double>(1.E20, fPstepV[itr]), !fFrombdrV[itr] );
 
   //
   using VECGEOM_NAMESPACE::SimpleNavigator;
@@ -2148,10 +2151,10 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
   double step = 0.0;
   nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
                               Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]), *fPathV[itr], *fNextpathV[itr],
-                              Math::Min(1.E20, fPstepV[itr]), step);
+                              min<double>(1.E20, fPstepV[itr]), step);
 
   // get back step, safety, new geometry path, and other navigation information
-  fSnextV[itr] = Math::Max(2 * gTolerance, step);
+  fSnextV[itr] = max<double>(2 * gTolerance, step);
   fSafetyV[itr] = (fFrombdrV[itr]) ? 0 : nav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), *fPathV[itr]);
   fSafetyV[itr] = (fSafetyV[itr] < 0) ? 0. : fSafetyV[itr];
   fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
@@ -2190,8 +2193,8 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *) {
   typedef VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision> Vector3D_t;
   vecnav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]) /* global pos */,
                                  Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]) /* global dir */, vecgeom_in_state,
-                                 vecgeom_out_state /* the paths */, Math::Min(1.E20, fPstepV[itr]), vecgeom_step);
-  vecgeom_step = Math::Max(2 * gTolerance, vecgeom_step);
+                                 vecgeom_out_state /* the paths */, min<double>(1.E20, fPstepV[itr]), vecgeom_step);
+  vecgeom_step = max<double>(2 * gTolerance, vecgeom_step);
   double vecgeom_safety;
   vecgeom_safety = vecnav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), vecgeom_in_state);
   vecgeom_safety = (vecgeom_safety < 0) ? 0. : vecgeom_safety;
@@ -2331,11 +2334,11 @@ int GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
   double *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < fNtracks; itr++) {
     lmax = SafeLength(itr, eps);
-    lmax = Math::Max(lmax, fSafetyV[itr]);
+    lmax = max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
     // step (frombdr=0)
-    steps[itr] = (fFrombdrV[itr]) ? Math::Min(lmax, Math::Max(fSnextV[itr], 1.E-4)) : Math::Min(lmax, fPstepV[itr]);
+    steps[itr] = (fFrombdrV[itr]) ? min<double>(lmax, max<double>(fSnextV[itr], 1.E-4)) : min<double>(lmax, fPstepV[itr]);
     //    if (fFrombdrV[itr] && steps[itr]<1.E-8) steps[itr] = 1.E-3;
     // Printf("snext=%g lmax=%g", fSnextV[itr], lmax);
     //      Printf("track %d: step=%g (safelen=%g)", itr, steps[itr], lmax);
@@ -2481,11 +2484,11 @@ int GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, int itr, Geant
     // field with respect to straight propagation is less than epsilon.
     // Take the maximum between the safety and the "bending" safety
     lmax = SafeLength(itr, eps);
-    lmax = Math::Max(lmax, fSafetyV[itr]);
+    lmax = max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
     // step (frombdr=0)
-    step = (fFrombdrV[itr]) ? Math::Min(lmax, Math::Max(fSnextV[itr], 1.E-4)) : Math::Min(lmax, fPstepV[itr]);
+    step = (fFrombdrV[itr]) ? min<double>(lmax, max<double>(fSnextV[itr], 1.E-4)) : min<double>(lmax, fPstepV[itr]);
     //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
     PropagateInVolumeSingle(itr, step, td);
     //      Printf("====== After PropagateInVolumeSingle:");
@@ -2560,7 +2563,7 @@ double GeantTrack_v::Curvature(int i) const {
 #else
   const double bmag = gPropagator->fBmag;
 #endif
-  return Math::Abs(kB2C * fChargeV[i] * bmag / (Pt(i) + tiny));
+  return fabs(kB2C * fChargeV[i] * bmag / (Pt(i) + tiny));
 }
 
 //______________________________________________________________________________
@@ -2571,7 +2574,7 @@ double GeantTrack_v::SafeLength(int i, double eps) {
   double c = Curvature(i);
   if (c < 1.E-10)
     return 1.E20;
-  return 2. * Math::Sqrt(eps / c);
+  return 2. * sqrt(eps / c);
 }
 
 //______________________________________________________________________________

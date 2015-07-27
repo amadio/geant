@@ -30,6 +30,7 @@
 
 using namespace Geant;
 using std::isnan;
+using std::max;
 
 WorkloadManager *WorkloadManager::fgInstance = 0;
 
@@ -1073,7 +1074,7 @@ void *WorkloadManager::MonitoringThread() {
       for (j = 0; j < nbuffered; j++) {
         GeantEvent *evt = propagator->fEvents[j];
         Int_t nmax = evt->GetNmax();
-        nmaxtot = nmax > nmaxtot ? nmax : nmaxtot;
+        nmaxtot = max<int>(nmax,nmaxtot);
         htracksmax->SetBinContent(j + 1, nmax);
         htracks->SetBinContent(j + 1, evt->GetNinflight());
       }

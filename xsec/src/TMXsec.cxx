@@ -15,6 +15,7 @@ using vecgeom::kAvogadro;
 
 #include <algorithm>
 using std::numeric_limits;
+using std::max;
 
 ClassImp(TMXsec)
 
@@ -261,7 +262,7 @@ bool TMXsec::Prune() {
 float TMXsec::Xlength(int part, float en, double ptot) {
   if (part < TPartIndex::I()->NPartReac()) {
     en = en <= fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-    en = en >= fEGrid[0] ? en : fEGrid[0];
+    en = max<double>(en,fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     //     double en1 = fEmin*exp(fElDelta*ibin);
@@ -293,7 +294,7 @@ bool TMXsec::Xlength_v(int npart, const int part[], const float en[], double lam
       lam[ip]=numeric_limits<float>::max();
     else {
       ene=en[ip]<=fEGrid[fNEbins-1]?en[ip]:fEGrid[fNEbins-1]*0.999;
-      ene=en[ip]>=fEGrid[0]?en[ip]:fEGrid[0];
+      ene=max<double>(en[ip],fEGrid[0]);
       int ibin = log(ene/fEGrid[0])*fEilDelta;
       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
       //     double en1 = fEmin*exp(fElDelta*ibin);
@@ -326,7 +327,7 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
     int ipart = tracks.fGVcodeV[i];                   // GV particle index/code
     double energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$
     energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
-    energy = energy >= fEGrid[0] ? energy : fEGrid[0];
+    energy = max<double>(energy,fEGrid[0]);
 
     // continous step limit if any
     tracks.fEindexV[i] = -1; // Flag continous step limit
@@ -384,7 +385,7 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
   int ipart = tracks.fGVcodeV[i];                   // GV particle index/code
   double energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$
   energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
-  energy = energy >= fEGrid[0] ? energy : fEGrid[0];
+  energy = max<double>(energy,fEGrid[0]);
 
   // continous step limit if any
   tracks.fEindexV[i] = -1; // Flag continous step limit
@@ -438,7 +439,7 @@ float TMXsec::MS(int ipart, float energy) {
     return 0.;
 
   double adj_energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
-  adj_energy = adj_energy >= fEGrid[0] ? adj_energy : fEGrid[0];
+  adj_energy = max<double>(adj_energy,fEGrid[0]);
 
   ibin = log(adj_energy / fEGrid[0]) * fEilDelta;
   ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
@@ -461,7 +462,7 @@ float TMXsec::DEdx(int part, float en) {
     return 0;
   else {
     en = en <= fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-    en = en >= fEGrid[0] ? en : fEGrid[0];
+    en = max<double>(en,fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     //     double en1 = fEmin*exp(fElDelta*ibin);
@@ -492,7 +493,7 @@ bool TMXsec::DEdx_v(int npart, const int part[], const float en[], float de[]) {
       de[ip]=0;
     else {
       ene=en[ip]<=fEGrid[fNEbins-1]?en[ip]:fEGrid[fNEbins-1]*0.999;
-      ene=en[ip]>=fEGrid[0]?en[ip]:fEGrid[0];
+      ene=max<double>(en[ip],fEGrid[0]);
       int ibin = log(ene/fEGrid[0])*fEilDelta;
       ibin = ibin<fNEbins-1?ibin:fNEbins-2;
       //     double en1 = fEmin*exp(fElDelta*ibin);
@@ -518,7 +519,7 @@ float TMXsec::Range(int part, float en) {
     return -1.0;
   else {
     en = en <= fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-    en = en >= fEGrid[0] ? en : fEGrid[0];
+    en = max<double>(en,fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
 
@@ -735,7 +736,7 @@ TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
       return 0; // on nothing
     } else {
       en = en <= fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-      en = en >= fEGrid[0] ? en : fEGrid[0];
+      en = max<double>(en,fEGrid[0]);
       int ibin = log(en / fEGrid[0]) * fEilDelta;
       ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
       //      double en1 = fEmin*exp(fElDelta*ibin);
@@ -815,7 +816,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
       } else {
         // not decay but something else; sample what else on what target
         energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
-        energy = energy >= fEGrid[0] ? energy : fEGrid[0];
+        energy = max<double>(energy,fEGrid[0]);
 
         int ibin = log(energy / fEGrid[0]) * fEilDelta;
         ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
@@ -900,7 +901,7 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
     } else {
       // not decay but something else; sample what else on what target
       energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
-      energy = energy >= fEGrid[0] ? energy : fEGrid[0];
+      energy = max<double>(energy,fEGrid[0]);
       int ibin = log(energy / fEGrid[0]) * fEilDelta;
       ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
 

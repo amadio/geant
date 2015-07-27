@@ -269,11 +269,11 @@ void VertexIn(TGeoBBox *bbox, Double_t ori[3]) {
   Double_t eta = 0;
   do {
     eta = gRandom->Rndm();
-    ori[0] = bbox->GetDX() * eta * eta * (1 ? gRandom->Rndm() > 0.5 : -1);
+    ori[0] = bbox->GetDX() * eta * eta * (gRandom->Rndm() > 0.5? 1 : -1);
     eta = gRandom->Rndm();
-    ori[1] = bbox->GetDY() * eta * eta * (1 ? gRandom->Rndm() > 0.5 : -1);
+    ori[1] = bbox->GetDY() * eta * eta * (gRandom->Rndm() > 0.5? 1 : -1);
     eta = gRandom->Rndm();
-    ori[2] = bbox->GetDZ() * eta * eta * (1 ? gRandom->Rndm() > 0.5 : -1);
+    ori[2] = bbox->GetDZ() * eta * eta * (gRandom->Rndm() > 0.5? 1 : -1);
     geom->SetCurrentPoint(ori);
   } while (geom->IsOutside());
 }

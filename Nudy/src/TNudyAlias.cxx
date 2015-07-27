@@ -4,8 +4,6 @@
 #include <TThread.h>
 #endif
 
-#define ABS(X) X >= 0 ? X : -X
-
 ClassImp(TNudyAlias)
 
     //_______________________________________________________________________________
@@ -60,7 +58,7 @@ TNudyAlias::TNudyAlias(Double_t *p, Double_t *x, const Int_t len, UInt_t seed) {
     }
     sum = 0;
     for (j = 0; j < len; j++)
-      sum += ABS(b[j]);
+      sum += fabs(b[j]);
     if (sum < 1e-9) {
       break;
     } else {

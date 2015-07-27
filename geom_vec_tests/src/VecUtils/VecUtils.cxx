@@ -25,6 +25,7 @@ union w256_t
 };
 #endif
 
+using std::min;
 
 void VecUtils::min_v( const  double * x, const  double * y, double * result, const int n )
 {
@@ -64,11 +65,7 @@ void VecUtils::min_v( const  double * x, const  double * y, double * result, con
 
 double VecUtils::min(double x, double y)
 {
-  double d;
-  d=x;
-  if (y<x) d=y;
-  return d;
-  //  return (x>y)? x : y; 
+  retour min<double>(x,y);
 }
 
 
@@ -77,7 +74,7 @@ void VecUtils::min_l( const  double * x, const  double * y, double * result, con
 {
   for(unsigned int i=0;i<n;i++)
     {
-      result[i]=(x[i] > y[i])? y[i] : x[i];
+       result[i]=min<double>(x[i],y[i]);
     }
 }
 
@@ -103,7 +100,7 @@ void VecUtils::abs_v( const double * x, double * y, int n)
 
 double VecUtils::abs1(double x)
 {
-  return (x>0)? x: -x;
+  return fabs(x);
 }
 
 

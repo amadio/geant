@@ -84,6 +84,8 @@
 #include "TMath.h"
 #include "TRandom.h"
 
+using std::min;
+
 // ClassImp(TGeoBBox_v)
 
 //_____________________________________________________________________________
@@ -226,13 +228,12 @@ void TGeoBBox_v::CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bo
   }
 }
 
-inline double mymin(double x, double y) { return (x > y) ? y : x; }
 
 void TGeoBBox_v::CouldBeCrossed_v(const StructOfCoord &point, const StructOfCoord &dir, Bool_t *__restrict__ crossed,
                                   Int_t np) const {
   // Decides fast if the bounding box could be crossed by a vector.
-  Double_t mind = mymin(fDX, fDY);
-  mind = mymin(mind, fDZ);
+  Double_t mind = min<double>(fDX, fDY);
+  mind = min<double>(mind, fDZ);
 
   Double_t rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
 
@@ -1126,7 +1127,7 @@ void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Bool_t in, Double_
   {
     double t = point[3 * i + 1] - fOrigin[1];
     double t2 = insign * (fD[1] - myabs(t));
-    safety[i] = mymin(safety[i], t2);
+    safety[i] = min<double>(safety[i], t2);
   }
 
 #pragma ivdep
@@ -1134,7 +1135,7 @@ void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Bool_t in, Double_
   {
     double t = point[3 * i + 2] - fOrigin[2];
     double t2 = insign * (fD[2] - myabs(t));
-    safety[i] = mymin(safety[i], t2);
+    safety[i] = min<double>(safety[i], t2);
   }
 }
 
@@ -1185,7 +1186,7 @@ void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Double_t *__restri
   {
     double t = point[3 * i + 1] - fOrigin[1];
     double t2 = 2. * (in[i] - 0.5) * (fD[1] - myabs(t));
-    safety[i] = mymin(safety[i], t2);
+    safety[i] = min<double>(safety[i], t2);
   }
 
 #pragma ivdep
@@ -1193,6 +1194,6 @@ void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Double_t *__restri
   {
     double t = point[3 * i + 2] - fOrigin[2];
     double t2 = 2. * (in[i] - 0.5) * (fD[2] - myabs(t));
-    safety[i] = mymin(safety[i], t2);
+    safety[i] = min<double>(safety[i], t2);
   }
 }
