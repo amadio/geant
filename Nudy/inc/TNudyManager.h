@@ -27,7 +27,7 @@ protected:
   TBtree *fResult;
 
 public:
-  ~TNudyManager(); // Public Destructor
+  ~TNudyManager();                 // Public Destructor
   static TNudyManager *Instance(); // Returns Instance of TNudyManager
   TNudyLibrary *LoadLibrary(const char *memLibName, const char *diskLibName, const char *sublib = NULL,
                             TGeoElementRN *mat = NULL, Reaction_t reac = kNoReaction, unsigned long temp = 0);
