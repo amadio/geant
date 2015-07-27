@@ -166,7 +166,7 @@ private:
   double *fEGrid;   // [fNEbins] Common energy grid
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle *fDBPdg; // Pointer to the augmented pdg database
+  Particle *fDBPdg; //! Pointer to the augmented pdg database
 #else
   TDatabasePDG *fDBPdg;   // Pointer to the augmented pdg database
 #endif

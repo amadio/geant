@@ -37,7 +37,6 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcess.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h 

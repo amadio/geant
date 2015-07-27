@@ -15,12 +15,8 @@
 #ifndef GEANT_SCHEDULER
 #define GEANT_SCHEDULER
 
-#ifndef ROOT_TObject
-#include "TObject.h"
-#endif
-
 #include <atomic>
-#include "TMutex.h"
+#include <stddef.h>
 
 class concurrent_queue;
 class GeantBasket;
@@ -35,7 +31,7 @@ class GeantBasketMgr;
  * volume, which are then injected in the main work queue.
  * 
  */
-class GeantScheduler : public TObject {
+class GeantScheduler {
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -48,7 +44,7 @@ protected:
   int           *fNstvol;  /**[fNvolumes] Number of steps per volume */
   int           *fIstvol;  /**[fNvolumes] Sorted index of number of steps per volume */
   int           *fNvect;   /**[256] Number of tracks basketized in vectors of given size */
-  std::atomic_int  fNsteps;  /** Total number of tracks steps */
+  std::atomic_long fNsteps;  /** Total number of tracks steps */
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning;        /** Flag marking the learning phase */
@@ -124,7 +120,7 @@ public:
    * 
    * @return Number of steps
    */
-  int GetNsteps() const { return fNsteps.load(); }
+   long GetNsteps() const { return fNsteps.load(); }
 
   /**
    * @brief Getter for collecting flag
@@ -190,7 +186,5 @@ public:
 
   /** @brief Function to returns size */
   size_t Sizeof() const;
-
-  ClassDef(GeantScheduler, 1) // Main basket scheduler
 };
 #endif

@@ -21,7 +21,7 @@
 #pragma link C++ class GeantTrackStat+;
 #pragma link C++ class Geant::cxx::GeantTaskData+;
 #pragma link C++ class GeantBasket+;
-#pragma link C++ class GeantScheduler+;
+//#pragma link C++ class GeantScheduler+;
 #pragma link C++ class GeantPropagator+;
 #pragma link C++ class GeantBasketMgr+;
 #pragma link C++ class GeantOutput+;

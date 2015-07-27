@@ -29,7 +29,6 @@
 #include "TGeoManager.h" // only needed by ThradId, Andrei will remove this soon
 
 using namespace Geant;
-using std::isnan;
 using std::max;
 
 WorkloadManager *WorkloadManager::fgInstance = 0;
@@ -673,9 +672,9 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       // itrack[itr] = input.fParticleV[itr];
       // crt[itr] = input.fPathV[itr];
       // nxt[itr] = input.fNextpathV[itr];
-      if (isnan(input.fXdirV[itr])) {
-        Printf("Error: track %d has NaN", itr);
-      }
+      //if (isnan(input.fXdirV[itr])) {
+      //  Printf("Error: track %d has NaN", itr);
+      //}
     }
     // Select the discrete physics process for all particles in the basket
     // if (propagator->fUsePhysics) {
@@ -708,14 +707,6 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     if (basket->GetNinput()) {
       Geant::Warning("TransportTracksCoprocessor", "Input Track_v not empty: ninput=%d noutput=%d counter=%d",
                      basket->GetNinput(), basket->GetNoutput(), counter.load());
-    }
-    {
-      auto noutput = basket->GetNoutput();
-      for (int itr = 0; itr < noutput; itr++) {
-        if (isnan(output.fXdirV[itr])) {
-          Geant::Error("TransportTracksCoprocessor", "Track %d has NaN", itr);
-        }
-      }
     }
     if (gPropagator->fStdApplication)
       gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);

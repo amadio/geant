@@ -19,11 +19,9 @@
 #include "TGeoManager.h"
 #endif
 
-ClassImp(GeantScheduler)
-
-    //______________________________________________________________________________
-    GeantScheduler::GeantScheduler()
-    : TObject(), fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0),
+//______________________________________________________________________________
+GeantScheduler::GeantScheduler()
+    : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0),
       fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning(ATOMIC_FLAG_INIT), fGBCLock(ATOMIC_FLAG_INIT) {
   // Default constructor
   fPriorityRange[0] = fPriorityRange[1] = -1;
@@ -248,7 +246,7 @@ int GeantScheduler::AddTracks(GeantBasket *output, int &ntot, int &nnew, int &nk
     int ivol = basket_mgr->GetNumber();
     tracks.fVindexV[itr] = ivol;
     fNstvol[ivol]++;
-    int nsteps = ++fNsteps;
+    long nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
     if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
       ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, true, td);
