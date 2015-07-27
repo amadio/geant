@@ -224,8 +224,8 @@ double TNudyCore::LinearInterpolation(double x1, double y1, double x2, double y2
 }
 
 //______________________________________________________________________________
-double TNudyCore::BilinearInterploation(double x1, double y1, double x2, double y2, double z11,
-                                          double z12, double z21, double z22, double x, double y) {
+double TNudyCore::BilinearInterploation(double x1, double y1, double x2, double y2, double z11, double z12, double z21,
+                                        double z22, double x, double y) {
   if ((x2 == x1) || (y2 == y1)) {
     Error("TNudyCore::BilinearInterpolation", "Points specified have same coordinate in X or Y");
     return 0;

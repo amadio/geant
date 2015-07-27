@@ -432,7 +432,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
       for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
-                                                          header->Y(), header->GetN2(), energy);
+                                                        header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
         int ichan = TNudyCore::Instance()->BinarySearch(engr, nep, energy);
@@ -454,9 +454,9 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           double pb1 = TNudyCore::Instance()->Interpolate(lfunc->NBT(), lfunc->INT(), lfunc->GetN1(), lfunc->X(),
-                                                            lfunc->Y(), lfunc->GetN2(), efen);
+                                                          lfunc->Y(), lfunc->GetN2(), efen);
           double pb2 = TNudyCore::Instance()->Interpolate(ufunc->NBT(), ufunc->INT(), ufunc->GetN1(), ufunc->X(),
-                                                            ufunc->Y(), ufunc->GetN2(), efen);
+                                                          ufunc->Y(), ufunc->GetN2(), efen);
           double prob = xrat * pb1 + xra1 * pb2;
           //    Info("File5_Pass2:Integration","e1,p1 = %e,%e , e2,p2 = %e,%e at E = %e Int = %e A=%e
           //    B=%e",eold,pold,efen,prob,energy, hint,pb1,pb2);
@@ -482,20 +482,19 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         if (energy <= u)
           continue;
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
-                                                          header->Y(), header->GetN2(), energy);
+                                                        header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
-        double teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(),
-                                                           temptab->X(), temptab->Y(), temptab->GetN2(), energy);
+        double teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(), temptab->X(),
+                                                         temptab->Y(), temptab->GetN2(), energy);
         double hint = 0;
         double pold = 0;
         double eold = 0;
         for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
-            double prob =
-                TNudyCore::Instance()->Interpolate(probtab->NBT(), probtab->INT(), probtab->GetNR(), probtab->X(),
-                                                   probtab->Y(), probtab->GetN2(), efen / teta);
+            double prob = TNudyCore::Instance()->Interpolate(probtab->NBT(), probtab->INT(), probtab->GetNR(),
+                                                             probtab->X(), probtab->Y(), probtab->GetN2(), efen / teta);
             fEPtable[jg - 1].GetArray()[2 * jef - 2] += ppe * prob;
             if (jef > 1)
               hint += 0.5 * (efen - eold) * (prob + pold);
@@ -517,11 +516,11 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
       for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
-                                                          header->Y(), header->GetN2(), energy);
+                                                        header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
-        double teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(),
-                                                           temptab->X(), temptab->Y(), temptab->GetN2(), energy);
+        double teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(), temptab->X(),
+                                                         temptab->Y(), temptab->GetN2(), energy);
         double rede = (energy - u) / teta;
         double hnorm = pow(teta, 1.5) * (sqrt(kPi) / 2 * erf(sqrt(rede)) - sqrt(rede) * exp(-rede));
         double hint = 0;
@@ -554,11 +553,11 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         if (energy <= u)
           continue;
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
-                                                          header->Y(), header->GetN2(), energy);
+                                                        header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
-        double teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(),
-                                                           temptab->X(), temptab->Y(), temptab->GetN2(), energy);
+        double teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(), temptab->X(),
+                                                         temptab->Y(), temptab->GetN2(), energy);
         double rede = (energy - u) / teta;
         double hnorm;
         if (rede > 1e-6)
@@ -596,20 +595,20 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         if (energy <= u)
           continue;
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
-                                                          header->Y(), header->GetN2(), energy);
+                                                        header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
         double a = TNudyCore::Instance()->Interpolate(atab->NBT(), atab->INT(), atab->GetN1(), atab->X(), atab->Y(),
-                                                        atab->GetN2(), energy);
+                                                      atab->GetN2(), energy);
         double b = TNudyCore::Instance()->Interpolate(btab->NBT(), btab->INT(), btab->GetN1(), btab->X(), btab->Y(),
-                                                        btab->GetN2(), energy);
+                                                      btab->GetN2(), energy);
         double ab4 = 0.25 * a * b;
         double sab4 = sqrt(ab4);
         double elim = energy - u;
         double rede = (elim) / a;
         double srede = sqrt(rede);
         double hnorm = 0.5 * a * sqrt(kPi) * sab4 * exp(ab4) * (erf(srede - sab4) + erf(srede + sab4)) -
-                         a * exp(-rede) * sinh(sqrt(b * elim));
+                       a * exp(-rede) * sinh(sqrt(b * elim));
         double hint = 0;
         double pold = 0;
         double eold = 0;
@@ -642,11 +641,11 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
           continue;
         double elim = energy - u;
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
-                                                          header->Y(), header->GetN2(), energy);
+                                                        header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
         double tm = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(), temptab->X(),
-                                                         temptab->Y(), temptab->GetN2(), energy);
+                                                       temptab->Y(), temptab->GetN2(), energy);
         double hint = 0;
         double *tmppb = new double[nEout[jg - 1]];
         for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
@@ -723,7 +722,7 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
         }
         double tempen = row->GetC2();
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetNR(), header->X(),
-                                                          header->Y(), header->GetN2(), tempen);
+                                                        header->Y(), header->GetN2(), tempen);
         if (ppe <= 0)
           continue;
         int exists = 0;
@@ -779,7 +778,7 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
       for (index = 0; index < nens; index++) {
         double energy = xengr[index];
         double tet = TNudyCore::Instance()->Interpolate(theta->NBT(), theta->INT(), theta->GetN1(), theta->X(),
-                                                          theta->Y(), theta->GetN2(), energy);
+                                                        theta->Y(), theta->GetN2(), energy);
         for (int jef = 1; jef <= dEdTheta->GetN2(); jef++) {
           double ef = tet * dEdTheta->GetX(jef - 1);
           if (!EoExists(index, ef)) {
