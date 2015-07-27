@@ -87,7 +87,8 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 
 // // SOA version of static method DistFromOutside treating 4 particles ( if HAVE AVX )
 // void TGeoBBox_v::DistFromOutside_v(const StructOfCoord & __restrict__  point,const StructOfCoord & __restrict__ dir,
-// 				     Double_t dx, Double_t dy, Double_t dz, const Double_t * __restrict__ origin, const Double_t
+// 				     Double_t dx, Double_t dy, Double_t dz, const Double_t * __restrict__ origin, const
+// Double_t
 // * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
 // {
 
