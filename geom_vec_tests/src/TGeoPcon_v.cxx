@@ -3,8 +3,10 @@
 
 #include "TGeoPcon_v.h"
 
-#include "TMath.h"
 #include "Util.h"
+
+#include "base/Global.h"
+using vecgeom::kPi;
 
 #ifdef VEC_EXTENSIONS
 #include "Vc/vector.h"
@@ -34,7 +36,7 @@ void TGeoPcon_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
   static vd fZ1_v(fZ[0]); // vector with the first z-plane position in all its components
   static vd fZN_v(fZ[fNz-1]);
   static vd a360_v(360.); 
-  static vd radToDeg_v(180./TMath::Pi());
+  static vd radToDeg_v(180./kPi);
   static vd fPhi1_v(fPhi1);
   static vd fDphi_v(fDphi);
   static vd e10_v(1E-10);

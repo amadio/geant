@@ -22,7 +22,6 @@
 #include "TROOT.h"
 #include "TTimer.h"
 #include "TVirtualPad.h"
-#include "TMath.h"
 #include "TError.h"
 #include "TGeoManager.h"
 #include "TGeoHelix.h"
@@ -54,6 +53,10 @@
 #include "GeantVolumeBasket.h"
 #include "WorkloadManager.h"
 #include "GeantThreadData.h"
+
+#include "base/Global.h"
+using vecgeom::kTwoPi;
+using std::numeric_limits;
 
 #include "CollDispTask.h"
 
@@ -294,14 +297,14 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
          track->ypos = fVertex[1];
          track->zpos = fVertex[2];
          track->e = fKineTF1->GetRandom()+track->mass;
-         Double_t p = TMath::Sqrt((track->e-track->mass)*(track->e+track->mass));
+         Double_t p = sqrt((track->e-track->mass)*(track->e+track->mass));
          Double_t eta = TBBperThread.fRndm->Uniform(etamin,etamax);  //multiplicity is flat in rapidity
-         Double_t theta = 2*TMath::ATan(TMath::Exp(-eta));
-         //Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
-         Double_t phi = TMath::TwoPi()*TBBperThread.fRndm->Rndm();
-         track->px = p*TMath::Sin(theta)*TMath::Cos(phi);
-         track->py = p*TMath::Sin(theta)*TMath::Sin(phi);
-         track->pz = p*TMath::Cos(theta);
+         Double_t theta = 2*atan(exp(-eta));
+         //Double_t theta = acos((1.-2.*gRandom->Rndm()));
+         Double_t phi = kTwoPi*TBBperThread.fRndm->Rndm();
+         track->px = p*sin(theta)*cos(phi);
+         track->py = p*sin(theta)*sin(phi);
+         track->pz = p*cos(theta);
          track->frombdr = kFALSE;
          Int_t itrack = track->particle;
 	
@@ -473,7 +476,7 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin)
 
    PerThread::reference TBBperThread = fTBBthreadData.local();
 
-   static const Double_t maxlen = TMath::Limits<double>::Max();
+   static const Double_t maxlen = numeric_limits<double>.max();
    Double_t pstep;
    Int_t ipart, iproc;
    GeantTrack *track;

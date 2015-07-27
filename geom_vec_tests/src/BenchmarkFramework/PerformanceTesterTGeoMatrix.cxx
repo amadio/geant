@@ -1,6 +1,5 @@
 #include "PerformanceTesterTGeoMatrix.hpp"
 #include "TRandom.h"
-//#include "TMath.h"
 #include <iostream>
 #include <cmath>
 #include "Util.h"

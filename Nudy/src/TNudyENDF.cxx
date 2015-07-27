@@ -18,7 +18,6 @@
 #include <TNudyEndfTab2.h>
 #include <TNudyEndfINTG.h>
 #include <TFile.h>
-#include <TMath.h>
 
 const char TNudyENDF::fkElNam[119][4]={"n","H","He","Li","Be","B","C","N","O","F","Ne",
 				       "Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti",
@@ -109,7 +108,7 @@ void TNudyENDF::Process()
       if(fLogLev>3) std::cout << "Material(MAT) : " << curMAT << std::endl;
       // Create new material section
       GetCONT(c,nl,mtf);
-      fMat=new TNudyEndfMat(curMAT,TMath::Nint(c[0]),c[1],nl[0],(nl[1]==1),nl[2],nl[3]);
+      fMat=new TNudyEndfMat(curMAT,round(c[0]),c[1],nl[0],(nl[1]==1),nl[2],nl[3]);
       Process(fMat);
       // Add material section to the tape list
       fTape->AddMat(fMat);
@@ -121,7 +120,7 @@ void TNudyENDF::Process()
       if(fLogLev>3) std::cout << "Material(MAT) :  " << curMAT << std::endl;
       // Create new material section
       GetCONT(c,nl,mtf);
-      fMat=new TNudyEndfMat(curMAT,TMath::Nint(c[0]),c[1],nl[0],(nl[1]==1),nl[2],nl[3]);
+      fMat=new TNudyEndfMat(curMAT,round(c[0]),c[1],nl[0],(nl[1]==1),nl[2],nl[3]);
       Process(fMat);
       // Add material section to the tape list
       fTape->AddMat(fMat);

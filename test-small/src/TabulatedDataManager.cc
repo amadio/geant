@@ -5,7 +5,6 @@
 #include "TFile.h"
 #include "TError.h"
 #include "TBits.h"
-#include "TMath.h"
 
 #include "TPartIndex.h"
 #include "TEXsec.h"
@@ -1362,7 +1361,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack*>* vdp,
       G4double secMass  = secPartPDG->Mass();
       G4double secPtot2 = mom[3*is]*mom[3*is]+mom[3*is+1]*mom[3*is+1]
 	                + mom[3*is+2]*mom[3*is+2]; //total P^2 [GeV^2]
-      // G4double secPtot  = TMath::Sqrt(secPtot2); //total P [GeV]
+      // G4double secPtot  = sqrt(secPtot2); //total P [GeV]
       G4double secEtot  = std::sqrt(secPtot2+ secMass*secMass); //total energy in [GeV]
       G4double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 

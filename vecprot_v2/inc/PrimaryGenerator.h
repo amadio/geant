@@ -13,10 +13,13 @@
 #ifndef GEANTV_PrimaryGenerator_h
 #define GEANTV_PrimaryGenerator_h
 
-#include "TMath.h"
+#include "base/Global.h"
 #include "TNamed.h"
 
 #include "GeantFwd.h"
+
+using vecgeom::kRadToDeg;
+using vecgeom::kDegToRad;
 
 /**
  * @brief Class of primary generators
@@ -37,8 +40,8 @@ public:
       : TNamed(), fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
         fPMin(0), fPMax(0) {}
   virtual ~PrimaryGenerator() {}
-  static Double_t EtaToTheta(Double_t eta) { return (2. * atan(exp(-eta)) * TMath::RadToDeg()); }
-  static Double_t ThetaToEta(Double_t theta) { return (-log(tan(0.5 * theta * TMath::DegToRad()))); }
+  static Double_t EtaToTheta(Double_t eta) { return (2. * atan(exp(-eta)) * kRadToDeg); }
+  static Double_t ThetaToEta(Double_t theta) { return (-log(tan(0.5 * theta * kDegToRad))); }
 
   /**
    * @brief Pure virtual function of initialization of primary generator

@@ -145,7 +145,7 @@ Bool_t TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1
    Double_t dir[3];
    mat1->LocalToMaster(o1, ldir1);
    mat2->LocalToMaster(o2, ldir2);
-   distsq = 1./TMath::Sqrt(distsq);
+   distsq = sqrt(1./distsq);
    dir[0] = (ldir2[0]-ldir1[0])*distsq;
    dir[1] = (ldir2[1]-ldir1[1])*distsq;
    dir[2] = (ldir2[2]-ldir1[2])*distsq;
@@ -167,9 +167,9 @@ void TGeoBBox_v::ComputeNormal(const Double_t *point, const Double_t *dir, Doubl
    memset(norm,0,3*sizeof(Double_t));
    Double_t saf[3];
    Int_t i;
-   saf[0]=TMath::Abs(TMath::Abs(point[0]-fOrigin[0])-fDX);
-   saf[1]=TMath::Abs(TMath::Abs(point[1]-fOrigin[1])-fDY);
-   saf[2]=TMath::Abs(TMath::Abs(point[2]-fOrigin[2])-fDZ);
+   saf[0]=fabs(fabs(point[0]-fOrigin[0])-fDX);
+   saf[1]=fabs(fabs(point[1]-fOrigin[1])-fDY);
+   saf[2]=fabs(fabs(point[2]-fOrigin[2])-fDZ);
    i = TMath::LocMin(3,saf);
    norm[i] = (dir[i]>0)?1:(-1);
 }
@@ -194,9 +194,9 @@ void TGeoBBox_v::ComputeNormal_v(const Double_t  * __restrict__ point, const Dou
     Int_t min;
     for (Int_t i=0; i<np; i++) //@EXPECTVEC
     {
-      saf[0]=TMath::Abs(TMath::Abs(point[3*i]-fOrigin[0])-fDX);
-      saf[1]=TMath::Abs(TMath::Abs(point[3*i+1]-fOrigin[1])-fDY);
-      saf[2]=TMath::Abs(TMath::Abs(point[3*i+2]-fOrigin[2])-fDZ);
+      saf[0]=fabs(fabs(point[3*i]-fOrigin[0])-fDX);
+      saf[1]=fabs(fabs(point[3*i+1]-fOrigin[1])-fDY);
+      saf[2]=fabs(fabs(point[3*i+2]-fOrigin[2])-fDZ);
       min = TMath::LocMin(3,saf);
       norm[3*i+min] = (dir[3*i+min]>0)?1:(-1);
     }
@@ -310,9 +310,9 @@ Int_t TGeoBBox_v::DistancetoPrimitive(Int_t px, Int_t py)
 Bool_t TGeoBBox_v::Contains(const Double_t *point) const
 {
 // Test if point is inside this shape.
-   if (TMath::Abs(point[2]-fOrigin[2]) > fDZ) return kFALSE;
-   if (TMath::Abs(point[1]-fOrigin[1]) > fDY) return kFALSE;
-   if (TMath::Abs(point[0]-fOrigin[0]) > fDX) return kFALSE;
+   if (fabs(point[2]-fOrigin[2]) > fDZ) return kFALSE;
+   if (fabs(point[1]-fOrigin[1]) > fDY) return kFALSE;
+   if (fabs(point[0]-fOrigin[0]) > fDX) return kFALSE;
    return kTRUE;
 }
 
@@ -346,7 +346,7 @@ void TGeoBBox_v::Contains_v(const Double_t *__restrict__ pointi, Bool_t *__restr
       xx=point[3*i  ];
       yy=point[3*i+1];
       zz=point[3*i+2];
-      isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+      isin[i]=(fabs(xx)<fDX) & (fabs(yy)<fDY) & (fabs(zz)<fDZ); 
     }
 }
 
@@ -372,7 +372,7 @@ void TGeoBBox_v::Contains_v(const StructOfCoord &__restrict__ pointi, Bool_t *__
       xx= x[i] - fOrigin[0];
       yy= y[i] - fOrigin[1];
       zz= z[i] - fOrigin[2];
-      isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+      isin[i]=(fabs(xx)<fDX) & (fabs(yy)<fDY) & (fabs(zz)<fDZ); 
     }
 }
 #endif
@@ -401,7 +401,7 @@ void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __rest
       xx=px[i]-fOrigin[0];
       yy=py[i]-fOrigin[1];
       zz=pz[i]-fOrigin[2];
-      isin[i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+      isin[i]=(fabs(xx)<fDX) & (fabs(yy)<fDY) & (fabs(zz)<fDZ); 
     }
 }
  */
@@ -410,9 +410,9 @@ void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __rest
 Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin)
 {
 // Test if point is inside this shape.
-   if (TMath::Abs(point[2]-origin[2]) > dz) return kFALSE;
-   if (TMath::Abs(point[0]-origin[0]) > dx) return kFALSE;
-   if (TMath::Abs(point[1]-origin[1]) > dy) return kFALSE;
+   if (fabs(point[2]-origin[2]) > dz) return kFALSE;
+   if (fabs(point[0]-origin[0]) > dx) return kFALSE;
+   if (fabs(point[1]-origin[1]) > dy) return kFALSE;
    return kTRUE;
 }
 
@@ -671,7 +671,7 @@ Double_t TGeoBBox_v::DistFromOutside(const Double_t *point, const Double_t *dir,
    par[1] = fDY;
    par[2] = fDZ;
    for (i=0; i<3; i++) {
-      saf[i] = TMath::Abs(newpt[i])-par[i];
+      saf[i] = fabs(newpt[i])-par[i];
       if (saf[i]>=step) return TGeoShape::Big();
       if (in && saf[i]>0) in=kFALSE;
    }   
@@ -705,12 +705,12 @@ Double_t TGeoBBox_v::DistFromOutside(const Double_t *point, const Double_t *dir,
    for (i=0; i<3; i++) {
       if (saf[i]<0) continue;
       if (newpt[i]*dir[i] >= 0) continue;
-      snxt = saf[i]/TMath::Abs(dir[i]);
+      snxt = saf[i]/fabs(dir[i]);
       ibreak = 0;
       for (j=0; j<3; j++) {
          if (j==i) continue;
          coord=newpt[j]+snxt*dir[j];
-         if (TMath::Abs(coord)>par[j]) {
+         if (fabs(coord)>par[j]) {
             ibreak=1;
             break;
          }
@@ -747,7 +747,7 @@ Double_t TGeoBBox_v::DistFromOutsideS(const Double_t *point,const Double_t *dir,
    par[1] = dy;
    par[2] = dz;
    for (i=0; i<3; i++) {
-      saf[i] = TMath::Abs(newpt[i])-par[i];
+      saf[i] = fabs(newpt[i])-par[i];
       if (saf[i]>=stepmax) return TGeoShape::Big();
       if (in && saf[i]>0) in=kFALSE;
    }   
@@ -758,12 +758,12 @@ Double_t TGeoBBox_v::DistFromOutsideS(const Double_t *point,const Double_t *dir,
    for (i=0; i<3; i++) {
       if (saf[i]<0) continue;
       if (newpt[i]*dir[i] >= 0) continue;
-      snxt = saf[i]/TMath::Abs(dir[i]);
+      snxt = saf[i]/fabs(dir[i]);
       ibreak = 0;
       for (j=0; j<3; j++) {
          if (j==i) continue;
          coord=newpt[j]+snxt*dir[j];
-         if (TMath::Abs(coord)>par[j]) {
+         if (fabs(coord)>par[j]) {
             ibreak=1;
             break;
          }
@@ -851,7 +851,7 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord & __restrict__  point,co
 
        //for (unsigned int i=0; i<3; i++) {
        //	 newpt[i] = p[i][k] - origin[i];
-       // saf[i] = TMath::Abs(newpt[i])-par[i];
+       // saf[i] = fabs(newpt[i])-par[i];
        // factor* = (saf[i]>=stepmax[k]) ? TGeoShape::Big() : 1.;
        // if (in && saf[i]>0) in=kFALSE;
        //	 in = in & (saf[i]<0);
@@ -859,17 +859,17 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord & __restrict__  point,co
        // unrolled above block manually: ( it would be nice to have a template unrool loop and a lambda function ?? )
     
        newpt[0] = p[0][k] - origin[0];
-       saf[0] = TMath::Abs(newpt[0])-par[0];
+       saf[0] = fabs(newpt[0])-par[0];
        factor = (saf[0]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
        in = (saf[0]<0);
        
        newpt[1] = p[1][k] - origin[1];
-       saf[1] = TMath::Abs(newpt[1])-par[1];
+       saf[1] = fabs(newpt[1])-par[1];
        factor *= (saf[1]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
        in = in & (saf[1]<0);
 	 
        newpt[2] = p[2][k] - origin[2];
-       saf[2] = TMath::Abs(newpt[2])-par[2];
+       saf[2] = fabs(newpt[2])-par[2];
        factor *= (saf[2]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
        in = in & (saf[2]<0);
  
@@ -885,12 +885,12 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord & __restrict__  point,co
        for (i=0; i<3; i++) {
 	 if (saf[i]<0) continue;
 	 if (newpt[i]*dir[i] >= 0) continue;
-	 snxt = saf[i]/TMath::Abs(dir[i]);
+	 snxt = saf[i]/fabs(dir[i]);
 	 ibreak = 0;
 	 for (j=0; j<3; j++) {
 	   if (j==i) continue;
 	   coord=newpt[j]+snxt*dir[j];
-	   if (TMath::Abs(coord)>par[j]) {
+	   if (fabs(coord)>par[j]) {
 	     ibreak=1;
 	     break;
 	   }
@@ -905,28 +905,28 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord & __restrict__  point,co
        Int_t hit0=0;
        if ( saf[0] > 0 & newpt[0]*d[0][k] < 0 ) // if out and right direction
 	 {
-	   snxt[0] = saf[0]/TMath::Abs(d[0][k]); // distance to y-z face
+	   snxt[0] = saf[0]/fabs(d[0][k]); // distance to y-z face
 	   double coord1=newpt[1]+snxt[0]*d[1][k]; // calculate new y and z coordinate
 	   double coord2=newpt[2]+snxt[0]*d[2][k];
-	   hit0 = (TMath::Abs(coord1)>par[1] | TMath::Abs(coord2)>par[2])? 0 : 1; // 0 means miss, 1 means hit
+	   hit0 = (fabs(coord1)>par[1] | fabs(coord2)>par[2])? 0 : 1; // 0 means miss, 1 means hit
 	 }
             
        Int_t hit1=0;
        if ( saf[1] > 0 & newpt[1]*d[1][k] < 0 )
 	 {
-	   snxt[1] = saf[1]/TMath::Abs(d[1][k]);
+	   snxt[1] = saf[1]/fabs(d[1][k]);
 	   double coord0=newpt[0]+snxt[1]*d[0][k];
 	   double coord2=newpt[2]+snxt[1]*d[2][k];
-	   hit1 = (TMath::Abs(coord0)>par[0] | TMath::Abs(coord2)>par[2])? 0 : 1;
+	   hit1 = (fabs(coord0)>par[0] | fabs(coord2)>par[2])? 0 : 1;
 	 }
      
        Int_t hit2=0;
        if ( saf[2] > 0 & newpt[2]*d[2][k] < 0 )
 	 {
-	   snxt[2] = saf[2]/TMath::Abs(d[2][k]);
+	   snxt[2] = saf[2]/fabs(d[2][k]);
 	   double coord0 = newpt[0]+snxt[2]*d[0][k];
 	   double coord1 = newpt[1]+snxt[2]*d[1][k];
-	   hit2 = (TMath::Abs(coord0)>par[0] | TMath::Abs(coord1)>par[1])? 0 : 1;
+	   hit2 = (fabs(coord0)>par[0] | fabs(coord1)>par[1])? 0 : 1;
 	 }
        distance[k]= ( hit0 | hit1 | hit2  )? factor*infactor*(hit0*snxt[0] + hit1*snxt[1] + hit2*snxt[2]) : infactor*TGeoShape::Big();
      }
@@ -1047,15 +1047,15 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const
 /*
    Double_t safe, safy, safz;
    if (in) {
-      safe = fDX - TMath::Abs(point[0]-fOrigin[0]);
-      safy = fDY - TMath::Abs(point[1]-fOrigin[1]);
-      safz = fDZ - TMath::Abs(point[2]-fOrigin[2]);
+      safe = fDX - fabs(point[0]-fOrigin[0]);
+      safy = fDY - fabs(point[1]-fOrigin[1]);
+      safz = fDZ - fabs(point[2]-fOrigin[2]);
       if (safy < safe) safe = safy;
       if (safz < safe) safe = safz;
    } else {
-      safe = -fDX + TMath::Abs(point[0]-fOrigin[0]);
-      safy = -fDY + TMath::Abs(point[1]-fOrigin[1]);
-      safz = -fDZ + TMath::Abs(point[2]-fOrigin[2]);
+      safe = -fDX + fabs(point[0]-fOrigin[0]);
+      safy = -fDY + fabs(point[1]-fOrigin[1]);
+      safz = -fDZ + fabs(point[2]-fOrigin[2]);
       if (safy > safe) safe = safy;
       if (safz > safe) safe = safz;
    }
@@ -1063,9 +1063,9 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const
 
   Double_t safe, safy, safz;
   char insign=(in)? 1:-1;
-  safe = insign*(fDX - TMath::Abs(point[0]-fOrigin[0]));
-  safy = insign*(fDY - TMath::Abs(point[1]-fOrigin[1]));
-  safz = insign*(fDZ - TMath::Abs(point[2]-fOrigin[2]));
+  safe = insign*(fDX - fabs(point[0]-fOrigin[0]));
+  safy = insign*(fDY - fabs(point[1]-fOrigin[1]));
+  safz = insign*(fDZ - fabs(point[2]-fOrigin[2]));
   if (safy < safe) safe = safy;
   if (safz < safe) safe = safz;
 
@@ -1150,9 +1150,9 @@ void TGeoBBox_v::Safety_v(const StructOfCoord & __restrict__ point, Bool_t in, D
   char insign=(in)? 1:-1;
   for ( unsigned int i=0; i < n; i++ ) // @EXPECTVEC
     {
-      safe = insign*(fDX - TMath::Abs(x[i]-fOrigin[0]));
-      safy = insign*(fDY - TMath::Abs(y[i]-fOrigin[1]));
-      safz = insign*(fDZ - TMath::Abs(z[i]-fOrigin[2]));
+      safe = insign*(fDX - fabs(x[i]-fOrigin[0]));
+      safy = insign*(fDY - fabs(y[i]-fOrigin[1]));
+      safz = insign*(fDZ - fabs(z[i]-fOrigin[2]));
       if (safy < safe) safe = safy;
       if (safz < safe) safe = safz;
       safety[i]=safe;

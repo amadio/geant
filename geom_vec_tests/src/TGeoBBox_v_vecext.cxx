@@ -108,17 +108,17 @@ vd4 DistFromOutside_VECEXT_P4( vd4 const & x , vd4 const & y, vd4 const & z, vd4
 
 //        // unrolled above block manually: ( it would be nice to have a template unrool loop and a lambda function ?? )
 //        newpt[0] = p[0][k] - origin[0];
-//        saf[0] = TMath::Abs(newpt[0])-par[0];
+//        saf[0] = fabs(newpt[0])-par[0];
 //        factor = (saf[0]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
 //        in = (saf[0]<0);
        
 //        newpt[1] = p[1][k] - origin[1];
-//        saf[1] = TMath::Abs(newpt[1])-par[1];
+//        saf[1] = fabs(newpt[1])-par[1];
 //        factor *= (saf[1]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
 //        in = in & (saf[1]<0);
 	 
 //        newpt[2] = p[2][k] - origin[2];
-//        saf[2] = TMath::Abs(newpt[2])-par[2];
+//        saf[2] = fabs(newpt[2])-par[2];
 //        factor *= (saf[2]>=stepmax[k]) ? TGeoShape::Big() : 1.; // this might be done at the end
 //        in = in & (saf[2]<0);
  
@@ -134,12 +134,12 @@ vd4 DistFromOutside_VECEXT_P4( vd4 const & x , vd4 const & y, vd4 const & z, vd4
 //        for (i=0; i<3; i++) {
 // 	 if (saf[i]<0) continue;
 // 	 if (newpt[i]*dir[i] >= 0) continue;
-// 	 snxt = saf[i]/TMath::Abs(dir[i]);
+// 	 snxt = saf[i]/fabs(dir[i]);
 // 	 ibreak = 0;
 // 	 for (j=0; j<3; j++) {
 // 	   if (j==i) continue;
 // 	   coord=newpt[j]+snxt*dir[j];
-// 	   if (TMath::Abs(coord)>par[j]) {
+// 	   if (fabs(coord)>par[j]) {
 // 	     ibreak=1;
 // 	     break;
 // 	   }
@@ -154,30 +154,30 @@ vd4 DistFromOutside_VECEXT_P4( vd4 const & x , vd4 const & y, vd4 const & z, vd4
 //        Int_t hit0=0;
 //        if ( saf[0] > 0 & newpt[0]*d[0][k] < 0 ) // if out and right direction
 // 	 {
-// 	   snxt[0] = saf[0]/TMath::Abs(d[0][k]); // distance to y-z face
+// 	   snxt[0] = saf[0]/fabs(d[0][k]); // distance to y-z face
 	   
 // 	   double coord1=newpt[1]+snxt[0]*d[1][k]; // calculate new y and z coordinate
 // 	   double coord2=newpt[2]+snxt[0]*d[2][k];
-// 	   hit0 = (TMath::Abs(coord1)>par[1] | TMath::Abs(coord2)>par[2])? 0 : 1; // 0 means miss, 1 means hit
+// 	   hit0 = (fabs(coord1)>par[1] | fabs(coord2)>par[2])? 0 : 1; // 0 means miss, 1 means hit
 // 	 }
             
 //        Int_t hit1=0;
 //        if ( saf[1] > 0 & newpt[1]*d[1][k] < 0 )
 // 	 {
-// 	   snxt[1] = saf[1]/TMath::Abs(d[1][k]);
+// 	   snxt[1] = saf[1]/fabs(d[1][k]);
 	  
 // 	   double coord0=newpt[0]+snxt[1]*d[0][k];
 // 	   double coord2=newpt[2]+snxt[1]*d[2][k];
-// 	   hit1 = (TMath::Abs(coord0)>par[0] | TMath::Abs(coord2)>par[2])? 0 : 1;
+// 	   hit1 = (fabs(coord0)>par[0] | fabs(coord2)>par[2])? 0 : 1;
 // 	 }
      
 //        Int_t hit2=0;
 //        if ( saf[2] > 0 & newpt[2]*d[2][k] < 0 )
 // 	 {
-// 	   snxt[2] = saf[2]/TMath::Abs(d[2][k]);
+// 	   snxt[2] = saf[2]/fabs(d[2][k]);
 // 	   double coord0 = newpt[0]+snxt[2]*d[0][k];
 // 	   double coord1 = newpt[1]+snxt[2]*d[1][k];
-// 	   hit2 = (TMath::Abs(coord0)>par[0] | TMath::Abs(coord1)>par[1])? 0 : 1;
+// 	   hit2 = (fabs(coord0)>par[0] | fabs(coord1)>par[1])? 0 : 1;
 // 	 }
 
 //        distance[k]= ( hit0 | hit1 | hit2  )? factor*infactor*(hit0*snxt[0] + hit1*snxt[1] + hit2*snxt[2]) : infactor*TGeoShape::Big();

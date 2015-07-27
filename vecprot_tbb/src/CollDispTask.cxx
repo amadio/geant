@@ -8,6 +8,8 @@
 
 #include "TH1.h"
 
+using std::min;
+
 #include "tbb/task_scheduler_init.h"
 
 CollDispTask::CollDispTask (Int_t inNumOfCollsToPop):
@@ -94,9 +96,9 @@ task* CollDispTask::execute ()
          // Prioritize
          if (first_not_transported > -1) {
             propagator->SetPriorityRange(first_not_transported,
-               TMath::Min(first_not_transported+propagator->fNevToPrioritize-1, propagator->fNtotal-1));
+               min<int>(first_not_transported+propagator->fNevToPrioritize-1, propagator->fNtotal-1));
             Printf ("Prioritizing events %d to %d", first_not_transported,
-               TMath::Min(first_not_transported+propagator->fNevToPrioritize-1, propagator->fNtotal-1));
+               min<int>(first_not_transported+propagator->fNevToPrioritize-1, propagator->fNtotal-1));
 
          } else Printf ("Trying to find an event to prioritize when all the events are transported?");
 

@@ -1,4 +1,3 @@
-
 #include <TFile.h>
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
@@ -11,6 +10,9 @@
 #include <TPartIndex.h>
 #include <TMXsec.h>
 #include <TPXsec.h>
+
+#include "base/Global.h"
+using vecgeom::kTwoPi;
 
 void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]);
 Double_t SampleMaxwell(Double_t emean);
@@ -116,7 +118,7 @@ Int_t main(int argc, char *argv[]) {
            Double_t pos[3] = {track->fXpos,track->fYpos,track->fZpos};
            Double_t dir[3] = {track->fXdir,track->fYdir,track->fZdir};
            TGeoNode *current = geom->InitTrack(pos,dir);
-           Double_t pintl = -TMath::Log(gRandom->Rndm());
+           Double_t pintl = -log(gRandom->Rndm());
            printf("Initial point %f %f %f in %s\n",pos[0],pos[1],pos[2],current->GetName());
            while(!geom->IsOutside()) {
               mat = current->GetVolume()->GetMaterial();
@@ -127,7 +129,7 @@ Int_t main(int argc, char *argv[]) {
               TMXsec *mx = ((TMXsec *)
                             ((TGeoRCExtension*)
                              mat->GetFWExtension())->GetUserObject());
-              Double_t xlen = mx->Xlength(track->fGVcode,ken,TMath::Sqrt(
+              Double_t xlen = mx->Xlength(track->fGVcode,ken,sqrt(
      (track->fE+track->fMass)*(track->fE-track->fMass) )  );
               Double_t pnext = pintl*xlen;
               current = geom->FindNextBoundaryAndStep(pnext);
@@ -233,25 +235,25 @@ void GenerateEvent(Double_t avemult, Double_t energy, Double_t fVertex[3]) {
     track->fZpos = fVertex[2];
     Double_t ekin = SampleMaxwell(energy / avemult);
     track->fE = ekin + track->fMass;
-    Double_t p = TMath::Sqrt(ekin * (2 * ekin + track->fMass));
+    Double_t p = sqrt(ekin * (2 * ekin + track->fMass));
     Double_t eta = gRandom->Uniform(etamin, etamax); // multiplicity is flat in rapidity
-    Double_t theta = 2 * TMath::ATan(TMath::Exp(-eta));
-    // Double_t theta = TMath::ACos((1.-2.*gRandom->Rndm()));
-    Double_t phi = TMath::TwoPi() * gRandom->Rndm();
+    Double_t theta = 2 * atan(exp(-eta));
+    // Double_t theta = acos((1.-2.*gRandom->Rndm()));
+    Double_t phi = kTwoPi * gRandom->Rndm();
     track->fP = p;
-    track->fXdir = TMath::Sin(theta) * TMath::Cos(phi);
-    track->fYdir = TMath::Sin(theta) * TMath::Sin(phi);
-    track->fZdir = TMath::Cos(theta);
+    track->fXdir = sin(theta) * cos(phi);
+    track->fYdir = sin(theta) * sin(phi);
+    track->fZdir = cos(theta);
     track->fFrombdr = kFALSE;
   }
   //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
 }
 
 Double_t SampleMaxwell(Double_t emean) {
-  Double_t th = gRandom->Uniform() * TMath::TwoPi();
-  Double_t rho = TMath::Sqrt(-TMath::Log(gRandom->Uniform()));
-  Double_t mx = rho * TMath::Sin(th);
-  return 2 * emean * (-TMath::Log(gRandom->Uniform()) + mx * mx) / 3.;
+  Double_t th = gRandom->Uniform() * kTwoPi;
+  Double_t rho = sqrt(-log(gRandom->Uniform()));
+  Double_t mx = rho * sin(th);
+  return 2 * emean * (-log(gRandom->Uniform()) + mx * mx) / 3.;
 }
 
 void IncreaseStack() {

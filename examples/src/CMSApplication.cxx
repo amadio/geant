@@ -156,7 +156,7 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
 #else
       capacity = vol->GetShape()->Capacity();
 #endif
-      if (TMath::Abs(tracks.fPDGV[itr]) == 11) {
+      if (fabs(tracks.fPDGV[itr]) == 11) {
         fFluxElec->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepElec->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       } else if (tracks.fPDGV[itr] == 22) {
@@ -165,10 +165,10 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
       } else if (tracks.fPDGV[itr] == 2212) {
         fFluxP->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepP->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
-      } else if (TMath::Abs(tracks.fPDGV[itr]) == 211) {
+      } else if (fabs(tracks.fPDGV[itr]) == 211) {
         fFluxPi->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepPi->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
-      } else if (TMath::Abs(tracks.fPDGV[itr]) == 321) {
+      } else if (fabs(tracks.fPDGV[itr]) == 321) {
         fFluxK->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepK->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       }

@@ -11,7 +11,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
-//#include "TThread.h"
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
@@ -30,6 +29,7 @@
 #include "TGeoManager.h" // only needed by ThradId, Andrei will remove this soon
 
 using namespace Geant;
+using std::isnan;
 
 WorkloadManager *WorkloadManager::fgInstance = 0;
 
@@ -672,7 +672,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       // itrack[itr] = input.fParticleV[itr];
       // crt[itr] = input.fPathV[itr];
       // nxt[itr] = input.fNextpathV[itr];
-      if (TMath::IsNaN(input.fXdirV[itr])) {
+       if (isnan(input.fXdirV[itr])) {
         Printf("Error: track %d has NaN", itr);
       }
     }
@@ -711,7 +711,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     {
       auto noutput = basket->GetNoutput();
       for (Int_t itr = 0; itr < noutput; itr++) {
-        if (TMath::IsNaN(output.fXdirV[itr])) {
+        if (isnan(output.fXdirV[itr])) {
           Geant::Error("TransportTracksCoprocessor", "Track %d has NaN", itr);
         }
       }
@@ -1073,7 +1073,7 @@ void *WorkloadManager::MonitoringThread() {
       for (j = 0; j < nbuffered; j++) {
         GeantEvent *evt = propagator->fEvents[j];
         Int_t nmax = evt->GetNmax();
-        nmaxtot = TMath::Max(nmax, nmaxtot);
+        nmaxtot = nmax>nmaxtot?nmax:nmaxtot;
         htracksmax->SetBinContent(j + 1, nmax);
         htracks->SetBinContent(j + 1, evt->GetNinflight());
       }

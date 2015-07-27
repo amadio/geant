@@ -1,6 +1,7 @@
 #include <iostream>
 #include "TGeoCone_v.h"
-#include "TMath.h"
+#include "base/Global.h"
+using vecgeom::kRadToDeg;
 #ifdef VEC_EXTENSIONS
 #include "Vc/vector.h"
 #include <Vc/double_v>
@@ -70,7 +71,7 @@ void TGeoCone_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
         Double_t rrh = 0.5*(fRmax2*(zz+fDz)+fRmax1*(fDz-zz))/fDz;
         
         
-        isin[i]=( (TMath::Abs(zz) <= fDz) & (rr2>=rrl*rrl) & (rr2<=rrh*rrh) );
+        isin[i]=( (fabs(zz) <= fDz) & (rr2>=rrl*rrl) & (rr2<=rrh*rrh) );
     }
 }
 #endif
@@ -160,7 +161,7 @@ void TGeoConeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int
         vd z(&pointi.z[i]);
         vd dphi(vfPhi2 - vfPhi1);
         vd phi = Vc::atan2(y, x) * 57.295780181884765625f; // 180/phi
-        //vd phi = Vc::atan2(y, x) * TMath::RadToDeg();
+        //vd phi = Vc::atan2(y, x) * kRadToDeg;
         
         phi(phi<0.f)+=360.f;
         //if (phi < 0 ) phi+=360.;
@@ -188,7 +189,7 @@ void TGeoConeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int
         point[2]= pointi.z[np-tailsize+i];
         
         Double_t t_dphi = fPhi2 - fPhi1;
-        Double_t t_phi = TMath::ATan2(point[1], point[0]) * TMath::RadToDeg();
+        Double_t t_phi = atan2(point[1], point[0]) * kRadToDeg;
         if (t_phi < 0 ) t_phi+=360.;
         Double_t t_ddp = t_phi-fPhi1;
         if (t_ddp < 0) t_ddp+=360.;

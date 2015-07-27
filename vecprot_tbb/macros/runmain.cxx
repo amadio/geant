@@ -9,7 +9,7 @@ void run(Int_t nthreads=15, Bool_t graphics=kTRUE, const char *geomfile="../geom
    GeantMainPropagator *mainprop = GeantMainPropagator::Instance();
 
    // For your info. Originally min_feeder was
-   // TMath::Max(50, 2*nthreads)
+   // std::max<int>(50, 2*nthreads)
 
    // n_threads, events_total, events_buffered, tracks_average, max_per_basket
    // min_feeder, n_events_to_prioritize, threshold_to_start_DispTask

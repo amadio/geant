@@ -105,7 +105,7 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
   if (ntoclean == 0)
     ntodo = fPool.size() / 2;
   else
-    ntodo = TMath::Min(fPool.size(), ntoclean);
+    ntodo = ntodo<fPool.size()?ntodo:fPool.size();
   for (size_t i = 0; i < ntodo; i++) {
     b = fPool.back();
     delete b;

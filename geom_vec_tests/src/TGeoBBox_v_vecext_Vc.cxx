@@ -174,7 +174,7 @@ void TGeoBBox_v::Contains_v(const StructOfCoord & pointi, Bool_t * isin, Int_t n
        xx= pointi.x[np-tailsize+i] - fOrigin[0];
        yy= pointi.y[np-tailsize+i] - fOrigin[1];
        zz= pointi.z[np-tailsize+i] - fOrigin[2];
-       isin[np-tailsize+i]=(TMath::Abs(xx)<fDX) & (TMath::Abs(yy)<fDY) & (TMath::Abs(zz)<fDZ); 
+       isin[np-tailsize+i]=(fabs(xx)<fDX) & (fabs(yy)<fDY) & (fabs(zz)<fDZ); 
      }
 }
 

@@ -1,7 +1,6 @@
 #include "TGeoManager.h"
 #include "TGeoBBox_v.h"
 #include "TRandom.h"
-#include "TMath.h"
 
 #include <iostream>
 #include "tbb/tick_count.h"" // timing from Intel TBB 
@@ -64,7 +63,7 @@ main(int argc, char *argv[])
 
   Double_t origin[3]={0,0,0};
   TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz,origin);
-  const Double_t r3two = TMath::Power(2,1./3.);
+  const Double_t r3two = pow(2,1./3.);
 
   npoints=1;
   for(int i = 0 ;i < 14; i++) 

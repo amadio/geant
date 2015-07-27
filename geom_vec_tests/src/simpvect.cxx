@@ -1,7 +1,6 @@
 #include "TGeoManager.h"
 #include "TGeoBBox_v.h"
 #include "TRandom.h"
-#include "TMath.h"
 #include "TStopwatch.h"
 
 int 
@@ -41,7 +40,7 @@ main(int argc, char *argv[])
   
   Double_t *points = new Double_t[3*npoints];
   
-  const Double_t r3two = TMath::Power(2,1./3.);
+  const Double_t r3two = pow(2,1./3.);
 
 
   TStopwatch tt;

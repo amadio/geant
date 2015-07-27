@@ -1,7 +1,6 @@
 #ifndef ROOT_TNudyLibrary
 #define ROOT_TNudyLibrary
 
-#include <TMath.h>
 #include <THashList.h>
 #include <THashTable.h>
 #include "TNudyCore.h"

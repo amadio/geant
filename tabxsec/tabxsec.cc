@@ -76,7 +76,6 @@
 
 //---- ROOT stuff
 #include <TH1F.h>
-#include <TMath.h>
 #include <TFile.h>
 #include <TEXsec.h>
 #include <TEFstate.h>
@@ -93,6 +92,8 @@
 #include "base/Vector.h"
 
 #include <unistd.h>
+
+using std::max;
 
 extern char *optarg;
 extern int optind;
@@ -357,9 +358,9 @@ int main(int argc,char** argv)
       const G4int maxproc = 10;  // max of 10 proc per particle
       emin = emin*GeV;
       emax = emax*GeV;
-      const G4double delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
-      const G4double lemin = TMath::Log10(emin);
-      const G4double lemax = TMath::Log10(emax);
+      const G4double delta = exp(log(emax/emin)/(nbins-1));
+      const G4double lemin = log10(emin);
+      const G4double lemax = log10(emax);
       
       printf("Log emin %f Log emax %f \n",lemin, lemax);
       
@@ -1359,9 +1360,9 @@ int main(int argc,char** argv)
                       delete dp;
                     }
                     msang[j] /= nrep;
-                    msasig[j] = sqrt(TMath::Max(msasig[j]/nrep-msang[j]*msang[j],0.f));
+                    msasig[j] = sqrt(max<double>(msasig[j]/nrep-msang[j]*msang[j],0.f));
                     mslen[j] /=nrep;
-                    mslsig[j] = sqrt(TMath::Max(mslsig[j]/nrep-mslen[j]*mslen[j],0.f));
+                    mslsig[j] = sqrt(max<double>(mslsig[j]/nrep-mslen[j]*mslen[j],0.f));
                     
                     en*=delta;
                   }

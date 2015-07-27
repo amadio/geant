@@ -2,8 +2,9 @@
 #define GEANT_TRACK
 
 #include "globals.h"
-#include "TMath.h"
 #include "TMutex.h"
+
+using std::numeric_limits;
 
 class TGeoBranchArray;
 class GeantVolumeBasket;
@@ -58,9 +59,9 @@ public:
   void Print(Int_t trackindex = 0) const;
   GeantVolumeBasket *PropagateInField(Double_t step, Bool_t checkcross, Int_t itr);
   GeantVolumeBasket *PropagateStraight(Double_t step, Int_t itrack);
-  Double_t Pt() const { return TMath::Sqrt(px * px + py * py); }
-  Double_t P() const { return TMath::Sqrt(px * px + py * py + pz * pz); }
-  Double_t Gamma() const { return mass ? e / mass : TMath::Limits<double>::Max(); }
+  Double_t Pt() const { return sqrt(px * px + py * py); }
+  Double_t P() const { return sqrt(px * px + py * py + pz * pz); }
+  Double_t Gamma() const { return mass ? e / mass : numeric_limits<double>.max(); }
   Double_t Beta() const { return P() / e; }
 
   void Reset();

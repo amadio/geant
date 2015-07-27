@@ -35,7 +35,7 @@ TNudyAlias::TNudyAlias(Double_t *p, Double_t *x, const Int_t len, UInt_t seed) {
   // Normalize
   for (i = 0; i < len; i++)
     sum += p[i];
-  if (TMath::Abs(1.0 - sum) > ERROR_MARGIN) {
+  if (fabs(1.0 - sum) > ERROR_MARGIN) {
     Error("TNudyAlias", "Data not normalized, Integral = %e \n", sum);
     for (i = 0; i < len; i++)
       p[i] /= sum;

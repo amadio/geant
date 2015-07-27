@@ -3,7 +3,8 @@
 #include "GeantPropagator.h"
 #include "WorkloadManager.h"
 
-#include "TMath.h"
+
+using std::max;
 
 ClassImp (GeantMainPropagator)
 
@@ -41,7 +42,7 @@ void GeantMainPropagator::SetParams (Int_t nthr, Int_t evtot, Int_t evbuf, Doubl
 	p->fNaverage = tracksaver;
 	p->fNperBasket = maxperbask;
 
-   p->fMinFeeder = TMath::Max(minFeeder, 2*nthr);
+   p->fMinFeeder = max<int>(minFeeder, 2*nthr);
    p->fNevToPrioritize = numPrior;
    p->fDispThr = dispThr;
 

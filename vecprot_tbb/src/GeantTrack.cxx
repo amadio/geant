@@ -12,6 +12,9 @@
 #include "GeantThreadData.h"
 #include "WorkloadManager.h"
 
+#include "base/Global.h"
+using vecgeom::kTwoPi;
+
 #include <iostream>
 
 const Double_t gTolerance = TGeoShape::Tolerance();
@@ -128,7 +131,7 @@ GeantTrack::~GeantTrack()
 Double_t GeantTrack::Curvature() const
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
-   return (charge)?TMath::Abs(kB2C*propagator->fBmag/Pt()):0.;
+   return (charge)?fabs(kB2C*propagator->fBmag/Pt()):0.;
 }
 
 //______________________________________________________________________________
@@ -164,7 +167,13 @@ void GeantTrack::Reset()
 //______________________________________________________________________________
 void GeantTrack::Direction(Double_t dir[3]) {
    dir[0] = px; dir[1] = py; dir[2] = pz;
-   TMath::Normalize(dir);
+   double mdir = px*px + py*py + pz*pz;
+   if(mdir>0) {
+      mdir = sqrt(1./mdir);
+      dir[0] */ mdir;
+      dir[1] */ mdir;
+      dir[2] */ mdir;
+   }
 }
 
 //______________________________________________________________________________
@@ -172,7 +181,7 @@ void GeantTrack::Print(Int_t) const {
    TString spath;
 //   if (path) path->GetPath(spath);
    Printf("=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%g E:%g snext=%g safety=%g nsteps=%d",
-           particle,event, process,pstep,charge,xpos,ypos,zpos,px,py,pz,TMath::Sqrt(px*px+py*py+pz*pz),e,snext,safety,nsteps);
+           particle,event, process,pstep,charge,xpos,ypos,zpos,px,py,pz,sqrt(px*px+py*py+pz*pz),e,snext,safety,nsteps);
 }
 
 //______________________________________________________________________________
@@ -264,7 +273,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
       c = Curvature();
       TBBperThread.fFieldPropagator->SetXYcurvature(c);
       TBBperThread.fFieldPropagator->SetCharge(charge);
-      TBBperThread.fFieldPropagator->SetHelixStep(TMath::Abs(TMath::TwoPi()*pz/(c*Pt())));
+      TBBperThread.fFieldPropagator->SetHelixStep(fabs(kTwoPi*pz/(c*Pt())));
       TBBperThread.fFieldPropagator->InitPoint(xpos,ypos,zpos);
       TBBperThread.fFieldPropagator->InitDirection(dir);
       TBBperThread.fFieldPropagator->UpdateHelix();

@@ -13,6 +13,9 @@
 
 #include <iostream>
 
+using std::min;
+using std::max;
+
 ClassImp(GeantVolumeBasket)
 
 const Double_t gTolerance = TGeoShape::Tolerance();
@@ -60,12 +63,12 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin)
       nav->SetCurrentPoint(&track->xpos);
       nav->SetCurrentDirection(pdir);
       isOnBoundary = track->frombdr;
-      Double_t pstep = TMath::Min(1.E20, track->pstep);
+      Double_t pstep = min<double>(1.E20, track->pstep);
       track->snext = 0;
       if (track->charge) {
          nav->FindNextBoundary(pstep,"",isOnBoundary);
          track->safety = nav->GetSafeDistance();
-         track->snext = TMath::Max(2*gTolerance,nav->GetStep());
+         track->snext = max<double>(2*gTolerance,nav->GetStep());
       } else {
          // Propagate to next volume without computing safety for neutrals
          if (gPropagator->fUseDebug && (gPropagator->fDebugTrk==trackin[itr] || gPropagator->fDebugTrk<0)) {

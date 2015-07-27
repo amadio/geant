@@ -1,5 +1,4 @@
 #include "TNudyAliasCont.h"
-#include <TMath.h>
 
 ClassImp(TNudyAliasCont)
 
@@ -55,7 +54,7 @@ void TNudyAliasCont::Initialize(Double_t *p, Double_t *x, const Int_t len, Doubl
   //  fTx = new TArrayD(len);
   //  fTp = new TArrayD(len);
   fTa = -1;
-  fInterAlpha = NULL;
+  fInterAlpha = 0;
 #ifdef TNUDYALIAS_MULTITHREAD
   fMult = NULL;
   fMultLen = 0;
@@ -202,7 +201,7 @@ Double_t TNudyAliasCont::ImprovedInterpolation(Double_t alpha) {
         h += 0.5 * (fTx->At(i) - fTx->At(i - 1)) * (fTp->At(i) + fTp->At(i - 1));
       }
     }
-    if (TMath::Abs(1.0 - h) > 1e-5) {
+    if (fabs(1.0 - h) > 1e-5) {
       for (Int_t i = 0; i < fLen; i++) {
         fTp->SetAt(fTp->At(i) / h, i);
       }
@@ -271,11 +270,11 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const Int_t len) {
       e2 = dists[i].fX->At(hi);
       ;
       delf = f2 - f1;
-      if (TMath::Abs(delf) != 0) {
+      if (fabs(delf) != 0) {
         dele = e2 - e1;
         temp = 2 * (integralp1->At(j) - integral->At(lo)) * delf / dele;
         if (integralp1->At(j) < integral->At(hi))
-          x = e1 + dele * (TMath::Sqrt(TMath::Power(f1, 2) + temp) - f1) / delf;
+          x = e1 + dele * (sqrt(pow(f1, 2) + temp) - f1) / delf;
         else
           x = e2 + 1e-5;
       } else {
@@ -285,7 +284,7 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const Int_t len) {
           x = e1 + 1e-5;
       }
       pp = TNudyCore::Instance()->LinearInterpolation(e1, f1, e2, f2, x);
-      //      if(TMath::Abs(integralp1->At(j) - integral->At(lo)) > 1e-5){
+      //      if(fabs(integralp1->At(j) - integral->At(lo)) > 1e-5){
       //** Work in progress to improve accuracy
       /*                 count++;
                   dists[i].fP->Set(dists[i].fLen+count);
@@ -347,11 +346,11 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const Int_t len) {
       e2 = dists[i + 1].fX->At(hi);
       ;
       delf = f2 - f1;
-      if (TMath::Abs(delf) != 0) {
+      if (fabs(delf) != 0) {
         dele = e2 - e1;
         temp = 2 * (integral->At(j) - integralp1->At(lo)) * delf / dele;
         if (integral->At(j) < integralp1->At(hi))
-          x = e1 + dele * (TMath::Sqrt(TMath::Power(f1, 2) + temp) - f1) / delf;
+          x = e1 + dele * (sqrt(pow(f1, 2) + temp) - f1) / delf;
         else
           x = e2 + 1e-5;
       } else {

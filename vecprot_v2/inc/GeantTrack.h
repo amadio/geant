@@ -16,7 +16,6 @@
 #include "Geant/Config.h"
 #include "Geant/Math.h"
 
-//#include "TMath.h"
 #include <climits>
 
 #include "Geant/Typedefs.h"

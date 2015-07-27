@@ -14,6 +14,9 @@
 #include "TROOT.h"
 #include <cassert>
 
+using std::min;
+using std::max;
+
 ClassImp(ExN03Application)
 
     //______________________________________________________________________________
@@ -170,10 +173,10 @@ void ExN03Application::Digitize(Int_t /* event */) {
     histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
   }
   Double_t minval =
-      TMath::Min(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
-  minval = TMath::Max(minval, 1.E-5);
+     min<double>(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
+  minval = max<double>(minval, 1.E-5);
   Double_t maxval =
-      TMath::Max(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
+     max<double>(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
   histeg->GetXaxis()->SetTitle("Layer");
   histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
   histeg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);
@@ -198,9 +201,9 @@ void ExN03Application::Digitize(Int_t /* event */) {
   }
   histlg->GetXaxis()->SetTitle("Layer");
   histlg->GetYaxis()->SetTitle("Length per layer");
-  minval = TMath::Min(histlg->GetBinContent(histlg->GetMinimumBin()), histla->GetBinContent(histla->GetMinimumBin()));
-  minval = TMath::Max(minval, 1.E-5);
-  maxval = TMath::Max(histlg->GetBinContent(histlg->GetMaximumBin()), histla->GetBinContent(histla->GetMaximumBin()));
+  minval = min<double>(histlg->GetBinContent(histlg->GetMinimumBin()), histla->GetBinContent(histla->GetMinimumBin()));
+  minval = max<double>(minval, 1.E-5);
+  maxval = max<double>(histlg->GetBinContent(histlg->GetMaximumBin()), histla->GetBinContent(histla->GetMaximumBin()));
   histlg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);
   histlg->Draw("P");
   histla->Draw("SAMEP");

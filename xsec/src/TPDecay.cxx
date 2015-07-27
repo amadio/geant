@@ -2,14 +2,13 @@
 #include "TPDecay.h"
 #include "TFinState.h"
 #include "TPartIndex.h"
-//#include <iostream>
 
 ClassImp(TPDecay)
 
-    //___________________________________________________________________
-    TPDecay::TPDecay()
-    : fNSamp(0), fNPart(0), fDecay(0), fCTauPerMass(0)
-//    ,fDecayLambdaTable(0)
+//___________________________________________________________________
+TPDecay::TPDecay()
+: fNSamp(0), fNPart(0), fDecay(0), fCTauPerMass(0)
+   //    ,fDecayLambdaTable(0)
 {}
 
 //___________________________________________________________________

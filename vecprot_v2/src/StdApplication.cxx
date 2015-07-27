@@ -1,5 +1,4 @@
 #include "StdApplication.h"
-#include "TMath.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
@@ -33,14 +32,14 @@ StdApplication::StdApplication()
 Double_t *StdApplication::MakeUniformLogArray(Int_t nbins, Double_t lmin, Double_t lmax) {
   // Create and fill a log scale bin limits array with nbins between lmin and lmax
   // To be passed to TH1D constructor. User responsability to delete.
-  const Double_t l10 = TMath::Log(10.);
+  const Double_t l10 = log(10.);
   if ((lmin<=0) || (lmax<=0)) return 0;
   Double_t *array = new Double_t[nbins+1];
-  Double_t lminlog = TMath::Log10(lmin);
-  Double_t lmaxlog = TMath::Log10(lmax);
+  Double_t lminlog = log10(lmin);
+  Double_t lmaxlog = log10(lmax);
   Double_t dstep = (lmaxlog - lminlog)/nbins;
   for (auto i=0; i<=nbins; ++i) {
-    array[i] = TMath::Exp(l10*(lminlog+i*dstep));
+    array[i] = exp(l10*(lminlog+i*dstep));
   }
   // Use array as:
   // TH1D *hist = new TH1D("name", "title", nbins, array);
@@ -71,8 +70,8 @@ void StdApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
   for (Int_t itr = 0; itr < npart; itr++) {
     if (tracks.fZdirV[itr] == 1) eta = 1.E30;
     else {
-      theta = TMath::ACos(tracks.fZdirV[itr]);
-      eta = -TMath::Log(TMath::Tan(0.5*theta));
+      theta = acos(tracks.fZdirV[itr]);
+      eta = -log(tan(0.5*theta));
     }  
     if (propagator->fNthreads > 1)
       fMHist.lock();

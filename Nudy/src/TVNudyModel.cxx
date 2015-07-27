@@ -1,7 +1,6 @@
 #include "TNudyCore.h"
 #include "TVNudyModel.h"
 // Header files required to display data
-#include "TMath.h"
 #include "TFile.h"
 #include "TRandom3.h"
 #include "Math/SpecFuncMathMore.h"
@@ -11,6 +10,13 @@
 #include <TFrame.h>
 #include <TGraph2D.h>
 #include <TStyle.h>
+
+#include "base/Global.h"
+using std::min;
+using std::max;
+using std::numeric_limits;
+using vecgeom::kPi;
+using vecgeom::kTwoPi;
 
 ClassImp(TVNudyModel)
 
@@ -329,7 +335,7 @@ void TVNudyModel::File5_Pass3() {
       hintno += 0.5 * (fEPtable[jen - 1].GetAt(2 * jp - 1) + fEPtable[jen - 1].GetAt(2 * jp + 1)) *
                 (fEPtable[jen - 1].GetAt(2 * jp) - fEPtable[jen - 1].GetAt(2 * jp - 2));
     }
-    if (TMath::Abs(hintno - 1) > 2e-2) {
+    if (fabs(hintno - 1) > 2e-2) {
       Warning("File5_Pass3", "Integral is not normalized at %e Integral = %e", xengr[jen - 1], hintno);
     }
     if (hintno <= 0) {
@@ -380,7 +386,7 @@ void TVNudyModel::File5_Pass3() {
         if (delf != 0) {
           Double_t dele = e2 - e1;
           Double_t temp = 2 * (percen - hintol) * delf / dele;
-          hintrp = e1 + dele * (TMath::Sqrt(TMath::Power(f1, 2) + temp) - f1) / delf;
+          hintrp = e1 + dele * (sqrt(pow(f1, 2) + temp) - f1) / delf;
         } else {
           hintrp = e1 + (percen - hintol) / f1;
         }
@@ -436,7 +442,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         }
         Double_t xrat = (engr[ichan + 1] - energy) / (engr[ichan + 1] - engr[ichan]);
         Double_t xra1 = 1 - xrat;
-        if (TMath::Min(xrat, xra1) < 0 || TMath::Max(xrat, xra1) > 1) {
+        if (min<double>(xrat, xra1) < 0 || max<double>(xrat, xra1) > 1) {
           Error("File5_Pass2", "Error in XRAT, XRA1 = %e, %e\nE = %e Ei = %e Eo = %e", xrat, xra1, energy, engr[ichan],
                 engr[ichan + 1]);
         }
@@ -461,7 +467,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
           eold = efen;
           pold = prob;
         }
-        if (TMath::Abs(1 - hint) > 2e-2) {
+        if (fabs(1 - hint) > 2e-2) {
           Error("File5_Pass2", "Integral error = %e at E = %e PPE = %e", hint * ppe, energy, ppe);
         } else {
           Info("File5_Pass2", "Succesful Integral %e at E = %e PPE = %e", hint, energy, ppe);
@@ -499,7 +505,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
             break;
           }
         }
-        if (TMath::Abs(1 - hint) > 2e-2) {
+        if (fabs(1 - hint) > 2e-2) {
           Error("File5_Pass2", "Integral error = %e at E = %e", hint * ppe, energy);
         } else {
           Info("File5_Pass2", "Succesful Integral %e at E = %e PPE = %e", hint, energy, ppe);
@@ -517,15 +523,15 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         Double_t teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(),
                                                            temptab->X(), temptab->Y(), temptab->GetN2(), energy);
         Double_t rede = (energy - u) / teta;
-        Double_t hnorm = TMath::Power(teta, 1.5) * (TMath::Sqrt(TMath::Pi()) / 2 * TMath::Erf(TMath::Sqrt(rede)) -
-                                                    TMath::Sqrt(rede) * TMath::Exp(-rede));
+        Double_t hnorm = pow(teta, 1.5) * (sqrt(kPi) / 2 * erf(sqrt(rede)) -
+                                                    sqrt(rede) * exp(-rede));
         Double_t hint = 0;
         Double_t pold = 0;
         Double_t eold = 0;
         for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
           Double_t efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
-            Double_t prob = TMath::Sqrt(efen) * TMath::Exp(-efen / teta) / hnorm;
+            Double_t prob = sqrt(efen) * exp(-efen / teta) / hnorm;
             fEPtable[jg - 1].GetArray()[2 * jef - 1] += ppe * prob;
             if (jef > 1)
               hint += 0.5 * (efen - eold) * (prob + pold);
@@ -535,7 +541,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
             break;
           }
         }
-        if (TMath::Abs(1 - hint) > 2e-2) {
+        if (fabs(1 - hint) > 2e-2) {
           Error("File5_Pass2", "Integral error = %e at E = %e", hint * ppe, energy);
         } else {
           Info("File5_Pass2", "Succesful Integral %e at E = %e PPE = %e", hint, energy, ppe);
@@ -557,16 +563,16 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         Double_t rede = (energy - u) / teta;
         Double_t hnorm;
         if (rede > 1e-6)
-          hnorm = TMath::Power(teta, 2) * (1 - TMath::Exp(-rede) * (1 + rede));
+          hnorm = pow(teta, 2) * (1 - exp(-rede) * (1 + rede));
         else
-          hnorm = TMath::Power(teta, 2) * 0.5 * TMath::Power(rede, 2) * (1 - rede);
+          hnorm = pow(teta, 2) * 0.5 * pow(rede, 2) * (1 - rede);
         Double_t hint = 0;
         Double_t pold = 0;
         Double_t eold = 0;
         for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
           Double_t efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
-            Double_t prob = TMath::Sqrt(efen) * TMath::Exp(-efen / teta) / hnorm;
+            Double_t prob = sqrt(efen) * exp(-efen / teta) / hnorm;
             fEPtable[jg - 1].GetArray()[2 * jef - 1] += ppe * prob;
             if (jef > 1)
               hint += 0.5 * (efen - eold) * (prob + pold);
@@ -576,7 +582,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
             break;
           }
         }
-        if (TMath::Abs(1 - hint) > 2e-2) {
+        if (fabs(1 - hint) > 2e-2) {
           Error("File5_Pass2", "Integral error = %e at E = %e", hint * ppe, energy);
         } else {
           Info("File5_Pass2", "Succesful Integral %e at E = %e PPE = %e", hint, energy, ppe);
@@ -599,20 +605,20 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         Double_t b = TNudyCore::Instance()->Interpolate(btab->NBT(), btab->INT(), btab->GetN1(), btab->X(), btab->Y(),
                                                         btab->GetN2(), energy);
         Double_t ab4 = 0.25 * a * b;
-        Double_t sab4 = TMath::Sqrt(ab4);
+        Double_t sab4 = sqrt(ab4);
         Double_t elim = energy - u;
         Double_t rede = (elim) / a;
-        Double_t srede = TMath::Sqrt(rede);
-        Double_t hnorm = 0.5 * a * TMath::Sqrt(TMath::Pi()) * sab4 * TMath::Exp(ab4) *
-                             (TMath::Erf(srede - sab4) + TMath::Erf(srede + sab4)) -
-                         a * TMath::Exp(-rede) * TMath::SinH(TMath::Sqrt(b * elim));
+        Double_t srede = sqrt(rede);
+        Double_t hnorm = 0.5 * a * sqrt(kPi) * sab4 * exp(ab4) *
+                             (erf(srede - sab4) + erf(srede + sab4)) -
+                         a * exp(-rede) * sinh(sqrt(b * elim));
         Double_t hint = 0;
         Double_t pold = 0;
         Double_t eold = 0;
         for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
           Double_t efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
-            Double_t prob = TMath::Exp(-efen / a) * TMath::SinH(TMath::Sqrt(b * efen)) / hnorm;
+            Double_t prob = exp(-efen / a) * sinh(sqrt(b * efen)) / hnorm;
             fEPtable[jg - 1].GetArray()[2 * jef - 1] += ppe * prob;
             if (jef > 1)
               hint += 0.5 * (efen - eold) * (prob + pold);
@@ -622,7 +628,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
             break;
           }
         }
-        if (TMath::Abs(1 - hint) > 2e-2) {
+        if (fabs(1 - hint) > 2e-2) {
           Error("File5_Pass2", "Integral error = %e at E = %e", hint * ppe, energy);
         } else {
           Info("File5_Pass2", "Succesful Integral %e at E = %e PPE = %e", hint, energy, ppe);
@@ -650,11 +656,11 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
           if (!(efen >= (elim))) {
             Double_t prob = 0;
             for (Int_t jhl = 0; jhl < 2; jhl++) {
-              Double_t u1 = TMath::Power(TMath::Sqrt(efen) - TMath::Sqrt(ef[jhl]), 2) / tm;
-              Double_t u2 = TMath::Power(TMath::Sqrt(efen) + TMath::Sqrt(ef[jhl]), 2) / tm;
-              prob += 0.5 * ((TMath::Power(u2, 1.5) * ROOT::Math::expint(u2) + TMath::Gamma(1.5, u2)) -
-                             (TMath::Power(u1, 1.5) * ROOT::Math::expint(u1) + TMath::Gamma(1.5, u1))) /
-                      (3 * TMath::Sqrt(ef[jhl] * tm));
+              Double_t u1 = pow(sqrt(efen) - sqrt(ef[jhl]), 2) / tm;
+              Double_t u2 = pow(sqrt(efen) + sqrt(ef[jhl]), 2) / tm;
+              prob += 0.5 * ((pow(u2, 1.5) * ROOT::Math::expint(u2) + TMath::Gamma(1.5, u2)) -
+                             (pow(u1, 1.5) * ROOT::Math::expint(u1) + TMath::Gamma(1.5, u1))) /
+                      (3 * sqrt(ef[jhl] * tm));
             }
             tmppb[jef - 1] = prob;
 
@@ -738,9 +744,9 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
           xengr[index] = tempen;
           Info("Pass1", "Adding %e energy at %d", tempen, index);
           nEout[index] = 0;
-          Double_t emin = TMath::Max(row->GetX(0) * (1 - 1e-5), 1e-5);
+          Double_t emin = max<double>(row->GetX(0) * (1 - 1e-5), 1e-5);
           Double_t emax = row->GetX(row->GetN2() - 1) * (1 + 1e-5);
-          Double_t fact = TMath::Exp(TMath::Log(emax / emin) / (maxpop - 1));
+          Double_t fact = exp(log(emax / emin) / (maxpop - 1));
           Double_t ef = emin / fact;
           for (Int_t jef = 0; jef < maxpop; jef++) {
             ef = ef * fact;
@@ -838,7 +844,7 @@ void TVNudyModel::PopulateGrid(Int_t index) {
   Double_t emax = 2e7;
   Double_t fact, ef;
   if (emax > 0) {
-    fact = TMath::Exp(TMath::Log(emax / emin) / (max - 1));
+    fact = exp(log(emax / emin) / (max - 1));
     ef = emin / fact;
   } else {
   }
@@ -869,7 +875,7 @@ void TVNudyModel::FillGrid(Double_t u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfT
     if (ppe <= 0)
       continue;
     if (et - u < 1e-5) {
-      et = TMath::Max(u * 1.001, u + 1e-4);
+      et = max<double>(u * 1.001, u + 1e-4);
     }
     nene++;
     tmpene[nene - 1] = et;
@@ -877,11 +883,11 @@ void TVNudyModel::FillGrid(Double_t u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfT
   Int_t ntota = 0;
   for (j = 1; j <= nene - 1; j++) {
     ratio = tmpene[j] / tmpene[j - 1];
-    diff = 2 * TMath::Abs(tab->GetY(j - 1) - tab->GetY(j)) / TMath::Max(1e-10, tab->GetY(j - 1) + tab->GetY(j));
+    diff = 2 * fabs(tab->GetY(j - 1) - tab->GetY(j)) / max<double>(1e-10, tab->GetY(j - 1) + tab->GetY(j));
     if (ratio > ratmax && diff > 1e-6) {
-      ratiol = TMath::Log(ratio);
-      nadd = ratiol / TMath::Log(ratmax) + 1;
-      fact = TMath::Exp(ratiol / nadd);
+      ratiol = log(ratio);
+      nadd = ratiol / log(ratmax) + 1;
+      fact = exp(ratiol / nadd);
       eadd = tmpene[j - 1];
       for (Int_t jad = 1; jad <= nadd - 1; jad++) {
         eadd = eadd * fact;
@@ -894,7 +900,7 @@ void TVNudyModel::FillGrid(Double_t u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfT
   for (j = 1; j <= nene; j++) {
     Int_t check = 0;
     for (Int_t jen = 1; jen <= nens; jen++) {
-      if (TMath::Abs(2 * (tmpene[j - 1] - xengr[jen - 1]) / (tmpene[j - 1] + xengr[jen - 1])) < 1e-7) {
+      if (fabs(2 * (tmpene[j - 1] - xengr[jen - 1]) / (tmpene[j - 1] + xengr[jen - 1])) < 1e-7) {
         index = jen - 1;
         check = 1;
         break;
@@ -908,9 +914,9 @@ void TVNudyModel::FillGrid(Double_t u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfT
       PopulateGrid(index);
     }
     Double_t emin = 1e-5;
-    Double_t emax = TMath::Max(xengr[index] - u, emin + 1e-5);
+    Double_t emax = max<double>(xengr[index] - u, emin + 1e-5);
     if (emax > 0) {
-      fact = TMath::Exp(TMath::Log(emax / emin) / (maxene - 1));
+      fact = exp(log(emax / emin) / (maxene - 1));
       ef = emin / fact;
     } else {
       fact = 1;
@@ -986,7 +992,7 @@ void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
         islin = 1;
         for (Int_t jp = start; jp <= tab->GetNBT(jr - 1) - 1; jp++) {
           n2 = n2 + 1;
-          epval[2 * n2 - 2] = TMath::Max((1 - 1e-6) * epval[2 * jp], epval[jp * 2 - 2]);
+          epval[2 * n2 - 2] = max<double>((1 - 1e-6) * epval[2 * jp], epval[jp * 2 - 2]);
           epval[2 * n2 - 1] = epval[jp * 2 - 1];
         }
       } else {

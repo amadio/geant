@@ -1,6 +1,7 @@
 #include "TNudyCore.h"
 #include "TROOT.h"
 #include <stdlib.h>
+using std::max;
 
 ClassImp(TNudyCore)
 
@@ -165,21 +166,21 @@ Double_t TNudyCore::InterpolateScale(Double_t x[2], Double_t y[2], Int_t law, Do
     yy = y[0]+(y[1]-y[0])*(xx-x[0])/(x[1]-x[0]);
   }
   else if (law == 3){
-    x[0] = TMath::Max(x[0],small);
-    x[1] = TMath::Max(x[1],small);
-    yy = y[0] + (y[1]-y[0])*TMath::Log(xx/x[0])/TMath::Log(x[1]/x[0]);
+    x[0] = max<double>(x[0],small);
+    x[1] = max<double>(x[1],small);
+    yy = y[0] + (y[1]-y[0])*log(xx/x[0])/log(x[1]/x[0]);
   }
   else if (law == 4){
-    y[0] = TMath::Max(y[0],small);
-    y[1] = TMath::Max(y[1],small);
-    yy = TMath::Exp(TMath::Log(y[0]) + TMath::Log(y[1]/y[0])*(xx-x[0])/(x[1]-x[0]));
+    y[0] = max<double>(y[0],small);
+    y[1] = max<double>(y[1],small);
+    yy = exp(log(y[0]) + log(y[1]/y[0])*(xx-x[0])/(x[1]-x[0]));
   }
   else if (law == 5){
-    x[0] = TMath::Max(x[0],small);
-    x[1] = TMath::Max(x[1],small);
-    y[0] = TMath::Max(y[0],small);
-    y[1] = TMath::Max(y[1],small);
-    yy = TMath::Exp(TMath::Log(y[0]) + TMath::Log(y[1]/y[0])*TMath::Log(xx/x[0])/TMath::Log(x[1]/x[0]));
+    x[0] = max<double>(x[0],small);
+    x[1] = max<double>(x[1],small);
+    y[0] = max<double>(y[0],small);
+    y[1] = max<double>(y[1],small);
+    yy = exp(log(y[0]) + log(y[1]/y[0])*log(xx/x[0])/log(x[1]/x[0]));
   }
   return yy;     
 }
