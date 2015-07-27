@@ -10,7 +10,7 @@ typedef Vc::double_v vd;
 
 #ifndef VEC_EXTENSIONS
 //_____________________________________________________________________________
-void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
+void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     isin[i] = TGeoCone::Contains(point);
@@ -19,7 +19,7 @@ void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
 #else
 // PUT VC CODE OR THE LIKE HERE
 //_____________________________________________________________________________
-void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
+void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
   static vd vfDz(fDz);
   static vd vfRmin1(fRmin1);
   static vd vfRmin2(fRmin2);
@@ -72,7 +72,7 @@ void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
 
 //_____________________________________________________________________________
 
-void TGeoCone_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, Int_t np) const {
+void TGeoCone_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoCone::Safety(point, in);
@@ -80,8 +80,8 @@ void TGeoCone_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety
 }
 
 //_____________________________________________________________________________
-void TGeoCone_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                  const double *step, double * /*safe*/, double *distance, Int_t np) const {
+void TGeoCone_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, int /*iact*/,
+                                  const double *step, double * /*safe*/, double *distance, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
@@ -92,8 +92,8 @@ void TGeoCone_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoo
 
 //_____________________________________________________________________________
 
-void TGeoCone_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                   const double *step, double * /*safe*/, double *distance, Int_t np) const {
+void TGeoCone_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, int /*iact*/,
+                                   const double *step, double * /*safe*/, double *distance, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
@@ -104,7 +104,7 @@ void TGeoCone_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCo
 
 #ifndef VEC_EXTENSIONS
 //_____________________________________________________________________________
-void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
+void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
   std::cout << "ma almeno qui? " << std::endl;
 
   for (unsigned int i = 0; i < np; i++) {
@@ -131,7 +131,7 @@ void TGeoConeSeg_v::Contains_v4(Vc::double_v const &x, Vc::double_v const &y, Vc
 }
 
 //_____________________________________________________________________________
-void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
+void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
   static vd vfPhi1(fPhi1);
   static vd vfPhi2(fPhi2);
   int vectorsize = Vc::double_v::Size;
@@ -184,15 +184,15 @@ void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t 
 
 //_____________________________________________________________________________
 
-void TGeoConeSeg_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, Int_t np) const {
+void TGeoConeSeg_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoConeSeg::Safety(point, in);
   }
 }
 //_____________________________________________________________________________
-void TGeoConeSeg_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                     const double *step, double * /*safe*/, double *distance, Int_t np) const {
+void TGeoConeSeg_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, int /*iact*/,
+                                     const double *step, double * /*safe*/, double *distance, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
@@ -203,8 +203,8 @@ void TGeoConeSeg_v::DistFromInside_v(const StructOfCoord &pointi, const StructOf
 
 //_____________________________________________________________________________
 
-void TGeoConeSeg_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                      const double *step, double * /*safe*/, double *distance, Int_t np) const {
+void TGeoConeSeg_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, int /*iact*/,
+                                      const double *step, double * /*safe*/, double *distance, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};

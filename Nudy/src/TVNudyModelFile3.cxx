@@ -7,13 +7,13 @@ ClassImp(TVNudyModel)
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-    if (sec->GetMT() == (Int_t)fReaction) {
+    if (sec->GetMT() == (int)fReaction) {
       // Read the data required for GetXSect(E)
       TNudyEndfTab1 *record = (TNudyEndfTab1 *)(sec->GetRecords()->At(0));
       fEXSect_length = record->GetNP();
       fE_file3 = new double[fEXSect_length]();
       fXSect_file3 = new double[fEXSect_length]();
-      for (Int_t i = 0; i < fEXSect_length; i++) {
+      for (int i = 0; i < fEXSect_length; i++) {
         fE_file3[i] = record->GetX(i);
         fXSect_file3[i] = record->GetY(i);
       }

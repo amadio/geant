@@ -20,7 +20,7 @@ class GeantBasket;
 //______________________________________________________________________________
 class GeantMainScheduler : public TObject {
 protected:
-   Int_t                fNvolumes;            // Number of active volumes in the geometry
+   int                fNvolumes;            // Number of active volumes in the geometry
    GeantBasket        **fBaskets;             // Array of baskets to be filled
    GeantBasket        **fPriorityBaskets;     // Array of priority baskets
 
@@ -28,16 +28,16 @@ protected:
 
 public:
    GeantMainScheduler();
-   GeantMainScheduler(Int_t nvolumes);
+   GeantMainScheduler(int nvolumes);
    virtual ~GeantMainScheduler();
 
    static GeantMainScheduler* fgInstance;
-   static GeantMainScheduler* Instance(Int_t nvolumes=0);
+   static GeantMainScheduler* Instance(int nvolumes=0);
 
-   Int_t                AddTrack(Int_t itrack, Int_t ibasket, Bool_t* pushedPriority);
+   int                AddTrack(int itrack, int ibasket, Bool_t* pushedPriority);
 
-   Int_t                FlushNormalBaskets();
-   Int_t                FlushPriorityBaskets();
+   int                FlushNormalBaskets();
+   int                FlushPriorityBaskets();
 
    ClassDef(GeantMainScheduler, 1)      // Main basket scheduler
 };

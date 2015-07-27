@@ -27,7 +27,7 @@ struct Foo {
 
 //_____________________________________________________________________________
 #ifdef VEC_EXTENSIONS
-void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
+void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
   // declare variables
   static vd fZ1_v(fZ[0]); // vector with the first z-plane position in all its components
   static vd fZN_v(fZ[fNz - 1]);
@@ -69,9 +69,9 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
     vd fRmaxh_v(Vc::Zero); // outer radius of the HBP
 
     for (unsigned int j = 0; j < Vc::double_v::Size; ++j) {
-      Int_t izl = 0;       // lower boundary plane (LBP)
-      Int_t izh = fNz - 1; // higher boundary plane (HBP)
-      Int_t izt = (fNz - 1) / 2;
+      int izl = 0;       // lower boundary plane (LBP)
+      int izh = fNz - 1; // higher boundary plane (HBP)
+      int izt = (fNz - 1) / 2;
 
       while ((izh - izl) > 1) {
         if (z_v[j] > fZ[izt])
@@ -148,7 +148,7 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
   }
 }
 #else
-void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
+void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     isin[i] = TGeoPcon::Contains(point);
@@ -158,15 +158,15 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
 
 //_____________________________________________________________________________
 
-void TGeoPcon_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, Int_t np) const {
+void TGeoPcon_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoPcon::Safety(point, in);
   }
 }
 //_____________________________________________________________________________
-void TGeoPcon_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                  const double *step, double * /*safe*/, double *distance, Int_t np) const {
+void TGeoPcon_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, int /*iact*/,
+                                  const double *step, double * /*safe*/, double *distance, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
@@ -177,8 +177,8 @@ void TGeoPcon_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoo
 
 //_____________________________________________________________________________
 
-void TGeoPcon_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                   const double *step, double * /*safe*/, double *distance, Int_t np) const {
+void TGeoPcon_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, int /*iact*/,
+                                   const double *step, double * /*safe*/, double *distance, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};

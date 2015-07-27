@@ -302,11 +302,11 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::double sinTheta,
                                   typename Backend::double &yr,
                                   typename Backend::double &zr)
 {
-  typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::int    int;
   typedef typename Backend::double double;
   typedef typename Backend::Bool_t   Bool_t;
 
-  double phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  double phi = UniformRandom<Backend>(fRandomState,int(fThreadId));
   double pt = xhat*xhat + yhat*yhat;
 
   double cosphi, sinphi;

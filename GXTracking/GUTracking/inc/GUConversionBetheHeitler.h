@@ -75,7 +75,7 @@ public:
   // ----------------------------------------------------------------
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void SampleByCompositionRejection(typename Backend::Int_t     elementZ,
+  void SampleByCompositionRejection(typename Backend::int     elementZ,
                                     typename Backend::double  energyIn,
                                     typename Backend::double& energyElectron,
                                     typename Backend::double& energyPositron,
@@ -320,7 +320,7 @@ SampleSinTheta(typename Backend::double energyElectron,
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUConversionBetheHeitler::
-SampleByCompositionRejection(typename Backend::Int_t     elementZ,
+SampleByCompositionRejection(typename Backend::int     elementZ,
                              typename Backend::double  energyIn,
                              typename Backend::double& energyElectron,
                              typename Backend::double& energyPositron,

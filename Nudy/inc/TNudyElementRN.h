@@ -27,7 +27,7 @@ class TNudyElementRN: public TObject{
   Color_t GetColor(double halfLife);
  public:
   static double fCCodeRange[26];
-  static Int_t fCCodeColor[26][3];
+  static int fCCodeColor[26][3];
 
   Float_t fSize;
   Float_t fScale;
@@ -40,8 +40,8 @@ class TNudyElementRN: public TObject{
   void Draw(Option_t* option="");
   void Move(Float_t x, Float_t y);
   void SetColorCode(TList* cCodeRange, TList* cCodeColor);
-  Int_t GetA() {return fEle->AtomicNo();}
-  Int_t GetZ() {return fEle->MassNo();}
+  int GetA() {return fEle->AtomicNo();}
+  int GetZ() {return fEle->MassNo();}
   
   ClassDef(TNudyElementRN,1) //Radio Nucleide Element
 };

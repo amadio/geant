@@ -35,7 +35,7 @@ class VTfileio {
    inline int ProcessIndex(const char* procname) {
       TObject *obj=fProcessDictionary->FindObject(procname);
       if(obj) return obj->GetUniqueID();
-      Int_t nproc = fProcessDictionary->GetEntries();
+      int nproc = fProcessDictionary->GetEntries();
       TNamed *nam = new TNamed(procname,procname);
       nam->SetUniqueID(nproc);
       fProcessDictionary->Add(nam);
@@ -50,7 +50,7 @@ class VTfileio {
    void WriteDictionaries();
    void Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
 	     UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, UChar_t surfid, 
-	     UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid, double cputime,
+	     UChar_t process, UChar_t begend, unsigned int trid, unsigned int trpid, double cputime,
 	     double cpustep);
    Bool_t IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
       else return kFALSE;}
@@ -80,14 +80,14 @@ class VTfileio {
    UChar_t fSurfid;      // surface id
    UChar_t fProcess;     // Process
    UChar_t fBegEnd;      // Beginning or end of track
-   UInt_t  fTrid;        // Track ID
-   UInt_t  fTrPid;       // Track Parend ID
+   unsigned int  fTrid;        // Track ID
+   unsigned int  fTrPid;       // Track Parend ID
    double fCPUtime;    // CPU time used since start of track
    double fCPUstep;    // CPU time used for current step
  
    //
    Bool_t  fNewEvent;    // if new event
-   Int_t   fNprimaries;  // Number of primaries
+   int   fNprimaries;  // Number of primaries
    THashList *fVolumeDictionary;  // dictionary of volumes
    THashList *fShapeDictionary;   // dictionary of shapes
    THashList *fProcessDictionary; // dictionary of processes

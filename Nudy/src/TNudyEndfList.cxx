@@ -30,7 +30,7 @@ TNudyEndfList::TNudyEndfList() :
 
 //_______________________________________________________________________________
 TNudyEndfList::TNudyEndfList(double c1, double c2,
-			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
+			     int l1, int l2, int n1, int n2) :
   TNudyEndfCont(c1, c2, l1, l2, n1, n2),
   fList(new double[n1])
 {
@@ -46,13 +46,13 @@ TNudyEndfList::~TNudyEndfList()
 }
 //_______________________________________________________________________________
 void TNudyEndfList::SetCont(double c1, double c2,
-			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
+			    int l1, int l2, int n1, int n2)
 {
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
   delete [] fList;
   fList = new double[n1];
 }
-void TNudyEndfList::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flags = 1)
+void TNudyEndfList::DumpENDF(int mat, int mf, int mt, int& ns,int flags = 1)
 {
   Char_t s1[14],s2[14];
   F2F(fC1,s1); F2F(fC2,s2);
@@ -67,7 +67,7 @@ void TNudyEndfList::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flag
   else
     printf("\n");
 
-  for(Int_t i=0; i<GetNPL(); ++i) {
+  for(int i=0; i<GetNPL(); ++i) {
     
     F2F(fList[i],s1);
     printf("%11s",s1);
@@ -85,7 +85,7 @@ void TNudyEndfList::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flag
     }
   }
   if(6-(GetNPL()%6)<6){
-    for(Int_t i = 0; i < 6-(GetNPL()%6);i++){
+    for(int i = 0; i < 6-(GetNPL()%6);i++){
       //      F2F(0.0,s1);
       //printf("%11s",s1);
       printf("%11s"," ");

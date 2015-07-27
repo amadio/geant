@@ -27,9 +27,9 @@ class TVNudyModel : public TNamed {
   void DumpData(FileData_t file);
   TGeoElementRN* GetMaterial();
   const char * GetMaterialName();
-  Int_t GetZ();
-  Int_t GetA();
-  Int_t GetISO();
+  int GetZ();
+  int GetA();
+  int GetISO();
   Reaction_t GetReaction();
   ULong_t GetTemp();
   virtual double GetXSect(double e);
@@ -39,24 +39,24 @@ class TVNudyModel : public TNamed {
   TArrayD* GetFile5ProcessedData(double ein);
 
  private:
-  Int_t fMAT; //Material number
+  int fMAT; //Material number
   ULong_t fTemp; //Temperature for evaluation of data
-  Int_t fEndf; // Endf code of the material
-  Int_t fPdg;  // Pdgcode of the projectile
+  int fEndf; // Endf code of the material
+  int fPdg;  // Pdgcode of the projectile
   TGeoElementRN *fMaterial; //! Material
   Reaction_t fReaction; // Reaction
   TParticlePDG* fProjectile; //! Projectile for reaction
   
 
   //Data from RENDF file
-  Int_t fEXSect_length;//Length of two arrays of energy and cross-section from file 3
+  int fEXSect_length;//Length of two arrays of energy and cross-section from file 3
   //Array to store data about energy
   double *fE_file3;//[fEXSect_length]
   //Array to store data about XSects f:(fE_file3)->(fXSect_file3)
   double *fXSect_file3;//[fEXSect_length]
   
   //File 4
-  Int_t f4nens; 
+  int f4nens; 
   TArrayD f4eins;
   TNudyAliasCont *fAPAlias; //[f4nens]
   double f4Tein; //!
@@ -65,9 +65,9 @@ class TVNudyModel : public TNamed {
   //File 5  
   TRandom3 fRnd; //!
   TArrayD xengr; //
-  Int_t nens; //
-  Int_t nperc; //
-  Int_t maxpop; //!
+  int nens; //
+  int nperc; //
+  int maxpop; //!
   TArrayI nEout; //
   //  double EPtable[4000][400]; //!
   TArrayD *fEPtable; //[nens]
@@ -87,13 +87,13 @@ class TVNudyModel : public TNamed {
 
 
   //Function to check consistency
-  Int_t CheckLinear(TNudyEndfTab1 *tab);
-  Int_t CheckLinear(TNudyEndfTab2 *tab);
+  int CheckLinear(TNudyEndfTab1 *tab);
+  int CheckLinear(TNudyEndfTab2 *tab);
   void Linearize(TNudyEndfTab1 *tab);
   //void Compare(TNudyEndfTab1* oldtab, TNudyEndfTab1 *newtab);
-  void PopulateGrid(Int_t index);
-  void FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab1 *pe);
-  Int_t EoExists(Int_t index, double ef);
+  void PopulateGrid(int index);
+  void FillGrid(double u, int nep, TNudyEndfTab1 *tab, TNudyEndfTab1 *pe);
+  int EoExists(int index, double ef);
   
   
   ClassDef(TVNudyModel,1)

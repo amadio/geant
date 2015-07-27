@@ -71,11 +71,11 @@ public:
     *
     * @param size  Size for the array of blocks
     */
-  void Initialize(Int_t size) {
+  void Initialize(int size) {
     assert(size > 0);
     fSize = size;
     fBlock.reserve(size);
-    for (Int_t i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
       fBlock.push_back(T());
   }
 
@@ -89,7 +89,7 @@ public:
    * @param p Pointer to object to be copied
    * @param index Index in the block vector where to copy to
    */
-  void Add(T *p, Int_t index = -1) {
+  void Add(T *p, int index = -1) {
     if (index < 0)
       index = fNext++;
     T &current = fBlock[index];
@@ -101,7 +101,7 @@ public:
    *
    * @param index Index to read from
    */
-  const T *At(Int_t index) const { return &fBlock[index]; }
+  const T *At(int index) const { return &fBlock[index]; }
 
   /** @brief Clear function
   * @details Clear all data and free the block. Note that the objects are not
@@ -112,7 +112,7 @@ public:
   */
   void Clear() {
     static T dummy;
-    for (Int_t i = 0; i < fSize; i++)
+    for (int i = 0; i < fSize; i++)
       fBlock[i] = dummy;
     fNext = 0;
   }
@@ -161,9 +161,9 @@ public:
    * @param nthreads Number of threads
    * @param blocksize Block size
    */
-  GeantBlockArray(Int_t nthreads, Int_t blocksize) : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0) {
+  GeantBlockArray(int nthreads, int blocksize) : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0) {
     fBlocks = new GeantBlock<T> *[nthreads];
-    for (Int_t i = 0; i < nthreads; i++) {
+    for (int i = 0; i < nthreads; i++) {
       fBlocks[i] = new GeantBlock<T>();
       fBlocks[i]->Initialize(blocksize);
     }
@@ -171,7 +171,7 @@ public:
 
   /** @brief GeantBlockArray destructor */
   ~GeantBlockArray() {
-    for (Int_t i = 0; i < fNthreads; i++)
+    for (int i = 0; i < fNthreads; i++)
       delete fBlocks[i];
     delete[] fBlocks;
   }
@@ -183,7 +183,7 @@ public:
    * @param i Index to be accessed
    * @return Pointer to block
    */
-  GeantBlock<T> *operator[](Int_t i) { return fBlocks[i]; }
+  GeantBlock<T> *operator[](int i) { return fBlocks[i]; }
 
   /**
    * @brief Read block at a given index
@@ -192,7 +192,7 @@ public:
    * @param i Index to be accessed
    * @return Pointer to block
    */
-  GeantBlock<T> *At(Int_t i) { return fBlocks[i]; }
+  GeantBlock<T> *At(int i) { return fBlocks[i]; }
 
   /**
    * @brief Add a block at a given index
@@ -201,7 +201,7 @@ public:
    * @param tid Thread id
    * @param block GeantBlock pointer
    */
-  void AddAt(Int_t tid, GeantBlock<T> *block) { fBlocks[tid] = block; }
+  void AddAt(int tid, GeantBlock<T> *block) { fBlocks[tid] = block; }
 };
 
 /**
@@ -222,7 +222,7 @@ private:
    * @param blocksize Block size
    * @param callback Callback (by default = 0)
    */
-  GeantFactory(Int_t nslots, Int_t blocksize, ProcessHitFunc_t callback = 0)
+  GeantFactory(int nslots, int blocksize, ProcessHitFunc_t callback = 0)
       : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs() {
     // Reserve the space for the block arrays on event slots
     fBlockA = new GeantBlockArray<T> *[fNslots];
@@ -230,7 +230,7 @@ private:
     fNthreads = WorkloadManager::Instance()->GetNthreads();
     // Add 2*nclients free blocks (2?)
     AddFreeBlocks(2 * fNthreads);
-    for (Int_t iev = 0; iev < fNslots; iev++) {
+    for (int iev = 0; iev < fNslots; iev++) {
       // One block array per slot
       fBlockA[iev] = new GeantBlockArray<T>(fNthreads, blocksize);
     }
@@ -253,7 +253,7 @@ public:
 
   /** @brief GeantFactory destructor */
   ~GeantFactory() {
-    for (Int_t iev = 0; iev < fNslots; ++iev)
+    for (int iev = 0; iev < fNslots; ++iev)
       delete[] fBlockA[iev];
     delete[] fBlockA;
     while (!fPool.empty()) {
@@ -271,8 +271,8 @@ public:
    *
    * @param nblocks Number of blocks to be added
    */
-  void AddFreeBlocks(Int_t nblocks) {
-    for (Int_t i = 0; i < nblocks; i++) {
+  void AddFreeBlocks(int nblocks) {
+    for (int i = 0; i < nblocks; i++) {
       GeantBlock<T> *block = new GeantBlock<T>();
       block->Initialize(fBlockSize);
       fPool.push(block);
@@ -285,8 +285,8 @@ public:
    * @param slot Event slot id
    * @param tid Thread id
    */
-  T *NextFree(Int_t slot) {
-    Int_t tid = WorkloadManager::Instance()->ThreadId(); // maybe put in calling sequence
+  T *NextFree(int slot) {
+    int tid = WorkloadManager::Instance()->ThreadId(); // maybe put in calling sequence
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used and filled (by the same thread)

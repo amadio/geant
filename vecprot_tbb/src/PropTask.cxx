@@ -35,10 +35,10 @@ task* PropTask::execute ()
    if (!fPriority) propagator->pnTasksTotal++;
    else propagator->ppTasksTotal++;
 
-   Int_t npnTasks;
-   Int_t nppTasks;
-   /*Int_t iter3;
-   Int_t iter4;*/
+   int npnTasks;
+   int nppTasks;
+   /*int iter3;
+   int iter4;*/
    if (propagator->fUseGraphics) {
 	   if (!fPriority) {
          npnTasks = propagator->pnTasksRunning.fetch_and_increment();
@@ -52,10 +52,10 @@ task* PropTask::execute ()
    }
 
    WorkloadManager *wm = WorkloadManager::Instance();
-   Int_t *particles = TBBperThread.fPartInd->GetArray();
-   Int_t *partnext  = TBBperThread.fPartNext->GetArray();
-   Int_t *parttodo  = TBBperThread.fPartTodo->GetArray();
-   Int_t *partcross = TBBperThread.fPartCross->GetArray();
+   int *particles = TBBperThread.fPartInd->GetArray();
+   int *partnext  = TBBperThread.fPartNext->GetArray();
+   int *parttodo  = TBBperThread.fPartTodo->GetArray();
+   int *partcross = TBBperThread.fPartCross->GetArray();
 
    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
    if (!nav) {
@@ -71,7 +71,7 @@ task* PropTask::execute ()
 
    if (!basket) Fatal("PropTask", "No basket poped");
 
-   Int_t ntotransport = basket->GetNtracks();
+   int ntotransport = basket->GetNtracks();
    if (!ntotransport) Fatal("PropTask", "Empty basket poped");
 
    if (propagator->fUseGraphics) {
@@ -86,15 +86,15 @@ task* PropTask::execute ()
    TBBperThread.fVolume = path->GetCurrentNode()->GetVolume();
    GeantVolumeBasket* basket_sch = (GeantVolumeBasket*)TBBperThread.fVolume->GetField();
 
-   memcpy(particles, basket->GetTracks(), ntotransport*sizeof(Int_t));
+   memcpy(particles, basket->GetTracks(), ntotransport*sizeof(int));
 
    GeantTrack *track = 0;
-   Int_t ntotnext = 0;
-   Int_t ntmp = 0;
-   Int_t ntodo = 0;
-   Int_t ncross = 0;
-   Int_t cputime = 0;
-   Int_t generation = 0;
+   int ntotnext = 0;
+   int ntmp = 0;
+   int ntodo = 0;
+   int ncross = 0;
+   int cputime = 0;
+   int generation = 0;
 
    while (ntotransport)
    {
@@ -104,7 +104,7 @@ task* PropTask::execute ()
       ntmp = ntotransport;
       ntodo = ntotransport;
       ntotnext = 0;
-      Int_t *ptrParticles = particles;
+      int *ptrParticles = particles;
 
       while (ntodo) {
          ntodo = 0;
@@ -114,9 +114,9 @@ task* PropTask::execute ()
 
          // Post-step actions by continuous processes for particles reaching boundaries
          if (propagator->fUsePhysics && ncross) {
-            for (Int_t iproc=0; iproc < propagator->fNprocesses; iproc++) {
+            for (int iproc=0; iproc < propagator->fNprocesses; iproc++) {
                if (propagator->Process(iproc)->IsType(PhysicsProcess::kDiscrete)) continue;
-               Int_t nafter = 0;
+               int nafter = 0;
                propagator->Process(iproc)->PostStep(TBBperThread.fVolume, ncross, partcross, nafter, NULL);
                basket_sch->ResetStep(ncross, partcross);
             }
@@ -127,7 +127,7 @@ task* PropTask::execute ()
 
       // Copy only tracks that survived boundaries (well we will have to think of
       // those too, like passing them to the next volume...)
-      memcpy(particles, partnext, ntotnext*sizeof(Int_t));
+      memcpy(particles, partnext, ntotnext*sizeof(int));
       ntotransport = ntotnext;
 
       // Do post-step actions on remaining particles
@@ -135,24 +135,24 @@ task* PropTask::execute ()
       // Loop all processes to group particles per process
       if (propagator->fUsePhysics && ntotransport) {
          // Apply continuous processes to all particles
-         for (Int_t iproc=0; iproc < propagator->fNprocesses; iproc++) {
+         for (int iproc=0; iproc < propagator->fNprocesses; iproc++) {
             if (propagator->Process(iproc)->IsType(PhysicsProcess::kDiscrete)) continue;
             ntodo = 0;
             propagator->Process(iproc)->PostStep(TBBperThread.fVolume, ntotransport, particles, ntodo, parttodo);
             // Do we have stopped particles ?
             if (ntodo<ntotransport) {
-               memcpy(particles, parttodo, ntodo*sizeof(Int_t));
+               memcpy(particles, parttodo, ntodo*sizeof(int));
                ntotransport = ntodo;
             }
          }
          // Copy al tracks for which step was limited by a continuous process
          // to the next array
-         for (Int_t itr=0; itr<ntotransport; itr++) {
+         for (int itr=0; itr<ntotransport; itr++) {
             if (propagator->Process(tracks[particles[itr]]->process)->IsType(PhysicsProcess::kContinuous))
                partnext[ntotnext++] = particles[itr];
          }
          // Discrete processes only
-         for (Int_t iproc=0; iproc < propagator->fNprocesses; iproc++) {
+         for (int iproc=0; iproc < propagator->fNprocesses; iproc++) {
             // Make arrays of particles per process -> ntodo, parttodo
             if (propagator->Process(iproc)->IsType(PhysicsProcess::kContinuous)) continue;
             ntodo = 0;
@@ -172,7 +172,7 @@ task* PropTask::execute ()
                particles = TBBperThread.fPartInd->GetArray();
             }
          }
-         memcpy(particles, partnext, ntotnext*sizeof(Int_t));
+         memcpy(particles, partnext, ntotnext*sizeof(int));
          ntotransport = ntotnext;
       }
       // I/O: Dump current generation
@@ -180,7 +180,7 @@ task* PropTask::execute ()
       if (propagator->fFillTree) {
          cputime = propagator->fTimer->CpuTime();
          propagator->fOutput->SetStamp(TBBperThread.fVolume->GetNumber(), generation, ntotransport, cputime);
-         for (Int_t itrack=0; itrack<ntotransport;itrack++) {
+         for (int itrack=0; itrack<ntotransport;itrack++) {
             track = tracks[particles[itrack]];
             propagator->fOutput->SetTrack(itrack, track);
          }
@@ -195,9 +195,9 @@ task* PropTask::execute ()
 
 //--------------------------------------------------------------------------------------------------------------------
 
-   Int_t numOfFinishedEvents = TBBperThread.GetSizeOfFinishedEvents();
-   Int_t numOfTracksInResultColl = TBBperThread.fCollection->GetNtracks();
-   Int_t numOfCollPushed = 0;
+   int numOfFinishedEvents = TBBperThread.GetSizeOfFinishedEvents();
+   int numOfTracksInResultColl = TBBperThread.fCollection->GetNtracks();
+   int numOfCollPushed = 0;
 
    // Inject result collection if it is not empty
    if (numOfTracksInResultColl > 0) {
@@ -207,8 +207,8 @@ task* PropTask::execute ()
 
    // Check whether any priority events have finished
    if ((propagator->fPriorityRange[0] > -1) && numOfFinishedEvents) {
-      Int_t first_not_transported = -1;
-      for (Int_t evn=0; evn<propagator->fNtotal; evn++) {
+      int first_not_transported = -1;
+      for (int evn=0; evn<propagator->fNtotal; evn++) {
          if (propagator->fEventsStatus[evn] == 0) {
             first_not_transported = evn;
             break;
@@ -226,10 +226,10 @@ task* PropTask::execute ()
 
    // Check for finished events and inject new if needed
    if (numOfFinishedEvents > 0) {
-      for (std::vector<Int_t>::iterator it = TBBperThread.fFinishedEvents.begin();
+      for (std::vector<int>::iterator it = TBBperThread.fFinishedEvents.begin();
       it != TBBperThread.fFinishedEvents.end(); it++) {
 
-         Int_t newEventInd = propagator->fNimportedEvents.fetch_and_increment();
+         int newEventInd = propagator->fNimportedEvents.fetch_and_increment();
          if (newEventInd < propagator->fNtotal) {
             numOfTracksInResultColl += propagator->ImportTracks(1, propagator->fNaverage, newEventInd, *it);
             numOfCollPushed++;
@@ -241,8 +241,8 @@ task* PropTask::execute ()
    TBBperThread.fFinishedEvents.clear();
 
    // Check whether we need to start dispatching
-   Int_t nCollsToPop = 0;
-   Int_t flagToStartDisp = kFALSE;
+   int nCollsToPop = 0;
+   int flagToStartDisp = kFALSE;
 
 propagator->fPropTaskLock.Lock ();			// CRITICAL SECTION begin
 

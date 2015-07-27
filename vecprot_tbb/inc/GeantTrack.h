@@ -15,16 +15,16 @@ enum TrackStatus_t { kAlive, kKilled, kBoundary };
 //______________________________________________________________________________
 class GeantTrack {
 public:
-  Int_t event;          // event number
-  Int_t evslot;         // event slot
-  Int_t particle;       // index of corresponding particle
-  Int_t pdg;            // particle pdg code
-  Int_t fGVcode;        // GV particle code
+  int event;          // event number
+  int evslot;         // event slot
+  int particle;       // index of corresponding particle
+  int pdg;            // particle pdg code
+  int fGVcode;        // GV particle code
   Species_t species;    // particle species
   TrackStatus_t status; // track status
-  Int_t charge;         // particle charge
+  int charge;         // particle charge
   double mass;        // particle mass
-  Int_t process;        // current process
+  int process;        // current process
   double xpos;        // position
   double ypos;
   double zpos;
@@ -37,8 +37,8 @@ public:
   double snext;            // straight distance to next boundary
   double safety;           // safe distance to any boundary
   Bool_t frombdr;            // true if starting from boundary
-  Int_t izero;               // number of small steps used to catch errors
-  Int_t nsteps;              // number of steps made
+  int izero;               // number of small steps used to catch errors
+  int nsteps;              // number of steps made
   TGeoBranchArray *path;     // path for this particle in the geometry
   TGeoBranchArray *nextpath; // path for next volume
   Bool_t pending;
@@ -49,16 +49,16 @@ public:
         frombdr(false), izero(0), nsteps(0), path(0), nextpath(0), pending(false) {}
   GeantTrack(const GeantTrack &other);
   GeantTrack &operator=(const GeantTrack &other);
-  GeantTrack(Int_t ipdg);
+  GeantTrack(int ipdg);
   virtual ~GeantTrack();
   double Curvature() const;
   void Direction(double dir[3]);
   Bool_t IsAlive() const { return (status != kKilled); }
   Bool_t IsOnBoundary() const { return (status == kBoundary); }
   void Kill() { status = kKilled; }
-  void Print(Int_t trackindex = 0) const;
-  GeantVolumeBasket *PropagateInField(double step, Bool_t checkcross, Int_t itr);
-  GeantVolumeBasket *PropagateStraight(double step, Int_t itrack);
+  void Print(int trackindex = 0) const;
+  GeantVolumeBasket *PropagateInField(double step, Bool_t checkcross, int itr);
+  GeantVolumeBasket *PropagateStraight(double step, int itrack);
   double Pt() const { return sqrt(px * px + py * py); }
   double P() const { return sqrt(px * px + py * py + pz * pz); }
   double Gamma() const { return mass ? e / mass : numeric_limits<double>.max(); }

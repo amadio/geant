@@ -174,8 +174,8 @@ G4VParticleChange* TotalPhysicsProcess::PostStepDoIt(const G4Track& track,
 
 
   // Sampling element for interaction and type of interaction on that
-  Int_t reactionId   = -1;
-  Int_t elementIndex = -1;
+  int reactionId   = -1;
+  int elementIndex = -1;
 
   G4int rootMatId= SetupForMaterial(track);
   elementIndex = theDataManager->SampleInteraction(rootMatId, track, 

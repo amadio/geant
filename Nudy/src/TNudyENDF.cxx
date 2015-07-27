@@ -72,11 +72,11 @@ void TNudyENDF::Process() {
   // Process a tape
   //
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
-  Int_t &curMAT = mtf[0];
-  Int_t oldMAT = 0;
+  int &curMAT = mtf[0];
+  int oldMAT = 0;
 
   while (!fENDF.eof()) {
     fENDF.getline(fLine, LINLEN);
@@ -131,15 +131,15 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Here we read the whole material
   //
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
-  Int_t &curMAT = mtf[0];
-  Int_t &curMF = mtf[1];
-  Int_t oldMF = 0;
+  int &curMAT = mtf[0];
+  int &curMF = mtf[1];
+  int oldMF = 0;
 
   Char_t name[13];
-  Int_t mZA;
+  int mZA;
 
   // Continue reading the header
   // Section 1 451 is put directly in the material structure
@@ -228,7 +228,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Get the rest of the description recrods
   if (fLogLev > 6)
     Info("Process", "No of Description TEXT records : %d", mat->GetNWD());
-  for (Int_t i = 0; i < mat->GetNWD() - 5; i++) {
+  for (int i = 0; i < mat->GetNWD() - 5; i++) {
     Char_t desc[67];
     fENDF.getline(fLine, LINLEN);
     strncpy(desc, fLine, 66);
@@ -239,7 +239,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Get the dictionary
   if (fLogLev > 6)
     Info("Process", "Length of the Dictionary : %d", mat->GetNXC());
-  for (Int_t i = 0; i < mat->GetNXC(); ++i) {
+  for (int i = 0; i < mat->GetNXC(); ++i) {
     fENDF.getline(fLine, LINLEN);
     GetCONT(c, nl, mtf);
     mat->SetMFn(nl[0], i);
@@ -296,12 +296,12 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfFile *file) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMAT = mtf[0];
-  Int_t &curMF = mtf[1];
-  Int_t &curMT = mtf[2];
-  Int_t oldMT = 0;
+  int nl[4];
+  int mtf[4];
+  int &curMAT = mtf[0];
+  int &curMF = mtf[1];
+  int &curMT = mtf[2];
+  int oldMT = 0;
 
   while (!fENDF.eof()) {
     if (fLogLev > 10)
@@ -337,10 +337,10 @@ void TNudyENDF::Process(TNudyEndfFile *file) {
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfSec *sec) {
   double c[2] = {0, 0};
-  Int_t nl[4] = {0, 0, 0, 0};
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t &curMT = mtf[2];
+  int nl[4] = {0, 0, 0, 0};
+  int mtf[4];
+  int &curMF = mtf[1];
+  int &curMT = mtf[2];
 
   // We are at the beginning of a section, we get the head
   GetMTF(mtf);
@@ -433,11 +433,11 @@ void TNudyENDF::Process(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMAT = mtf[0];
-  Int_t &curMF = mtf[1];
-  Int_t &curMT = mtf[2];
+  int nl[4];
+  int mtf[4];
+  int &curMAT = mtf[0];
+  int &curMF = mtf[1];
+  int &curMT = mtf[2];
 
   GetCONT(c, nl, mtf);
   if (curMF != 1)
@@ -497,7 +497,7 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
         Process(secTab2);
         sec->Add(secTab2);
         // Read all sections
-        for (Int_t i = 0; i < secTab2->GetNZ(); ++i) {
+        for (int i = 0; i < secTab2->GetNZ(); ++i) {
           TNudyEndfList *secList = new TNudyEndfList();
           // Read the section
           Process(secList);
@@ -560,10 +560,10 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
   } break;
 
   case 460: {
-    Int_t iLO = sec->GetL1();
+    int iLO = sec->GetL1();
     if (iLO == 1) {
-      Int_t iNG = sec->GetN1();
-      for (Int_t i = 0; i < iNG; i++) {
+      int iNG = sec->GetN1();
+      for (int i = 0; i < iNG; i++) {
         TNudyEndfTab1 *secTabPD = new TNudyEndfTab1();
         Process(secTabPD);
         sec->Add(secTabPD);
@@ -586,15 +586,15 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t &curMT = mtf[2];
-  Int_t iLRU = -1;
-  Int_t iLRF = -1;
-  Int_t iNRO = -1;
-  Int_t iNAPS = -1;
-  Int_t iLFW = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int &curMT = mtf[2];
+  int iLRU = -1;
+  int iLRF = -1;
+  int iNRO = -1;
+  int iNAPS = -1;
+  int iLFW = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 2)
@@ -606,13 +606,13 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
   case 151: // ------------------- The only section of file 2
   {
     // Loop over isotopes
-    for (Int_t i = 0; i < sec->GetN1(); ++i) {
+    for (int i = 0; i < sec->GetN1(); ++i) {
       TNudyEndfCont *secContIso = new TNudyEndfCont(); // CONT (isotope) record
       Process(secContIso);
       sec->Add(secContIso);
       iLFW = secContIso->GetL2();
       // Loop over energy ranges
-      for (Int_t j = 0; j < secContIso->GetN1(); ++j) {
+      for (int j = 0; j < secContIso->GetN1(); ++j) {
         // secContIso->GetN1() is NER
         TNudyEndfCont *secContRange = new TNudyEndfCont(); // CONT (range) record
         Process(secContRange);
@@ -644,7 +644,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
             Process(secContLval);
             sec->Add(secContLval);
 
-            for (Int_t k = 0; k < secContLval->GetN1(); ++k) {
+            for (int k = 0; k < secContLval->GetN1(); ++k) {
               // loop over L-values, subsection
               // secContLval->GetN1() is NLS
               TNudyEndfList *secList = new TNudyEndfList();
@@ -663,7 +663,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
             TNudyEndfCont *secContLval = new TNudyEndfCont(); // CONT (L-value) record
             Process(secContLval);
             sec->Add(secContLval);
-            for (Int_t k = 0; k < secContLval->GetN1(); ++k) {
+            for (int k = 0; k < secContLval->GetN1(); ++k) {
               // loop over L-values, subsection
               // secContLval->GetN1() is NLS
               TNudyEndfList *secList = new TNudyEndfList();
@@ -673,7 +673,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
             TNudyEndfCont *secContJval = new TNudyEndfCont(); // CONT (J-value) record
             Process(secContJval);
             sec->Add(secContJval);
-            for (Int_t k = 0; k < secContJval->GetN1(); ++k) {
+            for (int k = 0; k < secContJval->GetN1(); ++k) {
               // loop over J-values, subsection
               // secContLval->GetN1() is NJS
               TNudyEndfList *secList = new TNudyEndfList();
@@ -697,7 +697,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
             Process(secList);
             sec->Add(secList);
 
-            for (Int_t k = 0; k < secContJval->GetN1(); ++k) {
+            for (int k = 0; k < secContJval->GetN1(); ++k) {
               // loop over NJS spin group
               TNudyEndfList *secListCh = new TNudyEndfList(); // channel description
               Process(secListCh);
@@ -741,7 +741,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
                 TNudyEndfCont *secContLval = new TNudyEndfCont(); // CONT (L-value) record
                 Process(secContLval);
                 sec->Add(secContLval);
-                for (Int_t k = 0; k < secContLval->GetN1(); ++k) {
+                for (int k = 0; k < secContLval->GetN1(); ++k) {
                   // loop over L-values, subsection
                   // secContLval->GetN1() is NLS
                   TNudyEndfList *secList = new TNudyEndfList();
@@ -758,12 +758,12 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
                 Process(secList);
                 sec->Add(secList);
 
-                for (Int_t l = 0; l < secList->GetN2(); ++l) {
+                for (int l = 0; l < secList->GetN2(); ++l) {
                   TNudyEndfCont *secContJval = new TNudyEndfCont(); // CONT (J-value) record
                   Process(secContJval);
                   sec->Add(secContJval);
 
-                  for (Int_t k = 0; k < secContJval->GetN1(); ++k) {
+                  for (int k = 0; k < secContJval->GetN1(); ++k) {
                     // loop over J-values, subsection
                     // secContLval->GetN1() is NJS
                     TNudyEndfList *secListNJS = new TNudyEndfList();
@@ -784,12 +784,12 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
             TNudyEndfCont *secContLval = new TNudyEndfCont(); // CONT (L-value) record
             Process(secContLval);
             sec->Add(secContLval);
-            for (Int_t l = 0; l < secContLval->GetN1(); ++l) {
+            for (int l = 0; l < secContLval->GetN1(); ++l) {
               TNudyEndfCont *secContJval = new TNudyEndfCont(); // CONT (J-value) record
               Process(secContJval);
               sec->Add(secContJval);
 
-              for (Int_t k = 0; k < secContJval->GetN1(); ++k) {
+              for (int k = 0; k < secContJval->GetN1(); ++k) {
                 // loop over J-values, subsection
                 // secContLval->GetN1() is NJS
                 TNudyEndfList *secList = new TNudyEndfList();
@@ -819,9 +819,9 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF3(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 3)
@@ -838,11 +838,11 @@ void TNudyENDF::ProcessF3(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iLTT = -1;
-  Int_t iLI = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iLTT = -1;
+  int iLI = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 4)
@@ -867,7 +867,7 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
       TNudyEndfTab2 *secTab2 = new TNudyEndfTab2();
       Process(secTab2);
       sec->Add(secTab2);
-      for (Int_t k = 0; k < secTab2->GetNZ(); k++) {
+      for (int k = 0; k < secTab2->GetNZ(); k++) {
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
         sec->Add(secList);
@@ -879,7 +879,7 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
       Process(secTab2);
       sec->Add(secTab2);
 
-      for (Int_t k = 0; k < secTab2->GetNZ(); k++) {
+      for (int k = 0; k < secTab2->GetNZ(); k++) {
         TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
         Process(secTab1);
         sec->Add(secTab1);
@@ -890,7 +890,7 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
       Process(secTab2Legen);
       sec->Add(secTab2Legen);
 
-      for (Int_t k = 0; k < secTab2Legen->GetNZ(); k++) {
+      for (int k = 0; k < secTab2Legen->GetNZ(); k++) {
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
         sec->Add(secList);
@@ -900,7 +900,7 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
       Process(secTab2Tab);
       sec->Add(secTab2Tab);
 
-      for (Int_t k = 0; k < secTab2Tab->GetNZ(); k++) {
+      for (int k = 0; k < secTab2Tab->GetNZ(); k++) {
         TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
         Process(secTab1);
         sec->Add(secTab1);
@@ -917,11 +917,11 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iNK = -1;
-  Int_t iLF = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iNK = -1;
+  int iLF = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 5)
@@ -929,7 +929,7 @@ void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
 
   iNK = sec->GetN1();
 
-  for (Int_t i = 0; i < iNK; ++i) {
+  for (int i = 0; i < iNK; ++i) {
     // loop over partial energy distributions
 
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1(); // p(E) tab1
@@ -944,7 +944,7 @@ void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
       Process(secTab2);
       sec->Add(secTab2);
 
-      for (Int_t k = 0; k < secTab2->GetNZ(); ++k) {
+      for (int k = 0; k < secTab2->GetNZ(); ++k) {
         // secTab2->GetNZ() is number of incident energy
         TNudyEndfTab1 *secTab1NZ = new TNudyEndfTab1();
         Process(secTab1NZ);
@@ -984,11 +984,11 @@ void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iNK = -1;
-  Int_t iLAW = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iNK = -1;
+  int iLAW = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 6)
@@ -996,7 +996,7 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
 
   iNK = sec->GetN1();
 
-  for (Int_t i = 0; i < iNK; ++i) {
+  for (int i = 0; i < iNK; ++i) {
     // NK is number of subsections
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
     Process(secTab1);
@@ -1018,7 +1018,7 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
       Process(secTab2);
       sec->Add(secTab2);
 
-      for (Int_t j = 0; j < secTab2->GetN2(); ++j) {
+      for (int j = 0; j < secTab2->GetN2(); ++j) {
         // secTab2->GetN2() is NE
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
@@ -1038,14 +1038,14 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
       Process(secTab2E);
       sec->Add(secTab2E);
 
-      for (Int_t j = 0; j < secTab2E->GetN2(); ++j) {
+      for (int j = 0; j < secTab2E->GetN2(); ++j) {
         // secTab2E->GetN2() is NE
         TNudyEndfTab2 *secTab2Mu = new TNudyEndfTab2();
         // normal Tab2 interpolation parameters for emission cosine, Mu
         Process(secTab2Mu);
         sec->Add(secTab2Mu);
 
-        for (Int_t k = 0; k < secTab2Mu->GetN2(); ++k) {
+        for (int k = 0; k < secTab2Mu->GetN2(); ++k) {
           // secTab2Mu->GetN2() is NMU
           TNudyEndfTab1 *secTab1C = new TNudyEndfTab1();
           Process(secTab1C);
@@ -1064,10 +1064,10 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t &curMT = mtf[2];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int &curMT = mtf[2];
 
   GetCONT(c, nl, mtf);
   if (curMF != 7)
@@ -1083,7 +1083,7 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
       Process(secTab1);
       sec->Add(secTab1);
 
-      for (Int_t i = 0; i < secTab1->GetL1(); ++i) {
+      for (int i = 0; i < secTab1->GetL1(); ++i) {
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
         sec->Add(secList);
@@ -1108,12 +1108,12 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
     TNudyEndfTab2 *secTab2 = new TNudyEndfTab2();
     Process(secTab2);
     sec->Add(secTab2);
-    for (Int_t i = 0; i < secTab2->GetN2(); ++i) {
+    for (int i = 0; i < secTab2->GetN2(); ++i) {
       // secTab2->GetN2() is NB(number of beta values)
       TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
       Process(secTab1);
       sec->Add(secTab1);
-      for (Int_t j = 0; j < secTab1->GetL1(); ++j) {
+      for (int j = 0; j < secTab1->GetL1(); ++j) {
         // secTab1->GetL1() is LT
         // LT is the temperature dependence flag
         TNudyEndfList *secListLT = new TNudyEndfList();
@@ -1154,10 +1154,10 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t &curMT = mtf[2];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int &curMT = mtf[2];
 
   GetCONT(c, nl, mtf);
   if (curMF != 8)
@@ -1167,7 +1167,7 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
   case 454: // Independent fission product yield data
   case 459: // Cumulative fission product yield data
   {
-    for (Int_t i = 0; i < sec->GetL1(); i++) {
+    for (int i = 0; i < sec->GetL1(); i++) {
       TNudyEndfList *secList = new TNudyEndfList();
       Process(secList);
       sec->Add(secList);
@@ -1185,7 +1185,7 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
       Process(secListDI);
       sec->Add(secListDI);
 
-      for (Int_t i = 0; i < sec->GetN2(); ++i) {
+      for (int i = 0; i < sec->GetN2(); ++i) {
         TNudyEndfList *secListRRS = new TNudyEndfList(); // Resulting Radiation Spectra
         Process(secListRRS);
         sec->Add(secListRRS);
@@ -1194,7 +1194,7 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
         if (secListRRS->GetL1() != 1) {
 
           // Loop NER = secListRRS->GetN2() times
-          for (Int_t j = 0; j < secListRRS->GetN2(); j++) {
+          for (int j = 0; j < secListRRS->GetN2(); j++) {
             TNudyEndfList *secListA = new TNudyEndfList();
             Process(secListA);
             sec->Add(secListA);
@@ -1214,7 +1214,7 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
       }
     } else if (sec->GetN1() == 1) {
       // for a stable nucleus NST=1
-      for (Int_t i = 0; i < 2; ++i) {
+      for (int i = 0; i < 2; ++i) {
         TNudyEndfList *secListC = new TNudyEndfList();
         Process(secListC);
         sec->Add(secListC);
@@ -1227,14 +1227,14 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
       // sec->GetN2() is NO: Flag denoting where the decay information is
       // to be given for an important radioactive end product
       // NO=0: complete decay chain given under this MT
-      for (Int_t i = 0; i < sec->GetN1(); ++i) {
+      for (int i = 0; i < sec->GetN1(); ++i) {
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
         sec->Add(secList);
       }
     } else if (sec->GetN2() == 1) {
       // NO=1: decay chain given in MT=457 in the decay data file
-      for (Int_t i = 0; i < sec->GetN1(); ++i) {
+      for (int i = 0; i < sec->GetN1(); ++i) {
         TNudyEndfCont *secCont = new TNudyEndfCont(); // CONT record
         Process(secCont);
         sec->Add(secCont);
@@ -1250,15 +1250,15 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF9(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 9)
     Fatal("ProcessF9(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < sec->GetN1(); ++i) {
+  for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
     Process(secTab1);
     sec->Add(secTab1);
@@ -1270,15 +1270,15 @@ void TNudyENDF::ProcessF9(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF10(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 10)
     Fatal("ProcessF10(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < sec->GetN1(); ++i) {
+  for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
     Process(secTab1);
     sec->Add(secTab1);
@@ -1289,10 +1289,10 @@ void TNudyENDF::ProcessF10(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iLO = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iLO = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 12)
@@ -1306,7 +1306,7 @@ void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
     Process(secTab1);
     sec->Add(secTab1);
     if (sec->GetN1() > 1)
-      for (Int_t i = 0; i < sec->GetN1(); ++i) {
+      for (int i = 0; i < sec->GetN1(); ++i) {
         TNudyEndfTab1 *secTab1A = new TNudyEndfTab1();
         Process(secTab1A);
         sec->Add(secTab1A);
@@ -1328,9 +1328,9 @@ void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 13)
@@ -1341,7 +1341,7 @@ void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
     Process(secTab1);
     sec->Add(secTab1);
   }
-  for (Int_t i = 0; i < sec->GetN1(); ++i) {
+  for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
     Process(secTab1);
     sec->Add(secTab1);
@@ -1352,13 +1352,13 @@ void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iLI = -1;
-  Int_t iLTT = -1;
-  Int_t iNK = -1;
-  Int_t iNI = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iLI = -1;
+  int iLTT = -1;
+  int iNK = -1;
+  int iNI = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 14)
@@ -1378,17 +1378,17 @@ void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
     case 1: // Legendre Coefficient Representation
     {
       if (iNI > 0)
-        for (Int_t i = 0; i < iNI; ++i) {
+        for (int i = 0; i < iNI; ++i) {
           TNudyEndfCont *secCont = new TNudyEndfCont();
           Process(secCont);
           sec->Add(secCont);
         }
-      for (Int_t j = 0; j < (iNK - iNI); ++j) {
+      for (int j = 0; j < (iNK - iNI); ++j) {
         TNudyEndfTab2 *secTab2 = new TNudyEndfTab2();
         Process(secTab2);
         sec->Add(secTab2);
 
-        for (Int_t k = 0; k < secTab2->GetN2(); ++k) {
+        for (int k = 0; k < secTab2->GetN2(); ++k) {
           TNudyEndfList *secList = new TNudyEndfList();
           Process(secList);
           sec->Add(secList);
@@ -1398,17 +1398,17 @@ void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
     case 2: // Tabulated Angular Distributions
     {
       if (iNI > 0)
-        for (Int_t i = 0; i < iNI; ++i) {
+        for (int i = 0; i < iNI; ++i) {
           TNudyEndfCont *secCont = new TNudyEndfCont();
           Process(secCont);
           sec->Add(secCont);
         }
-      for (Int_t j = 0; j < (iNK - iNI); ++j) {
+      for (int j = 0; j < (iNK - iNI); ++j) {
         TNudyEndfTab2 *secTab2 = new TNudyEndfTab2();
         Process(secTab2);
         sec->Add(secTab2);
 
-        for (Int_t k = 0; k < secTab2->GetN2(); ++k) {
+        for (int k = 0; k < secTab2->GetN2(); ++k) {
           TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
           Process(secTab1);
           sec->Add(secTab1);
@@ -1430,10 +1430,10 @@ void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iNC = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iNC = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 15)
@@ -1441,7 +1441,7 @@ void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
 
   iNC = sec->GetN1();
 
-  for (Int_t i = 0; i < iNC; ++i) {
+  for (int i = 0; i < iNC; ++i) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
     Process(secTab1);
     sec->Add(secTab1);
@@ -1453,7 +1453,7 @@ void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
     Process(secTab2);
     sec->Add(secTab2);
 
-    for (Int_t j = 0; j < secTab2->GetN2(); ++j) {
+    for (int j = 0; j < secTab2->GetN2(); ++j) {
       TNudyEndfTab1 *secTab1A = new TNudyEndfTab1();
       Process(secTab1A);
       sec->Add(secTab1A);
@@ -1465,9 +1465,9 @@ void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF23(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 23)
@@ -1483,11 +1483,11 @@ void TNudyENDF::ProcessF23(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iNK = -1;
-  Int_t iLAW = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iNK = -1;
+  int iLAW = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 26)
@@ -1495,7 +1495,7 @@ void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
 
   iNK = sec->GetN1();
 
-  for (Int_t i = 0; i < iNK; ++i) {
+  for (int i = 0; i < iNK; ++i) {
     // NK is number of subsections
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
     Process(secTab1);
@@ -1511,7 +1511,7 @@ void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
       Process(secTab2);
       sec->Add(secTab2);
 
-      for (Int_t j = 0; j < secTab2->GetN2(); ++j) {
+      for (int j = 0; j < secTab2->GetN2(); ++j) {
         // secTab2->GetN2() is NE
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
@@ -1535,9 +1535,9 @@ void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF27(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 27)
@@ -1553,15 +1553,15 @@ void TNudyENDF::ProcessF27(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF28(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 28)
     Fatal("ProcessF28(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < sec->GetN1(); ++i) {
+  for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfList *secList = new TNudyEndfList();
     Process(secList);
     sec->Add(secList);
@@ -1572,11 +1572,11 @@ void TNudyENDF::ProcessF28(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t MT = -1;
-  Int_t NP = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int MT = -1;
+  int NP = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 30)
@@ -1589,27 +1589,27 @@ void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
     TNudyEndfCont *secCont = new TNudyEndfCont();
     Process(secCont);
     sec->Add(secCont);
-    Int_t NDIR = secCont->GetN1();
-    Int_t NCTAB = secCont->GetN2();
-    for (Int_t j = 0; j < NDIR; j++) {
+    int NDIR = secCont->GetN1();
+    int NCTAB = secCont->GetN2();
+    for (int j = 0; j < NDIR; j++) {
       TNudyEndfCont *subsecCont = new TNudyEndfCont();
       Process(subsecCont);
       sec->Add(subsecCont);
     }
-    for (Int_t k = 0; k < NCTAB; k++) {
+    for (int k = 0; k < NCTAB; k++) {
       TNudyEndfCont *subsecCont = new TNudyEndfCont();
       Process(subsecCont);
       sec->Add(subsecCont);
     }
   } else if (MT == 2) {
-    for (Int_t j = 0; j < NP; j++) {
+    for (int j = 0; j < NP; j++) {
       TNudyEndfList *subsecList = new TNudyEndfList();
       Process(subsecList);
       sec->Add(subsecList);
     }
   } else if (MT >= 11 && MT <= 999) {
-    Int_t NL = NP;
-    for (Int_t j = 0; j < NL; j++) {
+    int NL = NP;
+    for (int j = 0; j < NL; j++) {
       TNudyEndfCont *subsecCont = new TNudyEndfCont();
       Process(subsecCont);
       sec->Add(subsecCont);
@@ -1622,21 +1622,21 @@ void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  //  Int_t &curMT  = mtf[2];
-  Int_t &iNL = nl[3];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  //  int &curMT  = mtf[2];
+  int &iNL = nl[3];
 
   GetCONT(c, nl, mtf);
   if (curMF != 31)
     Fatal("ProcessF31(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < iNL; ++i) {
+  for (int i = 0; i < iNL; ++i) {
     TNudyEndfCont *secCont = new TNudyEndfCont();
     Process(secCont);
     sec->Add(secCont);
-    for (Int_t j = 0; j < secCont->GetN1(); ++j) {
+    for (int j = 0; j < secCont->GetN1(); ++j) {
       // NC-Type records
       TNudyEndfCont *secContNC = new TNudyEndfCont();
       Process(secContNC);
@@ -1646,7 +1646,7 @@ void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
       Process(secList);
       sec->Add(secList);
     }
-    for (Int_t k = 0; k < secCont->GetN2(); ++k) {
+    for (int k = 0; k < secCont->GetN2(); ++k) {
       // NI-Type records
       TNudyEndfList *secList = new TNudyEndfList();
       Process(secList);
@@ -1659,17 +1659,17 @@ void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iNIS = -1;
-  Int_t iLFW = -1;
-  Int_t iNER = -1;
-  Int_t iLRU = -1;
-  Int_t iLRF = -1;
-  Int_t iNRO = -1;
-  Int_t iNAPS = -1;
-  Int_t iLCOMP = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iNIS = -1;
+  int iLFW = -1;
+  int iNER = -1;
+  int iLRU = -1;
+  int iLRF = -1;
+  int iNRO = -1;
+  int iNAPS = -1;
+  int iLCOMP = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 32)
@@ -1677,13 +1677,13 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
 
   iNIS = sec->GetN1();
 
-  for (Int_t i = 0; i < iNIS; ++i) {
+  for (int i = 0; i < iNIS; ++i) {
     TNudyEndfCont *secContIso = new TNudyEndfCont(); // CONT (isotope) record
     Process(secContIso);
     sec->Add(secContIso);
     iLFW = secContIso->GetL2();
     iNER = secContIso->GetN1();
-    for (Int_t j = 0; j < iNER; ++j) {
+    for (int j = 0; j < iNER; ++j) {
       TNudyEndfCont *secContRange = new TNudyEndfCont(); // CONT (range) record
       Process(secContRange);
       sec->Add(secContRange);
@@ -1698,7 +1698,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
           TNudyEndfCont *secCont = new TNudyEndfCont();
           Process(secCont);
           sec->Add(secCont);
-          for (Int_t k = 0; k < sec->GetN2(); ++k) {
+          for (int k = 0; k < sec->GetN2(); ++k) {
             TNudyEndfList *secList = new TNudyEndfList();
             Process(secList);
             sec->Add(secList);
@@ -1711,7 +1711,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
         switch (iLCOMP) {
         case 0: { // LCOMP == 0
           // Compatible resolved resonance format
-          for (Int_t k = 0; k < secContLCOMP->GetN1(); ++k) {
+          for (int k = 0; k < secContLCOMP->GetN1(); ++k) {
             TNudyEndfList *secList = new TNudyEndfList();
             Process(secList);
             sec->Add(secList);
@@ -1727,12 +1727,12 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secCont = new TNudyEndfCont();
             Process(secCont);
             sec->Add(secCont);
-            for (Int_t l = 0; l < secCont->GetN1(); ++l) {
+            for (int l = 0; l < secCont->GetN1(); ++l) {
               TNudyEndfList *secList = new TNudyEndfList();
               Process(secList);
               sec->Add(secList);
             }
-            for (Int_t m = 0; m < secCont->GetN2(); ++m) {
+            for (int m = 0; m < secCont->GetN2(); ++m) {
               TNudyEndfList *secList = new TNudyEndfList();
               Process(secList);
               sec->Add(secList);
@@ -1743,7 +1743,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secContNL = new TNudyEndfCont();
             Process(secContNL);
             sec->Add(secContNL);
-            for (Int_t l = 0; l < secContNL->GetN1(); ++l) {
+            for (int l = 0; l < secContNL->GetN1(); ++l) {
               TNudyEndfList *secList = new TNudyEndfList();
               Process(secList);
               sec->Add(secList);
@@ -1758,7 +1758,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secContNJSX = new TNudyEndfCont();
             Process(secContNJSX);
             sec->Add(secContNJSX);
-            for (Int_t l = 0; l < secContNJSX->GetL1(); ++l) {
+            for (int l = 0; l < secContNJSX->GetL1(); ++l) {
               TNudyEndfList *secList = new TNudyEndfList();
               Process(secList);
               sec->Add(secList);
@@ -1785,9 +1785,9 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secContNNN = new TNudyEndfCont();
             Process(secContNNN);
             sec->Add(secContNNN);
-            Int_t iNM = secContNNN->GetN1();
-            Int_t iNDIGIT = secContNNN->GetL1();
-            for (Int_t i1 = 0; i1 < iNM; i1++) {
+            int iNM = secContNNN->GetN1();
+            int iNDIGIT = secContNNN->GetL1();
+            for (int i1 = 0; i1 < iNM; i1++) {
               TNudyEndfINTG *secINTG = new TNudyEndfINTG(18, iNDIGIT);
               Process(secINTG);
               sec->Add(secINTG);
@@ -1807,10 +1807,10 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secContNNNB = new TNudyEndfCont();
             Process(secContNNNB);
             sec->Add(secContNNNB);
-            Int_t iNM = secContNNNB->GetN1();
-            Int_t iNDIGIT = secContNNNB->GetL1();
+            int iNM = secContNNNB->GetN1();
+            int iNDIGIT = secContNNNB->GetL1();
 
-            for (Int_t i2 = 0; i2 < iNM; i2++) {
+            for (int i2 = 0; i2 < iNM; i2++) {
 
               TNudyEndfINTG *secINTG = new TNudyEndfINTG(18, iNDIGIT);
               Process(secINTG);
@@ -1832,7 +1832,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
         Process(secCont);
         sec->Add(secCont);
         secCont->Print(" "); ///////////////////////////////////////////////test
-        for (Int_t k = 0; k < secCont->GetN1(); ++k) {
+        for (int k = 0; k < secCont->GetN1(); ++k) {
           TNudyEndfList *secList = new TNudyEndfList();
           Process(secList);
           sec->Add(secList);
@@ -1853,21 +1853,21 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  //  Int_t &curMT  = mtf[2];
-  Int_t &iNL = nl[3];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  //  int &curMT  = mtf[2];
+  int &iNL = nl[3];
 
   GetCONT(c, nl, mtf);
   if (curMF != 33)
     Fatal("ProcessF33(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < iNL; ++i) {
+  for (int i = 0; i < iNL; ++i) {
     TNudyEndfCont *secCont = new TNudyEndfCont();
     Process(secCont);
     sec->Add(secCont);
-    for (Int_t j = 0; j < secCont->GetN1(); ++j) {
+    for (int j = 0; j < secCont->GetN1(); ++j) {
       // NC-Type records
       TNudyEndfCont *secContNC = new TNudyEndfCont();
       Process(secContNC);
@@ -1877,7 +1877,7 @@ void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
       Process(secList);
       sec->Add(secList);
     }
-    for (Int_t k = 0; k < secCont->GetN2(); ++k) {
+    for (int k = 0; k < secCont->GetN2(); ++k) {
       // NI-Type records
       TNudyEndfList *secList = new TNudyEndfList();
       Process(secList);
@@ -1890,28 +1890,28 @@ void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF34(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
-  Int_t iNL = -1;
-  Int_t iNL1 = -1;
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
+  int iNL = -1;
+  int iNL1 = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 34)
     Fatal("ProcessF34(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < sec->GetN2(); ++i) {
+  for (int i = 0; i < sec->GetN2(); ++i) {
     TNudyEndfCont *secContMT = new TNudyEndfCont();
     Process(secContMT);
     sec->Add(secContMT);
     iNL = secContMT->GetN1();
     iNL1 = secContMT->GetN2();
-    for (Int_t j = 0; j < iNL; ++j) {
-      for (Int_t k = j; k < iNL1; ++k) {
+    for (int j = 0; j < iNL; ++j) {
+      for (int k = j; k < iNL1; ++k) {
         TNudyEndfCont *secCont = new TNudyEndfCont();
         Process(secCont);
         sec->Add(secCont);
-        for (Int_t l = 0; l < secCont->GetN2(); ++l) {
+        for (int l = 0; l < secCont->GetN2(); ++l) {
           TNudyEndfList *secList = new TNudyEndfList();
           Process(secList);
           sec->Add(secList);
@@ -1925,15 +1925,15 @@ void TNudyENDF::ProcessF34(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF35(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 35)
     Fatal("ProcessF35(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < sec->GetN1(); ++i) {
+  for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfList *secList = new TNudyEndfList();
     Process(secList);
     sec->Add(secList);
@@ -1944,23 +1944,23 @@ void TNudyENDF::ProcessF35(TNudyEndfSec *sec) {
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF40(TNudyEndfSec *sec) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t &curMF = mtf[1];
+  int nl[4];
+  int mtf[4];
+  int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
   if (curMF != 40)
     Fatal("ProcessF40(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  for (Int_t i = 0; i < sec->GetN1(); ++i) {
+  for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfCont *secContNL = new TNudyEndfCont();
     Process(secContNL);
     sec->Add(secContNL);
-    for (Int_t j = 0; j < secContNL->GetN2(); ++j) {
+    for (int j = 0; j < secContNL->GetN2(); ++j) {
       TNudyEndfCont *secContSub = new TNudyEndfCont();
       Process(secContSub);
       sec->Add(secContSub);
-      for (Int_t k = 0; k < secContSub->GetN1(); ++k) {
+      for (int k = 0; k < secContSub->GetN1(); ++k) {
         // NC-Type records
         TNudyEndfCont *secCont = new TNudyEndfCont();
         Process(secCont);
@@ -1970,7 +1970,7 @@ void TNudyENDF::ProcessF40(TNudyEndfSec *sec) {
         Process(secList);
         sec->Add(secList);
       }
-      for (Int_t l = 0; l < secContSub->GetN2(); ++l) {
+      for (int l = 0; l < secContSub->GetN2(); ++l) {
         // NI-Type records
         TNudyEndfList *secList = new TNudyEndfList();
         Process(secList);
@@ -1983,8 +1983,8 @@ void TNudyENDF::ProcessF40(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ToEndSec() {
-  Int_t mtf[4];
-  Int_t &curMT = mtf[2];
+  int mtf[4];
+  int &curMT = mtf[2];
 
   while (!fENDF.eof()) {
     fENDF.getline(fLine, LINLEN);
@@ -1999,8 +1999,8 @@ void TNudyENDF::ToEndSec() {
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfCont *secCont) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
@@ -2010,18 +2010,18 @@ void TNudyENDF::Process(TNudyEndfCont *secCont) {
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfList *secList) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
   double list[6];
-  Int_t np = 0;
+  int np = 0;
 
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
   secList->SetCont(c[0], c[1], nl[0], nl[1], nl[2], nl[3]);
-  for (Int_t i = 0; i < (secList->GetNPL() - 1) / 6 + 1; ++i) {
+  for (int i = 0; i < (secList->GetNPL() - 1) / 6 + 1; ++i) {
     fENDF.getline(fLine, LINLEN);
     GetFloat(list);
-    for (Int_t j = 0; j < 6; ++j) {
+    for (int j = 0; j < 6; ++j) {
       secList->SetLIST(list[j], np);
       if (++np >= secList->GetNPL())
         break;
@@ -2032,20 +2032,20 @@ void TNudyENDF::Process(TNudyEndfList *secList) {
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t nbt[6];
+  int nl[4];
+  int mtf[4];
+  int nbt[6];
   double xy[6];
-  Int_t nr = 0;
-  Int_t np = 0;
+  int nr = 0;
+  int np = 0;
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
   secTab1->SetCont(c[0], c[1], nl[0], nl[1], nl[2], nl[3]);
   if (secTab1->GetNR() != 0) {
-    for (Int_t i = 0; i < (secTab1->GetNR() - 1) / 3 + 1; ++i) {
+    for (int i = 0; i < (secTab1->GetNR() - 1) / 3 + 1; ++i) {
       fENDF.getline(fLine, LINLEN);
       GetInt(nbt);
-      for (Int_t j = 0; j < 6; j += 2) {
+      for (int j = 0; j < 6; j += 2) {
         secTab1->SetNBT(nbt[j], nr);
         secTab1->SetINT(nbt[j + 1], nr);
         if (++nr >= secTab1->GetNR())
@@ -2054,10 +2054,10 @@ void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
     }
   }
   if (secTab1->GetNP() != 0) {
-    for (Int_t i = 0; i < (secTab1->GetNP() - 1) / 3 + 1; ++i) {
+    for (int i = 0; i < (secTab1->GetNP() - 1) / 3 + 1; ++i) {
       fENDF.getline(fLine, LINLEN);
       GetFloat(xy);
-      for (Int_t j = 0; j < 3; ++j) {
+      for (int j = 0; j < 3; ++j) {
         secTab1->SetX(xy[2 * j], np);
         secTab1->SetY(xy[2 * j + 1], np);
         if (++np >= secTab1->GetNP())
@@ -2070,19 +2070,19 @@ void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfTab2 *secTab2) {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
-  Int_t nbt[6];
-  Int_t nr = 0;
+  int nl[4];
+  int mtf[4];
+  int nbt[6];
+  int nr = 0;
 
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
   secTab2->SetCont(c[0], c[1], nl[0], nl[1], nl[2], nl[3]);
 
-  for (Int_t i = 0; i < (secTab2->GetNR() - 1) / 3 + 1; ++i) {
+  for (int i = 0; i < (secTab2->GetNR() - 1) / 3 + 1; ++i) {
     fENDF.getline(fLine, LINLEN);
     GetInt(nbt);
-    for (Int_t j = 0; j < 6; j += 2) {
+    for (int j = 0; j < 6; j += 2) {
       secTab2->SetNBT(nbt[j], nr);
       secTab2->SetINT(nbt[j + 1], nr);
       if (++nr >= secTab2->GetNR())
@@ -2091,10 +2091,10 @@ void TNudyENDF::Process(TNudyEndfTab2 *secTab2) {
   }
 }
 void TNudyENDF::Process(TNudyEndfINTG *secINTG) {
-  Int_t mtf[4];
-  Int_t IJ[2];
-  Int_t KIJ[18] = {0};
-  Int_t ndigit = secINTG->GetNdigit();
+  int mtf[4];
+  int IJ[2];
+  int KIJ[18] = {0};
+  int ndigit = secINTG->GetNdigit();
   fENDF.getline(fLine, LINLEN);
   if (ndigit < 2 || ndigit > 6) {
     Error("TNudy::Process(TNudyEndfINTG *)", "Invalid value for NDIGIT proceeding with NDIGIT = 2");
@@ -2108,19 +2108,19 @@ void TNudyENDF::Process(TNudyEndfINTG *secINTG) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetSEND(const Int_t pmtf[3]) {
+void TNudyENDF::GetSEND(const int pmtf[3]) {
   fENDF.getline(fLine, LINLEN);
   CheckSEND(pmtf);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetFEND(const Int_t pmtf[3]) {
+void TNudyENDF::GetFEND(const int pmtf[3]) {
   fENDF.getline(fLine, LINLEN);
   CheckFEND(pmtf);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetMEND(const Int_t pmtf[3]) {
+void TNudyENDF::GetMEND(const int pmtf[3]) {
   fENDF.getline(fLine, LINLEN);
   CheckMEND(pmtf);
 }
@@ -2132,10 +2132,10 @@ void TNudyENDF::GetTEND() {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckSEND(const Int_t pmtf[3]) const {
+void TNudyENDF::CheckSEND(const int pmtf[3]) const {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
   GetCONT(c, nl, mtf);
   if (c[0] || c[1] || nl[0] || nl[1] || nl[2] || nl[3] || mtf[0] != pmtf[0] || mtf[1] != pmtf[1] || mtf[2]) {
@@ -2146,10 +2146,10 @@ void TNudyENDF::CheckSEND(const Int_t pmtf[3]) const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckFEND(const Int_t pmtf[3]) const {
+void TNudyENDF::CheckFEND(const int pmtf[3]) const {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
   GetCONT(c, nl, mtf);
   if (c[0] || c[1] || nl[0] || nl[1] || nl[2] || nl[3] || mtf[0] != pmtf[0] || mtf[1] || mtf[2]) {
@@ -2159,10 +2159,10 @@ void TNudyENDF::CheckFEND(const Int_t pmtf[3]) const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckMEND(const Int_t pmtf[3]) const {
+void TNudyENDF::CheckMEND(const int pmtf[3]) const {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
   GetCONT(c, nl, mtf);
   if (c[0] || c[1] || nl[0] || nl[1] || nl[2] || nl[3] || mtf[0] || mtf[1] || mtf[2]) {
@@ -2174,8 +2174,8 @@ void TNudyENDF::CheckMEND(const Int_t pmtf[3]) const {
 //_______________________________________________________________________________
 void TNudyENDF::CheckTEND() const {
   double c[2];
-  Int_t nl[4];
-  Int_t mtf[4];
+  int nl[4];
+  int mtf[4];
 
   GetCONT(c, nl, mtf);
   if (c[0] || c[1] || nl[0] || nl[1] || nl[2] || nl[3] || mtf[0] != -1 || mtf[1] || mtf[2]) {
@@ -2185,7 +2185,7 @@ void TNudyENDF::CheckTEND() const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::DumpENDF(Int_t flags = 1) { fTape->DumpENDF(flags); }
+void TNudyENDF::DumpENDF(int flags = 1) { fTape->DumpENDF(flags); }
 
 //_______________________________________________________________________________
 TNudyENDF::~TNudyENDF() {

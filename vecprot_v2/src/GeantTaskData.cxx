@@ -21,7 +21,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
+GeantTaskData::GeantTaskData(int nthreads, int maxDepth, int maxPerBasket)
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
       fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth), fPath(0), fBmgr(0), fPool(),
       fSOA3Dworkspace1(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)),
@@ -93,10 +93,10 @@ void GeantTaskData::RecycleBasket(GeantBasket *b) {
 }
 
 //______________________________________________________________________________
-Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
+int GeantTaskData::CleanBaskets(size_t ntoclean) {
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;
-  Int_t ncleaned = 0;
+  int ncleaned = 0;
   size_t ntodo = 0;
   if (ntoclean == 0)
     ntodo = fPool.size() / 2;

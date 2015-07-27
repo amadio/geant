@@ -141,7 +141,7 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::double 
   TotalCrossSection(typename Backend::double energy,
-                    typename Backend::Int_t zElement) const;
+                    typename Backend::int zElement) const;
 
   template<class Backend>
   inline
@@ -486,7 +486,7 @@ VECPHYS_CUDA_HEADER_BOTH
 typename Backend::double 
 GUPhotoElectronSauterGavrila::
 TotalCrossSection(typename Backend::double energy,
-                  typename Backend::Int_t  zElement) const
+                  typename Backend::int  zElement) const
 {
   typedef typename Backend::double double;
 
@@ -546,7 +546,7 @@ GetPhotoElectronEnergy(typename Backend::double energy,
 {
   // this method is not vectorizable and only for the scalar backend
 
-  typedef typename Backend::Int_t Int_t;
+  typedef typename Backend::int int;
   typedef typename Backend::double double;
 
   // Photo electron energy
@@ -554,9 +554,9 @@ GetPhotoElectronEnergy(typename Backend::double energy,
 
   // Select atomic shell
   assert (zElement>0 && zElement <101);
-  Int_t nShells = fNumberOfShells[zElement];
+  int nShells = fNumberOfShells[zElement];
 
-  Int_t i = 0;  
+  int i = 0;  
   double bindingEnergy =0;
 
   for( ; i < nShells ; ++i) {

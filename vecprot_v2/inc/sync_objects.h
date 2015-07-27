@@ -27,7 +27,7 @@ class TObject;
 
 /** @struct TimeCounter */
 struct TimeCounter {
-  Int_t nthreads; /** Number of threads */
+  int nthreads; /** Number of threads */
   TStopwatch *timer;
   double stamp;
   double realtime[100];
@@ -68,8 +68,8 @@ private:
   mutable TMutex the_mutex;
   TCondition the_condition_variable;
   TimeCounter *the_counter;
-  Int_t nobjects;
-  Int_t npriority;
+  int nobjects;
+  int npriority;
   
   /**
    * @brief Copy constructor for concurrent queue
@@ -94,7 +94,7 @@ public:
   ~concurrent_queue();
   
   /** @brief Function that assigned workers */
-  Int_t assigned_workers() const { return the_counter->nthreads; }
+  int assigned_workers() const { return the_counter->nthreads; }
 
   /**
    * @brief Push function
@@ -105,10 +105,10 @@ public:
   void push(TObject *data, Bool_t priority = false);
 
   /** @brief Function for sizing */
-  Int_t size() const;
+  int size() const;
 
   /** @brief Asynchronous function for sizing */
-  Int_t size_async() const { return nobjects; }
+  int size_async() const { return nobjects; }
 
   /** @brief Function for empty */
   Bool_t empty() const;
@@ -126,7 +126,7 @@ public:
    * @param n Number of elements
    * @param array Array function
    */
-  TObject *wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array);
+  TObject *wait_and_pop_max(unsigned int nmax, unsigned int &n, TObject **array);
 
   /**
    * @brief Function for pop of many objects
@@ -134,13 +134,13 @@ public:
    * @param n Number of objects
    * @param array Array of objects
    */
-  void pop_many(UInt_t n, TObject **array);
+  void pop_many(unsigned int n, TObject **array);
 
   /** @brief Size of priority objects in queue */
-  Int_t size_priority() const { return npriority; }
+  int size_priority() const { return npriority; }
 
   /** @brief Size of objects in queue */
-  Int_t size_objects() const { return nobjects; }
+  int size_objects() const { return nobjects; }
 
   /** @brief Print function */
   void Print();

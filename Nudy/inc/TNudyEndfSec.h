@@ -35,36 +35,36 @@
 class TNudyEndfSec: public TObject {
 public:
   TNudyEndfSec();
-  TNudyEndfSec(Int_t mat, Int_t mf, Int_t mt, double c1, double c2,
-		Int_t l1, Int_t l2, Int_t n1, Int_t n2);
+  TNudyEndfSec(int mat, int mf, int mt, double c1, double c2,
+		int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfSec();
   const Char_t* GetName() const {return fName;}
   void Add(TNudyEndfRecord *sec) {fRecs->Add(sec);}
   TList* GetRecords(){return fRecs;}
-  void DumpENDF(Int_t flags);
-  TNudyEndfRecord* GetRecord(Int_t recNo);
+  void DumpENDF(int flags);
+  TNudyEndfRecord* GetRecord(int recNo);
 
-  Int_t GetC1() const {return fC1;}
-  Int_t GetC2() const {return fC2;}
-  Int_t GetL1() const {return fL1;}
-  Int_t GetL2() const {return fL2;}
-  Int_t GetN1() const {return fN1;}
-  Int_t GetN2() const {return fN2;}
-  Int_t GetMAT() const {return fMAT;}
-  Int_t GetMT() const {return fMT;}
-  Int_t GetMF() const {return fMF;}
+  int GetC1() const {return fC1;}
+  int GetC2() const {return fC2;}
+  int GetL1() const {return fL1;}
+  int GetL2() const {return fL2;}
+  int GetN1() const {return fN1;}
+  int GetN2() const {return fN2;}
+  int GetMAT() const {return fMAT;}
+  int GetMT() const {return fMT;}
+  int GetMF() const {return fMF;}
 
  private:
   Char_t   fName[12];   // Name of the section
   Short_t  fMAT;        // Mat number
   Short_t  fMF;         // File number
-  Int_t    fMT;         // Section number 
+  int    fMT;         // Section number 
   double fC1;         // C1 of the HEAD record
   double fC2;         // C2 of the HEAD record
-  Int_t    fL1;         // L1 of the HEAD record
-  Int_t    fL2;         // L2 of the HEAD record
-  Int_t    fN1;         // N1 of the HEAD record
-  Int_t    fN2;         // N2 of the HEAD record
+  int    fL1;         // L1 of the HEAD record
+  int    fL2;         // L2 of the HEAD record
+  int    fN1;         // N1 of the HEAD record
+  int    fN2;         // N2 of the HEAD record
 
   TList    *fRecs;       // List of records for this section
 

@@ -91,7 +91,7 @@ public :
    void                 GetHomogenousMatrix(double *hmat) const;
    char                *GetPointerName() const;
 
-   Int_t              GetByteCount() const;
+   int              GetByteCount() const;
    double const    *GetTranslation()    const { return fTranslation; }
    double const    *GetRotationMatrix() const { return fRotationMatrix; }
    inline void MasterToLocal(const double *master, double *local) const

@@ -23,13 +23,13 @@ public:
   using GeantTaskData = Geant::GeantTaskData;
 
   double fCpuTime;       /** CPU time */
-  Int_t fVolId;            /** Volume transporting this generation */
-  Int_t fBasketGeneration; /** Current generation of baskets to be flushed */
-  Int_t fGeneration;       /** Current generation for one basket */
-  Int_t fNtracks;          /** Number of tracks in current generation */
-  Int_t *fEvent;           //[fNtracks] /** Event */
-  Int_t *fInd;             //[fNtracks] /** Track indices */
-  Int_t *fProc;            //[fNtracks] /** Selected processes for each track */
+  int fVolId;            /** Volume transporting this generation */
+  int fBasketGeneration; /** Current generation of baskets to be flushed */
+  int fGeneration;       /** Current generation for one basket */
+  int fNtracks;          /** Number of tracks in current generation */
+  int *fEvent;           //[fNtracks] /** Event */
+  int *fInd;             //[fNtracks] /** Track indices */
+  int *fProc;            //[fNtracks] /** Selected processes for each track */
   double *fX;            //[fNtracks] /** X positions */
   double *fY;            //[fNtracks] /** Y positions */
   double *fZ;            //[fNtracks] /** Z positions */
@@ -74,7 +74,7 @@ public:
    * 
    * @param size Size of output
    */
-  void Init(Int_t size);
+  void Init(int size);
 
   /** @brief Reset function */
   void Reset();
@@ -88,7 +88,7 @@ public:
    * @param ntracks Number of tracks
    * @param cputime CPU time (by default 0)
    */
-  void SetStamp(Int_t volId, Int_t basket_gen, Int_t generation, Int_t ntracks,
+  void SetStamp(int volId, int basket_gen, int generation, int ntracks,
                 double cputime = 0.) {
     fVolId = volId;
     fBasketGeneration = basket_gen;
@@ -116,7 +116,7 @@ public:
    * @param snext Next safety distance
    * @param safety Safety distance
    */
-  void SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc, double x, double y,
+  void SetTrack(int ntrack, int itrack, int event, int proc, double x, double y,
                 double z, double px, double py, double pz, double e, double pstep,
                 double step, double snext, double safety);
   
@@ -126,7 +126,7 @@ public:
    * @param ntrack Number of tracks
    * @param track Track to be setted
    */
-  void SetTrack(Int_t ntrack, GeantTrack *track);
+  void SetTrack(int ntrack, GeantTrack *track);
 
   ClassDef(GeantOutput, 1) // The transport output per generation
 };

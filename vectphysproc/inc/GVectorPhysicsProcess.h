@@ -29,45 +29,45 @@ public:
 
   virtual void Initialize();
   virtual void PostStepFinalStateSampling( Material_t* /*mat*/,
-                                           Int_t ntracks, 
+                                           int ntracks, 
                                            GeantTrack_v &tracks,
-                                           Int_t &nout, 
-                                           Int_t tid);
+                                           int &nout, 
+                                           int tid);
 
   // these are not active !!! 
   //
   virtual void ComputeIntLen(Material_t * /*mat*/,
-                             Int_t /*ntracks*/, 
+                             int /*ntracks*/, 
                              GeantTrack_v & /*tracks*/,
                              double * /*lengths*/, 
-                             Int_t /*tid*/)                            {}
+                             int /*tid*/)                            {}
   
   virtual void PostStep(     Material_t * /*mat*/,
-                             Int_t /*ntracks*/,
+                             int /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
-                             Int_t & /*nout*/, 
-                             Int_t /*tid*/)                            {}         
+                             int & /*nout*/, 
+                             int /*tid*/)                            {}         
 
   virtual void PostStepTypeOfIntrActSampling(     Material_t * /*mat*/,
-                                                  Int_t /*ntracks*/,
+                                                  int /*ntracks*/,
                                                   GeantTrack_v & /*tracks*/, 
-                                                  Int_t /*tid*/)       {} 
+                                                  int /*tid*/)       {} 
 
-  virtual void AtRest(       Int_t /*ntracks*/,
+  virtual void AtRest(       int /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
-                             Int_t &/*nout*/, 
-                             Int_t /*tid*/)                             {}
+                             int &/*nout*/, 
+                             int /*tid*/)                             {}
 
   virtual void Eloss(        Material_t */*mat*/,
-                             Int_t /*ntracks*/,
+                             int /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
-                             Int_t &/*nout*/,
-                             Int_t /*tid*/)                             {}
+                             int &/*nout*/,
+                             int /*tid*/)                             {}
 
   virtual void ApplyMsc(     Material_t */*mat*/,
-                             Int_t /*ntracks*/,
+                             int /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
-                             Int_t /*tid*/)                             {}
+                             int /*tid*/)                             {}
 
 private:
    GVectorPhysicsProcess (const GVectorPhysicsProcess  &);//no imp.	

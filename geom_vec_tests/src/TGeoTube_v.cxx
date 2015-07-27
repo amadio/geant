@@ -4,7 +4,7 @@
 
 #ifndef VEC_EXTENSIONS
 //_____________________________________________________________________________                                                                                                     
-void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t np) const
+void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -14,7 +14,7 @@ void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
 }
 #else
 // PUT VC CODE OR THE LIKE HERE
-void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t np) const
+void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -27,7 +27,7 @@ void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t 
 
 //_____________________________________________________________________________
 
-void TGeoTube_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safety, Int_t np ) const
+void TGeoTube_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safety, int np ) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -37,7 +37,7 @@ void TGeoTube_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safe
 }
 
 //_____________________________________________________________________________                                                                                                     
-void TGeoTube_v::DistFromInside_v(const StructOfCoord & pointi, const StructOfCoord & diri, Int_t /*iact*/,const double * step, double * /*safe*/, double * distance , Int_t np) const
+void TGeoTube_v::DistFromInside_v(const StructOfCoord & pointi, const StructOfCoord & diri, int /*iact*/,const double * step, double * /*safe*/, double * distance , int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -50,7 +50,7 @@ void TGeoTube_v::DistFromInside_v(const StructOfCoord & pointi, const StructOfCo
 
 //_____________________________________________________________________________                                                                                                    
 
-void TGeoTube_v::DistFromOutside_v(const StructOfCoord & pointi, const StructOfCoord & diri, Int_t /*iact*/, const  double * step, double * /*safe*/, double * distance , Int_t np) const
+void TGeoTube_v::DistFromOutside_v(const StructOfCoord & pointi, const StructOfCoord & diri, int /*iact*/, const  double * step, double * /*safe*/, double * distance , int np) const
 {
     for(unsigned int i = 0; i < np; i++)
     {
@@ -64,7 +64,7 @@ void TGeoTube_v::DistFromOutside_v(const StructOfCoord & pointi, const StructOfC
 
 
 //_____________________________________________________________________________                                                                                                     
-void TGeoTubeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int_t np) const
+void TGeoTubeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -75,7 +75,7 @@ void TGeoTubeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, Int
 
 //_____________________________________________________________________________
 
-void TGeoTubeSeg_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safety, Int_t np ) const
+void TGeoTubeSeg_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safety, int np ) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -85,7 +85,7 @@ void TGeoTubeSeg_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * s
 
 }
 //_____________________________________________________________________________                                                                                                     
-void TGeoTubeSeg_v::DistFromInside_v(const StructOfCoord & pointi, const StructOfCoord & diri, Int_t /*iact*/,const double * step, double * /*safe*/, double * distance , Int_t np) const
+void TGeoTubeSeg_v::DistFromInside_v(const StructOfCoord & pointi, const StructOfCoord & diri, int /*iact*/,const double * step, double * /*safe*/, double * distance , int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -98,7 +98,7 @@ void TGeoTubeSeg_v::DistFromInside_v(const StructOfCoord & pointi, const StructO
 
 //_____________________________________________________________________________                                                                                                    
 
-void TGeoTubeSeg_v::DistFromOutside_v(const StructOfCoord & pointi, const StructOfCoord & diri, Int_t /*iact*/, const  double * step, double * /*safe*/, double * distance , Int_t np) const
+void TGeoTubeSeg_v::DistFromOutside_v(const StructOfCoord & pointi, const StructOfCoord & diri, int /*iact*/, const  double * step, double * /*safe*/, double * distance , int np) const
 {
     for(unsigned int i = 0; i < np; i++)
     {

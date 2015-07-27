@@ -54,7 +54,7 @@ main(int argc, char *argv[]) {
     double *points = new double[3 * npoints];
     double *dir = new double[3 * npoints];
 
-    Int_t *iact = new Int_t[npoints];
+    int *iact = new int[npoints];
     double *step = new double[npoints];
     double *safe = new double[npoints];
 

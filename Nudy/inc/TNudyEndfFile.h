@@ -35,23 +35,23 @@
 class TNudyEndfFile: public TObject {
 public:
   TNudyEndfFile();
-  TNudyEndfFile(Int_t mat, Int_t mf);
+  TNudyEndfFile(int mat, int mf);
   virtual ~TNudyEndfFile();
 
   const Char_t* GetName()   const {return fName;}
-  Int_t         GetMAT()    const {return fMAT;}
-  Int_t         GetMF()     const {return fMF;}
+  int         GetMAT()    const {return fMAT;}
+  int         GetMF()     const {return fMF;}
   void Add(TNudyEndfSec *sec) {fSecs->Add(sec);}
   
   //TList    fMF;         //! List of the files of this material
 
-  void DumpENDF(Int_t flags);
-  TNudyEndfSec* GetSec(Int_t MT);
+  void DumpENDF(int flags);
+  TNudyEndfSec* GetSec(int MT);
   TList* GetSections(){return fSecs;}
 private:
   Char_t   fName[9];    // File Name
-  Int_t    fMAT;        // MAT number
-  Int_t    fMF;         // MF number
+  int    fMAT;        // MAT number
+  int    fMF;         // MF number
 
   TList    *fSecs;         // List of the sections of this file
 

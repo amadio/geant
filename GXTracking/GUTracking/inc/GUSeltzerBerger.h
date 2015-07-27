@@ -65,7 +65,7 @@ public:
   // ----------------------------------------------------------------
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void SampleByCompositionRejection(typename Backend::Int_t     elementZ,
+  void SampleByCompositionRejection(typename Backend::int     elementZ,
                                     typename Backend::double  energyIn,
                                     typename Backend::double& energyOut,
                                     typename Backend::double& sinTheta);
@@ -295,7 +295,7 @@ SampleSinTheta(typename Backend::double energyIn) const
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUSeltzerBerger::
-SampleByCompositionRejection(typename Backend::Int_t     elementZ,
+SampleByCompositionRejection(typename Backend::int     elementZ,
 			     typename Backend::double  energyIn,
 			     typename Backend::double& energyOut,
 			     typename Backend::double& sinTheta)

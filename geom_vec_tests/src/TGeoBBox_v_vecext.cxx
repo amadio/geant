@@ -13,7 +13,7 @@ static const vli4 oneli4 = {1, 1, 1, 1};
 // // this is the actual kernel doing the computation with possibility of early return
 // void TGeoBBox_v::DistFromOutside_VECEXT(StructOfCoord const & point, StructOfCoord const & dir,
 //                          double dx, double dy, double dz, const double *origin, const double * stepmax,
-//                          double * distance, Int_t np)
+//                          double * distance, int np)
 // {
 //   // note: we take stepmax as a maxstep PER particle
 //   // ALIGNMENTSTUFF HERE (TODO: should be generated automatically, MACRO? )
@@ -89,7 +89,7 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 // void TGeoBBox_v::DistFromOutside_v(const StructOfCoord & __restrict__  point,const StructOfCoord & __restrict__ dir,
 // 				     double dx, double dy, double dz, const double * __restrict__ origin, const
 // double
-// * __restrict__ stepmax, double * __restrict__ distance, Int_t np)
+// * __restrict__ stepmax, double * __restrict__ distance, int np)
 // {
 
 //   double par[3];
@@ -130,7 +130,7 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 //        double snxt[3]={TGeoShape::Big(),TGeoShape::Big(),TGeoShape::Big()};
 
 //        /*
-//        Int_t ibreak=0;
+//        int ibreak=0;
 //        for (i=0; i<3; i++) {
 // 	 if (saf[i]<0) continue;
 // 	 if (newpt[i]*dir[i] >= 0) continue;
@@ -151,7 +151,7 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 //        // THE FOLLOWING IS AN UNROLLED VERSION OF ABOVE CONSTRUCT WITHOUT EARLY RETURNS
 
 //        // i=0
-//        Int_t hit0=0;
+//        int hit0=0;
 //        if ( saf[0] > 0 & newpt[0]*d[0][k] < 0 ) // if out and right direction
 // 	 {
 // 	   snxt[0] = saf[0]/fabs(d[0][k]); // distance to y-z face
@@ -161,7 +161,7 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 // 	   hit0 = (fabs(coord1)>par[1] | fabs(coord2)>par[2])? 0 : 1; // 0 means miss, 1 means hit
 // 	 }
 
-//        Int_t hit1=0;
+//        int hit1=0;
 //        if ( saf[1] > 0 & newpt[1]*d[1][k] < 0 )
 // 	 {
 // 	   snxt[1] = saf[1]/fabs(d[1][k]);
@@ -171,7 +171,7 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 // 	   hit1 = (fabs(coord0)>par[0] | fabs(coord2)>par[2])? 0 : 1;
 // 	 }
 
-//        Int_t hit2=0;
+//        int hit2=0;
 //        if ( saf[2] > 0 & newpt[2]*d[2][k] < 0 )
 // 	 {
 // 	   snxt[2] = saf[2]/fabs(d[2][k]);

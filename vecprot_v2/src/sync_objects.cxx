@@ -70,9 +70,9 @@ void TimeCounter::Print() {
   if (!timer)
     return;
   timer->Stop();
-  Int_t npoints = 0;
+  int npoints = 0;
   double sum = 0.;
-  Int_t i;
+  int i;
   for (i = 0; i < 100; i++) {
     if (realtime[i] < 0.00001)
       continue;
@@ -144,9 +144,9 @@ Bool_t concurrent_queue::empty() const {
 }
 
 //______________________________________________________________________________
-Int_t concurrent_queue::size() const {
+int concurrent_queue::size() const {
   the_mutex.Lock();
-  Int_t the_size = the_queue.size();
+  int the_size = the_queue.size();
   the_mutex.UnLock();
   return the_size;
 }
@@ -172,7 +172,7 @@ TObject *concurrent_queue::wait_and_pop() {
 }
 
 //______________________________________________________________________________
-TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array) {
+TObject *concurrent_queue::wait_and_pop_max(unsigned int nmax, unsigned int &n, TObject **array) {
   // Pop many objects in one go, maximum nmax. Will return the number of requested
   // objects, or the number available. The wait time for the client is minimal (at
   // least one object in the queue).
@@ -183,7 +183,7 @@ TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **ar
   n = the_queue.size();
   if (n > nmax)
     n = nmax;
-  UInt_t npopped = 0;
+  unsigned int npopped = 0;
   while (npopped < n) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();
@@ -196,14 +196,14 @@ TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **ar
 }
 
 //______________________________________________________________________________
-void concurrent_queue::pop_many(UInt_t n, TObject **array) {
+void concurrent_queue::pop_many(unsigned int n, TObject **array) {
   // Pop many objects in one go. Will keep the asking thread waiting until there
   // are enough objects in the queue.
   the_mutex.Lock();
   while (the_queue.size() < n) {
     the_condition_variable.Wait();
   }
-  UInt_t npopped = 0;
+  unsigned int npopped = 0;
   while (npopped < n) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();

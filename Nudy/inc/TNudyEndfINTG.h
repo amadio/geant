@@ -9,23 +9,23 @@ class TNudyEndfINTG: public TNudyEndfCont {
  public:
 
   TNudyEndfINTG();
-  TNudyEndfINTG(Int_t nrow, Int_t ndigit); 
-  Int_t* GetKIJ() {return fKIJ;}
-  Int_t GetNdigit(){return fNdigit;}
-  void SetIJ(Int_t ij[2]){fII = ij[0]; fJJ = ij[1];}
-  void SetNrow(Int_t nrow) { fNrow = nrow;}
-  void SetNdigit(Int_t ndigit){ fNdigit = ndigit;}
-  void SetKIJ(Int_t kij[18]);
-  void DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns, Int_t flags);
+  TNudyEndfINTG(int nrow, int ndigit); 
+  int* GetKIJ() {return fKIJ;}
+  int GetNdigit(){return fNdigit;}
+  void SetIJ(int ij[2]){fII = ij[0]; fJJ = ij[1];}
+  void SetNrow(int nrow) { fNrow = nrow;}
+  void SetNdigit(int ndigit){ fNdigit = ndigit;}
+  void SetKIJ(int kij[18]);
+  void DumpENDF(int mat, int mf, int mt, int& ns, int flags);
 
 
  private:
 
-  Int_t fKIJ[18]; 
-  Int_t fNrow;
-  Int_t fNdigit;
-  Int_t fII;
-  Int_t fJJ;
+  int fKIJ[18]; 
+  int fNrow;
+  int fNdigit;
+  int fII;
+  int fJJ;
   ClassDef(TNudyEndfINTG,1)
 
 };

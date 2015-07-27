@@ -877,8 +877,8 @@ int main(int argc, char **argv) {
       //      Vector<TEXsec*> allElements;
       TEXsec *mxsec = 0;
       TEFstate *mfstate = 0;
-      Int_t totfs = 0;
-      Int_t curfs = 0;
+      int totfs = 0;
+      int curfs = 0;
       TFinState *vecfs = 0;
 
       // TFinState rcaptfs[np];
@@ -1579,7 +1579,7 @@ void DefineParticles() {
   /// Add special particles with standard PDG = 0 to TDatabasePDG
   /// and map them to G4 particles objects.
 
-  const Int_t kspe = 50000000;
+  const int kspe = 50000000;
   TDatabasePDG *pdgDB = TDatabasePDG::Instance();
 
   // optical phothon

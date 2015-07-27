@@ -29,7 +29,7 @@ ClassImp(StdApplication)
 }
 
 //______________________________________________________________________________
-double *StdApplication::MakeUniformLogArray(Int_t nbins, double lmin, double lmax) {
+double *StdApplication::MakeUniformLogArray(int nbins, double lmin, double lmax) {
   // Create and fill a log scale bin limits array with nbins between lmin and lmax
   // To be passed to TH1D constructor. User responsability to delete.
   const double l10 = log(10.);
@@ -59,7 +59,7 @@ Bool_t StdApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void StdApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData * /*td*/) {
+void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData * /*td*/) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   static GeantPropagator *propagator = GeantPropagator::Instance();
@@ -68,7 +68,7 @@ void StdApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   double theta, eta;
-  for (Int_t itr = 0; itr < npart; itr++) {
+  for (int itr = 0; itr < npart; itr++) {
     if (tracks.fZdirV[itr] == 1)
       eta = 1.E30;
     else {
@@ -90,7 +90,7 @@ void StdApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
 }
 
 //______________________________________________________________________________
-void StdApplication::Digitize(Int_t /* event */) {
+void StdApplication::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
 }

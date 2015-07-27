@@ -4,7 +4,7 @@
 // Number of threads should be specified one less then desired for consistency
 // There are no more separate thread manager which was added before
 // Simply nthreads+1 are occupied
-void run(Int_t nthreads = 15, Bool_t graphics = kTRUE, const char *geomfile = "../geometry/cms.root") {
+void run(int nthreads = 15, Bool_t graphics = kTRUE, const char *geomfile = "../geometry/cms.root") {
   GeantMainPropagator *mainprop = GeantMainPropagator::Instance();
 
   // For your info. Originally min_feeder was

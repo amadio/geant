@@ -64,8 +64,8 @@ TNudyEndfMat::TNudyEndfMat() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfMat::TNudyEndfMat(Int_t mat, Int_t za, double awr, 
-			   Char_t lrp, Bool_t lfi, Int_t nlib, Int_t nmod) :
+TNudyEndfMat::TNudyEndfMat(int mat, int za, double awr, 
+			   Char_t lrp, Bool_t lfi, int nlib, int nmod) :
   fMAT(mat),
   fZA(za),
   fAWR(awr),
@@ -137,7 +137,7 @@ TNudyEndfMat::~TNudyEndfMat()
 }
 
 //_______________________________________________________________________________
-const Char_t* TNudyEndfMat::GetDesc(Int_t i) const
+const Char_t* TNudyEndfMat::GetDesc(int i) const
 {
   if(i<0 || i>=fNWDm5) {
     //Error("GetDesc","index %d out of bounds [%d,%d]",0,fNWDm5);
@@ -147,14 +147,14 @@ const Char_t* TNudyEndfMat::GetDesc(Int_t i) const
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::SetDesc(const Char_t *desc, Int_t i) 
+void TNudyEndfMat::SetDesc(const Char_t *desc, int i) 
 {
   if(!fDesc) fDesc=new TString[fNWDm5];
   fDesc[i]=desc;
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::SetNXC(Int_t nxc)  
+void TNudyEndfMat::SetNXC(int nxc)  
 {
   fNXC = nxc;
   if(fMFn)  delete [] fMFn;
@@ -162,17 +162,17 @@ void TNudyEndfMat::SetNXC(Int_t nxc)
   if(fNCn)  delete [] fNCn;
   if(fMODn) delete [] fMODn;
 
-  fMFn =  new Int_t[fNXC];
-  fMTn =  new Int_t[fNXC];
-  fNCn =  new Int_t[fNXC];
-  fMODn = new Int_t[fNXC];
+  fMFn =  new int[fNXC];
+  fMTn =  new int[fNXC];
+  fNCn =  new int[fNXC];
+  fMODn = new int[fNXC];
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::DumpENDF(Int_t flags = 1)
+void TNudyEndfMat::DumpENDF(int flags = 1)
 {
-	Int_t ns = 1;
-	Int_t i=0;
+	int ns = 1;
+	int i=0;
 	//Dump what was read into this classi(file 1 mt 451)
 	Char_t s1[14],s2[14];
 	TNudyEndfCont::F2F(fZA,s1);
@@ -270,15 +270,15 @@ void TNudyEndfMat::DumpENDF(Int_t flags = 1)
 }
 
 //_______________________________________________________________________________
-TNudyEndfFile* TNudyEndfMat::GetFile(Int_t MF)
+TNudyEndfFile* TNudyEndfMat::GetFile(int MF)
 {
-	for(Int_t i=0;i<=this->fFiles->LastIndex();i++)
+	for(int i=0;i<=this->fFiles->LastIndex();i++)
 	{
 		TNudyEndfFile *thisFile = (TNudyEndfFile*)this->fFiles->At(i);
 		if(thisFile->GetMF()==MF)
 			return thisFile;
 	}
-	Error("TNudyEndfMat::GetFile(Int_t)","Could not find file %d on tape",MF);
+	Error("TNudyEndfMat::GetFile(int)","Could not find file %d on tape",MF);
 	return NULL;
 }
 
@@ -293,13 +293,13 @@ void TNudyEndfMat::Print(Option_t *op) const
     if(sop.Contains("F")) {
       std::cout << std::setprecision(4) << std::scientific << std::setfill(' ') 
 	   << std::setw(11) << double(fZA) << std::setw(11) << fAWR 
-	   << std::setw(11) << Int_t(fLRP)   << std::setw(11) << Int_t(!fLFI) 
+	   << std::setw(11) << int(fLRP)   << std::setw(11) << int(!fLFI) 
 	   << std::setw(11) << fNLIB         << std::setw(11) << fNMOD 
 	   << std::endl;
 
       std::cout << std::setprecision(4) << std::scientific << std::setfill(' ') 
 	   << std::setw(11) << fELIS         << std::setw(11) << double(fSTA==0)
-	   << std::setw(11) << Int_t(fLIS)   << std::setw(11) << Int_t(fLISO) 
+	   << std::setw(11) << int(fLIS)   << std::setw(11) << int(fLISO) 
 	   << std::setw(11) << 0             << std::setw(11) << fNFOR
 	   << std::endl;
 
@@ -324,10 +324,10 @@ void TNudyEndfMat::Print(Option_t *op) const
 	   << "-----"  << fHSUB[1] << std::endl 
 	   << "------" << fHSUB[2] << std::endl;
 
-      for(Int_t i=0; i<fNWDm5; ++i)
+      for(int i=0; i<fNWDm5; ++i)
 	std::cout << fDesc[i] << std::endl;
 
-      for(Int_t i=0; i<fNXC; ++i)
+      for(int i=0; i<fNXC; ++i)
 	std::cout << std::setw(33) << fMFn[i] << std::setw(11) << fMTn[i]
 	     << std::setw(11) << fNCn[i] << std::setw(11) << fMODn[i] << std::endl;
     }

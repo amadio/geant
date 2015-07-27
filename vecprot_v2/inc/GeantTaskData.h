@@ -41,11 +41,11 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
-  Int_t fTid;            /** Thread unique id */
-  Int_t fNthreads;       /** Number of transport threads */
-  Int_t fMaxDepth;       /** Maximum geometry depth */
-  Int_t fSizeBool;       /** Size of bool array */
-  Int_t fSizeDbl;        /** Size of dbl array */
+  int fTid;            /** Thread unique id */
+  int fNthreads;       /** Number of transport threads */
+  int fMaxDepth;       /** Maximum geometry depth */
+  int fSizeBool;       /** Size of bool array */
+  int fSizeDbl;        /** Size of dbl array */
   Bool_t fToClean;       /** Flag set when the basket queue is to be cleaned */
   Volume_t *fVolume;     /** Current volume per thread */
   TRandom *fRndm;        /** Random generator for thread */
@@ -80,7 +80,7 @@ public:
 
   /** @brief GeantTaskData constructor */
   GEANT_CUDA_DEVICE_CODE
-  GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
+  GeantTaskData(int nthreads, int maxDepth, int maxPerBasket);
 
   /** @brief GeantTaskData destructor */
   GEANT_CUDA_DEVICE_CODE
@@ -91,7 +91,7 @@ public:
    *
    * @param size Size of double array
    */
-  double *GetDblArray(Int_t size) {
+  double *GetDblArray(int size) {
     CheckSizeAndAlloc<double>(fDblArray, fSizeDbl, size);
     return fDblArray;
   }
@@ -101,7 +101,7 @@ public:
    *
    * @param size Size of boolean array
    */
-  Bool_t *GetBoolArray(Int_t size) {
+  Bool_t *GetBoolArray(int size) {
     CheckSizeAndAlloc<Bool_t>(fBoolArray, fSizeBool, size);
     return fBoolArray;
   }
@@ -111,7 +111,7 @@ public:
    *
    * @param size Size of int array
    */
-  int *GetIntArray(Int_t size) {
+  int *GetIntArray(int size) {
     CheckSizeAndAlloc<int>(fIntArray, fSizeInt, size);
     return fIntArray;
   }
@@ -185,7 +185,7 @@ public:
    * @param ntoclean Number of baskets to be cleaned
    * @return Number of baskets actually cleaned
    */
-  Int_t CleanBaskets(size_t ntoclean);
+  int CleanBaskets(size_t ntoclean);
 
 private:
   /**

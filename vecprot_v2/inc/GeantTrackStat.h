@@ -34,9 +34,9 @@ public:
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
 
-  Int_t fNslots;   /** Number of event slots */
-  Int_t *fNtracks; /** [fNslots] Number of tracks from an event */
-  Int_t *fNsteps;  /**[fNslots] Cumulated number of steps per event */
+  int fNslots;   /** Number of event slots */
+  int *fNtracks; /** [fNslots] Number of tracks from an event */
+  int *fNsteps;  /**[fNslots] Cumulated number of steps per event */
   TMutex fMutex;   /** Mutex */
 
 private:
@@ -63,7 +63,7 @@ public:
    * 
    * @param nslots Number of event slots
    */
-  GeantTrackStat(Int_t nslots);
+  GeantTrackStat(int nslots);
 
   /** @brief GeantTrackStat destructor */
   virtual ~GeantTrackStat();
@@ -95,7 +95,7 @@ public:
    * @param trackv Track that should be added
    * @param itr Track ID ?????
    */
-  void AddTrack(const GeantTrack_v &trackv, Int_t itr);
+  void AddTrack(const GeantTrack_v &trackv, int itr);
 
   /**
    * @brief Function that add tracks from track_v array
@@ -116,7 +116,7 @@ public:
    * 
    * @param nslots Number of event slots
    */
-  void InitArrays(Int_t nslots);
+  void InitArrays(int nslots);
 
   /** @brief Print function */
   void Print(Option_t *option = "") const;

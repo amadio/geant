@@ -21,7 +21,7 @@ ClassImp(GeantVolumeBasket)
     const double gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
-GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol, Int_t number) : TObject(), fVolume(vol), fNumber(number) {
+GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol, int number) : TObject(), fVolume(vol), fNumber(number) {
   // Constructor
 }
 
@@ -31,15 +31,15 @@ GeantVolumeBasket::~GeantVolumeBasket() {
 }
 
 //______________________________________________________________________________
-void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin) {
+void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
   // Computes snext and safety for an array of tracks. This is the transportation
   // process. Tracks are assumed to be inside gVolume.
 
   GeantPropagator *gPropagator = GeantPropagator::Instance();
 
-  static Int_t icalls = 0;
+  static int icalls = 0;
   double pdir[3];
-  Int_t itr;
+  int itr;
   Bool_t isOnBoundary = kFALSE;
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 
@@ -106,8 +106,8 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin) {
 }
 
 //______________________________________________________________________________
-void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout, Int_t &ntodo,
-                                        Int_t *tracktodo, Int_t &ncross, Int_t *trackcross) {
+void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, int *trackout, int &ntodo,
+                                        int *tracktodo, int &ncross, int *trackcross) {
   // Propagate the ntracks with their selected steps. If a boundary is
   // found in the way, the track is stopped. Nout must be initialized from outside.
   //     trackin = array of <ntracks> input tracks
@@ -132,7 +132,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
 
   GeantVolumeBasket *basket = 0;
   //   Printf("===== PropagateTracks: ntracks=%d nout=%d", ntracks, nout);
-  for (Int_t itr = 0; itr < ntracks; itr++) {
+  for (int itr = 0; itr < ntracks; itr++) {
     track = gPropagator->fTracks[trackin[itr]];
     // Skip neutral tracks for the time being (!!!)
     if (!track->IsAlive())
@@ -271,10 +271,10 @@ void GeantVolumeBasket::Print(Option_t *) const {
   // Print info about the basket content.
 }
 
-void GeantVolumeBasket::ResetStep(Int_t ntracks, Int_t *array) {
+void GeantVolumeBasket::ResetStep(int ntracks, int *array) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   // Reset current step for a list of tracks.
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     GeantTrack *track = gPropagator->fTracks[array[i]];
     track->step = 0.;
   }

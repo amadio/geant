@@ -20,7 +20,7 @@ using vecgeom::kTwoPi;
 const double gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
-GeantTrack::GeantTrack(Int_t ipdg)
+GeantTrack::GeantTrack(int ipdg)
     : event(-1), evslot(-1), particle(-1), pdg(ipdg), species(kHadron), status(kAlive), charge(0), mass(0), process(-1),
       xpos(0), ypos(0), zpos(0), px(0), py(0), pz(0), e(0), pstep(1.E20), step(0), snext(0), safety(0), frombdr(false),
       izero(0), nsteps(0), path(0), nextpath(0), pending(false) {
@@ -131,7 +131,7 @@ void GeantTrack::Direction(double dir[3]) {
 }
 
 //______________________________________________________________________________
-void GeantTrack::Print(Int_t) const {
+void GeantTrack::Print(int) const {
   TString spath;
   //   if (path) path->GetPath(spath);
   Printf("=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%g E:%g snext=%g "
@@ -141,7 +141,7 @@ void GeantTrack::Print(Int_t) const {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, Int_t itr) {
+GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, int itr) {
   // Propagate along a straight line for neutral particles, for B=0 or for last tiny step.
   // The method adds the particle to the next volume basket.
   // Returns the basket pointer, null if exiting geometry.
@@ -163,7 +163,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, Int_t itr) {
     std::cerr << "[PropagateStraight] Added navigator" << std::endl;
   }
 
-  /*Int_t tid = nav->GetThreadId();*/
+  /*int tid = nav->GetThreadId();*/
   // Particle crossed?
   if (frombdr)
     nextpath->UpdateNavigator(nav);
@@ -192,7 +192,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, Int_t itr) {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcross, Int_t itr) {
+GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcross, int itr) {
   // Propagate with step using the helix propagator. Returns a basket if a
   // boundary was crossed. In such case, the track position and step will reflect
   // the boundary crossing point.
@@ -200,7 +200,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcros
   PerThread::reference TBBperThread = gPropagator->fTBBthreadData.local();
 
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  /*Int_t tid = nav->GetThreadId();*/
+  /*int tid = nav->GetThreadId();*/
 
   if (!nav) {
     nav = gGeoManager->AddNavigator();
@@ -208,7 +208,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcros
   }
 
   Bool_t useDebug = gPropagator->fUseDebug;
-  Int_t debugTrk = gPropagator->fDebugTrk;
+  int debugTrk = gPropagator->fDebugTrk;
   nav->ResetState();
   if (checkcross) {
     path->UpdateNavigator(nav);
@@ -278,12 +278,12 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcros
   dir[0] = -newdir[0];
   dir[1] = -newdir[1];
   dir[2] = -newdir[2];
-  Int_t level = nav->GetLevel();
+  int level = nav->GetLevel();
   Bool_t entering = kTRUE;
   TGeoNode *node1 = 0;
   TGeoNode *node2 = 0;
   if (level < path->GetLevel() && !outside) {
-    for (Int_t lev = 0; lev <= level; lev++) {
+    for (int lev = 0; lev <= level; lev++) {
       node1 = nav->GetMother(level - lev);
       node2 = path->GetNode(lev);
       if (node1 == node2) {

@@ -24,7 +24,7 @@
 #endif
 
 int main() {
-  Int_t nthreads = 15;
+  int nthreads = 15;
   const char *geomfile = "ExN03.root";
   const char *xsec = "xsec_FTFP_BERT.root";
   const char *fstate = "fstate_FTFP_BERT.root";
@@ -36,8 +36,8 @@ int main() {
   Bool_t performance = true;
   double vt[3] = {-8, 0, 0};
 
-  Int_t ntotal = 50;    // Number of events to be transported
-  Int_t nbuffered = 10; // Number of buffered events (tunable [1,ntotal])
+  int ntotal = 50;    // Number of events to be transported
+  int nbuffered = 10; // Number of buffered events (tunable [1,ntotal])
   TGeoManager::Import(geomfile);
 
   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);

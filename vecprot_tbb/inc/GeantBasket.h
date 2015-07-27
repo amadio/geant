@@ -15,24 +15,24 @@ class GeantMainScheduler;
 //______________________________________________________________________________
 class GeantBasket : public TObject {
 protected:
-   Int_t             fNtracks;               // Number of tracks
-   Int_t             fMaxTracks;             // Max number of tracks
-   Int_t            *fIndex;                 //[fNtracks] Track indices in the global stack
+   int             fNtracks;               // Number of tracks
+   int             fMaxTracks;             // Max number of tracks
+   int            *fIndex;                 //[fNtracks] Track indices in the global stack
    // have to change it to hold local tracks
 
 public:
    GeantBasket();
-   GeantBasket(Int_t maxtracks);
+   GeantBasket(int maxtracks);
    virtual ~GeantBasket();
 
-   void              AddTrack(Int_t itrack);
-   void              AddTracks(const Int_t *array, Int_t ntracks);
+   void              AddTrack(int itrack);
+   void              AddTracks(const int *array, int ntracks);
    virtual void      Clear(Option_t *option="");
-   Bool_t            Contains(Int_t event) const;
-   Int_t             GetNtracks() const {return fNtracks;}
-   Int_t            *GetTracks() const {return fIndex;}
+   Bool_t            Contains(int event) const;
+   int             GetNtracks() const {return fNtracks;}
+   int            *GetTracks() const {return fIndex;}
    virtual void      Print(Option_t *option="") const;
-   void              Resize(Int_t newSize);
+   void              Resize(int newSize);
 
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
 };
@@ -47,22 +47,22 @@ class GeantVolumeBasket;
 //______________________________________________________________________________
 class GeantTrackCollection : public TObject {
 protected:
-   Int_t               fNtracks;              // Number of crossing tracks
-   Int_t               fSize;                 // Size of the arrays > fNtracks
-   Int_t              *fTracks;               //! Indices of crossing tracks
+   int               fNtracks;              // Number of crossing tracks
+   int               fSize;                 // Size of the arrays > fNtracks
+   int              *fTracks;               //! Indices of crossing tracks
    GeantVolumeBasket **fBaskets;              //! Volume basket to which the track goes
 
 public:
    GeantTrackCollection();
-   GeantTrackCollection(Int_t size);
+   GeantTrackCollection(int size);
    virtual ~GeantTrackCollection();
 
    GeantTrackCollection& operator=(const GeantTrackCollection& other);
 
-   Int_t               AddTrack(Int_t itrack, GeantVolumeBasket *basket);
+   int               AddTrack(int itrack, GeantVolumeBasket *basket);
    virtual void        Clear(Option_t *option="");
-   Int_t               GetNtracks() const {return fNtracks;}
-   void               FlushTracks(GeantMainScheduler *main, Int_t* pushedN, Int_t* pushedP);
+   int               GetNtracks() const {return fNtracks;}
+   void               FlushTracks(GeantMainScheduler *main, int* pushedN, int* pushedP);
    virtual void        Print(Option_t *option="") const;
 
    ClassDef(GeantTrackCollection, 1)     // Track collection per thread

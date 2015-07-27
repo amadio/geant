@@ -26,10 +26,10 @@ TNudyEndfTab2::TNudyEndfTab2() :
 
 //_______________________________________________________________________________
 TNudyEndfTab2::TNudyEndfTab2(double c1, double c2,
-			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
+			     int l1, int l2, int n1, int n2) :
   TNudyEndfCont(c1, c2, l1, l2, n1, n2),
-  fNBT(new Int_t[n1]),
-  fINT(new Int_t[n1])
+  fNBT(new int[n1]),
+  fINT(new int[n1])
 {
   //
   // Standard constructor
@@ -46,16 +46,16 @@ TNudyEndfTab2::~TNudyEndfTab2()
 
 //_______________________________________________________________________________
 void TNudyEndfTab2::SetCont(double c1, double c2,
-			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
+			    int l1, int l2, int n1, int n2)
 {
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
   delete [] fNBT;
   delete [] fINT;
-  fNBT=new Int_t[n1];
-  fINT=new Int_t[n1];
+  fNBT=new int[n1];
+  fINT=new int[n1];
 }
 
-void TNudyEndfTab2::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flags = 1)
+void TNudyEndfTab2::DumpENDF(int mat, int mf, int mt, int& ns,int flags = 1)
 {
   //Print Tab2 CONT Record
   Char_t s1[14],s2[14];
@@ -71,7 +71,7 @@ void TNudyEndfTab2::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flag
   else
     printf("\n");
     
-  for(Int_t i=0; i<GetNR(); i++) {                      //print NBT(N) INT(N)
+  for(int i=0; i<GetNR(); i++) {                      //print NBT(N) INT(N)
     if(i%3==0 && i!=0)  {
       printf("%4d%2d%3d%5d", mat, mf, mt, ns);
       if (ns < 99999)
@@ -87,7 +87,7 @@ void TNudyEndfTab2::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flag
   }
   //Pad blank columns
   if(3-(GetNR()%3) < 3){
-    for(Int_t i = 0; i < 3-(GetNR()%3);i++) {
+    for(int i = 0; i < 3-(GetNR()%3);i++) {
       printf("%22s"," ");
     }
   }

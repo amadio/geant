@@ -45,7 +45,7 @@ TNudyLibrary::TNudyLibrary(const char* name,const char* title)
 //_______________________________________________________________________________
 void TNudyLibrary::ReadTape(TNudyEndfTape *tape){
   //Function to read and process ROOT ENDF tape
-  Int_t objcount = 0;
+  int objcount = 0;
   //Create Material Iterator
   TIter iter(tape->GetMats());
   TNudyEndfMat *mat;

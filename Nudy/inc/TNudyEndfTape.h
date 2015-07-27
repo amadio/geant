@@ -29,9 +29,9 @@ public:
   UChar_t GetLogLev() const { return fLogLev; }
   const TList *GetMats() const { return fMats; }
   void AddMat(TNudyEndfMat *mat);
-  void DumpENDF(Int_t flags);
-  TNudyEndfMat *GetMAT(Int_t MAT);
-  TNudyEndfMat *GetMAT(Int_t Z, Int_t A);
+  void DumpENDF(int flags);
+  TNudyEndfMat *GetMAT(int MAT);
+  TNudyEndfMat *GetMAT(int Z, int A);
   TNudyEndfMat *GetMAT(TString name);
 
 private:

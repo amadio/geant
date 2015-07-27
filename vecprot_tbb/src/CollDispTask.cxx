@@ -12,7 +12,7 @@ using std::min;
 
 #include "tbb/task_scheduler_init.h"
 
-CollDispTask::CollDispTask(Int_t inNumOfCollsToPop) : fNumOfCollsToPop(inNumOfCollsToPop) {}
+CollDispTask::CollDispTask(int inNumOfCollsToPop) : fNumOfCollsToPop(inNumOfCollsToPop) {}
 
 CollDispTask::~CollDispTask() {}
 
@@ -23,8 +23,8 @@ task *CollDispTask::execute() {
 
   propagator->dTasksTotal++;
 
-  Int_t ndTasks;
-  /*Int_t iter2;*/
+  int ndTasks;
+  /*int iter2;*/
   if (propagator->fUseGraphics) {
     ndTasks = propagator->dTasksRunning.fetch_and_increment();
     /*iter2 = propagator->niter2.fetch_and_increment();
@@ -34,17 +34,17 @@ task *CollDispTask::execute() {
   tbb::task_scheduler_init init(propagator->fNthreads);
 
   // Number of baskets in the queue to transport
-  Int_t ntotransport = 0;
+  int ntotransport = 0;
 
-  UInt_t npop = 0;
-  Int_t ninjectedNormal = 0;
-  Int_t ninjectedPriority = 0;
+  unsigned int npop = 0;
+  int ninjectedNormal = 0;
+  int ninjectedPriority = 0;
 
   GeantTrackCollection *collector;
   TObject **carray = new TObject *[500];
 
   // Pop certain number of collections recieved when constructing task object
-  for (Int_t i = 0; i < fNumOfCollsToPop; i++) {
+  for (int i = 0; i < fNumOfCollsToPop; i++) {
     wm->tbb_collector_queue.pop(collector);
     carray[i] = (TObject *)collector;
     npop++;
@@ -54,7 +54,7 @@ task *CollDispTask::execute() {
     propagator->numOfCollsPerTask->Fill(npop);
 
   // Process popped collections and flush their tracks
-  for (UInt_t icoll = 0; icoll < npop; icoll++) {
+  for (unsigned int icoll = 0; icoll < npop; icoll++) {
     collector = (GeantTrackCollection *)carray[icoll];
 
     if (propagator->fUseGraphics) {
@@ -83,8 +83,8 @@ task *CollDispTask::execute() {
       // Find first not transported
       propagator->fDispTaskLock.Lock(); // CRITICAL SECTION begin
 
-      Int_t first_not_transported = -1;
-      for (Int_t evn = 0; evn < propagator->fNtotal; evn++) {
+      int first_not_transported = -1;
+      for (int evn = 0; evn < propagator->fNtotal; evn++) {
         if (propagator->fEventsStatus[evn] == 0) {
           first_not_transported = evn;
           break;
@@ -110,7 +110,7 @@ task *CollDispTask::execute() {
   // Just histograms filling
   ///*
   if (propagator->fUseGraphics) {
-    Int_t localNiter = propagator->niter.fetch_and_increment();
+    int localNiter = propagator->niter.fetch_and_increment();
     double nperbasket = 0;
     for (PerThread::iterator it = propagator->fTBBthreadData.begin(); it != propagator->fTBBthreadData.end(); ++it)
       nperbasket += it->fTracksPerBasket;
@@ -145,7 +145,7 @@ task *CollDispTask::execute() {
 }
 
 // total amount must be more then 0
-PropTask &CollDispTask::StartPropTasks(Int_t amountPriority, Int_t amountNormal) {
+PropTask &CollDispTask::StartPropTasks(int amountPriority, int amountNormal) {
   task_list tlist_normal;
   task_list tlist_priority;
 
@@ -155,18 +155,18 @@ PropTask &CollDispTask::StartPropTasks(Int_t amountPriority, Int_t amountNormal)
 
   if (amountPriority) {
 
-    for (Int_t i = 0; i < amountPriority - 1; i++)
+    for (int i = 0; i < amountPriority - 1; i++)
       tlist_priority.push_back(*new (cont.allocate_child()) PropTask(kTRUE));
-    for (Int_t i = 0; i < amountNormal; i++)
+    for (int i = 0; i < amountNormal; i++)
       tlist_normal.push_back(*new (cont.allocate_child()) PropTask(kFALSE));
 
     flag = kTRUE;
 
   } else if (amountNormal) {
 
-    for (Int_t i = 0; i < amountPriority; i++)
+    for (int i = 0; i < amountPriority; i++)
       tlist_priority.push_back(*new (cont.allocate_child()) PropTask(kTRUE));
-    for (Int_t i = 0; i < amountNormal - 1; i++)
+    for (int i = 0; i < amountNormal - 1; i++)
       tlist_normal.push_back(*new (cont.allocate_child()) PropTask(kFALSE));
 
     flag = kFALSE;

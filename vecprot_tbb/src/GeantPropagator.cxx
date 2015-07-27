@@ -6,7 +6,7 @@
 // The ScatteringProcess() method emulates scattering and changes the particle
 // direction randomly in a forward cone with opening angle proportional with 1/p
 // The IonizationProcess() method simulates an energy deposition with an amount
-// epsil*Int_t(1+K*rnd) (epsil, 2*epsil, ..., K*epsil)
+// epsil*int(1+K*rnd) (epsil, 2*epsil, ..., K*epsil)
 // In future we can add absorption and decay to check the stack model...
 // The PropagateInField(step) method propagates in a uniform magnetic field with
 // an amount equal to step
@@ -89,7 +89,7 @@ GeantPropagator::GeantPropagator()
       pnTasksTotal(), ppTasksTotal(), dTasksTotal() {
   // Constructor
   gRandom->SetSeed();
-  for (Int_t i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
     fVertex[i] = gRandom->Gaus(0., 10.);
   fgInstance = this;
 }
@@ -97,7 +97,7 @@ GeantPropagator::GeantPropagator()
 //______________________________________________________________________________
 GeantPropagator::~GeantPropagator() {
   // Destructor
-  Int_t i;
+  int i;
   if (fProcesses) {
     for (i = 0; i < fNprocesses; i++)
       delete fProcesses[i];
@@ -118,13 +118,13 @@ GeantPropagator::~GeantPropagator() {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::AddTrack(GeantTrack *track) {
+int GeantPropagator::AddTrack(GeantTrack *track) {
   // Add a new track in the system.
 
   fTracksLock.Lock();
 
-  Int_t slot = track->evslot;
-  Int_t itrack = fMaxPerEvent * slot + fNtracks[slot];
+  int slot = track->evslot;
+  int itrack = fMaxPerEvent * slot + fNtracks[slot];
   track->particle = itrack;
   fEvents[slot]->AddTrack();
   fTracks[itrack] = track;
@@ -139,12 +139,12 @@ Int_t GeantPropagator::AddTrack(GeantTrack *track) {
 }
 
 //______________________________________________________________________________
-GeantTrack *GeantPropagator::AddTrack(Int_t evslot) {
+GeantTrack *GeantPropagator::AddTrack(int evslot) {
   // Reuse the next track booked for a given event slot.
 
   fTracksLock.Lock();
 
-  Int_t itrack = fMaxPerEvent * evslot + fNtracks[evslot];
+  int itrack = fMaxPerEvent * evslot + fNtracks[evslot];
   GeantTrack *track = fTracks[itrack];
   track->Reset();
   track->particle = itrack;
@@ -187,7 +187,7 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startevent, Int_t startslot) {
+int GeantPropagator::ImportTracks(int nevents, double average, int startevent, int startslot) {
   // Import tracks from "somewhere". Here we just generate nevents.
   PerThread::reference TBBperThread = fTBBthreadData.local();
 
@@ -202,26 +202,26 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startev
   a.InitFromNavigator(gGeoManager->GetCurrentNavigator());
 
   const double etamin = -3, etamax = 3;
-  Int_t ntracks = 0;
-  Int_t ntracksTotal = 0;
+  int ntracks = 0;
+  int ntracksTotal = 0;
 
   // Species generated for the moment N, P, e, photon
-  const Int_t kMaxPart = 9;
-  const Int_t pdgGen[9] = {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
+  const int kMaxPart = 9;
+  const int pdgGen[9] = {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
   const double pdgRelProb[9] = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
   const Species_t pdgSpec[9] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
   static double pdgProb[9] = {0.};
-  Int_t pdgCount[9] = {0};
+  int pdgCount[9] = {0};
 
   static Bool_t init = kTRUE;
   if (init) {
     pdgProb[0] = pdgRelProb[0];
-    for (Int_t i = 1; i < kMaxPart; ++i)
+    for (int i = 1; i < kMaxPart; ++i)
       pdgProb[i] = pdgProb[i - 1] + pdgRelProb[i];
     init = kFALSE;
   }
-  Int_t event = startevent;
-  for (Int_t slot = startslot; slot < startslot + nevents; slot++) {
+  int event = startevent;
+  for (int slot = startslot; slot < startslot + nevents; slot++) {
     ntracks = TBBperThread.fRndm->Poisson(average);
 
     ntracksTotal += ntracks;
@@ -235,7 +235,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startev
     fEvents[slot]->Reset();
     fNtracks[slot] = 0;
 
-    for (Int_t i = 0; i < ntracks; i++) {
+    for (int i = 0; i < ntracks; i++) {
       GeantTrack *track = AddTrack(slot);
       *track->path = a;
       *track->nextpath = a;
@@ -243,7 +243,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startev
       track->evslot = slot;
       double prob = TBBperThread.fRndm->Uniform(0., pdgProb[kMaxPart - 1]);
       track->pdg = 0;
-      for (Int_t j = 0; j < kMaxPart; ++j) {
+      for (int j = 0; j < kMaxPart; ++j) {
         if (prob <= pdgProb[j]) {
           track->pdg = pdgGen[j];
           track->species = pdgSpec[j];
@@ -270,7 +270,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startev
       track->py = p * sin(theta) * sin(phi);
       track->pz = p * cos(theta);
       track->frombdr = kFALSE;
-      Int_t itrack = track->particle;
+      int itrack = track->particle;
 
       TBBperThread.fCollection->AddTrack(itrack, basket);
 
@@ -278,7 +278,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startev
     }
     //      Printf("Event #%d: Generated species for %6d particles:", event, ntracks);
     event++;
-    for (Int_t i = 0; i < kMaxPart; i++) {
+    for (int i = 0; i < kMaxPart; i++) {
       //         Printf("%15s : %6d particles", TDatabasePDG::Instance()->GetParticle(pdgGen[i])->GetName(),
       //         pdgCount[i]);
       pdgCount[i] = 0;
@@ -321,15 +321,15 @@ void GeantPropagator::Initialize() {
   }
 
   if (!fNtracks) {
-    fNtracks = new Int_t[fNevents];
-    memset(fNtracks, 0, fNevents * sizeof(Int_t));
+    fNtracks = new int[fNevents];
+    memset(fNtracks, 0, fNevents * sizeof(int));
   }
   if (!fTracks) {
     fTracks = new GeantTrack *[fMaxTracks];
     memset(fTracks, 0, fMaxTracks * sizeof(GeantTrack *));
     // Pre-book tracks (Thanks to olav.smorholm@cern.ch)
     fTracksStorage.reserve(fMaxTracks);
-    for (Int_t i = 0; i < fMaxTracks; i++) {
+    for (int i = 0; i < fMaxTracks; i++) {
       fTracksStorage.push_back(GeantTrack(0));
       fTracks[i] = &(fTracksStorage.back());
     }
@@ -339,8 +339,8 @@ void GeantPropagator::Initialize() {
   fTBBthreadData = PerThread(td);
 
   fDispThrPriority = 50;
-  fEventsStatus = new tbb::atomic<Int_t>[fNtotal];
-  for (Int_t evn = 0; evn < fNtotal; evn++)
+  fEventsStatus = new tbb::atomic<int>[fNtotal];
+  for (int evn = 0; evn < fNtotal; evn++)
     fEventsStatus[evn] = 0;
   fPriorityRange[0] = -1;
   fPriorityRange[1] = -1;
@@ -427,7 +427,7 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename) {
   TGeoManager *geom = TGeoManager::Import(filename);
   if (geom) {
     // Create the basket array
-    Int_t nvols = gGeoManager->GetListOfVolumes()->GetEntries();
+    int nvols = gGeoManager->GetListOfVolumes()->GetEntries();
     fWMgr->CreateBaskets(2 * nvols);
     return kTRUE;
   }
@@ -436,7 +436,7 @@ Bool_t GeantPropagator::LoadGeometry(const char *filename) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin) {
+void GeantPropagator::PhysicsSelect(int ntracks, int *trackin) {
   // Generate all physics steps for the tracks in trackin.
   // Vectorized, except the unavoidable Sort()
 
@@ -444,7 +444,7 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin) {
 
   static const double maxlen = numeric_limits<double>.max();
   double pstep;
-  Int_t ipart, iproc;
+  int ipart, iproc;
   GeantTrack *track;
   double *procStep;
   // Fill interaction lengths for all processes and all particles
@@ -453,7 +453,7 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin) {
     fProcesses[iproc]->ComputeIntLen(TBBperThread.fVolume, ntracks, trackin, procStep);
   }
   // Loop tracks and select process
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     ipart = trackin[i];
     track = fTracks[ipart];
     track->step = maxlen;
@@ -476,10 +476,10 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PrintParticles(Int_t *trackin, Int_t ntracks) {
+void GeantPropagator::PrintParticles(int *trackin, int ntracks) {
   // Print the detailed particles list.
   Printf("================ THREAD : particles list");
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     fTracks[trackin[i]]->Print();
   }
 }
@@ -487,10 +487,10 @@ void GeantPropagator::PrintParticles(Int_t *trackin, Int_t ntracks) {
 //______________________________________________________________________________
 void *GeantPropagator::GlobalObserver(void *arg) {
   Printf("======== Observer started ========");
-  Int_t recvSig;
+  int recvSig;
 
   GeantPropagator *prop = GeantPropagator::Instance();
-  Int_t i = 0;
+  int i = 0;
 
   while (1) {
     if (prop->observerSigsQueue.try_pop(recvSig)) {
@@ -550,7 +550,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
     memset(fEvents, 0, fNevents * sizeof(GeantEvent *));
   }
 
-  Int_t NinjectedTracks = ImportTracks(fNevents, fNaverage, 0, 0);
+  int NinjectedTracks = ImportTracks(fNevents, fNaverage, 0, 0);
   fNimportedEvents += fNevents;
 
   // Initialize tree
@@ -583,8 +583,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
 
   do {
     // Here we check if really all the events were transported
-    Int_t first_not_transported = fNtotal;
-    for (Int_t evn = 0; evn < fNtotal; evn++) {
+    int first_not_transported = fNtotal;
+    for (int evn = 0; evn < fNtotal; evn++) {
       if (fEventsStatus[evn] == 0) {
         first_not_transported = evn;
         break;
@@ -699,10 +699,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
 }
 
 //______________________________________________________________________________
-void GeantPropagator::SelectTracksForProcess(Int_t iproc, Int_t ntotransport, Int_t *particles, Int_t &ntodo,
-                                             Int_t *parttodo) {
+void GeantPropagator::SelectTracksForProcess(int iproc, int ntotransport, int *particles, int &ntodo,
+                                             int *parttodo) {
   // Add to output array all particles that will do the process iproc.
-  for (Int_t itr = 0; itr < ntotransport; itr++)
+  for (int itr = 0; itr < ntotransport; itr++)
     if (fTracks[particles[itr]]->process == iproc)
       parttodo[ntodo++] = particles[itr];
 }

@@ -97,7 +97,7 @@ TVNudyModel::~TVNudyModel() {
 
 //______________________________________________________________________________
 double TVNudyModel::GetEo(double ein) {
-  Int_t el, eh;
+  int el, eh;
   if (f5Tein != ein) {
     Info("EIN", "%e --- %e", f5Tein, ein);
     f5Tein = ein;
@@ -118,8 +118,8 @@ double TVNudyModel::GetEo(double ein) {
   }
   /*  eh = el+1;
     double pIndex = fRnd.Rndm();
-    Int_t pl = (pIndex * 25.0);
-    Int_t ph = pl + 1;
+    int pl = (pIndex * 25.0);
+    int ph = pl + 1;
     return (TNudyCore::Instance()->BilinearInterploation(xengr[el],pl/25.0,xengr[eh],ph/25.0,
                                                          fPerc[el].GetAt(pl),fPerc[el].GetAt(ph),fPerc[eh].GetAt(pl),fPerc[eh].GetAt(ph),
                                                          ein,pIndex));
@@ -128,7 +128,7 @@ double TVNudyModel::GetEo(double ein) {
 }
 //_____________________________________________________________________________
 double TVNudyModel::GetAo(double ein) {
-  Int_t el, eh;
+  int el, eh;
   if (f4Tein != ein) {
     Info("EIN", "%e --- %e", f5Tein, ein);
     f4Tein = ein;
@@ -163,21 +163,21 @@ const char *TVNudyModel::GetMaterialName() {
 }
 
 //______________________________________________________________________________
-Int_t TVNudyModel::GetZ() {
+int TVNudyModel::GetZ() {
   if (!fMaterial)
     fMaterial = TNudyCore::Instance()->GetMaterial(fEndf);
   return fMaterial->Z();
 }
 
 //______________________________________________________________________________
-Int_t TVNudyModel::GetA() {
+int TVNudyModel::GetA() {
   if (!fMaterial)
     fMaterial = TNudyCore::Instance()->GetMaterial(fEndf);
-  return (Int_t)fMaterial->A();
+  return (int)fMaterial->A();
 }
 
 //______________________________________________________________________________
-Int_t TVNudyModel::GetISO() {
+int TVNudyModel::GetISO() {
   if (!fMaterial)
     fMaterial = TNudyCore::Instance()->GetMaterial(fEndf);
   return fMaterial->IsoNo();
@@ -233,7 +233,7 @@ void TVNudyModel::ReadFile5(TNudyEndfFile *file) {
   // nens = 0;
   // maxpop = 50;
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-    if (sec->GetMT() == (Int_t)fReaction) {
+    if (sec->GetMT() == (int)fReaction) {
       File5_Pass1(sec);
       File5_Pass2(sec);
       File5_Pass3();
@@ -245,26 +245,26 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file) {
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-    if (sec->GetMT() == (Int_t)fReaction) {
+    if (sec->GetMT() == (int)fReaction) {
       TIter recIter(sec->GetRecords());
       TNudyEndfCont *header = (TNudyEndfCont *)recIter.Next();
-      Int_t LTT = sec->GetL2();
-      Int_t LI = header->GetL1();
+      int LTT = sec->GetL2();
+      int LI = header->GetL1();
       printf("LTT = %d LI = %d\n", LTT, LI);
       if (LTT == 1 && LI == 0) {
         TNudyEndfTab2 *subheader = (TNudyEndfTab2 *)recIter.Next();
         TArrayD ein(subheader->GetN2());
         TArrayD *lCoef = new TArrayD[subheader->GetN2()];
-        for (Int_t i = 0; i < subheader->GetN2(); i++) {
+        for (int i = 0; i < subheader->GetN2(); i++) {
           TNudyEndfList *tab = (TNudyEndfList *)recIter.Next();
           lCoef[i].Set(tab->GetNPL());
           ein[i] = tab->GetC2();
-          for (Int_t j = 0; j < tab->GetNPL(); j++)
+          for (int j = 0; j < tab->GetNPL(); j++)
             lCoef[i].SetAt(tab->GetLIST(j), j);
         }
-        for (Int_t i = 0; i < ein.GetSize(); i++) {
+        for (int i = 0; i < ein.GetSize(); i++) {
           printf("Ein = %e\n", ein[i]);
-          for (Int_t j = 0; j < lCoef[i].GetSize(); j++) {
+          for (int j = 0; j < lCoef[i].GetSize(); j++) {
             printf("a%d = %e\n", j, lCoef[i].At(j));
           }
         }
@@ -272,11 +272,11 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file) {
         TNudyEndfTab2 *lowE = (TNudyEndfTab2 *)recIter.Next();
         TArrayD ein(lowE->GetN2());
         TArrayD *lCoef = new TArrayD[lowE->GetN2()];
-        for (Int_t i = 0; i < lowE->GetN2(); i++) {
+        for (int i = 0; i < lowE->GetN2(); i++) {
           TNudyEndfList *tab = (TNudyEndfList *)recIter.Next();
           lCoef[i].Set(tab->GetNPL());
           ein[i] = tab->GetC2();
-          for (Int_t j = 0; j < tab->GetNPL(); j++)
+          for (int j = 0; j < tab->GetNPL(); j++)
             lCoef[i].SetAt(tab->GetLIST(j), j);
         }
         TNudyEndfTab2 *highE = (TNudyEndfTab2 *)recIter.Next();
@@ -285,29 +285,29 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file) {
         fAPAlias = new TNudyAliasCont[f4nens];
         TArrayD *tVal = new TArrayD[highE->GetN2()];
         ein.Set(ein.GetSize() + highE->GetN2());
-        for (Int_t i = 0; i < highE->GetN2(); i++) {
+        for (int i = 0; i < highE->GetN2(); i++) {
           TNudyEndfTab1 *tab = (TNudyEndfTab1 *)recIter.Next();
           f4eins.SetAt(tab->GetC2(), i);
           ein[lowE->GetN2() + i] = tab->GetC2();
           tVal[i].Set(tab->GetNP() * 2);
           fAPAlias[i].Initialize(tab->Y(), tab->X(), tab->GetNP(), tab->GetC2(), i);
-          for (Int_t j = 0; j < tab->GetNP(); j++) {
+          for (int j = 0; j < tab->GetNP(); j++) {
             tVal[i].SetAt(tab->GetX(j), j * 2);
             tVal[i].SetAt(tab->GetY(j), j * 2 + 1);
           }
         }
 
-        for (Int_t i = 0; i < lowE->GetN2(); i++) {
+        for (int i = 0; i < lowE->GetN2(); i++) {
           printf("Ein = %e\n", ein[i]);
-          for (Int_t j = 0; j < lCoef[i].GetSize(); j++) {
+          for (int j = 0; j < lCoef[i].GetSize(); j++) {
             printf("a%d = %e\n", j, lCoef[i].At(j));
           }
         }
         double h = 0;
-        for (Int_t i = 0; i < highE->GetN2(); i++) {
+        for (int i = 0; i < highE->GetN2(); i++) {
           printf("Ein = %e\n", ein[i + lowE->GetN2()]);
           h = 0;
-          for (Int_t j = 0; j < tVal[i].GetSize() / 2; j++) {
+          for (int j = 0; j < tVal[i].GetSize() / 2; j++) {
             if (j > 1)
               h += 0.5 * (tVal[i].At(j * 2) - tVal[i].At(j * 2 - 2)) * (tVal[i].At(j * 2 + 1) + tVal[i].At(j * 2 - 1));
             printf("X = %e Y = %e\n", tVal[i].At(j * 2), tVal[i].At(j * 2 + 1));
@@ -324,14 +324,14 @@ void TVNudyModel::File5_Pass3() {
   nperc = 25;
   fPerc = new TArrayD[nens];
   fEPAlias = new TNudyAliasCont[nens];
-  for (Int_t jen = 1; jen <= nens; jen++) {
+  for (int jen = 1; jen <= nens; jen++) {
     fPerc[jen - 1].Set(nperc + 1);
-    Int_t ibeg = 0, iend = 0;
-    Int_t ipoint = 0;
+    int ibeg = 0, iend = 0;
+    int ipoint = 0;
     double hintno = 0;
     double aX[nEout[jen - 1]];
     double aP[nEout[jen - 1]];
-    for (Int_t jp = 1; jp <= nEout[jen - 1] - 1; jp++) {
+    for (int jp = 1; jp <= nEout[jen - 1] - 1; jp++) {
       hintno += 0.5 * (fEPtable[jen - 1].GetAt(2 * jp - 1) + fEPtable[jen - 1].GetAt(2 * jp + 1)) *
                 (fEPtable[jen - 1].GetAt(2 * jp) - fEPtable[jen - 1].GetAt(2 * jp - 2));
     }
@@ -339,11 +339,11 @@ void TVNudyModel::File5_Pass3() {
       Warning("File5_Pass3", "Integral is not normalized at %e Integral = %e", xengr[jen - 1], hintno);
     }
     if (hintno <= 0) {
-      for (Int_t jp = 1; jp <= nperc + 1; jp++) {
+      for (int jp = 1; jp <= nperc + 1; jp++) {
         fPerc[jen - 1].SetAt(0, jp - 1);
       }
     } else {
-      Int_t np;
+      int np;
       for (np = 1; np <= nEout[jen - 1] - 1; np++) {
         if (fEPtable[jen - 1].GetAt(2 * np + 3) > 0) {
           //    Info("Pass3","First Value = %e E = %e",fEPtable[jen-1].GetAt(2*np+2),xengr[jen-1]);
@@ -367,7 +367,7 @@ void TVNudyModel::File5_Pass3() {
       double hinteg = 0;
       double hintol = 0;
       ipoint = ibeg - 1;
-      for (Int_t jperc = 1; jperc <= nperc - 1; jperc++) {
+      for (int jperc = 1; jperc <= nperc - 1; jperc++) {
         double percen = 1.0 * jperc / nperc;
         while (hinteg < percen && ipoint < iend) {
           hintol = hinteg;
@@ -401,7 +401,7 @@ void TVNudyModel::File5_Pass3() {
       iend--;
 
     printf("ENERGY = %e\n", xengr[jen - 1]);
-    for (Int_t ja = 0; ja <= iend; ja++) {
+    for (int ja = 0; ja <= iend; ja++) {
       aX[ja] = fEPtable[jen - 1].GetAt(2 * ja);
       aP[ja] = fEPtable[jen - 1].GetAt(2 * ja + 1);
       printf("FX = %e FP = %e\n", aX[ja], aP[ja]);
@@ -414,28 +414,28 @@ void TVNudyModel::File5_Pass3() {
 //______________________________________________________________________________
 void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
   TIter recIter(sec->GetRecords());
-  for (Int_t k = 0; k < sec->GetN1(); k++) {
+  for (int k = 0; k < sec->GetN1(); k++) {
     TNudyEndfTab1 *header = (TNudyEndfTab1 *)recIter.Next();
     CheckLinear(header);
     double u = header->GetC1();
     SetTitle(Form("%s,%d", GetTitle(), header->GetL2()));
     if (header->GetL2() == 1) {
       TNudyEndfTab2 *record = (TNudyEndfTab2 *)recIter.Next();
-      Int_t nep = record->GetN2();
+      int nep = record->GetN2();
       double *engr = new double[nep];
       TList temp;
-      for (Int_t j = 1; j <= nep; j++) {
+      for (int j = 1; j <= nep; j++) {
         TNudyEndfTab1 *row = (TNudyEndfTab1 *)recIter.Next();
         temp.Add(row);
         engr[j - 1] = row->GetC2();
       }
-      for (Int_t jg = 1; jg <= nens; jg++) {
+      for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
                                                           header->Y(), header->GetN2(), energy);
         if (ppe <= 0)
           continue;
-        Int_t ichan = TNudyCore::Instance()->BinarySearch(engr, nep, energy);
+        int ichan = TNudyCore::Instance()->BinarySearch(engr, nep, energy);
         if (engr[ichan] > energy || engr[ichan + 1] < energy) {
           Error("File5_Pass2", "Error in Interpolation %e does not lie between %e and %e", energy, engr[ichan],
                 engr[ichan + 1]);
@@ -451,7 +451,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         double pold = 0;
         TNudyEndfTab1 *lfunc = (TNudyEndfTab1 *)temp.At(ichan);
         TNudyEndfTab1 *ufunc = (TNudyEndfTab1 *)temp.At(ichan + 1);
-        for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
+        for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           double pb1 = TNudyCore::Instance()->Interpolate(lfunc->NBT(), lfunc->INT(), lfunc->GetN1(), lfunc->X(),
                                                             lfunc->Y(), lfunc->GetN2(), efen);
@@ -477,7 +477,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
       double u = header->GetC1();
       TNudyEndfTab1 *temptab = (TNudyEndfTab1 *)recIter.Next();
       TNudyEndfTab1 *probtab = (TNudyEndfTab1 *)recIter.Next();
-      for (Int_t jg = 1; jg <= nens; jg++) {
+      for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         if (energy <= u)
           continue;
@@ -490,7 +490,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         double hint = 0;
         double pold = 0;
         double eold = 0;
-        for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
+        for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
             double prob =
@@ -514,7 +514,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
     } else if (header->GetL2() == 7) {
       double u = header->GetC1();
       TNudyEndfTab1 *temptab = (TNudyEndfTab1 *)recIter.Next();
-      for (Int_t jg = 1; jg <= nens; jg++) {
+      for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         double ppe = TNudyCore::Instance()->Interpolate(header->NBT(), header->INT(), header->GetN1(), header->X(),
                                                           header->Y(), header->GetN2(), energy);
@@ -527,7 +527,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         double hint = 0;
         double pold = 0;
         double eold = 0;
-        for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
+        for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
             double prob = sqrt(efen) * exp(-efen / teta) / hnorm;
@@ -549,7 +549,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
     } else if (header->GetL2() == 9) {
       double u = header->GetC1();
       TNudyEndfTab1 *temptab = (TNudyEndfTab1 *)recIter.Next();
-      for (Int_t jg = 1; jg <= nens; jg++) {
+      for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         if (energy <= u)
           continue;
@@ -568,7 +568,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         double hint = 0;
         double pold = 0;
         double eold = 0;
-        for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
+        for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
             double prob = sqrt(efen) * exp(-efen / teta) / hnorm;
@@ -591,7 +591,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
       double u = header->GetC1();
       TNudyEndfTab1 *atab = (TNudyEndfTab1 *)recIter.Next();
       TNudyEndfTab1 *btab = (TNudyEndfTab1 *)recIter.Next();
-      for (Int_t jg = 1; jg <= nens; jg++) {
+      for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         if (energy <= u)
           continue;
@@ -613,7 +613,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         double hint = 0;
         double pold = 0;
         double eold = 0;
-        for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
+        for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (energy - u))) {
             double prob = exp(-efen / a) * sinh(sqrt(b * efen)) / hnorm;
@@ -636,7 +636,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
       double u = header->GetC1();
       TNudyEndfTab1 *temptab = (TNudyEndfTab1 *)recIter.Next();
       double ef[2] = {temptab->GetC1(), temptab->GetC2()};
-      for (Int_t jg = 1; jg <= nens; jg++) {
+      for (int jg = 1; jg <= nens; jg++) {
         double energy = xengr[jg - 1];
         if (energy <= u)
           continue;
@@ -649,11 +649,11 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
                                                          temptab->Y(), temptab->GetN2(), energy);
         double hint = 0;
         double *tmppb = new double[nEout[jg - 1]];
-        for (Int_t jef = 1; jef <= nEout[jg - 1]; jef++) {
+        for (int jef = 1; jef <= nEout[jg - 1]; jef++) {
           double efen = fEPtable[jg - 1].GetAt(2 * jef - 2);
           if (!(efen >= (elim))) {
             double prob = 0;
-            for (Int_t jhl = 0; jhl < 2; jhl++) {
+            for (int jhl = 0; jhl < 2; jhl++) {
               double u1 = pow(sqrt(efen) - sqrt(ef[jhl]), 2) / tm;
               double u2 = pow(sqrt(efen) + sqrt(ef[jhl]), 2) / tm;
               prob += 0.5 * ((pow(u2, 1.5) * ROOT::Math::expint(u2) + TMath::Gamma(1.5, u2)) -
@@ -669,7 +669,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
             break;
           }
         }
-        for (Int_t j = 1; j <= nEout[jg - 1]; j++)
+        for (int j = 1; j <= nEout[jg - 1]; j++)
           fEPtable[jg - 1].GetArray()[2 * j - 1] += ppe * tmppb[j - 1] / hint;
       }
     }
@@ -678,10 +678,10 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
 
 //______________________________________________________________________________
 void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
-  Int_t index = 0;
+  int index = 0;
   TIter recIter(sec->GetRecords());
   fEPtable = new TArrayD[500];
-  for (Int_t k = 0; k < sec->GetN1(); k++) {
+  for (int k = 0; k < sec->GetN1(); k++) {
     Info("error", "%d < %d", k, sec->GetN1());
     TNudyEndfTab1 *header = (TNudyEndfTab1 *)recIter.Next();
     CheckLinear(header);
@@ -690,7 +690,7 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
     if (header->GetL2() == 1) {
       TNudyEndfTab2 *range = (TNudyEndfTab2 *)recIter.Next();
       CheckLinear(range);
-      Int_t nz;
+      int nz;
       TNudyEndfTab1 *row;
       for (nz = 0; nz < range->GetN2(); nz++) {
         row = (TNudyEndfTab1 *)recIter.Next();
@@ -702,12 +702,12 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
            TNudyEndfTab1(row->GetC1(),row->GetC2(),row->GetL1(),row->GetL2(),row->GetN1(),row->GetN2()-1);
                   //memcpy(temp->X(),row->X()+1,sizeof(double)*row->GetN2()-1);
                   //		    memcpy(temp->Y(),row->Y()+1,sizeof(double)*row->GetN2()-1);
-                  //		    memcpy(temp->INT(),row->INT(),sizeof(Int_t)*row->GetN1());
-                  for(Int_t j = 1; j < row->GetN2(); j++){
+                  //		    memcpy(temp->INT(),row->INT(),sizeof(int)*row->GetN1());
+                  for(int j = 1; j < row->GetN2(); j++){
                     temp->SetX(row->GetX(j),j-1);
                     temp->SetY(row->GetY(j),j-1);
                   }
-                  for(Int_t i = 0; i < row->GetN1(); i++){
+                  for(int i = 0; i < row->GetN1(); i++){
                     temp->SetNBT(row->GetNBT(i)-1,i);
                     temp->SetINT(row->GetINT(i),i);
                   }
@@ -726,8 +726,8 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
                                                           header->Y(), header->GetN2(), tempen);
         if (ppe <= 0)
           continue;
-        Int_t exists = 0;
-        for (Int_t jen = 0; jen < nens; jen++) {
+        int exists = 0;
+        for (int jen = 0; jen < nens; jen++) {
           if (tempen == xengr[jen]) {
             index = jen;
             exists = 1;
@@ -746,7 +746,7 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
           double emax = row->GetX(row->GetN2() - 1) * (1 + 1e-5);
           double fact = exp(log(emax / emin) / (maxpop - 1));
           double ef = emin / fact;
-          for (Int_t jef = 0; jef < maxpop; jef++) {
+          for (int jef = 0; jef < maxpop; jef++) {
             ef = ef * fact;
             if (!EoExists(index, ef)) {
               //		    Info("Pass1","Adding outgoing energy %e at %d",ef,index);
@@ -756,7 +756,7 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
               fEPtable[index].SetAt(0, 2 * nEout[index] - 1);
             }
           }
-          for (Int_t jeps = 1; jeps <= row->GetNP(); jeps++) {
+          for (int jeps = 1; jeps <= row->GetNP(); jeps++) {
             ef = row->GetX(jeps - 1);
             // Separating equal probability secondary energies
             if (jeps - 1 < row->GetNP() && ef == row->GetX(jeps)) {
@@ -780,7 +780,7 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
         double energy = xengr[index];
         double tet = TNudyCore::Instance()->Interpolate(theta->NBT(), theta->INT(), theta->GetN1(), theta->X(),
                                                           theta->Y(), theta->GetN2(), energy);
-        for (Int_t jef = 1; jef <= dEdTheta->GetN2(); jef++) {
+        for (int jef = 1; jef <= dEdTheta->GetN2(); jef++) {
           double ef = tet * dEdTheta->GetX(jef - 1);
           if (!EoExists(index, ef)) {
             nEout[index]++;
@@ -806,13 +806,13 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
       FillGrid(u, tm->GetN2(), tm, header);
     }
   }
-  for (Int_t i = 1; i <= nens - 1; i++) {
-    for (Int_t j = i + 1; j <= nens; j++) {
+  for (int i = 1; i <= nens - 1; i++) {
+    for (int j = i + 1; j <= nens; j++) {
       if (xengr[i - 1] > xengr[j - 1]) {
         double temp = xengr[i - 1];
         xengr[i - 1] = xengr[j - 1];
         xengr[j - 1] = temp;
-        Int_t ntemp = nEout[i - 1];
+        int ntemp = nEout[i - 1];
         nEout[i - 1] = nEout[j - 1];
         nEout[j - 1] = ntemp;
         char buffer[sizeof(TArrayD)];
@@ -822,9 +822,9 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
       }
     }
   }
-  for (Int_t jen = 0; jen < nens; jen++) {
-    for (Int_t j1 = 0; j1 < nEout[jen] - 1; j1++) {
-      for (Int_t j2 = j1 + 1; j2 < nEout[jen]; j2++) {
+  for (int jen = 0; jen < nens; jen++) {
+    for (int j1 = 0; j1 < nEout[jen] - 1; j1++) {
+      for (int j2 = j1 + 1; j2 < nEout[jen]; j2++) {
         if (fEPtable[jen].GetAt(2 * j1) > fEPtable[jen].GetAt(2 * j2)) {
           double tmp = fEPtable[jen].GetAt(2 * j1);
           fEPtable[jen].GetArray()[2 * j1] = fEPtable[jen].GetAt(2 * j2);
@@ -836,8 +836,8 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
 }
 
 //______________________________________________________________________________
-void TVNudyModel::PopulateGrid(Int_t index) {
-  Int_t max = 50;
+void TVNudyModel::PopulateGrid(int index) {
+  int max = 50;
   double emin = 1e-5;
   double emax = 2e7;
   double fact, ef;
@@ -850,7 +850,7 @@ void TVNudyModel::PopulateGrid(Int_t index) {
     nEout.Set(index + 1);
   nEout[index] = max;
   fEPtable[index].Set(2 * max);
-  for (Int_t jeps = 1; jeps <= max; jeps++) {
+  for (int jeps = 1; jeps <= max; jeps++) {
     ef = ef * fact;
     fEPtable[index].GetArray()[2 * jeps - 2] = ef;
     fEPtable[index].GetArray()[2 * jeps - 1] = 0;
@@ -858,13 +858,13 @@ void TVNudyModel::PopulateGrid(Int_t index) {
 }
 
 //______________________________________________________________________________
-void TVNudyModel::FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab1 *pe) {
-  Int_t nene = 0;
+void TVNudyModel::FillGrid(double u, int nep, TNudyEndfTab1 *tab, TNudyEndfTab1 *pe) {
+  int nene = 0;
   TArrayD tmpene;
-  Int_t j, keps, index;
+  int j, keps, index;
   double ratmax = 2;
   double ratio, diff, ratiol, nadd, eadd, fact, ef, ethre1, ethre2;
-  Int_t maxene = 200;
+  int maxene = 200;
   tmpene.Set(maxene);
   for (j = 1; j <= nep; j++) {
     double et = tab->GetX(j - 1);
@@ -878,7 +878,7 @@ void TVNudyModel::FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab
     nene++;
     tmpene[nene - 1] = et;
   }
-  Int_t ntota = 0;
+  int ntota = 0;
   for (j = 1; j <= nene - 1; j++) {
     ratio = tmpene[j] / tmpene[j - 1];
     diff = 2 * fabs(tab->GetY(j - 1) - tab->GetY(j)) / max<double>(1e-10, tab->GetY(j - 1) + tab->GetY(j));
@@ -887,7 +887,7 @@ void TVNudyModel::FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab
       nadd = ratiol / log(ratmax) + 1;
       fact = exp(ratiol / nadd);
       eadd = tmpene[j - 1];
-      for (Int_t jad = 1; jad <= nadd - 1; jad++) {
+      for (int jad = 1; jad <= nadd - 1; jad++) {
         eadd = eadd * fact;
         tmpene[nene + ntota + jad - 2] = eadd;
       }
@@ -896,8 +896,8 @@ void TVNudyModel::FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab
   }
   nene = nene + ntota;
   for (j = 1; j <= nene; j++) {
-    Int_t check = 0;
-    for (Int_t jen = 1; jen <= nens; jen++) {
+    int check = 0;
+    for (int jen = 1; jen <= nens; jen++) {
       if (fabs(2 * (tmpene[j - 1] - xengr[jen - 1]) / (tmpene[j - 1] + xengr[jen - 1])) < 1e-7) {
         index = jen - 1;
         check = 1;
@@ -920,7 +920,7 @@ void TVNudyModel::FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab
       fact = 1;
       ef = 0;
     }
-    for (Int_t jeps = 1; jeps <= maxene; jeps++) {
+    for (int jeps = 1; jeps <= maxene; jeps++) {
       ef = ef * fact;
       if (!EoExists(index, ef)) {
         nEout[index]++;
@@ -962,9 +962,9 @@ void TVNudyModel::FillGrid(double u, Int_t nep, TNudyEndfTab1 *tab, TNudyEndfTab
 }
 
 //______________________________________________________________________________
-Int_t TVNudyModel::EoExists(Int_t index, double ef) {
-  Int_t check = 0;
-  for (Int_t keps = 1; keps <= nEout[index]; keps++) {
+int TVNudyModel::EoExists(int index, double ef) {
+  int check = 0;
+  for (int keps = 1; keps <= nEout[index]; keps++) {
     if (fEPtable[index].GetAt(2 * keps - 2) == ef) {
       check = 1;
       break;
@@ -976,19 +976,19 @@ Int_t TVNudyModel::EoExists(Int_t index, double ef) {
 //______________________________________________________________________________
 void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
   if (!CheckLinear(tab)) {
-    Int_t islin = 0;
-    Int_t start = 1;
+    int islin = 0;
+    int start = 1;
 
-    Int_t n2 = tab->GetN2();
+    int n2 = tab->GetN2();
     double *epval = new double[tab->GetN2() * 4];
-    for (Int_t i = 0; i < tab->GetN2(); i++) {
+    for (int i = 0; i < tab->GetN2(); i++) {
       epval[2 * i] = tab->GetX(i);
       epval[2 * i + 1] = tab->GetY(i);
     }
-    for (Int_t jr = 1; jr <= tab->GetN1(); jr++) {
+    for (int jr = 1; jr <= tab->GetN1(); jr++) {
       if (tab->GetINT(jr - 1) == 1) {
         islin = 1;
-        for (Int_t jp = start; jp <= tab->GetNBT(jr - 1) - 1; jp++) {
+        for (int jp = start; jp <= tab->GetNBT(jr - 1) - 1; jp++) {
           n2 = n2 + 1;
           epval[2 * n2 - 2] = max<double>((1 - 1e-6) * epval[2 * jp], epval[jp * 2 - 2]);
           epval[2 * n2 - 1] = epval[jp * 2 - 1];
@@ -1002,8 +1002,8 @@ void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
     }
     if (!islin)
       return;
-    for (Int_t j1 = 1; j1 <= n2; j1++) {
-      for (Int_t j2 = j1 + 1; j2 <= n2; j2++) {
+    for (int j1 = 1; j1 <= n2; j1++) {
+      for (int j2 = j1 + 1; j2 <= n2; j2++) {
         if (epval[2 * j1 - 2] > epval[2 * j2 - 2]) {
           double tmp1 = epval[2 * j1 - 2];
           double tmp2 = epval[2 * j1 - 1];
@@ -1017,7 +1017,7 @@ void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
     TNudyEndfTab1 *linear = new TNudyEndfTab1(tab->GetC1(), tab->GetC2(), tab->GetL1(), tab->GetL2(), 1, n2);
     linear->SetINT(2, 0);
     linear->SetNBT(n2, 0);
-    for (Int_t i = 0; i < n2; i++) {
+    for (int i = 0; i < n2; i++) {
       linear->SetX(epval[2 * i], i);
       linear->SetY(epval[2 * i + 1], i);
     }
@@ -1027,8 +1027,8 @@ void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
 }
 
 //_______________________________________________________________________________
-Int_t TVNudyModel::CheckLinear(TNudyEndfTab1 *tab) {
-  for (Int_t nr = 0; nr < tab->GetNR(); nr++) {
+int TVNudyModel::CheckLinear(TNudyEndfTab1 *tab) {
+  for (int nr = 0; nr < tab->GetNR(); nr++) {
     if (tab->GetINT(nr) != 2) {
       Error("CheckLinear", "Tab1 record data is not interpolated linearly");
       return 0;
@@ -1036,8 +1036,8 @@ Int_t TVNudyModel::CheckLinear(TNudyEndfTab1 *tab) {
   }
   return 1;
 }
-Int_t TVNudyModel::CheckLinear(TNudyEndfTab2 *tab) {
-  for (Int_t nr = 0; nr < tab->GetNR(); nr++) {
+int TVNudyModel::CheckLinear(TNudyEndfTab2 *tab) {
+  for (int nr = 0; nr < tab->GetNR(); nr++) {
     if (tab->GetINT(nr) != 2) {
       Error("CheckLinear", "Tab2 record data is not interpolated linearly");
       return 0;
@@ -1076,8 +1076,8 @@ void TVNudyModel::DisplayData(FileData_t file) {
       return;
     }
     gr2 = new TGraph2D();
-    for (Int_t i = 0; i < nens; i++) {
-      for (Int_t j = 1; j <= 24; j++) {
+    for (int i = 0; i < nens; i++) {
+      for (int j = 1; j <= 24; j++) {
         gr2->SetPoint(i * 24 + j, xengr[i], j / 24.0, fPerc[i].GetAt(j));
       }
     }
@@ -1132,7 +1132,7 @@ void TVNudyModel::DumpData(FileData_t file) {
 //______________________________________________________________________________
 TArrayD *TVNudyModel::GetFile5Data(double ein) {
   int lo, hi, mid;
-  Int_t found = -1;
+  int found = -1;
   lo = 0;
   hi = nens - 1;
   while (hi - lo > 1) {
@@ -1158,7 +1158,7 @@ TArrayD *TVNudyModel::GetFile5Data(double ein) {
 //______________________________________________________________________________
 TArrayD *TVNudyModel::GetFile5ProcessedData(double ein) {
   int lo, hi, mid;
-  Int_t found = -1;
+  int found = -1;
   lo = 0;
   hi = nens - 1;
   while (hi - lo > 1) {

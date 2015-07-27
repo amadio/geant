@@ -49,27 +49,27 @@ class GeantPropagator
 {
 public:
 // data members to be made private
-   Int_t       fNthreads;    // Number of threads
-   Int_t       fNevents;     // Number of buffered
-   Int_t       fNtotal;      // Total number of events
-   Int_t      *fNtracks;     //[fNevents] Number of tracks {array of [fNevents]}
+   int       fNthreads;    // Number of threads
+   int       fNevents;     // Number of buffered
+   int       fNtotal;      // Total number of events
+   int      *fNtracks;     //[fNevents] Number of tracks {array of [fNevents]}
 
    tbb::atomic<Long64_t>    fNadded;
    tbb::atomic<Long64_t>    fNtransported; // Number of transported tracks
 
    Long64_t    fNsafeSteps;  // Number of fast steps within safety
    Long64_t    fNsnextSteps; // Number of steps where full snext computation is needed
-   Int_t       fNprocesses;  // Number of active processes
-   Int_t       fElossInd;    // Index of eloss process
-   Int_t       fNstart;      // Cumulated initial number of tracks
-   Int_t       fMaxTracks;   // Maximum number of tracks per event
-   Int_t       fMaxThreads;  // Maximum number of threads
-   Int_t       fDebugTrk;    // Track to debug
-   Int_t       fMaxSteps;    // Maximum number of steps per track
+   int       fNprocesses;  // Number of active processes
+   int       fElossInd;    // Index of eloss process
+   int       fNstart;      // Cumulated initial number of tracks
+   int       fMaxTracks;   // Maximum number of tracks per event
+   int       fMaxThreads;  // Maximum number of threads
+   int       fDebugTrk;    // Track to debug
+   int       fMaxSteps;    // Maximum number of steps per track
 
-   Int_t       fNperBasket;  // Number of tracks per basket
-   Int_t       fMaxPerBasket; // Maximum number of tracks per basket
-   Int_t       fMaxPerEvent; // Maximum number of tracks per event
+   int       fNperBasket;  // Number of tracks per basket
+   int       fMaxPerBasket; // Maximum number of tracks per basket
+   int       fMaxPerEvent; // Maximum number of tracks per event
 
    double    fNaverage;    // Average number of tracks per event
    double    fVertex[3];   // Vertex position
@@ -105,37 +105,37 @@ public:
 public:
    Bool_t fGarbageCollMode;
 
-   Int_t fMinFeeder;
-   Int_t fNevToPrioritize;
-   Int_t fDispThr;
-   Int_t fDispThrPriority;
+   int fMinFeeder;
+   int fNevToPrioritize;
+   int fDispThr;
+   int fDispThrPriority;
 
-   tbb::atomic<Int_t>* fEventsStatus;
-   tbb::atomic<Int_t> fNimportedEvents;
-   tbb::atomic<Int_t> fPriorityRange[2];
+   tbb::atomic<int>* fEventsStatus;
+   tbb::atomic<int> fNimportedEvents;
+   tbb::atomic<int> fPriorityRange[2];
 
-   tbb::atomic<Int_t> fCollsWaiting;
-   tbb::atomic<Int_t> fTracksWaiting;
+   tbb::atomic<int> fCollsWaiting;
+   tbb::atomic<int> fTracksWaiting;
    TMutex fPropTaskLock;
    TMutex fDispTaskLock;
 
-   void SetPriorityRange (Int_t min, Int_t max) { fPriorityRange[0]=min; fPriorityRange[1]=max; }
+   void SetPriorityRange (int min, int max) { fPriorityRange[0]=min; fPriorityRange[1]=max; }
 
    static void* GlobalObserver (void* arg);
-   tbb::concurrent_queue<Int_t> observerSigsQueue;
+   tbb::concurrent_queue<int> observerSigsQueue;
 	myObserver propObserver;
 
-   tbb::atomic<Int_t> pnTasksTotal;
-   tbb::atomic<Int_t> ppTasksTotal;
-   tbb::atomic<Int_t> dTasksTotal;
+   tbb::atomic<int> pnTasksTotal;
+   tbb::atomic<int> ppTasksTotal;
+   tbb::atomic<int> dTasksTotal;
 
-	tbb::atomic<Int_t> pnTasksRunning;
-	tbb::atomic<Int_t> ppTasksRunning;
-	tbb::atomic<Int_t> dTasksRunning;
-   tbb::atomic<Int_t> niter;
-   tbb::atomic<Int_t> niter2;
-   tbb::atomic<Int_t> niter3;
-   tbb::atomic<Int_t> niter4;
+	tbb::atomic<int> pnTasksRunning;
+	tbb::atomic<int> ppTasksRunning;
+	tbb::atomic<int> dTasksRunning;
+   tbb::atomic<int> niter;
+   tbb::atomic<int> niter2;
+   tbb::atomic<int> niter3;
+   tbb::atomic<int> niter4;
 
    // In time
    TH1I* numOfTracksTransportedInTime;
@@ -164,22 +164,22 @@ public:
    GeantPropagator();
    virtual ~GeantPropagator();
 
-   Int_t            AddTrack(GeantTrack *track);
-   GeantTrack      *AddTrack(Int_t evslot);
+   int            AddTrack(GeantTrack *track);
+   GeantTrack      *AddTrack(int evslot);
    void             StopTrack(GeantTrack *track);
-   Int_t            GetElossInd() const {return fElossInd;}
+   int            GetElossInd() const {return fElossInd;}
    Bool_t           LoadGeometry(const char *filename="geometry.root");
-   Int_t            ImportTracks(Int_t nevents, double average, Int_t startevent=0, Int_t startslot=0);
+   int            ImportTracks(int nevents, double average, int startevent=0, int startslot=0);
    void             Initialize();
    void             InjectCollection(GeantTrackCollection* inColl);
    static           GeantPropagator *Instance();
-   void             PhysicsSelect(Int_t ntracks, Int_t *trackin);
-   void             PrintParticles(Int_t *trackin, Int_t ntracks);
-   PhysicsProcess  *Process(Int_t iproc) const {return fProcesses[iproc];}
+   void             PhysicsSelect(int ntracks, int *trackin);
+   void             PrintParticles(int *trackin, int ntracks);
+   PhysicsProcess  *Process(int iproc) const {return fProcesses[iproc];}
    void             PropagatorGeom(const char *geomfile="geometry.root",
                                    Bool_t graphics=kFALSE,
                                    Bool_t single=kFALSE);
-   void             SelectTracksForProcess(Int_t iproc, Int_t ntotransport, Int_t *particles, Int_t &ntodo, Int_t *parttodo);
+   void             SelectTracksForProcess(int iproc, int ntotransport, int *particles, int &ntodo, int *parttodo);
 
 private:
    GeantPropagator(const GeantPropagator&); // Not implemented

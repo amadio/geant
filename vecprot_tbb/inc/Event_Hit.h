@@ -7,20 +7,20 @@
 
 //______________________________________________________________________________
 struct GeantEvent {
-   Int_t  event;        // event number
-   Int_t  slot;         // fixed slot number
-   tbb::atomic<Int_t>  ntracks;      // number of tracks
-   tbb::atomic<Int_t>  ndone;        // number of done tracks
+   int  event;        // event number
+   int  slot;         // fixed slot number
+   tbb::atomic<int>  ntracks;      // number of tracks
+   tbb::atomic<int>  ndone;        // number of done tracks
 
    GeantEvent() : event(0), slot(0), ntracks(), ndone() {}
-   GeantEvent(Int_t ntr) : event(0), slot(0), ntracks(), ndone() { ntracks=ntr; }
+   GeantEvent(int ntr) : event(0), slot(0), ntracks(), ndone() { ntracks=ntr; }
    ~GeantEvent() {}
    
    void               AddTrack();
    void               Reset() {ntracks = ndone = 0;}
    void               StopTrack();
    Bool_t             Transported() const {return ((ntracks>0) && (ntracks==ndone));}
-   Int_t              TracksLeft() const {return ntracks-ndone;}
+   int              TracksLeft() const {return ntracks-ndone;}
 };
 
 //______________________________________________________________________________
@@ -29,10 +29,10 @@ struct GeantHit {
    double y;        // Y position
    double z;        // Z position
    double eloss;    // Energy loss
-   Int_t    event;    // Event number
+   int    event;    // Event number
    
    GeantHit() : x(0.), y(0.), z(0.), eloss(0.), event(-1) {}
-   GeantHit(double xh, double yh, double zh, double elossh, Int_t eventh)
+   GeantHit(double xh, double yh, double zh, double elossh, int eventh)
               : x(xh), y(yh), z(zh), eloss(elossh), event(eventh) {}
             
 };

@@ -12,13 +12,13 @@ GeantOutput::~GeantOutput()
 }
 
 //______________________________________________________________________________
-void GeantOutput::Init(Int_t size)
+void GeantOutput::Init(int size)
 {
 // Initialize arrays to a given size.
    Reset();
-   fEvent = new Int_t[size];
-   fInd = new Int_t[size];
-   fProc = new Int_t[size];
+   fEvent = new int[size];
+   fInd = new int[size];
+   fProc = new int[size];
    fX = new double[size];
    fY = new double[size];
    fZ = new double[size];
@@ -45,7 +45,7 @@ void GeantOutput::Reset()
 }   
 
 //______________________________________________________________________________
-void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc,
+void GeantOutput::SetTrack(int ntrack, int itrack, int event, int proc,
                            double x, double y, double z, double px, double py, double pz,
                            double e, double pstep, double step, double snext, double safety)
 {
@@ -67,7 +67,7 @@ void GeantOutput::SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc,
 }   
 
 //______________________________________________________________________________
-void GeantOutput::SetTrack(Int_t ntrack, GeantTrack *track)
+void GeantOutput::SetTrack(int ntrack, GeantTrack *track)
 {
 // Set parameters for ntrack based on a GeantTrack
    SetTrack(ntrack, track->particle, track->event, track->process,

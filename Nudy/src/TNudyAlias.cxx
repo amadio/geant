@@ -14,11 +14,11 @@ ClassImp(TNudyAlias)
 }
 
 //_______________________________________________________________________________
-TNudyAlias::TNudyAlias(double *p, double *x, const Int_t len, UInt_t seed) {
+TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed) {
   // Improve algorithm for building table
   int i, j;
   double sum, c, d, mean;
-  Int_t k, l;
+  int k, l;
   double *b = new double[len];
   fP = new double[len];
   fA = new double[len];
@@ -106,7 +106,7 @@ void TNudyAlias::DumpTable() {
 double TNudyAlias::Random() {
   double ua = fRnd->Uniform(1);
   double ub = fRnd->Uniform(1);
-  Int_t x = (int)(ua * fLen);
+  int x = (int)(ua * fLen);
   double rx = fX[x];
   if (ub > fR[x])
     rx = fA[x];
@@ -122,8 +122,8 @@ void *TNudyAlias::ThreadHandle(void *ptr) {
     delete com;
     return (void *)1;
   }
-  Int_t i = 0;
-  Int_t t = com->fAl->fMultLen / com->fAl->GetLen();
+  int i = 0;
+  int t = com->fAl->fMultLen / com->fAl->GetLen();
   for (i = com->fI * t; i < (com->fI + 1) * t; i++) {
     com->fAl->fMult[i] = com->fAl->Random();
   }
@@ -132,7 +132,7 @@ void *TNudyAlias::ThreadHandle(void *ptr) {
 }
 
 //_______________________________________________________________________________
-double *TNudyAlias::Randoms(Int_t n) {
+double *TNudyAlias::Randoms(int n) {
   int i;
   if (fMult)
     delete[] fMult;

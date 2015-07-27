@@ -30,7 +30,7 @@ GeantThreadData::GeantThreadData() :
 }
 
 //______________________________________________________________________________
-GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses) :
+GeantThreadData::GeantThreadData(int maxperbasket, int maxprocesses) :
              fMaxPerBasket(maxperbasket),
              fNprocesses(maxprocesses),
              fMatrix(new TGeoHMatrix()),

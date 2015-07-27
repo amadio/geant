@@ -8,7 +8,7 @@ double TNudyElementRN::fCCodeRange[26]={2.0e+32,3.0e+7,1.1e+6,1.4e+5,3.4e+4,
 				    1.6e+2,83.4,43,23.5,12,6.2,3.5,
 				    1.8,0.9,0.5,2.3e-1,1.0e-1,4.6e-2,
 					  1.4e-2,8.2e-4,0.0};
-Int_t TNudyElementRN::fCCodeColor[26][3]={{ 50,101,200},{ 50,122,200},{ 50,144,200},{ 50,165,200},{ 50,187,200},
+int TNudyElementRN::fCCodeColor[26][3]={{ 50,101,200},{ 50,122,200},{ 50,144,200},{ 50,165,200},{ 50,187,200},
 					  { 50,208,200},{ 50,200,200},{ 61,200,179},{ 72,200,158},{ 84,200,136},
 					  { 95,200,115},{107,200,93 },{118,200,72 },{220,220,1  },{220,206,15 },
 					  {220,178,43 },{220,163,58 },{220,149,72 },{220,135,86 },{220,180,120},
@@ -35,7 +35,7 @@ TNudyElementRN::TNudyElementRN(TGeoElementRN* elem, Float_t x, Float_t y)
 }
 Color_t TNudyElementRN::GetColor(double halfLife)
 {
-  Int_t index;
+  int index;
 
   for(index=0; fCCodeRange[index] > halfLife && index < fCoSize; index++);
   if(halfLife <= 0)

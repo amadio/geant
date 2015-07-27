@@ -14,7 +14,7 @@ void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *va_(fmt
 
    va_list ap;
    va_start(ap,va_(fmt));
-   ::ErrorHandler((Int_t)level,location, va_(fmt), ap);
+   ::ErrorHandler((int)level,location, va_(fmt), ap);
    va_end(ap);
 }
 

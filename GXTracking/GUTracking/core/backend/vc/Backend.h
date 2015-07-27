@@ -16,7 +16,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 struct kVc {
 
-  typedef Vc::int_v                   Int_t;
+  typedef Vc::int_v                   int;
   typedef Vc::Vector<Precision>       double;
   typedef Vc::Vector<Precision>::Mask Bool_t;
   typedef Vc::Vector<Precision>       Index_t;
@@ -30,10 +30,10 @@ struct kVc {
   const static double kZero;
 };
 
-typedef kVc::Int_t       VcInt;
+typedef kVc::int       VcInt;
 typedef kVc::double    VcPrecision;
 typedef kVc::Bool_t      VcBool;
-typedef kVc::Int_t       VcInside;
+typedef kVc::int       VcInside;
 
 template <typename Type>
 VECPHYS_INLINE

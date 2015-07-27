@@ -45,7 +45,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-Int_t HepMCGenerator::NextEvent() {
+int HepMCGenerator::NextEvent() {
   //
   // Delete previous event
   delete search;
@@ -60,7 +60,7 @@ Int_t HepMCGenerator::NextEvent() {
 
   search = new HepMC::FindParticles(evt, HepMC::FIND_ALL, HepMC::STATUS == 1); // && HepMC::STATUS_SUBCODE == 0);
 
-  Int_t ntracks = 0;
+  int ntracks = 0;
   double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
@@ -89,7 +89,7 @@ Int_t HepMCGenerator::NextEvent() {
     ntracks++;
   }
 
-  Int_t ntot = search->results().size();
+  int ntot = search->results().size();
 
   std::cout << std::endl
             << "Number of stable particles ";
@@ -104,9 +104,9 @@ Int_t HepMCGenerator::NextEvent() {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
+void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
-  Int_t itr = 0;
+  int itr = 0;
   double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
@@ -180,8 +180,8 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(Int_t n, double &tpx, double &tpy, double &tpz, double &te, double &x0,
-                              double &y0, double &z0, Int_t &pdg) {
+void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0,
+                              double &y0, double &z0, int &pdg) {
 
   const HepMC::GenParticlePtr &genpart = search->results()[n];
   // here I have to create GeantTracks
@@ -204,7 +204,7 @@ void HepMCGenerator::GetTrack(Int_t n, double &tpx, double &tpy, double &tpz, do
 
   /*
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
-    Int_t itr = 0;
+    int itr = 0;
     double eta, phi, pmom=0;
     for (const HepMC::GenParticlePtr &genpart : search->results()) {
       if (fEtaCut || fMomCut)

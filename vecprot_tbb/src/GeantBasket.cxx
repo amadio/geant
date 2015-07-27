@@ -20,11 +20,11 @@ GeantBasket::GeantBasket()
 }
 
 //______________________________________________________________________________
-GeantBasket::GeantBasket(Int_t maxtracks)
+GeantBasket::GeantBasket(int maxtracks)
             :TObject(),
              fNtracks(0),
              fMaxTracks(maxtracks),
-             fIndex(new Int_t[maxtracks])
+             fIndex(new int[maxtracks])
 {
 // ctor.
 }
@@ -37,7 +37,7 @@ GeantBasket::~GeantBasket()
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTrack(Int_t itrack)
+void GeantBasket::AddTrack(int itrack)
 {
 // Add a new track to this basket;
    if (fNtracks >= fMaxTracks-1) Resize(2*fMaxTracks);
@@ -45,11 +45,11 @@ void GeantBasket::AddTrack(Int_t itrack)
 }
 
 //______________________________________________________________________________
-void GeantBasket::AddTracks(const Int_t *array, Int_t ntracks)
+void GeantBasket::AddTracks(const int *array, int ntracks)
 {
 // Add array of tracks to the basket.
    if (fNtracks+ntracks > fMaxTracks-1) Resize(TMath::Max(fNtracks+ntracks, 2*fMaxTracks));
-   memcpy(&fIndex[fNtracks], array, ntracks*sizeof(Int_t));
+   memcpy(&fIndex[fNtracks], array, ntracks*sizeof(int));
    fNtracks += ntracks;
 }
 
@@ -61,13 +61,13 @@ void GeantBasket::Clear(Option_t *)
 }
 
 //______________________________________________________________________________
-Bool_t GeantBasket::Contains(Int_t event) const
+Bool_t GeantBasket::Contains(int event) const
 {
 // Checks if any of the array of tracks belongs to the given event.
 
    GeantPropagator *gPropagator = GeantPropagator::Instance();
 
-   for (Int_t itr=0; itr<fNtracks; itr++) {
+   for (int itr=0; itr<fNtracks; itr++) {
       if (gPropagator->fTracks[fIndex[itr]]->event == event) return kTRUE;
    }
    return kFALSE;
@@ -79,7 +79,7 @@ void GeantBasket::Print(Option_t *) const
 // Print basket content.
    TThread::Lock();
    TString s = Form("basket %p with %d tracks:", this, fNtracks);
-   for (Int_t i=0; i<fNtracks; i++) {
+   for (int i=0; i<fNtracks; i++) {
 //      gPropagator->fTracks[fIndex[i]]->Print();
       s += Form(" %d",fIndex[i]);
    }
@@ -88,12 +88,12 @@ void GeantBasket::Print(Option_t *) const
 }
 
 //______________________________________________________________________________
-void GeantBasket::Resize(Int_t newSize)
+void GeantBasket::Resize(int newSize)
 {
 // Resize the array of track indices. Not thread safe - should be called by a
 // single thread at a time;
-   Int_t *newindex = new Int_t[newSize];
-   memcpy(newindex, fIndex, fNtracks*sizeof(Int_t));
+   int *newindex = new int[newSize];
+   memcpy(newindex, fIndex, fNtracks*sizeof(int));
    delete [] fIndex;
    fIndex = newindex;
    fMaxTracks = newSize;
@@ -113,7 +113,7 @@ GeantTrackCollection::GeantTrackCollection()
 }
 
 //______________________________________________________________________________
-GeantTrackCollection::GeantTrackCollection(Int_t size)
+GeantTrackCollection::GeantTrackCollection(int size)
                     :TObject(),
                      fNtracks(0),
                      fSize(size),
@@ -121,7 +121,7 @@ GeantTrackCollection::GeantTrackCollection(Int_t size)
                      fBaskets(0)
 {
 // Ctor.
-   fTracks = new Int_t[size];
+   fTracks = new int[size];
    fBaskets = new GeantVolumeBasket*[size];
 }
 
@@ -141,8 +141,8 @@ GeantTrackCollection& GeantTrackCollection::operator=(const GeantTrackCollection
       fSize = other.fSize;
 
       if (fTracks) delete [] fTracks;
-      fTracks = new Int_t[fSize];
-      memcpy (fTracks, other.fTracks, fSize*sizeof(Int_t));
+      fTracks = new int[fSize];
+      memcpy (fTracks, other.fTracks, fSize*sizeof(int));
 
       if (fBaskets) delete [] fBaskets;
       fBaskets = new GeantVolumeBasket*[fSize];
@@ -159,16 +159,16 @@ void GeantTrackCollection::Clear(Option_t *)
 }
 
 //______________________________________________________________________________
-Int_t GeantTrackCollection::AddTrack(Int_t itrack, GeantVolumeBasket *basket)
+int GeantTrackCollection::AddTrack(int itrack, GeantVolumeBasket *basket)
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
 
 // Add a new track entering the basket.
    if (!propagator->fTracks[itrack]->IsAlive()) return fNtracks;
    if (fNtracks==fSize-1) {
-      Int_t *tracks = new Int_t[2*fSize];
+      int *tracks = new int[2*fSize];
       GeantVolumeBasket **baskets = new GeantVolumeBasket*[2*fSize];
-      memcpy(tracks, fTracks, fSize*sizeof(Int_t));
+      memcpy(tracks, fTracks, fSize*sizeof(int));
       memcpy(baskets, fBaskets, fSize*sizeof(GeantVolumeBasket*));
       delete [] fTracks; fTracks = tracks;
       delete [] fBaskets; fBaskets = baskets;
@@ -180,12 +180,12 @@ Int_t GeantTrackCollection::AddTrack(Int_t itrack, GeantVolumeBasket *basket)
 }
 
 //______________________________________________________________________________
-void GeantTrackCollection::FlushTracks(GeantMainScheduler *main, Int_t* pushedN, Int_t* pushedP)
+void GeantTrackCollection::FlushTracks(GeantMainScheduler *main, int* pushedN, int* pushedP)
 {
 // Flush all tracks to the main scheduler. Returns number of injected baskets.
    Bool_t prior;
-   Int_t injected;
-   for (Int_t itr=0; itr<fNtracks; itr++) {
+   int injected;
+   for (int itr=0; itr<fNtracks; itr++) {
       injected = main->AddTrack(fTracks[itr], fBaskets[itr]->GetNumber(), &prior);
       if (injected) {
          if (!prior) (*pushedN)++;
@@ -202,7 +202,7 @@ void GeantTrackCollection::Print(Option_t *) const
 // Print info
    TThread::Lock();
    TString s = Form("collection %p with %d tracks:", this, fNtracks);
-   for (Int_t i=0; i<fNtracks; i++) {
+   for (int i=0; i<fNtracks; i++) {
       s += Form(" %d",fTracks[i]);
    }
    Printf("%s", s.Data());

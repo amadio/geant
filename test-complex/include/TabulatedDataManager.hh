@@ -34,29 +34,29 @@ public:
 
   //sampling element for intercation and type of intercation based on the tab. data
   //element index is the return and type will be in reactionid after termination   
-  Int_t SampleInteraction(const G4int imat, const G4Track &atrack, 
-                          Int_t &reactionid);
+  int SampleInteraction(const G4int imat, const G4Track &atrack, 
+                          int &reactionid);
   //Get range of the particle
   G4double GetRange(const G4int imat, const G4Track &atrack);
 
   //sampling a tabulated final state, insert secondaries into the particle change 
   //after proper transforamtion, update properties of primary in track 
-  void SampleFinalState(const Int_t elementindex, const Int_t reactionid,
+  void SampleFinalState(const int elementindex, const int reactionid,
                         const G4Track &atrack, G4ParticleChange *particlechange, 
                         double energylimit);   
   //compute energy loss for charged particle from dE/dx and update particle change
   void EnergyLoss(G4int imat, const G4Track &atrack, const G4Step &astep, 
                   G4ParticleChange *particlechange, G4double energylimit);
-  void SampleFinalStateAtRest(const Int_t imat, const G4Track &atrack,
+  void SampleFinalStateAtRest(const int imat, const G4Track &atrack,
                         G4ParticleChange *particlechange, double energylimit);   
-  void SampleDecayInFlight(const Int_t partindex, const G4Track &atrack, 
+  void SampleDecayInFlight(const int partindex, const G4Track &atrack, 
                        G4ParticleChange *particlechange, double energylimit );
   void ApplyMsc(G4int imat, const G4Track &atrack);
   void RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, 
                 G4ThreeVector &newDir);
   void RotateTrack(G4ThreeVector &newdir, double costheta, double phi);
 
-  G4bool HasRestProcess(Int_t gvindex);
+  G4bool HasRestProcess(int gvindex);
 
 
   TEFstate **   GetElemFstate()   { return fElemFstate; }
@@ -76,9 +76,9 @@ public:
   static G4bool fgIsUseRange; 
 
   // get current version number
-  Int_t VersionMajor() const {return fgVersion/1000/1000;}
-  Int_t VersionMinor() const {return fgVersion/1000-VersionMajor()*1000;}
-  Int_t VersionSub()   const {return fgVersion-VersionMajor()*1000000-VersionMinor()*1000;}
+  int VersionMajor() const {return fgVersion/1000/1000;}
+  int VersionMinor() const {return fgVersion/1000-VersionMajor()*1000;}
+  int VersionSub()   const {return fgVersion-VersionMajor()*1000000-VersionMinor()*1000;}
   char* GetVersion();
 
 private:
@@ -88,7 +88,7 @@ private:
   static TabulatedDataManager* fgInstance;
 
   // current version number
-  static const Int_t fgVersion=1000002;
+  static const int fgVersion=1000002;
 
   G4int            fNelements;    // Total number of elements in the geometry
   G4int            fNmaterials;   // Total number of materials in the geometry

@@ -48,31 +48,31 @@ public:
    static  Bool_t        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
     
    virtual void          ComputeNormal(const double *point, const double *dir, double *norm) const;
-   virtual void          ComputeNormal_v(const double *point, const double  *dir, double  *norm, Int_t np) const;
-   virtual void          ComputeNormal_l(const double *point, const double  *dir, double  *norm, Int_t np) const;
+   virtual void          ComputeNormal_v(const double *point, const double  *dir, double  *norm, int np) const;
+   virtual void          ComputeNormal_l(const double *point, const double  *dir, double  *norm, int np) const;
 
    virtual Bool_t        Contains(const double *point) const;
-   virtual void          Contains_v(const double *point, Bool_t *isin, Int_t np) const;
-   virtual void          Contains_v(const StructOfCoord & point, Bool_t *isin, Int_t np) const;
-   virtual void          Contains_l(const double *point, Bool_t *isin, Int_t np) const;
+   virtual void          Contains_v(const double *point, Bool_t *isin, int np) const;
+   virtual void          Contains_v(const StructOfCoord & point, Bool_t *isin, int np) const;
+   virtual void          Contains_l(const double *point, Bool_t *isin, int np) const;
 
    static  Bool_t        Contains(const double *point, double dx, double dy, double dz, const double *origin);
 
    virtual Bool_t        CouldBeCrossed(const double *point, const double *dir) const;
-   virtual void          CouldBeCrossed_l(const double *point, const double *dir, Bool_t * crossed, Int_t np ) const;
-   virtual void          CouldBeCrossed_v(const double  *point, const double  *dir,Bool_t *  crossed, Int_t np) const;
+   virtual void          CouldBeCrossed_l(const double *point, const double *dir, Bool_t * crossed, int np ) const;
+   virtual void          CouldBeCrossed_v(const double  *point, const double  *dir,Bool_t *  crossed, int np) const;
    // SOA version
-   virtual void          CouldBeCrossed_v(const StructOfCoord  & point, const StructOfCoord  & dir,Bool_t *  crossed, Int_t np) const;
+   virtual void          CouldBeCrossed_v(const StructOfCoord  & point, const StructOfCoord  & dir,Bool_t *  crossed, int np) const;
     
-   virtual Int_t         DistancetoPrimitive(Int_t px, Int_t py);
+   virtual int         DistancetoPrimitive(int px, int py);
 
    // DISTFROMINSIDE
-   virtual double      DistFromInside(double *point, double *dir, Int_t iact=1, 
+   virtual double      DistFromInside(double *point, double *dir, int iact=1, 
                                    double step=TGeoShape::Big(), double *safe=0) const;
 
    // often this method will be the general entry point from outside but we just dispatch it to the static method and ignore iact and safe )
-   virtual void    DistFromInside_v(StructOfCoord const & point, StructOfCoord const & dir, Int_t iact, 
-				     double const * step, double *safe, double * distance , Int_t np) const {
+   virtual void    DistFromInside_v(StructOfCoord const & point, StructOfCoord const & dir, int iact, 
+				     double const * step, double *safe, double * distance , int np) const {
      TGeoBBox_v::DistFromInsideS_v(point, dir, this->TGeoBBox::GetDX(), this->TGeoBBox::GetDY(), this->TGeoBBox::GetDZ(), this->TGeoBBox::GetOrigin(), step, distance, np );
    }
 
@@ -95,18 +95,18 @@ public:
 
 
    // DISTFROMOUTSIDE
-   virtual double    DistFromOutside(const double *point, const double *dir, Int_t iact=1, 
+   virtual double    DistFromOutside(const double *point, const double *dir, int iact=1, 
                                    double step=TGeoShape::Big(), double *safe=0) const;
 
    // often this method will be the general entry point from outside ( we dispatch it to the static method )
-   virtual void    DistFromOutside_v(StructOfCoord const & point, StructOfCoord const & dir, Int_t iact, 
-				     double const * step, double *safe, double * distance , Int_t np) const {
+   virtual void    DistFromOutside_v(StructOfCoord const & point, StructOfCoord const & dir, int iact, 
+				     double const * step, double *safe, double * distance , int np) const {
      TGeoBBox_v::DistFromOutsideS_v(point, dir, this->TGeoBBox::GetDX(), this->TGeoBBox::GetDY(), this->TGeoBBox::GetDZ(), this->TGeoBBox::GetOrigin(),  step, distance, np );
    }
 
 #ifdef VEC_EXTENSIONS
-   virtual void    DistFromOutside_Masked_v(double const *m, StructOfCoord const & point, StructOfCoord const & dir, Int_t iact, 
-				     double const * step, double *safe, double * distance , Int_t np) const {
+   virtual void    DistFromOutside_Masked_v(double const *m, StructOfCoord const & point, StructOfCoord const & dir, int iact, 
+				     double const * step, double *safe, double * distance , int np) const {
      TGeoBBox_v::DistFromOutsideS_Masked_v(m, point, dir, this->TGeoBBox::GetDX(), this->TGeoBBox::GetDY(), this->TGeoBBox::GetDZ(), this->TGeoBBox::GetOrigin(),  step, distance, np );
    }
 #endif
@@ -115,30 +115,30 @@ public:
    static  double  DistFromOutsideS(const double *point,const double *dir,
                                    double dx, double dy, double dz, const double *origin, double stepmax=TGeoShape::Big());
    
-   virtual void DistFromOutside_l(const double  *point, const double  *dir, double *  distance, Int_t np ) const;
+   virtual void DistFromOutside_l(const double  *point, const double  *dir, double *  distance, int np ) const;
  
     // SOA version for static method
    static  void      DistFromOutsideS_v(const StructOfCoord & point,const StructOfCoord & dir,
-					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, Int_t np);
+					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, int np);
   // SOA version for static method
 #ifdef VEC_EXTENSIONS
    static  void      DistFromOutsideS_Masked_v(double const*, const StructOfCoord & point,const StructOfCoord & dir,
-					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, Int_t np);
+					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, int np);
 #endif   
 
    // SOA trivial loop version for static method
    static  void      DistFromOutsideS_l(const StructOfCoord & point,const StructOfCoord & dir,
-					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, Int_t np);
+					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, int np);
    // trivial loop version for static method, no SOA
    static  void      DistFromOutsideS_l(const double * point,const double * dir,
-					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, Int_t np);
+					   double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, int np);
 
    // this code is meant to try a vectorization approach at a lower level with vector extensions or intrinsics  
 #ifdef VEC_EXTENSIONS
    // public:
    //   static void      DistFromOutsideS_v(StructOfCoord const & point, StructOfCoord const & dir, 
    //
-   //                     double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, Int_t np);
+   //                     double dx, double dy, double dz, const double *origin, const double * stepmax, double * distance, int np);
  private:
    // this is the actual kernel doing the computation with possibility of early return
    static void DistFromOutsideS_v4( Vc::double_v const & x , Vc::double_v const & y, Vc::double_v const & z, Vc::double_v const & dirx, Vc::double_v const & diry, Vc::double_v const & dirz, double dx, double dy, double dz, Vc::double_v const origin[3], Vc::double_v const & stepmax, Vc::double_v & distance );
@@ -149,18 +149,18 @@ public:
 
 
 
-   virtual Bool_t        GetPointsOnFacet(Int_t index, Int_t npoints, double *array) const;
-   virtual Bool_t        GetPointsOnSegments(Int_t npoints, double *array) const;
+   virtual Bool_t        GetPointsOnFacet(int index, int npoints, double *array) const;
+   virtual Bool_t        GetPointsOnSegments(int npoints, double *array) const;
 
 
    virtual double      Safety(const double *point, Bool_t in=kTRUE) const;
-   virtual void          Safety_l(const double *point, double *safety, Int_t np, Bool_t in=kTRUE) const;
+   virtual void          Safety_l(const double *point, double *safety, int np, Bool_t in=kTRUE) const;
 
-   virtual void          Safety_v(const double *point, Bool_t in, double *safety, Int_t np ) const; 
+   virtual void          Safety_v(const double *point, Bool_t in, double *safety, int np ) const; 
    //SOA version
-   virtual void          Safety_v(const StructOfCoord &point, Bool_t in, double *safety, Int_t np ) const;         
+   virtual void          Safety_v(const StructOfCoord &point, Bool_t in, double *safety, int np ) const;         
 
-   virtual void          Safety_v(const double *point, double *safety, const Bool_t * in, const Int_t np ) const; 
+   virtual void          Safety_v(const double *point, double *safety, const Bool_t * in, const int np ) const; 
 
    //   ClassDef(TGeoBBox_v, 1)         // box primitive
 };

@@ -77,12 +77,12 @@ void TNudySubLibrary::ReadMat(TNudyEndfMat *material){
   }
   TIter rIter(&reactions);
   TNamed *obj = NULL;
-  Int_t ZA = material->GetZA();
+  int ZA = material->GetZA();
   //Get Default Isotopes
   if(ZA%1000 == 0){
-    ZA = ZA + (Int_t)TNudyCore::Instance()->GetElementTable()->GetElement(ZA/1000)->A();
+    ZA = ZA + (int)TNudyCore::Instance()->GetElementTable()->GetElement(ZA/1000)->A();
   }
-  TGeoElementRN *mat = TNudyCore::Instance()->GetMaterial(ZA*10+(Int_t)material->GetLISO());
+  TGeoElementRN *mat = TNudyCore::Instance()->GetMaterial(ZA*10+(int)material->GetLISO());
   if(!mat){
     Warning("ReadMat","Material %s MAT %d ISO %d does not exist. Check the ENDF file.",material->GetName(),material->GetMAT(),material->GetLISO());
     return;

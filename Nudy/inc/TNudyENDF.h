@@ -58,11 +58,11 @@ class TNudyEndfINTG;
 #endif
 
 extern "C" type_of_call {
-  void FGetMTF(DEFCHARD str, Int_t mtf[4] DEFCHARL);
-  void FGetCONT(DEFCHARD str, double c[2], Int_t nl[4], Int_t mtf[4] DEFCHARL);
+  void FGetMTF(DEFCHARD str, int mtf[4] DEFCHARL);
+  void FGetCONT(DEFCHARD str, double c[2], int nl[4], int mtf[4] DEFCHARL);
   void FGetFloat(DEFCHARD str, double arr[6] DEFCHARL);
-  void FGetInt(DEFCHARD str, Int_t iarr[6] DEFCHARL);
-  void FGetINTG(DEFCHARD str, Int_t &ndigit,Int_t ij[2], Int_t kij[18], Int_t mtf[4] DEFCHARL);
+  void FGetInt(DEFCHARD str, int iarr[6] DEFCHARL);
+  void FGetINTG(DEFCHARD str, int &ndigit,int ij[2], int kij[18], int mtf[4] DEFCHARL);
 }
 
 #define LINLEN 256
@@ -108,23 +108,23 @@ class TNudyENDF: public TObject {
    void ProcessF34(TNudyEndfSec* sec);
    void ProcessF35(TNudyEndfSec* sec);
    void ProcessF40(TNudyEndfSec* sec);
-   void GetSEND(const Int_t pmtf[3]);
-   void GetFEND(const Int_t pmtf[3]);
-   void GetMEND(const Int_t pmtf[3]);
+   void GetSEND(const int pmtf[3]);
+   void GetFEND(const int pmtf[3]);
+   void GetMEND(const int pmtf[3]);
    void GetTEND();
    void ToEndSec();
    TNudyEndfTape* GetTape(){return this->fTape;}
 
-   void CheckSEND(const Int_t pmtf[3]) const;
-   void CheckFEND(const Int_t pmtf[3]) const;
-   void CheckMEND(const Int_t pmtf[3]) const;
+   void CheckSEND(const int pmtf[3]) const;
+   void CheckFEND(const int pmtf[3]) const;
+   void CheckMEND(const int pmtf[3]) const;
    void CheckTEND() const;
 
-   void GetMTF(Int_t mtf[4]) const {
+   void GetMTF(int mtf[4]) const {
      FGetMTF(PASSCHARD(fLine), mtf PASSCHARL(fLine));
    }
 
-   void GetCONT(double c[2], Int_t nl[4], Int_t mtf[4]) const {
+   void GetCONT(double c[2], int nl[4], int mtf[4]) const {
      FGetCONT(PASSCHARD(fLine), c, nl, mtf PASSCHARL(fLine));
    }
 
@@ -132,14 +132,14 @@ class TNudyENDF: public TObject {
      FGetFloat(PASSCHARD(fLine), c PASSCHARL(fLine));
    }
 
-   void GetInt(Int_t n[6]) const {
+   void GetInt(int n[6]) const {
      FGetInt(PASSCHARD(fLine), n PASSCHARL(fLine));
    }
-   void GetINTG(Int_t ndigit, Int_t ij[2] ,Int_t kij[18], Int_t mtf[4] )const{
+   void GetINTG(int ndigit, int ij[2] ,int kij[18], int mtf[4] )const{
      FGetINTG(PASSCHARD(fLine), ndigit, ij, kij, mtf PASSCHARL(fLine));
    }
      
-   void DumpENDF(Int_t flags);
+   void DumpENDF(int flags);
    
 private:
    static const char fkElNam[119][4];

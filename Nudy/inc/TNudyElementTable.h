@@ -11,13 +11,13 @@
 #include "TBox.h"
 #include "TList.h"
 #include "TButton.h"
-const Int_t kENABLED = 1;
-const Int_t kDISABLED = 0;
+const int kENABLED = 1;
+const int kDISABLED = 0;
 
 class TNudyElementTable: public TObject{
 
  private:
-  Int_t fState;
+  int fState;
   Float_t fOx,fOy;
   TGeoElementTable* fTable;
   TBox fWindow;

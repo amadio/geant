@@ -21,20 +21,20 @@ class TGeoBranchArray;
 class GeantVolumeBasket : public TObject {
 protected:
    TGeoVolume       *fVolume;                // Volume for which applies
-   Int_t             fNumber;                // Number assigned
+   int             fNumber;                // Number assigned
 
 public:
-   GeantVolumeBasket(TGeoVolume *vol, Int_t number);
+   GeantVolumeBasket(TGeoVolume *vol, int number);
    virtual ~GeantVolumeBasket();
 
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
-   Int_t             GetNumber() const            {return fNumber;}
+   int             GetNumber() const            {return fNumber;}
    TGeoVolume       *GetVolume() const            {return fVolume;}
    virtual void      Print(Option_t *option="") const;
 
-   void              ComputeTransportLength(Int_t ntracks, Int_t *trackin);
-   void              PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout, Int_t &ntodo, Int_t *tracktodo, Int_t &ncross, Int_t *trackcross);
-   static void       ResetStep(Int_t ntracks, Int_t *array);
+   void              ComputeTransportLength(int ntracks, int *trackin);
+   void              PropagateTracks(int ntracks, int *trackin, int &nout, int *trackout, int &ntodo, int *tracktodo, int &ncross, int *trackcross);
+   static void       ResetStep(int ntracks, int *array);
 
    ClassDef(GeantVolumeBasket,1)  // A path in geometry represented by the array of indices
 };

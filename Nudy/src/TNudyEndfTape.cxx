@@ -46,11 +46,11 @@ TNudyEndfTape::~TNudyEndfTape() {
 }
 
 //_______________________________________________________________________________
-void TNudyEndfTape::DumpENDF(Int_t flags = 1) {
+void TNudyEndfTape::DumpENDF(int flags = 1) {
   // Name of the tape
   printf("%80s\n", GetName());
   // Materials
-  for (Int_t i = 0; i <= fMats->LastIndex(); i++) {
+  for (int i = 0; i <= fMats->LastIndex(); i++) {
     TNudyEndfMat *mat = (TNudyEndfMat *)fMats->At(i);
     mat->DumpENDF(flags);
   }
@@ -67,20 +67,20 @@ void TNudyEndfTape::DumpENDF(Int_t flags = 1) {
 void TNudyEndfTape::AddMat(TNudyEndfMat *mat) { fMats->Add(mat); }
 
 //_______________________________________________________________________________
-TNudyEndfMat *TNudyEndfTape::GetMAT(Int_t MAT) {
-  for (Int_t i = 0; i <= this->GetMats()->LastIndex(); i++) {
+TNudyEndfMat *TNudyEndfTape::GetMAT(int MAT) {
+  for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
     if (thisMat->GetMAT() == MAT)
       return thisMat;
   }
-  Error("TNudyEndfMat::GetMAT(Int_t)", "Could not find material %d on tape", MAT);
+  Error("TNudyEndfMat::GetMAT(int)", "Could not find material %d on tape", MAT);
   return NULL;
 }
 
 //_______________________________________________________________________________
-TNudyEndfMat *TNudyEndfTape::GetMAT(Int_t Z, Int_t A) {
-  Int_t ZA = 1000 * Z + A;
-  for (Int_t i = 0; i <= this->GetMats()->LastIndex(); i++) {
+TNudyEndfMat *TNudyEndfTape::GetMAT(int Z, int A) {
+  int ZA = 1000 * Z + A;
+  for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
     if (thisMat->GetZA() == ZA)
       return thisMat;
@@ -88,7 +88,7 @@ TNudyEndfMat *TNudyEndfTape::GetMAT(Int_t Z, Int_t A) {
   return NULL;
 }
 TNudyEndfMat *TNudyEndfTape::GetMAT(TString name) {
-  for (Int_t i = 0; i <= this->GetMats()->LastIndex(); i++) {
+  for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
     if (name.CompareTo(thisMat->GetName()) == 0)
       return thisMat;

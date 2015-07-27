@@ -5,14 +5,14 @@
 static TFile *f=0;
 static TTree *t=0;
 
-void TimingInfo(Float_t cpu,Int_t z,Int_t pdg,Int_t proc,Float_t en, Int_t np)
+void TimingInfo(Float_t cpu,int z,int pdg,int proc,Float_t en, int np)
 {
   static Float_t scpu=0;
-  static Int_t sz=0;
-  static Int_t spcode=0;
-  static Int_t sreac=0;
+  static int sz=0;
+  static int spcode=0;
+  static int sreac=0;
   static Float_t sen=0;
-  static Int_t snp=0;
+  static int snp=0;
   static Bool_t first=kTRUE;
   
   if(first) {

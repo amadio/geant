@@ -36,7 +36,7 @@ GeantFactoryStore *GeantFactoryStore::Instance(int nclients) {
 GeantFactoryStore::~GeantFactoryStore() {
   // Destructor
   delete [] fTypes;
-  //   for (Int_t i=0; i<fNFactories; i++) delete fFactories[i];
+  //   for (int i=0; i<fNFactories; i++) delete fFactories[i];
   delete [] fFactories;
   fgInstance = 0;
 }

@@ -50,7 +50,7 @@ public:
   virtual void InitPrimaryGenerator() = 0;
 
   /** @brief  Pure virtual function that produce next event */
-  virtual Int_t NextEvent() = 0;
+  virtual int NextEvent() = 0;
 
   /**
    * @brief Pure virtual function that returns track
@@ -58,7 +58,7 @@ public:
    * @param n Track index
    * @param gtrack track
    */
-  virtual void GetTrack(Int_t n, Geant::GeantTrack &gtrack) = 0;
+  virtual void GetTrack(int n, Geant::GeantTrack &gtrack) = 0;
 
   /** @brief Getter for eta cut flag */
   Bool_t HasEtaCut() const { return fEtaCut; }

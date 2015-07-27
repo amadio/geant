@@ -220,7 +220,7 @@ template <typename T> void dcqueue<T>::wait_and_pop_max(size_t nmax, size_t &n, 
   n = the_queue.size();
   if (n > nmax)
     n = nmax;
-  UInt_t npopped = 0;
+  unsigned int npopped = 0;
   while (npopped < n) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();

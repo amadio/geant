@@ -36,12 +36,12 @@ using std::min;
 ClassImp(PhysicsProcess)
 
     //______________________________________________________________________________
-    void PhysicsProcess::StepManager(Int_t iproc, Int_t npart, Int_t * /*particles*/, Int_t nout,
-                                     Int_t * /*partnext*/) {
+    void PhysicsProcess::StepManager(int iproc, int npart, int * /*particles*/, int nout,
+                                     int * /*partnext*/) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   // User stepping routine. <partnext> array can
   // be null.
-  //   for (Int_t ipart=0; ipart<npart; ipart++) gTracks[particles[ipart]]->nsteps++;
+  //   for (int ipart=0; ipart<npart; ipart++) gTracks[particles[ipart]]->nsteps++;
   if (gPropagator->fUseDebug) {
     Printf("StepManager: process %s, npart=%d, nout=%d", gPropagator->Process(iproc)->GetName(), npart, nout);
   }
@@ -50,7 +50,7 @@ ClassImp(PhysicsProcess)
 ClassImp(ScatteringProcess)
 
     //______________________________________________________________________________
-    void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, double *lengths) {
+    void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
   // Generates an interaction length for the scattering process. Nothing physical,
   // just generate something comparable with the size of the current volume.
   //
@@ -62,7 +62,7 @@ ClassImp(ScatteringProcess)
 
   const double kC1 = 500.;
   const double xlen = numeric_limits<double>.max();
-  Int_t itrack;
+  int itrack;
   double density = 1.e-5;
   TGeoMaterial *mat = vol->GetMaterial();
   if (mat)
@@ -70,10 +70,10 @@ ClassImp(ScatteringProcess)
   density = max<double>(density, 1e-3);
   // Make sure we write in the thread space for the current basket
   double *rndArray = TBBperThread.fDblArray;
-  Int_t irnd = 0;
+  int irnd = 0;
   TBBperThread.fRndm->RndmArray(ntracks, rndArray);
   GeantTrack *track = 0;
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (!track->charge)
@@ -86,7 +86,7 @@ ClassImp(ScatteringProcess)
 }
 
 //______________________________________________________________________________
-void ScatteringProcess::PostStep(TGeoVolume *, Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout) {
+void ScatteringProcess::PostStep(TGeoVolume *, int ntracks, int *trackin, int &nout, int *trackout) {
   // Do post-step actions on particle after scattering process. Surviving tracks
   // copied in trackout
 
@@ -99,12 +99,12 @@ void ScatteringProcess::PostStep(TGeoVolume *, Int_t ntracks, Int_t *trackin, In
   double dir[3];
   double dirnew[3];
   GeantTrack *track = 0;
-  Int_t itrack;
+  int itrack;
   double p;
   double *rndArray = TBBperThread.fDblArray;
-  Int_t irnd = 0;
+  int irnd = 0;
   TBBperThread.fRndm->RndmArray(2 * ntracks, rndArray);
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (!track->charge) {
@@ -141,7 +141,7 @@ void ScatteringProcess::PostStep(TGeoVolume *, Int_t ntracks, Int_t *trackin, In
 ClassImp(ElossProcess)
 
     //______________________________________________________________________________
-    void ElossProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, double *lengths) {
+    void ElossProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
   // Energy loss process. Continuous process. Compute step limit for losing
   // maximum dw per step.
   GeantPropagator *gPropagator = GeantPropagator::Instance();
@@ -153,9 +153,9 @@ ClassImp(ElossProcess)
   Bool_t invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
-  Int_t itrack;
+  int itrack;
   GeantTrack *track;
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (track->charge && !invalid_material && track->IsAlive()) {
@@ -169,12 +169,12 @@ ClassImp(ElossProcess)
 }
 
 //______________________________________________________________________________
-void ElossProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout) {
+void ElossProcess::PostStep(TGeoVolume *vol, int ntracks, int *trackin, int &nout, int *trackout) {
   // Do post-step actions after energy loss process.
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   double eloss, dedx;
   GeantTrack *track;
-  Int_t itrack;
+  int itrack;
   TGeoMaterial *mat = vol->GetMaterial();
   double mata = mat->GetA();
   double matz = mat->GetZ();
@@ -183,7 +183,7 @@ void ElossProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
 
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (!track->IsAlive())
@@ -279,11 +279,11 @@ void ElossProcess::PlotBB(double z, double a, double rho, double bgmin, double b
 ClassImp(InteractionProcess)
 
     //______________________________________________________________________________
-    void InteractionProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, double *lengths) {
+    void InteractionProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   double fact = 1.;
   const double nabarn = fact * kAvogadro * 1e-24;
-  Int_t itrack;
+  int itrack;
   GeantTrack *track;
   double xlen = numeric_limits<double>.max();
   TGeoMaterial *mat = vol->GetMaterial();
@@ -303,7 +303,7 @@ ClassImp(InteractionProcess)
     return;
   }
 
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (track->species == kHadron && track->IsAlive()) {
@@ -316,7 +316,7 @@ ClassImp(InteractionProcess)
 }
 
 //______________________________________________________________________________
-void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout) {
+void InteractionProcess::PostStep(TGeoVolume *vol, int ntracks, int *trackin, int &nout, int *trackout) {
   // Do post-step actions on particle after interaction process.
   //   if (gUseDebug) Printf("PostStepInteraction %d tracks", ntracks);
   // We calculate the CMS energy
@@ -328,16 +328,16 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
 
   static TGenPhaseSpace gps;
   GeantTrack *track;
-  Int_t itrack;
+  int itrack;
   double *rndArray = TBBperThread.fDblArray;
   const double pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
   const double prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass,
                               pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass};
   TBBperThread.fRndm->RndmArray(ntracks, rndArray);
 
-  Int_t nprod = 0;
-  Int_t ngen = 0;
-  for (Int_t i = 0; i < ntracks; i++) {
+  int nprod = 0;
+  int ngen = 0;
+  for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     double en = track->e;
@@ -346,7 +346,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
     double cmsen = sqrt(m1 * m1 + m2 * m2 + 2 * en * m2) - m1 - m2;
     // Calculate the number of pions as a poisson distribution leaving half of the cms energy
     // for phase space momentum
-    Int_t npi = 0.5 * TBBperThread.fRndm->Rndm() * cmsen / pimass + 0.5;
+    int npi = 0.5 * TBBperThread.fRndm->Rndm() * cmsen / pimass + 0.5;
     if (npi > 1) {
       do {
         nprod = min<int>(TBBperThread.fRndm->Poisson(npi), 9);
@@ -360,7 +360,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
       // double pytot=track->py;
       // double pztot=track->pz;
       TGeoBranchArray &a = *track->path;
-      for (Int_t j = 0; j < 2 * nprod; ++j) {
+      for (int j = 0; j < 2 * nprod; ++j) {
         GeantTrack *trackg = gPropagator->AddTrack(track->evslot);
         *trackg->path = a;
         TLorentzVector *lv = gps.GetDecay(j);
@@ -383,7 +383,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
         trackg->e = lv->E();
         //            double mm2 =
         //            trackg->e*trackg->e-trackg->px*trackg->px-trackg->py*trackg->py-trackg->pz*trackg->pz;
-        Int_t itracknew = trackg->particle;
+        int itracknew = trackg->particle;
         trackout[nout++] = itracknew;
         ngen++;
 
@@ -403,10 +403,10 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
   StepManager(2, ntracks, trackin, nout, trackout);
   if (ngen) {
     // Generated particles may be below threshold-> Call PostStepEloss
-    Int_t nsurv = 0;
-    Int_t *trackgen = new Int_t[ngen];
+    int nsurv = 0;
+    int *trackgen = new int[ngen];
     gPropagator->Process(1)->PostStep(vol, ngen, &trackout[nout - ngen], nsurv, trackgen);
-    memcpy(&trackout[nout - ngen], trackgen, nsurv * sizeof(Int_t));
+    memcpy(&trackout[nout - ngen], trackgen, nsurv * sizeof(int));
     nout += nsurv - ngen;
     delete[] trackgen;
   }

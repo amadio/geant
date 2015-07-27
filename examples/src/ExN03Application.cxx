@@ -69,17 +69,17 @@ Bool_t ExN03Application::Initialize() {
 }
 
 //______________________________________________________________________________
-void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) {
+void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   if (!fInitialized)
     return; // FOR NOW
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
-  Int_t tid = td->fTid;
+  int tid = td->fTid;
   Node_t const *current;
-  Int_t idvol, idnode, ilev;
-  for (Int_t i = 0; i < npart; i++) {
+  int idvol, idnode, ilev;
+  for (int i = 0; i < npart; i++) {
 //      printf("%d=>\n", i);
 //      tracks.PrintTrack(i);
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -115,8 +115,8 @@ void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, Gean
   }
   return;
   MyHit *hit;
-  Int_t nhits = 0;
-  for (Int_t i = 0; i < npart; i++) {
+  int nhits = 0;
+  for (int i = 0; i < npart; i++) {
     hit = fFactory->NextFree(tracks.fEvslotV[i]);
     hit->fX = tracks.fXposV[i];
     hit->fY = tracks.fYposV[i];
@@ -134,14 +134,14 @@ void ExN03Application::StepManager(Int_t npart, const GeantTrack_v &tracks, Gean
 }
 
 //______________________________________________________________________________
-void ExN03Application::Digitize(Int_t /* event */) {
+void ExN03Application::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
   Printf("================================================================================");
   double nprim = (double)gPropagator->fNprimaries;
-  for (Int_t i = 0; i < kNlayers; ++i) {
-    for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
+  for (int i = 0; i < kNlayers; ++i) {
+    for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepGap[i][0] += fEdepGap[i][tid];
       fLengthGap[i][0] += fLengthGap[i][tid];
       fEdepAbs[i][0] += fEdepAbs[i][tid];
@@ -168,7 +168,7 @@ void ExN03Application::Digitize(Int_t /* event */) {
   histea->SetMarkerColor(kBlue);
   histea->SetMarkerStyle(4);
   histea->SetStats(kFALSE);
-  for (Int_t i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     histeg->SetBinContent(i + 3, fEdepGap[i][0] * 1000. / nprim);
     histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
   }
@@ -195,7 +195,7 @@ void ExN03Application::Digitize(Int_t /* event */) {
   histla->SetMarkerColor(kBlue);
   histla->SetMarkerStyle(4);
   histla->SetStats(kFALSE);
-  for (Int_t i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     histlg->SetBinContent(i + 3, fLengthGap[i][0] / nprim);
     histla->SetBinContent(i + 3, fLengthAbs[i][0] / nprim);
   }

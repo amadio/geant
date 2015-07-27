@@ -69,7 +69,7 @@ public:
    * @param lmin Low axis limit (positive)
    * @param lmax High axis limit (greater than lmin)
    */
-  static double *MakeUniformLogArray(Int_t nbins, double lmin, double lmax);
+  static double *MakeUniformLogArray(int nbins, double lmin, double lmax);
 
   /** @brief Set scoring type */
   void SetScoreType(EScoreType type) { fScore = type; }
@@ -81,14 +81,14 @@ public:
    * @param npart Number of tracks
    * @param tracks GeantV track container
    */
-  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td);
+  virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
   /**
    * @brief Function of digitization
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(Int_t event);
+  virtual void Digitize(int event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

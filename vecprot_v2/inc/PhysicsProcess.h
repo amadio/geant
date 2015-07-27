@@ -79,7 +79,7 @@ public:
    * @param lengths Partial process lengths
    * @param td Thread data
    */
-  virtual void ComputeIntLen(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, double *lengths,
+  virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double *lengths,
                              GeantTaskData *td) = 0;
 
   /**
@@ -91,7 +91,7 @@ public:
    * @param nout Number of surviving tracks
    * @param td Thread data
    */
-  virtual void PostStep(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout, GeantTaskData *td) = 0;
+  virtual void PostStep(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td) = 0;
 
   /**
    * @brief Post step type of intraction sampling function
@@ -104,7 +104,7 @@ public:
    * @param tracks Vector of tracks_v
    * @param td  Thread data
    */
-  virtual void PostStepTypeOfIntrActSampling(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks,
+  virtual void PostStepTypeOfIntrActSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                              GeantTaskData *td) = 0;
 
   /**
@@ -120,26 +120,26 @@ public:
    * @param nout Number of tracks in the output
    * @param td Thread data
    */
-  virtual void PostStepFinalStateSampling(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, Int_t &nout,
+  virtual void PostStepFinalStateSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
                                           GeantTaskData *td) = 0;
 
   /**
    * @todo  Need to be implemented
    */
-  virtual void AtRest(Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, Int_t & /*nout*/, GeantTaskData * /*td*/) {}
+  virtual void AtRest(int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/, GeantTaskData * /*td*/) {}
   GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
-  virtual void Eloss(Material_t * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, Int_t & /*nout*/,
+  virtual void Eloss(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
                      GeantTaskData * /*td*/) {}
   GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
-  virtual void ApplyMsc(Material_t * /*mat*/, Int_t /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
+  virtual void ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
 
   ClassDef(PhysicsProcess, 1) // Physics process base class
 };

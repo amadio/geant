@@ -34,7 +34,7 @@ TNudyEndfCont::TNudyEndfCont() :
 
 //_______________________________________________________________________________
 TNudyEndfCont::TNudyEndfCont(double c1, double c2,
-			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
+			     int l1, int l2, int n1, int n2) :
   fC1(c1),
   fC2(c2),
   fL1(l1),
@@ -50,7 +50,7 @@ TNudyEndfCont::TNudyEndfCont(double c1, double c2,
 
 //_______________________________________________________________________________
 void TNudyEndfCont::SetCont(double c1, double c2,
-			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
+			    int l1, int l2, int n1, int n2)
 {
   fC1=c1;
   fC2=c2;
@@ -63,7 +63,7 @@ void TNudyEndfCont::SetCont(double c1, double c2,
 //
 // Dump Data to screen in ENDF format
 //______________________________________________________________________________
-void TNudyEndfCont::DumpENDF(Int_t mat,Int_t mf, Int_t mt,Int_t& ns, Int_t flags = 1)
+void TNudyEndfCont::DumpENDF(int mat,int mf, int mt,int& ns, int flags = 1)
 {
   Char_t s1[14],s2[14];
   F2F(fC1,s1); F2F(fC2,s2);

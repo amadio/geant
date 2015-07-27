@@ -156,7 +156,7 @@ void TGeoBBox_v::ComputeNormal(double *point, double *dir, double *norm) {
   // Computes normal to closest surface from POINT.
   memset(norm, 0, 3 * sizeof(double));
   double saf[3];
-  Int_t i;
+  int i;
   saf[0] = fabs(fabs(point[0] - fOrigin[0]) - fDX);
   saf[1] = fabs(fabs(point[1] - fOrigin[1]) - fDY);
   saf[2] = fabs(fabs(point[2] - fOrigin[2]) - fDZ);
@@ -193,9 +193,9 @@ Bool_t TGeoBBox_v::CouldBeCrossed(double *point, double *dir) const {
 }
 
 //_____________________________________________________________________________
-Int_t TGeoBBox_v::DistancetoPrimitive(Int_t px, Int_t py) {
+int TGeoBBox_v::DistancetoPrimitive(int px, int py) {
   // Compute closest distance from point px,py to each corner.
-  const Int_t numPoints = 8;
+  const int numPoints = 8;
   return ShapeDistancetoPrimitive(numPoints, px, py);
 }
 
@@ -213,11 +213,11 @@ Bool_t TGeoBBox_v::Contains(double *point) const {
 
 #define vector(elcount, type) __attribute__((vector_size((elcount) * sizeof(type)))) type
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const double *point, Bool_t *isin, const Int_t np) const {
+void TGeoBBox_v::Contains_v(const double *point, Bool_t *isin, const int np) const {
   // Test if point is inside this shape.
   vector(32, double)*vx, *vy;
   double xx, yy, zz;
-  for (Int_t i = 0; i < np; ++i) {
+  for (int i = 0; i < np; ++i) {
     xx = point[3 * i] - fOrigin[0];
     yy = point[3 * i + 1] - fOrigin[1];
     zz = point[3 * i + 2] - fOrigin[2];
@@ -238,12 +238,12 @@ Bool_t TGeoBBox_v::Contains(const double *point, double dx, double dy, double dz
 }
 
 //_____________________________________________________________________________
-double TGeoBBox_v::DistFromInside(double *point, double *dir, Int_t iact, double step, double *safe) const {
+double TGeoBBox_v::DistFromInside(double *point, double *dir, int iact, double step, double *safe) const {
   // Compute distance from inside point to surface of the box.
   // Boundary safe algorithm.
   double s, smin, saf[6];
   double newpt[3];
-  Int_t i;
+  int i;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - fOrigin[i];
   saf[0] = fDX + newpt[0];
@@ -287,7 +287,7 @@ double TGeoBBox_v::DistFromInside(const double *point, const double *dir, double
   // Boundary safe algorithm.
   double s, smin, saf[6];
   double newpt[3];
-  Int_t i;
+  int i;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - origin[i];
   saf[0] = dx + newpt[0];
@@ -311,14 +311,14 @@ double TGeoBBox_v::DistFromInside(const double *point, const double *dir, double
 }
 
 //_____________________________________________________________________________
-double TGeoBBox_v::DistFromOutside(double *point, double *dir, Int_t iact, double step, double *safe) const {
+double TGeoBBox_v::DistFromOutside(double *point, double *dir, int iact, double step, double *safe) const {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
   Bool_t in = kTRUE;
   double saf[3];
   double par[3];
   double newpt[3];
-  Int_t i, j;
+  int i, j;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - fOrigin[i];
   par[0] = fDX;
@@ -349,7 +349,7 @@ double TGeoBBox_v::DistFromOutside(double *point, double *dir, Int_t iact, doubl
   }
   // compute distance from point to box
   double coord, snxt = TGeoShape::Big();
-  Int_t ibreak = 0;
+  int ibreak = 0;
   // protection in case point is actually inside box
   if (in) {
     j = 0;
@@ -395,7 +395,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
   double saf[3];
   double par[3];
   double newpt[3];
-  Int_t i, j;
+  int i, j;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - origin[i];
   par[0] = dx;
@@ -412,7 +412,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
   if (in)
     return 0.0;
   double coord, snxt = TGeoShape::Big();
-  Int_t ibreak = 0;
+  int ibreak = 0;
   for (i = 0; i < 3; i++) {
     if (saf[i] < 0)
       continue;
@@ -436,7 +436,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, double *array) const {
+Bool_t TGeoBBox_v::GetPointsOnFacet(int index, int npoints, double *array) const {
   // Fills array with n random points located on the surface of indexed facet.
   // The output array must be provided with a length of minimum 3*npoints. Returns
   // true if operation succeeded.
@@ -448,7 +448,7 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, double *array) c
   double surf[6];
   double area = 0.;
   if (index == 0) {
-    for (Int_t isurf = 0; isurf < 6; isurf++) {
+    for (int isurf = 0; isurf < 6; isurf++) {
       surf[isurf] = TGeoBBox_v::GetFacetArea(isurf + 1);
       if (isurf > 0)
         surf[isurf] += surf[isurf - 1];
@@ -456,10 +456,10 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, double *array) c
     area = surf[5];
   }
 
-  for (Int_t i = 0; i < npoints; i++) {
+  for (int i = 0; i < npoints; i++) {
     // Generate randomly a surface index if needed.
     double *point = &array[3 * i];
-    Int_t surfindex = index;
+    int surfindex = index;
     if (surfindex == 0) {
       double val = area * gRandom->Rndm();
       surfindex = 2 + TMath::BinarySearch(6, surf, val);
@@ -503,7 +503,7 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, double *array) c
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, double *array) const {
+Bool_t TGeoBBox_v::GetPointsOnSegments(int npoints, double *array) const {
   // Fills array with n random points located on the line segments of the shape mesh.
   // The output array must be provided with a length of minimum 3*npoints. Returns
   // true if operation is implemented.
@@ -512,16 +512,16 @@ Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, double *array) const {
     return kFALSE;
   }
   TBuffer3D &buff = (TBuffer3D &)GetBuffer3D(TBuffer3D::kRawSizes | TBuffer3D::kRaw, kTRUE);
-  Int_t npnts = buff.NbPnts();
-  Int_t nsegs = buff.NbSegs();
+  int npnts = buff.NbPnts();
+  int nsegs = buff.NbSegs();
   // Copy buffered points  in the array
   memcpy(array, buff.fPnts, 3 * npnts * sizeof(double));
-  Int_t ipoints = npoints - npnts;
-  Int_t icrt = 3 * npnts;
-  Int_t nperseg = (Int_t)(double(ipoints) / nsegs);
+  int ipoints = npoints - npnts;
+  int icrt = 3 * npnts;
+  int nperseg = (int)(double(ipoints) / nsegs);
   double *p0, *p1;
   double x, y, z, dx, dy, dz;
-  for (Int_t i = 0; i < nsegs; i++) {
+  for (int i = 0; i < nsegs; i++) {
     p0 = &array[3 * buff.fSegs[3 * i + 1]];
     p1 = &array[3 * buff.fSegs[3 * i + 2]];
     if (i == (nsegs - 1))
@@ -529,7 +529,7 @@ Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, double *array) const {
     dx = (p1[0] - p0[0]) / (nperseg + 1);
     dy = (p1[1] - p0[1]) / (nperseg + 1);
     dz = (p1[2] - p0[2]) / (nperseg + 1);
-    for (Int_t j = 0; j < nperseg; j++) {
+    for (int j = 0; j < nperseg; j++) {
       x = p0[0] + (j + 1) * dx;
       y = p0[1] + (j + 1) * dy;
       z = p0[2] + (j + 1) * dz;

@@ -25,8 +25,8 @@ ClassNames = [ "TGeoBBox",
                "TGeoXtru" ]
 
 #virtual Bool_t        Contains(double *point) const;
-#virtual double      DistFromInside(double *point, double *dir, Int_t iact=1, double step=TGeoShape::Big(), double *safe=0);
-#virtual double      DistFromOutside(double *point, double *dir, Int_t iact=1, double step=TGeoShape::Big(), double *safe=0);
+#virtual double      DistFromInside(double *point, double *dir, int iact=1, double step=TGeoShape::Big(), double *safe=0);
+#virtual double      DistFromOutside(double *point, double *dir, int iact=1, double step=TGeoShape::Big(), double *safe=0);
 #virtual double      Safety(double *point, Bool_t in=kTRUE);
 
 def EmitCommonStuff( classn ):
@@ -65,7 +65,7 @@ def EmitLoopN( indentlevel ):
 
 
 def EmitContainsDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "virtual void Contains_l( double const *point, Bool_t * isin , Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void Contains_l( double const *point, Bool_t * isin , int vecsize ) {"
 
 
 def EmitCallToContains( indentlevel, classname ):
@@ -75,7 +75,7 @@ def EmitCallToContains( indentlevel, classname ):
 
 
 def EmitSafetyDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "virtual void Safety_l( double const *point, Bool_t inside, double * safe , Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void Safety_l( double const *point, Bool_t inside, double * safe , int vecsize ) {"
 
 
 def EmitCallToSafety( indentlevel, classname ):
@@ -85,11 +85,11 @@ def EmitCallToSafety( indentlevel, classname ):
 
 
 def EmitDistanceFromInsideDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "virtual void DistFromInside_l( double const *point, double const *dir, Int_t iact, double const * step, double *safe , double * dist, Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void DistFromInside_l( double const *point, double const *dir, int iact, double const * step, double *safe , double * dist, int vecsize ) {"
 
 
 def EmitDistanceFromOutsideDecl( indentlevel, classname ):
-    print getIndentString( indentlevel ) + "virtual void DistFromOutside_l( double const *point, double const *dir, Int_t iact, double const * step, double *safe , double * dist, Int_t vecsize ) {"
+    print getIndentString( indentlevel ) + "virtual void DistFromOutside_l( double const *point, double const *dir, int iact, double const * step, double *safe , double * dist, int vecsize ) {"
 
 
 def EmitCallToDistanceFromOutside( indentlevel, classname ):

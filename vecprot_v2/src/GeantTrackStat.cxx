@@ -4,7 +4,7 @@
 ClassImp(GeantTrackStat)
 
     //______________________________________________________________________________
-    GeantTrackStat::GeantTrackStat(Int_t nslots)
+    GeantTrackStat::GeantTrackStat(int nslots)
     : TObject(), fNslots(nslots), fNtracks(0), fNsteps(0), fMutex() {
   // Ctor
   InitArrays(nslots);
@@ -25,7 +25,7 @@ void GeantTrackStat::AddTrack(const GeantTrack &track) {
 }
 
 //______________________________________________________________________________
-void GeantTrackStat::AddTrack(const GeantTrack_v &trackv, Int_t itr) {
+void GeantTrackStat::AddTrack(const GeantTrack_v &trackv, int itr) {
   // Add a track from an array
   fNtracks[trackv.fEvslotV[itr]]++;
   fNsteps[trackv.fEvslotV[itr]] += trackv.fNstepsV[itr];
@@ -35,8 +35,8 @@ void GeantTrackStat::AddTrack(const GeantTrack_v &trackv, Int_t itr) {
 void GeantTrackStat::AddTracks(const GeantTrack_v &trackv) {
   // Remove statistics for tracks
   fMutex.Lock();
-  Int_t ntracks = trackv.GetNtracks();
-  for (Int_t i = 0; i < ntracks; i++) {
+  int ntracks = trackv.GetNtracks();
+  for (int i = 0; i < ntracks; i++) {
     fNtracks[trackv.fEvslotV[i]]++;
     fNsteps[trackv.fEvslotV[i]] += trackv.fNstepsV[i];
   }
@@ -47,8 +47,8 @@ void GeantTrackStat::AddTracks(const GeantTrack_v &trackv) {
 void GeantTrackStat::RemoveTracks(const GeantTrack_v &trackv) {
   // Remove statistics for tracks
   fMutex.Lock();
-  Int_t ntracks = trackv.GetNtracks();
-  for (Int_t i = 0; i < ntracks; i++) {
+  int ntracks = trackv.GetNtracks();
+  for (int i = 0; i < ntracks; i++) {
     // do *NOT* remove new tracks since they were not added yet anywhere
     if (trackv.fStatusV[i] == kNew)
       continue;
@@ -65,7 +65,7 @@ GeantTrackStat &GeantTrackStat::operator+=(const GeantTrackStat &other) {
     Error("operator+=", "Different number of slots");
     return *this;
   }
-  for (Int_t i = 0; i < fNslots; i++) {
+  for (int i = 0; i < fNslots; i++) {
     fNtracks[i] += other.fNtracks[i];
     fNsteps[i] += other.fNsteps[i];
   }
@@ -79,7 +79,7 @@ GeantTrackStat &GeantTrackStat::operator-=(const GeantTrackStat &other) {
     Error("operator+=", "Different number of slots");
     return *this;
   }
-  for (Int_t i = 0; i < fNslots; i++) {
+  for (int i = 0; i < fNslots; i++) {
     fNtracks[i] -= other.fNtracks[i];
     fNsteps[i] -= other.fNsteps[i];
   }
@@ -87,27 +87,27 @@ GeantTrackStat &GeantTrackStat::operator-=(const GeantTrackStat &other) {
 }
 
 //______________________________________________________________________________
-void GeantTrackStat::InitArrays(Int_t nslots) {
+void GeantTrackStat::InitArrays(int nslots) {
   // Initialize arrays
   fNslots = nslots;
   delete[] fNtracks;
   delete[] fNsteps;
-  fNtracks = new Int_t[nslots];
-  memset(fNtracks, 0, nslots * sizeof(Int_t));
-  fNsteps = new Int_t[nslots];
-  memset(fNsteps, 0, nslots * sizeof(Int_t));
+  fNtracks = new int[nslots];
+  memset(fNtracks, 0, nslots * sizeof(int));
+  fNsteps = new int[nslots];
+  memset(fNsteps, 0, nslots * sizeof(int));
 }
 
 //______________________________________________________________________________
 void GeantTrackStat::Print(Option_t *) const {
   // Print statistics
   printf("slot: ");
-  for (Int_t i = 0; i < fNslots; i++) {
+  for (int i = 0; i < fNslots; i++) {
     printf("%5d ", i);
   }
   printf("\n");
   printf("ntr:  ");
-  for (Int_t i = 0; i < fNslots; i++) {
+  for (int i = 0; i < fNslots; i++) {
     printf("%5d ", fNtracks[i]);
   }
   printf("\n");
@@ -117,7 +117,7 @@ void GeantTrackStat::Print(Option_t *) const {
 void GeantTrackStat::Reset() {
   // Reset statistics
   if (fNslots) {
-    memset(fNtracks, 0, fNslots * sizeof(Int_t));
-    memset(fNsteps, 0, fNslots * sizeof(Int_t));
+    memset(fNtracks, 0, fNslots * sizeof(int));
+    memset(fNsteps, 0, fNslots * sizeof(int));
   }
 }

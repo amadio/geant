@@ -16,7 +16,7 @@
 
 class TNudyAliasCont : public TObject {
   private:
-    Int_t fLen; // Length of data
+    int fLen; // Length of data
     TNudyAlias *fChooseBin; // Use alias method to choose bin
     //Probability distribution
     TArrayD *fP; // Probability distribution
@@ -32,25 +32,25 @@ class TNudyAliasCont : public TObject {
     double fAlpha;// Stores the number which identifies the distribution
   public:
     TNudyAliasCont();
-    TNudyAliasCont(double *p,double *x,const Int_t len,double alpha,UInt_t seed=65539);
-    TNudyAliasCont(TArrayD *data,double alpha,UInt_t seed);
-    void Initialize(double *p,double *x,const Int_t len,double alpha,UInt_t seed=65539);
+    TNudyAliasCont(double *p,double *x,const int len,double alpha,unsigned int seed=65539);
+    TNudyAliasCont(TArrayD *data,double alpha,unsigned int seed);
+    void Initialize(double *p,double *x,const int len,double alpha,unsigned int seed=65539);
     virtual ~TNudyAliasCont();
     void DumpTable();
-    double GetP(Int_t i) {if(i>=0 && i<fLen) return fP->GetAt(i); else return -1;}
-    double GetX(Int_t i) {if(i>=0 && i<fLen) return fX->GetAt(i); else return -1;}
+    double GetP(int i) {if(i>=0 && i<fLen) return fP->GetAt(i); else return -1;}
+    double GetX(int i) {if(i>=0 && i<fLen) return fX->GetAt(i); else return -1;}
     double GetAlpha() {return fAlpha;}
     double Uniform(double x=1) {if(fRnd) return fRnd->Uniform(x); else return -1;}
     double RandomBin() {if(fChooseBin) return fChooseBin->Random(); else return -1;}
-    double Random(IntScheme_t iScheme=kLinear,Int_t binNo=-1,AliasDist_t arr=kOriginal,double r1 = -1,double r2 = -1);
+    double Random(IntScheme_t iScheme=kLinear,int binNo=-1,AliasDist_t arr=kOriginal,double r1 = -1,double r2 = -1);
     double ImprovedInterpolation(double alpha);
     double SelectBin(double ein, AliasDist_t distribution=kOriginal);
-    static void BuildIntermediate(TNudyAliasCont *x,const Int_t len);
+    static void BuildIntermediate(TNudyAliasCont *x,const int len);
     static double StatisticalInterpolation(TNudyAliasCont *dist1, TNudyAliasCont *dist2,double alpha);
 #ifdef TNUDYALIAS_MULTITHREAD
     double *fMult; //! Random numbers to be generated in parallel
-    Int_t fMultLen; //! Number if random numbres to be generated in parallel
-    double* Randoms(Int_t n,IntScheme_t iScheme=kLinear);
+    int fMultLen; //! Number if random numbres to be generated in parallel
+    double* Randoms(int n,IntScheme_t iScheme=kLinear);
 #endif
     
     ClassDef(TNudyAliasCont,1)

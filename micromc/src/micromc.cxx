@@ -21,18 +21,18 @@ void VertexIn(TGeoBBox *bbox, double ori[3]);
 
 using namespace Geant;
 
-static Int_t stacksize = 100;
-static Int_t hwmark = 0;
+static int stacksize = 100;
+static int hwmark = 0;
 static GeantTrack *particleStack = new GeantTrack[stacksize];
 static TGeoManager *geom;
 
-Int_t main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
-  for (Int_t i = 0; i < argc; ++i) {
+  for (int i = 0; i < argc; ++i) {
     printf("argv[%d] = %s\n", i, argv[i]);
   }
   /*
-     Int_t nevent=1;
+     int nevent=1;
      if(argc>1) sscanf(argv[1],"%d",&nevent);
 
      double avemult = 10.;
@@ -62,11 +62,11 @@ Int_t main(int argc, char *argv[]) {
      printf("Total of %d materials\n",matlist->GetSize());
      while((mat = (TGeoMaterial*) next())) {
         if(!mat->IsUsed()) continue;
-        Int_t nelem = mat->GetNelements();
-        Int_t *z = new Int_t[nelem];
-        Int_t *a = new Int_t[nelem];
+        int nelem = mat->GetNelements();
+        int *z = new int[nelem];
+        int *a = new int[nelem];
         Float_t *w = new Float_t[nelem];
-        for(Int_t iel=0; iel<nelem; ++iel) {
+        for(int iel=0; iel<nelem; ++iel) {
            double ad;
            double zd;
            double wd;
@@ -105,7 +105,7 @@ Int_t main(int argc, char *argv[]) {
      printf("Top volume is %s shape %s\n",top->GetName(),shape->GetName());
      printf("BBox dx %f dy %f dz %f origin %f %f %f\n",dx,dy,dz,origin[0],origin[1],origin[2]);
 
-     for(Int_t iev=0; iev<nevent; ++iev) {
+     for(int iev=0; iev<nevent; ++iev) {
         // should define a vertex, origin for the moment
         double vertex[3]={0,0,0};
         VertexIn(bbox,vertex);
@@ -137,7 +137,7 @@ Int_t main(int argc, char *argv[]) {
               printf("pnext = %f snext = %f\n",pnext,snext);
               if(pnext<=snext) {
                  //phys wins
-                 Int_t reac;
+                 int reac;
                  mat->Print();
                  TEXsec *el = mx->SampleInt(track->fGVcode,ken,reac);
                  printf("particle does a %s on %s\n",TPartIndex::I()->ProcName(reac),el->GetName());
@@ -160,12 +160,12 @@ Int_t main(int argc, char *argv[]) {
   TGeoNode *current=0;
   TGeoNode *nexnode=0;
   TIter next(particleStack);
-  for(Int_t iev=0; iev<nevent; ++iev) {
+  for(int iev=0; iev<nevent; ++iev) {
      GenerateEvent();
      next.Reset();
      GeantTrack *tr=0;
      while((tr=(GeantTrack*)next())) {
-        Int_t GVindex = TPartIndex::I()->PartIndex(tr->pdg);
+        int GVindex = TPartIndex::I()->PartIndex(tr->pdg);
         tr->Direction(dir);
         x[0]=tr->xpos;
         x[1]=tr->ypos;
@@ -181,12 +181,12 @@ Int_t main(int argc, char *argv[]) {
 
 void GenerateEvent(double avemult, double energy, double fVertex[3]) {
   static Bool_t first = kTRUE;
-  static const Int_t kMaxPart = NPART;
+  static const int kMaxPart = NPART;
   static const Char_t *GVname[NPART] = {"pi+", "pi-", "proton", "antiproton", "neutron", "antineutron",
                                         "e-",  "e+",  "gamma",  "mu+",        "mu-"};
   static const Species_t GVspecies[NPART] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron,
                                              kLepton, kLepton, kLepton, kLepton, kLepton};
-  static Int_t GVpart[NPART];
+  static int GVpart[NPART];
   static Float_t GVprob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
 
   const double etamin = -3, etamax = 3;
@@ -194,12 +194,12 @@ void GenerateEvent(double avemult, double energy, double fVertex[3]) {
   // Initialise simple generator
   if (first) {
     double sumprob = 0;
-    for (Int_t ip = 0; ip < kMaxPart; ++ip) {
+    for (int ip = 0; ip < kMaxPart; ++ip) {
       GVpart[ip] = TPartIndex::I()->PartIndex(GVname[ip]);
       printf("part %s code %d\n", GVname[ip], GVpart[ip]);
       sumprob += GVprob[ip];
     }
-    for (Int_t ip = 0; ip < kMaxPart; ++ip) {
+    for (int ip = 0; ip < kMaxPart; ++ip) {
       GVprob[ip] /= sumprob;
       if (ip)
         GVprob[ip] += GVprob[ip - 1];
@@ -207,15 +207,15 @@ void GenerateEvent(double avemult, double energy, double fVertex[3]) {
     first = kFALSE;
   }
 
-  Int_t ntracks = gRandom->Poisson(avemult) + 0.5;
+  int ntracks = gRandom->Poisson(avemult) + 0.5;
 
   hwmark = 0;
-  for (Int_t i = 0; i < ntracks; i++) {
+  for (int i = 0; i < ntracks; i++) {
     if (hwmark == stacksize)
       IncreaseStack();
     GeantTrack *track = &particleStack[hwmark++];
     double prob = gRandom->Uniform();
-    for (Int_t j = 0; j < kMaxPart; ++j) {
+    for (int j = 0; j < kMaxPart; ++j) {
       if (prob <= GVprob[j]) {
         track->fGVcode = GVpart[j];
         track->fPDG = TPartIndex::I()->PDG(GVpart[j]);
@@ -257,7 +257,7 @@ double SampleMaxwell(double emean) {
 }
 
 void IncreaseStack() {
-  Int_t newstacksize = stacksize * 1.5;
+  int newstacksize = stacksize * 1.5;
   GeantTrack *tmp = new GeantTrack[newstacksize];
   memcpy((void *)tmp, (void *)particleStack, stacksize * sizeof(GeantTrack));
   delete[] particleStack;

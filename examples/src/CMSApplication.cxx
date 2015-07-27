@@ -26,8 +26,8 @@ ClassImp(CMSApplication)
   memset(fSensFlags, 0, kNvolumes * sizeof(Bool_t));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(Float_t));
   memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(Float_t));
-  memset(fECALid, 0, kNECALModules * sizeof(Int_t));
-  memset(fHCALid, 0, kNHCALModules * sizeof(Int_t));
+  memset(fECALid, 0, kNECALModules * sizeof(int));
+  memset(fHCALid, 0, kNHCALModules * sizeof(int));
   TH1::AddDirectory(false);
   fFluxElec = new TH1F("hFluxElec", "e+/e- flux/primary in ECAL", 50, 0., 2500.);
   fFluxElec->GetXaxis()->SetTitle("Momentum [MeV/c]");
@@ -70,9 +70,9 @@ Bool_t CMSApplication::Initialize() {
   // Loop unique volume id's
   Volume_t *vol;
   TString svol, smat;
-  Int_t necal = 0;
-  Int_t nhcal = 0;
-  for (Int_t ivol = 0; ivol < kNvolumes; ++ivol) {
+  int necal = 0;
+  int nhcal = 0;
+  for (int ivol = 0; ivol < kNvolumes; ++ivol) {
 #ifdef USE_VECGEOM_NAVIGATOR
     vol = GeoManager::Instance().FindLogicalVolume(ivol);
 #else
@@ -108,20 +108,20 @@ Bool_t CMSApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) {
+void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   static GeantPropagator *propagator = GeantPropagator::Instance();
-  Int_t tid = td->fTid;
+  int tid = td->fTid;
   if ((!fInitialized) || (fScore == kNoScore))
     return;
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
-  Int_t ivol;
-  Int_t idtype;
-  Int_t mod;
+  int ivol;
+  int idtype;
+  int mod;
   Volume_t *vol;
-  for (Int_t itr = 0; itr < npart; itr++) {
+  for (int itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
     ivol = vol->id();
@@ -179,14 +179,14 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
 }
 
 //______________________________________________________________________________
-void CMSApplication::Digitize(Int_t /* event */) {
+void CMSApplication::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit in ECAL [MeV/primary] ");
   Printf("================================================================================");
   double nprim = (double)gPropagator->fNprimaries;
-  for (Int_t i = 0; i < kNECALModules; ++i) {
-    for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
+  for (int i = 0; i < kNECALModules; ++i) {
+    for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
     }
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -198,8 +198,8 @@ void CMSApplication::Digitize(Int_t /* event */) {
   }
   Printf("Energy deposit in HCAL [MeV/primary] ");
   Printf("================================================================================");
-  for (Int_t i = 0; i < kNHCALModules; ++i) {
-    for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
+  for (int i = 0; i < kNHCALModules; ++i) {
+    for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepHCAL[i][0] += fEdepHCAL[i][tid];
     }
 #ifdef USE_VECGEOM_NAVIGATOR
