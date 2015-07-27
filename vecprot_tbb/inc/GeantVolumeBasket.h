@@ -30,7 +30,7 @@ public:
    const char       *GetName() const              {return (fVolume)?fVolume->GetName():ClassName();}
    int             GetNumber() const            {return fNumber;}
    TGeoVolume       *GetVolume() const            {return fVolume;}
-   virtual void      Print(Option_t *option="") const;
+   virtual void      Print(const char *option="") const;
 
    void              ComputeTransportLength(int ntracks, int *trackin);
    void              PropagateTracks(int ntracks, int *trackin, int &nout, int *trackout, int &ntodo, int *tracktodo, int &ncross, int *trackcross);

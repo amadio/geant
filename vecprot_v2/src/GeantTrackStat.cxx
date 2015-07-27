@@ -99,7 +99,7 @@ void GeantTrackStat::InitArrays(int nslots) {
 }
 
 //______________________________________________________________________________
-void GeantTrackStat::Print(Option_t *) const {
+void GeantTrackStat::Print(const char *) const {
   // Print statistics
   printf("slot: ");
   for (int i = 0; i < fNslots; i++) {

@@ -65,7 +65,7 @@ TNudyEndfMat::TNudyEndfMat() :
 
 //_______________________________________________________________________________
 TNudyEndfMat::TNudyEndfMat(int mat, int za, double awr, 
-			   Char_t lrp, bool lfi, int nlib, int nmod) :
+			   char lrp, bool lfi, int nlib, int nmod) :
   fMAT(mat),
   fZA(za),
   fAWR(awr),
@@ -137,7 +137,7 @@ TNudyEndfMat::~TNudyEndfMat()
 }
 
 //_______________________________________________________________________________
-const Char_t* TNudyEndfMat::GetDesc(int i) const
+const char* TNudyEndfMat::GetDesc(int i) const
 {
   if(i<0 || i>=fNWDm5) {
     //Error("GetDesc","index %d out of bounds [%d,%d]",0,fNWDm5);
@@ -147,7 +147,7 @@ const Char_t* TNudyEndfMat::GetDesc(int i) const
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::SetDesc(const Char_t *desc, int i) 
+void TNudyEndfMat::SetDesc(const char *desc, int i) 
 {
   if(!fDesc) fDesc=new TString[fNWDm5];
   fDesc[i]=desc;
@@ -174,7 +174,7 @@ void TNudyEndfMat::DumpENDF(int flags = 1)
 	int ns = 1;
 	int i=0;
 	//Dump what was read into this classi(file 1 mt 451)
-	Char_t s1[14],s2[14];
+	char s1[14],s2[14];
 	TNudyEndfCont::F2F(fZA,s1);
 	TNudyEndfCont::F2F(fAWR,s2);
 	printf("%11s%11s%11d%11d%11d%11d", s1,s2, fLRP,fLFI, fNLIB,fNMOD);
@@ -283,7 +283,7 @@ TNudyEndfFile* TNudyEndfMat::GetFile(int MF)
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::Print(Option_t *op) const
+void TNudyEndfMat::Print(const char *op) const
 {
   TString sop = op;
   if(sop.Contains("h") || sop.Contains("a")) {

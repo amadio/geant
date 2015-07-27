@@ -70,10 +70,10 @@ extern "C" type_of_call {
 class TNudyENDF: public TObject {
  public:
   TNudyENDF();
-  TNudyENDF(const Char_t *nFileENDF, const Char_t *nFileRENDF, Option_t *opt="new",UChar_t loglev=0);
+  TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt="new",unsigned char loglev=0);
   virtual ~TNudyENDF();
-   void SetLogLev(UChar_t loglev) {fLogLev=loglev;}
-   UChar_t GetLogLev() const {return fLogLev;}
+   void SetLogLev(unsigned char loglev) {fLogLev=loglev;}
+   unsigned char GetLogLev() const {return fLogLev;}
    void Process();
    void Process(TNudyEndfMat *mat);
    void Process(TNudyEndfFile *file);
@@ -145,10 +145,10 @@ private:
    static const char fkElNam[119][4];
    static const char fkElIso[4][2];
    
-   UChar_t        fLogLev;        //  Log Level Flag
+   unsigned char        fLogLev;        //  Log Level Flag
    std::ifstream       fENDF;          //! Input fENDF tape
    TFile         *fRENDF;         //! Output fRENDF file
-   Char_t         fLine[LINLEN];  //! Buffer to read the line
+   char         fLine[LINLEN];  //! Buffer to read the line
    TNudyEndfTape *fTape;          //! Support link for the tape structure
    TNudyEndfMat  *fMat;           //! Support link for the current material
    

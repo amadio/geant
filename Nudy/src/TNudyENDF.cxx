@@ -42,7 +42,7 @@ ClassImp(TNudyENDF)
 }
 
 //_______________________________________________________________________________
-TNudyENDF::TNudyENDF(const Char_t *nFileENDF, const Char_t *nFileRENDF, Option_t *opt, UChar_t loglev)
+TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt, unsigned char loglev)
     : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
 
   fLine[0] = '\0';
@@ -138,7 +138,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   int &curMF = mtf[1];
   int oldMF = 0;
 
-  Char_t name[13];
+  char name[13];
   int mZA;
 
   // Continue reading the header
@@ -229,7 +229,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   if (fLogLev > 6)
     Info("Process", "No of Description TEXT records : %d", mat->GetNWD());
   for (int i = 0; i < mat->GetNWD() - 5; i++) {
-    Char_t desc[67];
+    char desc[67];
     fENDF.getline(fLine, LINLEN);
     strncpy(desc, fLine, 66);
     desc[66] = '\0';

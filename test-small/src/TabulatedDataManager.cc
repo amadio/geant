@@ -469,7 +469,7 @@ void TabulatedDataManager::SampleFinalState(const int elementindex, const int re
   float energyFst = 0;  // Ekin of primary after the interaction
   float kerma = 0;      // released energy
   float weightFst = 0;  // weight of the fstate (just a dummy parameter now)
-  Char_t isSurv = 0;      // is the primary survived the interaction
+  char isSurv = 0;      // is the primary survived the interaction
   int ebinindx = -1;    // energy bin index of the selected final state
 
   int partindex = TPartIndex::I()->PartIndex(atrack.GetParticleDefinition()->GetPDGEncoding());
@@ -740,7 +740,7 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
   float energyFst = 0;  // Ekin of primary after the interaction
   float kerma = 0;      // released energy
   float weightFst = 0;  // weight of the fstate (just a dummy parameter now)
-  Char_t isSurv = 0;      // is the primary survived the interaction
+  char isSurv = 0;      // is the primary survived the interaction
   G4int elementIndex = -1;
   TEFstate *elemfstate = 0;
 
@@ -975,7 +975,7 @@ void TabulatedDataManager::SampleDecayInFlight(const int partindex, const G4Trac
   int nSecPart = 0;     // number of secondary particles per reaction
   const int *pid = 0;   // GeantV particle codes [nSecPart]
   const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  Char_t isSurv = 0;      // is the primary survived the interaction
+  char isSurv = 0;      // is the primary survived the interaction
 
   isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);
   // isSurv should always be FALSE here because primary was stopped

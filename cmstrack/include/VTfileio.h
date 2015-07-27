@@ -49,8 +49,8 @@ class VTfileio {
    THashList *GetProcessDictionary() {return fProcessDictionary;}
    void WriteDictionaries();
    void Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
-	     UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, UChar_t surfid, 
-	     UChar_t process, UChar_t begend, unsigned int trid, unsigned int trpid, double cputime,
+	     UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, unsigned char surfid, 
+	     unsigned char process, unsigned char begend, unsigned int trid, unsigned int trpid, double cputime,
 	     double cpustep);
    bool IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
       else return kFALSE;}
@@ -77,9 +77,9 @@ class VTfileio {
    double fSafety;       // safety
    double fSnext;        // snext
    double fStep;         // step
-   UChar_t fSurfid;      // surface id
-   UChar_t fProcess;     // Process
-   UChar_t fBegEnd;      // Beginning or end of track
+   unsigned char fSurfid;      // surface id
+   unsigned char fProcess;     // Process
+   unsigned char fBegEnd;      // Beginning or end of track
    unsigned int  fTrid;        // Track ID
    unsigned int  fTrPid;       // Track Parend ID
    double fCPUtime;    // CPU time used since start of track

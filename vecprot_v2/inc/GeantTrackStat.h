@@ -119,7 +119,7 @@ public:
   void InitArrays(int nslots);
 
   /** @brief Print function */
-  void Print(Option_t *option = "") const;
+  void Print(const char *option = "") const;
 
   /** @brief Reset function */
   void Reset();

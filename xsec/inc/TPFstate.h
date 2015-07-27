@@ -43,8 +43,8 @@ public:
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[]);
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
   bool SetFinState(int ibin, int reac, const int npart[], const float weight[], const float kerma[],
-                   const float en[], const Char_t surv[], const int pid[], const float mom[]);
-  void Print(Option_t *opt = "") const;
+                   const float en[], const char surv[], const int pid[], const float mom[]);
+  void Print(const char *opt = "") const;
   bool Prune() { return kTRUE; }
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx) const;

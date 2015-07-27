@@ -54,7 +54,7 @@ void GeantBasket::AddTracks(const int *array, int ntracks)
 }
 
 //______________________________________________________________________________
-void GeantBasket::Clear(Option_t *)
+void GeantBasket::Clear(const char *)
 {
 // Clear basket;
    fNtracks = 0;
@@ -74,7 +74,7 @@ bool GeantBasket::Contains(int event) const
 }
 
 //______________________________________________________________________________
-void GeantBasket::Print(Option_t *) const
+void GeantBasket::Print(const char *) const
 {
 // Print basket content.
    TThread::Lock();
@@ -152,7 +152,7 @@ GeantTrackCollection& GeantTrackCollection::operator=(const GeantTrackCollection
 }
 
 //______________________________________________________________________________
-void GeantTrackCollection::Clear(Option_t *)
+void GeantTrackCollection::Clear(const char *)
 {
 // Clear basket;
    fNtracks = 0;
@@ -197,7 +197,7 @@ void GeantTrackCollection::FlushTracks(GeantMainScheduler *main, int* pushedN, i
 }
 
 //______________________________________________________________________________
-void GeantTrackCollection::Print(Option_t *) const
+void GeantTrackCollection::Print(const char *) const
 {
 // Print info
    TThread::Lock();

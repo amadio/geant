@@ -46,7 +46,7 @@ public:
   virtual int    GetN2() const {return fN2;}
 
   void DumpENDF(int mat, int mf, int mt, int& ns,int flags);
-  static Char_t * F2F(double f, char s[]);
+  static char * F2F(double f, char s[]);
  protected:
   double fC1;         // C1 of the CONT record
   double fC2;         // C2 of the CONT record

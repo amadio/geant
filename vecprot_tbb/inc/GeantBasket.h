@@ -27,11 +27,11 @@ public:
 
    void              AddTrack(int itrack);
    void              AddTracks(const int *array, int ntracks);
-   virtual void      Clear(Option_t *option="");
+   virtual void      Clear(const char *option="");
    bool            Contains(int event) const;
    int             GetNtracks() const {return fNtracks;}
    int            *GetTracks() const {return fIndex;}
-   virtual void      Print(Option_t *option="") const;
+   virtual void      Print(const char *option="") const;
    void              Resize(int newSize);
 
    ClassDef(GeantBasket,1)  // A basket containing tracks in the same geomety volume
@@ -60,10 +60,10 @@ public:
    GeantTrackCollection& operator=(const GeantTrackCollection& other);
 
    int               AddTrack(int itrack, GeantVolumeBasket *basket);
-   virtual void        Clear(Option_t *option="");
+   virtual void        Clear(const char *option="");
    int               GetNtracks() const {return fNtracks;}
    void               FlushTracks(GeantMainScheduler *main, int* pushedN, int* pushedP);
-   virtual void        Print(Option_t *option="") const;
+   virtual void        Print(const char *option="") const;
 
    ClassDef(GeantTrackCollection, 1)     // Track collection per thread
 };

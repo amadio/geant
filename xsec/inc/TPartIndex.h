@@ -130,7 +130,7 @@ public:
   static float WEle(int z) { return fgWElem[z - 1]; }
   static int NElem() { return fgNElem; }
 
-  void Print(Option_t *option = "") const;
+  void Print(const char *option = "") const;
   // approximated formula for nuclear mass computation; for handling fragments
   double GetAprxNuclearMass(int Z, int A);
 

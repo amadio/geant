@@ -22,11 +22,11 @@ class TNudyENDF;
 class TNudyEndfTape : public TNamed {
 public:
   TNudyEndfTape();
-  TNudyEndfTape(const Char_t *name, UChar_t loglev);
+  TNudyEndfTape(const char *name, unsigned char loglev);
   virtual ~TNudyEndfTape();
 
-  void SetLogLev(UChar_t loglev) { fLogLev = loglev; }
-  UChar_t GetLogLev() const { return fLogLev; }
+  void SetLogLev(unsigned char loglev) { fLogLev = loglev; }
+  unsigned char GetLogLev() const { return fLogLev; }
   const TList *GetMats() const { return fMats; }
   void AddMat(TNudyEndfMat *mat);
   void DumpENDF(int flags);
@@ -35,7 +35,7 @@ public:
   TNudyEndfMat *GetMAT(TString name);
 
 private:
-  UChar_t fLogLev; // LogLevel
+  unsigned char fLogLev; // LogLevel
   TList *fMats;    // List of materials
 
   ClassDef(TNudyEndfTape, 1) // class for an ENDF data file

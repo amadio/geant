@@ -92,7 +92,7 @@ void TNudyEndfTab1::SetCont(double c1, double c2,
 //______________________________________________________________________________
 void TNudyEndfTab1::DumpENDF(int mat,int mf,int mt, int& ns, int flags)
 {
-  Char_t s1[14],s2[14];
+  char s1[14],s2[14];
   F2F(fC1,s1); F2F(fC2,s2);
   printf("%11s%11s%11d%11d%11d%11d", s1,s2, fL1,fL2, fN1,fN2);
   printf("%4d%2d%3d%5d", mat, mf, mt, ns);

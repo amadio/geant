@@ -38,7 +38,7 @@ public:
   TNudyEndfSec(int mat, int mf, int mt, double c1, double c2,
 		int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfSec();
-  const Char_t* GetName() const {return fName;}
+  const char* GetName() const {return fName;}
   void Add(TNudyEndfRecord *sec) {fRecs->Add(sec);}
   TList* GetRecords(){return fRecs;}
   void DumpENDF(int flags);
@@ -55,7 +55,7 @@ public:
   int GetMF() const {return fMF;}
 
  private:
-  Char_t   fName[12];   // Name of the section
+  char   fName[12];   // Name of the section
   Short_t  fMAT;        // Mat number
   Short_t  fMF;         // File number
   int    fMT;         // Section number 

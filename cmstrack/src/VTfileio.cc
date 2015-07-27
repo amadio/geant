@@ -98,8 +98,8 @@ void VTfileio::NewTree(const char* name) {
 }
 
 void VTfileio::Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
-		    UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, UChar_t surfid, 
-		    UChar_t process, UChar_t begend, unsigned int trid, unsigned int trpid, double cputime,
+		    UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, unsigned char surfid, 
+		    unsigned char process, unsigned char begend, unsigned int trid, unsigned int trpid, double cputime,
 		    double cpustep) {
    fX = x;
    fY = y;

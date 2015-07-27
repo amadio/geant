@@ -23,7 +23,7 @@ ClassImp(TNudyEndfTape)
 }
 
 //_______________________________________________________________________________
-TNudyEndfTape::TNudyEndfTape(const Char_t *name, UChar_t loglev) : TNamed("", name), fLogLev(loglev) {
+TNudyEndfTape::TNudyEndfTape(const char *name, unsigned char loglev) : TNamed("", name), fLogLev(loglev) {
   // Key names cannot contain blanks
   TString sname(name);
   sname = sname.Strip(TString::kLeading);

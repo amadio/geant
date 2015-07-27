@@ -38,7 +38,7 @@ public:
   TNudyEndfFile(int mat, int mf);
   virtual ~TNudyEndfFile();
 
-  const Char_t* GetName()   const {return fName;}
+  const char* GetName()   const {return fName;}
   int         GetMAT()    const {return fMAT;}
   int         GetMF()     const {return fMF;}
   void Add(TNudyEndfSec *sec) {fSecs->Add(sec);}
@@ -49,7 +49,7 @@ public:
   TNudyEndfSec* GetSec(int MT);
   TList* GetSections(){return fSecs;}
 private:
-  Char_t   fName[9];    // File Name
+  char   fName[9];    // File Name
   int    fMAT;        // MAT number
   int    fMF;         // MF number
 

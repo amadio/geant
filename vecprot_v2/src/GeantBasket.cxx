@@ -73,7 +73,7 @@ void GeantBasket::AddTracks(GeantTrack_v &tracks, int istart, int iend) {
 }
 
 //______________________________________________________________________________
-void GeantBasket::Clear(Option_t *option) {
+void GeantBasket::Clear(const char *option) {
   // Clear basket content.
   SetMixed(fManager->IsCollector());
   fTracksIn.Clear(option);
@@ -100,7 +100,7 @@ Volume_t *GeantBasket::GetVolume() const {
 }
 
 //______________________________________________________________________________
-void GeantBasket::Print(Option_t *) const {
+void GeantBasket::Print(const char *) const {
   // Print basket content.
   Printf("*** basket %s: ninput=%3d   noutput=%3d", GetName(), GetNinput(), GetNoutput());
 }
@@ -426,7 +426,7 @@ void GeantBasketMgr::CleanBaskets(int ntoclean, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-void GeantBasketMgr::Print(Option_t *) const {
+void GeantBasketMgr::Print(const char *) const {
   // Print info about the basket content.
   Printf("Bsk_mgr %s: current: in=%d out=%d", GetName(), GetCBasket()->GetNinput(), GetCBasket()->GetNoutput());
 }

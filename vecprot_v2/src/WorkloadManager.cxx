@@ -98,7 +98,7 @@ WorkloadManager *WorkloadManager::Instance(int nthreads) {
 }
 
 //______________________________________________________________________________
-void WorkloadManager::Print(Option_t *) const {
+void WorkloadManager::Print(const char *) const {
   //
 }
 

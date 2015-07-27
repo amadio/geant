@@ -37,7 +37,7 @@ class TNudyElementRN: public TObject{
   TNudyElementRN();
   TNudyElementRN(TGeoElementRN* elem,float fX, float fY);
   virtual ~TNudyElementRN() {};
-  void Draw(Option_t* option="");
+  void Draw(const char* option="");
   void Move(float x, float y);
   void SetColorCode(TList* cCodeRange, TList* cCodeColor);
   int GetA() {return fEle->AtomicNo();}

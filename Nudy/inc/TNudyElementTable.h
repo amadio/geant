@@ -31,7 +31,7 @@ class TNudyElementTable: public TObject{
  public:
   TNudyElementTable();
   virtual ~TNudyElementTable();
-  void Draw(Option_t *option="");
+  void Draw(const char *option="");
   void ZoomIn();
   void ZoomOut();
   void MoveUp();

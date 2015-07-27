@@ -42,7 +42,7 @@ Color_t TNudyElementRN::GetColor(double halfLife)
     return TColor::GetColor(0,0,0);
   return TColor::GetColor(fCCodeColor[index][0],fCCodeColor[index][1],fCCodeColor[index][2]);
 }
-void TNudyElementRN::Draw(Option_t* option){
+void TNudyElementRN::Draw(const char* option){
   fBox = new TBox(fX+fPadding,fY+fPadding,fX+fSize-fPadding,fY+fSize-fPadding);
   fBox->SetFillColor(GetColor(fEle->HalfLife()));
   fBox->SetLineColor(1);

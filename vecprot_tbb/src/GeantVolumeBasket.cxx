@@ -267,7 +267,7 @@ void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, in
 }
 
 //______________________________________________________________________________
-void GeantVolumeBasket::Print(Option_t *) const {
+void GeantVolumeBasket::Print(const char *) const {
   // Print info about the basket content.
 }
 

@@ -122,7 +122,7 @@ public:
   int GetNbooked() { return (fNbooked.load()); }
 
   /** @brief Virtual function for clearing the basket */
-  virtual void Clear(Option_t *option = "");
+  virtual void Clear(const char *option = "");
 
   /**
    * @brief Check if a basket contains tracks in a given event range
@@ -211,7 +211,7 @@ public:
   /**
    * @brief Print the basket content
    */
-  virtual void Print(Option_t *option = "") const;
+  virtual void Print(const char *option = "") const;
 
   /**
    * @brief Print the parameters for a given track
@@ -509,7 +509,7 @@ public:
   Volume_t *GetVolume() const { return fVolume; }
 
   /** @brief Print the current basket */
-  virtual void Print(Option_t *option = "") const;
+  virtual void Print(const char *option = "") const;
 
   /**
    * @brief Push the basket to the queue recalculating threshold
