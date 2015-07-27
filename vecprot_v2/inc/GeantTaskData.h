@@ -46,10 +46,10 @@ public:
   int fMaxDepth;       /** Maximum geometry depth */
   int fSizeBool;       /** Size of bool array */
   int fSizeDbl;        /** Size of dbl array */
-  Bool_t fToClean;       /** Flag set when the basket queue is to be cleaned */
+  bool fToClean;       /** Flag set when the basket queue is to be cleaned */
   Volume_t *fVolume;     /** Current volume per thread */
   TRandom *fRndm;        /** Random generator for thread */
-  Bool_t *fBoolArray;    /** [fSizeBool] Thread array of bools */
+  bool *fBoolArray;    /** [fSizeBool] Thread array of bools */
   double *fDblArray;   /** [fSizeDbl] Thread array of doubles */
   GeantTrack fTrack;     /** Track support for this thread */
   VolumePath_t *fPath;   /** Volume path for the thread */
@@ -101,8 +101,8 @@ public:
    *
    * @param size Size of boolean array
    */
-  Bool_t *GetBoolArray(int size) {
-    CheckSizeAndAlloc<Bool_t>(fBoolArray, fSizeBool, size);
+  bool *GetBoolArray(int size) {
+    CheckSizeAndAlloc<bool>(fBoolArray, fSizeBool, size);
     return fBoolArray;
   }
 
@@ -167,7 +167,7 @@ public:
   GeantBasket *GetNextBasket();
 
   /** @brief Setter for the toclean flag */
-  void SetToClean(Bool_t flag) { fToClean = flag; }
+  void SetToClean(bool flag) { fToClean = flag; }
 
   /** @brief Getter for the toclean flag */
   bool NeedsToClean() const { return fToClean; }

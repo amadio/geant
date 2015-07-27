@@ -232,7 +232,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
 #endif
   basket_mgr->SetThreshold(fNperBasket);
 
-  static Bool_t init = kTRUE;
+  static bool init = kTRUE;
   if (init)
     init = kFALSE;
   int event = startevent;
@@ -352,7 +352,7 @@ void GeantPropagator::InitializeAfterGeom() {
  * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
  */
 //______________________________________________________________________________
-Bool_t GeantPropagator::LoadVecGeomGeometry() {
+bool GeantPropagator::LoadVecGeomGeometry() {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
     Printf("Now loading VecGeom geometry\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
@@ -377,7 +377,7 @@ Bool_t GeantPropagator::LoadVecGeomGeometry() {
 
 #ifndef USE_VECGEOM_GEOMETRY
 //______________________________________________________________________________
-Bool_t GeantPropagator::LoadGeometry(const char *filename) {
+bool GeantPropagator::LoadGeometry(const char *filename) {
 // Load the detector geometry from file, unless already loaded.
 #ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
@@ -431,10 +431,10 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, Bool_t graphics, Bool_t single) {
+void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool graphics, bool single) {
   // Propagate fNevents in the volume containing the vertex.
   // Simulate 2 physics processes up to exiting the current volume.
-  static Bool_t called = kFALSE;
+  static bool called = kFALSE;
   fUseGraphics = graphics;
   fNthreads = nthreads;
   fSingleTrack = single;

@@ -65,7 +65,7 @@ TNudyEndfMat::TNudyEndfMat() :
 
 //_______________________________________________________________________________
 TNudyEndfMat::TNudyEndfMat(int mat, int za, double awr, 
-			   Char_t lrp, Bool_t lfi, int nlib, int nmod) :
+			   Char_t lrp, bool lfi, int nlib, int nmod) :
   fMAT(mat),
   fZA(za),
   fAWR(awr),

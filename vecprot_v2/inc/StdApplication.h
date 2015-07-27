@@ -34,7 +34,7 @@ enum EScoreType {
 };  
 
 private:
-  Bool_t fInitialized;                            /** Initialized flag */
+  bool fInitialized;                            /** Initialized flag */
   
   TH1F     *fHeta;                                /** Eta distribution */
   TH1F     *fHpt;                                 /** Pt distribution */
@@ -62,7 +62,7 @@ public:
   virtual ~StdApplication() {}
 
   /** @brief Initialization function */
-  virtual Bool_t Initialize();
+  virtual bool Initialize();
 
   /** @brief Create and fill a uniform log scale bin limits array to pass to TH1D 
    * @param nbins Number of bins

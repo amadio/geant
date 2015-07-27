@@ -151,7 +151,7 @@ PropTask &CollDispTask::StartPropTasks(int amountPriority, int amountNormal) {
 
   empty_task &cont = *new (allocate_continuation()) empty_task();
   cont.set_ref_count(amountPriority + amountNormal);
-  Bool_t flag;
+  bool flag;
 
   if (amountPriority) {
 

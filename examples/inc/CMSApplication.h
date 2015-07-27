@@ -40,10 +40,10 @@ enum EScoreType {
 };  
 
 private:
-  Bool_t fInitialized;                            /** Initialized flag */
-  Bool_t  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
-  Float_t fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
-  Float_t fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
+  bool fInitialized;                            /** Initialized flag */
+  bool  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
+  float fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
+  float fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
   int fECALid[kNECALModules];                   /** ECAL volume id's */
   int fHCALid[kNHCALModules];                   /** HCAL volume id's */
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
@@ -81,7 +81,7 @@ public:
   virtual ~CMSApplication() {}
 
   /** @brief Initialization function */
-  virtual Bool_t Initialize();
+  virtual bool Initialize();
 
   /** @brief Set scoring type */
   void SetScoreType(EScoreType type) { fScore = type; }

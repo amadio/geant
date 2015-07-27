@@ -304,7 +304,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::double sinTheta,
 {
   typedef typename Backend::int    int;
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
 
   double phi = UniformRandom<Backend>(fRandomState,int(fThreadId));
   double pt = xhat*xhat + yhat*yhat;
@@ -316,8 +316,8 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::double sinTheta,
   double vhat = sinTheta*sinphi; // sin(phi);
   double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  Bool_t positive = ( pt > 0. );
-  Bool_t negativeZ = ( zhat < 0. );
+  bool positive = ( pt > 0. );
+  bool negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {

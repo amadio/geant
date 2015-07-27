@@ -33,7 +33,7 @@ int main() {
   //=============================================================================
   // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
   //=============================================================================
-  Bool_t performance = true;
+  bool performance = true;
   double vt[3] = {-8, 0, 0};
 
   int ntotal = 50;    // Number of events to be transported
@@ -62,7 +62,7 @@ int main() {
   prop->SetMonitored(GeantPropagator::kMonVectors, false & (!performance));
   prop->SetMonitored(GeantPropagator::kMonConcurrency, false & (!performance));
   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
-  Bool_t graphics = (prop->GetMonFeatures()) ? true : false;
+  bool graphics = (prop->GetMonFeatures()) ? true : false;
   prop->fUseMonitoring = graphics;
   prop->fNaverage = 500; // Average number of tracks per event
 

@@ -68,13 +68,13 @@ GeantMainScheduler* GeantMainScheduler::Instance(int nvolumes)
 }
 
 //______________________________________________________________________________
-int GeantMainScheduler::AddTrack(int itrack, int ibasket, Bool_t* pushedPriority)
+int GeantMainScheduler::AddTrack(int itrack, int ibasket, bool* pushedPriority)
 {
    GeantPropagator *gPropagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
 
    int ninjected = 0;
-   Bool_t priority = kFALSE;
+   bool priority = kFALSE;
    GeantBasket **baskets = fBaskets;
    GeantTrack *track = gPropagator->fTracks[itrack];
 

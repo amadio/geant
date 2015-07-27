@@ -114,11 +114,11 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::double  energy,
                                         typename Backend::Index_t   Z,
                                         typename Backend::double& sigmaOut)
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   sigmaOut = 0.;
-  Bool_t belowLimit = Bool_t(false);
+  bool belowLimit = bool(false);
   //low energy limit
   belowLimit |= ( energy < fLowEnergyLimit );
   if(Backend::early_returns && IsFull(belowLimit)) return;  
@@ -129,7 +129,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::double  energy,
   double p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
   double p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
 
-  Bool_t condZ = (Z < 1.5);
+  bool condZ = (Z < 1.5);
   double T0 = 0.0; 
   CondAssign(condZ, 15.*keV, 40.*keV, &T0);  
 
@@ -139,7 +139,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::double  energy,
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
   sigmaOut = Z*sigma*barn;
 
-  Bool_t condE = Bool_t(false);
+  bool condE = bool(false);
   condE |= (energy > T0);
   if(Backend::early_returns && IsFull(condE)) return;  
 
@@ -196,14 +196,14 @@ typename Backend::double
 ComptonKleinNishina::SampleSinTheta(typename Backend::double energyIn,
                                     typename Backend::double energyOut) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   //angle of the scatterred photon
 
   double epsilon = energyOut/energyIn;
 
-  Bool_t condition = epsilon > 1.0;
+  bool condition = epsilon > 1.0;
 
   MaskedAssign( condition, 1.0 , &epsilon );
 
@@ -212,7 +212,7 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::double energyIn,
   double sint2   = onecost*(2.-onecost);
 
   double sinTheta = 0.5;
-  Bool_t condition2 = sint2 < 0.0;
+  bool condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   

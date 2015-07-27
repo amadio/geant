@@ -63,9 +63,9 @@ public:
    * @brief Function that check type
    *
    * @param type EProcessType type
-   * @return Boolean value -> (Bool_t) ((fBits & type) != 0);
+   * @return Boolean value -> (bool) ((fBits & type) != 0);
    */
-  Bool_t IsType(EProcessType type) { return TObject::TestBit(type); }
+  bool IsType(EProcessType type) { return TObject::TestBit(type); }
 
   /** @brief Function of initialization */
   virtual void Initialize() {}

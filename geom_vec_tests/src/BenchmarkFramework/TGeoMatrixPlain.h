@@ -75,19 +75,19 @@ public :
    ~TGeoMatrix();
 
    TGeoMatrix& operator=(const TGeoMatrix &matrix);
-   Bool_t      operator ==(const TGeoMatrix &other) const;
+   bool      operator ==(const TGeoMatrix &other) const;
    
-   Bool_t               IsIdentity()    const {return !TestBit(kGeoGenTrans);}
-   Bool_t               IsTranslation() const {return TestBit(kGeoTranslation);}
-   Bool_t               IsRotation()    const {return TestBit(kGeoRotation);}
-   Bool_t               IsReflection()  const {return TestBit(kGeoReflection);}
-   Bool_t               IsScale()       const {return TestBit(kGeoScale);}
-   Bool_t               IsCombi()       const {return (TestBit(kGeoTranslation) 
+   bool               IsIdentity()    const {return !TestBit(kGeoGenTrans);}
+   bool               IsTranslation() const {return TestBit(kGeoTranslation);}
+   bool               IsRotation()    const {return TestBit(kGeoRotation);}
+   bool               IsReflection()  const {return TestBit(kGeoReflection);}
+   bool               IsScale()       const {return TestBit(kGeoScale);}
+   bool               IsCombi()       const {return (TestBit(kGeoTranslation) 
                                                && TestBit(kGeoRotation));}
-   Bool_t               IsGeneral()     const {return (TestBit(kGeoTranslation) 
+   bool               IsGeneral()     const {return (TestBit(kGeoTranslation) 
                             && TestBit(kGeoRotation) && TestBit(kGeoScale));}
-   Bool_t               IsRegistered()  const {return TestBit(kGeoRegistered);}
-   Bool_t               IsRotAboutZ()   const;
+   bool               IsRegistered()  const {return TestBit(kGeoRegistered);}
+   bool               IsRotAboutZ()   const;
    void                 GetHomogenousMatrix(double *hmat) const;
    char                *GetPointerName() const;
 

@@ -55,7 +55,7 @@ main(int argc, char *argv[])
   tt.Reset();
 
   int ipin = 0;
-  Bool_t *isin = new Bool_t[npoints];
+  bool *isin = new bool[npoints];
 
   tt.Start();
   for (int i = 0; i < npoints; ++i) {

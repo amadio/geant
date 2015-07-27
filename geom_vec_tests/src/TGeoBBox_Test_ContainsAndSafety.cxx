@@ -61,7 +61,7 @@ main(int argc, char *argv[]) {
     }
 
     double *safety_v = new double[npoints];
-    Bool_t *in_v = new Bool_t[npoints];
+    bool *in_v = new bool[npoints];
     double DeltaT = 0., DeltaT_v = 0.;
     for (unsigned int repetitions = 0; repetitions < NREP; repetitions++) {
       // assert correctness of result (simple checksum check)

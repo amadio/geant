@@ -133,7 +133,7 @@ void TGeoBBox_v::DistFromOutsideS_v4(Vc::double_v const &x, Vc::double_v const &
 }
 
 // VC implementation of Contains function
-void TGeoBBox_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoBBox_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   static vd vcorigin[3] = {fOrigin[0], fOrigin[1], fOrigin[2]};
   static vd vfDX(fDX);
   static vd vfDY(fDY);

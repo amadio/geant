@@ -22,7 +22,7 @@ TNudyElementRN::TNudyElementRN()
   fPadding = 1;
   fCoSize = 26;
 }
-TNudyElementRN::TNudyElementRN(TGeoElementRN* elem, Float_t x, Float_t y)
+TNudyElementRN::TNudyElementRN(TGeoElementRN* elem, float x, float y)
 {
   fEle = elem;
   fSize = 10;
@@ -62,7 +62,7 @@ void TNudyElementRN::Draw(Option_t* option){
   fBox->Draw();
   fBox->SetToolTipText(toolTip);
 }
-void TNudyElementRN::Move(Float_t x, Float_t y)
+void TNudyElementRN::Move(float x, float y)
 {
   fX = x;
   fY = y;

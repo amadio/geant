@@ -77,11 +77,11 @@ public:
    double    fEmax;        // Max energy threshold
    double    fBmag;        // Mag field
 
-   Bool_t      fUsePhysics;  // Enable/disable physics
-   Bool_t      fUseDebug;    // Use debug mode
-   Bool_t      fUseGraphics; // graphics mode
-   Bool_t      fSingleTrack; // Use single track transport mode
-   Bool_t      fFillTree;    // Enable I/O
+   bool      fUsePhysics;  // Enable/disable physics
+   bool      fUseDebug;    // Use debug mode
+   bool      fUseGraphics; // graphics mode
+   bool      fSingleTrack; // Use single track transport mode
+   bool      fFillTree;    // Enable I/O
    TMutex      fTracksLock;  // Mutex for adding tracks
 
    WorkloadManager *fWMgr;   // Workload manager
@@ -103,7 +103,7 @@ public:
    static GeantPropagator *fgInstance;
 
 public:
-   Bool_t fGarbageCollMode;
+   bool fGarbageCollMode;
 
    int fMinFeeder;
    int fNevToPrioritize;
@@ -168,7 +168,7 @@ public:
    GeantTrack      *AddTrack(int evslot);
    void             StopTrack(GeantTrack *track);
    int            GetElossInd() const {return fElossInd;}
-   Bool_t           LoadGeometry(const char *filename="geometry.root");
+   bool           LoadGeometry(const char *filename="geometry.root");
    int            ImportTracks(int nevents, double average, int startevent=0, int startslot=0);
    void             Initialize();
    void             InjectCollection(GeantTrackCollection* inColl);
@@ -177,8 +177,8 @@ public:
    void             PrintParticles(int *trackin, int ntracks);
    PhysicsProcess  *Process(int iproc) const {return fProcesses[iproc];}
    void             PropagatorGeom(const char *geomfile="geometry.root",
-                                   Bool_t graphics=kFALSE,
-                                   Bool_t single=kFALSE);
+                                   bool graphics=kFALSE,
+                                   bool single=kFALSE);
    void             SelectTracksForProcess(int iproc, int ntotransport, int *particles, int &ntodo, int *parttodo);
 
 private:

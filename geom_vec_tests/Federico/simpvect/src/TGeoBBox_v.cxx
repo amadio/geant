@@ -110,7 +110,7 @@ TGeoBBox_v::~TGeoBBox_v() {
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2,
+bool TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2,
                                   const TGeoMatrix *mat2) {
   // Check if 2 positioned boxes overlap.
   double master[3];
@@ -165,7 +165,7 @@ void TGeoBBox_v::ComputeNormal(double *point, double *dir, double *norm) {
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::CouldBeCrossed(double *point, double *dir) const {
+bool TGeoBBox_v::CouldBeCrossed(double *point, double *dir) const {
   // Decides fast if the bounding box could be crossed by a vector.
   double mind = fDX;
   if (fDY < mind)
@@ -200,7 +200,7 @@ int TGeoBBox_v::DistancetoPrimitive(int px, int py) {
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::Contains(double *point) const {
+bool TGeoBBox_v::Contains(double *point) const {
   // Test if point is inside this shape.
   if (fabs(point[2] - fOrigin[2]) > fDZ)
     return kFALSE;
@@ -213,7 +213,7 @@ Bool_t TGeoBBox_v::Contains(double *point) const {
 
 #define vector(elcount, type) __attribute__((vector_size((elcount) * sizeof(type)))) type
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const double *point, Bool_t *isin, const int np) const {
+void TGeoBBox_v::Contains_v(const double *point, bool *isin, const int np) const {
   // Test if point is inside this shape.
   vector(32, double)*vx, *vy;
   double xx, yy, zz;
@@ -226,7 +226,7 @@ void TGeoBBox_v::Contains_v(const double *point, Bool_t *isin, const int np) con
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::Contains(const double *point, double dx, double dy, double dz, const double *origin) {
+bool TGeoBBox_v::Contains(const double *point, double dx, double dy, double dz, const double *origin) {
   // Test if point is inside this shape.
   if (fabs(point[2] - origin[2]) > dz)
     return kFALSE;
@@ -314,7 +314,7 @@ double TGeoBBox_v::DistFromInside(const double *point, const double *dir, double
 double TGeoBBox_v::DistFromOutside(double *point, double *dir, int iact, double step, double *safe) const {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
-  Bool_t in = kTRUE;
+  bool in = kTRUE;
   double saf[3];
   double par[3];
   double newpt[3];
@@ -391,7 +391,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
                                      const double *origin, double stepmax) {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
-  Bool_t in = kTRUE;
+  bool in = kTRUE;
   double saf[3];
   double par[3];
   double newpt[3];
@@ -436,7 +436,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::GetPointsOnFacet(int index, int npoints, double *array) const {
+bool TGeoBBox_v::GetPointsOnFacet(int index, int npoints, double *array) const {
   // Fills array with n random points located on the surface of indexed facet.
   // The output array must be provided with a length of minimum 3*npoints. Returns
   // true if operation succeeded.
@@ -503,7 +503,7 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(int index, int npoints, double *array) const
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::GetPointsOnSegments(int npoints, double *array) const {
+bool TGeoBBox_v::GetPointsOnSegments(int npoints, double *array) const {
   // Fills array with n random points located on the line segments of the shape mesh.
   // The output array must be provided with a length of minimum 3*npoints. Returns
   // true if operation is implemented.
@@ -543,7 +543,7 @@ Bool_t TGeoBBox_v::GetPointsOnSegments(int npoints, double *array) const {
 }
 
 //_____________________________________________________________________________
-double TGeoBBox_v::Safety(double *point, Bool_t in) const {
+double TGeoBBox_v::Safety(double *point, bool in) const {
   // Computes the closest distance from given point to this shape.
 
   double safe, safy, safz;

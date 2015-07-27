@@ -10,7 +10,7 @@ typedef Vc::double_v vd;
 
 #ifndef VEC_EXTENSIONS
 //_____________________________________________________________________________
-void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoCone_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     isin[i] = TGeoCone::Contains(point);
@@ -19,7 +19,7 @@ void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) c
 #else
 // PUT VC CODE OR THE LIKE HERE
 //_____________________________________________________________________________
-void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoCone_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   static vd vfDz(fDz);
   static vd vfRmin1(fRmin1);
   static vd vfRmin2(fRmin2);
@@ -72,7 +72,7 @@ void TGeoCone_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) c
 
 //_____________________________________________________________________________
 
-void TGeoCone_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, int np) const {
+void TGeoCone_v::Safety_v(const StructOfCoord &pointi, bool in, double *safety, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoCone::Safety(point, in);
@@ -104,7 +104,7 @@ void TGeoCone_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCo
 
 #ifndef VEC_EXTENSIONS
 //_____________________________________________________________________________
-void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   std::cout << "ma almeno qui? " << std::endl;
 
   for (unsigned int i = 0; i < np; i++) {
@@ -131,7 +131,7 @@ void TGeoConeSeg_v::Contains_v4(Vc::double_v const &x, Vc::double_v const &y, Vc
 }
 
 //_____________________________________________________________________________
-void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   static vd vfPhi1(fPhi1);
   static vd vfPhi2(fPhi2);
   int vectorsize = Vc::double_v::Size;
@@ -184,7 +184,7 @@ void TGeoConeSeg_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np
 
 //_____________________________________________________________________________
 
-void TGeoConeSeg_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, int np) const {
+void TGeoConeSeg_v::Safety_v(const StructOfCoord &pointi, bool in, double *safety, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoConeSeg::Safety(point, in);

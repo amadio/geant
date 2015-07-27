@@ -35,18 +35,18 @@ class TNudyEndfFile;
 class TNudyEndfMat: public TObject {
 public:
   TNudyEndfMat();
-  TNudyEndfMat(int mat, int za, double awr, Char_t lrp, Bool_t lfi, int nlib, int nmod);
+  TNudyEndfMat(int mat, int za, double awr, Char_t lrp, bool lfi, int nlib, int nmod);
   virtual ~TNudyEndfMat();
   void SetName   (Char_t *name)  {strncpy(fName,name,11); fName[11]='\0';}
   void SetMAT    (int mat)     {fMAT = mat;}
   void SetZA     (int za)      {fZA = za;}
   void SetAWR    (double awr)  {fAWR = awr;}
   void SetLRP    (Char_t lrp)    {fLRP = lrp;}
-  void SetLFI    (Bool_t lfi)    {fLFI = lfi;}
+  void SetLFI    (bool lfi)    {fLFI = lfi;}
   void SetNLIB   (int nlib)    {fNLIB = nlib;}
   void SetNMOD   (int nmod)    {fNMOD = nmod;}
   void SetELIS   (double elis) {fELIS = elis;}
-  void SetSTA    (Bool_t sta)    {fSTA = sta;}
+  void SetSTA    (bool sta)    {fSTA = sta;}
   void SetLIS    (UChar_t lis)   {fLIS = lis;}
   void SetLISO   (UChar_t liso)  {fLISO = liso;}
   void SetNFOR   (int nfor)    {fNFOR = nfor;}
@@ -81,11 +81,11 @@ public:
   int         GetZA()     const {return fZA;}
   double      GetAWR()    const {return fAWR;}
   Char_t        GetLRP()    const {return fLRP;}
-  Bool_t        GetLFI()    const {return fLFI;}
+  bool        GetLFI()    const {return fLFI;}
   int         GetNLIB()   const {return fNLIB;}
   int         GetNMOD()   const {return fNMOD;}
   double      GetELIS()   const {return fELIS;}
-  Bool_t        GetSTA()    const {return fSTA;}
+  bool        GetSTA()    const {return fSTA;}
   UChar_t       GetLIS()    const {return fLIS;}
   UChar_t       GetLISO()   const {return fLISO;}
   int         GetNFOR()   const {return fNFOR;}
@@ -129,11 +129,11 @@ private:
   int    fZA;         // Standard identifier ZA = 1000.0 × Z + A
   double fAWR;        // Material mass in atomic units
   Char_t   fLRP;        // True if resonance parameters given in File 2
-  Bool_t   fLFI;        // True if this material is fissile
+  bool   fLFI;        // True if this material is fissile
   int    fNLIB;       // Library identifier 
   int    fNMOD;       // Modification number for this material
   double fELIS;       // Excitation energy of the target nucleus relative to 0.0 for the ground state.
-  Bool_t   fSTA;        // True if target is stable
+  bool   fSTA;        // True if target is stable
   UChar_t  fLIS;        // State number of the target nucleus; 0=ground state
   UChar_t  fLISO;       // Isomeric state number; 0=ground state
   int    fNFOR;       // Library format.

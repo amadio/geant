@@ -34,7 +34,7 @@ public:
    static GeantMainScheduler* fgInstance;
    static GeantMainScheduler* Instance(int nvolumes=0);
 
-   int                AddTrack(int itrack, int ibasket, Bool_t* pushedPriority);
+   int                AddTrack(int itrack, int ibasket, bool* pushedPriority);
 
    int                FlushNormalBaskets();
    int                FlushPriorityBaskets();

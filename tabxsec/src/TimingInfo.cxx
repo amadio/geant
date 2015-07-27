@@ -5,15 +5,15 @@
 static TFile *f=0;
 static TTree *t=0;
 
-void TimingInfo(Float_t cpu,int z,int pdg,int proc,Float_t en, int np)
+void TimingInfo(float cpu,int z,int pdg,int proc,float en, int np)
 {
-  static Float_t scpu=0;
+  static float scpu=0;
   static int sz=0;
   static int spcode=0;
   static int sreac=0;
-  static Float_t sen=0;
+  static float sen=0;
   static int snp=0;
-  static Bool_t first=kTRUE;
+  static bool first=kTRUE;
   
   if(first) {
     f = new TFile("timing.root","recreate");

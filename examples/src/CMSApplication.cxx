@@ -23,9 +23,9 @@ ClassImp(CMSApplication)
     : GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
       fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
-  memset(fSensFlags, 0, kNvolumes * sizeof(Bool_t));
-  memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(Float_t));
-  memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(Float_t));
+  memset(fSensFlags, 0, kNvolumes * sizeof(bool));
+  memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(float));
+  memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(float));
   memset(fECALid, 0, kNECALModules * sizeof(int));
   memset(fHCALid, 0, kNHCALModules * sizeof(int));
   TH1::AddDirectory(false);
@@ -63,7 +63,7 @@ ClassImp(CMSApplication)
 }
 
 //______________________________________________________________________________
-Bool_t CMSApplication::Initialize() {
+bool CMSApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return kTRUE;

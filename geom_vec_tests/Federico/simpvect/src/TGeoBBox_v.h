@@ -39,12 +39,12 @@ public:
    // destructor
    virtual ~TGeoBBox_v();
    // methods
-   static  Bool_t        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
+   static  bool        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
    virtual void          ComputeNormal(double *point, double *dir, double *norm);
-   virtual Bool_t        Contains(double *point) const;
-   virtual void          Contains_v(const double *point, Bool_t *isin, int np) const;
-   static  Bool_t        Contains(const double *point, double dx, double dy, double dz, const double *origin);
-   virtual Bool_t        CouldBeCrossed(double *point, double *dir) const;
+   virtual bool        Contains(double *point) const;
+   virtual void          Contains_v(const double *point, bool *isin, int np) const;
+   static  bool        Contains(const double *point, double dx, double dy, double dz, const double *origin);
+   virtual bool        CouldBeCrossed(double *point, double *dir) const;
    virtual int         DistancetoPrimitive(int px, int py);
    virtual double      DistFromInside(double *point, double *dir, int iact=1, 
                                    double step=TGeoShape::Big(), double *safe=0) const;
@@ -54,9 +54,9 @@ public:
                                    double step=TGeoShape::Big(), double *safe=0) const;
    static  double      DistFromOutside(const double *point,const double *dir, 
                                    double dx, double dy, double dz, const double *origin, double stepmax=TGeoShape::Big());
-   virtual Bool_t        GetPointsOnFacet(int index, int npoints, double *array) const;
-   virtual Bool_t        GetPointsOnSegments(int npoints, double *array) const;
-   virtual double      Safety(double *point, Bool_t in=kTRUE) const;
+   virtual bool        GetPointsOnFacet(int index, int npoints, double *array) const;
+   virtual bool        GetPointsOnSegments(int npoints, double *array) const;
+   virtual double      Safety(double *point, bool in=kTRUE) const;
 
    ClassDef(TGeoBBox_v, 1)         // box primitive
 };

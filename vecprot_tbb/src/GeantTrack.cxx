@@ -192,7 +192,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, int itr) {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcross, int itr) {
+GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, bool checkcross, int itr) {
   // Propagate with step using the helix propagator. Returns a basket if a
   // boundary was crossed. In such case, the track position and step will reflect
   // the boundary crossing point.
@@ -207,7 +207,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcros
     std::cerr << "[PropagateInField] Added navigator" << std::endl;
   }
 
-  Bool_t useDebug = gPropagator->fUseDebug;
+  bool useDebug = gPropagator->fUseDebug;
   int debugTrk = gPropagator->fDebugTrk;
   nav->ResetState();
   if (checkcross) {
@@ -273,13 +273,13 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcros
   double ldir[3], ld[3];
   double local[3], lp[3];
   double delta;
-  Bool_t outside = nav->IsOutside();
+  bool outside = nav->IsOutside();
   // Swap track direction and compute distance back to boundary
   dir[0] = -newdir[0];
   dir[1] = -newdir[1];
   dir[2] = -newdir[2];
   int level = nav->GetLevel();
-  Bool_t entering = kTRUE;
+  bool entering = kTRUE;
   TGeoNode *node1 = 0;
   TGeoNode *node2 = 0;
   if (level < path->GetLevel() && !outside) {

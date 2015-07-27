@@ -673,7 +673,7 @@ int main(int argc, char **argv) {
 
       // Write out particles
       // not very useful indeed, so it is disabled
-      Bool_t outpart = kFALSE;
+      bool outpart = kFALSE;
       if (outpart) {
         FILE *fout = fopen("file.txt", "w");
 

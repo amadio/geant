@@ -80,7 +80,7 @@ void TNudyEndfCont::DumpENDF(int mat,int mf, int mt,int& ns, int flags = 1)
 }
 
 //
-//Float_t to Fortran style string, dim of s should be 14 or bigger
+//float to Fortran style string, dim of s should be 14 or bigger
 //______________________________________________________________________________
 Char_t * TNudyEndfCont::F2F(double f, char s[])
 {

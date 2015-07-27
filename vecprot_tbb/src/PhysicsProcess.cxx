@@ -150,7 +150,7 @@ ClassImp(ElossProcess)
   double mata = mat->GetA();
   double matz = mat->GetZ();
   double matr = mat->GetDensity();
-  Bool_t invalid_material = kFALSE;
+  bool invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
   int itrack;
@@ -179,7 +179,7 @@ void ElossProcess::PostStep(TGeoVolume *vol, int ntracks, int *trackin, int &nou
   double mata = mat->GetA();
   double matz = mat->GetZ();
   double matr = mat->GetDensity();
-  Bool_t invalid_material = kFALSE;
+  bool invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
 
@@ -290,7 +290,7 @@ ClassImp(InteractionProcess)
   double mata = mat->GetA();
   double matz = mat->GetZ();
   double matr = mat->GetDensity();
-  Bool_t invalid_material = kFALSE;
+  bool invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
   if (!invalid_material) {

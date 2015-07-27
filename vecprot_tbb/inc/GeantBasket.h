@@ -28,7 +28,7 @@ public:
    void              AddTrack(int itrack);
    void              AddTracks(const int *array, int ntracks);
    virtual void      Clear(Option_t *option="");
-   Bool_t            Contains(int event) const;
+   bool            Contains(int event) const;
    int             GetNtracks() const {return fNtracks;}
    int            *GetTracks() const {return fIndex;}
    virtual void      Print(Option_t *option="") const;

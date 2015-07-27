@@ -99,7 +99,7 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 // #pragma ivdep
 //   for(unsigned int k=0;k<np;++k) // @EXPECTVEC
 //      {
-//        Bool_t in;
+//        bool in;
 //        double saf[3];
 //        double newpt[3];
 

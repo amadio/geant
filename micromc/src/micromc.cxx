@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         int nelem = mat->GetNelements();
         int *z = new int[nelem];
         int *a = new int[nelem];
-        Float_t *w = new Float_t[nelem];
+        float *w = new float[nelem];
         for(int iel=0; iel<nelem; ++iel) {
            double ad;
            double zd;
@@ -180,14 +180,14 @@ int main(int argc, char *argv[]) {
 #define NPART 11
 
 void GenerateEvent(double avemult, double energy, double fVertex[3]) {
-  static Bool_t first = kTRUE;
+  static bool first = kTRUE;
   static const int kMaxPart = NPART;
   static const Char_t *GVname[NPART] = {"pi+", "pi-", "proton", "antiproton", "neutron", "antineutron",
                                         "e-",  "e+",  "gamma",  "mu+",        "mu-"};
   static const Species_t GVspecies[NPART] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron,
                                              kLepton, kLepton, kLepton, kLepton, kLepton};
   static int GVpart[NPART];
-  static Float_t GVprob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
+  static float GVprob[NPART] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
 
   const double etamin = -3, etamax = 3;
 

@@ -87,7 +87,7 @@ void GeantBasket::Clear(Option_t *option) {
 }
 
 //______________________________________________________________________________
-Bool_t GeantBasket::Contains(int evstart, int nevents) const {
+bool GeantBasket::Contains(int evstart, int nevents) const {
   // Checks if any of the tracks in the input array belongs to the given event
   // range.
   return fTracksIn.Contains(evstart, nevents);
@@ -106,7 +106,7 @@ void GeantBasket::Print(Option_t *) const {
 }
 
 //______________________________________________________________________________
-void GeantBasket::PrintTrack(int /*itr*/, Bool_t /*input*/) const {
+void GeantBasket::PrintTrack(int /*itr*/, bool /*input*/) const {
   // Print a given track.
 }
 
@@ -136,7 +136,7 @@ void GeantBasket::SetThreshold(int threshold) {
 ClassImp(GeantBasketMgr)
 
     //______________________________________________________________________________
-    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, Bool_t collector)
+    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
     : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
       fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
       fDispatchList() {
@@ -245,7 +245,7 @@ bool GeantBasketMgr::ReplaceBasketStrong(size_t expected, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-int GeantBasketMgr::AddTrack(GeantTrack_v &trackv, int itr, Bool_t priority, GeantTaskData *td) {
+int GeantBasketMgr::AddTrack(GeantTrack_v &trackv, int itr, bool priority, GeantTaskData *td) {
   // Add a track to the current basket. If the track number reaches the
   // threshold, the basket is added to the feeder queue and replaced by an empty
   // one. Returns the number of dispatched baskets
@@ -282,7 +282,7 @@ int GeantBasketMgr::AddTrack(GeantTrack_v &trackv, int itr, Bool_t priority, Gea
 }
 
 //______________________________________________________________________________
-int GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td) {
+int GeantBasketMgr::AddTrack(GeantTrack &track, bool priority, GeantTaskData *td) {
   // Add a track to the current basket. If the track number reaches the
   // threshold, the basket is added to the feeder queue and replaced by an empty
   // one. Returns the number of dispatched baskets
@@ -319,7 +319,7 @@ int GeantBasketMgr::AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *
 }
 
 //______________________________________________________________________________
-int GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, int itr, Bool_t priority, GeantTaskData *td) {
+int GeantBasketMgr::AddTrackSingleThread(GeantTrack_v &trackv, int itr, bool priority, GeantTaskData *td) {
   // Copy directly from a track_v a track to the basket manager. It is
   // assumed that this manager is only handled by a single thread.
   GeantBasket *cbasket = GetCBasket();
@@ -371,7 +371,7 @@ void GeantBasketMgr::CreateEmptyBaskets(int nbaskets, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-void GeantBasketMgr::Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td) {
+void GeantBasketMgr::Push(GeantBasket *basket, bool priority, GeantTaskData *td) {
   // Called whenever a basket has to be pushed to the queue. Recalculates
   // threshold for the basket manager.
   const int nthreads = td->fNthreads;

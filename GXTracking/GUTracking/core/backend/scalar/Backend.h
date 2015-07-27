@@ -19,7 +19,7 @@ struct kScalar {
 
   typedef int             int;
   typedef Precision       double;
-  typedef bool            Bool_t;
+  typedef bool            bool;
   typedef int             Index_t; // the type of indices
 
   const static bool kTrue = true;
@@ -52,7 +52,7 @@ inline VECPHYS_CONSTEXPR_RETURN bool kScalar::IsEqual<kScalar>() {
 
 typedef kScalar::int    ScalarInt;
 typedef kScalar::double ScalarDouble;
-typedef kScalar::Bool_t   ScalarBool;
+typedef kScalar::bool   ScalarBool;
 
 template <typename Type>
 VECPHYS_CUDA_HEADER_BOTH

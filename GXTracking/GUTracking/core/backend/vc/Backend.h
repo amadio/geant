@@ -18,11 +18,11 @@ struct kVc {
 
   typedef Vc::int_v                   int;
   typedef Vc::Vector<Precision>       double;
-  typedef Vc::Vector<Precision>::Mask Bool_t;
+  typedef Vc::Vector<Precision>::Mask bool;
   typedef Vc::Vector<Precision>       Index_t;
 
-  const static Bool_t kTrue;
-  const static Bool_t kFalse;
+  const static bool kTrue;
+  const static bool kFalse;
   constexpr static bool early_returns = true;
 
   constexpr static int kSize = kVc::double::Size;
@@ -32,7 +32,7 @@ struct kVc {
 
 typedef kVc::int       VcInt;
 typedef kVc::double    VcPrecision;
-typedef kVc::Bool_t      VcBool;
+typedef kVc::bool      VcBool;
 typedef kVc::int       VcInside;
 
 template <typename Type>

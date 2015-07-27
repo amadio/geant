@@ -204,7 +204,7 @@ GUMollerBhabha::RotateAngle(typename Backend::double sinTheta,
                             typename Backend::double &zr) const
 {
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
 
   double phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
@@ -217,8 +217,8 @@ GUMollerBhabha::RotateAngle(typename Backend::double sinTheta,
   double vhat = sinTheta*sinphi; // sin(phi);
   double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  Bool_t positive = ( pt > 0. );
-  Bool_t negativeZ = ( zhat < 0. );
+  bool positive = ( pt > 0. );
+  bool negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
@@ -246,7 +246,7 @@ GUMollerBhabha::
 SampleSinTheta(typename Backend::double energyIn,
                typename Backend::double energyOut) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   //angle of the scatterred electron
@@ -260,7 +260,7 @@ SampleSinTheta(typename Backend::double energyIn,
   double sint2 = (1.0 - cost)*(1. + cost);
 
   double sinTheta = 0.5;
-  Bool_t condition2 = sint2 < 0.0;
+  bool condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   

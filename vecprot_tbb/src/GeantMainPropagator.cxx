@@ -27,7 +27,7 @@ GeantPropagator *GeantMainPropagator::PropInstance() {
 }
 
 void GeantMainPropagator::SetParams(int nthr, int evtot, int evbuf, double tracksaver, int maxperbask,
-                                    int minFeeder, int numPrior, int dispThr, Bool_t dbg, int dbgTrk) {
+                                    int minFeeder, int numPrior, int dispThr, bool dbg, int dbgTrk) {
   GeantPropagator *p = GeantMainPropagator::PropInstance();
   p->fNthreads = nthr;
   p->fNtotal = evtot;
@@ -45,7 +45,7 @@ void GeantMainPropagator::SetParams(int nthr, int evtot, int evbuf, double track
   WorkloadManager::Instance();
 }
 
-void GeantMainPropagator::Start(const char *geomfile, Bool_t graphics, Bool_t single) {
+void GeantMainPropagator::Start(const char *geomfile, bool graphics, bool single) {
   GeantPropagator *p = GeantMainPropagator::PropInstance();
   p->PropagatorGeom(geomfile, graphics, single);
 }

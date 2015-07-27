@@ -52,7 +52,7 @@ class VTfileio {
 	     UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, UChar_t surfid, 
 	     UChar_t process, UChar_t begend, unsigned int trid, unsigned int trpid, double cputime,
 	     double cpustep);
-   Bool_t IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
+   bool IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
       else return kFALSE;}
    void SetNewEvent() {fNewEvent=kTRUE;}
    void SetPrimaries(int prim) {fNprimaries=prim;}
@@ -86,7 +86,7 @@ class VTfileio {
    double fCPUstep;    // CPU time used for current step
  
    //
-   Bool_t  fNewEvent;    // if new event
+   bool  fNewEvent;    // if new event
    int   fNprimaries;  // Number of primaries
    THashList *fVolumeDictionary;  // dictionary of volumes
    THashList *fShapeDictionary;   // dictionary of shapes

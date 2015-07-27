@@ -216,7 +216,7 @@ GUSeltzerBerger::RotateAngle(typename Backend::double sinTheta,
                              typename Backend::double &zr) const
 {
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
 
   double phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
@@ -229,8 +229,8 @@ GUSeltzerBerger::RotateAngle(typename Backend::double sinTheta,
   double vhat = sinTheta*sinphi; // sin(phi);
   double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  Bool_t positive = ( pt > 0. );
-  Bool_t negativeZ = ( zhat < 0. );
+  bool positive = ( pt > 0. );
+  bool negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
@@ -257,7 +257,7 @@ typename Backend::double
 GUSeltzerBerger::
 SampleSinTheta(typename Backend::double energyIn) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   //angle of the radiated photon 
@@ -266,7 +266,7 @@ SampleSinTheta(typename Backend::double energyIn) const
   double c = 4. - 8.*UniformRandom<Backend>(fRandomState,fThreadId);
   double a;
   double signc; 
-  Bool_t condition = c > 0.;
+  bool condition = c > 0.;
   MaskedAssign(  condition,  1. , &signc );
   MaskedAssign( !condition, -1. , &signc );
   MaskedAssign(  condition,  c , &a );

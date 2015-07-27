@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-PropTask::PropTask (Bool_t inPriority):
+PropTask::PropTask (bool inPriority):
    fPriority (inPriority)
 { }
 

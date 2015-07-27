@@ -110,7 +110,7 @@ void WorkloadManager::SetTaskBroker(TaskBroker *broker) {
 
 #if USE_VECGEOM_NAVIGATOR == 1
 //______________________________________________________________________________
-Bool_t WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
+bool WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
   /**
    * @brief Tell the task broker(s) to load the geometry.
    *
@@ -263,7 +263,7 @@ void *WorkloadManager::TransportTracks() {
 //  if (tid == nworkers-1) sched_locker.StartOne();
 //   int nprocesses = propagator->fNprocesses;
 //   int ninput, noutput;
-//   Bool_t useDebug = propagator->fUseDebug;
+//   bool useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
 // Create navigator if none serving this thread.
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -535,7 +535,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 // int nprocesses = propagator->fNprocesses;
 // int ninput;
 // int noutput;
-//   Bool_t useDebug = propagator->fUseDebug;
+//   bool useDebug = propagator->fUseDebug;
 //   Printf("(%d) WORKER started", tid);
 #ifdef USE_VECGEOM_NAVIGATOR
 // Suppose I do not need a navigator, otherwise how it would have ever worked?

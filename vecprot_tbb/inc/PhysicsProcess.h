@@ -26,7 +26,7 @@ public:
   PhysicsProcess(const char *name) : TNamed(name,"") {}
   virtual ~PhysicsProcess() {}
   
-  Bool_t       IsType(EProcessType type) {return TObject::TestBit(type);}
+  bool       IsType(EProcessType type) {return TObject::TestBit(type);}
   virtual void ComputeIntLen(TGeoVolume *vol,
                              int ntracks, 
                              int *trackin, 

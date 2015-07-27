@@ -22,8 +22,8 @@ public:
 
 	void SetParams (int nthr, int evtot, int evbuf, double tracksaver, int maxperbask,
                   int minFeeder, int numPrior, int dispThr,
-                  Bool_t dbg=kFALSE, int dbgTrk=-1);
-	void Start (const char *geomfile="../geometry/cms.root", Bool_t graphics=kTRUE, Bool_t single=kFALSE);
+                  bool dbg=kFALSE, int dbgTrk=-1);
+	void Start (const char *geomfile="../geometry/cms.root", bool graphics=kTRUE, bool single=kFALSE);
 
 	ClassDef(GeantMainPropagator,1)
 };

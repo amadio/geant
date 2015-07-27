@@ -27,7 +27,7 @@ struct Foo {
 
 //_____________________________________________________________________________
 #ifdef VEC_EXTENSIONS
-void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   // declare variables
   static vd fZ1_v(fZ[0]); // vector with the first z-plane position in all its components
   static vd fZN_v(fZ[fNz - 1]);
@@ -148,7 +148,7 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) c
   }
 }
 #else
-void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) const {
+void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, bool *isin, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     isin[i] = TGeoPcon::Contains(point);
@@ -158,7 +158,7 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, int np) c
 
 //_____________________________________________________________________________
 
-void TGeoPcon_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, int np) const {
+void TGeoPcon_v::Safety_v(const StructOfCoord &pointi, bool in, double *safety, int np) const {
   for (unsigned int i = 0; i < np; i++) {
     double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoPcon::Safety(point, in);

@@ -201,7 +201,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager *geom, const char *xsecfi
 
   int *z = new int[MAXNELEMENTS];
   int *a = new int[MAXNELEMENTS];
-  Float_t *w = new Float_t[MAXNELEMENTS];
+  float *w = new float[MAXNELEMENTS];
   fNmaterials = 0;
   next.Reset();
 
@@ -465,10 +465,10 @@ void TabulatedDataManager::SampleFinalState(const int elementindex, const int re
   double totEdepo = 0.0;
   int nSecPart = 0;     // number of secondary particles per reaction
   const int *pid = 0;   // GeantV particle codes [nSecPart]
-  const Float_t *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  Float_t energyFst = 0;  // Ekin of primary after the interaction
-  Float_t kerma = 0;      // released energy
-  Float_t weightFst = 0;  // weight of the fstate (just a dummy parameter now)
+  const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
+  float energyFst = 0;  // Ekin of primary after the interaction
+  float kerma = 0;      // released energy
+  float weightFst = 0;  // weight of the fstate (just a dummy parameter now)
   Char_t isSurv = 0;      // is the primary survived the interaction
   int ebinindx = -1;    // energy bin index of the selected final state
 
@@ -736,10 +736,10 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
   double totEdepo = 0.0;
   int nSecPart = 0;     // number of secondary particles per reaction
   const int *pid = 0;   // GeantV particle codes [nSecPart]
-  const Float_t *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  Float_t energyFst = 0;  // Ekin of primary after the interaction
-  Float_t kerma = 0;      // released energy
-  Float_t weightFst = 0;  // weight of the fstate (just a dummy parameter now)
+  const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
+  float energyFst = 0;  // Ekin of primary after the interaction
+  float kerma = 0;      // released energy
+  float weightFst = 0;  // weight of the fstate (just a dummy parameter now)
   Char_t isSurv = 0;      // is the primary survived the interaction
   G4int elementIndex = -1;
   TEFstate *elemfstate = 0;
@@ -974,7 +974,7 @@ void TabulatedDataManager::SampleDecayInFlight(const int partindex, const G4Trac
                                                G4ParticleChange *particlechange, double energylimit) {
   int nSecPart = 0;     // number of secondary particles per reaction
   const int *pid = 0;   // GeantV particle codes [nSecPart]
-  const Float_t *mom = 0; // momentum vectors the secondaries [3*nSecPart]
+  const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
   Char_t isSurv = 0;      // is the primary survived the interaction
 
   isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);
@@ -1233,7 +1233,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack *> *vdp, G4int 
   // G4int nTotSecPart  = 0;  //total number of secondary particles in tracks
   const G4int *pid = 0;   // GeantV particle codes [nSecPart]
   const G4float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  Float_t ener = 0;       // energy at the fstate (Ekin of primary after the interc.)
+  float ener = 0;       // energy at the fstate (Ekin of primary after the interc.)
   G4float kerma = 0;      // released energy
   G4float weight = 0;     // weight of the fstate (just a dummy parameter now)
   char isSurv = 0;        // is the primary survived the interaction

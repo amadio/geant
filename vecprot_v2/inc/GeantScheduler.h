@@ -130,18 +130,18 @@ public:
    * @brief Getter for collecting flag
    * @return Value of fCollecting flag
    */
-   Bool_t IsCollecting() const { return fCollecting.load(); }
+   bool IsCollecting() const { return fCollecting.load(); }
    
   /**
    * @brief Setter for collecting flag
    */
-   void SetCollecting(Bool_t flag) { fCollecting.store(flag); }
+   void SetCollecting(bool flag) { fCollecting.store(flag); }
 
   /**
    * @brief Getter for learning flag
    * @return Value of fLearning flag
    */
-   Bool_t IsLearning() { 
+   bool IsLearning() { 
      bool learning = fLearning.test_and_set(std::memory_order_acquire);
      if (!learning) fLearning.clear(std::memory_order_release);
      return learning; }
@@ -149,7 +149,7 @@ public:
   /**
    * @brief Setter for the learning flag
    */
-   void SetLearning(Bool_t flag) { 
+   void SetLearning(bool flag) { 
      if (flag) fLearning.test_and_set(std::memory_order_acquire);
      else fLearning.clear(std::memory_order_release); }
 
@@ -183,7 +183,7 @@ public:
   }
 
   /** @brief Garbage collection function */
-  int GarbageCollect(GeantTaskData *td, Bool_t force=false);
+  int GarbageCollect(GeantTaskData *td, bool force=false);
 
   /** @brief Function to print size */
   void PrintSize() const;

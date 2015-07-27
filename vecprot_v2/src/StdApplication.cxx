@@ -49,7 +49,7 @@ double *StdApplication::MakeUniformLogArray(int nbins, double lmin, double lmax)
 }
 
 //______________________________________________________________________________
-Bool_t StdApplication::Initialize() {
+bool StdApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return kTRUE;

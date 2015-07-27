@@ -137,7 +137,7 @@ SampleBin(typename Backend::double kineticEnergy,
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::bool bool;
   typedef typename Backend::int  int;
 
   //select the alias table for incoming energy 
@@ -146,7 +146,7 @@ SampleBin(typename Backend::double kineticEnergy,
   double efrac = eloc -1.0*irow;  
   double u1 = UniformRandom<Backend>(fRandomState,int(fThreadId));
 
-  Bool_t condition = u1 <= efrac ;
+  bool condition = u1 <= efrac ;
   // if branch
   MaskedAssign( condition, irow , &irow ); // at the lower edge
   MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
@@ -170,7 +170,7 @@ SampleLogBin(typename Backend::double kineticEnergy,
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::bool bool;
   typedef typename Backend::int  int;
 
   //select the alias table for incoming energy 
@@ -180,7 +180,7 @@ SampleLogBin(typename Backend::double kineticEnergy,
   
   double u1 = UniformRandom<Backend>(fRandomState,int(fThreadId));
 
-  Bool_t condition = u1 <= efrac ;
+  bool condition = u1 <= efrac ;
 
   MaskedAssign( condition, irow , &irow );     // at the lower edge 
   MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
@@ -206,12 +206,12 @@ SampleX(typename Backend::double rangeSampled,
        ) const
 {
   typedef typename Backend::int    int;
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   double r1 = UniformRandom<Backend>(fRandomState,int(fThreadId));
 
-  Bool_t condition = r1 <= probNA;
+  bool condition = r1 <= probNA;
   double xd, xu;
   double binSampled = rangeSampled * fInverseBinSampled;
 

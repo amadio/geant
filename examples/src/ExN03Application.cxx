@@ -26,14 +26,14 @@ ClassImp(ExN03Application)
   GeantFactoryStore *store = GeantFactoryStore::Instance();
   fFactory = store->GetFactory<MyHit>(16);
   printf("Created factory for MyHit");
-  memset(fEdepGap, 0, kNlayers * kMaxThreads * sizeof(Float_t));
-  memset(fLengthGap, 0, kNlayers * kMaxThreads * sizeof(Float_t));
-  memset(fEdepAbs, 0, kNlayers * kMaxThreads * sizeof(Float_t));
-  memset(fLengthAbs, 0, kNlayers * kMaxThreads * sizeof(Float_t));
+  memset(fEdepGap, 0, kNlayers * kMaxThreads * sizeof(float));
+  memset(fLengthGap, 0, kNlayers * kMaxThreads * sizeof(float));
+  memset(fEdepAbs, 0, kNlayers * kMaxThreads * sizeof(float));
+  memset(fLengthAbs, 0, kNlayers * kMaxThreads * sizeof(float));
 }
 
 //______________________________________________________________________________
-Bool_t ExN03Application::Initialize() {
+bool ExN03Application::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return kTRUE;

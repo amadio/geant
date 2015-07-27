@@ -213,7 +213,7 @@ int GeantPropagator::ImportTracks(int nevents, double average, int startevent, i
   static double pdgProb[9] = {0.};
   int pdgCount[9] = {0};
 
-  static Bool_t init = kTRUE;
+  static bool init = kTRUE;
   if (init) {
     pdgProb[0] = pdgRelProb[0];
     for (int i = 1; i < kMaxPart; ++i)
@@ -420,7 +420,7 @@ void GeantPropagator::InjectCollection(GeantTrackCollection *inColl) {
 }
 
 //______________________________________________________________________________
-Bool_t GeantPropagator::LoadGeometry(const char *filename) {
+bool GeantPropagator::LoadGeometry(const char *filename) {
   // Load the detector geometry from file.
   if (gGeoManager)
     return kTRUE;
@@ -514,10 +514,10 @@ void *GeantPropagator::GlobalObserver(void *arg) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool_t single) {
+void GeantPropagator::PropagatorGeom(const char *geomfile, bool graphics, bool single) {
   // Propagate fNevents in the volume containing the vertex.
   // Simulate 2 physics processes up to exiting the current volume.
-  static Bool_t called = kFALSE;
+  static bool called = kFALSE;
   fUseGraphics = graphics;
   fSingleTrack = single;
   Initialize();

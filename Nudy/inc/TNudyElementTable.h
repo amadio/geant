@@ -18,11 +18,11 @@ class TNudyElementTable: public TObject{
 
  private:
   int fState;
-  Float_t fOx,fOy;
+  float fOx,fOy;
   TGeoElementTable* fTable;
   TBox fWindow;
   TList fEleBox;
-  Float_t fLOD;
+  float fLOD;
   TCanvas* fRNTable;
   TGeoManager* fGeom;
   void DrawUI();

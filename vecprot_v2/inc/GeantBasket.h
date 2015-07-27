@@ -130,7 +130,7 @@ public:
    * @param evstart Start event id.
    * @param nevents Number of events (default 1)
    */
-  Bool_t Contains(int evstart, int nevents = 1) const;
+  bool Contains(int evstart, int nevents = 1) const;
 
   /**
    * @brief Function returning the number of input tracks
@@ -183,14 +183,14 @@ public:
    * @brief Function returning the mixed tracks property.
    * @return Boolean value if the tracks are mixed from several volumes
    */
-  Bool_t IsMixed() const { return TObject::TestBit(kMixed); }
+  bool IsMixed() const { return TObject::TestBit(kMixed); }
 
   /**
    * @brief Check if tracks are being copied
    * @return Track copy flag
    */
-  inline Bool_t IsCopying() const { return (fNcopying.load(std::memory_order_seq_cst)); }
-  //  inline Bool_t IsCopying() const { return fNcopying; }
+  inline bool IsCopying() const { return (fNcopying.load(std::memory_order_seq_cst)); }
+  //  inline bool IsCopying() const { return fNcopying; }
   inline int GetNcopying() const { return fNcopying.load(); }
   //  inline int GetNcopying() const { return fNcopying; }
 
@@ -219,7 +219,7 @@ public:
    * @param itr Track id.
    * @param input Refer to input or output track (default input)
    */
-  void PrintTrack(int itr, Bool_t input = kTRUE) const;
+  void PrintTrack(int itr, bool input = kTRUE) const;
 
   /** @brief Recycle this basket */
   void Recycle(GeantTaskData *td);
@@ -238,7 +238,7 @@ public:
    *
    * @param flag Boolean flag.
    */
-  void SetMixed(Bool_t flag) { TObject::SetBit(kMixed, flag); }
+  void SetMixed(bool flag) { TObject::SetBit(kMixed, flag); }
 
   /**
    * @brief Function to change the transportability threshold for the basket
@@ -248,7 +248,7 @@ public:
   void SetThreshold(int threshold);
 
   /** @brief Try to get the dispatch lock for the basket */
-  Bool_t TryDispatch() { return (!fDispatched.test_and_set(std::memory_order_acquire)); }
+  bool TryDispatch() { return (!fDispatched.test_and_set(std::memory_order_acquire)); }
 
   ClassDef(GeantBasket, 1) // A basket containing tracks in the same geomety volume
 };
@@ -273,8 +273,8 @@ protected:
   int fNumber;              /** Number matching the volume index */
   int fBcap;                /** Maximum capacity of baskets held */
   int fQcap;                /** Queue capacity */
-  Bool_t fActive;             /** Activity flag for generating baskets */
-  Bool_t fCollector;          /** Mark this manager as event collector */
+  bool fActive;             /** Activity flag for generating baskets */
+  bool fCollector;          /** Mark this manager as event collector */
   std::atomic_int fThreshold; /** Adjustable transportability threshold */
   std::atomic_int fNbaskets;  /** Number of baskets for this volume */
   std::atomic_int fNused;     /** Number of baskets in use */
@@ -342,7 +342,7 @@ public:
    * @param vol Volume associated with this
    * @param number Number for the basket manager
   */
-  GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, Bool_t collector = false);
+  GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector = false);
 
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
@@ -373,7 +373,7 @@ public:
    * @param track  Track that should be added to basket
    * @param priority Set priority (by default kFALSE)
    */
-  int AddTrack(GeantTrack &track, Bool_t priority, GeantTaskData *td);
+  int AddTrack(GeantTrack &track, bool priority, GeantTaskData *td);
 
   /**
    * @brief Function adding an indexed track to basket up to the basket threshold
@@ -382,7 +382,7 @@ public:
    * @param itr Track id
    * @param priority Set priority (by default kFALSE)
    */
-  int AddTrack(GeantTrack_v &trackv, int itr, Bool_t priority, GeantTaskData *td);
+  int AddTrack(GeantTrack_v &trackv, int itr, bool priority, GeantTaskData *td);
 
   /**
    * @brief Function adding by a unique thread a track to the basket manager up to the basket threshold
@@ -391,7 +391,7 @@ public:
    * @param itr Track id
    * @param priority Set priority (by default kFALSE)
    */
-  int AddTrackSingleThread(GeantTrack_v &trackv, int itr, Bool_t priority, GeantTaskData *td);
+  int AddTrackSingleThread(GeantTrack_v &trackv, int itr, bool priority, GeantTaskData *td);
 
   /**
    * @brief Function cleaning a number of free baskets
@@ -438,19 +438,19 @@ public:
    * @brief Check if the basket manager has tracks filled and pending threshold
    * @return True if the current basket holds tracks
    */
-  Bool_t HasTracks() const { return GetCBasket()->GetNinput(); }
+  bool HasTracks() const { return GetCBasket()->GetNinput(); }
 
   /**
    * @brief Getter for activity (manager generating baskets)
    * @return Value for activity flag
    */
-  Bool_t IsActive() const { return fActive; }
+  bool IsActive() const { return fActive; }
 
   /**
    * @brief Getter for garbage collector status
    * @return Value for collector flag
    */
-  Bool_t IsCollector() const { return fCollector; }
+  bool IsCollector() const { return fCollector; }
 
   /** @brief Setter for garbage collector status */
   void SetCollector() { fCollector = true; }
@@ -516,7 +516,7 @@ public:
    * @param basket Basket to be pushed
    * @param priority Priority on or off
    */
-  void Push(GeantBasket *basket, Bool_t priority, GeantTaskData *td);
+  void Push(GeantBasket *basket, bool priority, GeantTaskData *td);
 
   /**
    * @brief Recycles a given basket

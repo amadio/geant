@@ -34,7 +34,7 @@ public:
   virtual ~GeantVApplication() {}
 
   /** @brief Function of initialization */
-  virtual Bool_t Initialize() = 0;
+  virtual bool Initialize() = 0;
 
   /**
    * @brief User callback function for scoring

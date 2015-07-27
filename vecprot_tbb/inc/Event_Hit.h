@@ -19,7 +19,7 @@ struct GeantEvent {
    void               AddTrack();
    void               Reset() {ntracks = ndone = 0;}
    void               StopTrack();
-   Bool_t             Transported() const {return ((ntracks>0) && (ntracks==ndone));}
+   bool             Transported() const {return ((ntracks>0) && (ntracks==ndone));}
    int              TracksLeft() const {return ntracks-ndone;}
 };
 

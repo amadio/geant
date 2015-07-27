@@ -31,7 +31,7 @@ GeantTaskData::GeantTaskData(int nthreads, int maxDepth, int maxPerBasket)
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
   fSizeBool = fSizeDbl = 5 * maxPerBasket;
-  fBoolArray = new Bool_t[fSizeBool];
+  fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
 #ifndef GEANT_NVCC
@@ -49,7 +49,7 @@ GeantTaskData::GeantTaskData()
   fNthreads = propagator->fNthreads;
   fMaxDepth = propagator->fMaxDepth;
   fSizeBool = fSizeDbl = fSizeInt = 5 * propagator->fMaxPerBasket;
-  fBoolArray = new Bool_t[fSizeBool];
+  fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
   fIntArray = new int[fSizeInt];
   fSOA3Dworkspace1 = new vecgeom::SOA3D<double>(fSizeInt);

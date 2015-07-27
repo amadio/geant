@@ -26,9 +26,9 @@ using vecgeom::kDegToRad;
  */
 class PrimaryGenerator : public TNamed {
 protected:
-  Bool_t fEtaCut;   // flag for specifying a cut in eta
-  Bool_t fPhiCut;   // flag for specifying a cut in phi
-  Bool_t fMomCut;   // flag for specifying a cut in momentum
+  bool fEtaCut;   // flag for specifying a cut in eta
+  bool fPhiCut;   // flag for specifying a cut in phi
+  bool fMomCut;   // flag for specifying a cut in momentum
   double fEtaMin; // minimum eta
   double fEtaMax; // maximum eta
   double fPhiMin; // minimum phi
@@ -61,13 +61,13 @@ public:
   virtual void GetTrack(int n, Geant::GeantTrack &gtrack) = 0;
 
   /** @brief Getter for eta cut flag */
-  Bool_t HasEtaCut() const { return fEtaCut; }
+  bool HasEtaCut() const { return fEtaCut; }
 
   /** @brief Getter for phi cut flag */
-  Bool_t HasPhiCut() const { return fPhiCut; }
+  bool HasPhiCut() const { return fPhiCut; }
 
   /** @brief Getter for momentum cut flag */
-  Bool_t HasMomCut() const { return fMomCut; }
+  bool HasMomCut() const { return fMomCut; }
 
   /** @brief Setter for user eta range */
   void SetEtaRange(double etamin, double etamax) {

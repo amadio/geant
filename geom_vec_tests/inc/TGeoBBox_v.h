@@ -45,24 +45,24 @@ public:
    virtual ~TGeoBBox_v();    // destructor
 
    // methods
-   static  Bool_t        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
+   static  bool        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
     
    virtual void          ComputeNormal(const double *point, const double *dir, double *norm) const;
    virtual void          ComputeNormal_v(const double *point, const double  *dir, double  *norm, int np) const;
    virtual void          ComputeNormal_l(const double *point, const double  *dir, double  *norm, int np) const;
 
-   virtual Bool_t        Contains(const double *point) const;
-   virtual void          Contains_v(const double *point, Bool_t *isin, int np) const;
-   virtual void          Contains_v(const StructOfCoord & point, Bool_t *isin, int np) const;
-   virtual void          Contains_l(const double *point, Bool_t *isin, int np) const;
+   virtual bool        Contains(const double *point) const;
+   virtual void          Contains_v(const double *point, bool *isin, int np) const;
+   virtual void          Contains_v(const StructOfCoord & point, bool *isin, int np) const;
+   virtual void          Contains_l(const double *point, bool *isin, int np) const;
 
-   static  Bool_t        Contains(const double *point, double dx, double dy, double dz, const double *origin);
+   static  bool        Contains(const double *point, double dx, double dy, double dz, const double *origin);
 
-   virtual Bool_t        CouldBeCrossed(const double *point, const double *dir) const;
-   virtual void          CouldBeCrossed_l(const double *point, const double *dir, Bool_t * crossed, int np ) const;
-   virtual void          CouldBeCrossed_v(const double  *point, const double  *dir,Bool_t *  crossed, int np) const;
+   virtual bool        CouldBeCrossed(const double *point, const double *dir) const;
+   virtual void          CouldBeCrossed_l(const double *point, const double *dir, bool * crossed, int np ) const;
+   virtual void          CouldBeCrossed_v(const double  *point, const double  *dir,bool *  crossed, int np) const;
    // SOA version
-   virtual void          CouldBeCrossed_v(const StructOfCoord  & point, const StructOfCoord  & dir,Bool_t *  crossed, int np) const;
+   virtual void          CouldBeCrossed_v(const StructOfCoord  & point, const StructOfCoord  & dir,bool *  crossed, int np) const;
     
    virtual int         DistancetoPrimitive(int px, int py);
 
@@ -149,18 +149,18 @@ public:
 
 
 
-   virtual Bool_t        GetPointsOnFacet(int index, int npoints, double *array) const;
-   virtual Bool_t        GetPointsOnSegments(int npoints, double *array) const;
+   virtual bool        GetPointsOnFacet(int index, int npoints, double *array) const;
+   virtual bool        GetPointsOnSegments(int npoints, double *array) const;
 
 
-   virtual double      Safety(const double *point, Bool_t in=kTRUE) const;
-   virtual void          Safety_l(const double *point, double *safety, int np, Bool_t in=kTRUE) const;
+   virtual double      Safety(const double *point, bool in=kTRUE) const;
+   virtual void          Safety_l(const double *point, double *safety, int np, bool in=kTRUE) const;
 
-   virtual void          Safety_v(const double *point, Bool_t in, double *safety, int np ) const; 
+   virtual void          Safety_v(const double *point, bool in, double *safety, int np ) const; 
    //SOA version
-   virtual void          Safety_v(const StructOfCoord &point, Bool_t in, double *safety, int np ) const;         
+   virtual void          Safety_v(const StructOfCoord &point, bool in, double *safety, int np ) const;         
 
-   virtual void          Safety_v(const double *point, double *safety, const Bool_t * in, const int np ) const; 
+   virtual void          Safety_v(const double *point, double *safety, const bool * in, const int np ) const; 
 
    //   ClassDef(TGeoBBox_v, 1)         // box primitive
 };

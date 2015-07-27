@@ -214,7 +214,7 @@ int GeantScheduler::AddTracks(GeantBasket *output, int &ntot, int &nnew, int &nk
   // Main re-basketizing method. Add all tracks and inject baskets if above threshold.
   // Returns the number of injected baskets.
   int ninjected = 0;
-  Bool_t priority = kFALSE;
+  bool priority = kFALSE;
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantTrack_v &tracks = output->GetOutputTracks();
   int ntracks = tracks.GetNtracks();

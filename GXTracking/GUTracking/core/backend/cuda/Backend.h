@@ -26,7 +26,7 @@ struct kCuda {
 
   typedef int        int;
   typedef Precision  double;
-  typedef bool       Bool_t;
+  typedef bool       bool;
   typedef int        Index_t;
 
   const static       bool kTrue = true;

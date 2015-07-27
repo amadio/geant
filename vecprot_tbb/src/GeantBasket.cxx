@@ -61,7 +61,7 @@ void GeantBasket::Clear(Option_t *)
 }
 
 //______________________________________________________________________________
-Bool_t GeantBasket::Contains(int event) const
+bool GeantBasket::Contains(int event) const
 {
 // Checks if any of the array of tracks belongs to the given event.
 
@@ -183,7 +183,7 @@ int GeantTrackCollection::AddTrack(int itrack, GeantVolumeBasket *basket)
 void GeantTrackCollection::FlushTracks(GeantMainScheduler *main, int* pushedN, int* pushedP)
 {
 // Flush all tracks to the main scheduler. Returns number of injected baskets.
-   Bool_t prior;
+   bool prior;
    int injected;
    for (int itr=0; itr<fNtracks; itr++) {
       injected = main->AddTrack(fTracks[itr], fBaskets[itr]->GetNumber(), &prior);

@@ -4,7 +4,7 @@
 
 #ifndef VEC_EXTENSIONS
 //_____________________________________________________________________________                                                                                                     
-void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np) const
+void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, bool * isin, int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -14,7 +14,7 @@ void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np
 }
 #else
 // PUT VC CODE OR THE LIKE HERE
-void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np) const
+void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, bool * isin, int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -27,7 +27,7 @@ void TGeoTube_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np
 
 //_____________________________________________________________________________
 
-void TGeoTube_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safety, int np ) const
+void TGeoTube_v::Safety_v(const StructOfCoord & pointi, bool in, double * safety, int np ) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -64,7 +64,7 @@ void TGeoTube_v::DistFromOutside_v(const StructOfCoord & pointi, const StructOfC
 
 
 //_____________________________________________________________________________                                                                                                     
-void TGeoTubeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int np) const
+void TGeoTubeSeg_v::Contains_v(const StructOfCoord  & pointi, bool * isin, int np) const
 {
   for(unsigned int i = 0; i < np; i++)
     {
@@ -75,7 +75,7 @@ void TGeoTubeSeg_v::Contains_v(const StructOfCoord  & pointi, Bool_t * isin, int
 
 //_____________________________________________________________________________
 
-void TGeoTubeSeg_v::Safety_v(const StructOfCoord & pointi, Bool_t in, double * safety, int np ) const
+void TGeoTubeSeg_v::Safety_v(const StructOfCoord & pointi, bool in, double * safety, int np ) const
 {
   for(unsigned int i = 0; i < np; i++)
     {

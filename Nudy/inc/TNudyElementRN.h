@@ -20,7 +20,7 @@ class TNudyElementRN: public TObject{
 
  private:
   int fCoSize;
-  Float_t fX,fY;
+  float fX,fY;
   TGeoElementRN* fEle;
   TBox* fBox;
   TPaveText fInfo;
@@ -29,16 +29,16 @@ class TNudyElementRN: public TObject{
   static double fCCodeRange[26];
   static int fCCodeColor[26][3];
 
-  Float_t fSize;
-  Float_t fScale;
-  Float_t fPadding;
+  float fSize;
+  float fScale;
+  float fPadding;
   
   TColor fColors[26];
   TNudyElementRN();
-  TNudyElementRN(TGeoElementRN* elem,Float_t fX, Float_t fY);
+  TNudyElementRN(TGeoElementRN* elem,float fX, float fY);
   virtual ~TNudyElementRN() {};
   void Draw(Option_t* option="");
-  void Move(Float_t x, Float_t y);
+  void Move(float x, float y);
   void SetColorCode(TList* cCodeRange, TList* cCodeColor);
   int GetA() {return fEle->AtomicNo();}
   int GetZ() {return fEle->MassNo();}

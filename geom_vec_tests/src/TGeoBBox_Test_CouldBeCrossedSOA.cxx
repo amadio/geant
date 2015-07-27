@@ -79,7 +79,7 @@ main(int argc, char *argv[]) {
     p.fill(points);
     d.fill(dir);
 
-    Bool_t *couldBeCrossed_v = new Bool_t[npoints];
+    bool *couldBeCrossed_v = new bool[npoints];
     double DeltaT = 0., DeltaT_v = 0., DeltaT_l = 0.;
     for (unsigned int repetitions = 0; repetitions < NREP; repetitions++) {
       // assert correctness of result (simple checksum check)

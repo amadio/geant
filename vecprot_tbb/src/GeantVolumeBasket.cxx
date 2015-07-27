@@ -40,7 +40,7 @@ void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
   static int icalls = 0;
   double pdir[3];
   int itr;
-  Bool_t isOnBoundary = kFALSE;
+  bool isOnBoundary = kFALSE;
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 
   if (!nav) {

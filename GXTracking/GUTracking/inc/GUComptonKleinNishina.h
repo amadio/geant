@@ -223,7 +223,7 @@ GUComptonKleinNishina::RotateAngle(typename Backend::double sinTheta,
                                    typename Backend::double &zr) const
 {
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
 
   double phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
@@ -236,8 +236,8 @@ GUComptonKleinNishina::RotateAngle(typename Backend::double sinTheta,
   double vhat = sinTheta*sinphi; // sin(phi);
   double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  Bool_t positive = ( pt > 0. );
-  Bool_t negativeZ = ( zhat < 0. );
+  bool positive = ( pt > 0. );
+  bool negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
@@ -265,14 +265,14 @@ GUComptonKleinNishina::
 SampleSinTheta(typename Backend::double energyIn,
                typename Backend::double energyOut) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   //angle of the scatterred photon
 
   double epsilon = energyOut/energyIn;
 
-  Bool_t condition = epsilon > 1.0;
+  bool condition = epsilon > 1.0;
 
   MaskedAssign( condition, 1.0 , &epsilon );
 
@@ -281,7 +281,7 @@ SampleSinTheta(typename Backend::double energyIn,
   double sint2   = onecost*(2.-onecost);
 
   double sinTheta = 0.5;
-  Bool_t condition2 = sint2 < 0.0;
+  bool condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   
@@ -476,13 +476,13 @@ GUComptonKleinNishina::
 TotalCrossSection(typename Backend::double energy,
                   typename Backend::double Z) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   double sigma = 0.;
 
   //low energy limit
-  Bool_t condition = energy > 10*keV;
+  bool condition = energy > 10*keV;
   MaskedAssign( !condition, 0.0 , &sigma );
 
   if(Any(condition)) {

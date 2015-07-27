@@ -120,7 +120,7 @@ concurrent_queue::~concurrent_queue() {
 }
 
 //______________________________________________________________________________
-void concurrent_queue::push(TObject *data, Bool_t priority) {
+void concurrent_queue::push(TObject *data, bool priority) {
   // Push front and pop back policy for normal baskets, push back for priority
   // baskets.
   the_mutex.Lock();
@@ -136,7 +136,7 @@ void concurrent_queue::push(TObject *data, Bool_t priority) {
 }
 
 //______________________________________________________________________________
-Bool_t concurrent_queue::empty() const {
+bool concurrent_queue::empty() const {
   the_mutex.Lock();
   bool is_empty = the_queue.empty();
   the_mutex.UnLock();

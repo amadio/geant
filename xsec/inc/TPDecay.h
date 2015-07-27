@@ -28,8 +28,8 @@ public:
 
   int NSample() const { return fNSamp; }
 
-  bool SampleDecay(int pindex, int &npart, const int *&pid, const Float_t *&mom) const;
-  bool GetDecay(int pindex, int ifs, int &npart, const int *&pid, const Float_t *&mom) const;
+  bool SampleDecay(int pindex, int &npart, const int *&pid, const float *&mom) const;
+  bool GetDecay(int pindex, int ifs, int &npart, const int *&pid, const float *&mom) const;
   bool HasDecay(int pindex) const;
   void SetCTauPerMass(double *ctaupermass, int np);
   double GetCTauPerMass(int pindex) const {

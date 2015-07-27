@@ -35,13 +35,13 @@ class ExN03Application : public GeantVApplication {
   static const int kMaxThreads = 36;
 
 private:
-  Bool_t fInitialized;                       /** Initialized flag */
+  bool fInitialized;                       /** Initialized flag */
   int fIdGap;                              /** ID for the gap volume */
   int fIdAbs;                              /** ID for the absorber volume */
-  Float_t fEdepGap[kNlayers][kMaxThreads];   /** Energy deposition per layer */
-  Float_t fLengthGap[kNlayers][kMaxThreads]; /** step length in every layer */
-  Float_t fEdepAbs[kNlayers][kMaxThreads];   /** Energy deposition per layer */
-  Float_t fLengthAbs[kNlayers][kMaxThreads]; /** Step length in every layer */
+  float fEdepGap[kNlayers][kMaxThreads];   /** Energy deposition per layer */
+  float fLengthGap[kNlayers][kMaxThreads]; /** step length in every layer */
+  float fEdepAbs[kNlayers][kMaxThreads];   /** Energy deposition per layer */
+  float fLengthAbs[kNlayers][kMaxThreads]; /** Step length in every layer */
   GeantFactory<MyHit> *fFactory;             /** Hits factory */
   
   /**
@@ -66,7 +66,7 @@ public:
   /**
    * @brief Function of initialization
    */
-  virtual Bool_t Initialize();
+  virtual bool Initialize();
 
   /**
    * @brief Function that provides step manager 

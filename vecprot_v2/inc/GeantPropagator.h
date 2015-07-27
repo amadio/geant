@@ -89,7 +89,7 @@ public:
   int fMaxDepth;                     /** Maximum geometry depth */
   int fLearnSteps;                   /** Number of steps needed for the learning phase */
   int fLastEvent;                    /** Last transported event */
-  Float_t fPriorityThr;                /** Threshold for prioritizing events */
+  float fPriorityThr;                /** Threshold for prioritizing events */
 
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
   double fNaverage;  /** Average number of tracks per event */
@@ -98,14 +98,14 @@ public:
   double fEmax;      /** Max energy threshold */
   double fBmag;      /** Magnetic field */
 
-  Bool_t fUsePhysics;       /** Enable/disable physics */
-  Bool_t fUseDebug;         /** Use debug mode */
-  Bool_t fUseGraphics;      /** Graphics mode */
-  Bool_t fUseStdScoring;    /** Use standard scoring */
-  Bool_t fTransportOngoing; /** Flag for ongoing transport */
-  Bool_t fSingleTrack;      /** Use single track transport mode */
-  Bool_t fUseMonitoring;    /** Monitoring different features */
-  Bool_t fUseAppMonitoring; /** Monitoring the application */
+  bool fUsePhysics;       /** Enable/disable physics */
+  bool fUseDebug;         /** Use debug mode */
+  bool fUseGraphics;      /** Graphics mode */
+  bool fUseStdScoring;    /** Use standard scoring */
+  bool fTransportOngoing; /** Flag for ongoing transport */
+  bool fSingleTrack;      /** Use single track transport mode */
+  bool fUseMonitoring;    /** Monitoring different features */
+  bool fUseAppMonitoring; /** Monitoring the application */
   TMutex fTracksLock;       /** Mutex for adding tracks */
 
   WorkloadManager *fWMgr;             /** Workload manager */
@@ -134,11 +134,11 @@ public:
   void InitializeAfterGeom();
 
   /** @brief Function for loading geometry */
-  Bool_t LoadGeometry(const char *filename = "geometry.root");
+  bool LoadGeometry(const char *filename = "geometry.root");
 #if USE_VECGEOM_NAVIGATOR == 1
 
   /** @brief Function for loading VecGeom geometry */
-  Bool_t LoadVecGeomGeometry();
+  bool LoadVecGeomGeometry();
 #endif
 
 public:
@@ -200,8 +200,8 @@ public:
   int Feeder(GeantTaskData *td);
 
   /** @brief Check if transport is feeding with new tracks. */
-  inline Bool_t IsFeeding() {
-    Bool_t feeding = fFeederLock.test_and_set(std::memory_order_acquire);
+  inline bool IsFeeding() {
+    bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
     if (feeding)
       return kTRUE;
     fFeederLock.clear(std::memory_order_release);
@@ -259,8 +259,8 @@ public:
    * @param graphics Graphics (by default False)
    * @param single Transport single tracks rather than vectors (by default False)
    */
-  void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, Bool_t graphics = kFALSE,
-                      Bool_t single = kFALSE);
+  void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, bool graphics = kFALSE,
+                      bool single = kFALSE);
 
   /** @brief Function returning the number of monitored features */
   int GetMonFeatures() const;
@@ -281,7 +281,7 @@ public:
   void SetTaskBroker(TaskBroker *broker);
 
   /** @brief Function checking if transport is completed */
-  Bool_t TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fNtotal); }
+  bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fNtotal); }
 
 private:
   /** @brief Copy constructor not implemented */

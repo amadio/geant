@@ -36,12 +36,12 @@ public:
   double step;             // current step
   double snext;            // straight distance to next boundary
   double safety;           // safe distance to any boundary
-  Bool_t frombdr;            // true if starting from boundary
+  bool frombdr;            // true if starting from boundary
   int izero;               // number of small steps used to catch errors
   int nsteps;              // number of steps made
   TGeoBranchArray *path;     // path for this particle in the geometry
   TGeoBranchArray *nextpath; // path for next volume
-  Bool_t pending;
+  bool pending;
 
   GeantTrack()
       : event(-1), evslot(-1), particle(-1), pdg(0), fGVcode(0), species(kHadron), status(kAlive), charge(0), mass(0),
@@ -53,11 +53,11 @@ public:
   virtual ~GeantTrack();
   double Curvature() const;
   void Direction(double dir[3]);
-  Bool_t IsAlive() const { return (status != kKilled); }
-  Bool_t IsOnBoundary() const { return (status == kBoundary); }
+  bool IsAlive() const { return (status != kKilled); }
+  bool IsOnBoundary() const { return (status == kBoundary); }
   void Kill() { status = kKilled; }
   void Print(int trackindex = 0) const;
-  GeantVolumeBasket *PropagateInField(double step, Bool_t checkcross, int itr);
+  GeantVolumeBasket *PropagateInField(double step, bool checkcross, int itr);
   GeantVolumeBasket *PropagateStraight(double step, int itrack);
   double Pt() const { return sqrt(px * px + py * py); }
   double P() const { return sqrt(px * px + py * py + pz * pz); }

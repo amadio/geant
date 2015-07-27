@@ -201,7 +201,7 @@ GUConversionBetheHeitler::InteractKernel(typename Backend::double  energyIn,
                                          typename Backend::double& sinThetaPositron)
                                          const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::double double;
 
@@ -226,7 +226,7 @@ GUConversionBetheHeitler::InteractKernel(typename Backend::double  energyIn,
 
 
   double r1 = UniformRandom<Backend>(fRandomState,fThreadId);
-  Bool_t condition = 0.5 > r1;
+  bool condition = 0.5 > r1;
 
   MaskedAssign( condition, energyOut, &energyElectron);     
   MaskedAssign( condition, energyIn - energyOut, &energyPositron);     
@@ -250,7 +250,7 @@ GUConversionBetheHeitler::RotateAngle(typename Backend::double sinTheta,
                                       typename Backend::double &zr) const
 {
   typedef typename Backend::double double;
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
 
   double phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
@@ -263,8 +263,8 @@ GUConversionBetheHeitler::RotateAngle(typename Backend::double sinTheta,
   double vhat = sinTheta*sinphi; // sin(phi);
   double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  Bool_t positive = ( pt > 0. );
-  Bool_t negativeZ = ( zhat < 0. );
+  bool positive = ( pt > 0. );
+  bool negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
@@ -294,7 +294,7 @@ SampleSinTheta(typename Backend::double energyElectron,
 	       typename Backend::double& sinThetaElectron,
 	       typename Backend::double& sinThetaPositron) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   //angles of the pair production (gamma -> e+e-)
@@ -303,7 +303,7 @@ SampleSinTheta(typename Backend::double energyElectron,
   const double a1 = 0.625 , a2 = 3.*a1 , d = 27. ;
 
   double r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
-  Bool_t condition = 9./(9. + d) > r1;
+  bool condition = 9./(9. + d) > r1;
   MaskedAssign( condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a1, &u );
   MaskedAssign(!condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
@@ -586,7 +586,7 @@ GUConversionBetheHeitler::
 TotalCrossSection(typename Backend::double energy,
                   typename Backend::double Z) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::bool   bool;
   typedef typename Backend::double double;
 
   double sigma = 0.;
@@ -597,7 +597,7 @@ TotalCrossSection(typename Backend::double energy,
 
   //gamma energyLimit = 1.5*MeV
   double energyLimit = 1.5*MeV;
-  Bool_t condition = energy < energyLimit;
+  bool condition = energy < energyLimit;
   MaskedAssign( condition, energyLimit, &energy );
   
   double X = log(energy/electron_mass_c2);
@@ -633,7 +633,7 @@ TotalCrossSection(typename Backend::double energy,
   double F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;     
 
   sigma = (Z + 1.)*(F1*Z + F2*Z*Z + F3);
-  Bool_t done = energySave < energyLimit;
+  bool done = energySave < energyLimit;
 
   if(Any(done)) {
     X = (energySave - 2.*electron_mass_c2)/(energyLimit - 2.*electron_mass_c2);
@@ -641,7 +641,7 @@ TotalCrossSection(typename Backend::double energy,
     MaskedAssign( done, tmpsigma, &sigma );
   }
 
-  Bool_t check = sigma < 0.;
+  bool check = sigma < 0.;
   MaskedAssign( check, 0., &sigma );
 
   return sigma;

@@ -102,7 +102,7 @@ public:
    * @param data Data to be pushed
    * @param priority Priority of events (by default false)
    */
-  void push(TObject *data, Bool_t priority = false);
+  void push(TObject *data, bool priority = false);
 
   /** @brief Function for sizing */
   int size() const;
@@ -111,10 +111,10 @@ public:
   int size_async() const { return nobjects; }
 
   /** @brief Function for empty */
-  Bool_t empty() const;
+  bool empty() const;
 
   /** @brief Asynchronized function for empty */
-  Bool_t empty_async() const { return nobjects == 0; }
+  bool empty_async() const { return nobjects == 0; }
 
   /** @brief Function for wait and pop */
   TObject *wait_and_pop();
