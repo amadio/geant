@@ -3,73 +3,72 @@
 #include "TRandom.h"
 #include "TStopwatch.h"
 
-int 
+int
 #ifdef __CINT__
 simpvect(int npoints=10000)
 {
 #else
 main(int argc, char *argv[])
 {
-  int npoints=10000;
-  if(argc>1) sscanf(argv[1],"%d",&npoints);
-  printf("npoints = %d\n",npoints);
+  int npoints = 10000;
+  if (argc > 1)
+    sscanf(argv[1], "%d", &npoints);
+  printf("npoints = %d\n", npoints);
 #endif
 
-  const Double_t dx=10;
-  const Double_t dy=20;
-  const Double_t dz=30;
+  const Double_t dx = 10;
+  const Double_t dy = 20;
+  const Double_t dz = 30;
 
-  TGeoManager *testvec = new TGeoManager("Test","This is a naive test");
-  TGeoMaterial *vacmat = new TGeoMaterial("vacuum",0,0,0);
-  TGeoMedium *vacmed = new TGeoMedium("vacuum",0,vacmat);
+  TGeoManager *testvec = new TGeoManager("Test", "This is a naive test");
+  TGeoMaterial *vacmat = new TGeoMaterial("vacuum", 0, 0, 0);
+  TGeoMedium *vacmed = new TGeoMedium("vacuum", 0, vacmat);
 
-  TGeoVolume *world = testvec->MakeBox("world",vacmed,100,100,100);
+  TGeoVolume *world = testvec->MakeBox("world", vacmed, 100, 100, 100);
   testvec->SetTopVolume(world);
 
-  TGeoVolume *tbox = testvec->MakeBox("tbox",vacmed,10,20,30);
+  TGeoVolume *tbox = testvec->MakeBox("tbox", vacmed, 10, 20, 30);
   tbox->SetLineColor(kRed);
   tbox->SetFillColor(kRed);
   tbox->SetVisibility(1);
-  world->AddNode(tbox,1,0);
-  
+  world->AddNode(tbox, 1, 0);
+
   testvec->CloseGeometry();
 
-  Double_t origin[3]={0,0,0};
+  Double_t origin[3] = {0, 0, 0};
 
-  TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz,origin);
-  
-  Double_t *points = new Double_t[3*npoints];
-  
-  const Double_t r3two = pow(2,1./3.);
+  TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz, origin);
 
+  Double_t *points = new Double_t[3 * npoints];
+
+  const Double_t r3two = pow(2, 1. / 3.);
 
   TStopwatch tt;
   tt.Start();
-  for(int i=0; i<npoints; ++i) {
-    points[3*i  ]=r3two*(1-2*gRandom->Rndm())*dx;
-    points[3*i+1]=r3two*(1-2*gRandom->Rndm())*dy;
-    points[3*i+2]=r3two*(1-2*gRandom->Rndm())*dz;
+  for (int i = 0; i < npoints; ++i) {
+    points[3 * i] = r3two * (1 - 2 * gRandom->Rndm()) * dx;
+    points[3 * i + 1] = r3two * (1 - 2 * gRandom->Rndm()) * dy;
+    points[3 * i + 2] = r3two * (1 - 2 * gRandom->Rndm()) * dz;
   }
   tt.Stop();
   tt.Print();
   tt.Reset();
 
-  int ipin=0;
+  int ipin = 0;
   Bool_t *isin = new Bool_t[npoints];
 
   tt.Start();
-  for(int i=0; i<npoints; ++i) {
-    isin[i] = box->Contains(&points[3*i]);
+  for (int i = 0; i < npoints; ++i) {
+    isin[i] = box->Contains(&points[3 * i]);
   }
   tt.Stop();
   tt.Print();
   tt.Reset();
 
   tt.Start();
-  box->Contains_v(points,isin,npoints);
+  box->Contains_v(points, isin, npoints);
   tt.Print();
   tt.Reset();
-  
-  
+
   return 0;
 }

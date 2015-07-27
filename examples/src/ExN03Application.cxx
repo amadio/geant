@@ -1,7 +1,7 @@
 #include "ExN03Application.h"
 #ifdef USE_VECGEOM_NAVIGATOR
- #include "management/GeoManager.h"
- using vecgeom::GeoManager;
+#include "management/GeoManager.h"
+using vecgeom::GeoManager;
 #endif
 #include "TGeoNode.h"
 #include "GeantFactoryStore.h"
@@ -173,10 +173,10 @@ void ExN03Application::Digitize(Int_t /* event */) {
     histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
   }
   Double_t minval =
-     min<double>(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
+      min<double>(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
   minval = max<double>(minval, 1.E-5);
   Double_t maxval =
-     max<double>(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
+      max<double>(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
   histeg->GetXaxis()->SetTitle("Layer");
   histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");
   histeg->GetYaxis()->SetRangeUser(minval - 0.1 * minval, maxval + 0.1 * maxval);

@@ -1,8 +1,8 @@
 #include "CMSApplication.h"
 #include "ExN03Application.h"
 #ifdef USE_VECGEOM_NAVIGATOR
- #include "management/GeoManager.h"
- using vecgeom::GeoManager;
+#include "management/GeoManager.h"
+using vecgeom::GeoManager;
 #endif
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
@@ -18,10 +18,10 @@
 
 ClassImp(CMSApplication)
 
-//______________________________________________________________________________
-CMSApplication::CMSApplication()
-: GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
-  fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
+    //______________________________________________________________________________
+    CMSApplication::CMSApplication()
+    : GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
+      fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
   memset(fSensFlags, 0, kNvolumes * sizeof(Bool_t));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(Float_t));

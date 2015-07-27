@@ -523,8 +523,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         Double_t teta = TNudyCore::Instance()->Interpolate(temptab->NBT(), temptab->INT(), temptab->GetN1(),
                                                            temptab->X(), temptab->Y(), temptab->GetN2(), energy);
         Double_t rede = (energy - u) / teta;
-        Double_t hnorm = pow(teta, 1.5) * (sqrt(kPi) / 2 * erf(sqrt(rede)) -
-                                                    sqrt(rede) * exp(-rede));
+        Double_t hnorm = pow(teta, 1.5) * (sqrt(kPi) / 2 * erf(sqrt(rede)) - sqrt(rede) * exp(-rede));
         Double_t hint = 0;
         Double_t pold = 0;
         Double_t eold = 0;
@@ -609,8 +608,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         Double_t elim = energy - u;
         Double_t rede = (elim) / a;
         Double_t srede = sqrt(rede);
-        Double_t hnorm = 0.5 * a * sqrt(kPi) * sab4 * exp(ab4) *
-                             (erf(srede - sab4) + erf(srede + sab4)) -
+        Double_t hnorm = 0.5 * a * sqrt(kPi) * sab4 * exp(ab4) * (erf(srede - sab4) + erf(srede + sab4)) -
                          a * exp(-rede) * sinh(sqrt(b * elim));
         Double_t hint = 0;
         Double_t pold = 0;

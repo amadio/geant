@@ -84,34 +84,34 @@ using Track_v = GeantTrack_v;
  */
 class GeantTrack {
 public:
-  int fEvent;          /** Event number */
-  int fEvslot;         /** Event slot */
-  int fParticle;       /** Index of corresponding particle */
-  int fPDG;            /** Particle pdg code */
-  int fGVcode;         /** GV particle code */
-  int fEindex;         /** Element index */
-  int fCharge;         /** Particle charge */
-  int fProcess;        /** Current process */
-  int fVindex;         /** Current volume index */
-  int fNsteps;         /** Number of steps made */
+  int fEvent;            /** Event number */
+  int fEvslot;           /** Event slot */
+  int fParticle;         /** Index of corresponding particle */
+  int fPDG;              /** Particle pdg code */
+  int fGVcode;           /** GV particle code */
+  int fEindex;           /** Element index */
+  int fCharge;           /** Particle charge */
+  int fProcess;          /** Current process */
+  int fVindex;           /** Current volume index */
+  int fNsteps;           /** Number of steps made */
   Species_t fSpecies;    /** Particle species */
   TrackStatus_t fStatus; /** Track status */
-  double fMass;        /** Particle mass */
-  double fXpos;        /** X position */
-  double fYpos;        /** Y position */
-  double fZpos;        /** Z position */
-  double fXdir;        /** X direction */
-  double fYdir;        /** Y direction */
-  double fZdir;        /** Z direction */
-  double fP;           /** Momentum */
-  double fE;           /** Energy */
-  double fTime;        /** Time */
-  double fEdep;        /** Energy deposition in the step */
-  double fPstep;       /** Selected physical step */
-  double fStep;        /** Current step */
-  double fSnext;       /** Straight distance to next boundary */
-  double fSafety;      /** Safe distance to any boundary */
-  bool fFrombdr;       /** True if starting from boundary */
+  double fMass;          /** Particle mass */
+  double fXpos;          /** X position */
+  double fYpos;          /** Y position */
+  double fZpos;          /** Z position */
+  double fXdir;          /** X direction */
+  double fYdir;          /** Y direction */
+  double fZdir;          /** Z direction */
+  double fP;             /** Momentum */
+  double fE;             /** Energy */
+  double fTime;          /** Time */
+  double fEdep;          /** Energy deposition in the step */
+  double fPstep;         /** Selected physical step */
+  double fStep;          /** Current step */
+  double fSnext;         /** Straight distance to next boundary */
+  double fSafety;        /** Safe distance to any boundary */
+  bool fFrombdr;         /** True if starting from boundary */
   bool fPending;
   VolumePath_t *fPath;
   VolumePath_t *fNextpath;
@@ -514,7 +514,7 @@ public:
    */
   void SetNextPath(VolumePath_t const *const path);
 
-//  ClassDefNV(GeantTrack, 1) // The track
+  //  ClassDefNV(GeantTrack, 1) // The track
 };
 
 /**
@@ -534,32 +534,32 @@ public:
   bool fCompact;  /** Flag marking the compactness */
   bool fMixed;    /** Contains tracks in mixed volumes */
   cacheline_pad_t pad0_;
-  int fMaxtracks;  /** Max size for tracks */
+  int fMaxtracks;    /** Max size for tracks */
   BitSet *fHoles;    /** Bits of holes */
   BitSet *fSelected; /** Mask of selected tracks for the current operation */
 
-  int fMaxDepth; /** Maximum geometry depth allowed */
+  int fMaxDepth;   /** Maximum geometry depth allowed */
   size_t fBufSize; /** Size of the internal buffer */
   char *fVPstart;  /** Address of volume path buffer */
   char *fBuf;      /** Buffer holding tracks data */
 
-  int *fEventV;          /** Event numbers */
-  int *fEvslotV;         /** Event slots */
-  int *fParticleV;       /** Indices of corresponding particles */
-  int *fPDGV;            /** Particle pdg codes */
-  int *fGVcodeV;         /** GV internal codes */
-  int *fEindexV;         /** Element indices */
-  int *fChargeV;         /** Particle charges */
-  int *fProcessV;        /** Current process */
-  int *fVindexV;         /** Volume index */
-  int *fNstepsV;         /** Number of steps made */
+  int *fEventV;            /** Event numbers */
+  int *fEvslotV;           /** Event slots */
+  int *fParticleV;         /** Indices of corresponding particles */
+  int *fPDGV;              /** Particle pdg codes */
+  int *fGVcodeV;           /** GV internal codes */
+  int *fEindexV;           /** Element indices */
+  int *fChargeV;           /** Particle charges */
+  int *fProcessV;          /** Current process */
+  int *fVindexV;           /** Volume index */
+  int *fNstepsV;           /** Number of steps made */
   Species_t *fSpeciesV;    /** Particle species */
   TrackStatus_t *fStatusV; /** Track statuses */
-  double *fMassV;        /** Particle masses */
-  double *fXposV;        /** Array of track X positions */
-  double *fYposV;        /** Array of track Y positions */
-  double *fZposV;        /** Array of track Z positions */
-  double *fXdirV;        /** Array of track directions */
+  double *fMassV;          /** Particle masses */
+  double *fXposV;          /** Array of track X positions */
+  double *fYposV;          /** Array of track Y positions */
+  double *fZposV;          /** Array of track Z positions */
+  double *fXdirV;          /** Array of track directions */
   double *fYdirV;
   double *fZdirV;
   double *fPV;      /** Momentum */
@@ -902,10 +902,10 @@ public:
    * @param trk Track
    */
   GEANT_CUDA_BOTH_CODE
-  void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y,
-                                  const double *z, const double *dirx, const double *diry, const double *dirz,
-                                  VolumePath_t **pathin, VolumePath_t **pathout, double *step, double *safe,
-                                  bool *isonbdr, const GeantTrack_v *trk);
+  void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y, const double *z,
+                                  const double *dirx, const double *diry, const double *dirz, VolumePath_t **pathin,
+                                  VolumePath_t **pathout, double *step, double *safe, bool *isonbdr,
+                                  const GeantTrack_v *trk);
 
   /**
    * @brief Function for navigation that check if location is the same or not
@@ -1141,7 +1141,7 @@ public:
     return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
-//  ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
+  //  ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
 };
 } // GEANT_IMPL_NAMESPACE
 

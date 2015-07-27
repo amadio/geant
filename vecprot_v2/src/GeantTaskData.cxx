@@ -20,14 +20,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
-    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0,maxDepth),
-      fPath(0), fBmgr(0), fPool(),
-      fSOA3Dworkspace1( new vecgeom::SOA3D<vecgeom::Precision>(5*maxPerBasket) ),
-      fSOA3Dworkspace2( new vecgeom::SOA3D<vecgeom::Precision>(5*maxPerBasket) ),
-      fSizeInt( 5*maxPerBasket ),
-      fIntArray( new int[fSizeInt] )
-      {
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
+      fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth), fPath(0), fBmgr(0), fPool(),
+      fSOA3Dworkspace1(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)),
+      fSOA3Dworkspace2(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)), fSizeInt(5 * maxPerBasket),
+      fIntArray(new int[fSizeInt]) {
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
@@ -42,13 +39,9 @@ GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData()
-    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0),
-      fPath(0), fBmgr(0), fPool(),
-      fSOA3Dworkspace1(),
-      fSOA3Dworkspace2(),
-      fSizeInt(0),
-      fIntArray(nullptr) {
+    : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), fVolume(0), fRndm(nullptr),
+      fBoolArray(nullptr), fDblArray(nullptr), fTrack(0), fPath(0), fBmgr(0), fPool(), fSOA3Dworkspace1(),
+      fSOA3Dworkspace2(), fSizeInt(0), fIntArray(nullptr) {
   // Constructor
   GeantPropagator *propagator = GeantPropagator::Instance();
   fNthreads = propagator->fNthreads;
@@ -57,8 +50,8 @@ GeantTaskData::GeantTaskData()
   fBoolArray = new Bool_t[fSizeBool];
   fDblArray = new Double_t[fSizeDbl];
   fIntArray = new int[fSizeInt];
-  fSOA3Dworkspace1 = new vecgeom::SOA3D<double>( fSizeInt );
-  fSOA3Dworkspace2 = new vecgeom::SOA3D<double>( fSizeInt );
+  fSOA3Dworkspace1 = new vecgeom::SOA3D<double>(fSizeInt);
+  fSOA3Dworkspace2 = new vecgeom::SOA3D<double>(fSizeInt);
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
   fRndm = new TRandom();
 }
@@ -83,7 +76,8 @@ GeantTaskData::~GeantTaskData() {
 //______________________________________________________________________________
 GeantBasket *GeantTaskData::GetNextBasket() {
   // Gets next free basket from the queue.
-  if (fPool.empty()) return nullptr;
+  if (fPool.empty())
+    return nullptr;
   GeantBasket *basket = fPool.back();
   //  basket->Clear();
   fPool.pop_back();
@@ -105,7 +99,7 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
   if (ntoclean == 0)
     ntodo = fPool.size() / 2;
   else
-    ntodo = ntodo<fPool.size()?ntodo:fPool.size();
+    ntodo = ntodo < fPool.size() ? ntodo : fPool.size();
   for (size_t i = 0; i < ntodo; i++) {
     b = fPool.back();
     delete b;

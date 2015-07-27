@@ -18,13 +18,13 @@ using std::numeric_limits;
 
 ClassImp(TMXsec)
 
-//____________________________________________________________________________
-TMXsec::TMXsec()
-: fNEbins(0), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(0), fEGrid(0), fNElems(0), fElems(0), fTotXL(0),
-   fRelXS(0), fDEdx(0), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(0), fRange(0),
-   fInvRangeTable(0), fDecayTable(0) {
-   fName[0] = '\0';
-   fTitle[0] = '\0';
+    //____________________________________________________________________________
+    TMXsec::TMXsec()
+    : fNEbins(0), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(0), fEGrid(0), fNElems(0), fElems(0), fTotXL(0),
+      fRelXS(0), fDEdx(0), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(0), fRange(0),
+      fInvRangeTable(0), fDecayTable(0) {
+  fName[0] = '\0';
+  fTitle[0] = '\0';
 }
 
 //____________________________________________________________________________

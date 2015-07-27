@@ -65,8 +65,8 @@ Int_t HepMCGenerator::NextEvent() {
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
       pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                         genpart->momentum().py() * genpart->momentum().py() +
-                         genpart->momentum().pz() * genpart->momentum().pz());
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
     // genpart->print();
     if (fEtaCut) {
       if (pmom == genpart->momentum().pz())
@@ -111,12 +111,12 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
       pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                         genpart->momentum().py() * genpart->momentum().py() +
-                         genpart->momentum().pz() * genpart->momentum().pz());
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
     if (fEtaCut) {
       pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                         genpart->momentum().py() * genpart->momentum().py() +
-                         genpart->momentum().pz() * genpart->momentum().pz());
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
       if (pmom == genpart->momentum().pz())
         eta = 1.E30;
       else
@@ -166,9 +166,9 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
     // Compute momentum from energy/mass
     Double_t p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
     // Momentum from generator
-    Double_t ptrack = sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                                  genpart->momentum().py() * genpart->momentum().py() +
-                                  genpart->momentum().pz() * genpart->momentum().pz());
+    Double_t ptrack =
+        sqrt(genpart->momentum().px() * genpart->momentum().px() + genpart->momentum().py() * genpart->momentum().py() +
+             genpart->momentum().pz() * genpart->momentum().pz());
 
     gtrack.SetP(p);
     // Correctly normalize direction
