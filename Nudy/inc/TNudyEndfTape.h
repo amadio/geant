@@ -36,7 +36,7 @@ public:
 
 private:
   unsigned char fLogLev; // LogLevel
-  TList *fMats;    // List of materials
+  TList *fMats;          // List of materials
 
   ClassDef(TNudyEndfTape, 1) // class for an ENDF data file
 };

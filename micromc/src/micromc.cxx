@@ -183,7 +183,7 @@ void GenerateEvent(double avemult, double energy, double fVertex[3]) {
   static bool first = kTRUE;
   static const int kMaxPart = NPART;
   static const char *GVname[NPART] = {"pi+", "pi-", "proton", "antiproton", "neutron", "antineutron",
-                                        "e-",  "e+",  "gamma",  "mu+",        "mu-"};
+                                      "e-",  "e+",  "gamma",  "mu+",        "mu-"};
   static const Species_t GVspecies[NPART] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron,
                                              kLepton, kLepton, kLepton, kLepton, kLepton};
   static int GVpart[NPART];

@@ -106,8 +106,8 @@ void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
 }
 
 //______________________________________________________________________________
-void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, int *trackout, int &ntodo,
-                                        int *tracktodo, int &ncross, int *trackcross) {
+void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, int *trackout, int &ntodo, int *tracktodo,
+                                        int &ncross, int *trackcross) {
   // Propagate the ntracks with their selected steps. If a boundary is
   // found in the way, the track is stopped. Nout must be initialized from outside.
   //     trackin = array of <ntracks> input tracks

@@ -14,24 +14,25 @@
 const int kENABLED = 1;
 const int kDISABLED = 0;
 
-class TNudyElementTable: public TObject{
+class TNudyElementTable : public TObject {
 
- private:
+private:
   int fState;
-  float fOx,fOy;
-  TGeoElementTable* fTable;
+  float fOx, fOy;
+  TGeoElementTable *fTable;
   TBox fWindow;
   TList fEleBox;
   float fLOD;
-  TCanvas* fRNTable;
-  TGeoManager* fGeom;
+  TCanvas *fRNTable;
+  TGeoManager *fGeom;
   void DrawUI();
   TList fControls;
   void InitializeControls();
- public:
+
+public:
   TNudyElementTable();
   virtual ~TNudyElementTable();
-  void Draw(const char *option="");
+  void Draw(const char *option = "");
   void ZoomIn();
   void ZoomOut();
   void MoveUp();
@@ -39,7 +40,6 @@ class TNudyElementTable: public TObject{
   void MoveLeft();
   void MoveRight();
   void Update();
-  ClassDef(TNudyElementTable,1) //Table of RadioNucleides
+  ClassDef(TNudyElementTable, 1) // Table of RadioNucleides
 };
 #endif
- 

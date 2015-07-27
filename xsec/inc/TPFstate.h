@@ -42,8 +42,8 @@ public:
 #endif
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[]);
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
-  bool SetFinState(int ibin, int reac, const int npart[], const float weight[], const float kerma[],
-                   const float en[], const char surv[], const int pid[], const float mom[]);
+  bool SetFinState(int ibin, int reac, const int npart[], const float weight[], const float kerma[], const float en[],
+                   const char surv[], const int pid[], const float mom[]);
   void Print(const char *opt = "") const;
   bool Prune() { return kTRUE; }
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
@@ -52,11 +52,11 @@ public:
                   const float *&mom, int &ebinindx, double randn1, double randn2) const;
   bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                             const float *&mom) const;
-  bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid,
-                            const float *&mom, double randn) const;
+  bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid, const float *&mom,
+                            double randn) const;
 
-  bool GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
-               const int *&pid, const float *&mom) const;
+  bool GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+               const float *&mom) const;
   int NEFstat() const { return fNEFstat; }
   void Dump() const {}
   bool Resample();

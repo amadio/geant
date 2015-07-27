@@ -503,8 +503,8 @@ void TabulatedDataManager::SampleFinalState(const int elementindex, const int re
   int primPDG = TPartIndex::I()->PDG(partindex); // GV part.code -> PGD code
   TParticlePDG *primPartPDG = TDatabasePDG::Instance()->GetParticle(primPDG);
   double primMass = primPartPDG->Mass(); // mass [GeV]
-                                           //-compute corFactor = P_current/P_original = Pz_current/Pz_original
-                                           // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...)
+                                         //-compute corFactor = P_current/P_original = Pz_current/Pz_original
+                                         // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...)
   double orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx];
   double corFactor =
       std::sqrt(kinEnergy * (kinEnergy + 2.0 * primMass) / (orgPrimEkin * (orgPrimEkin + 2.0 * primMass)));
@@ -1233,7 +1233,7 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack *> *vdp, G4int 
   // G4int nTotSecPart  = 0;  //total number of secondary particles in tracks
   const G4int *pid = 0;   // GeantV particle codes [nSecPart]
   const G4float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  float ener = 0;       // energy at the fstate (Ekin of primary after the interc.)
+  float ener = 0;         // energy at the fstate (Ekin of primary after the interc.)
   G4float kerma = 0;      // released energy
   G4float weight = 0;     // weight of the fstate (just a dummy parameter now)
   char isSurv = 0;        // is the primary survived the interaction

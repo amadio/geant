@@ -50,7 +50,7 @@ public:
   std::atomic_int fNused;       /** Number of threads using the basket */
   size_t fIbook0;               /** Start slot number */
   std::atomic_flag fDispatched; /** Atomic flag marking the basket as dispatched */
-  int fThreshold;             /** Current transport threshold */
+  int fThreshold;               /** Current transport threshold */
 protected:
   // GeantHit_v        fHits;  /** Vector of produced hits */
   GeantTrack_v fTracksIn;  /** Vector of input tracks */
@@ -270,11 +270,11 @@ public:
 protected:
   GeantScheduler *fScheduler; /** Scheduler for this basket */
   Volume_t *fVolume;          /** Volume for which applies */
-  int fNumber;              /** Number matching the volume index */
-  int fBcap;                /** Maximum capacity of baskets held */
-  int fQcap;                /** Queue capacity */
-  bool fActive;             /** Activity flag for generating baskets */
-  bool fCollector;          /** Mark this manager as event collector */
+  int fNumber;                /** Number matching the volume index */
+  int fBcap;                  /** Maximum capacity of baskets held */
+  int fQcap;                  /** Queue capacity */
+  bool fActive;               /** Activity flag for generating baskets */
+  bool fCollector;            /** Mark this manager as event collector */
   std::atomic_int fThreshold; /** Adjustable transportability threshold */
   std::atomic_int fNbaskets;  /** Number of baskets for this volume */
   std::atomic_int fNused;     /** Number of baskets in use */
