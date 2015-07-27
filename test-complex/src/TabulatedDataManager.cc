@@ -467,14 +467,14 @@ int TabulatedDataManager::SampleInteraction(const G4int imat, const G4Track &atr
 void TabulatedDataManager::SampleFinalState(const int elementindex, const int reactionid, const G4Track &atrack,
                                             G4ParticleChange *particlechange, double energylimit) {
   double totEdepo = 0.0;
-  int nSecPart = 0; // number of secondary particles per reaction
-  const int *pid = 0; // GeantV particle codes [nSecPart]
+  int nSecPart = 0;     // number of secondary particles per reaction
+  const int *pid = 0;   // GeantV particle codes [nSecPart]
   const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  float energyFst = 0; // Ekin of primary after the interaction
-  float kerma = 0; // released energy
-  float weightFst = 0; // weight of the fstate (just a dummy parameter now)
-  char isSurv = 0; // is the primary survived the interaction
-  int ebinindx = -1; // energy bin index of the selected final state
+  float energyFst = 0;  // Ekin of primary after the interaction
+  float kerma = 0;      // released energy
+  float weightFst = 0;  // weight of the fstate (just a dummy parameter now)
+  char isSurv = 0;      // is the primary survived the interaction
+  int ebinindx = -1;    // energy bin index of the selected final state
 
   int partindex = TPartIndex::I()->PartIndex(atrack.GetParticleDefinition()->GetPDGEncoding());
   double kinEnergy = atrack.GetDynamicParticle()->GetKineticEnergy() / CLHEP::GeV;
@@ -644,7 +644,7 @@ void TabulatedDataManager::SampleFinalState(const int elementindex, const int re
     double secP2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
     // compute Ekin of the secondary
     double secEtot = std::sqrt(secP2 + secMass * secMass); // total E [GeV]
-    double secEkin = secEtot - secMass; // kinetic energy in [GeV]
+    double secEkin = secEtot - secMass;                    // kinetic energy in [GeV]
 
     // Check if Ekin of this secondary is above our energy limit and add it to
     // the list of secondary tracks.
@@ -738,13 +738,13 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
   // sample one of the nuclear capture at rest final states for this particle
   // on the sampled element
   double totEdepo = 0.0;
-  int nSecPart = 0; // number of secondary particles per reaction
-  const int *pid = 0; // GeantV particle codes [nSecPart]
+  int nSecPart = 0;     // number of secondary particles per reaction
+  const int *pid = 0;   // GeantV particle codes [nSecPart]
   const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  float energyFst = 0; // Ekin of primary after the interaction
-  float kerma = 0; // released energy
-  float weightFst = 0; // weight of the fstate (just a dummy parameter now)
-  char isSurv = 0; // is the primary survived the interaction
+  float energyFst = 0;  // Ekin of primary after the interaction
+  float kerma = 0;      // released energy
+  float weightFst = 0;  // weight of the fstate (just a dummy parameter now)
+  char isSurv = 0;      // is the primary survived the interaction
   G4int elementIndex = -1;
   TEFstate *elemfstate = 0;
 
@@ -896,9 +896,9 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
     double pz = mom[3 * isec + 2];
     double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
 
-    double secPtot = std::sqrt(secPtot2); // total P [GeV]
+    double secPtot = std::sqrt(secPtot2);                     // total P [GeV]
     double secEtot = std::sqrt(secPtot2 + secMass * secMass); // total E [GeV]
-    double secEkin = secEtot - secMass; // kinetic energy in [GeV]
+    double secEkin = secEtot - secMass;                       // kinetic energy in [GeV]
 
     // Check if Ekin of this secondary is above our energy limit and add it to
     // the list of secondary tracks.
@@ -976,10 +976,10 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
 
 void TabulatedDataManager::SampleDecayInFlight(const int partindex, const G4Track &atrack,
                                                G4ParticleChange *particlechange, double energylimit) {
-  int nSecPart = 0; // number of secondary particles per reaction
-  const int *pid = 0; // GeantV particle codes [nSecPart]
+  int nSecPart = 0;     // number of secondary particles per reaction
+  const int *pid = 0;   // GeantV particle codes [nSecPart]
   const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-  char isSurv = 0; // is the primary survived the interaction
+  char isSurv = 0;      // is the primary survived the interaction
 
   isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);
   // isSurv should always be FALSE here because primary was stopped
@@ -1027,7 +1027,7 @@ void TabulatedDataManager::SampleDecayInFlight(const int partindex, const G4Trac
       double py = mom[3 * isec + 1];
       double pz = mom[3 * isec + 2];
       // compute corrected P^2 in [GeV^2]
-      double secP2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+      double secP2 = px * px + py * py + pz * pz;            // total P^2 [GeV^2]
       double secEtot = std::sqrt(secP2 + secMass * secMass); // total E [GeV]
       // double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 
