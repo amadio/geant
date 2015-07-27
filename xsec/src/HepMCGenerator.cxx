@@ -61,7 +61,7 @@ Int_t HepMCGenerator::NextEvent() {
   search = new HepMC::FindParticles(evt, HepMC::FIND_ALL, HepMC::STATUS == 1); // && HepMC::STATUS_SUBCODE == 0);
 
   Int_t ntracks = 0;
-  Double_t eta, phi, pmom = 0;
+  double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
       pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
@@ -107,7 +107,7 @@ Int_t HepMCGenerator::NextEvent() {
 void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
   Int_t itr = 0;
-  Double_t eta, phi, pmom = 0;
+  double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
       pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
@@ -164,9 +164,9 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
     gtrack.fE = genpart->momentum().e(); // e- 30MeV
 
     // Compute momentum from energy/mass
-    Double_t p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
+    double p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
     // Momentum from generator
-    Double_t ptrack =
+    double ptrack =
         sqrt(genpart->momentum().px() * genpart->momentum().px() + genpart->momentum().py() * genpart->momentum().py() +
              genpart->momentum().pz() * genpart->momentum().pz());
 
@@ -180,8 +180,8 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &tpz, Double_t &te, Double_t &x0,
-                              Double_t &y0, Double_t &z0, Int_t &pdg) {
+void HepMCGenerator::GetTrack(Int_t n, double &tpx, double &tpy, double &tpz, double &te, double &x0,
+                              double &y0, double &z0, Int_t &pdg) {
 
   const HepMC::GenParticlePtr &genpart = search->results()[n];
   // here I have to create GeantTracks
@@ -205,7 +205,7 @@ void HepMCGenerator::GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &t
   /*
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
     Int_t itr = 0;
-    Double_t eta, phi, pmom=0;
+    double eta, phi, pmom=0;
     for (const HepMC::GenParticlePtr &genpart : search->results()) {
       if (fEtaCut || fMomCut)
         pmom = sqrt(genpart->momentum().px()*genpart->momentum().px() +

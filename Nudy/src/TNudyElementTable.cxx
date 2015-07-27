@@ -24,10 +24,10 @@ void TNudyElementTable::InitializeControls()
   TString names[] = {"-", "v", "","<","o",">","","^","+"};
   TString func[] = {"gTNudyElementTable->ZoomOut();", "gTNudyElementTable->MoveDown()","","gTNudyElementTable->MoveLeft()","","gTNudyElementTable->MoveRight()","","gTNudyElementTable->MoveUp()","gTNudyElementTable->ZoomIn();"};
   for(index = 0; index < 9; index++){
-    Double_t x1 = ((index%3+1)*30)/(Double_t)(fRNTable->GetWindowWidth()) ;
-    Double_t y1 = ((index/3+1)*30)/(Double_t)(fRNTable->GetWindowHeight()); 
-    Double_t x2 = ((index%3+1)*30 + 29)/(Double_t)(fRNTable->GetWindowWidth());
-    Double_t y2 = ((index/3+1)*30 + 29)/(Double_t)(fRNTable->GetWindowHeight());
+    double x1 = ((index%3+1)*30)/(double)(fRNTable->GetWindowWidth()) ;
+    double y1 = ((index/3+1)*30)/(double)(fRNTable->GetWindowHeight()); 
+    double x2 = ((index%3+1)*30 + 29)/(double)(fRNTable->GetWindowWidth());
+    double y2 = ((index/3+1)*30 + 29)/(double)(fRNTable->GetWindowHeight());
     std::cout<<x1<<" , "<<y1<<" , "<<x2<<" , "<<y2<<std::endl;
     x1+=0.851;
     x2+=0.851;

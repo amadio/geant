@@ -33,7 +33,7 @@ TNudyEndfCont::TNudyEndfCont() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfCont::TNudyEndfCont(Double_t c1, Double_t c2,
+TNudyEndfCont::TNudyEndfCont(double c1, double c2,
 			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
   fC1(c1),
   fC2(c2),
@@ -49,7 +49,7 @@ TNudyEndfCont::TNudyEndfCont(Double_t c1, Double_t c2,
 
 
 //_______________________________________________________________________________
-void TNudyEndfCont::SetCont(Double_t c1, Double_t c2,
+void TNudyEndfCont::SetCont(double c1, double c2,
 			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
 {
   fC1=c1;
@@ -82,7 +82,7 @@ void TNudyEndfCont::DumpENDF(Int_t mat,Int_t mf, Int_t mt,Int_t& ns, Int_t flags
 //
 //Float_t to Fortran style string, dim of s should be 14 or bigger
 //______________________________________________________________________________
-Char_t * TNudyEndfCont::F2F(Double_t f, char s[])
+Char_t * TNudyEndfCont::F2F(double f, char s[])
 {
   snprintf(s,14,"%12.5E",f);
   if(s[10]!='0') {

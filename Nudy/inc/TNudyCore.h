@@ -33,13 +33,13 @@ class TNudyCore : public TNamed {
   virtual ~TNudyCore();//Public Destructor
   static TNudyCore* Instance();//Returns Instance of TNudyManager
   //Calculation functions
-  Double_t LinearInterpolation(Double_t x1,Double_t y1,Double_t x2,Double_t y2,Double_t x);//Linear Interpolation
-  Double_t BilinearInterploation(Double_t x1,Double_t y1,Double_t x2,Double_t y2,Double_t z11,Double_t z12,Double_t z21,Double_t z22,Double_t x,Double_t y);//Biliniear Interpolation
-  void TrapezoidalIntegral(Double_t *xpts, Double_t *ypts,const Int_t npts,Double_t *out);//Calculates integral of discrete points
-  void CumulativeIntegral(Double_t *x, Double_t *y, Double_t *q, Int_t len);
-  Int_t BinarySearch(Double_t *array,Int_t len, Double_t val);
-  Double_t InterpolateScale(Double_t x[2],Double_t y[2],Int_t law, Double_t xx);
-  Double_t Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, Double_t *x, Double_t*y, Int_t np, Double_t xx);
+  double LinearInterpolation(double x1,double y1,double x2,double y2,double x);//Linear Interpolation
+  double BilinearInterploation(double x1,double y1,double x2,double y2,double z11,double z12,double z21,double z22,double x,double y);//Biliniear Interpolation
+  void TrapezoidalIntegral(double *xpts, double *ypts,const Int_t npts,double *out);//Calculates integral of discrete points
+  void CumulativeIntegral(double *x, double *y, double *q, Int_t len);
+  Int_t BinarySearch(double *array,Int_t len, double val);
+  double InterpolateScale(double x[2],double y[2],Int_t law, double xx);
+  double Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, double *x, double*y, Int_t np, double xx);
   char * ExpandReaction(Reaction_t reac);
   //Model Key checking/generation functions
   Int_t IsMaterial(const TGeoElementRN* endf, const char* key);

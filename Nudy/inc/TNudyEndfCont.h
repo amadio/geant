@@ -32,24 +32,24 @@
 class TNudyEndfCont: public TNudyEndfRecord {
 public:
   TNudyEndfCont();
-  TNudyEndfCont(Double_t c1, Double_t c2,
+  TNudyEndfCont(double c1, double c2,
 		Int_t l1, Int_t l2, Int_t n1, Int_t n2);
 
-  virtual void SetCont(Double_t c1, Double_t c2,
+  virtual void SetCont(double c1, double c2,
 		Int_t l1, Int_t l2, Int_t n1, Int_t n2);
 
-  virtual Double_t GetC1() const {return fC1;}
-  virtual Double_t GetC2() const {return fC2;}
+  virtual double GetC1() const {return fC1;}
+  virtual double GetC2() const {return fC2;}
   virtual Int_t    GetL1() const {return fL1;}
   virtual Int_t    GetL2() const {return fL2;}
   virtual Int_t    GetN1() const {return fN1;}
   virtual Int_t    GetN2() const {return fN2;}
 
   void DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flags);
-  static Char_t * F2F(Double_t f, char s[]);
+  static Char_t * F2F(double f, char s[]);
  protected:
-  Double_t fC1;         // C1 of the CONT record
-  Double_t fC2;         // C2 of the CONT record
+  double fC1;         // C1 of the CONT record
+  double fC2;         // C2 of the CONT record
   Int_t    fL1;         // L1 of the CONT record
   Int_t    fL2;         // L2 of the CONT record
   Int_t    fN1;         // N1 of the CONT record

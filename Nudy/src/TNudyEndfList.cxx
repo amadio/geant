@@ -29,10 +29,10 @@ TNudyEndfList::TNudyEndfList() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfList::TNudyEndfList(Double_t c1, Double_t c2,
+TNudyEndfList::TNudyEndfList(double c1, double c2,
 			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
   TNudyEndfCont(c1, c2, l1, l2, n1, n2),
-  fList(new Double_t[n1])
+  fList(new double[n1])
 {
   //
   // Standard constructor
@@ -45,12 +45,12 @@ TNudyEndfList::~TNudyEndfList()
   SafeDelete(fList);
 }
 //_______________________________________________________________________________
-void TNudyEndfList::SetCont(Double_t c1, Double_t c2,
+void TNudyEndfList::SetCont(double c1, double c2,
 			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
 {
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
   delete [] fList;
-  fList = new Double_t[n1];
+  fList = new double[n1];
 }
 void TNudyEndfList::DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns,Int_t flags = 1)
 {

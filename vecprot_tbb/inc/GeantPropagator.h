@@ -71,11 +71,11 @@ public:
    Int_t       fMaxPerBasket; // Maximum number of tracks per basket
    Int_t       fMaxPerEvent; // Maximum number of tracks per event
 
-   Double_t    fNaverage;    // Average number of tracks per event
-   Double_t    fVertex[3];   // Vertex position
-   Double_t    fEmin;        // Min energy threshold
-   Double_t    fEmax;        // Max energy threshold
-   Double_t    fBmag;        // Mag field
+   double    fNaverage;    // Average number of tracks per event
+   double    fVertex[3];   // Vertex position
+   double    fEmin;        // Min energy threshold
+   double    fEmax;        // Max energy threshold
+   double    fBmag;        // Mag field
 
    Bool_t      fUsePhysics;  // Enable/disable physics
    Bool_t      fUseDebug;    // Use debug mode
@@ -169,7 +169,7 @@ public:
    void             StopTrack(GeantTrack *track);
    Int_t            GetElossInd() const {return fElossInd;}
    Bool_t           LoadGeometry(const char *filename="geometry.root");
-   Int_t            ImportTracks(Int_t nevents, Double_t average, Int_t startevent=0, Int_t startslot=0);
+   Int_t            ImportTracks(Int_t nevents, double average, Int_t startevent=0, Int_t startslot=0);
    void             Initialize();
    void             InjectCollection(GeantTrackCollection* inColl);
    static           GeantPropagator *Instance();

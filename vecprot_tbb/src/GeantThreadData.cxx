@@ -48,8 +48,8 @@ GeantThreadData::GeantThreadData(Int_t maxperbasket, Int_t maxprocesses) :
 {
 // Constructor
    GeantPropagator *propagator = GeantPropagator::Instance();
-   fDblArray  = new Double_t[5*fMaxPerBasket];
-   fProcStep  = new Double_t[fNprocesses*fMaxPerBasket];
+   fDblArray  = new double[5*fMaxPerBasket];
+   fProcStep  = new double[fNprocesses*fMaxPerBasket];
    fPartInd   = new TArrayI(fMaxPerBasket);
    fPartNext  = new TArrayI(fMaxPerBasket);
    fPartTodo  = new TArrayI(fMaxPerBasket);
@@ -79,8 +79,8 @@ GeantThreadData::GeantThreadData(const GeantThreadData& oth) :
 {
 // Copy constructor
    GeantPropagator *propagator = GeantPropagator::Instance();
-   fDblArray  = new Double_t[5*fMaxPerBasket];
-   fProcStep  = new Double_t[fNprocesses*fMaxPerBasket];
+   fDblArray  = new double[5*fMaxPerBasket];
+   fProcStep  = new double[fNprocesses*fMaxPerBasket];
    fPartInd   = new TArrayI(fMaxPerBasket);
    fPartNext  = new TArrayI(fMaxPerBasket);
    fPartTodo  = new TArrayI(fMaxPerBasket);

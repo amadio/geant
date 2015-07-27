@@ -70,19 +70,19 @@ public:
   // -------------------------------------------  
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::Double_t energyIn, 
+  InteractKernel(typename Backend::double energyIn, 
                  typename Backend::Index_t   zElement,
-                 typename Backend::Double_t& energyOut,
-                 typename Backend::Double_t& sinTheta) const;
+                 typename Backend::double& energyOut,
+                 typename Backend::double& sinTheta) const;
 
 
   // Alternative Implementation method(s) - for reference/comparisons
   // ----------------------------------------------------------------
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void SampleByCompositionRejection(typename Backend::Double_t energyIn,
-                                    typename Backend::Double_t& energyOut,
-                                    typename Backend::Double_t& sinTheta);
+  void SampleByCompositionRejection(typename Backend::double energyIn,
+                                    typename Backend::double& energyOut,
+                                    typename Backend::double& sinTheta);
 
   //  Initialisation methods
   // -------------------------------------------
@@ -124,25 +124,25 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void
-  RotateAngle(typename Backend::Double_t sinTheta,
-              typename Backend::Double_t xhat,
-              typename Backend::Double_t yhat,
-              typename Backend::Double_t zhat,
-              typename Backend::Double_t &xr,
-              typename Backend::Double_t &yr,
-              typename Backend::Double_t &zr) const;
+  RotateAngle(typename Backend::double sinTheta,
+              typename Backend::double xhat,
+              typename Backend::double yhat,
+              typename Backend::double zhat,
+              typename Backend::double &xr,
+              typename Backend::double &yr,
+              typename Backend::double &zr) const;
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t
-  SampleSinTheta(typename Backend::Double_t energyIn,
-                 typename Backend::Double_t energyOut) const; 
+  typename Backend::double
+  SampleSinTheta(typename Backend::double energyIn,
+                 typename Backend::double energyOut) const; 
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t 
-  TotalCrossSection(typename Backend::Double_t energy,
-                    typename Backend::Double_t Z) const;
+  typename Backend::double 
+  TotalCrossSection(typename Backend::double energy,
+                    typename Backend::double Z) const;
 
 private: 
   // Implementation methods 
@@ -182,29 +182,29 @@ private:
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH void 
-GUComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn, 
+GUComptonKleinNishina::InteractKernel(typename Backend::double  energyIn, 
                                       typename Backend::Index_t   zElement,
-                                      typename Backend::Double_t& energyOut,
-                                          typename Backend::Double_t& sinTheta)
+                                      typename Backend::double& energyOut,
+                                          typename Backend::double& sinTheta)
                                       const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
   Index_t   index;
   Index_t   icol;
-  Double_t  fraction;
+  double  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
 
-  Double_t probNA;
-  Double_t aliasInd;
+  double probNA;
+  double aliasInd;
 
   //this did not used to work - Fixed SW
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
-  Double_t mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
-  Double_t deltaE = energyIn - mininumE;
+  double mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
+  double deltaE = energyIn - mininumE;
 
   energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
 					        aliasInd,icol,fraction);
@@ -214,34 +214,34 @@ GUComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 void
-GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
-                                   typename Backend::Double_t xhat,
-                                   typename Backend::Double_t yhat,
-                                   typename Backend::Double_t zhat,
-                                   typename Backend::Double_t &xr,
-                                   typename Backend::Double_t &yr,
-                                   typename Backend::Double_t &zr) const
+GUComptonKleinNishina::RotateAngle(typename Backend::double sinTheta,
+                                   typename Backend::double xhat,
+                                   typename Backend::double yhat,
+                                   typename Backend::double zhat,
+                                   typename Backend::double &xr,
+                                   typename Backend::double &yr,
+                                   typename Backend::double &zr) const
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
   typedef typename Backend::Bool_t   Bool_t;
 
-  Double_t phi = UniformRandom<Backend>(fRandomState,fThreadId);
+  double phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
-  Double_t pt = xhat*xhat + yhat*yhat;
+  double pt = xhat*xhat + yhat*yhat;
 
-  Double_t cosphi, sinphi;
+  double cosphi, sinphi;
   sincos(phi, &sinphi, &cosphi);
 
-  Double_t uhat = sinTheta*cosphi; // cos(phi);
-  Double_t vhat = sinTheta*sinphi; // sin(phi);
-  Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
+  double uhat = sinTheta*cosphi; // cos(phi);
+  double vhat = sinTheta*sinphi; // sin(phi);
+  double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Bool_t positive = ( pt > 0. );
   Bool_t negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
-    Double_t phat = Sqrt(pt);
+    double phat = Sqrt(pt);
     xr = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
     zr = -phat*uhat + zhat*what;
@@ -260,27 +260,27 @@ GUComptonKleinNishina::RotateAngle(typename Backend::Double_t sinTheta,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::double 
 GUComptonKleinNishina::
-SampleSinTheta(typename Backend::Double_t energyIn,
-               typename Backend::Double_t energyOut) const
+SampleSinTheta(typename Backend::double energyIn,
+               typename Backend::double energyOut) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
   //angle of the scatterred photon
 
-  Double_t epsilon = energyOut/energyIn;
+  double epsilon = energyOut/energyIn;
 
   Bool_t condition = epsilon > 1.0;
 
   MaskedAssign( condition, 1.0 , &epsilon );
 
-  Double_t E0_m    = inv_electron_mass_c2*energyIn;
-  Double_t onecost = (1.0 - epsilon)/(epsilon*E0_m);
-  Double_t sint2   = onecost*(2.-onecost);
+  double E0_m    = inv_electron_mass_c2*energyIn;
+  double onecost = (1.0 - epsilon)/(epsilon*E0_m);
+  double sint2   = onecost*(2.-onecost);
 
-  Double_t sinTheta = 0.5;
+  double sinTheta = 0.5;
   Bool_t condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
@@ -292,19 +292,19 @@ SampleSinTheta(typename Backend::Double_t energyIn,
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUComptonKleinNishina::
-SampleByCompositionRejection(typename Backend::Double_t  energyIn,
-                             typename Backend::Double_t& energyOut,
-                             typename Backend::Double_t& sinTheta)
+SampleByCompositionRejection(typename Backend::double  energyIn,
+                             typename Backend::double& energyOut,
+                             typename Backend::double& sinTheta)
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
-  Double_t epsilon, epsilonsq, onecost, sint2, greject ;
+  double epsilon, epsilonsq, onecost, sint2, greject ;
   
-  Double_t E0_m = energyIn*inv_electron_mass_c2 ;
-  Double_t eps0       = 1./(1. + 2.*E0_m);
-  Double_t epsilon0sq = eps0*eps0;
-  Double_t alpha1     = - log(eps0);
-  Double_t alpha2     = 0.5*(1.- epsilon0sq);
+  double E0_m = energyIn*inv_electron_mass_c2 ;
+  double eps0       = 1./(1. + 2.*E0_m);
+  double epsilon0sq = eps0*eps0;
+  double alpha1     = - log(eps0);
+  double alpha2     = 0.5*(1.- epsilon0sq);
   
   do {
     if( alpha1/(alpha1+alpha2) > UniformRandom<Backend>(fRandomState,fThreadId) ) {
@@ -356,7 +356,7 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
                                       GUTrack_v& outSecondary    // Empty vector for secondaries
                                       ) const
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
   typedef typename Backend::Index_t  Index_t;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
@@ -364,34 +364,34 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
   }
   
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/Double_t::Size);
+  int numChunks= (inProjectile.numTracks/double::Size);
 
   for(int i=0; i < numChunks ; ++i) {
-    Double_t energyIn(inProjectile.E[ibase]);
-    Double_t px(inProjectile.px[ibase]);
-    Double_t py(inProjectile.py[ibase]);
-    Double_t pz(inProjectile.pz[ibase]);
-    Double_t sinTheta;
-    Double_t energyOut;
+    double energyIn(inProjectile.E[ibase]);
+    double px(inProjectile.px[ibase]);
+    double py(inProjectile.py[ibase]);
+    double pz(inProjectile.pz[ibase]);
+    double sinTheta;
+    double energyOut;
     Index_t  zElement(targetElements[ibase]);
 
     InteractKernel<Backend>(energyIn, zElement, energyOut, sinTheta);
 
     //need to rotate the angle with respect to the line of flight
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
+    double invp = 1./energyIn;
+    double xhat = px*invp;
+    double yhat = py*invp;
+    double zhat = pz*invp;
 
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
+    double uhat = 0.;
+    double vhat = 0.;
+    double what = 0.;
 
     RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
     // Update primary
     energyOut.store(&inProjectile.E[ibase]);
-    Double_t pxFinal, pyFinal, pzFinal;
+    double pxFinal, pyFinal, pzFinal;
      
     pxFinal= energyOut*uhat;
     pyFinal= energyOut*vhat;
@@ -401,17 +401,17 @@ void GUComptonKleinNishina::Interact( GUTrack_v& inProjectile,    // In/Out
     pzFinal.store(&inProjectile.pz[ibase]);
 
     // create Secondary
-    Double_t secE = energyIn - energyOut; 
-    Double_t pxSec= secE*(xhat-uhat);
-    Double_t pySec= secE*(yhat-vhat);
-    Double_t pzSec= secE*(zhat-what);
+    double secE = energyIn - energyOut; 
+    double pxSec= secE*(xhat-uhat);
+    double pySec= secE*(yhat-vhat);
+    double pzSec= secE*(zhat-what);
 
     secE.store(&outSecondary.E[ibase]);
     pxSec.store(&outSecondary.px[ibase]);
     pySec.store(&outSecondary.py[ibase]);
     pzSec.store(&outSecondary.pz[ibase]);
 
-    ibase+= Double_t::Size;
+    ibase+= double::Size;
   }
 }    
 #endif
@@ -471,32 +471,32 @@ void GUComptonKleinNishina::InteractG4(GUTrack& inProjectile,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::double 
 GUComptonKleinNishina::
-TotalCrossSection(typename Backend::Double_t energy,
-                  typename Backend::Double_t Z) const
+TotalCrossSection(typename Backend::double energy,
+                  typename Backend::double Z) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
-  Double_t sigma = 0.;
+  double sigma = 0.;
 
   //low energy limit
   Bool_t condition = energy > 10*keV;
   MaskedAssign( !condition, 0.0 , &sigma );
 
   if(Any(condition)) {
-    Double_t Z2 =  Z*Z;
+    double Z2 =  Z*Z;
     //put coff's to a constant header
-    Double_t p1 =  2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z2;
-    Double_t p2 = -1.8300e-1 + -1.0205e-2*Z +  6.8241e-5*Z2;
-    Double_t p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
-    Double_t p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
+    double p1 =  2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z2;
+    double p2 = -1.8300e-1 + -1.0205e-2*Z +  6.8241e-5*Z2;
+    double p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
+    double p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
  
-    Double_t X = energy/electron_mass_c2;
-    Double_t X2 = X*Z;
+    double X = energy/electron_mass_c2;
+    double X2 = X*Z;
 
-    Double_t tmpsigma = p1*log(1.+2.*X)/X
+    double tmpsigma = p1*log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
     tmpsigma *= Z*barn;
 

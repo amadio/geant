@@ -12,8 +12,8 @@ static const vli4 oneli4 = {1, 1, 1, 1};
 
 // // this is the actual kernel doing the computation with possibility of early return
 // void TGeoBBox_v::DistFromOutside_VECEXT(StructOfCoord const & point, StructOfCoord const & dir,
-//                          Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, const Double_t * stepmax,
-//                          Double_t * distance, Int_t np)
+//                          double dx, double dy, double dz, const double *origin, const double * stepmax,
+//                          double * distance, Int_t np)
 // {
 //   // note: we take stepmax as a maxstep PER particle
 //   // ALIGNMENTSTUFF HERE (TODO: should be generated automatically, MACRO? )
@@ -87,12 +87,12 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 
 // // SOA version of static method DistFromOutside treating 4 particles ( if HAVE AVX )
 // void TGeoBBox_v::DistFromOutside_v(const StructOfCoord & __restrict__  point,const StructOfCoord & __restrict__ dir,
-// 				     Double_t dx, Double_t dy, Double_t dz, const Double_t * __restrict__ origin, const
-// Double_t
-// * __restrict__ stepmax, Double_t * __restrict__ distance, Int_t np)
+// 				     double dx, double dy, double dz, const double * __restrict__ origin, const
+// double
+// * __restrict__ stepmax, double * __restrict__ distance, Int_t np)
 // {
 
-//   Double_t par[3];
+//   double par[3];
 //   par[0] = dx;
 //   par[1] = dy;
 //   par[2] = dz;
@@ -100,11 +100,11 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 //   for(unsigned int k=0;k<np;++k) // @EXPECTVEC
 //      {
 //        Bool_t in;
-//        Double_t saf[3];
-//        Double_t newpt[3];
+//        double saf[3];
+//        double newpt[3];
 
-//        Double_t factor=1.;
-//        Double_t infactor; // will be zero or one depending if we are inside/outside
+//        double factor=1.;
+//        double infactor; // will be zero or one depending if we are inside/outside
 
 //        // unrolled above block manually: ( it would be nice to have a template unrool loop and a lambda function ?? )
 //        newpt[0] = p[0][k] - origin[0];
@@ -126,8 +126,8 @@ vd4 DistFromOutside_VECEXT_P4(vd4 const &x, vd4 const &y, vd4 const &z, vd4 cons
 
 //        // NOW WE HAVE THE SAFETYS AND IF IN OUT
 
-//        Double_t coord;
-//        Double_t snxt[3]={TGeoShape::Big(),TGeoShape::Big(),TGeoShape::Big()};
+//        double coord;
+//        double snxt[3]={TGeoShape::Big(),TGeoShape::Big(),TGeoShape::Big()};
 
 //        /*
 //        Int_t ibreak=0;

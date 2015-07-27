@@ -25,7 +25,7 @@ TNudyEndfTab2::TNudyEndfTab2() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfTab2::TNudyEndfTab2(Double_t c1, Double_t c2,
+TNudyEndfTab2::TNudyEndfTab2(double c1, double c2,
 			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
   TNudyEndfCont(c1, c2, l1, l2, n1, n2),
   fNBT(new Int_t[n1]),
@@ -45,7 +45,7 @@ TNudyEndfTab2::~TNudyEndfTab2()
 }
 
 //_______________________________________________________________________________
-void TNudyEndfTab2::SetCont(Double_t c1, Double_t c2,
+void TNudyEndfTab2::SetCont(double c1, double c2,
 			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
 {
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);

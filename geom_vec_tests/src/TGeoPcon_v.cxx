@@ -143,14 +143,14 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
 
   // tail part
   for (unsigned int i = 0; i < tailsize; ++i) {
-    Double_t point[3] = {pointi.x[np - tailsize + i], pointi.y[np - tailsize + i], pointi.z[np - tailsize + i]};
+    double point[3] = {pointi.x[np - tailsize + i], pointi.y[np - tailsize + i], pointi.z[np - tailsize + i]};
     isin[np - tailsize + i] = TGeoPcon::Contains(point);
   }
 }
 #else
 void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np) const {
   for (unsigned int i = 0; i < np; i++) {
-    Double_t point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
+    double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     isin[i] = TGeoPcon::Contains(point);
   }
 }
@@ -158,18 +158,18 @@ void TGeoPcon_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
 
 //_____________________________________________________________________________
 
-void TGeoPcon_v::Safety_v(const StructOfCoord &pointi, Bool_t in, Double_t *safety, Int_t np) const {
+void TGeoPcon_v::Safety_v(const StructOfCoord &pointi, Bool_t in, double *safety, Int_t np) const {
   for (unsigned int i = 0; i < np; i++) {
-    Double_t point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
+    double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
     safety[i] = TGeoPcon::Safety(point, in);
   }
 }
 //_____________________________________________________________________________
 void TGeoPcon_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                  const Double_t *step, Double_t * /*safe*/, Double_t *distance, Int_t np) const {
+                                  const double *step, double * /*safe*/, double *distance, Int_t np) const {
   for (unsigned int i = 0; i < np; i++) {
-    Double_t point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
-    Double_t dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
+    double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
+    double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
 
     distance[i] = TGeoPcon::DistFromInside(point, dir, 3, step[i], 0);
   }
@@ -178,10 +178,10 @@ void TGeoPcon_v::DistFromInside_v(const StructOfCoord &pointi, const StructOfCoo
 //_____________________________________________________________________________
 
 void TGeoPcon_v::DistFromOutside_v(const StructOfCoord &pointi, const StructOfCoord &diri, Int_t /*iact*/,
-                                   const Double_t *step, Double_t * /*safe*/, Double_t *distance, Int_t np) const {
+                                   const double *step, double * /*safe*/, double *distance, Int_t np) const {
   for (unsigned int i = 0; i < np; i++) {
-    Double_t point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
-    Double_t dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
+    double point[3] = {pointi.x[i], pointi.y[i], pointi.z[i]};
+    double dir[3] = {diri.x[i], diri.y[i], diri.z[i]};
 
     distance[i] = TGeoPcon::DistFromOutside(point, dir, 3, step[i], 0);
   }

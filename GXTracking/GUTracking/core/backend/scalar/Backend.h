@@ -18,7 +18,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 struct kScalar {
 
   typedef int             Int_t;
-  typedef Precision       Double_t;
+  typedef Precision       double;
   typedef bool            Bool_t;
   typedef int             Index_t; // the type of indices
 
@@ -51,7 +51,7 @@ inline VECPHYS_CONSTEXPR_RETURN bool kScalar::IsEqual<kScalar>() {
 }
 
 typedef kScalar::Int_t    ScalarInt;
-typedef kScalar::Double_t ScalarDouble;
+typedef kScalar::double ScalarDouble;
 typedef kScalar::Bool_t   ScalarBool;
 
 template <typename Type>

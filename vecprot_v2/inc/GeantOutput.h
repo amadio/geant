@@ -22,7 +22,7 @@ public:
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
 
-  Double_t fCpuTime;       /** CPU time */
+  double fCpuTime;       /** CPU time */
   Int_t fVolId;            /** Volume transporting this generation */
   Int_t fBasketGeneration; /** Current generation of baskets to be flushed */
   Int_t fGeneration;       /** Current generation for one basket */
@@ -30,17 +30,17 @@ public:
   Int_t *fEvent;           //[fNtracks] /** Event */
   Int_t *fInd;             //[fNtracks] /** Track indices */
   Int_t *fProc;            //[fNtracks] /** Selected processes for each track */
-  Double_t *fX;            //[fNtracks] /** X positions */
-  Double_t *fY;            //[fNtracks] /** Y positions */
-  Double_t *fZ;            //[fNtracks] /** Z positions */
-  Double_t *fPx;           //[fNtracks] /** Px */
-  Double_t *fPy;           //[fNtracks] /** Py */
-  Double_t *fPz;           //[fNtracks] /** Pz */
-  Double_t *fE;            //[fNtracks] /** E */
-  Double_t *fPstep;        //[fNtracks] /** Physics step selected */
-  Double_t *fStep;         //[fNtracks] /** Current step */
-  Double_t *fSnext;        //[fNtracks] /** Snext distance */
-  Double_t *fSafety;       //[fNtracks] /** Snext distance */
+  double *fX;            //[fNtracks] /** X positions */
+  double *fY;            //[fNtracks] /** Y positions */
+  double *fZ;            //[fNtracks] /** Z positions */
+  double *fPx;           //[fNtracks] /** Px */
+  double *fPy;           //[fNtracks] /** Py */
+  double *fPz;           //[fNtracks] /** Pz */
+  double *fE;            //[fNtracks] /** E */
+  double *fPstep;        //[fNtracks] /** Physics step selected */
+  double *fStep;         //[fNtracks] /** Current step */
+  double *fSnext;        //[fNtracks] /** Snext distance */
+  double *fSafety;       //[fNtracks] /** Snext distance */
 
 private:
 
@@ -89,7 +89,7 @@ public:
    * @param cputime CPU time (by default 0)
    */
   void SetStamp(Int_t volId, Int_t basket_gen, Int_t generation, Int_t ntracks,
-                Double_t cputime = 0.) {
+                double cputime = 0.) {
     fVolId = volId;
     fBasketGeneration = basket_gen;
     fGeneration = generation;
@@ -116,9 +116,9 @@ public:
    * @param snext Next safety distance
    * @param safety Safety distance
    */
-  void SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc, Double_t x, Double_t y,
-                Double_t z, Double_t px, Double_t py, Double_t pz, Double_t e, Double_t pstep,
-                Double_t step, Double_t snext, Double_t safety);
+  void SetTrack(Int_t ntrack, Int_t itrack, Int_t event, Int_t proc, double x, double y,
+                double z, double px, double py, double pz, double e, double pstep,
+                double step, double snext, double safety);
   
   /**
    * @brief Function of setting tracks

@@ -26,9 +26,9 @@ main(int argc, char *argv[]) {
     sscanf(argv[1], "%d", &npoints);
   printf("npoints = %d\n", npoints);
 
-  const Double_t dx = 10; // these are half-distances
-  const Double_t dy = 20;
-  const Double_t dz = 30;
+  const double dx = 10; // these are half-distances
+  const double dy = 20;
+  const double dz = 30;
 
   TGeoManager *testvec = new TGeoManager("Test", "This is a naive test");
   TGeoMaterial *vacmat = new TGeoMaterial("vacuum", 0, 0, 0);
@@ -45,14 +45,14 @@ main(int argc, char *argv[]) {
 
   testvec->CloseGeometry();
 
-  Double_t origin[3] = {0, 0, 0};
+  double origin[3] = {0, 0, 0};
   TGeoBBox_v *box = new TGeoBBox_v(dx, dy, dz, origin);
-  const Double_t r3two = pow(2, 1. / 3.);
+  const double r3two = pow(2, 1. / 3.);
 
   npoints = 1;
   for (int i = 0; i < 14; i++) {
-    Double_t *points = new Double_t[3 * npoints];
-    Double_t *dir = new Double_t[3 * npoints];
+    double *points = new double[3 * npoints];
+    double *dir = new double[3 * npoints];
     TStopWatch tt;
 
     points[0] = -100.;

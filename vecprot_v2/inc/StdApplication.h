@@ -69,7 +69,7 @@ public:
    * @param lmin Low axis limit (positive)
    * @param lmax High axis limit (greater than lmin)
    */
-  static Double_t *MakeUniformLogArray(Int_t nbins, Double_t lmin, Double_t lmax);
+  static double *MakeUniformLogArray(Int_t nbins, double lmin, double lmax);
 
   /** @brief Set scoring type */
   void SetScoreType(EScoreType type) { fScore = type; }

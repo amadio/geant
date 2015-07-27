@@ -39,7 +39,7 @@ public:
   virtual void ComputeIntLen(Material_t * /*mat*/,
                              Int_t /*ntracks*/, 
                              GeantTrack_v & /*tracks*/,
-                             Double_t * /*lengths*/, 
+                             double * /*lengths*/, 
                              Int_t /*tid*/)                            {}
   
   virtual void PostStep(     Material_t * /*mat*/,

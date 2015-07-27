@@ -24,9 +24,9 @@ class TNudyElementRN: public TObject{
   TGeoElementRN* fEle;
   TBox* fBox;
   TPaveText fInfo;
-  Color_t GetColor(Double_t halfLife);
+  Color_t GetColor(double halfLife);
  public:
-  static Double_t fCCodeRange[26];
+  static double fCCodeRange[26];
   static Int_t fCCodeColor[26][3];
 
   Float_t fSize;

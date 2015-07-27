@@ -31,10 +31,10 @@ class TNudyEndfTab1: public TNudyEndfCont {
 public:
   TNudyEndfTab1();
   TNudyEndfTab1(TNudyEndfTab1* tab, Int_t n1, Int_t n2);
-  TNudyEndfTab1(Double_t c1, Double_t c2,
+  TNudyEndfTab1(double c1, double c2,
 		Int_t l1, Int_t l2, Int_t n1, Int_t n2);
   virtual ~TNudyEndfTab1();
-  virtual void SetCont(Double_t c1, Double_t c2,
+  virtual void SetCont(double c1, double c2,
 		       Int_t l1, Int_t l2, Int_t n1, Int_t n2);
 
   Int_t GetNR() const {return fN1;}
@@ -46,26 +46,26 @@ public:
   Int_t GetINT(Int_t i) const {return fINT[i];}
   void SetINT(Int_t iel, Int_t i) {fINT[i]=iel;}
 
-  Double_t GetX(Int_t i) const {return fX[i];}
-  void SetX(Double_t x, Int_t i) {fX[i]=x;}
+  double GetX(Int_t i) const {return fX[i];}
+  void SetX(double x, Int_t i) {fX[i]=x;}
 
   void Equate(TNudyEndfTab1 *tab);
 
-  Double_t* X(){return fX;}
-  Double_t* Y(){return fY;}
+  double* X(){return fX;}
+  double* Y(){return fY;}
   Int_t* NBT(){return fNBT;}
   Int_t* INT(){return fINT;}
 
-  Double_t GetY(Int_t i) const {return fY[i];}
-  void SetY(Double_t y, Int_t i) {fY[i]=y;}
+  double GetY(Int_t i) const {return fY[i];}
+  void SetY(double y, Int_t i) {fY[i]=y;}
 
   void DumpENDF(Int_t mat, Int_t mf,Int_t mt,Int_t& ns,Int_t flags);
 
 private:
   Int_t    *fNBT;       //[fN1]
   Int_t    *fINT;       //[fN1]
-  Double_t *fX;         //[fN2]
-  Double_t *fY;         //[fN2]
+  double *fX;         //[fN2]
+  double *fY;         //[fN2]
 
   ClassDef(TNudyEndfTab1,1)
 

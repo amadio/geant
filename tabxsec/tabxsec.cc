@@ -950,7 +950,7 @@ int main(int argc, char **argv) {
           printf("%s=%12.2g  ", parcuts[ic], pcuts->GetProductionCuts()[ic] / cm);
         printf("\n");
         printf("Production Cuts (GeV): ");
-        Double_t cuts[4];
+        double cuts[4];
         for (G4int ic = 0; ic < 4; ++ic) {
           cuts[ic] =
               (*G4ProductionCutsTable::GetProductionCutsTable()->GetEnergyCutsVector(ic))[couple->GetIndex()] / GeV;
@@ -1605,11 +1605,11 @@ void DefineParticles() {
 
   // Light ions
   // Get PDG codes from Geant4 the rest as in TGeant3
-  const Double_t kGeV = 0.9314943228;
-  const Double_t kHslash = 1.0545726663e-27;
-  const Double_t kErgGeV = 1 / 1.6021773349e-3;
-  const Double_t kHshGeV = kHslash * kErgGeV;
-  const Double_t kYearsToSec = 3600 * 24 * 365.25;
+  const double kGeV = 0.9314943228;
+  const double kHslash = 1.0545726663e-27;
+  const double kErgGeV = 1 / 1.6021773349e-3;
+  const double kHshGeV = kHslash * kErgGeV;
+  const double kYearsToSec = 3600 * 24 * 365.25;
 
   G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition *particle;

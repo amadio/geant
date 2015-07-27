@@ -253,7 +253,7 @@ void G01SteppingAction::UserSteppingAction(const G4Step* step)
 	char rpoint[2048] = "\0";
 	strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",point[0],point[1],point[2]));
 	for ( Int_t i=0; i<gGeoManager->GetLevel(); ++i) {
-	   Double_t plocal[3];
+	   double plocal[3];
 	   gGeoManager->GetMotherMatrix(gGeoManager->GetLevel()-1-i)->MasterToLocal(point,plocal);
 	   strcat(rpoint,Form("/%8.03g,%8.03g,%8.03g",plocal[0],plocal[1],plocal[2]));
 	}

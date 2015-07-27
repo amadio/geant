@@ -145,9 +145,9 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager *geom, const char *xsecfi
             MAXNELEMENTS);
     }
     for (Int_t iel = 0; iel < nelem; ++iel) {
-      Double_t ad;
-      Double_t zd;
-      Double_t wd;
+      double ad;
+      double zd;
+      double wd;
       mat->GetElementProp(ad, zd, wd, iel);
       if (zd < 1 || zd > NELEM) {
         Fatal("TabulatedDataManager", "In material %s found element with z=%d > NELEM=%d", mat->GetName(), (Int_t)zd,
@@ -211,9 +211,9 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager *geom, const char *xsecfi
     Int_t nelem = mat->GetNelements();
     // loop over the elements of the current material in order to obtain the
     // z, a, w, arrays of the elements of this material
-    Double_t ad;
-    Double_t zd;
-    Double_t wd;
+    double ad;
+    double zd;
+    double wd;
     for (Int_t iel = 0; iel < nelem; ++iel) {
       mat->GetElementProp(ad, zd, wd, iel);
       a[iel] = ad;
@@ -461,8 +461,8 @@ Int_t TabulatedDataManager::SampleInteraction(const G4int imat, const G4Track &a
 // sampling final state, put 2ndaries into the particle change, update primary,
 // do proper transformations if necessary
 void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_t reactionid, const G4Track &atrack,
-                                            G4ParticleChange *particlechange, Double_t energylimit) {
-  Double_t totEdepo = 0.0;
+                                            G4ParticleChange *particlechange, double energylimit) {
+  double totEdepo = 0.0;
   Int_t nSecPart = 0;     // number of secondary particles per reaction
   const Int_t *pid = 0;   // GeantV particle codes [nSecPart]
   const Float_t *mom = 0; // momentum vectors the secondaries [3*nSecPart]
@@ -473,7 +473,7 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
   Int_t ebinindx = -1;    // energy bin index of the selected final state
 
   Int_t partindex = TPartIndex::I()->PartIndex(atrack.GetParticleDefinition()->GetPDGEncoding());
-  Double_t kinEnergy = atrack.GetDynamicParticle()->GetKineticEnergy() / CLHEP::GeV;
+  double kinEnergy = atrack.GetDynamicParticle()->GetKineticEnergy() / CLHEP::GeV;
 
   if (reactionid == 3) { // decay in fligth
     SampleDecayInFlight(partindex, atrack, particlechange, energylimit);
@@ -502,11 +502,11 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
   //-get mass of the primary
   Int_t primPDG = TPartIndex::I()->PDG(partindex); // GV part.code -> PGD code
   TParticlePDG *primPartPDG = TDatabasePDG::Instance()->GetParticle(primPDG);
-  Double_t primMass = primPartPDG->Mass(); // mass [GeV]
+  double primMass = primPartPDG->Mass(); // mass [GeV]
                                            //-compute corFactor = P_current/P_original = Pz_current/Pz_original
                                            // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...)
-  Double_t orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx];
-  Double_t corFactor =
+  double orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx];
+  double corFactor =
       std::sqrt(kinEnergy * (kinEnergy + 2.0 * primMass) / (orgPrimEkin * (orgPrimEkin + 2.0 * primMass)));
 
   //-if corFactor is set here to 1.0 --> no correction of the final states
@@ -516,44 +516,44 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
   totEdepo = kerma;
 
   // store original (pre-interaction) direction of the primary particle
-  Double_t oldXdir = atrack.GetMomentumDirection().x();
-  Double_t oldYdir = atrack.GetMomentumDirection().y();
-  Double_t oldZdir = atrack.GetMomentumDirection().z();
+  double oldXdir = atrack.GetMomentumDirection().x();
+  double oldYdir = atrack.GetMomentumDirection().y();
+  double oldZdir = atrack.GetMomentumDirection().z();
 
   // set the non-corrected post-interaction Ekin. of the primary
-  Double_t postEkinOfParimary = energyFst;
+  double postEkinOfParimary = energyFst;
 
   // check if we need to correct the post-interaction Ekin of the primary:
   // if the primary is survived and has non-zero Ekin --> compute its corrected Ekin
   if (isSurv && (postEkinOfParimary > 0.0)) { // survived
     // get corrected 3-momentum of the post-interaction primary
-    Double_t px = mom[0];
-    Double_t py = mom[1];
-    Double_t pz = mom[2];
+    double px = mom[0];
+    double py = mom[1];
+    double pz = mom[2];
     px *= corFactor;
     py *= corFactor;
     pz *= corFactor;
     // compute corrected P^2 in [GeV^2]
-    Double_t postPrimP2 = px * px + py * py + pz * pz;
+    double postPrimP2 = px * px + py * py + pz * pz;
     // recompute post-interaction Ekin of the primary with corrected 3-momentum
     postEkinOfParimary = std::sqrt(postPrimP2 + primMass * primMass) - primMass;
   }
 
   // now we can do the real job
   if (postEkinOfParimary > energylimit) { // survived even after the correction and the E-limit.
-    Double_t px = mom[0];
-    Double_t py = mom[1];
-    Double_t pz = mom[2];
+    double px = mom[0];
+    double py = mom[1];
+    double pz = mom[2];
     px *= corFactor;
     py *= corFactor;
     pz *= corFactor;
     // compute corrected P^2 in [GeV^2]
-    Double_t postPrimP2 = px * px + py * py + pz * pz;
+    double postPrimP2 = px * px + py * py + pz * pz;
 
     particlechange->ProposeTrackStatus(fAlive);
     particlechange->ProposeEnergy(postEkinOfParimary * GeV); // from GeV->MeV
     // rotate direction of primary particle
-    Double_t postPrimP = std::sqrt(postPrimP2); // total P [GeV]
+    double postPrimP = std::sqrt(postPrimP2); // total P [GeV]
 
     G4ThreeVector newDir(px / postPrimP, py / postPrimP, pz / postPrimP);
     RotateNewTrack(oldXdir, oldYdir, oldZdir, newDir);
@@ -608,16 +608,16 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
       Int_t idummy = pid[isec] - 1000000000;
       Int_t Z = idummy / 10000.;
       Int_t A = (idummy - Z * 10000) / 10.;
-      Double_t secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
+      double secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
       // get corrected 3-momentum of the post-interaction primary
-      Double_t px = mom[3 * isec];
-      Double_t py = mom[3 * isec + 1];
-      Double_t pz = mom[3 * isec + 2];
+      double px = mom[3 * isec];
+      double py = mom[3 * isec + 1];
+      double pz = mom[3 * isec + 2];
       px *= corFactor;
       py *= corFactor;
       pz *= corFactor;
       // compute corrected P^2 in [GeV^2]
-      Double_t secP2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+      double secP2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
       // compute Ekin of the fragment and put to Edepo
       totEdepo += std::sqrt(secP2 + secMass * secMass) - secMass;
 #ifdef MAKESTAT
@@ -628,19 +628,19 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
 
     Int_t secPDG = TPartIndex::I()->PDG(pid[isec]); // GV part.code -> PGD code
     TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
-    Double_t secMass = secPartPDG->Mass(); // mass [GeV]
+    double secMass = secPartPDG->Mass(); // mass [GeV]
     // get corrected 3-momentum of the post-interaction primary
-    Double_t px = mom[3 * isec];
-    Double_t py = mom[3 * isec + 1];
-    Double_t pz = mom[3 * isec + 2];
+    double px = mom[3 * isec];
+    double py = mom[3 * isec + 1];
+    double pz = mom[3 * isec + 2];
     px *= corFactor;
     py *= corFactor;
     pz *= corFactor;
     // compute corrected P^2 in [GeV^2]
-    Double_t secP2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+    double secP2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
     // compute Ekin of the secondary
-    Double_t secEtot = std::sqrt(secP2 + secMass * secMass); // total E [GeV]
-    Double_t secEkin = secEtot - secMass;                    // kinetic energy in [GeV]
+    double secEtot = std::sqrt(secP2 + secMass * secMass); // total E [GeV]
+    double secEkin = secEtot - secMass;                    // kinetic energy in [GeV]
 
     // Check if Ekin of this secondary is above our energy limit and add it to
     // the list of secondary tracks.
@@ -654,7 +654,7 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
 
       G4ParticleDefinition *particleDef = G4ParticleTable::GetParticleTable()->FindParticle(secPDG);
 
-      Double_t secP = std::sqrt(secP2); // total P [GeV]
+      double secP = std::sqrt(secP2); // total P [GeV]
       G4ThreeVector newDir(px / secP, py / secP, pz / secP);
       RotateNewTrack(oldXdir, oldYdir, oldZdir, newDir);
 
@@ -725,15 +725,15 @@ void TabulatedDataManager::SampleFinalState(const Int_t elementindex, const Int_
 // and decay at rest otherwise.
 //______________________________________________________________________________
 void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Track &atrack,
-                                                  G4ParticleChange *particlechange, Double_t energylimit) {
+                                                  G4ParticleChange *particlechange, double energylimit) {
   // fist we kill the current track; its energy ahs already been put into depo
   particlechange->ProposeTrackStatus(fStopAndKill);
 
-  const Double_t mecc = 0.00051099906; // e- mass c2 in [GeV]
+  const double mecc = 0.00051099906; // e- mass c2 in [GeV]
 
   // sample one of the nuclear capture at rest final states for this particle
   // on the sampled element
-  Double_t totEdepo = 0.0;
+  double totEdepo = 0.0;
   Int_t nSecPart = 0;     // number of secondary particles per reaction
   const Int_t *pid = 0;   // GeantV particle codes [nSecPart]
   const Float_t *mom = 0; // momentum vectors the secondaries [3*nSecPart]
@@ -750,11 +750,11 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Trac
   // check if particle is e+ : e+ annihilation at rest if $E_{limit}< m_{e}c^{2}$
   if (partindex == TPartIndex::I()->GetSpecGVIndex(1)) {
     if (energylimit < mecc) {
-      Double_t randDirZ = 1.0 - 2.0 * G4UniformRand();
-      Double_t randSinTheta = std::sqrt(1.0 - randDirZ * randDirZ);
-      Double_t randPhi = G4UniformRand() * CLHEP::twopi;
-      Double_t randDirX = randSinTheta * std::cos(randPhi);
-      Double_t randDirY = randSinTheta * std::sin(randPhi);
+      double randDirZ = 1.0 - 2.0 * G4UniformRand();
+      double randSinTheta = std::sqrt(1.0 - randDirZ * randDirZ);
+      double randPhi = G4UniformRand() * CLHEP::twopi;
+      double randDirX = randSinTheta * std::cos(randPhi);
+      double randDirY = randSinTheta * std::sin(randPhi);
 
       particlechange->SetNumberOfSecondaries(2);
 
@@ -824,7 +824,7 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Trac
     elementIndex = fMatXsec[imat]->SampleElement();
     // get the corresponding element-wise final state pointer
     elemfstate = fElemFstate[elementIndex];
-    Double_t randn = G4UniformRand();
+    double randn = G4UniformRand();
     isSurv = elemfstate->SampleRestCaptFstate(partindex, nSecPart, weightFst, kerma, energyFst, pid, mom, randn);
 #ifdef MAKESTAT
     // if we need process statisctics
@@ -836,11 +836,11 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Trac
 
   // Handle the final state !
 
-  Double_t randDirX;
-  Double_t randDirY;
-  Double_t randDirZ;
-  Double_t randSinTheta;
-  Double_t randPhi;
+  double randDirX;
+  double randDirY;
+  double randDirZ;
+  double randSinTheta;
+  double randPhi;
 
   if (nSecPart) {
     randDirZ = 1.0 - 2.0 * G4UniformRand();
@@ -872,11 +872,11 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Trac
       Int_t idummy = pid[isec] - 1000000000;
       Int_t Z = idummy / 10000.;
       Int_t A = (idummy - Z * 10000) / 10.;
-      Double_t secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
-      Double_t px = mom[3 * isec];
-      Double_t py = mom[3 * isec + 1];
-      Double_t pz = mom[3 * isec + 2];
-      Double_t secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+      double secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
+      double px = mom[3 * isec];
+      double py = mom[3 * isec + 1];
+      double pz = mom[3 * isec + 2];
+      double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
       totEdepo += std::sqrt(secPtot2 + secMass * secMass) - secMass;
 #ifdef MAKESTAT
       ++killedTracks;
@@ -886,15 +886,15 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Trac
 
     Int_t secPDG = TPartIndex::I()->PDG(pid[isec]); // GV part.code -> PGD code
     TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
-    Double_t secMass = secPartPDG->Mass(); // mass [GeV]
-    Double_t px = mom[3 * isec];
-    Double_t py = mom[3 * isec + 1];
-    Double_t pz = mom[3 * isec + 2];
-    Double_t secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+    double secMass = secPartPDG->Mass(); // mass [GeV]
+    double px = mom[3 * isec];
+    double py = mom[3 * isec + 1];
+    double pz = mom[3 * isec + 2];
+    double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
 
-    Double_t secPtot = std::sqrt(secPtot2);                     // total P [GeV]
-    Double_t secEtot = std::sqrt(secPtot2 + secMass * secMass); // total E [GeV]
-    Double_t secEkin = secEtot - secMass;                       // kinetic energy in [GeV]
+    double secPtot = std::sqrt(secPtot2);                     // total P [GeV]
+    double secEtot = std::sqrt(secPtot2 + secMass * secMass); // total E [GeV]
+    double secEkin = secEtot - secMass;                       // kinetic energy in [GeV]
 
     // Check if Ekin of this secondary is above our energy limit and add it to
     // the list of secondary tracks.
@@ -971,7 +971,7 @@ void TabulatedDataManager::SampleFinalStateAtRest(const Int_t imat, const G4Trac
 }
 
 void TabulatedDataManager::SampleDecayInFlight(const Int_t partindex, const G4Track &atrack,
-                                               G4ParticleChange *particlechange, Double_t energylimit) {
+                                               G4ParticleChange *particlechange, double energylimit) {
   Int_t nSecPart = 0;     // number of secondary particles per reaction
   const Int_t *pid = 0;   // GeantV particle codes [nSecPart]
   const Float_t *mom = 0; // momentum vectors the secondaries [3*nSecPart]
@@ -1004,11 +1004,11 @@ void TabulatedDataManager::SampleDecayInFlight(const Int_t partindex, const G4Tr
         Int_t idummy = pid[isec] - 1000000000;
         Int_t Z = idummy / 10000.;
         Int_t A = (idummy - Z * 10000) / 10.;
-        Double_t secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
-        Double_t px = mom[3 * isec];
-        Double_t py = mom[3 * isec + 1];
-        Double_t pz = mom[3 * isec + 2];
-        Double_t secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+        double secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
+        double px = mom[3 * isec];
+        double py = mom[3 * isec + 1];
+        double pz = mom[3 * isec + 2];
+        double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
         totEdepo += std::sqrt(secPtot2 + secMass * secMass) - secMass;
 #ifdef MAKESTAT
         ++killedTracks;
@@ -1018,14 +1018,14 @@ void TabulatedDataManager::SampleDecayInFlight(const Int_t partindex, const G4Tr
 
       Int_t secPDG = TPartIndex::I()->PDG(pid[isec]); // GV part.code -> PGD code
       TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
-      Double_t secMass = secPartPDG->Mass(); // mass [GeV]
-      Double_t px = mom[3 * isec];
-      Double_t py = mom[3 * isec + 1];
-      Double_t pz = mom[3 * isec + 2];
+      double secMass = secPartPDG->Mass(); // mass [GeV]
+      double px = mom[3 * isec];
+      double py = mom[3 * isec + 1];
+      double pz = mom[3 * isec + 2];
       // compute corrected P^2 in [GeV^2]
-      Double_t secP2 = px * px + py * py + pz * pz;            // total P^2 [GeV^2]
-      Double_t secEtot = std::sqrt(secP2 + secMass * secMass); // total E [GeV]
-      // Double_t secEkin  = secEtot - secMass; //kinetic energy in [GeV]
+      double secP2 = px * px + py * py + pz * pz;            // total P^2 [GeV^2]
+      double secEtot = std::sqrt(secP2 + secMass * secMass); // total E [GeV]
+      // double secEkin  = secEtot - secMass; //kinetic energy in [GeV]
 
       G4double bp = bx * px + by * py + bz * pz;
       px = px + gam2 * bp * bx + gam * bx * secEtot;
@@ -1104,8 +1104,8 @@ void TabulatedDataManager::ApplyMsc(G4int imat, const G4Track &atrack) {
     Fatal("TabulatedDataManager::ApplyMsc", "Material index is out of range!");
   }
 
-  Double_t msTheta = fMatXsec[imat]->MS(partIndex, kinEnergy);
-  Double_t msPhi = G4UniformRand() * CLHEP::twopi;
+  double msTheta = fMatXsec[imat]->MS(partIndex, kinEnergy);
+  double msPhi = G4UniformRand() * CLHEP::twopi;
 
   G4StepPoint *preStepPoint = atrack.GetStep()->GetPreStepPoint();
 
@@ -1119,17 +1119,17 @@ void TabulatedDataManager::ApplyMsc(G4int imat, const G4Track &atrack) {
 // (oldxdir, oldydir, oldzdir) are the direction vector of parent track in lab.
 // frame; direction vector of the current track, measured from local Z is in the
 // G4ThreeVector &newDir; here we rotate it to lab. frame
-void TabulatedDataManager::RotateNewTrack(Double_t oldxdir, Double_t oldydir, Double_t oldzdir, G4ThreeVector &newdir) {
-  const Double_t one = 1.0;
-  const Double_t zero = 0.0;
-  const Double_t amin = 1.0e-10;
-  const Double_t one5 = 1.5;
-  const Double_t half = 0.5;
+void TabulatedDataManager::RotateNewTrack(double oldxdir, double oldydir, double oldzdir, G4ThreeVector &newdir) {
+  const double one = 1.0;
+  const double zero = 0.0;
+  const double amin = 1.0e-10;
+  const double one5 = 1.5;
+  const double half = 0.5;
 
-  Double_t cosTheta0 = oldzdir;
-  Double_t sinTheta0 = std::sqrt(oldxdir * oldxdir + oldydir * oldydir);
-  Double_t cosPhi0;
-  Double_t sinPhi0;
+  double cosTheta0 = oldzdir;
+  double sinTheta0 = std::sqrt(oldxdir * oldxdir + oldydir * oldydir);
+  double cosPhi0;
+  double sinPhi0;
 
   if (sinTheta0 > amin) {
     cosPhi0 = oldxdir / sinTheta0;
@@ -1139,9 +1139,9 @@ void TabulatedDataManager::RotateNewTrack(Double_t oldxdir, Double_t oldydir, Do
     sinPhi0 = zero;
   }
 
-  Double_t h0 = newdir.x();
-  Double_t h1 = sinTheta0 * newdir.z() + cosTheta0 * h0;
-  Double_t h2 = newdir.y();
+  double h0 = newdir.x();
+  double h1 = sinTheta0 * newdir.z() + cosTheta0 * h0;
+  double h2 = newdir.y();
 
   newdir.setX(h1 * cosPhi0 - h2 * sinPhi0);
   newdir.setY(h1 * sinPhi0 + h2 * cosPhi0);
@@ -1150,7 +1150,7 @@ void TabulatedDataManager::RotateNewTrack(Double_t oldxdir, Double_t oldydir, Do
   // renormalization: avoid 1/sqrt(x) computation by using the 1-th order
   //     Taylor aprx. around 1.0 that should be almost exact since the vector
   //     almost normalized!
-  Double_t delta = one5 - half * (newdir.x() * newdir.x() + newdir.y() * newdir.y() + +newdir.z() * newdir.z());
+  double delta = one5 - half * (newdir.x() * newdir.x() + newdir.y() * newdir.y() + +newdir.z() * newdir.z());
   newdir.setX(newdir.x() * delta);
   newdir.setY(newdir.y() * delta);
   newdir.setZ(newdir.z() * delta);
@@ -1160,19 +1160,19 @@ void TabulatedDataManager::RotateNewTrack(Double_t oldxdir, Double_t oldydir, Do
 // G4ThreeVector newdir is the direction vector of the primary before scattering
 // in lab frame measured from global Z; theta and phi are the scattering angles
 // measured from the local Z frame.
-void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, Double_t theta, Double_t phi) {
-  const Double_t one = 1.0;
-  const Double_t zero = 0.0;
-  const Double_t amin = 1.0e-10;
-  const Double_t one5 = 1.5;
-  const Double_t half = 0.5;
+void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, double theta, double phi) {
+  const double one = 1.0;
+  const double zero = 0.0;
+  const double amin = 1.0e-10;
+  const double one5 = 1.5;
+  const double half = 0.5;
 
-  Double_t cosTheta0 = newdir.z(); // tracks.fZdirV[itrack];
-  Double_t sinTheta0 = std::sqrt(newdir.x() * newdir.x() + newdir.y() * newdir.y());
-  Double_t cosPhi0;
-  Double_t sinPhi0;
-  Double_t cosTheta = std::cos(theta);
-  Double_t sinTheta = std::sin(theta);
+  double cosTheta0 = newdir.z(); // tracks.fZdirV[itrack];
+  double sinTheta0 = std::sqrt(newdir.x() * newdir.x() + newdir.y() * newdir.y());
+  double cosPhi0;
+  double sinPhi0;
+  double cosTheta = std::cos(theta);
+  double sinTheta = std::sin(theta);
 
   if (sinTheta0 > amin) {
     cosPhi0 = newdir.x() / sinTheta0;
@@ -1182,9 +1182,9 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, Double_t theta, Do
     sinPhi0 = zero;
   }
 
-  Double_t h0 = sinTheta * std::cos(phi);
-  Double_t h1 = sinTheta0 * cosTheta + cosTheta0 * h0;
-  Double_t h2 = sinTheta * std::sin(phi);
+  double h0 = sinTheta * std::cos(phi);
+  double h1 = sinTheta0 * cosTheta + cosTheta0 * h0;
+  double h2 = sinTheta * std::sin(phi);
 
   newdir.setX(h1 * cosPhi0 - h2 * sinPhi0);
   newdir.setY(h1 * sinPhi0 + h2 * cosPhi0);
@@ -1194,7 +1194,7 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, Double_t theta, Do
   //    due to sequential calls of rotation; avoid 1/sqrt(x) computation by
   //    using the 1-th order Taylor aprx. around 1.0 that should be almost
   //    exact since the vector almost normalized!
-  Double_t delta = one5 - half * (newdir.x() * newdir.x() + newdir.y() * newdir.y() + newdir.z() * newdir.z());
+  double delta = one5 - half * (newdir.x() * newdir.x() + newdir.y() * newdir.y() + newdir.z() * newdir.z());
   newdir.setX(newdir.x() * delta);
   newdir.setY(newdir.y() * delta);
   newdir.setZ(newdir.z() * delta);

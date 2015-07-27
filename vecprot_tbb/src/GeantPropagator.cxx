@@ -187,7 +187,7 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
 }
 
 //______________________________________________________________________________
-Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t startevent, Int_t startslot) {
+Int_t GeantPropagator::ImportTracks(Int_t nevents, double average, Int_t startevent, Int_t startslot) {
   // Import tracks from "somewhere". Here we just generate nevents.
   PerThread::reference TBBperThread = fTBBthreadData.local();
 
@@ -201,16 +201,16 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
   TGeoBranchArray a;
   a.InitFromNavigator(gGeoManager->GetCurrentNavigator());
 
-  const Double_t etamin = -3, etamax = 3;
+  const double etamin = -3, etamax = 3;
   Int_t ntracks = 0;
   Int_t ntracksTotal = 0;
 
   // Species generated for the moment N, P, e, photon
   const Int_t kMaxPart = 9;
   const Int_t pdgGen[9] = {kPiPlus, kPiMinus, kProton, kProtonBar, kNeutron, kNeutronBar, kElectron, kPositron, kGamma};
-  const Double_t pdgRelProb[9] = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
+  const double pdgRelProb[9] = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
   const Species_t pdgSpec[9] = {kHadron, kHadron, kHadron, kHadron, kHadron, kHadron, kLepton, kLepton, kLepton};
-  static Double_t pdgProb[9] = {0.};
+  static double pdgProb[9] = {0.};
   Int_t pdgCount[9] = {0};
 
   static Bool_t init = kTRUE;
@@ -241,7 +241,7 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       *track->nextpath = a;
       track->event = event;
       track->evslot = slot;
-      Double_t prob = TBBperThread.fRndm->Uniform(0., pdgProb[kMaxPart - 1]);
+      double prob = TBBperThread.fRndm->Uniform(0., pdgProb[kMaxPart - 1]);
       track->pdg = 0;
       for (Int_t j = 0; j < kMaxPart; ++j) {
         if (prob <= pdgProb[j]) {
@@ -261,11 +261,11 @@ Int_t GeantPropagator::ImportTracks(Int_t nevents, Double_t average, Int_t start
       track->ypos = fVertex[1];
       track->zpos = fVertex[2];
       track->e = fKineTF1->GetRandom() + track->mass;
-      Double_t p = sqrt((track->e - track->mass) * (track->e + track->mass));
-      Double_t eta = TBBperThread.fRndm->Uniform(etamin, etamax); // multiplicity is flat in rapidity
-      Double_t theta = 2 * atan(exp(-eta));
-      // Double_t theta = acos((1.-2.*gRandom->Rndm()));
-      Double_t phi = kTwoPi * TBBperThread.fRndm->Rndm();
+      double p = sqrt((track->e - track->mass) * (track->e + track->mass));
+      double eta = TBBperThread.fRndm->Uniform(etamin, etamax); // multiplicity is flat in rapidity
+      double theta = 2 * atan(exp(-eta));
+      // double theta = acos((1.-2.*gRandom->Rndm()));
+      double phi = kTwoPi * TBBperThread.fRndm->Rndm();
       track->px = p * sin(theta) * cos(phi);
       track->py = p * sin(theta) * sin(phi);
       track->pz = p * cos(theta);
@@ -442,11 +442,11 @@ void GeantPropagator::PhysicsSelect(Int_t ntracks, Int_t *trackin) {
 
   PerThread::reference TBBperThread = fTBBthreadData.local();
 
-  static const Double_t maxlen = numeric_limits<double>.max();
-  Double_t pstep;
+  static const double maxlen = numeric_limits<double>.max();
+  double pstep;
   Int_t ipart, iproc;
   GeantTrack *track;
-  Double_t *procStep;
+  double *procStep;
   // Fill interaction lengths for all processes and all particles
   for (iproc = 0; iproc < fNprocesses; iproc++) {
     procStep = TBBperThread.GetProcStep(iproc);
@@ -669,9 +669,9 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
   //*/
   /*------------------------------------------------------------------------------------------------------*/
 
-  Double_t rtime = fTimer->RealTime();
-  Double_t ctime = fTimer->CpuTime();
-  Double_t tbbtime = (t1 - t0).seconds();
+  double rtime = fTimer->RealTime();
+  double ctime = fTimer->CpuTime();
+  double tbbtime = (t1 - t0).seconds();
 
   if (fFillTree)
     fOutTree->AutoSave();
@@ -690,8 +690,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Bool_t graphics, Bool
   fclose(fp);
 
   FILE *fp2 = fopen("diag.txt", "a");
-  fprintf(fp2, "%f, %g, %g, %f, %f\n", (Double_t)fNthreads, ctime, rtime, (Double_t)fNsafeSteps,
-          (Double_t)fNsnextSteps);
+  fprintf(fp2, "%f, %g, %g, %f, %f\n", (double)fNthreads, ctime, rtime, (double)fNsafeSteps,
+          (double)fNsnextSteps);
   fclose(fp2);
 
   fOutFile = 0;

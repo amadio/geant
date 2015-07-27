@@ -55,10 +55,10 @@ public:
   // -------------------------------------------  
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::Double_t energyIn, 
+  InteractKernel(typename Backend::double energyIn, 
                  typename Backend::Index_t   zElement,
-                 typename Backend::Double_t& energyOut,
-                 typename Backend::Double_t& sinTheta) const;
+                 typename Backend::double& energyOut,
+                 typename Backend::double& sinTheta) const;
 
 
   // Alternative Implementation method(s) - for reference/comparisons
@@ -66,9 +66,9 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void SampleByCompositionRejection(typename Backend::Int_t     elementZ,
-                                    typename Backend::Double_t  energyIn,
-                                    typename Backend::Double_t& energyOut,
-                                    typename Backend::Double_t& sinTheta);
+                                    typename Backend::double  energyIn,
+                                    typename Backend::double& energyOut,
+                                    typename Backend::double& sinTheta);
 
   //  Initialisation methods
   // -------------------------------------------
@@ -108,18 +108,18 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void
-  RotateAngle(typename Backend::Double_t sinTheta,
-              typename Backend::Double_t xhat,
-              typename Backend::Double_t yhat,
-              typename Backend::Double_t zhat,
-              typename Backend::Double_t &xr,
-              typename Backend::Double_t &yr,
-              typename Backend::Double_t &zr) const;
+  RotateAngle(typename Backend::double sinTheta,
+              typename Backend::double xhat,
+              typename Backend::double yhat,
+              typename Backend::double zhat,
+              typename Backend::double &xr,
+              typename Backend::double &yr,
+              typename Backend::double &zr) const;
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t
-  SampleSinTheta(typename Backend::Double_t energyIn) const;
+  typename Backend::double
+  SampleSinTheta(typename Backend::double energyIn) const;
 
 private: 
   // Implementation methods 
@@ -162,22 +162,22 @@ private:
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH void 
-GUSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn, 
+GUSeltzerBerger::InteractKernel(typename Backend::double  energyIn, 
                                 typename Backend::Index_t   zElement,
-                                typename Backend::Double_t& energyOut,
-                                typename Backend::Double_t& sinTheta) const
+                                typename Backend::double& energyOut,
+                                typename Backend::double& sinTheta) const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
   Index_t   index;
   Index_t   icol;
-  Double_t  fraction;
+  double  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
 
-  Double_t probNA;
-  Double_t aliasInd;
+  double probNA;
+  double aliasInd;
 
   //this did not used to work - Fixed SW
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
@@ -186,18 +186,18 @@ GUSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
   
   // To-do: apply densityFactor (dummy for now) and calculate deltaY correctly
   // densityFactor = (Migdal constant)x(electron density of the material); 
-  Double_t densityFactor = 1.0;
+  double densityFactor = 1.0;
   
-  Double_t emin = Min(fMinX, energyIn);
-  Double_t emax = Min(fMaxX, energyIn);
+  double emin = Min(fMinX, energyIn);
+  double emax = Min(fMaxX, energyIn);
 
-  Double_t totalEnergy = energyIn + electron_mass_c2;
-  Double_t densityCorr = densityFactor*totalEnergy*totalEnergy;
-  Double_t minY = Log(emin*emin + densityCorr);
-  Double_t maxY = Log(emax*emax + densityCorr);
-  Double_t deltaY = maxY - minY;
+  double totalEnergy = energyIn + electron_mass_c2;
+  double densityCorr = densityFactor*totalEnergy*totalEnergy;
+  double minY = Log(emin*emin + densityCorr);
+  double maxY = Log(emax*emax + densityCorr);
+  double deltaY = maxY - minY;
 
-  Double_t yhat = fAliasSampler->SampleX<Backend>(deltaY,probNA,
+  double yhat = fAliasSampler->SampleX<Backend>(deltaY,probNA,
                                                   aliasInd,icol,fraction);
 
   energyOut =  Sqrt(Max(Exp(minY + yhat)- densityCorr,0.0));
@@ -207,34 +207,34 @@ GUSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 void
-GUSeltzerBerger::RotateAngle(typename Backend::Double_t sinTheta,
-                             typename Backend::Double_t xhat,
-                             typename Backend::Double_t yhat,
-                             typename Backend::Double_t zhat,
-                             typename Backend::Double_t &xr,
-                             typename Backend::Double_t &yr,
-                             typename Backend::Double_t &zr) const
+GUSeltzerBerger::RotateAngle(typename Backend::double sinTheta,
+                             typename Backend::double xhat,
+                             typename Backend::double yhat,
+                             typename Backend::double zhat,
+                             typename Backend::double &xr,
+                             typename Backend::double &yr,
+                             typename Backend::double &zr) const
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
   typedef typename Backend::Bool_t   Bool_t;
 
-  Double_t phi = UniformRandom<Backend>(fRandomState,fThreadId);
+  double phi = UniformRandom<Backend>(fRandomState,fThreadId);
 
-  Double_t pt = xhat*xhat + yhat*yhat;
+  double pt = xhat*xhat + yhat*yhat;
 
-  Double_t cosphi, sinphi;
+  double cosphi, sinphi;
   sincos(phi, &sinphi, &cosphi);
 
-  Double_t uhat = sinTheta*cosphi; // cos(phi);
-  Double_t vhat = sinTheta*sinphi; // sin(phi);
-  Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
+  double uhat = sinTheta*cosphi; // cos(phi);
+  double vhat = sinTheta*sinphi; // sin(phi);
+  double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Bool_t positive = ( pt > 0. );
   Bool_t negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
-    Double_t phat = Sqrt(pt);
+    double phat = Sqrt(pt);
     xr = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
     zr = -phat*uhat + zhat*what;
@@ -253,41 +253,41 @@ GUSeltzerBerger::RotateAngle(typename Backend::Double_t sinTheta,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::double 
 GUSeltzerBerger::
-SampleSinTheta(typename Backend::Double_t energyIn) const
+SampleSinTheta(typename Backend::double energyIn) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
   //angle of the radiated photon 
   //based on G4DipBustGenerator::SampleDirection
   
-  Double_t c = 4. - 8.*UniformRandom<Backend>(fRandomState,fThreadId);
-  Double_t a;
-  Double_t signc; 
+  double c = 4. - 8.*UniformRandom<Backend>(fRandomState,fThreadId);
+  double a;
+  double signc; 
   Bool_t condition = c > 0.;
   MaskedAssign(  condition,  1. , &signc );
   MaskedAssign( !condition, -1. , &signc );
   MaskedAssign(  condition,  c , &a );
   MaskedAssign( !condition, -c , &a );
 
-  Double_t delta  = Sqrt(a*a+4.);
+  double delta  = Sqrt(a*a+4.);
   delta += a;
   delta *= 0.5; 
 
   //To-do:  Vc does not support pow 
-  //  Double_t cofA = -signc*Pow(delta, 1./3.);
-  Double_t cofA = -signc*Sqrt(delta); //temporary replace Sqrt by pow
+  //  double cofA = -signc*Pow(delta, 1./3.);
+  double cofA = -signc*Sqrt(delta); //temporary replace Sqrt by pow
 
-  Double_t cosTheta = cofA - 1./cofA;
+  double cosTheta = cofA - 1./cofA;
 
-  Double_t tau  = energyIn/electron_mass_c2;
-  Double_t beta = Sqrt(tau*(tau + 2.))/(tau + 1.);
+  double tau  = energyIn/electron_mass_c2;
+  double beta = Sqrt(tau*(tau + 2.))/(tau + 1.);
 
   cosTheta = (cosTheta + beta)/(1 + cosTheta*beta);
 
-  Double_t sinTheta = Sqrt((1 - cosTheta)*(1 + cosTheta));
+  double sinTheta = Sqrt((1 - cosTheta)*(1 + cosTheta));
 
   return sinTheta;
 }
@@ -296,68 +296,68 @@ template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH 
 void GUSeltzerBerger::
 SampleByCompositionRejection(typename Backend::Int_t     elementZ,
-			     typename Backend::Double_t  energyIn,
-			     typename Backend::Double_t& energyOut,
-			     typename Backend::Double_t& sinTheta)
+			     typename Backend::double  energyIn,
+			     typename Backend::double& energyOut,
+			     typename Backend::double& sinTheta)
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
   //check validity of elementZ
 
   //based on G4SeltzerBergerModel::SampleSecondaries
 
-  Double_t kineticEnergy = energyIn ;
-  Double_t emin = Min(fMinX, energyIn );
-  Double_t emax = Min(fMaxX, energyIn);
+  double kineticEnergy = energyIn ;
+  double emin = Min(fMinX, energyIn );
+  double emax = Min(fMaxX, energyIn);
 
   if(emin >= emax) { return; }
 
-  Double_t densityFactor =1.0;
+  double densityFactor =1.0;
   
-  Double_t totalEnergy = energyIn + electron_mass_c2;
-  Double_t densityCorr = densityFactor*totalEnergy*totalEnergy;
-  Double_t totMomentum = Sqrt(kineticEnergy*(totalEnergy + electron_mass_c2));
+  double totalEnergy = energyIn + electron_mass_c2;
+  double densityCorr = densityFactor*totalEnergy*totalEnergy;
+  double totMomentum = Sqrt(kineticEnergy*(totalEnergy + electron_mass_c2));
 
-  Double_t xmin = Log(emin*emin + densityCorr);
-  Double_t xmax = Log(emax*emax + densityCorr);
-  Double_t    y = Log(energyIn/MeV);
+  double xmin = Log(emin*emin + densityCorr);
+  double xmax = Log(emax*emax + densityCorr);
+  double    y = Log(energyIn/MeV);
 
-  Double_t gammaEnergy;
-  Double_t v; 
+  double gammaEnergy;
+  double v; 
 
   // majoranta
-  Double_t x0 = emin/energyIn;
-  Double_t vmax = fDataSB[elementZ].Value(x0, y)*1.02;
+  double x0 = emin/energyIn;
+  double vmax = fDataSB[elementZ].Value(x0, y)*1.02;
 
-  const Double_t epeaklimit= 300*MeV; 
-  const Double_t elowlimit = 10*keV; 
+  const double epeaklimit= 300*MeV; 
+  const double elowlimit = 10*keV; 
 
   // majoranta corrected for e-
   bool isElectron = true;
   if(isElectron && x0 < 0.97 && 
      ((energyIn > epeaklimit) || (energyIn < elowlimit))) {
-    Double_t ylim = Min(fDataSB[elementZ].Value(0.97, 4*log(10.)),
+    double ylim = Min(fDataSB[elementZ].Value(0.97, 4*log(10.)),
                          1.1*fDataSB[elementZ].Value(0.97, y)); 
     if(ylim > vmax) { vmax = ylim; }
   }
   if(x0 < 0.05) { vmax *= 1.2; }
 
   do {
-    Double_t auxrand = UniformRandom<Backend>(fRandomState,fThreadId);
-    Double_t x = exp(xmin + auxrand*(xmax - xmin))-densityCorr;
+    double auxrand = UniformRandom<Backend>(fRandomState,fThreadId);
+    double x = exp(xmin + auxrand*(xmax - xmin))-densityCorr;
     if(x < 0.0) { x = 0.0; }
     energyOut = sqrt(x);
-    Double_t x1 = energyOut/energyIn;
+    double x1 = energyOut/energyIn;
     v = fDataSB[elementZ].Value(x1, y);
 
     // correction for positrons - uncomment this if we add positron       
     /*    
     if(!isElectron) {
-      Double_t e1 = kineticEnergy - emin;
-      Double_t invbeta1 = (e1 + fMass)/sqrt(e1*(e1 + 2*fMass));
-      Double_t e2 = kineticEnergy - gammaEnergy;
-      Double_t invbeta2 = (e2 + fMass)/sqrt(e2*(e2 + 2*fMass));
-      Double_t xxx = twopi*fine_structure_const*currentZ*(invbeta1 - invbeta2); 
+      double e1 = kineticEnergy - emin;
+      double invbeta1 = (e1 + fMass)/sqrt(e1*(e1 + 2*fMass));
+      double e2 = kineticEnergy - gammaEnergy;
+      double invbeta2 = (e2 + fMass)/sqrt(e2*(e2 + 2*fMass));
+      double xxx = twopi*fine_structure_const*currentZ*(invbeta1 - invbeta2); 
       
       if(xxx < -12. ) { v = 0.0; }
       else { v *= exp(xxx); }
@@ -401,41 +401,41 @@ void GUSeltzerBerger::Interact(GUTrack_v& inProjectile,
                                GUTrack_v& outSecondary) const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::double double;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
      assert( (targetElements[j] > 0)  && (targetElements[j] <= fMaxZelement) );
   }
   
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/Double_t::Size);
+  int numChunks= (inProjectile.numTracks/double::Size);
 
   for(int i=0; i < numChunks ; ++i) {
-    Double_t energyIn(inProjectile.E[ibase]);
-    Double_t px(inProjectile.px[ibase]);
-    Double_t py(inProjectile.py[ibase]);
-    Double_t pz(inProjectile.pz[ibase]);
-    Double_t sinTheta;
-    Double_t energyOut;
+    double energyIn(inProjectile.E[ibase]);
+    double px(inProjectile.px[ibase]);
+    double py(inProjectile.py[ibase]);
+    double pz(inProjectile.pz[ibase]);
+    double sinTheta;
+    double energyOut;
     Index_t  zElement(targetElements[ibase]);
 
     InteractKernel<Backend>(energyIn, zElement, energyOut, sinTheta);
 
     //need to rotate the angle with respect to the line of flight
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
+    double invp = 1./energyIn;
+    double xhat = px*invp;
+    double yhat = py*invp;
+    double zhat = pz*invp;
 
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
+    double uhat = 0.;
+    double vhat = 0.;
+    double what = 0.;
 
     RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
     // Update primary
     energyOut.store(&inProjectile.E[ibase]);
-    Double_t pxFinal, pyFinal, pzFinal;
+    double pxFinal, pyFinal, pzFinal;
      
     pxFinal= energyOut*uhat;
     pyFinal= energyOut*vhat;
@@ -444,17 +444,17 @@ void GUSeltzerBerger::Interact(GUTrack_v& inProjectile,
     pyFinal.store(&inProjectile.py[ibase]);
     pzFinal.store(&inProjectile.pz[ibase]);
     // create Secondary
-    Double_t secE = energyIn - energyOut; 
-    Double_t pxSec= secE*(xhat-uhat);
-    Double_t pySec= secE*(yhat-vhat);
-    Double_t pzSec= secE*(zhat-what);
+    double secE = energyIn - energyOut; 
+    double pxSec= secE*(xhat-uhat);
+    double pySec= secE*(yhat-vhat);
+    double pzSec= secE*(zhat-what);
 
     secE.store(&outSecondary.E[ibase]);
     pxSec.store(&outSecondary.px[ibase]);
     pySec.store(&outSecondary.py[ibase]);
     pzSec.store(&outSecondary.pz[ibase]);
 
-    ibase+= Double_t::Size;
+    ibase+= double::Size;
   }
 }    
 

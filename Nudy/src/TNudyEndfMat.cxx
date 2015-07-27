@@ -64,7 +64,7 @@ TNudyEndfMat::TNudyEndfMat() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfMat::TNudyEndfMat(Int_t mat, Int_t za, Double_t awr, 
+TNudyEndfMat::TNudyEndfMat(Int_t mat, Int_t za, double awr, 
 			   Char_t lrp, Bool_t lfi, Int_t nlib, Int_t nmod) :
   fMAT(mat),
   fZA(za),
@@ -292,13 +292,13 @@ void TNudyEndfMat::Print(Option_t *op) const
     std::cout << std::setfill('-') << std::setw(80) << "-" << std::endl;
     if(sop.Contains("F")) {
       std::cout << std::setprecision(4) << std::scientific << std::setfill(' ') 
-	   << std::setw(11) << Double_t(fZA) << std::setw(11) << fAWR 
+	   << std::setw(11) << double(fZA) << std::setw(11) << fAWR 
 	   << std::setw(11) << Int_t(fLRP)   << std::setw(11) << Int_t(!fLFI) 
 	   << std::setw(11) << fNLIB         << std::setw(11) << fNMOD 
 	   << std::endl;
 
       std::cout << std::setprecision(4) << std::scientific << std::setfill(' ') 
-	   << std::setw(11) << fELIS         << std::setw(11) << Double_t(fSTA==0)
+	   << std::setw(11) << fELIS         << std::setw(11) << double(fSTA==0)
 	   << std::setw(11) << Int_t(fLIS)   << std::setw(11) << Int_t(fLISO) 
 	   << std::setw(11) << 0             << std::setw(11) << fNFOR
 	   << std::endl;

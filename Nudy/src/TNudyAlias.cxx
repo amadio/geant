@@ -14,16 +14,16 @@ ClassImp(TNudyAlias)
 }
 
 //_______________________________________________________________________________
-TNudyAlias::TNudyAlias(Double_t *p, Double_t *x, const Int_t len, UInt_t seed) {
+TNudyAlias::TNudyAlias(double *p, double *x, const Int_t len, UInt_t seed) {
   // Improve algorithm for building table
   int i, j;
-  Double_t sum, c, d, mean;
+  double sum, c, d, mean;
   Int_t k, l;
-  Double_t *b = new Double_t[len];
-  fP = new Double_t[len];
-  fA = new Double_t[len];
-  fR = new Double_t[len];
-  fX = new Double_t[len];
+  double *b = new double[len];
+  fP = new double[len];
+  fA = new double[len];
+  fR = new double[len];
+  fX = new double[len];
   fMult = NULL;
   fMultLen = 0;
   mean = 1.0 / len;
@@ -63,7 +63,7 @@ TNudyAlias::TNudyAlias(Double_t *p, Double_t *x, const Int_t len, UInt_t seed) {
       break;
     } else {
       fA[k] = fX[l];
-      fR[k] = 1 + c * (Double_t)len;
+      fR[k] = 1 + c * (double)len;
       b[k] = 0;
       b[l] = c + d;
     }
@@ -88,7 +88,7 @@ void TNudyAlias::DumpTable() {
   int i, j;
   i = j = 0;
   // Reconstruct probability table
-  Double_t *prob = new Double_t[fLen];
+  double *prob = new double[fLen];
   for (i = 0; i < fLen; i++) {
     prob[i] = fR[i] / fLen;
     for (j = 0; j < fLen; j++) {
@@ -103,11 +103,11 @@ void TNudyAlias::DumpTable() {
 }
 
 //_______________________________________________________________________________
-Double_t TNudyAlias::Random() {
-  Double_t ua = fRnd->Uniform(1);
-  Double_t ub = fRnd->Uniform(1);
+double TNudyAlias::Random() {
+  double ua = fRnd->Uniform(1);
+  double ub = fRnd->Uniform(1);
   Int_t x = (int)(ua * fLen);
-  Double_t rx = fX[x];
+  double rx = fX[x];
   if (ub > fR[x])
     rx = fA[x];
   return rx;
@@ -132,11 +132,11 @@ void *TNudyAlias::ThreadHandle(void *ptr) {
 }
 
 //_______________________________________________________________________________
-Double_t *TNudyAlias::Randoms(Int_t n) {
+double *TNudyAlias::Randoms(Int_t n) {
   int i;
   if (fMult)
     delete[] fMult;
-  fMult = new Double_t[n];
+  fMult = new double[n];
   fMultLen = n;
   void *(*funPtr)(void *) = &TNudyAlias::ThreadHandle;
   TThread **threads = new TThread *[fLen];

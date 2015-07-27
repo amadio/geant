@@ -494,11 +494,11 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
   //  sched_locker.StartOne();
   fWMgr->WaitWorkers();
   fTimer->Stop();
-  Double_t rtime = fTimer->RealTime();
-  Double_t ctime = fTimer->CpuTime();
+  double rtime = fTimer->RealTime();
+  double ctime = fTimer->CpuTime();
   //   fTimer->Print();
-  Double_t speedup = ctime / rtime;
-  Double_t efficiency = speedup / nthreads;
+  double speedup = ctime / rtime;
+  double efficiency = speedup / nthreads;
   //   fWMgr->Print();
   fWMgr->JoinThreads();
 

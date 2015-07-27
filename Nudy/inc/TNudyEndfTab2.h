@@ -31,10 +31,10 @@
 class TNudyEndfTab2: public TNudyEndfCont {
 public:
   TNudyEndfTab2();
-  TNudyEndfTab2(Double_t c1, Double_t c2,
+  TNudyEndfTab2(double c1, double c2,
 		   Int_t l1, Int_t l2, Int_t n1, Int_t n2);
   virtual ~TNudyEndfTab2();
-  virtual void SetCont(Double_t c1, Double_t c2,
+  virtual void SetCont(double c1, double c2,
 		       Int_t l1, Int_t l2, Int_t n1, Int_t n2);
 
   Int_t GetNR() const {return fN1;}

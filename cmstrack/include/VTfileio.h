@@ -50,8 +50,8 @@ class VTfileio {
    void WriteDictionaries();
    void Fill(double x, double y, double z, double px, double py, double pz, Short_t pid,
 	     UShort_t lvid, UShort_t shapeid, double safety, double snext, double step, UChar_t surfid, 
-	     UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid, Double_t cputime,
-	     Double_t cpustep);
+	     UChar_t process, UChar_t begend, UInt_t trid, UInt_t trpid, double cputime,
+	     double cpustep);
    Bool_t IsNewEvent() {if(fNewEvent) {fNewEvent=kFALSE; return kTRUE;} 
       else return kFALSE;}
    void SetNewEvent() {fNewEvent=kTRUE;}
@@ -82,8 +82,8 @@ class VTfileio {
    UChar_t fBegEnd;      // Beginning or end of track
    UInt_t  fTrid;        // Track ID
    UInt_t  fTrPid;       // Track Parend ID
-   Double_t fCPUtime;    // CPU time used since start of track
-   Double_t fCPUstep;    // CPU time used for current step
+   double fCPUtime;    // CPU time used since start of track
+   double fCPUstep;    // CPU time used for current step
  
    //
    Bool_t  fNewEvent;    // if new event

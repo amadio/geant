@@ -139,7 +139,7 @@ void ExN03Application::Digitize(Int_t /* event */) {
   //   printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
   Printf("================================================================================");
-  Double_t nprim = (Double_t)gPropagator->fNprimaries;
+  double nprim = (double)gPropagator->fNprimaries;
   for (Int_t i = 0; i < kNlayers; ++i) {
     for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
       fEdepGap[i][0] += fEdepGap[i][tid];
@@ -172,10 +172,10 @@ void ExN03Application::Digitize(Int_t /* event */) {
     histeg->SetBinContent(i + 3, fEdepGap[i][0] * 1000. / nprim);
     histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
   }
-  Double_t minval =
+  double minval =
       min<double>(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
   minval = max<double>(minval, 1.E-5);
-  Double_t maxval =
+  double maxval =
       max<double>(histeg->GetBinContent(histeg->GetMaximumBin()), histea->GetBinContent(histea->GetMaximumBin()));
   histeg->GetXaxis()->SetTitle("Layer");
   histeg->GetYaxis()->SetTitle("Edep per layer [MeV]");

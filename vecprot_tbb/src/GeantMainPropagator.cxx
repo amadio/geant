@@ -26,7 +26,7 @@ GeantPropagator *GeantMainPropagator::PropInstance() {
   return fgPropInstance;
 }
 
-void GeantMainPropagator::SetParams(Int_t nthr, Int_t evtot, Int_t evbuf, Double_t tracksaver, Int_t maxperbask,
+void GeantMainPropagator::SetParams(Int_t nthr, Int_t evtot, Int_t evbuf, double tracksaver, Int_t maxperbask,
                                     Int_t minFeeder, Int_t numPrior, Int_t dispThr, Bool_t dbg, Int_t dbgTrk) {
   GeantPropagator *p = GeantMainPropagator::PropInstance();
   p->fNthreads = nthr;

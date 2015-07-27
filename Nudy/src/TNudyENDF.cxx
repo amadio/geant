@@ -71,7 +71,7 @@ void TNudyENDF::Process() {
   //
   // Process a tape
   //
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 
@@ -130,7 +130,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   //
   // Here we read the whole material
   //
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 
@@ -295,7 +295,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
 
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfFile *file) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMAT = mtf[0];
@@ -336,7 +336,7 @@ void TNudyENDF::Process(TNudyEndfFile *file) {
 
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfSec *sec) {
-  Double_t c[2] = {0, 0};
+  double c[2] = {0, 0};
   Int_t nl[4] = {0, 0, 0, 0};
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -432,7 +432,7 @@ void TNudyENDF::Process(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMAT = mtf[0];
@@ -585,7 +585,7 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -818,7 +818,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
 }
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF3(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -837,7 +837,7 @@ void TNudyENDF::ProcessF3(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -916,7 +916,7 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -983,7 +983,7 @@ void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1063,7 +1063,7 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1153,7 +1153,7 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1249,7 +1249,7 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF9(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1269,7 +1269,7 @@ void TNudyENDF::ProcessF9(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF10(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1288,7 +1288,7 @@ void TNudyENDF::ProcessF10(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1327,7 +1327,7 @@ void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1351,7 +1351,7 @@ void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1429,7 +1429,7 @@ void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1464,7 +1464,7 @@ void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF23(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1482,7 +1482,7 @@ void TNudyENDF::ProcessF23(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1534,7 +1534,7 @@ void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF27(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1552,7 +1552,7 @@ void TNudyENDF::ProcessF27(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF28(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1571,7 +1571,7 @@ void TNudyENDF::ProcessF28(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1621,7 +1621,7 @@ void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1658,7 +1658,7 @@ void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1852,7 +1852,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1889,7 +1889,7 @@ void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF34(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1924,7 +1924,7 @@ void TNudyENDF::ProcessF34(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF35(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1943,7 +1943,7 @@ void TNudyENDF::ProcessF35(TNudyEndfSec *sec) {
 
 //_______________________________________________________________________________
 void TNudyENDF::ProcessF40(TNudyEndfSec *sec) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t &curMF = mtf[1];
@@ -1998,7 +1998,7 @@ void TNudyENDF::ToEndSec() {
 
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfCont *secCont) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 
@@ -2009,10 +2009,10 @@ void TNudyENDF::Process(TNudyEndfCont *secCont) {
 
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfList *secList) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
-  Double_t list[6];
+  double list[6];
   Int_t np = 0;
 
   fENDF.getline(fLine, LINLEN);
@@ -2031,11 +2031,11 @@ void TNudyENDF::Process(TNudyEndfList *secList) {
 
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t nbt[6];
-  Double_t xy[6];
+  double xy[6];
   Int_t nr = 0;
   Int_t np = 0;
   fENDF.getline(fLine, LINLEN);
@@ -2069,7 +2069,7 @@ void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
 
 //_______________________________________________________________________________
 void TNudyENDF::Process(TNudyEndfTab2 *secTab2) {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
   Int_t nbt[6];
@@ -2133,7 +2133,7 @@ void TNudyENDF::GetTEND() {
 
 //_______________________________________________________________________________
 void TNudyENDF::CheckSEND(const Int_t pmtf[3]) const {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 
@@ -2147,7 +2147,7 @@ void TNudyENDF::CheckSEND(const Int_t pmtf[3]) const {
 
 //_______________________________________________________________________________
 void TNudyENDF::CheckFEND(const Int_t pmtf[3]) const {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 
@@ -2160,7 +2160,7 @@ void TNudyENDF::CheckFEND(const Int_t pmtf[3]) const {
 
 //_______________________________________________________________________________
 void TNudyENDF::CheckMEND(const Int_t pmtf[3]) const {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 
@@ -2173,7 +2173,7 @@ void TNudyENDF::CheckMEND(const Int_t pmtf[3]) const {
 
 //_______________________________________________________________________________
 void TNudyENDF::CheckTEND() const {
-  Double_t c[2];
+  double c[2];
   Int_t nl[4];
   Int_t mtf[4];
 

@@ -50,7 +50,7 @@ ClassImp(PhysicsProcess)
 ClassImp(ScatteringProcess)
 
     //______________________________________________________________________________
-    void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Double_t *lengths) {
+    void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, double *lengths) {
   // Generates an interaction length for the scattering process. Nothing physical,
   // just generate something comparable with the size of the current volume.
   //
@@ -60,16 +60,16 @@ ClassImp(ScatteringProcess)
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   PerThread::reference TBBperThread = gPropagator->fTBBthreadData.local();
 
-  const Double_t kC1 = 500.;
-  const Double_t xlen = numeric_limits<double>.max();
+  const double kC1 = 500.;
+  const double xlen = numeric_limits<double>.max();
   Int_t itrack;
-  Double_t density = 1.e-5;
+  double density = 1.e-5;
   TGeoMaterial *mat = vol->GetMaterial();
   if (mat)
     density = mat->GetDensity();
   density = max<double>(density, 1e-3);
   // Make sure we write in the thread space for the current basket
-  Double_t *rndArray = TBBperThread.fDblArray;
+  double *rndArray = TBBperThread.fDblArray;
   Int_t irnd = 0;
   TBBperThread.fRndm->RndmArray(ntracks, rndArray);
   GeantTrack *track = 0;
@@ -94,14 +94,14 @@ void ScatteringProcess::PostStep(TGeoVolume *, Int_t ntracks, Int_t *trackin, In
   PerThread::reference TBBperThread = gPropagator->fTBBthreadData.local();
 
   // Compute the max theta angle opening after scattering.
-  const Double_t ctmax = cos(1. * kDegToRad); // 1 degree
-  Double_t theta, phi, scale, thetav, phiv;
-  Double_t dir[3];
-  Double_t dirnew[3];
+  const double ctmax = cos(1. * kDegToRad); // 1 degree
+  double theta, phi, scale, thetav, phiv;
+  double dir[3];
+  double dirnew[3];
   GeantTrack *track = 0;
   Int_t itrack;
-  Double_t p;
-  Double_t *rndArray = TBBperThread.fDblArray;
+  double p;
+  double *rndArray = TBBperThread.fDblArray;
   Int_t irnd = 0;
   TBBperThread.fRndm->RndmArray(2 * ntracks, rndArray);
   for (Int_t i = 0; i < ntracks; i++) {
@@ -141,15 +141,15 @@ void ScatteringProcess::PostStep(TGeoVolume *, Int_t ntracks, Int_t *trackin, In
 ClassImp(ElossProcess)
 
     //______________________________________________________________________________
-    void ElossProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Double_t *lengths) {
+    void ElossProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, double *lengths) {
   // Energy loss process. Continuous process. Compute step limit for losing
   // maximum dw per step.
   GeantPropagator *gPropagator = GeantPropagator::Instance();
-  const Double_t dw = 1.E-3; // 1 MEV
+  const double dw = 1.E-3; // 1 MEV
   TGeoMaterial *mat = vol->GetMaterial();
-  Double_t mata = mat->GetA();
-  Double_t matz = mat->GetZ();
-  Double_t matr = mat->GetDensity();
+  double mata = mat->GetA();
+  double matz = mat->GetZ();
+  double matr = mat->GetDensity();
   Bool_t invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
@@ -159,8 +159,8 @@ ClassImp(ElossProcess)
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (track->charge && !invalid_material && track->IsAlive()) {
-      Double_t dedx = BetheBloch(track, matz, mata, matr);
-      Double_t stepmax = (dedx > 1.E-32) ? dw / dedx : 0.5 * numeric_limits<double>.max();
+      double dedx = BetheBloch(track, matz, mata, matr);
+      double stepmax = (dedx > 1.E-32) ? dw / dedx : 0.5 * numeric_limits<double>.max();
       lengths[i] = stepmax;
     } else {
       lengths[i] = 0.5 * numeric_limits<double>.max();
@@ -172,13 +172,13 @@ ClassImp(ElossProcess)
 void ElossProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_t &nout, Int_t *trackout) {
   // Do post-step actions after energy loss process.
   GeantPropagator *gPropagator = GeantPropagator::Instance();
-  Double_t eloss, dedx;
+  double eloss, dedx;
   GeantTrack *track;
   Int_t itrack;
   TGeoMaterial *mat = vol->GetMaterial();
-  Double_t mata = mat->GetA();
-  Double_t matz = mat->GetZ();
-  Double_t matr = mat->GetDensity();
+  double mata = mat->GetA();
+  double matz = mat->GetZ();
+  double matr = mat->GetDensity();
   Bool_t invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
@@ -202,8 +202,8 @@ void ElossProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_
     eloss = track->step * dedx;
     if (track->e - track->mass - eloss < gPropagator->fEmin)
       eloss = track->e - track->mass;
-    Double_t gammaold = track->Gamma();
-    Double_t bgold = sqrt((gammaold - 1) * (gammaold + 1));
+    double gammaold = track->Gamma();
+    double bgold = sqrt((gammaold - 1) * (gammaold + 1));
     track->e -= eloss;
     if (track->e - track->mass < gPropagator->fEmin) {
       gPropagator->StopTrack(track);
@@ -213,9 +213,9 @@ void ElossProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_
       trackout[nout] = itrack;
     nout++;
 
-    Double_t gammanew = track->Gamma();
-    Double_t bgnew = sqrt((gammanew - 1) * (gammanew + 1));
-    Double_t pnorm = bgnew / bgold;
+    double gammanew = track->Gamma();
+    double bgnew = sqrt((gammanew - 1) * (gammanew + 1));
+    double pnorm = bgnew / bgold;
     track->px *= pnorm;
     track->py *= pnorm;
     track->pz *= pnorm;
@@ -224,23 +224,23 @@ void ElossProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Int_
 }
 
 //______________________________________________________________________________
-Double_t ElossProcess::BetheBloch(GeantTrack *track, Double_t tz, Double_t ta, Double_t rho) {
+double ElossProcess::BetheBloch(GeantTrack *track, double tz, double ta, double rho) {
   // Energy loss given by Bethe formula.
   if (tz < 1. || ta < 1.)
     return 0.;
-  const Double_t konst = 0.1535; // MeV cm2/g
-  const Double_t emass = 1000 * TDatabasePDG::Instance()->GetParticle(kElectron)->Mass();
-  const Double_t beta = track->Beta();
-  const Double_t gamma = track->Gamma();
-  const Double_t bg = beta * gamma;
-  const Double_t wmax = 2 * emass * bg * bg;
-  Double_t ioniz;
+  const double konst = 0.1535; // MeV cm2/g
+  const double emass = 1000 * TDatabasePDG::Instance()->GetParticle(kElectron)->Mass();
+  const double beta = track->Beta();
+  const double gamma = track->Gamma();
+  const double bg = beta * gamma;
+  const double wmax = 2 * emass * bg * bg;
+  double ioniz;
   if (tz < 13)
     ioniz = 12 + 7 / tz;
   else
     ioniz = 9.76 + 58.8 * pow(tz, -1.19);
 
-  Double_t bethe = (konst * tz * rho * track->charge * track->charge) / (ta * beta * beta);
+  double bethe = (konst * tz * rho * track->charge * track->charge) / (ta * beta * beta);
   //  Printf("ioniz %f",ioniz);
   bethe *= log(2 * emass * bg * bg * wmax * 1e12 / (ioniz * ioniz)) - 2 * beta * beta;
   //  Printf("bethe %f",bethe);
@@ -248,11 +248,11 @@ Double_t ElossProcess::BetheBloch(GeantTrack *track, Double_t tz, Double_t ta, D
 }
 
 //______________________________________________________________________________
-Double_t ElossProcess::Bbf1(Double_t *x, Double_t *par) {
-  Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiPlus)->Mass();
+double ElossProcess::Bbf1(double *x, double *par) {
+  double pimass = TDatabasePDG::Instance()->GetParticle(kPiPlus)->Mass();
   GeantTrack t;
-  Double_t bg = pow(10., *x);
-  Double_t gamma = sqrt(bg * bg + 1);
+  double bg = pow(10., *x);
+  double gamma = sqrt(bg * bg + 1);
 
   t.px = bg * pimass;
   t.py = 0;
@@ -264,7 +264,7 @@ Double_t ElossProcess::Bbf1(Double_t *x, Double_t *par) {
 }
 
 //______________________________________________________________________________
-void ElossProcess::PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin, Double_t bgmax) {
+void ElossProcess::PlotBB(double z, double a, double rho, double bgmin, double bgmax) {
   TF1 *f = new TF1("bb", ElossProcess::Bbf1, log10(bgmin), log10(bgmax), 3);
   TH1F *h = new TH1F("hh", "Bethe Bloch", 100, log10(bgmin), log10(bgmax));
   h->SetMinimum(1.);
@@ -279,23 +279,23 @@ void ElossProcess::PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin, 
 ClassImp(InteractionProcess)
 
     //______________________________________________________________________________
-    void InteractionProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, Double_t *lengths) {
+    void InteractionProcess::ComputeIntLen(TGeoVolume *vol, Int_t ntracks, Int_t *trackin, double *lengths) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
-  Double_t fact = 1.;
-  const Double_t nabarn = fact * kAvogadro * 1e-24;
+  double fact = 1.;
+  const double nabarn = fact * kAvogadro * 1e-24;
   Int_t itrack;
   GeantTrack *track;
-  Double_t xlen = numeric_limits<double>.max();
+  double xlen = numeric_limits<double>.max();
   TGeoMaterial *mat = vol->GetMaterial();
-  Double_t mata = mat->GetA();
-  Double_t matz = mat->GetZ();
-  Double_t matr = mat->GetDensity();
+  double mata = mat->GetA();
+  double matz = mat->GetZ();
+  double matr = mat->GetDensity();
   Bool_t invalid_material = kFALSE;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
   if (!invalid_material) {
-    Double_t density = max<double>(matr, 1e-5);
-    Double_t sigma = 28.5 * pow(mata, 0.75);
+    double density = max<double>(matr, 1e-5);
+    double sigma = 28.5 * pow(mata, 0.75);
     xlen = mat->GetA() / (sigma * density * nabarn);
   } else {
     for (itrack = 0; itrack < ntracks; itrack++)
@@ -307,7 +307,7 @@ ClassImp(InteractionProcess)
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
     if (track->species == kHadron && track->IsAlive()) {
-      Double_t ek = track->e - track->mass;
+      double ek = track->e - track->mass;
       lengths[i] = xlen * (0.007 + 0.1 * log(ek) / ek + 0.2 / (ek * ek));
     } else {
       lengths[i] = 0.5 * numeric_limits<double>.max();
@@ -329,9 +329,9 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
   static TGenPhaseSpace gps;
   GeantTrack *track;
   Int_t itrack;
-  Double_t *rndArray = TBBperThread.fDblArray;
-  const Double_t pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
-  const Double_t prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass,
+  double *rndArray = TBBperThread.fDblArray;
+  const double pimass = TDatabasePDG::Instance()->GetParticle(kPiMinus)->Mass();
+  const double prodm[18] = {pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass,
                               pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass, pimass};
   TBBperThread.fRndm->RndmArray(ntracks, rndArray);
 
@@ -340,10 +340,10 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
   for (Int_t i = 0; i < ntracks; i++) {
     itrack = trackin[i];
     track = gPropagator->fTracks[itrack];
-    Double_t en = track->e;
-    Double_t m1 = track->mass;
-    Double_t m2 = TBBperThread.fVolume->GetMaterial()->GetA();
-    Double_t cmsen = sqrt(m1 * m1 + m2 * m2 + 2 * en * m2) - m1 - m2;
+    double en = track->e;
+    double m1 = track->mass;
+    double m2 = TBBperThread.fVolume->GetMaterial()->GetA();
+    double cmsen = sqrt(m1 * m1 + m2 * m2 + 2 * en * m2) - m1 - m2;
     // Calculate the number of pions as a poisson distribution leaving half of the cms energy
     // for phase space momentum
     Int_t npi = 0.5 * TBBperThread.fRndm->Rndm() * cmsen / pimass + 0.5;
@@ -356,9 +356,9 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
       if (!gps.SetDecay(pcms, 2 * nprod, prodm))
         Printf("Forbidden decay!");
       gps.Generate();
-      // Double_t pxtot=track->px;
-      // Double_t pytot=track->py;
-      // Double_t pztot=track->pz;
+      // double pxtot=track->px;
+      // double pytot=track->py;
+      // double pztot=track->pz;
       TGeoBranchArray &a = *track->path;
       for (Int_t j = 0; j < 2 * nprod; ++j) {
         GeantTrack *trackg = gPropagator->AddTrack(track->evslot);
@@ -381,7 +381,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
         trackg->py = lv->Py();
         trackg->pz = lv->Pz();
         trackg->e = lv->E();
-        //            Double_t mm2 =
+        //            double mm2 =
         //            trackg->e*trackg->e-trackg->px*trackg->px-trackg->py*trackg->py-trackg->pz*trackg->pz;
         Int_t itracknew = trackg->particle;
         trackout[nout++] = itracknew;

@@ -35,7 +35,7 @@
 class TNudyEndfSec: public TObject {
 public:
   TNudyEndfSec();
-  TNudyEndfSec(Int_t mat, Int_t mf, Int_t mt, Double_t c1, Double_t c2,
+  TNudyEndfSec(Int_t mat, Int_t mf, Int_t mt, double c1, double c2,
 		Int_t l1, Int_t l2, Int_t n1, Int_t n2);
   virtual ~TNudyEndfSec();
   const Char_t* GetName() const {return fName;}
@@ -59,8 +59,8 @@ public:
   Short_t  fMAT;        // Mat number
   Short_t  fMF;         // File number
   Int_t    fMT;         // Section number 
-  Double_t fC1;         // C1 of the HEAD record
-  Double_t fC2;         // C2 of the HEAD record
+  double fC1;         // C1 of the HEAD record
+  double fC2;         // C2 of the HEAD record
   Int_t    fL1;         // L1 of the HEAD record
   Int_t    fL2;         // L2 of the HEAD record
   Int_t    fN1;         // N1 of the HEAD record

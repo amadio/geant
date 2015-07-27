@@ -17,7 +17,7 @@ using vecgeom::kTwoPi;
 
 #include <iostream>
 
-const Double_t gTolerance = TGeoShape::Tolerance();
+const double gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
 GeantTrack::GeantTrack(Int_t ipdg)
@@ -82,7 +82,7 @@ GeantTrack::~GeantTrack() {
   delete nextpath;
 }
 
-Double_t GeantTrack::Curvature() const {
+double GeantTrack::Curvature() const {
   GeantPropagator *propagator = GeantPropagator::Instance();
   return (charge) ? fabs(kB2C * propagator->fBmag / Pt()) : 0.;
 }
@@ -117,7 +117,7 @@ void GeantTrack::Reset() {
 }
 
 //______________________________________________________________________________
-void GeantTrack::Direction(Double_t dir[3]) {
+void GeantTrack::Direction(double dir[3]) {
   dir[0] = px;
   dir[1] = py;
   dir[2] = pz;
@@ -141,7 +141,7 @@ void GeantTrack::Print(Int_t) const {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr) {
+GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, Int_t itr) {
   // Propagate along a straight line for neutral particles, for B=0 or for last tiny step.
   // The method adds the particle to the next volume basket.
   // Returns the basket pointer, null if exiting geometry.
@@ -150,7 +150,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr) {
   PerThread::reference TBBperThread = gPropagator->fTBBthreadData.local();
 
   // Find next volume
-  Double_t dir[3];
+  double dir[3];
   //   frombdr = kTRUE;
   Direction(dir);
   pstep -= crtstep;
@@ -192,7 +192,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(Double_t crtstep, Int_t itr) {
 }
 
 //______________________________________________________________________________
-GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcross, Int_t itr) {
+GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, Bool_t checkcross, Int_t itr) {
   // Propagate with step using the helix propagator. Returns a basket if a
   // boundary was crossed. In such case, the track position and step will reflect
   // the boundary crossing point.
@@ -222,11 +222,11 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
     safety = 0.;
   step += crtstep;
   // Set curvature, charge
-  Double_t c = 0.;
-  Double_t dir[3];
-  Double_t ptot = 0;
-  const Double_t *point = 0;
-  const Double_t *newdir = 0;
+  double c = 0.;
+  double dir[3];
+  double ptot = 0;
+  const double *point = 0;
+  const double *newdir = 0;
   Direction(dir);
   if (charge) {
     c = Curvature();
@@ -270,9 +270,9 @@ GeantVolumeBasket *GeantTrack::PropagateInField(Double_t crtstep, Bool_t checkcr
   // Boundary crossed
   TGeoNode *checked = nav->GetCurrentNode();
   TGeoVolume *vol = checked->GetVolume();
-  Double_t ldir[3], ld[3];
-  Double_t local[3], lp[3];
-  Double_t delta;
+  double ldir[3], ld[3];
+  double local[3], lp[3];
+  double delta;
   Bool_t outside = nav->IsOutside();
   // Swap track direction and compute distance back to boundary
   dir[0] = -newdir[0];

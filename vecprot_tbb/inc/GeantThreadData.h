@@ -26,8 +26,8 @@ public:
    TGeoHMatrix      *fMatrix;                //! Current matrix per thread
    TGeoVolume       *fVolume;                //! Current volume per thread
    TRandom          *fRndm;                  //! Random generator for thread
-   Double_t         *fDblArray;              //![5*fMaxPerBasket] Support for random seed
-   Double_t         *fProcStep;              //![fNprocesses*fMaxPerBasket]
+   double         *fDblArray;              //![5*fMaxPerBasket] Support for random seed
+   double         *fProcStep;              //![fNprocesses*fMaxPerBasket]
    TArrayI          *fPartInd;               //![fMaxPerBasket] Indices array for transported particles
    TArrayI          *fPartNext;              //![fMaxPerBasket] Indices array for remaining particles
    TArrayI          *fPartTodo;              //![fMaxPerBasket] Indices array for todo particles
@@ -47,7 +47,7 @@ public:
    GeantThreadData(const GeantThreadData& oth);
    ~GeantThreadData();
 
-   Double_t         *GetProcStep(Int_t iproc) {return fProcStep+iproc*fMaxPerBasket;}
+   double         *GetProcStep(Int_t iproc) {return fProcStep+iproc*fMaxPerBasket;}
 
 };
 #endif

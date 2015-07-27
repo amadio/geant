@@ -111,7 +111,7 @@ task *CollDispTask::execute() {
   ///*
   if (propagator->fUseGraphics) {
     Int_t localNiter = propagator->niter.fetch_and_increment();
-    Double_t nperbasket = 0;
+    double nperbasket = 0;
     for (PerThread::iterator it = propagator->fTBBthreadData.begin(); it != propagator->fTBBthreadData.end(); ++it)
       nperbasket += it->fTracksPerBasket;
     nperbasket /= propagator->fNthreads;

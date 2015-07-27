@@ -43,18 +43,18 @@ public:
   //after proper transforamtion, update properties of primary in track 
   void SampleFinalState(const Int_t elementindex, const Int_t reactionid,
                         const G4Track &atrack, G4ParticleChange *particlechange, 
-                        Double_t energylimit);   
+                        double energylimit);   
   //compute energy loss for charged particle from dE/dx and update particle change
   void EnergyLoss(G4int imat, const G4Track &atrack, const G4Step &astep, 
                   G4ParticleChange *particlechange, G4double energylimit);
   void SampleFinalStateAtRest(const Int_t imat, const G4Track &atrack,
-                        G4ParticleChange *particlechange, Double_t energylimit);   
+                        G4ParticleChange *particlechange, double energylimit);   
   void SampleDecayInFlight(const Int_t partindex, const G4Track &atrack, 
-                       G4ParticleChange *particlechange, Double_t energylimit );
+                       G4ParticleChange *particlechange, double energylimit );
   void ApplyMsc(G4int imat, const G4Track &atrack);
-  void RotateNewTrack(Double_t oldXdir, Double_t oldYdir, Double_t oldZdir, 
+  void RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, 
                 G4ThreeVector &newDir);
-  void RotateTrack(G4ThreeVector &newdir, Double_t costheta, Double_t phi);
+  void RotateTrack(G4ThreeVector &newdir, double costheta, double phi);
 
   G4bool HasRestProcess(Int_t gvindex);
 

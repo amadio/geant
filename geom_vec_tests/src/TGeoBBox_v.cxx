@@ -97,14 +97,14 @@ TGeoBBox_v::TGeoBBox_v() {
 }
 
 //_____________________________________________________________________________
-TGeoBBox_v::TGeoBBox_v(Double_t dx, Double_t dy, Double_t dz, Double_t *origin) : TGeoBBox(dx, dy, dz, origin) {}
+TGeoBBox_v::TGeoBBox_v(double dx, double dy, double dz, double *origin) : TGeoBBox(dx, dy, dz, origin) {}
 
 //_____________________________________________________________________________
-TGeoBBox_v::TGeoBBox_v(const char *name, Double_t dx, Double_t dy, Double_t dz, Double_t *origin)
+TGeoBBox_v::TGeoBBox_v(const char *name, double dx, double dy, double dz, double *origin)
     : TGeoBBox(name, dx, dy, dz, origin) {}
 
 //_____________________________________________________________________________
-TGeoBBox_v::TGeoBBox_v(Double_t *param) : TGeoBBox(param) {}
+TGeoBBox_v::TGeoBBox_v(double *param) : TGeoBBox(param) {}
 
 //_____________________________________________________________________________
 TGeoBBox_v::~TGeoBBox_v() {
@@ -115,27 +115,27 @@ TGeoBBox_v::~TGeoBBox_v() {
 Bool_t TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2,
                                   const TGeoMatrix *mat2) {
   // Check if 2 positioned boxes overlap.
-  Double_t master[3];
-  Double_t local[3];
-  Double_t ldir1[3], ldir2[3];
-  const Double_t *o1 = box1->GetOrigin();
-  const Double_t *o2 = box2->GetOrigin();
+  double master[3];
+  double local[3];
+  double ldir1[3], ldir2[3];
+  const double *o1 = box1->GetOrigin();
+  const double *o2 = box2->GetOrigin();
   // Convert center of first box to the local frame of second
   mat1->LocalToMaster(o1, master);
   mat2->MasterToLocal(master, local);
   if (TGeoBBox_v::Contains(local, box2->GetDX(), box2->GetDY(), box2->GetDZ(), o2))
     return kTRUE;
-  Double_t distsq = (local[0] - o2[0]) * (local[0] - o2[0]) + (local[1] - o2[1]) * (local[1] - o2[1]) +
+  double distsq = (local[0] - o2[0]) * (local[0] - o2[0]) + (local[1] - o2[1]) * (local[1] - o2[1]) +
                     (local[2] - o2[2]) * (local[2] - o2[2]);
   // Compute distance between box centers and compare with max value
-  Double_t rmaxsq = (box1->GetDX() + box2->GetDX()) * (box1->GetDX() + box2->GetDX()) +
+  double rmaxsq = (box1->GetDX() + box2->GetDX()) * (box1->GetDX() + box2->GetDX()) +
                     (box1->GetDY() + box2->GetDY()) * (box1->GetDY() + box2->GetDY()) +
                     (box1->GetDZ() + box2->GetDZ()) * (box1->GetDZ() + box2->GetDZ());
   if (distsq > rmaxsq + TGeoShape::Tolerance())
     return kFALSE;
   // We are still not sure: shoot a ray from the center of "1" towards the
   // center of 2.
-  Double_t dir[3];
+  double dir[3];
   mat1->LocalToMaster(o1, ldir1);
   mat2->LocalToMaster(o2, ldir2);
   distsq = sqrt(1. / distsq);
@@ -145,19 +145,19 @@ Bool_t TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1
   mat1->MasterToLocalVect(dir, ldir1);
   mat2->MasterToLocalVect(dir, ldir2);
   // Distance to exit from o1
-  Double_t dist1 = TGeoBBox_v::DistFromInsideS(o1, ldir1, box1->GetDX(), box1->GetDY(), box1->GetDZ(), o1);
+  double dist1 = TGeoBBox_v::DistFromInsideS(o1, ldir1, box1->GetDX(), box1->GetDY(), box1->GetDZ(), o1);
   // Distance to enter from o2
-  Double_t dist2 = TGeoBBox_v::DistFromOutsideS(local, ldir2, box2->GetDX(), box2->GetDY(), box2->GetDZ(), o2);
+  double dist2 = TGeoBBox_v::DistFromOutsideS(local, ldir2, box2->GetDX(), box2->GetDY(), box2->GetDZ(), o2);
   if (dist1 > dist2)
     return kTRUE;
   return kFALSE;
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal(const Double_t *point, const Double_t *dir, Double_t *norm) const {
+void TGeoBBox_v::ComputeNormal(const double *point, const double *dir, double *norm) const {
   // Computes normal to closest surface from POINT.
-  memset(norm, 0, 3 * sizeof(Double_t));
-  Double_t saf[3];
+  memset(norm, 0, 3 * sizeof(double));
+  double saf[3];
   Int_t i;
   saf[0] = fabs(fabs(point[0] - fOrigin[0]) - fDX);
   saf[1] = fabs(fabs(point[1] - fOrigin[1]) - fDY);
@@ -167,8 +167,8 @@ void TGeoBBox_v::ComputeNormal(const Double_t *point, const Double_t *dir, Doubl
 }
 
 // sw_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal_l(const Double_t *__restrict__ point, const Double_t *__restrict__ dir,
-                                 Double_t *__restrict__ norm, Int_t np) const {
+void TGeoBBox_v::ComputeNormal_l(const double *__restrict__ point, const double *__restrict__ dir,
+                                 double *__restrict__ norm, Int_t np) const {
   for (Int_t i = 0; i < np; i++) //@EXPECTVEC
   {
     ComputeNormal(&point[3 * i], &dir[3 * i], &norm[3 * i]);
@@ -176,11 +176,11 @@ void TGeoBBox_v::ComputeNormal_l(const Double_t *__restrict__ point, const Doubl
 }
 
 // mb_____________________________________________________________________________
-void TGeoBBox_v::ComputeNormal_v(const Double_t *__restrict__ point, const Double_t *__restrict__ dir,
-                                 Double_t *__restrict__ norm, Int_t np) const {
+void TGeoBBox_v::ComputeNormal_v(const double *__restrict__ point, const double *__restrict__ dir,
+                                 double *__restrict__ norm, Int_t np) const {
   // Computes normal to closest surface from POINT.
-  memset(norm, 0, 3 * np * sizeof(Double_t));
-  Double_t saf[3];
+  memset(norm, 0, 3 * np * sizeof(double));
+  double saf[3];
   Int_t min;
   for (Int_t i = 0; i < np; i++) //@EXPECTVEC
   {
@@ -193,34 +193,34 @@ void TGeoBBox_v::ComputeNormal_v(const Double_t *__restrict__ point, const Doubl
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::CouldBeCrossed(const Double_t *point, const Double_t *dir) const {
+Bool_t TGeoBBox_v::CouldBeCrossed(const double *point, const double *dir) const {
   // Decides fast if the bounding box could be crossed by a vector.
-  Double_t mind = fDX;
+  double mind = fDX;
   if (fDY < mind)
     mind = fDY;
   if (fDZ < mind)
     mind = fDZ;
-  Double_t dx = fOrigin[0] - point[0];
-  Double_t dy = fOrigin[1] - point[1];
-  Double_t dz = fOrigin[2] - point[2];
-  Double_t do2 = dx * dx + dy * dy + dz * dz;
+  double dx = fOrigin[0] - point[0];
+  double dy = fOrigin[1] - point[1];
+  double dz = fOrigin[2] - point[2];
+  double do2 = dx * dx + dy * dy + dz * dz;
   if (do2 <= (mind * mind))
     return kTRUE;
-  Double_t rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
+  double rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
   if (do2 <= rmax2)
     return kTRUE;
   // inside bounding sphere
-  Double_t doct = dx * dir[0] + dy * dir[1] + dz * dir[2];
+  double doct = dx * dir[0] + dy * dir[1] + dz * dir[2];
   // leaving ray
   if (doct <= 0)
     return kFALSE;
-  Double_t dirnorm = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
+  double dirnorm = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
   if ((doct * doct) >= (do2 - rmax2) * dirnorm)
     return kTRUE;
   return kFALSE;
 }
 
-void TGeoBBox_v::CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bool_t *__restrict__ crossed,
+void TGeoBBox_v::CouldBeCrossed_l(const double *point, const double *dir, Bool_t *__restrict__ crossed,
                                   Int_t np) const {
   // Decides fast if the bounding box could be crossed by a vector.
   for (unsigned int i = 0; i < np; ++i) {
@@ -231,20 +231,20 @@ void TGeoBBox_v::CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bo
 void TGeoBBox_v::CouldBeCrossed_v(const StructOfCoord &point, const StructOfCoord &dir, Bool_t *__restrict__ crossed,
                                   Int_t np) const {
   // Decides fast if the bounding box could be crossed by a vector.
-  Double_t mind = min<double>(fDX, fDY);
+  double mind = min<double>(fDX, fDY);
   mind = min<double>(mind, fDZ);
 
-  Double_t rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
+  double rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
 
   for (Int_t i = 0; i < np; i++) //@EXPECTVEC
   {
-    Double_t dx, dy, dz, do2;
+    double dx, dy, dz, do2;
     dx = fOrigin[0] - point.x[i];
     dy = fOrigin[1] - point.y[i];
     dz = fOrigin[2] - point.z[i];
     do2 = dx * dx + dy * dy + dz * dz;
-    Double_t doct = dx * dir.x[i] + dy * dir.y[i] + dz * dir.z[i];
-    Double_t dirnorm = dir.x[i] * dir.x[i] + dir.y[i] * dir.y[i] + dir.z[i] * dir.z[i];
+    double doct = dx * dir.x[i] + dy * dir.y[i] + dz * dir.z[i];
+    double dirnorm = dir.x[i] * dir.x[i] + dir.y[i] * dir.y[i] + dir.z[i] * dir.z[i];
     crossed[i] = ((do2 <= (mind * mind)) | (do2 <= rmax2) |
                   (doct > 0 & ((doct * doct) >= (do2 - rmax2) * dirnorm))); // to verify
     // !! use | instead of || .. as lazy operators are branching
@@ -252,17 +252,17 @@ void TGeoBBox_v::CouldBeCrossed_v(const StructOfCoord &point, const StructOfCoor
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::CouldBeCrossed_v(const Double_t __restrict__ *point, const Double_t __restrict__ *dir,
+void TGeoBBox_v::CouldBeCrossed_v(const double __restrict__ *point, const double __restrict__ *dir,
                                   Bool_t *__restrict__ couldcrossed, Int_t np) const {
   // Decides fast if the bounding box could be crossed by a vector.
-  Double_t mind = fDX;
+  double mind = fDX;
   if (fDY < mind)
     mind = fDY;
   if (fDZ < mind)
     mind = fDZ;
 
-  Double_t dx, dy, dz, do2;
-  Double_t rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
+  double dx, dy, dz, do2;
+  double rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
   for (Int_t i = 0; i < np; i++) //@EXPECTVEC
   {
     dx = fOrigin[0] - point[i * 3 + 0];
@@ -274,10 +274,10 @@ void TGeoBBox_v::CouldBeCrossed_v(const Double_t __restrict__ *point, const Doub
 
     // if (do2<=rmax2) return kTRUE; //(2)
     // inside bounding sphere
-    Double_t doct = dx * dir[3 * i + 0] + dy * dir[3 * i + 1] + dz * dir[3 * i + 2];
+    double doct = dx * dir[3 * i + 0] + dy * dir[3 * i + 1] + dz * dir[3 * i + 2];
     // leaving ray
     // if (doct<=0) return kFALSE; //(3)
-    Double_t dirnorm =
+    double dirnorm =
         dir[3 * i + 0] * dir[3 * i + 0] + dir[3 * i + 1] * dir[3 * i + 1] + dir[3 * i + 2] * dir[3 * i + 2];
     // if ((doct*doct)>=(do2-rmax2)*dirnorm) return kTRUE; //(4)
     // return kFALSE; //(5)
@@ -296,7 +296,7 @@ Int_t TGeoBBox_v::DistancetoPrimitive(Int_t px, Int_t py) {
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::Contains(const Double_t *point) const {
+Bool_t TGeoBBox_v::Contains(const double *point) const {
   // Test if point is inside this shape.
   if (fabs(point[2] - fOrigin[2]) > fDZ)
     return kFALSE;
@@ -307,7 +307,7 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point) const {
   return kTRUE;
 }
 
-void TGeoBBox_v::Contains_l(const Double_t *__restrict__ point, Bool_t *__restrict__ isin, Int_t np) const {
+void TGeoBBox_v::Contains_l(const double *__restrict__ point, Bool_t *__restrict__ isin, Int_t np) const {
   //
   for (Int_t i = 0; i < np; ++i) //@EXPECTVEC
   {
@@ -317,7 +317,7 @@ void TGeoBBox_v::Contains_l(const Double_t *__restrict__ point, Bool_t *__restri
 
 #define vector(elcount, type) __attribute__((vector_size((elcount) * sizeof(type)))) type
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const Double_t *__restrict__ pointi, Bool_t *__restrict__ isin, Int_t np) const {
+void TGeoBBox_v::Contains_v(const double *__restrict__ pointi, Bool_t *__restrict__ isin, Int_t np) const {
 // Test if point is inside this shape.
 //  vector(32,double) *vx, *vy;
 #ifndef __INTEL_COMPILER
@@ -329,7 +329,7 @@ void TGeoBBox_v::Contains_v(const Double_t *__restrict__ pointi, Bool_t *__restr
   //#pragma ivdep
   for (Int_t i = 0; i < np; ++i) //@EXPECTVEC
   {
-    Double_t xx, yy, zz;
+    double xx, yy, zz;
     xx = point[3 * i];
     yy = point[3 * i + 1];
     zz = point[3 * i + 2];
@@ -354,7 +354,7 @@ void TGeoBBox_v::Contains_v(const StructOfCoord &__restrict__ pointi, Bool_t *__
   //#pragma ivdep
   for (Int_t i = 0; i < np; ++i) //@EXPECTVEC
   {
-    Double_t xx, yy, zz;
+    double xx, yy, zz;
     xx = x[i] - fOrigin[0];
     yy = y[i] - fOrigin[1];
     zz = z[i] - fOrigin[2];
@@ -365,12 +365,12 @@ void TGeoBBox_v::Contains_v(const StructOfCoord &__restrict__ pointi, Bool_t *__
 
 /*
 //_____________________________________________________________________________
-void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
+void TGeoBBox_v::Contains_v(const double * __restrict__ point, Bool_t * __restrict__ isin, Int_t np) const
 {
- Double_t px[np];
- Double_t py[np];
- Double_t pz[np];
- Double_t fake[np];
+ double px[np];
+ double py[np];
+ double pz[np];
+ double fake[np];
  for(Int_t i=0; i<np; ++i)
    {
      px[i]=point[3*i];
@@ -382,7 +382,7 @@ void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __rest
 #pragma ivdep
  for(Int_t i=0; i<np; ++i)  //@EXPECTVEC
    {
-     Double_t xx, yy, zz;
+     double xx, yy, zz;
      xx=px[i]-fOrigin[0];
      yy=py[i]-fOrigin[1];
      zz=pz[i]-fOrigin[2];
@@ -392,7 +392,7 @@ void TGeoBBox_v::Contains_v(const Double_t * __restrict__ point, Bool_t * __rest
 */
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin) {
+Bool_t TGeoBBox_v::Contains(const double *point, double dx, double dy, double dz, const double *origin) {
   // Test if point is inside this shape.
   if (fabs(point[2] - origin[2]) > dz)
     return kFALSE;
@@ -404,13 +404,13 @@ Bool_t TGeoBBox_v::Contains(const Double_t *point, Double_t dx, Double_t dy, Dou
 }
 
 //__ static version of method _________________________________________________
-Double_t TGeoBBox_v::DistFromInsideS(const Double_t *point, const Double_t *dir, Double_t dx, Double_t dy, Double_t dz,
-                                     const Double_t *origin, Double_t /*stepmax*/) {
+double TGeoBBox_v::DistFromInsideS(const double *point, const double *dir, double dx, double dy, double dz,
+                                     const double *origin, double /*stepmax*/) {
   // Computes distance from inside point to surface of the box.
   // Boundary safe algorithm.
 
-  Double_t s, smin, saf[6];
-  Double_t newpt[3];
+  double s, smin, saf[6];
+  double newpt[3];
   Int_t i;
 
   newpt[0] = point[0] - origin[0];
@@ -454,11 +454,11 @@ Double_t TGeoBBox_v::DistFromInsideS(const Double_t *point, const Double_t *dir,
 }
 
 //_____________________________________________________________________________
-Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, Double_t step, Double_t *safe) const {
+double TGeoBBox_v::DistFromInside(double *point, double *dir, Int_t iact, double step, double *safe) const {
   // Compute distance from inside point to surface of the box along some direction given by dir
   // Boundary safe algorithm.
-  Double_t s, smin, saf[6];
-  Double_t newpt[3];
+  double s, smin, saf[6];
+  double newpt[3];
   Int_t i;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - fOrigin[i];
@@ -508,9 +508,9 @@ Double_t TGeoBBox_v::DistFromInside(Double_t *point, Double_t *dir, Int_t iact, 
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::DistFromInsideS_l(const Double_t *__restrict__ point, const Double_t *__restrict__ dir, Double_t dx,
-                                   Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                   const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, int npoints) {
+void TGeoBBox_v::DistFromInsideS_l(const double *__restrict__ point, const double *__restrict__ dir, double dx,
+                                   double dy, double dz, const double *__restrict__ origin,
+                                   const double *__restrict__ stepmax, double *__restrict__ distance, int npoints) {
 #pragma simd
   // #pragma ivdep
   for (unsigned int k = 0; k < npoints; k++) //@EXPECTVEC
@@ -522,8 +522,8 @@ void TGeoBBox_v::DistFromInsideS_l(const Double_t *__restrict__ point, const Dou
 
 //_____________________________________________________________________________
 void TGeoBBox_v::DistFromInsideS_l(const StructOfCoord &__restrict__ point, const StructOfCoord &__restrict__ dir,
-                                   Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                   const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, int npoints) {
+                                   double dx, double dy, double dz, const double *__restrict__ origin,
+                                   const double *__restrict__ stepmax, double *__restrict__ distance, int npoints) {
 #pragma simd
   // #pragma ivdep
   for (unsigned int k = 0; k < npoints; k++) //@EXPECTVEC
@@ -536,15 +536,15 @@ void TGeoBBox_v::DistFromInsideS_l(const StructOfCoord &__restrict__ point, cons
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::DistFromInsideS_v(const Double_t *__restrict__ point, const Double_t *__restrict__ dir, Double_t dx,
-                                   Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                   const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, int npoints) {
+void TGeoBBox_v::DistFromInsideS_v(const double *__restrict__ point, const double *__restrict__ dir, double dx,
+                                   double dy, double dz, const double *__restrict__ origin,
+                                   const double *__restrict__ stepmax, double *__restrict__ distance, int npoints) {
 
   // this and the previous should be the same; here I have done manual inlining
   for (unsigned int k = 0; k < npoints; ++k) //@EXPECTVEC
   {
-    Double_t s, smin, saf[6];
-    Double_t newpt[3];
+    double s, smin, saf[6];
+    double newpt[3];
     Int_t i;
 
     newpt[0] = point[3 * k + 0] - origin[0];
@@ -595,8 +595,8 @@ void TGeoBBox_v::DistFromInsideS_v(const Double_t *__restrict__ point, const Dou
 
 // SOA version____________________________________________________________________________
 void TGeoBBox_v::DistFromInsideS_v(const StructOfCoord &__restrict__ point, const StructOfCoord &__restrict__ dir,
-                                   Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                   const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, int npoints) {
+                                   double dx, double dy, double dz, const double *__restrict__ origin,
+                                   const double *__restrict__ stepmax, double *__restrict__ distance, int npoints) {
 #ifndef __INTEL_COMPILER
   const double *x = (const double *)__builtin_assume_aligned(point.x, 32);
   const double *y = (const double *)__builtin_assume_aligned(point.y, 32);
@@ -618,8 +618,8 @@ void TGeoBBox_v::DistFromInsideS_v(const StructOfCoord &__restrict__ point, cons
 #pragma vector aligned
   for (size_t k = 0; k < npoints; ++k) //@EXPECTVEC
   {
-    Double_t s, smin, saf[6];
-    Double_t newpt[3];
+    double s, smin, saf[6];
+    double newpt[3];
 
     newpt[0] = x[k] - origin[0];
     saf[0] = dx + newpt[0];
@@ -649,16 +649,16 @@ void TGeoBBox_v::DistFromInsideS_v(const StructOfCoord &__restrict__ point, cons
 }
 
 //_____________________________________________________________________________
-Double_t TGeoBBox_v::DistFromOutside(const Double_t *point, const Double_t *dir, Int_t iact, Double_t step,
-                                     Double_t *safe) const
+double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, Int_t iact, double step,
+                                     double *safe) const
 
 {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
   Bool_t in = kTRUE;
-  Double_t saf[3];
-  Double_t par[3];
-  Double_t newpt[3];
+  double saf[3];
+  double par[3];
+  double newpt[3];
   Int_t i, j;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - fOrigin[i];
@@ -689,12 +689,12 @@ Double_t TGeoBBox_v::DistFromOutside(const Double_t *point, const Double_t *dir,
       return TGeoShape::Big();
   }
   // compute distance from point to box
-  Double_t coord, snxt = TGeoShape::Big();
+  double coord, snxt = TGeoShape::Big();
   Int_t ibreak = 0;
   // protection in case point is actually inside box
   if (in) {
     j = 0;
-    Double_t ss = saf[0];
+    double ss = saf[0];
     if (saf[1] > ss) {
       ss = saf[1];
       j = 1;
@@ -728,8 +728,8 @@ Double_t TGeoBBox_v::DistFromOutside(const Double_t *point, const Double_t *dir,
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::DistFromOutside_l(const Double_t __restrict__ *point, const Double_t __restrict__ *dir,
-                                   Double_t *__restrict__ distance, Int_t np) const {
+void TGeoBBox_v::DistFromOutside_l(const double __restrict__ *point, const double __restrict__ *dir,
+                                   double *__restrict__ distance, Int_t np) const {
 // trivial loop implementation calling "elemental function"
 #pragma simd
   for (Int_t i = 0; i < np; i++) //@EXPECTVEC
@@ -737,14 +737,14 @@ void TGeoBBox_v::DistFromOutside_l(const Double_t __restrict__ *point, const Dou
 }
 
 // static version_____________________________________________________________________________
-Double_t TGeoBBox_v::DistFromOutsideS(const Double_t *point, const Double_t *dir, Double_t dx, Double_t dy, Double_t dz,
-                                      const Double_t *origin, Double_t stepmax) {
+double TGeoBBox_v::DistFromOutsideS(const double *point, const double *dir, double dx, double dy, double dz,
+                                      const double *origin, double stepmax) {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
   Bool_t in = kTRUE;
-  Double_t saf[3];
-  Double_t par[3];
-  Double_t newpt[3];
+  double saf[3];
+  double par[3];
+  double newpt[3];
   Int_t i, j;
   for (i = 0; i < 3; i++)
     newpt[i] = point[i] - origin[i];
@@ -761,7 +761,7 @@ Double_t TGeoBBox_v::DistFromOutsideS(const Double_t *point, const Double_t *dir
   // In case point is inside return ZERO
   if (in)
     return 0.0;
-  Double_t coord, snxt = TGeoShape::Big();
+  double coord, snxt = TGeoShape::Big();
   Int_t ibreak = 0;
   for (i = 0; i < 3; i++) {
     if (saf[i] < 0)
@@ -787,8 +787,8 @@ Double_t TGeoBBox_v::DistFromOutsideS(const Double_t *point, const Double_t *dir
 
 // SOA _l version of static method DistFromOutside
 void TGeoBBox_v::DistFromOutsideS_l(const StructOfCoord &__restrict__ point, const StructOfCoord &__restrict__ dir,
-                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                    const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, Int_t np) {
+                                    double dx, double dy, double dz, const double *__restrict__ origin,
+                                    const double *__restrict__ stepmax, double *__restrict__ distance, Int_t np) {
   for (unsigned int k = 0; k < np; ++k) // @EXPECTVEC
   {
     double p[3];
@@ -804,9 +804,9 @@ void TGeoBBox_v::DistFromOutsideS_l(const StructOfCoord &__restrict__ point, con
 }
 
 // _l version of static method DistFromOutside
-void TGeoBBox_v::DistFromOutsideS_l(const double *__restrict__ point, const double *__restrict__ dir, Double_t dx,
-                                    Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                    const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, Int_t np) {
+void TGeoBBox_v::DistFromOutsideS_l(const double *__restrict__ point, const double *__restrict__ dir, double dx,
+                                    double dy, double dz, const double *__restrict__ origin,
+                                    const double *__restrict__ stepmax, double *__restrict__ distance, Int_t np) {
   for (unsigned int k = 0; k < np; ++k) // @EXPECTVEC
   {
     distance[k] = TGeoBBox_v::DistFromOutsideS(&point[3 * k], &dir[3 * k], dx, dy, dz, origin, stepmax[k]);
@@ -819,8 +819,8 @@ void TGeoBBox_v::DistFromOutsideS_l(const double *__restrict__ point, const doub
 
 // SOA version of static method DistFromOutside
 void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord &__restrict__ point, const StructOfCoord &__restrict__ dir,
-                                    Double_t dx, Double_t dy, Double_t dz, const Double_t *__restrict__ origin,
-                                    const Double_t *__restrict__ stepmax, Double_t *__restrict__ distance, Int_t np) {
+                                    double dx, double dy, double dz, const double *__restrict__ origin,
+                                    const double *__restrict__ stepmax, double *__restrict__ distance, Int_t np) {
 // note: we take stepmax as a maxstep PER particle
 // ALIGNMENTSTUFF HERE (TODO: should be generated automatically, MACRO? )
 #ifndef __INTEL_COMPILER
@@ -846,7 +846,7 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord &__restrict__ point, con
   double *dist = (double *)distance;
 #endif
 
-  Double_t par[3];
+  double par[3];
   par[0] = dx;
   par[1] = dy;
   par[2] = dz;
@@ -854,11 +854,11 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord &__restrict__ point, con
   for (unsigned int k = 0; k < np; ++k) // @EXPECTVEC
   {
     Bool_t in;
-    Double_t saf[3];
-    Double_t newpt[3];
+    double saf[3];
+    double newpt[3];
 
-    Double_t factor = 1.;
-    Double_t infactor; // will be zero or one depending if we are inside/outside
+    double factor = 1.;
+    double infactor; // will be zero or one depending if we are inside/outside
 
     // for (unsigned int i=0; i<3; i++) {
     //	 newpt[i] = p[i][k] - origin[i];
@@ -888,8 +888,8 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord &__restrict__ point, con
 
     // NOW WE HAVE THE SAFETYS AND IF IN OUT
 
-    Double_t coord;
-    Double_t snxt[3] = {TGeoShape::Big(), TGeoShape::Big(), TGeoShape::Big()};
+    double coord;
+    double snxt[3] = {TGeoShape::Big(), TGeoShape::Big(), TGeoShape::Big()};
 
     /*
     Int_t ibreak=0;
@@ -944,7 +944,7 @@ void TGeoBBox_v::DistFromOutsideS_v(const StructOfCoord &__restrict__ point, con
 #endif
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array) const {
+Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, double *array) const {
   // Fills array with n random points located on the surface of indexed facet.
   // The output array must be provided with a length of minimum 3*npoints. Returns
   // true if operation succeeded.
@@ -953,8 +953,8 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array)
   //    1 to 6 - facet index from bottom to top Z
   if (index < 0 || index > 6)
     return kFALSE;
-  Double_t surf[6];
-  Double_t area = 0.;
+  double surf[6];
+  double area = 0.;
   if (index == 0) {
     for (Int_t isurf = 0; isurf < 6; isurf++) {
       surf[isurf] = TGeoBBox_v::GetFacetArea(isurf + 1);
@@ -966,10 +966,10 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array)
 
   for (Int_t i = 0; i < npoints; i++) {
     // Generate randomly a surface index if needed.
-    Double_t *point = &array[3 * i];
+    double *point = &array[3 * i];
     Int_t surfindex = index;
     if (surfindex == 0) {
-      Double_t val = area * gRandom->Rndm();
+      double val = area * gRandom->Rndm();
       surfindex = 2 + TMath::BinarySearch(6, surf, val);
       if (surfindex > 6)
         surfindex = 6;
@@ -1011,7 +1011,7 @@ Bool_t TGeoBBox_v::GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array)
 }
 
 //_____________________________________________________________________________
-Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, Double_t *array) const {
+Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, double *array) const {
   // Fills array with n random points located on the line segments of the shape mesh.
   // The output array must be provided with a length of minimum 3*npoints. Returns
   // true if operation is implemented.
@@ -1023,12 +1023,12 @@ Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, Double_t *array) const {
   Int_t npnts = buff.NbPnts();
   Int_t nsegs = buff.NbSegs();
   // Copy buffered points  in the array
-  memcpy(array, buff.fPnts, 3 * npnts * sizeof(Double_t));
+  memcpy(array, buff.fPnts, 3 * npnts * sizeof(double));
   Int_t ipoints = npoints - npnts;
   Int_t icrt = 3 * npnts;
-  Int_t nperseg = (Int_t)(Double_t(ipoints) / nsegs);
-  Double_t *p0, *p1;
-  Double_t x, y, z, dx, dy, dz;
+  Int_t nperseg = (Int_t)(double(ipoints) / nsegs);
+  double *p0, *p1;
+  double x, y, z, dx, dy, dz;
   for (Int_t i = 0; i < nsegs; i++) {
     p0 = &array[3 * buff.fSegs[3 * i + 1]];
     p1 = &array[3 * buff.fSegs[3 * i + 2]];
@@ -1051,12 +1051,12 @@ Bool_t TGeoBBox_v::GetPointsOnSegments(Int_t npoints, Double_t *array) const {
 }
 
 //_____________________________________________________________________________
-Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const {
+double TGeoBBox_v::Safety(const double *point, Bool_t in) const {
 
   // Computes the closest distance from given point to this shape.
 
   /*
-     Double_t safe, safy, safz;
+     double safe, safy, safz;
      if (in) {
         safe = fDX - fabs(point[0]-fOrigin[0]);
         safy = fDY - fabs(point[1]-fOrigin[1]);
@@ -1072,7 +1072,7 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const {
      }
   */
 
-  Double_t safe, safy, safz;
+  double safe, safy, safz;
   char insign = (in) ? 1 : -1;
   safe = insign * (fDX - fabs(point[0] - fOrigin[0]));
   safy = insign * (fDY - fabs(point[1] - fOrigin[1]));
@@ -1086,7 +1086,7 @@ Double_t TGeoBBox_v::Safety(const Double_t *point, Bool_t in) const {
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::Safety_l(const Double_t *__restrict__ point, Double_t *__restrict__ safety, const Int_t n,
+void TGeoBBox_v::Safety_l(const double *__restrict__ point, double *__restrict__ safety, const Int_t n,
                           Bool_t in) const {
   for (unsigned int i = 0; i < n; i++) {
     safety[i] = this->Safety(&point[3 * i], in);
@@ -1107,7 +1107,7 @@ inline double myabs(double x) {
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Bool_t in, Double_t *__restrict__ safety,
+void TGeoBBox_v::Safety_v(const double *__restrict__ point, Bool_t in, double *__restrict__ safety,
                           const Int_t n) const {
   double *fD = (double *)&fDX; // treat box sizes as vector instead of writing explicitly x,y,z ( this works because
                                // they are next to each other in memory
@@ -1139,7 +1139,7 @@ void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Bool_t in, Double_
 }
 
 // SOA version_____________________________________________________________________________
-void TGeoBBox_v::Safety_v(const StructOfCoord &__restrict__ point, Bool_t in, Double_t *__restrict__ safety,
+void TGeoBBox_v::Safety_v(const StructOfCoord &__restrict__ point, Bool_t in, double *__restrict__ safety,
                           const Int_t n) const {
 
 #ifndef __INTEL_COMPILER
@@ -1152,7 +1152,7 @@ void TGeoBBox_v::Safety_v(const StructOfCoord &__restrict__ point, Bool_t in, Do
   const double *z = (const double *)point.z;
 #endif
 
-  Double_t safe, safy, safz;
+  double safe, safy, safz;
   char insign = (in) ? 1 : -1;
   for (unsigned int i = 0; i < n; i++) // @EXPECTVEC
   {
@@ -1168,7 +1168,7 @@ void TGeoBBox_v::Safety_v(const StructOfCoord &__restrict__ point, Bool_t in, Do
 }
 
 //_____________________________________________________________________________
-void TGeoBBox_v::Safety_v(const Double_t *__restrict__ point, Double_t *__restrict__ safety,
+void TGeoBBox_v::Safety_v(const double *__restrict__ point, double *__restrict__ safety,
                           const Bool_t *__restrict__ in, const Int_t n) const {
   double *fD = (double *)&fDX; // treat box sizes as vector instead of writing explicitly x,y,z ( this works because
                                // they are next to each other in memory )

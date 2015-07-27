@@ -50,7 +50,7 @@ public:
   Volume_t *fVolume;     /** Current volume per thread */
   TRandom *fRndm;        /** Random generator for thread */
   Bool_t *fBoolArray;    /** [fSizeBool] Thread array of bools */
-  Double_t *fDblArray;   /** [fSizeDbl] Thread array of doubles */
+  double *fDblArray;   /** [fSizeDbl] Thread array of doubles */
   GeantTrack fTrack;     /** Track support for this thread */
   VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
@@ -91,8 +91,8 @@ public:
    *
    * @param size Size of double array
    */
-  Double_t *GetDblArray(Int_t size) {
-    CheckSizeAndAlloc<Double_t>(fDblArray, fSizeDbl, size);
+  double *GetDblArray(Int_t size) {
+    CheckSizeAndAlloc<double>(fDblArray, fSizeDbl, size);
     return fDblArray;
   }
 

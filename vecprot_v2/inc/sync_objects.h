@@ -29,8 +29,8 @@ class TObject;
 struct TimeCounter {
   Int_t nthreads; /** Number of threads */
   TStopwatch *timer;
-  Double_t stamp;
-  Double_t realtime[100];
+  double stamp;
+  double realtime[100];
   
   /**
    * @brief TimeCounter parameterized constructor

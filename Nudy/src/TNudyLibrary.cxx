@@ -57,11 +57,11 @@ void TNudyLibrary::ReadTape(TNudyEndfTape *tape){
   TParticlePDG *particle;
   //Store mass of interested particle right now only neutron
   //**Make more general
-  Double_t neutron = TNudyCore::Instance()->GetParticlePDG(kNeutron)->Mass();
+  double neutron = TNudyCore::Instance()->GetParticlePDG(kNeutron)->Mass();
   //Iterate through all materials
   while((mat = (TNudyEndfMat*)iter.Next())){
     //Store relative mass to neutron of incident particle
-    Double_t awi = mat->GetAWI();
+    double awi = mat->GetAWI();
     //    printf("In Material %s\n",mat->GetName());
     //Iterate through all particles
     pIter.Reset();

@@ -307,9 +307,9 @@ void MaterialConverter::DumpListOfMaterials(bool onlyUsed)
     Int_t nelem = mat->GetNelements();
  
     for(Int_t iel=0; iel<nelem; ++iel) {
-      Double_t ad;
-      Double_t zd;
-      Double_t wd;
+      double ad;
+      double zd;
+      double wd;
       mat->GetElementProp(ad,zd,wd,iel);
       if (zd<1 || zd>NELEM) {
         std::cerr << " Fatal in MaterialConverter::DumpListOfMaterials"; 

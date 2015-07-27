@@ -31,7 +31,7 @@ public:
   virtual ~TTabPhysProcess() {}
 
   virtual void Initialize();
-  virtual void ComputeIntLen(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, Double_t *lengths,
+  virtual void ComputeIntLen(Material_t *mat, Int_t ntracks, GeantTrack_v &tracks, double *lengths,
                              GeantTaskData *td);
 
   // # dummy method: PostStep has been splitted up into two parts (see below)

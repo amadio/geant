@@ -59,8 +59,8 @@ class TNudyEndfINTG;
 
 extern "C" type_of_call {
   void FGetMTF(DEFCHARD str, Int_t mtf[4] DEFCHARL);
-  void FGetCONT(DEFCHARD str, Double_t c[2], Int_t nl[4], Int_t mtf[4] DEFCHARL);
-  void FGetFloat(DEFCHARD str, Double_t arr[6] DEFCHARL);
+  void FGetCONT(DEFCHARD str, double c[2], Int_t nl[4], Int_t mtf[4] DEFCHARL);
+  void FGetFloat(DEFCHARD str, double arr[6] DEFCHARL);
   void FGetInt(DEFCHARD str, Int_t iarr[6] DEFCHARL);
   void FGetINTG(DEFCHARD str, Int_t &ndigit,Int_t ij[2], Int_t kij[18], Int_t mtf[4] DEFCHARL);
 }
@@ -124,11 +124,11 @@ class TNudyENDF: public TObject {
      FGetMTF(PASSCHARD(fLine), mtf PASSCHARL(fLine));
    }
 
-   void GetCONT(Double_t c[2], Int_t nl[4], Int_t mtf[4]) const {
+   void GetCONT(double c[2], Int_t nl[4], Int_t mtf[4]) const {
      FGetCONT(PASSCHARD(fLine), c, nl, mtf PASSCHARL(fLine));
    }
 
-   void GetFloat(Double_t c[6]) const {
+   void GetFloat(double c[6]) const {
      FGetFloat(PASSCHARD(fLine), c PASSCHARL(fLine));
    }
 

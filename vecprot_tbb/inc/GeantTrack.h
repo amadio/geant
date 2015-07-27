@@ -9,7 +9,7 @@ using std::numeric_limits;
 class TGeoBranchArray;
 class GeantVolumeBasket;
 
-const Double_t kB2C = -0.299792458e-3;
+const double kB2C = -0.299792458e-3;
 enum TrackStatus_t { kAlive, kKilled, kBoundary };
 
 //______________________________________________________________________________
@@ -23,19 +23,19 @@ public:
   Species_t species;    // particle species
   TrackStatus_t status; // track status
   Int_t charge;         // particle charge
-  Double_t mass;        // particle mass
+  double mass;        // particle mass
   Int_t process;        // current process
-  Double_t xpos;        // position
-  Double_t ypos;
-  Double_t zpos;
-  Double_t px; // momentum
-  Double_t py;
-  Double_t pz;
-  Double_t e;                // energy
-  Double_t pstep;            // selected physical step
-  Double_t step;             // current step
-  Double_t snext;            // straight distance to next boundary
-  Double_t safety;           // safe distance to any boundary
+  double xpos;        // position
+  double ypos;
+  double zpos;
+  double px; // momentum
+  double py;
+  double pz;
+  double e;                // energy
+  double pstep;            // selected physical step
+  double step;             // current step
+  double snext;            // straight distance to next boundary
+  double safety;           // safe distance to any boundary
   Bool_t frombdr;            // true if starting from boundary
   Int_t izero;               // number of small steps used to catch errors
   Int_t nsteps;              // number of steps made
@@ -51,18 +51,18 @@ public:
   GeantTrack &operator=(const GeantTrack &other);
   GeantTrack(Int_t ipdg);
   virtual ~GeantTrack();
-  Double_t Curvature() const;
-  void Direction(Double_t dir[3]);
+  double Curvature() const;
+  void Direction(double dir[3]);
   Bool_t IsAlive() const { return (status != kKilled); }
   Bool_t IsOnBoundary() const { return (status == kBoundary); }
   void Kill() { status = kKilled; }
   void Print(Int_t trackindex = 0) const;
-  GeantVolumeBasket *PropagateInField(Double_t step, Bool_t checkcross, Int_t itr);
-  GeantVolumeBasket *PropagateStraight(Double_t step, Int_t itrack);
-  Double_t Pt() const { return sqrt(px * px + py * py); }
-  Double_t P() const { return sqrt(px * px + py * py + pz * pz); }
-  Double_t Gamma() const { return mass ? e / mass : numeric_limits<double>.max(); }
-  Double_t Beta() const { return P() / e; }
+  GeantVolumeBasket *PropagateInField(double step, Bool_t checkcross, Int_t itr);
+  GeantVolumeBasket *PropagateStraight(double step, Int_t itrack);
+  double Pt() const { return sqrt(px * px + py * py); }
+  double P() const { return sqrt(px * px + py * py + pz * pz); }
+  double Gamma() const { return mass ? e / mass : numeric_limits<double>.max(); }
+  double Beta() const { return P() / e; }
 
   void Reset();
 };

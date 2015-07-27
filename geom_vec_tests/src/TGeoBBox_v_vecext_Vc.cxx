@@ -162,7 +162,7 @@ void TGeoBBox_v::Contains_v(const StructOfCoord &pointi, Bool_t *isin, Int_t np)
   }
   // do the tail part for the moment, we just call the old static version
   for (unsigned int i = 0; i < tailsize; ++i) {
-    Double_t xx, yy, zz;
+    double xx, yy, zz;
     xx = pointi.x[np - tailsize + i] - fOrigin[0];
     yy = pointi.y[np - tailsize + i] - fOrigin[1];
     zz = pointi.z[np - tailsize + i] - fOrigin[2];

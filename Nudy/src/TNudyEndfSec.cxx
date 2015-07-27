@@ -38,7 +38,7 @@ TNudyEndfSec::TNudyEndfSec() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfSec::TNudyEndfSec(Int_t mat, Int_t mf, Int_t mt, Double_t c1, Double_t c2,
+TNudyEndfSec::TNudyEndfSec(Int_t mat, Int_t mf, Int_t mt, double c1, double c2,
 			   Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
   fMAT(mat),
   fMF(mf),

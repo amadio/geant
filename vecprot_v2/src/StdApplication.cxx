@@ -16,7 +16,7 @@ ClassImp(StdApplication)
     : GeantVApplication(), fInitialized(kFALSE), fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0), fMHist(),
       fScore(kScore) {
   // Ctor.
-  Double_t *array = 0;
+  double *array = 0;
   TH1::AddDirectory(false);
   fHeta = new TH1F("hEta", "Eta distribution per step", 50, -8., 8.);
   fHpt = new TH1F("hPt", "Pt distribution per step", 50, 0.1, 100.);
@@ -29,16 +29,16 @@ ClassImp(StdApplication)
 }
 
 //______________________________________________________________________________
-Double_t *StdApplication::MakeUniformLogArray(Int_t nbins, Double_t lmin, Double_t lmax) {
+double *StdApplication::MakeUniformLogArray(Int_t nbins, double lmin, double lmax) {
   // Create and fill a log scale bin limits array with nbins between lmin and lmax
   // To be passed to TH1D constructor. User responsability to delete.
-  const Double_t l10 = log(10.);
+  const double l10 = log(10.);
   if ((lmin <= 0) || (lmax <= 0))
     return 0;
-  Double_t *array = new Double_t[nbins + 1];
-  Double_t lminlog = log10(lmin);
-  Double_t lmaxlog = log10(lmax);
-  Double_t dstep = (lmaxlog - lminlog) / nbins;
+  double *array = new double[nbins + 1];
+  double lminlog = log10(lmin);
+  double lmaxlog = log10(lmax);
+  double dstep = (lmaxlog - lminlog) / nbins;
   for (auto i = 0; i <= nbins; ++i) {
     array[i] = exp(l10 * (lminlog + i * dstep));
   }
@@ -67,7 +67,7 @@ void StdApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
     return;
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
-  Double_t theta, eta;
+  double theta, eta;
   for (Int_t itr = 0; itr < npart; itr++) {
     if (tracks.fZdirV[itr] == 1)
       eta = 1.E30;

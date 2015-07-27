@@ -35,27 +35,27 @@ class TNudyEndfFile;
 class TNudyEndfMat: public TObject {
 public:
   TNudyEndfMat();
-  TNudyEndfMat(Int_t mat, Int_t za, Double_t awr, Char_t lrp, Bool_t lfi, Int_t nlib, Int_t nmod);
+  TNudyEndfMat(Int_t mat, Int_t za, double awr, Char_t lrp, Bool_t lfi, Int_t nlib, Int_t nmod);
   virtual ~TNudyEndfMat();
   void SetName   (Char_t *name)  {strncpy(fName,name,11); fName[11]='\0';}
   void SetMAT    (Int_t mat)     {fMAT = mat;}
   void SetZA     (Int_t za)      {fZA = za;}
-  void SetAWR    (Double_t awr)  {fAWR = awr;}
+  void SetAWR    (double awr)  {fAWR = awr;}
   void SetLRP    (Char_t lrp)    {fLRP = lrp;}
   void SetLFI    (Bool_t lfi)    {fLFI = lfi;}
   void SetNLIB   (Int_t nlib)    {fNLIB = nlib;}
   void SetNMOD   (Int_t nmod)    {fNMOD = nmod;}
-  void SetELIS   (Double_t elis) {fELIS = elis;}
+  void SetELIS   (double elis) {fELIS = elis;}
   void SetSTA    (Bool_t sta)    {fSTA = sta;}
   void SetLIS    (UChar_t lis)   {fLIS = lis;}
   void SetLISO   (UChar_t liso)  {fLISO = liso;}
   void SetNFOR   (Int_t nfor)    {fNFOR = nfor;}
-  void SetAWI    (Double_t awi)  {fAWI = awi;}
-  void SetEMAX   (Double_t emax) {fEMAX = emax;}
+  void SetAWI    (double awi)  {fAWI = awi;}
+  void SetEMAX   (double emax) {fEMAX = emax;}
   void SetLREL   (Int_t lrel)    {fLREL = lrel;}
   void SetNSUB   (Int_t nsub)    {fNSUB = nsub;}
   void SetNVER   (Int_t nver)    {fNVER = nver;}
-  void SetTEMP   (Double_t temp) {fTEMP = temp;}
+  void SetTEMP   (double temp) {fTEMP = temp;}
   void SetLDRV   (Int_t ldrv)    {fLDRV = ldrv;}
   void SetNWD    (Int_t nwd)     {fNWDm5 = nwd-5;}
   void SetDesc   (const Char_t *desc, Int_t i);
@@ -79,22 +79,22 @@ public:
   const Char_t* GetName()   const {return fName;}
   Int_t         GetMAT()    const {return fMAT;}
   Int_t         GetZA()     const {return fZA;}
-  Double_t      GetAWR()    const {return fAWR;}
+  double      GetAWR()    const {return fAWR;}
   Char_t        GetLRP()    const {return fLRP;}
   Bool_t        GetLFI()    const {return fLFI;}
   Int_t         GetNLIB()   const {return fNLIB;}
   Int_t         GetNMOD()   const {return fNMOD;}
-  Double_t      GetELIS()   const {return fELIS;}
+  double      GetELIS()   const {return fELIS;}
   Bool_t        GetSTA()    const {return fSTA;}
   UChar_t       GetLIS()    const {return fLIS;}
   UChar_t       GetLISO()   const {return fLISO;}
   Int_t         GetNFOR()   const {return fNFOR;}
-  Double_t      GetAWI()    const {return fAWI;}
-  Double_t      GetEMAX()   const {return fEMAX;}
+  double      GetAWI()    const {return fAWI;}
+  double      GetEMAX()   const {return fEMAX;}
   Int_t         GetLREL()   const {return fLREL;}
   Int_t         GetNSUB()   const {return fNSUB;}
   Int_t         GetNVER()   const {return fNVER;}
-  Double_t      GetTEMP()   const {return fTEMP;}
+  double      GetTEMP()   const {return fTEMP;}
   Int_t         GetLDRV()   const {return fLDRV;}
   Int_t         GetNWD()    const {return fNWDm5+5;}
   const Char_t* GetDesc(Int_t i)   const;
@@ -127,22 +127,22 @@ private:
   Char_t   fName[12];   // Material name
   Int_t    fMAT;        // MAT number
   Int_t    fZA;         // Standard identifier ZA = 1000.0 × Z + A
-  Double_t fAWR;        // Material mass in atomic units
+  double fAWR;        // Material mass in atomic units
   Char_t   fLRP;        // True if resonance parameters given in File 2
   Bool_t   fLFI;        // True if this material is fissile
   Int_t    fNLIB;       // Library identifier 
   Int_t    fNMOD;       // Modification number for this material
-  Double_t fELIS;       // Excitation energy of the target nucleus relative to 0.0 for the ground state.
+  double fELIS;       // Excitation energy of the target nucleus relative to 0.0 for the ground state.
   Bool_t   fSTA;        // True if target is stable
   UChar_t  fLIS;        // State number of the target nucleus; 0=ground state
   UChar_t  fLISO;       // Isomeric state number; 0=ground state
   Int_t    fNFOR;       // Library format.
-  Double_t fAWI;        // Mass of the projectile in neutron mass units
-  Double_t fEMAX;       // Upper limit of the energy range for evaluation
+  double fAWI;        // Mass of the projectile in neutron mass units
+  double fEMAX;       // Upper limit of the energy range for evaluation
   Int_t    fLREL;       // Library release number; for example, LREL=2 for the ENDF/B-VI.2 library.
   Int_t    fNSUB;       // Sub-library number
   Int_t    fNVER;       // Library version number; for example, NVER=7 for version ENDF/B-VII.
-  Double_t fTEMP;       // Target temperature (K) for data Doppler broadened. 0 for primary evalua- tions.
+  double fTEMP;       // Target temperature (K) for data Doppler broadened. 0 for primary evalua- tions.
   Int_t    fLDRV;       // Derived material evaluation flag
   Int_t    fNWDm5;      // Number of records with descriptive text minus 5 standard lines
   //  Char_t   (*fDesc)[66];// [fNWD-5] records with descriptive text

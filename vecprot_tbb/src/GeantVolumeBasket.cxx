@@ -18,7 +18,7 @@ using std::max;
 
 ClassImp(GeantVolumeBasket)
 
-    const Double_t gTolerance = TGeoShape::Tolerance();
+    const double gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
 GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol, Int_t number) : TObject(), fVolume(vol), fNumber(number) {
@@ -38,7 +38,7 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
 
   static Int_t icalls = 0;
-  Double_t pdir[3];
+  double pdir[3];
   Int_t itr;
   Bool_t isOnBoundary = kFALSE;
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -57,7 +57,7 @@ void GeantVolumeBasket::ComputeTransportLength(Int_t ntracks, Int_t *trackin) {
     nav->SetCurrentPoint(&track->xpos);
     nav->SetCurrentDirection(pdir);
     isOnBoundary = track->frombdr;
-    Double_t pstep = min<double>(1.E20, track->pstep);
+    double pstep = min<double>(1.E20, track->pstep);
     track->snext = 0;
     if (track->charge) {
       nav->FindNextBoundary(pstep, "", isOnBoundary);
@@ -120,7 +120,7 @@ void GeantVolumeBasket::PropagateTracks(Int_t ntracks, Int_t *trackin, Int_t &no
   GeantPropagator *gPropagator = GeantPropagator::Instance();
 
   GeantTrack *track;
-  Double_t step, snext, safety, c;
+  double step, snext, safety, c;
   ntodo = 0;
 
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();

@@ -12,13 +12,13 @@
 #include <cmath>
 
 //--- globals 
-const Double_t kNullVector[3]       =       {0.0,  0.0,  0.0};
+const double kNullVector[3]       =       {0.0,  0.0,  0.0};
 
-const Double_t kIdentityMatrix[3*3] =       {1.0,  0.0,  0.0,
+const double kIdentityMatrix[3*3] =       {1.0,  0.0,  0.0,
                                              0.0,  1.0,  0.0,
                                              0.0,  0.0,  1.0};
 
-const Double_t kUnitScale[3]        =       {1.0,  1.0,  1.0};
+const double kUnitScale[3]        =       {1.0,  1.0,  1.0};
 
 ////////////////////////////////////////////////////////////////////////////
 //                                                                        //
@@ -49,7 +49,7 @@ public :
    TGeoMatrix();
 
    // a pure translation
-   TGeoMatrix(Double_t dx, Double_t dy, Double_t dz)
+   TGeoMatrix(double dx, double dy, double dz)
      {
        fTranslation[0]=dx;
        fTranslation[1]=dy;
@@ -64,7 +64,7 @@ public :
        fRotationMatrix[7] = 0.;
        fRotationMatrix[8] = 1.;
      }
-   TGeoMatrix(Double_t dx, Double_t dy, Double_t dz, Double_t phi, Double_t theta, Double_t psi)
+   TGeoMatrix(double dx, double dy, double dz, double phi, double theta, double psi)
      {
        fTranslation[0]=dx;
        fTranslation[1]=dy;
@@ -88,25 +88,25 @@ public :
                             && TestBit(kGeoRotation) && TestBit(kGeoScale));}
    Bool_t               IsRegistered()  const {return TestBit(kGeoRegistered);}
    Bool_t               IsRotAboutZ()   const;
-   void                 GetHomogenousMatrix(Double_t *hmat) const;
+   void                 GetHomogenousMatrix(double *hmat) const;
    char                *GetPointerName() const;
 
    Int_t              GetByteCount() const;
-   Double_t const    *GetTranslation()    const { return fTranslation; }
-   Double_t const    *GetRotationMatrix() const { return fRotationMatrix; }
-   inline void MasterToLocal(const Double_t *master, Double_t *local) const
+   double const    *GetTranslation()    const { return fTranslation; }
+   double const    *GetRotationMatrix() const { return fRotationMatrix; }
+   inline void MasterToLocal(const double *master, double *local) const
    {
      // convert a point by multiplying its column vector (x, y, z, 1) to matrix
      // if idendity?? 
 
      // do the translation
-     Double_t const *tr  = GetTranslation();
-     Double_t mt0  = master[0]-tr[0];
-     Double_t mt1  = master[1]-tr[1];
-     Double_t mt2  = master[2]-tr[2];
+     double const *tr  = GetTranslation();
+     double mt0  = master[0]-tr[0];
+     double mt1  = master[1]-tr[1];
+     double mt2  = master[2]-tr[2];
 
      // do the rotation
-     Double_t const *rot = GetRotationMatrix();
+     double const *rot = GetRotationMatrix();
      local[0] = mt0*rot[0] + mt1*rot[3] + mt2*rot[6];
      local[1] = mt0*rot[1] + mt1*rot[4] + mt2*rot[7];
      local[2] = mt0*rot[2] + mt1*rot[5] + mt2*rot[8];
@@ -114,20 +114,20 @@ public :
 
  private:
    // data members
-   Double_t             fTranslation[3];  // translation vector
-   Double_t             fRotationMatrix[3*3];   // rotation matrix
+   double             fTranslation[3];  // translation vector
+   double             fRotationMatrix[3*3];   // rotation matrix
 
 //_____________________________________________________________________________
-   void SetAngles(Double_t phi, Double_t theta, Double_t psi)
+   void SetAngles(double phi, double theta, double psi)
    {
      // Set matrix elements according to Euler angles
-     Double_t degrad = M_PI/180.;
-     Double_t sinphi = sin(degrad*phi);
-     Double_t cosphi = cos(degrad*phi);
-     Double_t sinthe = sin(degrad*theta);
-     Double_t costhe = cos(degrad*theta);
-     Double_t sinpsi = sin(degrad*psi);
-     Double_t cospsi = cos(degrad*psi);
+     double degrad = M_PI/180.;
+     double sinphi = sin(degrad*phi);
+     double cosphi = cos(degrad*phi);
+     double sinthe = sin(degrad*theta);
+     double costhe = cos(degrad*theta);
+     double sinpsi = sin(degrad*psi);
+     double cospsi = cos(degrad*psi);
      
      fRotationMatrix[0] =  cospsi*cosphi - costhe*sinphi*sinpsi;
      fRotationMatrix[1] = -sinpsi*cosphi - costhe*sinphi*cospsi;

@@ -15,7 +15,7 @@ TimeCounter::TimeCounter(bool measure_time) : nthreads(0), timer(0), stamp(0) {
     timer->Start();
     timer->Stop();
     stamp = timer->RealTime();
-    memset(realtime, 0, 100 * sizeof(Double_t));
+    memset(realtime, 0, 100 * sizeof(double));
   }
 }
 
@@ -31,7 +31,7 @@ TimeCounter &TimeCounter::operator++() {
   TThread::Lock();
   if (timer) {
     timer->Stop();
-    Double_t now = timer->RealTime();
+    double now = timer->RealTime();
     realtime[nthreads] += now - stamp;
     stamp = now;
     timer->Continue();
@@ -48,7 +48,7 @@ TimeCounter &TimeCounter::operator--() {
   TThread::Lock();
   if (timer) {
     timer->Stop();
-    Double_t now = timer->RealTime();
+    double now = timer->RealTime();
     if (nthreads > 0) {
       realtime[nthreads] += now - stamp;
       nthreads--;
@@ -71,7 +71,7 @@ void TimeCounter::Print() {
     return;
   timer->Stop();
   Int_t npoints = 0;
-  Double_t sum = 0.;
+  double sum = 0.;
   Int_t i;
   for (i = 0; i < 100; i++) {
     if (realtime[i] < 0.00001)

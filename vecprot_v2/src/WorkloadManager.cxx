@@ -759,15 +759,15 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 //______________________________________________________________________________
 void *WorkloadManager::GarbageCollectorThread() {
   // This threads can be triggered to do garbage collection of unused baskets
-  static Double_t rsslast = 0;
-  Double_t rss;
+  static double rsslast = 0;
+  double rss;
   ProcInfo_t procInfo;
-  const Double_t MByte = 1024.;
+  const double MByte = 1024.;
   const double_t thr_increase = 1.05;
   GeantPropagator *propagator = GeantPropagator::Instance();
   WorkloadManager *wm = WorkloadManager::Instance();
   Int_t nthreads = propagator->fNthreads;
-  Double_t threshold = propagator->fMaxRes;
+  double threshold = propagator->fMaxRes;
   if (threshold == 0)
     return 0;
   //  condition_locker &gbc_locker = wm->GetGbcLocker();
@@ -850,7 +850,7 @@ void WorkloadManager::SetMonitored(GeantPropagator::EGeantMonitoringType feature
 //______________________________________________________________________________
 void *WorkloadManager::MonitoringThread() {
   // Thread providing basic monitoring for the scheduler.
-  const Double_t MByte = 1024.;
+  const double MByte = 1024.;
   Printf("Started monitoring thread...");
   GeantPropagator *propagator = GeantPropagator::Instance();
   WorkloadManager *wm = WorkloadManager::Instance();
@@ -861,8 +861,8 @@ void *WorkloadManager::MonitoringThread() {
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   Int_t ntotransport;
   ProcInfo_t procInfo;
-  Double_t rss;
-  Double_t nmem[101] = {0};
+  double rss;
+  double nmem[101] = {0};
   GeantScheduler *sch = wm->GetScheduler();
   Int_t nvol = sch->GetNvolumes();
   Int_t *nvect = sch->GetNvect();
@@ -970,7 +970,7 @@ void *WorkloadManager::MonitoringThread() {
     htrackstot->Draw();
   }
   cmon->Update();
-  Double_t stamp = 0.;
+  double stamp = 0.;
   Int_t i, j, bin;
   Int_t nmaxtot;
   while (1) { // exit condition here
@@ -990,7 +990,7 @@ void *WorkloadManager::MonitoringThread() {
       if (hmem) {
         gSystem->GetProcInfo(&procInfo);
         rss = procInfo.fMemResident / MByte;
-        memmove(nmem, &nmem[1], 99 * sizeof(Double_t));
+        memmove(nmem, &nmem[1], 99 * sizeof(double));
         nmem[99] = rss;
         hmem->GetXaxis()->Set(100, stamp - 100, stamp);
         for (j = 0; j < 100; j++)

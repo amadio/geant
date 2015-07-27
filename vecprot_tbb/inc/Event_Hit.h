@@ -25,14 +25,14 @@ struct GeantEvent {
 
 //______________________________________________________________________________
 struct GeantHit {
-   Double_t x;        // X position
-   Double_t y;        // Y position
-   Double_t z;        // Z position
-   Double_t eloss;    // Energy loss
+   double x;        // X position
+   double y;        // Y position
+   double z;        // Z position
+   double eloss;    // Energy loss
    Int_t    event;    // Event number
    
    GeantHit() : x(0.), y(0.), z(0.), eloss(0.), event(-1) {}
-   GeantHit(Double_t xh, Double_t yh, Double_t zh, Double_t elossh, Int_t eventh)
+   GeantHit(double xh, double yh, double zh, double elossh, Int_t eventh)
               : x(xh), y(yh), z(zh), eloss(elossh), event(eventh) {}
             
 };

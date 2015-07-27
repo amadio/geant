@@ -15,19 +15,19 @@ class TNudyAlias : public TObject {
   private:
     Int_t fLen; //Length of data
     //Alias table
-    Double_t *fP; //[fLen]
-    Double_t *fX; //[fLen]
-    Double_t *fA; //[fLen]
-    Double_t *fR; //[fLen]
+    double *fP; //[fLen]
+    double *fX; //[fLen]
+    double *fA; //[fLen]
+    double *fR; //[fLen]
     TRandom *fRnd; //Uniform random number generation
   public:
     TNudyAlias();
     virtual ~TNudyAlias();
-    TNudyAlias(Double_t *p,Double_t *x,const Int_t len,UInt_t seed=65539);
+    TNudyAlias(double *p,double *x,const Int_t len,UInt_t seed=65539);
     void DumpTable();
-    Double_t Random();
-    Double_t GetP(Int_t i) {if(i<fLen) return fP[i]; else return -1;};
-    Double_t GetX(Int_t i) {if(i<fLen) return fX[i]; else return -1;};
+    double Random();
+    double GetP(Int_t i) {if(i<fLen) return fP[i]; else return -1;};
+    double GetX(Int_t i) {if(i<fLen) return fX[i]; else return -1;};
     Int_t GetLen() {return fLen;}
 #ifdef TNUDYALIAS_MULTITHREAD
     class TNudyComStruct {
@@ -39,9 +39,9 @@ class TNudyAlias : public TObject {
         virtual ~TNudyComStruct() {}
     };
     static void* ThreadHandle(void *ptr);
-    Double_t *fMult; //! When generating using a multithreaded approach
+    double *fMult; //! When generating using a multithreaded approach
     Int_t fMultLen;//! Number of random values to be generated using the multi threaded approach
-    Double_t* Randoms(Int_t n);
+    double* Randoms(Int_t n);
 #endif
 
   ClassDef(TNudyAlias,1)

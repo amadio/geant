@@ -31,22 +31,22 @@ TNudyEndfTab1::TNudyEndfTab1(TNudyEndfTab1 *tab, Int_t n1, Int_t n2):
   TNudyEndfCont(tab->GetC1(),tab->GetC2(),tab->GetL1(),tab->GetL2(),n1,n2),
   fNBT (new Int_t[n1]),
   fINT (new Int_t[n1]),
-  fX (new Double_t[n2]),
-  fY (new Double_t[n2]){
+  fX (new double[n2]),
+  fY (new double[n2]){
   memcpy(fNBT,tab->NBT(),sizeof(Int_t)*tab->GetN1());
   memcpy(fINT,tab->INT(),sizeof(Int_t)*tab->GetN1());
-  memcpy(fX,tab->X(),sizeof(Double_t)*tab->GetN2());
-  memcpy(fY,tab->Y(),sizeof(Double_t)*tab->GetN2());
+  memcpy(fX,tab->X(),sizeof(double)*tab->GetN2());
+  memcpy(fY,tab->Y(),sizeof(double)*tab->GetN2());
 }
 
 //_______________________________________________________________________________
-TNudyEndfTab1::TNudyEndfTab1(Double_t c1, Double_t c2,
+TNudyEndfTab1::TNudyEndfTab1(double c1, double c2,
 			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
   TNudyEndfCont(c1, c2, l1, l2, n1, n2),
   fNBT(new Int_t[n1]),
   fINT(new Int_t[n1]),
-  fX(new Double_t[n2]),
-  fY(new Double_t[n2])
+  fX(new double[n2]),
+  fY(new double[n2])
 {
   //
   // Standard constructor
@@ -68,12 +68,12 @@ void TNudyEndfTab1::Equate(TNudyEndfTab1 *tab){
   SetCont(tab->GetC1(),tab->GetC2(),tab->GetL1(),tab->GetL2(),tab->GetN1(),tab->GetN2());
   memcpy(fNBT,tab->NBT(),sizeof(Int_t)*tab->GetN1());
   memcpy(fINT,tab->INT(),sizeof(Int_t)*tab->GetN1());
-  memcpy(fX,tab->X(),sizeof(Double_t)*tab->GetN2());
-  memcpy(fY,tab->Y(),sizeof(Double_t)*tab->GetN2());
+  memcpy(fX,tab->X(),sizeof(double)*tab->GetN2());
+  memcpy(fY,tab->Y(),sizeof(double)*tab->GetN2());
 }
 
 //______________________________________________________________________________
-void TNudyEndfTab1::SetCont(Double_t c1, Double_t c2,
+void TNudyEndfTab1::SetCont(double c1, double c2,
 			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
 {
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
@@ -83,8 +83,8 @@ void TNudyEndfTab1::SetCont(Double_t c1, Double_t c2,
   delete [] fY;
   fNBT=new Int_t[n1];
   fINT=new Int_t[n1];
-  fX=new Double_t[n2];
-  fY=new Double_t[n2];
+  fX=new double[n2];
+  fY=new double[n2];
 }
 
 //

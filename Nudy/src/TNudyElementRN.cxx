@@ -3,7 +3,7 @@
 
 ClassImp(TNudyElementRN)
 
-Double_t TNudyElementRN::fCCodeRange[26]={2.0e+32,3.0e+7,1.1e+6,1.4e+5,3.4e+4,
+double TNudyElementRN::fCCodeRange[26]={2.0e+32,3.0e+7,1.1e+6,1.4e+5,3.4e+4,
 				    8.6e+3, 3e+3, 1.3e+3, 6e+2,2.9e+2,
 				    1.6e+2,83.4,43,23.5,12,6.2,3.5,
 				    1.8,0.9,0.5,2.3e-1,1.0e-1,4.6e-2,
@@ -33,7 +33,7 @@ TNudyElementRN::TNudyElementRN(TGeoElementRN* elem, Float_t x, Float_t y)
   fX = x;
   fY = y;
 }
-Color_t TNudyElementRN::GetColor(Double_t halfLife)
+Color_t TNudyElementRN::GetColor(double halfLife)
 {
   Int_t index;
 

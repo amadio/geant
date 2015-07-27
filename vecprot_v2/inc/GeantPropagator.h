@@ -91,12 +91,12 @@ public:
   Int_t fLastEvent;                    /** Last transported event */
   Float_t fPriorityThr;                /** Threshold for prioritizing events */
 
-  Double_t fMaxRes;    /** Maximum resident memory allowed [MBytes] */
-  Double_t fNaverage;  /** Average number of tracks per event */
-  Double_t fVertex[3]; /** Vertex position */
-  Double_t fEmin;      /** Min energy threshold */
-  Double_t fEmax;      /** Max energy threshold */
-  Double_t fBmag;      /** Magnetic field */
+  double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
+  double fNaverage;  /** Average number of tracks per event */
+  double fVertex[3]; /** Vertex position */
+  double fEmin;      /** Min energy threshold */
+  double fEmax;      /** Max energy threshold */
+  double fBmag;      /** Magnetic field */
 
   Bool_t fUsePhysics;       /** Enable/disable physics */
   Bool_t fUseDebug;         /** Use debug mode */

@@ -133,7 +133,7 @@ char *TNudyCore::GetKey(const TGeoElementRN *mat, Reaction_t reac, ULong_t temp)
 }
 
 //______________________________________________________________________________
-Int_t TNudyCore::BinarySearch(Double_t *array, Int_t len, Double_t val) {
+Int_t TNudyCore::BinarySearch(double *array, Int_t len, double val) {
   Int_t min = 0;
   Int_t max = len - 1;
   Int_t mid = 0;
@@ -154,9 +154,9 @@ Int_t TNudyCore::BinarySearch(Double_t *array, Int_t len, Double_t val) {
 }
 
 //______________________________________________________________________________
-Double_t TNudyCore::InterpolateScale(Double_t x[2], Double_t y[2], Int_t law, Double_t xx) {
-  Double_t yy = -1;
-  Double_t small = 1e-20;
+double TNudyCore::InterpolateScale(double x[2], double y[2], Int_t law, double xx) {
+  double yy = -1;
+  double small = 1e-20;
   //  Info("InterpolateScale","x1,y1 = %e,%e x2,y2 = %e,%e INT = %d xx = %e",x[0],y[0],x[1],y[1],law,xx);
   if (law == 1 || x[1] <= x[0]) {
     yy = y[0];
@@ -183,8 +183,8 @@ Double_t TNudyCore::InterpolateScale(Double_t x[2], Double_t y[2], Int_t law, Do
 }
 
 //______________________________________________________________________________
-Double_t TNudyCore::Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, Double_t *x, Double_t *y, Int_t np, Double_t xx) {
-  Double_t yy = 0;
+double TNudyCore::Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, double *x, double *y, Int_t np, double xx) {
+  double yy = 0;
   //  Info("Interpolation","E = %e:%e, xx = %e , P = %e:%e",x[0],x[np-1],xx,y[0],y[np-1]);
   //  Info("Interpolation limits","xx = %e min = %e max = %e",xx,x[0],x[np-1]);
   if (xx < x[0]) {
@@ -215,7 +215,7 @@ Double_t TNudyCore::Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, Double_t *x
 }
 
 //______________________________________________________________________________
-Double_t TNudyCore::LinearInterpolation(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Double_t x) {
+double TNudyCore::LinearInterpolation(double x1, double y1, double x2, double y2, double x) {
   if (x2 == x1) {
     //   Error("TNudyCore::LinearInterpolation","Points specified have same coordinate in X");
     return y1;
@@ -224,24 +224,24 @@ Double_t TNudyCore::LinearInterpolation(Double_t x1, Double_t y1, Double_t x2, D
 }
 
 //______________________________________________________________________________
-Double_t TNudyCore::BilinearInterploation(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Double_t z11,
-                                          Double_t z12, Double_t z21, Double_t z22, Double_t x, Double_t y) {
+double TNudyCore::BilinearInterploation(double x1, double y1, double x2, double y2, double z11,
+                                          double z12, double z21, double z22, double x, double y) {
   if ((x2 == x1) || (y2 == y1)) {
     Error("TNudyCore::BilinearInterpolation", "Points specified have same coordinate in X or Y");
     return 0;
   }
   // Storing partial sums and products so that they dont have to be recalculated
-  Double_t d = (x2 - x1) * (y2 - y1);
-  Double_t n2x = x2 - x;
-  Double_t n2y = y2 - y;
-  Double_t n1x = x - x1;
-  Double_t n1y = y - y1;
+  double d = (x2 - x1) * (y2 - y1);
+  double n2x = x2 - x;
+  double n2y = y2 - y;
+  double n1x = x - x1;
+  double n1y = y - y1;
   // printf("x1 = %e, y1 = %e, x2 = %e, y2 = %e\n",x1,y1,x2,y2);
   // printf("%e, %e, %e, %e, %e\n",d,n2x,n2y,n1x,n1y);
   return (z11 * n2x * n2y + z21 * n1x * n2y + z12 * n2x * n1y + z22 * n1x * n1y) / d;
 }
 //______________________________________________________________________________
-void TNudyCore::CumulativeIntegral(Double_t *x, Double_t *y, Double_t *q, Int_t len) {
+void TNudyCore::CumulativeIntegral(double *x, double *y, double *q, Int_t len) {
   for (Int_t i = 0; i < len; i++) {
     if (i > 0) {
       q[i - 1] = 0.5 * (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
@@ -251,7 +251,7 @@ void TNudyCore::CumulativeIntegral(Double_t *x, Double_t *y, Double_t *q, Int_t 
   }
 }
 //______________________________________________________________________________
-void TNudyCore::TrapezoidalIntegral(Double_t *xpts, Double_t *ypts, const Int_t npts, Double_t *out) {
+void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const Int_t npts, double *out) {
   // This function evaluates the integral of discrete points using the trapezoidal rule
   // and returns the value of the integral at the same points in x
   if (!xpts || !ypts || (npts == 0)) {
@@ -259,7 +259,7 @@ void TNudyCore::TrapezoidalIntegral(Double_t *xpts, Double_t *ypts, const Int_t 
     return;
   }
   if (out == NULL) {
-    out = new Double_t[npts];
+    out = new double[npts];
   }
   out[0] = 0;
   for (Int_t i = 1; i < npts; i++) {

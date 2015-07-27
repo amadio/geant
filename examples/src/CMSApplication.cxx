@@ -150,7 +150,7 @@ void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantT
       // Add scored entity
       if (propagator->fNthreads > 1)
         fMHist.lock();
-      Double_t capacity = 0.;
+      double capacity = 0.;
 #ifdef USE_VECGEOM_NAVIGATOR
       capacity = 1.;
 #else
@@ -184,7 +184,7 @@ void CMSApplication::Digitize(Int_t /* event */) {
   //   printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit in ECAL [MeV/primary] ");
   Printf("================================================================================");
-  Double_t nprim = (Double_t)gPropagator->fNprimaries;
+  double nprim = (double)gPropagator->fNprimaries;
   for (Int_t i = 0; i < kNECALModules; ++i) {
     for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
@@ -217,7 +217,7 @@ void CMSApplication::FinishRun() {
   if (fScore == kNoScore)
     return;
   TCanvas *c1 = new TCanvas("CMS test flux", "Simple scoring in CMS geometry", 700, 1200);
-  Double_t norm = 1. / GeantPropagator::Instance()->fNprimaries.load();
+  double norm = 1. / GeantPropagator::Instance()->fNprimaries.load();
   TVirtualPad *pad;
   TFile *f = TFile::Open("ScoreECAL.root", "RECREATE");
   c1->Divide(2, 3);
