@@ -29,9 +29,6 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/loadrootgeometry.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/loadvecgeomgeometry.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/workloadmanagerthreadid.cxx
 )     
 
 set(headers

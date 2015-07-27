@@ -8,16 +8,11 @@
 #include "GunGenerator.h"
 #include "base/messagelogger.h"
 #include "HepMCGenerator.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#define RESTORE_USE_VECGEOM_NAVIGATOR
-#undef USE_VECGEOM_NAVIGATOR
-#endif
-#include "WorkloadManager.h"
 #include "TTabPhysProcess.h"
-#include "volumes/Particle.h"
+#include "WorkloadManager.h"
 #include "GeantPropagator.h"
-#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
-#define USE_VECGEOM_NAVIGATOR
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "volumes/Particle.h"
 #endif
 #include "ExN03Application.h"
 
@@ -28,29 +23,12 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-void loadvecgeomgeometry(GeantPropagator *prop);
-
 int main() {
   Int_t nthreads = 15;
   const char *geomfile = "ExN03.root";
   const char *xsec = "xsec_FTFP_BERT.root";
   const char *fstate = "fstate_FTFP_BERT.root";
   bool coprocessor = false;
-
-  // Those library used to need to be loaded explicitly and are now
-  // automatically loaded by ROOT.
-  // gSystem->Load("libPhysics");
-  // gSystem->Load("libHist");
-  // gSystem->Load("libThread");
-  // gSystem->Load("libGeom");
-  // gSystem->Load("libVMC");
-  // gSystem->Load("../buildTGeo/lib/libGeant_v");
-  // gSystem->Load("../buildTGeo/lib/libXsec");
-  // gSystem->Load("../lib/libGeant_v");
-  // gSystem->Load("../lib/libXsec");
-  // gSystem->Load("../lib/libGeantExamples");
-  // for vector physics - OFF now
-  // gSystem->Load("../lib/libVphysproc");
 
   //=============================================================================
   // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
@@ -103,7 +81,9 @@ int main() {
   prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
   // Create the tab. phys process.
-  loadvecgeomgeometry(prop);
+#ifdef USE_VECGEOM_NAVIGATOR
+  prop->LoadVecGeomGeometry();
+#endif
   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
   prop->fProcess->Initialize();
 

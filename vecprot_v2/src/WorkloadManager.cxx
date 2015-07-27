@@ -24,10 +24,10 @@
 #include "management/GeoManager.h"
 #include "volumes/Medium.h"
 #else
-#include "TGeoManager.h"
 #include "TGeoNavigator.h"
 #endif
 #include "TaskBroker.h"
+#include "TGeoManager.h" // only needed by ThradId, Andrei will remove this soon
 
 using namespace Geant;
 
@@ -60,6 +60,12 @@ WorkloadManager::~WorkloadManager() {
   delete[] fWaiting;
   //   delete fNavStates;
   fgInstance = 0;
+}
+
+//______________________________________________________________________________
+int WorkloadManager::ThreadId() {
+   gGeoManager->SetMultiThread();
+   return TGeoManager::ThreadId();
 }
 
 //______________________________________________________________________________

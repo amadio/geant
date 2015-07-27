@@ -26,8 +26,7 @@
 
 #if USE_VECGEOM_NAVIGATOR == 1
  #include "navigation/SimpleNavigator.h"
- void loadrootgeometry();
- //#include "management/RootGeoManager.h"
+ #include "management/RootGeoManager.h"
  #include "volumes/PlacedVolume.h"
 #else
  #include "TGeoVolume.h"
@@ -357,7 +356,7 @@ void GeantPropagator::InitializeAfterGeom() {
 Bool_t GeantPropagator::LoadVecGeomGeometry() {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
     Printf("Now loading VecGeom geometry\n");
-    loadrootgeometry();
+    vecgeom::RootGeoManager::Instance().LoadRootGeometry();
     Printf("Loading VecGeom geometry done\n");
     Printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
     // Create the tab. phys process.

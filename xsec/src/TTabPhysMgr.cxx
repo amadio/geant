@@ -39,7 +39,6 @@ using vecgeom::kTwoPi;
 
 ClassImp(TTabPhysMgr)
 
-    void loadvecgeomgeometry(GeantPropagator *);
 TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
 
 //______________________________________________________________________________
@@ -88,9 +87,9 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   fgInstance = this;
   TStopwatch timer;
   timer.Start();
-// Load elements from geometry
+// Load elements from geometry, however in most cases it should already be done
 #ifdef USE_VECGEOM_NAVIGATOR
-  loadvecgeomgeometry(GeantPropagator::Instance());
+  GeantPropagator::Instance()->LoadVecGeomGeometry();
   vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
 #else
   fGeom = gGeoManager;

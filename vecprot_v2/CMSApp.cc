@@ -10,15 +10,10 @@
 #include "HepMCGenerator.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/messagelogger.h"
-#define RESTORE_USE_VECGEOM_NAVIGATOR
-#undef USE_VECGEOM_NAVIGATOR
 #endif
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 #include "TTabPhysProcess.h"
-#ifdef RESTORE_USE_VEGEOM_NAVIGATOR
-#define USE_VECGEOM_NAVIGATOR
-#endif
 #include "CMSApplication.h"
 
 static int n_events = 1;
@@ -53,8 +48,6 @@ void help() {
   }
   printf("\n\n");
 }
-
-void loadvecgeomgeometry(GeantPropagator *prop);
 
 int main(int argc, char *argv[]) {
   std::string cms_geometry_filename("cms2015.root");
@@ -183,8 +176,9 @@ int main(int argc, char *argv[]) {
 
   propagator->fEmin = 0.001; // [10 MeV] energy cut
   propagator->fEmax = 0.01;  // 10 MeV
-
-  loadvecgeomgeometry(propagator);
+#ifdef USE_VECGEOM_NAVIGATOR
+  propagator->LoadVecGeomGeometry();
+#endif
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {
