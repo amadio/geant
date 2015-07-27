@@ -228,7 +228,6 @@ void TGeoBBox_v::CouldBeCrossed_l(const Double_t *point, const Double_t *dir, Bo
   }
 }
 
-
 void TGeoBBox_v::CouldBeCrossed_v(const StructOfCoord &point, const StructOfCoord &dir, Bool_t *__restrict__ crossed,
                                   Int_t np) const {
   // Decides fast if the bounding box could be crossed by a vector.

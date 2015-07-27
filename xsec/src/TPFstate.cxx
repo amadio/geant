@@ -125,7 +125,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     kerma = en;
     double eta = gRandom->Rndm();
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-    en = max<double>(en,fEGrid[0]);
+    en = max<double>(en, fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     double en1 = fEGrid[ibin];
@@ -161,7 +161,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
   } else {
     // double eta = randn1;
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-    en = max<double>(en,fEGrid[0]);
+    en = max<double>(en, fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     double en1 = fEGrid[ibin];
@@ -223,7 +223,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
     return kFALSE;
   } else {
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-    en = max<double>(en,fEGrid[0]);
+    en = max<double>(en, fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     double en1 = fEGrid[ibin];
@@ -295,7 +295,7 @@ bool TPFstate::Resample() {
   for (int ien = 0; ien < fNEbins; ++ien) {
     en = fEGrid[ien];
     en = en < oGrid[oNEbins - 1] ? en : oGrid[oNEbins - 1] * 0.999;
-    en = max<double>(en,oGrid[0]);
+    en = max<double>(en, oGrid[0]);
     int ibin = log(fEGrid[ien] / oGrid[0]) * oEilDelta;
     ibin = ibin < oNEbins - 1 ? ibin : oNEbins - 2;
     double en1 = oGrid[ibin];

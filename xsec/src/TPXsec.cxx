@@ -62,7 +62,7 @@ void TPXsec::Streamer(TBuffer &R__b) {
 //_________________________________________________________________________
 void TPXsec::Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en, float result[]) {
   en = en < egrid[nbins - 1] ? en : egrid[nbins - 1] * 0.999;
-  en = max<double>(en,egrid[0]);
+  en = max<double>(en, egrid[0]);
   int ibin = log(en / egrid[0]) * eildelta;
   ibin = ibin < nbins - 1 ? ibin : nbins - 2;
   double en1 = egrid[ibin];
@@ -258,7 +258,7 @@ float TPXsec::DEdx(double en) const {
   if (!fdEdx)
     return 0;
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-  en = max<double>(en,fEGrid[0]);
+  en = max<double>(en, fEGrid[0]);
   int ibin = log(en / fEGrid[0]) * fEilDelta;
   ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
   //   double en1 = fEmin*exp(ibin/fEilDelta);
@@ -284,7 +284,7 @@ bool TPXsec::MS(double en, float &ang, float &asig, float &len, float &lsig) con
     return kFALSE;
   }
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-  en = max<double>(en,fEGrid[0]);
+  en = max<double>(en, fEGrid[0]);
   int ibin = log(en / fEGrid[0]) * fEilDelta;
   ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
   //   double en1 = fEmin*exp(ibin/fEilDelta);
@@ -307,7 +307,7 @@ bool TPXsec::MS(double en, float &ang, float &asig, float &len, float &lsig) con
 //_________________________________________________________________________
 int TPXsec::SampleReac(double en) const {
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-  en = max<double>(en,fEGrid[0]);
+  en = max<double>(en, fEGrid[0]);
   int ibin = log(en / fEGrid[0]) * fEilDelta;
   ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
   //   double en1 = fEmin*exp(ibin/fEilDelta);
@@ -337,7 +337,7 @@ int TPXsec::SampleReac(double en) const {
 //_________________________________________________________________________
 int TPXsec::SampleReac(double en, double randn) const {
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-  en = max<double>(en,fEGrid[0]);
+  en = max<double>(en, fEGrid[0]);
   int ibin = log(en / fEGrid[0]) * fEilDelta;
   ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
   //   double en1 = fEmin*exp(ibin/fEilDelta);
@@ -370,7 +370,7 @@ bool TPXsec::XS_v(int npart, int rindex, const double en[], double lam[]) const 
   double ene;
   for (int ip = 0; ip < npart; ++ip) {
     ene = en[ip] < fEGrid[fNEbins - 1] ? en[ip] : fEGrid[fNEbins - 1] * 0.999;
-    ene = max<double>(en[ip],fEGrid[0]);
+    ene = max<double>(en[ip], fEGrid[0]);
     int ibin = log(ene / fEGrid[0]) * fEilDelta;
     ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
     //   double en1 = fEmin*exp(ibin/fEilDelta);
@@ -404,7 +404,7 @@ bool TPXsec::XS_v(int npart, int rindex, const double en[], double lam[]) const 
 float TPXsec::XS(int rindex, double en) const {
   //   printf("fEGrid %p\n",fEGrid);
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
-  en = max<double>(en,fEGrid[0]);
+  en = max<double>(en, fEGrid[0]);
   int ibin = log(en / fEGrid[0]) * fEilDelta;
   ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
   //   double en1 = fEmin*exp(ibin/fEilDelta);

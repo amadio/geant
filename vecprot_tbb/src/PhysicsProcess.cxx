@@ -67,7 +67,7 @@ ClassImp(ScatteringProcess)
   TGeoMaterial *mat = vol->GetMaterial();
   if (mat)
     density = mat->GetDensity();
-  density = max<double>(density,1e-3);
+  density = max<double>(density, 1e-3);
   // Make sure we write in the thread space for the current basket
   Double_t *rndArray = TBBperThread.fDblArray;
   Int_t irnd = 0;
@@ -294,7 +294,7 @@ ClassImp(InteractionProcess)
   if (matz < 1 || mata < 1 || matr < 1.E-8)
     invalid_material = kTRUE;
   if (!invalid_material) {
-    Double_t density = max<double>(matr,1e-5);
+    Double_t density = max<double>(matr, 1e-5);
     Double_t sigma = 28.5 * pow(mata, 0.75);
     xlen = mat->GetA() / (sigma * density * nabarn);
   } else {
@@ -349,7 +349,7 @@ void InteractionProcess::PostStep(TGeoVolume *vol, Int_t ntracks, Int_t *trackin
     Int_t npi = 0.5 * TBBperThread.fRndm->Rndm() * cmsen / pimass + 0.5;
     if (npi > 1) {
       do {
-	 nprod = min<int>(TBBperThread.fRndm->Poisson(npi),9);
+        nprod = min<int>(TBBperThread.fRndm->Poisson(npi), 9);
       } while (nprod * pimass * 2 > cmsen || nprod == 0);
       //         Printf("Inc en = %f, cms en = %f produced pis = %d",en,cmsen,nprod);
       TLorentzVector pcms(track->px, track->py, track->pz, track->e + m2);
