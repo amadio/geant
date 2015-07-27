@@ -25,15 +25,15 @@
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1
- #include "navigation/SimpleNavigator.h"
- #include "management/RootGeoManager.h"
- #include "volumes/PlacedVolume.h"
+#include "navigation/SimpleNavigator.h"
+#include "management/RootGeoManager.h"
+#include "volumes/PlacedVolume.h"
 #else
- #include "TGeoVolume.h"
- #include "TGeoManager.h"
- #include "TGeoVoxelFinder.h"
- #include "TGeoNode.h"
- #include "TGeoMaterial.h"
+#include "TGeoVolume.h"
+#include "TGeoManager.h"
+#include "TGeoVoxelFinder.h"
+#include "TGeoNode.h"
+#include "TGeoMaterial.h"
 #endif
 
 #include "GeantTrack.h"
@@ -66,10 +66,9 @@ GeantPropagator::GeantPropagator()
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
-      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fUseMonitoring(kFALSE),
-      fUseAppMonitoring(kFALSE), fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0),
-      fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0), fPrimaryGenerator(0),
-      fNtracks(0), fEvents(0), fThreadData(0) {
+      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),
+      fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
+      fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fVertex[0] = fVertex[1] = fVertex[2] = 0.;
   fgInstance = this;
@@ -523,25 +522,25 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, Int_t nthreads, Bool_
 #else
   Printf("=== Navigation done using TGeo    ====");
 #endif
-//  Printf("Navstate pool usage statistics:");
-//   fWMgr->NavStates()->statistics();
+  //  Printf("Navstate pool usage statistics:");
+  //   fWMgr->NavStates()->statistics();
 }
 
 //______________________________________________________________________________
 Int_t GeantPropagator::GetMonFeatures() const {
   // Get the number of monitored features
   return fWMgr->GetMonFeatures();
-}  
+}
 
 //______________________________________________________________________________
 bool GeantPropagator::IsMonitored(EGeantMonitoringType feature) const {
   // Check if a given feature is monitored
   return fWMgr->IsMonitored(feature);
-}  
+}
 
 //______________________________________________________________________________
 void GeantPropagator::SetMonitored(EGeantMonitoringType feature, bool flag) {
-  // Enable monitoring a feature  
+  // Enable monitoring a feature
   fWMgr->SetMonitored(feature, flag);
 }
 
@@ -562,5 +561,3 @@ TaskBroker *GeantPropagator::GetTaskBroker() {
   // Getter for task broker
   return fWMgr->GetTaskBroker();
 }
-  
-

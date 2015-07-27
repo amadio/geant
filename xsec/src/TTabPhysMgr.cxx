@@ -39,7 +39,7 @@ using vecgeom::kTwoPi;
 
 ClassImp(TTabPhysMgr)
 
-TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
+    TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
 
 //______________________________________________________________________________
 TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsfilename) {
