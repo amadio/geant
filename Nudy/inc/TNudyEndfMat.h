@@ -192,5 +192,5 @@ private:
 
   ClassDef(TNudyEndfMat, 1)
 };
- 
+
 #endif
