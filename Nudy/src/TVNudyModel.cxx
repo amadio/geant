@@ -43,7 +43,7 @@ ClassImp(TVNudyModel)
 }
 
 //_______________________________________________________________________________
-TVNudyModel::TVNudyModel(TGeoElementRN *mat, Reaction_t reac, ULong_t temp, TParticlePDG *projectile,
+TVNudyModel::TVNudyModel(TGeoElementRN *mat, Reaction_t reac, unsigned long temp, TParticlePDG *projectile,
                          TNudyEndfMat *material) {
   SetName(TNudyCore::Instance()->GetKey(mat, reac, temp));
   fEndf = mat->ENDFCode();
@@ -191,7 +191,7 @@ Reaction_t TVNudyModel::GetReaction() {
 }
 
 //______________________________________________________________________________
-ULong_t TVNudyModel::GetTemp() {
+unsigned long TVNudyModel::GetTemp() {
   if (!fMaterial)
     fMaterial = TNudyCore::Instance()->GetMaterial(fEndf);
   return fTemp;

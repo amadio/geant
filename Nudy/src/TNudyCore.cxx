@@ -90,7 +90,7 @@ int TNudyCore::IsMaterial(const TGeoElementRN *endf, const char *key) {
 }
 
 //______________________________________________________________________________
-int TNudyCore::IsTemperature(const ULong_t temp, const char *key) {
+int TNudyCore::IsTemperature(const unsigned long temp, const char *key) {
   if (temp == 0)
     return 1;
   char *matkey = Form("%12ld", temp);
@@ -128,7 +128,7 @@ void TNudyCore::MemProfile() {
 }
 
 //______________________________________________________________________________
-char *TNudyCore::GetKey(const TGeoElementRN *mat, Reaction_t reac, ULong_t temp) {
+char *TNudyCore::GetKey(const TGeoElementRN *mat, Reaction_t reac, unsigned long temp) {
   return Form("%012ld%03d%07d", temp, reac, mat->ENDFCode());
 }
 

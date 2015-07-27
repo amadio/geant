@@ -192,7 +192,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager *geom, const char *xsecfi
   }
 
   gSystem->GetProcInfo(&procInfo2);
-  // Long_t mem = (procInfo2.fMemResident - procInfo1.fMemResident)/1024;
+  // long mem = (procInfo2.fMemResident - procInfo1.fMemResident)/1024;
   fxsec->Close();
   fstate->Close();
 

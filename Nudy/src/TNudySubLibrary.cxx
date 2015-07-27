@@ -89,7 +89,7 @@ void TNudySubLibrary::ReadMat(TNudyEndfMat *material){
   }
   //  printf("Material Obtained %s\n",mat->GetName());
   while((obj = (TNamed*)rIter.Next())){
-    ULong_t temp = material->GetTEMP();
+    unsigned long temp = material->GetTEMP();
     Reaction_t reac = (Reaction_t)TString(obj->GetName()).Atoi();
     if(temp == 0){
       Error("ReadMat","Data for MAT=%d is not Doppler Broadened - Temperature not set\n",material->GetMAT());
@@ -111,7 +111,7 @@ void TNudySubLibrary::ReadMat(TNudyEndfMat *material){
   }
   reactions.Delete();
 }
-TVNudyModel *TNudySubLibrary::GetModel(const TGeoElementRN* mat, const Reaction_t reac, const ULong_t temp){
+TVNudyModel *TNudySubLibrary::GetModel(const TGeoElementRN* mat, const Reaction_t reac, const unsigned long temp){
 	if(fBuffer) delete fBuffer;
 	fBuffer = new TBtree();
 	if(!mat) return NULL;
@@ -121,7 +121,7 @@ TVNudyModel *TNudySubLibrary::GetModel(const TGeoElementRN* mat, const Reaction_
 	return model;
 }
 
-TBtree *TNudySubLibrary::GetAllModels(const TGeoElementRN * mat, const Reaction_t reac, const ULong_t temp){
+TBtree *TNudySubLibrary::GetAllModels(const TGeoElementRN * mat, const Reaction_t reac, const unsigned long temp){
   if(fBuffer) delete fBuffer;
   fBuffer = new TBtree();
   TIter modelIter(fIndex);

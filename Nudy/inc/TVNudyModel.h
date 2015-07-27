@@ -19,7 +19,7 @@
 class TVNudyModel : public TNamed {
  public:
   TVNudyModel();
-  TVNudyModel(TGeoElementRN *mat, Reaction_t reac, ULong_t temp,TParticlePDG* projectile ,TNudyEndfMat *material);
+  TVNudyModel(TGeoElementRN *mat, Reaction_t reac, unsigned long temp,TParticlePDG* projectile ,TNudyEndfMat *material);
   virtual ~TVNudyModel();
 
   void ReadFile(TNudyEndfMat *material);
@@ -31,7 +31,7 @@ class TVNudyModel : public TNamed {
   int GetA();
   int GetISO();
   Reaction_t GetReaction();
-  ULong_t GetTemp();
+  unsigned long GetTemp();
   virtual double GetXSect(double e);
   virtual double GetEo(double ein);
   virtual double GetAo(double ein);
@@ -40,7 +40,7 @@ class TVNudyModel : public TNamed {
 
  private:
   int fMAT; //Material number
-  ULong_t fTemp; //Temperature for evaluation of data
+  unsigned long fTemp; //Temperature for evaluation of data
   int fEndf; // Endf code of the material
   int fPdg;  // Pdgcode of the projectile
   TGeoElementRN *fMaterial; //! Material

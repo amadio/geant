@@ -57,7 +57,7 @@ public:
   void AddShape(const char *shapename);
   THashList *GetProcessDictionary() { return fProcessDictionary; }
   void WriteDictionaries();
-  void Fill(double x, double y, double z, double px, double py, double pz, Short_t pid, UShort_t lvid, UShort_t shapeid,
+  void Fill(double x, double y, double z, double px, double py, double pz, short pid, unsigned short lvid, unsigned short shapeid,
             double safety, double snext, double step, unsigned char surfid, unsigned char process, unsigned char begend,
             unsigned int trid, unsigned int trpid, double cputime, double cpustep);
   bool IsNewEvent() {
@@ -85,9 +85,9 @@ private:
   double fPx;             // x momentum
   double fPy;             // y momentum
   double fPz;             // z momentum
-  Short_t fPID;           // PDG particle id
-  UShort_t fLVid;         // logical volume id
-  UShort_t fShapeid;      // shape id
+  short fPID;           // PDG particle id
+  unsigned short fLVid;         // logical volume id
+  unsigned short fShapeid;      // shape id
   double fSafety;         // safety
   double fSnext;          // snext
   double fStep;           // step

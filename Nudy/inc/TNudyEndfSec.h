@@ -52,8 +52,8 @@ public:
 
 private:
   char fName[12]; // Name of the section
-  Short_t fMAT;   // Mat number
-  Short_t fMF;    // File number
+  short fMAT;   // Mat number
+  short fMF;    // File number
   int fMT;        // Section number
   double fC1;     // C1 of the HEAD record
   double fC2;     // C2 of the HEAD record

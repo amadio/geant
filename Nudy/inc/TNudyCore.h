@@ -43,9 +43,9 @@ class TNudyCore : public TNamed {
   char * ExpandReaction(Reaction_t reac);
   //Model Key checking/generation functions
   int IsMaterial(const TGeoElementRN* endf, const char* key);
-  int IsTemperature(const ULong_t temp,const char *key);
+  int IsTemperature(const unsigned long temp,const char *key);
   int IsReaction(const Reaction_t r, const char *key);
-  char * GetKey(const TGeoElementRN *mat,Reaction_t reac,ULong_t temp);
+  char * GetKey(const TGeoElementRN *mat,Reaction_t reac,unsigned long temp);
 
   //Uniform access functions
   TGeoElementTable* GetElementTable(){return fTable;}

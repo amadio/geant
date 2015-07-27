@@ -22,7 +22,7 @@ public:
   TNudySubLibrary *SetSubLib(TParticlePDG *particle) { return fCurSubLib = GetSubLib(particle); }
   TNudySubLibrary *GetSubLib() { return fCurSubLib; }
   void ListModels();
-  bool IsHandled(TParticlePDG *particle, TGeoElementRN *target, ULong_t temp);
+  bool IsHandled(TParticlePDG *particle, TGeoElementRN *target, unsigned long temp);
 
 private:
   THashTable *fSubLib;         // Sub-Libaries storing the MAT-MT information for each particle

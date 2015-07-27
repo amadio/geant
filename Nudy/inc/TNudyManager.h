@@ -25,7 +25,7 @@ class TNudyManager : public TNamed {
  public:
   ~TNudyManager();//Public Destructor
   static TNudyManager* Instance();//Returns Instance of TNudyManager
-  TNudyLibrary* LoadLibrary(const char* memLibName, const char* diskLibName,const char* sublib = NULL, TGeoElementRN *mat = NULL, Reaction_t reac = kNoReaction,ULong_t temp = 0);
+  TNudyLibrary* LoadLibrary(const char* memLibName, const char* diskLibName,const char* sublib = NULL, TGeoElementRN *mat = NULL, Reaction_t reac = kNoReaction,unsigned long temp = 0);
   THashTable * GetDatabases() {return fNudyDB;}
   THashTable * GetLibraries() {return fLibrary;}
   TNudyDB* OpenDatabase(const char* name, const char* file);
@@ -44,8 +44,8 @@ class TNudyManager : public TNamed {
   void AddLibrary(const char *name, const char *file){if(fCurNudyDB) fCurNudyDB->AddLibrary(name,file);}
   void RemoveLibrary(const char *name){if(fCurNudyDB) fCurNudyDB->RemoveLibrary(name);}
   void ListModels();
-  TVNudyModel* GetModel(const int a, const int z , const int iso, const int reaction,const ULong_t temp, const char* particleName = NULL);
-  TBtree *GetAllModels(const int a = 0,const int z = 0 ,const int iso = 0,const int reaction = kNoReaction,const ULong_t temp = 0,const char *particleName = NULL);
+  TVNudyModel* GetModel(const int a, const int z , const int iso, const int reaction,const unsigned long temp, const char* particleName = NULL);
+  TBtree *GetAllModels(const int a = 0,const int z = 0 ,const int iso = 0,const int reaction = kNoReaction,const unsigned long temp = 0,const char *particleName = NULL);
 
   ClassDef(TNudyManager,1)
 
