@@ -23,40 +23,37 @@
 
 */
 
-
 #include <Riostream.h>
 #include <TObject.h>
-//class TNudyEndfSec;
+// class TNudyEndfSec;
 #include "TNudyEndfRecord.h"
 
-class TNudyEndfCont: public TNudyEndfRecord {
+class TNudyEndfCont : public TNudyEndfRecord {
 public:
   TNudyEndfCont();
-  TNudyEndfCont(double c1, double c2,
-		int l1, int l2, int n1, int n2);
+  TNudyEndfCont(double c1, double c2, int l1, int l2, int n1, int n2);
 
-  virtual void SetCont(double c1, double c2,
-		int l1, int l2, int n1, int n2);
+  virtual void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
 
-  virtual double GetC1() const {return fC1;}
-  virtual double GetC2() const {return fC2;}
-  virtual int    GetL1() const {return fL1;}
-  virtual int    GetL2() const {return fL2;}
-  virtual int    GetN1() const {return fN1;}
-  virtual int    GetN2() const {return fN2;}
+  virtual double GetC1() const { return fC1; }
+  virtual double GetC2() const { return fC2; }
+  virtual int GetL1() const { return fL1; }
+  virtual int GetL2() const { return fL2; }
+  virtual int GetN1() const { return fN1; }
+  virtual int GetN2() const { return fN2; }
 
-  void DumpENDF(int mat, int mf, int mt, int& ns,int flags);
-  static char * F2F(double f, char s[]);
- protected:
-  double fC1;         // C1 of the CONT record
-  double fC2;         // C2 of the CONT record
-  int    fL1;         // L1 of the CONT record
-  int    fL2;         // L2 of the CONT record
-  int    fN1;         // N1 of the CONT record
-  int    fN2;         // N2 of the CONT record
+  void DumpENDF(int mat, int mf, int mt, int &ns, int flags);
+  static char *F2F(double f, char s[]);
 
-  ClassDef(TNudyEndfCont,1)
+protected:
+  double fC1; // C1 of the CONT record
+  double fC2; // C2 of the CONT record
+  int fL1;    // L1 of the CONT record
+  int fL2;    // L2 of the CONT record
+  int fN1;    // N1 of the CONT record
+  int fN2;    // N2 of the CONT record
 
+  ClassDef(TNudyEndfCont, 1)
 };
 
 #endif

@@ -23,37 +23,33 @@
 
 */
 
-
 #include <Riostream.h>
 #include "TNudyEndfCont.h"
 #include <RConfig.h>
 
-class TNudyEndfTab2: public TNudyEndfCont {
+class TNudyEndfTab2 : public TNudyEndfCont {
 public:
   TNudyEndfTab2();
-  TNudyEndfTab2(double c1, double c2,
-		   int l1, int l2, int n1, int n2);
+  TNudyEndfTab2(double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfTab2();
-  virtual void SetCont(double c1, double c2,
-		       int l1, int l2, int n1, int n2);
+  virtual void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
 
-  int GetNR() const {return fN1;}
-  int GetNZ() const {return fN2;}
+  int GetNR() const { return fN1; }
+  int GetNZ() const { return fN2; }
 
-  int GetNBT(int i) const {return fNBT[i];}
-  void SetNBT(int iel, int i) {fNBT[i]=iel;}
-  int GetINT(int i) const {return fINT[i];}
-  void SetINT(int iel, int i) {fINT[i]=iel;}
-  void DumpENDF(int mat, int mf,int mt,int& ns,int flags);
-  int *NBT(){return fNBT;}
-  int *INT(){return fINT;}
+  int GetNBT(int i) const { return fNBT[i]; }
+  void SetNBT(int iel, int i) { fNBT[i] = iel; }
+  int GetINT(int i) const { return fINT[i]; }
+  void SetINT(int iel, int i) { fINT[i] = iel; }
+  void DumpENDF(int mat, int mf, int mt, int &ns, int flags);
+  int *NBT() { return fNBT; }
+  int *INT() { return fINT; }
 
 private:
-  int    *fNBT;       //[fN1]
-  int    *fINT;       //[fN1]
+  int *fNBT; //[fN1]
+  int *fINT; //[fN1]
 
-  ClassDef(TNudyEndfTab2,1)
-
+  ClassDef(TNudyEndfTab2, 1)
 };
 
 #endif

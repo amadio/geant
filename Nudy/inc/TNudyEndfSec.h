@@ -23,53 +23,48 @@
 
 */
 
-
 #include <Riostream.h>
 #include <TObject.h>
 #include <TList.h>
 #include <RConfig.h>
 #include "TNudyEndfRecord.h"
 
-
-
-class TNudyEndfSec: public TObject {
+class TNudyEndfSec : public TObject {
 public:
   TNudyEndfSec();
-  TNudyEndfSec(int mat, int mf, int mt, double c1, double c2,
-		int l1, int l2, int n1, int n2);
+  TNudyEndfSec(int mat, int mf, int mt, double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfSec();
-  const char* GetName() const {return fName;}
-  void Add(TNudyEndfRecord *sec) {fRecs->Add(sec);}
-  TList* GetRecords(){return fRecs;}
+  const char *GetName() const { return fName; }
+  void Add(TNudyEndfRecord *sec) { fRecs->Add(sec); }
+  TList *GetRecords() { return fRecs; }
   void DumpENDF(int flags);
-  TNudyEndfRecord* GetRecord(int recNo);
+  TNudyEndfRecord *GetRecord(int recNo);
 
-  int GetC1() const {return fC1;}
-  int GetC2() const {return fC2;}
-  int GetL1() const {return fL1;}
-  int GetL2() const {return fL2;}
-  int GetN1() const {return fN1;}
-  int GetN2() const {return fN2;}
-  int GetMAT() const {return fMAT;}
-  int GetMT() const {return fMT;}
-  int GetMF() const {return fMF;}
+  int GetC1() const { return fC1; }
+  int GetC2() const { return fC2; }
+  int GetL1() const { return fL1; }
+  int GetL2() const { return fL2; }
+  int GetN1() const { return fN1; }
+  int GetN2() const { return fN2; }
+  int GetMAT() const { return fMAT; }
+  int GetMT() const { return fMT; }
+  int GetMF() const { return fMF; }
 
- private:
-  char   fName[12];   // Name of the section
-  short  fMAT;        // Mat number
-  short  fMF;         // File number
-  int    fMT;         // Section number 
-  double fC1;         // C1 of the HEAD record
-  double fC2;         // C2 of the HEAD record
-  int    fL1;         // L1 of the HEAD record
-  int    fL2;         // L2 of the HEAD record
-  int    fN1;         // N1 of the HEAD record
-  int    fN2;         // N2 of the HEAD record
+private:
+  char fName[12]; // Name of the section
+  short fMAT;     // Mat number
+  short fMF;      // File number
+  int fMT;        // Section number
+  double fC1;     // C1 of the HEAD record
+  double fC2;     // C2 of the HEAD record
+  int fL1;        // L1 of the HEAD record
+  int fL2;        // L2 of the HEAD record
+  int fN1;        // N1 of the HEAD record
+  int fN2;        // N2 of the HEAD record
 
-  TList    *fRecs;       // List of records for this section
+  TList *fRecs; // List of records for this section
 
-  ClassDef(TNudyEndfSec,1)
-
+  ClassDef(TNudyEndfSec, 1)
 };
 
 #endif

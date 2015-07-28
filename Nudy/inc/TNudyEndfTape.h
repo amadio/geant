@@ -33,11 +33,11 @@ public:
   TNudyEndfMat *GetMAT(int MAT);
   TNudyEndfMat *GetMAT(int Z, int A);
   //  TNudyEndfMat *GetMAT(TString name);  // Original :: Abhijit DEBUG as constructor has char *name
-  TNudyEndfMat *GetMAT(char *name);  
+  TNudyEndfMat *GetMAT(char *name);
 
 private:
   unsigned char fLogLev; // LogLevel
-  TList *fMats;    // List of materials
+  TList *fMats;          // List of materials
 
   ClassDef(TNudyEndfTape, 1) // class for an ENDF data file
 };

@@ -16,33 +16,34 @@
 #include "TStyle.h"
 #include "TROOT.h"
 
-class TNudyElementRN: public TObject{
+class TNudyElementRN : public TObject {
 
- private:
+private:
   int fCoSize;
-  float fX,fY;
-  TGeoElementRN* fEle;
-  TBox* fBox;
+  float fX, fY;
+  TGeoElementRN *fEle;
+  TBox *fBox;
   TPaveText fInfo;
   Color_t GetColor(double halfLife);
- public:
+
+public:
   static double fCCodeRange[26];
   static int fCCodeColor[26][3];
 
   float fSize;
   float fScale;
   float fPadding;
-  
+
   TColor fColors[26];
   TNudyElementRN();
-  TNudyElementRN(TGeoElementRN* elem,float fX, float fY);
-  virtual ~TNudyElementRN() {};
-  void Draw(const char* option="");
+  TNudyElementRN(TGeoElementRN *elem, float fX, float fY);
+  virtual ~TNudyElementRN(){};
+  void Draw(const char *option = "");
   void Move(float x, float y);
-  void SetColorCode(TList* cCodeRange, TList* cCodeColor);
-  int GetA() {return fEle->AtomicNo();}
-  int GetZ() {return fEle->MassNo();}
-  
-  ClassDef(TNudyElementRN,1) //Radio Nucleide Element
+  void SetColorCode(TList *cCodeRange, TList *cCodeColor);
+  int GetA() { return fEle->AtomicNo(); }
+  int GetZ() { return fEle->MassNo(); }
+
+  ClassDef(TNudyElementRN, 1) // Radio Nucleide Element
 };
 #endif

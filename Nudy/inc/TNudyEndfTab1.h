@@ -23,52 +23,48 @@
 
 */
 
-
 #include <Riostream.h>
 #include "TNudyEndfCont.h"
 #include <RConfig.h>
-class TNudyEndfTab1: public TNudyEndfCont {
+class TNudyEndfTab1 : public TNudyEndfCont {
 public:
   TNudyEndfTab1();
-  TNudyEndfTab1(TNudyEndfTab1* tab, int n1, int n2);
-  TNudyEndfTab1(double c1, double c2,
-		int l1, int l2, int n1, int n2);
+  TNudyEndfTab1(TNudyEndfTab1 *tab, int n1, int n2);
+  TNudyEndfTab1(double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfTab1();
-  virtual void SetCont(double c1, double c2,
-		       int l1, int l2, int n1, int n2);
+  virtual void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
 
-  int GetNR() const {return fN1;}
-  int GetNP() const {return fN2;}
+  int GetNR() const { return fN1; }
+  int GetNP() const { return fN2; }
 
-  int GetNBT(int i) const {return fNBT[i];}
-  void SetNBT(int iel, int i) {fNBT[i]=iel;}
+  int GetNBT(int i) const { return fNBT[i]; }
+  void SetNBT(int iel, int i) { fNBT[i] = iel; }
 
-  int GetINT(int i) const {return fINT[i];}
-  void SetINT(int iel, int i) {fINT[i]=iel;}
+  int GetINT(int i) const { return fINT[i]; }
+  void SetINT(int iel, int i) { fINT[i] = iel; }
 
-  double GetX(int i) const {return fX[i];}
-  void SetX(double x, int i) {fX[i]=x;}
+  double GetX(int i) const { return fX[i]; }
+  void SetX(double x, int i) { fX[i] = x; }
 
   void Equate(TNudyEndfTab1 *tab);
 
-  double* X(){return fX;}
-  double* Y(){return fY;}
-  int* NBT(){return fNBT;}
-  int* INT(){return fINT;}
+  double *X() { return fX; }
+  double *Y() { return fY; }
+  int *NBT() { return fNBT; }
+  int *INT() { return fINT; }
 
-  double GetY(int i) const {return fY[i];}
-  void SetY(double y, int i) {fY[i]=y;}
+  double GetY(int i) const { return fY[i]; }
+  void SetY(double y, int i) { fY[i] = y; }
 
-  void DumpENDF(int mat, int mf,int mt,int& ns,int flags);
+  void DumpENDF(int mat, int mf, int mt, int &ns, int flags);
 
 private:
-  int    *fNBT;       //[fN1]
-  int    *fINT;       //[fN1]
-  double *fX;         //[fN2]
-  double *fY;         //[fN2]
+  int *fNBT;  //[fN1]
+  int *fINT;  //[fN1]
+  double *fX; //[fN2]
+  double *fY; //[fN2]
 
-  ClassDef(TNudyEndfTab1,1)
-
+  ClassDef(TNudyEndfTab1, 1)
 };
 
 #endif

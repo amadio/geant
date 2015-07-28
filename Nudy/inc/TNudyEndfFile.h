@@ -23,8 +23,8 @@
 
 */
 
-//class TString;
-//class TNudyEndfSec;
+// class TString;
+// class TNudyEndfSec;
 
 #include "TNudyEndfSec.h"
 #include <Riostream.h>
@@ -32,31 +32,31 @@
 #include <TList.h>
 #include <RConfig.h>
 
-class TNudyEndfFile: public TObject {
+class TNudyEndfFile : public TObject {
 public:
   TNudyEndfFile();
   TNudyEndfFile(int mat, int mf);
   virtual ~TNudyEndfFile();
 
-  const char* GetName()   const {return fName;}
-  int         GetMAT()    const {return fMAT;}
-  int         GetMF()     const {return fMF;}
-  void Add(TNudyEndfSec *sec) {fSecs->Add(sec);}
-  
-  //TList    fMF;         //! List of the files of this material
+  const char *GetName() const { return fName; }
+  int GetMAT() const { return fMAT; }
+  int GetMF() const { return fMF; }
+  void Add(TNudyEndfSec *sec) { fSecs->Add(sec); }
+
+  // TList    fMF;         //! List of the files of this material
 
   void DumpENDF(int flags);
-  TNudyEndfSec* GetSec(int MT);
-  TList* GetSections(){return fSecs;}
+  TNudyEndfSec *GetSec(int MT);
+  TList *GetSections() { return fSecs; }
+
 private:
-  char   fName[9];    // File Name
-  int    fMAT;        // MAT number
-  int    fMF;         // MF number
+  char fName[9]; // File Name
+  int fMAT;      // MAT number
+  int fMF;       // MF number
 
-  TList    *fSecs;         // List of the sections of this file
+  TList *fSecs; // List of the sections of this file
 
-  ClassDef(TNudyEndfFile,1)
-
+  ClassDef(TNudyEndfFile, 1)
 };
 
 #endif

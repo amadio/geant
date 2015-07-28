@@ -23,29 +23,26 @@
 
 */
 
-
 #include <Riostream.h>
 #include "TNudyEndfCont.h"
 #include <RConfig.h>
 
-class TNudyEndfList: public TNudyEndfCont {
+class TNudyEndfList : public TNudyEndfCont {
 public:
   TNudyEndfList();
-  TNudyEndfList(double c1, double c2,
-		   int l1, int l2, int n1, int n2);
+  TNudyEndfList(double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfList();
-  virtual void SetCont(double c1, double c2,
-		       int l1, int l2, int n1, int n2);
+  virtual void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
 
-  int GetNPL() const {return fN1;}
-  double GetLIST(int i) const {return fList[i];}
-  void SetLIST(double el, int i) {fList[i]=el;}
-  void DumpENDF(int mat, int mf, int mt, int& ns, int flags);
+  int GetNPL() const { return fN1; }
+  double GetLIST(int i) const { return fList[i]; }
+  void SetLIST(double el, int i) { fList[i] = el; }
+  void DumpENDF(int mat, int mf, int mt, int &ns, int flags);
+
 private:
-  double *fList;      //[fN1]
+  double *fList; //[fN1]
 
-  ClassDef(TNudyEndfList,1)
-
+  ClassDef(TNudyEndfList, 1)
 };
 
 #endif
