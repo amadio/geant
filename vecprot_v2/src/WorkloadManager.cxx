@@ -20,13 +20,14 @@
 #include "GeantEvent.h"
 #include "GeantVApplication.h"
 #if USE_VECGEOM_NAVIGATOR
+#include "base/TLS.h"
 #include "management/GeoManager.h"
 #include "volumes/Medium.h"
 #else
 #include "TGeoNavigator.h"
+#include "TGeoManager.h"
 #endif
 #include "TaskBroker.h"
-#include "TGeoManager.h" // only needed by ThradId, Andrei will remove this soon
 
 using namespace Geant;
 using std::max;
@@ -38,7 +39,7 @@ WorkloadManager::WorkloadManager(int nthreads)
     : fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads), fNminThreshold(10),
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
       fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0),
-      fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0), fScheduler(0), fBroker(0), fWaiting(0),
+      fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0), fMaxThreads(0), fScheduler(0), fBroker(0), fWaiting(0),
       fSchLocker(), fGbcLocker(), fLastEvent(0) {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -64,8 +65,12 @@ WorkloadManager::~WorkloadManager() {
 
 //______________________________________________________________________________
 int WorkloadManager::ThreadId() {
+#if USE_VECGEOM_NAVIGATOR
+  return BaseTLS::ThreadId();
+#else  
   gGeoManager->SetMultiThread();
   return TGeoManager::ThreadId();
+#endif  
 }
 
 //______________________________________________________________________________
