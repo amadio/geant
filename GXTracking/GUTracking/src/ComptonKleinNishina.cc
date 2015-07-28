@@ -18,6 +18,7 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid)
   fNrow(100), fNcol(100) 
 {
   //initialization
+
   SetLowEnergyLimit(10.*keV);
 
   //replace hard coded numbers by default constants
@@ -198,12 +199,12 @@ ComptonKleinNishina::CalculateDiffCrossSection(int Zelement,
   return dsigma;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_BOTH double
 ComptonKleinNishina::GetG4CrossSection(double  gammaEnergy, 
-                                       const int Z,
-                                       double& xSection)
+                                       const int Z)
 {
   //G4KleinNishinaModel::ComputeCrossSectionPerAtom - Genat4 10.1.p2
+  double xSection = 0.;
 
   const G4double dT0 = keV;
   const G4double a = 20.0 , b = 230.0 , c = 440.0;
@@ -239,11 +240,12 @@ ComptonKleinNishina::GetG4CrossSection(double  gammaEnergy,
     xSection *= G4Exp(-y*(c1+c2*y));          
   }
   if(xSection < 0.0) { xSection = 0.0; }
-  //  return xSection;
+  return xSection;
 }
 
 VECPHYS_CUDA_HEADER_BOTH void 
-ComptonKleinNishina::SampleByCompositionRejection(double energyIn,
+ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
+                                                  double energyIn,
                                                   double& energyOut,
                                                   double& sinTheta)
 {
