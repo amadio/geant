@@ -40,8 +40,8 @@ public:
   TArrayD *GetFile5ProcessedData(double ein);
 
 private:
-  int fMAT; // Material number
-  unsigned long fTemp; // Temperature for evaluation of data
+  int fMAT;                  // Material number
+  unsigned long fTemp;       // Temperature for evaluation of data
   int fEndf;                 // Endf code of the material
   int fPdg;                  // Pdgcode of the projectile
   TGeoElementRN *fMaterial;  //! Material

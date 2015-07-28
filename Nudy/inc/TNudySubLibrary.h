@@ -24,8 +24,8 @@ public:
                        const unsigned long temp = 0);
 
 private:
-  TBtree *fIndex; // Btree storing all Models
-  TBtree *fBuffer; // Buffer storing results of last query
+  TBtree *fIndex;            // Btree storing all Models
+  TBtree *fBuffer;           // Buffer storing results of last query
   TParticlePDG *fProjectile; // Projectile particle
   ClassDef(TNudySubLibrary, 1)
 };

@@ -10,12 +10,12 @@
 
 class TNudyLibrary : public TNamed {
 public:
-  TNudyLibrary(); // Default Constructor
-  TNudyLibrary(const char *name, const char *title); // Constructor
-  void ReadTape(TNudyEndfTape *tape); // Read data from tape into current file
-  virtual ~TNudyLibrary(); // Destructor
+  TNudyLibrary();                                     // Default Constructor
+  TNudyLibrary(const char *name, const char *title);  // Constructor
+  void ReadTape(TNudyEndfTape *tape);                 // Read data from tape into current file
+  virtual ~TNudyLibrary();                            // Destructor
   TNudySubLibrary *AddSubLib(TParticlePDG *particle); // Add a sublibrary for particle
-  THashTable *GetSubLibs() { return fSubLib; } // Get all sublibraries
+  THashTable *GetSubLibs() { return fSubLib; }        // Get all sublibraries
   TNudySubLibrary *GetSubLib(TParticlePDG *particle) {
     return (TNudySubLibrary *)fSubLib->FindObject(particle->GetName());
   } // Get sublibrary by particle

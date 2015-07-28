@@ -15,10 +15,10 @@ class TNudyAlias : public TObject {
 private:
   int fLen; // Length of data
   // Alias table
-  double *fP; //[fLen]
-  double *fX; //[fLen]
-  double *fA; //[fLen]
-  double *fR; //[fLen]
+  double *fP;    //[fLen]
+  double *fX;    //[fLen]
+  double *fA;    //[fLen]
+  double *fR;    //[fLen]
   TRandom *fRnd; // Uniform random number generation
 public:
   TNudyAlias();

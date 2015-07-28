@@ -1100,7 +1100,7 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
   case 2: // Elastic scattering (MT = 2)
   {
     switch (sec->GetL1()) { // sec->GetL1() is LTHR
-    case 1: // Coherent elastic scattering
+    case 1:                 // Coherent elastic scattering
     {
       TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
       Process(secTab1);

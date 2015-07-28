@@ -33,7 +33,7 @@ protected:
   }
 
 public:
-  virtual ~TNudyCore(); // Public Destructor
+  virtual ~TNudyCore();         // Public Destructor
   static TNudyCore *Instance(); // Returns Instance of TNudyManager
   // Calculation functions
   double LinearInterpolation(double x1, double y1, double x2, double y2, double x); // Linear Interpolation
