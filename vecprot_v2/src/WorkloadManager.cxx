@@ -133,7 +133,6 @@ void WorkloadManager::StartThreads() {
   if (!fListThreads.empty())
     return;
   int ith = 0;
-  //  TThread *t;
   if (fBroker) {
     if (fBroker->GetNstream() > fNthreads) {
       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
@@ -141,36 +140,19 @@ void WorkloadManager::StartThreads() {
     }
     Printf("Running with a coprocessor broker.");
     fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
-    //    t = new TThread(WorkloadManager::TransportTracksCoprocessor, fBroker);
-    //    fListThreads->Add(t);
-    //    t->Run();
     ith += fBroker->GetNstream() + 1;
   }
   // Start CPU transport threads
   for (; ith < fNthreads; ith++) {
     fListThreads.emplace_back(WorkloadManager::TransportTracks);
-    //    t = new TThread(WorkloadManager::TransportTracks);
-    //    fListThreads->Add(t);
-    //    t->Run();
   }
-  //   gSystem->Sleep(1000);
-  // Start scheduler(s)
-  //  t = new TThread(WorkloadManager::MainScheduler);
-  //  fListThreads->Add(t);
-  //  t->Run();
   // Start monitoring thread
   if (GeantPropagator::Instance()->fUseMonitoring) {
     fListThreads.emplace_back(WorkloadManager::MonitoringThread);
-    //    t = new TThread(WorkloadManager::MonitoringThread);
-    //    fListThreads->Add(t);
-    //    t->Run();
   }
   // Start garbage collector
   if (GeantPropagator::Instance()->fMaxRes > 0) {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
-    //    t = new TThread(WorkloadManager::GarbageCollectorThread);
-    //    fListThreads->Add(t);
-    //    t->Run();
   }
 }
 
@@ -186,19 +168,6 @@ void WorkloadManager::JoinThreads() {
   for (auto &t : fListThreads) {
     t.join();
   }
-  /*
-    for (int ith = 0; ith < tojoin; ith++)
-      ((TThread *)fListThreads->At(ith))->Join();
-    // Join scheduler
-    //  ((TThread *)fListThreads->At(tojoin))->Join();
-    // Join monitoring thread
-    if (GeantPropagator::Instance()->fUseMonitoring) {
-      ((TThread *)fListThreads->At(tojoin++))->Join();
-    }
-    // Join garbage collector
-    if (GeantPropagator::Instance()->fMaxRes > 0)
-      ((TThread *)fListThreads->At(tojoin++))->Join();
-  */
 }
 
 //______________________________________________________________________________

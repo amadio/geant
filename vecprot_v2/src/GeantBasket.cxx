@@ -1,4 +1,3 @@
-#include "TThread.h"
 #include "GeantBasket.h"
 #include "globals.h"
 #include "GeantTrack.h"
@@ -8,9 +7,6 @@
 #include "GeantTaskData.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
-
-#include "TThread.h"
-#include "TArrayI.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #else
 #include "TGeoManager.h"
@@ -19,8 +15,8 @@
 
 ClassImp(GeantBasket)
 
-    //______________________________________________________________________________
-    GeantBasket::GeantBasket()
+//______________________________________________________________________________
+GeantBasket::GeantBasket()
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
       fThreshold(0), fTracksIn(), fTracksOut() {
   // Dummy constructor.
