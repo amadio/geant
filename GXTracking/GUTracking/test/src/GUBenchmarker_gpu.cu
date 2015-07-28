@@ -1,11 +1,10 @@
 #include "base/Stopwatch.h"
 
-#include "GUComptonKleinNishina.h"
 #include "ComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
-#include "GUMollerBhabha.h"
-#include "GUSeltzerBerger.h"
+#include "IonisationMoller.h"
+#include "BremSeltzerBerger.h"
 
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
@@ -17,26 +16,6 @@ inline namespace cuda {
 
 __global__
 void KernelKleinNishina(Random_t* devStates,
-                        GUAliasTableManager** table,
-                        Physics2DVector* sbData,
-			int nTrackSize, 
-                        GUTrack* itrack, 
-			int* targetElements, 
-			GUTrack* otrack)
-{
-  unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
-
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kKleinNishina]);
-  GUComptonKleinNishina model(devStates,tid,&sampler);
-
-  while (tid < nTrackSize) {
-    model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
-    tid += blockDim.x * gridDim.x;
-  }
-}
-
-__global__
-void KernelVKleinNishina(Random_t* devStates,
                          GUAliasTableManager** table,
                          Physics2DVector* sbData,
 			 int nTrackSize, 
@@ -46,7 +25,7 @@ void KernelVKleinNishina(Random_t* devStates,
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kVKleinNishina]);
+  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kKleinNishina]);
   ComptonKleinNishina model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
@@ -107,7 +86,7 @@ void KernelMollerBhabha(Random_t* devStates,
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kMollerBhabha]);
-  GUMollerBhabha model(devStates,tid,&sampler);
+  IonisationMoller model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -127,7 +106,7 @@ void KernelSeltzerBerger(Random_t* devStates,
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kSeltzerBerger]);
-  GUSeltzerBerger model(devStates,tid,&sampler,sbData);
+  BremSeltzerBerger model(devStates,tid,&sampler,sbData);
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -155,31 +134,6 @@ Precision CudaKleinNishina(int blocksPerGrid,
   timer.Start();
 
   vecphys::cuda::KernelKleinNishina<<<blocksPerGrid, threadsPerBlock>>>(
-				       devStates,table,sbData,nTrackSize,
-    				       itrack, targetElements,otrack);
-  cudaDeviceSynchronize();
-
-  elapsedTime = timer.Stop();
-
-  return elapsedTime;
-}
-
-Precision CudaVKleinNishina(int blocksPerGrid, 
-                            int threadsPerBlock,
-                            Random_t* devStates,
-                            GUAliasTableManager** table,
-                            Physics2DVector* sbData,
-			    int nTrackSize, 
-                            GUTrack* itrack, 
-			    int* targetElements, 
-			    GUTrack* otrack)
-{
-  static Stopwatch timer;
-  Precision elapsedTime = 0.0;
-
-  timer.Start();
-
-  vecphys::cuda::KernelVKleinNishina<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack);
   cudaDeviceSynchronize();

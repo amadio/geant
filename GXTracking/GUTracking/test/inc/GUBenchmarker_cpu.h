@@ -18,11 +18,6 @@ Precision ScalarKleinNishina(int ntrack,
 			     int *targetElements,
 			     GUTrack* otrack_aos);
 
-Precision ScalarVKleinNishina(int ntrack, 
-			      GUTrack* itrack_aos,
-			      int *targetElements,
-			      GUTrack* otrack_aos);
-
 Precision ScalarBetheHeitler(int ntrack, 
 			     GUTrack* itrack_aos,
 			     int *targetElements,
@@ -44,7 +39,6 @@ Precision ScalarSeltzerBerger(int ntrack,
 			      GUTrack* otrack_aos);
 
 KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina, 
-                                   ScalarVKleinNishina,
                                    ScalarBetheHeitler,
                                    ScalarSauterGavrila,
                                    ScalarMollerBhabha,
@@ -56,11 +50,6 @@ Precision G4KleinNishina(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
-
-Precision G4VKleinNishina(int ntrack, 
-			  GUTrack* itrack_aos,
-			  int *targetElements,
-			  GUTrack* otrack_aos);
 
 Precision G4BetheHeitler(int ntrack, 
 			 GUTrack* itrack_aos,
@@ -83,7 +72,6 @@ Precision G4SeltzerBerger(int ntrack,
 			  GUTrack* otrack_aos);
 
 KernelFunc_t G4KernelFunc[] = {G4KleinNishina, 
-                               G4VKleinNishina,
                                G4BetheHeitler,
                                G4SauterGavrila,
                                G4MollerBhabha,
@@ -98,10 +86,6 @@ typedef Precision (*VectorKernelFunc_t)(GUTrack_v& itrack_soa,
 Precision VectorKleinNishina(GUTrack_v& itrack_soa,
      			     int *targetElements,
 			     GUTrack_v& otrack_soa);
-
-Precision VectorVKleinNishina(GUTrack_v& itrack_soa,
-     			      int *targetElements,
-			      GUTrack_v& otrack_soa);
 
 Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
      			     int *targetElements,
@@ -120,7 +104,6 @@ Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
 			      GUTrack_v& otrack_soa);
 
 VectorKernelFunc_t VectorKernelFunc[] = {VectorKleinNishina,
-                                         VectorVKleinNishina, 
                                          VectorBetheHeitler,
                                          VectorSauterGavrila,
                                          VectorMollerBhabha, 

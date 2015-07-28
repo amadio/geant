@@ -6,12 +6,11 @@
 #include "backend/cuda/Backend.h"
 
 #include "GUAliasSampler.h"
-#include "GUComptonKleinNishina.h"
 #include "ComptonKleinNishina.h"
 #include "GUConversionBetheHeitler.h"
 #include "GUPhotoElectronSauterGavrila.h"
-#include "GUMollerBhabha.h"
-#include "GUSeltzerBerger.h"
+#include "IonisationMoller.h"
+#include "BremSeltzerBerger.h"
 #include "Physics2DVector.h"
 #include "GUTrackHandler.h"
 
@@ -38,18 +37,16 @@ void GUBenchmarker::RunCuda()
   int *targetElements_d;
 
   //prepare table - this step may be move to the physics list later
-  GUComptonKleinNishina *KleinNishina = new GUComptonKleinNishina(0,-1);
-  ComptonKleinNishina *VKleinNishina = new ComptonKleinNishina(0,-1);
+  ComptonKleinNishina *KleinNishina = new ComptonKleinNishina(0,-1);
   GUConversionBetheHeitler *BetheHeitler = new GUConversionBetheHeitler(0,-1);
   GUPhotoElectronSauterGavrila *SauterGavrila = new GUPhotoElectronSauterGavrila(0,-1);
-  GUMollerBhabha *MollerBhabha = new GUMollerBhabha(0,-1);
-  GUSeltzerBerger *SeltzerBerger = new GUSeltzerBerger(0,-1);
+  IonisationMoller *MollerBhabha = new IonisationMoller(0,-1);
+  BremSeltzerBerger *SeltzerBerger = new BremSeltzerBerger(0,-1);
 
   GUAliasTableManager** tableM_h = 
     (GUAliasTableManager**) malloc(kNumberPhysicsModel*sizeof(GUAliasTableManager*)); 
 
   tableM_h[kKleinNishina]  = KleinNishina->GetSampler()->GetAliasTableManager();
-  tableM_h[kVKleinNishina] = VKleinNishina->GetSampler()->GetAliasTableManager();
   tableM_h[kBetheHeitler]  = BetheHeitler->GetSampler()->GetAliasTableManager();
   tableM_h[kSauterGavrila] = SauterGavrila->GetSampler()->GetAliasTableManager();
   tableM_h[kMollerBhabha]  = MollerBhabha->GetSampler()->GetAliasTableManager();

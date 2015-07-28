@@ -152,6 +152,7 @@ if (CUDA)
       -std=c++11
       -Xcudafe "--diag_suppress=code_is_unreachable"
       -Xcudafe "--diag_suppress=initialization_not_reachable" 
+      --relaxed-constexpr
   )
   set(VECPHYS_NVCC_CONFIGS
         DEBUG -g -G
@@ -271,15 +272,12 @@ include_directories(${CMAKE_SOURCE_DIR}
 
 set(SRC_CPP_RELATIVE
   src/GUAliasSampler.cc
-  src/GUComptonKleinNishina.cc
   src/ComptonKleinNishina.cc
   src/GUConversionBetheHeitler.cc
   src/GUPhotoElectronSauterGavrila.cc
-  src/GUMollerBhabha.cc
-  src/GUSeltzerBerger.cc
-#  src/GUPhysicsModel.cc
+  src/IonisationMoller.cc
+  src/BremSeltzerBerger.cc
   src/GUAliasTable.cc
-#  src/GUElement.cc
   src/GUAliasTableManager.cc
   src/Physics2DVector.cc
   src/EmModelBase.cc

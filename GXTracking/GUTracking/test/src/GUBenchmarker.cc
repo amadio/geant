@@ -3,12 +3,9 @@
 #include "GUPhysicsModelName.h"
 
 #include "base/Stopwatch.h"
+#include "base/SystemOfUnits.h"
 
-#include "GUAliasSampler.h"
-#include "GUComptonKleinNishina.h"
-#include "GUSeltzerBerger.h"
 #include "GUTrackHandler.h"
-#include "SystemOfUnits.h"
 
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"

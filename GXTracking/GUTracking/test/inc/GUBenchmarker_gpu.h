@@ -20,16 +20,6 @@ Precision CudaKleinNishina(int blocksPerGrid,
 			   int* targetElements, 
 			   GUTrack* otrack);
 
-Precision CudaVKleinNishina(int blocksPerGrid, 
-                            int threadsPerBlock,
-                            Random_t* devStates,
-                            GUAliasTableManager** table,
-                            Physics2DVector* sbData,
-			    int nTrackSize, 
-                            GUTrack* itrack, 
-			    int* targetElements, 
-			    GUTrack* otrack);
-
 Precision CudaBetheHeitler(int blocksPerGrid, 
                            int threadsPerBlock,
                            Random_t* devStates,
@@ -81,7 +71,6 @@ typedef Precision (*CudaKernelFunc_t)(int blocksPerGrid,
 			              GUTrack* otrack);
 
 CudaKernelFunc_t CudaKernelFunc[] = {CudaKleinNishina,
-                                     CudaVKleinNishina, 
                                      CudaBetheHeitler, 
                                      CudaSauterGavrila, 
                                      CudaMollerBhabha, 
