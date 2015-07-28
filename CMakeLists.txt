@@ -264,7 +264,7 @@ add_subdirectory (tabxsec)
 #add_subdirectory (test-small)
 #add_subdirectory (cmstrack)
 #add_subdirectory (test-complex)
-add_subdirectory (Nudy)
+#add_subdirectory (Nudy)
 
 if(USE_VECPHYS)
  add_subdirectory (vectphysproc)

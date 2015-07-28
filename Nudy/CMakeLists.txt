@@ -1,10 +1,4 @@
 #----------------------------------------------------------------------------
-# Enable the Language Fortran
-
-#enable_language(Fortran)
-
-
-#----------------------------------------------------------------------------
 # Locate Sources and Headers for this project
 # NB : Headers are also included
 
