@@ -33,8 +33,8 @@ TNudyEndfCont::TNudyEndfCont() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfCont::TNudyEndfCont(Double_t c1, Double_t c2,
-			     Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
+TNudyEndfCont::TNudyEndfCont(double c1, double c2,
+			     int l1, int l2, int n1, int n2) :
   fC1(c1),
   fC2(c2),
   fL1(l1),
@@ -49,8 +49,8 @@ TNudyEndfCont::TNudyEndfCont(Double_t c1, Double_t c2,
 
 
 //_______________________________________________________________________________
-void TNudyEndfCont::SetCont(Double_t c1, Double_t c2,
-			    Int_t l1, Int_t l2, Int_t n1, Int_t n2)
+void TNudyEndfCont::SetCont(double c1, double c2,
+			    int l1, int l2, int n1, int n2)
 {
   fC1=c1;
   fC2=c2;
@@ -63,9 +63,9 @@ void TNudyEndfCont::SetCont(Double_t c1, Double_t c2,
 //
 // Dump Data to screen in ENDF format
 //______________________________________________________________________________
-void TNudyEndfCont::DumpENDF(Int_t mat,Int_t mf, Int_t mt,Int_t& ns, Int_t flags = 1)
+void TNudyEndfCont::DumpENDF(int mat,int mf, int mt,int& ns, int flags = 1)
 {
-  Char_t s1[14],s2[14];
+  char s1[14],s2[14];
   F2F(fC1,s1); F2F(fC2,s2);
   printf("%11s%11s%11d%11d%11d%11d", s1,s2, fL1,fL2, fN1,fN2);
   printf("%4d%2d%3d%5d", mat, mf, mt, ns);
@@ -80,9 +80,9 @@ void TNudyEndfCont::DumpENDF(Int_t mat,Int_t mf, Int_t mt,Int_t& ns, Int_t flags
 }
 
 //
-//Float_t to Fortran style string, dim of s should be 14 or bigger
+//float to Fortran style string, dim of s should be 14 or bigger
 //______________________________________________________________________________
-Char_t * TNudyEndfCont::F2F(Double_t f, char s[])
+char * TNudyEndfCont::F2F(double f, char s[])
 {
   snprintf(s,14,"%12.5E",f);
   if(s[10]!='0') {

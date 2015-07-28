@@ -12,10 +12,10 @@
 class TNudyDB : public TNamed {
  public:
   //   TNudyDB(const char *name, const char *title, const char *file);
-  TNudyDB(const Char_t *name, const Char_t *title, const char *file);// DEBUG
+  TNudyDB(const char *name, const char *title, const char *file);// DEBUG
   virtual ~TNudyDB();
-  void AddLibrary(const Char_t *name, const char* file); //Add a Library to a Nudy Database from a RENDF file
-  void RemoveLibrary(const Char_t *name); //Remove a Library from a Nudy Databse
+  void AddLibrary(const char *name, const char* file); //Add a Library to a Nudy Database from a RENDF file
+  void RemoveLibrary(const char *name); //Remove a Library from a Nudy Databse
   TList* GetEntries();  //Get a List of Libraries in the Nudy Database
   TFile* GetDBFile() {return fDB;} //Get a pointer to the database file
  private:

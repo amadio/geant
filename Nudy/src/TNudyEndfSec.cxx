@@ -38,8 +38,8 @@ TNudyEndfSec::TNudyEndfSec() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfSec::TNudyEndfSec(Int_t mat, Int_t mf, Int_t mt, Double_t c1, Double_t c2,
-			   Int_t l1, Int_t l2, Int_t n1, Int_t n2) :
+TNudyEndfSec::TNudyEndfSec(int mat, int mf, int mt, double c1, double c2,
+			   int l1, int l2, int n1, int n2) :
   fMAT(mat),
   fMF(mf),
   fMT(mt),
@@ -68,7 +68,7 @@ TNudyEndfSec::~TNudyEndfSec()
 }
 
 //______________________________________________________________________________
-TNudyEndfRecord* TNudyEndfSec::GetRecord(Int_t RecNo)
+TNudyEndfRecord* TNudyEndfSec::GetRecord(int RecNo)
 {
 	//
 	//RecNo is the index of the record in the section
@@ -78,16 +78,16 @@ TNudyEndfRecord* TNudyEndfSec::GetRecord(Int_t RecNo)
 	if(RecNo>=0 && RecNo<=fRecs->LastIndex())
 		return (TNudyEndfRecord*)fRecs->At(RecNo);
 	else{
-		Error("TNudyEndfSec::GetRecord(Int_t)","Could not find record %d on tape",RecNo);
+		Error("TNudyEndfSec::GetRecord(int)","Could not find record %d on tape",RecNo);
 		return NULL;	
 	}
 }
 
 //______________________________________________________________________________
-void TNudyEndfSec::DumpENDF(Int_t flags = 1)
+void TNudyEndfSec::DumpENDF(int flags = 1)
 {
   //HEAD
-  Char_t s1[14],s2[14];
+  char s1[14],s2[14];
   TNudyEndfCont::F2F(fC1,s1); 
   TNudyEndfCont::F2F(fC2,s2);
   printf("%11s%11s%11d%11d%11d%11d", s1,s2, fL1,fL2, fN1,fN2);
@@ -97,8 +97,8 @@ void TNudyEndfSec::DumpENDF(Int_t flags = 1)
   else
     printf("\n");
   //RECORDS
-  Int_t ns = 2;
-  for(Int_t i=0;i<=fRecs->LastIndex();i++)
+  int ns = 2;
+  for(int i=0;i<=fRecs->LastIndex();i++)
      ((TNudyEndfRecord*)fRecs->At(i))->DumpENDF(fMAT,fMF,fMT,ns,flags);
   //SEND
   printf("%11s%11s%11d%11d%11d%11d%4d%2d%3d%5d"," 0.000000+0"," 0.000000+0",0,0,0,0,fMAT,fMF,0,99999);

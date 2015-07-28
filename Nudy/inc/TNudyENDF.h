@@ -63,11 +63,11 @@ class TNudyEndfINTG;
 #endif
 
 extern "C" type_of_call {
-  void FGetMTF(DEFCHARD str, Int_t mtf[4] DEFCHARL);
-  void FGetCONT(DEFCHARD str, Double_t c[2], Int_t nl[4], Int_t mtf[4] DEFCHARL);
-  void FGetFloat(DEFCHARD str, Double_t arr[6] DEFCHARL);
-  void FGetInt(DEFCHARD str, Int_t iarr[6] DEFCHARL);
-  void FGetINTG(DEFCHARD str, Int_t &ndigit,Int_t ij[2], Int_t kij[18], Int_t mtf[4] DEFCHARL);
+  void FGetMTF(DEFCHARD str, int mtf[4] DEFCHARL);
+  void FGetCONT(DEFCHARD str, double c[2], int nl[4], int mtf[4] DEFCHARL);
+  void FGetFloat(DEFCHARD str, double arr[6] DEFCHARL);
+  void FGetInt(DEFCHARD str, int iarr[6] DEFCHARL);
+  void FGetINTG(DEFCHARD str, int &ndigit,int ij[2], int kij[18], int mtf[4] DEFCHARL);
 }
 
 */
@@ -76,10 +76,10 @@ extern "C" type_of_call {
 class TNudyENDF: public TObject {
  public:
   TNudyENDF();
-  TNudyENDF(const Char_t *nFileENDF, const Char_t *nFileRENDF, Option_t *opt="new",UChar_t loglev=0);
+  TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt="new",unsigned char loglev=0);
   virtual ~TNudyENDF();
-   void SetLogLev(UChar_t loglev) {fLogLev=loglev;}
-   UChar_t GetLogLev() const {return fLogLev;}
+   void SetLogLev(unsigned char loglev) {fLogLev=loglev;}
+   unsigned char GetLogLev() const {return fLogLev;}
    void Process();
    void Process(TNudyEndfMat *mat);
    void Process(TNudyEndfFile *file);
@@ -114,19 +114,19 @@ class TNudyENDF: public TObject {
    void ProcessF34(TNudyEndfSec* sec);
    void ProcessF35(TNudyEndfSec* sec);
    void ProcessF40(TNudyEndfSec* sec);
-   void GetSEND(const Int_t pmtf[3]);
-   void GetFEND(const Int_t pmtf[3]);
-   void GetMEND(const Int_t pmtf[3]);
+   void GetSEND(const int pmtf[3]);
+   void GetFEND(const int pmtf[3]);
+   void GetMEND(const int pmtf[3]);
    void GetTEND();
    void ToEndSec();
    TNudyEndfTape* GetTape(){return this->fTape;}
 
-   void CheckSEND(const Int_t pmtf[3]) const;
-   void CheckFEND(const Int_t pmtf[3]) const;
-   void CheckMEND(const Int_t pmtf[3]) const;
+   void CheckSEND(const int pmtf[3]) const;
+   void CheckFEND(const int pmtf[3]) const;
+   void CheckMEND(const int pmtf[3]) const;
    void CheckTEND() const;
 
-   void GetMTF(Int_t mtf[4]) const {
+   void GetMTF(int mtf[4]) const {
      //FGetMTF(PASSCHARD(fLine), mtf PASSCHARL(fLine));
      std::string s0(fLine);
      std::string s2 = s0.substr(66,4);
@@ -164,7 +164,7 @@ class TNudyENDF: public TObject {
 
    }
 
-   void GetCONT(Double_t c[2], Int_t nl[4], Int_t mtf[4]) const {
+   void GetCONT(double c[2], int nl[4], int mtf[4]) const {
      //FGetCONT(PASSCHARD(fLine), c, nl, mtf PASSCHARL(fLine));
      int ii;
      //std::cout << " Process :: GetCONT::-> " << fLine << std::endl;
@@ -200,7 +200,7 @@ class TNudyENDF: public TObject {
      
    }
 
-   void GetFloat(Double_t c[6]) const {
+   void GetFloat(double c[6]) const {
      //FGetFloat(PASSCHARD(fLine), c PASSCHARL(fLine));
      int ii;
      std::string tmp;
@@ -223,7 +223,7 @@ class TNudyENDF: public TObject {
      }
    }
 
-   void GetInt(Int_t n[6]) const {
+   void GetInt(int n[6]) const {
      //FGetInt(PASSCHARD(fLine), n PASSCHARL(fLine));
      std::string s0(fLine);
      std::string s1 = s0.substr(0,66);
@@ -234,7 +234,7 @@ class TNudyENDF: public TObject {
      }
    }
 
-   void GetINTG(Int_t ndigit, Int_t ij[2] ,Int_t kij[18], Int_t mtf[4] )const{
+   void GetINTG(int ndigit, int ij[2] ,int kij[18], int mtf[4] )const{
      //FGetINTG(PASSCHARD(fLine), ndigit, ij, kij, mtf PASSCHARL(fLine));
      int ii;
      std::string s0(fLine);
@@ -297,16 +297,16 @@ class TNudyENDF: public TObject {
              
    }
      
-   void DumpENDF(Int_t flags);
+   void DumpENDF(int flags);
    
 private:
    static const char fkElNam[119][4];
    static const char fkElIso[4][2];
    
-   UChar_t        fLogLev;        //  Log Level Flag
+   unsigned char        fLogLev;        //  Log Level Flag
    std::ifstream       fENDF;          //! Input fENDF tape
    TFile         *fRENDF;         //! Output fRENDF file
-   Char_t         fLine[LINLEN];  //! Buffer to read the line
+   char         fLine[LINLEN];  //! Buffer to read the line
    TNudyEndfTape *fTape;          //! Support link for the tape structure
    TNudyEndfMat  *fMat;           //! Support link for the current material
    

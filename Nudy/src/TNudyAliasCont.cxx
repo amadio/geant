@@ -1,5 +1,4 @@
 #include "TNudyAliasCont.h"
-#include <TMath.h>
 
 ClassImp(TNudyAliasCont)
 
@@ -20,15 +19,15 @@ TNudyAliasCont::TNudyAliasCont() {
 }
 
 //_______________________________________________________________________________
-TNudyAliasCont::TNudyAliasCont(TArrayD *data,Double_t alpha,UInt_t seed) {
+TNudyAliasCont::TNudyAliasCont(TArrayD *data,double alpha,unsigned int seed) {
   //TArrayD of x1,p1,x2,p2.....xn,pn
-  Int_t len = data->GetSize();
-  Int_t i=0,j=0;
+  int len = data->GetSize();
+  int i=0,j=0;
   if(len%2!=0) {
     Error("TNudyAliasCont","Incorrect TArrayD specified");
   }
-  Double_t *x = new Double_t[len/2];
-  Double_t *p = new Double_t[len/2];
+  double *x = new double[len/2];
+  double *p = new double[len/2];
   for(i=0,j=0;i<len;i+=2,j++) {
     x[j] = data->GetAt(i);
     p[j] = data->GetAt(i+1);
@@ -39,21 +38,21 @@ TNudyAliasCont::TNudyAliasCont(TArrayD *data,Double_t alpha,UInt_t seed) {
 }
 
 //_______________________________________________________________________________
-TNudyAliasCont::TNudyAliasCont(Double_t *p,Double_t *x,const Int_t len,Double_t alpha,UInt_t seed) {
+TNudyAliasCont::TNudyAliasCont(double *p,double *x,const int len,double alpha,unsigned int seed) {
   Initialize(p,x,len,alpha,seed);
 }
 
 //_______________________________________________________________________________
-void TNudyAliasCont::Initialize(Double_t *p,Double_t *x,const Int_t len,Double_t alpha,UInt_t seed) {
+void TNudyAliasCont::Initialize(double *p,double *x,const int len,double alpha,unsigned int seed) {
   //Data sorted(asc) in x
   //alpha to be used when using statistical interpolation between two distributions
-  register Int_t i;
-  Double_t *integral = NULL,*I = NULL;
+  int i;
+  double *integral = NULL,*I = NULL;
   fInterX = fInterP = NULL;
 //  fTx = new TArrayD(len);
 //  fTp = new TArrayD(len);
   fTa = -1;
-  fInterAlpha = NULL;
+  fInterAlpha = 0;
 #ifdef TNUDYALIAS_MULTITHREAD
   fMult = NULL;
   fMultLen = 0;
@@ -64,11 +63,11 @@ void TNudyAliasCont::Initialize(Double_t *p,Double_t *x,const Int_t len,Double_t
   fRan = new TRandom(seed>>2);
   fP = new TArrayD(len);
   fX = new TArrayD(len);
-  integral = new Double_t[len-1];
-  I = new Double_t[len-1];
+  integral = new double[len-1];
+  I = new double[len-1];
   integral[0] = 0;
   I[0] = 0;
-  Double_t h = 0;
+  double h = 0;
   for(i=0;i<len;i++) {
     fP->SetAt(p[i],i);
     fX->SetAt(x[i],i);
@@ -111,7 +110,7 @@ TNudyAliasCont::~TNudyAliasCont() {
 
 //_______________________________________________________________________________
 void TNudyAliasCont::DumpTable() {
-  register int i;
+  int i;
   printf("Continuous probability distribution --> \n");
   for(i=0;i<fLen;i++) {
     printf("x[%d]=%e, p[%d]=%e\n",i,fX->At(i),i,fP->At(i));
@@ -124,11 +123,11 @@ void TNudyAliasCont::DumpTable() {
 }
 
 //_______________________________________________________________________________
-Double_t TNudyAliasCont::Random(IntScheme_t iScheme,Int_t binNo, AliasDist_t distribution,Double_t r1 , Double_t r2 ) {
+double TNudyAliasCont::Random(IntScheme_t iScheme,int binNo, AliasDist_t distribution,double r1 , double r2 ) {
   if(binNo<0 || binNo>=fLen) //Choose bins if required as per their probabilities
-    binNo = (Int_t)fChooseBin->Random();
-  Double_t *xx;
-  Double_t *xp;
+    binNo = (int)fChooseBin->Random();
+  double *xx;
+  double *xp;
   switch(distribution) {
     case kOriginal:
       xx = fX->GetArray();
@@ -138,7 +137,7 @@ Double_t TNudyAliasCont::Random(IntScheme_t iScheme,Int_t binNo, AliasDist_t dis
       xx = (fInterX && fInterP) ? fInterX->GetArray():fX->GetArray();
       xp = (fInterX && fInterP) ? fInterP->GetArray():fP->GetArray();
   }
-  Double_t rnd1,rnd2,x1,x2;
+  double rnd1,rnd2,x1,x2;
   switch(iScheme) {
     case kLinear:
       //Coerce linear probabiliy distributions to equal probability bins  
@@ -167,7 +166,7 @@ Double_t TNudyAliasCont::Random(IntScheme_t iScheme,Int_t binNo, AliasDist_t dis
 }
 
 //_______________________________________________________________________________
-Double_t TNudyAliasCont::StatisticalInterpolation(TNudyAliasCont *dist1,TNudyAliasCont *dist2,Double_t alpha) {
+double TNudyAliasCont::StatisticalInterpolation(TNudyAliasCont *dist1,TNudyAliasCont *dist2,double alpha) {
   //Simple statistical interpolation between distributions ( Not very accurate )
   if( dist1->Uniform(1) <= ((dist2->fAlpha-alpha)/(dist2->fAlpha-dist1->fAlpha)) )
     return dist1->Random();
@@ -176,35 +175,35 @@ Double_t TNudyAliasCont::StatisticalInterpolation(TNudyAliasCont *dist1,TNudyAli
 }
 
 //_______________________________________________________________________________
-Double_t TNudyAliasCont::ImprovedInterpolation(Double_t alpha) {
+double TNudyAliasCont::ImprovedInterpolation(double alpha) {
   //Improved interpolation between distributions - Interpolates between corresonding values in the 
   //intergral of probability density
-  Double_t x1,x2,X1,X2,P1,P2,rnd1,rnd2,u;
+  double x1,x2,X1,X2,P1,P2,rnd1,rnd2,u;
   u = (alpha-fAlpha)/(fInterAlpha-fAlpha);
   if(alpha < fAlpha || alpha > fInterAlpha){
     Error("ImprovedInterpolation","%e does not lie between %e and %e",alpha,fAlpha,fInterAlpha);
   }
-  Double_t h = 0;
+  double h = 0;
   if(!fTx)
     fTx = new TArrayD(fLen);
   if(!fTp)
     fTp = new TArrayD(fLen);
   if(alpha != fTa){
     fTa = alpha;
-    for(Int_t i = 0; i < fLen; i++){
+    for(int i = 0; i < fLen; i++){
       fTx->SetAt((1-u)*fX->At(i) + u * fInterX->At(i),i);
       fTp->SetAt((1-u)*fP->At(i) + u * fInterP->At(i),i);
       if(i > 0){
         h+= 0.5 * (fTx->At(i)-fTx->At(i-1))*(fTp->At(i)+fTp->At(i-1)); 
       }
     }
-    if(TMath::Abs(1.0-h) > 1e-5){
-      for(Int_t i = 0; i < fLen; i++){
+    if(fabs(1.0-h) > 1e-5){
+      for(int i = 0; i < fLen; i++){
         fTp->SetAt(fTp->At(i)/h,i);
       }
     }
   }
-  Int_t binNo = (Int_t)fChooseBin->Random();
+  int binNo = (int)fChooseBin->Random();
   X1 = fTx->At(binNo);
   X2 = fTx->At(binNo+1);
   P1 = fTp->At(binNo);
@@ -219,24 +218,24 @@ Double_t TNudyAliasCont::ImprovedInterpolation(Double_t alpha) {
    return x2;
 }
 //_______________________________________________________________________________
-Double_t TNudyAliasCont::SelectBin(Double_t alpha, AliasDist_t distribution){
-  Int_t binNo = (Int_t)fChooseBin->Random();
+double TNudyAliasCont::SelectBin(double alpha, AliasDist_t distribution){
+  int binNo = (int)fChooseBin->Random();
   if(distribution == kOriginal)
     return fX->At(binNo);
   else 
     return fInterX->At(binNo);
 }
 //_______________________________________________________________________________
-void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const Int_t len) {
+void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const int len) {
   //Populates data structures to interpolate between distributions
-  Int_t i,j,k;
+  int i,j,k;
   TArrayD *integral;
   TArrayD *integralp1;
-  Double_t x;
-  Int_t lo,hi,mid,min;
-  Int_t count;
-  Double_t f1,f2,e1,e2,dele,delf,temp,pp;
-  Double_t h = 0;
+  double x;
+  int lo,hi,mid,min;
+  int count;
+  double f1,f2,e1,e2,dele,delf,temp,pp;
+  double h = 0;
   lo = hi = mid = 0;
   for(i=0;i<len-1;i++) {
     dists[i].fInterAlpha = dists[i+1].fAlpha;
@@ -263,11 +262,11 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const Int_t len) {
       e1 = dists[i].fX->At(lo);
       e2 = dists[i].fX->At(hi);;
       delf = f2 - f1;
-      if(TMath::Abs(delf) != 0 ) {
+      if(fabs(delf) != 0 ) {
         dele = e2 -e1;
         temp = 2*(integralp1->At(j)-integral->At(lo))*delf/dele;
         if(integralp1->At(j) < integral->At(hi))
-          x = e1 + dele*(TMath::Sqrt(TMath::Power(f1,2)+temp)-f1)/delf;
+          x = e1 + dele*(sqrt(pow(f1,2)+temp)-f1)/delf;
         else
           x = e2 + 1e-5;
       }
@@ -278,7 +277,7 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const Int_t len) {
           x = e1 + 1e-5;
       }
       pp = TNudyCore::Instance()->LinearInterpolation(e1,f1, e2,f2,x);
-//      if(TMath::Abs(integralp1->At(j) - integral->At(lo)) > 1e-5){
+//      if(fabs(integralp1->At(j) - integral->At(lo)) > 1e-5){
         //** Work in progress to improve accuracy
  /*                 count++;
                   dists[i].fP->Set(dists[i].fLen+count);
@@ -310,9 +309,9 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const Int_t len) {
         integral->SetAt(0.5*(dists[i].fX->At(j) - dists[i].fX->At(j-1))*(dists[i].fP->At(j)+dists[i].fP->At(j-1)),j);
         integral->SetAt(integral->At(j) + integral->At(j-1),j);
     }
-    Double_t *It = new Double_t[dists[i].fLen-1];
-    Double_t *I = new Double_t[dists[i].fLen-1];
-    for(Int_t k = 0; k < dists[i].fLen; k++){
+    double *It = new double[dists[i].fLen-1];
+    double *I = new double[dists[i].fLen-1];
+    for(int k = 0; k < dists[i].fLen; k++){
       if(k > 0){
         It[k-1] = (dists[i].fX->At(k) - dists[i].fX->At(k-1))*(dists[i].fP->At(k)+dists[i].fP->At(k-1))*0.5;
         I[k-1] = k-1;
@@ -339,11 +338,11 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const Int_t len) {
       e1 = dists[i+1].fX->At(lo);
       e2 = dists[i+1].fX->At(hi);;
       delf = f2 - f1;
-      if(TMath::Abs(delf) != 0 ) {
+      if(fabs(delf) != 0 ) {
         dele = e2 -e1;
         temp = 2*(integral->At(j)-integralp1->At(lo))*delf/dele;
         if(integral->At(j) < integralp1->At(hi))
-          x = e1 + dele*(TMath::Sqrt(TMath::Power(f1,2)+temp)-f1)/delf;
+          x = e1 + dele*(sqrt(pow(f1,2)+temp)-f1)/delf;
         else
           x = e2 + 1e-5;
       }
@@ -376,13 +375,13 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists,const Int_t len) {
 #ifdef TNUDYALIAS_MULTITHREAD
 
 //_______________________________________________________________________________
-Double_t* TNudyAliasCont::Randoms(Int_t n,IntScheme_t iScheme) {
+double* TNudyAliasCont::Randoms(int n,IntScheme_t iScheme) {
   if(fMult)
     delete [] fMult;
-  Double_t *bins = fChooseBin->Randoms(n);
-  register Int_t i;
+  double *bins = fChooseBin->Randoms(n);
+  int i;
   fMultLen = n;
-  fMult = new Double_t[n];
+  fMult = new double[n];
   for(i=0;i<n;i++)
     fMult[i] = Random(iScheme,bins[i]);
   return fMult;

@@ -20,14 +20,14 @@ TNudyElementTable::TNudyElementTable()
 }
 void TNudyElementTable::InitializeControls()
 {
-  Int_t index;
+  int index;
   TString names[] = {"-", "v", "","<","o",">","","^","+"};
   TString func[] = {"gTNudyElementTable->ZoomOut();", "gTNudyElementTable->MoveDown()","","gTNudyElementTable->MoveLeft()","","gTNudyElementTable->MoveRight()","","gTNudyElementTable->MoveUp()","gTNudyElementTable->ZoomIn();"};
   for(index = 0; index < 9; index++){
-    Double_t x1 = ((index%3+1)*30)/(Double_t)(fRNTable->GetWindowWidth()) ;
-    Double_t y1 = ((index/3+1)*30)/(Double_t)(fRNTable->GetWindowHeight()); 
-    Double_t x2 = ((index%3+1)*30 + 29)/(Double_t)(fRNTable->GetWindowWidth());
-    Double_t y2 = ((index/3+1)*30 + 29)/(Double_t)(fRNTable->GetWindowHeight());
+    double x1 = ((index%3+1)*30)/(double)(fRNTable->GetWindowWidth()) ;
+    double y1 = ((index/3+1)*30)/(double)(fRNTable->GetWindowHeight()); 
+    double x2 = ((index%3+1)*30 + 29)/(double)(fRNTable->GetWindowWidth());
+    double y2 = ((index/3+1)*30 + 29)/(double)(fRNTable->GetWindowHeight());
     std::cout<<x1<<" , "<<y1<<" , "<<x2<<" , "<<y2<<std::endl;
     x1+=0.851;
     x2+=0.851;
@@ -74,7 +74,7 @@ void TNudyElementTable::MoveRight()
 void TNudyElementTable::Update()
 {
   TNudyElementRN* newEle; 
-  for(Int_t i = 0; i < fTable->GetElementsRN()->GetEntries(); i++){
+  for(int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++){
     newEle = (TNudyElementRN*)fEleBox.At(i);
     //    std::cout<<newEle->GetZ()*10+fOx<<", "<<newEle->GetA()*10+fOy<<std::endl;
     newEle->fScale = fLOD;
@@ -83,14 +83,14 @@ void TNudyElementTable::Update()
   fRNTable->Modified();
   fRNTable->Update();
 }
-void TNudyElementTable::Draw(Option_t *option)
+void TNudyElementTable::Draw(const char *option)
 {
   fRNTable = new TCanvas("RN Table","Radio Nucleide Table", 1000, 1000);
   fRNTable->SetBorderMode(0);
   fRNTable->SetFillColor(TColor::GetColor(60,90,140));
   fRNTable->Range(0,0,1000,1000);
   //fRNTable->SetEditable(kTRUE);
-  for(Int_t i = 0; i < fTable->GetElementsRN()->GetEntries(); i++){
+  for(int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++){
     TNudyElementRN *newEle;
     TGeoElementRN* newRN = (TGeoElementRN*)(fTable->GetElementsRN()->At(i));
     newEle = new TNudyElementRN(newRN,(newRN->MassNo()-newRN->AtomicNo())*10+fOx,newRN->AtomicNo()*10+fOy);
@@ -100,7 +100,7 @@ void TNudyElementTable::Draw(Option_t *option)
     fEleBox.Add(newEle);
   }
   InitializeControls();
-  for(Int_t j = 0; j < 9; j++){
+  for(int j = 0; j < 9; j++){
           ((TButton *)fControls.At(j))->Draw();
   }
   //fRNTable->SetEditable(kFALSE);

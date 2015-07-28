@@ -4,6 +4,9 @@
 
 ClassImp(TNudyCore)
 
+using std::max;
+using std::min;
+
 TNudyCore* TNudyCore::fgInstance = 0;
 
 //______________________________________________________________________________
@@ -49,12 +52,12 @@ char * TNudyCore::ExpandReaction(Reaction_t reac){
 	switch(reac){
 
 	default:
-		return Form("%d",(Int_t)reac);
+		return Form("%d",(int)reac);
 	}
 }
 
 //______________________________________________________________________________
-TParticle* TNudyCore::GetParticle(Int_t pdgCode){
+TParticle* TNudyCore::GetParticle(int pdgCode){
   TParticle *particle = new TParticle();
   particle->SetPdgCode(pdgCode);
   return particle;
@@ -68,7 +71,7 @@ TParticle* TNudyCore::GetParticle(const char* name){
 }
 
 //_______________________________________________________________________________
-TParticlePDG* TNudyCore::GetParticlePDG(Int_t pdgCode){
+TParticlePDG* TNudyCore::GetParticlePDG(int pdgCode){
   return fPdgDB->GetParticle(pdgCode);
 }
 
@@ -78,7 +81,7 @@ TParticlePDG* TNudyCore::GetParticlePDG(const char* name){
 }
 
 //______________________________________________________________________________
-Int_t TNudyCore::IsMaterial(const TGeoElementRN* endf, const char *key){
+int TNudyCore::IsMaterial(const TGeoElementRN* endf, const char *key){
   if(endf == NULL) return 1;
   char *matkey = Form("%07d",endf->ENDFCode());
   const char *pos = &key[9];
@@ -92,7 +95,7 @@ Int_t TNudyCore::IsMaterial(const TGeoElementRN* endf, const char *key){
 }
 
 //______________________________________________________________________________
-Int_t TNudyCore::IsTemperature(const ULong_t temp, const char *key){
+int TNudyCore::IsTemperature(const unsigned long temp, const char *key){
   if( temp == 0) return 1;
   char *matkey = Form("%12ld",temp);
   const char *pos = key;
@@ -106,7 +109,7 @@ Int_t TNudyCore::IsTemperature(const ULong_t temp, const char *key){
 }
 
 //______________________________________________________________________________
-Int_t TNudyCore::IsReaction(const Reaction_t r, const char *key){
+int TNudyCore::IsReaction(const Reaction_t r, const char *key){
   if(r == kNoReaction) return 1;
   char *matkey = Form("%03d",r);
   const char *pos = &key[6];
@@ -127,15 +130,15 @@ void TNudyCore::MemProfile(){
 }
 
 //______________________________________________________________________________
-char * TNudyCore::GetKey(const TGeoElementRN* mat, Reaction_t reac, ULong_t temp){
+char * TNudyCore::GetKey(const TGeoElementRN* mat, Reaction_t reac, unsigned long temp){
   return Form("%012ld%03d%07d",temp,reac,mat->ENDFCode());
 }
 
 //______________________________________________________________________________
-Int_t TNudyCore::BinarySearch(Double_t* array, Int_t len, Double_t val){
-  Int_t min = 0;
-  Int_t max = len-1;
-  Int_t mid = 0;
+int TNudyCore::BinarySearch(double* array, int len, double val){
+  int min = 0;
+  int max = len-1;
+  int mid = 0;
   if(val <= array[min])
     return 0;
   else if(val >= array[max])
@@ -153,9 +156,9 @@ Int_t TNudyCore::BinarySearch(Double_t* array, Int_t len, Double_t val){
 } 
 
 //______________________________________________________________________________
-Double_t TNudyCore::InterpolateScale(Double_t x[2], Double_t y[2], Int_t law, Double_t xx){
-  Double_t yy = -1;
-  Double_t small = 1e-20;
+double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx){
+  double yy = -1;
+  double small = 1e-20;
 //  Info("InterpolateScale","x1,y1 = %e,%e x2,y2 = %e,%e INT = %d xx = %e",x[0],y[0],x[1],y[1],law,xx);
   if(law == 1 || x[1] <= x[0]){
     yy = y[0];
@@ -165,28 +168,28 @@ Double_t TNudyCore::InterpolateScale(Double_t x[2], Double_t y[2], Int_t law, Do
     yy = y[0]+(y[1]-y[0])*(xx-x[0])/(x[1]-x[0]);
   }
   else if (law == 3){
-    x[0] = TMath::Max(x[0],small);
-    x[1] = TMath::Max(x[1],small);
-    yy = y[0] + (y[1]-y[0])*TMath::Log(xx/x[0])/TMath::Log(x[1]/x[0]);
+    x[0] = max<double>(x[0],small);
+    x[1] = max<double>(x[1],small);
+    yy = y[0] + (y[1]-y[0])*log(xx/x[0])/log(x[1]/x[0]);
   }
   else if (law == 4){
-    y[0] = TMath::Max(y[0],small);
-    y[1] = TMath::Max(y[1],small);
-    yy = TMath::Exp(TMath::Log(y[0]) + TMath::Log(y[1]/y[0])*(xx-x[0])/(x[1]-x[0]));
+    y[0] = max<double>(y[0],small);
+    y[1] = max<double>(y[1],small);
+    yy = exp(log(y[0]) + log(y[1]/y[0])*(xx-x[0])/(x[1]-x[0]));
   }
   else if (law == 5){
-    x[0] = TMath::Max(x[0],small);
-    x[1] = TMath::Max(x[1],small);
-    y[0] = TMath::Max(y[0],small);
-    y[1] = TMath::Max(y[1],small);
-    yy = TMath::Exp(TMath::Log(y[0]) + TMath::Log(y[1]/y[0])*TMath::Log(xx/x[0])/TMath::Log(x[1]/x[0]));
+    x[0] = max<double>(x[0],small);
+    x[1] = max<double>(x[1],small);
+    y[0] = max<double>(y[0],small);
+    y[1] = max<double>(y[1],small);
+    yy = exp(log(y[0]) + log(y[1]/y[0])*log(xx/x[0])/log(x[1]/x[0]));
   }
   return yy;     
 }
 
 //______________________________________________________________________________
-Double_t TNudyCore::Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, Double_t *x, Double_t*y, Int_t np, Double_t xx){
-  Double_t yy = 0;
+double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double*y, int np, double xx){
+  double yy = 0;
 //  Info("Interpolation","E = %e:%e, xx = %e , P = %e:%e",x[0],x[np-1],xx,y[0],y[np-1]);
 //  Info("Interpolation limits","xx = %e min = %e max = %e",xx,x[0],x[np-1]);
   if(xx < x[0]){
@@ -201,13 +204,13 @@ Double_t TNudyCore::Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, Double_t *x
     yy = y[np-1];
     return yy;
   }
-  Int_t index = BinarySearch(x,np,xx);
+  int index = BinarySearch(x,np,xx);
   if(xx < x[index] || xx > x[index+1]){
     Error("Interpolate","Error in the interpolation xx = %e does not lie between %e and %e Index = %d",xx,x[index],x[index+1],index);
     return 0;
   }
-  Int_t intlaw = 0;
-  for(Int_t jnt = 1; jnt <= nr;jnt++){
+  int intlaw = 0;
+  for(int jnt = 1; jnt <= nr;jnt++){
     if(index < nbt[jnt-1]){
       intlaw = interp[jnt-1];
       yy = InterpolateScale(x+index,y+index,intlaw,xx);
@@ -218,7 +221,7 @@ Double_t TNudyCore::Interpolate(Int_t *nbt, Int_t *interp, Int_t nr, Double_t *x
 }  
 
 //______________________________________________________________________________
-Double_t TNudyCore::LinearInterpolation(Double_t x1,Double_t y1,Double_t x2,Double_t y2,Double_t x){
+double TNudyCore::LinearInterpolation(double x1,double y1,double x2,double y2,double x){
   if(x2==x1)
   {
  //   Error("TNudyCore::LinearInterpolation","Points specified have same coordinate in X");
@@ -228,24 +231,24 @@ Double_t TNudyCore::LinearInterpolation(Double_t x1,Double_t y1,Double_t x2,Doub
 }
 
 //______________________________________________________________________________
-Double_t TNudyCore::BilinearInterploation(Double_t x1,Double_t y1,Double_t x2,Double_t y2,Double_t z11,Double_t z12,Double_t z21,Double_t z22,Double_t x,Double_t y){
+double TNudyCore::BilinearInterploation(double x1,double y1,double x2,double y2,double z11,double z12,double z21,double z22,double x,double y){
   if((x2==x1) || (y2==y1)){
     Error("TNudyCore::BilinearInterpolation","Points specified have same coordinate in X or Y");
     return 0;
   }
   //Storing partial sums and products so that they dont have to be recalculated
-  Double_t d = (x2-x1)*(y2-y1);
-  Double_t n2x = x2-x;
-  Double_t n2y = y2-y;
-  Double_t n1x = x-x1;
-  Double_t n1y = y-y1;
+  double d = (x2-x1)*(y2-y1);
+  double n2x = x2-x;
+  double n2y = y2-y;
+  double n1x = x-x1;
+  double n1y = y-y1;
   //printf("x1 = %e, y1 = %e, x2 = %e, y2 = %e\n",x1,y1,x2,y2);
   //printf("%e, %e, %e, %e, %e\n",d,n2x,n2y,n1x,n1y);
   return (z11*n2x*n2y + z21*n1x*n2y + z12*n2x*n1y + z22*n1x*n1y)/d;
 }
 //______________________________________________________________________________
-void TNudyCore::CumulativeIntegral(Double_t* x, Double_t *y, Double_t *q,Int_t len){
-  for(Int_t i = 0; i < len; i++){
+void TNudyCore::CumulativeIntegral(double* x, double *y, double *q,int len){
+  for(int i = 0; i < len; i++){
     if(i > 0){
       q[i-1]  = 0.5 * (x[i] - x[i-1]) * (y[i] + y[i-1]);
       if(i > 1)
@@ -254,7 +257,7 @@ void TNudyCore::CumulativeIntegral(Double_t* x, Double_t *y, Double_t *q,Int_t l
   }
 }
 //______________________________________________________________________________
-void TNudyCore::TrapezoidalIntegral(Double_t *xpts,Double_t *ypts,const Int_t npts,Double_t *out) {
+void TNudyCore::TrapezoidalIntegral(double *xpts,double *ypts,const int npts,double *out) {
   //This function evaluates the integral of discrete points using the trapezoidal rule 
   //and returns the value of the integral at the same points in x
   if(!xpts || !ypts || (npts==0)) {
@@ -262,10 +265,10 @@ void TNudyCore::TrapezoidalIntegral(Double_t *xpts,Double_t *ypts,const Int_t np
     return;
   }
   if(out == NULL) {
-    out = new Double_t[npts];
+    out = new double[npts];
   }
   out[0] = 0;
-  for(Int_t i=1;i<npts;i++) {
+  for(int i=1;i<npts;i++) {
     out[i] = out[i-1] + (xpts[i]-xpts[i-1])*(ypts[i]+ypts[i-1])*0.5;
   }
 }

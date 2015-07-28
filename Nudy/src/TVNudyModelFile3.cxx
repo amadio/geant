@@ -7,13 +7,13 @@ void TVNudyModel::ReadFile3(TNudyEndfFile *file){
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
   while((sec = (TNudyEndfSec*)secIter.Next())){
-    if(sec->GetMT() == (Int_t)fReaction){
+    if(sec->GetMT() == (int)fReaction){
       //Read the data required for GetXSect(E)
       TNudyEndfTab1 *record = (TNudyEndfTab1*)(sec->GetRecords()->At(0));
       fEXSect_length = record->GetNP();
-      fE_file3 = new Double_t[fEXSect_length]();
-      fXSect_file3 = new Double_t[fEXSect_length]();
-      for(Int_t i=0;i<fEXSect_length;i++){
+      fE_file3 = new double[fEXSect_length]();
+      fXSect_file3 = new double[fEXSect_length]();
+      for(int i=0;i<fEXSect_length;i++){
         fE_file3[i] = record->GetX(i);
         fXSect_file3[i] = record->GetY(i);
       }
@@ -22,7 +22,7 @@ void TVNudyModel::ReadFile3(TNudyEndfFile *file){
 }
 
 //______________________________________________________________________________
-Double_t TVNudyModel::GetXSect(Double_t e){
+double TVNudyModel::GetXSect(double e){
   if(!fE_file3 || !fXSect_file3 || fEXSect_length==0){
     Error("GetXSect","Energy-Cross Section data for model is not set\n");
     return 0;
@@ -31,7 +31,7 @@ Double_t TVNudyModel::GetXSect(Double_t e){
     return fXSect_file3[0];
   if(e>=fE_file3[fEXSect_length-1])
     return fXSect_file3[fEXSect_length-1];
-  register Int_t low,high,mid;
+  int low,high,mid;
   low = 0;
   high = fEXSect_length;
   while(high-low>1){

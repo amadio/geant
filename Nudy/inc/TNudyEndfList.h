@@ -31,18 +31,18 @@
 class TNudyEndfList: public TNudyEndfCont {
 public:
   TNudyEndfList();
-  TNudyEndfList(Double_t c1, Double_t c2,
-		   Int_t l1, Int_t l2, Int_t n1, Int_t n2);
+  TNudyEndfList(double c1, double c2,
+		   int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfList();
-  virtual void SetCont(Double_t c1, Double_t c2,
-		       Int_t l1, Int_t l2, Int_t n1, Int_t n2);
+  virtual void SetCont(double c1, double c2,
+		       int l1, int l2, int n1, int n2);
 
-  Int_t GetNPL() const {return fN1;}
-  Double_t GetLIST(Int_t i) const {return fList[i];}
-  void SetLIST(Double_t el, Int_t i) {fList[i]=el;}
-  void DumpENDF(Int_t mat, Int_t mf, Int_t mt, Int_t& ns, Int_t flags);
+  int GetNPL() const {return fN1;}
+  double GetLIST(int i) const {return fList[i];}
+  void SetLIST(double el, int i) {fList[i]=el;}
+  void DumpENDF(int mat, int mf, int mt, int& ns, int flags);
 private:
-  Double_t *fList;      //[fN1]
+  double *fList;      //[fN1]
 
   ClassDef(TNudyEndfList,1)
 

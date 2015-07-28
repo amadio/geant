@@ -19,8 +19,8 @@ class TNudySubLibrary : public TNamed  {
   void SetProjectile(TParticlePDG *particle){ fProjectile = particle;}
   void ListModels();
   TParticlePDG* GetProjectile(){return fProjectile;}
-  TVNudyModel* GetModel(const TGeoElementRN* mat, const Reaction_t reac, const ULong_t temp);
-  TBtree* GetAllModels(const TGeoElementRN* mat=NULL, const Reaction_t reac=kNoReaction, const ULong_t temp=0);
+  TVNudyModel* GetModel(const TGeoElementRN* mat, const Reaction_t reac, const unsigned long temp);
+  TBtree* GetAllModels(const TGeoElementRN* mat=NULL, const Reaction_t reac=kNoReaction, const unsigned long temp=0);
  private:
   TBtree *fIndex; //Btree storing all Models
   TBtree *fBuffer;  //Buffer storing results of last query

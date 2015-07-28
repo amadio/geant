@@ -16,16 +16,16 @@ TNudyAlias::TNudyAlias() {
 }
 
 //_______________________________________________________________________________
-TNudyAlias::TNudyAlias(Double_t *p,Double_t *x,const Int_t len,UInt_t seed) {
+TNudyAlias::TNudyAlias(double *p,double *x,const int len,unsigned int seed) {
   //Improve algorithm for building table
-  register Int_t i,j;
-  Double_t sum,c,d,mean;
-  Int_t k,l;
-  Double_t *b = new Double_t[len];
-  fP = new Double_t[len];
-  fA = new Double_t[len];
-  fR = new Double_t[len];
-  fX = new Double_t[len];
+  int i,j;
+  double sum,c,d,mean;
+  int k,l;
+  double *b = new double[len];
+  fP = new double[len];
+  fA = new double[len];
+  fR = new double[len];
+  fX = new double[len];
   fMult = NULL;
   fMultLen = 0;
   mean = 1.0/len;
@@ -35,7 +35,7 @@ TNudyAlias::TNudyAlias(Double_t *p,Double_t *x,const Int_t len,UInt_t seed) {
   //Normalize
   for(i=0;i<len;i++)
     sum += p[i];
-  if(TMath::Abs(1.0-sum)>ERROR_MARGIN) {
+  if(fabs(1.0-sum)>ERROR_MARGIN) {
     Error("TNudyAlias","Data not normalized, Integral = %e \n",sum);
     for(i=0;i<len;i++)
       p[i] /= sum;
@@ -67,7 +67,7 @@ TNudyAlias::TNudyAlias(Double_t *p,Double_t *x,const Int_t len,UInt_t seed) {
     }
     else {
       fA[k] = fX[l];
-      fR[k] = 1+c*(Double_t)len;
+      fR[k] = 1+c*(double)len;
       b[k] = 0;
       b[l] = c+d;
     }
@@ -89,10 +89,10 @@ TNudyAlias::~TNudyAlias() {
 
 //_______________________________________________________________________________
 void TNudyAlias::DumpTable() {
-  register Int_t i,j;
+  int i,j;
   i = j = 0;
   //Reconstruct probability table
-  Double_t *prob = new Double_t[fLen];
+  double *prob = new double[fLen];
   for(i=0;i<fLen;i++) {
     prob[i] = fR[i]/fLen;
     for(j=0;j<fLen;j++) {
@@ -107,11 +107,11 @@ void TNudyAlias::DumpTable() {
 }
 
 //_______________________________________________________________________________
-Double_t TNudyAlias::Random() {
-  Double_t ua = fRnd->Uniform(1);
-  Double_t ub = fRnd->Uniform(1);
-  Int_t x = (int)(ua*fLen);
-  Double_t rx = fX[x];
+double TNudyAlias::Random() {
+  double ua = fRnd->Uniform(1);
+  double ub = fRnd->Uniform(1);
+  int x = (int)(ua*fLen);
+  double rx = fX[x];
   if(ub>fR[x])
     rx = fA[x];
   return rx;
@@ -126,8 +126,8 @@ void* TNudyAlias::ThreadHandle(void *ptr) {
     delete com;
     return (void*)1;
   }
-  Int_t i = 0;
-  Int_t t = com->fAl->fMultLen/com->fAl->GetLen();
+  int i = 0;
+  int t = com->fAl->fMultLen/com->fAl->GetLen();
   for(i=com->fI*t;i<(com->fI+1)*t;i++) {
     com->fAl->fMult[i] = com->fAl->Random();
   }
@@ -136,11 +136,11 @@ void* TNudyAlias::ThreadHandle(void *ptr) {
 }
 
 //_______________________________________________________________________________
-Double_t* TNudyAlias::Randoms(Int_t n) {
-  register Int_t i;
+double* TNudyAlias::Randoms(int n) {
+  int i;
   if(fMult)
     delete [] fMult;
-  fMult = new Double_t[n];
+  fMult = new double[n];
   fMultLen = n;
   void* (*funPtr)(void*) = &TNudyAlias::ThreadHandle;
   TThread **threads = new TThread*[fLen];

@@ -11,18 +11,18 @@
 #include "TBox.h"
 #include "TList.h"
 #include "TButton.h"
-const Int_t kENABLED = 1;
-const Int_t kDISABLED = 0;
+const int kENABLED = 1;
+const int kDISABLED = 0;
 
 class TNudyElementTable: public TObject{
 
  private:
-  Int_t fState;
-  Float_t fOx,fOy;
+  int fState;
+  float fOx,fOy;
   TGeoElementTable* fTable;
   TBox fWindow;
   TList fEleBox;
-  Float_t fLOD;
+  float fLOD;
   TCanvas* fRNTable;
   TGeoManager* fGeom;
   void DrawUI();
@@ -31,7 +31,7 @@ class TNudyElementTable: public TObject{
  public:
   TNudyElementTable();
   virtual ~TNudyElementTable();
-  void Draw(Option_t *option="");
+  void Draw(const char *option="");
   void ZoomIn();
   void ZoomOut();
   void MoveUp();

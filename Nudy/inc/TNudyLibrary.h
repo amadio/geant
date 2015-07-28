@@ -1,7 +1,6 @@
 #ifndef ROOT_TNudyLibrary
 #define ROOT_TNudyLibrary
 
-#include <TMath.h>
 #include <THashList.h>
 #include <THashTable.h>
 #include "TNudyCore.h"
@@ -23,7 +22,7 @@ class TNudyLibrary : public TNamed {
   }
   TNudySubLibrary* GetSubLib(){return fCurSubLib;}
   void ListModels();
-  Bool_t IsHandled(TParticlePDG *particle, TGeoElementRN *target,ULong_t temp);
+  bool IsHandled(TParticlePDG *particle, TGeoElementRN *target,unsigned long temp);
  private:
   THashTable *fSubLib; // Sub-Libaries storing the MAT-MT information for each particle
   TNudySubLibrary *fCurSubLib; //! Current Sublibrary

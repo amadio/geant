@@ -8,7 +8,7 @@ class TNudyEndfRecord : public TObject{
  public:
   TNudyEndfRecord();
   virtual ~TNudyEndfRecord(){}
-  virtual void DumpENDF(Int_t /*mat*/,Int_t /*mf*/,Int_t /*mt*/,Int_t& /*ns*/,Int_t) {}
+  virtual void DumpENDF(int /*mat*/,int /*mf*/,int /*mt*/,int& /*ns*/,int) {}
  private:
 
   ClassDef(TNudyEndfRecord,1)

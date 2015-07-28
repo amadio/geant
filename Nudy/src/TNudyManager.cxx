@@ -46,7 +46,7 @@ TNudyManager* TNudyManager::Instance(){
 }
 
 //_______________________________________________________________________________
-void TNudyManager::DumpTape(const char* rendf,const Int_t debug){
+void TNudyManager::DumpTape(const char* rendf,const int debug){
 	TFile *file = TFile::Open(rendf,"OLD");
 	if(!file)
 		Fatal("ctor","Could not open RENDF file %s",rendf);
@@ -100,7 +100,7 @@ TNudyDB* TNudyManager::SetDatabase(const TNudyDB* name){
 }
 
 //______________________________________________________________________________
-Int_t TNudyManager::CloseDatabase(const char* name){
+int TNudyManager::CloseDatabase(const char* name){
   if(name){
     TNudyDB* db = (TNudyDB*)fNudyDB->FindObject(name);
     if(db){
@@ -120,7 +120,7 @@ Int_t TNudyManager::CloseDatabase(const char* name){
 }
 
 //______________________________________________________________________________
-TNudyLibrary* TNudyManager::LoadLibrary(const char* memLibName, const char* diskLibName,const char *sublib ,TGeoElementRN *mat ,Reaction_t reac, ULong_t temp ){
+TNudyLibrary* TNudyManager::LoadLibrary(const char* memLibName, const char* diskLibName,const char *sublib ,TGeoElementRN *mat ,Reaction_t reac, unsigned long temp ){
   if(!fCurNudyDB) return NULL;
   TFile *dbFile=fCurNudyDB->GetDBFile(); 
   dbFile->cd();
@@ -204,7 +204,7 @@ void TNudyManager::ListModels(){
 	}
 
 }
-TVNudyModel* TNudyManager::GetModel(const Int_t a, const Int_t z, const Int_t iso, const Int_t reaction, const ULong_t temp, const char *particleName){
+TVNudyModel* TNudyManager::GetModel(const int a, const int z, const int iso, const int reaction, const unsigned long temp, const char *particleName){
 	if(fResult) delete fResult;
 	fResult = new TBtree();
 	TVNudyModel *model = NULL;
@@ -218,7 +218,7 @@ TVNudyModel* TNudyManager::GetModel(const Int_t a, const Int_t z, const Int_t is
 }
 
 //______________________________________________________________________________
-TBtree* TNudyManager::GetAllModels(const Int_t a,const Int_t z,const Int_t iso, const Int_t reaction,const ULong_t temp, const char *particleName) {
+TBtree* TNudyManager::GetAllModels(const int a,const int z,const int iso, const int reaction,const unsigned long temp, const char *particleName) {
 	if(fResult) delete fResult;
 	fResult = new TBtree();
 	TGeoElementRN *tar = TNudyCore::Instance()->GetMaterial(a,z,iso);
