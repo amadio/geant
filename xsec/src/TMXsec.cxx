@@ -49,16 +49,16 @@ TMXsec::~TMXsec() {
 TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a*/[], const float w[], int nel,
                float dens, bool weight, const TPDecay *decaytable)
     : fNEbins(TPartIndex::I()->NEbins()), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(TPartIndex::I()->EilDelta()),
-      fEGrid(TPartIndex::I()->EGrid()), fNElems(nel), fElems(new TEXsec *[fNElems]), fTotXL(0), fRelXS(0), 
-      fDEdx(0), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(new double[fNElems]), 
-      fRange(0), fInvRangeTable(0), fDecayTable(decaytable) {
+      fEGrid(TPartIndex::I()->EGrid()), fNElems(nel), fElems(new TEXsec *[fNElems]), fTotXL(0), fRelXS(0), fDEdx(0),
+      fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(new double[fNElems]), fRange(0), fInvRangeTable(0),
+      fDecayTable(decaytable) {
   // Create a mixture material, we support only natural materials for the moment
   // so we ignore a (i.e. we consider it == 0)
 
   strncpy(fName, name, 31);
-  fName[31]='\0';
+  fName[31] = '\0';
   strncpy(fTitle, title, 127);
-  fTitle[127]='\0';
+  fTitle[127] = '\0';
 
   memset(fElems, 0, fNElems * sizeof(TEXsec *));
 
