@@ -11,28 +11,27 @@
 #include "TBox.h"
 #include "TList.h"
 #include "TButton.h"
-const int kENABLED = 1;
-const int kDISABLED = 0;
+const Int_t kENABLED = 1;
+const Int_t kDISABLED = 0;
 
-class TNudyElementTable : public TObject {
+class TNudyElementTable: public TObject{
 
-private:
-  int fState;
-  float fOx, fOy;
-  TGeoElementTable *fTable;
+ private:
+  Int_t fState;
+  Float_t fOx,fOy;
+  TGeoElementTable* fTable;
   TBox fWindow;
   TList fEleBox;
-  float fLOD;
-  TCanvas *fRNTable;
-  TGeoManager *fGeom;
+  Float_t fLOD;
+  TCanvas* fRNTable;
+  TGeoManager* fGeom;
   void DrawUI();
   TList fControls;
   void InitializeControls();
-
-public:
+ public:
   TNudyElementTable();
   virtual ~TNudyElementTable();
-  void Draw(const char *option = "");
+  void Draw(Option_t *option="");
   void ZoomIn();
   void ZoomOut();
   void MoveUp();
@@ -40,6 +39,7 @@ public:
   void MoveLeft();
   void MoveRight();
   void Update();
-  ClassDef(TNudyElementTable, 1) // Table of RadioNucleides
+  ClassDef(TNudyElementTable,1) //Table of RadioNucleides
 };
 #endif
+ 

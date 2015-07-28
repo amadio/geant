@@ -31,26 +31,26 @@
 class TNudyEndfTab2: public TNudyEndfCont {
 public:
   TNudyEndfTab2();
-  TNudyEndfTab2(double c1, double c2,
-		   int l1, int l2, int n1, int n2);
+  TNudyEndfTab2(Double_t c1, Double_t c2,
+		   Int_t l1, Int_t l2, Int_t n1, Int_t n2);
   virtual ~TNudyEndfTab2();
-  virtual void SetCont(double c1, double c2,
-		       int l1, int l2, int n1, int n2);
+  virtual void SetCont(Double_t c1, Double_t c2,
+		       Int_t l1, Int_t l2, Int_t n1, Int_t n2);
 
-  int GetNR() const {return fN1;}
-  int GetNZ() const {return fN2;}
+  Int_t GetNR() const {return fN1;}
+  Int_t GetNZ() const {return fN2;}
 
-  int GetNBT(int i) const {return fNBT[i];}
-  void SetNBT(int iel, int i) {fNBT[i]=iel;}
-  int GetINT(int i) const {return fINT[i];}
-  void SetINT(int iel, int i) {fINT[i]=iel;}
-  void DumpENDF(int mat, int mf,int mt,int& ns,int flags);
-  int *NBT(){return fNBT;}
-  int *INT(){return fINT;}
+  Int_t GetNBT(Int_t i) const {return fNBT[i];}
+  void SetNBT(Int_t iel, Int_t i) {fNBT[i]=iel;}
+  Int_t GetINT(Int_t i) const {return fINT[i];}
+  void SetINT(Int_t iel, Int_t i) {fINT[i]=iel;}
+  void DumpENDF(Int_t mat, Int_t mf,Int_t mt,Int_t& ns,Int_t flags);
+  Int_t *NBT(){return fNBT;}
+  Int_t *INT(){return fINT;}
 
 private:
-  int    *fNBT;       //[fN1]
-  int    *fINT;       //[fN1]
+  Int_t    *fNBT;       //[fN1]
+  Int_t    *fINT;       //[fN1]
 
   ClassDef(TNudyEndfTab2,1)
 

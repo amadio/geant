@@ -3,7 +3,8 @@
 ClassImp(TNudyDB)
 
 //______________________________________________________________________________
-TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
+//   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
+TNudyDB::TNudyDB(const Char_t *name,const Char_t *title,const char *file){
   //Constructor for TNudyDB, opens database storage file
 
   //Set Name and title of database
@@ -39,7 +40,7 @@ TNudyDB::~TNudyDB(){
 }
 
 //______________________________________________________________________________
-void TNudyDB::AddLibrary(const char *name, const char *file){
+void TNudyDB::AddLibrary(const Char_t *name, const char *file){
   //Open endf root file and store tape 
   // Check if file exists
   TFile *endf = new TFile(file, "OLD");
@@ -107,7 +108,8 @@ TList* TNudyDB::GetEntries(){
 }
 
 //______________________________________________________________________________
-void TNudyDB::RemoveLibrary(const char *name)
+void TNudyDB::RemoveLibrary(const Char_t *name)
 {
 	fDB->Delete(Form("%s;*",name));
 }
+ 

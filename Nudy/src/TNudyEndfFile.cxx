@@ -31,7 +31,7 @@ TNudyEndfFile::TNudyEndfFile() :
 }
 
 //_______________________________________________________________________________
-TNudyEndfFile::TNudyEndfFile(int mat, int mf) :
+TNudyEndfFile::TNudyEndfFile(Int_t mat, Int_t mf) :
   fMAT(mat),
   fMF(mf)
 {
@@ -51,24 +51,24 @@ TNudyEndfFile::~TNudyEndfFile()
 }
 
 //_______________________________________________________________________________
-TNudyEndfSec* TNudyEndfFile::GetSec(int MT)
+TNudyEndfSec* TNudyEndfFile::GetSec(Int_t MT)
 {
-	for(int i=0;i<=this->fSecs->LastIndex();i++)
+	for(Int_t i=0;i<=this->fSecs->LastIndex();i++)
 	{
 		TNudyEndfSec *thisSec = (TNudyEndfSec*)this->fSecs->At(i);
 		if(thisSec->GetMT()==MT)
 			return thisSec;
 	}
-	Error("TNudyEndfFile::GetSec(int)","Could not find section %d on tape",MT);
+	Error("TNudyEndfFile::GetSec(Int_t)","Could not find section %d on tape",MT);
 	return NULL;
 }
 
 
 //_______________________________________________________________________________
-void TNudyEndfFile::DumpENDF(int flags = 1)
+void TNudyEndfFile::DumpENDF(Int_t flags = 1)
 {
 	//Sections
-	for(int i=0;i<=fSecs->LastIndex();i++)
+	for(Int_t i=0;i<=fSecs->LastIndex();i++)
 	{
 		TNudyEndfSec *sec = (TNudyEndfSec*)fSecs->At(i);
 		sec->DumpENDF(flags);
