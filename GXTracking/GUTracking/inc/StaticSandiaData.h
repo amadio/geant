@@ -53,8 +53,8 @@
 // energy necessary to remove to infinity one electron from an atom of the
 // element.
 
-#include "SystemOfUnits.h"
-#include "core/base/Global.h"
+#include "base/SystemOfUnits.h"
+#include "base/Global.h"
 
 namespace vecphys {
 

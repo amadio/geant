@@ -2,10 +2,10 @@
 #define GUConversionBetheHeitler_H 1
 
 #include "backend/Backend.h"
+#include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"
 #include "GUTrack.h"
-#include "PhysicalConstants.h"
 
 // add the sincos function on MAC because sincos is not part of math.h
 #ifdef __APPLE__ // possibly other conditions

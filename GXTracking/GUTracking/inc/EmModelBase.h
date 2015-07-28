@@ -2,6 +2,7 @@
 #define EmModelBase_H 1
 
 #include "backend/Backend.h"
+#include "base/SystemOfUnits.h"
 
 #include "GUConstants.h"
 #include "GUTrack.h"
@@ -16,7 +17,8 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH 
   EmModelBase(Random_t* states, int tid) 
-    : fRandomState(states), fThreadId(tid), fLowEnergyLimit(0.) {};
+    : fRandomState(states), fThreadId(tid), 
+    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV) {};
 
   //scalar
   template <typename Backend>
@@ -61,6 +63,9 @@ protected:
   // Auxiliary methods
   VECPHYS_CUDA_HEADER_BOTH
   void SetLowEnergyLimit(double lowLimit) { fLowEnergyLimit = lowLimit; }
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
   
 private:
   // Implementation methods
@@ -88,6 +93,7 @@ protected:
   int       fThreadId;
 
   double    fLowEnergyLimit;  
+  double    fHighEnergyLimit;  
 };
 
 //Implementation
@@ -102,7 +108,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack&  inProjectile,
   sigma = 0.;
   double energyIn= inProjectile.E;
   if(energyIn > fLowEnergyLimit) {
-    static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,targetElement,sigma);
+    sigma = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,targetElement);
   }
 }
 
@@ -142,10 +148,9 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
 
   for(int i=0; i < numChunks ; ++i) {
     Double_t energyIn(&inProjectile.E[ibase]);
-    Double_t sigmaOut;
     Index_t  zElement(targetElements[ibase]);
 
-    static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement,sigmaOut);
+    Double_t sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
 
     sigmaOut.store(&sigma[ibase]);
     ibase+= Double_t::Size;
@@ -153,7 +158,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
 
   //leftover - do scalar
   for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
-    static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i],sigma[i]);
+    sigma[i] = static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i]);
   }
 }
 
@@ -268,7 +273,7 @@ void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack&  inProjectile,
   double energyIn = inProjectile.E;
 
   if(energyIn > fLowEnergyLimit) {
-    static_cast<EmModel*>(this)->GetG4CrossSection(energyIn,targetElement,sigma);
+    sigma = static_cast<EmModel*>(this)->GetG4CrossSection(energyIn,targetElement);
   }
 }
 
@@ -284,7 +289,7 @@ void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
   Precision energyOut;
   Precision sinTheta;
 
-  static_cast<EmModel*>(this)->SampleByCompositionRejection(energyIn,energyOut,sinTheta);
+  static_cast<EmModel*>(this)->SampleByCompositionRejection(targetElement,energyIn,energyOut,sinTheta);
 
   //update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
