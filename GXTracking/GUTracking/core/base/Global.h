@@ -129,6 +129,9 @@ struct kCudaType<cxx::BoxImplementation<Arguments...>  >
   #define VECPHYS_GLOBAL static __constant__ const
 #endif
 
+// use CLHEP SystemOfUnits.h and PhysicalConstants.h
+#define CLHEP vecphys
+
 namespace vecphys {
 #ifdef VECPHYS_FLOAT_PRECISION
 typedef float Precision;
