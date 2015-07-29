@@ -1201,8 +1201,8 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, double theta, doub
 }
 
 //______________________________________________________________________________
-char *TabulatedDataManager::GetVersion() {
-  char *ver = new char[512];
+const char *TabulatedDataManager::GetVersion() const {
+  static char* ver char[512];
   sprintf(ver, "%d.%d.%d", VersionMajor(), VersionMinor(), VersionSub());
   return ver;
 }
