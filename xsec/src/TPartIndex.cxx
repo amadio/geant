@@ -218,11 +218,11 @@ void TPartIndex::Streamer(TBuffer &R__b) {
     // create the particle reference vector
     fGVParticle.resize(fPDGToGVMap.size(), 0);
     for (map<int, int>::iterator p = fPDGToGVMap.begin(); p != fPDGToGVMap.end(); ++p) {
-       // std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
-       // create direct access vector with GeantV code
+// std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
+// create direct access vector with GeantV code
 #ifdef USE_VECGEOM_NAVIGATOR
       const Particle_t *pp = &Particle::GetParticle(p->first);
-       // set the code inside the particle too
+      // set the code inside the particle too
       const_cast<Particle_t *>(pp)->SetCode(p->second);
       if (pp->Mass() >= 0)
         fGVParticle[p->second] = pp;
@@ -235,17 +235,17 @@ void TPartIndex::Streamer(TBuffer &R__b) {
         std::cout << " Particle " << p->first << " does not exist " << std::endl;
       fGVParticle[p->second] = pp;
 #ifdef SPECIAL_FCA_HACK
-      // 
+      //
       // this is a particularly ugly piece of code to write a text file (in fact stdout)
-      // in the format of the root pdg_table.txt to add the particles defined by Geant4 
+      // in the format of the root pdg_table.txt to add the particles defined by Geant4
       // to those defined by ROOT. Most of these particles are of little practical use
       // most probably, however this is mostly to avoid problems moving from GeantV to Geant4
       //
       if (p->second == 1) {
         int count = 521;
-	// list of PDGs in Geant4 and not in ROOT
-	// Some are only defined by the antiparticle, but it is enough to catch them all
-	//
+        // list of PDGs in Geant4 and not in ROOT
+        // Some are only defined by the antiparticle, but it is enough to catch them all
+        //
         int tupdg[231] = {
             -1000020040, -1000020030, -1000010030, -1000010020, -100012210, -100012110, -100002210, -100002110,
             -9000211,    -100325,     -100323,     -100321,     -100315,    -100313,    -100311,    -100213,
@@ -278,8 +278,8 @@ void TPartIndex::Streamer(TBuffer &R__b) {
             9020221,     9030221,     9030225,     9060225,     50000050,   50000052,   50000060};
         int updg[1000];
         int tot = 231;
-	// Make sure that we add the particle and the antiparticle, extend the list if
-	// necessary
+        // Make sure that we add the particle and the antiparticle, extend the list if
+        // necessary
         for (int l = 0; l < 231; ++l) {
           updg[l] = tupdg[l];
           bool found = false;
@@ -292,9 +292,9 @@ void TPartIndex::Streamer(TBuffer &R__b) {
             updg[tot++] = -tupdg[l];
           TParticlePDG *ap = TDatabasePDG::Instance()->GetParticle(-updg[l]);
           if (!ap) {
-	     // massage the name, we want antiparticles to have _bar at the end
-	     // as per the root convention and not anti_ at the beginnig as
-	     // Geant4
+            // massage the name, we want antiparticles to have _bar at the end
+            // as per the root convention and not anti_ at the beginnig as
+            // Geant4
             TParticlePDG *p = TDatabasePDG::Instance()->GetParticle(updg[l]);
             string name(p->GetName());
             int index = name.find("Anti");
@@ -305,16 +305,16 @@ void TPartIndex::Streamer(TBuffer &R__b) {
               name.replace(index, 5, "");
             if (updg[l] > 0)
               name += "_bar";
-	    // add the (anti)particle
-	    // Note that I discovered with horror that TParticlePDG has isospin, iso3 and 
-	    // strangeness, but there is no way to set or to get them, we'll fix this later
+            // add the (anti)particle
+            // Note that I discovered with horror that TParticlePDG has isospin, iso3 and
+            // strangeness, but there is no way to set or to get them, we'll fix this later
             TDatabasePDG::Instance()->AddParticle(name.c_str(), p->GetTitle(), p->Mass(), p->Stable(), p->Width(),
                                                   -p->Charge(), p->ParticleClass(), -p->PdgCode(),
                                                   p->PdgCode() > 0 ? 1 : 0, p->TrackingCode());
           }
         }
-	// Two ordering loops to make sure that the particle is always before 
-	// antiparticle as per pdg_table.txt conventions
+        // Two ordering loops to make sure that the particle is always before
+        // antiparticle as per pdg_table.txt conventions
         for (int l = 0; l < tot - 1; ++l)
           for (int k = l + 1; k < tot; ++k)
             if (updg[l] < updg[k]) {
@@ -329,10 +329,10 @@ void TPartIndex::Streamer(TBuffer &R__b) {
               updg[l] = updg[k];
               updg[k] = u;
             }
-	// Here actually write out the new lines
-	// should really have been done on a file
-	// but since I am not planning to use this code more than
-	// once, I just copy-pasted from the screen
+        // Here actually write out the new lines
+        // should really have been done on a file
+        // but since I am not planning to use this code more than
+        // once, I just copy-pasted from the screen
         for (int i = 0; i < tot; ++i) {
           count++;
           TParticlePDG *d = TDatabasePDG::Instance()->GetParticle(updg[i]);
