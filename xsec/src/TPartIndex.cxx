@@ -221,6 +221,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
 //       std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
 #ifdef USE_VECGEOM_NAVIGATOR
       const Particle_t *pp = &Particle::GetParticle(p->first);
+      const_cast<Particle_t *>(pp)->SetCode(p->second);
       if (pp->Mass() >= 0)
         fGVParticle[p->second] = pp;
       else
