@@ -58,9 +58,9 @@ class TPartIndex {
 
 public:
   static TPartIndex *I() {
-    if (!fgPartIndex) 
-       fgPartIndex = new TPartIndex();
-    return fgPartIndex;  
+    if (!fgPartIndex)
+      fgPartIndex = new TPartIndex();
+    return fgPartIndex;
   }
   TPartIndex();
   virtual ~TPartIndex();
@@ -104,7 +104,7 @@ public:
 #endif
 
   // Get the particle from the GeantV code
-  const Particle_t *GetParticle(int gvcode) const {return fGVParticle[gvcode];}
+  const Particle_t *GetParticle(int gvcode) const { return fGVParticle[gvcode]; }
 
   // GV particle index <- PDG code
   int PartIndex(int pdg) const;
@@ -176,8 +176,8 @@ private:
   TDatabasePDG *fDBPdg;   // Pointer to the augmented pdg database
 #endif
 
-  std::map<int, int> fPDGToGVMap; // PDG->GV code map
-  int fSpecGVIndices[4];          // store GV codes of e-,e+,gamma and proton
+  std::map<int, int> fPDGToGVMap;              // PDG->GV code map
+  int fSpecGVIndices[4];                       // store GV codes of e-,e+,gamma and proton
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 
 #ifdef USE_VECGEOM_NAVIGATOR
