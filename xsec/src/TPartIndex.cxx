@@ -2,9 +2,11 @@
 #include <string>
 #include <algorithm>
 #include <TBuffer.h>
+#include <iostream>
 
 using std::transform;
 using std::string;
+using std::map;
 
 ClassImp(TPartIndex)
 
@@ -211,7 +213,124 @@ void TPartIndex::Streamer(TBuffer &R__b) {
     fDBPdg = 0;
     R__b.ReadClassBuffer(TPartIndex::Class(), this);
     fgPartIndex = this;
+
     Print("version");
+    // create the particle reference vector
+    fGVParticle.resize(fPDGToGVMap.size(),0);
+    for(map<int,int>::iterator p=fPDGToGVMap.begin(); p!=fPDGToGVMap.end(); ++p) {
+       //       std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
+#ifdef USE_VECGEOM_NAVIGATOR
+       const Particle_t *pp = &Particle::GetParticle(p->first);
+       if(pp->Mass()>=0) fGVParticle[p->second]=pp;
+       else std::cout << __func__ << "::" << " particle PDG " << p->first << " not found !" << std::endl;
+#else
+       const Particle_t *pp = TDatabasePDG::Instance()->GetParticle(p->first);
+       if(!pp) std::cout << " Particle " << p->first << " does not exist " << std::endl;
+       fGVParticle[p->second]=pp;
+#ifdef SPECIAL_FCA_HACK
+       if(p->second==1) {
+	     int count = 521;
+	     int tupdg[231]={-1000020040,-1000020030,-1000010030,-1000010020,-100012210,-100012110,-100002210,
+			     -100002110,-9000211,-100325,-100323,-100321,-100315,-100313,-100311,-100213,-100211,-53122,-52214,
+			     -52114,-43122,-42212,-42124,-42112,-41214,-33324,-33314,-33122,-32224,-32214,-32212,-32124,-32114,
+			     -32112,-31214,-31114,-30323,-30313,-30213,-23324,-23314,-23224,-23222,-23214,-23212,-23126,-23124,
+			     -23122,-23114,-23112,-22224,-22222,-22214,-22212,-22124,-22122,-22114,-22112,-21214,-21212,-21114,
+			     -21112,-13326,-13324,-13316,-13314,-13226,-13224,-13222,-13216,-13214,-13212,-13126,-13124,-13122,
+			     -13116,-13114,-13112,-12226,-12224,-12222,-12218,-12216,-12214,-12212,-12126,-12122,-12118,-12116,
+			     -12114,-12112,-11216,-11212,-11116,-11114,-11112,-10325,-10315,-10215,-3228,-3226,-3218,-3216,-3128,
+			     -3126,-3124,-3118,-3116,-2228,-2226,-2222,-2218,-2216,-2128,-2126,-2124,-2122,-2118,-2116,-1218,-1216,
+			     -1214,-1212,-1118,-1116,-1112,-327,-317,-217,117,217,227,317,327,337,1112,1116,1118,1212,1214,1216,
+			     1218,2116,2118,2122,2124,2126,2128,2216,2218,2222,2226,2228,3116,3118,3124,3126,3128,3216,3218,3226,
+			     3228,10115,10215,10225,10315,10325,10335,11112,11114,11116,11212,11216,12112,12114,12116,12118,12122,
+			     12126,12212,12214,12216,12218,12222,12224,12226,13112,13114,13116,13122,13124,13126,13212,13214,13216,
+			     13222,13224,13226,13314,13316,13324,13326,21112,21114,21212,21214,22112,22114,22122,22124,22212,22214,
+			     22222,30113,30223,100111,100113,100221,100223,100331,100333,9000111,9000221,9010221,9020221,9030221,
+			     9030225,9060225,50000050,50000052,50000060};
+	     int updg[1000];
+	     int tot = 231;
+	     for(int l=0; l<231; ++l) {
+		updg[l]=tupdg[l];
+		bool found=false;
+		for(int k=0; k<231; ++k) if(updg[l]==-tupdg[k]) {found=true ; break;}
+		if(!found) updg[tot++]=-tupdg[l];
+		TParticlePDG *ap = TDatabasePDG::Instance()->GetParticle(-updg[l]);
+		if(!ap) {
+		   TParticlePDG *p = TDatabasePDG::Instance()->GetParticle(updg[l]);
+		   string name(p->GetName());
+		   int index = name.find("Anti");
+		   if (index != std::string::npos) name.replace(index, 4, "");
+		   index = name.find("anti_");
+		   if (index != std::string::npos) name.replace(index, 5, "");
+		   if(updg[l]>0) name+="_bar";
+		   TDatabasePDG::Instance()->AddParticle(name.c_str(), p->GetTitle(), p->Mass(),
+							 p->Stable(), p->Width(), -p->Charge(),
+							 p->ParticleClass(), -p->PdgCode(), p->PdgCode()>0?1:0,
+							 p->TrackingCode());
+		}
+	     }
+	     for(int l=0; l<tot-1; ++l)
+		for(int k=l+1; k<tot; ++k)
+		   if(updg[l]<updg[k]) {
+		      int u = updg[l];
+		      updg[l]=updg[k];
+		      updg[k]=u;
+	     }
+	     for(int l=0; l<tot-1; ++l)
+		for(int k=l+1; k<tot; ++k)
+		   if(abs(updg[l])<abs(updg[k]) || (updg[l]==-updg[k] && updg[l]<updg[k])) {
+		      int u = updg[l];
+		      updg[l]=updg[k];
+		      updg[k]=u;
+	     }
+	     for(int i=0; i<tot; ++i) {
+		count++;
+		TParticlePDG *d=TDatabasePDG::Instance()->GetParticle(updg[i]);
+		int ap=1;
+		string name(d->GetName());
+		char fmt[100];
+		int lpdg = log10(abs(updg[i]))+1;
+		if(updg[i]<0) {
+		   ap=0;
+		   lpdg+=1;
+		   for(int j=0; j<tot; ++j) if(updg[i]==-updg[j]) {ap=j+522; break;}
+		   if(ap==0) exit(1);
+		   int index = name.find("Anti");
+		   if (index != std::string::npos) name.replace(index, 4, "");
+		   index = name.find("anti_");
+		   if (index != std::string::npos) name.replace(index, 5, "");
+		   index = name.find("_bar");
+		   if (index == std::string::npos) name+="_bar";
+		   int acode=0;
+		   int len = std::max<int>(name.size(),28-lpdg-1);
+		   sprintf(fmt,"%%5d %%-%d.%ds%%-%dd%%4d%%6d%%s",len,len,lpdg+1);
+		   //		printf("%5d %-15.15s %-12d%4d%6d\n",
+		   printf(fmt,
+			  count,name.c_str(),updg[i],ap,acode,"\n");
+		} else {
+		   int code=100;
+		   string pclass="Unknown";
+		   if(updg[i]>1000000000) pclass="ion";
+		   int iso=-100;
+		   if(d->Isospin()) iso=d->Isospin()*2+1;
+		   int s=-100;
+		   if(d->Strangeness()) s=2*d->Strangeness()+1;
+		   int flav=-1;
+		   int trkcode=-1;
+		   int ndec=0;
+		   int len = 23-lpdg-1;
+		   len = std::max<int>(name.size(),23-lpdg-1);
+		   sprintf(fmt,"%%5d %%-%d.%ds%%%dd%%3d%%4d %%-11s%%3d%%12.5e%%12.5e%%5d%%3d%%5d%%3d%%5d%%4d%%s",len,len,lpdg+1);
+		   //		printf("%s\n",fmt);
+		   //printf("%5d %-13.13s%10d%3d%4d %-10s%3d%12.5e%12.5e%5d%3d%5d%3d%5d%4d\n",
+		   printf(fmt,
+			  count,name.c_str(),updg[i],ap,code,pclass.c_str(),(int)d->Charge(),
+			  d->Mass(),d->Width(),iso,(int)d->I3(),s,flav,trkcode,ndec,"\n");
+		}
+	  }
+       }
+#endif
+#endif
+    }
   } else {
     R__b.WriteClassBuffer(TPartIndex::Class(), this);
   }
