@@ -231,7 +231,10 @@ void GenerateEvent(double avemult, double energy, double fVertex[3]) {
     }
     if (!track->fPDG)
 #ifdef USE_VECGEOM_NAVIGATOR
-       {std::cout << __func__ << ":: No Particle generated!" << std::endl; exit(1);}
+    {
+      std::cout << __func__ << ":: No Particle generated!" << std::endl;
+      exit(1);
+    }
     const Particle *part = &Particle::GetParticle(track->fPDG);
     track->fCharge = part->Charge();
 #else
