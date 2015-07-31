@@ -52,5 +52,33 @@ then
 
 fi
 
+if [[ $COMPILER == *icc* ]]; then
+
+  iccyear=2013
+  icc14year=2013
+  icc15year=2015
+  COMPILERyear=${COMPILER}year
+
+  iccgcc=4.9
+  icc14gcc=4.9
+  icc15gcc=4.9
+  GCCversion=${COMPILER}gcc
+
+  ARCH=$(uname -m)
+
+  . /afs/cern.ch/sw/lcg/contrib/gcc/${!GCCversion}/${ARCH}-slc6/setup.sh
+  . /afs/cern.ch/sw/IntelSoftware/linux/setup.sh
+  . /afs/cern.ch/sw/IntelSoftware/linux/${ARCH}/xe${!COMPILERyear}/bin/ifortvars.sh intel64
+  . /afs/cern.ch/sw/IntelSoftware/linux/${ARCH}/xe${!COMPILERyear}/bin/iccvars.sh intel64
+  export CC=icc
+  export CXX=icc
+  export FC=ifort
+
+  export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON "
+  export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
+  export BACKEND=$BACKEND
+  export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
+fi
+
 echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE}
 eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE}`
