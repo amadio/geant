@@ -262,7 +262,7 @@ add_subdirectory (examples)
 add_subdirectory (tabxsec)
 add_subdirectory (micromc)
 #add_subdirectory (test-small)
-#add_subdirectory (cmstrack)
+add_subdirectory (cmstrack)
 #add_subdirectory (test-complex)
 add_subdirectory (Nudy)
 
