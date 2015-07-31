@@ -7,12 +7,12 @@ export LC_ALL=en_US.UTF-8
 THIS=$(dirname ${BASH_SOURCE[0]})
 
 # first arguments is the source directory
-if [ $# -ge 6 ]; then
+if [ $# -ge 5 ]; then
   LABEL=$1 ; shift
   COMPILER=$1 ; shift
   BUILDTYPE=$1 ; shift
   EXTERNALS=$1 ; shift
-  WORKSPACE=$1 ; shift
+#  WORKSPACE=$1 ; shift
   BACKEND=$1 ; shift
 else
   echo "$0: expecting 5 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [BACKEND]"
@@ -43,11 +43,9 @@ then
   export CMAKE_BINARY_DIR=$WORKSPACE/geant/builds
   export CMAKE_BUILD_TYPE=$BUILDTYPE
 
-#  export CTEST_BUILD_OPTIONS="-DUSE_VECGEOM_NAVIGATOR=OFF '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON "
   export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON " 
   export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
   export BACKEND=$BACKEND
-#  export BACKEND=VecGeomNavigator
   export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
 
 fi
