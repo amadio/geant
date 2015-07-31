@@ -14,7 +14,7 @@
 
 ClassImp(TNudyEndfTape)
 
-//_______________________________________________________________________________
+    //_______________________________________________________________________________
     TNudyEndfTape::TNudyEndfTape()
     : fLogLev(0), fMats(0) {
   //
@@ -91,11 +91,11 @@ TNudyEndfMat *TNudyEndfTape::GetMAT(int Z, int A) {
 //------------------------------------------------------------------------------
 // TNudyEndfMat *TNudyEndfTape::GetMAT(TString name) {    // Abhijit as name was supplied as char *name
 TNudyEndfMat *TNudyEndfTape::GetMAT(char *name) {
-  TString tstStr;    // DEBUG
+  TString tstStr; // DEBUG
   for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
-    tstStr = thisMat->GetName();   // DEBUG
-    if (tstStr.CompareTo(name) == 0)    
+    tstStr = thisMat->GetName(); // DEBUG
+    if (tstStr.CompareTo(name) == 0)
       return thisMat;
   }
   return NULL;
