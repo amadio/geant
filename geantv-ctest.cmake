@@ -1,16 +1,15 @@
 
 ####################################################################
 # Before run should be exported next variables:
-# $CTEST_BUILD_OPTIONS // CMake flags for Geant-V build
+# $CTEST_BUILD_OPTIONS // CMake flags for VecGeom build
 # $CMAKE_SOURCE_DIR    // CMake source directory
 # $CMAKE_BINARY_DIR    // CMake binary directory
 # $CMAKE_BUILD_TYPE    // CMake build type: Debug, Release
 # $CMAKE_INSTALL_PREFIX // Installation prefix for CMake (Jenkins trigger)
 # CC and CXX (In Jenkins this step has been done authomaticly)
-# export $LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH (for GeantV libraries)
 # Enviroment for name of build for CERN CDash:
 # $LABEL                // Name of node (Jenkins trigger)
-# Name of $BACKEND     // Backend for Geant-V (VecGeom/ROOT or CUDA)
+# Name of $BACKEND     // Backend for VecGeom (CUDA/Vc/Scalar/..)
 
 cmake_minimum_required(VERSION 2.8)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "1000")
@@ -52,8 +51,16 @@ ENDIF(NOT DEFINED CTEST_SITE)
 #######################################################
 set(WITH_MEMCHECK FALSE)
 set(WITH_COVERAGE FALSE)
-
+set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE "5000")
+set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE "5000")
 #######################################################
+#set(CTEST_USE_LAUNCHERS 1)
+#if(NOT "${CTEST_CMAKE_GENERATOR}" MATCHES "Make")
+#  set(CTEST_USE_LAUNCHERS 0)
+#endif()
+#set(ENV{CTEST_USE_LAUNCHERS_DEFAULT} ${CTEST_USE_LAUNCHERS})
+
+######################################################
 # CTest/CMake settings
 
 set(CTEST_TEST_TIMEOUT 3600)
@@ -71,9 +78,10 @@ ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
 find_program(CTEST_GIT_COMMAND NAMES git)
 if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-  set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone http://git.cern.ch/pub/geant ${CTEST_SOURCE_DIRECTORY}")
+  set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone http://git.cern.ch/pub/VecGeom ${CTEST_SOURCE_DIRECTORY}")
 endif()
 set(CTEST_GIT_UPDATE_COMMAND "${CTEST_GIT_COMMAND}")
+
 if(NOT "$ENV{GIT_COMMIT}" STREQUAL "")
    set(CTEST_CHECKOUT_COMMAND "cmake -E chdir ${CTEST_SOURCE_DIRECTORY} ${CTEST_GIT_COMMAND} checkout -f $ENV{GIT_PREVIOUS_COMMIT}")
    set(CTEST_GIT_UPDATE_CUSTOM  ${CTEST_GIT_COMMAND} checkout -f $ENV{GIT_COMMIT})
@@ -89,8 +97,7 @@ include(ProcessorCount)
 ProcessorCount(N)
 if(NOT N EQUAL 0)
   if(NOT WIN32)
-#    set(CTEST_BUILD_FLAGS -j${N})
-
+    set(CTEST_BUILD_FLAGS -j${N})
   endif(NOT WIN32)
   set(ctest_test_args ${ctest_test_args} PARALLEL_LEVEL ${N})
 endif()
