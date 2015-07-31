@@ -1,4 +1,5 @@
 #include <TFile.h>
+#include <TError.h>
 #include <TGeoExtension.h>
 #include <TGeoManager.h>
 #include <TGeoMaterial.h>
