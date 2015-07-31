@@ -1,7 +1,6 @@
 #ifndef TNudyEndfTape_H
 #define TNudyEndfTape_H
 
-// @(#)root/meta:$Id$
 // Author: F.Carminati 02/05/09
 
 /*

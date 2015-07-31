@@ -1,5 +1,5 @@
 /*
-   This igs the main class supporting an ENDF material in R-ENDF format
+   This is the main class supporting an ENDF material in R-ENDF format
 
 */
 
@@ -140,7 +140,7 @@ TNudyEndfMat::~TNudyEndfMat()
 const char* TNudyEndfMat::GetDesc(int i) const
 {
   if(i<0 || i>=fNWDm5) {
-    Error("GetDesc","index %d out of bounds [%d,%d]",0,fNWDm5);
+     Error("GetDesc","index %d out of bounds [%d,%d]",i,0,fNWDm5);
     return 0;
   } else 
     return fDesc[i].Data();
@@ -151,7 +151,7 @@ const char* TNudyEndfMat::GetDesc(int i) const
 void TNudyEndfMat::SetDesc(const TString desc, int i) 
 {
   if(i<0 || i>=fNWDm5) {
-    Error("GetDesc","index %d out of bounds [%d,%d]",0,fNWDm5);
+     Error("GetDesc","index %d out of bounds [%d,%d]",i,0,fNWDm5);
   } else { 
     if(!fDesc) fDesc=new TString[fNWDm5];
     fDesc[i]=desc;

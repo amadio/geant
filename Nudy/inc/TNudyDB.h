@@ -11,7 +11,6 @@
 
 class TNudyDB : public TNamed {
  public:
-  //   TNudyDB(const char *name, const char *title, const char *file);
   TNudyDB(const char *name, const char *title, const char *file);// DEBUG
   virtual ~TNudyDB();
   void AddLibrary(const char *name, const char* file); //Add a Library to a Nudy Database from a RENDF file

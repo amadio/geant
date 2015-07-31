@@ -1,7 +1,6 @@
 #ifndef TNudyENDF_H
 #define TNudyENDF_H
 
-// @(#)root/meta:$Id: TNuEndf.h 29000 2009-06-15 13:53:52Z rdm $
 // Author: F.Carminati 02/05/09
 
 /*
