@@ -7,15 +7,15 @@ export LC_ALL=en_US.UTF-8
 THIS=$(dirname ${BASH_SOURCE[0]})
 
 # first arguments is the source directory
-if [ $# -ge 5 ]; then
+if [ $# -ge 6 ]; then
   LABEL=$1 ; shift
   COMPILER=$1 ; shift
   BUILDTYPE=$1 ; shift
   EXTERNALS=$1 ; shift
-#  WORKSPACE=$1 ; shift
+  WORKSPACE=$1 ; shift
   BACKEND=$1 ; shift
 else
-  echo "$0: expecting 5 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [BACKEND]"
+  echo "$0: expecting 6 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [BACKEND]"
   return
 fi
 
