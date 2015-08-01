@@ -46,82 +46,82 @@ namespace CLHEP {
 //
 // 
 //
-VECPHYS_GLOBAL Precision Avogadro = 6.02214179e+23/mole;
+const double Avogadro = 6.02214179e+23/mole;
 
 //
 // c   = 299.792458 mm/ns
 // c^2 = 898.7404 (mm/ns)^2 
 //
-VECPHYS_GLOBAL Precision c_light   = 2.99792458e+8 * m/s;
-VECPHYS_GLOBAL Precision c_squared = c_light * c_light;
+const double c_light   = 2.99792458e+8 * m/s;
+const double c_squared = c_light * c_light;
 
 //
 // h     = 4.13566e-12 MeV*ns
 // hbar  = 6.58212e-13 MeV*ns
 // hbarc = 197.32705e-12 MeV*mm
 //
-VECPHYS_GLOBAL Precision h_Planck      = 6.62606896e-34 * joule*s;
-VECPHYS_GLOBAL Precision hbar_Planck   = h_Planck/twopi;
-VECPHYS_GLOBAL Precision hbarc         = hbar_Planck * c_light;
-VECPHYS_GLOBAL Precision hbarc_squared = hbarc * hbarc;
+const double h_Planck      = 6.62606896e-34 * joule*s;
+const double hbar_Planck   = h_Planck/twopi;
+const double hbarc         = hbar_Planck * c_light;
+const double hbarc_squared = hbarc * hbarc;
 
 //
 //
 //
-VECPHYS_GLOBAL Precision electron_charge = - eplus; // see SystemOfUnits.h
-VECPHYS_GLOBAL Precision e_squared = eplus * eplus;
+const double electron_charge = - eplus; // see SystemOfUnits.h
+const double e_squared = eplus * eplus;
 
 //
 // amu_c2 - atomic equivalent mass unit
 //        - AKA, unified atomic mass unit (u)
 // amu    - atomic mass unit
 //
-VECPHYS_GLOBAL Precision electron_mass_c2 = 0.510998910 * MeV;
-VECPHYS_GLOBAL Precision inv_electron_mass_c2 = 1.0/electron_mass_c2;
-VECPHYS_GLOBAL Precision   proton_mass_c2 = 938.272013 * MeV;
-VECPHYS_GLOBAL Precision  neutron_mass_c2 = 939.56536 * MeV;
-VECPHYS_GLOBAL Precision           amu_c2 = 931.494028 * MeV;
-VECPHYS_GLOBAL Precision              amu = amu_c2/c_squared;
+const double electron_mass_c2 = 0.510998910 * MeV;
+const double inv_electron_mass_c2 = 1.0/electron_mass_c2;
+const double   proton_mass_c2 = 938.272013 * MeV;
+const double  neutron_mass_c2 = 939.56536 * MeV;
+const double           amu_c2 = 931.494028 * MeV;
+const double              amu = amu_c2/c_squared;
 
 //
 // permeability of free space mu0    = 2.01334e-16 Mev*(ns*eplus)^2/mm
 // permittivity of free space epsil0 = 5.52636e+10 eplus^2/(MeV*mm)
 //
-VECPHYS_GLOBAL Precision mu0      = 4*pi*1.e-7 * henry/m;
-VECPHYS_GLOBAL Precision epsilon0 = 1./(c_squared*mu0);
+const double mu0      = 4*pi*1.e-7 * henry/m;
+const double epsilon0 = 1./(c_squared*mu0);
 
 //
 // electromagnetic coupling = 1.43996e-12 MeV*mm/(eplus^2)
 //
-VECPHYS_GLOBAL Precision elm_coupling           = e_squared/(4*pi*epsilon0);
-VECPHYS_GLOBAL Precision fine_structure_const   = elm_coupling/hbarc;
-VECPHYS_GLOBAL Precision classic_electr_radius  = elm_coupling/electron_mass_c2;
-VECPHYS_GLOBAL Precision electron_Compton_length = hbarc/electron_mass_c2;
-VECPHYS_GLOBAL Precision Bohr_radius = electron_Compton_length/fine_structure_const;
+const double elm_coupling           = e_squared/(4*pi*epsilon0);
+const double fine_structure_const   = elm_coupling/hbarc;
+const double classic_electr_radius  = elm_coupling/electron_mass_c2;
+const double electron_Compton_length = hbarc/electron_mass_c2;
+const double Bohr_radius = electron_Compton_length/fine_structure_const;
 
-VECPHYS_GLOBAL Precision alpha_rcl2 = fine_structure_const
+const double alpha_rcl2 = fine_structure_const
                                    *classic_electr_radius
                                    *classic_electr_radius;
 
-VECPHYS_GLOBAL Precision twopi_mc2_rcl2 = twopi*electron_mass_c2
+const double twopi_mc2_rcl2 = twopi*electron_mass_c2
                                              *classic_electr_radius
                                              *classic_electr_radius;
 //
 //
 //
-VECPHYS_GLOBAL Precision k_Boltzmann = 8.617343e-11 * MeV/kelvin;
+const double k_Boltzmann = 8.617343e-11 * MeV/kelvin;
 
 //
 //
 //
-VECPHYS_GLOBAL Precision STP_Temperature = 273.15*kelvin;
-VECPHYS_GLOBAL Precision STP_Pressure    = 1.*atmosphere;
-VECPHYS_GLOBAL Precision kGasThreshold   = 10.*mg/cm3;
+const double STP_Temperature = 273.15*kelvin;
+const double STP_Pressure    = 1.*atmosphere;
+const double kGasThreshold   = 10.*mg/cm3;
 
 //
 //
 //
-VECPHYS_GLOBAL Precision universe_mean_density = 1.e-25*g/cm3;
+const double universe_mean_density = 1.e-25*g/cm3;
 
 }  // namespace CLHEP
 

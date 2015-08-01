@@ -51,259 +51,259 @@ namespace CLHEP {
   //
   //
   //
-  VECPHYS_GLOBAL Precision     pi  = 3.14159265358979323846;
-  VECPHYS_GLOBAL Precision  twopi  = 2*pi;
-  VECPHYS_GLOBAL Precision halfpi  = pi/2;
-  VECPHYS_GLOBAL Precision     pi2 = pi*pi;
+  const double     pi  = 3.14159265358979323846;
+  const double  twopi  = 2*pi;
+  const double halfpi  = pi/2;
+  const double     pi2 = pi*pi;
 
   // 
   // Length [L]
   //
-  VECPHYS_GLOBAL Precision millimeter  = 1.;                        
-  VECPHYS_GLOBAL Precision millimeter2 = millimeter*millimeter;
-  VECPHYS_GLOBAL Precision millimeter3 = millimeter*millimeter*millimeter;
+  const double millimeter  = 1.;                        
+  const double millimeter2 = millimeter*millimeter;
+  const double millimeter3 = millimeter*millimeter*millimeter;
 
-  VECPHYS_GLOBAL Precision centimeter  = 10.*millimeter;   
-  VECPHYS_GLOBAL Precision centimeter2 = centimeter*centimeter;
-  VECPHYS_GLOBAL Precision centimeter3 = centimeter*centimeter*centimeter;
+  const double centimeter  = 10.*millimeter;   
+  const double centimeter2 = centimeter*centimeter;
+  const double centimeter3 = centimeter*centimeter*centimeter;
 
-  VECPHYS_GLOBAL Precision meter  = 1000.*millimeter;                  
-  VECPHYS_GLOBAL Precision meter2 = meter*meter;
-  VECPHYS_GLOBAL Precision meter3 = meter*meter*meter;
+  const double meter  = 1000.*millimeter;                  
+  const double meter2 = meter*meter;
+  const double meter3 = meter*meter*meter;
 
-  VECPHYS_GLOBAL Precision kilometer = 1000.*meter;                   
-  VECPHYS_GLOBAL Precision kilometer2 = kilometer*kilometer;
-  VECPHYS_GLOBAL Precision kilometer3 = kilometer*kilometer*kilometer;
+  const double kilometer = 1000.*meter;                   
+  const double kilometer2 = kilometer*kilometer;
+  const double kilometer3 = kilometer*kilometer*kilometer;
 
-  VECPHYS_GLOBAL Precision parsec = 3.0856775807e+16*meter;
+  const double parsec = 3.0856775807e+16*meter;
 
-  VECPHYS_GLOBAL Precision micrometer = 1.e-6 *meter;             
-  VECPHYS_GLOBAL Precision  nanometer = 1.e-9 *meter;
-  VECPHYS_GLOBAL Precision  angstrom  = 1.e-10*meter;
-  VECPHYS_GLOBAL Precision  fermi     = 1.e-15*meter;
+  const double micrometer = 1.e-6 *meter;             
+  const double  nanometer = 1.e-9 *meter;
+  const double  angstrom  = 1.e-10*meter;
+  const double  fermi     = 1.e-15*meter;
 
-  VECPHYS_GLOBAL Precision      barn = 1.e-28*meter2;
-  VECPHYS_GLOBAL Precision millibarn = 1.e-3 *barn;
-  VECPHYS_GLOBAL Precision microbarn = 1.e-6 *barn;
-  VECPHYS_GLOBAL Precision  nanobarn = 1.e-9 *barn;
-  VECPHYS_GLOBAL Precision  picobarn = 1.e-12*barn;
+  const double      barn = 1.e-28*meter2;
+  const double millibarn = 1.e-3 *barn;
+  const double microbarn = 1.e-6 *barn;
+  const double  nanobarn = 1.e-9 *barn;
+  const double  picobarn = 1.e-12*barn;
 
   // symbols
-  VECPHYS_GLOBAL Precision nm  = nanometer;                        
-  VECPHYS_GLOBAL Precision um  = micrometer;                        
+  const double nm  = nanometer;                        
+  const double um  = micrometer;                        
 
-  VECPHYS_GLOBAL Precision mm  = millimeter;                        
-  VECPHYS_GLOBAL Precision mm2 = millimeter2;
-  VECPHYS_GLOBAL Precision mm3 = millimeter3;
+  const double mm  = millimeter;                        
+  const double mm2 = millimeter2;
+  const double mm3 = millimeter3;
 
-  VECPHYS_GLOBAL Precision cm  = centimeter;   
-  VECPHYS_GLOBAL Precision cm2 = centimeter2;
-  VECPHYS_GLOBAL Precision cm3 = centimeter3;
+  const double cm  = centimeter;   
+  const double cm2 = centimeter2;
+  const double cm3 = centimeter3;
 
-  VECPHYS_GLOBAL Precision m  = meter;                  
-  VECPHYS_GLOBAL Precision m2 = meter2;
-  VECPHYS_GLOBAL Precision m3 = meter3;
+  const double m  = meter;                  
+  const double m2 = meter2;
+  const double m3 = meter3;
 
-  VECPHYS_GLOBAL Precision km  = kilometer;                   
-  VECPHYS_GLOBAL Precision km2 = kilometer2;
-  VECPHYS_GLOBAL Precision km3 = kilometer3;
+  const double km  = kilometer;                   
+  const double km2 = kilometer2;
+  const double km3 = kilometer3;
 
-  VECPHYS_GLOBAL Precision pc = parsec;
+  const double pc = parsec;
 
   //
   // Angle
   //
-  VECPHYS_GLOBAL Precision radian      = 1.;                  
-  VECPHYS_GLOBAL Precision milliradian = 1.e-3*radian;
-  VECPHYS_GLOBAL Precision degree = (pi/180.0)*radian;
+  const double radian      = 1.;                  
+  const double milliradian = 1.e-3*radian;
+  const double degree = (pi/180.0)*radian;
 
-  VECPHYS_GLOBAL Precision   steradian = 1.;
+  const double   steradian = 1.;
   
   // symbols
-  VECPHYS_GLOBAL Precision rad  = radian;
-  VECPHYS_GLOBAL Precision mrad = milliradian;
-  VECPHYS_GLOBAL Precision sr   = steradian;
-  VECPHYS_GLOBAL Precision deg  = degree;
+  const double rad  = radian;
+  const double mrad = milliradian;
+  const double sr   = steradian;
+  const double deg  = degree;
 
   //
   // Time [T]
   //
-  VECPHYS_GLOBAL Precision nanosecond  = 1.;
-  VECPHYS_GLOBAL Precision second      = 1.e+9 *nanosecond;
-  VECPHYS_GLOBAL Precision millisecond = 1.e-3 *second;
-  VECPHYS_GLOBAL Precision microsecond = 1.e-6 *second;
-  VECPHYS_GLOBAL Precision  picosecond = 1.e-12*second;
+  const double nanosecond  = 1.;
+  const double second      = 1.e+9 *nanosecond;
+  const double millisecond = 1.e-3 *second;
+  const double microsecond = 1.e-6 *second;
+  const double  picosecond = 1.e-12*second;
 
-  VECPHYS_GLOBAL Precision hertz = 1./second;
-  VECPHYS_GLOBAL Precision kilohertz = 1.e+3*hertz;
-  VECPHYS_GLOBAL Precision megahertz = 1.e+6*hertz;
+  const double hertz = 1./second;
+  const double kilohertz = 1.e+3*hertz;
+  const double megahertz = 1.e+6*hertz;
 
   // symbols
-  VECPHYS_GLOBAL Precision ns = nanosecond;
-  VECPHYS_GLOBAL Precision  s = second;
-  VECPHYS_GLOBAL Precision ms = millisecond;
+  const double ns = nanosecond;
+  const double  s = second;
+  const double ms = millisecond;
 
   //
   // Electric charge [Q]
   //
-  VECPHYS_GLOBAL Precision eplus = 1. ;// positron charge
-  VECPHYS_GLOBAL Precision e_SI  = 1.602176487e-19;// positron charge in coulomb
-  VECPHYS_GLOBAL Precision coulomb = eplus/e_SI;// coulomb = 6.24150 e+18 * eplus
+  const double eplus = 1. ;// positron charge
+  const double e_SI  = 1.602176487e-19;// positron charge in coulomb
+  const double coulomb = eplus/e_SI;// coulomb = 6.24150 e+18 * eplus
 
   //
   // Energy [E]
   //
-  VECPHYS_GLOBAL Precision megaelectronvolt = 1. ;
-  VECPHYS_GLOBAL Precision     electronvolt = 1.e-6*megaelectronvolt;
-  VECPHYS_GLOBAL Precision kiloelectronvolt = 1.e-3*megaelectronvolt;
-  VECPHYS_GLOBAL Precision gigaelectronvolt = 1.e+3*megaelectronvolt;
-  VECPHYS_GLOBAL Precision teraelectronvolt = 1.e+6*megaelectronvolt;
-  VECPHYS_GLOBAL Precision petaelectronvolt = 1.e+9*megaelectronvolt;
+  const double megaelectronvolt = 1. ;
+  const double     electronvolt = 1.e-6*megaelectronvolt;
+  const double kiloelectronvolt = 1.e-3*megaelectronvolt;
+  const double gigaelectronvolt = 1.e+3*megaelectronvolt;
+  const double teraelectronvolt = 1.e+6*megaelectronvolt;
+  const double petaelectronvolt = 1.e+9*megaelectronvolt;
 
-  VECPHYS_GLOBAL Precision joule = electronvolt/e_SI;// joule = 6.24150 e+12 * MeV
+  const double joule = electronvolt/e_SI;// joule = 6.24150 e+12 * MeV
 
   // symbols
-  VECPHYS_GLOBAL Precision MeV = megaelectronvolt;
-  VECPHYS_GLOBAL Precision  eV = electronvolt;
-  VECPHYS_GLOBAL Precision keV = kiloelectronvolt;
-  VECPHYS_GLOBAL Precision GeV = gigaelectronvolt;
-  VECPHYS_GLOBAL Precision TeV = teraelectronvolt;
-  VECPHYS_GLOBAL Precision PeV = petaelectronvolt;
+  const double MeV = megaelectronvolt;
+  const double  eV = electronvolt;
+  const double keV = kiloelectronvolt;
+  const double GeV = gigaelectronvolt;
+  const double TeV = teraelectronvolt;
+  const double PeV = petaelectronvolt;
 
   //
   // Mass [E][T^2][L^-2]
   //
-  VECPHYS_GLOBAL Precision  kilogram = joule*second*second/(meter*meter);   
-  VECPHYS_GLOBAL Precision      gram = 1.e-3*kilogram;
-  VECPHYS_GLOBAL Precision milligram = 1.e-3*gram;
+  const double  kilogram = joule*second*second/(meter*meter);   
+  const double      gram = 1.e-3*kilogram;
+  const double milligram = 1.e-3*gram;
 
   // symbols
-  VECPHYS_GLOBAL Precision  kg = kilogram;
-  VECPHYS_GLOBAL Precision   g = gram;
-  VECPHYS_GLOBAL Precision  mg = milligram;
+  const double  kg = kilogram;
+  const double   g = gram;
+  const double  mg = milligram;
 
   //
   // Power [E][T^-1]
   //
-  VECPHYS_GLOBAL Precision watt = joule/second;// watt = 6.24150 e+3 * MeV/ns
+  const double watt = joule/second;// watt = 6.24150 e+3 * MeV/ns
 
   //
   // Force [E][L^-1]
   //
-  VECPHYS_GLOBAL Precision newton = joule/meter;// newton = 6.24150 e+9 * MeV/mm
+  const double newton = joule/meter;// newton = 6.24150 e+9 * MeV/mm
 
   //
   // Pressure [E][L^-3]
   //
 #define pascal hep_pascal                          // a trick to avoid warnings 
-  VECPHYS_GLOBAL Precision hep_pascal = newton/m2;   // pascal = 6.24150 e+3 * MeV/mm3
-  VECPHYS_GLOBAL Precision bar        = 100000*pascal; // bar    = 6.24150 e+8 * MeV/mm3
-  VECPHYS_GLOBAL Precision atmosphere = 101325*pascal; // atm    = 6.32420 e+8 * MeV/mm3
+  const double hep_pascal = newton/m2;   // pascal = 6.24150 e+3 * MeV/mm3
+  const double bar        = 100000*pascal; // bar    = 6.24150 e+8 * MeV/mm3
+  const double atmosphere = 101325*pascal; // atm    = 6.32420 e+8 * MeV/mm3
 
   //
   // Electric current [Q][T^-1]
   //
-  VECPHYS_GLOBAL Precision      ampere = coulomb/second; // ampere = 6.24150 e+9 * eplus/ns
-  VECPHYS_GLOBAL Precision milliampere = 1.e-3*ampere;
-  VECPHYS_GLOBAL Precision microampere = 1.e-6*ampere;
-  VECPHYS_GLOBAL Precision  nanoampere = 1.e-9*ampere;
+  const double      ampere = coulomb/second; // ampere = 6.24150 e+9 * eplus/ns
+  const double milliampere = 1.e-3*ampere;
+  const double microampere = 1.e-6*ampere;
+  const double  nanoampere = 1.e-9*ampere;
 
   //
   // Electric potential [E][Q^-1]
   //
-  VECPHYS_GLOBAL Precision megavolt = megaelectronvolt/eplus;
-  VECPHYS_GLOBAL Precision kilovolt = 1.e-3*megavolt;
-  VECPHYS_GLOBAL Precision     volt = 1.e-6*megavolt;
+  const double megavolt = megaelectronvolt/eplus;
+  const double kilovolt = 1.e-3*megavolt;
+  const double     volt = 1.e-6*megavolt;
 
   //
   // Electric resistance [E][T][Q^-2]
   //
-  VECPHYS_GLOBAL Precision ohm = volt/ampere;// ohm = 1.60217e-16*(MeV/eplus)/(eplus/ns)
+  const double ohm = volt/ampere;// ohm = 1.60217e-16*(MeV/eplus)/(eplus/ns)
 
   //
   // Electric capacitance [Q^2][E^-1]
   //
-  VECPHYS_GLOBAL Precision farad = coulomb/volt;// farad = 6.24150e+24 * eplus/Megavolt
-  VECPHYS_GLOBAL Precision millifarad = 1.e-3*farad;
-  VECPHYS_GLOBAL Precision microfarad = 1.e-6*farad;
-  VECPHYS_GLOBAL Precision  nanofarad = 1.e-9*farad;
-  VECPHYS_GLOBAL Precision  picofarad = 1.e-12*farad;
+  const double farad = coulomb/volt;// farad = 6.24150e+24 * eplus/Megavolt
+  const double millifarad = 1.e-3*farad;
+  const double microfarad = 1.e-6*farad;
+  const double  nanofarad = 1.e-9*farad;
+  const double  picofarad = 1.e-12*farad;
 
   //
   // Magnetic Flux [T][E][Q^-1]
   //
-  VECPHYS_GLOBAL Precision weber = volt*second;// weber = 1000*megavolt*ns
+  const double weber = volt*second;// weber = 1000*megavolt*ns
 
   //
   // Magnetic Field [T][E][Q^-1][L^-2]
   //
-  VECPHYS_GLOBAL Precision tesla     = volt*second/meter2;// tesla =0.001*megavolt*ns/mm2
+  const double tesla     = volt*second/meter2;// tesla =0.001*megavolt*ns/mm2
 
-  VECPHYS_GLOBAL Precision gauss     = 1.e-4*tesla;
-  VECPHYS_GLOBAL Precision kilogauss = 1.e-1*tesla;
+  const double gauss     = 1.e-4*tesla;
+  const double kilogauss = 1.e-1*tesla;
 
   //
   // Inductance [T^2][E][Q^-2]
   //
-  VECPHYS_GLOBAL Precision henry = weber/ampere;// henry = 1.60217e-7*MeV*(ns/eplus)**2
+  const double henry = weber/ampere;// henry = 1.60217e-7*MeV*(ns/eplus)**2
 
   //
   // Temperature
   //
-  VECPHYS_GLOBAL Precision kelvin = 1.;
+  const double kelvin = 1.;
 
   //
   // Amount of substance
   //
-  VECPHYS_GLOBAL Precision mole = 1.;
+  const double mole = 1.;
 
   //
   // Activity [T^-1]
   //
-  VECPHYS_GLOBAL Precision becquerel = 1./second ;
-  VECPHYS_GLOBAL Precision curie = 3.7e+10 * becquerel;
-  VECPHYS_GLOBAL Precision kilobecquerel = 1.e+3*becquerel;
-  VECPHYS_GLOBAL Precision megabecquerel = 1.e+6*becquerel;
-  VECPHYS_GLOBAL Precision gigabecquerel = 1.e+9*becquerel;
-  VECPHYS_GLOBAL Precision millicurie = 1.e-3*curie;
-  VECPHYS_GLOBAL Precision microcurie = 1.e-6*curie;
-  VECPHYS_GLOBAL Precision Bq = becquerel;
-  VECPHYS_GLOBAL Precision kBq = kilobecquerel;
-  VECPHYS_GLOBAL Precision MBq = megabecquerel;
-  VECPHYS_GLOBAL Precision GBq = gigabecquerel;
-  VECPHYS_GLOBAL Precision Ci = curie;
-  VECPHYS_GLOBAL Precision mCi = millicurie;
-  VECPHYS_GLOBAL Precision uCi = microcurie;
+  const double becquerel = 1./second ;
+  const double curie = 3.7e+10 * becquerel;
+  const double kilobecquerel = 1.e+3*becquerel;
+  const double megabecquerel = 1.e+6*becquerel;
+  const double gigabecquerel = 1.e+9*becquerel;
+  const double millicurie = 1.e-3*curie;
+  const double microcurie = 1.e-6*curie;
+  const double Bq = becquerel;
+  const double kBq = kilobecquerel;
+  const double MBq = megabecquerel;
+  const double GBq = gigabecquerel;
+  const double Ci = curie;
+  const double mCi = millicurie;
+  const double uCi = microcurie;
 
   //
   // Absorbed dose [L^2][T^-2]
   //
-  VECPHYS_GLOBAL Precision      gray = joule/kilogram ;
-  VECPHYS_GLOBAL Precision  kilogray = 1.e+3*gray;
-  VECPHYS_GLOBAL Precision milligray = 1.e-3*gray;
-  VECPHYS_GLOBAL Precision microgray = 1.e-6*gray;
+  const double      gray = joule/kilogram ;
+  const double  kilogray = 1.e+3*gray;
+  const double milligray = 1.e-3*gray;
+  const double microgray = 1.e-6*gray;
 
   //
   // Luminous intensity [I]
   //
-  VECPHYS_GLOBAL Precision candela = 1.;
+  const double candela = 1.;
 
   //
   // Luminous flux [I]
   //
-  VECPHYS_GLOBAL Precision lumen = candela*steradian;
+  const double lumen = candela*steradian;
 
   //
   // Illuminance [I][L^-2]
   //
-  VECPHYS_GLOBAL Precision lux = lumen/meter2;
+  const double lux = lumen/meter2;
 
   //
   // Miscellaneous
   //
-  VECPHYS_GLOBAL Precision perCent     = 0.01 ;
-  VECPHYS_GLOBAL Precision perThousand = 0.001;
-  VECPHYS_GLOBAL Precision perMillion  = 0.000001;
+  const double perCent     = 0.01 ;
+  const double perThousand = 0.001;
+  const double perMillion  = 0.000001;
 
 }  // namespace CLHEP
 
