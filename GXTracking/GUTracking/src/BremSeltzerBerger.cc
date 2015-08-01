@@ -11,21 +11,9 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
 BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid) 
-  : EmModelBase<BremSeltzerBerger>(states,tid),
-  fMinX(1.e-8), fMaxX(1.e+3), // fDeltaX(0.1), 
-  fMaxZelement(maximumZ),  
-  fNrow(100), fNcol(100) 
+  : EmModelBase<BremSeltzerBerger>(states,tid)
 {
-  //initialization
-
   SetLowEnergyLimit(10.*keV);
-
-  //replace hard coded numbers by default constants
-
-  fAliasSampler = new GUAliasSampler(fRandomState,fThreadId,
-                                     fMaxZelement,
-                                     fMinX,fMaxX,
-                                     fNrow,fNcol);
 
   fDataSB =
     (Physics2DVector*) malloc(maximumZ*sizeof(Physics2DVector));
@@ -41,29 +29,16 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid)
     }
   }
 
-  for( int z= 1 ; z < fMaxZelement; ++z)
-  {
-    //eventually arguments of BuildTable should be replaced by members of *this
-    //  and dropped from the function signature. Same for BuildPdfTable
-    BuildOneTable(z, fMinX, fMaxX, fNrow, fNcol);
-  }
-
+  BuildAliasTable();
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
 BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid,
                                      GUAliasSampler* sampler, 
                                      Physics2DVector* sbData) 
-  : EmModelBase<BremSeltzerBerger>(states,tid),
-  fMinX(1.e-8), fMaxX(1.e+3), // fDeltaX(0.1), 
-  fNrow(100), fNcol(100) 
+  : EmModelBase<BremSeltzerBerger>(states,tid,sampler)
 {
-  //initialization
-
   SetLowEnergyLimit(10.*keV);
-
-  //replace hard coded numbers by default constants
-  fAliasSampler = sampler;
   fDataSB = sbData;
 }
 
@@ -72,7 +47,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid,
 VECPHYS_CUDA_HEADER_BOTH 
 BremSeltzerBerger::~BremSeltzerBerger() 
 {
-  if(fAliasSampler) delete fAliasSampler;
+  free(fDataSB);
 }
 
 VECPHYS_CUDA_HEADER_HOST bool
@@ -108,23 +83,6 @@ BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream& in,
   in.close();
   return true;
 
-}
-
-VECPHYS_CUDA_HEADER_HOST void 
-BremSeltzerBerger::BuildOneTable(int Z, 
-                                 const double xmin, 
-                                 const double xmax,
-                                 const int nrow,
-                                 const int ncol)
-{
-  //for now, the model does not own pdf.  Otherwise, pdf should be the 
-  //data member of *this and set its point to the fpdf of fAliasSampler 
-  double *pdf = new double [(nrow+1)*ncol];
-
-  BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
-  fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
-
-  delete [] pdf;
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
@@ -181,7 +139,6 @@ BremSeltzerBerger::BuildLogPdfTable(int Z,
       //for each output energy bin
       double y = exp(yo + dy*j) - dc;
       double w = (y < 0 ) ? 0 : sqrt(y)/x;
-
       double xsec = CalculateDiffCrossSection(Z,w,logx);
       p[i*ncol+j] = xsec;
       sum += xsec;
@@ -211,7 +168,9 @@ BremSeltzerBerger::CalculateDiffCrossSection(int Zelement,
   // output : dsigma  (differential cross section) 
 
   //cross section based on the Seltzer-Berger Parameterization
+
   double dcross = fDataSB[Zelement].Value(w,y);
+
   return dcross;
 }
 

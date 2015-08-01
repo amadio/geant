@@ -21,23 +21,16 @@ class BremSeltzerBerger : public EmModelBase<BremSeltzerBerger>
 public:
 
   VECPHYS_CUDA_HEADER_HOST
-  BremSeltzerBerger(Random_t* states, int threadId = -1); 
+  BremSeltzerBerger(Random_t* states = 0, int threadId = -1); 
 
   VECPHYS_CUDA_HEADER_BOTH
   BremSeltzerBerger(Random_t* states, int threadId, 
-                GUAliasSampler* sampler, Physics2DVector* sbData); 
+                    GUAliasSampler* sampler, Physics2DVector* sbData); 
 
   VECPHYS_CUDA_HEADER_BOTH
   ~BremSeltzerBerger();
 
   // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildOneTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol);
-
   VECPHYS_CUDA_HEADER_HOST
   void BuildLogPdfTable(int Z,
                         const double xmin,
@@ -48,13 +41,6 @@ public:
 
 public:
   // Auxiliary methods
-
-  VECPHYS_CUDA_HEADER_BOTH
-  GUAliasSampler* GetSampler() {return fAliasSampler;}
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
-
   VECPHYS_CUDA_HEADER_BOTH
   Physics2DVector* GetSBData() {return fDataSB;}
 
@@ -100,15 +86,7 @@ public:
   friend class EmModelBase<BremSeltzerBerger>;
 
 private:
-  GUAliasSampler* fAliasSampler; 
   Physics2DVector* fDataSB;
-  Precision fMinX;
-  Precision fMaxX;
-  Precision fMaxZelement; 
-
-  //Sampling Tables
-  int fNrow;
-  int fNcol;
 };
 
 //Implementation

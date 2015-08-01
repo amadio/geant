@@ -20,21 +20,15 @@ class IonisationMoller : public EmModelBase<IonisationMoller>
 public:
 
   VECPHYS_CUDA_HEADER_HOST
-  IonisationMoller(Random_t* states, int threadId = -1); 
+  IonisationMoller(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
   IonisationMoller(Random_t* states, int threadId, GUAliasSampler* sampler); 
 
   VECPHYS_CUDA_HEADER_BOTH
-  ~IonisationMoller();
+  ~IonisationMoller(){}
 
   // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildOneTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol);
 
   VECPHYS_CUDA_HEADER_HOST
   void BuildPdfTable(int Z,
@@ -51,15 +45,6 @@ public:
                         const int nrow,
                         const int ncol,
                         double *p);
-
-public:
-  // Auxiliary methods
-
-  VECPHYS_CUDA_HEADER_BOTH
-  GUAliasSampler* GetSampler() {return fAliasSampler;}
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
 
 private: 
   // Implementation methods 
@@ -99,14 +84,6 @@ private:
   friend class EmModelBase<IonisationMoller>;
 
 private:
-  GUAliasSampler* fAliasSampler; 
-  Precision fMinX;   // E Minimum - lowest energy for projectile
-  Precision fMaxX;
-  Precision fMaxZelement; // 
-  
-  //Sampling Tables
-  int fNrow;
-  int fNcol;
 };
 
 //Implementation

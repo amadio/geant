@@ -17,23 +17,15 @@ class ComptonKleinNishina : public EmModelBase<ComptonKleinNishina>
 public:
 
   VECPHYS_CUDA_HEADER_HOST
-  ComptonKleinNishina(Random_t* states, int threadId = -1); 
+  ComptonKleinNishina(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
-  ComptonKleinNishina(Random_t* states, int threadId, 
-                        GUAliasSampler* sampler); 
+  ComptonKleinNishina(Random_t* states, int threadId, GUAliasSampler* sampler); 
 
-  VECPHYS_CUDA_HEADER_BOTH
-  ~ComptonKleinNishina();
+  VECPHYS_CUDA_HEADER_BOTH 
+  ~ComptonKleinNishina(){}
 
   // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildOneTable( int Z,
-                      const double xmin,
-                      const double xmax,
-                      const int nrow,
-                      const int ncol);
-
   VECPHYS_CUDA_HEADER_HOST
   void BuildPdfTable(int Z,
                      const double xmin,
@@ -52,12 +44,12 @@ public:
 
 public:
   // Auxiliary methods
-
   VECPHYS_CUDA_HEADER_BOTH
   GUAliasSampler* GetSampler() {return fAliasSampler;}
 
   VECPHYS_CUDA_HEADER_BOTH
   void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
+
 
 private: 
   // Implementation methods 
@@ -100,14 +92,6 @@ private:
   friend class EmModelBase<ComptonKleinNishina>;
 
 private:
-  GUAliasSampler* fAliasSampler; 
-  Precision fMinX;   // E Minimum - lowest energy for projectile
-  Precision fMaxX;
-  Precision fMaxZelement; // 
-  
-  //Sampling Tables
-  int fNrow;
-  int fNcol;
 
   GUTrack fSecondaryElectron;
 };
@@ -197,7 +181,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
 
   //update the primary
 
-   
+  //  printf("icol = %d energyOut = %f %f %f %f\n",icol,energyOut,deltaE,aliasInd,probNA);   
 }    
 
 template<class Backend>

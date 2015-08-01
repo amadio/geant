@@ -6,6 +6,7 @@
 
 #include "GUConstants.h"
 #include "GUTrack.h"
+#include "GUAliasSampler.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -15,10 +16,24 @@ class EmModelBase {
 
 public:
 
+  VECPHYS_CUDA_HEADER_HOST
+  EmModelBase(Random_t* states, int tid);
+
   VECPHYS_CUDA_HEADER_BOTH 
-  EmModelBase(Random_t* states, int tid) 
-    : fRandomState(states), fThreadId(tid), 
-    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV) {};
+  EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler);
+
+  VECPHYS_CUDA_HEADER_BOTH 
+  ~EmModelBase();
+
+  VECPHYS_CUDA_HEADER_HOST
+  void BuildAliasTable();
+
+  VECPHYS_CUDA_HEADER_HOST
+  void BuildOneTable(int Z,
+		     const double xmin,
+		     const double xmax,
+		     const int nrow,
+		     const int ncol);
 
   //scalar
   template <typename Backend>
@@ -59,6 +74,13 @@ public:
                   const int targetElement,
                   GUTrack&  outSecondary);
 
+  VECPHYS_CUDA_HEADER_BOTH
+  GUAliasSampler* GetSampler() {return fAliasSampler;}
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
+
+
 protected:
   // Auxiliary methods
   VECPHYS_CUDA_HEADER_BOTH
@@ -78,7 +100,7 @@ private:
                    typename Backend::Double_t &xr,
                    typename Backend::Double_t &yr,
                    typename Backend::Double_t &zr);
-
+ 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void ConvertXtoFinalState(double energyIn, 
@@ -94,9 +116,83 @@ protected:
 
   double    fLowEnergyLimit;  
   double    fHighEnergyLimit;  
+
+  //Sampling Tables
+  GUAliasSampler* fAliasSampler; 
+  //  bool      fBuildAliasTable;
+  Precision fMinX;   // lower bound of the sampling variable
+  Precision fMaxX;   // upper bound of the sampling variable
+  Precision fMaxZelement; 
+  
+  int fNrow;
+  int fNcol;
 };
 
 //Implementation
+template <class EmModel>
+VECPHYS_CUDA_HEADER_HOST 
+EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
+    : fRandomState(states), fThreadId(tid), 
+    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV),
+    fMinX(1.e-8),  fMaxX(1000.),  
+    fMaxZelement(maximumZ),
+    fNrow(100), fNcol(100)
+{
+  fAliasSampler = 0;
+}
+
+template <class EmModel>
+VECPHYS_CUDA_HEADER_BOTH 
+EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
+    : fRandomState(states), fThreadId(tid), 
+    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV),
+    fMinX(1.e-8),  fMaxX(1000.),  
+    fMaxZelement(maximumZ),
+    fNrow(100), fNcol(100)
+{
+  fAliasSampler = sampler; 
+}
+
+template <class EmModel>
+VECPHYS_CUDA_HEADER_BOTH 
+EmModelBase<EmModel>::~EmModelBase()
+{
+  if(fAliasSampler) delete fAliasSampler;
+}
+
+template <class EmModel>
+VECPHYS_CUDA_HEADER_HOST 
+void EmModelBase<EmModel>::BuildAliasTable() 
+{ 
+  //replace hard coded numbers by default constants
+  fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fMaxZelement,
+                                     fMinX, fMaxX, fNrow, fNcol);
+
+  for( int z= 1 ; z < fMaxZelement; ++z)
+  {
+    //eventually arguments of BuildTable should be replaced by members of *this
+    //and dropped from the function signature. Same for BuildPdfTable
+    BuildOneTable(z, fMinX, fMaxX, fNrow, fNcol);
+  }
+}
+
+template <class EmModel>
+VECPHYS_CUDA_HEADER_HOST 
+void EmModelBase<EmModel>::BuildOneTable(int Z, 
+				         const double xmin, 
+				         const double xmax,
+				         const int nrow,
+				         const int ncol)
+{
+  //for now, the model does not own pdf.  Otherwise, pdf should be the 
+  //data member of *this and set its point to the fpdf of fAliasSampler 
+  double *pdf = new double [(nrow+1)*ncol];
+
+  static_cast<EmModel*>(this)->BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
+  fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
+
+  delete [] pdf;
+}
 
 template <class EmModel>
 template <typename Backend>
