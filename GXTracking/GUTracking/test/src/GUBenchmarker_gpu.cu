@@ -1,8 +1,9 @@
 #include "base/Stopwatch.h"
 
+//#include "GVComptonKleinNishina.h"
 #include "ComptonKleinNishina.h"
-#include "GUConversionBetheHeitler.h"
-#include "GUPhotoElectronSauterGavrila.h"
+#include "ConversionBetheHeitler.h"
+#include "PhotoElectronSauterGavrila.h"
 #include "IonisationMoller.h"
 #include "BremSeltzerBerger.h"
 
@@ -28,6 +29,8 @@ void KernelKleinNishina(Random_t* devStates,
   GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kKleinNishina]);
   ComptonKleinNishina model(devStates,tid,&sampler);
 
+  //  sampler.PrintTable();
+
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
@@ -46,7 +49,7 @@ void KernelBetheHeitler(Random_t* devStates,
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kBetheHeitler]);
-  GUConversionBetheHeitler model(devStates,tid,&sampler);
+  ConversionBetheHeitler model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -66,7 +69,7 @@ void KernelSauterGavrila(Random_t* devStates,
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kSauterGavrila]);
-  GUPhotoElectronSauterGavrila model(devStates,tid,&sampler);
+  PhotoElectronSauterGavrila model(devStates,tid,&sampler);
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);

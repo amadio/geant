@@ -2,8 +2,8 @@
 #include "GUHistogram.h"
 
 #include "ComptonKleinNishina.h"
-#include "GUConversionBetheHeitler.h"
-#include "GUPhotoElectronSauterGavrila.h"
+#include "ConversionBetheHeitler.h"
+#include "PhotoElectronSauterGavrila.h"
 #include "IonisationMoller.h"
 #include "BremSeltzerBerger.h"
 
@@ -43,7 +43,7 @@ Precision ScalarBetheHeitler(int ntracks,
 			     int *targetElements,
 			     GUTrack* otrack_aos)
 {
-  static vecphys::cxx::GUConversionBetheHeitler model(0,-1);
+  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -64,7 +64,7 @@ Precision ScalarSauterGavrila(int ntracks,
 			      int *targetElements,
 			      GUTrack* otrack_aos)
 {
-  static vecphys::cxx::GUPhotoElectronSauterGavrila model(0,-1);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -159,7 +159,7 @@ Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
 			     int *targetElements,
 			     GUTrack_v& otrack_soa)
 {
-  static vecphys::cxx::GUConversionBetheHeitler model(0,-1);
+  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -178,7 +178,7 @@ Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
 			      int *targetElements,
 			      GUTrack_v& otrack_soa)
 {
-  static vecphys::cxx::GUPhotoElectronSauterGavrila model(0,-1);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -263,7 +263,7 @@ Precision G4BetheHeitler(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::GUConversionBetheHeitler model(0,-1);
+  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -284,7 +284,7 @@ Precision G4SauterGavrila(int ntracks,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
 {
-  static vecphys::cxx::GUPhotoElectronSauterGavrila model(0,-1);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;

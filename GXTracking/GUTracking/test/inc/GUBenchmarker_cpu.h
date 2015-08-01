@@ -42,7 +42,7 @@ KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina,
                                    ScalarBetheHeitler,
                                    ScalarSauterGavrila,
                                    ScalarMollerBhabha,
-                                   ScalarSeltzerBerger}; 
+                                   ScalarSeltzerBerger};
 
 //Geant4
 

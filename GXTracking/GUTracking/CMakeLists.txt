@@ -273,8 +273,8 @@ include_directories(${CMAKE_SOURCE_DIR}
 set(SRC_CPP_RELATIVE
   src/GUAliasSampler.cc
   src/ComptonKleinNishina.cc
-  src/GUConversionBetheHeitler.cc
-  src/GUPhotoElectronSauterGavrila.cc
+  src/ConversionBetheHeitler.cc
+  src/PhotoElectronSauterGavrila.cc
   src/IonisationMoller.cc
   src/BremSeltzerBerger.cc
   src/GUAliasTable.cc
