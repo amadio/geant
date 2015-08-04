@@ -51,259 +51,259 @@ namespace CLHEP {
   //
   //
   //
-  const double     pi  = 3.14159265358979323846;
-  const double  twopi  = 2*pi;
-  const double halfpi  = pi/2;
-  const double     pi2 = pi*pi;
+  constexpr double     pi  = 3.14159265358979323846;
+  constexpr double  twopi  = 2*pi;
+  constexpr double halfpi  = pi/2;
+  constexpr double     pi2 = pi*pi;
 
   // 
   // Length [L]
   //
-  const double millimeter  = 1.;                        
-  const double millimeter2 = millimeter*millimeter;
-  const double millimeter3 = millimeter*millimeter*millimeter;
+  constexpr double millimeter  = 1.;                        
+  constexpr double millimeter2 = millimeter*millimeter;
+  constexpr double millimeter3 = millimeter*millimeter*millimeter;
 
-  const double centimeter  = 10.*millimeter;   
-  const double centimeter2 = centimeter*centimeter;
-  const double centimeter3 = centimeter*centimeter*centimeter;
+  constexpr double centimeter  = 10.*millimeter;   
+  constexpr double centimeter2 = centimeter*centimeter;
+  constexpr double centimeter3 = centimeter*centimeter*centimeter;
 
-  const double meter  = 1000.*millimeter;                  
-  const double meter2 = meter*meter;
-  const double meter3 = meter*meter*meter;
+  constexpr double meter  = 1000.*millimeter;                  
+  constexpr double meter2 = meter*meter;
+  constexpr double meter3 = meter*meter*meter;
 
-  const double kilometer = 1000.*meter;                   
-  const double kilometer2 = kilometer*kilometer;
-  const double kilometer3 = kilometer*kilometer*kilometer;
+  constexpr double kilometer = 1000.*meter;                   
+  constexpr double kilometer2 = kilometer*kilometer;
+  constexpr double kilometer3 = kilometer*kilometer*kilometer;
 
-  const double parsec = 3.0856775807e+16*meter;
+  constexpr double parsec = 3.0856775807e+16*meter;
 
-  const double micrometer = 1.e-6 *meter;             
-  const double  nanometer = 1.e-9 *meter;
-  const double  angstrom  = 1.e-10*meter;
-  const double  fermi     = 1.e-15*meter;
+  constexpr double micrometer = 1.e-6 *meter;             
+  constexpr double  nanometer = 1.e-9 *meter;
+  constexpr double  angstrom  = 1.e-10*meter;
+  constexpr double  fermi     = 1.e-15*meter;
 
-  const double      barn = 1.e-28*meter2;
-  const double millibarn = 1.e-3 *barn;
-  const double microbarn = 1.e-6 *barn;
-  const double  nanobarn = 1.e-9 *barn;
-  const double  picobarn = 1.e-12*barn;
+  constexpr double      barn = 1.e-28*meter2;
+  constexpr double millibarn = 1.e-3 *barn;
+  constexpr double microbarn = 1.e-6 *barn;
+  constexpr double  nanobarn = 1.e-9 *barn;
+  constexpr double  picobarn = 1.e-12*barn;
 
   // symbols
-  const double nm  = nanometer;                        
-  const double um  = micrometer;                        
+  constexpr double nm  = nanometer;                        
+  constexpr double um  = micrometer;                        
 
-  const double mm  = millimeter;                        
-  const double mm2 = millimeter2;
-  const double mm3 = millimeter3;
+  constexpr double mm  = millimeter;                        
+  constexpr double mm2 = millimeter2;
+  constexpr double mm3 = millimeter3;
 
-  const double cm  = centimeter;   
-  const double cm2 = centimeter2;
-  const double cm3 = centimeter3;
+  constexpr double cm  = centimeter;   
+  constexpr double cm2 = centimeter2;
+  constexpr double cm3 = centimeter3;
 
-  const double m  = meter;                  
-  const double m2 = meter2;
-  const double m3 = meter3;
+  constexpr double m  = meter;                  
+  constexpr double m2 = meter2;
+  constexpr double m3 = meter3;
 
-  const double km  = kilometer;                   
-  const double km2 = kilometer2;
-  const double km3 = kilometer3;
+  constexpr double km  = kilometer;                   
+  constexpr double km2 = kilometer2;
+  constexpr double km3 = kilometer3;
 
-  const double pc = parsec;
+  constexpr double pc = parsec;
 
   //
   // Angle
   //
-  const double radian      = 1.;                  
-  const double milliradian = 1.e-3*radian;
-  const double degree = (pi/180.0)*radian;
+  constexpr double radian      = 1.;                  
+  constexpr double milliradian = 1.e-3*radian;
+  constexpr double degree = (pi/180.0)*radian;
 
-  const double   steradian = 1.;
+  constexpr double   steradian = 1.;
   
   // symbols
-  const double rad  = radian;
-  const double mrad = milliradian;
-  const double sr   = steradian;
-  const double deg  = degree;
+  constexpr double rad  = radian;
+  constexpr double mrad = milliradian;
+  constexpr double sr   = steradian;
+  constexpr double deg  = degree;
 
   //
   // Time [T]
   //
-  const double nanosecond  = 1.;
-  const double second      = 1.e+9 *nanosecond;
-  const double millisecond = 1.e-3 *second;
-  const double microsecond = 1.e-6 *second;
-  const double  picosecond = 1.e-12*second;
+  constexpr double nanosecond  = 1.;
+  constexpr double second      = 1.e+9 *nanosecond;
+  constexpr double millisecond = 1.e-3 *second;
+  constexpr double microsecond = 1.e-6 *second;
+  constexpr double  picosecond = 1.e-12*second;
 
-  const double hertz = 1./second;
-  const double kilohertz = 1.e+3*hertz;
-  const double megahertz = 1.e+6*hertz;
+  constexpr double hertz = 1./second;
+  constexpr double kilohertz = 1.e+3*hertz;
+  constexpr double megahertz = 1.e+6*hertz;
 
   // symbols
-  const double ns = nanosecond;
-  const double  s = second;
-  const double ms = millisecond;
+  constexpr double ns = nanosecond;
+  constexpr double  s = second;
+  constexpr double ms = millisecond;
 
   //
   // Electric charge [Q]
   //
-  const double eplus = 1. ;// positron charge
-  const double e_SI  = 1.602176487e-19;// positron charge in coulomb
-  const double coulomb = eplus/e_SI;// coulomb = 6.24150 e+18 * eplus
+  constexpr double eplus = 1. ;// positron charge
+  constexpr double e_SI  = 1.602176487e-19;// positron charge in coulomb
+  constexpr double coulomb = eplus/e_SI;// coulomb = 6.24150 e+18 * eplus
 
   //
   // Energy [E]
   //
-  const double megaelectronvolt = 1. ;
-  const double     electronvolt = 1.e-6*megaelectronvolt;
-  const double kiloelectronvolt = 1.e-3*megaelectronvolt;
-  const double gigaelectronvolt = 1.e+3*megaelectronvolt;
-  const double teraelectronvolt = 1.e+6*megaelectronvolt;
-  const double petaelectronvolt = 1.e+9*megaelectronvolt;
+  constexpr double megaelectronvolt = 1. ;
+  constexpr double     electronvolt = 1.e-6*megaelectronvolt;
+  constexpr double kiloelectronvolt = 1.e-3*megaelectronvolt;
+  constexpr double gigaelectronvolt = 1.e+3*megaelectronvolt;
+  constexpr double teraelectronvolt = 1.e+6*megaelectronvolt;
+  constexpr double petaelectronvolt = 1.e+9*megaelectronvolt;
 
-  const double joule = electronvolt/e_SI;// joule = 6.24150 e+12 * MeV
+  constexpr double joule = electronvolt/e_SI;// joule = 6.24150 e+12 * MeV
 
   // symbols
-  const double MeV = megaelectronvolt;
-  const double  eV = electronvolt;
-  const double keV = kiloelectronvolt;
-  const double GeV = gigaelectronvolt;
-  const double TeV = teraelectronvolt;
-  const double PeV = petaelectronvolt;
+  constexpr double MeV = megaelectronvolt;
+  constexpr double  eV = electronvolt;
+  constexpr double keV = kiloelectronvolt;
+  constexpr double GeV = gigaelectronvolt;
+  constexpr double TeV = teraelectronvolt;
+  constexpr double PeV = petaelectronvolt;
 
   //
   // Mass [E][T^2][L^-2]
   //
-  const double  kilogram = joule*second*second/(meter*meter);   
-  const double      gram = 1.e-3*kilogram;
-  const double milligram = 1.e-3*gram;
+  constexpr double  kilogram = joule*second*second/(meter*meter);   
+  constexpr double      gram = 1.e-3*kilogram;
+  constexpr double milligram = 1.e-3*gram;
 
   // symbols
-  const double  kg = kilogram;
-  const double   g = gram;
-  const double  mg = milligram;
+  constexpr double  kg = kilogram;
+  constexpr double   g = gram;
+  constexpr double  mg = milligram;
 
   //
   // Power [E][T^-1]
   //
-  const double watt = joule/second;// watt = 6.24150 e+3 * MeV/ns
+  constexpr double watt = joule/second;// watt = 6.24150 e+3 * MeV/ns
 
   //
   // Force [E][L^-1]
   //
-  const double newton = joule/meter;// newton = 6.24150 e+9 * MeV/mm
+  constexpr double newton = joule/meter;// newton = 6.24150 e+9 * MeV/mm
 
   //
   // Pressure [E][L^-3]
   //
 #define pascal hep_pascal                          // a trick to avoid warnings 
-  const double hep_pascal = newton/m2;   // pascal = 6.24150 e+3 * MeV/mm3
-  const double bar        = 100000*pascal; // bar    = 6.24150 e+8 * MeV/mm3
-  const double atmosphere = 101325*pascal; // atm    = 6.32420 e+8 * MeV/mm3
+  constexpr double hep_pascal = newton/m2;   // pascal = 6.24150 e+3 * MeV/mm3
+  constexpr double bar        = 100000*pascal; // bar    = 6.24150 e+8 * MeV/mm3
+  constexpr double atmosphere = 101325*pascal; // atm    = 6.32420 e+8 * MeV/mm3
 
   //
   // Electric current [Q][T^-1]
   //
-  const double      ampere = coulomb/second; // ampere = 6.24150 e+9 * eplus/ns
-  const double milliampere = 1.e-3*ampere;
-  const double microampere = 1.e-6*ampere;
-  const double  nanoampere = 1.e-9*ampere;
+  constexpr double      ampere = coulomb/second; // ampere = 6.24150 e+9 * eplus/ns
+  constexpr double milliampere = 1.e-3*ampere;
+  constexpr double microampere = 1.e-6*ampere;
+  constexpr double  nanoampere = 1.e-9*ampere;
 
   //
   // Electric potential [E][Q^-1]
   //
-  const double megavolt = megaelectronvolt/eplus;
-  const double kilovolt = 1.e-3*megavolt;
-  const double     volt = 1.e-6*megavolt;
+  constexpr double megavolt = megaelectronvolt/eplus;
+  constexpr double kilovolt = 1.e-3*megavolt;
+  constexpr double     volt = 1.e-6*megavolt;
 
   //
   // Electric resistance [E][T][Q^-2]
   //
-  const double ohm = volt/ampere;// ohm = 1.60217e-16*(MeV/eplus)/(eplus/ns)
+  constexpr double ohm = volt/ampere;// ohm = 1.60217e-16*(MeV/eplus)/(eplus/ns)
 
   //
   // Electric capacitance [Q^2][E^-1]
   //
-  const double farad = coulomb/volt;// farad = 6.24150e+24 * eplus/Megavolt
-  const double millifarad = 1.e-3*farad;
-  const double microfarad = 1.e-6*farad;
-  const double  nanofarad = 1.e-9*farad;
-  const double  picofarad = 1.e-12*farad;
+  constexpr double farad = coulomb/volt;// farad = 6.24150e+24 * eplus/Megavolt
+  constexpr double millifarad = 1.e-3*farad;
+  constexpr double microfarad = 1.e-6*farad;
+  constexpr double  nanofarad = 1.e-9*farad;
+  constexpr double  picofarad = 1.e-12*farad;
 
   //
   // Magnetic Flux [T][E][Q^-1]
   //
-  const double weber = volt*second;// weber = 1000*megavolt*ns
+  constexpr double weber = volt*second;// weber = 1000*megavolt*ns
 
   //
   // Magnetic Field [T][E][Q^-1][L^-2]
   //
-  const double tesla     = volt*second/meter2;// tesla =0.001*megavolt*ns/mm2
+  constexpr double tesla     = volt*second/meter2;// tesla =0.001*megavolt*ns/mm2
 
-  const double gauss     = 1.e-4*tesla;
-  const double kilogauss = 1.e-1*tesla;
+  constexpr double gauss     = 1.e-4*tesla;
+  constexpr double kilogauss = 1.e-1*tesla;
 
   //
   // Inductance [T^2][E][Q^-2]
   //
-  const double henry = weber/ampere;// henry = 1.60217e-7*MeV*(ns/eplus)**2
+  constexpr double henry = weber/ampere;// henry = 1.60217e-7*MeV*(ns/eplus)**2
 
   //
   // Temperature
   //
-  const double kelvin = 1.;
+  constexpr double kelvin = 1.;
 
   //
   // Amount of substance
   //
-  const double mole = 1.;
+  constexpr double mole = 1.;
 
   //
   // Activity [T^-1]
   //
-  const double becquerel = 1./second ;
-  const double curie = 3.7e+10 * becquerel;
-  const double kilobecquerel = 1.e+3*becquerel;
-  const double megabecquerel = 1.e+6*becquerel;
-  const double gigabecquerel = 1.e+9*becquerel;
-  const double millicurie = 1.e-3*curie;
-  const double microcurie = 1.e-6*curie;
-  const double Bq = becquerel;
-  const double kBq = kilobecquerel;
-  const double MBq = megabecquerel;
-  const double GBq = gigabecquerel;
-  const double Ci = curie;
-  const double mCi = millicurie;
-  const double uCi = microcurie;
+  constexpr double becquerel = 1./second ;
+  constexpr double curie = 3.7e+10 * becquerel;
+  constexpr double kilobecquerel = 1.e+3*becquerel;
+  constexpr double megabecquerel = 1.e+6*becquerel;
+  constexpr double gigabecquerel = 1.e+9*becquerel;
+  constexpr double millicurie = 1.e-3*curie;
+  constexpr double microcurie = 1.e-6*curie;
+  constexpr double Bq = becquerel;
+  constexpr double kBq = kilobecquerel;
+  constexpr double MBq = megabecquerel;
+  constexpr double GBq = gigabecquerel;
+  constexpr double Ci = curie;
+  constexpr double mCi = millicurie;
+  constexpr double uCi = microcurie;
 
   //
   // Absorbed dose [L^2][T^-2]
   //
-  const double      gray = joule/kilogram ;
-  const double  kilogray = 1.e+3*gray;
-  const double milligray = 1.e-3*gray;
-  const double microgray = 1.e-6*gray;
+  constexpr double      gray = joule/kilogram ;
+  constexpr double  kilogray = 1.e+3*gray;
+  constexpr double milligray = 1.e-3*gray;
+  constexpr double microgray = 1.e-6*gray;
 
   //
   // Luminous intensity [I]
   //
-  const double candela = 1.;
+  constexpr double candela = 1.;
 
   //
   // Luminous flux [I]
   //
-  const double lumen = candela*steradian;
+  constexpr double lumen = candela*steradian;
 
   //
   // Illuminance [I][L^-2]
   //
-  const double lux = lumen/meter2;
+  constexpr double lux = lumen/meter2;
 
   //
   // Miscellaneous
   //
-  const double perCent     = 0.01 ;
-  const double perThousand = 0.001;
-  const double perMillion  = 0.000001;
+  constexpr double perCent     = 0.01 ;
+  constexpr double perThousand = 0.001;
+  constexpr double perMillion  = 0.000001;
 
 }  // namespace CLHEP
 

@@ -58,7 +58,7 @@
 
 namespace vecphys {
 
-const double fSandiaTable[981][5] = 
+constexpr double fSandiaTable[981][5] = 
 {
 
 { 0.0,          0.0,         0.0,         0.0,         0.0 },  // 'zero' row
@@ -1373,7 +1373,7 @@ const double fSandiaTable[981][5] =
 // of energy interval in which Sandia coeeficients are parametrized for each
 // element.
 
-const int fNbOfIntervals [101] = 
+constexpr int fNbOfIntervals [101] = 
 {
 
       0,  // nonexisting 'zero' element
@@ -1421,7 +1421,7 @@ const int fNbOfIntervals [101] =
 // The ration of atomic number to atomic mass for first 100 elements
 // (which assumes A in amu/atom or in g/mole)
 
-const double fZtoAratio[101] = 
+constexpr double fZtoAratio[101] = 
 {
 
       0,  // nonexisting 'zero' element
@@ -1464,18 +1464,17 @@ const double fZtoAratio[101] =
 
 };     
 
-VECPHYS_GLOBAL int fNumberOfElements  = 100 ;
+constexpr int fNumberOfElements  = 100 ;
 
-VECPHYS_GLOBAL int fIntervalLimit     = 100 ;
+constexpr int fIntervalLimit     = 100 ;
 
-VECPHYS_GLOBAL int fNumberOfIntervals = 980 ;
+constexpr int fNumberOfIntervals = 980 ;
 
-//VECPHYS_GLOBAL 
-const double funitc[5] = {keV,
-  		          cm*cm*keV/gram,     
-		          cm*cm*keV*keV/gram,     
-		          cm*cm*keV*keV*keV/gram,     
-		          cm*cm*keV*keV*keV*keV/gram};
+constexpr double funitc[5] = {keV,
+  		              cm*cm*keV/gram,     
+		              cm*cm*keV*keV/gram,     
+		              cm*cm*keV*keV*keV/gram,     
+		              cm*cm*keV*keV*keV*keV/gram};
 
 //int    fCumulInterval[101]  = {0};
 
