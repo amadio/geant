@@ -34,22 +34,12 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~PhotoElectronSauterGavrila() {}
 
-  // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildPdfTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol,
-                     double *p);
+  //interfaces for tables
+  VECPHYS_CUDA_HEADER_HOST 
+  void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildLogPdfTable(int Z,
-                        const double xmin,
-                        const double xmax,
-                        const int nrow,
-                        const int ncol,
-                        double *p);
+  void BuildPdfTable(int Z, double *p);
 
 private: 
   // Implementation methods 
@@ -92,14 +82,6 @@ private:
   // the mother is friend in order to access private methods of this
   friend class EmModelBase<PhotoElectronSauterGavrila>;
 
-public:
-  template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t 
-  TotalCrossSection(typename Backend::Double_t energy,
-                    typename Backend::Int_t zElement) const;
-
-
   //private:
 
 };
@@ -114,10 +96,50 @@ PhotoElectronSauterGavrila::CrossSectionKernel(typename Backend::Double_t energy
 {
   typedef typename Backend::Double_t Double_t;
 
-  Double_t sigmaOut = 0.;
-  //dummy for now
+  Double_t sigma = 0.;
 
-  return  sigmaOut;
+  //Sandia parameterization for Z < 100
+  //  int Z = zElement;
+
+  int    fCumulInterval[101]  = {0};
+  double fSandiaCof[4]        = {0.0};
+
+  fCumulInterval[0] = 1;
+
+  //scan - move it to constructor or use pre-built table
+  for (int iz = 1; iz < 101; ++iz) {     
+    fCumulInterval[iz] = fCumulInterval[iz-1] + fNbOfIntervals[iz];
+  }
+
+  double Emin  = fSandiaTable[fCumulInterval[Z-1]][0]*keV;
+
+  int interval = fNbOfIntervals[Z] - 1;
+  int row = fCumulInterval[Z-1] + interval;
+
+  while ((interval>0) && (energy<fSandiaTable[row][0]*keV)) {
+    --interval;
+    row = fCumulInterval[Z-1] + interval;
+  }
+
+  if (energy >= Emin) {        
+    double AoverAvo = Z*amu/fZtoAratio[Z];
+    fSandiaCof[0]=AoverAvo*funitc[1]*fSandiaTable[row][1];     
+    fSandiaCof[1]=AoverAvo*funitc[2]*fSandiaTable[row][2];     
+    fSandiaCof[2]=AoverAvo*funitc[3]*fSandiaTable[row][3];     
+    fSandiaCof[3]=AoverAvo*funitc[4]*fSandiaTable[row][4];
+  }
+  else {
+    fSandiaCof[0] = fSandiaCof[1] = fSandiaCof[2] = fSandiaCof[3] = 0.;
+  }     
+
+  Double_t energy2 = energy*energy;
+  Double_t energy3 = energy*energy2;
+  Double_t energy4 = energy2*energy2;
+
+  Double_t sgima = fSandiaCof[0]/energy  + fSandiaCof[1]/energy2 +
+    fSandiaCof[2]/energy3 + fSandiaCof[3]/energy4;
+
+  return sigma;
 }
 
 template<class Backend>
@@ -192,61 +214,6 @@ SampleByCompositionRejection(typename Backend::Double_t  energyIn,
   cosTheta = 1 - z;
 }
 */
-
-template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
-PhotoElectronSauterGavrila::
-TotalCrossSection(typename Backend::Double_t energy,
-                  typename Backend::Int_t  zElement) const
-{
-  typedef typename Backend::Double_t Double_t;
-
-  Double_t sigma = 0.;
-
-  //Sandia parameterization for Z < 100
-  int Z = zElement;
-
-  int    fCumulInterval[101]  = {0};
-  double fSandiaCof[4]        = {0.0};
-
-  fCumulInterval[0] = 1;
-
-  //scan - move it to constructor or use pre-built table
-  for (int iz = 1; iz < 101; ++iz) {     
-    fCumulInterval[iz] = fCumulInterval[iz-1] + fNbOfIntervals[iz];
-  }
-
-  double Emin  = fSandiaTable[fCumulInterval[Z-1]][0]*keV;
-
-  int interval = fNbOfIntervals[Z] - 1;
-  int row = fCumulInterval[Z-1] + interval;
-
-  while ((interval>0) && (energy<fSandiaTable[row][0]*keV)) {
-    --interval;
-    row = fCumulInterval[Z-1] + interval;
-  }
-
-  if (energy >= Emin) {        
-    double AoverAvo = Z*amu/fZtoAratio[Z];
-    fSandiaCof[0]=AoverAvo*funitc[1]*fSandiaTable[row][1];     
-    fSandiaCof[1]=AoverAvo*funitc[2]*fSandiaTable[row][2];     
-    fSandiaCof[2]=AoverAvo*funitc[3]*fSandiaTable[row][3];     
-    fSandiaCof[3]=AoverAvo*funitc[4]*fSandiaTable[row][4];
-  }
-  else {
-    fSandiaCof[0] = fSandiaCof[1] = fSandiaCof[2] = fSandiaCof[3] = 0.;
-  }     
-
-  Double_t energy2 = energy*energy;
-  Double_t energy3 = energy*energy2;
-  Double_t energy4 = energy2*energy2;
-
-  Double_t sgima = fSandiaCof[0]/energy  + fSandiaCof[1]/energy2 +
-    fSandiaCof[2]/energy3 + fSandiaCof[3]/energy4;
-
-  return sigma;
-}
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH

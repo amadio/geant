@@ -25,108 +25,50 @@ IonisationMoller::IonisationMoller(Random_t* states, int tid,
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
-IonisationMoller::BuildPdfTable(int Z, 
-                                const double xmin, 
-                                const double xmax,
-                                const int nrow,
-                                const int ncol,
-                                double *p)
+IonisationMoller::BuildCrossSectionTablePerAtom(int Z)
 {
-  // Build the probability density function (MollerBhabha pdf) 
-  // in the energy randge [xmin,xmax] with an equal bin size
-  //
-  // input  :  Z    (atomic number) - not used for the atomic independent model
-  //           xmin (miminum energy)
-  //           xmax (maxinum energy)
-  //           nrow (number of input energy bins)
-  //           ncol (number of output energy bins)
-  //
-  // output :  p[nrow][ncol] (probability distribution) 
-  //
-  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
-
-  //build pdf  
-  double dx = (xmax - xmin)/nrow;
-  //  double xo =  xmin + 0.5*dx;
-
-  for(int i = 0; i <= nrow ; ++i) {
-    //for each input energy bin
-    double x = xmin + dx*i;
-
-    //e-e- (Moller) only for now
-    double ymin = 0.1*keV; // minimum delta-ray energy which should be setable
-    double dy = (x/2.0 - ymin)/(ncol-1); //maximum x/2.0
-    double yo = ymin + 0.5*dy;
-  
-    double sum = 0.;
-
-    for(int j = 0; j < ncol ; ++j) {
-      //for each output energy bin
-      double y = yo + dy*j;
-      double xsec = CalculateDiffCrossSection(Z,x,y);
-      p[i*ncol+j] = xsec;
-      sum += xsec;
-    }
-
-    //normalization
-    sum = 1.0/sum;
-
-    for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
-    }
-  }
+  ; //dummy for now
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
-IonisationMoller::BuildLogPdfTable(int Z, 
-                                   const double xmin, 
-                                   const double xmax,
-                                   const int nrow,
-                                   const int ncol,
-                                   double *p)
+IonisationMoller::BuildPdfTable(int Z, double *p)
 {
-  // Build the probability density function (MollerBhabha pdf) 
-  // in the energy randge [xmin,xmax] with an equal bin size
+  // Build the probability density function (MollerBhabha pdf) in the
+  // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number) - not used for the atomic independent model
-  //           xmin (miminum energy)
-  //           xmax (maxinum energy)
-  //           nrow (number of input energy bins)
-  //           ncol (number of output energy bins)
-  //
-  // output :  p[nrow][ncol] (probability distribution) 
+  // output :  p[fNrow][fNcol] (probability distribution) 
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  //build pdf  
-  double logxmin = log(xmin);
-  double dx = (log(xmax) - logxmin)/nrow;
-  //  double xo =  xmin + 0.5*dx;
+  double logxmin = log(fMinX);
+  double dx = (log(fMaxX) - logxmin)/fNrow;
+  //  double xo =  fMinX + 0.5*dx;
 
-  for(int i = 0; i <= nrow ; ++i) {
+  for(int i = 0; i <= fNrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     //e-e- (Moller) only for now
     double ymin = 0.1*keV; // minimum delta-ray energy which should be setable
-    double dy = (x/2.0 - ymin)/(ncol-1); //maximum x/2.0
+    double dy = (x/2.0 - ymin)/(fNcol-1); //maximum x/2.0
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
-    for(int j = 0; j < ncol ; ++j) {
+    for(int j = 0; j < fNcol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
       double xsec = CalculateDiffCrossSection(Z,x,y);
-      p[i*ncol+j] = xsec;
+      p[i*fNcol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
+    for(int j = 0; j < fNcol ; ++j) {
+      p[i*fNcol+j] *= sum;
     }
   }
 }

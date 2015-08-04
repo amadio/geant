@@ -25,110 +25,51 @@ ConversionBetheHeitler(Random_t* states, int tid,
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
-ConversionBetheHeitler::BuildPdfTable(int Z, 
-                                      const double xmin, 
-                                      const double xmax,
-                                      const int nrow,
-                                      const int ncol,
-                                      double *p)
+ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int Z)
 {
-  // Build the probability density function (BetheHeitler pdf) 
-  // in the energy randge [xmin,xmax] with an equal bin size
-  //
-  // input  :  Z    (atomic number) 
-  //           xmin (miminum photon energy)
-  //           xmax (maxinum photon energy)
-  //           nrow (number of input energy bins)
-  //           ncol (number of output energy bins)
-  //
-  // output :  p[nrow][ncol] (probability distribution) 
-  //
-  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
-
-  //build pdf  
-  double dx = (xmax - xmin)/nrow;
-
-  for(int i = 0; i <= nrow ; ++i) {
-    //for each input energy bin
-    double x = xmin + dx*i;
-
-    double ymin = electron_mass_c2;
-    double ymax = x - electron_mass_c2;
-
-    double dy = (ymax - ymin)/(ncol-1); 
-    double yo = ymin + 0.5*dy;
-  
-    double sum = 0.;
-
-    for(int j = 0; j < ncol ; ++j) {
-      //for each output energy bin
-      double y = yo + dy*j;
-      double xsec = CalculateDiffCrossSection(Z,x,y);
-      p[i*ncol+j] = xsec;
-      sum += xsec;
-    }
-
-    //normalization
-    sum = 1.0/sum;
-
-    for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
-    }
-  }
+  ; //dummy for now
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
-ConversionBetheHeitler::BuildLogPdfTable(int Z, 
-                                           const double xmin, 
-                                           const double xmax,
-                                           const int nrow,
-                                           const int ncol,
-                                           double *p)
+ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 {
-  // Build the probability density function (BetheHeitler pdf) 
-  // in the energy randge [xmin,xmax] with an equal bin size
+  // Build the probability density function (BetheHeitler pdf) in the
+  // input energy randge [xmin,xmax] with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number) 
-  //           xmin (miminum photon energy)
-  //           xmax (maxinum photon energy)
-  //           nrow (number of input energy bins)
-  //           ncol (number of output energy bins)
-  //
   // output :  p[nrow][ncol] (probability distribution) 
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  //build pdf: logarithmic scale in the input energy bin  
+  double logxmin = log(fMinX);
 
-  double logxmin = log(xmin);
+  double dx = (log(fMaxX) - logxmin)/fNrow;
 
-  double dx = (log(xmax) - logxmin)/nrow;
-
-  for(int i = 0; i <= nrow ; ++i) {
+  for(int i = 0; i <= fNrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;
 
-    double dy = (ymax - ymin)/(ncol-1);
+    double dy = (ymax - ymin)/(fNcol-1);
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
-    for(int j = 0; j < ncol ; ++j) {
+    for(int j = 0; j < fNcol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
       double xsec = CalculateDiffCrossSection(Z,x,y);
-      p[i*ncol+j] = xsec;
+      p[i*fNcol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
+    for(int j = 0; j < fNcol ; ++j) {
+      p[i*fNcol+j] *= sum;
     }
   }
 }
@@ -139,7 +80,7 @@ ConversionBetheHeitler::BuildLogPdfTable(int Z,
 VECPHYS_CUDA_HEADER_BOTH double 
 ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement, 
                                                   double gammaEnergy, 
-                                                  double electEnergy) const
+                                                  double electEnergy)
 { 
   // based on Geant4 : G4BetheHeitlerModel
   // input  : gammaEnergy (incomming photon energy)
@@ -156,7 +97,7 @@ ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
   int logZ3 = log(1.0*int(Zelement + 0.5))/3.0; 
   double FZ = 8.*logZ3 ; //8.*(anElement->GetIonisation()->GetlogZ3());
   if (gammaEnergy > 50. /* *MeV */) { 
-    FZ += 8.*ComputeCoulombFactor(Zelement); 
+    FZ += 8.*ComputeCoulombFactor(1.0*Zelement); 
   }
   
   //delta -> screenvar
@@ -170,6 +111,7 @@ ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
   return dsigma;
 }
 
+	 /*
 VECPHYS_CUDA_HEADER_BOTH double 
 ConversionBetheHeitler::ComputeCoulombFactor(double fZeff) const
 {
@@ -185,7 +127,7 @@ ConversionBetheHeitler::ComputeCoulombFactor(double fZeff) const
   double fCoulomb = (k1*az4 + k2 + 1./(1.+az2))*az2 - (k3*az4 + k4)*az4;
   return fCoulomb;
 }
-
+	 */
 
 VECPHYS_CUDA_HEADER_BOTH double 
 ConversionBetheHeitler::ScreenFunction1(double screenVariable) const

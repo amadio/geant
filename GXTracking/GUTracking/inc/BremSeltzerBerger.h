@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "EmModelBase.h"
+#include "GUG4TypeDef.h"
 
 namespace vecphys {
 
@@ -30,14 +31,12 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~BremSeltzerBerger();
 
-  // Initializes this class and its sampler 
+  //interfaces for tables
+  VECPHYS_CUDA_HEADER_HOST 
+  void BuildCrossSectionTablePerAtom(int Z);
+
   VECPHYS_CUDA_HEADER_HOST
-  void BuildLogPdfTable(int Z,
-                        const double xmin,
-                        const double xmax,
-                        const int nrow,
-                        const int ncol,
-                        double *p);
+  void BuildPdfTable(int Z, double *p);
 
 public:
   // Auxiliary methods
@@ -75,18 +74,65 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   double CalculateDiffCrossSection(int Zelement, double Ein, double Eout) const;
 
-  VECPHYS_CUDA_HEADER_BOTH double
-  GetG4CrossSection(double  energyIn, 
-                    const int zElement);
+  //the cross section calculation from Geant4
 
   VECPHYS_CUDA_HEADER_BOTH double
-  ComputeXSectionPerAtom(double cut);
+  GetG4CrossSection(double  energyIn, const int zElement);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetCurrentElement(G4double Z);
+
+  VECPHYS_CUDA_HEADER_BOTH double
+  ComputeXSectionPerAtom(double cut, double energy);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  G4double ComputeRelDXSectionPerAtom(G4double gammaEnergy);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  G4double ComputeDXSectionPerAtom(G4double gammaEnergy);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void  CalcLPMFunctions(G4double k);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  G4double Phi1(G4double gg);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  G4double Phi1M2(G4double gg);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  G4double Psi1(G4double eps);
+
+  VECPHYS_CUDA_HEADER_BOTH
+  G4double Psi1M2(G4double eps);
 
   // the mother is friend in order to access private methods of this
   friend class EmModelBase<BremSeltzerBerger>;
 
 private:
   Physics2DVector* fDataSB;
+
+//Geant4 cross section
+ private: 
+
+  G4double totalEnergy;
+  G4double currentZ;
+  G4double densityFactor;
+  G4double densityCorr;
+
+  G4double lpmEnergy;
+  G4double xiLPM;
+  G4double phiLPM;
+  G4double gLPM;
+
+  G4double z13;
+  G4double z23;
+  G4double lnZ;
+  G4double Fel;
+  G4double Finel;
+  G4double fCoulomb;
+  G4double fMax; 
+
 };
 
 //Implementation

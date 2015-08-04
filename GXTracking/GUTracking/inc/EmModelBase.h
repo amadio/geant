@@ -26,14 +26,10 @@ public:
   ~EmModelBase();
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildAliasTable();
+  void BuildCrossSectionTable();
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildOneTable(int Z,
-		     const double xmin,
-		     const double xmax,
-		     const int nrow,
-		     const int ncol);
+  void BuildAliasTable();
 
   //scalar
   template <typename Backend>
@@ -88,7 +84,10 @@ protected:
 
   VECPHYS_CUDA_HEADER_BOTH
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
-  
+
+  VECPHYS_CUDA_HEADER_BOTH double 
+  ComputeCoulombFactor(double fZeff);
+
 private:
   // Implementation methods
   template<class Backend>
@@ -119,24 +118,22 @@ protected:
 
   //Sampling Tables
   GUAliasSampler* fAliasSampler; 
-  //  bool      fBuildAliasTable;
-  Precision fMinX;   // lower bound of the sampling variable
-  Precision fMaxX;   // upper bound of the sampling variable
+  Precision fMinX; // lower bound of the sampling variable
+  Precision fMaxX; // upper bound of the sampling variable
+  int       fNrow; // number of input energy bins of the alias table
+  int       fNcol; // number of output energy bins of the alias table
   Precision fMaxZelement; 
-  
-  int fNrow;
-  int fNcol;
 };
 
 //Implementation
 template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
-    : fRandomState(states), fThreadId(tid), 
+  : fRandomState(states), fThreadId(tid), 
     fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV),
     fMinX(1.e-8),  fMaxX(1000.),  
-    fMaxZelement(maximumZ),
-    fNrow(100), fNcol(100)
+    fNrow(100), fNcol(100),
+    fMaxZelement(maximumZ)
 {
   fAliasSampler = 0;
 }
@@ -144,11 +141,11 @@ EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid)
 template <class EmModel>
 VECPHYS_CUDA_HEADER_BOTH 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
-    : fRandomState(states), fThreadId(tid), 
+  : fRandomState(states), fThreadId(tid), 
     fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV),
-    fMinX(1.e-8),  fMaxX(1000.),  
-    fMaxZelement(maximumZ),
-    fNrow(100), fNcol(100)
+    fMinX(1.e-8),  fMaxX(1000.), 
+    fNrow(100), fNcol(100),
+    fMaxZelement(maximumZ)
 {
   fAliasSampler = sampler; 
 }
@@ -162,35 +159,30 @@ EmModelBase<EmModel>::~EmModelBase()
 
 template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
+void EmModelBase<EmModel>::BuildCrossSectionTable() 
+{ 
+  //dummy interface for now
+  for( int z= 1 ; z < fMaxZelement; ++z)
+  {
+    static_cast<EmModel*>(this)->BuildCrossSectionTablePerAtom(z); 
+  }
+}
+
+template <class EmModel>
+VECPHYS_CUDA_HEADER_HOST 
 void EmModelBase<EmModel>::BuildAliasTable() 
 { 
   //replace hard coded numbers by default constants
   fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fMaxZelement,
                                      fMinX, fMaxX, fNrow, fNcol);
 
+  //temporary array
+  double *pdf = new double [(fNrow+1)*fNcol];
   for( int z= 1 ; z < fMaxZelement; ++z)
   {
-    //eventually arguments of BuildTable should be replaced by members of *this
-    //and dropped from the function signature. Same for BuildPdfTable
-    BuildOneTable(z, fMinX, fMaxX, fNrow, fNcol);
+    static_cast<EmModel*>(this)->BuildPdfTable(z,pdf); 
+    fAliasSampler->BuildAliasTable(z,fNrow,fNcol,pdf);
   }
-}
-
-template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST 
-void EmModelBase<EmModel>::BuildOneTable(int Z, 
-				         const double xmin, 
-				         const double xmax,
-				         const int nrow,
-				         const int ncol)
-{
-  //for now, the model does not own pdf.  Otherwise, pdf should be the 
-  //data member of *this and set its point to the fpdf of fAliasSampler 
-  double *pdf = new double [(nrow+1)*ncol];
-
-  static_cast<EmModel*>(this)->BuildLogPdfTable(Z,xmin,xmax,nrow,ncol,pdf); 
-  fAliasSampler->BuildAliasTable(Z,nrow,ncol,pdf);
-
   delete [] pdf;
 }
 
@@ -472,6 +464,23 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
   outSecondary.py = outSecondary.E*(yhat-vhat);
   outSecondary.pz = outSecondary.E*(zhat-what);
   //fill other information
+}
+
+template <class EmModel>
+VECPHYS_CUDA_HEADER_BOTH double 
+EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff)
+{
+  // Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)
+
+  const double k1 = 0.0083 , k2 = 0.20206 ,k3 = 0.0020 , k4 = 0.0369 ;
+  const double fine_structure_const = (1.0/137); //check unit
+
+  double az1 = fine_structure_const*Zeff;
+  double az2 = az1 * az1;
+  double az4 = az2 * az2;
+
+  double coulombFactor = (k1*az4 + k2 + 1./(1.+az2))*az2 - (k3*az4 + k4)*az4;
+  return coulombFactor;
 }
 
 } // end namespace impl

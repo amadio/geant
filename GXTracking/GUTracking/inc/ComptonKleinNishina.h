@@ -25,22 +25,12 @@ public:
   VECPHYS_CUDA_HEADER_BOTH 
   ~ComptonKleinNishina(){}
 
-  // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildPdfTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol,
-                     double *p);
+  //interfaces for tables
+  VECPHYS_CUDA_HEADER_HOST 
+  void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildLogPdfTable(int Z,
-                        const double xmin,
-                        const double xmax,
-                        const int nrow,
-                        const int ncol,
-                        double *p);
+  void BuildPdfTable(int Z, double *p);
 
 public:
   // Auxiliary methods

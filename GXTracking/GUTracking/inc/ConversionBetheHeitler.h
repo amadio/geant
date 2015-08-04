@@ -33,23 +33,12 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~ConversionBetheHeitler(){}
 
-  // Initializes this class and its sampler 
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildPdfTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol,
-                     double *p);
-  
+  //interfaces for tables
+  VECPHYS_CUDA_HEADER_HOST 
+  void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildLogPdfTable(int Z,
-                        const double xmin,
-                        const double xmax,
-                        const int nrow,
-                        const int ncol,
-                        double *p);
+  void BuildPdfTable(int Z, double *p);
 
 public:
   // Implementation methods
@@ -88,12 +77,13 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   double CalculateDiffCrossSection(int Zelement, 
                                    double Ein,
-                                   double outEphoton ) const;
+                                   double outEphoton );
 
   //this should be a method of GUElement 
+  /*
   VECPHYS_CUDA_HEADER_BOTH 
   double ComputeCoulombFactor(double Zeff) const;
-
+  */
   VECPHYS_CUDA_HEADER_BOTH 
   double ScreenFunction1(double screenVariable) const;
 
@@ -228,6 +218,7 @@ CrossSectionKernel(typename Backend::Double_t energy,
   Double_t X5 =X4*X;
 
   //put coff's to a constant header
+  /*
   Double_t a0= 8.7842e+2*microbarn; 
   Double_t a1=-1.9625e+3*microbarn; 
   Double_t a2= 1.2949e+3*microbarn;
@@ -248,6 +239,7 @@ CrossSectionKernel(typename Backend::Double_t energy,
   Double_t c3= 2.1773e+2*microbarn; 
   Double_t c4=-2.0467e+1*microbarn; 
   Double_t c5= 6.5372e-1*microbarn;
+  */
 
   Double_t F1 = a0 + a1*X + a2*X2 + a3*X3 + a4*X4 + a5*X5;
   Double_t F2 = b0 + b1*X + b2*X2 + b3*X3 + b4*X4 + b5*X5;
@@ -265,7 +257,7 @@ CrossSectionKernel(typename Backend::Double_t energy,
   Bool_t check = sigma < 0.;
   MaskedAssign( check, 0., &sigma );
 
-  return sigma;
+  return sigma*microbarn;
 }
 
 } // end namespace impl

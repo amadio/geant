@@ -28,23 +28,12 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~IonisationMoller(){}
 
-  // Initializes this class and its sampler 
+  //interfaces for tables
+  VECPHYS_CUDA_HEADER_HOST 
+  void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildPdfTable(int Z,
-                     const double xmin,
-                     const double xmax,
-                     const int nrow,
-                     const int ncol,
-                     double *p);
-
-  VECPHYS_CUDA_HEADER_HOST
-  void BuildLogPdfTable(int Z,
-                        const double xmin,
-                        const double xmax,
-                        const int nrow,
-                        const int ncol,
-                        double *p);
+  void BuildPdfTable(int Z, double *p);
 
 private: 
   // Implementation methods 
