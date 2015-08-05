@@ -53,6 +53,7 @@ public:
   TTabPhysMgr(const char *xsecfilename, const char *finalsfilename);
   virtual ~TTabPhysMgr();
   static TTabPhysMgr *Instance(const char *xsecfilename = 0, const char *finalsfilename = 0);
+  static const char *ClassName() { return "TTabPhysMgr"; }
   // Rotation+boost utility
   void TransformLF(int indref, GeantTrack_v &tracks, int nproducts, int indprod,
                    GeantTrack_v &output); // not. imp. but done

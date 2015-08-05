@@ -1,6 +1,6 @@
+#ifdef USE_ROOT
 #include "TAxis.h"
 #include "TCanvas.h"
-#include "TEXsec.h"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TMath.h"
@@ -9,8 +9,6 @@
 #include "TMultiGraph.h"
 #include <TObjArray.h>
 #include <TObjString.h>
-#include <TPXsec.h>
-#include <TPartIndex.h>
 #include <TROOT.h>
 #include <TString.h>
 #include <TText.h>
@@ -20,12 +18,20 @@
 #include <TGListBox.h>
 #include <TGLabel.h>
 #include <TRootEmbeddedCanvas.h>
+#endif
+#include "TEXsec.h"
+#include <TPXsec.h>
+#include <TPartIndex.h>
 #include "base/Global.h"
+#include "base/messagelogger.h"
+
 using vecgeom::kAvogadro;
 using std::numeric_limits;
 using std::max;
 
+#ifdef USE_ROOT
 ClassImp(TEXsec)
+#endif
 
     TEXsec *TEXsec::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -35,11 +41,13 @@ ClassImp(TEXsec)
 
 int TEXsec::fNLdElems = 0;
 
+#ifdef USE_ROOT
 TGMainFrame *TEXsec::fMain = 0;
 TGHorizontalFrame *TEXsec::fSecond = 0;
 TRootEmbeddedCanvas *TEXsec::fCanvas = 0;
 TGListBox *TEXsec::fReactionBox = 0;
 TGListBox *TEXsec::fParticleBox = 0;
+#endif
 
 //___________________________________________________________________
 TEXsec::TEXsec()
@@ -97,6 +105,7 @@ void TEXsec::DumpPointers() const {
     fPXsec[i].Dump();
 }
 
+#ifdef USE_ROOT
 //___________________________________________________________________
 TGraph *TEXsec::XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const {
   char title[200];
@@ -151,34 +160,6 @@ TGraph *TEXsec::DEdxGraph(const char *part, float emin, float emax, int nbin) co
 }
 
 //___________________________________________________________________
-float TEXsec::Lambda(int pindex, double en) const {
-  double xs = fPXsec[pindex].XS(TPartIndex::I()->NProc() - 1, en);
-  return xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
-}
-
-//___________________________________________________________________
-bool TEXsec::Lambda_v(int npart, const int pindex[], const double en[], double lam[]) const {
-  const int itot = TPartIndex::I()->NProc() - 1;
-  for (int ip = 0; ip < npart; ++ip) {
-    double xs = fPXsec[pindex[ip]].XS(itot, en[ip]);
-    lam[ip] = xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
-  }
-  return kTRUE;
-}
-
-//___________________________________________________________________
-bool TEXsec::Lambda_v(int npart, int pindex, const double en[], double lam[]) const {
-  const int itot = TPartIndex::I()->NProc() - 1;
-  return fPXsec[pindex].XS_v(npart, itot, en, lam);
-}
-
-//___________________________________________________________________
-int TEXsec::SampleReac(int pindex, double en) const { return fPXsec[pindex].SampleReac(en); }
-
-//___________________________________________________________________
-int TEXsec::SampleReac(int pindex, double en, double randn) const { return fPXsec[pindex].SampleReac(en, randn); }
-
-//___________________________________________________________________
 TGraph *TEXsec::MSGraph(const char *part, const char *what, float emin, float emax, int nbin) const {
   char title[200];
   const char *whatname[4] = {"MSangle", "MSangle_sig", "MSCorr", "MSCorr_sig"};
@@ -214,55 +195,6 @@ TGraph *TEXsec::MSGraph(const char *part, const char *what, float emin, float em
   delete[] mscat;
   delete[] energy;
   return tg;
-}
-
-//___________________________________________________________________
-TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
-  //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
-  int ecode = z * 10000 + a * 10;
-  for (int el = 0; el < fNLdElems; ++el)
-    if (ecode == fElements[el]->Ele())
-      return fElements[el];
-
-  // Element not found in memory, getting it from file
-  TFile *ff = gFile;
-  if (f)
-    ff = f;
-  if (!ff)
-    ::Fatal("TEXsec::GetElement", "No file open!");
-  fElements[fNLdElems] = (TEXsec *)ff->Get(TPartIndex::I()->EleSymb(z));
-  if (!fElements[fNLdElems]) {
-    ::Fatal("GetElement", "Element z %d a %d not found", z, a);
-    return 0; // just to make the compiler happy
-  } else {
-    // We loaded the element, however we have to see whether
-    // the energy grid is the right one
-    // NO, don't need to check. It will be loaded from xsec.root
-    //        if(FloatDiff(TPartIndex::I()->Emin(),fElements[fNLdElems]->Emin(),1e-7) ||
-    //           FloatDiff(TPartIndex::I()->Emax(),fElements[fNLdElems]->Emax(),1e-7) ||
-    //           TPartIndex::I()->NEbins() != fElements[fNLdElems]->NEbins())
-    // we have to resize the energy grid of the element
-    //            fElements[fNLdElems]->Resample();
-    return fElements[fNLdElems++];
-  }
-}
-
-//___________________________________________________________________
-bool TEXsec::Prune() {
-  for (int ip = 0; ip < fNRpart; ++ip)
-    fPXsec[ip].Prune();
-  return kTRUE;
-}
-
-//___________________________________________________________________
-bool TEXsec::Resample() {
-  for (int ip = 0; ip < fNRpart; ++ip)
-    fPXsec[ip].Resample();
-  fEmin = TPartIndex::I()->Emin();
-  fEmax = TPartIndex::I()->Emax();
-  fNEbins = TPartIndex::I()->NEbins();
-  fEGrid = TPartIndex::I()->EGrid();
-  return kTRUE;
 }
 
 //___________________________________________________________________
@@ -350,7 +282,7 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
     tc->SetLogx();
     tc->SetLogy();
     tc->SetGrid();
-    same = kFALSE;
+    same = false;
   } else {
     tc = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("GVcanvas");
     //   if(!tc) tc = (TCanvas*)gROOT->GetListOfCanvases()->At(0);
@@ -359,7 +291,7 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
       tc->SetLogx();
       tc->SetLogy();
       tc->SetGrid();
-      same = kFALSE;
+      same = false;
       sec2.ReplaceAll("same", "");
     }
   }
@@ -471,14 +403,14 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
     line[j]->SetBit(TLine::kLineNDC);
     line[j]->Draw();
     line[j]->SetLineColor(col[(coff + j) % 14]);
-    text[j]->SetNDC(kTRUE);
+    text[j]->SetNDC(true);
     text[j]->SetTextSize(0.03);
     text[j]->SetTextAlign(12);
     text[j]->Draw();
     if (same) {
       ptext[j] = new TText(lstartx * 0.95, lstarty - lstepy * j, string);
       ptext[j]->SetTextSize(0.03);
-      ptext[j]->SetNDC(kTRUE);
+      ptext[j]->SetNDC(true);
       ptext[j]->SetTextAlign(32);
       ptext[j]->Draw();
     }
@@ -529,7 +461,7 @@ void TEXsec::Viewer() {
     fReactionBox->Connect("Selected(int)", "TEXsec", this, "PreDraw()");
     this->UpdateReactions();
     fReactionBox->Resize(150, 160);
-    fReactionBox->SetMultipleSelections(kTRUE);
+    fReactionBox->SetMultipleSelections(true);
     fVertical->AddFrame(fReactionBox, new TGLayoutHints(kLHintsTop, 5, 5, 5, 5));
 
     TGTextButton *select = new TGTextButton(fSelect, "&Select All"); // adding the 3 buttons
@@ -622,4 +554,88 @@ void TEXsec::PreDraw() // preparation of Draw() in the viewer, generation of the
 void TEXsec::ResetFrame() {
   delete fMain;
   fMain = NULL;
+}
+#endif
+
+//___________________________________________________________________
+float TEXsec::Lambda(int pindex, double en) const {
+  double xs = fPXsec[pindex].XS(TPartIndex::I()->NProc() - 1, en);
+  return xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
+}
+
+//___________________________________________________________________
+bool TEXsec::Lambda_v(int npart, const int pindex[], const double en[], double lam[]) const {
+  const int itot = TPartIndex::I()->NProc() - 1;
+  for (int ip = 0; ip < npart; ++ip) {
+    double xs = fPXsec[pindex[ip]].XS(itot, en[ip]);
+    lam[ip] = xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
+  }
+  return true;
+}
+
+//___________________________________________________________________
+bool TEXsec::Lambda_v(int npart, int pindex, const double en[], double lam[]) const {
+  const int itot = TPartIndex::I()->NProc() - 1;
+  return fPXsec[pindex].XS_v(npart, itot, en, lam);
+}
+
+//___________________________________________________________________
+int TEXsec::SampleReac(int pindex, double en) const { return fPXsec[pindex].SampleReac(en); }
+
+//___________________________________________________________________
+int TEXsec::SampleReac(int pindex, double en, double randn) const { return fPXsec[pindex].SampleReac(en, randn); }
+
+//___________________________________________________________________
+TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
+  //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
+  int ecode = z * 10000 + a * 10;
+  for (int el = 0; el < fNLdElems; ++el)
+    if (ecode == fElements[el]->Ele())
+      return fElements[el];
+
+#ifdef USE_ROOT
+  // Element not found in memory, getting it from file
+  TFile *ff = gFile;
+  if (f)
+    ff = f;
+  if (!ff)
+    ::Fatal("TEXsec::GetElement", "No file open!");
+  fElements[fNLdElems] = (TEXsec *)ff->Get(TPartIndex::I()->EleSymb(z));
+  if (!fElements[fNLdElems]) {
+    ::Fatal("GetElement", "Element z %d a %d not found", z, a);
+    return 0; // just to make the compiler happy
+  } else {
+    // We loaded the element, however we have to see whether
+    // the energy grid is the right one
+    // NO, don't need to check. It will be loaded from xsec.root
+    //        if(FloatDiff(TPartIndex::I()->Emin(),fElements[fNLdElems]->Emin(),1e-7) ||
+    //           FloatDiff(TPartIndex::I()->Emax(),fElements[fNLdElems]->Emax(),1e-7) ||
+    //           TPartIndex::I()->NEbins() != fElements[fNLdElems]->NEbins())
+    // we have to resize the energy grid of the element
+    //            fElements[fNLdElems]->Resample();
+    return fElements[fNLdElems++];
+  }
+#else
+  // No element, we return 0
+  log_error(std::cout, "Element Z:%d A:%d\n", z, a);
+  return 0;
+#endif
+}
+
+//___________________________________________________________________
+bool TEXsec::Prune() {
+  for (int ip = 0; ip < fNRpart; ++ip)
+    fPXsec[ip].Prune();
+  return true;
+}
+
+//___________________________________________________________________
+bool TEXsec::Resample() {
+  for (int ip = 0; ip < fNRpart; ++ip)
+    fPXsec[ip].Resample();
+  fEmin = TPartIndex::I()->Emin();
+  fEmax = TPartIndex::I()->Emax();
+  fNEbins = TPartIndex::I()->NEbins();
+  fEGrid = TPartIndex::I()->EGrid();
+  return true;
 }

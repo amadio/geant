@@ -30,6 +30,7 @@ public:
   TEFstate();
   TEFstate(int z, int a, float dens);
   ~TEFstate();
+  static const char *ClassName() { return "TEFstate"; }
   bool AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[]);
   bool AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
 
@@ -97,7 +98,9 @@ private:
   static int fNLdElems;              //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
 
+#ifdef USE_ROOT
   ClassDefNV(TEFstate, 1) // Element X-secs
+#endif
 };
 
 #endif

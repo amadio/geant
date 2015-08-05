@@ -2,14 +2,12 @@
 #define TPrimaryGenerator_H
 
 #include "TPartIndex.h"
-
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-using vecgeom::Particle;
-#else
-class TParticlePDG;
-#endif
+#include "Geant/Typedefs.h"
 #include "GeantFwd.h"
+
+#ifdef USE_ROOT
+#include "TStorage.h"
+#endif
 
 class TPrimaryGenerator {
 private:
@@ -23,11 +21,7 @@ private:
   double fZDir;
   // additional members
   int fGVPartIndex; // GV particle index of the primary
-#ifdef USE_VECGEOM_NAVIGATOR
-  Particle *fPartPDG;
-#else
-  TParticlePDG *fPartPDG;
-#endif
+  Particle_t *fPartPDG;
   double fMass;   // rest mass of the primary [GeV]
   double fCharge; // charge of the primary
   double fPTotal; // total momentum of the primary [GeV]
@@ -58,11 +52,7 @@ public:
 
   // --
   int GetParticleGVIndex() const { return fGVPartIndex; }
-#ifdef USE_VECGEOM_NAVIGATOR
-  const Particle *GetParticlePDG() const { return fPartPDG; }
-#else
-  TParticlePDG *GetParticlePDG() const { return fPartPDG; }
-#endif
+  const Particle_t *GetParticlePDG() const { return fPartPDG; }
   double GetParticleMass() const { return fMass; }
   double GetParticleCharge() const { return fCharge; }
   double GetparticlePTotal() const { return fPTotal; }
@@ -77,7 +67,9 @@ private:
   TPrimaryGenerator(const TPrimaryGenerator &);            // no imp.
   TPrimaryGenerator &operator=(const TPrimaryGenerator &); // no imp.
 
+#ifdef USE_ROOT
   ClassDef(TPrimaryGenerator, 1)
+#endif
 };
 
 #endif

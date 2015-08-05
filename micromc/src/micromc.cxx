@@ -222,7 +222,7 @@ void GenerateEvent(double avemult, double energy, double fVertex[3]) {
         track->fPDG = TPartIndex::I()->PDG(GVpart[j]);
         track->fSpecies = GVspecies[j];
 #ifdef USE_VECGEOM_NAVIGATOR
-        printf("Generating a %s\n", Particle::GetParticle(track->fPDG).Name());
+        printf("Generating a %s\n", Particle_t::GetParticle(track->fPDG).Name());
 #else
         printf("Generating a %s\n", TDatabasePDG::Instance()->GetParticle(track->fPDG)->GetName());
 #endif
@@ -236,7 +236,7 @@ void GenerateEvent(double avemult, double energy, double fVertex[3]) {
       std::cout << __func__ << ":: No Particle generated!" << std::endl;
       exit(1);
     }
-    const Particle *part = &Particle::GetParticle(track->fPDG);
+    const Particle_t *part = &Particle_t::GetParticle(track->fPDG);
     track->fCharge = part->Charge();
 #else
       Fatal("ImportTracks", "No particle generated!");

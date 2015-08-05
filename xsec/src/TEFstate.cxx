@@ -1,24 +1,17 @@
-#include "TAxis.h"
-#include "TCanvas.h"
-#include "TEFstate.h"
+#ifdef USE_ROOT
 #include "TFile.h"
-#include "TGraph.h"
-#include "TH1F.h"
-#include "TLine.h"
-#include "TMath.h"
-#include "TMultiGraph.h"
-#include <TObjArray.h>
-#include <TObjString.h>
+#endif
+
 #include <TPFstate.h>
 #include <TPartIndex.h>
-#include <TROOT.h>
-#include <TString.h>
-#include <TText.h>
-
+#include "TEFstate.h"
 #include "base/Global.h"
+#include "base/messagelogger.h"
 using vecgeom::kAvogadro;
 
+#ifdef USE_ROOT
 ClassImp(TEFstate)
+#endif
 
     TEFstate *TEFstate::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -53,7 +46,8 @@ bool TEFstate::AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict
   if (!fNEFstat)
     fNEFstat = nfstat;
   else if (fNEFstat != nfstat) {
-    ::Fatal("AddPart", "Number of final sample states changed during run from %d to %d", fNEFstat, nfstat);
+    log_fatal(std::cout, "AddPart", "Number of final sample states changed during run from %d to %d", fNEFstat, nfstat);
+    exit(1);
   }
   return fPFstate[kpart].SetPart(pdg, nfstat, nreac, dict, vecfs);
 }
@@ -71,7 +65,7 @@ void TEFstate::SetRestCaptFstate(int kpart, const TFinState &fstate) { fPFstate[
 bool TEFstate::HasRestCapture(int partindex) {
   if (partindex < TPartIndex::I()->NPartReac())
     return fPFstate[partindex].HasRestCaptFstat();
-  return kFALSE;
+  return false;
 }
 
 //______________________________________________________________________________
@@ -84,7 +78,7 @@ bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float 
     npart = 0;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    return false;
   }
 }
 
@@ -98,7 +92,7 @@ bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float 
     npart = 0;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    return false;
   }
 }
 
@@ -128,7 +122,8 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
     if (ecode == fElements[el]->Ele())
       return fElements[el];
 
-  // Element not found in memory, getting it from file
+// Element not found in memory, getting it from file
+#ifdef USE_ROOT
   TFile *ff = gFile;
   if (f)
     ff = f;
@@ -149,13 +144,16 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
     //	 fElements[fNLdElems]->Resample();
     return fElements[fNLdElems++];
   }
+#else
+  log_error(std::cout, "Element z %d a %d not found", z, a);
+#endif
 }
 
 //___________________________________________________________________
 bool TEFstate::Prune() {
   for (int ip = 0; ip < fNRpart; ++ip)
     fPFstate[ip].Prune();
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________
@@ -166,7 +164,7 @@ bool TEFstate::Resample() {
   fEmax = TPartIndex::I()->Emax();
   fNEbins = TPartIndex::I()->NEbins();
   fEGrid = TPartIndex::I()->EGrid();
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________

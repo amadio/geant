@@ -1,17 +1,16 @@
-
 #ifndef GunGenerator_h
 #define GunGenerator_h
 
 #include "TPartIndex.h"
 #include "PrimaryGenerator.h"
+#ifdef USE_ROOT
 #include "TRandom.h"
-
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-using vecgeom::Particle;
 #else
-class TParticlePDG;
+#include "base/RNG.h"
+using vecgeom::RNG;
 #endif
+
+#include "Geant/Typedefs.h"
 
 class GunGenerator : public PrimaryGenerator {
 private:
@@ -27,11 +26,8 @@ private:
   double fZDir;
   // additional members
   int fGVPartIndex; // GV particle index of the primary
-#ifdef USE_VECGEOM_NAVIGATOR
-  Particle *fPartPDG;
-#else
-  TParticlePDG *fPartPDG;
-#endif
+  Particle_t *fPartPDG;
+
   double fMass;   // rest mass of the primary [GeV]
   double fCharge; // charge of the primary
   double fPTotal; // total momentum of the primary [GeV]
@@ -39,7 +35,11 @@ private:
 
   int numberoftracks;
 
+#ifdef USE_ROOT
   TRandom *rndgen;
+#else
+  RNG *rndgen;
+#endif
 
 public:
   GunGenerator();

@@ -18,6 +18,10 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef USE_ROOT
+#include "TStorage.h"
+#endif
+
 #include "Geant/Config.h"
 
 #include <TEXsec.h>
@@ -34,8 +38,9 @@ public:
 
   TMXsec();
   TMXsec(const char *name, const char *title, const int z[], const int a[], const float w[], int nel, float dens,
-         bool weight = kFALSE, const TPDecay *decaytable = 0);
+         bool weight = false, const TPDecay *decaytable = 0);
   virtual ~TMXsec();
+  static const char *ClassName() { return "TMXsec"; }
   const char *GetName() const { return fName; }
   const char *GetTitle() const { return fTitle; }
   float Xlength(int part, float en, double ptot);
@@ -92,7 +97,9 @@ private:
   std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
   const TPDecay *fDecayTable;                             // pointer to the decay table
 
+#ifdef USE_ROOT
   ClassDef(TMXsec, 1) // Material X-secs
+#endif
 };
 
 #ifndef USE_VECGEOM_NAVIGATOR

@@ -21,6 +21,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+#ifdef USE_ROOT
+#include "TStorage.h"
+#endif
 
 class TFinState {
 public:
@@ -36,7 +39,7 @@ public:
   void NormFinSateWeights();
   int GetNsecs() const { return fNsecs; }
 
-  bool Prune() { return kTRUE; }
+  bool Prune() { return true; }
   bool SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom) const;
   bool SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom,
                   double randn) const;
@@ -69,7 +72,9 @@ private:
   int *fPID;      // [fNsecs] GeantV particle code
   float *fMom;    // [fNMom] Particle momentum (GeV)
 
+#ifdef USE_ROOT
   ClassDefNV(TFinState, 1) // Particle Final States
+#endif
 };
 
 #endif

@@ -18,15 +18,10 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef USE_ROOT
 #include "TStorage.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-using vecgeom::Particle;
-typedef Particle Particle_t;
-#else
-#include "TDatabasePDG.h"
-typedef TParticlePDG Particle_t;
 #endif
+#include "Geant/Typedefs.h"
 #include <map>
 
 #define DICLEN 12  // Number of process cross sections
@@ -98,7 +93,7 @@ public:
   int PDG(const char *pname) const;
 // Particle name <- GV particle number
 #ifdef USE_VECGEOM_NAVIGATOR
-  const char *PartName(int i) const { return Particle::GetParticle(fPDG[i]).Name(); }
+  const char *PartName(int i) const { return Particle_t::GetParticle(fPDG[i]).Name(); }
 #else
   const char *PartName(int i) const { return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName(); }
 #endif
@@ -171,19 +166,21 @@ private:
   double *fEGrid;   // [fNEbins] Common energy grid
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle *fDBPdg; // Pointer to the augmented pdg database
+  Particle_t *fDBPdg; // Pointer to the augmented pdg database
 #else
-  TDatabasePDG *fDBPdg;   // Pointer to the augmented pdg database
+  TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
 #endif
 
   std::map<int, int> fPDGToGVMap;              // PDG->GV code map
   int fSpecGVIndices[4];                       // store GV codes of e-,e+,gamma and proton
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 
+#ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
   ClassDef(TPartIndex, 100) // Particle Index
 #else
   ClassDef(TPartIndex, 2) // Particle Index
+#endif
 #endif
 };
 

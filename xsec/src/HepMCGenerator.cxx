@@ -2,12 +2,8 @@
 
 #include "base/Global.h"
 using vecgeom::kPi;
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-using vecgeom::Particle;
-#else
-#include "TDatabasePDG.h"
-#endif
+#include "Geant/Typedefs.h"
+
 #include "GeantTrack.h"
 
 #include "HepMC/GenParticle.h"
@@ -31,7 +27,7 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle::CreateParticles();
+  Particle_t::CreateParticles();
 #endif
 }
 
@@ -143,7 +139,7 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
 
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(pdg));
 #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle *const &part = &Particle::GetParticle(gtrack.fPDG);
+    const Particle_t *const &part = &Particle::GetParticle(gtrack.fPDG);
 #else
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
 #endif
@@ -180,8 +176,8 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0,
-                              double &y0, double &z0, int &pdg) {
+void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0,
+                              double &z0, int &pdg) {
 
   const HepMC::GenParticlePtr &genpart = search->results()[n];
   // here I have to create GeantTracks

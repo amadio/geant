@@ -25,7 +25,12 @@
 
 #include "Geant/Typedefs.h"
 
+#ifdef USE_ROOT
 class TRandom;
+#else
+#include "base/RNG.h"
+using VECGEOM_NAMESPACE::RNG;
+#endif
 class GeantBasketMgr;
 class GeantBasket;
 
@@ -41,16 +46,20 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
-  int fTid;            /** Thread unique id */
-  int fNthreads;       /** Number of transport threads */
-  int fMaxDepth;       /** Maximum geometry depth */
-  int fSizeBool;       /** Size of bool array */
-  int fSizeDbl;        /** Size of dbl array */
-  bool fToClean;       /** Flag set when the basket queue is to be cleaned */
-  Volume_t *fVolume;     /** Current volume per thread */
-  TRandom *fRndm;        /** Random generator for thread */
-  bool *fBoolArray;    /** [fSizeBool] Thread array of bools */
-  double *fDblArray;   /** [fSizeDbl] Thread array of doubles */
+  int fTid;          /** Thread unique id */
+  int fNthreads;     /** Number of transport threads */
+  int fMaxDepth;     /** Maximum geometry depth */
+  int fSizeBool;     /** Size of bool array */
+  int fSizeDbl;      /** Size of dbl array */
+  bool fToClean;     /** Flag set when the basket queue is to be cleaned */
+  Volume_t *fVolume; /** Current volume per thread */
+#ifdef USE_ROOT
+  TRandom *fRndm; /** Random generator for thread */
+#else
+  RNG *fRndm;                      /** Random generator for thread */
+#endif
+  bool *fBoolArray;      /** [fSizeBool] Thread array of bools */
+  double *fDblArray;     /** [fSizeDbl] Thread array of doubles */
   GeantTrack fTrack;     /** Track support for this thread */
   VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
@@ -59,13 +68,13 @@ public:
 #else
   std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
 #endif
-   vecgeom::SOA3D<double>  *fSOA3Dworkspace1; // Thread SOA3D workspace (to be used for vector navigation)
-   vecgeom::SOA3D<double>  *fSOA3Dworkspace2; // SOA3D workspace (to be used for vector navigation)
-   int                      fSizeInt;  // current size of IntArray
-   int                     *fIntArray; // Thread array of ints (used in vector navigation)
+  vecgeom::SOA3D<double> *fSOA3Dworkspace1; // Thread SOA3D workspace (to be used for vector navigation)
+  vecgeom::SOA3D<double> *fSOA3Dworkspace2; // SOA3D workspace (to be used for vector navigation)
+  int fSizeInt;                             // current size of IntArray
+  int *fIntArray;                           // Thread array of ints (used in vector navigation)
 
 private:
-   // a helper function checking internal arrays and allocating more space if necessary
+  // a helper function checking internal arrays and allocating more space if necessary
   template <typename T> static void CheckSizeAndAlloc(T *&array, int &currentsize, size_t wantedsize) {
     if (wantedsize < currentsize)
       return;
@@ -148,9 +157,7 @@ public:
    * @brief Function that returns a (per thread/task) preallocated NavigationState object
    *
    */
-  VolumePath_t *GetPath() {
-    return fPath;
-  }
+  VolumePath_t *GetPath() { return fPath; }
 
   /**
    * @brief Get the cleared storedtrack

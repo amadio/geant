@@ -1,13 +1,21 @@
 #include "TFinState.h"
+#ifdef USE_ROOT
 #include "TRandom.h"
+#else
+#include "base/RNG.h"
+using vecgeom::RNG;
+#endif
 
 int TFinState::fVerbose = 0;
 
+#ifdef USE_ROOT
 ClassImp(TFinState)
+#endif
 
     //_________________________________________________________________________
     TFinState::TFinState()
-    : fNFstates(0), fNsecs(0), fNMom(0), fNpart(0), fWeight(0), fKerma(0), fEn(0), fSurv(0), fPID(0), fMom(0) {}
+    : fNFstates(0), fNsecs(0), fNMom(0), fNpart(0), fWeight(0), fKerma(0), fEn(0), fSurv(0), fPID(0), fMom(0) {
+}
 
 //_________________________________________________________________________
 TFinState::TFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
@@ -127,7 +135,7 @@ bool TFinState::SetFinState(int nfstates, const int npart[], const float weight[
 
   NormFinSateWeights();
 
-  return kTRUE;
+  return true;
 }
 
 //_________________________________________________________________________
@@ -169,7 +177,7 @@ bool TFinState::SetFinState(const TFinState &right) {
 
   NormFinSateWeights();
 
-  return kTRUE;
+  return true;
 }
 
 //_________________________________________________________________________
@@ -200,15 +208,19 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
     if (kerma <= 0.0) { // if it is already stopped
       en = 0;
       kerma = 0;
-      return kFALSE;
+      return false;
     } else {
       en = -1.; // this case can be checked through if(en<0.)
       kerma = 0;
-      return kTRUE;
+      return true;
     }
   }
 
+#ifdef USE_ROOT
   double eta = gRandom->Rndm();
+#else
+  double eta = RNG::Instance().uniform();
+#endif
   int finstat = fNFstates - 1;
   for (int i = 0; i < fNFstates - 1; ++i)
     if (eta < fWeight[i]) {
@@ -245,11 +257,11 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
     if (kerma <= 0.0) { // if it is already stopped
       en = 0;
       kerma = 0;
-      return kFALSE;
+      return false;
     } else {
       en = -1.; // this case can be checked through if(en<0.)
       kerma = 0;
-      return kTRUE;
+      return true;
     }
   }
 
@@ -288,11 +300,11 @@ bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, fl
     if (kerma <= 0.0) { // if it is already stopped
       en = 0;
       kerma = 0;
-      return kFALSE;
+      return false;
     } else {
       en = -1.; // this case can be checked through if(en<0.)
       kerma = 0;
-      return kTRUE;
+      return true;
     }
   } else {
     int ipoint = 0;

@@ -1,24 +1,10 @@
 #include "GunGenerator.h"
-
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "management/GeoManager.h"
-typedef vecgeom::GeoManager TGeoManager;
-#define gGeoManager &vecgeom::GeoManager::Instance()
-#else
-#include "TGeoManager.h"
-#endif
-
-#include "TRandom.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-using vecgeom::Particle;
-#else
-#include "TDatabasePDG.h"
-#include "TPDGCode.h"
-#endif
 #include "GeantTrack.h"
+#include "Geant/Typedefs.h"
 
+#ifdef USE_ROOT
 ClassImp(GunGenerator)
+#endif
 
     //______________________________________________________________________________
     GunGenerator::GunGenerator()
@@ -27,7 +13,8 @@ ClassImp(GunGenerator)
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
       fYPos(0.), fZPos(0.), fXDir(0.), // direction vector of the primary particles: (0,0,1)
       fYDir(0.), fZDir(1.), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0),
-      numberoftracks(0), rndgen(0) {}
+      numberoftracks(0), rndgen(0) {
+}
 
 GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir,
                            double ydir, double zdir)
@@ -42,8 +29,11 @@ GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, 
   fXDir /= norm;
   fYDir /= norm;
   fZDir /= norm;
-
+#ifdef USE_ROOT
   rndgen = new TRandom();
+#else
+  rndgen = &RNG::Instance();
+#endif
 }
 
 //______________________________________________________________________________
@@ -52,20 +42,23 @@ GunGenerator::~GunGenerator() { delete rndgen; }
 //______________________________________________________________________________
 void GunGenerator::InitPrimaryGenerator() {
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle::CreateParticles();
+  Particle_t::CreateParticles();
 #endif
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
 // set TDatabasePDG ptr
 #ifdef USE_VECGEOM_NAVIGATOR
-  fPartPDG = const_cast<Particle *>(&Particle::GetParticle(fPDG));
+  fPartPDG = const_cast<Particle_t *>(&Particle_t::GetParticle(fPDG));
 #else
   fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
 #endif
   // set rest mass [GeV]
   fMass = fPartPDG->Mass();
   // set charge
-  fCharge = fPartPDG->Charge() / 3.;
+  fCharge = fPartPDG->Charge();
+#ifdef USE_ROOT
+  fCharge /= 3.;
+#endif
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
   // set total momentum [GeV]

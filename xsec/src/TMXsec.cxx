@@ -1,15 +1,19 @@
 #include "TMXsec.h"
 #include "TPartIndex.h"
 #include "TPDecay.h"
-#include "TMath.h"
-#include "TRandom.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-using vecgeom::Particle;
+#include "Geant/Typedefs.h"
+#ifdef USE_ROOT
+#include "TMath.h"
+#include "TRandom.h"
+#else
+#include "base/RNG.h"
+using vecgeom::RNG;
 #endif
+
+#include "base/messagelogger.h"
 #include "base/Global.h"
 using vecgeom::kAvogadro;
 
@@ -17,7 +21,9 @@ using vecgeom::kAvogadro;
 using std::numeric_limits;
 using std::max;
 
+#ifdef USE_ROOT
 ClassImp(TMXsec)
+#endif
 
     //____________________________________________________________________________
     TMXsec::TMXsec()
@@ -65,8 +71,10 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
   for (int i = 0; i < fNElems; ++i)
     if (z[i])
       fElems[i] = TEXsec::GetElement(z[i], 0);
-    else if (fNElems > 1)
-      Fatal("TMXsec", "Cannot have vacuum in mixtures");
+    else if (fNElems > 1) {
+      log_fatal(std::cout, "Cannot have vacuum in mixtures");
+      exit(1);
+    }
 
   if (!z[0])
     return;
@@ -158,14 +166,14 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
 // have reactions other than decay; in case of particles that have only decay
 // the decay mean free path will be computed on the fly
 #ifdef USE_VECGEOM_NAVIGATOR
-  if (Particle::GetParticle(11).Mass() <= 0)
-    Particle::CreateParticles();
+  if (Particle_t::GetParticle(11).Mass() <= 0)
+    Particle_t::CreateParticles();
 #endif
   for (int ip = 0; ip < npart; ++ip) {
     if (fDecayTable->HasDecay(ip)) {
       int pdgcode = TPartIndex::I()->PDG(ip);
 #ifdef USE_VECGEOM_NAVIGATOR
-      const Particle *const &partPDG = &Particle::GetParticle(pdgcode);
+      const Particle_t *const &partPDG = &Particle_t::GetParticle(pdgcode);
 #else
       TParticlePDG *partPDG = TPartIndex::I()->DBPdg()->GetParticle(pdgcode);
 #endif
@@ -318,7 +326,11 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
 
   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
   double *rndArray = td->fDblArray;
+#ifdef USE_ROOT
   td->fRndm->RndmArray(ntracks, rndArray);
+#else
+  td->fRndm->uniform_array(ntracks, rndArray);
+#endif
 
   for (int i = 0; i < ntracks; ++i) {
     int ipart = tracks.fGVcodeV[i];                   // GV particle index/code
@@ -377,7 +389,11 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
 
   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
   double *rndArray = td->fDblArray;
+#ifdef USE_ROOT
   td->fRndm->RndmArray(1, rndArray);
+#else
+  td->fRndm->uniform_array(1, rndArray);
+#endif
 
   int ipart = tracks.fGVcodeV[i];                   // GV particle index/code
   double energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$
@@ -445,7 +461,7 @@ float TMXsec::MS(int ipart, float energy) {
   double en2 = fEGrid[ibin + 1];
 
   if (en1 > adj_energy || en2 < adj_energy) {
-    Error("MS", "Wrong bin %d in interpolation: should be %g < %g < %g\n", ibin, en1, adj_energy, en2);
+    log_error(std::cout, "Wrong bin %d in interpolation: should be %g < %g < %g\n", ibin, en1, adj_energy, en2);
     return 0.;
   }
 
@@ -483,7 +499,7 @@ bool TMXsec::DEdx_v(int npart, const int part[], const float en[], float de[]) {
   double ene;
   if(!fDEdx) {
     memset(de,0,npart*sizeof(float));
-    return kFALSE;
+    return false;
   }
   for(int ip=0; ip<npart; ++ip) {
     if(part[ip]>=TPartIndex::I()->NPartCharge())
@@ -720,12 +736,16 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks) {
 TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
   if (part < TPartIndex::I()->NPartReac()) {
     // first sample if deacy or something else if the particle can have decay
-    bool isDecay = kFALSE;
+    bool isDecay = false;
     if (fDecayTable->HasDecay(part)) {
       double lambdaDecay = ptot * fDecayTable->GetCTauPerMass(part);
       double lambdaTotal = Xlength(part, en, ptot); // ptotal is not used now there
-      // $P(decay) =\lambda_{Total}/\lambda_{decay}$
+                                                    // $P(decay) =\lambda_{Total}/\lambda_{decay}$
+#ifdef USE_ROOT
       if (gRandom->Rndm() < lambdaTotal / lambdaDecay)
+#else
+      if (RNG::Instance().uniform() < lambdaTotal / lambdaDecay)
+#endif
         isDecay = kTRUE;
     }
     if (isDecay) {
@@ -753,7 +773,11 @@ TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
         double xrat = (en2 - en) / (en2 - en1);
         double xnorm = 1.;
         while (iel < 0) {
+#ifdef USE_ROOT
           double ran = xnorm * gRandom->Rndm();
+#else
+          double ran = xnorm * RNG::Instance().uniform();
+#endif
           double xsum = 0;
           for (int i = 0; i < fNElems; ++i) {
             xsum += xrat * fRelXS[ibin * fNElems + i] + (1 - xrat) * fRelXS[(ibin + 1) * fNElems + i];
@@ -783,7 +807,11 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
 
   // tid-based rng
   double *rndArray = td->fDblArray;
+#ifdef USE_ROOT
   td->fRndm->RndmArray(2 * ntracks, rndArray);
+#else
+  td->fRndm->uniform_array(2 * ntracks, rndArray);
+#endif
 
   for (int t = 0; t < ntracks; ++t) {
     /*
@@ -796,7 +824,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
     int ipart = tracksin.fGVcodeV[t];
     // if the particle can have both decay and something else
     if (ipart < nParticleWithReaction) {
-      bool isDecay = kFALSE;
+      bool isDecay = false;
       double energy = tracksin.fEV[t] - tracksin.fMassV[t]; // Ekin [GeV]
       if (fDecayTable->HasDecay(ipart)) {
         double ptotal = tracksin.fPV[t]; // Ptotal [GeV]
@@ -831,7 +859,11 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
           double xrat = (en2 - energy) / (en2 - en1);
           double xnorm = 1.;
           while (iel < 0) {
+#ifdef USE_ROOT
             double ran = xnorm * td->fRndm->Rndm();
+#else
+            double ran = xnorm * td->fRndm->uniform();
+#endif
             double xsum = 0;
             for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
               xsum += xrat * fRelXS[ibin * fNElems + i] + (1 - xrat) * fRelXS[(ibin + 1) * fNElems + i];
@@ -870,7 +902,11 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
 
   // tid-based rng
   double *rndArray = td->fDblArray;
+#ifdef USE_ROOT
   td->fRndm->RndmArray(2, rndArray);
+#else
+  td->fRndm->uniform_array(2, rndArray);
+#endif
   /*
      if(tracksin.fEindexV[t] < 0){ // continous step limited this step
          tracksin.fProcessV[t] = -1; // nothing
@@ -881,7 +917,7 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
   int ipart = tracksin.fGVcodeV[t];
   // if the particle can have both decay and something else
   if (ipart < nParticleWithReaction) {
-    bool isDecay = kFALSE;
+    bool isDecay = false;
     double energy = tracksin.fEV[t] - tracksin.fMassV[t]; // Ekin [GeV]
     if (fDecayTable->HasDecay(ipart)) {
       double ptotal = tracksin.fPV[t]; // Ptotal [GeV]
@@ -915,7 +951,11 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
         double xrat = (en2 - energy) / (en2 - en1);
         double xnorm = 1.;
         while (iel < 0) {
+#ifdef USE_ROOT
           double ran = xnorm * td->fRndm->Rndm();
+#else
+          double ran = xnorm * td->fRndm->uniform();
+#endif
           double xsum = 0;
           for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
             xsum += xrat * fRelXS[ibin * fNElems + i] + (1 - xrat) * fRelXS[(ibin + 1) * fNElems + i];
@@ -950,7 +990,11 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
 //______________________________________________________________________________
 int TMXsec::SampleElement(GeantTaskData *td) {
   if (fNElems > 1) {
+#ifdef USE_ROOT
     double randn = td->fRndm->Rndm();
+#else
+    double randn = td->fRndm->uniform();
+#endif
     for (int itr = 0; itr < fNElems; ++itr)
       if (fRatios[itr] > randn)
         return fElems[itr]->Index(); // TTabPhysMgr index of the sampled elemet
@@ -964,7 +1008,11 @@ int TMXsec::SampleElement(GeantTaskData *td) {
 //______________________________________________________________________________
 int TMXsec::SampleElement() {
   if (fNElems > 1) {
+#ifdef USE_ROOT
     double randn = gRandom->Rndm();
+#else
+    double randn = RNG::Instance().uniform();
+#endif
     for (int itr = 0; itr < fNElems; ++itr)
       if (fRatios[itr] > randn)
         return fElems[itr]->Index(); // TTabPhysMgr index of the sampled elemet
@@ -989,7 +1037,11 @@ int TMXsec::SelectElement(int pindex, int rindex, double energy) {
       totalxs += fElems[i]->XS(pindex, rindex, energy) * fRatios[i];
     }
 
+#ifdef USE_ROOT
     double ranxs = totalxs * gRandom->Rndm();
+#else
+    double ranxs = totalxs * RNG::Instance().uniform();
+#endif
     double cross = 0.;
 
     for (int i = 0; i < fNElems - 1; ++i) {

@@ -19,6 +19,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+#ifdef USE_ROOT
+#include "TStorage.h"
+#endif
 
 class TFinState;
 
@@ -31,21 +34,17 @@ public:
   void SetRestCaptFstate(const TFinState &finstate);
   bool HasRestCaptFstat() {
     if (!fRestCaptFstat)
-      return kFALSE;
-    return kTRUE;
+      return false;
+    return true;
   }
 
-#ifdef USE_VECGEOM_NAVIGATOR
-  const char *Name() const { return Particle::GetParticle(fPDG).Name(); }
-#else
-  const char *Name() const { return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName(); }
-#endif
+  const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[]);
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
   bool SetFinState(int ibin, int reac, const int npart[], const float weight[], const float kerma[], const float en[],
                    const char surv[], const int pid[], const float mom[]);
   void Print(const char *opt = "") const;
-  bool Prune() { return kTRUE; }
+  bool Prune() { return true; }
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx) const;
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
@@ -85,9 +84,11 @@ private:
   int fRdict[FNPROC]; // reaction dictionary from reaction number to position
   // in the X-sec array
   int fRmap[FNPROC]; // reaction map, from reaction position in the X-sec
-  // array to the raction number
+// array to the raction number
 
+#ifdef USE_ROOT
   ClassDefNV(TPFstate, 1) // Particle Final States
+#endif
 };
 
 #endif

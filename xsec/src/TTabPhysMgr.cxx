@@ -2,12 +2,11 @@
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
-#include "volumes/Particle.h"
-using vecgeom::Particle;
 #else
 #include "TGeoManager.h"
 #include "TGeoBranchArray.h"
 #include "TGeoExtension.h"
+#include "TList.h"
 #endif
 
 #include "GeantTrack.h"
@@ -16,13 +15,14 @@ using vecgeom::Particle;
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 
+#ifdef USE_ROOT
 #include "TRandom.h"
-#include "TBits.h"
-#include "TStopwatch.h"
-#include "TError.h"
 #include "TFile.h"
-#include "TList.h"
-#include "TSystem.h"
+#include "TBits.h"
+#include "TError.h"
+#else
+#include "base/RNG.h"
+#endif
 
 #include "TPartIndex.h"
 #include "TEXsec.h"
@@ -31,11 +31,12 @@ using vecgeom::Particle;
 #include "TPDecay.h"
 
 #include <iostream>
+#include <time.h>
 
-#include "base/RNG.h"
 #include "Geant/Math.h"
 using vecgeom::kPi;
 using vecgeom::kTwoPi;
+#include "base/messagelogger.h"
 
 ClassImp(TTabPhysMgr)
 
@@ -47,7 +48,7 @@ TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsf
   if (fgInstance)
     return fgInstance;
   if (!(xsecfilename && finalsfilename)) {
-    ::Error("TTabPhysMgr::Instance", "Create TTabPhysMgr instance providing xsec files");
+    log_error(std::cout, "TTabPhysMgr::Instance", "Create TTabPhysMgr instance providing xsec files\n");
     return 0;
   }
   fgInstance = new TTabPhysMgr(xsecfilename, finalsfilename);
@@ -85,8 +86,8 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
       fHasNCaptureAtRest(0) {
 
   fgInstance = this;
-  TStopwatch timer;
-  timer.Start();
+#ifdef USE_ROOT
+  clock_t t = clock();
 // Load elements from geometry, however in most cases it should already be done
 #ifdef USE_VECGEOM_NAVIGATOR
   GeantPropagator::Instance()->LoadVecGeomGeometry();
@@ -261,8 +262,9 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   printf("number of materials in fMatXsec[]:= %d\n", fNmaterials);
   for (int i = 0; i < fNmaterials; ++i)
     printf("   fMatXsec[%d]: %s\n", i, fMatXsec[i]->GetName());
-  timer.Stop();
-  printf("Memory taken by xsec and states: %ld [MB] loaded in: %g [sec]\n", mem, timer.CpuTime());
+  t = clock() - t;
+  printf("Memory taken by xsec and states: %ld [MB] loaded in: %g [sec]\n", mem, ((float)t) / CLOCKS_PER_SEC);
+#endif
 }
 
 //______________________________________________________________________________
@@ -302,7 +304,11 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, G
 
 #ifndef GEANT_CUDA_DEVICE_BUILD
   double *rndArray = td->fDblArray;
+#ifdef USE_ROOT
   td->fRndm->RndmArray(ntracks, rndArray);
+#else
+  td->fRndm->uniform_array(ntracks, rndArray);
+#endif
 #else
   double *rndArray = 0; // NOTE: we need to get it from somewhere ....
   VECGEOM_NAMESPACE::RNG::Instance().uniform_array(ntracks, rndArray, 0., 1.);
@@ -489,7 +495,11 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
 
   // tid-based rng
   double *rndArray = td->fDblArray;
+#ifdef USE_ROOT
   td->fRndm->RndmArray(2 * ntracks, rndArray);
+#else
+  td->fRndm->uniform_array(2 * ntracks, rndArray);
+#endif
 
   int nTotSecPart = 0; // total number of secondary particles in tracks
 
@@ -640,7 +650,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         }
         int secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
 #ifdef USE_VECGEOM_NAVIGATOR
-        const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+        const Particle_t *const &secPartPDG = &Particle_t::GetParticle(secPDG);
 #else
         TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
 #endif
@@ -763,7 +773,11 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
   const double mecc = 0.00051099906; // e- mass c2 in [GeV]
   double rndArray[3];
 #ifndef GEANT_CUDA_DEVICE_BUILD
+#ifdef USE_ROOT
   td->fRndm->RndmArray(3, rndArray);
+#else
+  td->fRndm->uniform_array(3, rndArray);
+#endif
 #else
   VECGEOM_NAMESPACE::RNG::Instance().uniform_array(3, rndArray, 0., 1.);
 #endif
@@ -893,7 +907,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 
     int secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
 #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+    const Particle_t *const &secPartPDG = &Particle_t::GetParticle(secPDG);
 #else
     TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
 #endif
@@ -998,7 +1012,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
 
       int secPDG = TPartIndex::I()->PDG(pid[isec]); // GV part.code -> PGD code
 #ifdef USE_VECGEOM_NAVIGATOR
-      const Particle *const &secPartPDG = &Particle::GetParticle(secPDG);
+      const Particle_t *const &secPartPDG = &Particle_t::GetParticle(secPDG);
 #else
       TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
 #endif

@@ -9,7 +9,9 @@ using std::max;
 
 int TPXsec::fVerbose = 0;
 
+#ifdef USE_ROOT
 ClassImp(TPXsec)
+#endif
 
     //_________________________________________________________________________
     TPXsec::TPXsec()
@@ -43,6 +45,7 @@ TPXsec::~TPXsec() {
   delete[] fXSecs;
 }
 
+#ifdef USE_ROOT
 //______________________________________________________________________________
 void TPXsec::Streamer(TBuffer &R__b) {
   // Stream an object of class TPXsec.
@@ -58,6 +61,7 @@ void TPXsec::Streamer(TBuffer &R__b) {
     R__b.WriteClassBuffer(TPXsec::Class(), this);
   }
 }
+#endif
 
 //_________________________________________________________________________
 void TPXsec::Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en, float result[]) {

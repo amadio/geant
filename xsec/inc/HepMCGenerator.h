@@ -40,7 +40,9 @@ private:
   HepMCGenerator(const HepMCGenerator &);            // no imp.
   HepMCGenerator &operator=(const HepMCGenerator &); // no imp.
 
+#ifdef USE_ROOT
   ClassDef(HepMCGenerator, 1)
+#endif
 };
 
 #endif

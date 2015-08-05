@@ -1,13 +1,10 @@
 #include "TPrimaryGenerator.h"
 
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
-#else
-#include "TDatabasePDG.h"
-#endif
 #include "GeantTrack.h"
 
+#ifdef USE_ROOT
 ClassImp(TPrimaryGenerator)
+#endif
 
     //______________________________________________________________________________
     TPrimaryGenerator::TPrimaryGenerator()
@@ -50,13 +47,13 @@ void TPrimaryGenerator::SetParticleByPDGCode(int pdgcode) {
 //______________________________________________________________________________
 void TPrimaryGenerator::InitPrimaryGenerator() {
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle::CreateParticles();
+  Particle_t::CreateParticles();
 #endif
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
 // set TDatabasePDG ptr
 #ifdef USE_VECGEOM_NAVIGATOR
-  fPartPDG = const_cast<Particle *>(&Particle::GetParticle(fPDG));
+  fPartPDG = const_cast<Particle_t *>(&Particle_t::GetParticle(fPDG));
 #else
   fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
 #endif

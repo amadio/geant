@@ -19,13 +19,16 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
-class TFile;
+#ifdef USE_ROOT
+#include "TStorage.h"
 class TGHorizontalFrame;
 class TGListBox;
 class TGMainFrame;
 class TGraph;
-class TPXsec;
 class TRootEmbeddedCanvas;
+#endif
+class TFile;
+class TPXsec;
 
 class TEXsec {
 public:
@@ -34,6 +37,7 @@ public:
   TEXsec();
   TEXsec(int z, int a, float dens, int np);
   virtual ~TEXsec();
+  static const char *ClassName() { return "TEXsec"; }
   bool AddPart(int kpart, int pdg, int nxsec);
   bool AddPartXS(int kpart, const float xsec[], const int dict[]);
   bool AddPartIon(int kpart, const float dedx[]);
@@ -49,9 +53,11 @@ public:
   float XS(int pindex, int rindex, float en) const;
   float DEdx(int pindex, float en) const;
   bool MS(int index, float en, float &ang, float &asig, float &len, float &lsig) const;
+#ifdef USE_ROOT
   TGraph *XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const;
   TGraph *DEdxGraph(const char *part, float emin, float emax, int nbin) const;
   TGraph *MSGraph(const char *part, const char *what, float emin, float emax, int nbin) const;
+#endif
 
   float Lambda(int pindex, double en) const;
   bool Lambda_v(int npart, const int pindex[], const double en[], double lam[]) const;
@@ -65,7 +71,7 @@ public:
   bool SetCuts(const double cuts[4]) {
     for (int jc = 0; jc < 4; ++jc)
       fCuts[jc] = cuts[jc];
-    return kTRUE;
+    return true;
   }
 
   void DumpPointers() const;
@@ -116,6 +122,7 @@ private:
   static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
 
+#ifdef USE_ROOT
   static TGMainFrame *fMain;           //! Main window
   static TGHorizontalFrame *fSecond;   //! Window for the graph and the bar on left
   static TRootEmbeddedCanvas *fCanvas; //! For the graphs
@@ -123,6 +130,7 @@ private:
   static TGListBox *fParticleBox;      //! Particle list
 
   ClassDef(TEXsec, 3) // Element X-secs
+#endif
 };
 
 #endif

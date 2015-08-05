@@ -19,6 +19,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+#ifdef USE_ROOT
+#include "TStorage.h"
+#endif
 
 class TPXsec {
 public:
@@ -26,11 +29,7 @@ public:
   TPXsec(int pdg, int nxsec);
   virtual ~TPXsec();
   void Print(const char *opt = "") const;
-#ifdef USE_VECGEOM_NAVIGATOR
-  const char *Name() const { return Particle::GetParticle(fPDG).Name(); }
-#else
-  const char *Name() const { return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName(); }
-#endif
+  const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
   bool SetPart(int pdg, int nxsec);
   bool SetPartXS(const float xsec[], const int dict[]);
   bool SetPartIon(const float dedx[]);
@@ -78,8 +77,9 @@ private:
                         // in the X-sec array
   int fRmap[FNPROC];    // reaction map, from reaction position in the X-sec
                         // array to the raction number
-
+#ifdef USE_ROOT
   ClassDef(TPXsec, 1) // Particle X-secs
+#endif
 };
 
 #endif

@@ -243,6 +243,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
   }
 }
 
+#ifdef USE_ROOT
 //______________________________________________________________________________
 void TPFstate::Streamer(TBuffer &R__b) {
   // Stream an object of class TPFstate.
@@ -258,6 +259,7 @@ void TPFstate::Streamer(TBuffer &R__b) {
     R__b.WriteClassBuffer(TPFstate::Class(), this);
   }
 }
+#endif
 
 //_________________________________________________________________________
 void TPFstate::Print(const char *) const {

@@ -29,8 +29,8 @@ else()
 endif()
 
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
-
-option(USE_VECGEOM_NAVIGATOR "Use the navigaator from VecGeom" OFF)
+option(USE_VECGEOM_NAVIGATOR "Use the navigaator from VecGeom" ON)
+option(USE_ROOT "Use ROOT" ON)
 #---------------------------------------------------------------------------
 # Debuging options
 if(BUG_HUNT)

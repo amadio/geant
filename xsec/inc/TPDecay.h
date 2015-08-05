@@ -18,6 +18,10 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef USE_ROOT
+#include "TStorage.h"
+#endif
+
 class TFinState;
 
 class TPDecay {
@@ -46,7 +50,9 @@ private:
   TFinState *fDecay;    // [fNPart] array of particle final states to be sampled
   double *fCTauPerMass; // [fNPart] precomputed c*tau/mass values [cm/GeV]
 
+#ifdef USE_ROOT
   ClassDefNV(TPDecay, 1) // Element X-secs
+#endif
 };
 
 #endif

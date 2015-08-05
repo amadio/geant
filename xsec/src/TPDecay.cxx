@@ -1,15 +1,17 @@
-#include "TMath.h"
 #include "TPDecay.h"
 #include "TFinState.h"
 #include "TPartIndex.h"
 
+#ifdef USE_ROOT
 ClassImp(TPDecay)
+#endif
 
     //___________________________________________________________________
     TPDecay::TPDecay()
     : fNSamp(0), fNPart(0), fDecay(0), fCTauPerMass(0)
 //    ,fDecayLambdaTable(0)
-{}
+{
+}
 
 //___________________________________________________________________
 TPDecay::TPDecay(int nsample, int npart, TFinState *decay)
@@ -45,9 +47,9 @@ bool TPDecay::GetDecay(int pindex, int ifs, int &npart, const int *&pid, const f
 //___________________________________________________________________
 bool TPDecay::HasDecay(int pindex) const {
   if (fDecay[pindex].GetNsecs() == 0)
-    return kFALSE;
+    return false;
 
-  return kTRUE;
+  return true;
 }
 
 void TPDecay::SetCTauPerMass(double *ctaupermass, int np) {

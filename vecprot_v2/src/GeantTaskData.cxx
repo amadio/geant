@@ -2,15 +2,11 @@
 #include "globals.h"
 #include "GeantBasket.h"
 #include "GeantPropagator.h"
+#include "Geant/Typedefs.h"
 
-#include "TArrayI.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/LogicalVolume.h"
-typedef vecgeom::LogicalVolume TGeoVolume;
-#else
-#include "TGeoVolume.h"
-#endif
+#ifdef USE_ROOT
 #include "TRandom.h"
+#endif
 
 #include "base/SOA3D.h"
 
@@ -35,7 +31,11 @@ GeantTaskData::GeantTaskData(int nthreads, int maxDepth, int maxPerBasket)
   fDblArray = new double[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
 #ifndef GEANT_NVCC
+#ifdef USE_ROOT
   fRndm = new TRandom();
+#else
+  fRndm = &RNG::Instance();
+#endif
 #endif
 }
 
@@ -55,7 +55,11 @@ GeantTaskData::GeantTaskData()
   fSOA3Dworkspace1 = new vecgeom::SOA3D<double>(fSizeInt);
   fSOA3Dworkspace2 = new vecgeom::SOA3D<double>(fSizeInt);
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
+#ifdef USE_ROOT
   fRndm = new TRandom();
+#else
+  fRndm = &RNG::Instance();
+#endif
 }
 
 //______________________________________________________________________________

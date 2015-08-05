@@ -18,13 +18,14 @@
 #include "TGeoBranchArray.h"
 #endif
 
+#ifdef USE_ROOT
+#include "TStorage.h"
 ClassImp(TTabPhysProcess)
+#endif
 
     //______________________________________________________________________________
     TTabPhysProcess::TTabPhysProcess()
-    : PhysicsProcess(), fMgr(0), fXsecFileName(), fFinalSFileName()
-
-{
+    : PhysicsProcess(), fMgr(0), fXsecFileName(), fFinalSFileName() {
   // I/O ctor
   TObject::SetBit(kDiscrete);
 }

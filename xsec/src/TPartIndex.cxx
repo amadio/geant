@@ -8,7 +8,9 @@ using std::transform;
 using std::string;
 using std::map;
 
+#ifdef USE_ROOT
 ClassImp(TPartIndex)
+#endif
 
     const
     char *TPartIndex::fgPrName[FNPROC] = {"Transport",    "MultScatt",   "Ionisation", "Decay",      "inElastic",
@@ -204,6 +206,7 @@ void TPartIndex::SetPDGToGVMap(std::map<int, int> &theMap) {
   fSpecGVIndices[3] = fPDGToGVMap.find(2212)->second; // proton
 }
 
+#ifdef USE_ROOT
 //______________________________________________________________________________
 void TPartIndex::Streamer(TBuffer &R__b) {
   // Stream an object of class TPartIndex.
@@ -221,7 +224,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
 // std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
 // create direct access vector with GeantV code
 #ifdef USE_VECGEOM_NAVIGATOR
-      const Particle_t *pp = &Particle::GetParticle(p->first);
+      const Particle_t *pp = &Particle_t::GetParticle(p->first);
       // set the code inside the particle too
       const_cast<Particle_t *>(pp)->SetCode(p->second);
       if (pp->Mass() >= 0)
@@ -396,6 +399,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
     R__b.WriteClassBuffer(TPartIndex::Class(), this);
   }
 }
+#endif
 
 // semi empirical Bethe-Weizsacker mass formula based on the liquid drop model
 // with coefficients determined by fitting to experimental mass data (AME2003)and
