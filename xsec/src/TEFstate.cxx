@@ -1,5 +1,6 @@
 #ifdef USE_ROOT
 #include "TFile.h"
+#include "TError.h"
 #endif
 
 #include <TPFstate.h>
@@ -145,7 +146,8 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
     return fElements[fNLdElems++];
   }
 #else
-  log_error(std::cout, "Element z %d a %d not found", z, a);
+  log_fatal(std::cout, "Element z %d a %d not found\n", z, a);
+  exit(1);
   return 0;
 #endif
 }
