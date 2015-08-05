@@ -1086,7 +1086,7 @@ int main(int argc, char **argv) {
                                (const char *)particle->GetParticleName(), (const char *)ph->GetProcessName(),
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
-			   de = en1 - en;
+                          de = en1 - en;
                         SampDisInt(matt, pos, dp, en, ph, nsample, verbose, vecfs[nbins * nprxs + j]);
                         //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j);
                         //                     vecfs[nbins*nprxs+j].Print();
@@ -1158,7 +1158,7 @@ int main(int argc, char **argv) {
                                (const char *)particle->GetParticleName(), (const char *)ptEloss->GetProcessName(),
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
-			   de = en1 - en;
+                          de = en1 - en;
                         SampDisInt(matt, pos, dp, de, ptEloss, nsample, verbose, vecfs[nbins * nprxs + j]);
                       }
                       if (curfs != nbins * nprxs + j) {
@@ -1228,7 +1228,7 @@ int main(int argc, char **argv) {
                                (const char *)particle->GetParticleName(), (const char *)ptEm->GetProcessName(),
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
-			   de = en1 - en;
+                          de = en1 - en;
                         SampDisInt(matt, pos, dp, de, ptEm, nsample, verbose, vecfs[nbins * nprxs + j]);
                       }
                       if (curfs != nbins * nprxs + j) {
@@ -1457,7 +1457,7 @@ int main(int argc, char **argv) {
       if (nsample) {
         fh->Write();
         fh->Close();
-	delete fh;
+        delete fh;
       }
 
       // Write all cross sections
@@ -1470,7 +1470,7 @@ int main(int argc, char **argv) {
           fxh->WriteObject(allElements[im], allElements[im]->GetName());
         fxh->Write();
         fxh->Close();
-	delete fxh;
+        delete fxh;
       }
       //      delete allElements;
 

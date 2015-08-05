@@ -349,7 +349,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
   begin = clock();
 
   if (e0 == 0.0 && (restProc || restDiscProc)) {
-     // G4ForceCondition fCondition;
+    // G4ForceCondition fCondition;
     // track status must be set properly
     gTrack->SetTrackStatus(fStopButAlive);
     // In SteppingManager::DefinePhysicalStepLength()
@@ -905,7 +905,7 @@ void checkBalance(const G4LorentzVector &porig, const G4LorentzVector &pmom, G4i
 }
 
 G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4int n, G4double eleft, G4double etot) {
-   //  G4double esum = etot;
+  //  G4double esum = etot;
   G4LorentzVector psum(0, 0, 0, 0);
   for (G4int i = 0; i < n; ++i)
     psum += secs[i].Get4Momentum();
