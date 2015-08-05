@@ -27,6 +27,8 @@
 #include "TGeoXtru.h"
 #include "TGeoCompositeShape.h"
 #include "TGeoPhysicalNode.h"
+#include <algorithm>
+
 
 
 // GUI to draw the geometry shapes
@@ -37,6 +39,190 @@ Bool_t grotate = kFALSE;
 Bool_t axis = kTRUE;
 void autorotate();
 //______________________________________________________________________________
+
+void scan() {
+    // Load some root geometry
+    TGeoVolume *top = gGeoManager->GetTopVolume();
+    TGeoIterator iter(top);
+    TGeoNode *current;
+    TGeoVolume *vol;
+    TGeoShape *shape;
+    TBuffer3D *buffer_vol;
+    TString path;
+
+    //--Consider each polygon of min 3 (triangles) and max 4 (quads) vertices.
+    //--vrtx containes the index to vertexes for each segment of the polugon (max 2*4=8)
+    //--vquad contains [continous] vertexes of the polygon (max=4)
+    int vrtx[8],vquad[4],indxf;
+
+
+    //FILE* file = fopen("geo-box.json", "wb"); 
+    // open a file for writing the son file format
+    ofstream file("geo-box.json");
+    file << "{" << "\n"
+         << "\"metadata\": { "
+         << "\n"
+         << "\"version\": 4,"
+         << "\n\"type\": \"geometry\","
+         << "\n\"generator\": \"GeometryExporter\"},"
+         << "\n\"vertices\":[\n";
+
+    std::cout << "Top volume: " << top->GetName() << std::endl;
+
+    top->InspectShape();
+    std::cout << std::endl << std::endl;
+    //--Loop on the volumes of the tree structure
+    while ((current=iter.Next())) {
+
+        iter.GetPath(path);
+        std::cout << std::endl << "====================================="<< std::endl;
+        std::cout << path << std::endl;
+
+        vol=current->GetVolume();
+        shape = vol->GetShape();
+
+        //--Call the triangulation routine
+        buffer_vol = shape->MakeBuffer3D();
+        cout <<"\n" << "No of Vertices: " << buffer_vol->NbPnts() <<"\n";
+        cout << "No of Segments: " << buffer_vol->NbSegs()<<"\n";
+        cout << "No of Polygons: " << buffer_vol->NbPols()<<"\n";
+        cout << endl << "============ VERTEXES ==========="<< endl;
+
+        int Kvertex=0;
+        for (int i=0;i<buffer_vol->NbPnts()*3; i=i+3) {
+            cout << "[ "<< Kvertex << " ]  "<< buffer_vol->fPnts[i] <<"  ||  "<< buffer_vol->fPnts[i+1]<<"  ||  "<<buffer_vol->fPnts[i+2] << "\n";
+            file << buffer_vol->fPnts[i] <<",  "<< buffer_vol->fPnts[i+1]<<",  "<<buffer_vol->fPnts[i+2] ;
+            if (i<buffer_vol->NbPnts()*3-3) {
+                file <<",\n";
+            } else {
+                file <<"\n";
+            }
+            Kvertex=Kvertex+1;
+        }
+        file << "]," << "\n";
+        
+        
+        std::cout << std::endl << "============ SEGMENTS ==========="<< endl;
+        int Ksegment=0;
+        for (int i=0;i<buffer_vol->NbSegs()*3; i=i+3) {
+            cout << "[ "<< Ksegment << " ]  "<< buffer_vol->fSegs[i] <<"  ||  "<< buffer_vol->fSegs[i+1]<<"  ||  "<<buffer_vol->fSegs[i+2] << "\n";
+            
+            Ksegment=Ksegment+1;
+        }
+        cout << endl << "============ POLYGONS ==========="<< endl;
+        
+        int IndexSegPolygon=1;
+        for (int i=0;i<buffer_vol->NbPols();i++) {
+            cout << "[ "<< i << " ]  "<<"  ||  "<<  buffer_vol->fPols[IndexSegPolygon-1];
+            for (int k=0;k<buffer_vol->fPols[IndexSegPolygon]+1;k++){
+                cout <<"  ||  "<<  buffer_vol->fPols[IndexSegPolygon+k];
+            }
+            cout << endl;
+            
+            IndexSegPolygon=IndexSegPolygon+buffer_vol->fPols[IndexSegPolygon]+2;
+        }
+
+        cout << endl << "============ POLYVERTEX ==========="<< endl;
+        
+
+        IndexSegPolygon=1;
+        file << "\"faces\": [\n";
+
+        for (int Kpolygon=0;Kpolygon<buffer_vol->NbPols();Kpolygon++) {
+            int iv=0;
+            for (int k=1;k<buffer_vol->fPols[IndexSegPolygon]+1;k++){
+                vrtx[iv]=buffer_vol->fSegs[3*buffer_vol->fPols[IndexSegPolygon+k]+1];
+                iv=iv+1;
+                vrtx[iv]=buffer_vol->fSegs[3*buffer_vol->fPols[IndexSegPolygon+k]+2];
+                iv=iv+1;
+            }
+            cout << endl << "POLYVERTEX < " << Kpolygon <<" >  --> ";
+
+            for (int ks=0;ks<iv;ks++){
+              cout <<  vrtx[ks]<< " , ";
+            }
+            cout << "\n";
+            cout << endl << "POLYGON < " << Kpolygon <<" >  --> ";
+
+
+            //---
+            //  Check that segments and vertexes are in the correct order
+            //  Starting from the first segment (vrtx[0]-vrtx[1]),
+            //  the second segment must have the vertex vrtx[1] and this should be the first in the order
+            //  As a result quad will contain the vertexes
+            //---
+
+            vquad[0]=vrtx[0];
+            vquad[1]=vrtx[1];
+            vrtx[0]=-1;
+            vrtx[1]=-1;
+
+            int kvert=2;
+            while (kvert<buffer_vol->fPols[IndexSegPolygon]) {
+              for (int ks=1;ks<iv;ks++){
+                if (vrtx[ks*2+1]==vquad[kvert-1]){
+                  vquad[kvert]=vrtx[ks*2];
+                  vrtx[ks*2]=-1;
+                  vrtx[ks*2+1]=-1;
+                  kvert=kvert+1;
+                  break;
+                } else if (vrtx[ks*2]==vquad[kvert-1]){
+                  vquad[kvert]=vrtx[ks*2+1];
+                  vrtx[ks*2]=-1;
+                  vrtx[ks*2+1]=-1;
+                  kvert=kvert+1;
+                  break;
+                }
+              }
+            }
+
+            int NvertexPolygon=kvert-1;
+            
+            for  (int i1=0;i1<=NvertexPolygon;i1++) {
+                cout <<  vquad[i1]<< " || ";
+            }
+            cout << endl;
+
+            //---
+            //  write faces on json file and check if they are triangles or quads. 
+            //  Lines should not end with "," followed by "}"
+            //---
+
+            int ipoly=0;
+            if (buffer_vol->fPols[IndexSegPolygon]==4)ipoly=1;
+            file << ipoly <<",   ";
+            for  (int i1=0;i1<=NvertexPolygon;i1++) {
+                if (Kpolygon==buffer_vol->NbPols()-1 && i1 == NvertexPolygon) {
+                    file <<  vquad[i1] << " ";
+                } else {
+                    file <<  vquad[i1] << ",";
+                }
+                
+            }
+            file << "\n";
+
+            IndexSegPolygon=IndexSegPolygon+buffer_vol->fPols[IndexSegPolygon]+2;
+        }
+        file << "]\n}\n";
+        
+        //UInt_t NbPnts() const { return fNbPnts; }
+        //UInt_t NbSegs() const { return fNbSegs; }
+        //UInt_t NbPols() const { return fNbPols; }
+        // SECTION: kRaw
+        //Double_t *fPnts;              // x0, y0, z0, x1, y1, z1, ..... ..... ....
+        //Int_t    *fSegs;              // c0, p0, q0, c1, p1, q1, ..... ..... ....
+        //Int_t    *fPols;              // c0, n0, s0, s1, ... sn, c1, n1, s0, ... sn
+        
+        //$ROOTSYS/core/base/inc/TBuffer3D.h
+        
+        file.close(); // close the file handle
+ 
+        std::cout << "\n====================================="<< std::endl<< std::endl;
+        //current->InspectNode();
+    }
+}
+
+
 void MakePicture()
 {
    TView *view = gPad->GetView();
@@ -234,6 +420,7 @@ void geodemo ()
    bar->AddButton("COMMENTS  ON/OFF","comments = !comments;","Toggle explanations pad ON/OFF");
    bar->AddButton("AXES ON/OFF","axes()","Toggle axes ON/OFF");
    bar->AddButton("AUTOROTATE ON/OFF","autorotate()","Toggle autorotation ON/OFF");
+   bar->AddButton("Print        ","scan()","Print the tree structure");
    bar->Show();
    gROOT->SaveContext();
    gRandom = new TRandom3();

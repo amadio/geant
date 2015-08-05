@@ -27,6 +27,8 @@
 #include "TGeoXtru.h"
 #include "TGeoCompositeShape.h"
 #include "TGeoPhysicalNode.h"
+#include <algorithm>
+
 
 
 // GUI to draw the geometry shapes
@@ -37,6 +39,151 @@ Bool_t grotate = kFALSE;
 Bool_t axis = kTRUE;
 void autorotate();
 //______________________________________________________________________________
+
+void scan() {
+    // Load some root geometry
+    TGeoVolume *top = gGeoManager->GetTopVolume();
+    TGeoIterator iter(top);
+    TGeoNode *current;
+    TGeoVolume *vol;
+    TGeoShape *shape;
+    TGeoBBox *gbox;
+    TBuffer3D *buffer_vol;
+    int vrtx[8],indxf;
+    //FILE* file = fopen("geo-box.json", "wb"); // open a file for writing
+    ofstream file("geo-box.json");
+    file << "{" << "\n"
+         << "\"metadata\": { "
+         << "\n"
+         << "\"version\": 4,"
+         << "\n\"type\": \"geometry\","
+         << "\n\"generator\": \"GeometryExporter\"},"
+         << "\n\"vertices\":[\n";
+
+
+    std::cout << "Top volume: " << top->GetName() << std::endl;
+    top->InspectShape();
+    TString path;
+    std::cout << std::endl;
+    std::cout << std::endl;
+    while ((current=iter.Next())) {
+        iter.GetPath(path);
+        std::cout << std::endl << "====================================="<< std::endl;
+        std::cout << path << std::endl;
+        gbox=(TGeoBBox *)current->GetVolume()->GetShape();
+        
+        vol=current->GetVolume();
+        shape = vol->GetShape();
+        buffer_vol = shape->MakeBuffer3D();
+        cout <<"\n" << "No of Vertices: " << buffer_vol->NbPnts() <<"\n";
+        cout << "No of Segments: " << buffer_vol->NbSegs()<<"\n";
+        cout << "No of Polygons: " << buffer_vol->NbPols()<<"\n";
+        
+        cout << endl << "============ VERTEXES ==========="<< endl;
+        int j=0;
+        for (int i=0;i<buffer_vol->NbPnts()*3; i=i+3) {
+            cout << "[ "<< j << " ]  "<< buffer_vol->fPnts[i] <<"  ||  "<< buffer_vol->fPnts[i+1]<<"  ||  "<<buffer_vol->fPnts[i+2] << "\n";
+            file << buffer_vol->fPnts[i] <<",  "<< buffer_vol->fPnts[i+1]<<",  "<<buffer_vol->fPnts[i+2] ;
+            if (i<buffer_vol->NbPnts()*3-3) {
+                file <<",\n";
+            } else {
+                file <<"\n";
+            }
+            j=j+1;
+        }
+        file << "]," << "\n";
+        
+        
+        std::cout << std::endl << "============ SEGMENTS ==========="<< endl;
+        j=0;
+        for (int i=0;i<buffer_vol->NbSegs()*3; i=i+3) {
+            cout << "[ "<< j << " ]  "<< buffer_vol->fSegs[i] <<"  ||  "<< buffer_vol->fSegs[i+1]<<"  ||  "<<buffer_vol->fSegs[i+2] << "\n";
+            
+            j=j+1;
+        }
+        
+        cout << endl << "============ POLYGONS ==========="<< endl;
+        
+        j=1;
+        for (int i=0;i<buffer_vol->NbPols();i++) {
+            cout << "[ "<< i << " ]  "<<"  ||  "<<  buffer_vol->fPols[j-1];
+            for (int k=0;k<buffer_vol->fPols[j]+1;k++){
+                cout <<"  ||  "<<  buffer_vol->fPols[j+k];
+            }
+            cout << endl;
+            
+            j=j+buffer_vol->fPols[j]+2;
+        }
+
+        cout << endl << "============ POLYVERTEX ==========="<< endl;
+        
+        j=1;
+        file << "\"faces\": [\n";
+        for (int i=0;i<buffer_vol->NbPols();i++) {
+            int iv=0;
+            //cout << "\nPolygon--> " << i << " <--iv= " <<iv <<" -- "" --J= " <<j <<" -- ";
+            for (int k=1;k<buffer_vol->fPols[j]+1;k++){
+                //cout << "\n *****  k="<<k <<"  iv="<<iv<<"  buffer_vol->fPols[j]+1="<<buffer_vol->fPols[j]+1<<" ----- \n";
+                vrtx[iv]=buffer_vol->fSegs[3*buffer_vol->fPols[j+k]+1];
+                iv=iv+1;
+                vrtx[iv]=buffer_vol->fSegs[3*buffer_vol->fPols[j+k]+2];
+                iv=iv+1;
+                
+                cout <<"  ||  "<<  buffer_vol->fSegs[3*buffer_vol->fPols[j+k]+1] << "  |  " << buffer_vol->fSegs[3*buffer_vol->fPols[j+k]+2] << "  ||  ";
+            }
+            cout << endl << "POLYVERTEX < " << i <<" >  ||";
+            
+            std::sort(std::begin(vrtx), std::end(vrtx));
+            int iu=0;
+            for  (int i1=1;i1<iv;i1++) {
+                if (vrtx[iu]!=vrtx[i1]){
+                    iu=iu+1;
+                    vrtx[iu]=vrtx[i1];
+                }
+            }
+            
+            for  (int i1=0;i1<=iu;i1++) {
+                cout <<  vrtx[i1]<< " || ";
+            }
+            cout << endl;
+            
+            //file << "\"faces\": [1, 0,1,2,3, 1, 0,1,6,5, 1, 0,3,4,5, 1, 7,4,5,6, 1, 7,2,3,4, 1, 7,6,1,2]}\n";
+            int ipoly=0;
+            if (buffer_vol->fPols[j]==4)ipoly=1;
+            file << ipoly <<",   ";
+            for  (int i1=0;i1<=iu;i1++) {
+                if (i==buffer_vol->NbPols()-1 && i1 == iu) {
+                    file <<  vrtx[i1] << " ";
+                } else {
+                    file <<  vrtx[i1] << ",";
+                }
+                
+            }
+            file << "\n";
+            
+            j=j+buffer_vol->fPols[j]+2;
+        }
+        file << "]\n}\n";
+        
+        //UInt_t NbPnts() const { return fNbPnts; }
+        //UInt_t NbSegs() const { return fNbSegs; }
+        //UInt_t NbPols() const { return fNbPols; }
+        // SECTION: kRaw
+        //Double_t *fPnts;              // x0, y0, z0, x1, y1, z1, ..... ..... ....
+        //Int_t    *fSegs;              // c0, p0, q0, c1, p1, q1, ..... ..... ....
+        //Int_t    *fPols;              // c0, n0, s0, s1, ... sn, c1, n1, s0, ... sn
+        
+        //$ROOTSYS/core/base/inc/TBuffer3D.h
+        
+        
+        file.close(); // close the file handle
+ 
+        std::cout << "\n====================================="<< std::endl<< std::endl;
+        //current->InspectNode();
+    }
+}
+
+
 void MakePicture()
 {
    TView *view = gPad->GetView();
@@ -188,9 +335,9 @@ void help() {
 }
 
 //______________________________________________________________________________
-void geodemo ()
+void gbackup ()
 {
-// root[0] .x geodemo.C
+// root[0] .x gbackup.C
 // root[1] box();   //draw a TGeoBBox with description
 //
 // The box can be divided on one axis.
@@ -234,6 +381,7 @@ void geodemo ()
    bar->AddButton("COMMENTS  ON/OFF","comments = !comments;","Toggle explanations pad ON/OFF");
    bar->AddButton("AXES ON/OFF","axes()","Toggle axes ON/OFF");
    bar->AddButton("AUTOROTATE ON/OFF","autorotate()","Toggle autorotation ON/OFF");
+   bar->AddButton("Print        ","scan()","Print the tree structure");
    bar->Show();
    gROOT->SaveContext();
    gRandom = new TRandom3();
