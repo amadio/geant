@@ -92,9 +92,9 @@ void B1RunAction::EndOfRunAction(const G4Run* aRun)
   G4double rms = energy2Sum - energySum*energySum/nofEvents;
   if (rms > 0.) rms = std::sqrt(rms); else rms = 0.;
 
-  G4double mass = B1SteppingAction::Instance()->GetVolume()->GetMass();
-  G4double dose = energySum/mass;
-  G4double rmsDose = rms/mass;
+  //  G4double mass = B1SteppingAction::Instance()->GetVolume()->GetMass();
+  //  G4double dose = energySum/mass;
+  //  G4double rmsDose = rms/mass;
 
   // Run conditions
   //

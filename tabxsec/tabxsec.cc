@@ -480,13 +480,13 @@ int main(int argc, char **argv) {
           continue; // Do not do the stuff below ... it will fail
         }
 
-        char sl[3] = "ll";
+        char csl[3] = "ll";
         if (particle->IsShortLived())
-          strcpy(sl, "sl");
+          strcpy(csl, "sl");
         G4double life = particle->GetPDGLifeTime() / s;
         G4double width = particle->GetPDGWidth();
         sprintf(string, "%-20s (%10d): %s %11.5g %11.5g %11.5g", (const char *)particle->GetParticleName(),
-                particle->GetPDGEncoding(), sl, life, width, life * width / hbar_Planck * s);
+                particle->GetPDGEncoding(), csl, life, width, life * width / hbar_Planck * s);
 
         pPDG[ilast] = pdpdg[ilast]->PdgCode();
         if (!pPDG[ilast]) {
@@ -1086,8 +1086,8 @@ int main(int argc, char **argv) {
                                (const char *)particle->GetParticleName(), (const char *)ph->GetProcessName(),
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
-                          G4double de = en1 - en;
-                        SampDisInt(matt, pos, dp, de, ph, nsample, verbose, vecfs[nbins * nprxs + j]);
+			   de = en1 - en;
+                        SampDisInt(matt, pos, dp, en, ph, nsample, verbose, vecfs[nbins * nprxs + j]);
                         //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j);
                         //                     vecfs[nbins*nprxs+j].Print();
                       }
@@ -1158,7 +1158,7 @@ int main(int argc, char **argv) {
                                (const char *)particle->GetParticleName(), (const char *)ptEloss->GetProcessName(),
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
-                          G4double de = en1 - en;
+			   de = en1 - en;
                         SampDisInt(matt, pos, dp, de, ptEloss, nsample, verbose, vecfs[nbins * nprxs + j]);
                       }
                       if (curfs != nbins * nprxs + j) {
@@ -1228,7 +1228,7 @@ int main(int argc, char **argv) {
                                (const char *)particle->GetParticleName(), (const char *)ptEm->GetProcessName(),
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
-                          G4double de = en1 - en;
+			   de = en1 - en;
                         SampDisInt(matt, pos, dp, de, ptEm, nsample, verbose, vecfs[nbins * nprxs + j]);
                       }
                       if (curfs != nbins * nprxs + j) {
@@ -1332,9 +1332,9 @@ int main(int argc, char **argv) {
                       G4ThreeVector dirnew(0, 0, 0), displacement;
 
                       // Sample Scattering by calling the full DoIt
-                      G4VParticleChange *pc = pms->AlongStepDoIt(*track, step);
+                      G4VParticleChange *pch = pms->AlongStepDoIt(*track, step);
                       // *************
-                      G4ParticleChangeForMSC *particleChng = dynamic_cast<G4ParticleChangeForMSC *>(pc);
+                      G4ParticleChangeForMSC *particleChng = dynamic_cast<G4ParticleChangeForMSC *>(pch);
                       if (particleChng == 0) {
                         G4cout << "ERROR> Incorrect type of Particle Change" << G4endl;
                         exit(1);
@@ -1350,7 +1350,7 @@ int main(int argc, char **argv) {
                       mslen[j] += proposedStep / stepSize;
                       mslsig[j] += (proposedStep / stepSize) * (proposedStep / stepSize);
 
-                      pc->UpdateStepForAlongStep(&step);
+                      pch->UpdateStepForAlongStep(&step);
                       // step->UpdateTrack();
 
                       // Post Step Do It
@@ -1457,18 +1457,20 @@ int main(int argc, char **argv) {
       if (nsample) {
         fh->Write();
         fh->Close();
+	delete fh;
       }
 
       // Write all cross sections
       if (xsecs) {
-        TFile *fh = new TFile("xsec.root", "recreate");
-        fh->SetCompressionLevel(0);
+        TFile *fxh = new TFile("xsec.root", "recreate");
+        fxh->SetCompressionLevel(0);
         // allElements->Add(TPartIndex::I());
-        fh->WriteObject(TPartIndex::I(), "PartIndex");
+        fxh->WriteObject(TPartIndex::I(), "PartIndex");
         for (G4int im = 0; im < nmat; ++im)
-          fh->WriteObject(allElements[im], allElements[im]->GetName());
-        fh->Write();
-        fh->Close();
+          fxh->WriteObject(allElements[im], allElements[im]->GetName());
+        fxh->Write();
+        fxh->Close();
+	delete fxh;
       }
       //      delete allElements;
 

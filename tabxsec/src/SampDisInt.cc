@@ -228,7 +228,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
 
 {
 
-  G4VDiscreteProcess *discProc = dynamic_cast<G4VDiscreteProcess *>(proc);
+  // G4VDiscreteProcess *discProc = dynamic_cast<G4VDiscreteProcess *>(proc);
   G4VContinuousDiscreteProcess *contdProc = dynamic_cast<G4VContinuousDiscreteProcess *>(proc);
   G4HadronicProcess *hadp = dynamic_cast<G4HadronicProcess *>(proc);
   G4VEmProcess *vemp = dynamic_cast<G4VEmProcess *>(proc);
@@ -307,7 +307,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
   if (!G4StateManager::GetStateManager()->SetNewState(G4State_Idle))
     cout << "G4StateManager PROBLEM: Not able to set it to Idle state! " << G4endl;
 
-  G4double e;
+  // G4double e;
   G4VParticleChange *aChange = 0;
 
   G4int isurv = 0;
@@ -317,7 +317,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
 
   fs.kerma = 0;
   G4bool needendl = FALSE;
-  G4int modu = 10000;
+  // G4int modu = 10000;
 
   // gTrack->SetKineticEnergy(e0);
   if (std::fabs(gTrack->GetKineticEnergy() - e0) > 1.0e-8 * e0) {
@@ -349,11 +349,11 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
   begin = clock();
 
   if (e0 == 0.0 && (restProc || restDiscProc)) {
-    G4ForceCondition fCondition;
+     // G4ForceCondition fCondition;
     // track status must be set properly
     gTrack->SetTrackStatus(fStopButAlive);
     // In SteppingManager::DefinePhysicalStepLength()
-    G4double physIntLength = proc->AtRestGetPhysicalInteractionLength(*gTrack, &fCondition);
+    // G4double physIntLength = proc->AtRestGetPhysicalInteractionLength(*gTrack, &fCondition);
     // -- Make it happen in time
     aChange = proc->AtRestDoIt(*gTrack, *step);
     aChange->UpdateStepForAtRest(step);
@@ -530,9 +530,9 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
       // zero if the status is fStop... . So do it only
       if (aChange->GetTrackStatus() == fAlive) {
         G4double cost = labv.vect().cosTheta(gTrack->GetMomentum());
-        G4double ken = gTrack->GetKineticEnergy();
+        // G4double ken = gTrack->GetKineticEnergy();
         G4double mas = gTrack->GetParticleDefinition()->GetPDGMass();
-        G4double pmo = gTrack->GetMomentum().mag();
+        // G4double pmo = gTrack->GetMomentum().mag();
         if (needendl) {
           G4cout << G4endl;
           needendl = FALSE;
@@ -646,7 +646,6 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
   G4int n_po = 0;
   const G4DynamicParticle *sec = 0;
   G4ParticleDefinition *pd;
-  G4int j;
 
   //  Examine the secondaries
   G4DynamicParticle *secs = 0;
@@ -714,7 +713,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
       ptemp -= secs[i].Get4Momentum();
     }
     G4double isomass = GetNuclearMass(Z, A + 1, verbose);
-    G4double mmass = ptemp.m();
+    // G4double mmass = ptemp.m();
     ptemp[3] = std::sqrt(ptemp.vect().mag2() + isomass * isomass);
     pcons -= ptemp;
     bnum -= A + 1;
@@ -808,8 +807,8 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
       }
     }
     for (G4int i = 0; i < n; ++i) {
-      G4ParticleDefinition *pd = secs[i].GetDefinition();
-      G4int enc = pd->GetPDGEncoding();
+      G4ParticleDefinition *pde = secs[i].GetDefinition();
+      G4int enc = pde->GetPDGEncoding();
       G4int gVpid = 0;
       if (enc > 1000000000 && enc < 2000000000)
         gVpid = enc;
@@ -906,7 +905,7 @@ void checkBalance(const G4LorentzVector &porig, const G4LorentzVector &pmom, G4i
 }
 
 G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4int n, G4double eleft, G4double etot) {
-  G4double esum = etot;
+   //  G4double esum = etot;
   G4LorentzVector psum(0, 0, 0, 0);
   for (G4int i = 0; i < n; ++i)
     psum += secs[i].Get4Momentum();
@@ -914,7 +913,7 @@ G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4in
     G4cout << "You screwed it up" << G4endl;
     exit(1);
   }
-  G4DynamicParticle *bsecs = new G4DynamicParticle[n];
+  //  G4DynamicParticle *bsecs = new G4DynamicParticle[n];
   // The cms momentum
   G4ThreeVector cms(psum[0] / psum[3], psum[1] / psum[3], psum[2] / psum[3]);
   G4ThreeVector cmsori(porig[0] / porig[3], porig[1] / porig[3], porig[2] / porig[3]);

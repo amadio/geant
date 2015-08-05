@@ -146,6 +146,7 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
   }
 #else
   log_error(std::cout, "Element z %d a %d not found", z, a);
+  return 0;
 #endif
 }
 

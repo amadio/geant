@@ -110,7 +110,7 @@ double TVNudyModel::GetEo(double ein) {
       el = TNudyCore::Instance()->BinarySearch(xengr.GetArray(), nens, ein);
       Info("Searching", "%d", el);
     }
-    Info("", "%d - > %d", f5Tel, el);
+    Info("", "%f - > %d", f5Tel, el);
     f5Tel = el;
   } else {
     el = f5Tel;
@@ -813,10 +813,10 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
         int ntemp = nEout[i - 1];
         nEout[i - 1] = nEout[j - 1];
         nEout[j - 1] = ntemp;
-        char buffer[sizeof(TArrayD)];
-        memcpy(buffer, &fEPtable[i - 1], sizeof(TArrayD));
-        memcpy(&fEPtable[i - 1], &fEPtable[j - 1], sizeof(TArrayD));
-        memcpy(&fEPtable[j - 1], buffer, sizeof(TArrayD));
+	TArrayD buffer;
+        buffer = fEPtable[i - 1];
+        fEPtable[i - 1] = fEPtable[j - 1];
+        fEPtable[j - 1] = buffer;
       }
     }
   }
@@ -1104,7 +1104,7 @@ void TVNudyModel::DisplayData(FileData_t file) {
   c1->GetFrame()->SetFillColor(21);
   c1->GetFrame()->SetBorderSize(5);
   c1->Modified();
-  c1->SaveAs(Form("%d_%d_%d_%d_%d.eps", fMAT, fTemp, fPdg, fReaction, file));
+  c1->SaveAs(Form("%d_%d_%d_%d_%d.eps", fMAT, (int) fTemp, fPdg, fReaction, file));
   c1->Close();
   if (!gr) {
     delete gr;
