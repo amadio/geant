@@ -140,7 +140,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   int &curMF = mtf[1];
   int oldMF = 0;
 
-  char name[12] = {' '};
+  char name[12] = "\0";
   int mZA;
 
   // Continue reading the header
@@ -162,7 +162,8 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Now we can build the name
   mZA = mat->GetZA();
 
-  snprintf(name, 13, "%d-%s-%03d%s", mZA / 1000, fkElNam[mZA / 1000], mZA % 1000, fkElIso[mat->GetLISO()]);
+  snprintf(name, 11, "%2d-%s-%03d%s", mZA / 1000, fkElNam[mZA / 1000], mZA % 1000, fkElIso[mat->GetLISO()]);
+  name[11]='\0';
 
   mat->SetName(name);
   if (fLogLev > 4)
