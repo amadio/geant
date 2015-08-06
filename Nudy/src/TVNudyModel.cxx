@@ -474,6 +474,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
           Info("File5_Pass2", "Succesful Integral %e at E = %e PPE = %e", hint, energy, ppe);
         }
       }
+      delete [] engr;
     } else if (header->GetL1() == 5) {
       double u = header->GetC1();
       TNudyEndfTab1 *temptab = (TNudyEndfTab1 *)recIter.Next();
