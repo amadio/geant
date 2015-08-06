@@ -150,6 +150,10 @@ double *TNudyAlias::Randoms(int n) {
   for (i = 0; i < fLen; i++) {
     threads[i]->Join();
   }
+  for (i = 0; i < fLen; i++) {
+     delete threads[i];
+  }
+  delete [] threads;
   return fMult;
 }
 
