@@ -253,7 +253,7 @@ void TNudyCore::CumulativeIntegral(double *x, double *y, double *q, int len) {
   }
 }
 //______________________________________________________________________________
-void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const int npts, double *out) {
+void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const int npts, double *&out) {
   // This function evaluates the integral of discrete points using the trapezoidal rule
   // and returns the value of the integral at the same points in x
   if (!xpts || !ypts || (npts == 0)) {

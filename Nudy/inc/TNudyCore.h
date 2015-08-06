@@ -40,7 +40,7 @@ public:
   double BilinearInterploation(double x1, double y1, double x2, double y2, double z11, double z12, double z21,
                                double z22, double x, double y); // Biliniear Interpolation
   void TrapezoidalIntegral(double *xpts, double *ypts, const int npts,
-                           double *out); // Calculates integral of discrete points
+                           double *&out); // Calculates integral of discrete points
   void CumulativeIntegral(double *x, double *y, double *q, int len);
   int BinarySearch(double *array, int len, double val);
   double InterpolateScale(double x[2], double y[2], int law, double xx);
