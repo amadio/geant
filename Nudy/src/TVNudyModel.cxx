@@ -267,7 +267,7 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file) {
             printf("a%d = %e\n", j, lCoef[i].At(j));
           }
         }
-	delete [] lCoef;
+        delete[] lCoef;
       } else if (LTT == 3 && LI == 0) {
         TNudyEndfTab2 *lowE = (TNudyEndfTab2 *)recIter.Next();
         TArrayD ein(lowE->GetN2());
@@ -315,8 +315,7 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file) {
           printf("Integral = %e", h);
         }
         TNudyAliasCont::BuildIntermediate(fAPAlias, f4nens);
-	delete [] lCoef;
-
+        delete[] lCoef;
       }
     }
   }
