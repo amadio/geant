@@ -125,6 +125,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
               << "    Required version : " << GetVersion() << "\n"
               << "    Update your xsec_*.root and fstate_*.root data files !     "
               << "\n*************************************************************\n\n";
+    delete this;
     exit(EXIT_FAILURE);
   }
 
