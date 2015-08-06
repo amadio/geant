@@ -47,7 +47,7 @@ TMXsec::~TMXsec() {
   delete[] fRatios;
   delete[] fRange;
   for (int i = 0; i < TPartIndex::I()->NPartCharge(); ++i)
-     delete [] fInvRangeTable[i];
+    delete[] fInvRangeTable[i];
   delete fInvRangeTable;
 }
 
