@@ -80,6 +80,7 @@ private:
       return;
     T *newarray = new T[wantedsize];
     delete[] array;
+    array = newarray;
     currentsize = wantedsize;
   }
 
