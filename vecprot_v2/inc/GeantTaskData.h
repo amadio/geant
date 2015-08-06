@@ -148,6 +148,7 @@ public:
    * @brief Function that returns a (per thread/task) preallocated NavigationState object
    *
    */
+  GEANT_CUDA_BOTH_CODE
   VolumePath_t *GetPath() {
     return fPath;
   }
