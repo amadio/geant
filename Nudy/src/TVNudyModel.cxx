@@ -1048,7 +1048,7 @@ void TVNudyModel::DisplayData(FileData_t file) {
   c1->SetFillColor(42);
   c1->SetGrid();
   TCanvas *canvas;
-  TGraph2D *gr2;
+  TGraph2D *gr2 = NULL;
   TGraph *gr = NULL;
   // Draw data
   switch (file) {
