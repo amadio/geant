@@ -163,7 +163,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   mZA = mat->GetZA();
 
   snprintf(name, 11, "%2d-%s-%03d%s", mZA / 1000, fkElNam[mZA / 1000], mZA % 1000, fkElIso[mat->GetLISO()]);
-  name[11]='\0';
+  name[11] = '\0';
 
   mat->SetName(name);
   if (fLogLev > 4)
