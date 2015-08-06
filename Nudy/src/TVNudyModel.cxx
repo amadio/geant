@@ -672,7 +672,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
         }
         for (int j = 1; j <= nEout[jg - 1]; j++)
           fEPtable[jg - 1].GetArray()[2 * j - 1] += ppe * tmppb[j - 1] / hint;
-	delete [] tmppb;
+        delete[] tmppb;
       }
     }
   }
