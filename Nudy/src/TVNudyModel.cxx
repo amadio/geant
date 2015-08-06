@@ -400,7 +400,7 @@ void TVNudyModel::File5_Pass3() {
       iend--;
 
     printf("ENERGY = %e\n", xengr[jen - 1]);
-    for (int ja = 0; ja <= iend; ja++) {
+    for (int ja = 0; ja < iend; ja++) {
       aX[ja] = fEPtable[jen - 1].GetAt(2 * ja);
       aP[ja] = fEPtable[jen - 1].GetAt(2 * ja + 1);
       printf("FX = %e FP = %e\n", aX[ja], aP[ja]);
