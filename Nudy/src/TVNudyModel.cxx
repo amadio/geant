@@ -836,14 +836,10 @@ void TVNudyModel::File5_Pass1(TNudyEndfSec *sec) {
 //______________________________________________________________________________
 void TVNudyModel::PopulateGrid(int index) {
   int max = 50;
-  double emin = 1e-5;
-  double emax = 2e7;
-  double fact, ef;
-  if (emax > 0) {
-    fact = exp(log(emax / emin) / (max - 1));
-    ef = emin / fact;
-  } else {
-  }
+  const double emin = 1e-5;
+  const double emax = 2e7;
+  const double fact = exp(log(emax / emin) / (max - 1));
+  double ef = emin / fact;
   if (index > nEout.GetSize() - 1)
     nEout.Set(index + 1);
   nEout[index] = max;
