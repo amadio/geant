@@ -1,8 +1,10 @@
-void runCMS(Int_t nthreads=4,
-	 const char *geomfile="../cmstrack/cms2015.root",
-	 const char *xsec="xsec_FTFP_BERT_G496p02_1mev.root",
-	 const char *fstate="fstate_FTFP_BERT_G496p02_1mev.root")
+void runCMS(int nthreads=4,
+            bool performance=true,
+	         const char *geomfile="../cmstrack/cms2015.root",
+	         const char *xsec="xsec_FTFP_BERT_G496p02_1mev.root",
+	         const char *fstate="fstate_FTFP_BERT_G496p02_1mev.root")
 {
+/*
    gSystem->Load("libPhysics");
    gSystem->Load("libHist");
    gSystem->Load("libThread");
@@ -11,28 +13,27 @@ void runCMS(Int_t nthreads=4,
    gSystem->Load("../lib/libGeant_v");
    gSystem->Load("../lib/libXsec");
    gSystem->Load("../lib/libGeantExamples");
-
+*/
 //=============================================================================
 // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
 //=============================================================================
-   Bool_t performance = true;
+//   bool performance = true;
 
-   Int_t ntotal   = 10;  // Number of events to be transported
-   Int_t nbuffered  = 5;   // Number of buffered events (tunable [1,ntotal])
+   int ntotal   = 10;  // Number of events to be transported
+   int nbuffered  = 5;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
    
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
-   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
+   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
    // Monitor different features
-   wmgr->SetNminThreshold(5*nthreads);
-   wmgr->SetMonitored(WorkloadManager::kMonQueue,          true & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonMemory,         false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonVectors,        false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonTracks,         false & (!performance));
-   Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
+   prop->SetNminThreshold(5*nthreads);
+   prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonTracks,         false & (!performance));
+   bool graphics = (prop->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;   
 
    // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
