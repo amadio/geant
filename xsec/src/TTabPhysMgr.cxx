@@ -125,7 +125,6 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
               << "    Required version : " << GetVersion() << "\n"
               << "    Update your xsec_*.root and fstate_*.root data files !     "
               << "\n*************************************************************\n\n";
-    delete this;
     exit(EXIT_FAILURE);
   }
 
@@ -1262,7 +1261,7 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, int itrack, double theta, do
 
 //______________________________________________________________________________
 char *TTabPhysMgr::GetVersion() {
-  char *ver = new char[512];
+  char ver[512];
   sprintf(ver, "%d.%d.%d", VersionMajor(), VersionMinor(), VersionSub());
   return ver;
 }
