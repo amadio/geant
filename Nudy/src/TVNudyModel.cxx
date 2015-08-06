@@ -1017,6 +1017,7 @@ void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
     }
     tab->Equate(linear);
     delete linear;
+    delete epval;
   }
 }
 
