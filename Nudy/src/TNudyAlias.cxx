@@ -151,9 +151,9 @@ double *TNudyAlias::Randoms(int n) {
     threads[i]->Join();
   }
   for (i = 0; i < fLen; i++) {
-     delete threads[i];
+    delete threads[i];
   }
-  delete [] threads;
+  delete[] threads;
   return fMult;
 }
 
