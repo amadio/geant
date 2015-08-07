@@ -8,15 +8,14 @@
 
 ClassImp(TNudyAlias)
 
-//_______________________________________________________________________________
-TNudyAlias::TNudyAlias(): fLen(0), fP(NULL), fX(NULL), fA(NULL), fR(NULL),
-   fRnd(NULL), fMult(NULL), fMultLen(0) {}
+    //_______________________________________________________________________________
+    TNudyAlias::TNudyAlias()
+    : fLen(0), fP(NULL), fX(NULL), fA(NULL), fR(NULL), fRnd(NULL), fMult(NULL), fMultLen(0) {}
 
 //_______________________________________________________________________________
-TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed):
-   fLen(len), fP(new double[fLen]), fX(new double[fLen]), fA(new double[fLen]), 
-   fR(new double[fLen]), fRnd(new TRandom(seed)), fMult(NULL), fMultLen(0)
-{
+TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed)
+    : fLen(len), fP(new double[fLen]), fX(new double[fLen]), fA(new double[fLen]), fR(new double[fLen]),
+      fRnd(new TRandom(seed)), fMult(NULL), fMultLen(0) {
   // Improve algorithm for building table
   int i, j;
   double sum, c, d, mean;
