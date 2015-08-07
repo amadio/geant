@@ -385,7 +385,7 @@ int main(int argc, char **argv) {
       G4MaterialTable *theMaterialTable = (G4MaterialTable *)G4Material::GetMaterialTable();
       //
       // now let's go for cross sections
-      char string[1024] = "\0";
+      char xstring[1024] = "\0";
       // Array of cross sections, say max 10 processes per particle
       G4float *pxsec = new G4float[maxproc * nbins];
       G4float *msang = new G4float[nbins];
@@ -487,7 +487,7 @@ int main(int argc, char **argv) {
           strcpy(csl, "sl");
         G4double life = particle->GetPDGLifeTime() / s;
         G4double width = particle->GetPDGWidth();
-        sprintf(string, "%-20s (%10d): %s %11.5g %11.5g %11.5g", (const char *)particle->GetParticleName(),
+        sprintf(xstring, "%-20s (%10d): %s %11.5g %11.5g %11.5g", (const char *)particle->GetParticleName(),
                 particle->GetPDGEncoding(), csl, life, width, life * width / hbar_Planck * s);
 
         pPDG[ilast] = pdpdg[ilast]->PdgCode();
@@ -517,7 +517,7 @@ int main(int argc, char **argv) {
               nproc = TRUE;
               ++ntotproc;
             }
-            sprintf(&string[strlen(string)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
+            sprintf(&xstring[strlen(xstring)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
                     p->GetProcessSubType());
           }
         }
@@ -533,7 +533,7 @@ int main(int argc, char **argv) {
           if (proot->Charge())
             ++npchar;
         }
-        printf("%s\n", string);
+        printf("%s\n", xstring);
       }
 
       // Figure out how many table entries were good
@@ -785,7 +785,7 @@ int main(int argc, char **argv) {
                      (const char *)particle->GetParticleName());
               exit(1);
             }
-            sprintf(string, "%-20s:", (const char *)particle->GetParticleName());
+            sprintf(xstring, "%-20s:", (const char *)particle->GetParticleName());
             G4ProcessManager *pManager = particle->GetProcessManager();
 
             // Loop over all the process active for this particle
@@ -799,7 +799,7 @@ int main(int argc, char **argv) {
               //
               for (G4int idx = 0; idx < pList->size(); idx++) {
                 G4VProcess *p = (*pList)[idx];
-                sprintf(&string[strlen(string)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
+                sprintf(&xstring[strlen(xstring)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
                         p->GetProcessSubType());
 
                 // Add information to the process dictionary
@@ -980,7 +980,7 @@ int main(int argc, char **argv) {
                    (const char *)particle->GetParticleName());
             exit(1);
           }
-          sprintf(string, "%-20s:", (const char *)particle->GetParticleName());
+          sprintf(xstring, "%-20s:", (const char *)particle->GetParticleName());
           G4ProcessManager *pManager = particle->GetProcessManager();
           G4bool nproc = FALSE;  // whether we have a process for this particle
           G4bool bdedx = FALSE;  // whether we have dedx for this particle
@@ -1007,7 +1007,7 @@ int main(int argc, char **argv) {
             curfs = 0;
             for (G4int idx = 0; idx < pList->size(); idx++) {
               G4VProcess *p = (*pList)[idx];
-              sprintf(&string[strlen(string)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
+              sprintf(&xstring[strlen(xstring)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
                       p->GetProcessSubType());
 
               // Add information to the process dictionary
@@ -1089,7 +1089,7 @@ int main(int argc, char **argv) {
                                (const char *)mat->GetName(), en / GeV);
                         if (ranen)
                           de = en1 - en;
-                        SampDisInt(matt, pos, dp, en, ph, nsample, verbose, vecfs[nbins * nprxs + j]);
+                        SampDisInt(matt, pos, dp, de, ph, nsample, verbose, vecfs[nbins * nprxs + j]);
                         //                     printf("vecfs[%d*%d+%d=%d].Print(): ",nbins,nprxs,j,nbins*nprxs+j);
                         //                     vecfs[nbins*nprxs+j].Print();
                       }
