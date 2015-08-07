@@ -330,8 +330,8 @@ void TVNudyModel::File5_Pass3() {
     int ibeg = 0, iend = 0;
     int ipoint = 0;
     double hintno = 0;
-    double aX[nEout[jen - 1]];
-    double aP[nEout[jen - 1]];
+    double aX[nEout[jen - 1] + 1];
+    double aP[nEout[jen - 1] + 1];
     for (int jp = 1; jp <= nEout[jen - 1] - 1; jp++) {
       hintno += 0.5 * (fEPtable[jen - 1].GetAt(2 * jp - 1) + fEPtable[jen - 1].GetAt(2 * jp + 1)) *
                 (fEPtable[jen - 1].GetAt(2 * jp) - fEPtable[jen - 1].GetAt(2 * jp - 2));
@@ -402,7 +402,7 @@ void TVNudyModel::File5_Pass3() {
       iend--;
 
     printf("ENERGY = %e\n", xengr[jen - 1]);
-    for (int ja = 0; ja < iend; ja++) {
+    for (int ja = 0; ja <= iend; ja++) {
       aX[ja] = fEPtable[jen - 1].GetAt(2 * ja);
       aP[ja] = fEPtable[jen - 1].GetAt(2 * ja + 1);
       printf("FX = %e FP = %e\n", aX[ja], aP[ja]);
@@ -998,8 +998,10 @@ void TVNudyModel::Linearize(TNudyEndfTab1 *tab) {
         }
       }
     }
-    if (!islin)
+    if (!islin) {
+      delete[] epval;
       return;
+    }
     for (int j1 = 1; j1 <= n2; j1++) {
       for (int j2 = j1 + 1; j2 <= n2; j2++) {
         if (epval[2 * j1 - 2] > epval[2 * j2 - 2]) {
