@@ -416,14 +416,14 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
     }
   }
   tc->Update();
-  for(int i=0; i<nreac; ++i) {
-     delete ptext[i];
-     delete text[i];
-     delete line[i];
+  for (int i = 0; i < nreac; ++i) {
+    delete ptext[i];
+    delete text[i];
+    delete line[i];
   }
-  delete [] ptext;
-  delete [] text;
-  delete [] line;
+  delete[] ptext;
+  delete[] text;
+  delete[] line;
 }
 
 //___________________________________________________________________
