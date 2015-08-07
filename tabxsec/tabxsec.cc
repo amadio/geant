@@ -412,6 +412,8 @@ int main(int argc, char **argv) {
 
       // G4PTblDicIterator *piter = new G4PTblDicIterator(*fDictionary);
 
+      // Just to be sure...
+      memset(pPDG,0,np*sizeof(G4int));
       G4int npAllOK = -1;
       G4int npLastOK = -1;
 
