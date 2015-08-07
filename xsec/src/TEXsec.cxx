@@ -415,8 +415,8 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
       ptext[j]->SetNDC(true);
       ptext[j]->SetTextAlign(32);
       ptext[j]->Draw();
-    } else 
-       ptext[j]=0;
+    } else
+      ptext[j] = 0;
   }
   tc->Update();
   for (int i = 0; i < nreac; ++i) {
