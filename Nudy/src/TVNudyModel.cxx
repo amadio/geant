@@ -328,7 +328,7 @@ void TVNudyModel::File5_Pass3() {
   fEPAlias = new TNudyAliasCont[nens];
   for (int jen = 1; jen <= nens; jen++) {
     fPerc[jen - 1].Set(nperc + 1);
-    int ibeg = 0, iend = 0;
+    int ibeg = 0, iend = nEout[jen - 1] + 1;
     int ipoint = 0;
     double hintno = 0;
     double aX[nEout[jen - 1] + 1];
