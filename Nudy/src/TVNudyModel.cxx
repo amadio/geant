@@ -302,6 +302,8 @@ void TVNudyModel::File5_Pass3() {
     double hintno = 0;
     double aX[nEout[jen - 1] + 1];
     double aP[nEout[jen - 1] + 1];
+    memset(aX,0,sizeof(double)*(nEout[jen - 1] + 1));
+    memset(aP,0,sizeof(double)*(nEout[jen - 1] + 1));
     for (int jp = 1; jp <= nEout[jen - 1] - 1; jp++) {
       hintno += 0.5 * (fEPtable[jen - 1].GetAt(2 * jp - 1) + fEPtable[jen - 1].GetAt(2 * jp + 1)) *
                 (fEPtable[jen - 1].GetAt(2 * jp) - fEPtable[jen - 1].GetAt(2 * jp - 2));
