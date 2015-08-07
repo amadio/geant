@@ -203,7 +203,7 @@ void CMSApplication::Digitize(int /* event */) {
       fEdepHCAL[i][0] += fEdepHCAL[i][tid];
     }
 #ifdef USE_VECGEOM_NAVIGATOR
-    Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fECALid[i])->GetName(),
+    Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fHCALid[i])->GetName(),
            fEdepHCAL[i][0] * 1000. / nprim);
 #else
     Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fHCALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
