@@ -144,6 +144,11 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   Double_t eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
   Index_t  irow  = Floor(eloc);
   Double_t efrac = eloc -1.0*irow;  
+  // to use fPower2Divisor 
+  //  Double_t eloc  = (kineticEnergy - fIncomingMin);
+  //  Index_t irow = fPower2Divisor->GetBin<Backend>(eloc);
+  //  Double_t efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
+
   Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t condition = u1 <= efrac ;
