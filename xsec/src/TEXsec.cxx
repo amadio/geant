@@ -166,8 +166,6 @@ TGraph *TEXsec::MSGraph(const char *part, const char *what, float emin, float em
   char title[200];
   const char *whatname[4] = {"MSangle", "MSangle_sig", "MSCorr", "MSCorr_sig"};
   const double delta = exp(log(emax / emin) / (nbin - 1));
-  float *mscat = new float[nbin];
-  float *energy = new float[nbin];
   double en = emin;
   int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
@@ -183,6 +181,8 @@ TGraph *TEXsec::MSGraph(const char *part, const char *what, float emin, float em
           whatname[2], whatname[3]);
     return 0;
   }
+  float *mscat = new float[nbin];
+  float *energy = new float[nbin];
   for (int i = 0; i < nbin; ++i) {
     float answ[4];
     energy[i] = en;
