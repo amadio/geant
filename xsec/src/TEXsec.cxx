@@ -110,14 +110,14 @@ void TEXsec::DumpPointers() const {
 TGraph *TEXsec::XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const {
   char title[200];
   const double delta = exp(log(emax / emin) / (nbin - 1));
-  float *xsec = new float[nbin];
-  float *energy = new float[nbin];
   double en = emin;
   int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
     Error("XSGraph", "Unknown particle %s\n", part);
     return 0;
   }
+  float *xsec = new float[nbin];
+  float *energy = new float[nbin];
   int proc = TPartIndex::I()->ProcIndex(reac);
   for (int i = 0; i < nbin; ++i) {
     energy[i] = en;
