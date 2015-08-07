@@ -799,8 +799,8 @@ int main(int argc, char **argv) {
               //
               for (G4int idx = 0; idx < pList->size(); idx++) {
                 G4VProcess *p = (*pList)[idx];
-                sprintf(&xstring[strlen(xstring)], " [%s,%d,%d]", (const char *)p->GetProcessName(), p->GetProcessType(),
-                        p->GetProcessSubType());
+                sprintf(&xstring[strlen(xstring)], " [%s,%d,%d]", (const char *)p->GetProcessName(),
+                        p->GetProcessType(), p->GetProcessSubType());
 
                 // Add information to the process dictionary
 
