@@ -143,6 +143,8 @@ TGraph *TEXsec::DEdxGraph(const char *part, float emin, float emax, int nbin) co
   int pindex = TPartIndex::I()->PartIndex(part);
   if (pindex < 0) {
     Error("DEdxGraph", "Unknown particle %s\n", part);
+    delete [] dedx;
+    delete [] energy;
     return 0;
   }
   for (int i = 0; i < nbin; ++i) {
