@@ -7,16 +7,15 @@ ClassImp(TNudyElementTable)
 
     // TNudyElementTable *gTNudyElementTable;
 
-    TNudyElementTable::TNudyElementTable() {
-  fGeom = new TGeoManager("", "");
-  fTable = gGeoManager->GetElementTable();
+TNudyElementTable::TNudyElementTable() :
+fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1),
+   fRNTable(NULL), fGeom(new TGeoManager("", ""))
+{
   fTable->BuildDefaultElements();
   fTable->ImportElementsRN();
-  fOx = 40;
-  fOy = 40;
-  fLOD = 1;
-  fRNTable = NULL;
 }
+
+
 void TNudyElementTable::InitializeControls() {
   int index;
   TString names[] = {"-", "v", "", "<", "o", ">", "", "^", "+"};
