@@ -211,7 +211,7 @@ typedef union {
 #include <stdlib.h> // abort(), exit()
 
 static const char *fe_code_name[] = {"FPE_NOOP", "FPE_FLTDIV", "FPE_FLTINV", "FPE_FLTOVF", "FPE_FLTUND", "FPE_FLTRES",
-                                     "FPE_FLTSUB", "FPE_INTDIV", "FPE_INTOVF"
+                                     "FPE_FLTSUB", "FPE_INTDIV", "FPE_INTOVF",
                                                                  "FPE_UNKNOWN"};
 
 /* SAMPLE ALTERNATE FP EXCEPTION HANDLER
