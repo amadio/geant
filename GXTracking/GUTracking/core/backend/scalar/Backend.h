@@ -199,6 +199,12 @@ Precision Floor( Precision val ){
     return std::floor(val);
 }
 
+VECPHYS_CUDA_HEADER_BOTH
+VECPHYS_INLINE
+Precision IntToDouble(int val){
+  return val*1.0;
+}
+
 template <typename Type>
 VECPHYS_CUDA_HEADER_BOTH
 VECPHYS_INLINE
