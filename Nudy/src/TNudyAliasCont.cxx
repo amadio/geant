@@ -42,7 +42,14 @@ TNudyAliasCont::TNudyAliasCont(TArrayD *data, double alpha, unsigned int seed)
 }
 
 //_______________________________________________________________________________
-TNudyAliasCont::TNudyAliasCont(double *p, double *x, const int len, double alpha, unsigned int seed) {
+TNudyAliasCont::TNudyAliasCont(double *p, double *x, const int len, double alpha, unsigned int seed)
+   : fLen(0), fChooseBin(NULL), fP(NULL), fX(NULL), fInterX(NULL), fInterP(NULL), fTx(NULL), fTp(NULL), fTa(-1),
+   fInterAlpha(10), fRan(NULL), fRnd(NULL), fAlpha(10)
+#ifdef TNUDYALIAS_MULTITHREAD
+   ,
+   fMult(NULL), fMultLen(0)
+#endif
+{
   Initialize(p, x, len, alpha, seed);
 }
 
