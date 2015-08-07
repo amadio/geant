@@ -363,8 +363,8 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
         Error("Draw", "Reaction %s does not exist\n", reac);
         TPartIndex::I()->Print("reactions");
         printf("dEdx, MSangle, MSangle_sig, MSCorr, MSCorr_sig\n");
-	delete[] text;
-	delete[] line;
+        delete[] text;
+        delete[] line;
         return;
       }
       tg = XSGraph(part, reac, emin, emax, nbin);
