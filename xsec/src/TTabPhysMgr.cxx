@@ -1260,9 +1260,16 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, int itrack, double theta, do
 }
 
 //______________________________________________________________________________
-char *TTabPhysMgr::GetVersion() {
-  char ver[512];
-  sprintf(ver, "%d.%d.%d", VersionMajor(), VersionMinor(), VersionSub());
+const char *TTabPhysMgr::GetVersion() const {
+  static bool first = true;
+  static mutex l;
+  static char ver[512];
+  l.lock();
+  if (first) {
+    first = false;
+    sprintf(ver, "%d.%d.%d", VersionMajor(), VersionMinor(), VersionSub());
+  }
+  l.unlock();
   return ver;
 }
 

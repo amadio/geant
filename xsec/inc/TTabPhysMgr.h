@@ -98,7 +98,7 @@ public:
   int VersionMajor() const { return fgVersion / 1000 / 1000; }
   int VersionMinor() const { return fgVersion / 1000 - VersionMajor() * 1000; }
   int VersionSub() const { return fgVersion - VersionMajor() * 1000000 - VersionMinor() * 1000; }
-  char *GetVersion();
+  const char *GetVersion() const;
 
 private:
   TTabPhysMgr(const TTabPhysMgr &);            // no imp.
