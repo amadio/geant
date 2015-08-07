@@ -33,23 +33,18 @@ int TNudyElementRN::fCCodeColor[26][3] = {{50, 101, 200},
                                           {220, 109, 191},
                                           {220, 95, 205}};
 
-TNudyElementRN::TNudyElementRN() {
-  fEle = 0;
-  fSize = 10;
-  fScale = 1;
-  fPadding = 1;
-  fCoSize = 26;
-}
-TNudyElementRN::TNudyElementRN(TGeoElementRN *elem, float x, float y) {
-  fEle = elem;
-  fSize = 10;
-  fScale = 1;
-  fPadding = 1;
-  fCoSize = 26;
-  fBox = NULL;
-  fX = x;
-  fY = y;
-}
+//______________________________________________________________________________________________________
+TNudyElementRN::TNudyElementRN(): fCoSize(26), fX(0), fY(0), fEle(NULL), fBox(NULL),
+				  fSize(10), fScale(1), fPadding(1)
+{}
+
+
+//______________________________________________________________________________________________________
+TNudyElementRN::TNudyElementRN(TGeoElementRN *elem, float x, float y): 
+   fCoSize(26), fX(x), fY(y), fEle(elem), fBox(NULL), fSize(10), fScale(1), fPadding(1)
+{}
+
+//______________________________________________________________________________________________________
 Color_t TNudyElementRN::GetColor(double halfLife) {
   int index;
 
