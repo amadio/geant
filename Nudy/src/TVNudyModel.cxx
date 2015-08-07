@@ -316,7 +316,7 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file) {
         }
         TNudyAliasCont::BuildIntermediate(fAPAlias, f4nens);
         delete[] lCoef;
-	delete[] tVal;
+        delete[] tVal;
       }
     }
   }
