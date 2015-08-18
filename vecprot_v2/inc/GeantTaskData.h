@@ -41,7 +41,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
   Int_t fTid;          /** Thread unique id */
-  Int_t fNthreads;     /** Number of transport threads */
+  size_t fNthreads;    /** Number of transport threads */
   Int_t fMaxDepth;     /** Maximum geometry depth */
   Int_t fSizeBool;     /** Size of bool array */
   Int_t fSizeDbl;      /** Size of dbl array */
@@ -80,7 +80,7 @@ public:
 
   /** @brief GeantTaskData constructor */
   GEANT_CUDA_DEVICE_CODE
-  GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
+  GeantTaskData(size_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
 
   /** @brief GeantTaskData destructor */
   GEANT_CUDA_DEVICE_CODE

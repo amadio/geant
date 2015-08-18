@@ -14,7 +14,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-GeantTaskData::GeantTaskData(Int_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
+GeantTaskData::GeantTaskData(size_t nthreads, Int_t maxDepth, Int_t maxPerBasket)
     : fTid(-1), fNthreads(0), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(0), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0,maxDepth),
       fPath(0), fBmgr(0), fPool(),
