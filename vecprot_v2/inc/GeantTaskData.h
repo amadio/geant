@@ -73,6 +73,12 @@ private:
     currentsize = wantedsize;
   }
 
+  /**
+   * @brief GeantTaskData constructor based on a provided single buffer.
+   */
+  GEANT_CUDA_DEVICE_CODE
+  GeantTaskData(void *addr, size_t nTracks, Int_t maxdepth, Int_t maxPerBasket);
+
 public:
 
    /** @brief GeantTaskData constructor */
@@ -85,6 +91,16 @@ public:
   /** @brief GeantTaskData destructor */
   GEANT_CUDA_DEVICE_CODE
   ~GeantTaskData();
+
+  /**
+   * @brief GeantTrack MakeInstance based on a provided single buffer.
+   */
+  GEANT_CUDA_DEVICE_CODE
+  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, Int_t maxdepth, Int_t maxPerBasket);
+
+  /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
+  GEANT_CUDA_DEVICE_CODE
+  static size_t SizeOfInstance(size_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
 
   /**
    * @brief Function that return double array
