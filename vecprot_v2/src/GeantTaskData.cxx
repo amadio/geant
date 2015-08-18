@@ -22,7 +22,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, Int_t maxDepth, Int_t maxPerBasket
       fSOA3Dworkspace2( new vecgeom::SOA3D<vecgeom::Precision>(5*maxPerBasket) ),
       fSizeInt( 5*maxPerBasket ),
       fIntArray( new int[fSizeInt] )
-      {
+{
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
@@ -159,7 +159,7 @@ GeantBasket *GeantTaskData::GetNextBasket() {
 //  basket->Clear();
   fPool.pop_back();
   return basket;
-}  
+}
 
 //______________________________________________________________________________
 void GeantTaskData::RecycleBasket(GeantBasket *b) {
@@ -173,9 +173,9 @@ Int_t GeantTaskData::CleanBaskets(size_t ntoclean) {
   GeantBasket *b;
   Int_t ncleaned = 0;
   size_t ntodo = 0;
-  if (ntoclean==0) 
+  if (ntoclean==0)
     ntodo = fPool.size()/2;
-  else 
+  else
     ntodo = TMath::Min(fPool.size(), ntoclean);
   for (size_t i=0; i<ntodo; i++) {
     b = fPool.back();
