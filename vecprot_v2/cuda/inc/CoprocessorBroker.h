@@ -44,7 +44,7 @@ const unsigned int kMaxSecondaryPerStep = 2; // maxSecondaryPerStep;
 
 
 typedef
-int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace,
+int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
                     size_t ntracks,
                     vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
                     vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,
@@ -94,6 +94,7 @@ public:
       unsigned int  fStreamId;
       cudaStream_t  fStream;
 
+      size_t fDevTaskWorkspaceSizeOf;
       vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> fDevTaskWorkspace;
       vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>  fDevTrackInput;
 

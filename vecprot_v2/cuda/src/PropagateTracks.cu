@@ -24,7 +24,7 @@
  */
 
 __global__
-void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t ntracks,Geant::GeantTrack_v *input, Geant::GeantTrack_v *output)
+void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf, size_t ntracks, Geant::GeantTrack_v *input, Geant::GeantTrack_v *output)
 {
 
    /* All at once would be:
@@ -32,7 +32,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t ntracks,Geant::
    input->PropagateTracks(*output,tid);
    */
    unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
-   Geant::GeantTaskData *td = &(workSpace[tid]);
+   Geant::GeantTaskData *td = (Geant::GeantTaskData *)( ((char*)workSpace) + workspaceSizeOf*tid );
 
 #if 0
    // Test whether we use up too much memory already
@@ -57,6 +57,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t ntracks,Geant::
 }
 
 int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace,
+                            size_t workspaceSizeOf,
                             size_t ntracks,
                             vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
                             vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,
@@ -67,7 +68,7 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
    int blocksPerGrid   = nBlocks;
 
    fprintf(stderr,"DEBUG-GPU-0: About to schedule the PropagateGeantTrack kernel\n");
-   PropagateGeantTrack<<< blocksPerGrid, threadsPerBlock, 0 , stream >>>(workSpace,
+   PropagateGeantTrack<<< blocksPerGrid, threadsPerBlock, 0 , stream >>>(workSpace, workspaceSizeOf,
                                                                          ntracks,
                                                                          input, output);
 

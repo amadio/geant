@@ -145,7 +145,8 @@ CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fThreadId(-1),
                                           fStreamId(0),
                                           fStream(nullptr),
-                                          fQueue(0)
+                                          fQueue(0),
+                                          fDevTaskWorkspaceSizeOf(0)
 {
    // Default constructor.
 }
@@ -183,13 +184,17 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
 
    unsigned int maxThreads = nblocks*nthreads;
 
-   // See also:
-   //   GeantPropagator *propagator = GeantPropagator::Instance();
+   // See also: GeantPropagator *propagator = GeantPropagator::Instance();
    //   propagator->fMaxPerBasket;
 
-   fDevTaskWorkspace.Allocate(maxThreads);
-   fDevTaskWorkspace.ConstructArray(maxThreads, maxThreads, maxdepth,
+   unsigned long size_needed = GeantTaskData::SizeOfInstance(maxThreads, maxdepth,
                                     (unsigned int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e. maxTrackPerThread) unless we need space for extras/new tracks ...
+                                                            );
+   fDevTaskWorkspaceSizeOf = size_needed;
+
+   fDevTaskWorkspace.Malloc(maxThreads * size_needed); // Allocate(maxThreads);
+   Geant::cuda::MakeInstanceArrayAt(fDevTaskWorkspace.GetPtr(), 4096 /* maxThreads */, size_needed, (size_t)maxThreads, maxdepth,
+                                    (int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e. maxTrackPerThread) unless we need space for extras/new tracks ...
                                     );
 
    // need to allocate enough for one object containing many tracks ...
@@ -569,6 +574,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
 
    fTotalWork += stream->fNStaged;
    int result = task->fKernel(stream->fDevTaskWorkspace,
+                              stream->fDevTaskWorkspaceSizeOf,
                               stream->fNStaged,
                               stream->fDevTrackInput,
                               stream->fDevTrackOutput,

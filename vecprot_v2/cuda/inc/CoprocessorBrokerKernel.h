@@ -129,6 +129,7 @@ int electron_multistage_gpu(curandState* devStates,
                  cudaStream_t stream);
 
 int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace,
+                            size_t workspaceSizeOf,
                             size_t ntracks,
                             vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
                             vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,

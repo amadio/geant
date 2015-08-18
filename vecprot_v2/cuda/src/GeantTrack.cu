@@ -33,7 +33,7 @@ inline namespace cuda {
 namespace vecgeom {
 namespace cxx {
    template size_t DevicePtr<Geant::cuda::GeantTaskData>::SizeOf();
-   template void DevicePtr<Geant::cuda::GeantTaskData>::ConstructArray(unsigned long, unsigned int, int, unsigned int) const;
+   template void DevicePtr<Geant::cuda::GeantTaskData>::ConstructArray(unsigned long, size_t, int, unsigned int) const;
    template size_t DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
 } // cxx
 } // vecgeom
