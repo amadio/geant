@@ -2226,10 +2226,11 @@ TransportAction_t GeantTrack_v::PostponedAction(int ntracks) const {
 }
 
 //______________________________________________________________________________
-int GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
+int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   // Propagate the ntracks in the current volume with their physics steps (already
   // computed)
   // Vectors are pushed downstream when efficient.
+  GeantTrack_v &output = *td->fTransported;
   int ntracks = GetNtracks();
   // Check if tracking the remaining tracks can be postponed
   TransportAction_t action = PostponedAction(ntracks);
@@ -2238,7 +2239,7 @@ int GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
     return 0;
   }
   if (action != kVector)
-    return PropagateTracksScalar(output, td, 0);
+    return PropagateTracksScalar(td, 0);
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
   GeantPropagator *prop = GeantPropagator::Instance();
@@ -2312,7 +2313,7 @@ int GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
   case kDone:
     return icrossed;
   case kSingle:
-    icrossed += PropagateTracksScalar(output, td, 1);
+    icrossed += PropagateTracksScalar(td, 1);
     return icrossed;
   case kPostpone:
     PostponeTracks(output);
@@ -2407,7 +2408,7 @@ int GeantTrack_v::PropagateTracks(GeantTrack_v &output, GeantTaskData *td) {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-int GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, int itr, GeantTaskData *td, int stage) {
+int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
@@ -2533,14 +2534,15 @@ int GeantTrack_v::PropagateSingleTrack(GeantTrack_v & /*output*/, int itr, Geant
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-int GeantTrack_v::PropagateTracksScalar(GeantTrack_v &output, GeantTaskData *td, int stage) {
+int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
+  GeantTrack_v &output = *td->fTransported;
   int icrossed = 0;
   int ntracks = GetNtracks();
   for (int itr = 0; itr < ntracks; itr++) {
-    icrossed += PropagateSingleTrack(output, itr, td, stage);
+    icrossed += PropagateSingleTrack(itr, td, stage);
   }
 //   Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
 //   PrintTracks();

@@ -331,12 +331,8 @@ void GeantPropagator::InitializeAfterGeom() {
   if (!fThreadData) {
     fThreadData = new GeantTaskData *[fNthreads];
     for (int i = 0; i < fNthreads; i++) {
-      fThreadData[i] = new GeantTaskData();
+      fThreadData[i] = new GeantTaskData(fNthreads, fMaxDepth, fMaxPerBasket);
       fThreadData[i]->fTid = i;
-      //      for (int j=0; j<1000; j++) {
-      //        GeantBasket *b = new GeantBasket(fNperBasket, fMaxDepth);
-      //        fThreadData[i]->RecycleBasket(b);
-      //      }
     }
   }
   // Initialize application

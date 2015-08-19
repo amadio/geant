@@ -72,6 +72,8 @@ public:
   vecgeom::SOA3D<double> *fSOA3Dworkspace2; // SOA3D workspace (to be used for vector navigation)
   int fSizeInt;                             // current size of IntArray
   int *fIntArray;                           // Thread array of ints (used in vector navigation)
+  GeantTrack_v  *fTransported;              // Transported tracks in current step
+  int            fNkeepvol;                 // Number of tracks keeping the same volume
 
 private:
   // a helper function checking internal arrays and allocating more space if necessary
@@ -85,9 +87,6 @@ private:
   }
 
 public:
-  /** @brief GeantTaskData constructor */
-  GeantTaskData();
-
   /** @brief GeantTaskData constructor */
   GEANT_CUDA_DEVICE_CODE
   GeantTaskData(int nthreads, int maxDepth, int maxPerBasket);

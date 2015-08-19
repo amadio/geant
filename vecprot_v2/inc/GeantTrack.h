@@ -1014,13 +1014,13 @@ public:
    * @param output Output array of tracks
    * @param tid Track ID
    */
-  int PropagateTracks(GeantTrack_v &output, GeantTaskData *td);
+  int PropagateTracks(GeantTaskData *td);
 
   GEANT_CUDA_BOTH_CODE
-  int PropagateTracksScalar(GeantTrack_v &output, GeantTaskData *td, int stage = 0);
+  int PropagateTracksScalar(GeantTaskData *td, int stage = 0);
 
   GEANT_CUDA_BOTH_CODE
-  int PropagateSingleTrack(GeantTrack_v &output, int itr, GeantTaskData *td, int stage);
+  int PropagateSingleTrack(int itr, GeantTaskData *td, int stage);
 
   /**
    * @brief Resize function

@@ -307,7 +307,7 @@ void *WorkloadManager::TransportTracks() {
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
-    GeantTrack_v &output = basket->GetOutputTracks();
+    GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty
     //      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
@@ -347,9 +347,9 @@ void *WorkloadManager::TransportTracks() {
       //         input.PrintTracks();
       // Propagate all remaining tracks
       if (basket->IsMixed())
-        ncross += input.PropagateTracksScalar(output, td);
+        ncross += input.PropagateTracksScalar(td);
       else
-        ncross += input.PropagateTracks(output, td);
+        ncross += input.PropagateTracks(td);
       ntotransport = input.GetNtracks();
     }
     // All tracks are now in the output track vector. Possible statuses:
@@ -447,7 +447,7 @@ void *WorkloadManager::TransportTracks() {
     //      basket->Clear();
     //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
     //      ninjected =
-    sch->AddTracks(basket, ntot, nnew, nkilled, td);
+    sch->AddTracks(output, ntot, nnew, nkilled, td);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
     //    sched_locker.StartOne();
@@ -615,7 +615,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     ntotransport = basket->GetNinput(); // all tracks to be transported
     // ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
-    GeantTrack_v &output = basket->GetOutputTracks();
+    GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty
     //      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
@@ -636,10 +636,6 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 
     // Record tracks
     // ninput = ntotransport;
-    if (basket->GetNoutput()) {
-      Geant::Warning("TransportTracksCoprocessor", "Output Track_v not empty noutput=%d counter=%d",
-                     basket->GetNoutput(), counter.load());
-    }
     //      if (counter==1) input.PrintTracks();
     for (int itr = 0; itr < ntotransport; itr++) {
       // iev[itr] = input.fEventV[itr];
@@ -677,11 +673,6 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     // kExitingSetup - particles exiting the geometry
     // kKilled - particles that could not advance in geometry after several tries
 
-    // Check
-    if (basket->GetNinput()) {
-      Geant::Warning("TransportTracksCoprocessor", "Input Track_v not empty: ninput=%d noutput=%d counter=%d",
-                     basket->GetNinput(), basket->GetNoutput(), counter.load());
-    }
     if (gPropagator->fStdApplication)
       gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
@@ -706,7 +697,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   finish:
     //      basket->Clear();
     //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-    /* int ninjected = */ sch->AddTracks(basket, ntot, nnew, nkilled, nullptr /* prioritizer */);
+    /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, td /* prioritizer */);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     // wm->TransportedQueue()->push(basket);
     (void)ntot;

@@ -18,15 +18,14 @@ ClassImp(GeantBasket)
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-      fThreshold(0), fTracksIn(), fTracksOut() {
+      fThreshold(0), fTracksIn() {
   // Dummy constructor.
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
     : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-      fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth),
-      fTracksOut(size, GeantPropagator::Instance()->fMaxDepth) {
+      fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth) {
   // Default constructor.
   if (!mgr->GetVolume() || mgr->IsCollector())
     SetMixed(true);
@@ -35,7 +34,7 @@ GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
 //______________________________________________________________________________
 GeantBasket::GeantBasket(int size, int depth)
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-      fThreshold(size), fTracksIn(size, depth), fTracksOut(size, depth) {
+      fThreshold(size), fTracksIn(size, depth) {
   // Default constructor.
 }
 
@@ -73,7 +72,6 @@ void GeantBasket::Clear(const char *option) {
   // Clear basket content.
   SetMixed(fManager->IsCollector());
   fTracksIn.Clear(option);
-  fTracksOut.Clear(option);
   fNbooked.store(0, std::memory_order_relaxed);
   fNcopying.store(0, std::memory_order_relaxed);
   fNcopied.store(0, std::memory_order_relaxed);
@@ -98,7 +96,7 @@ Volume_t *GeantBasket::GetVolume() const {
 //______________________________________________________________________________
 void GeantBasket::Print(const char *) const {
   // Print basket content.
-  Printf("*** basket %s: ninput=%3d   noutput=%3d", GetName(), GetNinput(), GetNoutput());
+  Printf("*** basket %s: ntracks=%3d", GetName(), GetNinput());
 }
 
 //______________________________________________________________________________
@@ -118,8 +116,6 @@ void GeantBasket::SetThreshold(int threshold) {
   if (threshold > fThreshold) {
     if (fTracksIn.Capacity() < threshold)
       fTracksIn.Resize(threshold);
-    if (fTracksOut.Capacity() < threshold)
-      fTracksOut.Resize(threshold);
   }
   fThreshold = threshold;
 }
@@ -424,7 +420,7 @@ void GeantBasketMgr::CleanBaskets(int ntoclean, GeantTaskData *td) {
 //______________________________________________________________________________
 void GeantBasketMgr::Print(const char *) const {
   // Print info about the basket content.
-  Printf("Bsk_mgr %s: current: in=%d out=%d", GetName(), GetCBasket()->GetNinput(), GetCBasket()->GetNoutput());
+  Printf("Bsk_mgr %s: current: tracks=%d", GetName(), GetCBasket()->GetNinput());
 }
 
 //______________________________________________________________________________

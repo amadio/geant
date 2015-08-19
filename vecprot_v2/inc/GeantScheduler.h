@@ -95,7 +95,7 @@ public:
    * @param nkilled Number of killed tracks
    * @param td Thread data
    */
-  int AddTracks(GeantBasket *output, int &ntot, int &nnew, int &nkilled, GeantTaskData *td);
+  int AddTracks(GeantTrack_v &output, int &ntot, int &nnew, int &nkilled, GeantTaskData *td);
 
   /** @brief Function to adjust the basket size automatically */
   void AdjustBasketSize();

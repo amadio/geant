@@ -54,7 +54,7 @@ public:
 protected:
   // GeantHit_v        fHits;  /** Vector of produced hits */
   GeantTrack_v fTracksIn;  /** Vector of input tracks */
-  GeantTrack_v fTracksOut; /** Vector of output tracks */
+//  GeantTrack_v fTracksOut; /** Vector of output tracks */
 
 private:
   /** @todo Still not implemented */
@@ -142,7 +142,7 @@ public:
    * @brief Function returning the number of output tracks
    * @return Number of output tracks
    */
-  int GetNoutput() const { return fTracksOut.GetNtracks(); }
+//  int GetNoutput() const { return fTracksOut.GetNtracks(); }
 
   /**
    * @brief Function returning a reference to the vector of input tracks
@@ -154,7 +154,7 @@ public:
    * @brief Function returning a reference to the vector of output tracks
    * @return Reference to output vector of tracks
    */
-  GeantTrack_v &GetOutputTracks() { return fTracksOut; }
+//  GeantTrack_v &GetOutputTracks() { return fTracksOut; }
 
   /**
    * @brief Function returning the manager of the basket
@@ -229,7 +229,7 @@ public:
    * @return Sum of sizes of all tracks (input and output) + data members
    */
   size_t Sizeof() const {
-    return fTracksIn.Sizeof() + fTracksOut.Sizeof() + sizeof(TObject) + sizeof(GeantBasketMgr *) +
+    return fTracksIn.Sizeof() + sizeof(TObject) + sizeof(GeantBasketMgr *) +
            sizeof(std::atomic_int);
   }
 
