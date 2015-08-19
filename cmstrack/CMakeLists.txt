@@ -43,21 +43,7 @@ endif()
 # Find Pythia8 and setup the libraries
 #
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ROOTSYS}/cmake/modules)
-# this is a mess for the moment... fixing it by hand
-# eiher we write our own findPythia8 or we fix the root one for the
-# newest pythia8
 find_package(Pythia8 REQUIRED)
-
-if(NOT DEFINED PYTHIA8_DIR)
-  set(PYTHIA8_DIR $ENV{PYTHIA8_DIR})
-endif()
-
-if(NOT DEFINED PYTHIA8_DIR)
-  MESSAGE(FATAL_ERROR "Please set PYTHIA8_DIR")
-endif()
-set(PYTHIA8_INCLUDE_DIR ${PYTHIA8_DIR}/include)
-set(PYTHIA8_LIBRARIES "-L${PYTHIA8_DIR}/lib -lpythia8 -llhapdfdummy")
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
