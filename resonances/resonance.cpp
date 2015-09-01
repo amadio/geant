@@ -370,25 +370,36 @@ void resonance::GetSigma(int ii, double x, double &sig, double &sigP) {
   // sigmap.push_back(resultp);
 }
 
-double bisection(double &a, double &b, double sig1, double sig2, double sigP1, double sigP2) {
-  doouble epsa = 1.0e-5;
+double bisection(double &a, double &b, double &c, double sig1, double sig2, double sig3, double sigP1, double sigP2, double sigP3) {
+  double epsa = 1.0e-5;
   double tmp = 0.0;
   double prod = 0.0, prodP = 0.0;
   int i = 1;
-  double p0 = 0.0, pi = 0.5 * (a + b);
-  if ((std::abs(p0 - pi) < epsa) || (std::abs(
+  double p0 = 0.0, pi = c;
+  if ((std::abs(pi - p0) < epsa) || (std::abs(sig3) < epsa)) return pi;
+  while ((sig3 * sig1) > epsa) {
+    a = pi; 
+    b = b;
+    i++;
+    p0 = pi;
+    pi = 0.5 * (a + b);
+    if ((std::abs(pi - p0) < epsa) || (std::abs(sig3) < epsa)) return pi;
+  }
+  while ((sig3 * sig1) < epsa) {
+    a = a;
+    b = pi;
+    i++;
+    pi = 0.5 * (a + b);
+    if ((std::abs(pi - p0) < epsa) || (std::abs(sig3) < epsa)) return pi;
+  }
   
-
-  prod = sig1 * sig2;  prodP = sigP1 * sigP2;
- 
-
 }
   
 //************  Uniform Linearization ***************
 void resonance::Linearize() {
-  double a = 0.0, b = 0.0, ER = 0.0;
-  double siga=0.0, sigb=0.0;
-  double sigPa = 0.0, sigPb = 0.0;
+  double a = 0.0, b = 0.0, c = 0.0, ER = 0.0;
+  double siga = 0.0, sigb = 0.0, sigc = 0.0;
+  double sigPa = 0.0, sigPb = 0.0, sigPc = 0.0;
   double bisecE = 0.0;
 
   bool delESet(false);
@@ -398,11 +409,12 @@ void resonance::Linearize() {
     ER = Er[i];     //if (ER < 0.0) continue;
     //if (!delESet) {delE = std::abs(ER * 1.5);   delESet = true;}
 
-    a = ER - delE;    b = ER + delE;
+    a = ER - delE;    b = ER + delE; c = 0.5 * (a + b);
 
-    
-    GetSigma(i, a, siga, sigPa);     GetSigma(i, b, sigb, sigPb);
-    if (sigPa >= 0.0 || sigPb < 0.0) bisecE = bisection(a, b, siga, sigb, sigPa, sigPb);
+    GetSigma(i, a, siga, sigPa);     
+    GetSigma(i, b, sigb, sigPb);
+    GetSigma(i, c, sigc, sigPc);
+    if (sigPa >= 0.0 || sigPb < 0.0) bisecE = bisection(a, b, c, siga, sigb, sigc, sigPa, sigPb, sigPc);
     
 
     std:: cout << i << " ER " << ER << " a " << a << " b " << b << " sgn siga " << sigPa << "  sgn sigb " << sigPb << std::endl;
