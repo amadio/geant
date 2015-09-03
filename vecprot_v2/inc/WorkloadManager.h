@@ -233,6 +233,14 @@ public:
   static void *MonitoringThread();
 
   /**
+   * @brief Function that provides output thread
+   *
+   * @param arg Arguments to be passed in the function
+   */
+  
+  static void *OutputThread();
+
+  /**
    * @brief Function that provides transporting tracks
    *
    * @param arg Arguments to be passed in the function

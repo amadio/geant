@@ -104,6 +104,7 @@ public:
   bool fUseStdScoring;    /** Use standard scoring */
   bool fTransportOngoing; /** Flag for ongoing transport */
   bool fSingleTrack;      /** Use single track transport mode */
+  Bool_t fFillTree;       /** Enable I/O */
   bool fUseMonitoring;    /** Monitoring different features */
   bool fUseAppMonitoring; /** Monitoring the application */
   TMutex fTracksLock;       /** Mutex for adding tracks */

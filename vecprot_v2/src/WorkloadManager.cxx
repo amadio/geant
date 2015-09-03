@@ -29,6 +29,15 @@
 #endif
 #include "TaskBroker.h"
 
+// added by WP for output handling
+#ifndef GEANT_MYHIT
+#include "MyHit.h"
+#endif
+#ifndef GEANT_FACTORY
+#include "GeantFactory.h"
+#endif
+#include "GeantFactoryStore.h"
+
 using namespace Geant;
 using std::max;
 
@@ -145,6 +154,10 @@ void WorkloadManager::StartThreads() {
   // Start CPU transport threads
   for (; ith < fNthreads; ith++) {
     fListThreads.emplace_back(WorkloadManager::TransportTracks);
+  }
+  // Start output thread
+  if (GeantPropagator::Instance()->fFillTree) {
+    fListThreads.emplace_back(WorkloadManager::OutputThread);
   }
   // Start monitoring thread
   if (GeantPropagator::Instance()->fUseMonitoring) {
@@ -1086,4 +1099,64 @@ void *WorkloadManager::MonitoringThread() {
   gSystem->Sleep(100); // millisec
 
   return 0;
+}
+
+//______________________________________________________________________________
+void *WorkloadManager::OutputThread() {
+    // Thread providing basic output for the scheduler.
+ 
+    TFile file("hits.root", "RECREATE");
+
+    WorkloadManager *wm = WorkloadManager::Instance();
+    
+    GeantBlock<MyHit>* data=0;
+    
+    TTree *tree = new TTree("T","Simulation output");
+    
+    tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
+    
+    GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
+    GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
+    
+    
+    while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
+    {
+      //        Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
+        
+	
+        if (myhitFactory->fOutputs.size()>0)
+        {
+            while (myhitFactory->fOutputs.try_pop(data))
+            {
+	
+         
+	      //	        myhitFactory->fOutputs.wait_and_pop(data);                
+	      //                Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
+
+
+	      //if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
+                
+/*
+                for(int n=0;n<data->Size();n++)
+                {
+                    //   std::cout << data << "  " << data->At(n) << (data->At(n))->fVolId << " " << (data->At(n))->fDetId << std::endl;
+                    
+                    //                    tree->Print();
+                }
+ */
+
+	      
+                tree->Fill();
+ 
+                myhitFactory->Recycle(data);
+		//                Printf("save_hits: size of pool %zu", myhitFactory->fPool.size());
+                //                Printf("recycling %d", data);
+		
+            }
+	}
+    }
+    tree->Write();
+    file.Close();
+    
+    return 0;
 }

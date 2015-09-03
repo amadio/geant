@@ -25,7 +25,6 @@ ClassImp(ExN03Application)
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
   fFactory = store->GetFactory<MyHit>(16);
-  printf("Created factory for MyHit");
   memset(fEdepGap, 0, kNlayers * kMaxThreads * sizeof(float));
   memset(fLengthGap, 0, kNlayers * kMaxThreads * sizeof(float));
   memset(fEdepAbs, 0, kNlayers * kMaxThreads * sizeof(float));
@@ -113,24 +112,36 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
       fLengthAbs[idnode - 3][tid] += tracks.fStepV[i];
     }
   }
-  return;
-  MyHit *hit;
-  int nhits = 0;
-  for (int i = 0; i < npart; i++) {
-    hit = fFactory->NextFree(tracks.fEvslotV[i]);
-    hit->fX = tracks.fXposV[i];
-    hit->fY = tracks.fYposV[i];
-    hit->fZ = tracks.fZposV[i];
-    hit->fEdep = tracks.fEdepV[i];
-    hit->fVolId = 0.;
-    hit->fDetId = 0.;
-    //      if (track->path && track->path->GetCurrentNode()) {
-    //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
-    //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
-    //      }
-    nhits++;
+
+  if (gPropagator->fFillTree) {
+    MyHit *hit;
+    int nhits = 0;
+    for (int i = 0; i < npart; i++) {
+      
+      if (tracks.fEdepV[i]>0.00002)
+	{
+	  hit = fFactory->NextFree(tracks.fEvslotV[i]);
+	  
+	  hit->fX = tracks.fXposV[i];
+	  hit->fY = tracks.fYposV[i];
+	  hit->fZ = tracks.fZposV[i];
+	  hit->fEdep = tracks.fEdepV[i];
+	  hit->fVolId = 0.;
+	  hit->fDetId = 0.;
+	  
+	  //      if (track->path && track->path->GetCurrentNode()) {
+	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
+	  //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
+	  //      }
+	  nhits++;
+	}
+    }
   }
-  //   Printf("Thread %d produced %d hits", tid, nhits);
+
+  //  Printf("Thread %d produced %d hits", tid, nhits);
+  //  Printf("StepManager: size of queue %zu", fFactory->fOutputs.size());
+
+  return;  
 }
 
 //______________________________________________________________________________
