@@ -67,14 +67,12 @@ class GUVField
         // Implements cloning, likely needed for MT 
 
 private:
+      const int  fNumberOfComponents; // E.g.  B -> N=3 , ie x,y,z 
+                                     //       E+B -> N=6 
       bool fChangesEnergy; 
        //  Each type/class of field set this accordingly:
        //    - an electric field     - "true"
        //    - a pure magnetic field - "false"
-
-      const int  fNumberOfComponents; // E.g.  B -> N=3 , ie x,y,z 
-                                     //       E+B -> N=6 
-
 };
 
 inline GUVField::GUVField( int NumberOfComponents, bool changesEnergy )
