@@ -8,12 +8,15 @@
 //
 //  A Stepper must integrate over                NumberOfVariables elements,
 //   and also copy (from input to output) any of NoStateVariables  
-//   not included in the NumberOfVariables.  
-// 
-//  So it is expected that NoStateVariables >= NumberOfVariables
-
-// History:
-// - 15.01.97  J. Apostolakis (J.Apostolakis@cern.ch)
+//   not included in the NumberOfVariables.
+// [ So the following must hold: NoStateVariables >= NumberOfVariables ] 
+//
+//  The integration order is property of convergence of deviation / error,
+//   and is meant to be used for (or correspond to) the order of RK method.
+//
+// First version/origin:
+// - Jan-Mar 2015 Created by J. Apostolakis (J.Apostolakis@cern.ch)
+//                Derived from my G4MagIntegrationStepper class 
 // --------------------------------------------------------------------
 
 #ifndef GUVIntegrationStepper_h
@@ -26,10 +29,13 @@
 class GUVIntegrationStepper
 {
   public:
-        GUVIntegrationStepper();   // DELET
+        // GUVIntegrationStepper();   // DELET
         GUVIntegrationStepper( GUVEquationOfMotion* equation, 
-                int              numIntegrationVariables,
-                int              numStateVariables=12);
+                               unsigned int IntegrationOrder,
+                               unsigned int numIntegrationVariables,
+                               unsigned int numStateVariables); // =12);
+           // See explanations of each below - e.g. order => RK order
+
         virtual ~GUVIntegrationStepper();
 
         virtual  void  Step(  const double y[],
@@ -61,22 +67,22 @@ class GUVIntegrationStepper
         // Right Hand side of the associated equation.
 
 
-        inline int  GetNumberOfVariables() const;
+        inline unsigned int  GetNumberOfVariables() const;
+        
         // Get the number of variables that the stepper will integrate over.
 
         // void   SetNumberOfVariables(int newNo);  // Dangerous & obsolete ...
 
-        inline int  GetNumberOfStateVariables() const;
+        inline unsigned int  GetNumberOfStateVariables() const;
         // Get the number of variables of state variables (>= above, integration)
 
-        virtual int IntegratorOrder() const = 0;
+        unsigned int IntegratorOrder() { return fIntegrationOrder; };
         // Returns the order of the integrator
         // i.e. its error behaviour is of the order O(h^order).
 
-        inline GUVEquationOfMotion *GetEquationOfMotion(); 
-        // As some steppers (eg RKG3) require other methods of Eq_Rhs
-        // this function allows for access to them.
-        inline void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
+        inline GUVEquationOfMotion *GetEquationOfMotion() { return  fEquation_Rhs; }
+        // As some steppers require access to other methods of Eq_of_Mot
+        void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
 
     private:
 
@@ -87,11 +93,39 @@ class GUVIntegrationStepper
     private:
 
         GUVEquationOfMotion *fEquation_Rhs;
-        const int  fNoIntegrationVariables;  // Number of Variables in integration
-        const int  fNoStateVariables;        // Number required for FieldTrack
-        // const int  fNumberOfVariables;
+        const unsigned int fIntegrationOrder; // RK or similar order - if any. Else 0
+        const unsigned int fNoIntegrationVariables; // # of Variables in integration
+        const unsigned int fNoStateVariables;       // # required for FieldTrack
 };
 
-#include  "GUVIntegrationStepper.icc"
+// #include  "GUVIntegrationStepper.icc"
+inline
+void GUVIntegrationStepper::
+RightHandSide( const  double y[], double charge, double dydx[] )
+{
+   fEquation_Rhs-> RightHandSide(y, charge, dydx);
+}
+
+inline void
+GUVIntegrationStepper::SetEquationOfMotion(GUVEquationOfMotion* newEquation)
+{
+  if( newEquation != 0 )
+  {
+    fEquation_Rhs= newEquation;
+  }
+}
+
+inline
+unsigned int GUVIntegrationStepper::GetNumberOfVariables() const
+{
+  return fNoIntegrationVariables;
+}
+
+
+inline
+unsigned int GUVIntegrationStepper::GetNumberOfStateVariables() const
+{
+  return fNoStateVariables;
+}
 
 #endif  /* GUVIntegrationStepper */
