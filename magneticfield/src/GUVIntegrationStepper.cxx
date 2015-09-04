@@ -1,30 +1,6 @@
 //
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
 //
-//
-// $Id: GUVIntegrationStepper.cc 66356 2012-12-18 09:02:32Z gcosmo $
+// Derived from G4MagIntegrationStepper class 
 //
 // --------------------------------------------------------------------
 
@@ -33,13 +9,14 @@
 // Constructor for stepper abstract base class. 
 // 
 
-GUVIntegrationStepper::GUVIntegrationStepper(GUVEquationOfMotion* Equation,
-					       int       num_integration_vars,
-					       int       num_state_vars)
-  : fEquation_Rhs(Equation),
+GUVIntegrationStepper::GUVIntegrationStepper(GUVEquationOfMotion* equation,
+					     unsigned int num_integration_vars,
+                                             unsigned int integrationOrder,
+					     unsigned int num_state_vars)
+  : fEquation_Rhs(equation),
+    fIntegrationOrder(integrationOrder),
     fNoIntegrationVariables(num_integration_vars),
     fNoStateVariables(num_state_vars)
-    // fNumberOfVariables( std::max(num_var,fNoStateVariables) )
 {
 }
 
@@ -50,4 +27,12 @@ GUVIntegrationStepper::~GUVIntegrationStepper()
 void GUVIntegrationStepper::ComputeRightHandSide( const double y[], double charge, double dydx[] ) 
 {
    this->RightHandSide( y, charge, dydx );
+}
+
+void GUVIntegrationStepper::SetEquationOfMotion(GUVEquationOfMotion* newEquation)
+{
+  if( newEquation != 0 )
+  {
+    fEquation_Rhs= newEquation;
+  }
 }
