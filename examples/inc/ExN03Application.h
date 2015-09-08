@@ -31,7 +31,7 @@
 
 /** @brief ExN03Application class */
 class ExN03Application : public GeantVApplication {
-  static const int kNlayers = 10;
+  static const int kNlayers = 15;
   static const int kMaxThreads = 36;
 
 private:

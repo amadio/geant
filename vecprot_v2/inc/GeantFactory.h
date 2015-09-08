@@ -285,8 +285,7 @@ public:
    * @param slot Event slot id
    * @param tid Thread id
    */
-  T *NextFree(int slot) {
-    int tid = WorkloadManager::Instance()->ThreadId(); // maybe put in calling sequence
+  T *NextFree(int slot, int tid) {
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used and filled (by the same thread)

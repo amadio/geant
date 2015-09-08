@@ -89,6 +89,8 @@ void run(int nthreads=4,
 
 
    prop->fApplication = new ExN03Application();
+   // Activate I/O
+   prop->fFillTree = false;
 
 // Activate debugging using -DBUG_HUNT=ON in your cmake build
    prop->fDebugEvt = 0;

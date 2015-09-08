@@ -104,12 +104,12 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 #endif
     if (idvol == fIdGap) {
       //         tracks.PrintTrack(i);
-      fEdepGap[idnode - 3][tid] += tracks.fEdepV[i];
-      fLengthGap[idnode - 3][tid] += tracks.fStepV[i];
+      fEdepGap[idnode][tid] += tracks.fEdepV[i];
+      fLengthGap[idnode][tid] += tracks.fStepV[i];
     } else if (idvol == fIdAbs) {
       //         tracks.PrintTrack(i);
-      fEdepAbs[idnode - 3][tid] += tracks.fEdepV[i];
-      fLengthAbs[idnode - 3][tid] += tracks.fStepV[i];
+      fEdepAbs[idnode][tid] += tracks.fEdepV[i];
+      fLengthAbs[idnode][tid] += tracks.fStepV[i];
     }
   }
 
@@ -117,17 +117,17 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
     MyHit *hit;
     int nhits = 0;
     for (int i = 0; i < npart; i++) {
-      
-      if (tracks.fEdepV[i]>0.00002)
+      // Deposit hits in scintillator
+      if (idvol==fIdGap && tracks.fEdepV[i]>0.00002)
 	{
-	  hit = fFactory->NextFree(tracks.fEvslotV[i]);
+	  hit = fFactory->NextFree(tracks.fEvslotV[i], tid);
 	  
 	  hit->fX = tracks.fXposV[i];
 	  hit->fY = tracks.fYposV[i];
 	  hit->fZ = tracks.fZposV[i];
 	  hit->fEdep = tracks.fEdepV[i];
-	  hit->fVolId = 0.;
-	  hit->fDetId = 0.;
+	  hit->fVolId = idvol;
+	  hit->fDetId = idnode;
 	  
 	  //      if (track->path && track->path->GetCurrentNode()) {
 	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
@@ -171,17 +171,17 @@ void ExN03Application::Digitize(int /* event */) {
   pad->SetGridx();
   pad->SetGridy();
   pad->SetLogy();
-  TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", 12, 0.5, 12.5);
+  TH1F *histeg = new TH1F("Edep_gap", "Primary track energy deposition per layer", kNlayers, 0.5, kNlayers+0.5);
   histeg->SetMarkerColor(kRed);
   histeg->SetMarkerStyle(2);
   histeg->SetStats(kFALSE);
-  TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", 12, 0.5, 12.5);
+  TH1F *histea = new TH1F("Edep_abs", "Primary track energy deposition per layer in absorber", kNlayers, 0.5, kNlayers+0.5);
   histea->SetMarkerColor(kBlue);
   histea->SetMarkerStyle(4);
   histea->SetStats(kFALSE);
-  for (int i = 0; i < 10; i++) {
-    histeg->SetBinContent(i + 3, fEdepGap[i][0] * 1000. / nprim);
-    histea->SetBinContent(i + 3, fEdepAbs[i][0] * 1000. / nprim);
+  for (int i = 0; i < kNlayers; i++) {
+    histeg->SetBinContent(i+1, fEdepGap[i][0] * 1000. / nprim);
+    histea->SetBinContent(i+1, fEdepAbs[i][0] * 1000. / nprim);
   }
   double minval =
       min<double>(histeg->GetBinContent(histeg->GetMinimumBin()), histea->GetBinContent(histea->GetMinimumBin()));
@@ -198,17 +198,17 @@ void ExN03Application::Digitize(int /* event */) {
   pad->SetGridx();
   pad->SetGridy();
   pad->SetLogy();
-  TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", 12, 0.5, 12.5);
+  TH1F *histlg = new TH1F("Len_gap", "Length per layer normalized per primary", kNlayers, 0.5, kNlayers+0.5);
   histlg->SetMarkerColor(kRed);
   histlg->SetMarkerStyle(2);
   histlg->SetStats(kFALSE);
-  TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", 12, 0.5, 12.5);
+  TH1F *histla = new TH1F("Len_abs", "Length per layer normalized per primary", kNlayers, 0.5, kNlayers+0.5);
   histla->SetMarkerColor(kBlue);
   histla->SetMarkerStyle(4);
   histla->SetStats(kFALSE);
   for (int i = 0; i < 10; i++) {
-    histlg->SetBinContent(i + 3, fLengthGap[i][0] / nprim);
-    histla->SetBinContent(i + 3, fLengthAbs[i][0] / nprim);
+    histlg->SetBinContent(i+1, fLengthGap[i][0] / nprim);
+    histla->SetBinContent(i+1, fLengthAbs[i][0] / nprim);
   }
   histlg->GetXaxis()->SetTitle("Layer");
   histlg->GetYaxis()->SetTitle("Length per layer");
