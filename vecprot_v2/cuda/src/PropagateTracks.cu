@@ -111,7 +111,7 @@ void transport_kernel()
 
      if (propagator->fUsePhysics) {
        // Discrete processes only
-        Int_t nphys = output.SortByStatus(kPhysics);
+        int nphys = output.SortByStatus(kPhysics);
         if (nphys) {
            // Do post step actions for particles suffering a given process.
            // Surviving particles are added to the output array

@@ -1,6 +1,0 @@
-      SUBROUTINE FGetInt(LINE, IARR)
-      CHARACTER*80 LINE
-      INTEGER IARR(6)
-      READ(LINE,10) (IARR(L),L=1,6)
- 10   FORMAT(6I11)
-      END

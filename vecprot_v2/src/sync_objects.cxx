@@ -15,7 +15,7 @@ TimeCounter::TimeCounter(bool measure_time) : nthreads(0), timer(0), stamp(0) {
     timer->Start();
     timer->Stop();
     stamp = timer->RealTime();
-    memset(realtime, 0, 100 * sizeof(Double_t));
+    memset(realtime, 0, 100 * sizeof(double));
   }
 }
 
@@ -31,7 +31,7 @@ TimeCounter &TimeCounter::operator++() {
   TThread::Lock();
   if (timer) {
     timer->Stop();
-    Double_t now = timer->RealTime();
+    double now = timer->RealTime();
     realtime[nthreads] += now - stamp;
     stamp = now;
     timer->Continue();
@@ -48,7 +48,7 @@ TimeCounter &TimeCounter::operator--() {
   TThread::Lock();
   if (timer) {
     timer->Stop();
-    Double_t now = timer->RealTime();
+    double now = timer->RealTime();
     if (nthreads > 0) {
       realtime[nthreads] += now - stamp;
       nthreads--;
@@ -70,9 +70,9 @@ void TimeCounter::Print() {
   if (!timer)
     return;
   timer->Stop();
-  Int_t npoints = 0;
-  Double_t sum = 0.;
-  Int_t i;
+  int npoints = 0;
+  double sum = 0.;
+  int i;
   for (i = 0; i < 100; i++) {
     if (realtime[i] < 0.00001)
       continue;
@@ -120,7 +120,7 @@ concurrent_queue::~concurrent_queue() {
 }
 
 //______________________________________________________________________________
-void concurrent_queue::push(TObject *data, Bool_t priority) {
+void concurrent_queue::push(TObject *data, bool priority) {
   // Push front and pop back policy for normal baskets, push back for priority
   // baskets.
   the_mutex.Lock();
@@ -136,7 +136,7 @@ void concurrent_queue::push(TObject *data, Bool_t priority) {
 }
 
 //______________________________________________________________________________
-Bool_t concurrent_queue::empty() const {
+bool concurrent_queue::empty() const {
   the_mutex.Lock();
   bool is_empty = the_queue.empty();
   the_mutex.UnLock();
@@ -144,9 +144,9 @@ Bool_t concurrent_queue::empty() const {
 }
 
 //______________________________________________________________________________
-Int_t concurrent_queue::size() const {
+int concurrent_queue::size() const {
   the_mutex.Lock();
-  Int_t the_size = the_queue.size();
+  int the_size = the_queue.size();
   the_mutex.UnLock();
   return the_size;
 }
@@ -172,7 +172,7 @@ TObject *concurrent_queue::wait_and_pop() {
 }
 
 //______________________________________________________________________________
-TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **array) {
+TObject *concurrent_queue::wait_and_pop_max(unsigned int nmax, unsigned int &n, TObject **array) {
   // Pop many objects in one go, maximum nmax. Will return the number of requested
   // objects, or the number available. The wait time for the client is minimal (at
   // least one object in the queue).
@@ -183,7 +183,7 @@ TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **ar
   n = the_queue.size();
   if (n > nmax)
     n = nmax;
-  UInt_t npopped = 0;
+  unsigned int npopped = 0;
   while (npopped < n) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();
@@ -196,14 +196,14 @@ TObject *concurrent_queue::wait_and_pop_max(UInt_t nmax, UInt_t &n, TObject **ar
 }
 
 //______________________________________________________________________________
-void concurrent_queue::pop_many(UInt_t n, TObject **array) {
+void concurrent_queue::pop_many(unsigned int n, TObject **array) {
   // Pop many objects in one go. Will keep the asking thread waiting until there
   // are enough objects in the queue.
   the_mutex.Lock();
   while (the_queue.size() < n) {
     the_condition_variable.Wait();
   }
-  UInt_t npopped = 0;
+  unsigned int npopped = 0;
   while (npopped < n) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();

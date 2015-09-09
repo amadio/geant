@@ -5,12 +5,13 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-void run(Int_t nthreads=4,
-	 const char *geomfile="ExN03.root",
-	 const char *xsec="xsec_FTFP_BERT.root",
-	 const char *fstate="fstate_FTFP_BERT.root",
+void run(int nthreads=4,
+         bool performance=true,
+	      const char *geomfile="ExN03.root",
+	      const char *xsec="xsec_FTFP_BERT.root",
+	      const char *fstate="fstate_FTFP_BERT.root",
          bool coprocessor = COPROCESSOR_REQUEST
-         )
+        )
 {
    // Those library used to need to be loaded explicitly and are now
    // automatically loaded by ROOT.
@@ -30,33 +31,32 @@ void run(Int_t nthreads=4,
 //=============================================================================
 // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
 //=============================================================================
-   Bool_t performance = true;
+//   bool performance = true;
 
-   Int_t ntotal   = 50;  // Number of events to be transported
-   Int_t nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
+   int ntotal   = 50;  // Number of events to be transported
+   int nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
    
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
-   WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
+   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
    // Monitor different features
-   wmgr->SetNminThreshold(5*nthreads);
+   prop->SetNminThreshold(5*nthreads);
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
       gpuBroker->CudaSetup(32,128,1);
-      wmgr->SetTaskBroker(gpuBroker);
+      prop->SetTaskBroker(gpuBroker);
 #else
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
    }
 
-   wmgr->SetMonitored(WorkloadManager::kMonQueue,          true & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonMemory,         false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonBasketsPerVol,  false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonVectors,        false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonConcurrency,    false & (!performance));
-   wmgr->SetMonitored(WorkloadManager::kMonTracksPerEvent, false & (!performance));
-   Bool_t graphics = (wmgr->GetMonFeatures()) ? true : false;
+   prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
+   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
+   bool graphics = (prop->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;
    prop->fNaverage = 500;   // Average number of tracks per event
   
@@ -89,6 +89,8 @@ void run(Int_t nthreads=4,
 
 
    prop->fApplication = new ExN03Application();
+   // Activate I/O
+   prop->fFillTree = false;
 
 // Activate debugging using -DBUG_HUNT=ON in your cmake build
    prop->fDebugEvt = 0;

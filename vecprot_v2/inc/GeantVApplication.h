@@ -34,7 +34,7 @@ public:
   virtual ~GeantVApplication() {}
 
   /** @brief Function of initialization */
-  virtual Bool_t Initialize() = 0;
+  virtual bool Initialize() = 0;
 
   /**
    * @brief User callback function for scoring
@@ -43,14 +43,14 @@ public:
    * @param npart Number of tracks
    * @param tracks Set of tracks
    */
-  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) = 0;
+  virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) = 0;
 
   /**
    * @brief Function of digitization
    * 
    * @param event Event for digitization
    */
-  virtual void Digitize(Int_t event) = 0;
+  virtual void Digitize(int event) = 0;
 
   /** @brief User FinishRun function */
   virtual void FinishRun() = 0;

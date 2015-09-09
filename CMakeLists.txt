@@ -1,4 +1,4 @@
- #----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(GEANTV)
@@ -29,6 +29,8 @@ else()
 endif()
 
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
+option(USE_VECGEOM_NAVIGATOR "Use the navigaator from VecGeom" ON)
+option(USE_ROOT "Use ROOT" ON)
 #---------------------------------------------------------------------------
 # Debuging options
 if(BUG_HUNT)
@@ -246,6 +248,8 @@ include_directories("${VECGEOM_INSTALL_DIR}/include/VecCore")
 message(STATUS "VECGEOM_INSTALL_DIR is -${VECGEOM_INSTALL_DIR}-")
 message(STATUS "VECGEOM_INCLUDE_DIR is -${VECGEOM_INCLUDE_DIR}-")
 
+string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
 #----------------------------------------------------------------------------
 # Add subdirectories
 #
@@ -259,8 +263,8 @@ add_subdirectory (tabxsec)
 add_subdirectory (micromc)
 #add_subdirectory (test-small)
 add_subdirectory (cmstrack)
-add_subdirectory (test-complex)
-#add_subdirectory (Nudy)
+#add_subdirectory (test-complex)
+add_subdirectory (Nudy)
 
 if(USE_VECPHYS)
  add_subdirectory (vectphysproc)

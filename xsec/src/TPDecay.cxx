@@ -1,73 +1,61 @@
-#include "TMath.h"
 #include "TPDecay.h"
 #include "TFinState.h"
 #include "TPartIndex.h"
-//#include <iostream>
 
+#ifdef USE_ROOT
 ClassImp(TPDecay)
+#endif
 
-//___________________________________________________________________
-TPDecay::TPDecay():
-    fNSamp(0),
-    fNPart(0),
-    fDecay(0),
-    fCTauPerMass(0)
+    //___________________________________________________________________
+    TPDecay::TPDecay()
+    : fNSamp(0), fNPart(0), fDecay(0), fCTauPerMass(0)
 //    ,fDecayLambdaTable(0)
 {
 }
 
 //___________________________________________________________________
-TPDecay::TPDecay(Int_t nsample, Int_t npart, TFinState *decay):
-    fNSamp(nsample),
-    fNPart(npart),
-    fDecay(decay),
-    fCTauPerMass(0)
+TPDecay::TPDecay(int nsample, int npart, TFinState *decay)
+    : fNSamp(nsample), fNPart(npart), fDecay(decay), fCTauPerMass(0)
 //    ,fDecayLambdaTable(0)
-{
-}
+{}
 
 //___________________________________________________________________
 TPDecay::~TPDecay() {
-//  Int_t npart = TPartIndex::I()->NPart();
-//  for(Int_t i=0; i<npart; ++i) 
-//    if(fDecayLambdaTable[i]) 
-//     delete [] fDecayLambdaTable[i];
-//  delete [] fDecayLambdaTable;
+  //  int npart = TPartIndex::I()->NPart();
+  //  for(int i=0; i<npart; ++i)
+  //    if(fDecayLambdaTable[i])
+  //     delete [] fDecayLambdaTable[i];
+  //  delete [] fDecayLambdaTable;
 }
 
 //___________________________________________________________________
-Bool_t TPDecay::SampleDecay(Int_t pindex, Int_t &npart,
-                            const Int_t *&pid, const Float_t *&mom) const
-{
-  Float_t kerma;
-  Float_t weight;
-  Float_t en;
+bool TPDecay::SampleDecay(int pindex, int &npart, const int *&pid, const float *&mom) const {
+  float kerma;
+  float weight;
+  float en;
   return fDecay[pindex].SampleReac(npart, weight, kerma, en, pid, mom);
 }
 
 //___________________________________________________________________
-Bool_t TPDecay::GetDecay(Int_t pindex, Int_t ifs, Int_t &npart,
-                         const Int_t *&pid, const Float_t *&mom) const
-{
-  Float_t kerma;
-  Float_t weight;
-  Float_t en;
-  return fDecay[pindex].GetReac(ifs,npart, weight, kerma, en, pid, mom);
+bool TPDecay::GetDecay(int pindex, int ifs, int &npart, const int *&pid, const float *&mom) const {
+  float kerma;
+  float weight;
+  float en;
+  return fDecay[pindex].GetReac(ifs, npart, weight, kerma, en, pid, mom);
 }
 
 //___________________________________________________________________
-Bool_t TPDecay::HasDecay(Int_t pindex) const {
-  if(fDecay[pindex].GetNsecs()==0)
-    return kFALSE;
+bool TPDecay::HasDecay(int pindex) const {
+  if (fDecay[pindex].GetNsecs() == 0)
+    return false;
 
-  return kTRUE;
+  return true;
 }
 
-void  TPDecay::SetCTauPerMass(Double_t *ctaupermass, Int_t np){
-  if(!fCTauPerMass)
+void TPDecay::SetCTauPerMass(double *ctaupermass, int np) {
+  if (!fCTauPerMass)
     delete fCTauPerMass;
-  fCTauPerMass = new Double_t[np];
-  for(Int_t ip=0; ip<np; ++ip)
-     fCTauPerMass[ip] = ctaupermass[ip];
+  fCTauPerMass = new double[np];
+  for (int ip = 0; ip < np; ++ip)
+    fCTauPerMass[ip] = ctaupermass[ip];
 }
-

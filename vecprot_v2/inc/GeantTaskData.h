@@ -1,21 +1,17 @@
 //===--- GeantTaskData.h - Geant-V ----------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantTaskData.h
- * @brief Implementation of data organized per thread Geant-V prototype 
- * @author Andrei Gheata 
+ * @brief Implementation of data organized per thread Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
 #ifndef GEANT_TASKDATA
 #define GEANT_TASKDATA
-
-#ifndef ROOT_TObject
-#include "TObject.h"
-#endif
 
 #ifndef GEANT_TRACK
 #include "GeantTrack.h"
@@ -23,8 +19,14 @@
 
 #include <deque>
 
-class TGeoVolume;
+#include "Geant/Typedefs.h"
+
+#ifdef USE_ROOT
 class TRandom;
+#else
+#include "base/RNG.h"
+using VECGEOM_NAMESPACE::RNG;
+#endif
 class GeantBasketMgr;
 class GeantBasket;
 
@@ -34,34 +36,40 @@ class GeantBasket;
 /**
  * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
- * 
+ *
  */
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
-  Int_t fTid;          /** Thread unique id */
-  size_t fNthreads;    /** Number of transport threads */
-  Int_t fMaxDepth;     /** Maximum geometry depth */
-  Int_t fSizeBool;     /** Size of bool array */
-  Int_t fSizeDbl;      /** Size of dbl array */
-  Bool_t fToClean;     /** Flag set when the basket queue is to be cleaned */
-  TGeoVolume *fVolume; /** Current volume per thread */
-  TRandom *fRndm;      /** Random generator for thread */
-  Bool_t *fBoolArray;  /** [fSizeBool] Thread array of bools */
-  Double_t *fDblArray; /** [fSizeDbl] Thread array of doubles */
-  GeantTrack fTrack;   /** Track support for this thread */
-  VolumePath_t *fPath; /** Volume path for the thread */
+  int fTid;              /** Thread unique id */
+  size_t fNthreads;      /** Number of transport threads */
+  int fMaxDepth;         /** Maximum geometry depth */
+  int fSizeBool;         /** Size of bool array */
+  int fSizeDbl;          /** Size of dbl array */
+  bool fToClean;         /** Flag set when the basket queue is to be cleaned */
+  Volume_t *fVolume;     /** Current volume per thread */
+#ifdef USE_ROOT
+  TRandom *fRndm;        /** Random generator for thread */
+#else
+  RNG *fRndm;            /** Random generator for thread */
+#endif
+  bool *fBoolArray;      /** [fSizeBool] Thread array of bools */
+  double *fDblArray;     /** [fSizeDbl] Thread array of doubles */
+  GeantTrack fTrack;     /** Track support for this thread */
+  VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
 #ifdef GEANT_NVCC
-   char fPool[sizeof(std::deque<GeantBasket*>)]; // Use the same space ...
+  char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
 #else
-   std::deque<GeantBasket*> fPool; /** Pool of empty baskets */
+  std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
 #endif
-   vecgeom::SOA3D<double>  *fSOA3Dworkspace1; // Thread SOA3D workspace (to be used for vector navigation)
-   vecgeom::SOA3D<double>  *fSOA3Dworkspace2; // SOA3D workspace (to be used for vector navigation)
-   int                      fSizeInt;  // current size of IntArray
-   int                     *fIntArray; // Thread array of ints (used in vector navigation)
+  vecgeom::SOA3D<double> *fSOA3Dworkspace1; // Thread SOA3D workspace (to be used for vector navigation)
+  vecgeom::SOA3D<double> *fSOA3Dworkspace2; // SOA3D workspace (to be used for vector navigation)
+  int fSizeInt;                             // current size of IntArray
+  int *fIntArray;                           // Thread array of ints (used in vector navigation)
+  GeantTrack_v  *fTransported;              // Transported tracks in current step
+  int            fNkeepvol;                 // Number of tracks keeping the same volume
 
 private:
    // a helper function checking internal arrays and allocating more space if necessary
@@ -77,16 +85,12 @@ private:
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
   GEANT_CUDA_DEVICE_CODE
-  GeantTaskData(void *addr, size_t nTracks, Int_t maxdepth, Int_t maxPerBasket);
+  GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
 
 public:
-
-   /** @brief GeantTaskData constructor */
-  GeantTaskData();
-
   /** @brief GeantTaskData constructor */
   GEANT_CUDA_DEVICE_CODE
-  GeantTaskData(size_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
+  GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket);
 
   /** @brief GeantTaskData destructor */
   GEANT_CUDA_DEVICE_CODE
@@ -96,29 +100,29 @@ public:
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
   GEANT_CUDA_DEVICE_CODE
-  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, Int_t maxdepth, Int_t maxPerBasket);
+  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
   GEANT_CUDA_DEVICE_CODE
-  static size_t SizeOfInstance(size_t nthreads, Int_t maxDepth, Int_t maxPerBasket);
+  static size_t SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBasket);
 
   /**
    * @brief Function that return double array
-   * 
+   *
    * @param size Size of double array
    */
-  Double_t *GetDblArray(Int_t size) {
-    CheckSizeAndAlloc<Double_t>(fDblArray, fSizeDbl, size);
+  double *GetDblArray(int size) {
+    CheckSizeAndAlloc<double>(fDblArray, fSizeDbl, size);
     return fDblArray;
   }
 
   /**
    * @brief Function that return boolean array
-   * 
+   *
    * @param size Size of boolean array
    */
-  Bool_t *GetBoolArray(Int_t size) {
-    CheckSizeAndAlloc<Bool_t>(fBoolArray, fSizeBool, size);
+  bool *GetBoolArray(int size) {
+    CheckSizeAndAlloc<bool>(fBoolArray, fSizeBool, size);
     return fBoolArray;
   }
 
@@ -127,7 +131,7 @@ public:
    *
    * @param size Size of int array
    */
-  int *GetIntArray(Int_t size) {
+  int *GetIntArray(int size) {
     CheckSizeAndAlloc<int>(fIntArray, fSizeInt, size);
     return fIntArray;
   }
@@ -172,7 +176,10 @@ public:
   /**
    * @brief Get the cleared storedtrack
    */
-  GeantTrack &GetTrack() { fTrack.Clear(); return fTrack; }
+  GeantTrack &GetTrack() {
+    fTrack.Clear();
+    return fTrack;
+  }
 
   /**
    * @brief Get next free basket or null if not available
@@ -181,28 +188,27 @@ public:
   GeantBasket *GetNextBasket();
 
   /** @brief Setter for the toclean flag */
-  void SetToClean(Bool_t flag) { fToClean = flag; }
+  void SetToClean(bool flag) { fToClean = flag; }
 
   /** @brief Getter for the toclean flag */
   bool NeedsToClean() const { return fToClean; }
 
   /**
    * @brief Recycles a given basket
-   * 
+   *
    * @param b Pointer to current GeantBasket for recycling
    */
   void RecycleBasket(GeantBasket *b);
 
   /**
    * @brief Function cleaning a number of free baskets
-   * 
+   *
    * @param ntoclean Number of baskets to be cleaned
    * @return Number of baskets actually cleaned
    */
-  Int_t CleanBaskets(size_t ntoclean);
+  int CleanBaskets(size_t ntoclean);
 
 private:
-
   /**
    * @brief Constructor GeantTaskData
    * @todo Still not implemented
@@ -215,7 +221,7 @@ private:
    */
   GeantTaskData &operator=(const GeantTaskData &);
 
-   // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
+  // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

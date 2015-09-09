@@ -26,17 +26,17 @@ public:
   PhysicsProcess(const char *name) : TNamed(name,"") {}
   virtual ~PhysicsProcess() {}
   
-  Bool_t       IsType(EProcessType type) {return TObject::TestBit(type);}
+  bool       IsType(EProcessType type) {return TObject::TestBit(type);}
   virtual void ComputeIntLen(TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Double_t *lengths)                             = 0;
+                             int ntracks, 
+                             int *trackin, 
+                             double *lengths)                             = 0;
   virtual void PostStep(     TGeoVolume *vol,
-                             Int_t ntracks,
-                             Int_t *trackin, 
-                             Int_t &nout, 
-                             Int_t* trackout)                             = 0;
-  static void StepManager(Int_t iproc, Int_t npart, Int_t */*particles*/, Int_t nout, Int_t */*partnext*/);
+                             int ntracks,
+                             int *trackin, 
+                             int &nout, 
+                             int* trackout)                             = 0;
+  static void StepManager(int iproc, int npart, int */*particles*/, int nout, int */*partnext*/);
   ClassDef(PhysicsProcess,1)    // Physics process base class
 };
 
@@ -49,14 +49,14 @@ public:
   virtual ~ScatteringProcess() {}
   
   virtual void ComputeIntLen(TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Double_t *lengths);
+                             int ntracks, 
+                             int *trackin, 
+                             double *lengths);
   virtual void PostStep(     TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Int_t &nout, 
-                             Int_t* trackout);
+                             int ntracks, 
+                             int *trackin, 
+                             int &nout, 
+                             int* trackout);
   ClassDef(ScatteringProcess,1)    // Single scattering process
 };
 
@@ -68,18 +68,18 @@ public:
   ElossProcess(const char *name) : PhysicsProcess(name) {TObject::SetBit(kContinuous);}
   virtual ~ElossProcess() {}
   
-  static Double_t     Bbf1(Double_t *x, Double_t *par);
-  static Double_t     BetheBloch(GeantTrack* track, Double_t tz, Double_t ta, Double_t rho);
-  void                PlotBB(Double_t z, Double_t a, Double_t rho, Double_t bgmin=1e-2, Double_t bgmax=1e6);
+  static double     Bbf1(double *x, double *par);
+  static double     BetheBloch(GeantTrack* track, double tz, double ta, double rho);
+  void                PlotBB(double z, double a, double rho, double bgmin=1e-2, double bgmax=1e6);
   virtual void ComputeIntLen(TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Double_t *lengths);
+                             int ntracks, 
+                             int *trackin, 
+                             double *lengths);
   virtual void PostStep(     TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Int_t &nout, 
-                             Int_t* trackout);
+                             int ntracks, 
+                             int *trackin, 
+                             int &nout, 
+                             int* trackout);
   ClassDef(ElossProcess,1)    // Energy loss process
 };
 
@@ -92,14 +92,14 @@ public:
   virtual ~InteractionProcess() {}
   
   virtual void ComputeIntLen(TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Double_t *lengths);
+                             int ntracks, 
+                             int *trackin, 
+                             double *lengths);
   virtual void PostStep(     TGeoVolume *vol,
-                             Int_t ntracks, 
-                             Int_t *trackin, 
-                             Int_t &nout, 
-                             Int_t* trackout);
+                             int ntracks, 
+                             int *trackin, 
+                             int &nout, 
+                             int* trackout);
   ClassDef(InteractionProcess,1)    // Single scattering process
 };
 

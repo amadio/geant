@@ -106,7 +106,7 @@ G4double TabulatedProcess::MeanFreePath(const G4Track &track) {
   //  if(pdgEncoding)
   //  particleRt = TDatabasePDG::Instance()->GetParticle(pdgEncoding);
   // static TPartIndex* partIdx= TPartIndex::I();
-  // Int_t partId = partIdx->PartIndex( pdgEncoding ); // GeantVparticle index
+  // int partId = partIdx->PartIndex( pdgEncoding ); // GeantVparticle index
 
   // std::cout << " Particle Indices:  pdg= " << pdgEncoding << " rootId = "  << partId << std::endl;
   // std::cout << " Number of Particles: " << partIdx->NPart() << std::endl;

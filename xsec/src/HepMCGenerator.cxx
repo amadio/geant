@@ -1,7 +1,9 @@
 #include "HepMCGenerator.h"
 
-#include "TMath.h"
-#include "TDatabasePDG.h"
+#include "base/Global.h"
+using vecgeom::kPi;
+#include "Geant/Typedefs.h"
+
 #include "GeantTrack.h"
 
 #include "HepMC/GenParticle.h"
@@ -24,6 +26,9 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
   } else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
+#ifdef USE_VECGEOM_NAVIGATOR
+  Particle_t::CreateParticles();
+#endif
 }
 
 //______________________________________________________________________________
@@ -36,7 +41,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-Int_t HepMCGenerator::NextEvent() {
+int HepMCGenerator::NextEvent() {
   //
   // Delete previous event
   delete search;
@@ -51,25 +56,25 @@ Int_t HepMCGenerator::NextEvent() {
 
   search = new HepMC::FindParticles(evt, HepMC::FIND_ALL, HepMC::STATUS == 1); // && HepMC::STATUS_SUBCODE == 0);
 
-  Int_t ntracks = 0;
-  Double_t eta, phi, pmom = 0;
+  int ntracks = 0;
+  double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
-      pmom = TMath::Sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                         genpart->momentum().py() * genpart->momentum().py() +
-                         genpart->momentum().pz() * genpart->momentum().pz());
+      pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
     // genpart->print();
     if (fEtaCut) {
       if (pmom == genpart->momentum().pz())
         eta = 1.E30;
       else
-        eta = 0.5 * TMath::Log((pmom + genpart->momentum().pz()) / (pmom - genpart->momentum().pz()));
+        eta = 0.5 * log((pmom + genpart->momentum().pz()) / (pmom - genpart->momentum().pz()));
       if (eta < fEtaMin || eta > fEtaMax)
         continue;
     }
     if (fPhiCut) {
       // Phi in 0,2pi
-      phi = TMath::Pi() + TMath::ATan2(-genpart->momentum().py(), -genpart->momentum().px());
+      phi = kPi + atan2(-genpart->momentum().py(), -genpart->momentum().px());
       if (phi < fPhiMin || phi > fPhiMax)
         continue;
     }
@@ -80,7 +85,7 @@ Int_t HepMCGenerator::NextEvent() {
     ntracks++;
   }
 
-  Int_t ntot = search->results().size();
+  int ntot = search->results().size();
 
   std::cout << std::endl
             << "Number of stable particles ";
@@ -95,29 +100,29 @@ Int_t HepMCGenerator::NextEvent() {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
+void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
-  Int_t itr = 0;
-  Double_t eta, phi, pmom = 0;
+  int itr = 0;
+  double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
     if (fEtaCut || fMomCut)
-      pmom = TMath::Sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                         genpart->momentum().py() * genpart->momentum().py() +
-                         genpart->momentum().pz() * genpart->momentum().pz());
+      pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
     if (fEtaCut) {
-      pmom = TMath::Sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                         genpart->momentum().py() * genpart->momentum().py() +
-                         genpart->momentum().pz() * genpart->momentum().pz());
+      pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
       if (pmom == genpart->momentum().pz())
         eta = 1.E30;
       else
-        eta = 0.5 * TMath::Log((pmom + genpart->momentum().pz()) / (pmom - genpart->momentum().pz()));
+        eta = 0.5 * log((pmom + genpart->momentum().pz()) / (pmom - genpart->momentum().pz()));
       if (eta < fEtaMin || eta > fEtaMax)
         continue;
     }
     if (fPhiCut) {
       // Phi in 0,2pi
-      phi = TMath::Pi() + TMath::ATan2(-genpart->momentum().py(), -genpart->momentum().px());
+      phi = kPi + atan2(-genpart->momentum().py(), -genpart->momentum().px());
       if (phi < fPhiMin || phi > fPhiMax)
         continue;
     }
@@ -133,7 +138,11 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
     gtrack.SetPDG(pdg);
 
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(pdg));
+#ifdef USE_VECGEOM_NAVIGATOR
+    const Particle_t *const &part = &Particle::GetParticle(gtrack.fPDG);
+#else
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
+#endif
 
     gtrack.SetCharge(part->Charge() / 3.);
     gtrack.SetMass(part->Mass());
@@ -151,11 +160,11 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
     gtrack.fE = genpart->momentum().e(); // e- 30MeV
 
     // Compute momentum from energy/mass
-    Double_t p = TMath::Sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
+    double p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
     // Momentum from generator
-    Double_t ptrack = TMath::Sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                                  genpart->momentum().py() * genpart->momentum().py() +
-                                  genpart->momentum().pz() * genpart->momentum().pz());
+    double ptrack =
+        sqrt(genpart->momentum().px() * genpart->momentum().px() + genpart->momentum().py() * genpart->momentum().py() +
+             genpart->momentum().pz() * genpart->momentum().pz());
 
     gtrack.SetP(p);
     // Correctly normalize direction
@@ -167,8 +176,8 @@ void HepMCGenerator::GetTrack(Int_t n, Geant::GeantTrack &gtrack) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &tpz, Double_t &te, Double_t &x0,
-                              Double_t &y0, Double_t &z0, Int_t &pdg) {
+void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0,
+                              double &z0, int &pdg) {
 
   const HepMC::GenParticlePtr &genpart = search->results()[n];
   // here I have to create GeantTracks
@@ -191,24 +200,24 @@ void HepMCGenerator::GetTrack(Int_t n, Double_t &tpx, Double_t &tpy, Double_t &t
 
   /*
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
-    Int_t itr = 0;
-    Double_t eta, phi, pmom=0;
+    int itr = 0;
+    double eta, phi, pmom=0;
     for (const HepMC::GenParticlePtr &genpart : search->results()) {
       if (fEtaCut || fMomCut)
-        pmom = TMath::Sqrt(genpart->momentum().px()*genpart->momentum().px() +
+        pmom = sqrt(genpart->momentum().px()*genpart->momentum().px() +
                            genpart->momentum().py()*genpart->momentum().py() +
                            genpart->momentum().pz()*genpart->momentum().pz());
       if (fEtaCut) {
-        pmom = TMath::Sqrt(genpart->momentum().px()*genpart->momentum().px() +
+        pmom = sqrt(genpart->momentum().px()*genpart->momentum().px() +
                                  genpart->momentum().py()*genpart->momentum().py() +
                                  genpart->momentum().pz()*genpart->momentum().pz());
         if (pmom == genpart->momentum().pz()) eta = 1.E30;
-        else eta = 0.5*TMath::Log((pmom+genpart->momentum().pz())/(pmom-genpart->momentum().pz()));
+        else eta = 0.5*log((pmom+genpart->momentum().pz())/(pmom-genpart->momentum().pz()));
         if (eta<fEtaMin || eta>fEtaMax) continue;
       }
       if (fPhiCut) {
         // Phi in 0,2pi
-        phi = TMath::Pi()+TMath::ATan2(-genpart->momentum().py(),-genpart->momentum().px());
+        phi = kPi+atan2(-genpart->momentum().py(),-genpart->momentum().px());
         if (phi<fPhiMin || phi>fPhiMax) continue;
       }
       if (fMomCut) {

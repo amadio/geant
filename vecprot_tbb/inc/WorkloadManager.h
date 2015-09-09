@@ -16,7 +16,7 @@ class WorkloadManager
 public:
    static WorkloadManager *fgInstance;
 
-   Int_t fNbaskets;
+   int fNbaskets;
    GeantVolumeBasket **fBasketArray;
 
    tbb::concurrent_bounded_queue<GeantBasket*> tbb_feeder_queue;
@@ -29,11 +29,11 @@ public:
    WorkloadManager();
    virtual ~WorkloadManager();
    void AddBasket(GeantVolumeBasket *basket) {fBasketArray[fNbaskets++]=basket;}
-   void AddEmptyBaskets(Int_t nb);
-   void AddEmptyCollections(Int_t nc);
-   void CreateBaskets(Int_t nvolumes);
+   void AddEmptyBaskets(int nb);
+   void AddEmptyCollections(int nc);
+   void CreateBaskets(int nvolumes);
 
-   Int_t GetNbaskets() const {return fNbaskets;}
+   int GetNbaskets() const {return fNbaskets;}
    GeantVolumeBasket **GetBasketArray() const {return fBasketArray;}
    static WorkloadManager* Instance();
 

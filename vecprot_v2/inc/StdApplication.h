@@ -34,7 +34,7 @@ enum EScoreType {
 };  
 
 private:
-  Bool_t fInitialized;                            /** Initialized flag */
+  bool fInitialized;                            /** Initialized flag */
   
   TH1F     *fHeta;                                /** Eta distribution */
   TH1F     *fHpt;                                 /** Pt distribution */
@@ -62,14 +62,14 @@ public:
   virtual ~StdApplication() {}
 
   /** @brief Initialization function */
-  virtual Bool_t Initialize();
+  virtual bool Initialize();
 
   /** @brief Create and fill a uniform log scale bin limits array to pass to TH1D 
    * @param nbins Number of bins
    * @param lmin Low axis limit (positive)
    * @param lmax High axis limit (greater than lmin)
    */
-  static Double_t *MakeUniformLogArray(Int_t nbins, Double_t lmin, Double_t lmax);
+  static double *MakeUniformLogArray(int nbins, double lmin, double lmax);
 
   /** @brief Set scoring type */
   void SetScoreType(EScoreType type) { fScore = type; }
@@ -81,14 +81,14 @@ public:
    * @param npart Number of tracks
    * @param tracks GeantV track container
    */
-  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td);
+  virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
   /**
    * @brief Function of digitization
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(Int_t event);
+  virtual void Digitize(int event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

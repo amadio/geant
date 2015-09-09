@@ -24,13 +24,14 @@ class TH1D;
 class TProfile;
 
 #include "Geant/Config.h"
+#include "Geant/Typedefs.h"
 
 /** @brief CMSApplication class */
 class CMSApplication : public GeantVApplication {
-  static const Int_t kMaxThreads = 36;
-  static const Int_t kNvolumes     = 4156;
-  static const Int_t kNECALModules = 36;
-  static const Int_t kNHCALModules = 100;
+  static const int kMaxThreads = 36;
+  static const int kNvolumes     = 4156;
+  static const int kNECALModules = 36;
+  static const int kNHCALModules = 100;
 
 public:
 enum EScoreType {
@@ -39,12 +40,12 @@ enum EScoreType {
 };  
 
 private:
-  Bool_t fInitialized;                            /** Initialized flag */
-  Bool_t  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
-  Float_t fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
-  Float_t fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
-  Int_t fECALid[kNECALModules];                   /** ECAL volume id's */
-  Int_t fHCALid[kNHCALModules];                   /** HCAL volume id's */
+  bool fInitialized;                            /** Initialized flag */
+  bool  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
+  float fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
+  float fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
+  int fECALid[kNECALModules];                   /** ECAL volume id's */
+  int fHCALid[kNHCALModules];                   /** HCAL volume id's */
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
   std::map<int,int> fHCALMap;                     /** Map of ECAL modules */
   std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
@@ -80,7 +81,7 @@ public:
   virtual ~CMSApplication() {}
 
   /** @brief Initialization function */
-  virtual Bool_t Initialize();
+  virtual bool Initialize();
 
   /** @brief Set scoring type */
   void SetScoreType(EScoreType type) { fScore = type; }
@@ -92,14 +93,14 @@ public:
    * @param npart Number of tracks
    * @param tracks GeantV track container
    */
-  virtual void StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td);
+  virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
   /**
    * @brief Function of digitization
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(Int_t event);
+  virtual void Digitize(int event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

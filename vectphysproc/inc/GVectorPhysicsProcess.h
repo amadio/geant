@@ -2,13 +2,11 @@
 #define GVECTORPHYSICSPROCESS_H
 
 #include "Geant/Config.h"
+#include "Geant/Typedefs.h"
 
 #ifndef GEANT_PHYSICSPROCESS
 #include "PhysicsProcess.h"
 #endif
-
-// GeantV related
-class TGeoMaterial; // ROOT: we won't use this
 
 #include "GeantFwd.h"
 
@@ -30,46 +28,46 @@ public:
   virtual ~GVectorPhysicsProcess();
 
   virtual void Initialize();
-  virtual void PostStepFinalStateSampling( TGeoMaterial* /*mat*/,
-                                           Int_t ntracks, 
+  virtual void PostStepFinalStateSampling( Material_t* /*mat*/,
+                                           int ntracks, 
                                            GeantTrack_v &tracks,
-                                           Int_t &nout, 
-                                           Int_t tid);
+                                           int &nout, 
+                                           int tid);
 
   // these are not active !!! 
   //
-  virtual void ComputeIntLen(TGeoMaterial * /*mat*/,
-                             Int_t /*ntracks*/, 
+  virtual void ComputeIntLen(Material_t * /*mat*/,
+                             int /*ntracks*/, 
                              GeantTrack_v & /*tracks*/,
-                             Double_t * /*lengths*/, 
-                             Int_t /*tid*/)                            {}
+                             double * /*lengths*/, 
+                             int /*tid*/)                            {}
   
-  virtual void PostStep(     TGeoMaterial * /*mat*/,
-                             Int_t /*ntracks*/,
+  virtual void PostStep(     Material_t * /*mat*/,
+                             int /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
-                             Int_t & /*nout*/, 
-                             Int_t /*tid*/)                            {}         
+                             int & /*nout*/, 
+                             int /*tid*/)                            {}         
 
-  virtual void PostStepTypeOfIntrActSampling(     TGeoMaterial * /*mat*/,
-                                                  Int_t /*ntracks*/,
+  virtual void PostStepTypeOfIntrActSampling(     Material_t * /*mat*/,
+                                                  int /*ntracks*/,
                                                   GeantTrack_v & /*tracks*/, 
-                                                  Int_t /*tid*/)       {} 
+                                                  int /*tid*/)       {} 
 
-  virtual void AtRest(       Int_t /*ntracks*/,
+  virtual void AtRest(       int /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
-                             Int_t &/*nout*/, 
-                             Int_t /*tid*/)                             {}
+                             int &/*nout*/, 
+                             int /*tid*/)                             {}
 
-  virtual void Eloss(        TGeoMaterial */*mat*/,
-                             Int_t /*ntracks*/,
+  virtual void Eloss(        Material_t */*mat*/,
+                             int /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
-                             Int_t &/*nout*/,
-                             Int_t /*tid*/)                             {}
+                             int &/*nout*/,
+                             int /*tid*/)                             {}
 
-  virtual void ApplyMsc(     TGeoMaterial */*mat*/,
-                             Int_t /*ntracks*/,
+  virtual void ApplyMsc(     Material_t */*mat*/,
+                             int /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
-                             Int_t /*tid*/)                             {}
+                             int /*tid*/)                             {}
 
 private:
    GVectorPhysicsProcess (const GVectorPhysicsProcess  &);//no imp.	

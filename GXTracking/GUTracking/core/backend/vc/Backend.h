@@ -16,24 +16,24 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 struct kVc {
 
-  typedef Vc::int_v                   Int_t;
-  typedef Vc::Vector<Precision>       Double_t;
-  typedef Vc::Vector<Precision>::Mask Bool_t;
+  typedef Vc::int_v                   int;
+  typedef Vc::Vector<Precision>       double;
+  typedef Vc::Vector<Precision>::Mask bool;
   typedef Vc::Vector<Precision>       Index_t;
 
-  const static Bool_t kTrue;
-  const static Bool_t kFalse;
+  const static bool kTrue;
+  const static bool kFalse;
   constexpr static bool early_returns = true;
 
-  constexpr static int kSize = kVc::Double_t::Size;
-  const static Double_t kOne;
-  const static Double_t kZero;
+  constexpr static int kSize = kVc::double::Size;
+  const static double kOne;
+  const static double kZero;
 };
 
-typedef kVc::Int_t       VcInt;
-typedef kVc::Double_t    VcPrecision;
-typedef kVc::Bool_t      VcBool;
-typedef kVc::Int_t       VcInside;
+typedef kVc::int       VcInt;
+typedef kVc::double    VcPrecision;
+typedef kVc::bool      VcBool;
+typedef kVc::int       VcInside;
 
 template <typename Type>
 VECPHYS_INLINE
@@ -184,7 +184,7 @@ VcPrecision IntToDouble( VcInt const &val ){
 template <typename Type>
 VECPHYS_INLINE
 VcPrecision UniformRandom(Random_t* state, VcInt val){
-  return kVc::Double_t::Random();
+  return kVc::double::Random();
 }
 
 } // End inline namespace

@@ -103,8 +103,8 @@ void MaterialConverter::CreateRootMaterials()
     
      // Create index for correspondence between G4 and TGeo Materials
     
-     // Int_t AddMaterial(const TGeoMaterial *material);  // Creates and returns the index of new material
-     Int_t rtMatIdx= fTGeomMgr->AddMaterial(tgeoMaterial);
+     // int AddMaterial(const TGeoMaterial *material);  // Creates and returns the index of new material
+     int rtMatIdx= fTGeomMgr->AddMaterial(tgeoMaterial);
      fRootMatIndices.push_back(rtMatIdx);
      ExpandG4Indices(rtMatIdx); // In case Root creates larger indices for some reason
      fG4MatIndices[rtMatIdx]= imatG4;
@@ -151,7 +151,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
     
     // Find or Create corresponding TGeoMaterial
     TGeoMaterial *tgeoMaterial;
-    Int_t rtMatIdx= -1;
+    int rtMatIdx= -1;
       
     // TGeoMaterial     *GetMaterial(const char *matname) const;
     //tgeoMaterial= fTGeomMgr->GetMaterial(g4mat->GetName()) ;
@@ -173,7 +173,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
       // return an error if otherwise
       
       // Could even use the following method to remove - for rectification
-      // void      TGeoManager::RemoveMaterial(Int_t index);
+      // void      TGeoManager::RemoveMaterial(int index);
     }
     else
     {
@@ -211,7 +211,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
     
     // Create index for correspondence between G4 and TGeo Materials
     
-    // Int_t AddMaterial(const TGeoMaterial *material);  // Creates and returns the index of new material
+    // int AddMaterial(const TGeoMaterial *material);  // Creates and returns the index of new material
     fRootMatIndices[imatG4]= rtMatIdx;
     ExpandG4Indices(rtMatIdx); // In case Root creates larger indices for some reason
     fG4MatIndices[rtMatIdx]= imatG4;
@@ -227,7 +227,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
 #include <TList.h>
 
 //  TGeoMaterial method
-//  void SetUsed(Bool_t flag=kTRUE)
+//  void SetUsed(bool flag=kTRUE)
 void
 MaterialConverter::IdentifyUsedMaterials()
 {
@@ -280,7 +280,7 @@ MaterialConverter::ExpandRtIndices(int idG4)
 
 void MaterialConverter::DumpListOfMaterials(bool onlyUsed)
 {
-  Int_t noUsedMaterials=0;
+  int noUsedMaterials=0;
   
   //Load elements from geometry
   TList *matlist = (TList*) fTGeomMgr->GetListOfMaterials();
@@ -304,21 +304,21 @@ void MaterialConverter::DumpListOfMaterials(bool onlyUsed)
     printf(" Index=%3d Z=%6.1f  Name=%15s -   Used\n", mat->GetIndex(), mat->GetZ(), mat->GetName());
 
     // Check the elements
-    Int_t nelem = mat->GetNelements();
+    int nelem = mat->GetNelements();
  
-    for(Int_t iel=0; iel<nelem; ++iel) {
-      Double_t ad;
-      Double_t zd;
-      Double_t wd;
+    for(int iel=0; iel<nelem; ++iel) {
+      double ad;
+      double zd;
+      double wd;
       mat->GetElementProp(ad,zd,wd,iel);
       if (zd<1 || zd>NELEM) {
         std::cerr << " Fatal in MaterialConverter::DumpListOfMaterials"; 
 	printf( "In material %s found element with z=%d > NELEM=%d",
-	      mat->GetName(), (Int_t)zd, NELEM);
+	      mat->GetName(), (int)zd, NELEM);
       }
     }
   }
-  // Int_t numElements = elements.CountBits();
+  // int numElements = elements.CountBits();
   
   // std::cout << " Total num of elements used= " << numElements << std::endl;
   std::cout << "END of DumpListOfMaterials" << std::endl;

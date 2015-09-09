@@ -164,7 +164,7 @@ CoprocessorBroker::TaskData::~TaskData() {
 
 bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
 {
-   Int_t maxdepth = GeantPropagator::Instance()->fMaxDepth;
+   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
 
    fGeantTaskData = new Geant::GeantTaskData();
    fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
@@ -418,7 +418,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
       if (task->Select(input,hostIdx)) {
 
-         Int_t t = fInputBasket->GetInputTracks().AddTrack(input,hostIdx);
+         int t = fInputBasket->GetInputTracks().AddTrack(input,hostIdx);
 
          // Prepare the navigation state pointers in the basket
          gputracks.fPathV[t]->ConvertToGPUPointers();
@@ -458,16 +458,16 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
 
    // Fix the navigation state pointers in the output basket
    GeantTrack_v &output( fOutputBasket->GetOutputTracks() );
-   for(Int_t t = 0; t < output.fMaxtracks; ++t) {
+   for(int t = 0; t < output.fMaxtracks; ++t) {
       // if (output.fHoles->TestBitNumber(t) continue;
       if (output.fPathV[t]) output.fPathV[t]->ConvertToCPUPointers();
       if (output.fNextpathV[t]) output.fNextpathV[t]->ConvertToCPUPointers();
    }
 
-   Int_t ntot = 0;
-   Int_t nnew = 0;
-   Int_t nkilled = 0;
-   /* Int_t ninjected = */ sch->AddTracks(fOutputBasket, ntot, nnew, nkilled, fGeantTaskData);
+   int ntot = 0;
+   int nnew = 0;
+   int nkilled = 0;
+   /* int ninjected = */ sch->AddTracks(fOutputBasket, ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
    (void)nkilled;

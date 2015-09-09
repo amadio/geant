@@ -40,7 +40,7 @@ public:
    * @param ninitial  Initial number of objects to be allocated
    * @param refobj Reference object to serve as blueprint for new allocations
    */
-  GeantObjectPool(Int_t ninitial, const T *refobj = 0);
+  GeantObjectPool(int ninitial, const T *refobj = 0);
 
   /** @brief GeantObjectPool destructor */
   ~GeantObjectPool();
@@ -53,7 +53,7 @@ public:
    * 
    * @param nobj Number of objects
    */
-  void CreateAndPush(Int_t nobj);
+  void CreateAndPush(int nobj);
 
   /**
    * @brief Returns back an object to the pool
@@ -75,7 +75,7 @@ public:
  * a blueprint for the pooled objects.
  */
 template <class T>
-GeantObjectPool<T>::GeantObjectPool(Int_t ninitial, const T *refobj)
+GeantObjectPool<T>::GeantObjectPool(int ninitial, const T *refobj)
     : fPool(), fBlueprint(0) {
   static_assert(std::is_copy_constructible<T>::value, "Type used in GeantObjectPool must be copy constructible");
   fBlueprint = new T(*refobj); // uses CC
@@ -94,8 +94,8 @@ template <class T> GeantObjectPool<T>::~GeantObjectPool() {
  * @details Create nobjects and push them in the queue. This should be done only at
  * initialization
  */
-template <class T> void GeantObjectPool<T>::CreateAndPush(Int_t nobj) {
-  for (Int_t i = 0; i < nobj; i++)
+template <class T> void GeantObjectPool<T>::CreateAndPush(int nobj) {
+  for (int i = 0; i < nobj; i++)
     fPool.push(new T(*fBlueprint));
 }
 

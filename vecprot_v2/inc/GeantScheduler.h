@@ -15,12 +15,8 @@
 #ifndef GEANT_SCHEDULER
 #define GEANT_SCHEDULER
 
-#ifndef ROOT_TObject
-#include "TObject.h"
-#endif
-
 #include <atomic>
-#include "TMutex.h"
+#include <stddef.h>
 
 class concurrent_queue;
 class GeantBasket;
@@ -35,25 +31,25 @@ class GeantBasketMgr;
  * volume, which are then injected in the main work queue.
  * 
  */
-class GeantScheduler : public TObject {
+class GeantScheduler {
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
 protected:
-  Int_t fNvolumes;                   /** Number of active volumes in the geometry */
-  Int_t fNpriority;                  /** Number of priority baskets held */
+  int fNvolumes;                   /** Number of active volumes in the geometry */
+  int fNpriority;                  /** Number of priority baskets held */
   GeantBasketMgr **fBasketMgr;       /** Array of basket managers */
   GeantBasketMgr *fGarbageCollector; /** Garbage collector manager */
-  Int_t           *fNstvol;  /**[fNvolumes] Number of steps per volume */
-  Int_t           *fIstvol;  /**[fNvolumes] Sorted index of number of steps per volume */
-  Int_t           *fNvect;   /**[256] Number of tracks basketized in vectors of given size */
-  std::atomic_int  fNsteps;  /** Total number of tracks steps */
+  int           *fNstvol;  /**[fNvolumes] Number of steps per volume */
+  int           *fIstvol;  /**[fNvolumes] Sorted index of number of steps per volume */
+  int           *fNvect;   /**[256] Number of tracks basketized in vectors of given size */
+  std::atomic_long fNsteps;  /** Total number of tracks steps */
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning;        /** Flag marking the learning phase */
   std::atomic_flag fGBCLock;         /** Flag marking that garbage collector is busy */
-  Int_t fPriorityRange[2]; /** Prioritized events */
+  int fPriorityRange[2]; /** Prioritized events */
 
 private:
 
@@ -85,7 +81,7 @@ public:
    * 
    * @param track Track to be scheduled
    */
-  Int_t AddTrack(GeantTrack &track, GeantTaskData *td);
+  int AddTrack(GeantTrack &track, GeantTaskData *td);
 
   /**
    * @brief Re-schedule all tracks from an output basket
@@ -99,7 +95,7 @@ public:
    * @param nkilled Number of killed tracks
    * @param td Thread data
    */
-  Int_t AddTracks(GeantBasket *output, Int_t &ntot, Int_t &nnew, Int_t &nkilled, GeantTaskData *td);
+  int AddTracks(GeantTrack_v &output, int &ntot, int &nnew, int &nkilled, GeantTaskData *td);
 
   /** @brief Function to adjust the basket size automatically */
   void AdjustBasketSize();
@@ -124,24 +120,24 @@ public:
    * 
    * @return Number of steps
    */
-  Int_t GetNsteps() const { return fNsteps.load(); }
+   long GetNsteps() const { return fNsteps.load(); }
 
   /**
    * @brief Getter for collecting flag
    * @return Value of fCollecting flag
    */
-   Bool_t IsCollecting() const { return fCollecting.load(); }
+   bool IsCollecting() const { return fCollecting.load(); }
    
   /**
    * @brief Setter for collecting flag
    */
-   void SetCollecting(Bool_t flag) { fCollecting.store(flag); }
+   void SetCollecting(bool flag) { fCollecting.store(flag); }
 
   /**
    * @brief Getter for learning flag
    * @return Value of fLearning flag
    */
-   Bool_t IsLearning() { 
+   bool IsLearning() { 
      bool learning = fLearning.test_and_set(std::memory_order_acquire);
      if (!learning) fLearning.clear(std::memory_order_release);
      return learning; }
@@ -149,7 +145,7 @@ public:
   /**
    * @brief Setter for the learning flag
    */
-   void SetLearning(Bool_t flag) { 
+   void SetLearning(bool flag) { 
      if (flag) fLearning.test_and_set(std::memory_order_acquire);
      else fLearning.clear(std::memory_order_release); }
 
@@ -157,19 +153,19 @@ public:
    * @brief Getter for array fNvect
    * @return Pointer to fNvect array
    */
-  Int_t *GetNvect() { return fNvect; } 
+  int *GetNvect() { return fNvect; } 
    
   /**
    * @brief Function to return N priority baskets per volume
    * @return Number of priority baskets held
    */
-  Int_t GetNpriority() const { return fNpriority; }
+  int GetNpriority() const { return fNpriority; }
 
   /**
    * @brief Function to return N volumes
    * @return Number of active volumes in the geometry
    */
-  Int_t GetNvolumes() const { return fNvolumes; }
+  int GetNvolumes() const { return fNvolumes; }
 
   /**
    * @brief Function to return the range of prioritized events
@@ -177,20 +173,18 @@ public:
    * @param min Minimum value of range
    * @param max Maximum value of range
    */
-  void SetPriorityRange(Int_t min, Int_t max) {
+  void SetPriorityRange(int min, int max) {
     fPriorityRange[0] = min;
     fPriorityRange[1] = max;
   }
 
   /** @brief Garbage collection function */
-  Int_t GarbageCollect(GeantTaskData *td, Bool_t force=false);
+  int GarbageCollect(GeantTaskData *td, bool force=false);
 
   /** @brief Function to print size */
   void PrintSize() const;
 
   /** @brief Function to returns size */
   size_t Sizeof() const;
-
-  ClassDef(GeantScheduler, 1) // Main basket scheduler
 };
 #endif

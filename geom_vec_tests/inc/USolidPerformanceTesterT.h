@@ -218,7 +218,7 @@ template <typename U, typename T>
     {
       this->timer.Start();
       UVector3 normal;
-      Bool_t convex;   
+      bool convex;   
       results_USolid_dI[startindex]=testusolid->U::DistanceToOut( &this->points_dI[3*startindex], &this->dirs_dI[3*startindex], normal, convex, TGeoShape::Big() );
       this->timer.Stop();
     }
@@ -228,7 +228,7 @@ template <typename U, typename T>
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
 	  UVector3 normal;
-	  Bool_t convex;   
+	  bool convex;   
 	  results_USolid_dI[index]=testusolid->U::DistanceToOut( &this->points_dI[3*index], &this->dirs_dI[3*index], normal, convex, TGeoShape::Big() );
 	}
       this->timer.Stop();

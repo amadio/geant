@@ -14,20 +14,20 @@
 class TGeoTube_v: public TGeoTube
 {
 public:
-  virtual void Contains_v(const StructOfCoord & pointi, Bool_t * isin, Int_t np) const; 
-  virtual void Safety_v(const StructOfCoord &pointi, Bool_t in, Double_t *safety, Int_t np ) const;         
-  virtual void DistFromInside_v(StructOfCoord const  & pointi, const StructOfCoord & diri, Int_t iact, const Double_t * step, Double_t *safe, Double_t * distance , Int_t np) const; 
-  virtual void DistFromOutside_v(const StructOfCoord & pointi, const  StructOfCoord & diri, Int_t iact, const Double_t * step, Double_t *safe, Double_t * distance , Int_t np) const; 
+  virtual void Contains_v(const StructOfCoord & pointi, bool * isin, int np) const; 
+  virtual void Safety_v(const StructOfCoord &pointi, bool in, double *safety, int np ) const;         
+  virtual void DistFromInside_v(StructOfCoord const  & pointi, const StructOfCoord & diri, int iact, const double * step, double *safe, double * distance , int np) const; 
+  virtual void DistFromOutside_v(const StructOfCoord & pointi, const  StructOfCoord & diri, int iact, const double * step, double *safe, double * distance , int np) const; 
 
 };
 
 class TGeoTubeSeg_v: public TGeoTubeSeg
 {
 public:
-  virtual void Contains_v(const StructOfCoord & pointi, Bool_t * isin, Int_t np) const; 
-  virtual void Safety_v(const StructOfCoord &pointi, Bool_t in, Double_t *safety, Int_t np ) const;         
-  virtual void DistFromInside_v(StructOfCoord const  & pointi, const StructOfCoord & diri, Int_t iact, const Double_t * step, Double_t *safe, Double_t * distance , Int_t np) const; 
-  virtual void DistFromOutside_v(const StructOfCoord & pointi, const  StructOfCoord & diri, Int_t iact, const Double_t * step, Double_t *safe, Double_t * distance , Int_t np) const; 
+  virtual void Contains_v(const StructOfCoord & pointi, bool * isin, int np) const; 
+  virtual void Safety_v(const StructOfCoord &pointi, bool in, double *safety, int np ) const;         
+  virtual void DistFromInside_v(StructOfCoord const  & pointi, const StructOfCoord & diri, int iact, const double * step, double *safe, double * distance , int np) const; 
+  virtual void DistFromOutside_v(const StructOfCoord & pointi, const  StructOfCoord & diri, int iact, const double * step, double *safe, double * distance , int np) const; 
 };
 
 #endif

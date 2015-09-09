@@ -1,5 +1,9 @@
 #include "CMSApplication.h"
-#include "TGeoNode.h"
+#include "ExN03Application.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "management/GeoManager.h"
+using vecgeom::GeoManager;
+#endif
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
@@ -14,18 +18,16 @@
 
 ClassImp(CMSApplication)
 
-//______________________________________________________________________________
-CMSApplication::CMSApplication()
-: GeantVApplication(), fInitialized(kFALSE),
-    fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore),
-    fFluxElec(0), fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0),
-    fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
+    //______________________________________________________________________________
+    CMSApplication::CMSApplication()
+    : GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
+      fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
   // Ctor..
-  memset(fSensFlags, 0, kNvolumes*sizeof(Bool_t));
-  memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(Float_t));
-  memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(Float_t));
-  memset(fECALid, 0, kNECALModules*sizeof(Int_t));
-  memset(fHCALid, 0, kNHCALModules*sizeof(Int_t));
+  memset(fSensFlags, 0, kNvolumes * sizeof(bool));
+  memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(float));
+  memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(float));
+  memset(fECALid, 0, kNECALModules * sizeof(int));
+  memset(fHCALid, 0, kNHCALModules * sizeof(int));
   TH1::AddDirectory(false);
   fFluxElec = new TH1F("hFluxElec", "e+/e- flux/primary in ECAL", 50, 0., 2500.);
   fFluxElec->GetXaxis()->SetTitle("Momentum [MeV/c]");
@@ -61,17 +63,21 @@ CMSApplication::CMSApplication()
 }
 
 //______________________________________________________________________________
-Bool_t CMSApplication::Initialize() {
+bool CMSApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return kTRUE;
   // Loop unique volume id's
-  TGeoVolume *vol;
+  Volume_t *vol;
   TString svol, smat;
-  Int_t necal = 0;
-  Int_t nhcal = 0;
-  for (Int_t ivol=0; ivol<kNvolumes; ++ivol) {
+  int necal = 0;
+  int nhcal = 0;
+  for (int ivol = 0; ivol < kNvolumes; ++ivol) {
+#ifdef USE_VECGEOM_NAVIGATOR
+    vol = GeoManager::Instance().FindLogicalVolume(ivol);
+#else
     vol = gGeoManager->GetVolume(ivol);
+#endif
     svol = vol->GetName();
     // ECAL cells
     if (svol.BeginsWith("EBRY") || svol.BeginsWith("EFRY")) {
@@ -80,8 +86,15 @@ Bool_t CMSApplication::Initialize() {
       fECALid[necal] = ivol;
       necal++;
     }
-    // HCAL cells
-    if (vol->GetMedium()) smat = vol->GetMaterial()->GetName();
+// HCAL cells
+#ifdef USE_VECGEOM_NAVIGATOR
+    //    cout << __func__ << "::vol " << vol->GetName() << endl;
+    if (vol->getTrackingMediumPtr())
+      smat = ((vecgeom::Medium *)vol->getTrackingMediumPtr())->GetMaterial()->GetName();
+#else
+    if (vol->GetMedium())
+      smat = vol->GetMaterial()->GetName();
+#endif
     if (smat == "Scintillator") {
       fSensFlags[ivol] = true;
       fHCALMap[ivol] = nhcal;
@@ -95,104 +108,119 @@ Bool_t CMSApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void CMSApplication::StepManager(Int_t npart, const GeantTrack_v &tracks, GeantTaskData *td) {
+void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   static GeantPropagator *propagator = GeantPropagator::Instance();
-  Int_t tid = td->fTid;
+  int tid = td->fTid;
   if ((!fInitialized) || (fScore == kNoScore))
     return;
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
-  Int_t ivol;
-  Int_t idtype;
-  Int_t mod;
-  TGeoVolume *vol;
-  for (Int_t itr = 0; itr < npart; itr++) {
+  int ivol;
+  int idtype;
+  int mod;
+  Volume_t *vol;
+  for (int itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
+#ifdef USE_VECGEOM_NAVIGATOR
+    ivol = vol->id();
+#else
     ivol = vol->GetNumber();
+#endif
     idtype = 0;
     if (fSensFlags[ivol]) {
-      if (vol->GetName()[0] == 'E') idtype = 1;
-      else idtype = 2;
+      if (vol->GetName()[0] == 'E')
+        idtype = 1;
+      else
+        idtype = 2;
       switch (idtype) {
-        case 1:
-          mod = fECALMap.find(ivol)->second;
-          fEdepECAL[mod][tid] += tracks.fEdepV[itr];
-          break;
-        case 2:
-          mod = fHCALMap.find(ivol)->second;
-          fEdepHCAL[mod][tid] += tracks.fEdepV[itr];
-          break;
+      case 1:
+        mod = fECALMap.find(ivol)->second;
+        fEdepECAL[mod][tid] += tracks.fEdepV[itr];
+        break;
+      case 2:
+        mod = fHCALMap.find(ivol)->second;
+        fEdepHCAL[mod][tid] += tracks.fEdepV[itr];
+        break;
       }
-    }  
+    }
     // Score in ECAL
-    if (idtype==1) {
+    if (idtype == 1) {
       // Add scored entity
       if (propagator->fNthreads > 1)
         fMHist.lock();
-      Double_t capacity = 0.;
+      double capacity = 0.;
+#ifdef USE_VECGEOM_NAVIGATOR
+      capacity = 1.;
+#else
       capacity = vol->GetShape()->Capacity();
-      if (TMath::Abs(tracks.fPDGV[itr]) == 11) {
-        fFluxElec->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
-        fEdepElec->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
-      }    
-      else if (tracks.fPDGV[itr] == 22) {
-        fFluxGamma->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
-        fEdepGamma->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
-      }    
-      else if (tracks.fPDGV[itr] == 2212) {
-        fFluxP->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
-        fEdepP->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
-      }
-      else if (TMath::Abs(tracks.fPDGV[itr]) == 211) {
-        fFluxPi->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
-        fEdepPi->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
-      }
-      else if (TMath::Abs(tracks.fPDGV[itr]) == 321) {
-        fFluxK->Fill(1000.*tracks.fPV[itr], tracks.fStepV[itr]/capacity);
-        fEdepK->Fill(1000.*tracks.fPV[itr], 1000.*tracks.fEdepV[itr]/capacity);
+#endif
+      if (fabs(tracks.fPDGV[itr]) == 11) {
+        fFluxElec->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
+        fEdepElec->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
+      } else if (tracks.fPDGV[itr] == 22) {
+        fFluxGamma->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
+        fEdepGamma->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
+      } else if (tracks.fPDGV[itr] == 2212) {
+        fFluxP->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
+        fEdepP->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
+      } else if (fabs(tracks.fPDGV[itr]) == 211) {
+        fFluxPi->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
+        fEdepPi->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
+      } else if (fabs(tracks.fPDGV[itr]) == 321) {
+        fFluxK->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
+        fEdepK->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       }
       if (propagator->fNthreads > 1)
         fMHist.unlock();
     }
-  } 
+  }
 }
 
 //______________________________________________________________________________
-void CMSApplication::Digitize(Int_t /* event */) {
+void CMSApplication::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit in ECAL [MeV/primary] ");
   Printf("================================================================================");
-  Double_t nprim = (Double_t)gPropagator->fNprimaries;
-  for (Int_t i = 0; i < kNECALModules; ++i) {
-    for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
+  double nprim = (double)gPropagator->fNprimaries;
+  for (int i = 0; i < kNECALModules; ++i) {
+    for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
     }
+#ifdef USE_VECGEOM_NAVIGATOR
+    Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fECALid[i])->GetName(),
+           fEdepECAL[i][0] * 1000. / nprim);
+#else
     Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fECALid[i])->GetName(), fEdepECAL[i][0] * 1000. / nprim);
+#endif
   }
   Printf("Energy deposit in HCAL [MeV/primary] ");
   Printf("================================================================================");
-  for (Int_t i = 0; i < kNHCALModules; ++i) {
-    for (Int_t tid = 1; tid < kMaxThreads; ++tid) {
+  for (int i = 0; i < kNHCALModules; ++i) {
+    for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepHCAL[i][0] += fEdepHCAL[i][tid];
     }
+#ifdef USE_VECGEOM_NAVIGATOR
+    Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fHCALid[i])->GetName(),
+           fEdepHCAL[i][0] * 1000. / nprim);
+#else
     Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fHCALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
+#endif
   }
   Printf("================================================================================");
 }
 
 //______________________________________________________________________________
-void CMSApplication::FinishRun()
-{  
+void CMSApplication::FinishRun() {
   if (fScore == kNoScore)
     return;
   TCanvas *c1 = new TCanvas("CMS test flux", "Simple scoring in CMS geometry", 700, 1200);
-  Double_t norm = 1./GeantPropagator::Instance()->fNprimaries.load();
+  double norm = 1. / GeantPropagator::Instance()->fNprimaries.load();
   TVirtualPad *pad;
-  TFile *f = TFile::Open("ScoreECAL.root","RECREATE");
-  c1->Divide(2,3);
+  TFile *f = TFile::Open("ScoreECAL.root", "RECREATE");
+  c1->Divide(2, 3);
   pad = c1->cd(1);
   pad->SetLogx();
   pad->SetLogy();
@@ -230,7 +258,7 @@ void CMSApplication::FinishRun()
   fFluxK->Write();
 
   TCanvas *c2 = new TCanvas("CMS test edep", "Simple scoring in CMS geometry", 700, 1200);
-  c2->Divide(2,3);
+  c2->Divide(2, 3);
   pad = c2->cd(1);
   pad->SetLogx();
   pad->SetLogy();
