@@ -23,7 +23,7 @@
 #include <TPXsec.h>
 #include <TPartIndex.h>
 #include "base/Global.h"
-#include "base/messagelogger.h"
+#include "base/MessageLogger.h"
 
 using vecgeom::kAvogadro;
 using std::numeric_limits;

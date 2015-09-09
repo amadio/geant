@@ -28,7 +28,7 @@
 
 #ifndef VECCORE_BITSET_H
 #include "BitSet.h"
-typedef VecCore::BitSet BitSet;
+typedef veccore::BitSet BitSet;
 #endif
 
 #ifdef GEANT_CUDA

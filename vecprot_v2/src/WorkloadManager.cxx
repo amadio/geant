@@ -22,7 +22,7 @@
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
-#include "volumes/Medium.h"
+#include "materials/Medium.h"
 #else
 #include "TGeoNavigator.h"
 #include "TGeoManager.h"
@@ -333,7 +333,7 @@ void *WorkloadManager::TransportTracks() {
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
 #ifdef USE_VECGEOM_NAVIGATOR
-      mat = ((Medium_t *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
+      mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
 #else
       mat = td->fVolume->GetMaterial();
 #endif

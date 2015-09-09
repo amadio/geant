@@ -13,7 +13,7 @@
 using vecgeom::RNG;
 #endif
 
-#include "base/messagelogger.h"
+#include "base/MessageLogger.h"
 #include "base/Global.h"
 using vecgeom::kAvogadro;
 

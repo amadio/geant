@@ -11,7 +11,7 @@
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
+#include "materials/Particle.h"
 using vecgeom::Particle;
 #else
 class TParticlePDG;

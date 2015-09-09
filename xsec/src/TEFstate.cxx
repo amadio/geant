@@ -7,7 +7,7 @@
 #include <TPartIndex.h>
 #include "TEFstate.h"
 #include "base/Global.h"
-#include "base/messagelogger.h"
+#include "base/MessageLogger.h"
 using vecgeom::kAvogadro;
 
 #ifdef USE_ROOT

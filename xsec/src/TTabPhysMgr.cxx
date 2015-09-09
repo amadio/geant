@@ -36,7 +36,7 @@
 #include "Geant/Math.h"
 using vecgeom::kPi;
 using vecgeom::kTwoPi;
-#include "base/messagelogger.h"
+#include "base/MessageLogger.h"
 
 ClassImp(TTabPhysMgr)
 
@@ -64,6 +64,7 @@ TTabPhysMgr::~TTabPhysMgr() {
   delete fDecay;
   delete fHasNCaptureAtRest;
   fgInstance = 0;
+  Particle_t::CreateParticles();
 }
 
 //______________________________________________________________________________
@@ -86,6 +87,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
       fHasNCaptureAtRest(0) {
 
   fgInstance = this;
+  Particle_t::CreateParticles();
 #ifdef USE_ROOT
   clock_t t = clock();
 // Load elements from geometry, however in most cases it should already be done

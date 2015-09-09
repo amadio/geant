@@ -4,15 +4,15 @@
 #include "Rtypes.h"
 #include "TGeoManager.h"
 
-#include "HepMC/HepMC.h"
+#include "HepMC/Config.h"
 #include "GunGenerator.h"
-#include "base/messagelogger.h"
+#include "base/MessageLogger.h"
 #include "HepMCGenerator.h"
 #include "TTabPhysProcess.h"
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "volumes/Particle.h"
+#include "materials/Particle.h"
 #endif
 #include "ExN03Application.h"
 
@@ -115,6 +115,6 @@ int main() {
   prop->PropagatorGeom(geomfile, nthreads, graphics);
   delete prop;
 #ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::messagelogger::I()->summary(std::cout, "a");
+  vecgeom::MessageLogger::I()->summary(std::cout, "a");
 #endif
 }

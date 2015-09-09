@@ -5,11 +5,11 @@
 #include "Rtypes.h"
 #include "TGeoManager.h"
 
-#include "HepMC/HepMC.h"
+#include "HepMC/Config.h"
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "base/messagelogger.h"
+#include "base/MessageLogger.h"
 #endif
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
   propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::messagelogger::I()->summary(std::cout, "a");
+  vecgeom::MessageLogger::I()->summary(std::cout, "a");
 #endif
   return 0;
 }

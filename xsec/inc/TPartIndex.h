@@ -166,9 +166,9 @@ private:
   double *fEGrid;   // [fNEbins] Common energy grid
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  Particle_t *fDBPdg; // Pointer to the augmented pdg database
+  Particle_t *fDBPdg; //! Pointer to the augmented pdg database
 #else
-  TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
+  TDatabasePDG *fDBPdg; //! Pointer to the augmented pdg database
 #endif
 
   std::map<int, int> fPDGToGVMap;              // PDG->GV code map

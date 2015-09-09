@@ -2626,7 +2626,7 @@ Volume_t *GeantTrack_v::GetVolume(int i) const {
 //______________________________________________________________________________
 Material_t *GeantTrack_v::GetMaterial(int i) const {
   // Current material the track is into
-  Medium_t *med = (Medium_t *)GetVolume(i)->getTrackingMediumPtr();
+  Medium_t *med = (Medium_t *)GetVolume(i)->GetTrackingMediumPtr();
   if (!med)
     return 0;
   return med->GetMaterial();

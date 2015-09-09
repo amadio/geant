@@ -4,15 +4,15 @@
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
 typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
-#include "volumes/Material.h"
+#include "materials/Material.h"
 typedef VECGEOM_NAMESPACE::Material Material_t;
-#include "volumes/Medium.h"
+#include "materials/Medium.h"
 typedef VECGEOM_NAMESPACE::Medium Medium_t;
 #include "volumes/LogicalVolume.h"
 typedef VECGEOM_NAMESPACE::LogicalVolume Volume_t;
 #include "volumes/PlacedVolume.h"
 typedef VECGEOM_NAMESPACE::VPlacedVolume Node_t;
-#include "volumes/Particle.h"
+#include "materials/Particle.h"
 typedef VECGEOM_NAMESPACE::Particle Particle_t;
 #else
 #include "TGeoBranchArray.h"

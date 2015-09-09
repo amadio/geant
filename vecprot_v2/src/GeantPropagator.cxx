@@ -226,7 +226,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
   }
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->getBasketManagerPtr());
+  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
 #else
   GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
 #endif
@@ -402,7 +402,7 @@ void GeantPropagator::ApplyMsc(int ntracks, GeantTrack_v &tracks, GeantTaskData 
   Material_t *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((Medium_t *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
+    mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
 #else
     mat = td->fVolume->GetMaterial();
 #endif
@@ -420,7 +420,7 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
   Material_t *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((Medium_t *)td->fVolume->getTrackingMediumPtr())->GetMaterial();
+    mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
   ;
 #else
     mat = td->fVolume->GetMaterial();
