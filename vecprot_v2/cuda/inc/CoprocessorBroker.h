@@ -144,7 +144,7 @@ public:
 
    bool IsValid() { return fNthreads > 0; }
    bool AddTrack(GeantBasket &input, unsigned int trkid);
-   void runTask(int threadid, GeantBasket &basket);
+   void runTask(Geant::GeantTaskData &td, GeantBasket &basket);
    Stream launchTask(bool wait = false);
    Stream launchTask(Task *task, bool wait = false);
    void waitForTasks();

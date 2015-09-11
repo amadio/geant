@@ -80,6 +80,9 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
 
+  fTransported = GeantTrack_v::MakeInstanceAt(buffer, 1024, fMaxDepth);
+  buffer += GeantTrack_v::SizeOfInstance(1024, fMaxDepth);
+
   fSizeInt = fSizeBool = fSizeDbl = nElements * maxPerBasket;
   fBoolArray = new (buffer) bool[fSizeBool];
   buffer += fSizeBool*sizeof(bool);
@@ -88,6 +91,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fIntArray = new (buffer) int[fSizeInt];
   buffer += fSizeInt*sizeof(int);
 
+
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
   fRndm = new TRandom();
@@ -95,7 +99,6 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fRndm = &RNG::Instance();
 #endif
 #endif
-  fTransported = new GeantTrack_v(1024, maxDepth);
 }
 
 //______________________________________________________________________________
