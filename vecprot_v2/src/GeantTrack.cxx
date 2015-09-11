@@ -2538,7 +2538,7 @@ int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
-  GeantTrack_v &output = *td->fTransported;
+  //GeantTrack_v &output = *td->fTransported;
   int icrossed = 0;
   int ntracks = GetNtracks();
   for (int itr = 0; itr < ntracks; itr++) {
