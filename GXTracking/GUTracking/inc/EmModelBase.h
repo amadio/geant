@@ -4,7 +4,9 @@
 #include "backend/Backend.h"
 #include "base/SystemOfUnits.h"
 
+#include "GUAuxFunctions.h"    // Define sincos if needed
 #include "GUConstants.h"
+
 #include "GUTrack.h"
 #include "GUAliasSampler.h"
 
