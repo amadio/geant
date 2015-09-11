@@ -18,7 +18,6 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
     : fTid(-1), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), 
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth), 
@@ -102,7 +101,6 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
 GeantTaskData::~GeantTaskData() {
 // Destructor
 //  delete fMatrix;
