@@ -1,19 +1,3 @@
-//====================GUID SYSTEM SELECTION BEGIN ======================
-// PLEASE comment out the lines below to select your system code
-//======================================================================
-// this is the mac and ios version 
-#define GUID_CFUUID
-//======================================================================
-// obviously this is the windows version
-//#define GUID_WINDOWS
-//======================================================================
-// android version that uses a call to a java api
-//#define GUID_ANDROID
-//======================================================================
-// This is the linux friendly implementation, but it could work on other
-// systems that have libuuid available
-//#define GUID_LIBUUID
-//====================GUID SYSTEM SELECTION END ======================
 #include "TMath.h"
 #include "TControlBar.h"
 #include "TRandom3.h"
@@ -49,6 +33,7 @@
 #include <TGDMLWrite.h>
 
 //============== GUID =================begin
+
 /*
 The MIT License (MIT)
 
@@ -75,21 +60,7 @@ THE SOFTWARE.
 
 #include "guid.h"
 
-#ifdef GUID_LIBUUID
 #include <uuid/uuid.h>
-#endif
-
-#ifdef GUID_CFUUID
-#include <CoreFoundation/CFUUID.h>
-#endif
-
-#ifdef GUID_WINDOWS
-#include <objbase.h>
-#endif
-
-#ifdef GUID_ANDROID
-#include <jni.h>
-#endif
 
 using namespace std;
 
@@ -214,119 +185,13 @@ bool Guid::operator!=(const Guid &other) const
 
 // This is the linux friendly implementation, but it could work on other
 // systems that have libuuid available
-#ifdef GUID_LIBUUID
 Guid GuidGenerator::newGuid()
 {
   uuid_t id;
   uuid_generate(id);
   return id;
 }
-#endif
 
-// this is the mac and ios version 
-#ifdef GUID_CFUUID
-Guid GuidGenerator::newGuid()
-{
-  auto newId = CFUUIDCreate(NULL);
-  auto bytes = CFUUIDGetUUIDBytes(newId);
-  CFRelease(newId);
-
-  const unsigned char byteArray[16] =
-  {
-    bytes.byte0,
-    bytes.byte1,
-    bytes.byte2,
-    bytes.byte3,
-    bytes.byte4,
-    bytes.byte5,
-    bytes.byte6,
-    bytes.byte7,
-    bytes.byte8,
-    bytes.byte9,
-    bytes.byte10,
-    bytes.byte11,
-    bytes.byte12,
-    bytes.byte13,
-    bytes.byte14,
-    bytes.byte15
-  };
-  return byteArray;
-}
-#endif
-
-// obviously this is the windows version
-#ifdef GUID_WINDOWS
-Guid GuidGenerator::newGuid()
-{
-  GUID newId;
-  CoCreateGuid(&newId);
-
-  const unsigned char bytes[16] = 
-  {
-    (newId.Data1 >> 24) & 0xFF,
-    (newId.Data1 >> 16) & 0xFF,
-    (newId.Data1 >> 8) & 0xFF,
-    (newId.Data1) & 0xff,
-
-    (newId.Data2 >> 8) & 0xFF,
-    (newId.Data2) & 0xff,
-
-    (newId.Data3 >> 8) & 0xFF,
-    (newId.Data3) & 0xFF,
-
-    newId.Data4[0],
-    newId.Data4[1],
-    newId.Data4[2],
-    newId.Data4[3],
-    newId.Data4[4],
-    newId.Data4[5],
-    newId.Data4[6],
-    newId.Data4[7]
-  };
-
-  return bytes;
-}
-#endif
-
-// android version that uses a call to a java api
-#ifdef GUID_ANDROID
-GuidGenerator::GuidGenerator(JNIEnv *env)
-{
-  _env = env;
-  _uuidClass = env->FindClass("java/util/UUID");
-  _newGuidMethod = env->GetStaticMethodID(_uuidClass, "randomUUID", "()Ljava/util/UUID;");
-  _mostSignificantBitsMethod = env->GetMethodID(_uuidClass, "getMostSignificantBits", "()J");
-  _leastSignificantBitsMethod = env->GetMethodID(_uuidClass, "getLeastSignificantBits", "()J");
-}
-
-Guid GuidGenerator::newGuid()
-{
-  jobject javaUuid = _env->CallStaticObjectMethod(_uuidClass, _newGuidMethod);
-  jlong mostSignificant = _env->CallLongMethod(javaUuid, _mostSignificantBitsMethod);
-  jlong leastSignificant = _env->CallLongMethod(javaUuid, _leastSignificantBitsMethod);
-
-  unsigned char bytes[16] = 
-  {
-    (mostSignificant >> 56) & 0xFF,
-    (mostSignificant >> 48) & 0xFF,
-    (mostSignificant >> 40) & 0xFF,
-    (mostSignificant >> 32) & 0xFF,
-    (mostSignificant >> 24) & 0xFF,
-    (mostSignificant >> 16) & 0xFF,
-    (mostSignificant >> 8) & 0xFF,
-    (mostSignificant) & 0xFF,
-    (leastSignificant >> 56) & 0xFF,
-    (leastSignificant >> 48) & 0xFF,
-    (leastSignificant >> 40) & 0xFF,
-    (leastSignificant >> 32) & 0xFF,
-    (leastSignificant >> 24) & 0xFF,
-    (leastSignificant >> 16) & 0xFF,
-    (leastSignificant >> 8) & 0xFF,
-    (leastSignificant) & 0xFF,
-  };
-  return bytes;
-}
-#endif
 
 TString UpperCase(TString str){
   for (int i=0;i<strlen(str);i++) str[i]=toupper(str[i]);
@@ -343,7 +208,7 @@ TString doGuidStuff(GuidGenerator generator)
         return UpperCase((TString)guidString);
 }
 
-
+ 
 //============== GUID ================= End
 
 
@@ -399,10 +264,10 @@ TString CheckVolume(TGeoShape *geoShape)
       //cout << "\n---\n-> Geometry of volume: "<< clsname << " \n---\n";
    } else if (strcmp(clsname, "TGeoEltu") == 0) {
       //cout << "\n---\n-> Geometry of volume: "<< clsname << " \n---\n";
-   } else if (strcmp(clsname, "TGeoXtru") == 0) {
-      //cout << "\n---\n-> Geometry of volume: "<< clsname << " \n---\n";
-   } else if (strcmp(clsname, "TGeoCompositeShape") == 0) {
-      //cout << "\n---\n-> Geometry of volume: "<< clsname << " \n---\n";
+   //} else if (strcmp(clsname, "TGeoXtru") == 0) {
+   //   cout << "\n---\n-> Geometry of volume: "<< clsname << " \n---\n";
+   //} else if (strcmp(clsname, "TGeoCompositeShape") == 0) {
+   //   VolFound="";
    //   cout << "\nERROR! Skiping Solid NOT supported: "<<clsname<<"\n";
    //} else if (strcmp(clsname, "TGeoUnion") == 0) {
    //   VolFound="";
@@ -456,22 +321,20 @@ void CalculateSurfaceNormal (Double_t p1[3],Double_t p2[3],Double_t p3[3], Doubl
   if (Vmod==0){
     cout << "\n-->Error:====================================================================\n";
     for (int i=0;i<3;i++) {
-      cout << "-->P: "<<p1[i]<<" "<<p2[i]<<" "<<p3[i] << " U: "<<U[i] <<" V: " << V[i]<< " Vn: "<<Vn[i] << "\n";
+      cout << "-->P: "<<p1[i]<<" "<<p2[i]<<" "<<p3[i] << " U: "<<U[i] <<" V: " << V[i]<< " Vn: "<<Vn[i] << "  ||  ";
     }
-    cout << "\n-->==========================================================================\n";
-    Vnormal[0]=0;
-    Vnormal[1]=0;
-    Vnormal[2]=0;
-  } else {
-    Vnormal[0]=Vn[0]/Vmod;
-    Vnormal[1]=Vn[1]/Vmod;
-    Vnormal[2]=Vn[2]/Vmod;
-    // cout << "Vmode:" << Vmod <<" Normal:" << Vnormal <<"\n";
+
   }
+
+  Vnormal[0]=Vn[0]/Vmod;
+  Vnormal[1]=Vn[1]/Vmod;
+  Vnormal[2]=Vn[2]/Vmod;
+// cout << "Vmode:" << Vmod <<" Normal:" << Vnormal <<"\n";
+ 
 }
 
 
-void CreateJsonVol(TGeoShape *shape,ofstream& JsonFile,TString guid) {
+void CreateJsonVol(TGeoVolume *vol,TGeoShape *shape,ofstream& JsonFile,TString guid) {
   // Load some root geometry
   TGeoNode *current;
   TBuffer3D *buffer_vol;
@@ -491,13 +354,12 @@ void CreateJsonVol(TGeoShape *shape,ofstream& JsonFile,TString guid) {
   int vrtx[8],vquad[4],indxf;
 
   //     --Call the triangulation routine
-  cout <<"\n-->Calling the triangulation routine---" <<"\n";
   buffer_vol = shape->MakeBuffer3D();
 
-  cout <<"\n-->No of Vertices: " << buffer_vol->NbPnts() <<"\n";
-  cout << "-->No of Segments: " << buffer_vol->NbSegs()<<"\n";
-  cout << "-->No of Polygons: " << buffer_vol->NbPols()<<"\n";
-  cout <<"\n-->Writing "<<buffer_vol->NbPnts() <<" Vertices to JSON file ... ";
+  //cout <<"\n-->No of Vertices: " << buffer_vol->NbPnts() <<"\n";
+  //cout << "-->No of Segments: " << buffer_vol->NbSegs()<<"\n";
+  //cout << "-->No of Polygons: " << buffer_vol->NbPols()<<"\n";
+  //cout <<"\n-->Writing "<<buffer_vol->NbPnts() <<" Vertices to JSON file ... ";
 
 
   //Start GEOMETRY definition in JSON with "{".
@@ -508,12 +370,10 @@ void CreateJsonVol(TGeoShape *shape,ofstream& JsonFile,TString guid) {
   JsonFile << "\t\"type\": \"Geometry\",\n";
   JsonFile << "\t\"data\":{\n";
   JsonFile << "\t\"vertices\": [";
-
   //Write all vertexes in JSON file
   int Kvertex=0;
   for (int i=0;i<buffer_vol->NbPnts()*3; i=i+3) {
     JsonFile << buffer_vol->fPnts[i] <<",  "<< buffer_vol->fPnts[i+1]<<",  "<<buffer_vol->fPnts[i+2] ;
-    cout << "--> "<<i<<" <-- "<< buffer_vol->fPnts[i] <<",  "<< buffer_vol->fPnts[i+1]<<",  "<<buffer_vol->fPnts[i+2] <<"\n";
     if (i<buffer_vol->NbPnts()*3-3) {
       JsonFile <<","; //JsonFile <<",\n";
     } else {
@@ -821,17 +681,10 @@ TString GetHexRGB(int r, int g, int b)
   return hexcol;
 }
 
-TGeoShape * GetLshape(TGeoCompositeShape *shape){
-  return (shape->GetBoolNode()->GetLeftShape());
-}
-TGeoShape * GetRshape(TGeoCompositeShape *shape){
-  return (shape->GetBoolNode()->GetRightShape());
-}
-
 void ExportCurrentVolume(TString guid,TString guidVol,TString guidMat,TGeoNode *current,int kLevel,ofstream& JsonFile){
   if ( current->GetVolume()->GetShape()->IsComposite() ) {
-    cout << "\n----> COMPOSITE, Start .....\n";
-    //return;
+    cout << "\n----> COMPOSITE, skiping .....\n";
+    return;
   }
   TabLine(kLevel+1,JsonFile);
   JsonFile << "\"uuid\": \""<<guid<<"\",\n";
@@ -848,6 +701,15 @@ void ExportCurrentVolume(TString guid,TString guidVol,TString guidMat,TGeoNode *
 
   const Double_t * MatrixRot = current->GetMatrix()->GetRotationMatrix();
   const Double_t * MatrixTrans = current->GetMatrix()->GetTranslation();
+  const Double_t * MatrixScale = current->GetMatrix()->GetScale();
+
+  Double_t TransMatr[3];
+
+  //Double_t hmat[16];
+
+  //Get the homogeneus matrix
+  //current->GetMatrix()->GetHomogenousMatrix(hmat);
+  //hmat[15]=1.;
 
   for (int i=0;i<3;i++){
     for (int l=0;l<3;l++) {
@@ -862,70 +724,6 @@ void ExportCurrentVolume(TString guid,TString guidVol,TString guidMat,TGeoNode *
   JsonFile <<"1 ]\n";
 
 }
-
-void ExportLeftCompVolume(TString guid,TString guidVol,TString guidMat,TGeoCompositeShape *CompShape,int kLevel,ofstream& JsonFile){
-
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"uuid\": \""<<guid<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"type\": \"Mesh\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"name\": \""<<CompShape->GetName()<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"geometry\": \""<<guidVol<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"material\": \""<<guidMat<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"matrix\": [";
-
-  const Double_t * MatrixRot   = CompShape->GetBoolNode()->GetLeftMatrix()->GetRotationMatrix() ;
-  const Double_t * MatrixTrans = CompShape->GetBoolNode()->GetLeftMatrix()->GetTranslation();
-
-  for (int i=0;i<3;i++){
-    for (int l=0;l<3;l++) {
-      JsonFile << MatrixRot[3*l+i]<<",";
-    }
-    JsonFile <<"0,";
-  }
-
-  for (int i=0;i<3;i++){
-    JsonFile << MatrixTrans[i]<<",";
-  }
-  JsonFile <<"1 ]\n";
-
-}
-void ExportRightCompVolume(TString guid,TString guidVol,TString guidMat,TGeoCompositeShape *CompShape,int kLevel,ofstream& JsonFile){
-
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"uuid\": \""<<guid<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"type\": \"Mesh\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"name\": \""<<CompShape->GetName()<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"geometry\": \""<<guidVol<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"material\": \""<<guidMat<<"\",\n";
-  TabLine(kLevel+1,JsonFile);
-  JsonFile << "\"matrix\": [";
-
-  const Double_t * MatrixRot   = CompShape->GetBoolNode()->GetRightMatrix()->GetRotationMatrix();
-  const Double_t * MatrixTrans = CompShape->GetBoolNode()->GetRightMatrix()->GetTranslation();
-
-  for (int i=0;i<3;i++){
-    for (int l=0;l<3;l++) {
-      JsonFile << MatrixRot[3*l+i]<<",";
-    }
-    JsonFile <<"0,";
-  }
-
-  for (int i=0;i<3;i++){
-    JsonFile << MatrixTrans[i]<<",";
-  }
-  JsonFile <<"1 ]\n";
-
-}
-
 //============== JSON Nodes definition ======== End
 
 void PrepareExportJson() {

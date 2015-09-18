@@ -32,9 +32,11 @@
 #include <math.h>       /* sqrt */
 #include <TGDMLWrite.h>
 
+
 void RunExportJson() {
   // Load some root geometry
   TGeoVolume *top = gGeoManager->GetTopVolume();
+  Int_t nTotalNodes = gGeoManager->GetNNodes();
   TGeoIterator iter(top);
   TGeoNode *current;
   TGeoVolume *vol;
@@ -50,10 +52,13 @@ void RunExportJson() {
   TGeoMaterial *MapMat[10000];
   TString  MapGuidMat[10000];
   TString guidVol,guidMat;
+  int iVol;
+
+  //current=top;
   
 
   cout << "\n\n--> Starting elaboration of existing Geometry and creation of JSON file: "<<JsonFileName<<"\n";
-  cout << "-->Top volume: " << top->GetName() << std::endl;
+  cout << "-->Top volume: " << top->GetName() <<" Nodes: "<< nTotalNodes<<std::endl;
 
   JsonFile.open(JsonFileName);
 
@@ -74,16 +79,34 @@ void RunExportJson() {
     TString chvol=CheckVolume(shape);
 
     //cout <<"\n "<<kVolume<<"*****CHECK VOLUME: "<<"Class: "<<chvol<<"-->"<<CurrentVolume->GetName();
-    cout <<".";
+    //cout <<".";
+
     if (chvol!=""){
-      guid=doGuidStuff(GuidGenerator());    
-      CreateJsonVol(CurrentVolume,shape,JsonFile,guid); 
-      MapVol[kVolume]=CurrentVolume;
-      MapGuidVol[kVolume]=guid;
+      if (strcmp(chvol, "TGeoCompositeShape") == 0) {
+        cout <<"\n ===Start: "<< chvol << "\n";
+        TGeoShape *leftS  = GetLshape((TGeoCompositeShape*)shape);
+        guid=doGuidStuff(GuidGenerator());    
+        CreateJsonVol(leftS,JsonFile,guid); 
+        MapVol[kVolume]=CurrentVolume;
+        MapGuidVol[kVolume]=guid;
+        kVolume++;
+        JsonFile << "," << "\n";
+        TGeoShape *rightS = GetRshape((TGeoCompositeShape*)shape);
+        guid=doGuidStuff(GuidGenerator());    
+        CreateJsonVol(rightS,JsonFile,guid); 
+        MapVol[kVolume]=CurrentVolume;
+        MapGuidVol[kVolume]=guid;
+        kVolume++;
+        cout <<"\n ===End: "<< chvol << "\n";
 
-      kVolume++;
+      } else {
+        guid=doGuidStuff(GuidGenerator());    
+        CreateJsonVol(shape,JsonFile,guid); 
+        MapVol[kVolume]=CurrentVolume;
+        MapGuidVol[kVolume]=guid;
+        kVolume++;
+      }
     }
-
   }
   JsonFile << "]," << "\n"; // End definition of Geometries
   JsonFile << "\"materials\": [" << "\n"; // Start definition of Materials
@@ -107,6 +130,14 @@ void RunExportJson() {
     kMaterial++;
 
   }
+  //TOBE DELETED BEGIN
+
+  //JsonFile << "}\n}";
+
+  //JsonFile.close(); // close the file handle
+  //std::cout << "\n\n--> JSON FILE CREATED "<< std::endl<< std::endl;
+  //return;
+  //TOBE DELETED END
 
   JsonFile << "]," << "\n"; // End definition of Materials
 
@@ -129,72 +160,88 @@ void RunExportJson() {
 
     TString chvol=CheckVolume(shape);
     //cout <<"\n *****CHECK Node class:--> "<< chvol<<", Vol. Name:-->"<<vol->GetName()<<"\n";
-    //cout ".";
     if (chvol!=""){
 
-    //   find the guid of the current volume
-    guidVol="";
-    for (int i=0;i<kVolume;i++){
-      if (vol==MapVol[i]) {
-        guidVol=MapGuidVol[i];
-        //cout << "--"<<current->GetName()<<": ";
+      //   find the guid of the current volume
+      guidVol="";
+      for (int i=0;i<kVolume;i++){
+        if (vol==MapVol[i]) {
+          iVol=i;
+          guidVol=MapGuidVol[i];
+         //cout << "--"<<current->GetName()<<": ";
+          break;
+        }
+      }
+      if (guidVol=="") {
+        cout << "ERROR **** UNDEFINED volume" <<current->GetName()<<"  STOP\n";
         break;
       }
-    }
-    if (guidVol=="") {
-      cout << "ERROR **** UNDEFINED volume" <<current->GetName()<<"  STOP\n";
-      break;
-    }
-    //   find the guid of the material of the current volume 
-    guidMat="";
-    for (int i=0;i<kMaterial;i++){
-      if (vol->GetMaterial()==MapMat[i]) {
-        //cout << vol->GetMaterial()->GetName();
-        guidMat=MapGuidMat[i];
-        break;
+      //   find the guid of the material of the current volume 
+      guidMat="";
+      for (int i=0;i<kMaterial;i++){
+        if (vol->GetMaterial()==MapMat[i]) {
+          //cout << vol->GetMaterial()->GetName();
+          guidMat=MapGuidMat[i];
+          break;
+        }
       }
-    }
-    if (guidMat=="") {
-      guidMat=MapGuidMat[0];
-      cout << "ERROR **** UNDEFINED material for:" <<current->GetName()<<"  ASSIGNED index 0\n";
-    }
-    if (iter.GetLevel()>kLevel){
-      //   If the level is greater that current level, then we define a new child
-      JsonFile << ",\n";
-      TabLine(iter.GetLevel(),JsonFile);
-      JsonFile << "\"children\": [\n";
-      TabLine(iter.GetLevel(),JsonFile);
-      JsonFile << "{\n";
-    } else if (iter.GetLevel()<kLevel){
-      int nLev=kLevel-iter.GetLevel();
-      JsonFile << "\n";
-      for (int i=0;i<nLev;i++){
-        TabLine(kLevel-i,JsonFile);
-        JsonFile << "}]\n";
+      if (guidMat=="") {
+        guidMat=MapGuidMat[0];
+        cout << "ERROR **** UNDEFINED material for:" <<current->GetName()<<"  ASSIGNED index 0\n";
       }
-      TabLine(iter.GetLevel(),JsonFile);
-      JsonFile << "},\n";
-      TabLine(iter.GetLevel(),JsonFile);
-      JsonFile << "{\n";
 
-    } else {
-      JsonFile << "\n";
-      TabLine(iter.GetLevel(),JsonFile);
-      JsonFile << "},\n";
-      TabLine(iter.GetLevel(),JsonFile);
-      JsonFile << "{\n";
-    }
+      if (iter.GetLevel()>kLevel){
+        //   If the level is greater that current level, then we define a new child
+        JsonFile << ",\n";
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "\"children\": [\n";
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "{\n";
+      } else if (iter.GetLevel()<kLevel){
+        int nLev=kLevel-iter.GetLevel();
+        JsonFile << "\n";
+        for (int i=0;i<nLev;i++){
+          TabLine(kLevel-i,JsonFile);
+          JsonFile << "}]\n";
+        }
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "},\n";
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "{\n";
 
+      } else {
+        JsonFile << "\n";
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "},\n";
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "{\n";
+      }
 
-    guid=doGuidStuff(GuidGenerator());
+      if (strcmp(chvol, "TGeoCompositeShape") == 0) {
+        cout <<"\n ===Start Node: "<< chvol << "\n";
+        guid=doGuidStuff(GuidGenerator());  
+        ExportLeftCompVolume(guid,guidVol,guidMat,(TGeoCompositeShape *)shape,iter.GetLevel(),JsonFile);
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "},\n";
+        TabLine(iter.GetLevel(),JsonFile);
+        JsonFile << "{\n";
+        guidVol=MapGuidVol[iVol+1];
+        guid=doGuidStuff(GuidGenerator());  
+        ExportRightCompVolume(guid,guidVol,guidMat,(TGeoCompositeShape *)shape,iter.GetLevel(),JsonFile);
+        
+        cout <<"\n ===End Node: "<< chvol << "\n";
 
-    ExportCurrentVolume(guid,guidVol,guidMat,current,iter.GetLevel(),JsonFile);
+      } else {
 
-    kNode++;
+        guid=doGuidStuff(GuidGenerator());
+        ExportCurrentVolume(guid,guidVol,guidMat,current,iter.GetLevel(),JsonFile);
 
+        kNode++;
+      }
     }
     kLevel=iter.GetLevel();
   }
+
   JsonFile << "\n";
   for (int i=0;i<kLevel;i++){
     TabLine(kLevel-i,JsonFile);
@@ -203,9 +250,8 @@ void RunExportJson() {
   JsonFile << "}\n}";
 
   JsonFile.close(); // close the file handle
-  std::cout << "\n\n--> JSON FILE CREATED "<< std::endl<< std::endl;
 
-  JsonFile << "]\n";
+  std::cout << "\n\n--> JSON FILE: "<<JsonFileName<<" CREATED "<< std::endl<< std::endl;
 
 }
 
