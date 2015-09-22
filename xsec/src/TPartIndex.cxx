@@ -212,8 +212,10 @@ void TPartIndex::Streamer(TBuffer &R__b) {
   // Stream an object of class TPartIndex.
 
   if (R__b.IsReading()) {
+#ifdef USE_VECGEOM_NAVIGATOR
     delete fDBPdg;
     fDBPdg = 0;
+#endif
     R__b.ReadClassBuffer(TPartIndex::Class(), this);
     fgPartIndex = this;
 
