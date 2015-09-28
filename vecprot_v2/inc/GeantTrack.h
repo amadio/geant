@@ -27,7 +27,7 @@
 #endif
 
 #ifndef VECCORE_BITSET_H
-#include "BitSet.h"
+#include "base/BitSet.h"
 typedef veccore::BitSet BitSet;
 #endif
 

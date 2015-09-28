@@ -674,7 +674,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       generation++;
       // Propagate all remaining tracks
       // NOTE: need to deal with propagator->fUsePhysics
-      broker->runTask(tid, *basket); // ntotransport, basket_sch->GetNumber(), gPropagator->fTracks, particles);
+      broker->runTask(*td, *basket); // ntotransport, basket_sch->GetNumber(), gPropagator->fTracks, particles);
       ntotransport = 0;
       // ncross += input.PropagateTracks(output);
       // ntotransport = input.GetNtracks();
