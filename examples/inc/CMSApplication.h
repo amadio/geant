@@ -26,12 +26,22 @@ class TProfile;
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 
+
+#ifndef GEANT_FACTORY
+#include "GeantFactory.h"
+#endif
+
+#ifndef GEANT_MYHIT
+#include "MyHit.h"
+#endif
+
+
 /** @brief CMSApplication class */
 class CMSApplication : public GeantVApplication {
   static const int kMaxThreads = 36;
   static const int kNvolumes     = 4156;
   static const int kNECALModules = 36;
-  static const int kNHCALModules = 100;
+  static const int kNHCALModules = 104;
 
 public:
 enum EScoreType {
@@ -60,6 +70,8 @@ private:
   TH1F   *fEdepP;                                 /** Edep histogram for protons */
   TH1F   *fEdepPi;                                /** Edep histogram for pions */
   TH1F   *fEdepK;                                 /** Edep histogram for kaons */
+  GeantFactory<MyHit> *fFactory;                  /** Hits factory */
+
   
   /**
    * @brief Copy constructor CMSApplication

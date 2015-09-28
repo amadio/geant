@@ -1104,13 +1104,14 @@ void *WorkloadManager::MonitoringThread() {
 //______________________________________________________________________________
 void *WorkloadManager::OutputThread() {
     // Thread providing basic output for the scheduler.
+
+  Printf("=== Output thread created ===");
  
     TFile file("hits.root", "RECREATE");
-
     WorkloadManager *wm = WorkloadManager::Instance();
     
     GeantBlock<MyHit>* data=0;
-    
+
     TTree *tree = new TTree("T","Simulation output");
     
     tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
@@ -1121,42 +1122,28 @@ void *WorkloadManager::OutputThread() {
     
     while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
     {
-      //        Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
+      // Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
         
-	
-        if (myhitFactory->fOutputs.size()>0)
+      if (myhitFactory->fOutputs.size()>0)
         {
-            while (myhitFactory->fOutputs.try_pop(data))
+	  while (myhitFactory->fOutputs.try_pop(data))
             {
-	
-         
-	      //	        myhitFactory->fOutputs.wait_and_pop(data);                
-	      //                Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
-
-
-	      //if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
-                
-/*
-                for(int n=0;n<data->Size();n++)
-                {
-                    //   std::cout << data << "  " << data->At(n) << (data->At(n))->fVolId << " " << (data->At(n))->fDetId << std::endl;
-                    
-                    //                    tree->Print();
-                }
- */
-
+	      // myhitFactory->fOutputs.wait_and_pop(data);                
+	      // Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
 	      
-                tree->Fill();
- 
-                myhitFactory->Recycle(data);
-		//                Printf("save_hits: size of pool %zu", myhitFactory->fPool.size());
-                //                Printf("recycling %d", data);
-		
+	      // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
+              
+	      tree->Fill();
+	      
+	      myhitFactory->Recycle(data);
+	      // Printf("save_hits: size of pool %zu", myhitFactory->fPool.size());		
             }
 	}
     }
     tree->Write();
     file.Close();
+
+    Printf("=== Output thread finished ===");
     
     return 0;
 }

@@ -1,5 +1,5 @@
 #include "CMSApplication.h"
-#include "ExN03Application.h"
+//#include "ExN03Application.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "management/GeoManager.h"
 using vecgeom::GeoManager;
@@ -21,8 +21,11 @@ ClassImp(CMSApplication)
     //______________________________________________________________________________
     CMSApplication::CMSApplication()
     : GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
-      fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0) {
+  fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0), fFactory(0) {
   // Ctor..
+  GeantFactoryStore *store = GeantFactoryStore::Instance();
+  fFactory = store->GetFactory<MyHit>(16);
+  //
   memset(fSensFlags, 0, kNvolumes * sizeof(bool));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(float));
   memset(fEdepHCAL, 0, kNHCALModules * kMaxThreads * sizeof(float));
@@ -86,7 +89,8 @@ bool CMSApplication::Initialize() {
       fECALid[necal] = ivol;
       necal++;
     }
-// HCAL cells
+    
+    // HCAL cells
 #ifdef USE_VECGEOM_NAVIGATOR
     //    cout << __func__ << "::vol " << vol->GetName() << endl;
     if (vol->GetTrackingMediumPtr())
@@ -95,6 +99,7 @@ bool CMSApplication::Initialize() {
     if (vol->GetMedium())
       smat = vol->GetMaterial()->GetName();
 #endif
+    
     if (smat == "Scintillator") {
       fSensFlags[ivol] = true;
       fHCALMap[ivol] = nhcal;
@@ -102,8 +107,9 @@ bool CMSApplication::Initialize() {
       nhcal++;
     }
   }
+  
   Printf("=== CMSApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
-  fInitialized = kTRUE;
+  fInitialized = kTRUE;  
   return kTRUE;
 }
 
@@ -121,6 +127,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
   int idtype;
   int mod;
   Volume_t *vol;
+
   for (int itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -128,34 +135,45 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 #else
     ivol = vol->GetNumber();
 #endif
+
+
+    
     idtype = 0;
     if (fSensFlags[ivol]) {
       if (vol->GetName()[0] == 'E')
         idtype = 1;
       else
         idtype = 2;
+
+      
+      
       switch (idtype) {
       case 1:
-        mod = fECALMap.find(ivol)->second;
-        fEdepECAL[mod][tid] += tracks.fEdepV[itr];
+	mod = fECALMap.find(ivol)->second;
+	fEdepECAL[mod][tid] += tracks.fEdepV[itr];
         break;
       case 2:
-        mod = fHCALMap.find(ivol)->second;
-        fEdepHCAL[mod][tid] += tracks.fEdepV[itr];
+	mod = fHCALMap.find(ivol)->second;
+	fEdepHCAL[mod][tid] += tracks.fEdepV[itr];
         break;
       }
+      
     }
+      
     // Score in ECAL
     if (idtype == 1) {
       // Add scored entity
+      
       if (propagator->fNthreads > 1)
         fMHist.lock();
+      
       double capacity = 0.;
 #ifdef USE_VECGEOM_NAVIGATOR
       capacity = 1.;
 #else
       capacity = vol->GetShape()->Capacity();
 #endif
+    
       if (fabs(tracks.fPDGV[itr]) == 11) {
         fFluxElec->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepElec->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
@@ -174,6 +192,26 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       }
       if (propagator->fNthreads > 1)
         fMHist.unlock();
+
+      
+      if (gPropagator->fFillTree) {
+	MyHit *hit;
+	
+	// Deposit hits
+	if (tracks.fEdepV[itr]>0.00002)
+	  {
+	    //	    Printf("hit with energy %f", tracks.fEdepV[itr]);
+	    
+	    hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
+	    
+	    hit->fX = tracks.fXposV[itr];
+	    hit->fY = tracks.fYposV[itr];
+	    hit->fZ = tracks.fZposV[itr];
+	    hit->fEdep = 1000*tracks.fEdepV[itr];
+	    hit->fVolId = ivol;
+	    hit->fDetId = idtype; 
+	  }
+      }
     }
   }
 }

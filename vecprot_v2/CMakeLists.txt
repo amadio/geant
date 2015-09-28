@@ -42,7 +42,8 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactory.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
 )   
