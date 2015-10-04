@@ -20,7 +20,7 @@
 
 #include "TPartIndex.h"
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
 #endif
 
 class TPXsec {
@@ -78,7 +78,7 @@ private:
   int fRmap[FNPROC];    // reaction map, from reaction position in the X-sec
                         // array to the raction number
 #ifdef USE_ROOT
-  ClassDef(TPXsec, 1) // Particle X-secs
+  ClassDefNV(TPXsec, 1) // Particle X-secs
 #endif
 };
 
