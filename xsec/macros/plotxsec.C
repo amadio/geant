@@ -14,9 +14,9 @@
 
 void plotxsec(const char* mat="Fe", const char* pnam="proton", const char* reac="inElastic")
 {
-   const char *fname = "/Users/fca/GV/data/xsec_FTFP_BERT_G496p02_1mev.root";
+   const char *fname = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
    gSystem->Load("libXsec");
-   TFile *fx = TFile::Open(fname);
+   TFile *fx = new TFile(fname,"read");
    fx->Get("PartIndex");
    TPartIndex *tp = TPartIndex::I();
    TEXsec *mate = nullptr;
@@ -30,7 +30,8 @@ void plotxsec(const char* mat="Fe", const char* pnam="proton", const char* reac=
    double *vxs = new double[nbins];
    const Float_t delta = exp(log(emax/emin)/(nbins-1));
    Float_t *xsec = new Float_t[nbins];
-   std::string title="Cross section of ";
+   std::string title(reac);
+   title += " cross section of ";
    title += pnam;
    title += " on ";
    title += mat;
@@ -52,7 +53,7 @@ void plotxsec(const char* mat="Fe", const char* pnam="proton", const char* reac=
    TCanvas *c1 = new TCanvas();
    c1->SetLogx();
    g->SetTitle(title.c_str());
-   g->GetXaxis()->SetTitle("log10(E [GeV])");
+   g->GetXaxis()->SetTitle("E [GeV]");
    g->GetYaxis()->SetTitle("#sigma [barn]");
    g->SetMarkerStyle(20);
    g->Draw("apc");
