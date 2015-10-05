@@ -1,14 +1,28 @@
-void decaytable(const char *part="proton",Int_t samp=-1)
+#include <string>
+
+#include "TFile.h"
+#include "TSystem.h"
+
+#include "TEXsec.h"
+#include "TPdecay.h"
+
+using std::string;
+
+void decaytable(const char *part="pi-",int samp=-1)
 {
   gSystem->Load("libXsec");
-  TFile *fx = new TFile("xsec.root","r");
+
+  const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
+  const char *ffins = "../../data/fstate_FTFP_BERT_G496p02_1mev.root";
+
+  TFile *fx = new TFile(fxsec,"r");
   TEXsec *s = (TEXsec *) fx->Get("O");
-  TFile *ff = new TFile("fstate.root","r");
+  TFile *ff = new TFile(ffins,"r");
 //  ff->ls();
 
-  Int_t minpart=0;
-  Int_t maxpart=TPartIndex::I()->NPart();
-  if(TString("*")!=TString(part)) {
+  int minpart=0;
+  int maxpart=TPartIndex::I()->NPart();
+  if(string("*")!=string(part)) {
      minpart=TPartIndex::I()->PartIndex(part);
      if(minpart<0) {
 	printf("Unknown particle\n");
@@ -20,38 +34,38 @@ void decaytable(const char *part="proton",Int_t samp=-1)
   TPDecay *dt = (TPDecay*) ff->Get("DecayTable");
   // Reaction list
 
-  Int_t minsamp = samp;
-  Int_t maxsamp = samp;
+  int minsamp = samp;
+  int maxsamp = samp;
   if(samp<0 || samp>=dt->NSample()) {
      minsamp = 0;
      maxsamp = dt->NSample();
   }
   
-  for(Int_t ipart=minpart; ipart<maxpart; ++ipart) {
+  for(int ipart=minpart; ipart<maxpart; ++ipart) {
      printf("%s\n",TPartIndex::I()->PartName(ipart));
-     Int_t npart=0;
-     Int_t *pid=0;
-     Float_t *mom=0;
-     for(Int_t is=minsamp; is<maxsamp; ++is) {
-	Bool_t succ = dt->GetDecay(ipart, is, npart, pid, mom);
+     int npart=0;
+     const int *pid=0;
+     const float *mom=0;
+     for(int is=minsamp; is<maxsamp; ++is) {
+	bool succ = dt->GetDecay(ipart, is, npart, pid, mom);
 	if(npart) {
-	   Double_t sumpx=0;
-	   Double_t sumpy=0;
-	   Double_t sumpz=0;
-	   Double_t sumen=-TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(ipart))->Mass();
-	   Int_t sumch=-TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(ipart))->Charge();
-	   for(Int_t ip=0; ip<npart; ++ip) {
+	   double sumpx=0;
+	   double sumpy=0;
+	   double sumpz=0;
+	   double sumen=-TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(ipart))->Mass();
+	   int sumch=-TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(ipart))->Charge();
+	   for(int ip=0; ip<npart; ++ip) {
 	      sumpx+=mom[3*ip  ];
 	      sumpy+=mom[3*ip+1];
 	      sumpx+=mom[3*ip+2];
-	      Double_t dmass=TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(pid[ip]))->Mass();
-	      sumen+=TMath::Sqrt(mom[3*ip  ]*mom[3*ip  ]+mom[3*ip+1]*mom[3*ip+1]+
+	      double dmass=TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(pid[ip]))->Mass();
+	      sumen+=sqrt(mom[3*ip  ]*mom[3*ip  ]+mom[3*ip+1]*mom[3*ip+1]+
 				 mom[3*ip+2]*mom[3*ip+2]+dmass*dmass);
 	      sumch+=TDatabasePDG::Instance()->GetParticle(TPartIndex::I()->PDG(pid[ip]))->Charge();
 	   }
-	   if(TMath::Abs(sumpx)+TMath::Abs(sumpy)+TMath::Abs(sumpz)+TMath::Abs(sumen)>1e-5) {
+	   if(fabs(sumpx)+fabs(sumpy)+fabs(sumpz)+fabs(sumen)>1e-5) {
 	      printf("#%d np %d: ",is,npart);
-	      for(Int_t ip=0; ip<npart; ++ip) printf("%s ",TPartIndex::I()->PartName(pid[ip]));
+	      for(int ip=0; ip<npart; ++ip) printf("%s ",TPartIndex::I()->PartName(pid[ip]));
 	      printf("-----------> %g %g %g %g\n",sumpx,sumpy,sumpz,sumen);
 	   }
 	}
