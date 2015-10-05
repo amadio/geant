@@ -333,17 +333,17 @@ int TPXsec::SampleReac(double en) const {
   double xnorm = 1.;
   while (1) {
 #ifdef USE_ROOT
-   double ran = xnorm * gRandom->Rndm();
+    double ran = xnorm * gRandom->Rndm();
 #else
-   double ran = RNG::Instance().uniform();
+    double ran = RNG::Instance().uniform();
 #endif
-   double xsum = 0;
-   for (int i = 0; i < fNXsec; ++i) {
+    double xsum = 0;
+    for (int i = 0; i < fNXsec; ++i) {
       xsum += xrat * fXSecs[ibin * fNXsec + i] + (1 - xrat) * fXSecs[(ibin + 1) * fNXsec + i];
       if (ran <= xsum)
-	 return fRmap[i];
-   }
-   xnorm = xsum;
+        return fRmap[i];
+    }
+    xnorm = xsum;
   }
 }
 
