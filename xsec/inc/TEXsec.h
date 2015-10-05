@@ -20,7 +20,7 @@
 
 #include "TPartIndex.h"
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 class TGHorizontalFrame;
 class TGListBox;
 class TGMainFrame;

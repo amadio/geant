@@ -4,7 +4,7 @@
 #include "Geant/Config.h"
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 #endif
 
 #define MAXNELEMENTS 20 // max number of elements in one material(TMXsec)

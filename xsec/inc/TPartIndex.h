@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "materials/Particle.h"
