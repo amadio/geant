@@ -63,7 +63,7 @@ public:
   TPartIndex();
   virtual ~TPartIndex();
 
-  static const char* ClassName() {return "TPartIndex";}
+  static const char *ClassName() { return "TPartIndex"; }
 
   // Database version
   int Version() const { return fVersion; }
