@@ -1,5 +1,10 @@
 #include "TPXsec.h"
+#ifdef USE_ROOT
 #include "TRandom.h"
+#else
+#include "base/RNG.h"
+using vecgeom::RNG;
+#endif
 #include "TFile.h"
 
 // For Fatal and Error, to be changed
@@ -327,14 +332,18 @@ int TPXsec::SampleReac(double en) const {
   double xrat = (en2 - en) / (en2 - en1);
   double xnorm = 1.;
   while (1) {
-    double ran = xnorm * gRandom->Rndm();
-    double xsum = 0;
-    for (int i = 0; i < fNXsec; ++i) {
+#ifdef USE_ROOT
+   double ran = xnorm * gRandom->Rndm();
+#else
+   double ran = RNG::Instance().uniform();
+#endif
+   double xsum = 0;
+   for (int i = 0; i < fNXsec; ++i) {
       xsum += xrat * fXSecs[ibin * fNXsec + i] + (1 - xrat) * fXSecs[(ibin + 1) * fNXsec + i];
       if (ran <= xsum)
-        return fRmap[i];
-    }
-    xnorm = xsum;
+	 return fRmap[i];
+   }
+   xnorm = xsum;
   }
 }
 
