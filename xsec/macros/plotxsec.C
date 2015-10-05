@@ -16,7 +16,7 @@ void plotxsec(const char* mat="Fe", const char* pnam="proton", const char* reac=
 {
    const char *fname = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
    gSystem->Load("libXsec");
-   TFile *fx = new TFile(fname,"read");
+   TFile *fx = TFile::Open(fname,"read");
    fx->Get("PartIndex");
    TPartIndex *tp = TPartIndex::I();
    TEXsec *mate = nullptr;
@@ -56,5 +56,6 @@ void plotxsec(const char* mat="Fe", const char* pnam="proton", const char* reac=
    g->GetXaxis()->SetTitle("E [GeV]");
    g->GetYaxis()->SetTitle("#sigma [barn]");
    g->SetMarkerStyle(20);
+   g->SetMarkerSize(0.5);
    g->Draw("apc");
 }

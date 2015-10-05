@@ -11,9 +11,9 @@ void mixtest() {
    const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
    const char *ffins = "../../data/fstate_FTFP_BERT_G496p02_1mev.root";
    gSystem->Load("libXsec");
-   TFile *ff = new TFile(ffins,"r");
+   TFile *ff = TFile::Open(ffins,"r");
    TPDecay *dt = (TPDecay*) ff->Get("DecayTable");
-   TFile *fx = new TFile(fxsec,"r");
+   TFile *fx = TFile::Open(fxsec,"r");
 
    int z[2]={1,16};
    float w[2]={2,1};

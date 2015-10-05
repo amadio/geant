@@ -17,7 +17,7 @@ void timing(const char *proc="inElastic", const char *part="proton", int elemin=
 
   const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
 
-  TFile *fx = new TFile(fxsec,"r");
+  TFile *fx = TFile::Open(fxsec,"r");
   TEXsec *s = (TEXsec *) fx->Get("O");
 
   int iproc = TPartIndex::I()->ProcIndex(proc);
@@ -30,7 +30,7 @@ void timing(const char *proc="inElastic", const char *part="proton", int elemin=
   float ene;
   int mprod;
   gSystem->Load("libXsec");
-  TFile *f = new TFile("timing.root");
+  TFile *f = TFile::Open("timing.root");
   f->ls();
   TTree *t = (TTree*) f->Get("G4time");
   t->Print();

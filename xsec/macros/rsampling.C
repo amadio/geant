@@ -19,7 +19,7 @@ int rsampling(const char *el="O",const char *part="proton",int nrep=100000)
 
    const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
 
-   TFile *f = new TFile(fxsec);
+   TFile *f = TFile::Open(fxsec,"r");
    f->Get("PartIndex");
 
    double emin = TPartIndex::I()->Emin();

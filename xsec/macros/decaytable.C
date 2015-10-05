@@ -15,9 +15,9 @@ void decaytable(const char *part="pi-",int samp=-1)
   const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
   const char *ffins = "../../data/fstate_FTFP_BERT_G496p02_1mev.root";
 
-  TFile *fx = new TFile(fxsec,"r");
+  TFile *fx = TFile::Open(fxsec,"r");
   TEXsec *s = (TEXsec *) fx->Get("O");
-  TFile *ff = new TFile(ffins,"r");
+  TFile *ff = TFile::Open(ffins,"r");
 //  ff->ls();
 
   int minpart=0;

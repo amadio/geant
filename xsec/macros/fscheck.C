@@ -18,9 +18,9 @@ void fscheck(const char *proc="inElastic", const char *part="proton", int elemin
   const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
   const char *ffins = "../../data/fstate_FTFP_BERT_G496p02_1mev.root";
   gSystem->Load("libXsec");
-  TFile *fx = new TFile(fxsec,"r");
+  TFile *fx = TFile::Open(fxsec,"r");
   fx->Get("PartIndex");
-  TFile *ff = new TFile(ffins,"r");
+  TFile *ff = TFile::Open(ffins,"r");
 //  ff->ls();
   int ireac = TPartIndex::I()->ProcIndex(proc);
   if(ireac<0) {
