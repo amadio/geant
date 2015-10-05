@@ -69,6 +69,9 @@ TPartIndex::TPartIndex()
       fDBPdg(TDatabasePDG::Instance()),
 #endif
       fPDGToGVMap() {
+#ifdef USE_VECGEOM_NAVIGATOR
+      vecgeom::Particle::CreateParticles();
+#endif
 }
 
 //___________________________________________________________________
@@ -232,7 +235,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
       if (pp->Mass() >= 0)
         fGVParticle[p->second] = pp;
       else
-        std::cout << __func__ << "::"
+	 std::cout << ClassName() << "::" << __func__ << ":"
                   << " particle PDG " << p->first << " not found !" << std::endl;
 #else
       const Particle_t *pp = TDatabasePDG::Instance()->GetParticle(p->first);

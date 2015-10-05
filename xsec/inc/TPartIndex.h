@@ -19,7 +19,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
+#endif
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "materials/Particle.h"
 #endif
 #include "Geant/Typedefs.h"
 #include <map>
@@ -59,6 +62,8 @@ public:
   }
   TPartIndex();
   virtual ~TPartIndex();
+
+  static const char* ClassName() {return "TPartIndex";}
 
   // Database version
   int Version() const { return fVersion; }
