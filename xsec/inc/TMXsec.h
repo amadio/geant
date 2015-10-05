@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
 #endif
 
 #include "Geant/Config.h"
@@ -98,7 +98,7 @@ private:
   const TPDecay *fDecayTable;                             // pointer to the decay table
 
 #ifdef USE_ROOT
-  ClassDef(TMXsec, 1) // Material X-secs
+  ClassDefNV(TMXsec, 1) // Material X-secs
 #endif
 };
 

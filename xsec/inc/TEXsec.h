@@ -20,7 +20,7 @@
 
 #include "TPartIndex.h"
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
 class TGHorizontalFrame;
 class TGListBox;
 class TGMainFrame;
@@ -129,7 +129,7 @@ private:
   static TGListBox *fReactionBox;      //! Reaction list
   static TGListBox *fParticleBox;      //! Particle list
 
-  ClassDef(TEXsec, 3) // Element X-secs
+  ClassDefNV(TEXsec, 3) // Element X-secs
 #endif
 };
 

@@ -6,7 +6,7 @@
 #include "GeantFwd.h"
 
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
 #endif
 
 class TPrimaryGenerator {
@@ -68,7 +68,7 @@ private:
   TPrimaryGenerator &operator=(const TPrimaryGenerator &); // no imp.
 
 #ifdef USE_ROOT
-  ClassDef(TPrimaryGenerator, 1)
+  ClassDefNV(TPrimaryGenerator, 1)
 #endif
 };
 

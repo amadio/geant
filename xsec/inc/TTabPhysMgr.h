@@ -3,7 +3,9 @@
 
 #include "Geant/Config.h"
 
-#include "TStorage.h"
+#ifdef USE_ROOT
+#include "RTypes.h"
+#endif
 
 #define MAXNELEMENTS 20 // max number of elements in one material(TMXsec)
 
@@ -107,7 +109,9 @@ private:
   // current version number
   static const int fgVersion = 1000002;
 
-  ClassDef(TTabPhysMgr, 2)
+#ifdef USE_ROOT
+  ClassDefNV(TTabPhysMgr, 2)
+#endif
 };
 
 #endif // TTabPhysMgr_H

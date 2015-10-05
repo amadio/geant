@@ -19,7 +19,7 @@
 #endif
 
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
 ClassImp(TTabPhysProcess)
 #endif
 

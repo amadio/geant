@@ -20,7 +20,7 @@
 
 #include "TPartIndex.h"
 #ifdef USE_ROOT
-#include "TStorage.h"
+#include "RTypes.h"
 #endif
 
 class TFinState;
