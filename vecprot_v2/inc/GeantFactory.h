@@ -1,17 +1,17 @@
 //===--- GeantFactory.h - GeantV -------------------------------*- C++ -*-===//
 //
-//                     GeantV Prototype               
+//                     GeantV Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantFactory.h
  * @brief Implementation of factory of user objects in Geant-V prototype
- * @details The file contains the template definitions of: 
+ * @details The file contains the template definitions of:
  * GeantBlock - a fixed-size vector of objects having user-defined type
  * GeantBlockArray - an array of GeantBlock objects (one per thread)
  * GeantFactory - a factory created on demand and handling GeantBlockArray
  *  objects for a fixed number of event slots
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -25,32 +25,34 @@
 #include <type_traits>
 #include "dcqueue.h"
 #include "WorkloadManager.h"
+#ifdef USE_VECGEOM_NAVIGATOR
+#else
 #include "TGeoManager.h"
+#endif
 
 using namespace std;
 
 /**
- * @brief GeantBlock class 
- * @details  Fixed-size array of data blocks of user-defined type stored contiguously 
- * in memory. The user type should be POD-like (no virtual table) and must have a 
- * public default and copy contructors.The class is used to efficiently manage user 
+ * @brief GeantBlock class
+ * @details  Fixed-size array of data blocks of user-defined type stored contiguously
+ * in memory. The user type should be POD-like (no virtual table) and must have a
+ * public default and copy contructors.The class is used to efficiently manage user
  * data in a multithreaded environment.
  *
  * @tparam User-defined type
 */
 template <typename T> class GeantBlock {
 private:
-  int       fSize;      /** Fixed size */
-  int       fNext;      /** Index of next free block */
-  vector<T> fBlock;     /** vector of user block objects */
+  int fSize;        /** Fixed size */
+  int fNext;        /** Index of next free block */
+  vector<T> fBlock; /** vector of user block objects */
 
 public:
-
-  /** 
+  /**
    * @brief GeantBlock constructor
-   * @details The constructor makes sure that the provided type does not have 
+   * @details The constructor makes sure that the provided type does not have
    * a virtual table, that it has a default constructor and that it is copiable.
-   * 
+   *
    * @param size  Size for the array of blocks
    */
   GeantBlock() : fSize(0), fNext(0), fBlock() {
@@ -61,57 +63,59 @@ public:
 
   /**
    * @brief Destructor for GeantBlock */
-  ~GeantBlock() {fBlock.clear();}
+  ~GeantBlock() { fBlock.clear(); }
 
- /**
-   * @brief Initialize the block for the given size.
-   * @details Reserves the vector of user block objects and fills it with default objects of type T.
-   *
-   * @param size  Size for the array of blocks
-   */
-  void Initialize(Int_t size)
-  {
-    assert(size>0);
+  /**
+    * @brief Initialize the block for the given size.
+    * @details Reserves the vector of user block objects and fills it with default objects of type T.
+    *
+    * @param size  Size for the array of blocks
+    */
+  void Initialize(int size) {
+    assert(size > 0);
     fSize = size;
     fBlock.reserve(size);
-    for (Int_t i = 0; i < size; i++) fBlock.push_back(T());
+    for (int i = 0; i < size; i++)
+      fBlock.push_back(T());
   }
 
   /**
    * @brief Add an object of type T at a given index in the block vector.
-   * @details Copy the content of object pointed by p at a given index or at the 
+   * @details Copy the content of object pointed by p at a given index or at the
    * next free slot if the input index is negative.
    *
-   * @tparam GeantBlock object type  
-   * 
+   * @tparam GeantBlock object type
+   *
    * @param p Pointer to object to be copied
    * @param index Index in the block vector where to copy to
    */
-  void Add(T *p, Int_t index = -1) {
-    if (index < 0) index = fNext++;
+  void Add(T *p, int index = -1) {
+    if (index < 0)
+      index = fNext++;
     T &current = fBlock[index];
-    current = *p;  
+    current = *p;
   }
 
   /**
    * @brief Return the pointer to the object stored at a given block index.
-   * 
+   *
    * @param index Index to read from
    */
-  const T *  At(Int_t index) const { return &fBlock[index]; }
+  const T *At(int index) const { return &fBlock[index]; }
 
-  /** @brief Clear function 
-  * @details Clear all data and free the block. Note that the objects are not 
-  * deleted, but only filled using the assignment operator from a default 
+  /** @brief Clear function
+  * @details Clear all data and free the block. Note that the objects are not
+  * deleted, but only filled using the assignment operator from a default
   * dummy object.
   *
   * @tparam GeantBlock object type
   */
   void Clear() {
     static T dummy;
-    for (Int_t i = 0; i < fSize; i++) fBlock[i] = dummy;
+    for (int i = 0; i < fSize; i++)
+      fBlock[i] = dummy;
     fNext = 0;
-  }  
+  }
 
   /** @brief Function checking if the block is full */
   bool IsFull() const { return (fNext == fSize); }
@@ -124,88 +128,85 @@ public:
 };
 
 /**
- * @brief Class GeantBlockArray 
+ * @brief Class GeantBlockArray
  * @details An array of blocks of user objects of the same category. Used as internal utility by factories.
  * The array access functions are critical sections.
- * 
+ *
  * @tparam Object type to be stored in blocks
  */
 template <typename T> class GeantBlockArray {
 private:
-  int       fNthreads;         /** Number of threads */
-  int       fBlockSize;        /** Block size */
-  GeantBlock<T> **fBlocks;     /** Array of blocks used by different threads */
-  
+  int fNthreads;           /** Number of threads */
+  int fBlockSize;          /** Block size */
+  GeantBlock<T> **fBlocks; /** Array of blocks used by different threads */
+
   /**
    * @brief Copy constructor GeantBlockArray
-   * 
+   *
    * @todo Still needs to be implemented
    */
   GeantBlockArray(const GeantBlockArray &);
 
-   /**
-   * @brief Implementation of operator=
-   * 
-   * @todo Still needs to be implemented
-   */
+  /**
+  * @brief Implementation of operator=
+  *
+  * @todo Still needs to be implemented
+  */
   GeantBlockArray &operator=(const GeantBlockArray &);
 
 public:
-
   /**
    * @brief GeantBlockArray parametrized constructor
-   * 
+   *
    * @param nthreads Number of threads
-   * @param blocksize Block size 
+   * @param blocksize Block size
    */
-  GeantBlockArray(Int_t nthreads, Int_t blocksize) 
-        : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0) {
+  GeantBlockArray(int nthreads, int blocksize) : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0) {
     fBlocks = new GeantBlock<T> *[nthreads];
-    for (Int_t i = 0; i < nthreads; i++)
-      {
-	fBlocks[i] = new GeantBlock<T>();
-	fBlocks[i]->Initialize(blocksize);
-      }
+    for (int i = 0; i < nthreads; i++) {
+      fBlocks[i] = new GeantBlock<T>();
+      fBlocks[i]->Initialize(blocksize);
+    }
   }
-        
 
   /** @brief GeantBlockArray destructor */
   ~GeantBlockArray() {
-    for (Int_t i = 0; i < fNthreads; i++) delete fBlocks[i];
+    for (int i = 0; i < fNthreads; i++)
+      delete fBlocks[i];
     delete[] fBlocks;
   }
-  
+
   /**
-   * @brief Operator[] 
-   * 
+   * @brief Operator[]
+   *
    * @tparam Object type to be stored in blocks
    * @param i Index to be accessed
    * @return Pointer to block
    */
-  GeantBlock<T> *operator[](Int_t i) { return fBlocks[i]; }
-  
+  GeantBlock<T> *operator[](int i) { return fBlocks[i]; }
+
   /**
    * @brief Read block at a given index
-   * 
+   *
    * @tparam Object type to be stored in blocks
    * @param i Index to be accessed
    * @return Pointer to block
    */
-  GeantBlock<T> *At(Int_t i) { return fBlocks[i]; }
-  
+  GeantBlock<T> *At(int i) { return fBlocks[i]; }
+
   /**
    * @brief Add a block at a given index
-   * 
+   *
    * @tparam Object type to be stored in blocks
    * @param tid Thread id
    * @param block GeantBlock pointer
    */
-  void AddAt(Int_t tid, GeantBlock<T> *block) { fBlocks[tid] = block; }
+  void AddAt(int tid, GeantBlock<T> *block) { fBlocks[tid] = block; }
 };
 
 /**
  * @brief Class GeantFactory
- * @details Templated factory of user objects, allocated in contiguous 
+ * @details Templated factory of user objects, allocated in contiguous
  * blocks. It can serve a number of concurrent clients with id's from 0 to N.
  */
 template <typename T> class GeantFactory {
@@ -213,50 +214,47 @@ template <typename T> class GeantFactory {
   typedef void (*ProcessHitFunc_t)(const vector<T> &, int);
 
 private:
-
   /**
    * @brief GeantFactory parameterised constructor. Can only be called by a
    * GeantFactoryStore instance.
-   * 
+   *
    * @param nthreads Number of threads
    * @param blocksize Block size
    * @param callback Callback (by default = 0)
    */
-  GeantFactory(Int_t nslots, Int_t blocksize, ProcessHitFunc_t callback = 0) 
-             : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), 
-               fCallback(callback), fBlockA(0), fPool(), fOutputs()
-  {
+  GeantFactory(int nslots, int blocksize, ProcessHitFunc_t callback = 0)
+      : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs() {
     // Reserve the space for the block arrays on event slots
     fBlockA = new GeantBlockArray<T> *[fNslots];
     // Check max number of threads
     fNthreads = WorkloadManager::Instance()->GetNthreads();
     // Add 2*nclients free blocks (2?)
     AddFreeBlocks(2 * fNthreads);
-    for (Int_t iev = 0; iev < fNslots; iev++) {
+    for (int iev = 0; iev < fNslots; iev++) {
       // One block array per slot
       fBlockA[iev] = new GeantBlockArray<T>(fNthreads, blocksize);
     }
   }
-  
+
   /** @brief Copy constructor GeantFactory */
   GeantFactory(const GeantFactory &);
-  
+
   /** @brief Operator= */
   GeantFactory &operator=(const GeantFactory &);
 
 public:
-  int       fNslots;                 /** Number of event slots */
-  int       fNthreads;               /** Max number of threads accessing the factory */
-  int       fBlockSize;              /** Block size */
+  int fNslots;                       /** Number of event slots */
+  int fNthreads;                     /** Max number of threads accessing the factory */
+  int fBlockSize;                    /** Block size */
   ProcessHitFunc_t fCallback;        /** User function to call back */
   GeantBlockArray<T> **fBlockA;      /** [fNslots] arrays of data blocks */
   dcqueue<GeantBlock<T> *> fPool;    /** pool of empty/recycled blocks */
   dcqueue<GeantBlock<T> *> fOutputs; /** Pool of filled blocks */
-  
+
   /** @brief GeantFactory destructor */
-  ~GeantFactory() 
-  {
-    for (Int_t iev = 0; iev < fNslots; ++iev) delete[] fBlockA[iev];
+  ~GeantFactory() {
+    for (int iev = 0; iev < fNslots; ++iev)
+      delete[] fBlockA[iev];
     delete[] fBlockA;
     while (!fPool.empty()) {
       delete fPool.back();
@@ -267,31 +265,27 @@ public:
       fOutputs.pop_back();
     }
   }
-  
+
   /**
    * @brief Function to add new blocks to the factory
-   * 
+   *
    * @param nblocks Number of blocks to be added
    */
-  void AddFreeBlocks(Int_t nblocks) 
-  {
-    for (Int_t i = 0; i < nblocks; i++)
-      {
-	GeantBlock<T>* block = new GeantBlock<T>();
-	block->Initialize(fBlockSize);
-	fPool.push(block);
-      }
+  void AddFreeBlocks(int nblocks) {
+    for (int i = 0; i < nblocks; i++) {
+      GeantBlock<T> *block = new GeantBlock<T>();
+      block->Initialize(fBlockSize);
+      fPool.push(block);
+    }
   }
-  
+
   /**
    * @brief Function for getting the next free block
-   * 
+   *
    * @param slot Event slot id
    * @param tid Thread id
    */
-  T *NextFree(Int_t slot)
-  {
-    Int_t tid = TGeoManager::ThreadId(); // maybe put in calling sequence
+  T *NextFree(int slot, int tid) {
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used and filled (by the same thread)
@@ -307,14 +301,13 @@ public:
 
   /**
    * @brief Recycle function
-   * 
+   *
    * @param block Block that should be recycled
    */
-  void Recycle(GeantBlock<T> *block)
-    {
-      block->Clear();
-      fPool.push(block);
-    }
+  void Recycle(GeantBlock<T> *block) {
+    block->Clear();
+    fPool.push(block);
+  }
 };
 
 #endif

@@ -33,30 +33,30 @@ class TGeoBBox_v : public TGeoBBox
 public:
    // constructors
    TGeoBBox_v();
-   TGeoBBox_v(Double_t dx, Double_t dy, Double_t dz, Double_t *origin=0);
-   TGeoBBox_v(const char *name, Double_t dx, Double_t dy, Double_t dz, Double_t *origin=0);
-   TGeoBBox_v(Double_t *param);
+   TGeoBBox_v(double dx, double dy, double dz, double *origin=0);
+   TGeoBBox_v(const char *name, double dx, double dy, double dz, double *origin=0);
+   TGeoBBox_v(double *param);
    // destructor
    virtual ~TGeoBBox_v();
    // methods
-   static  Bool_t        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
-   virtual void          ComputeNormal(Double_t *point, Double_t *dir, Double_t *norm);
-   virtual Bool_t        Contains(Double_t *point) const;
-   virtual void          Contains_v(const Double_t *point, Bool_t *isin, Int_t np) const;
-   static  Bool_t        Contains(const Double_t *point, Double_t dx, Double_t dy, Double_t dz, const Double_t *origin);
-   virtual Bool_t        CouldBeCrossed(Double_t *point, Double_t *dir) const;
-   virtual Int_t         DistancetoPrimitive(Int_t px, Int_t py);
-   virtual Double_t      DistFromInside(Double_t *point, Double_t *dir, Int_t iact=1, 
-                                   Double_t step=TGeoShape::Big(), Double_t *safe=0) const;
-   static  Double_t      DistFromInside(const Double_t *point,const Double_t *dir, 
-                                   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
-   virtual Double_t      DistFromOutside(Double_t *point, Double_t *dir, Int_t iact=1, 
-                                   Double_t step=TGeoShape::Big(), Double_t *safe=0) const;
-   static  Double_t      DistFromOutside(const Double_t *point,const Double_t *dir, 
-                                   Double_t dx, Double_t dy, Double_t dz, const Double_t *origin, Double_t stepmax=TGeoShape::Big());
-   virtual Bool_t        GetPointsOnFacet(Int_t index, Int_t npoints, Double_t *array) const;
-   virtual Bool_t        GetPointsOnSegments(Int_t npoints, Double_t *array) const;
-   virtual Double_t      Safety(Double_t *point, Bool_t in=kTRUE) const;
+   static  bool        AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, const TGeoBBox_v *box2, const TGeoMatrix *mat2);
+   virtual void          ComputeNormal(double *point, double *dir, double *norm);
+   virtual bool        Contains(double *point) const;
+   virtual void          Contains_v(const double *point, bool *isin, int np) const;
+   static  bool        Contains(const double *point, double dx, double dy, double dz, const double *origin);
+   virtual bool        CouldBeCrossed(double *point, double *dir) const;
+   virtual int         DistancetoPrimitive(int px, int py);
+   virtual double      DistFromInside(double *point, double *dir, int iact=1, 
+                                   double step=TGeoShape::Big(), double *safe=0) const;
+   static  double      DistFromInside(const double *point,const double *dir, 
+                                   double dx, double dy, double dz, const double *origin, double stepmax=TGeoShape::Big());
+   virtual double      DistFromOutside(double *point, double *dir, int iact=1, 
+                                   double step=TGeoShape::Big(), double *safe=0) const;
+   static  double      DistFromOutside(const double *point,const double *dir, 
+                                   double dx, double dy, double dz, const double *origin, double stepmax=TGeoShape::Big());
+   virtual bool        GetPointsOnFacet(int index, int npoints, double *array) const;
+   virtual bool        GetPointsOnSegments(int npoints, double *array) const;
+   virtual double      Safety(double *point, bool in=kTRUE) const;
 
    ClassDef(TGeoBBox_v, 1)         // box primitive
 };

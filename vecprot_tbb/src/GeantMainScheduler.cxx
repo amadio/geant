@@ -23,7 +23,7 @@ GeantMainScheduler::GeantMainScheduler()
 }
 
 //______________________________________________________________________________
-GeantMainScheduler::GeantMainScheduler(Int_t nvolumes)
+GeantMainScheduler::GeantMainScheduler(int nvolumes)
                    :TObject(),
                     fNvolumes(nvolumes),
 //                    fNpriority(0),
@@ -32,7 +32,7 @@ GeantMainScheduler::GeantMainScheduler(Int_t nvolumes)
 {
 // ctor
    GeantPropagator* propagator = GeantPropagator::Instance();
-   for (Int_t i=0; i<nvolumes; i++) {
+   for (int i=0; i<nvolumes; i++) {
       fBaskets[i] = new GeantBasket(2*propagator->fNperBasket);
       fPriorityBaskets[i] = new GeantBasket(2*propagator->fNperBasket);
    }
@@ -46,7 +46,7 @@ GeantMainScheduler::~GeantMainScheduler()
 {
 // dtor.
    if (fBaskets) {
-      for (Int_t ib=0; ib<fNvolumes; ib++) {
+      for (int ib=0; ib<fNvolumes; ib++) {
          delete fBaskets[ib];
          delete fPriorityBaskets[ib];
       }
@@ -56,7 +56,7 @@ GeantMainScheduler::~GeantMainScheduler()
 }
 
 //______________________________________________________________________________
-GeantMainScheduler* GeantMainScheduler::Instance(Int_t nvolumes)
+GeantMainScheduler* GeantMainScheduler::Instance(int nvolumes)
 {
 // Return singleton instance.
    if (fgInstance) return fgInstance;
@@ -68,13 +68,13 @@ GeantMainScheduler* GeantMainScheduler::Instance(Int_t nvolumes)
 }
 
 //______________________________________________________________________________
-Int_t GeantMainScheduler::AddTrack(Int_t itrack, Int_t ibasket, Bool_t* pushedPriority)
+int GeantMainScheduler::AddTrack(int itrack, int ibasket, bool* pushedPriority)
 {
    GeantPropagator *gPropagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
 
-   Int_t ninjected = 0;
-   Bool_t priority = kFALSE;
+   int ninjected = 0;
+   bool priority = kFALSE;
    GeantBasket **baskets = fBaskets;
    GeantTrack *track = gPropagator->fTracks[itrack];
 
@@ -84,7 +84,7 @@ Int_t GeantMainScheduler::AddTrack(Int_t itrack, Int_t ibasket, Bool_t* pushedPr
    }
 
    if (gPropagator->fPriorityRange[0] > -1) {
-      Int_t event = gPropagator->fTracks[itrack]->event;
+      int event = gPropagator->fTracks[itrack]->event;
       if (event >= gPropagator->fPriorityRange[0] && event <= gPropagator->fPriorityRange[1]) {
          baskets = fPriorityBaskets;
          priority = kTRUE;
@@ -115,17 +115,17 @@ Int_t GeantMainScheduler::AddTrack(Int_t itrack, Int_t ibasket, Bool_t* pushedPr
 }
 
 //______________________________________________________________________________
-Int_t GeantMainScheduler::FlushPriorityBaskets()
+int GeantMainScheduler::FlushPriorityBaskets()
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
 
-   Int_t ninjected = 0;
+   int ninjected = 0;
 
    // CRITICAL SECTION BEGIN
    the_lock.Lock();
 
-   for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++)
+   for (int ibasket=0; ibasket<fNvolumes; ibasket++)
    {
       if (!fPriorityBaskets[ibasket]->GetNtracks()) continue;
 
@@ -143,17 +143,17 @@ Int_t GeantMainScheduler::FlushPriorityBaskets()
 }
 
 //______________________________________________________________________________
-Int_t GeantMainScheduler::FlushNormalBaskets()
+int GeantMainScheduler::FlushNormalBaskets()
 {
    GeantPropagator *propagator = GeantPropagator::Instance();
    WorkloadManager *wm = WorkloadManager::Instance();
 
-   Int_t ninjected = 0;
+   int ninjected = 0;
 
    // CRITICAL SECTION BEGIN
    the_lock.Lock();
 
-   for (Int_t ibasket=0; ibasket<fNvolumes; ibasket++)
+   for (int ibasket=0; ibasket<fNvolumes; ibasket++)
    {
       if (!fBaskets[ibasket]->GetNtracks()) continue;
 

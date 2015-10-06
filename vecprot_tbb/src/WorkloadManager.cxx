@@ -22,14 +22,14 @@ WorkloadManager::~WorkloadManager()
 {
 // Destructor.
    if (fBasketArray) {
-      for (Int_t i=0; i<fNbaskets; i++) delete fBasketArray[i];
+      for (int i=0; i<fNbaskets; i++) delete fBasketArray[i];
       delete [] fBasketArray;
    }
    fgInstance = 0;
 }
 
 //______________________________________________________________________________
-void WorkloadManager::CreateBaskets(Int_t nvolumes)
+void WorkloadManager::CreateBaskets(int nvolumes)
 {
 // Create the array of baskets
    if (fBasketArray) return;
@@ -37,7 +37,7 @@ void WorkloadManager::CreateBaskets(Int_t nvolumes)
    TIter next(gGeoManager->GetListOfVolumes());
    TGeoVolume *vol;
    GeantVolumeBasket *basket;
-   Int_t icrt = 0;
+   int icrt = 0;
    while ((vol=(TGeoVolume*)next())) {
       basket = new GeantVolumeBasket(vol, icrt++);
       vol->SetField(basket);
@@ -56,18 +56,18 @@ WorkloadManager *WorkloadManager::Instance()
 }
 
 //______________________________________________________________________________
-void WorkloadManager::AddEmptyBaskets(Int_t nb)
+void WorkloadManager::AddEmptyBaskets(int nb)
 {
 // Add empty baskets in the queue.
-   for (Int_t i=0; i<nb; i++) tbb_feeder_empty_queue.push(new GeantBasket(10));
+   for (int i=0; i<nb; i++) tbb_feeder_empty_queue.push(new GeantBasket(10));
    Printf("Added %d empty baskets to the queue", nb);
 }
 
 //______________________________________________________________________________
-void WorkloadManager::AddEmptyCollections(Int_t nc)
+void WorkloadManager::AddEmptyCollections(int nc)
 {
 // Add empty baskets in the queue.
-   for (Int_t i=0; i<nc; i++) tbb_collector_empty_queue.push(new GeantTrackCollection(100));
+   for (int i=0; i<nc; i++) tbb_collector_empty_queue.push(new GeantTrackCollection(100));
    Printf("Added %d empty collections to the queue", nc);
 }
 

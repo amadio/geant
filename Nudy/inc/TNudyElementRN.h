@@ -16,33 +16,34 @@
 #include "TStyle.h"
 #include "TROOT.h"
 
-class TNudyElementRN: public TObject{
+class TNudyElementRN : public TObject {
 
- private:
+private:
   int fCoSize;
-  Float_t fX,fY;
-  TGeoElementRN* fEle;
-  TBox* fBox;
+  float fX, fY;
+  TGeoElementRN *fEle;
+  TBox *fBox;
   TPaveText fInfo;
-  Color_t GetColor(Double_t halfLife);
- public:
-  static Double_t fCCodeRange[26];
-  static Int_t fCCodeColor[26][3];
+  Color_t GetColor(double halfLife);
 
-  Float_t fSize;
-  Float_t fScale;
-  Float_t fPadding;
-  
+public:
+  static double fCCodeRange[26];
+  static int fCCodeColor[26][3];
+
+  float fSize;
+  float fScale;
+  float fPadding;
+
   TColor fColors[26];
   TNudyElementRN();
-  TNudyElementRN(TGeoElementRN* elem,Float_t fX, Float_t fY);
-  virtual ~TNudyElementRN() {};
-  void Draw(Option_t* option="");
-  void Move(Float_t x, Float_t y);
-  void SetColorCode(TList* cCodeRange, TList* cCodeColor);
-  Int_t GetA() {return fEle->AtomicNo();}
-  Int_t GetZ() {return fEle->MassNo();}
-  
-  ClassDef(TNudyElementRN,1) //Radio Nucleide Element
+  TNudyElementRN(TGeoElementRN *elem, float fX, float fY);
+  virtual ~TNudyElementRN(){};
+  void Draw(const char *option = "");
+  void Move(float x, float y);
+  void SetColorCode(TList *cCodeRange, TList *cCodeColor);
+  int GetA() { return fEle->AtomicNo(); }
+  int GetZ() { return fEle->MassNo(); }
+
+  ClassDef(TNudyElementRN, 1) // Radio Nucleide Element
 };
 #endif

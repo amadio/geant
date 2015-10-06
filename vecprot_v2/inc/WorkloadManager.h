@@ -13,20 +13,21 @@
 #ifndef GEANT_WORKLOADMANAGER
 #define GEANT_WORKLOADMANAGER
 
-#ifndef ROOT_TObject
-#include "TObject.h"
-#endif
-
+#include <thread>
 #include "priority_queue.h"
 #include "condition_locker.h"
 
+#ifndef USE_VECGEOM_NAVIGATOR
+#include "TGeoManager.h"
+#endif
+
 #include "GeantTrack.h"
+#include "GeantPropagator.h"
 
 class GeantBasketMgr;
 class GeantBasket;
 class GeantScheduler;
 class TaskBroker;
-
 
 /**
  * @brief WorkloadManager class
@@ -35,64 +36,49 @@ class TaskBroker;
  * transported baskets.
  */
 class WorkloadManager {
-public:
-
-  /**
-   * @brief Monitoring type
-   */
-enum EGeantMonitoringType {
-  kMonQueue = 0,
-  kMonMemory,
-  kMonBasketsPerVol,
-  kMonVectors,
-  kMonConcurrency,
-  kMonTracksPerEvent,
-  kMonTracks
-};
-
 protected:
-  Int_t fNthreads;         /** Number of managed threads */
-  Int_t fNbaskets;         /** Total number of baskets */
-  Int_t fBasketGeneration; /** Basket generation */
-  Int_t fNbasketgen;       /** Number of baskets to transport in the current generation */
-  Int_t fNidle;            /** Number of idle workers */
-  Int_t fNminThreshold;    /** Minimum number of tracks in a basket to trigger transport */
-  Int_t fNqueued;          /** Number of chunks queued */
-  Int_t *fBtogo;           /** Array of baskets to be processed in the next generation */
-  Int_t fSchId;            /** Thread id for the scheduler */
-  bool fStarted;           /** Start flag */
-  bool fStopped;           /** Stop flag */
+  int fNthreads;                                     /** Number of managed threads */
+  int fNbaskets;                                     /** Total number of baskets */
+  int fBasketGeneration;                             /** Basket generation */
+  int fNbasketgen;                                   /** Number of baskets to transport in the current generation */
+  int fNidle;                                        /** Number of idle workers */
+  int fNminThreshold;                                /** Minimum number of tracks in a basket to trigger transport */
+  int fNqueued;                                      /** Number of chunks queued */
+  int *fBtogo;                                       /** Array of baskets to be processed in the next generation */
+  int fSchId;                                        /** Thread id for the scheduler */
+  bool fStarted;                                       /** Start flag */
+  bool fStopped;                                       /** Stop flag */
   Geant::priority_queue<GeantBasket *> *fFeederQ;      /** Queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *fTransportedQ; /** Queue of transported baskets */
   Geant::priority_queue<GeantBasket *> *fDoneQ;        /** Thread "all work done" queue */
-  static WorkloadManager *fgInstance; /** Singleton instance */
-  TList *fListThreads;                /** List of threads */
-  bool fFlushed;                    /** Buffer flushed */
-  bool fFilling;                    /** Worker queue is filling */
-  Int_t  fMonQueue;                   /** Monitor the work queue */
-  Int_t  fMonMemory;                  /** Monitor the memory */
-  Int_t  fMonBasketsPerVol;           /** Monitor baskets per volume */
-  Int_t  fMonVectors;                 /** Monitor vector scheduling */
-  Int_t  fMonConcurrency;             /** Monitor concurrency */
-  Int_t  fMonTracksPerEvent;          /** Monitor tracks status per event */
-  Int_t  fMonTracks;                  /** Monitor number of tracks */
-  GeantScheduler *fScheduler;         /** Main basket scheduler */
+  static WorkloadManager *fgInstance;                  /** Singleton instance */
+  std::vector<std::thread> fListThreads;               /** Vector of threads */
+  bool fFlushed;                                       /** Buffer flushed */
+  bool fFilling;                                       /** Worker queue is filling */
+  int fMonQueue;                                     /** Monitor the work queue */
+  int fMonMemory;                                    /** Monitor the memory */
+  int fMonBasketsPerVol;                             /** Monitor baskets per volume */
+  int fMonVectors;                                   /** Monitor vector scheduling */
+  int fMonConcurrency;                               /** Monitor concurrency */
+  int fMonTracksPerEvent;                            /** Monitor tracks status per event */
+  int fMonTracks;                                    /** Monitor number of tracks */
+  int fMaxThreads;                                   /** Maximum number of threads */
+  GeantScheduler *fScheduler;                          /** Main basket scheduler */
 
-  TaskBroker *fBroker; /** Pointer to the coprocessor broker, this could be made a collection. */
-  Int_t *fWaiting;     /** ![fNthreads+1] Threads in waiting flag */
+  TaskBroker *fBroker;         /** Pointer to the coprocessor broker, this could be made a collection. */
+  int *fWaiting;             /** ![fNthreads+1] Threads in waiting flag */
   condition_locker fSchLocker; /** Scheduler locker */
   condition_locker fGbcLocker; /** Garbage collector locker */
-  Int_t  fLastEvent;                  /** Last transported event */
+  int fLastEvent;            /** Last transported event */
 
   /**
    * @brief WorkloadManager parameterized constructor
    *
    * @param  nthreads Number of threads foe workload manager
    */
-  WorkloadManager(Int_t nthreads);
+  WorkloadManager(int nthreads);
 
 public:
-
   /** @brief WorkloadManager destructor */
   virtual ~WorkloadManager();
 
@@ -116,41 +102,42 @@ public:
   //                      *NavStates() const   {return fNavStates;}
 
   /** @brief Function that returns number of managed threads */
-  Int_t GetNthreads() const { return fNthreads; }
+  int GetNthreads() const { return fNthreads; }
 
   /** @brief Function that returns total number of baskets */
-  Int_t GetNbaskets() const { return fNbaskets; }
+  int GetNbaskets() const { return fNbaskets; }
 
   /** @brief Function that returns threads in waiting array */
-  Int_t *GetWaiting() const { return fWaiting; }
+  int *GetWaiting() const { return fWaiting; }
 
   /** @brief Function that returns number of waiting threads */
-  Int_t GetNwaiting() const { 
-    Int_t nwaiting = 0; 
-    for (int i=0; i<fNthreads; ++i) nwaiting += fWaiting[i]; 
-    return nwaiting; 
+  int GetNwaiting() const {
+    int nwaiting = 0;
+    for (int i = 0; i < fNthreads; ++i)
+      nwaiting += fWaiting[i];
+    return nwaiting;
   }
 
   /** @brief Function that returns number of threads actually working */
-  Int_t GetNworking() const { return (fNthreads - GetNwaiting()); }
+  int GetNworking() const { return (fNthreads - GetNwaiting()); }
 
   /** @brief Function returning the number of monitored features */
-  Int_t GetMonFeatures() const;
+  int GetMonFeatures() const;
 
   /** @brief Check if a monitoring feature is enabled */
-  bool IsMonitored(EGeantMonitoringType feature) const;
+  bool IsMonitored(GeantPropagator::EGeantMonitoringType feature) const;
 
   /** @brief Enable monitoring a feature */
-  void SetMonitored(EGeantMonitoringType feature, bool flag = true);
+  void SetMonitored(GeantPropagator::EGeantMonitoringType feature, bool flag = true);
 
   /** @brief Function that returns main basket scheduler */
   GeantScheduler *GetScheduler() const { return fScheduler; }
 
   /** @brief Get the scheduler thread id */
-  Int_t GetSchId() const { return fSchId; }
+  int GetSchId() const { return fSchId; }
 
   /** @brief Set scheduler thread id */
-  void SetSchId(Int_t id) { fSchId = id; }
+  void SetSchId(int id) { fSchId = id; }
 
   /** @brief Function that returns scheduler locker */
   condition_locker &GetSchLocker() { return fSchLocker; }
@@ -163,7 +150,7 @@ public:
    *
    * @param nthreads Number of threads (by default 0)
    */
-  static WorkloadManager *Instance(Int_t nthreads = 0);
+  static WorkloadManager *Instance(int nthreads = 0);
 
   /** @brief Function that check if buffer is flushed */
   bool IsFlushed() const { return fFlushed; }
@@ -173,24 +160,24 @@ public:
 
   /** @brief Function that check stop flag */
   bool IsStopped() const { return fStopped; }
-  
+
   /** @brief Getter for last transported event */
-  Int_t LastEvent() const { return fLastEvent; }
+  int LastEvent() const { return fLastEvent; }
 
   /** @brief Setter for last transported event */
-  void SetLastEvent(Int_t n) { fLastEvent = n; }
+  void SetLastEvent(int n) { fLastEvent = n; }
 
   /** @brief Function that provide stop process by setting Stop flag = True */
-  void Stop() { fStopped = kTRUE; }
+  void Stop() { fStopped = true; }
 
   /** @brief Setter for buffer flushing */
   void SetFlushed(bool flag) { fFlushed = flag; }
 
   /** @brief Function that returns basket generation */
-  Int_t GetBasketGeneration() const { return fBasketGeneration; }
+  int GetBasketGeneration() const { return fBasketGeneration; }
 
   /** @brief Print function */
-  void Print(Option_t *option = "") const;
+  void Print(const char *option = "") const;
 
   /** @brief  Setter for task broker */
   void SetTaskBroker(TaskBroker *broker);
@@ -201,17 +188,26 @@ public:
 #if USE_VECGEOM_NAVIGATOR == 1
   /**
    * @brief Tell the task broker(s) to load the geometry.
-   * 
+   *
    * @param Volume to load
    */
-  Bool_t LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
-#endif   
+  bool LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
+#endif
+
+  void SetMaxThreads(int nthreads) {
+    fMaxThreads = nthreads;
+#ifndef USE_VECGEOM_NAVIGATOR
+    gGeoManager->SetMaxThreads(nthreads);
+#endif
+  }
+
+  int ThreadId();
 
   /** @brief Getter for the global transport threshold */
-  Int_t GetNminThreshold() const { return fNminThreshold; }
+  int GetNminThreshold() const { return fNminThreshold; }
 
   /** @brief Setter for the global transport threshold */
-  void SetNminThreshold(Int_t thr) { fNminThreshold = thr; }
+  void SetNminThreshold(int thr) { fNminThreshold = thr; }
 
   /** @brief Function that provides start process of threads  */
   void StartThreads();
@@ -227,28 +223,36 @@ public:
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *GarbageCollectorThread(void *arg);
+  static void *GarbageCollectorThread();
 
   /**
    * @brief Function that provides monitoring thread
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *MonitoringThread(void *arg);
+  static void *MonitoringThread();
+
+  /**
+   * @brief Function that provides output thread
+   *
+   * @param arg Arguments to be passed in the function
+   */
+  
+  static void *OutputThread();
 
   /**
    * @brief Function that provides transporting tracks
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *TransportTracks(void *arg);
+  static void *TransportTracks();
 
   /**
    * @brief Function that provides transport tracks in coprocessor
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *TransportTracksCoprocessor(void *arg);
+  static void *TransportTracksCoprocessor(TaskBroker *broker);
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();
@@ -265,6 +269,5 @@ private:
    * @todo Still not implemented
    */
   WorkloadManager &operator=(const WorkloadManager &);
-
 };
 #endif

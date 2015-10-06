@@ -19,6 +19,11 @@
  * @{
  */
 class GeantBasket;
+namespace Geant {
+   inline namespace cxx {
+      class GeantTaskData;
+   }
+}
 namespace vecgeom {
    inline namespace cxx {
       class VPlacedVolume;
@@ -64,7 +69,7 @@ public:
    * @param threadid Thread ID
    * @param basket GeantBasket object
    */
-  virtual void runTask(int threadid, GeantBasket &basket) = 0;
+  virtual void runTask(Geant::GeantTaskData &td, GeantBasket &basket) = 0;
 
   /**
    * @brief Virtual function that launch tasks

@@ -47,7 +47,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf
    unsigned int itr = tid;
    while(itr < ntracks) {
       input->ComputeTransportLengthSingle(itr,td);
-      input->PropagateSingleTrack(*output,itr,td,0);
+      input->PropagateSingleTrack(itr,td,0);
 
       output->AddTrackSyncAt(itr,*input,itr);
 
@@ -111,7 +111,7 @@ void transport_kernel()
 
      if (propagator->fUsePhysics) {
        // Discrete processes only
-        Int_t nphys = output.SortByStatus(kPhysics);
+        int nphys = output.SortByStatus(kPhysics);
         if (nphys) {
            // Do post step actions for particles suffering a given process.
            // Surviving particles are added to the output array

@@ -20,10 +20,10 @@ public:
 	static GeantMainPropagator* Instance ();
 	static GeantPropagator* PropInstance ();
 
-	void SetParams (Int_t nthr, Int_t evtot, Int_t evbuf, Double_t tracksaver, Int_t maxperbask,
-                  Int_t minFeeder, Int_t numPrior, Int_t dispThr,
-                  Bool_t dbg=kFALSE, Int_t dbgTrk=-1);
-	void Start (const char *geomfile="../geometry/cms.root", Bool_t graphics=kTRUE, Bool_t single=kFALSE);
+	void SetParams (int nthr, int evtot, int evbuf, double tracksaver, int maxperbask,
+                  int minFeeder, int numPrior, int dispThr,
+                  bool dbg=false, int dbgTrk=-1);
+	void Start (const char *geomfile="../geometry/cms.root", bool graphics=true, bool single=false);
 
 	ClassDef(GeantMainPropagator,1)
 };

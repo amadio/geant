@@ -1,17 +1,13 @@
-// @(#)root/base:$Id: $
 // Author: Federico Carminati   27/05/13
 
 /*************************************************************************
  * Copyright (C) 1995-2000, fca                                          *
  * All rights reserved.                                                  *
  *                                                                       *
- * For the licensing terms see $ROOTSYS/LICENSE.                         *
- * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_TPFstate
-#define ROOT_TPFstate
-
+#ifndef TPFstate_H
+#define TPFstate_H
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -22,75 +18,77 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
-#include "TDatabasePDG.h"
 #include "TPartIndex.h"
+#ifdef USE_ROOT
+#include "Rtypes.h"
+#endif
 
 class TFinState;
 
 class TPFstate {
 public:
   TPFstate();
-  TPFstate(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
+  TPFstate(int pdg, int nfstat, int nreac, const int dict[]);
   ~TPFstate();
-  
+
   void SetRestCaptFstate(const TFinState &finstate);
-  Bool_t HasRestCaptFstat(){ if(!fRestCaptFstat) return kFALSE; return kTRUE;}
+  bool HasRestCaptFstat() {
+    if (!fRestCaptFstat)
+      return false;
+    return true;
+  }
 
-  const char* Name() const {return TDatabasePDG::Instance()->GetParticle(fPDG)->GetName();}
-  Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[]);
-  Bool_t SetPart(Int_t pdg, Int_t nfstat, Int_t nreac, const Int_t dict[], TFinState vecfs[]);
-  Bool_t SetFinState(Int_t ibin, Int_t reac, const Int_t npart[], const Float_t weight[], const Float_t kerma[],
-                     const Float_t en[], const Char_t surv[], const Int_t pid[], const Float_t mom[]);
-  void Print(Option_t *opt="") const;
-  Bool_t Prune() {return kTRUE;}
-  Bool_t SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                    Float_t& kerma, Float_t &enr, const Int_t *&pid,
-                    const Float_t *&mom, Int_t& ebinindx) const;
-  Bool_t SampleReac(Int_t preac, Float_t en, Int_t& npart, Float_t& weight,
-                    Float_t& kerma, Float_t &enr, const Int_t *&pid,
-                    const Float_t *&mom, Int_t& ebinindx, Double_t randn1,
-                    Double_t randn2) const;
-  Bool_t SampleRestCaptFstate(Int_t& npart, Float_t& weight, Float_t& kerma, 
-		    Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
-  Bool_t SampleRestCaptFstate(Int_t& npart, Float_t& weight, Float_t& kerma,
-                    Float_t &enr, const Int_t *&pid, const Float_t *&mom,
-                    Double_t randn) const;
+  const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
+  bool SetPart(int pdg, int nfstat, int nreac, const int dict[]);
+  bool SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
+  bool SetFinState(int ibin, int reac, const int npart[], const float weight[], const float kerma[], const float en[],
+                   const char surv[], const int pid[], const float mom[]);
+  void Print(const char *opt = "") const;
+  bool Prune() { return true; }
+  bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                  const float *&mom, int &ebinindx) const;
+  bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                  const float *&mom, int &ebinindx, double randn1, double randn2) const;
+  bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+                            const float *&mom) const;
+  bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid, const float *&mom,
+                            double randn) const;
 
-  Bool_t GetReac(Int_t preac, Float_t en, Int_t ifs, Int_t& npart, Float_t& weight,
-                 Float_t& kerma, Float_t &enr, const Int_t *&pid, const Float_t *&mom) const;
-  Int_t NEFstat() const {return fNEFstat;}
+  bool GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
+               const float *&mom) const;
+  int NEFstat() const { return fNEFstat; }
   void Dump() const {}
-  Bool_t Resample();
-  
-  static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
-  static Int_t GetVerbose() {return fVerbose;}
-  
-private:
-  TPFstate(const TPFstate&);      // Not implemented
-  TPFstate& operator=(const TPFstate&);      // Not implemented
-  
-  static Int_t    fVerbose;       // Controls verbosity level
-  
-  Int_t           fPDG;           // particle pdg code
-  Int_t           fNEbins;        // number of energy bins
-  Int_t           fNReac;         // number of reactions
-  Int_t           fNEFstat;       // number of states to sample per energy bin
-  Int_t           fNFstat;        // tot size of fFstat
-  Double_t        fEmin;          // Min energy of the energy grid
-  Double_t        fEmax;          // Max energy of the energy grid
-  Double_t        fEilDelta;      // logarithmic energy delta
-  const Double_t *fEGrid;         //![fNEbins] energy grid
-  TFinState      *fFstat;         // [fNFstat] table of final states
-  TFinState      *fRestCaptFstat; // RestCapture final states
+  bool Resample();
 
-  Int_t           fRdict[FNPROC]; // reaction dictionary from reaction number to position
+  static void SetVerbose(int verbose) { fVerbose = verbose; }
+  static int GetVerbose() { return fVerbose; }
+
+private:
+  TPFstate(const TPFstate &);            // Not implemented
+  TPFstate &operator=(const TPFstate &); // Not implemented
+
+  static int fVerbose; // Controls verbosity level
+
+  int fPDG;                  // particle pdg code
+  int fNEbins;               // number of energy bins
+  int fNReac;                // number of reactions
+  int fNEFstat;              // number of states to sample per energy bin
+  int fNFstat;               // tot size of fFstat
+  double fEmin;              // Min energy of the energy grid
+  double fEmax;              // Max energy of the energy grid
+  double fEilDelta;          // logarithmic energy delta
+  const double *fEGrid;      //![fNEbins] energy grid
+  TFinState *fFstat;         // [fNFstat] table of final states
+  TFinState *fRestCaptFstat; // RestCapture final states
+
+  int fRdict[FNPROC]; // reaction dictionary from reaction number to position
   // in the X-sec array
-  Int_t           fRmap[FNPROC];  // reaction map, from reaction position in the X-sec
-  // array to the raction number
-  
-  ClassDefNV(TPFstate,1)  //Particle Final States
+  int fRmap[FNPROC]; // reaction map, from reaction position in the X-sec
+// array to the raction number
+
+#ifdef USE_ROOT
+  ClassDefNV(TPFstate, 1) // Particle Final States
+#endif
 };
 
 #endif
-

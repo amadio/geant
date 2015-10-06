@@ -11,15 +11,15 @@ class PropTask;
 class CollDispTask : public task
 {
 private:
-	Int_t fNumOfCollsToPop;				      // Number of collections to be poped by this task
+	int fNumOfCollsToPop;				      // Number of collections to be poped by this task
 
 public:
-	CollDispTask (Int_t inNumOfCollsToPop);
+	CollDispTask (int inNumOfCollsToPop);
 	~CollDispTask ();
 
 	task* execute ();
 
-   PropTask& StartPropTasks (Int_t amountPriority, Int_t amountNormal);
+   PropTask& StartPropTasks (int amountPriority, int amountNormal);
 
 };
 

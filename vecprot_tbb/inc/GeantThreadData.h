@@ -21,13 +21,13 @@ class GeantTrackCollection;
 class GeantThreadData
 {
 public:
-   Int_t             fMaxPerBasket;          //! Max number of tracks per basket
-   Int_t             fNprocesses;            //! Number of physics processes
+   int             fMaxPerBasket;          //! Max number of tracks per basket
+   int             fNprocesses;            //! Number of physics processes
    TGeoHMatrix      *fMatrix;                //! Current matrix per thread
    TGeoVolume       *fVolume;                //! Current volume per thread
    TRandom          *fRndm;                  //! Random generator for thread
-   Double_t         *fDblArray;              //![5*fMaxPerBasket] Support for random seed
-   Double_t         *fProcStep;              //![fNprocesses*fMaxPerBasket]
+   double         *fDblArray;              //![5*fMaxPerBasket] Support for random seed
+   double         *fProcStep;              //![fNprocesses*fMaxPerBasket]
    TArrayI          *fPartInd;               //![fMaxPerBasket] Indices array for transported particles
    TArrayI          *fPartNext;              //![fMaxPerBasket] Indices array for remaining particles
    TArrayI          *fPartTodo;              //![fMaxPerBasket] Indices array for todo particles
@@ -35,19 +35,19 @@ public:
    TGeoHelix        *fFieldPropagator;       //! Propagator in magnetic field
    TGeoRotation     *fRotation;              //! Rotation used by the field propagator
    GeantTrackCollection *fCollection;        //! Track collection per thread
-   Int_t             fTracksPerBasket;
+   int             fTracksPerBasket;
 
-   std::vector<Int_t> fFinishedEvents;
-	void PushFinishedEvent (Int_t eventSlot) { fFinishedEvents.push_back(eventSlot); }
-	Int_t GetSizeOfFinishedEvents () const { return fFinishedEvents.size(); }
+   std::vector<int> fFinishedEvents;
+	void PushFinishedEvent (int eventSlot) { fFinishedEvents.push_back(eventSlot); }
+	int GetSizeOfFinishedEvents () const { return fFinishedEvents.size(); }
 
 public:
    GeantThreadData();
-   GeantThreadData(Int_t maxperbasket, Int_t maxprocesses);
+   GeantThreadData(int maxperbasket, int maxprocesses);
    GeantThreadData(const GeantThreadData& oth);
    ~GeantThreadData();
 
-   Double_t         *GetProcStep(Int_t iproc) {return fProcStep+iproc*fMaxPerBasket;}
+   double         *GetProcStep(int iproc) {return fProcStep+iproc*fMaxPerBasket;}
 
 };
 #endif

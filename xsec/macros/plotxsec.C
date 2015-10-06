@@ -1,23 +1,40 @@
-/*#include <TPartIndex.h>
-#include <TEXsec.h>
-#include <TPXsec.h>
-#include <TFile.h>
-#include <TH1F.h>*/
+#include "TGeoElement.h"
+#include "TGeoMaterial.h"
+#include "TPartIndex.h"
+#include "TSystem.h"
+#include "TEXsec.h"
+#include "TPXsec.h"
+#include "TFile.h"
+#include "TH1F.h"
+#include "TStyle.h"
+#include "TGraph.h"
+#include "TCanvas.h"
 
-void plotxsec(const char* mat, const char* pnam, const char* reac)
+#include "string"
+
+void plotxsec(const char* mat="Fe", const char* pnam="proton", const char* reac="inElastic")
 {
+   const char *fname = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
    gSystem->Load("libXsec");
-   TFile *fx = new TFile("xsec.root");
-   TPartIndex* tp = fx->Get("PartIndex");
-   TEXsec *mate = fx->Get(mat);
-   mate->Print();
+   TFile *fx = TFile::Open(fname,"read");
+   fx->Get("PartIndex");
+   TPartIndex *tp = TPartIndex::I();
+   TEXsec *mate = nullptr;
+   fx->GetObject(mat,mate);
+   //   mate->Print();
    //   mate->Dump();
    const Float_t emin = mate->Emin();
    const Float_t emax = mate->Emax();
    const Int_t nbins=100;
-   const Float_t delta = TMath::Exp(TMath::Log(emax/emin)/(nbins-1));
+   double *ven = new double[nbins];
+   double *vxs = new double[nbins];
+   const Float_t delta = exp(log(emax/emin)/(nbins-1));
    Float_t *xsec = new Float_t[nbins];
-   TH1F *h = new TH1F("h","x-sec",nbins,TMath::Log10(emin),TMath::Log10(emax));
+   std::string title(reac);
+   title += " cross section of ";
+   title += pnam;
+   title += " on ";
+   title += mat;
    Double_t en=emin;
    Int_t rcode = tp->ProcIndex(reac);
    Int_t pdg = tp->PDG(pnam);
@@ -26,8 +43,19 @@ void plotxsec(const char* mat, const char* pnam, const char* reac)
    for(Int_t i=0; i<nbins; ++i) {
       Float_t xs = mate->XS(ipart,rcode,en);
       printf("xs(%14.7g) = %f\n",en,xs);
-      h->SetBinContent(i,xs);
+      ven[i] = en;
+      vxs[i] = xs;
       en*=delta;
    }
-   h->Draw();
+
+   TGraph *g = new TGraph(nbins, ven, vxs);
+
+   TCanvas *c1 = new TCanvas();
+   c1->SetLogx();
+   g->SetTitle(title.c_str());
+   g->GetXaxis()->SetTitle("E [GeV]");
+   g->GetYaxis()->SetTitle("#sigma [barn]");
+   g->SetMarkerStyle(20);
+   g->SetMarkerSize(0.5);
+   g->Draw("apc");
 }

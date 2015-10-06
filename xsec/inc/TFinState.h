@@ -1,17 +1,13 @@
-// @(#)root/base:$Id: $
 // Author: Federico Carminati   27/05/13
 
 /*************************************************************************
  * Copyright (C) 1995-2000, fca                                          *
  * All rights reserved.                                                  *
  *                                                                       *
- * For the licensing terms see $ROOTSYS/LICENSE.                         *
- * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_TFinState
-#define ROOT_TFinState
-
+#ifndef TFinState_H
+#define TFinState_H
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -24,57 +20,61 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
 #include "TPartIndex.h"
+#ifdef USE_ROOT
+#include "Rtypes.h"
+#endif
 
 class TFinState {
 public:
   TFinState();
-  TFinState(Int_t nfstates, const Int_t npart[], const Float_t weight[], const Float_t kerma[],
-            const Float_t en[], const Char_t surv[], const Int_t pid[], const Float_t mom[]);
+  TFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
+            const char surv[], const int pid[], const float mom[]);
   ~TFinState();
-  TFinState& operator=(const TFinState& right);
-  
-  Bool_t SetFinState(Int_t nfstates, const Int_t npart[], const Float_t weight[], const Float_t kerma[],
-                     const Float_t en[], const Char_t surv[], const Int_t pid[], const Float_t mom[]);
-  Bool_t SetFinState(const TFinState &right);
+  TFinState &operator=(const TFinState &right);
+
+  bool SetFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
+                   const char surv[], const int pid[], const float mom[]);
+  bool SetFinState(const TFinState &right);
   void NormFinSateWeights();
-  Int_t GetNsecs() const {return fNsecs;}
+  int GetNsecs() const { return fNsecs; }
 
-  Bool_t Prune() {return kTRUE;}
-  Bool_t SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en, const Int_t *&pid,
-                    const Float_t *&mom) const;
-  Bool_t SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en, const Int_t *&pid,
-                    const Float_t *&mom, Double_t randn) const;
+  bool Prune() { return true; }
+  bool SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom) const;
+  bool SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom,
+                  double randn) const;
 
-  Bool_t GetReac(Int_t finstat, Int_t& npart, Float_t& weight, Float_t& kerma, Float_t &en,
-                 const Int_t *&pid, const Float_t *&mom) const;
+  bool GetReac(int finstat, int &npart, float &weight, float &kerma, float &en, const int *&pid,
+               const float *&mom) const;
   void Dump() const {}
-  void Print(Option_t */*opt*/="") const
-  { printf("fNFstates %d, fNsecs %d, fNMom %d, fPID %p, fSurv %p, fNpart %p, fWeight %p, fKerma %p, fMom %p\n",
-           fNFstates,fNsecs,fNMom,(void *)fPID,(void *)fSurv,
-           (void *)fNpart,(void *)fWeight,(void *)fKerma, (void *)fMom);}
-  
-  static void SetVerbose(Int_t verbose) {fVerbose=verbose;}
-  static Int_t GetVerbose() {return fVerbose;}
-  
+  void Print(const char * /*opt*/ = "") const {
+    printf("fNFstates %d, fNsecs %d, fNMom %d, fPID %p, fSurv %p, fNpart %p, fWeight %p, fKerma %p, fMom %p\n",
+           fNFstates, fNsecs, fNMom, (void *)fPID, (void *)fSurv, (void *)fNpart, (void *)fWeight, (void *)fKerma,
+           (void *)fMom);
+  }
+
+  static void SetVerbose(int verbose) { fVerbose = verbose; }
+  static int GetVerbose() { return fVerbose; }
+
 private:
-  TFinState(const TFinState&);    // Not implemented
-  
-  static Int_t    fVerbose;       // Controls verbosity level
-  
-  Int_t           fNFstates;      // Number of final states
-  Int_t           fNsecs;         // Total number of secondaries
-  Int_t           fNMom;          // 3*fNsecs, just because ROOT cannot use formulas in dimensions
-  Int_t          *fNpart;         // [fNFstates] number of particles in each final state
-  Float_t        *fWeight;        // [fNFstates] Weight of the final states
-  Float_t        *fKerma;         // [fNFstates] Released energy
-  Float_t        *fEn;            // [fNFstates] Energy of final states in GeV
-  Char_t         *fSurv;          // [fNFstates] whether the orignal particle has survived or not
-  Int_t          *fPID;           // [fNsecs] GeantV particle code
-  Float_t        *fMom;           // [fNMom] Particle momentum (GeV)
-  
-  ClassDefNV(TFinState,1)  //Particle Final States
+  TFinState(const TFinState &); // Not implemented
+
+  static int fVerbose; // Controls verbosity level
+
+  int fNFstates;  // Number of final states
+  int fNsecs;     // Total number of secondaries
+  int fNMom;      // 3*fNsecs, just because ROOT cannot use formulas in dimensions
+  int *fNpart;    // [fNFstates] number of particles in each final state
+  float *fWeight; // [fNFstates] Weight of the final states
+  float *fKerma;  // [fNFstates] Released energy
+  float *fEn;     // [fNFstates] Energy of final states in GeV
+  char *fSurv;    // [fNFstates] whether the orignal particle has survived or not
+  int *fPID;      // [fNsecs] GeantV particle code
+  float *fMom;    // [fNMom] Particle momentum (GeV)
+
+#ifdef USE_ROOT
+  ClassDefNV(TFinState, 1) // Particle Final States
+#endif
 };
 
 #endif

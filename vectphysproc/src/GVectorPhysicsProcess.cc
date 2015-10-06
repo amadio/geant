@@ -55,10 +55,10 @@ void GVectorPhysicsProcess::Initialize()
 
 //------------------------------------------------------------------------------
 void GVectorPhysicsProcess::PostStepFinalStateSampling( TGeoMaterial */*mat*/,
-                                                        Int_t ntracks, 
+                                                        int ntracks, 
                                                         GeantTrack_v &tracks,
-                                                        Int_t &nout, 
-                                                        Int_t tid)
+                                                        int &nout, 
+                                                        int tid)
 {
     if(!fVComptonProcess) {
        std::cerr<<"\n"

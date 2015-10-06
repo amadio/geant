@@ -24,9 +24,9 @@ namespace cuda {
 
 struct kCuda {
 
-  typedef int        Int_t;
-  typedef Precision  Double_t;
-  typedef bool       Bool_t;
+  typedef int        int;
+  typedef Precision  double;
+  typedef bool       bool;
   typedef int        Index_t;
 
   const static       bool kTrue = true;

@@ -1,55 +1,63 @@
-
 #ifndef GunGenerator_h
 #define GunGenerator_h
 
 #include "TPartIndex.h"
 #include "PrimaryGenerator.h"
+#ifdef USE_ROOT
 #include "TRandom.h"
+#else
+#include "base/RNG.h"
+using vecgeom::RNG;
+#endif
 
-class TParticlePDG;
+#include "Geant/Typedefs.h"
 
-class GunGenerator: public PrimaryGenerator{
- private:
-  Int_t average;
+class GunGenerator : public PrimaryGenerator {
+private:
+  int average;
 
-  Int_t     fPDG;             // PDG code of parimary particles
-  Double_t  fPartEkin;        // kinetic energy of the primary [GeV]
-  Double_t  fXPos;            // (x,y,z) position of the primary particles 
-  Double_t  fYPos;
-  Double_t  fZPos;
-  Double_t  fXDir;            // direction vector of the primary particles
-  Double_t  fYDir;
-  Double_t  fZDir;
+  int fPDG;         // PDG code of parimary particles
+  double fPartEkin; // kinetic energy of the primary [GeV]
+  double fXPos;     // (x,y,z) position of the primary particles
+  double fYPos;
+  double fZPos;
+  double fXDir; // direction vector of the primary particles
+  double fYDir;
+  double fZDir;
   // additional members
-  Int_t     fGVPartIndex;     // GV particle index of the primary
-  TParticlePDG  *fPartPDG;
-  Double_t  fMass;            // rest mass of the primary [GeV]
-  Double_t  fCharge;          // charge of the primary 
-  Double_t  fPTotal;          // total momentum of the primary [GeV]
-  Double_t  fETotal;          // total energy of the primary [GeV]
+  int fGVPartIndex; // GV particle index of the primary
+  Particle_t *fPartPDG;
 
-  Int_t numberoftracks;
-    
-  TRandom* rndgen;
- public:
-    GunGenerator();
-    GunGenerator(Int_t aver, Int_t partpdg, Double_t partekin, 
-                 Double_t xpos, Double_t ypos, Double_t zpos,
-                 Double_t xdir, Double_t ydir, Double_t zdir);
+  double fMass;   // rest mass of the primary [GeV]
+  double fCharge; // charge of the primary
+  double fPTotal; // total momentum of the primary [GeV]
+  double fETotal; // total energy of the primary [GeV]
 
-    ~GunGenerator();
+  int numberoftracks;
+
+#ifdef USE_ROOT
+  TRandom *rndgen;
+#else
+  RNG *rndgen;
+#endif
+
+public:
+  GunGenerator();
+  GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir, double ydir,
+               double zdir);
+
+  ~GunGenerator();
 
   // set one GeantTrack primary track properties
-    virtual void InitPrimaryGenerator();
-    virtual Int_t NextEvent();
-    virtual void GetTrack(Int_t n, Geant::GeantTrack &gtrack);
+  virtual void InitPrimaryGenerator();
+  virtual int NextEvent();
+  virtual void GetTrack(int n, Geant::GeantTrack &gtrack);
 
- private:
+private:
+  GunGenerator(const GunGenerator &);            // no imp.
+  GunGenerator &operator=(const GunGenerator &); // no imp.
 
-   GunGenerator(const GunGenerator &);//no imp.	
-   GunGenerator& operator=(const GunGenerator &);//no imp.
-
-   ClassDef(GunGenerator,1)
+  ClassDef(GunGenerator, 1)
 };
 
 #endif

@@ -1,16 +1,13 @@
-// @(#)root/base:$Id: $
 // Author: Federico Carminati   27/05/13
 
 /*************************************************************************
  * Copyright (C) 1995-2000, fca                                          *
  * All rights reserved.                                                  *
  *                                                                       *
- * For the licensing terms see $ROOTSYS/LICENSE.                         *
- * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_TMXsec
-#define ROOT_TMXsec
+#ifndef TMXsec_H
+#define TMXsec_H
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -20,6 +17,10 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+
+#ifdef USE_ROOT
+#include "Rtypes.h"
+#endif
 
 #include "Geant/Config.h"
 
@@ -36,68 +37,72 @@ public:
   using GeantTaskData = Geant::GeantTaskData;
 
   TMXsec();
-  TMXsec(const Char_t *name, const Char_t *title, const Int_t z[], const Int_t a[], const Float_t w[], Int_t nel,
-         Float_t dens, Bool_t weight = kFALSE, const TPDecay *decaytable = 0);
+  TMXsec(const char *name, const char *title, const int z[], const int a[], const float w[], int nel, float dens,
+         bool weight = false, const TPDecay *decaytable = 0);
   virtual ~TMXsec();
-  const Char_t *GetName() const { return fName; }
-  const Char_t *GetTitle() const { return fTitle; }
-  Float_t Xlength(Int_t part, Float_t en, Double_t ptot);
-  //   Bool_t Xlength_v(Int_t npart, const Int_t part[], const Float_t en[], Double_t lam[]);
-  Float_t DEdx(Int_t part, Float_t en);
-  //   Bool_t DEdx_v(Int_t npart, const Int_t part[], const Float_t en[], Float_t de[]);
-  Float_t Range(Int_t part, Float_t en);
-  Double_t InvRange(Int_t part, Float_t step);
+  static const char *ClassName() { return "TMXsec"; }
+  const char *GetName() const { return fName; }
+  const char *GetTitle() const { return fTitle; }
+  float Xlength(int part, float en, double ptot);
+  //   bool Xlength_v(int npart, const int part[], const float en[], double lam[]);
+  float DEdx(int part, float en);
+  //   bool DEdx_v(int npart, const int part[], const float en[], float de[]);
+  float Range(int part, float en);
+  double InvRange(int part, float step);
 
   GEANT_CUDA_DEVICE_CODE
-  void Eloss(Int_t ntracks, GeantTrack_v &tracks);
+  void Eloss(int ntracks, GeantTrack_v &tracks);
   GEANT_CUDA_DEVICE_CODE
-  void ElossSingle(Int_t itrack, GeantTrack_v &tracks);
-  void ProposeStep(Int_t ntracks, GeantTrack_v &tracks, GeantTaskData *td);
-  void ProposeStepSingle(Int_t itr, GeantTrack_v &tracks, GeantTaskData *td);
-  void SampleInt(Int_t ntracks, GeantTrack_v &tracksin, GeantTaskData *td);
-  void SampleSingleInt(Int_t itr, GeantTrack_v &tracksin, GeantTaskData *td);
+  void ElossSingle(int itrack, GeantTrack_v &tracks);
+  void ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
+  void ProposeStepSingle(int itr, GeantTrack_v &tracks, GeantTaskData *td);
+  void SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td);
+  void SampleSingleInt(int itr, GeantTrack_v &tracksin, GeantTaskData *td);
   GEANT_CUDA_DEVICE_CODE
-  Float_t MS(Int_t ipart, Float_t energy);
+  float MS(int ipart, float energy);
 
-  TEXsec *SampleInt(Int_t part, Double_t en, Int_t &reac, Double_t ptotal);
-  Int_t SampleElement(GeantTaskData *td); // based on # atoms/vol. for the prototype
-  Int_t SampleElement();                  // based on # atoms/vol. for Geant4 with tab.phys.
+  TEXsec *SampleInt(int part, double en, int &reac, double ptotal);
+  int SampleElement(GeantTaskData *td); // based on # atoms/vol. for the prototype
+  int SampleElement();                  // based on # atoms/vol. for Geant4 with tab.phys.
 
-  Int_t SelectElement(Int_t pindex, Int_t rindex, Double_t energy);
+  int SelectElement(int pindex, int rindex, double energy);
 
-  //   static Bool_t Prune();
-  void Print(Option_t *opt = "") const;
+  //   static bool Prune();
+  void Print(const char *opt = "") const;
 
 private:
   TMXsec(const TMXsec &);            // Not implemented
   TMXsec &operator=(const TMXsec &); // Not implemented
 
-  char fName[32];         // cross section name
-  char fTitle[128];       // cross section title
-  Int_t fNEbins;          // number of energy bins
-  Int_t fNTotXL;          // dimension of fTotXL
-  Int_t fNCharge;         // dimension of tables for charged particles
-  Int_t fNRelXS;          // dimension of fRelXS
-  Double_t fEilDelta;     // logarithmic energy delta
-  const Double_t *fEGrid; //! Energy grid
+  char fName[32];       // cross section name
+  char fTitle[128];     // cross section title
+  int fNEbins;          // number of energy bins
+  int fNTotXL;          // dimension of fTotXL
+  int fNCharge;         // dimension of tables for charged particles
+  int fNRelXS;          // dimension of fRelXS
+  double fEilDelta;     // logarithmic energy delta
+  const double *fEGrid; //! Energy grid
 
-  Int_t fNElems;                                              // Number of elements
-  TEXsec **fElems;                                            // [fNElems] List of elements composing this material
-  Float_t *fTotXL;                                            // [fNTotXL] Total x-sec for this material
-  Float_t *fRelXS;                                            // [fNRelXS] Relative x-sec for this material
-  Float_t *fDEdx;                                             // [fNCharge] Ionisation energy loss for this material
-  Float_t *fMSangle;                                          // [fNCharge] table of MS average angle
-  Float_t *fMSansig;                                          // [fNCharge] table of MS sigma angle
-  Float_t *fMSlength;                                         // [fNCharge] table of MS average lenght correction
-  Float_t *fMSlensig;                                         // [fNCharge] table of MS sigma lenght correction
-  Double_t *fRatios;                                          // [fNElems]  relative #atoms/volume; normalized
-  Float_t *fRange;                                            // [fNCharge] ranges of the particle in this material
-  std::vector<std::pair<Float_t, Double_t>> **fInvRangeTable; // [fNCharge]
-  const TPDecay *fDecayTable;                                 // pointer to the decay table
+  int fNElems;                                            // Number of elements
+  TEXsec **fElems;                                        // [fNElems] List of elements composing this material
+  float *fTotXL;                                          // [fNTotXL] Total x-sec for this material
+  float *fRelXS;                                          // [fNRelXS] Relative x-sec for this material
+  float *fDEdx;                                           // [fNCharge] Ionisation energy loss for this material
+  float *fMSangle;                                        // [fNCharge] table of MS average angle
+  float *fMSansig;                                        // [fNCharge] table of MS sigma angle
+  float *fMSlength;                                       // [fNCharge] table of MS average lenght correction
+  float *fMSlensig;                                       // [fNCharge] table of MS sigma lenght correction
+  double *fRatios;                                        // [fNElems]  relative #atoms/volume; normalized
+  float *fRange;                                          // [fNCharge] ranges of the particle in this material
+  std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
+  const TPDecay *fDecayTable;                             // pointer to the decay table
 
-  ClassDef(TMXsec, 1) // Material X-secs
+#ifdef USE_ROOT
+  ClassDefNV(TMXsec, 1) // Material X-secs
+#endif
 };
 
+#ifndef USE_VECGEOM_NAVIGATOR
 class TOMXsec : public TObject {
 public:
   TOMXsec(TMXsec *mxsec) : fMXsec(mxsec) {}
@@ -110,5 +115,5 @@ private:
 
   TMXsec *fMXsec;
 };
-
+#endif
 #endif

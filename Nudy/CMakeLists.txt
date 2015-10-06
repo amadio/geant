@@ -1,14 +1,8 @@
 #----------------------------------------------------------------------------
-# Enable the Language Fortran
-
-enable_language(Fortran)
-
-
-#----------------------------------------------------------------------------
 # Locate Sources and Headers for this project
 # NB : Headers are also included
 
-file(GLOB sources src/*.cxx src/*.f)
+file(GLOB sources src/*.cxx)
 file(GLOB headers inc/T*.h)
 
 include_directories(inc)

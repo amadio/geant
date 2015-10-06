@@ -29,7 +29,6 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
-
 )     
 
 set(headers
@@ -38,14 +37,13 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcess.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/WorkloadManager.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactory.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
 )   
@@ -94,5 +92,18 @@ add_executable(CMSApp CMSApp.cc)
 
 target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
        ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
+if ( USE_VECGEOM_NAVIGATOR )
+   target_link_libraries(CMSApp  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+endif()
 
 add_dependencies(CMSApp Geant_v Xsec GeantExamples)
+
+add_executable(runApp runApp.cc)
+
+target_link_libraries(runApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+       ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
+if ( USE_VECGEOM_NAVIGATOR )
+   target_link_libraries(runApp  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+endif()
+
+add_dependencies(runApp Geant_v Xsec GeantExamples)

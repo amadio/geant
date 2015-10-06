@@ -1,335 +1,323 @@
 #include "TFinState.h"
+#ifdef USE_ROOT
 #include "TRandom.h"
+#else
+#include "base/RNG.h"
+using vecgeom::RNG;
+#endif
 
-Int_t TFinState::fVerbose=0;
+int TFinState::fVerbose = 0;
 
+#ifdef USE_ROOT
 ClassImp(TFinState)
+#endif
 
-//_________________________________________________________________________
-TFinState::TFinState():
-fNFstates(0),
-fNsecs(0),
-fNMom(0),
-fNpart(0),
-fWeight(0),
-fKerma(0),
-fEn(0),
-fSurv(0),
-fPID(0),
-fMom(0)
-{
+    //_________________________________________________________________________
+    TFinState::TFinState()
+    : fNFstates(0), fNsecs(0), fNMom(0), fNpart(0), fWeight(0), fKerma(0), fEn(0), fSurv(0), fPID(0), fMom(0) {
 }
 
 //_________________________________________________________________________
-TFinState::TFinState(Int_t nfstates, const Int_t npart[], const Float_t weight[],
-                     const Float_t kerma[], const Float_t en[], const Char_t surv[],
-                     const Int_t pid[], const Float_t mom[]):
-fNFstates(nfstates),
-fNsecs(0),
-fNMom(0),
-fNpart(new Int_t[fNFstates]),
-fWeight(new Float_t[fNFstates]),
-fKerma(new Float_t[fNFstates]),
-fEn(new Float_t[fNFstates]),
-fSurv(new Char_t[fNFstates]),
-fPID(0),
-fMom(0)
-{
-  memcpy(fNpart,npart,fNFstates*sizeof(Int_t));
-  memcpy(fWeight,weight,fNFstates*sizeof(Float_t));
-  memcpy(fKerma,kerma,fNFstates*sizeof(Float_t));
-  memcpy(fEn,en,fNFstates*sizeof(Float_t));
-  memcpy(fSurv,surv,fNFstates*sizeof(Char_t));
-  
+TFinState::TFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
+                     const char surv[], const int pid[], const float mom[])
+    : fNFstates(nfstates), fNsecs(0), fNMom(0), fNpart(new int[fNFstates]), fWeight(new float[fNFstates]),
+      fKerma(new float[fNFstates]), fEn(new float[fNFstates]), fSurv(new char[fNFstates]), fPID(0), fMom(0) {
+  memcpy(fNpart, npart, fNFstates * sizeof(int));
+  memcpy(fWeight, weight, fNFstates * sizeof(float));
+  memcpy(fKerma, kerma, fNFstates * sizeof(float));
+  memcpy(fEn, en, fNFstates * sizeof(float));
+  memcpy(fSurv, surv, fNFstates * sizeof(char));
+
   fNsecs = 0;
-  for(Int_t j=0; j<fNFstates; ++j) {
-    fNsecs+=fNpart[j];
-    if(j) fWeight[j]+=fWeight[j-1];
+  for (int j = 0; j < fNFstates; ++j) {
+    fNsecs += fNpart[j];
+    if (j)
+      fWeight[j] += fWeight[j - 1];
   }
-  fNMom = 3*fNsecs;
+  fNMom = 3 * fNsecs;
 
-  Double_t wnorm = 1/fWeight[fNFstates-1];
-  for(Int_t j=0; j<fNFstates; ++j) fWeight[j]*=wnorm;
-  
-  fPID = new Int_t[fNsecs];
-  memcpy(fPID,pid,fNsecs*sizeof(Int_t));
-  fMom = new Float_t[fNMom];
-  memcpy(fMom,mom,fNMom*sizeof(Float_t));
+  double wnorm = 1 / fWeight[fNFstates - 1];
+  for (int j = 0; j < fNFstates; ++j)
+    fWeight[j] *= wnorm;
+
+  fPID = new int[fNsecs];
+  memcpy(fPID, pid, fNsecs * sizeof(int));
+  fMom = new float[fNMom];
+  memcpy(fMom, mom, fNMom * sizeof(float));
 }
 
 //_________________________________________________________________________
-TFinState::~TFinState()
-{
-  delete [] fNpart;
-  delete [] fWeight;
-  delete [] fKerma;
-  delete [] fEn;
-  delete [] fSurv;
-  delete [] fPID;
-  delete [] fMom;
+TFinState::~TFinState() {
+  delete[] fNpart;
+  delete[] fWeight;
+  delete[] fKerma;
+  delete[] fEn;
+  delete[] fSurv;
+  delete[] fPID;
+  delete[] fMom;
 }
 
 //_________________________________________________________________________
-TFinState& TFinState::operator=(const TFinState& right)
-{
-  if(this != &right) {
+TFinState &TFinState::operator=(const TFinState &right) {
+  if (this != &right) {
     fNFstates = right.fNFstates;
     fNsecs = right.fNsecs;
     fNMom = right.fNMom;
-    
-    delete [] fNpart;
-    fNpart = new Int_t[fNFstates];
-    memcpy(fNpart,right.fNpart,fNFstates*sizeof(Int_t));
-    
-    delete [] fWeight;
-    fWeight = new Float_t[fNFstates];
-    memcpy(fWeight,right.fWeight,fNFstates*sizeof(Float_t));
-    
-    delete [] fKerma;
-    fKerma = new Float_t[fNFstates];
-    memcpy(fKerma,right.fKerma,fNFstates*sizeof(Float_t));
-    
-    delete [] fEn;
-    fEn = new Float_t[fNFstates];
-    memcpy(fEn,right.fEn,fNFstates*sizeof(Float_t));
-    
-    delete [] fSurv;
-    fSurv = new Char_t[fNFstates];
-    memcpy(fSurv,right.fSurv,fNFstates*sizeof(Char_t));
-    
-    delete [] fPID;
-    fPID = new Int_t[fNsecs];
-    memcpy(fPID,right.fPID,fNsecs*sizeof(Int_t));
-    
-    delete [] fMom;
-    fMom = new Float_t[fNMom];
-    memcpy(fMom,right.fMom,fNMom*sizeof(Float_t));
+
+    delete[] fNpart;
+    fNpart = new int[fNFstates];
+    memcpy(fNpart, right.fNpart, fNFstates * sizeof(int));
+
+    delete[] fWeight;
+    fWeight = new float[fNFstates];
+    memcpy(fWeight, right.fWeight, fNFstates * sizeof(float));
+
+    delete[] fKerma;
+    fKerma = new float[fNFstates];
+    memcpy(fKerma, right.fKerma, fNFstates * sizeof(float));
+
+    delete[] fEn;
+    fEn = new float[fNFstates];
+    memcpy(fEn, right.fEn, fNFstates * sizeof(float));
+
+    delete[] fSurv;
+    fSurv = new char[fNFstates];
+    memcpy(fSurv, right.fSurv, fNFstates * sizeof(char));
+
+    delete[] fPID;
+    fPID = new int[fNsecs];
+    memcpy(fPID, right.fPID, fNsecs * sizeof(int));
+
+    delete[] fMom;
+    fMom = new float[fNMom];
+    memcpy(fMom, right.fMom, fNMom * sizeof(float));
   }
   return *this;
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::SetFinState(Int_t nfstates, const Int_t npart[], const Float_t weight[],
-                              const Float_t kerma[], const Float_t en[], const Char_t surv[],
-                              const Int_t pid[], const Float_t mom[])
-{
+bool TFinState::SetFinState(int nfstates, const int npart[], const float weight[], const float kerma[],
+                            const float en[], const char surv[], const int pid[], const float mom[]) {
   fNFstates = nfstates;
-  
-  delete [] fNpart;
-  fNpart = new Int_t[fNFstates];
-  memcpy(fNpart,npart,fNFstates*sizeof(Int_t));
-  
-  delete [] fWeight;
-  fWeight = new Float_t[fNFstates];
-  memcpy(fWeight,weight,fNFstates*sizeof(Float_t));
-  
-  delete [] fKerma;
-  fKerma = new Float_t[fNFstates];
-  memcpy(fKerma,kerma,fNFstates*sizeof(Float_t));
-  
-  delete [] fEn;
-  fEn = new Float_t[fNFstates];
-  memcpy(fEn,en,fNFstates*sizeof(Float_t));
-  
-  delete [] fSurv;
-  fSurv = new Char_t[fNFstates];
-  memcpy(fSurv,surv,fNFstates*sizeof(Char_t));
-  
+
+  delete[] fNpart;
+  fNpart = new int[fNFstates];
+  memcpy(fNpart, npart, fNFstates * sizeof(int));
+
+  delete[] fWeight;
+  fWeight = new float[fNFstates];
+  memcpy(fWeight, weight, fNFstates * sizeof(float));
+
+  delete[] fKerma;
+  fKerma = new float[fNFstates];
+  memcpy(fKerma, kerma, fNFstates * sizeof(float));
+
+  delete[] fEn;
+  fEn = new float[fNFstates];
+  memcpy(fEn, en, fNFstates * sizeof(float));
+
+  delete[] fSurv;
+  fSurv = new char[fNFstates];
+  memcpy(fSurv, surv, fNFstates * sizeof(char));
+
   fNsecs = 0;
-  for(Int_t j=0; j<fNFstates; ++j) fNsecs+=fNpart[j];
-  fNMom = 3*fNsecs;
-  
-  delete [] fPID;
-  fPID = new Int_t[fNsecs];
-  memcpy(fPID,pid,fNsecs*sizeof(Int_t));
-  
-  delete [] fMom;
-  fMom = new Float_t[fNMom];
-  memcpy(fMom,mom,fNMom*sizeof(Float_t));
+  for (int j = 0; j < fNFstates; ++j)
+    fNsecs += fNpart[j];
+  fNMom = 3 * fNsecs;
+
+  delete[] fPID;
+  fPID = new int[fNsecs];
+  memcpy(fPID, pid, fNsecs * sizeof(int));
+
+  delete[] fMom;
+  fMom = new float[fNMom];
+  memcpy(fMom, mom, fNMom * sizeof(float));
 
   NormFinSateWeights();
-  
-  return kTRUE;
+
+  return true;
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::SetFinState(const TFinState &right)
-{
+bool TFinState::SetFinState(const TFinState &right) {
   fNFstates = right.fNFstates;
-  
-  delete [] fNpart;
-  fNpart = new Int_t[fNFstates];
-  memcpy(fNpart,right.fNpart,fNFstates*sizeof(Int_t));
-  
-  delete [] fWeight;
-  fWeight = new Float_t[fNFstates];
-  memcpy(fWeight,right.fWeight,fNFstates*sizeof(Float_t));
-  
-  delete [] fKerma;
-  fKerma = new Float_t[fNFstates];
-  memcpy(fKerma,right.fKerma,fNFstates*sizeof(Float_t));
-  
-  delete [] fEn;
-  fEn = new Float_t[fNFstates];
-  memcpy(fEn,right.fEn,fNFstates*sizeof(Float_t));
-  
-  delete [] fSurv;
-  fSurv = new Char_t[fNFstates];
-  memcpy(fSurv,right.fSurv,fNFstates*sizeof(Char_t));
-  
+
+  delete[] fNpart;
+  fNpart = new int[fNFstates];
+  memcpy(fNpart, right.fNpart, fNFstates * sizeof(int));
+
+  delete[] fWeight;
+  fWeight = new float[fNFstates];
+  memcpy(fWeight, right.fWeight, fNFstates * sizeof(float));
+
+  delete[] fKerma;
+  fKerma = new float[fNFstates];
+  memcpy(fKerma, right.fKerma, fNFstates * sizeof(float));
+
+  delete[] fEn;
+  fEn = new float[fNFstates];
+  memcpy(fEn, right.fEn, fNFstates * sizeof(float));
+
+  delete[] fSurv;
+  fSurv = new char[fNFstates];
+  memcpy(fSurv, right.fSurv, fNFstates * sizeof(char));
+
   fNsecs = 0;
-  for(Int_t j=0; j<fNFstates; ++j) fNsecs+=fNpart[j];
-  fNMom = 3*fNsecs;
-  
-  delete [] fPID;
-  fPID = new Int_t[fNsecs];
-  memcpy(fPID,right.fPID,fNsecs*sizeof(Int_t));
-  
-  delete [] fMom;
-  fMom = new Float_t[fNMom];
-  memcpy(fMom,right.fMom,fNMom*sizeof(Float_t));
+  for (int j = 0; j < fNFstates; ++j)
+    fNsecs += fNpart[j];
+  fNMom = 3 * fNsecs;
+
+  delete[] fPID;
+  fPID = new int[fNsecs];
+  memcpy(fPID, right.fPID, fNsecs * sizeof(int));
+
+  delete[] fMom;
+  fMom = new float[fNMom];
+  memcpy(fMom, right.fMom, fNMom * sizeof(float));
 
   NormFinSateWeights();
-  
-  return kTRUE;
+
+  return true;
 }
 
-
 //_________________________________________________________________________
-void TFinState::NormFinSateWeights(){
-  if(fNsecs)
-  {
-    for(Int_t j=0; j<fNFstates; ++j) {
-      if(j) fWeight[j]+=fWeight[j-1];
+void TFinState::NormFinSateWeights() {
+  if (fNsecs) {
+    for (int j = 0; j < fNFstates; ++j) {
+      if (j)
+        fWeight[j] += fWeight[j - 1];
     }
 
-    Double_t wnorm = 1/fWeight[fNFstates-1];
-    for(Int_t j=0; j<fNFstates; ++j) fWeight[j]*=wnorm; 
+    double wnorm = 1 / fWeight[fNFstates - 1];
+    for (int j = 0; j < fNFstates; ++j)
+      fWeight[j] *= wnorm;
   }
-} 
+}
 
 //_________________________________________________________________________
-Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
-                             Float_t &en, const Int_t *&pid, const Float_t *&mom) const
-{
+bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid,
+                           const float *&mom) const {
 
-  if(!fNFstates) { // ensure that nothing happens 
+  if (!fNFstates) { // ensure that nothing happens
     npart = 0;
     weight = 0;
-    //kerma = 0; //keep current value that is the Ekin of the primary
-    //en = kerma;
+    // kerma = 0; //keep current value that is the Ekin of the primary
+    // en = kerma;
     pid = 0;
     mom = 0;
-    if(kerma<=0.0) { // if it is already stopped 
-       en = 0;
-       kerma = 0;
-       return kFALSE;
-    } else { 
-      en = -1.; // this case can be checked through if(en<0.)  
-      kerma = 0; 
-      return kTRUE;
+    if (kerma <= 0.0) { // if it is already stopped
+      en = 0;
+      kerma = 0;
+      return false;
+    } else {
+      en = -1.; // this case can be checked through if(en<0.)
+      kerma = 0;
+      return true;
     }
   }
 
-  Double_t eta = gRandom->Rndm();
-  Int_t finstat = fNFstates-1;
-  for(Int_t i=0; i<fNFstates-1; ++i)
-    if(eta<fWeight[i]) {
+#ifdef USE_ROOT
+  double eta = gRandom->Rndm();
+#else
+  double eta = RNG::Instance().uniform();
+#endif
+  int finstat = fNFstates - 1;
+  for (int i = 0; i < fNFstates - 1; ++i)
+    if (eta < fWeight[i]) {
       finstat = i;
       break;
     }
 
-  Int_t ipoint = 0;
-  for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
+  int ipoint = 0;
+  for (int i = 0; i < finstat; ++i)
+    ipoint += fNpart[i];
 
   npart = fNpart[finstat];
   weight = fWeight[finstat];
   kerma = fKerma[finstat];
   en = fEn[finstat];
-//  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
-//  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+  //  memcpy(pid,&fPID[ipoint],npart*sizeof(int));
+  //  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(float));
   pid = &fPID[ipoint];
-  mom = &fMom[3*ipoint];
+  mom = &fMom[3 * ipoint];
   return fSurv[finstat];
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::SampleReac(Int_t& npart, Float_t& weight, Float_t& kerma,
-                    Float_t &en, const Int_t *&pid, const Float_t *&mom, Double_t randn) const
-{
+bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom,
+                           double randn) const {
 
-  if(!fNFstates) { // ensure that nothing happens 
+  if (!fNFstates) { // ensure that nothing happens
     npart = 0;
     weight = 0;
-    //kerma = 0; //keep current value that is the Ekin of the primary
-    //en = kerma;
+    // kerma = 0; //keep current value that is the Ekin of the primary
+    // en = kerma;
     pid = 0;
     mom = 0;
-    if(kerma<=0.0) { // if it is already stopped 
-       en = 0;
-       kerma = 0;
-       return kFALSE;
-    } else { 
-      en = -1.; // this case can be checked through if(en<0.)  
-      kerma = 0; 
-      return kTRUE;
+    if (kerma <= 0.0) { // if it is already stopped
+      en = 0;
+      kerma = 0;
+      return false;
+    } else {
+      en = -1.; // this case can be checked through if(en<0.)
+      kerma = 0;
+      return true;
     }
   }
 
-  //Double_t eta = gRandom->Rndm();
-  Int_t finstat = fNFstates-1;
-  for(Int_t i=0; i<fNFstates-1; ++i)
-    if(randn < fWeight[i]) {
+  // double eta = gRandom->Rndm();
+  int finstat = fNFstates - 1;
+  for (int i = 0; i < fNFstates - 1; ++i)
+    if (randn < fWeight[i]) {
       finstat = i;
       break;
     }
-  Int_t ipoint = 0;
-  for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
+  int ipoint = 0;
+  for (int i = 0; i < finstat; ++i)
+    ipoint += fNpart[i];
 
   npart = fNpart[finstat];
   weight = fWeight[finstat];
   kerma = fKerma[finstat];
   en = fEn[finstat];
-//  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
-//  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+  //  memcpy(pid,&fPID[ipoint],npart*sizeof(int));
+  //  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(float));
   pid = &fPID[ipoint];
-  mom = &fMom[3*ipoint];
+  mom = &fMom[3 * ipoint];
   return fSurv[finstat];
 }
 
 //_________________________________________________________________________
-Bool_t TFinState::GetReac(Int_t finstat, Int_t& npart, Float_t& weight, Float_t& kerma,
-                          Float_t &en, const Int_t *&pid, const Float_t *&mom) const
-{
-  if(!fNFstates) { // ensure that nothing happens 
+bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, float &en, const int *&pid,
+                        const float *&mom) const {
+  if (!fNFstates) { // ensure that nothing happens
     npart = 0;
     weight = 0;
-    //kerma = 0; //keep current value that is the Ekin of the primary
-    //en = kerma;
+    // kerma = 0; //keep current value that is the Ekin of the primary
+    // en = kerma;
     pid = 0;
     mom = 0;
-    if(kerma<=0.0) { // if it is already stopped 
-       en = 0;
-       kerma = 0;
-       return kFALSE;
-    } else { 
-      en = -1.; // this case can be checked through if(en<0.)  
-      kerma = 0; 
-      return kTRUE;
+    if (kerma <= 0.0) { // if it is already stopped
+      en = 0;
+      kerma = 0;
+      return false;
+    } else {
+      en = -1.; // this case can be checked through if(en<0.)
+      kerma = 0;
+      return true;
     }
   } else {
-    Int_t ipoint = 0;
-    for(Int_t i=0; i<finstat; ++i) ipoint+=fNpart[i];
+    int ipoint = 0;
+    for (int i = 0; i < finstat; ++i)
+      ipoint += fNpart[i];
     npart = fNpart[finstat];
     weight = fWeight[finstat];
     kerma = fKerma[finstat];
     en = fEn[finstat];
-    //  memcpy(pid,&fPID[ipoint],npart*sizeof(Int_t));
-    //  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(Float_t));
+    //  memcpy(pid,&fPID[ipoint],npart*sizeof(int));
+    //  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(float));
     pid = &fPID[ipoint];
-    mom = &fMom[3*ipoint];
+    mom = &fMom[3 * ipoint];
     return fSurv[finstat];
   }
 }
-
-

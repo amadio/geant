@@ -90,7 +90,7 @@ public:
  */
 template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(int blocksize) {
   const std::type_info *type = &typeid(T);
-  for (Int_t i = 0; i < fNFactories; i++) {
+  for (int i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type)
       return (GeantFactory<T> *)fFactories[i];
   }
