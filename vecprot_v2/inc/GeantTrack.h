@@ -199,18 +199,16 @@ public:
   /** @brief Function that return volume */
   Volume_t *GetVolume() const;
 
-#ifdef VECGEOM_ROOT
   /** @brief Function that return next volume */
   Volume_t *GetNextVolume() const;
 
   /** @brief Function that return material */
   Material_t *GetMaterial() const;
-#endif
 
-  /** @brief Function that return path in volume */
+  /** @brief Function that returns the current path (NavigationState) of the track */
   VolumePath_t *GetPath() const { return fPath; }
 
-  /** @brief Function that return next path in volume */
+  /** @brief Function that return next path (NavigationState) of the track */
   VolumePath_t *GetNextPath() const { return fNextpath; }
 
   /** @brief Function that return number of physical step made */
@@ -1091,22 +1089,19 @@ public:
   double Pt(int i) const { return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]); }
 
   /**
-   * @brief Function that returnes volume
+   * @brief Function that returns the logical volume of the i-th track
    * @param  i Input bit number 'i'
    */
   Volume_t *GetVolume(int i) const;
 
-#ifdef VECGEOM_ROOT
   /**
-   * @brief Function that returnes next volume
+   * @brief Function that returns next logical volume of i-th track
    * @param  i Input bit number 'i'
    */
   Volume_t *GetNextVolume(int i) const;
 
-#endif
-
   /**
-   * @brief Function that returnes material
+   * @brief Function that returns the current material the i-th track is in
    * @param  i Input bit number 'i'
    */
   Material_t *GetMaterial(int i) const;

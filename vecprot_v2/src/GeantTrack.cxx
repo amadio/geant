@@ -249,38 +249,42 @@ double GeantTrack::Curvature() const {
   return fabs(kB2C * fCharge * gPropagator->fBmag / (Pt() + tiny));
 }
 
-#ifdef VECGEOM_ROOT
 //______________________________________________________________________________
 Volume_t *GeantTrack::GetVolume() const {
+#ifdef USE_VECGEOM_NAVIGATOR
+  assert( fPath->Top()->GetLogicalVolume()->id() == fVindex );
+  return fPath->Top()->GetLogicalVolume();
+#else
   // Current volume the track is into
+  // WHY NOT: fPath->GetCurrentNode()->GetVolume() ??
   return ((Volume_t *)gGeoManager->GetListOfVolumes()->At(fVindex));
+#endif
 }
 
 //______________________________________________________________________________
 Volume_t *GeantTrack::GetNextVolume() const {
+#ifdef USE_VECGEOM_NAVIGATOR
+  // Next volume the track is entering
+  return fNextpath->Top()->GetLogicalVolume();
+#else
   // Next volume the track is entering
   return fNextpath->GetCurrentNode()->GetVolume();
+#endif
 }
 
 //______________________________________________________________________________
 Material_t *GeantTrack::GetMaterial() const {
   // Current material the track is into
-  TGeoMedium *med = GetVolume()->GetMedium();
-  if (!med)
+#ifdef USE_VECGEOM_NAVIGATOR
+  auto *med = GetVolume()->GetTrackingMediumPtr();
+#else
+  auto *med = GetVolume()->GetMedium();
+#endif
+if (!med)
     return 0;
   return med->GetMaterial();
 }
-#endif
-#ifdef USE_VECGEOM_NAVIGATOR
-//______________________________________________________________________________
-Volume_t *GeantTrack::GetVolume() const {
-  // Current volume the track is into
-  if (fVindex != vecgeom::GeoManager::Instance().FindLogicalVolume(fVindex)->id())
-    std::cout << __FILE__ << "::" << __func__ << ":: mismatch: index:" << fVindex
-              << " id():" << vecgeom::GeoManager::Instance().FindLogicalVolume(fVindex)->id() << std::endl;
-  return vecgeom::GeoManager::Instance().FindLogicalVolume(fVindex);
-}
-#endif
+
 
 //______________________________________________________________________________
 bool GeantTrack::IsNormalized(double tolerance) const {
@@ -2635,50 +2639,42 @@ int GeantTrack_v::PostponeTrack(int itr, GeantTrack_v &output) {
   return new_itr;
 }
 
-#ifdef VECGEOM_ROOT
+
 //______________________________________________________________________________
 Volume_t *GeantTrack_v::GetNextVolume(int i) const {
   // Next volume the track is getting into
-  return fNextpathV[i]->GetCurrentNode()->GetVolume();
-}
-
-#endif
-
 #ifdef USE_VECGEOM_NAVIGATOR
-//______________________________________________________________________________
-Volume_t *GeantTrack_v::GetVolume(int i) const {
-  // Current volume the track is into
-  if (fVindexV[i] != vecgeom::GeoManager::Instance().FindLogicalVolume(fVindexV[i])->id())
-    std::cout << __FILE__ << "::" << __func__ << ":: mismatch: index:" << fVindexV[i]
-              << " id():" << vecgeom::GeoManager::Instance().FindLogicalVolume(fVindexV[i])->id() << std::endl;
-  return vecgeom::GeoManager::Instance().FindLogicalVolume(fVindexV[i]);
-}
-
-//______________________________________________________________________________
-Material_t *GeantTrack_v::GetMaterial(int i) const {
-  // Current material the track is into
-  Medium_t *med = (Medium_t *)GetVolume(i)->GetTrackingMediumPtr();
-  if (!med)
-    return 0;
-  return med->GetMaterial();
-}
+  return fNextpathV[i]->Top()->GetLogicalVolume();
 #else
+  return fNextpathV[i]->GetCurrentNode()->GetVolume();
+#endif
+}
 
 //______________________________________________________________________________
 Volume_t *GeantTrack_v::GetVolume(int i) const {
   // Current volume the track is into
+#ifdef USE_VECGEOM_NAVIGATOR
+  assert(fVIndexV[i] == fPaths[i]->Top()-GetLogicalVolume()->id());
+  return fPathV[i]->Top()->GetLogicalVolume();
+#else
+  // TODO: get rid of fVindexV
   return ((Volume_t *)gGeoManager->GetListOfVolumes()->At(fVindexV[i]));
+#endif
 }
 
 //______________________________________________________________________________
 Material_t *GeantTrack_v::GetMaterial(int i) const {
   // Current material the track is into
+#ifdef USE_VECGEOM_NAVIGATOR
+  Medium_t *med = (Medium_t *)GetVolume(i)->GetTrackingMediumPtr();
+#else
   Medium_t *med = (Medium_t *)GetVolume(i)->GetMedium();
+#endif
+  // TODO: better to use assert
   if (!med)
-    return 0;
+    return nullptr;
   return med->GetMaterial();
 }
-#endif
 
 //______________________________________________________________________________
 bool GeantTrack_v::CheckNavConsistency(int itr) {
