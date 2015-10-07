@@ -2654,7 +2654,7 @@ Volume_t *GeantTrack_v::GetNextVolume(int i) const {
 Volume_t *GeantTrack_v::GetVolume(int i) const {
   // Current volume the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
-  assert(fVIndexV[i] == fPaths[i]->Top()-GetLogicalVolume()->id());
+  assert(fVindexV[i] == fPathV[i]->Top()->GetLogicalVolume()->id());
   return fPathV[i]->Top()->GetLogicalVolume();
 #else
   // TODO: get rid of fVindexV
