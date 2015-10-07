@@ -250,7 +250,7 @@ double GeantTrack::Curvature() const {
 }
 
 //______________________________________________________________________________
-Volume_t *GeantTrack::GetVolume() const {
+Volume_t const*GeantTrack::GetVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   assert( fPath->Top()->GetLogicalVolume()->id() == fVindex );
   return fPath->Top()->GetLogicalVolume();
@@ -262,7 +262,7 @@ Volume_t *GeantTrack::GetVolume() const {
 }
 
 //______________________________________________________________________________
-Volume_t *GeantTrack::GetNextVolume() const {
+Volume_t const*GeantTrack::GetNextVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   // Next volume the track is entering
   return fNextpath->Top()->GetLogicalVolume();
@@ -274,15 +274,15 @@ Volume_t *GeantTrack::GetNextVolume() const {
 
 //______________________________________________________________________________
 Material_t *GeantTrack::GetMaterial() const {
-  // Current material the track is into
+   // Current material the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
-  auto *med = GetVolume()->GetTrackingMediumPtr();
+   auto med = (Medium_t *) GetVolume()->GetTrackingMediumPtr();
 #else
-  auto *med = GetVolume()->GetMedium();
+   auto med = GetVolume()->GetMedium();
 #endif
-if (!med)
-    return 0;
-  return med->GetMaterial();
+   if (!med)
+      return 0;
+   return med->GetMaterial();
 }
 
 
@@ -2641,7 +2641,7 @@ int GeantTrack_v::PostponeTrack(int itr, GeantTrack_v &output) {
 
 
 //______________________________________________________________________________
-Volume_t *GeantTrack_v::GetNextVolume(int i) const {
+Volume_t const*GeantTrack_v::GetNextVolume(int i) const {
   // Next volume the track is getting into
 #ifdef USE_VECGEOM_NAVIGATOR
   return fNextpathV[i]->Top()->GetLogicalVolume();
@@ -2651,7 +2651,7 @@ Volume_t *GeantTrack_v::GetNextVolume(int i) const {
 }
 
 //______________________________________________________________________________
-Volume_t *GeantTrack_v::GetVolume(int i) const {
+Volume_t const*GeantTrack_v::GetVolume(int i) const {
   // Current volume the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
   assert(fVindexV[i] == fPathV[i]->Top()->GetLogicalVolume()->id());

@@ -197,10 +197,10 @@ public:
   double GetPstep() const { return fPstep; }
 
   /** @brief Function that return volume */
-  Volume_t *GetVolume() const;
+  Volume_t const*GetVolume() const;
 
   /** @brief Function that return next volume */
-  Volume_t *GetNextVolume() const;
+  Volume_t const*GetNextVolume() const;
 
   /** @brief Function that return material */
   Material_t *GetMaterial() const;
@@ -1092,13 +1092,13 @@ public:
    * @brief Function that returns the logical volume of the i-th track
    * @param  i Input bit number 'i'
    */
-  Volume_t *GetVolume(int i) const;
+  Volume_t const*GetVolume(int i) const;
 
   /**
    * @brief Function that returns next logical volume of i-th track
    * @param  i Input bit number 'i'
    */
-  Volume_t *GetNextVolume(int i) const;
+  Volume_t const*GetNextVolume(int i) const;
 
   /**
    * @brief Function that returns the current material the i-th track is in
