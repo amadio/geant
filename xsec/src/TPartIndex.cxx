@@ -211,14 +211,33 @@ void TPartIndex::SetPDGToGVMap(std::map<int, int> &theMap) {
 void TPartIndex::Streamer(TBuffer &R__b) {
   // Stream an object of class TPartIndex.
 
+   // This code is a mess and therefore some explanation is needed:
+   //
+   // An augmented version of TDatabasePDG containing the additional particles
+   // that Geant4 has and ROOT does not have is written together with TPartIndex
+   //
+   // If we are using VECGEOM_NAVIGATOR we do not need this data member, as all 
+   // particles (ROOT + Geant4) are in the Particle class, so to reduce the
+   // clutter we delete the class TDatabasePDG after we have read it.
+   //
+   // If we are NOT using VECGEOM_NAVIGATOR, TPartIndex creates a TDatabasePDG
+   // in the default constructor. This is not a very good idea in general, however
+   // if we DO NOT read this class from file, we need to have a TDatabasePDG 
+   // non null for the class to work. If we do read the class from disk, then 
+   // we want to avoid memory leaks, so we have to delete the data member before
+   // it is overwritten by the streamer.
+   //
+
   if (R__b.IsReading()) {
     delete fDBPdg;
     fDBPdg = 0;
-#ifdef USE_VECGEOM_NAVIGATOR
-    Particle::CreateParticles();
-#endif
     R__b.ReadClassBuffer(TPartIndex::Class(), this);
     fgPartIndex = this;
+#ifdef USE_VECGEOM_NAVIGATOR
+    Particle::CreateParticles();
+    delete fDBPdg;
+    fDBPdg = 0;
+#endif
 
     Print("version");
     // create the particle reference vector
