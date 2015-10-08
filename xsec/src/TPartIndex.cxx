@@ -63,9 +63,7 @@ TPartIndex *TPartIndex::fgPartIndex = 0;
 //___________________________________________________________________
 TPartIndex::TPartIndex()
     : fNPart(0), fPDG(0), fNpReac(0), fNpCharge(0), fNEbins(0), fEilDelta(0), fEGrid(0),
-#ifdef USE_VECGEOM_NAVIGATOR
-      fDBPdg(0),
-#else
+#ifndef USE_VECGEOM_NAVIGATOR
       fDBPdg(TDatabasePDG::Instance()),
 #endif
       fPDGToGVMap() {
@@ -75,7 +73,9 @@ TPartIndex::TPartIndex()
 TPartIndex::~TPartIndex() {
   delete[] fPDG;
   delete[] fEGrid;
+#ifndef USE_VECGEOM_NAVIGATOR
   delete fDBPdg;
+#endif
   fgPartIndex = 0;
 }
 
@@ -123,7 +123,7 @@ int TPartIndex::PDG(const char *pname) const {
   int nr = fNPart;
 #ifdef USE_VECGEOM_NAVIGATOR
   while (nr--)
-    if (!strcmp(pname, fDBPdg->GetParticle(fPDG[nr]).Name()))
+    if (!strcmp(pname, Particle_t::GetParticle(fPDG[nr]).Name()))
       return fPDG[nr];
 #else
   while (nr--)
@@ -163,7 +163,7 @@ void TPartIndex::Print(const char *option) const {
     memset(line, 0, 120);
     for (int i = 0; i < fNPart; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
-      const char *name = fDBPdg->GetParticle(fPDG[i]).Name();
+      const char *name = Particle_t::GetParticle(fPDG[i]).Name();
 #else
       const char *name = fDBPdg->GetParticle(fPDG[i])->GetName();
 #endif
@@ -229,15 +229,14 @@ void TPartIndex::Streamer(TBuffer &R__b) {
    //
 
   if (R__b.IsReading()) {
-    delete fDBPdg;
-    fDBPdg = 0;
-    R__b.ReadClassBuffer(TPartIndex::Class(), this);
-    fgPartIndex = this;
 #ifdef USE_VECGEOM_NAVIGATOR
     Particle::CreateParticles();
+#else
     delete fDBPdg;
     fDBPdg = 0;
 #endif
+    R__b.ReadClassBuffer(TPartIndex::Class(), this);
+    fgPartIndex = this;
 
     Print("version");
     // create the particle reference vector

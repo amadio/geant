@@ -175,9 +175,7 @@ private:
   double fEilDelta; // Inverse log delta of common energy grid
   double *fEGrid;   // [fNEbins] Common energy grid
 
-#ifdef USE_VECGEOM_NAVIGATOR
-  Particle_t *fDBPdg; //! Pointer to the augmented pdg database
-#else
+#ifndef USE_VECGEOM_NAVIGATOR
   TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
 #endif
 
