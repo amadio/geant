@@ -134,7 +134,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
   int ivol;
   int idtype;
   int mod;
-  Volume_t *vol;
+  Volume_t const *vol;
 
   for (int itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
