@@ -23,6 +23,7 @@
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "materials/Particle.h"
+using vecgeom::Particle;
 #endif
 #include "Geant/Typedefs.h"
 #include <map>
@@ -56,8 +57,12 @@ class TPartIndex {
 
 public:
   static TPartIndex *I() {
-    if (!fgPartIndex)
+     if (!fgPartIndex) {
+#ifdef USE_VECGEOM_NAVIGATOR
+      Particle::CreateParticles();
+#endif
       fgPartIndex = new TPartIndex();
+     }
     return fgPartIndex;
   }
   TPartIndex();
