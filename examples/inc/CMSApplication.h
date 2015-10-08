@@ -39,9 +39,9 @@ class TProfile;
 /** @brief CMSApplication class */
 class CMSApplication : public GeantVApplication {
   static const int kMaxThreads = 36;
-  static const int kNvolumes     = 4156;
+  static const int kNvolumes     = 4500;
   static const int kNECALModules = 36;
-  static const int kNHCALModules = 104;
+  static const int kNHCALModules = 112;
 
 public:
 enum EScoreType {

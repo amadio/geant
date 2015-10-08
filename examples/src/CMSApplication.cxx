@@ -75,12 +75,20 @@ bool CMSApplication::Initialize() {
   TString svol, smat;
   int necal = 0;
   int nhcal = 0;
-  for (int ivol = 0; ivol < kNvolumes; ++ivol) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    vol = GeoManager::Instance().FindLogicalVolume(ivol);
+  int nvolumes = GeoManager::Instance().GetLogicalVolumesCount();
+  Printf("Found %d volumes with VecGeom", nvolumes);
+#else
+  int nvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
+  Printf("Found %d volumes with ROOT", nvolumes);
+#endif
+  for (int ivol = 0; ivol < nvolumes; ++ivol) {
+#ifdef USE_VECGEOM_NAVIGATOR
+    vol = GeoManager::Instance().FindLogicalVolume(ivol);    
 #else
     vol = gGeoManager->GetVolume(ivol);
 #endif
+    if (!vol) break;
     svol = vol->GetName();
     // ECAL cells
     if (svol.BeginsWith("EBRY") || svol.BeginsWith("EFRY")) {
