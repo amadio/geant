@@ -143,7 +143,7 @@ void GeantScheduler::CreateBaskets() {
   if (fBasketMgr)
     return;
 #ifdef USE_VECGEOM_NAVIGATOR
-  fNvolumes = vecgeom::GeoManager::Instance().GetLogicalVolumesCount();
+  fNvolumes = vecgeom::GeoManager::Instance().GetPlacedVolumesCount();
 #else
   fNvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
 #endif
