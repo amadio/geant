@@ -563,6 +563,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    int ntot = 0;
    int nnew = 0;
    int nkilled = 0;
+   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, fOutputBasket->GetInputTracks().GetNtracks(),output.fHoles->CountBits(),fOutputBasket->GetInputTracks().fHoles->CountBits());
    /* int ninjected = */ sch->AddTracks(fOutputBasket->GetInputTracks(), ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
@@ -662,8 +663,10 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    task->fCycles = 0;
    task->fCurrent = 0;
 
-   //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
-   //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
+   int outstanding = 0;
+   for(auto td : fTaskData) outstanding += td->fNStaged;
+   Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks (%d total oustanding tracks)\n",
+          stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged, outstanding );
 
    ToDevice(stream->fDevTrackInput, &(stream->fInputBasket->GetInputTracks()), *stream);
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, ClearTrack_v, &(stream->fInputBasket->GetInputTracks()), 0 ));
@@ -804,10 +807,10 @@ void CoprocessorBroker::runTask(GeantTaskData &td, GeantBasket &basket)
                                                     basket,
                                                     trackStart);
          trackUsed += stream->fNStaged-before;
-         // unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+         //unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
 
          //if (((*task)->fCycles % 10000) == 1)
-         //   Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated %d idles %d cycles", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles);
+         //Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen, %d skipped, %d accumulated, %d idles, %d cycles, %d used this iteration", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles, stream->fNStaged-before);
 
          if ( !force && !(*task)->IsReadyForLaunch(fTasks.size()) ) {
             // Continue to wait for more data ...

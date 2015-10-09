@@ -2778,6 +2778,10 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
 
   assert(((void *)source) == ((void *)(&(source->fNtracks))));
 
+  fprintf(stderr,"Posting the copy from host=%p to device=%p and size=%d\n",
+          source->Buffer(),
+          ((char*)dest.GetPtr()) + bufferOffset,
+          source->BufferSize());
   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
   GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + bufferOffset,
                                    source->Buffer(),
@@ -2816,6 +2820,10 @@ bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrac
                                    source.GetPtr(),
                                    sizeof(int)*2+sizeof(Bool_t)*2,
                                    cudaMemcpyDeviceToHost, stream));
+  fprintf(stderr,"Posting the copy from device=%p to host=%p and size=%d\n",
+          ((char*)source.GetPtr()) + bufferOffset,
+          dest->Buffer(),
+          dest->BufferSize());
   GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(),
                                    ((char*)source.GetPtr()) + bufferOffset,
                                    dest->BufferSize(),

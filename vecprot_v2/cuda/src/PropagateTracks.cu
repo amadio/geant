@@ -53,6 +53,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf
 
       itr += blockDim.x * gridDim.x;
    }
+   if (output->fSelected->GetNbits()!=4096) printf("output bitset %d\n",output->fSelected->GetNbits());
 
 }
 
