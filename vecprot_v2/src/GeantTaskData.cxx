@@ -82,8 +82,10 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
   buffer = GeantTrack_v::round_up_align(buffer);
 
-  fTransported = GeantTrack_v::MakeInstanceAt(buffer, 1024, fMaxDepth);
-  buffer += GeantTrack_v::SizeOfInstance(1024, fMaxDepth);
+  // Previous, the size was hard coded to 1024, '4' is a guess on the max number
+  // of produced particles ...
+  fTransported = GeantTrack_v::MakeInstanceAt(buffer, 4*maxPerBasket, fMaxDepth);
+  buffer += GeantTrack_v::SizeOfInstance(4*maxPerBasket, fMaxDepth);
 
   fSizeInt = fSizeBool = fSizeDbl = nElements * maxPerBasket;
   fBoolArray = new (buffer) bool[fSizeBool];
@@ -141,7 +143,7 @@ size_t GeantTaskData::SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBa
       + GeantTrack_v::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
       + GeantTrack_v::round_up_align(VolumePath_t::SizeOfInstance(maxDepth))
       + 2*soaSize
-      + GeantTrack_v::SizeOfInstance(1024,maxDepth);
+      + GeantTrack_v::SizeOfInstance(4*maxPerBasket,maxDepth);
    return GeantTrack_v::round_up_align(need);
 }
 
