@@ -67,7 +67,7 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
    int threadsPerBlock = nThreads;
    int blocksPerGrid   = nBlocks;
 
-   fprintf(stderr,"DEBUG-GPU-0: About to schedule the PropagateGeantTrack kernel\n");
+   //fprintf(stderr,"DEBUG-GPU-0: About to schedule the PropagateGeantTrack kernel\n");
    PropagateGeantTrack<<< blocksPerGrid, threadsPerBlock, 0 , stream >>>(workSpace, workspaceSizeOf,
                                                                          ntracks,
                                                                          input, output);
