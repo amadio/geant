@@ -509,10 +509,10 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   GeantScheduler *sch = wm->GetScheduler();
   int *nvect = sch->GetNvect();
-  GeantBasketMgr *prioritizer = nullptr; // new GeantBasketMgr(sch, 0, 0);
-  td->fBmgr = nullptr;                   // prioritizer;
-  // prioritizer->SetThreshold(propagator->fNperBasket);
-  // prioritizer->SetFeederQueue(wm->FeederQueue());
+  GeantBasketMgr *prioritizer = new GeantBasketMgr(sch, 0, 0, true);
+  td->fBmgr = prioritizer;
+  prioritizer->SetThreshold(propagator->fNperBasket);
+  prioritizer->SetFeederQueue(feederQ);
   // Start the feeder
   propagator->Feeder(td);
   // TGeoMaterial *mat = 0;
@@ -579,7 +579,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       basket = prioritizer->GetBasketForTransport(td);
       ngcoll = 0;
     } else {
-      if (nbaskets < 1) {
+      if (nbaskets < 1  && (!propagator->IsFeeding()) ) {
         sch->GarbageCollect(td);
         ngcoll++;
       }
@@ -594,6 +594,13 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       }
       wm->FeederQueue()->wait_and_pop(basket);
     }
+    // Check exit condition: null basket in the queue
+    if (!basket) {
+      // All work should have been done, the broker's queue should
+      // be empty.
+      // assert( worker queue empty );
+      break;
+    }
     waiting[tid] = 0;
     if (td->NeedsToClean())
       td->CleanBaskets(0);
@@ -606,9 +613,6 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
           td->fBmgr->CreateEmptyBaskets(10, td);
       }
     }
-    // Check exit condition: null basket in the queue
-    if (!basket)
-      break;
     ++counter;
 
     if (!stream) {
@@ -616,14 +620,14 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       stream = broker->GetNextStream();
     }
     // lastToClear = false;
-    if (!basket) {
-      if (0 != broker->launchTask(/* wait= */ true)) {
-        // We ran something, new basket might be available.
-        continue;
-      } else {
-        break;
-      }
-    }
+    // if (!basket) {
+    //   if (0 != broker->launchTask(/* wait= */ true)) {
+    //     // We ran something, new basket might be available.
+    //     continue;
+    //   } else {
+    //     break;
+    //   }
+    // }
 
     ntotransport = basket->GetNinput(); // all tracks to be transported
     // ninput = ntotransport;
@@ -640,7 +644,11 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     // mat = 0;
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
+#ifdef USE_VECGEOM_NAVIGATOR
+      // mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
+#else
       // mat = td->fVolume->GetMaterial();
+#endif
       if (ntotransport < 257)
         nvect[ntotransport] += ntotransport;
     } else {
@@ -659,7 +667,9 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       //  Printf("Error: track %d has NaN", itr);
       //}
     }
+
     // Select the discrete physics process for all particles in the basket
+    // Moved to CoprocessorBroker kernel.
     // if (propagator->fUsePhysics) {
     //   propagator->ProposeStep(ntotransport, input, td);
     //   // Apply msc for charged tracks
@@ -686,6 +696,17 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     // kExitingSetup - particles exiting the geometry
     // kKilled - particles that could not advance in geometry after several tries
 
+    {
+       auto noutput = basket->GetNinput();
+       for (int itr = 0; itr < noutput; itr++) {
+          if (TMath::IsNaN(output.fXdirV[itr])) {
+             Geant::Error("TransportTracksCoprocessor","Track %d has NaN", itr);
+          }
+       }
+    }
+    // Note: Need to apply the code if (propagator->fUsePhysics)
+    // to the tracks after they came back.
+
     if (gPropagator->fStdApplication)
       gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
@@ -708,19 +729,24 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
         *output.fPathV[itr] = *output.fNextpathV[itr];
     }
   finish:
-    //      basket->Clear();
-    //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-    /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, td /* prioritizer */);
+//      basket->Clear();
+//      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
+    /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, td);
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     // wm->TransportedQueue()->push(basket);
     (void)ntot;
     (void)nnew;
     (void)nkilled;
-    //    sched_locker.StartOne();
+//    sched_locker.StartOne();
+    // Make sure the basket is not recycled before gets released by basketizer
+    // This should not happen vey often, just when some threads are highly
+    // demoted ant the basket makes it through the whole cycle before being fully released
+    while (basket->fNused.load()) ;
     basket->Recycle(td);
   }
   // delete prioritizer;
   wm->DoneQueue()->push(0);
+  delete prioritizer;
   Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
   return 0;
 }
