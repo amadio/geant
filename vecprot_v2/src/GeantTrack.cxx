@@ -1559,8 +1559,11 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
 
   //     VolumePath_t * a = new VolumePath_t( GeoManager::Instance().getMaxDepth() );
 
-//  SimpleNavigator nav;
+#ifdef GEANT_NVCC
+  SimpleNavigator nav;
+#else
   ABBoxNavigator nav;
+#endif
   for (int i = 0; i < ntracks; ++i) {
     // Check if current safety allows for the proposed step
     if (safe[i] > pstep[i]) {
