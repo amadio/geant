@@ -337,7 +337,7 @@ void CoprocessorBroker::CreateBaskets()
       fTaskData.push_back(data);
    }
 
-   cudaDeviceSetLimit( cudaLimitStackSize, 2*4096 );
+   cudaDeviceSetLimit( cudaLimitStackSize, 3*4096 );
 
    // Initialize global constants.
    Geant::cuda::CoprocessorBrokerInitConstant();
