@@ -355,7 +355,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
       fNextpathV(0) {
 
   // Constructor with maximum capacity.
-  fBuf = ((char *)addr) + sizeof(GeantTrack_v);
+  fBuf = ((char *)addr) + round_up_align(sizeof(GeantTrack_v));
   fBufSize = BufferSize(nTracks, maxdepth);
   memset(fBuf, 0, fBufSize);
   AssignInBuffer(fBuf, nTracks);
@@ -716,7 +716,7 @@ GEANT_CUDA_BOTH_CODE
 size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack_v
 
-  return sizeof(GeantTrack_v) + BufferSize(nTracks, maxdepth);
+  return round_up_align(sizeof(GeantTrack_v))+BufferSize(nTracks,maxdepth);
 }
 
 //______________________________________________________________________________
@@ -2756,7 +2756,7 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
   //       == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
 
-  size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+  size_t bufferOffset = GeantTrack_v::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   long offset = ((const char *)dest.GetPtr() + bufferOffset) - (const char *)source->Buffer();
   for (int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx) {
     // Technically this offset is a 'guess' and depends on the
@@ -2766,7 +2766,7 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
     if (source->fNextpathV[hostIdx])
       source->fNextpathV[hostIdx] = (VolumePath_t *)(((char *)source->fNextpathV[hostIdx]) + offset);
   }
-  // const char* destBuf =  ((const char*)dest.GetPtr()+vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+  // const char* destBuf =  ((const char*)dest.GetPtr() + bufferOffset;
   // const char* sourBuf =  (const char*)source->Buffer();
   // for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
   //    fprintf(stderr,"Track[%d] : val=%p diff=%p off=%p\n", hostIdx, source->fPathV[hostIdx],
@@ -2776,17 +2776,21 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
   assert(((void *)source) == ((void *)(&(source->fNtracks))));
 
   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(((char *)dest.GetPtr()) + bufferOffset, source->Buffer(), source->BufferSize(),
+  GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + bufferOffset,
+                                   source->Buffer(),
+                                   source->BufferSize(),
                                    cudaMemcpyHostToDevice, stream));
-  // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact,
-  // stream->fInputBasket->fMixed
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest, source, sizeof(int) * 2 + sizeof(bool) * 2, cudaMemcpyHostToDevice, stream));
+  // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact, stream->fInputBasket->fMixed
+  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
+                                   source,
+                                   sizeof(int)*2+sizeof(Bool_t)*2,
+                                   cudaMemcpyHostToDevice, stream));
 
   return true;
 }
 
 void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source) {
-  size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+  size_t bufferOffset = GeantTrack_v::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
   //        == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
@@ -2803,11 +2807,15 @@ void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda:
 }
 
 bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream) {
-  size_t bufferOffset = vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
+  size_t bufferOffset = GeantTrack_v::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-  GEANT_CUDA_ERROR(
-      cudaMemcpyAsync(dest, source.GetPtr(), sizeof(int) * 2 + sizeof(bool) * 2, cudaMemcpyDeviceToHost, stream));
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(), ((char *)source.GetPtr()) + bufferOffset, dest->BufferSize(),
+  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
+                                   source.GetPtr(),
+                                   sizeof(int)*2+sizeof(Bool_t)*2,
+                                   cudaMemcpyDeviceToHost, stream));
+  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(),
+                                   ((char*)source.GetPtr()) + bufferOffset,
+                                   dest->BufferSize(),
                                    cudaMemcpyDeviceToHost, stream));
   return true;
 }
