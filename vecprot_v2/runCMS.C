@@ -7,21 +7,20 @@
 
 void runCMS(int nthreads=4,
             bool performance=true,
-	         const char *geomfile="../cmstrack/cms2015.root",
-	         const char *xsec="xsec_FTFP_BERT_G496p02_1mev.root",
+            const char *geomfile="../cmstrack/cms2015.root",
+            const char *xsec="xsec_FTFP_BERT_G496p02_1mev.root",
             const char *fstate="fstate_FTFP_BERT_G496p02_1mev.root",
             bool coprocessor = COPROCESSOR_REQUEST)
 {
-/*
-   gSystem->Load("libPhysics");
-   gSystem->Load("libHist");
-   gSystem->Load("libThread");
-   gSystem->Load("libGeom");
-   gSystem->Load("libVMC");
-   gSystem->Load("../lib/libGeant_v");
-   gSystem->Load("../lib/libXsec");
-   gSystem->Load("../lib/libGeantExamples");
-*/
+   // gSystem->Load("libPhysics");
+   // gSystem->Load("libHist");
+   // gSystem->Load("libThread");
+   // gSystem->Load("libGeom");
+   // gSystem->Load("libVMC");
+   // gSystem->Load("../lib/libGeant_v");
+   // gSystem->Load("../lib/libXsec");
+   // gSystem->Load("../lib/libGeantExamples");
+
 //=============================================================================
 // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
 //=============================================================================
