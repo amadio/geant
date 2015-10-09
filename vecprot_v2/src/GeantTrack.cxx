@@ -998,14 +998,14 @@ int GeantTrack_v::AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i) {
   arr.PrintTrack(i);
 #endif
 
-// Technically, after setting fHoles to all on,
-// we really should be doing:
-//   fHoles->ResetBitNumber(itrack);
-//   fSelected->ResetBitNumber(itrack);
-// which use bit operation which are not (yet?)
-// done atomically,
-// and we should do:
-//   atomically: fNtracks = max(fNtracks,itrack)
+  // Technically, after setting fHoles to all on,
+  // we really should be doing:
+  //   fHoles->ResetBitNumber(itrack);
+  //   fSelected->ResetBitNumber(itrack);
+  // which use bit operation which are not (yet?)
+  // done atomically,
+  // and we should do:
+  //   atomically: fNtracks = max(fNtracks,itrack)
 
 #ifdef GEANT_CUDA_DEVICE_BUILD
   atomicAdd(&fNtracks, 1);
