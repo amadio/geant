@@ -61,23 +61,26 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 {
   // Constructor
   char *buffer = (char*)addr;
-  buffer += sizeof(GeantTaskData);
+  buffer += GeantTrack_v::round_up_align(sizeof(GeantTaskData));
   const size_t nElements = 5; // See other constructor!
 
   vecgeom::Precision *x = (vecgeom::Precision*)(buffer + sizeof(vecgeom::Precision));
   vecgeom::Precision *y = x+(nElements*maxPerBasket);
   vecgeom::Precision *z = y+(nElements*maxPerBasket);
+  buffer = GeantTrack_v::round_up_align(buffer);
   fSOA3Dworkspace1 = new (buffer) vecgeom::SOA3D<vecgeom::Precision>(x,y,z,nElements*maxPerBasket);
   buffer += soaSizeOfInstance<vecgeom::Precision>(nElements*maxPerBasket);
 
   x = (vecgeom::Precision*)(buffer + sizeof(vecgeom::Precision));
   y = x+(nElements*maxPerBasket);
   z = y+(nElements*maxPerBasket);
+  buffer = GeantTrack_v::round_up_align(buffer);
   fSOA3Dworkspace2 = new (buffer) vecgeom::SOA3D<vecgeom::Precision>(x,y,z,nElements*maxPerBasket);
   buffer += soaSizeOfInstance<vecgeom::Precision>(nElements*maxPerBasket);
 
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
+  buffer = GeantTrack_v::round_up_align(buffer);
 
   fTransported = GeantTrack_v::MakeInstanceAt(buffer, 1024, fMaxDepth);
   buffer += GeantTrack_v::SizeOfInstance(1024, fMaxDepth);
@@ -135,8 +138,8 @@ size_t GeantTaskData::SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBa
    const size_t soaSize = soaSizeOfInstance<vecgeom::Precision>(bufSize*maxPerBasket);
 
    size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<Geant::cuda::GeantTaskData>::SizeOf()
-      + bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int))
-      + VolumePath_t::SizeOfInstance(maxDepth)
+      + GeantTrack_v::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
+      + GeantTrack_v::round_up_align(VolumePath_t::SizeOfInstance(maxDepth))
       + 2*soaSize
       + GeantTrack_v::SizeOfInstance(1024,maxDepth);
    return GeantTrack_v::round_up_align(need);
