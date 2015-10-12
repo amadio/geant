@@ -45,22 +45,22 @@ private:
   // Implementation methods 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH typename 
-  Backend::double
-  CrossSectionKernel(typename Backend::double  energyIn,
+  Backend::Double_t
+  CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::double energyIn, 
+  InteractKernel(typename Backend::Double_t energyIn, 
                  typename Backend::Index_t   zElement,
-                 typename Backend::double& energyOut,
-                 typename Backend::double& sinTheta);
+                 typename Backend::Double_t& energyOut,
+                 typename Backend::Double_t& sinTheta);
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::double
-  SampleSinTheta(typename Backend::double energyIn,
-                 typename Backend::double energyOut) const; 
+  typename Backend::Double_t
+  SampleSinTheta(typename Backend::Double_t energyIn,
+                 typename Backend::Double_t energyOut) const; 
 
   VECPHYS_CUDA_HEADER_BOTH 
   void SampleByCompositionRejection(int    Z,
@@ -88,49 +88,49 @@ private:
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::double
-ComptonKleinNishina::CrossSectionKernel(typename Backend::double  energy, 
+typename Backend::Double_t
+ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_t  energy, 
                                         typename Backend::Index_t   Z)
 {
-  typedef typename Backend::bool   bool;
-  typedef typename Backend::double double;
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
 
-  double sigmaOut = 0.;
-  bool belowLimit = bool(false);
+  Double_t sigmaOut = 0.;
+  Bool_t belowLimit = Bool_t(false);
   //low energy limit
   belowLimit |= ( energy < fLowEnergyLimit );
   if(Backend::early_returns && IsFull(belowLimit)) return sigmaOut;  
 
-  double Z2 = Z*Z;
-  double p1 =  2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z2;
-  double p2 = -1.8300e-1 + -1.0205e-2*Z +  6.8241e-5*Z2;
-  double p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
-  double p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
+  Double_t Z2 = Z*Z;
+  Double_t p1 =  2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z2;
+  Double_t p2 = -1.8300e-1 + -1.0205e-2*Z +  6.8241e-5*Z2;
+  Double_t p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
+  Double_t p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
 
-  bool condZ = (Z < 1.5);
-  double T0 = 0.0; 
+  Bool_t condZ = (Z < 1.5);
+  Double_t T0 = 0.0; 
   CondAssign(condZ, 15.*keV, 40.*keV, &T0);  
 
-  double X  =  Max(energy,T0)/electron_mass_c2;
-  double X2 = X*X;
-  double sigma = p1*Log(1.+2.*X)/X
+  Double_t X  =  Max(energy,T0)/electron_mass_c2;
+  Double_t X2 = X*X;
+  Double_t sigma = p1*Log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
   sigmaOut = Z*sigma*barn;
 
-  bool condE = bool(false);
+  Bool_t condE = Bool_t(false);
   condE |= (energy > T0);
   if(Backend::early_returns && IsFull(condE)) return sigmaOut;  
 
   //correction when energy < T0
-  double dT0 = 1.*keV;
+  Double_t dT0 = 1.*keV;
   X = (T0+dT0) / electron_mass_c2 ;
   sigma = p1*log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
   
-  double   c1 = -T0*(Z*sigma*barn-sigmaOut)/(sigmaOut*dT0);
-  double   c2 = 0.150;
+  Double_t   c1 = -T0*(Z*sigma*barn-sigmaOut)/(sigmaOut*dT0);
+  Double_t   c2 = 0.150;
   MaskedAssign( !condZ, 0.375-0.0556*Log(1.*Z) , &c2 );  
-  double    y = Log(energy/T0);
+  Double_t    y = Log(energy/T0);
   MaskedAssign(!condE, sigmaOut*Exp(-y*(c1+c2*y)),&sigmaOut);
 
   //this is the case if one of E < belowLimit 
@@ -140,28 +140,28 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::double  energy,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH void 
-ComptonKleinNishina::InteractKernel(typename Backend::double  energyIn, 
+ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn, 
                                     typename Backend::Index_t   zElement,
-                                    typename Backend::double& energyOut,
-                                    typename Backend::double& sinTheta)
+                                    typename Backend::Double_t& energyOut,
+                                    typename Backend::Double_t& sinTheta)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::double double;
+  typedef typename Backend::Double_t Double_t;
 
   Index_t   index;
   Index_t   icol;
-  double  fraction;
+  Double_t  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
 
-  double probNA;
-  double aliasInd;
+  Double_t probNA;
+  Double_t aliasInd;
 
   //this did not used to work - Fixed SW
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
-  double mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
-  double deltaE = energyIn - mininumE;
+  Double_t mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
+  Double_t deltaE = energyIn - mininumE;
 
   energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
                                                 aliasInd,icol,fraction);
@@ -176,27 +176,27 @@ ComptonKleinNishina::InteractKernel(typename Backend::double  energyIn,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::double 
-ComptonKleinNishina::SampleSinTheta(typename Backend::double energyIn,
-                                    typename Backend::double energyOut) const
+typename Backend::Double_t 
+ComptonKleinNishina::SampleSinTheta(typename Backend::Double_t energyIn,
+                                    typename Backend::Double_t energyOut) const
 {
-  typedef typename Backend::bool   bool;
-  typedef typename Backend::double double;
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
 
   //angle of the scatterred photon
 
-  double epsilon = energyOut/energyIn;
+  Double_t epsilon = energyOut/energyIn;
 
-  bool condition = epsilon > 1.0;
+  Bool_t condition = epsilon > 1.0;
 
   MaskedAssign( condition, 1.0 , &epsilon );
 
-  double E0_m    = inv_electron_mass_c2*energyIn;
-  double onecost = (1.0 - epsilon)/(epsilon*E0_m);
-  double sint2   = onecost*(2.-onecost);
+  Double_t E0_m    = inv_electron_mass_c2*energyIn;
+  Double_t onecost = (1.0 - epsilon)/(epsilon*E0_m);
+  Double_t sint2   = onecost*(2.-onecost);
 
-  double sinTheta = 0.5;
-  bool condition2 = sint2 < 0.0;
+  Double_t sinTheta = 0.5;
+  Bool_t condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   

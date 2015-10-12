@@ -92,14 +92,14 @@ private:
   // Implementation methods
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void RotateAngle(typename Backend::double sinTheta,
-                   typename Backend::double xhat,
-                   typename Backend::double yhat,
-                   typename Backend::double zhat,
-                   typename Backend::double &xr,
-                   typename Backend::double &yr,
-                   typename Backend::double &zr);
-
+  void RotateAngle(typename Backend::Double_t sinTheta,
+                   typename Backend::Double_t xhat,
+                   typename Backend::Double_t yhat,
+                   typename Backend::Double_t zhat,
+                   typename Backend::Double_t &xr,
+                   typename Backend::Double_t &yr,
+                   typename Backend::Double_t &zr);
+ 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void ConvertXtoFinalState(double energyIn, 
@@ -225,27 +225,27 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
                                               double*    sigma) 
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::double double;
+  typedef typename Backend::Double_t Double_t;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
   }
 
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/double::Size);
+  int numChunks= (inProjectile.numTracks/Double_t::Size);
 
   for(int i=0; i < numChunks ; ++i) {
-    double energyIn(&inProjectile.E[ibase]);
+    Double_t energyIn(&inProjectile.E[ibase]);
     Index_t  zElement(targetElements[ibase]);
 
-    double sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
+    Double_t sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
 
     sigmaOut.store(&sigma[ibase]);
-    ibase+= double::Size;
+    ibase+= Double_t::Size;
   }
 
   //leftover - do scalar
-  for(int i = numChunks*double::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
     sigma[i] = static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i]);
   }
 }
@@ -257,41 +257,41 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
                                     GUTrack_v& outSecondary) 
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::double double;
+  typedef typename Backend::Double_t Double_t;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
   }
 
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/double::Size);
+  int numChunks= (inProjectile.numTracks/Double_t::Size);
 
   for(int i= 0; i < numChunks ; ++i) {
-    double energyIn(&inProjectile.E[ibase]);
-    double px(&inProjectile.px[ibase]);
-    double py(&inProjectile.py[ibase]);
-    double pz(&inProjectile.pz[ibase]);
-    double sinTheta;
-    double energyOut;
+    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_t px(&inProjectile.px[ibase]);
+    Double_t py(&inProjectile.py[ibase]);
+    Double_t pz(&inProjectile.pz[ibase]);
+    Double_t sinTheta;
+    Double_t energyOut;
     Index_t  zElement(targetElements[ibase]);
 
     static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
 
     //need to rotate the angle with respect to the line of flight
-    double invp = 1./energyIn;
-    double xhat = px*invp;
-    double yhat = py*invp;
-    double zhat = pz*invp;
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
 
-    double uhat = 0.;
-    double vhat = 0.;
-    double what = 0.;
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
 
     RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
     // Update primary
     energyOut.store(&inProjectile.E[ibase]);
-    double pxFinal, pyFinal, pzFinal;
+    Double_t pxFinal, pyFinal, pzFinal;
      
     pxFinal= energyOut*uhat;
     pyFinal= energyOut*vhat;
@@ -301,21 +301,21 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     pzFinal.store(&inProjectile.pz[ibase]);
 
     // create Secondary
-    double secE = energyIn - energyOut; 
-    double pxSec= secE*(xhat-uhat);
-    double pySec= secE*(yhat-vhat);
-    double pzSec= secE*(zhat-what);
+    Double_t secE = energyIn - energyOut; 
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
 
     secE.store(&outSecondary.E[ibase]);
     pxSec.store(&outSecondary.px[ibase]);
     pySec.store(&outSecondary.py[ibase]);
     pzSec.store(&outSecondary.pz[ibase]);
 
-    ibase+= double::Size;
+    ibase+= Double_t::Size;
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*double::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
@@ -387,34 +387,34 @@ void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
 template <class EmModel>
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH void
-EmModelBase<EmModel>::RotateAngle(typename Backend::double sinTheta,
-                                  typename Backend::double xhat,
-                                  typename Backend::double yhat,
-                                  typename Backend::double zhat,
-                                  typename Backend::double &xr,
-                                  typename Backend::double &yr,
-                                  typename Backend::double &zr)
+EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
+                                  typename Backend::Double_t xhat,
+                                  typename Backend::Double_t yhat,
+                                  typename Backend::Double_t zhat,
+                                  typename Backend::Double_t &xr,
+                                  typename Backend::Double_t &yr,
+                                  typename Backend::Double_t &zr)
 {
-  typedef typename Backend::int    int;
-  typedef typename Backend::double double;
-  typedef typename Backend::bool   bool;
+  typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t   Bool_t;
 
-  double phi = UniformRandom<Backend>(fRandomState,int(fThreadId));
-  double pt = xhat*xhat + yhat*yhat;
+  Double_t phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_t pt = xhat*xhat + yhat*yhat;
 
-  double cosphi, sinphi;
+  Double_t cosphi, sinphi;
   sincos(phi, &sinphi, &cosphi);
 
-  double uhat = sinTheta*cosphi; // cos(phi);
-  double vhat = sinTheta*sinphi; // sin(phi);
-  double what = Sqrt((1.-sinTheta)*(1.+sinTheta));
+  Double_t uhat = sinTheta*cosphi; // cos(phi);
+  Double_t vhat = sinTheta*sinphi; // sin(phi);
+  Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  bool positive = ( pt > 0. );
-  bool negativeZ = ( zhat < 0. );
+  Bool_t positive = ( pt > 0. );
+  Bool_t negativeZ = ( zhat < 0. );
 
   //mask operation???
   if(positive) {
-    double phat = Sqrt(pt);
+    Double_t phat = Sqrt(pt);
     xr = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
     zr = -phat*uhat + zhat*what;

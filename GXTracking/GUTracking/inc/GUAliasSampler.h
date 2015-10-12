@@ -70,26 +70,26 @@ public:
   // Backend Implementation:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void SampleBin( typename Backend::double  kineticEnergy,
+  void SampleBin( typename Backend::Double_t  kineticEnergy,
                   typename Backend::Index_t   &index,
                   typename Backend::Index_t   &icol,
-                  typename Backend::double  &fraction) const;
+                  typename Backend::Double_t  &fraction) const;
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void SampleLogBin( typename Backend::double  kineticEnergy,
+  void SampleLogBin( typename Backend::Double_t  kineticEnergy,
                      typename Backend::Index_t   &index,
                      typename Backend::Index_t   &icol,
-                     typename Backend::double  &fraction) const;
+                     typename Backend::Double_t  &fraction) const;
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::double
-  SampleX(typename Backend::double rangeSampled, 
-          typename Backend::double probNA,   
-          typename Backend::double aliasInd, 
+  typename Backend::Double_t
+  SampleX(typename Backend::Double_t rangeSampled, 
+          typename Backend::Double_t probNA,   
+          typename Backend::Double_t aliasInd, 
           typename Backend::Index_t  icol,     
-          typename Backend::double fraction  
+          typename Backend::Double_t fraction  
           ) const;
 
 
@@ -99,8 +99,8 @@ public:
   void
   GatherAlias(typename Backend::Index_t   index, 
               typename Backend::Index_t   zElement,
-              typename Backend::double &probNA,  
-              typename Backend::double &aliasInd 
+              typename Backend::Double_t &probNA,  
+              typename Backend::Double_t &aliasInd 
               ) const;
 
   int GetNumEntries()      const { return fInNumEntries; }      // 'Input' values:  E', log(E')
@@ -129,34 +129,34 @@ private:
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
-SampleBin(typename Backend::double kineticEnergy,
+SampleBin(typename Backend::Double_t kineticEnergy,
           typename Backend::Index_t  &index,    // ~ sampled value
           typename Backend::Index_t  &icol,     // ~ input Energy
-          typename Backend::double &fraction  //  in sampled variable
+          typename Backend::Double_t &fraction  //  in sampled variable
          ) const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::double double;
-  typedef typename Backend::bool bool;
-  typedef typename Backend::int  int;
+  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy 
-  double eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
+  Double_t eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
   Index_t  irow  = Floor(eloc);
-  double efrac = eloc -1.0*irow;  
+  Double_t efrac = eloc -1.0*irow;  
   // to use fPower2Divisor 
-  //  double eloc  = (kineticEnergy - fIncomingMin);
+  //  Double_t eloc  = (kineticEnergy - fIncomingMin);
   //  Index_t irow = fPower2Divisor->GetBin<Backend>(eloc);
-  //  double efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
+  //  Double_t efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
 
-  double u1 = UniformRandom<Backend>(fRandomState,int(fThreadId));
+  Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  bool condition = u1 <= efrac ;
+  Bool_t condition = u1 <= efrac ;
   // if branch
   MaskedAssign( condition, irow , &irow ); // at the lower edge
   MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
 
-  double r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,int(fThreadId));
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
@@ -167,31 +167,31 @@ SampleBin(typename Backend::double kineticEnergy,
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
-SampleLogBin(typename Backend::double kineticEnergy,
+SampleLogBin(typename Backend::Double_t kineticEnergy,
              typename Backend::Index_t  &index,    // ~ sampled value
              typename Backend::Index_t  &icol,     // ~ input Energy
-             typename Backend::double &fraction  //  in sampled variable
+             typename Backend::Double_t &fraction  //  in sampled variable
              ) const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::double double;
-  typedef typename Backend::bool bool;
-  typedef typename Backend::int  int;
+  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy 
-  double eloc = (Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming;
+  Double_t eloc = (Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming;
   Index_t  irow = Floor(eloc);
-  double efrac = eloc -1.0*irow;  
+  Double_t efrac = eloc -1.0*irow;  
   
-  double u1 = UniformRandom<Backend>(fRandomState,int(fThreadId));
+  Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  bool condition = u1 <= efrac ;
+  Bool_t condition = u1 <= efrac ;
 
   MaskedAssign( condition, irow , &irow );     // at the lower edge 
   MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
 
   //select the sampling bin
-  double r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,int(fThreadId));
+  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
@@ -201,24 +201,24 @@ SampleLogBin(typename Backend::double kineticEnergy,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::double
+typename Backend::Double_t
 GUAliasSampler::
-SampleX(typename Backend::double rangeSampled, 
-        typename Backend::double probNA,   
-        typename Backend::double aliasInd, 
+SampleX(typename Backend::Double_t rangeSampled, 
+        typename Backend::Double_t probNA,   
+        typename Backend::Double_t aliasInd, 
         typename Backend::Index_t  icol,     
-        typename Backend::double fraction  
+        typename Backend::Double_t fraction  
        ) const
 {
-  typedef typename Backend::int    int;
-  typedef typename Backend::bool   bool;
-  typedef typename Backend::double double;
+  typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
 
-  double r1 = UniformRandom<Backend>(fRandomState,int(fThreadId));
+  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  bool condition = r1 <= probNA;
-  double xd, xu;
-  double binSampled = rangeSampled * fInverseBinSampled;
+  Bool_t condition = r1 <= probNA;
+  Double_t xd, xu;
+  Double_t binSampled = rangeSampled * fInverseBinSampled;
 
   // if branch
 
@@ -230,7 +230,7 @@ SampleX(typename Backend::double rangeSampled,
   MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
   MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
-  double x = (1 - fraction) * xd + fraction* xu;
+  Double_t x = (1 - fraction) * xd + fraction* xu;
 
   return x;
 }
@@ -248,8 +248,8 @@ inline
 void GUAliasSampler::
 GatherAlias(typename Backend::Index_t    index,
             typename Backend::Index_t    zElement,
-            typename Backend::double  &probNA,
-            typename Backend::double  &aliasInd
+            typename Backend::Double_t  &probNA,
+            typename Backend::Double_t  &aliasInd
            ) const
 {
 #ifdef CHECK
@@ -281,8 +281,8 @@ VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index, 
                  typename kVc::Index_t    zElement,
-                 typename kVc::double  &probNA,  
-                 typename kVc::double  &aliasInd
+                 typename kVc::Double_t  &probNA,  
+                 typename kVc::Double_t  &aliasInd
                 ) const 
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
