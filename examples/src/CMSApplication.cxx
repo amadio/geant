@@ -7,6 +7,7 @@ using vecgeom::GeoManager;
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
+#include "GeantScheduler.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 #include "TProfile.h"
@@ -71,23 +72,16 @@ bool CMSApplication::Initialize() {
   if (fInitialized)
     return kTRUE;
   // Loop unique volume id's
-  Volume_t *vol;
+  GeantScheduler *sch = WorkloadManager::Instance()->GetScheduler();
+  int nvolumes = sch->GetNvolumes();
+  std::vector<Volume_t const *> &lvolumes = sch->GetVolumes();
+  Printf("Found %d logical volumes", nvolumes);
+  const Volume_t *vol;
   TString svol, smat;
   int necal = 0;
   int nhcal = 0;
-#ifdef USE_VECGEOM_NAVIGATOR
-  int nvolumes = GeoManager::Instance().GetLogicalVolumesCount();
-  Printf("Found %d volumes with VecGeom", nvolumes);
-#else
-  int nvolumes = gGeoManager->GetListOfVolumes()->GetEntries();
-  Printf("Found %d volumes with ROOT", nvolumes);
-#endif
   for (int ivol = 0; ivol < nvolumes; ++ivol) {
-#ifdef USE_VECGEOM_NAVIGATOR
-    vol = GeoManager::Instance().FindLogicalVolume(ivol);    
-#else
-    vol = gGeoManager->GetVolume(ivol);
-#endif
+    vol = lvolumes[ivol];
     if (!vol) break;
     svol = vol->GetName();
     // ECAL cells

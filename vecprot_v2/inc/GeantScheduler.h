@@ -16,12 +16,14 @@
 #define GEANT_SCHEDULER
 
 #include <atomic>
+#include <vector>
 #include <stddef.h>
 
 class concurrent_queue;
 class GeantBasket;
 class GeantBasketMgr;
 
+#include "Geant/Typedefs.h"
 #include "GeantFwd.h"
 
 /**
@@ -49,7 +51,7 @@ protected:
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning;        /** Flag marking the learning phase */
   std::atomic_flag fGBCLock;         /** Flag marking that garbage collector is busy */
-  int fPriorityRange[2]; /** Prioritized events */
+  std::vector<Volume_t const *> fVolumes; /** List of logical volumes */
 
 private:
 
@@ -167,16 +169,7 @@ public:
    */
   int GetNvolumes() const { return fNvolumes; }
 
-  /**
-   * @brief Function to return the range of prioritized events
-   * 
-   * @param min Minimum value of range
-   * @param max Maximum value of range
-   */
-  void SetPriorityRange(int min, int max) {
-    fPriorityRange[0] = min;
-    fPriorityRange[1] = max;
-  }
+  std::vector<Volume_t const *> &GetVolumes() { return fVolumes; }
 
   /** @brief Garbage collection function */
   int GarbageCollect(GeantTaskData *td, bool force=false);
