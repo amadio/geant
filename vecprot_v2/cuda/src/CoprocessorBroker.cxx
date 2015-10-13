@@ -22,6 +22,17 @@
 #include "management/CudaManager.h"
 #include "GeantCudaUtils.h"
 
+#include "TGeoManager.h"
+#include "TGeoNavigator.h"
+#include "GeantTrack.h"
+#include "GeantBasket.h"
+#include "GeantOutput.h"
+#include "GeantTaskData.h"
+#include "PhysicsProcess.h"
+#include "GeantScheduler.h"
+#include "GeantEvent.h"
+#include "GeantVApplication.h"
+
 using namespace Geant;
 
 struct GeneralTask : public CoprocessorBroker::Task {
@@ -326,7 +337,7 @@ void CoprocessorBroker::CreateBaskets()
       fTaskData.push_back(data);
    }
 
-   cudaDeviceSetLimit( cudaLimitStackSize, 2*4096 );
+   cudaDeviceSetLimit( cudaLimitStackSize, 3*4096 );
 
    // Initialize global constants.
    Geant::cuda::CoprocessorBrokerInitConstant();
@@ -400,11 +411,23 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
       fInputBasket = bmgr->GetNextBasket(fGeantTaskData);
    }
 
+
+
    //unsigned int start = fNStaged;
    unsigned int count = 0;
    GeantTrack_v &input = basket.GetInputTracks();
+   //input.PrintTracks("TrackToDevice");
    GeantTrack_v &gputracks( fInputBasket->GetInputTracks() );
    unsigned int basketSize = input.GetNtracks();
+
+   // Well ... do physics .. just because.
+   {
+      GeantPropagator *propagator = GeantPropagator::Instance();
+      propagator->ProposeStep(basketSize, input, fGeantTaskData);
+      // Apply msc for charged tracks
+      propagator->ApplyMsc(basketSize, input, fGeantTaskData);
+   }
+
    for(unsigned int hostIdx = startIdx;
        fNStaged < fChunkSize && hostIdx < basketSize;
        ++hostIdx ) {
@@ -462,9 +485,85 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
       if (output.fNextpathV[t]) output.fNextpathV[t]->ConvertToCPUPointers();
    }
 
+   //output.PrintTracks("TrackToHost");
+
+   // Waste a lot of time ... by doing physics ...
+
+   // Post-step actions by continuous processes for all particles. There are no
+    // new generated particles at this point.
+   {
+      GeantPropagator *propagator = GeantPropagator::Instance();
+      auto td = fGeantTaskData;
+      auto basket = fOutputBasket;
+      auto ntotnext = 0;
+      Material_t *mat = nullptr;
+
+      if (1) {
+
+         int nphys = 0;
+         int nextra_at_rest = 0;
+         // count phyics steps here
+         auto nout = output.GetNtracks();
+         for (auto itr=0; itr<nout; ++itr)
+            if (output.fStatusV[itr] == kPhysics) nphys++;
+         if (nphys)
+            propagator->fNphysSteps += nphys;
+
+         propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, td);
+         //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
+         // Now we may also have particles killed by energy threshold
+         // Do post-step actions on remaining particles
+         // to do: group particles per process
+
+         if (propagator->fUsePhysics) {
+            // Discrete processes only
+            nphys = output.SortByLimitingDiscreteProcess();  // only those that kPhysics and not continous limit
+            if (nphys) {
+               //propagator->fNphysSteps += nphys;  dont do it here because dont count those killed in eloss
+               // Do post step actions for particles suffering a given process.
+               // Surviving particles are added to the output array
+
+               // first: sample target and type of interaction for each primary tracks
+               propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, td);
+
+               //
+               // TODO: vectorized final state sampling can be inserted here through
+               //       a proper interface code that will:
+               //         1. select the necessary primary tracks based on the alrady
+               //            sampled interaction type
+               //         2. take all the member of the selected primary tracks that
+               //            necessary for sampling the final states
+               //         3. call the appropriate vector physics code that will
+               //            perform the physics interaction itself
+               //         4. update properties of the selected primary tracks,
+               //            insert secondary tracks into the track vector and set
+               //            'ntotnext' to the value of the number of secondary tracks
+               //            inserted to the track vector
+               //
+#if USE_VECPHYS == 1
+               propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output,
+                                                                             ntotnext, td);
+#endif
+               // second: sample final states (based on the inf. regarding sampled
+               //         target and type of interaction above), insert them into
+               //         the track vector, update primary tracks;
+               propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
+
+               if (0 /*ntotnext*/) {
+                  printf("============= Basket: %s\n", basket->GetName());
+                  output.PrintTracks();
+               }
+            }
+         }
+      }
+      if (gPropagator->fStdApplication) gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+      gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
+   }
+
    int ntot = 0;
    int nnew = 0;
    int nkilled = 0;
+   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, fOutputBasket->GetInputTracks().GetNtracks(),output.fHoles->CountBits(),fOutputBasket->GetInputTracks().fHoles->CountBits());
    /* int ninjected = */ sch->AddTracks(fOutputBasket->GetInputTracks(), ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
@@ -564,8 +663,10 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    task->fCycles = 0;
    task->fCurrent = 0;
 
-   //Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks\n",
-   //       stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged );
+   int outstanding = 0;
+   for(auto td : fTaskData) outstanding += td->fNStaged;
+   Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks (%d total oustanding tracks)\n",
+          stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged, outstanding );
 
    ToDevice(stream->fDevTrackInput, &(stream->fInputBasket->GetInputTracks()), *stream);
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, ClearTrack_v, &(stream->fInputBasket->GetInputTracks()), 0 ));
@@ -706,10 +807,10 @@ void CoprocessorBroker::runTask(GeantTaskData &td, GeantBasket &basket)
                                                     basket,
                                                     trackStart);
          trackUsed += stream->fNStaged-before;
-         // unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
+         //unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
 
          //if (((*task)->fCycles % 10000) == 1)
-         //   Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen %d skipped %d accumulated %d idles %d cycles", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles);
+         //Printf("(%d - GPU) ================= Task %s Stream %d Tracks: %d seen, %d skipped, %d accumulated, %d idles, %d cycles, %d used this iteration", threadid, (*task)->Name(), stream->fStreamId, count, rejected, stream->fNStaged, (*task)->fIdles, (*task)->fCycles, stream->fNStaged-before);
 
          if ( !force && !(*task)->IsReadyForLaunch(fTasks.size()) ) {
             // Continue to wait for more data ...

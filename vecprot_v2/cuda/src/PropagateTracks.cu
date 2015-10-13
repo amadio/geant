@@ -53,6 +53,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf
 
       itr += blockDim.x * gridDim.x;
    }
+   if (output->fSelected->GetNbits()!=4096) printf("output bitset %d\n",output->fSelected->GetNbits());
 
 }
 
@@ -67,7 +68,7 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
    int threadsPerBlock = nThreads;
    int blocksPerGrid   = nBlocks;
 
-   fprintf(stderr,"DEBUG-GPU-0: About to schedule the PropagateGeantTrack kernel\n");
+   //fprintf(stderr,"DEBUG-GPU-0: About to schedule the PropagateGeantTrack kernel\n");
    PropagateGeantTrack<<< blocksPerGrid, threadsPerBlock, 0 , stream >>>(workSpace, workspaceSizeOf,
                                                                          ntracks,
                                                                          input, output);

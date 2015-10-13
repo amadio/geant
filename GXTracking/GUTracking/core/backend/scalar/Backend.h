@@ -17,9 +17,9 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 struct kScalar {
 
-  typedef int             int;
-  typedef Precision       double;
-  typedef bool            bool;
+  typedef int             Int_t;
+  typedef Precision       Double_t;
+  typedef bool            Bool_t;
   typedef int             Index_t; // the type of indices
 
   const static bool kTrue = true;
@@ -50,9 +50,9 @@ inline VECPHYS_CONSTEXPR_RETURN bool kScalar::IsEqual<kScalar>() {
   return true;
 }
 
-typedef kScalar::int    ScalarInt;
-typedef kScalar::double ScalarDouble;
-typedef kScalar::bool   ScalarBool;
+typedef kScalar::Int_t    ScalarInt;
+typedef kScalar::Double_t ScalarDouble;
+typedef kScalar::Bool_t   ScalarBool;
 
 template <typename Type>
 VECPHYS_CUDA_HEADER_BOTH
