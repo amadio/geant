@@ -675,46 +675,46 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
-          GeantTrack &gTrack = td->GetTrack();
-          //          GeantTrack gTrack;
+          GeantTrack &track = td->GetTrack();
+          //          GeantTrack track;
           // set the new track properties
-          gTrack.fEvent = tracks.fEventV[t];
-          gTrack.fEvslot = tracks.fEvslotV[t];
-          //          gTrack.fParticle = nTotSecPart;          //index of this particle
-          gTrack.fPDG = secPDG;    // PDG code of this particle
-          gTrack.fGVcode = pid[i]; // GV index of this particle
-          gTrack.fEindex = 0;
-          gTrack.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
-          gTrack.fProcess = 0;
-          gTrack.fVindex = tracks.fVindexV[t];
-          gTrack.fNsteps = 0;
-          //          gTrack.fSpecies  = 0;
-          gTrack.fStatus = kNew;           // status of this particle
-          gTrack.fMass = secMass;          // mass of this particle
-          gTrack.fXpos = tracks.fXposV[t]; // rx of this particle (same as parent)
-          gTrack.fYpos = tracks.fYposV[t]; // ry of this particle (same as parent)
-          gTrack.fZpos = tracks.fZposV[t]; // rz of this particle (same as parent)
-          gTrack.fXdir = px / secPtot;     // dirx of this particle (before transform.)
-          gTrack.fYdir = py / secPtot;     // diry of this particle before transform.)
-          gTrack.fZdir = pz / secPtot;     // dirz of this particle before transform.)
-          gTrack.fP = secPtot;             // momentum of this particle
-          gTrack.fE = secEtot;             // total E of this particle
-          gTrack.fTime = tracks.fTimeV[t]; // global time
-          gTrack.fEdep = 0.;
-          gTrack.fPstep = 0.;
-          gTrack.fStep = 0.;
-          gTrack.fSnext = 0.;
-          gTrack.fSafety = tracks.fSafetyV[t];
-          gTrack.fFrombdr = tracks.fFrombdrV[t];
-          gTrack.fPending = kFALSE;
-          *gTrack.fPath = *tracks.fPathV[t];
-          *gTrack.fNextpath = *tracks.fPathV[t];
+          track.fEvent = tracks.fEventV[t];
+          track.fEvslot = tracks.fEvslotV[t];
+          //          track.fParticle = nTotSecPart;          //index of this particle
+          track.fPDG = secPDG;    // PDG code of this particle
+          track.fGVcode = pid[i]; // GV index of this particle
+          track.fEindex = 0;
+          track.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
+          track.fProcess = 0;
+          track.fVindex = tracks.fVindexV[t];
+          track.fNsteps = 0;
+          //          track.fSpecies  = 0;
+          track.fStatus = kNew;           // status of this particle
+          track.fMass = secMass;          // mass of this particle
+          track.fXpos = tracks.fXposV[t]; // rx of this particle (same as parent)
+          track.fYpos = tracks.fYposV[t]; // ry of this particle (same as parent)
+          track.fZpos = tracks.fZposV[t]; // rz of this particle (same as parent)
+          track.fXdir = px / secPtot;     // dirx of this particle (before transform.)
+          track.fYdir = py / secPtot;     // diry of this particle before transform.)
+          track.fZdir = pz / secPtot;     // dirz of this particle before transform.)
+          track.fP = secPtot;             // momentum of this particle
+          track.fE = secEtot;             // total E of this particle
+          track.fTime = tracks.fTimeV[t]; // global time
+          track.fEdep = 0.;
+          track.fPstep = 0.;
+          track.fStep = 0.;
+          track.fSnext = 0.;
+          track.fSafety = tracks.fSafetyV[t];
+          track.fFrombdr = tracks.fFrombdrV[t];
+          track.fPending = kFALSE;
+          *track.fPath = *tracks.fPathV[t];
+          *track.fNextpath = *tracks.fPathV[t];
 
           // Rotate new track to parent track's frame
-          RotateNewTrack(oldXdir, oldYdir, oldZdir, gTrack);
+          RotateNewTrack(oldXdir, oldYdir, oldZdir, track);
 
-          propagator->AddTrack(gTrack);
-          tracks.AddTrack(gTrack);
+          propagator->AddTrack(track);
+          tracks.AddTrack(track);
 
           ++nTotSecPart;
         } else {                       // {secondary Ekin < energyLimit} -> kill this secondary
@@ -803,50 +803,50 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 
       // need to do it one-by-one
       // 1. gamma
-      GeantTrack &gTrack1 = td->GetTrack();
+      GeantTrack &track1 = td->GetTrack();
       // set the new track properties: 2 gamma with m_{e}*c*c
-      gTrack1.fEvent = tracks.fEventV[iintrack];
-      gTrack1.fEvslot = tracks.fEvslotV[iintrack];
-      //       gTrack.fParticle = nTotSecPart;          //index of this particle
-      gTrack1.fPDG = 22;                                    // gamma PDG code
-      gTrack1.fGVcode = TPartIndex::I()->GetSpecGVIndex(2); // gamma GV index
-      gTrack1.fEindex = 0;
-      gTrack1.fCharge = 0.; // charge
-      gTrack1.fProcess = 0;
-      gTrack1.fVindex = tracks.fVindexV[iintrack];
-      gTrack1.fNsteps = 0;
-      //       gTrack.fSpecies  = 0;
-      gTrack1.fStatus = kNew;                  // status of this particle
-      gTrack1.fMass = 0.;                      // mass of this particle
-      gTrack1.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
-      gTrack1.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
-      gTrack1.fZpos = tracks.fZposV[iintrack]; // rz of this particle (same as parent)
-      gTrack1.fXdir = randDirX;
-      gTrack1.fYdir = randDirY;
-      gTrack1.fZdir = randDirZ;
-      gTrack1.fP = mecc;                       // momentum of this particle
-      gTrack1.fE = mecc;                       // total E of this particle
-      gTrack1.fTime = tracks.fTimeV[iintrack]; // total time of this particle
-      gTrack1.fEdep = 0.;
-      gTrack1.fPstep = 0.;
-      gTrack1.fStep = 0.;
-      gTrack1.fSnext = 0.;
-      gTrack1.fSafety = tracks.fSafetyV[iintrack];
-      gTrack1.fFrombdr = tracks.fFrombdrV[iintrack];
-      gTrack1.fPending = kFALSE;
-      *gTrack1.fPath = *tracks.fPathV[iintrack];
-      *gTrack1.fNextpath = *tracks.fPathV[iintrack];
+      track1.fEvent = tracks.fEventV[iintrack];
+      track1.fEvslot = tracks.fEvslotV[iintrack];
+      //       track.fParticle = nTotSecPart;          //index of this particle
+      track1.fPDG = 22;                                    // gamma PDG code
+      track1.fGVcode = TPartIndex::I()->GetSpecGVIndex(2); // gamma GV index
+      track1.fEindex = 0;
+      track1.fCharge = 0.; // charge
+      track1.fProcess = 0;
+      track1.fVindex = tracks.fVindexV[iintrack];
+      track1.fNsteps = 0;
+      //       track.fSpecies  = 0;
+      track1.fStatus = kNew;                  // status of this particle
+      track1.fMass = 0.;                      // mass of this particle
+      track1.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
+      track1.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
+      track1.fZpos = tracks.fZposV[iintrack]; // rz of this particle (same as parent)
+      track1.fXdir = randDirX;
+      track1.fYdir = randDirY;
+      track1.fZdir = randDirZ;
+      track1.fP = mecc;                       // momentum of this particle
+      track1.fE = mecc;                       // total E of this particle
+      track1.fTime = tracks.fTimeV[iintrack]; // total time of this particle
+      track1.fEdep = 0.;
+      track1.fPstep = 0.;
+      track1.fStep = 0.;
+      track1.fSnext = 0.;
+      track1.fSafety = tracks.fSafetyV[iintrack];
+      track1.fFrombdr = tracks.fFrombdrV[iintrack];
+      track1.fPending = kFALSE;
+      *track1.fPath = *tracks.fPathV[iintrack];
+      *track1.fNextpath = *tracks.fPathV[iintrack];
 
-      gPropagator->AddTrack(gTrack1);
-      tracks.AddTrack(gTrack1);
+      gPropagator->AddTrack(track1);
+      tracks.AddTrack(track1);
 
       // 2. gamma : everything is the same but the direction
-      gTrack1.fXdir = -1. * randDirX;
-      gTrack1.fYdir = -1. * randDirY;
-      gTrack1.fZdir = -1. * randDirZ;
+      track1.fXdir = -1. * randDirX;
+      track1.fYdir = -1. * randDirY;
+      track1.fZdir = -1. * randDirZ;
 
-      gPropagator->AddTrack(gTrack1);
-      tracks.AddTrack(gTrack1);
+      gPropagator->AddTrack(track1);
+      tracks.AddTrack(track1);
 
       nTotSecPart += 2;
       return;
@@ -923,45 +923,45 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
     // Ekin of the i-th secondary is higher than the threshold
     if (secEkin > energyLimit) { // insert secondary into tracks_v
-      GeantTrack &gTrack = td->GetTrack();
+      GeantTrack &track = td->GetTrack();
       // set the new track properties
-      gTrack.fEvent = tracks.fEventV[iintrack];
-      gTrack.fEvslot = tracks.fEvslotV[iintrack];
-      //       gTrack.fParticle = nTotSecPart;          //index of this particle
-      gTrack.fPDG = secPDG;    // PDG code of this particle
-      gTrack.fGVcode = pid[i]; // GV index of this particle
-      gTrack.fEindex = 0;
-      gTrack.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
-      gTrack.fProcess = 0;
-      gTrack.fVindex = tracks.fVindexV[iintrack]; // volume index
-      gTrack.fNsteps = 0;
-      //       gTrack.fSpecies  = 0;
-      gTrack.fStatus = kNew;                  // status of this particle
-      gTrack.fMass = secMass;                 // mass of this particle
-      gTrack.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
-      gTrack.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
-      gTrack.fZpos = tracks.fZposV[iintrack]; // rz of this particle (same as parent)
-      gTrack.fXdir = px / secPtot;            // dirx of this particle (before transform.)
-      gTrack.fYdir = py / secPtot;            // diry of this particle before transform.)
-      gTrack.fZdir = pz / secPtot;            // dirz of this particle before transform.)
-      gTrack.fP = secPtot;                    // momentum of this particle
-      gTrack.fE = secEtot;                    // total E of this particle
-      gTrack.fTime = tracks.fTimeV[iintrack]; // global time for this particle
-      gTrack.fEdep = 0.;
-      gTrack.fPstep = 0.;
-      gTrack.fStep = 0.;
-      gTrack.fSnext = 0.;
-      gTrack.fSafety = tracks.fSafetyV[iintrack];
-      gTrack.fFrombdr = tracks.fFrombdrV[iintrack];
-      gTrack.fPending = kFALSE;
-      *gTrack.fPath = *tracks.fPathV[iintrack];
-      *gTrack.fNextpath = *tracks.fPathV[iintrack];
+      track.fEvent = tracks.fEventV[iintrack];
+      track.fEvslot = tracks.fEvslotV[iintrack];
+      //       track.fParticle = nTotSecPart;          //index of this particle
+      track.fPDG = secPDG;    // PDG code of this particle
+      track.fGVcode = pid[i]; // GV index of this particle
+      track.fEindex = 0;
+      track.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
+      track.fProcess = 0;
+      track.fVindex = tracks.fVindexV[iintrack]; // volume index
+      track.fNsteps = 0;
+      //       track.fSpecies  = 0;
+      track.fStatus = kNew;                  // status of this particle
+      track.fMass = secMass;                 // mass of this particle
+      track.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
+      track.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
+      track.fZpos = tracks.fZposV[iintrack]; // rz of this particle (same as parent)
+      track.fXdir = px / secPtot;            // dirx of this particle (before transform.)
+      track.fYdir = py / secPtot;            // diry of this particle before transform.)
+      track.fZdir = pz / secPtot;            // dirz of this particle before transform.)
+      track.fP = secPtot;                    // momentum of this particle
+      track.fE = secEtot;                    // total E of this particle
+      track.fTime = tracks.fTimeV[iintrack]; // global time for this particle
+      track.fEdep = 0.;
+      track.fPstep = 0.;
+      track.fStep = 0.;
+      track.fSnext = 0.;
+      track.fSafety = tracks.fSafetyV[iintrack];
+      track.fFrombdr = tracks.fFrombdrV[iintrack];
+      track.fPending = kFALSE;
+      *track.fPath = *tracks.fPathV[iintrack];
+      *track.fNextpath = *tracks.fPathV[iintrack];
 
       // rotate at-rest secondary by a common random theta and random phi
-      RotateNewTrack(randDirX, randDirY, randDirZ, gTrack);
+      RotateNewTrack(randDirX, randDirY, randDirZ, track);
 
-      gPropagator->AddTrack(gTrack);
-      tracks.AddTrack(gTrack);
+      gPropagator->AddTrack(track);
+      tracks.AddTrack(track);
 
       ++nTotSecPart; // increase # of secondaries in tracks_v
     } else {
@@ -1035,42 +1035,42 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
       double secPtot = sqrt((secEtot - secMass) * (secEtot + secMass));
       double secEkin = secEtot - secMass;
       if (secEkin > energyLimit) { // insert secondary into tracks_v
-        GeantTrack &gTrack = td->GetTrack();
+        GeantTrack &track = td->GetTrack();
         // set the new track properties
-        gTrack.fEvent = tracks.fEventV[iintrack];
-        gTrack.fEvslot = tracks.fEvslotV[iintrack];
-        //         gTrack.fParticle = nTotSecPart;          //index of this particle
-        gTrack.fPDG = secPDG;       // PDG code of this particle
-        gTrack.fGVcode = pid[isec]; // GV index of this particle
-        gTrack.fEindex = 0;
-        gTrack.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
-        gTrack.fProcess = -1;
-        gTrack.fVindex = tracks.fVindexV[iintrack];
-        gTrack.fNsteps = 0;
-        //         gTrack.fSpecies  = 0;
-        gTrack.fStatus = kNew;                  // status of this particle
-        gTrack.fMass = secMass;                 // mass of this particle
-        gTrack.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
-        gTrack.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
-        gTrack.fZpos = tracks.fZposV[iintrack]; // rz of this particle (same as parent)
-        gTrack.fXdir = px / secPtot;            // dirx of this particle (before transform.)
-        gTrack.fYdir = py / secPtot;            // diry of this particle before transform.)
-        gTrack.fZdir = pz / secPtot;            // dirz of this particle before transform.)
-        gTrack.fP = secPtot;                    // momentum of this particle
-        gTrack.fE = secEtot;                    // total E of this particle
-        gTrack.fTime = tracks.fTimeV[iintrack]; // global time for this track
-        gTrack.fEdep = 0.;
-        gTrack.fPstep = 0.;
-        gTrack.fStep = 0.;
-        gTrack.fSnext = 0.;
-        gTrack.fSafety = tracks.fSafetyV[iintrack];
-        gTrack.fFrombdr = tracks.fFrombdrV[iintrack];
-        gTrack.fPending = kFALSE;
-        *gTrack.fPath = *tracks.fPathV[iintrack];
-        *gTrack.fNextpath = *tracks.fPathV[iintrack];
+        track.fEvent = tracks.fEventV[iintrack];
+        track.fEvslot = tracks.fEvslotV[iintrack];
+        //         track.fParticle = nTotSecPart;          //index of this particle
+        track.fPDG = secPDG;       // PDG code of this particle
+        track.fGVcode = pid[isec]; // GV index of this particle
+        track.fEindex = 0;
+        track.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
+        track.fProcess = -1;
+        track.fVindex = tracks.fVindexV[iintrack];
+        track.fNsteps = 0;
+        //         track.fSpecies  = 0;
+        track.fStatus = kNew;                  // status of this particle
+        track.fMass = secMass;                 // mass of this particle
+        track.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
+        track.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
+        track.fZpos = tracks.fZposV[iintrack]; // rz of this particle (same as parent)
+        track.fXdir = px / secPtot;            // dirx of this particle (before transform.)
+        track.fYdir = py / secPtot;            // diry of this particle before transform.)
+        track.fZdir = pz / secPtot;            // dirz of this particle before transform.)
+        track.fP = secPtot;                    // momentum of this particle
+        track.fE = secEtot;                    // total E of this particle
+        track.fTime = tracks.fTimeV[iintrack]; // global time for this track
+        track.fEdep = 0.;
+        track.fPstep = 0.;
+        track.fStep = 0.;
+        track.fSnext = 0.;
+        track.fSafety = tracks.fSafetyV[iintrack];
+        track.fFrombdr = tracks.fFrombdrV[iintrack];
+        track.fPending = kFALSE;
+        *track.fPath = *tracks.fPathV[iintrack];
+        *track.fNextpath = *tracks.fPathV[iintrack];
 
-        gPropagator->AddTrack(gTrack);
-        tracks.AddTrack(gTrack);
+        gPropagator->AddTrack(track);
+        tracks.AddTrack(track);
 
         ++nTotSecPart; // increase # of secondaries in tracks_v
       } else {
