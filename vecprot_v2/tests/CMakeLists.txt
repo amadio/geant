@@ -20,26 +20,26 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_LINKER_FLAGS}")
 #
 set(TEST_EXECUTABLES
    ${CMAKE_CURRENT_SOURCE_DIR}/executable_test.C
-)     
-     
+)
+
 set(headers
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantThreadData.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/PhysicsProcess.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantBasket.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantScheduler.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantPropagator.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantEvent.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantTrack.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantOutput.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/WorkloadManager.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantVApplication.h 
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantThreadData.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/PhysicsProcess.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantBasket.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantScheduler.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantPropagator.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantEvent.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantTrack.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantOutput.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/WorkloadManager.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantVApplication.h
    ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantTrackStat.h
-   ${CMAKE_SOURCE_DIR}/examples/inc/ExN03Application.h 
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/MyHit.h 
+   ${CMAKE_SOURCE_DIR}/examples/inc/ExN03Application.h
+   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/MyHit.h
    ${CMAKE_SOURCE_DIR}/inc/PrimaryGenerator.h
    ${CMAKE_SOURCE_DIR}/xsec/inc/GunGenerator.h
    ${CMAKE_SOURCE_DIR}/xsec/inc/TTabPhysProcess.h
-)   
+)
 
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
 
@@ -70,8 +70,8 @@ function(add_to_ctest EXECUTABLES)
     if (CTEST)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       if(TARGET_NAME STREQUAL "executable_test")
-      	add_test(NAME ${TARGET_NAME} 
-		COMMAND  $<TARGET_FILE:${TARGET_NAME}> 4 ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/ExN03.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/xsec_FTFP_BERT.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/fstate_FTFP_BERT.root)
+      	add_test(NAME ${TARGET_NAME}
+		COMMAND  $<TARGET_FILE:${TARGET_NAME}> 4 true ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/ExN03.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/xsec_FTFP_BERT.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/fstate_FTFP_BERT.root true)
       else()
       	add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
       endif()
