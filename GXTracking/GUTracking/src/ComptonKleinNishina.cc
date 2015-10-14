@@ -15,6 +15,7 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid)
   : EmModelBase<ComptonKleinNishina>(states,tid)
 {
   SetLowEnergyLimit(10.*keV);
+  SetNcol(400);
 
   BuildAliasTable();
 }
@@ -45,21 +46,40 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
   double logxmin = log(fMinX);
-  double dx = (log(fMaxX) - logxmin)/fNrow;
+  double logxmax = log(fMaxX);
+  double dx = (logxmax - logxmin)/fNrow;
+
+  int    nintegral= 5*int(log(logxmax)); //temporary
+  double average = 0;
+  double normal = 0;
+  double fxsec = 0;
 
   for(int i = 0; i <= fNrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
-    double dy = (x - ymin)/(fNcol-1);
-    double yo = ymin + 0.5*dy;
+    double dy = (x - ymin)/fNcol;
+    //    double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
     for(int j = 0; j < fNcol ; ++j) {
       //for each output energy bin
-      double y = yo + dy*j;
+      //      double y = yo + dy*j;
+      double y = 0;
+      average = 0;
+      normal = 0;
+
+      //cross section weighted bin position
+      for(int k = 0; k < nintegral ; ++k) {
+        y = ymin + dy*(j+(0.5+k)/nintegral);
+        fxsec = CalculateDiffCrossSection(Z,x,y);
+        average += y*fxsec; 
+        normal  += fxsec;
+      }
+      y = average/normal;
+
       double xsec = CalculateDiffCrossSection(Z,x,y);
       p[i*fNcol+j] = xsec;
       sum += xsec;

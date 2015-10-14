@@ -148,23 +148,24 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  Index_t   index;
+  Index_t   irow;
   Index_t   icol;
   Double_t  fraction;
 
-  fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
+  fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_t probNA;
   Double_t aliasInd;
 
   //this did not used to work - Fixed SW
+  Index_t   index = fNcol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
   Double_t deltaE = energyIn - mininumE;
 
-  energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
-                                                aliasInd,icol,fraction);
+  energyOut = mininumE + fAliasSampler->SampleXL<Backend>(zElement,
+                                        deltaE,probNA,aliasInd,irow,icol);
   sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
 
   //create the secondary electron
