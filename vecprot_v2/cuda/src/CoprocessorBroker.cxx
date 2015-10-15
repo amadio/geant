@@ -475,14 +475,14 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
       Fatal("CoprocessorBroker::TaskData::TrackToHost","Request size in output track buffer is too large ( %d > %d )",
             fOutputBasket->GetInputTracks().GetNtracks(), fOutputBasket->GetInputTracks().Capacity());
 
-   FromDeviceConversion(&(fOutputBasket->GetInputTracks()), fDevTrackOutput);
+   GeantTrack_v &transferTo( fOutputBasket->GetInputTracks() );
+   FromDeviceConversion(&transferTo, fDevTrackOutput);
 
    // Fix the navigation state pointers in the output basket
-   GeantTrack_v &output( fOutputBasket->GetInputTracks() );
-   for(int t = 0; t < output.fMaxtracks; ++t) {
+   for(int t = 0; t < transferTo.fMaxtracks; ++t) {
       // if (output.fHoles->TestBitNumber(t) continue;
-      if (output.fPathV[t]) output.fPathV[t]->ConvertToCPUPointers();
-      if (output.fNextpathV[t]) output.fNextpathV[t]->ConvertToCPUPointers();
+      if (transferTo.fPathV[t]) transferTo.fPathV[t]->ConvertToCPUPointers();
+      if (transferTo.fNextpathV[t]) transferTo.fNextpathV[t]->ConvertToCPUPointers();
    }
 
    //output.PrintTracks("TrackToHost");
@@ -494,6 +494,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    {
       GeantPropagator *propagator = GeantPropagator::Instance();
       auto td = fGeantTaskData;
+      GeantTrack_v &output = *td->fTransported;
       auto basket = fOutputBasket;
       auto ntotnext = 0;
       Material_t *mat = nullptr;
@@ -566,7 +567,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    int ntot = 0;
    int nnew = 0;
    int nkilled = 0;
-   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, fOutputBasket->GetInputTracks().GetNtracks(),output.fHoles->CountBits(),fOutputBasket->GetInputTracks().fHoles->CountBits());
+   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, fOutputBasket->GetInputTracks().GetNtracks(),transferTo.fHoles->CountBits(),fOutputBasket->GetInputTracks().fHoles->CountBits());
    /* int ninjected = */ sch->AddTracks(fOutputBasket->GetInputTracks(), ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
