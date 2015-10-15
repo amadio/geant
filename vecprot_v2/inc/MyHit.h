@@ -27,11 +27,14 @@ public:
   double fY; /** Y position */
   double fZ; /** Z position */
   double fEdep; /** Energy loss */
+  double fTime; /** Time */
+  int fEvent; /* Event number */
+  int fTrack; /* Track number */
   int fVolId;   /** Volume Id */
   int fDetId;   /** Replica (segmentation) */
 
   /** @brief MyHit constructor */
-  MyHit() : fX(0), fY(0), fZ(0), fEdep(0), fVolId(0), fDetId(0) {}
+  MyHit() : fX(0), fY(0), fZ(0), fEdep(0), fTime(0), fEvent(0), fTrack(0), fVolId(0), fDetId(0) {}
   
   /**
    * @brief MyHit constructor
@@ -43,7 +46,7 @@ public:
    * @param volid Volume Id
    * @param detid Replica (segmentation)
    */
-  MyHit(double x, double y, double z, double edep, int volid, int detid);
+  MyHit(double x, double y, double z, double edep, double time, int event, int track, int volid, int detid);
   
   /** @brief MyHit destructor*/
   ~MyHit() {}
@@ -57,6 +60,9 @@ public:
     fY = 0.;
     fZ = 0.;
     fEdep = 0.;
+    fTime = 0.;
+    fEvent = 0;
+    fTrack = 0;
     fVolId = 0;
     fDetId = 0;
   }

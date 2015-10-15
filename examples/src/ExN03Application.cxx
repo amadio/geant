@@ -126,6 +126,9 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 	  hit->fY = tracks.fYposV[i];
 	  hit->fZ = tracks.fZposV[i];
 	  hit->fEdep = tracks.fEdepV[i];
+     hit->fTime = tracks.fTimeV[i];
+     hit->fEvent = tracks.fEventV[i];
+     hit->fTrack = tracks.fParticleV[i];
 	  hit->fVolId = idvol;
 	  hit->fDetId = idnode;
 	  

@@ -210,6 +210,9 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 	    hit->fY = tracks.fYposV[itr];
 	    hit->fZ = tracks.fZposV[itr];
 	    hit->fEdep = 1000*tracks.fEdepV[itr];
+       hit->fTime = tracks.fTimeV[itr];
+       hit->fEvent = tracks.fEventV[itr];
+       hit->fTrack = tracks.fParticleV[itr];
 	    hit->fVolId = ivol;
 	    hit->fDetId = idtype; 
 	  }
