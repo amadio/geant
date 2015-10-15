@@ -217,6 +217,9 @@ public:
   /** @brief Function that return physical step */
   double GetStep() const { return fStep; }
 
+  /** @brief Function that return time traveled in the step */
+  double TimeStep(double step) const { return fE*step/fP; }
+
   /** @brief Function that return straight distance to next boundary */
   double GetSnext() const { return fSnext; }
 
@@ -1087,6 +1090,10 @@ public:
    */
   GEANT_CUDA_BOTH_CODE
   double Pt(int i) const { return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]); }
+
+  /** @brief Function that return time traveled in the step */
+  GEANT_CUDA_BOTH_CODE
+  double TimeStep(int i, double step) const { return fEV[i]*step/fPV[i]; }
 
   /**
    * @brief Function that returns the logical volume of the i-th track
