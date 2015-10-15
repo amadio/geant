@@ -223,6 +223,7 @@ void *WorkloadManager::TransportTracks() {
   int ntot = 0;
   int nkilled = 0;
   int nphys = 0;
+  int nout = 0;
   int ngcoll = 0;
   GeantBasket *basket = 0;
   int tid = Instance()->ThreadId();
@@ -372,13 +373,17 @@ void *WorkloadManager::TransportTracks() {
     // kExitingSetup - particles exiting the geometry
     // kKilled - particles that could not advance in geometry after several tries
 
+    // Update track time for all output tracks (this should vectorize)
+    nout = output.GetNtracks();
+    for (auto itr = 0; itr < nout; ++itr) 
+      output.fTimeV[itr] += output.TimeStep(itr, output.fStepV[itr]);
+    
     // Post-step actions by continuous processes for all particles. There are no
     // new generated particles at this point.
     if (propagator->fUsePhysics) {
       nphys = 0;
       nextra_at_rest = 0;
       // count phyics steps here
-      int nout = output.GetNtracks();
       for (auto itr = 0; itr < nout; ++itr)
         if (output.fStatusV[itr] == kPhysics)
           nphys++;
@@ -391,16 +396,15 @@ void *WorkloadManager::TransportTracks() {
       // Do post-step actions on remaining particles
       // to do: group particles per process
 
-      if (propagator->fUsePhysics) {
-        // Discrete processes only
-        nphys = output.SortByLimitingDiscreteProcess(); // only those that kPhysics and not continous limit
-        if (nphys) {
-          // propagator->fNphysSteps += nphys;  dont do it here because dont count those killed in eloss
-          // Do post step actions for particles suffering a given process.
-          // Surviving particles are added to the output array
+      // Discrete processes only
+      nphys = output.SortByLimitingDiscreteProcess(); // only those that kPhysics and not continous limit
+      if (nphys) {
+        // propagator->fNphysSteps += nphys;  dont do it here because dont count those killed in eloss
+        // Do post step actions for particles suffering a given process.
+        // Surviving particles are added to the output array
 
-          // first: sample target and type of interaction for each primary tracks
-          propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, td);
+        // first: sample target and type of interaction for each primary tracks
+        propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, td);
 
 //
 // TODO: vectorized final state sampling can be inserted here through
@@ -417,17 +421,16 @@ void *WorkloadManager::TransportTracks() {
 //            inserted to the track vector
 //
 #if USE_VECPHYS == 1
-          propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
+        propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 #endif
-          // second: sample final states (based on the inf. regarding sampled
-          //         target and type of interaction above), insert them into
-          //         the track vector, update primary tracks;
-          propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
+        // second: sample final states (based on the inf. regarding sampled
+        //         target and type of interaction above), insert them into
+        //         the track vector, update primary tracks;
+        propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
-          if (0 /*ntotnext*/) {
-            printf("============= Basket: %s\n", basket->GetName());
-            output.PrintTracks();
-          }
+        if (0 /*ntotnext*/) {
+          printf("============= Basket: %s\n", basket->GetName());
+          output.PrintTracks();
         }
       }
     }

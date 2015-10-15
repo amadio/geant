@@ -504,8 +504,11 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
          int nextra_at_rest = 0;
          // count phyics steps here
          auto nout = output.GetNtracks();
-         for (auto itr=0; itr<nout; ++itr)
+         for (auto itr=0; itr<nout; ++itr) {
             if (output.fStatusV[itr] == kPhysics) nphys++;
+            // Update track time for all output tracks (this should vectorize)
+            output.fTimeV[itr] += output.TimeStep(itr, output.fStepV[itr]);            
+         }   
          if (nphys)
             propagator->fNphysSteps += nphys;
 
