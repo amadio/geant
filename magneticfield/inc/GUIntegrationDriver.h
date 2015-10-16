@@ -23,7 +23,7 @@ class GUIntegrationDriver
 {
    public:  // with description
      GUIntegrationDriver( double                hminimum, 
-                      GUVIntegrationStepper *pItsStepper,
+                      GUVIntegrationStepper *pStepper,
                       int                   numberOfComponents=6,
                       int                   statisticsVerbosity=1);
      ~GUIntegrationDriver();
@@ -50,7 +50,14 @@ class GUIntegrationDriver
        //    but does return the errors in  position and
        //        momentum (normalised: Delta_Integration(p^2)/(p^2) )
 
+     void  InitializeWithCharge(double charge) { fpStepper->GetEquationOfMotion()->InitializeCharge(charge);}
+       // Pass needed information and initialize 
+     void  DoneIntegration() { fpStepper->GetEquationOfMotion()->InformDone(); } 
+       // Pass along information about end of integration - can clears parameters, flag finished
 
+     GUVEquationOfMotion* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
+     const GUVEquationOfMotion* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); } 
+     
      // Auxiliary methods
      inline double GetHmin()        const { return fMinimumStep; } 
      inline double GetSafety()      const { return fSafetyFactor; }
@@ -59,12 +66,12 @@ class GUIntegrationDriver
      inline double GetErrcon()      const { return fErrcon; }
      
      inline void   GetDerivatives( const GUFieldTrack &y_curr,     // const, INput
-                                       double    charge, 
-                                       double    dydx[]   );  //       OUTput
+                                     // double    charge, 
+                                        double    dydx[]   );  //       OUTput
         // Accessors.
 
-     inline void RenewStepperAndAdjust(GUVIntegrationStepper *pItsStepper);
-        // Sets a new stepper pItsStepper for this driver. Then it calls
+     inline void RenewStepperAndAdjust(GUVIntegrationStepper *Stepper);
+        // Sets a new stepper 'Stepper' for this driver. Then it calls
         // ReSetParameters to reset its parameters accordingly.
 
      inline void ReSetParameters(double new_safety= 0.9 );
@@ -206,7 +213,7 @@ class GUIntegrationDriver
 
      // ---------------------------------------------------------------
      // DEPENDENT Objects
-     GUVIntegrationStepper *pIntStepper;
+     GUVIntegrationStepper *fpStepper;
 
      // ---------------------------------------------------------------
      //  STATE
@@ -238,8 +245,8 @@ inline
 void GUIntegrationDriver::ReSetParameters(double new_safety)
 {
       fSafetyFactor = new_safety;
-      fPowerShrink  = -1.0 / pIntStepper->IntegratorOrder();
-      fPowerGrow    = -1.0 / (1.0 + pIntStepper->IntegratorOrder());
+      fPowerShrink  = -1.0 / fpStepper->IntegratorOrder();
+      fPowerGrow    = -1.0 / (1.0 + fpStepper->IntegratorOrder());
       ComputeAndSetErrcon();
 }
 
@@ -264,22 +271,22 @@ void GUIntegrationDriver::SetErrcon(double val)
 }
 
 inline
-void GUIntegrationDriver::RenewStepperAndAdjust(GUVIntegrationStepper *pItsStepper)
+void GUIntegrationDriver::RenewStepperAndAdjust(GUVIntegrationStepper *pStepper)
 {  
-      pIntStepper = pItsStepper; 
+      fpStepper = pStepper; 
       ReSetParameters();
 }
 
 inline
 const GUVIntegrationStepper* GUIntegrationDriver::GetStepper() const
 {
-  return pIntStepper;
+  return fpStepper;
 }
 
 inline
 GUVIntegrationStepper* GUIntegrationDriver::GetStepper() 
 {
-  return pIntStepper;
+  return fpStepper;
 }
 
 inline
@@ -296,11 +303,11 @@ void GUIntegrationDriver::SetMaxNoSteps(int val)
 
 inline
 void GUIntegrationDriver::GetDerivatives(const GUFieldTrack &y_curr, // const, INput
-                                               double       charge, 
+                                             /*double       charge, */
                                                double       dydx[])  // OUTput
 { 
   double  tmpValArr[GUFieldTrack::ncompSVEC];
   y_curr.DumpToArray( tmpValArr  );
-  pIntStepper -> RightHandSide( tmpValArr , charge, dydx );
+  fpStepper -> RightHandSide( tmpValArr , /*charge,*/ dydx );
 }
 #endif /* GUIntegrationDriver_Def */
