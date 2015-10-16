@@ -6,13 +6,16 @@
 #include "GUVEquationOfMotion.h"
 
 GUVEquationOfMotion::~GUVEquationOfMotion()
-{}
+{
+   CheckDone();
+   // To help ensure that clients call InformDone() - ie. clear 
+}
 
 void 
 GUVEquationOfMotion::
 EvaluateRhsReturnB( const double y[],
-     				 double dydx[],
-	         			 double charge, 
+                          double dydx[],
+                       // double charge, 
                           double Field[] 
                   ) const
 {
@@ -25,7 +28,7 @@ EvaluateRhsReturnB( const double y[],
    PositionAndTime[3] = y[7];  // See GUVFieldTrack::LoadFromArray
 
    GetFieldValue(PositionAndTime, Field) ;
-   EvaluateRhsGivenB( y, Field, charge, dydx );
+   EvaluateRhsGivenB( y, Field, /*charge,*/ dydx );
 }
 
 // #if  HELP_THE_COMPILER
