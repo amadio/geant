@@ -70,7 +70,7 @@ GUIntegrationDriver::GUIntegrationDriver( double                hminimum,
 
   RenewStepperAndAdjust( pStepper );
   fMinimumStep= hminimum;
-  fMaxNoSteps = fMaxStepBase / pIntStepper->IntegratorOrder();
+  fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
 #ifdef GUDEBUG_FIELD
   fVerboseLevel=2;
 #endif
@@ -180,6 +180,9 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   bool lastStep= false;
   nstp=1;
 
+  // fpStepper->InitializeCharge( charge );   // May be added
+  fpStepper->GetEquationOfMotion()->InitializeCharge( charge );
+  
   do
   {
     ThreeVector StartPos( y[0], y[1], y[2] );
@@ -192,9 +195,12 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
 #endif
 
     // Old method - inline call to Equation of Motion
-    //   pIntStepper->RightHandSide( y, dydx );
+    //   fpStepper->RightHandSide( y, dydx );
     // New method allows to cache field, or state (eg momentum magnitude)
-    pIntStepper->ComputeRightHandSide( y, charge, dydx );
+    // fpStepper->ComputeRightHandSide( y, charge, dydx );
+
+    // Back to simple, old method   - JA. 16 Oct 2015
+    fpStepper->RightHandSide( y, /*charge,*/ dydx );    
     fNoTotalSteps++;
 
     // Perform the Integration
@@ -399,6 +405,10 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   }
 #endif
 
+  // Finished for now - value of charge is 'revoked'  
+  fpStepper->GetEquationOfMotion()->InformDone();  
+  // fpStepper->InformDone();  // May be added
+  
   return succeeded;
 }  // end of AccurateAdvance ...........................
 
@@ -541,8 +551,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
   for (iter=0; iter<max_trials ;iter++)
   {
     tot_no_trials++;
-    pIntStepper-> Step(y,dydx,h,ytemp,yerr); 
-    //            *******
+    fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr); 
     double eps_pos = eps_rel_max * std::max(h, fMinimumStep); 
     double inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos); 
 
@@ -647,12 +656,12 @@ bool  GUIntegrationDriver::QuickAdvance(
   s_start = y_posvel.GetCurveLength();
 
   // Do an Integration Step
-  pIntStepper-> Step(yarrin, dydx, hstep, yarrout, yerr_vec) ; 
-  //            ****
+  fpStepper-> StepWithErrorEstimate(yarrin, dydx, hstep, yarrout, yerr_vec) ; 
+  //          *********************
 
   // Estimate curve-chord distance
-  dchord_step= pIntStepper-> DistChord();
-  //                         *********
+  dchord_step= fpStepper-> DistChord();
+  //                       *********
 
   // Put back the values.  yarrout ==> y_posvel
   y_posvel.LoadFromArray( yarrout, fNoIntegrationVariables );

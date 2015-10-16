@@ -65,14 +65,14 @@ bool TestEquation(GUVEquationOfMotion* equation)
 
   double FieldArr[3]= { FieldVec.x(), FieldVec.y(), FieldVec.z() };
 
-  equation->EvaluateRhsGivenB( PositionTime, FieldArr, charge, dydx );
+  equation->InitializeCharge( charge );
+  equation->EvaluateRhsGivenB( PositionTime, FieldArr, /* charge, */ dydx );
 
   ThreeVector  ForceVec( dydx[3], dydx[4], dydx[5]);
 
   // Check result
   double MdotF= MomentumVec.Dot(ForceVec);
   double BdotF= FieldVec.Dot(ForceVec); 
-
 
   
   if( std::fabs(MdotF) > perMillion * MomentumVec.Mag() * ForceVec.Mag() )
