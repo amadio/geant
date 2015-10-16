@@ -1,23 +1,38 @@
 #ifndef TMAGERRORSTEPPER_HH
 #define TMAGERRORSTEPPER_HH
 
+#include <algorithm> // for std::max
+
 // #include "G4Types.hh"
 #include "GUVIntegrationStepper.h"
 #include "ThreeVector.h"
-// #include "G4LineSection.hh"
+#include "GULineSection.h"
+
+namespace GUIntegrationNms
+{
+   constexpr unsigned int NumVarBase  = 8;  //
+}
 
 template
-<class T_Stepper, class T_Equation, int N>
+<class T_Stepper, class T_Equation, int Nvar>
 class TMagErrorStepper : public GUVIntegrationStepper
 {
     public:  // with description
+        static constexpr unsigned int NumVarStore = (Nvar > GUIntegrationNms::NumVarBase) ?
+                                                     Nvar : GUIntegrationNms::NumVarBase ;
+           // std::max( GUIntegrationNms::NumVarBase,  Nvar);
 
-        TMagErrorStepper(T_Equation *EqRhs, 
-                int numberOfVariables, 
-                int numStateVariables=12)
+        TMagErrorStepper( T_Equation *EqRhs,
+                          unsigned int integrationOrder,   // Make it a template Parameter ??
+                         unsigned int numberOfVariables, 
+                         int numStateVariables) // = -1)  // No default -- must ensure order is set
             : GUVIntegrationStepper(
-                    EqRhs, numberOfVariables, numStateVariables),
-            fEquation_Rhs(EqRhs)
+                  EqRhs,
+                  integrationOrder,      
+                  numberOfVariables,
+                  numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
+               // ),
+               fEquation_Rhs(EqRhs)
         {
             // int nvar = std::max(this->GetNumberOfVariables(), 8);
         }
@@ -28,7 +43,48 @@ class TMagErrorStepper : public GUVIntegrationStepper
         inline void RightHandSide(double y[], double dydx[]) 
               { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
 
-        inline void Stepper( const double yInput[],
+        inline void StepWithErrorEstimate( const double yInput[],
+                                           const double dydx[],
+                                           double hstep,
+                                           double yOutput[],
+                                           double yError []      );
+            // The stepper for the Runge Kutta integration. The stepsize 
+            // is fixed, with the Step size given by h.
+            // Integrates ODE starting values y[0 to 6].
+            // Outputs yout[] and its estimated error yerr[].
+        
+
+        double DistChord() const; 
+
+    private:
+
+        TMagErrorStepper(const TMagErrorStepper&);
+        TMagErrorStepper& operator=(const TMagErrorStepper&);
+        // Private copy constructor and assignment operator.
+
+    private:
+
+        // STATE
+        ThreeVector fInitialPoint, fMidPoint, fFinalPoint;
+        // Data stored in order to find the chord
+
+        // Dependent Objects, owned --- part of the STATE 
+        double yInitial[NumVarStore];   // [Nvar<8?8:Nvar];
+        double yMiddle[NumVarStore];
+        double dydxMid[NumVarStore];
+        double yOneStep[NumVarStore];
+        // The following arrays are used only for temporary storage
+        // they are allocated at the class level only for efficiency -
+        // so that calls to new and delete are not made in Stepper().
+
+        T_Equation *fEquation_Rhs;
+};
+
+// inline
+template<class T_Stepper, class T_Equation, int Nvar>
+void
+   TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
+StepWithErrorEstimate( const double yInput[],
                 const double dydx[],
                 double hstep,
                 double yOutput[],
@@ -58,18 +114,18 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
             // Do two half steps
 
-	    static_cast<T_Stepper*>(this)->T_Stepper::DumbStepper (yInitial,  dydx,   halfStep, yMiddle);
+	    static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial,  dydx,   halfStep, yMiddle);
             this->RightHandSide(yMiddle, dydxMid);    
-	    static_cast<T_Stepper*>(this)->T_Stepper::DumbStepper (yMiddle, dydxMid, halfStep, yOutput); 
+	    static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yMiddle, dydxMid, halfStep, yOutput); 
 
             // Store midpoint, chord calculation
 
             fMidPoint = ThreeVector( yMiddle[0],  yMiddle[1],  yMiddle[2]); 
 
             // Do a full Step
-	    //            static_cast<T_Stepper*>(this)->T_Stepper::DumbStepper(yInitial, dydx, hstep, yOneStep);
-	    static_cast<T_Stepper*>(this)->T_Stepper::DumbStepper(yInitial, dydx, hstep, yOneStep);
-            for(i=0;i<N;i++) {
+	    //            static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
+	    static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
+            for(i=0;i<Nvar;i++) {
                 yError [i] = yOutput[i] - yOneStep[i] ;
                 yOutput[i] += yError[i]* static_cast<T_Stepper*>(this)->T_Stepper::IntegratorCorrection();  
                    // T_Stepper::IntegratorCorrection ;
@@ -103,7 +159,7 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
                 distChord = distLine;
             }else{
-                distChord = (fMidPoint-fInitialPoint).mag();
+                distChord = (fMidPoint-fInitialPoint).Mag();
             }
 
             return distChord;
