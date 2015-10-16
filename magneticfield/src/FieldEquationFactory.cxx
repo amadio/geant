@@ -11,7 +11,7 @@
 GUVEquationOfMotion*
 FieldEquationFactory::CreateMagEquation(GUVField *field) // , int NumEq)
 {
-   const int NumComp= 6;
+   const unsigned int NumComp= 6;
    GUVEquationOfMotion *eq= 0;
 
    TUniformMagField* unifMagFld= dynamic_cast<TUniformMagField*>(field);

@@ -65,6 +65,7 @@ bool TestStepper(GUVIntegrationStepper* stepper)
 
   double PositionTime[4] = { PositionVec.x(), PositionVec.y(), PositionVec.z(), 0.0};
   // double PositionTime[4] = { 1., 2., 3., 4.};
+
   PositionTime[0]= PositionVec.x();
   PositionTime[1]= PositionVec.y();
   PositionTime[2]= PositionVec.z();
@@ -97,7 +98,8 @@ bool TestStepper(GUVIntegrationStepper* stepper)
 
   double step_len = 100.0; //  * millimeter;
 
-  stepper->GetEquationOfMotion()->InitializeCharge( charge );
+  // stepper->GetEquationOfMotion()->InitializeCharge( charge );
+  stepper->InitializeCharge( charge );  
 
   stepper->RightHandSide(PositionMomentum, /*charge,*/ dydx);
   stepper->StepWithErrorEstimate(PositionMomentum, dydx, step_len, yout, yerr); 
@@ -105,12 +107,12 @@ bool TestStepper(GUVIntegrationStepper* stepper)
   //  Check the output HERE
   //
 
-
+  // Check against the known solution for constant field (helix)
 
   
   // 
-  stepper->GetEquationOfMotion()->InformDone(); 
-     //InformDone();  // Finished for now - value of charge is 'revoked'  
+  // stepper->GetEquationOfMotion()->InformDone(); 
+  stepper->InformDone();  // Finished for now - value of charge is 'revoked'  
 
   
   ThreeVector  ForceVec( dydx[3], dydx[4], dydx[5]);

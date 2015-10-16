@@ -101,6 +101,7 @@ inline
 void GUVEquationOfMotion::InformReady() // was Initialize()
 {
    assert( ! fInitialised ); // Sanity checking - assumes Clear() is always called!
+                      // BUT: Will signal problem if two steppers share an equation
    fInitialised= true;
 }
 

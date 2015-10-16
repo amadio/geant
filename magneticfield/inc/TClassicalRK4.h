@@ -4,7 +4,7 @@
 #include "TMagErrorStepper.h"
 #include "ThreeVector.h"
 
-#include <algorithm> // for std::max
+// #include <algorithm> // for std::max
 
 // #define  INTEGRATOR_CORRECTION   (1./((1<<2)-1))
 
@@ -26,7 +26,6 @@ class TClassicalRK4 : public  TMagErrorStepper
     TClassicalRK4(T_Equation *EqRhs) // , int numberOfVariables = 8)
        : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar, Nvar), 
          fEquation_Rhs(EqRhs)
-         // charge(0.0);
     {
     }
 

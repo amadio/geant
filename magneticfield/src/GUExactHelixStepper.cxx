@@ -1,0 +1,99 @@
+//
+// GUExactHelixStepper:
+//
+//  Displace using helix - for field at initial location
+//
+//  As the field is assumed constant, an error is not calculated.
+// 
+//  Author: J. Apostolakis, 28 Jan 2005
+//     Implementation adapted from ExplicitEuler of W.Wander 
+// -------------------------------------------------------------------
+
+#include <iostream>
+
+#include "Constants.h"
+using fieldConstants::pi;
+using fieldConstants::twopi;
+
+
+#include "GUExactHelixStepper.h"
+// #include "GUPhysicalConstants.h"
+#include "ThreeVector.h"
+// #include "GULineSection.h"
+
+GUExactHelixStepper::GUExactHelixStepper(GUVEquationOfMotion* EqRhs) // TMagFieldEquation
+   : GUVHelicalStepper(EqRhs, 1),  // "Order" = 1 - not really applicable
+    fBfieldValue(DBL_MAX, DBL_MAX, DBL_MAX),
+    fPtrMagEqOfMot(EqRhs)
+{
+  ;
+}
+
+GUExactHelixStepper::~GUExactHelixStepper() {} 
+
+void
+GUExactHelixStepper::StepWithErrorEstimate( const double yInput[],
+                              const double*,
+                                    double hstep,
+                                    double yOut[],
+                                    double yErr[]      )
+{  
+   const unsigned int nvar = 6;
+
+   ThreeVector Bfld_value;
+
+   MagFieldEvaluate(yInput, Bfld_value);        
+   AdvanceHelix(yInput, Bfld_value, hstep, yOut);
+
+  // We are assuming a constant field: helix is exact
+  //
+  for( unsigned int i=0;i<nvar;i++)
+  {
+    yErr[i] = 0.0 ;
+  }
+
+  fBfieldValue=Bfld_value;
+}
+
+void
+GUExactHelixStepper::StepWithoutErrorEstimate( const double  yIn[],
+                                        ThreeVector   Bfld,
+                                        double  h,
+                                        double  yOut[])
+{
+  // Assuming a constant field: solution is a helix
+
+  AdvanceHelix(yIn, Bfld, h, yOut);
+
+  std::cerr<<"GUExactHelixStepper::StepWithoutErrorEstimate"
+           << "should *NEVER* be called. StepWithErrorEstimate must do the work." << std::endl;
+}  
+
+
+// ---------------------------------------------------------------------------
+
+double
+GUExactHelixStepper::DistChord() const 
+{
+  // Implementation : must check whether h/R >  pi  !!
+  //   If( h/R <  pi)   DistChord=h/2*std::tan(Ang_curve/4)                <
+  //   Else             DistChord=2*R_helix    -- approximate.  True value ~ diameter
+
+  double distChord;
+  double Ang_curve=GetAngCurve();
+
+  if (Ang_curve<=pi)
+  {
+    distChord=GetRadHelix()*(1-std::cos(0.5*Ang_curve));
+  }
+  else if(Ang_curve<twopi)
+  {
+    distChord=GetRadHelix()*(1+std::cos(0.5*(twopi-Ang_curve)));
+  }
+  else
+  {
+    distChord=2.*GetRadHelix();  
+  }
+
+  return distChord;
+}   
