@@ -33,7 +33,7 @@ class GUVIntegrationStepper
         GUVIntegrationStepper( GUVEquationOfMotion* equation, 
                                unsigned int IntegrationOrder,
                                unsigned int numIntegrationVariables,
-                               unsigned int numStateVariables); // =12);
+                               int numStateVariables); // = -1 same? or  unsigned ?    // in G4 =12
            // See explanations of each below - e.g. order => RK order
 
         virtual ~GUVIntegrationStepper();
@@ -52,9 +52,6 @@ class GUVIntegrationStepper
         // Estimate the maximum distance of a chord from the true path
         // over the segment last integrated.
 
-        virtual void ComputeRightHandSide( const double y[], double charge, double dydx[] ); 
-        // Must compute the RightHandSide as in the method below
-        // Optionally can cache the input y[] and the dydx[] values computed.
 
         // inline void NormaliseTangentVector( double vec[6] );  // WRONG - it is Momentum now!!
         // Simple utility function to (re)normalise 'unit velocity' vector.
@@ -62,10 +59,13 @@ class GUVIntegrationStepper
         // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
         // Simple utility function to (re)normalise 'unit spin' vector.
 
-        inline void RightHandSide( const double y[], double charge, double dydx[] );   
+        inline void RightHandSide( const double y[], /*double charge,*/ double dydx[] );   
         // Utility method to supply the standard Evaluation of the
         // Right Hand side of the associated equation.
 
+        // virtual void ComputeRightHandSide( const double y[], double charge, double dydx[] ); 
+        // Must compute the RightHandSide as in the method above
+        // Optionally can cache the input y[] and the dydx[] values computed.
 
         inline unsigned int  GetNumberOfVariables() const;
         
@@ -84,6 +84,9 @@ class GUVIntegrationStepper
         // As some steppers require access to other methods of Eq_of_Mot
         void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
 
+        // void InitializeCharge(double particleCharge) {
+        //   GetEquationOfMotion()->InitializeCharge(particleCharge); }
+        // void InvalidateParameters() final { GetEquationOfMotion()->InformDone();}
     private:
 
         GUVIntegrationStepper(const GUVIntegrationStepper&);
@@ -101,9 +104,9 @@ class GUVIntegrationStepper
 // #include  "GUVIntegrationStepper.icc"
 inline
 void GUVIntegrationStepper::
-RightHandSide( const  double y[], double charge, double dydx[] )
+RightHandSide( const  double y[], /*double charge,*/ double dydx[] )
 {
-   fEquation_Rhs-> RightHandSide(y, charge, dydx);
+   fEquation_Rhs-> RightHandSide(y, /*charge,*/ dydx);
 }
 
 inline void

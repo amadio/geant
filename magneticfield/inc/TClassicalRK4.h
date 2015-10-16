@@ -4,7 +4,11 @@
 #include "TMagErrorStepper.h"
 #include "ThreeVector.h"
 
+#include <algorithm> // for std::max
+
 // #define  INTEGRATOR_CORRECTION   (1./((1<<2)-1))
+
+// template <class T> inline constexpr const T& MaxConst (const T& a, const T& b) { return (a<b)?b:a;  } 
 
 template
 <class T_Equation, int N>
@@ -12,41 +16,34 @@ class TClassicalRK4 : public  TMagErrorStepper
                       <TClassicalRK4<T_Equation, N>, T_Equation, N>
 {
   public:  // with description
+    static constexpr unsigned int OrderRK4= 4;
+    static constexpr unsigned int NumVarStore = (GUIntegrationNms::NumVarBase > Nvar) ? GUIntegrationNms::NumVarBase : Nvar;
+                        // MaxConst( GUIntegrationNms::NumVarBase,  Nvar);
+                        // std::max( GUIntegrationNms::NumVarBase,  Nvar);
+    // static const IntegratorCorrection = 1./((1<<4)-1); 
+    inline double IntegratorCorrection() { return 1./((1<<4)-1); }
 
-        // static const IntegratorCorrection = 1./((1<<4)-1); 
-        inline double IntegratorCorrection() { return 1./((1<<4)-1); }
+    TClassicalRK4(T_Equation *EqRhs) // , int numberOfVariables = 8)
+       : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar, Nvar), 
+         fEquation_Rhs(EqRhs)
+         // charge(0.0);
+    {
+    }
 
-        TClassicalRK4(T_Equation *EqRhs, 
-                      int numberOfVariables = 8)
-            : TMagErrorStepper
-              <TClassicalRK4<T_Equation, N>, T_Equation, N>
-              (EqRhs, numberOfVariables),
-              fEquation_Rhs(EqRhs)
-        {
-            unsigned int noVariables= 
-                std::max(numberOfVariables,8); // For Time .. 7+1
-            assert ( N == noVariables ); 
-            // if( N != noVariables ) {
-            //    std::cerr << " TClassicalRK4< Equation, N> : Warning N " << N << " != nvar" << noVariables << std::endl;
-            // }
-        }
+    virtual ~TClassicalRK4(){;}
 
-        virtual ~TClassicalRK4(){;}
-
-        __attribute__((always_inline)) 
-        void 
-        RightHandSide(double y[], double dydx[]) const 
-        { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
-
-
-        // A stepper that does not know about errors.
-        // It is used by the MagErrorStepper stepper.
-	void  DumbStepper( const double  yIn[],
-                           const double  dydx[],
-                           double  h,
-			   double  yOut[]);
-
-
+    __attribute__((always_inline)) 
+     void 
+       RightHandSide(double y[], double dydx[]) const
+    { fEquation_Rhs->T_Equation::RightHandSide(y, /*fCharge,*/ dydx); }
+    
+    // A stepper that does not know about errors.
+    // It is used by the MagErrorStepper stepper.
+    void  StepWithoutErrorEst( const double  yIn[],
+                               const double  dydx[],
+                               double  h,
+                               double  yOut[]);
+ 
   public:
         __attribute__((always_inline)) 
         int IntegratorOrder() const { return 4; }
@@ -60,11 +57,10 @@ class TClassicalRK4 : public  TMagErrorStepper
 
         // int fNumberOfVariables ; // is set default to 6 in constructor
         // scratch space - not state 
-        static constexpr unsigned int Nstor= 8 * ((N-1)/8+1); 
-        double dydxm[Nstor]; 
-        double dydxt[Nstor]; 
-        double yt[Nstor]; 
-
+        static constexpr unsigned int Nvarstor= 8 * ((Nvar-1)/8+1); 
+        double dydxm[Nvarstor]; 
+        double dydxt[Nvarstor]; 
+        double yt[Nvarstor];
 
         T_Equation *fEquation_Rhs;
 };
@@ -85,7 +81,7 @@ template <class T_Equation, int N>
 #else
 // __attribute__((noinline))
 #endif 
-   void TClassicalRK4<T_Equation,N>::DumbStepper( const double  yIn[],
+   void TClassicalRK4<T_Equation,Nvar>::StepWithoutErrorEst( const double  yIn[],
                                                   const double  dydx[],
                                                   double  h,
                                                   double  yOut[])

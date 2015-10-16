@@ -12,11 +12,11 @@
 GUVIntegrationStepper::GUVIntegrationStepper(GUVEquationOfMotion* equation,
 					     unsigned int num_integration_vars,
                                              unsigned int integrationOrder,
-					     unsigned int num_state_vars)
+					              int num_state_vars)
   : fEquation_Rhs(equation),
     fIntegrationOrder(integrationOrder),
     fNoIntegrationVariables(num_integration_vars),
-    fNoStateVariables(num_state_vars)
+    fNoStateVariables(num_state_vars > 0 ? num_state_vars : num_integration_vars)
 {
 }
 
@@ -24,10 +24,11 @@ GUVIntegrationStepper::~GUVIntegrationStepper()
 {
 }
 
-void GUVIntegrationStepper::ComputeRightHandSide( const double y[], double charge, double dydx[] ) 
-{
-   this->RightHandSide( y, charge, dydx );
-}
+// This allows the method to cache the value etc - Not needed for now
+// void GUVIntegrationStepper::ComputeRightHandSide( const double y[], /*double charge,*/ double dydx[] ) 
+// {
+//    this->RightHandSide( y, /*charge,*/ dydx );
+// }
 
 void GUVIntegrationStepper::SetEquationOfMotion(GUVEquationOfMotion* newEquation)
 {
