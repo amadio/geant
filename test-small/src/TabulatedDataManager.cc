@@ -24,6 +24,9 @@
 
 #include "G4Gamma.hh"
 
+#include "TParticlePDG.h"
+#include "TDatabasePDG.h"
+
 using CLHEP::GeV;
 using CLHEP::cm;
 
@@ -1202,7 +1205,7 @@ void TabulatedDataManager::RotateTrack(G4ThreeVector &newdir, double theta, doub
 
 //______________________________________________________________________________
 const char *TabulatedDataManager::GetVersion() const {
-  static char *ver char[512];
+  static char ver[512];
   sprintf(ver, "%d.%d.%d", VersionMajor(), VersionMinor(), VersionSub());
   return ver;
 }

@@ -318,7 +318,11 @@ add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
 add_subdirectory (tabxsec)
 add_subdirectory (micromc)
-#add_subdirectory (test-small)
+
+if(NOT USE_VECGEOM_NAVIGATOR)
+ add_subdirectory (test-small)
+endif()
+
 add_subdirectory (cmstrack)
 #add_subdirectory (test-complex)
 add_subdirectory (Nudy)
