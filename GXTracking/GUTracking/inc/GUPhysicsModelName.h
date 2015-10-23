@@ -15,10 +15,10 @@ enum GUPhysicsModelIndex {
 
 static 
 const char* GUPhysicsModelName[kNumberPhysicsModel] = {
-  "KleinNishina ",
-  "BetheHeitler ",
+  "KleinNishina",
+  "BetheHeitler",
   "SauterGavrila",
-  "MollerBhabha ",
+  "MollerBhabha",
   "SeltzerBerger"
 };
 

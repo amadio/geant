@@ -167,17 +167,18 @@ SampleBin(typename Backend::Double_t kineticEnergy,
 
   Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t condition = u1 <= efrac ;
-  // if branch
-  MaskedAssign( condition, irow , &irow ); // at the lower edge
-  MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
+  Bool_t useHigh = (u1 <= efrac) ;
+
+  // irow = useHigh ? irow+1 : irow; 
+  MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
 
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+  // Prepare output values
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
-  // Was rangeSampled /(fSampledNumEntries-1);
-  index = irow*fSampledNumEntries  + icol;
+  // index = irow*fSampledNumEntries  + icol;  // No need to compute - no longer an output
 }
 
 template<class Backend>
@@ -200,10 +201,13 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   
   Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t condition = u1 <= efrac ;
+  Bool_t useHigh = (u1 <= efrac) ;
 
-  MaskedAssign( condition, irow , &irow );     // at the lower edge 
-  MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
+  // MaskedAssign( condition, irow , &irow );     // at the lower edge   --- Null operation!
+  // MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
+
+  // irow = useHigh ? irow+1 : irow; 
+  MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
 
   //select the sampling bin
   Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
