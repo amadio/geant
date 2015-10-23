@@ -33,6 +33,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf
    */
    unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
    Geant::GeantTaskData *td = (Geant::GeantTaskData *)( ((char*)workSpace) + workspaceSizeOf*tid );
+   td->fTransported->Clear();
 
 #if 0
    // Test whether we use up too much memory already
