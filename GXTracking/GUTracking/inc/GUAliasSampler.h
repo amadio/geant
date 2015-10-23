@@ -250,6 +250,10 @@ SampleX(typename Backend::Double_t rangeSampled,
   Double_t xd, xu;
   Double_t binSampled = rangeSampled * fInverseBinSampled;
 
+  // -- Can simplify significantly below, using one Masked Assign !!
+  // Index_t       icolDist= icol;
+  // MaskedAssign( condition, aliasInd, icolDist ); 
+
   // if branch
 
   MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
@@ -265,6 +269,14 @@ SampleX(typename Backend::Double_t rangeSampled,
   return x;
 }
 
+//
+//  Lacks a description of what the method does. 
+//  Since it is a complex method, it will benefit significantly from it.
+
+//  Draft description:
+//    Sample distribution of secondary's 'X' - typically Energy
+//      for given zElement ...
+//    Feature of this method:  linear interpolation using 'PDF'  
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 typename Backend::Double_t
@@ -286,6 +298,10 @@ SampleXL(typename Backend::Index_t  zElement,
   Double_t xd, xu;
   Double_t binSampled = rangeSampled * fInverseBinSampled;
 
+  // -- Can simplify significantly below, using one Masked Assign !!
+  // Index_t       icolDist= icol;
+  // MaskedAssign( condition, aliasInd, icolDist ); 
+
   // if branch
 
   MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
@@ -296,19 +312,34 @@ SampleXL(typename Backend::Index_t  zElement,
   MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
   MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
+  // Simplified - instead of if/else with 4 Masked Assigns
+  //
+  // xd = icolDist * binSampled; 
+  // xu = xd + binSampled; 
+
+  // Flat distribution was
   //  Double_t x = (1 - fraction) * xd + fraction* xu;
 
+
+  //Using pdf of linear interpolation within the sampling bin based on the pdf
   //linear interpolation within the sampling bin based on the pdf 
   Double_t x(0.);
   Double_t pd(0.);
   Double_t pu(0.);
+
 
   MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol),   &pd); 
   MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol+1), &pu);
 
   MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd),   &pd);
   MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd+1), &pu);
+  // Simplified:
+  //  pd = GetPDF<Backend>(zElement,irow,icolDist);
+  //  pu = GetPDF<Backend>(zElement,irow,icolDist+1);
 
+  //* Obtain 'x' in interval [xd, xu] using pdf from linear interpolation
+  //    (x,y) from (xd, pd) and (xu, pu)
+  //  - Uses two random numbers in order to avoid square root
   Double_t r2 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   Double_t r3 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
@@ -316,6 +347,10 @@ SampleXL(typename Backend::Index_t  zElement,
   
   MaskedAssign(  below, (1.-r3)*xd + r3*xu , &x);
   MaskedAssign( !below, r3*xd + (1.-r3)*xu , &x);
+
+  //- Can simplify to
+  // MaskedAssign( !below, 1.0-r3, r3);      //  if (!below) { r3 = 1.0 - r3; }
+  // x = (1.-r3)*xd + r3*xu;
 
   return x;
 }
