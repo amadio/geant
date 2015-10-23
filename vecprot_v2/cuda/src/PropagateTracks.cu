@@ -50,6 +50,13 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf
       // input->ComputeTransportLengthSingle(itr,td);
       input->PropagateSingleTrack(itr,td,0);
 
+
+      // PropagateSingleTrack marks the track slot as a 'hole' and
+      // Compact (called byPropagateTracks) would have moved the
+      // track to td->fTransported, so we would have to move it now to output ...
+      // output->AddTrackSyncAt(itr,*td->fTransported,0);
+
+      // Move hole into output.
       output->AddTrackSyncAt(itr,*input,itr);
 
       itr += blockDim.x * gridDim.x;
