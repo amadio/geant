@@ -710,27 +710,6 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     // Note: Need to apply the code if (propagator->fUsePhysics)
     // to the tracks after they came back.
 
-    if (gPropagator->fStdApplication)
-      gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
-    gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
-    // Update geometry path for crossing tracks
-    ntotnext = output.GetNtracks();
-
-#ifdef BUG_HUNT
-    for (auto itr = 0; itr < ntotnext; ++itr) {
-      bool valid = output.CheckNavConsistency(itr);
-      if (!valid) {
-        valid = true;
-      }
-    }
-    // First breakpoint to be set
-    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, prop->fDebugRep, "EndStep");
-#endif
-    for (auto itr = 0; itr < ntotnext; ++itr) {
-      output.fNstepsV[itr]++;
-      if (output.fStatusV[itr] == kBoundary)
-        *output.fPathV[itr] = *output.fNextpathV[itr];
-    }
   finish:
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());

@@ -560,8 +560,18 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
             }
          }
       }
-      if (gPropagator->fStdApplication) gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+      if (gPropagator->fStdApplication)
+         gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
       gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
+
+      // Update geometry path for crossing tracks
+      ntotnext = output.GetNtracks();
+
+      for (auto itr = 0; itr < ntotnext; ++itr) {
+         output.fNstepsV[itr]++;
+         if (output.fStatusV[itr] == kBoundary)
+        *output.fPathV[itr] = *output.fNextpathV[itr];
+      }
    }
 
    int ntot = 0;
