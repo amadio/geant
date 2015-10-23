@@ -70,13 +70,13 @@ message(STATUS "Configuring with vector backend ${BACKEND}.")
 
 # Determine C++ compiler being used
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   set(Clang TRUE)
 endif()
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   set(GNU TRUE)
 endif()
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set(Intel TRUE)
 endif()
 if (NOT GNU AND NOT Clang AND NOT Intel)

@@ -66,6 +66,9 @@ GUAliasSampler::~GUAliasSampler()
 VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::PrintTable()
 {
+  printf("Incoming Min= %g , Max= %g , numEntries= %d \n",
+         fIncomingMin, fIncomingMax, fInNumEntries );
+
   if( fAliasTableManager->GetNumberOfElements() >0 ) {
     for (int i = 0; i < fAliasTableManager->GetNumberOfElements() ; ++i ) {
       GUAliasTable* tb= fAliasTableManager->GetAliasTable(i);
