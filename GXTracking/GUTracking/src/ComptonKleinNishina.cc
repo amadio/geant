@@ -61,8 +61,13 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   double dx = (logxmax - logxmin)/nrow;
 
   int    nintegral= 5*int(log(logxmax)); //temporary
+<<<<<<< HEAD
   double normal = 0;
   double fxsec = 0;
+=======
+  double partialSum[nintegral];
+  // double fxsec = 0;
+>>>>>>> Use the average value of the PDF, not pdf(<E>)
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
@@ -75,18 +80,43 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
 
     for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
-      double y = 0;
-      normal = 0;
+//<<<<<<< HEAD
+//      double y = 0;
+//      normal = 0;
+//=======
+      //      double y = yo + dy*j;
+      double average = 0; // rename to sumEN   // Sum y (E_out) * N(pdf)
+      double normal = 0;  // rename to sumN    // Sum N (pdf)
+//>>>>>>> Use the average value of the PDF, not pdf(<E>)
 
       //use the average xsec within the bin instead of xsec at the mid-point
       for(int k = 0; k < nintegral ; ++k) {
+/*<<<<<<< HEAD
         y = ymin + dy*(j+(0.5+k)/nintegral);
         fxsec = CalculateDiffCrossSection(Z,x,y);
+=======*/
+        double y = ymin + dy*(j+(0.5+k)/nintegral);
+        double fxsec = CalculateDiffCrossSection(Z,x,y);
+        average += y*fxsec;
+//>>>>>>> Use the average value of the PDF, not pdf(<E>)
         normal  += fxsec;
+        partialSumN[k]= normal;
       }
+/*<<<<<<< HEAD
 
       double xsec = normal/nintegral;
       p[i*ncol+j] = xsec;
+======= */
+      double halfSumN= 0.5*normal; //mb: not used?
+
+      double yAver = average/normal;  // Average y(E_out) in bin
+      double xsecEav = CalculateDiffCrossSection(Z,x,yAver);
+        // The Pdf at the average energy - it is not a good estimate
+
+      double xsec = normal / nintegral; 
+
+      p[i*fNcol+j] = xsec;
+//>>>>>>> Use the average value of the PDF, not pdf(<E>)
       sum += xsec;
     }
 
