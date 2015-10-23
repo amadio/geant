@@ -158,15 +158,16 @@ InteractKernel(typename Backend::Double_t  energyIn,
 
   //sample angular distribution of photo-electron
 
-  Index_t   index;
+  Index_t   irow;
   Index_t   icol;
   Double_t  fraction;
 
-  fAliasSampler->SampleLogBin<Backend>(energyIn,index,icol,fraction);
+  fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_t probNA;
   Double_t aliasInd;
 
+  Index_t   index = fNcol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t mininum = -1.0;

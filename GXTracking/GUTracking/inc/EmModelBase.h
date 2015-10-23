@@ -85,6 +85,12 @@ protected:
   VECPHYS_CUDA_HEADER_BOTH
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
 
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetNrow(int irow ) { fNrow = irow; }
+
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetNcol(int icol ) { fNcol = icol; }
+
   VECPHYS_CUDA_HEADER_BOTH double 
   ComputeCoulombFactor(double fZeff);
 
@@ -130,8 +136,8 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
   : fRandomState(states), fThreadId(tid), 
-    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV),
-    fMinX(1.e-8),  fMaxX(1000.),  
+    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(1.0*TeV),
+    fMinX(1.e-4),  fMaxX(1.e+6),  
     fNrow(100), fNcol(100),
     fMaxZelement(maximumZ)
 {
@@ -142,8 +148,8 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_BOTH 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
   : fRandomState(states), fThreadId(tid), 
-    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(10.*TeV),
-    fMinX(1.e-8),  fMaxX(1000.), 
+    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(1.0*TeV),
+    fMinX(1.e-4),  fMaxX(1.e+6), 
     fNrow(100), fNcol(100),
     fMaxZelement(maximumZ)
 {

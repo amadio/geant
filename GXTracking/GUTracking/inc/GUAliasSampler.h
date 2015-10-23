@@ -78,7 +78,7 @@ public:
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void SampleLogBin( typename Backend::Double_t  kineticEnergy,
-                     typename Backend::Index_t   &index,
+                     typename Backend::Index_t   &irow,
                      typename Backend::Index_t   &icol,
                      typename Backend::Double_t  &fraction) const;
 
@@ -89,9 +89,17 @@ public:
           typename Backend::Double_t probNA,   
           typename Backend::Double_t aliasInd, 
           typename Backend::Index_t  icol,     
-          typename Backend::Double_t fraction  
-          ) const;
+          typename Backend::Double_t fraction ) const;
 
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t
+  SampleXL(typename Backend::Index_t  zElement, 
+           typename Backend::Double_t rangeSampled, 
+           typename Backend::Double_t probNA,   
+           typename Backend::Double_t aliasInd, 
+           typename Backend::Index_t  irow,     
+           typename Backend::Index_t  icol) const;
 
   template<class Backend>
   inline
@@ -100,8 +108,16 @@ public:
   GatherAlias(typename Backend::Index_t   index, 
               typename Backend::Index_t   zElement,
               typename Backend::Double_t &probNA,  
-              typename Backend::Double_t &aliasInd 
-              ) const;
+              typename Backend::Double_t &aliasInd ) const;
+
+  template<class Backend>
+  inline
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t
+  GetPDF(typename Backend::Index_t zElement,
+         typename Backend::Index_t irow,  
+         typename Backend::Index_t icol ) const;
+
 
   int GetNumEntries()      const { return fInNumEntries; }      // 'Input' values:  E', log(E')
   int GetSamplesPerEntry() const { return fSampledNumEntries;}
@@ -168,19 +184,18 @@ template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
 SampleLogBin(typename Backend::Double_t kineticEnergy,
-             typename Backend::Index_t  &index,    // ~ sampled value
-             typename Backend::Index_t  &icol,     // ~ input Energy
-             typename Backend::Double_t &fraction  //  in sampled variable
+             typename Backend::Index_t  &irow,     // input energy
+             typename Backend::Index_t  &icol,     // sampled value
+             typename Backend::Double_t &fraction  // within the sampled bin
              ) const
 {
-  typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
   typedef typename Backend::Bool_t Bool_t;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy 
   Double_t eloc = (Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming;
-  Index_t  irow = Floor(eloc);
+  irow = Floor(eloc);
   Double_t efrac = eloc -1.0*irow;  
   
   Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
@@ -196,7 +211,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   fraction = r1 - 1.0*icol;
 
   // Was rangeSampled /(fSampledNumEntries-1);
-  index = irow*fSampledNumEntries  + icol;
+  //  index = irow*fSampledNumEntries  + icol;
 }
 
 template<class Backend>
@@ -231,6 +246,59 @@ SampleX(typename Backend::Double_t rangeSampled,
   MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
   Double_t x = (1 - fraction) * xd + fraction* xu;
+
+  return x;
+}
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH
+typename Backend::Double_t
+GUAliasSampler::
+SampleXL(typename Backend::Index_t  zElement, 
+         typename Backend::Double_t rangeSampled, 
+         typename Backend::Double_t probNA,   
+         typename Backend::Double_t aliasInd, 
+         typename Backend::Index_t  irow,     
+         typename Backend::Index_t  icol) const
+{
+  typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+  Bool_t condition = r1 <= probNA;
+  Double_t xd, xu;
+  Double_t binSampled = rangeSampled * fInverseBinSampled;
+
+  // if branch
+
+  MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
+  MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
+
+  // else branch
+
+  MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
+  MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
+
+  //  Double_t x = (1 - fraction) * xd + fraction* xu;
+
+  //linear interpolation within the sampling bin based on the pdf 
+  Double_t x, pd, pu;
+
+  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol),   &pd); 
+  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol+1), &pu);
+
+  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd),   &pd);
+  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd+1), &pu);
+
+  Double_t r2 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_t r3 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+  Bool_t below = r2*(pd+pu) < (1.-r3)*pd + r3*pu;;
+  
+  MaskedAssign(  below, (1.-r3)*xd + r3*xu , &x);
+  MaskedAssign( !below, r3*xd + (1.-r3)*xu , &x);
 
   return x;
 }
@@ -273,6 +341,24 @@ GatherAlias(typename Backend::Index_t    index,
   aliasInd= (fAliasTableManager->GetAliasTable(tableIndex))->fAlias[ intIndex ];
 }
 
+template<class Backend>
+inline
+typename Backend::Double_t 
+GUAliasSampler::GetPDF(typename Backend::Index_t zElement,
+                       typename Backend::Index_t irow,
+                       typename Backend::Index_t icol) const
+{
+  typedef typename Backend::Double_t Double_t;
+
+  int     intIndex= (int) (fSampledNumEntries*irow + icol);
+  int tableIndex= fAliasTableManager->GetTableIndex(zElement);
+
+  Double_t pdf= (fAliasTableManager->GetAliasTable(tableIndex))->fpdf[intIndex];
+
+  return pdf;
+}
+
+
 // Specialisation for all vector-type backends - Vc for now
 #ifndef VECPHYS_NVCC
 template<>
@@ -304,6 +390,36 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
     aliasInd[i]= (fAliasTableManager->GetAliasTable(tableIndex))->fAlias[ ind ];
   }
 }
+
+template<>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename kVc::Double_t
+GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
+                            typename kVc::Index_t irow,
+                            typename kVc::Index_t icol) const 
+{
+  typedef typename kVc::Double_t Double_t;
+
+  Double_t pdf;
+
+  for(int i = 0; i < kVc::kSize ; ++i) 
+  {
+    int z= zElement[i];
+    int ind = fSampledNumEntries*irow[i] + icol[i];
+
+    if(ind < 0) {
+      ind = 0;
+    }
+
+    assert( z > 0  && z <= fMaxZelement );
+
+    int tableIndex = fAliasTableManager->GetTableIndex(z);
+    pdf[i] = (fAliasTableManager->GetAliasTable(tableIndex))->fpdf[ ind ];
+  }
+  return pdf;
+}
+
 #endif
 
 } // end namespace impl
