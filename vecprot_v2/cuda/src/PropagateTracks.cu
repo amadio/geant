@@ -47,7 +47,7 @@ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf
 
    unsigned int itr = tid;
    while(itr < ntracks) {
-      input->ComputeTransportLengthSingle(itr,td);
+      // input->ComputeTransportLengthSingle(itr,td);
       input->PropagateSingleTrack(itr,td,0);
 
       output->AddTrackSyncAt(itr,*input,itr);
