@@ -41,6 +41,9 @@
    # set a vector instruction set
    -DVECPHYS_VECTOR=sse
 
+   # set the build type to Release, especially for testing the CUDA backend
+   -DCMAKE_BUILD_TYPE=Release
+
 4. How to run GeantV with GUTracking (libvecphys.a)
    
    - build your physics library (libvecphys) into GUTracking/build
