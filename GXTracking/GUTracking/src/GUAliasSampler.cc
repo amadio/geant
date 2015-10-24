@@ -22,7 +22,7 @@ GUAliasSampler(Random_t* states, int threadId,
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
   fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-log(incomingMin))),
   fSampledNumEntries( numEntriesSampled ),
-  fInverseBinSampled( 1.0 / (numEntriesSampled-1) )
+  fInverseBinSampled( 1.0 / numEntriesSampled )
 {
 
   fAliasTableManager = new GUAliasTableManager(maxZelement);

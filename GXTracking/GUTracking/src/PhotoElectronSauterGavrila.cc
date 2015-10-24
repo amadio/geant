@@ -14,6 +14,7 @@ PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid)
 {
   SetLowEnergyLimit(10.*keV);
+
   BuildAliasTable();
 }
 
@@ -50,7 +51,7 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
     double x = exp(logxmin + dx*i);
 
     const double ymin = -1.0;
-    const double dy = 2./(fNcol-1); 
+    const double dy = 2./fNcol; 
     const double yo = ymin + 0.5*dy;
   
     double sum = 0.;

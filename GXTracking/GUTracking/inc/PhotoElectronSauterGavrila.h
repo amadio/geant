@@ -148,7 +148,7 @@ void PhotoElectronSauterGavrila::
 InteractKernel(typename Backend::Double_t  energyIn, 
                typename Backend::Index_t   zElement,
                typename Backend::Double_t& energyOut,
-               typename Backend::Double_t& sinTheta)
+               typename Backend::Double_t& cosTheta)
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
@@ -173,9 +173,11 @@ InteractKernel(typename Backend::Double_t  energyIn,
   Double_t mininum = -1.0;
   Double_t deltaE = 2.0;
 
-  Double_t  costTheta = mininum + fAliasSampler->SampleX<Backend>(deltaE,probNA,
-					        aliasInd,icol,fraction);
-  sinTheta = sqrt((1+costTheta)*(1-costTheta));
+  cosTheta = mininum + fAliasSampler->SampleX<Backend>(deltaE,probNA,
+					     aliasInd,icol,fraction);
+
+  //  sinTheta = sqrt((1+costTheta)*(1-costTheta));
+  // @@@syj - rotation should be properly taken into account in the KernelInteract later
 }    
 
 /*
@@ -233,6 +235,7 @@ GetPhotoElectronEnergy(typename Backend::Double_t energy,
 
   // Select atomic shell
   assert (zElement>0 && zElement <101);
+
   Int_t nShells = fNumberOfShells[zElement];
 
   Int_t i = 0;  
@@ -251,6 +254,7 @@ GetPhotoElectronEnergy(typename Backend::Double_t energy,
 
     energyOut = energy - bindingEnergy;
   }
+
   return energyOut;
 }
 
