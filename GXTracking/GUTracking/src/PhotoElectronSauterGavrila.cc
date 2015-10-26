@@ -99,7 +99,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
   double z4 = z2*z2;
   double y  = 1-cosTheta*cosTheta;
 
-  double dsigmaK = (y/z4)*(1+0.5*g*(g-1)*(g-2));
+  double dsigmaK = (y/z4)*(1+0.5*g*(g-1)*(g-2)*z);
 
   return dsigmaK;
 }
@@ -150,7 +150,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
   double z5 = z2*z3;
   double y  = 1- cosTheta*cosTheta;
 
-  double dsigmaK = (y/z4)*(1+0.5*g*(g-1)*(g-2))*PK;
+  double dsigmaK = (y/z4)*(1+0.5*g*(g-1)*(g-2)*z)*PK;
   double dsigmaL1 = dsigmaK;
 
   double coeff= sqrt((g+1)*tau)/pow(g*tau,5.0);
