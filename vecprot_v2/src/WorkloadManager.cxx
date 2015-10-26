@@ -207,6 +207,33 @@ void *WorkloadManager::MainScheduler(void *) {
 }
 
 //______________________________________________________________________________
+static inline void MaybeCleanupBaskets(GeantTaskData *td) {
+  if (td->NeedsToClean())
+    td->CleanBaskets(0);
+  else {
+    // Check if there are at least 10 free baskets for this thread
+    if (td->fPool.size() < 10) {
+       td->fBmgr->CreateEmptyBaskets(10, td);
+    }
+  }
+}
+
+//______________________________________________________________________________
+static inline void MaybeCleanupBaskets(GeantTaskData *td, GeantBasket *basket) {
+  if (td->NeedsToClean())
+    td->CleanBaskets(0);
+  else {
+    // Check if there are at least 10 free baskets for this thread
+    if (td->fPool.size() < 10) {
+      if (basket->GetBasketMgr())
+        basket->GetBasketMgr()->CreateEmptyBaskets(2, td);
+      else
+        td->fBmgr->CreateEmptyBaskets(10, td);
+    }
+  }
+}
+
+//______________________________________________________________________________
 void *WorkloadManager::TransportTracks() {
   // Thread propagating all tracks from a basket.
   //      char slist[256];
@@ -306,17 +333,7 @@ void *WorkloadManager::TransportTracks() {
     if (!basket)
       break;
     waiting[tid] = 0;
-    if (td->NeedsToClean())
-      td->CleanBaskets(0);
-    else {
-      // Check if there are at least 2 free baskets for this thread
-      if (td->fPool.size() < 10) {
-        if (basket->GetBasketMgr())
-          basket->GetBasketMgr()->CreateEmptyBaskets(2, td);
-        else
-          td->fBmgr->CreateEmptyBaskets(10, td);
-      }
-    }
+    MaybeCleanupBaskets(td,basket);
     ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
@@ -567,6 +584,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       // There is no work to be done for now, let's just run what we have
       if (0 != broker->launchTask()) {
         // We ran something, let wait for the next free stream,
+        MaybeCleanupBaskets(td);
         continue;
       } else {
         // We had nothing to run at all .... we need to wait for
@@ -605,17 +623,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       break;
     }
     waiting[tid] = 0;
-    if (td->NeedsToClean())
-      td->CleanBaskets(0);
-    else {
-      // Check if there are at least 2 free baskets for this thread
-      if (td->fPool.size() < 10) {
-        if (basket->GetBasketMgr())
-          basket->GetBasketMgr()->CreateEmptyBaskets(2, td);
-        else
-          td->fBmgr->CreateEmptyBaskets(10, td);
-      }
-    }
+    MaybeCleanupBaskets(td,basket);
     ++counter;
 
     if (!stream) {
