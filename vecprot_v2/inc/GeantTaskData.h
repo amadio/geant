@@ -185,6 +185,14 @@ public:
    */
   GeantBasket *GetNextBasket();
 
+  /*
+   * @brief Return the size of the basket pool
+   *
+   */
+#ifndef GEANT_NVCC
+  size_t GetBasketPoolSize() const { return fPool.size(); }
+#endif
+
   /** @brief Setter for the toclean flag */
   void SetToClean(bool flag) { fToClean = flag; }
 
