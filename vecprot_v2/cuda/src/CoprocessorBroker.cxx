@@ -872,6 +872,25 @@ void CoprocessorBroker::runTask(GeantTaskData &td, GeantBasket &basket)
       }
    }
    if (!basket.GetInputTracks().IsCompact()) basket.GetInputTracks().Compact();
+
+   size_t poolSize = td.GetBasketPoolSize();
+   if (poolSize >= fTasks.size()+20) { // MaybeCleanupBaskets requires at least 10 per thread.
+      // Redistribute the baskets.
+      // This is needed because the task's TaskData only uses (new) Baskets
+      // while the TaskData td is the only always recycling them.
+      size_t share = (poolSize-20) / fTasks.size();
+      TaskColl_t::iterator task = fTasks.begin();
+      TaskColl_t::iterator end = fTasks.end();
+      while( task != end ) {
+         if ((*task)->fCurrent) {
+            for(size_t i = share; i!=0; --i) {
+               auto b = td.GetNextBasket();
+               if (b) (*task)->fCurrent->fGeantTaskData->RecycleBasket(b);
+            }
+         }
+         ++task;
+      }
+   }
 }
 
 void CoprocessorBroker::waitForTasks()
