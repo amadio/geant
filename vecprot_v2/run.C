@@ -5,7 +5,7 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-void run(int nthreads=4,
+void run(int ncputhreads=4,
          bool performance=true,
 	      const char *geomfile="ExN03.root",
 	      const char *xsec="xsec_FTFP_BERT.root",
@@ -33,6 +33,7 @@ void run(int nthreads=4,
 //=============================================================================
 //   bool performance = true;
 
+   int nthreads = ncputhreads;
    int ntotal   = 50;  // Number of events to be transported
    int nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
@@ -45,6 +46,7 @@ void run(int nthreads=4,
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
       gpuBroker->CudaSetup(32,128,1);
       prop->SetTaskBroker(gpuBroker);
+      nthreads += gpuBroker->GetNstream()+1;
 #else
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
