@@ -39,7 +39,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fRndm = &RNG::Instance();
 #endif
 #endif
-  fTransported = new GeantTrack_v(1024, maxDepth);
+  fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
 }
 
 template <typename T>
