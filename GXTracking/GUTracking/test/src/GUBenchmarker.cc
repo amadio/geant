@@ -40,7 +40,7 @@ constexpr double defaultMaxP = defaultMinP;
 GUBenchmarker::GUBenchmarker()
     : fNtracks(4992),
       fRepetitions(1),
-      fVerbosity(0),
+      fVerbosity(1),
       fMinP(defaultMinP),  
       fMaxP(defaultMaxP)   
 {
@@ -62,10 +62,10 @@ int GUBenchmarker::RunBenchmark()
 
 int GUBenchmarker::RunBenchmarkInteract()
 {
-  // if (fVerbosity > 0) {
-  printf("RunBenchmarkInteract: Ntracks = %d, fRepetitions = %d\n",
-	   fNtracks,fRepetitions);
-  // }
+  if (fVerbosity > 0) {
+    printf("RunBenchmarkInteract: Ntracks = %d, fRepetitions = %d\n",
+  	   fNtracks,fRepetitions);
+  }
 
   int mismatches = 0;
 

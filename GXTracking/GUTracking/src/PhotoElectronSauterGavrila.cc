@@ -1,10 +1,12 @@
-#include "GUAliasSampler.h"
-#include "GUAliasTable.h"
-#include "PhotoElectronSauterGavrila.h"
 #include <iostream>
 
 #include "backend/Backend.h"
+// #include "GUAuxFunctions.h"
 #include "GUG4TypeDef.h"
+
+#include "GUAliasSampler.h"
+#include "GUAliasTable.h"
+#include "PhotoElectronSauterGavrila.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
