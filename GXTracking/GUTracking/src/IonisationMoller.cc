@@ -12,6 +12,7 @@ VECPHYS_CUDA_HEADER_HOST
 IonisationMoller::IonisationMoller(Random_t* states, int tid) 
   : EmModelBase<IonisationMoller>(states,tid)
 {
+  fDeltaRayThreshold = 1.0*MeV; //temporary: should be set from a cut table 
   SetLowEnergyLimit(0.1*keV);
   BuildAliasTable();
 }
@@ -50,8 +51,8 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
     double x = exp(logxmin + dx*i);
 
     //e-e- (Moller) only for now
-    double ymin = 0.1*keV; // minimum delta-ray energy which should be setable
-    double dy = (x/2.0 - ymin)/(fNcol-1); //maximum x/2.0
+    double ymin = fDeltaRayThreshold; //minimum delta-ray energy
+    double dy = (x/2.0 - ymin)/fNcol; //maximum x/2.0
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
@@ -90,6 +91,7 @@ IonisationMoller::CalculateDiffCrossSection(int Zelement,
   double tau = kineticEnergy/electron_mass_c2;
   double gam = tau + 1.0;
   double gamma2 = gam*gam;
+
   double epsil = deltaRayEnergy/kineticEnergy;
 
   //Moller (e-e-) scattering only
@@ -99,7 +101,7 @@ IonisationMoller::CalculateDiffCrossSection(int Zelement,
   double x = 1/epsil;
   double y = 1/(1.0-epsil);
 
-  dcross = (1-fgam + x*(x-fgam) + y*y*fgam);
+  dcross = 1-fgam + x*(x-fgam) + y*(y-fgam);
 
   return dcross;
 }
@@ -111,7 +113,7 @@ IonisationMoller::GetG4CrossSection(double kineticEnergy,
   G4double cross = 0.0;
 
   //temporary - set by material
-  G4double cutEnergy = 0.1*keV;
+  G4double cutEnergy = fDeltaRayThreshold;
   G4double maxEnergy = 1.0*TeV;
 
   G4double tmax =  0.5*kineticEnergy;
@@ -145,7 +147,7 @@ IonisationMoller::SampleByCompositionRejection(int     Z, //not used
                                                double& sinTheta)
 {
   //temporary - set by material
-  G4double cutEnergy = 1.0*MeV;
+  G4double cutEnergy = fDeltaRayThreshold;
   G4double maxEnergy = 1.0*TeV;
 
   //based on G4MollerBhabhaModel::SampleSecondaries
@@ -154,6 +156,7 @@ IonisationMoller::SampleByCompositionRejection(int     Z, //not used
   G4double tmax = 0.5*kineticEnergy; 
 
   if(maxEnergy < tmax) { tmax = maxEnergy; }
+
   if(tmin >= tmax) { return; }
 
   G4double energy = kineticEnergy + electron_mass_c2;

@@ -73,6 +73,7 @@ private:
   friend class EmModelBase<IonisationMoller>;
 
 private:
+  double fDeltaRayThreshold; //delta-ray threshold
 };
 
 //Implementation
@@ -92,7 +93,7 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy,
   if(Backend::early_returns && IsFull(belowLimit)) return;  
 
   //delta-ray cuff-off (material dependent) use 1.0*keV temporarily
-  Double_t tmin = 1.0*keV;
+  Double_t tmin = fDeltaRayThreshold;
   Double_t tmax = 0.5*energy;
   
   Double_t xmin  = tmin/energy;
@@ -136,7 +137,7 @@ IonisationMoller::InteractKernel(typename Backend::Double_t  energyIn,
   Index_t   index = fNcol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
-  Double_t mininumE = 0.1*keV;
+  Double_t mininumE = fDeltaRayThreshold;
   Double_t deltaE = energyIn/2.0 - mininumE;
 
   energyOut = mininumE 
@@ -156,7 +157,7 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_t energyIn,
   //angle of the scatterred electron
 
   Double_t energy = energyIn + electron_mass_c2;
-  Double_t totalMomentum = sqrt(energyIn*(energy + electron_mass_c2));
+  Double_t totalMomentum = sqrt(energyIn*(energyIn + electron_mass_c2));
 
   Double_t deltaMomentum = sqrt(energyOut * (energyOut + 2.0*electron_mass_c2));
   Double_t cost =  energyOut * (energy + electron_mass_c2) /
