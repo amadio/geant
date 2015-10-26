@@ -92,6 +92,7 @@ public:
   float fPriorityThr;                /** Threshold for prioritizing events */
 
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
+  double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */
   double fNaverage;  /** Average number of tracks per event */
   double fVertex[3]; /** Vertex position */
   double fEmin;      /** Min energy threshold */

@@ -745,7 +745,8 @@ void *WorkloadManager::GarbageCollectorThread() {
   WorkloadManager *wm = WorkloadManager::Instance();
   int nthreads = propagator->fNthreads;
   double threshold = propagator->fMaxRes;
-  if (threshold == 0)
+  double virtlimit = propagator->fMaxVirt;
+  if (threshold == 0 && virtlimit == 0)
     return 0;
   //  condition_locker &gbc_locker = wm->GetGbcLocker();
   while (1) {
@@ -755,9 +756,16 @@ void *WorkloadManager::GarbageCollectorThread() {
     // todo: cleaning with thread based recycle queues
     gSystem->GetProcInfo(&procInfo);
     rss = procInfo.fMemResident / MByte;
-    //    Printf("### Checking mem: %g MBytes", rss);
-    if (rss > threshold && (rss / rsslast > thr_increase)) {
+    double vsize = procInfo.fMemVirtual / MByte;
+    Printf("### Checking mem: %g MBytes", rss);
+    bool needClean = false;
+    if (threshold && rss > threshold && (rss / rsslast > thr_increase)) {
       rsslast = rss;
+      needClean = true;
+    } else if (virtlimit && vsize > virtlimit) {
+      needClean = true;
+    }
+    if (needClean) {
       for (int tid = 0; tid < nthreads; tid++) {
         GeantTaskData *td = propagator->fThreadData[tid];
         td->SetToClean(true);
