@@ -470,12 +470,14 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    WorkloadManager *mgr = WorkloadManager::Instance();
    GeantScheduler *sch = mgr->GetScheduler();
    condition_locker &sched_locker = mgr->GetSchLocker();
+   GeantTrack_v &output = *fGeantTaskData->fTransported;
+   //GeantTrack_v &output = *fOutputBasket->GetInputTracks();
 
-   if (fOutputBasket->GetInputTracks().GetNtracks() > fOutputBasket->GetInputTracks().Capacity())
+   if (output.GetNtracks() > output.Capacity())
       Fatal("CoprocessorBroker::TaskData::TrackToHost","Request size in output track buffer is too large ( %d > %d )",
-            fOutputBasket->GetInputTracks().GetNtracks(), fOutputBasket->GetInputTracks().Capacity());
+            output.GetNtracks(), output.Capacity());
 
-   GeantTrack_v &transferTo( fOutputBasket->GetInputTracks() );
+   GeantTrack_v &transferTo( output );
    FromDeviceConversion(&transferTo, fDevTrackOutput);
 
    // Fix the navigation state pointers in the output basket
@@ -494,8 +496,9 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    {
       GeantPropagator *propagator = GeantPropagator::Instance();
       auto td = fGeantTaskData;
-      GeantTrack_v &output = *td->fTransported;
       auto basket = fOutputBasket;
+      //GeantTrack_v &output = *td->fTransported;
+      //GeantTrack_v &output = *fOutputBasket->GetInputTracks();
       auto ntotnext = 0;
       Material_t *mat = nullptr;
 
@@ -577,16 +580,16 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    int ntot = 0;
    int nnew = 0;
    int nkilled = 0;
-   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, fOutputBasket->GetInputTracks().GetNtracks(),transferTo.fHoles->CountBits(),fOutputBasket->GetInputTracks().fHoles->CountBits());
-   /* int ninjected = */ sch->AddTracks(fOutputBasket->GetInputTracks(), ntot, nnew, nkilled, fGeantTaskData);
+   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, output.GetNtracks(),transferTo.fHoles->CountBits(),output.fHoles->CountBits());
+   /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
    (void)nkilled;
    //mgr->TransportedQueue()->push(fBasket);
    sched_locker.StartOne();
-   // fOutputBasket->Recycle();
+   // fOutputBasket->Recycle(td);
    // fOutputBasket = 0;
-   fOutputBasket->Clear();
+   // fOutputBasket->Clear();
    fThreadId = -1;
    return fNStaged;
 }
@@ -651,7 +654,7 @@ void ClearTrack_v(cudaStream_t /* stream */, cudaError_t status, void *userData)
 void FromDeviceTrackConversion(cudaStream_t /* stream */, cudaError_t status, void *userData)
 {
    CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
-   FromDeviceConversion(&(helper->fOutputBasket->GetInputTracks()), helper->fDevTrackOutput);
+   FromDeviceConversion(helper->fGeantTaskData->fTransported, helper->fDevTrackOutput);
 }
 
 CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
@@ -702,7 +705,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
-   FromDevice(&(stream->fOutputBasket->GetInputTracks()), stream->fDevTrackOutput, *stream);
+   FromDevice(stream->fGeantTaskData->fTransported, stream->fDevTrackOutput, *stream);
 
    Clear_gpu(stream->fDevTrackOutput, 1, 1, *stream);
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, TrackToHost, stream, 0 ));
