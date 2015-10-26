@@ -147,7 +147,7 @@ void WorkloadManager::StartThreads() {
       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
               fNthreads);
     }
-    Printf("Running with a coprocessor broker.");
+    Printf("Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
     fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
     ith += fBroker->GetNstream() + 1;
   }
