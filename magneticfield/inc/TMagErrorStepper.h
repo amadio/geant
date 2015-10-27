@@ -24,8 +24,8 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
         TMagErrorStepper( T_Equation *EqRhs,
                           unsigned int integrationOrder,   // Make it a template Parameter ??
-                         unsigned int numberOfVariables, 
-                         int numStateVariables) // = -1)  // No default -- must ensure order is set
+                          unsigned int numberOfVariables,   // Redundant -- to be DELETED
+                          int numStateVariables) // = -1)  // No default -- must ensure order is set
             : GUVIntegrationStepper(
                   EqRhs,
                   integrationOrder,      
