@@ -84,9 +84,13 @@ class GUVIntegrationStepper
         // As some steppers require access to other methods of Eq_of_Mot
         void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
 
-        // void InitializeCharge(double particleCharge) {
-        //   GetEquationOfMotion()->InitializeCharge(particleCharge); }
-        // void InvalidateParameters() final { GetEquationOfMotion()->InformDone();}
+        virtual void InitializeCharge(double particleCharge) {
+               GetEquationOfMotion()->InitializeCharge(particleCharge); }
+           // Some steppers may need the value(s) / or status - they can intercept        
+
+        void InformDone() { GetEquationOfMotion()->InformDone();}
+          // InvalidateParameters()
+
     private:
 
         GUVIntegrationStepper(const GUVIntegrationStepper&);
