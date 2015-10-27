@@ -17,6 +17,14 @@
 #ifndef TMAGFIELDEQUATION_H
 #define TMAGFIELDEQUATION_H  1
 
+#include "Units.h"     
+//  Update to GeantV units ASAP
+using fieldUnits::meter;   
+using fieldUnits::second;  
+using fieldUnits::c_light;
+using fieldUnits::eplus;  
+// using fieldUnits::tesla;
+
 template 
 <class Field, unsigned int Size>
 class TMagFieldEquation : public GUVEquationOfMotion
@@ -24,10 +32,6 @@ class TMagFieldEquation : public GUVEquationOfMotion
    public:
      typedef Field T_Field;
      static const unsigned int  N   = Size;
-     static constexpr double meter   = 100.0; // ASSUME centimeter native unit
-     static constexpr double second  = 1.0;   // ASSUME second  is native unit
-     static constexpr double c_light = 2.99792458e+8 * meter/second; // Units TBC
-     static constexpr double eplus   = 1.0 ;   // Units TBC
      static constexpr double fCof    = eplus * c_light ;
    
      TMagFieldEquation(T_Field* pF) : GUVEquationOfMotion(pF) { fPtrField = pF; }
