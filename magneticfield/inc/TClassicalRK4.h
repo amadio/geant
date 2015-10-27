@@ -45,7 +45,7 @@ class TClassicalRK4 : public  TMagErrorStepper
  
   public:
         __attribute__((always_inline)) 
-        int IntegratorOrder() const { return 4; }
+        int IntegratorOrder() const { return OrderRK4; }
 
   private:
         TClassicalRK4(const TClassicalRK4&);
@@ -92,7 +92,6 @@ template <class T_Equation, int N>
    // which returns derivatives dydx at x. The source is routine rk4 from
    // NRC p. 712-713 .
 {
-
    int i;
    double  hh = h*0.5 , h6 = h/6.;
    

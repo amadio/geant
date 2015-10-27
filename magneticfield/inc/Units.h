@@ -40,6 +40,7 @@ namespace fieldUnits
    static const double degree = (pi/180.0)*radian;
    
    // To be moved into Constants.h etc
-   static constexpr double c_light = 2.99792458e+8 * meter/second;
+   static constexpr double c_light  = 2.99792458e+8 * meter/second;
+   static constexpr double c_light2 = c_light * c_light;
 }
 #endif

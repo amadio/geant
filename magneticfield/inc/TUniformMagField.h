@@ -11,6 +11,9 @@
 #include "ThreeVector.h"  // Or whatever defines such a class
 #include "Constants.h"  //   For pi & twopi - Temporary solution ..
 
+using fieldConstants::pi;
+using fieldConstants::twopi;
+
 class TUniformMagField : public GUVMagneticField
 
 {
