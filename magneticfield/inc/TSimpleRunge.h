@@ -4,27 +4,29 @@
 #include "TMagErrorStepper.h"
 #include "ThreeVector.h"
 
-#define  Nmax_SR   12
+
 // #define  INTEGRATOR_CORRECTION   (1./((1<<2)-1))
 
 template
-<class T_Equation, int N>
+<class T_Equation, int Nvar>
 class TSimpleRunge : public TMagErrorStepper            
-                     <TSimpleRunge<T_Equation, N>, T_Equation, N>
+                     <TSimpleRunge<T_Equation, Nvar>, T_Equation, Nvar>
 {
 
     public:  // with description
-
-        // static  const double IntegratorCorrection = 1./((1<<2)-1);
-        inline  double IntegratorCorrection() { return  1./((1<<2)-1); } 
-        // const   int    Nmax=12; 
+        static constexpr unsigned int OrderSimpleR= 2;
+        static const     unsigned int Nmax_SR= 12;
+        // static constexpr double IntegratorCorrectionFactor = 1./((1<<OrderSimpleR)-1);
+        inline  double IntegratorCorrection() { return  1./((1<<OrderSimpleR)-1); }
+        // const   int    Nmax=12;
+        
         TSimpleRunge(T_Equation* EqRhs, 
-                     int numberOfVariables = 6)
+                     int numStateVar = -1)
             :
               TMagErrorStepper
-                 <TSimpleRunge<T_Equation, N>, T_Equation, N>
-                  (EqRhs, numberOfVariables),
-              fNumberOfVariables(numberOfVariables),
+                 <TSimpleRunge<T_Equation, Nvar>, T_Equation, Nvar>
+                 (EqRhs, OrderSimpleR, Nvar, numStateVar > 0 ? numStateVar : Nvar ),
+              fNumberOfStateVariables(numStateVar),
               fEquation_Rhs(EqRhs)
         {
             //default GetNumberOfStateVariables() == Nmax_SR 
@@ -43,7 +45,7 @@ class TSimpleRunge : public TMagErrorStepper
 
         __attribute__((always_inline)) 
         void
-        DumbStepper( const double  yIn[],
+        StepWithoutErrorEst( const double  yIn[],
                      const double  dydx[],
                      double  h,
                      double  yOut[])
@@ -53,14 +55,14 @@ class TSimpleRunge : public TMagErrorStepper
 
             int i;
 
-            for( i = 0; i < N; i++ ) 
+            for( i = 0; i < Nvar; i++ )
             {
                 yTemp[i] = yIn[i] + 0.5 * h*dydx[i] ;
             }
 
             this->RightHandSide(yTemp,dydxTemp);
 
-            for( i = 0; i < N; i++ ) 
+            for( i = 0; i < Nvar; i++ )
             {
                 yOut[i] = yIn[i] + h * ( dydxTemp[i] );
             }
@@ -70,13 +72,13 @@ class TSimpleRunge : public TMagErrorStepper
 
         __attribute__((always_inline)) 
         int  
-        IntegratorOrder() const { return 2; }
+        IntegratorOrder() const { return OrderSimpleR; }
 
     private:
 
-        int fNumberOfVariables ;
-        double dydxTemp[N>Nmax_SR?N:Nmax_SR];
-        double    yTemp[N>Nmax_SR?N:Nmax_SR];
+        int fNumberOfStateVariables ;
+        double dydxTemp[ Nvar>Nmax_SR ? Nvar : Nmax_SR ];
+        double    yTemp[ Nvar>Nmax_SR ? Nvar : Nmax_SR ];
 
         T_Equation *fEquation_Rhs;
         // scratch space    
