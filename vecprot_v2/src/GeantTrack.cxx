@@ -2657,11 +2657,12 @@ Volume_t const*GeantTrack_v::GetNextVolume(int i) const {
 Volume_t const*GeantTrack_v::GetVolume(int i) const {
   // Current volume the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
-  assert(fVindexV[i] == fPathV[i]->Top()->GetLogicalVolume()->id());
+// The check below not needed anymore - everything got from path
+//  assert(fVindexV[i] == fPathV[i]->Top()->GetLogicalVolume()->id());
   return fPathV[i]->Top()->GetLogicalVolume();
 #else
   // TODO: get rid of fVindexV
-  return ((Volume_t *)gGeoManager->GetListOfVolumes()->At(fVindexV[i]));
+  return (fPathV[i]->GetCurrentNode()->GetVolume());
 #endif
 }
 

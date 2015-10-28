@@ -230,7 +230,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
 #endif
     int ivol = basket_mgr->GetNumber();
-    tracks.fVindexV[itr] = ivol;
+//    tracks.fVindexV[itr] = ivol;
     fNstvol[ivol]++;
     long nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
