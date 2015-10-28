@@ -1,0 +1,30 @@
+Development history of GUTracking
+
+Oct. 28, 2016 
+
+1) Remove data members associated with the alias sampling method (fMinX, fMaxX,
+   fNrow, fNcol, fMaxZelement) from EmModelBase. Each model should instantiate
+   GUAliasSampler and responsible for setting up alias parameters if and only if
+   the alias method is selected.
+2) Introduce an alternative sampling method based on Geant4 composition and 
+   rejection methods in which sequential operations are used for the 
+   non-vectoriable part (i.e., do-while loop).
+
+Oct. 16, 2016
+
+1) Introduced a linear interpolation within the bin using the original p.d.f of 
+   the alias table (based on the article, "Extending the alias Monte Carlo 
+   sampling method to general distributions" by Arthur L. Edwards, James A.
+   Rathkopf, and Robert K. Smidt, (1991).
+2) Use the average value of the differential cross section for a given bin 
+   when building p.d.f. 
+
+Aug, 2016
+
+1) Introduce Power2Divisor for an efficient bin manipulation
+
+July, 2016
+
+1) Introduce the static polymorphism for derived physics models from the base
+   class EmModelBase.
+2) Add a kernel for calculating the total cross section for each physics model.
