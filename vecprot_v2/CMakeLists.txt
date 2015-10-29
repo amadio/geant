@@ -70,7 +70,6 @@ target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom)
 if( VECGEOM_FOUND )
   target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
-   message("VECGEOM_GEANT4 ${VECGEOM_GEANT4}")
    if (VECGEOM_GEANT4)
       find_package(Geant4 REQUIRED gdml)
       include(${Geant4_USE_FILE})
