@@ -65,12 +65,19 @@ if (CUDA)
 else()
   add_library(Geant_v SHARED ${sources} G__Geant.cxx)
 
+target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom)
+
 if( VECGEOM_FOUND )
-  target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-  # Bug in VC (?), cannot compile without optimisation
-  #set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_FLAGS_DEBUG} -O0")
-else()
-  target_link_libraries(Geant_v ${ROOT_LIBRARIES} -lEG -lGeom )
+  target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+
+   message("VECGEOM_GEANT4 ${VECGEOM_GEANT4}")
+   if (VECGEOM_GEANT4)
+      find_package(Geant4 REQUIRED gdml)
+      include(${Geant4_USE_FILE})
+      message(${Geant4_INCLUDE_DIRS})
+      include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
+      target_link_libraries(Geant_v ${Geant4_LIBRARIES})
+   endif()
 endif()
 
 add_custom_target(Geantlib_v DEPENDS Geant_v)
