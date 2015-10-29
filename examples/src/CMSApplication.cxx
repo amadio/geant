@@ -80,10 +80,16 @@ bool CMSApplication::Initialize() {
   TString svol, smat;
   int necal = 0;
   int nhcal = 0;
-  for (int ivol = 0; ivol < nvolumes; ++ivol) {
-    vol = lvolumes[ivol];
+  int ivol = 0;
+  for (int i = 0; i < nvolumes; ++i) {
+    vol = lvolumes[i];
     if (!vol) break;
     svol = vol->GetName();
+#ifdef USE_VECGEOM_NAVIGATOR
+    ivol = vol->id();
+#else
+    ivol = vol->GetNumber();
+#endif
     // ECAL cells
     if (svol.BeginsWith("EBRY") || svol.BeginsWith("EFRY")) {
       fSensFlags[ivol] = true;
