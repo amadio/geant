@@ -196,7 +196,7 @@ IonisationMoller::SampleByCompositionRejection(int     Z, //not used
 
   deltaKinEnergy = x * kineticEnergy;
 
-  G4double totalMomentum = sqrt(kineticEnergy*(kineticEnergy + electron_mass_c2));
+  G4double totalMomentum = sqrt(kineticEnergy*(kineticEnergy + 2.0*electron_mass_c2));
 
   G4double deltaMomentum =
     sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));

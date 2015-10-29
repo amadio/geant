@@ -230,7 +230,7 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_t  kineticEnergy,
 
   deltaKinEnergy = x * kineticEnergy;
 
-  Double_t totalMomentum = Sqrt(kineticEnergy*(kineticEnergy + electron_mass_c2));
+  Double_t totalMomentum = Sqrt(kineticEnergy*(kineticEnergy + 2.0*electron_mass_c2));
 
   Double_t deltaMomentum =
     Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));
