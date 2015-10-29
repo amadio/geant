@@ -29,6 +29,9 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~ConversionBetheHeitler(){}
 
+  VECPHYS_CUDA_HEADER_HOST
+  void Initialization();
+
   //interfaces for tables
   VECPHYS_CUDA_HEADER_HOST 
   void BuildCrossSectionTablePerAtom(int Z);
@@ -50,6 +53,13 @@ public:
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
+
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelCR(typename Backend::Double_t energyIn, 
+                   typename Backend::Index_t   zElement,
+                   typename Backend::Double_t& energyOut,
+                   typename Backend::Double_t& sinTheta);
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -122,7 +132,8 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t aliasInd;
 
   //this did not used to work - Fixed SW
-  Index_t   index = fNcol*irow + icol;
+  Double_t ncol(fAliasSampler->GetSamplesPerEntry());
+  Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t mininumE = electron_mass_c2;
@@ -255,6 +266,18 @@ CrossSectionKernel(typename Backend::Double_t energy,
   MaskedAssign( check, 0., &sigma );
 
   return sigma*microbarn;
+}
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_t  energyIn, 
+                                         typename Backend::Index_t   zElement,
+                                         typename Backend::Double_t& energyOut,
+                                         typename Backend::Double_t& sinTheta)
+{
+  //dummy for now
+  energyOut = 0.0;
+  sinTheta = 0.0;
 }
 
 } // end namespace impl

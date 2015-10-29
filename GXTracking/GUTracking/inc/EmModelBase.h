@@ -9,6 +9,7 @@
 
 #include "GUTrack.h"
 #include "GUAliasSampler.h"
+#include "SamplingMethod.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -26,6 +27,9 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH 
   ~EmModelBase();
+
+  VECPHYS_CUDA_HEADER_HOST
+  void Initialization();
 
   VECPHYS_CUDA_HEADER_HOST
   void BuildCrossSectionTable();
@@ -78,6 +82,11 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
 
+  VECPHYS_CUDA_HEADER_BOTH
+  void SetSamplingMethod(SamplingMethod type) { fSampleType = type; }
+
+  VECPHYS_CUDA_HEADER_BOTH
+  SamplingMethod GetSamplingMethod() { return fSampleType; }
 
 protected:
   // Auxiliary methods
@@ -86,12 +95,6 @@ protected:
 
   VECPHYS_CUDA_HEADER_BOTH
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetNrow(int irow ) { fNrow = irow; }
-
-  VECPHYS_CUDA_HEADER_BOTH
-  void SetNcol(int icol ) { fNcol = icol; }
 
   VECPHYS_CUDA_HEADER_BOTH double 
   ComputeCoulombFactor(double fZeff);
@@ -124,13 +127,11 @@ protected:
   double    fLowEnergyLimit;  
   double    fHighEnergyLimit;  
 
-  //Sampling Tables
+  //Sampling methods
+  SamplingMethod  fSampleType;
+
+  //Alias sampling Tables
   GUAliasSampler* fAliasSampler; 
-  Precision fMinX; // lower bound of the sampling variable
-  Precision fMaxX; // upper bound of the sampling variable
-  int       fNrow; // number of input energy bins of the alias table
-  int       fNcol; // number of output energy bins of the alias table
-  Precision fMaxZelement; 
 };
 
 //Implementation
@@ -138,22 +139,16 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
   : fRandomState(states), fThreadId(tid), 
-    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(1.0*TeV),
-    fMinX(1.e-4),  fMaxX(1.e+6),  
-    fNrow(100), fNcol(100),
-    fMaxZelement(maximumZ)
+    fSampleType(kAlias),
+    fAliasSampler(0) 
 {
-  fAliasSampler = 0;
 }
 
 template <class EmModel>
 VECPHYS_CUDA_HEADER_BOTH 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
   : fRandomState(states), fThreadId(tid), 
-    fLowEnergyLimit(0.1*keV), fHighEnergyLimit(1.0*TeV),
-    fMinX(1.e-4),  fMaxX(1.e+6), 
-    fNrow(100), fNcol(100),
-    fMaxZelement(maximumZ)
+    fSampleType(kAlias)
 {
   fAliasSampler = sampler; 
 }
@@ -170,7 +165,7 @@ VECPHYS_CUDA_HEADER_HOST
 void EmModelBase<EmModel>::BuildCrossSectionTable() 
 { 
   //dummy interface for now
-  for( int z= 1 ; z < fMaxZelement; ++z)
+  for( int z= 1 ; z < fAliasSampler->GetMaxZelement() ; ++z)
   {
     static_cast<EmModel*>(this)->BuildCrossSectionTablePerAtom(z); 
   }
@@ -180,16 +175,18 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
 void EmModelBase<EmModel>::BuildAliasTable() 
 { 
+  //move to model
   //replace hard coded numbers by default constants
-  fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fMaxZelement,
-                                     fMinX, fMaxX, fNrow, fNcol);
+  //  fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fMaxZelement,
+  //                                     fMinX, fMaxX, fNrow, fNcol);
 
-  //temporary array
-  double *pdf = new double [(fNrow+1)*fNcol];
-  for( int z= 1 ; z < fMaxZelement; ++z)
+  size_t sizeOfTable = (fAliasSampler->GetNumEntries()+1)*fAliasSampler->GetSamplesPerEntry();
+  double *pdf = new double [sizeOfTable];
+  
+  for( int z= 1 ; z < fAliasSampler->GetMaxZelement(); ++z)
   {
     static_cast<EmModel*>(this)->BuildPdfTable(z,pdf); 
-    fAliasSampler->BuildAliasTable(z,fNrow,fNcol,pdf);
+    fAliasSampler->BuildAliasTable(z,pdf);
   }
   delete [] pdf;
 }
@@ -218,7 +215,20 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
   double energyIn= inProjectile.E;
   double energyOut, sinTheta;
 
-  static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,targetElement,energyOut,sinTheta);
+  //eventually there will be no switch as we select one Kernel for each model
+  switch(fSampleType) {
+    case SamplingMethod::kAlias :
+      static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,targetElement,energyOut,sinTheta);
+      break;
+    case SamplingMethod::kRejection :
+        static_cast<EmModel*>(this)-> template InteractKernelCR<Backend>(energyIn,targetElement,energyOut,sinTheta);
+      break;
+    case SamplingMethod::kUnpack :
+      ;
+      break;
+    default :
+      ;
+  }
 
   //update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
@@ -279,11 +289,24 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     Double_t px(&inProjectile.px[ibase]);
     Double_t py(&inProjectile.py[ibase]);
     Double_t pz(&inProjectile.pz[ibase]);
-    Double_t sinTheta;
+    Double_t sinTheta(0.);
     Double_t energyOut;
     Index_t  zElement(targetElements[ibase]);
 
-    static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
+    //eventually there will be no switch as we select one Kernel for each model
+    switch(fSampleType) {
+      case SamplingMethod::kAlias :
+        static_cast<EmModel*>(this)-> template InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
+        break;
+      case SamplingMethod::kRejection :
+        static_cast<EmModel*>(this)-> template InteractKernelCR<Backend>(energyIn,zElement,energyOut,sinTheta);
+        break;
+      case SamplingMethod::kUnpack :
+        ;
+        break;
+      default :
+        ;
+    }
 
     //need to rotate the angle with respect to the line of flight
     Double_t invp = 1./energyIn;

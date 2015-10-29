@@ -14,7 +14,9 @@ IonisationMoller::IonisationMoller(Random_t* states, int tid)
 {
   fDeltaRayThreshold = 1.0*MeV; //temporary: should be set from a cut table 
   SetLowEnergyLimit(0.1*keV);
-  BuildAliasTable();
+
+  Initialization();
+
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
@@ -23,6 +25,16 @@ IonisationMoller::IonisationMoller(Random_t* states, int tid,
   :  EmModelBase<IonisationMoller>(states,tid,sampler)
 {
   SetLowEnergyLimit(0.1*keV);
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
+IonisationMoller::Initialization()
+{
+  if(fSampleType == kAlias) {
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+				       1.e-4, 1.e+6, 100, 100);
+    BuildAliasTable();
+  }
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
@@ -38,38 +50,41 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
   // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number) - not used for the atomic independent model
-  // output :  p[fNrow][fNcol] (probability distribution) 
+  // output :  p[nrow][ncol] (probability distribution) 
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  double logxmin = log(fMinX);
-  double dx = (log(fMaxX) - logxmin)/fNrow;
+  const int nrow = fAliasSampler->GetNumEntries();
+  const int ncol = fAliasSampler->GetSamplesPerEntry();
+
+  double logxmin = log(fAliasSampler->GetIncomingMin());
+  double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
   //  double xo =  fMinX + 0.5*dx;
 
-  for(int i = 0; i <= fNrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     //e-e- (Moller) only for now
     double ymin = fDeltaRayThreshold; //minimum delta-ray energy
-    double dy = (x/2.0 - ymin)/fNcol; //maximum x/2.0
+    double dy = (x/2.0 - ymin)/ncol; //maximum x/2.0
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
-    for(int j = 0; j < fNcol ; ++j) {
+    for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
       double xsec = CalculateDiffCrossSection(Z,x,y);
-      p[i*fNcol+j] = xsec;
+      p[i*ncol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < fNcol ; ++j) {
-      p[i*fNcol+j] *= sum;
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
     }
   }
 }

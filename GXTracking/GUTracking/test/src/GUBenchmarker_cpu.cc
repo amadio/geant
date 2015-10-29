@@ -8,6 +8,7 @@
 #include "PhotoElectronSauterGavrila.h"
 #include "IonisationMoller.h"
 #include "BremSeltzerBerger.h"
+#include "SamplingMethod.h"
 
 namespace vecphys {
 
@@ -16,9 +17,11 @@ namespace vecphys {
 Precision ScalarKleinNishina(int ntracks, 
 	                     GUTrack* itrack_aos,
 			     int *targetElements,
-			     GUTrack* otrack_aos)
+			     GUTrack* otrack_aos,
+                             SamplingMethod sampleType)
 {
   static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -43,9 +46,11 @@ Precision ScalarKleinNishina(int ntracks,
 Precision ScalarBetheHeitler(int ntracks, 
 			     GUTrack* itrack_aos,
 			     int *targetElements,
-			     GUTrack* otrack_aos)
+			     GUTrack* otrack_aos,
+                             SamplingMethod sampleType)
 {
   static vecphys::cxx::ConversionBetheHeitler model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -64,9 +69,11 @@ Precision ScalarBetheHeitler(int ntracks,
 Precision ScalarSauterGavrila(int ntracks, 
 			      GUTrack* itrack_aos,
 			      int *targetElements,
-			      GUTrack* otrack_aos)
+			      GUTrack* otrack_aos,
+                              SamplingMethod sampleType)
 {
   static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -85,9 +92,11 @@ Precision ScalarSauterGavrila(int ntracks,
 Precision ScalarMollerBhabha(int ntracks, 
 			     GUTrack* itrack_aos,
 			     int *targetElements,
-			     GUTrack* otrack_aos)
+			     GUTrack* otrack_aos,
+                             SamplingMethod sampleType)
 {
   static vecphys::cxx::IonisationMoller model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -106,9 +115,11 @@ Precision ScalarMollerBhabha(int ntracks,
 Precision ScalarSeltzerBerger(int ntracks, 
 			      GUTrack* itrack_aos,
 			      int *targetElements,
-			      GUTrack* otrack_aos)
+			      GUTrack* otrack_aos,
+                              SamplingMethod sampleType)
 {
   static vecphys::cxx::BremSeltzerBerger model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -128,9 +139,11 @@ Precision ScalarSeltzerBerger(int ntracks,
 
 Precision VectorKleinNishina(GUTrack_v& itrack_soa,
 			     int *targetElements,
-			     GUTrack_v& otrack_soa)
+			     GUTrack_v& otrack_soa,
+                             SamplingMethod sampleType)
 {
   static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -159,9 +172,11 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
 
 Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
 			     int *targetElements,
-			     GUTrack_v& otrack_soa)
+			     GUTrack_v& otrack_soa,
+                             SamplingMethod sampleType)
 {
   static vecphys::cxx::ConversionBetheHeitler model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -178,9 +193,12 @@ Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
 
 Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
 			      int *targetElements,
-			      GUTrack_v& otrack_soa)
+			      GUTrack_v& otrack_soa,
+                              SamplingMethod sampleType)
+
 {
   static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -197,9 +215,11 @@ Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
 
 Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
 			     int *targetElements,
-			     GUTrack_v& otrack_soa)
+			     GUTrack_v& otrack_soa,
+                             SamplingMethod sampleType)
 {
   static vecphys::cxx::IonisationMoller model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -216,9 +236,11 @@ Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
 
 Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
 			      int *targetElements,
-			      GUTrack_v& otrack_soa)
+			      GUTrack_v& otrack_soa,
+                              SamplingMethod sampleType)
 {
   static vecphys::cxx::BremSeltzerBerger model(0,-1);
+  model.SetSamplingMethod(sampleType);
 
   Precision elapsedTime = 0.0;
   static Stopwatch timer;

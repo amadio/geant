@@ -15,6 +15,8 @@
 #include "Physics2DVector.h"
 #include "GUTrackHandler.h"
 
+#include "SamplingMethod.h"
+
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
 #endif
@@ -47,32 +49,39 @@ void GUBenchmarker::RunCuda()
   GUAliasTableManager** tableM_h = 
     (GUAliasTableManager**) malloc(kNumberPhysicsModel*sizeof(GUAliasTableManager*)); 
 
+  //  if(KleinNishina->GetSamplingMethod() == SamplingMethod::kAlias) 
   tableM_h[kKleinNishina]  = KleinNishina->GetSampler()->GetAliasTableManager();
+
+  //  if(BetheHeitler->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kBetheHeitler]  = BetheHeitler->GetSampler()->GetAliasTableManager();
+
+  //  if(SauterGavrila->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kSauterGavrila] = SauterGavrila->GetSampler()->GetAliasTableManager();
+
+  //  if(MollerBhabha->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kMollerBhabha]  = MollerBhabha->GetSampler()->GetAliasTableManager();
+
+  //  if(SeltzerBerger->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kSeltzerBerger] = SeltzerBerger->GetSampler()->GetAliasTableManager();
+
   GUAliasTableManager** tableM_d;
   cudaMalloc((void**)&tableM_d,kNumberPhysicsModel*sizeof(GUAliasTableManager*));
 
   //  KleinNishina->GetSampler()->PrintTable();
   
-
   GUAliasTableManager* temp_d[kNumberPhysicsModel];
   for(int i = 0 ; i < kNumberPhysicsModel ; ++i) {
-    cudaMalloc((void**)&temp_d[i],tableM_h[i]->SizeOfManager());
-    tableM_h[i]->Relocate(temp_d[i]);
+    //    if(!tableM_h[i]) {
+      cudaMalloc((void**)&temp_d[i],tableM_h[i]->SizeOfManager());
+      tableM_h[i]->Relocate(temp_d[i]);
+      //    }
+      //    else {
+      //    }
   }
+
   cudaMemcpy(tableM_d,temp_d,sizeof(GUAliasTableManager*)*kNumberPhysicsModel,
              cudaMemcpyHostToDevice);
 
-  /*
-  GUAliasTableManager* tableM_h = model->GetSampler()->GetAliasTableManager();
-  GUAliasTableManager* tableM_d;
-  cudaMalloc((void**)&tableM_d, tableM_h->SizeOfManager());
-  tableM_h->Relocate(tableM_d);
-  */
-  
   //SeltzerBerger data
   Physics2DVector* sbData = SeltzerBerger->GetSBData();
   Physics2DVector* sbData_d;
@@ -124,7 +133,7 @@ void GUBenchmarker::RunCuda()
       elapsedT[k] = 0.0;
       elapsedT[k] = CudaKernelFunc[k](theNBlocks, theNThreads, randomStates,
                                       tableM_d,sbData_d,fNtracks, itrack_d, 
-                                      targetElements_d,otrack_d);
+                                      targetElements_d,otrack_d,fSampleType);
       elapsedTotal[k] += elapsedT[k];
 
       cudaMemcpy(itrack_aos, itrack_d, fNtracks*sizeof(GUTrack), 

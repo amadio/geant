@@ -25,6 +25,9 @@ public:
   VECPHYS_CUDA_HEADER_BOTH 
   ~ComptonKleinNishina(){}
 
+  VECPHYS_CUDA_HEADER_HOST
+  void Initialization();
+
   //interfaces for tables
   VECPHYS_CUDA_HEADER_HOST 
   void BuildCrossSectionTablePerAtom(int Z);
@@ -55,6 +58,23 @@ private:
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
+
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelCR(typename Backend::Double_t energyIn, 
+                   typename Backend::Index_t   zElement,
+                   typename Backend::Double_t& energyOut,
+                   typename Backend::Double_t& sinTheta);
+
+  template<class Backend>
+  inline
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t 
+  SampleSequential(typename Backend::Double_t E0_m,
+                   typename Backend::Double_t test,
+                   typename Backend::Double_t alpha1,
+                   typename Backend::Double_t epsil0sq,
+                   typename Backend::Double_t &sint2) const;
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -158,7 +178,8 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t aliasInd;
 
   //this did not used to work - Fixed SW
-  Index_t   index = fNcol*irow + icol;
+  Double_t ncol(fAliasSampler->GetSamplesPerEntry());
+  Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
@@ -173,6 +194,31 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
   //update the primary
 
   //  printf("icol = %d energyOut = %f %f %f %f\n",icol,energyOut,deltaE,aliasInd,probNA);   
+}    
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+ComptonKleinNishina::InteractKernelCR(typename Backend::Double_t  energyIn, 
+                                      typename Backend::Index_t   zElement,
+                                      typename Backend::Double_t& energyOut,
+                                      typename Backend::Double_t& sinTheta)
+{
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t E0_m = energyIn/electron_mass_c2;
+
+  Double_t eps0 = 1./(1. + 2.*E0_m);
+  Double_t epsilon0sq = eps0*eps0;
+  Double_t alpha1     = - log(eps0);
+  Double_t alpha2  = 0.5*(1.- epsilon0sq);
+
+  Double_t test = alpha1/(alpha1+alpha2);
+
+  Double_t sint2;
+  Double_t epsilon = SampleSequential<Backend>(E0_m,test,alpha1,epsilon0sq,sint2);
+
+  energyOut = epsilon*energyIn;
+  sinTheta = Sqrt(sint2);
 }    
 
 template<class Backend>
@@ -204,6 +250,72 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::Double_t energyIn,
   
   return sinTheta;
 }
+
+template<class Backend>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename Backend::Double_t 
+ComptonKleinNishina::SampleSequential(typename Backend::Double_t E0_m,
+                                      typename Backend::Double_t test,
+                                      typename Backend::Double_t alpha1,
+                                      typename Backend::Double_t epsil0sq,
+                                      typename Backend::Double_t &sint2) const
+{
+  typedef typename Backend::Int_t Int_t;
+  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t epsilon;
+  Double_t greject;
+
+  do {
+    Bool_t cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+    MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon); 
+    MaskedAssign(!cond, Sqrt(epsil0sq+(1.- epsil0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon); 
+
+    Double_t onecost = (1.- epsilon)/(epsilon*E0_m);
+    sint2   = onecost*(2.-onecost);
+    greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
+  } while (greject < UniformRandom<Backend>(fRandomState,Int_t(fThreadId)));
+
+  return epsilon;
+}
+
+#ifndef VECPHYS_NVCC
+template<>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename kVc::Double_t 
+ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_t E0_m,
+                                           typename kVc::Double_t test,
+                                           typename kVc::Double_t alpha1,
+                                           typename kVc::Double_t epsil0sq,
+                                           typename kVc::Double_t &sint2) const
+{
+  //  typedef typename Vc::Int_t Int_t;
+  //  typedef typename kVc::Bool_t Bool_t;
+  typedef typename kVc::Double_t Double_t;
+
+  Double_t epsilon;
+  double greject;
+
+  for(int i = 0; i < kVc::kSize ; ++i) {
+
+    do {
+      bool cond = test[i] > UniformRandom<kScalar>(fRandomState,fThreadId);
+      if(cond) epsilon[i] = Exp(-alpha1[i]*UniformRandom<kScalar>(fRandomState,fThreadId));
+      else  epsilon[i] = Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<kScalar>(fRandomState,fThreadId));           
+      
+      double onecost = (1.- epsilon[i])/(epsilon[i]*E0_m[i]);
+      sint2[i]   = onecost*(2.-onecost);
+      greject = 1. - epsilon[i]*sint2[i]/(1.+ epsilon[i]*epsilon[i]);
+    } while (greject < UniformRandom<kScalar>(fRandomState,fThreadId));
+  }
+
+  return epsilon;
+}
+#endif
 
 } // end namespace impl
 } // end namespace vecphys

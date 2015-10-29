@@ -6,6 +6,7 @@
 #include "PhotoElectronSauterGavrila.h"
 #include "IonisationMoller.h"
 #include "BremSeltzerBerger.h"
+#include "SamplingMethod.h"
 
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
@@ -17,17 +18,22 @@ inline namespace cuda {
 
 __global__
 void KernelKleinNishina(Random_t* devStates,
-                         GUAliasTableManager** table,
-                         Physics2DVector* sbData,
-			 int nTrackSize, 
-                         GUTrack* itrack, 
-			 int* targetElements, 
-			 GUTrack* otrack)
+                        GUAliasTableManager** table,
+                        Physics2DVector* sbData,
+			int nTrackSize, 
+                        GUTrack* itrack, 
+			int* targetElements, 
+			GUTrack* otrack,
+                        SamplingMethod sampleType)
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kKleinNishina]);
-  ComptonKleinNishina model(devStates,tid,&sampler);
+  ComptonKleinNishina model(devStates,tid,0);
+  model.SetSamplingMethod(sampleType);
+  if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kKleinNishina]);
+    model.SetSampler(&sampler);
+  }
 
   //  sampler.PrintTable();
 
@@ -44,12 +50,17 @@ void KernelBetheHeitler(Random_t* devStates,
 			int nTrackSize, 
                         GUTrack* itrack, 
 			int* targetElements, 
-			GUTrack* otrack)
+			GUTrack* otrack,
+                        SamplingMethod sampleType)
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kBetheHeitler]);
-  ConversionBetheHeitler model(devStates,tid,&sampler);
+  ConversionBetheHeitler model(devStates,tid,0);
+  model.SetSamplingMethod(sampleType);
+  if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kBetheHeitler]);
+    model.SetSampler(&sampler);
+  }
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -64,12 +75,17 @@ void KernelSauterGavrila(Random_t* devStates,
 			 int nTrackSize, 
                          GUTrack* itrack, 
 			 int* targetElements, 
-			 GUTrack* otrack)
+			 GUTrack* otrack,
+                         SamplingMethod sampleType)
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kSauterGavrila]);
-  PhotoElectronSauterGavrila model(devStates,tid,&sampler);
+  PhotoElectronSauterGavrila model(devStates,tid,0);
+  model.SetSamplingMethod(sampleType);
+  if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kSauterGavrila]);
+    model.SetSampler(&sampler);
+  }
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -84,12 +100,17 @@ void KernelMollerBhabha(Random_t* devStates,
 			int nTrackSize, 
                         GUTrack* itrack, 
 			int* targetElements, 
-			GUTrack* otrack)
+			GUTrack* otrack,
+                        SamplingMethod sampleType)
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kMollerBhabha]);
-  IonisationMoller model(devStates,tid,&sampler);
+  IonisationMoller model(devStates,tid,0);
+  model.SetSamplingMethod(sampleType);
+  if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kMollerBhabha]);
+    model.SetSampler(&sampler);
+  }
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -104,12 +125,17 @@ void KernelSeltzerBerger(Random_t* devStates,
 			 int nTrackSize, 
                          GUTrack* itrack, 
 			 int* targetElements, 
-			 GUTrack* otrack)
+			 GUTrack* otrack,
+                         SamplingMethod sampleType)
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-  GUAliasSampler sampler(devStates,tid,1.e-8,1.e+3,100,100,table[kSeltzerBerger]);
-  BremSeltzerBerger model(devStates,tid,&sampler,sbData);
+  BremSeltzerBerger model(devStates,tid,0,sbData);
+  model.SetSamplingMethod(sampleType);
+  if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kSeltzerBerger]);
+    model.SetSampler(&sampler);
+  }
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
@@ -129,7 +155,8 @@ Precision CudaKleinNishina(int blocksPerGrid,
 			   int nTrackSize, 
                            GUTrack* itrack, 
 			   int* targetElements, 
-			   GUTrack* otrack)
+			   GUTrack* otrack,
+                           SamplingMethod sampleType)
 {
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -138,7 +165,7 @@ Precision CudaKleinNishina(int blocksPerGrid,
 
   vecphys::cuda::KernelKleinNishina<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
-    				       itrack, targetElements,otrack);
+    				       itrack, targetElements,otrack,sampleType);
   cudaDeviceSynchronize();
 
   elapsedTime = timer.Stop();
@@ -154,7 +181,8 @@ Precision CudaBetheHeitler(int blocksPerGrid,
 			   int nTrackSize, 
                            GUTrack* itrack, 
 			   int* targetElements, 
-			   GUTrack* otrack)
+			   GUTrack* otrack,
+                           SamplingMethod sampleType)
 {
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -163,7 +191,7 @@ Precision CudaBetheHeitler(int blocksPerGrid,
 
   vecphys::cuda::KernelBetheHeitler<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
-    				       itrack, targetElements,otrack);
+    				       itrack, targetElements,otrack,sampleType);
   cudaDeviceSynchronize();
 
   elapsedTime = timer.Stop();
@@ -179,7 +207,8 @@ Precision CudaSauterGavrila(int blocksPerGrid,
 			    int nTrackSize, 
                             GUTrack* itrack, 
 			    int* targetElements, 
-			    GUTrack* otrack)
+			    GUTrack* otrack,
+                            SamplingMethod sampleType)
 {
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -188,7 +217,7 @@ Precision CudaSauterGavrila(int blocksPerGrid,
 
   vecphys::cuda::KernelSauterGavrila<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
-    				       itrack, targetElements,otrack);
+    				       itrack, targetElements,otrack,sampleType);
   cudaDeviceSynchronize();
 
   elapsedTime = timer.Stop();
@@ -204,7 +233,8 @@ Precision CudaMollerBhabha(int blocksPerGrid,
 			   int nTrackSize, 
                            GUTrack* itrack, 
 			   int* targetElements, 
-			   GUTrack* otrack)
+			   GUTrack* otrack,
+                           SamplingMethod sampleType)
 {
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -213,7 +243,7 @@ Precision CudaMollerBhabha(int blocksPerGrid,
 
   vecphys::cuda::KernelMollerBhabha<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
-    				       itrack, targetElements,otrack);
+    				       itrack, targetElements,otrack,sampleType);
   cudaDeviceSynchronize();
 
   elapsedTime = timer.Stop();
@@ -229,7 +259,8 @@ Precision CudaSeltzerBerger(int blocksPerGrid,
 			    int nTrackSize, 
                             GUTrack* itrack, 
 			    int* targetElements, 
-			    GUTrack* otrack)
+			    GUTrack* otrack,
+                            SamplingMethod sampleType)
 {
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -238,7 +269,7 @@ Precision CudaSeltzerBerger(int blocksPerGrid,
 
   vecphys::cuda::KernelSeltzerBerger<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
-    				       itrack, targetElements,otrack);
+    				       itrack, targetElements,otrack,sampleType);
   cudaDeviceSynchronize();
 
   elapsedTime = timer.Stop();

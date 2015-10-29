@@ -42,7 +42,8 @@ GUBenchmarker::GUBenchmarker()
       fRepetitions(1),
       fVerbosity(1),
       fMinP(defaultMinP),  
-      fMaxP(defaultMaxP)   
+      fMaxP(defaultMaxP),
+      fSampleType(kAlias)   
 {
   fTrackHandler = new GUTrackHandler();
 }
@@ -113,7 +114,7 @@ void GUBenchmarker::RunScalar()
       fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
       elapsedT[k] = 0.0;
       elapsedT[k] = ScalarKernelFunc[k](fNtracks,itrack_aos,targetElements,
-                                        otrack_aos);
+                                        otrack_aos,fSampleType);
       elapsedTotal[k] += elapsedT[k];
 
 #ifdef VECPHYS_ROOT
@@ -231,7 +232,8 @@ void GUBenchmarker::RunVector()
       fTrackHandler->CopySoATracks(track_soa,itrack_soa);
 
       elapsedT[k] = 0.0;
-      elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,otrack_soa);
+      elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,
+                                        otrack_soa,fSampleType);
       elapsedTotal[k] += elapsedT[k];
 
 #ifdef VECPHYS_ROOT

@@ -18,21 +18,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid)
 {
   SetLowEnergyLimit(10.*keV);
 
-  fDataSB =
-    (Physics2DVector*) malloc(maximumZ*sizeof(Physics2DVector));
-
-  char sbDataFile[256];
-
-  for(int iZ = 0 ; iZ < maximumZ ; iZ++) {  
-    sprintf(sbDataFile,"data/brem_SB/br%d",iZ+1);
-    std::ifstream fin(sbDataFile);
-    bool check = RetrieveSeltzerBergerData(fin, &fDataSB[iZ]);
-    if(!check) {
-      printf("Failed To open eltzerBerger Data file for Z= %d\n",iZ+1);
-    }
-  }
-
-  BuildAliasTable();
+  Initialization();
 
   //Geant4
   totalEnergy = currentZ = densityFactor = densityCorr = lpmEnergy = xiLPM = 
@@ -56,6 +42,30 @@ VECPHYS_CUDA_HEADER_BOTH
 BremSeltzerBerger::~BremSeltzerBerger() 
 {
   free(fDataSB);
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
+BremSeltzerBerger::Initialization()
+{
+  fDataSB =
+    (Physics2DVector*) malloc(maximumZ*sizeof(Physics2DVector));
+
+  char sbDataFile[256];
+
+  for(int iZ = 0 ; iZ < maximumZ ; iZ++) {  
+    sprintf(sbDataFile,"data/brem_SB/br%d",iZ+1);
+    std::ifstream fin(sbDataFile);
+    bool check = RetrieveSeltzerBergerData(fin, &fDataSB[iZ]);
+    if(!check) {
+      printf("Failed To open eltzerBerger Data file for Z= %d\n",iZ+1);
+    }
+  }
+
+  if(fSampleType == kAlias) {
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+				       1.e-4, 1.e+6, 100, 100);
+    BuildAliasTable();
+  }
 }
 
 VECPHYS_CUDA_HEADER_HOST bool
@@ -103,22 +113,27 @@ VECPHYS_CUDA_HEADER_HOST void
 BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (SeltzerBerger pdf) in the 
-  // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
+  // input energy randge [minX,maxX] with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number) 
-  // output :  p[fNrow][fNcol] (probability distribution) 
+  // output :  p[nrow][ncol] (probability distribution) 
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  double logxmin = log(fMinX);
-  double dx = (log(fMaxX) - logxmin)/fNrow;
+  const int nrow = fAliasSampler->GetNumEntries();
+  const int ncol = fAliasSampler->GetSamplesPerEntry();
+  const double minX = fAliasSampler->GetIncomingMin();
+  const double maxX = fAliasSampler->GetIncomingMax();
 
-  for(int i = 0; i <= fNrow ; ++i) {
+  double logxmin = log(minX);
+  double dx = (log(maxX) - logxmin)/nrow;
+
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
-    double emin = (fMinX < x) ? fMinX : x;
-    double emax = (fMaxX < x) ? fMaxX : x;
+    double emin = (minX < x) ? minX : x;
+    double emax = (maxX < x) ? maxX : x;
 
     //total energy
     double t = x + electron_mass_c2;
@@ -130,27 +145,27 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
     double ymin = log(emin*emin + dc);
     double ymax = log(emax*emax + dc);
 
-    double dy = (ymax - ymin)/(fNcol-1); 
+    double dy = (ymax - ymin)/(ncol-1); 
     double yo = ymin + 0.5*dy;
 
     double logx = log(x);
 
     double sum = 0.0;
 
-    for(int j = 0; j < fNcol ; ++j) {
+    for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = exp(yo + dy*j) - dc;
       double w = (y < 0 ) ? 0 : sqrt(y)/x;
       double xsec = CalculateDiffCrossSection(Z,w,logx);
-      p[i*fNcol+j] = xsec;
+      p[i*ncol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < fNcol ; ++j) {
-      p[i*fNcol+j] *= sum;
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
     }
   }
 }
@@ -185,8 +200,8 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   // G4SeltzerBergerModel::SampleSecondaries
   //  G4double cut  = Min(cutEnergy, kineticEnergy);
   //  G4double emax = Min(maxEnergy, kineticEnergy);
-  G4double cut  = Min(fMinX, kineticEnergy);
-  G4double emax = Min(fMaxX, kineticEnergy);
+  G4double cut  = Min(1.0*keV, kineticEnergy);
+  G4double emax = Min(1.0*TeV, kineticEnergy);
   if(cut >= emax) { return; }
  
 

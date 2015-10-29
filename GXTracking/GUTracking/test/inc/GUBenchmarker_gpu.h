@@ -5,6 +5,7 @@
 #include "base/Global.h"
 #include "GUAliasTableManager.h"
 #include "Physics2DVector.h"
+#include "SamplingMethod.h"
 
 namespace vecphys {
 
@@ -18,7 +19,8 @@ Precision CudaKleinNishina(int blocksPerGrid,
 			   int nTrackSize, 
                            GUTrack* itrack, 
 			   int* targetElements, 
-			   GUTrack* otrack);
+			   GUTrack* otrack,
+                           SamplingMethod sampleType);
 
 Precision CudaBetheHeitler(int blocksPerGrid, 
                            int threadsPerBlock,
@@ -28,7 +30,8 @@ Precision CudaBetheHeitler(int blocksPerGrid,
 			   int nTrackSize, 
                            GUTrack* itrack, 
 			   int* targetElements, 
-			   GUTrack* otrack);
+			   GUTrack* otrack,
+                           SamplingMethod sampleType);
 
 Precision CudaSauterGavrila(int blocksPerGrid, 
                             int threadsPerBlock,
@@ -38,7 +41,8 @@ Precision CudaSauterGavrila(int blocksPerGrid,
 			    int nTrackSize, 
                             GUTrack* itrack, 
 			    int* targetElements, 
-			    GUTrack* otrack);
+			    GUTrack* otrack,
+                            SamplingMethod sampleType);
 
 Precision CudaMollerBhabha(int blocksPerGrid, 
                            int threadsPerBlock,
@@ -48,7 +52,8 @@ Precision CudaMollerBhabha(int blocksPerGrid,
 			   int nTrackSize, 
                            GUTrack* itrack, 
 			   int* targetElements, 
-			   GUTrack* otrack);
+			   GUTrack* otrack,
+                           SamplingMethod sampleType);
 
 Precision CudaSeltzerBerger(int blocksPerGrid, 
                             int threadsPerBlock,
@@ -58,7 +63,8 @@ Precision CudaSeltzerBerger(int blocksPerGrid,
 			    int nTrackSize, 
                             GUTrack* itrack, 
 			    int* targetElements, 
-			    GUTrack* otrack);
+			    GUTrack* otrack,
+			    SamplingMethod sampleType);
 
 typedef Precision (*CudaKernelFunc_t)(int blocksPerGrid, 
                                       int threadsPerBlock,
@@ -68,7 +74,8 @@ typedef Precision (*CudaKernelFunc_t)(int blocksPerGrid,
 			              int nTrackSize, 
                                       GUTrack* itrack, 
 			              int* targetElements, 
-			              GUTrack* otrack);
+			              GUTrack* otrack,
+                                      SamplingMethod sampleType);
 
 CudaKernelFunc_t CudaKernelFunc[] = {CudaKleinNishina,
                                      CudaBetheHeitler, 

@@ -2,6 +2,7 @@
 #define GUBenchmarker_H 1
 
 #include "base/Global.h"
+#include "SamplingMethod.h"
 
 namespace vecphys {
 
@@ -24,6 +25,7 @@ public:
 
   void SetMinP(double pMin) { fMinP= pMin; }
   void SetMaxP(double pMax) { fMaxP= pMax; }
+  void SetSampleType(SamplingMethod type) { fSampleType = type ; }
 
   void SetMonoEnergeticBeam(double E){ SetMinP(E); SetMaxP(E); } // For gamma only now!
 
@@ -63,6 +65,7 @@ private:
   int fVerbosity;
 
   double fMinP, fMaxP;  // Minimum and Maximum momentum of primaries
+  SamplingMethod fSampleType;
 };
 
 } // end namespace vecphys

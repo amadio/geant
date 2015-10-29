@@ -87,8 +87,6 @@ void GUAliasSampler::PrintTable()
 }
 VECPHYS_CUDA_HEADER_HOST
 void GUAliasSampler::BuildAliasTable( int Zelement,
-                                      int nrow,
-                                      int ncol,
                                       const double *pdf )
 {
   // Build alias and alias probability
@@ -99,51 +97,50 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
   // "Extending the Alias Monte Carlo Sampling Method to General Distributions"
   // UCRL-JC-104791 (1991)
   //
-  // input :  nrow             (multiplicity of alias tables)
-  //          ncol             (dimension of discrete outcomes)
-  //          pdf[nrow x ncol] (probability density function)
-  // output:  a[nrow x ncol]   (alias)
-  //          q[nrow x ncol]   (non-alias probability) 
+  // input : fInNumEntries       multiplicity of alias tables)
+  //         fSampledNumEntries (dimension of discrete outcomes)
+  //         pdf[fInNumEntries x fSampledNumEntries] (probability density function)
+  // output: a[fInNumEntries x fSampledNumEntries]   (alias)
+  //         q[fInNumEntries x fSampledNumEntries]   (non-alias probability) 
   //
-  // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
   //temporary array
-  int *a     = (int*)   malloc(ncol*sizeof(int)); 
-  double *ap = (double*)malloc(ncol*sizeof(double)); 
+  int *a     = (int*)   malloc(fSampledNumEntries*sizeof(int)); 
+  double *ap = (double*)malloc(fSampledNumEntries*sizeof(double)); 
 
   //likelihood per equal probable event
-  const double cp = 1.0/(ncol-1);
+  const double cp = 1.0/(fSampledNumEntries-1);
 
-  GUAliasTable* table = new GUAliasTable((nrow+1)*ncol);
+  GUAliasTable* table = new GUAliasTable((fInNumEntries+1)*fSampledNumEntries);
 
-  for(int ir = 0; ir <= nrow ; ++ir) {
+  for(int ir = 0; ir <= fInNumEntries ; ++ir) {
 
     //copy and initialize
-    for(int i = 0; i < ncol ; ++i) {
+    for(int i = 0; i < fSampledNumEntries ; ++i) {
 
-       int ipos= ir*ncol+i;
+       int ipos= ir*fSampledNumEntries+i;
        table->fpdf[ipos] = pdf[ipos];
 
        a[i] = -1;
-       ap[i] = pdf[ipos]; // pdf[ir*ncol+i];
+       ap[i] = pdf[ipos]; // pdf[ir*fSampledNumEntries+i];
     }
 
     //O(n) iterations
-    int iter = ncol;
+    int iter = fSampledNumEntries;
   
     do {
       int donor = 0;
       int recip = 0;
     
       // A very simple search algorithm
-      for(int j = donor; j < ncol ; ++j) {
+      for(int j = donor; j < fSampledNumEntries ; ++j) {
          if(ap[j] >= cp) {
             donor = j;
             break;
          }
       }
 
-      for(int j = recip; j < ncol ; ++j) {
+      for(int j = recip; j < fSampledNumEntries ; ++j) {
          if(ap[j] > 0.0 && ap[j] < cp) {
             recip = j;
             break;
@@ -152,8 +149,8 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
 
       //alias and non-alias probability
 
-      table->fAlias[ir*ncol+recip] = donor;
-      table->fProbQ[ir*ncol+recip] = ncol*ap[recip];
+      table->fAlias[ir*fSampledNumEntries+recip] = donor;
+      table->fProbQ[ir*fSampledNumEntries+recip] = fSampledNumEntries*ap[recip];
     
       //update pdf 
       ap[donor] = ap[donor] - (cp-ap[recip]);

@@ -31,6 +31,9 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~BremSeltzerBerger();
 
+  VECPHYS_CUDA_HEADER_HOST
+  void Initialization();
+
   //interfaces for tables
   VECPHYS_CUDA_HEADER_HOST 
   void BuildCrossSectionTablePerAtom(int Z);
@@ -59,6 +62,13 @@ public:
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
+
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelCR(typename Backend::Double_t energyIn, 
+                   typename Backend::Index_t   zElement,
+                   typename Backend::Double_t& energyOut,
+                   typename Backend::Double_t& sinTheta);
 
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -165,7 +175,8 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t aliasInd;
 
   //this did not used to work - Fixed SW
-  Index_t   index = fNcol*irow + icol;
+  Double_t ncol(fAliasSampler->GetSamplesPerEntry());
+  Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
 
   //Seltzer-Berger specific
@@ -174,8 +185,8 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
   // densityFactor = (Migdal constant)x(electron density of the material); 
   Double_t densityFactor = 1.0;
   
-  Double_t emin = Min(fMinX, energyIn);
-  Double_t emax = Min(fMaxX, energyIn);
+  Double_t emin = Min(fAliasSampler->GetIncomingMin(), energyIn);
+  Double_t emax = Min(fAliasSampler->GetIncomingMax(), energyIn);
 
   Double_t totalEnergy = energyIn + electron_mass_c2;
   Double_t densityCorr = densityFactor*totalEnergy*totalEnergy;
@@ -228,6 +239,18 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_t energyIn) const
   Double_t sinTheta = Sqrt((1 - cosTheta)*(1 + cosTheta));
 
   return sinTheta;
+}
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn, 
+                                    typename Backend::Index_t   zElement,
+                                    typename Backend::Double_t& energyOut,
+                                    typename Backend::Double_t& sinTheta)
+{
+  //dummy for now
+  energyOut = 0.0;
+  sinTheta = 0.0;
 }
 
 } // end namespace impl

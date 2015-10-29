@@ -27,6 +27,9 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~PhotoElectronSauterGavrila() {}
 
+  VECPHYS_CUDA_HEADER_HOST
+  void Initialization();
+
   //interfaces for tables
   VECPHYS_CUDA_HEADER_HOST 
   void BuildCrossSectionTablePerAtom(int Z);
@@ -50,10 +53,26 @@ private:
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelCR(typename Backend::Double_t energyIn, 
+                   typename Backend::Index_t   zElement,
+                   typename Backend::Double_t& energyOut,
+                   typename Backend::Double_t& sinTheta);
+
+  template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t 
   GetPhotoElectronEnergy(typename Backend::Double_t energyIn,
                          typename Backend::Index_t zElement);
+
+  template<class Backend>
+  inline
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t 
+  SampleSequential(typename Backend::Double_t A,
+                   typename Backend::Double_t Ap2,
+                   typename Backend::Double_t B,
+                   typename Backend::Double_t grej) const;
 
   VECPHYS_CUDA_HEADER_BOTH 
   void SampleByCompositionRejection(int    Z,
@@ -160,7 +179,8 @@ InteractKernel(typename Backend::Double_t  energyIn,
   Double_t probNA;
   Double_t aliasInd;
 
-  Index_t   index = fNcol*irow + icol;
+  Double_t ncol(fAliasSampler->GetSamplesPerEntry());
+  Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
   
   Double_t mininum = -1.0;
@@ -269,6 +289,91 @@ GetPhotoElectronEnergy<kVc>(typename kVc::Double_t energy,
   return energyOut;
 }
 
+#endif
+
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_t  energyIn, 
+                                             typename Backend::Index_t   zElement,
+                                             typename Backend::Double_t& energyOut,
+                                             typename Backend::Double_t& cosTheta)
+{
+  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t Bool_t;
+
+  //energy of photo-electron: Sandia parameterization
+  energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement) ;
+
+  //sample angular direction according to SauterGavrilaAngularDistribution
+  Double_t tau = energyIn/electron_mass_c2;
+
+  const double taulimit = 50.0;
+  Bool_t highE = tau > taulimit;
+  cosTheta = 1.0;  
+  if(Backend::early_returns && IsFull(highE)) return;  
+
+  Double_t gamma     = tau + 1.0;
+  Double_t beta      = sqrt(tau*(tau + 2.0))/gamma;
+
+  Double_t A = (1-beta)/beta;
+  Double_t Ap2 = A + 2;
+  Double_t B   = 0.5*beta*gamma*(gamma-1.)*(gamma-2.);
+  Double_t grej = 2*(1+A*B)/A;
+  
+  Double_t z = SampleSequential<Backend>(A,Ap2,B,grej);
+  
+  MaskedAssign(!highE, 1.0 - z , &cosTheta); 
+
+}
+template<class Backend>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename Backend::Double_t 
+PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_t A,
+                                             typename Backend::Double_t Ap2,
+                                             typename Backend::Double_t B,
+                                             typename Backend::Double_t grej) const
+{
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t z;
+  Double_t g;
+
+  do { 
+    Double_t q = UniformRandom<Backend>(fRandomState,fThreadId);
+    z = 2*A*(2*q + Ap2*sqrt(q))/(Ap2*Ap2 - 4*q);
+    g = (2 - z)*(1.0/(A + z) + B);
+  } while(g < UniformRandom<Backend>(fRandomState,fThreadId)*grej);
+
+  return z;
+}
+
+#ifndef VECPHYS_NVCC
+template<>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename kVc::Double_t 
+PhotoElectronSauterGavrila::SampleSequential<kVc>(typename kVc::Double_t A,
+                                                  typename kVc::Double_t Ap2,
+                                                  typename kVc::Double_t B,
+                                                  typename kVc::Double_t grej) const
+{
+  typedef typename kVc::Double_t Double_t;
+
+  Double_t z;
+  double g;
+
+  for(int i = 0; i < kVc::kSize ; ++i) {
+    do {
+      double q = UniformRandom<kScalar>(fRandomState,fThreadId);
+      z[i] = 2*A[i]*(2*q + Ap2[i]*sqrt(q))/(Ap2[i]*Ap2[i] - 4*q);
+      g = (2 - z[i])*(1.0/(A[i] + z[i]) + B[i]);
+    } while(g < UniformRandom<kScalar>(fRandomState,fThreadId)*grej[i]);
+  }
+
+  return z;
+}
 #endif
 
 } // end namespace impl

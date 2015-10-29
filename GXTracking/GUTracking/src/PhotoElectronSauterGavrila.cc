@@ -16,8 +16,8 @@ PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid)
 {
   SetLowEnergyLimit(10.*keV);
+  Initialization();
 
-  BuildAliasTable();
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
@@ -26,6 +26,16 @@ PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid,sampler)
 {
   SetLowEnergyLimit(10.*keV);
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
+PhotoElectronSauterGavrila::Initialization()
+{
+  if(fSampleType == kAlias) {
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+				       1.e-4, 1.e+6, 100, 100);
+    BuildAliasTable();
+  }
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
@@ -38,40 +48,45 @@ VECPHYS_CUDA_HEADER_HOST void
 PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (KleinNishina pdf) in the 
-  // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
+  // input energy randge [fAliasSampler->GetIncomingMin(),fAliasSampler->GetIncomingMax()] 
+  //       with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number)
-  // output :  p[fNrow][fNcol] (probability distribution) 
+  // output :  p    (probability distribution) with the array dimension
+  //                [fAliasSampler->GetNumEntries()][fAliasSampler->GetSamplesPerEntry()] 
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  double logxmin = log(fMinX);
-  double dx = (log(fMaxX) - logxmin)/fNrow;
+  const int nrow = fAliasSampler->GetNumEntries();
+  const int ncol = fAliasSampler->GetSamplesPerEntry();
 
-  for(int i = 0; i <= fNrow ; ++i) {
+  double logxmin = log(fAliasSampler->GetIncomingMin());
+  double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
+
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     const double ymin = -1.0;
-    const double dy = 2./fNcol; 
+    const double dy = 2./ncol; 
     const double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
-    for(int j = 0; j < fNcol ; ++j) {
+    for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
       double xsec = CalculateDiffCrossSectionK(Z,x,y);
 
-      p[i*fNcol+j] = xsec;
+      p[i*ncol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < fNcol ; ++j) {
-      p[i*fNcol+j] *= sum;
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
     }
   }
 }

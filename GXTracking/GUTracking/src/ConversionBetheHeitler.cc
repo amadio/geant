@@ -13,7 +13,8 @@ ConversionBetheHeitler(Random_t* states, int tid)
   :  EmModelBase<ConversionBetheHeitler>(states,tid)
 {
   SetLowEnergyLimit(2.*electron_mass_c2);
-  BuildAliasTable();
+
+  Initialization();
 }
 
 VECPHYS_CUDA_HEADER_BOTH ConversionBetheHeitler::
@@ -22,6 +23,16 @@ ConversionBetheHeitler(Random_t* states, int tid,
   : EmModelBase<ConversionBetheHeitler>(states,tid,sampler)
 {
   SetLowEnergyLimit(2.*electron_mass_c2);
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
+ConversionBetheHeitler::Initialization()
+{
+  if(fSampleType == kAlias) {
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+				       1.e-4, 1.e+6, 100, 100);
+    BuildAliasTable();
+  }
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
@@ -41,35 +52,37 @@ ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  double logxmin = log(fMinX);
+  const int nrow = fAliasSampler->GetNumEntries();
+  const int ncol = fAliasSampler->GetSamplesPerEntry();
 
-  double dx = (log(fMaxX) - logxmin)/fNrow;
+  double logxmin = log(fAliasSampler->GetIncomingMin());
+  double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
 
-  for(int i = 0; i <= fNrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;
 
-    double dy = (ymax - ymin)/(fNcol-1);
+    double dy = (ymax - ymin)/(ncol-1);
     double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
-    for(int j = 0; j < fNcol ; ++j) {
+    for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = yo + dy*j;
       double xsec = CalculateDiffCrossSection(Z,x,y);
-      p[i*fNcol+j] = xsec;
+      p[i*ncol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < fNcol ; ++j) {
-      p[i*fNcol+j] *= sum;
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
     }
   }
 }

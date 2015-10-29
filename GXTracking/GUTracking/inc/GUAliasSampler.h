@@ -62,7 +62,7 @@ public:
   int GetMaxZ() const { return fMaxZelement; }
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildAliasTable( int z, int nrow, int ncol, const double *pdf );
+  void BuildAliasTable( int z, const double *pdf );
 
   VECPHYS_CUDA_HEADER_BOTH
   GUAliasTableManager* GetAliasTableManager(){ return fAliasTableManager ;}
@@ -118,16 +118,27 @@ public:
          typename Backend::Index_t irow,  
          typename Backend::Index_t icol ) const;
 
+  //accessors
+  VECPHYS_CUDA_HEADER_BOTH
+  double GetIncomingMin()  const { return fIncomingMin ; } 
 
-  int GetNumEntries()      const { return fInNumEntries; }      // 'Input' values:  E', log(E')
+  VECPHYS_CUDA_HEADER_BOTH
+  double GetIncomingMax()  const { return fIncomingMax ; } 
+
+  VECPHYS_CUDA_HEADER_BOTH
+  int GetNumEntries()      const { return fInNumEntries; }   
+
+  VECPHYS_CUDA_HEADER_BOTH
   int GetSamplesPerEntry() const { return fSampledNumEntries;}
+
+  VECPHYS_CUDA_HEADER_BOTH
+  int GetMaxZelement()     const { return fMaxZelement; }    
   
 private:
-  Random_t*      fRandomState;
-  int            fThreadId;
+  Random_t* fRandomState;
+  int       fThreadId;
  
   int      fMaxZelement; 
-  
   double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
   double   fIncomingMax; // Max
   int      fInNumEntries;

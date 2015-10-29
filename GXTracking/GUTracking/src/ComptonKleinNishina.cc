@@ -15,9 +15,7 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid)
   : EmModelBase<ComptonKleinNishina>(states,tid)
 {
   SetLowEnergyLimit(10.*keV);
-  SetNcol(400);
-
-  BuildAliasTable();
+  Initialization();
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
@@ -35,34 +33,47 @@ ComptonKleinNishina::BuildCrossSectionTablePerAtom(int Z)
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
+ComptonKleinNishina::Initialization()
+{
+  if(fSampleType == kAlias) {
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+				       1.e-4, 1.e+6, 100, 100);
+    BuildAliasTable();
+  }
+}
+
+VECPHYS_CUDA_HEADER_HOST void 
 ComptonKleinNishina::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (KleinNishina pdf) in the
   // input energy randge [fMinX,fMaxX] with an equallogarithmic  bin size
   //
   // input  :  Z    (atomic number) - not used for the atomic independent model
-  // output :  p[fNrow][fNcol] (probability distribution) 
+  // output :  p[fNrow][ncol] (probability distribution) 
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
-  double logxmin = log(fMinX);
-  double logxmax = log(fMaxX);
-  double dx = (logxmax - logxmin)/fNrow;
+  const int nrow = fAliasSampler->GetNumEntries();
+  const int ncol = fAliasSampler->GetSamplesPerEntry();
+
+  double logxmin = log(fAliasSampler->GetIncomingMin());
+  double logxmax = log(fAliasSampler->GetIncomingMax());
+  double dx = (logxmax - logxmin)/nrow;
 
   int    nintegral= 5*int(log(logxmax)); //temporary
   double normal = 0;
   double fxsec = 0;
 
-  for(int i = 0; i <= fNrow ; ++i) {
+  for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
-    double dy = (x - ymin)/fNcol;
+    double dy = (x - ymin)/ncol;
   
     double sum = 0.;
 
-    for(int j = 0; j < fNcol ; ++j) {
+    for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = 0;
       normal = 0;
@@ -75,15 +86,15 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
       }
 
       double xsec = normal/nintegral;
-      p[i*fNcol+j] = xsec;
+      p[i*ncol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
     sum = 1.0/sum;
 
-    for(int j = 0; j < fNcol ; ++j) {
-      p[i*fNcol+j] *= sum;
+    for(int j = 0; j < ncol ; ++j) {
+      p[i*ncol+j] *= sum;
     }
   }
 }

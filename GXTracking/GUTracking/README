@@ -23,7 +23,9 @@
    cd build
    cmake -DBENCHMARK=ON -DCUDA=ON -DVc_DIR=${Vc_DIR} ..
    make
-   ./GUModelBenchmark [ntracks] [nrepetitions]
+   ./GUModelBenchmark [ntracks] [nrepetitions] [minEnergy] [maxEnergy] [samplingType]
+
+   where the valid argument for samplingType is [0=kAlias,1=kRejection,2=kUnpack]      
 
 2.1 data file
    Download required data files for testing the SeltzerBerger model

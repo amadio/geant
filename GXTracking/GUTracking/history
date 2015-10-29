@@ -9,6 +9,7 @@ Oct. 28, 2016
 2) Introduce an alternative sampling method based on Geant4 composition and 
    rejection methods in which sequential operations are used for the 
    non-vectoriable part (i.e., do-while loop).
+3) Update benchmarking with the new sampling option
 
 Oct. 16, 2016
 
