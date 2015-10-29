@@ -54,6 +54,12 @@ private:
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t
+  SampleSinTheta(typename Backend::Double_t energyIn,
+                 typename Backend::Double_t energyOut) const; 
+
+  template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH void 
   InteractKernelCR(typename Backend::Double_t energyIn, 
                    typename Backend::Index_t   zElement,
@@ -61,10 +67,12 @@ private:
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
+  inline
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t
-  SampleSinTheta(typename Backend::Double_t energyIn,
-                 typename Backend::Double_t energyOut) const; 
+  typename Backend::Double_t 
+  SampleSequential(typename Backend::Double_t xmin,
+                   typename Backend::Double_t xmax,
+                   typename Backend::Double_t gg) const;
 
   VECPHYS_CUDA_HEADER_BOTH 
   void SampleByCompositionRejection(int    Z,
@@ -186,15 +194,115 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_t energyIn,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH void 
-IonisationMoller::InteractKernelCR(typename Backend::Double_t  energyIn, 
+IonisationMoller::InteractKernelCR(typename Backend::Double_t  kineticEnergy, 
                                    typename Backend::Index_t   zElement,
-                                   typename Backend::Double_t& energyOut,
+                                   typename Backend::Double_t& deltaKinEnergy,
                                    typename Backend::Double_t& sinTheta)
 {
-  //dummy for now
-  energyOut = 0.0;
-  sinTheta = 0.0;
+  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Double_t Double_t;
+
+  //temporary - set by material
+  Double_t cutEnergy = fDeltaRayThreshold;
+  Double_t maxEnergy = 1.0*TeV;
+
+  //based on G4MollerBhabhaModel::SampleSecondaries
+  Double_t tmin = cutEnergy;  
+  Double_t tmax = 0.5*kineticEnergy; 
+
+  Bool_t condCut = (tmax < maxEnergy);
+  MaskedAssign(!condCut, maxEnergy, &tmax);
+  
+  condCut |= (tmax >= tmin );
+
+  if(Backend::early_returns && IsEmpty(condCut)) return;
+
+  Double_t energy = kineticEnergy + electron_mass_c2;
+  Double_t xmin   = tmin/kineticEnergy;
+  Double_t xmax   = tmax/kineticEnergy;
+  Double_t gam    = energy/electron_mass_c2;
+  Double_t gamma2 = gam*gam;
+
+  //Moller (e-e-) scattering
+  Double_t gg = (2.0*gam - 1.0)/gamma2;
+
+  Double_t x = SampleSequential<Backend>(xmin,xmax,gg);
+
+  deltaKinEnergy = x * kineticEnergy;
+
+  Double_t totalMomentum = Sqrt(kineticEnergy*(kineticEnergy + electron_mass_c2));
+
+  Double_t deltaMomentum =
+    Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));
+  Double_t cost = deltaKinEnergy * (energy + electron_mass_c2) /
+    (deltaMomentum * totalMomentum );
+
+  Bool_t condCos = (cost <= 1.0);
+  MaskedAssign(!condCos, 1.0, &cost);
+
+  Double_t sint2 = (1.0 - cost)*(1.0 + cost);
+
+  Bool_t condSin2 = (sint2 >= 0.0);
+  Double_t zero(0.0);
+  CondAssign(condSin2, Sqrt(sint2), zero, &sinTheta);
 }
+
+template<class Backend>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename Backend::Double_t 
+IonisationMoller::SampleSequential(typename Backend::Double_t xmin,
+                                   typename Backend::Double_t xmax,
+                                   typename Backend::Double_t gg) const
+{
+  typedef typename Backend::Int_t Int_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t  q;
+  Double_t  x;
+  Double_t  z;
+
+  Double_t  y = 1.0 - xmax;
+  Double_t grej =  1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
+  do {
+    q = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+    x = xmin*xmax/(xmin*(1.0 - q) + xmax*q);
+    y = 1.0 - x;
+    z = 1.0 - gg*x + x*x*(1.0 - gg + (1.0 - gg*y)/(y*y));
+  } while(grej * UniformRandom<Backend>(fRandomState,Int_t(fThreadId)) > z);
+
+  return x;
+}
+
+#ifndef VECPHYS_NVCC
+template<>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename kVc::Double_t 
+IonisationMoller::SampleSequential<kVc>(typename kVc::Double_t xmin,
+                                        typename kVc::Double_t xmax,
+                                        typename kVc::Double_t gg) const
+{
+  typedef typename kVc::Double_t Double_t;
+
+  Double_t  x;
+  Double_t  y = 1.0 - xmax;
+  Double_t  grej =  1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
+
+  double  q;
+  double  z;
+
+  for(int i = 0; i < kVc::kSize ; ++i) {
+    do {
+      q = UniformRandom<kScalar>(fRandomState,fThreadId);
+      x[i] = xmin[i]*xmax[i]/(xmin[i]*(1.0 - q) + xmax[i]*q);
+      y[i] = 1.0 - x[i];
+      z = 1.0 - gg[i]*x[i] + x[i]*x[i]*(1.0 - gg[i] + (1.0 - gg[i]*y[i])/(y[i]*y[i]));
+    } while(grej[i] * UniformRandom<kScalar>(fRandomState,fThreadId) > z);
+  }
+  return x;
+}
+#endif
 
 } // end namespace impl
 } // end namespace vecphys
