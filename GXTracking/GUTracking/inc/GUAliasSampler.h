@@ -299,7 +299,9 @@ SampleXL(typename Backend::Index_t  zElement,
   //  Double_t x = (1 - fraction) * xd + fraction* xu;
 
   //linear interpolation within the sampling bin based on the pdf 
-  Double_t x, pd, pu;
+  Double_t x(0.);
+  Double_t pd(0.);
+  Double_t pu(0.);
 
   MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol),   &pd); 
   MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol+1), &pu);

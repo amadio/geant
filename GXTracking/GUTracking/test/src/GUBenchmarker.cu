@@ -49,19 +49,10 @@ void GUBenchmarker::RunCuda()
   GUAliasTableManager** tableM_h = 
     (GUAliasTableManager**) malloc(kNumberPhysicsModel*sizeof(GUAliasTableManager*)); 
 
-  //  if(KleinNishina->GetSamplingMethod() == SamplingMethod::kAlias) 
   tableM_h[kKleinNishina]  = KleinNishina->GetSampler()->GetAliasTableManager();
-
-  //  if(BetheHeitler->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kBetheHeitler]  = BetheHeitler->GetSampler()->GetAliasTableManager();
-
-  //  if(SauterGavrila->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kSauterGavrila] = SauterGavrila->GetSampler()->GetAliasTableManager();
-
-  //  if(MollerBhabha->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kMollerBhabha]  = MollerBhabha->GetSampler()->GetAliasTableManager();
-
-  //  if(SeltzerBerger->GetSamplingMethod() == SamplingMethod::kAlias)
   tableM_h[kSeltzerBerger] = SeltzerBerger->GetSampler()->GetAliasTableManager();
 
   GUAliasTableManager** tableM_d;
@@ -71,12 +62,8 @@ void GUBenchmarker::RunCuda()
   
   GUAliasTableManager* temp_d[kNumberPhysicsModel];
   for(int i = 0 ; i < kNumberPhysicsModel ; ++i) {
-    //    if(!tableM_h[i]) {
-      cudaMalloc((void**)&temp_d[i],tableM_h[i]->SizeOfManager());
-      tableM_h[i]->Relocate(temp_d[i]);
-      //    }
-      //    else {
-      //    }
+    cudaMalloc((void**)&temp_d[i],tableM_h[i]->SizeOfManager());
+    tableM_h[i]->Relocate(temp_d[i]);
   }
 
   cudaMemcpy(tableM_d,temp_d,sizeof(GUAliasTableManager*)*kNumberPhysicsModel,
