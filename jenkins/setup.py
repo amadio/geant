@@ -139,7 +139,7 @@ def default_bt():
 # Stupid temporary solution that will allow to build different VecGeom prebuild packages from
 # nightlies without connection to Jenkins variable ${VERSION} and with specific selection of backend type..
 
-def default_bt():
+def default_vecgeom():
    if os.getenv('TYPE'):
       buildtype = os.getenv('TYPE')
    else:
@@ -166,7 +166,7 @@ def directories():
    dir_hash = []
    packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators']
    if vecgeom == 'unk': packages_list.append('VecGeom')
-   else : packages_list.append(vecgeom)
+   else : packages_list.append(default_vecgeom())
    for dirs in os.listdir(rootDir):
       if os.path.isfile(dirs):
          pass
