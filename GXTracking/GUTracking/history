@@ -1,5 +1,10 @@
 Development history of GUTracking
 
+Oct. 29, 2016 
+
+1) Add an alternative sampling Kernel (SamplingMethod=kRejection) for IonisationMoller
+2) Add a rudimentary shuffling Kernel (SamplingMethod=kUnpack) for ComptonKleinNishina
+
 Oct. 28, 2016 
 
 1) Remove data members associated with the alias sampling method (fMinX, fMaxX,

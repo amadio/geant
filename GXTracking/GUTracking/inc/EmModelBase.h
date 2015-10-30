@@ -11,6 +11,11 @@
 #include "GUAliasSampler.h"
 #include "SamplingMethod.h"
 
+#ifndef VECPHYS_NVCC
+#include <bitset>
+#include <vector>
+#endif
+
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
@@ -61,6 +66,13 @@ public:
   void Interact(GUTrack_v& inProjectile,  
                 const int* targetElements,
                 GUTrack_v& outSecondaryV);     
+
+  //temporary method for testing 
+  template <typename Backend>
+  void InteractUnpack(GUTrack_v& inProjectile,  
+                      const int* targetElements,
+                      GUTrack_v& outSecondary); 
+
 #endif
 
   //validation 
@@ -212,8 +224,9 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
                                     const int targetElement,
                                     GUTrack&  outSecondary ) 
 {
-  double energyIn= inProjectile.E;
-  double energyOut, sinTheta;
+  double energyIn = inProjectile.E;
+  double energyOut =0;
+  double sinTheta = 0;
 
   //eventually there will be no switch as we select one Kernel for each model
   switch(fSampleType) {
@@ -223,9 +236,14 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
     case SamplingMethod::kRejection :
         static_cast<EmModel*>(this)-> template InteractKernelCR<Backend>(energyIn,targetElement,energyOut,sinTheta);
       break;
-    case SamplingMethod::kUnpack :
-      ;
-      break;
+    case SamplingMethod::kUnpack : 
+      {      
+        bool status = false;
+        do {
+          static_cast<EmModel*>(this)-> template InteractKernelUnpack<Backend>(energyIn,
+                                      targetElement,energyOut,sinTheta,status);
+        } while ( status );
+      }
     default :
       ;
   }
@@ -302,7 +320,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
         static_cast<EmModel*>(this)-> template InteractKernelCR<Backend>(energyIn,zElement,energyOut,sinTheta);
         break;
       case SamplingMethod::kUnpack :
-        ;
+        ; //dummy - see InteractUnpack for Vc
         break;
       default :
         ;
@@ -379,6 +397,227 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     //fill other information
   }
 }
+
+//this is temporary implementation for the purpose of testing and will be removed
+//from the code once performance and validation studies are done
+template <class EmModel>
+template <typename Backend>
+void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,  
+                                          const int* targetElements,
+                                          GUTrack_v& outSecondary) 
+{
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  int sizeOfInputTracks = inProjectile.numTracks;
+
+  for(int j = 0; j < sizeOfInputTracks  ; ++j) {
+    assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
+  }
+
+  int ibase= 0;
+  int numChunks= sizeOfInputTracks/Double_t::Size;
+
+  //creat a bit set to hold the status of sampling
+
+  const int maxSizeOfTracks = 160000; // the maximum number of tracks - use ~2496*64 for now
+  if(sizeOfInputTracks > maxSizeOfTracks ) { 
+    std::cout << "Size of input tracks > maxSizeOfTracks = " << maxSizeOfTracks << std::endl;
+    exit(0);
+  } 
+  std::bitset<maxSizeOfTracks> flag;
+  
+  //working arrays for the shuffling loop: using std::vector for now
+  std::vector<double> wenergyIn;
+  std::vector<double> tenergyIn;
+
+  std::vector<double> wenergyOut;
+  std::vector<double> tenergyOut;
+
+  std::vector<double> wsinTheta;
+  std::vector<double> tsinTheta;
+
+  std::vector<int> windex;
+  std::vector<int> tindex;
+
+  //initial copy
+  for(int i = 0; i < sizeOfInputTracks ; ++i) {
+    wenergyIn.push_back(inProjectile.E[i]);
+    wenergyOut.push_back(0);
+    wsinTheta.push_back(0);
+    windex.push_back(i);
+  }
+
+  Bool_t status(false);
+
+  //shuffling loop
+  //  int niter = 0;
+
+  do {
+    ibase= 0;
+    flag.reset();
+
+    //vectorization loop
+    int currentSize = wenergyOut.size();
+    numChunks = currentSize/Double_t::Size; 
+
+    for(int i= 0; i < numChunks ; ++i) {
+
+      Double_t energyIn(&wenergyIn[ibase]);
+      Index_t  zElement(targetElements[ibase]);
+
+      Double_t energyOut;
+      Double_t sinTheta;
+
+      //kernel 
+      static_cast<EmModel*>(this)-> template InteractKernelUnpack<Backend>(energyIn,
+                                             zElement,energyOut,sinTheta,status);
+
+      //store energy and sinTheta of the secondary
+      Double_t secE = energyIn - energyOut; 
+
+      secE.store(&wenergyOut[ibase]);
+      sinTheta.store(&wsinTheta[ibase]);
+
+      //set the status bit
+      for(int j = 0; j < Double_t::Size ; ++j) {
+        flag.set(ibase+j,status[j]);
+      }
+
+      ibase+= Double_t::Size;
+    }
+    //end of vectorization loop
+
+    //@@@syjun - need to add a cleanup task for the leftover array of which 
+    //size < Double_t::Size - see the bottom of this method for a similar task
+
+    //scatter
+    for(int i = 0; i < currentSize ; ++i) {
+
+      outSecondary.E[windex[i]]  = wenergyOut[i];
+      outSecondary.px[windex[i]] = wsinTheta[i];
+
+      tenergyIn.push_back(wenergyIn[i]);
+      tenergyOut.push_back(wenergyOut[i]);
+      tsinTheta.push_back(wsinTheta[i]);
+      tindex.push_back(windex[i]);
+    }
+
+    //clear working arrays
+    wenergyIn.clear();
+    wenergyOut.clear();
+    wsinTheta.clear();
+    windex.clear();
+
+    for(int i = 0; i < currentSize ; ++i) {
+      if(flag.test(i)) {
+        wenergyIn.push_back(tenergyIn[i]);
+        wenergyOut.push_back(tenergyOut[i]);
+        wsinTheta.push_back(tsinTheta[i]);
+        windex.push_back(tindex[i]);
+      }
+    }
+
+    //clear temporary arrays
+    tenergyIn.clear();
+    tenergyOut.clear();
+    tsinTheta.clear();
+    tindex.clear();
+
+    //    ++niter;
+    //    std::cout << "wenergyOut.size() =  " << wenergyOut.size() << std::endl;
+
+  } while ( wenergyOut.size() > 0 );
+  //end of shuffling loop
+
+  //  std::cout << "niter =  " << niter << std::endl;
+
+  //reset ibase and number of chunks
+  ibase= 0;
+  numChunks= (sizeOfInputTracks/Double_t::Size);
+
+  for(int i= 0; i < numChunks ; ++i) {
+    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_t sinTheta(&outSecondary.px[ibase]); 
+    Double_t secE(&outSecondary.E[ibase]);
+
+    //need to rotate the angle with respect to the line of flight
+    Double_t px(&inProjectile.px[ibase]);
+    Double_t py(&inProjectile.py[ibase]);
+    Double_t pz(&inProjectile.pz[ibase]);
+
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
+
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
+
+    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+    // Update primary
+    Double_t energyPrimary = energyIn - secE;
+    energyPrimary.store(&inProjectile.E[ibase]);
+
+    Double_t pxFinal, pyFinal, pzFinal;
+     
+    pxFinal= energyPrimary*uhat;
+    pyFinal= energyPrimary*vhat;
+    pzFinal= energyPrimary*what;
+    pxFinal.store(&inProjectile.px[ibase]);
+    pyFinal.store(&inProjectile.py[ibase]);
+    pzFinal.store(&inProjectile.pz[ibase]);
+
+    // store the secondary momentum
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
+
+    pxSec.store(&outSecondary.px[ibase]);
+    pySec.store(&outSecondary.py[ibase]);
+    pzSec.store(&outSecondary.pz[ibase]);
+
+    ibase+= Double_t::Size;
+  }
+
+  //leftover - do scalar (temporary)
+  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+
+    double senergyIn= inProjectile.E[i];
+    double senergyOut, ssinTheta;
+
+    static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+
+    //need to rotate the angle with respect to the line of flight
+    double sinvp = 1./senergyIn;
+    double sxhat = inProjectile.px[i]*sinvp;
+    double syhat = inProjectile.py[i]*sinvp;
+    double szhat = inProjectile.pz[i]*sinvp;
+
+    double suhat = 0.;
+    double svhat = 0.;
+    double swhat = 0.;
+
+    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
+
+    //update primary
+    inProjectile.E[i]  = senergyOut;
+    inProjectile.px[i] = senergyOut*suhat;
+    inProjectile.py[i] = senergyOut*svhat;
+    inProjectile.pz[i] = senergyOut*swhat;
+
+    //create secondary
+    outSecondary.E[i]  = (senergyIn-senergyOut); 
+    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
+    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
+    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
+    //fill other information
+  }
+}
+
 #endif
 
 template <class EmModel>

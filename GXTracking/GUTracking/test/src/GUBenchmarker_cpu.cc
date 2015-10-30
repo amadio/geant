@@ -150,11 +150,20 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
 
   int ntracks = itrack_soa.numTracks;
 
-  timer.Start();
+  if(sampleType == SamplingMethod::kUnpack) {
+    timer.Start();
 
-  model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+    model.InteractUnpack<kVc>(itrack_soa, targetElements, otrack_soa);
 
-  elapsedTime = timer.Stop();
+    elapsedTime = timer.Stop();
+  }
+  else {
+    timer.Start();
+
+    model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+
+    elapsedTime = timer.Stop();
+  }
 
   //validation for the total cross section
   double* sigma  = new double [ntracks];

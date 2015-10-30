@@ -8,7 +8,6 @@ using namespace vecphys;
 
 int main(int argc, char* argv[])
 {
-
   //default run
   int ntracks = 4992;
   int nrepetitions = 100;
@@ -47,8 +46,7 @@ int main(int argc, char* argv[])
       exit(0);
     }
   } else {
-      
-      std::cout << "  Using sampling method = " << sampleType << std::endl;
+      std::cout << "  Using the default sampling method = " << sampleType << std::endl;
   }
 
   GUBenchmarker tester;

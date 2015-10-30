@@ -67,6 +67,14 @@ private:
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelUnpack(typename Backend::Double_t energyIn, 
+                       typename Backend::Index_t   zElement,
+                       typename Backend::Double_t& energyOut,
+                       typename Backend::Double_t& sinTheta,
+                       typename Backend::Bool_t &status);
+
+  template<class Backend>
   inline
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t 
@@ -315,7 +323,48 @@ ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_t E0_m,
 
   return epsilon;
 }
+
 #endif
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_t  energyIn, 
+                                          typename Backend::Index_t   zElement,
+                                          typename Backend::Double_t& energyOut,
+                                          typename Backend::Double_t& sinTheta,
+                                          typename Backend::Bool_t&   status)
+{
+  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Bool_t Bool_t;
+  typedef typename Backend::Int_t Int_t;
+
+  Double_t E0_m = energyIn/electron_mass_c2;
+
+  Double_t eps0 = 1./(1. + 2.*E0_m);
+  Double_t epsilon0sq = eps0*eps0;
+  Double_t alpha1     = - log(eps0);
+  Double_t alpha2  = 0.5*(1.- epsilon0sq);
+
+  Double_t test = alpha1/(alpha1+alpha2);
+
+  Double_t epsilon;
+  Double_t greject;
+
+  Bool_t cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+  MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon); 
+  MaskedAssign(!cond, Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon); 
+
+  Double_t onecost = (1.- epsilon)/(epsilon*E0_m);
+  Double_t sint2   = onecost*(2.-onecost);
+
+  greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
+
+  status = greject < UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+  energyOut = epsilon*energyIn;
+  sinTheta = Sqrt(sint2);
+}    
 
 } // end namespace impl
 } // end namespace vecphys
