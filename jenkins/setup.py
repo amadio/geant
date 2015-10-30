@@ -7,7 +7,7 @@ global arch, system
 arch = platform.machine()
 system = platform.system()
 
-# --------------------- Setting command lines options 
+# --------------------- Setting command lines options
 def main(argv):
    global compiler, build_type, op_sys, external, rootDir, workspace
    global comp, build
@@ -39,25 +39,25 @@ def main(argv):
 
       elif opt in ("-w"):
          workspace = arg
-   
+
    if build == 'Release' : build_type = 'opt'
    elif build == 'Debug' : build_type = 'dbg'
    elif build == 'Optimized' : build_type = 'opt'
    else : build_type = 'unk'
 
-   if comp == 'clang34' : 
+   if comp == 'clang34' :
       compiler = 'gcc48'
    elif comp == 'clang35' :
-      compiler = 'gcc49'   
+      compiler = 'gcc49'
    elif comp == 'clang36' :
       compiler = 'gcc49'
    else :
       compiler = comp
 
-   rootDir = "/afs/cern.ch/sw/lcg/app/releases/GEANTV-externals/"+external 
+   rootDir = "/afs/cern.ch/sw/lcg/app/releases/GEANTV-externals/"+external
 
 
-# --------------------- Setting default OS 
+# --------------------- Setting default OS
 def default_os():
    if system == 'Darwin' :
       osvers = 'mac' + string.join(platform.mac_ver()[0].split('.')[:2],'')
@@ -80,7 +80,7 @@ def default_os():
 
    return osvers;
 
-# --------------------- Setting default compiler 
+# --------------------- Setting default compiler
 
 def default_compiler():
 
@@ -117,28 +117,56 @@ def default_compiler():
             compiler_orig = 'icc' + mobj.group(1) + mobj.group(2)
          else:
             compiler_orig = 'unk-cmp'
-   return compiler_orig;         
+   return compiler_orig;
 
-# --------------------- Setting default built type 
+# --------------------- Setting default built type
 
 def default_bt():
    if os.getenv('BUILDTYPE'):
       buildtype = os.getenv('BUILDTYPE')
    else:
       buildtype = 'Release'
-      
+
    if buildtype == 'Release' : bt = 'opt'
    elif buildtype == 'Debug' : bt = 'dbg'
    elif buildtype == 'Optimized' : bt = 'opt'
    else : bt = 'unk'
 
-   return bt;   
+   return bt;
 
-# --------------------- Setting names of the main tree directory 
+# --------------------- Setting default  type for VecGeom build
+
+# Stupid temporary solution that will allow to build different VecGeom prebuild packages from
+# nightlies without connection to Jenkins variable ${VERSION} and with specific selection of backend type..
+
+def default_bt():
+   if os.getenv('TYPE'):
+      buildtype = os.getenv('TYPE')
+   else:
+      buildtype = ''
+
+   if buildtype == 'avx' : vecgeom = 'VecGeom-avx'
+   elif buildtype == 'sse' : vecgeom = 'VecGeom-sse'
+   elif buildtype == 'scalar' : vecgeom = 'VecGeom-scalar'
+   elif buildtype == 'cuda' : vecgeom = 'VecGeom-cuda'
+   elif buildtype == 'mic' : vecgeom = 'VecGeom-mic'
+   elif buildtype == 'avx-devel' : vecgeom = 'VecGeom-avx-devel'
+   elif buildtype == 'sse-devel' : vecgeom = 'VecGeom-sse-devel'
+   elif buildtype == 'scalar-devel' : vecgeom = 'VecGeom-scalar-devel'
+   elif buildtype == 'cuda-devel' : vecgeom = 'VecGeom-cuda-devel'
+   elif buildtype == 'cuda-scalar-devel' : vecgeom = 'VecGeom-cuda-scalar-devel'
+   else : vecgeom = 'unk'
+
+   return vecgeom;
+
+
+# --------------------- Setting names of the main tree directory
 
 def directories():
    dir_hash = []
-   packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators','VecGeom']
+   packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators']
+   if vecgeom == 'unk': packages_list.append('VecGeom')
+   else : packages_list.append(vecgeom)
    for dirs in os.listdir(rootDir):
       if os.path.isfile(dirs):
          pass
@@ -146,9 +174,9 @@ def directories():
          if dirs in packages_list:
             dir_hash.append(dirs)
 
-   return dir_hash;      
+   return dir_hash;
 
-# --------------------- Setting paths  
+# --------------------- Setting paths
 
 def directory_names():
    str = ":"
@@ -164,7 +192,7 @@ def directory_names():
 
       fullpath = rootDir+"/"+i
 
-      for dirName, subdirList, fileList in os.walk(fullpath):   
+      for dirName, subdirList, fileList in os.walk(fullpath):
 
          for name in subdirList:
 
@@ -177,7 +205,7 @@ def directory_names():
                   Flag = False
                if "MCGenerators" in directory:
                   Flag = False
-               
+
                if "VecGeom" in directory:
                   vecgeom_include_dir = directory + '/include/VecCore'
                   vecgeom_dir = directory + '/lib/CMake/VecGeom'
@@ -186,7 +214,7 @@ def directory_names():
 
                dirlist.append(directory);
 
-#######               
+#######
                for subdirName, subsubdirList, fileList2 in os.walk(directory):
 
                   for name2 in sorted(subsubdirList):
@@ -213,14 +241,14 @@ def directory_names():
 
                      else:
                         subFlaglibs = False
-                  if (subFlaglibs):break         
+                  if (subFlaglibs):break
 ########
                break
             else:
                Flag = False
          if Flag:break
 
-   all_dirs = [str.join(sorted(dirlist)), str.join(binlist), str.join(liblist)]       
+   all_dirs = [str.join(sorted(dirlist)), str.join(binlist), str.join(liblist)]
 
    return all_dirs;
 
@@ -248,6 +276,3 @@ if __name__ == "__main__":
    print '%s=%s' % ("export CMAKE_PREFIX_PATH", prefix)
    print '%s=%s' % ("export PATH", path)
    print '%s=%s' % ("export LD_LIBRARY_PATH", ld_libs)
-
-
-
