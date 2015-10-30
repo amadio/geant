@@ -145,10 +145,10 @@ def default_bt():
    else:
       buildtype = ''
 
-   if buildtype == 'avx' : vecgeom = 'VecGeom-avx'
-   elif buildtype == 'sse' : vecgeom = 'VecGeom-sse'
-   elif buildtype == 'scalar' : vecgeom = 'VecGeom-scalar'
-   elif buildtype == 'cuda' : vecgeom = 'VecGeom-cuda'
+   if buildtype == 'avx' : vecgeom = 'VecGeom-avx-master'
+   elif buildtype == 'sse' : vecgeom = 'VecGeom-sse-master'
+   elif buildtype == 'scalar' : vecgeom = 'VecGeom-scalar-master'
+   elif buildtype == 'cuda' : vecgeom = 'VecGeom-cuda-master'
    elif buildtype == 'mic' : vecgeom = 'VecGeom-mic'
    elif buildtype == 'avx-devel' : vecgeom = 'VecGeom-avx-devel'
    elif buildtype == 'sse-devel' : vecgeom = 'VecGeom-sse-devel'
