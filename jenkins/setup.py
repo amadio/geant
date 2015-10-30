@@ -165,8 +165,9 @@ def default_vecgeom():
 def directories():
    dir_hash = []
    packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators']
-   if vecgeom == 'unk': packages_list.append('VecGeom')
-   else : packages_list.append(default_vecgeom())
+   vecgeom = default_vecgeom()
+   if vecgeom  == 'unk': packages_list.append('VecGeom')
+   else : packages_list.append(vecgeom)
    for dirs in os.listdir(rootDir):
       if os.path.isfile(dirs):
          pass
