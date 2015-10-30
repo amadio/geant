@@ -85,6 +85,11 @@ public:
   /** @brief Create basket function */
   void CreateBaskets();
 
+  enum class FeederResult : char { kNone, kFeederWork, kStopProcessing };
+
+  /** @brief Call Feeder (if needed) and check exit condition. */
+  FeederResult CheckFeederAndExit(GeantBasketMgr &prioritizer, GeantPropagator &propagator, Geant::GeantTaskData &td);
+
   /** @brief Function for feeder queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *FeederQueue() const { return fFeederQ; }
 

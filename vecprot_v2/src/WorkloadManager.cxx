@@ -234,6 +234,30 @@ static inline void MaybeCleanupBaskets(GeantTaskData *td, GeantBasket *basket) {
 }
 
 //______________________________________________________________________________
+/** @brief Call Feeder (if needed) and check exit condition. */
+WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr &prioritizer,
+                                                  GeantPropagator &propagator,
+                                                  GeantTaskData &td) {
+
+  if (!prioritizer.HasTracks() && (propagator.GetNpriority() || GetNworking() == 1)) {
+    bool didFeeder = propagator.Feeder(&td);
+    // Check exit condition
+    if (propagator.TransportCompleted()) {
+      int nworkers = propagator.fNthreads;
+      for (int i = 0; i < nworkers; i++)
+        FeederQueue()->push(0);
+      TransportedQueue()->push(0);
+      Stop();
+      //         sched_locker.StartOne(); // signal the scheduler who has to exit
+      //         gbc_locker.StartOne();
+      return FeederResult::kStopProcessing;
+    }
+    if (didFeeder) return FeederResult::kFeederWork;
+  }
+  return FeederResult::kNone;
+}
+
+//______________________________________________________________________________
 void *WorkloadManager::TransportTracks() {
   // Thread propagating all tracks from a basket.
   //      char slist[256];
@@ -291,20 +315,13 @@ void *WorkloadManager::TransportTracks() {
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
     // Call the feeder if in priority mode
-    if (!prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
-      if (propagator->Feeder(td))
-        ngcoll = 0;
-      // Check exit condition
-      if (propagator->TransportCompleted()) {
-        for (int i = 0; i < nworkers; i++)
-          wm->FeederQueue()->push(0);
-        wm->TransportedQueue()->push(0);
-        wm->Stop();
-        //         sched_locker.StartOne(); // signal the scheduler who has to exit
-        //         gbc_locker.StartOne();
-        break;
-      }
+    auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
+    if (feedres == FeederResult::kFeederWork) {
+       ngcoll = 0;
+    } else if (feedres == FeederResult::kStopProcessing) {
+       break;
     }
+
     waiting[tid] = 1;
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
@@ -558,20 +575,11 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   while (1) {
 
     // Call the feeder if in priority mode
-    if (prioritizer && // Disable this case until later.
-        !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
-      if (propagator->Feeder(td))
-        ngcoll = 0;
-      // Check exit condition
-      if (propagator->TransportCompleted()) {
-        for (int i = 0; i < nworkers; i++)
-          wm->FeederQueue()->push(0);
-        wm->TransportedQueue()->push(0);
-        wm->Stop();
-        //         sched_locker.StartOne(); // signal the scheduler who has to exit
-        //         gbc_locker.StartOne();
-        break;
-      }
+    auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
+    if (feedres == FeederResult::kFeederWork) {
+       ngcoll = 0;
+    } else if (feedres == FeederResult::kStopProcessing) {
+       break;
     }
 
     // ::Info("GPU","Waiting (1) for next available stream.");
