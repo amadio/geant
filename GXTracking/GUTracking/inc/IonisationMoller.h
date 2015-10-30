@@ -67,6 +67,14 @@ private:
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelUnpack(typename Backend::Double_t energyIn, 
+                       typename Backend::Index_t   zElement,
+                       typename Backend::Double_t& energyOut,
+                       typename Backend::Double_t& sinTheta,
+                       typename Backend::Bool_t &status);
+
+  template<class Backend>
   inline
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t 
@@ -303,6 +311,19 @@ IonisationMoller::SampleSequential<kVc>(typename kVc::Double_t xmin,
   return x;
 }
 #endif
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+IonisationMoller::InteractKernelUnpack(typename Backend::Double_t energyIn, 
+                                       typename Backend::Index_t   zElement,
+                                       typename Backend::Double_t& energyOut,
+                                       typename Backend::Double_t& sinTheta,
+                                       typename Backend::Bool_t &status)
+{
+  //dummy for now
+  energyOut = energyIn;
+  sinTheta =  0;
+}
 
 } // end namespace impl
 } // end namespace vecphys

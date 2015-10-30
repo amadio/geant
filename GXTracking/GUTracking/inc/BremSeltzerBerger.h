@@ -71,6 +71,14 @@ public:
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH void 
+  InteractKernelUnpack(typename Backend::Double_t energyIn, 
+                       typename Backend::Index_t   zElement,
+                       typename Backend::Double_t& energyOut,
+                       typename Backend::Double_t& sinTheta,
+                       typename Backend::Bool_t &status);
+
+  template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t
   SampleSinTheta(typename Backend::Double_t energyIn) const;
@@ -252,6 +260,20 @@ BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn,
   energyOut = 0.0;
   sinTheta = 0.0;
 }
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH void 
+BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_t energyIn, 
+                                        typename Backend::Index_t   zElement,
+                                        typename Backend::Double_t& energyOut,
+                                        typename Backend::Double_t& sinTheta,
+                                        typename Backend::Bool_t &status)
+{
+  //dummy for now
+  energyOut = energyIn;
+  sinTheta =  0;
+}
+
 
 } // end namespace impl
 } // end namespace vecphys
