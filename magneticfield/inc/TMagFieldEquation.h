@@ -60,6 +60,13 @@ class TMagFieldEquation : public GUVEquationOfMotion
                              double dydx[] ) const
      { TEvaluateRhsGivenB( y, B, /*charge,*/ dydx); }
 
+     REALLY_INLINE
+     void FieldFromY(const double y[], /* double charge, */ double Bfield[] ) const;
+   
+     REALLY_INLINE
+     void PrintInputFieldAndDyDx(const double y[], /* double charge, */ double dydx[] ) const;
+
+     REALLY_INLINE
      void InitializeCharge(double particleCharge) final
       { fParticleCharge= particleCharge;  GUVEquationOfMotion::InformReady();  }
       
@@ -103,16 +110,78 @@ template
 REALLY_INLINE
 void
 TMagFieldEquation<Field,Size> 
-   ::RightHandSide(const double y[], /* double charge, */ double dydx[] ) const
+   ::FieldFromY(const double y[], /* double charge, */ double Bfield[3] ) const
 {
-    double Point[4];  //G4maximum_number_of_field_components]; 
+    // double  Bfield[3];  //G4maximum_number_of_field_components];
     double  PositionAndTime[4];
     PositionAndTime[0] = y[0];
     PositionAndTime[1] = y[1];
     PositionAndTime[2] = y[2];
     PositionAndTime[3] = 0;        // Time
     // PositionAndTime[3] = y[7];  //  --> extersion?
-    GetFieldValue(PositionAndTime, Point) ;
-    TEvaluateRhsGivenB(y, Point, dydx);
+    
+    GetFieldValue(PositionAndTime, Bfield) ;
+}
+
+template 
+<class Field, unsigned int Size>
+REALLY_INLINE
+void
+TMagFieldEquation<Field,Size> 
+   ::RightHandSide(const double y[], /* double charge, */ double dydx[] ) const
+{
+    double  Bfield[3];  //G4maximum_number_of_field_components];
+
+#if 0
+    double  PositionAndTime[4];
+    PositionAndTime[0] = y[0];
+    PositionAndTime[1] = y[1];
+    PositionAndTime[2] = y[2];
+    PositionAndTime[3] = 0;        // Time
+    // PositionAndTime[3] = y[7];  //  --> extersion?
+    GetFieldValue(PositionAndTime, Bfield) ;
+#endif
+    FieldFromY( y, Bfield );
+    
+    TEvaluateRhsGivenB(y, Bfield, dydx);
+}
+
+
+#include <iostream>   // For debuging only
+using std::cout;
+using std::endl;
+
+template 
+<class Field, unsigned int Size>
+REALLY_INLINE
+void
+TMagFieldEquation<Field,Size> 
+   ::PrintInputFieldAndDyDx(const double y[], /* double charge, */ double dydx[] ) const
+{
+
+    RightHandSide(y, dydx);
+
+    // Obtain the field value 
+    double  Bfield[3];  //G4maximum_number_of_field_components];
+    FieldFromY( y, Bfield );
+    TEvaluateRhsGivenB(y, Bfield, dydx);
+    
+    cout.precision(8);
+
+    // cout.setf (std::ios_base::fixed);        
+    // cout << " Position = " << y[0] << " " << y[1] << " " << y[3] << endl;
+    // cout.unsetf(std::ios_base::fixed);
+    cout << "\n# Input & B field \n";    
+    cout.setf (std::ios_base::scientific);
+    cout << " Position = " << y[0] << " " << y[1] << " " << y[2] << endl;    
+    cout << " Momentum = " << y[3] << " " << y[4] << " " << y[5] << endl;
+    cout << " B-field  = " << Bfield[0] << " " << Bfield[1] << " " << Bfield[2] << endl;
+    cout.unsetf(std::ios_base::scientific);
+
+    cout << "\n# 'Force' from B field \n";
+    cout.setf (std::ios_base::fixed);    
+    cout << " dy/dx [0-2] (=dX/ds) = " << dydx[0]   << " " << dydx[1]   << " " << dydx[2] << endl;
+    cout << " dy/dx [3-5] (=dP/ds) = " << dydx[3]   << " " << dydx[4]   << " " << dydx[5] << endl;    
+    cout.unsetf(std::ios_base::fixed);
 }
 #endif  // TMAGFIELDEQUATION_H 
