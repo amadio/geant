@@ -75,10 +75,11 @@ int main(int argc, char *args[])
     /* Parameters of test
      - Modify values  */
     
-    int no_of_steps = 5;         // No. of Steps for the stepper
-    int stepper_no =  4;         // Choose stepper no., for refernce see above
-    double step_len_mm = 1.0;   // meant as millimeter;  //Step length 
-
+    int no_of_steps = 250;         // No. of Steps for the stepper
+    int stepper_no =  1;         // Choose stepper no., for refernce see above
+    double step_len_mm = 200.;    // meant as millimeter;  //Step length 
+    double z_field_in = DBL_MAX;
+    
     //Checking for command line values :
     if(argc>1)
         stepper_no = atoi(args[1]);
@@ -86,7 +87,8 @@ int main(int argc, char *args[])
        step_len_mm = (float)(stof(args[2]));   // *mm);
     if(argc > 3)
         no_of_steps = atoi(args[3]);
-
+    if(argc > 4)
+       z_field_in = (float) (stof(args[2]));     // tesla
     double step_len = step_len_mm * fieldUnits::millimeter;
     
     //Set Charge etc.
@@ -99,16 +101,16 @@ int main(int argc, char *args[])
     int
     columns[] =
     {
-       1 , 1 , 0 ,  // position  x, y, z 
-       1 , 1 , 0 ,  // momentum  x, y, z
+       1 , 1 , 1 ,  // position  x, y, z 
+       1 , 1 , 1 ,  // momentum  x, y, z
        0 , 0 , 0 ,  // dydx pos  x, y, z
        1 , 1 , 0    // dydx mom  x, y, z
     }; //Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
     bool printErr= 0,   // Print the predicted Error
-         printRef= 1,   // Print the reference Solution 
+         printRef= 0,   // Print the reference Solution 
          printDiff= 0;  // Print the diffrence 
-    bool printSep = 1;  // separator  '|'
+    bool printSep = 0;  // separator  '|'
     bool printInp = 0;  // print the input values
     bool printInpX= 0;  // print the input values for Ref 
     
@@ -121,16 +123,25 @@ int main(int argc, char *args[])
        z_pos = 0.;
     double   
        x_mom = 0.,                 //mom - momentum  : input unit = GeV / c
-       y_mom = 10.,
-       z_mom = 0.;
+       y_mom = 1.,
+       z_mom = 1.;
     double          
        x_field = 0.,               //Uniform Magnetic Field (x,y,z)
-       y_field = 0.,
-       z_field = -0.1;  //  Tesla // *tesla ;
+       y_field = 0.;               //  Tesla // *tesla ;
+    double z_field;
+    if( z_field_in < DBL_MAX )
+       z_field = z_field_in;
+    else
+       z_field = -1.0;  //  Tesla // *tesla ;
 
     // Field
     auto gvField= new TUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
-    
+
+    cout << "#  Initial  Field strength (GeantV) = "
+         << x_field << " , " << y_field << " , " << z_field 
+       // << (1.0/fieldUnits::tesla) * gvField->GetValue()->X() << ",  "
+         << " Tesla " << endl;
+    cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
     //Create an Equation :
     auto gvEquation =
        new GvEquationType(gvField);
@@ -142,13 +153,21 @@ int main(int argc, char *args[])
     //Create a stepper :
     GUVIntegrationStepper *myStepper; // , *exactStepper;
     // G4MagIntegrationStepper *g4refStepper;    
-    
+
+    cout << "#  Chosen the   ";
     //Choose the stepper based on the command line argument
     switch(stepper_no){
-      case 0: myStepper = new GUExactHelixStepper(gvEquation); break;
-       // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
+      case 0: myStepper = new GUExactHelixStepper(gvEquation);
+         cout << " GUExactHelix stepper. " << endl;
+         break;
+      case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
+         cout << " TSimpleRunge stepper. " << endl;
+         break;         
+         // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
        // case 3: myStepper = new BogackiShampine23(gvEquation); break;
-      case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation); break;
+      case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
+         cout << " TClassicalRK4 stepper. " << endl;         
+         break;
        // case 5: myStepper = new TCashKarpRKF45(gvEquation); break;         
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
@@ -157,7 +176,9 @@ int main(int argc, char *args[])
 
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
-    const double ppGVf = fieldUnits::GeV / fieldUnits::c_light;
+    const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
+                                         //   Else it must be divided by fieldUnits::c_light;
+    // const double ppGVf = fieldUnits::GeV / fieldUnits::c_light;     // OLD
 
     // double yIn[] = {x_pos,y_pos,z_pos,x_mom,y_mom,z_mom};
     double yIn[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
@@ -165,7 +186,7 @@ int main(int argc, char *args[])
     
 #if COMPARE_TO_G4
     const double mmG4 = CLHEP::millimeter;
-    const double ppG4 = CLHEP::GeV / CLHEP::c_light2;
+    const double ppG4 = CLHEP::GeV ;  //  In G4 too 'p' means p*c -- so no division  / CLHEP::c_light;
 
     const double mmRef = mmG4;  // Unit for reference of lenght   - milli-meter
     const double ppRef = ppG4;  // Unit for reference of momentum - GeV / c^2
@@ -174,7 +195,9 @@ int main(int argc, char *args[])
     //                   x_mom * ppG4 ,y_mom * ppG4 ,z_mom * ppG4};
 
     G4UniformMagField myField( CLHEP::tesla * G4ThreeVector(x_field, y_field, z_field));
-
+    cout << " Field strength = " << (1.0/CLHEP::tesla) * myField << " Tesla " 
+         << endl;
+    
     G4Mag_UsualEqRhs *g4Equation = new G4Mag_UsualEqRhs(&myField);
     
     G4ChargeState chargeState(particleCharge,             // The charge can change (dynamic)
@@ -202,7 +225,10 @@ int main(int argc, char *args[])
     // For now, it checks that it was Done() -- and fails an assert
 
     //Creating the baseline stepper
-    auto exactStepperGV = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation2);
+    auto exactStepperGV =
+        new TClassicalRK4<GvEquationType,Nposmom>(gvEquation2);
+    cout << "#  Reference stepper is: TClassicalRK4<GvEquationType,Nposmom>(gvEquation2);" << endl;
+       // new TSimpleRunge<GvEquationType,Nposmom>(gvEquation2);    
        // new GUExactHelixStepper(gvEquation2);
 
     // Configure Stepper for current particle
@@ -211,7 +237,7 @@ int main(int argc, char *args[])
     
     auto exactStepper = exactStepperGV;
 #endif
-
+    std::cout << "# step_len_mm = " << step_len_mm;
     std::cout << " mmRef= " << mmRef << "   ppRef= " << ppRef << std::endl;
     
     double yInX[] = {x_pos * mmRef, y_pos * mmRef ,z_pos * mmRef,
@@ -294,7 +320,6 @@ int main(int argc, char *args[])
     
     for(int j=0; j<no_of_steps; j++)
     {
-       
         cout<<setw(6)<<j ;           //Printing Step number
 
         myStepper->RightHandSide(yIn, dydx);               //compute dydx - to supply the stepper
@@ -405,6 +430,11 @@ int main(int argc, char *args[])
 #ifndef COMPARE_TO_G4
     gvEquation2->InformDone();    
 #endif
+    delete myStepper;
+    delete exactStepper;
+    delete gvEquation;
+    delete gvEquation2;    
+    delete gvField;
     
     cout<<"\n\n#-------------End of output-----------------\n";
     

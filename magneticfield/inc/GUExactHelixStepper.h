@@ -51,9 +51,11 @@ class GUExactHelixStepper : public GUVHelicalStepper
    
   private:
 
-    ThreeVector    fBfieldValue;
+    // ThreeVector    fBfieldValue;
+    vecgeom::Vector3D<double>   fBfieldValue;
       //  Initial value of field at last step
-    // TMagFieldEquation*
+
+  // TMagFieldEquation*
     GUVEquationOfMotion* fPtrMagEqOfMot;
 };
 

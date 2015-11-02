@@ -74,6 +74,13 @@ bool TestEquation(GUVEquationOfMotion* equation)
   double MdotF= MomentumVec.Dot(ForceVec);
   double BdotF= FieldVec.Dot(ForceVec); 
 
+  double momentumMag= MomentumVec.Mag();
+  double fieldMag =   FieldVec.Mag();
+  double ForceMag =   ForceVec.Mag();
+
+  // if( ForceMag != momentumMag * fieldMag )      
+     
+  assert( ForceMag != momentumMag * fieldMag );  // Must add coefficient !!
   
   if( std::fabs(MdotF) > perMillion * MomentumVec.Mag() * ForceVec.Mag() )
   { 

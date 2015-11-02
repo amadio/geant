@@ -23,7 +23,7 @@ using fieldConstants::twopi;
 
 GUExactHelixStepper::GUExactHelixStepper(GUVEquationOfMotion* EqRhs) // TMagFieldEquation
    : GUVHelicalStepper(EqRhs, 1),  // "Order" = 1 - not really applicable
-    fBfieldValue(DBL_MAX, DBL_MAX, DBL_MAX),
+    fBfieldValue(DBL_MAX), // , DBL_MAX, DBL_MAX),
     fPtrMagEqOfMot(EqRhs)
 {
   ;
@@ -42,7 +42,9 @@ GUExactHelixStepper::StepWithErrorEstimate( const double yInput[],
 
    ThreeVector Bfld_value;
 
-   MagFieldEvaluate(yInput, Bfld_value);        
+   MagFieldEvaluate(yInput, Bfld_value);
+   // std::cout << " Exact Helix: B-field:  Bx = " << Bfld_value[0]
+   //           << " By= " << Bfld_value[1] << " Bz= " << Bfld_value[2] << std::endl;
    AdvanceHelix(yInput, Bfld_value, hstep, yOut);
 
   // We are assuming a constant field: helix is exact

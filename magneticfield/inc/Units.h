@@ -10,16 +10,16 @@ namespace fieldUnits
 {
    using fieldConstants::pi;
    
-   static constexpr double gigaElectronVolt = 1.0; // native unit of energy
-   static constexpr double centimeter       = 1.0; // native unit of length
-   static constexpr double second           = 1.0; //
+   constexpr double gigaElectronVolt = 1.0; // native unit of energy
+   constexpr double centimeter       = 1.0; // native unit of length
+   constexpr double second           = 1.0; //
 
-   static constexpr double eplus   = 1.0 ;         // TBC
+   constexpr double eplus   = 1.0 ;         // TBC
+
+   constexpr double e_SI  = 1.602176487e-19;// positron charge in coulomb
   
-   static constexpr double electronVolt = 1.0e-9 * gigaElectronVolt;
-
-   
    static constexpr double megaElectronVolt = 0.001 * gigaElectronVolt;
+   static constexpr double electronVolt = 1.0e-9 * gigaElectronVolt;
 
    static constexpr double GeV        = gigaElectronVolt;
    static constexpr double MeV        = megaElectronVolt;
@@ -32,7 +32,7 @@ namespace fieldUnits
    static constexpr double meter2     = meter * meter; 
 
    static constexpr double volt       = electronVolt/eplus;
-   static constexpr double tesla      = volt*second/meter2;// tesla =0.001*megavolt*ns/mm2
+   static constexpr double tesla      = volt*second/meter2; // tesla =0.001*megavolt*ns/mm2
 
   // Angle
    static const double radian      = 1.;                  
