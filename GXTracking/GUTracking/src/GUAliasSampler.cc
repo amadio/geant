@@ -49,7 +49,7 @@ GUAliasSampler(Random_t* states, int threadId,
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
   fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-log(incomingMin))),
   fSampledNumEntries( numEntriesSampled ),
-  fInverseBinSampled( 1.0 / (numEntriesSampled-1) )  // Careful - convention build / use table!
+  fInverseBinSampled( 1.0 / numEntriesSampled )  // Careful - convention build / use table!
 {
   fAliasTableManager = tableManager;
 }
@@ -109,7 +109,7 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
   double *ap = (double*)malloc(fSampledNumEntries*sizeof(double)); 
 
   //likelihood per equal probable event
-  const double cp = 1.0/(fSampledNumEntries-1);
+  const double cp = 1.0/fSampledNumEntries;
 
   GUAliasTable* table = new GUAliasTable((fInNumEntries+1)*fSampledNumEntries);
 

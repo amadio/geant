@@ -183,7 +183,7 @@ SampleBin(typename Backend::Double_t kineticEnergy,
   // irow = useHigh ? irow+1 : irow; 
   MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
 
-  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_t r1 = fSampledNumEntries*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   // Prepare output values
   icol = Floor(r1);
@@ -221,7 +221,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
 
   //select the sampling bin
-  Double_t r1 = (fSampledNumEntries-1)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_t r1 = fSampledNumEntries*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
