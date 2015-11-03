@@ -38,7 +38,7 @@ class GUVIntegrationStepper
 
         virtual ~GUVIntegrationStepper();
 
-        virtual  void  Step(  const double y[],
+        virtual  void  StepWithErrorEstimate(  const double y[],
                 const double dydx[],
                 double h,
                 double yout[],
@@ -111,15 +111,6 @@ void GUVIntegrationStepper::
 RightHandSide( const  double y[], /*double charge,*/ double dydx[] )
 {
    fEquation_Rhs-> RightHandSide(y, /*charge,*/ dydx);
-}
-
-inline void
-GUVIntegrationStepper::SetEquationOfMotion(GUVEquationOfMotion* newEquation)
-{
-  if( newEquation != 0 )
-  {
-    fEquation_Rhs= newEquation;
-  }
 }
 
 inline

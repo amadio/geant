@@ -26,9 +26,13 @@ main( int, char** )
 GUVEquationOfMotion* CreateFieldAndEquation(ThreeVector FieldValue)
 {
   TUniformMagField*     ConstBfield= new TUniformMagField( FieldValue );
-
+  // typedef typename TMagFieldEquation<TUniformMagField, Nposmom>  EquationType;
+  using EquationType = TMagFieldEquation<TUniformMagField, Nposmom>;
+  
+  // GUVEquationOfMotion*  magEquation= new TMagFieldEquation<TUniformMagField, Nposmom>(ConstBfield);
+  GUVEquationOfMotion*  magEquation= new EquationType(ConstBfield);
+  
   // pField = ConstBfield; 
-  GUVEquationOfMotion*  magEquation= new TMagFieldEquation<TUniformMagField, Nposmom>(ConstBfield);
   return magEquation;
 }
 

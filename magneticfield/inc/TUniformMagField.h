@@ -15,7 +15,6 @@
 // using fieldConstants::twopi;
 
 class TUniformMagField : public GUVMagneticField
-
 {
     public:  // with description
 

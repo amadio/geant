@@ -8,14 +8,16 @@ class GUVMagneticField : public GUVField
 {
   public: 
     GUVMagneticField():  GUVField( 3, false) {}   // 3  components, Not change energy
-       // GUVField:fChangesEnergy(true), GUVField::fNumberOfComponents(3)  {}
-   virtual ~GUVMagneticField() {}
+      //   GUVField::fNumberOfComponents(3)     GUVField:fChangesEnergy(true),{}
+    virtual ~GUVMagneticField(); // {}
 
-   virtual void  GetFieldValue( const  double  Point[4],
+    virtual void  GetFieldValue( const  double  Point[4],
                                        double* Field ) const = 0;
-   virtual GUVField* Clone() const;
+    // virtual GUVField* Clone() const;
+    //   Concrete subclasses can (should?) implement it!
 
-   GUVMagneticField& operator = (const GUVMagneticField &p);
+    GUVMagneticField& operator = (const GUVMagneticField &p);
+    //  Copy 'standard' components ...
 };
 
 #endif

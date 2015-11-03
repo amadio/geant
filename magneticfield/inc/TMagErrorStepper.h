@@ -39,7 +39,6 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
         virtual ~TMagErrorStepper() {;}
 
-
         inline void RightHandSide(double y[], double dydx[]) 
               { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
 
@@ -93,21 +92,21 @@ StepWithErrorEstimate( const double yInput[],
             // is fixed, with the Step size given by h.
             // Integrates ODE starting values y[0 to 6].
             // Outputs yout[] and its estimated error yerr[].
-        {  
-            const int maxvar= GetNumberOfStateVariables();
+{  
+   const int maxvar= GetNumberOfStateVariables();
 
-            int i;
-            // correction for Richardson Extrapolation.
-            //double  correction = 1. / ( (1 << 
-              //          static_cast<T_Stepper*>(this)->T_Stepper::IntegratorOrder()) -1 );
-            //  Saving yInput because yInput and yOutput can be aliases for same array
-
-            for(i=0;i<N;i++) yInitial[i]=yInput[i];
-            yInitial[7]= yInput[7];    // Copy the time in case ... even if not really needed
-            yMiddle[7] = yInput[7];  // Copy the time from initial value 
+   int i;
+   // correction for Richardson Extrapolation.
+   //double  correction = 1. / ( (1 << 
+   //          static_cast<T_Stepper*>(this)->T_Stepper::IntegratorOrder()) -1 );
+   //  Saving yInput because yInput and yOutput can be aliases for same array
+   
+   for(i=0;i<Nvar;i++) yInitial[i]=yInput[i];
+   yInitial[7]= yInput[7];    // Copy the time in case ... even if not really needed
+   yMiddle[7] = yInput[7];  // Copy the time from initial value 
             yOneStep[7] = yInput[7]; // As it contributes to final value of yOutput ?
             // yOutput[7] = yInput[7];  // -> dumb stepper does it too for RK4
-            for(i=N;i<maxvar;i++) yOutput[i]=yInput[i];
+            for(i=Nvar;i<maxvar;i++) yOutput[i]=yInput[i];
             // yError[7] = 0.0;         
 
             double halfStep = hstep * 0.5; 
@@ -136,12 +135,15 @@ StepWithErrorEstimate( const double yInput[],
             fInitialPoint = ThreeVector( yInitial[0], yInitial[1], yInitial[2]); 
             fFinalPoint   = ThreeVector( yOutput[0],  yOutput[1],  yOutput[2]); 
 
-            return ;
-        }
+   return ;
+ }
 
-#ifdef OPT_CHORD_FUNCTIONALITY        
-        double DistChord() const 
-        {
+
+// #ifdef OPT_CHORD_FUNCTIONALITY
+template<class T_Stepper, class T_Equation, int Nvar>
+double
+TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord() const 
+{
             // Estimate the maximum distance from the curve to the chord
             //
             //  We estimate this using the distance of the midpoint to 
@@ -163,32 +165,8 @@ StepWithErrorEstimate( const double yInput[],
             }
 
             return distChord;
-        }
-#endif
-
-    private:
-
-        TMagErrorStepper(const TMagErrorStepper&);
-        TMagErrorStepper& operator=(const TMagErrorStepper&);
-        // Private copy constructor and assignment operator.
-
-    private:
-
-        // STATE
-        ThreeVector fInitialPoint, fMidPoint, fFinalPoint;
-        // Data stored in order to find the chord
-
-        // Dependent Objects, owned --- part of the STATE 
-        double yInitial[N<8?8:N];
-        double yMiddle[N<8?8:N];
-        double dydxMid[N<8?8:N];
-        double yOneStep[N<8?8:N];
-        // The following arrays are used only for temporary storage
-        // they are allocated at the class level only for efficiency -
-        // so that calls to new and delete are not made in Stepper().
-
-        T_Equation *fEquation_Rhs;
-};
+}
+//#endif
 
 
 #endif  /* TMagErrorStepper_HH */

@@ -11,9 +11,9 @@
 // template <class T> inline constexpr const T& MaxConst (const T& a, const T& b) { return (a<b)?b:a;  } 
 
 template
-<class T_Equation, int N>
+<class T_Equation, int Nvar>
 class TClassicalRK4 : public  TMagErrorStepper
-                      <TClassicalRK4<T_Equation, N>, T_Equation, N>
+                      <TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
 {
   public:  // with description
     static constexpr unsigned int OrderRK4= 4;
@@ -69,15 +69,16 @@ static constexpr double inv6=1./6;
 #define INLINEDUMBSTEPPER 1
 
 // #ifdef INLINEDUMBSTEPPER
-// #pragma message "INLINING DUMBSTEPPER"
+// #pragma message "In-lining Dumb Stepper"   
 // #else
-// #pragma message "NOT INLININGDUMBSTEPPER"
+// #pragma message "NOT in-lining Dumb Stepper"
 // #endif
 
-template <class T_Equation, int N>
+template <class T_Equation, int Nvar>
 #ifdef INLINEDUMBSTEPPER
    __attribute__((always_inline)) 
 #else
+#pragma message "NOT in-lining Dumb Stepper"   
 // __attribute__((noinline))
 #endif 
    void TClassicalRK4<T_Equation,Nvar>::StepWithoutErrorEst( const double  yIn[],
@@ -101,30 +102,30 @@ template <class T_Equation, int N>
    // yt[7]   = yIn[7]; 
    //yOut[7] = yIn[7];
    
-   for(i=0;i<N;i++)
+   for(i=0;i<Nvar;i++)
    {
       yt[i] = yIn[i] + hh*dydx[i] ;             // 1st Step K1=h*dydx
    }
    this->RightHandSide(yt,dydxt) ;                   // 2nd Step K2=h*dydxt
    
-   for(i=0;i<N;i++)
+   for(i=0;i<Nvar;i++)
    { 
       yt[i] = yIn[i] + hh*dydxt[i] ;
    }
    this->RightHandSide(yt,dydxm) ;                   // 3rd Step K3=h*dydxm
 
-   for(i=0;i<N;i++)
+   for(i=0;i<Nvar;i++)
    {
       yt[i]   = yIn[i] + h*dydxm[i] ;
       dydxm[i] += dydxt[i] ;                    // now dydxm=(K2+K3)/h
    }
    this->RightHandSide(yt,dydxt) ;                   // 4th Step K4=h*dydxt
    
-   for(i=0;i<N;i++)    // Final RK4 output
+   for(i=0;i<Nvar;i++)    // Final RK4 output
    {
       yOut[i] = yIn[i]+h6*(dydx[i]+dydxt[i]+2.0*dydxm[i]); //+K1/6+K4/6+(K2+K3)/3
    }
-   //            if ( N == 12 )  { this->NormalisePolarizationVector ( yOut ); }
+   //            if ( Nvar == 12 )  { this->NormalisePolarizationVector ( yOut ); }
    
 }  // end of DumbStepper ....................................................
 
