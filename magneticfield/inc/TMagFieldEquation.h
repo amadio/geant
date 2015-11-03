@@ -17,13 +17,9 @@
 #ifndef TMAGFIELDEQUATION_H
 #define TMAGFIELDEQUATION_H  1
 
-#include "Units.h"     
+#include "Units.h"
+#include "Constants.h"
 //  Update to GeantV units ASAP
-using fieldUnits::meter;   
-using fieldUnits::second;  
-using fieldUnits::c_light;
-using fieldUnits::eplus;  
-// using fieldUnits::tesla;
 
 template 
 <class Field, unsigned int Size>
@@ -32,7 +28,7 @@ class TMagFieldEquation : public GUVEquationOfMotion
    public:
      typedef Field T_Field;
      static const unsigned int  N   = Size;
-     static constexpr double fCof    = eplus * c_light ;
+     static constexpr double fCof    = fieldUnits::eplus * Constants::c_light ;
    
      TMagFieldEquation(T_Field* pF) : GUVEquationOfMotion(pF) { fPtrField = pF; }
      ~TMagFieldEquation()  {}  // Was virtual - but now no inheritance

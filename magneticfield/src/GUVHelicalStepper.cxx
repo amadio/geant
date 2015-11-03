@@ -11,8 +11,8 @@ using fieldUnits::GeV;
 using fieldUnits::tesla;
 
 #include "Constants.h"
-using fieldConstants::pi;
-using fieldConstants::twopi;
+using Constants::pi;
+using Constants::twopi;
 
 // #include "G4PhysicalConstants.hh"
 

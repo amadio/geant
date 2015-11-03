@@ -12,7 +12,6 @@
 // using fieldUnits::meter;
 using fieldUnits::millimeter;   
 using fieldUnits::second;  
-using fieldUnits::c_light;
 using fieldUnits::eplus;  
 using fieldUnits::tesla;
 using fieldUnits::degree;
@@ -178,7 +177,7 @@ int main(int argc, char *args[])
     const double mmGVf = fieldUnits::millimeter;
     const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
                                          //   Else it must be divided by fieldUnits::c_light;
-    // const double ppGVf = fieldUnits::GeV / fieldUnits::c_light;     // OLD
+    // const double ppGVf = fieldUnits::GeV / Constants::c_light;     // OLD
 
     // double yIn[] = {x_pos,y_pos,z_pos,x_mom,y_mom,z_mom};
     double yIn[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,

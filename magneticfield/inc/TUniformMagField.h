@@ -11,8 +11,8 @@
 #include "ThreeVector.h"  // Or whatever defines such a class
 #include "Constants.h"  //   For pi & twopi - Temporary solution ..
 
-using fieldConstants::pi;
-using fieldConstants::twopi;
+// using fieldConstants::pi;
+// using fieldConstants::twopi;
 
 class TUniformMagField : public GUVMagneticField
 
@@ -92,18 +92,18 @@ TUniformMagField::TUniformMagField(double vField,
                                    double vTheta,
                                    double vPhi     ) 
 {
-   if ( (vField<0) || (vTheta<0) || (vTheta>pi) || (vPhi<0) || (vPhi>twopi) )
+   if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
    {
       // Exception("TUniformMagField::TUniformMagField()",
       //     "GeomField0002", FatalException, "Invalid parameters.") ;
       std::cerr << "ERROR in TUniformMagField::TUniformMagField()"
                 << "Invalid parameter(s): expect " << std::endl;
       std::cerr << " - Theta angle: Value = " << vTheta
-                << "  Expected between 0 <= theta <= pi = " << pi << std::endl;
+                << "  Expected between 0 <= theta <= pi = " << Constants::pi << std::endl;
       std::cerr << " - Phi   angle: Value = " << vPhi
-                << "  Expected between 0 <=  phi  <= 2*pi = " << twopi << std::endl;
+                << "  Expected between 0 <=  phi  <= 2*pi = " << Constants::twopi << std::endl;
       std::cerr << " - Magnitude vField: Value = " << vField
-                         << "  Expected vField > 0 " << twopi << std::endl;
+                << "  Expected vField > 0 " << Constants::twopi << std::endl;
    }
    fFieldComponents[0] = vField*std::sin(vTheta)*std::cos(vPhi) ;
    fFieldComponents[1] = vField*std::sin(vTheta)*std::sin(vPhi) ;

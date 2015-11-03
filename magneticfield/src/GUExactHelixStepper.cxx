@@ -12,8 +12,8 @@
 #include <iostream>
 
 #include "Constants.h"
-using fieldConstants::pi;
-using fieldConstants::twopi;
+using Constants::pi;
+using Constants::twopi;
 
 
 #include "GUExactHelixStepper.h"

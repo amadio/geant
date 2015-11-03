@@ -4,12 +4,8 @@
 
 // Temporary solution, until there is SystemOfUnits.h
 
-#include "Constants.h"
-
 namespace fieldUnits
 {
-   using fieldConstants::pi;
-   
    constexpr double gigaElectronVolt = 1.0; // native unit of energy
    constexpr double centimeter       = 1.0; // native unit of length
    constexpr double second           = 1.0; //
@@ -37,7 +33,9 @@ namespace fieldUnits
   // Angle
    static const double radian      = 1.;                  
    static const double milliradian = 1.e-3*radian;
-   static const double degree = (pi/180.0)*radian;
+
+   static constexpr double     pi_u = 3.1415926535897932384626;
+   static const double degree = (pi_u/180.0)*radian;
    
    // To be moved into Constants.h etc
 }
