@@ -46,6 +46,9 @@
    # set the build type to Release, especially for testing the CUDA backend
    -DCMAKE_BUILD_TYPE=Release
 
+   # set the Vc lib for MIC (Xeon Phi)
+   -DBACKEND=Vc -DMIC=ON
+
 4. How to run GeantV with GUTracking (libvecphys.a)
    
    - build your physics library (libvecphys) into GUTracking/build

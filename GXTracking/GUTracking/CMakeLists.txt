@@ -9,6 +9,8 @@ set(VECPHYS ON)
 
 option(VC_ACCELERATION "Internal vectorization using Vc." ON)
 
+option(MIC "Enable compilation for MIC." OFF)
+
 option(CUDA "Enable compilation for CUDA." OFF)
 
 option(CUDA_VOLUME_SPECIALIZATION "Use specialized volumes for CUDA." ON)
@@ -215,7 +217,11 @@ endif()
 if (VC_ACCELERATION OR Vc)
 
   find_package(Vc REQUIRED)
-  set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})
+  if (MIC)
+    set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_MIC_LIBRARIES})
+  else()
+    set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})
+  endif()
   include_directories(AFTER SYSTEM ${Vc_INCLUDE_DIR})
 
   if (Vc)
