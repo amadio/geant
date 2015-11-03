@@ -200,6 +200,8 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   // G4SeltzerBergerModel::SampleSecondaries
   //  G4double cut  = Min(cutEnergy, kineticEnergy);
   //  G4double emax = Min(maxEnergy, kineticEnergy);
+  //@@@syj cutEnergy should be get from the material table (cut table).
+  //other hard coded numbers are also temporary and will be replaced properly
   G4double cut  = Min(1.0*keV, kineticEnergy);
   G4double emax = Min(1.0*TeV, kineticEnergy);
   if(cut >= emax) { return; }
