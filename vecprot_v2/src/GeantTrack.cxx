@@ -2071,7 +2071,7 @@ void GeantTrack_v::PrintTracks(const char *msg) const {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
+void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData */*td*/) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
   static std::atomic<int> icalls(0);
   ++icalls;
@@ -2149,7 +2149,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 GEANT_CUDA_BOTH_CODE
 //#if 0
 #ifdef USE_VECGEOM_NAVIGATOR
-void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
+void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData */*td*/) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
@@ -2681,7 +2681,7 @@ Material_t *GeantTrack_v::GetMaterial(int i) const {
 }
 
 //______________________________________________________________________________
-bool GeantTrack_v::CheckNavConsistency(int itr) {
+bool GeantTrack_v::CheckNavConsistency(int /*itr*/) {
 // Check consistency of navigation state for a given track.
 // Debugging purpose
 #ifdef USE_VECGEOM_NAVIGATOR

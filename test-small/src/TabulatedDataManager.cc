@@ -51,7 +51,7 @@ TabulatedDataManager *TabulatedDataManager::Instance() {
       // if(gdmlFileName && xsecFileName && fstaFileName) {
       // fGeom = TGeoManager::Import(gdmlFileName);
 
-      ::Error("TabulatedDataManager::Instance", "Missing pointer to TGeomManager");
+      ::Error("TabulatedDataManager::Instance", "Missing pointer to TGeoManager");
       return 0;
     } else {
       if (xsecFileName && fstaFileName) {
