@@ -52,10 +52,6 @@ class GUVIntegrationStepper
         // Estimate the maximum distance of a chord from the true path
         // over the segment last integrated.
 
-
-        // inline void NormaliseTangentVector( double vec[6] );  // WRONG - it is Momentum now!!
-        // Simple utility function to (re)normalise 'unit velocity' vector.
-
         // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
         // Simple utility function to (re)normalise 'unit spin' vector.
 
@@ -70,8 +66,6 @@ class GUVIntegrationStepper
         inline unsigned int  GetNumberOfVariables() const;
         
         // Get the number of variables that the stepper will integrate over.
-
-        // void   SetNumberOfVariables(int newNo);  // Dangerous & obsolete ...
 
         inline unsigned int  GetNumberOfStateVariables() const;
         // Get the number of variables of state variables (>= above, integration)

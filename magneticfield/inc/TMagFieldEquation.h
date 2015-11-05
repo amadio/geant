@@ -40,8 +40,8 @@ class TMagFieldEquation : public GUVEquationOfMotion
         fPtrField->T_Field::GetFieldValue(Point, Value);
      }
 
-     REALLY_INLINE
-        void RightHandSide(const double y[], /*double charge,*/ double dydx[] ) const;
+     inline // REALLY_INLINE
+     void RightHandSide(const double y[], /*double charge,*/ double dydx[] ) const;
 
      REALLY_INLINE
      void TEvaluateRhsGivenB( const double y[],

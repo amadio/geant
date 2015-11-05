@@ -1,12 +1,12 @@
 //
 //
-// Derived from GVIntegratorDriver class of Geant4
+// Derived from G4MagInt_Drv class of Geant4 (in G4MagIntegratorDriver.hh/cc)
 //
 // Class description:
 //
 // Provides a driver that talks to the Integrator Stepper, and insures that 
 // the error is within acceptable bounds.
-
+//
 // History:
 // - Created. J.Apostolakis.
 // --------------------------------------------------------------------

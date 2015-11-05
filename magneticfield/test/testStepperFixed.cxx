@@ -26,7 +26,7 @@ using fieldUnits::degree;
 
 #include "GUVIntegrationStepper.h"
 #include "TClassicalRK4.h"
-// #include "GUCashKarpRKF45.h"
+#include "GUTCashKarpRKF45.h"
 
 #include "TSimpleRunge.h"
 #include "GUExactHelixStepper.h"
@@ -75,7 +75,7 @@ int main(int argc, char *args[])
      - Modify values  */
     
     int no_of_steps = 250;         // No. of Steps for the stepper
-    int stepper_no =  1;         // Choose stepper no., for refernce see above
+    int stepper_no =  5;         // Choose stepper no., for refernce see above
     double step_len_mm = 200.;    // meant as millimeter;  //Step length 
     double z_field_in = DBL_MAX;
     
@@ -87,7 +87,7 @@ int main(int argc, char *args[])
     if(argc > 3)
         no_of_steps = atoi(args[3]);
     if(argc > 4)
-       z_field_in = (float) (stof(args[2]));     // tesla
+       z_field_in = (float) (stof(args[4]));     // tesla
     double step_len = step_len_mm * fieldUnits::millimeter;
     
     //Set Charge etc.
@@ -167,7 +167,9 @@ int main(int argc, char *args[])
       case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
          cout << " TClassicalRK4 stepper. " << endl;         
          break;
-       // case 5: myStepper = new TCashKarpRKF45(gvEquation); break;         
+      case 5: myStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
+         cout << " GUTCashKarpRKF45 stepper. " << endl;
+         break;
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
       default : myStepper = 0 ;

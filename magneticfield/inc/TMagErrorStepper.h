@@ -29,12 +29,13 @@ class TMagErrorStepper : public GUVIntegrationStepper
             : GUVIntegrationStepper(
                   EqRhs,
                   integrationOrder,      
-                  numberOfVariables,
+                  Nvar,                //  Must be equal to  numberOfVariables,
                   numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
                // ),
                fEquation_Rhs(EqRhs)
         {
             // int nvar = std::max(this->GetNumberOfVariables(), 8);
+            assert( numberOfVariables == Nvar ); 
         }
 
         virtual ~TMagErrorStepper() {;}

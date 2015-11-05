@@ -551,8 +551,9 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
   for (iter=0; iter<max_trials ;iter++)
   {
     tot_no_trials++;
-    fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr); 
-    double eps_pos = eps_rel_max * std::max(h, fMinimumStep); 
+    fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr);
+    //          *********************
+    double eps_pos = eps_rel_max * std::max(h, fMinimumStep);
     double inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos); 
 
     // Evaluate accuracy
@@ -570,7 +571,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
     }else{
        std::cerr << "** GUIntegrationDriver: found case of zero momentum." 
                  << " iteration=  " << iter << " h= " << h << std::endl; 
-       errmom_sq = sumerr_sq; 
+       errmom_sq = sumerr_sq;
     }
     errmom_sq *= inv_eps_vel_sq;
     errmax_sq = std::max( errpos_sq, errmom_sq ); // Square of maximum error
