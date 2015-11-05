@@ -20,7 +20,7 @@ else
   return
 fi
 
-if [ $LABEL == slc6 ] || [ $LABEL == cc7 ] 
+if [ $LABEL == slc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ] || [$LABEL == xeonphi ]
 then
   export PATH=/afs/cern.ch/sw/lcg/contrib/CMake/3.0.0/Linux-i386/bin:${PATH}
 else
@@ -35,16 +35,20 @@ then
   COMPILERversion=${COMPILER}version
 
   ARCH=$(uname -m)
-  . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
+  if [ $LABEL == cuda7 ]
+  then
+    . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
+  else
+    . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
   export FC=gfortran
   export CXX=`which g++`
   export CC=`which gcc`
 
-  export CMAKE_SOURCE_DIR=$WORKSPACE/geant 
+  export CMAKE_SOURCE_DIR=$WORKSPACE/geant
   export CMAKE_BINARY_DIR=$WORKSPACE/geant/builds
   export CMAKE_BUILD_TYPE=$BUILDTYPE
 
-  export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON " 
+  export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON "
   export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
   export BACKEND=$BACKEND
   export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
@@ -56,11 +60,13 @@ if [[ $COMPILER == *icc* ]]; then
   iccyear=2013
   icc14year=2013
   icc15year=2015
+  icc16year=2016
   COMPILERyear=${COMPILER}year
 
   iccgcc=4.9
   icc14gcc=4.9
   icc15gcc=4.9
+  icc16gcc=4.9
   GCCversion=${COMPILER}gcc
 
   ARCH=$(uname -m)
