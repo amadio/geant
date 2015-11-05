@@ -182,6 +182,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fGeantTaskData = new Geant::GeantTaskData(nthreads,maxdepth,maxTrackPerKernel);
    fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
    fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
+   fPrioritizer = fGeantTaskData->fBmgr;
 
    fStreamId = streamid;
    GEANT_CUDA_ERROR( cudaStreamCreate(&fStream) );
@@ -472,6 +473,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    condition_locker &sched_locker = mgr->GetSchLocker();
    GeantTrack_v &output = *fGeantTaskData->fTransported;
    //GeantTrack_v &output = *fOutputBasket->GetInputTracks();
+   GeantPropagator *propagator = GeantPropagator::Instance();
+   auto td = fGeantTaskData;
 
    if (output.GetNtracks() > output.Capacity())
       Fatal("CoprocessorBroker::TaskData::TrackToHost","Request size in output track buffer is too large ( %d > %d )",
@@ -494,8 +497,6 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    // Post-step actions by continuous processes for all particles. There are no
     // new generated particles at this point.
    {
-      GeantPropagator *propagator = GeantPropagator::Instance();
-      auto td = fGeantTaskData;
       auto basket = fOutputBasket;
       //GeantTrack_v &output = *td->fTransported;
       //GeantTrack_v &output = *fOutputBasket->GetInputTracks();
@@ -590,6 +591,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    // fOutputBasket->Recycle(td);
    // fOutputBasket = 0;
    // fOutputBasket->Clear();
+   mgr->CheckFeederAndExit(*fPrioritizer, *propagator, *td);
    fThreadId = -1;
    return fNStaged;
 }
