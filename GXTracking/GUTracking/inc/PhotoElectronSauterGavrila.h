@@ -185,7 +185,7 @@ InteractKernel(typename Backend::Double_t  energyIn,
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_t probNA;
-  Double_t aliasInd;
+  Index_t  aliasInd;
 
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;

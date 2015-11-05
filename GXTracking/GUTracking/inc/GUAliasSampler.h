@@ -87,7 +87,7 @@ public:
   typename Backend::Double_t
   SampleX(typename Backend::Double_t rangeSampled, 
           typename Backend::Double_t probNA,   
-          typename Backend::Double_t aliasInd, 
+          typename Backend::Index_t aliasInd, 
           typename Backend::Index_t  icol,     
           typename Backend::Double_t fraction ) const;
 
@@ -97,7 +97,7 @@ public:
   SampleXL(typename Backend::Index_t  zElement, 
            typename Backend::Double_t rangeSampled, 
            typename Backend::Double_t probNA,   
-           typename Backend::Double_t aliasInd, 
+           typename Backend::Index_t aliasInd, 
            typename Backend::Index_t  irow,     
            typename Backend::Index_t  icol) const;
 
@@ -108,7 +108,7 @@ public:
   GatherAlias(typename Backend::Index_t   index, 
               typename Backend::Index_t   zElement,
               typename Backend::Double_t &probNA,  
-              typename Backend::Double_t &aliasInd ) const;
+              typename Backend::Index_t  &aliasInd ) const;
 
   template<class Backend>
   inline
@@ -235,7 +235,7 @@ typename Backend::Double_t
 GUAliasSampler::
 SampleX(typename Backend::Double_t rangeSampled, 
         typename Backend::Double_t probNA,   
-        typename Backend::Double_t aliasInd, 
+        typename Backend::Index_t  aliasInd, 
         typename Backend::Index_t  icol,     
         typename Backend::Double_t fraction  
        ) const
@@ -284,7 +284,7 @@ GUAliasSampler::
 SampleXL(typename Backend::Index_t  zElement, 
          typename Backend::Double_t rangeSampled, 
          typename Backend::Double_t probNA,   
-         typename Backend::Double_t aliasInd, 
+         typename Backend::Index_t  aliasInd, 
          typename Backend::Index_t  irow,     
          typename Backend::Index_t  icol) const
 {
@@ -369,7 +369,7 @@ void GUAliasSampler::
 GatherAlias(typename Backend::Index_t    index,
             typename Backend::Index_t    zElement,
             typename Backend::Double_t  &probNA,
-            typename Backend::Double_t  &aliasInd
+            typename Backend::Index_t   &aliasInd
            ) const
 {
 #ifdef CHECK
@@ -420,7 +420,7 @@ void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index, 
                  typename kVc::Index_t    zElement,
                  typename kVc::Double_t  &probNA,  
-                 typename kVc::Double_t  &aliasInd
+                 typename kVc::Index_t   &aliasInd
                 ) const 
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
