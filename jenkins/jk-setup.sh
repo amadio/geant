@@ -40,6 +40,7 @@ then
     . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
   else
     . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
+  fi
   export FC=gfortran
   export CXX=`which g++`
   export CC=`which gcc`
