@@ -33,15 +33,24 @@
 // Original Geant4 implementation was:
 //   examples/extended/persistency/gdml/G01/src/G01PrimaryGeneratorAction.cc 
 
-#include "PrimaryGeneratorAction.hh"
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
 
-#include "HepMCGenerator.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#undef USE_VECGEOM_NAVIGATOR
+#define RESTORE_USE_VECGEOM_NAVIGATOR
+#endif
+
+#include "HepMCGenerator.h"
+#include "PrimaryGeneratorAction.hh"
+
+#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
+#define USE_VECGEOM_NAVIGATOR
+#endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

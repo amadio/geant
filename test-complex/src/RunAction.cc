@@ -35,11 +35,19 @@
 #include "G4RunManager.hh"
 #include "G4UnitsTable.hh"
 #include "TabulatedDataManager.hh"
-
-#include "CMSApp.hh"
 #include "G4Step.hh"
+#include "CMSApp.hh"
+
+#ifdef USE_VECGEOM_NAVIGATOR
+#undef USE_VECGEOM_NAVIGATOR
+#define RESTORE_USE_VECGEOM_NAVIGATOR
+#endif
 
 #include "TPartIndex.h"
+
+#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
+#define USE_VECGEOM_NAVIGATOR
+#endif
 
 #include <time.h>
 

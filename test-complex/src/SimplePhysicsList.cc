@@ -32,7 +32,6 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 
-
 #include "SimplePhysicsList.hh"
 
 #include "G4ProcessManager.hh"
@@ -65,7 +64,6 @@
 #include "G4Alpha.hh"
 #include "G4GenericIon.hh"
 
-
 #include "G4BosonConstructor.hh"
 #include "G4LeptonConstructor.hh"
 #include "G4MesonConstructor.hh"
@@ -74,7 +72,20 @@
 #include "G4IonConstructor.hh"
 #include "G4ShortLivedConstructor.hh"
 
-//#include "G4ParticleTable.hh"
+#include "G4PhysicsListHelper.hh"
+
+#ifdef USE_VECGEOM_NAVIGATOR
+#undef USE_VECGEOM_NAVIGATOR
+#define RESTORE_USE_VECGEOM_NAVIGATOR
+#endif
+
+#include "TotalPhysicsProcess.hh"
+#include "TabulatedDataManager.hh"
+#include "TPartIndex.h"
+
+#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
+#define USE_VECGEOM_NAVIGATOR
+#endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -190,14 +201,6 @@ void SimplePhysicsList::ConstructProcess()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "G4PhysicsListHelper.hh"
-// #include "G4BestUnit.hh"
-
-#include "TotalPhysicsProcess.hh"
-
-//#include "VectorizedProcess.hh"
-#include "TabulatedDataManager.hh"
-#include "TPartIndex.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
