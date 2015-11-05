@@ -1,5 +1,5 @@
 #ifndef EmModelBase_H
-#define EmModelBase_H 1
+#define EmModelBase_H
 
 #include "backend/Backend.h"
 #include "base/SystemOfUnits.h"
