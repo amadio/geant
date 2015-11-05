@@ -843,8 +843,8 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
   double randDirX = 0.;
   double randDirY = 0.;
   double randDirZ = 1.;
-  double randSinTheta;
-  double randPhi;
+  double randSinTheta = 0.;
+  double randPhi = 0.;
 
   if (nSecPart) {
     randDirZ = 1.0 - 2.0 * G4UniformRand();

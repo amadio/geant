@@ -1946,7 +1946,7 @@ bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, Volume
 }
 #else
 //______________________________________________________________________________
-bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
+bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData */*td*/) {
   // Implementation of TGeoNavigator::IsSameLocation for single particle
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();

@@ -45,7 +45,7 @@ public:
   // At REST PART OF THE TOTAL PROCESS
   // mean life time for at rest processes: will be zero to force it since we have
   // only one at rest process (NuclearCaptureAtRest)
-  G4double GetMeanLifeTime(const G4Track& track, G4ForceCondition* condition){
+   G4double GetMeanLifeTime(const G4Track& /*track*/, G4ForceCondition* condition){
     *condition = NotForced; // will be forced other way i.e. setting to 0.0
     return 0.0;
   }

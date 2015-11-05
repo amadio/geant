@@ -132,7 +132,7 @@ GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int max
 
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
-size_t GeantTaskData::SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBasket)
+size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxPerBasket)
 {
    // @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth
 

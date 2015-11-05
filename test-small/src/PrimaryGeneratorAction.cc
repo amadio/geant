@@ -53,8 +53,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction():
    gunMessenger(new PrimaryGeneratorMessenger(this)),
    rndmFlag("off")
 {
-  G4int n_particle = 1;
-  
   //create a messenger for this class
 
   // default particle kinematic

@@ -77,7 +77,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 
   const G4MaterialCutsCouple* couple  = atrack->GetMaterialCutsCouple(); 
   G4double  kineticEnergy = atrack->GetKineticEnergy();
-  G4float logKineticEnergy = log10(kineticEnergy/GeV);
+  //  G4float logKineticEnergy = log10(kineticEnergy/GeV);
 
   //Secondary paticles
   const G4TrackVector* fSecondaryVector = theStep->GetSecondary();

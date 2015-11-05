@@ -20,12 +20,12 @@
 TGeoManager* MaterialConverter::fTGeomMgr= 0;
 
 MaterialConverter::MaterialConverter():
-   fMaxG4Material(0),
-   fMaxRootMaterial(0),
-   fInitialized(false),
    fRootMatIndices(),
    fG4MatIndices(),
-   fUsedExistingGeomMgr(true)
+   fMaxG4Material(0),
+   fMaxRootMaterial(0),
+   fUsedExistingGeomMgr(true),
+   fInitialized(false)
 { 
    int defSize= 4; // Must be at least 1
    fRootMatIndices.reserve(defSize); 
@@ -69,7 +69,7 @@ void MaterialConverter::CreateRootMaterials()
      // Check the G4 index
      size_t g4matIndex= g4mat->GetIndex();
      // assert( g4matIndex == imatG4 );
-     if( g4matIndex != imatG4 )
+     if( g4matIndex != (unsigned long)imatG4 )
         std::cerr << "ERROR in G4 material index - "
                  << " Expected " << imatG4 << " and found " << g4matIndex
                  << std::endl;
@@ -92,7 +92,7 @@ void MaterialConverter::CreateRootMaterials()
         const G4double*  g4elemFractions= g4mat->GetFractionVector();
 
         TGeoMixture *tgeoMixture = new TGeoMixture(g4mat->GetName(), numElements, g4mat->GetDensity() );      
-        for( int ielem = 0; ielem < numElements ; ielem++ )
+        for( int ielem = 0; ielem < (G4int) numElements ; ielem++ )
         {
            const G4Element* g4elem= g4mat->GetElement(ielem);
            tgeoMixture->AddElement(g4elem->GetA(), g4elem->GetZ(), g4elemFractions[ielem]);
@@ -140,7 +140,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
     // Check the G4 index
     size_t g4matIndex= g4mat->GetIndex();
     // assert( g4matIndex == imatG4 );
-    if( g4matIndex != imatG4 )
+    if( g4matIndex != (unsigned long) imatG4 )
       std::cerr << "ERROR in G4 material index - "
       << " Expected " << imatG4 << " and found " << g4matIndex
       << std::endl;
@@ -194,7 +194,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
         const G4double*  g4elemFractions= g4mat->GetFractionVector();
         TGeoMixture *tgeoMixture = new TGeoMixture(rootMatName, numElements, 
                                                    g4mat->GetDensity() );
-        for( int ielem = 0; ielem < numElements ; ielem++ )
+        for( int ielem = 0; ielem < (G4int) numElements ; ielem++ )
         {
           const G4Element* g4elem= g4mat->GetElement(ielem);
           tgeoMixture->AddElement(g4elem->GetA(), g4elem->GetZ(), g4elemFractions[ielem]);
@@ -239,7 +239,7 @@ MaterialConverter::IdentifyUsedMaterials()
   const int numVolumes= logVolStore->size();
   Size_t iVol;
   
-  int matRtMaxIndex= fRootMatIndices.size();
+  //  int matRtMaxIndex= fRootMatIndices.size();
   
   for( iVol=0;  iVol<numVolumes; iVol++ )
   {
@@ -278,7 +278,7 @@ MaterialConverter::ExpandRtIndices(int idG4)
 #include <TCollection.h>
 #define NELEM 118         // Total number of elements
 
-void MaterialConverter::DumpListOfMaterials(bool onlyUsed)
+void MaterialConverter::DumpListOfMaterials(bool /*onlyUsed*/)
 {
   int noUsedMaterials=0;
   

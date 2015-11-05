@@ -75,21 +75,23 @@ G4double DetectorConstruction::fTrackingCutInEnergy = 3.e-6*GeV ;  // in [GeV]
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 DetectorConstruction::DetectorConstruction()
-:AbsorberMaterial(0),GapMaterial(0),defaultMaterial(0),
- solidWorld(0),logicWorld(0),physiWorld(0),
- solidCalor(0),logicCalor(0),physiCalor(0),
- solidLayer(0),logicLayer(0),physiLayer(0),
- solidAbsorber(0),logicAbsorber(0),physiAbsorber(0),
- solidGap (0),logicGap (0),physiGap (0),
- magField(0),
+:AbsorberMaterial(0),
  AbsorberThickness(10*mm), // 1*mm
+ GapMaterial(0),
  GapThickness(5*mm),   // 0.5*mm
  NbOfLayers(10),    // 100
  LayerThickness(0),
  CalorSizeYZ(10*cm),
  CalorThickness(0),
+ defaultMaterial(0),
  WorldSizeYZ(0),
  WorldSizeX(0),
+ solidWorld(0),logicWorld(0),physiWorld(0),
+ solidCalor(0),logicCalor(0),physiCalor(0),
+ solidLayer(0),logicLayer(0),physiLayer(0),
+ solidAbsorber(0), logicAbsorber(0), physiAbsorber(0),
+ solidGap (0), logicGap (0), physiGap (0),
+ magField(0),
  detectorMessenger(0)
 {
   // default parameter values of the calorimeter
@@ -181,15 +183,16 @@ void DetectorConstruction::DefineMaterials()
  
 G4String symbol;             //a=mass of a mole;
 G4double a, z, density;      //z=mean number of protons;  
-G4int iz, n;                 //iz=number of protons  in an isotope; 
-                             // n=number of nucleons in an isotope;
 
 G4int ncomponents, natoms;
-G4double abundance, fractionmass;
+G4double fractionmass;
 
 //
 // define Elements
 //
+
+//iz=number of protons  in an isotope; 
+// n=number of nucleons in an isotope;
 
 G4Element* H  = new G4Element("Hydrogen",symbol="H" , z= 1., a= 1.01*g/mole);
 G4Element* C  = new G4Element("Carbon"  ,symbol="C" , z= 6., a= 12.01*g/mole);

@@ -321,7 +321,7 @@ void setG4ProductionCut(){
     G4Region *reg = (*theRegionStore)[i];
     std::cout<<"\t\tName of "<< i <<"-th region is: "<< reg->GetName() << std::endl;
 
-    for(G4int imat=0; imat<theMaterialTable->size(); ++imat) {
+    for(G4int imat=0; imat<(G4int)theMaterialTable->size(); ++imat) {
       G4MaterialCutsCouple *mcCouple = reg->FindCouple((*theMaterialTable)[imat]);
       if(mcCouple!=0) {
          G4ProductionCuts* pcuts = reg->GetProductionCuts();

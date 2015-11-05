@@ -101,8 +101,9 @@ void RunAction::BeginOfRunAction(const G4Run *aRun) {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void RunAction::fillPerEvent(G4double EAbs, G4double EGap, G4double LAbs, G4double LGap) {
+void RunAction::fillPerEvent
 #ifdef MAKESTAT
+            (G4double EAbs, G4double EGap, G4double LAbs, G4double LGap) {
   // accumulate statistic
   //
   sumEAbs += EAbs;
@@ -114,14 +115,17 @@ void RunAction::fillPerEvent(G4double EAbs, G4double EGap, G4double LAbs, G4doub
   sum2LAbs += LAbs * LAbs;
   sumLGap += LGap;
   sum2LGap += LGap * LGap;
+#else 
+          (G4double, G4double, G4double, G4double) {
 #endif
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void RunAction::fillPerEvent(G4double *EdepGap, G4double *LengthGap, G4double *EdepAbs, G4double *LengthAbs,
-                             unsigned long numsteps, unsigned long *ProcStat, G4double time) {
+void RunAction::fillPerEvent
 #ifdef MAKESTAT
+         (G4double *EdepGap, G4double *LengthGap, G4double *EdepAbs, G4double *LengthAbs,
+         unsigned long numsteps, unsigned long *ProcStat, G4double time) {
   G4double s1, s2, s3, s4;
   s1 = s2 = s3 = s4 = 0.0;
   for (G4int i = 0; i < kNlayers; ++i) {
@@ -157,6 +161,10 @@ void RunAction::fillPerEvent(G4double *EdepGap, G4double *LengthGap, G4double *E
 
   fSumTime += time;
   fSum2Time += time * time;
+#else
+         (G4double*, G4double*, G4double*, G4double*,
+         unsigned long, unsigned long*, G4double) {
+
 #endif
 }
 

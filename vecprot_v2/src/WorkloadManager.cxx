@@ -505,7 +505,6 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   //   const int max_idle = 1;
   //   int indmin, indmax;
   static std::atomic<int> counter(0);
-  int ntotnext;
   // int ncross;
   int nbaskets;
   int ntotransport;
@@ -642,7 +641,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 
     ntotransport = basket->GetNinput(); // all tracks to be transported
     // ninput = ntotransport;
-    GeantTrack_v &input = basket->GetInputTracks();
+    //    GeantTrack_v &input = basket->GetInputTracks();
     GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty

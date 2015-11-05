@@ -63,9 +63,9 @@ SteppingAction::~SteppingAction() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void SteppingAction::UserSteppingAction(const G4Step *aStep) {
-
+void SteppingAction::UserSteppingAction
 #ifdef MAKESTAT
+                  (const G4Step *aStep) {
   // get volume of the current step
   G4VPhysicalVolume *volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
 
@@ -122,6 +122,8 @@ void SteppingAction::UserSteppingAction(const G4Step *aStep) {
   }
 
   eventaction->AddOneStep();
+#else
+         (const G4Step *) {
 #endif
 
   // example of saving random number seed of this event, under condition

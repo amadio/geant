@@ -50,9 +50,23 @@
 
 EventAction::EventAction():
    runAct((RunAction*)G4RunManager::GetRunManager()->GetUserRunAction()),
-   eventMessenger(new EventActionMessenger(this)),
-   printModulo(1)
+   printModulo(1),
+   eventMessenger(new EventActionMessenger(this))
+#ifdef MAKESTAT
+   ,EnergyAbs(0), EnergyGap(0),
+   TrackLAbs(0), TrackLGap(0),
+   fNSteps(0)
+   startTime(0), endTime(0)
+#endif
+
 {
+#ifdef MAKESTAT
+   memset(fEdepGap,0,kNlayers*sizeof(G4double));
+   memset(fLengthGap,0,kNlayers*sizeof(G4double));
+   memset(fEdepAbs,0,kNlayers*sizeof(G4double));
+   memset(fLengthAbs,0,kNlayers*sizeof(G4double));
+   memset(fProcStat,0,kNProc*sizeof(unsigned long)); 
+#endif
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -64,15 +78,16 @@ EventAction::~EventAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EventAction::BeginOfEventAction(const G4Event* evt)
+void EventAction::BeginOfEventAction(const G4Event* /*evt*/)
 {  
 
+   /*
   G4int evtNb = evt->GetEventID();
-/*  if (evtNb%printModulo == 0) { 
+  if (evtNb%printModulo == 0) { 
     G4cout << "\n---> Begin of event: " << evtNb << G4endl;
     CLHEP::HepRandom::showEngineStatus();
   }
-*/
+   */
  
 /*
   // initialisation per event
@@ -113,7 +128,7 @@ void EventAction::BeginOfEventAction(const G4Event* evt)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void EventAction::EndOfEventAction(const G4Event* evt)
+void EventAction::EndOfEventAction(const G4Event* /*evt*/)
 {
 /*
   //accumulates statistic
@@ -149,9 +164,10 @@ void EventAction::EndOfEventAction(const G4Event* evt)
 }  
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void EventAction::FillPerStep(G4int isgap, G4int layer, G4double edepo, 
+void EventAction::FillPerStep
+#ifdef MAKESTAT
+                             (G4int isgap, G4int layer, G4double edepo, 
                               G4double steplength,  G4int procIndex){
-#ifdef MAKESTAT    
     if(isgap) {
         fEdepGap  [layer] += edepo;
         fLengthGap[layer] += steplength;
@@ -161,6 +177,8 @@ void EventAction::FillPerStep(G4int isgap, G4int layer, G4double edepo,
     }
 
     ++fProcStat[procIndex];
+#else
+                             (G4int, G4int, G4double,G4double,G4int){
 #endif
 }
 

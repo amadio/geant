@@ -321,10 +321,10 @@ add_subdirectory (micromc)
 
 if(NOT USE_VECGEOM_NAVIGATOR)
  add_subdirectory (test-small)
+ add_subdirectory (test-complex)
 endif()
 
 add_subdirectory (cmstrack)
-#add_subdirectory (test-complex)
 add_subdirectory (Nudy)
 
 if(USE_VECPHYS)

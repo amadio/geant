@@ -166,8 +166,8 @@ void GeantScheduler::CreateBaskets() {
     //      basket_mgr->GetFeederQueue());
     fBasketMgr[icrt++] = basket_mgr;
   }
-  const size_t MB = 1048576;
-  size_t size = Sizeof() / MB;
+  //   const size_t MB = 1048576;
+  // size_t size = Sizeof() / MB;
   // Printf("Size of scheduler including initial baskets: %ld MB", size);
   //   PrintSize();
 }

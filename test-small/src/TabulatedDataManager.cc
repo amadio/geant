@@ -726,6 +726,7 @@ void TabulatedDataManager::SampleFinalState(const int elementindex, const int re
 // bound deacy as well (but we cannot see if it was nCapture or decay->always set
 // to nCapture) So do nuclear capture at rest if the partcle has nCapture at rest
 // and decay at rest otherwise.
+
 //______________________________________________________________________________
 void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track &atrack,
                                                   G4ParticleChange *particlechange, double energylimit) {
@@ -839,11 +840,11 @@ void TabulatedDataManager::SampleFinalStateAtRest(const int imat, const G4Track 
 
   // Handle the final state !
 
-  double randDirX;
-  double randDirY;
-  double randDirZ;
-  double randSinTheta;
-  double randPhi;
+  double randDirX = 0.;
+  double randDirY = 0.;
+  double randDirZ = 1.;
+  double randSinTheta = 0.;
+  double randPhi = 0.;
 
   if (nSecPart) {
     randDirZ = 1.0 - 2.0 * G4UniformRand();

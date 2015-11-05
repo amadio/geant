@@ -74,10 +74,12 @@ public:
 private:
    // a helper function checking internal arrays and allocating more space if necessary
   template <typename T> static void CheckSizeAndAlloc(T *&array, int &currentsize, size_t wantedsize) {
-    if (wantedsize < currentsize)
+     if (wantedsize < (size_t) currentsize)
       return;
     T *newarray = new T[wantedsize];
+    memcpy(newarray,array,currentsize*sizeof(T));
     delete[] array;
+    array = newarray;
     currentsize = wantedsize;
   }
 
@@ -142,7 +144,7 @@ public:
   vecgeom::SOA3D<double> *GetSOA3DWorkspace1(int size) {
     // TODO: should actually resize the workspace containers together
     // TODO: they should also be close together in memory
-    if (size > fSOA3Dworkspace1->size()) {
+    if ((size_t) size > fSOA3Dworkspace1->size()) {
       delete fSOA3Dworkspace1;
       fSOA3Dworkspace1 = new vecgeom::SOA3D<double>(2 * size);
     }
@@ -155,7 +157,7 @@ public:
    * @param size Size of container
    */
   vecgeom::SOA3D<double> *GetSOA3DWorkspace2(int size) {
-    if (size > fSOA3Dworkspace2->size()) {
+    if ((size_t) size > fSOA3Dworkspace2->size()) {
       delete fSOA3Dworkspace2;
       fSOA3Dworkspace2 = new vecgeom::SOA3D<double>(2 * size);
     }

@@ -45,7 +45,7 @@
 #include "TabulatedHadronProcess.hh"
 
 G4PiKBuilder_WP::
-G4PiKBuilder_WP(): wasActivated(false),
+G4PiKBuilder_WP(): 
   thePionPlusInelastic(new G4PionPlusInelasticProcess),
   thePionMinusInelastic(new G4PionMinusInelasticProcess),
   theKaonPlusInelastic(new G4KaonPlusInelasticProcess),
@@ -71,7 +71,8 @@ G4PiKBuilder_WP(): wasActivated(false),
   theWrappedKaonZeroSInelastic(
     new TabulatedHadronProcess(theKaonZeroSInelastic->GetProcessName(),
 			       theKaonZeroSInelastic->GetProcessType())),
-		   theModelCollections(0)
+  theModelCollections(0),
+  wasActivated(false)
 {  
 }
 

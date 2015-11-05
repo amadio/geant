@@ -79,9 +79,9 @@ int TotalPhysicsProcess::SetupForMaterial(const G4Track& track)
 
 //______________________________________________________________________________ 
 G4double TotalPhysicsProcess::GetContinuousStepLimit(const G4Track& track, 
-                                                     G4double previousStepSize,
-                                                     G4double currentMinimumStep,
-                                                     G4double &currentSafety){
+                                                     G4double /*previousStepSize*/,
+                                                     G4double /*currentMinimumStep*/,
+                                                     G4double &/*currentSafety*/){
 // Temporary switch off MSC !!!
     G4int rootMatId = SetupForMaterial(track);
 //    theDataManager->ApplyMsc(rootMatId, track);
@@ -121,7 +121,7 @@ G4VParticleChange* TotalPhysicsProcess::AlongStepDoIt(const G4Track& track,
 
 //______________________________________________________________________________
 G4VParticleChange* TotalPhysicsProcess::AtRestDoIt(const G4Track &atrack, 
-                                                    const G4Step &astep){
+						   const G4Step &/*astep*/){
 
    // clear number of interaction length left (will set to -1) --> need to be resample 
    ClearNumberOfInteractionLengthLeft();
@@ -158,7 +158,7 @@ G4double TotalPhysicsProcess::GetMeanFreePath(const G4Track& track,
 // Invoke post-step-do-it action
 //______________________________________________________________________________
 G4VParticleChange* TotalPhysicsProcess::PostStepDoIt(const G4Track& track, 
-                                                     const G4Step& step) {
+                                                     const G4Step& /*step*/) {
 
   // clear number of interaction length left (will set to -1) --> need to be resample 
   ClearNumberOfInteractionLengthLeft();

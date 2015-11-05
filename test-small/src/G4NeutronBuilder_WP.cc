@@ -45,17 +45,18 @@
 #include "TabulatedHadronProcess.hh"
 
 G4NeutronBuilder_WP::
-G4NeutronBuilder_WP(): wasActivated(false),
-   theNeutronInelastic(new G4NeutronInelasticProcess),
-      theNeutronCapture(new G4HadronCaptureProcess),
+G4NeutronBuilder_WP(): 
+      theNeutronInelastic(new G4NeutronInelasticProcess),
       theNeutronFission(new G4HadronFissionProcess),
+      theNeutronCapture(new G4HadronCaptureProcess),
       theWrappedNeutronInelastic(new TabulatedHadronProcess(theNeutronInelastic->GetProcessName(),
-							    theNeutronInelastic->GetProcessType())),
-      theWrappedNeutronCapture(new TabulatedHadronProcess(theNeutronCapture->GetProcessName(),
-							  theNeutronCapture->GetProcessType())),
+						     theNeutronInelastic->GetProcessType())),
       theWrappedNeutronFission(new TabulatedHadronProcess(theNeutronFission->GetProcessName(),
-							  theNeutronFission->GetProcessType())),
-		       theModelCollections(0)
+						   theNeutronFission->GetProcessType())),
+      theWrappedNeutronCapture(new TabulatedHadronProcess(theNeutronCapture->GetProcessName(),
+						   theNeutronCapture->GetProcessType())),
+      theModelCollections(0),
+      wasActivated(false)
 {
 }
 
