@@ -61,70 +61,54 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   double dx = (logxmax - logxmin)/nrow;
 
   int    nintegral= 5*int(log(logxmax)); //temporary
-<<<<<<< HEAD
-  double normal = 0;
-  double fxsec = 0;
-=======
-  double partialSum[nintegral];
+  // double partialSum[nintegral];
   // double fxsec = 0;
->>>>>>> Use the average value of the PDF, not pdf(<E>)
 
+  //use the average xsec within the bin instead of xsec at the mid-point
   for(int i = 0; i <= nrow ; ++i) {
-    //for each input energy bin
-    double x = exp(logxmin + dx*i);
+    
+      double x = exp(logxmin + dx*i);
+      
+      double ymin = x/(1+2.0*x*inv_electron_mass_c2);
+      double dy = (x - ymin)/ncol;
+      //    double yo = ymin + 0.5*dy;
+      
+      double sum = 0.;
+      for(int j = 0; j < ncol ; ++j) {
+          //for each input energy bin
 
-    double ymin = x/(1+2.0*x*inv_electron_mass_c2);
-    double dy = (x - ymin)/ncol;
-  
-    double sum = 0.;
-
-    for(int j = 0; j < ncol ; ++j) {
-      //for each output energy bin
-//<<<<<<< HEAD
-//      double y = 0;
-//      normal = 0;
-//=======
-      //      double y = yo + dy*j;
       double average = 0; // rename to sumEN   // Sum y (E_out) * N(pdf)
       double normal = 0;  // rename to sumN    // Sum N (pdf)
-//>>>>>>> Use the average value of the PDF, not pdf(<E>)
 
-      //use the average xsec within the bin instead of xsec at the mid-point
+
+      //cross section weighted bin position
       for(int k = 0; k < nintegral ; ++k) {
-/*<<<<<<< HEAD
-        y = ymin + dy*(j+(0.5+k)/nintegral);
-        fxsec = CalculateDiffCrossSection(Z,x,y);
-=======*/
+
         double y = ymin + dy*(j+(0.5+k)/nintegral);
         double fxsec = CalculateDiffCrossSection(Z,x,y);
         average += y*fxsec;
-//>>>>>>> Use the average value of the PDF, not pdf(<E>)
         normal  += fxsec;
-        partialSumN[k]= normal;
+        // partialSum[k]= normal;
+
       }
-/*<<<<<<< HEAD
+          // double halfSumN= 0.5*normal;
+          // - Extension: look for the 'median' using partialSum[k]
+          
+          // double yAver = average/normal;  // Average y(E_out) in bin
+          // double xsecEav = CalculateDiffCrossSection(Z,x,yAver);
 
       double xsec = normal/nintegral;
       p[i*ncol+j] = xsec;
-======= */
-      double halfSumN= 0.5*normal; //mb: not used?
-
-      double yAver = average/normal;  // Average y(E_out) in bin
-      double xsecEav = CalculateDiffCrossSection(Z,x,yAver);
-        // The Pdf at the average energy - it is not a good estimate
-
-      double xsec = normal / nintegral; 
-
-      p[i*fNcol+j] = xsec;
-//>>>>>>> Use the average value of the PDF, not pdf(<E>)
       sum += xsec;
     }
 
     //normalization
-    sum = 1.0/sum;
+    const double inv_sum = 1.0/sum;
+
 
     for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
+      p[i*ncol+j] *= inv_sum;
+
     }
   }
 }
