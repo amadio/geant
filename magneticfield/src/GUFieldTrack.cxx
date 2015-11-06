@@ -7,27 +7,26 @@
 
 GUFieldTrack::
 GUFieldTrack( const ThreeVector& pPosition, 
-              const ThreeVector& pMomentumDirection,
-                    double       momentum, // kineticEnergy,
-			          // double       restMass_c2,
-                    double       charge, 
-                    double       LaboratoryTimeOfFlight,
-                    double       curve_length )
+              const ThreeVector& pMomentum,
+              // double       restMass_c2,
+              // double       charge, 
+              double       LaboratoryTimeOfFlight,
+              double       curve_length )
         // const ThreeVector& vecPolarization,
         // double       magnetic_dipole_moment,
         // double       curve_length,
         // double       pdgSpin )
 :  fDistanceAlongCurve(curve_length),
-   fMomentumMag(momentum),
+   // fMomentumMag(pMomentum.Mag()),
    // fKineticEnergy(kineticEnergy), fRestMass_c2(restMass_c2),
    fLabTimeOfFlight(LaboratoryTimeOfFlight), 
-   fProperTimeOfFlight(0.),
-   // fMomentumDir(pMomentumDirection),
+   fProperTimeOfFlight(0.) // ,
+   // fMomentumDir(pMomentum.Unit()),
    // fChargeState(  charge, magnetic_dipole_moment, pdgSpin )
    // fPDGSpin( pdgSpin )
-   fCharge( charge )
+   // fCharge( charge )
 {
-  SetMomentum( momentum * pMomentumDirection ); 
+  SetMomentum( pMomentum ); 
 
   SetPosition( pPosition ); 
   // SetPolarization( vecPolarization ); 
@@ -39,8 +38,8 @@ GUFieldTrack::GUFieldTrack( char )                  //  Nothing is set !!
   : // fKineticEnergy(0.), 
     // fRestMass_c2(0.), 
     fLabTimeOfFlight(0.),
-    fProperTimeOfFlight(0.), 
-    fCharge(  DBL_MAX )
+    fProperTimeOfFlight(0.) // , 
+    // fCharge(  DBL_MAX )
 {
   ThreeVector Zero(0.0, 0.0, 0.0);
 
