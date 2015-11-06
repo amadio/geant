@@ -2681,13 +2681,13 @@ Material_t *GeantTrack_v::GetMaterial(int i) const {
 }
 
 //______________________________________________________________________________
+#ifdef USE_VECGEOM_NAVIGATOR
 bool GeantTrack_v::CheckNavConsistency(int /*itr*/) {
+  // TO IMPLEMENT WIRH VECGEOM
+#else
+bool GeantTrack_v::CheckNavConsistency(int itr) {
 // Check consistency of navigation state for a given track.
 // Debugging purpose
-#ifdef USE_VECGEOM_NAVIGATOR
-  // TO IMPLEMENT WIRH VECGEOM
-  return true;
-#else
   double point[3], local[3];
   point[0] = fXposV[itr];
   point[1] = fYposV[itr];
@@ -2717,8 +2717,8 @@ bool GeantTrack_v::CheckNavConsistency(int /*itr*/) {
       return false;
     }
   }
-  return true;
 #endif
+  return true;
 }
 
 //______________________________________________________________________________
