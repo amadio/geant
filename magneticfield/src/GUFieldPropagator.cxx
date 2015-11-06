@@ -39,10 +39,9 @@ void GUFieldPropagator::Step(double step)
   fStepLength= step;
 
   GUFieldTrack fieldTr( fInitialPosition, 
-                        fInitialDirection,
-                        fMomentumMag,
+                        fInitialDirection * fMomentumMag,
                         // fRestMass,
-                        fCharge, 
+                        // fCharge, 
                         0.0,  // time
                         0.0); // s_0  
 
