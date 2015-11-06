@@ -102,7 +102,7 @@ int main(int argc, char *args[])
        spin=0.0,                       // ignore the spin
        magneticMoment= 0.0,            // ignore the magnetic moment
        mass = 1;
-    
+
     //Choice of output coordinates
     int
     columns[] =
