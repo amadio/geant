@@ -145,7 +145,8 @@ int main(int argc, char *args[])
     auto gvEquation =
        new GvEquationType(gvField);
        // new TMagFieldEquation<TUniformMagField, Nposmom>(gvField);
-    gvEquation->InitializeCharge( particleCharge );
+
+    // gvEquation->InitializeCharge( particleCharge );  // Send it via Stepper instead    
 
     /*-------------------------PREPARING STEPPER-----------------------------*/
     
@@ -174,7 +175,9 @@ int main(int argc, char *args[])
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
       default : myStepper = 0 ;
     }
-
+    
+    myStepper->InitializeCharge( particleCharge );
+    
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
     const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
