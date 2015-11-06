@@ -117,7 +117,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
 
   int nstp, i, no_warnings=0;
   double x, hnext, hdid, h;
-  double charge= y_current.GetCharge(); 
+  // double charge= y_current.GetCharge(); 
 
 #ifdef GUDEBUG_FIELD
   static int dbg=1;
@@ -181,7 +181,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   nstp=1;
 
   // fpStepper->InitializeCharge( charge );   // May be added
-  fpStepper->GetEquationOfMotion()->InitializeCharge( charge );
+  // OLD: fpStepper->GetEquationOfMotion()->InitializeCharge( charge );
   
   do
   {
@@ -219,7 +219,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     else
     {
       GUFieldTrack yFldTrk( ThreeVector(0,0,0), 
-                            ThreeVector(0,0,0), 0., 0., 0., 0. );
+                            ThreeVector(0,0,0), 0., 0. );
       double dchord_step, dyerr_len_sq, dyerr_mom_rel_sq;   // What to do with these ?
       yFldTrk.LoadFromArray(y, fNoIntegrationVariables); 
       yFldTrk.SetCurveLength( x );
@@ -405,9 +405,10 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   }
 #endif
 
-  // Finished for now - value of charge is 'revoked'  
-  fpStepper->GetEquationOfMotion()->InformDone();  
-  // fpStepper->InformDone();  // May be added
+  // No longer relevant -- IntDriver does not control charge anymore
+  // OLD: Finished for now - value of charge is 'revoked'
+  //  fpStepper->GetEquationOfMotion()->InformDone();  
+  //  fpStepper->InformDone();  // May be added
   
   return succeeded;
 }  // end of AccurateAdvance ...........................
@@ -816,7 +817,7 @@ void GUIntegrationDriver::PrintStatus( const double*   StartArr,
   //                                 nextStep (hnext) - proposal for size
 {
    GUFieldTrack  StartFT(ThreeVector(0,0,0),
-                 ThreeVector(0,0,0), 0., 0., 0., 0. );
+                 ThreeVector(0,0,0), 0., 0. );
    GUFieldTrack  CurrentFT (StartFT);
 
    StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
