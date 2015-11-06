@@ -29,6 +29,10 @@ add_executable(testStepperFixed testStepperFixed.cxx) ## ${sources} ${headers})
 target_link_libraries(testStepperFixed Vmagfield ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testStepperFixed")
 
+add_executable(testIntegrationDriver testIntegrationDriver.cxx) ## ${sources} ${headers})
+target_link_libraries(testIntegrationDriver Vmagfield ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+message(STATUS "Created target for testIntegrationDriver")
+
 ## add_executable(testFieldPropagator TestGUFieldPropagator.cxx) ## ${sources} ${headers})
 ## target_link_libraries(testFieldPropagator Vmagfield  ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 ## # ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEG -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
