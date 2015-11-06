@@ -26,10 +26,9 @@ class  GUFieldTrack
    public:  // with description
 
      GUFieldTrack( const ThreeVector& pPosition, 
-                   const ThreeVector& pMomentumDirection,
-                         double       momentum,
+                   const ThreeVector& pMomentum,
                          // double       restMass_c2,
-                         double       charge,
+                         // double       charge,
                          double       laboratoryTimeOfFlight= 0.0,
                          double       curve_length= 0.0); 
 
@@ -47,7 +46,7 @@ class  GUFieldTrack
         //  Update four-vectors for space/time and momentum/energy
         //    Also resets curve length.
 
-     void SetCharge(double charge) { fCharge= charge; }
+     // void SetCharge(double charge) { fCharge= charge; }
 
      inline GUFieldTrack& operator = ( const GUFieldTrack & rStVec );
        // Assignment operator
@@ -67,20 +66,20 @@ class  GUFieldTrack
        // Accessors.
 
      inline void SetPosition(ThreeVector nPos); 
-     inline void SetMomentum(ThreeVector nMomDir);
+     inline void SetMomentum(ThreeVector nMom);
        // Does change mom-dir too.
 
      inline void SetCurvePnt(const ThreeVector& pPosition, 
                              const ThreeVector& pMomentum,  
                                    double       s_curve );
 
-     inline void SetMomentumDir(ThreeVector nMomDir);
+     // inline void SetMomentumDir(ThreeVector nMomDir);
        // Does NOT change Momentum or Velocity Vector.
 
      // inline void SetRestMass(double Mass_c2) { fRestMass_c2= Mass_c2; }
 
        // Access
-     inline double GetCharge() const { return fCharge; } 
+     // inline double GetCharge() const { return fCharge; } 
    
      inline void SetCurveLength(double nCurve_s);
        // Distance along curve.
@@ -116,7 +115,7 @@ class  GUFieldTrack
      // double  fInitialMomentumMag;  // At 'track' creation.
      // double  fLastMomentumMag;     // From last Update (for checking.)
 
-     double fCharge;
+     // double fCharge;
 
 
 }; 
@@ -135,11 +134,11 @@ GUFieldTrack::GUFieldTrack( const GUFieldTrack&  rStVec  )
    // fKineticEnergy( rStVec.fKineticEnergy ),
    // fRestMass_c2( rStVec.fRestMass_c2),
    fLabTimeOfFlight( rStVec.fLabTimeOfFlight ), 
-   fProperTimeOfFlight( rStVec.fProperTimeOfFlight ), 
+   fProperTimeOfFlight( rStVec.fProperTimeOfFlight ) //, 
    // fMomentumModulus( rStVec.fMomentumModulus ),
    // fPolarization( rStVec.fPolarization ), 
    // fMomentumDir( rStVec.fMomentumDir ), 
-   fCharge( rStVec.fCharge )
+   // fCharge( rStVec.fCharge )
 {
   SixVector[0]= rStVec.SixVector[0];
   SixVector[1]= rStVec.SixVector[1];
@@ -318,7 +317,7 @@ GUFieldTrack & GUFieldTrack::operator = ( const GUFieldTrack& rStVec )
   // SetPolarization( rStVec.GetPolarization() );
   // fMomentumDir= rStVec.fMomentumDir;
 
-  fCharge= rStVec.fCharge;
+  // fCharge= rStVec.fCharge;
   // (*Fpchargestate)= *(rStVec.fpChargeState);
   // fpChargeState= rStVec.fpChargeState; // Handles!!
   return *this;
