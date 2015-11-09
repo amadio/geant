@@ -71,7 +71,7 @@ ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
 find_program(CTEST_GIT_COMMAND NAMES git)
 if(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-  set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone http://git.cern.ch/pub/geant ${CTEST_SOURCE_DIRECTORY}")
+  set(CTEST_CHECKOUT_COMMAND "${CTEST_GIT_COMMAND} clone https://gitlab.cern.ch/GeantV/geant.git ${CTEST_SOURCE_DIRECTORY}")
 endif()
 set(CTEST_GIT_UPDATE_COMMAND "${CTEST_GIT_COMMAND}")
 if(NOT "$ENV{GIT_COMMIT}" STREQUAL "")
@@ -118,27 +118,18 @@ message("Dashboard script configuration (check if everything is declared correct
 #######################################################
 # Build dashboard model setup
 
-IF(${CTEST_SCRIPT_ARG} MATCHES Nightly)
+#------------ Cdash---------------------------------
+if("$ENV{MODE}" STREQUAL "")
+  set(CTEST_MODE Experimental)
+else()
+  set(CTEST_MODE "$ENV{MODE}")
+endif()
+
+if(${CTEST_MODE} MATCHES nightly)
   SET(MODEL Nightly)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES Nightly)
-IF(${CTEST_SCRIPT_ARG} MATCHES CUDA)
-  SET(MODEL CUDA)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES CUDA)
-IF(${CTEST_SCRIPT_ARG} MATCHES MIC)
-  SET(MODEL MIC)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES MIC)
-IF(${CTEST_SCRIPT_ARG} MATCHES Devel)
-  SET(MODEL Devel)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES Devel)
-IF(${CTEST_SCRIPT_ARG} MATCHES Scalar)
-  SET(MODEL Scalar)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES Scalar)
-IF(${CTEST_SCRIPT_ARG} MATCHES Experimental)
-  SET(MODEL Experimental)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES Experimental)
-IF(${CTEST_SCRIPT_ARG} MATCHES Continuous)
+elseif(${CTEST_MODE} MATCHES continuous)
   SET(MODEL Continuous)
-ENDIF(${CTEST_SCRIPT_ARG} MATCHES Continuous)
+endif()
 
 find_program(CTEST_COMMAND_BIN NAMES ctest)
 SET (CTEST_COMMAND
@@ -149,9 +140,13 @@ SET (CTEST_COMMAND
 message("Running CTest Dashboard Script (custom update)...")
 include("${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
 
-ctest_start(${MODEL})
+ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
+
+ctest_start(${MODEL} TRACK ${MODEL})
+
 ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
 message("Updated.")
+
 ctest_configure(SOURCE "${CTEST_SOURCE_DIRECTORY}" BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Configured.")
 ctest_submit(PARTS Update Configure Notes)
