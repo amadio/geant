@@ -54,6 +54,8 @@ def main(argv):
       ops_sys = 'slc6'
    elif label == "xeonphi" :
       ops_sys = 'slc6'
+   elif label == 'slc6-physical' :
+       ops_sys = 'slc6'
    else :
       ops_sys = label
 
