@@ -117,10 +117,12 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
    
    fMidVector = new double[sNstore];
    fMidError =  new double[sNstore];
-
-   std::cerr << " GUTCashKarpRKF45 - constructed class. " << std::endl
-             << " Nvar = " << Nvar << " Nstore= " << sNstore 
-             << " Primary = " << primary << std::endl;
+#if 0
+   if( verbose )
+      std::cout << " GUTCashKarpRKF45 - constructed class. " << std::endl
+                << " Nvar = " << Nvar << " Nstore= " << sNstore 
+                << " Primary = " << primary << std::endl;
+#endif   
    if( primary )
    { 
       fAuxStepper = new GUTCashKarpRKF45(EqRhs, numberOfVariables, numStateVariables, !primary);
