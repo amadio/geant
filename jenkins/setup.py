@@ -7,7 +7,7 @@ global arch, system
 arch = platform.machine()
 system = platform.system()
 
-# --------------------- Setting command lines options 
+# --------------------- Setting command lines options
 def main(argv):
    global compiler, build_type, op_sys, external, rootDir, workspace, specific_type
    global comp, build, label
@@ -44,7 +44,7 @@ def main(argv):
 
       elif opt in ("-t"):
          specific_type = arg
-   
+
    if build == 'Release' : build_type = 'opt'
    elif build == 'Debug' : build_type = 'dbg'
    elif build == 'Optimized' : build_type = 'opt'
@@ -56,21 +56,21 @@ def main(argv):
       ops_sys = 'slc6'
    else :
       ops_sys = label
-      
 
-   if comp == 'clang34' : 
+
+   if comp == 'clang34' :
       compiler = 'gcc48'
    elif comp == 'clang35' :
-      compiler = 'gcc49'   
+      compiler = 'gcc49'
    elif comp == 'clang36' :
       compiler = 'gcc49'
    else :
       compiler = comp
 
-   rootDir = "/afs/cern.ch/sw/lcg/app/releases/GEANTV-externals/"+external 
+   rootDir = "/afs/cern.ch/sw/lcg/app/releases/GEANTV-externals/"+external
 
 
-# --------------------- Setting default OS 
+# --------------------- Setting default OS
 def default_os():
    if system == 'Darwin' :
       osvers = 'mac' + string.join(platform.mac_ver()[0].split('.')[:2],'')
@@ -93,7 +93,7 @@ def default_os():
 
    return osvers;
 
-# --------------------- Setting default compiler 
+# --------------------- Setting default compiler
 
 def default_compiler():
 
@@ -130,24 +130,24 @@ def default_compiler():
             compiler_orig = 'icc' + mobj.group(1) + mobj.group(2)
          else:
             compiler_orig = 'unk-cmp'
-   return compiler_orig;         
+   return compiler_orig;
 
-# --------------------- Setting default built type 
+# --------------------- Setting default built type
 
 def default_bt():
    if os.getenv('BUILDTYPE'):
       buildtype = os.getenv('BUILDTYPE')
    else:
       buildtype = 'Release'
-      
+
    if buildtype == 'Release' : bt = 'opt'
    elif buildtype == 'Debug' : bt = 'dbg'
    elif buildtype == 'Optimized' : bt = 'opt'
    else : bt = 'unk'
 
-   return bt;   
+   return bt;
 
-# --------------------- Setting names of the main tree directory 
+# --------------------- Setting names of the main tree directory
 
 def directories():
    dir_hash = []
@@ -161,9 +161,9 @@ def directories():
          if dirs in packages_list:
             dir_hash.append(dirs)
 
-   return dir_hash;      
+   return dir_hash;
 
-# --------------------- Setting paths  
+# --------------------- Setting paths
 
 def directory_names():
    str = ":"
@@ -179,7 +179,7 @@ def directory_names():
 
       fullpath = rootDir+"/"+i
 
-      for dirName, subdirList, fileList in os.walk(fullpath):   
+      for dirName, subdirList, fileList in os.walk(fullpath):
 
          for name in subdirList:
 
@@ -192,7 +192,7 @@ def directory_names():
                   Flag = False
                if "MCGenerators" in directory:
                   Flag = False
-               
+
                if "VecGeom" in directory:
                   vecgeom_include_dir = directory + '/include/VecCore'
                   vecgeom_dir = directory + '/lib/CMake/VecGeom'
@@ -201,7 +201,7 @@ def directory_names():
 
                dirlist.append(directory);
 
-#######               
+#######
                for subdirName, subsubdirList, fileList2 in os.walk(directory):
 
                   for name2 in sorted(subsubdirList):
@@ -228,14 +228,14 @@ def directory_names():
 
                      else:
                         subFlaglibs = False
-                  if (subFlaglibs):break         
+                  if (subFlaglibs):break
 ########
                break
             else:
                Flag = False
          if Flag:break
 
-   all_dirs = [str.join(sorted(dirlist)), str.join(binlist), str.join(liblist)]       
+   all_dirs = [str.join(sorted(dirlist)), str.join(binlist), str.join(liblist)]
 
    return all_dirs;
 
@@ -252,10 +252,14 @@ if __name__ == "__main__":
    if not op_sys:
       op_sys = default_os()
 
-   os.environ["CMAKE_PREFIX_PATH_ALL"] = directory_names()[0]
-   os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]
-#   os.environ["LD_LIBRARY_PATH_ALL"] = directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
-   os.environ["LD_LIBRARY_PATH_ALL"] = workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
+   if label == 'cuda7':
+       os.environ["CMAKE_PREFIX_PATH_ALL"] = "/usr/local/cuda/"+":"+directory_names()[0]
+       os.environ["PATH_ALL"] = "/usr/local/cuda/bin"+":"+directory_names()[1]+":"+os.environ["PATH"]
+       os.environ["LD_LIBRARY_PATH_ALL"] = "/usr/local/cuda/lib64"+":"+workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
+   else:
+       os.environ["CMAKE_PREFIX_PATH_ALL"] = directory_names()[0]
+       os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]
+       os.environ["LD_LIBRARY_PATH_ALL"] = workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
    prefix = os.environ["CMAKE_PREFIX_PATH_ALL"]
    path = os.environ["PATH_ALL"]
    ld_libs = os.environ["LD_LIBRARY_PATH_ALL"]
@@ -263,6 +267,3 @@ if __name__ == "__main__":
    print '%s=%s' % ("export CMAKE_PREFIX_PATH", prefix)
    print '%s=%s' % ("export PATH", path)
    print '%s=%s' % ("export LD_LIBRARY_PATH", ld_libs)
-
-
-
