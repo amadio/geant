@@ -129,6 +129,8 @@ if(${CTEST_MODE} MATCHES nightly)
   SET(MODEL Nightly)
 elseif(${CTEST_MODE} MATCHES continuous)
   SET(MODEL Continuous)
+else()
+  SET(MODEL Experimental)
 endif()
 
 find_program(CTEST_COMMAND_BIN NAMES ctest)
