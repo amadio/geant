@@ -10,14 +10,14 @@
 #  PYTHIA8_LIBRARIES (not cached) : for PYTHIA8_VERSION < 200 includes 3 libraries above; not to be used if lhapdf is used
 
 
-find_path(PYTHIA8_INCLUDE_DIR Pythia.h Pythia8/Pythia.h
-          HINTS $ENV{PYTHIA8_ROOT_DIR}/include ${PYTHIA8_ROOT_DIR}/include)
+find_path(PYTHIA8_INCLUDE_DIR Pythia8/Pythia.h
+PATHS $ENV{PYTHIA8_ROOT_DIR}/include ${PYTHIA8_ROOT_DIR}/include)
 
-find_library(PYTHIA8_LIBRARY NAMES pythia8 Pythia8
-             HINTS $ENV{PYTHIA8_ROOT_DIR}/lib ${PYTHIA8_ROOT_DIR}/lib)
+find_library(PYTHIA8_LIBRARY NAMES pythia8
+PATHS $ENV{PYTHIA8_ROOT_DIR}/lib ${PYTHIA8_ROOT_DIR}/lib)
 
 find_library(PYTHIA8_lhapdfdummy_LIBRARY NAMES lhapdfdummy
-               HINTS $ENV{PYTHIA8_ROOT_DIR}/lib ${PYTHIA8_ROOT_DIR}/lib)
+PATHS $ENV{PYTHIA8_ROOT_DIR}/lib ${PYTHIA8_ROOT_DIR}/lib)
 
 set(PYTHIA8_LIBRARIES ${PYTHIA8_LIBRARY} ${PYTHIA8_lhapdfdummy_LIBRARY})
 
