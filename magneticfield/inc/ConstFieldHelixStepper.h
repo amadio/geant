@@ -91,7 +91,7 @@ namespace Geant
                            Vector3D & newdir
                          ) const
          {
-             DoStep(pos[0],pos[1],pos[2],dir[0],dir[1],dir[2], momentum, charge, step,
+             DoStep(pos[0],pos[1],pos[2],dir[0],dir[1],dir[2], charge, momentum, step,
                          newpos[0], newpos[1], newpos[2], newdir[0], newdir[1], newdir[2]);
          }
 
@@ -130,7 +130,7 @@ namespace Geant
       sincos(phi, &sinphi, &cosphi);
 
       x = x0 + R*( -sina - ( -cosphi*sina - sinphi*cosa ));
-      y = y0 + R*( cosa  - (-sina*sinphi + cosphi*cosa ));
+      y = y0 + R*( cosa  - ( -sinphi*sina + cosphi*cosa ));
       z = z0 + step * dz0;
 
       dx = dx0 * cosphi - sinphi * dy0;
