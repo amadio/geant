@@ -1,22 +1,16 @@
-    /* 
-Copyright (c) 2015, MB
-All rights reserved. 
-
+/*
 Author: M. Bandieramonte
  
  NB: 
  1. How to compile:
  g++ histo.gcc -o histo `root-config --cflags --glibs`
 
- 2. How to execute:
-     ./histo <model> <variable> <energy[MeV]>
-     ex: ./histo KleinNishina EnergyOut1 100
+ 2. Then execute the file and give the input interactively
      
-     input files: 
+     Once defined the projectile input energy (i.e. 100 MeV), the program is looking for the following input files:
      geant4_100MeV.root
      scalar_100MeV.root
      vector_100MeV.root
-     pdf_100MeV.root
  
 */
 
@@ -712,7 +706,7 @@ int main( int argc,  char *argv[])
     const char* GUPhysicsModelName[5] = {
         "KleinNishina",  //Compton - gamma
         "BetheHeitler",  //Conversion - pair production - gamma
-        "SauterGravila", // Photo-Electric Effect - gamma
+        "SauterGavrila", // Photo-Electric Effect - gamma
         "MollerBhabha",  // Ionization -electron
         "SeltzerBerger"  // Bremsstrahlung
     };
