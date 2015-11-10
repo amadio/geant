@@ -17,7 +17,7 @@ static
 const char* GUPhysicsModelName[kNumberPhysicsModel] = {
   "KleinNishina",
   "BetheHeitler",
-  "SauterGavrila",
+  "SauterGravila",
   "MollerBhabha",
   "SeltzerBerger"
 };
