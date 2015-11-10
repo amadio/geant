@@ -1457,7 +1457,7 @@ void GeantTrack_v::PropagateInVolume(int ntracks, const double *crtstep, GeantTa
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData * /*td*/) {
+void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData * td) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -1470,17 +1470,16 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    const Double_t *point = 0;
    const Double_t *newdir = 0;
 
-#ifndef RUNGE_KUTTA
-   GeantThreadData *td = gPropagator->fThreadData[tid];
-   
-   TGeoHelix *fieldp = td->fFieldPropagator;
-#else
+#ifdef RUNGE_KUTTA
+   // Initialize -- move to GeantPropagator::Initialize()
    static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::CreateOrFind(gPropagator->fNthreads);
    assert( fieldPropPool );  // Cannot be zero
-  
-   GUFieldPropagator *fieldp = fieldPropPool->GetPropagator(tid);
+
+   GUFieldPropagator *fieldp = fieldPropPool->GetPropagator(td->fTid);
+#else
+   assert( td->fTid < td->fNthreads ); // Just used td !
 #endif
-   
+
   // Reset relevant variables
   fStatusV[i] = kInFlight;
   fPstepV[i] -= crtstep;
@@ -1509,6 +1508,21 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 #else
   Geant::ConstBzFieldHelixStepper stepper(gPropagator->fBmag);
 #endif
+
+#if 1
+  ThreeVector Position(fXposV[i], fYposV[i], fZposV[i]);
+  ThreeVector Direction(fXdirV[i], fYdirV[i], fZdirV[i]);
+  ThreeVector PositionNew(0.,0.,0.);
+  ThreeVector DirectionNew(0.,0.,0.);
+  stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
+                                         PositionNew, DirectionNew);
+  fXposV[i] = PositionNew.x();
+  fYposV[i] = PositionNew.y();
+  fZposV[i] = PositionNew.z();
+  fXdirV[i] = DirectionNew.x();
+  fYdirV[i] = DirectionNew.y();
+  fZdirV[i] = DirectionNew.z();
+#else
   double posnew[3];
   double dirnew[3];
   stepper.DoStep(fXposV[i], fYposV[i], fZposV[i], fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
@@ -1528,7 +1542,9 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   fZposV[i] = posnew[2];
   fXdirV[i] = dirnew[0];
   fYdirV[i] = dirnew[1];
-  fZdirV[i] = dirnew[2];
+  fZdirV[i] = dirnew[2];  
+#endif
+  
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
