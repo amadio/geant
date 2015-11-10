@@ -104,10 +104,12 @@ GUIntegrationDriver::~GUIntegrationDriver()
 // ---------------------------------------------------------
 
 bool
-GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
-                                 double     hstep,
-                                 double     eps,
-                                 double hinitial )
+GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
+                                              double     hstep,
+                                              double     eps,
+                                           GUFieldTrack& yOutput,
+                                              double     hinitial
+   )
 {
   // Runge-Kutta driver with adaptive stepsize control. Integrate starting
   // values at y_current over hstep x2 with accuracy eps. 
@@ -123,7 +125,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   static int dbg=1;
   static int nStpPr=50;   // For debug printing of long integrations
   double ySubStepStart[GUFieldTrack::ncompSVEC];
-  GUFieldTrack  yFldTrkStart(y_current);
+  // GUFieldTrack  yFldTrkStart(y_current);
 #endif
 
   double y[GUFieldTrack::ncompSVEC], dydx[GUFieldTrack::ncompSVEC];
@@ -138,7 +140,7 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   static int  noGoodSteps =0 ;  // Bad = chord > curve-len 
   const  int  nvar= fNoVars;
 
-  GUFieldTrack yStartFT(y_current);
+  // GUFieldTrack yStartFT(yInput);
 
   //  Ensure that hstep > 0
   //
@@ -157,9 +159,9 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     }
   }
 
-  y_current.DumpToArray( ystart );
+  yInput.DumpToArray( ystart );
 
-  startCurveLength= y_current.GetCurveLength();
+  startCurveLength= yInput.GetCurveLength();
   x1= startCurveLength; 
   x2= x1 + hstep;
 
@@ -190,8 +192,8 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
 #ifdef GUDEBUG_FIELD
     double xSubStepStart= x; 
     for (i=0;i<nvar;i++)  { ySubStepStart[i] = y[i]; }
-    yFldTrkStart.LoadFromArray(y, fNoIntegrationVariables);
-    yFldTrkStart.SetCurveLength(x);
+    // yFldTrkStart.LoadFromArray(y, fNoIntegrationVariables);
+    // yFldTrkStart.SetCurveLength(x);
 #endif
 
     // Old method - inline call to Equation of Motion
@@ -381,8 +383,8 @@ GUIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
   for (i=0;i<nvar;i++)  { yEnd[i] = y[i]; }
 
   // Put back the values.
-  y_current.LoadFromArray( yEnd, fNoIntegrationVariables );
-  y_current.SetCurveLength( x );
+  yOutput.LoadFromArray( yEnd, fNoIntegrationVariables );
+  yOutput.SetCurveLength( x );
 
   if(nstp > fMaxNoSteps)
   {
@@ -554,8 +556,8 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
     tot_no_trials++;
     fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr);
     //          *********************
-    double eps_pos = eps_rel_max * std::max(h, fMinimumStep);
-    double inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos); 
+    double eps_pos = eps_rel_max * std::max(h, fMinimumStep);  // Uses remaining step 'h'
+    double inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
 
     // Evaluate accuracy
     //

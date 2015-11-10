@@ -29,10 +29,11 @@ class GUIntegrationDriver
      ~GUIntegrationDriver();
 
      // Core methods
-     bool  AccurateAdvance( GUFieldTrack& y_current,
-                                    double  hstep,
-                                    double  eps,            // Requested y_err/hstep
-                                    double  hinitial=0.0);  // Suggested 1st interval
+     bool  AccurateAdvance( const GUFieldTrack& y_current,
+                                        double  hstep,
+                                        double  eps,            // Requested y_err/hstep
+                                  GUFieldTrack& yOutput,                            
+                                        double  hinitial=0.0);  // Suggested 1st interval
        // Above drivers for integrator (Runge-Kutta) with stepsize control. 
        // Integrates ODE starting values y_current
        // from current s (s=s0) to s=s0+h with accuracy eps. 

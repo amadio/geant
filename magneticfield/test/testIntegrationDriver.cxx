@@ -85,6 +85,7 @@ int main(int argc, char *args[])
     int stepper_no =  5;         // Choose stepper no., for refernce see above
     double step_len_mm = 200.;    // meant as millimeter;  //Step length 
     double z_field_in = DBL_MAX;
+    double epsTolInp =  -1.0; 
     
     //Checking for command line values :
     if(argc>1)
@@ -95,6 +96,9 @@ int main(int argc, char *args[])
         no_of_steps = atoi(args[3]);
     if(argc > 4)
        z_field_in = (float) (stof(args[4]));     // tesla
+    if(argc > 5)
+       epsTolInp  = (float) (stof(args[5]));     // tesla
+
     double step_len = step_len_mm * fieldUnits::millimeter;
     
     //Set Charge etc.
@@ -107,28 +111,33 @@ int main(int argc, char *args[])
     int
     columns[] =
     {
-       0 , 0 , 0 ,  // position  x, y, z 
+       1 , 1 , 0 ,  // position  x, y, z 
        1 , 1 , 0 ,  // momentum  x, y, z
        0 , 0 , 0 ,  // dydx pos  x, y, z
        0 , 0 , 0    // dydx mom  x, y, z
     }; //Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
-    bool printErr= 0,   // Print the predicted Error
+    bool printErr= 1,   // Print the predicted Error
          printRef= 0,   // Print the reference Solution 
          printDiff= 1;  // Print the difference 
-    bool printSep = 1;  // separator  '|'
-    int  printOk  = 1;  // "Ok" or "Bad" - for Vec (val>0) & for each component (val>1)
-    bool printRatio    = 0;  //  yDiff / yAverage
-    bool printRatioVec = 1;  //  yDiff / yAverage    
+    bool printSep = 0;  // separator  '|'
+    int  printOk  = 3;  // "Ok" or "Bad" - for Vec (val>0) & for each component (val>2)
+                        //   Format:   1 Vec-Terse:    "Ok" Or "Bad"
+                        //   Format:  >1 Vec-Verbose:  "0 Ok" "1 Bad"    
+                        //            >3 [i]-Verbose: 
+    bool printRatio    = 0;  //  yDiff / yAverage - per component
+    bool printRatioVec = 1;  //                   - per vector  (ie Pos or Vector )
+    bool printMagShift = 1;  //  Print  | p | / | p_0 | - 1.0
     bool printInp = 0;  // print the input values
     bool printInpX= 0;  // print the input values for Ref 
 
-    const int    epsDigits = 5;       //  Digits - for printing
+    const int    epsDigits = 3;       //  Digits - for printing the different
     const double errAmplif = 1.0e5;   //  Amplification for printing of error
-    
+
     const unsigned int wd= 12;  // Width for float/double
     const unsigned int wdf = wd + epsDigits - 3;
-    
+    const unsigned int wok = 5; //  2 for (0/1," ") + 3 for "Bad"/"Ok "
+
     //Set coordinates here
     double
        x_pos = 0.,                 //pos - position  : input unit = mm
@@ -138,7 +147,7 @@ int main(int argc, char *args[])
        x_mom = 0.0,                 //mom - momentum  : input unit = GeV / c
        y_mom = 1.0,
        z_mom = 1.0;
-    double          
+    double
        x_field = 0.,               //Uniform Magnetic Field (x,y,z)
        y_field = 0.;               //  Tesla // *tesla ;
     double z_field;
@@ -189,10 +198,13 @@ int main(int argc, char *args[])
       default : myStepper = 0 ;
     }
 
-    const double hminimum = 0.0001 * millimeter;  // Minimum step = 0.1 microns
-    const double epsTol    = 1.0e-5;              // Relative error tolerance
+    const double hminimum  = 0.0001 * millimeter;  // Minimum step = 0.1 microns
+    const double epsTolDef = 1.0e-5;              // Relative error tolerance
     int   statisticsVerbosity= 1;
 
+    const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp; 
+    cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
+    
     auto integrDriver= new GUIntegrationDriver( hminimum,
                                                 myStepper,
                                                 Nposmom,
@@ -302,15 +314,21 @@ int main(int argc, char *args[])
            if( printRef )
               cout << setw(wd-2) << "yOutX[" << i << "]";
            if( printErr )
-              cout << setw(wd-1) << "yErr[" << i << "]";
+              cout << setw(wd-1) << "yErrX[" << i << "]";
            if( printDiff )
-              cout << setw(wd-3) << " Diff[" << i << "]";
+              cout << setw(wd-2) << " Diff[" << i << "]";
            if( printOk>1  ) cout << " Cmp";
-           if( printRatio ) cout << setw(wd+2) << " Ratio ";
+           if( printRatio ) cout << setw(wd) << " Ratio ";
         }
         if( (i+1)%3 == 0 ){
-           if( printOk )       cout << " VecCmp";
-           if( printRatioVec ) cout << setw(wd+4) << " Ratio ";
+           if( printOk ){
+              if( i == 2 ) cout << " PosCmp";
+              if( i == 5 ) cout << " MomCmp";              
+           }
+           if( printRatioVec ) cout << setw(wd) << " Ratio ";
+           if( (i == 5) && printMagShift ){
+              cout << setw(wd) << " MomMagShift";
+           }
         }
     }
     
@@ -323,8 +341,6 @@ int main(int argc, char *args[])
            cout << setw(wd-2)<< "dydx[" << i << "]";
            if( printRef )
               cout << setw(wd-2) << "dydxRef[" << i << "]";
-           // if( printErr ) cout << setw(wd-2) << "yErr[" << i << "]";
-           // if( printDiff ) cout << setw(wdf-2) << "dydx-Ref[" << i << "]";
         }
     }
     cout<<setw(wd)<<"tan-1(y/x)";
@@ -338,25 +354,33 @@ int main(int argc, char *args[])
     for (int i=0; i<6;i++){
         if (columns[i])
         {
-           if( printSep ) cout << " | " ;  // Separator                      
            const char* nameUnit = ( i<3 ) ? nameUnitLength : nameUnitMomentum ; 
+           if( printSep ) cout << " | " ;  // Separator
+           if( printInp ) cout << setw(wd-2)<< nameUnit;
+           if( printInpX) cout << setw(wd-2)<< nameUnit;
            cout << setw(wd)<< nameUnit;
            if( printRef )  cout << setw(wd) << nameUnit;  // Reference output
            if( printErr ){
               cout << setw(4) << nameUnit;  // Estim. error
               cout << " * " << setw(wd-7) << errAmplif << " ";
            }
-           if( printDiff ) cout << setw(wdf-3) << nameUnit;    // Diff  new - ref
+           if( printDiff ) cout << " " << setw(wdf-1) << nameUnit;    // Diff  new - ref
            if( printOk > 1  )  cout << "    ";
-           if( printRatio ) cout << setw(wd+2) << "/epsTol ";                      
+           if( printRatio ) cout << setw(wd) << "/epsTol ";                      
         }
+        if( (i+1)%3 == 0 ){
+           if( printOk )       cout << "  Ok?  ";
+           // if( printRatioVec ) cout << setw(wd+4) << " Ratio ";
+           if( printRatioVec ) cout << setw(wd) << "/epsTol ";                    
+           if( (i == 5) && printMagShift ){
+              // cout << setw(wd) << "  % ";
+              cout << setw(wd) << "/epsTol ";                                    
+           }
+        }        
     }
-    if( printRatioVec ) cout << setw(wd+2) << "/epsTol ";                      
     cout<<"\n";
     
     //-> Then print the data
-
-    
     // cout.setf (ios_base::scientific);
     // cout.setf (ios_base::scientific);    
     cout.precision(3);
@@ -378,23 +402,24 @@ int main(int argc, char *args[])
         exactStepper->RightHandSide(yInX, dydxRef);   //compute the value of dydx for the exact stepper
 
         // Driver begins at the start !
-        GUFieldTrack  yTrack( startPosition, startMomentum );  // yStart
+        GUFieldTrack  yTrackIn(  startPosition, startMomentum );  // yStart
+        GUFieldTrack  yTrackOut( startPosition, startMomentum );  // yStart
         
         if( j > 0 )  // Let's print the initial points!
         {
            total_step += step_len;
            
            bool goodAdvance=
-              integrDriver->AccurateAdvance( yTrack, total_step, epsTol); // , hInitial );
+              integrDriver->AccurateAdvance( yTrackIn, total_step, epsTol, yTrackOut ); // , hInitial );
            // *****************************
            
            // Output is in yTrack
            
-           ThreeVector PositionOut = yTrack.GetPosition(); 
+           ThreeVector PositionOut = yTrackOut.GetPosition(); 
            yout[0]= PositionOut.x();
            yout[1]= PositionOut.y();
            yout[2]= PositionOut.z();           
-           ThreeVector MomentumOut = yTrack.GetMomentum(); 
+           ThreeVector MomentumOut = yTrackOut.GetMomentum();
            yout[3]= MomentumOut.x();
            yout[4]= MomentumOut.y();
            yout[5]= MomentumOut.z();           
@@ -425,25 +450,37 @@ int main(int argc, char *args[])
            (total_step > 0.0 ) ? magDiffPos / (total_step/mmGVf) : 0.0;
         bool     goodPos= relDiffPos < epsTol;
         double  ratioPos= relDiffPos / epsTol;
-        
+
+        // Check the momentum 
+        ThreeVector  MomentumNew( yout[3], yout[4], yout[5] ); MomentumNew *= 1.0 / ppGVf;
+        ThreeVector  MomentumRef( youtX[3], youtX[4], youtX[5] ); MomentumRef *= 1.0 / ppRef;
+        double sumMom2new =0;
         for(int i=3; i<6;i++){
            yDiff[i] =        yout[i] / ppGVf - youtX[i] / ppRef ;
            yAver[i] = 0.5 * (yout[i] / ppGVf + youtX[i] / ppRef) ;
-           
+
+           sumMom2new  += yout[i] * yout[i]; 
            sumDiffMom2 += (yDiff[i] * yDiff[i]); 
            maxDiffMom  = std::max( maxDiffMom, fabs(yDiff[i]) );
         }
-        double magDiffMom = sqrt( sumDiffMom2 );
+        ThreeVector  MomentumDiff( yDiff[3], yDiff[4], yDiff[5] ); MomentumRef *= 1.0 / ppRef;                 
+        
+        double magDiffMom = MomentumDiff.Mag(); // sqrt( sumDiffMom2 );
         double relDiffMom =
-           (momentumMagInit > 0.0 ) ? magDiffMom / momentumMagInit : 0.0; 
+           (momentumMagInit > 0.0 ) ? magDiffMom / momentumMagInit : 0.0;
         bool     goodMom= relDiffMom < epsTol;
         double  ratioMom= relDiffMom / epsTol;
-           
+        double MomMagShift= sqrt(sumMom2new) / momentumMagInit - 1.0; // MomentumNew.Mag(); 
+
+        static ThreeVector totErrMomRefV= ThreeVector( 0., 0., 0. );        
+        ThreeVector errMomRefV= ThreeVector( yerrX[3], yerrX[4], yerrX[5] );
+        totErrMomRefV += errMomRefV.Abs();
+        
         //-> Then print the data
         cout.setf (ios_base::fixed);
 
         cout.precision(1);
-        cout << setw(8) << total_step / mmGVf << " ";
+        cout << setw(9) << total_step / mmGVf << " ";
 
         // Report Position        
         cout.precision(4);
@@ -452,23 +489,32 @@ int main(int argc, char *args[])
               if( printSep ) cout << " | " ;  // Separator
               if( printInp ) cout << setw(wd-2)<< yIn[i] / mmGVf;
               if( printInpX ) cout << setw(wd-2)<< yInX[i] / mmRef;
-              cout<<setw(wd)<< yout[i] / mmGVf ;
+              cout << setw(wd) << yout[i] / mmGVf ;
               // cout.precision(3);
               if( printRef ) cout<<setw(wd)<< youtX[i] / mmRef; // Reference Solution
               if( printErr ) cout<<setw(wd)<< errAmplif * (yerrX[i] / mmGVf) ;
               if( printDiff ){
                  cout.precision(epsDigits);
-                 cout<<setw(wdf-3)<< yDiff[i];
+                 cout<< setw(wdf)<< yDiff[i];
               }               
               bool goodI =  fabs(yDiff[i]) <  epsTol * fabs(yAver[i]);
-              if( printOk>1 )  cout<< " " << setw(3)<< (goodI ? "Ok " : "Bad" );
+              if( printOk>2 ){
+                 if( printOk > 3 ) cout << " " << setw(wok)<< (goodI ? "1 ok " : "0 bad" );
+                 else              cout << " " << setw(3)<< (goodI ? "ok " : "bad" );
+              }
               double ratioPi = (yAver[i] != 0.0) ? yDiff[i] / yAver[i] : 0.0;
-              if( printRatio ) cout << " " << setw(wd) << ratioPi/epsTol << " ";
+              if( printRatio ) cout << " " << setw(wd-2) << ratioPi/epsTol << " ";
            }
         }
-        if( printOk )  cout<< " Vec: " << setw(3)<< (goodPos ? "Ok " : "Bad" );
-        if( printRatioVec ) cout << " " << setw(wd) << ratioPos << " ";
-
+        if( printOk ) {
+           // cout<< " Vec: ";
+           if( printOk > 1 ) cout << " " << setw(wok)<< (goodPos ? "1 Ok " : "0 Bad" );
+           else              cout << " " << setw(3)<< (goodPos ? "Ok " : "Bad" );
+        }
+        if( printRatioVec ){
+           // if( printSep && ! ( columns[0] || columns[1] || columns[2] ) ) cout << " || "; 
+           cout << " " << setw(wd) << ratioPos << " ";
+        }
         cout.unsetf (ios_base::fixed);
 
         // Report momentum 
@@ -488,7 +534,11 @@ int main(int argc, char *args[])
                cout.unsetf (ios_base::scientific);
                if( printOk || printRatio ){
                   bool goodI =  fabs(yDiff[i]) <  epsTol * fabs(yAver[i]);
-                  if( printOk>1 ) cout<< " " << setw(3)<< (goodI ? "Ok " : "Bad" );
+                  // if( printOk>1 ) cout<< " " << setw(3)<< (goodI ? "ok " : "bad" );
+                  if( printOk>2 ){
+                     if( printOk > 3 ) cout << " " << setw(wok)<< (goodI ? "1 ok " : "0 bad" );
+                     else              cout << " " << setw(3)<< (goodI ? "ok " : "bad" );
+                  }
                   double ratioMi = (yAver[i] != 0.0) ? yDiff[i] / yAver[i] : 0.0;
                   if( printRatio ){
                      // cout.unsetf (ios_base::scientific);
@@ -500,19 +550,29 @@ int main(int argc, char *args[])
                }
             }
         }
-        if( printOk )  cout << " vMem: " << setw(3)<< (goodMom ? "Ok " : "Bad" );
-        cout << " m-m= " << setw(wd) << magDiffMom ;
-        cout << " max= " << setw(wd) << maxDiffMom ;
-        cout << " rel= " << setw(wd) << relDiffMom ; 
+        // if( printOk )  cout << " vMem: " << setw(3)<< (goodMom ? "Ok " : "Bad" );
+        if( printOk ) {
+           // cout<< " Vec: ";
+           cout << " ";
+           if( printOk > 1 ) cout << goodMom; // << setw(wok)<< (goodMom ? "Ok " : "Bad" );
+           cout  << " " << setw(3)<< (goodMom ? "Ok " : "Bad" );
+           // else              cout << setw(3)<< (goodMom ? "Ok " : "Bad" );           
+        }
         if( printRatioVec ){
            cout.setf (ios_base::fixed);
            cout << " " << setw(wd) << ratioMom << " ";
            cout.unsetf (ios_base::fixed);           
         }
+        // cout << " m-m= " << setw(wd) << magDiffMom ;
+        // cout << " max= " << setw(wd) << maxDiffMom ;
+        // cout << " rel= " << setw(wd) << relDiffMom ; // Un-normalised to epsilon
+        cout // << " MomMagShift% = " << setw(wd) << 100.0 * MomMagShift
+             << setw(wd) << MomMagShift / epsTol;
+
         
         for(int i=0; i<6;i++)   // Print auxiliary components
         {
-           double unitGVf=1;  
+           double unitGVf=1;
            double unitRef=1;
            // if( i < 3 )             // length / length
 
