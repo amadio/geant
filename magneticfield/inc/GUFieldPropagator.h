@@ -9,11 +9,11 @@ class GUVField;
 
 class GUFieldPropagator
 {
-  public: 
+  public:
     // GUFieldPropagator(GUVField *); // First idea -- sidelined, at least for now
     GUFieldPropagator(GUIntegrationDriver* driver); // (GUVField* field)
     virtual ~GUFieldPropagator() {}   //  Likely needed - to enable use of templated classes
-    void SetCharge(double charge)  { fCharge= charge;} 
+    void SetCharge(double charge)  { fCharge= charge;}
     void InitPoint(double x, double y, double z) { fInitialPosition= ThreeVector(x,y,z);}
     void InitDirection(double dx, double dy, double dz) { fInitialDirection= ThreeVector(dx,dy,dz);}
 
@@ -26,7 +26,7 @@ class GUFieldPropagator
     void Step(double length);
 
     // Output methods
-    const double *GetCurrentPoint()     { return fCurrentPoint; } 
+    const double *GetCurrentPoint()     { return fCurrentPoint; }
     const double *GetCurrentDirection() { return fCurrentDirection; }
 
     // Null methods - needed to have same interface as Helix (for now)
