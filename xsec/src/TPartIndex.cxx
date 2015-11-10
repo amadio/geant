@@ -6,7 +6,9 @@
 
 using std::transform;
 using std::string;
+#ifndef USE_VECGEOM_NAVIGATOR
 using std::map;
+#endif
 
 const
 char *TPartIndex::fgPrName[FNPROC] = {"Transport",    "MultScatt",   "Ionisation", "Decay",      "inElastic",
@@ -194,8 +196,13 @@ void TPartIndex::Print(const char *option) const {
 }
 
 //______________________________________________________________________________
+#ifdef USE_VECGEOM_NAVIGATOR
+void TPartIndex::SetPDGToGVMap(vecgeom::map<int, int> &theMap) {
+  fPDGToGVMap = theMap;
+#else
 void TPartIndex::SetPDGToGVMap(std::map<int, int> &theMap) {
   fPDGToGVMap = theMap;
+#endif
   fSpecGVIndices[0] = fPDGToGVMap.find(11)->second;   // e-
   fSpecGVIndices[1] = fPDGToGVMap.find(-11)->second;  // e+
   fSpecGVIndices[2] = fPDGToGVMap.find(22)->second;   // gamma
@@ -237,10 +244,10 @@ void TPartIndex::Streamer(TBuffer &R__b) {
     Print("version");
     // create the particle reference vector
     fGVParticle.resize(fPDGToGVMap.size(), 0);
-    for (map<int, int>::iterator p = fPDGToGVMap.begin(); p != fPDGToGVMap.end(); ++p) {
+#ifdef USE_VECGEOM_NAVIGATOR
+    for (vecgeom::map<int, int>::iterator p = fPDGToGVMap.begin(); p != fPDGToGVMap.end(); ++p) {
 // std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
 // create direct access vector with GeantV code
-#ifdef USE_VECGEOM_NAVIGATOR
       const Particle_t *pp = &Particle_t::GetParticle(p->first);
       // set the code inside the particle too
       const_cast<Particle_t *>(pp)->SetCode(p->second);
@@ -250,6 +257,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
         std::cout << ClassName() << "::" << __func__ << ":"
                   << " particle PDG " << p->first << " not found !" << std::endl;
 #else
+    for (map<int, int>::iterator p = fPDGToGVMap.begin(); p != fPDGToGVMap.end(); ++p) {
       const Particle_t *pp = fDBPdg->GetParticle(p->first);
       if (!pp)
         std::cout << " Particle " << p->first << " does not exist " << std::endl;

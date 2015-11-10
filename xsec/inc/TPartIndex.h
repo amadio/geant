@@ -23,10 +23,12 @@
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "materials/Particle.h"
+#include "base/Map.h"
 using vecgeom::Particle;
+#else
+#include <map>
 #endif
 #include "Geant/Typedefs.h"
-#include <map>
 
 #define DICLEN 12  // Number of process cross sections
 #define FNPROC 18  // Number of total processes
@@ -143,9 +145,11 @@ public:
   void Print(const char *option = "") const;
   // approximated formula for nuclear mass computation; for handling fragments
   double GetAprxNuclearMass(int Z, int A);
-
+#ifdef USE_VECGEOM_NAVIGATOR
+  void SetPDGToGVMap(vecgeom::map<int, int> &theMap);
+#else
   void SetPDGToGVMap(std::map<int, int> &theMap);
-
+#endif
   // only for e-,e+,gamma and proton
   int GetSpecGVIndex(int indx) { return fSpecGVIndices[indx]; }
 
@@ -177,9 +181,10 @@ private:
 
 #ifndef USE_VECGEOM_NAVIGATOR
   TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
-#endif
-
   std::map<int, int> fPDGToGVMap;              // PDG->GV code map
+#else
+  vecgeom::map<int, int> fPDGToGVMap;              // PDG->GV code map
+#endif
   int fSpecGVIndices[4];                       // store GV codes of e-,e+,gamma and proton
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 

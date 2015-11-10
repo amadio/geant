@@ -639,7 +639,11 @@ int main(int argc, char **argv) {
       // Store the particle table into PartIndex
       TPartIndex::I()->SetPartTable(pPDG, np);
       // Set PDG to GV code map
+    #ifdef USE_VECGEOM_NAVIGATOR 
+      vecgeom::map<G4int, G4int> pdgToGVmap;
+    #else
       std::map<G4int, G4int> pdgToGVmap;
+    #endif 
       for (G4int i = 0; i < np; ++i)
         pdgToGVmap[pPDG[i]] = i;
 
