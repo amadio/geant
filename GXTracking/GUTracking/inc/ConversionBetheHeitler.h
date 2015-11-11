@@ -130,6 +130,8 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
+  //early return if E_gamma < 2*electron_mass_c2 
+
   Index_t   irow;
   Index_t   icol;
   Double_t  fraction;

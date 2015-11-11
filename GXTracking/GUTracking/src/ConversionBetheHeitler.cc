@@ -30,7 +30,7 @@ ConversionBetheHeitler::Initialization()
 {
   if(fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
-				       1.e-4, 1.e+6, 100, 100);
+				       fLowEnergyLimit, 1.e+6, 100, 100);
     BuildAliasTable();
   }
 }
