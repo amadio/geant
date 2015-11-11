@@ -1,6 +1,6 @@
 //
 //  Simple interface class to GUIntegrationDriver (with does Runge Kutta integration)
-//   that follows the interface of TGeoHelix  (for now)
+//   that follows the interface of ConstFieldHelixStepper.h
 //
 #include "ThreeVector.h"
 
@@ -11,42 +11,57 @@ class GUFieldPropagator
 {
   public:
     // GUFieldPropagator(GUVField *); // First idea -- sidelined, at least for now
-    GUFieldPropagator(GUIntegrationDriver* driver); // (GUVField* field)
+    GUFieldPropagator(GUIntegrationDriver* driver, double epsilon); // (GUVField* field)
+
+    template<typename FieldType>  // , typename StepperType>
+       GUFieldPropagator(FieldType* magField, double epsilon, double hminimum= 1.0e-4);
+
     virtual ~GUFieldPropagator() {}   //  Likely needed - to enable use of templated classes
-    void SetCharge(double charge)  { fCharge= charge;}
-    void InitPoint(double x, double y, double z) { fInitialPosition= ThreeVector(x,y,z);}
-    void InitDirection(double dx, double dy, double dz) { fInitialDirection= ThreeVector(dx,dy,dz);}
 
-    void SetMomentum(double momentum) { fMomentumMag= momentum; } 
+     /**
+       * Propagate track along in a field for length 'step'
+       *    input: current position, current direction, particle properties
+       *   output: success(returned), new position, new direction of particle
+       */
+  // GEANT_CUDA_BOTH_CODE          
+      bool DoStep( ThreeVector const & position,  ThreeVector const & direction,
+                           int const & charge,         double const & momentum,
+                        double const & step,
+                   ThreeVector       & endPosition,
+                   ThreeVector       & endDiretion
+         ) ;   //  Goal => make it 'const';  -- including all classes it uses
+
+  /******
+    template<typename Vector3D, typename DblType, typename IntType>
+    inline
+    __attribute__((always_inline))
+    GEANT_CUDA_BOTH_CODE          
+    template<typename Vector3D, typename DblType, typename IntType>
+       void DoStep( Vector3D  const & pos,    Vector3D const & dir,
+                    IntType   const & charge, DblType  const & momentum,
+                    DblType   const & step,
+                    Vector3D        & newpos,
+                    Vector3D        & newdir
+          ) const;
+
     
-    // Auxiliary methods -- 
-    void SetXYcurvature(double curvature) { fInitialCurvature= curvature; }
-
-    //  methods -- names and actions to be reviewed
-    void Step(double length);
-
-    // Output methods
-    const double *GetCurrentPoint()     { return fCurrentPoint; }
-    const double *GetCurrentDirection() { return fCurrentDirection; }
-
-    // Null methods - needed to have same interface as Helix (for now)
-    void UpdateHelix() {}
-    void SetHelixStep(double length) { fStepLength= length; }
+    //  Single value 
+    // 
+    template<typename DblType, typename IntType>
+    inline
+    __attribute__((always_inline))    
+    GEANT_CUDA_BOTH_CODE
+       void DoStep( DblType const & posx, DblType const & posy, DblType const & posz,
+                    DblType const & dirx, DblType const & diry, DblType const & dirz,
+                    IntType const & charge, DblType const & momentum, DblType const & step,
+                    DblType & newsposx, DblType  & newposy, DblType  & newposz,
+                    DblType & newdirx, DblType  & newdiry, DblType  & newdirz
+                  ) const ;
+   *****/
 
 private:
-    double      fCharge;
-    ThreeVector fInitialPosition;
-    ThreeVector fInitialDirection;
-    double      fMomentumMag;          // Assume constant value (for now)
-    double      fInitialCurvature;
-    double      fStepLength;
-
-    double      fCurrentPoint[3];
-    double      fCurrentDirection[3];
-    // ThreeVector fCurrentPoint; 
-    // ThreeVector fCurrentDirection;
-    
     GUIntegrationDriver* fDriver;
+    double               fEpsilon;
 };
 
 //  For Multi-threaded version only -- ie not for CUDA

@@ -5,59 +5,71 @@
 #include <iostream>  // for  cout / cerr 
 
 #include "GUFieldPropagator.h"
-#include "GUVEquationOfMotion.h"
+
+// #include "GUVEquationOfMotion.h"
+#include "TMagFieldEquation.h"
 #include "GUVIntegrationStepper.h"
 #include "GUIntegrationDriver.h"
 
-// #include "TMagFieldEquation.h"
-// #include "TClassicalRK4.h"
-
-GUFieldPropagator::GUFieldPropagator(GUIntegrationDriver* driver) // (GUVField* field)
-   : fInitialPosition(), fInitialDirection(),
-     fMomentumMag(0.0), fInitialCurvature(0.0), fStepLength(0.0)
-     //, fCurrentPoint(0.0, 0.0, 0.0), fCurrentDirection(0.0, 0.0, 0.0)
+GUFieldPropagator::GUFieldPropagator(GUIntegrationDriver* driver, double eps)
+  : fDriver(driver), fEpsilon(eps)
 {
-   // Must create the Driver, Stepper and Equation ??
-
-   constexpr int NumEq= 6;
-   // TMagFieldEquation *pEquation = TMagFieldEquation<ConstMagField,NumEq>(uniformField);
-   // GUVEquationOfMotion*  pEquation= EquationFactory::CreateMagEquation(field, NumEq);
-   // GUVIntegrationStepper = new TClassicalRK4<pEquation,NumEq>;
-   // fDriver  = new GUIntegrationDriver();
    fDriver = driver;
+}
 
-   for( int i=0; i<3; i++) {
-      fCurrentPoint[i]= 0.0;
-      fCurrentDirection[i]= 0.0;
-   }
+#include "TMagFieldEquation.h"
+#include "TClassicalRK4.h"
+
+// ToDo-s/ideas:
+//  - Factory to create the Driver, Stepper and Equation
+
+template<typename FieldType>  // , typename StepperType>
+GUFieldPropagator::GUFieldPropagator(FieldType* magField, double eps, double hminimum)
+   : fEpsilon(eps)
+{
+   constexpr int NumEq= 6;
+   using  EquationType=  TMagFieldEquation<FieldType, NumEq>;
+   
+   int statVerbose= 1;
+   auto *pEquation = new EquationType(magField, NumEq);
+      // new TMagFieldEquation<FieldType,NumEq>(magField, NumEq);
+
+   // auto stepper = new StepperType<GvEquationType,NumEq>(gvEquation);
+   auto stepper =      new TClassicalRK4<EquationType,NumEq>(pEquation);      
+   auto integrDriver = new GUIntegrationDriver( hminimum,
+                                               stepper,
+                                               NumEq,
+                                               statVerbose);
+   fDriver= integrDriver;
 }
 
 // Make a step from current point along the path and compute new point, direction and angle
-void GUFieldPropagator::Step(double step)
+// GEANT_CUDA_BOTH_CODE
+bool
+GUFieldPropagator::DoStep( ThreeVector const & startPosition, ThreeVector const & startDirection,
+                                   int const & charge,             double const & startMomentumMag,
+                                double const & step,
+                           ThreeVector       & endPosition,
+                           ThreeVector       & endDirection
+         )
 {
   // Do the work HERE
-  fStepLength= step;
-
-  GUFieldTrack fieldTr( fInitialPosition, 
-                        fInitialDirection * fMomentumMag,
-                        // fRestMass,
+  GUFieldTrack yTrackIn( startPosition, 
+                        startDirection * startMomentumMag,
                         // fCharge, 
                         0.0,  // time
-                        0.0); // s_0  
-
-  // Call the driver HERE
+                        0.0); // s_0  xo
+  GUFieldTrack yTrackOut( yTrackIn );
   
+  // Call the driver HERE
+  fDriver->InitializeCharge( charge );
+  bool goodAdvance=
+     fDriver->AccurateAdvance( yTrackIn, step, fEpsilon, yTrackOut ); // , hInitial );
+
   // fInitialCurvature; 
-  ThreeVector endPoint= fieldTr.GetPosition();
-  ThreeVector endDir  = fieldTr.GetMomentumDirection();
-
-  for ( int i=0; i<3; i++) { 
-     fCurrentPoint[i]=     endPoint[i];
-     fCurrentDirection[i]= endDir[i];
-  }
-
-  std::cerr << " Incomplete METHOD -- must call Driver / etc for integratio. "  << std::endl;
-  exit(1);
+  endPosition=  yTrackOut.GetPosition();
+  endDirection= yTrackOut.GetMomentumDirection();
+  return goodAdvance;
 }
 
 // static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
