@@ -35,11 +35,12 @@ Precision ScalarKleinNishina(int ntracks,
   elapsedTime = timer.Stop();
 
   //validation for the total cross section
+  /*
   double sigma = 0;
   for(int i = 0 ; i < ntracks ; ++i) {
     model.AtomicCrossSection<kScalar>(itrack_aos[i], targetElements[i],sigma);
   }
-
+  */
   return elapsedTime;
 }
 
@@ -166,6 +167,7 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
   }
 
   //validation for the total cross section
+  /*
   double* sigma  = new double [ntracks];
   for(int i = 0 ; i < ntracks ; ++i) {
     sigma[i] = 0;  
@@ -174,7 +176,7 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
   model.AtomicCrossSection<kVc>(itrack_soa, targetElements,sigma);
 
   delete [] sigma;
-
+  */
   return elapsedTime;
 
 }
@@ -284,10 +286,12 @@ Precision G4KleinNishina(int ntracks,
   elapsedTime = timer.Stop();
 
   //validation for the total cross section
+  /*
   double sigma = 0.0;
   for(int i = 0 ; i < ntracks ; ++i) {
     model.AtomicCrossSectionG4<kScalar>(itrack_aos[i], targetElements[i], sigma);
   }
+  */
   return elapsedTime;
 }
 
