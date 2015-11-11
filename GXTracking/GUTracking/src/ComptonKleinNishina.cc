@@ -61,40 +61,39 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   double dx = (logxmax - logxmin)/nrow;
 
   int    nintegral= 5*int(log(logxmax)); //temporary
-  double normal = 0;
-  double fxsec = 0;
 
+  //use the average xsec within the bin instead of xsec at the mid-point
   for(int i = 0; i <= nrow ; ++i) {
-    //for each input energy bin
+    
     double x = exp(logxmin + dx*i);
-
+    
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
     double dy = (x - ymin)/ncol;
-  
+    //    double yo = ymin + 0.5*dy;
+    
     double sum = 0.;
-
     for(int j = 0; j < ncol ; ++j) {
-      //for each output energy bin
-      double y = 0;
-      normal = 0;
-
-      //use the average xsec within the bin instead of xsec at the mid-point
+      //for each input energy bin
+      double normal = 0;  // rename to sumN    // Sum N (pdf)
+      
+      //cross section weighted bin position
       for(int k = 0; k < nintegral ; ++k) {
-        y = ymin + dy*(j+(0.5+k)/nintegral);
-        fxsec = CalculateDiffCrossSection(Z,x,y);
+	
+        double y = ymin + dy*(j+(0.5+k)/nintegral);
+        double fxsec = CalculateDiffCrossSection(Z,x,y);
         normal  += fxsec;
       }
-
+      
       double xsec = normal/nintegral;
       p[i*ncol+j] = xsec;
       sum += xsec;
     }
-
+    
     //normalization
-    sum = 1.0/sum;
+    const double inv_sum = 1.0/sum;
 
     for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
+      p[i*ncol+j] *= inv_sum;
     }
   }
 }

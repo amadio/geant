@@ -183,7 +183,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_t probNA;
-  Double_t aliasInd;
+  Index_t  aliasInd;
 
   //this did not used to work - Fixed SW
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
