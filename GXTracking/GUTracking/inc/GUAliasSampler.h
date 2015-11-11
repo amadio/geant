@@ -142,6 +142,7 @@ private:
   double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
   double   fIncomingMax; // Max
   int      fInNumEntries;
+  double   fLogIncomingMin; 
   double   fInverseBinIncoming;
   double   fInverseLogBinIncoming;
   
@@ -206,7 +207,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy 
-  Double_t eloc = (Log(kineticEnergy) - Log(fIncomingMin))*fInverseLogBinIncoming;
+  Double_t eloc = (Log(kineticEnergy) - fLogIncomingMin)*fInverseLogBinIncoming;
   irow = Floor(eloc);
   Double_t efrac = eloc -1.0*irow;  
   

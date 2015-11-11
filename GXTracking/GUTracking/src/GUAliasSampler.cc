@@ -19,8 +19,9 @@ GUAliasSampler(Random_t* states, int threadId,
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
   fInNumEntries(numEntriesIncoming), 
+  fLogIncomingMin (log(incomingMin)),
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
-  fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-log(incomingMin))),
+  fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-fLogIncomingMin)),
   fSampledNumEntries( numEntriesSampled ),
   fInverseBinSampled( 1.0 / numEntriesSampled )
 {
@@ -46,8 +47,9 @@ GUAliasSampler(Random_t* states, int threadId,
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
   fInNumEntries(numEntriesIncoming), 
+  fLogIncomingMin (log(incomingMin)),
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
-  fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-log(incomingMin))),
+  fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-fLogIncomingMin)),
   fSampledNumEntries( numEntriesSampled ),
   fInverseBinSampled( 1.0 / numEntriesSampled )  // Careful - convention build / use table!
 {
