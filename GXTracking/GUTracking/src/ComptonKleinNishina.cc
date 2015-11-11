@@ -61,41 +61,29 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   double dx = (logxmax - logxmin)/nrow;
 
   int    nintegral= 5*int(log(logxmax)); //temporary
-  // double partialSum[nintegral];
-  // double fxsec = 0;
+  double normal = 0;
+  double fxsec = 0;
 
-  //use the average xsec within the bin instead of xsec at the mid-point
   for(int i = 0; i <= nrow ; ++i) {
-    
-      double x = exp(logxmin + dx*i);
-      
-      double ymin = x/(1+2.0*x*inv_electron_mass_c2);
-      double dy = (x - ymin)/ncol;
-      //    double yo = ymin + 0.5*dy;
-      
-      double sum = 0.;
-      for(int j = 0; j < ncol ; ++j) {
-          //for each input energy bin
+    //for each input energy bin
+    double x = exp(logxmin + dx*i);
 
-      double average = 0; // rename to sumEN   // Sum y (E_out) * N(pdf)
-      double normal = 0;  // rename to sumN    // Sum N (pdf)
+    double ymin = x/(1+2.0*x*inv_electron_mass_c2);
+    double dy = (x - ymin)/ncol;
+  
+    double sum = 0.;
 
+    for(int j = 0; j < ncol ; ++j) {
+      //for each output energy bin
+      double y = 0;
+      normal = 0;
 
-      //cross section weighted bin position
+      //use the average xsec within the bin instead of xsec at the mid-point
       for(int k = 0; k < nintegral ; ++k) {
-
-        double y = ymin + dy*(j+(0.5+k)/nintegral);
-        double fxsec = CalculateDiffCrossSection(Z,x,y);
-        average += y*fxsec;
+        y = ymin + dy*(j+(0.5+k)/nintegral);
+        fxsec = CalculateDiffCrossSection(Z,x,y);
         normal  += fxsec;
-        // partialSum[k]= normal;
-
       }
-          // double halfSumN= 0.5*normal;
-          // - Extension: look for the 'median' using partialSum[k]
-          
-          // double yAver = average/normal;  // Average y(E_out) in bin
-          // double xsecEav = CalculateDiffCrossSection(Z,x,yAver);
 
       double xsec = normal/nintegral;
       p[i*ncol+j] = xsec;
@@ -103,12 +91,10 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
     }
 
     //normalization
-    const double inv_sum = 1.0/sum;
-
+    sum = 1.0/sum;
 
     for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= inv_sum;
-
+      p[i*ncol+j] *= sum;
     }
   }
 }

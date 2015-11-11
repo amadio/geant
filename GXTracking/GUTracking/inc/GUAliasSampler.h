@@ -87,7 +87,7 @@ public:
   typename Backend::Double_t
   SampleX(typename Backend::Double_t rangeSampled, 
           typename Backend::Double_t probNA,   
-          typename Backend::Index_t aliasInd, 
+          typename Backend::Double_t aliasInd, 
           typename Backend::Index_t  icol,     
           typename Backend::Double_t fraction ) const;
 
@@ -97,7 +97,7 @@ public:
   SampleXL(typename Backend::Index_t  zElement, 
            typename Backend::Double_t rangeSampled, 
            typename Backend::Double_t probNA,   
-           typename Backend::Index_t aliasInd, 
+           typename Backend::Double_t aliasInd, 
            typename Backend::Index_t  irow,     
            typename Backend::Index_t  icol) const;
 
@@ -108,7 +108,7 @@ public:
   GatherAlias(typename Backend::Index_t   index, 
               typename Backend::Index_t   zElement,
               typename Backend::Double_t &probNA,  
-              typename Backend::Index_t  &aliasInd ) const;
+              typename Backend::Double_t &aliasInd ) const;
 
   template<class Backend>
   inline
@@ -229,17 +229,13 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   //  index = irow*fSampledNumEntries  + icol;
 }
 
-//    Sample distribution of secondary's 'X' - typically Energy
-//      for given zElement ...
-//    Feature of this method:  flat distribution within bin 
-
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 typename Backend::Double_t
 GUAliasSampler::
 SampleX(typename Backend::Double_t rangeSampled, 
         typename Backend::Double_t probNA,   
-        typename Backend::Index_t  aliasInd, 
+        typename Backend::Double_t aliasInd, 
         typename Backend::Index_t  icol,     
         typename Backend::Double_t fraction  
        ) const
@@ -247,58 +243,6 @@ SampleX(typename Backend::Double_t rangeSampled,
   typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
-  typedef typename Backend::Index_t  Index_t;
-
-  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
-
-  Bool_t useDirect = r1 <= probNA;  // Was Boot_t condition = ...
-  Double_t xd, xu;
-  Double_t binSampled = rangeSampled * fInverseBinSampled;
-
-  // -- Can simplify significantly below, using one Masked Assign !!
-  Index_t       icolDist= icol;
-  MaskedAssign( !useDirect, aliasInd, &icolDist ); 
-
-  // if branch
-
-  // MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
-  // MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
-
-  // else branch
-
-  // MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
-  // MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
-  xd = icolDist*binSampled;
-  xu = xd + binSampled;
-
-  Double_t x = (1 - fraction) * xd + fraction* xu;
-
-  return x;
-}
-
-//
-//  Lacks a description of what the method does. 
-//  Since it is a complex method, it will benefit significantly from it.
-
-//  Draft description:
-//    Sample distribution of secondary's 'X' - typically Energy
-//      for given zElement ...
-//    Feature of this method:  linear interpolation using 'PDF'  
-template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t
-GUAliasSampler::
-SampleXL(typename Backend::Index_t  zElement, 
-         typename Backend::Double_t rangeSampled, 
-         typename Backend::Double_t probNA,   
-         typename Backend::Index_t  aliasInd, 
-         typename Backend::Index_t  irow,     
-         typename Backend::Index_t  icol) const
-{
-  typedef typename Backend::Int_t    Int_t;
-  typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
-  typedef typename Backend::Index_t  Index_t;
 
   Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
@@ -306,45 +250,65 @@ SampleXL(typename Backend::Index_t  zElement,
   Double_t xd, xu;
   Double_t binSampled = rangeSampled * fInverseBinSampled;
 
-  // OLD:
   // if branch
-  // MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
-  // MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
-  //
+
+  MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
+  MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
+
   // else branch
-  // MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
-  // MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
-  // Simplified - instead of if/else with 4 Masked Assigns
-  //
-  Index_t       icolDist= icol;
-  MaskedAssign( !condition, aliasInd, &icolDist ); 
-  xd = icolDist * binSampled; 
-  xu = xd + binSampled; 
+  MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
+  MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
 
-  // Flat distribution was
+  Double_t x = (1 - fraction) * xd + fraction* xu;
+
+  return x;
+}
+
+template<class Backend>
+VECPHYS_CUDA_HEADER_BOTH
+typename Backend::Double_t
+GUAliasSampler::
+SampleXL(typename Backend::Index_t  zElement, 
+         typename Backend::Double_t rangeSampled, 
+         typename Backend::Double_t probNA,   
+         typename Backend::Double_t aliasInd, 
+         typename Backend::Index_t  irow,     
+         typename Backend::Index_t  icol) const
+{
+  typedef typename Backend::Int_t    Int_t;
+  typedef typename Backend::Bool_t   Bool_t;
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+
+  Bool_t condition = r1 <= probNA;
+  Double_t xd, xu;
+  Double_t binSampled = rangeSampled * fInverseBinSampled;
+
+  // if branch
+
+  MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
+  MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
+
+  // else branch
+
+  MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
+  MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
+
   //  Double_t x = (1 - fraction) * xd + fraction* xu;
 
-
-  //Using pdf of linear interpolation within the sampling bin based on the pdf
   //linear interpolation within the sampling bin based on the pdf 
   Double_t x(0.);
   Double_t pd(0.);
   Double_t pu(0.);
 
+  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol),   &pd); 
+  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol+1), &pu);
 
-  // Previous
-  //  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol),   &pd); 
-  //  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol+1), &pu);
-  //  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd),   &pd);
-  //  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd+1), &pu);
-  // Simplified:
-  pd = GetPDF<Backend>(zElement,irow,icolDist);
-  pu = GetPDF<Backend>(zElement,irow,icolDist+1);
+  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd),   &pd);
+  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd+1), &pu);
 
-  //* Obtain 'x' in interval [xd, xu] using pdf from linear interpolation
-  //    (x,y) from (xd, pd) and (xu, pu)
-  //  - Uses two random numbers in order to avoid square root
   Double_t r2 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   Double_t r3 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
@@ -352,10 +316,6 @@ SampleXL(typename Backend::Index_t  zElement,
   
   MaskedAssign(  below, (1.-r3)*xd + r3*xu , &x);
   MaskedAssign( !below, r3*xd + (1.-r3)*xu , &x);
-
-  //- Can simplify to
-  // MaskedAssign( !below, 1.0-r3, r3);      //  if (!below) { r3 = 1.0 - r3; }
-  // x = (1.-r3)*xd + r3*xu;
 
   return x;
 }
@@ -374,7 +334,7 @@ void GUAliasSampler::
 GatherAlias(typename Backend::Index_t    index,
             typename Backend::Index_t    zElement,
             typename Backend::Double_t  &probNA,
-            typename Backend::Index_t   &aliasInd
+            typename Backend::Double_t  &aliasInd
            ) const
 {
 #ifdef CHECK
@@ -425,7 +385,7 @@ void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index, 
                  typename kVc::Index_t    zElement,
                  typename kVc::Double_t  &probNA,  
-                 typename kVc::Index_t   &aliasInd
+                 typename kVc::Double_t  &aliasInd
                 ) const 
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)

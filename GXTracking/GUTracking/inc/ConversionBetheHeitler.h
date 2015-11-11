@@ -137,7 +137,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_t probNA;
-  Index_t  aliasInd;
+  Double_t aliasInd;
 
   //this did not used to work - Fixed SW
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());

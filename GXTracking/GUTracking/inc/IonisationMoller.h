@@ -157,7 +157,7 @@ IonisationMoller::InteractKernel(typename Backend::Double_t  energyIn,
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_t probNA;
-  Index_t  aliasInd;
+  Double_t aliasInd;
 
   //this did not used to work - Fixed SW
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
@@ -184,16 +184,15 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_t energyIn,
   //angle of the scatterred electron
 
   Double_t energy = energyIn + electron_mass_c2;
-  Double_t totalMomentum = sqrt(energyIn*(energyIn + electron_mass_c2));
+  Double_t totalMomentum = Sqrt(energyIn*(energyIn + 2.0*electron_mass_c2));
 
-  Double_t deltaMomentum = sqrt(energyOut * (energyOut + 2.0*electron_mass_c2));
+  Double_t deltaMomentum = Sqrt(energyOut * (energyOut + 2.0*electron_mass_c2));
   Double_t cost =  energyOut * (energy + electron_mass_c2) /
     (deltaMomentum * totalMomentum);
+
   Double_t sint2 = (1.0 - cost)*(1. + cost);
-
-  Double_t sinTheta = 0.5;
+  Double_t sinTheta;
   Bool_t condition2 = sint2 < 0.0;
-
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   
   

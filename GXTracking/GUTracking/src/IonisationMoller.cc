@@ -12,7 +12,7 @@ VECPHYS_CUDA_HEADER_HOST
 IonisationMoller::IonisationMoller(Random_t* states, int tid) 
   : EmModelBase<IonisationMoller>(states,tid)
 {
-  fDeltaRayThreshold = 1.0*MeV; //temporary: should be set from a cut table 
+  fDeltaRayThreshold = 1.0*keV; //temporary: should be set from a cut table 
   SetLowEnergyLimit(0.1*keV);
 
   Initialization();
