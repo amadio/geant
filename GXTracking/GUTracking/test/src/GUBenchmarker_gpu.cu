@@ -147,134 +147,84 @@ void KernelSeltzerBerger(Random_t* devStates,
 
 // Cuda 
 
-Precision CudaKleinNishina(int blocksPerGrid, 
-                           int threadsPerBlock,
-                           Random_t* devStates,
-                           GUAliasTableManager** table,
-                           Physics2DVector* sbData,
-			   int nTrackSize, 
-                           GUTrack* itrack, 
-			   int* targetElements, 
-			   GUTrack* otrack,
-                           SamplingMethod sampleType)
+void CudaKleinNishina(int blocksPerGrid, 
+		      int threadsPerBlock,
+		      Random_t* devStates,
+		      GUAliasTableManager** table,
+		      Physics2DVector* sbData,
+		      int nTrackSize, 
+		      GUTrack* itrack, 
+		      int* targetElements, 
+		      GUTrack* otrack,
+		      SamplingMethod sampleType)
 {
-  static Stopwatch timer;
-  Precision elapsedTime = 0.0;
-
-  timer.Start();
-
   vecphys::cuda::KernelKleinNishina<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack,sampleType);
-  cudaDeviceSynchronize();
-
-  elapsedTime = timer.Stop();
-
-  return elapsedTime;
 }
 
-Precision CudaBetheHeitler(int blocksPerGrid, 
-                           int threadsPerBlock,
-                           Random_t* devStates,
-                           GUAliasTableManager** table,
-                           Physics2DVector* sbData,
-			   int nTrackSize, 
-                           GUTrack* itrack, 
-			   int* targetElements, 
-			   GUTrack* otrack,
-                           SamplingMethod sampleType)
+void CudaBetheHeitler(int blocksPerGrid, 
+		      int threadsPerBlock,
+		      Random_t* devStates,
+		      GUAliasTableManager** table,
+		      Physics2DVector* sbData,
+		      int nTrackSize, 
+		      GUTrack* itrack, 
+		      int* targetElements, 
+		      GUTrack* otrack,
+		      SamplingMethod sampleType)
 {
-  static Stopwatch timer;
-  Precision elapsedTime = 0.0;
-
-  timer.Start();
-
   vecphys::cuda::KernelBetheHeitler<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack,sampleType);
-  cudaDeviceSynchronize();
-
-  elapsedTime = timer.Stop();
-
-  return elapsedTime;
 }
 
-Precision CudaSauterGavrila(int blocksPerGrid, 
-                            int threadsPerBlock,
-                            Random_t* devStates,
-                            GUAliasTableManager** table,
-                            Physics2DVector* sbData,
-			    int nTrackSize, 
-                            GUTrack* itrack, 
-			    int* targetElements, 
-			    GUTrack* otrack,
-                            SamplingMethod sampleType)
+void CudaSauterGavrila(int blocksPerGrid, 
+		       int threadsPerBlock,
+		       Random_t* devStates,
+		       GUAliasTableManager** table,
+		       Physics2DVector* sbData,
+		       int nTrackSize, 
+		       GUTrack* itrack, 
+		       int* targetElements, 
+		       GUTrack* otrack,
+		       SamplingMethod sampleType)
 {
-  static Stopwatch timer;
-  Precision elapsedTime = 0.0;
-
-  timer.Start();
-
   vecphys::cuda::KernelSauterGavrila<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack,sampleType);
-  cudaDeviceSynchronize();
-
-  elapsedTime = timer.Stop();
-
-  return elapsedTime;
 }
 
-Precision CudaMollerBhabha(int blocksPerGrid, 
-                           int threadsPerBlock,
-                           Random_t* devStates,
-                           GUAliasTableManager** table,
-                           Physics2DVector* sbData,
-			   int nTrackSize, 
-                           GUTrack* itrack, 
-			   int* targetElements, 
-			   GUTrack* otrack,
-                           SamplingMethod sampleType)
+void CudaMollerBhabha(int blocksPerGrid, 
+		      int threadsPerBlock,
+		      Random_t* devStates,
+		      GUAliasTableManager** table,
+		      Physics2DVector* sbData,
+		      int nTrackSize, 
+		      GUTrack* itrack, 
+		      int* targetElements, 
+		      GUTrack* otrack,
+		      SamplingMethod sampleType)
 {
-  static Stopwatch timer;
-  Precision elapsedTime = 0.0;
-
-  timer.Start();
-
   vecphys::cuda::KernelMollerBhabha<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack,sampleType);
-  cudaDeviceSynchronize();
-
-  elapsedTime = timer.Stop();
-
-  return elapsedTime;
 }
 
-Precision CudaSeltzerBerger(int blocksPerGrid, 
-                            int threadsPerBlock,
-                            Random_t* devStates,
-                            GUAliasTableManager** table,
-                            Physics2DVector* sbData,
-			    int nTrackSize, 
-                            GUTrack* itrack, 
-			    int* targetElements, 
-			    GUTrack* otrack,
-                            SamplingMethod sampleType)
+void CudaSeltzerBerger(int blocksPerGrid, 
+		       int threadsPerBlock,
+		       Random_t* devStates,
+		       GUAliasTableManager** table,
+		       Physics2DVector* sbData,
+		       int nTrackSize, 
+		       GUTrack* itrack, 
+		       int* targetElements, 
+		       GUTrack* otrack,
+		       SamplingMethod sampleType)
 {
-  static Stopwatch timer;
-  Precision elapsedTime = 0.0;
-
-  timer.Start();
-
   vecphys::cuda::KernelSeltzerBerger<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack,sampleType);
-  cudaDeviceSynchronize();
-
-  elapsedTime = timer.Stop();
-
-  return elapsedTime;
 }
 
 } // end namespace vecphys

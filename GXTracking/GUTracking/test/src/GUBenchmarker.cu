@@ -27,10 +27,26 @@ namespace vecphys {
 
 void GUBenchmarker::RunCuda()
 {
-  cudaDeviceReset();
+  int nDevice;
+  bool cudaEnabled = false;
+
+  cudaGetDeviceCount(&nDevice);
+  if(nDevice > 0) {
+    cudaDeviceReset();
+    cudaEnabled = true;
+    printf("CUDA Enabled with %d Device(s)\n",nDevice);
+  }
+  else {
+    printf("Waning: No Cuda Capable Device ...");
+  }
 
   //set 1024 megabytes on the heap (global mememory) 
   //cudaThreadSetLimit(cudaLimitMallocHeapSize, 1024*1024*1024);
+
+  //cuda event timing
+  cudaEvent_t start, stop;
+  cudaEventCreate (&start);
+  cudaEventCreate (&stop);
 
 #ifdef VECPHYS_ROOT
   GUHistogram* histogram = new GUHistogram("cuda.root", fMaxP);
@@ -94,8 +110,8 @@ void GUBenchmarker::RunCuda()
   cudaMalloc(&randomStates, theNBlocks*theNThreads* sizeof(curandState));
   GUCurand_Init(randomStates, time(NULL), theNBlocks, theNThreads);
 
-  Precision elapsedTotal[kNumberPhysicsModel];
-  Precision elapsedT[kNumberPhysicsModel];
+  float elapsedTotal[kNumberPhysicsModel];
+  float elapsedEventTime[kNumberPhysicsModel];
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.; 
 
@@ -117,11 +133,19 @@ void GUBenchmarker::RunCuda()
       cudaMemcpy(itrack_d, track_aos, fNtracks*sizeof(GUTrack), 
                    cudaMemcpyHostToDevice);
 
-      elapsedT[k] = 0.0;
-      elapsedT[k] = CudaKernelFunc[k](theNBlocks, theNThreads, randomStates,
+      elapsedEventTime[k] = 0.0;
+
+      if(cudaEnabled) {
+        cudaEventRecord (start,0);
+	//call CUDA kernels
+        CudaKernelFunc[k](theNBlocks, theNThreads, randomStates,
                                       tableM_d,sbData_d,fNtracks, itrack_d, 
                                       targetElements_d,otrack_d,fSampleType);
-      elapsedTotal[k] += elapsedT[k];
+        cudaEventRecord (stop,0);
+        cudaEventSynchronize (stop);
+        cudaEventElapsedTime (&elapsedEventTime[k],start,stop);
+      }
+      elapsedTotal[k] += elapsedEventTime[k]/1000.; //ms to second
 
       cudaMemcpy(itrack_aos, itrack_d, fNtracks*sizeof(GUTrack), 
                  cudaMemcpyDeviceToHost);
@@ -129,7 +153,7 @@ void GUBenchmarker::RunCuda()
                  cudaMemcpyDeviceToHost);
 
 #ifdef VECPHYS_ROOT
-      histogram->RecordTime(k,elapsedT[k]);
+      histogram->RecordTime(k,elapsedEventTime[k]);
       for(int i = 0 ; i < fNtracks ; ++i) {
         histogram->RecordHistos(k,track_aos[i].E,
 	  		        itrack_aos[i].E,
@@ -142,9 +166,13 @@ void GUBenchmarker::RunCuda()
   }
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    printf("%s  CUDA   Total time of %3d reps = %6.3f sec\n",
+    printf("%s  CUDA   Total time of %3d reps = %8.4f sec\n",
            GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
   }
+
+  //clean up: destory cuda event and free memory on device and host
+  cudaEventDestroy(start);
+  cudaEventDestroy(stop);
 
   cudaFree(randomStates);
   cudaFree(itrack_d);
