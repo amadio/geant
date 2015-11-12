@@ -3,6 +3,7 @@
 #include "GUBenchmarker.h"
 #include "base/SystemOfUnits.h"
 #include "SamplingMethod.h"
+#include "GUPhysicsModelName.h"
 
 using namespace vecphys;
 
@@ -14,6 +15,7 @@ int main(int argc, char* argv[])
   double minEnergy =  500.*MeV;
   double maxEnergy =  minEnergy; 
   SamplingMethod sampleType = SamplingMethod::kAlias;
+  int emModel = GUPhysicsModelIndex::kNullModel ; //all models
   
   if(argc >= 2) ntracks =      atoi(argv[1]);
   if(argc >= 3) nrepetitions = atoi(argv[2]);
@@ -49,6 +51,24 @@ int main(int argc, char* argv[])
       std::cout << "  Using the default sampling method = " << sampleType << std::endl;
   }
 
+  if(argc >= 7)  {
+    emModel = atoi(argv[6]);   
+    if(emModel == -1 ) {
+      std::cout << "  Validation for all available vector EM physics models" << std::endl;
+    }
+    else if(emModel >= 0 && emModel < kNumberPhysicsModel ) {
+      std::cout << "  Validation for vector EM physics model  = " 
+		<< GUPhysicsModelName[emModel] << std::endl;
+    }
+    else {
+      std::cout << "  Illegal vector physics model " << emModel 
+		<< "! Should be [-1:" << kNumberPhysicsModel-1 << "]" << std::endl;
+      exit(0);
+    }
+  } else {
+      std::cout << "  Validation for all available vector EM physics models" << std::endl;
+  }
+
   GUBenchmarker tester;
   tester.SetNTracks(ntracks);
   tester.SetRepetitions(nrepetitions);
@@ -57,6 +77,7 @@ int main(int argc, char* argv[])
   tester.SetMinP( minEnergy );
   tester.SetMaxP( maxEnergy );
   tester.SetSampleType( sampleType );
+  tester.SetEmModel( emModel );
   
   int status = tester.RunBenchmark();
 

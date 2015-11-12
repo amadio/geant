@@ -1,11 +1,19 @@
 Development history of GUTracking
 
-Oct. 29, 2016 
+Nov. 11, 2015 
+
+1) add an option to select a specific physics model to validate - see README file 
+2) merged updates by John and Marilena:
+   a) Double_t aliasInd to Index_t aliasInd 
+   b) reduce MaskedAssign operations 
+   c) cross section weighted bin position
+
+Oct. 29, 2015 
 
 1) Add an alternative sampling Kernel (SamplingMethod=kRejection) for IonisationMoller
 2) Add a rudimentary shuffling Kernel (SamplingMethod=kUnpack) for ComptonKleinNishina
 
-Oct. 28, 2016 
+Oct. 28, 2015 
 
 1) Remove data members associated with the alias sampling method (fMinX, fMaxX,
    fNrow, fNcol, fMaxZelement) from EmModelBase. Each model should instantiate
@@ -16,7 +24,7 @@ Oct. 28, 2016
    non-vectoriable part (i.e., do-while loop).
 3) Update benchmarking with the new sampling option
 
-Oct. 16, 2016
+Oct. 16, 2015
 
 1) Introduced a linear interpolation within the bin using the original p.d.f of 
    the alias table (based on the article, "Extending the alias Monte Carlo 
@@ -25,11 +33,11 @@ Oct. 16, 2016
 2) Use the average value of the differential cross section for a given bin 
    when building p.d.f. 
 
-Aug, 2016
+Aug, 2015
 
 1) Introduce Power2Divisor for an efficient bin manipulation
 
-July, 2016
+July, 2015
 
 1) Introduce the static polymorphism for derived physics models from the base
    class EmModelBase.

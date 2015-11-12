@@ -26,6 +26,7 @@ public:
   void SetMinP(double pMin) { fMinP= pMin; }
   void SetMaxP(double pMax) { fMaxP= pMax; }
   void SetSampleType(SamplingMethod type) { fSampleType = type ; }
+  void SetEmModel(int model) { fEmModel = model ; }
 
   void SetMonoEnergeticBeam(double E){ SetMinP(E); SetMaxP(E); } // For gamma only now!
 
@@ -66,6 +67,7 @@ private:
 
   double fMinP, fMaxP;  // Minimum and Maximum momentum of primaries
   SamplingMethod fSampleType;
+  int fEmModel;
 };
 
 } // end namespace vecphys

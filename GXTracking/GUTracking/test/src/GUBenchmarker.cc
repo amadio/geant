@@ -43,7 +43,8 @@ GUBenchmarker::GUBenchmarker()
       fVerbosity(1),
       fMinP(defaultMinP),  
       fMaxP(defaultMaxP),
-      fSampleType(kAlias)   
+      fSampleType(kAlias),   
+      fEmModel(GUPhysicsModelIndex::kNullModel)   
 {
   fTrackHandler = new GUTrackHandler();
 }
@@ -110,29 +111,33 @@ void GUBenchmarker::RunScalar()
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
     GUTrack* track_aos = fTrackHandler->GetAoSTracks();
 
-    for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-      fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
-      elapsedT[k] = 0.0;
-      elapsedT[k] = ScalarKernelFunc[k](fNtracks,itrack_aos,targetElements,
-                                        otrack_aos,fSampleType);
-      elapsedTotal[k] += elapsedT[k];
-
+    for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
+      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
+	elapsedT[k] = 0.0;
+	elapsedT[k] = ScalarKernelFunc[k](fNtracks,itrack_aos,targetElements,
+					  otrack_aos,fSampleType);
+	elapsedTotal[k] += elapsedT[k];
+	
 #ifdef VECPHYS_ROOT
-      histogram->RecordTime(k,elapsedT[k]);
-      for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,track_aos[i].E,
-	  		        itrack_aos[i].E,
-			        itrack_aos[i].pz/itrack_aos[i].E,
-			        otrack_aos[i].E,
-			        otrack_aos[i].pz/otrack_aos[i].E);
-      } 
+	histogram->RecordTime(k,elapsedT[k]);
+	for(int i = 0 ; i < fNtracks ; ++i) {
+	  histogram->RecordHistos(k,track_aos[i].E,
+				  itrack_aos[i].E,
+				  itrack_aos[i].pz/itrack_aos[i].E,
+				  otrack_aos[i].E,
+				  otrack_aos[i].pz/otrack_aos[i].E);
+	} 
 #endif    
+      }
     }
   }
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    printf("%s  Scalar Total time of %3d reps = %6.3f sec\n",
-           GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
+    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+      printf("%s  Scalar Total time of %3d reps = %6.3f sec\n",
+	     GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
+    }
   }
 
   free(itrack_aos);
@@ -167,30 +172,34 @@ void GUBenchmarker::RunGeant4()
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
     GUTrack* track_aos = fTrackHandler->GetAoSTracks();
 
-    for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-      fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
-
-      elapsedT[k] = 0.0;
-      elapsedT[k] = G4KernelFunc[k](fNtracks,itrack_aos,targetElements,
-                                    otrack_aos);
-      elapsedTotal[k] += elapsedT[k];
-
+    for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
+      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
+	
+	elapsedT[k] = 0.0;
+	elapsedT[k] = G4KernelFunc[k](fNtracks,itrack_aos,targetElements,
+				      otrack_aos);
+	elapsedTotal[k] += elapsedT[k];
+	
 #ifdef VECPHYS_ROOT
-      histogram->RecordTime(k,elapsedT[k]);
-      for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,track_aos[i].E,
-	  		        itrack_aos[i].E,
-			        itrack_aos[i].pz/itrack_aos[i].E,
-			        otrack_aos[i].E,
-			        otrack_aos[i].pz/otrack_aos[i].E);
-      } 
+	histogram->RecordTime(k,elapsedT[k]);
+	for(int i = 0 ; i < fNtracks ; ++i) {
+	  histogram->RecordHistos(k,track_aos[i].E,
+				  itrack_aos[i].E,
+				  itrack_aos[i].pz/itrack_aos[i].E,
+				  otrack_aos[i].E,
+				  otrack_aos[i].pz/otrack_aos[i].E);
+	} 
 #endif    
+      }
     }
   }    
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    printf("%s  Geant4 Total time of %3d reps = %6.3f sec\n",
-           GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
+    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+      printf("%s  Geant4 Total time of %3d reps = %6.3f sec\n",
+	     GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
+    }
   }
 
   free(itrack_aos);
@@ -228,30 +237,34 @@ void GUBenchmarker::RunVector()
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
     GUTrack_v& track_soa = fTrackHandler->GetSoATracks();
     
-    for(unsigned int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-      fTrackHandler->CopySoATracks(track_soa,itrack_soa);
-
-      elapsedT[k] = 0.0;
-      elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,
-                                        otrack_soa,fSampleType);
-      elapsedTotal[k] += elapsedT[k];
-
+    for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
+      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+	fTrackHandler->CopySoATracks(track_soa,itrack_soa);
+	
+	elapsedT[k] = 0.0;
+	elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,
+					  otrack_soa,fSampleType);
+	elapsedTotal[k] += elapsedT[k];
+	
 #ifdef VECPHYS_ROOT
-      histogram->RecordTime(k,elapsedT[k]);
-      for(int i = 0 ; i < fNtracks ; ++i) {
-        histogram->RecordHistos(k,track_soa.E[i],
-	  		        itrack_soa.E[i],
-			        itrack_soa.pz[i]/itrack_soa.E[i],
-			        otrack_soa.E[i],
-			        otrack_soa.pz[i]/otrack_soa.E[i]);
-      } 
+	histogram->RecordTime(k,elapsedT[k]);
+	for(int i = 0 ; i < fNtracks ; ++i) {
+	  histogram->RecordHistos(k,track_soa.E[i],
+				  itrack_soa.E[i],
+				  itrack_soa.pz[i]/itrack_soa.E[i],
+				  otrack_soa.E[i],
+				  otrack_soa.pz[i]/otrack_soa.E[i]);
+	} 
 #endif    
+      }
     }
   }    
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    printf("%s  Vector Total time of %3d reps = %6.3f sec\n",
-           GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
+    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+      printf("%s  Vector Total time of %3d reps = %6.3f sec\n",
+	     GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
+    }
   }
   delete handler_in;
   delete handler_out;
