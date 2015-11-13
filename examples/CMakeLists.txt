@@ -26,14 +26,15 @@ set(headers
 #file(GLOB headers inc/*.h)
 #string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
 
-ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-
+if (NOT MIC)
+  ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+endif()
 #----------------------------------------------------------------------------
 #
 
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
-
+if (NOT MIC)
 if (CUDA)
   CUDA_ADD_LIBRARY(GeantExamples
                  ${sources} G__Examples.cxx
@@ -47,7 +48,13 @@ endif()
 target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
   -lGeant_v ${ROOT_LIBRARIES} -lEG -lGeom ${Vc_LIBRARIES})
 
+else()
+add_library(GeantExamples SHARED ${sources})
+target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  -lGeant_v -lEG -lGeom )
+endif()
 add_dependencies(GeantExamples Geant_v)
+
 add_custom_target(Exampleslib DEPENDS GeantExamples)
 
 if(APPLE) 

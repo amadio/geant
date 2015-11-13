@@ -1,7 +1,9 @@
 #include <TPartIndex.h>
 #include <string>
 #include <algorithm>
+#ifndef GEANTV_MIC
 #include <TBuffer.h>
+#endif
 #include <iostream>
 
 using std::transform;

@@ -1,18 +1,23 @@
 #include "TPFstate.h"
 #include "TFinState.h"
-#include <TFile.h>
-#include <TMath.h>
-#include <TRandom.h>
 #include "Geant/Error.h"
-
+#ifndef GEANTV_MIC
+#include <TFile.h>
+#include <TRandom.h>
+#else
+#include "base/RNG.h"
+using vecgeom::RNG;
+#endif
 using std::max;
 
 int TPFstate::fVerbose = 0;
 
+#include "Geant/Error.h"
+
 //_________________________________________________________________________
 TPFstate::TPFstate()
-    : fPDG(0), fNEbins(0), fNReac(0), fNEFstat(0), fNFstat(0), fEmin(0), fEmax(0), fEilDelta(0),
-      fEGrid(TPartIndex::I()->EGrid()), fFstat(0), fRestCaptFstat(0) {
+  : fPDG(0), fNEbins(0), fNReac(0), fNEFstat(0), fNFstat(0), fEmin(0), fEmax(0), fEilDelta(0),
+    fEGrid(TPartIndex::I()->EGrid()), fFstat(0), fRestCaptFstat(0) {
   int np = TPartIndex::I()->NProc();
   while (np--)
     fRdict[np] = fRmap[np] = -1;
@@ -96,7 +101,7 @@ bool TPFstate::SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinSta
   // consistency
   for (int i = 0; i < fNReac; ++i)
     if (fRdict[fRmap[i]] != i)
-      Geant::Fatal("TPFstate::SetPart", "Dictionary mismatch for!");
+      Geant::Fatal("TPFstateSetPart", "Dictionary mismatch for!");
   return true;
 }
 
@@ -122,7 +127,11 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     return false;
   } else {
     kerma = en;
+   #ifndef GEANTV_MIC
     double eta = gRandom->Rndm();
+   #else
+    double eta = RNG::Instance().uniform();
+   #endif
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
     en = max<double>(en, fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;

@@ -40,16 +40,20 @@ endif()
 
 include_directories(inc)
 
-ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
-#----------------------------------------------------------------------------
-# Add the executable, and link it to the Geant4 libraries
-#
-add_library(Xsec SHARED ${sources} xsecDict.cxx)
+if (NOT MIC)
+  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  #----------------------------------------------------------------------------
+  # Add the executable, and link it to the Geant4 libraries
+  #
+  add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
-set(ROOT_LIBS "")
-if(USE_ROOT OR NOT USE_VECGEOM_NAVIGATOR)
-  set(ROOT_LIBS "${ROOT_LIBRARIES} -lEG -lGui -lGeom")
+  set(ROOT_LIBS "")
+  if(USE_ROOT OR NOT USE_VECGEOM_NAVIGATOR)
+    set(ROOT_LIBS "${ROOT_LIBRARIES} -lEG -lGui -lGeom")
+  endif()
+else()
+  add_library(Xsec SHARED ${sources})
 endif()
 
 set(HEPMC_LIBS "")
@@ -57,8 +61,13 @@ if(HepMC_FOUND)
   set(HEPMC_LIBS "${HEPMC_LIBRARIES}")
 endif()
 
+if (NOT MIC)
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
      ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
+else()
+target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} 
+     ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
+endif()
 
 set(XSEC_LINK_LIBS "-lXsec" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 

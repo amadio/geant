@@ -46,9 +46,15 @@ protected:
   double fPMax;   // maximum momentum
   GeantEventInfo fCurrentEvent; // current event
 public:
+#ifndef GEANTV_MIC
   PrimaryGenerator()
       : fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
         fPMin(0), fPMax(0) {}
+#else
+  PrimaryGenerator()
+      : fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
+        fPMin(0), fPMax(0) {}
+#endif 
   virtual ~PrimaryGenerator() {}
   static double EtaToTheta(double eta) { return (2. * atan(exp(-eta)) * kRadToDeg); }
   static double ThetaToEta(double theta) { return (-log(tan(0.5 * theta * kDegToRad))); }

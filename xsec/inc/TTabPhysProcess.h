@@ -16,6 +16,9 @@
 #include "GeantFwd.h"
 class TTabPhysMgr;
 
+#ifdef GEANTV_MIC
+typedef const char* TString;
+#endif 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess {
 private:

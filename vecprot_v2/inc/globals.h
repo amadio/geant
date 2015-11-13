@@ -16,8 +16,9 @@
 #include "GeantPropagator.h"
 
 /** @brief Propagator class */
+#ifndef GEANTV_MIC
 extern GeantPropagator *gPropagator; /** Propagator class */
-
+#endif
 #ifdef GEANT_NVCC
 __constant__ double gPropagator_fBmag;
 #endif

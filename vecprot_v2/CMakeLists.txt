@@ -72,8 +72,11 @@ if(USE_VECGEOM_NAVIGATOR)
    )
 endif()
 
+if (NOT MIC)
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-
+else()
+set(GEANT_MIC ON)
+endif()
 #----------------------------------------------------------------------------
 #
 
@@ -82,7 +85,7 @@ set(GEANTV_SOURCES ${sources} )
 
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
-
+if (NOT MIC)
 if (CUDA)
   # See vecprot_v2/cuda/CMakeLists.txt
   add_subdirectory (cuda)
@@ -177,3 +180,11 @@ if(CTEST)
 endif()
 
 install(TARGETS CMSApp runApp DESTINATION bin)
+add_dependencies(runApp Geant_v Xsec GeantExamples)
+else()
+  add_library(Geant_v SHARED ${sources})
+target_link_libraries(Geant_v -lEG -lGeom)
+if( VECGEOM_FOUND )
+  target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+endif()
+endif()
