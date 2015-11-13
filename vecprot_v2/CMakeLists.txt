@@ -181,10 +181,36 @@ endif()
 
 install(TARGETS CMSApp runApp DESTINATION bin)
 add_dependencies(runApp Geant_v Xsec GeantExamples)
-else()
+else()  # ---- MIC
   add_library(Geant_v SHARED ${sources})
-target_link_libraries(Geant_v -lEG -lGeom)
+#target_link_libraries(Geant_v -lEG -lGeom)
 if( VECGEOM_FOUND )
   target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 endif()
+add_custom_target(Geantlib_v DEPENDS Geant_v)
+install(TARGETS Geant_v DESTINATION lib)
+
+
+find_package(HepMC REQUIRED)
+include_directories("${HEPMC_INCLUDE_DIR}")
+
+add_executable(CMSApp CMSApp.cc)
+
+target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+       ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
+if ( USE_VECGEOM_NAVIGATOR )
+   target_link_libraries(CMSApp  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+endif()
+
+add_dependencies(CMSApp Geant_v Xsec GeantExamples)
+
+add_executable(runApp runApp.cc)
+
+target_link_libraries(runApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+       ${ROOT_LIBRARIES} -lGeom ${HEPMC_LIBRARIES})
+if ( USE_VECGEOM_NAVIGATOR )
+   target_link_libraries(runApp  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+endif()
+
+add_dependencies(runApp Geant_v Xsec GeantExamples)
 endif()

@@ -15,14 +15,22 @@
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
+#ifndef GEANTV_MIC
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+#else
+    : fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+#endif
       fThreshold(0), fTracksIn() {
   // Dummy constructor.
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
-    : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+#ifndef GEANTV_MIC
+   : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+#else
+   : fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+#endif
       fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth) {
   // Default constructor.
   if (!mgr->GetVolume() || mgr->IsCollector())
@@ -31,8 +39,12 @@ GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(int size, int depth)
+#ifndef GEANTV_MIC
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-      fThreshold(size), fTracksIn(size, depth) {
+#else
+    : fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
+#endif 
+     fThreshold(size), fTracksIn(size, depth) {
   // Default constructor.
 }
 
@@ -94,7 +106,11 @@ Volume_t *GeantBasket::GetVolume() const {
 //______________________________________________________________________________
 void GeantBasket::Print(const char *) const {
   // Print basket content.
+#ifndef GEANTV_MIC
   Printf("*** basket %s: ntracks=%3d", GetName(), GetNinput());
+#else
+  printf("*** basket : ntracks=");
+#endif
 }
 
 //______________________________________________________________________________
@@ -122,10 +138,13 @@ void GeantBasket::SetThreshold(int threshold) {
 // Basket manager for a given volume. Holds a list of free baskets stored in a
 // concurrent queue
 //______________________________________________________________________________
-
 //______________________________________________________________________________
 GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
+#ifndef GEANTV_MIC
   : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
+#else 
+  : fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
+#endif
     fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
     fDispatchList() {
   // Constructor
@@ -416,7 +435,11 @@ void GeantBasketMgr::CleanBaskets(int ntoclean, GeantTaskData *td) {
 //______________________________________________________________________________
 void GeantBasketMgr::Print(const char *) const {
   // Print info about the basket content.
+#ifndef GEANTV_MIC
   Printf("Bsk_mgr %s: current: tracks=%d", GetName(), GetCBasket()->GetNinput());
+#else
+  printf("Bsk_mgr %s: current: tracks=%d", GetName(), GetCBasket()->GetNinput());
+#endif
 }
 
 //______________________________________________________________________________
@@ -426,5 +449,9 @@ void GeantBasketMgr::PrintSize() const {
   size_t sizeb = 0;
   if (GetCBasket())
     sizeb = GetCBasket()->Sizeof();
+#ifndef GEANTV_MIC
   Printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
+#else
+  printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
+#endif
 }

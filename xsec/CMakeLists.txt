@@ -65,7 +65,7 @@ if (NOT MIC)
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
      ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
 else()
-target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} 
+target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v 
      ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
 endif()
 

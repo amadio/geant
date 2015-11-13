@@ -1,3 +1,4 @@
+#ifndef GEANTV_MIC
 #include "sync_objects.h"
 #include "TThread.h"
 #include "TGeoManager.h"
@@ -65,6 +66,7 @@ TimeCounter &TimeCounter::operator--() {
 }
 
 //______________________________________________________________________________
+
 void TimeCounter::Print() {
   // Draw timing statistics.
   if (!timer)
@@ -84,6 +86,7 @@ void TimeCounter::Print() {
     realtime[i] /= sum;
     Printf("%d:  %f%%", i, 100. * realtime[i]);
   }
+
   TCanvas *c1 = new TCanvas("c1", "Time spent in workers", 200, 10, 700, 500);
   c1->SetFillColor(42);
   c1->SetGrid();
@@ -104,7 +107,6 @@ void TimeCounter::Print() {
   }
   h1->Draw("b");
 }
-
 //______________________________________________________________________________
 concurrent_queue::concurrent_queue(bool counter)
     : the_queue(), the_mutex(), the_condition_variable(&the_mutex), the_counter(0), nobjects(0),
@@ -219,3 +221,4 @@ void concurrent_queue::Print() {
   if (the_counter)
     the_counter->Print();
 }
+#endif

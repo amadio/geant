@@ -13,8 +13,13 @@
 #ifndef GEANT_BASKET
 #define GEANT_BASKET
 
+#ifndef GEANTV_MIC
 #include "TObject.h"
 #include "TGeoExtension.h"
+#else
+#define MIC_BIT(n) (1ULL<<(n))
+#endif
+
 #include "Geant/Typedefs.h"
 #include "GeantTrack.h"
 #include "priority_queue.h"
@@ -27,7 +32,11 @@ class GeantBasketMgr;
  * @brief Class GeantBasket descripting basic operations with baskets
  * @details Basket of tracks in the same volume which are transported by a single thread
  */
+#ifndef GEANTV_MIC
 class GeantBasket : public TObject {
+#else
+class GeantBasket {
+#endif
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -38,8 +47,20 @@ public:
    * @details Flags marking up different types of baskets
    */
   enum EBasketFlags {
+   #ifndef GEANTV_MIC
     kMixed = BIT(14) /** Basket mixing tracks from different volumes */
+   #else
+    kMixed = MIC_BIT(14) /** Basket mixing tracks from different volumes */
+   #endif
   };
+  #ifdef GEANTV_MIC
+   enum {
+         kIsOnHeap      = 0x01000000,    // object is on heap
+          kNotDeleted    = 0x02000000,    // object has not been deleted
+          kZombie        = 0x04000000,    // object ctor failed
+          kBitMask       = 0x00ffffff
+    };
+  #endif  
 
 protected:
   GeantBasketMgr *fManager; /** Manager for the basket */
@@ -63,6 +84,9 @@ private:
   /** @todo Still not implemented operator = */
   GeantBasket &operator=(const GeantBasket &);
 
+  #ifdef GEANTV_MIC
+   long int fBits;
+  #endif
 public:
   /** @brief Default GeantBasket constructor */
   GeantBasket();
@@ -183,8 +207,11 @@ public:
    * @brief Function returning the mixed tracks property.
    * @return Boolean value if the tracks are mixed from several volumes
    */
+  #ifndef GEANTV_MIC
   bool IsMixed() const { return TObject::TestBit(kMixed); }
-
+  #else
+  bool IsMixed() const {  return (bool) ((fBits & kMixed) != 0); }
+  #endif
   /**
    * @brief Check if tracks are being copied
    * @return Track copy flag
@@ -229,8 +256,13 @@ public:
    * @return Sum of sizes of all tracks (input and output) + data members
    */
   size_t Sizeof() const {
+   #ifndef GEANTV_MIC
     return fTracksIn.Sizeof() + sizeof(TObject) + sizeof(GeantBasketMgr *) +
            sizeof(std::atomic_int);
+   #else
+    return fTracksIn.Sizeof() + sizeof(this) + sizeof(GeantBasketMgr *) +
+           sizeof(std::atomic_int);
+   #endif
   }
 
   /**
@@ -238,8 +270,17 @@ public:
    *
    * @param flag Boolean flag.
    */
+  #ifndef GEANTV_MIC
   void SetMixed(bool flag) { TObject::SetBit(kMixed, flag); }
+  #else
+  void SetMixed(bool flag) { 
+  if (flag)
+   fBits |= kMixed & kBitMask; 
+  else
+   fBits &= ~(kMixed & kBitMask);
 
+  }
+  #endif
   /**
    * @brief Function to change the transportability threshold for the basket
    *
@@ -250,7 +291,9 @@ public:
   /** @brief Try to get the dispatch lock for the basket */
   bool TryDispatch() { return (!fDispatched.test_and_set(std::memory_order_acquire)); }
 
+ #ifndef GEANTV_MIC
   ClassDef(GeantBasket, 1) // A basket containing tracks in the same geomety volume
+ #endif 
 };
 
 class GeantScheduler;
@@ -261,7 +304,12 @@ class GeantScheduler;
  * concurrent queue, a current basket to be filled and a priority basket used
  * in priority mode.
  */
+#ifndef GEANTV_MIC
 class GeantBasketMgr : public TGeoExtension {
+#else
+class GeantBasketMgr {
+#endif
+
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -352,7 +400,9 @@ public:
    * @details Interface of TGeoExtension for getting a reference to this from Volume
    * @return Pointer to the base class
    */
+ #ifndef GEANTV_MIC
   virtual TGeoExtension *Grab() { return this; }
+ #endif 
 
   /**
    * @brief Release function
@@ -494,8 +544,11 @@ public:
   GeantScheduler *GetScheduler() const { return fScheduler; }
 
   /** @brief Function that returns the name of volume */
+  #ifndef GEANTV_MIC
   const char *GetName() const { return (fVolume) ? fVolume->GetName() : ClassName(); }
-
+  #else
+  const char *GetName() const { return (fVolume) ? fVolume->GetName() : "No Volume"; }
+  #endif
   /**
    * @brief Function that returns the number assigned to basket
    * @return Number assigned to basket
@@ -550,6 +603,8 @@ public:
    */
   Geant::priority_queue<GeantBasket *> *GetFeederQueue() const { return fFeeder; }
 
+ #ifndef GEANTV_MIC
   ClassDef(GeantBasketMgr, 0) // A path in geometry represented by the array of indices
+ #endif 
 };
 #endif

@@ -1,7 +1,7 @@
 #include "GeantScheduler.h"
 
 #include "Geant/Error.h"
-#include "TMath.h"
+
 #include "GeantBasket.h"
 #include "globals.h"
 #include "GeantTrack.h"
@@ -21,6 +21,9 @@ using vecgeom::GeoManager;
 #include "TGeoManager.h"
 #endif
 
+#ifndef GEANTV_MIC
+#include "TMath.h"
+#endif
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
     : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0),
@@ -55,7 +58,11 @@ GeantScheduler::~GeantScheduler() {
 void GeantScheduler::ActivateBasketManagers() {
   // Activate basket managers based on the distribution of steps in corresponding
   // volumes.
+  #ifndef GEANTV_MIC
   TMath::Sort(fNvolumes, fNstvol, fIstvol);
+  #else
+  Sort(fNvolumes, fNstvol, fIstvol);
+  #endif
   int ntot = 0;
   int nsum = 0;
   // Percent of steps to activate basketized volumes

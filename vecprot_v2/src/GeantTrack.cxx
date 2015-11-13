@@ -47,6 +47,9 @@
 #endif
 #include <cassert>
 
+#ifdef GEANTV_MIC
+ typedef std::string TString;
+#endif
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 

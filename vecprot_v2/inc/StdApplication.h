@@ -9,7 +9,6 @@
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
-
 #ifndef GEANT_StdApplication
 #define GEANT_StdApplication
 
@@ -19,10 +18,11 @@
 #include "GeantVApplication.h"
 #endif
 
+#ifndef GEANTV_MIC
 class TH1F;
 class TH1D;
 class TProfile;
-
+#endif
 #include "GeantFwd.h"
 
 /** @brief StdApplication class */
@@ -35,12 +35,13 @@ enum EScoreType {
 
 private:
   bool fInitialized;                            /** Initialized flag */
-  
+ #ifndef GEANTV_MIC
   TH1F     *fHeta;                                /** Eta distribution */
   TH1F     *fHpt;                                 /** Pt distribution */
   TH1D     *fHStep;                               /** Step size distribution */
   TProfile *fStepSize;                            /** Step size profile with eta */
   TProfile *fStepCnt;                             /** Number of steps profile with eta */
+#endif
   std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
   EScoreType fScore;                              /** Entity for scoring */
   

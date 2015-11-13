@@ -13,8 +13,10 @@
 #ifndef GEANT_MYHIT
 #define GEANT_MYHIT
 
+#ifndef GEANTV_MIC
 #ifndef ROOT_Rtypes
 #include "Rtypes.h"
+#endif
 #endif
 
 /**
@@ -72,7 +74,8 @@ public:
 
   /** @brief Function that add user hit */
   void AddHit();
-
+#ifndef GEANTV_MIC
   ClassDefNV(MyHit, 1) // User hit
+#endif
 };
 #endif

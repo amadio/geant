@@ -1,6 +1,6 @@
 #include "WorkloadManager.h"
 #include "Geant/Error.h"
-
+#ifndef GEANTV_MIC
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TStopwatch.h"
@@ -11,6 +11,11 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
+#else
+#include "base/TLS.h"
+#include "base/Stopwatch.h"
+#endif
+
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
@@ -834,7 +839,11 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     {
        auto noutput = basket->GetNinput();
        for (int itr = 0; itr < noutput; itr++) {
+       #ifndef GEANTV_MIC
           if (TMath::IsNaN(output.fXdirV[itr])) {
+       #else
+          if (std::isnan(output.fXdirV[itr])) {
+       #endif
              Geant::Error("TransportTracksCoprocessor","Track %d has NaN", itr);
           }
        }
@@ -884,6 +893,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 
 //______________________________________________________________________________
 void *WorkloadManager::GarbageCollectorThread() {
+#ifndef GEANTV_MIC
   // This threads can be triggered to do garbage collection of unused baskets
   static double rsslast = 0;
   double rss;
@@ -922,6 +932,7 @@ void *WorkloadManager::GarbageCollectorThread() {
     }
     gSystem->Sleep(1000); // millisec
   }
+#endif
   return 0;
 }
 
@@ -983,6 +994,7 @@ void WorkloadManager::SetMonitored(GeantPropagator::EGeantMonitoringType feature
 
 //______________________________________________________________________________
 void *WorkloadManager::MonitoringThread() {
+ #ifndef GEANTV_MIC 
   // Thread providing basic monitoring for the scheduler.
   const double MByte = 1024.;
   Geant::Info("MonitoringThread","Started monitoring ...");
@@ -1005,7 +1017,6 @@ void *WorkloadManager::MonitoringThread() {
   memset(nworking, 0, (nthreads + 1) * sizeof(int));
   int *waiting = wm->GetWaiting();
   GeantBasketMgr **bmgr = sch->GetBasketManagers();
-
   TCanvas *cmon = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("cscheduler");
   if (nmon == 1)
     cmon->Divide(1, 1);
@@ -1262,7 +1273,7 @@ void *WorkloadManager::MonitoringThread() {
   Geant::Info("Monitoring stopped","=== Percent of tracks transported in single track mode: %g%%", 100. * nvect[1] / sumvect);
   // Sleep a bit to let the graphics finish
   gSystem->Sleep(100); // millisec
-
+#endif
   return 0;
 }
 
@@ -1270,7 +1281,8 @@ void *WorkloadManager::MonitoringThread() {
 void *WorkloadManager::OutputThread() {
   // Thread providing basic output for the scheduler.
 
-  Geant::Info("OutputThread", "=== Output thread created ===");
+  Geant::Info("OutputThread","=== Output thread created ===");
+  #ifndef GEANTV_MIC 
 
   if (GeantPropagator::Instance()->fConcurrentWrite) {
     Printf(">>> Writing concurrently to MemoryFiles");
@@ -1314,4 +1326,9 @@ void *WorkloadManager::OutputThread() {
   Geant::Info("OutputThread", "=== Output thread finished ===");
 
   return 0;
+    
+  #else
+    printf("=== Output thread finished on the MIC - Did nothing ===");
+  #endif   
+    return 0;
 }

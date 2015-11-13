@@ -3,6 +3,7 @@
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
+#ifndef GEANTV_MIC
 #include "TProfile.h"
 #include "TH1.h"
 #include "TCanvas.h"
@@ -120,3 +121,4 @@ void StdApplication::FinishRun() {
   pad->SetLogy();
   fStepCnt->Draw();
 }
+#endif

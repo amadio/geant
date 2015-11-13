@@ -28,5 +28,4 @@ typedef TGeoNode Node_t;
 #include "TDatabasePDG.h"
 typedef TParticlePDG Particle_t;
 #endif
-
 #endif

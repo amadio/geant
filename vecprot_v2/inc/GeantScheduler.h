@@ -18,7 +18,6 @@
 #include <atomic>
 #include <vector>
 #include <stddef.h>
-
 class concurrent_queue;
 class GeantBasket;
 class GeantBasketMgr;
@@ -189,5 +188,14 @@ public:
 
   /** @brief Function to returns size */
   size_t Sizeof() const;
+ 
+  #ifdef GEANTV_MIC
+   void Sort( int n,int *a,int *out) {
+      for (int i=0;i<n;i++) { out[i] = a[i]; }
+      std::sort(out,out + n, std::greater<int>());
+
+   } 
+  #endif
+  
 };
 #endif

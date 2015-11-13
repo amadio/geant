@@ -22,10 +22,11 @@
 #include <mutex>
 
 #include "Geant/Typedefs.h"
-
+#ifndef GEANTV_MIC
 class TTree;
 class TFile;
 class TStopwatch;
+#endif
 class PhysicsProcess;
 class GeantEvent;
 class GeantBasket;
@@ -116,7 +117,11 @@ public:
   GeantVApplication *fApplication;    /** User application */
   GeantVApplication *fStdApplication; /** Standard application */
 
+  #ifndef GEANTV_MIC
   TStopwatch *fTimer; /** Timer */
+  #else
+  vecgeom::Stopwatch *fTimer; /** Timer */
+  #endif
 
   PhysicsProcess *fProcess;              /** For now the only generic process pointing to the tabulated physics */
   PhysicsProcess *fVectorPhysicsProcess; /** interface to vector physics final state sampling */

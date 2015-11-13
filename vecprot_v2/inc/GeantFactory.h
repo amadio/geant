@@ -17,8 +17,10 @@
 
 #ifndef GEANT_FACTORY
 #define GEANT_FACTORY
-
+#ifndef GEANTV_MIC
 #include <Rtypes.h>
+#endif
+
 #include <vector>
 #include <cassert>
 #include <typeinfo>

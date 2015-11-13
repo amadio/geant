@@ -17,9 +17,13 @@
 #if __cplusplus >= 201103L
 #include <atomic>
 #endif
+#ifndef GEANTV_MIC
 #include "TCondition.h"
 #include "TMutex.h"
-
+#else
+#include <condition_variable>
+#include <mutex>
+#endif 
 /**
  * @brief Templated class dcqueue
  * @details 
@@ -27,8 +31,13 @@
  */
 template <typename T> class dcqueue {
   std::deque<T> the_queue;           /** Double-ended queue */
+#ifndef GEANTV_MIC
   mutable TMutex the_mutex;          /** General mutex for the queue */
   TCondition the_condition_variable; /** Condition */
+#else
+  std::mutex the_mutex;
+  std::condition_variable the_condition_variable; 
+#endif   
 #if __cplusplus >= 201103L
   std::atomic<size_t> nobjects;  /** Number of objects in the queue */
   std::atomic<size_t> npriority; /** Number of prioritized objects */
@@ -38,7 +47,11 @@ public:
 
   /** @brief Dcqueue constructor */
   dcqueue()
+#ifndef GEANTV_MIC
       : the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),
+#else
+      : the_queue(), the_mutex(), the_condition_variable(), nobjects(0), npriority(0),
+#endif
         nop(0) {}
   
   /** @brief Dcqueue destructor */
@@ -105,7 +118,11 @@ public:
  * @tparam T Type of objects in queue
  */
 template <typename T> void dcqueue<T>::push(T const &data, bool priority) {
+#ifndef GEANTV_MIC
   the_mutex.Lock();
+#else
+  the_mutex.lock();
+#endif
   if (priority) {
     the_queue.push_back(data);
     npriority++;
@@ -113,8 +130,13 @@ template <typename T> void dcqueue<T>::push(T const &data, bool priority) {
     the_queue.push_front(data);
   nobjects++;
   nop++;
+#ifndef GEANTV_MIC
   the_condition_variable.Signal();
   the_mutex.UnLock();
+#else
+  the_condition_variable.notify_one();
+  the_mutex.unlock();
+#endif
 }
 
 /**
@@ -122,9 +144,17 @@ template <typename T> void dcqueue<T>::push(T const &data, bool priority) {
  * @return Returns the number of objects in the queue.
  */
 template <typename T> size_t dcqueue<T>::size() const {
+#ifndef GEANTV_MIC
   the_mutex.Lock();
+#else
+  the_mutex.lock();
+#endif
   size_t the_size = the_queue.size();
+#ifndef GEANTV_MIC
   the_mutex.UnLock();
+#else
+  the_mutex.unlock();
+#endif
   return the_size;
 }
 
@@ -132,9 +162,17 @@ template <typename T> size_t dcqueue<T>::size() const {
  * @tparam T type of objects in queue
  */
 template <typename T> bool dcqueue<T>::empty() const {
+#ifndef GEANTV_MIC
   the_mutex.Lock();
+#else
+  the_mutex.lock();
+#endif
   bool is_empty = the_queue.empty();
+#ifndef GEANTV_MIC
   the_mutex.UnLock();
+#else
+  the_mutex.unlock();
+#endif
   return is_empty;
 }
 
@@ -145,16 +183,29 @@ template <typename T> bool dcqueue<T>::empty() const {
  * @tparam T type of objects in queue
  */
 template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
+#ifndef GEANTV_MIC
   the_mutex.Lock();
+#else
+  the_mutex.lock();
+#endif
   while (the_queue.empty())
+#ifndef GEANTV_MIC
     the_condition_variable.Wait();
+#else
+    std::unique_lock<std::mutex> the_lock(the_mutex);
+    the_condition_variable.wait(&the_lock);
+#endif
   data = the_queue.back();
   the_queue.pop_back();
   nobjects--;
   nop++;
   if (npriority > 0)
     npriority--;
+#ifndef GEANTV_MIC
   the_mutex.UnLock();
+#else
+  the_mutex.unlock();
+#endif
 }
 
 /**
@@ -167,9 +218,17 @@ template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
 template <typename T> bool dcqueue<T>::try_pop(T &data) {
   if (empty_async())
     return false;
+#ifndef GEANTV_MIC
   the_mutex.Lock();
+#else
+  the_mutex.lock();
+#endif
   if (the_queue.empty()) {
+#ifndef GEANTV_MIC
     the_mutex.UnLock();
+#else
+  the_mutex.unlock();
+#endif
     return false;
   }
   data = the_queue.back();
@@ -178,7 +237,11 @@ template <typename T> bool dcqueue<T>::try_pop(T &data) {
   nop++;
   if (npriority > 0)
     npriority--;
+#ifndef GEANTV_MIC
   the_mutex.UnLock();
+#else
+  the_mutex.unlock();
+#endif
   return true;
 }
 
@@ -192,7 +255,11 @@ template <typename T> bool dcqueue<T>::try_pop(T &data) {
  * @tparam T Type of objects in queue
  */
 template <typename T> void dcqueue<T>::wait_and_pop_max(size_t nmax, size_t &n, T *array) {
+#ifndef GEANTV_MIC
   the_mutex.Lock();
+#else
+  the_mutex.lock();
+#endif
   while (the_queue.empty()) {
     the_condition_variable.Wait();
   }
@@ -207,6 +274,10 @@ template <typename T> void dcqueue<T>::wait_and_pop_max(size_t nmax, size_t &n, 
     if (npriority)
       npriority--;
   }
+#ifndef GEANTV_MIC
   the_mutex.UnLock();
+#else
+  the_mutex.unlock();
+#endif
 }
 #endif

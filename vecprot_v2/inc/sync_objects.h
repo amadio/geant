@@ -10,6 +10,7 @@
  */
 //===----------------------------------------------------------------------===//
 
+#ifndef GEANTV_MIC
 #ifndef GEANT_SYNCOBJECTS
 #define GEANT_SYNCOBJECTS
 #include <deque>
@@ -21,7 +22,6 @@
 #include "TMutex.h"
 
 using namespace std;
-
 class TStopwatch;
 class TObject;
 
@@ -145,7 +145,7 @@ public:
   /** @brief Print function */
   void Print();
 };
-
+#endif
 /** @brief Reference counted atomic pointer */
 template <class T> class ref_ptr {
 public:
