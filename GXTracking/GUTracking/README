@@ -17,21 +17,18 @@
    #root (if ROOT=ON)
    source ${ROOT_INSTALL_DIR}/bin/thisroot.sh
 
-2. How to build and run an example benchmaker of GUTracking/test
+2. How to build and run an example benchmarker of GUTracking/test
 
    mkdir build
    cd build
    cmake -DBENCHMARK=ON -DCUDA=ON -DVc_DIR=${Vc_DIR} ..
    make
-   ./GUModelBenchmark [ntracks] [nrepetitions] [minEnergy] [maxEnergy] [samplingType] [model]
+   ./GUModelBenchmark [ntracks] [nrepetitions] [minEnergy] [maxEnergy] [samplingType] [model] [materialMode]
 
-   where the valid argument for samplingType is [0=kAlias,1=kRejection,2=kUnpack]      
-   and for model = [-1 = All, 
-                     0 = KleinNishina,
-                     1 = BetheHeitler,
-                     2 = SauterGavrila,
-                     3 = MollerBhabha,
-                     4 = SeltzerBerger]
+   where the valid argument for 
+   samplingType: [0=kAlias, 1=kRejection, 2=kUnpack]      
+   model: [-1=AllModels, 0=KleinNishina, 1= BetheHeitler, 2=SauterGavrila, 3=MollerBhabha, 4=SeltzerBerger]
+   materialMode: [0=Multiple elements from a table, 1=One Material] 
 
 2.1 data file
    Download required data files for testing the SeltzerBerger model
@@ -58,7 +55,7 @@
 4. How to run GeantV with GUTracking (libvecphys.a)
    
    - build your physics library (libvecphys) into GUTracking/build
-   - build GeantV with a -DUSE_VECPHYS=ON option whch will build a libVphysproc 
+   - build GeantV with a -DUSE_VECPHYS=ON option which will build a libVphysproc 
 
    - activate following the two lines in run.C:
 
