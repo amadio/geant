@@ -6,7 +6,9 @@ namespace vecphys {
 // maximum of the atomic number
 constexpr int maximumZ                = 92;
 
-// Physics2DVector (SeltzerBerger data) - valid up to maximumZ=92 
+// Physics2DVector (SeltzerBerger data) - valid up to maximumZ = 92
+// with following number of XY nodes - may extend data up to 100 
+// with another set of [numberOfXNodes,numberOfYNodes] = (14,31)
 constexpr unsigned int numberOfXNodes = 32; 
 constexpr unsigned int numberOfYNodes = 57;
 
