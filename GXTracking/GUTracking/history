@@ -1,5 +1,16 @@
 Development history of GUTracking
 
+Nov. 16, 2015 
+
+1) Add a temporary interface to the material table (MaterialHandler)
+2) Add a flag to specify atomic dependency of models
+3) Build a single alias table for atomic independent models
+4) Build alias tables only for elements required by the material table 
+   for atomic dependent models
+5) Do not build alias table for benchmarking Geant4 composition and rejection 
+   methods
+6) Add an option for benchmarking to select one material or multiple materials
+
 Nov. 11, 2015 
 
 1) add an option to select a specific physics model to validate - see README file 
