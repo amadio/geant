@@ -287,6 +287,7 @@ set(SRC_CPP_RELATIVE
   src/GUAliasTableManager.cc
   src/Physics2DVector.cc
   src/EmModelBase.cc
+  src/MaterialHandler.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
