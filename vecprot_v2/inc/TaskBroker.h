@@ -87,11 +87,14 @@ public:
   /** @brief Virtual function that return number of stream */
   virtual int GetNstream() = 0;
 
-   /** @brief Tell the tasks which priotizer to use */
-   virtual int SetPrioritizer() = 0;
+  /** @brief If the coprocessor has outstanding work, return it */
+  virtual GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td) = 0;
 
-   /** @brief Prepare the geometry for the device and upload it to the device's memory */
-   virtual bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr) = 0;
+  /** @brief Tell the tasks which priotizer to use */
+  virtual int SetPrioritizer() = 0;
+
+  /** @brief Prepare the geometry for the device and upload it to the device's memory */
+  virtual bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr) = 0;
 
 };
 

@@ -722,6 +722,24 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    return stream;
 }
 
+/** @brief If the coprocessor has outstanding work, return it */
+GeantBasket *CoprocessorBroker::GetBasketForTransport(Geant::GeantTaskData &maintd)
+{
+  GeantBasketMgr *prioritizer = maintd.fBmgr;
+  if (prioritizer && prioritizer->HasTracks()) {
+    return prioritizer->GetBasketForTransport(&maintd);
+  }
+  for(auto task : fTasks) {
+     if (task->fCurrent) {
+        prioritizer = task->fCurrent->fPrioritizer;
+        if (prioritizer && prioritizer->HasTracks()) {
+           return prioritizer->GetBasketForTransport(task->fCurrent->fGeantTaskData);
+        }
+     }
+  }
+  return nullptr;
+}
+
 CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 {
    Stream stream = 0;

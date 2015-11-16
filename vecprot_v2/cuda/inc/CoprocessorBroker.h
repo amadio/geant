@@ -153,6 +153,9 @@ public:
 
    int GetNstream() { return fTaskData.size(); }
 
+   /** @brief If the coprocessor has outstanding work, return it */
+   GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td);
+
 private:
    char                  *fdGeometry; // Point to a GPGeomManager in GPU land.
 

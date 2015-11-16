@@ -602,9 +602,8 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
-    // If prioritizer has work, just do it
-    if (prioritizer && prioritizer->HasTracks()) {
-      basket = prioritizer->GetBasketForTransport(td);
+    // If prioritizers have work, just do it
+    if (basket = broker->GetBasketForTransport(*td)) {
       ngcoll = 0;
     } else {
       if (nbaskets < 1  && (!propagator->IsFeeding()) ) {
