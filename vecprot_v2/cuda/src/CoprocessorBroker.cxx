@@ -183,6 +183,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
    fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
    fPrioritizer = fGeantTaskData->fBmgr;
+   fPrioritizer->SetFeederQueue(WorkloadManager::Instance()->FeederQueue());
 
    fStreamId = streamid;
    GEANT_CUDA_ERROR( cudaStreamCreate(&fStream) );
