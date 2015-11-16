@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
   double maxEnergy =  minEnergy; 
   SamplingMethod sampleType = SamplingMethod::kAlias;
   int emModel = GUPhysicsModelIndex::kNullModel ; //all models
+  int materialMode = 0; //32 selected elements
   
   if(argc >= 2) ntracks =      atoi(argv[1]);
   if(argc >= 3) nrepetitions = atoi(argv[2]);
@@ -69,6 +70,19 @@ int main(int argc, char* argv[])
       std::cout << "  Validation for all available vector EM physics models" << std::endl;
   }
 
+  if(argc >= 8)  {
+    materialMode = atoi(argv[7]);   
+    if(materialMode < 0 || materialMode > 1) {
+      std::cout << "  Illegal material mode " << materialMode 
+		<< "! Should be [0:1] (see " << std::endl;
+      exit(0);
+    }
+  }
+  else {
+     std::cout << "  Validation with 16 selected elements" << std::endl;
+  }
+  //todo: refine setting arguments with a bash style or with a file
+
   GUBenchmarker tester;
   tester.SetNTracks(ntracks);
   tester.SetRepetitions(nrepetitions);
@@ -78,6 +92,7 @@ int main(int argc, char* argv[])
   tester.SetMaxP( maxEnergy );
   tester.SetSampleType( sampleType );
   tester.SetEmModel( emModel );
+  tester.SetMaterialMode( materialMode );
   
   int status = tester.RunBenchmark();
 
