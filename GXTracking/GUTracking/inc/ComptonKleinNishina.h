@@ -23,7 +23,7 @@ public:
   ComptonKleinNishina(Random_t* states, int threadId, GUAliasSampler* sampler); 
 
   VECPHYS_CUDA_HEADER_BOTH 
-  ~ComptonKleinNishina(){}
+    ~ComptonKleinNishina();//{}
 
   VECPHYS_CUDA_HEADER_HOST
   void Initialization();
@@ -188,7 +188,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
   //this did not used to work - Fixed SW
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;
-  fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
+  fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
   
   Double_t mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
   Double_t deltaE = energyIn - mininumE;

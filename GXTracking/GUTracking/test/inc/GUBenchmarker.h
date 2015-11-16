@@ -3,10 +3,10 @@
 
 #include "base/Global.h"
 #include "SamplingMethod.h"
+#include "MaterialHandler.h"
 
 namespace vecphys {
 
-  //class GUTrack;
 class GUTrackHandler;
 
 class GUBenchmarker {
@@ -27,6 +27,7 @@ public:
   void SetMaxP(double pMax) { fMaxP= pMax; }
   void SetSampleType(SamplingMethod type) { fSampleType = type ; }
   void SetEmModel(int model) { fEmModel = model ; }
+  void SetMaterialMode(int materialMode) { fMaterialMode = materialMode ; }
 
   void SetMonoEnergeticBeam(double E){ SetMinP(E); SetMaxP(E); } // For gamma only now!
 
@@ -60,6 +61,7 @@ private:
   ///phihome/syjun/devel/sbTest/test/src/GUBenchmarker.cc:1:  GUComptonKleinNishina *fmodel;
 
   GUTrackHandler *fTrackHandler;
+  MaterialHandler *fMaterialHandler;
 
   int fNtracks;
   unsigned fRepetitions;
@@ -68,6 +70,7 @@ private:
   double fMinP, fMaxP;  // Minimum and Maximum momentum of primaries
   SamplingMethod fSampleType;
   int fEmModel;
+  int fMaterialMode;
 };
 
 } // end namespace vecphys

@@ -26,6 +26,13 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid,
   SetLowEnergyLimit(10.*keV);
 }
 
+VECPHYS_CUDA_HEADER_HOST
+ComptonKleinNishina::~ComptonKleinNishina() 
+{
+  delete fAliasSampler;
+}
+
+
 VECPHYS_CUDA_HEADER_HOST void 
 ComptonKleinNishina::BuildCrossSectionTablePerAtom(int Z)
 {
@@ -36,7 +43,7 @@ VECPHYS_CUDA_HEADER_HOST void
 ComptonKleinNishina::Initialization()
 {
   if(fSampleType == kAlias) {
-    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       1.e-4, 1.e+6, 100, 100);
     BuildAliasTable();
   }
@@ -69,7 +76,6 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
     
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
     double dy = (x - ymin)/ncol;
-    //    double yo = ymin + 0.5*dy;
     
     double sum = 0.;
     for(int j = 0; j < ncol ; ++j) {
@@ -101,7 +107,7 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
 // function implementing the cross section for KleinNishina
 
 VECPHYS_CUDA_HEADER_BOTH double 
-ComptonKleinNishina::CalculateDiffCrossSection(int Zelement, 
+ComptonKleinNishina::CalculateDiffCrossSection(int Zelement, //not used
                                                double energy0, 
                                                double energy1 ) const
 {

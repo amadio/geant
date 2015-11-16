@@ -29,6 +29,7 @@ Precision ScalarKleinNishina(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
+    //    printf("this elec[%d] = %d\n",i,targetElements[i]);
     model.Interact<kScalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -149,7 +150,7 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
 
-  int ntracks = itrack_soa.numTracks;
+  //  int ntracks = itrack_soa.numTracks;
 
   if(sampleType == SamplingMethod::kUnpack) {
     timer.Start();
@@ -272,7 +273,7 @@ Precision G4KleinNishina(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -300,7 +301,7 @@ Precision G4BetheHeitler(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
+  static vecphys::cxx::ConversionBetheHeitler model(0,-1,0);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -321,7 +322,7 @@ Precision G4SauterGavrila(int ntracks,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
 {
-  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1,0);
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;
@@ -342,7 +343,7 @@ Precision G4MollerBhabha(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::IonisationMoller model(0,-1);
+  static vecphys::cxx::IonisationMoller model(0,-1,0);
   //  static vecphys::cxx::GUMollerBhabha model(0,-1);
 
   static Stopwatch timer;
@@ -364,7 +365,12 @@ Precision G4SeltzerBerger(int ntracks,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
 {
-  static vecphys::cxx::BremSeltzerBerger model(0,-1);
+  static vecphys::cxx::BremSeltzerBerger model(0,-2);
+
+  //fThreadId = -2 is used not to build the alias table for testing the Geant4
+  //composition and rejection method. This convention should be temporary 
+  //and is only used for the purpose of validation or other testings.
+  //see BremSeltzerBerger::Initialization().
 
   static Stopwatch timer;
   Precision elapsedTime = 0.0;

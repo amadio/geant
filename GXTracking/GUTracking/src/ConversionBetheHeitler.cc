@@ -10,10 +10,10 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST ConversionBetheHeitler::
 ConversionBetheHeitler(Random_t* states, int tid) 
-  :  EmModelBase<ConversionBetheHeitler>(states,tid)
+  : EmModelBase<ConversionBetheHeitler>(states,tid)
 {
+  fAtomicDependentModel = true;
   SetLowEnergyLimit(2.*electron_mass_c2);
-
   Initialization();
 }
 
@@ -22,6 +22,7 @@ ConversionBetheHeitler(Random_t* states, int tid,
                          GUAliasSampler* sampler) 
   : EmModelBase<ConversionBetheHeitler>(states,tid,sampler)
 {
+  fAtomicDependentModel = true;
   SetLowEnergyLimit(2.*electron_mass_c2);
 }
 
@@ -29,9 +30,9 @@ VECPHYS_CUDA_HEADER_HOST void
 ConversionBetheHeitler::Initialization()
 {
   if(fSampleType == kAlias) {
-    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       fLowEnergyLimit, 1.e+6, 100, 100);
-    BuildAliasTable();
+    BuildAliasTable(fAtomicDependentModel);
   }
 }
 
@@ -124,24 +125,6 @@ ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
   return dsigma;
 }
 
-	 /*
-VECPHYS_CUDA_HEADER_BOTH double 
-ConversionBetheHeitler::ComputeCoulombFactor(double fZeff) const
-{
-  // Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)
-
-  const double k1 = 0.0083 , k2 = 0.20206 ,k3 = 0.0020 , k4 = 0.0369 ;
-  const double fine_structure_const = (1.0/137); //check unit
-
-  double az1 = fine_structure_const*fZeff;
-  double az2 = az1 * az1;
-  double az4 = az2 * az2;
-
-  double fCoulomb = (k1*az4 + k2 + 1./(1.+az2))*az2 - (k3*az4 + k4)*az4;
-  return fCoulomb;
-}
-	 */
-
 VECPHYS_CUDA_HEADER_BOTH double 
 ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
 {
@@ -208,12 +191,13 @@ SampleByCompositionRejection(int     elementZ,
     // now comes the case with GammaEnergy >= 2. MeV
 
     // Extract Coulomb factor for this Element
-    int logZ3 = log(1.0*int(elementZ + 0.5))/3.0; 
+
+    G4double logZ3 = log(1.0*int(elementZ + 0.5))/3.0; 
     G4double FZ = 8.*logZ3; //(anElement->GetIonisation()->GetlogZ3());
     if (GammaEnergy > 50.*MeV) { FZ += 8.*ComputeCoulombFactor(elementZ); }
 
     // limits of the screening variable
-    int Z3 = pow(1.0*int(elementZ + 0.5),1/3.0);
+    G4double Z3 = pow(1.0*int(elementZ + 0.5),1/3.0);
     G4double screenfac = 136.*epsil0/Z3;//(anElement->GetIonisation()->GetZ3());
     G4double screenmax = exp ((42.24 - FZ)/8.368) - 0.952 ;
     G4double screenmin = fmin(4.*screenfac,screenmax);
@@ -235,7 +219,7 @@ SampleByCompositionRejection(int     elementZ,
 
     do {
       if ( NormF1/(NormF1+NormF2) > UniformRandom<kScalar>(fRandomState,fThreadId) ) {
-        epsil = 0.5 - epsilrange*pow(UniformRandom<kScalar>(fRandomState,fThreadId), 0.333333);
+	epsil = 0.5 - epsilrange*pow(UniformRandom<kScalar>(fRandomState,fThreadId), 0.333333);
         screenvar = screenfac/(epsil*(1-epsil));
         greject = (ScreenFunction1(screenvar) - FZ)/F10;
       } else { 
@@ -247,6 +231,8 @@ SampleByCompositionRejection(int     elementZ,
     } while( greject < UniformRandom<kScalar>(fRandomState,fThreadId));
   }   //  end of epsil sampling
    
+  /*
+
   //
   // fixe charges randomly
   //
@@ -280,7 +266,7 @@ SampleByCompositionRejection(int     elementZ,
     u= - G4Log(UniformRandom<kScalar>(fRandomState,fThreadId)*UniformRandom<kScalar>(fRandomState,fThreadId))/aa2;
 
   G4double TetEl = u*electron_mass_c2/ElectTotEnergy;
-
+    */
   /*
   G4double TetPo = u*electron_mass_c2/PositTotEnergy;
   G4double Phi  = twopi *UniformRandom<kScalar>(fRandomState,fThreadId) ;
@@ -290,8 +276,12 @@ SampleByCompositionRejection(int     elementZ,
 
   //return energy and sinTheta of the electron - 
   //ToDo: store secondaries into a global stack
+    /*
   energyOut = ElectTotEnergy;
   sinTheta = sin(TetEl);
+    */
+    energyOut = 1.;
+  sinTheta = 0.;
 
 }
 

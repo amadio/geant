@@ -10,6 +10,7 @@
 #include "GUTrack.h"
 #include "GUAliasSampler.h"
 #include "SamplingMethod.h"
+#include "MaterialHandler.h"
 
 #ifndef VECPHYS_NVCC
 #include <bitset>
@@ -40,7 +41,7 @@ public:
   void BuildCrossSectionTable();
 
   VECPHYS_CUDA_HEADER_HOST
-  void BuildAliasTable();
+  void BuildAliasTable(bool atomicDependentModel = false);
 
   //scalar
   template <typename Backend>
@@ -136,6 +137,7 @@ protected:
   Random_t* fRandomState;
   int       fThreadId;
 
+  bool      fAtomicDependentModel;
   double    fLowEnergyLimit;  
   double    fHighEnergyLimit;  
 
@@ -151,8 +153,9 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
   : fRandomState(states), fThreadId(tid), 
+    fAtomicDependentModel(false),
     fSampleType(kAlias),
-    fAliasSampler(0) 
+    fAliasSampler(0)
 {
 }
 
@@ -160,6 +163,7 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_BOTH 
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
   : fRandomState(states), fThreadId(tid), 
+    fAtomicDependentModel(false),
     fSampleType(kAlias)
 {
   fAliasSampler = sampler; 
@@ -169,7 +173,7 @@ template <class EmModel>
 VECPHYS_CUDA_HEADER_BOTH 
 EmModelBase<EmModel>::~EmModelBase()
 {
-  if(fAliasSampler) delete fAliasSampler;
+  //  if(fAliasSampler) delete fAliasSampler;
 }
 
 template <class EmModel>
@@ -177,7 +181,7 @@ VECPHYS_CUDA_HEADER_HOST
 void EmModelBase<EmModel>::BuildCrossSectionTable() 
 { 
   //dummy interface for now
-  for( int z= 1 ; z < fAliasSampler->GetMaxZelement() ; ++z)
+  for( int z= 1 ; z < maximumZ ; ++z)
   {
     static_cast<EmModel*>(this)->BuildCrossSectionTablePerAtom(z); 
   }
@@ -185,20 +189,26 @@ void EmModelBase<EmModel>::BuildCrossSectionTable()
 
 template <class EmModel>
 VECPHYS_CUDA_HEADER_HOST 
-void EmModelBase<EmModel>::BuildAliasTable() 
+  void EmModelBase<EmModel>::BuildAliasTable(bool atomicDependentModel)
 { 
-  //move to model
-  //replace hard coded numbers by default constants
-  //  fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fMaxZelement,
-  //                                     fMinX, fMaxX, fNrow, fNcol);
-
+  //size of the array for the alias table data
   size_t sizeOfTable = (fAliasSampler->GetNumEntries()+1)*fAliasSampler->GetSamplesPerEntry();
   double *pdf = new double [sizeOfTable];
   
-  for( int z= 1 ; z < fAliasSampler->GetMaxZelement(); ++z)
-  {
+  int z = -1;
+  if(fAtomicDependentModel) {
+    MaterialHandler* materialHander = MaterialHandler::Instance();
+    int numberOfElements = materialHander->GetNumberOfElements();
+    for( int i = 0 ; i < numberOfElements ; ++i) {
+      int z = (materialHander->GetElementArray())[i];
+      static_cast<EmModel*>(this)->BuildPdfTable(z,pdf); 
+      fAliasSampler->BuildAliasTable(z,pdf);
+    }
+  } 
+  else {
+    z = 0 ; //Z=0 is convention for atomic independent models 
     static_cast<EmModel*>(this)->BuildPdfTable(z,pdf); 
-    fAliasSampler->BuildAliasTable(z,pdf);
+    fAliasSampler->BuildAliasTable(z,pdf); 
   }
   delete [] pdf;
 }
@@ -309,6 +319,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     Double_t pz(&inProjectile.pz[ibase]);
     Double_t sinTheta(0.);
     Double_t energyOut;
+
     Index_t  zElement(targetElements[ibase]);
 
     //eventually there will be no switch as we select one Kernel for each model

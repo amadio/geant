@@ -16,6 +16,7 @@ VECPHYS_CUDA_HEADER_HOST
 BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid) 
   : EmModelBase<BremSeltzerBerger>(states,tid)
 {
+  fAtomicDependentModel = true;
   SetLowEnergyLimit(10.*keV);
 
   Initialization();
@@ -32,7 +33,9 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid,
                                      Physics2DVector* sbData) 
   : EmModelBase<BremSeltzerBerger>(states,tid,sampler)
 {
+  fAtomicDependentModel = true;
   SetLowEnergyLimit(10.*keV);
+
   fDataSB = sbData;
 }
 
@@ -61,10 +64,13 @@ BremSeltzerBerger::Initialization()
     }
   }
 
-  if(fSampleType == kAlias) {
-    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+  if(fSampleType == kAlias && fThreadId != -2) { 
+    //fThreadId = -2 is used not to build the alias table for testing the Geant4
+    //composition and rejection method. This convention should be temporary 
+    //and is only used for the purpose of validation or other testings.
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       1.e-4, 1.e+6, 100, 100);
-    BuildAliasTable();
+    BuildAliasTable(fAtomicDependentModel);
   }
 }
 

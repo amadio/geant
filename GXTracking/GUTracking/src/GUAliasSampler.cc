@@ -6,7 +6,6 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 VECPHYS_CUDA_HEADER_HOST
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
-               int    maxZelement, 
                double incomingMin, 
                double incomingMax,
                int    numEntriesIncoming, // for 'energy' (or log) of projectile
@@ -15,7 +14,6 @@ GUAliasSampler(Random_t* states, int threadId,
   :
   fRandomState(states), 
   fThreadId(threadId),
-  fMaxZelement(maxZelement),
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
   fInNumEntries(numEntriesIncoming), 
@@ -25,15 +23,12 @@ GUAliasSampler(Random_t* states, int threadId,
   fSampledNumEntries( numEntriesSampled ),
   fInverseBinSampled( 1.0 / numEntriesSampled )
 {
-
-  fAliasTableManager = new GUAliasTableManager(maxZelement);
-
+  fAliasTableManager = new GUAliasTableManager(/*maxZelement*/);
 }
 
 VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
-               // int    Zelement, 
                double incomingMin, 
                double incomingMax,
                int    numEntriesIncoming, // for 'energy' (or log) of projectile
@@ -43,7 +38,6 @@ GUAliasSampler(Random_t* states, int threadId,
   :
   fRandomState(states), 
   fThreadId(threadId),
-  // fZelement(Zelement),
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
   fInNumEntries(numEntriesIncoming), 

@@ -13,7 +13,7 @@ class GUAliasTableManager
 { 
 public:
   VECPHYS_CUDA_HEADER_HOST
-  GUAliasTableManager(int mumberOfElement);
+    GUAliasTableManager(/* int mumberOfElement */);
 
   VECPHYS_CUDA_HEADER_HOST
   ~GUAliasTableManager();
@@ -42,6 +42,7 @@ private:
   void SetTableIndex(int Z);
 
 private:
+  //  MaterialHandler *fMaterialHandler;
   GUAliasTable** fAliasTables; 
   int            fIndex[maximumZ]; 
   int            fNElement;        // the number of elements

@@ -21,13 +21,7 @@
 #include "GUAliasTableManager.h"
 
 namespace vecphys {
-
-  //VECPHYS_DEVICE_DECLARE_CONV( GUAliasSampler )
-
-  //class GUAliasSampler;
-
-inline namespace VECPHYS_IMPL_NAMESPACE
-{
+inline namespace VECPHYS_IMPL_NAMESPACE {
 
 class GUAliasSampler
 {
@@ -36,7 +30,6 @@ public:
   VECPHYS_CUDA_HEADER_HOST
   GUAliasSampler(Random_t* states,
                  int       threadId,
-                 int       maxZelement,   //  ==> Now For all Z
                  double    incomingMin, 
                  double    incomingMax,
                  int       numEntriesIncoming,  // 'energy' (or log) of projectile
@@ -45,7 +38,6 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH
   GUAliasSampler(Random_t* states, int threadId,
-                 // int    Zelement,   //  ==> Now For all Z
                  double incomingMin, 
                  double incomingMax,
                  int    numEntriesIncoming, // 'energy' (or log) of projectile
@@ -58,8 +50,6 @@ public:
 
   VECPHYS_CUDA_HEADER_BOTH
   void PrintTable();
-
-  int GetMaxZ() const { return fMaxZelement; }
 
   VECPHYS_CUDA_HEADER_HOST
   void BuildAliasTable( int z, const double *pdf );
@@ -118,6 +108,22 @@ public:
          typename Backend::Index_t irow,  
          typename Backend::Index_t icol ) const;
 
+  //For atomic independ models
+  template<class Backend>
+  inline
+  VECPHYS_CUDA_HEADER_BOTH
+  void
+  GatherAlias(typename Backend::Index_t   index, 
+              typename Backend::Double_t &probNA,  
+              typename Backend::Index_t  &aliasInd ) const;
+
+  template<class Backend>
+  inline
+  VECPHYS_CUDA_HEADER_BOTH
+  typename Backend::Double_t
+  GetPDF(typename Backend::Index_t irow,  
+         typename Backend::Index_t icol ) const;
+
   //accessors
   VECPHYS_CUDA_HEADER_BOTH
   double GetIncomingMin()  const { return fIncomingMin ; } 
@@ -131,14 +137,10 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   int GetSamplesPerEntry() const { return fSampledNumEntries;}
 
-  VECPHYS_CUDA_HEADER_BOTH
-  int GetMaxZelement()     const { return fMaxZelement; }    
-  
 private:
   Random_t* fRandomState;
   int       fThreadId;
  
-  int      fMaxZelement; 
   double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
   double   fIncomingMax; // Max
   int      fInNumEntries;
@@ -256,19 +258,9 @@ SampleX(typename Backend::Double_t rangeSampled,
   Double_t xd, xu;
   Double_t binSampled = rangeSampled * fInverseBinSampled;
 
-  // -- Can simplify significantly below, using one Masked Assign !!
   Index_t       icolDist= icol;
   MaskedAssign( !useDirect, aliasInd, &icolDist ); 
 
-  // if branch
-
-  // MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
-  // MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
-
-  // else branch
-
-  // MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
-  // MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
   xd = icolDist*binSampled;
   xu = xd + binSampled;
 
@@ -307,17 +299,6 @@ SampleXL(typename Backend::Index_t  zElement,
   Double_t xd, xu;
   Double_t binSampled = rangeSampled * fInverseBinSampled;
 
-  // OLD:
-  // if branch
-  // MaskedAssign( condition, icol*binSampled ,     &xd );   // Stores into xd
-  // MaskedAssign( condition, (icol+1)*binSampled , &xu );   //        into xu
-  //
-  // else branch
-  // MaskedAssign( !condition,  aliasInd*binSampled    , &xd );
-  // MaskedAssign( !condition, (aliasInd+1)*binSampled , &xu );
-
-  // Simplified - instead of if/else with 4 Masked Assigns
-  //
   Index_t       icolDist= icol;
   MaskedAssign( !condition, aliasInd, &icolDist ); 
   xd = icolDist * binSampled; 
@@ -326,22 +307,14 @@ SampleXL(typename Backend::Index_t  zElement,
   // Flat distribution was
   //  Double_t x = (1 - fraction) * xd + fraction* xu;
 
-
   //Using pdf of linear interpolation within the sampling bin based on the pdf
   //linear interpolation within the sampling bin based on the pdf 
   Double_t x(0.);
   Double_t pd(0.);
   Double_t pu(0.);
 
-
-  // Previous
-  //  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol),   &pd); 
-  //  MaskedAssign( condition, GetPDF<Backend>(zElement,irow,icol+1), &pu);
-  //  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd),   &pd);
-  //  MaskedAssign( !condition, GetPDF<Backend>(zElement,irow,aliasInd+1), &pu);
-  // Simplified:
-  pd = GetPDF<Backend>(zElement,irow,icolDist);
-  pu = GetPDF<Backend>(zElement,irow,icolDist+1);
+  pd = GetPDF<Backend>(irow,icolDist);
+  pu = GetPDF<Backend>(irow,icolDist+1);
 
   //* Obtain 'x' in interval [xd, xu] using pdf from linear interpolation
   //    (x,y) from (xd, pd) and (xu, pu)
@@ -394,9 +367,8 @@ GatherAlias(typename Backend::Index_t    index,
 #endif
   //  assert( (intIndex >= 0) && (intIndex < tableSize) );
 
-  int tableIndex = fAliasTableManager->GetTableIndex(zElement);
-  probNA=   (fAliasTableManager->GetAliasTable(tableIndex))->fProbQ[ intIndex ];
-  aliasInd= (fAliasTableManager->GetAliasTable(tableIndex))->fAlias[ intIndex ];
+  probNA=   (fAliasTableManager->GetAliasTable(zElement))->fProbQ[ intIndex ];
+  aliasInd= (fAliasTableManager->GetAliasTable(zElement))->fAlias[ intIndex ];
 }
 
 template<class Backend>
@@ -409,13 +381,41 @@ GUAliasSampler::GetPDF(typename Backend::Index_t zElement,
   typedef typename Backend::Double_t Double_t;
 
   int     intIndex= (int) (fSampledNumEntries*irow + icol);
-  int tableIndex= fAliasTableManager->GetTableIndex(zElement);
-
-  Double_t pdf= (fAliasTableManager->GetAliasTable(tableIndex))->fpdf[intIndex];
+  Double_t pdf= (fAliasTableManager->GetAliasTable(zElement))->fpdf[intIndex];
 
   return pdf;
 }
 
+//For atomic indedepend models
+
+
+template<class Backend>
+inline
+void GUAliasSampler::
+GatherAlias(typename Backend::Index_t    index,
+            typename Backend::Double_t  &probNA,
+            typename Backend::Index_t   &aliasInd
+           ) const
+{
+  int     intIndex= (int) index;
+  probNA =   (fAliasTableManager->GetAliasTable(0))->fProbQ[ intIndex ];
+  aliasInd = (fAliasTableManager->GetAliasTable(0))->fAlias[ intIndex ];
+}
+
+
+template<class Backend>
+inline
+typename Backend::Double_t 
+GUAliasSampler::GetPDF(typename Backend::Index_t irow,
+                       typename Backend::Index_t icol) const
+{
+  typedef typename Backend::Double_t Double_t;
+
+  int     intIndex= (int) (fSampledNumEntries*irow + icol);
+  Double_t pdf= (fAliasTableManager->GetAliasTable(0))->fpdf[intIndex];
+
+  return pdf;
+}
 
 // Specialisation for all vector-type backends - Vc for now
 #ifndef VECPHYS_NVCC
@@ -443,9 +443,8 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
     assert( z > 0  && z <= fMaxZelement );
     //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
 
-    int tableIndex = fAliasTableManager->GetTableIndex(z);
-    probNA[i]=   (fAliasTableManager->GetAliasTable(tableIndex))->fProbQ[ ind ];
-    aliasInd[i]= (fAliasTableManager->GetAliasTable(tableIndex))->fAlias[ ind ];
+    probNA[i]=   (fAliasTableManager->GetAliasTable(z))->fProbQ[ ind ];
+    aliasInd[i]= (fAliasTableManager->GetAliasTable(z))->fAlias[ ind ];
   }
 }
 
@@ -471,12 +470,50 @@ GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
     }
 
     assert( z > 0  && z <= fMaxZelement );
-
-    int tableIndex = fAliasTableManager->GetTableIndex(z);
-    pdf[i] = (fAliasTableManager->GetAliasTable(tableIndex))->fpdf[ ind ];
+    pdf[i] = (fAliasTableManager->GetAliasTable(z))->fpdf[ ind ];
   }
   return pdf;
 }
+
+//For atomic indedepend models
+
+template<>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+void GUAliasSampler::
+GatherAlias<kVc>(typename kVc::Index_t    index, 
+                 typename kVc::Double_t  &probNA,  
+                 typename kVc::Index_t   &aliasInd
+                ) const 
+{
+  //gather for alias table lookups - (backend type has no ptr arithmetic)
+  for(int i = 0; i < kVc::kSize ; ++i) 
+  {
+    int ind = index[i];
+    probNA[i]=   (fAliasTableManager->GetAliasTable(0))->fProbQ[ ind ];
+    aliasInd[i]= (fAliasTableManager->GetAliasTable(0))->fAlias[ ind ];
+  }
+}
+
+template<>
+inline
+VECPHYS_CUDA_HEADER_BOTH
+typename kVc::Double_t
+GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t irow,
+                            typename kVc::Index_t icol) const 
+{
+  typedef typename kVc::Double_t Double_t;
+
+  Double_t pdf;
+
+  for(int i = 0; i < kVc::kSize ; ++i) 
+  {
+    int ind = fSampledNumEntries*irow[i] + icol[i];
+    pdf[i] = (fAliasTableManager->GetAliasTable(0))->fpdf[ ind ];
+  }
+  return pdf;
+}
+
 
 #endif
 

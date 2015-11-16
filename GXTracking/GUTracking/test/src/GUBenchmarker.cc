@@ -47,6 +47,7 @@ GUBenchmarker::GUBenchmarker()
       fEmModel(GUPhysicsModelIndex::kNullModel)   
 {
   fTrackHandler = new GUTrackHandler();
+  fMaterialHandler = vecphys::MaterialHandler::Instance();
 }
 
 GUBenchmarker::~GUBenchmarker() 
@@ -104,7 +105,7 @@ void GUBenchmarker::RunScalar()
 
   for (unsigned r = 0; r < fRepetitions; ++r)
   {
-    PrepareTargetElements(targetElements, fNtracks);
+    fMaterialHandler->PrepareTargetElements(targetElements, fNtracks,fMaterialMode);
     // In 'random' mode, it should change for every iteration
      
     //prepare input tracks
@@ -166,7 +167,8 @@ void GUBenchmarker::RunGeant4()
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
-    PrepareTargetElements(targetElements, fNtracks);
+    fMaterialHandler->PrepareTargetElements(targetElements, fNtracks, fMaterialMode);
+    //    PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
@@ -231,7 +233,8 @@ void GUBenchmarker::RunVector()
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
-    PrepareTargetElements(targetElements, fNtracks);
+    fMaterialHandler->PrepareTargetElements(targetElements, fNtracks, fMaterialMode);
+    //    PrepareTargetElements(targetElements, fNtracks);
     // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);

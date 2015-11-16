@@ -136,7 +136,8 @@ void GUBenchmarker::RunCuda()
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
-    PrepareTargetElements(targetElements, fNtracks);
+    //    PrepareTargetElements(targetElements, fNtracks);
+    fMaterialHandler->PrepareTargetElements(targetElements, fNtracks, fMaterialMode);
 
     //H2D
     cudaMalloc((void**)&targetElements_d, fNtracks*sizeof(int));

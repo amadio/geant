@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "backend/Backend.h"
-// #include "GUAuxFunctions.h"
 #include "GUG4TypeDef.h"
 
 #include "GUAliasSampler.h"
@@ -32,7 +31,7 @@ VECPHYS_CUDA_HEADER_HOST void
 PhotoElectronSauterGavrila::Initialization()
 {
   if(fSampleType == kAlias) {
-    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       1.e-4, 1.e+6, 100, 100);
     BuildAliasTable();
   }

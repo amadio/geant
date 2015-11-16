@@ -189,7 +189,7 @@ InteractKernel(typename Backend::Double_t  energyIn,
 
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;
-  fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
+  fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
   
   Double_t mininum = -1.0;
   Double_t deltaE = 2.0;

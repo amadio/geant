@@ -31,7 +31,7 @@ VECPHYS_CUDA_HEADER_HOST void
 IonisationMoller::Initialization()
 {
   if(fSampleType == kAlias) {
-    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, maximumZ,
+    fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       1.e-4, 1.e+6, 100, 100);
     BuildAliasTable();
   }
@@ -59,7 +59,6 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
 
   double logxmin = log(fAliasSampler->GetIncomingMin());
   double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
-  //  double xo =  fMinX + 0.5*dx;
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin

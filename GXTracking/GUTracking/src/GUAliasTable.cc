@@ -41,6 +41,12 @@ void GUAliasTable::Allocate(int ngrid) {
   fpdf   = new Precision [fNGrid];
   fProbQ = new Precision [fNGrid];
   fAlias = new int    [fNGrid];
+
+  for (int i = 0 ; i < fNGrid ; ++i) {
+    fpdf[i]   = -1;
+    fProbQ[i] = -1;
+    fAlias[i] = -1;
+  }
 }
 
 VECPHYS_FUNC_QUALIFIER

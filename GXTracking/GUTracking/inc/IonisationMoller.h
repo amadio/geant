@@ -162,7 +162,7 @@ IonisationMoller::InteractKernel(typename Backend::Double_t  energyIn,
   //this did not used to work - Fixed SW
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;
-  fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
+  fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
   
   Double_t mininumE = fDeltaRayThreshold;
   Double_t deltaE = energyIn/2.0 - mininumE;
