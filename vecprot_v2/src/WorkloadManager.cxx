@@ -583,9 +583,9 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     }
 
     // ::Info("GPU","Waiting (1) for next available stream.");
-    TaskBroker::Stream stream = broker->GetNextStream();
-    if (!stream)
-      break;
+    // TaskBroker::Stream stream = broker->GetNextStream();
+    // if (!stream)
+    //   break;
 
     if (wm->FeederQueue()->empty()) {
       // There is no work to be done for now, let's just run what we have
@@ -632,10 +632,10 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     MaybeCleanupBaskets(td,basket);
     ++counter;
 
-    if (!stream) {
-      ::Info("GPU", "Waiting (2) for next available stream.");
-      stream = broker->GetNextStream();
-    }
+    // if (!stream) {
+    //   ::Info("GPU", "Waiting (2) for next available stream.");
+    //   stream = broker->GetNextStream();
+    // }
     // lastToClear = false;
     // if (!basket) {
     //   if (0 != broker->launchTask(/* wait= */ true)) {
