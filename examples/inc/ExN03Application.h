@@ -86,7 +86,8 @@ public:
 
   /** @brief User FinishRun function */
   virtual void FinishRun() {}
-
+#ifndef GEANTV_MIC
   ClassDef(ExN03Application, 1) // User application
+#endif
 };
 #endif

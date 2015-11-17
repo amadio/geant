@@ -51,7 +51,7 @@ target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
 else()
 add_library(GeantExamples SHARED ${sources})
 target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  -lGeant_v -lEG -lGeom )
+  -lGeant_v)
 endif()
 add_dependencies(GeantExamples Geant_v)
 
