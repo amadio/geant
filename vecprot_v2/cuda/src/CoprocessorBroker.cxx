@@ -254,11 +254,21 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
    ,fNblocks(0),fNthreads(0)
    ,fMaxTrackPerThread(1)
    ,fTotalWork(0)
+   ,fNConcurrentStream(1)
    ,fIsSelective(false)
 //,fdFieldMap(0)
 //,fdStates0(0),fdStates1(0),fdRandStates0(0),fdRandStates1(0)
 {
    // Default constructor.
+
+   fIsSelective = true;
+   fTasks.push_back(new GeneralTask());
+   /*
+   fTasks.push_back(new EnergyElectronTask(6));
+   fTasks.push_back(new EnergyElectronTask(4));
+   fTasks.push_back(new EnergyElectronTask(2));
+   fTasks.push_back(new EnergyElectronTask(0));
+   */
 
 }
 
@@ -325,17 +335,8 @@ void CoprocessorBroker::CreateBaskets()
    // so we can use the proper maximum depth
    // and over-ride the cudaLimitStackSize.
 
-   fIsSelective = true;
-   fTasks.push_back(new GeneralTask());
-   /*
-   fTasks.push_back(new EnergyElectronTask(6));
-   fTasks.push_back(new EnergyElectronTask(4));
-   fTasks.push_back(new EnergyElectronTask(2));
-   fTasks.push_back(new EnergyElectronTask(0));
-   */
-
    //initialize the stream
-   for(unsigned int i=0; i < 2+fTasks.size(); ++i) {
+   for(unsigned int i=0; i < GetNstream(); ++i) {
       TaskData *data = new TaskData();
       data->CudaSetup(i,fNblocks,fNthreads,fMaxTrackPerThread);
       data->Push(&fHelpers);
@@ -358,6 +359,8 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
      Printf("Cuda CoprocessorBroker disabled because of issue #%d:%s\n", (int)error_id, cudaGetErrorString(error_id));
      return false;
    }
+
+   fNConcurrentStream = 2; // NOTE: Is there a way to know the number really supported?
 
    setup(this);
 

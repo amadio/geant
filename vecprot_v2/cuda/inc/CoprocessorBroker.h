@@ -155,7 +155,7 @@ public:
 
    long GetTotalWork() { return fTotalWork; }
 
-   int GetNstream() { return fTaskData.size(); }
+   int GetNstream() { return fNConcurrentStream + fTasks.size(); }
 
    /** @brief If the coprocessor has outstanding work, return it */
    GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td);
@@ -201,6 +201,7 @@ private:
    int fNthreads; // Number of cuda threads
    int fMaxTrackPerThread; // Max number of tracks per cuda threads
    int fTotalWork;
+   unsigned int  fNConcurrentStream; // Number of concurrent stream supported by the Coprocessor.
    bool fIsSelective : 1; // true if the broker can only process a subset of the particles.
 };
 
