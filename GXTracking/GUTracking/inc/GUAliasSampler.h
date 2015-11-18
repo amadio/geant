@@ -352,10 +352,10 @@ GatherAlias(typename Backend::Index_t    index,
            ) const
 {
 #ifdef CHECK
-  if( zElement <= 0  || zElement > fMaxZelement )
-  {
-    printf(" Illegal zElement = %d\n",zElement);
-  }
+  //if( zElement <= 0  || zElement > fMaxZelement )
+  //{
+  //  printf(" Illegal zElement = %d\n",zElement);
+  //}
 #endif
   //  assert( (zElement > 0)  && (zElement <= fMaxZelement) );
 
@@ -439,7 +439,7 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
       ind = 0;
     }
 
-    assert( z > 0  && z <= fMaxZelement );
+    //assert( z > 0  && z <= fMaxZelement );
     //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
 
     probNA[i]=   (fAliasTableManager->GetAliasTable(z))->fProbQ[ ind ];
@@ -468,7 +468,7 @@ GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
       ind = 0;
     }
 
-    assert( z > 0  && z <= fMaxZelement );
+    //assert( z > 0  && z <= fMaxZelement );
     pdf[i] = (fAliasTableManager->GetAliasTable(z))->fpdf[ ind ];
   }
   return pdf;
