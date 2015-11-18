@@ -35,7 +35,7 @@ enum EScoreType {
 
 private:
   bool fInitialized;                            /** Initialized flag */
- #ifndef GEANTV_MIC
+#ifndef GEANTV_MIC
   TH1F     *fHeta;                                /** Eta distribution */
   TH1F     *fHpt;                                 /** Pt distribution */
   TH1D     *fHStep;                               /** Step size distribution */

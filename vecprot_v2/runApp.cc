@@ -6,9 +6,11 @@
 #include <getopt.h>
 #include <iostream>
 #include <unistd.h>
+
+#ifndef GEANTV_MIC
 #include "Rtypes.h"
 #include "TGeoManager.h"
-
+#endif
 #include "GunGenerator.h"
 #include "TaskBroker.h"
 #include "TTabPhysProcess.h"
@@ -138,6 +140,9 @@ int main(int argc, char *argv[]) {
   TGeoManager::Import(exn03_geometry_filename.c_str());
   WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
   TaskBroker *broker = nullptr;
+#ifndef GEANTV_MIC 
+  TGeoManager::Import(geomfile);
+#endif
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
     CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -180,6 +185,14 @@ int main(int argc, char *argv[]) {
 
   // Create the tab. phys process.
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
+// Create the tab. phys process.
+#ifndef GEANTV_MIC
+#ifdef USE_VECGEOM_NAVIGATOR
+  prop->LoadVecGeomGeometry();
+#endif
+#else
+  prop->LoadGeometry(geomfile);
+#endif
 
   // for vector physics -OFF now
   // propagator->fVectorPhysicsProcess = new GVectorPhysicsProcess(propagator->fEmin, nthreads);

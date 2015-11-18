@@ -21,8 +21,11 @@
 #include "TCondition.h"
 #include "TMutex.h"
 #else
+#if __cplusplus >= 201103L
 #include <condition_variable>
 #include <mutex>
+#include <thread>
+#endif
 #endif 
 /**
  * @brief Templated class dcqueue
@@ -192,8 +195,10 @@ template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
 #ifndef GEANTV_MIC
     the_condition_variable.Wait();
 #else
-    std::unique_lock<std::mutex> the_lock(the_mutex);
-    the_condition_variable.wait(&the_lock);
+  {
+    std::unique_lock<std::mutex> lck(the_mutex,std::adopt_lock);
+    the_condition_variable.wait(lck);
+  }
 #endif
   data = the_queue.back();
   the_queue.pop_back();

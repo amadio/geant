@@ -1,4 +1,5 @@
 #include "ExN03Application.h"
+
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "management/GeoManager.h"
 using vecgeom::GeoManager;

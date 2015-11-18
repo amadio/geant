@@ -5,10 +5,10 @@
 #include <err.h>
 #include <getopt.h>
 #include <unistd.h>
-
+#ifndef GEANTV_MIC
 #include "Rtypes.h"
 #include "TGeoManager.h"
-
+#endif
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
 #include "TaskBroker.h"
@@ -152,7 +152,11 @@ int main(int argc, char *argv[]) {
 
   bool performance = true;
   TaskBroker *broker = nullptr;
+#ifndef GEANTV_MIC
   TGeoManager::Import(cms_geometry_filename.c_str());
+#else
+
+#endif
   WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
 
   if (coprocessor) {
@@ -202,9 +206,14 @@ int main(int argc, char *argv[]) {
   propagator->fEmin = 0.001; // [1 MeV] energy cut
   propagator->fEmax = 0.01;  // 10 MeV
 
+#ifndef GEANTV_MIC
 #ifdef USE_VECGEOM_NAVIGATOR
   propagator->LoadVecGeomGeometry();
 #endif
+#else
+  propagator->LoadGeometry(cms_geometry_filename.c_str());
+#endif
+
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {

@@ -3,18 +3,24 @@
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "TProfile.h"
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
 #include "TFile.h"
+#endif
 
 //______________________________________________________________________________
 StdApplication::StdApplication()
-  : GeantVApplication(), fInitialized(false), fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0), fMHist(),
-    fScore(kScore) {
+  : GeantVApplication(), fInitialized(false),
+#ifdef USE_ROOT
+    fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
+#endif
+    fMHist(), fScore(kScore) {
   // Ctor.
+
+#ifndef GEANTV_MIC
   double *array = 0;
   TH1::AddDirectory(false);
   fHeta = new TH1F("hEta", "Eta distribution per step", 50, -8., 8.);
@@ -25,6 +31,7 @@ StdApplication::StdApplication()
   fStepSize = new TProfile("hStepEta", "Profile of step size with eta", 50, -8, 8);
   fStepCnt = new TProfile("hStepCnt", "Profile of step count with eta", 50, -8, 8);
   TH1::AddDirectory(true);
+#endif
 }
 
 //______________________________________________________________________________
@@ -76,6 +83,7 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
     }
     if (propagator->fNthreads > 1)
       fMHist.lock();
+    #ifndef GEANTV_MIC
     fHeta->Fill(eta);
     fHpt->Fill(tracks.Pt(itr));
     fHStep->Fill(tracks.fStepV[itr]);
@@ -83,6 +91,7 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
     if ((tracks.fStatusV[itr] == kKilled) || (tracks.fStatusV[itr] == kExitingSetup) ||
         (tracks.fPathV[itr]->IsOutside()))
       fStepCnt->Fill(eta, tracks.fNstepsV[itr]);
+    #endif
     if (propagator->fNthreads > 1)
       fMHist.unlock();
   }
@@ -96,6 +105,7 @@ void StdApplication::Digitize(int /* event */) {
 
 //______________________________________________________________________________
 void StdApplication::FinishRun() {
+#ifndef GEANTV_MIC
   if (fScore == kNoScore)
     return;
   TVirtualPad *pad;
@@ -120,5 +130,5 @@ void StdApplication::FinishRun() {
   pad = c3->cd(5);
   pad->SetLogy();
   fStepCnt->Draw();
-}
 #endif
+}

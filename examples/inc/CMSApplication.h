@@ -22,11 +22,11 @@
 #ifndef GEANT_VAPPLICATION
 #include "GeantVApplication.h"
 #endif
-
+#ifndef GEANTV_MIC
 class TH1F;
 class TH1D;
 class TProfile;
-
+#endif
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 
@@ -69,6 +69,7 @@ private:
   Map_t fHCALMap;                                /** Map of ECAL modules */
   std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
   EScoreType fScore;                              /** Entity for scoring */
+#ifndef GEANTV_MIC
   TH1F   *fFluxElec;                              /** Flux histogram for electrons */
   TH1F   *fFluxGamma;                             /** Flux histogram for gammas */
   TH1F   *fFluxP;                                 /** Flux histogram for protons */
@@ -78,7 +79,8 @@ private:
   TH1F   *fEdepGamma;                             /** Edep histogram for gammas */
   TH1F   *fEdepP;                                 /** Edep histogram for protons */
   TH1F   *fEdepPi;                                /** Edep histogram for pions */
-  TH1F   *fEdepK;                                 /** Edep histogram for kaons */
+  TH1F   *fEdepK; 
+#endif                                /** Edep histogram for kaons */
   GeantFactory<MyHit> *fFactory;                  /** Hits factory */
 
   
@@ -125,7 +127,8 @@ public:
 
   /** @brief User FinishRun function */
   virtual void FinishRun();
-
+#ifndef GEANTV_MIC
   ClassDef(CMSApplication, 1) // User application
+#endif
 };
 #endif
