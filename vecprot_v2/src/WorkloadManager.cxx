@@ -150,6 +150,10 @@ void WorkloadManager::StartThreads() {
     Printf("Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
     fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
     ith += fBroker->GetNstream() + 1;
+    if (ith == fNthreads && fBroker->IsSelective()) {
+       Fatal("WorkloadManager::StartThreads","All %d threads are used by the coprocessor broker but it can only process a subset of particles.",fNthreads);
+       return;
+    }
   }
   // Start CPU transport threads
   for (; ith < fNthreads; ith++) {
