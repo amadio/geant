@@ -31,7 +31,8 @@ ConversionBetheHeitler::Initialization()
 {
   if(fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
-				       fLowEnergyLimit, 1.e+6, 100, 100);
+				       fLowEnergyLimit, fHighEnergyLimit, 
+                                       100, 100);
     BuildAliasTable(fAtomicDependentModel);
   }
 }
@@ -231,8 +232,6 @@ SampleByCompositionRejection(int     elementZ,
     } while( greject < UniformRandom<kScalar>(fRandomState,fThreadId));
   }   //  end of epsil sampling
    
-  /*
-
   //
   // fixe charges randomly
   //
@@ -266,7 +265,7 @@ SampleByCompositionRejection(int     elementZ,
     u= - G4Log(UniformRandom<kScalar>(fRandomState,fThreadId)*UniformRandom<kScalar>(fRandomState,fThreadId))/aa2;
 
   G4double TetEl = u*electron_mass_c2/ElectTotEnergy;
-    */
+
   /*
   G4double TetPo = u*electron_mass_c2/PositTotEnergy;
   G4double Phi  = twopi *UniformRandom<kScalar>(fRandomState,fThreadId) ;
@@ -276,13 +275,9 @@ SampleByCompositionRejection(int     elementZ,
 
   //return energy and sinTheta of the electron - 
   //ToDo: store secondaries into a global stack
-    /*
+
   energyOut = ElectTotEnergy;
   sinTheta = sin(TetEl);
-    */
-    energyOut = 1.;
-  sinTheta = 0.;
-
 }
 
 } // end namespace impl
