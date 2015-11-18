@@ -6,7 +6,7 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
-GUAliasTableManager::GUAliasTableManager(/*int numberOfElement*/) 
+GUAliasTableManager::GUAliasTableManager() 
   : fNElement(0)
 {
   int numberOfElement = MaterialHandler::Instance()->GetNumberOfElements();
