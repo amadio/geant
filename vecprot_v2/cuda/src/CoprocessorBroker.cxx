@@ -254,6 +254,7 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
    ,fNblocks(0),fNthreads(0)
    ,fMaxTrackPerThread(1)
    ,fTotalWork(0)
+   ,fIsSelective(false)
 //,fdFieldMap(0)
 //,fdStates0(0),fdStates1(0),fdRandStates0(0),fdRandStates1(0)
 {
@@ -324,6 +325,7 @@ void CoprocessorBroker::CreateBaskets()
    // so we can use the proper maximum depth
    // and over-ride the cudaLimitStackSize.
 
+   fIsSelective = true;
    fTasks.push_back(new GeneralTask());
    /*
    fTasks.push_back(new EnergyElectronTask(6));

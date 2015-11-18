@@ -143,6 +143,9 @@ public:
 
    bool CudaSetup(int nblocks, int nthreads, int maxTrackPerThread);
 
+   /** @brief Return true if the Task Broker can only process a subset of the particular */
+   virtual bool IsSelective() const { return fIsSelective; }
+
    bool IsValid() { return fNthreads > 0; }
    bool AddTrack(GeantBasket &input, unsigned int trkid);
    void runTask(Geant::GeantTaskData &td, GeantBasket &basket);
@@ -198,6 +201,7 @@ private:
    int fNthreads; // Number of cuda threads
    int fMaxTrackPerThread; // Max number of tracks per cuda threads
    int fTotalWork;
+   bool fIsSelective : 1; // true if the broker can only process a subset of the particles.
 };
 
 #endif

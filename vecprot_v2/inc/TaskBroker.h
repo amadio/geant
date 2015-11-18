@@ -49,6 +49,9 @@ public:
   virtual bool IsValid() = 0;
   typedef TaskData *Stream;
 
+  /** @brief Return true if the Task Broker can only process a subset of the particular */
+  virtual bool IsSelective() const = 0;
+
   /** @brief Create the baskets for each stream */
   virtual void CreateBaskets() = 0;
 
