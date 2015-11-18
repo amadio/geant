@@ -14,9 +14,7 @@ VECPHYS_CUDA_HEADER_HOST
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid) 
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid)
 {
-  SetLowEnergyLimit(10.*keV);
   Initialization();
-
 }
 
 VECPHYS_CUDA_HEADER_BOTH 
@@ -24,7 +22,6 @@ PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid
                                                        GUAliasSampler* sampler) 
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid,sampler)
 {
-  SetLowEnergyLimit(10.*keV);
 }
 
 VECPHYS_CUDA_HEADER_HOST void 
@@ -32,7 +29,10 @@ PhotoElectronSauterGavrila::Initialization()
 {
   if(fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
-				       1.e-4, 1.e+6, 100, 100);
+				       fLowEnergyLimit, fHighEnergyLimit,
+                                       100, 100);
+    //note: if (Egamma/electron_mass_c2 > 50), cos(theta) = 1 in Geant4
+
     BuildAliasTable();
   }
 }

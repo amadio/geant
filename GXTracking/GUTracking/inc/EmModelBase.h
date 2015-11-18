@@ -154,6 +154,8 @@ VECPHYS_CUDA_HEADER_HOST
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
   : fRandomState(states), fThreadId(tid), 
     fAtomicDependentModel(false),
+    fLowEnergyLimit(0.1*keV),
+    fHighEnergyLimit(1.0*TeV),
     fSampleType(kAlias),
     fAliasSampler(0)
 {
@@ -164,6 +166,8 @@ VECPHYS_CUDA_HEADER_BOTH
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
   : fRandomState(states), fThreadId(tid), 
     fAtomicDependentModel(false),
+    fLowEnergyLimit(0.1*keV),
+    fHighEnergyLimit(1.0*TeV),
     fSampleType(kAlias)
 {
   fAliasSampler = sampler; 

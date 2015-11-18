@@ -17,7 +17,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid)
   : EmModelBase<BremSeltzerBerger>(states,tid)
 {
   fAtomicDependentModel = true;
-  SetLowEnergyLimit(10.*keV);
+  SetLowEnergyLimit(0.1*keV);
 
   Initialization();
 
@@ -34,7 +34,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid,
   : EmModelBase<BremSeltzerBerger>(states,tid,sampler)
 {
   fAtomicDependentModel = true;
-  SetLowEnergyLimit(10.*keV);
+  SetLowEnergyLimit(0.1*keV);
 
   fDataSB = sbData;
 }

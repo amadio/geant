@@ -109,6 +109,9 @@ typename Backend::Double_t
 IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy, 
                                      typename Backend::Index_t  Z)
 {
+  //the total cross section for Moller scattering per atom
+  //energy = kinetic energy
+
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
 
@@ -130,11 +133,15 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy,
   Double_t beta2 = tau*(tau + 2)/gamma2;
  
   //Moller (e-e-) scattering
- 
+  //H. Messel and D.F. Crawford, Pergamon Press, Oxford (1970)
+  //G4MollerBhabhaModel::ComputeCrossSectionPerAtom
+
   Double_t gg = (2.0*gam - 1.0)/gamma2;
   sigmaOut = ((xmax - xmin)*(1.0 - gg + 1.0/(xmin*xmax)
           + 1.0/((1.0-xmin)*(1.0 - xmax)))
           - gg*Log( xmax*(1.0 - xmin)/(xmin*(1.0 - xmax)) ) ) / beta2;
+
+  sigmaOut *= Z*twopi_mc2_rcl2/energy;
   
   //this is the case if one of E < belowLimit 
   MaskedAssign(belowLimit, 0.0,&sigmaOut);
