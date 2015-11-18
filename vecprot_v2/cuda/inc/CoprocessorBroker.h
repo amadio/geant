@@ -86,6 +86,7 @@ public:
       GeantBasket           *fInputBasket;
       GeantBasket           *fOutputBasket; // Work manager track (pre)-queue
 
+      unsigned int           fDevMaxTracks; // Number of tracks allocated in baskets on device side
       unsigned int           fChunkSize; // Max number of track for this stream
       unsigned int           fNStaged;   // How many track have been copied to the scratch area so far.
       GeantBasketMgr        *fPrioritizer;

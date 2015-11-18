@@ -151,7 +151,7 @@ struct PhotonTask : public CoprocessorBroker::Task {
 
 CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fInputBasket(0),fOutputBasket(0),
-                                          fChunkSize(0),fNStaged(0),
+                                          fDevMaxTracks(0),fChunkSize(0),fNStaged(0),
                                           fPrioritizer(0),
                                           fThreadId(-1),
                                           fStreamId(0),
@@ -178,8 +178,9 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
    int maxdepth = GeantPropagator::Instance()->fMaxDepth;
    unsigned int maxTrackPerKernel = nblocks*nthreads*maxTrackPerThread;
    fChunkSize = maxTrackPerKernel;
+   fDevMaxTracks = 2*fChunkSize;
 
-   fGeantTaskData = new Geant::GeantTaskData(nthreads,maxdepth,maxTrackPerKernel);
+   fGeantTaskData = new Geant::GeantTaskData(nthreads,maxdepth,fDevMaxTracks);
    fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
    fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
    fPrioritizer = fGeantTaskData->fBmgr;
@@ -209,16 +210,16 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
                                     );
 
    // need to allocate enough for one object containing many tracks ...
-   fDevTrackInput.Malloc(Geant::GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
-   Geant::cuda::MakeInstanceAt(fDevTrackInput.GetPtr(),maxTrackPerKernel,maxdepth);
+   fDevTrackInput.Malloc(Geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks,maxdepth) );
+   Geant::cuda::MakeInstanceAt(fDevTrackInput.GetPtr(),fDevMaxTracks,maxdepth);
 
-   fDevTrackOutput.Malloc(Geant::GeantTrack_v::SizeOfInstance(maxTrackPerKernel,maxdepth) );
-   Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(),maxTrackPerKernel,maxdepth);
+   fDevTrackOutput.Malloc(Geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks,maxdepth) );
+   Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(),fDevMaxTracks,maxdepth);
 
-   fInputBasket = new GeantBasket(maxTrackPerKernel,fGeantTaskData->fBmgr);
+   fInputBasket = new GeantBasket(fDevMaxTracks,fGeantTaskData->fBmgr);
    fInputBasket->SetMixed(kTRUE);
    // fInputBasket->SetThreshold(fThreshold.load());
-   fOutputBasket = new GeantBasket(maxTrackPerKernel,fGeantTaskData->fBmgr);
+   fOutputBasket = new GeantBasket(fDevMaxTracks,fGeantTaskData->fBmgr);
    fOutputBasket->SetMixed(kTRUE);
    // fOutputBasket->SetThreshold(fThreshold.load());
 
@@ -688,6 +689,10 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks (%d total oustanding tracks)\n",
           stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged, outstanding );
 
+   if (stream->fInputBasket->GetInputTracks().GetNtracks() == stream->fDevMaxTracks) {
+      Fatal("CoprocessorBroker::launchTask","Number of tracks allocated in input basket (%d) must be the same as on device (%d)\n",stream->fInputBasket->GetInputTracks().GetNtracks(),stream->fDevMaxTracks);
+      return stream;
+   }
    ToDevice(stream->fDevTrackInput, &(stream->fInputBasket->GetInputTracks()), *stream);
    GEANT_CUDA_ERROR(cudaStreamAddCallback(stream->fStream, ClearTrack_v, &(stream->fInputBasket->GetInputTracks()), 0 ));
 
@@ -708,6 +713,10 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
+   if (stream->fGeantTaskData->fTransported->GetNtracks() == stream->fDevMaxTracks) {
+      Fatal("CoprocessorBroker::launchTask","Number of track allocated in output basket (%d) must be the same as on device (%d)\n",stream->fGeantTaskData->fTransported->GetNtracks(),stream->fDevMaxTracks);
+      return stream;
+   }
    FromDevice(stream->fGeantTaskData->fTransported, stream->fDevTrackOutput, *stream);
 
    Clear_gpu(stream->fDevTrackOutput, 1, 1, *stream);
