@@ -108,7 +108,7 @@ public:
          typename Backend::Index_t irow,  
          typename Backend::Index_t icol ) const;
 
-  //For atomic independ models
+  //For atomic independent models
   template<class Backend>
   inline
   VECPHYS_CUDA_HEADER_BOTH
@@ -386,8 +386,7 @@ GUAliasSampler::GetPDF(typename Backend::Index_t zElement,
   return pdf;
 }
 
-//For atomic indedepend models
-
+//For atomic independent models
 
 template<class Backend>
 inline

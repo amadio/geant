@@ -13,7 +13,7 @@ class GUAliasTableManager
 { 
 public:
   VECPHYS_CUDA_HEADER_HOST
-    GUAliasTableManager(/* int mumberOfElement */);
+  GUAliasTableManager();
 
   VECPHYS_CUDA_HEADER_HOST
   ~GUAliasTableManager();
