@@ -203,6 +203,25 @@ endif()
 # Define compiler flags
 #
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # using Clang
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # using GCC
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+    OUTPUT_VARIABLE GCC_VERSION)
+  string(REPLACE "." ";" GCC_VERSION_LIST ${GCC_VERSION})
+  list(GET GCC_VERSION_LIST 0 GCC_VERSION_MAJOR)
+  list(GET GCC_VERSION_LIST 1 GCC_VERSION_MINOR)
+  list(GET GCC_VERSION_LIST 2 GCC_VERSION_PATCH)
+  if(GCC_VERSION_MAJOR LESS 5 AND GCC_VERSION_MINOR LESS 9)
+    set(DISABLE_WEFFC ON)
+  endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C++
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  # using Visual Studio C++
+endif()
+
 if (NOT DISABLE_WEFFC)
    set(WEFFC_FLAG -Weffc++)
 endif()
