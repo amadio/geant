@@ -207,7 +207,7 @@ if (NOT DISABLE_WEFFC)
    set(WEFFC_FLAG -Weffc++)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -Wall -Weffc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -Wall")
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
   if(APPLE) 
