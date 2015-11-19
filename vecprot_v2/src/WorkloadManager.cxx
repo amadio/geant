@@ -143,7 +143,7 @@ void WorkloadManager::StartThreads() {
     return;
   int ith = 0;
   if (fBroker) {
-    if (fBroker->GetNstream() > fNthreads) {
+     if (fBroker->GetNstream() > (unsigned int)fNthreads) {
       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
               fNthreads);
     }

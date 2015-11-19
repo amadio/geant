@@ -88,7 +88,7 @@ public:
   virtual long GetTotalWork() = 0;
 
   /** @brief Virtual function that return number of stream */
-  virtual int GetNstream() = 0;
+  virtual unsigned int GetNstream() = 0;
 
   /** @brief If the coprocessor has outstanding work, return it */
   virtual GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td) = 0;

@@ -694,7 +694,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks (%d total oustanding tracks)\n",
           stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged, outstanding );
 
-   if (stream->fInputBasket->GetInputTracks().GetNtracks() == stream->fDevMaxTracks) {
+   if ((unsigned int)stream->fInputBasket->GetInputTracks().GetNtracks() == stream->fDevMaxTracks) {
       Fatal("CoprocessorBroker::launchTask","Number of tracks allocated in input basket (%d) must be the same as on device (%d)\n",stream->fInputBasket->GetInputTracks().GetNtracks(),stream->fDevMaxTracks);
       return stream;
    }
@@ -718,7 +718,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
    // stream->fDevSecondaries.fTrack.FromDevice( stream->fSecondaries, stackSize, *stream);
 
    // Bring back the modified tracks.
-   if (stream->fGeantTaskData->fTransported->GetNtracks() == stream->fDevMaxTracks) {
+   if ((unsigned int)stream->fGeantTaskData->fTransported->GetNtracks() == stream->fDevMaxTracks) {
       Fatal("CoprocessorBroker::launchTask","Number of track allocated in output basket (%d) must be the same as on device (%d)\n",stream->fGeantTaskData->fTransported->GetNtracks(),stream->fDevMaxTracks);
       return stream;
    }

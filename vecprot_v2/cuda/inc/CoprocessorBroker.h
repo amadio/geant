@@ -155,7 +155,7 @@ public:
 
    long GetTotalWork() { return fTotalWork; }
 
-   int GetNstream() { return fNConcurrentStream + fTasks.size(); }
+   unsigned int GetNstream() { return fNConcurrentStream + fTasks.size(); }
 
    /** @brief If the coprocessor has outstanding work, return it */
    GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td);
