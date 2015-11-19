@@ -47,50 +47,74 @@ TGListBox *TEXsec::fParticleBox = 0;
 
 //___________________________________________________________________
 TEXsec::TEXsec()
-    : fEle(0), fIndex(-1), fAtcm3(0), fEmin(0), fEmax(0), fNEbins(0), fEilDelta(0), fEGrid(TPartIndex::I()->EGrid()),
-      fNRpart(0), fPXsec(0) {
+    : fEGrid(TPartIndex::I()->EGrid()), fAtcm3(0), fEmin(0), fEmax(0), fEilDelta(0), 
+      fEle(0), fIndex(-1), fNEbins(0), fNRpart(0), fPXsec(nullptr), fStore(nullptr) {
   fName[0] = '\0';
   fTitle[0] = '\0';
 }
 
 //___________________________________________________________________
 TEXsec::TEXsec(int z, int a, float dens, int np)
-    : fEle(z * 10000 + a * 10), fIndex(-1), fAtcm3(dens * kAvogadro * 1e-24 / TPartIndex::I()->WEle(z)),
-      fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()), fNEbins(TPartIndex::I()->NEbins()),
-      fEilDelta(TPartIndex::I()->EilDelta()), fEGrid(TPartIndex::I()->EGrid()), fNRpart(np),
-      fPXsec(new TPXsec[fNRpart]) {
+    : fEGrid(TPartIndex::I()->EGrid()), fAtcm3(dens * kAvogadro * 1e-24 / TPartIndex::I()->WEle(z)),
+      fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()), 
+      fEilDelta(TPartIndex::I()->EilDelta()), fEle(z * 10000 + a * 10), fIndex(-1), 
+      fNEbins(TPartIndex::I()->NEbins()), fNRpart(np),
+      fPXsec(new TPXsec*[fNRpart]), fStore(nullptr) {
   strncpy(fName, TPartIndex::I()->EleSymb(z), 31);
   strncpy(fTitle, TPartIndex::I()->EleName(z), 127);
   memset(fCuts, 0, 4 * sizeof(float));
+  memset(fPXsec, 0, fNRpart * sizeof(TPXsec*));
 }
 
 //___________________________________________________________________
-TEXsec::~TEXsec() { delete[] fPXsec; }
+TEXsec::TEXsec(const TEXsec &other): fEGrid(other.fEGrid), fAtcm3(other.fAtcm3),
+				     fEmin(other.fEmin), fEmax(other.fEmax), fEilDelta(other.fEilDelta), 
+				     fEle(other.fEle), fIndex(other.fIndex), fNEbins(other.fNEbins), 
+				     fNRpart(other.fNRpart), fPXsec(other.fPXsec), fStore(nullptr)
+ {
+   strncpy(fName,other.fName,32);
+   strncpy(fTitle,other.fTitle,128);
+   memcpy(fCuts,other.fCuts,4*sizeof(float));
+ }
 
 //___________________________________________________________________
-bool TEXsec::AddPart(int kpart, int pdg, int nxsec) { return fPXsec[kpart].SetPart(pdg, nxsec); }
+TEXsec::~TEXsec() { 
+   for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPXsec[ipart];
+   delete [] fPXsec; }
+
+//___________________________________________________________________
+bool TEXsec::AddPart(int kpart, int pdg, int nxsec) { 
+   if(fPXsec[kpart] == nullptr) fPXsec[kpart] = new TPXsec();
+   return fPXsec[kpart]->SetPart(pdg, nxsec); }
 
 //___________________________________________________________________
 bool TEXsec::AddPartMS(int kpart, const float angle[], const float ansig[], const float length[],
                        const float lensig[]) {
-  return fPXsec[kpart].SetPartMS(angle, ansig, length, lensig);
+   if(fPXsec[kpart] == nullptr) fPXsec[kpart] = new TPXsec();
+   return fPXsec[kpart]->SetPartMS(angle, ansig, length, lensig);
 }
 
 //___________________________________________________________________
-bool TEXsec::AddPartXS(int kpart, const float xsec[], const int dict[]) { return fPXsec[kpart].SetPartXS(xsec, dict); }
+bool TEXsec::AddPartXS(int kpart, const float xsec[], const int dict[]) { 
+   if(fPXsec[kpart] == nullptr) fPXsec[kpart] = new TPXsec();
+   return fPXsec[kpart]->SetPartXS(xsec, dict); }
 
 //___________________________________________________________________
-bool TEXsec::AddPartIon(int kpart, const float dedx[]) { return fPXsec[kpart].SetPartIon(dedx); }
+bool TEXsec::AddPartIon(int kpart, const float dedx[]) { 
+   if(fPXsec[kpart] == nullptr) fPXsec[kpart] = new TPXsec();
+   return fPXsec[kpart]->SetPartIon(dedx); }
 
 //___________________________________________________________________
-float TEXsec::XS(int pindex, int rindex, float en) const { return fPXsec[pindex].XS(rindex, en); }
+float TEXsec::XS(int pindex, int rindex, float en) const { 
+   return fPXsec[pindex]->XS(rindex, en); }
 
 //___________________________________________________________________
-float TEXsec::DEdx(int pindex, float en) const { return fPXsec[pindex].DEdx(en); }
+float TEXsec::DEdx(int pindex, float en) const { 
+   return fPXsec[pindex]->DEdx(en); }
 
 //___________________________________________________________________
 bool TEXsec::MS(int pindex, float en, float &ang, float &asig, float &len, float &lsig) const {
-  return fPXsec[pindex].MS(en, ang, asig, len, lsig);
+  return fPXsec[pindex]->MS(en, ang, asig, len, lsig);
 }
 
 //___________________________________________________________________
@@ -98,7 +122,7 @@ void TEXsec::DumpPointers() const {
   printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n", fEle, fEmin, fEmax, fNEbins, fEilDelta,
          fNRpart);
   for (int i = 0; i < fNRpart; ++i)
-    fPXsec[i].Dump();
+    fPXsec[i]->Dump();
 }
 
 #ifdef USE_ROOT
@@ -567,8 +591,74 @@ void TEXsec::ResetFrame() {
 #endif
 
 //___________________________________________________________________
+int TEXsec::SizeOf() const {
+   size_t size = sizeof(*this);
+   for(auto i=0; i<fNRpart; ++i)
+      size += fPXsec[i]->SizeOf();
+   return (int) size;
+}
+
+//___________________________________________________________________
+void TEXsec::Compact() {
+   TPXsec *start = fStore;
+   for(auto i=0; i<fNRpart; ++i) {
+      TPXsec *px = new(start) TPXsec(*fPXsec[i]);
+      px->Compact();
+      delete fPXsec[i];
+      start += px->SizeOf();
+      fPXsec[i]=px;
+   }
+}
+
+//___________________________________________________________________
+void TEXsec::RebuildClass() {
+   TPXsec *start = fStore;
+   for(auto i=0; i<fNRpart; ++i) {
+      cout << "fPXsec[" << i <<"] = " << fPXsec[i] << " pointer = " << start << endl;
+      fPXsec[i] = start;
+      start += start->SizeOf();
+   }
+}
+
+//___________________________________________________________________
+size_t TEXsec::MakeCompactBuffer(TEXsec *b) {
+   // First calculate how much we need
+   size_t totsize = 0;
+   for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
+   // Now allocate buffer
+   b = (TEXsec*) malloc(totsize);
+   TEXsec * start = b;
+   // now copy and compact
+   for(auto i=0; i<fNLdElems; ++i) {
+      TEXsec *el = new(start) TEXsec(*fElements[i]);
+      el->Compact();
+      start += el->SizeOf();
+   }
+   return totsize;
+}
+
+//___________________________________________________________________
+void TEXsec::RebuildStore(size_t size, int nelem, TEXsec *b) {
+   fNLdElems = 0;
+   TEXsec *current = b;
+   for(auto i=0; i<nelem; ++i) {
+      if(current->CheckMagic()) {
+	 fElements[fNLdElems++] = current;
+      } else {
+	 // Disaster
+      }
+      current += current->SizeOf();     
+   }
+   if((size_t)(current - b) == size) {
+      // All OK
+   } else {
+      // Disaster
+   }
+}
+
+//___________________________________________________________________
 float TEXsec::Lambda(int pindex, double en) const {
-  double xs = fPXsec[pindex].XS(TPartIndex::I()->NProc() - 1, en);
+  double xs = fPXsec[pindex]->XS(TPartIndex::I()->NProc() - 1, en);
   return xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
 }
 
@@ -576,7 +666,7 @@ float TEXsec::Lambda(int pindex, double en) const {
 bool TEXsec::Lambda_v(int npart, const int pindex[], const double en[], double lam[]) const {
   const int itot = TPartIndex::I()->NProc() - 1;
   for (int ip = 0; ip < npart; ++ip) {
-    double xs = fPXsec[pindex[ip]].XS(itot, en[ip]);
+    double xs = fPXsec[pindex[ip]]->XS(itot, en[ip]);
     lam[ip] = xs ? 1. / (fAtcm3 * xs) : numeric_limits<float>::max();
   }
   return true;
@@ -585,14 +675,24 @@ bool TEXsec::Lambda_v(int npart, const int pindex[], const double en[], double l
 //___________________________________________________________________
 bool TEXsec::Lambda_v(int npart, int pindex, const double en[], double lam[]) const {
   const int itot = TPartIndex::I()->NProc() - 1;
-  return fPXsec[pindex].XS_v(npart, itot, en, lam);
+  return fPXsec[pindex]->XS_v(npart, itot, en, lam);
 }
 
 //___________________________________________________________________
-int TEXsec::SampleReac(int pindex, double en) const { return fPXsec[pindex].SampleReac(en); }
+int TEXsec::SampleReac(int pindex, double en) const { 
+   return fPXsec[pindex]->SampleReac(en); }
 
 //___________________________________________________________________
-int TEXsec::SampleReac(int pindex, double en, double randn) const { return fPXsec[pindex].SampleReac(en, randn); }
+void TEXsec::GetPartSize() const { 
+   for(auto i=0; i<fNRpart; ++i) {
+      printf("Part %s sizeof %ld SizeOf %d\n",TPartIndex::I()->PartName(i),
+	     sizeof(fPXsec[i]), fPXsec[i]->SizeOf()); 
+   }
+}
+
+//___________________________________________________________________
+int TEXsec::SampleReac(int pindex, double en, double randn) const { 
+   return fPXsec[pindex]->SampleReac(en, randn); }
 
 //___________________________________________________________________
 TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
@@ -634,14 +734,14 @@ TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
 //___________________________________________________________________
 bool TEXsec::Prune() {
   for (int ip = 0; ip < fNRpart; ++ip)
-    fPXsec[ip].Prune();
+    fPXsec[ip]->Prune();
   return true;
 }
 
 //___________________________________________________________________
 bool TEXsec::Resample() {
   for (int ip = 0; ip < fNRpart; ++ip)
-    fPXsec[ip].Resample();
+    fPXsec[ip]->Resample();
   fEmin = TPartIndex::I()->Emin();
   fEmax = TPartIndex::I()->Emax();
   fNEbins = TPartIndex::I()->NEbins();

@@ -36,6 +36,7 @@ public:
 
   TEXsec();
   TEXsec(int z, int a, float dens, int np);
+  TEXsec(const TEXsec &other);
   virtual ~TEXsec();
   static const char *ClassName() { return "TEXsec"; }
   bool AddPart(int kpart, int pdg, int nxsec);
@@ -64,6 +65,7 @@ public:
   bool Lambda_v(int npart, int pindex, const double en[], double lam[]) const;
   int SampleReac(int pindex, double en) const;
   int SampleReac(int pindex, double en, double randn) const;
+  void GetPartSize() const;
 
   static bool FloatDiff(double a, double b, double prec) { return fabs(a - b) > 0.5 * fabs(a + b) * prec; }
 
@@ -82,6 +84,12 @@ public:
   void DeselectAll();
   void PreDraw();
   void ResetFrame();
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
+  static size_t MakeCompactBuffer(TEXsec *b);
+  void RebuildStore(size_t size, int nelem, TEXsec *b);
+  bool CheckMagic() const { return true; }
 
   bool Resample();
 
@@ -101,27 +109,25 @@ public:
   static TEXsec **GetElements() { return fElements; }
 
 private:
-  TEXsec(const TEXsec &);            // Not implemented
   TEXsec &operator=(const TEXsec &); // Not implemented
 
   char fName[32];   // Name
   char fTitle[128]; // Title
 
-  int fEle;             // Element code Z*10000+A*10+metastable level
-  int fIndex;           // Index of this in TTabPhysMgr::fElemXsec
+  const double *fEGrid; //! Common energy grid
   double fAtcm3;        // Atoms per cubic cm unit density
   double fEmin;         // Minimum of the energy Grid
   double fEmax;         // Maximum of the energy Grid
-  int fNEbins;          // Number of log steps in energy
   double fEilDelta;     // Inverse log energy step
-  const double *fEGrid; //! Common energy grid
-  int fNRpart;          // Number of particles with reaction
-  TPXsec *fPXsec;       // [fNRpart] Cross section table per particle
   float fCuts[4];       // Production cuts "a la G4"
+  int fEle;             // Element code Z*10000+A*10+metastable level
+  int fIndex;           // Index of this in TTabPhysMgr::fElemXsec
+  int fNEbins;          // Number of log steps in energy
+  int fNRpart;          // Number of particles with reaction
+  TPXsec **fPXsec;       // [fNRpart] Cross section table per particle
 
   static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
-
 #ifdef USE_ROOT
   static TGMainFrame *fMain;           //! Main window
   static TGHorizontalFrame *fSecond;   //! Window for the graph and the bar on left
@@ -131,6 +137,9 @@ private:
 
   ClassDefNV(TEXsec, 3) // Element X-secs
 #endif
+
+private:
+  TPXsec *fStore;              //! Pointer to the compact store part of the class 
 };
 
 #endif

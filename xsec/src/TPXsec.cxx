@@ -15,23 +15,40 @@ int TPXsec::fVerbose = 0;
 
 //_________________________________________________________________________
 TPXsec::TPXsec()
-    : fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0), fEmin(0), fEmax(0), fEilDelta(0),
-      fEGrid(TPartIndex::I()->EGrid()), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fdEdx(0), fTotXs(0),
-      fXSecs(0) {
-  int np = TPartIndex::I()->NProc();
-  while (np--)
-    fRdict[np] = fRmap[np] = -1;
+   : fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), fMSansig(nullptr), fMSlength(nullptr), 
+     fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr), fXSecs(nullptr),  fEmin(0), fEmax(0), fEilDelta(0),
+     fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0), fStore(nullptr) {
+   int np = TPartIndex::I()->NProc();
+   while (np--)
+      fRdict[np] = fRmap[np] = -1;
 }
 
 //_________________________________________________________________________
 TPXsec::TPXsec(int pdg, int nxsec)
-    : fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()), fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins),
-      fNXSecs(fNEbins * fNXsec), fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()),
-      fEilDelta((fNEbins - 1) / log(fEmax / fEmin)), fEGrid(TPartIndex::I()->EGrid()), fMSangle(0), fMSansig(0),
-      fMSlength(0), fMSlensig(0), fdEdx(0), fTotXs(0), fXSecs(0) {
-  int np = TPartIndex::I()->NProc();
-  while (np--)
-    fRdict[np] = fRmap[np] = -1;
+   :  fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), 
+      fMSansig(nullptr), fMSlength(nullptr), fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr), 
+      fXSecs(nullptr), fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()),
+      fEilDelta((TPartIndex::I()->NEbins() - 1) / log(fEmax / fEmin)), fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()), 
+      fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins), fNXSecs(fNEbins * fNXsec), fStore(nullptr) {
+   int np = TPartIndex::I()->NProc();
+   while (np--)
+      fRdict[np] = fRmap[np] = -1;
+}
+
+//_________________________________________________________________________
+TPXsec::TPXsec(const TPXsec &other): fEGrid(other.fEGrid),
+				     fMSangle(other.fMSangle), fMSansig(other.fMSansig),
+				     fMSlength(other.fMSlength), fMSlensig(other.fMSlensig),
+				     fdEdx(other.fdEdx), fTotXs(other.fTotXs), fXSecs(other.fXSecs),
+				     fEmin(other.fEmin), fEmax(other.fEmax),
+				     fEilDelta(other.fEilDelta), 
+				     fPDG(other.fPDG), fNEbins(other.fNEbins),
+				     fNCbins(other.fNCbins), fNXsec(other.fNXsec),
+				     fNTotXs(other.fNTotXs), fNXSecs(other.fNXSecs),
+				     fStore(nullptr)
+{
+   memcpy(fRdict, other.fRdict, FNPROC*sizeof(int));
+   memcpy(fRmap, other.fRmap, FNPROC*sizeof(int));
 }
 
 //_________________________________________________________________________
@@ -43,6 +60,118 @@ TPXsec::~TPXsec() {
   delete[] fdEdx;
   delete[] fTotXs;
   delete[] fXSecs;
+}
+
+//_________________________________________________________________________
+int TPXsec::SizeOf() const {
+   size_t size = sizeof(*this);
+   size += 5 * fNCbins * sizeof(float);
+   size += fNTotXs * sizeof(float);
+   size += fNXSecs * sizeof(float);
+   return (int) size;
+}
+
+//_________________________________________________________________________
+void TPXsec::Compact() {
+   int size = 0;
+   float *start = fStore;
+   if(fMSangle) {
+      size = fNCbins * sizeof(float);
+      memcpy(start, fMSangle, size);
+      delete [] fMSangle;
+      fMSangle = start;
+      start +=size;
+   }
+   if(fMSansig) {
+      size = fNCbins * sizeof(float);
+      memcpy(start, fMSansig, size);
+      delete [] fMSansig;
+      fMSansig = start;
+      start +=size;
+   }
+   if(fMSlength) {
+      size = fNCbins * sizeof(float);
+      memcpy(start, fMSlength, size);
+      delete [] fMSlength;
+      fMSlength = start;
+      start +=size;
+   }
+   if(fMSlensig) {
+      size = fNCbins * sizeof(float);
+      memcpy(start, fMSlensig, size);
+      delete [] fMSlensig;
+      fMSlensig = start;
+      start +=size;
+   }
+   if(fdEdx) {
+      size = fNCbins * sizeof(float);
+      memcpy(start, fdEdx, size);
+      delete [] fdEdx;
+      fdEdx = start;
+      start +=size;
+   }
+   if(fTotXs) {
+      size = fNTotXs * sizeof(float);
+      memcpy(start, fTotXs, size);
+      delete [] fTotXs;
+      fTotXs = start;
+      start +=size;
+   }
+   if(fXSecs) {
+      size = fNXSecs * sizeof(float);
+      memcpy(start, fXSecs, size);
+      delete [] fXSecs;
+      fXSecs = start;
+      start +=size;
+   }
+}
+
+//______________________________________________________________________________
+void TPXsec::RebuildClass() {
+   int size = 0;
+   float *start = fStore;
+   if(fMSangle) {
+      cout << "Original fMSangle " << fMSangle << " new pointer " << start << endl;
+      fMSangle = start;
+      size = fNCbins * sizeof(float);
+      start +=size;
+   }
+   if(fMSansig) {
+      cout << "Original fMSansig " << fMSansig << " new pointer " << start << endl;
+      fMSansig = start;
+      size = fNCbins * sizeof(float);
+      start +=size;
+   }
+   if(fMSlength) {
+      cout << "Original fMSlength " << fMSlength << " new pointer " << start << endl;
+      fMSlength = start;
+      size = fNCbins * sizeof(float);
+      start +=size;
+   }
+   if(fMSlensig) {
+      cout << "Original fMSlensig " << fMSlensig << " new pointer " << start << endl;
+      fMSlensig = start;
+      size = fNCbins * sizeof(float);
+      start +=size;
+   }
+   if(fdEdx) {
+      cout << "Original fdEdx " << fdEdx << " new pointer " << start << endl;
+      fdEdx = start;
+      size = fNCbins * sizeof(float);
+      start +=size;
+   }
+   if(fTotXs) {
+      cout << "Original fTotXs " << fTotXs << " new pointer " << start << endl;
+      fTotXs = start;
+      size = fNTotXs * sizeof(float);
+      start +=size;
+   }
+   if(fXSecs) {
+      cout << "Original fXSecs " << fXSecs << " new pointer " << start << endl;
+      fXSecs = start;
+      size = fNXSecs * sizeof(float);
+      start +=size;
+   }
 }
 
 #ifdef USE_ROOT

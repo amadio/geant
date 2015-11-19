@@ -27,6 +27,7 @@ class TPXsec {
 public:
   TPXsec();
   TPXsec(int pdg, int nxsec);
+  TPXsec(const TPXsec &other);
   virtual ~TPXsec();
   void Print(const char *opt = "") const;
   const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
@@ -49,22 +50,15 @@ public:
 
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
 
 private:
-  TPXsec(const TPXsec &);            // Not implemented
   TPXsec &operator=(const TPXsec &); // Not implemented
 
   static int fVerbose; // Controls verbosity level
 
-  int fPDG;             // particle pdg code
-  int fNEbins;          // number of energy bins
-  int fNCbins;          // number of energy bins for dEdx and MS
-  int fNXsec;           // number of reactions
-  int fNTotXs;          // tot size of fTotXs
-  int fNXSecs;          // tot size of fXSecs
-  double fEmin;         // Min energy of the energy grid
-  double fEmax;         // Max energy of the energy grid
-  double fEilDelta;     // logarithmic energy delta
   const double *fEGrid; //![fNEbins] energy grid
   float *fMSangle;      // [fNCbins] table of MS average angle
   float *fMSansig;      // [fNCbins] table of MS sigma angle
@@ -73,13 +67,24 @@ private:
   float *fdEdx;         // [fNCbins] table of dE/dx
   float *fTotXs;        // [fNTotXs] table of total x-sec
   float *fXSecs;        // [fNXSecs] table of partial x-sec
+  double fEmin;         // Min energy of the energy grid
+  double fEmax;         // Max energy of the energy grid
+  double fEilDelta;     // logarithmic energy delta
+  int fPDG;             // particle pdg code
+  int fNEbins;          // number of energy bins
+  int fNCbins;          // number of energy bins for dEdx and MS
+  int fNXsec;           // number of reactions
+  int fNTotXs;          // tot size of fTotXs
+  int fNXSecs;          // tot size of fXSecs
   int fRdict[FNPROC];   // reaction dictionary from reaction number to position
                         // in the X-sec array
   int fRmap[FNPROC];    // reaction map, from reaction position in the X-sec
                         // array to the raction number
 #ifdef USE_ROOT
-  ClassDefNV(TPXsec, 1) // Particle X-secs
+  ClassDefNV(TPXsec, 2) // Particle X-secs
 #endif
+private:
+  float *fStore;        //! Pointer to the compact data of the class
 };
 
 #endif
