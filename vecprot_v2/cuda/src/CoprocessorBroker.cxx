@@ -156,8 +156,8 @@ CoprocessorBroker::TaskData::TaskData() : fGeantTaskData(0),
                                           fThreadId(-1),
                                           fStreamId(0),
                                           fStream(nullptr),
-                                          fQueue(0),
-                                          fDevTaskWorkspaceSizeOf(0)
+                                          fDevTaskWorkspaceSizeOf(0),
+                                          fQueue(0)
 {
    // Default constructor.
 }
@@ -296,10 +296,10 @@ bool CoprocessorBroker::UploadGeometry(vecgeom::VPlacedVolume const *const volum
    return true;
 }
 
-void setup(CoprocessorBroker *broker,
-           int nphi = 4,
-           int nz   = 3,
-           double density = 8.28)
+void setup(CoprocessorBroker * /* broker */,
+           int /* nphi */ = 4,
+           int /* nz */   = 3,
+           double /* density */ = 8.28)
 {
 
    // 2. Read magnetic field map
@@ -580,7 +580,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    int ntot = 0;
    int nnew = 0;
    int nkilled = 0;
-   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%d basketHoles#=%d ", fThreadId, fStreamId, fNStaged, output.GetNtracks(),transferTo.fHoles->CountBits(),output.fHoles->CountBits());
+   Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%lu basketHoles#=%lu ", fThreadId, fStreamId, fNStaged, output.GetNtracks(),transferTo.fHoles->CountBits(),output.fHoles->CountBits());
    /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, fGeantTaskData);
    (void)ntot;
    (void)nnew;
@@ -633,25 +633,25 @@ bool CoprocessorBroker::Task::IsReadyForLaunch(unsigned int ntasks)
 // typedef void(CUDART_CB * cudaStreamCallback_t)(cudaStream_t stream, cudaError_t status, void
 //                                                *userData)
 
-void StreamReset(cudaStream_t /* stream */, cudaError_t status, void *userData)
+void StreamReset(cudaStream_t /* stream */, cudaError_t /* status */, void *userData)
 {
    CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
    helper->Reset();
 }
 
-void TrackToHost(cudaStream_t /* stream */, cudaError_t status, void *userData)
+void TrackToHost(cudaStream_t /* stream */, cudaError_t /* status */, void *userData)
 {
    CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
    helper->TrackToHost();
 }
 
-void ClearTrack_v(cudaStream_t /* stream */, cudaError_t status, void *userData)
+void ClearTrack_v(cudaStream_t /* stream */, cudaError_t /* status */, void *userData)
 {
    Geant::GeantTrack_v *tracks = (Geant::GeantTrack_v*)userData;
    tracks->Clear();
 }
 
-void FromDeviceTrackConversion(cudaStream_t /* stream */, cudaError_t status, void *userData)
+void FromDeviceTrackConversion(cudaStream_t /* stream */, cudaError_t /* status */, void *userData)
 {
    CoprocessorBroker::TaskData *helper = (CoprocessorBroker::TaskData*)userData;
    FromDeviceConversion(helper->fGeantTaskData->fTransported, helper->fDevTrackOutput);

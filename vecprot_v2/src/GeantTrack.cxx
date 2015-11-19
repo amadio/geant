@@ -2740,6 +2740,8 @@ bool GeantTrack_v::BreakOnStep(int evt, int trk, int stp, int nsteps, const char
       has_it = true;
 #ifndef GEANT_NVCC
       PrintTrack(itr, msg);
+#else
+      (void)msg;
 #endif
       break;
     }
@@ -2779,7 +2781,7 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
 
   assert(((void *)source) == ((void *)(&(source->fNtracks))));
 
-  fprintf(stderr,"Posting the copy from host=%p to device=%p and size=%d\n",
+  fprintf(stderr,"Posting the copy from host=%p to device=%p and size=%ld\n",
           source->Buffer(),
           ((char*)dest.GetPtr()) + bufferOffset,
           source->BufferSize());
@@ -2821,7 +2823,7 @@ bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrac
                                    source.GetPtr(),
                                    sizeof(int)*2+sizeof(Bool_t)*2,
                                    cudaMemcpyDeviceToHost, stream));
-  fprintf(stderr,"Posting the copy from device=%p to host=%p and size=%d\n",
+  fprintf(stderr,"Posting the copy from device=%p to host=%p and size=%lu\n",
           ((char*)source.GetPtr()) + bufferOffset,
           dest->Buffer(),
           dest->BufferSize());

@@ -129,7 +129,7 @@ public:
    CoprocessorBroker();
    ~CoprocessorBroker();
 
-   bool addTrack(int itr, GeantBasket &basket) { return false; }
+   bool addTrack(int /* itr */, GeantBasket & /* basket */) { return false; }
    int SetPrioritizer() { return 0; }
 
    /** @brief Create the baskets for each stream */
