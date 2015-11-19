@@ -1,5 +1,6 @@
 #include "TSystem.h"
 #include "TGeoManager.h"
+#include "TEXsec.h"
 
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
@@ -21,6 +22,8 @@ void testloadxsec()
    GeantPropagator::Instance(1,1,1);
    geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
    TTabPhysMgr::Instance(fxsec, ffins );
+   for(auto i=0; i<TEXsec::NLdElems(); ++i)
+      TEXsec::Element(i)->GetPartSize();
    delete geom;
    delete TTabPhysMgr::Instance();
 }
