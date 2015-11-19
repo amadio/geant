@@ -5,6 +5,10 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
+// Autoload the library early so that GeantPropagator is defined when applicable.
+class TaskBroker;
+class GeantPropagator;
+
 void run(int ncputhreads=4,
          bool performance=true,
 	      const char *geomfile="ExN03.root",
@@ -37,21 +41,25 @@ void run(int ncputhreads=4,
    int ntotal   = 50;  // Number of events to be transported
    int nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
-   
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
-   // Monitor different features
-   prop->SetNminThreshold(5*nthreads);
+
+   TaskBroker *broker = nullptr;
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
       gpuBroker->CudaSetup(32,128,1);
-      prop->SetTaskBroker(gpuBroker);
+      broker = gpuBroker;
+
       nthreads += gpuBroker->GetNstream()+1;
 #else
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
    }
+   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
 
+   if (broker) prop->SetTaskBroker(broker);
+
+   // Monitor different features
+   prop->SetNminThreshold(5*nthreads);
    prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
    prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
    prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
