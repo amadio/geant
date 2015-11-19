@@ -41,7 +41,7 @@ G4int SampleOne(G4Material* material,
                 G4int    verbose,
                 Finstat_t& fs);
 
-static const char* tStatus[6] = {"Alive: Continue the tracking",
+constexpr char const* tStatus[6] = {"Alive: Continue the tracking",
   "StopButAlive: Invoke active rest physics processes and kill the current track afterward",
   "StopAndKill: Kill the current track",
   "KillTrackAndSecondaries: Kill the current track and also associated secondaries",
