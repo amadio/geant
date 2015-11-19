@@ -66,6 +66,8 @@ option(CUDA "Enable compilation for CUDA." OFF)
 
 option(DATA_DOWNLOAD "Enable data download" OFF)
 
+set(CMAKE_MACOSX_RPATH ON)
+
 option(CTEST "Enable CTest when building." OFF)
 if (CTEST)
   set (DATA_DOWNLOAD ON)
@@ -205,7 +207,7 @@ if (NOT DISABLE_WEFFC)
    set(WEFFC_FLAG -Weffc++)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -Wall -Weffc++")
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
   if(APPLE) 
