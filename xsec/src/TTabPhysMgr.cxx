@@ -143,7 +143,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   // First loop on all materials to mark used elements
   TBits elements(NELEM);
 #ifdef USE_VECGEOM_NAVIGATOR
-  for (int i = 0; i < matlist.size(); ++i) {
+  for (unsigned int i = 0; i < matlist.size(); ++i) {
     mat = matlist[i];
 #else
   while ((mat = (Material_t *)next())) {
@@ -210,7 +210,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   float *w = new float[MAXNELEMENTS];
   fNmaterials = 0;
 #ifdef USE_VECGEOM_NAVIGATOR
-  for (int i = 0; i < matlist.size(); ++i) {
+  for (unsigned int i = 0; i < matlist.size(); ++i) {
     mat = matlist[i];
 #else
   next.Reset();
