@@ -53,6 +53,9 @@ public:
   int SizeOf() const;
   void Compact();
   void RebuildClass();
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
 
 private:
   TPXsec &operator=(const TPXsec &); // Not implemented
@@ -80,6 +83,9 @@ private:
                         // in the X-sec array
   int fRmap[FNPROC];    // reaction map, from reaction position in the X-sec
                         // array to the raction number
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
+#endif
 #ifdef USE_ROOT
   ClassDefNV(TPXsec, 2) // Particle X-secs
 #endif

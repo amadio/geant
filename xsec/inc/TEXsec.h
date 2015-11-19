@@ -89,7 +89,9 @@ public:
   void RebuildClass();
   static size_t MakeCompactBuffer(TEXsec *b);
   void RebuildStore(size_t size, int nelem, TEXsec *b);
-  bool CheckMagic() const { return true; }
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
 
   bool Resample();
 
@@ -128,6 +130,9 @@ private:
 
   static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
+#endif
 #ifdef USE_ROOT
   static TGMainFrame *fMain;           //! Main window
   static TGHorizontalFrame *fSecond;   //! Window for the graph and the bar on left
@@ -135,7 +140,7 @@ private:
   static TGListBox *fReactionBox;      //! Reaction list
   static TGListBox *fParticleBox;      //! Particle list
 
-  ClassDefNV(TEXsec, 3) // Element X-secs
+  ClassDefNV(TEXsec, 4) // Element X-secs
 #endif
 
 private:

@@ -615,6 +615,12 @@ void TEXsec::RebuildClass() {
    TPXsec *start = fStore;
    for(auto i=0; i<fNRpart; ++i) {
       cout << "fPXsec[" << i <<"] = " << fPXsec[i] << " pointer = " << start << endl;
+#ifdef MAGIC_DEBUG
+      if(start->GetMagic() != -777777) {
+	 cout << "TPXsec::Broken magic " << start->GetMagic() << endl;
+	 exit(1);
+      }
+#endif
       fPXsec[i] = start;
       start += start->SizeOf();
    }
@@ -642,17 +648,18 @@ void TEXsec::RebuildStore(size_t size, int nelem, TEXsec *b) {
    fNLdElems = 0;
    TEXsec *current = b;
    for(auto i=0; i<nelem; ++i) {
-      if(current->CheckMagic()) {
+      if(current->GetMagic() != -777777) {
 	 fElements[fNLdElems++] = current;
       } else {
-	 // Disaster
+	 cout << "TEXsec::Broken Magic " << current->GetMagic() << endl;
+	 exit(1);
       }
       current += current->SizeOf();     
    }
-   if((size_t)(current - b) == size) {
-      // All OK
-   } else {
-      // Disaster
+   if((size_t)(current - b) != size) {
+      cout << "TEXsec::RebuildStore: expected size " << size 
+	   << " found size " << current -b << endl;
+      exit(1);
    }
 }
 

@@ -65,7 +65,7 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
   memset(fElems, 0, fNElems * sizeof(TEXsec *));
 
   for (int i = 0; i < fNElems; ++i)
-    if (z[i])
+     if (z[i])
       fElems[i] = TEXsec::GetElement(z[i], 0);
     else if (fNElems > 1) {
       log_fatal(std::cout, "Cannot have vacuum in mixtures");

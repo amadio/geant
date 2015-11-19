@@ -89,6 +89,12 @@ option(CUDA "Enable compilation for CUDA." OFF)
 
 option(DATA_DOWNLOAD "Enable data download" OFF)
 
+option(MAGIC_DEBUG "Debug xsec serialisation with magic number" ON)
+if(MAGIC_DEBUG) 
+  add_definitions(-DMAGIC_DEBUG)
+endif()
+
+
 set(CMAKE_MACOSX_RPATH ON)
 
 option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
