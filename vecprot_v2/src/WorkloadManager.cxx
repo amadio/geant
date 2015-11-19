@@ -732,6 +732,17 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 //      basket->Clear();
 //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
     /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, td);
+    if (prioritizer->HasTracks()) {
+       // We know that all the left over tracks injected here can not be handle
+       // by the coprocessor, so we much send it for somebody else to process:
+
+       GeantBasket *cbasket = prioritizer->GetCBasket();
+       assert(cbasket->TryDispatch());
+       prioritizer->SetCBasket(prioritizer->GetNextBasket(td));
+       prioritizer->Push(cbasket, /*priority=*/ false, td);
+       // prioritizer->BookBasket(td);
+       // prioritizer->GarbageCollect(td);
+    }
     //      Printf("thread %d: injected %d baskets", tid, ninjected);
     // wm->TransportedQueue()->push(basket);
     (void)ntot;
