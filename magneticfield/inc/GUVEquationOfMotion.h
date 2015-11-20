@@ -88,6 +88,8 @@ class GUVEquationOfMotion
 
 // #include "GUVEquationOfMotion.icc"
 
+// #include <iostream>
+
 //  Inline implementation 
 //
 // -------------------------------------------------------------------
@@ -100,7 +102,9 @@ GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField)
 inline
 void GUVEquationOfMotion::InformReady() // was Initialize()
 {
-   assert( ! fInitialised ); // Sanity checking - assumes Clear() is always called!
+   // std::cout << " Called GUVEquationOfMotion::InformReady() " << std::endl;
+   
+   // assert( ! fInitialised ); // Sanity checking - assumes Clear() is always called!
                       // BUT: Will signal problem if two steppers share an equation
    fInitialised= true;
 }
@@ -109,6 +113,8 @@ void GUVEquationOfMotion::InformReady() // was Initialize()
 inline
 void GUVEquationOfMotion::InformDone()  // was Clear() and before Finished(); 
 {
+   // std::cout << " Called GUVEquationOfMotion::InformDone() " << std::endl;
+   
    assert( fInitialised ); 
    fInitialised= false;   
 }  

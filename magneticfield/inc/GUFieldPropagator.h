@@ -2,6 +2,9 @@
 //  Simple interface class to GUIntegrationDriver (with does Runge Kutta integration)
 //   that follows the interface of ConstFieldHelixStepper.h
 //
+#ifndef GUFIELDPROPAGATOR_H
+#define GUFIELDPROPAGATOR_H 1
+
 #include "ThreeVector.h"
 
 class GUIntegrationDriver;
@@ -30,6 +33,8 @@ class GUFieldPropagator
                    ThreeVector       & endPosition,
                    ThreeVector       & endDiretion
          ) ;   //  Goal => make it 'const';  -- including all classes it uses
+
+      virtual GUFieldPropagator* Clone() const;
 
   /******
     template<typename Vector3D, typename DblType, typename IntType>
@@ -63,29 +68,4 @@ private:
     GUIntegrationDriver* fDriver;
     double               fEpsilon;
 };
-
-//  For Multi-threaded version only -- ie not for CUDA
-
-#include <vector>
-
-class GUFieldPropagatorPool
-{
-  public:
-    // Access methods
-    // static GUFieldPropagator* CreateOrFind(int numThreads);
-      // It can be called from many threads -- same value must be returned
-      //  numThreads must be constant between calls
-
-    GUFieldPropagator* GetPropagator( int num );
-
-  private:
-    static GUFieldPropagatorPool* Instance();
-
-    GUFieldPropagatorPool() {} // , void** banks=0 );  // Ensure one per thread
-    ~GUFieldPropagatorPool() {} 
-
-    // void Extend(int); 
-  private:
-    // static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
-
-};
+#endif

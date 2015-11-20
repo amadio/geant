@@ -197,19 +197,22 @@ int main(int argc, char *args[])
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
       default : myStepper = 0 ;
+         myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
+         cout << " Invalid stepper choice -- using default " << endl;
+         cout << " TClassicalRK4 stepper. " << endl;                  
     }
 
     const double hminimum  = 0.0001 * millimeter;  // Minimum step = 0.1 microns
     const double epsTolDef = 1.0e-5;              // Relative error tolerance
     int   statisticsVerbosity= 1;
 
-    const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp; 
+    const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp;
     cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
 
     auto integrDriver= new GUIntegrationDriver( hminimum,
                                                 myStepper,
                                                 Nposmom,
-                                                statisticsVerbosity); 
+                                                statisticsVerbosity);
     // myStepper->InitializeCharge( particleCharge );
     // integrDriver->InitializeCharge( particleCharge );
 

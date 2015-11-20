@@ -14,7 +14,7 @@ namespace GUIntegrationNms
 }
 
 template
-<class T_Stepper, class T_Equation, int Nvar>
+<class T_Stepper, class T_Equation, unsigned int Nvar>
 class TMagErrorStepper : public GUVIntegrationStepper
 {
     public:  // with description
@@ -24,20 +24,10 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
         TMagErrorStepper( T_Equation *EqRhs,
                           unsigned int integrationOrder,   // Make it a template Parameter ??
-                          unsigned int numberOfVariables,   // Redundant -- to be DELETED
-                          int numStateVariables) // = -1)  // No default -- must ensure order is set
-            : GUVIntegrationStepper(
-                  EqRhs,
-                  integrationOrder,      
-                  Nvar,                //  Must be equal to  numberOfVariables,
-                  numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
-               // ),
-               fEquation_Rhs(EqRhs)
-        {
-            // int nvar = std::max(this->GetNumberOfVariables(), 8);
-            assert( numberOfVariables == Nvar ); 
-        }
+                          unsigned int numStateVariables); // = -1)  // No default -- must ensure order is set
 
+        TMagErrorStepper( const TMagErrorStepper& right );
+   
         virtual ~TMagErrorStepper() {;}
 
         inline void RightHandSide(double y[], double dydx[]) 
@@ -57,10 +47,8 @@ class TMagErrorStepper : public GUVIntegrationStepper
         double DistChord() const; 
 
     private:
-
-        TMagErrorStepper(const TMagErrorStepper&);
-        TMagErrorStepper& operator=(const TMagErrorStepper&);
-        // Private copy constructor and assignment operator.
+        TMagErrorStepper& operator=(const TMagErrorStepper&) = delete;
+        // Private assignment operator.
 
     private:
 
@@ -80,8 +68,38 @@ class TMagErrorStepper : public GUVIntegrationStepper
         T_Equation *fEquation_Rhs;
 };
 
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
+   TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
+   TMagErrorStepper( T_Equation *EqRhs,
+                     unsigned int integrationOrder,   // Make it a template Parameter ??
+                     unsigned int numStateVariables) // = 0)  // No default -- must ensure order is set
+   : GUVIntegrationStepper( EqRhs,
+                            integrationOrder,
+                            Nvar,                // Here we must pass it to base class !
+                            numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
+   fEquation_Rhs(EqRhs)
+{
+   assert( numStateVariables >= Nvar ); 
+}
+
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
+   TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
+   TMagErrorStepper( const TMagErrorStepper& right )
+    :
+       GUVIntegrationStepper( (T_Equation *) 0, 
+                              right.IntegrationOrder(),
+                              right.GetNumberOfVariables(),  // must be == Nvar
+                              right.GetNumberOfStateVariables() ), 
+       fEquation_Rhs(right.GetEquationOfMotion()->Clone())
+{
+   SetEquationOfMotion(fEquation_Rhs); 
+
+   // unsigned nvar = std::max(this->GetNumberOfVariables(), 8);
+   assert( this->GetNumberOfVariables() == Nvar ); 
+}
+
 // inline
-template<class T_Stepper, class T_Equation, int Nvar>
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
 void
    TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
 StepWithErrorEstimate( const double yInput[],
@@ -94,54 +112,60 @@ StepWithErrorEstimate( const double yInput[],
             // Integrates ODE starting values y[0 to 6].
             // Outputs yout[] and its estimated error yerr[].
 {  
-   const int maxvar= GetNumberOfStateVariables();
+   const unsigned maxvar= GetNumberOfStateVariables();
 
-   int i;
    // correction for Richardson Extrapolation.
    //double  correction = 1. / ( (1 << 
    //          static_cast<T_Stepper*>(this)->T_Stepper::IntegratorOrder()) -1 );
    //  Saving yInput because yInput and yOutput can be aliases for same array
    
-   for(i=0;i<Nvar;i++) yInitial[i]=yInput[i];
-   yInitial[7]= yInput[7];    // Copy the time in case ... even if not really needed
-   yMiddle[7] = yInput[7];  // Copy the time from initial value 
-            yOneStep[7] = yInput[7]; // As it contributes to final value of yOutput ?
-            // yOutput[7] = yInput[7];  // -> dumb stepper does it too for RK4
-            for(i=Nvar;i<maxvar;i++) yOutput[i]=yInput[i];
-            // yError[7] = 0.0;         
+   for(unsigned int i=0;i<NumVarStore;i++){
+      yInitial[i]= yInput[i];
+      yOutput[i] = yInput[i];
+      yError[i]  = 0.0;         
+   }
+   
+   // Copy the remaining state - part which is not integrated
+   for(unsigned int i=Nvar+1;i<NumVarStore;i++){
+      yMiddle[i]=yInput[i];   
+      yOneStep[i] = yInput[i]; // As it contributes to final value of yOutput ?
+   }
 
-            double halfStep = hstep * 0.5; 
+   // const unsigned maxvar= GetNumberOfStateVariables();
+   // for(i=Nvar;i<maxvar;i++) yOutput[i]=yInput[i];
 
-            // Do two half steps
+   double halfStep = hstep * 0.5; 
 
-	    static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial,  dydx,   halfStep, yMiddle);
-            this->RightHandSide(yMiddle, dydxMid);    
-	    static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yMiddle, dydxMid, halfStep, yOutput); 
+   // Do two half steps
+   
+   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial,  dydx,   halfStep, yMiddle);
+   this->RightHandSide(yMiddle, dydxMid);    
+   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yMiddle, dydxMid, halfStep, yOutput); 
 
-            // Store midpoint, chord calculation
+   // Store midpoint, chord calculation
 
-            fMidPoint = ThreeVector( yMiddle[0],  yMiddle[1],  yMiddle[2]); 
+   fMidPoint = ThreeVector( yMiddle[0],  yMiddle[1],  yMiddle[2]); 
 
-            // Do a full Step
-	    //            static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
-	    static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
-            for(i=0;i<Nvar;i++) {
-                yError [i] = yOutput[i] - yOneStep[i] ;
-                yOutput[i] += yError[i]* static_cast<T_Stepper*>(this)->T_Stepper::IntegratorCorrection();  
-                   // T_Stepper::IntegratorCorrection ;
-                    // Provides accuracy increased by 1 order via the 
-                    // Richardson Extrapolation  
-            }
-
-            fInitialPoint = ThreeVector( yInitial[0], yInitial[1], yInitial[2]); 
-            fFinalPoint   = ThreeVector( yOutput[0],  yOutput[1],  yOutput[2]); 
-
+   // Do a full Step
+   //            static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
+   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
+   for(unsigned int i=0;i<Nvar;i++) {
+      yError [i] = yOutput[i] - yOneStep[i] ;
+      yOutput[i] += yError[i]* static_cast<T_Stepper*>(this)->T_Stepper::IntegratorCorrection();  
+      // T_Stepper::IntegratorCorrection ;
+      // Provides accuracy increased by 1 order via the 
+      // Richardson Extrapolation  
+   }
+   
+   fInitialPoint = ThreeVector( yInitial[0], yInitial[1], yInitial[2]); 
+   fFinalPoint   = ThreeVector( yOutput[0],  yOutput[1],  yOutput[2]); 
+   
    return ;
  }
 
 
 // #ifdef OPT_CHORD_FUNCTIONALITY
-template<class T_Stepper, class T_Equation, int Nvar>
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
 double
 TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord() const 
 {

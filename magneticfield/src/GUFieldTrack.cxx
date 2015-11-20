@@ -74,7 +74,6 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
   SetCurvePnt( ThreeVector( valArr[0], valArr[1], valArr[2]),
                ThreeVector( valArr[3], valArr[4], valArr[5]),
                0 ); // DistanceAlongCurve
-
 #else  
   SixVector[0]=valArr[0];
   SixVector[1]=valArr[1];
@@ -85,8 +84,7 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
 
   ThreeVector Momentum(valArr[3],valArr[4],valArr[5]);
 
-  double momentum_square= Momentum.Mag2();
-  fMomentumDir= Momentum.Unit();
+  // fMomentumDir= Momentum.Unit();
 #endif
   
   // fKineticEnergy = momentum_square / 

@@ -36,25 +36,36 @@ class GUVIntegrationStepper
                                int numStateVariables); // = -1 same? or  unsigned ?    // in G4 =12
            // See explanations of each below - e.g. order => RK order
 
+        GUVIntegrationStepper( const GUVIntegrationStepper& );
+           // For use in Clone() method
+        
         virtual ~GUVIntegrationStepper();
 
-        virtual  void  StepWithErrorEstimate(  const double y[],
-                const double dydx[],
-                double h,
-                double yout[],
-                double yerr[]  ) = 0;
-        // The stepper for the Runge Kutta integration.
-        // The stepsize is fixed, with the Step size given by h.
-        // Integrates ODE starting values y[0 to 6].
-        // Outputs yout[] and its estimated error yerr[].
+        // Core methods
+        // ---------------------
+        virtual void StepWithErrorEstimate( const double y[],
+                                            const double dydx[],
+                                                  double h,
+                                                  double yout[],
+                                                  double yerr[]  ) = 0;
+        // Integrate typically using Runge Kutta 
+        // Input:
+        //          y[] = initial derivative
+        //       dydx[] = initial derivative        
+        //          h   = requested step
+        // Output:
+        //       yout[] = output values of integration
+        //       yerr[] = estimate of integration error
 
         virtual  double  DistChord() const = 0; 
-        // Estimate the maximum distance of a chord from the true path
-        // over the segment last integrated.
+        // Estimate the maximum sagital distance (distance of a chord from the true path)
+        //  over the last segment integrated.
 
-        // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
-        // Simple utility function to (re)normalise 'unit spin' vector.
-
+        // Auxiliary methods
+        // ---------------------
+        virtual  GUVIntegrationStepper* Clone() const = 0;
+        // Create an independent copy of the current object -- including independent 'owned' objects
+        
         inline void RightHandSide( const double y[], /*double charge,*/ double dydx[] );   
         // Utility method to supply the standard Evaluation of the
         // Right Hand side of the associated equation.
@@ -74,6 +85,9 @@ class GUVIntegrationStepper
         // Returns the order of the integrator
         // i.e. its error behaviour is of the order O(h^order).
 
+        // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
+        // Simple utility function to (re)normalise 'unit spin' vector.
+
         inline GUVEquationOfMotion *GetEquationOfMotion() { return  fEquation_Rhs; }
         // As some steppers require access to other methods of Eq_of_Mot
         void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
@@ -87,7 +101,6 @@ class GUVIntegrationStepper
 
     private:
 
-        GUVIntegrationStepper(const GUVIntegrationStepper&);
         GUVIntegrationStepper& operator=(const GUVIntegrationStepper&);
         // Private copy constructor and assignment operator.
 

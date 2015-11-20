@@ -2,10 +2,10 @@
 #include "TClassicalRK4"
 
 template 
-<class T_Field, class T_Stepper, int Neq>
+<class T_Equation, class T_Stepper, int Neq>
 class TFieldPropagator : public GUFieldPropagator
 {
-   TFieldPropagator();
+   TFieldPropagator(T_Equation equation, T_Stepper stepper, driver);
    ~TFieldPropagator(){ delete fEquation; delete fStepper; delete fDriver;}
 
    GUVEquationOfMotion*   fEquation;
@@ -14,7 +14,7 @@ class TFieldPropagator : public GUFieldPropagator
 };
 
 template 
-<class T_Field, class T_Stepper, Neq>
+<class T_Field, class T_Stepper, int Neq>
 TFieldPropagator::TFieldPropagator(typename T_Field* field)
 {
   // Must create the Driver, Stepper and Equation ??

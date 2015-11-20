@@ -11,7 +11,7 @@
 // template <class T> inline constexpr const T& MaxConst (const T& a, const T& b) { return (a<b)?b:a;  } 
 
 template
-<class T_Equation, int Nvar>
+<class T_Equation, unsigned int Nvar>
 class TClassicalRK4 : public  TMagErrorStepper
                       <TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
 {
@@ -20,18 +20,25 @@ class TClassicalRK4 : public  TMagErrorStepper
     static constexpr unsigned int NumVarStore = (GUIntegrationNms::NumVarBase > Nvar) ? GUIntegrationNms::NumVarBase : Nvar;
                         // MaxConst( GUIntegrationNms::NumVarBase,  Nvar);
                         // std::max( GUIntegrationNms::NumVarBase,  Nvar);
-    // static const IntegratorCorrection = 1./((1<<4)-1); 
-    inline double IntegratorCorrection() { return 1./((1<<4)-1); }
 
     TClassicalRK4(T_Equation *EqRhs) // , int numberOfVariables = 8)
-       : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar, Nvar), 
+       : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar), 
          fEquation_Rhs(EqRhs)
     {
     }
 
-    virtual ~TClassicalRK4(){;}
+    TClassicalRK4(TClassicalRK4& right);
 
-    __attribute__((always_inline)) 
+    virtual  GUVIntegrationStepper* Clone() const;
+    
+    void SetEquationOfMotion(T_Equation* equation);
+       
+    virtual ~TClassicalRK4(){ delete fEquation_Rhs;}
+
+    // static const IntegratorCorrection = 1./((1<<4)-1); 
+    inline double IntegratorCorrection() { return 1./((1<<OrderRK4)-1); }
+    
+    inline __attribute__((always_inline)) 
      void 
        RightHandSide(double y[], double dydx[]) const
     { fEquation_Rhs->T_Equation::RightHandSide(y, /*fCharge,*/ dydx); }
@@ -53,16 +60,53 @@ class TClassicalRK4 : public  TMagErrorStepper
         // Private copy constructor and assignment operator.
 
     private:
-
-        // int fNumberOfVariables ; // is set default to 6 in constructor
-        // scratch space - not state 
+        // Invariants
         static constexpr unsigned int Nvarstor= 8 * ((Nvar-1)/8+1); 
+        
+        // Owned Object
+        T_Equation *fEquation_Rhs;
+
+        // STATE
+        
+        // scratch space
         double dydxm[Nvarstor]; 
         double dydxt[Nvarstor]; 
         double yt[Nvarstor];
-
-        T_Equation *fEquation_Rhs;
 };
+
+
+template <class T_Equation, unsigned int Nvar>
+   void TClassicalRK4<T_Equation,Nvar>::
+     SetEquationOfMotion(T_Equation* equation)
+{
+   fEquation_Rhs= equation;
+   TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
+        ::SetEquationOfMotion(fEquation_Rhs);
+   
+   // TMagErrorStepper::SetEquationOfMotion(fEquation_Rhs);
+}
+
+template <class T_Equation, unsigned int Nvar>
+  TClassicalRK4<T_Equation,Nvar>::
+  TClassicalRK4(TClassicalRK4& right)
+   : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( (T_Equation*) 0,
+                                                                          OrderRK4,
+                                                                          right.fNumberOfStateVariables),
+   fEquation_Rhs(new T_Equation(*(right.fEquation_Rhs)) ) // (right.fEquation_Rhs->Clone())
+{
+   // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
+   //   ::SetEquationOfMotion(fEquation_Rhs);
+   SetEquationOfMotion(fEquation_Rhs);    // Propagates it also to base class 
+   // TMagErrorStepper::SetEquationOfMotion(fEquation_Rhs);       
+}  
+
+template <class T_Equation, unsigned int Nvar>
+GUVIntegrationStepper* 
+   TClassicalRK4<T_Equation,Nvar>::Clone() const
+{
+   // return new TClassicalRK4( *this );
+   return new TClassicalRK4<T_Equation,Nvar>( *this );   
+}
 
 static constexpr double inv6=1./6;
 
@@ -74,7 +118,7 @@ static constexpr double inv6=1./6;
 // #pragma message "NOT in-lining Dumb Stepper"
 // #endif
 
-template <class T_Equation, int Nvar>
+template <class T_Equation, unsigned int Nvar>
 #ifdef INLINEDUMBSTEPPER
    __attribute__((always_inline)) 
 #else
@@ -128,5 +172,7 @@ template <class T_Equation, int Nvar>
    //            if ( Nvar == 12 )  { this->NormalisePolarizationVector ( yOut ); }
    
 }  // end of DumbStepper ....................................................
+
+
 
 #endif

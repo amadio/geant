@@ -204,14 +204,14 @@ int main(int argc, char *args[])
 
     const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp; 
     cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
-    
+ 
     auto integrDriver= new GUIntegrationDriver( hminimum,
                                                 myStepper,
                                                 Nposmom,
                                                 statisticsVerbosity); 
     // myStepper->InitializeCharge( particleCharge );
     integrDriver->InitializeCharge( particleCharge );
-    
+ 
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
     const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
@@ -413,17 +413,15 @@ int main(int argc, char *args[])
               integrDriver->AccurateAdvance( yTrackIn, total_step, epsTol, yTrackOut ); // , hInitial );
            // *****************************
            
-           // Output is in yTrack
-           
-           ThreeVector PositionOut = yTrackOut.GetPosition(); 
+           ThreeVector PositionOut = yTrackOut.GetPosition();
            yout[0]= PositionOut.x();
            yout[1]= PositionOut.y();
-           yout[2]= PositionOut.z();           
+           yout[2]= PositionOut.z();
            ThreeVector MomentumOut = yTrackOut.GetMomentum();
            yout[3]= MomentumOut.x();
            yout[4]= MomentumOut.y();
-           yout[5]= MomentumOut.z();           
-          
+           yout[5]= MomentumOut.z();
+  
            // myStepper->StepWithErrorEstimate(yIn,dydx,step_len,yout,yerr);   //Call the 'trial' stepper
 
            // Compare with a high-quality stepper -- expect it works well for this step size (check!)

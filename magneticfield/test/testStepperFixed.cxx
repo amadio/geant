@@ -157,9 +157,10 @@ int main(int argc, char *args[])
     cout << "#  Chosen the   ";
     //Choose the stepper based on the command line argument
     switch(stepper_no){
-      case 0: myStepper = new GUExactHelixStepper(gvEquation);
-         cout << " GUExactHelix stepper. " << endl;
-         break;
+       // case 0: myStepper = 0;
+       // new GUExactHelixStepper(gvEquation);
+       //  cout << " GUExactHelix stepper. " << endl;
+       //  break;
       case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
          cout << " TSimpleRunge stepper. " << endl;
          break;         
@@ -171,6 +172,18 @@ int main(int argc, char *args[])
       case 5: myStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
          cout << " GUTCashKarpRKF45 stepper. " << endl;
          break;
+      case 14:
+         auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
+         // myStepper = new TClassicalRK4( baseStepper );
+         myStepper = baseStepper->Clone();
+         delete baseStepper;
+         cout << " TClassicalRK4 stepper (cloned). " << endl;         
+         break;
+      case 15:
+         auto baseStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
+         myStepper = baseStepper->Clone();
+         cout << " GUTCashKarpRKF45 stepper (cloned). " << endl;
+         break;         
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
       default : myStepper = 0 ;
@@ -436,8 +449,8 @@ int main(int argc, char *args[])
 #endif
     delete myStepper;
     delete exactStepper;
-    delete gvEquation;
-    delete gvEquation2;    
+    // delete gvEquation;  // The stepper now takes ownership of the equation
+    // delete gvEquation2;    
     delete gvField;
     
     cout<<"\n\n#-------------End of output-----------------\n";

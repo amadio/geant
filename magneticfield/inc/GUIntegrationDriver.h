@@ -26,6 +26,8 @@ class GUIntegrationDriver
                       GUVIntegrationStepper *pStepper,
                       int                   numberOfComponents=6,
                       int                   statisticsVerbosity=1);
+     GUIntegrationDriver( const GUIntegrationDriver& );
+       // Copy constructor used to create Clone method
      ~GUIntegrationDriver();
 
      // Core methods
@@ -56,6 +58,11 @@ class GUIntegrationDriver
      void  DoneIntegration() { fpStepper->GetEquationOfMotion()->InformDone(); } 
        // Pass along information about end of integration - can clears parameters, flag finished
 
+     GUIntegrationDriver* Clone() const;
+       // Create an independent copy of the current object -- including independent 'owned' objects
+       // 
+       // Question:  If the current object and all sub-objects are const, can it return 'this' ?
+     
      GUVEquationOfMotion* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
      const GUVEquationOfMotion* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); } 
      
@@ -176,12 +183,15 @@ class GUIntegrationDriver
 
    private:
 
-     GUIntegrationDriver(const GUIntegrationDriver&);
      GUIntegrationDriver& operator=(const GUIntegrationDriver&);
         // Private copy constructor and assignment operator.
 
    private:
 
+     // ---------------------------------------------------------------
+     // DEPENDENT Objects
+     GUVIntegrationStepper *fpStepper;
+     
      // ---------------------------------------------------------------
      //  INVARIANTS 
 
@@ -212,9 +222,6 @@ class GUIntegrationDriver
 
      int    fStatisticsVerboseLevel;
 
-     // ---------------------------------------------------------------
-     // DEPENDENT Objects
-     GUVIntegrationStepper *fpStepper;
 
      // ---------------------------------------------------------------
      //  STATE

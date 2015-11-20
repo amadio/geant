@@ -48,28 +48,28 @@ GUIntegrationDriver::GUIntegrationDriver( double                hminimum,
                                   GUVIntegrationStepper *pStepper,
                                   int                   numComponents,
                                   int                   statisticsVerbose)
-  : fSmallestFraction( 1.0e-12 ), 
-    fNoIntegrationVariables(numComponents),
-    fMinNoVars(12),
-    fNoVars( std::max( fNoIntegrationVariables, fMinNoVars )),
-    fSafetyFactor(0.9),
-    fPowerShrink(0.0),   //  exponent for shrinking
-    fPowerGrow(0.0),    //  exponent for growth
-    fErrcon(0.0),
-    fSurfaceTolerance( 1.0e-6),
-    fStatisticsVerboseLevel(statisticsVerbose),
-    fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
-    fNoInitialSmallSteps(0), 
-    fDyerr_max(0.0), fDyerr_mx2(0.0), 
-    fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
-    fSumH_sm(0.0), fSumH_lg(0.0),
-    fVerboseLevel(0)
+   : fMinimumStep( hminimum ),
+     fSmallestFraction( 1.0e-12 ), 
+     fNoIntegrationVariables(numComponents),
+     fMinNoVars(12),
+     fNoVars( std::max( fNoIntegrationVariables, fMinNoVars )),
+     fSafetyFactor(0.9),
+     fPowerShrink(0.0),   //  exponent for shrinking
+     fPowerGrow(0.0),    //  exponent for growth
+     fErrcon(0.0),
+     fSurfaceTolerance( 1.0e-6),
+     fStatisticsVerboseLevel(statisticsVerbose),
+     fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
+     fNoInitialSmallSteps(0), 
+     fDyerr_max(0.0), fDyerr_mx2(0.0), 
+     fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
+     fSumH_sm(0.0), fSumH_lg(0.0),
+     fVerboseLevel(0)
 {  
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
 
   RenewStepperAndAdjust( pStepper );
-  fMinimumStep= hminimum;
   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
 #ifdef GUDEBUG_FIELD
   fVerboseLevel=2;
@@ -88,6 +88,49 @@ GUIntegrationDriver::GUIntegrationDriver( double                hminimum,
   }
 }
 
+//  Copy Constructor - used by Clone
+//
+GUIntegrationDriver::GUIntegrationDriver( const GUIntegrationDriver& right ) 
+   : fMinimumStep( right.fMinimumStep ),
+     fSmallestFraction( right.fSmallestFraction ),
+     fNoIntegrationVariables( right.fNoIntegrationVariables ),
+     fMinNoVars( right.fMinNoVars ),
+     fNoVars( std::max( fNoIntegrationVariables, fMinNoVars )),
+     fSafetyFactor( right.fSafetyFactor ),
+     fPowerShrink( right.fPowerShrink ),
+     fPowerGrow(   right.fPowerGrow),
+     fErrcon( right.fErrcon ),
+     fSurfaceTolerance( right.fSurfaceTolerance ),
+     fStatisticsVerboseLevel( right.fStatisticsVerboseLevel ),
+     fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
+     fNoInitialSmallSteps(0),
+     fDyerr_max(0.0), fDyerr_mx2(0.0), 
+     fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
+     fSumH_sm(0.0), fSumH_lg(0.0),
+     fVerboseLevel( right.fVerboseLevel )
+{  
+  // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
+  // is required. For proper time of flight and spin,  fMinNoVars must be 12
+   const GUVIntegrationStepper *protStepper = right.GetStepper();
+   fpStepper= protStepper->Clone();
+   
+   RenewStepperAndAdjust( fpStepper );
+   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
+
+  if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) )
+  {
+     std::cout << "MagIntDriver version: Accur-Adv: "
+           << "invE_nS, QuickAdv-2sqrt with Statistics "
+#ifdef GVFLD_STATS
+           << " enabled "
+#else
+           << " disabled "
+#endif
+           << std::endl;
+  }
+}
+
+
 // ---------------------------------------------------------
 
 //  Destructor
@@ -100,6 +143,11 @@ GUIntegrationDriver::~GUIntegrationDriver()
   }
 }
 
+
+GUIntegrationDriver* GUIntegrationDriver::Clone() const
+{
+   return new GUIntegrationDriver(*this);
+}
 
 // ---------------------------------------------------------
 
