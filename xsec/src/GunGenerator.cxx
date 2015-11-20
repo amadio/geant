@@ -56,7 +56,7 @@ void GunGenerator::InitPrimaryGenerator() {
   fMass = fPartPDG->Mass();
   // set charge
   fCharge = fPartPDG->Charge();
-#ifdef USE_VECGEOM_NAVIGATOR
+#ifndef USE_VECGEOM_NAVIGATOR
   fCharge /= 3.;
 #endif
   // set total energy [GeV]
