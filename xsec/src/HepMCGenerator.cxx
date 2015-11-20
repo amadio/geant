@@ -140,11 +140,12 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(pdg));
 #ifdef USE_VECGEOM_NAVIGATOR
     const Particle_t *const &part = &Particle::GetParticle(gtrack.fPDG);
+    gtrack.SetCharge(part->Charge());
 #else
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
+    gtrack.SetCharge(part->Charge() / 3.);
 #endif
 
-    gtrack.SetCharge(part->Charge() / 3.);
     gtrack.SetMass(part->Mass());
 
     if ((bool)genpart->production_vertex()) {
