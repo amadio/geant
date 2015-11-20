@@ -65,6 +65,7 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
   if ((int)fCharge != fCharge)
      Geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
 
+
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
   // set total momentum [GeV]
