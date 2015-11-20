@@ -28,7 +28,7 @@ class TGraph;
 class TRootEmbeddedCanvas;
 #endif
 class TFile;
-class TPXsec;
+#include "TPXsec.h"
 
 class TEXsec {
 public:
@@ -87,8 +87,8 @@ public:
   int SizeOf() const;
   void Compact();
   void RebuildClass();
-  static size_t MakeCompactBuffer(TEXsec *b);
-  void RebuildStore(size_t size, int nelem, TEXsec *b);
+  static size_t MakeCompactBuffer(char* &b);
+  static void RebuildStore(size_t size, int nelem, char *b);
 #ifdef MAGIC_DEBUG
   int GetMagic() const {return fMagic;}
 #endif
@@ -145,7 +145,7 @@ private:
 #endif
 
 private:
-  TPXsec *fStore;              //! Pointer to the compact store part of the class 
+  TPXsec   fStore[1];              //! Pointer to the compact store part of the class 
 };
 
 #endif

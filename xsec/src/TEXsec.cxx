@@ -48,7 +48,7 @@ TGListBox *TEXsec::fParticleBox = 0;
 //___________________________________________________________________
 TEXsec::TEXsec()
     : fEGrid(TPartIndex::I()->EGrid()), fAtcm3(0), fEmin(0), fEmax(0), fEilDelta(0), 
-      fEle(0), fIndex(-1), fNEbins(0), fNRpart(0), fPXsec(nullptr), fPXsecP(nullptr), fStore(nullptr) {
+      fEle(0), fIndex(-1), fNEbins(0), fNRpart(0), fPXsec(nullptr), fPXsecP(nullptr) {
   fName[0] = '\0';
   fTitle[0] = '\0';
 }
@@ -60,7 +60,7 @@ TEXsec::TEXsec(int z, int a, float dens, int np)
       fEilDelta(TPartIndex::I()->EilDelta()), fEle(z * 10000 + a * 10), fIndex(-1), 
       fNEbins(TPartIndex::I()->NEbins()), fNRpart(np),
       fPXsec(new TPXsec[fNRpart]), 
-      fPXsecP(new TPXsec*[fNRpart]), fStore(nullptr) {
+      fPXsecP(new TPXsec*[fNRpart]) {
   strncpy(fName, TPartIndex::I()->EleSymb(z), 31);
   strncpy(fTitle, TPartIndex::I()->EleName(z), 127);
   memset(fCuts, 0, 4 * sizeof(float));
@@ -71,7 +71,7 @@ TEXsec::TEXsec(int z, int a, float dens, int np)
 TEXsec::TEXsec(const TEXsec &other): fEGrid(other.fEGrid), fAtcm3(other.fAtcm3),
 				     fEmin(other.fEmin), fEmax(other.fEmax), fEilDelta(other.fEilDelta), 
 				     fEle(other.fEle), fIndex(other.fIndex), fNEbins(other.fNEbins), 
-				     fNRpart(other.fNRpart), fPXsec(other.fPXsec), fStore(nullptr)
+				     fNRpart(other.fNRpart), fPXsecP(other.fPXsecP)
  {
    strncpy(fName,other.fName,32);
    strncpy(fTitle,other.fTitle,128);
@@ -617,16 +617,17 @@ int TEXsec::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
       size += fPXsecP[i]->SizeOf();
-   return (int) size;
+   return (int) size - sizeof(TPXsec); // fStore already holds one TPXsec
 }
 
 //___________________________________________________________________
 void TEXsec::Compact() {
-   TPXsec *start = fStore;
+   char *start = (char*) fStore;
    for(auto i=0; i<fNRpart; ++i) {
       TPXsec *px = new(start) TPXsec(*fPXsecP[i]);
       px->Compact();
-      delete fPXsecP[i];
+      // This line can be reactivated when we remove the back compat array
+      //      fPXsecP[i]->~TPXsec();
       start += px->SizeOf();
       fPXsecP[i]=px;
    }
@@ -634,28 +635,28 @@ void TEXsec::Compact() {
 
 //___________________________________________________________________
 void TEXsec::RebuildClass() {
-   TPXsec *start = fStore;
+   char *start = (char*) fStore;
    for(auto i=0; i<fNRpart; ++i) {
       cout << "fPXsecP[" << i <<"] = " << fPXsecP[i] << " pointer = " << start << endl;
 #ifdef MAGIC_DEBUG
-      if(start->GetMagic() != -777777) {
-	 cout << "TPXsec::Broken magic " << start->GetMagic() << endl;
+      if(((TPXsec*) start)->GetMagic() != -777777) {
+	 cout << "TPXsec::Broken magic " << ((TPXsec*) start)->GetMagic() << endl;
 	 exit(1);
       }
 #endif
-      fPXsecP[i] = start;
-      start += start->SizeOf();
+      fPXsecP[i] = (TPXsec *) start;
+      start += ((TPXsec*) start)->SizeOf();
    }
 }
 
 //___________________________________________________________________
-size_t TEXsec::MakeCompactBuffer(TEXsec *b) {
+size_t TEXsec::MakeCompactBuffer(char* &b) {
    // First calculate how much we need
    size_t totsize = 0;
    for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
    // Now allocate buffer
-   b = (TEXsec*) malloc(totsize);
-   TEXsec * start = b;
+   b = (char*) malloc(totsize);
+   char* start = b;
    // now copy and compact
    for(auto i=0; i<fNLdElems; ++i) {
       TEXsec *el = new(start) TEXsec(*fElements[i]);
@@ -666,21 +667,22 @@ size_t TEXsec::MakeCompactBuffer(TEXsec *b) {
 }
 
 //___________________________________________________________________
-void TEXsec::RebuildStore(size_t size, int nelem, TEXsec *b) {
+void TEXsec::RebuildStore(size_t size, int nelem, char *b) {
    fNLdElems = 0;
-   TEXsec *current = b;
+   char *start = b;
    for(auto i=0; i<nelem; ++i) {
-      if(current->GetMagic() != -777777) {
+      TEXsec *current = (TEXsec *) start;
+      if(current->GetMagic() == -777777) {
 	 fElements[fNLdElems++] = current;
       } else {
 	 cout << "TEXsec::Broken Magic " << current->GetMagic() << endl;
 	 exit(1);
       }
-      current += current->SizeOf();     
+      start += current->SizeOf();     
    }
-   if((size_t)(current - b) != size) {
+   if((size_t)(start - b) != size) {
       cout << "TEXsec::RebuildStore: expected size " << size 
-	   << " found size " << current -b << endl;
+	   << " found size " << start - b << endl;
       exit(1);
    }
 }

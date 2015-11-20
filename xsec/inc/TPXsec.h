@@ -90,7 +90,7 @@ private:
   ClassDefNV(TPXsec, 3) // Particle X-secs
 #endif
 private:
-  float *fStore;        //! Pointer to the compact data of the class
+  float  fStore[1];        //! Pointer to the compact data of the class
 };
 
 #endif

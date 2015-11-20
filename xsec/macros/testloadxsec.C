@@ -5,6 +5,11 @@
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
 
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
 void testloadxsec()
 {
    gSystem->Load("libPhysics.so");
@@ -24,6 +29,10 @@ void testloadxsec()
    TTabPhysMgr::Instance(fxsec, ffins );
    for(auto i=0; i<TEXsec::NLdElems(); ++i)
       TEXsec::Element(i)->GetPartSize();
+   char *b=nullptr;
+   size_t size = TEXsec::MakeCompactBuffer(b);
+   cout << "Size of the buffer = " << size << " bytes " << endl;
+   TEXsec::RebuildStore(size,TEXsec::NLdElems(),b);
    delete geom;
    delete TTabPhysMgr::Instance();
 }
