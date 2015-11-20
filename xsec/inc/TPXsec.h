@@ -62,6 +62,12 @@ private:
 
   static int fVerbose; // Controls verbosity level
 
+  int fPDG;             // particle pdg code
+  int fNEbins;          // number of energy bins
+  int fNCbins;          // number of energy bins for dEdx and MS
+  int fNXsec;           // number of reactions
+  int fNTotXs;          // tot size of fTotXs
+  int fNXSecs;          // tot size of fXSecs
   const double *fEGrid; //![fNEbins] energy grid
   float *fMSangle;      // [fNCbins] table of MS average angle
   float *fMSansig;      // [fNCbins] table of MS sigma angle
@@ -73,12 +79,6 @@ private:
   double fEmin;         // Min energy of the energy grid
   double fEmax;         // Max energy of the energy grid
   double fEilDelta;     // logarithmic energy delta
-  int fPDG;             // particle pdg code
-  int fNEbins;          // number of energy bins
-  int fNCbins;          // number of energy bins for dEdx and MS
-  int fNXsec;           // number of reactions
-  int fNTotXs;          // tot size of fTotXs
-  int fNXSecs;          // tot size of fXSecs
   int fRdict[FNPROC];   // reaction dictionary from reaction number to position
                         // in the X-sec array
   int fRmap[FNPROC];    // reaction map, from reaction position in the X-sec
@@ -87,7 +87,7 @@ private:
   const int fMagic = -777777;
 #endif
 #ifdef USE_ROOT
-  ClassDefNV(TPXsec, 2) // Particle X-secs
+  ClassDefNV(TPXsec, 3) // Particle X-secs
 #endif
 private:
   float *fStore;        //! Pointer to the compact data of the class

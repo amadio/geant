@@ -15,9 +15,10 @@ int TPXsec::fVerbose = 0;
 
 //_________________________________________________________________________
 TPXsec::TPXsec()
-   : fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), fMSansig(nullptr), fMSlength(nullptr), 
+   : fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0), 
+     fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), fMSansig(nullptr), fMSlength(nullptr), 
      fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr), fXSecs(nullptr),  fEmin(0), fEmax(0), fEilDelta(0),
-     fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0), fStore(nullptr) {
+     fStore(nullptr) {
    int np = TPartIndex::I()->NProc();
    while (np--)
       fRdict[np] = fRmap[np] = -1;
@@ -25,26 +26,27 @@ TPXsec::TPXsec()
 
 //_________________________________________________________________________
 TPXsec::TPXsec(int pdg, int nxsec)
-   :  fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), 
+   :  fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()), 
+      fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins), fNXSecs(fNEbins * fNXsec), 
+      fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), 
       fMSansig(nullptr), fMSlength(nullptr), fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr), 
       fXSecs(nullptr), fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()),
-      fEilDelta((TPartIndex::I()->NEbins() - 1) / log(fEmax / fEmin)), fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()), 
-      fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins), fNXSecs(fNEbins * fNXsec), fStore(nullptr) {
+      fEilDelta((TPartIndex::I()->NEbins() - 1) / log(fEmax / fEmin)), fStore(nullptr) {
    int np = TPartIndex::I()->NProc();
    while (np--)
       fRdict[np] = fRmap[np] = -1;
 }
 
 //_________________________________________________________________________
-TPXsec::TPXsec(const TPXsec &other): fEGrid(other.fEGrid),
+TPXsec::TPXsec(const TPXsec &other): fPDG(other.fPDG), fNEbins(other.fNEbins),
+				     fNCbins(other.fNCbins), fNXsec(other.fNXsec),
+				     fNTotXs(other.fNTotXs), fNXSecs(other.fNXSecs),
+				     fEGrid(other.fEGrid),
 				     fMSangle(other.fMSangle), fMSansig(other.fMSansig),
 				     fMSlength(other.fMSlength), fMSlensig(other.fMSlensig),
 				     fdEdx(other.fdEdx), fTotXs(other.fTotXs), fXSecs(other.fXSecs),
 				     fEmin(other.fEmin), fEmax(other.fEmax),
 				     fEilDelta(other.fEilDelta), 
-				     fPDG(other.fPDG), fNEbins(other.fNEbins),
-				     fNCbins(other.fNCbins), fNXsec(other.fNXsec),
-				     fNTotXs(other.fNTotXs), fNXSecs(other.fNXSecs),
 				     fStore(nullptr)
 {
    memcpy(fRdict, other.fRdict, FNPROC*sizeof(int));

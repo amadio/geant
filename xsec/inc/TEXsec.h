@@ -126,7 +126,8 @@ private:
   int fIndex;           // Index of this in TTabPhysMgr::fElemXsec
   int fNEbins;          // Number of log steps in energy
   int fNRpart;          // Number of particles with reaction
-  TPXsec **fPXsec;       // [fNRpart] Cross section table per particle
+  TPXsec *fPXsec;       // [fNRpart] Cross section table per particle
+  TPXsec **fPXsecP;       // ![fNRpart] Cross section table per particle
 
   static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
