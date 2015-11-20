@@ -683,8 +683,11 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           //          track.fParticle = nTotSecPart;          //index of this particle
           track.fPDG = secPDG;    // PDG code of this particle
           track.fGVcode = pid[i]; // GV index of this particle
-          track.fEindex = 0;
-          track.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
+          track.fEindex = 0;	  
+          track.fCharge = secPartPDG->Charge(); // charge of this particle
+#ifndef USE_VECGEOM_NAVIGATOR
+	  track.fCharge /=3.;
+#endif
           track.fProcess = 0;
           track.fVindex = tracks.fVindexV[t];
           track.fNsteps = 0;
@@ -931,7 +934,10 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track.fPDG = secPDG;    // PDG code of this particle
       track.fGVcode = pid[i]; // GV index of this particle
       track.fEindex = 0;
-      track.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
+      track.fCharge = secPartPDG->Charge(); // charge of this particle
+#ifndef USE_VECGEOM_NAVIGATOR
+      track.fCharge /=3.;
+#endif
       track.fProcess = 0;
       track.fVindex = tracks.fVindexV[iintrack]; // volume index
       track.fNsteps = 0;
@@ -1043,7 +1049,10 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track.fPDG = secPDG;       // PDG code of this particle
         track.fGVcode = pid[isec]; // GV index of this particle
         track.fEindex = 0;
-        track.fCharge = secPartPDG->Charge() / 3.; // charge of this particle
+        track.fCharge = secPartPDG->Charge(); // charge of this particle
+#ifndef USE_VECGEOM_NAVIGATOR
+	track.fCharge /=3.;
+#endif
         track.fProcess = -1;
         track.fVindex = tracks.fVindexV[iintrack];
         track.fNsteps = 0;
