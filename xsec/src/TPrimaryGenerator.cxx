@@ -60,7 +60,11 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
   // set rest mass [GeV]
   fMass = fPartPDG->Mass();
   // set charge
+#ifdef USE_VECGEOM_NAVIGATOR
+  fCharge = fPartPDG->Charge();
+#else
   fCharge = fPartPDG->Charge() / 3.;
+#endif
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
   // set total momentum [GeV]
