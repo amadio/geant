@@ -1,25 +1,23 @@
 #include "GUAliasTableManager.h"
 
-#include "MaterialHandler.h"
-
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
-GUAliasTableManager::GUAliasTableManager() 
+GUAliasTableManager::GUAliasTableManager(int nelements, int ngrid) 
   : fNElement(0)
 {
-  int numberOfElement = MaterialHandler::Instance()->GetNumberOfElements();
+  for (int i = 0; i < maximumZ ; ++i) fIndex[i] = -1;   
+  //better to have another member for the total number of elements = nelements
+  fAliasTables = new GUAliasTable*[nelements];
 
-  for (int i= 0; i < maximumZ ; ++i) fIndex[i] = -1;   
-  fAliasTables = (GUAliasTable**)malloc(numberOfElement*sizeof(GUAliasTable*)); 
 }
 
 VECPHYS_CUDA_HEADER_HOST
 GUAliasTableManager::~GUAliasTableManager() 
 {
-  for(int i = 0 ; i < fNElement ; ++i) free(fAliasTables[i]);
-  free(fAliasTables);
+  for(int i = 0 ; i < fNElement ; ++i) delete fAliasTables[i];
+  delete [] fAliasTables;
 }
 
 VECPHYS_CUDA_HEADER_HOST
@@ -50,6 +48,7 @@ int GUAliasTableManager::GetNumberOfElements() {
 VECPHYS_CUDA_HEADER_HOST
 void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable* table) { 
   assert( Z > -1 && Z < maximumZ ) ;
+
   fAliasTables[fNElement] = table;
   SetTableIndex(Z);  
 }

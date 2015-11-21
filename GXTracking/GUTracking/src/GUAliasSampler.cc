@@ -1,5 +1,7 @@
 #include "GUAliasSampler.h"
 
+#include "MaterialHandler.h"
+
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
@@ -23,7 +25,9 @@ GUAliasSampler(Random_t* states, int threadId,
   fSampledNumEntries( numEntriesSampled ),
   fInverseBinSampled( 1.0 / numEntriesSampled )
 {
-  fAliasTableManager = new GUAliasTableManager(/*maxZelement*/);
+  int nelements = MaterialHandler::Instance()->GetNumberOfElements();
+  int ngrid =  (fInNumEntries + 1)*fSampledNumEntries ;
+  fAliasTableManager = new GUAliasTableManager(nelements,ngrid);
 }
 
 VECPHYS_CUDA_HEADER_BOTH
