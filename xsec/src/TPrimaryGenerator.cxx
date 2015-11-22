@@ -65,6 +65,9 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
 #else
   fCharge = fPartPDG->Charge() / 3.;
 #endif
+  if ((int)fCharge != fCharge)
+     Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
+
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
   // set total momentum [GeV]

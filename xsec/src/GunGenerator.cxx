@@ -59,6 +59,9 @@ void GunGenerator::InitPrimaryGenerator() {
 #ifndef USE_VECGEOM_NAVIGATOR
   fCharge /= 3.;
 #endif
+  if ((int)fCharge != fCharge)
+     Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
+
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
   // set total momentum [GeV]
