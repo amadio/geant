@@ -1,6 +1,7 @@
 #include "GunGenerator.h"
 #include "GeantTrack.h"
 #include "Geant/Typedefs.h"
+#include "Geant/Error.h"
 
 #ifdef USE_ROOT
 ClassImp(GunGenerator)
@@ -60,7 +61,7 @@ void GunGenerator::InitPrimaryGenerator() {
   fCharge /= 3.;
 #endif
   if ((int)fCharge != fCharge)
-     Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
+     Geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
 
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
