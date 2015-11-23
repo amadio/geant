@@ -27,11 +27,13 @@ class TMagErrorStepper : public GUVIntegrationStepper
                           unsigned int numStateVariables); // = -1)  // No default -- must ensure order is set
 
         TMagErrorStepper( const TMagErrorStepper& right );
-   
-        virtual ~TMagErrorStepper() {;}
+
+        // void SetYourEquationOfMotion(T_Equation* fEquation_Rhs);
+
+        virtual ~TMagErrorStepper() {delete fEquation_Rhs;}
 
         inline void RightHandSide(double y[], double dydx[]) 
-              { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
+          { assert(fEquation_Rhs); fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
 
         inline void StepWithErrorEstimate( const double yInput[],
                                            const double dydx[],
@@ -42,13 +44,21 @@ class TMagErrorStepper : public GUVIntegrationStepper
             // is fixed, with the Step size given by h.
             // Integrates ODE starting values y[0 to 6].
             // Outputs yout[] and its estimated error yerr[].
-        
 
-        double DistChord() const; 
+        double DistChord() const;
+
+        friend  std::ostream&
+           operator<<( std::ostream& os, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> & );
+
+        void CheckInitialisation() const;
 
     private:
         TMagErrorStepper& operator=(const TMagErrorStepper&) = delete;
         // Private assignment operator.
+
+    protected:
+        T_Equation *fEquation_Rhs;
+            // Owned Object
 
     private:
 
@@ -65,7 +75,6 @@ class TMagErrorStepper : public GUVIntegrationStepper
         // they are allocated at the class level only for efficiency -
         // so that calls to new and delete are not made in Stepper().
 
-        T_Equation *fEquation_Rhs;
 };
 
 template<class T_Stepper, class T_Equation, unsigned int Nvar>
@@ -79,7 +88,16 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
                             numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
    fEquation_Rhs(EqRhs)
 {
-   assert( numStateVariables >= Nvar ); 
+   // assert(EqRhs != 0);
+   std::cerr << "- TMagErrorStepper<T_Stepper, T_Equation, Nvar> Constructor 1 called: " << std::endl;
+   std::cerr << "    order= " << integrationOrder << std::endl;
+   std::cerr << "    Nvar = " << Nvar <<   "  numState = " << numStateVariables << std::endl;
+   std::cerr << "    Eq-of-motion (ptr) = " << EqRhs << std::endl;
+   std::cerr << "    this = " << this << std::endl;
+   std::cerr << std::endl;
+
+   assert( numStateVariables >= Nvar );
+   assert( numStateVariables <= NumVarStore );
 }
 
 template<class T_Stepper, class T_Equation, unsigned int Nvar>
@@ -87,15 +105,50 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
    TMagErrorStepper( const TMagErrorStepper& right )
     :
        GUVIntegrationStepper( (T_Equation *) 0, 
-                              right.IntegrationOrder(),
+                              right.IntegratorOrder(),
                               right.GetNumberOfVariables(),  // must be == Nvar
                               right.GetNumberOfStateVariables() ), 
-       fEquation_Rhs(right.GetEquationOfMotion()->Clone())
+       fEquation_Rhs(right.fEquation_Rhs->Clone())
+       // fEquation_Rhs(right.GetEquationOfMotion()->Clone())
 {
-   SetEquationOfMotion(fEquation_Rhs); 
-
+   assert(fEquation_Rhs!=0);
+   // TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
+   GUVIntegrationStepper::SetEquationOfMotion(fEquation_Rhs);
+   std::cerr << " TMagErrorStepper<T_Stepper, T_Equation, Nvar> " << std::endl;
+   std::cerr << "   Copy Constructor created: " << *this << std::endl;
+   
    // unsigned nvar = std::max(this->GetNumberOfVariables(), 8);
-   assert( this->GetNumberOfVariables() == Nvar ); 
+   assert( this->GetNumberOfVariables() == Nvar );
+}
+
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
+std::ostream&
+          operator<<( std::ostream& ostr, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> &stepper )
+{
+   ostr << "- TMagErrorStepper<T_Stepper, T_Equation, Nvar>: " << std::endl;
+   ostr << "    order= " << stepper.IntegrationOrder() << std::endl;
+   ostr << "    Nvar = " << Nvar <<   "  numState = " << stepper.GetNumberOfStateVariables() << std::endl;
+   ostr << "    Eq-of-motion (here) = " << stepper.GetEquationOfMotion() << std::endl;
+   ostr << "    Eq-of-motion (base) = " << stepper.fEquation_Rhs << std::endl;
+   ostr << "    this = " << &stepper << std::endl;
+   ostr << std::endl;
+
+   return ostr;
+}
+
+
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
+ void
+   TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
+   CheckInitialisation() const
+{
+   assert( this->GetNumberOfVariables() == Nvar );
+   assert( fEquation_Rhs != 0);
+   // GUVIntegrationStepper* iStepper = dynamic_cast<GUVIntegrationStepper*>(this);
+
+   // GUVEquationOfMotion *
+   auto iEquation = dynamic_cast<GUVEquationOfMotion*>(fEquation_Rhs);
+   assert ( iEquation == GetEquationOfMotion() ); 
 }
 
 // inline
