@@ -22,8 +22,8 @@ class TClassicalRK4 : public  TMagErrorStepper
                         // std::max( GUIntegrationNms::NumVarBase,  Nvar);
 
     TClassicalRK4(T_Equation *EqRhs) // , int numberOfVariables = 8)
-       : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar), 
-         fEquation_Rhs(EqRhs)
+       : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar)
+       // fEquation_Rhs(EqRhs)
     {
     }
 
@@ -31,17 +31,20 @@ class TClassicalRK4 : public  TMagErrorStepper
 
     virtual  GUVIntegrationStepper* Clone() const override final;
     
-    void SetEquationOfMotion(T_Equation* equation);
+    // void SetOurEquationOfMotion(T_Equation* equation);
        
-    virtual ~TClassicalRK4(){ delete fEquation_Rhs;}
+    virtual ~TClassicalRK4(){ } // delete fEquation_Rhs;}
 
     // static const IntegratorCorrection = 1./((1<<4)-1); 
     inline double IntegratorCorrection() { return 1./((1<<OrderRK4)-1); }
-    
+
+    /*
     inline __attribute__((always_inline)) 
      void 
        RightHandSide(double y[], double dydx[]) const
-    { fEquation_Rhs->T_Equation::RightHandSide(y, /*fCharge,*/ dydx); }
+    { fEquation_Rhs->T_Equation::RightHandSide(y, //fCharge,
+                                               dydx); }
+     */
     
     // A stepper that does not know about errors.
     // It is used by the MagErrorStepper stepper.
@@ -63,7 +66,7 @@ class TClassicalRK4 : public  TMagErrorStepper
         static constexpr unsigned int Nvarstor= 8 * ((Nvar-1)/8+1); 
         
         // Owned Object
-        T_Equation *fEquation_Rhs;
+        //  T_Equation *fEquation_Rhs;
 
         // STATE
         
@@ -73,29 +76,38 @@ class TClassicalRK4 : public  TMagErrorStepper
         double yt[Nvarstor];
 };
 
-
+/*
 template <class T_Equation, unsigned int Nvar>
    void TClassicalRK4<T_Equation,Nvar>::
-     SetEquationOfMotion(T_Equation* equation)
+     SetOurEquationOfMotion(T_Equation* equation)
 {
-   fEquation_Rhs= equation;
+   // fEquation_Rhs= equation;
    TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
-        ::SetEquationOfMotion(fEquation_Rhs);
+       ::SetEquationOfMotion(equation); // fEquation_Rhs);
    
    // TMagErrorStepper::SetEquationOfMotion(fEquation_Rhs);
 }
+*/
 
 template <class T_Equation, unsigned int Nvar>
   TClassicalRK4<T_Equation,Nvar>::
   TClassicalRK4(const TClassicalRK4& right)
-   : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( (T_Equation*) 0,
-                                                                          OrderRK4,
-                                                                          right.GetNumberOfStateVariables() ),
-   fEquation_Rhs(new T_Equation(*(right.fEquation_Rhs)) ) // (right.fEquation_Rhs->Clone())
+   :
+      TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( // (T_Equation*) 0,
+           new T_Equation(*(right.fEquation_Rhs)),
+           OrderRK4,
+           right.GetNumberOfStateVariables() )
+   // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( right ), 
+
+   // fEquation_Rhs(new T_Equation(*(right.fEquation_Rhs)) )
+   // fEquation_Rhs(right.fEquation_Rhs->Clone())  // Alt
+   // fEquation_Rhs(right.fEquation_Rhs->CloneOrSafeSelf())  // Alt   
 {
    // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
    //   ::SetEquationOfMotion(fEquation_Rhs);
-   SetEquationOfMotion(fEquation_Rhs);    // Propagates it also to base class 
+   // assert(fEquation_Rhs);
+   // SetEquationOfMotion(fEquation_Rhs);    // Propagates it also to base class 
+
    // TMagErrorStepper::SetEquationOfMotion(fEquation_Rhs);       
 }  
 
@@ -103,8 +115,11 @@ template <class T_Equation, unsigned int Nvar>
 GUVIntegrationStepper* 
    TClassicalRK4<T_Equation,Nvar>::Clone() const
 {
-   // return new TClassicalRK4( *this );
-   return new TClassicalRK4<T_Equation,Nvar>( *this );   
+   // return new TClassicalRK4<T_Equation,Nvar>( *this );
+   auto clone= new TClassicalRK4<T_Equation,Nvar>( *this );
+   // clone->Check();
+   assert ( clone->fEquation_Rhs != 0 );
+   return clone;
 }
 
 static constexpr double inv6=1./6;
