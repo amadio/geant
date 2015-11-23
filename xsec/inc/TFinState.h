@@ -56,6 +56,13 @@ public:
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
 
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
+
 private:
   TFinState(const TFinState &); // Not implemented
 
@@ -72,9 +79,13 @@ private:
   int *fNpart;    // [fNFstates] number of particles in each final state
   char *fSurv;    // [fNFstates] whether the orignal particle has survived or not
 
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
+#endif
 #ifdef USE_ROOT
   ClassDefNV(TFinState, 1) // Particle Final States
 #endif
+  float  fStore[1];        //! Pointer to the compact data of the class
 };
 
 #endif

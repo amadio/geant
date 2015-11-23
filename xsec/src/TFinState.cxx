@@ -10,14 +10,14 @@ int TFinState::fVerbose = 0;
 
 //_________________________________________________________________________
 TFinState::TFinState()
-    : fNFstates(0), fNsecs(0), fNMom(0), fNpart(0), fWeight(0), fKerma(0), fEn(0), fSurv(0), fPID(0), fMom(0) {
+    : fNFstates(0), fNsecs(0), fNMom(0), fWeight(0), fKerma(0), fEn(0), fMom(0), fPID(0), fNpart(0), fSurv(0) {
 }
 
 //_________________________________________________________________________
 TFinState::TFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
                      const char surv[], const int pid[], const float mom[])
-    : fNFstates(nfstates), fNsecs(0), fNMom(0), fNpart(new int[fNFstates]), fWeight(new float[fNFstates]),
-      fKerma(new float[fNFstates]), fEn(new float[fNFstates]), fSurv(new char[fNFstates]), fPID(0), fMom(0) {
+    : fNFstates(nfstates), fNsecs(0), fNMom(0), fWeight(new float[fNFstates]), fKerma(new float[fNFstates]),
+      fEn(new float[fNFstates]), fMom(0), fPID(0), fNpart(new int[fNFstates]), fSurv(new char[fNFstates]) {
   memcpy(fNpart, npart, fNFstates * sizeof(int));
   memcpy(fWeight, weight, fNFstates * sizeof(float));
   memcpy(fKerma, kerma, fNFstates * sizeof(float));
@@ -317,3 +317,111 @@ bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, fl
     return fSurv[finstat];
   }
 }
+
+//_________________________________________________________________________
+int TFinState::SizeOf() const {
+   size_t size = sizeof(*this);
+   size += 3 * fNFstates * sizeof(float);
+   size += fNMom * sizeof(int);
+   size += fNsecs * sizeof(int);
+   size += fNFstates * sizeof(int);
+   size += fNFstates * sizeof(char);
+   return (int) size-sizeof(float);  // fStore already takes one float
+}
+
+//_________________________________________________________________________
+void TFinState::Compact() {
+   int size = 0;
+   float *start = fStore;
+   if(fWeight) {
+      size = fNFstates * sizeof(float);
+      memcpy(start, fWeight, size);
+      fWeight = start;
+      start +=fNFstates;
+   }
+   if(fKerma) {
+      size = fNFstates * sizeof(float);
+      memcpy(start, fKerma, size);
+      fKerma = start;
+      start +=fNFstates;
+   }
+   if(fEn) {
+      size = fNFstates * sizeof(float);
+      memcpy(start, fEn, size);
+      fEn = start;
+      start +=fNFstates;
+   }
+   if(fMom) {
+      size = fNMom * sizeof(float);
+      memcpy(start, fMom, size);
+      fMom = start;
+      start += fNMom;
+   }
+   if(fPID) {
+      size = fNsecs * sizeof(int);
+      memcpy(start, fPID, size);
+      fPID = (int *) start;
+      start = (float *) ((int *) start + fNsecs);
+   }
+   if(fNpart) {
+      size = fNFstates * sizeof(int);
+      memcpy(start, fNpart, size);
+      fNpart = (int *) start;
+      start = (float *) ((int *) start + fNFstates);
+   }
+   if(fSurv) {
+      size = fNFstates * sizeof(char);
+      memcpy(start, fSurv, size);
+      fSurv = (char *) start;
+      start = (float *) ((char *) start + fNFstates);
+   }
+}
+
+//______________________________________________________________________________
+void TFinState::RebuildClass() {
+   int size = 0;
+   float *start = fStore;
+   if(fWeight) {
+      cout << "Original fWeight " << fWeight << " new pointer " << start << endl;
+      fWeight = start;
+      size = fNFstates * sizeof(float);
+      start +=size;
+   }
+   if(fKerma) {
+      cout << "Original fKerma " << fKerma << " new pointer " << start << endl;
+      fKerma = start;
+      size = fNFstates * sizeof(float);
+      start +=size;
+   }
+   if(fEn) {
+      cout << "Original fEn " << fEn << " new pointer " << start << endl;
+      fEn = start;
+      size = fNFstates * sizeof(float);
+      start +=size;
+   }
+   if(fMom) {
+      cout << "Original fMom " << fMom << " new pointer " << start << endl;
+      fMom = start;
+      size = fNMom * sizeof(float);
+      start +=size;
+   }
+   if(fPID) {
+      cout << "Original fPID " << fPID << " new pointer " << start << endl;
+      fPID = (int *) start;
+      size = fNsecs * sizeof(int);
+      start +=size;
+   }
+   if(fNpart) {
+      cout << "Original fNpart " << fNpart << " new pointer " << start << endl;
+      fNpart = (int *) start;
+      size = fNFstates * sizeof(int);
+      start +=size;
+   }
+   if(fSurv) {
+      cout << "Original fSurv " << fSurv << " new pointer " << start << endl;
+      fSurv = (char *) start;
+      size = fNFstates * sizeof(char);
+      start +=size;
+   }
+}
+
