@@ -64,13 +64,13 @@ private:
   int fNFstates;  // Number of final states
   int fNsecs;     // Total number of secondaries
   int fNMom;      // 3*fNsecs, just because ROOT cannot use formulas in dimensions
-  int *fNpart;    // [fNFstates] number of particles in each final state
   float *fWeight; // [fNFstates] Weight of the final states
   float *fKerma;  // [fNFstates] Released energy
   float *fEn;     // [fNFstates] Energy of final states in GeV
-  char *fSurv;    // [fNFstates] whether the orignal particle has survived or not
-  int *fPID;      // [fNsecs] GeantV particle code
   float *fMom;    // [fNMom] Particle momentum (GeV)
+  int *fPID;      // [fNsecs] GeantV particle code
+  int *fNpart;    // [fNFstates] number of particles in each final state
+  char *fSurv;    // [fNFstates] whether the orignal particle has survived or not
 
 #ifdef USE_ROOT
   ClassDefNV(TFinState, 1) // Particle Final States
