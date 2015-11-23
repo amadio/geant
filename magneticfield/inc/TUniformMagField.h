@@ -83,6 +83,22 @@ class TUniformMagField : public GUVMagneticField
                         this->fFieldComponents[2]) );
         }
 
+        TUniformMagField* CloneOrSafeSelf( bool Safe = 0 )
+        // {  Safe= true; return this; }  //  Class is thread-safe, can use 'self' instead of clone
+        // { Safe= false; return new TUniformMagField( this ); }  // Check ...
+        { Safe= false; return Clone(); }  // Check ...
+        
+        // TUniformMagField* CloneOrSafeSelf( bool* pSafe = 0 )
+        //     {  if(pSafe) { *pSafe= true; } ; return this; }
+                 //  Class is thread-safe, can use 'self' instead of clone
+
+        TUniformMagField* CloneOrSafeSelf( bool* pSafe )
+        {
+           bool safeLocal;
+           if( !pSafe ) pSafe= &safeLocal;
+           return this->CloneOrSafeSelf(*pSafe);
+        }
+        
     private:
         double fFieldComponents[3];
 };
