@@ -31,8 +31,15 @@ class TMagFieldEquation : public GUVEquationOfMotion
      static constexpr double fCof    = fieldUnits::eplus * Constants::c_light ;
    
      TMagFieldEquation(T_Field* pF) : GUVEquationOfMotion(pF) { fPtrField = pF; }
+
+     TMagFieldEquation(const TMagFieldEquation& );
      ~TMagFieldEquation()  {}  // Was virtual - but now no inheritance
 
+     TMagFieldEquation<Field,Size>* Clone() const;
+     TMagFieldEquation<Field,Size>* CloneOrSafeSelf(bool& safe);
+     TMagFieldEquation<Field,Size>* CloneOrSafeSelf(bool* safe=0);
+        // If class is thread safe, return self ptr.  Else return clone
+     
      REALLY_INLINE  // inline __attribute__((always_inline))     
      void GetFieldValue(const double Point[4],
                               double Value[]) const
@@ -74,6 +81,59 @@ class TMagFieldEquation : public GUVEquationOfMotion
      double    fParticleCharge;  // Can be moved to concrete Equation (as a type!)
                                  // - to generalised for other forces
 };
+
+template 
+<class Field, unsigned int Size>
+   TMagFieldEquation<Field,Size>
+   ::TMagFieldEquation(const TMagFieldEquation& right)
+   :
+      GUVEquationOfMotion( (GUVField*) 0 ), 
+      fPtrField( right.fPtrField->CloneOrSafeSelf() )
+      // fPtrField( new Field(right.fPtrField->CloneOrSafeSelf() ) )
+{
+   std::cout <<  "TMagFieldEquation - copy constructor called." << std::endl;
+   GUVEquationOfMotion::SetFieldObj( fPtrField ); //  Also stored in base class ... for now
+}
+
+template 
+<class Field, unsigned int Size>
+   TMagFieldEquation<Field,Size>*
+   TMagFieldEquation<Field,Size>
+   ::CloneOrSafeSelf(bool& safe)
+{
+   TMagFieldEquation<Field,Size>* equation;
+   Field* pField=
+      fPtrField->CloneOrSafeSelf(safe);
+
+   std::cerr << " #TMagFieldEquation<Field,Size>::CloneOrSafeSelf(bool& safe) called# " << std::endl;
+   
+   // If Field does not have such a method:
+   //  = new Field( fPtrField ); // Need copy constructor.
+   //  safe= false;
+   
+   // safe = safe && fClassSafe;
+   // if( safe )  {  equation = this; }
+   //    Can be introduced when Equation is thread safe -- no state
+   //     --> For now the particle Charge is preventing this 23.11.2015
+   // else {
+      equation = new TMagFieldEquation( pField );
+      safe= false;
+   // }
+}
+
+template 
+<class Field, unsigned int Size>
+   TMagFieldEquation<Field,Size>*   
+   TMagFieldEquation<Field,Size>
+   ::CloneOrSafeSelf(bool* pSafe)
+{
+   bool safeLocal;
+   std::cerr << " #TMagFieldEquation<Field,Size>::CloneOrSafeSelf(bool* safe) called#" << std::endl;
+   
+   if( !pSafe ) pSafe= &safeLocal;
+   return CloneOrSafeSelf(*pSafe);
+}
+
 
 template 
 <class Field, unsigned int Size>
