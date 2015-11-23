@@ -623,7 +623,18 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
         while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
           ;
       }
-      wm->FeederQueue()->wait_and_pop(basket);
+      if (wm->FeederQueue()->try_pop(basket)) {
+         // We got a basket, let's go.
+      } else {
+         // No basket in the queue, let's flush our oustanding work
+         if (0 != broker->launchTask(/* wait= */ true)) {
+            // We ran something, new basket might be available.
+            continue;
+         } else {
+            // We have nothing, so let's wait.
+            wm->FeederQueue()->wait_and_pop(basket);
+         }
+      }
     }
     // Check exit condition: null basket in the queue
     if (!basket) {
