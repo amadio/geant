@@ -154,7 +154,13 @@ int main(int argc, char *args[])
     GUVIntegrationStepper *myStepper; // , *exactStepper;
     // G4MagIntegrationStepper *g4refStepper;    
 
-    cout << "#  Chosen the   ";
+    const char *stepperName=0;
+    const char * const NameSimpleRunge = "TSimpleRunge";
+    const char * const NameClassicalRK4 = "TClassicalRK4";
+    const char * const NameCashKarpRKF45 = "GU-TCashKarpRKF45";
+    const char * const NameClassicalRK4clone = "TClassicalRK4 (cloned)";
+    const char * const NameCashKarpRKF45clone = "GU-TCashKarpRKF45 (cloned)";
+    // cout << "#  Chosen the   ";
     //Choose the stepper based on the command line argument
     switch(stepper_no){
        // case 0: myStepper = 0;
@@ -162,32 +168,41 @@ int main(int argc, char *args[])
        //  cout << " GUExactHelix stepper. " << endl;
        //  break;
       case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
-         cout << " TSimpleRunge stepper. " << endl;
+         stepperName= NameSimpleRunge;
+         cout << endl << "# Chosen the TSimpleRunge stepper. " << endl;         
          break;         
          // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
        // case 3: myStepper = new BogackiShampine23(gvEquation); break;
       case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-         cout << " TClassicalRK4 stepper. " << endl;         
+         stepperName= NameClassicalRK4;
+         cout << endl << "# Chosen the TClassicalRK4 stepper. " << endl;         
          break;
       case 5: myStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
-         cout << " GUTCashKarpRKF45 stepper. " << endl;
+         stepperName= NameCashKarpRKF45;
+         cout << endl << "# Chosen the GUTCashKarpRKF45 stepper. " << endl;
          break;
       case 14:
          {
+            cout << "StpF/m Creating base  TClassicalRK4 stepper: " << endl;
             auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
             // myStepper = new TClassicalRK4( baseStepper );
+            cout << "StpF/m Creating clone TClassicalRK4 stepper: " << endl;            
             myStepper = baseStepper->Clone();
             delete baseStepper;
          }
-         cout << " TClassicalRK4 stepper (cloned). " << endl;         
+         stepperName= NameClassicalRK4clone;         
+         cout << "#Chosen the TClassicalRK4 stepper (cloned). " << endl;         
          break;
       case 15:
          {
+            cout << "StpF/m Creating base  GU-TCashKarpRKF45 stepper: " << endl;            
             auto baseCKstepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
+            cout << "StpF/m Creating clone GU-TCashKarpRKF45 stepper: " << endl;                        
             myStepper = baseCKstepper->Clone();
             delete baseCKstepper;
          }
-         cout << " GUTCashKarpRKF45 stepper (cloned). " << endl;
+         stepperName= NameCashKarpRKF45clone;
+         cout << endl << "# GUTCashKarpRKF45 stepper (cloned). " << endl;
          break;         
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
@@ -195,6 +210,8 @@ int main(int argc, char *args[])
          std::cerr << " ERROR> No stepper selected. " << endl;
          exit(1);
     }
+    if( stepperName ) 
+       cout << "#  Chosen the  " << stepperName << " stepper ";
     
     myStepper->InitializeCharge( particleCharge );
     
