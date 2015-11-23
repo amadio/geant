@@ -81,7 +81,7 @@ class GUVIntegrationStepper
         inline unsigned int  GetNumberOfStateVariables() const;
         // Get the number of variables of state variables (>= above, integration)
 
-        unsigned int IntegratorOrder() { return fIntegrationOrder; };
+        unsigned int IntegratorOrder() const { return fIntegrationOrder; };
         // Returns the order of the integrator
         // i.e. its error behaviour is of the order O(h^order).
 
@@ -89,6 +89,7 @@ class GUVIntegrationStepper
         // Simple utility function to (re)normalise 'unit spin' vector.
 
         inline GUVEquationOfMotion *GetEquationOfMotion() { return  fEquation_Rhs; }
+        inline const GUVEquationOfMotion *GetEquationOfMotion() const { return  fEquation_Rhs; }        
         // As some steppers require access to other methods of Eq_of_Mot
         void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
 

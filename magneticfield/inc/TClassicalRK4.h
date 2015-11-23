@@ -99,16 +99,15 @@ template <class T_Equation, unsigned int Nvar>
            right.GetNumberOfStateVariables() )
    // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( right ), 
 
-   // fEquation_Rhs(new T_Equation(*(right.fEquation_Rhs)) )
-   // fEquation_Rhs(right.fEquation_Rhs->Clone())  // Alt
-   // fEquation_Rhs(right.fEquation_Rhs->CloneOrSafeSelf())  // Alt   
+   //  right.fEquation_Rhs->Clone())  
+   //  right.fEquation_Rhs->CloneOrSafeSelf())  // Alt   
 {
    // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>
    //   ::SetEquationOfMotion(fEquation_Rhs);
    // assert(fEquation_Rhs);
    // SetEquationOfMotion(fEquation_Rhs);    // Propagates it also to base class 
 
-   // TMagErrorStepper::SetEquationOfMotion(fEquation_Rhs);       
+   // TMagErrorStepper::SetEquationOfMotion(fEquation_Rhs);
 }  
 
 template <class T_Equation, unsigned int Nvar>
