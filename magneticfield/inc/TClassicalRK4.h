@@ -27,9 +27,9 @@ class TClassicalRK4 : public  TMagErrorStepper
     {
     }
 
-    TClassicalRK4(TClassicalRK4& right);
+    TClassicalRK4(const TClassicalRK4& right);
 
-    virtual  GUVIntegrationStepper* Clone() const;
+    virtual  GUVIntegrationStepper* Clone() const override final;
     
     void SetEquationOfMotion(T_Equation* equation);
        
@@ -48,16 +48,15 @@ class TClassicalRK4 : public  TMagErrorStepper
     void  StepWithoutErrorEst( const double  yIn[],
                                const double  dydx[],
                                double  h,
-                               double  yOut[]);
+                               double  yOut[]);  // override final;  => Not virtual method, must exist though!
  
   public:
-        __attribute__((always_inline)) 
-        int IntegratorOrder() const { return OrderRK4; }
+    // __attribute__((always_inline)) 
+    //  int IntegratorOrder() const { return OrderRK4; }
 
   private:
-        TClassicalRK4(const TClassicalRK4&);
-        TClassicalRK4& operator=(const TClassicalRK4&);
-        // Private copy constructor and assignment operator.
+        TClassicalRK4& operator=(const TClassicalRK4&) = delete;
+        // Private assignment operator.
 
     private:
         // Invariants
@@ -88,10 +87,10 @@ template <class T_Equation, unsigned int Nvar>
 
 template <class T_Equation, unsigned int Nvar>
   TClassicalRK4<T_Equation,Nvar>::
-  TClassicalRK4(TClassicalRK4& right)
+  TClassicalRK4(const TClassicalRK4& right)
    : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( (T_Equation*) 0,
                                                                           OrderRK4,
-                                                                          right.fNumberOfStateVariables),
+                                                                          right.GetNumberOfStateVariables() ),
    fEquation_Rhs(new T_Equation(*(right.fEquation_Rhs)) ) // (right.fEquation_Rhs->Clone())
 {
    // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>

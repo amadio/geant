@@ -173,20 +173,27 @@ int main(int argc, char *args[])
          cout << " GUTCashKarpRKF45 stepper. " << endl;
          break;
       case 14:
-         auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-         // myStepper = new TClassicalRK4( baseStepper );
-         myStepper = baseStepper->Clone();
-         delete baseStepper;
+         {
+            auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
+            // myStepper = new TClassicalRK4( baseStepper );
+            myStepper = baseStepper->Clone();
+            delete baseStepper;
+         }
          cout << " TClassicalRK4 stepper (cloned). " << endl;         
          break;
       case 15:
-         auto baseStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
-         myStepper = baseStepper->Clone();
+         {
+            auto baseCKstepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
+            myStepper = baseCKstepper->Clone();
+            delete baseCKstepper;
+         }
          cout << " GUTCashKarpRKF45 stepper (cloned). " << endl;
          break;         
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
-      default : myStepper = 0 ;
+      default : myStepper = (GUVIntegrationStepper*) 0 ;
+         std::cerr << " ERROR> No stepper selected. " << endl;
+         exit(1);
     }
     
     myStepper->InitializeCharge( particleCharge );

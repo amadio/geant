@@ -21,7 +21,7 @@
 #endif
 
 template
-<class T_Equation, int Nvar>
+<class T_Equation, unsigned int Nvar>
 class GUTCashKarpRKF45 : public GUVIntegrationStepper
 {
   public:  
@@ -41,16 +41,16 @@ class GUTCashKarpRKF45 : public GUVIntegrationStepper
     
     virtual ~GUTCashKarpRKF45();
 
-    GUVIntegrationStepper* Clone() override const;
+    GUVIntegrationStepper* Clone() const override;
 
     REALLY_INLINE
        void StepWithErrorEstimate(const double* yInput,    // Consider __restrict__
                                   const double*  dydx,
                                         double   Step,
                                         double*  yOut,
-                                        double*  yErr);
+                                        double*  yErr) override;
 
-    double  DistChord()   const;  
+    double  DistChord()   const override;  
 
     REALLY_INLINE
     void RightHandSideInl(double y[], double dydx[]) 
@@ -96,7 +96,7 @@ class GUTCashKarpRKF45 : public GUVIntegrationStepper
 };
 
 
-template <class T_Equation, int Nvar>
+template <class T_Equation, unsigned int Nvar>
 inline
 GUTCashKarpRKF45<T_Equation,Nvar>::
    GUTCashKarpRKF45( T_Equation *EqRhs,
@@ -133,7 +133,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
    }
 }
 
-template <class T_Equation, int Nvar>
+template <class T_Equation, unsigned int Nvar>
    void GUTCashKarpRKF45<T_Equation,Nvar>::
      SetEquationOfMotion(T_Equation* equation)
 {
@@ -144,12 +144,13 @@ template <class T_Equation, int Nvar>
 
 //  Copy - Constructor
 // 
-template <class T_Equation, int Nvar>
+template <class T_Equation,unsigned int Nvar>
 inline
 GUTCashKarpRKF45<T_Equation,Nvar>::
    GUTCashKarpRKF45( const GUTCashKarpRKF45& right )
-   : GUVIntegrationStepper( (T_Equation*) 0,
+   : GUVIntegrationStepper( (GUVEquationOfMotion*) 0,
                             sOrderMethod,
+                            Nvar,
                             right.GetNumberOfStateVariables() ),
      fEquation_Rhs( (T_Equation*) 0 ),
      fLastStepLength(0.),
@@ -185,7 +186,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
 
 
 
-template <class T_Equation, int Nvar>
+template <class T_Equation,unsigned int Nvar>
 // inline
 REALLY_INLINE
 GUTCashKarpRKF45<T_Equation,Nvar>::~GUTCashKarpRKF45()
@@ -210,7 +211,7 @@ GUVIntegrationStepper*
 }
 
 
-template <class T_Equation, int Nvar>
+template <class T_Equation, unsigned int Nvar>
 inline void
 GUTCashKarpRKF45<T_Equation,Nvar>::
    StepWithErrorEstimate(const double*  yInput, // [],    
@@ -313,7 +314,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
     return ;
 }
 
-template <class T_Equation, int Nvar>
+template <class T_Equation, unsigned int Nvar>
 inline double
 GUTCashKarpRKF45<T_Equation,Nvar>::
   DistChord()   const
