@@ -15,7 +15,7 @@
 #define INLINERHS 1
 
 #ifdef INLINERHS
-#define REALLY_INLINE   inline __attribute__((always_inline)) 
+#define REALLY_INLINE   inline __attribute__((always_inline))
 #else
 #define REALLY_INLINE   inline
 #endif
@@ -24,15 +24,15 @@ template
 <class T_Equation, unsigned int Nvar>
 class GUTCashKarpRKF45 : public GUVIntegrationStepper
 {
-  public:  
+  public:
     static constexpr unsigned int sOrderMethod= 4;
     static constexpr unsigned int sNstore = (GUIntegrationNms::NumVarBase > Nvar) ? GUIntegrationNms::NumVarBase : Nvar;
                         // std::max( GUIntegrationNms::NumVarBase,  Nvar);
-    // static const IntegratorCorrection = 1./((1<<4)-1); 
+    // static const IntegratorCorrection = 1./((1<<4)-1);
     inline double IntegratorCorrection() { return 1./((1<<4)-1); }
-   
+
   public:
-    inline 
+    inline
     GUTCashKarpRKF45( T_Equation *EqRhs,
                       unsigned int numStateVariables=0,
                       bool primary=true);
@@ -82,19 +82,18 @@ class GUTCashKarpRKF45 : public GUVIntegrationStepper
         double  fLastStepLength;
         double* fLastInitialVector;
         double* fLastFinalVector;
-        double* fLastDyDx; 
+        double* fLastDyDx;
         double* fMidVector;
         double* fMidError;
         // for DistChord calculations
 
         // 'Invariant' during integration - the pointers must not change
         // -----------
-        GUTCashKarpRKF45* fAuxStepper; 
+        GUTCashKarpRKF45* fAuxStepper;
 
         T_Equation* fEquation_Rhs;
-        bool        fOwnTheEquation; 
+        bool        fOwnTheEquation;
 };
-
 
 template <class T_Equation, unsigned int Nvar>
 inline
@@ -104,14 +103,14 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
                      unsigned int numStateVariables,
                      bool primary)
    : GUVIntegrationStepper( EqRhs,    // dynamic_cast<GUVEquationOfMotion*>(EqRhs),
-                            sOrderMethod, 
+                            sOrderMethod,
                             Nvar,
                             ((numStateVariables>0) ? numStateVariables : sNstore) ),
      fLastStepLength(0.), fAuxStepper(0),
      fEquation_Rhs(EqRhs),
      fOwnTheEquation(primary)
 {
-   assert( dynamic_cast<GUVEquationOfMotion*>(EqRhs) != 0 );  
+   assert( dynamic_cast<GUVEquationOfMotion*>(EqRhs) != 0 );
    assert( (numStateVariables == 0) || (numStateVariables >= Nvar) );
       
    fLastInitialVector = new double[sNstore] ;
