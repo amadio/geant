@@ -176,27 +176,63 @@ int main(int argc, char *args[])
     GUVIntegrationStepper *myStepper; // , *exactStepper;
     // G4MagIntegrationStepper *g4refStepper;    
 
-    cout << "#  Chosen the   ";
+    const char *stepperName=0;
+    const char * const NameSimpleRunge = "TSimpleRunge";
+    const char * const NameClassicalRK4 = "TClassicalRK4";
+    const char * const NameCashKarpRKF45 = "GU-TCashKarpRKF45";
+    const char * const NameClassicalRK4clone = "TClassicalRK4 (cloned)";
+    const char * const NameCashKarpRKF45clone = "GU-TCashKarpRKF45 (cloned)";
+    // cout << "#  Chosen the   ";
     //Choose the stepper based on the command line argument
     switch(stepper_no){
        // case 0: myStepper = new GUExactHelixStepper(gvEquation);
        //  cout << " GUExactHelix stepper. " << endl;
        //  break;
       case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
-         cout << " TSimpleRunge stepper. " << endl;
+         stepperName= NameSimpleRunge;
+         cout << endl << "# Chosen the TSimpleRunge stepper. " << endl;
          break;         
          // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
        // case 3: myStepper = new BogackiShampine23(gvEquation); break;
       case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-         cout << " TClassicalRK4 stepper. " << endl;         
+         stepperName= NameClassicalRK4;
+         cout << endl << "# Chosen the TClassicalRK4 stepper. " << endl;         
          break;
       case 5: myStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
-         cout << " GUTCashKarpRKF45 stepper. " << endl;                  
+         stepperName= NameCashKarpRKF45;
+         cout << endl << "# Chosen the GUTCashKarpRKF45 stepper. " << endl;
+         break;
+      case 14:
+         {
+            cout << "StpF/m Creating base  TClassicalRK4 stepper: " << endl;
+            auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
+            // myStepper = new TClassicalRK4( baseStepper );
+            cout << "StpF/m Creating clone TClassicalRK4 stepper: " << endl;          
+            myStepper = baseStepper->Clone();
+            delete baseStepper; // Also deletes its corresponding equation !!
+         }
+         stepperName= NameClassicalRK4clone;         
+         cout << "#Chosen the TClassicalRK4 stepper (cloned). " << endl;         
+         break;
+      case 15:
+         {
+            cout << "StpF/m Creating base  GU-TCashKarpRKF45 stepper: " << endl;            
+            auto baseCKstepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
+            cout << "StpF/m Creating clone GU-TCashKarpRKF45 stepper: " << endl;                        
+            myStepper = baseCKstepper->Clone();
+            delete baseCKstepper;
+         }
+         stepperName= NameCashKarpRKF45clone;
+         cout << endl << "# GUTCashKarpRKF45 stepper (cloned). " << endl;
          break;         
        // case 6: myStepper = new BogackiShampine45(gvEquation); break;
        // case 7: myStepper = new DormandPrince745(gvEquation);  break;
-      default : myStepper = 0 ;
+      default : myStepper = (GUVIntegrationStepper*) 0 ;
+         std::cerr << " ERROR> No stepper selected. " << endl;
+         exit(1);
     }
+    if( stepperName )
+       cout << "#  Chosen the  " << stepperName << " stepper ";
 
     const double hminimum  = 0.0001 * millimeter;  // Minimum step = 0.1 microns
     const double epsTolDef = 1.0e-5;              // Relative error tolerance
@@ -288,7 +324,7 @@ int main(int argc, char *args[])
     //Empty buckets for results
     double dydx[8] = {0.,0.,0.,0.,0.,0.,0.,0.},  // 2 extra safety buffer
         dydxRef[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
-          yout [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
+           yout[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           youtX[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yerr [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yerrX[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
@@ -398,7 +434,7 @@ int main(int argc, char *args[])
     {
         cout<<setw(6)<<j ;           //Printing Step number
 
-        // myStepper->RightHandSide(yIn, dydx);               //compute dydx - to supply the stepper
+        // myStepper->RightHandSideVIS(yIn, dydx);               //compute dydx - to supply the stepper
         exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
 
         // Driver begins at the start !
@@ -627,15 +663,15 @@ int main(int argc, char *args[])
     /*-----------------END-STEPPING------------------*/
 
     /*------ Clean up ------*/
-    gvEquation->InformDone();    
-
+    myStepper->InformDone(); 
+    
 #ifndef COMPARE_TO_G4
-    gvEquation2->InformDone();    
+    exactStepper->InformDone();
 #endif
     delete myStepper;
     delete exactStepper;
-    delete gvEquation;
-    delete gvEquation2;    
+    // delete gvEquation;  // The stepper now takes ownership of the equation
+    // delete gvEquation2;    
     delete gvField;
     
     cout<<"\n\n#-------------End of output-----------------\n";

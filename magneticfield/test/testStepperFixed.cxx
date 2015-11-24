@@ -54,7 +54,7 @@ using namespace std;
 /* Stepper No.
  0. GUExactHelix
  4. TClassicalRK4
- 5. TCashKarpRKF45 (to do)
+ 5. TCashKarpRKF45
 
 Potential expansion:
  2. G4SimpleHeum

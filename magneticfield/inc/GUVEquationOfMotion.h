@@ -23,7 +23,7 @@ class GUVEquationOfMotion
 {
   public:  // with description
 
-     GUVEquationOfMotion( GUVField *Field, unsigned int verbose=0 );
+     GUVEquationOfMotion( GUVField *Field, unsigned short verbose=0 );
      virtual ~GUVEquationOfMotion();
        // Constructor and virtual destructor. No operations, just checks
 
@@ -107,10 +107,10 @@ class GUVEquationOfMotion
 // -------------------------------------------------------------------
 
 inline
-GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField, verbose)
+GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField, unsigned short verbose)
    :fField(pField),  fEquationId(fNumObjectsCreated++), fInitialised(false), fVerbose(verbose)
 {
-   if( verbose)
+   if( fVerbose )
       std::cout << " Created Equation " << this << " info= " << *this << std::endl;
 }
 
