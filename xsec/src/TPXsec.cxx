@@ -124,43 +124,43 @@ void TPXsec::RebuildClass() {
    int size = 0;
    float *start = fStore;
    if(fMSangle) {
-      cout << "Original fMSangle " << fMSangle << " new pointer " << start << endl;
+      //      cout << "Original fMSangle " << fMSangle << " new pointer " << start << endl;
       fMSangle = start;
       size = fNCbins * sizeof(float);
       start +=size;
    }
    if(fMSansig) {
-      cout << "Original fMSansig " << fMSansig << " new pointer " << start << endl;
+      //      cout << "Original fMSansig " << fMSansig << " new pointer " << start << endl;
       fMSansig = start;
       size = fNCbins * sizeof(float);
       start +=size;
    }
    if(fMSlength) {
-      cout << "Original fMSlength " << fMSlength << " new pointer " << start << endl;
+      //      cout << "Original fMSlength " << fMSlength << " new pointer " << start << endl;
       fMSlength = start;
       size = fNCbins * sizeof(float);
       start +=size;
    }
    if(fMSlensig) {
-      cout << "Original fMSlensig " << fMSlensig << " new pointer " << start << endl;
+      //      cout << "Original fMSlensig " << fMSlensig << " new pointer " << start << endl;
       fMSlensig = start;
       size = fNCbins * sizeof(float);
       start +=size;
    }
    if(fdEdx) {
-      cout << "Original fdEdx " << fdEdx << " new pointer " << start << endl;
+      //      cout << "Original fdEdx " << fdEdx << " new pointer " << start << endl;
       fdEdx = start;
       size = fNCbins * sizeof(float);
       start +=size;
    }
    if(fTotXs) {
-      cout << "Original fTotXs " << fTotXs << " new pointer " << start << endl;
+      //      cout << "Original fTotXs " << fTotXs << " new pointer " << start << endl;
       fTotXs = start;
       size = fNTotXs * sizeof(float);
       start +=size;
    }
    if(fXSecs) {
-      cout << "Original fXSecs " << fXSecs << " new pointer " << start << endl;
+      //      cout << "Original fXSecs " << fXSecs << " new pointer " << start << endl;
       fXSecs = start;
       size = fNXSecs * sizeof(float);
       start +=size;

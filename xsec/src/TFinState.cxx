@@ -397,43 +397,43 @@ void TFinState::RebuildClass() {
    int size = 0;
    float *start = fStore;
    if(fWeight) {
-      cout << "Original fWeight " << fWeight << " new pointer " << start << endl;
+      //      cout << "Original fWeight " << fWeight << " new pointer " << start << endl;
       fWeight = start;
       size = fNFstates * sizeof(float);
       start +=size;
    }
    if(fKerma) {
-      cout << "Original fKerma " << fKerma << " new pointer " << start << endl;
+      //      cout << "Original fKerma " << fKerma << " new pointer " << start << endl;
       fKerma = start;
       size = fNFstates * sizeof(float);
       start +=size;
    }
    if(fEn) {
-      cout << "Original fEn " << fEn << " new pointer " << start << endl;
+      //      cout << "Original fEn " << fEn << " new pointer " << start << endl;
       fEn = start;
       size = fNFstates * sizeof(float);
       start +=size;
    }
    if(fMom) {
-      cout << "Original fMom " << fMom << " new pointer " << start << endl;
+      //      cout << "Original fMom " << fMom << " new pointer " << start << endl;
       fMom = start;
       size = fNMom * sizeof(float);
       start +=size;
    }
    if(fPID) {
-      cout << "Original fPID " << fPID << " new pointer " << start << endl;
+      //      cout << "Original fPID " << fPID << " new pointer " << start << endl;
       fPID = (int *) start;
       size = fNsecs * sizeof(int);
       start +=size;
    }
    if(fNpart) {
-      cout << "Original fNpart " << fNpart << " new pointer " << start << endl;
+      //      cout << "Original fNpart " << fNpart << " new pointer " << start << endl;
       fNpart = (int *) start;
       size = fNFstates * sizeof(int);
       start +=size;
    }
    if(fSurv) {
-      cout << "Original fSurv " << fSurv << " new pointer " << start << endl;
+      //      cout << "Original fSurv " << fSurv << " new pointer " << start << endl;
       fSurv = (char *) start;
       size = fNFstates * sizeof(char);
       start +=size;
