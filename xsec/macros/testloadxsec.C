@@ -7,6 +7,7 @@
 #include "GeantPropagator.h"
 
 #include <iostream>
+#include <fstream>
 
 using std::cout;
 using std::endl;
@@ -28,17 +29,35 @@ void testloadxsec()
    GeantPropagator::Instance(1,1,1);
    geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
    TTabPhysMgr::Instance(fxsec, ffins );
-   for(auto i=0; i<TEXsec::NLdElems(); ++i)
-      TEXsec::Element(i)->GetPartSize();
+
    char *b=nullptr;
-   size_t size = TEXsec::MakeCompactBuffer(b);
-   cout << "Size of the X-sec buffer = " << size << " bytes " << endl;
-   TEXsec::RebuildStore(size,TEXsec::NLdElems(),b);
+   size_t sizex = TEXsec::MakeCompactBuffer(b);
+   cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
+   TEXsec::RebuildStore(sizex,TEXsec::NLdElems(),b);
+
+   { // write to file
+      std::ofstream fout("xsec.bin", std::ios::binary);
+      fout.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
+      int nelem = TEXsec::NLdElems();
+      fout.write(reinterpret_cast<char*>(&nelem), sizeof(nelem));
+      fout.write(reinterpret_cast<char*>(b), sizex);
+      fout.close();
+   }
+   
+   /*   
+   { // read from file
+      std::ifstream fin("test.bin", std::ios::binary);
+      int m;
+      fin.read(reinterpret_cast<char*>(&m), sizeof m);
+      std::cout << "value read back: " << m << '\n';
+   }
+   */
 
    char *d=nullptr;
-   size = TEFstate::MakeCompactBuffer(d);
-   cout << "Size of the fin state buffer = " << size << " bytes " << endl;
-   TEFstate::RebuildStore(size,TEXsec::NLdElems(),d);
+   size_t sizef = TEFstate::MakeCompactBuffer(d);
+   cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
+   TEFstate::RebuildStore(sizef,TEXsec::NLdElems(),d);
+
 
    delete geom;
    delete TTabPhysMgr::Instance();

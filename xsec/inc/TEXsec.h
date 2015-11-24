@@ -65,7 +65,6 @@ public:
   bool Lambda_v(int npart, int pindex, const double en[], double lam[]) const;
   int SampleReac(int pindex, double en) const;
   int SampleReac(int pindex, double en, double randn) const;
-  void GetPartSize() const;
 
   static bool FloatDiff(double a, double b, double prec) { return fabs(a - b) > 0.5 * fabs(a + b) * prec; }
 

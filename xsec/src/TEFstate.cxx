@@ -258,13 +258,13 @@ void TEFstate::Compact() {
 void TEFstate::RebuildClass() {
    char *start = (char*) fStore;
    for(auto i=0; i<fNRpart; ++i) {
-      cout << "fPFstateP[" << i <<"] = " << fPFstateP[i] << " pointer = " << start << endl;
 #ifdef MAGIC_DEBUG
       if(((TPFstate*) start)->GetMagic() != -777777) {
 	 cout << "TPFstate::Broken magic " << ((TPFstate*) start)->GetMagic() << endl;
 	 exit(1);
       }
 #endif
+      ((TPFstate *) start)->RebuildClass();
       fPFstateP[i] = (TPFstate *) start;
       start += ((TPFstate*) start)->SizeOf();
    }
@@ -293,12 +293,14 @@ void TEFstate::RebuildStore(size_t size, int nelem, char *b) {
    char *start = b;
    for(auto i=0; i<nelem; ++i) {
       TEFstate *current = (TEFstate *) start;
-      if(current->GetMagic() == -777777) {
-	 fElements[fNLdElems++] = current;
-      } else {
+#ifdef MAGIC_DEBUG
+      if(current->GetMagic() != -777777) {
 	 cout << "TEFstate::Broken Magic " << current->GetMagic() << endl;
 	 exit(1);
       }
+#endif
+      current->RebuildClass();
+      fElements[fNLdElems++] = current;
       start += current->SizeOf();     
    }
    if((size_t)(start - b) != size) {

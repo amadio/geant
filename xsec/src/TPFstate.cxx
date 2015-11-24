@@ -404,13 +404,13 @@ void TPFstate::Compact() {
 void TPFstate::RebuildClass() {
    char *start = (char*) fStore;
    for(auto i=0; i<fNFstat; ++i) {
-      cout << "fFstatP[" << i <<"] = " << fFstatP[i] << " pointer = " << start << endl;
 #ifdef MAGIC_DEBUG
       if(((TFinState*) start)->GetMagic() != -777777) {
 	 cout << "TFinState::Broken magic " << ((TFinState*) start)->GetMagic() << endl;
 	 exit(1);
       }
 #endif
+      ((TFinState *) start)->RebuildClass();
       fFstatP[i] = (TFinState *) start;
       start += ((TFinState*) start)->SizeOf();
    }

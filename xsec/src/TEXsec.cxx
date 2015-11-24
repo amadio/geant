@@ -639,13 +639,13 @@ void TEXsec::Compact() {
 void TEXsec::RebuildClass() {
    char *start = (char*) fStore;
    for(auto i=0; i<fNRpart; ++i) {
-      cout << "fPXsecP[" << i <<"] = " << fPXsecP[i] << " pointer = " << start << endl;
 #ifdef MAGIC_DEBUG
       if(((TPXsec*) start)->GetMagic() != -777777) {
 	 cout << "TPXsec::Broken magic " << ((TPXsec*) start)->GetMagic() << endl;
 	 exit(1);
       }
 #endif
+      ((TPXsec *) start)->RebuildClass();
       fPXsecP[i] = (TPXsec *) start;
       start += ((TPXsec*) start)->SizeOf();
    }
@@ -674,12 +674,14 @@ void TEXsec::RebuildStore(size_t size, int nelem, char *b) {
    char *start = b;
    for(auto i=0; i<nelem; ++i) {
       TEXsec *current = (TEXsec *) start;
-      if(current->GetMagic() == -777777) {
-	 fElements[fNLdElems++] = current;
-      } else {
+#ifdef MAGIC_DEBUG
+      if(current->GetMagic() != -777777) {
 	 cout << "TEXsec::Broken Magic " << current->GetMagic() << endl;
 	 exit(1);
       }
+#endif
+      current->RebuildClass();
+      fElements[fNLdElems++] = current;
       start += current->SizeOf();     
    }
    if((size_t)(start - b) != size) {
@@ -714,14 +716,6 @@ bool TEXsec::Lambda_v(int npart, int pindex, const double en[], double lam[]) co
 //___________________________________________________________________
 int TEXsec::SampleReac(int pindex, double en) const { 
    return fPXsecP[pindex]->SampleReac(en); }
-
-//___________________________________________________________________
-void TEXsec::GetPartSize() const { 
-   for(auto i=0; i<fNRpart; ++i) {
-      printf("Part %s sizeof %ld SizeOf %d\n",TPartIndex::I()->PartName(i),
-	     sizeof(*fPXsecP[i]), fPXsecP[i]->SizeOf()); 
-   }
-}
 
 //___________________________________________________________________
 int TEXsec::SampleReac(int pindex, double en, double randn) const { 
