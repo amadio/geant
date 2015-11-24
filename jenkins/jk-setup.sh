@@ -21,7 +21,9 @@ else
   return
 fi
 
-if [ $LABEL == slc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ] || [$LABEL == xeonphi ] || [ $LABEL == slc6-physical ]
+if ([ $LABEL == slc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ]
+  || [$LABEL == xeonphi ] || [ $LABEL == slc6-physical ]
+  || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ] || [ $LABEL == continuous-xeonphi ])
 
     kinit sftnight@CERN.CH -5 -V -k -t /ec/conf/sftnight.keytab
 
@@ -39,7 +41,7 @@ then
   COMPILERversion=${COMPILER}version
 
   ARCH=$(uname -m)
-  if [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ]
+  if [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]
   then
     . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
   else
