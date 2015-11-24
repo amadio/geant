@@ -10,10 +10,11 @@
 // - Created. J.Apostolakis     Dec 2014/Jan 2015
 // -------------------------------------------------------------------
 
-#ifndef GUV_EquationOfMotion_DEF
-#define GUV_EquationOfMotion_DEF
+#ifndef GUV_EquationOfMotion_H
+#define GUV_EquationOfMotion_H
 
 #include <cassert>
+#include <iostream>
 
 // #include "GUVTypes.hh"      // "globals.hh"
 #include "GUVField.h"   // required in inline method implementations
@@ -22,7 +23,7 @@ class GUVEquationOfMotion
 {
   public:  // with description
 
-     GUVEquationOfMotion( GUVField *Field );
+     GUVEquationOfMotion( GUVField *Field, unsigned int verbose=0 );
      virtual ~GUVEquationOfMotion();
        // Constructor and virtual destructor. No operations, just checks
 
@@ -44,7 +45,7 @@ class GUVEquationOfMotion
       inline void InformDone();  // Invalidate charge, other parameters
       inline void CheckInitialization() const; // Ensure initialization
       inline void CheckDone() const;
-      
+
      // virtual void SetChargeMomentumMass(double particleCharge,
      //                                    double MomentumXc,
      //                                    double MassXc2) = 0;
@@ -72,52 +73,68 @@ class GUVEquationOfMotion
        // Not protected, because GUVRKG3_Stepper uses it directly.
 
      const GUVField* GetFieldObj() const {return fField;}
-           GUVField* GetFieldObj()       {return fField;} 
+           GUVField* GetFieldObj()       {return fField;}
      void            SetFieldObj(GUVField* pField){fField=pField;}
 
+     bool         Initialised() const { return fInitialised; } 
+     unsigned int GetId() const       { return fEquationId; }
+     static unsigned int GetNumCreated() { return fNumObjectsCreated; }
+     static unsigned int GetNumLive() { return fNumObjectsCreated - fNumObjectsDeleted; }
+       // For debugging, checking
+
+     friend std::ostream&
+             operator<<( std::ostream& os, const GUVEquationOfMotion& eq);
+
   public:
-     static const  int idxTime=3;  // Convention for location of time 't' in vector
+     static const unsigned int idxTime=3;  // Convention for location of time 't' in vector
 
   private:
+     static unsigned int fNumObjectsCreated;
+     static unsigned int fNumObjectsDeleted;
      // const int GUVmaximum_number_of_field_components = 24;
      enum { GUVmaximum_number_of_field_components = 24 } ;
 
-     GUVField *fField;
-     bool      fInitialised;
+     GUVField *     fField;
+     unsigned int   fEquationId;  //
+     unsigned short fVerbose;
+     bool           fInitialised;
 };
 
 // #include "GUVEquationOfMotion.icc"
 
-// #include <iostream>
-
-//  Inline implementation 
+//  Inline implementation
 //
 // -------------------------------------------------------------------
 
 inline
-GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField) 
-   :fField(pField),  fInitialised(false)
-{}
+GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField, verbose)
+   :fField(pField),  fEquationId(fNumObjectsCreated++), fInitialised(false), fVerbose(verbose)
+{
+   if( verbose)
+      std::cout << " Created Equation " << this << " info= " << *this << std::endl;
+}
 
 inline
 void GUVEquationOfMotion::InformReady() // was Initialize()
 {
    // std::cout << " Called GUVEquationOfMotion::InformReady() " << std::endl;
-   
+
    // assert( ! fInitialised ); // Sanity checking - assumes Clear() is always called!
                       // BUT: Will signal problem if two steppers share an equation
    fInitialised= true;
 }
 
-
 inline
-void GUVEquationOfMotion::InformDone()  // was Clear() and before Finished(); 
+void GUVEquationOfMotion::InformDone()  // was Clear() and before Finished();
 {
-   // std::cout << " Called GUVEquationOfMotion::InformDone() " << std::endl;
-   
-   assert( fInitialised ); 
-   fInitialised= false;   
-}  
+   if(fVerbose)
+   {
+     std::cout << " Called GUVEquationOfMotion::InformDone() " << std::endl;
+     std::cout << *this << std::endl;
+   }
+   assert( fInitialised );
+   fInitialised= false;
+}
 
 inline
 void GUVEquationOfMotion::GetFieldValue( const  double Point[4],
@@ -127,23 +144,23 @@ void GUVEquationOfMotion::GetFieldValue( const  double Point[4],
 }
 
 inline
-void 
+void
 GUVEquationOfMotion::RightHandSide( const  double y[],
                                        //  double charge,
                                            double dydx[]  ) const
 {
-   CheckInitialization(); 
-     
-   double Field[GUVmaximum_number_of_field_components];   
+   CheckInitialization();
+
+   double Field[GUVmaximum_number_of_field_components];
    double PositionAndTime[4];
-   
+
      // Position
    PositionAndTime[0] = y[0];
    PositionAndTime[1] = y[1];
    PositionAndTime[2] = y[2];
    // Global Time
    PositionAndTime[3] = y[idxTime];  // See GUVFieldTrack::LoadFromArray
-   
+
    GetFieldValue(PositionAndTime, Field) ;
    EvaluateRhsGivenB( y, Field, /*charge,*/ dydx );
 }
@@ -152,18 +169,21 @@ GUVEquationOfMotion::RightHandSide( const  double y[],
 
 void GUVEquationOfMotion::CheckInitialization() const
 {
-   if( !fInitialised ){
-      std::cerr << "GUVEquationOfMotion is not Initialised" << std::endl; 
+#ifdef GUVERBOSE
+   if( fVerbose && !fInitialised ){
+      std::cerr << "GUVEquationOfMotion is not Initialised" << std::endl;
    }
+#endif
    assert( fInitialised );
 }
 
-
 void GUVEquationOfMotion::CheckDone() const
 {
-   if( fInitialised ){
-      std::cerr << "GUVEquationOfMotion was NOT told it is Done!" << std::endl; 
+#ifdef GUVERBOSE
+   if( fVerbose && fInitialised ){
+      std::cerr << "GUVEquationOfMotion was NOT told it is Done!" << std::endl;
    }
+#endif
    assert( !fInitialised );
 }
 
