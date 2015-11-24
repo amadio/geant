@@ -286,3 +286,25 @@ size_t TEFstate::MakeCompactBuffer(char* &b) {
    }
    return totsize;
 }
+
+//___________________________________________________________________
+void TEFstate::RebuildStore(size_t size, int nelem, char *b) {
+   fNLdElems = 0;
+   char *start = b;
+   for(auto i=0; i<nelem; ++i) {
+      TEFstate *current = (TEFstate *) start;
+      if(current->GetMagic() == -777777) {
+	 fElements[fNLdElems++] = current;
+      } else {
+	 cout << "TEFstate::Broken Magic " << current->GetMagic() << endl;
+	 exit(1);
+      }
+      start += current->SizeOf();     
+   }
+   if((size_t)(start - b) != size) {
+      cout << "TEFstate::RebuildStore: expected size " << size 
+	   << " found size " << start - b << endl;
+      exit(1);
+   }
+}
+

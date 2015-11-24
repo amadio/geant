@@ -331,10 +331,16 @@ bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, fl
 int TFinState::SizeOf() const {
    size_t size = sizeof(*this);
    size += 3 * fNFstates * sizeof(float);
-   size += fNMom * sizeof(int);
+   size += fNMom * sizeof(float);
    size += fNsecs * sizeof(int);
    size += fNFstates * sizeof(int);
    size += fNFstates * sizeof(char);
+   /*
+     std::cout << " fNFstates " << fNFstates 
+	     << " fNsecs " << fNsecs
+	     << " fNMom " << fNMom
+	     << " size " << (int) size-sizeof(float) << std::endl;
+   */
    return (int) size-sizeof(float);  // fStore already takes one float
 }
 

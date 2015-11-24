@@ -1,6 +1,7 @@
 #include "TSystem.h"
 #include "TGeoManager.h"
 #include "TEXsec.h"
+#include "TEFstate.h"
 
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
@@ -31,8 +32,14 @@ void testloadxsec()
       TEXsec::Element(i)->GetPartSize();
    char *b=nullptr;
    size_t size = TEXsec::MakeCompactBuffer(b);
-   cout << "Size of the buffer = " << size << " bytes " << endl;
+   cout << "Size of the X-sec buffer = " << size << " bytes " << endl;
    TEXsec::RebuildStore(size,TEXsec::NLdElems(),b);
+
+   char *d=nullptr;
+   size = TEFstate::MakeCompactBuffer(d);
+   cout << "Size of the fin state buffer = " << size << " bytes " << endl;
+   TEFstate::RebuildStore(size,TEXsec::NLdElems(),d);
+
    delete geom;
    delete TTabPhysMgr::Instance();
 }

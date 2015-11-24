@@ -382,7 +382,7 @@ bool TPFstate::Resample() {
 int TPFstate::SizeOf() const {
    size_t size = sizeof(*this);
    if(fRestCaptFstat != nullptr) size += fRestCaptFstat->SizeOf();
-   for(auto i=0; i<fNEFstat; ++i)
+   for(auto i=0; i<fNFstat; ++i)
       size += fFstatP[i]->SizeOf();
    return (int) size - sizeof(TFinState); // fStore already holds one TPXsec
 }
@@ -390,7 +390,7 @@ int TPFstate::SizeOf() const {
 //___________________________________________________________________
 void TPFstate::Compact() {
    char *start = (char*) fStore;
-   for(auto i=0; i<fNEFstat; ++i) {
+   for(auto i=0; i<fNFstat; ++i) {
       TFinState *px = new(start) TFinState(*fFstatP[i]);
       px->Compact();
       // This line can be reactivated when we remove the back compat array
@@ -403,7 +403,7 @@ void TPFstate::Compact() {
 //___________________________________________________________________
 void TPFstate::RebuildClass() {
    char *start = (char*) fStore;
-   for(auto i=0; i<fNEFstat; ++i) {
+   for(auto i=0; i<fNFstat; ++i) {
       cout << "fFstatP[" << i <<"] = " << fFstatP[i] << " pointer = " << start << endl;
 #ifdef MAGIC_DEBUG
       if(((TFinState*) start)->GetMagic() != -777777) {
