@@ -3,20 +3,27 @@
 //
 // -------------------------------------------------------------------
 
+// #include <iostream>
+
 #include "GUVEquationOfMotion.h"
+
+unsigned int GUVEquationOfMotion::fNumObjectsCreated= 0;
+unsigned int GUVEquationOfMotion::fNumObjectsDeleted= 0;
 
 GUVEquationOfMotion::~GUVEquationOfMotion()
 {
    CheckDone();
-   // To help ensure that clients call InformDone() - ie. clear 
+   // std::cout << " Destructing Equation " << this << " info= " << *this << std::endl;   
+   fNumObjectsDeleted++;
+   // To help ensure that clients call InformDone() - ie. clear
 }
 
-void 
+void
 GUVEquationOfMotion::
 EvaluateRhsReturnB( const double y[],
                           double dydx[],
-                       // double charge, 
-                          double Field[] 
+                       // double charge,
+                          double Field[]
                   ) const
 {
    double  PositionAndTime[4];
@@ -31,9 +38,12 @@ EvaluateRhsReturnB( const double y[],
    EvaluateRhsGivenB( y, Field, /*charge,*/ dydx );
 }
 
-// #if  HELP_THE_COMPILER
-// void 
-// GUVEquationOfMotion::doNothing()
-// {
-// }
-// #endif
+std::ostream&  operator<<( std::ostream& os, const GUVEquationOfMotion& eq)
+{
+   os << " Equation of Motion # " << eq.GetId()
+      << "   field ptr= "  << eq.GetFieldObj() << "  Initialised= " << eq.Initialised()
+      << std::endl;
+   os << "  Total # of E-of-M = " << GUVEquationOfMotion::GetNumCreated()
+      << " live= " << GUVEquationOfMotion::GetNumLive() << std::endl;
+   return os;
+}
