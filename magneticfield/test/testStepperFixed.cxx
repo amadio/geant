@@ -169,7 +169,7 @@ int main(int argc, char *args[])
        //  break;
       case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
          stepperName= NameSimpleRunge;
-         cout << endl << "# Chosen the TSimpleRunge stepper. " << endl;         
+         cout << endl << "# Chosen the TSimpleRunge stepper. " << endl;
          break;         
          // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
        // case 3: myStepper = new BogackiShampine23(gvEquation); break;
@@ -186,9 +186,9 @@ int main(int argc, char *args[])
             cout << "StpF/m Creating base  TClassicalRK4 stepper: " << endl;
             auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
             // myStepper = new TClassicalRK4( baseStepper );
-            cout << "StpF/m Creating clone TClassicalRK4 stepper: " << endl;            
+            cout << "StpF/m Creating clone TClassicalRK4 stepper: " << endl;          
             myStepper = baseStepper->Clone();
-            delete baseStepper;
+            delete baseStepper; // Also deletes its corresponding equation !!
          }
          stepperName= NameClassicalRK4clone;         
          cout << "#Chosen the TClassicalRK4 stepper (cloned). " << endl;         
@@ -210,9 +210,9 @@ int main(int argc, char *args[])
          std::cerr << " ERROR> No stepper selected. " << endl;
          exit(1);
     }
-    if( stepperName ) 
+    if( stepperName )
        cout << "#  Chosen the  " << stepperName << " stepper ";
-    
+
     myStepper->InitializeCharge( particleCharge );
     
     //Initialising coordinates
@@ -363,8 +363,8 @@ int main(int argc, char *args[])
     {
         cout<<setw(6)<<j ;           //Printing Step number
 
-        myStepper->RightHandSide(yIn, dydx);               //compute dydx - to supply the stepper
-        exactStepper->RightHandSide(yInX, dydxRef);   //compute the value of dydx for the exact stepper
+        myStepper->RightHandSideVIS(yIn, dydx);               //compute dydx - to supply the stepper
+        exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
 
         if( j > 0 )  // Let's print the initial points!
         {
@@ -466,10 +466,10 @@ int main(int argc, char *args[])
     /*-----------------END-STEPPING------------------*/
 
     /*------ Clean up ------*/
-    gvEquation->InformDone();    
-
+    myStepper->InformDone(); 
+    
 #ifndef COMPARE_TO_G4
-    gvEquation2->InformDone();    
+    exactStepper->InformDone();
 #endif
     delete myStepper;
     delete exactStepper;
