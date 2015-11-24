@@ -19,16 +19,17 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+#include "TPFstate.h"
 
 class TFile;
 
-class TPFstate;
 class TFinState;
 
 class TEFstate {
 public:
   TEFstate();
   TEFstate(int z, int a, float dens);
+  TEFstate &operator=(const TEFstate &other);
   ~TEFstate();
   static const char *ClassName() { return "TEFstate"; }
   bool AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[]);
@@ -68,6 +69,15 @@ public:
 
   bool Prune();
 
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
+  static size_t MakeCompactBuffer(char* &b);
+  static void RebuildStore(size_t size, int nelem, char *b);
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
+
   static int NLdElems() { return fNLdElems; }
 
   static TEFstate *Element(int i) {
@@ -81,26 +91,31 @@ public:
 
 private:
   TEFstate(const TEFstate &);            // Not implemented
-  TEFstate &operator=(const TEFstate &); // Not implemented
 
-  int fEle;             // Element code Z*10000+A*10+metastable level
-  float fDens;          // Density in g/cm3
+  const double *fEGrid; //! Common energy grid
   double fAtcm3;        // Atoms per cubic cm unit density
   double fEmin;         // Minimum of the energy Grid
   double fEmax;         // Maximum of the energy Grid
-  int fNEbins;          // Number of log steps in energy
   double fEilDelta;     // Inverse log energy step
-  const double *fEGrid; //! Common energy grid
+  float fDens;          // Density in g/cm3
+  int fEle;             // Element code Z*10000+A*10+metastable level
+  int fNEbins;          // Number of log steps in energy
   int fNEFstat;         // Number of sampled final states
   int fNRpart;          // Number of particles with reaction
   TPFstate *fPFstate;   // [fNRpart] Final state table per particle
+  TPFstate **fPFstateP; //! [fNRpart] Final state table per particle
 
   static int fNLdElems;              //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
-
-#ifdef USE_ROOT
-  ClassDefNV(TEFstate, 1) // Element X-secs
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
 #endif
+#ifdef USE_ROOT
+  ClassDefNV(TEFstate, 2) // Element X-secs
+#endif
+
+private:
+  TPFstate fStore[1];   // Pointer to the compact store part of the class
 };
 
 #endif

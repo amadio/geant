@@ -19,19 +19,83 @@ TEFstate *TEFstate::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 int TEFstate::fNLdElems = 0;
 
 //___________________________________________________________________
-TEFstate::TEFstate()
-    : fEle(0), fDens(0), fAtcm3(0), fEmin(0), fEmax(0), fNEbins(0), fEilDelta(0), fEGrid(TPartIndex::I()->EGrid()),
-      fNEFstat(0), fNRpart(0), fPFstate(0) {}
+TEFstate::TEFstate() :
+   fEGrid(TPartIndex::I()->EGrid()),
+   fAtcm3(0), 
+   fEmin(0), 
+   fEmax(0), 
+   fEilDelta(0), 
+   fDens(0), 
+   fEle(0), 
+   fNEbins(0), 
+   fNEFstat(0), 
+   fNRpart(0), 
+   fPFstate(nullptr),
+   fPFstateP(nullptr)
+{}
 
 //___________________________________________________________________
-TEFstate::TEFstate(int z, int a, float dens)
-    : fEle(z * 10000 + a * 10), fDens(dens), fAtcm3(fDens * kAvogadro * 1e-24 / TPartIndex::I()->WEle(z)),
-      fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()), fNEbins(TPartIndex::I()->NEbins()),
-      fEilDelta(TPartIndex::I()->EilDelta()), fEGrid(TPartIndex::I()->EGrid()), fNEFstat(0),
-      fNRpart(TPartIndex::I()->NPartReac()), fPFstate(new TPFstate[fNRpart]) {}
+TEFstate::TEFstate(int z, int a, float dens) :
+   fEGrid(TPartIndex::I()->EGrid()), 
+   fAtcm3(dens * kAvogadro * 1e-24 / TPartIndex::I()->WEle(z)),
+   fEmin(TPartIndex::I()->Emin()), 
+   fEmax(TPartIndex::I()->Emax()), 
+   fEilDelta(TPartIndex::I()->EilDelta()), 
+   fDens(dens), 
+   fEle(z * 10000 + a * 10), 
+   fNEbins(TPartIndex::I()->NEbins()),
+   fNEFstat(0),
+   fNRpart(TPartIndex::I()->NPartReac()), 
+   fPFstate(new TPFstate[fNRpart]),
+   fPFstateP(new TPFstate*[fNRpart])
+{
+   for(auto i=0; i< fNRpart; ++i) fPFstateP[i] = &fPFstate[i];
+}
 
 //___________________________________________________________________
-TEFstate::~TEFstate() { delete[] fPFstate; }
+TEFstate::TEFstate(const TEFstate &other) :
+   fEGrid(TPartIndex::I()->EGrid()), 
+   fAtcm3(other.fAtcm3),
+   fEmin(other.fEmin),
+   fEmax(other.fEmax),
+   fEilDelta(other.fEilDelta),
+   fDens(other.fDens),
+   fEle(other.fEle),
+   fNEbins(other.fNEbins),
+   fNEFstat(other.fNEFstat),
+   fNRpart(other.fNRpart),
+   fPFstate(other.fPFstate),
+   fPFstateP(other.fPFstateP)
+{
+}
+
+//___________________________________________________________________
+TEFstate::~TEFstate() 
+{ 
+   if(fPFstateP != nullptr) 
+      for(auto i=0; i<fNRpart; ++i) delete fPFstateP[i];
+   delete [] fPFstateP;
+   delete [] fPFstate; 
+}
+
+#ifdef USE_ROOT
+//______________________________________________________________________________
+void TEFstate::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class TEXsec.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(TEFstate::Class(),this);
+      if(fPFstateP != nullptr) 
+	 for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPFstateP[ipart];
+      delete [] fPFstateP; 
+      fPFstateP = new TPFstate*[fNRpart];
+      for(auto i=0; i<fNRpart; ++i) fPFstateP[i] = &fPFstate[i];
+   } else {
+      R__b.WriteClassBuffer(TEFstate::Class(),this);
+   }
+}
+#endif
 
 //___________________________________________________________________
 bool TEFstate::AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[]) {
@@ -158,7 +222,7 @@ bool TEFstate::Prune() {
 //___________________________________________________________________
 bool TEFstate::Resample() {
   for (int ip = 0; ip < fNRpart; ++ip)
-    fPFstate[ip].Resample();
+     fPFstate[ip].Resample();
   fEmin = TPartIndex::I()->Emin();
   fEmax = TPartIndex::I()->Emax();
   fNEbins = TPartIndex::I()->NEbins();
@@ -168,3 +232,57 @@ bool TEFstate::Resample() {
 
 //___________________________________________________________________
 void TEFstate::Draw(const char * /*option*/) {}
+
+//___________________________________________________________________
+int TEFstate::SizeOf() const {
+   size_t size = sizeof(*this);
+   for(auto i=0; i<fNRpart; ++i)
+      size += fPFstateP[i]->SizeOf();
+   return (int) size - sizeof(TPFstate); // fStore already holds one TPXsec
+}
+
+//___________________________________________________________________
+void TEFstate::Compact() {
+   char *start = (char*) fStore;
+   for(auto i=0; i<fNRpart; ++i) {
+      TPFstate *px = new(start) TPFstate(*fPFstateP[i]);
+      px->Compact();
+      // This line can be reactivated when we remove the back compat array
+      //      fPFstateP[i]->~TPXsec();
+      start += px->SizeOf();
+      fPFstateP[i]=px;
+   }
+}
+
+//___________________________________________________________________
+void TEFstate::RebuildClass() {
+   char *start = (char*) fStore;
+   for(auto i=0; i<fNRpart; ++i) {
+      cout << "fPFstateP[" << i <<"] = " << fPFstateP[i] << " pointer = " << start << endl;
+#ifdef MAGIC_DEBUG
+      if(((TPFstate*) start)->GetMagic() != -777777) {
+	 cout << "TPFstate::Broken magic " << ((TPFstate*) start)->GetMagic() << endl;
+	 exit(1);
+      }
+#endif
+      fPFstateP[i] = (TPFstate *) start;
+      start += ((TPFstate*) start)->SizeOf();
+   }
+}
+
+//___________________________________________________________________
+size_t TEFstate::MakeCompactBuffer(char* &b) {
+   // First calculate how much we need
+   size_t totsize = 0;
+   for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
+   // Now allocate buffer
+   b = (char*) malloc(totsize);
+   char* start = b;
+   // now copy and compact
+   for(auto i=0; i<fNLdElems; ++i) {
+      TEFstate *el = new(start) TEFstate(*fElements[i]);
+      el->Compact();
+      start += el->SizeOf();
+   }
+   return totsize;
+}
