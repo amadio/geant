@@ -13,7 +13,7 @@ GUVIntegrationStepper::GUVIntegrationStepper(GUVEquationOfMotion* equation,
 					     unsigned int num_integration_vars,
                                              unsigned int integrationOrder,
 					              int num_state_vars)
-  : fEquation_Rhs(equation),
+  : fAbstrEquation(equation),
     fIntegrationOrder(integrationOrder),
     fNoIntegrationVariables(num_integration_vars),
     fNoStateVariables(num_state_vars > 0 ? num_state_vars : num_integration_vars)
@@ -34,6 +34,6 @@ void GUVIntegrationStepper::SetEquationOfMotion(GUVEquationOfMotion* newEquation
 {
   if( newEquation != 0 )
   {
-    fEquation_Rhs= newEquation;
+    fAbstrEquation= newEquation;
   }
 }
