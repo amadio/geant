@@ -399,7 +399,7 @@ int main(int argc, char *args[])
         cout<<setw(6)<<j ;           //Printing Step number
 
         // myStepper->RightHandSide(yIn, dydx);               //compute dydx - to supply the stepper
-        exactStepper->RightHandSide(yInX, dydxRef);   //compute the value of dydx for the exact stepper
+        exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
 
         // Driver begins at the start !
         GUFieldTrack  yTrackIn(  startPosition, startMomentum );  // yStart
