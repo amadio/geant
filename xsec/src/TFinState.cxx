@@ -43,6 +43,15 @@ TFinState::TFinState(int nfstates, const int npart[], const float weight[], cons
 }
 
 //_________________________________________________________________________
+TFinState::TFinState(const TFinState& other)
+    : fNFstates(other.fNFstates), fNsecs(other.fNsecs), fNMom(other.fNMom), 
+      fWeight(other.fWeight), fKerma(other.fKerma), fEn(other.fEn), fMom(other.fMom), 
+      fPID(other.fPID), fNpart(other.fNpart), fSurv(other.fSurv) {
+}
+
+
+
+//_________________________________________________________________________
 TFinState::~TFinState() {
   delete[] fNpart;
   delete[] fWeight;

@@ -30,6 +30,7 @@ public:
   TFinState();
   TFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
             const char surv[], const int pid[], const float mom[]);
+  TFinState(const TFinState & other);
   ~TFinState();
   TFinState &operator=(const TFinState &right);
 
@@ -64,8 +65,6 @@ public:
 #endif
 
 private:
-  TFinState(const TFinState &); // Not implemented
-
   static int fVerbose; // Controls verbosity level
 
   int fNFstates;  // Number of final states
@@ -83,8 +82,9 @@ private:
   const int fMagic = -777777;
 #endif
 #ifdef USE_ROOT
-  ClassDefNV(TFinState, 1) // Particle Final States
+  ClassDefNV(TFinState, 2) // Particle Final States
 #endif
+private:
   float  fStore[1];        //! Pointer to the compact data of the class
 };
 

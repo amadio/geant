@@ -60,11 +60,12 @@ TEXsec::TEXsec(int z, int a, float dens, int np)
       fEilDelta(TPartIndex::I()->EilDelta()), fEle(z * 10000 + a * 10), fIndex(-1), 
       fNEbins(TPartIndex::I()->NEbins()), fNRpart(np),
       fPXsec(new TPXsec[fNRpart]), 
-      fPXsecP(new TPXsec*[fNRpart]) {
+      fPXsecP(new TPXsec*[fNRpart]) 
+{
   strncpy(fName, TPartIndex::I()->EleSymb(z), 31);
   strncpy(fTitle, TPartIndex::I()->EleName(z), 127);
   memset(fCuts, 0, 4 * sizeof(float));
-  memset(fPXsecP, 0, fNRpart * sizeof(TPXsec*));
+  for(auto i=0; i<fNRpart; ++i) fPXsecP[i] = &fPXsec[i];
 }
 
 //___________________________________________________________________
@@ -80,7 +81,8 @@ TEXsec::TEXsec(const TEXsec &other): fEGrid(other.fEGrid), fAtcm3(other.fAtcm3),
 
 //___________________________________________________________________
 TEXsec::~TEXsec() { 
-   for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPXsecP[ipart];
+   if(fPXsecP) 
+      for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPXsecP[ipart];
    delete [] fPXsecP; 
    delete [] fPXsec; 
 }

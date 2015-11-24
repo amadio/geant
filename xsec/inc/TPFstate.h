@@ -30,6 +30,7 @@ class TPFstate {
 public:
   TPFstate();
   TPFstate(int pdg, int nfstat, int nreac, const int dict[]);
+  TPFstate(const TPFstate &other);
   ~TPFstate();
 
   void SetRestCaptFstate(const TFinState &finstate);
@@ -61,35 +62,47 @@ public:
   void Dump() const {}
   bool Resample();
 
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
+
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
 
 private:
-  TPFstate(const TPFstate &);            // Not implemented
   TPFstate &operator=(const TPFstate &); // Not implemented
 
   static int fVerbose; // Controls verbosity level
 
-  int fPDG;                  // particle pdg code
   int fNEbins;               // number of energy bins
-  int fNReac;                // number of reactions
   int fNEFstat;              // number of states to sample per energy bin
   int fNFstat;               // tot size of fFstat
+  int fNReac;                // number of reactions
+  TFinState *fFstat;         // [fNFstat] table of final states
+  TFinState **fFstatP;       //![fNFstat] table of pointers to final states
+  TFinState *fRestCaptFstat; // RestCapture final states
+  const double *fEGrid;      //![fNEbins] energy grid
   double fEmin;              // Min energy of the energy grid
   double fEmax;              // Max energy of the energy grid
   double fEilDelta;          // logarithmic energy delta
-  const double *fEGrid;      //![fNEbins] energy grid
-  TFinState *fFstat;         // [fNFstat] table of final states
-  TFinState *fRestCaptFstat; // RestCapture final states
+  int fPDG;                  // particle pdg code
 
   int fRdict[FNPROC]; // reaction dictionary from reaction number to position
   // in the X-sec array
   int fRmap[FNPROC]; // reaction map, from reaction position in the X-sec
 // array to the raction number
 
-#ifdef USE_ROOT
-  ClassDefNV(TPFstate, 1) // Particle Final States
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
 #endif
+#ifdef USE_ROOT
+  ClassDefNV(TPFstate, 2) // Particle Final States
+#endif
+private:
+  TFinState   fStore[1]; // Pointer to compact memory
 };
 
 #endif

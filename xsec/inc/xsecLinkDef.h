@@ -10,7 +10,7 @@
 
 #ifdef __CINT__
 
-#pragma link C++ class TEFstate+;
+#pragma link C++ class TEFstate-;
 #pragma link C++ class TEXsec-;
 #pragma link C++ class TFinState+;
 #pragma link C++ class TMXsec+;

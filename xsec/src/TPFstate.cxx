@@ -16,27 +16,69 @@ int TPFstate::fVerbose = 0;
 
 //_________________________________________________________________________
 TPFstate::TPFstate()
-  : fPDG(0), fNEbins(0), fNReac(0), fNEFstat(0), fNFstat(0), fEmin(0), fEmax(0), fEilDelta(0),
-    fEGrid(TPartIndex::I()->EGrid()), fFstat(0), fRestCaptFstat(0) {
+  : fNEbins(0),
+    fNEFstat(0),
+    fNFstat(0),
+    fNReac(0),
+    fFstat(nullptr),
+    fFstatP(nullptr),
+    fRestCaptFstat(nullptr),
+    fEGrid(TPartIndex::I()->EGrid()),
+    fEmin(0),
+    fEmax(0),
+    fEilDelta(0),
+    fPDG(0)
+{
   int np = TPartIndex::I()->NProc();
   while (np--)
     fRdict[np] = fRmap[np] = -1;
 }
 
 //_________________________________________________________________________
-TPFstate::TPFstate(int pdg, int nfstat, int nreac, const int dict[])
-    : fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()), fNReac(nreac), fNEFstat(nfstat), fNFstat(fNEbins * fNEFstat),
-      fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()), fEilDelta((fNEbins - 1) / log(fEmax / fEmin)),
-      fEGrid(TPartIndex::I()->EGrid()), fFstat(new TFinState[fNFstat]), fRestCaptFstat(0) {
+TPFstate::TPFstate(int pdg, int nfstat, int nreac, const int dict[]) : 
+   fNEbins(TPartIndex::I()->NEbins()), 
+   fNEFstat(nfstat), 
+   fNFstat(fNEbins * fNEFstat),
+   fNReac(nreac), 
+   fFstat(new TFinState[fNFstat]), 
+   fFstatP(new TFinState*[fNFstat]), 
+   fRestCaptFstat(nullptr),
+   fEGrid(TPartIndex::I()->EGrid()), 
+   fEmin(TPartIndex::I()->Emin()), 
+   fEmax(TPartIndex::I()->Emax()), 
+   fEilDelta((fNEbins - 1) / log(fEmax / fEmin)),
+   fPDG(pdg)
+{
+   for(auto i=0; i< fNFstat; ++i) fFstatP[i]=&fFstat[i];
+   int np = TPartIndex::I()->NProc();
+   while (np--) {
+      fRdict[dict[np]] = np;
+      fRmap[np] = dict[np];
+   }
+   // consistency
+   for (int i = 0; i < fNReac; ++i)
+      if (fRdict[fRmap[i]] != i)
+	 Geant::Fatal("TPFstate::TPFstate", "Dictionary mismatch for!");
+}
+
+//_________________________________________________________________________
+TPFstate::TPFstate(const TPFstate& other) : 
+   fNEbins(other.fNEbins),
+   fNEFstat(other.fNEFstat),
+   fNFstat(other.fNFstat),
+   fNReac(other.fNReac),
+   fFstat(other.fFstat),
+   fFstatP(other.fFstatP),
+   fRestCaptFstat(other.fRestCaptFstat),
+   fEGrid(TPartIndex::I()->EGrid()), 
+   fEmin(other.fEmin),
+   fEmax(other.fEmax),
+   fEilDelta(other.fEilDelta),
+   fPDG(other.fPDG)
+{
   int np = TPartIndex::I()->NProc();
-  while (np--) {
-    fRdict[dict[np]] = np;
-    fRmap[np] = dict[np];
-  }
-  // consistency
-  for (int i = 0; i < fNReac; ++i)
-    if (fRdict[fRmap[i]] != i)
-      Geant::Fatal("TPFstate::SetPartXS", "Dictionary mismatch for!");
+  memcpy(fRdict,other.fRdict,np*sizeof(int));
+  memcpy(fRmap,other.fRmap,np*sizeof(int));
 }
 
 //_________________________________________________________________________
@@ -110,7 +152,7 @@ bool TPFstate::SetFinState(int ibin, int reac, const int npart[], const float we
                            const float en[], const char surv[], const int pid[], const float mom[]) {
   int rnumber = fRdict[reac];
   int ipoint = rnumber * fNEbins + ibin;
-  fFstat[ipoint].SetFinState(fNEFstat, npart, weight, kerma, en, surv, pid, mom);
+  fFstatP[ipoint]->SetFinState(fNEFstat, npart, weight, kerma, en, surv, pid, mom);
   return true;
 }
 
@@ -151,7 +193,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     // in case of any problems with the fstate sampling the primary will be
     // stopped so be prepared for this case and set kerma = en;
     // kerma = en;
-    return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom);
+    return fFstatP[ipoint]->SampleReac(npart, weight, kerma, enr, pid, mom);
   }
 }
 
@@ -187,7 +229,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     // in case of any problems with the fstate sampling the primary will be
     // stopped so be prepared for this case and set kerma = en;
     kerma = en;
-    return fFstat[ipoint].SampleReac(npart, weight, kerma, enr, pid, mom, randn2);
+    return fFstatP[ipoint]->SampleReac(npart, weight, kerma, enr, pid, mom, randn2);
   }
 }
 
@@ -247,7 +289,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
     // in case of any problems with the fstate sampling the primary will be
     // stopped so be prepared for this case and set kerma = en;
     kerma = en;
-    return fFstat[ipoint].GetReac(ifs, npart, weight, kerma, enr, pid, mom);
+    return fFstatP[ipoint]->GetReac(ifs, npart, weight, kerma, enr, pid, mom);
   }
 }
 
@@ -263,6 +305,8 @@ void TPFstate::Streamer(TBuffer &R__b) {
       gFile->Get("PartIndex");
     }
     fEGrid = TPartIndex::I()->EGrid();
+    fFstatP =  new TFinState*[fNFstat];
+    for(auto i=0; i< fNFstat; ++i) fFstatP[i]=&fFstat[i];
   } else {
     R__b.WriteClassBuffer(TPFstate::Class(), this);
   }
@@ -332,4 +376,42 @@ bool TPFstate::Resample() {
   delete[] oFstat;
   delete[] oGrid;
   return true;
+}
+
+//___________________________________________________________________
+int TPFstate::SizeOf() const {
+   size_t size = sizeof(*this);
+   if(fRestCaptFstat != nullptr) size += fRestCaptFstat->SizeOf();
+   for(auto i=0; i<fNEFstat; ++i)
+      size += fFstatP[i]->SizeOf();
+   return (int) size - sizeof(TFinState); // fStore already holds one TPXsec
+}
+
+//___________________________________________________________________
+void TPFstate::Compact() {
+   char *start = (char*) fStore;
+   for(auto i=0; i<fNEFstat; ++i) {
+      TFinState *px = new(start) TFinState(*fFstatP[i]);
+      px->Compact();
+      // This line can be reactivated when we remove the back compat array
+      //      fFstatP[i]->~TFinState();
+      start += px->SizeOf();
+      fFstatP[i]=px;
+   }
+}
+
+//___________________________________________________________________
+void TPFstate::RebuildClass() {
+   char *start = (char*) fStore;
+   for(auto i=0; i<fNEFstat; ++i) {
+      cout << "fFstatP[" << i <<"] = " << fFstatP[i] << " pointer = " << start << endl;
+#ifdef MAGIC_DEBUG
+      if(((TFinState*) start)->GetMagic() != -777777) {
+	 cout << "TFinState::Broken magic " << ((TFinState*) start)->GetMagic() << endl;
+	 exit(1);
+      }
+#endif
+      fFstatP[i] = (TFinState *) start;
+      start += ((TFinState*) start)->SizeOf();
+   }
 }
