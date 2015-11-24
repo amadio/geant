@@ -316,6 +316,6 @@ void GUIntegrationDriver::GetDerivatives(const GUFieldTrack &y_curr, // const, I
 { 
   double  tmpValArr[GUFieldTrack::ncompSVEC];
   y_curr.DumpToArray( tmpValArr  );
-  fpStepper -> RightHandSide( tmpValArr , /*charge,*/ dydx );
+  fpStepper -> RightHandSideVIS( tmpValArr , /*charge,*/ dydx );
 }
 #endif /* GUIntegrationDriver_Def */

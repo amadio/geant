@@ -250,7 +250,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
     // fpStepper->ComputeRightHandSide( y, charge, dydx );
 
     // Back to simple, old method   - JA. 16 Oct 2015
-    fpStepper->RightHandSide( y, /*charge,*/ dydx );    
+    fpStepper->RightHandSideVIS( y, /*charge,*/ dydx );   // TODO: change to inline
     fNoTotalSteps++;
 
     // Perform the Integration

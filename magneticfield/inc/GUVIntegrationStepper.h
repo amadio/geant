@@ -66,7 +66,7 @@ class GUVIntegrationStepper
         virtual  GUVIntegrationStepper* Clone() const = 0;
         // Create an independent copy of the current object -- including independent 'owned' objects
         
-        inline void RightHandSide( const double y[], /*double charge,*/ double dydx[] );   
+        inline void RightHandSideVIS( const double y[], /*double charge,*/ double dydx[] );   
         // Utility method to supply the standard Evaluation of the
         // Right Hand side of the associated equation.
 
@@ -88,8 +88,8 @@ class GUVIntegrationStepper
         // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
         // Simple utility function to (re)normalise 'unit spin' vector.
 
-        inline GUVEquationOfMotion *GetEquationOfMotion() { return  fEquation_Rhs; }
-        inline const GUVEquationOfMotion *GetEquationOfMotion() const { return  fEquation_Rhs; }        
+        inline GUVEquationOfMotion *GetEquationOfMotion() { return  fAbstrEquation; }
+        inline const GUVEquationOfMotion *GetEquationOfMotion() const { return  fAbstrEquation; }        
         // As some steppers require access to other methods of Eq_of_Mot
         void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
 
@@ -107,7 +107,11 @@ class GUVIntegrationStepper
 
     private:
 
-        GUVEquationOfMotion *fEquation_Rhs;
+        GUVEquationOfMotion *fAbstrEquation;  // For use in calling RightHandSideVIS only
+          // Object is typically owned by stepper, but if a separate pointer (TEquation)
+          //  exists which points to the same object, it must not be deleted using
+          //  this pointer!
+        
         const unsigned int fIntegrationOrder; // RK or similar order - if any. Else 0
         const unsigned int fNoIntegrationVariables; // # of Variables in integration
         const unsigned int fNoStateVariables;       // # required for FieldTrack
@@ -116,9 +120,9 @@ class GUVIntegrationStepper
 // #include  "GUVIntegrationStepper.icc"
 inline
 void GUVIntegrationStepper::
-RightHandSide( const  double y[], /*double charge,*/ double dydx[] )
+RightHandSideVIS( const  double y[], /*double charge,*/ double dydx[] )
 {
-   fEquation_Rhs-> RightHandSide(y, /*charge,*/ dydx);
+   fAbstrEquation-> RightHandSide(y, /*charge,*/ dydx);
 }
 
 inline
