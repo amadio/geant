@@ -257,6 +257,9 @@ void TEFstate::Compact() {
 //___________________________________________________________________
 void TEFstate::RebuildClass() {
    char *start = (char*) fStore;
+   // we consider that the pointer to the final states is stale because it has been read from
+   // the file. If this is not the case, this is a leak...
+   fPFstateP = new TPFstate*[fNRpart];
    for(auto i=0; i<fNRpart; ++i) {
 #ifdef MAGIC_DEBUG
       if(((TPFstate*) start)->GetMagic() != -777777) {

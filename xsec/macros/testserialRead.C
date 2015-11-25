@@ -12,7 +12,7 @@
 using std::cout;
 using std::endl;
 
-void testloadxsec()
+void testserialRead()
 {
    gSystem->Load("libPhysics.so");
    gSystem->Load("libHist.so");
@@ -24,28 +24,10 @@ void testloadxsec()
    gSystem->Load("../../lib/libUser.so");
    TGeoManager *geom = nullptr;
    //	geom = TGeoManager::Import("Al_H2O_H.root");
-   const char *fxsec = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
-   const char *ffins = "../../data/fstate_FTFP_BERT_G496p02_1mev.root";
    GeantPropagator::Instance(1,1,1);
    geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
-   TTabPhysMgr::Instance(fxsec, ffins );
 
    char *b=nullptr;
-   size_t sizex = TEXsec::MakeCompactBuffer(b);
-   cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
-
-   { // write to file
-      std::ofstream fout("xsec.bin", std::ios::binary);
-      fout.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
-      int nelem = TEXsec::NLdElems();
-      fout.write(reinterpret_cast<char*>(&nelem), sizeof(nelem));
-      fout.write(reinterpret_cast<char*>(b), sizex);
-      fout.close();
-   }
-   
-   delete [] b;
-
-   
    { // read from file
       std::ifstream fin("xsec.bin", std::ios::binary);
       size_t nb;
@@ -62,21 +44,6 @@ void testloadxsec()
    }
 
    char *d=nullptr;
-   size_t sizef = TEFstate::MakeCompactBuffer(d);
-   cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
-
-   { // write to file
-      std::ofstream fout("fins.bin", std::ios::binary);
-      fout.write(reinterpret_cast<char*>(&sizef), sizeof(sizef));
-      int nelem = TEXsec::NLdElems();
-      fout.write(reinterpret_cast<char*>(&nelem), sizeof(nelem));
-      fout.write(reinterpret_cast<char*>(d), sizef);
-      fout.close();
-   }
-   
-   delete [] d;
-
-   
    { // read from file
       std::ifstream fin("fins.bin", std::ios::binary);
       size_t nb;
@@ -92,7 +59,9 @@ void testloadxsec()
       fin.close();
    }
 
-
+   const char *fxsec = "/dev/null";
+   const char *ffins = "/dev/null";
+   TTabPhysMgr::Instance(fxsec, ffins );
 
    delete geom;
    delete TTabPhysMgr::Instance();

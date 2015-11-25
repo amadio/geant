@@ -83,9 +83,9 @@ TPFstate::TPFstate(const TPFstate& other) :
 
 //_________________________________________________________________________
 TPFstate::~TPFstate() {
+  delete [] fFstatP;
   delete[] fFstat;
-  if (fRestCaptFstat)
-    delete fRestCaptFstat;
+  delete fRestCaptFstat;
 }
 
 //_________________________________________________________________________
@@ -390,6 +390,14 @@ int TPFstate::SizeOf() const {
 //___________________________________________________________________
 void TPFstate::Compact() {
    char *start = (char*) fStore;
+   if(fRestCaptFstat != nullptr) {
+      TFinState *px = new(start) TFinState(*fRestCaptFstat);
+      px->Compact();
+      fRestCaptFstat->~TFinState();
+      start += px->SizeOf();
+      fRestCaptFstat=px;
+   }
+      
    for(auto i=0; i<fNFstat; ++i) {
       TFinState *px = new(start) TFinState(*fFstatP[i]);
       px->Compact();
@@ -403,10 +411,24 @@ void TPFstate::Compact() {
 //___________________________________________________________________
 void TPFstate::RebuildClass() {
    char *start = (char*) fStore;
+   // we consider that the pointer to the final states is stale because it has been read from
+   // the file. If this is not the case, this is a leak...
+   fFstatP = new TFinState*[fNFstat];
+   if(fRestCaptFstat != nullptr) {
+#ifdef MAGIC_DEBUG
+      if(((TFinState*) start)->GetMagic() != -777777) {
+	 cout << "TFinState::Broken magic 1 " << ((TFinState*) start)->GetMagic() << endl;
+	 exit(1);
+      }
+#endif
+      ((TFinState *) start)->RebuildClass();
+      fRestCaptFstat = (TFinState *) start;
+      start += ((TFinState*) start)->SizeOf();
+   }
    for(auto i=0; i<fNFstat; ++i) {
 #ifdef MAGIC_DEBUG
       if(((TFinState*) start)->GetMagic() != -777777) {
-	 cout << "TFinState::Broken magic " << ((TFinState*) start)->GetMagic() << endl;
+	 cout << "TFinState::Broken magic 2 " << ((TFinState*) start)->GetMagic() << endl;
 	 exit(1);
       }
 #endif

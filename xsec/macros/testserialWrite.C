@@ -12,7 +12,7 @@
 using std::cout;
 using std::endl;
 
-void testloadxsec()
+void testserialWrite()
 {
    gSystem->Load("libPhysics.so");
    gSystem->Load("libHist.so");
@@ -45,22 +45,6 @@ void testloadxsec()
    
    delete [] b;
 
-   
-   { // read from file
-      std::ifstream fin("xsec.bin", std::ios::binary);
-      size_t nb;
-      fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
-      std::cout << "Number of bytes for x-sec " << nb << std::endl;
-      int nel;
-      fin.read(reinterpret_cast<char*>(&nel), sizeof(nel));
-      std::cout << "Number of elements in x-sec " << nel << std::endl;
-      b = (char *) malloc(nb);
-      fin.read(reinterpret_cast<char*>(b), nb);
-      std::cout << "Rebuilding x-sec store" << std::endl;
-      TEXsec::RebuildStore(nb,nel,b);
-      fin.close();
-   }
-
    char *d=nullptr;
    size_t sizef = TEFstate::MakeCompactBuffer(d);
    cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
@@ -75,25 +59,7 @@ void testloadxsec()
    }
    
    delete [] d;
-
    
-   { // read from file
-      std::ifstream fin("fins.bin", std::ios::binary);
-      size_t nb;
-      fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
-      std::cout << "Number of bytes for fins " << nb << std::endl;
-      int nel;
-      fin.read(reinterpret_cast<char*>(&nel), sizeof(nel));
-      std::cout << "Number of elements in fins " << nel << std::endl;
-      d = (char *) malloc(nb);
-      fin.read(reinterpret_cast<char*>(d), nb);
-      std::cout << "Rebuilding fins store" << std::endl;
-      TEFstate::RebuildStore(nb,TEXsec::NLdElems(),d);
-      fin.close();
-   }
-
-
-
    delete geom;
    delete TTabPhysMgr::Instance();
 }

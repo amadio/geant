@@ -638,6 +638,9 @@ void TEXsec::Compact() {
 //___________________________________________________________________
 void TEXsec::RebuildClass() {
    char *start = (char*) fStore;
+   // We consider that the fPXsecP pointer is bad and we do not delete it
+   // this is the case if we read back the array.
+   fPXsecP = new TPXsec*[fNRpart];
    for(auto i=0; i<fNRpart; ++i) {
 #ifdef MAGIC_DEBUG
       if(((TPXsec*) start)->GetMagic() != -777777) {
