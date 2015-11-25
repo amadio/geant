@@ -130,7 +130,9 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   }
 
   // get the decay table from the final state file
-  fDecay = (TPDecay *)fstate->Get("DecayTable");
+  fDecay = TEFstate::GetDecayTable();
+  std::cout << "fDecay " << fDecay << std::endl;
+  if(fDecay == nullptr) fDecay = (TPDecay *)fstate->Get("DecayTable");
 
 #ifdef USE_VECGEOM_NAVIGATOR
   printf("#materials:= %lu \n", matlist.size());

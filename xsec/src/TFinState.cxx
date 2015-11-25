@@ -395,28 +395,28 @@ void TFinState::Compact() {
 //______________________________________________________________________________
 void TFinState::RebuildClass() {
    int size = 0;
-   float *start = fStore;
+   char *start = (char *) fStore;
    if(fWeight) {
       //      cout << "Original fWeight " << fWeight << " new pointer " << start << endl;
-      fWeight = start;
+      fWeight = (float *) start;
       size = fNFstates * sizeof(float);
       start +=size;
    }
    if(fKerma) {
       //      cout << "Original fKerma " << fKerma << " new pointer " << start << endl;
-      fKerma = start;
+      fKerma = (float *) start;
       size = fNFstates * sizeof(float);
       start +=size;
    }
    if(fEn) {
       //      cout << "Original fEn " << fEn << " new pointer " << start << endl;
-      fEn = start;
+      fEn = (float *) start;
       size = fNFstates * sizeof(float);
       start +=size;
    }
    if(fMom) {
       //      cout << "Original fMom " << fMom << " new pointer " << start << endl;
-      fMom = start;
+      fMom = (float *) start;
       size = fNMom * sizeof(float);
       start +=size;
    }

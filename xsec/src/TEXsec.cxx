@@ -661,6 +661,7 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
    for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
    // Now allocate buffer
    b = (char*) malloc(totsize);
+   memset(b,0,totsize);
    char* start = b;
    // now copy and compact
    for(auto i=0; i<fNLdElems; ++i) {

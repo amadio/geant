@@ -28,9 +28,8 @@ class TPDecay {
 public:
   TPDecay();
   TPDecay(int nsample, int npart, TFinState *decay);
+  TPDecay(const TPDecay &other);
   ~TPDecay();
-
-  int NSample() const { return fNSamp; }
 
   bool SampleDecay(int pindex, int &npart, const int *&pid, const float *&mom) const;
   bool GetDecay(int pindex, int ifs, int &npart, const int *&pid, const float *&mom) const;
@@ -41,18 +40,29 @@ public:
     return fCTauPerMass[pindex];
   }
 
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
+  size_t MakeCompactBuffer(char* &b);
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
+
 private:
-  TPDecay(const TPDecay &);            // Not implemented
   TPDecay &operator=(const TPDecay &); // Not implemented
 
-  int fNSamp;           // Number of samples
   int fNPart;           // Number of particles
-  TFinState *fDecay;    // [fNPart] array of particle final states to be sampled
   double *fCTauPerMass; // [fNPart] precomputed c*tau/mass values [cm/GeV]
+  TFinState *fDecay;    // [fNPart] array of particle final states to be sampled
+  TFinState **fDecayP;  //![fNpart] table of pointers to final states
 
-#ifdef USE_ROOT
-  ClassDefNV(TPDecay, 1) // Element X-secs
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
 #endif
+#ifdef USE_ROOT
+  ClassDefNV(TPDecay, 2) // Element X-secs
+#endif
+  double fStore[1];    // Pointer to the compact part of the store
 };
 
 #endif

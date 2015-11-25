@@ -74,48 +74,48 @@ int TPXsec::SizeOf() const {
 //_________________________________________________________________________
 void TPXsec::Compact() {
    int size = 0;
-   float *start = fStore;
+   char *start = (char*) fStore;
    if(fMSangle) {
       size = fNCbins * sizeof(float);
       memcpy(start, fMSangle, size);
-      fMSangle = start;
-      start +=fNCbins;
+      fMSangle = (float*) start;
+      start += size;
    }
    if(fMSansig) {
       size = fNCbins * sizeof(float);
       memcpy(start, fMSansig, size);
-      fMSansig = start;
-      start +=fNCbins;
+      fMSansig = (float*) start;
+      start += size;
    }
    if(fMSlength) {
       size = fNCbins * sizeof(float);
       memcpy(start, fMSlength, size);
-      fMSlength = start;
-      start +=fNCbins;
+      fMSlength = (float*) start;
+      start += size;
    }
    if(fMSlensig) {
       size = fNCbins * sizeof(float);
       memcpy(start, fMSlensig, size);
-      fMSlensig = start;
-      start +=fNCbins;
+      fMSlensig = (float*) start;
+      start += size;
    }
    if(fdEdx) {
       size = fNCbins * sizeof(float);
       memcpy(start, fdEdx, size);
-      fdEdx = start;
-      start +=fNCbins;
+      fdEdx = (float*) start;
+      start += size;
    }
    if(fTotXs) {
       size = fNTotXs * sizeof(float);
       memcpy(start, fTotXs, size);
-      fTotXs = start;
-      start +=fNTotXs;
+      fTotXs = (float*) start;
+      start += size;
    }
    if(fXSecs) {
       size = fNXSecs * sizeof(float);
       memcpy(start, fXSecs, size);
-      fXSecs = start;
-      start +=fNTotXs;
+      fXSecs = (float*) start;
+      start += size;
    }
 }
 
@@ -124,48 +124,48 @@ void TPXsec::RebuildClass() {
    // Reset fEgrid, may be in a different place
    fEGrid = TPartIndex::I()->EGrid();
    int size = 0;
-   float *start = fStore;
+   char *start = (char*) fStore;
    if(fMSangle) {
       //      cout << "Original fMSangle " << fMSangle << " new pointer " << start << endl;
-      fMSangle = start;
+      fMSangle = (float*) start;
       size = fNCbins * sizeof(float);
-      start +=size;
+      start += size;
    }
    if(fMSansig) {
       //      cout << "Original fMSansig " << fMSansig << " new pointer " << start << endl;
-      fMSansig = start;
+      fMSansig = (float*) start;
       size = fNCbins * sizeof(float);
-      start +=size;
+      start += size;
    }
    if(fMSlength) {
       //      cout << "Original fMSlength " << fMSlength << " new pointer " << start << endl;
-      fMSlength = start;
+      fMSlength = (float*) start;
       size = fNCbins * sizeof(float);
-      start +=size;
+      start += size;
    }
    if(fMSlensig) {
       //      cout << "Original fMSlensig " << fMSlensig << " new pointer " << start << endl;
-      fMSlensig = start;
+      fMSlensig = (float*) start;
       size = fNCbins * sizeof(float);
-      start +=size;
+      start += size;
    }
    if(fdEdx) {
       //      cout << "Original fdEdx " << fdEdx << " new pointer " << start << endl;
-      fdEdx = start;
+      fdEdx = (float*) start;
       size = fNCbins * sizeof(float);
-      start +=size;
+      start += size;
    }
    if(fTotXs) {
       //      cout << "Original fTotXs " << fTotXs << " new pointer " << start << endl;
-      fTotXs = start;
+      fTotXs = (float*) start;
       size = fNTotXs * sizeof(float);
-      start +=size;
+      start += size;
    }
    if(fXSecs) {
       //      cout << "Original fXSecs " << fXSecs << " new pointer " << start << endl;
-      fXSecs = start;
+      fXSecs = (float*) start;
       size = fNXSecs * sizeof(float);
-      start +=size;
+      start += size;
    }
 }
 

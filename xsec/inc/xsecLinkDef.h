@@ -14,7 +14,7 @@
 #pragma link C++ class TEXsec-;
 #pragma link C++ class TFinState+;
 #pragma link C++ class TMXsec+;
-#pragma link C++ class TPDecay+;
+#pragma link C++ class TPDecay-;
 #pragma link C++ class TPFstate-;
 #pragma link C++ class TPXsec-;
 #pragma link C++ class TPartIndex-;

@@ -6,6 +6,7 @@
 #include <TPFstate.h>
 #include <TPartIndex.h>
 #include "TEFstate.h"
+#include "TPDecay.h"
 #include "base/Global.h"
 #include "base/MessageLogger.h"
 using vecgeom::kAvogadro;
@@ -17,6 +18,7 @@ TEFstate *TEFstate::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 int TEFstate::fNLdElems = 0;
+TPDecay* TEFstate::fDecay = nullptr;
 
 //___________________________________________________________________
 TEFstate::TEFstate() :
@@ -280,6 +282,7 @@ size_t TEFstate::MakeCompactBuffer(char* &b) {
    for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
    // Now allocate buffer
    b = (char*) malloc(totsize);
+   memset(b,0,totsize);
    char* start = b;
    // now copy and compact
    for(auto i=0; i<fNLdElems; ++i) {

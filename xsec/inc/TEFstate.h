@@ -24,6 +24,7 @@
 class TFile;
 
 class TFinState;
+class TPDecay;
 
 class TEFstate {
 public:
@@ -88,6 +89,8 @@ public:
 
   static TEFstate *GetElement(int z, int a = 0, TFile *f = 0);
   static TEFstate **GetElements() { return fElements; }
+  static TPDecay* GetDecayTable() {return fDecay;}
+  static void SetDecayTable(TPDecay *decayTable) {fDecay = decayTable;}
 
 private:
   TEFstate(const TEFstate &);            // Not implemented
@@ -107,6 +110,7 @@ private:
 
   static int fNLdElems;              //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
+  static TPDecay  *fDecay;           //! decay table
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif

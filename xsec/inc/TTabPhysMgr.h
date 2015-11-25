@@ -100,6 +100,8 @@ public:
   int VersionSub() const { return fgVersion - VersionMajor() * 1000000 - VersionMinor() * 1000; }
   const char *GetVersion() const;
 
+  TPDecay* GetDecayTable() {return fDecay;}
+
 private:
   TTabPhysMgr(const TTabPhysMgr &);            // no imp.
   TTabPhysMgr &operator=(const TTabPhysMgr &); // no imp.

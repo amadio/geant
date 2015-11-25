@@ -2,6 +2,7 @@
 #include "TGeoManager.h"
 #include "TEXsec.h"
 #include "TEFstate.h"
+#include "TPDecay.h"
 #include "TRandom.h"
 #include "TFile.h"
 
@@ -51,6 +52,7 @@ void testserialRead()
    }
 
    char *d=nullptr;
+   char *de=nullptr;
    { // read from file
       std::ifstream fin("fins.bin", std::ios::binary);
       size_t nb;
@@ -63,6 +65,15 @@ void testserialRead()
       fin.read(reinterpret_cast<char*>(d), nb);
       std::cout << "Rebuilding fins store" << std::endl;
       TEFstate::RebuildStore(nb,TEXsec::NLdElems(),d);
+      size_t nd;
+      fin.read(reinterpret_cast<char*>(&nd), sizeof(nd));
+      std::cout << "Number of bytes for decay " << nd << std::endl;
+      de = (char *) malloc(nd);
+      fin.read(reinterpret_cast<char*>(de), nd);
+      std::cout << "Rebuilding decay store" << std::endl;
+      TPDecay *dec = (TPDecay *) de;
+      dec->RebuildClass();
+      TEFstate::SetDecayTable(dec);
       fin.close();
    }
 
@@ -70,21 +81,20 @@ void testserialRead()
    const char *ffins = "/dev/null";
    TTabPhysMgr::Instance(fxsec, ffins );
 
+   std::cout << TPartIndex::I()->NPartReac() << std::endl;
    constexpr int nrep = 1000;
-   std::ofstream fout("xsecs.txt");
+   TRandom *r = new TRandom(12345);
+   std::ofstream fout("xsecsR.txt");
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
-      cout << "Entering first loop" << endl;
       for(auto irep=0; irep<nrep; ++irep) {
-	 cout << "Entering second loop" << endl;
 	 // Get a random particle & reaction & energy
-	 int ipart = gRandom->Uniform() * TPartIndex::I()->NPartReac();
-	 cout << "npart " << TPartIndex::I()->NPartReac() << " ipart = " << ipart << endl;
-	 int ireac = gRandom->Uniform() * FNPROC;
-	 float en = gRandom->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	 int ipart = r->Uniform() * TPartIndex::I()->NPartReac();
+	 int ireac = r->Uniform() * FNPROC;
+	 float en = r->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
 	 float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
 	 if(xs < 0) continue;
-	 fout <<  xs << std::endl;
+	 fout <<  iel << " " << TPartIndex::I()->PartName(ipart) << " " << ireac << " " << en << " " << xs << std::endl;
       }
    }
    fout.close();
