@@ -347,48 +347,48 @@ int TFinState::SizeOf() const {
 //_________________________________________________________________________
 void TFinState::Compact() {
    int size = 0;
-   float *start = fStore;
+   char *start = (char*) fStore;
    if(fWeight) {
       size = fNFstates * sizeof(float);
       memcpy(start, fWeight, size);
-      fWeight = start;
-      start +=fNFstates;
+      fWeight = (float*) start;
+      start += size;
    }
    if(fKerma) {
       size = fNFstates * sizeof(float);
       memcpy(start, fKerma, size);
-      fKerma = start;
-      start +=fNFstates;
+      fKerma = (float*) start;
+      start += size;
    }
    if(fEn) {
       size = fNFstates * sizeof(float);
       memcpy(start, fEn, size);
-      fEn = start;
-      start +=fNFstates;
+      fEn = (float*) start;
+      start += size;
    }
    if(fMom) {
       size = fNMom * sizeof(float);
       memcpy(start, fMom, size);
-      fMom = start;
-      start += fNMom;
+      fMom = (float*) start;
+      start += size;
    }
    if(fPID) {
       size = fNsecs * sizeof(int);
       memcpy(start, fPID, size);
       fPID = (int *) start;
-      start = (float *) ((int *) start + fNsecs);
+      start += size;
    }
    if(fNpart) {
       size = fNFstates * sizeof(int);
       memcpy(start, fNpart, size);
-      fNpart = (int *) start;
-      start = (float *) ((int *) start + fNFstates);
+      fNpart = (int*) start;
+      start += size;
    }
    if(fSurv) {
       size = fNFstates * sizeof(char);
       memcpy(start, fSurv, size);
-      fSurv = (char *) start;
-      start = (float *) ((char *) start + fNFstates);
+      fSurv = (char*) start;
+      start += size;
    }
 }
 
