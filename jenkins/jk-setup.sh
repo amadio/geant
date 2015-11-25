@@ -39,7 +39,7 @@ then
   COMPILERversion=${COMPILER}version
 
   ARCH=$(uname -m)
-  if [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]
+  if [[ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]]
   then
     . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
   else
