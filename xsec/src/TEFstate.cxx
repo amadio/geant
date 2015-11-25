@@ -99,7 +99,7 @@ void TEFstate::Streamer(TBuffer &R__b)
 
 //___________________________________________________________________
 bool TEFstate::AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict[]) {
-  return fPFstate[kpart].SetPart(pdg, nfstat, nreac, dict);
+  return fPFstateP[kpart]->SetPart(pdg, nfstat, nreac, dict);
 }
 
 //___________________________________________________________________
@@ -110,22 +110,22 @@ bool TEFstate::AddPart(int kpart, int pdg, int nfstat, int nreac, const int dict
     log_fatal(std::cout, "AddPart", "Number of final sample states changed during run from %d to %d", fNEFstat, nfstat);
     exit(1);
   }
-  return fPFstate[kpart].SetPart(pdg, nfstat, nreac, dict, vecfs);
+  return fPFstateP[kpart]->SetPart(pdg, nfstat, nreac, dict, vecfs);
 }
 
 //___________________________________________________________________
 bool TEFstate::AddPartFS(int kpart, int ibin, int reac, const int npart[], const float weight[], const float kerma[],
                          const float en[], const char surv[], const int pid[], const float mom[]) {
-  return fPFstate[kpart].SetFinState(ibin, reac, npart, weight, kerma, en, surv, pid, mom);
+  return fPFstateP[kpart]->SetFinState(ibin, reac, npart, weight, kerma, en, surv, pid, mom);
 }
 
 //_____________________________________________________________________________
-void TEFstate::SetRestCaptFstate(int kpart, const TFinState &fstate) { fPFstate[kpart].SetRestCaptFstate(fstate); }
+void TEFstate::SetRestCaptFstate(int kpart, const TFinState &fstate) { fPFstateP[kpart]->SetRestCaptFstate(fstate); }
 
 //______________________________________________________________________________
 bool TEFstate::HasRestCapture(int partindex) {
   if (partindex < TPartIndex::I()->NPartReac())
-    return fPFstate[partindex].HasRestCaptFstat();
+    return fPFstateP[partindex]->HasRestCaptFstat();
   return false;
 }
 
@@ -133,7 +133,7 @@ bool TEFstate::HasRestCapture(int partindex) {
 bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                                     const float *&mom) const {
   if (kpart < TPartIndex::I()->NPartReac()) {
-    return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
+    return fPFstateP[kpart]->SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom);
   } else {
     kerma = 0;
     npart = 0;
@@ -147,7 +147,7 @@ bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float 
 bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                                     const float *&mom, double randn) const {
   if (kpart < TPartIndex::I()->NPartReac()) {
-    return fPFstate[kpart].SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom, randn);
+    return fPFstateP[kpart]->SampleRestCaptFstate(npart, weight, kerma, enr, pid, mom, randn);
   } else {
     kerma = 0;
     npart = 0;
@@ -160,19 +160,19 @@ bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float 
 //___________________________________________________________________
 bool TEFstate::SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr,
                           const int *&pid, const float *&mom, int &ebinindx) const {
-  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
+  return fPFstateP[pindex]->SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 }
 
 //___________________________________________________________________
 bool TEFstate::SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr,
                           const int *&pid, const float *&mom, int &ebinindx, double randn1, double randn2) const {
-  return fPFstate[pindex].SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx, randn1, randn2);
+  return fPFstateP[pindex]->SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx, randn1, randn2);
 }
 
 //___________________________________________________________________
 bool TEFstate::GetReac(int pindex, int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
                        const int *&pid, const float *&mom) const {
-  return fPFstate[pindex].GetReac(preac, en, ifs, npart, weight, kerma, enr, pid, mom);
+  return fPFstateP[pindex]->GetReac(preac, en, ifs, npart, weight, kerma, enr, pid, mom);
 }
 
 //___________________________________________________________________
@@ -215,14 +215,14 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
 //___________________________________________________________________
 bool TEFstate::Prune() {
   for (int ip = 0; ip < fNRpart; ++ip)
-    fPFstate[ip].Prune();
+    fPFstateP[ip]->Prune();
   return true;
 }
 
 //___________________________________________________________________
 bool TEFstate::Resample() {
   for (int ip = 0; ip < fNRpart; ++ip)
-     fPFstate[ip].Resample();
+     fPFstateP[ip]->Resample();
   fEmin = TPartIndex::I()->Emin();
   fEmax = TPartIndex::I()->Emax();
   fNEbins = TPartIndex::I()->NEbins();

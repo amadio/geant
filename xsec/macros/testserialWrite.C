@@ -2,6 +2,7 @@
 #include "TGeoManager.h"
 #include "TEXsec.h"
 #include "TEFstate.h"
+#include "TRandom.h"
 
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
@@ -29,6 +30,23 @@ void testserialWrite()
    GeantPropagator::Instance(1,1,1);
    geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
    TTabPhysMgr::Instance(fxsec, ffins );
+
+   constexpr int nrep = 1000;
+   std::ofstream fout("xsecs.txt");
+   for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
+      for(auto irep=0; irep<nrep; ++irep) {
+	 // Get a random particle & reaction & energy
+	 int ipart = gRandom->Uniform() * TPartIndex::I()->NPartReac();
+	 int ireac = gRandom->Uniform() * FNPROC;
+	 float en = gRandom->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	    + TPartIndex::I()->Emin();
+	 float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
+	 if(xs < 0) continue;
+	 fout <<  xs << std::endl;
+      }
+   }
+   fout.close();
+
 
    char *b=nullptr;
    size_t sizex = TEXsec::MakeCompactBuffer(b);

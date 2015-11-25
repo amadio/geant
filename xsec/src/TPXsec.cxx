@@ -121,6 +121,8 @@ void TPXsec::Compact() {
 
 //______________________________________________________________________________
 void TPXsec::RebuildClass() {
+   // Reset fEgrid, may be in a different place
+   fEGrid = TPartIndex::I()->EGrid();
    int size = 0;
    float *start = fStore;
    if(fMSangle) {
