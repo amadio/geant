@@ -99,6 +99,32 @@ void testserialRead()
    }
    fout.close();
 
+   std::ofstream fftest("xfinsR.txt");
+   for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
+      for(auto irep=0; irep<nrep; ++irep) {
+	 // Get a random particle & reaction & energy
+	 int ipart = r->Uniform() * TPartIndex::I()->NPartReac();
+	 int ireac = r->Uniform() * FNPROC;
+	 float en = r->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	    + TPartIndex::I()->Emin();
+	 int npart=0;
+	 float weight=0;
+	 float kerma=0;
+	 float enr=0;
+	 const int *pid=0;
+	 const float *mom=0;
+	 int ebinindx=0;
+	 TEFstate::Element(iel)->SampleReac(ipart, ireac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
+	 if(npart <= 0) continue;
+	 fftest <<  iel << ":" << TPartIndex::I()->PartName(ipart) << ":" << ireac << ":" << en 
+		<< ":" << npart << ":" << weight << ":" << kerma << ":" << enr << ":";
+	 for(auto i=0; i<npart; ++i)
+	    fftest << pid[i] << ":" << mom[i*3] << ":" << mom[i*3+1] << ":" << mom[i*3+2];
+	 fftest <<":" << ebinindx << std::endl;
+      }
+   }
+   fftest.close();
+
    delete geom;
    delete TTabPhysMgr::Instance();
 }

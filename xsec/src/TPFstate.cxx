@@ -411,6 +411,8 @@ void TPFstate::Compact() {
 //___________________________________________________________________
 void TPFstate::RebuildClass() {
    char *start = (char*) fStore;
+   // we consider that the pointer energy grid is stale
+   fEGrid = TPartIndex::I()->EGrid();
    // we consider that the pointer to the final states is stale because it has been read from
    // the file. If this is not the case, this is a leak...
    fFstatP = new TFinState*[fNFstat];
