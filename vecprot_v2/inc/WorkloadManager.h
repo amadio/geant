@@ -15,6 +15,7 @@
 
 #include <thread>
 #include "priority_queue.h"
+#include "dcqueue.h"
 #include "condition_locker.h"
 
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -23,6 +24,8 @@
 
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
+
+#include "TThreadMergingServer.h"
 
 class GeantBasketMgr;
 class GeantBasket;
@@ -71,6 +74,8 @@ protected:
   condition_locker fGbcLocker; /** Garbage collector locker */
   int fLastEvent;            /** Last transported event */
 
+  dcqueue<TBufferFile*>* fOutputIO;            /** Queue of buffers to be merged for IO **/ 
+  TThreadMergingServer* fMergingServer;
   /**
    * @brief WorkloadManager parameterized constructor
    *
@@ -105,6 +110,12 @@ public:
   //   GeantObjectPool<VolumePath_t>
   //   rr_pool<VolumePath_t>
   //                      *NavStates() const   {return fNavStates;}
+
+  /**
+   * @brief Function that provides IO queue 
+   */
+  dcqueue<TBufferFile*>*  IOQueue() const { return fOutputIO; }
+  TThreadMergingServer* MergingServer() const { return fMergingServer; }
 
   /** @brief Function that returns number of managed threads */
   int GetNthreads() const { return fNthreads; }

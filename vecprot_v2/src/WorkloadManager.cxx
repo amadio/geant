@@ -37,6 +37,7 @@
 #include "GeantFactory.h"
 #endif
 #include "GeantFactoryStore.h"
+#include "TThreadMergingFile.h"
 
 using namespace Geant;
 using std::max;
@@ -49,7 +50,7 @@ WorkloadManager::WorkloadManager(int nthreads)
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
       fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0),
       fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0), fMaxThreads(0), fScheduler(0), fBroker(0), fWaiting(0),
-      fSchLocker(), fGbcLocker(), fLastEvent(0) {
+      fSchLocker(), fGbcLocker(), fLastEvent(0), fOutputIO(0) {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -58,6 +59,9 @@ WorkloadManager::WorkloadManager(int nthreads)
   fScheduler = new GeantScheduler();
   fWaiting = new int[fNthreads + 1];
   memset(fWaiting, 0, (fNthreads + 1) * sizeof(int));
+
+  fOutputIO = new dcqueue<TBufferFile*>;
+  fMergingServer = new TThreadMergingServer(fOutputIO);
 }
 
 //______________________________________________________________________________
@@ -70,6 +74,7 @@ WorkloadManager::~WorkloadManager() {
   delete[] fWaiting;
   //   delete fNavStates;
   fgInstance = 0;
+  delete fOutputIO;
 }
 
 //______________________________________________________________________________
@@ -251,7 +256,7 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
       for (int i = 0; i < nworkers; i++)
         FeederQueue()->push(0);
       TransportedQueue()->push(0);
-      Stop();
+      Stop();      
       //         sched_locker.StartOne(); // signal the scheduler who has to exit
       //         gbc_locker.StartOne();
       return FeederResult::kStopProcessing;
@@ -295,6 +300,21 @@ void *WorkloadManager::TransportTracks() {
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
+
+  // IO handling
+
+  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite;
+  GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
+  GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
+  
+  TThread t;
+  TThreadMergingFile file("hits_output.root", wm->IOQueue(), "RECREATE");
+  
+  TTree *tree = new TTree("Tree","Simulation output");
+  GeantBlock<MyHit>* data=0;
+  
+  tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
+
   // Start the feeder
   propagator->Feeder(td);
   Material_t *mat = 0;
@@ -475,9 +495,16 @@ void *WorkloadManager::TransportTracks() {
     if (gPropagator->fStdApplication)
       gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
+
+    // WP
+    if(concurrentWrite)
+      {
+	myhitFactory->fOutputs.try_pop(data);
+	tree->Fill();
+      }
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
-
+    
 // Normalize directions (should be not needed)
 //    for (auto itr=0; itr<ntotnext; ++itr)
 //      output.Normalize(itr);
@@ -512,6 +539,10 @@ void *WorkloadManager::TransportTracks() {
       ;
     basket->Recycle(td);
   }
+
+  // WP
+  if(concurrentWrite) file.Write();
+  
   wm->DoneQueue()->push(0);
   delete prioritizer;
   Printf("=== Thread %d: exiting ===", tid);
@@ -1159,45 +1190,57 @@ void *WorkloadManager::MonitoringThread() {
 
 //______________________________________________________________________________
 void *WorkloadManager::OutputThread() {
-    // Thread providing basic output for the scheduler.
+  // Thread providing basic output for the scheduler.
 
   Printf("=== Output thread created ===");
- 
-    TFile file("hits.root", "RECREATE");
-    WorkloadManager *wm = WorkloadManager::Instance();
-    
-    GeantBlock<MyHit>* data=0;
 
-    TTree *tree = new TTree("T","Simulation output");
-    
-    tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
-    
-    GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
-    GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
-    
-    
-    while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
+  if(GeantPropagator::Instance()->fConcurrentWrite)
+
     {
-      // Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
-        
-      if (myhitFactory->fOutputs.size()>0)
-        {
-	  while (myhitFactory->fOutputs.try_pop(data))
-            {
-	      // myhitFactory->fOutputs.wait_and_pop(data);                
-	      // Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
-	      
-	      // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
-              
-	      tree->Fill();
-	      
-	      myhitFactory->Recycle(data);
-	      // Printf("save_hits: size of pool %zu", myhitFactory->fPool.size());		
-            }
-	}
+      Printf(">>> Writing concurrently to MemoryFiles");
+      
+      TThread t;
+      
+      WorkloadManager::Instance()->MergingServer()->Listen();
     }
-    tree->Write();
-    file.Close();
+  else
+    {
+      TFile file("hits.root", "RECREATE");
+      WorkloadManager *wm = WorkloadManager::Instance();
+    
+      GeantBlock<MyHit>* data=0;
+
+      TTree *tree = new TTree("T","Simulation output");
+    
+      tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
+    
+      GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
+      GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
+    
+    
+      while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
+	{
+	  // Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
+        
+	  if (myhitFactory->fOutputs.size()>0)
+	    {
+	      while (myhitFactory->fOutputs.try_pop(data))
+		{
+		  // myhitFactory->fOutputs.wait_and_pop(data);                
+		  // Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
+	      
+		  // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
+              
+		  tree->Fill();
+	      
+		  myhitFactory->Recycle(data);
+		  // Printf("save_hits: size of pool %zu", myhitFactory->fPool.size());		
+		}
+	    }
+	}
+      tree->Write();
+      file.Close();
+    }
 
     Printf("=== Output thread finished ===");
     

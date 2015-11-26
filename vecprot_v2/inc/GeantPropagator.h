@@ -106,6 +106,7 @@ public:
   bool fTransportOngoing; /** Flag for ongoing transport */
   bool fSingleTrack;      /** Use single track transport mode */
   Bool_t fFillTree;       /** Enable I/O */
+  Bool_t fConcurrentWrite;/** switch between single and mutlithreaded writing */
   bool fUseMonitoring;    /** Monitoring different features */
   bool fUseAppMonitoring; /** Monitoring the application */
   TMutex fTracksLock;       /** Mutex for adding tracks */

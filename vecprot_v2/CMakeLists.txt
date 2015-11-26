@@ -29,6 +29,8 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingFile.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingServer.cxx
 )     
 
 set(headers
@@ -45,7 +47,9 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactory.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingFile.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
 )   
 
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
