@@ -67,18 +67,6 @@ TPartIndex::TPartIndex() :
 }
 
 //___________________________________________________________________
-TPartIndex::TPartIndex(const TPartIndex& other) :
-   fEilDelta(other.fEilDelta), fNPart(other.fNPart), fNEbins(other.fNEbins), fEGrid(other.fEGrid), 
-   fPDG(other.fPDG), fNpReac(other.fNpReac), fNpCharge(other.fNpCharge),
-#ifndef USE_VECGEOM_NAVIGATOR
-      fDBPdg(TDatabasePDG::Instance()),
-#endif
-      fPDGToGVMap(other.fPDGToGVMap) 
-{
-   memcpy(fSpecGVIndices,other.fSpecGVIndices,4*sizeof(int));
-}
-
-//___________________________________________________________________
 TPartIndex::~TPartIndex() {
   delete[] fPDG;
   delete[] fEGrid;
