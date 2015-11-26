@@ -28,20 +28,11 @@ using fieldUnits::degree;
 #include "TMagFieldEquation.h"
 
 #include "GUVIntegrationStepper.h"
-#include "TClassicalRK4.h"
-#include "GUTCashKarpRKF45.h"
-
-#include "TSimpleRunge.h"
-#include "GUExactHelixStepper.h"
-// #include "GULineSection.hh"
-
-// #include "BogackiShampine23.hh"
-// #include "DormandPrince745.hh"
-// #include "BogackiShampine45.h"
-// #include "G4SimpleHeum.hh"
+#include "StepperFactory.h"
 
 #include "GUFieldTrack.h"
 #include "GUIntegrationDriver.h"
+
 
 // #define  COMPARE_TO_G4  1
 
@@ -55,20 +46,6 @@ using fieldUnits::degree;
 
 using namespace std;
 // using namespace CLHEP;
-
-//Version 2.0 - Includes direct comparison with ExactHelix
-
-/* Stepper No.
- 0. GUExactHelix
- 4. TClassicalRK4
- 5. TCashKarpRKF45 
-
-Potential expansion:
- 2. G4SimpleHeum
- 3. BogackiShampine23
- 6. BogackiShampine45
- 7. DormandPrince745
- */
 
 const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
@@ -173,64 +150,20 @@ int main(int argc, char *args[])
     GUVIntegrationStepper *myStepper; // , *exactStepper;
     // G4MagIntegrationStepper *g4refStepper;    
 
-    const char *stepperName=0;
-    const char * const NameSimpleRunge = "TSimpleRunge";
-    const char * const NameClassicalRK4 = "TClassicalRK4";
-    const char * const NameCashKarpRKF45 = "GU-TCashKarpRKF45";
-    const char * const NameClassicalRK4clone = "TClassicalRK4 (cloned)";
-    const char * const NameCashKarpRKF45clone = "GU-TCashKarpRKF45 (cloned)";
-    // cout << "#  Chosen the   ";
-    //Choose the stepper based on the command line argument
-    switch(stepper_no){
-       // case 0: myStepper = new GUExactHelixStepper(gvEquation);
-       //  cout << " GUExactHelix stepper. " << endl;
-       //  break;
-      case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
-         stepperName= NameSimpleRunge;
-         cout << endl << "# Chosen the TSimpleRunge stepper. " << endl;
-         break;         
-         // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
-       // case 3: myStepper = new BogackiShampine23(gvEquation); break;
-      case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-         stepperName= NameClassicalRK4;
-         cout << endl << "# Chosen the TClassicalRK4 stepper. " << endl;         
-         break;
-      case 5: myStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
-         stepperName= NameCashKarpRKF45;
-         cout << endl << "# Chosen the GUTCashKarpRKF45 stepper. " << endl;
-         break;
-      case 14:
-         {
-            cout << "StpF/m Creating base  TClassicalRK4 stepper: " << endl;
-            auto baseStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-            // myStepper = new TClassicalRK4( baseStepper );
-            cout << "StpF/m Creating clone TClassicalRK4 stepper: " << endl;          
-            myStepper = baseStepper->Clone();
-            delete baseStepper; // Also deletes its corresponding equation !!
-         }
-         stepperName= NameClassicalRK4clone;         
-         cout << "#Chosen the TClassicalRK4 stepper (cloned). " << endl;         
-         break;
-      case 15:
-         {
-            cout << "StpF/m Creating base  GU-TCashKarpRKF45 stepper: " << endl;            
-            auto baseCKstepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
-            cout << "StpF/m Creating clone GU-TCashKarpRKF45 stepper: " << endl;                        
-            myStepper = baseCKstepper->Clone();
-            delete baseCKstepper;
-         }
-         stepperName= NameCashKarpRKF45clone;
-         cout << endl << "# GUTCashKarpRKF45 stepper (cloned). " << endl;
-         break;         
-       // case 6: myStepper = new BogackiShampine45(gvEquation); break;
-       // case 7: myStepper = new DormandPrince745(gvEquation);  break;
-      default : myStepper = (GUVIntegrationStepper*) 0 ;
-         std::cerr << " ERROR> No stepper selected. " << endl;
-         exit(1);
+    const int cloneBump= 10;
+    bool useClonedStepper= (stepper_no > cloneBump);
+    if(  useClonedStepper )
+       stepper_no -= cloneBump;
+ 
+    myStepper= StepperFactory::CreateStepper<GvEquationType>(gvEquation, stepper_no);
+    //         *****************************
+    if( useClonedStepper ){
+       auto cloneStepper = myStepper->Clone();
+       delete myStepper;
+       myStepper = cloneStepper;
     }
-    if( stepperName )
-       cout << "#  Chosen the  " << stepperName << " stepper ";
 
+    /*-------------------------PREPARING DRIVER -----------------------------*/
     const double hminimum  = 0.0001 * millimeter;  // Minimum step = 0.1 microns
     const double epsTolDef = 1.0e-5;              // Relative error tolerance
     int   statisticsVerbosity= 1;
