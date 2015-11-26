@@ -19,9 +19,9 @@ using fieldUnits::eplus;
 using fieldUnits::tesla;
 using fieldUnits::degree;
 
-// #include "G4ios.hh"
-
-#include "ThreeVector.h"
+// #include "ThreeVector.h"
+#include "Vector3D.h"
+typedef vecgeom::Vector3D<double>  ThreeVector;
 
 #include "TUniformMagField.h"
 

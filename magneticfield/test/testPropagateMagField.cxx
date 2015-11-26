@@ -13,12 +13,13 @@
 // #include "GUVSystemOfUnits.hh"
 
 #include "ThreeVector.hh"
+#include "Vector3D.h"
+typedef vecgeom::Vector3D<double>  ThreeVector;
 
 #include <iomanip>
 
 // Build simple geometry:
 // 4 small cubes + 1 slab (all GUVBoxes) are positioned inside a larger cuboid
-
 
 #include "GUUniformMagField.hh"
 
