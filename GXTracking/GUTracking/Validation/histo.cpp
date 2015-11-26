@@ -1,4 +1,5 @@
 /*
+=======
 Author: M. Bandieramonte
  
  NB: 
@@ -11,7 +12,6 @@ Author: M. Bandieramonte
      geant4_100MeV.root
      scalar_100MeV.root
      vector_100MeV.root
- 
 */
 
 #include <TMath.h>
