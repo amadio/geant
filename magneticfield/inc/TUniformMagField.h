@@ -8,7 +8,10 @@
 #include "GUVMagneticField.h"
 #include <iostream>
 
-#include "ThreeVector.h"  // Or whatever defines such a class
+// #include "ThreeVector.h"  // Or whatever defines such a class
+#include "Vector3D.h"
+typedef vecgeom::Vector3D<double>  ThreeVector;
+
 #include "Constants.h"  //   For pi & twopi - Temporary solution ..
 
 // using fieldConstants::pi;

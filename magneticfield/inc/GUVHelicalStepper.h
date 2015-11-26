@@ -23,7 +23,10 @@
 #include "GUVIntegrationStepper.h"
 #include "GUVEquationOfMotion.h"
 // #include "TMagFieldEquation.h"
-#include "ThreeVector.h"
+
+// #include "ThreeVector.h"
+#include <Vector3D.h> 
+typedef vecgeom::Vector3D<double>  ThreeVector; 
 
 class GUVHelicalStepper : public GUVIntegrationStepper
 {

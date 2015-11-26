@@ -18,7 +18,7 @@ using Constants::twopi;
 
 #include "GUExactHelixStepper.h"
 // #include "GUPhysicalConstants.h"
-#include "ThreeVector.h"
+// #include "ThreeVector.h"
 // #include "GULineSection.h"
 
 GUExactHelixStepper::GUExactHelixStepper(GUVEquationOfMotion* EqRhs) // TMagFieldEquation

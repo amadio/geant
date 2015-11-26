@@ -160,6 +160,8 @@ int main(int argc, char *args[])
        stepper_no -= cloneBump;
 
     myStepper= StepperFactory::CreateStepper<GvEquationType>(gvEquation, stepper_no);
+    // myStepper= StepperFactory::CreateStepper<decltype(gvEquation)*>(gvEquation, stepper_no);
+
     if( useClonedStepper ){
        auto baseStepper = myStepper;
        auto cloneStepper = myStepper->Clone();

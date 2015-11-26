@@ -2,7 +2,6 @@
 #define TCLASSICALRK4_H
 
 #include "TMagErrorStepper.h"
-#include "ThreeVector.h"
 
 // #include <algorithm> // for std::max
 

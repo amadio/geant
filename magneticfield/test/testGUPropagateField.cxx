@@ -224,7 +224,6 @@ int main(int argc, char *args[])
        new GUFieldPropagator(integrDriver, epsTol);
         // new GUFieldPropagator<TUniformMagField>(gvField, epsTol, hMinimum);
 
-// #if 1
     if( testPool > 1 )
     {
        // Initialize -- move to GeantPropagator::Initialize()
@@ -238,12 +237,9 @@ int main(int argc, char *args[])
        fpPool->Initialize(numProp);
 
        fieldPropagator = fpPool->GetPropagator(numProp-1);
-    }
-// #else
-    else
+    }else{
        fieldPropagator= fldPropPrototype;
-// #endif
-
+    }
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
     const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
@@ -459,7 +455,6 @@ int main(int argc, char *args[])
            // bool goodAdvance=
            //   integrDriver->AccurateAdvance( yTrackIn, total_step, epsTol, yTrackOut ); // , hInitial );
            // *****************************
-
            
            // myStepper->StepWithErrorEstimate(yIn,dydx,step_len,yout,yerr);   //Call the 'trial' stepper
 

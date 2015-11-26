@@ -32,6 +32,14 @@
 #include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
+#define RUNGE_KUTTA  1
+
+#ifdef  RUNGE_KUTTA
+#pragma message("Compiling using Runge-Kutta for integration")
+#include "GUFieldPropagatorPool.h"
+#include "GUFieldPropagator.h"
+#endif
+
 #ifdef __INTEL_COMPILER
 #include <immintrin.h>
 #else
@@ -1450,10 +1458,6 @@ void GeantTrack_v::PropagateInVolume(int ntracks, const double *crtstep, GeantTa
   }
 }
 
-#include "GUFieldPropagator.h"
-// #include "GUFieldPropagatorPool.h"
-
-// #define RUNGE_KUTTA  1 
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
@@ -1466,18 +1470,27 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   // - safety step (bdr=0)
   // - snext step (bdr=1)
 
-   Double_t c = 0.;
-   const Double_t *point = 0;
-   const Double_t *newdir = 0;
+   // Double_t c = 0.;
+   // const Double_t *point = 0;
+   // const Double_t *newdir = 0;
 
 #ifdef RUNGE_KUTTA
-   // Initialize -- move to GeantPropagator::Initialize()
-   static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::CreateOrFind(gPropagator->fNthreads);
+   // Initialize for the current thread -- move to GeantPropagator::Initialize()
+   static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
    assert( fieldPropPool );  // Cannot be zero
 
-   GUFieldPropagator *fieldp = fieldPropPool->GetPropagator(td->fTid);
+   // Initialization - to be moved elsewhere
+   bool   RegisterPrototype( GUFieldPropagator* prototype );   
+   fieldPropPool->Initialize(gPropagator->fNthreads);
+
+   GUFieldPropagator *fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
 #else
-   assert( td->fTid < td->fNthreads ); // Just used td !
+   assert( (size_t)(td->fTid) < (td->fNthreads) ); // Just to use td !
+#ifdef GEANT_CUDA_DEVICE_BUILD
+  const double bmag = gPropagator_fBmag;
+#else
+  const double bmag = gPropagator->fBmag;
+#endif   
 #endif
 
   // Reset relevant variables
@@ -1503,48 +1516,42 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 #endif
 // alternative code with lean stepper would be:
 // ( stepper header has to be included )
-#ifdef GEANT_CUDA_DEVICE_BUILD
-  Geant::ConstBzFieldHelixStepper stepper(gPropagator_fBmag);
-#else
-  Geant::ConstBzFieldHelixStepper stepper(gPropagator->fBmag);
-#endif
 
-#if 1
+  using ThreeVector = vecgeom::Vector3D<double>;
+  // typedef vecgeom::Vector3D<double>  ThreeVector;   
   ThreeVector Position(fXposV[i], fYposV[i], fZposV[i]);
   ThreeVector Direction(fXdirV[i], fYdirV[i], fZdirV[i]);
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
+
+#ifdef RUNGE_KUTTA
+  // fieldP  
+  fieldPropagator->DoStep(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
+                          PositionNew, DirectionNew);
+#else
+  // Old - constant field
+  Geant::ConstBzFieldHelixStepper stepper(bmag);
   stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
                                          PositionNew, DirectionNew);
+#endif
+  
   fXposV[i] = PositionNew.x();
   fYposV[i] = PositionNew.y();
   fZposV[i] = PositionNew.z();
+
+  //  maybe normalize direction here  // Math::Normalize(dirnew);
+  DirectionNew = DirectionNew.Unit();   
   fXdirV[i] = DirectionNew.x();
   fYdirV[i] = DirectionNew.y();
   fZdirV[i] = DirectionNew.z();
-#else
-  double posnew[3];
-  double dirnew[3];
-  stepper.DoStep(fXposV[i], fYposV[i], fZposV[i], fXdirV[i], fYdirV[i], fZdirV[i], fChargeV[i], fPV[i], crtstep,
-                 posnew[0], posnew[1], posnew[2], dirnew[0], dirnew[1], dirnew[2]);
 
-  //  maybe normalize direction here
-  Math::Normalize(dirnew);
-//        double diffpos =
-//        (fXposV[i]+fXdirV[i]*crtstep-posnew[0])*(fXposV[i]+fXdirV[i]*crtstep-posnew[0]) +
-//        (fYposV[i]+fYdirV[i]*crtstep-posnew[1])*(fYposV[i]+fYdirV[i]*crtstep-posnew[1]) +
-//        (fZposV[i]+fZdirV[i]*crtstep-posnew[2])*(fZposV[i]+fZdirV[i]*crtstep-posnew[2]);
-//        if (Math::Sqrt(diffpos)>0.01*crtstep) {
-//           Geant::Print("PropagateInVolumeSingle","difference in pos = %g", diffpos/crtstep);
-//        }
-  fXposV[i] = posnew[0];
-  fYposV[i] = posnew[1];
-  fZposV[i] = posnew[2];
-  fXdirV[i] = dirnew[0];
-  fYdirV[i] = dirnew[1];
-  fZdirV[i] = dirnew[2];  
-#endif
-  
+  //   double diffpos2 = (PositionNew - Position).Mag2();
+  //   -- if (Math::Sqrt(diffpos)>0.01*crtstep) {     
+  //   const double drift= 0.01*crtstep;
+  //   if ( diffpos2>drift*drift )
+  //       Printf("difference in pos = %g", diffpos);
+  //       Geant::Print("PropagateInVolumeSingle","relative difference in pos = %g", diffpos/crtstep);     
+  //   }
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR

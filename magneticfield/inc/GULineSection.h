@@ -13,8 +13,10 @@
 #ifndef GULineSection_hh
 #define GULineSection_hh
 
-// #include "G4Types.hh" 
-#include "ThreeVector.h"
+// #include "G4Types.hh"
+// #include "ThreeVector.h"
+#include <Vector3D.h> 
+typedef vecgeom::Vector3D<double>  ThreeVector; 
 
 class GULineSection
 {

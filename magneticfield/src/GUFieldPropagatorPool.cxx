@@ -6,7 +6,8 @@
 #include "GUFieldPropagator.h"
 
 // static
-std::vector<GUFieldPropagator*> GUFieldPropagatorPool::fFieldPropagatorVec;
+std::vector<GUFieldPropagator*> // GUFieldPropagation:: // namespace ...
+   GUFieldPropagatorPool::fFieldPropagatorVec;
 
 /// --------------  GUFieldPropagatorPool ------------------------------------
 // #include "GUFieldPropagatorPool.h"   // For now, not a separate file
@@ -26,6 +27,11 @@ GUFieldPropagatorPool::GUFieldPropagatorPool( GUFieldPropagator* prototype )
      fPrototype(prototype)
 {
    // prototype can be null initially
+}
+
+GUFieldPropagatorPool::~GUFieldPropagatorPool()
+{
+   delete fPrototype;
 }
 
 bool

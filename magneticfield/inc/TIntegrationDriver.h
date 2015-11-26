@@ -4,15 +4,12 @@
 #ifndef TIntegrationDriver_Def
 #define TIntegrationDriver_Def
 
-// #include "G4Types.hh"
-// #include "G4Pow.hh"
-#include "GUFieldTrack.hh"
 #include <iomanip>
+
+#include "GUFieldTrack.hh"
 #include "globals.hh"
-// #include "G4SystemOfUnits.hh"
-// #include "G4GeometryTolerance.hh"
-// #include "sqrt.h"
-// #include "fastonebigheader.h"
+// #include "SystemOfUnits.hh"
+// #include "GeometryTolerance.hh"
 #include "TCommonType.hh"
 
 #ifndef NO_FIELD_STATISTICS

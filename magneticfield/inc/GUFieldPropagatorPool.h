@@ -11,7 +11,14 @@
 //   - a mixture of the two approaches.
 //  Current status: to be investigated, once classes are more stable.
 
+#ifndef GUFIELD_PROPAGATOR_POOL_H
+#define GUFIELD_PROPAGATOR_POOL_H 1
+
 #include <vector>
+
+// namespace GUFieldPropagation {
+// inline namespace GUFIELDPROPAGATION_IMPL_NAMESPACE {
+
 class GUFieldPropagator;
 // #include "GUFieldPropagator.h"
 
@@ -44,13 +51,18 @@ class GUFieldPropagatorPool
   private:
 
     GUFieldPropagatorPool( GUFieldPropagator* prototype = 0); // , void** banks=0 );  // Ensure one per thread
-    ~GUFieldPropagatorPool() {} 
+    ~GUFieldPropagatorPool();
 
     void Extend(size_t Num);
      // Create additional propagators, so that total is 'Num'
   private:
+    // Invariants -- constant during simulation
     unsigned int fNumberPropagators;
-    const  GUFieldPropagator* fPrototype; //  
+    const  GUFieldPropagator* fPrototype; //  Owned
     
     static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
 };
+
+// }
+// }
+#endif

@@ -5,7 +5,11 @@
 
 // #include "G4Types.hh"
 #include "GUVIntegrationStepper.h"
-#include "ThreeVector.h"
+
+// #include "ThreeVector.h"
+#include <Vector3D.h> 
+// typedef vecgeom::Vector3D<double>  ThreeVector; 
+
 #include "GULineSection.h"
 
 namespace GUIntegrationNms
@@ -63,7 +67,7 @@ class TMagErrorStepper : public GUVIntegrationStepper
     private:
 
         // STATE
-        ThreeVector fInitialPoint, fMidPoint, fFinalPoint;
+        vecgeom::Vector3D<double> fInitialPoint, fMidPoint, fFinalPoint;  // ThreeVector
         // Data stored in order to find the chord
 
         // Dependent Objects, owned --- part of the STATE 
@@ -183,6 +187,7 @@ StepWithErrorEstimate( const double yInput[],
    //double  correction = 1. / ( (1 << 
    //          static_cast<T_Stepper*>(this)->T_Stepper::IntegratorOrder()) -1 );
    //  Saving yInput because yInput and yOutput can be aliases for same array
+   using ThreeVector = vecgeom::Vector3D<double>;
    
    for(unsigned int i=0;i<NumVarStore;i++){
       yInitial[i]= yInput[i];

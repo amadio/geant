@@ -11,8 +11,9 @@
 #ifndef GUExactHelixStepper_h
 #define GUExactHelixStepper_h 1
 
-// #include "G4Types.h"
- #include "ThreeVector.h"
+//  #include "ThreeVector.h"
+#include "Vector3D.h"
+typedef vecgeom::Vector3D<double>  ThreeVector; 
 
 // #include "GUVIntegrationStepper.h"
 #include "GUVHelicalStepper.h"

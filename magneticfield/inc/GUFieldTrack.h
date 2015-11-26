@@ -17,7 +17,7 @@
 #define GUFieldTrack_HH
 
 #include "Vector3D.h"   // VecGeom/base/Vector3D.h 
-typedef VECGEOM_NAMESPACE::Vector3D<double> ThreeVector;
+typedef vecgeom::Vector3D<double> ThreeVector;
 
 // #include "G4ChargeState.hh"
 

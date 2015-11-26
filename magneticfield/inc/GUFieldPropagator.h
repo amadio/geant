@@ -5,7 +5,9 @@
 #ifndef GUFIELDPROPAGATOR_H
 #define GUFIELDPROPAGATOR_H 1
 
-#include "ThreeVector.h"
+// #include "ThreeVector.h"
+#include "Vector3D.h"
+typedef vecgeom::Vector3D<double>  ThreeVector; 
 
 class GUIntegrationDriver;
 class GUVField;

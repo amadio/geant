@@ -49,6 +49,18 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
+#define RUNGE_KUTTA  1
+//  To use
+#ifdef   RUNGE_KUTTA
+#include "TUniformMagField.h"
+#include "FieldEquationFactory.h"
+#include "StepperFactory.h"
+#include "GUIntegrationDriver.h"
+
+#include "GUFieldPropagator.h"
+#include "GUFieldPropagatorPool.h"
+#endif
+
 using namespace Geant;
 
 GeantPropagator *gPropagator = 0;
@@ -297,6 +309,7 @@ GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthrea
   return fgInstance;
 }
 
+
 //______________________________________________________________________________
 void GeantPropagator::Initialize() {
   // Initialization
@@ -314,6 +327,41 @@ void GeantPropagator::Initialize() {
   fProcess->Initialize();
 #if USE_VECPHYS == 1
   fVectorPhysicsProcess->Initialize();
+#endif
+
+#ifdef RUNGE_KUTTA
+  using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
+  using GUFieldPropagator = ::GUFieldPropagator;
+  
+  // Initialise the classes required for tracking in field
+  const unsigned int  Nvar= 6; // Integration will occur over 3-position & 3-momentum coord.
+  using Field_t    =  TUniformMagField;
+  using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
+  
+  auto gvField= new Field_t( fieldUnits::tesla * ThreeVector(0.0, 0.0, fBmag) );
+  auto gvEquation =
+     FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
+
+  GUVIntegrationStepper* 
+     aStepper= StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
+  
+  const double hminimum  = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
+  const double epsTol = 3.0e-4;               // Relative error tolerance of integration
+  int   statisticsVerbosity= 0;
+
+   cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
+   
+   auto integrDriver= new GUIntegrationDriver( hminimum,
+                                               aStepper,
+                                               Nvar,
+                                               statisticsVerbosity);
+   // GUFieldPropagator *
+   auto fieldPropagator=
+      new GUFieldPropagator(integrDriver, epsTol);
+   
+   static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
+   assert( fpPool );  // Cannot be zero
+   fpPool->RegisterPrototype( fieldPropagator );   
 #endif
 
   if (!fNtracks) {
