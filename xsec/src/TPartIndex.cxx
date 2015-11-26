@@ -470,49 +470,32 @@ double TPartIndex::GetAprxNuclearMass(int Z, int A) {
 
 //___________________________________________________________________
 int TPartIndex::SizeOf() const {
-   size_t size = sizeof(*this);
-   size += fNEbins * sizeof(double);
+   size_t size = 2 * sizeof(double) + 4 * sizeof(int);
    size += fNPart * sizeof(int);
-   return size;
+   return size - sizeof(int);
 }
 
 //___________________________________________________________________
-void TPartIndex::Compact() {
-   char *start = (char*) fStore;
-   int size = 0;
-
-   size = fNEbins*sizeof(double);
-   memcpy(start, fEGrid, size);
-   delete [] fEGrid;
-   fEGrid = (double *) start;
-   start += size;
-
-   size = fNPart*sizeof(int);
-   memcpy(start, fPDG, size);
-   delete [] fPDG;
-   fPDG = (int *) start;
-   start += size;
-}
-
-//___________________________________________________________________
-void TPartIndex::RebuildClass() {
-#ifdef MAGIC_DEBUG
-   if(GetMagic() != -777777) {
-      cout << "TPDecay::Broken magic 2 " << GetMagic() << endl;
-      exit(1);
-   }
-#endif
-   char *start = (char*) fStore;
-   // we consider that the pointer to the energy grid is stale because it has been read from
-   // the file. If this is not the case, this is a leak...
-   fEGrid = (double*) start;
-   start += fNEbins*sizeof(double);
-   // we consider that the pointer to the particle index is stale because it has been read from
-   // the file. If this is not the case, this is a leak...
-   fPDG = (int*) start;
-   start += fNPart*sizeof(int);
-
-   fPDGToGVMap.clear();
+void TPartIndex::RebuildClass(char *b) {
+   double emin = 0;
+   double emax = 0;
+   int npart=0;
+   int nbins=0;
+   char *start = b;
+   memcpy(&emin,start,sizeof(double));
+   start += sizeof(double);
+   memcpy(&emax,start,sizeof(double));
+   start += sizeof(double);
+   memcpy(&npart,start,sizeof(int));
+   start += sizeof(int);
+   memcpy(&nbins,start,sizeof(int));
+   start += sizeof(int);
+   memcpy(&fNpReac,start,sizeof(int));
+   start += sizeof(int);
+   memcpy(&fNpCharge,start,sizeof(int));
+   start += sizeof(int);
+   SetEnergyGrid(emin, emax, nbins);
+   SetPartTable((int*) start, npart);
 
    for (auto i = 0; i < fNPart; ++i) 
       fPDGToGVMap[fPDG[i]] = i;
@@ -521,8 +504,6 @@ void TPartIndex::RebuildClass() {
       Particle::CreateParticles();
 #endif
    CreateReferenceVector();
-
-   fgPartIndex = this;
 
    fSpecGVIndices[0] = fPDGToGVMap.find(11)->second;   // e-
    fSpecGVIndices[1] = fPDGToGVMap.find(-11)->second;  // e+
@@ -536,11 +517,21 @@ size_t TPartIndex::MakeCompactBuffer(char* &b) {
    size_t totsize = SizeOf();
    b = (char*) malloc(totsize);
    memset(b,0,totsize);
-   fPDGToGVMap.clear();
-   TPartIndex* dc = new(b) TPartIndex(*this);
-   for (auto i = 0; i < fNPart; ++i) 
-      fPDGToGVMap[fPDG[i]] = i;
-   dc->Compact();
+
+   char *start = b;
+   memcpy(start,&fEGrid[0],sizeof(double));
+   start += sizeof(double);
+   memcpy(start,&fEGrid[fNEbins-1],sizeof(double));
+   start += sizeof(double);
+   memcpy(start,&fNPart,sizeof(int));
+   start += sizeof(int);
+   memcpy(start,&fNEbins,sizeof(int));
+   start += sizeof(int);
+   memcpy(start,&fNpReac,sizeof(int));
+   start += sizeof(int);
+   memcpy(start,&fNpCharge,sizeof(int));
+   start += sizeof(int);
+   memcpy(start,fPDG,fNPart*sizeof(int));
    return totsize;
 }
 

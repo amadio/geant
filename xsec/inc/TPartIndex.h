@@ -73,7 +73,6 @@ public:
     return fgPartIndex;
   }
   TPartIndex();
-  TPartIndex(const TPartIndex &other);
   virtual ~TPartIndex();
 
   static const char *ClassName() { return "TPartIndex"; }
@@ -156,16 +155,12 @@ public:
   int GetSpecGVIndex(int indx) { return fSpecGVIndices[indx]; }
 
   int SizeOf() const;
-  void Compact();
-  void RebuildClass();
+  void RebuildClass(char *b);
   size_t MakeCompactBuffer(char* &b);
-#ifdef MAGIC_DEBUG
-  int GetMagic() const {return fMagic;}
-#endif
-
 
 private:
   TPartIndex &operator=(const TPartIndex &); // Not implemented
+  TPartIndex(const TPartIndex &other); // Not implemented
 
   void CreateReferenceVector();
 
@@ -197,10 +192,6 @@ private:
   Map_t fPDGToGVMap;    // PDG->GV code map
   int fSpecGVIndices[4];                       // store GV codes of e-,e+,gamma and proton
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
-
-#ifdef MAGIC_DEBUG
-  const int fMagic = -777777;
-#endif
 
 #ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
