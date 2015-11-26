@@ -73,6 +73,7 @@ public:
     return fgPartIndex;
   }
   TPartIndex();
+  TPartIndex(const TPartIndex &other);
   virtual ~TPartIndex();
 
   static const char *ClassName() { return "TPartIndex"; }
@@ -154,9 +155,19 @@ public:
   // only for e-,e+,gamma and proton
   int GetSpecGVIndex(int indx) { return fSpecGVIndices[indx]; }
 
+  int SizeOf() const;
+  void Compact();
+  void RebuildClass();
+  size_t MakeCompactBuffer(char* &b);
+#ifdef MAGIC_DEBUG
+  int GetMagic() const {return fMagic;}
+#endif
+
+
 private:
-  TPartIndex(const TPartIndex &);            // Not implemented
   TPartIndex &operator=(const TPartIndex &); // Not implemented
+
+  void CreateReferenceVector();
 
   static TPartIndex *fgPartIndex;
 
@@ -171,14 +182,14 @@ private:
   static const char *fgEleName[NELEM];   // Name of Element
   static const float fgWElem[NELEM];     // Weight of a mole in grams
 
-  int fNPart;    // Total number of particles
-  int *fPDG;     // [fNPart] PDG code of all part
-  int fNpReac;   // Number of particles with reactions
-  int fNpCharge; // Number of particles with reactions
-
-  int fNEbins;      // number of bins of common energy grid
-  double fEilDelta; // Inverse log delta of common energy grid
-  double *fEGrid;   // [fNEbins] Common energy grid
+  double fEilDelta;      // Inverse log delta of common energy grid
+  int fNPart;            // Total number of particles
+  int fNEbins;           // number of bins of common energy grid
+  double *fEGrid;        // [fNEbins] Common energy grid
+  int *fPDG;             // [fNPart] PDG code of all part
+  int fNpReac;           // Number of particles with reactions
+  int fNpCharge;         // Number of particles with reactions
+  int fSpecGVIndices[4]; // store GV codes of e-,e+,gamma and proton
 
 #ifndef USE_VECGEOM_NAVIGATOR
   TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
@@ -187,13 +198,19 @@ private:
   int fSpecGVIndices[4];                       // store GV codes of e-,e+,gamma and proton
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 
+#ifdef MAGIC_DEBUG
+  const int fMagic = -777777;
+#endif
+
 #ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
-  ClassDef(TPartIndex, 100) // Particle Index
+  ClassDef(TPartIndex, 101) // Particle Index
 #else
-  ClassDef(TPartIndex, 2) // Particle Index
+  ClassDef(TPartIndex, 3)   // Particle Index
 #endif
 #endif
+private:
+  int fStore[1];
 };
 
 #endif

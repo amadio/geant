@@ -58,12 +58,24 @@ const float TPartIndex::fgWElem[NELEM] = {
 TPartIndex *TPartIndex::fgPartIndex = 0;
 
 //___________________________________________________________________
-TPartIndex::TPartIndex()
-    : fNPart(0), fPDG(0), fNpReac(0), fNpCharge(0), fNEbins(0), fEilDelta(0), fEGrid(0),
+TPartIndex::TPartIndex() :
+   fEilDelta(0), fNPart(0), fNEbins(0), fEGrid(nullptr), fPDG(nullptr), fNpReac(0), fNpCharge(0),
 #ifndef USE_VECGEOM_NAVIGATOR
       fDBPdg(TDatabasePDG::Instance()),
 #endif
       fPDGToGVMap() {
+}
+
+//___________________________________________________________________
+TPartIndex::TPartIndex(const TPartIndex& other) :
+   fEilDelta(other.fEilDelta), fNPart(other.fNPart), fNEbins(other.fNEbins), fEGrid(other.fEGrid), 
+   fPDG(other.fPDG), fNpReac(other.fNpReac), fNpCharge(other.fNpCharge),
+#ifndef USE_VECGEOM_NAVIGATOR
+      fDBPdg(TDatabasePDG::Instance()),
+#endif
+      fPDGToGVMap(other.fPDGToGVMap) 
+{
+   memcpy(fSpecGVIndices,other.fSpecGVIndices,4*sizeof(int));
 }
 
 //___________________________________________________________________
@@ -90,7 +102,7 @@ void TPartIndex::SetEnergyGrid(double emin, double emax, int nbins) {
   }
 }
 
-//___________________________________________________________________
+//_____________________________________________________________________________
 int TPartIndex::ProcIndex(int proccode) const {
   short ip = fgNProc;
   while (ip--)
@@ -99,20 +111,22 @@ int TPartIndex::ProcIndex(int proccode) const {
   return ip;
 }
 
-//___________________________________________________________________
+//_____________________________________________________________________________
 const char *TPartIndex::ProcName(int proc) const {
   if (proc < 0 || proc >= fgNProc)
     return "Unknown";
   return fgPrName[proc];
 }
 
-//___________________________________________________________________
+//_____________________________________________________________________________
 void TPartIndex::SetPartTable(const int *vpdg, int np) {
   fNPart = np;
   delete[] fPDG;
   fPDG = new int[fNPart];
-  for (int i = 0; i < fNPart; ++i)
+  for (auto i = 0; i < fNPart; ++i) {
     fPDG[i] = vpdg[i];
+    fPDGToGVMap[fPDG[i]] = i;
+  }
 }
 
 //______________________________________________________________________________
@@ -236,6 +250,15 @@ void TPartIndex::Streamer(TBuffer &R__b) {
     fgPartIndex = this;
 
     Print("version");
+    CreateReferenceVector();
+  } else {
+    R__b.WriteClassBuffer(TPartIndex::Class(), this);
+  }
+}
+#endif
+
+//______________________________________________________________________________
+void TPartIndex::CreateReferenceVector() {
     // create the particle reference vector
     fGVParticle.resize(fPDGToGVMap.size(), 0);
     for (Map_t::iterator p = fPDGToGVMap.begin(); p != fPDGToGVMap.end(); ++p) {
@@ -413,11 +436,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
 #endif
 #endif
     }
-  } else {
-    R__b.WriteClassBuffer(TPartIndex::Class(), this);
-  }
 }
-#endif
 
 // semi empirical Bethe-Weizsacker mass formula based on the liquid drop model
 // with coefficients determined by fitting to experimental mass data (AME2003)and
@@ -448,3 +467,69 @@ double TPartIndex::GetAprxNuclearMass(int Z, int A) {
   return Z * massp + N * massn +
          (a_vol * A + a_surf * Ap23 + a_c * Z * Z / Ap13 + (a_sym * A + a_ss * Ap23) * dummy * dummy + delta);
 }
+
+//___________________________________________________________________
+int TPartIndex::SizeOf() const {
+   size_t size = sizeof(*this);
+   size += fNEbins * sizeof(double);
+   size += fNPart * sizeof(int);
+   return size;
+}
+
+//___________________________________________________________________
+void TPartIndex::Compact() {
+   char *start = (char*) fStore;
+   int size = 0;
+
+   size = fNEbins*sizeof(double);
+   memcpy(start, fEGrid, size);
+   delete [] fEGrid;
+   fEGrid = (double *) start;
+   start += size;
+
+   size = fNPart*sizeof(int);
+   memcpy(start, fPDG, size);
+   delete [] fPDG;
+   fPDG = (int *) start;
+   start += size;
+}
+
+//___________________________________________________________________
+void TPartIndex::RebuildClass() {
+#ifdef MAGIC_DEBUG
+   if(GetMagic() != -777777) {
+      cout << "TPDecay::Broken magic 2 " << GetMagic() << endl;
+      exit(1);
+   }
+#endif
+   char *start = (char*) fStore;
+   // we consider that the pointer to the particle index is stale because it has been read from
+   // the file. If this is not the case, this is a leak...
+   fPDG = (int*) start;
+   start += fNPart*sizeof(int);
+   // we consider that the pointer to the energy grid is stale because it has been read from
+   // the file. If this is not the case, this is a leak...
+   fEGrid = (double*) start;
+
+   for (auto i = 0; i < fNPart; ++i) 
+      fPDGToGVMap[fPDG[i]] = i;
+
+   CreateReferenceVector();
+
+   fSpecGVIndices[0] = fPDGToGVMap.find(11)->second;   // e-
+   fSpecGVIndices[1] = fPDGToGVMap.find(-11)->second;  // e+
+   fSpecGVIndices[2] = fPDGToGVMap.find(22)->second;   // gamma
+   fSpecGVIndices[3] = fPDGToGVMap.find(2212)->second; // proton
+}
+
+//___________________________________________________________________
+size_t TPartIndex::MakeCompactBuffer(char* &b) {
+   // First calculate how much we need
+   size_t totsize = SizeOf();
+   b = (char*) malloc(totsize);
+   memset(b,0,totsize);
+   TPartIndex* dc = new(b) TPartIndex(*this);
+   dc->Compact();
+   return totsize;
+}
+
