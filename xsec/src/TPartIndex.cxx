@@ -63,7 +63,7 @@ TPartIndex::TPartIndex() :
 #ifndef USE_VECGEOM_NAVIGATOR
       fDBPdg(TDatabasePDG::Instance()),
 #endif
-      fPDGToGVMap() {
+   fPDGToGVMap() {
 }
 
 //___________________________________________________________________
@@ -503,18 +503,26 @@ void TPartIndex::RebuildClass() {
    }
 #endif
    char *start = (char*) fStore;
+   // we consider that the pointer to the energy grid is stale because it has been read from
+   // the file. If this is not the case, this is a leak...
+   fEGrid = (double*) start;
+   start += fNEbins*sizeof(double);
    // we consider that the pointer to the particle index is stale because it has been read from
    // the file. If this is not the case, this is a leak...
    fPDG = (int*) start;
    start += fNPart*sizeof(int);
-   // we consider that the pointer to the energy grid is stale because it has been read from
-   // the file. If this is not the case, this is a leak...
-   fEGrid = (double*) start;
+
+   fPDGToGVMap.clear();
 
    for (auto i = 0; i < fNPart; ++i) 
       fPDGToGVMap[fPDG[i]] = i;
 
+#ifdef USE_VECGEOM_NAVIGATOR
+      Particle::CreateParticles();
+#endif
    CreateReferenceVector();
+
+   fgPartIndex = this;
 
    fSpecGVIndices[0] = fPDGToGVMap.find(11)->second;   // e-
    fSpecGVIndices[1] = fPDGToGVMap.find(-11)->second;  // e+
@@ -528,7 +536,10 @@ size_t TPartIndex::MakeCompactBuffer(char* &b) {
    size_t totsize = SizeOf();
    b = (char*) malloc(totsize);
    memset(b,0,totsize);
+   fPDGToGVMap.clear();
    TPartIndex* dc = new(b) TPartIndex(*this);
+   for (auto i = 0; i < fNPart; ++i) 
+      fPDGToGVMap[fPDG[i]] = i;
    dc->Compact();
    return totsize;
 }

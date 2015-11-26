@@ -76,15 +76,23 @@ void testserialWrite()
    fftest.close();
 
    char *b=nullptr;
-   size_t sizex = TEXsec::MakeCompactBuffer(b);
-   cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
 
    // write to file
    std::ofstream fxsecs("xsec.bin", std::ios::binary);
+   size_t sizex = TPartIndex::I()->MakeCompactBuffer(b);
+   cout << "Size of the TPartIndex buffer = " << sizex << " bytes " << endl;
+   fxsecs.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
+   fxsecs.write(reinterpret_cast<char*>(b), sizex);
+
+   delete [] b;
+
+   sizex = TEXsec::MakeCompactBuffer(b);
+   cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
    fxsecs.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
    int nelem = TEXsec::NLdElems();
    fxsecs.write(reinterpret_cast<char*>(&nelem), sizeof(nelem));
    fxsecs.write(reinterpret_cast<char*>(b), sizex);
+
    fxsecs.close();
    
    delete [] b;

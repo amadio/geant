@@ -30,15 +30,25 @@ void testserialRead()
    GeantPropagator::Instance(1,1,1);
    geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
 
-   const char *tpf = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
-   TFile *f = new TFile(tpf);
-   TPartIndex *p = (TPartIndex *) f->Get("PartIndex");
-   f->Close();delete f;
+   /*
+     const char *tpf = "../../data/xsec_FTFP_BERT_G496p02_1mev.root";
+     TFile *f = new TFile(tpf);
+     TPartIndex *p = (TPartIndex *) f->Get("PartIndex");
+     f->Close();delete f;
+   */
 
    char *b=nullptr;
+   char *t=nullptr;
    { // read from file
       std::ifstream fin("xsec.bin", std::ios::binary);
       size_t nb;
+      fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
+      std::cout << "Number of bytes for TPartIndex " << nb << std::endl;
+      t = (char *) malloc(nb);
+      fin.read(reinterpret_cast<char*>(t), nb);
+      std::cout << "Rebuilding TPartIndex store" << std::endl;
+      ((TPartIndex*) t)->RebuildClass();
+
       fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
       std::cout << "Number of bytes for x-sec " << nb << std::endl;
       int nel;
