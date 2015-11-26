@@ -47,7 +47,7 @@ void testserialRead()
       t = (char *) malloc(nb);
       fin.read(reinterpret_cast<char*>(t), nb);
       std::cout << "Rebuilding TPartIndex store" << std::endl;
-      ((TPartIndex*) t)->RebuildClass();
+      TPartIndex::I()->RebuildClass(t);
 
       fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
       std::cout << "Number of bytes for x-sec " << nb << std::endl;
@@ -93,14 +93,14 @@ void testserialRead()
 
    std::cout << TPartIndex::I()->NPartReac() << std::endl;
    constexpr int nrep = 1000;
-   TRandom *r = new TRandom(12345);
+   srand(12345);
    std::ofstream fout("xsecsR.txt");
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
       for(auto irep=0; irep<nrep; ++irep) {
 	 // Get a random particle & reaction & energy
-	 int ipart = r->Uniform() * TPartIndex::I()->NPartReac();
-	 int ireac = r->Uniform() * FNPROC;
-	 float en = r->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	 int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
+	 int ireac = (((double) rand())/RAND_MAX) * FNPROC;
+	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
 	 float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
 	 if(xs < 0) continue;
@@ -113,9 +113,9 @@ void testserialRead()
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
       for(auto irep=0; irep<nrep; ++irep) {
 	 // Get a random particle & reaction & energy
-	 int ipart = r->Uniform() * TPartIndex::I()->NPartReac();
-	 int ireac = r->Uniform() * FNPROC;
-	 float en = r->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	 int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
+	 int ireac = (((double) rand())/RAND_MAX) * FNPROC;
+	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
 	 int npart=0;
 	 float weight=0;

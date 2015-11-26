@@ -33,14 +33,14 @@ void testserialWrite()
    TTabPhysMgr::Instance(fxsec, ffins );
 
    constexpr int nrep = 1000;
-   TRandom *r = new TRandom(12345);
+   srand(12345);
    std::ofstream fxtest("xsecsW.txt");
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
       for(auto irep=0; irep<nrep; ++irep) {
 	 // Get a random particle & reaction & energy
-	 int ipart = r->Uniform() * TPartIndex::I()->NPartReac();
-	 int ireac = r->Uniform() * FNPROC;
-	 float en = r->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	 int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
+	 int ireac = (((double) rand())/RAND_MAX) * FNPROC;
+	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
 	 float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
 	 if(xs < 0) continue;
@@ -53,9 +53,9 @@ void testserialWrite()
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
       for(auto irep=0; irep<nrep; ++irep) {
 	 // Get a random particle & reaction & energy
-	 int ipart = r->Uniform() * TPartIndex::I()->NPartReac();
-	 int ireac = r->Uniform() * FNPROC;
-	 float en = r->Uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	 int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
+	 int ireac = (((double) rand())/RAND_MAX) * FNPROC;
+	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
 	 int npart=0;
 	 float weight=0;
