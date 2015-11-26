@@ -94,13 +94,15 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
    std::cerr << "- TMagErrorStepper<T_Stepper, T_Equation, Nvar> Constructor 1 called: " << std::endl;
    // std::cerr << "  Full info: " << *this << std::endl;
 
+   std::cerr << "    Nvar = " << Nvar <<   "  numState = " << numStateVariables; // << std::endl;
    std::cerr << "    order= " << integrationOrder << std::endl;
-   std::cerr << "    Nvar = " << Nvar <<   "  numState = " << numStateVariables << std::endl;
-   std::cerr << "    Eq-of-motion (arg)  = " << EqRhs << " Id= " << EqRhs->GetId() << std::endl;
-   std::cerr << "    Eq-of-motion (here) = " << GetEquationOfMotion()
-             << " Id= " << GetEquationOfMotion()->GetId() << std::endl;
-   std::cerr << "    Eq-of-motion (base) = " << this->fEquation_Rhs
-             << " Id= " << fEquation_Rhs->GetId() << std::endl;
+   std::cerr << "    Eq-of-motion (arg)  = " << EqRhs << " Id= " << EqRhs->GetId(); // << std::endl;
+   // std::cerr << "    Eq-of-motion (here) = " << GetEquationOfMotion()
+   //          << " Id= " << GetEquationOfMotion()->GetId() << std::endl;
+   // std::cerr << "    Eq-of-motion (base) = " << this->fEquation_Rhs
+   //          << " Id= " << fEquation_Rhs->GetId() << std::endl;
+   assert( GetEquationOfMotion() == this->fEquation_Rhs );
+   assert( GetEquationOfMotion() == EqRhs );
    
    std::cerr << "    Obj ptr (this) = " << this << std::endl;
    std::cerr << std::endl;
@@ -175,7 +177,7 @@ StepWithErrorEstimate( const double yInput[],
             // Integrates ODE starting values y[0 to 6].
             // Outputs yout[] and its estimated error yerr[].
 {  
-   const unsigned maxvar= GetNumberOfStateVariables();
+   // const unsigned maxvar= GetNumberOfStateVariables();
 
    // correction for Richardson Extrapolation.
    //double  correction = 1. / ( (1 << 

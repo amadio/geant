@@ -65,6 +65,12 @@ class GUTCashKarpRKF45 : public GUVIntegrationStepper
         //private assignment operator.
 
     private:
+        // 'Invariant' during integration - the pointers must not change
+        // -----------
+        T_Equation* fEquation_Rhs;
+        bool        fOwnTheEquation;
+        GUTCashKarpRKF45* fAuxStepper;
+
         // State -- intermediate values used during RK step
         // -----        
         double ak2[sNstore];
@@ -86,13 +92,6 @@ class GUTCashKarpRKF45 : public GUVIntegrationStepper
         double* fMidVector;
         double* fMidError;
         // for DistChord calculations
-
-        // 'Invariant' during integration - the pointers must not change
-        // -----------
-        GUTCashKarpRKF45* fAuxStepper;
-
-        T_Equation* fEquation_Rhs;
-        bool        fOwnTheEquation;
 };
 
 template <class T_Equation, unsigned int Nvar>
@@ -106,9 +105,10 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
                             sOrderMethod,
                             Nvar,
                             ((numStateVariables>0) ? numStateVariables : sNstore) ),
-     fLastStepLength(0.), fAuxStepper(0),
      fEquation_Rhs(EqRhs),
-     fOwnTheEquation(primary)
+     fOwnTheEquation(primary),
+     fAuxStepper(0),
+     fLastStepLength(0.)
 {
    assert( dynamic_cast<GUVEquationOfMotion*>(EqRhs) != 0 );
    assert( (numStateVariables == 0) || (numStateVariables >= Nvar) );
@@ -152,13 +152,14 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
                             Nvar,
                             right.GetNumberOfStateVariables() ),
      fEquation_Rhs( (T_Equation*) 0 ),
-     fLastStepLength(0.),
+     fOwnTheEquation(true),
      fAuxStepper(0),   //  May overwrite below
-     fOwnTheEquation(true)
+     fLastStepLength(0.)
      // fPrimary( right.fPrimary )
 {
    // if( primary )
    SetEquationOfMotion( new T_Equation( *(right.fEquation_Rhs)) );
+   fOwnTheEquation=true;
     // fEquation_Rhs= right.GetEquationOfMotion()->Clone());
    
    assert( dynamic_cast<GUVEquationOfMotion*>(fEquation_Rhs) != 0 );  
@@ -221,7 +222,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
 {
     // const int nvar = 6 ;
     // const double a2 = 0.2 , a3 = 0.3 , a4 = 0.6 , a5 = 1.0 , a6 = 0.875;
-    int i;
+    unsigned int i;
 
     const double  b21 = 0.2 ,
           b31 = 3.0/40.0 , b32 = 9.0/40.0 ,

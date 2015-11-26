@@ -31,13 +31,13 @@ GUFieldPropagatorPool::GUFieldPropagatorPool( GUFieldPropagator* prototype )
 bool
 GUFieldPropagatorPool::RegisterPrototype( GUFieldPropagator* prototype )
 {
-   bool ok = (fNumberPropagators > 0) && (prototype!=fPrototype); 
+   bool ok = ((fNumberPropagators > 0) && (prototype!=fPrototype)); 
    if( !ok){
       std::cerr << "WARNING from GUFieldPropagatorPool:  "
                 << "Changing prototype propagator after having created "
                 << fNumberPropagators << " instances. " << std::endl;
    }
-   assert( fPrototype );
+   assert( prototype );
    fPrototype= prototype;
 
    return ok;
@@ -55,24 +55,33 @@ GUFieldPropagatorPool::Initialize( unsigned int numThreads )
        exit(1);
    }
    bool goodExpansion= true;
-   if( numThreads < fNumberPropagators )
+   if( numThreads > fNumberPropagators )
    {
+      // std::cout << "GUFieldPropagatorPool::Initialize  calling Extend for "
+      //        << numThreads - fNumberPropagators << " new propagators. " << std::endl;
       Extend( numThreads - fNumberPropagators );
    }
-   goodExpansion = ( fFieldPropagatorVec.size() == numThreads );
-   
+
+   size_t revSize= fFieldPropagatorVec.size();
+   std::cout << " Pool:  revised size= " << revSize
+             << " request= " << numThreads << std::endl;
+
+   goodExpansion = ( fFieldPropagatorVec.size() >= numThreads );
    assert (goodExpansion);
+
+   fNumberPropagators= revSize;
    
    return (fPrototype != 0) && goodExpansion;
 }
 
 void
-GUFieldPropagatorPool::Extend(unsigned int noNeeded)
+GUFieldPropagatorPool::Extend(size_t noNeeded)
 {
-    int num= fFieldPropagatorVec.size();
+    size_t num= fFieldPropagatorVec.size();
     assert( fPrototype );
+    assert( num < noNeeded );
 
-    while ( num < noNeeded )
+    while ( num++ < noNeeded )
     {
       //  if( (banks != 0) && (banks[num]!=0) )
       //  fFieldPropagatorVec.push( new(banks(num)) GUFieldPropagator() );

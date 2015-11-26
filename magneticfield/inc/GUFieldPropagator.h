@@ -34,6 +34,10 @@ class GUFieldPropagator
                    ThreeVector       & endDiretion
          ) ;   //  Goal => make it 'const';  -- including all classes it uses
 
+      GUIntegrationDriver* GetIntegrationDriver(){ return fDriver; }
+      const GUIntegrationDriver* GetIntegrationDriver() const { return fDriver; }
+      double GetEpsilon() { return fEpsilon; }
+
       virtual GUFieldPropagator* Clone() const;
 
   /******

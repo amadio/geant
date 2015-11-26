@@ -91,10 +91,7 @@ int main(int argc, char *args[])
     double step_len = step_len_mm * fieldUnits::millimeter;
     
     //Set Charge etc.
-    double particleCharge = +1.0,      // in e+ units
-       spin=0.0,                       // ignore the spin
-       magneticMoment= 0.0,            // ignore the magnetic moment
-       mass = 1;
+    double particleCharge = +1.0;      // in e+ units
     
     //Choice of output coordinates
     int
@@ -226,6 +223,8 @@ int main(int argc, char *args[])
                     x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};
     
 #if COMPARE_TO_G4
+    double mass = 1;
+    
     const double mmG4 = CLHEP::millimeter;
     const double ppG4 = CLHEP::GeV ;  //  In G4 too 'p' means p*c -- so no division  / CLHEP::c_light;
 

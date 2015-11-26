@@ -31,7 +31,7 @@ class GUFieldPropagatorPool
     bool Initialize(unsigned int numThreads); 
      // Create new propagators for each thread !
     
-    void CheckIndex(int num){
+    void CheckIndex(size_t num){
        assert(num>=0);
        assert(num< fFieldPropagatorVec.size());
     }
@@ -46,7 +46,7 @@ class GUFieldPropagatorPool
     GUFieldPropagatorPool( GUFieldPropagator* prototype = 0); // , void** banks=0 );  // Ensure one per thread
     ~GUFieldPropagatorPool() {} 
 
-    void Extend(unsigned int Num);
+    void Extend(size_t Num);
      // Create additional propagators, so that total is 'Num'
   private:
     unsigned int fNumberPropagators;

@@ -43,6 +43,7 @@ using fieldUnits::degree;
 #include "GUFieldTrack.h"
 #include "GUIntegrationDriver.h"
 #include "GUFieldPropagator.h"
+#include "GUFieldPropagatorPool.h"
 
 // #define  COMPARE_TO_G4  1
 
@@ -87,7 +88,8 @@ int main(int argc, char *args[])
     double step_len_mm = 200.;    // meant as millimeter;  //Step length 
     double z_field_in = DBL_MAX;
     double epsTolInp =  -1.0; 
-    
+    int    testPool  = 2;    //  0 or 1 means direct Propagator; 2+ means pool with that many instances
+
     //Checking for command line values :
     if(argc>1)
         stepper_no = atoi(args[1]);
@@ -99,14 +101,15 @@ int main(int argc, char *args[])
        z_field_in = (float) (stof(args[4]));     // tesla
     if(argc > 5)
        epsTolInp  = (float) (stof(args[5]));     // tesla
+    if(argc > 5)
+       testPool   = atoi(args[3]);
 
     double step_len = step_len_mm * fieldUnits::millimeter;
+    if( testPool <= 0 ) testPool =0;
     
     //Set Charge etc.
-    double particleCharge = +1.0,      // in e+ units
-       spin=0.0,                       // ignore the spin
-       magneticMoment= 0.0,            // ignore the magnetic moment
-       mass = 1;
+    double particleCharge = +1.0;      // in e+ units
+     //  magneticMoment= 0.0,            // ignore the magnetic moment
 
     //Choice of output coordinates
     int
@@ -216,9 +219,30 @@ int main(int argc, char *args[])
     // myStepper->InitializeCharge( particleCharge );
     // integrDriver->InitializeCharge( particleCharge );
 
-    auto fieldPropagator=
+    GUFieldPropagator *fieldPropagator;
+    auto fldPropPrototype=
        new GUFieldPropagator(integrDriver, epsTol);
         // new GUFieldPropagator<TUniformMagField>(gvField, epsTol, hMinimum);
+
+// #if 1
+    if( testPool > 1 )
+    {
+       // Initialize -- move to GeantPropagator::Initialize()
+       static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
+       assert( fpPool );  // Cannot be zero
+       fpPool->RegisterPrototype( fldPropPrototype );
+
+       int numProp=3; // Create three copies - to exercise machinery ...
+       if( testPool > 1 && testPool < 15 )
+          numProp = testPool; 
+       fpPool->Initialize(numProp);
+
+       fieldPropagator = fpPool->GetPropagator(numProp-1);
+    }
+// #else
+    else
+       fieldPropagator= fldPropPrototype;
+// #endif
 
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
@@ -230,6 +254,8 @@ int main(int argc, char *args[])
                     x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};
     
 #if COMPARE_TO_G4
+    double mass = 1;
+    
     const double mmG4 = CLHEP::millimeter;
     const double ppG4 = CLHEP::GeV ;  //  In G4 too 'p' means p*c -- so no division  / CLHEP::c_light;
 
@@ -297,7 +323,7 @@ int main(int argc, char *args[])
         dydxRef[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yout [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           youtX[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
-          yerr [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
+       // yerr [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yerrX[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yDiff[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yAver[8] = {0.,0.,0.,0.,0.,0.,0.,0.};          
@@ -402,7 +428,7 @@ int main(int argc, char *args[])
     // GUFieldTrack yStart( startPosition, startMomentum ); 
     double total_step =0;
     /*----------------NOW STEPPING-----------------*/
-    
+
     for(int j=0; j<no_of_steps; j++)
     {
         bool goodAdvance;           
@@ -640,15 +666,21 @@ int main(int argc, char *args[])
     /*-----------------END-STEPPING------------------*/
 
     /*------ Clean up ------*/
-    gvEquation->InformDone();    
+
+    if( testPool ) {
+       auto curStepper= fieldPropagator->GetIntegrationDriver()->GetStepper();
+       curStepper->InformDone();
+    }else{
+       myStepper->InformDone();
+    }
 
 #ifndef COMPARE_TO_G4
     gvEquation2->InformDone();    
 #endif
     delete myStepper;
     delete exactStepper;
-    delete gvEquation;
-    delete gvEquation2;    
+    // delete gvEquation;
+    // delete gvEquation2;    // Steppers now own their equation
     delete gvField;
     
     cout<<"\n\n#-------------End of output-----------------\n";

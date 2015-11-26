@@ -108,7 +108,8 @@ class GUVEquationOfMotion
 
 inline
 GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField, unsigned short verbose)
-   :fField(pField),  fEquationId(fNumObjectsCreated++), fInitialised(false), fVerbose(verbose)
+   : fField(pField), fEquationId(fNumObjectsCreated++),
+     fVerbose(verbose), fInitialised(false)
 {
    if( fVerbose )
       std::cout << " Created Equation " << this << " info= " << *this << std::endl;

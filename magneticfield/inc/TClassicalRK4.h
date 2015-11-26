@@ -150,7 +150,7 @@ template <class T_Equation, unsigned int Nvar>
    // which returns derivatives dydx at x. The source is routine rk4 from
    // NRC p. 712-713 .
 {
-   int i;
+   unsigned int i;
    double  hh = h*0.5 , h6 = h/6.;
    
    // Initialise time to t0, needed when it is not updated by the integration.
