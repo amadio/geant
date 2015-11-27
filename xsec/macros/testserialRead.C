@@ -55,8 +55,6 @@ void testserialRead()
       TEXsec::RebuildStore(t);
    }
 
-   char *d=nullptr;
-   char *de=nullptr;
    { // read from file
       std::ifstream fin("fins.bin", std::ios::binary);
       int nb;
