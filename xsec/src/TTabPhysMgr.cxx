@@ -131,7 +131,6 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
 
   // get the decay table from the final state file
   fDecay = TEFstate::GetDecayTable();
-  std::cout << "fDecay " << fDecay << std::endl;
   if(fDecay == nullptr) fDecay = (TPDecay *)fstate->Get("DecayTable");
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -684,7 +683,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           //          track.fParticle = nTotSecPart;          //index of this particle
           track.fPDG = secPDG;    // PDG code of this particle
           track.fGVcode = pid[i]; // GV index of this particle
-          track.fEindex = 0;	  
+          track.fEindex = 0;
           track.fCharge = secPartPDG->Charge(); // charge of this particle
 #ifndef USE_VECGEOM_NAVIGATOR
 	  track.fCharge /=3.;
