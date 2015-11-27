@@ -15,8 +15,8 @@ int TPXsec::fVerbose = 0;
 
 //_________________________________________________________________________
 TPXsec::TPXsec()
-   : fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0), 
-     fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), fMSansig(nullptr), fMSlength(nullptr), 
+   : fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0),
+     fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), fMSansig(nullptr), fMSlength(nullptr),
      fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr), fXSecs(nullptr),  fEmin(0), fEmax(0), fEilDelta(0) {
    int np = TPartIndex::I()->NProc();
    while (np--)
@@ -25,10 +25,10 @@ TPXsec::TPXsec()
 
 //_________________________________________________________________________
 TPXsec::TPXsec(int pdg, int nxsec)
-   :  fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()), 
-      fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins), fNXSecs(fNEbins * fNXsec), 
-      fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), 
-      fMSansig(nullptr), fMSlength(nullptr), fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr), 
+   :  fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()),
+      fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins), fNXSecs(fNEbins * fNXsec),
+      fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr),
+      fMSansig(nullptr), fMSlength(nullptr), fMSlensig(nullptr), fdEdx(nullptr), fTotXs(nullptr),
       fXSecs(nullptr), fEmin(TPartIndex::I()->Emin()), fEmax(TPartIndex::I()->Emax()),
       fEilDelta((TPartIndex::I()->NEbins() - 1) / log(fEmax / fEmin)) {
    int np = TPartIndex::I()->NProc();
@@ -533,7 +533,7 @@ bool TPXsec::XS_v(int npart, int rindex, const double en[], double lam[]) const 
 }
 
 //_________________________________________________________________________
-float TPXsec::XS(int rindex, double en) const {
+float TPXsec::XS(int rindex, double en, bool verbose) const {
   //   printf("fEGrid %p\n",fEGrid);
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
   en = max<double>(en, fEGrid[0]);
@@ -554,7 +554,7 @@ float TPXsec::XS(int rindex, double en) const {
   double xsec = 1;
   if (rindex < TPartIndex::I()->NProc() - 1) {
     int rnumber = fRdict[rindex];
-    if (rnumber < 0) {
+    if (rnumber < 0 && verbose) {
       Geant::Error("TPXsec::XS", "No %s for %s\n", TPartIndex::I()->ProcName(rindex),
                    TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
       return -1;

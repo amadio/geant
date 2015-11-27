@@ -37,48 +37,42 @@ void testserialRead()
      f->Close();delete f;
    */
 
-   char *b=nullptr;
-   char *t=nullptr;
-   { // read from file
-      std::ifstream fin("xsec.bin", std::ios::binary);
-      int nb;
-      fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
-      std::cout << "Number of bytes for TPartIndex " << nb << std::endl;
-      t = (char *) malloc(nb);
-      fin.read(reinterpret_cast<char*>(t), nb);
-      fin.close();
-      std::cout << "Rebuilding TPartIndex store" << std::endl;
-      TPartIndex::I()->RebuildClass(t);
-      t += TPartIndex::I()->SizeOf();
-      std::cout << "Number of bytes for x-sec " << nb - TPartIndex::I()->SizeOf() << std::endl;
-      std::cout << "Rebuilding x-sec store" << std::endl;
-      TEXsec::RebuildStore(t);
-   }
+   char *buf=nullptr;
+   int totsize;
+   // read from file
+   std::ifstream fin("xfphys.bin", std::ios::binary);
+   fin.read(reinterpret_cast<char*>(&totsize), sizeof(totsize));
+   buf = new char[totsize];
+   fin.read(reinterpret_cast<char*>(buf), totsize);
+   fin.close();
+   std::cout << "Total size of store " << totsize << std::endl;
 
-   { // read from file
-      std::ifstream fin("fins.bin", std::ios::binary);
-      int nb;
-      fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
-      std::cout << "Number of bytes for fins " << nb << std::endl;
-      d = (char *) malloc(nb);
-      fin.read(reinterpret_cast<char*>(d), nb);
-      fin.close();
-      std::cout << "Rebuilding fins store" << std::endl;
-      TEFstate::RebuildStore(d);
-      d += TEFstate::SizeOfStore();
-
-      std::cout << "Number of bytes for decay " << nb - TEFstate::SizeOfStore() << std::endl;
-      std::cout << "Rebuilding decay store" << std::endl;
-      TPDecay *dec = (TPDecay *) d;
-      dec->RebuildClass();
-      TEFstate::SetDecayTable(dec);
-   }
+   std::cout << "Rebuilding TPartIndex store" << std::endl;
+   TPartIndex::I()->RebuildClass(buf);
+   int sizet = TPartIndex::I()->SizeOf();
+   std::cout << "Number of bytes for TPartIndex " << sizet << std::endl;
+   buf += sizet;
+   std::cout << "Rebuilding x-sec store" << std::endl;
+   TEXsec::RebuildStore(buf);
+   int sizex = TEXsec::SizeOfStore();
+   std::cout << "Number of bytes for x-sec " << sizex << std::endl;
+   buf += sizex;
+   std::cout << "Rebuilding decay store" << std::endl;
+   TPDecay *dec = (TPDecay *) buf;
+   dec->RebuildClass();
+   TEFstate::SetDecayTable(dec);
+   int sized = dec->SizeOf();
+   std::cout << "Number of bytes for decay " << sized << std::endl;
+   buf += sized;
+   std::cout << "Rebuilding final state store" << std::endl;
+   TEFstate::RebuildStore(buf);
+   int sizef = TEFstate::SizeOfStore();
+   std::cout << "Number of bytes for final state " << sizef << std::endl;
 
    const char *fxsec = "/dev/null";
    const char *ffins = "/dev/null";
    TTabPhysMgr::Instance(fxsec, ffins );
 
-   std::cout << TPartIndex::I()->NPartReac() << std::endl;
    constexpr int nrep = 1000;
    srand(12345);
    std::ofstream fout("xsecsR.txt");

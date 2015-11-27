@@ -75,41 +75,32 @@ void testserialWrite()
    }
    fftest.close();
 
-   int totsize = TPartIndex::I()->SizeOf() + TEXsec::SizeOfStore();
-   char *b=(char*) malloc(totsize);
-   size_t sizex = TPartIndex::I()->MakeCompactBuffer(b);
-   cout << "Size of the TPartIndex buffer = " << sizex << " bytes " << endl;
-   char *e = (char*) (b+sizex);
-   sizex = TEXsec::MakeCompactBuffer(e);
+   TPDecay *decay = TTabPhysMgr::Instance()->GetDecayTable();
+   int totsize = TPartIndex::I()->SizeOf() + TEXsec::SizeOfStore()
+               + TEFstate::SizeOfStore() + decay->SizeOf();
+   cout << "Total size of store " << totsize << endl;
+   char *buf= new char[totsize];
+   char *cur = buf;
+   int sizet = TPartIndex::I()->MakeCompactBuffer(buf);
+   cout << "Size of the TPartIndex buffer = " << sizet << " bytes " << endl;
+   cur += sizet;
+   int sizex = TEXsec::MakeCompactBuffer(cur);
    cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
-
+   cur += sizex;
+   int sized = decay->MakeCompactBuffer(cur);
+   cout << "Size of the decay buffer = " << sized << " bytes " << endl;
+   cur += sized;
+   int sizef = TEFstate::MakeCompactBuffer(cur);
+   cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
+   cur += sizef;
 
    // write to file
-   std::ofstream fxsecs("xsec.bin", std::ios::binary);
+   std::ofstream fxsecs("xfphys.bin", std::ios::binary);
    fxsecs.write(reinterpret_cast<char*>(&totsize), sizeof(totsize));
-   fxsecs.write(reinterpret_cast<char*>(b), totsize);
+   fxsecs.write(reinterpret_cast<char*>(buf), totsize);
    fxsecs.close();
 
-   delete [] b;
-
-   // Compacting final states and decay in a single buffer
-   TPDecay *decay = TTabPhysMgr::Instance()->GetDecayTable();
-   totsize = TEFstate::SizeOfStore() + decay->SizeOf();
-   char *d = (char*) malloc(totsize);
-   int sizef = TEFstate::MakeCompactBuffer(d);
-   cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
-
-   e = (char*) (d + sizef);
-   sizef = decay->MakeCompactBuffer(e);
-   cout << "Size of the decay buffer = " << sizef << " bytes " << endl;
-
-   // write to file
-   std::ofstream ffinst("fins.bin", std::ios::binary);
-   ffinst.write(reinterpret_cast<char*>(&totsize), sizeof(totsize));
-   ffinst.write(reinterpret_cast<char*>(d), totsize);
-   ffinst.close();
-
-   delete [] d;
+   delete [] buf;
 
    delete geom;
    delete TTabPhysMgr::Instance();

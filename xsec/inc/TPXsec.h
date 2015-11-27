@@ -36,7 +36,7 @@ public:
   bool SetPartIon(const float dedx[]);
   bool SetPartMS(const float angle[], const float ansig[], const float length[], const float lensig[]);
   int PDG() const { return fPDG; }
-  float XS(int rindex, double en) const;
+  float XS(int rindex, double en, bool verbose=false) const;
   bool XS_v(int npart, int rindex, const double en[], double lam[]) const;
   float DEdx(double en) const;
   bool MS(double en, float &ang, float &asig, float &len, float &lsig) const;
