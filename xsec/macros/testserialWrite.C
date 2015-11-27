@@ -75,37 +75,33 @@ void testserialWrite()
    }
    fftest.close();
 
-   char *b=nullptr;
+   int totsize = TPartIndex::I()->SizeOf() + TEXsec::SizeOfStore();
+   char *b=(char*) malloc(totsize);
+   size_t sizex = TPartIndex::I()->MakeCompactBuffer(b);
+   cout << "Size of the TPartIndex buffer = " << sizex << " bytes " << endl;
+   char *e = (char*) (b+sizex);
+   sizex = TEXsec::MakeCompactBuffer(e);
+   cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
+
 
    // write to file
    std::ofstream fxsecs("xsec.bin", std::ios::binary);
-   size_t sizex = TPartIndex::I()->MakeCompactBuffer(b);
-   cout << "Size of the TPartIndex buffer = " << sizex << " bytes " << endl;
-   fxsecs.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
-   fxsecs.write(reinterpret_cast<char*>(b), sizex);
-
-   delete [] b;
-   b =  nullptr;
-
-   sizex = TEXsec::MakeCompactBuffer(b);
-   cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
-   fxsecs.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
-   fxsecs.write(reinterpret_cast<char*>(b), sizex);
-
+   fxsecs.write(reinterpret_cast<char*>(&totsize), sizeof(totsize));
+   fxsecs.write(reinterpret_cast<char*>(b), totsize);
    fxsecs.close();
 
    delete [] b;
 
+   // Compacting final states and decay in a single buffer
    TPDecay *decay = TTabPhysMgr::Instance()->GetDecayTable();
-   int totsize = TEFstate::SizeOfStore() + decay->SizeOf();
+   totsize = TEFstate::SizeOfStore() + decay->SizeOf();
    char *d = (char*) malloc(totsize);
    int sizef = TEFstate::MakeCompactBuffer(d);
    cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
 
-   char  *e = (char*) (d + TEFstate::SizeOfStore());
+   e = (char*) (d + sizef);
    sizef = decay->MakeCompactBuffer(e);
    cout << "Size of the decay buffer = " << sizef << " bytes " << endl;
-   cout << "Totsize " << totsize << endl;
 
    // write to file
    std::ofstream ffinst("fins.bin", std::ios::binary);

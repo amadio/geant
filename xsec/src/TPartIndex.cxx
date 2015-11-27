@@ -215,14 +215,14 @@ void TPartIndex::Streamer(TBuffer &R__b) {
    // An augmented version of TDatabasePDG containing the additional particles
    // that Geant4 has and ROOT does not have is written together with TPartIndex
    //
-   // If we are using VECGEOM_NAVIGATOR we do not need this data member, as all 
+   // If we are using VECGEOM_NAVIGATOR we do not need this data member, as all
    // particles (ROOT + Geant4) are in the Particle class, so to reduce the
    // clutter we delete the class TDatabasePDG after we have read it.
    //
    // If we are NOT using VECGEOM_NAVIGATOR, TPartIndex creates a TDatabasePDG
    // in the default constructor. This is not a very good idea in general, however
-   // if we DO NOT read this class from file, we need to have a TDatabasePDG 
-   // non null for the class to work. If we do read the class from disk, then 
+   // if we DO NOT read this class from file, we need to have a TDatabasePDG
+   // non null for the class to work. If we do read the class from disk, then
    // we want to avoid memory leaks, so we have to delete the data member before
    // it is overwritten by the streamer.
    //
@@ -485,7 +485,7 @@ void TPartIndex::RebuildClass(char *b) {
    SetEnergyGrid(emin, emax, nbins);
    SetPartTable((int*) start, npart);
 
-   for (auto i = 0; i < fNPart; ++i) 
+   for (auto i = 0; i < fNPart; ++i)
       fPDGToGVMap[fPDG[i]] = i;
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -503,8 +503,10 @@ void TPartIndex::RebuildClass(char *b) {
 size_t TPartIndex::MakeCompactBuffer(char* &b) {
    // First calculate how much we need
    size_t totsize = SizeOf();
-   b = (char*) malloc(totsize);
-   memset(b,0,totsize);
+   if(b == nullptr) {
+     b = (char*) malloc(totsize);
+     memset(b,0,totsize);
+   }
 
    char *start = b;
    memcpy(start,&fEGrid[0],sizeof(double));
@@ -522,4 +524,3 @@ size_t TPartIndex::MakeCompactBuffer(char* &b) {
    memcpy(start,fPDG,fNPart*sizeof(int));
    return totsize;
 }
-

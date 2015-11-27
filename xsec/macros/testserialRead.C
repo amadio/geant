@@ -41,21 +41,18 @@ void testserialRead()
    char *t=nullptr;
    { // read from file
       std::ifstream fin("xsec.bin", std::ios::binary);
-      size_t nb;
+      int nb;
       fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
       std::cout << "Number of bytes for TPartIndex " << nb << std::endl;
       t = (char *) malloc(nb);
       fin.read(reinterpret_cast<char*>(t), nb);
+      fin.close();
       std::cout << "Rebuilding TPartIndex store" << std::endl;
       TPartIndex::I()->RebuildClass(t);
-
-      fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
-      std::cout << "Number of bytes for x-sec " << nb << std::endl;
-      b = (char *) malloc(nb);
-      fin.read(reinterpret_cast<char*>(b), nb);
+      t += TPartIndex::I()->SizeOf();
+      std::cout << "Number of bytes for x-sec " << nb - TPartIndex::I()->SizeOf() << std::endl;
       std::cout << "Rebuilding x-sec store" << std::endl;
-      TEXsec::RebuildStore(b);
-      fin.close();
+      TEXsec::RebuildStore(t);
    }
 
    char *d=nullptr;
