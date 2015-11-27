@@ -276,14 +276,27 @@ void TEFstate::RebuildClass() {
 }
 
 //___________________________________________________________________
-size_t TEFstate::MakeCompactBuffer(char* &b) {
+int TEFstate::SizeOfStore() {
    // First calculate how much we need
-   size_t totsize = 0;
+   int totsize = 0;
    for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
-   // Now allocate buffer
-   b = (char*) malloc(totsize);
-   memset(b,0,totsize);
+   return totsize + 2 * sizeof(int);
+}
+
+//___________________________________________________________________
+int TEFstate::MakeCompactBuffer(char* &b) {
+   // First calculate how much we need
+   size_t totsize = SizeOfStore();
+   if(b == nullptr) {
+      // Now allocate buffer
+      b = (char*) malloc(totsize);
+      memset(b,0,totsize);
+   }
    char* start = b;
+   memcpy(start,&totsize,sizeof(int));
+   start += sizeof(int);
+   memcpy(start,&fNLdElems,sizeof(int));
+   start += sizeof(int);
    // now copy and compact
    for(auto i=0; i<fNLdElems; ++i) {
       TEFstate *el = new(start) TEFstate(*fElements[i]);
@@ -294,10 +307,14 @@ size_t TEFstate::MakeCompactBuffer(char* &b) {
 }
 
 //___________________________________________________________________
-void TEFstate::RebuildStore(size_t size, int nelem, char *b) {
-   fNLdElems = 0;
+void TEFstate::RebuildStore(char *b) {
    char *start = b;
-   for(auto i=0; i<nelem; ++i) {
+   int size = 0;
+   memcpy(&size,start,sizeof(int));
+   start += sizeof(int);
+   memcpy(&fNLdElems,start,sizeof(int));
+   start += sizeof(int);
+   for(auto i=0; i<fNLdElems; ++i) {
       TEFstate *current = (TEFstate *) start;
 #ifdef MAGIC_DEBUG
       if(current->GetMagic() != -777777) {
@@ -306,10 +323,10 @@ void TEFstate::RebuildStore(size_t size, int nelem, char *b) {
       }
 #endif
       current->RebuildClass();
-      fElements[fNLdElems++] = current;
+      fElements[i] = current;
       start += current->SizeOf();     
    }
-   if((size_t)(start - b) != size) {
+   if((int)(start - b) != size) {
       cout << "TEFstate::RebuildStore: expected size " << size 
 	   << " found size " << start - b << endl;
       exit(1);

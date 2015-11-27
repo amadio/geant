@@ -51,13 +51,10 @@ void testserialRead()
 
       fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
       std::cout << "Number of bytes for x-sec " << nb << std::endl;
-      int nel;
-      fin.read(reinterpret_cast<char*>(&nel), sizeof(nel));
-      std::cout << "Number of elements in x-sec " << nel << std::endl;
       b = (char *) malloc(nb);
       fin.read(reinterpret_cast<char*>(b), nb);
       std::cout << "Rebuilding x-sec store" << std::endl;
-      TEXsec::RebuildStore(nb,nel,b);
+      TEXsec::RebuildStore(b);
       fin.close();
    }
 
@@ -65,26 +62,21 @@ void testserialRead()
    char *de=nullptr;
    { // read from file
       std::ifstream fin("fins.bin", std::ios::binary);
-      size_t nb;
+      int nb;
       fin.read(reinterpret_cast<char*>(&nb), sizeof(nb));
       std::cout << "Number of bytes for fins " << nb << std::endl;
-      int nel;
-      fin.read(reinterpret_cast<char*>(&nel), sizeof(nel));
-      std::cout << "Number of elements in fins " << nel << std::endl;
       d = (char *) malloc(nb);
       fin.read(reinterpret_cast<char*>(d), nb);
+      fin.close();
       std::cout << "Rebuilding fins store" << std::endl;
-      TEFstate::RebuildStore(nb,TEXsec::NLdElems(),d);
-      size_t nd;
-      fin.read(reinterpret_cast<char*>(&nd), sizeof(nd));
-      std::cout << "Number of bytes for decay " << nd << std::endl;
-      de = (char *) malloc(nd);
-      fin.read(reinterpret_cast<char*>(de), nd);
+      TEFstate::RebuildStore(d);
+      d += TEFstate::SizeOfStore();
+
+      std::cout << "Number of bytes for decay " << nb - TEFstate::SizeOfStore() << std::endl;
       std::cout << "Rebuilding decay store" << std::endl;
-      TPDecay *dec = (TPDecay *) de;
+      TPDecay *dec = (TPDecay *) d;
       dec->RebuildClass();
       TEFstate::SetDecayTable(dec);
-      fin.close();
    }
 
    const char *fxsec = "/dev/null";
@@ -126,7 +118,7 @@ void testserialRead()
 	 int ebinindx=0;
 	 TEFstate::Element(iel)->SampleReac(ipart, ireac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 	 if(npart <= 0) continue;
-	 fftest <<  iel << ":" << TPartIndex::I()->PartName(ipart) << ":" << ireac << ":" << en 
+	 fftest <<  iel << ":" << TPartIndex::I()->PartName(ipart) << ":" << ireac << ":" << en
 		<< ":" << npart << ":" << weight << ":" << kerma << ":" << enr << ":";
 	 for(auto i=0; i<npart; ++i)
 	    fftest << pid[i] << ":" << mom[i*3] << ":" << mom[i*3+1] << ":" << mom[i*3+2];
@@ -136,5 +128,5 @@ void testserialRead()
    fftest.close();
 
    delete geom;
-   delete TTabPhysMgr::Instance();
+//   delete TTabPhysMgr::Instance();
 }

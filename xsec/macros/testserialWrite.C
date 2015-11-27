@@ -66,7 +66,7 @@ void testserialWrite()
 	 int ebinindx=0;
 	 TEFstate::Element(iel)->SampleReac(ipart, ireac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 	 if(npart <= 0) continue;
-	 fftest <<  iel << ":" << TPartIndex::I()->PartName(ipart) << ":" << ireac << ":" << en 
+	 fftest <<  iel << ":" << TPartIndex::I()->PartName(ipart) << ":" << ireac << ":" << en
 		<< ":" << npart << ":" << weight << ":" << kerma << ":" << enr << ":";
 	 for(auto i=0; i<npart; ++i)
 	    fftest << pid[i] << ":" << mom[i*3] << ":" << mom[i*3+1] << ":" << mom[i*3+2];
@@ -85,37 +85,32 @@ void testserialWrite()
    fxsecs.write(reinterpret_cast<char*>(b), sizex);
 
    delete [] b;
+   b =  nullptr;
 
    sizex = TEXsec::MakeCompactBuffer(b);
    cout << "Size of the X-sec buffer = " << sizex << " bytes " << endl;
    fxsecs.write(reinterpret_cast<char*>(&sizex), sizeof(sizex));
-   int nelem = TEXsec::NLdElems();
-   fxsecs.write(reinterpret_cast<char*>(&nelem), sizeof(nelem));
    fxsecs.write(reinterpret_cast<char*>(b), sizex);
 
    fxsecs.close();
-   
+
    delete [] b;
 
-   char *d=nullptr;
-   size_t sizef = TEFstate::MakeCompactBuffer(d);
+   TPDecay *decay = TTabPhysMgr::Instance()->GetDecayTable();
+   int totsize = TEFstate::SizeOfStore() + decay->SizeOf();
+   char *d = (char*) malloc(totsize);
+   int sizef = TEFstate::MakeCompactBuffer(d);
    cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
+
+   char  *e = (char*) (d + TEFstate::SizeOfStore());
+   sizef = decay->MakeCompactBuffer(e);
+   cout << "Size of the decay buffer = " << sizef << " bytes " << endl;
+   cout << "Totsize " << totsize << endl;
 
    // write to file
    std::ofstream ffinst("fins.bin", std::ios::binary);
-   ffinst.write(reinterpret_cast<char*>(&sizef), sizeof(sizef));
-   ffinst.write(reinterpret_cast<char*>(&nelem), sizeof(nelem));
-   ffinst.write(reinterpret_cast<char*>(d), sizef);
-   
-   delete [] d;
-
-   // now the decay table... dirty... 
-   TPDecay *decay = TTabPhysMgr::Instance()->GetDecayTable();
-   sizef = decay->MakeCompactBuffer(d);
-   cout << "Size of the decay buffer = " << sizef << " bytes " << endl;
-   // write to file
-   ffinst.write(reinterpret_cast<char*>(&sizef), sizeof(sizef));
-   ffinst.write(reinterpret_cast<char*>(d), sizef);
+   ffinst.write(reinterpret_cast<char*>(&totsize), sizeof(totsize));
+   ffinst.write(reinterpret_cast<char*>(d), totsize);
    ffinst.close();
 
    delete [] d;

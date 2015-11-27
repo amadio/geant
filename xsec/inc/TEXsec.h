@@ -83,11 +83,13 @@ public:
   void DeselectAll();
   void PreDraw();
   void ResetFrame();
+
   int SizeOf() const;
   void Compact();
   void RebuildClass();
+  static int SizeOfStore();
   static size_t MakeCompactBuffer(char* &b);
-  static void RebuildStore(size_t size, int nelem, char *b);
+  static void RebuildStore(char *b);
 #ifdef MAGIC_DEBUG
   int GetMagic() const {return fMagic;}
 #endif
@@ -144,7 +146,7 @@ private:
 #endif
 
 private:
-  TPXsec   fStore[1];              //! Pointer to the compact store part of the class 
+  TPXsec   fStore[1];              //! Pointer to the compact store part of the class
 };
 
 #endif

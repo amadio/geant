@@ -73,8 +73,9 @@ public:
   int SizeOf() const;
   void Compact();
   void RebuildClass();
-  static size_t MakeCompactBuffer(char* &b);
-  static void RebuildStore(size_t size, int nelem, char *b);
+  static int SizeOfStore();
+  static int MakeCompactBuffer(char* &b);
+  static void RebuildStore(char *b);
 #ifdef MAGIC_DEBUG
   int GetMagic() const {return fMagic;}
 #endif
