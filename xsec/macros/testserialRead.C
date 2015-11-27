@@ -12,6 +12,8 @@
 #include <iostream>
 #include <fstream>
 
+void expandPhysics(char *buf);
+
 using std::cout;
 using std::endl;
 
@@ -47,27 +49,7 @@ void testserialRead()
    fin.close();
    std::cout << "Total size of store " << totsize << std::endl;
 
-   std::cout << "Rebuilding TPartIndex store" << std::endl;
-   TPartIndex::I()->RebuildClass(buf);
-   int sizet = TPartIndex::I()->SizeOf();
-   std::cout << "Number of bytes for TPartIndex " << sizet << std::endl;
-   buf += sizet;
-   std::cout << "Rebuilding x-sec store" << std::endl;
-   TEXsec::RebuildStore(buf);
-   int sizex = TEXsec::SizeOfStore();
-   std::cout << "Number of bytes for x-sec " << sizex << std::endl;
-   buf += sizex;
-   std::cout << "Rebuilding decay store" << std::endl;
-   TPDecay *dec = (TPDecay *) buf;
-   dec->RebuildClass();
-   TEFstate::SetDecayTable(dec);
-   int sized = dec->SizeOf();
-   std::cout << "Number of bytes for decay " << sized << std::endl;
-   buf += sized;
-   std::cout << "Rebuilding final state store" << std::endl;
-   TEFstate::RebuildStore(buf);
-   int sizef = TEFstate::SizeOfStore();
-   std::cout << "Number of bytes for final state " << sizef << std::endl;
+   expandPhysics(buf);
 
    const char *fxsec = "/dev/null";
    const char *ffins = "/dev/null";
@@ -118,4 +100,28 @@ void testserialRead()
 
    delete geom;
 //   delete TTabPhysMgr::Instance();
+}
+
+void expandPhysics(char *buf) {
+   std::cout << "Rebuilding TPartIndex store" << std::endl;
+   TPartIndex::I()->RebuildClass(buf);
+   int sizet = TPartIndex::I()->SizeOf();
+   std::cout << "Number of bytes for TPartIndex " << sizet << std::endl;
+   buf += sizet;
+   std::cout << "Rebuilding x-sec store" << std::endl;
+   TEXsec::RebuildStore(buf);
+   int sizex = TEXsec::SizeOfStore();
+   std::cout << "Number of bytes for x-sec " << sizex << std::endl;
+   buf += sizex;
+   std::cout << "Rebuilding decay store" << std::endl;
+   TPDecay *dec = (TPDecay *) buf;
+   dec->RebuildClass();
+   TEFstate::SetDecayTable(dec);
+   int sized = dec->SizeOf();
+   std::cout << "Number of bytes for decay " << sized << std::endl;
+   buf += sized;
+   std::cout << "Rebuilding final state store" << std::endl;
+   TEFstate::RebuildStore(buf);
+   int sizef = TEFstate::SizeOfStore();
+   std::cout << "Number of bytes for final state " << sizef << std::endl;
 }

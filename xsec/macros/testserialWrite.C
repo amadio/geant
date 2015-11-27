@@ -14,6 +14,8 @@
 using std::cout;
 using std::endl;
 
+int serializePhysics(char *&buf);
+
 void testserialWrite()
 {
    gSystem->Load("libPhysics.so");
@@ -75,11 +77,28 @@ void testserialWrite()
    }
    fftest.close();
 
+   char *buf = nullptr;
+   int totsize = serializePhysics(buf);
+
+   // write to file
+   std::ofstream fxsecs("xfphys.bin", std::ios::binary);
+   fxsecs.write(reinterpret_cast<char*>(&totsize), sizeof(totsize));
+   fxsecs.write(reinterpret_cast<char*>(buf), totsize);
+   fxsecs.close();
+
+   delete [] buf;
+
+   delete geom;
+   delete TTabPhysMgr::Instance();
+}
+
+int serializePhysics(char *&buf) {
    TPDecay *decay = TTabPhysMgr::Instance()->GetDecayTable();
    int totsize = TPartIndex::I()->SizeOf() + TEXsec::SizeOfStore()
                + TEFstate::SizeOfStore() + decay->SizeOf();
    cout << "Total size of store " << totsize << endl;
-   char *buf= new char[totsize];
+   delete [] buf;
+   buf= new char[totsize];
    char *cur = buf;
    int sizet = TPartIndex::I()->MakeCompactBuffer(buf);
    cout << "Size of the TPartIndex buffer = " << sizet << " bytes " << endl;
@@ -93,15 +112,5 @@ void testserialWrite()
    int sizef = TEFstate::MakeCompactBuffer(cur);
    cout << "Size of the fin state buffer = " << sizef << " bytes " << endl;
    cur += sizef;
-
-   // write to file
-   std::ofstream fxsecs("xfphys.bin", std::ios::binary);
-   fxsecs.write(reinterpret_cast<char*>(&totsize), sizeof(totsize));
-   fxsecs.write(reinterpret_cast<char*>(buf), totsize);
-   fxsecs.close();
-
-   delete [] buf;
-
-   delete geom;
-   delete TTabPhysMgr::Instance();
+   return totsize;
 }
