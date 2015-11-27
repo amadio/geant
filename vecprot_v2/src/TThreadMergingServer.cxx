@@ -246,11 +246,10 @@ void TThreadMergingServer::Listen()
   bool cache = false;
       
   Int_t clientId=0;
-
-  while (!finish)
-    while (fOutput->try_pop(buffer))
+  while (!finish || fOutput->size()>0)
+      while (fOutput->try_pop(buffer))
       {
-	Printf("Popped from queue of %zu", fOutput->size()+1);
+	//	Printf("Popped from queue of %zu", fOutput->size()+1);
 	  
 	buffer->SetReadMode();
 	buffer->SetBufferOffset();

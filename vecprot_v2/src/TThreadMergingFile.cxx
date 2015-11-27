@@ -69,7 +69,7 @@ Bool_t TThreadMergingFile::UploadAndReset()
   fBuffer->WriteLong64(GetEND());
   CopyTo(*fBuffer);
 
-  Printf("UploadAndReset: bufferLength %x GetBuffer %p GetEnd %x", fBuffer->Length(), fBuffer->Buffer(), GetEND());
+  //  Printf("UploadAndReset: bufferLength %x GetBuffer %p GetEnd %x", fBuffer->Length(), fBuffer->Buffer(), GetEND());
   
   // adding to common queue to be merged afterwards
 
@@ -113,7 +113,6 @@ Int_t TThreadMergingFile::Write(const char *, Int_t opt, Int_t bufsiz)
 {
    Int_t nbytes = TMemFile::Write(0,opt,bufsiz);
 
-   Printf("TThreadMergingFile::Write -> nbytes %d",nbytes);
    if (nbytes) {
       UploadAndReset();
    }

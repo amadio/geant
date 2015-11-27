@@ -256,7 +256,7 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
       for (int i = 0; i < nworkers; i++)
         FeederQueue()->push(0);
       TransportedQueue()->push(0);
-      Stop();      
+      Stop();
       //         sched_locker.StartOne(); // signal the scheduler who has to exit
       //         gbc_locker.StartOne();
       return FeederResult::kStopProcessing;
@@ -546,6 +546,9 @@ void *WorkloadManager::TransportTracks() {
   wm->DoneQueue()->push(0);
   delete prioritizer;
   Printf("=== Thread %d: exiting ===", tid);
+
+  if (wm->IsStopped()) wm->MergingServer()->Finish();
+
   return 0;
 }
 
