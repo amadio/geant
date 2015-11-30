@@ -11,7 +11,7 @@
 // #include "vdt/cos.h"
 
 inline
-void steponcircle( int charge, double R, double x0, double y0, double dx0, double dy0, double step,
+void steponcircle( int /*charge*/, double R, double x0, double y0, double dx0, double dy0, double step,
            double & x, double & y, double & dx, double & dy )
 {
   double invnorm=1./sqrt(dx0*dx0 + dy0*dy0);
