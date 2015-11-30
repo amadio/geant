@@ -42,9 +42,9 @@ else()
 endif()
 
 target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  -lGeant_v ${ROOT_LIBRARIES} -lEG -lGeom )
+  -lGeant_v ${ROOT_LIBRARIES} -lEG -lGeom ${Vc_LIBRARIES})
 
-add_dependencies(GeantExamples Geantlib_v)
+add_dependencies(GeantExamples Geantlib_v ${Vc_LIBRARIES})
 
 add_custom_target(Exampleslib DEPENDS GeantExamples)
 
