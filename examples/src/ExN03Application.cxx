@@ -115,7 +115,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 
   if (gPropagator->fFillTree) {
     MyHit *hit;
-    int nhits = 0;
+    //    int nhits = 0;
     for (int i = 0; i < npart; i++) {
       // Deposit hits in scintillator
       if (idvol==fIdGap && tracks.fEdepV[i]>0.00002)
@@ -136,7 +136,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
 	  //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
 	  //      }
-	  nhits++;
+	  //	  nhits++;
 	}
     }
   }

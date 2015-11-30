@@ -499,8 +499,10 @@ void *WorkloadManager::TransportTracks() {
     // WP
     if(concurrentWrite)
       {
-	myhitFactory->fOutputs.try_pop(data);
-	tree->Fill();
+	if(myhitFactory->fOutputs.try_pop(data))
+	  {
+	    tree->Fill();
+	  }
       }
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
@@ -1224,23 +1226,20 @@ void *WorkloadManager::OutputThread() {
       while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
 	{
 	  // Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
-        
+	          
 	  if (myhitFactory->fOutputs.size()>0)
 	    {
 	      while (myhitFactory->fOutputs.try_pop(data))
 		{
 		  // myhitFactory->fOutputs.wait_and_pop(data);                
 		  // Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
-	      
 		  // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
-              
+
 		  tree->Fill();
-	      
 		  myhitFactory->Recycle(data);
-		  // Printf("save_hits: size of pool %zu", myhitFactory->fPool.size());		
 		}
 	    }
-	}
+	} 
       tree->Write();
       file.Close();
     }
