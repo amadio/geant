@@ -184,7 +184,7 @@ add_dependencies(runApp Geant_v Xsec GeantExamples)
 else()  # ---- MIC
   add_library(Geant_v SHARED ${sources})
 #target_link_libraries(Geant_v -lEG -lGeom)
-if( VECGEOM_FOUND )
+if(USE_VECGEOM_NAVIGATOR )
   target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 endif()
 add_custom_target(Geantlib_v DEPENDS Geant_v)
