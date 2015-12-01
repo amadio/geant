@@ -70,7 +70,7 @@ int TPXsec::SizeOf() const {
    size += fNXSecs * sizeof(float);
    size -= sizeof(char); // fStore already takes one char
    size = sizeof(double)*((size-1)/sizeof(double)+1);
-   return (int) size-sizeof(float);
+   return (int) size;
 }
 
 //_________________________________________________________________________

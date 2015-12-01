@@ -427,6 +427,7 @@ void TPFstate::RebuildClass() {
 #endif
       ((TFinState *) start)->RebuildClass();
       fRestCaptFstat = (TFinState *) start;
+      fRestCaptFstat->CheckAlign();
       start += ((TFinState*) start)->SizeOf();
    }
    for(auto i=0; i<fNFstat; ++i) {
@@ -438,6 +439,7 @@ void TPFstate::RebuildClass() {
 #endif
       ((TFinState *) start)->RebuildClass();
       fFstatP[i] = (TFinState *) start;
+      fFstatP[i]->CheckAlign();
       start += ((TFinState*) start)->SizeOf();
    }
 }

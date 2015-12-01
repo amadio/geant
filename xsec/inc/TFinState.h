@@ -63,13 +63,29 @@ public:
 #ifdef MAGIC_DEBUG
   int GetMagic() const {return fMagic;}
 #endif
+void CheckAlign() {
+  if(((unsigned long) &fNFstates) % sizeof(fNFstates) != 0) {std::cout << "TPFstate::fNFstates misaligned" << std::endl;exit(1);}
+  if(((unsigned long) &fNsecs) % sizeof(fNsecs) != 0) {std::cout << "TPFstate::fNsecs misaligned" << std::endl;exit(1);}
+  if(((unsigned long) &fNMom) % sizeof(fNMom) != 0) {std::cout << "TPFstate::fNMom misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fWeight) % sizeof(fWeight[0]) != 0) {std::cout << "TPFstate::fWeight misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fKerma) % sizeof(fKerma[0]) != 0) {std::cout << "TPFstate::fKerma misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fEn) % sizeof(fEn[0]) != 0) {std::cout << "TPFstate::fEn misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fMom) % sizeof(fMom[0]) != 0) {std::cout << "TPFstate::fMom misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fPID) % sizeof(fPID[0]) != 0) {std::cout << "TPFstate::fPID misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fNpart) % sizeof(fNpart[0]) != 0) {std::cout << "TPFstate::fNpart misaligned" << std::endl;exit(1);}
+  if(((unsigned long) fSurv) % sizeof(fSurv[0]) != 0) {std::cout << "TPFstate::fSurv misaligned" << std::endl;exit(1);}
+#ifdef MAGIC_DEBUG
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TPFstate::fMagic misaligned" << std::endl;exit(1);}
+#endif
+  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TPFstate::fStore misaligned" << std::endl;exit(1);}
+}
 
 private:
   static int fVerbose; // Controls verbosity level
 
   int fNFstates;  // Number of final states
   int fNsecs;     // Total number of secondaries
-  int fNMom;      // 3*fNsecs, just because ROOT cannot use formulas in dimensions
+  int fNMom;      // 3*fNMom, just because ROOT cannot use formulas in dimensions
   float *fWeight; // [fNFstates] Weight of the final states
   float *fKerma;  // [fNFstates] Released energy
   float *fEn;     // [fNFstates] Energy of final states in GeV

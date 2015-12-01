@@ -652,6 +652,7 @@ void TEXsec::RebuildClass() {
 #endif
       ((TPXsec *) start)->RebuildClass();
       fPXsecP[i] = (TPXsec *) start;
+      fPXsecP[i]->CheckAlign();
       start += ((TPXsec*) start)->SizeOf();
    }
 }
@@ -706,6 +707,7 @@ void TEXsec::RebuildStore(char *b) {
 #endif
       current->RebuildClass();
       fElements[i] = current;
+      fElements[i]->CheckAlign();
       start += current->SizeOf();
    }
    if(int (start - b) != size) {

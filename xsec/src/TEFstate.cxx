@@ -273,6 +273,7 @@ void TEFstate::RebuildClass() {
 #endif
       ((TPFstate *) start)->RebuildClass();
       fPFstateP[i] = (TPFstate *) start;
+      fPFstateP[i]->CheckAlign();
       start += ((TPFstate*) start)->SizeOf();
    }
 }
@@ -326,6 +327,7 @@ void TEFstate::RebuildStore(char *b) {
 #endif
       current->RebuildClass();
       fElements[i] = current;
+      fElements[i]->CheckAlign();
       start += current->SizeOf();
    }
    if((int)(start - b) != size) {
