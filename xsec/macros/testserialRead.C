@@ -44,7 +44,7 @@ void testserialRead()
    // read from file
    std::ifstream fin("xfphys.bin", std::ios::binary);
    fin.read(reinterpret_cast<char*>(&totsize), sizeof(totsize));
-   buf = new char[totsize];
+   buf = (char*) _mm_malloc(totsize,sizeof(double));
    fin.read(reinterpret_cast<char*>(buf), totsize);
    fin.close();
    std::cout << "Total size of store " << totsize << std::endl;

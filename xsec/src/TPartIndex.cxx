@@ -458,9 +458,11 @@ double TPartIndex::GetAprxNuclearMass(int Z, int A) {
 
 //___________________________________________________________________
 int TPartIndex::SizeOf() const {
-   size_t size = 2 * sizeof(double) + 4 * sizeof(int);
-   size += fNPart * sizeof(int);
-   return size - sizeof(int);
+  size_t size = 2 * sizeof(double) + 4 * sizeof(int);
+  size += fNPart * sizeof(int);
+  size -= sizeof(int);
+  size = sizeof(double)*((size-1)/sizeof(double)+1);
+  return (int) size;
 }
 
 //___________________________________________________________________

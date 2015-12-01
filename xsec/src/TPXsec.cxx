@@ -68,7 +68,9 @@ int TPXsec::SizeOf() const {
    size += 5 * fNCbins * sizeof(float);
    size += fNTotXs * sizeof(float);
    size += fNXSecs * sizeof(float);
-   return (int) size-sizeof(float);  // fStore already takes one float
+   size -= sizeof(float); // fStore already takes one float
+   size = sizeof(double)*((size-1)/sizeof(double)+1);
+   return (int) size-sizeof(float);
 }
 
 //_________________________________________________________________________

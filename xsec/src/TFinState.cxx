@@ -44,8 +44,8 @@ TFinState::TFinState(int nfstates, const int npart[], const float weight[], cons
 
 //_________________________________________________________________________
 TFinState::TFinState(const TFinState& other)
-    : fNFstates(other.fNFstates), fNsecs(other.fNsecs), fNMom(other.fNMom), 
-      fWeight(other.fWeight), fKerma(other.fKerma), fEn(other.fEn), fMom(other.fMom), 
+    : fNFstates(other.fNFstates), fNsecs(other.fNsecs), fNMom(other.fNMom),
+      fWeight(other.fWeight), fKerma(other.fKerma), fEn(other.fEn), fMom(other.fMom),
       fPID(other.fPID), fNpart(other.fNpart), fSurv(other.fSurv) {
 }
 
@@ -336,12 +336,14 @@ int TFinState::SizeOf() const {
    size += fNFstates * sizeof(int);
    size += fNFstates * sizeof(char);
    /*
-     std::cout << " fNFstates " << fNFstates 
+     std::cout << " fNFstates " << fNFstates
 	     << " fNsecs " << fNsecs
 	     << " fNMom " << fNMom
 	     << " size " << (int) size-sizeof(float) << std::endl;
    */
-   return (int) size-sizeof(float);  // fStore already takes one float
+   size -= sizeof(float);  // fStore already takes one float
+   size = sizeof(double)*((size-1)/sizeof(double)+1);
+   return (int) size;  // fStore already takes one float
 }
 
 //_________________________________________________________________________
@@ -439,4 +441,3 @@ void TFinState::RebuildClass() {
       start +=size;
    }
 }
-

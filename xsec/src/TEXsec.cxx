@@ -619,7 +619,9 @@ int TEXsec::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
       size += fPXsecP[i]->SizeOf();
-   return (int) size - sizeof(TPXsec); // fStore already holds one TPXsec
+  size -= sizeof(TPXsec); // fStore already holds one TPXsec
+  size = sizeof(double)*((size-1)/sizeof(double)+1);
+  return (int) size; // fStore already holds one TPXsec
 }
 
 //___________________________________________________________________

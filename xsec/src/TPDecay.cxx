@@ -89,7 +89,9 @@ int TPDecay::SizeOf() const {
    size += fNPart * sizeof(double);
    for(auto i=0; i<fNPart; ++i)
       size += fDecayP[i]->SizeOf();
-   return (int) size - sizeof(double); // fStore already holds one double
+  size -= sizeof(double); // fStore already holds one double
+  size = sizeof(double)*((size-1)/sizeof(double)+1);
+  return (int) size;
 }
 
 //___________________________________________________________________

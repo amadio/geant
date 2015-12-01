@@ -23,31 +23,31 @@ TPDecay* TEFstate::fDecay = nullptr;
 //___________________________________________________________________
 TEFstate::TEFstate() :
    fEGrid(TPartIndex::I()->EGrid()),
-   fAtcm3(0), 
-   fEmin(0), 
-   fEmax(0), 
-   fEilDelta(0), 
-   fDens(0), 
-   fEle(0), 
-   fNEbins(0), 
-   fNEFstat(0), 
-   fNRpart(0), 
+   fAtcm3(0),
+   fEmin(0),
+   fEmax(0),
+   fEilDelta(0),
+   fDens(0),
+   fEle(0),
+   fNEbins(0),
+   fNEFstat(0),
+   fNRpart(0),
    fPFstate(nullptr),
    fPFstateP(nullptr)
 {}
 
 //___________________________________________________________________
 TEFstate::TEFstate(int z, int a, float dens) :
-   fEGrid(TPartIndex::I()->EGrid()), 
+   fEGrid(TPartIndex::I()->EGrid()),
    fAtcm3(dens * kAvogadro * 1e-24 / TPartIndex::I()->WEle(z)),
-   fEmin(TPartIndex::I()->Emin()), 
-   fEmax(TPartIndex::I()->Emax()), 
-   fEilDelta(TPartIndex::I()->EilDelta()), 
-   fDens(dens), 
-   fEle(z * 10000 + a * 10), 
+   fEmin(TPartIndex::I()->Emin()),
+   fEmax(TPartIndex::I()->Emax()),
+   fEilDelta(TPartIndex::I()->EilDelta()),
+   fDens(dens),
+   fEle(z * 10000 + a * 10),
    fNEbins(TPartIndex::I()->NEbins()),
    fNEFstat(0),
-   fNRpart(TPartIndex::I()->NPartReac()), 
+   fNRpart(TPartIndex::I()->NPartReac()),
    fPFstate(new TPFstate[fNRpart]),
    fPFstateP(new TPFstate*[fNRpart])
 {
@@ -56,7 +56,7 @@ TEFstate::TEFstate(int z, int a, float dens) :
 
 //___________________________________________________________________
 TEFstate::TEFstate(const TEFstate &other) :
-   fEGrid(TPartIndex::I()->EGrid()), 
+   fEGrid(TPartIndex::I()->EGrid()),
    fAtcm3(other.fAtcm3),
    fEmin(other.fEmin),
    fEmax(other.fEmax),
@@ -72,12 +72,12 @@ TEFstate::TEFstate(const TEFstate &other) :
 }
 
 //___________________________________________________________________
-TEFstate::~TEFstate() 
-{ 
-   if(fPFstateP != nullptr) 
+TEFstate::~TEFstate()
+{
+   if(fPFstateP != nullptr)
       for(auto i=0; i<fNRpart; ++i) delete fPFstateP[i];
    delete [] fPFstateP;
-   delete [] fPFstate; 
+   delete [] fPFstate;
 }
 
 #ifdef USE_ROOT
@@ -88,9 +88,9 @@ void TEFstate::Streamer(TBuffer &R__b)
 
    if (R__b.IsReading()) {
       R__b.ReadClassBuffer(TEFstate::Class(),this);
-      if(fPFstateP != nullptr) 
+      if(fPFstateP != nullptr)
 	 for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPFstateP[ipart];
-      delete [] fPFstateP; 
+      delete [] fPFstateP;
       fPFstateP = new TPFstate*[fNRpart];
       for(auto i=0; i<fNRpart; ++i) fPFstateP[i] = &fPFstate[i];
    } else {
@@ -240,7 +240,9 @@ int TEFstate::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
       size += fPFstateP[i]->SizeOf();
-   return (int) size - sizeof(TPFstate); // fStore already holds one TPXsec
+  size -= sizeof(TPFstate); // fStore already holds one TPFstate
+  size = sizeof(double)*((size-1)/sizeof(double)+1);
+  return (int) size;
 }
 
 //___________________________________________________________________
@@ -324,12 +326,11 @@ void TEFstate::RebuildStore(char *b) {
 #endif
       current->RebuildClass();
       fElements[i] = current;
-      start += current->SizeOf();     
+      start += current->SizeOf();
    }
    if((int)(start - b) != size) {
-      cout << "TEFstate::RebuildStore: expected size " << size 
+      cout << "TEFstate::RebuildStore: expected size " << size
 	   << " found size " << start - b << endl;
       exit(1);
    }
 }
-
