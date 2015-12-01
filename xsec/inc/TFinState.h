@@ -84,8 +84,9 @@ private:
 #ifdef USE_ROOT
   ClassDefNV(TFinState, 2) // Particle Final States
 #endif
+
 private:
-  float  fStore[1];        //! Pointer to the compact data of the class
+  alignas(sizeof(double)) char fStore[1];        //! Pointer to the compact data of the class
 };
 
 #endif

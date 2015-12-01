@@ -89,14 +89,14 @@ int TPDecay::SizeOf() const {
    size += fNPart * sizeof(double);
    for(auto i=0; i<fNPart; ++i)
       size += fDecayP[i]->SizeOf();
-  size -= sizeof(double); // fStore already holds one double
+  size -= sizeof(char); // fStore already holds one char
   size = sizeof(double)*((size-1)/sizeof(double)+1);
   return (int) size;
 }
 
 //___________________________________________________________________
 void TPDecay::Compact() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    memcpy(start, fCTauPerMass, fNPart*sizeof(double));
    //   delete [] fCTauPerMass;
    //   fCTauPerMass = (double *) start;
@@ -113,7 +113,7 @@ void TPDecay::Compact() {
 
 //___________________________________________________________________
 void TPDecay::RebuildClass() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    // we consider that the pointer to the final states is stale because it has been read from
    // the file. If this is not the case, this is a leak...
    fCTauPerMass = (double *) start;

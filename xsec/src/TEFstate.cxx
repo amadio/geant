@@ -240,14 +240,14 @@ int TEFstate::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
       size += fPFstateP[i]->SizeOf();
-  size -= sizeof(TPFstate); // fStore already holds one TPFstate
+  size -= sizeof(char); // fStore already holds one char
   size = sizeof(double)*((size-1)/sizeof(double)+1);
   return (int) size;
 }
 
 //___________________________________________________________________
 void TEFstate::Compact() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    for(auto i=0; i<fNRpart; ++i) {
       TPFstate *px = new(start) TPFstate(*fPFstateP[i]);
       px->Compact();
@@ -260,7 +260,7 @@ void TEFstate::Compact() {
 
 //___________________________________________________________________
 void TEFstate::RebuildClass() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    // we consider that the pointer to the final states is stale because it has been read from
    // the file. If this is not the case, this is a leak...
    fPFstateP = new TPFstate*[fNRpart];

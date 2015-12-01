@@ -384,14 +384,14 @@ int TPFstate::SizeOf() const {
    if(fRestCaptFstat != nullptr) size += fRestCaptFstat->SizeOf();
    for(auto i=0; i<fNFstat; ++i)
       size += fFstatP[i]->SizeOf();
-    size -= sizeof(TFinState); // fStore already holds one TPXsec
+    size -= sizeof(char); // fStore already holds one TPXsec
     size = sizeof(double)*((size-1)/sizeof(double)+1);
     return (int) size;
 }
 
 //___________________________________________________________________
 void TPFstate::Compact() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    if(fRestCaptFstat != nullptr) {
       TFinState *px = new(start) TFinState(*fRestCaptFstat);
       px->Compact();
@@ -412,7 +412,7 @@ void TPFstate::Compact() {
 
 //___________________________________________________________________
 void TPFstate::RebuildClass() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    // we consider that the pointer energy grid is stale
    fEGrid = TPartIndex::I()->EGrid();
    // we consider that the pointer to the final states is stale because it has been read from

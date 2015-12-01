@@ -619,14 +619,14 @@ int TEXsec::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
       size += fPXsecP[i]->SizeOf();
-  size -= sizeof(TPXsec); // fStore already holds one TPXsec
+  size -= sizeof(char); // fStore already holds one char
   size = sizeof(double)*((size-1)/sizeof(double)+1);
-  return (int) size; // fStore already holds one TPXsec
+  return (int) size;
 }
 
 //___________________________________________________________________
 void TEXsec::Compact() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    for(auto i=0; i<fNRpart; ++i) {
       TPXsec *px = new(start) TPXsec(*fPXsecP[i]);
       px->Compact();
@@ -639,7 +639,7 @@ void TEXsec::Compact() {
 
 //___________________________________________________________________
 void TEXsec::RebuildClass() {
-   char *start = (char*) fStore;
+   char *start = fStore;
    // We consider that the fPXsecP pointer is bad and we do not delete it
    // this is the case if we read back the array.
    fPXsecP = new TPXsec*[fNRpart];

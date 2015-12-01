@@ -120,7 +120,7 @@ private:
 #endif
 
 private:
-  TPFstate fStore[1];   // Pointer to the compact store part of the class
+  alignas(sizeof(double)) char fStore[1];   // Pointer to the compact store part of the class
 };
 
 #endif

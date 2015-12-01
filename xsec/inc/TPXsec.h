@@ -89,8 +89,9 @@ private:
 #ifdef USE_ROOT
   ClassDefNV(TPXsec, 3) // Particle X-secs
 #endif
+
 private:
-  float  fStore[1];        //! Pointer to the compact data of the class
+  alignas(sizeof(double)) char fStore[1];        //! Pointer to the compact data of the class
 };
 
 #endif

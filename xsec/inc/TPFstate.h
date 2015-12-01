@@ -101,8 +101,9 @@ private:
 #ifdef USE_ROOT
   ClassDefNV(TPFstate, 2) // Particle Final States
 #endif
+
 private:
-  TFinState   fStore[1]; // Pointer to compact memory
+  alignas(sizeof(double)) char fStore[1]; // Pointer to compact memory
 };
 
 #endif

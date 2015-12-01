@@ -62,7 +62,9 @@ private:
 #ifdef USE_ROOT
   ClassDefNV(TPDecay, 2) // Element X-secs
 #endif
-  double fStore[1];    // Pointer to the compact part of the store
+
+private:
+  alignas(sizeof(double)) char fStore[1];    // Pointer to the compact part of the store
 };
 
 #endif

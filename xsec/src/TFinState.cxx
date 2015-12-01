@@ -341,15 +341,15 @@ int TFinState::SizeOf() const {
 	     << " fNMom " << fNMom
 	     << " size " << (int) size-sizeof(float) << std::endl;
    */
-   size -= sizeof(float);  // fStore already takes one float
+   size -= sizeof(char);  // fStore already takes one char
    size = sizeof(double)*((size-1)/sizeof(double)+1);
-   return (int) size;  // fStore already takes one float
+   return (int) size;
 }
 
 //_________________________________________________________________________
 void TFinState::Compact() {
    int size = 0;
-   char *start = (char*) fStore;
+   char *start = fStore;
    if(fWeight) {
       size = fNFstates * sizeof(float);
       memcpy(start, fWeight, size);
@@ -397,7 +397,7 @@ void TFinState::Compact() {
 //______________________________________________________________________________
 void TFinState::RebuildClass() {
    int size = 0;
-   char *start = (char *) fStore;
+   char *start = fStore;
    if(fWeight) {
       //      cout << "Original fWeight " << fWeight << " new pointer " << start << endl;
       fWeight = (float *) start;

@@ -68,7 +68,7 @@ int TPXsec::SizeOf() const {
    size += 5 * fNCbins * sizeof(float);
    size += fNTotXs * sizeof(float);
    size += fNXSecs * sizeof(float);
-   size -= sizeof(float); // fStore already takes one float
+   size -= sizeof(char); // fStore already takes one char
    size = sizeof(double)*((size-1)/sizeof(double)+1);
    return (int) size-sizeof(float);
 }
@@ -76,7 +76,7 @@ int TPXsec::SizeOf() const {
 //_________________________________________________________________________
 void TPXsec::Compact() {
    int size = 0;
-   char *start = (char*) fStore;
+   char *start = fStore;
    if(fMSangle) {
       size = fNCbins * sizeof(float);
       memcpy(start, fMSangle, size);
@@ -126,7 +126,7 @@ void TPXsec::RebuildClass() {
    // Reset fEgrid, may be in a different place
    fEGrid = TPartIndex::I()->EGrid();
    int size = 0;
-   char *start = (char*) fStore;
+   char *start = fStore;
    if(fMSangle) {
       //      cout << "Original fMSangle " << fMSangle << " new pointer " << start << endl;
       fMSangle = (float*) start;

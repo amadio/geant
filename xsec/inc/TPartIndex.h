@@ -200,8 +200,6 @@ private:
   ClassDef(TPartIndex, 3)   // Particle Index
 #endif
 #endif
-private:
-  int fStore[1];
 };
 
 #endif
