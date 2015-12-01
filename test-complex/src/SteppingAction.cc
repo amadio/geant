@@ -44,7 +44,7 @@
 
 #include "G4Track.hh"
 
-double SteppingAction::fgTrackingCutInEnergy = 0.01; // tracking cut in GeV default value
+double SteppingAction::fgTrackingCutInEnergy = 0.001; // tracking cut in GeV default value
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

@@ -80,21 +80,20 @@ bool CMSApplication::Initialize() {
   TString svol, smat;
   int necal = 0;
   int nhcal = 0;
-  int ivol = 0;
-  for (int i = 0; i < nvolumes; ++i) {
-    vol = lvolumes[i];
+  for (int ivol = 0; ivol < nvolumes; ++ivol) {
+    vol = lvolumes[ivol];
     if (!vol) break;
-    svol = vol->GetName();
 #ifdef USE_VECGEOM_NAVIGATOR
-    ivol = vol->id();
+    int idvol = vol->id();
 #else
-    ivol = vol->GetNumber();
+    int idvol = vol->GetNumber();
 #endif
+    svol = vol->GetName();
     // ECAL cells
     if (svol.BeginsWith("EBRY") || svol.BeginsWith("EFRY")) {
-      fSensFlags[ivol] = true;
-      fECALMap[ivol] = necal;
-      fECALid[necal] = ivol;
+      fSensFlags[idvol] = true;
+      fECALMap[idvol] = necal;
+      fECALid[necal] = idvol;
       necal++;
     }
     
@@ -109,9 +108,9 @@ bool CMSApplication::Initialize() {
 #endif
     
     if (smat == "Scintillator") {
-      fSensFlags[ivol] = true;
-      fHCALMap[ivol] = nhcal;
-      fHCALid[nhcal] = ivol;
+      fSensFlags[idvol] = true;
+      fHCALMap[idvol] = nhcal;
+      fHCALid[nhcal] = idvol;
       nhcal++;
     }
   }
@@ -167,7 +166,57 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       }
       
     }
-      
+#ifdef HITS_GRAPHICS
+    if (gPropagator->fFillTree) {
+      // Deposit hits
+      if ((tracks.fStatusV[itr] == kNew) ||
+          (tracks.fStatusV[itr] == kKilled) ||
+          (tracks.fStatusV[itr] == kExitingSetup) ||
+          (tracks.fPathV[itr]->IsOutside()) ||
+          (tracks.fStatusV[itr] == kBoundary)) {
+       //    Printf("hit with energy %f", tracks.fEdepV[itr]);
+	     double th = Math::Sqrt(tracks.fXposV[itr]*tracks.fXposV[itr]+tracks.fYposV[itr]*tracks.fYposV[itr])/tracks.fZposV[itr];
+	     if (Math::Abs(th)>0.1) {
+          MyHit *hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
+          if ((tracks.fStatusV[itr] == kKilled) ||
+              (tracks.fStatusV[itr] == kExitingSetup) ||
+              (tracks.fPathV[itr]->IsOutside())) hit->fStatus = kKilled;
+          else  hit->fStatus = tracks.fStatusV[itr];
+          hit->fX = tracks.fXposV[itr];
+          hit->fY = tracks.fYposV[itr];
+          hit->fZ = tracks.fZposV[itr];
+          hit->fEdep = 0.;
+          if (idtype == 1 && tracks.fEdepV[itr]>0.00002)
+            hit->fEdep = tracks.fEdepV[itr];
+          hit->fTime = tracks.fTimeV[itr];
+          hit->fEvent = tracks.fEventV[itr];
+          hit->fTrack = tracks.fParticleV[itr];
+          hit->fVolId = ivol;
+          hit->fDetId = idtype;
+        }
+      }
+    }
+#else
+    if (gPropagator->fFillTree) {
+      MyHit *hit;
+      // Deposit hits
+      if (tracks.fEdepV[itr]>0.00002) {
+      //      Printf("hit with energy %f", tracks.fEdepV[itr]);
+        hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
+        hit->fX = tracks.fXposV[itr];
+        hit->fY = tracks.fYposV[itr];
+        hit->fZ = tracks.fZposV[itr];
+        hit->fEdep = 1000*tracks.fEdepV[itr];
+        hit->fTime = tracks.fTimeV[itr];
+        hit->fEvent = tracks.fEventV[itr];
+        hit->fTrack = tracks.fParticleV[itr];
+        hit->fVolId = ivol;
+        hit->fDetId = idtype;
+      }
+    }
+
+#endif
+
     // Score in ECAL
     if (idtype == 1) {
       // Add scored entity
@@ -175,17 +224,18 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       if (propagator->fNthreads > 1)
         fMHist.lock();
       
-      double capacity = 0.;
+      double capacity = 1.;
 #ifdef USE_VECGEOM_NAVIGATOR
-      capacity = 1.;
+//      capacity = 1.;
 #else
-      capacity = vol->GetShape()->Capacity();
+//      capacity = vol->GetShape()->Capacity();
 #endif
     
       if (fabs(tracks.fPDGV[itr]) == 11) {
         fFluxElec->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepElec->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
-      } else if (tracks.fPDGV[itr] == 22) {
+      } else if (tracks.fPDGV[itr] == 22 || tracks.fPDGV[itr] == 0) {
+//        std::cout << tracks.GetVolume(itr)->GetName() << " " << tracks.fStepV[itr] << std::endl;
         fFluxGamma->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepGamma->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       } else if (tracks.fPDGV[itr] == 2212) {
@@ -199,30 +249,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
         fEdepK->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       }
       if (propagator->fNthreads > 1)
-        fMHist.unlock();
-
-      
-      if (gPropagator->fFillTree) {
-	MyHit *hit;
-	
-	// Deposit hits
-	if (tracks.fEdepV[itr]>0.00002)
-	  {
-	    //	    Printf("hit with energy %f", tracks.fEdepV[itr]);
-	    
-	    hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
-	    
-	    hit->fX = tracks.fXposV[itr];
-	    hit->fY = tracks.fYposV[itr];
-	    hit->fZ = tracks.fZposV[itr];
-	    hit->fEdep = 1000*tracks.fEdepV[itr];
-       hit->fTime = tracks.fTimeV[itr];
-       hit->fEvent = tracks.fEventV[itr];
-       hit->fTrack = tracks.fParticleV[itr];
-	    hit->fVolId = ivol;
-	    hit->fDetId = idtype; 
-	  }
-      }
+        fMHist.unlock();      
     }
   }
 }

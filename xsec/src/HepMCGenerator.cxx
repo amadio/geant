@@ -105,39 +105,38 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
   int itr = 0;
   double eta, phi, pmom = 0;
   for (const HepMC::GenParticlePtr &genpart : search->results()) {
-    if (fEtaCut || fMomCut)
-      pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                  genpart->momentum().py() * genpart->momentum().py() +
-                  genpart->momentum().pz() * genpart->momentum().pz());
-    if (fEtaCut) {
-      pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
-                  genpart->momentum().py() * genpart->momentum().py() +
-                  genpart->momentum().pz() * genpart->momentum().pz());
-      if (pmom == genpart->momentum().pz())
-        eta = 1.E30;
-      else
-        eta = 0.5 * log((pmom + genpart->momentum().pz()) / (pmom - genpart->momentum().pz()));
-      if (eta < fEtaMin || eta > fEtaMax)
-        continue;
-    }
-    if (fPhiCut) {
-      // Phi in 0,2pi
-      phi = kPi + atan2(-genpart->momentum().py(), -genpart->momentum().px());
-      if (phi < fPhiMin || phi > fPhiMax)
-        continue;
-    }
-    if (fMomCut) {
-      if (pmom < fPMin || pmom > fPMax)
-        continue;
-    }
     if (itr++ < n)
       continue;
+    if (fEtaCut || fMomCut || fPhiCut) {
+      pmom = sqrt(genpart->momentum().px() * genpart->momentum().px() +
+                  genpart->momentum().py() * genpart->momentum().py() +
+                  genpart->momentum().pz() * genpart->momentum().pz());
+      if (fEtaCut) {
+        if (pmom == genpart->momentum().pz())
+          eta = 1.E30;
+        else
+          eta = 0.5 * log((pmom + genpart->momentum().pz()) / (pmom - genpart->momentum().pz()));
+        if (eta < fEtaMin || eta > fEtaMax)
+          continue;
+      }
+      if (fPhiCut) {
+        // Phi in 0,2pi
+        phi = kPi + atan2(-genpart->momentum().py(), -genpart->momentum().px());
+        if (phi < fPhiMin || phi > fPhiMax)
+          continue;
+      }
+      if (fMomCut) {
+        if (pmom < fPMin || pmom > fPMax)
+          continue;
+      }
+    }    
 
     // here I have to create GeantTracks
     int pdg = genpart->pid();
     gtrack.SetPDG(pdg);
+//    gtrack.SetPDG(0);
 
-    gtrack.SetGVcode(TPartIndex::I()->PartIndex(pdg));
+    gtrack.SetGVcode(TPartIndex::I()->PartIndex(gtrack.fPDG));
 #ifdef USE_VECGEOM_NAVIGATOR
     const Particle_t *const &part = &Particle::GetParticle(gtrack.fPDG);
     gtrack.SetCharge(part->Charge());

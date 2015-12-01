@@ -252,12 +252,12 @@ double GeantTrack::Curvature() const {
 //______________________________________________________________________________
 Volume_t const*GeantTrack::GetVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
-  assert( fPath->Top()->GetLogicalVolume()->id() == fVindex );
+// The check below not needed anymore - everything got from path
+//  assert(fVindexV[i] == fPathV[i]->Top()->GetLogicalVolume()->id());
   return fPath->Top()->GetLogicalVolume();
 #else
-  // Current volume the track is into
-  // WHY NOT: fPath->GetCurrentNode()->GetVolume() ??
-  return ((Volume_t *)gGeoManager->GetListOfVolumes()->At(fVindex));
+  // TODO: get rid of fVindexV
+  return (fPath->GetCurrentNode()->GetVolume());
 #endif
 }
 
@@ -1505,11 +1505,13 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 
   //  maybe normalize direction here
   Math::Normalize(dirnew);
-  //      double diffpos =
-  //      (xnew-point[0])*(xnew-point[0])+(ynew-point[1])*(ynew-point[1])+(znew-point[2])*(znew-point[2]);
-  //      if (diffpos>1.E-4) {
-  //         Printf("difference in pos = %g", diffpos);
-  //      }
+//        double diffpos =
+//        (fXposV[i]+fXdirV[i]*crtstep-posnew[0])*(fXposV[i]+fXdirV[i]*crtstep-posnew[0]) +
+//        (fYposV[i]+fYdirV[i]*crtstep-posnew[1])*(fYposV[i]+fYdirV[i]*crtstep-posnew[1]) +
+//        (fZposV[i]+fZdirV[i]*crtstep-posnew[2])*(fZposV[i]+fZdirV[i]*crtstep-posnew[2]);
+//        if (Math::Sqrt(diffpos)>0.01*crtstep) {
+//           Printf("difference in pos = %g", diffpos/crtstep);
+//        }
   fXposV[i] = posnew[0];
   fYposV[i] = posnew[1];
   fZposV[i] = posnew[2];

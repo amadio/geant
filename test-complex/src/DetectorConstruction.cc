@@ -30,7 +30,7 @@ DetectorConstruction::DetectorConstruction(G4VPhysicalVolume *setWorld) : magFie
       MaterialConverter::Instance();// call just to initialize
 
      // initialize magnetic field :: same value as in the prototype
-     SetMagField(1.0*CLHEP::kilogauss);
+     SetMagField(40.0*CLHEP::kilogauss);
 }
 
 DetectorConstruction::~DetectorConstruction(){
