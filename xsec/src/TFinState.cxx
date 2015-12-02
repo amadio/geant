@@ -396,6 +396,10 @@ void TFinState::Compact() {
 
 //______________________________________________________________________________
 void TFinState::RebuildClass() {
+  if(((unsigned long) this) % sizeof(double) != 0) {
+      cout << "TFinState::RebuildClass: the class is misaligned" << endl;
+      exit(1);
+  }
    int size = 0;
    char *start = fStore;
    if(fWeight) {

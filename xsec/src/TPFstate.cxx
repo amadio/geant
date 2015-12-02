@@ -413,6 +413,10 @@ void TPFstate::Compact() {
 
 //___________________________________________________________________
 void TPFstate::RebuildClass() {
+  if(((unsigned long) this) % sizeof(double) != 0) {
+      cout << "TPFstate::RebuildClass: the class is misaligned" << endl;
+      exit(1);
+  }
    char *start = fStore;
    // we consider that the pointer energy grid is stale
    fEGrid = TPartIndex::I()->EGrid();
@@ -428,7 +432,7 @@ void TPFstate::RebuildClass() {
 #endif
       ((TFinState *) start)->RebuildClass();
       fRestCaptFstat = (TFinState *) start;
-      fRestCaptFstat->CheckAlign();
+      if(!fRestCaptFstat->CheckAlign()) exit(1);
       start += ((TFinState*) start)->SizeOf();
    }
    for(auto i=0; i<fNFstat; ++i) {

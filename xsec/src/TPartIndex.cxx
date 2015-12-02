@@ -467,6 +467,10 @@ int TPartIndex::SizeOf() const {
 
 //___________________________________________________________________
 void TPartIndex::RebuildClass(char *b) {
+  if(((unsigned long) this) % sizeof(double) != 0) {
+      cout << "TPartIndex::RebuildClass: the class is misaligned" << endl;
+      exit(1);
+  }
    double emin = 0;
    double emax = 0;
    int npart=0;

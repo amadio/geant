@@ -94,23 +94,25 @@ public:
   int GetMagic() const {return fMagic;}
 #endif
 
-void CheckAlign() {
-  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) {std::cout << "TEXsec::fEGrid misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fAtcm3) % sizeof(fAtcm3) != 0) {std::cout << "TEXsec::fAtcm3 misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) {std::cout << "TEXsec::fEmin misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) {std::cout << "TEXsec::fEmax misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) {std::cout << "TEXsec::fEilDelta misaligned" << std::endl;exit(1);}
-  if(((unsigned long) fCuts) % sizeof(fCuts[0]) != 0) {std::cout << "TEXsec::fCuts misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEle) % sizeof(fEle) != 0) {std::cout << "TEXsec::fEle misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fIndex) % sizeof(fIndex) != 0) {std::cout << "TEXsec::fIndex misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) {std::cout << "TEXsec::fNEbins misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fNRpart) % sizeof(fNRpart) != 0) {std::cout << "TEXsec::fNRpart misaligned" << std::endl;exit(1);}
+bool CheckAlign() {
+  bool isaligned=true;
+  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) {std::cout << "TEXsec::fEGrid misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fAtcm3) % sizeof(fAtcm3) != 0) {std::cout << "TEXsec::fAtcm3 misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) {std::cout << "TEXsec::fEmin misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) {std::cout << "TEXsec::fEmax misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) {std::cout << "TEXsec::fEilDelta misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) fCuts) % sizeof(fCuts[0]) != 0) {std::cout << "TEXsec::fCuts misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEle) % sizeof(fEle) != 0) {std::cout << "TEXsec::fEle misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fIndex) % sizeof(fIndex) != 0) {std::cout << "TEXsec::fIndex misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) {std::cout << "TEXsec::fNEbins misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fNRpart) % sizeof(fNRpart) != 0) {std::cout << "TEXsec::fNRpart misaligned" << std::endl;isaligned=false;}
   for(auto i=0; i< fNRpart; ++i)
-    if(((unsigned long) fPXsecP[i]) % sizeof(double) != 0) {std::cout << "TEXsec::fPXsecP[" << i << "] misaligned" << std::endl;exit(1);}
+    if(((unsigned long) fPXsecP[i]) % sizeof(double) != 0) {std::cout << "TEXsec::fPXsecP[" << i << "] misaligned" << std::endl;isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TEXsec::fMagic misaligned" << std::endl;exit(1);}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TEXsec::fMagic misaligned" << std::endl;isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TEXsec::fStore misaligned" << std::endl;exit(1);}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TEXsec::fStore misaligned" << std::endl;isaligned=false;}
+  return isaligned;
 }
 
   bool Resample();

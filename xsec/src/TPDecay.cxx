@@ -113,6 +113,10 @@ void TPDecay::Compact() {
 
 //___________________________________________________________________
 void TPDecay::RebuildClass() {
+  if(((unsigned long) this) % sizeof(double) != 0) {
+      cout << "TPDecay::RebuildClass: the class is misaligned" << endl;
+      exit(1);
+  }
    char *start = fStore;
    // we consider that the pointer to the final states is stale because it has been read from
    // the file. If this is not the case, this is a leak...
@@ -130,8 +134,10 @@ void TPDecay::RebuildClass() {
 #endif
       ((TFinState *) start)->RebuildClass();
       fDecayP[i] = (TFinState *) start;
+      if(!fDecayP[i]->CheckAlign()) exit(1);
       start += ((TFinState*) start)->SizeOf();
    }
+   CheckAlign();
 }
 
 //___________________________________________________________________

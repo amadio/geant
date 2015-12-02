@@ -639,6 +639,10 @@ void TEXsec::Compact() {
 
 //___________________________________________________________________
 void TEXsec::RebuildClass() {
+  if(((unsigned long) this) % sizeof(double) != 0) {
+      cout << "TEXsec::RebuildClass: the class is misaligned" << endl;
+      exit(1);
+  }
    char *start = fStore;
    // We consider that the fPXsecP pointer is bad and we do not delete it
    // this is the case if we read back the array.
@@ -652,7 +656,7 @@ void TEXsec::RebuildClass() {
 #endif
       ((TPXsec *) start)->RebuildClass();
       fPXsecP[i] = (TPXsec *) start;
-      fPXsecP[i]->CheckAlign();
+      if(!fPXsecP[i]->CheckAlign()) exit(1);;
       start += ((TPXsec*) start)->SizeOf();
    }
 }
@@ -707,7 +711,7 @@ void TEXsec::RebuildStore(char *b) {
 #endif
       current->RebuildClass();
       fElements[i] = current;
-      fElements[i]->CheckAlign();
+      if(!fElements[i]->CheckAlign()) exit(1);
       start += current->SizeOf();
    }
    if(int (start - b) != size) {

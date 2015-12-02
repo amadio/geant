@@ -22,6 +22,8 @@
 #include "Rtypes.h"
 #endif
 
+#include <iostream>
+
 class TFinState;
 
 class TPDecay {
@@ -47,6 +49,20 @@ public:
 #ifdef MAGIC_DEBUG
   int GetMagic() const {return fMagic;}
 #endif
+
+bool CheckAlign() {
+  bool isaligned=true;
+  if(((unsigned long) &fNPart) % sizeof(fNPart) != 0) {std::cout << "TPFstate::fNPart misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) fCTauPerMass) % sizeof(fCTauPerMass) != 0) {std::cout << "TPFstate::fCTauPerMass misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) fDecayP) % sizeof(fDecayP) != 0) {std::cout << "TPFstate::fDecayP misaligned" << std::endl;isaligned=false;}
+  for(auto i=0; i< fNPart; ++i)
+    if(((unsigned long) fDecayP[i]) % sizeof(double) != 0) {std::cout << "TPFstate::fDecayP[" << i << "] misaligned" << std::endl;isaligned=false;}
+#ifdef MAGIC_DEBUG
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TPFstate::fMagic misaligned" << std::endl;isaligned=false;}
+#endif
+  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TPFstate::fStore misaligned" << std::endl;isaligned=false;}
+  return isaligned;
+}
 
 private:
   TPDecay &operator=(const TPDecay &); // Not implemented

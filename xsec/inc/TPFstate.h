@@ -69,25 +69,27 @@ public:
   int GetMagic() const {return fMagic;}
 #endif
 
-void CheckAlign() {
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) {std::cout << "TPFstate::fNEbins misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) {std::cout << "TPFstate::fNEFstat misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fNFstat) % sizeof(fNFstat) != 0) {std::cout << "TPFstate::fNFstat misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fNReac) % sizeof(fNReac) != 0) {std::cout << "TPFstate::fNReac misaligned" << std::endl;exit(1);}
+bool CheckAlign() {
+  bool isaligned=true;
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) {std::cout << "TPFstate::fNEbins misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) {std::cout << "TPFstate::fNEFstat misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fNFstat) % sizeof(fNFstat) != 0) {std::cout << "TPFstate::fNFstat misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fNReac) % sizeof(fNReac) != 0) {std::cout << "TPFstate::fNReac misaligned" << std::endl;isaligned=false;}
   for(auto i=0; i< fNFstat; ++i)
-    if(((unsigned long) fFstatP[i]) % sizeof(double) != 0) {std::cout << "TPFstate::fFstatP[" << i << "] misaligned" << std::endl;exit(1);}
-  if(((unsigned long) fRestCaptFstat) % sizeof(double) != 0) {std::cout << "TPFstate::fRestCaptFstat misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEGrid) % sizeof(fEGrid) != 0) {std::cout << "TPFstate::fEGrid misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) {std::cout << "TPFstate::fEmin misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) {std::cout << "TPFstate::fEmax misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) {std::cout << "TPFstate::fEilDelta misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) {std::cout << "TPFstate::fPDG misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fRdict) % sizeof(int) != 0) {std::cout << "TPFstate::fRdict misaligned" << std::endl;exit(1);}
-  if(((unsigned long) &fRmap) % sizeof(int) != 0) {std::cout << "TPFstate::fRmap misaligned" << std::endl;exit(1);}
+    if(((unsigned long) fFstatP[i]) % sizeof(double) != 0) {std::cout << "TPFstate::fFstatP[" << i << "] misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) fRestCaptFstat) % sizeof(double) != 0) {std::cout << "TPFstate::fRestCaptFstat misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEGrid) % sizeof(fEGrid) != 0) {std::cout << "TPFstate::fEGrid misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) {std::cout << "TPFstate::fEmin misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) {std::cout << "TPFstate::fEmax misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) {std::cout << "TPFstate::fEilDelta misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) {std::cout << "TPFstate::fPDG misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fRdict) % sizeof(int) != 0) {std::cout << "TPFstate::fRdict misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fRmap) % sizeof(int) != 0) {std::cout << "TPFstate::fRmap misaligned" << std::endl;isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TPFstate::fMagic misaligned" << std::endl;exit(1);}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TPFstate::fMagic misaligned" << std::endl;isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TPFstate::fStore misaligned" << std::endl;exit(1);}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TPFstate::fStore misaligned" << std::endl;isaligned=false;}
+  return isaligned;
 }
 
   static void SetVerbose(int verbose) { fVerbose = verbose; }

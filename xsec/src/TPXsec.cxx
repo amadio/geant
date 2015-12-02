@@ -123,6 +123,10 @@ void TPXsec::Compact() {
 
 //______________________________________________________________________________
 void TPXsec::RebuildClass() {
+  if(((unsigned long) this) % sizeof(double) != 0) {
+      cout << "TPXsec::RebuildClass: the class is misaligned" << endl;
+      exit(1);
+  }
    // Reset fEgrid, may be in a different place
    fEGrid = TPartIndex::I()->EGrid();
    int size = 0;

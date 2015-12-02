@@ -260,6 +260,10 @@ void TEFstate::Compact() {
 
 //___________________________________________________________________
 void TEFstate::RebuildClass() {
+   if(((unsigned long) this) % sizeof(double) != 0) {
+       cout << "TEFstate::RebuildClass: the class is misaligned" << endl;
+       exit(1);
+   }
    char *start = fStore;
    // we consider that the pointer to the final states is stale because it has been read from
    // the file. If this is not the case, this is a leak...
@@ -273,7 +277,7 @@ void TEFstate::RebuildClass() {
 #endif
       ((TPFstate *) start)->RebuildClass();
       fPFstateP[i] = (TPFstate *) start;
-      fPFstateP[i]->CheckAlign();
+      if(!fPFstateP[i]->CheckAlign()) exit(1);
       start += ((TPFstate*) start)->SizeOf();
    }
 }
@@ -327,7 +331,7 @@ void TEFstate::RebuildStore(char *b) {
 #endif
       current->RebuildClass();
       fElements[i] = current;
-      fElements[i]->CheckAlign();
+      if(!fElements[i]->CheckAlign()) exit(1);
       start += current->SizeOf();
    }
    if((int)(start - b) != size) {
