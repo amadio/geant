@@ -145,12 +145,14 @@ void GUBenchmarker::RunCuda()
                cudaMemcpyHostToDevice);
 
     fTrackHandler->GenerateRandomTracks(fNtracks,fMinP, fMaxP);
+
     GUTrack* track_aos = fTrackHandler->GetAoSTracks();
+    fTrackHandler->SortAoSTracksByEnergy(track_aos,fNtracks);
 
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
       if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
 
-	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
+	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos,fNtracks);
 	cudaMemcpy(itrack_d, track_aos, fNtracks*sizeof(GUTrack), 
                    cudaMemcpyHostToDevice);
 	
