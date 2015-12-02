@@ -107,7 +107,7 @@ private:
   int fNEFstat;         // Number of sampled final states
   int fNRpart;          // Number of particles with reaction
   TPFstate *fPFstate;   // [fNRpart] Final state table per particle
-  TPFstate **fPFstateP; //! [fNRpart] Final state table per particle
+  TPFstate **fPFstateP; // [fNRpart] Final state table per particle
 
   static int fNLdElems;              //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
@@ -138,7 +138,7 @@ bool CheckAlign() {
 }
 
 #ifdef USE_ROOT
-  ClassDefNV(TEFstate, 2) // Element X-secs
+  ClassDefNV(TEFstate, 4) // Element X-secs
 #endif
 
 private:

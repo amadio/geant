@@ -306,8 +306,14 @@ void TPFstate::Streamer(TBuffer &R__b) {
       gFile->Get("PartIndex");
     }
     fEGrid = TPartIndex::I()->EGrid();
+
+    if(fFstatP != nullptr)
+      for(auto i=0; i<fNFstat; ++i)
+        delete fFstatP[i];
+    delete [] fFstatP;
     fFstatP =  new TFinState*[fNFstat];
     for(auto i=0; i< fNFstat; ++i) fFstatP[i]=&fFstat[i];
+
   } else {
     R__b.WriteClassBuffer(TPFstate::Class(), this);
   }

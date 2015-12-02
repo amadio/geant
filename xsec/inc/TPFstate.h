@@ -105,7 +105,7 @@ private:
   int fNFstat;               // tot size of fFstat
   int fNReac;                // number of reactions
   TFinState *fFstat;         // [fNFstat] table of final states
-  TFinState **fFstatP;       //![fNFstat] table of pointers to final states
+  TFinState **fFstatP;       // [fNFstat] table of pointers to final states
   TFinState *fRestCaptFstat; // RestCapture final states
   const double *fEGrid;      //![fNEbins] energy grid
   double fEmin;              // Min energy of the energy grid
@@ -122,7 +122,7 @@ private:
   const int fMagic = -777777;
 #endif
 #ifdef USE_ROOT
-  ClassDefNV(TPFstate, 2) // Particle Final States
+  ClassDefNV(TPFstate, 3) // Particle Final States
 #endif
 
 private:

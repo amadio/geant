@@ -70,13 +70,13 @@ private:
   int fNPart;           // Number of particles
   double *fCTauPerMass; // [fNPart] precomputed c*tau/mass values [cm/GeV]
   TFinState *fDecay;    // [fNPart] array of particle final states to be sampled
-  TFinState **fDecayP;  //![fNpart] table of pointers to final states
+  TFinState **fDecayP;  // [fNPart] table of pointers to final states
 
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif
 #ifdef USE_ROOT
-  ClassDefNV(TPDecay, 2) // Element X-secs
+  ClassDefNV(TPDecay, 5) // Element X-secs
 #endif
 
 private:

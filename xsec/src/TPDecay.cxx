@@ -75,8 +75,14 @@ void TPDecay::Streamer(TBuffer &R__b) {
 
   if (R__b.IsReading()) {
     R__b.ReadClassBuffer(TPDecay::Class(), this);
+
+    if(fDecayP != nullptr)
+      for(auto i=0; i<fNPart; ++i)
+        delete fDecayP[i];
+    delete [] fDecayP;
     fDecayP =  new TFinState*[fNPart];
     for(auto i=0; i< fNPart; ++i) fDecayP[i]=&fDecay[i];
+
   } else {
     R__b.WriteClassBuffer(TPDecay::Class(), this);
   }

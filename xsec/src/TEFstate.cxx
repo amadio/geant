@@ -88,11 +88,13 @@ void TEFstate::Streamer(TBuffer &R__b)
 
    if (R__b.IsReading()) {
       R__b.ReadClassBuffer(TEFstate::Class(),this);
+
       if(fPFstateP != nullptr)
-	 for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPFstateP[ipart];
+	     for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPFstateP[ipart];
       delete [] fPFstateP;
       fPFstateP = new TPFstate*[fNRpart];
       for(auto i=0; i<fNRpart; ++i) fPFstateP[i] = &fPFstate[i];
+
    } else {
       R__b.WriteClassBuffer(TEFstate::Class(),this);
    }

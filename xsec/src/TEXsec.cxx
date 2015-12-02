@@ -95,11 +95,13 @@ void TEXsec::Streamer(TBuffer &R__b)
 
    if (R__b.IsReading()) {
       R__b.ReadClassBuffer(TEXsec::Class(),this);
+
       if(fPXsecP != nullptr)
 	 for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPXsecP[ipart];
       delete [] fPXsecP;
       fPXsecP = new TPXsec*[fNRpart];
       for(auto i=0; i<fNRpart; ++i) fPXsecP[i] = &fPXsec[i];
+
    } else {
       R__b.WriteClassBuffer(TEXsec::Class(),this);
    }

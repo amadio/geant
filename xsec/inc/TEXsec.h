@@ -149,7 +149,7 @@ private:
   int fNEbins;          // Number of log steps in energy
   int fNRpart;          // Number of particles with reaction
   TPXsec *fPXsec;       // [fNRpart] Cross section table per particle
-  TPXsec **fPXsecP;       // ![fNRpart] Cross section table per particle
+  TPXsec **fPXsecP;     // [fNRpart] Cross section table per particle
 
   static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
@@ -163,7 +163,7 @@ private:
   static TGListBox *fReactionBox;      //! Reaction list
   static TGListBox *fParticleBox;      //! Particle list
 
-  ClassDefNV(TEXsec, 4) // Element X-secs
+  ClassDefNV(TEXsec, 7) // Element X-secs
 #endif
 
 private:
