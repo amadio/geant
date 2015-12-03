@@ -20,6 +20,7 @@
 #include "TFile.h"
 #include "TBits.h"
 #include "TError.h"
+#include "TSystem.h"
 #else
 #include "base/RNG.h"
 #endif
