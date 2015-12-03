@@ -22,7 +22,7 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
   if (filename.substr(filename.find_last_of(".") + 1) == "hepmc3") {
     input_file = new HepMC::ReaderAscii(filename);
   }
-#ifndef GEANTV_MIC 
+#ifdef USE_ROOT 
   else if (filename.substr(filename.find_last_of(".") + 1) == "root") {
     input_file = new HepMC::ReaderRoot(filename);
   } 

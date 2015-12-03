@@ -10,7 +10,7 @@
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #ifndef GEANT_SYNCOBJECTS
 #define GEANT_SYNCOBJECTS
 #include <deque>

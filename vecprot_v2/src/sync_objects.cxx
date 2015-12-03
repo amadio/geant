@@ -1,4 +1,4 @@
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "sync_objects.h"
 #include "TThread.h"
 #include "TGeoManager.h"

@@ -17,7 +17,7 @@
 
 #ifndef GEANT_FACTORY
 #define GEANT_FACTORY
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include <Rtypes.h>
 #endif
 

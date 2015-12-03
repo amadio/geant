@@ -1,6 +1,6 @@
 #include "WorkloadManager.h"
 #include "Geant/Error.h"
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TStopwatch.h"
@@ -11,9 +11,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
-#else
-#include "base/TLS.h"
-#include "base/Stopwatch.h"
 #endif
 
 #include "GeantTrack.h"
@@ -28,6 +25,7 @@
 #include "base/TLS.h"
 #include "management/GeoManager.h"
 #include "materials/Medium.h"
+#include "base/Stopwatch.h"
 #else
 #include "TGeoNavigator.h"
 #include "TGeoManager.h"
@@ -839,7 +837,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     {
        auto noutput = basket->GetNinput();
        for (int itr = 0; itr < noutput; itr++) {
-       #ifndef GEANTV_MIC
+       #ifdef USE_ROOT
           if (TMath::IsNaN(output.fXdirV[itr])) {
        #else
           if (std::isnan(output.fXdirV[itr])) {
@@ -893,7 +891,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 
 //______________________________________________________________________________
 void *WorkloadManager::GarbageCollectorThread() {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   // This threads can be triggered to do garbage collection of unused baskets
   static double rsslast = 0;
   double rss;
@@ -994,7 +992,7 @@ void WorkloadManager::SetMonitored(GeantPropagator::EGeantMonitoringType feature
 
 //______________________________________________________________________________
 void *WorkloadManager::MonitoringThread() {
- #ifndef GEANTV_MIC 
+ #ifdef USE_ROOT
   // Thread providing basic monitoring for the scheduler.
   const double MByte = 1024.;
   Geant::Info("MonitoringThread","Started monitoring ...");
@@ -1282,7 +1280,7 @@ void *WorkloadManager::OutputThread() {
   // Thread providing basic output for the scheduler.
 
   Geant::Info("OutputThread","=== Output thread created ===");
-  #ifndef GEANTV_MIC 
+  #ifdef USE_ROOT 
 
   if (GeantPropagator::Instance()->fConcurrentWrite) {
     Printf(">>> Writing concurrently to MemoryFiles");
@@ -1328,7 +1326,7 @@ void *WorkloadManager::OutputThread() {
   return 0;
     
   #else
-    printf("=== Output thread finished on the MIC - Did nothing ===");
+    printf("=== ROOT is disabled - output thread did nothing ===");
   #endif   
     return 0;
 }

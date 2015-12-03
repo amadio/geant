@@ -22,7 +22,7 @@
 #include <mutex>
 
 #include "Geant/Typedefs.h"
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 class TTree;
 class TFile;
 class TStopwatch;
@@ -117,7 +117,7 @@ public:
   GeantVApplication *fApplication;    /** User application */
   GeantVApplication *fStdApplication; /** Standard application */
 
-  #ifndef GEANTV_MIC
+  #ifdef USE_ROOT
   TStopwatch *fTimer; /** Timer */
   #else
   vecgeom::Stopwatch *fTimer; /** Timer */

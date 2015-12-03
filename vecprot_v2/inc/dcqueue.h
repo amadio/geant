@@ -17,7 +17,7 @@
 #if __cplusplus >= 201103L
 #include <atomic>
 #endif
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "TCondition.h"
 #include "TMutex.h"
 #else
@@ -34,7 +34,7 @@
  */
 template <typename T> class dcqueue {
   std::deque<T> the_queue;           /** Double-ended queue */
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   mutable TMutex the_mutex;          /** General mutex for the queue */
   TCondition the_condition_variable; /** Condition */
 #else
@@ -50,7 +50,7 @@ public:
 
   /** @brief Dcqueue constructor */
   dcqueue()
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
       : the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),
 #else
       : the_queue(), the_mutex(), the_condition_variable(), nobjects(0), npriority(0),
@@ -121,7 +121,7 @@ public:
  * @tparam T Type of objects in queue
  */
 template <typename T> void dcqueue<T>::push(T const &data, bool priority) {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.Lock();
 #else
   the_mutex.lock();
@@ -133,7 +133,7 @@ template <typename T> void dcqueue<T>::push(T const &data, bool priority) {
     the_queue.push_front(data);
   nobjects++;
   nop++;
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_condition_variable.Signal();
   the_mutex.UnLock();
 #else
@@ -147,13 +147,13 @@ template <typename T> void dcqueue<T>::push(T const &data, bool priority) {
  * @return Returns the number of objects in the queue.
  */
 template <typename T> size_t dcqueue<T>::size() const {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.Lock();
 #else
   the_mutex.lock();
 #endif
   size_t the_size = the_queue.size();
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.UnLock();
 #else
   the_mutex.unlock();
@@ -165,13 +165,13 @@ template <typename T> size_t dcqueue<T>::size() const {
  * @tparam T type of objects in queue
  */
 template <typename T> bool dcqueue<T>::empty() const {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.Lock();
 #else
   the_mutex.lock();
 #endif
   bool is_empty = the_queue.empty();
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.UnLock();
 #else
   the_mutex.unlock();
@@ -186,13 +186,13 @@ template <typename T> bool dcqueue<T>::empty() const {
  * @tparam T type of objects in queue
  */
 template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.Lock();
 #else
   the_mutex.lock();
 #endif
   while (the_queue.empty())
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
     the_condition_variable.Wait();
 #else
   {
@@ -206,7 +206,7 @@ template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
   nop++;
   if (npriority > 0)
     npriority--;
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.UnLock();
 #else
   the_mutex.unlock();
@@ -223,13 +223,13 @@ template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
 template <typename T> bool dcqueue<T>::try_pop(T &data) {
   if (empty_async())
     return false;
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.Lock();
 #else
   the_mutex.lock();
 #endif
   if (the_queue.empty()) {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
     the_mutex.UnLock();
 #else
   the_mutex.unlock();
@@ -242,7 +242,7 @@ template <typename T> bool dcqueue<T>::try_pop(T &data) {
   nop++;
   if (npriority > 0)
     npriority--;
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.UnLock();
 #else
   the_mutex.unlock();
@@ -260,7 +260,7 @@ template <typename T> bool dcqueue<T>::try_pop(T &data) {
  * @tparam T Type of objects in queue
  */
 template <typename T> void dcqueue<T>::wait_and_pop_max(size_t nmax, size_t &n, T *array) {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.Lock();
 #else
   the_mutex.lock();
@@ -279,7 +279,7 @@ template <typename T> void dcqueue<T>::wait_and_pop_max(size_t nmax, size_t &n, 
     if (npriority)
       npriority--;
   }
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   the_mutex.UnLock();
 #else
   the_mutex.unlock();

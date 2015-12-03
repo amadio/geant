@@ -1,7 +1,7 @@
 #include <TPartIndex.h>
 #include <string>
 #include <algorithm>
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include <TBuffer.h>
 #endif
 #include <iostream>

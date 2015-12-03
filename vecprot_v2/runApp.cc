@@ -1,4 +1,4 @@
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "Rtypes.h"
 #include "TGeoManager.h"
 #ifndef COPROCESSOR_REQUEST

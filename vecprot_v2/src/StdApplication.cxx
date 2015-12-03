@@ -20,7 +20,7 @@ StdApplication::StdApplication()
     fMHist(), fScore(kScore) {
   // Ctor.
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   double *array = 0;
   TH1::AddDirectory(false);
   fHeta = new TH1F("hEta", "Eta distribution per step", 50, -8., 8.);
@@ -83,7 +83,7 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
     }
     if (propagator->fNthreads > 1)
       fMHist.lock();
-    #ifndef GEANTV_MIC
+    #ifdef USE_ROOT
     fHeta->Fill(eta);
     fHpt->Fill(tracks.Pt(itr));
     fHStep->Fill(tracks.fStepV[itr]);
@@ -105,7 +105,7 @@ void StdApplication::Digitize(int /* event */) {
 
 //______________________________________________________________________________
 void StdApplication::FinishRun() {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   if (fScore == kNoScore)
     return;
   TVirtualPad *pad;

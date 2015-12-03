@@ -21,7 +21,7 @@ using vecgeom::GeoManager;
 #include "TGeoManager.h"
 #endif
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "TMath.h"
 #endif
 //______________________________________________________________________________
@@ -58,7 +58,7 @@ GeantScheduler::~GeantScheduler() {
 void GeantScheduler::ActivateBasketManagers() {
   // Activate basket managers based on the distribution of steps in corresponding
   // volumes.
-  #ifndef GEANTV_MIC
+  #ifdef USE_ROOT
   TMath::Sort(fNvolumes, fNstvol, fIstvol);
   #else
   Sort(fNvolumes, fNstvol, fIstvol);

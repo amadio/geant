@@ -22,7 +22,7 @@
 #ifndef GEANT_VAPPLICATION
 #include "GeantVApplication.h"
 #endif
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 class TH1F;
 class TH1D;
 class TProfile;
@@ -69,7 +69,7 @@ private:
   Map_t fHCALMap;                                /** Map of ECAL modules */
   std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
   EScoreType fScore;                              /** Entity for scoring */
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   TH1F   *fFluxElec;                              /** Flux histogram for electrons */
   TH1F   *fFluxGamma;                             /** Flux histogram for gammas */
   TH1F   *fFluxP;                                 /** Flux histogram for protons */
@@ -127,7 +127,7 @@ public:
 
   /** @brief User FinishRun function */
   virtual void FinishRun();
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   ClassDef(CMSApplication, 1) // User application
 #endif
 };

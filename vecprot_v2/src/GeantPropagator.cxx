@@ -18,7 +18,7 @@
 //
 #include "GeantPropagator.h"
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "TTimer.h"
 #include "TStopwatch.h"
 #include "TCanvas.h"
@@ -33,7 +33,7 @@
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #include "management/RootGeoManager.h"
 #endif
 #include "volumes/PlacedVolume.h"
@@ -189,7 +189,7 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
       evt->Print();
       // Digitizer (todo)
       int ntracks = fNtracks[islot];
-   #ifndef GEANTV_MIC
+   #ifdef USE_ROOT
       Printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
    #else
       printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
@@ -197,7 +197,7 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
       //            propagator->fApplication->Digitize(evt->GetEvent());
       fDoneEvents->SetBitNumber(evt->GetEvent());
       if (fLastEvent < fNtotal) {
-      #ifndef GEANTV_MIC
+      #ifdef USE_ROOT
         Printf("=> Importing event %d", fLastEvent);
       #else
         printf("=> Importing event %d", fLastEvent);
@@ -307,7 +307,7 @@ GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthrea
   if (fgInstance)
     return fgInstance;
   if (ntotal <= 0 || nbuffered <= 0) {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
     Printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
 #else
     printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
@@ -319,7 +319,7 @@ GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthrea
   fgInstance->fNevents = nbuffered;
   fgInstance->fNthreads = nthreads;
   if (nbuffered > ntotal) {
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
     Printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
 #else
     printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
@@ -420,7 +420,7 @@ void GeantPropagator::PrepareRkIntegration() {
   }
 }
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 //______________________________________________________________________________
 void GeantPropagator::InitNavigators() {
 #if USE_VECGEOM_NAVIGATOR == 1
@@ -479,7 +479,7 @@ bool GeantPropagator::LoadVecGeomGeometry() {
 bool GeantPropagator::LoadGeometry(const char *filename) {
 // Load the detector geometry from file, unless already loaded.
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
 #else
@@ -593,7 +593,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;
   WorkloadManager::Instance()->SetMaxThreads(nthreads);
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   if (fUseMonitoring) {
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
     cmon->Update();
@@ -623,7 +623,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   CALLGRIND_STOP_INSTRUMENTATION;
   CALLGRIND_DUMP_STATS;
 #endif
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   double rtime = fTimer->RealTime();
   double ctime = fTimer->CpuTime();
 #else

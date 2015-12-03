@@ -16,7 +16,7 @@
 #include "GeantFwd.h"
 class TTabPhysMgr;
 
-#ifdef GEANTV_MIC
+#ifndef USE_ROOT
 typedef const char* TString;
 #endif 
 //______________________________________________________________________________

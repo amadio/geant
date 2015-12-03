@@ -18,7 +18,7 @@
 #include "GeantVApplication.h"
 #endif
 
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
 class TH1F;
 class TH1D;
 class TProfile;
@@ -35,7 +35,7 @@ enum EScoreType {
 
 private:
   bool fInitialized;                            /** Initialized flag */
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
   TH1F     *fHeta;                                /** Eta distribution */
   TH1F     *fHpt;                                 /** Pt distribution */
   TH1D     *fHStep;                               /** Step size distribution */

@@ -2,7 +2,8 @@
 #ifdef USE_ROOT
 #include "TFile.h"
 #include "TRandom.h"
-#else
+#endif
+#ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
 using vecgeom::RNG;
 #endif
