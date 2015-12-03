@@ -21,6 +21,12 @@ Precision ScalarKleinNishina(int ntrack,
 			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
+Precision ScalarHybridCompton(int ntrack, 
+			      GUTrack* itrack_aos,
+			      int *targetElements,
+			      GUTrack* otrack_aos,
+                              SamplingMethod sampleType);
+
 Precision ScalarBetheHeitler(int ntrack, 
 			     GUTrack* itrack_aos,
 			     int *targetElements,
@@ -46,6 +52,7 @@ Precision ScalarSeltzerBerger(int ntrack,
                               SamplingMethod sampleType);
 
 KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina, 
+                                   ScalarHybridCompton,
                                    ScalarBetheHeitler,
                                    ScalarSauterGavrila,
                                    ScalarMollerBhabha,
@@ -62,6 +69,11 @@ Precision G4KleinNishina(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
+
+Precision G4HybridCompton(int ntrack, 
+			  GUTrack* itrack_aos,
+			  int *targetElements,
+			  GUTrack* otrack_aos);
 
 Precision G4BetheHeitler(int ntrack, 
 			 GUTrack* itrack_aos,
@@ -84,6 +96,7 @@ Precision G4SeltzerBerger(int ntrack,
 			  GUTrack* otrack_aos);
 
 G4KernelFunc_t G4KernelFunc[] = {G4KleinNishina, 
+                                 G4HybridCompton,
                                  G4BetheHeitler,
                                  G4SauterGavrila,
                                  G4MollerBhabha,
@@ -100,6 +113,11 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
      			     int *targetElements,
 			     GUTrack_v& otrack_soa, 
                              SamplingMethod sampleType);
+
+Precision VectorHybridCompton(GUTrack_v& itrack_soa,
+     			      int *targetElements,
+			      GUTrack_v& otrack_soa, 
+                              SamplingMethod sampleType);
 
 Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
      			     int *targetElements,
@@ -122,6 +140,7 @@ Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
                               SamplingMethod sampleType);
 
 VectorKernelFunc_t VectorKernelFunc[] = {VectorKleinNishina,
+                                         VectorHybridCompton,
                                          VectorBetheHeitler,
                                          VectorSauterGavrila,
                                          VectorMollerBhabha, 

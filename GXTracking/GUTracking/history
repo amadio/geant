@@ -1,5 +1,11 @@
 Development history of GUTracking
 
+Dec. 2, 2015 
+
+1) sort input tracks by energy in ascending order
+2) add hybrid Interact methods (alias + composition and rejection) for the 
+   Compton (HybridCompton) and Photo-Electric model (default SauterGavrila) 
+
 Nov. 16, 2015 
 
 1) Add a temporary interface to the material table (MaterialHandler)

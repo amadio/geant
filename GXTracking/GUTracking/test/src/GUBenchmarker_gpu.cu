@@ -31,7 +31,8 @@ void KernelKleinNishina(Random_t* devStates,
   ComptonKleinNishina model(devStates,tid,0);
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
-    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kKleinNishina]);
+    //[low:high] default energy limit = [10keV:1TeV]
+    GUAliasSampler sampler(devStates,tid,1.e-2,1.e+6,100,100,table[kKleinNishina]);
     model.SetSampler(&sampler);
   }
 
@@ -39,6 +40,32 @@ void KernelKleinNishina(Random_t* devStates,
 
   while (tid < nTrackSize) {
     model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
+    tid += blockDim.x * gridDim.x;
+  }
+}
+
+__global__
+void KernelHybridCompton(Random_t* devStates,
+                         GUAliasTableManager** table,
+                         Physics2DVector* sbData,
+			 int nTrackSize, 
+                         GUTrack* itrack, 
+			 int* targetElements, 
+			 GUTrack* otrack,
+                         SamplingMethod sampleType)
+{
+  unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+  ComptonKleinNishina model(devStates,tid,0);
+  model.SetSamplingMethod(sampleType);
+  if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    //[low:high] default energy limit = [10keV:1TeV]
+    GUAliasSampler sampler(devStates,tid,1.e-2,1.e+6,100,200,table[kHybridCompton]);
+    model.SetSampler(&sampler);
+  }
+
+  while (tid < nTrackSize) {
+    model.ModelInteract<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -58,7 +85,8 @@ void KernelBetheHeitler(Random_t* devStates,
   ConversionBetheHeitler model(devStates,tid,0);
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
-    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kBetheHeitler]);
+    //[low:high] default energy limit = [2*electron_mass_c2:1TeV]
+    GUAliasSampler sampler(devStates,tid,2.*electron_mass_c2,1.e+6,100,100,table[kBetheHeitler]);
     model.SetSampler(&sampler);
   }
 
@@ -83,12 +111,13 @@ void KernelSauterGavrila(Random_t* devStates,
   PhotoElectronSauterGavrila model(devStates,tid,0);
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
-    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kSauterGavrila]);
+    //[low:high] default energy limit = [0.1keV:1TeV] - should cut at Egamma/electron_mass_c2 > 50
+    GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,200,table[kSauterGavrila]);
     model.SetSampler(&sampler);
   }
 
   while (tid < nTrackSize) {
-    model.Interact<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.ModelInteract<kCuda>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -108,6 +137,7 @@ void KernelMollerBhabha(Random_t* devStates,
   IonisationMoller model(devStates,tid,0);
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    //[low:high] default energy limit = [0.1keV:1TeV]
     GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kMollerBhabha]);
     model.SetSampler(&sampler);
   }
@@ -133,6 +163,7 @@ void KernelSeltzerBerger(Random_t* devStates,
   BremSeltzerBerger model(devStates,tid,0,sbData);
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
+    //[low:high] default energy limit = [0.1keV:1TeV]
     GUAliasSampler sampler(devStates,tid,1.e-4,1.e+6,100,100,table[kSeltzerBerger]);
     model.SetSampler(&sampler);
   }
@@ -159,6 +190,22 @@ void CudaKleinNishina(int blocksPerGrid,
 		      SamplingMethod sampleType)
 {
   vecphys::cuda::KernelKleinNishina<<<blocksPerGrid, threadsPerBlock>>>(
+				       devStates,table,sbData,nTrackSize,
+    				       itrack, targetElements,otrack,sampleType);
+}
+
+void CudaHybridCompton(int blocksPerGrid, 
+		       int threadsPerBlock,
+		       Random_t* devStates,
+		       GUAliasTableManager** table,
+		       Physics2DVector* sbData,
+		       int nTrackSize, 
+		       GUTrack* itrack, 
+		       int* targetElements, 
+		       GUTrack* otrack,
+		       SamplingMethod sampleType)
+{
+  vecphys::cuda::KernelHybridCompton<<<blocksPerGrid, threadsPerBlock>>>(
 				       devStates,table,sbData,nTrackSize,
     				       itrack, targetElements,otrack,sampleType);
 }

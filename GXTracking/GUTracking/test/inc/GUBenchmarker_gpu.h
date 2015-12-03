@@ -21,6 +21,17 @@ void CudaKleinNishina(int blocksPerGrid,
 		      int* targetElements, 
 		      GUTrack* otrack,
 		      SamplingMethod sampleType);
+
+void CudaHybridCompton(int blocksPerGrid, 
+                       int threadsPerBlock,
+		       Random_t* devStates,
+		       GUAliasTableManager** table,
+		       Physics2DVector* sbData,
+		       int nTrackSize, 
+		       GUTrack* itrack, 
+		       int* targetElements, 
+		       GUTrack* otrack,
+		       SamplingMethod sampleType);
  
 void CudaBetheHeitler(int blocksPerGrid, 
 		      int threadsPerBlock,
@@ -78,6 +89,7 @@ typedef void (*CudaKernelFunc_t)(int blocksPerGrid,
 				 SamplingMethod sampleType);
 
 CudaKernelFunc_t CudaKernelFunc[] = {CudaKleinNishina,
+                                     CudaHybridCompton, 
                                      CudaBetheHeitler, 
                                      CudaSauterGavrila, 
                                      CudaMollerBhabha, 

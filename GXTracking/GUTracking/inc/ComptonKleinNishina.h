@@ -9,6 +9,7 @@
 
 #include "EmModelBase.h"
 
+
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
@@ -43,6 +44,23 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
 
+  //Alternative Interact method to test energy dependent subtasks for a 
+  //specific model. Eeventually this method should replace the Interact
+  //method of EmBaseModel
+
+  template <typename Backend>
+  VECPHYS_CUDA_HEADER_BOTH 
+  void ModelInteract(GUTrack&  projectile,   
+                     const int targetElement,
+                     GUTrack&  secondary );
+
+  //vector
+#ifndef VECPHYS_NVCC
+  template <typename Backend>
+  void ModelInteract(GUTrack_v& inProjectile,  
+                     const int* targetElements,
+                     GUTrack_v& outSecondaryV);  
+#endif
 
 private: 
   // Implementation methods 
@@ -365,6 +383,156 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_t  energyIn,
   energyOut = epsilon*energyIn;
   sinTheta = Sqrt(sint2);
 }    
+
+//Alternative Interact method
+
+template <typename Backend>
+VECPHYS_CUDA_HEADER_BOTH 
+void ComptonKleinNishina::ModelInteract(GUTrack&  inProjectile,
+                                        const int targetElement,
+                                        GUTrack&  outSecondary ) 
+{
+  double energyIn = inProjectile.E;
+
+  //check for the validity of energy
+  if(energyIn < fLowEnergyLimit || energyIn > fHighEnergyLimit) return;
+
+  double energyOut =0;
+  double sinTheta = 0;
+
+  if(energyIn< 10*MeV) {
+    InteractKernel<Backend>(energyIn,targetElement,energyOut,sinTheta);
+  }
+  else {
+    InteractKernelCR<Backend>(energyIn,targetElement,energyOut,sinTheta);
+  }
+
+  //update final states of the primary and store the secondary
+  ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
+                                inProjectile,outSecondary);
+}
+
+#ifndef VECPHYS_NVCC
+template <typename Backend>
+void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,  
+                                        const int* targetElements,
+                                        GUTrack_v& outSecondary) 
+{
+  //check for the validity of energy
+  int nTracks = inProjectile.numTracks;
+
+  // this inclusive check may be redundant as this model/process should not be
+  // selected if energy of the track is outside the valid energy region
+  //  if(inProjectile.E[0]         < fLowEnergyLimit || 
+  //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
+
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  //filtering the energy region for the alias method - setable if necessary
+  const double aliaslimit = 10.0*MeV; 
+  double* start = inProjectile.E;
+  auto indexAliasLimit = std::lower_bound(start,start+nTracks,aliaslimit) - start;
+
+  for(int j = 0; j < nTracks  ; ++j) {
+    assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
+  }
+
+  int ibase= 0;
+  int numChunks= (nTracks/Double_t::Size);
+
+  for(int i= 0; i < numChunks ; ++i) {
+
+    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_t sinTheta(0.);
+    Double_t energyOut;
+
+    Index_t  zElement(targetElements[ibase]);
+
+    if(ibase < indexAliasLimit) {
+      InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
+    }
+    else {
+      InteractKernelCR<Backend>(energyIn,zElement,energyOut,sinTheta);
+    }
+
+    //need to rotate the angle with respect to the line of flight
+    Double_t px(&inProjectile.px[ibase]);
+    Double_t py(&inProjectile.py[ibase]);
+    Double_t pz(&inProjectile.pz[ibase]);
+
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
+
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
+
+    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+    // Update primary
+    energyOut.store(&inProjectile.E[ibase]);
+    Double_t pxFinal, pyFinal, pzFinal;
+     
+    pxFinal= energyOut*uhat;
+    pyFinal= energyOut*vhat;
+    pzFinal= energyOut*what;
+    pxFinal.store(&inProjectile.px[ibase]);
+    pyFinal.store(&inProjectile.py[ibase]);
+    pzFinal.store(&inProjectile.pz[ibase]);
+
+    // create Secondary
+    Double_t secE = energyIn - energyOut; 
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
+
+    secE.store(&outSecondary.E[ibase]);
+    pxSec.store(&outSecondary.px[ibase]);
+    pySec.store(&outSecondary.py[ibase]);
+    pzSec.store(&outSecondary.pz[ibase]);
+
+    ibase+= Double_t::Size;
+  }
+
+  //leftover - do scalar (temporary)
+  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+
+    double senergyIn= inProjectile.E[i];
+    double senergyOut, ssinTheta;
+
+    InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+
+    //need to rotate the angle with respect to the line of flight
+    double sinvp = 1./senergyIn;
+    double sxhat = inProjectile.px[i]*sinvp;
+    double syhat = inProjectile.py[i]*sinvp;
+    double szhat = inProjectile.pz[i]*sinvp;
+
+    double suhat = 0.;
+    double svhat = 0.;
+    double swhat = 0.;
+
+    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
+
+    //update primary
+    inProjectile.E[i]  = senergyOut;
+    inProjectile.px[i] = senergyOut*suhat;
+    inProjectile.py[i] = senergyOut*svhat;
+    inProjectile.pz[i] = senergyOut*swhat;
+
+    //create secondary
+    outSecondary.E[i]  = (senergyIn-senergyOut); 
+    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
+    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
+    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
+    //fill other information
+  }
+}
+
+#endif
 
 } // end namespace impl
 } // end namespace vecphys

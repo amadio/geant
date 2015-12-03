@@ -30,7 +30,7 @@ PhotoElectronSauterGavrila::Initialization()
   if(fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       fLowEnergyLimit, fHighEnergyLimit,
-                                       100, 100);
+                                       100, 200);
     //note: if (Egamma/electron_mass_c2 > 50), cos(theta) = 1 in Geant4
 
     BuildAliasTable();
@@ -62,30 +62,45 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
   double logxmin = log(fAliasSampler->GetIncomingMin());
   double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
 
+  const int nintegral= 10; //temporary
+
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
     double x = exp(logxmin + dx*i);
 
     const double ymin = -1.0;
     const double dy = 2./ncol; 
-    const double yo = ymin + 0.5*dy;
+    //    const double yo = ymin + 0.5*dy;
   
     double sum = 0.;
 
     for(int j = 0; j < ncol ; ++j) {
+
+      //for each input cos(theta) bin
+      double normal = 0;  
+
+      //cross section weighted bin position
+      for(int k = 0; k < nintegral ; ++k) {
+        
+        double y = ymin + dy*(j+(0.5+k)/nintegral);
+        double fxsec = CalculateDiffCrossSectionK(Z,x,y);
+        normal  += fxsec;
+      }
+      double xsec = normal/nintegral;
+
       //for each output energy bin
-      double y = yo + dy*j;
-      double xsec = CalculateDiffCrossSectionK(Z,x,y);
+      //      double y = yo + dy*j;
+      //      double xsec = CalculateDiffCrossSectionK(Z,x,y);
 
       p[i*ncol+j] = xsec;
       sum += xsec;
     }
 
     //normalization
-    sum = 1.0/sum;
+    const double inv_sum = 1.0/sum;
 
     for(int j = 0; j < ncol ; ++j) {
-      p[i*ncol+j] *= sum;
+      p[i*ncol+j] *= inv_sum;
     }
   }
 }
@@ -199,7 +214,7 @@ VECPHYS_CUDA_HEADER_BOTH void
 PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
                                                          double energyIn,
                                                          double& energyOut,
-                                                         double& cost)
+                                                         double& sint)
 {
   //use the scalar implementation which is equivalent to Geant4
   energyOut =  GetPhotoElectronEnergy<kScalar>(energyIn,Z);
@@ -210,18 +225,20 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
   //  static 
   const G4double taulimit = 50.0;
 
+  G4double cost  = -1.0;
+
   if (tau > taulimit) {
     cost  = 1.0; //set to the primary direction
   } else {
     // algorithm according Penelope 2008 manual and 
     // F.Sauter Ann. Physik 9, 217(1931); 11, 454(1931). 
 
-    G4double gamma = tau + 1;
-    G4double beta  = std::sqrt(tau*(tau + 2))/gamma;
+    G4double gamma = tau + 1.;
+    G4double beta  = std::sqrt(tau*(tau + 2.))/gamma;
     G4double A     = (1 - beta)/beta;
-    G4double Ap2   = A + 2;
-    G4double B     = 0.5*beta*gamma*(gamma - 1)*(gamma - 2);
-    G4double grej  = 2*(1 + A*B)/A;
+    G4double Ap2   = A + 2.;
+    G4double B     = 0.5*beta*gamma*(gamma - 1.)*(gamma - 2.);
+    G4double grej  = 2.*(1. + A*B)/A;
     G4double z, g;
     do { 
       G4double q = UniformRandom<kScalar>(fRandomState,fThreadId);
@@ -232,6 +249,8 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
  
     cost = 1 - z;
   }
+
+  sint = sqrt((1+cost)*(1-cost));
 }
 
 } // end namespace impl

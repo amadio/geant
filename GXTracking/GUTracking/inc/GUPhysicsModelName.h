@@ -6,6 +6,7 @@ namespace vecphys {
 enum GUPhysicsModelIndex {
   kNullModel = -1, 
   kKleinNishina,      // Compton  
+  kHybridCompton,     // Compton with Alias + Composition and Rejection   
   kBetheHeitler,      // Conversion
   kSauterGavrila,     // Photo-Electric Effect
   kMollerBhabha,      // Ionization
@@ -16,6 +17,7 @@ enum GUPhysicsModelIndex {
 static 
 const char* GUPhysicsModelName[kNumberPhysicsModel] = {
   "KleinNishina",
+  "HybridCompton",
   "BetheHeitler",
   "SauterGavrila",
   "MollerBhabha",

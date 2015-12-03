@@ -10,6 +10,8 @@
 
 #include "EmModelBase.h"
 
+#include <stdlib.h> 
+
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
@@ -36,6 +38,25 @@ public:
 
   VECPHYS_CUDA_HEADER_HOST
   void BuildPdfTable(int Z, double *p);
+
+  //Alternative Interact method to test energy dependent subtasks for a 
+  //specific model. Eeventually this method should replace the Interact
+  //method of EmBaseModel
+
+  template <typename Backend>
+  VECPHYS_CUDA_HEADER_BOTH 
+  void ModelInteract(GUTrack&  projectile,   
+                     const int targetElement,
+                     GUTrack&  secondary );
+
+  //vector
+#ifndef VECPHYS_NVCC
+  template <typename Backend>
+  void ModelInteract(GUTrack_v& inProjectile,  
+                     const int* targetElements,
+                     GUTrack_v& outSecondaryV);  
+#endif
+
 
 private: 
   // Implementation methods 
@@ -168,7 +189,7 @@ void PhotoElectronSauterGavrila::
 InteractKernel(typename Backend::Double_t  energyIn, 
                typename Backend::Index_t   zElement,
                typename Backend::Double_t& energyOut,
-               typename Backend::Double_t& cosTheta)
+               typename Backend::Double_t& sinTheta)
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
@@ -194,50 +215,11 @@ InteractKernel(typename Backend::Double_t  energyIn,
   Double_t mininum = -1.0;
   Double_t deltaE = 2.0;
 
-  cosTheta = mininum + fAliasSampler->SampleX<Backend>(deltaE,probNA,
-					     aliasInd,icol,fraction);
+  Double_t cosTheta = mininum + fAliasSampler->SampleX<Backend>(deltaE,probNA,
+                                                      aliasInd,icol,fraction);
 
-  //  sinTheta = sqrt((1+costTheta)*(1-costTheta));
-  // @@@syj - rotation should be properly taken into account in the KernelInteract later
+  sinTheta = Sqrt((1+cosTheta)*(1-cosTheta));
 }    
-
-/*
-template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH 
-void PhotoElectronSauterGavrila::
-SampleByCompositionRejection(typename Backend::Double_t  energyIn,
-                             typename Backend::Double_t& energyOut,
-                             typename Backend::Double_t& cosTheta)
-{
-  typedef typename Backend::Double_t Double_t;
-
-  //use the scalar implementation which is equivalent to Geant4
-  energyOut = GetPhotoElectronEnergy<kScalar>(energyIn,10);
-
-  //sample angular direction according to SauterGavrilaAngularDistribution
-
-  Double_t tau = energyIn/electron_mass_c2;
-
-  Double_t gamma     = tau + 1.0;
-  Double_t beta      = sqrt(tau*(tau + 2.0))/gamma;
-
-  Double_t A = (1-beta)/beta;
-  Double_t Ap2 = A + 2;
-  Double_t B   = 0.5*beta*gamma*(gamma-1.)*(gamma-2.);
-  Double_t grej = 2*(1+A*B)/A;
-  
-  Double_t z;
-  Double_t g;
-
-  do { 
-    Double_t q = UniformRandom<Backend>(fRandomState,fThreadId);
-    z = 2*A*(2*q + Ap2*sqrt(q))/(Ap2*Ap2 - 4*q);
-    g = (2 - z)*(1.0/(A + z) + B);
-  } while(g < UniformRandom<Backend>(fRandomState,fThreadId)*grej);
-  
-  cosTheta = 1 - z;
-}
-*/
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
@@ -305,10 +287,10 @@ VECPHYS_CUDA_HEADER_BOTH void
 PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_t  energyIn, 
                                              typename Backend::Index_t   zElement,
                                              typename Backend::Double_t& energyOut,
-                                             typename Backend::Double_t& cosTheta)
+                                             typename Backend::Double_t& sinTheta)
 {
   typedef typename Backend::Double_t Double_t;
-  typedef typename Backend::Bool_t Bool_t;
+  //  typedef typename Backend::Bool_t Bool_t;
 
   //energy of photo-electron: Sandia parameterization
   energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement) ;
@@ -316,10 +298,12 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_t  energyI
   //sample angular direction according to SauterGavrilaAngularDistribution
   Double_t tau = energyIn/electron_mass_c2;
 
+  /*
   const double taulimit = 50.0;
   Bool_t highE = tau > taulimit;
   cosTheta = 1.0;  
   if(Backend::early_returns && IsFull(highE)) return;  
+  */
 
   Double_t gamma     = tau + 1.0;
   Double_t beta      = sqrt(tau*(tau + 2.0))/gamma;
@@ -331,7 +315,8 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_t  energyI
   
   Double_t z = SampleSequential<Backend>(A,Ap2,B,grej);
   
-  MaskedAssign(!highE, 1.0 - z , &cosTheta); 
+  //  MaskedAssign(!highE, 1.0 - z , &cosTheta); 
+  sinTheta = Sqrt(z*(2-z)); // cosTheta = 1 -z
 
 }
 template<class Backend>
@@ -396,6 +381,161 @@ PhotoElectronSauterGavrila::InteractKernelUnpack(typename Backend::Double_t ener
   energyOut = energyIn;
   sinTheta =  0;
 }
+
+//Alternative Interact method
+
+template <typename Backend>
+VECPHYS_CUDA_HEADER_BOTH 
+void PhotoElectronSauterGavrila::ModelInteract(GUTrack&  inProjectile,
+                                               const int targetElement,
+                                               GUTrack&  outSecondary ) 
+{
+  typedef typename Backend::Double_t Double_t;
+
+  Double_t energyIn = inProjectile.E;
+  Double_t energyOut =0;
+  Double_t sinTheta = 0;
+
+  const double aliaslimit = 1.0*MeV;
+  const double taulimit = 50.*electron_mass_c2;
+
+  if(energyIn < aliaslimit) {
+    InteractKernel<Backend>(energyIn,targetElement,energyOut,sinTheta);
+  }
+  else if(energyIn < taulimit) {
+    InteractKernelCR<Backend>(energyIn,targetElement,energyOut,sinTheta);
+  }
+  else {
+    energyOut = GetPhotoElectronEnergy<Backend>(energyIn,targetElement);
+    sinTheta = 0; //cosTheta = 1.0;
+  }
+
+  //update final states of the primary and store the secondary
+  ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
+                                inProjectile,outSecondary);
+}
+#ifndef VECPHYS_NVCC
+
+template <typename Backend>
+void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,  
+                                               const int* targetElements,
+                                               GUTrack_v& outSecondary) 
+{
+  typedef typename Backend::Index_t  Index_t;
+  typedef typename Backend::Double_t Double_t;
+
+  //filtering energy regions for sampling methods - setable if necessary
+  const double aliaslimit = 1.0*MeV;
+  const double taulimit = 50.*electron_mass_c2;
+
+  int nTracks = inProjectile.numTracks;
+  double* start = inProjectile.E;
+  auto indexAliasLimit = std::lower_bound(start,start+nTracks,aliaslimit) - start;
+  auto indexTauLimit = std::lower_bound(start,start+nTracks,taulimit) - start;
+  
+  for(int j = 0; j < nTracks  ; ++j) {
+    assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
+  }
+
+  int ibase= 0;
+  int numChunks= (nTracks/Double_t::Size);
+
+  for(int i= 0; i < numChunks ; ++i) {
+    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_t sinTheta(0.);
+    Double_t energyOut;
+
+    Index_t  zElement(targetElements[ibase]);
+
+    if(ibase < indexAliasLimit) {
+      InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
+    }
+    else if (ibase < indexTauLimit) {
+      InteractKernelCR<Backend>(energyIn,zElement,energyOut,sinTheta);
+    }
+    else {
+      energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement);
+      sinTheta = 0.; //cosTheta = 1.0;
+    }
+
+    //need to rotate the angle with respect to the line of flight
+    Double_t px(&inProjectile.px[ibase]);
+    Double_t py(&inProjectile.py[ibase]);
+    Double_t pz(&inProjectile.pz[ibase]);
+
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
+
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
+
+    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+    // Update primary
+    energyOut.store(&inProjectile.E[ibase]);
+    Double_t pxFinal, pyFinal, pzFinal;
+     
+    pxFinal= energyOut*uhat;
+    pyFinal= energyOut*vhat;
+    pzFinal= energyOut*what;
+    pxFinal.store(&inProjectile.px[ibase]);
+    pyFinal.store(&inProjectile.py[ibase]);
+    pzFinal.store(&inProjectile.pz[ibase]);
+
+    // create Secondary
+    Double_t secE = energyIn - energyOut; 
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
+
+    secE.store(&outSecondary.E[ibase]);
+    pxSec.store(&outSecondary.px[ibase]);
+    pySec.store(&outSecondary.py[ibase]);
+    pzSec.store(&outSecondary.pz[ibase]);
+
+    ibase+= Double_t::Size;
+  }
+
+  //leftover - do scalar (temporary)
+  for(int i = numChunks*Double_t::Size ; i < nTracks ; ++i) {
+
+    double senergyIn= inProjectile.E[i];
+    double senergyOut, ssinTheta;
+
+    InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+
+    //need to rotate the angle with respect to the line of flight
+    double sinvp = 1./senergyIn;
+    double sxhat = inProjectile.px[i]*sinvp;
+    double syhat = inProjectile.py[i]*sinvp;
+    double szhat = inProjectile.pz[i]*sinvp;
+
+    double suhat = 0.;
+    double svhat = 0.;
+    double swhat = 0.;
+
+    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
+
+    //update primary
+    inProjectile.E[i]  = senergyOut;
+    inProjectile.px[i] = senergyOut*suhat;
+    inProjectile.py[i] = senergyOut*svhat;
+    inProjectile.pz[i] = senergyOut*swhat;
+
+    //create secondary
+    outSecondary.E[i]  = (senergyIn-senergyOut); 
+    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
+    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
+    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
+    //fill other information
+  }
+}
+
+#endif
+
 
 } // end namespace impl
 } // end namespace vecphys

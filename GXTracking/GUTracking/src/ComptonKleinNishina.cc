@@ -45,7 +45,7 @@ ComptonKleinNishina::Initialization()
   if(fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       fLowEnergyLimit, fHighEnergyLimit,
-                                       100, 100);
+                                       100, 200);
     BuildAliasTable();
   }
 }

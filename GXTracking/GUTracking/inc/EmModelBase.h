@@ -112,7 +112,7 @@ protected:
   VECPHYS_CUDA_HEADER_BOTH double 
   ComputeCoulombFactor(double fZeff);
 
-private:
+protected:
   // Implementation methods
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
@@ -239,6 +239,10 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
                                     GUTrack&  outSecondary ) 
 {
   double energyIn = inProjectile.E;
+
+  //check for the validity of energy
+  if(energyIn < fLowEnergyLimit || energyIn > fHighEnergyLimit) return;
+
   double energyOut =0;
   double sinTheta = 0;
 
@@ -306,15 +310,23 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
                                     const int* targetElements,
                                     GUTrack_v& outSecondary) 
 {
+  //check for the validity of energy
+  int nTracks = inProjectile.numTracks;
+
+  // this inclusive check may be redundant as this model/process should not be
+  // selected if energy of the track is outside the valid energy region
+  //  if(inProjectile.E[0]         < fLowEnergyLimit || 
+  //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
+
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  for(int j = 0; j < inProjectile.numTracks  ; ++j) {
+  for(int j = 0; j < nTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
   }
 
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/Double_t::Size);
+  int numChunks= (nTracks/Double_t::Size);
 
   for(int i= 0; i < numChunks ; ++i) {
     Double_t energyIn(&inProjectile.E[ibase]);
@@ -379,7 +391,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*Double_t::Size ; i < nTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
@@ -421,11 +433,14 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
                                           const int* targetElements,
                                           GUTrack_v& outSecondary) 
 {
+  //check for the validity of energy
+  int sizeOfInputTracks = inProjectile.numTracks;
+  if(inProjectile.E[0]                   < fLowEnergyLimit || 
+     inProjectile.E[sizeOfInputTracks-1] > fHighEnergyLimit) return;
+
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
-
-  int sizeOfInputTracks = inProjectile.numTracks;
 
   for(int j = 0; j < sizeOfInputTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
