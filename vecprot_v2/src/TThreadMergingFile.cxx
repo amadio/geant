@@ -27,6 +27,8 @@
 #include "TSocket.h"
 #include "TArrayC.h"
 
+using namespace Geant;
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
 /// We do no yet open any connection to the server.  This will be done at the

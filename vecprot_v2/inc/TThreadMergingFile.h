@@ -41,6 +41,8 @@
 
 class TArrayC;
 
+namespace Geant {
+
 class TThreadMergingFile : public TMemFile
 {
 private:
@@ -60,6 +62,8 @@ private:
   
   ClassDef(TThreadMergingFile,1);  // TFile specialization that will semi-automatically upload its content to a merging server.
 };
+
+} // namespace Geant
 
 #endif // ROOT_TThreadMergingFile
 
