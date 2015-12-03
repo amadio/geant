@@ -32,7 +32,7 @@
 #include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
-#define RUNGE_KUTTA  1
+// #define RUNGE_KUTTA  1
 
 #ifdef  RUNGE_KUTTA
 #pragma message("Compiling using Runge-Kutta for integration")
@@ -1480,8 +1480,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    assert( fieldPropPool );  // Cannot be zero
 
    // Initialization - to be moved elsewhere
-   bool   RegisterPrototype( GUFieldPropagator* prototype );   
-   fieldPropPool->Initialize(gPropagator->fNthreads);
+   // fieldPropPool->Initialize(gPropagator->fNthreads);
 
    GUFieldPropagator *fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
 #else
@@ -1534,7 +1533,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
                                          PositionNew, DirectionNew);
 #endif
-  
+
   fXposV[i] = PositionNew.x();
   fYposV[i] = PositionNew.y();
   fZposV[i] = PositionNew.z();
@@ -2580,6 +2579,10 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // step (frombdr=0)
     step = (fBoundaryV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) : Math::Min<double>(lmax, fPstepV[itr]);
     //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
+    // int stepNum= fNstepsV[itr];
+    // Printf("track %d: Step #=%3d len=%g proposed=%g (safelen=%9.3g) bndrFlg= %d distLin=%g  ",
+    //    itr, stepNum, step, fPstepV[itr], lmax, fFrombdrV[itr], fSnextV[itr] );
+    //  Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);          
     PropagateInVolumeSingle(itr, step, td);
     //Update number of partial steps propagated in field
     td->fNmag++;

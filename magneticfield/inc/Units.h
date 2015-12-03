@@ -13,7 +13,7 @@ namespace fieldUnits
    constexpr double eplus   = 1.0 ;         // TBC
 
    constexpr double e_SI  = 1.602176487e-19;// positron charge in coulomb
-  
+
    static constexpr double megaElectronVolt = 0.001 * gigaElectronVolt;
    static constexpr double electronVolt = 1.0e-9 * gigaElectronVolt;
 
@@ -21,7 +21,7 @@ namespace fieldUnits
    static constexpr double MeV        = megaElectronVolt;
 
    static constexpr double nanosecond   = 1.e-9 *second;
-   
+
    static constexpr double meter      = 100.0 * centimeter; 
    static constexpr double millimeter = 0.1 * centimeter;
 
@@ -29,6 +29,9 @@ namespace fieldUnits
 
    static constexpr double volt       = electronVolt/eplus;
    static constexpr double tesla      = volt*second/meter2; // tesla =0.001*megavolt*ns/mm2
+
+   static constexpr double kilogauss  = 0.1    * tesla;
+   static constexpr double gauss      = 1.0e-4 * tesla;
 
   // Angle
    static const double radian      = 1.;                  

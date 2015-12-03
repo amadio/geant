@@ -338,7 +338,7 @@ void GeantPropagator::Initialize() {
   using Field_t    =  TUniformMagField;
   using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
   
-  auto gvField= new Field_t( fieldUnits::tesla * ThreeVector(0.0, 0.0, fBmag) );
+  auto gvField= new Field_t( fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fBmag) );
   auto gvEquation =
      FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
 
@@ -361,7 +361,9 @@ void GeantPropagator::Initialize() {
    
    static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
    assert( fpPool );  // Cannot be zero
-   fpPool->RegisterPrototype( fieldPropagator );   
+   fpPool->RegisterPrototype( fieldPropagator );
+
+   fpPool->Initialize(fNthreads);
 #endif
 
   if (!fNtracks) {

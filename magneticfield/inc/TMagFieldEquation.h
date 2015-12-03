@@ -21,15 +21,19 @@
 #include "Constants.h"
 //  Update to GeantV units ASAP
 
-template 
+template
 <class Field, unsigned int Size>
 class TMagFieldEquation : public GUVEquationOfMotion
 {
    public:
      typedef Field T_Field;
      static const unsigned int  N   = Size;
-     static constexpr double fCof    = fieldUnits::eplus * Constants::c_light ;
-   
+     static constexpr double fCof   = Constants::c_light;   //  / fieldUnits::meter ;
+
+     // Expected constant value:
+     // static constexpr double fCof    = Constants::c_light * fieldUnits::second /
+     //     ( 1.0e9 * fieldUnits::meter * fieldUnits::meter );
+
      TMagFieldEquation(T_Field* pF) : GUVEquationOfMotion(pF) { fPtrField = pF; }
 
      TMagFieldEquation(const TMagFieldEquation& );
@@ -91,7 +95,7 @@ template
       fPtrField( right.fPtrField->CloneOrSafeSelf() )
       // fPtrField( new Field(right.fPtrField->CloneOrSafeSelf() ) )
 {
-   std::cout <<  "TMagFieldEquation - copy constructor called." << std::endl;
+   // std::cout <<  "TMagFieldEquation - copy constructor called." << std::endl;
    GUVEquationOfMotion::SetFieldObj( fPtrField ); //  Also stored in base class ... for now
 }
 
