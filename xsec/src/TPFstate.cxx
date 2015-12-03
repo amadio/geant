@@ -5,7 +5,8 @@
 #include <TMath.h>
 #include <TFile.h>
 #include <TRandom.h>
-#else
+#endif
+#ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
 using vecgeom::RNG;
 #endif
@@ -170,10 +171,10 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     return false;
   } else {
     kerma = en;
-#ifdef USE_ROOT
-    double eta = gRandom->Rndm();
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
     double eta = RNG::Instance().uniform();
+#elif USE_ROOT
+    double eta = gRandom->Rndm();
 #endif
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
     en = max<double>(en, fEGrid[0]);

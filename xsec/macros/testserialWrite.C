@@ -8,6 +8,13 @@
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "base/RNG.h"
+using vecgeom::RNG;
+#elif USE_ROOT
+#include <TRandom.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 
@@ -35,15 +42,33 @@ void testserialWrite()
    TTabPhysMgr::Instance(fxsec, ffins );
 
    constexpr int nrep = 1000;
+   #ifdef USE_VECGEOM_NAVIGATOR
+   RNG::Instance().seed(12345);
+   #else
+   #ifndef USE_ROOT
    srand(12345);
+   #endif
+   #endif
    std::ofstream fftest("xphysW.txt");
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
       for(auto irep=0; irep<nrep; ++irep) {
 	 // Get a random particle & reaction & energy
-	 int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
+         #ifdef USE_VECGEOM_NAVIGATOR
+	 int ipart = RNG::Instance().uniform() * TPartIndex::I()->NPartReac();
+         int ireac = RNG::Instance().uniform() * FNPROC;
+	 float en =  RNG::Instance().uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	    + TPartIndex::I()->Emin();
+         #elif  USE_ROOT
+	 int ipart = gRandom->Rndm() * TPartIndex::I()->NPartReac();
+         int ireac = gRandom->Rndm() * FNPROC;
+	 float en = gRandom->Rndm() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	    + TPartIndex::I()->Emin();
+         #else
+         int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
 	 int ireac = (((double) rand())/RAND_MAX) * FNPROC;
 	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
+         #endif
    float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
    if(xs < 0) continue;
 	 int npart=0;

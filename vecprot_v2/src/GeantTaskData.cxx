@@ -35,10 +35,10 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fDblArray = new double[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
 #ifndef GEANT_NVCC
-#ifdef USE_ROOT
-  fRndm = new TRandom();
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   fRndm = &RNG::Instance();
+#elif USE_ROOT
+  fRndm = new TRandom();
 #endif
 #endif
   fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
@@ -100,10 +100,10 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 
 
 #ifndef GEANT_NVCC
-#ifdef USE_ROOT
-  fRndm = new TRandom();
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   fRndm = &RNG::Instance();
+#elif USE_ROOT
+  fRndm = new TRandom();
 #endif
 #endif
 }

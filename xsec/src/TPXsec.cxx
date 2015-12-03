@@ -458,10 +458,10 @@ int TPXsec::SampleReac(double en) const {
   double xrat = (en2 - en) / (en2 - en1);
   double xnorm = 1.;
   while (1) {
-#ifdef USE_ROOT
-    double ran = xnorm * gRandom->Rndm();
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
     double ran = RNG::Instance().uniform();
+#elif USE_ROOT
+    double ran = xnorm * gRandom->Rndm();
 #endif
     double xsum = 0;
     for (int i = 0; i < fNXsec; ++i) {

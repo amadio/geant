@@ -23,7 +23,8 @@
 
 #ifdef USE_ROOT
 class TRandom;
-#else
+#endif
+#ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
 using VECGEOM_NAMESPACE::RNG;
 #endif
@@ -49,10 +50,10 @@ public:
   int fSizeDbl;          /** Size of dbl array */
   bool fToClean;         /** Flag set when the basket queue is to be cleaned */
   Volume_t *fVolume;     /** Current volume per thread */
-#ifdef USE_ROOT
-  TRandom *fRndm;        /** Random generator for thread */
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   RNG *fRndm;            /** Random generator for thread */
+#elif USE_ROOT
+  TRandom *fRndm;        /** Random generator for thread */
 #endif
   bool *fBoolArray;      /** [fSizeBool] Thread array of bools */
   double *fDblArray;     /** [fSizeDbl] Thread array of doubles */

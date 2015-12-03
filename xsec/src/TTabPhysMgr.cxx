@@ -2,6 +2,7 @@
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
+#include "base/RNG.h"
 #else
 #include "TGeoManager.h"
 #include "TGeoBranchArray.h"
@@ -21,8 +22,6 @@
 #include "TBits.h"
 #include "TError.h"
 #include "TSystem.h"
-#else
-#include "base/RNG.h"
 #endif
 
 #include "TPartIndex.h"
@@ -306,10 +305,10 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, G
 
 #ifndef GEANT_CUDA_DEVICE_BUILD
   double *rndArray = td->fDblArray;
-#ifdef USE_ROOT
-  td->fRndm->RndmArray(ntracks, rndArray);
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
+#elif USE_ROOT
+  td->fRndm->RndmArray(ntracks, rndArray);
 #endif
 #else
   double *rndArray = 0; // NOTE: we need to get it from somewhere ....
@@ -497,10 +496,10 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
 
   // tid-based rng
   double *rndArray = td->fDblArray;
-#ifdef USE_ROOT
-  td->fRndm->RndmArray(2 * ntracks, rndArray);
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(2 * ntracks, rndArray);
+#elif USE_ROOT
+  td->fRndm->RndmArray(2 * ntracks, rndArray);
 #endif
 
   int nTotSecPart = 0; // total number of secondary particles in tracks
@@ -778,10 +777,10 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
   const double mecc = 0.00051099906; // e- mass c2 in [GeV]
   double rndArray[3];
 #ifndef GEANT_CUDA_DEVICE_BUILD
-#ifdef USE_ROOT
-  td->fRndm->RndmArray(3, rndArray);
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(3, rndArray);
+#elif USE_ROOT
+  td->fRndm->RndmArray(3, rndArray);
 #endif
 #else
   VECGEOM_NAMESPACE::RNG::Instance().uniform_array(3, rndArray, 0., 1.);

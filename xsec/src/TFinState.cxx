@@ -1,7 +1,8 @@
 #include "TFinState.h"
 #ifdef USE_ROOT
 #include "TRandom.h"
-#else
+#endif
+#ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
 using vecgeom::RNG;
 #endif
@@ -221,10 +222,10 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
     }
   }
 
-#ifdef USE_ROOT
-  double eta = gRandom->Rndm();
-#else
+#ifdef USE_VECGEOM_NAVIGATOR
   double eta = RNG::Instance().uniform();
+#elif USE_ROOT
+  double eta = gRandom->Rndm();
 #endif
   int finstat = fNFstates - 1;
   for (int i = 0; i < fNFstates - 1; ++i)
