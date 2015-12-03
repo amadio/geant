@@ -3,6 +3,7 @@
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
+#include "Geant/Error.h"
 #ifdef USE_ROOT
 #include "TProfile.h"
 #include "TH1.h"
@@ -59,7 +60,7 @@ bool StdApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return true;
-  Printf("=== StdApplication::Initialize done");
+  Geant::Printf("=== StdApplication::Initialize done");
   fInitialized = true;
   return true;
 }
@@ -100,7 +101,7 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 //______________________________________________________________________________
 void StdApplication::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
-  //   printf("======= Statistics for event %d:\n", event);
+  //   Geant::Printf("======= Statistics for event %d:\n", event);
 }
 
 //______________________________________________________________________________

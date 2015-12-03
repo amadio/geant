@@ -10,6 +10,7 @@ using vecgeom::GeoManager;
 #include "GeantScheduler.h"
 #include "GeantTaskData.h"
 #include "globals.h"
+#include "Geant/Error.h"
 #ifdef USE_ROOT
 #include "TProfile.h"
 #include "TH1.h"
@@ -132,7 +133,7 @@ bool CMSApplication::Initialize() {
     }
   }
   
-  Printf("=== CMSApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
+  Geant::Printf("=== CMSApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
   fInitialized = true;  
   return true;
 }
@@ -191,7 +192,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
           (tracks.fStatusV[itr] == kExitingSetup) ||
           (tracks.fPathV[itr]->IsOutside()) ||
           (tracks.fStatusV[itr] == kBoundary)) {
-       //    Printf("hit with energy %f", tracks.fEdepV[itr]);
+       //    Geant::Print("hit with energy %f", tracks.fEdepV[itr]);
 	     double th = Math::Sqrt(tracks.fXposV[itr]*tracks.fXposV[itr]+tracks.fYposV[itr]*tracks.fYposV[itr])/tracks.fZposV[itr];
 	     if (Math::Abs(th)>0.1) {
           MyHit *hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
@@ -218,7 +219,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       MyHit *hit;
       // Deposit hits
       if (tracks.fEdepV[itr]>0.00002) {
-      //      Printf("hit with energy %f", tracks.fEdepV[itr]);
+      //      Geant::Printf("hit with energy %f", tracks.fEdepV[itr]);
         hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
         hit->fX = tracks.fXposV[itr];
         hit->fY = tracks.fYposV[itr];
@@ -276,7 +277,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 	// Deposit hits
 	if (tracks.fEdepV[itr]>0.00002)
 	  {
-	    //	    Printf("hit with energy %f", tracks.fEdepV[itr]);
+	    //	    Geant::Printf("hit with energy %f", tracks.fEdepV[itr]);
 	    
 	    hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
 	    
@@ -299,35 +300,35 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 //______________________________________________________________________________
 void CMSApplication::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
-  //   printf("======= Statistics for event %d:\n", event);
-  printf("Energy deposit in ECAL [MeV/primary] ");
-  printf("================================================================================");
+  //   Geant::Printf("======= Statistics for event %d:\n", event);
+  Geant::Printf("Energy deposit in ECAL [MeV/primary] ");
+  Geant::Printf("================================================================================");
   double nprim = (double)gPropagator->fNprimaries;
   for (int i = 0; i < kNECALModules; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
     }
 #ifdef USE_VECGEOM_NAVIGATOR
-    printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fECALid[i])->GetName(),
+    Geant::Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fECALid[i])->GetName(),
            fEdepECAL[i][0] * 1000. / nprim);
 #else
-    printf("   volume %s: edep=%f", gGeoManager->GetVolume(fECALid[i])->GetName(), fEdepECAL[i][0] * 1000. / nprim);
+    Geant::Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fECALid[i])->GetName(), fEdepECAL[i][0] * 1000. / nprim);
 #endif
   }
-  printf("Energy deposit in HCAL [MeV/primary] ");
-  printf("================================================================================");
+  Geant::Printf("Energy deposit in HCAL [MeV/primary] ");
+  Geant::Printf("================================================================================");
   for (int i = 0; i < kNHCALModules; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepHCAL[i][0] += fEdepHCAL[i][tid];
     }
 #ifdef USE_VECGEOM_NAVIGATOR
-    printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fHCALid[i])->GetName(),
+    Geant::Printf("   volume %s: edep=%f", GeoManager::Instance().FindLogicalVolume(fHCALid[i])->GetName(),
            fEdepHCAL[i][0] * 1000. / nprim);
 #else
-    printf("   volume %s: edep=%f", gGeoManager->GetVolume(fHCALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
+    Geant::Printf("   volume %s: edep=%f", gGeoManager->GetVolume(fHCALid[i])->GetName(), fEdepHCAL[i][0] * 1000. / nprim);
 #endif
   }
-  printf("================================================================================");
+  Geant::Printf("================================================================================");
 }
 
 //______________________________________________________________________________
