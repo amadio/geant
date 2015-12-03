@@ -4,7 +4,9 @@
 
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
-
+#ifdef USE_ROOT
+#include "TGeoManager.h"
+#endif
 #include <iostream>
 #include <fstream>
 
@@ -39,6 +41,11 @@ int main()
    expandPhysics(buf);
    const char *fxsec = "/dev/null";
    const char *ffins = "/dev/null";
+   #ifdef USE_ROOT
+   GeantPropagator::Instance(1,1,1);
+   TGeoManager *geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
+
+   #endif
    TTabPhysMgr::Instance(fxsec, ffins );
 
    constexpr int nrep = 1000;
@@ -85,6 +92,9 @@ int main()
       }
    }
    fftest.close();
+   #ifdef USE_ROOT
+   delete geom;
+   #endif
    return 0;
 }
 
