@@ -23,11 +23,13 @@
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "materials/Particle.h"
+#endif
+#include "Geant/Typedefs.h"
+#ifdef GEANT_NVCC
 #include "base/Map.h"
 #else
 #include <map>
 #endif
-#include "Geant/Typedefs.h"
 
 #define DICLEN 12  // Number of process cross sections
 #define FNPROC 18  // Number of total processes
@@ -57,7 +59,7 @@ enum GVproc {
 class TPartIndex {
 
 public:
-#ifdef USE_VECGEOM_NAVIGATOR
+#if defined(USE_VECGEOM_NAVIGATOR) && defined(GEANT_NVCC)
   using Map_t = vecgeom::map<int,int>;
 #else
   using Map_t = std::map<int,int>;

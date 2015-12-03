@@ -11,8 +11,11 @@
 //===----------------------------------------------------------------------===//
 #ifndef GEANT_StdApplication
 #define GEANT_StdApplication
-
+#ifdef GEANT_NVCC
+#include "base/Map.h"
+#else
 #include <map>
+#endif
 #include <mutex>
 #ifndef GEANT_VAPPLICATION
 #include "GeantVApplication.h"
