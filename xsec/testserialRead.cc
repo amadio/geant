@@ -10,12 +10,15 @@
 #include <iostream>
 #include <fstream>
 
-
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
 using vecgeom::RNG;
+#define UNIFORM() RNG::Instance().uniform()
 #elif USE_ROOT
 #include <TRandom.h>
+#define UNIFORM() gRandom->Uniform()
+#else
+#define UNIFORM() ((double)rand())/RAND_MAX
 #endif
 
 void expandPhysics(char *buf);
@@ -25,8 +28,6 @@ using std::endl;
 
 int main()
 {
-
-   RNG::Instance().seed(12345); 
    char *buf=nullptr;
    int totsize;
    // read from file
@@ -49,30 +50,24 @@ int main()
    TTabPhysMgr::Instance(fxsec, ffins );
 
    constexpr int nrep = 1000;
+
+   #ifndef USE_VECGEOM_NAVIGATOR
+   #ifdef USE_ROOT
+   gRandom->SetSeed(12345);
+   #else
+   srand(12345);
+   #endif
+   #endif
+
    std::ofstream fftest("xphysR.txt");
    for(auto iel=0; iel<TEXsec::NLdElems(); ++iel) {
       for(auto irep=0; irep<nrep; ++irep) {
 
-        #ifdef USE_VECGEOM_NAVIGATOR
-	 int ipart = RNG::Instance().uniform() * TPartIndex::I()->NPartReac();
-         int ireac = RNG::Instance().uniform() * FNPROC;
-	 float en =  RNG::Instance().uniform() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
+	 int ipart = UNIFORM() * TPartIndex::I()->NPartReac();
+         int ireac = UNIFORM() * FNPROC;
+	 float en =  UNIFORM() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
           //cout<<"using RNG "<<ipart<<endl;
-         #elif  USE_ROOT
-          //cout<<"using gRandom"<<endl;
-	 int ipart = gRandom->Rndm() * TPartIndex::I()->NPartReac();
-         int ireac = gRandom->Rndm() * FNPROC;
-	 float en = gRandom->Rndm() * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
-	    + TPartIndex::I()->Emin();
-         #else
-
-         //cout<<"using srand"<<endl;
-         int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
-         int ireac = (((double) rand())/RAND_MAX) * FNPROC;
-         float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
-             + TPartIndex::I()->Emin();
-         #endif
          float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
  	 if(xs < 0) continue;
 	 int npart=0;
