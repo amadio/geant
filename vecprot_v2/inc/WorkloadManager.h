@@ -75,7 +75,7 @@ protected:
   int fLastEvent;            /** Last transported event */
 
   dcqueue<TBufferFile*>* fOutputIO;            /** Queue of buffers to be merged for IO **/ 
-  TThreadMergingServer* fMergingServer;
+  Geant::TThreadMergingServer* fMergingServer;
   /**
    * @brief WorkloadManager parameterized constructor
    *
@@ -115,7 +115,7 @@ public:
    * @brief Function that provides IO queue 
    */
   dcqueue<TBufferFile*>*  IOQueue() const { return fOutputIO; }
-  TThreadMergingServer* MergingServer() const { return fMergingServer; }
+  Geant::TThreadMergingServer* MergingServer() const { return fMergingServer; }
 
   /** @brief Function that returns number of managed threads */
   int GetNthreads() const { return fNthreads; }

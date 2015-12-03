@@ -312,7 +312,8 @@ void *WorkloadManager::TransportTracks() {
   
   TTree *tree = new TTree("Tree","Simulation output");
   GeantBlock<MyHit>* data=0;
-  
+  std::list<GeantBlock<MyHit>* > list_of_data;
+	    
   tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
 
   // Start the feeder
@@ -502,6 +503,7 @@ void *WorkloadManager::TransportTracks() {
 	if(myhitFactory->fOutputs.try_pop(data))
 	  {
 	    tree->Fill();
+	    list_of_data.push_back(data);
 	  }
       }
     // Update geometry path for crossing tracks
@@ -543,8 +545,17 @@ void *WorkloadManager::TransportTracks() {
   }
 
   // WP
-  if(concurrentWrite) file.Write();
   
+  if(concurrentWrite)
+    {
+      file.Write();
+      for(std::list<GeantBlock<MyHit>* >::iterator it=list_of_data.begin();it!=list_of_data.end();it++)
+	{
+	  myhitFactory->Recycle(data);
+	}
+      list_of_data.clear();
+    }
+   
   wm->DoneQueue()->push(0);
   delete prioritizer;
   Printf("=== Thread %d: exiting ===", tid);
@@ -1215,7 +1226,7 @@ void *WorkloadManager::OutputThread() {
     
       GeantBlock<MyHit>* data=0;
 
-      TTree *tree = new TTree("T","Simulation output");
+      TTree *tree = new TTree("Hits","Simulation output");
     
       tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
     

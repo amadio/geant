@@ -22,6 +22,8 @@
 #include "TMath.h"
 #include "TTimeStamp.h"
 
+using namespace Geant;
+
 const int kIncremental = 0;
 const int kReplaceImmediately = 1;
 const int kReplaceWait = 2;
@@ -247,10 +249,10 @@ void TThreadMergingServer::Listen()
       
   Int_t clientId=0;
   while (!finish || fOutput->size()>0)
-      while (fOutput->try_pop(buffer))
+    while (fOutput->try_pop(buffer))
       {
 	//	Printf("Popped from queue of %zu", fOutput->size()+1);
-	  
+	
 	buffer->SetReadMode();
 	buffer->SetBufferOffset();
 	  

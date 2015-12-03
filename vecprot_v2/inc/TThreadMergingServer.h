@@ -27,9 +27,11 @@
 
 #include "dcqueue.h"
 
+namespace Geant {
+  
 struct ClientInfo 
 {
-   TFile      *fFile;      // This object does *not* own the file, it will be own by the owner of the ClientInfo.
+   TFile      *fFile;      // This object does *not* own the file, it will be owned by the owner of the ClientInfo.
    TString    fLocalName;
    UInt_t     fContactsCount;
    TTimeStamp fLastContact;
@@ -105,17 +107,19 @@ struct ThreadFileMerger : public TObject
 
 struct TThreadMergingServer : public TObject
 {
-   dcqueue<TBufferFile*>* fOutput;
-   bool finish;
-   
+  dcqueue<TBufferFile*>* fOutput; // this pointer is NOT owned by the server
+  bool finish;
+  
  TThreadMergingServer(dcqueue<TBufferFile*>* queue):finish(false)
-     {   
-       fOutput = queue;
-     }
-   
-   ~TThreadMergingServer(){}
-   void Listen();
-   void Finish(){finish=true;}
+    {   
+      fOutput = queue;
+    }
+  
+  ~TThreadMergingServer(){}
+  void Listen();
+  void Finish(){finish=true;}
 };
+
+} // namespace Geant
 
 #endif

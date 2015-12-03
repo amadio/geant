@@ -32,6 +32,6 @@
 #pragma link C++ class MyHit+;
 #pragma link C++ class GeantBlock<MyHit>+;
 #pragma link C++ class TThreadMergingFile+;
-#pragma link C++ class ThreadFileMerger+;
+#pragma link C++ class Geant::ThreadFileMerger+;
 
 #endif
