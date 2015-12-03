@@ -1,5 +1,4 @@
 #include "HepMCGenerator.h"
-
 #include "base/Global.h"
 using vecgeom::kPi;
 #include "Geant/Typedefs.h"
@@ -134,7 +133,7 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
     // here I have to create GeantTracks
     int pdg = genpart->pid();
     gtrack.SetPDG(pdg);
-//    gtrack.SetPDG(0);
+//    gtrack.SetPDG(2212);
 
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(gtrack.fPDG));
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -157,7 +156,6 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
       gtrack.fZpos = 0;
     }
 
-    gtrack.fE = genpart->momentum().e(); // e- 30MeV
 
     // Compute momentum from energy/mass
     double p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
@@ -166,7 +164,9 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
         sqrt(genpart->momentum().px() * genpart->momentum().px() + genpart->momentum().py() * genpart->momentum().py() +
              genpart->momentum().pz() * genpart->momentum().pz());
 
-    gtrack.SetP(p);
+    gtrack.SetP(ptrack);
+    gtrack.fE = sqrt(ptrack*ptrack+gtrack.fMass*gtrack.fMass);
+//    std::cout << "track momentum = " << ptrack*1000. << std::endl;
     // Correctly normalize direction
     gtrack.fXdir = genpart->momentum().px() / ptrack;
     gtrack.fYdir = genpart->momentum().py() / ptrack;
@@ -182,6 +182,7 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
   const HepMC::GenParticlePtr &genpart = search->results()[n];
   // here I have to create GeantTracks
   pdg = genpart->pid();
+//  pdg = 2212;
   if ((bool)genpart->production_vertex()) {
     // current default unit is [mm] that is the default Geant4 length unit as well
     x0 = genpart->production_vertex()->position().x();
@@ -196,7 +197,14 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
   tpx = genpart->momentum().px() * 1000.0;
   tpy = genpart->momentum().py() * 1000.0;
   tpz = genpart->momentum().pz() * 1000.0;
-  te = genpart->momentum().e() * 1000.0;
+#ifdef USE_VECGEOM_NAVIGATOR
+    const Particle_t *const &part = &Particle::GetParticle(pdg);
+#else
+    TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(pdg);
+#endif
+  te = sqrt(tpx*tpx+tpy*tpy+tpz*tpz+part->Mass()*part->Mass()*1E6);
+//  std::cout << "track momentum = " << te << std::endl;
+//  te = genpart->momentum().e() * 1000.0;
 
   /*
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];

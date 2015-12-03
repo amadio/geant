@@ -156,7 +156,8 @@ void CMSApp::SteppingAction(const G4Step *step) {
 
   // Score in ECAL
   if (idtype==1) {
-      G4double capacity = fCubicVolumes[ivol];
+//      G4double capacity = fCubicVolumes[ivol];
+      G4double capacity = 1.;
       const G4Track           *track = step->GetTrack();
       const G4DynamicParticle *dpart = track->GetDynamicParticle();
       G4int thePDG = track->GetParticleDefinition()->GetPDGEncoding();
@@ -164,8 +165,17 @@ void CMSApp::SteppingAction(const G4Step *step) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
 	  fFluxElec->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
 	  fEdepElec->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
-      } else if( thePDG          == 22  ) {
+      } else if( thePDG          == 22 ||  thePDG == 0 ) {
           G4double totMomentum = dpart->GetTotalMomentum() / CLHEP::MeV; 
+/*
+            G4cout<< " Name Vol = "<< vol->GetName() << " position = ["
+                   << step->GetPostStepPoint()->GetPosition().x() / CLHEP::cm << ", "
+                   << step->GetPostStepPoint()->GetPosition().y() / CLHEP::cm << ", "
+                   << step->GetPostStepPoint()->GetPosition().z() / CLHEP::cm << "] "
+                   << " momentum = " << totMomentum
+                   << " step length = " << step->GetStepLength() / CLHEP::cm
+                   << " [cm]"<<G4endl;
+*/
           fFluxGamma->Fill(totMomentum, step->GetStepLength() / CLHEP::cm /capacity);
           fEdepGamma->Fill(totMomentum, step->GetTotalEnergyDeposit() / CLHEP::MeV /capacity);
       } else if( thePDG          == 2212) {
