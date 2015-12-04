@@ -14,6 +14,7 @@
 #ifndef GUFIELD_PROPAGATOR_POOL_H
 #define GUFIELD_PROPAGATOR_POOL_H 1
 
+#include <cstddef>
 #include <vector>
 
 // namespace GUFieldPropagation {
@@ -41,6 +42,7 @@ class GUFieldPropagatorPool
     void CheckIndex(size_t num){
        assert(num>=0);
        assert(num< fFieldPropagatorVec.size());
+       ((void)num); // make compiler happy
     }
     
     GUFieldPropagator* GetPropagator(int num) {

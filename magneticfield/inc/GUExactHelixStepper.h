@@ -12,7 +12,7 @@
 #define GUExactHelixStepper_h 1
 
 //  #include "ThreeVector.h"
-#include "Vector3D.h"
+#include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector; 
 
 // #include "GUVIntegrationStepper.h"

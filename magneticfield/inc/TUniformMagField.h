@@ -9,7 +9,7 @@
 #include <iostream>
 
 // #include "ThreeVector.h"  // Or whatever defines such a class
-#include "Vector3D.h"
+#include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
 #include "Constants.h"  //   For pi & twopi - Temporary solution ..
@@ -86,10 +86,10 @@ class TUniformMagField : public GUVMagneticField
                         this->fFieldComponents[2]) );
         }
 
-        TUniformMagField* CloneOrSafeSelf( bool Safe = 0 )
+        TUniformMagField* CloneOrSafeSelf( bool /*Safe = 0*/ )
         // {  Safe= true; return this; }  //  Class is thread-safe, can use 'self' instead of clone
         // { Safe= false; return new TUniformMagField( this ); }  // Check ...
-        { Safe= false; return Clone(); }  // Check ...
+        { /*Safe= false;*/ return Clone(); }  // Check ...
         
         // TUniformMagField* CloneOrSafeSelf( bool* pSafe = 0 )
         //     {  if(pSafe) { *pSafe= true; } ; return this; }
