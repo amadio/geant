@@ -116,7 +116,7 @@ private:
 #endif
 
 #ifdef USE_ROOT
-  ClassDefNV(TPXsec, 3) // Particle X-secs
+  ClassDefNV(TPXsec, 4) // Particle X-secs
 #endif
 
 private:
