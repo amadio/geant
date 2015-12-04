@@ -23,6 +23,7 @@ using vecgeom::GeoManager;
 
 #ifdef USE_ROOT
 #include "TMath.h"
+#include "TString.h"
 #endif
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
