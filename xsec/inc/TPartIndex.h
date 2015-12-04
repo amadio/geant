@@ -197,7 +197,7 @@ private:
 
 #ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
-  ClassDef(TPartIndex, 101) // Particle Index
+  ClassDef(TPartIndex, 102) // Particle Index
 #else
   ClassDef(TPartIndex, 3)   // Particle Index
 #endif
