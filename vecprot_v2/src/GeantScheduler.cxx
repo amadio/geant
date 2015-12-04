@@ -273,7 +273,7 @@ int GeantScheduler::GarbageCollect(GeantTaskData *td, bool force) {
       ninjected += fBasketMgr[ibasket]->GarbageCollect(td);
   }
   fGBCLock.clear(std::memory_order_release);
-  Printf("=== Garbage collect: %d baskets", ninjected);
+//  Printf("=== Garbage collect: %d baskets", ninjected);
   return ninjected;
 }
 
