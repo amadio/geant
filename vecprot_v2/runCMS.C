@@ -36,10 +36,6 @@ void runCMS(int ncputhreads=4,
    TGeoManager::Import(geomfile);
    
    TaskBroker *broker = nullptr;
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
-   prop->fBmag = 40.; // 4 Tesla
-   // Monitor different features
-   prop->SetNminThreshold(5*nthreads);
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -51,6 +47,9 @@ void runCMS(int ncputhreads=4,
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
    }
+
+   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
+   prop->fBmag = 40.; // 4 Tesla
 
    if (broker) prop->SetTaskBroker(broker);
 
