@@ -1249,10 +1249,10 @@ void TabulatedDataManager::SampleSecondaries(std::vector<GXTrack *> *vdp, G4int 
   float ener = 0;         // energy at the fstate (Ekin of primary after the interc.)
   G4float kerma = 0;      // released energy
   G4float weight = 0;     // weight of the fstate (just a dummy parameter now)
-  char isSurv = 0;        // is the primary survived the interaction
+  //char isSurv = 0;        // is the primary survived the interaction
   G4int ebinindx = -1;
 
-  isSurv = fElemFstate[indexElem]->SampleReac(ipart, ireac, kineticEnergy, nSecPart, weight, kerma, ener, pid, mom,
+  /*isSurv = */fElemFstate[indexElem]->SampleReac(ipart, ireac, kineticEnergy, nSecPart, weight, kerma, ener, pid, mom,
                                               ebinindx);
   if (nSecPart > 0) {
 

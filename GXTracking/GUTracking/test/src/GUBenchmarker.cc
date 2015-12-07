@@ -110,11 +110,13 @@ void GUBenchmarker::RunScalar()
      
     //prepare input tracks
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
+
     GUTrack* track_aos = fTrackHandler->GetAoSTracks();
+    fTrackHandler->SortAoSTracksByEnergy(track_aos,fNtracks);
 
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
       if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
-	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
+	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos,fNtracks);
 	elapsedT[k] = 0.0;
 	elapsedT[k] = ScalarKernelFunc[k](fNtracks,itrack_aos,targetElements,
 					  otrack_aos,fSampleType);
@@ -172,11 +174,13 @@ void GUBenchmarker::RunGeant4()
     // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
+
     GUTrack* track_aos = fTrackHandler->GetAoSTracks();
+    fTrackHandler->SortAoSTracksByEnergy(track_aos,fNtracks);
 
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
       if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
-	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos);
+	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos,fNtracks);
 	
 	elapsedT[k] = 0.0;
 	elapsedT[k] = G4KernelFunc[k](fNtracks,itrack_aos,targetElements,
@@ -238,11 +242,13 @@ void GUBenchmarker::RunVector()
     // In 'random' mode, it should change for every iteration
 
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
+
     GUTrack_v& track_soa = fTrackHandler->GetSoATracks();
+    fTrackHandler->SortSoATracksByEnergy(track_soa,fNtracks);
     
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
       if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
-	fTrackHandler->CopySoATracks(track_soa,itrack_soa);
+	fTrackHandler->CopySoATracks(track_soa,itrack_soa,fNtracks);
 	
 	elapsedT[k] = 0.0;
 	elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,

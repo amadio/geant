@@ -44,7 +44,21 @@ struct GeneralTask : public CoprocessorBroker::Task {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
 
-      return -1 == host_track.fChargeV[track];
+      return true;
+   }
+};
+
+struct GeneralChargedTask : public CoprocessorBroker::Task {
+   GeneralChargedTask(short charge) : Task( PropagateGeantTrack_gpu ), fCharge(charge) {}
+   short fCharge;
+
+   const char *Name() { return "GeneralChargedTask"; }
+   bool Select(Geant::GeantTrack_v &host_track, int track)
+   {
+      // Currently we can only handle electron, which we pretend are the only
+      // particle to have charge -1.
+
+      return fCharge == host_track.fChargeV[track];
    }
 };
 
@@ -261,8 +275,12 @@ CoprocessorBroker::CoprocessorBroker() : fdGeometry(0)
 {
    // Default constructor.
 
+   //fIsSelective = false;
+   //fTasks.push_back(new GeneralTask());
+
    fIsSelective = true;
-   fTasks.push_back(new GeneralTask());
+   fTasks.push_back(new GeneralChargeTask(-1));
+
    /*
    fTasks.push_back(new EnergyElectronTask(6));
    fTasks.push_back(new EnergyElectronTask(4));

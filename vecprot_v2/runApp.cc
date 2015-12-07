@@ -1,120 +1,206 @@
-#include "Rtypes.h"
-#include "TGeoManager.h"
-
-#include "Rtypes.h"
-#include "TGeoManager.h"
-
-#include "HepMC/Config.h"
-#include "GunGenerator.h"
-#include "base/MessageLogger.h"
-#include "HepMCGenerator.h"
-#include "TTabPhysProcess.h"
-#include "WorkloadManager.h"
-#include "GeantPropagator.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "materials/Particle.h"
-#endif
-#include "ExN03Application.h"
-
-// The following in ROOT v6 equivalent to gSystem->Load("../lib/libGeant_v");
-// R__LOAD_LIBRARY(libGeant_v)
-
 #ifndef COPROCESSOR_REQUEST
 #define COPROCESSOR_REQUEST false
 #endif
 
-int main() {
-  int nthreads = 15;
-  const char *geomfile = "ExN03.root";
-  const char *xsec = "xsec_FTFP_BERT.root";
-  const char *fstate = "fstate_FTFP_BERT.root";
-  bool coprocessor = false;
+#include <err.h>
+#include <getopt.h>
+#include <iostream>
+#include <unistd.h>
+#include "Rtypes.h"
+#include "TGeoManager.h"
 
-  //=============================================================================
-  // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
-  //=============================================================================
+#include "GunGenerator.h"
+#include "TaskBroker.h"
+#include "TTabPhysProcess.h"
+#include "WorkloadManager.h"
+#include "GeantPropagator.h"
+#include "ExN03Application.h"
+
+static int n_events = 50;
+static int n_buffered = 10;
+static int n_threads = 4;
+static int n_track_max = 500;
+static int n_learn_steps = 0;
+static bool monitor = false, score = false, debug = false, coprocessor = false;
+
+static struct option options[] = {{"events", required_argument, 0, 'e'},
+                                  {"fstate", required_argument, 0, 'f'},
+                                  {"geometry", required_argument, 0, 'g'},
+                                  {"learn-steps", required_argument, 0, 'l'},
+                                  {"max-tracks-per-basket", required_argument, 0, 'B'},
+                                  {"monitor", no_argument, 0, 'm'},
+                                  {"debug", no_argument, 0, 'd'},
+                                  {"nbuffer", required_argument, 0, 'b'},
+                                  {"score", no_argument, 0, 's'},
+                                  {"threads", required_argument, 0, 't'},
+                                  {"xsec", required_argument, 0, 'x'},
+                                  {"coprocessor", required_argument, 0, 'r'},
+                                  {0, 0, 0, 0}};
+
+void help() {
+  printf("\nUsage: cmsapp [OPTIONS] INPUT_FILE\n\n");
+
+  for (int i = 0; options[i].name != NULL; i++) {
+    printf("\t-%c  --%s\t%s\n", options[i].val, options[i].name, options[i].has_arg ? options[i].name : "");
+  }
+  printf("\n\n");
+}
+
+int main(int argc, char *argv[]) {
+  std::string exn03_geometry_filename("ExN03.root");
+  std::string xsec_filename("xsec_FTFP_BERT.root");
+  std::string fstate_filename("fstate_FTFP_BERT.root");
+
+  if (argc == 1) {
+    help();
+    exit(0);
+  }
+
+  while (true) {
+    int c, optidx = 0;
+
+    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r", options, &optidx);
+
+    if (c == -1)
+      break;
+
+    switch (c) {
+    case 0:
+      c = options[optidx].val;
+    /* fall through */
+    case 'e':
+      n_events = (int)strtol(optarg, NULL, 10);
+
+      if (n_events <= 0)
+        errx(1, "number of events must be positive");
+      break;
+
+    case 'f':
+      fstate_filename = optarg;
+      break;
+
+    case 'g':
+      exn03_geometry_filename = optarg;
+      break;
+
+    case 'l':
+      n_learn_steps = (int)strtol(optarg, NULL, 10);
+
+      if (n_learn_steps <= 0)
+        errx(1, "number of learning steps must be positive");
+
+      break;
+
+    case 'B':
+      n_track_max = (int)strtol(optarg, NULL, 10);
+
+      if (n_track_max < 1)
+        errx(1, "max number of tracks per basket must be positive");
+
+      break;
+
+    case 'm':
+      monitor = true;
+      break;
+
+    case 'b':
+      n_buffered = (int)strtol(optarg, NULL, 10);
+
+      if (n_buffered < 1)
+        errx(1, "number of buffered events must be positive");
+      break;
+
+    case 't':
+      n_threads = (int)strtol(optarg, NULL, 10);
+
+      if (n_threads < 1)
+        errx(1, "number of threads must be positive");
+      break;
+
+    case 's':
+      score = true;
+      break;
+
+    case 'x':
+      xsec_filename = optarg;
+      break;
+
+    case 'r':
+      coprocessor = optarg;
+      break;
+
+    default:
+      errx(1, "unknown option %c", c);
+    }
+  }
   bool performance = true;
-  double vt[3] = {-8, 0, 0};
-
-  int ntotal = 50;    // Number of events to be transported
-  int nbuffered = 10; // Number of buffered events (tunable [1,ntotal])
-  TGeoManager::Import(geomfile);
-
-  GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
-  prop->fVertex[0] = vt[0];
-  prop->fVertex[1] = vt[1];
-  prop->fVertex[2] = vt[2];
-  // Monitor different features
-  prop->SetNminThreshold(5 * nthreads);
+  TGeoManager::Import(exn03_geometry_filename.c_str());
+  WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
+  TaskBroker *broker = nullptr;
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
     CoprocessorBroker *gpuBroker = new CoprocessorBroker();
-    gpuBroker->CudaSetup(32, 128, 1);
-    prop->SetTaskBroker(gpuBroker);
+    gpuBroker->CudaSetup(32,128,1);
+    broker = gpuBroker;
+    nthreads += gpuBroker->GetNstream()+1;
 #else
     std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
   }
+  GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered,n_threads);
 
-  prop->SetMonitored(GeantPropagator::kMonQueue, true & (!performance));
-  prop->SetMonitored(GeantPropagator::kMonMemory, false & (!performance));
-  prop->SetMonitored(GeantPropagator::kMonBasketsPerVol, false & (!performance));
-  prop->SetMonitored(GeantPropagator::kMonVectors, false & (!performance));
-  prop->SetMonitored(GeantPropagator::kMonConcurrency, false & (!performance));
-  prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
-  bool graphics = (prop->GetMonFeatures()) ? true : false;
-  prop->fUseMonitoring = graphics;
-  prop->fNaverage = 500; // Average number of tracks per event
+  if (broker) propagator->SetTaskBroker(broker);
+  wmanager->SetNminThreshold(5 * n_threads);
+  propagator->fUseMonitoring = monitor;
 
+  // Monitor different features
+  wmanager->SetNminThreshold(5*n_threads);
+  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
+  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
+  propagator->fUseMonitoring = monitor;
+  propagator->fNaverage = 500;   // Average number of tracks per event
+  
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
-  prop->fPriorityThr = 0.05;
+  propagator->fPriorityThr = 0.05;
 
-  // Initial vector size, this is no longer an important model parameter,
+  // Initial vector size, this is no longer an important model parameter, 
   // because is gets dynamically modified to accomodate the track flow
-  prop->fNperBasket = 16; // Initial vector size (tunable)
+  propagator->fNperBasket = 16;   // Initial vector size (tunable)
 
   // This is now the most important parameter for memory considerations
-  prop->fMaxPerBasket = 256; // Maximum vector size (tunable)
+  propagator->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
+  propagator->fEmin = 3.E-6; // [3 KeV] energy cut
+  propagator->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
-  prop->fEmin = 3.E-6; // [3 KeV] energy cut
-  prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
-
-// Create the tab. phys process.
-#ifdef USE_VECGEOM_NAVIGATOR
-  prop->LoadVecGeomGeometry();
-#endif
-  prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
-  prop->fProcess->Initialize();
+  // Create the tab. phys process.
+  propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   // for vector physics -OFF now
-  // prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin, nthreads);
+  // propagator->fVectorPhysicsProcess = new GVectorPhysicsProcess(propagator->fEmin, nthreads);
+  propagator->fPrimaryGenerator = new GunGenerator(propagator->fNaverage, 11, propagator->fEmax, -8, 0, 0, 1, 0, 0);
 
-  prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, vt[0], vt[1], vt[2], 1, 0, 0);
-
-  // Number of steps for learning phase (tunable [0, 1e6])
-  // if set to 0 disable learning phase
-  prop->fLearnSteps = 0;
-  if (performance)
-    prop->fLearnSteps = 0;
-
-  prop->fApplication = new ExN03Application();
-
-  // Activate debugging using -DBUG_HUNT=ON in your cmake build
-  prop->fDebugEvt = 0;
-  prop->fDebugTrk = 0;
-  prop->fDebugStp = 0;
-  prop->fDebugRep = 10;
-
-  // Activate standard scoring
-  prop->fUseStdScoring = true;
-  if (performance)
-    prop->fUseStdScoring = false;
+   // Number of steps for learning phase (tunable [0, 1e6])
+   // if set to 0 disable learning phase
+  propagator->fLearnSteps = n_learn_steps;
+  if (performance) propagator->fLearnSteps = 0;
+  propagator->fApplication = new ExN03Application();
+   // Activate I/O
+  propagator->fFillTree = false;
+   // Activate debugging using -DBUG_HUNT=ON in your cmake build
+  if (debug) {
+    propagator->fUseDebug = kTRUE;
+    propagator->fDebugTrk = 1;
+  }
+// Activate standard scoring   
+  propagator->fUseStdScoring = true;
+  if (performance) propagator->fUseStdScoring = false;
   // Monitor the application
-  prop->fUseAppMonitoring = false;
-  prop->PropagatorGeom(geomfile, nthreads, graphics);
-  delete prop;
-#ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::MessageLogger::I()->summary(std::cout, "a");
-#endif
+  propagator->fUseAppMonitoring = false;
+  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
+  return 0;
 }

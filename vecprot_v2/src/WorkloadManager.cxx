@@ -36,6 +36,7 @@
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
 #endif
+#include "TThread.h"
 #include "GeantFactoryStore.h"
 #include "TThreadMergingFile.h"
 
@@ -92,7 +93,7 @@ void WorkloadManager::CreateBaskets() {
   // Create the array of baskets
   VolumePath_t *blueprint = 0;
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
-  Printf("Max depth: %d", maxdepth);
+  Geant::Info("CreateBaskets","Max depth: %d", maxdepth);
   blueprint = VolumePath_t::MakeInstance(maxdepth);
   //   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
   //   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
@@ -152,7 +153,7 @@ void WorkloadManager::StartThreads() {
       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
               fNthreads);
     }
-    Printf("Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
+    Geant::Info("StartThreads", "Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
     fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
     ith += fBroker->GetNstream() + 1;
     if (ith == fNthreads && fBroker->IsSelective()) {
@@ -203,7 +204,7 @@ void WorkloadManager::WaitWorkers() {
   while (ntowait) {
     fDoneQ->wait_and_pop(signal);
     ntowait--;
-    Printf("=== %d workers finished", fNthreads - ntowait);
+    Geant::Print("", "=== %d workers finished", fNthreads - ntowait);
   }
   //   fBasketGeneration++;
 }
@@ -211,7 +212,7 @@ void WorkloadManager::WaitWorkers() {
 //______________________________________________________________________________
 void *WorkloadManager::MainScheduler(void *) {
   // Garbage collector thread, called by a single thread.
-  Printf("=== Scheduler: stopping threads and exiting ===");
+  Geant::Print("","=== Scheduler: stopping threads and exiting ===");
   return 0;
 }
 
@@ -287,7 +288,7 @@ void *WorkloadManager::TransportTracks() {
   int ngcoll = 0;
   GeantBasket *basket = 0;
   int tid = Instance()->ThreadId();
-  Printf("=== Worker thread %d created ===", tid);
+  Geant::Print("","=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
   td->fTid = tid;
@@ -327,7 +328,7 @@ void *WorkloadManager::TransportTracks() {
 //   int nprocesses = propagator->fNprocesses;
 //   int ninput, noutput;
 //   bool useDebug = propagator->fUseDebug;
-//   Printf("(%d) WORKER started", tid);
+//   Geant::Print("","(%d) WORKER started", tid);
 // Create navigator if none serving this thread.
 #ifdef USE_VECGEOM_NAVIGATOR
 // Suppose I do not need a new navigator for VecGeom... otherwise how it ever worked... ?
@@ -383,10 +384,10 @@ void *WorkloadManager::TransportTracks() {
     GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty
-    //      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
+    //      Geant::Print("","======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
     //      counter.load());
     //      basket->Print();
-    //      Printf("==========================================");
+    //      Geant::Print("","==========================================");
     //      propagator->fTracksPerBasket[tid] = ntotransport;
     td->fVolume = 0;
     mat = 0;
@@ -416,7 +417,7 @@ void *WorkloadManager::TransportTracks() {
     while (ntotransport) {
       // Interrupt condition here. Work stealing could be also implemented here...
       generation++;
-      //         Printf("====== WorkloadManager:");
+      //         Geant::Print("","====== WorkloadManager:");
       //         input.PrintTracks();
       // Propagate all remaining tracks
       if (basket->IsMixed())
@@ -450,7 +451,7 @@ void *WorkloadManager::TransportTracks() {
         propagator->fNphysSteps += nphys;
 
       propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, td);
-      //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
+      //         if (nextra_at_rest) Geant::Print("","Extra particles: %d", nextra_at_rest);
       // Now we may also have particles killed by energy threshold
       // Do post-step actions on remaining particles
       // to do: group particles per process
@@ -488,7 +489,7 @@ void *WorkloadManager::TransportTracks() {
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
         if (0 /*ntotnext*/) {
-          printf("============= Basket: %s\n", basket->GetName());
+          Geant::Print("","============= Basket: %s\n", basket->GetName());
           output.PrintTracks();
         }
       }
@@ -530,10 +531,10 @@ void *WorkloadManager::TransportTracks() {
     }
   finish:
     //      basket->Clear();
-    //      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
+    //      Geant::Print("","======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
     //      ninjected =
     sch->AddTracks(output, ntot, nnew, nkilled, td);
-    //      Printf("thread %d: injected %d baskets", tid, ninjected);
+    //      Geant::Print("","thread %d: injected %d baskets", tid, ninjected);
     //      wm->TransportedQueue()->push(basket);
     //    sched_locker.StartOne();
     // Make sure the basket is not recycled before gets released by basketizer
@@ -558,7 +559,7 @@ void *WorkloadManager::TransportTracks() {
    
   wm->DoneQueue()->push(0);
   delete prioritizer;
-  Printf("=== Thread %d: exiting ===", tid);
+  Geant::Print("","=== Thread %d: exiting ===", tid);
 
   if (wm->IsStopped()) wm->MergingServer()->Finish();
 
@@ -586,7 +587,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   GeantBasket *basket = 0;
 
   int tid = Instance()->ThreadId();
-  Printf("=== Worker thread %d created for Coprocessor ===", tid);
+  Geant::Print("","=== Worker thread %d created for Coprocessor ===", tid);
 
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantTaskData *td = propagator->fThreadData[tid];
@@ -609,7 +610,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 // int ninput;
 // int noutput;
 //   bool useDebug = propagator->fUseDebug;
-//   Printf("(%d) WORKER started", tid);
+//   Geant::Print("","(%d) WORKER started", tid);
 #ifdef USE_VECGEOM_NAVIGATOR
 // Suppose I do not need a navigator, otherwise how it would have ever worked?
 #else
@@ -714,10 +715,10 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
     GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty
-    //      Printf("======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
+    //      Geant::Print("","======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
     //      counter);
     //      basket->Print();
-    //      Printf("==========================================");
+    //      Geant::Print("","==========================================");
     //      propagator->fTracksPerBasket[tid] = ntotransport;
     td->fVolume = 0;
     // mat = 0;
@@ -743,7 +744,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
       // crt[itr] = input.fPathV[itr];
       // nxt[itr] = input.fNextpathV[itr];
       //if (isnan(input.fXdirV[itr])) {
-      //  Printf("Error: track %d has NaN", itr);
+      //  Geant::Error("Before transport", "Error: track %d has NaN", itr);
       //}
     }
 
@@ -788,7 +789,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
 
   finish:
 //      basket->Clear();
-//      Printf("======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
+//      Geant::Print("","======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
     /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, td);
     if (prioritizer->HasTracks()) {
        // We know that all the left over tracks injected here can not be handle
@@ -801,7 +802,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
        // prioritizer->BookBasket(td);
        // prioritizer->GarbageCollect(td);
     }
-    //      Printf("thread %d: injected %d baskets", tid, ninjected);
+    //      Geant::Print("","thread %d: injected %d baskets", tid, ninjected);
     // wm->TransportedQueue()->push(basket);
     (void)ntot;
     (void)nnew;
@@ -816,7 +817,7 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   // delete prioritizer;
   wm->DoneQueue()->push(0);
   delete prioritizer;
-  Printf("=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
+  Geant::Print("","=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
   return 0;
 }
 
@@ -844,7 +845,7 @@ void *WorkloadManager::GarbageCollectorThread() {
     gSystem->GetProcInfo(&procInfo);
     rss = procInfo.fMemResident / MByte;
     double vsize = procInfo.fMemVirtual / MByte;
-    Printf("### Checking mem: %g MBytes", rss);
+    Geant::Print("GC thread","### Checking mem: %g MBytes", rss);
     bool needClean = false;
     if (threshold && rss > threshold && (rss / rsslast > thr_increase)) {
       rsslast = rss;
@@ -923,7 +924,7 @@ void WorkloadManager::SetMonitored(GeantPropagator::EGeantMonitoringType feature
 void *WorkloadManager::MonitoringThread() {
   // Thread providing basic monitoring for the scheduler.
   const double MByte = 1024.;
-  Printf("Started monitoring thread...");
+  Geant::Info("MonitoringThread","Started monitoring ...");
   GeantPropagator *propagator = GeantPropagator::Instance();
   WorkloadManager *wm = WorkloadManager::Instance();
   int nmon = wm->GetMonFeatures();
@@ -1197,7 +1198,7 @@ void *WorkloadManager::MonitoringThread() {
   double sumvect = 0.;
   for (i = 0; i < 257; ++i)
     sumvect += nvect[i];
-  Printf("=== Percent of tracks transported in single track mode: %g%%", 100. * nvect[1] / sumvect);
+  Geant::Info("Monitoring stopped","=== Percent of tracks transported in single track mode: %g%%", 100. * nvect[1] / sumvect);
   // Sleep a bit to let the graphics finish
   gSystem->Sleep(100); // millisec
 
@@ -1208,7 +1209,7 @@ void *WorkloadManager::MonitoringThread() {
 void *WorkloadManager::OutputThread() {
   // Thread providing basic output for the scheduler.
 
-  Printf("=== Output thread created ===");
+  Geant::Info("OutputThread","=== Output thread created ===");
 
   if(GeantPropagator::Instance()->fConcurrentWrite)
 
@@ -1236,14 +1237,14 @@ void *WorkloadManager::OutputThread() {
     
       while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
 	{
-	  // Printf("size of queue from output thread %zu", myhitFactory->fOutputs.size());
+	  // Geant::Print("","size of queue from output thread %zu", myhitFactory->fOutputs.size());
 	          
 	  if (myhitFactory->fOutputs.size()>0)
 	    {
 	      while (myhitFactory->fOutputs.try_pop(data))
 		{
 		  // myhitFactory->fOutputs.wait_and_pop(data);                
-		  // Printf("Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
+		  // Geant::Print("","Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
 		  // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
 
 		  tree->Fill();
@@ -1255,7 +1256,7 @@ void *WorkloadManager::OutputThread() {
       file.Close();
     }
 
-    Printf("=== Output thread finished ===");
+    Geant::Info("OutputThread","=== Output thread finished ===");
     
     return 0;
 }

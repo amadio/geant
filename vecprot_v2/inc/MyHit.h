@@ -32,9 +32,11 @@ public:
   int fTrack; /* Track number */
   int fVolId;   /** Volume Id */
   int fDetId;   /** Replica (segmentation) */
+  int fStatus;  /** track status */
 
   /** @brief MyHit constructor */
-  MyHit() : fX(0), fY(0), fZ(0), fEdep(0), fTime(0), fEvent(0), fTrack(0), fVolId(0), fDetId(0) {}
+  MyHit() : fX(0), fY(0), fZ(0), fEdep(0),
+            fTime(0), fEvent(0), fTrack(0), fVolId(0), fDetId(0), fStatus(0) {}
   
   /**
    * @brief MyHit constructor
@@ -65,6 +67,7 @@ public:
     fTrack = 0;
     fVolId = 0;
     fDetId = 0;
+    fStatus = 0;
   }
 
   /** @brief Function that add user hit */

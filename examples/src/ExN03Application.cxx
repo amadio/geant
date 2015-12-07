@@ -77,7 +77,9 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
   // energy deposit and step length
   int tid = td->fTid;
   Node_t const *current;
-  int idvol, idnode, ilev;
+  int idvol = -1;
+  int idnode = -1;
+  int ilev = -1;
   for (int i = 0; i < npart; i++) {
 //      printf("%d=>\n", i);
 //      tracks.PrintTrack(i);

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 #include "mm_malloc.h"
 
 #include "backend/Backend.h"
@@ -227,9 +228,31 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
   }
 }
 
-void GUTrackHandler::CopyAoSTracks(GUTrack* fromAoS, GUTrack* toAoS) 
+//utility functions - can be elsewhere
+
+void GUTrackHandler::SortAoSTracksByEnergy(GUTrack* AoS, size_t numberOfTracks) 
 {
-  for(size_t i = 0 ; i < fNumberOfTracks ; ++i){
+  //sort AoS tracks by energy in ascending order.
+  std::sort(AoS, AoS+numberOfTracks, [](GUTrack const &a, GUTrack const &b){ return a.E < b.E; });
+}
+
+void GUTrackHandler::SortSoATracksByEnergy(GUTrack_v& SoA, size_t numberOfTracks) 
+{
+  //temporary AoS tracks
+  const int blockSize = 64;  // Bytes
+  GUTrack* AoS = (GUTrack *)_mm_malloc (numberOfTracks*sizeof(GUTrack), blockSize);
+
+  //sort SoA tracks by energy in ascending order.
+  CopySoATracksToAoS(SoA,AoS,numberOfTracks);
+  SortAoSTracksByEnergy(AoS ,numberOfTracks);
+  CopyAoSTracksToSoA(AoS,SoA,numberOfTracks);
+
+  _mm_free(AoS);  
+}
+
+void GUTrackHandler::CopyAoSTracks(GUTrack* fromAoS, GUTrack* toAoS, size_t numberOfTracks) 
+{
+  for(size_t i = 0 ; i < numberOfTracks ; ++i){
     toAoS[i].status       = fromAoS[i].status       ;
     toAoS[i].proc         = fromAoS[i].proc         ;
     toAoS[i].particleType = fromAoS[i].particleType ;
@@ -247,10 +270,10 @@ void GUTrackHandler::CopyAoSTracks(GUTrack* fromAoS, GUTrack* toAoS)
   }
 }
 
-void GUTrackHandler::CopySoATracks(GUTrack_v& fromSoA, GUTrack_v& toSoA) 
+void GUTrackHandler::CopySoATracks(GUTrack_v& fromSoA, GUTrack_v& toSoA, size_t numberOfTracks) 
 {
   toSoA.numTracks = fromSoA.numTracks;
-  for(size_t i = 0 ; i < fNumberOfTracks ; ++i){
+  for(size_t i = 0 ; i < numberOfTracks ; ++i){
     (toSoA.status)[i]       = (fromSoA.status)[i]       ;
     (toSoA.proc)[i]         = (fromSoA.proc)[i]         ;
     (toSoA.particleType)[i] = (fromSoA.particleType)[i] ;
@@ -265,6 +288,47 @@ void GUTrackHandler::CopySoATracks(GUTrack_v& fromSoA, GUTrack_v& toSoA)
     (toSoA.py)[i]           = (fromSoA.py)[i]           ;
     (toSoA.pz)[i]           = (fromSoA.pz)[i]           ;
     (toSoA.E)[i]            = (fromSoA.E)[i]            ;
+  }
+}
+
+void GUTrackHandler::CopyAoSTracksToSoA(GUTrack* fromAoS, GUTrack_v& toSoA, size_t numberOfTracks) 
+{
+  toSoA.numTracks = numberOfTracks;
+  for(size_t i = 0 ; i < numberOfTracks ; ++i){
+    (toSoA.status)[i]        = fromAoS[i].status       ;
+    (toSoA.proc)[i]          = fromAoS[i].proc         ;
+    (toSoA.particleType)[i]  = fromAoS[i].particleType ;
+    (toSoA.id)[i]            = fromAoS[i].id           ;
+    (toSoA.parentId)[i]      = fromAoS[i].parentId     ;
+    (toSoA.x)[i]             = fromAoS[i].x            ;
+    (toSoA.y)[i]             = fromAoS[i].y            ; 
+    (toSoA.z)[i]             = fromAoS[i].z            ; 
+    (toSoA.q)[i]             = fromAoS[i].q            ;
+    (toSoA.s)[i]             = fromAoS[i].s            ; 
+    (toSoA.px)[i]            = fromAoS[i].px           ; 
+    (toSoA.py)[i]            = fromAoS[i].py           ;
+    (toSoA.pz)[i]            = fromAoS[i].pz           ;
+    (toSoA.E)[i]             = fromAoS[i].E            ;
+  }
+}
+
+void GUTrackHandler::CopySoATracksToAoS(GUTrack_v& fromSoA, GUTrack* toAoS, size_t numberOfTracks) 
+{
+  for(size_t i = 0 ; i < numberOfTracks ; ++i){
+    toAoS[i].status       = (fromSoA.status)[i]       ;
+    toAoS[i].proc         = (fromSoA.proc)[i]         ;
+    toAoS[i].particleType = (fromSoA.particleType)[i] ;
+    toAoS[i].id           = (fromSoA.id)[i]           ;
+    toAoS[i].parentId     = (fromSoA.parentId)[i]     ;
+    toAoS[i].x            = (fromSoA.x)[i]            ;
+    toAoS[i].y            = (fromSoA.y)[i]            ;
+    toAoS[i].z            = (fromSoA.z)[i]            ;
+    toAoS[i].q            = (fromSoA.q)[i]            ;
+    toAoS[i].s            = (fromSoA.s)[i]            ;
+    toAoS[i].px           = (fromSoA.px)[i]           ;
+    toAoS[i].py           = (fromSoA.py)[i]           ;
+    toAoS[i].pz           = (fromSoA.pz)[i]           ;
+    toAoS[i].E            = (fromSoA.E)[i]            ;
   }
 }
 

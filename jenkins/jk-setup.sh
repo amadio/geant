@@ -3,6 +3,7 @@
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
+kinit sftnight@CERN.CH -5 -V -k -t /ec/conf/sftnight.keytab
 
 THIS=$(dirname ${BASH_SOURCE[0]})
 
@@ -21,12 +22,7 @@ else
   return
 fi
 
-if ([ $LABEL == slc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ]
-  || [$LABEL == xeonphi ] || [ $LABEL == slc6-physical ]
-  || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ] || [ $LABEL == continuous-xeonphi ])
-
-    kinit sftnight@CERN.CH -5 -V -k -t /ec/conf/sftnight.keytab
-
+if [ $LABEL == slc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ] || [$LABEL == xeonphi ] || [ $LABEL == slc6-physical ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ] || [ $LABEL == continuous-xeonphi ]
 then
   export PATH=/afs/cern.ch/sw/lcg/contrib/CMake/3.0.0/Linux-i386/bin:${PATH}
 else
@@ -41,7 +37,7 @@ then
   COMPILERversion=${COMPILER}version
 
   ARCH=$(uname -m)
-  if [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]
+  if [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]
   then
     . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
   else

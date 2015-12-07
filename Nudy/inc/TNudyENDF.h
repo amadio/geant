@@ -189,7 +189,7 @@ public:
     }
   }
 
-  void GetINTG(int ndigit, int ij[2], int kij[18], int mtf[4]) const {
+  void GetINTG(int /*ndigit*/, int ij[2], int kij[18], int mtf[4]) const {
     int ii;
     std::string s0(fLine);
     std::string s1 = s0.substr(0, 66);

@@ -1,3 +1,7 @@
+#ifndef COPROCESSOR_REQUEST
+#define COPROCESSOR_REQUEST false
+#endif
+
 #include <err.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -5,25 +9,21 @@
 #include "Rtypes.h"
 #include "TGeoManager.h"
 
-#include "HepMC/Config.h"
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "base/MessageLogger.h"
-#endif
+#include "TaskBroker.h"
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 #include "TTabPhysProcess.h"
 #include "CMSApplication.h"
 
-static int n_events = 1;
-static int n_buffered = 1;
-static int n_threads = 1;
+static int n_events = 10;
+static int n_buffered = 5;
+static int n_threads = 4;
 static int n_track_max = 64;
-static int n_learn_steps = 32768;
-static int max_memory = 2048; /* MB */
-
-static bool monitor = false, score = false, debug = false;
+static int n_learn_steps = 100000;
+static int max_memory = 4000; /* MB */
+static bool monitor = false, score = false, debug = false, coprocessor = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"hepmc-event-file", required_argument, 0, 'E'},
@@ -38,6 +38,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"score", no_argument, 0, 's'},
                                   {"threads", required_argument, 0, 't'},
                                   {"xsec", required_argument, 0, 'x'},
+                                  {"coprocessor", required_argument, 0, 'r'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
   std::string cms_geometry_filename("cms2015.root");
   std::string xsec_filename("xsec_FTFP_BERT_G496p02_1mev.root");
   std::string fstate_filename("fstate_FTFP_BERT_G496p02_1mev.root");
-  std::string hepmc_event_filename; // "pp14TeVminbias.root";
+  std::string hepmc_event_filename("pp14TeVminbias.root");
 
   if (argc == 1) {
     help();
@@ -63,7 +64,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:", options, &optidx);
+    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r", options, &optidx);
 
     if (c == -1)
       break;
@@ -77,7 +78,6 @@ int main(int argc, char *argv[]) {
 
       if (n_events <= 0)
         errx(1, "number of events must be positive");
-
       break;
 
     case 'E':
@@ -97,7 +97,6 @@ int main(int argc, char *argv[]) {
 
       if (n_learn_steps <= 0)
         errx(1, "number of learning steps must be positive");
-
       break;
 
     case 'B':
@@ -105,7 +104,6 @@ int main(int argc, char *argv[]) {
 
       if (n_track_max < 1)
         errx(1, "max number of tracks per basket must be positive");
-
       break;
 
     case 'm':
@@ -117,7 +115,6 @@ int main(int argc, char *argv[]) {
 
       if (max_memory < 128)
         errx(1, "max memory is too low");
-
       break;
 
     case 'b':
@@ -125,7 +122,6 @@ int main(int argc, char *argv[]) {
 
       if (n_buffered < 1)
         errx(1, "number of buffered events must be positive");
-
       break;
 
     case 't':
@@ -144,17 +140,34 @@ int main(int argc, char *argv[]) {
       xsec_filename = optarg;
       break;
 
+    case 'r':
+      coprocessor = optarg;
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
   }
 
+  bool performance = true;
+  TaskBroker *broker = nullptr;
   TGeoManager::Import(cms_geometry_filename.c_str());
   WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
+
+  if (coprocessor) {
+#ifdef GEANTCUDA_REPLACE
+    CoprocessorBroker *gpuBroker = new CoprocessorBroker();
+    gpuBroker->CudaSetup(32,128,1);
+    broker = gpuBroker;
+    nthreads += gpuBroker->GetNstream()+1;
+#else
+    std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
+#endif
+  }
+
   GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered);
-
+  if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
-
   propagator->fUseMonitoring = monitor;
 
   wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
@@ -163,6 +176,9 @@ int main(int argc, char *argv[]) {
   wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
   wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
   wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
+  // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
+  // If set to 0 takes the default value of 0.01
+  propagator->fPriorityThr = 0.1;
 
   // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow
@@ -173,9 +189,10 @@ int main(int argc, char *argv[]) {
 
   // Maximum user memory limit [MB]
   propagator->fMaxRes = max_memory;
-
+  if (performance) propagator->fMaxRes = 0;
   propagator->fEmin = 0.001; // [10 MeV] energy cut
   propagator->fEmax = 0.01;  // 10 MeV
+
 #ifdef USE_VECGEOM_NAVIGATOR
   propagator->LoadVecGeomGeometry();
 #endif
@@ -189,29 +206,24 @@ int main(int argc, char *argv[]) {
     // propagator->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
     propagator->fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
   }
-
   propagator->fLearnSteps = n_learn_steps;
+  if (performance) propagator->fLearnSteps = 0;
 
   CMSApplication *CMSApp = new CMSApplication();
-
   if (score) {
     CMSApp->SetScoreType(CMSApplication::kScore);
   } else {
     CMSApp->SetScoreType(CMSApplication::kNoScore);
   }
-
   propagator->fApplication = CMSApp;
-
   if (debug) {
     propagator->fUseDebug = kTRUE;
     propagator->fDebugTrk = 1;
   }
-
   propagator->fUseMonitoring = monitor;
+  // Activate standard scoring   
+  propagator->fUseStdScoring = true;
+  if (performance) propagator->fUseStdScoring = false;
   propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
-
-#ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::MessageLogger::I()->summary(std::cout, "a");
-#endif
   return 0;
 }

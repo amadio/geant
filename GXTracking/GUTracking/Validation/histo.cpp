@@ -1,9 +1,10 @@
 /*
+=======
 Author: M. Bandieramonte
  
  NB: 
  1. How to compile:
- g++ histo.gcc -o histo `root-config --cflags --glibs`
+ g++ histo.cpp -o histo `root-config --cflags --glibs`
 
  2. Then execute the file and give the input interactively
      
@@ -11,7 +12,7 @@ Author: M. Bandieramonte
      geant4_100MeV.root
      scalar_100MeV.root
      vector_100MeV.root
- 
+=======
 */
 
 #include <TMath.h>
@@ -56,7 +57,11 @@ Author: M. Bandieramonte
 #include <stdlib.h>
 #include "TGaxis.h"
 #include "TLegend.h"
+#include "TPaveLabel.h"
+#include "TLatex.h"
 
+constexpr double electron_mass_c2 = 0.510998910 * 1.;
+constexpr double inv_electron_mass_c2 = 1.0/electron_mass_c2;
 
 using namespace ROOT::Math;
 
@@ -107,11 +112,13 @@ void MSaveBigPDF(double scale=5) {
 
 
 //_________
-void drawtext(double x, double y, int f, const char *s)
+void drawtext(double x, double y, const char *s)
 {
-    TLatex *t = new TLatex(x,y,Form("#font[41]{%d :} %s",f,s));
-    t->SetTextFont(f);
-    t->SetTextAlign(12);
+    TLatex *t = new TLatex(x,y,Form("#chi^{2}: %s",s));
+    t->SetTextFont(4);
+    //t->SetTextAlign(12);
+    t->SetNDC();
+    t->SetTextColor(6);
     t->SetTextSize(0.048);
     t->Draw();
 }
@@ -246,6 +253,160 @@ void validatePdf(TH1F* eOutScalar, TH1F* eOutVector, TH1F* eOutG4, char* energy)
 }
 
 //______________________________________________________________________________
+void chiSquare_pdf(TH1F* eOutScalar, TH1F* eOutVector, TH1F* eOutG4, int energy)
+{
+    
+    Int_t entries=eOutScalar->GetSize()-2; //NB: In Root the size of an histogram is nBin+2
+    //eOutScalar->GetEntries();
+    //std::cout<<"N of histogram entries: "<<eOutScalar->GetEntries()<<"\n";
+    
+    
+    Double_t xScalar[entries], yScalar[entries], zScalar[entries];
+    Double_t xVector[entries], yVector[entries], zVector[entries];
+    Double_t xGeant4[entries], yGeant4[entries], zGeant4[entries];
+    Double_t pdf[entries], x[entries];
+    TGraph *pdfGraph;
+    
+    double logxmin = log(1);
+    double dx = (log(10000) - logxmin)/99;
+    
+    //// pdf calculation
+    double energy0 = exp(logxmin + dx*energy);
+    
+    double ymin = energy0/(1+2.0*energy0*inv_electron_mass_c2); //MeV
+    double dy = (energy0 - ymin)/(1000);
+    double yo = ymin + 0.5*dy;
+    
+    
+    double sum = 0.;
+    //double integralPdf=0;
+    
+    for(int j = 0; j < entries ; ++j) {
+        //for each output energy bin
+        double energy1 = yo + dy*j;
+        
+        double *grej=new double();
+        
+        
+        
+        double E0_m = energy0/0.510998910 ;
+        double epsilon = energy1/energy0;
+        
+        double onecost = (1.- epsilon)/(epsilon*E0_m);
+        double sint2   = onecost*(2.-onecost);
+        double greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
+        double xsec = (epsilon + 1./epsilon)*greject;
+        
+        x[j]=energy1;
+        pdf[j] = xsec;
+        sum += xsec;
+    }
+    std::cout<<"xsec sum: "<<sum<<" 1/sum: "<<1/sum<<" \n";
+    
+    sum=1./sum;
+    for(int j = 0; j < entries ; ++j)
+        pdf[j]*=sum;
+    
+    pdfGraph = new TGraph(entries,x,pdf);
+    
+    TCanvas *c1 = new TCanvas("c1","pdf",200,10,700,500);
+    pdfGraph->SetLineColor(kBlue);
+    pdfGraph->Draw();
+    c1->Update();
+
+    
+    
+    
+    //TString pdfFileName=Form("pdf_%sMeV.root",energy);
+    //TFile *fPfd = new TFile(pdfFileName,"w");
+    //TGraph *pdfGraph= (TGraph*)fPfd->Get("Pdf2.0"); //Get the first pdf, for fMinX value
+    
+
+    //Scale the histograms
+    double norm=1.;
+    TH1F *eOutScalarScaled = (TH1F*)(eOutScalar->Clone("eOutScalarScaled"));
+    norm= eOutScalarScaled->GetEntries();
+    eOutScalarScaled->Scale(1/norm);
+    
+    
+    TH1F *eOutVectorScaled = (TH1F*)(eOutVector->Clone("eOutVectorScaled"));
+    norm= eOutVectorScaled->GetEntries();
+    eOutVectorScaled->Scale(1/norm);
+    
+    
+    TH1F *eOutGeant4Scaled = (TH1F*)(eOutG4->Clone("eOutGeant4Scaled"));
+    norm= eOutGeant4Scaled->GetEntries();
+    eOutGeant4Scaled->Scale(1/norm);
+    
+    
+    for(int j = 0; j < entries ; ++j){
+        yScalar[j] = eOutScalarScaled->GetBinContent(j+1);
+        //pdfGraph->GetPoint(j, xScalar[j],zScalar[j]); //to map
+        
+        yVector[j] = eOutVectorScaled->GetBinContent(j+1);
+        //pdfGraph->GetPoint(j, xVector[j],zVector[j]); //to map
+        
+        yGeant4[j] = eOutGeant4Scaled->GetBinContent(j+1);
+        //pdfGraph->GetPoint(j, xGeant4[j],zGeant4[j]); //to map
+    }
+    
+    ////Calculate chi-square
+    //std::cout<<"#E_out Histogram entries: "<<myCopyScalarGr->GetN()<<"\n";
+    double chiSquare_vector=0,chiSquare_scalar=0, chiSquare_geant4=0, expX,expY ;
+    for (int i=0; i<entries; i++)
+    {
+        chiSquare_scalar+=(yScalar[i]-pdf[i])*(yScalar[i]-pdf[i])/pdf[i];
+        chiSquare_vector+=(yVector[i]-pdf[i])*(yVector[i]-pdf[i])/pdf[i];
+        chiSquare_geant4+=(yGeant4[i]-pdf[i])*(yGeant4[i]-pdf[i])/pdf[i];
+    }
+    std::cout<<"chiSquare scalar: "<<chiSquare_scalar<<" chiSquare-reduced: "<<chiSquare_scalar/(eOutScalarScaled->GetSize()-2)<<std::endl;
+    std::cout<<"chiSquare vector: "<<chiSquare_vector<<" chiSquare-reduced: "<<chiSquare_vector/(eOutVectorScaled->GetSize()-2)<<std::endl;
+    std::cout<<"chiSquare geant4: "<<chiSquare_geant4<<" chiSquare-reduced: "<<chiSquare_geant4/(eOutGeant4Scaled->GetSize()-2)<<std::endl;
+    
+    //return pdfGraph;
+}
+
+
+//______________________________________________________________________________
+double chiSquare(TH1F* eOutG4, TH1F* eOutScalar)
+{
+    
+    int entries=eOutScalar->GetSize()-2; //NB: In Root the size of an histogram is nBin+2
+    double chiSquare =0. ,chiSquare_scaled =0. , exp=0., obs=0. ;
+ 
+    //calculate the chi-square of the scaled histo
+    double norm=1.;
+    TH1F *eOutScalarScaled = (TH1F*)(eOutScalar->Clone("eOutScalarScaled"));
+    norm= eOutScalarScaled->GetEntries();
+    eOutScalarScaled->Scale(1/norm);
+    
+    TH1F *eOutGeant4Scaled = (TH1F*)(eOutG4->Clone("eOutGeant4Scaled"));
+    norm= eOutGeant4Scaled->GetEntries();
+    eOutGeant4Scaled->Scale(1/norm);
+
+    
+    for (int i=0; i<entries; i++)
+    {
+        exp = eOutG4->GetBinContent(i); //to verify
+        obs = eOutScalar->GetBinContent(i);
+        
+        //std::cout<<"exp:  "<<exp<<" obs:  "<<obs<<std::endl;
+        if(exp!=0)
+        chiSquare+=((obs-exp)*(obs-exp)/exp);
+        
+        exp = eOutGeant4Scaled->GetBinContent(i); //to verify
+        obs = eOutScalarScaled->GetBinContent(i);
+        if(exp!=0)
+            chiSquare_scaled+=((obs-exp)*(obs-exp)/exp);
+        
+    }
+    std::cout<<"chiSquare "<<chiSquare<<std::endl;
+    std::cout<<"chiSquare_scaled "<<chiSquare_scaled<<std::endl;
+    
+    return chiSquare_scaled;
+}
+
+//______________________________________________________________________________
 void genAllHisto(const char *process, const char* energy)
 {
     
@@ -290,6 +451,9 @@ void genAllHisto(const char *process, const char* energy)
     //1
     MyC1->cd(1);
     
+    
+
+    
     if(!strcmp(process,"KleinNishina"))
     {
         eOutG4->GetXaxis()->SetTitle("Scattered Photon Energy [MeV]");
@@ -300,7 +464,12 @@ void genAllHisto(const char *process, const char* energy)
         eOutG4->GetYaxis()->SetTitle("dN/dE");
     }
     
-    eOutG4->Draw();
+    gStyle->SetEndErrorSize(3);
+    gStyle->SetErrorX(1.);
+    //eOutG4->SetMarkerStyle(20);
+    //he->Draw("E1");
+    
+    eOutG4->Draw("E");
     MyC1->Update();
     
     TPaveStats *ps1 = (TPaveStats*)eOutG4->GetListOfFunctions()->FindObject("stats");
@@ -308,7 +477,8 @@ void genAllHisto(const char *process, const char* energy)
     MyC1->Modified();
     MyC1->Update();
     eOutScalar->SetLineColor(kYellow+10);
-    eOutScalar->Draw("][sames");
+    //eOutScalar->Draw("][sames");
+    eOutScalar->Draw("sames");
     
     MyC1->Update();
     
@@ -318,7 +488,13 @@ void genAllHisto(const char *process, const char* energy)
     ps2->SetOptStat(1111);
     
     eOutVector->SetLineColor(kMagenta);
-    eOutVector->Draw("][sames");
+    //eOutVector->Draw("][sames");
+    eOutVector->Draw("sames");
+    
+    
+    double chiS=chiSquare(eOutG4,eOutScalar);
+    TString chiSquareString= Form("%f",chiS);
+    drawtext(.1, 0.92, chiSquareString);
     
     MyC1->Update();
     TPaveStats *ps3 = (TPaveStats*)eOutVector->GetListOfFunctions()->FindObject("stats");
@@ -327,13 +503,7 @@ void genAllHisto(const char *process, const char* energy)
     TPaveText *t = new TPaveText(0.0, 0.95, 0.3, 1.0, "brNDC"); // left-up
     //t->AddText(histName);
     
-    //gStyle->SetOptFit(1111);
-    //gStyle->SetOptTitle(0);
-    //t->SetBorderSize(0);
-    //t->SetFillColor(gStyle->GetTitleFillColor());
-    //t->Draw();
-    
-    
+
     //2
     MyC1->cd(2);
     histPath= Form("%s/%s",process, "EnergyOut2");
@@ -346,6 +516,8 @@ void genAllHisto(const char *process, const char* energy)
     eOutVector->SetName("geantVvector");
     eOutScalar->SetLineColor(kYellow+10);
     eOutVector->SetLineColor(kMagenta);
+
+    
     if(!strcmp(process,"KleinNishina"))
     {
         eOutG4->GetXaxis()->SetTitle("Electron Energy [MeV]");
@@ -357,9 +529,9 @@ void genAllHisto(const char *process, const char* energy)
     }
     
     
-    eOutG4->Draw();
-    eOutScalar->Draw("][sames");
-    eOutVector->Draw("][sames");
+    eOutG4->Draw("E");
+    eOutScalar->Draw("sames");
+    eOutVector->Draw("sames");
     MyC1->Update();
     TPaveStats *psEnOut1 = (TPaveStats*)eOutG4->GetListOfFunctions()->FindObject("stats");
     psEnOut1->SetX1NDC(0.4); psEnOut1->SetX2NDC(0.55);
@@ -370,18 +542,13 @@ void genAllHisto(const char *process, const char* energy)
     psEnOut2->SetTextColor(kYellow+10);
     psEnOut2->SetOptStat(1111);
 
+    chiS=chiSquare(eOutG4,eOutScalar);
+    chiSquareString= Form("%f",chiS);
+    drawtext(.1, 0.92, chiSquareString);
     
     TPaveStats *psEnOut3 = (TPaveStats*)eOutVector->GetListOfFunctions()->FindObject("stats");
     psEnOut3->SetX1NDC(0.8); psEnOut3->SetX2NDC(0.95);
     psEnOut3->SetTextColor(kMagenta);
-
-    /*
-    TPaveText *t2 = new TPaveText(0.0, 0.95, 0.3, 1.0, "brNDC"); // left-up
-    t2->AddText(histName);
-    t2->SetBorderSize(0);
-    t2->SetFillColor(gStyle->GetTitleFillColor());
-    t2->Draw();*/
-
     
     
     //3
@@ -407,12 +574,17 @@ void genAllHisto(const char *process, const char* energy)
     
     //eOutG4->GetXaxis()->SetTitle("AngleOut1");
     
-    eOutG4->Draw();
+    eOutG4->Draw("E");
     eOutScalar->SetLineColor(kYellow+10);
     eOutVector->SetLineColor(kMagenta);
-    eOutScalar->Draw("][sames");
-    eOutVector->Draw("][sames");
+    eOutScalar->Draw("sames");
+    eOutVector->Draw("sames");
     MyC1->Update();
+    
+    chiS=chiSquare(eOutG4,eOutScalar);
+    chiSquareString= Form("%f",chiS);
+    drawtext(.1, 0.92, chiSquareString);
+    
     TPaveStats *psAOut1 = (TPaveStats*)eOutG4->GetListOfFunctions()->FindObject("stats");
     psAOut1->SetX1NDC(0.4); psAOut1->SetX2NDC(0.55);
 
@@ -425,13 +597,6 @@ void genAllHisto(const char *process, const char* energy)
     psAOut3->SetX1NDC(0.8); psAOut3->SetX2NDC(0.95);
     psAOut3->SetTextColor(kMagenta);
     
-    /*TPaveText *t3 = new TPaveText(0.0, 0.95, 0.3, 1.0, "brNDC"); // left-up
-    t3->AddText(histName);
-    t3->SetBorderSize(0);
-    t3->SetFillColor(gStyle->GetTitleFillColor());
-    t3->Draw();*/
-    
-    
     //4
     MyC1->cd(4);
     histPath= Form("%s/%s",process, "AngleOut2");
@@ -442,6 +607,9 @@ void genAllHisto(const char *process, const char* energy)
     eOutG4->SetName(" geant4 ");
     eOutScalar->SetName("geantVscalar");
     eOutVector->SetName("geantVvector");
+    
+    
+
     if(!strcmp(process,"KleinNishina"))
     {
         eOutG4->GetXaxis()->SetTitle("Electron Angle");
@@ -452,12 +620,17 @@ void genAllHisto(const char *process, const char* energy)
         //eOutG4->GetYaxis()->SetTitle("dN/dE");
     }
     //eOutG4->GetXaxis()->SetTitle("AngleOut2");
-    eOutG4->Draw();
+    eOutG4->Draw("E");
     eOutScalar->SetLineColor(kYellow+10);
     eOutVector->SetLineColor(kMagenta);
-    eOutScalar->Draw("][sames");
-    eOutVector->Draw("][sames");
+    eOutScalar->Draw("sames");
+    eOutVector->Draw("sames");
     MyC1->Update();
+    
+    chiS=chiSquare(eOutG4,eOutScalar);
+    chiSquareString= Form("%f",chiS);
+    drawtext(.1, 0.92, chiSquareString);
+    
     TPaveStats *psAngleOut1 = (TPaveStats*)eOutG4->GetListOfFunctions()->FindObject("stats");
     psAngleOut1->SetX1NDC(0.4); psAngleOut1->SetX2NDC(0.55);
     
@@ -469,13 +642,7 @@ void genAllHisto(const char *process, const char* energy)
     TPaveStats *psAngleOut3 = (TPaveStats*)eOutVector->GetListOfFunctions()->FindObject("stats");
     psAngleOut3->SetX1NDC(0.8); psAngleOut3->SetX2NDC(0.95);
     psAngleOut3->SetTextColor(kMagenta);
-    
-    /*TPaveText *t4 = new TPaveText(0.0, 0.95, 0.3, 1.0, "brNDC"); // left-ups
-    t4->AddText(histName);
-    t4->SetBorderSize(0);
-    t4->SetFillColor(gStyle->GetTitleFillColor());
-    t4->Draw();*/
-   
+
     //MSaveBigPDF();
     MyC1->SaveAs(histoFileNameEps);
 
@@ -522,7 +689,13 @@ void genSingleHisto(const char *process, const char *variable, const char* energ
     TH1F *eOutVector = (TH1F*)fVector->Get(histPath);
     if(eOutVector) eOutVector->SetName("geantVvector");
     else std::cout<<"eOutVector is null\n";
-
+    
+    //int intenergy= atoi(energy);
+    //TGraph my=chiSquare_pdf(eOutG4, eOutScalar, eOutVector, intenergy);
+    double chiS= chiSquare(eOutG4, eOutScalar);
+    
+    std::cout<<"chiS: "<<chiS<<"\n";
+    
     TCanvas *c1 = new TCanvas("c1","c1",200,10,700,500);
     
 
@@ -596,7 +769,7 @@ void genSingleHisto(const char *process, const char *variable, const char* energ
        
        }
     
-    eOutG4->Draw();
+    eOutG4->Draw("E");
     //eOutG4->SetLineColor(kGreen);
     c1->Update();
 
@@ -610,7 +783,7 @@ void genSingleHisto(const char *process, const char *variable, const char* energ
     c1->Update();
     
     eOutScalar->SetLineColor(kYellow+10);
-    eOutScalar->Draw("][sames");
+    eOutScalar->Draw("sames");
     
     c1->Update();
     
@@ -622,7 +795,7 @@ void genSingleHisto(const char *process, const char *variable, const char* energ
     
     
     eOutVector->SetLineColor(kMagenta);
-    eOutVector->Draw("][sames");
+    eOutVector->Draw("sames");
     
     c1->Update();
     
@@ -642,9 +815,8 @@ void genSingleHisto(const char *process, const char *variable, const char* energ
     t->SetFillColor(gStyle->GetTitleFillColor());
     t->Draw();
     
-    //std::cout<<"Size eOutScalar: "<<eOutScalar->GetSize()<<std::endl;
-    //std::cout<<"Size eOutVector: "<<eOutVector->GetSize()<<std::endl;
-    //std::cout<<"Size eOutG4: "<<eOutG4->GetSize()<<std::endl;
+    TString chiSquareString= Form("%f",chiS);
+    drawtext(.1, 0.92, chiSquareString);
     
     c1->Modified();
     c1->Update();
