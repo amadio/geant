@@ -55,7 +55,7 @@ class TMagErrorStepper : public GUVIntegrationStepper
         friend  std::ostream&
            operator<<( std::ostream& os, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> &  );
 
-        void CheckInitialisation() const;
+        bool CheckInitialisation() const;
 
     private:
         TMagErrorStepper& operator=(const TMagErrorStepper&) = delete;
@@ -155,17 +155,23 @@ std::ostream&
 }
 
 template<class T_Stepper, class T_Equation, unsigned int Nvar>
- void
+ bool
    TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
    CheckInitialisation() const
 {
-   assert( this->GetNumberOfVariables() == Nvar );
+   bool goodNvar = ( this->GetNumberOfVariables() == Nvar );
+   assert( goodNvar );
+   
    assert( fEquation_Rhs != 0);
    // GUVIntegrationStepper* iStepper = dynamic_cast<GUVIntegrationStepper*>(this);
 
    // GUVEquationOfMotion *
    auto iEquation = dynamic_cast<GUVEquationOfMotion*>(fEquation_Rhs);
-   assert ( iEquation == GetEquationOfMotion() ); 
+   // assert ( iEquation == GetEquationOfMotion() );
+   bool goodEq = ( iEquation == GetEquationOfMotion() );
+   assert ( goodEq );
+
+   return goodNvar && fEquation_Rhs && goodEq; 
 }
 
 // inline

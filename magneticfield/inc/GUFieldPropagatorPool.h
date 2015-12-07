@@ -39,9 +39,10 @@ class GUFieldPropagatorPool
     bool Initialize(unsigned int numThreads); 
      // Create new propagators for each thread !
     
-    void CheckIndex(size_t num){
+    bool CheckIndex(size_t num){
        assert(num< fFieldPropagatorVec.size());
-       ((void)num); // make compiler happy
+       // ((void)num); // make compiler happy
+       return ( num < fFieldPropagatorVec.size() );
     }
     
     GUFieldPropagator* GetPropagator(int num) {
