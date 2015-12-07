@@ -393,10 +393,21 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack&  inProjectile,
   typedef typename Backend::Double_t Double_t;
 
   Double_t energyIn = inProjectile.E;
+
+  //check for the validity of energy
+  if(energyIn < fLowEnergyLimit || energyIn > fHighEnergyLimit) return;
+
   Double_t energyOut =0;
   Double_t sinTheta = 0;
 
+  //a good upper bound of photon energy to apply the alias method for 
+  //the SauterGavrila angular distribution (above this energy region, 
+  //dsigma/dcos(theta) is squeezed toward 1
   const double aliaslimit = 1.0*MeV;
+
+  //lower bound for the approximation dsigma/dcos(theta) =1 driven by Geant4
+  //(note that the (geant4) composition and rejection method is very inefficient
+  //for the model above this region)
   const double taulimit = 50.*electron_mass_c2;
 
   if(energyIn < aliaslimit) {
@@ -458,43 +469,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
       sinTheta = 0.; //cosTheta = 1.0;
     }
 
-    //need to rotate the angle with respect to the line of flight
-    Double_t px(&inProjectile.px[ibase]);
-    Double_t py(&inProjectile.py[ibase]);
-    Double_t pz(&inProjectile.pz[ibase]);
-
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
-
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
-
-    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
-
-    // Update primary
-    energyOut.store(&inProjectile.E[ibase]);
-    Double_t pxFinal, pyFinal, pzFinal;
-     
-    pxFinal= energyOut*uhat;
-    pyFinal= energyOut*vhat;
-    pzFinal= energyOut*what;
-    pxFinal.store(&inProjectile.px[ibase]);
-    pyFinal.store(&inProjectile.py[ibase]);
-    pzFinal.store(&inProjectile.pz[ibase]);
-
-    // create Secondary
-    Double_t secE = energyIn - energyOut; 
-    Double_t pxSec= secE*(xhat-uhat);
-    Double_t pySec= secE*(yhat-vhat);
-    Double_t pzSec= secE*(zhat-what);
-
-    secE.store(&outSecondary.E[ibase]);
-    pxSec.store(&outSecondary.px[ibase]);
-    pySec.store(&outSecondary.py[ibase]);
-    pzSec.store(&outSecondary.pz[ibase]);
+    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);  
 
     ibase+= Double_t::Size;
   }
@@ -504,33 +479,9 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
-
+    //use InteractKernel for any leftover to be consistent with EmBaseModel
     InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-
-    //need to rotate the angle with respect to the line of flight
-    double sinvp = 1./senergyIn;
-    double sxhat = inProjectile.px[i]*sinvp;
-    double syhat = inProjectile.py[i]*sinvp;
-    double szhat = inProjectile.pz[i]*sinvp;
-
-    double suhat = 0.;
-    double svhat = 0.;
-    double swhat = 0.;
-
-    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
-
-    //update primary
-    inProjectile.E[i]  = senergyOut;
-    inProjectile.px[i] = senergyOut*suhat;
-    inProjectile.py[i] = senergyOut*svhat;
-    inProjectile.pz[i] = senergyOut*swhat;
-
-    //create secondary
-    outSecondary.E[i]  = (senergyIn-senergyOut); 
-    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
-    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
-    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
-    //fill other information
+    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);  
   }
 }
 
