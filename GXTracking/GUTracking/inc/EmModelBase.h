@@ -132,6 +132,28 @@ protected:
                             GUTrack& primary, 
                             GUTrack& secondary);
 
+#ifndef VECPHYS_NVCC
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  void ConvertXtoFinalState(typename Backend::Double_t energyIn, 
+                            typename Backend::Double_t energyOut, 
+                            typename Backend::Double_t sinTheta, 
+                            int index,
+                            GUTrack_v& primary, 
+                            GUTrack_v& secondary);
+
+  //this inner template cannot be specialized unless template <class EmModel> 
+  //is also explicitly specialized 
+  template<class Backend>
+  VECPHYS_CUDA_HEADER_BOTH
+  void ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn, 
+                                   typename Backend::Double_t energyOut, 
+                                   typename Backend::Double_t sinTheta, 
+                                   int index,
+                                   GUTrack_v& primary, 
+                                   GUTrack_v& secondary);
+#endif
+
   //data members
 protected:
   Random_t* fRandomState;
@@ -329,14 +351,11 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   int numChunks= (nTracks/Double_t::Size);
 
   for(int i= 0; i < numChunks ; ++i) {
+    Index_t  zElement(targetElements[ibase]);
     Double_t energyIn(&inProjectile.E[ibase]);
-    Double_t px(&inProjectile.px[ibase]);
-    Double_t py(&inProjectile.py[ibase]);
-    Double_t pz(&inProjectile.pz[ibase]);
+
     Double_t sinTheta(0.);
     Double_t energyOut;
-
-    Index_t  zElement(targetElements[ibase]);
 
     //eventually there will be no switch as we select one Kernel for each model
     switch(fSampleType) {
@@ -353,40 +372,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
         ;
     }
 
-    //need to rotate the angle with respect to the line of flight
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
-
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
-
-    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
-
-    // Update primary
-    energyOut.store(&inProjectile.E[ibase]);
-    Double_t pxFinal, pyFinal, pzFinal;
-     
-    pxFinal= energyOut*uhat;
-    pyFinal= energyOut*vhat;
-    pzFinal= energyOut*what;
-    pxFinal.store(&inProjectile.px[ibase]);
-    pyFinal.store(&inProjectile.py[ibase]);
-    pzFinal.store(&inProjectile.pz[ibase]);
-
-    // create Secondary
-    Double_t secE = energyIn - energyOut; 
-    Double_t pxSec= secE*(xhat-uhat);
-    Double_t pySec= secE*(yhat-vhat);
-    Double_t pzSec= secE*(zhat-what);
-
-    secE.store(&outSecondary.E[ibase]);
-    pxSec.store(&outSecondary.px[ibase]);
-    pySec.store(&outSecondary.py[ibase]);
-    pzSec.store(&outSecondary.pz[ibase]);
-
+    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);  
     ibase+= Double_t::Size;
   }
 
@@ -397,31 +383,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     double senergyOut, ssinTheta;
 
     static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-
-    //need to rotate the angle with respect to the line of flight
-    double sinvp = 1./senergyIn;
-    double sxhat = inProjectile.px[i]*sinvp;
-    double syhat = inProjectile.py[i]*sinvp;
-    double szhat = inProjectile.pz[i]*sinvp;
-
-    double suhat = 0.;
-    double svhat = 0.;
-    double swhat = 0.;
-
-    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
-
-    //update primary
-    inProjectile.E[i]  = senergyOut;
-    inProjectile.px[i] = senergyOut*suhat;
-    inProjectile.py[i] = senergyOut*svhat;
-    inProjectile.pz[i] = senergyOut*swhat;
-
-    //create secondary
-    outSecondary.E[i]  = (senergyIn-senergyOut); 
-    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
-    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
-    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
-    //fill other information
+    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);  
   }
 }
 
@@ -482,7 +444,6 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
   Bool_t status(false);
 
   //shuffling loop
-  //  int niter = 0;
 
   do {
     ibase= 0;
@@ -555,13 +516,8 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     tsinTheta.clear();
     tindex.clear();
 
-    //    ++niter;
-    //    std::cout << "wenergyOut.size() =  " << wenergyOut.size() << std::endl;
-
   } while ( wenergyOut.size() > 0 );
   //end of shuffling loop
-
-  //  std::cout << "niter =  " << niter << std::endl;
 
   //reset ibase and number of chunks
   ibase= 0;
@@ -570,45 +526,9 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
   for(int i= 0; i < numChunks ; ++i) {
     Double_t energyIn(&inProjectile.E[ibase]);
     Double_t sinTheta(&outSecondary.px[ibase]); 
-    Double_t secE(&outSecondary.E[ibase]);
+    Double_t energyOut(&outSecondary.E[ibase]);
 
-    //need to rotate the angle with respect to the line of flight
-    Double_t px(&inProjectile.px[ibase]);
-    Double_t py(&inProjectile.py[ibase]);
-    Double_t pz(&inProjectile.pz[ibase]);
-
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
-
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
-
-    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
-
-    // Update primary
-    Double_t energyPrimary = energyIn - secE;
-    energyPrimary.store(&inProjectile.E[ibase]);
-
-    Double_t pxFinal, pyFinal, pzFinal;
-     
-    pxFinal= energyPrimary*uhat;
-    pyFinal= energyPrimary*vhat;
-    pzFinal= energyPrimary*what;
-    pxFinal.store(&inProjectile.px[ibase]);
-    pyFinal.store(&inProjectile.py[ibase]);
-    pzFinal.store(&inProjectile.pz[ibase]);
-
-    // store the secondary momentum
-    Double_t pxSec= secE*(xhat-uhat);
-    Double_t pySec= secE*(yhat-vhat);
-    Double_t pzSec= secE*(zhat-what);
-
-    pxSec.store(&outSecondary.px[ibase]);
-    pySec.store(&outSecondary.py[ibase]);
-    pzSec.store(&outSecondary.pz[ibase]);
+    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);  
 
     ibase+= Double_t::Size;
   }
@@ -620,31 +540,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     double senergyOut, ssinTheta;
 
     static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-
-    //need to rotate the angle with respect to the line of flight
-    double sinvp = 1./senergyIn;
-    double sxhat = inProjectile.px[i]*sinvp;
-    double syhat = inProjectile.py[i]*sinvp;
-    double szhat = inProjectile.pz[i]*sinvp;
-
-    double suhat = 0.;
-    double svhat = 0.;
-    double swhat = 0.;
-
-    RotateAngle<kScalar>(ssinTheta,sxhat,syhat,szhat,suhat,svhat,swhat);
-
-    //update primary
-    inProjectile.E[i]  = senergyOut;
-    inProjectile.px[i] = senergyOut*suhat;
-    inProjectile.py[i] = senergyOut*svhat;
-    inProjectile.pz[i] = senergyOut*swhat;
-
-    //create secondary
-    outSecondary.E[i]  = (senergyIn-senergyOut); 
-    outSecondary.px[i] = outSecondary.E[i]*(sxhat-suhat);
-    outSecondary.py[i] = outSecondary.E[i]*(syhat-svhat);
-    outSecondary.pz[i] = outSecondary.E[i]*(szhat-swhat);
-    //fill other information
+    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);  
   }
 }
 
@@ -763,8 +659,106 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
   outSecondary.px = outSecondary.E*(xhat-uhat);
   outSecondary.py = outSecondary.E*(yhat-vhat);
   outSecondary.pz = outSecondary.E*(zhat-what);
+
   //fill other information
 }
+
+#ifndef VECPHYS_NVCC
+template <class EmModel>
+template <typename Backend>
+VECPHYS_CUDA_HEADER_BOTH void
+EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn, 
+                                           typename Backend::Double_t energyOut, 
+                                           typename Backend::Double_t sinTheta, 
+                                           int ibase,
+                                           GUTrack_v& primary, 
+                                           GUTrack_v& secondary) // const
+{
+    typedef typename Backend::Double_t Double_t;
+
+    //need to rotate the angle with respect to the line of flight
+    Double_t px(&primary.px[ibase]);
+    Double_t py(&primary.py[ibase]);
+    Double_t pz(&primary.pz[ibase]);
+
+    Double_t invp = 1./energyIn;
+    Double_t xhat = px*invp;
+    Double_t yhat = py*invp;
+    Double_t zhat = pz*invp;
+
+    Double_t uhat = 0.;
+    Double_t vhat = 0.;
+    Double_t what = 0.;
+
+    RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+    // Update primary
+    energyOut.store(&primary.E[ibase]);
+    Double_t pxFinal, pyFinal, pzFinal;
+     
+    pxFinal= energyOut*uhat;
+    pyFinal= energyOut*vhat;
+    pzFinal= energyOut*what;
+    pxFinal.store(&primary.px[ibase]);
+    pyFinal.store(&primary.py[ibase]);
+    pzFinal.store(&primary.pz[ibase]);
+
+    // create Secondary
+    Double_t secE = energyIn - energyOut; 
+    Double_t pxSec= secE*(xhat-uhat);
+    Double_t pySec= secE*(yhat-vhat);
+    Double_t pzSec= secE*(zhat-what);
+
+    secE.store(&secondary.E[ibase]);
+    pxSec.store(&secondary.px[ibase]);
+    pySec.store(&secondary.py[ibase]);
+    pzSec.store(&secondary.pz[ibase]);
+
+  //fill other information
+
+}
+
+template<class EmModel>
+template <typename Backend>
+VECPHYS_CUDA_HEADER_BOTH void
+EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn, 
+                                                  typename Backend::Double_t energyOut, 
+                                                  typename Backend::Double_t sinTheta, 
+                                                  int ibase,
+                                                  GUTrack_v& primary, 
+                                                  GUTrack_v& secondary)
+{
+  typedef typename kScalar::Double_t Double_t;
+
+  //need to rotate the angle with respect to the line of flight
+  Double_t invp = 1./energyIn;
+  Double_t xhat = primary.px[ibase]*invp;
+  Double_t yhat = primary.py[ibase]*invp;
+  Double_t zhat = primary.pz[ibase]*invp;
+
+  Double_t uhat = 0.;
+  Double_t vhat = 0.;
+  Double_t what = 0.;
+
+  RotateAngle<kScalar>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+  // Update primary
+  primary.E[ibase]  = energyOut;
+
+  primary.px[ibase] = energyOut*uhat;
+  primary.py[ibase] = energyOut*vhat;
+  primary.pz[ibase] = energyOut*what;
+
+  // create Secondary
+  Double_t secE = energyIn - energyOut; 
+  secondary.E[ibase]  = secE; 
+  secondary.px[ibase] = secE*(xhat-uhat);
+  secondary.py[ibase] = secE*(yhat-vhat);
+  secondary.pz[ibase] = secE*(zhat-what);
+
+  //fill other information
+}
+#endif
 
 template <class EmModel>
 VECPHYS_CUDA_HEADER_BOTH double 
