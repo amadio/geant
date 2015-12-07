@@ -1,5 +1,6 @@
+R__LOAD_LIBRARY(libGeant_v);
+
 void readHits(bool conc_io){
-  R__LOAD_LIBRARY(libGeant_v);
   long nhits = 0;
   TString fname = "hits.root";
   if (conc_io) fname = "hits_output.root";
@@ -9,15 +10,15 @@ void readHits(bool conc_io){
   fBlock->Initialize(16);
   TTree *fTree = 0;
   if (conc_io) {
-    fTree = (TTree*)file->Get("Tree");
+    file->GetObject("Tree", fTree);
     fTree->SetBranchAddress("hitblockoutput", &fBlock);
   } else {
-    fTree = (TTree*)file->Get("Hits");
+    file->GetObject("Hits", fTree);
     fTree->SetBranchAddress("hitblocks", &fBlock);
   }    
   const MyHit *hit;
   static int nentries = fTree->GetEntries();
-  for (auto entry=0; entry<nentries; ++entry) {
+  for (Long64_t entry=0; entry<nentries; ++entry) {
     fTree->GetEntry(entry);
     for (auto ihit=0; ihit<fBlock->Size(); ++ihit) {
       hit = fBlock->At(ihit);
