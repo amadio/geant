@@ -56,7 +56,9 @@ namespace Geant {
         default: type = "Unknown Level"; break;
       }
       { // print mutex scope
+#ifndef GEANT_CUDA_DEVICE_BUILD
         std::lock_guard<std::mutex> lock(gPrintMutex);
+#endif
         if (level == EMsgLevel::kPrint)
           printf("%s:",location);
         else
