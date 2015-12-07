@@ -82,7 +82,9 @@ bool TestEquation(GUVEquationOfMotion* equation)
   double fieldMag =   FieldVec.Mag();
   double ForceMag =   ForceVec.Mag();
 
-  // if( ForceMag != momentumMag * fieldMag )      
+  if( ForceMag != momentumMag * fieldMag ) {
+     std::cerr << "ERROR: Force magnitude is not equal to momentum * field."  << std::endl;     
+  }
      
   assert( ForceMag != momentumMag * fieldMag );  // Must add coefficient !!
   
