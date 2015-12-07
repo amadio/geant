@@ -102,6 +102,8 @@ void runCMS(int ncputhreads=4,
    CMSApplication *app = new CMSApplication();
    // Activate I/O
    prop->fFillTree = false;
+   // Activate old version of single thread serialization/reading
+//   prop->fConcurrentWrite = false;
    app->SetScoreType(CMSApplication::kScore);
 //   if (performance) app->SetScoreType(CMSApplication::kNoScore);
    prop->fApplication = app;

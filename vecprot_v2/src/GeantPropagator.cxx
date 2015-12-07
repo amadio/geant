@@ -67,7 +67,7 @@ GeantPropagator::GeantPropagator()
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
-      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),
+      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),
       fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
       fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
@@ -492,6 +492,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   //  condition_locker &sched_locker = fWMgr->GetSchLocker();
   //  sched_locker.StartOne();
   fWMgr->WaitWorkers();
+  fWMgr->JoinThreads();
   fTimer->Stop();
   double rtime = fTimer->RealTime();
   double ctime = fTimer->CpuTime();
@@ -499,7 +500,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   double speedup = ctime / rtime;
   double efficiency = speedup / nthreads;
   //   fWMgr->Print();
-  fWMgr->JoinThreads();
 
 #ifdef GEANTV_OUTPUT_RESULT_FILE
   const char *geomname = geomfile;
