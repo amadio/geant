@@ -110,4 +110,4 @@ TNudySubLibrary *TNudyLibrary::AddSubLib(TParticlePDG *particle) {
 }
 
 //_______________________________________________________________________________
-bool TNudyLibrary::IsHandled(TParticlePDG *particle, TGeoElementRN *targets, unsigned long temp) { return (kTRUE); }
+bool TNudyLibrary::IsHandled(TParticlePDG */*particle*/, TGeoElementRN */*targets*/, unsigned long /*temp*/) { return (kTRUE); }

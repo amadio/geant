@@ -603,7 +603,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
   int iLRU = -1;
   int iLRF = -1;
   int iNRO = -1;
-  int iNAPS = -1;
+  //int iNAPS = -1;
   int iLFW = -1;
 
   GetCONT(c, nl, mtf);
@@ -634,7 +634,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
         iLRU = secContRange->GetL1();
         iLRF = secContRange->GetL2();
         iNRO = secContRange->GetN1();
-        iNAPS = secContRange->GetN2();
+        //iNAPS = secContRange->GetN2();
         switch (iLRU) {
         case 0: {
           TNudyEndfCont *secCont = new TNudyEndfCont();
@@ -1670,12 +1670,12 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
   int mtf[4];
   int &curMF = mtf[1];
   int iNIS = -1;
-  int iLFW = -1;
+  //int iLFW = -1;
   int iNER = -1;
   int iLRU = -1;
   int iLRF = -1;
   int iNRO = -1;
-  int iNAPS = -1;
+  //int iNAPS = -1;
   int iLCOMP = -1;
 
   GetCONT(c, nl, mtf);
@@ -1688,7 +1688,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
     TNudyEndfCont *secContIso = new TNudyEndfCont(); // CONT (isotope) record
     Process(secContIso);
     sec->Add(secContIso);
-    iLFW = secContIso->GetL2();
+    //iLFW = secContIso->GetL2();
     iNER = secContIso->GetN1();
     for (int j = 0; j < iNER; ++j) {
       TNudyEndfCont *secContRange = new TNudyEndfCont(); // CONT (range) record
@@ -1697,7 +1697,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
       iLRU = secContRange->GetL1();
       iLRF = secContRange->GetL2();
       iNRO = secContRange->GetN1();
-      iNAPS = secContRange->GetN2();
+      //iNAPS = secContRange->GetN2();
       switch (iLRU) {
       case 1: { // LRU == 1
         if (iNRO != 0) {

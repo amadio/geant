@@ -139,16 +139,20 @@ void TNudyAliasCont::DumpTable() {
 double TNudyAliasCont::Random(IntScheme_t iScheme, int binNo, AliasDist_t distribution, double r1, double r2) {
   if (binNo < 0 || binNo >= fLen) // Choose bins if required as per their probabilities
     binNo = (int)fChooseBin->Random();
-  double *xx;
-  double *xp;
+  double *xx = 0;
+  double *xp = 0;
   switch (distribution) {
-  case kOriginal:
-    xx = fX->GetArray();
-    xp = fP->GetArray();
-    break;
-  case kBuilt:
-    xx = (fInterX && fInterP) ? fInterX->GetArray() : fX->GetArray();
-    xp = (fInterX && fInterP) ? fInterP->GetArray() : fP->GetArray();
+    case kOriginal:
+      xx = fX->GetArray();
+      xp = fP->GetArray();
+      break;
+    case kBuilt:
+      xx = (fInterX && fInterP) ? fInterX->GetArray() : fX->GetArray();
+      xp = (fInterX && fInterP) ? fInterP->GetArray() : fP->GetArray();
+      break;
+    default:
+      Error("Random", "Unknown distribution type");
+      return 0.;
   }
   double rnd1, rnd2, x1, x2;
   switch (iScheme) {
@@ -231,7 +235,7 @@ double TNudyAliasCont::ImprovedInterpolation(double alpha) {
     return x2;
 }
 //_______________________________________________________________________________
-double TNudyAliasCont::SelectBin(double alpha, AliasDist_t distribution) {
+double TNudyAliasCont::SelectBin(double /*alpha*/, AliasDist_t distribution) {
   int binNo = (int)fChooseBin->Random();
   if (distribution == kOriginal)
     return fX->At(binNo);

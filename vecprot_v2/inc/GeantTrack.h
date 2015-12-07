@@ -290,7 +290,7 @@ public:
   double PosZ() const { return fZpos; }
 
   /** @brief Print function */
-  void Print(int trackindex = 0) const;
+  void Print(const char *location) const;
 
   /** Function that return particle species */
   Species_t Species() const { return fSpecies; }

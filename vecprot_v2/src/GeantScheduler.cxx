@@ -1,5 +1,6 @@
 #include "GeantScheduler.h"
 
+#include "Geant/Error.h"
 #include "TMath.h"
 #include "GeantBasket.h"
 #include "globals.h"
@@ -92,13 +93,13 @@ void GeantScheduler::ActivateBasketManagers() {
       break;
   }
   threshold = double(nsum) / ntot;
-  Printf("Activated %d volumes accounting for %4.1f%% of track steps", nactive, 100 * threshold);
+  Geant::Info("ActivateBasketManagers", "Activated %d volumes accounting for %4.1f%% of track steps", nactive, 100 * threshold);
   int nprint = 10;
   if (nprint > fNvolumes)
     nprint = fNvolumes;
   for (auto i = 0; i < nprint; ++i) {
     vol = fVolumes[fIstvol[i]];
-    Printf("  * %s: %d steps", vol->GetName(), fNstvol[fIstvol[i]]);
+    Geant::Print(" *", " %s: %d steps", vol->GetName(), fNstvol[fIstvol[i]]);
   }
 }
 
@@ -240,7 +241,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     }
     if (propagator->fLearnSteps && (nsteps % propagator->fLearnSteps) == 0 &&
         !fLearning.test_and_set(std::memory_order_acquire)) {
-      Printf("=== Learning phase of %d steps completed ===", propagator->fLearnSteps);
+      Geant::Info("AddTracks", "=== Learning phase of %d steps completed ===", propagator->fLearnSteps);
       // Here comes the algorithm activating basket managers...
       ActivateBasketManagers();
       propagator->fLearnSteps *= 4;
@@ -292,7 +293,7 @@ size_t GeantScheduler::Sizeof() const {
 void GeantScheduler::PrintSize() const {
   // Prints detailed breakdown of size allocated
   size_t size = Sizeof();
-  Printf("Size of scheduler: %ld bytes", size);
+  Geant::Print("","Size of scheduler: %ld bytes", size);
   for (auto i = 0; i < fNvolumes; ++i)
     fBasketMgr[i]->PrintSize();
   if (fGarbageCollector)

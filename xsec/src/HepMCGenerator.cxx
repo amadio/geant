@@ -158,7 +158,7 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
 
 
     // Compute momentum from energy/mass
-    double p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
+    //double p = sqrt((gtrack.E() - gtrack.Mass()) * (gtrack.E() + gtrack.Mass()));
     // Momentum from generator
     double ptrack =
         sqrt(genpart->momentum().px() * genpart->momentum().px() + genpart->momentum().py() * genpart->momentum().py() +

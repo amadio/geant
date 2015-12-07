@@ -308,10 +308,10 @@ void GeantTrack::SetNextPath(VolumePath_t const *const path) {
 }
 
 //______________________________________________________________________________
-void GeantTrack::Print(int) const {
-  TString spath;
+void GeantTrack::Print(const char *location) const {
+//  TString spath;
   //   if (path) path->GetPath(spath);
-  Printf("=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Dir:(%f,%f,%f) "
+  Geant::Print(location, "=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Dir:(%f,%f,%f) "
          "P:%g E:%g snext=%g safety=%g nsteps=%d",
          fParticle, fEvent, fProcess, fPstep, fCharge, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, P(), fE, fSnext,
          fSafety, fNsteps);
@@ -724,7 +724,7 @@ void GeantTrack_v::Resize(int newsize) {
   // Resize the container.
   int size = round_up_align(newsize);
   if (size < GetNtracks()) {
-    Printf("Error: Cannot resize to less than current track content");
+    Geant::Error("Resize","Cannot resize to less than current track content");
     return;
   }
   fBufSize = BufferSize(size, fMaxDepth);
@@ -1263,7 +1263,7 @@ void GeantTrack_v::RemoveTracks(int from, int to) {
 // copied to another container beforehand.
 #ifndef GEANT_CUDA_DEVICE_BUILD
   if (!fCompact)
-    Printf("RemoveTracks: Not compact");
+    Geant::Error("RemoveTracks","Not compact");
 #endif
   int ntracks = GetNtracks();
   if (to >= ntracks - 1) {
@@ -1510,7 +1510,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 //        (fYposV[i]+fYdirV[i]*crtstep-posnew[1])*(fYposV[i]+fYdirV[i]*crtstep-posnew[1]) +
 //        (fZposV[i]+fZdirV[i]*crtstep-posnew[2])*(fZposV[i]+fZdirV[i]*crtstep-posnew[2]);
 //        if (Math::Sqrt(diffpos)>0.01*crtstep) {
-//           Printf("difference in pos = %g", diffpos/crtstep);
+//           Geant::Print("PropagateInVolumeSingle","difference in pos = %g", diffpos/crtstep);
 //        }
   fXposV[i] = posnew[0];
   fYposV[i] = posnew[1];
@@ -1530,11 +1530,11 @@ void GeantTrack_v::CheckLocationPathConsistency(int itr) const {
                   VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr], fYposV[itr], fZposV[itr]), *a,
                   true);
   if (a->Top() != NULL && a->Top() != fPathV[itr]->Top()) {
-    Printf("INCONSISTENT LOCATION PATH PAIR PRODUCED FOR TRACK %d", itr);
+    Geant::Print("","INCONSISTENT LOCATION PATH PAIR PRODUCED FOR TRACK %d", itr);
 #ifdef VECGEOM_ROOT
-    Printf("REAL");
+    Geant::Print("","REAL");
     a->GetCurrentNode()->Print();
-    Printf("REPORTED");
+    Geant::Print("","REPORTED");
     fPathV[itr]->GetCurrentNode()->Print();
 //  printrace();
 #endif
@@ -1643,17 +1643,17 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     //                               *pathin[i] );
     //}
     if (Math::Abs(step[i] - stepcmp) > 1E-6) {
-      Printf("## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[i], step[i], stepcmp);
-      Printf("## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", pstep[i], isonbdr[i],
+      Geant::Print("","## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[i], step[i], stepcmp);
+      Geant::Print("","## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", pstep[i], isonbdr[i],
              safe[i], rootnav->Safety());
 
       // check nextpath
       tmp = pathout[i]->ToTGeoBranchArray();
       tmp->InitFromNavigator(rootnav);
-      Printf("## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", pathout[i]->GetCurrentNode(), tmp->GetCurrentNode());
-      Printf("## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", pathout[i]->IsOnBoundary(), rootnav->IsOnBoundary());
+      Geant::Print("","## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", pathout[i]->GetCurrentNode(), tmp->GetCurrentNode());
+      Geant::Print("","## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", pathout[i]->IsOnBoundary(), rootnav->IsOnBoundary());
 
-      Printf("INCONSISTENT STEP");
+      Geant::Print("","INCONSISTENT STEP");
       nav.InspectEnvironmentForPointAndDirection(Vector3D_t(x[i], y[i], z[i]) /*global pos*/,
                                                  Vector3D_t(dirx[i], diry[i], dirz[i]), *pathin[i]);
     }
@@ -1683,7 +1683,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     isonbdr[i] = pathout[i]->IsOnBoundary();
 
 #ifdef VERBOSE
-    Printf("navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, i, pstep[i], step[i],
+    Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, i, pstep[i], step[i],
            safe[i]);
 #endif
   }
@@ -1832,7 +1832,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     pathout[itr]->InitFromNavigator(nav);
 #ifdef VERBOSE
     double bruteforces = nav->Safety();
-    Printf("##TGEOM  ## TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", itr, isonbdr[itr],
+    Geant::Print("","##TGEOM  ## TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", itr, isonbdr[itr],
            pstep[itr], step[itr], safe[itr], bruteforces, nav->IsOnBoundary());
 // assert( safe[itr]<=bruteforces );
 #endif // VERBOSE
@@ -1853,7 +1853,7 @@ void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
     double vecgeom_safety;
     vecgeom_safety = vecnav.GetSafety(Vector3D_t(x[itr], y[itr], z[itr]), vecgeom_in_state);
     vecgeom_safety = (vecgeom_safety < 0) ? 0. : vecgeom_safety;
-    Printf("--VECGEOM-- TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg TOBOUND %d", itr, isonbdr[itr], pstep[itr],
+    Geant::Print("","--VECGEOM-- TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg TOBOUND %d", itr, isonbdr[itr], pstep[itr],
            vecgeom_step, vecgeom_safety, vecgeom_out_state.IsOnBoundary());
 // end crosscheck with what VECGEOM WOULD GIVE IN THIS SITUATION
 // ---------------------------------------------------------
@@ -1876,7 +1876,7 @@ void GeantTrack_v::NavIsSameLocation(int ntracks, VolumePath_t **start, VolumePa
 GEANT_CUDA_BOTH_CODE
 bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
 #ifdef VERBOSE
-  Printf("In NavIsSameLocation single %p for track %d", this, itr);
+  Geant::Print("","In NavIsSameLocation single %p for track %d", this, itr);
 #endif
   // TODO: We should provide this function as a static function
   VECGEOM_NAMESPACE::SimpleNavigator simplenav;
@@ -1916,10 +1916,10 @@ bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, Volume
   sb->UpdateNavigator(nav);
   bool rootsame = nav->IsSameLocation(fXposV[itr], fYposV[itr], fZposV[itr], true);
   if (rootsame != samepath) {
-    Printf("INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
+    Geant::Print("","INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
     std::cout << VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr], fYposV[itr], fZposV[itr])
               << "\n";
-    Printf("old state");
+    Geant::Print("","old state");
     sb->Print();
     nav->ResetState();
     nav->SetLastSafetyForPoint(0, 0, 0, 0);
@@ -1930,9 +1930,9 @@ bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, Volume
     bool rootsame = nav->IsSameLocation(fXposV[itr], fYposV[itr], fZposV[itr], true);
     nav->InspectState();
     eb->InitFromNavigator(nav);
-    Printf("new state");
+    Geant::Print("","new state");
     eb->Print();
-    Printf("VERSUS VECGEOM OLD AND NEW");
+    Geant::Print("","VERSUS VECGEOM OLD AND NEW");
     start[itr]->printVolumePath();
     end[itr]->printVolumePath();
   } else {
@@ -2035,10 +2035,10 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
   // Print info for a given track
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
 #ifdef USE_VECGEOM_NAVIGATOR
-  printf(
-      "===%s=== Object %p, Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g\
+  Geant::Print(msg,
+      "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g\
               xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
-      msg, (const void *)this, itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fGVcodeV[itr],
+      itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fGVcodeV[itr],
       fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
       fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fFrombdrV[itr]);
@@ -2049,10 +2049,10 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
   TString nextpath;
   fNextpathV[itr]->GetPath(nextpath);
 
-  printf("===%s=== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d eind=%d chg=%d proc=%d vid=%d nstp=%d "
+  Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d eind=%d chg=%d proc=%d vid=%d nstp=%d "
          "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
          "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n pth=%s npth=%s\n",
-         msg, itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fEindexV[itr], fGVcodeV[itr],
+         itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fEindexV[itr], fGVcodeV[itr],
          fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
          fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
          fTimeV[itr], fEdepV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fFrombdrV[itr], path.Data(),
@@ -2064,7 +2064,7 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
 void GeantTrack_v::PrintTracks(const char *msg) const {
   // Print all tracks
   int ntracks = GetNtracks();
-  Printf("===%s===", msg);
+  Geant::Print(msg,"");
   for (int i = 0; i < ntracks; i++)
     PrintTrack(i);
 }

@@ -362,11 +362,11 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
 
     G4double previousStepSize = 1.0;
     G4ForceCondition fCondition;
-    G4double physIntLength;
+    //G4double physIntLength;
 
     // In SteppingManager::DefinePhysicalStepLength()
     if (proc->isPostStepDoItIsEnabled())
-      physIntLength = proc->PostStepGetPhysicalInteractionLength(*gTrack, previousStepSize, &fCondition);
+      /*physIntLength = */proc->PostStepGetPhysicalInteractionLength(*gTrack, previousStepSize, &fCondition);
 
     // Ignore the proposed value - will force the interaction
     //  fCondition= Forced;
@@ -375,7 +375,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
       // -- if continuous discrete process, make it happen along the step
       G4GPILSelection fGPILSelection;
       G4double safetyPrx = 2 * theStep; // Not limiting
-      physIntLength = contdProc->AlongStepGetPhysicalInteractionLength(*gTrack, previousStepSize, theStep, safetyPrx,
+      /*physIntLength = */contdProc->AlongStepGetPhysicalInteractionLength(*gTrack, previousStepSize, theStep, safetyPrx,
                                                                        &fGPILSelection);
 
       // safetyPrx is output only for transportation - currently
@@ -407,7 +407,7 @@ G4int SampleOne(G4Material *material, G4ThreeVector *pos, G4DynamicParticle *dpa
       aChange->UpdateStepForPostStep(step);
     } else if (e0 == 0.0 && proc->isAtRestDoItIsEnabled()) {
       gTrack->SetTrackStatus(fStopButAlive);
-      physIntLength = proc->AtRestGetPhysicalInteractionLength(*gTrack, &fCondition);
+      /*physIntLength = */proc->AtRestGetPhysicalInteractionLength(*gTrack, &fCondition);
       aChange = proc->AtRestDoIt(*gTrack, *step);
       aChange->UpdateStepForAtRest(step);
     }
@@ -932,12 +932,12 @@ G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4in
     G4cout << "Here rescaling" << G4endl;
     G4double alphamin;
     G4double alphamax;
-    G4double emin;
+    //G4double emin;
     G4double emax;
     if (etot > psum[3]) {
       // We should increase the energy
       alphamin = 1;
-      emin = plab[3];
+      //emin = plab[3];
       alphamax = 10;
       emax = 0;
       // Calculate emax
@@ -952,7 +952,7 @@ G4bool rescaleEnergy(const G4LorentzVector &porig, G4DynamicParticle *secs, G4in
     } else {
       // We should decrease the energy
       alphamin = 0;
-      emin = plab[3];
+      //emin = plab[3];
       alphamax = 1;
       emax = psum[3];
     }

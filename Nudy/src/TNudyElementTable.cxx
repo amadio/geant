@@ -72,7 +72,7 @@ void TNudyElementTable::Update() {
   fRNTable->Modified();
   fRNTable->Update();
 }
-void TNudyElementTable::Draw(const char *option) {
+void TNudyElementTable::Draw(const char */*option*/) {
   fRNTable = new TCanvas("RN Table", "Radio Nucleide Table", 1000, 1000);
   fRNTable->SetBorderMode(0);
   fRNTable->SetFillColor(TColor::GetColor(60, 90, 140));

@@ -36,6 +36,7 @@
 #include "TGeoMaterial.h"
 #endif
 
+#include "Geant/Error.h"
 #include "GeantTrack.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
@@ -257,7 +258,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
       track.SetEvslot(slot);
       fPrimaryGenerator->GetTrack(i, track);
       if (!track.IsNormalized())
-        track.Print();
+        track.Print("Not normalized");
       track.fFrombdr = kFALSE;
       track.fStatus = kAlive;
       track.fVindex = basket_mgr->GetNumber();
@@ -267,7 +268,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     event++;
   }
 
-  Printf("Imported %d tracks from events %d to %d. Dispatched %d baskets.", ntotal, startevent,
+  Geant::Print("ImportTracks","Imported %d tracks from events %d to %d. Dispatched %d baskets.", ntotal, startevent,
          startevent + nevents - 1, ndispatched);
   return ndispatched;
 }

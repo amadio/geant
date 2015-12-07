@@ -71,12 +71,12 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 
   G4bool isApp = false;
   G4double meanFreePath = -1.0;
-  G4double dedx = -1.0;
+  //G4double dedx = -1.0;
   G4double previousStepSize = 0.0;
   G4ForceCondition aCondition;
 
-  const G4MaterialCutsCouple* couple  = atrack->GetMaterialCutsCouple(); 
-  G4double  kineticEnergy = atrack->GetKineticEnergy();
+  //const G4MaterialCutsCouple* couple  = atrack->GetMaterialCutsCouple(); 
+  //G4double  kineticEnergy = atrack->GetKineticEnergy();
   //  G4float logKineticEnergy = log10(kineticEnergy/GeV);
 
   //Secondary paticles
@@ -98,7 +98,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	if(meanFreePath > 0 && meanFreePath < DBL_MAX) {
 	   //	  theHisto->p_xsec_eBrem->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
-	dedx = eproc->GetDEDX(kineticEnergy,couple);
+	//dedx = eproc->GetDEDX(kineticEnergy,couple);
 	//	theHisto->p_dedx_eBrem->Fill(logKineticEnergy,dedx);
 	
 	// secondaries
@@ -132,7 +132,7 @@ void SteppingAnalysis::FillCrossSections( const G4Step * theStep ) {
 	if (meanFreePath > 0 && meanFreePath < DBL_MAX) {
 	   //	  theHisto->p_xsec_eIoni->Fill(logKineticEnergy,1.0/meanFreePath);
 	}
-	dedx = eproc->GetDEDX(kineticEnergy,couple);
+	//dedx = eproc->GetDEDX(kineticEnergy,couple);
 	//	theHisto->p_dedx_eIoni->Fill(logKineticEnergy,dedx);
       }
 

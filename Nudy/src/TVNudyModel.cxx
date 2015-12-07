@@ -65,7 +65,7 @@ TVNudyModel::~TVNudyModel() {
 
 //______________________________________________________________________________
 double TVNudyModel::GetEo(double ein) {
-  int el, eh;
+  int el;
   if (f5Tein != ein) {
     Info("EIN", "%e --- %e", f5Tein, ein);
     f5Tein = ein;
@@ -84,7 +84,7 @@ double TVNudyModel::GetEo(double ein) {
   } else {
     el = f5Tel;
   }
-  /*  eh = el+1;
+  /*  int eh = el+1;
     double pIndex = fRnd.Rndm();
     int pl = (pIndex * 25.0);
     int ph = pl + 1;
@@ -96,7 +96,8 @@ double TVNudyModel::GetEo(double ein) {
 }
 //_____________________________________________________________________________
 double TVNudyModel::GetAo(double ein) {
-  int el, eh;
+  int el;
+  // int eh;
   if (f4Tein != ein) {
     Info("EIN", "%e --- %e", f5Tein, ein);
     f4Tein = ein;
@@ -390,7 +391,7 @@ void TVNudyModel::File5_Pass2(TNudyEndfSec *sec) {
   for (int k = 0; k < sec->GetN1(); k++) {
     TNudyEndfTab1 *header = (TNudyEndfTab1 *)recIter.Next();
     CheckLinear(header);
-    double u = header->GetC1();
+    // double u = header->GetC1();
     SetTitle(Form("%s,%d", GetTitle(), header->GetL2()));
     if (header->GetL2() == 1) {
       TNudyEndfTab2 *record = (TNudyEndfTab2 *)recIter.Next();
@@ -1026,7 +1027,6 @@ void TVNudyModel::DisplayData(FileData_t file) {
   TCanvas *c1 = new TCanvas("c1", "Display Data", 200, 10, 700, 500);
   c1->SetFillColor(42);
   c1->SetGrid();
-  TCanvas *canvas;
   TGraph2D *gr2 = NULL;
   TGraph *gr = NULL;
   // Draw data
