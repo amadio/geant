@@ -32,7 +32,7 @@ void KernelKleinNishina(Random_t* devStates,
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
     //[low:high] default energy limit = [10keV:1TeV]
-    GUAliasSampler sampler(devStates,tid,1.e-2,1.e+6,100,100,table[kKleinNishina]);
+    GUAliasSampler sampler(devStates,tid,1.e-2,1.e+6,100,200,table[kKleinNishina]);
     model.SetSampler(&sampler);
   }
 
@@ -60,7 +60,7 @@ void KernelHybridCompton(Random_t* devStates,
   model.SetSamplingMethod(sampleType);
   if(model.GetSamplingMethod() == SamplingMethod::kAlias) { 
     //[low:high] default energy limit = [10keV:1TeV]
-    GUAliasSampler sampler(devStates,tid,1.e-2,1.e+6,100,200,table[kHybridCompton]);
+    GUAliasSampler sampler(devStates,tid,1.e-2,1.e+6,100,200,table[kHybridKleinNishina]);
     model.SetSampler(&sampler);
   }
 

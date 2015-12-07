@@ -65,10 +65,10 @@ void GUBenchmarker::RunCuda()
     tableM_h[kKleinNishina] = KleinNishina->GetSampler()->GetAliasTableManager();
   }
 
-  ComptonKleinNishina *HybridCompton;
-  if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kHybridCompton) {      
-    HybridCompton = new ComptonKleinNishina(0,-1);
-    tableM_h[kHybridCompton] = HybridCompton->GetSampler()->GetAliasTableManager();
+  ComptonKleinNishina *HybridKleinNishina;
+  if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kHybridKleinNishina) {      
+    HybridKleinNishina = new ComptonKleinNishina(0,-1);
+    tableM_h[kHybridKleinNishina] = HybridKleinNishina->GetSampler()->GetAliasTableManager();
   }
 
   ConversionBetheHeitler *BetheHeitler;
