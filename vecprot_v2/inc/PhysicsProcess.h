@@ -104,6 +104,7 @@ public:
    * @param tracks Vector of tracks_v
    * @param td  Thread data
    */
+  GEANT_CUDA_DEVICE_CODE
   virtual void PostStepTypeOfIntrActSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                              GeantTaskData *td) = 0;
 
@@ -120,6 +121,7 @@ public:
    * @param nout Number of tracks in the output
    * @param td Thread data
    */
+  GEANT_CUDA_DEVICE_CODE
   virtual void PostStepFinalStateSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
                                           GeantTaskData *td) = 0;
 

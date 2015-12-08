@@ -37,12 +37,14 @@ public:
 
   // # smapling: -target atom and type of the interaction for each primary tracks
   //             -all inf. regarding sampling output is stored in the tracks
+  GEANT_CUDA_DEVICE_CODE
   virtual void PostStepTypeOfIntrActSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
   // # sampling final states for each primary tracks based on target atom and
   //    interaction type sampled by PostStepTypeOfIntrActSampling;
   // # upadting primary track properties and inserting secondary tracks;
   // # number of inserted secondary tracks will be stored in nout at termination
+  GEANT_CUDA_DEVICE_CODE
   virtual void PostStepFinalStateSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
                                           GeantTaskData *td);
 
