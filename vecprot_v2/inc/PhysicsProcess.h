@@ -127,18 +127,18 @@ public:
    * @todo  Need to be implemented
    */
   virtual void AtRest(int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/, GeantTaskData * /*td*/) {}
-  GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
+  GEANT_CUDA_DEVICE_CODE
   virtual void Eloss(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
                      GeantTaskData * /*td*/) {}
-  GEANT_CUDA_DEVICE_CODE
 
   /**
    * @todo Need to be implemented
    */
+  GEANT_CUDA_DEVICE_CODE
   virtual void ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
 
   ClassDef(PhysicsProcess, 1) // Physics process base class
