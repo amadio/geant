@@ -14,6 +14,7 @@
 #define GEANT_WORKLOADMANAGER
 
 #include <thread>
+#include <list>
 #include "priority_queue.h"
 #include "dcqueue.h"
 #include "condition_locker.h"
