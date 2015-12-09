@@ -709,7 +709,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.fStep = 0.;
           track.fSnext = 0.;
           track.fSafety = tracks.fSafetyV[t];
-          track.fFrombdr = tracks.fFrombdrV[t];
+          track.fBoundary = tracks.fBoundaryV[t];
           track.fPending = kFALSE;
           *track.fPath = *tracks.fPathV[t];
           *track.fNextpath = *tracks.fPathV[t];
@@ -836,7 +836,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fStep = 0.;
       track1.fSnext = 0.;
       track1.fSafety = tracks.fSafetyV[iintrack];
-      track1.fFrombdr = tracks.fFrombdrV[iintrack];
+      track1.fBoundary = tracks.fBoundaryV[iintrack];
       track1.fPending = kFALSE;
       *track1.fPath = *tracks.fPathV[iintrack];
       *track1.fNextpath = *tracks.fPathV[iintrack];
@@ -959,7 +959,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track.fStep = 0.;
       track.fSnext = 0.;
       track.fSafety = tracks.fSafetyV[iintrack];
-      track.fFrombdr = tracks.fFrombdrV[iintrack];
+      track.fBoundary = tracks.fBoundaryV[iintrack];
       track.fPending = kFALSE;
       *track.fPath = *tracks.fPathV[iintrack];
       *track.fNextpath = *tracks.fPathV[iintrack];
@@ -1074,7 +1074,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track.fStep = 0.;
         track.fSnext = 0.;
         track.fSafety = tracks.fSafetyV[iintrack];
-        track.fFrombdr = tracks.fFrombdrV[iintrack];
+        track.fBoundary = tracks.fBoundaryV[iintrack];
         track.fPending = kFALSE;
         *track.fPath = *tracks.fPathV[iintrack];
         *track.fNextpath = *tracks.fPathV[iintrack];

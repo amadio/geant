@@ -101,6 +101,8 @@ void run(int ncputhreads=4,
    prop->fApplication = new ExN03Application();
    // Activate I/O
    prop->fFillTree = false;
+   // Activate old version of single thread serialization/reading
+  // prop->fConcurrentWrite = false;
 
 // Activate debugging using -DBUG_HUNT=ON in your cmake build
    prop->fDebugEvt = 0;

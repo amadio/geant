@@ -59,8 +59,8 @@ ClassImp(GeantPropagator)
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0), fNsafeSteps(0),
-      fNsnextSteps(0), fNphysSteps(0), fFeederLock(ATOMIC_FLAG_INIT), fPriorityEvents(0), fDoneEvents(0),
+    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0), fNsteps(0),
+      fNsnext(0), fNphys(0), fNmag(0), fNsmall(0), fFeederLock(ATOMIC_FLAG_INIT), fPriorityEvents(0), fDoneEvents(0),
       fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1),
       fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0),
       fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
@@ -259,7 +259,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
       fPrimaryGenerator->GetTrack(i, track);
       if (!track.IsNormalized())
         track.Print("Not normalized");
-      track.fFrombdr = kFALSE;
+      track.fBoundary = kFALSE;
       track.fStatus = kAlive;
       track.fVindex = basket_mgr->GetNumber();
       AddTrack(track);
@@ -506,11 +506,11 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   if (strstr(geomfile, "http://root.cern.ch/files/"))
     geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
-  int nsteps = fWMgr->GetScheduler()->GetNsteps();
-  Printf("=== Transported: %lld primaries/%lld tracks,  total steps: %d, safety steps: %lld,  snext steps: %lld, "
-         "phys steps: %lld, RT=%gs, CP=%gs",
-         fNprimaries.load(), fNtransported.load(), nsteps, fNsafeSteps.load(), fNsnextSteps.load(), fNphysSteps.load(),
-         rtime, ctime);
+//  int nsteps = fWMgr->GetScheduler()->GetNsteps();
+  Printf("=== Transported: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
+         "phys steps: %ld, mag. field steps: %ld, small steps: %ld  RT=%gs, CP=%gs",
+         fNprimaries.load(), fNtransported.load(), fNsteps.load(), fNsnext.load(), fNphys.load(),
+         fNmag.load(), fNsmall.load(), rtime, ctime);
   Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
   //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
   fApplication->FinishRun();

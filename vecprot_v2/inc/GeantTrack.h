@@ -111,7 +111,7 @@ public:
   double fStep;          /** Current step */
   double fSnext;         /** Straight distance to next boundary */
   double fSafety;        /** Safe distance to any boundary */
-  bool fFrombdr;         /** True if starting from boundary */
+  bool fBoundary;         /** True if starting from boundary */
   bool fPending;
   VolumePath_t *fPath;
   VolumePath_t *fNextpath;
@@ -182,7 +182,7 @@ public:
   int EventSlot() const { return fEvslot; }
 
   /** @brief Function that return true if starting from boundary */
-  bool FromBoundary() const { return fFrombdr; }
+  bool FromBoundary() const { return fBoundary; }
 
   /** @brief Function that return GV particle code */
   int GVcode() const { return fGVcode; }
@@ -492,7 +492,7 @@ public:
    *
    * @param flag Flag that is true if starting from boundary
    */
-  void SetFrombdr(bool flag) { fFrombdr = flag; }
+  void SetFrombdr(bool flag) { fBoundary = flag; }
 
   /**
    * @brief Function that set pending status
@@ -571,7 +571,7 @@ public:
   double *fStepV;   /** Current steps */
   double *fSnextV;  /** Straight distances to next boundary */
   double *fSafetyV; /** Safe distances to any boundary */
-  bool *fFrombdrV;  /** True if starting from boundary */
+  bool *fBoundaryV;  /** True if starting from boundary */
   bool *fPendingV;
   VolumePath_t **fPathV;     /** Paths for the particles in the geometry */
   VolumePath_t **fNextpathV; /** Paths for next volumes */
@@ -871,7 +871,7 @@ public:
   bool IsMixed() const { return fMixed; }
 
   /** @brief Function that print pointers */
-  void PrintPointers() { printf("fEventV=%p fFrombdrV=%p\n", (void *)fEventV, (void *)fFrombdrV); }
+  void PrintPointers() { printf("fEventV=%p fBoundaryV=%p\n", (void *)fEventV, (void *)fBoundaryV); }
 
   /**
    * @brief Function that print track

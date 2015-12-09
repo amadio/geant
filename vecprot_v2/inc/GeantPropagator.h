@@ -65,14 +65,16 @@ public:
   int fNthreads;                     /** Number of worker threads */
   int fNevents;                      /** Number of buffered events */
   int fNtotal;                       /** Total number of events to be transported */
-  std::atomic<Long64_t> fNtransported; /** Number of transported tracks */
-  std::atomic<Long64_t> fNprimaries;   /** Number of primary tracks */
-  std::atomic<Long64_t> fNsafeSteps;   /** Number of fast steps within safety */
-  std::atomic<Long64_t> fNsnextSteps;  /** Number of steps where full snext computation is needed */
-  std::atomic<Long64_t> fNphysSteps;   /** Number of steps to physics process */
-  std::atomic_flag fFeederLock;        /** Atomic flag to protect the particle feeder */
-  std::atomic_int fPriorityEvents;     /** Number of prioritized events */
-  BitSet *fDoneEvents;                 /** Array of bits marking done events */
+  std::atomic<long> fNtransported;   /** Number of transported tracks */
+  std::atomic<long> fNprimaries;     /** Number of primary tracks */
+  std::atomic<long> fNsteps;         /** Total number of steps */
+  std::atomic<long> fNsnext;         /** Total number of calls to getting distance to next boundary */
+  std::atomic<long> fNphys;          /** Total number of steps to physics processes */
+  std::atomic<long> fNmag;           /** Total number of partial steps in magnetic field */
+  std::atomic<long> fNsmall;         /** Total number of small steps taken */
+  std::atomic_flag fFeederLock;      /** Atomic flag to protect the particle feeder */
+  std::atomic_int fPriorityEvents;   /** Number of prioritized events */
+  BitSet *fDoneEvents;               /** Array of bits marking done events */
   int fNprocesses;                   /** Number of active physics processes */
   int fNstart;                       /** Cumulated initial number of tracks */
   int fMaxTracks;                    /** Maximum number of tracks per event */

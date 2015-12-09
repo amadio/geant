@@ -54,7 +54,7 @@ const double gTolerance = TGeoShape::Tolerance();
 GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fBoundary(false),
       fPending(false), fPath(0), fNextpath(0) {
   // Dummy constructor
 }
@@ -81,7 +81,7 @@ void printrace(void) {
 GeantTrack::GeantTrack(int ipdg)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fBoundary(false),
       fPending(false), fPath(0), fNextpath(0) {
   // Constructor
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
@@ -94,7 +94,7 @@ GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack(int ipdg, int maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fFrombdr(false),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fBoundary(false),
       fPending(false), fPath(0), fNextpath(0) {
   // Constructor
   fPath = VolumePath_t::MakeInstance(maxdepth);
@@ -108,7 +108,7 @@ GeantTrack::GeantTrack(const GeantTrack &other)
       fVindex(other.fVindex), fNsteps(other.fNsteps), fSpecies(other.fSpecies), fStatus(other.fStatus),
       fMass(other.fMass), fXpos(other.fXpos), fYpos(other.fYpos), fZpos(other.fZpos), fXdir(other.fXdir),
       fYdir(other.fYdir), fZdir(other.fZdir), fP(other.fP), fE(other.fE), fTime(other.fTime), fEdep(other.fEdep),
-      fPstep(other.fPstep), fStep(other.fStep), fSnext(other.fSnext), fSafety(other.fSafety), fFrombdr(other.fFrombdr),
+      fPstep(other.fPstep), fStep(other.fStep), fSnext(other.fSnext), fSafety(other.fSafety), fBoundary(other.fBoundary),
       fPending(other.fPending), fPath(0), fNextpath(0) {
   // Copy constructor
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
@@ -149,7 +149,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fStep = other.fStep;
     fSnext = other.fSnext;
     fSafety = other.fSafety;
-    fFrombdr = other.fFrombdr;
+    fBoundary = other.fBoundary;
     fPending = other.fPending;
     int maxdepth = GeantPropagator::Instance()->fMaxDepth;
     fPath = VolumePath_t::MakeInstance(maxdepth);
@@ -198,7 +198,7 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, int i) {
   fStep = arr.fStepV[i];
   fSnext = arr.fSnextV[i];
   fSafety = arr.fSafetyV[i];
-  fFrombdr = arr.fFrombdrV[i];
+  fBoundary = arr.fBoundaryV[i];
   fPending = arr.fPendingV[i];
   //   if (!fPath) fPath = wm->NavStates()->borrow();
   *fPath = *arr.fPathV[i];
@@ -236,7 +236,7 @@ void GeantTrack::Clear(const char *) {
   fStep = 0.;
   fSnext = 0.;
   fSafety = 0.;
-  fFrombdr = false;
+  fBoundary = false;
   fPending = false;
 }
 
@@ -323,7 +323,7 @@ GeantTrack_v::GeantTrack_v()
       fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0),
       fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0),
-      fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+      fSnextV(0), fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
   // Dummy ctor.
 }
 
@@ -333,7 +333,7 @@ GeantTrack_v::GeantTrack_v(int size, int maxdepth)
       fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
       fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
       fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
   // Constructor with maximum capacity.
   Resize(size);
 }
@@ -351,7 +351,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
       fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0),
       fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0),
       fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0),
-      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0),
+      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0),
       fNextpathV(0) {
 
   // Constructor with maximum capacity.
@@ -370,7 +370,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
       fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0),
       fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0),
       fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0),
-      fSafetyV(0), fFrombdrV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+      fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
 // Copy constructor
 #ifndef GEANT_CUDA_DEVICE_BUILD
   fNtracks.store(track_v.fNtracks);
@@ -485,7 +485,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, int size) {
   buf += size_doublen;
   fSafetyV = (double *)buf;
   buf += size_doublen;
-  fFrombdrV = (bool *)buf;
+  fBoundaryV = (bool *)buf;
   buf += size_booln;
   fPendingV = (bool *)buf;
   buf += size_booln;
@@ -604,8 +604,8 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   memcpy(buf, fSafetyV, size_double);
   fSafetyV = (double *)buf;
   buf += size_doublen;
-  memcpy(buf, fFrombdrV, ntracks * sizeof(bool));
-  fFrombdrV = (bool *)buf;
+  memcpy(buf, fBoundaryV, ntracks * sizeof(bool));
+  fBoundaryV = (bool *)buf;
   buf += size * sizeof(bool);
   memcpy(buf, fPendingV, ntracks * sizeof(bool));
   fPendingV = (bool *)buf;
@@ -797,7 +797,7 @@ int GeantTrack_v::AddTrack(GeantTrack &track, bool /*import*/) {
   fStepV[itrack] = track.fStep;
   fSnextV[itrack] = track.fSnext;
   fSafetyV[itrack] = track.fSafety;
-  fFrombdrV[itrack] = track.fFrombdr;
+  fBoundaryV[itrack] = track.fBoundary;
   fPendingV[itrack] = track.fPending;
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -846,7 +846,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack &track) {
   fStepV[itrack] = track.fStep;
   fSnextV[itrack] = track.fSnext;
   fSafetyV[itrack] = track.fSafety;
-  fFrombdrV[itrack] = track.fFrombdr;
+  fBoundaryV[itrack] = track.fBoundary;
   fPendingV[itrack] = track.fPending;
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -913,7 +913,7 @@ int GeantTrack_v::AddTrack(GeantTrack_v &arr, int i, bool /*import*/) {
   fStepV[itrack] = arr.fStepV[i];
   fSnextV[itrack] = arr.fSnextV[i];
   fSafetyV[itrack] = arr.fSafetyV[i];
-  fFrombdrV[itrack] = arr.fFrombdrV[i];
+  fBoundaryV[itrack] = arr.fBoundaryV[i];
   fPendingV[itrack] = arr.fPendingV[i];
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -967,7 +967,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack_v &arr, int i) {
   fStepV[itrack] = arr.fStepV[i];
   fSnextV[itrack] = arr.fSnextV[i];
   fSafetyV[itrack] = arr.fSafetyV[i];
-  fFrombdrV[itrack] = arr.fFrombdrV[i];
+  fBoundaryV[itrack] = arr.fBoundaryV[i];
   fPendingV[itrack] = arr.fPendingV[i];
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -1040,7 +1040,7 @@ int GeantTrack_v::AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i) {
   fStepV[itrack] = arr.fStepV[i];
   fSnextV[itrack] = arr.fSnextV[i];
   fSafetyV[itrack] = arr.fSafetyV[i];
-  fFrombdrV[itrack] = arr.fFrombdrV[i];
+  fBoundaryV[itrack] = arr.fBoundaryV[i];
   fPendingV[itrack] = arr.fPendingV[i];
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -1086,7 +1086,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, int istart, int iend, bool /*imp
   memcpy(&fStepV[ntracks], &arr.fStepV[istart], ncpy * sizeof(double));
   memcpy(&fSnextV[ntracks], &arr.fSnextV[istart], ncpy * sizeof(double));
   memcpy(&fSafetyV[ntracks], &arr.fSafetyV[istart], ncpy * sizeof(double));
-  memcpy(&fFrombdrV[ntracks], &arr.fFrombdrV[istart], ncpy * sizeof(bool));
+  memcpy(&fBoundaryV[ntracks], &arr.fBoundaryV[istart], ncpy * sizeof(bool));
   memcpy(&fPendingV[ntracks], &arr.fPendingV[istart], ncpy * sizeof(bool));
 
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -1189,9 +1189,9 @@ void GeantTrack_v::SwapTracks(int i, int j) {
   tdbl = fSafetyV[i];
   fSafetyV[i] = fSafetyV[j];
   fSafetyV[j] = tdbl;
-  tbool = fFrombdrV[i];
-  fFrombdrV[i] = fFrombdrV[j];
-  fFrombdrV[j] = tbool;
+  tbool = fBoundaryV[i];
+  fBoundaryV[i] = fBoundaryV[j];
+  fBoundaryV[j] = tbool;
   tbool = fPendingV[i];
   fPendingV[i] = fPendingV[j];
   fPendingV[j] = tbool;
@@ -1237,7 +1237,7 @@ void GeantTrack_v::ReplaceTrack(int i, int j) {
   fStepV[i] = fStepV[j];
   fSnextV[i] = fSnextV[j];
   fSafetyV[i] = fSafetyV[j];
-  fFrombdrV[i] = fFrombdrV[j];
+  fBoundaryV[i] = fBoundaryV[j];
   fPendingV[i] = fPendingV[j];
   //   if (!fPathV[i]) fPathV[i] = wm->NavStates()->Borrow();
   //   if (!fNextpathV[i]) fNextpathV[i] = wm->NavStates()->Borrow();
@@ -1299,7 +1299,7 @@ void GeantTrack_v::RemoveTracks(int from, int to) {
   memmove(&fStepV[from], &fStepV[to + 1], ncpy * sizeof(double));
   memmove(&fSnextV[from], &fSnextV[to + 1], ncpy * sizeof(double));
   memmove(&fSafetyV[from], &fSafetyV[to + 1], ncpy * sizeof(double));
-  memmove(&fFrombdrV[from], &fFrombdrV[to + 1], ncpy * sizeof(bool));
+  memmove(&fBoundaryV[from], &fBoundaryV[to + 1], ncpy * sizeof(bool));
   memmove(&fPendingV[from], &fPendingV[to + 1], ncpy * sizeof(bool));
   memmove(&fPathV[from], &fPathV[to + 1], ncpy * sizeof(VolumePath_t *));
   memmove(&fNextpathV[from], &fNextpathV[to + 1], ncpy * sizeof(VolumePath_t *));
@@ -1414,7 +1414,7 @@ int GeantTrack_v::PropagateStraight(int ntracks, double *crtstep) {
   // Find next volume
   int icrossed = 0;
   for (int i = 0; i < ntracks; i++) {
-    if (fFrombdrV[i]) {
+    if (fBoundaryV[i]) {
       //*fPathV[i] = *fNextpathV[i];
       fStatusV[i] = kBoundary;
       icrossed++;
@@ -1466,25 +1466,15 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   if (fPstepV[i] < 1.E-10) {
     fPstepV[i] = 0;
     fStatusV[i] = kPhysics;
-#ifndef GEANT_CUDA_DEVICE_BUILD
-//   gPropagator->fNphysSteps++;
-#endif
   }
   fSafetyV[i] -= crtstep;
   if (fSafetyV[i] < 1.E-10)
     fSafetyV[i] = 0;
-#ifndef GEANT_CUDA_DEVICE_BUILD
-  else if (!fFrombdrV[i])
-    gPropagator->fNsafeSteps++;
-#endif
   fSnextV[i] -= crtstep;
   if (fSnextV[i] < 1.E-10) {
     fSnextV[i] = 0;
-    if (fFrombdrV[i]) {
+    if (fBoundaryV[i]) {
       fStatusV[i] = kBoundary;
-#ifndef GEANT_CUDA_DEVICE_BUILD
-      gPropagator->fNsnextSteps++;
-#endif
     }
   }
   fStepV[i] += crtstep;
@@ -2041,7 +2031,7 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
       itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fGVcodeV[itr],
       fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
-      fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fFrombdrV[itr]);
+      fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fBoundaryV[itr]);
 
 #else
   TString path;
@@ -2055,7 +2045,7 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
          itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fEindexV[itr], fGVcodeV[itr],
          fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
          fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
-         fTimeV[itr], fEdepV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fFrombdrV[itr], path.Data(),
+         fTimeV[itr], fEdepV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fBoundaryV[itr], path.Data(),
          nextpath.Data());
 #endif
 }
@@ -2073,7 +2063,7 @@ void GeantTrack_v::PrintTracks(const char *msg) const {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData */*td*/) {
+void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
   static std::atomic<int> icalls(0);
   ++icalls;
@@ -2094,7 +2084,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData */*td*/) {
      // Check if current safety allows for the proposed step
      if (fSafetyV[i] > fPstepV[i]) {
        fSnextV[i] = fPstepV[i];
-       fFrombdrV[i] = false;
+       fBoundaryV[i] = false;
        continue;
      }
    }
@@ -2113,11 +2103,13 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData */*td*/) {
                                fSnextV,
                                td->GetIntArray(ntracks));
 
+   // Update number of calls to geometry (consider a vector call as N scalar calls)
+   td->fNsnext += ntracks;
    // rectify some parts ( as in the scalar case )
    // TODO: vectorize loop
    for (unsigned int itr = 0; itr < ntracks; ++itr) {
      fSnextV[itr] = Math::Max<double>(2. * gTolerance, fSnextV[itr] + 2. * gTolerance);
-     fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
+     fBoundaryV[itr] = fNextpathV[itr]->IsOnBoundary();
      if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
            fStatusV[itr] = kExitingSetup;
    }
@@ -2125,7 +2117,9 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData */*td*/) {
   // OLD version calling the looped implementation
   // call the vector interface of GeantTrack_v
   NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV, fPathV, fNextpathV,
-                             fSnextV, fSafetyV, fFrombdrV, this);
+                             fSnextV, fSafetyV, fBoundaryV, this);
+  // Update number of calls to geometry (consider a vector call as N scalar calls)
+  td->fNsnext += ntracks;
 
   // perform a couple of additional checks/ set status flags and so on
   for (int itr = 0; itr < ntracks; ++itr) {
@@ -2151,7 +2145,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 GEANT_CUDA_BOTH_CODE
 //#if 0
 #ifdef USE_VECGEOM_NAVIGATOR
-void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData */*td*/) {
+void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
@@ -2166,7 +2160,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData */*td*/) 
   // nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
   // fPathV[itr]->UpdateNavigator(nav);
   // nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
-  // nav->FindNextBoundaryAndStep( Math::Min<double>(1.E20, fPstepV[itr]), !fFrombdrV[itr] );
+  // nav->FindNextBoundaryAndStep( Math::Min<double>(1.E20, fPstepV[itr]), !fBoundaryV[itr] );
 
   //
   using VECGEOM_NAMESPACE::SimpleNavigator;
@@ -2179,7 +2173,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData */*td*/) 
   if (fPstepV[itr] < fSafetyV[itr]) {
     fSnextV[itr] = fPstepV[itr];
     *fNextpathV[itr] = *fPathV[itr];
-    fFrombdrV[itr] = false;
+    fBoundaryV[itr] = false;
     return;
   }
   SimpleNavigator nav;
@@ -2189,11 +2183,13 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData */*td*/) 
                               Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]), *fPathV[itr], *fNextpathV[itr],
                               Math::Min<double>(1.E20, fPstepV[itr]), step);
 
+  // Update number of calls to geometry
+  td->fNsnext++;
   // get back step, safety, new geometry path, and other navigation information
   fSnextV[itr] = Math::Max<double>(2 * gTolerance, step);
-  fSafetyV[itr] = (fFrombdrV[itr]) ? 0 : nav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), *fPathV[itr]);
+  fSafetyV[itr] = (fBoundaryV[itr]) ? 0 : nav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), *fPathV[itr]);
   fSafetyV[itr] = (fSafetyV[itr] < 0) ? 0. : fSafetyV[itr];
-  fFrombdrV[itr] = fNextpathV[itr]->IsOnBoundary();
+  fBoundaryV[itr] = fNextpathV[itr]->IsOnBoundary();
 
   // if outside detector or enormous step mark particle as exiting the detector
   if (fNextpathV[itr]->IsOutside() || fSnextV[itr] > 1.E19)
@@ -2211,12 +2207,14 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *) {
   if (fPstepV[itr] < fSafetyV[itr]) {
     fSnextV[itr] = fPstepV[itr];
     *fNextpathV[itr] = *fPathV[itr];
-    fFrombdrV[itr] = false;
+    fBoundaryV[itr] = false;
     return;
   }
   NavFindNextBoundaryAndStep(1, &fPstepV[itr], &fXposV[itr], &fYposV[itr], &fZposV[itr], &fXdirV[itr], &fYdirV[itr],
                              &fZdirV[itr], &fPathV[itr], &fNextpathV[itr], &fSnextV[itr], &fSafetyV[itr],
-                             &fFrombdrV[itr], this);
+                             &fBoundaryV[itr], this);
+  // Update number of calls to geometry
+  td->fNsnext++;
   // if outside detector or enormous step mark particle as exiting the detector
   if (fNextpathV[itr]->IsOutside() || fSnextV[itr] > 1.E19)
     fStatusV[itr] = kExitingSetup;
@@ -2314,8 +2312,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
     // (Inlined from PropagateStraight)
     if (fChargeV[itr] == 0 || bmag < 1.E-10) {
       // Do straight propagation to physics process or boundary
-      if (fFrombdrV[itr]) {
-        // *fPathV[itr] = *fNextpathV[itr];
+      if (fBoundaryV[itr]) {
         if (fNextpathV[itr]->IsOutside())
           fStatusV[itr] = kExitingSetup;
         else
@@ -2323,6 +2320,8 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
         icrossed++;
       } else {
         fStatusV[itr] = kPhysics;
+        // Update number of steps to physics
+        td->fNphys++;
       }
       fPstepV[itr] -= fSnextV[itr];
       fStepV[itr] += fSnextV[itr];
@@ -2332,11 +2331,11 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
       fXposV[itr] += fSnextV[itr] * fXdirV[itr];
       fYposV[itr] += fSnextV[itr] * fYdirV[itr];
       fZposV[itr] += fSnextV[itr] * fZdirV[itr];
-      fSnextV[itr] = 0;
-#ifndef GEANT_CUDA_DEVICE_BUILD
-      gPropagator->fNsnextSteps++; // should use atomics
-#endif
+      // Update total number of steps
+      td->fNsteps++;
+      if (fSnextV[itr] < 1.E-8) td->fNsmall++;
       MarkRemoved(itr);
+      fSnextV[itr] = 0;
 #ifdef USE_VECGEOM_NAVIGATOR
 //            CheckLocationPathConsistency(itr);
 #endif
@@ -2373,16 +2372,18 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
     lmax = SafeLength(itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
-    // the straight distance to boundary (if frombdr=1) or the proposed  physics
-    // step (frombdr=0)
+    // the straight distance to boundary (if fboundary=1) or the proposed  physics
+    // step (fboundary=0)
     steps[itr] =
-        (fFrombdrV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) : Math::Min<double>(lmax, fPstepV[itr]);
-    //    if (fFrombdrV[itr] && steps[itr]<1.E-8) steps[itr] = 1.E-3;
+        (fBoundaryV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) : Math::Min<double>(lmax, fPstepV[itr]);
+    //    if (fBoundaryV[itr] && steps[itr]<1.E-8) steps[itr] = 1.E-3;
     // Printf("snext=%g lmax=%g", fSnextV[itr], lmax);
     //      Printf("track %d: step=%g (safelen=%g)", itr, steps[itr], lmax);
   }
   // Propagate the vector of tracks
   PropagateInVolume(ntracks, steps, td);
+  //Update number of partial steps propagated in field
+  td->fNmag += ntracks;
   //         Printf("====== After PropagateInVolume:");
   //         PrintTracks();
   // Some tracks made it to physics steps (kPhysics)
@@ -2397,6 +2398,9 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   for (itr = 0; itr < ntracks; itr++) {
     if (fStatusV[itr] == kPhysics) {
       MarkRemoved(itr);
+      // Update number of steps to physics and total number of steps
+      td->fNphys++;
+      td->fNsteps++;
     }
   }
   if (!fCompact)
@@ -2421,16 +2425,18 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
     NavIsSameLocation(nsel, fPathV, fNextpathV, same, td);
     for (itr = 0; itr < nsel; itr++) {
       if (same[itr]) {
-        fFrombdrV[itr] = false;
+        fBoundaryV[itr] = false;
         continue;
       }
-      // Boundary crossed -> update current path
-      //*fPathV[itr] = *fNextpathV[itr];
+      // Boundary crossed
       fStatusV[itr] = kBoundary;
       if (fNextpathV[itr]->IsOutside())
         fStatusV[itr] = kExitingSetup;
-      fFrombdrV[itr] = true;
+      fBoundaryV[itr] = true;
       icrossed++;
+      // Update number of steps to physics and total number of steps
+      td->fNsteps++;  
+      if (fStepV[itr] < 1.E-8) td->fNsmall++;
       MarkRemoved(itr);
     }
     //         Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
@@ -2481,7 +2487,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   if (stage == 0) {
     if (fChargeV[itr] == 0 || bmag < 1.E-10) {
       // Do straight propagation to physics process or boundary
-      if (fFrombdrV[itr]) {
+      if (fBoundaryV[itr]) {
         //*fPathV[itr] = *fNextpathV[itr];
         if (fNextpathV[itr]->IsOutside())
           fStatusV[itr] = kExitingSetup;
@@ -2490,6 +2496,8 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
         icrossed++;
       } else {
         fStatusV[itr] = kPhysics;
+        // Update number of steps to physics
+        td->fNphys++;
       }
       fPstepV[itr] -= fSnextV[itr];
       fStepV[itr] += fSnextV[itr];
@@ -2499,10 +2507,10 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
       fXposV[itr] += fSnextV[itr] * fXdirV[itr];
       fYposV[itr] += fSnextV[itr] * fYdirV[itr];
       fZposV[itr] += fSnextV[itr] * fZdirV[itr];
+      // Update total number of steps
+      td->fNsteps++;
+      if (fSnextV[itr] < 1.E-8) td->fNsmall++;
       fSnextV[itr] = 0;
-#ifndef GEANT_CUDA_DEVICE_BUILD
-      gPropagator->fNsnextSteps++;
-#endif
       MarkRemoved(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
 //            CheckLocationPathConsistency(itr);
@@ -2526,9 +2534,11 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
     // step (frombdr=0)
-    step = (fFrombdrV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) : Math::Min<double>(lmax, fPstepV[itr]);
+    step = (fBoundaryV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) : Math::Min<double>(lmax, fPstepV[itr]);
     //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
     PropagateInVolumeSingle(itr, step, td);
+    //Update number of partial steps propagated in field
+    td->fNmag++;
     //      Printf("====== After PropagateInVolumeSingle:");
     //      PrintTrack(itr);
     // The track may have made it to physics steps (kPhysics)
@@ -2541,6 +2551,9 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // Select tracks that made it to physics and copy to output
     if (fStatusV[itr] == kPhysics) {
       MarkRemoved(itr);
+      // Update number of steps to physics and total number of steps
+      td->fNphys++;
+      td->fNsteps++;
       return icrossed;
     }
     // Select tracks that are in flight or were propagated to boundary with
@@ -2548,16 +2561,18 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
       bool same = NavIsSameLocationSingle(itr, fPathV, fNextpathV, td);
       if (same) {
-        fFrombdrV[itr] = false;
+        fBoundaryV[itr] = false;
         return icrossed;
       }
-      // Boundary crossed -> update current path
-      //*fPathV[itr] = *fNextpathV[itr];
+      // Boundary crossed
       fStatusV[itr] = kBoundary;
       if (fNextpathV[itr]->IsOutside())
         fStatusV[itr] = kExitingSetup;
-      fFrombdrV[itr] = true;
+      fBoundaryV[itr] = true;
       icrossed++;
+      // Update number of steps to physics and total number of steps
+      td->fNsteps++;     
+      if (fStepV[itr] < 1.E-8) td->fNsmall++;
       MarkRemoved(itr);
     }
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -2699,7 +2714,7 @@ bool GeantTrack_v::CheckNavConsistency(int itr) {
   int evt = fEventV[itr];
   int trk = fParticleV[itr];
   int stp = fNstepsV[itr];
-  bool onbound = fFrombdrV[itr];
+  bool onbound = fBoundaryV[itr];
   bool inside = shape->Contains(local);
   double safin = shape->Safety(local, true);
   double safout = shape->Safety(local, false);

@@ -24,7 +24,9 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
       fPath(nullptr), fBmgr(nullptr), fPool(),
       fSOA3Dworkspace1(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)),
       fSOA3Dworkspace2(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)), 
-      fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fNkeepvol(0) {
+      fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fNkeepvol(0),
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0)
+{
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
@@ -57,7 +59,8 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
       fPath(nullptr), fBmgr(nullptr), fPool(),
       fSOA3Dworkspace1(nullptr),
       fSOA3Dworkspace2(nullptr),
-      fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0)
+      fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0)
 {
   // Constructor
   char *buffer = (char*)addr;
@@ -106,7 +109,8 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 }
 
 //______________________________________________________________________________
-GeantTaskData::~GeantTaskData() {
+GeantTaskData::~GeantTaskData() 
+{
 // Destructor
 //  delete fMatrix;
 #ifndef GEANT_NVCC
@@ -149,7 +153,8 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
 
 
 #ifndef GEANT_NVCC
-GeantBasket *GeantTaskData::GetNextBasket() {
+GeantBasket *GeantTaskData::GetNextBasket() 
+{
   // Gets next free basket from the queue.
   if (fPool.empty()) 
     return nullptr;
@@ -160,13 +165,15 @@ GeantBasket *GeantTaskData::GetNextBasket() {
 }
 
 //______________________________________________________________________________
-void GeantTaskData::RecycleBasket(GeantBasket *b) {
+void GeantTaskData::RecycleBasket(GeantBasket *b) 
+{
   // Recycle a basket.
   fPool.push_back(b);
 }
 
 //______________________________________________________________________________
-int GeantTaskData::CleanBaskets(size_t ntoclean) {
+int GeantTaskData::CleanBaskets(size_t ntoclean) 
+{
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;
   int ncleaned = 0;

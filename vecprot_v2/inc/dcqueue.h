@@ -32,7 +32,6 @@ template <typename T> class dcqueue {
 #if __cplusplus >= 201103L
   std::atomic<size_t> nobjects;  /** Number of objects in the queue */
   std::atomic<size_t> npriority; /** Number of prioritized objects */
-  std::atomic<size_t> countdown; /** Countdown counter for extracted objects */
   size_t nop;         /** Number of ops */      
 #endif
 public:
@@ -40,7 +39,7 @@ public:
   /** @brief Dcqueue constructor */
   dcqueue()
       : the_queue(), the_mutex(), the_condition_variable(&the_mutex), nobjects(0), npriority(0),
-        countdown(0), nop(0) {}
+        nop(0) {}
   
   /** @brief Dcqueue destructor */
   ~dcqueue() {}
@@ -52,22 +51,6 @@ public:
    * @param priority Priority of data 
    */
   void push(T const &data, bool priority = false);
-
-  /** 
-   * @brief Get function for countdown counter for extracted objects
-   * @return atomic countdown counter
-   */
-  size_t get_countdown() const { return countdown.load(std::memory_order_relaxed); }
-
-  /** @brief Reset function countdown counter for extracted objects */
-  void reset_countdown() { countdown.store(-1, std::memory_order_relaxed); }
-
-  /**
-   * @brief Function that set countdown counter for extracted objects
-   * 
-   * @param n Size of counter
-   */
-  void set_countdown(size_t n) { countdown.store(n, std::memory_order_relaxed); }
 
   /** 
    * @brief Function that provides asynchronized number of objects in queue
@@ -169,8 +152,6 @@ template <typename T> void dcqueue<T>::wait_and_pop(T &data) {
   the_queue.pop_back();
   nobjects--;
   nop++;
-  if (countdown > 0)
-    countdown--;
   if (npriority > 0)
     npriority--;
   the_mutex.UnLock();
@@ -195,8 +176,6 @@ template <typename T> bool dcqueue<T>::try_pop(T &data) {
   the_queue.pop_back();
   nobjects--;
   nop++;
-  if (countdown > 0)
-    countdown--;
   if (npriority > 0)
     npriority--;
   the_mutex.UnLock();
@@ -227,8 +206,6 @@ template <typename T> void dcqueue<T>::wait_and_pop_max(size_t nmax, size_t &n, 
     nobjects--;
     if (npriority)
       npriority--;
-    if (countdown > 0)
-      countdown--;
   }
   the_mutex.UnLock();
 }

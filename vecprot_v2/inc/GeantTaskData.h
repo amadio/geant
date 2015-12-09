@@ -70,6 +70,12 @@ public:
   int *fIntArray;                           // Thread array of ints (used in vector navigation)
   GeantTrack_v  *fTransported;              // Transported tracks in current step
   int            fNkeepvol;                 // Number of tracks keeping the same volume
+  int fNsteps;           /** Total number of steps per thread */
+  int fNsnext;           /** Total number of calls to getting distance to next boundary */
+  int fNphys;            /** Total number of steps to physics processes */
+  int fNmag;             /** Total number of partial steps in magnetic field */
+  int fNpart;            /** Total number of particles transported by the thread */
+  int fNsmall;           /** Total number of small steps taken */
 
 private:
    // a helper function checking internal arrays and allocating more space if necessary

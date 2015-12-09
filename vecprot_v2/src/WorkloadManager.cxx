@@ -447,8 +447,6 @@ void *WorkloadManager::TransportTracks() {
       for (auto itr = 0; itr < nout; ++itr)
         if (output.fStatusV[itr] == kPhysics)
           nphys++;
-      if (nphys)
-        propagator->fNphysSteps += nphys;
 
       propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, td);
       //         if (nextra_at_rest) Geant::Print("","Extra particles: %d", nextra_at_rest);
@@ -459,7 +457,6 @@ void *WorkloadManager::TransportTracks() {
       // Discrete processes only
       nphys = output.SortByLimitingDiscreteProcess(); // only those that kPhysics and not continous limit
       if (nphys) {
-        // propagator->fNphysSteps += nphys;  dont do it here because dont count those killed in eloss
         // Do post step actions for particles suffering a given process.
         // Surviving particles are added to the output array
 
@@ -559,6 +556,13 @@ void *WorkloadManager::TransportTracks() {
    
   wm->DoneQueue()->push(0);
   delete prioritizer;
+  // Final reduction of counters
+  propagator->fNsteps += td->fNsteps;
+  propagator->fNsnext += td->fNsnext;
+  propagator->fNphys += td->fNphys;
+  propagator->fNmag += td->fNmag;
+  propagator->fNsmall += td->fNsmall;
+  
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   if (wm->IsStopped()) wm->MergingServer()->Finish();
