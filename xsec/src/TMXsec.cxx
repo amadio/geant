@@ -778,9 +778,12 @@ TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
 #else
           double ran = xnorm * RNG::Instance().uniform();
 #endif
+
           double xsum = 0;
+          int ibase = part * (fNEbins * fNElems);
+          int iibin  = ibase + ibin * fNElems;
           for (int i = 0; i < fNElems; ++i) {
-            xsum += xrat * fRelXS[ibin * fNElems + i] + (1 - xrat) * fRelXS[(ibin + 1) * fNElems + i];
+            xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
             if (ran <= xsum) {
               iel = i;
               break;
@@ -865,8 +868,10 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
             double ran = xnorm * td->fRndm->uniform();
 #endif
             double xsum = 0;
+            int ibase = ipart * (fNEbins * fNElems);
+            int iibin  = ibase + ibin * fNElems; 
             for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
-              xsum += xrat * fRelXS[ibin * fNElems + i] + (1 - xrat) * fRelXS[(ibin + 1) * fNElems + i];
+              xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
               if (ran <= xsum) {
                 iel = i;
                 break;
@@ -957,8 +962,10 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
           double ran = xnorm * td->fRndm->uniform();
 #endif
           double xsum = 0;
+          int ibase = ipart * (fNEbins * fNElems);
+          int iibin  = ibase + ibin * fNElems; 
           for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
-            xsum += xrat * fRelXS[ibin * fNElems + i] + (1 - xrat) * fRelXS[(ibin + 1) * fNElems + i];
+            xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
             if (ran <= xsum) {
               iel = i;
               break;
