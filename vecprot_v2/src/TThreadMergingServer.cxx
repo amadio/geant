@@ -1,3 +1,4 @@
+#ifdef USE_ROOT
 #include "TThreadMergingServer.h"
 
 #include "TBufferFile.h"
@@ -300,3 +301,4 @@ void TThreadMergingServer::Listen() {
   }
   mergers.Delete();
 }
+#endif

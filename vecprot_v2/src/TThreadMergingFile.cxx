@@ -22,7 +22,7 @@
 // the filename of this object.                                         //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-
+#ifdef USE_ROOT
 #include "TThreadMergingFile.h"
 #include "TSocket.h"
 #include "TArrayC.h"
@@ -155,3 +155,4 @@ void TThreadMergingFile::WriteStreamerInfo()
 
    TMemFile::WriteStreamerInfo();
 }
+#endif

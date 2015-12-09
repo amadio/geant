@@ -8,6 +8,7 @@
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
+#ifdef USE_ROOT
 
 #ifndef ROOT_TThreadMergingFile
 #define ROOT_TThreadMergingFile
@@ -66,4 +67,4 @@ private:
 } // namespace Geant
 
 #endif // ROOT_TThreadMergingFile
-
+#endif

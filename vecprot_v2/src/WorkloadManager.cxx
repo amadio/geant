@@ -39,9 +39,11 @@
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
 #endif
+#ifdef USE_ROOT
 #include "TThread.h"
-#include "GeantFactoryStore.h"
 #include "TThreadMergingFile.h"
+#endif
+#include "GeantFactoryStore.h"
 
 using namespace Geant;
 using std::max;
@@ -54,7 +56,11 @@ WorkloadManager::WorkloadManager(int nthreads)
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
       fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0),
       fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0), fMaxThreads(0), fScheduler(0), fBroker(0), fWaiting(0),
+#ifdef USE_ROOT
       fSchLocker(), fGbcLocker(), fLastEvent(0), fOutputIO(0) {
+#else
+      fSchLocker(), fGbcLocker(), fLastEvent(0) {
+#endif
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -64,8 +70,10 @@ WorkloadManager::WorkloadManager(int nthreads)
   fWaiting = new int[fNthreads + 1];
   memset(fWaiting, 0, (fNthreads + 1) * sizeof(int));
 
+#ifdef USE_ROOT
   fOutputIO = new dcqueue<TBufferFile*>;
   fMergingServer = new TThreadMergingServer(fOutputIO);
+#endif
 }
 
 //______________________________________________________________________________
@@ -78,7 +86,9 @@ WorkloadManager::~WorkloadManager() {
   delete[] fWaiting;
   //   delete fNavStates;
   fgInstance = 0;
+#ifdef USE_ROOT
   delete fOutputIO;
+#endif
 }
 
 //______________________________________________________________________________
@@ -308,6 +318,8 @@ void *WorkloadManager::TransportTracks() {
 
   // IO handling
 
+  
+  #ifdef USE_ROOT
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
 
@@ -330,6 +342,8 @@ void *WorkloadManager::TransportTracks() {
       myhitFactory->queue_per_thread = true;
     }
 
+  
+   #endif
   // Start the feeder
   propagator->Feeder(td);
   Material_t *mat = 0;
@@ -529,7 +543,11 @@ void *WorkloadManager::TransportTracks() {
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
         if (0 /*ntotnext*/) {
+        #ifdef USE_ROOT 
           Geant::Print("","============= Basket: %s\n", basket->GetName());
+        #else
+          Geant::Print("","============= Basket:\n");
+        #endif
           output.PrintTracks();
         }
       }
@@ -539,6 +557,7 @@ void *WorkloadManager::TransportTracks() {
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // WP
+    #ifdef USE_ROOT
     if (concurrentWrite) {
       while (!(myhitFactory->fOutputsArray[tid].empty())) {
         data = myhitFactory->fOutputsArray[tid].back();
@@ -550,6 +569,7 @@ void *WorkloadManager::TransportTracks() {
       }
       if (tree->GetEntries() > treeSizeWriteThreshold) file->Write();
     }
+     #endif
 
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
@@ -598,11 +618,13 @@ void *WorkloadManager::TransportTracks() {
     td->fNcross += ncross;
   }
 
-  // WP
-  if (concurrentWrite) {
-    file->Write();
-  }
-
+  // WP  
+  #ifdef USE_ROOT
+  if(concurrentWrite)
+    {
+      file->Write();
+    }
+   #endif
   wm->DoneQueue()->push(0);
   delete prioritizer;
   // Final reduction of counters
@@ -614,13 +636,15 @@ void *WorkloadManager::TransportTracks() {
   propagator->fNcross += td->fNcross;
 
   Geant::Print("","=== Thread %d: exiting ===", tid);
-
+  
+  #ifdef USE_ROOT
   if (wm->IsStopped()) wm->MergingServer()->Finish();
 
   if (concurrentWrite) {
     delete file;
   }
 
+  #endif
   return 0;
 }
 

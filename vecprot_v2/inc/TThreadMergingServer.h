@@ -1,6 +1,8 @@
 #ifndef GEANT_TTHREADMERGINGSERVER
 #define GEANT_TTHREADMERGINGSERVER
 
+#ifdef USE_ROOT
+
 #include "dcqueue.h"
 
 #include "TBits.h"
@@ -105,4 +107,5 @@ struct TThreadMergingServer : public TObject
 
 } // namespace Geant
 
+#endif
 #endif

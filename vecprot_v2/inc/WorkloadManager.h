@@ -26,7 +26,9 @@
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 
+#ifdef USE_ROOT
 #include "TThreadMergingServer.h"
+#endif
 
 class GeantBasketMgr;
 class GeantBasket;
@@ -75,8 +77,10 @@ protected:
   condition_locker fGbcLocker; /** Garbage collector locker */
   int fLastEvent;            /** Last transported event */
 
+  #ifdef USE_ROOT
   dcqueue<TBufferFile*>* fOutputIO;            /** Queue of buffers to be merged for IO **/ 
   Geant::TThreadMergingServer* fMergingServer;
+  #endif
   /**
    * @brief WorkloadManager parameterized constructor
    *
@@ -115,9 +119,10 @@ public:
   /**
    * @brief Function that provides IO queue 
    */
+  #ifdef USE_ROOT
   dcqueue<TBufferFile*>*  IOQueue() const { return fOutputIO; }
   Geant::TThreadMergingServer* MergingServer() const { return fMergingServer; }
-
+  #endif
   /** @brief Function that returns number of managed threads */
   int GetNthreads() const { return fNthreads; }
 
