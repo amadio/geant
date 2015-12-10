@@ -80,7 +80,7 @@ add_custom_target(xseclib DEPENDS Xsec)
 add_executable(testserialRead testserialRead.cc)
 
 target_link_libraries(testserialRead -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec
-        ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+        ${HEPMC_LIBRARIES} ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
 add_dependencies(testserialRead Geant_v Xsec)
 
