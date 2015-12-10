@@ -821,6 +821,12 @@ void *WorkloadManager::TransportTracksCoprocessor(TaskBroker *broker) {
   // delete prioritizer;
   wm->DoneQueue()->push(0);
   delete prioritizer;
+  // Final reduction of counters
+  propagator->fNsteps += td->fNsteps;
+  propagator->fNsnext += td->fNsnext;
+  propagator->fNphys += td->fNphys;
+  propagator->fNmag += td->fNmag;
+  propagator->fNsmall += td->fNsmall;
   Geant::Print("","=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
   return 0;
 }

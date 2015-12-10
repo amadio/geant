@@ -539,8 +539,6 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
             // Update track time for all output tracks (this should vectorize)
             output.fTimeV[itr] += output.TimeStep(itr, output.fStepV[itr]);            
          }   
-         if (nphys)
-            propagator->fNphysSteps += nphys;
 
          propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, td);
          //         if (nextra_at_rest) Printf("Extra particles: %d", nextra_at_rest);
