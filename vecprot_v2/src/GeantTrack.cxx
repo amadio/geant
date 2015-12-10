@@ -2198,7 +2198,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
   // force track to cross under certain conditions
 }
 #else
-void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *) {
+void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
   // Computes snext and safety for a single track. For charged tracks these are the only
   // computed values, while for neutral ones the next node is checked and the boundary flag is set
   // if closer than the proposed physics step.
