@@ -32,8 +32,6 @@ namespace Geant {
     kFatal    =   6000
   };
    
-  extern std::mutex    gPrintMutex;
-   
   inline namespace GEANT_IMPL_NAMESPACE {
 
 #ifndef GEANT_NVCC
@@ -44,6 +42,7 @@ namespace Geant {
     GEANT_CUDA_BOTH_CODE
     void MessageHandler(EMsgLevel level, const char *location, const char *msgfmt, ArgsTypes... params) {
 #ifdef GEANT_NVCC
+      static std::mutex prntMutex;
       const char *type = nullptr;
       switch(level) {
         case EMsgLevel::kPrint: type = "Print"; break;
@@ -57,7 +56,7 @@ namespace Geant {
       }
       { // print mutex scope
 #ifndef GEANT_CUDA_DEVICE_BUILD
-        std::lock_guard<std::mutex> lock(gPrintMutex);
+        std::lock_guard<std::mutex> lock(prntMutex);
 #endif
         if (level == EMsgLevel::kPrint)
           printf("%s:",location);

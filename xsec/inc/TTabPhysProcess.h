@@ -14,6 +14,7 @@
 #include "Geant/Typedefs.h"
 
 #include "GeantFwd.h"
+class TTabPhysMgr;
 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess {
