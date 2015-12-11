@@ -17,9 +17,6 @@ class TMXsec;
 class TEFstate;
 class TPDecay;
 
-class GeantTrack_v;
-class GeantTrack;
-class GeantTaskData;
 #include "Geant/Typedefs.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/Global.h"

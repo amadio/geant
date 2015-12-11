@@ -13,10 +13,6 @@
 #include "base/Global.h"
 #include "Geant/Typedefs.h"
 
-class GeantTrack;
-class GeantTrack_v;
-class TTabPhysMgr;
-
 #include "GeantFwd.h"
 
 //______________________________________________________________________________
