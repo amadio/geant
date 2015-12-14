@@ -92,9 +92,12 @@ template
    ::TMagFieldEquation(const TMagFieldEquation& right)
    :
       GUVEquationOfMotion( (GUVField*) 0 ), 
-      fPtrField( right.fPtrField->CloneOrSafeSelf() )
-      // fPtrField( new Field(right.fPtrField->CloneOrSafeSelf() ) )
+      fPtrField( right.fPtrField->CloneOrSafeSelf( (bool *)0 ) )
+      // fPtrField( new Field(right.fPtrField) )
 {
+   // G4bool threadSafe; 
+   // fPtrField = right.fPtrField->CloneOrSafeSelf( &threadSafe );
+   
    // std::cout <<  "TMagFieldEquation - copy constructor called." << std::endl;
    GUVEquationOfMotion::SetFieldObj( fPtrField ); //  Also stored in base class ... for now
 }

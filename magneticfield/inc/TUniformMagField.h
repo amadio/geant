@@ -98,7 +98,7 @@ class TUniformMagField : public GUVMagneticField
         TUniformMagField* CloneOrSafeSelf( bool* pSafe )
         {
            bool safeLocal;
-           if( !pSafe ) pSafe= &safeLocal;
+           if( pSafe ) pSafe= &safeLocal;
            return this->CloneOrSafeSelf(*pSafe);
         }
         

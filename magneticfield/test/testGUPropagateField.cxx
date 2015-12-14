@@ -429,7 +429,7 @@ int main(int argc, char *args[])
 
     for(int j=0; j<no_of_steps; j++)
     {
-        bool goodAdvance;           
+       // bool goodAdvance;           
        
         cout<<setw(6)<<j ;           //Printing Step number
 
@@ -442,7 +442,7 @@ int main(int argc, char *args[])
         if( j > 0 )  // Let's print the initial points!
         {
            total_step += step_len;
-           goodAdvance=           
+           // goodAdvance=           
              fieldPropagator->DoStep( startPosition, startDirection, particleCharge, startMomentumMag,
                                       total_step,
                                       PositionOut, DirectionOut );

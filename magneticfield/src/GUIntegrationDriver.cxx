@@ -21,11 +21,11 @@
 //  Stepsize can increase by no more than 5.0
 //           and decrease by no more than 1/10. = 0.1
 //
-constexpr double GUIntegrationDriver::max_stepping_increase = 5.0;
-constexpr double GUIntegrationDriver::max_stepping_decrease = 0.1;
+const double GUIntegrationDriver::max_stepping_increase = 5.0;
+const double GUIntegrationDriver::max_stepping_decrease = 0.1;
 
-constexpr double perMillion  = 1.0e-6; 
-constexpr double perThousand = 1.0e-3;
+const double perMillion  = 1.0e-6; 
+const double perThousand = 1.0e-3;
 
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper

@@ -51,8 +51,9 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
         double DistChord() const;
 
+        // template<class T_Stepper, class T_Equation, int Nvar>
         friend  std::ostream&
-           operator<<( std::ostream& os, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> & );
+           operator<<( std::ostream& os, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> &  );
 
         void CheckInitialisation() const;
 

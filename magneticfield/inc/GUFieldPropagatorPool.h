@@ -40,7 +40,6 @@ class GUFieldPropagatorPool
      // Create new propagators for each thread !
     
     void CheckIndex(size_t num){
-       assert(num>=0);
        assert(num< fFieldPropagatorVec.size());
        ((void)num); // make compiler happy
     }

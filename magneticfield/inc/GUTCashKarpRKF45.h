@@ -137,8 +137,7 @@ template <class T_Equation, unsigned int Nvar>
      SetEquationOfMotion(T_Equation* equation)
 {
    fEquation_Rhs= equation;
-   TMagErrorStepper<GUTCashKarpRKF45<T_Equation, Nvar>, T_Equation, Nvar>
-        ::SetEquationOfMotion(fEquation_Rhs);
+   this->GUVIntegrationStepper::SetEquationOfMotion(fEquation_Rhs);
 }
 
 //  Copy - Constructor
