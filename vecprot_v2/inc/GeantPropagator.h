@@ -100,8 +100,10 @@ public:
   double fEmin;      /** Min energy threshold */
   double fEmax;      /** Max energy threshold */
   double fBmag;      /** Magnetic field */
+  double fEpsilonRK; /** Relative error in RK integration */
 
   bool fUsePhysics;       /** Enable/disable physics */
+  bool fUseRungeKutta;    /** Enable/disable Runge-Kutta integration in field */
   bool fUseDebug;         /** Use debug mode */
   bool fUseGraphics;      /** Graphics mode */
   bool fUseStdScoring;    /** Use standard scoring */
@@ -135,10 +137,13 @@ public:
   /** @brief Initialization function */
   void Initialize();
 
-  /** @brief Initialization function */
+   /** @brief Initialization function */
   void InitializeAfterGeom();
 
-  /** @brief Function for loading geometry */
+  /** @brief Initialize classes for RK Integration */
+  void PrepareRkIntegration();
+
+   /** @brief Function for loading geometry */
   bool LoadGeometry(const char *filename = "geometry.root");
 #if USE_VECGEOM_NAVIGATOR == 1
 

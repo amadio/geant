@@ -74,7 +74,7 @@ int main(int argc, char *args[])
     if(argc > 4)
        z_field_in = (float) (stof(args[4]));     // tesla
     if(argc > 5)
-       epsTolInp  = (float) (stof(args[5]));     // tesla
+       epsTolInp  = (float) (stof(args[5]));     // number 
 
     double step_len = step_len_mm * fieldUnits::millimeter;
     

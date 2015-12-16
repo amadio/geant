@@ -49,9 +49,10 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
-#define RUNGE_KUTTA  1
-//  To use
-#ifdef   RUNGE_KUTTA
+// #define RUNGE_KUTTA  1
+
+// The classes for integrating in a non-uniform magnetic field
+// #ifdef   RUNGE_KUTTA
 #include "TUniformMagField.h"
 #include "FieldEquationFactory.h"
 #include "StepperFactory.h"
@@ -59,7 +60,7 @@
 
 #include "GUFieldPropagator.h"
 #include "GUFieldPropagatorPool.h"
-#endif
+// #endif
 
 using namespace Geant;
 
@@ -78,7 +79,9 @@ GeantPropagator::GeantPropagator()
       fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
-      fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
+      fBmag(1.),
+      fEpsilonRK(0.0003), 
+      fUsePhysics(kTRUE), fUseRungeKutta(kFALSE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
       fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),
       fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
       fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
@@ -329,42 +332,9 @@ void GeantPropagator::Initialize() {
   fVectorPhysicsProcess->Initialize();
 #endif
 
-#ifdef RUNGE_KUTTA
-  using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
-  using GUFieldPropagator = ::GUFieldPropagator;
-  
-  // Initialise the classes required for tracking in field
-  const unsigned int  Nvar= 6; // Integration will occur over 3-position & 3-momentum coord.
-  using Field_t    =  TUniformMagField;
-  using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
-  
-  auto gvField= new Field_t( fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fBmag) );
-  auto gvEquation =
-     FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
-
-  GUVIntegrationStepper* 
-     aStepper= StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
-  
-  const double hminimum  = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
-  const double epsTol = 3.0e-4;               // Relative error tolerance of integration
-  int   statisticsVerbosity= 0;
-
-   cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
-   
-   auto integrDriver= new GUIntegrationDriver( hminimum,
-                                               aStepper,
-                                               Nvar,
-                                               statisticsVerbosity);
-   // GUFieldPropagator *
-   auto fieldPropagator=
-      new GUFieldPropagator(integrDriver, epsTol);
-   
-   static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
-   assert( fpPool );  // Cannot be zero
-   fpPool->RegisterPrototype( fieldPropagator );
-
-   fpPool->Initialize(fNthreads);
-#endif
+  if( fUseRungeKutta ) {
+     PrepareRkIntegration();
+  }
 
   if (!fNtracks) {
     fNtracks = new int[fNevents];
@@ -392,6 +362,48 @@ void GeantPropagator::InitializeAfterGeom() {
     fStdApplication->Initialize();
   }
   fApplication->Initialize();
+}
+
+void GeantPropagator::PrepareRkIntegration() {
+
+  using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
+  using GUFieldPropagator = ::GUFieldPropagator;
+
+  // Initialise the classes required for tracking in field
+  const unsigned int  Nvar= 6; // Integration will occur over 3-position & 3-momentum coord.
+  using Field_t    =  TUniformMagField;
+  using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
+
+  auto gvField= new Field_t( fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fBmag) );
+  auto gvEquation =
+     FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
+  
+  GUVIntegrationStepper*
+     aStepper= StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
+
+  const double hminimum  = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
+  // const double epsTol = 3.0e-4;               // Relative error tolerance of integration
+  int   statisticsVerbosity= 0;
+  cout << "Parameters for RK integration in magnetic field: "  << endl;
+  cout << "   Driver parameters:  eps_tol= "  << fEpsilonRK << "  h_min= " << hminimum << endl;
+
+  auto integrDriver= new GUIntegrationDriver( hminimum,
+                                                 aStepper,
+                                                 Nvar,
+                                                 statisticsVerbosity);
+  // GUFieldPropagator *
+  auto fieldPropagator=
+     new GUFieldPropagator(integrDriver, fEpsilonRK);  // epsTol);
+  
+  static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
+  assert( fpPool );  // Cannot be zero
+  if( fpPool ) {
+     fpPool->RegisterPrototype( fieldPropagator );
+     // Create clones for other threads
+     fpPool->Initialize(fNthreads);
+  }else{
+     ::Error("PrepareRkIntegration","Cannot find GUFieldPropagatorPool Instance.");
+  }   
 }
 
 #if USE_VECGEOM_NAVIGATOR == 1
@@ -487,6 +499,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fUseGraphics = graphics;
   fNthreads = nthreads;
   fSingleTrack = single;
+  std::cout << " GeantPropagator::PropagatorGeom called with app= " << fApplication << std::endl;
   if (!fApplication) {
     Printf("No user application attached - aborting");
     return;
@@ -515,6 +528,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     Printf("  Physics ON with %d processes", fNprocesses);
   else
     Printf("  Physics OFF");
+  if (fUseRungeKutta)
+     Printf("  Runge-Kutta integration ON with epsilon= %g", fEpsilonRK ); 
+  else
+    Printf("  Runge-Kutta integration OFF");
 
   // Import the input events. This will start also populating the main queue
   if (!fEvents) {

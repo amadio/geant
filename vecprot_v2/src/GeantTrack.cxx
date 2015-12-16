@@ -32,13 +32,11 @@
 #include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
-// #define RUNGE_KUTTA  1
-
-#ifdef  RUNGE_KUTTA
+// #ifdef  RUNGE_KUTTA
 #pragma message("Compiling using Runge-Kutta for integration")
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
-#endif
+// #endif
 
 #ifdef __INTEL_COMPILER
 #include <immintrin.h>
@@ -1474,23 +1472,29 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    // const Double_t *point = 0;
    // const Double_t *newdir = 0;
 
-#ifdef RUNGE_KUTTA
-   // Initialize for the current thread -- move to GeantPropagator::Initialize()
-   static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
-   assert( fieldPropPool );  // Cannot be zero
-
-   // Initialization - to be moved elsewhere
-   // fieldPropPool->Initialize(gPropagator->fNthreads);
-
-   GUFieldPropagator *fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
-#else
-   assert( (size_t)(td->fTid) < (td->fNthreads) ); // Just to use td !
+   bool useRungeKutta;
 #ifdef GEANT_CUDA_DEVICE_BUILD
-  const double bmag = gPropagator_fBmag;
+   const double bmag = gPropagator_fBmag;
+   useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-  const double bmag = gPropagator->fBmag;
-#endif   
+   const double bmag = gPropagator->fBmag;
+   useRungeKutta= gPropagator->fUseRungeKutta;
 #endif
+
+   // static unsigned long icount= 0;
+   // if( icount++ < 2 )  std::cout << " PropagateInVolumeSingle: useRungeKutta= " << useRungeKutta << std::endl;
+
+// #ifdef RUNGE_KUTTA
+   GUFieldPropagator *fieldPropagator= 0;
+   if( useRungeKutta ){
+      // Initialize for the current thread -- move to GeantPropagator::Initialize()
+      static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
+      assert( fieldPropPool );
+
+      fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
+      assert( fieldPropagator );
+   }
+// #endif
 
   // Reset relevant variables
   fStatusV[i] = kInFlight;
@@ -1523,16 +1527,15 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
-#ifdef RUNGE_KUTTA
-  // fieldP  
-  fieldPropagator->DoStep(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
-                          PositionNew, DirectionNew);
-#else
-  // Old - constant field
-  Geant::ConstBzFieldHelixStepper stepper(bmag);
-  stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
+  if( useRungeKutta ){
+     fieldPropagator->DoStep(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
+                             PositionNew, DirectionNew);
+  }else{
+     // Old - constant field
+     Geant::ConstBzFieldHelixStepper stepper(bmag);
+     stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
                                          PositionNew, DirectionNew);
-#endif
+  }
 
   fXposV[i] = PositionNew.x();
   fYposV[i] = PositionNew.y();
@@ -1544,13 +1547,19 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   fYdirV[i] = DirectionNew.y();
   fZdirV[i] = DirectionNew.z();
 
-  //   double diffpos2 = (PositionNew - Position).Mag2();
+#if 0
+  ThreeVector SimplePosition = Position + crtstep * Direction;
+  // double diffpos2 = (PositionNew - Position).Mag2();
+  double diffpos2 = (PositionNew - SimplePosition).Mag2();
   //   -- if (Math::Sqrt(diffpos)>0.01*crtstep) {     
-  //   const double drift= 0.01*crtstep;
-  //   if ( diffpos2>drift*drift )
-  //       Printf("difference in pos = %g", diffpos);
-  //       Geant::Print("PropagateInVolumeSingle","relative difference in pos = %g", diffpos/crtstep);     
-  //   }
+  const double drift= 0.01*crtstep;
+  if ( diffpos2>drift*drift ){
+      double diffpos= Math::Sqrt(diffpos2);
+      // Geant::Print("PropagateInVolumeSingle","relative difference in pos = %g", diffpos/crtstep);
+      Geant::Print("PropagateInVolumeSingle","difference in pos = %g (abs) %g (relative) , step= %g",
+                   diffpos, diffpos/crtstep, crtstep);
+  }
+#endif
 }
 
 #ifdef USE_VECGEOM_NAVIGATOR
