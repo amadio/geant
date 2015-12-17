@@ -52,7 +52,7 @@ void runCMS(int ncputhreads=4,
    prop->fBmag = 40.; // 4 Tesla
 
    //  Enable use of RK integration in field for charged particles
-   prop->fUseRungeKutta = true;
+   prop->fUseRungeKutta = false;
    // prop->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default 
 
    if (broker) prop->SetTaskBroker(broker);
