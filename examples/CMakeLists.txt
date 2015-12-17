@@ -22,7 +22,8 @@ set(headers
 #file(GLOB headers inc/*.h)
 #string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
 
-ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h)
+string(REPLACE " " ";" VECGEOM_DEFINITIONS "${VECGEOM_DEFINITIONS}")
+ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS ${VECGEOM_DEFINITIONS})
 
 #----------------------------------------------------------------------------
 #

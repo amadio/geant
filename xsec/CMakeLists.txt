@@ -40,7 +40,8 @@ endif()
 
 include_directories(inc)
 
-ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h)
+string(REPLACE " " ";" VECGEOM_DEFINITIONS "${VECGEOM_DEFINITIONS}")
+ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h OPTIONS ${VECGEOM_DEFINITIONS})
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
