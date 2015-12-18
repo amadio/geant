@@ -42,7 +42,9 @@ namespace Geant {
     GEANT_CUDA_BOTH_CODE
     void MessageHandler(EMsgLevel level, const char *location, const char *msgfmt, ArgsTypes... params) {
 #ifdef GEANT_NVCC
+#ifndef GEANT_CUDA_DEVICE_BUILD
       static std::mutex prntMutex;
+#endif
       const char *type = nullptr;
       switch(level) {
         case EMsgLevel::kPrint: type = "Print"; break;
