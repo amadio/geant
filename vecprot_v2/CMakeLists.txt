@@ -54,8 +54,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
 )   
 
-string(REPLACE " " ";" VECGEOM_DEFINITIONS "${VECGEOM_DEFINITIONS}")
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h OPTIONS ${VECGEOM_DEFINITIONS})
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 #

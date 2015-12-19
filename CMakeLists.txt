@@ -396,7 +396,6 @@ message(STATUS "VECGEOM_INSTALL_DIR is: ${VECGEOM_INSTALL_DIR}")
 message(STATUS "VECGEOM_INCLUDE_DIR is: ${VECGEOM_INCLUDE_DIR}")
 message(STATUS "VECGEOM_DEFINITIONS is: ${VECGEOM_DEFINITIONS}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VECGEOM_DEFINITIONS}")
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 #----------------------------------------------------------------------------
