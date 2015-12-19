@@ -1475,6 +1475,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    bool useRungeKutta;
 #ifdef GEANT_CUDA_DEVICE_BUILD
    const double bmag = gPropagator_fBmag;
+   constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
    const double bmag = gPropagator->fBmag;
@@ -1485,7 +1486,8 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    // if( icount++ < 2 )  std::cout << " PropagateInVolumeSingle: useRungeKutta= " << useRungeKutta << std::endl;
 
 // #ifdef RUNGE_KUTTA
-   GUFieldPropagator *fieldPropagator= 0;
+   GUFieldPropagator *fieldPropagator = nullptr;
+#ifndef GEANT_CUDA_DEVICE_BUILD
    if( useRungeKutta ){
       // Initialize for the current thread -- move to GeantPropagator::Initialize()
       static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
@@ -1494,7 +1496,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
       fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
       assert( fieldPropagator );
    }
-// #endif
+#endif
 
   // Reset relevant variables
   fStatusV[i] = kInFlight;
@@ -1527,10 +1529,12 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
-  if( useRungeKutta ){
+  if( useRungeKutta ) {
+#ifndef GEANT_NVCC
      fieldPropagator->DoStep(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
                              PositionNew, DirectionNew);
-  }else{
+#endif
+  } else {
      // Old - constant field
      Geant::ConstBzFieldHelixStepper stepper(bmag);
      stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
