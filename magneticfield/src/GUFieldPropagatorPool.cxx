@@ -5,6 +5,8 @@
 // For implementation
 #include "GUFieldPropagator.h"
 
+#include <iostream>
+
 // static
 std::vector<GUFieldPropagator*> // GUFieldPropagation:: // namespace ...
    GUFieldPropagatorPool::fFieldPropagatorVec;

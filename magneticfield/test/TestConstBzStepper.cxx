@@ -10,7 +10,7 @@
 #include "../inc/ConstFieldHelixStepper.h"
 #include "mmalloc.h"
 #include "TGeoHelix.h"
-
+#include <math.h>
 
 #define ET_TIMER_RESULT_VAR vx_
 #define ET_TIMER_RESULT_VAR_TYPE double*

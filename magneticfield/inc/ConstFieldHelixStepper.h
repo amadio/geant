@@ -8,6 +8,8 @@
 #ifndef CONSTFIELDHELIXSTEPPER_H_
 #define CONSTFIELDHELIXSTEPPER_H_
 
+#include "Geant/Config.h"
+
 // add the sincos function on MAC because sincos is not part of math.h
 #ifdef __APPLE__ // possibly other conditions
 void sincos(double x, double *s, double *c) {
