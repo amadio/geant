@@ -36,7 +36,7 @@ MaterialConverter::MaterialConverter():
    if( fTGeomMgr == 0){
       fTGeomMgr = new TGeoManager(); // ::Instance();
       fUsedExistingGeomMgr= false;
-   }else{
+   } else {
       // fTGeomMgr= existingGeomMgr;  // Must be already set - no arguments
       fUsedExistingGeomMgr= true;
    }
@@ -87,7 +87,7 @@ void MaterialConverter::CreateRootMaterials()
                              g4mat->GetDensity(),   // Units => Root Units ?
                              g4mat->GetRadlen(), 
                              g4mat->GetNuclearInterLength() );
-     }else{
+     } else {
         // G4ElementVector* elementVec= g4mat->GetElementVector();
         const G4double*  g4elemFractions= g4mat->GetFractionVector();
 
@@ -189,7 +189,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
                            g4mat->GetDensity(),   // Units => Root Units ?
                            g4mat->GetRadlen(),
                            g4mat->GetNuclearInterLength() );
-      }else{
+      } else {
         // G4ElementVector* elementVec= g4mat->GetElementVector();
         const G4double*  g4elemFractions= g4mat->GetFractionVector();
         TGeoMixture *tgeoMixture = new TGeoMixture(rootMatName, numElements, 
@@ -298,7 +298,7 @@ void MaterialConverter::DumpListOfMaterials(bool /*onlyUsed*/)
       printf(" Index=%3d Z=%6.1f  Name=%15s - Unused\n", mat->GetIndex(), mat->GetZ(), mat->GetName());
       // if( onlyUsed )
       continue;
-    }else{
+    } else {
       noUsedMaterials++;
     }
     printf(" Index=%3d Z=%6.1f  Name=%15s -   Used\n", mat->GetIndex(), mat->GetZ(), mat->GetName());

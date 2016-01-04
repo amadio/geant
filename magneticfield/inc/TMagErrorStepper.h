@@ -267,7 +267,7 @@ TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord() const
                 //  from the Chord between the Initial and Final points.
 
                 distChord = distLine;
-            }else{
+            } else {
                 distChord = (fMidPoint-fInitialPoint).Mag();
             }
 

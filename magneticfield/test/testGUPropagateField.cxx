@@ -241,7 +241,7 @@ int main(int argc, char *args[])
        fpPool->Initialize(numProp);
 
        fieldPropagator = fpPool->GetPropagator(numProp-1);
-    }else{
+    } else {
        fieldPropagator= fldPropPrototype;
     }
     //Initialising coordinates
@@ -669,7 +669,7 @@ int main(int argc, char *args[])
     if( testPool ) {
        auto curStepper= fieldPropagator->GetIntegrationDriver()->GetStepper();
        curStepper->InformDone();
-    }else{
+    } else {
        myStepper->InformDone();
     }
 

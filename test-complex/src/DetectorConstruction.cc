@@ -17,7 +17,7 @@ DetectorConstruction::DetectorConstruction(G4VPhysicalVolume *setWorld) : magFie
       if( gdmlFileName ){
         std::cout << " Creating empty TGeoManager by reading Root geometry from file " << gdmlFileName  << G4endl;
         fgGeomMgrRoot = TGeoManager::Import(gdmlFileName);
-      }else{
+      } else {
         std::cout << " Creating empty TGeoManager " << std::endl;
         fgGeomMgrRoot = new TGeoManager();
       }

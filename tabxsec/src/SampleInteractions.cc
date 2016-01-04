@@ -114,7 +114,7 @@ int SampleInteractions(
 
    if( discProc || contdProc ) {
       ret= SampleDiscreteInteractions( material, pos, part, process, energy, sigmae, theStep, nevt, verbose);
-   }else{
+   } else {
       G4cout << " Process " << process->GetProcessName() << " for particle " << part->GetParticleName() << " has no discrete part. " << G4endl;
    }
    return ret;

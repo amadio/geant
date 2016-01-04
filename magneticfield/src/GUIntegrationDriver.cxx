@@ -619,7 +619,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
        // double inv_magmom_sq = 1.0 / magmom_sq; 
        // errmom_sq = sumerr_sq * inv_magmom_sq;
        errmom_sq = sumerr_sq / magmom_sq; 
-    }else{
+    } else {
        std::cerr << "** GUIntegrationDriver: found case of zero momentum." 
                  << " iteration=  " << iter << " h= " << h << std::endl; 
        errmom_sq = sumerr_sq;

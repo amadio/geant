@@ -108,7 +108,7 @@ DetectorConstruction::DetectorConstruction()
   char* gdmlFileName = getenv("VP_GEOM_GDML");
   if( gdmlFileName ) {
      fgGeomMgrRoot = TGeoManager::Import(gdmlFileName);
-  }else{
+  } else {
      G4cerr << "DetectorConstruction: Cannot find environment variable VP_GEOM_GDML for Root GDML file" << G4endl;
   }
  // create commands for interactive definition of the calorimeter
@@ -142,14 +142,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
      std::cout << " Connecting G4 materials to Root materials. "  << std::endl;
      MaterialConverter::Instance()->ConnectG4andRootMaterials();
      matConverter->DumpListOfMaterials(onlyUsed=false);
-  }else{
+  } else {
     G4cout << "DetectorConstruction> Creating new TGeoManager."  << G4endl;
     
      char* gdmlFileName = getenv("VP_GEOM_GDML");
      if( gdmlFileName ){
        std::cout << " Creating empty TGeoManager by reading Root geometry from file " << gdmlFileName  << G4endl;
        fgGeomMgrRoot = TGeoManager::Import(gdmlFileName);
-     }else{
+     } else {
        std::cout << " Creating empty TGeoManager " << std::endl;
        fgGeomMgrRoot = new TGeoManager();
 

@@ -55,7 +55,7 @@ void MaterialConverter::Initialize()
                              g4mat->GetDensity()*CLHEP::cm3/CLHEP::g,   // Units => Root Units ?
                              g4mat->GetRadlen(), 
                              g4mat->GetNuclearInterLength() );
-     }else{
+     } else {
         // G4ElementVector* elementVec= g4mat->GetElementVector();
         const G4double*  g4elemFractions= g4mat->GetFractionVector();
         TGeoMixture *tgeoMixture = new TGeoMixture(g4mat->GetName(), numElements, g4mat->GetDensity()*CLHEP::cm3/CLHEP::g );      
