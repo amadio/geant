@@ -209,6 +209,8 @@ char *fExtraData;                   /** Start of user data at first aligned addr
   //                                                           | round_up_align(fExtraData + sizeof(user_data_1))
   //                                                                                               | round_up_align(fExtraData + TrackDataMgr::fDataOffset))
 
+  static constexpr double kB2C = -0.299792458e-3;
+  static constexpr double kTiny = 1.E-50;
 
   /**
   * @brief GeantTrack in place constructor

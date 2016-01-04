@@ -10,14 +10,17 @@
 #include "TMagFieldEquation.h"
 #include "GUVIntegrationStepper.h"
 #include "GUIntegrationDriver.h"
+#include "GUVEquationOfMotion.h"
+
+#include "TMagFieldEquation.h"
+#include "TClassicalRK4.h"
+
+using ThreeVector = vecgeom::Vector3D<double>;
 
 GUFieldPropagator::GUFieldPropagator(GUIntegrationDriver* driver, double eps)
   : fDriver(driver), fEpsilon(eps)
 {
 }
-
-#include "TMagFieldEquation.h"
-#include "TClassicalRK4.h"
 
 // ToDo-s/ideas:
 //  - Factory to create the Driver, Stepper and Equation
@@ -48,7 +51,7 @@ GUFieldPropagator* GUFieldPropagator::Clone() const
 }
 
 // Make a step from current point along the path and compute new point, direction and angle
-// VECCORE_ATT_HOST_DEVICE
+// VECCORE_ATT_HOST_DEVICE                 
 bool
 GUFieldPropagator::DoStep( ThreeVector const & startPosition, ThreeVector const & startDirection,
                                    int const & charge,             double const & startMomentumMag,
@@ -61,7 +64,6 @@ GUFieldPropagator::DoStep( ThreeVector const & startPosition, ThreeVector const 
   GUFieldTrack yTrackIn( startPosition, 
                         startDirection * startMomentumMag,
                         // fCharge, 
-                        0.0,  // time
                         0.0); // s_0  xo
   GUFieldTrack yTrackOut( yTrackIn );
   
@@ -74,6 +76,19 @@ GUFieldPropagator::DoStep( ThreeVector const & startPosition, ThreeVector const 
   endPosition=  yTrackOut.GetPosition();
   endDirection= yTrackOut.GetMomentumDirection();
   return goodAdvance;
+}
+
+GUVField* GUFieldPropagator::GetField() 
+{
+   GUVField* pField = nullptr;
+   auto driver= GetIntegrationDriver();
+   if( driver ){
+     auto equation= driver->GetEquationOfMotion();
+     if( equation ) {
+       pField = equation->GetFieldObj();
+     }
+   }
+   return pField;
 }
 
 // static std::vector<GUFieldPropagator*> fFieldPropagatorVec;

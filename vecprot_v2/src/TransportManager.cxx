@@ -33,12 +33,17 @@
 
 #include "Basket.h"
 #include "GeantTaskData.h"
-#include "ConstFieldHelixStepper.h"
+#include "ConstBzFieldHelixStepper.h"
+#include "ConstVecFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
 // #ifdef  RUNGE_KUTTA
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
+
+#include "GUVField.h"
+#include "FieldLookup.h"
+
 // #endif
 
 #ifdef __INTEL_COMPILER
@@ -315,9 +320,13 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
    // const Double_t *point = 0;
    // const Double_t *newdir = 0;
 
+
+   
    bool useRungeKutta;
+   // using Geant::ConstBzFieldHelixStepper;
+   // using Geant::cxx::ConstBzFieldHelixStepper;   
+   
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
-   const double bmag = gPropagator_fConfig->fBmag;
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
@@ -332,12 +341,13 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
    GUFieldPropagator *fieldPropagator = nullptr;
    if( useRungeKutta ){
-      // Initialize for the current thread -- move to GeantPropagator::Initialize()
+      // Initialize for the current thread -- move to GeantPropagator::Initialize() or per thread Init method
       static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
       assert( fieldPropPool );
 
       fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
       assert( fieldPropagator );
+      td->fFieldPropagator= fieldPropagator;
    }
 #endif
 
@@ -366,22 +376,70 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 // ( stepper header has to be included )
 
   using ThreeVector = vecgeom::Vector3D<double>;
-  // typedef vecgeom::Vector3D<double>  ThreeVector;
   ThreeVector Position(track.X(), track.Y(), track.Z());
   ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
+  double curvaturePlus= fabs(GeantTrack::kB2C * track.fCharge * bmag) / (track.fP + 1.0e-30);  // norm for step
+  // 'Curvature' along the full track - not just in the plane perpendicular to the B-field vector
+
+  constexpr double numRadiansMax= 10.0;   //  Too large an angle - many RK steps.  Potential change -> 2.0*PI;
+  constexpr double numRadiansMin= 0.05;   //  Very small an angle - helix is adequate.  TBC: Use average B-field value?
+      //  A track turning more than 10 radians will be treated approximately
+  const double angle= crtstep * curvaturePlus;
+  bool mediumAngle = ( numRadiansMin < angle ) && ( angle < numRadiansMax );
+  useRungeKutta = useRungeKutta && mediumAngle;
+  
+  // double BfieldInitial[3], bmag= 0.0;
+  // FieldLookup::GetFieldValue(td, Position, BfieldInitial, &bmag);
+  // printf("TransportMgr::PropagateInVolumeSingle> Curvature= %8.4g  CurvPlus= %8.4g  step= %f  Bmag=%8.4g  momentum mag=%f  angle= %g\n",
+  //       Curvature(td, i), curvaturePlus, crtstep, bmag, track.fP, angle );
+
+  // Option: use RK as fall back - until 'General Helix' is robust
+  // bool dominantBz =  std::fabs( std::fabs(BfieldInitial[1]) )
+  //       > 1e6 *
+  //   std::max( std::fabs( BfieldInitial[0]), std::fabs(BfieldInitial[1]) );
+  // if( !dominantBz )
+  //   useRungeKutta = true;
+  // int propagationType= 0;
+  
   if( useRungeKutta ) {
 #ifndef VECCORE_CUDA
      fieldPropagator->DoStep(Position,    Direction,    track.Charge(), track.P(), crtstep,
                              PositionNew, DirectionNew);
+     // crtstep = 1.0e-4;   printf( "Setting crtstep = %f -- for DEBUGing ONLY.", crtstep );
+     // propagationType= 1;
+
+     // CheckDirection(DirectionNew);
+     
+     /**
+     const bool fCheckingStep= false;
+     if( fCheckingStep ) {
+        const double epsDiff= 2.0e-3; // bool verbDiff= true );
+        StepChecker EndChecker( epsDiff, epsDiff * crtstep, true );
+        vecgeom::Vector3D<double> Bfield( BfieldInitial[0], BfieldInitial[1], BfieldInitial[2] );
+        EndChecker.CheckStep( Position, Direction, track.fCharge, track.fP, crtstep,
+                              PositionNewRK, DirectionNewRK, Bfield );
+     }  
+     **/   
 #endif
   } else {
-     // Old - constant field
-     ConstBzFieldHelixStepper stepper(bmag);
-     stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    track.Charge(), track.P(), crtstep,
+     double BfieldInitial[3], bmag= 0.0;
+     FieldLookup::GetFieldValue(td, Position, BfieldInitial, &bmag);
+     double Bx= BfieldInitial[0], By= BfieldInitial[1], Bz= BfieldInitial[2];
+     if ( std::fabs( Bz ) > 1.0e6 * std::max( std::fabs(Bx), std::fabs(By) ) )
+     {
+        ConstBzFieldHelixStepper stepper( Bz );
+        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,
+                                               PositionNew, DirectionNew);
+        // propagationType= 2;
+     } else {
+        ConstVecFieldHelixStepper stepper( BfieldInitial );
+        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,
                                          PositionNew, DirectionNew);
+        // propagationType= 3;        
+     }     
   }
 
   track.SetPosition(PositionNew);
@@ -392,7 +450,6 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 
 #if 0
   ThreeVector SimplePosition = Position + crtstep * Direction;
-  // double diffpos2 = (PositionNew - Position).Mag2();
   double diffpos2 = (PositionNew - SimplePosition).Mag2();
   //   -- if (Math::Sqrt(diffpos)>0.01*crtstep) {
   const double drift= 0.01*crtstep;
@@ -423,9 +480,8 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   if (action != kVector)
     return PropagateTracksScalar(tracks, td);
 // Compute transport length in geometry, limited by the physics step
-  GeantPropagator *prop = td->fPropagator;
 #ifdef BUG_HUNT
-
+  GeantPropagator *prop = td->fPropagator;  
   BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(tracks, ntracks, td);
@@ -439,7 +495,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   int icrossed = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = prop->fConfig->fBmag;
+  const double bmag = td->fBfieldMag;
 
   // Remove dead tracks, propagate neutrals
   for (unsigned int itr=0; itr<tracks.size(); ++itr) {
@@ -664,18 +720,17 @@ VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
   // Propagate the track with its selected steps, starting from a given stage.
 
-  GeantPropagator *prop = td->fPropagator;
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fConfig->fBmag;
-#else
-  const double bmag = prop->fConfig->fBmag;
-#endif
+
+  double Bfield[3], bmag= 0.0;
+  // const double bmag = td->fBfieldMag;
+  
 // Compute transport length in geometry, limited by the physics step
 
 #ifdef BUG_HUNT
+  GeantPropagator *prop = td->fPropagator;
   BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep,
               "PropagateSingle", itr);
 #endif
@@ -699,7 +754,14 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
   }
   // Stage 0: straight propagation
   if (stage == 0) {
-    if (track.Charge() == 0 || bmag < 1.E-10) {
+    bool neutral = (track.fCharge == 0);
+    if( !neutral ) {
+       // printf( " PropagateSingleTrack> getting Field. Charge= %3d ", track.fCharge );
+       vecgeom::Vector3D<double> Position( tracks[itr]->X(), tracks[itr]->Y(), tracks[itr]->Z() );
+       FieldLookup::GetFieldValue(td, Position, Bfield, &bmag);       
+       // if( bmag < 1.E-10) { printf("TransportMgr::TrSnglTrk> Tiny field - mag = %f\n", bmag); }
+    }
+    if ( neutral || bmag < 1.E-10) {       
       // Do straight propagation to physics process or boundary
       if (track.Boundary()) {
         if (track.NextPath()->IsOutside())

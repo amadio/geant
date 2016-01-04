@@ -15,6 +15,7 @@
 
 #include "base/BitSet.h"
 #include "GeantTrack.h"
+#include "FieldLookup.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -523,15 +524,43 @@ public:
   double Beta(int i) const { return fPV[i] / fEV[i]; }
 
   /**
+   * @brief Function that return magnetic field for particle 'i'
+   * @param  i             Input track number 'i'
+   * @param  BfieldOut[3]  Output magnetic field vector value (global coordinates)
+   * @param  bmagOut       Output (optional) field magnitude
+   */
+  VECCORE_ATT_HOST_DEVICE
+  void GetFieldValue(GeantTaskData *td, int i, double BfieldOut[3], double *bmagOut) const;
+  //  {
+  //     vecgeom::Vector3D<double> Position (fXposV[i], fYposV[i], fZposV[i]);
+  //     FieldLookup::GetFieldValue(td, Position, BfieldOut, bmagOut);
+  //  }
+
+  /** @brief Simple check of tracks -- if a problem is found, then the track is printed 
+   * @param  itr           Input track number 'i'
+   * @param  msg           Message to inform about location from call is made
+   * @param  epsilon       tolerance for problems
+   */ 
+  VECCORE_ATT_HOST_DEVICE
+  void CheckTrack(int itr, const char *msg, double epsilon= 0.0) const;
+
+  /** @brief Check the direction -- report if its length is within epsilon of 1.0
+   * @param  itr           Input track number 'i'
+   * @param  epsilon       tolerance for problems
+   */    
+  VECCORE_ATT_HOST_DEVICE
+  bool CheckDirection(int itr, double epsilon = 1.0e-6 ) const;
+   
+  /**
    * @brief Function that return curvature in different areas of geometry
    * @param  i Input bit number 'i'
    */
   VECCORE_ATT_HOST_DEVICE
-  double Curvature(int i, double Bz) const;
-
+  double Curvature(GeantTaskData *td, int i) const;
+   
   /** @brief Function that return safe length */
   VECCORE_ATT_HOST_DEVICE
-  double SafeLength(GeantPropagator *propagator, int i, double eps = 1.E-4);
+  double SafeLength(GeantTaskData *td, int i, double eps = 1.E-4);
 
   /**
    * @brief Function that return gamma value

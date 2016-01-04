@@ -94,7 +94,7 @@ void SetG4ProductionCut(G4double ethresh);
 void usage();
 void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFile,
               std::string &g4macroFile, G4double &cutvalue, std::string &physListName,
-              int &scoreType);
+              int &scoreType, bool &useUniformField);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -103,15 +103,17 @@ int main(int argc,char **argv)
 
   std::string geomFile     = "";        // GDML geometry file
   std::string eventFile    = "";        // root file with pre-generated primary events
-  std::string g4macroFile  = "";        // Geant4 macro file  
-  std::string physListName = "TABPHYS"; // physics list name 
+  std::string g4macroFile  = "";        // Geant4 macro file
+  std::string physListName = "TABPHYS"; // physics list name
   G4double cutvalue        = 0.;        // common tracking and production cut [GeV]
-  G4int scoreType          = 0;         // score type flag             
+  G4int scoreType          = 0;         // score type flag
+  bool useUniformField = false;
+
   //
   // Parsing arguments
-  // 
-  parsearg(argc, argv,  geomFile, eventFile, g4macroFile,cutvalue, physListName,
-           scoreType);
+  //
+  parsearg(argc, argv,  geomFile, eventFile, g4macroFile, cutvalue, physListName,
+           scoreType, useUniformField);
   //
   // Print information 
   //
@@ -120,26 +122,34 @@ int main(int argc,char **argv)
   << G4endl <<
   "|  testcomplex was executed:                                                 "
   << G4endl <<
-  "|           Geometry file       : "<< geomFile               << G4endl <<
-  "|           Primary events      : "<< eventFile              << G4endl <<
-  "|           Geant4 macro        : "<< g4macroFile            << G4endl <<
-  "|           Physics list        : "<< physListName           << G4endl <<
-  "|           Low energy cut[GeV] : "<< cutvalue               << G4endl <<
-  "|           Score type          : "<< scoreType              << G4endl <<  
-  "|           Xsec data file      : "<< getenv("VP_DATA_XSEC") << G4endl << 
-  "|           Fstate data file    : "<< getenv("VP_DATA_FSTA") << G4endl << 
+  "|         Geometry file       : "<< geomFile               << G4endl <<
+  "|         Magnetic field      : "<< ( useUniformField ? "Uniform" : "Interpolated") << G4endl <<
+//  "|         Magnetic field file : "<< magFieldFile           << G4endl <<
+  "|         Primary events      : "<< eventFile              << G4endl <<
+  "|         Geant4 macro        : "<< g4macroFile            << G4endl <<
+  "|         Physics list        : "<< physListName           << G4endl <<
+  "|         Low energy cut[GeV] : "<< cutvalue               << G4endl <<
+  "|         Score type          : "<< scoreType              << G4endl <<
+  "|         Xsec data file      : "<< getenv("VP_DATA_XSEC") << G4endl <<
+  "|         Fstate data file    : "<< getenv("VP_DATA_FSTA") << G4endl <<
   "-----------------------------------------------------------------------------"
   << G4endl << G4endl;
 
-  G4double tabPhysEnergyLimit     = cutvalue;              // low energy cut in tab. physics [GeV]   
-  G4double fTrackingCutInEnergy   = cutvalue * CLHEP::GeV; // same used in Geant4 
+  bool useUI = false;
+  // bool useUI= (g4macrofile == std::string("-");
+
+  // bool useParticleGun= (eventFile == std::string("-");
+  
+  G4double tabPhysEnergyLimit     = cutvalue;              // low energy cut in tab. physics [GeV]
+  G4double fTrackingCutInEnergy   = cutvalue * CLHEP::GeV; // same used in Geant4
   G4double fProductionCutInEnergy = cutvalue * CLHEP::GeV; // same used in Geant4 as production cut
 
   //
   // Choose the Random engine
   //
-  CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
-   
+  CLHEP::HepRandom::setTheEngine(new CLHEP::MTwistEngine);
+  // CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);  
+
   //
   // Get the geometry from the GDML file
   //
@@ -157,24 +167,28 @@ int main(int argc,char **argv)
   // Set mandatory initialization classes:
   //   DetectorConstruction, PhysicsList
   //
-  runManager->SetUserInitialization(new DetectorConstruction(
-                                    parser.GetWorldVolume()));
+  DetectorConstruction* dc=
+     new DetectorConstruction( parser.GetWorldVolume(), useUniformField );
 
-
+  runManager->SetUserInitialization( dc );
 
   // WITH G4 10.x
-  if(std::string("TABPHYS") == physListName) { 
+  if(std::string("TABPHYS") == physListName) {
     runManager->SetUserInitialization(new SimplePhysicsList);
+    printf("Physics: Using TABPHYS - ie SimplePhysicsList");
     RunAction::isTabPhys = TRUE;
   } else {
     RunAction::isTabPhys = FALSE;
     G4VModularPhysicsList* physicsList = 0;
     if(std::string("QBBC") == physListName) {
       physicsList = new QBBC;
+      printf("Physics: Using      QBBC    Physics List");      
     } else if(std::string("FTFP_BERT") == physListName) {
       physicsList = new FTFP_BERT;
+      printf("Physics: Using FTFP_BERT    Physics List");            
     } else if(std::string("FTFP_BERT_HP") == physListName) {
       physicsList = new FTFP_BERT_HP;
+      printf("Physics: Using FTFP_BERT_HP Physics List");                  
     } else {
       G4cout << G4endl <<
       "**************************************************************************"
@@ -219,6 +233,13 @@ int main(int argc,char **argv)
   //
   runManager->SetUserAction(new SteppingAction);
 
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
+  G4String command_ls = "ls /gun";
+  UImanager->ApplyCommand(command_ls);
+
+  G4String command_query = "cd /gun ; ?particle";
+  UImanager->ApplyCommand(command_query);
+  
   //
   // Initialize Geant4 run manager
   // 
@@ -253,10 +274,29 @@ int main(int argc,char **argv)
     "      ......You have time for a coffee....!" << 
     G4endl;  
   }
-  G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  G4String command = "/control/execute ";
-  UImanager->ApplyCommand(command+g4macroFile);
+  // G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
+  G4UIExecutive* ui = 0;
+  if ( useUI ) {
+    ui = new G4UIExecutive(argc, argv);
+  }
+
+  // Process macro or start UI session
+  //
+  if ( ! ui ) { 
+    // batch mode
+    G4cout << "Batch mode - no UI exec" << G4endl;
+    G4String command = "/control/execute ";
+    G4cout << "Macro file name= " << g4macroFile << G4endl;
+     
+    UImanager->ApplyCommand(command+g4macroFile);
+  }  
+  else {
+    // interactive mode
+    ui->SessionStart();
+    delete ui;
+  }
+  
   //
   // End of story
   //
@@ -434,7 +474,8 @@ void usage()
        << G4endl << G4endl <<
   "[SYNOPSIS]" << G4endl <<
   "    testcomplex --geomFile [FILE] --eventFile [FILE] --g4macroFile [FILE] \n"
-  "                --lowEnergyCut [VALUE] < --physListName [NAME] >            "
+  "                --lowEnergyCut [VALUE] < --physListName [NAME] >          \n"
+  "                < --uniformField | --bilinearField  >                       "
         << G4endl << G4endl <<
   "[DESCRIPTION]" << G4endl <<
   "    Run Geant4 on a complex geometry setup given in form of GDML input file   \n"
@@ -458,24 +499,33 @@ void usage()
           << G4endl <<
   " --lowEnergyCut [VALUE]: low energy cut value in the tabulated physics [GeV]    " 
         << G4endl << G4endl <<
+
   "[OPTIONAL]" << G4endl <<
   " --physListName <NAME> : physics list: TABPHYS (default), FTFP_BERT, FTFP_BERT\n"
   "                         _HP, QBBC                                              "
-          << G4endl <<  
+          << G4endl <<
+  " --uniformField        : use uniform magnetic field                             "
+          << G4endl <<
+  " --bilinearField       : use bilinear CMS magnetic field                        "
+          << G4endl <<
+  // " --useUniform   [FLAG] : whether to use uniform magnetic field                  "
+  //       << G4endl <<
+  // "                         Potential values: y/Y/t/T/1 = true, n/N/f/F/0 = false  "
+  //      << G4endl <<
   " --scoreType    [VALUE]: type of scoring:                                     \n"
   "                          0 : no scoring, only run-time is reported (default) \n"
   "                          1 : option 1 plus step statistics                   \n"
   "                          2 : option 2 plus histograms in CMS ECAL            \n"
-          << G4endl <<        
+          << G4endl <<
   " --info                : print all information regarding testcomplex          \n"
-  << G4endl <<  
+  << G4endl <<
   "============================================================================"
-  << G4endl << G4endl; 
+  << G4endl << G4endl;
 }
 
 void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFile,
               std::string &g4macroFile, G4double &cutvalue, std::string &physListName,
-              int &scoreType){
+              int &scoreType, bool &useUniformField){
     if(argc != 2 && argc < 5) {
       G4cout << G4endl <<
       "**************************************************************************"
@@ -497,7 +547,9 @@ void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFi
         {"geantMacro"    ,  required_argument, 0,  0 },
         {"lowEnergyCut"  ,  required_argument, 0,  0 },
         {"physListName"  ,  required_argument, 0,  0 },
-        {"scoreType"     ,  required_argument, 0,  0 }, 
+        {"scoreType"     ,  required_argument, 0,  0 },
+        {"uniformField"  ,  no_argument      , 0,  0 },
+        {"bilinearField" ,  no_argument      , 0,  0 },
         {"info"          ,  no_argument      , 0,  0 },
         {0               ,  0                , 0,  0 }
     };
@@ -523,7 +575,35 @@ void parsearg(int argc, char **argv, std::string &geomFile, std::string &eventFi
                               break;
                           case  5  : scoreType    = atof(optarg);
                               break;
-                          case  6  : usage();
+                          case  6  : useUniformField = true;
+                                     G4cout << " Chose Uniform field " << G4endl;                             
+                              break;
+                          case  7  : useUniformField = false;   // bilinear field
+                                     G4cout << " Chose Bilinear field " << G4endl;
+                              break;                              
+                              /****
+                                     if( optarg[0] == 'y' || optarg[0] == 'Y'
+                                         || optarg[0] == 't' || optarg[0] == 'T' )
+                                     {
+                                       useUniformField = true;
+                                     } else {
+                                        if( optarg[0] == 'n' || optarg[0] == 'N'
+                                            || optarg[0] == 'f' || optarg[0] == 'F' )
+                                        {
+                                           useUniformField = true;
+                                        } else {
+                                           if( optarg[0] >= '0' && optarg[0] <= '9' ) {
+                                              useUniformField = ( optarg[0] > '0' );
+                                           } else {
+                                              std::cerr << " Invalid value: useUniform = " << optarg
+                                                        << "  Expected: y/Y/t/T/1 = true, n/N/f/F/0 = false"; 
+                                              useUniformField = true;
+                                           }
+                                        }
+                                     }
+                              break;
+                              ****/
+                          case  8  : usage();
                                      exit(EXIT_SUCCESS); 
                               break;
                         }

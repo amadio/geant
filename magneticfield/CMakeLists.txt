@@ -5,12 +5,18 @@ file(GLOB sources src/*.cxx) # (T*.cxx src/GU*.cxx)
 file(GLOB headers inc/*.h)   # (T*.h inc/GU*.h)
 
 include_directories(inc)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+include_directories(${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/inc)
+
+# - print include directories
+# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+# message(STATUS "Include directories: ${inc_dirs}")
 
 #----------------------------------------------------------------------------------------------
 # Add the library
 #
 # ROOT_GENERATE_DICTIONARY(vMagFieldDict ${headers} MODULE Vphysproc LINKDEF inc/LinkDef.h)
-add_library(Vmagfield SHARED ${sources} ) ## vMagFieldDict.cxx)
+add_library(Vmagfield SHARED ${sources} )
 target_link_libraries(Vmagfield  -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES})
 add_headers("${headers}")
 

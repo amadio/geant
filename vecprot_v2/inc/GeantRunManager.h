@@ -29,6 +29,7 @@ class TaskBroker;
 class PhysicsProcessOld;
 class GeantVApplication;
 class GeantVDetectorConstruction;
+class UserDetectorConstruction;
 class GeantVTaskMgr;
 class GeantEventServer;
 class GeantEvent;
@@ -60,6 +61,11 @@ private:
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
   GeantEventServer *fEventServer = nullptr;     /** The event server */
   TDManager *fTDManager = nullptr;              /** The task data manager */
+
+  UserDetectorConstruction *fUserDetectorCtion= nullptr; /** Class to create detector, field */
+
+  bool fInitialisedRKIntegration=false;  /** Flag: Is RK initialised for tracking in field  */
+  float  fBfieldArr[3] = { 0.0, 0.0, 0.0 }; /** Constant Magnetic Field value - if any */
 
   vector_t<GeantPropagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
@@ -129,6 +135,7 @@ public:
   GEANT_FORCE_INLINE
   Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
 
+
   GEANT_FORCE_INLINE
   GeantEvent *GetEvent(int slot) { return fEventServer->GetEvent(slot); }
 
@@ -155,6 +162,13 @@ public:
   GEANT_FORCE_INLINE
   void SetUserApplication(GeantVApplication *app) { fApplication = app; }
 
+  /** @brief Set object to initialize detector, field */
+  GEANT_FORCE_INLINE  
+  void SetUserDetectorConstruction(UserDetectorConstruction* udc) {
+    fUserDetectorCtion= udc;
+    fInitialisedRKIntegration= false;  //  Needs to be re-done !!
+  }
+    
   GEANT_FORCE_INLINE
   GeantVApplication *GetUserApplication() const { return fApplication; }
 

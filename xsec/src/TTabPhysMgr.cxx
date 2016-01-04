@@ -792,7 +792,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
       mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(t)->GetFWExtension())->GetUserObject())->MXsec();
 #endif
 
-    // firts check the results of interaction sampling:
+    // first check the results of interaction sampling:
     if (tracks.fProcessV[t] == 3) {
       // decay : in-flight decay was selected
       // kill the primary tarck
@@ -936,11 +936,13 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         pz *= corFactor;
         double secPtot2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
         double secPtot = vecCore::math::Sqrt(secPtot2);                     // total P [GeV]
-        double secEtot = vecCore::math::Sqrt(secPtot2 + secMass * secMass); // total energy in [GeV]
+        double secEtot = vecCore::math::Sqrt(secPtot2 + secMass * secMass); // total energy in [Ge
         double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
           GeantTrack &track = td->GetNewTrack();
+          double secPtot = sqrt(secPtot2);                     // total P [GeV]
+          double inv_secPtot = 1.0 / secPtot;
           //          GeantTrack track;
           // set the new track properties
           track.SetEvent(tracks.fEventV[t]);
@@ -954,12 +956,15 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.SetStatus(kNew);           // status of this particle
           track.SetMass(secMass);          // mass of this particle
           track.SetPosition(tracks.fXposV[t], tracks.fYposV[t], tracks.fZposV[t]);
-          track.SetDirection(px / secPtot, py / secPtot, pz / secPtot);
+          track.SetDirection(px * inv_secPtot, py * inv_secPtot, pz * inv_secPtot);
           track.SetP(secPtot);             // momentum of this particle
           track.SetE(secEtot);             // total E of this particle
           track.SetTime(tracks.fTimeV[t]); // global time
           track.SetSafety(tracks.fSafetyV[t]);
           track.SetBoundary(tracks.fBoundaryV[t]);
+          track.SetfProcess(tracks.fProcessV[t]); // Record id of creating process -- Was 0
+          track.fNsteps = 0;
+          track.fParentId= tracks.fParticleV[t]; // Identity of parent particle
           track.SetPath(tracks.fPathV[t]);
           track.SetNextPath(tracks.fPathV[t]);
           track.SetMother(tracks.fParticleV[t]);

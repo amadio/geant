@@ -2,7 +2,8 @@
 
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
-#include "ConstFieldHelixStepper.h"
+#include "ConstBzFieldHelixStepper.h"
+#include "ConstVecFieldHelixStepper.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
@@ -224,21 +225,20 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 // - physics step (bdr=0)
 // - safety step (bdr=0)
 // - snext step (bdr=1)
-   bool useRungeKutta;
-   const double bmag = td->fPropagator->fConfig->fBmag;
-   useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
+   using ThreeVector = vecgeom::Vector3D<double>;  
+   bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
+   // double bmag = td->fPropagator->fConfig->fBmag;
+   double BfieldInitial[3], bmag;
+   ThreeVector Position(track.X(), track.Y(), track.Z());
+   FieldLookup::GetFieldValue(td, Position, BfieldInitial, &bmag);   
 
-// #ifdef RUNGE_KUTTA
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
    GUFieldPropagator *fieldPropagator = nullptr;
    if( useRungeKutta ){
-      // Initialize for the current thread -- move to GeantPropagator::Initialize()
-      static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
-      assert( fieldPropPool );
-
-      fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
+      fieldPropagator = td->fFieldPropagator;
       assert( fieldPropagator );
    }
+   // GUFieldPropagator *fieldPropagator = useRungeKutta ? td->fFieldPropagator : nullptr;   
 #endif
 
   // Reset relevant variables
@@ -263,26 +263,50 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 #ifdef USE_VECGEOM_NAVIGATOR
 //  CheckLocationPathConsistency(i);
 #endif
-// alternative code with lean stepper would be:
-// ( stepper header has to be included )
+  double curvaturePlus= fabs(GeantTrack::kB2C * track.fCharge * bmag) / (track.fP + 1.0e-30);  // norm for step
+  
+  constexpr double numRadiansMax= 10.0; // Too large an angle - many RK steps.  Potential change -> 2.0*PI;
+  constexpr double numRadiansMin= 0.05; // Very small an angle - helix is adequate.  TBC: Use average B-field value?
+      //  A track turning more than 10 radians will be treated approximately
+  const double angle= crtstep * curvaturePlus;
+  bool mediumAngle = ( numRadiansMin < angle ) && ( angle < numRadiansMax );
+  useRungeKutta = useRungeKutta && (mediumAngle);
 
-  using ThreeVector = vecgeom::Vector3D<double>;
-  // typedef vecgeom::Vector3D<double>  ThreeVector;
-  ThreeVector Position(track.X(), track.Y(), track.Z());
+  bool dominantBz =  std::fabs( std::fabs(BfieldInitial[2]) )
+     > 1.e3 * std::max( std::fabs( BfieldInitial[0]), std::fabs(BfieldInitial[1]) );
+
+#ifdef DEBUG_FIELD
+  printf("--PropagateInVolume(Single): \n");
+  printf("Curvature= %8.4g   CurvPlus= %8.4g  step= %f   Bmag=%8.4g   momentum mag=%f  angle= %g\n"
+         Curvature(td, i), curvaturePlus, crtstep, bmag, fPV[i], angle );
+#endif
+
   ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
-  if( useRungeKutta ) {
 #ifndef VECCORE_CUDA
+  if( useRungeKutta ) {
      fieldPropagator->DoStep(Position,    Direction,    track.Charge(), track.P(), crtstep,
                              PositionNew, DirectionNew);
+  }
+  else
 #endif
-  } else {
-     // Old - constant field
-     ConstBzFieldHelixStepper stepper(bmag);
-     stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    track.Charge(), track.P(), crtstep,
-                                         PositionNew, DirectionNew);
+  {
+     constexpr double toKiloGauss= 1.0e+14; // Converts to kilogauss -- i.e. 1 / Unit::kilogauss
+                                            // Must agree with values in magneticfield/inc/Units.h
+     double Bz = BfieldInitial[2] * toKiloGauss;
+     if ( dominantBz ) {
+        // Constant field in Z-direction
+        ConstBzFieldHelixStepper stepper( Bz ); //
+        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    track.Charge(), track.P(), crtstep,
+                                               PositionNew, DirectionNew);
+     } else {
+        // Geant::
+        ConstVecFieldHelixStepper stepper( BfieldInitial );
+        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,                                           
+                                               PositionNew, DirectionNew);        
+     }
   }
 
   track.SetPosition(PositionNew);
@@ -291,6 +315,23 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
   DirectionNew = DirectionNew.Unit();
   track.SetDirection(DirectionNew);
 
+#ifdef REPORT_AND_CHECK
+  double origMag= Direction.Mag();
+  double oldMag= DirectionNew.Mag();
+  double newMag= DirectionUnit.Mag();  
+  Printf(" -- State after propagation in field:  Position= %f, %f, %f   Direction= %f, %f, %f  - mag original, integrated, integr-1.0, normed-1 = %10.8f %10.8f %7.2g %10.8f %7.2g",
+         track.X(),  track.Y(),  track.Z(),
+         track.Dx(),  track.Dy(),  track.Dz(),         
+         origMag, oldMag, oldMag-1.0, newMag, newMag-1.0 );
+         // DirectionNew.Mag()-1.0  );
+
+  const char* Msg[4]= { "After propagation in field - type Unknown(ERROR) ",
+                        "After propagation in field - with RK           ",
+                        "After propagation in field - with Helix-Bz     ",
+                        "After propagation in field - with Helix-General" };
+  CheckTrack(i, Msg[propagationType] );
+#endif
+  
 #if 0
   ThreeVector SimplePosition = Position + crtstep * Direction;
   // double diffpos2 = (PositionNew - Position).Mag2();

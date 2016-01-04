@@ -579,6 +579,7 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Include directories
 #
+include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 if(USE_REAL_PHYSICS)
@@ -589,6 +590,7 @@ else()
   include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
 endif()
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2_tbb/inc")
+include_directories("${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/include")
 
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
@@ -627,6 +629,7 @@ if (ROOT_mathmore_FOUND)
   add_subdirectory (Nudy)
 endif()
 
+add_subdirectory (VecMagFieldRoutine)
 if(USE_VECPHYS)
   add_subdirectory(vecphys)
 endif()

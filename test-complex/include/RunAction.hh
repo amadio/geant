@@ -38,6 +38,7 @@
 #include "globals.hh"
 
 #include <time.h>
+// #include <sys/resource.h>  //  For use of 'rusage'
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -67,12 +68,17 @@ public:
   static G4int fgScoreTypeFlag; 
 
 private:
-  clock_t  fRunTime; // the total runtime 
+  clock_t  fRunTime; // the total runtime
+
+  // rusage   fStartRunUsage; // -- could use to show more detailed stats
+
   unsigned long    fNumPysLimStepsRun;   // number of steps limited by physics
   unsigned long    fNumPrimsRun;         // number of secondaries  
   unsigned long    fNumSecsRun;          // number of primaries
   unsigned long    fNumTotalStepsRun;    // number of total steps 
   unsigned long    fNumAllStepsRun;      // number of ALL steps
+
+  // G4double  fSumTime; // Unused
 
   // The CMS application 
   CMSApp   *fCMSApp; 

@@ -1,3 +1,11 @@
+//===----------------------------------------------------------------------===//
+/**
+ * @file StepperFactory.h
+ * @brief  Abstract field class for Geant-V prototype
+ * @author John Apostolakis
+ */
+//===----------------------------------------------------------------------===//
+
 #ifndef STEPPER_FACTORY_H
 #define STEPPER_FACTORY_H 1
 
@@ -14,23 +22,36 @@
 
 // namespace vecFieldPropagation {
 
+/**
+ * @brief Class StepperFactory
+ */
+
 class StepperFactory
 {
    public:   
      static const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
-     static const int DefaultStepperType= 5;  // Cash Karp
+     static const int DefaultStepperCode= 5;  // Cash Karp
 
+      /**
+       * @brief GeantTrack parametrized constructor
+       *
+       * @param EquationType - Type of Equation of Motion
+       * @param equation     - Instance of Equaiton of Motion (type: EquationType)
+       * @param StepperCode  - Integer Code to identify type of Stepper
+       */
      template<typename EquationType>
         static
         GUVIntegrationStepper *          
-            CreateStepper(EquationType *equation, int StepperType = DefaultStepperType);
+          CreateStepper(EquationType *equation, 
+                        int           StepperCode = DefaultStepperCode, 
+                        bool          verbose = false );
 
      // static StepperFactory* Instance();
 };
 
 template<typename EquationType>
   GUVIntegrationStepper *          
-StepperFactory::CreateStepper(EquationType *equation, int StepperType )
+StepperFactory::CreateStepper(EquationType *equation, int StepperCode, bool verbose )
 {
     GUVIntegrationStepper *stepper; // , *exactStepper;
 
@@ -39,16 +60,16 @@ StepperFactory::CreateStepper(EquationType *equation, int StepperType )
     const char * const NameClassicalRK4 = "TClassicalRK4";
     const char * const NameCashKarpRKF45 = "TCashKarpRKF45";
 
-    int MaxStepperType= 5;
+    int MaxStepperCode= 5;
     
-    if( (StepperType <= 0)
-        || (StepperType> MaxStepperType)
-        || (StepperType == 2)  // Missing in range  min - max
-        || (StepperType == 3)
+    if( (StepperCode <= 0)
+        || (StepperCode> MaxStepperCode)
+        || (StepperCode == 2)  // Missing in range  min - max
+        || (StepperCode == 3)
        )
-       StepperType= DefaultStepperType;
+       StepperCode= DefaultStepperCode;
     
-    switch(StepperType)
+    switch(StepperCode)
     {
       case 1: stepper = new TSimpleRunge<EquationType,Nposmom>(equation);
          stepperName= NameSimpleRunge;
@@ -64,10 +85,10 @@ StepperFactory::CreateStepper(EquationType *equation, int StepperType )
          stepperName= NameCashKarpRKF45;
          break;
       default : stepper = (GUVIntegrationStepper*) 0 ;
-         std::cerr << " ERROR> StepperFactory: No stepper selected. " << endl;
+	std::cerr << " ERROR> StepperFactory: No stepper selected. " << std::endl;
          // exit(1); 
     }
-    if( stepperName )
+    if( stepperName && verbose )
        std::cout << "StepperFactory: Chosen the  " << stepperName << " stepper." << std::endl;
 
     return stepper;

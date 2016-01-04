@@ -73,7 +73,7 @@ class GUVHelicalStepper : public GUVIntegrationStepper
      void AdvanceHelix( const double  yIn[],
                              ThreeVector   Bfld,
                              double  h,
-			double  yHelix[],double yHelix2[]=0);    // output 
+                        double  yHelix[],double yHelix2[]=0);    // output 
       // A first order Step along a helix inside the field.
 
     inline void MagFieldEvaluate( const double y[], ThreeVector& Bfield );

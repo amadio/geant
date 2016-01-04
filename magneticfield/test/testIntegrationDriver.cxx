@@ -49,12 +49,12 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 using namespace std;
 // using namespace CLHEP;
 
-const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
-
 int main(int argc, char *args[])
 {
+    constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
+
     using  GvEquationType=  TMagFieldEquation<TUniformMagField, Nposmom>;
-   
+ 
     /* -----------------------------SETTINGS-------------------------------- */
     
     /* Parameters of test
@@ -215,8 +215,8 @@ int main(int argc, char *args[])
     g4Equation->SetChargeMomentumMass( chargeState,
                                        G4ThreeVector(x_mom, y_mom, z_mom).mag(), //momentum magnitude
                                        mass);  // unused
-//  auto g4exactStepper= = new G4ExactHelixStepper(g4Equation);
-    auto g4exactStepper= = new G4ClassicalRK4(g4Equation);
+//  auto g4exactStepper = new G4ExactHelixStepper(g4Equation);
+    auto g4exactStepper = new G4ClassicalRK4(g4Equation);
     
     auto exactStepper = g4ExactStepperGV;
 #else

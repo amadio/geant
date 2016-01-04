@@ -761,10 +761,48 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Start transporting the basket
     MaybeCleanupBaskets(td,basket);
     ++counter;
-    ntotransport = basket->GetNinput(); // all tracks to be transported
-                                        //      ninput = ntotransport;
+    // ntotransport = basket->GetNinput(); // all tracks to be transported
+    // ninput = ntotransport;
+    int ninput = basket->GetNinput(); // all tracks to be transported
+    ntotransport= ninput;
+    
     GeantTrack_v &input = basket->GetInputTracks();
+
+#define ENERGY_BALANCE 1
+
+#ifdef ENERGY_BALANCE    
+    double sumEin= 0.0;
+    for (int ix = 0; ix < input.GetNtracks(); ix++) {
+       // TrackStatus_t status= input.fStatusV[ix];
+       // bool       isOutside= input.fPathV[ix]->IsOutside();
+
+       int pdg = input.fPDGV[ix];
+#ifdef USE_VECGEOM_NAVIGATOR
+       const Particle_t *const &partPDG = &Particle_t::GetParticle(pdg);
+#else
+       TParticlePDG *partPDG = TDatabasePDG::Instance()->GetParticle(pdg);
+#endif
+       double     restMass = partPDG->Mass();
+       
+       double   eFullTrack = input.fEV[ix];
+       double       eTrack = eFullTrack ;
+       // double         kinE = eTrack - restMass;     // Only kinetic energy
+       
+       // Quick and dirty rule: produced matter is 'free', antimatter requires 2x rest-mass
+       //  Must exclude antiparticles which were input.
+       if( (pdg ==  11) || (pdg ==  2212) || (pdg ==  2112) ) {  // e-, proton & neutron
+          eTrack -= restMass;                 // Only kinetic energy
+       }
+       if( (pdg == -11) || (pdg == -2212) || (pdg == -2112) ) {  // e-, proton & neutron
+          // 'Anti'-particles generated in the interaction
+          eTrack += restMass;                 // + 'Creation' energy
+       }
+       // eTrack += input.fEdepV[ix];  // Does track enter with Edep > 0 ?
+       sumEin += eTrack;
+    }
+#endif
     GeantTrack_v &output = *td->fTransported;
+
     if (!ntotransport)
       goto finish; // input list empty
     //      Geant::Print("","======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,
@@ -772,6 +810,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     //      basket->Print();
     //      Geant::Print("","==========================================");
     //      propagator->fTracksPerBasket[tid] = ntotransport;
+    
     td->fVolume = 0;
     mat = 0;
     if (!basket->IsMixed()) {
@@ -813,8 +852,9 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         }
       }
 
-      //         Geant::Print("","====== WorkloadManager:");
-      //         input.PrintTracks();
+      //  Geant::Print("","====== WorkloadManager: Input tracks - top ");
+      //     input.PrintTracks();
+
       // Propagate all remaining tracks
       if (basket->IsMixed())
         ncross += input.PropagateTracksScalar(td);
@@ -828,6 +868,9 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     //            will happen.
     // kExitingSetup - particles exiting the geometry
     // kKilled - particles that could not advance in geometry after several tries
+
+    // Geant::Print("","====== WorkloadManager: tracks - type of step selected ");
+    // output.PrintTracks();
 
     // Update track time for all output tracks (this should vectorize)
     nout = output.GetNtracks();
@@ -872,6 +915,11 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         // first: sample target and type of interaction for each primary tracks
         propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, td);
 
+        for (auto itr = 0; itr < nout; ++itr) {
+           // input.CheckTrack(itr, "Input to PostStepFinalStateSampling.");
+           input.Normalize(itr);
+           // input.CheckTrack(itr, "Input to PostStepFinalStateSampling - 2nd check.");           
+        }
 //
 // TODO: vectorized final state sampling can be inserted here through
 //       a proper interface code that will:

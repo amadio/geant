@@ -5,9 +5,17 @@
 #ifndef GUFIELDPROPAGATOR_H
 #define GUFIELDPROPAGATOR_H 1
 
+#include "Geant/Config.h"
 // #include "ThreeVector.h"
 #include "base/Vector3D.h"
-typedef vecgeom::Vector3D<double>  ThreeVector; 
+// typedef vecgeom::Vector3D<double>  ThreeVector; 
+// #include "TemplateGUIntegrationDriver.h"
+
+// namespace Geant {
+// inline namespace GEANT_IMPL_NAMESPACE {
+
+template <class Backend>
+class TemplateGUIntegrationDriver;
 
 class GUIntegrationDriver;
 class GUVField;
@@ -18,29 +26,35 @@ class GUFieldPropagator
     // GUFieldPropagator(GUVField *); // First idea -- sidelined, at least for now
     GUFieldPropagator(GUIntegrationDriver* driver, double epsilon); // (GUVField* field)
 
+    template <typename Backend>
+    GUFieldPropagator(TemplateGUIntegrationDriver<Backend>* driver, double epsilon);
+
     template<typename FieldType>  // , typename StepperType>
        GUFieldPropagator(FieldType* magField, double epsilon, double hminimum= 1.0e-4);
 
-    virtual ~GUFieldPropagator() {}   //  Likely needed - to enable use of templated classes
+    ~GUFieldPropagator() {}  // Not virtual anymore.
 
-     /**
-       * Propagate track along in a field for length 'step'
-       *    input: current position, current direction, particle properties
-       *   output: success(returned), new position, new direction of particle
-       */
-  // VECCORE_ATT_HOST_DEVICE          
-      bool DoStep( ThreeVector const & position,  ThreeVector const & direction,
-                           int const & charge,         double const & momentum,
-                        double const & step,
-                   ThreeVector       & endPosition,
-                   ThreeVector       & endDiretion
-         ) ;   //  Goal => make it 'const';  -- including all classes it uses
+    /**
+      * Propagate track along in a field for length 'step'
+      *    input: current position, current direction, particle properties
+      *   output: success(returned), new position, new direction of particle
+      */
+  // VECCORE_ATT_HOST_DEVICE                 
+    bool DoStep( vecgeom::Vector3D<double> const & position,  
+                 vecgeom::Vector3D<double> const & direction,
+                          int const & charge,         
+                       double const & momentum,
+                       double const & step,
+                  vecgeom::Vector3D<double>      & endPosition,
+                  vecgeom::Vector3D<double>      & endDiretion
+        ) ;   //  Goal => make it 'const';  -- including all classes it uses
 
-      GUIntegrationDriver* GetIntegrationDriver(){ return fDriver; }
-      const GUIntegrationDriver* GetIntegrationDriver() const { return fDriver; }
-      double GetEpsilon() { return fEpsilon; }
+    GUIntegrationDriver* GetIntegrationDriver(){ return fDriver; }
+    const GUIntegrationDriver* GetIntegrationDriver() const { return fDriver; }
+    double GetEpsilon() { return fEpsilon; }
 
-      virtual GUFieldPropagator* Clone() const;
+    GUVField* GetField();
+    GUFieldPropagator* Clone() const;
 
   /******
     template<typename Vector3D, typename DblType, typename IntType>
@@ -74,4 +88,8 @@ private:
     GUIntegrationDriver* fDriver;
     double               fEpsilon;
 };
+
+// } // GEANT_IMPL_NAMESPACE
+// } // Geant
+
 #endif

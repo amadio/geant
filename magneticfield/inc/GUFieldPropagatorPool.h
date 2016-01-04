@@ -1,3 +1,11 @@
+//===----------------------------------------------------------------------===//
+/**
+ * @file GUFieldPropagatorPool.h
+ * @brief  Bookkeeping class for field propagators
+ * @author John Apostolakis
+ */
+//===----------------------------------------------------------------------===//
+
 //  Create and maintain a 'pool' of Field Propagator instances
 //  Each thread will use the same instance, indexed by its thread-id (0<tid<=maxTID)
 //
@@ -20,8 +28,9 @@
 // namespace GUFieldPropagation {
 // inline namespace GUFIELDPROPAGATION_IMPL_NAMESPACE {
 
-class GUFieldPropagator;
-// #include "GUFieldPropagator.h"
+// class GUFieldPropagator;
+class GUVField;
+#include "GUFieldPropagator.h"
 
 class GUFieldPropagatorPool
 {
@@ -39,6 +48,8 @@ class GUFieldPropagatorPool
     bool Initialize(unsigned int numThreads); 
      // Create new propagators for each thread !
     
+    bool IsInitialized() { return fInitialisedRKIntegration; }
+
     bool CheckIndex(size_t num){
        assert(num< fFieldPropagatorVec.size());
        // ((void)num); // make compiler happy
@@ -48,6 +59,13 @@ class GUFieldPropagatorPool
     GUFieldPropagator* GetPropagator(int num) {
        CheckIndex(num);       
        return fFieldPropagatorVec[num];
+    }
+  
+    GUVField* GetField(unsigned int num) {
+      // CheckIndex(num);
+      // return fFieldVec[num];
+      GUFieldPropagator* pFP= fFieldPropagatorVec[num];
+      return pFP->GetField();
     }
 
   private:
@@ -59,10 +77,15 @@ class GUFieldPropagatorPool
      // Create additional propagators, so that total is 'Num'
   private:
     // Invariants -- constant during simulation
+    bool   fInitialisedRKIntegration;
     unsigned int fNumberPropagators;
+
     const  GUFieldPropagator* fPrototype; //  Owned
-    
+    GUVField* fFieldPrototype;
+
+    // Copies for use by threads
     static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
+    // static std::vector<GUVField*>          fFieldVec;
 };
 
 // }

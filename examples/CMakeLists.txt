@@ -1,5 +1,9 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
+
+#----------------------------------------------------------------------------
+# Locate sources and headers for this project
+# NB: headers are included so they will show up in IDEs
 #
 include_directories(inc ../vecprot_v2/inc ../physics/particle/inc ../numa/inc)
 
@@ -10,10 +14,12 @@ endif()
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
+include_directories(../magneticfield/inc  ../VecMagFieldRoutine/include)
 
 set(sources
   src/ExN03Application.cxx
   src/CMSApplication.cxx
+#  src/CMSDetectorConstruction.cxx
   src/LHCbApplication.cxx
   src/FastSimApplication.cxx
   )
@@ -32,9 +38,10 @@ set(sources
 set(headers
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h
-  )
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSDetectorConstruction.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
+  )   
 if (USE_ROOT)
   if (USE_UMESIMD)
      ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples
@@ -59,7 +66,7 @@ else()
   add_library(GeantExamples SHARED ${sources})
 endif()
 
-target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v
+target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v -lVmagfield
   ${TBB_LIBRARIES})
 
 if (USE_ROOT)

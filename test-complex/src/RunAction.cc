@@ -55,8 +55,11 @@ RunAction::RunAction():
   fNumSecsRun(0),          // number of secondaries
   fNumTotalStepsRun(0),    // total number of steps   
   fNumAllStepsRun(0),      // number of ALL steps
+  // fSumTime(0),
   fCMSApp(0)
-{}
+{
+  fRunTime=clock();
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -85,7 +88,11 @@ void RunAction::BeginOfRunAction(const G4Run* aRun)
   fNumTotalStepsRun   = 0;   // total number of steps   
   fNumAllStepsRun     = 0;   // number of ALL steps
 
-  fRunTime=clock();
+  clock_t startClock= clock();
+  G4cout << " Run started - " << ((G4double) (startClock - fRunTime)) / CLOCKS_PER_SEC
+         << " [sec] since RunAction was created." << G4endl;
+  
+  fRunTime= clock(); // startClock;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -112,6 +119,7 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
   G4int NbOfEvents = aRun->GetNumberOfEvent();
   if (NbOfEvents == 0) return;
  
+  fRunTime= clock() - fRunTime;
   std::cout<<"\n-------------------- Run time in [s] --------------------------\n"
 	   <<"  Total run time= " << ((G4double)(clock()-fRunTime))/CLOCKS_PER_SEC 
             <<"\n--------------------------------------------------------------\n"

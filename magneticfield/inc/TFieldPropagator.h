@@ -1,5 +1,5 @@
 #include "GUFieldPropagator.h"
-#include "TClassicalRK4"
+#include "TClassicalRK4.h"
 
 template 
 <class T_Equation, class T_Stepper, int Neq>

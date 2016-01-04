@@ -10,17 +10,17 @@ GUFieldTrack( const ThreeVector& pPosition,
               const ThreeVector& pMomentum,
               // double       restMass_c2,
               // double       charge, 
-              double       LaboratoryTimeOfFlight,
+              // double       LaboratoryTimeOfFlight,
               double       curve_length )
         // const ThreeVector& vecPolarization,
         // double       magnetic_dipole_moment,
         // double       curve_length,
         // double       pdgSpin )
-:  fDistanceAlongCurve(curve_length),
+ :  fDistanceAlongCurve(curve_length) // ,
    // fMomentumMag(pMomentum.Mag()),
    // fKineticEnergy(kineticEnergy), fRestMass_c2(restMass_c2),
-   fLabTimeOfFlight(LaboratoryTimeOfFlight), 
-   fProperTimeOfFlight(0.) // ,
+   // fLabTimeOfFlight(LaboratoryTimeOfFlight), 
+   // fProperTimeOfFlight(0.) // ,
    // fMomentumDir(pMomentum.Unit()),
    // fChargeState(  charge, magnetic_dipole_moment, pdgSpin )
    // fPDGSpin( pdgSpin )
@@ -35,10 +35,10 @@ GUFieldTrack( const ThreeVector& pPosition,
 // -------------------------------------------------------------------
    
 GUFieldTrack::GUFieldTrack( char )                  //  Nothing is set !!
-  : // fKineticEnergy(0.), 
+  // : fKineticEnergy(0.), 
     // fRestMass_c2(0.), 
-    fLabTimeOfFlight(0.),
-    fProperTimeOfFlight(0.) // , 
+    // fLabTimeOfFlight(0.),
+    // fProperTimeOfFlight(0.) // , 
     // fCharge(  DBL_MAX )
 {
   ThreeVector Zero(0.0, 0.0, 0.0);
@@ -96,8 +96,8 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
   //    integrated over -- integration is optional
   // fKineticEnergy= valArr[6];
 
-  fLabTimeOfFlight=valArr[7];
-  fProperTimeOfFlight=valArr[8];
+  // fLabTimeOfFlight=valArr[7];
+  // fProperTimeOfFlight=valArr[8];
 
   // ThreeVector  vecPolarization= ThreeVector(valArr[9],valArr[10],valArr[11]);
   //  SetPolarization( vecPolarization ); 
@@ -122,8 +122,8 @@ std::ostream& operator<<( std::ostream& os, const GUFieldTrack& SixVec)
      os << " Pdir= " <<  ( momentumMag > 0 ? momentum.Unit() : momentum );
      // os << " PolV= " << SixVec.GetPolarization(); 
      os << " l= " <<    SixVec.GetCurveLength();
-     os << " t_lab= " << SixVec.fLabTimeOfFlight; 
-     os << " t_proper= " << SixVec.fProperTimeOfFlight ; 
+//     os << " t_lab= " << SixVec.fLabTimeOfFlight; 
+//     os << " t_proper= " << SixVec.fProperTimeOfFlight ; 
      os << " ) ";
      return os;
 }

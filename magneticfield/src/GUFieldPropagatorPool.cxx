@@ -4,6 +4,9 @@
 
 // For implementation
 #include "GUFieldPropagator.h"
+#include "GUIntegrationDriver.h"
+#include "GUVEquationOfMotion.h"
+#include "GUVField.h"
 
 #include <iostream>
 
@@ -25,8 +28,10 @@ GUFieldPropagatorPool::Instance()
 }
 
 GUFieldPropagatorPool::GUFieldPropagatorPool( GUFieldPropagator* prototype )
-   : fNumberPropagators(0),
-     fPrototype(prototype)
+   : fInitialisedRKIntegration(false),
+     fNumberPropagators(0),
+     fPrototype(prototype),
+     fFieldPrototype(nullptr)
 {
    // prototype can be null initially
 }
@@ -39,15 +44,21 @@ GUFieldPropagatorPool::~GUFieldPropagatorPool()
 bool
 GUFieldPropagatorPool::RegisterPrototype( GUFieldPropagator* prototype )
 {
-   bool ok = ((fNumberPropagators > 0) && (prototype!=fPrototype)); 
+   bool ok = ((fNumberPropagators > 0)
+              && (fPrototype) && (prototype!=fPrototype) ); 
    if( !ok){
       std::cerr << "WARNING from GUFieldPropagatorPool:  "
                 << "Changing prototype propagator after having created "
                 << fNumberPropagators << " instances. " << std::endl;
+      std::cerr << "     prototype =   "  << prototype
+                << " old-prototype= " << fPrototype << std::endl;
    }
    assert( prototype );
-   fPrototype= prototype;
+   fPrototype = prototype;
 
+   fFieldPrototype= prototype->GetField();
+  
+   fInitialisedRKIntegration = true;
    return ok;
 }
 
@@ -66,7 +77,7 @@ GUFieldPropagatorPool::Initialize( unsigned int numThreads )
    if( numThreads > fNumberPropagators )
    {
       // std::cout << "GUFieldPropagatorPool::Initialize  calling Extend for "
-      //        << numThreads - fNumberPropagators << " new propagators. " << std::endl;
+      //           << numThreads - fNumberPropagators << " new propagators. " << std::endl;
       Extend( numThreads - fNumberPropagators );
    }
 
@@ -86,19 +97,36 @@ void
 GUFieldPropagatorPool::Extend(size_t noNeeded)
 {
     size_t num= fFieldPropagatorVec.size();
+    // size_t originalNum= num;
+    // const char* method= "GUFieldPropagatorPool::Extend";
     assert( fPrototype );
     assert( num < noNeeded );
 
-    while ( num++ < noNeeded )
+    // printf("%s method called.  Num needed = %ld,  existing= %ld\n", method,
+    //        noNeeded, num );
+
+    while ( num < noNeeded )
     {
       //  if( (banks != 0) && (banks[num]!=0) )
-      //  fFieldPropagatorVec.push( new(banks(num)) GUFieldPropagator() );
+      //    fFieldPropagatorVec.push( new(banks(num)) GUFieldPropagator() );
       //  else
-      // fFieldPropagatorVec.push_back( new GUFieldPropagator() );
-      fFieldPropagatorVec.push_back( fPrototype->Clone() );       
-    }
-}
+      //    fFieldPropagatorVec.push_back( new GUFieldPropagator() );
+      auto prop= fPrototype->Clone();
+      fFieldPropagatorVec.push_back( prop );
 
+      num++;
+
+      // printf("            Created propagator %p for slot %ld\n", prop, num );
+
+      // fFieldVec.push_back( fFieldPrototype->CloneOrSafeSelf() );
+
+      // Extension idea - also keep fields in 
+      // auto field= prop->GetField();
+      // fFieldVec.push_back( field );
+    }
+    // printf("%s method ended.  Created %ld propagators.  New total= %ld\n", method,
+    //     num - originalNum, num );
+}
 
 #if 0
 

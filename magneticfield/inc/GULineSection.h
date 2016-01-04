@@ -42,7 +42,7 @@ class GULineSection
 
 inline
 GULineSection::GULineSection( const ThreeVector& PntA, 
-			      const ThreeVector& PntB )
+                              const ThreeVector& PntB )
   : EndpointA(PntA), VecAtoB(PntB-PntA)
 { 
   fABdistanceSq = VecAtoB.Mag2();  
@@ -56,8 +56,8 @@ double GULineSection::GetABdistanceSq() const
 
 inline
 double GULineSection::Distline( const ThreeVector& OtherPnt, 
-				  const ThreeVector& LinePntA, 
-				  const ThreeVector& LinePntB )
+                                const ThreeVector& LinePntA, 
+                                const ThreeVector& LinePntB )
 {
   GULineSection LineAB( LinePntA, LinePntB );  // Line from A to B
   return LineAB.Dist( OtherPnt );
@@ -97,7 +97,7 @@ double GULineSection::Dist( ThreeVector OtherPnt ) const
       }
       else                       // B is the closest point
       {
-	ThreeVector   EndpointB = EndpointA + VecAtoB;
+        ThreeVector   EndpointB = EndpointA + VecAtoB;
         ThreeVector   VecBZ =     OtherPnt - EndpointB;
         dist_sq =  VecBZ.Mag2();
       }

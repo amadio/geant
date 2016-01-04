@@ -712,7 +712,7 @@ class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     if ( (hinitial > 0.0) && (hinitial < hstep)
             && (hinitial > perMillion * hstep) ){
         h = hinitial;
-    } else {  //  Initial Step size "h" defaults to the full interval
+    }else{  //  Initial Step size "h" defaults to the full interval
         h = hstep;
     }
 

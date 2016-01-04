@@ -1,0 +1,191 @@
+#include "iostream"
+#include "MagField.h"
+#include "base/Vector3D.h"
+#include "base/SOA3D.h"
+#include "base/Global.h"
+#include <string>
+#include <vector>
+#include <ctime>
+#include <cmath> //for sqrt
+#include <stdlib.h>
+#include <Vc/Vc>
+#include "backend/vc/Backend.h"
+
+using namespace std;
+typedef vecgeom::Vector3D<double> ThreeVector; //normal Vector3D
+typedef vecgeom::Vector3D<vecgeom::kVc::precision_v> ThreeVecSimd_t;
+
+const double kRMax=9000;
+const double kZMax= 16000;
+
+double RandR(){
+    double r = (double) rand()/(RAND_MAX) ;
+    r = r*kRMax; //because r is in range (0,9000) mm                                                                          
+    return r;
+}
+
+double RandZ(){
+    double z = (double) rand()/(RAND_MAX) ;
+    z = z*kZMax; //range of z is between -16k and 16k                                                                         
+    int sign = rand()%2; //to define the sign, since it can be both positive and negative                                     
+    if (sign==0){
+        z= -z;
+    }
+    return z;
+}
+
+void GenVecCartSubR(double &x, double &y){
+    x = RandR();
+    y = RandR();
+    if((x*x + y*y)> kRMax*kRMax){
+        GenVecCartSubR(x,y);
+    }
+}
+
+void GenVecCart(ThreeVector &pos){
+    double x=0,y=0;
+    double z = RandZ();
+    GenVecCartSubR(x, y);
+    pos.x()=x;
+    pos.y()=y;
+    pos.z()=z;
+}
+
+void GenVecCart(vector<ThreeVector> &posVec, const int &n){
+    for (int i = 0; i < n; ++i)
+    {       
+        ThreeVector pos;
+        GenVecCart(pos);
+        posVec.push_back(pos);
+
+
+    }
+}
+
+double TimeScalar(const vector<ThreeVector> &posVec, const int &n, const int &nRepetitions, MagField &m1){
+    ThreeVector sumXYZField(0., 0., 0.), xyzField;
+    cout<<"Scalar fields start: "<<endl;
+    // clock_t d1, totScaTime;
+    // totScaTime = clock();
+    // totScaTime = clock() - totScaTime;
+    clock_t c1= clock();
+    for(int j=0;j<nRepetitions;j++){
+        for (int i = 0; i < n; ++i)
+        {
+            //d1 = clock();
+            m1.GetFieldValue<vecgeom::kScalar>(posVec[i], xyzField);
+            // d1= clock() - d1;
+            // totScaTime += d1;
+            sumXYZField += xyzField;
+        }
+    }
+
+    c1 = clock() - c1;
+    cout<<sumXYZField<<endl;
+    
+    float c = ((float)c1)/CLOCKS_PER_SEC;
+
+    //float c = ((float)totScaTime)/CLOCKS_PER_SEC;
+ 
+    cout<<"\nScalar: "<<endl;
+    cout<<"Total time is: "<<c<<endl;
+    cout<<"Time per field value is : "<<c/(n*nRepetitions)*1e+9 << " ns "<<endl;
+    return c;
+}
+
+double TimeVector(const vector<ThreeVector> &posVec, const int &n, const int &nRepetitions, MagField &m1){
+    cout<<"\nVector fields start: "<<endl;
+    vecgeom::kVc::precision_v vX;
+    vecgeom::kVc::precision_v vY;
+    vecgeom::kVc::precision_v vZ;
+    // clock_t d2, totVecTime;
+    // totVecTime = clock();
+    // totVecTime = clock() - totVecTime;
+
+    //decides no. of doubles that one Vc vector can contain.
+    //depends on architecture. 4 for avx. Later can be modified
+    //to take the value itself from architecture
+    int noOfDoubles = 4;
+
+    int inputVcLen = ceil(((double)n)/noOfDoubles);
+    ThreeVecSimd_t *inputForVec = new ThreeVecSimd_t[inputVcLen];
+    int init = 0;
+    
+    for (int i = 0; i < n; i=i+noOfDoubles){
+       for (int j = 0; j < noOfDoubles; ++j){
+            vX[j]= posVec[i+j].x();
+            vY[j]= posVec[i+j].y();
+            vZ[j]= posVec[i+j].z();
+        }
+        ThreeVecSimd_t Pos;
+        Pos[0] = vX;
+        Pos[1] = vY;
+        Pos[2] = vZ;
+
+        inputForVec[init] = Pos;
+        init++;
+    }
+    
+    clock_t c2= clock();
+    ThreeVecSimd_t sumXYZField, xyzField;
+    for (int k = 0; k < nRepetitions; ++k){
+        for (int i = 0; i < inputVcLen; ++i){
+            //d2=clock();
+            m1.GetFieldValue<vecgeom::kVc>(inputForVec[i], xyzField);
+            // d2= clock() - d2;
+            // totVecTime += d2;
+            sumXYZField += xyzField;
+
+        }
+    }
+
+    c2 = clock() - c2;
+
+    cout<<sumXYZField<<endl;
+  
+    float d = ((float)c2)/CLOCKS_PER_SEC;  
+
+    //float d = ((float)totVecTime)/CLOCKS_PER_SEC;  
+        
+    cout<<"\nVector: "<<endl;
+    cout<<"Total time is: "<<d<<endl;
+    cout<<"Time per field value is : "<<d/(n*nRepetitions)*1e+9 << " ns "<<endl;
+    return d; 
+}
+
+
+
+
+
+int main(){
+
+    MagField m1;
+    //m1.ReadVectorData("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
+    //No absolute path required now. 
+    //input file copied to build/VecMagFieldRoutine
+    m1.ReadVectorData("VecMagFieldRoutine/cms2015.txt");
+    vector<ThreeVector> posVec, fieldVec;
+    
+    int n = 3e+4;
+    int nRepetitions =1000;
+
+    // int n;
+    // cout<<"Give input vector size: ";
+    // cin>>n;
+    // int nRepetitions;
+    // cout<<"Give nRepetitions: ";
+    // cin>>nRepetitions;
+
+    srand(time(NULL));
+    GenVecCart(posVec, n);
+    cout<<"Size of posVec is: "<<posVec.size()<<endl;
+
+    double Ts= TimeScalar(posVec, n, nRepetitions, m1);
+    double Tv= TimeVector(posVec, n, nRepetitions, m1);
+
+    cout<<"Vector speedup: " << Ts/ Tv <<endl;  
+
+    //m1.GiveGatherFieldTime();
+}
+
+

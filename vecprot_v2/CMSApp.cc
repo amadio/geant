@@ -20,6 +20,7 @@
 #ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
 #endif
+#include "CMSDetectorConstruction.h"
 
 using namespace Geant;
 
@@ -37,9 +38,13 @@ static bool tbbmode = false, usev3 = true, usenuma = false;
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"hepmc-event-file", required_argument, 0, 'E'},
                                   {"fstate", required_argument, 0, 'f'},
+                                  {"field-file", required_argument, 0, 'F'},
                                   {"geometry", required_argument, 0, 'g'},
                                   {"learn-steps", required_argument, 0, 'l'},
                                   {"max-tracks-per-basket", required_argument, 0, 'B'},
+                                  {"use-Runge-Kutta", no_argument, 0, 'K'},
+                                  {"use-CMS-field", no_argument, 0, 'C'},
+                                  {"use-Uniform-field", no_argument, 0, 'M'},
                                   {"monitor", no_argument, 0, 'm'},
                                   {"debug", no_argument, 0, 'd'},
                                   {"max-memory", required_argument, 0, 'M'},
@@ -70,6 +75,9 @@ int main(int argc, char *argv[]) {
   std::string xsec_filename("xsec_FTFP_BERT_G496p02_1mev.root");
   std::string fstate_filename("fstate_FTFP_BERT_G496p02_1mev.root");
   std::string hepmc_event_filename("pp14TeVminbias.root");
+  std::string field_filename("CMSmagneticField.txt");
+  bool useRungeKutta= false;
+  bool useCMSfield=   false;   //  If false, use a constant magnetic field
 
   if (argc == 1) {
     help();
@@ -79,8 +87,10 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:p:v:n:", options, &optidx);
-
+    // c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:p:v:n:", options, &optidx);
+    //   = getopt_long(argc, argv, "cE:e:f:F:g:l:B:mM:b:t:x:r:Ku", options, &optidx);    
+    c = getopt_long(argc, argv, "cE:e:f:F:g:l:B:mM:b:t:x:r:i:Ku:p:v:n:", options, &optidx);
+    
     if (c == -1)
       break;
 
@@ -88,6 +98,30 @@ int main(int argc, char *argv[]) {
     case 0:
       c = options[optidx].val;
     /* fall through */
+
+    case 'b':
+      n_buffered = (int)strtol(optarg, NULL, 10);
+
+      if (n_buffered < 1)
+        errx(1, "number of buffered events must be positive");
+      break;
+
+    case 'B':
+      n_track_max = (int)strtol(optarg, NULL, 10);
+
+      if (n_track_max < 1)
+        errx(1, "max number of tracks per basket must be positive");
+      break;
+
+    case 'c':
+    case 'C':
+      useCMSfield = true;
+      break;
+
+    case 'U':  // Uniform field
+      useCMSfield = false;
+      break;
+
     case 'e':
       n_events = (int)strtol(optarg, NULL, 10);
 
@@ -103,8 +137,16 @@ int main(int argc, char *argv[]) {
       fstate_filename = optarg;
       break;
 
+    case 'F':
+      field_filename = optarg;
+      break;
+
     case 'g':
       cms_geometry_filename = optarg;
+      break;
+
+    case 'K':
+      useRungeKutta = true;
       break;
 
     case 'l':
@@ -112,13 +154,6 @@ int main(int argc, char *argv[]) {
 
       if (n_learn_steps <= 0)
         errx(1, "number of learning steps must be positive");
-      break;
-
-    case 'B':
-      n_track_max = (int)strtol(optarg, NULL, 10);
-
-      if (n_track_max < 1)
-        errx(1, "max number of tracks per basket must be positive");
       break;
 
     case 'm':
@@ -132,11 +167,12 @@ int main(int argc, char *argv[]) {
         errx(1, "max memory is too low");
       break;
 
-    case 'b':
-      n_buffered = (int)strtol(optarg, NULL, 10);
+    case 'r':
+      coprocessor = optarg;
+      break;
 
-      if (n_buffered < 1)
-        errx(1, "number of buffered events must be positive");
+    case 's':
+      score = true;
       break;
 
     case 't':
@@ -145,10 +181,6 @@ int main(int argc, char *argv[]) {
       if (n_threads < 1)
         errx(1, "number of threads must be positive");
 
-      break;
-
-    case 's':
-      score = true;
       break;
 
     case 'x':
@@ -205,7 +237,7 @@ int main(int argc, char *argv[]) {
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
   // Default value is 1. (0.1 Tesla)
-  config->fBmag = 40.; // 4 Tesla
+  // config->fBmag = 40.; // 4 Tesla
 
   // V3 options
   config->fNmaxBuffSpill = 8;  // New configuration parameter!!!
@@ -242,8 +274,10 @@ int main(int argc, char *argv[]) {
   // Maximum user memory limit [MB]
   config->fMaxRes = max_memory;
   if (config) config->fMaxRes = 0;
+  // CRITICAL: the energy cut must correspond to xsec/final state files !  
   config->fEmin = 0.001; // [1 MeV] energy cut
   config->fEmax = 0.01;  // 10 MeV
+  printf("CMSApp> Production threshold set to %7.2g GeV\n", propagator->fEmin);  
   if (debug) {
     config->fUseDebug = true;
     config->fDebugTrk = 1;
@@ -273,6 +307,33 @@ int main(int argc, char *argv[]) {
   if (broker) runMgr->SetCoprocessorBroker(broker);
   // Create the tab. phys process.
   runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
+
+//===================
+  // CMS magnetic field
+  // propagator->fBmag = 40.; // 4 Tesla
+
+  //  Enable use of RK integration in field for charged particles
+  // propagator->fUseRungeKutta = false;
+  propagator->fUseRungeKutta = useRungeKutta;
+
+  propagator->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
+
+  if( useCMSfield ) {
+     CMSDetectorConstruction* CMSdetector= new CMSDetectorConstruction();
+     CMSdetector->SetFileForField(field_filename);
+     printf("CMSApp: Setting CMS-detector-construction to GeantPropagator\n");
+     propagator->SetUserDetectorConstruction(CMSdetector);
+     // printf("Calling CreateFieldAndSolver from runCMS_new.C");
+     // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
+  } else {
+     UserDetectorConstruction* detectorCt= new UserDetectorConstruction();
+     float fieldVec[3] = { 0.0f, 0.0f, 38.0f };
+     detectorCt->UseConstantMagField( fieldVec, "kilogauss" );
+     printf("CMSApp: Setting generic detector-construction to GeantPropagator - created field= %f %f %f.\n",
+            fieldVec[0], fieldVec[1], fieldVec[2] );
+     propagator->SetUserDetectorConstruction(detectorCt);
+  }
+// >>>>>>> Combined big commits of all changes for mag-field
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT

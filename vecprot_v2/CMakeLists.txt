@@ -51,6 +51,7 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PreStepHandler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeomQueryHandler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/FieldPropagationHandler.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/FieldLookup.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/LinearPropagationHandler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/SteppingActionsHandler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PreStepStage.cxx
@@ -101,6 +102,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PreStepHandler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeomQueryHandler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/FieldPropagationHandler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FieldLookup.h   
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinearPropagationHandler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsHandler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PreStepStage.h
@@ -208,6 +210,7 @@ else()
   else()
     target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} Material)
   endif()
+
   if( VECGEOM_FOUND )
     target_link_libraries(Geant_v ${VC_LIBRARIES})
 
@@ -269,9 +272,9 @@ macro(build_executables EXECUTABLES)
     get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
     add_executable(${TARGET_NAME} ${EXECUTABLE})
     if(USE_VECGEOM_NAVIGATOR)
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v GeantExamples ${ROOT_LIBRARIES} -lpthread ${VC_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v GeantExamples Vmagfield ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} -lpthread ${VC_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
     else()
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Xsec GeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  Geant_v Xsec GeantExamples Vmagfield ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
     endif()
     if (USE_TBB)
       target_link_libraries(${TARGET_NAME} Geant_tbb  ${TBB_LIBS})
@@ -304,7 +307,7 @@ function(add_to_ctest EXECUTABLES)
   endforeach()
 endfunction()
 
-link_directories(${PROJECT_BINARY_DIR}/lib)
+link_directories(${OUTPUTDIR}/lib)
 
 build_executables("${TEST_EXECUTABLES}")
 

@@ -67,12 +67,17 @@ Potential expansion:
  7. DormandPrince745
  */
 
-const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
 int main(int argc, char *args[])
 {
+    constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
+
     using  GvEquationType=  TMagFieldEquation<TUniformMagField, Nposmom>;
-   
+    void Usage();
+
+    using ThreeVectorF = vecgeom::Vector3D<float>;
+    using ThreeVectorD = vecgeom::Vector3D<double>;
+    
     /* -----------------------------SETTINGS-------------------------------- */
     
     /* Parameters of test
@@ -84,8 +89,18 @@ int main(int argc, char *args[])
     double z_field_in = DBL_MAX;
     
     //Checking for command line values :
-    if(argc>1)
-        stepper_no = atoi(args[1]);
+    if(argc==1)
+       Usage();
+
+    if(argc>1) {
+       if(   (strcmp(args[1],"-h")==0)     || (strcmp(args[1],"-u")==0)
+          || (strcmp(args[1],"--help")==0) || (strcmp(args[1],"--usage")==0) ) {
+         Usage();
+         exit(0);
+       } else { 
+         stepper_no = atoi(args[1]);
+       }
+    }    
     if(argc > 2)
        step_len_mm = (float)(stof(args[2]));   // *mm);
     if(argc > 3)
@@ -132,15 +147,25 @@ int main(int argc, char *args[])
     if( z_field_in < DBL_MAX )
        z_field = z_field_in;
     else
-       z_field = -1.0;  //  Tesla // *tesla ;
+       z_field = -1.0;  //  Tesla
 
-    // Field
-    auto gvField= new TUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
-
-    cout << "#  Initial  Field strength (GeantV) = "
-         << x_field << " , " << y_field << " , " << z_field 
+    cout << "#  Input  Field strength (GeantV) = " << x_field << " , " << y_field << " , " << z_field 
        // << (1.0/fieldUnits::tesla) * gvField->GetValue()->X() << ",  "
          << " Tesla " << endl;
+
+    // Field
+    auto gvField= new TUniformMagField( fieldUnits::tesla * ThreeVectorF(x_field, y_field, z_field) );
+
+    // double position[3] = { 0.0, 0.0, 0.0 }; 
+    // double fieldArr[3] = { 0.0, 0.0, 0.0 };
+    ThreeVectorD positionVec( 0.0, 0.0, 0.0 );
+    ThreeVectorF fieldVec( 0.0, 0.0, 0.0 );
+    
+    gvField->GetFieldValue( positionVec, fieldVec );
+    cout << "#DEBUG> Field value from TUniformMagField = " << fieldVec[0] / fieldUnits::kilogauss
+         << " ,  " << fieldVec[1] / fieldUnits::kilogauss
+         << " , "  << fieldVec[2] / fieldUnits::kilogauss << " KGauss " << endl; 
+
     cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
     //Create an Equation :
     auto gvEquation =
@@ -204,12 +229,12 @@ int main(int argc, char *args[])
     G4ChargeState chargeState(particleCharge,             // The charge can change (dynamic)
                               spin=0.0,
                               magneticMoment=0.0);
-    
+
     g4Equation->SetChargeMomentumMass( chargeState,
                                        G4ThreeVector(x_mom, y_mom, z_mom).mag(), //momentum magnitude
                                        mass);  // unused
-//  auto g4exactStepper= = new G4ExactHelixStepper(g4Equation);
-    auto g4exactStepper= = new G4ClassicalRK4(g4Equation);
+//  auto g4exactStepper = new G4ExactHelixStepper(g4Equation);
+    auto g4exactStepper = new G4ClassicalRK4(g4Equation);
     
     auto exactStepper = g4ExactStepperGV;
 #else
@@ -439,4 +464,16 @@ int main(int argc, char *args[])
     
     cout<<"\n\n#-------------End of output-----------------\n";
     
+}
+
+void Usage()
+{
+  cout << endl;
+  cout <<   " This test cross-checks the output of a Stepper class against a referrence stepper (ClassicalRK4) " 
+       <<   "   using a series of steps." << endl << endl;
+  cout <<   " Usage of this test: " << endl;
+  cout <<   "   arg[1]:  stepper type - values: 4 - ClassicalRK4,  5 - Cash-Karp  1 - Simple Runge (order 2)" << endl
+       <<   "   arg[2]:  step_len_mm  - step length size (in mm) " << endl
+       <<   "   arg[3]:  no_of_steps  - number of steps. " << endl
+       <<   "   arg[4]:  z_field      - Magnetic field value (Tesla)" << endl;
 }

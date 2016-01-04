@@ -10,9 +10,9 @@
 // 
 
 GUVIntegrationStepper::GUVIntegrationStepper(GUVEquationOfMotion* equation,
-					     unsigned int num_integration_vars,
-                                             unsigned int integrationOrder,
-					              int num_state_vars)
+                                            unsigned int num_integration_vars,
+                                            unsigned int integrationOrder,
+                                                     int num_state_vars)
   : fAbstrEquation(equation),
     fIntegrationOrder(integrationOrder),
     fNoIntegrationVariables(num_integration_vars),

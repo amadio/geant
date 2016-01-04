@@ -1,4 +1,4 @@
-//  
+//
 //  First version:      (Josh) - GSoC 2014 project
 //  Current version:  J. Apostolakis
 
@@ -8,9 +8,7 @@
 #include "GUVMagneticField.h"
 #include <iostream>
 
-// #include "ThreeVector.h"  // Or whatever defines such a class
 #include "base/Vector3D.h"
-typedef vecgeom::Vector3D<double>  ThreeVector;
 
 #include "Constants.h"  //   For pi & twopi - Temporary solution ..
 
@@ -21,94 +19,74 @@ class TUniformMagField : public GUVMagneticField
 {
     public:  // with description
 
-        TUniformMagField(const ThreeVector& FieldVector )
+        TUniformMagField(const vecgeom::Vector3D<float>& FieldVector )
            : GUVMagneticField() //NumberOfComponents(3)
             // A field with value equal to FieldVector.
         {
-            fFieldComponents[0] = FieldVector.x();
-            fFieldComponents[1] = FieldVector.y();
-            fFieldComponents[2] = FieldVector.z();
+           fFieldComponents = FieldVector;
         }
 
         TUniformMagField(double vField,
                          double vTheta,
-                         double vPhi     );
+                         double vPhi  );
 
-        // virtual 
+        // virtual
         ~TUniformMagField() {}
 
         TUniformMagField(const TUniformMagField &p)   // : G4MagneticField(p)
-           
         {
-            for (int i=0; i<3; i++)
-                fFieldComponents[i] = p.fFieldComponents[i];
+           fFieldComponents = p.fFieldComponents;
         }
 
-        TUniformMagField& operator = (const TUniformMagField &p)
-            // Copy constructor and assignment operator.
-        {
-            if (&p == this) return *this;
-            for (int i=0; i<3; i++)
-                fFieldComponents[i] = p.fFieldComponents[i];
-            return *this;
-        }
-        
+        TUniformMagField& operator = (const TUniformMagField &p);
+
         // virtual
-        void GetFieldValue(const double [4], // yTrack[4],
-                                 double *B) const 
+        void GetFieldValue( const vecgeom::Vector3D<double> &, // Position,
+                                  vecgeom::Vector3D<float> &FieldValue )
         {
-            B[0]= fFieldComponents[0] ;
-            B[1]= fFieldComponents[1] ;
-            B[2]= fFieldComponents[2] ;
+           FieldValue= fFieldComponents;
         }
 
-        void SetFieldValue(const ThreeVector& fieldValue)
+        void SetFieldValue(const vecgeom::Vector3D<float>& fieldValue)
         {
-            fFieldComponents[0] = fieldValue.x();
-            fFieldComponents[1] = fieldValue.y();
-            fFieldComponents[2] = fieldValue.z();
+           fFieldComponents= fieldValue;
         }
 
-        ThreeVector GetConstantFieldValue() const
+        vecgeom::Vector3D<float> GetConstantFieldValue() const
         {
-            ThreeVector B(fFieldComponents[0],
-                    fFieldComponents[1],
-                    fFieldComponents[2]);
-            return B;
+           return fFieldComponents;
         }
         // Return the field value
 
         // virtual
-        TUniformMagField* Clone() const
-        { 
-            return new TUniformMagField( ThreeVector(this->fFieldComponents[0],
-                        this->fFieldComponents[1],
-                        this->fFieldComponents[2]) );
-        }
-
-        TUniformMagField* CloneOrSafeSelf( bool /*Safe = 0*/ )
-        // {  Safe= true; return this; }  //  Class is thread-safe, can use 'self' instead of clone
-        // { Safe= false; return new TUniformMagField( this ); }  // Check ...
-        { /*Safe= false;*/ return Clone(); }  // Check ...
-        
-        // TUniformMagField* CloneOrSafeSelf( bool* pSafe = 0 )
-        //     {  if(pSafe) { *pSafe= true; } ; return this; }
-                 //  Class is thread-safe, can use 'self' instead of clone
+        // TUniformMagField*
+        GUVField* Clone() const
+        {  return new TUniformMagField( *this ); }
 
         TUniformMagField* CloneOrSafeSelf( bool* pSafe )
         {
-           bool safeLocal;
-           if( !pSafe ) pSafe= &safeLocal;
-           return this->CloneOrSafeSelf(*pSafe);
+           if( pSafe ) *pSafe= true;
+           return this; // ->CloneOrSafeSelf(*pSafe);
         }
-        
+        //  Class is thread-safe, can use 'self' instead of clone
+
     private:
-        double fFieldComponents[3];
+        vecgeom::Vector3D<float> fFieldComponents;
 };
+
+TUniformMagField& 
+TUniformMagField:: operator = (const TUniformMagField &p)
+   // Copy constructor and assignment operator.
+{
+   if (&p == this) return *this;
+   // for (int i=0; i<3; i++) fFieldComponents[i] = p.fFieldComponents[i];
+   fFieldComponents = p.fFieldComponents;
+   return *this;
+}
 
 TUniformMagField::TUniformMagField(double vField,
                                    double vTheta,
-                                   double vPhi     ) 
+                                   double vPhi     )
 {
    if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
    {
@@ -123,8 +101,8 @@ TUniformMagField::TUniformMagField(double vField,
       std::cerr << " - Magnitude vField: Value = " << vField
                 << "  Expected vField > 0 " << Constants::twopi << std::endl;
    }
-   fFieldComponents[0] = vField*std::sin(vTheta)*std::cos(vPhi) ;
-   fFieldComponents[1] = vField*std::sin(vTheta)*std::sin(vPhi) ;
-   fFieldComponents[2] = vField*std::cos(vTheta) ;
+   fFieldComponents.Set( vField*std::sin(vTheta)*std::cos(vPhi),
+                         vField*std::sin(vTheta)*std::sin(vPhi),
+                         vField*std::cos(vTheta)                );
 }
 #endif

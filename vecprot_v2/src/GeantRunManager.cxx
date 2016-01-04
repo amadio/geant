@@ -49,6 +49,8 @@
 #endif
 #endif
 
+#include "UserDetectorConstruction.h"
+
 // The classes for integrating in a non-uniform magnetic field
 #include "TUniformMagField.h"
 #include "FieldEquationFactory.h"
@@ -113,6 +115,14 @@ bool GeantRunManager::Initialize() {
     return false;
   }
 
+  if( !fUserDetectorCtion ){
+    Printf("- GeantRunManager::Initialize - %s.\n", " no User Detector Construction found." );
+    Printf("     Default object created with field= %f %f %f\n", fBfieldArr[0], fBfieldArr[1], fBfieldArr[2]
+          );
+    fUserDetectorCtion= new UserDetectorConstruction();
+    fUserDetectorCtion->UseConstantMagField( fBfieldArr );
+  }
+  
   if (!fApplication) {
     Fatal("GeantRunManager::Initialize", "The user application has to be defined");
     return false;
@@ -209,7 +219,7 @@ bool GeantRunManager::Initialize() {
 
   fDoneEvents = BitSet::MakeInstance(fConfig->fNtotal);
 
-  if (fConfig->fUseRungeKutta) {
+  if( !fInitialisedRKIntegration ) {
     PrepareRkIntegration();
   }
 
@@ -351,7 +361,9 @@ void GeantRunManager::PrepareRkIntegration() {
 
   using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
   using GUFieldPropagator = ::GUFieldPropagator;
-
+  using std::cout;
+  using std::endl;  
+  
   // Initialise the classes required for tracking in field
   const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
   using Field_t = TUniformMagField;

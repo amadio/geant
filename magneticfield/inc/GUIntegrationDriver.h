@@ -22,10 +22,10 @@
 class GUIntegrationDriver
 {
    public:  // with description
-     GUIntegrationDriver( double                hminimum, 
-                      GUVIntegrationStepper *pStepper,
-                      int                   numberOfComponents=6,
-                      int                   statisticsVerbosity=1);
+     GUIntegrationDriver( double                 hminimum, //same
+                          GUVIntegrationStepper *pStepper,
+                          int                    numberOfComponents=6,
+                          int                    statisticsVerbosity=1);
      GUIntegrationDriver( const GUIntegrationDriver& );
        // Copy constructor used to create Clone method
      ~GUIntegrationDriver();
@@ -33,9 +33,9 @@ class GUIntegrationDriver
      // Core methods
      bool  AccurateAdvance( const GUFieldTrack& y_current,
                                         double  hstep,
-                                        double  eps,            // Requested y_err/hstep
+                                        double  eps, //same             // Requested y_err/hstep
                                   GUFieldTrack& yOutput,                            
-                                        double  hinitial=0.0);  // Suggested 1st interval
+                                        double  hinitial=0.0);  // take it out 
        // Above drivers for integrator (Runge-Kutta) with stepsize control. 
        // Integrates ODE starting values y_current
        // from current s (s=s0) to s=s0+h with accuracy eps. 
@@ -45,7 +45,9 @@ class GUIntegrationDriver
      bool  QuickAdvance(      GUFieldTrack& y_posvel,        // INOUT
                           const double      dydx[],  
                                 double      hstep,           // IN
+#ifdef USE_DCHORD
                                 double&     dchord_step,
+#endif
                                 double&     dyerr_pos_sq,
                                 double&     dyerr_mom_rel_sq ) ;
        // New QuickAdvance that also just tries one Step
@@ -64,8 +66,8 @@ class GUIntegrationDriver
        // Question:  If the current object and all sub-objects are const, can it return 'this' ?
      
      GUVEquationOfMotion* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
-     const GUVEquationOfMotion* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); } 
-     
+     const GUVEquationOfMotion* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); }
+
      // Auxiliary methods
      inline double GetHmin()        const { return fMinimumStep; } 
      inline double GetSafety()      const { return fSafetyFactor; }
@@ -144,7 +146,7 @@ class GUIntegrationDriver
      void WarnSmallStepSize( double hnext, double hstep, 
                              double h,     double xDone,
                              int noSteps);
-     void WarnTooManyStep( double x1start, double x2end, double xCurrent);
+     void WarnTooManySteps( double x1start, double x2end, double xCurrent);
      void WarnEndPointTooFar (double  endPointDist, 
                               double  hStepSize , 
                               double  epsilonRelative,
@@ -216,24 +218,26 @@ class GUIntegrationDriver
 
      double fSurfaceTolerance; 
 
-     static const double max_stepping_increase;
-     static const double max_stepping_decrease;
+     //  Stepsize can increase by no more than 5.0
+     //           and decrease by no more than x10. = 0.1
+     static constexpr double fMaxSteppingIncrease = 5.0;
+     static constexpr double fMaxSteppingDecrease = 0.1;
         // Maximum stepsize increase/decrease factors.
 
      int    fStatisticsVerboseLevel;
 
-
      // ---------------------------------------------------------------
      //  STATE
-
-     int  fNoTotalSteps, fNoBadSteps, fNoSmallSteps, fNoInitialSmallSteps; 
-     double fDyerr_max, fDyerr_mx2;
-     double fDyerrPos_smTot, fDyerrPos_lgTot, fDyerrVel_lgTot; 
-     double fSumH_sm, fSumH_lg; 
-        // Step Statistics 
+    public:
+     int  fNoTotalSteps, fNoBadSteps, fNoSmallSteps, fNoInitialSmallSteps;
+     double fDyerrPosMaxSq, fDyerrDirMaxSq;
+     double fDyerrPos_smTot, fDyerrPos_lgTot, fDyerrVel_lgTot;
+     double fSumH_sm, fSumH_lg;
+        // Step Statistics
 
      int  fVerboseLevel;   // Verbosity level for printing (debug, ..)
         // Could be varied during tracking - to help identify issues
+     int fStepperCalls=0.;     
 
 };
 
@@ -245,7 +249,7 @@ class GUIntegrationDriver
 inline
 double GUIntegrationDriver::ComputeAndSetErrcon()
 {
-      fErrcon = std::pow(max_stepping_increase/fSafetyFactor,1.0/fPowerGrow);
+      fErrcon = std::pow(fMaxSteppingIncrease/fSafetyFactor,1.0/fPowerGrow);
       return fErrcon;
 } 
 

@@ -4,6 +4,10 @@
 //   Locate & Step within simple boxlike geometry, both
 //   with and without voxels. Parameterised volumes are included.
 
+//  UNFINISHED - adaptation from Geant4 test is incomplete
+//   TODOs:
+//     i) use either  VecGeom (or TGeo)
+//    ii) use similar logic in stepping as GeantV (or proposed logic)
 #include <assert.h>
 // #include "ApproxEqual.hh"
 

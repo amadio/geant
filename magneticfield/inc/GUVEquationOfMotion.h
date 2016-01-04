@@ -16,6 +16,9 @@
 #include <cassert>
 #include <iostream>
 
+// #include <vector>
+#include "base/Vector3D.h"
+
 // #include "GUVTypes.hh"      // "globals.hh"
 #include "GUVField.h"   // required in inline method implementations
 
@@ -27,10 +30,10 @@ class GUVEquationOfMotion
      virtual ~GUVEquationOfMotion();
        // Constructor and virtual destructor. No operations, just checks
 
-     virtual void EvaluateRhsGivenB( const  double y[],
-                                     const  double B[3],
-                                     /*  double charge, */
-                                            double dydx[] ) const = 0;
+     virtual void EvaluateRhsGivenB( const  double     yVec[],
+                                     const  vecgeom::Vector3D<float> B,  // Was double B[3],
+                                        /*  double     charge, */
+                                            double     dydx[] ) const = 0;
        // Given the value of the  field "B", this function 
        // calculates the value of the derivative dydx.
        // --------------------------------------------------------
@@ -60,10 +63,10 @@ class GUVEquationOfMotion
        // ---------------------------
        // It uses the virtual function EvaluateRhsGivenB
 
-     void EvaluateRhsReturnB( const  double y[],
-                              double dydx[],
-                           // double charge,
-                              double Field[] ) const;
+     void EvaluateRhsReturnB( const double y[],
+                              double       dydx[],
+                           // double       charge,
+                  vecgeom::Vector3D<float> &Field ) const;
        // Same as RHS above, but also returns the value of B.
        // Should be made the new default ? after putting dydx & B in a class.
 
@@ -71,6 +74,13 @@ class GUVEquationOfMotion
                                double Field[] )  const;
        // Obtain only the field - the stepper assumes it is pure Magnetic.
        // Not protected, because GUVRKG3_Stepper uses it directly.
+     inline
+     void GetFieldValue( const  double              Point[4],
+                         vecgeom::Vector3D<float>  &FieldValue ) const;
+
+     inline
+     void GetFieldValue( const vecgeom::Vector3D<double> &Position,
+                         vecgeom::Vector3D<float>        &FieldValue ) const;
 
      const GUVField* GetFieldObj() const {return fField;}
            GUVField* GetFieldObj()       {return fField;}
@@ -139,9 +149,30 @@ void GUVEquationOfMotion::InformDone()  // was Clear() and before Finished();
 
 inline
 void GUVEquationOfMotion::GetFieldValue( const  double Point[4],
-                             double Field[] ) const
+                                                double Field[] ) const
 {
-    fField-> GetFieldValue( Point, Field );
+   vecgeom::Vector3D<double> Position( Point[0], Point[1], Point[2] );
+   vecgeom::Vector3D<float>  FieldVec;
+   fField-> GetFieldValue( Position, FieldVec );
+   Field[0] = FieldVec[0];
+   Field[1] = FieldVec[1];
+   Field[2] = FieldVec[2];
+}
+
+inline
+void GUVEquationOfMotion::GetFieldValue( const  double Point[4],
+                        // const vecgeom::Vector3D<double> &Position,
+                             vecgeom::Vector3D<float>  &FieldValue ) const
+{
+   vecgeom::Vector3D<double> Position( Point[0], Point[1], Point[2] );
+   fField-> GetFieldValue( Position, FieldValue );
+}
+
+inline
+void GUVEquationOfMotion::GetFieldValue( const vecgeom::Vector3D<double> &Position,
+                                               vecgeom::Vector3D<float>  &FieldValue ) const
+{
+   fField-> GetFieldValue( Position, FieldValue );
 }
 
 inline
@@ -150,20 +181,25 @@ GUVEquationOfMotion::RightHandSide( const  double y[],
                                        //  double charge,
                                            double dydx[]  ) const
 {
+   using ThreeVectorF = vecgeom::Vector3D<float>;
+   using ThreeVectorD = vecgeom::Vector3D<double>;
    CheckInitialization();
 
-   double Field[GUVmaximum_number_of_field_components];
-   double PositionAndTime[4];
+   // double Field[GUVmaximum_number_of_field_components];
+   ThreeVectorF  Field_3vf;
+   // double PositionAndTime[4];
 
-     // Position
-   PositionAndTime[0] = y[0];
-   PositionAndTime[1] = y[1];
-   PositionAndTime[2] = y[2];
-   // Global Time
-   PositionAndTime[3] = y[idxTime];  // See GUVFieldTrack::LoadFromArray
+   ThreeVectorD  Position( y[0], y[1], y[2] );
 
-   GetFieldValue(PositionAndTime, Field) ;
-   EvaluateRhsGivenB( y, Field, /*charge,*/ dydx );
+   //  PositionAndTime[0] = y[0];
+   //  PositionAndTime[1] = y[1];
+   //  PositionAndTime[2] = y[2];
+   // Global Time -- ignored for now
+   //  PositionAndTime[3] = y[idxTime];  // See GUVFieldTrack::LoadFromArray
+
+   GetFieldValue( Position, Field_3vf );
+   // GetFieldValue( y, Field_3vf );   
+   EvaluateRhsGivenB( y, Field_3vf, /*charge,*/ dydx );
 }
 
 #include <iostream>

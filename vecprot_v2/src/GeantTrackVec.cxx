@@ -31,11 +31,16 @@
 #include "WorkloadManager.h"
 
 #include "GeantTaskData.h"
-#include "ConstFieldHelixStepper.h"
+#include "StepChecker.h"
+#include "ConstBzFieldHelixStepper.h"
+#include "ConstVecFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
+#include "GUVField.h"
+#include "Units.h"     //  Field Units - to be 'unified'
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
+#include "FieldLookup.h"
 
 #ifdef __INTEL_COMPILER
 #include <immintrin.h>
@@ -77,8 +82,8 @@ GeantTrack_v::GeantTrack_v()
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v(int size, int maxdepth)
     : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(0), fHoles(0), fSelected(0),
-      fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fMotherV(0), fPDGV(0),
-      fGVcodeV(0), fEindexV(0), fBindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
+      fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
+      fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
       fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
   // Constructor with maximum capacity.
@@ -488,6 +493,7 @@ void GeantTrack_v::Resize(int newsize) {
   int size = GeantTrack::round_up_align(newsize);
   if (size < GetNtracks()) {
     Geant::Error("Resize","%s","Cannot resize to less than current track content");
+    // Geant::Error("Resize","Cannot resize to less than current track content (round up size: %d less than current number of tracks: %d)",size,GetNtracks());
     return;
   }
   fBufSize = BufferSize(size, fMaxDepth);
@@ -1274,6 +1280,13 @@ void GeantTrack_v::PropagateInVolume(int ntracks, const double *crtstep, GeantTa
   }
 }
 
+//______________________________________________________________________________          
+VECCORE_ATT_HOST_DEVICE
+void GeantTrack_v::GetFieldValue(GeantTaskData *td, int i, double BfieldOut[3], double *bmagOut) const
+{
+   vecgeom::Vector3D<double> Position (fXposV[i], fYposV[i], fZposV[i]);
+   FieldLookup::GetFieldValue(td, Position, BfieldOut, bmagOut);
+}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -1286,36 +1299,28 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   // - safety step (bdr=0)
   // - snext step (bdr=1)
 
-   // Double_t c = 0.;
-   // const Double_t *point = 0;
-   // const Double_t *newdir = 0;
+  // Double_t c = 0.;
 
-   bool useRungeKutta;
-   const double bmag = td->fPropagator->fConfig->fBmag;
+  bool useRungeKutta= false;
+  GUFieldPropagator *fieldPropagator = nullptr;
+  double BfieldInitial[3], bmag= 0.0;
+  GetFieldValue(td, i, BfieldInitial, &bmag);
+
+  useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
+   
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
-   constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
-   useRungeKutta= gPropagator_fUseRK; // td->fPropagator->fConfig->fUseRungeKutta;
+  constexpr bool gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
+  useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-   useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
+  // useRungeKutta= gPropagator->fUseRungeKutta;
+  useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;  
+  if( useRungeKutta ){
+    fieldPropagator = td->fFieldPropagator;
+    assert( fieldPropagator );
+  }
 #endif
 
-   // static unsigned long icount= 0;
-   // if( icount++ < 2 )  std::cout << " PropagateInVolumeSingle: useRungeKutta= " << useRungeKutta << std::endl;
-
-// #ifdef RUNGE_KUTTA
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-   GUFieldPropagator *fieldPropagator = nullptr;
-   if( useRungeKutta ){
-      // Initialize for the current thread -- move to GeantPropagator::Initialize()
-      static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
-      assert( fieldPropPool );
-
-      fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
-      assert( fieldPropagator );
-   }
-#endif
-
-  // Reset relevant variables
+  // Reset relevant variables - TBC: check if changes are needed after the endpoint is knownn
   fStatusV[i] = kInFlight;
   fPstepV[i] -= crtstep;
   if (fPstepV[i] < 1.E-10) {
@@ -1333,12 +1338,30 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
     }
   }
   fStepV[i] += crtstep;
+
+  double curvaturePlus= fabs(GeantTrack::kB2C * fChargeV[i] * bmag) / (fPV[i] + 1.0e-30);  // norm for step
+  // 'Curvature' along the full track - not just in the plane perpendicular to the B-field vector
+
+  constexpr double numRadiansMax= 10.0;   //  Too large an angle - many RK steps.  Potential change -> 2.0*PI;
+  constexpr double numRadiansMin= 0.05;   //  Very small an angle - helix is adequate.  TBC: Use average B-field value?
+      //  A track turning more than 10 radians will be treated approximately
+  const double angle= crtstep * curvaturePlus;
+  bool mediumAngle = ( numRadiansMin < angle ) && ( angle < numRadiansMax );
+  useRungeKutta = useRungeKutta && (mediumAngle);
+
+  bool dominantBz =  std::fabs( std::fabs(BfieldInitial[2]) )
+         > 1.e3 *
+     std::max( std::fabs( BfieldInitial[0]), std::fabs(BfieldInitial[1]) );
+
+#ifdef DEBUG_FIELD
+  printf("--PropagateInVolumeSingle: \n");
+  printf("Curvature= %8.4g   CurvPlus= %8.4g  step= %f   Bmag=%8.4g   momentum mag=%f  angle= %g\n"
+         Curvature(td, i), curvaturePlus, crtstep, bmag, fPV[i], angle );
+#endif
+  
 #ifdef USE_VECGEOM_NAVIGATOR
 //  CheckLocationPathConsistency(i);
 #endif
-// alternative code with lean stepper would be:
-// ( stepper header has to be included )
-
   using ThreeVector = vecgeom::Vector3D<double>;
   // typedef vecgeom::Vector3D<double>  ThreeVector;
   ThreeVector Position(fXposV[i], fYposV[i], fZposV[i]);
@@ -1346,27 +1369,82 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
-  if( useRungeKutta ) {
+  int propagationType= 0;
+
+  if( useRungeKutta )
+  {
+     // crtstep = 1.0e-4;   printf( "Setting crtstep = %f -- for DEBUGing ONLY.", crtstep );
+     propagationType= 1;
+     // PrintTrack(i);
 #ifndef VECCORE_CUDA
      fieldPropagator->DoStep(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
-                             PositionNew, DirectionNew);
+                             PositionNew, DirectionNew); // BfieldInitial );
+
+     const bool fCheckingStep= false;
+     if( fCheckingStep ) {
+        const double epsDiff= 2.0e-3; // bool verbDiff= true );
+        StepChecker EndChecker( epsDiff, epsDiff * crtstep, true );
+        vecgeom::Vector3D<double> Bfield( BfieldInitial[0], BfieldInitial[1], BfieldInitial[2] );
+        EndChecker.CheckStep( Position, Direction, fChargeV[i], fPV[i], crtstep,
+                              PositionNew, DirectionNew, Bfield );
+     }
+     // CheckDirection(DirectionNew);
 #endif
   } else {
-     // Old - constant field
-     Geant::ConstBzFieldHelixStepper stepper(bmag);
-     stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
-                                         PositionNew, DirectionNew);
+     constexpr double toKiloGauss= 1.0e+14; // Converts to kilogauss -- i.e. 1 / Unit::kilogauss
+                                            // Must agree with values in magneticfield/inc/Units.h
+     double Bz = BfieldInitial[2] * toKiloGauss;
+     if ( dominantBz ) { // Oldest - constant field along z        
+        // printf("h"); std::cout << "h";
+        propagationType= 2;
+        // Printf("Called Helix-Bz.  Bz= %g , ( Bx = %g, By= %g ) Kilo Gauss\n", Bz, Bx, By );
+
+        // Constant field in Z-direction
+        ConstBzFieldHelixStepper stepper( Bz ); //
+        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  fChargeV[i], fPV[i], crtstep,
+                                               PositionNew, DirectionNew);
+     } else {
+        propagationType= 3;
+        // double Bx = BfieldInitial[0] * toKiloGauss;
+        // double By = BfieldInitial[1] * toKiloGauss;
+        // printf("H"); std::cout << "H";
+        if( ! CheckDirection( i, 1.0e-4 ) )
+           PrintTrack(i, "Failed check of *direction* - input to General Helix stepper.");
+
+        // Printf("Called Helix-General.  Bz= %g , Bx = %g, By= %g ", Bz, Bx, By );
+        
+        Geant::ConstVecFieldHelixStepper stepper( BfieldInitial );
+        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  fChargeV[i], fPV[i], crtstep,
+                                               PositionNew, DirectionNew);
+     }
   }
 
   fXposV[i] = PositionNew.x();
   fYposV[i] = PositionNew.y();
   fZposV[i] = PositionNew.z();
 
-  //  maybe normalize direction here  // Math::Normalize(dirnew);
-  DirectionNew = DirectionNew.Unit();
-  fXdirV[i] = DirectionNew.x();
-  fYdirV[i] = DirectionNew.y();
-  fZdirV[i] = DirectionNew.z();
+  // double oldMag = DirectionNew.Mag();
+  // if( std::fabs( oldMag - 1.0 ) > 1.e-6 ) { fNumBadNormals++; fMaxBadNormalFld= std::max(fMaxBadNormal, oldMag); fMinBadNormalFld = std::min(fMinBadNormal, oldMag); }
+  
+  // Normalize direction here - to avoid surprises  ( but it limits ability to check bad integration )
+  ThreeVector DirectionUnit = DirectionNew.Unit();
+  fXdirV[i] = DirectionUnit.x();
+  fYdirV[i] = DirectionUnit.y();
+  fZdirV[i] = DirectionUnit.z();
+
+#ifdef REPORT_AND_CHECK
+  double newMag= DirectionNew.Mag();
+  Printf(" -- State after propagation in field:  Position= %f, %f, %f   Direction= %f, %f, %f  - mag old, new, new-1.0 = %10.8f %10.8f %7.2g",
+         fXposV[i], fYposV[i], fZposV[i],
+         fXdirV[i], fYdirV[i], fZdirV[i], oldMag, newMag, newMag-1.0 );
+         // DirectionNew.Mag()-1.0  );
+
+  const char* Msg[4]= { "After propagation in field - type Unknown(ERROR) ",
+                        "After propagation in field - with RK           ",
+                        "After propagation in field - with Helix-Bz     ",
+                        "After propagation in field - with Helix-General" };
+  CheckTrack(i, Msg[propagationType] );
+#endif
 
 #if 0
   ThreeVector SimplePosition = Position + crtstep * Direction;
@@ -1375,7 +1453,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   //   -- if (Math::Sqrt(diffpos)>0.01*crtstep) {
   const double drift= 0.01*crtstep;
   if ( diffpos2>drift*drift ){
-      double diffpos= Math::Sqrt(diffpos2);
+r      double diffpos= Math::Sqrt(diffpos2);
       // Geant::Print("PropagateInVolumeSingle","relative difference in pos = %g", diffpos/crtstep);
       Geant::Print("PropagateInVolumeSingle","difference in pos = %g (abs) %g (relative) , step= %g",
                    diffpos, diffpos/crtstep, crtstep);
@@ -1653,8 +1731,11 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(ntracks, td);
-//         Printf("====== After ComputeTransportLength:");
-//         PrintTracks();
+  //     Printf("====== After ComputeTransportLength:");
+  //     PrintTracks();
+  // double sumEin=0.0, sumEout=0.0; // , sumEdep=0.0
+  // for (int ix = 0; ix < ntracks; ix++) { sumEin += fEV[ix]; }
+
 #ifdef BUG_HUNT
   BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterCompTransLen");
 #endif
@@ -1664,7 +1745,10 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   int nsel = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = prop->fConfig->fBmag;
+  // const double bmag = prop->fConfig->fBmag;
+  double Bfield[3], bmag= 0.0;
+
+  unsigned int numNeutral= 0, numCharged=0, numStraight=0, numCurved=0; // , numPhysics=0;
 
   // Remove dead tracks, propagate neutrals
   for (itr = 0; itr < ntracks; itr++) {
@@ -1681,7 +1765,23 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
     // Propagate straight tracks to the precomputed location and update state,
     // then mark them for copy/removal
     // (Inlined from PropagateStraight)
-    if (fChargeV[itr] == 0 || bmag < 1.E-10) {
+
+    // if (fChargeV[itr] == 0 || bmag < 1.E-10) {
+    
+    bool straightTraj= ( fChargeV[itr] == 0 );
+    if( !straightTraj ) {
+       numCharged++;
+       GetFieldValue(td, itr, Bfield, &bmag);
+       // td->StoreFieldValue(itr, Bfield, bmag);   // Store it in Task-Data array !?
+       straightTraj = bmag < 1.E-10 * fieldUnits::kilogauss;
+       // printf("bmag = %9.3g kiloGauss\n", bmag / fieldUnits::kilogauss );
+    } else {
+       // td->ClearFieldValue(itr);
+       numNeutral++;
+    }
+    if( straightTraj ) {
+      numStraight++;
+       
       // Do straight propagation to physics process or boundary
       if (fBoundaryV[itr]) {
         if (fNextpathV[itr]->IsOutside())
@@ -1710,13 +1810,43 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
 //            CheckLocationPathConsistency(itr);
 #endif
+    } else {
+       numCurved++;
     }
   }
+
+  /**
+  for (int ix = 0; ix < ntracks; ix++) { sumEout += fEV[ix]; }
+  for (int ix = 0; ix < output.GetNtracks(); ix++) { sumEout += output.fEV[ix]; }
+  if( sumEout - sumEin > 0.001 * sumEin )
+     Printf("PropagateTracks: Ein= %8.3g                      Eout= %8.3g                      Balance= %8.3g",
+            sumEin, sumEout, sumEout - sumEin );
+   **/
+  
   // Compact remaining tracks and move the removed oned to the output container
   if (!fCompact)
     Compact(&output);
+
   // Check if tracking the remaining tracks can be postponed
   action = PostponedAction(fNtracks);
+
+  // static unsigned long totalTracks=0, totalNeutral=0, totalCharged=0, totalStraight=0, totalCurved=0, totalPhysics=0;
+
+  /*****
+  unsigned int numCalls=0;
+  const unsigned modCalls = 1000;
+  if( (++numCalls) % modCalls == 0 ) {
+     Printf("\nPropagateTracks: # tracks: Neutral=%4d, Charged=%4d, numStraight=%4d, numCurved=%4d, numPhysics=%4d . Action= %2d",
+            numNeutral, numCharged, numStraight, numCurved, numPhysics, action );
+  }
+  totalTracks += numCharged + numNeutral;
+  totalNeutral += numNeutral;
+  totalCharged += numCharged;
+  totalStraight += numStraight;
+  totalCurved  += numCurved;
+  totalPhysics += numPhysics;
+   *****/
+  
   switch (action) {
   case kDone:
     return icrossed;
@@ -1740,7 +1870,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   ntracks = GetNtracks();
   double *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < fNtracks; itr++) {
-    lmax = SafeLength(prop, itr, eps);
+    lmax = SafeLength(td, itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
@@ -1845,14 +1975,18 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
+  // printf(" PropagateSingleTrack called for itr= %d -- Track: ", itr );
+  // PrintTrack(itr);
+  // CheckTrack(itr, " PropagateSingleTrack called.");
+  // PrintTrack(itr);
+
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
-  const double bmag = td->fPropagator->fConfig->fBmag;
-
   // Compute transport length in geometry, limited by the physics step
-  GeantPropagator *prop = td->fPropagator;
+  double Bfield[3], bmag= 0.0;
 #ifdef BUG_HUNT
+  GeantPropagator *prop = td->fPropagator;
   BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateSingle", itr);
 #endif
   ComputeTransportLengthSingle(itr, td);
@@ -1871,7 +2005,15 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   }
   // Stage 0: straight propagation
   if (stage == 0) {
-    if (fChargeV[itr] == 0 || bmag < 1.E-10) {
+    bool neutral = (fChargeV[itr] == 0);
+    if( !neutral ) {
+       // printf( " PropagateSingleTrack> getting Field. Charge= %3d ", fChargeV[itr]);
+       GetFieldValue(td, itr, Bfield, &bmag);
+       // if( bmag < 1.E-10) { printf(" Tiny field - mag = %g at %f %f %f\n",
+       //                             bmag,  fXposV[itr],  fYposV[itr],  fZposV[itr]); }
+    }
+    // if (fChargeV[itr] == 0 || bmag < 1.E-10) {
+    if ( neutral ) { // || bmag < 1.E-10 * kiloGauss ) {
       // Do straight propagation to physics process or boundary
       if (fBoundaryV[itr]) {
         //*fPathV[itr] = *fNextpathV[itr];
@@ -1915,12 +2057,13 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // i.e. what is the propagated length for which the track deviation in magnetic
     // field with respect to straight propagation is less than epsilon.
     // Take the maximum between the safety and the "bending" safety
-    lmax = SafeLength(prop, itr, eps);
+    lmax = SafeLength(td,itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
     // step (frombdr=0)
-    step = (fBoundaryV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) : Math::Min<double>(lmax, fPstepV[itr]);
+    step = (fBoundaryV[itr]) ? Math::Min<double>(lmax, Math::Max<double>(fSnextV[itr], 1.E-4)) :
+                               Math::Min<double>(lmax, fPstepV[itr]);
     //      Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
     // int stepNum= fNstepsV[itr];
     // Printf("track %d: Step #=%3d len=%g proposed=%g (safelen=%9.3g) bndrFlg= %d distLin=%g  ",
@@ -2020,24 +2163,36 @@ int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-double GeantTrack_v::Curvature(int i, double Bz) const {
-  // Curvature assuming constant field is along Z
-  constexpr double kB2C = -0.299792458e-3;
-  constexpr double kTiny = 1.E-50;
+double GeantTrack_v::Curvature(GeantTaskData *td, int i) const {
+  using ThreeVector_d = vecgeom::Vector3D<double>;
+  
+  // Curvature for general field
+  const double tiny = 1.E-30;
 
-  double qB = fChargeV[i] * Bz;
-  if (fabs(qB) < kTiny) return kTiny;
-  return fabs(kB2C * qB / (Pt(i) + kTiny));
+  double Bfield[3], bmag= 0.0;
+  
+  GetFieldValue(td, i, Bfield, &bmag);
+  ThreeVector_d MagFld(Bfield[0], Bfield[1], Bfield[2]);
+
+  //  Calculate transverse momentum 'Pt' for field 'B'
+  // 
+  ThreeVector_d Momentum( fXdirV[i], fXdirV[i], fXdirV[i] );
+  Momentum *= fPV[i];
+  ThreeVector_d PtransB;  //  Transverse wrt direction of B
+  double ratio = 0.0;
+  if( bmag > 0 ) ratio = Momentum.Dot( MagFld ) / (bmag*bmag);
+  PtransB = Momentum - ratio * MagFld ;
+  double Pt_mag = PtransB.Mag();
+
+  return fabs(GeantTrack::kB2C * fChargeV[i] * bmag / (Pt_mag + tiny));
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-double GeantTrack_v::SafeLength( GeantPropagator *prop, int i, double eps) {
+double GeantTrack_v::SafeLength(GeantTaskData *td, int i, double eps) {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.
-
-  const double bmag = prop->fConfig->fBmag;
-  double c = Curvature(i, bmag);
+  double c = Curvature(td, i);
   if (c < 1.E-10)
     return 1.E50;
   return 2. * sqrt(eps / c);
@@ -2177,11 +2332,68 @@ bool GeantTrack_v::BreakOnStep(int evt, int trk, int stp, int nsteps, const char
   return true;
 }
 
+#define IsNan(x)  ( ! ( x > 0 || x <= 0.0 ) )
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void GeantTrack_v::CheckTrack(int itr, const char *msg, double epsilon ) const
+{
+   // Ensure that values are 'sensible' - else print msg and track
+   if( epsilon <= 0.0 || epsilon > 0.01 ) { epsilon = 1.e-6; }
+
+   double x= fXposV[itr], y = fYposV[itr], z= fZposV[itr];
+   bool badPosition = IsNan(x) || IsNan(y) || IsNan(z);
+   const double maxRadius = 10000.0;   // Should be a property of the geometry
+   const double maxRadXY  =  5000.0;   // Should be a property of the geometry
+
+   // const double maxUnitDev =  1.0e-4;  // Deviation from unit of the norm of the direction
+   double radiusXy2= x*x + y*y;
+   double radius2=  radiusXy2 + z*z;
+   badPosition = badPosition
+                || (radiusXy2 > maxRadXY  * maxRadXY )
+                || (radius2   > maxRadius * maxRadius ) ;
+
+   const double maxUnitDev = epsilon;  // Use epsilon for max deviation of direction norm from 1.0
+
+   double dx= fYdirV[itr], dy= fYdirV[itr], dz= fZdirV[itr];
+   double dirNorm2 = dx*dx + dy*dy + dz*dz;
+   bool   badDirection = std::fabs( dirNorm2 - 1.0 ) > maxUnitDev;
+   if( badPosition || badDirection ) {
+      static const char* errMsg[4]= { " All ok - No error. ",
+                                      " Bad position.",                  // [1]
+                                      " Bad direction.",                 // [2]
+                                      " Bad direction and position. " }; // [3]
+      int iM=0;
+      if( badPosition ) { iM++; }
+      if( badDirection  ) { iM += 2; }
+      // if( badDirection ) {
+      //   Printf( " Norm^2 direction= %f ,  Norm -1 = %g", dirNorm2, sqrt(dirNorm2)-1.0 );
+      // }
+      Printf("ERROR> Problem with track %d . Issue: %s. Info message: %s -- Mag^2(dir)= %9.6f Norm-1= %g",
+             itr, errMsg[iM], msg, dirNorm2, sqrt(dirNorm2)-1.0 );
+      PrintTrack(itr, msg);
+   }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+bool GeantTrack_v::CheckDirection(int itr, double epsilon ) const
+{
+   if( epsilon <= 0.0 || epsilon > 0.001 ) { epsilon = 1.e-6; }
+
+   double xdir= fXdirV[itr];
+   double ydir= fYdirV[itr];
+   double zdir= fZdirV[itr];
+   double norm2= xdir * xdir + ydir * ydir + zdir * zdir;
+
+   return ( std::fabs( norm2 - 1.0 ) <= epsilon );
+}
+
 } // GEANT_IMPL_NAMESPACE
 
 #ifdef GEANT_CUDA_ENABLED
 #ifndef VECCORE_CUDA
-
+          
+//______________________________________________________________________________
 bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream) {
   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
@@ -2223,7 +2435,8 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
 
   return true;
 }
-
+          
+//______________________________________________________________________________
 void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source) {
   size_t bufferOffset = GeantTrack::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
@@ -2241,6 +2454,7 @@ void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda:
   }
 }
 
+//______________________________________________________________________________          
 bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream) {
   size_t bufferOffset = GeantTrack::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.

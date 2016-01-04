@@ -1,0 +1,389 @@
+#ifndef _MAGFIELD_H_
+#define _MAGFIELD_H_
+
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <stdlib.h>
+#include "base/Vector3D.h"
+#include "base/SOA3D.h"
+#include "base/Global.h"
+#include <Vc/Vc>
+#include "backend/vc/Backend.h"
+#include "backend/vcfloat/Backend.h"
+#include "backend/scalarfloat/Backend.h"
+#include "backend/Backend.h"
+#include <cassert>
+#include <ctime>
+//#include "/home/ananya/Softwares/iaca-lin64/include/iacaMarks.h" 
+using namespace std;
+
+#define FAST 
+
+
+
+#ifdef FAST 
+#define INLINE_CHOICE inline __attribute__ ((always_inline))
+#endif
+#ifndef FAST
+#define INLINE_CHOICE __attribute__ ((noinline))
+#endif
+
+template <typename FltType>
+struct Mag3{
+public:
+    FltType Br   =0.;
+    FltType Bz   =0.;
+    FltType Bphi =0.;
+public:
+    void SetBr(FltType a){
+        Br = a;
+    }
+
+    void SetBz(FltType a){
+        Bz = a;
+    }
+
+    void SetBphi(FltType a){
+        Bphi=a;
+    }
+
+    FltType GetBr(){
+        return Br;
+    }
+
+    FltType GetBz(){
+        return Bz;
+    }
+
+    FltType GetBphi(){
+        return Bphi;
+    }
+};
+
+template<typename FltType> // , class Backend>
+class MagField
+{
+public:
+    MagField();
+    
+    //New stuff 
+    //Takes as input x,y,z; Gives output Bx,By,Bz
+    template <class Backend>
+    void GetFieldValue(const vecgeom::Vector3D<typename Backend::precision_v> &pos, 
+                             vecgeom::Vector3D<typename Backend::precision_v> &xyzField);
+
+    //Reads data from given 2D magnetic field map. Can be easily modified to read a given 2D map, in case the file changes
+    void ReadVectorData(std::string inputMap);
+    
+    void GiveGatherFieldTime();
+    
+    ~MagField();
+
+private:
+    //  Invariants -- parameters of the field 
+    const FltType millimeter = 1.0;             // Currently -- to be native GeantV
+
+    const FltType kRMax    =  9000. * millimeter;   //  Maximum value of R =  9.00 meters
+    const FltType kZMax    = 16000. * millimeter;   //  Max value of Z = 16.00 meters
+    const int kNoZValues   = 161;
+    const int kNoRValues   = 181;
+    const int kHalfZValues = 80;
+
+    // Derived values
+    //kRDiff and kZDiff take care of mm because they come from kRMax and kZMax which have mm in them
+    const FltType kRDiff = kRMax/(kNoRValues-1);   //  Radius increment between lattice points
+    const FltType kZDiff = 2*kZMax/(kNoZValues-1); //  Z increment
+
+    const FltType kZ0       = -kZMax;
+    const FltType kRDiffInv = 1.0/kRDiff;
+    const FltType kZDiffInv = 1.0/kZDiff;
+    const FltType kAInverse = 1/(kRDiff*kZDiff);
+
+
+    //For (R,Z) pairs : gives field in cylindrical coordinates in rzfield
+    template <class Backend>
+    void GetFieldValueRZ(const typename Backend::precision_v &radius,
+                         const typename Backend::precision_v      &z, 
+                         vecgeom::Vector3D<typename Backend::precision_v> &rzField); 
+
+    //Used to convert cartesian coordinates to cylindrical coordinates R-Z-phi
+    //Does not calculate phi
+    template <class Backend>
+    void CartesianToCylindrical(const vecgeom::Vector3D<typename Backend::precision_v> &cart, 
+                                                        typename Backend::precision_v cyl[2])  ;
+    // template <class FltType, class Backend>
+    // {
+    //    //cyl[] =[r,z]
+    //    cyl[0] = sqrt(cart.x()*cart.x() + cart.y()*cart.y()); // r = sqrt(x^2 + y^2)
+    //    cyl[1] = cart.z(); //z = z 
+    // }
+
+    //Converts cylindrical magnetic field to field in cartesian coordinates 
+    template <class Backend>
+    void CylindricalToCartesian(const vecgeom::Vector3D<typename Backend::precision_v> &rzField, 
+                                                   const typename Backend::precision_v sinTheta, 
+                                                   const typename Backend::precision_v cosTheta, 
+                                     vecgeom::Vector3D<typename Backend::precision_v> &xyzField);
+
+
+    //Takes care of indexing into multiple places in AOS. Gather because using gather
+    //defined in Vc class. Not self-defined gather like before 
+    template <class Backend>
+    void Gather(const typename Backend::precision_v  index, 
+                      typename Backend::precision_v  B[3]);
+
+/*    void Gather<vecgeom::kVcFloat>(const typename vecgeom::kVcFloat::precision_v    index, 
+                                         typename vecgeom::kVcFloat::precision_v B[3])
+    {
+        typedef typename vecgeom::kVcFloat::Int_t Int_t;
+        Int_t ind = (Int_t) index; 
+        B[0].gather(fAOS, &Mag3<FltType>::Br, ind);
+        B[1].gather(fAOS, &Mag3<FltType>::Bphi, ind);
+        B[2].gather(fAOS, &Mag3<FltType>::Bz, ind);
+    }*/
+
+
+
+private: 
+    Mag3<FltType> *fAOS = new Mag3<FltType>[30000];
+
+};
+
+
+template <typename FltType>
+MagField<FltType>::MagField(){
+
+}
+
+template <typename FltType>
+MagField<FltType>::~MagField(){
+    
+}
+
+template <typename FltType>
+INLINE_CHOICE
+void MagField<FltType>::ReadVectorData(std::string inputMap){
+    std::string line;
+    std::string s1,s2,s3,s4,s5,s0;
+    FltType d1,d2,d3,d4,d5,d0;
+    int ind =0;
+    ifstream pFile(inputMap);
+    if (pFile.is_open()){
+        // getline() returns the stream. testing the stream with while returns error such as EOF
+        while(getline(pFile,line)){
+             // so here we know that the read was a success and that line has valid data
+            stringstream ss(line);
+            //parsing all the parts. s0's store the string names which are of no use to us. 
+            ss>> s0>> d1>> s1>> d0>> s2>> d2>> s3>> d3>> s4>> d4>> s5>> d5;
+
+            fAOS[ind].SetBr(d4);
+            fAOS[ind].SetBphi(d5);
+            fAOS[ind].SetBz(d3);
+            ind++;
+        }
+        pFile.close();
+
+
+    }
+    else{
+        cout<<"Unable to open file";
+    }
+
+}
+
+
+// template <class FltType, class Backend>
+// INLINE_CHOICE
+// void MagField<FltType>::CartesianToCylindrical(const vecgeom::Vector3D<typename Backend::precision_v> &cart, 
+//                                                                typename Backend::precision_v cyl[2])
+// {
+
+//     //cyl[] =[r,z]
+//     cyl[0] = sqrt(cart.x()*cart.x() + cart.y()*cart.y()); // r = sqrt(x^2 + y^2)
+//     cyl[1] = cart.z(); //z = z 
+// }
+
+// template <class FltType, class Backend>
+template <class FltType>
+template <class Backend>
+INLINE_CHOICE
+void MagField<FltType>::CartesianToCylindrical(const vecgeom::Vector3D<typename Backend::precision_v> &cart, 
+                                                                       typename Backend::precision_v cyl[2])
+{
+
+    //cyl[] =[r,z]
+    cyl[0] = sqrt(cart.x()*cart.x() + cart.y()*cart.y()); // r = sqrt(x^2 + y^2)
+    cyl[1] = cart.z(); //z = z 
+}
+
+
+template <class FltType>
+template <class Backend>
+INLINE_CHOICE
+void MagField<FltType>::CylindricalToCartesian(const vecgeom::Vector3D<typename Backend::precision_v> &rzField, 
+                                                                 const typename Backend::precision_v  sinTheta, 
+                                                                 const typename Backend::precision_v  cosTheta, 
+                                                     vecgeom::Vector3D<typename Backend::precision_v> &xyzField)
+{
+    //rzField[] has r, phi and z
+
+    xyzField.x() = rzField.x()*cosTheta - rzField.y()*sinTheta; // Bx= Br cos(theta) - Bphi sin(theta)
+    xyzField.y() = rzField.x()*sinTheta + rzField.y()*cosTheta; //By = Br sin(theta) + Bphi cos(theta)
+    xyzField.z() = rzField.z();   //Bz = Bz 
+}
+
+
+
+// Scalar Backend method 
+template <class FltType> 
+template <class Backend>
+INLINE_CHOICE 
+void MagField<FltType>::Gather(const typename Backend::precision_vindex, 
+                                     typename Backend::precision_v B[3])
+{
+    
+    int intIndex= (int) index;
+    B[0]   = fAOS[intIndex].GetBr();
+    B[1]   = fAOS[intIndex].GetBphi();
+    B[2]   = fAOS[intIndex].GetBz();
+
+}
+
+
+// VcFloat Backend method 
+//template <typename FltType>
+template <>
+template <>
+// template <class Backend>
+INLINE_CHOICE
+void MagField<float>::Gather<vecgeom::kVcFloat>(const typename vecgeom::kVcFloat::precision_v index, 
+                                                      typename vecgeom::kVcFloat::precision_v  B[3])
+{
+    typedef typename vecgeom::kVcFloat::Int_t Int_t;
+    Int_t ind = (Int_t) index; 
+    B[0].gather(fAOS, &Mag3<float>::Br, ind);
+    B[1].gather(fAOS, &Mag3<float>::Bphi, ind);
+    B[2].gather(fAOS, &Mag3<float>::Bz, ind);
+}
+
+// VcFloat Backend method 
+//template <typename FltType>
+template <>
+template <>
+// template <class Backend>
+INLINE_CHOICE
+void MagField<double>::Gather<vecgeom::kVc>(const typename vecgeom::kVc::precision_v index, 
+                                                  typename vecgeom::kVc::precision_v  B[3])
+{
+    typedef typename vecgeom::kVc::Int_t Int_t;
+    Int_t ind = (Int_t) index; 
+    B[0].gather(fAOS, &Mag3<double>::Br, ind);
+    B[1].gather(fAOS, &Mag3<double>::Bphi, ind);
+    B[2].gather(fAOS, &Mag3<double>::Bz, ind);
+}
+
+
+template <class FltType>
+template <class Backend>
+INLINE_CHOICE
+void MagField<FltType>::GetFieldValueRZ(const typename Backend::precision_v &r, 
+                                        const typename Backend::precision_v &Z, 
+                                        vecgeom::Vector3D<typename Backend::precision_v> &rzField)
+{
+
+    typedef typename Backend::precision_v Float_t;
+    typedef typename Backend::precision_v Index_t;
+
+    //Take care that radius and z for out of limit values take values at end points 
+    Float_t radius = min(r, kRMax);
+    Float_t z = max(min(Z, kZMax), -kZMax); 
+
+    //to make sense of the indices, consider any particular instance e.g. (25,-200)
+    Float_t rFloor = floor(radius*kRDiffInv);
+    Float_t rIndLow = rFloor*kNoZValues;
+    Float_t rIndHigh = rIndLow + kNoZValues;
+
+    //if we use z-z0 in place of two loops for Z<0 and Z>0
+    //z-z0 = [0,32000]
+    //so indices 0 to 160 : total 161 indices for (z-z0)/200
+    //i.e. we are saying:
+    Float_t zInd = floor((z-kZ0)*kZDiffInv);
+    //need i1,i2,i3,i4 for 4 required indices
+    Index_t i1 = (Index_t) (rIndLow + zInd);
+    Index_t i2 = i1 + 1;
+    Index_t i3 = (Index_t) (rIndHigh + zInd);
+    Index_t i4 = i3 + 1; 
+
+    //cout<<"Index i1 is: "<<i1<<endl;
+
+    Float_t zLow       = (zInd- kHalfZValues)*kZDiff; //80 because it's the middle index in 0 to 160
+    Float_t zHigh      = zLow + kZDiff;
+    Float_t radiusLow  = rFloor*kRDiff;
+    Float_t radiusHigh = radiusLow + kRDiff;
+
+    Float_t a1 = (radiusHigh - radius)*(zHigh - z); //area to be multiplied with i1
+    Float_t a2 = (radiusHigh - radius)*(z - zLow);
+    Float_t a3 = (radius - radiusLow)*(zHigh - z);
+    Float_t a4 = (radius - radiusLow)*(z- zLow);
+
+    //cout<<"Areas are: "<<a1<<" "<<a2<<" "<<a3<<" "<<a4<<endl; 
+    //Areas are alright
+
+    Float_t B1[3], B2[3], B3[3], B4[3];
+    Gather<Backend>(i1, B1);
+    Gather<Backend>(i2, B2);
+    Gather<Backend>(i3, B3);
+    Gather<Backend>(i4, B4);
+
+    //cout<<"B1[0] is: "<<B1[0]<<endl;
+    //B1[0] is wrong from 5th particle
+
+    Float_t BR   = (B1[0]  *a1 + B2[0]  *a2 + B3[0]  *a3 + B4[0]  *a4)*kAInverse;
+    Float_t BPhi = (B1[1]  *a1 + B2[1]  *a2 + B3[1]  *a3 + B4[1]  *a4)*kAInverse;
+    Float_t BZ   = (B1[2]  *a1 + B2[2]  *a2 + B3[2]  *a3 + B4[2]  *a4)*kAInverse;
+
+
+    rzField.x()= BR;
+    rzField.y()= BPhi;
+    rzField.z()= BZ;
+}
+
+
+template <class FltType>
+template <class Backend>
+INLINE_CHOICE
+//__attribute__ ((noinline))
+//Sidenote: For theta =0; xyzField = rzField. 
+//theta =0 corresponds to y=0
+
+void MagField<FltType>::GetFieldValue(const vecgeom::Vector3D<typename Backend::precision_v>     &pos, 
+                                            vecgeom::Vector3D<typename Backend::precision_v> &xyzField)
+{
+
+    typedef typename Backend::precision_v Float_t;
+    typedef typename Backend::bool_v      Bool_t;
+
+    Float_t cyl[2];
+    CartesianToCylindrical<Backend>(pos, cyl); 
+    vecgeom::Vector3D<Float_t> rzField;
+    GetFieldValueRZ<Backend>(cyl[0], cyl[1], rzField); //cyl[2] =[r,z]
+    
+    FltType zero = 0.;
+    FltType one = 1.;
+    Float_t sinTheta(zero), cosTheta(one); //initialize as theta=0
+    //To take care of r =0 case 
+
+    //MaskedAssign(cond, value , var );
+    //where cond is Bool_t, value is value calculated, var is the variable taking value 
+    Bool_t nonZero = (cyl[0] != zero); 
+    Float_t rInv = zero;
+    vecgeom::MaskedAssign<FltType>(nonZero, 1/cyl[0], &rInv);
+    vecgeom::MaskedAssign<FltType>(nonZero, pos.y()*rInv, &sinTheta);
+    vecgeom::MaskedAssign<FltType>(nonZero, pos.x()*rInv, &cosTheta);
+
+    CylindricalToCartesian<Backend>(rzField, sinTheta, cosTheta, xyzField);
+}
+
+#endif

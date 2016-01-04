@@ -34,11 +34,14 @@
 #include "WorkloadManager.h"
 
 #include "GeantTaskData.h"
-#include "ConstFieldHelixStepper.h"
+
 #include "GeantScheduler.h"
 
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
+#include "FieldLookup.h"
+// #include "ConstBzFieldHelixStepper.h"
+// #include "ConstVecFieldHelixStepper.h"
 
 #ifdef __INTEL_COMPILER
 #include <immintrin.h>

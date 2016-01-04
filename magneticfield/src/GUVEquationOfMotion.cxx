@@ -20,10 +20,10 @@ GUVEquationOfMotion::~GUVEquationOfMotion()
 
 void
 GUVEquationOfMotion::
-EvaluateRhsReturnB( const double y[],
-                          double dydx[],
-                       // double charge,
-                          double Field[]
+EvaluateRhsReturnB( const double           y[],
+                          double          dydx[],
+                       // double          charge,
+                 vecgeom::Vector3D<float> &Field
                   ) const
 {
    double  PositionAndTime[4];
@@ -34,7 +34,7 @@ EvaluateRhsReturnB( const double y[],
    // Global Time
    PositionAndTime[3] = y[7];  // See GUVFieldTrack::LoadFromArray
 
-   GetFieldValue(PositionAndTime, Field) ;
+   GetFieldValue( PositionAndTime, Field) ;
    EvaluateRhsGivenB( y, Field, /*charge,*/ dydx );
 }
 

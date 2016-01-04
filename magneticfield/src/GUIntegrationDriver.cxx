@@ -1,4 +1,3 @@
-
 //
 // $Id: GVIntegratorDriver.cxx
 //
@@ -18,22 +17,20 @@
 #include "GUFieldTrack.h"
 #include "GUIntegrationDriver.h"
 
-//  Stepsize can increase by no more than 5.0
-//           and decrease by no more than 1/10. = 0.1
-//
-const double GUIntegrationDriver::max_stepping_increase = 5.0;
-const double GUIntegrationDriver::max_stepping_decrease = 0.1;
-
-const double perMillion  = 1.0e-6; 
-const double perThousand = 1.0e-3;
-
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper
 //
 const int  GUIntegrationDriver::fMaxStepBase = 250;  // Was 5000
 
-#ifndef G4NO_FIELD_STATISTICS
-#define GVFLD_STATS  1
+// #ifndef G4NO_FIELD_STATISTICS
+// #define GVFLD_STATS  1
+// #endif
+
+#ifdef GVFLD_STATS
+#include "TH1.h"
+TH1F* gHistStepsLin=0;
+TH1F* gHistStepsLog=0;
+TH1F* gHistStepsInit=0;
 #endif
 
 // To add much printing for debugging purposes, uncomment the following
@@ -44,7 +41,7 @@ const int  GUIntegrationDriver::fMaxStepBase = 250;  // Was 5000
 
 //  Constructor
 //
-GUIntegrationDriver::GUIntegrationDriver( double                hminimum, 
+GUIntegrationDriver::GUIntegrationDriver( double        hminimum, 
                                   GUVIntegrationStepper *pStepper,
                                   int                   numComponents,
                                   int                   statisticsVerbose)
@@ -61,14 +58,19 @@ GUIntegrationDriver::GUIntegrationDriver( double                hminimum,
      fStatisticsVerboseLevel(statisticsVerbose),
      fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
      fNoInitialSmallSteps(0), 
-     fDyerr_max(0.0), fDyerr_mx2(0.0), 
+     fDyerrPosMaxSq(0.0), fDyerrDirMaxSq(0.0),      
      fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
      fSumH_sm(0.0), fSumH_lg(0.0),
      fVerboseLevel(0)
 {  
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
-
+  assert( pStepper != nullptr );
+  bool  statsEnabled= false;
+#ifdef GVFLD_STATS
+  statsEnabled= true;
+#endif
+  
   RenewStepperAndAdjust( pStepper );
   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
 #ifdef GUDEBUG_FIELD
@@ -78,14 +80,19 @@ GUIntegrationDriver::GUIntegrationDriver( double                hminimum,
   if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) )
   {
      std::cout << "MagIntDriver version: Accur-Adv: "
-           << "invE_nS, QuickAdv-2sqrt with Statistics "
-#ifdef GVFLD_STATS
-           << " enabled "
-#else
-           << " disabled "
-#endif
-           << std::endl;
+               << "invE_nS, QuickAdv-2sqrt with Statistics "
+               << (statsEnabled ? " enabled " : " disabled " ) << std::endl;
   }
+
+#ifdef GVFLD_STATS
+  if( !gHistStepsLin )
+       gHistStepsLin = new TH1F("hSteps", "Step size in Int-Driver", 100, 0, 100.0);
+  if( !gHistStepsInit )
+       gHistStepsInit = new TH1F("hSteps", "Input Step size in Int-Driver", 100, 0, 100.0);  
+  if( !gHistStepsLog )
+       gHistStepsLog = new TH1F("hSteps", "Log of Step size in Int-Driver", 40, -10., +10.0);
+#endif
+
 }
 
 //  Copy Constructor - used by Clone
@@ -104,7 +111,7 @@ GUIntegrationDriver::GUIntegrationDriver( const GUIntegrationDriver& right )
      fStatisticsVerboseLevel( right.fStatisticsVerboseLevel ),
      fNoTotalSteps(0),  fNoBadSteps(0), fNoSmallSteps(0),
      fNoInitialSmallSteps(0),
-     fDyerr_max(0.0), fDyerr_mx2(0.0), 
+     fDyerrPosMaxSq(0.0), fDyerrDirMaxSq(0.0), 
      fDyerrPos_smTot(0.0), fDyerrPos_lgTot(0.0), fDyerrVel_lgTot(0.0), 
      fSumH_sm(0.0), fSumH_lg(0.0),
      fVerboseLevel( right.fVerboseLevel )
@@ -112,6 +119,10 @@ GUIntegrationDriver::GUIntegrationDriver( const GUIntegrationDriver& right )
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
    const GUVIntegrationStepper *protStepper = right.GetStepper();
+   bool  statsEnabled= false;
+#ifdef GVFLD_STATS
+   statsEnabled= true;
+#endif
    fpStepper= protStepper->Clone();
    
    RenewStepperAndAdjust( fpStepper );
@@ -120,13 +131,9 @@ GUIntegrationDriver::GUIntegrationDriver( const GUIntegrationDriver& right )
   if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) )
   {
      std::cout << "MagIntDriver version: Accur-Adv: "
-           << "invE_nS, QuickAdv-2sqrt with Statistics "
-#ifdef GVFLD_STATS
-           << " enabled "
-#else
-           << " disabled "
-#endif
-           << std::endl;
+               << "invE_nS, QuickAdv-2sqrt with Statistics "
+               << (statsEnabled ? " enabled " : " disabled " )
+               << std::endl;
   }
 }
 
@@ -154,16 +161,26 @@ GUIntegrationDriver* GUIntegrationDriver::Clone() const
 bool
 GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
                                               double     hstep,
-                                              double     eps,
+                                              double     epsilon,
                                            GUFieldTrack& yOutput,
                                               double     hinitial
    )
 {
-  // Runge-Kutta driver with adaptive stepsize control. Integrate starting
-  // values at y_current over hstep x2 with accuracy eps. 
-  // On output ystart is replaced by values at the end of the integration 
-  // interval. RightHandSide is the right-hand side of ODE system. 
-  // The source is similar to odeint routine from NRC p.721-722 .
+  // Driver for Runge-Kutta integration with adaptive stepsize control.
+  // Integrate starting 'vector' y_current, over length 'hstep'
+  // maintaining integration error so that relative accuracy is better
+  // than 'epsilon'.
+  // NOTE: The number of trial steps is limited by 'fMaxNoSteps'. Integration will 
+  //       stop if this maximum is reached, and the return value will be false.
+  // On return
+  //  - 'yOutput' provides the values at the end of the integration interval;
+  //  - the return value is 'true' if integration succeeded to the end of the interval,
+  //    and 'false' otherwise.
+  
+  // std::cout << "AccurateAdvance of GUIntegrationDriver" << std::endl;
+
+  constexpr double perMillion  = 1.0e-6;
+  constexpr double perThousand = 1.0e-3;
 
   int nstp, i, no_warnings=0;
   double x, hnext, hdid, h;
@@ -174,6 +191,8 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
   static int nStpPr=50;   // For debug printing of long integrations
   double ySubStepStart[GUFieldTrack::ncompSVEC];
   // GUFieldTrack  yFldTrkStart(y_current);
+  // std::cout << " AccurateAdvance called with hstep= " << hstep
+            // << " hinitial = " << hinitial  << std::endl;
 #endif
 
   double y[GUFieldTrack::ncompSVEC], dydx[GUFieldTrack::ncompSVEC];
@@ -224,6 +243,9 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
   }
 
   x = x1;
+#ifdef GVFLD_STATS
+  gHistStepsInit->Fill(h);
+#endif
 
   for (i=0;i<nvar;i++)  { y[i] = ystart[i]; }
 
@@ -232,11 +254,18 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
 
   // fpStepper->InitializeCharge( charge );   // May be added
   // OLD: fpStepper->GetEquationOfMotion()->InitializeCharge( charge );
-  
+
+  double StartPosAr[3];
+  // ThreeVector StartPos( y[0], y[1], y[2] );  
   do
   {
-    ThreeVector StartPos( y[0], y[1], y[2] );
+#ifdef GVFLD_STATS     
+    gHistStepsLin->Fill(h);
+    if( h > 0 ) gHistStepsLog->Fill(log(h));    
+#endif
 
+    // StartPos= ThreeVector( y[0], y[1], y[2] );
+    StartPosAr[0]= y[0]; StartPosAr[1]= y[1];  StartPosAr[2]= y[2]; 
 #ifdef GUDEBUG_FIELD
     double xSubStepStart= x; 
     for (i=0;i<nvar;i++)  { ySubStepStart[i] = y[i]; }
@@ -257,7 +286,10 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
     //      
     if( h > fMinimumStep )
     { 
-      OneGoodStep(y,dydx,x,h,eps,hdid,hnext) ;
+      // std::cout << "Calling       OneGoodStep " << std::endl;
+      OneGoodStep(y,dydx,x,h,epsilon,hdid,hnext) ;
+      // std::cout << "Returned from OneGoodStep" << std::endl;
+
       //--------------------------------------
       lastStepSucceeded= (hdid == h);   
 #ifdef GUDEBUG_FIELD
@@ -269,22 +301,23 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
     else
     {
       GUFieldTrack yFldTrk( ThreeVector(0,0,0), 
-                            ThreeVector(0,0,0), 0., 0. );
-      double dchord_step, dyerr_len_sq, dyerr_mom_rel_sq;   // What to do with these ?
+                            ThreeVector(0,0,0) );
+      // double dchord_step;
+      double dyerr_len_sq, dyerr_mom_rel_sq;   // What to do with these ?
       yFldTrk.LoadFromArray(y, fNoIntegrationVariables); 
       yFldTrk.SetCurveLength( x );
 
-      QuickAdvance( yFldTrk, dydx, h, dchord_step, dyerr_len_sq, dyerr_mom_rel_sq ); 
+      QuickAdvance( yFldTrk, dydx, h, /*dchord_step,*/ dyerr_len_sq, dyerr_mom_rel_sq ); 
       //----------------------------------------------------------------
 
       yFldTrk.DumpToArray(y);    
 
-
 #ifdef GVFLD_STATS
       fNoSmallSteps++;
-      double dyerr_len = std::sqrt(dyerr_len_sq); 
-      if ( dyerr_len > fDyerr_max)  { fDyerr_max= dyerr_len; }
-      fDyerrPos_smTot += dyerr_len;
+      fDyerrPosMaxSq = std::max ( fDyerrPosMaxSq, dyerr_len_sq );
+      fDyerrDirMaxSq = std::max ( fDyerrDirMaxSq, dyerr_mom_rel_sq );
+      
+      fDyerrPos_smTot += std::sqrt( dyerr_len_sq );
       fSumH_sm += h;  // Length total for 'small' steps
       if (nstp<=1)  { fNoInitialSmallSteps++; }
 #endif
@@ -296,7 +329,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
                << " of " << fNoTotalSteps << " this time " << nstp << std::endl; 
         PrintStatus( ySubStepStart, x1, y, x, h,  nstp);   // Only this
         std::cout << " dyerr= " << dyerr_len << " relative = " << dyerr_len / h 
-               << " epsilon= " << eps << " hstep= " << hstep 
+               << " epsilon= " << epsilon << " hstep= " << hstep 
                << " h= " << h << " hmin= " << fMinimumStep << std::endl;
       }
 #endif        
@@ -312,10 +345,10 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
       x += hdid;
 
       // Compute suggested new step
-      hnext= ComputeNewStepSize( dyerr/eps, h);
+      hnext= ComputeNewStepSize( dyerr/epsilon, h);
 
-      // .. hnext= ComputeNewStepSize_WithinLimits( dyerr/eps, h);
-      lastStepSucceeded= (dyerr<= eps);
+      // .. hnext= ComputeNewStepSize_WithinLimits( dyerr/epsilon, h);
+      lastStepSucceeded= (dyerr<= epsilon);
     }
 
     if (lastStepSucceeded)  { noFullIntegr++; }
@@ -330,16 +363,20 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
       std::cout << "MagIntDrv: " ; 
       std::cout << "hdid="  << std::setw(12) << hdid  << " "
              << "hnext=" << std::setw(12) << hnext << " " 
-	     << "hstep=" << std::setw(12) << hstep << " (requested) " 
-	     << std::endl;
+             << "hstep=" << std::setw(12) << hstep << " (requested) " 
+             << std::endl;
       PrintStatus( ystart, x1, y, x, h, (nstp==nStpPr) ? -nstp: nstp); 
     }
 #endif
 
     // Check the endpoint
-    double endPointDist= (EndPos-StartPos).Mag(); 
-    if ( endPointDist >= hdid*(1.+perMillion) )
+    const double edx= y[0] - StartPosAr[0];
+    const double edy= y[1] - StartPosAr[1];
+    const double edz= y[2] - StartPosAr[2];
+    double endPointDist2= edx*edx+edy*edy+edz*edz ; // (EndPos-StartPos).Mag();
+    if ( endPointDist2 >= hdid*hdid*(1.+2.*perMillion) )
     {
+      double endPointDist = std::sqrt(endPointDist2);
       fNoBadSteps++;
 
       // Issue a warning only for gross differences -
@@ -349,9 +386,9 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
 #ifdef GUDEBUG_FIELD
         if (dbg)
         {
-          WarnEndPointTooFar ( endPointDist, hdid, eps, dbg ); 
+          WarnEndPointTooFar ( endPointDist, hdid, epsilon, dbg ); 
           std::cerr << "  Total steps:  bad " << fNoBadSteps
-                 << " good " << noGoodSteps << " current h= " << hdid
+                 << " good " << noGoodSteps << " hdid= " << hdid
                  << std::endl;
           PrintStatus( ystart, x1, y, x, hstep, no_warnings?nstp:-nstp);  
         }
@@ -366,7 +403,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
 // #endif
 
     //  Avoid numerous small last steps
-    if( (h < eps * hstep) || (h < fSmallestFraction * startCurveLength) )
+    if( (h < epsilon * hstep) || (h < fSmallestFraction * startCurveLength) )
     {
       // No more integration -- the next step will not happen
       lastStep = true;  
@@ -378,8 +415,8 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
       {
 #ifdef  GUDEBUG_FIELD
         // If simply a very small interval is being integrated, do not warn
-        if( (x < x2 * (1-eps) ) &&        // The last step can be small: OK
-            (std::fabs(hstep) > Hmin()) ) // and if we are asked, it's OK
+        if( (x < x2 * (1-epsilon) ) &&        // The last step can be small: OK
+            (std::fabs(hstep) > fMinimumStep ) ) // and if we are asked, it's OK
         {
           if(dbg>0)
           {
@@ -415,7 +452,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
                  << std::endl
                  << "  Integration step 'h' became "
                  << h << " due to roundoff. " << std::endl
-		 << " Calculated as difference of x2= "<< x2 << " and x=" << x
+                 << " Calculated as difference of x2= "<< x2 << " and x=" << x
                  << "  Forcing termination of advance." << std::endl;
           std::cout.precision(prec);
         }          
@@ -434,25 +471,33 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
   yOutput.LoadFromArray( yEnd, fNoIntegrationVariables );
   yOutput.SetCurveLength( x );
 
-  if(nstp > fMaxNoSteps)
+  if(nstp > fMaxNoSteps && !succeeded )
   {
     no_warnings++;
-    succeeded = false;
+    // succeeded = false;
 #ifdef GUDEBUG_FIELD
     if (dbg)
     {
-      WarnTooManyStep( x1, x2, x );  //  Issue WARNING
+      WarnTooManySteps( x1, x2, x );  //  Issue WARNING
       PrintStatus( yEnd, x1, y, x, hstep, -nstp);
     }
 #endif
   }
 
+  // std::cout << "GVIntegratorDriver no-steps= " << nstp <<std::endl; 
+  // if( fVerboseLevel > 1 ) printf( "GVIntegratorDriver no-steps= %d\n", nstp);
+
 #ifdef GUDEBUG_FIELD
   if( dbg && no_warnings )
   {
-    std::cerr << "GVIntegratorDriver exit status: no-steps " << nstp <<std::endl;
+    std::cerr << "GUIntegratorDriver exit status: no-steps " << nstp <<std::endl;
     PrintStatus( yEnd, x1, y, x, hstep, nstp);
   }
+#endif
+
+#ifdef GVFLD_STATS
+  constexpr int NumCallsPerReport= 1000000;
+  if( fNoTotalSteps % NumCallsPerReport == 0 ) PrintStatisticsReport();
 #endif
 
   // No longer relevant -- IntDriver does not control charge anymore
@@ -466,23 +511,25 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::WarnSmallStepSize( double hnext, double hstep, 
-                                    double h, double xDone,
-                                    int nstp)
+GUIntegrationDriver::WarnSmallStepSize( double hnext,
+                                        double hstep, 
+                                        double h,
+                                        double xDone,
+                                        int nstp)
 {
   static int noWarningsIssued =0;   // thread_local
   const  int maxNoWarnings =  10;   // Number of verbose warnings
   // std::ostringstream message;
   // typedef std::cerr message;
-  std::cerr << " WARNING from GUIntegrationDriver::WarnSmallStepSize() " << std::endl;
+  std::cerr << " WARNING from GUIntegrationDriver::WarnSmallStepSize():  " ; // << std::endl;
   if( (noWarningsIssued < maxNoWarnings) || fVerboseLevel > 10 )
   {
     std::cerr << "The stepsize for the next iteration, " << hnext
             << ", is too small - in Step number " << nstp << "." << std::endl
-            << "The minimum for the driver is " << GetHmin()  << std::endl
-            << "Requested integr. length was " << hstep << " ." << std::endl
-            << "The size of this sub-step was " << h     << " ." << std::endl
-            << "The integrations has already gone " << xDone;
+              << "The minimum for the driver is " << GetHmin() << " "  // << std::endl
+              << "Requested integr. length was " << hstep << " ." << std::endl
+              << "The size of this sub-step was " << h     << " ." // << std::endl
+              << " Integration has already done length= " << xDone << std::endl;
   }
   else
   {
@@ -500,18 +547,27 @@ GUIntegrationDriver::WarnSmallStepSize( double hnext, double hstep,
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::WarnTooManyStep( double x1start, 
+GUIntegrationDriver::WarnTooManySteps( double x1start, 
                                   double x2end, 
                                   double xCurrent)
 {
    // std::ostringstream message;
-   std::cerr << "WARNING from GUIntegrationDriver::WarnTooManyStep()" << std::endl;
+   std::cerr << "WARNING from GUIntegrationDriver::WarnTooManySteps()" << std::endl;
    std::cerr << "The number of steps used in the Integration driver"
              << " (Runge-Kutta) is too many." << std::endl
-             << "Integration of the interval was not completed !" << std::endl
-             << "Only a " << (xCurrent-x1start)*100/(x2end-x1start)
-             << " % fraction of it was done." << std::endl;
-   // G4Exception("GUIntegrationDriver::WarnTooManyStep()", "GeomField1001",
+             << "Integration of the interval was not completed !" << std::endl;
+
+   unsigned int oldPrec= std::cerr.precision(16);
+   
+   std::cerr << "Only a " << (xCurrent-x1start)*100.0/(x2end-x1start)
+             << " % fraction of it was done.";
+   // std::cerr.setf (std::ios_base::scientific);
+   // std::cerr.precision(4);
+   std::cerr << "Remaining fraction= " << (x2end-xCurrent)*100.0/(x2end-x1start)      
+             << std::endl;
+   // std::cerr.unsetf (std::ios_base::scientific);
+   std::cerr.precision(oldPrec);
+   // G4Exception("GUIntegrationDriver::WarnTooManySteps()", "GeomField1001",
    //             JustWarning, message);
 }
 
@@ -519,9 +575,9 @@ GUIntegrationDriver::WarnTooManyStep( double x1start,
 
 void
 GUIntegrationDriver::WarnEndPointTooFar (double endPointDist, 
-                                     double   h , 
-                                     double  eps,
-                                     int     dbg)
+                                         double   h , 
+                                         double  epsilon,
+                                         int     dbg)
 {
   static  double maxRelError=0.0; // thread_local
   bool isNewMax, prNewMax;
@@ -531,14 +587,14 @@ GUIntegrationDriver::WarnEndPointTooFar (double endPointDist,
   if( isNewMax ) { maxRelError= endPointDist / h - 1.0; }
 
   if( dbg && (h > fSurfaceTolerance) 
-          && ( (dbg>1) || prNewMax || (endPointDist >= h*(1.+eps) ) ) )
+          && ( (dbg>1) || prNewMax || (endPointDist >= h*(1.+epsilon) ) ) )
   { 
     static int noWarnings = 0;  // thread_local
     // std::ostringstream message;
     std::cerr << "WARNING in GUIntegrationDriver::WarnEndPointTooFar()" << std::endl;
     if( (noWarnings ++ < 10) || (dbg>2) )
     {
-      std::cerr << "The integration produced an end-point which " << std::endl
+      std::cerr << "The integration produced an end-point which "
               << "is further from the start-point than the curve length."
               << std::endl;
     }
@@ -546,7 +602,7 @@ GUIntegrationDriver::WarnEndPointTooFar (double endPointDist,
               << ", curve length = " << h << std::endl
               << "  Difference (curveLen-endpDist)= " << (h - endPointDist)
               << ", relative = " << (h-endPointDist) / h 
-              << ", epsilon =  " << eps << std::endl;
+              << ", epsilon =  " << epsilon << std::endl;
     // G4Exception("GUIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
     //             JustWarning, message);
   }
@@ -555,7 +611,7 @@ GUIntegrationDriver::WarnEndPointTooFar (double endPointDist,
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
+GUIntegrationDriver::OneGoodStep(  double y[],        // InOut
                              const double dydx[],
                                    double& x,         // InOut
                                    double htry,
@@ -582,6 +638,9 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
 
   double yerr[GUFieldTrack::ncompSVEC], ytemp[GUFieldTrack::ncompSVEC];
 
+  // bool verbose= false; // true;
+  // if( verbose ) std::cout << "OneGoodStep called with htry= " << htry << std::endl;
+  
   h = htry ; // Set stepsize to the initial trial value
 
   double inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
@@ -603,6 +662,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
   {
     tot_no_trials++;
     fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr);
+    // fStepperCalls++;
     //          *********************
     double eps_pos = eps_rel_max * std::max(h, fMinimumStep);  // Uses remaining step 'h'
     double inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
@@ -627,6 +687,17 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
     errmom_sq *= inv_eps_vel_sq;
     errmax_sq = std::max( errpos_sq, errmom_sq ); // Square of maximum error
 
+#ifdef  GUDEBUG_FIELD
+    // if(fVerboseLevel>2)
+    // {
+       std::cout << "GUIntDrv: 1-good-step - iter = " << iter << " "
+                 << "Errors: pos = " << std::sqrt(errpos_sq)
+                 <<  " mom = " << std::sqrt(errmom_sq)
+                 << std::endl;
+       PrintStatus( y, x, ytemp, x+h, h, iter);
+       // }
+#endif
+    
     // if( hasSpin )
     // { 
     //    // Accuracy for spin
@@ -657,6 +728,10 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
     }
   }
 
+  // if( verbose ) {
+  //    printf("GUIntDrv: 1-good-step - Loop done at iter = %d \n", iter);
+  // }
+        
 #ifdef GVFLD_STATS
   // Sum of squares of position error // and momentum dir (underestimated)
   fSumH_lg += h; 
@@ -671,7 +746,7 @@ GUIntegrationDriver::OneGoodStep(      double y[],        // InOut
   }
   else
   {
-    hnext = max_stepping_increase*h ; // No more than a factor of 5 increase
+    hnext = fMaxSteppingIncrease*h ; // No more than a factor of 5 increase
   }
   x += (hdid = h);
 
@@ -690,7 +765,9 @@ bool  GUIntegrationDriver::QuickAdvance(
                             GUFieldTrack& y_posvel,         // INOUT
                             const double     dydx[],  
                                   double     hstep,       // In
+#ifdef USE_DCHORD
                                   double&    dchord_step,
+#endif
                                   double&    dyerr_pos_sq,
                                   double&    dyerr_mom_rel_sq )  
 {
@@ -711,9 +788,11 @@ bool  GUIntegrationDriver::QuickAdvance(
   fpStepper-> StepWithErrorEstimate(yarrin, dydx, hstep, yarrout, yerr_vec) ; 
   //          *********************
 
+#ifdef USE_DCHORD  
   // Estimate curve-chord distance
   dchord_step= fpStepper-> DistChord();
   //                       *********
+#endif
 
   // Put back the values.  yarrout ==> y_posvel
   y_posvel.LoadFromArray( yarrout, fNoIntegrationVariables );
@@ -742,7 +821,7 @@ bool  GUIntegrationDriver::QuickAdvance(
 #ifdef RETURN_A_NEW_STEP_LENGTH
   // The following step cannot be done here because "eps" is not known.
   dyerr_len = std::sqrt( dyerr_len_sq ); 
-  dyerr_len_sq /= eps ;
+  dyerr_len_sq /= epsilon ;
 
   // Look at the velocity deviation ?
   //  SQR(yerr_vec[3])+SQR(yerr_vec[4])+SQR(yerr_vec[5]));
@@ -809,7 +888,7 @@ GUIntegrationDriver::ComputeNewStepSize(
     hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerGrow()) ;
   } else {
     // if error estimate is zero (possible) or negative (dubious)
-    hnew = max_stepping_increase * hstepCurrent; 
+    hnew = fMaxSteppingIncrease * hstepCurrent; 
   }
 
   return hnew;
@@ -835,9 +914,9 @@ GUIntegrationDriver::ComputeNewStepSize_WithinLimits(
     // Step failed; compute the size of retrial Step.
     hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerShrink()) ;
   
-    if (hnew < max_stepping_decrease*hstepCurrent)
+    if (hnew < fMaxSteppingDecrease*hstepCurrent)
     {
-      hnew = max_stepping_decrease*hstepCurrent ;
+      hnew = fMaxSteppingDecrease*hstepCurrent ;
                          // reduce stepsize, but no more
                          // than this factor (value= 1/10)
     }
@@ -848,7 +927,7 @@ GUIntegrationDriver::ComputeNewStepSize_WithinLimits(
     if (errMaxNorm > fErrcon)
      { hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerGrow()); }
     else  // No more than a factor of 5 increase
-     { hnew = max_stepping_increase * hstepCurrent; }
+     { hnew = fMaxSteppingIncrease * hstepCurrent; }
   }
   return hnew;
 }
@@ -866,8 +945,7 @@ void GUIntegrationDriver::PrintStatus( const double*   StartArr,
   //                                 stepTaken(hdid)  - last step taken
   //                                 nextStep (hnext) - proposal for size
 {
-   GUFieldTrack  StartFT(ThreeVector(0,0,0),
-                 ThreeVector(0,0,0), 0., 0. );
+   GUFieldTrack  StartFT( ThreeVector(0.,0.,0.), ThreeVector(0.,0.,0.), 0. );
    GUFieldTrack  CurrentFT (StartFT);
 
    StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
@@ -1039,13 +1117,14 @@ void GUIntegrationDriver::PrintStatisticsReport()
 
 #ifdef GVFLD_STATS
   std::cout << "MID dyerr: " 
-         << " maximum= " << fDyerr_max 
-         << " Sum small= " << fDyerrPos_smTot 
-         << " std::sqrt(Sum large^2): pos= " << std::sqrt(fDyerrPos_lgTot)
-         << " vel= " << std::sqrt( fDyerrVel_lgTot )
-         << " Total h-distance: small= " << fSumH_sm 
-         << " large= " << fSumH_lg
-         << std::endl;
+            << " maximum pos= " << std::sqrt(fDyerrPosMaxSq)
+            << " maximum vel= " << std::sqrt(fDyerrDirMaxSq)
+            << " Sum small= " << fDyerrPos_smTot 
+            << " std::sqrt(Sum large^2): pos= " << std::sqrt(fDyerrPos_lgTot)
+            << " vel= " << std::sqrt( fDyerrVel_lgTot )
+            << " Total h-distance: small= " << fSumH_sm 
+            << " large= " << fSumH_lg
+            << std::endl;
 
 #if 0
   int noPrecSmall=4; 
@@ -1056,8 +1135,8 @@ void GUIntegrationDriver::PrintStatisticsReport()
          << "  "  <<  fNoSmallSteps
          << "  "  << fNoSmallSteps-fNoInitialSmallSteps
          << "  "  << fNoBadSteps         
-         << "   " << fDyerr_max
-         << "   " << fDyerr_mx2 
+         << "   " << DyerrPosMaxSq
+         << "   " << DyerrPosMaxSq_vel 
          << "   " << fDyerrPos_smTot 
          << "   " << fSumH_sm
          << "   " << fDyerrPos_lgTot

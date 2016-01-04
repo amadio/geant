@@ -20,6 +20,8 @@
 #include "ExN03DetectorConstruction.h"
 #include "ExternalFramework.h"
 
+// #include "UserDetectorConstruction.h"
+
 using namespace Geant;
 
 static int n_events = 50;
@@ -65,7 +67,8 @@ int main(int argc, char *argv[]) {
   std::string exn03_geometry_filename("ExN03.root");
   std::string xsec_filename("xsec_FTFP_BERT.root");
   std::string fstate_filename("fstate_FTFP_BERT.root");
-
+  bool useRungeKutta= false;
+  
   if (argc == 1) {
     help();
     exit(0);
@@ -74,7 +77,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "e:f:g:l:B:m:b:t:x:r:i:u:p:v:n:", options, &optidx);
+    c = getopt_long(argc, argv, "e:f:g:l:B:m:b:t:x:r:i:u:p:v:n:K", options, &optidx);
 
     if (c == -1)
       break;
@@ -150,6 +153,10 @@ int main(int argc, char *argv[]) {
 
     case 'u':
       n_reuse = (int)strtol(optarg, NULL, 10);
+
+    case 'K':
+      useRungeKutta = true;
+
       break;
 
     case 'p':
@@ -218,6 +225,19 @@ int main(int argc, char *argv[]) {
   config->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
   config->fEmin = 3.E-6; // [3 KeV] energy cut
   config->fEmax = 0.3;  // [300MeV] used for now to select particle gun energy
+
+  //  Enable use of RK integration in field for charged particles
+  config->fUseRungeKutta = useRungeKutta;
+  config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
+
+  UserDetectorConstruction* detectorCt= new UserDetectorConstruction();
+  float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
+  detectorCt->UseConstantMagField( fieldVec, "kilogauss" );
+  printf("runApp: Setting generic detector-construction to GeantPropagator - to create field.\n");
+  propagator->SetUserDetectorConstruction(detectorCt);
+  
+  // printf("Calling CreateFieldAndSolver from runCMS_new.C");
+  // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase

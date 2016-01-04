@@ -1,0 +1,518 @@
+#ifndef _MAGFIELD_H_
+#define _MAGFIELD_H_
+
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <stdlib.h>
+#include "base/Vector3D.h"
+#include "base/SOA3D.h"
+#include "base/Global.h"
+#include <Vc/Vc>
+#include "backend/vc/Backend.h"
+#include "backend/Backend.h"
+#include <cassert>
+#include <ctime>
+//#include "/home/ananya/Softwares/iaca-lin64/include/iacaMarks.h" 
+using namespace std;
+
+typedef vecgeom::Vector3D<vecgeom::kVc::precision_v> Vector3D;
+#define FAST 
+
+
+
+#ifdef FAST 
+#define INLINE_CHOICE inline __attribute__ ((always_inline))
+#endif
+#ifndef FAST
+#define INLINE_CHOICE __attribute__ ((noinline))
+#endif
+
+
+struct Mag3{
+public:
+    double Br   =0.;
+    double Bz   =0.;
+    double Bphi =0.;
+public:
+    void SetBr(double a){
+        Br = a;
+    }
+
+    void SetBz(double a){
+        Bz = a;
+    }
+
+    void SetBphi(double a){
+        Bphi=a;
+    }
+
+    double GetBr(){
+        return Br;
+    }
+
+    double GetBz(){
+        return Bz;
+    }
+
+    double GetBphi(){
+        return Bphi;
+    }
+};
+
+
+class MagField
+{
+public:
+    MagField();
+    
+    //New stuff 
+    //Takes as input x,y,z; Gives output Bx,By,Bz
+    template <class Backend>
+    void GetFieldValue(const vecgeom::Vector3D<typename Backend::precision_v> &pos, 
+                             vecgeom::Vector3D<typename Backend::precision_v> &xyzField);
+
+    //Reads data from given 2D magnetic field map. Can be easily modified to read a given 2D map, in case the file changes
+    void ReadVectorData(std::string inputMap);
+    
+    void GiveGatherFieldTime();
+    
+    ~MagField();
+
+private:
+    //  Invariants -- parameters of the field 
+    const double millimeter = 1.0;             // Currently -- to be native GeantV
+
+    const double kRMax=  9000. * millimeter;   //  Maximum value of R =  9.00 meters
+    const double kZMax= 16000. * millimeter;   //  Max value of Z = 16.00 meters
+    const int kNoZValues = 161;
+    const int kNoRValues = 181;
+    const int kHalfZValues = 80;
+
+    // Derived values
+    //kRDiff and kZDiff take care of mm because they come from kRMax and kZMax which have mm in them
+    const double kRDiff = kRMax/(kNoRValues-1);   //  Radius increment between lattice points
+    const double kZDiff = 2*kZMax/(kNoZValues-1); //  Z increment
+
+    const double kZ0 = -kZMax;
+    const double kRDiffInv = 1.0/kRDiff;
+    const double kZDiffInv = 1.0/kZDiff;
+    const double kAInverse = 1/(kRDiff*kZDiff);
+
+    float fGatherFieldTime=0.;
+
+    //For (R,Z) pairs : gives field in cylindrical coordinates in rzfield
+    template <class Backend>
+    void GetFieldValueRZ(const typename Backend::precision_v &radius,
+                         const typename Backend::precision_v      &z, 
+                         vecgeom::Vector3D<typename Backend::precision_v> &rzField); 
+
+    //Used to convert cartesian coordinates to cylindrical coordinates R-Z-phi
+    //Does not calculate phi
+    template <class Backend>
+    void CartesianToCylindrical(const vecgeom::Vector3D<typename Backend::precision_v> &cart, 
+                                                        typename Backend::precision_v cyl[2]);
+
+    //Converts cylindrical magnetic field to field in cartesian coordinates 
+    template <class Backend>
+    void CylindricalToCartesian(const vecgeom::Vector3D<typename Backend::precision_v> &rzField, 
+                                                   const typename Backend::precision_v sinTheta, 
+                                                   const typename Backend::precision_v cosTheta, 
+                                     vecgeom::Vector3D<typename Backend::precision_v> &xyzField);
+
+    //Takes care of indexing into multiple places in stl vector
+    template <class Backend>
+    void GatherField(const typename Backend::Index_t  index, 
+                           typename Backend::Double_t   &Br, 
+                           typename Backend::Double_t &Bphi, 
+                           typename Backend::Double_t   &Bz);
+
+    template<class Backend>
+    void GatherField2(const typename Backend::Index_t  index, 
+                           typename Backend::Double_t   &Br1, 
+                           typename Backend::Double_t &Bphi1, 
+                           typename Backend::Double_t   &Bz1,
+                           typename Backend::Double_t   &Br2, 
+                           typename Backend::Double_t &Bphi2, 
+                           typename Backend::Double_t   &Bz2);
+
+    // template <class Backend>
+    // void RealGather(const typename Backend::Index_t index, 
+    //                        typename Backend::Double_t  &B);
+
+
+private: 
+    std::vector<double> fRadius, fPhi, fZ, fBr, fBz, fBphi;
+    //std::vector<std::vector<double> > fAOS;
+    Mag3 *fAOS = new Mag3[30000];
+
+};
+
+
+
+MagField::MagField(){
+
+}
+
+MagField::~MagField(){
+    
+}
+
+void MagField::GiveGatherFieldTime(){
+    cout<<"Time taken by gatherfield functions is: "<<fGatherFieldTime<<endl;
+}
+
+INLINE_CHOICE
+void MagField::ReadVectorData(std::string inputMap){
+    std::string line;
+    std::string s1,s2,s3,s4,s5,s0;
+    double d1,d2,d3,d4,d5,d0;
+    int ind =0;
+    ifstream pFile(inputMap);
+    if (pFile.is_open()){
+        // getline() returns the stream. testing the stream with while returns error such as EOF
+        while(getline(pFile,line)){
+             // so here we know that the read was a success and that line has valid data
+            stringstream ss(line);
+            //parsing all the parts. s0's store the string names which are of no use to us. 
+            ss>> s0>> d1>> s1>> d0>> s2>> d2>> s3>> d3>> s4>> d4>> s5>> d5;
+            fRadius.push_back(d1);
+            fPhi.push_back(d0);
+            fZ.push_back(d2);
+            fBz.push_back(d3);
+            fBr.push_back(d4);
+            fBphi.push_back(d5);
+            vector<double> temp;
+            // temp.push_back(d4);
+            // temp.push_back(d5);
+            // temp.push_back(d3);
+            // fAOS.push_back(temp); //Storing as [Br,Bphi,Bz] in one tuple 
+
+            fAOS[ind].SetBr(d4);
+            fAOS[ind].SetBphi(d5);
+            fAOS[ind].SetBz(d3);
+            ind++;
+        }
+        pFile.close();
+
+        // for (int i = 0; i < 200; ++i)
+        // {
+        //     //pushing in extra vectors initialized to zero
+        //     //because indexed into one absent row (29141)
+        //     vector<double> temp(3,0.);
+        //     fAOS.push_back(temp);
+        // }
+    }
+    else{
+        cout<<"Unable to open file";
+    }
+
+    //cout<<fAOS[29330].GetBr()<<endl;
+
+
+}
+
+
+template <class Backend>
+INLINE_CHOICE
+void MagField::CartesianToCylindrical(const vecgeom::Vector3D<typename Backend::precision_v> &cart, 
+                                                               typename Backend::precision_v cyl[2])
+{
+
+    //cyl[] =[r,z]
+    cyl[0] = sqrt(cart.x()*cart.x() + cart.y()*cart.y()); // r = sqrt(x^2 + y^2)
+    cyl[1] = cart.z(); //z = z 
+}
+
+template <class Backend>
+INLINE_CHOICE
+void MagField::CylindricalToCartesian(const vecgeom::Vector3D<typename Backend::precision_v> &rzField, 
+                                                         const typename Backend::precision_v sinTheta, 
+                                                         const typename Backend::precision_v cosTheta, 
+                                           vecgeom::Vector3D<typename Backend::precision_v> &xyzField)
+{
+    //rzField[] has r, phi and z
+
+    xyzField.x() = rzField.x()*cosTheta - rzField.y()*sinTheta; // Bx= Br cos(theta) - Bphi sin(theta)
+    xyzField.y() = rzField.x()*sinTheta + rzField.y()*cosTheta; //By = Br sin(theta) + Bphi cos(theta)
+    xyzField.z() = rzField.z();   //Bz = Bz 
+}
+
+// Scalar Backend method 
+template <class Backend>
+INLINE_CHOICE 
+void MagField::GatherField(const typename Backend::Index_t index, 
+                                 typename Backend::Double_t  &Br, 
+                                 typename Backend::Double_t &Bphi, 
+                                 typename Backend::Double_t  &Bz)
+{
+    int intIndex= (int) index;
+    // Br   = fBr  [intIndex];
+    // Bphi = fBphi[intIndex];
+    // Bz   = fBz  [intIndex];
+    // Br   = fAOS[intIndex][0];
+    // Bphi = fAOS[intIndex][1];
+    // Bz   = fAOS[intIndex][2];
+    Br   = fAOS[intIndex].GetBr();
+    Bphi = fAOS[intIndex].GetBphi();
+    Bz   = fAOS[intIndex].GetBz();
+
+}
+
+
+// Vc Backend method 
+template<>
+INLINE_CHOICE
+void MagField::GatherField<vecgeom::kVc>(const typename vecgeom::kVc::Index_t index, 
+                                               typename vecgeom::kVc::Double_t  &Br, 
+                                               typename vecgeom::kVc::Double_t &Bphi, 
+                                               typename vecgeom::kVc::Double_t  &Bz){
+  //gather for alias table lookups - (backend type has no ptr arithmetic)
+  //vecgeom::kVectorSize == vecphys::kVc::kSize
+  for(int i = 0; i < vecgeom::kVectorSize ; ++i) 
+  {
+    int ind = index[i];
+    assert(ind>=0);
+    //Say index has 5 indices a,b,c,d,e i.e. 5 particles
+    //ind=a.  Now for first particle, need to fill probNA with Br[a.. .. e]
+    //so say
+    Br  [i]   = fAOS[ind].GetBr();
+    Bphi[i]   = fAOS[ind].GetBphi();
+    Bz  [i]   = fAOS[ind].GetBz();
+    // Br  [i]   = fAOS[ind][0];
+    // Bphi[i]   = fAOS[ind][1];
+    // Bz  [i]   = fAOS[ind][2];
+    // Br  [i]   = fBr  [ind];
+    // Bphi[i]   = fBphi[ind];
+    // Bz  [i]   = fBz  [ind];
+
+  }
+}
+
+// Scalar Backend method 
+template <class Backend>
+INLINE_CHOICE
+void MagField::GatherField2(const typename Backend::Index_t index, 
+                                 typename Backend::Double_t   &Br1, 
+                                 typename Backend::Double_t &Bphi1, 
+                                 typename Backend::Double_t   &Bz1,
+                                 typename Backend::Double_t   &Br2, 
+                                 typename Backend::Double_t &Bphi2, 
+                                 typename Backend::Double_t   &Bz2)
+{
+    int intIndex1= (int) index;
+    int intIndex2= intIndex1 +1;
+    Br1   = fAOS[intIndex1].GetBr();
+    Bphi1 = fAOS[intIndex1].GetBphi();
+    Bz1   = fAOS[intIndex1].GetBz();
+    Br2   = fAOS[intIndex2].GetBr();
+    Bphi2 = fAOS[intIndex2].GetBphi();
+    Bz2   = fAOS[intIndex2].GetBz();
+    // Br1   = fAOS[intIndex1][0];
+    // Bphi1 = fAOS[intIndex1][1];
+    // Bz1   = fAOS[intIndex1][2];
+    // Br2   = fAOS[intIndex2][0];
+    // Bphi2 = fAOS[intIndex2][1];
+    // Bz2   = fAOS[intIndex2][2];
+    // Br1   = fBr  [intIndex1];
+    // Br2   = fBr  [intIndex2];
+    // Bphi1 = fBphi[intIndex1];
+    // Bphi2 = fBphi[intIndex2];
+    // Bz1   = fBz  [intIndex1];
+    // Bz2   = fBz  [intIndex2];
+}
+
+
+// Vc Backend method 
+template<>
+INLINE_CHOICE
+void MagField::GatherField2<vecgeom::kVc>(const typename vecgeom::kVc::Index_t index, 
+                                               typename vecgeom::kVc::Double_t   &Br1, 
+                                               typename vecgeom::kVc::Double_t &Bphi1, 
+                                               typename vecgeom::kVc::Double_t   &Bz1,
+                                               typename vecgeom::kVc::Double_t   &Br2, 
+                                               typename vecgeom::kVc::Double_t &Bphi2, 
+                                               typename vecgeom::kVc::Double_t   &Bz2)
+{
+  //gather for alias table lookups - (backend type has no ptr arithmetic)
+  //vecgeom::kVectorSize == vecphys::kVc::kSize
+  for(int i = 0; i < vecgeom::kVectorSize ; ++i) 
+  {
+    int ind1 = index[i];
+    int ind2 = ind1 + 1;
+    assert(ind1>=0);
+    assert(ind2>=0);
+    //Say index has 5 indices a,b,c,d,e i.e. 5 particles
+    //ind=a.  Now for first particle, need to fill probNA with Br[a.. .. e]
+    //so say
+    Br1  [i]   = fAOS[ind1].GetBr();
+    Bphi1[i]   = fAOS[ind1].GetBphi();
+    Bz1  [i]   = fAOS[ind1].GetBz();
+    Br2  [i]   = fAOS[ind2].GetBr();
+    Bphi2[i]   = fAOS[ind2].GetBphi();
+    Bz2  [i]   = fAOS[ind2].GetBz();
+    // Br1  [i]   = fAOS[ind1][0];
+    // Bphi1[i]   = fAOS[ind1][1];
+    // Bz1  [i]   = fAOS[ind1][2];
+    // Br2  [i]   = fAOS[ind2][0];
+    // Bphi2[i]   = fAOS[ind2][1];
+    // Bz2  [i]   = fAOS[ind2][2];
+    // Br1  [i]   = fBr  [ind1];
+    // Br2  [i]   = fBr  [ind2];
+    // Bphi1[i]   = fBphi[ind1];
+    // Bphi2[i]   = fBphi[ind2];
+    // Bz1  [i]   = fBz  [ind1];
+    // Bz2  [i]   = fBz  [ind2];
+    
+  }
+}
+
+/*
+// Scalar Backend method 
+template <class Backend>
+INLINE_CHOICE 
+void MagField::RealGather(const typename Backend::Index_t index, 
+                                 typename Backend::Double_t  &B)
+{
+    
+    int intIndex= (int) index;
+    B[0]   = fAOS[intIndex].GetBr();
+    B[1]   = fAOS[intIndex].GetBphi();
+    B[2]   = fAOS[intIndex].GetBz();
+
+}
+
+
+// Vc Backend method 
+template<>
+INLINE_CHOICE
+void MagField::RealGather<vecgeom::kVc>(const typename vecgeom::kVc::Index_t index, 
+                                               typename vecgeom::kVc::Double_t  &B){
+  for(int i = 0; i < vecgeom::kVectorSize ; ++i) 
+  {
+    typedef typename vecgeom::kVc::Int_t Int_t;
+    typedef typename vecgeom::kVc::Double_t tempVecType_t;
+    Int_t ind = (Int_t) index; 
+    tempVecType_t v1, v2, v3;
+    v1.gather(fAOS, fAOS::Br, ind);
+    v2.gather(fAOS, Bphi, ind);
+    v3.gather(fAOS, Bz, ind);
+    B[0] = &v1;
+    B[1] = &v2;
+    B[2] = &v3;
+  }
+}
+*/
+
+template <class Backend>
+INLINE_CHOICE
+void MagField::GetFieldValueRZ(const typename Backend::precision_v &r, 
+                               const typename Backend::precision_v &Z, 
+                               vecgeom::Vector3D<typename Backend::precision_v> &rzField)
+{
+
+    typedef typename Backend::precision_v Double_t;
+    typedef typename Backend::Index_t     Index_t;
+
+    //Take care that radius and z for out of limit values take values at end points 
+    Double_t radius = min(r, kRMax);
+    Double_t z = max(min(Z, kZMax), -kZMax); 
+
+    //to make sense of the indices, consider any particular instance e.g. (25,-200)
+    Index_t rFloor = floor(radius*kRDiffInv);
+    Index_t rIndLow = rFloor*kNoZValues;
+    Index_t rIndHigh = rIndLow + kNoZValues;
+
+    //if we use z-z0 in place of two loops for Z<0 and Z>0
+    //z-z0 = [0,32000]
+    //so indices 0 to 160 : total 161 indices for (z-z0)/200
+    //i.e. we are saying:
+    Index_t zInd = floor((z-kZ0)*kZDiffInv);
+    //need i1,i2,i3,i4 for 4 required indices
+    Index_t i1 = rIndLow + zInd;
+    Index_t i2 = i1 + 1;
+    Index_t i3 = rIndHigh + zInd;
+    Index_t i4 = i3 + 1;
+    Double_t zLow = (zInd- kHalfZValues)*kZDiff; //80 because it's the middle index in 0 to 160
+    Double_t zHigh = zLow + kZDiff;
+    Double_t radiusLow = rFloor*kRDiff;
+    Double_t radiusHigh = radiusLow + kRDiff;
+
+    Double_t a1 = (radiusHigh - radius)*(zHigh - z); //area to be multiplied with i1
+    Double_t a2 = (radiusHigh - radius)*(z - zLow);
+    Double_t a3 = (radius - radiusLow)*(zHigh - z);
+    Double_t a4 = (radius - radiusLow)*(z- zLow);
+
+    Double_t Br1, Bphi1, Bz1; //, Null1;
+    Double_t Br2, Bphi2, Bz2; //, Null2;
+    Double_t Br3, Bphi3, Bz3;//, Null3;
+    Double_t Br4, Bphi4, Bz4;//, Null4;
+    //clock_t c = clock();
+
+    GatherField<Backend>(i1, Br1, Bphi1, Bz1);
+    GatherField<Backend>(i2, Br2, Bphi2, Bz2);
+    GatherField<Backend>(i3, Br3, Bphi3, Bz3);
+    GatherField<Backend>(i4, Br4, Bphi4, Bz4);
+
+    // GatherField2<Backend>(i1, Br1, Bphi1, Bz1, Br2, Bphi2, Bz2);
+    // GatherField2<Backend>(i3, Br3, Bphi3, Bz3, Br4, Bphi4, Bz4);
+    // c = clock() - c;
+    // fGatherFieldTime += ((float)c)/CLOCKS_PER_SEC;
+
+    Double_t BR   = (Br1  *a1 + Br2  *a2 + Br3  *a3 + Br4  *a4)*kAInverse;
+    Double_t BZ   = (Bz1  *a1 + Bz2  *a2 + Bz3  *a3 + Bz4  *a4)*kAInverse;
+    Double_t BPhi = (Bphi1*a1 + Bphi2*a2 + Bphi3*a3 + Bphi4*a4)*kAInverse;
+
+    // Double_t B1[3], B2[3], B3[3], B4[3];
+    // RealGather<Backend>(i1, B1);
+    // RealGather<Backend>(i2, B2);
+    // RealGather<Backend>(i3, B3);
+    // RealGather<Backend>(i4, B4);
+
+    // Double_t BR   = (B1[0]  *a1 + B2[0]  *a2 + B3[0]  *a3 + B4[0]  *a4)*kAInverse;
+    // Double_t BPhi = (B1[1]  *a1 + B2[1]  *a2 + B3[1]  *a3 + B4[1]  *a4)*kAInverse;
+    // Double_t BZ   = (B1[2]  *a1 + B2[2]  *a2 + B3[2]  *a3 + B4[2]  *a4)*kAInverse;
+
+
+    rzField.x()= BR;
+    rzField.y()= BPhi;
+    rzField.z()= BZ;
+}
+
+
+template <class Backend>
+//INLINE_CHOICE
+__attribute__ ((noinline))
+//Sidenote: For theta =0; xyzField = rzField. 
+//theta =0 corresponds to y=0
+
+//IACA_START
+void MagField::GetFieldValue(const vecgeom::Vector3D<typename Backend::precision_v> &pos, 
+                                   vecgeom::Vector3D<typename Backend::precision_v> &xyzField)
+{
+
+    typedef typename Backend::precision_v Double_t;
+    typedef typename Backend::bool_v      Bool_t;
+
+    Double_t cyl[2];
+    CartesianToCylindrical<Backend>(pos, cyl); 
+    vecgeom::Vector3D<Double_t> rzField;
+    GetFieldValueRZ<Backend>(cyl[0], cyl[1], rzField); //cyl[2] =[r,z]
+    
+    Double_t sinTheta(0.0), cosTheta(1.0); //initialize as theta=0
+    //To take care of r =0 case 
+
+    //MaskedAssign(cond, value , var );
+    //where cond is Bool_t, value is value calculated, var is the variable taking value 
+    Bool_t cond = (cyl[0] != 0.0); 
+    Double_t rInv = 0.0;
+    vecgeom::MaskedAssign<double>(cond, 1/cyl[0], &rInv);
+    vecgeom::MaskedAssign<double>(cond, pos.y()*rInv, &sinTheta);
+    vecgeom::MaskedAssign<double>(cond, pos.x()*rInv, &cosTheta);
+
+    CylindricalToCartesian<Backend>(rzField, sinTheta, cosTheta, xyzField);
+}
+//IACA_END
+
+#endif

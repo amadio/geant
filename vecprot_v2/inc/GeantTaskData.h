@@ -36,6 +36,9 @@ class TRandom;
 #include "base/RNG.h"
 #endif
 
+class GUFieldPropagator;
+class GUVField;
+
 /**
  * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
@@ -115,6 +118,11 @@ public:
   int fNkilled = 0;      /** Total number of tracks killed */
 
   geantphysics::PhysicsData  *fPhysicsData = nullptr; /** Physics data per thread */
+  GUVField           *fFieldObj;             // To get value of the field!
+  vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
+  double                     fBfieldMag;     // Magnitude of field for current track - or for const field
+  bool                       fBfieldIsConst; // Flag - is the B field constant ?
+  GUFieldPropagator       *fFieldPropagator; // For RK integration of charged particle propagation
 
 private:
   UserDataVect_t fUserData;                /** User-defined data pointers */

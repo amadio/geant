@@ -48,6 +48,7 @@ class TClassicalRK4 : public  TMagErrorStepper
     
     // A stepper that does not know about errors.
     // It is used by the MagErrorStepper stepper.
+    inline
     void  StepWithoutErrorEst( const double  yIn[],
                                const double  dydx[],
                                double  h,
@@ -128,7 +129,6 @@ static constexpr double inv6=1./6;
 template <class T_Equation, unsigned int Nvar>
 #ifdef INLINEDUMBSTEPPER
    GEANT_FORCE_INLINE
-//   __attribute__((always_inline)) 
 #else
 // __attribute__((noinline))
 #endif 
@@ -145,8 +145,9 @@ template <class T_Equation, unsigned int Nvar>
    // NRC p. 712-713 .
 {
    unsigned int i;
-   double  hh = h*0.5 , h6 = h/6.;
-   
+   constexpr double one_sixth= 1.0 / 6.0; 
+   double  hh = h*0.5 , h6 = h * one_sixth; // (1.0/6.0);
+
    // Initialise time to t0, needed when it is not updated by the integration.
    //        [ Note: Only for time dependent fields (usually electric) 
    //                  is it neccessary to integrate the time.] 
@@ -157,20 +158,20 @@ template <class T_Equation, unsigned int Nvar>
    {
       yt[i] = yIn[i] + hh*dydx[i] ;             // 1st Step K1=h*dydx
    }
-   this->RightHandSide(yt,dydxt) ;                   // 2nd Step K2=h*dydxt
+   this->RightHandSide(yt,dydxt) ;              // 2nd Step K2=h*dydxt
    
    for(i=0;i<Nvar;i++)
    { 
       yt[i] = yIn[i] + hh*dydxt[i] ;
    }
-   this->RightHandSide(yt,dydxm) ;                   // 3rd Step K3=h*dydxm
+   this->RightHandSide(yt,dydxm) ;              // 3rd Step K3=h*dydxm
 
    for(i=0;i<Nvar;i++)
    {
       yt[i]   = yIn[i] + h*dydxm[i] ;
       dydxm[i] += dydxt[i] ;                    // now dydxm=(K2+K3)/h
    }
-   this->RightHandSide(yt,dydxt) ;                   // 4th Step K4=h*dydxt
+   this->RightHandSide(yt,dydxt) ;              // 4th Step K4=h*dydxt
    
    for(i=0;i<Nvar;i++)    // Final RK4 output
    {

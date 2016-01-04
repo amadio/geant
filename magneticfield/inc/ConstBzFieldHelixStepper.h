@@ -5,21 +5,15 @@
  *      Author: swenzel
  */
 
-#ifndef CONSTFIELDHELIXSTEPPER_H_
-#define CONSTFIELDHELIXSTEPPER_H_
+#ifndef CONSTBzFIELDHELIXSTEPPER_H_
+#define CONSTBzFIELDHELIXSTEPPER_H_
 
 #include "Geant/Config.h"
 
-// add the sincos function on MAC because sincos is not part of math.h
-#if defined(__APPLE__) & !defined(NVCC)  // possibly other conditions
-inline
-void sincos(double x, double *s, double *c) {
-  __sincos(x,s,c);
-}
-#endif
+#include "GFldAuxFunctions.h"
 
-namespace Geant
-{
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
   /**
   * A very simple stepper treating the propagation of particles in a constant Bz magnetic field
@@ -46,7 +40,7 @@ namespace Geant
         if (charge == 0) return RT(0.);
         return abs( kB2C * fBz * dir.FastInverseScaledXYLength( momentum ) );
       }
-*/
+      */
 
       /**
        * this function propagates the track along the helix solution by a step
@@ -67,10 +61,10 @@ namespace Geant
        /**
         * basket version of dostep
         * version that takes plain arrays as input; suited for current Geant-V
-	* 
-	* SW: for the moment (12.5.2015) commenting this out as not used 
-	*
-	*/
+        *
+        * SW: for the moment (12.5.2015) commenting this out as not used 
+        *
+        */
        //void DoStep_v( double const * /*posx*/, double const * /*posy*/, double const * /*posz*/,
        //               double const * /*dirx*/, double const * /*diry*/, double const * /*dirz*/,
        //              int const * /*charge*/, double const * /*momentum*/, double const * /*step*/,
@@ -203,7 +197,7 @@ namespace Geant
    //TODO: above stepper is tailored/specialized to B=(0,0,Bz) in the global frame of reference
    // might need to provide more general class in which the constant field has arbitrary direction
 
-
+} // GEANT_IMPL_NAMESPACE
 } // end geant namespace
 
 #endif /* CONSTFIELDHELIXSTEPPER_H_ */

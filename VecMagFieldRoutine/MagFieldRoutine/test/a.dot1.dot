@@ -1,0 +1,124 @@
+digraph IacaAnalysisGraph{
+0 [label="0. mov dword ptr [ebp-0x2c], 0xa", style=filled, color=cyan]
+1 [label="1. dec eax", style=filled, color=cyan]
+2 [label="2. lea edx, ptr [ebp-0x2c]", style=filled, color=cyan]
+3 [label="3. dec eax", style=filled, color=cyan]
+4 [label="4. lea eax, ptr [ebp-0x50]", style=filled, color=cyan]
+5 [label="5. dec eax", style=filled, color=cyan]
+6 [label="6. mov esi, edx", style=filled, color=cyan]
+7 [label="7. dec eax", style=filled, color=cyan]
+8 [label="8. mov edi, eax", style=filled, color=cyan]
+9 [label="9. call 0x222", style=filled, color=cyan]
+10 [label="10. mov dword ptr [ebp-0x28], 0x5", style=filled, color=cyan]
+11 [label="11. dec eax", style=filled, color=cyan]
+12 [label="12. lea edx, ptr [ebp-0x28]", style=filled, color=cyan]
+13 [label="13. dec eax", style=filled, color=cyan]
+14 [label="14. lea eax, ptr [ebp-0x50]", style=filled, color=cyan]
+15 [label="15. dec eax", style=filled, color=cyan]
+16 [label="16. mov esi, edx", style=filled, color=cyan]
+17 [label="17. dec eax", style=filled, color=cyan]
+18 [label="18. mov edi, eax", style=filled, color=cyan]
+19 [label="19. call 0x208", style=filled, color=cyan]
+20 [label="20. dec eax", style=filled, color=cyan]
+21 [label="21. lea eax, ptr [ebp-0x50]", style=filled, color=cyan]
+22 [label="22. dec eax", style=filled, color=cyan]
+23 [label="23. mov edi, eax", style=filled, color=cyan]
+24 [label="24. call 0x278", style=filled, color=cyan]
+25 [label="25. mov eax, dword ptr [eax]", style=filled, color=cyan]
+26 [label="26. mov dword ptr [ebp-0x24], eax", style=filled, color=cyan]
+27 [label="27. mov eax, dword ptr [ebp-0x24]", style=filled, color=cyan]
+28 [label="28. mov esi, eax", style=filled, color=cyan]
+29 [label="29. mov edi, 0x602c80", style=filled, color=cyan]
+30 [label="30. call 0xfffffcb6", style=filled, color=cyan]
+31 [label="31. mov esi, 0x400bb0", style=filled, color=cyan]
+32 [label="32. dec eax", style=filled, color=cyan]
+33 [label="33. mov edi, eax", style=filled, color=cyan]
+34 [label="34. call 0xfffffd59", style=filled, color=cyan]
+35 [label="35. dec eax", style=filled, color=cyan]
+36 [label="36. lea eax, ptr [ebp-0x50]", style=filled, color=cyan]
+37 [label="37. mov esi, 0x1", style=filled, color=cyan]
+38 [label="38. dec eax", style=filled, color=cyan]
+39 [label="39. mov edi, eax", style=filled, color=cyan]
+40 [label="40. call 0x286", style=filled, color=cyan]
+41 [label="41. mov ebx, dword ptr [eax]", style=filled, color=cyan]
+42 [label="42. dec eax", style=filled, color=cyan]
+43 [label="43. lea eax, ptr [ebp-0x50]", style=filled, color=cyan]
+44 [label="44. mov esi, 0x0", style=filled, color=cyan]
+45 [label="45. dec eax", style=filled, color=cyan]
+46 [label="46. mov edi, eax", style=filled, color=cyan]
+47 [label="47. call 0x273", style=filled, color=cyan]
+48 [label="48. mov eax, dword ptr [eax]", style=filled, color=cyan]
+49 [label="49. mov esi, eax", style=filled, color=cyan]
+50 [label="50. mov edi, 0x602c80", style=filled, color=cyan]
+51 [label="51. call 0xfffffc77", style=filled, color=cyan]
+52 [label="52. mov esi, 0x401dd8", style=filled, color=cyan]
+53 [label="53. dec eax", style=filled, color=cyan]
+54 [label="54. mov edi, eax", style=filled, color=cyan]
+55 [label="55. call 0xfffffcea", style=filled, color=cyan]
+56 [label="56. mov esi, ebx", style=filled, color=cyan]
+57 [label="57. dec eax", style=filled, color=cyan]
+58 [label="58. mov edi, eax", style=filled, color=cyan]
+59 [label="59. call 0xfffffc60", style=filled, color=cyan]
+60 [label="60. mov esi, 0x400bb0", style=filled, color=cyan]
+61 [label="61. dec eax", style=filled, color=cyan]
+62 [label="62. mov edi, eax", style=filled, color=cyan]
+63 [label="63. call 0xfffffd03", style=filled, color=cyan]
+64 [label="64. mov esi, 0x401dda", style=filled, color=cyan]
+65 [label="65. mov edi, 0x602c80", style=filled, color=cyan]
+66 [label="66. call 0xfffffcc4", style=filled, color=cyan]
+67 [label="67. mov esi, 0x400bb0", style=filled, color=cyan]
+68 [label="68. dec eax", style=filled, color=cyan]
+69 [label="69. mov edi, eax", style=filled, color=cyan]
+70 [label="70. call 0xfffffce7", style=filled, color=cyan]
+1 -> 3
+4 -> 5
+2 -> 6
+5 -> 7
+7 -> 8
+7 -> 11
+11 -> 13
+14 -> 15
+12 -> 16
+15 -> 17
+17 -> 18
+9 -> 19
+17 -> 20
+21 -> 22
+22 -> 23
+19 -> 24
+22 -> 25
+25 -> 26
+27 -> 28
+24 -> 30
+27 -> 32
+32 -> 33
+30 -> 34
+32 -> 35
+36 -> 38
+38 -> 39
+34 -> 40
+38 -> 41
+38 -> 42
+43 -> 45
+45 -> 46
+40 -> 47
+45 -> 48
+48 -> 49
+47 -> 51
+48 -> 53
+53 -> 54
+51 -> 55
+41 -> 56
+53 -> 57
+57 -> 58
+55 -> 59
+57 -> 61
+61 -> 62
+59 -> 63
+63 -> 66
+61 -> 68
+68 -> 69
+66 -> 70
+68 -> 1
+70 -> 9
+}
