@@ -223,13 +223,23 @@ private:
    * @param callback Callback (by default = 0)
    */
   GeantFactory(int nslots, int blocksize, ProcessHitFunc_t callback = 0)
-      : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs() {
+    : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs(),
+      queue_per_thread(false) {
     // Reserve the space for the block arrays on event slots
     fBlockA = new GeantBlockArray<T> *[fNslots];
     // Check max number of threads
     fNthreads = WorkloadManager::Instance()->GetNthreads();
+
+    //
+    fPoolArray = new deque<GeantBlock<T> *> [fNthreads];
+    fOutputsArray = new deque<GeantBlock<T> *> [fNthreads];
+    
     // Add 2*nclients free blocks (2?)
     AddFreeBlocks(2 * fNthreads);
+    
+    // Add 2(?) free blocks per thread
+    for(int i=0; i<fNthreads; i++) AddFreeBlocks(2, i);
+
     for (int iev = 0; iev < fNslots; iev++) {
       // One block array per slot
       fBlockA[iev] = new GeantBlockArray<T>(fNthreads, blocksize);
@@ -250,6 +260,10 @@ public:
   GeantBlockArray<T> **fBlockA;      /** [fNslots] arrays of data blocks */
   dcqueue<GeantBlock<T> *> fPool;    /** pool of empty/recycled blocks */
   dcqueue<GeantBlock<T> *> fOutputs; /** Pool of filled blocks */
+  
+  bool queue_per_thread;
+  std::deque<GeantBlock<T> *> *fPoolArray;    /** [fNthreads] array of queues (per thread) of empty/recycled blocks */
+  std::deque<GeantBlock<T> *> *fOutputsArray; /** [fNthreads] array of queues (per thread) of filled blocks */
 
   /** @brief GeantFactory destructor */
   ~GeantFactory() {
@@ -280,6 +294,20 @@ public:
   }
 
   /**
+   * @brief Function to add new blocks to the pool for the given thread
+   *
+   * @param nblocks Number of blocks to be added
+   */
+  void AddFreeBlocks(int nblocks, int tid) {
+    for (int i = 0; i < nblocks; i++) {
+      GeantBlock<T> *block = new GeantBlock<T>();
+      block->Initialize(fBlockSize);
+      fPoolArray[tid].push_front(block);
+    }
+  }
+  
+  
+  /**
    * @brief Function for getting the next free block
    *
    * @param slot Event slot id
@@ -288,17 +316,30 @@ public:
   T *NextFree(int slot, int tid) {
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
-      // The last entry in the block was used and filled (by the same thread)
-      fOutputs.push(fBlockA[slot]->At(tid));
-      fPool.wait_and_pop(block);
-      fBlockA[slot]->AddAt(tid, block);
-      // Keep the pool full
-      if (fPool.size_async() < size_t(fNthreads))
-        AddFreeBlocks(fNthreads);
+      // The last entry in the block was used and filled (by the same thread)     
+      if(!queue_per_thread)
+	{
+	  fOutputs.push(fBlockA[slot]->At(tid));
+	  fPool.wait_and_pop(block);
+	  fBlockA[slot]->AddAt(tid, block);
+	  // Keep the pool full
+	  if (fPool.size_async() < size_t(fNthreads))
+	    AddFreeBlocks(fNthreads);
+	}
+      else
+	{
+	  fOutputsArray[tid].push_front(fBlockA[slot]->At(tid));
+	  block = fPoolArray[tid].back();
+	  fPoolArray[tid].pop_back();
+	  fBlockA[slot]->AddAt(tid, block);
+	  // Keep the pool full
+ 	  if (fPoolArray[tid].size() < 2) // (2?)
+	    AddFreeBlocks(fNthreads, tid);
+	}
     }
     return fBlockA[slot]->At(tid)->NextFree();
   }
-
+    
   /**
    * @brief Recycle function
    *
@@ -308,6 +349,17 @@ public:
     block->Clear();
     fPool.push(block);
   }
+  
+  /**
+   * @brief Recycle function for thread-local pool
+   *
+   * @param block Block that should be recycled
+   */
+  void Recycle(GeantBlock<T> *block, int tid) {
+    block->Clear();
+    fPoolArray[tid].push_front(block);
+  }
+ 
 };
 
 #endif
