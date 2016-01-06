@@ -303,20 +303,22 @@ void *WorkloadManager::TransportTracks() {
   prioritizer->SetFeederQueue(feederQ);
 
   // IO handling
-
+  
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite;
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
-  
+
   TThread t;
   TThreadMergingFile file("hits_output.root", wm->IOQueue(), "RECREATE");
   
   TTree *tree = new TTree("Tree","Simulation output");
   GeantBlock<MyHit>* data=0;
-  std::list<GeantBlock<MyHit>* > list_of_data;
 	    
   tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
 
+  // set factory to use thread-local queues
+  if(concurrentWrite) myhitFactory->queue_per_thread = true;
+  
   // Start the feeder
   propagator->Feeder(td);
   Material_t *mat = 0;
@@ -500,13 +502,18 @@ void *WorkloadManager::TransportTracks() {
 
     // WP
     if(concurrentWrite)
-      {
-	if(myhitFactory->fOutputs.try_pop(data))
+      {		    
+	while(!(myhitFactory->fOutputsArray[tid].empty()))
 	  {
+	    data = myhitFactory->fOutputsArray[tid].back();
+	    myhitFactory->fOutputsArray[tid].pop_back();
+
 	    tree->Fill();
-	    list_of_data.push_back(data);
+	    // now we can recycle data memory
+	    myhitFactory->Recycle(data, tid);
 	  }
       }
+    
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
     
@@ -545,16 +552,10 @@ void *WorkloadManager::TransportTracks() {
     basket->Recycle(td);
   }
 
-  // WP
-  
+  // WP  
   if(concurrentWrite)
     {
       file.Write();
-      for(std::list<GeantBlock<MyHit>* >::iterator it=list_of_data.begin();it!=list_of_data.end();it++)
-	{
-	  myhitFactory->Recycle(data);
-	}
-      list_of_data.clear();
     }
    
   wm->DoneQueue()->push(0);
