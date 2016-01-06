@@ -317,16 +317,7 @@ public:
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
       // The last entry in the block was used and filled (by the same thread)     
-      if(!queue_per_thread)
-	{
-	  fOutputs.push(fBlockA[slot]->At(tid));
-	  fPool.wait_and_pop(block);
-	  fBlockA[slot]->AddAt(tid, block);
-	  // Keep the pool full
-	  if (fPool.size_async() < size_t(fNthreads))
-	    AddFreeBlocks(fNthreads);
-	}
-      else
+      if(queue_per_thread)
 	{
 	  fOutputsArray[tid].push_front(fBlockA[slot]->At(tid));
 	  block = fPoolArray[tid].back();
@@ -334,7 +325,16 @@ public:
 	  fBlockA[slot]->AddAt(tid, block);
 	  // Keep the pool full
  	  if (fPoolArray[tid].size() < 2) // (2?)
-	    AddFreeBlocks(fNthreads, tid);
+	    AddFreeBlocks(2, tid);
+	}
+      else
+	{
+	  fOutputs.push(fBlockA[slot]->At(tid));
+	  fPool.wait_and_pop(block);
+	  fBlockA[slot]->AddAt(tid, block);
+	  // Keep the pool full
+	  if (fPool.size_async() < size_t(fNthreads))
+	    AddFreeBlocks(fNthreads);
 	}
     }
     return fBlockA[slot]->At(tid)->NextFree();
