@@ -25,7 +25,12 @@
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1
+#include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
+#include "navigation/NewSimpleNavigator.h"
+#include "navigation/SimpleABBoxNavigator.h"
+#include "navigation/SimpleABBoxLevelLocator.h"
+#include "navigation/HybridNavigator2.h"
 #include "management/RootGeoManager.h"
 #include "volumes/PlacedVolume.h"
 #else
@@ -63,6 +68,7 @@
 // #endif
 
 using namespace Geant;
+using namespace vecgeom;
 
 GeantPropagator *gPropagator = 0;
 
@@ -407,6 +413,23 @@ void GeantPropagator::PrepareRkIntegration() {
 }
 
 #if USE_VECGEOM_NAVIGATOR == 1
+//______________________________________________________________________________
+void InitNavigators(){
+    for( auto & lvol : GeoManager::Instance().GetLogicalVolumesMap() ){
+        if( lvol.second->GetDaughtersp()->size() < 4 ){
+            lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
+        }
+        if( lvol.second->GetDaughtersp()->size() >= 5 ){
+            lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
+        }
+	if( lvol.second->GetDaughtersp()->size() >= 10 ){
+	    lvol.second->SetNavigator(HybridNavigator<>::Instance());
+	    HybridManager2::Instance().InitStructure((lvol.second));
+	}
+	lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
+    }
+}
+
 /**
  * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
  */
@@ -431,8 +454,9 @@ bool GeantPropagator::LoadVecGeomGeometry() {
   if (fWMgr && fWMgr->GetTaskBroker()) {
     Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
     return fWMgr->LoadGeometry();
-  } else
-    return true;
+  }
+  InitNavigators();
+  return true;
 }
 #endif
 
