@@ -509,6 +509,7 @@ void *WorkloadManager::TransportTracks() {
 	    // now we can recycle data memory
 	    myhitFactory->Recycle(data, tid);
 	  }
+	if(tree->GetEntries() > 100000) file.Write();
       }
     
     // Update geometry path for crossing tracks
