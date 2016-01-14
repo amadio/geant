@@ -150,6 +150,8 @@ function(add_to_ctest EXECUTABLES)
   endforeach()
 endfunction()
 
+link_directories(${PROJECT_BINARY_DIR}/lib)
+
 build_executables("${TEST_EXECUTABLES}")
 
 if(CTEST)
