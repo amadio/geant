@@ -305,6 +305,8 @@ void *WorkloadManager::TransportTracks() {
   // IO handling
   
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite;
+  int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
+    
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
 
@@ -509,7 +511,7 @@ void *WorkloadManager::TransportTracks() {
 	    // now we can recycle data memory
 	    myhitFactory->Recycle(data, tid);
 	  }
-	if(tree->GetEntries() > 100000) file.Write();
+	if(tree->GetEntries() > treeSizeWriteThreshold) file.Write();
       }
     
     // Update geometry path for crossing tracks
