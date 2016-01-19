@@ -192,7 +192,6 @@ private:
   TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
 #endif
   Map_t fPDGToGVMap;    // PDG->GV code map
-  int fSpecGVIndices[4];                       // store GV codes of e-,e+,gamma and proton
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 
 #ifdef USE_ROOT

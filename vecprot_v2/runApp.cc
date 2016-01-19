@@ -139,7 +139,6 @@ int main(int argc, char *argv[]) {
   TGeoManager::Import(exn03_geometry_filename.c_str());
   WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
   TaskBroker *broker = nullptr;
-  TGeoManager::Import(geomfile);
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
     CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -184,7 +183,7 @@ int main(int argc, char *argv[]) {
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 // Create the tab. phys process.
 #ifdef USE_VECGEOM_NAVIGATOR
-  prop->LoadVecGeomGeometry();
+  propagator->LoadVecGeomGeometry();
 #endif
 
   // for vector physics -OFF now
