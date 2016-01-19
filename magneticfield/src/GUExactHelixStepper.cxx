@@ -9,6 +9,7 @@
 //     Implementation adapted from ExplicitEuler of W.Wander 
 // -------------------------------------------------------------------
 
+#include <cfloat>
 #include <iostream>
 
 #include "Constants.h"
