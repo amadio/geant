@@ -608,8 +608,23 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
   Bool_t positive = ( pt > 0. );
   Bool_t negativeZ = ( zhat < 0. );
 
+  Double_t phat;
+    
+  MaskedAssign(positive, Sqrt(pt) , &phat);
+  MaskedAssign(positive, (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what , &xr);
+  MaskedAssign(positive, (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what , &yr);
+  MaskedAssign(positive, -phat*uhat + zhat*what , &zr);
+    
+  MaskedAssign(negativeZ,-xhat, &xr);
+  MaskedAssign(negativeZ, yhat, &yr);
+  MaskedAssign(negativeZ,-zhat, &zr);
+    
+  MaskedAssign(!positive && !negativeZ, xhat, &xr);
+  MaskedAssign(!positive && !negativeZ, yhat, &yr);
+  MaskedAssign(!positive && !negativeZ, zhat, &zr);
+  
   //mask operation???
-  if(positive) {
+ /* if(positive) {
     Double_t phat = Sqrt(pt);
     xr = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
@@ -624,7 +639,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
     xr = xhat;
     yr = yhat;
     zr = zhat;
-  }
+  }*/
 }
 
 template <class EmModel>
