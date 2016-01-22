@@ -11,14 +11,13 @@
 #  PYTHIA8_LIBRARIES (not cached) : for PYTHIA8_VERSION < 200 includes 3 libraries above; not to be used if lhapdf is used
 
 
-find_path(PYTHIA8_INCLUDE_DIR Pythia.h Pythia8/Pythia.h
+find_path(PYTHIA8_INCLUDE_DIR Pythia8/Pythia.h
           HINTS $ENV{PYTHIA8_ROOT_DIR}/include ${PYTHIA8_ROOT_DIR}/include)
 find_path(PYTHIA8_XML_DIR Version.xml
           HINTS $ENV{PYTHIA8_ROOT_DIR}/xmldoc ${PYTHIA8_ROOT_DIR}/xmldoc $ENV{PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc ${PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc)
 
 message(STATUS "xml path: ${PYTHIA8_XML_DIR}")
 
-#file(READ ${PYTHIA8_INCLUDE_DIR}/../xmldoc/Version.xml versionstr)
 file(READ ${PYTHIA8_XML_DIR}/Version.xml versionstr)
 string(REGEX REPLACE ".*Pythia:versionNumber.*default.*[0-9][.]([0-9]+).*" "\\1" PYTHIA8_VERSION "${versionstr}")
 
@@ -36,7 +35,7 @@ else()
   set(PYTHIA8_LIBRARIES ${PYTHIA8_LIBRARY})
 endif()
 
-set(PYTHIA8_INCLUDE_DIRS ${PYTHIA8_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR}/Pythia8 )
+#set(PYTHIA8_INCLUDE_DIRS ${PYTHIA8_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR}/Pythia8 )
 
 # handle the QUIETLY and REQUIRED arguments and set PYTHIA8_FOUND to TRUE if
 # all listed variables are TRUE
