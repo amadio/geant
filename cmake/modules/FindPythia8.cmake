@@ -10,11 +10,17 @@
 #  PYTHIA8_lhapdfdummy_LIBRARY
 #  PYTHIA8_LIBRARIES (not cached) : for PYTHIA8_VERSION < 200 includes 3 libraries above; not to be used if lhapdf is used
 
+if(PYTHIA8_ROOT_DIR)
+   set(P8ROOT ${PYTHIA8_ROOT_DIR})
+else ()
+   find_path(P8ROOT "Pythia.h")
+   string(REPLACE "/include" "" P8ROOT ${P8ROOT})
+endif()
 
 find_path(PYTHIA8_INCLUDE_DIR Pythia8/Pythia.h
-          HINTS $ENV{PYTHIA8_ROOT_DIR}/include ${PYTHIA8_ROOT_DIR}/include)
+          HINTS ${P8ROOT}/include)
 find_path(PYTHIA8_XML_DIR Version.xml
-          HINTS $ENV{PYTHIA8_ROOT_DIR}/xmldoc ${PYTHIA8_ROOT_DIR}/xmldoc $ENV{PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc ${PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc)
+          HINTS ${P8ROOT}/xmldoc ${P8ROOT}/share/Pythia8/xmldoc ${PROOT}/share/Pythia8/xmldoc)
 
 message(STATUS "xml path: ${PYTHIA8_XML_DIR}")
 
