@@ -54,7 +54,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
 )   
 
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
 #
