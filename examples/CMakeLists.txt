@@ -22,7 +22,7 @@ set(headers
 #file(GLOB headers inc/*.h)
 #string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
 
-ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
 #
@@ -42,8 +42,6 @@ endif()
 
 target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
   -lGeant_v ${ROOT_LIBRARIES} -lEG -lGeom ${Vc_LIBRARIES})
-
-add_dependencies(GeantExamples Geantlib_v ${Vc_LIBRARIES})
 
 add_custom_target(Exampleslib DEPENDS GeantExamples)
 
