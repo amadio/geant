@@ -500,20 +500,18 @@ void *WorkloadManager::TransportTracks() {
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // WP
-    if(concurrentWrite)
-      {		    
-	while(!(myhitFactory->fOutputsArray[tid].empty()))
-	  {
-	    data = myhitFactory->fOutputsArray[tid].back();
-	    myhitFactory->fOutputsArray[tid].pop_back();
+    if (concurrentWrite) {
+      while (!(myhitFactory->fOutputsArray[tid].empty())) {
+        data = myhitFactory->fOutputsArray[tid].back();
+        myhitFactory->fOutputsArray[tid].pop_back();
 
-	    tree->Fill();
-	    // now we can recycle data memory
-	    myhitFactory->Recycle(data, tid);
-	  }
-	if(tree->GetEntries() > treeSizeWriteThreshold) file.Write();
+        tree->Fill();
+        // now we can recycle data memory
+        myhitFactory->Recycle(data, tid);
       }
-    
+      if (tree->GetEntries() > treeSizeWriteThreshold) file.Write();
+    }
+
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
     
@@ -552,11 +550,10 @@ void *WorkloadManager::TransportTracks() {
     basket->Recycle(td);
   }
 
-  // WP  
-  if(concurrentWrite)
-    {
-      file.Write();
-    }
+  // WP
+  if (concurrentWrite) {
+    file.Write();
+  }
    
   wm->DoneQueue()->push(0);
   delete prioritizer;
