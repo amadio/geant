@@ -6,6 +6,7 @@
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #pragma message("Compiling against VecGeom")
+#include "ScalarNavInterfaceVG.h"
 #include "backend/Backend.h"
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
@@ -22,6 +23,7 @@
 #endif
 #else
 #pragma message("Compiling against TGeo")
+#include "ScalarNavInterfaceTGeo.h"
 #include <iostream>
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
@@ -1592,323 +1594,8 @@ void GeantTrack_v::CheckLocationPathConsistency(int itr) const {
 }
 #endif
 
-#ifdef USE_VECGEOM_NAVIGATOR
-
-#define NEW_NAVIGATION
-
-GEANT_CUDA_BOTH_CODE
-void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y,
-                                              const double *z, const double *dirx, const double *diry,
-                                              const double *dirz, VolumePath_t **pathin, VolumePath_t **pathout,
-                                              double *step, double *safe, bool *isonbdr, const GeantTrack_v * /*trk*/) {
-  // Printf("In vec find next boundary and step\n");
-  using namespace VECGEOM_NAMESPACE;
-  typedef Vector3D<Precision> Vector3D_t;
-  typedef SOA3D<double> SOA3D_t;
-
-  //     VolumePath_t * a = new VolumePath_t( GeoManager::Instance().getMaxDepth() );
-
-#ifdef GEANT_NVCC
-  SimpleNavigator nav;
-#else
-#ifdef NEW_NAVIGATION
-  VNavigator const * newnav;
-  ABBoxNavigator nav;
-#else
-  ABBoxNavigator nav;
-  #endif
-#endif
-  for (int i = 0; i < ntracks; ++i) {
-    // Check if current safety allows for the proposed step
-    if (safe[i] > pstep[i]) {
-      step[i] = pstep[i];
-      isonbdr[i] = false;
-      continue;
-    }
-#ifdef VERBOSE
-    if (pstep[i] < 0.) {
-      std::cerr << " NEGATIVE PSTEP " << pstep[i] << "\n";
-    }
-#endif
-
-#ifdef VECTORIZED_GEOMETRY
-
-#else
-#ifdef NEW_NAVIGATION
-  newnav = pathin[i]->Top()->GetLogicalVolume()->GetNavigator(); // we should put this outside the track loop since we should have the same logical vol everywhere
-    step[i] = newnav->ComputeStepAndPropagatedState(Vector3D_t(x[i], y[i], z[i]) /* global pos */,
-                                Vector3D_t(dirx[i], diry[i], dirz[i]) /* global dir */, Math::Min<double>(1.E20, pstep[i]), 
-                                *pathin[i],
-                                *pathout[i] /* the paths */);
-    step[i] = Math::Max<double>(2. * gTolerance, step[i] + 2. * gTolerance);
-  // still call the old navigator for safety
-    safe[i] = (isonbdr[i]) ? 0 : nav.GetSafety(Vector3D_t(x[i], y[i], z[i]), *pathin[i]);
-    safe[i] = Math::Max<double>(safe[i], 0);
-#else
-    nav.FindNextBoundaryAndStep(Vector3D_t(x[i], y[i], z[i]) /* global pos */,
-                                Vector3D_t(dirx[i], diry[i], dirz[i]) /* global dir */, *pathin[i],
-                                *pathout[i] /* the paths */, Math::Min<double>(1.E20, pstep[i]), step[i]);
-    step[i] = Math::Max<double>(2. * gTolerance, step[i] + 2. * gTolerance);
-    safe[i] = (isonbdr[i]) ? 0 : nav.GetSafety(Vector3D_t(x[i], y[i], z[i]), *pathin[i]);
-    safe[i] = Math::Max<double>(safe[i], 0);
-#endif  // NEW_NAVIGATION
-#endif  // VECTORIZED_GEOMETRY
-#ifdef CROSSCHECK
-    //************
-    // CROSS CHECK USING TGEO
-    //************
-    TGeoNavigator *rootnav = gGeoManager->GetCurrentNavigator();
-    rootnav->ResetState();
-    rootnav->SetCurrentPoint(x[i], y[i], z[i]);
-    rootnav->SetCurrentDirection(dirx[i], diry[i], dirz[i]);
-    TGeoBranchArray *tmp = pathin[i]->ToTGeoBranchArray();
-    tmp->UpdateNavigator(rootnav);
-    delete tmp;
-    rootnav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, pstep[i]), !isonbdr[i]);
-    double stepcmp = Math::Max<double>(2 * gTolerance, rootnav->GetStep());
-    double safecmp = rootnav->GetSafeDistance();
-    // pathin[i]->GetCurrentNode()->Print();
-    // Printf("## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[i], step[i], stepcmp);
-    // Printf("## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf",
-    // pstep[i],
-    //       isonbdr[i], safe[i], rootnav->Safety());
-
-    // check nextpath
-    tmp = pathout[i]->ToTGeoBranchArray();
-    tmp->InitFromNavigator(rootnav);
-    // Printf("## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", pathout[i]->GetCurrentNode(),
-    // tmp->GetCurrentNode());
-    // Printf("## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", pathout[i]->IsOnBoundary(),
-    // rootnav->IsOnBoundary());
-
-    // if( safe[i] != safecmp )
-    // {
-    //    nav.InspectSafetyForPoint(
-    //                               Vector3D_t( x[i], y[i], z[i] )  /*global pos*/,
-    //                               *pathin[i] );
-    //}
-    if (Math::Abs(step[i] - stepcmp) > 1E-6) {
-      Geant::Print("","## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[i], step[i], stepcmp);
-      Geant::Print("","## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", pstep[i], isonbdr[i],
-             safe[i], rootnav->Safety());
-
-      // check nextpath
-      tmp = pathout[i]->ToTGeoBranchArray();
-      tmp->InitFromNavigator(rootnav);
-      Geant::Print("","## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", pathout[i]->GetCurrentNode(), tmp->GetCurrentNode());
-      Geant::Print("","## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", pathout[i]->IsOnBoundary(), rootnav->IsOnBoundary());
-
-      Geant::Print("","INCONSISTENT STEP");
-      nav.InspectEnvironmentForPointAndDirection(Vector3D_t(x[i], y[i], z[i]) /*global pos*/,
-                                                 Vector3D_t(dirx[i], diry[i], dirz[i]), *pathin[i]);
-    }
-//    if( pathout[i]->IsOnBoundary() != rootnav->IsOnBoundary() )
-//          {
-//           Printf("INCONSISTENT BOUNDARY");
-//           Printf("## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[i], step[i], stepcmp);
-//                 Printf("## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT
-//                 %lf", pstep[i],
-//                            isonbdr[i], safe[i], rootnav->Safety());
-//
-//                     // check nextpath
-//                     tmp = pathout[i]->ToTGeoBranchArray();
-//                     tmp->InitFromNavigator( rootnav );
-//                     Printf("## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", pathout[i]->GetCurrentNode(),
-//                     tmp->GetCurrentNode());
-//                    Printf("## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", pathout[i]->IsOnBoundary(),
-//                    rootnav->IsOnBoundary());
-//
-//           // nav.InspectEnvironmentForPointAndDirection(
-//           //           Vector3D_t( x[i], y[i], z[i] )  /*global pos*/ ,
-//            //          Vector3D_t( dirx[i], diry[i], dirz[i] ),
-//             //                             *pathin[i] );
-//          }
-#endif
-    // onboundary with respect to new point
-    isonbdr[i] = pathout[i]->IsOnBoundary();
-
-#ifdef VERBOSE
-    Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, i, pstep[i], step[i],
-           safe[i]);
-#endif
-  }
-  //   delete a;
-}
-//GEANT_CUDA_BOTH_CODE
-//void GeantTrack_v::NavFindNextBoundaryAndStep_v(Int_t ntracks, const Double_t *pstep, const Double_t *x,
-//                                              const Double_t *y, const Double_t *z, const Double_t *dirx,
-//                                              const Double_t *diry, const Double_t *dirz, VolumePath_t **pathin,
-//                                              VolumePath_t **pathout, Double_t *step, Double_t *safe, Bool_t *isonbdr,
-//                                              const GeantTrack_v * /*trk*/,
-//                                              GeantTaskData *td) {
-//  // Printf("In vec find next boundary and step\n");
-//  using VECGEOM_NAMESPACE::SimpleNavigator;
-//  using VECGEOM_NAMESPACE::Precision;
-//  using VECGEOM_NAMESPACE::Vector3D;
-//  using VECGEOM_NAMESPACE::GeoManager;
-//  using VECGEOM_NAMESPACE::SOA3D;
-//  typedef Vector3D<Precision> Vector3D_t;
-//  typedef SOA3D<double> SOA3D_t;
-//
-//  SimpleNavigator nav;
-//  // TODO: vectorize loop
-//  for (Int_t i = 0; i < ntracks; ++i) {
-//    // Check if current safety allows for the proposed step
-//    if (safe[i] > pstep[i]) {
-//      step[i] = pstep[i];
-//      isonbdr[i] = false;
-//      continue;
-//    }
-//  }
-//
-//  // call the vector interface
-//  // we need to transform our arrays to SOA
-//   nav.FindNextBoundaryAndStep(SOA3D_t(const_cast<double*>(x),const_cast<double*>(y),const_cast<double*>(z),ntracks),
-//                               SOA3D_t(const_cast<double*>(dirx),const_cast<double*>(diry),const_cast<double*>(dirz),ntracks),
-//                               td->GetSOA3Dworkspace1(ntracks),
-//                               td->GetSOA3Dworkspace2(ntracks),
-//                               pathin,
-//                               pathout,
-//                               pstep,
-//                               safe,
-//                               step,
-//                               td->GetIntArray(ntracks));
-//
-//  // rectify some parts ( as in the scalar case )
-//  // TODO: vectorize loop
-//  for (unsigned int i = 0; i < ntracks; ++i) {
-//    step[i] = Math::Max<double>(2. * gTolerance, step[i] + 2. * gTolerance);
-//    isonbdr[i] = pathout[i]->IsOnBoundary();
-//  }
-//}
-
-#else
 //______________________________________________________________________________
-void GeantTrack_v::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y,
-                                              const double *z, const double *dirx, const double *diry,
-                                              const double *dirz, VolumePath_t **pathin, VolumePath_t **pathout,
-                                              double *step, double *safe, bool *isonbdr, const GeantTrack_v * /*trk*/) {
-  // Vector version of TGeo FNB (To be implemented the vectorized navigator)
-  // Apply to all particles (charged or not).
-  //    pstep = proposed steps by physics
-  //    x,y,z, dirx,diry, dirz = initial positions and directions
-  //    safety = safety values for the initial points
-  //    step = distances to next boundary (or to physics step if closer)
-  //    isonbdr = starting points on boundary flags (used to decide on safety computation)
-  //              use also as output to notify if the step is boundary or physics
-  //    pathin = starting paths
-  //    pathout = final path after propagation to next boundary
-  const double epserr = 1.E-3; // push value in case of repeated geom error
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  int ismall;
-  double snext;
-  TGeoNode *nextnode, *lastnode;
-  double pt[3];
-#ifdef BUG_HUNT
-  int index = (int)(x - trk->fXposV);
-#endif // BUG_HUNT
-  for (int itr = 0; itr < ntracks; itr++) {
-#ifdef BUG_HUNT
-    index += itr;
-#endif // BUG_HUNT
-    ismall = 0;
-    step[itr] = 0;
-    // Check if current safety allows for the proposed step
-    if (safe[itr] > pstep[itr]) {
-      step[itr] = pstep[itr];
-      isonbdr[itr] = false;
-      continue;
-    }
-    // Reset navigation state flags and safety to start fresh
-    nav->ResetState();
-    // Setup start state
-    nav->SetCurrentPoint(x[itr], y[itr], z[itr]);
-    nav->SetCurrentDirection(dirx[itr], diry[itr], dirz[itr]);
-    pathin[itr]->UpdateNavigator(nav);
-    nextnode = nav->GetCurrentNode();
-    while (nextnode) {
-      lastnode = nextnode;
-      // Compute distance to next boundary and propagate internally
-      nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, pstep[itr]), !isonbdr[itr]);
-      snext = nav->GetStep();
-      // Adjust step to be non-negative and cross the boundary
-      step[itr] = Math::Max<double>(2 * gTolerance, snext + 2 * gTolerance);
-      // Check for repeated small steps starting from boundary
-      if (isonbdr[itr] && (snext < 1.E-8) && (pstep[itr] > 1.E-8)) {
-        ismall++;
-        if ((ismall < 3) && (nextnode != lastnode)) {
-          // Make sure we don't have a thin layer artefact so repeat search
-          nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, pstep[itr] - snext), !isonbdr[itr]);
-          snext = nav->GetStep();
-          step[itr] += snext;
-          // If step still small, repeat
-          if (snext < 1.E-8)
-            continue;
-          // We managed to cross with macroscopic step: reset error counter and exit loop
-          ismall = 0;
-          break;
-        } else {
-          if (ismall > 3) {
-            // Mark track to be killed
-            step[itr] = -1;
-            break;
-          }
-          // The block below can only happen if crossing into the same node on different geometry
-          // branch with small step. Try to relocate the next point by making an epserr push
-          memcpy(pt, nav->GetCurrentPoint(), 3 * sizeof(double));
-          const double *dir = gGeoManager->GetCurrentDirection();
-          for (int j = 0; j < 3; j++)
-            pt[j] += epserr * dir[j];
-          step[itr] += epserr;
-          nav->CdTop();
-          nextnode = nav->FindNode(pt[0], pt[1], pt[2]);
-          if (nav->IsOutside())
-            break;
-          continue;
-        }
-      }
-      // All OK here, reset error counter and exit loop
-      ismall = 0;
-      break;
-    }
-    // Update safety, boundary flag and next path
-    safe[itr] = isonbdr[itr] ? 0. : nav->GetSafeDistance();
-    isonbdr[itr] = nav->IsOnBoundary();
-    pathout[itr]->InitFromNavigator(nav);
-#ifdef VERBOSE
-    double bruteforces = nav->Safety();
-    Geant::Print("","##TGEOM  ## TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", itr, isonbdr[itr],
-           pstep[itr], step[itr], safe[itr], bruteforces, nav->IsOnBoundary());
-// assert( safe[itr]<=bruteforces );
-#endif // VERBOSE
-
-#ifdef CROSSCHECK
-    // crosscheck with what VECGEOM WOULD GIVE IN THIS SITUATION
-    // ---------------------------------------------------------
-    VECGEOM_NAMESPACE::NavigationState vecgeom_in_state(VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth());
-    VECGEOM_NAMESPACE::NavigationState vecgeom_out_state(VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth());
-    vecgeom_in_state = *pathin[itr];
-    VECGEOM_NAMESPACE::SimpleNavigator vecnav;
-    double vecgeom_step;
-    typedef VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision> Vector3D_t;
-    vecnav.FindNextBoundaryAndStep(Vector3D_t(x[itr], y[itr], z[itr]) /* global pos */,
-                                   Vector3D_t(dirx[itr], diry[itr], dirz[itr]) /* global dir */, vecgeom_in_state,
-                                   vecgeom_out_state /* the paths */, Math::Min<double>(1.E20, pstep[itr]), vecgeom_step);
-    vecgeom_step = Math::Max<double>(2 * gTolerance, vecgeom_step);
-    double vecgeom_safety;
-    vecgeom_safety = vecnav.GetSafety(Vector3D_t(x[itr], y[itr], z[itr]), vecgeom_in_state);
-    vecgeom_safety = (vecgeom_safety < 0) ? 0. : vecgeom_safety;
-    Geant::Print("","--VECGEOM-- TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg TOBOUND %d", itr, isonbdr[itr], pstep[itr],
-           vecgeom_step, vecgeom_safety, vecgeom_out_state.IsOnBoundary());
-// end crosscheck with what VECGEOM WOULD GIVE IN THIS SITUATION
-// ---------------------------------------------------------
-#endif // CROSSCHECK
-  }
-}
-#endif // USE_VECGEOM_NAVIGATOR
-
-//______________________________________________________________________________
-void GeantTrack_v::NavIsSameLocation(int ntracks, VolumePath_t **start, VolumePath_t **end, bool *same,
+void GeantTrack_v::NavIsSameLocation(int ntracks, const VolumePath_t **start, VolumePath_t **end, bool *same,
                                      GeantTaskData *td) {
   // Implementation of TGeoNavigator::IsSameLocation with vector input
   for (int i = 0; i < ntracks; i++) {
@@ -1919,7 +1606,7 @@ void GeantTrack_v::NavIsSameLocation(int ntracks, VolumePath_t **start, VolumePa
 #ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
+bool GeantTrack_v::NavIsSameLocationSingle(int itr, const VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
 #ifdef VERBOSE
   Geant::Print("","In NavIsSameLocation single %p for track %d", this, itr);
 #endif
@@ -2114,14 +1801,13 @@ void GeantTrack_v::PrintTracks(const char *msg) const {
     PrintTrack(i);
 }
 
-#ifdef USE_VECGEOM_NAVIGATOR
-
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 // Vector version for proposing the geometry step. All tracks have to be in
 // the same volume
-#define VECTORIZED_GEOMETRY
+#ifdef USE_VECGEOM_NAVIGATOR
+//#define VECTORIZED_GEOMETRY
 #ifdef VECTORIZED_GEOMETRY
   // We reshuffle tracks for which the current safety allows for the proposed step
   int nsel = 0;
@@ -2145,183 +1831,82 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
     else return;
   }    
   // Printf("In vec find next boundary and step\n");
-  using namespace VECGEOM_NAMESPACE;
-  typedef Vector3D<Precision> Vector3D_t;
-  typedef SOA3D<double> SOA3D_t;
-
 
   // call the vector interface
-  // we need to transform our arrays to SOA
-#ifdef NEW_NAVIGATION
-  VNavigator const *nav = fPathV[0]->Top()->GetLogicalVolume()->GetNavigator();
-  nav.ComputeStepsAndPropagatedStates(SOA3D_t(const_cast<double*>(fXposV),const_cast<double*>(fYposV),const_cast<double*>(fZposV),nsel),
-                              SOA3D_t(const_cast<double*>(fXdirV),const_cast<double*>(fYdirV),const_cast<double*>(fZdirV),nsel),
-                              fPathV,
-                              fNextpathV,
-                              fPstepV,
-                              fSafetyV,
-                              fSnextV,
-                              td->GetIntArray(ntracks));
+  VectorNavInterface
+    ::NavFindNextBoundaryAndStep(nsel, fPstepV, 
+                              fXposV, fYposV, fZposV,
+                              fXdirV, fYdirV, fZdirV,
+                              (const VolumePath_t **)fPathV, fNextpathV,
+                              fStepV, fSafetyV, fIsonbdrV);
 
-   // Update number of calls to geometry (consider a vector call as N scalar calls)
-   td->fNsnext += ntracks;
-   // rectify some parts ( as in the scalar case )
-   // TODO: vectorize loop
-   for (unsigned int itr = 0; itr < ntracks; ++itr) {
-     fSnextV[itr] = Math::Max<double>(2. * gTolerance, fSnextV[itr] + 2. * gTolerance);
-     fBoundaryV[itr] = fNextpathV[itr]->IsOnBoundary();
-     if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
-           fStatusV[itr] = kExitingSetup;
-   }
+   // Update number of calls to geometry
+   td->fNsnext += 1;
 #else
-  // OLD version calling the looped implementation
-  // call the vector interface of GeantTrack_v
-  NavFindNextBoundaryAndStep(ntracks, fPstepV, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV, fPathV, fNextpathV,
-                             fSnextV, fSafetyV, fBoundaryV, this);
-  // Update number of calls to geometry (consider a vector call as N scalar calls)
+  // Non-vectorized looped implementation
+#ifdef NEW_NAVIGATION
+  ScalarNavInterfaceVGM
+#else
+  ScalarNavInterfaceVG
+#endif // NEW_NAVIGATION
+   ::NavFindNextBoundaryAndStep(ntracks, fPstepV,
+                              fXposV,fYposV,fZposV,
+                              fXdirV, fYdirV, fZdirV,
+                              (const VolumePath_t**)fPathV, fNextpathV,
+                              fStepV, fSafetyV, fBoundaryV);
+  // Update number of calls to geometry (consider N scalar calls)
   td->fNsnext += ntracks;
-
+#endif // VECTORIZED_GEOMETRY
   // perform a couple of additional checks/ set status flags and so on
   for (int itr = 0; itr < ntracks; ++itr) {
     if ((fNextpathV[itr]->IsOutside() && fSnextV[itr] < 1.E-6) || fSnextV[itr] > 1.E19)
       fStatusV[itr] = kExitingSetup;
   }
-#endif
-}
 #else
-//______________________________________________________________________________
-void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
-  // Computes snext and safety for an array of tracks. For charged tracks these are the only
-  // computed values, while for neutral ones the next node is checked and the boundary flag is set
-  // if
-  // closer than the proposed physics step.
-
+  // TGeo implementation fall on looped version
   for (int i = 0; i < ntracks; ++i) {
     ComputeTransportLengthSingle(i, td);
   }
+#endif // USE_VECGEOM_NAVIGATOR 
 }
-#endif
 
-GEANT_CUDA_BOTH_CODE
-//#if 0
-#ifdef USE_VECGEOM_NAVIGATOR
-#define NEW_NAVIGATION
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
-#ifndef GEANT_CUDA_DEVICE_BUILD
-//  static std::atomic<int> icalls(0);
-//  ++icalls;
-#endif
-  // inits navigator with current state
-  // TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  // nav->ResetState();
-  // nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
-  // nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
-  // fPathV[itr]->UpdateNavigator(nav);
-  // nav->SetLastSafetyForPoint(fSafetyV[itr], fXposV[itr], fYposV[itr], fZposV[itr]);
-  // nav->FindNextBoundaryAndStep( Math::Min<double>(1.E20, fPstepV[itr]), !fBoundaryV[itr] );
 
-  //
-  using namespace VECGEOM_NAMESPACE;
-  typedef Vector3D<Precision> Vector3D_t;
-
-  // In case the proposed step is within safety, no need to compute distance to next boundary
-  if (fPstepV[itr] < fSafetyV[itr]) {
-    fSnextV[itr] = fPstepV[itr];
-    *fNextpathV[itr] = *fPathV[itr];
-    fBoundaryV[itr] = false;
-    return;
-  }
+#ifdef USE_VECGEOM_NAVIGATOR
+//#define NEW_NAVIGATION
 #ifdef NEW_NAVIGATION
-  VNavigator const * newnav;
-  SimpleNavigator nav;
+  ScalarNavInterfaceVGM
+   ::NavFindNextBoundaryAndStep(1, &fPstepV[itr],&fXposV[itr],&fYposV[itr],&fZposV[itr],
+                                &fXdirV[itr],&fYdirV[itr],&fZdirV[itr],
+                                (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr],
+                                &fStepV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
 #else
-  SimpleNavigator nav;
-//  ABBoxNavigator nav;
-#endif
-  double step = 0.0;
-#ifdef NEW_NAVIGATION
-  newnav = fPathV[itr]->Top()->GetLogicalVolume()->GetNavigator(); // we should put this outside the track loop since we should have the same logical vol everywhere
-  step = newnav->ComputeStepAndPropagatedState(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
-                              Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]), Math::Min<double>(1.E20, fPstepV[itr]),
-                              *fPathV[itr], *fNextpathV[itr]);
-  // Update number of calls to geometry
-  td->fNsnext++;
-  // get back step, safety, new geometry path, and other navigation information
-  fSnextV[itr] = Math::Max<double>(2 * gTolerance, step);
-  fSafetyV[itr] = (fBoundaryV[itr]) ? 0 : nav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), *fPathV[itr]);
-  fSafetyV[itr] = (fSafetyV[itr] < 0) ? 0. : fSafetyV[itr];
+  ScalarNavInterfaceVG
+   ::NavFindNextBoundaryAndStep(1, &fPstepV[itr],&fXposV[itr],&fYposV[itr],&fZposV[itr],
+                                &fXdirV[itr],&fYdirV[itr],&fZdirV[itr],
+                                (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr],
+                                &fStepV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
+#endif // NEW_NAVIGATION
 #else
-  nav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]),
-                              Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]), *fPathV[itr], *fNextpathV[itr],
-                              Math::Min<double>(1.E20, fPstepV[itr]), step);
-  // Update number of calls to geometry
-  td->fNsnext++;
-  // get back step, safety, new geometry path, and other navigation information
-  fSnextV[itr] = Math::Max<double>(2 * gTolerance, step);
-  fSafetyV[itr] = (fBoundaryV[itr]) ? 0 : nav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), *fPathV[itr]);
-  fSafetyV[itr] = (fSafetyV[itr] < 0) ? 0. : fSafetyV[itr];
-#endif
-  fBoundaryV[itr] = fNextpathV[itr]->IsOnBoundary();
-
-  // if outside detector or enormous step mark particle as exiting the detector
-  if (fNextpathV[itr]->IsOutside() || fSnextV[itr] > 1.E19)
-    fStatusV[itr] = kExitingSetup;
-
-  // force track to cross under certain conditions
-}
-#else
-void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
-  // Computes snext and safety for a single track. For charged tracks these are the only
-  // computed values, while for neutral ones the next node is checked and the boundary flag is set
-  // if closer than the proposed physics step.
-
-  // In case the proposed step is within safety, no need to compute distance to next boundary
-  if (fPstepV[itr] < fSafetyV[itr]) {
-    fSnextV[itr] = fPstepV[itr];
-    *fNextpathV[itr] = *fPathV[itr];
-    fBoundaryV[itr] = false;
-    return;
-  }
-  NavFindNextBoundaryAndStep(1, &fPstepV[itr], &fXposV[itr], &fYposV[itr], &fZposV[itr], &fXdirV[itr], &fYdirV[itr],
-                             &fZdirV[itr], &fPathV[itr], &fNextpathV[itr], &fSnextV[itr], &fSafetyV[itr],
-                             &fBoundaryV[itr], this);
+// ROOT geometry
+  ScalarNavInterfaceTGeo
+   ::NavFindNextBoundaryAndStep(1, &fPstepV[itr],&fXposV[itr],&fYposV[itr],&fZposV[itr],
+                                &fXdirV[itr],&fYdirV[itr],&fZdirV[itr],
+                                (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr],
+                                &fStepV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
+#endif // USE_VECGEOM_NAVIGATOR
   // Update number of calls to geometry
   td->fNsnext++;
   // if outside detector or enormous step mark particle as exiting the detector
   if (fNextpathV[itr]->IsOutside() || fSnextV[itr] > 1.E19)
     fStatusV[itr] = kExitingSetup;
-#ifdef CROSSCHECK
-  VECGEOM_NAMESPACE::NavigationState vecgeom_in_state(VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth());
-  VECGEOM_NAMESPACE::NavigationState vecgeom_out_state(VECGEOM_NAMESPACE::GeoManager::Instance().getMaxDepth());
-  vecgeom_in_state = *fPathV[itr];
-  VECGEOM_NAMESPACE::SimpleNavigator vecnav;
-  double vecgeom_step;
-  typedef VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision> Vector3D_t;
-  vecnav.FindNextBoundaryAndStep(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]) /* global pos */,
-                                 Vector3D_t(fXdirV[itr], fYdirV[itr], fZdirV[itr]) /* global dir */, vecgeom_in_state,
-                                 vecgeom_out_state /* the paths */, Math::Min<double>(1.E20, fPstepV[itr]), vecgeom_step);
-  vecgeom_step = Math::Max<double>(2 * gTolerance, vecgeom_step);
-  double vecgeom_safety;
-  vecgeom_safety = vecnav.GetSafety(Vector3D_t(fXposV[itr], fYposV[itr], fZposV[itr]), vecgeom_in_state);
-  vecgeom_safety = (vecgeom_safety < 0) ? 0. : vecgeom_safety;
-  //   Printf("--VECGEOM-- TRACK %d BOUND %d PSTEP %lg STEP %lg SAFETY %lg TOBOUND %d",
-  //                  i, isonbdr[i], pstep[i], vecgeom_step, vecgeom_safety,
-  //                  vecgeom_out_state.IsOnBoundary());
-  if (!(vecgeom_out_state.IsOutside() || fNextpathV[itr]->IsOutside()) &&
-      (vecgeom_out_state.GetCurrentNode() != fNextpathV[itr]->GetCurrentNode())) {
-    warnings++;
-    InspectGeometryState(itr);
-    Warning("", "NavigationWarning");
-    if (warnings > 100)
-      assert(!"NOT SAME RESULT FOR NEXTNODE");
-  }
-#endif
 }
-#endif
+
 //______________________________________________________________________________
 TransportAction_t GeantTrack_v::PostponedAction(int ntracks) const {
   // Check the action to be taken according the current policy
@@ -2498,7 +2083,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
     else
       DeselectAll();
     bool *same = td->GetBoolArray(nsel);
-    NavIsSameLocation(nsel, fPathV, fNextpathV, same, td);
+    NavIsSameLocation(nsel, (const VolumePath_t**)fPathV, fNextpathV, same, td);
     for (itr = 0; itr < nsel; itr++) {
       if (same[itr]) {
         fBoundaryV[itr] = false;
@@ -2639,7 +2224,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // Select tracks that are in flight or were propagated to boundary with
     // steps bigger than safety
     if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
-      bool same = NavIsSameLocationSingle(itr, fPathV, fNextpathV, td);
+      bool same = NavIsSameLocationSingle(itr, (const VolumePath_t**)fPathV, fNextpathV, td);
       if (same) {
         fBoundaryV[itr] = false;
         return icrossed;

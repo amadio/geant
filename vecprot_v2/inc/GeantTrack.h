@@ -1,11 +1,11 @@
-//===--- GeantTrack.h - Geant-V ---------------------------------*- C++ -*-===//
+//===--- GeantTrack.h - GeantV ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype
+//                     GeantV Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantTrack.h
- * @brief Implementation of track for Geant-V prototype
+ * @brief Implementation of track for GeantV prototype
  * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
@@ -885,30 +885,6 @@ public:
   void PrintTracks(const char *msg = "") const;
 
   /**
-   * @brief Function for navigation that find next boundary and step
-   *
-   * @param ntracks Number of tracks
-   * @param pstep Previos step
-   * @param x X position
-   * @param y Y position
-   * @param z Z position
-   * @param dirx X direction
-   * @param diry Y direction
-   * @param dirz Z direction
-   * @param pathin Path inside in the volume
-   * @param pathout Path outside in the volume
-   * @param step Step to be proccessed
-   * @param safe Safety distance
-   * @param isonbdr
-   * @param trk Track
-   */
-  GEANT_CUDA_BOTH_CODE
-  void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y, const double *z,
-                                  const double *dirx, const double *diry, const double *dirz, VolumePath_t **pathin,
-                                  VolumePath_t **pathout, double *step, double *safe, bool *isonbdr,
-                                  const GeantTrack_v *trk);
-
-  /**
    * @brief Function for navigation that check if location is the same or not
    *
    * @param ntracks Number of tracks
@@ -916,7 +892,7 @@ public:
    * @param end End volume path
    * @param same Boolean flag that check same location
    */
-  void NavIsSameLocation(int ntracks, VolumePath_t **start, VolumePath_t **end, bool *same, GeantTaskData * /*td*/);
+  void NavIsSameLocation(int ntracks, const VolumePath_t **start, VolumePath_t **end, bool *same, GeantTaskData * /*td*/);
 
   /**
    * @brief Function for navigation that check if location is the same or not for single track
@@ -926,7 +902,7 @@ public:
    * @param end End volume path
    */
   GEANT_CUDA_BOTH_CODE
-  bool NavIsSameLocationSingle(int itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData * /*td*/);
+  bool NavIsSameLocationSingle(int itr, const VolumePath_t **start, VolumePath_t **end, GeantTaskData * /*td*/);
 
 // void InspectGeometryState(int itr) const;
 // void InspectIsSameLocation(int itr) const;
