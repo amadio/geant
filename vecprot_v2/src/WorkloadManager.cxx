@@ -311,15 +311,20 @@ void *WorkloadManager::TransportTracks() {
   GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
 
   TThread t;
-  TThreadMergingFile file("hits_output.root", wm->IOQueue(), "RECREATE");
-  
-  TTree *tree = new TTree("Tree","Simulation output");
+  TThreadMergingFile* file=0;
+  TTree *tree=0;
   GeantBlock<MyHit>* data=0;
-	    
-  tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
-
-  // set factory to use thread-local queues
-  if (concurrentWrite) myhitFactory->queue_per_thread = true;
+  
+  if (concurrentWrite)
+    {
+      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");     
+      tree = new TTree("Tree","Simulation output");
+      
+      tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
+      
+      // set factory to use thread-local queues
+      myhitFactory->queue_per_thread = true;
+    }
   
   // Start the feeder
   propagator->Feeder(td);
@@ -509,7 +514,7 @@ void *WorkloadManager::TransportTracks() {
         // now we can recycle data memory
         myhitFactory->Recycle(data, tid);
       }
-      if (tree->GetEntries() > treeSizeWriteThreshold) file.Write();
+      if (tree->GetEntries() > treeSizeWriteThreshold) file->Write();
     }
 
     // Update geometry path for crossing tracks
@@ -552,7 +557,7 @@ void *WorkloadManager::TransportTracks() {
 
   // WP
   if (concurrentWrite) {
-    file.Write();
+    file->Write();
   }
    
   wm->DoneQueue()->push(0);
@@ -567,6 +572,10 @@ void *WorkloadManager::TransportTracks() {
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   if (wm->IsStopped()) wm->MergingServer()->Finish();
+
+  if (concurrentWrite) {
+    delete file;
+  }
 
   return 0;
 }
