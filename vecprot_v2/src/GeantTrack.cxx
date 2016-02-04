@@ -1840,7 +1840,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
                               fXposV, fYposV, fZposV,
                               fXdirV, fYdirV, fZdirV,
                               (const VolumePath_t **)fPathV, fNextpathV,
-                              fStepV, fSafetyV, fBoundaryV);
+                              fSnextV, fSafetyV, fBoundaryV);
 
    // Update number of calls to geometry
    td->fNsnext += 1;
@@ -1855,7 +1855,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
                               fXposV,fYposV,fZposV,
                               fXdirV, fYdirV, fZdirV,
                               (const VolumePath_t**)fPathV, fNextpathV,
-                              fStepV, fSafetyV, fBoundaryV);
+                              fSnextV, fSafetyV, fBoundaryV);
   // Update number of calls to geometry (consider N scalar calls)
   td->fNsnext += ntracks;
 #endif // VECTORIZED_GEOMETRY
@@ -1886,13 +1886,13 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
    ::NavFindNextBoundaryAndStep(1, &fPstepV[itr],&fXposV[itr],&fYposV[itr],&fZposV[itr],
                                 &fXdirV[itr],&fYdirV[itr],&fZdirV[itr],
                                 (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr],
-                                &fStepV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
+                                &fSnextV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
 #else
   ScalarNavInterfaceVG
    ::NavFindNextBoundaryAndStep(1, &fPstepV[itr],&fXposV[itr],&fYposV[itr],&fZposV[itr],
                                 &fXdirV[itr],&fYdirV[itr],&fZdirV[itr],
                                 (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr],
-                                &fStepV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
+                                &fSnextV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
 #endif // NEW_NAVIGATION
 #else
 // ROOT geometry
@@ -1900,7 +1900,7 @@ void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
    ::NavFindNextBoundaryAndStep(1, &fPstepV[itr],&fXposV[itr],&fYposV[itr],&fZposV[itr],
                                 &fXdirV[itr],&fYdirV[itr],&fZdirV[itr],
                                 (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr],
-                                &fStepV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
+                                &fSnextV[itr],&fSafetyV[itr],&fBoundaryV[itr]);
 #endif // USE_VECGEOM_NAVIGATOR
   // Update number of calls to geometry
   td->fNsnext++;
