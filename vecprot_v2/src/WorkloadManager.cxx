@@ -303,8 +303,8 @@ void *WorkloadManager::TransportTracks() {
   prioritizer->SetFeederQueue(feederQ);
 
   // IO handling
-  
-  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite;
+
+  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
     
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
