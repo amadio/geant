@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #ifndef GEANT_SCALARNAVINTERFACETGEO
-#define GEANT_VECTORNAVINTERFACETGEO
+#define GEANT_SCALARNAVINTERFACETGEO
 
 #include "Geant/Config.h"
 #include "GeantTrack.h"
@@ -49,6 +49,7 @@ public:
    * @param isonbdr Boundary flags set if next boundaries closer than proposed step (input/output)
    */
   GEANT_CUDA_BOTH_CODE
+  static
   void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
          const double *x, const double *y, const double *z,
          const double *dirx, const double *diry, const double *dirz, 
@@ -66,6 +67,8 @@ public:
    * @param end End volume path
    * @param same Boolean return flag specifying if the location is same
    */
+  GEANT_CUDA_BOTH_CODE
+  static
   void NavIsSameLocation(int ntracks, 
          const double *x, const double *y, const double *z, 
          const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *tmpstate);

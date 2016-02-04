@@ -1,6 +1,7 @@
 #include "ScalarNavInterfaceVGM.h"
 
 #include "backend/Backend.h"
+#include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/ABBoxNavigator.h"
 #include "volumes/PlacedVolume.h"
@@ -49,7 +50,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
 #else
   ABBoxNavigator nav;
 #endif // GEANT_NVCC
-  VNavigator const * newnav = instate[i]->Top()->GetLogicalVolume()->GetNavigator();
+  VNavigator const * newnav = instate[0]->Top()->GetLogicalVolume()->GetNavigator();
 
   for (int itr = 0; itr < ntracks; ++itr) {
     // Check if current safety allows for the proposed step

@@ -62,7 +62,7 @@ endif()
 if(USE_VECGEOM_NAVIGATOR)
    set(sources ${sources} 
      ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVG.cxx 
-     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVG.cxx
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVGM.cxx
      ${CMAKE_CURRENT_SOURCE_DIR}/src/VectorNavInterface.cxx
    )
    set(headers ${headers} 

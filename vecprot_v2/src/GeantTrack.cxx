@@ -7,6 +7,8 @@
 #ifdef USE_VECGEOM_NAVIGATOR
 #pragma message("Compiling against VecGeom")
 #include "ScalarNavInterfaceVG.h"
+#include "ScalarNavInterfaceVGM.h"
+#include "VectorNavInterface.h"
 #include "backend/Backend.h"
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
@@ -1680,7 +1682,7 @@ bool GeantTrack_v::NavIsSameLocationSingle(int itr, const VolumePath_t **start, 
 }
 #else
 //______________________________________________________________________________
-bool GeantTrack_v::NavIsSameLocationSingle(int itr, VolumePath_t **start, VolumePath_t **end, GeantTaskData */*td*/) {
+bool GeantTrack_v::NavIsSameLocationSingle(int itr, const VolumePath_t **start, VolumePath_t **end, GeantTaskData */*td*/) {
   // Implementation of TGeoNavigator::IsSameLocation for single particle
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();
@@ -1811,11 +1813,11 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 #ifdef VECTORIZED_GEOMETRY
   // We reshuffle tracks for which the current safety allows for the proposed step
   int nsel = 0;
-  for (int i = 0; i < ntracks; ++i) {
+  for (int itr = 0; itr < ntracks; ++itr) {
     // Check if current safety allows for the proposed step
-    if (fSafetyV[i] > fPstepV[i]) {
-      fSnextV[i] = fPstepV[i];
-      fBoundaryV[i] = false;
+    if (fSafetyV[itr] > fPstepV[itr]) {
+      fSnextV[itr] = fPstepV[itr];
+      fBoundaryV[itr] = false;
       continue;
     } else {
       // These tracks have to be processed vectorized by geometry
@@ -1838,7 +1840,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
                               fXposV, fYposV, fZposV,
                               fXdirV, fYdirV, fZdirV,
                               (const VolumePath_t **)fPathV, fNextpathV,
-                              fStepV, fSafetyV, fIsonbdrV);
+                              fStepV, fSafetyV, fBoundaryV);
 
    // Update number of calls to geometry
    td->fNsnext += 1;

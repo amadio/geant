@@ -12,6 +12,7 @@
 
 #ifndef GEANT_TRACK
 #define GEANT_TRACK
+#define NEW_NAVIGATION
 
 #include "Geant/Config.h"
 #include "Geant/Math.h"
