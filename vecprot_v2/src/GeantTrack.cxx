@@ -1770,13 +1770,15 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
 #ifdef USE_VECGEOM_NAVIGATOR
   Geant::Print(msg,
-      "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g\
-              xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n\n",
+      "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g "
+      "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n",
       itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fGVcodeV[itr],
       fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
       fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fBoundaryV[itr]);
-
+  
+  fPathV[itr]->Print();
+  fNextpathV[itr]->Print();
 #else
   TString path;
   fPathV[itr]->GetPath(path);
