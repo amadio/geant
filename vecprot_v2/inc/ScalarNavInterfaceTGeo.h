@@ -71,7 +71,7 @@ public:
   static
   void NavIsSameLocation(int ntracks, 
          const double *x, const double *y, const double *z, 
-         const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *tmpstate);
+         const VolumePath_t **start, VolumePath_t **end, bool *same);
   
   
 };

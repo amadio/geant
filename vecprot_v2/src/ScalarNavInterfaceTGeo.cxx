@@ -120,7 +120,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 //______________________________________________________________________________
 void ScalarNavInterfaceTGeo::NavIsSameLocation(int ntracks,
        const double *x, const double *y, const double *z,
-       const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *) {
+       const VolumePath_t **start, VolumePath_t **end, bool *same) {
 // 
 // Checks if the navigation states corresponding to positions (x,y,z) are the
 // same as the ones pointed by start. Update new states in end.
@@ -142,10 +142,11 @@ void ScalarNavInterfaceTGeo::NavIsSameLocation(int ntracks,
       GeantPropagator *prop = GeantPropagator::Instance();
       BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "NavIsSameLoc:CROSSED", itr);
 #endif
-      same[itr] = false;
+      same[itr] = false;      
+    } else {
+    // Track not crossing
+      same[itr] = true;
     }  
-// Track not crossing
-    same[itr] = true;
 #ifdef BUG_HUNT
     BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "NavIsSameLoc:SAME", itr);
 #endif

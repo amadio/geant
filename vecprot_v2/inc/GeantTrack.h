@@ -13,6 +13,7 @@
 #ifndef GEANT_TRACK
 #define GEANT_TRACK
 #define NEW_NAVIGATION
+//#define VECTORIZED_GEOMETRY
 
 #include "Geant/Config.h"
 #include "Geant/Math.h"
@@ -902,8 +903,6 @@ public:
    * @param start Start volume path
    * @param end End volume path
    */
-  GEANT_CUDA_BOTH_CODE
-  bool NavIsSameLocationSingle(int itr, const VolumePath_t **start, VolumePath_t **end, GeantTaskData * /*td*/);
 
 // void InspectGeometryState(int itr) const;
 // void InspectIsSameLocation(int itr) const;

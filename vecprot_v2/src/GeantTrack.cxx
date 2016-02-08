@@ -61,6 +61,10 @@ const double gTolerance = TGeoShape::Tolerance();
 #endif
 }
 
+#ifdef USE_VECGEOM_NAVIGATOR
+using namespace VECGEOM_NAMESPACE;
+#endif
+
 //______________________________________________________________________________
 GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
@@ -1600,111 +1604,27 @@ void GeantTrack_v::CheckLocationPathConsistency(int itr) const {
 void GeantTrack_v::NavIsSameLocation(int ntracks, const VolumePath_t **start, VolumePath_t **end, bool *same,
                                      GeantTaskData *td) {
   // Implementation of TGeoNavigator::IsSameLocation with vector input
-  for (int i = 0; i < ntracks; i++) {
-    same[i] = NavIsSameLocationSingle(i, start, end, td);
-  }
-}
-
 #ifdef USE_VECGEOM_NAVIGATOR
-//______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
-bool GeantTrack_v::NavIsSameLocationSingle(int itr, const VolumePath_t **start, VolumePath_t **end, GeantTaskData *td) {
-#ifdef VERBOSE
-  Geant::Print("","In NavIsSameLocation single %p for track %d", this, itr);
-#endif
-  // TODO: We should provide this function as a static function
-  VECGEOM_NAMESPACE::SimpleNavigator simplenav;
-
-  // this creates a tmpstate and copies in the state from end[itr]
-  // we should avoid the creation of a state object here and rather use
-  // some thread data?
-  // was: VECGEOM_NAMESPACE::NavigationState tmpstate( *end[itr] );
-  // new:
-  VECGEOM_NAMESPACE::NavigationState *tmpstate = td->GetPath();
-// VECGEOM_NAMESPACE::NavigationState::MakeInstance(end[itr]->GetMaxLevel());
-
-// cross check with answer from ROOT
-#ifdef CROSSCHECK
-  TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
-  TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
-#endif
-
-  // TODO: not using the direction yet here !!
-  bool samepath = simplenav.HasSamePath(
-      VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr], fYposV[itr], fZposV[itr]), *start[itr],
-      *tmpstate);
-  if (!samepath) {
-    // Printf("CORRECTING STATE FOR TRACK %d", itr);
-    // start[itr]->GetCurrentNode()->Print();
-    tmpstate->CopyTo(end[itr]);
-    // end[itr]->GetCurrentNode()->Print();
-    // assert(end[itr]->Top() != start[itr]->Top());
-  }
-
-#ifdef CROSSCHECK
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  nav->ResetState();
-  nav->SetLastSafetyForPoint(0, 0, 0, 0);
-  nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
-  nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
-  sb->UpdateNavigator(nav);
-  bool rootsame = nav->IsSameLocation(fXposV[itr], fYposV[itr], fZposV[itr], true);
-  if (rootsame != samepath) {
-    Geant::Print("","INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
-    std::cout << VECGEOM_NAMESPACE::Vector3D<VECGEOM_NAMESPACE::Precision>(fXposV[itr], fYposV[itr], fZposV[itr])
-              << "\n";
-    Geant::Print("","old state");
-    sb->Print();
-    nav->ResetState();
-    nav->SetLastSafetyForPoint(0, 0, 0, 0);
-    nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
-    nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
-    sb->UpdateNavigator(nav);
-    nav->InspectState();
-    bool rootsame = nav->IsSameLocation(fXposV[itr], fYposV[itr], fZposV[itr], true);
-    nav->InspectState();
-    eb->InitFromNavigator(nav);
-    Geant::Print("","new state");
-    eb->Print();
-    Geant::Print("","VERSUS VECGEOM OLD AND NEW");
-    start[itr]->printVolumePath();
-    end[itr]->printVolumePath();
-  } else {
-    //  Printf("CONSISTENT SAME LOCATION");
-  }
-
-  delete sb;
-  delete eb;
-#endif // CROSSCHECK
-  // VECGEOM_NAMESPACE::NavigationState::ReleaseInstance(tmpstate);
-
-  return samepath;
-}
+  NavigationState *tmpstate = td->GetPath();
+#ifdef VECTORIZED_GEOMETRY
+  VectorNavInterface
+    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same, tmpstate);
 #else
-//______________________________________________________________________________
-bool GeantTrack_v::NavIsSameLocationSingle(int itr, const VolumePath_t **start, VolumePath_t **end, GeantTaskData */*td*/) {
-  // Implementation of TGeoNavigator::IsSameLocation for single particle
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  nav->ResetState();
-  nav->SetLastSafetyForPoint(0, 0, 0, 0);
-  nav->SetCurrentPoint(fXposV[itr], fYposV[itr], fZposV[itr]);
-  nav->SetCurrentDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
-  start[itr]->UpdateNavigator(nav);
-  if (!nav->IsSameLocation(fXposV[itr], fYposV[itr], fZposV[itr], true)) {
-    end[itr]->InitFromNavigator(nav);
-#ifdef BUG_HUNT
-    GeantPropagator *prop = GeantPropagator::Instance();
-    BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "NavIsSameLoc:CROSSED", itr);
-#endif
-    return false;
-  }
-// Track not crossing -> remove boundary flag
-#ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "NavIsSameLoc:SAME", itr);
-#endif
-  return true;
+#ifdef NEW_NAVIGATION
+  ScalarNavInterfaceVGM
+    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same, tmpstate);
+#else
+// Old navigation system
+  ScalarNavInterfaceVG
+    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same, tmpstate);
+#endif // NEW_NAVIGATION
+#endif // VECTORIZED_GEOMETRY
+#else
+// ROOT navigation
+  ScalarNavInterfaceTGeo
+    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same);
+#endif // USE_VECGEOM_NAVIGATOR
 }
-#endif
 
 //______________________________________________________________________________
 int GeantTrack_v::SortByStatus(TrackStatus_t status) {
@@ -2228,7 +2148,8 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // Select tracks that are in flight or were propagated to boundary with
     // steps bigger than safety
     if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
-      bool same = NavIsSameLocationSingle(itr, (const VolumePath_t**)fPathV, fNextpathV, td);
+      bool same = true;
+      NavIsSameLocation(1, (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr], &same, td);
       if (same) {
         fBoundaryV[itr] = false;
         return icrossed;
