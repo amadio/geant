@@ -77,12 +77,81 @@ add_headers("${headers}")
 
 add_custom_target(xseclib DEPENDS Xsec)
 
-add_executable(testserialRead testserialRead.cc)
+#add_executable(testserialRead testserialRead.cc)
 
-target_link_libraries(testserialRead -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec
-        ${HEPMC_LIBRARIES} ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+#target_link_libraries(testserialRead -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec
+#        ${HEPMC_LIBRARIES} ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+#add_dependencies(testserialRead Geant_v Xsec)
+if (CUDA)
+#set(CUDA_SEPARABLE_COMPILATION ON)
 
-add_dependencies(testserialRead Geant_v Xsec)
+
+ set(SRC_CPP_RELATIVE
+#     xsec/src/TPartIndex.cxx
+#     xsec/src/TEFstate.cxx
+#     xsec/src/TFinState.cxx
+#     xsec/src/TEXsec.cxx
+#     xsec/src/TMXsec.cxx
+#     xsec/src/TPDecay.cxx
+#     xsec/src/TPFstate.cxx
+ #    xsec/src/TPXsec.cxx
+ #    xsec/src/TTabPhysMgr.cxx
+ #    xsec/src/TTabPhysProcess.cxx
+   )
+
+  foreach(SRC ${SRC_CPP_RELATIVE})
+   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
+  endforeach()
+
+
+  foreach(SRC_FILE ${SRC_CPP})
+
+    get_filename_component(SRC_FILENAME ${SRC_FILE} NAME_WE)
+
+    ADD_CUSTOM_COMMAND(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+        COMMAND ${CMAKE_COMMAND} -E copy ${SRC_FILE}
+            ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+        DEPENDS ${SRC_FILE}
+      )
+
+      set(
+        SRC_CUDA ${SRC_CUDA}
+        ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+      )
+
+  endforeach() 
+    set(SRC_CUDA ${SRC_CUDA} testserialReadCuda.cu) 
+
+
+
+cuda_add_library(xseccuda
+    ${SRC_CUDA}
+    OPTIONS ${CUDA_ARCH}
+#    "-lvecgeomcuda"
+#    ${CUDA_NVCC_FLAGS}
+)
+
+target_link_libraries(xseccuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec 
+                      ${HEPMC_LIBRARIES} ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${CUDA_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
+
+add_executable(testserialReadCuda testserialReadCuda.cpp)
+
+ADD_CUSTOM_COMMAND(
+    TARGET testserialReadCuda
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Linking static device library to executable."
+    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} -dc "${src_files}" -I/data/svalleco/maptest/VecGeom_svmap/include -o testserialReadCuda.cu.o 
+    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} /data/svalleco/maptest/VecGeom_svmap/libvecgeom.a testserialreadCuda.cu.o /data/svalleco/maptest/VecGeom_svmap/librawvecgeomcuda.a
+    #COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} libtest.a pTest.cu.o
+    #COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} ${dep_paths} ${obj_files} ${linker_options} -o "${target}"
+    )
+
+message (STATUS "VECGEOM LIBS ${VECGEOM_LIBRARIES}")
+add_dependencies(xseccuda Geant_v Xsec)
+
+endif()
 
 
 
