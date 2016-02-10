@@ -50,9 +50,10 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
 #else
   ABBoxNavigator nav;
 #endif // GEANT_NVCC
-  VNavigator const * newnav = instate[0]->Top()->GetLogicalVolume()->GetNavigator();
 
   for (int itr = 0; itr < ntracks; ++itr) {
+    // If the basket is mixed volumes/navigators may be different
+    VNavigator const * newnav = instate[itr]->Top()->GetLogicalVolume()->GetNavigator();
     // Check if current safety allows for the proposed step
     if (safe[itr] > pstep[itr]) {
       step[itr] = pstep[itr];
