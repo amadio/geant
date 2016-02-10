@@ -7,38 +7,45 @@
 ClassImp(GunGenerator)
 #endif
 
-    //______________________________________________________________________________
-    GunGenerator::GunGenerator()
-    : average(0), fPDG(11),            // PDG code of the primary: 11 -> e-
+//______________________________________________________________________________
+GunGenerator::GunGenerator()
+    : fAverage(0), fPDG(11),           // PDG code of the primary: 11 -> e-
       fPartEkin(0.03),                 // kinetic energy of the primary [GeV] : 30 MeV
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
       fYPos(0.), fZPos(0.), fXDir(0.), // direction vector of the primary particles: (0,0,1)
       fYDir(0.), fZDir(1.), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0),
-      numberoftracks(0), rndgen(0) {
+      fNumberoftracks(0), fRndgen(0) {
+  // Dummy constructor
 }
 
+//______________________________________________________________________________
 GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, double ypos, double zpos, double xdir,
                            double ydir, double zdir)
-    : average(aver), fPDG(partpdg),          // PDG code of the primary particle
-      fPartEkin(partekin),                   // kinetic energy of the primary [GeV]
-      fXPos(xpos),                           // (x,y,z) position of the primary particles
-      fYPos(ypos), fZPos(zpos), fXDir(xdir), // direction vector of the primary particles
-      fYDir(ydir), fZDir(zdir), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0),
-      numberoftracks(0), rndgen(0) {
+    : fAverage(aver), fPDG(partpdg),
+      fPartEkin(partekin),
+      fXPos(xpos), fYPos(ypos), fZPos(zpos), 
+      fXDir(xdir), fYDir(ydir), fZDir(zdir), 
+      fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), 
+      fPTotal(0), fETotal(0),
+      fNumberoftracks(0), fRndgen(0) {
+  // Constructor
   // ensure normality of the direction vector
   double norm = sqrt(fXDir * fXDir + fYDir * fYDir + fZDir * fZDir);
   fXDir /= norm;
   fYDir /= norm;
   fZDir /= norm;
 #ifdef USE_ROOT
-  rndgen = new TRandom();
+  fRndgen = new TRandom();
 #else
-  rndgen = &RNG::Instance();
+  fRndgen = &RNG::Instance();
 #endif
 }
 
 //______________________________________________________________________________
-GunGenerator::~GunGenerator() { delete rndgen; }
+GunGenerator::~GunGenerator() { 
+  // Destructor
+  delete fRndgen;
+}
 
 //______________________________________________________________________________
 void GunGenerator::InitPrimaryGenerator() {
@@ -70,20 +77,24 @@ void GunGenerator::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-int GunGenerator::NextEvent() {
+GeantEventInfo GunGenerator::NextEvent() {
   //
-  if (average == 1)
-    numberoftracks = 1;
+  if (fAverage == 1)
+    fNumberoftracks = 1;
   else
-    numberoftracks = rndgen->Poisson(average);
+    fNumberoftracks = fRndgen->Poisson(fAverage);
   // here are generate an event with ntracks
 
-  for (int nn = 1; nn <= numberoftracks; nn++) {
+  for (int nn = 1; nn <= fNumberoftracks; nn++) {
     // here I would normally push back the generated particles to some vector
     // no need to do it in this specific case, because all the particles are the same
   }
 
-  return numberoftracks;
+  fCurrentEvent.ntracks = fNumberoftracks;
+  fCurrentEvent.xvert = fXPos;
+  fCurrentEvent.yvert = fYPos;
+  fCurrentEvent.zvert = fZPos;
+  return fCurrentEvent;
 }
 
 //______________________________________________________________________________

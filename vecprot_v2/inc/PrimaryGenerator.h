@@ -21,6 +21,16 @@
 using vecgeom::kRadToDeg;
 using vecgeom::kDegToRad;
 
+struct GeantEventInfo {
+  int      ntracks;    // number of tracks
+  double   xvert;      // x position
+  double   yvert;      // y position
+  double   zvert;      // z position
+  double   tvert;      // time
+// ... to be extended
+  GeantEventInfo() : xvert(0), yvert(0), zvert(0) {}
+};
+
 /**
  * @brief Class of primary generators
  */
@@ -35,6 +45,7 @@ protected:
   double fPhiMax; // maximum phi
   double fPMin;   // minimum momentum
   double fPMax;   // maximum momentum
+  GeantEventInfo fCurrentEvent; // current event
 public:
   PrimaryGenerator()
       : TNamed(), fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
@@ -50,7 +61,7 @@ public:
   virtual void InitPrimaryGenerator() = 0;
 
   /** @brief  Pure virtual function that produce next event */
-  virtual int NextEvent() = 0;
+  virtual GeantEventInfo NextEvent() = 0;
 
   /**
    * @brief Pure virtual function that returns track

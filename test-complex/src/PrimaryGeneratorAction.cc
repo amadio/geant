@@ -106,13 +106,14 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
    G4double         tpx, tpy, tpz, te, x0, y0, z0;
    G4int            pdg;
    
-   G4PrimaryVertex  *pvertex = new G4PrimaryVertex(0.0, 0.0, 0.0, 0.0);
+   GeantEventInfo eventinfo = fHepMCGenerator->NextEvent();
+   G4PrimaryVertex  *pvertex = new G4PrimaryVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert, eventinfo.tvert);
 
-   G4int ntracks = fHepMCGenerator->NextEvent();
+   G4int ntracks = eventinfo.ntracks;
    for(G4int ip = 0; ip < ntracks; ++ip){
      fHepMCGenerator->GetTrack(ip, tpx, tpy, tpz, te, x0, y0, z0, pdg);
      G4ParticleDefinition *particleDef = particleTable->FindParticle(pdg);
-     pvertex->SetPrimary(new G4PrimaryParticle(particleDef, tpx, tpy, tpz, te));    
+     pvertex->SetPrimary(new G4PrimaryParticle(particleDef, tpx, tpy, tpz, te));
    }
    anEvent->AddPrimaryVertex(pvertex);
 }
