@@ -70,6 +70,8 @@ set(CMAKE_MACOSX_RPATH ON)
 
 option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
 
+option(WITH_GEANT4 "Enable libraries and test using the Geant4 libraries" ON)
+
 #----------------------------------------------------------------------------
 # Use absolute RPATH when linking to avoid needing to export LD_LIBRARY_PATH
 
@@ -431,13 +433,17 @@ add_subdirectory (base)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
-add_subdirectory (tabxsec)
+if (WITH_GEANT4) 
+  add_subdirectory (tabxsec)
+endif()
 add_subdirectory (magneticfield)
 
+if (WITH_GEANT4)
 add_subdirectory (test-small)
 add_subdirectory (test-complex)
-
 add_subdirectory (cmstrack)
+endif()
+
 add_subdirectory (Nudy)
 
 if(USE_VECPHYS)
