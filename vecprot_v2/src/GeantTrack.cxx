@@ -1866,7 +1866,12 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
 #endif
+  Double_t sumstep = 0.;
   ComputeTransportLength(ntracks, td);
+  for (int i=0; i<ntracks; ++i) sumstep += fSnextV[i];
+  if (sumstep < ntracks * 1.e-9) {
+    Error("PropagateTracks", "basket of %d tracks stuck", ntracks);
+  }
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
 #ifdef BUG_HUNT
