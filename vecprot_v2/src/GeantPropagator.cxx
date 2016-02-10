@@ -88,11 +88,10 @@ GeantPropagator::GeantPropagator()
       fBmag(1.),
       fEpsilonRK(0.0003), 
       fUsePhysics(kTRUE), fUseRungeKutta(kFALSE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
-      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),
+      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),  
       fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
       fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
-  fVertex[0] = fVertex[1] = fVertex[2] = 0.;
   fgInstance = this;
 }
 
@@ -200,7 +199,6 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
 //______________________________________________________________________________
 int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *thread_data) {
   // Import tracks from "somewhere". Here we just generate nevents.
-  static VolumePath_t *a = 0; // thread safe since initialized once used many times
 #ifdef USE_VECGEOM_NAVIGATOR
   using vecgeom::SimpleNavigator;
   using vecgeom::Vector3D;
@@ -218,48 +216,40 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     td = fThreadData[tid];
     td->fTid = tid;
   }
-  // the code below should be executed per track, as the primary vertex can change.
-  if (!a) {
-    a = VolumePath_t::MakeInstance(fMaxDepth);
-#ifdef USE_VECGEOM_NAVIGATOR
-    vecgeom::SimpleNavigator nav;
-    nav.LocatePoint(GeoManager::Instance().GetWorld(), Vector3D<Precision>(fVertex[0], fVertex[1], fVertex[2]), *a,
-                    true);
-    vol = const_cast<Volume_t *>(a->Top()->GetLogicalVolume());
-    td->fVolume = vol;
-#else
-    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-    if (!nav)
-      nav = gGeoManager->AddNavigator();
-    TGeoNode *node = nav->FindNode(fVertex[0], fVertex[1], fVertex[2]);
-    vol = node->GetVolume();
-    td->fVolume = vol;
-    a->InitFromNavigator(nav);
-#endif
-
-  } else {
-#ifdef USE_VECGEOM_NAVIGATOR
-    vol = const_cast<Volume_t *>(a->Top()->GetLogicalVolume());
-#else
-    TGeoNode const *node = a->GetCurrentNode();
-    vol = node->GetVolume();
-#endif
-    td->fVolume = vol;
-  }
+  VolumePath_t *startpath = VolumePath_t::MakeInstance(fMaxDepth);
+  GeantBasketMgr *basket_mgr = 0;
 
 #ifdef USE_VECGEOM_NAVIGATOR
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
+  vecgeom::SimpleNavigator nav;
 #else
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+  if (!nav)
+    nav = gGeoManager->AddNavigator();
 #endif
-  basket_mgr->SetThreshold(fNperBasket);
 
   static bool init = kTRUE;
   if (init)
     init = kFALSE;
   int event = startevent;
+  GeantEventInfo eventinfo;
   for (int slot = startslot; slot < startslot + nevents; slot++) {
-    ntracks = fPrimaryGenerator->NextEvent();
+    eventinfo = fPrimaryGenerator->NextEvent();
+    // Set initial track states
+#ifdef USE_VECGEOM_NAVIGATOR
+    nav.LocatePoint(GeoManager::Instance().GetWorld(), 
+      Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert),
+      *startpath, true);
+    vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
+    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
+#else
+    TGeoNode *node = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
+    vol = node->GetVolume();
+    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+    startpath->InitFromNavigator(nav);
+#endif
+    basket_mgr->SetThreshold(fNperBasket);
+    td->fVolume = vol;
+    ntracks = eventinfo.ntracks;
     ntotal += ntracks;
     fNprimaries += ntracks;
     if (!fEvents[slot])
@@ -273,8 +263,8 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
 
     for (int i = 0; i < ntracks; i++) {
       GeantTrack &track = td->GetTrack();
-      track.SetPath(a);
-      track.SetNextPath(a);
+      track.SetPath(startpath);
+      track.SetNextPath(startpath);
       track.SetEvent(event);
       track.SetEvslot(slot);
       fPrimaryGenerator->GetTrack(i, track);
@@ -288,7 +278,8 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     }
     event++;
   }
-
+  
+  VolumePath_t::ReleaseInstance(startpath);
   Geant::Print("ImportTracks","Imported %d tracks from events %d to %d. Dispatched %d baskets.", ntotal, startevent,
          startevent + nevents - 1, ndispatched);
   return ndispatched;

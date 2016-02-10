@@ -68,6 +68,28 @@ option(DATA_DOWNLOAD "Enable data download" OFF)
 
 set(CMAKE_MACOSX_RPATH ON)
 
+option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
+
+#----------------------------------------------------------------------------
+# Use absolute RPATH when linking to avoid needing to export LD_LIBRARY_PATH
+
+if (GEANT_INSTALL_RPATH)
+  set(CMAKE_SKIP_BUILD_RPATH FALSE)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+  # add the automatically determined parts of the RPATH
+  # which point to directories outside the build tree to the install RPATH
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+  # RPATH to be used when installing, but only if it's not a system directory
+  list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+  if("${isSystemDir}" STREQUAL "-1")
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  endif("${isSystemDir}" STREQUAL "-1")
+endif()
+#----------------------------------------------------------------------------
+
 option(CTEST "Enable CTest when building." OFF)
 if (CTEST)
   set (DATA_DOWNLOAD ON)
@@ -100,7 +122,7 @@ else()
     set(OUTDIR $ENV{GEANT_OUTPUT_DIR})
 endif()
 if(NOT OUTDIR)
-  set(OUTDIR ${PROJECT_SOURCE_DIR})
+  set(OUTDIR ${PROJECT_BINARY_DIR})
 endif()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTDIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTDIR}/lib)
@@ -129,7 +151,6 @@ if( VECGEOM_FOUND )
    include_directories("${VECGEOM_INSTALL_DIR}/include")
    include_directories(${VECGEOM_INCLUDE_DIR})
    include_directories(${VECGEOM_INCLUDE_DIR})
-   add_definitions(${VECGEOM_DEFINITIONS})
 else()
    message(FATAL_ERROR "Required VecGeom library not found")
 endif()

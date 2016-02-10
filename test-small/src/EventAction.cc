@@ -55,7 +55,7 @@ EventAction::EventAction():
 #ifdef MAKESTAT
    ,EnergyAbs(0), EnergyGap(0),
    TrackLAbs(0), TrackLGap(0),
-   fNSteps(0)
+   fNSteps(0),
    startTime(0), endTime(0)
 #endif
 

@@ -290,6 +290,7 @@ void TThreadMergingServer::Listen()
 	  info->Merge();
 	}
 	transient = 0;
+	delete buffer;
       }
       
   TIter next(&mergers);

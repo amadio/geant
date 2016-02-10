@@ -40,5 +40,4 @@ add_headers("${headers}")
 
 add_subdirectory(test)
 
-## add_custom_target(VectMagField DEPENDS Vmagfield)
-
+install(TARGETS Vmagfield LIBRARY DESTINATION lib)

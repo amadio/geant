@@ -1,4 +1,3 @@
-
 ####################################################################
 # Before run should be exported next variables:
 # $CTEST_BUILD_OPTIONS // CMake flags for Geant-V build
@@ -57,6 +56,9 @@ set(WITH_COVERAGE FALSE)
 # CTest/CMake settings
 
 set(CTEST_TEST_TIMEOUT 3600)
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "2000")
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "2000")
+set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE "5000")
 set(CTEST_BUILD_CONFIGURATION "$ENV{CMAKE_BUILD_TYPE}")
 set(CMAKE_INSTALL_PREFIX "$ENV{CMAKE_INSTALL_PREFIX}")
 set(CTEST_SOURCE_DIRECTORY "$ENV{CMAKE_SOURCE_DIR}")

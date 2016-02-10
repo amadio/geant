@@ -40,7 +40,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-int HepMCGenerator::NextEvent() {
+GeantEventInfo HepMCGenerator::NextEvent() {
   //
   // Delete previous event
   delete search;
@@ -94,8 +94,13 @@ int HepMCGenerator::NextEvent() {
   if (ntot > ntracks)
     std::cout << " out of " << ntot;
   std::cout << std::endl;
-
-  return ntracks;
+  
+  fCurrentEvent.ntracks = ntracks;
+  fCurrentEvent.xvert = evt.event_pos().x();
+  fCurrentEvent.yvert = evt.event_pos().y();
+  fCurrentEvent.zvert = evt.event_pos().z();
+  fCurrentEvent.tvert = evt.event_pos().t();
+  return fCurrentEvent;
 }
 
 //______________________________________________________________________________

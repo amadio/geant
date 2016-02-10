@@ -14,7 +14,7 @@ using vecgeom::RNG;
 
 class GunGenerator : public PrimaryGenerator {
 private:
-  int average;
+  int fAverage; // Average number of tracks for Poisson distribution
 
   int fPDG;         // PDG code of parimary particles
   double fPartEkin; // kinetic energy of the primary [GeV]
@@ -33,12 +33,12 @@ private:
   double fPTotal; // total momentum of the primary [GeV]
   double fETotal; // total energy of the primary [GeV]
 
-  int numberoftracks;
+  int fNumberoftracks; // Number of generated tracks
 
 #ifdef USE_ROOT
-  TRandom *rndgen;
+  TRandom *fRndgen; // Random number generator
 #else
-  RNG *rndgen;
+  RNG *fRndgen; // Random number generator
 #endif
 
 public:
@@ -50,7 +50,7 @@ public:
 
   // set one GeantTrack primary track properties
   virtual void InitPrimaryGenerator();
-  virtual int NextEvent();
+  virtual GeantEventInfo NextEvent();
   virtual void GetTrack(int n, Geant::GeantTrack &gtrack);
 
 private:

@@ -304,19 +304,28 @@ void *WorkloadManager::TransportTracks() {
 
   // IO handling
 
-  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite;
+  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
+  int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
+    
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
-  
-  TThread t;
-  TThreadMergingFile file("hits_output.root", wm->IOQueue(), "RECREATE");
-  
-  TTree *tree = new TTree("Tree","Simulation output");
-  GeantBlock<MyHit>* data=0;
-  std::list<GeantBlock<MyHit>* > list_of_data;
-	    
-  tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
 
+  TThread t;
+  TThreadMergingFile* file=0;
+  TTree *tree=0;
+  GeantBlock<MyHit>* data=0;
+  
+  if (concurrentWrite)
+    {
+      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");     
+      tree = new TTree("Tree","Simulation output");
+      
+      tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
+      
+      // set factory to use thread-local queues
+      myhitFactory->queue_per_thread = true;
+    }
+  
   // Start the feeder
   propagator->Feeder(td);
   Material_t *mat = 0;
@@ -496,14 +505,18 @@ void *WorkloadManager::TransportTracks() {
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // WP
-    if(concurrentWrite)
-      {
-	if(myhitFactory->fOutputs.try_pop(data))
-	  {
-	    tree->Fill();
-	    list_of_data.push_back(data);
-	  }
+    if (concurrentWrite) {
+      while (!(myhitFactory->fOutputsArray[tid].empty())) {
+        data = myhitFactory->fOutputsArray[tid].back();
+        myhitFactory->fOutputsArray[tid].pop_back();
+
+        tree->Fill();
+        // now we can recycle data memory
+        myhitFactory->Recycle(data, tid);
       }
+      if (tree->GetEntries() > treeSizeWriteThreshold) file->Write();
+    }
+
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
     
@@ -543,16 +556,9 @@ void *WorkloadManager::TransportTracks() {
   }
 
   // WP
-  
-  if(concurrentWrite)
-    {
-      file.Write();
-      for(std::list<GeantBlock<MyHit>* >::iterator it=list_of_data.begin();it!=list_of_data.end();it++)
-	{
-	  myhitFactory->Recycle(data);
-	}
-      list_of_data.clear();
-    }
+  if (concurrentWrite) {
+    file->Write();
+  }
    
   wm->DoneQueue()->push(0);
   delete prioritizer;
@@ -566,6 +572,10 @@ void *WorkloadManager::TransportTracks() {
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   if (wm->IsStopped()) wm->MergingServer()->Finish();
+
+  if (concurrentWrite) {
+    delete file;
+  }
 
   return 0;
 }
@@ -1219,54 +1229,48 @@ void *WorkloadManager::MonitoringThread() {
 void *WorkloadManager::OutputThread() {
   // Thread providing basic output for the scheduler.
 
-  Geant::Info("OutputThread","=== Output thread created ===");
+  Geant::Info("OutputThread", "=== Output thread created ===");
 
-  if(GeantPropagator::Instance()->fConcurrentWrite)
+  if (GeantPropagator::Instance()->fConcurrentWrite) {
+    Printf(">>> Writing concurrently to MemoryFiles");
 
-    {
-      Printf(">>> Writing concurrently to MemoryFiles");
-      
-      TThread t;
-      
-      WorkloadManager::Instance()->MergingServer()->Listen();
+    TThread t;
+
+    WorkloadManager::Instance()->MergingServer()->Listen();
+  }
+  else {
+    TFile file("hits.root", "RECREATE");
+    WorkloadManager *wm = WorkloadManager::Instance();
+
+    GeantBlock <MyHit> *data = 0;
+
+    TTree *tree = new TTree("Hits", "Simulation output");
+
+    tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
+
+    GeantFactoryStore *factoryStore = GeantFactoryStore::Instance();
+    GeantFactory <MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
+
+
+    while (!(wm->IsStopped()) || myhitFactory->fOutputs.size() > 0) {
+      // Geant::Print("","size of queue from output thread %zu", myhitFactory->fOutputs.size());
+
+      if (myhitFactory->fOutputs.size() > 0) {
+        while (myhitFactory->fOutputs.try_pop(data)) {
+          // myhitFactory->fOutputs.wait_and_pop(data);
+          // Geant::Print("","Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
+          // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
+
+          tree->Fill();
+          myhitFactory->Recycle(data);
+        }
+      }
     }
-  else
-    {
-      TFile file("hits.root", "RECREATE");
-      WorkloadManager *wm = WorkloadManager::Instance();
-    
-      GeantBlock<MyHit>* data=0;
+    tree->Write();
+    file.Close();
+  }
 
-      TTree *tree = new TTree("Hits","Simulation output");
+  Geant::Info("OutputThread", "=== Output thread finished ===");
     
-      tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
-    
-      GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
-      GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
-    
-    
-      while(!(wm->IsStopped()) || myhitFactory->fOutputs.size()>0)
-	{
-	  // Geant::Print("","size of queue from output thread %zu", myhitFactory->fOutputs.size());
-	          
-	  if (myhitFactory->fOutputs.size()>0)
-	    {
-	      while (myhitFactory->fOutputs.try_pop(data))
-		{
-		  // myhitFactory->fOutputs.wait_and_pop(data);                
-		  // Geant::Print("","Popping from queue of %zu", myhitFactory->fOutputs.size() + 1);
-		  // if(data) std::cout << "size of the block in the queue " << data->Size() << std::endl;
-
-		  tree->Fill();
-		  myhitFactory->Recycle(data);
-		}
-	    }
-	} 
-      tree->Write();
-      file.Close();
-    }
-
-    Geant::Info("OutputThread","=== Output thread finished ===");
-    
-    return 0;
+  return 0;
 }

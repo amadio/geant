@@ -72,7 +72,7 @@ if(USE_VECGEOM_NAVIGATOR)
    )
 endif()
 
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
 #
@@ -167,6 +167,8 @@ function(add_to_ctest EXECUTABLES)
     endif()
   endforeach()
 endfunction()
+
+link_directories(${PROJECT_BINARY_DIR}/lib)
 
 build_executables("${TEST_EXECUTABLES}")
 
