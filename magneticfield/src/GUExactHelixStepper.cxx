@@ -17,6 +17,7 @@ using Constants::twopi;
 
 
 #include "GUExactHelixStepper.h"
+#include <cfloat>
 // #include "GUPhysicalConstants.h"
 // #include "ThreeVector.h"
 // #include "GULineSection.h"
