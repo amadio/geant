@@ -444,7 +444,9 @@ add_subdirectory (test-complex)
 add_subdirectory (cmstrack)
 endif()
 
-add_subdirectory (Nudy)
+if (ROOT_mathmore_FOUND) 
+  add_subdirectory (Nudy)
+endif()
 
 if(USE_VECPHYS)
  add_subdirectory (vectphysproc)
