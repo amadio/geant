@@ -1,6 +1,7 @@
 #ifndef FIELD_CONSTANTS_H
 #define FIELD_CONSTANTS_H 1
 
+#include <cfloat>
 #include "Units.h"
 
 namespace Constants {

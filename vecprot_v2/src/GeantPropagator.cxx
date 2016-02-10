@@ -236,6 +236,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     eventinfo = fPrimaryGenerator->NextEvent();
     // Set initial track states
 #ifdef USE_VECGEOM_NAVIGATOR
+    startpath->Clear();
     nav.LocatePoint(GeoManager::Instance().GetWorld(), 
       Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert),
       *startpath, true);
