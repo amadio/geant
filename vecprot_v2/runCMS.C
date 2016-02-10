@@ -31,7 +31,7 @@ void runCMS(int ncputhreads=4,
 //   bool performance = true;
 
    int nthreads = ncputhreads;
-   int ntotal   = 10;  // Number of events to be transported
+   int ntotal   = 20;  // Number of events to be transported
    int nbuffered  = 5;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
    
@@ -121,7 +121,7 @@ void runCMS(int ncputhreads=4,
    prop->fDebugRep = 10;
    
 // Activate standard scoring   
-   prop->fUseStdScoring = true;
+   prop->fUseStdScoring = false; // true;
    if (performance) prop->fUseStdScoring = false;
    prop->fUseMonitoring = graphics;
    prop->PropagatorGeom(geomfile, nthreads, graphics);
