@@ -166,6 +166,7 @@ int main(int argc, char *argv[]) {
   }
 
   GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered);
+  propagator->fBmag = 40.; // 4 Tesla
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
   propagator->fUseMonitoring = monitor;
