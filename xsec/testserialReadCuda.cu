@@ -12,8 +12,10 @@ using vecgeom::Particle;
 __global__
 void expandPhysics(char *buf) {
    printf("Rebuilding TPartIndex store\n");
-Particle::CreateParticles();
-  /* TPartIndex::I()->RebuildClass(buf);
+   Particle::CreateParticles();
+/*
+   TPartIndex::I()->RebuildClass(buf);
+
    int sizet = TPartIndex::I()->SizeOf();
    printf("Number of bytes for TPartIndex %d\n",sizet);
    buf += sizet;
@@ -32,14 +34,15 @@ Particle::CreateParticles();
    printf("Rebuilding final state store");
    TEFstate::RebuildStore(buf);
    int sizef = TEFstate::SizeOfStore();
-   printf("Number of bytes for final state %d\n",sizef);*/
+   printf("Number of bytes for final state %d\n",sizef);
+*/
 }
 
 namespace vecgeom {
 namespace cxx {
 
-//template size_t DevicePtr<char>::SizeOf();
-//template void DevicePtr<char>::Construct() const;
+template size_t DevicePtr<char>::SizeOf();
+template void DevicePtr<char>::Construct() const;
 
 } // End cxx namespace
 }
@@ -50,4 +53,3 @@ void launchExpandPhysicsOnDevice(vecgeom::cxx::DevicePtr<char> devBuf, int nBloc
  expandPhysics<<< blocksPerGrid, threadsPerBlock >>>(devBuf);
 
 }
-

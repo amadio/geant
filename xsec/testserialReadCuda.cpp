@@ -5,12 +5,9 @@
 
 #include "TTabPhysMgr.h"
 #include "GeantPropagator.h"
-*/
 #ifdef USE_ROOT
 #include "TGeoManager.h"
 #endif
-#include <iostream>
-#include <fstream>
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
@@ -22,13 +19,12 @@ using vecgeom::RNG;
 #else
 #define UNIFORM() ((double)rand())/RAND_MAX
 #endif
+*/
 
+#include <iostream>
+#include <fstream>
 #include "backend/cuda/Interface.h"
-
 void launchExpandPhysicsOnDevice(vecgeom::DevicePtr<char>, int nBlocks, int nThreads);
-
-using std::cout;
-using std::endl;
 
 int main()
 {
@@ -41,7 +37,6 @@ int main()
    hostBuf = (char*)_mm_malloc(totsize,sizeof(double));
    fin.read(reinterpret_cast<char*>(hostBuf), totsize);
    fin.close();
-
    vecgeom::DevicePtr<char> devBuf;
    devBuf.Allocate(totsize);
    if (cudaGetLastError() != cudaSuccess) {
@@ -54,9 +49,9 @@ int main()
       return 0;
    }
 
-   std::cout << "Total size of store " << totsize << std::endl;
-   launchExpandPhysicsOnDevice(devBuf, 1, 1);
+   printf("Total size of store %d\n", totsize);
 
+   launchExpandPhysicsOnDevice(devBuf, 1, 1);
   /*  
    expandPhysicsKernel<<<>>>(devBuf);
 
@@ -111,6 +106,7 @@ int main()
    delete geom;
    #endif
 */
+   printf("basta!");
    return 0;
 }
 /*
