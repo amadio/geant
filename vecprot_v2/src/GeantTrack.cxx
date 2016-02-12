@@ -1740,6 +1740,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
     if (fSafetyV[itr] > fPstepV[itr]) {
       fSnextV[itr] = fPstepV[itr];
       fBoundaryV[itr] = false;
+      *fNextpathV[itr] = *fPathV[itr];
       continue;
     } else {
       // These tracks have to be processed vectorized by geometry
@@ -1868,9 +1869,15 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
 #endif
   Double_t sumstep = 0.;
   ComputeTransportLength(ntracks, td);
-  for (int i=0; i<ntracks; ++i) sumstep += fSnextV[i];
+  for (int itr=0; itr<ntracks; ++itr) {
+    sumstep += fSnextV[itr];
+    if (fNstepsV[itr] > 10000) {
+      Error("PropagateTracks", "track %d seems to be stuck", fParticleV[itr]);
+      PrintTrack(itr, "stuck");
+    }
+  }
   if (sumstep < ntracks * 1.e-9) {
-    Error("PropagateTracks", "basket of %d tracks stuck", ntracks);
+   // Error("PropagateTracks", "basket of %d tracks stuck", ntracks);
   }
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
@@ -2059,6 +2066,10 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateSingle", itr);
 #endif
+  if (fNstepsV[itr] > 100000) {
+    Error("PropagateTracks", "track %d seems to be stuck", fParticleV[itr]);
+    PrintTrack(itr, "stuck");
+  }
   ComputeTransportLengthSingle(itr, td);
 #ifdef BUG_HUNT
   BreakOnStep(0, 15352, 0, 10, "AfterCompTranspLenSingle");

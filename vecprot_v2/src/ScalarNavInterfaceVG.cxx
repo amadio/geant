@@ -55,6 +55,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
     if (safe[itr] > pstep[itr]) {
       step[itr] = pstep[itr];
       isonbdr[itr] = false;
+      *outstate[itr] = *instate[itr];
       continue;
     }
     

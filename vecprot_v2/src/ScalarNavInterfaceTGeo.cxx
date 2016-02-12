@@ -49,6 +49,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
     // Check if current safety allows for the proposed step
     if (safe[itr] > pstep[itr]) {
       step[itr] = pstep[itr];
+      *outstate[itr] = *instate[itr];
       isonbdr[itr] = false;
       continue;
     }
