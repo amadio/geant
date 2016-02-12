@@ -4,6 +4,7 @@
 //  Based on testStepperFixed.cc
 //    was the work of Somnath Banerjee in GSoC 2015
 //
+#include <cfloat>
 #include <iomanip>
 
 // #include "G4UniformMagField.hh"
