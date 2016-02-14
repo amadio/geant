@@ -121,6 +121,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 //______________________________________________________________________________
 void ScalarNavInterfaceTGeo::NavIsSameLocation(int ntracks,
        const double *x, const double *y, const double *z,
+       const double *dirx, const double *diry, const double *dirz,
        const VolumePath_t **start, VolumePath_t **end, bool *same) {
 // 
 // Checks if the navigation states corresponding to positions (x,y,z) are the
@@ -136,6 +137,7 @@ void ScalarNavInterfaceTGeo::NavIsSameLocation(int ntracks,
     nav->ResetState();
     nav->SetLastSafetyForPoint(0, 0, 0, 0);
     nav->SetCurrentPoint(x[itr], y[itr], z[itr]);
+    nav->SetCurrentDirection(dirx[itr], diry[itr], dirz[itr]);
     start[itr]->UpdateNavigator(nav);
     if (!nav->IsSameLocation(x[itr], y[itr], z[itr], true)) {
       end[itr]->InitFromNavigator(nav);

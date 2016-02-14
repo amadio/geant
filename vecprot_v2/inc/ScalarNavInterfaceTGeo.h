@@ -63,6 +63,9 @@ public:
    * @param x X positions
    * @param y Y positions
    * @param z Z positions   
+   * @param dirx X directions
+   * @param diry Y directions
+   * @param dirz Z directions  
    * @param start Start volume path
    * @param end End volume path
    * @param same Boolean return flag specifying if the location is same
@@ -71,6 +74,7 @@ public:
   static
   void NavIsSameLocation(int ntracks, 
          const double *x, const double *y, const double *z, 
+         const double *dirx, const double *diry, const double *dirz, 
          const VolumePath_t **start, VolumePath_t **end, bool *same);
   
   

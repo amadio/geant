@@ -1601,32 +1601,6 @@ void GeantTrack_v::CheckLocationPathConsistency(int itr) const {
 #endif
 
 //______________________________________________________________________________
-void GeantTrack_v::NavIsSameLocation(int ntracks, const VolumePath_t **start, VolumePath_t **end, bool *same,
-                                     GeantTaskData *td) {
-  // Implementation of TGeoNavigator::IsSameLocation with vector input
-#ifdef USE_VECGEOM_NAVIGATOR
-  NavigationState *tmpstate = td->GetPath();
-#ifdef VECTORIZED_GEOMETRY
-  VectorNavInterface
-    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same, tmpstate);
-#else
-#ifdef NEW_NAVIGATION
-  ScalarNavInterfaceVGM
-    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same, tmpstate);
-#else
-// Old navigation system
-  ScalarNavInterfaceVG
-    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same, tmpstate);
-#endif // NEW_NAVIGATION
-#endif // VECTORIZED_GEOMETRY
-#else
-// ROOT navigation
-  ScalarNavInterfaceTGeo
-    ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, start, end, same);
-#endif // USE_VECGEOM_NAVIGATOR
-}
-
-//______________________________________________________________________________
 int GeantTrack_v::SortByStatus(TrackStatus_t status) {
   // Sort tracks by a given status.
   int nsel = 0;
@@ -2018,8 +1992,26 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
       Reshuffle();
     else
       DeselectAll();
+    // Check if boundary have ben crossed
     bool *same = td->GetBoolArray(nsel);
-    NavIsSameLocation(nsel, (const VolumePath_t**)fPathV, fNextpathV, same, td);
+#ifdef USE_VECGEOM_NAVIGATOR
+    NavigationState *tmpstate = td->GetPath();
+#ifdef VECTORIZED_GEOMETRY
+    VectorNavInterface
+#else
+#ifdef NEW_NAVIGATION
+    ScalarNavInterfaceVGM
+#else
+// Old navigation system
+    ScalarNavInterfaceVG
+#endif // NEW_NAVIGATION
+#endif // VECTORIZED_GEOMETRY
+      ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV, (const VolumePath_t**)fPathV, fNextpathV, same, tmpstate);
+#else
+// ROOT navigation
+    ScalarNavInterfaceTGeo
+      ::NavIsSameLocation(ntracks, fXposV, fYposV, fZposV, fXdirV, fYdirV, fZdirV, (const VolumePath_t**)fPathV, fNextpathV, same);
+#endif // USE_VECGEOM_NAVIGATOR
     for (itr = 0; itr < nsel; itr++) {
       if (same[itr]) {
         fBoundaryV[itr] = false;
@@ -2164,8 +2156,26 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // Select tracks that are in flight or were propagated to boundary with
     // steps bigger than safety
     if (fSafetyV[itr] < 1.E-10 || fSnextV[itr] < 1.E-10) {
+      // Check if boundary has been crossed
       bool same = true;
-      NavIsSameLocation(1, (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr], &same, td);
+#ifdef USE_VECGEOM_NAVIGATOR
+      NavigationState *tmpstate = td->GetPath();
+#ifdef VECTORIZED_GEOMETRY
+      VectorNavInterface
+#else
+#ifdef NEW_NAVIGATION
+      ScalarNavInterfaceVGM
+#else
+// Old navigation system
+      ScalarNavInterfaceVG
+#endif // NEW_NAVIGATION
+#endif // VECTORIZED_GEOMETRY
+        ::NavIsSameLocation(1, &fXposV[itr], &fYposV[itr], &fZposV[itr], &fXdirV[itr], &fYdirV[itr], &fZdirV[itr], (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr], &same, tmpstate);
+#else
+// ROOT navigation
+      ScalarNavInterfaceTGeo
+        ::NavIsSameLocation(1, &fXposV[itr], &fYposV[itr], &fZposV[itr], &fXdirV[itr], &fYdirV[itr], &fZdirV[itr], (const VolumePath_t**)(&fPathV[itr]), &fNextpathV[itr], &same);
+#endif // USE_VECGEOM_NAVIGATOR
       if (same) {
         fBoundaryV[itr] = false;
         return icrossed;

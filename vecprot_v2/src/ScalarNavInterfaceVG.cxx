@@ -112,6 +112,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
 //______________________________________________________________________________
 void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
        const double *x, const double *y, const double *z,
+       const double */*dirx*/, const double */*diry*/, const double */*dirz*/,
        const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *tmpstate) {
 // 
 // Checks if the navigation states corresponding to positions (x,y,z) are the
@@ -153,6 +154,7 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
       nav->ResetState();
       nav->SetLastSafetyForPoint(0, 0, 0, 0);
       nav->SetCurrentPoint(x[itr], y[itr], z[itr]);
+//      nav->SetCurrentDirection(xdir[itr], ydir[itr], zdir[itr]);
       sb->UpdateNavigator(nav);
       nav->InspectState();
       bool rootsame = nav->IsSameLocation(x[itr], y[itr], z[itr], true);

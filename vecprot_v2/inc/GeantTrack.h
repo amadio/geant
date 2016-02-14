@@ -886,16 +886,6 @@ public:
   void PrintTracks(const char *msg = "") const;
 
   /**
-   * @brief Function for navigation that check if location is the same or not
-   *
-   * @param ntracks Number of tracks
-   * @param start Start volume path
-   * @param end End volume path
-   * @param same Boolean flag that check same location
-   */
-  void NavIsSameLocation(int ntracks, const VolumePath_t **start, VolumePath_t **end, bool *same, GeantTaskData * /*td*/);
-
-  /**
    * @brief Function for navigation that check if location is the same or not for single track
    *
    * @param itr Track ID
