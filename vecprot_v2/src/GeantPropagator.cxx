@@ -54,6 +54,10 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
+#ifdef USE_CALLGRIND_CONTROL
+#include <valgrind/callgrind.h>
+#endif
+
 // #define RUNGE_KUTTA  1
 
 // The classes for integrating in a non-uniform magnetic field
@@ -569,6 +573,9 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     capp->Update();
   }
   fTimer = new TStopwatch();
+#ifdef USE_CALLGRIND_CONTROL
+    CALLGRIND_START_INSTRUMENTATION;
+#endif
   fWMgr->StartThreads();
   fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
@@ -577,6 +584,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fWMgr->WaitWorkers();
   fWMgr->JoinThreads();
   fTimer->Stop();
+#ifdef USE_CALLGRIND_CONTROL
+    CALLGRIND_STOP_INSTRUMENTATION;
+    CALLGRIND_DUMP_STATS;
+#endif
   double rtime = fTimer->RealTime();
   double ctime = fTimer->CpuTime();
   //   fTimer->Print();
