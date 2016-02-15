@@ -87,7 +87,7 @@ if (CUDA)
 
  set(SRC_CPP_RELATIVE
 #      xsec/testserialReadCuda.cu
-#     xsec/src/TPartIndex.cxx
+     xsec/src/TPartIndex.cxx
 #     xsec/src/TEFstate.cxx
 #     xsec/src/TFinState.cxx
 #     xsec/src/TEXsec.cxx
@@ -121,19 +121,31 @@ if (CUDA)
       )
 
   endforeach() 
-    set(SRC_CUDA ${SRC_CUDA} 
-      ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cu
-       ) 
 
+ cuda_add_library(xseccuda
+     ${SRC_CUDA}
+    OPTIONS ${CUDA_ARCH}
+ #   ${CUDA_NVCC_FLAGS}
 
+)  
+target_link_libraries(xseccuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
+
+#get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+#foreach(dir ${dirs})
+#message (STATUS "dir='${dirs}'")
+#endforeach()
+
+add_custom_target(testserial ALL DEPENDS xseccuda)
+#target_include_directories(xseccuda PUBLIC ${dirs})
 ADD_CUSTOM_COMMAND(
-    TARGET xseccuda
+    TARGET testserial
     PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda ${VECGEOM_CUDA}"
-    COMMAND ${CUDA_HOST_COMPILER} -c --std=c++11 ${VECGEOM_DEFINITIONS} ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cpp -o testserialReadCuda.cpp.o -I${VECGEOM_INSTALL_DIR}/include -I${CUDA_TOOLKIT_ROOT_DIR}/include
-    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} ${VECGEOM_DEFINITIONS} -dc -arch=sm_30 ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cu  -I${VECGEOM_INSTALL_DIR}/include -o xseccuda.o
-
-    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} -arch=sm_30 ${VECGEOM_INSTALL_DIR}/lib/libvecgeom.a testserialReadCuda.cpp.o xseccuda.o ${VECGEOM_INSTALL_DIR}/librawvecgeomcuda.a -o runtest 
+    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda"
+    COMMAND ${CUDA_HOST_COMPILER} -c --std=c++11 ${VECGEOM_DEFINITIONS} ${GEANTV_COMPILE_DEFINITIONS} ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cpp -o testserialReadCuda.cpp.o -I${VECGEOM_INSTALL_DIR}/include -I${CUDA_TOOLKIT_ROOT_DIR}/include -lxseccuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda nvcc ${GEANTV_COMPILE_DEFINITIONS}"
+    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} ${VECGEOM_DEFINITIONS} -DUSE_VECGEOM_NAVIGATOR -dc -arch=sm_30 ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cu -o testserial.o -I${VECGEOM_INSTALL_DIR}/include -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/xsec/inc -I${CMAKE_SOURCE_DIR}/base/inc -lxseccuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda linking"
+    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} -arch=sm_30 ${VECGEOM_INSTALL_DIR}/lib/libvecgeom.a testserialReadCuda.cpp.o testserial.o ${VECGEOM_INSTALL_DIR}/librawvecgeomcuda.a -o runtest -lxseccuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     )
 
 message (STATUS "VECGEOM LIBS ${VECGEOM_LIBRARIES}")

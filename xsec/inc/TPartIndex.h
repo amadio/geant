@@ -18,15 +18,19 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
+#endif
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "materials/Particle.h"
 #endif
 #include "Geant/Typedefs.h"
+#include "Geant/Config.h"
 #ifdef GEANT_NVCC
 #include "base/Map.h"
+#include "base/Vector.h"
 #else
 #include <map>
 #endif
@@ -55,6 +59,10 @@ enum GVproc {
   kKiller,
   kTotal
 };
+#ifdef GEANT_NVCC
+class TPartIndex;
+extern GEANT_CUDA_DEVICE_CODE TPartIndex *fgPartIndexDev;
+#endif
 
 class TPartIndex {
 
@@ -65,16 +73,33 @@ public:
   using Map_t = std::map<int,int>;
 #endif
 
+#ifndef GEANT_NVCC
+  GEANT_CUDA_HOST_CODE
   static TPartIndex *I() {
      if (!fgPartIndex) {
 #ifdef USE_VECGEOM_NAVIGATOR
-      Particle::CreateParticles();
+      Particle_t::CreateParticles();
 #endif
       fgPartIndex = new TPartIndex();
      }
     return fgPartIndex;
-  }
+ }
+#else
+  GEANT_CUDA_DEVICE_CODE
+  static TPartIndex *I() {
+     if (!fgPartIndexDev) {
+#ifdef USE_VECGEOM_NAVIGATOR
+      Particle_t::CreateParticles();
+#endif
+      fgPartIndexDev = new TPartIndex();
+     }
+    return fgPartIndexDev;
+
+}
+#endif 
+  GEANT_CUDA_BOTH_CODE
   TPartIndex();
+  GEANT_CUDA_BOTH_CODE
   virtual ~TPartIndex();
 
   static const char *ClassName() { return "TPartIndex"; }
@@ -104,15 +129,26 @@ public:
   static short NProc() /* const */ { return fgNProc; }
 
   // Fill the particle table
+ GEANT_CUDA_BOTH_CODE
   void SetPartTable(const int *vpdg, int np);
 
   // PDG code <- GV particle number
+ GEANT_CUDA_BOTH_CODE
   int PDG(int i) const { return fPDG[i]; }
   // PDG code <- particle name
   int PDG(const char *pname) const;
 // Particle name <- GV particle number
 #ifdef USE_VECGEOM_NAVIGATOR
-  const char *PartName(int i) const { return Particle_t::GetParticle(fPDG[i]).Name(); }
+#ifndef GEANT_NVCC 
+  const char *PartName(int i) const { 
+   return Particle_t::GetParticle(fPDG[i]).Name(); 
+ }
+#else
+  GEANT_CUDA_DEVICE_CODE 
+  const char *PartName(int i) const { 
+   return Particle_t::GetParticleDev(fPDG[i]).Name(); 
+  }
+#endif
 #else
   const char *PartName(int i) const { return TDatabasePDG::Instance()->GetParticle(fPDG[i])->GetName(); }
 #endif
@@ -137,6 +173,7 @@ public:
   TDatabasePDG *DBPdg() const { return fDBPdg; }
 #endif
 
+ GEANT_CUDA_BOTH_CODE
   void SetEnergyGrid(double emin, double emax, int nbins);
   int NEbins() const { return fNEbins; }
   double Emin() const { return fEGrid[0]; }
@@ -149,14 +186,18 @@ public:
   static float WEle(int z) { return fgWElem[z - 1]; }
   static int NElem() { return fgNElem; }
 
+#ifndef GEANT_NVCC
   void Print(const char *option = "") const;
+#endif
   // approximated formula for nuclear mass computation; for handling fragments
   double GetAprxNuclearMass(int Z, int A);
   void SetPDGToGVMap(Map_t &theMap);
   // only for e-,e+,gamma and proton
   int GetSpecGVIndex(int indx) { return fSpecGVIndices[indx]; }
 
+ GEANT_CUDA_BOTH_CODE
   int SizeOf() const;
+ GEANT_CUDA_BOTH_CODE
   void RebuildClass(char *b);
   size_t MakeCompactBuffer(char* &b);
 
@@ -164,10 +205,11 @@ private:
   TPartIndex &operator=(const TPartIndex &); // Not implemented
   TPartIndex(const TPartIndex &other); // Not implemented
 
+ GEANT_CUDA_BOTH_CODE
   void CreateReferenceVector();
-
+  #ifndef GEANT_NVCC
   static TPartIndex *fgPartIndex;
-
+  #endif
   const int fVersion = 1000002;
 
   static const int fgNProc = FNPROC;   // Number of processes
@@ -192,13 +234,19 @@ private:
   TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
 #endif
   Map_t fPDGToGVMap;    // PDG->GV code map
+#ifdef GEANT_NVCC
+  vecgeom::Vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
+#else
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
+#endif
 
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
   ClassDef(TPartIndex, 102) // Particle Index
 #else
   ClassDef(TPartIndex, 3)   // Particle Index
+#endif
 #endif
 #endif
 };
