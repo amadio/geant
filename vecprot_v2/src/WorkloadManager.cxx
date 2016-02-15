@@ -426,6 +426,18 @@ void *WorkloadManager::TransportTracks() {
     while (ntotransport) {
       // Interrupt condition here. Work stealing could be also implemented here...
       generation++;
+      // Use fNsteps track data to detect geometry anomalies
+      for (auto itr=0; itr<ntotransport; ++itr) {
+        input.fNstepsV[itr]++;
+        if ((input.fNstepsV[itr] > gPropagator->fNstepsKillThr) &&
+            input.fBoundaryV[itr] && (input.fSnextV[itr]<1.e-9)) {
+          Error("TransportTracks", "track %d seems to be stuck -> killing it", input.fParticleV[itr]);
+          Error("TransportTracks", "Transport will continue, but this is a fatal error");
+          input.PrintTrack(itr, "stuck");
+          input.fStatusV[itr] = kKilled;
+        }  
+      }  
+      
       //         Geant::Print("","====== WorkloadManager:");
       //         input.PrintTracks();
       // Propagate all remaining tracks
@@ -535,7 +547,7 @@ void *WorkloadManager::TransportTracks() {
     output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, prop->fDebugRep, "EndStep");
 #endif
     for (auto itr = 0; itr < ntotnext; ++itr) {
-      output.fNstepsV[itr]++;
+      //output.fNstepsV[itr]++;
       if (output.fStatusV[itr] == kBoundary)
         *output.fPathV[itr] = *output.fNextpathV[itr];
     }

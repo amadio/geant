@@ -92,6 +92,7 @@ public:
   int fLearnSteps;                   /** Number of steps needed for the learning phase */
   int fLastEvent;                    /** Last transported event */
   float fPriorityThr;                /** Threshold for prioritizing events */
+  int fNstepsKillThr;                /** Threshold in number of steps to kill a track */
 
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
   double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */
