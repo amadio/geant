@@ -62,13 +62,10 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
       continue;
     }
     
-    step[itr] = newnav->ComputeStepAndPropagatedState(Vector3D_t(x[itr], y[itr], z[itr]),
-                                Vector3D_t(dirx[itr], diry[itr], dirz[itr]), 
-                                Math::Min<double>(1.E20, pstep[itr]), 
-                                *instate[itr], *outstate[itr] /* the paths */);
+    step[itr] = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(x[itr], y[itr], z[itr]),
+                               Vector3D_t(dirx[itr], diry[itr], dirz[itr]),
+                               Math::Min<double>(1.E20, pstep[itr]), *instate[itr], *outstate[itr] /* the paths */, !isonbdr[itr], safe[itr]);
     step[itr] = Math::Max<double>(2. * gTolerance, step[itr] + 2. * gTolerance);
-    // still call the old navigator for safety
-    safe[itr] = (isonbdr[itr]) ? 0 : nav.GetSafety(Vector3D_t(x[itr], y[itr], z[itr]), *instate[itr]);
     safe[itr] = Math::Max<double>(safe[itr], 0);
     // onboundary with respect to new point
     isonbdr[itr] = outstate[itr]->IsOnBoundary();
