@@ -1,22 +1,33 @@
 #include "TPFstate.h"
 #include "TFinState.h"
 #include "Geant/Error.h"
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include <TMath.h>
 #include <TFile.h>
 #include <TRandom.h>
 #endif
+#endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
 using vecgeom::RNG;
 #endif
+#ifndef GEANT_NVCC
 using std::max;
+#else
+template<class T>
+  GEANT_CUDA_BOTH_CODE
+const T& max(const T&a,const T& b) {
+    return (a<b)?b:a;
+}
+#endif
 
 int TPFstate::fVerbose = 0;
 
 #include "Geant/Error.h"
 
 //_________________________________________________________________________
+  GEANT_CUDA_BOTH_CODE
 TPFstate::TPFstate()
   : fNEbins(0),
     fNEFstat(0),
@@ -57,10 +68,12 @@ TPFstate::TPFstate(int pdg, int nfstat, int nreac, const int dict[]) :
       fRdict[dict[np]] = np;
       fRmap[np] = dict[np];
    }
+#ifndef GEANT_NVCC
    // consistency
    for (int i = 0; i < fNReac; ++i)
       if (fRdict[fRmap[i]] != i)
 	 Geant::Fatal("TPFstate::TPFstate", "Dictionary mismatch for!");
+#endif
 }
 
 //_________________________________________________________________________
@@ -159,6 +172,7 @@ bool TPFstate::SetFinState(int ibin, int reac, const int npart[], const float we
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                           const float *&mom, int &ebinindx) const {
   int rnumber = fRdict[preac];
@@ -200,6 +214,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
 }
 
 //______________________________________________________________________________
+  GEANT_CUDA_BOTH_CODE
 bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                           const float *&mom, int &ebinindx, double randn1, double randn2) const {
   int rnumber = fRdict[preac];
@@ -264,6 +279,9 @@ bool TPFstate::SampleRestCaptFstate(int &npart, float &weight, float &kerma, flo
 }
 
 //______________________________________________________________________________
+
+
+  GEANT_CUDA_BOTH_CODE
 bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
                        const int *&pid, const float *&mom) const {
   int rnumber = fRdict[preac];
@@ -294,7 +312,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
     return fFstatP[ipoint]->GetReac(ifs, npart, weight, kerma, enr, pid, mom);
   }
 }
-
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TPFstate::Streamer(TBuffer &R__b) {
@@ -320,18 +338,21 @@ void TPFstate::Streamer(TBuffer &R__b) {
   }
 }
 #endif
+#endif
 
 //_________________________________________________________________________
 void TPFstate::Print(const char *) const {
-  printf("Particle=%d Number of x-secs=%d between %g and %g GeV", fPDG, fNReac, fEGrid[0], fEGrid[fNEbins - 1]);
+  Geant::Printf("Particle=%d Number of x-secs=%d between %g and %g GeV", fPDG, fNReac, fEGrid[0], fEGrid[fNEbins - 1]);
 }
 
 //_________________________________________________________________________
 bool TPFstate::Resample() {
+  #ifndef GEANT_NVCC
   if (fVerbose)
-    printf("Resampling %s from \nemin = %8.2g emacs = %8.2g, nbins = %d to \n"
-           "emin = %8.2g emacs = %8.2g, nbins = %d\n",
-           Name(), fEmin, fEmax, fNEbins, TPartIndex::I()->Emin(), TPartIndex::I()->Emax(), TPartIndex::I()->NEbins());
+    Geant::Printf("Resampling %s from \nemin = %8.2g emacs = %8.2g, nbins = %d to \n"
+                  "emin = %8.2g emacs = %8.2g, nbins = %d\n",
+                  Name(), fEmin, fEmax, fNEbins, TPartIndex::I()->Emin(), TPartIndex::I()->Emax(), TPartIndex::I()->NEbins());
+  #endif
   // Build the original energy grid
   double edelta = exp(1 / fEilDelta);
   double *oGrid = new double[fNEbins];
@@ -387,6 +408,7 @@ bool TPFstate::Resample() {
 }
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 int TPFstate::SizeOf() const {
    size_t size = sizeof(*this);
    if(fRestCaptFstat != nullptr) size += fRestCaptFstat->SizeOf();
@@ -419,10 +441,11 @@ void TPFstate::Compact() {
 }
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void TPFstate::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-      cout << "TPFstate::RebuildClass: the class is misaligned" << endl;
-      exit(1);
+    Geant::Fatal("TPFstate::RebuildClass","the class is misaligned\n");
+    return;
   }
    char *start = fStore;
    // we consider that the pointer energy grid is stale
@@ -433,20 +456,26 @@ void TPFstate::RebuildClass() {
    if(fRestCaptFstat != nullptr) {
 #ifdef MAGIC_DEBUG
       if(((TFinState*) start)->GetMagic() != -777777) {
-	 cout << "TFinState::Broken magic 1 " << ((TFinState*) start)->GetMagic() << endl;
-	 exit(1);
+        Geant::Fatal("TFinState::RebuildClass","Broken magic 1 %d",((TFinState*) start)->GetMagic());
+        return;
       }
 #endif
       ((TFinState *) start)->RebuildClass();
       fRestCaptFstat = (TFinState *) start;
-      if(!fRestCaptFstat->CheckAlign()) exit(1);
+      if(!fRestCaptFstat->CheckAlign()) 
+#ifndef GEANT_NVCC  
+         exit(1);
+#else
+         return;
+#endif
+  
       start += ((TFinState*) start)->SizeOf();
    }
    for(auto i=0; i<fNFstat; ++i) {
 #ifdef MAGIC_DEBUG
       if(((TFinState*) start)->GetMagic() != -777777) {
-	 cout << "TFinState::Broken magic 2 " << ((TFinState*) start)->GetMagic() << endl;
-	 exit(1);
+        Geant::Fatal("TFinState::RebuildClass","Broken magic 2 %d",((TFinState*) start)->GetMagic());
+        return;
       }
 #endif
       ((TFinState *) start)->RebuildClass();

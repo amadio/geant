@@ -1,14 +1,11 @@
 // Author: Federico Carminati   27/05/13
-
 /*************************************************************************
  * Copyright (C) 1995-2000, fca                                          *
  * All rights reserved.                                                  *
  *                                                                       *
  *************************************************************************/
-
 #ifndef TMXsec_H
 #define TMXsec_H
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TMXSec                                                               //
@@ -17,15 +14,21 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
+#endif
+#include <vector>
+#else 
+#include "base/Vector.h"
+#include "base/Map.h"
+using vecgeom::Vector;
+using vecgeom::pair;
 #endif
 
 #include "Geant/Config.h"
 
 #include <TEXsec.h>
-#include <vector>
 
 class TPDecay;
 #include "GeantFwd.h"
@@ -47,18 +50,20 @@ public:
   //   bool Xlength_v(int npart, const int part[], const float en[], double lam[]);
   float DEdx(int part, float en);
   //   bool DEdx_v(int npart, const int part[], const float en[], float de[]);
+  GEANT_CUDA_BOTH_CODE
   float Range(int part, float en);
+  GEANT_CUDA_BOTH_CODE
   double InvRange(int part, float step);
 
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   void Eloss(int ntracks, GeantTrack_v &tracks);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   void ElossSingle(int itrack, GeantTrack_v &tracks);
   void ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   void ProposeStepSingle(int itr, GeantTrack_v &tracks, GeantTaskData *td);
   void SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td);
   void SampleSingleInt(int itr, GeantTrack_v &tracksin, GeantTaskData *td);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   float MS(int ipart, float energy);
 
   TEXsec *SampleInt(int part, double en, int &reac, double ptotal);
@@ -94,11 +99,15 @@ private:
   float *fMSlensig;                                       // [fNCharge] table of MS sigma lenght correction
   double *fRatios;                                        // [fNElems]  relative #atoms/volume; normalized
   float *fRange;                                          // [fNCharge] ranges of the particle in this material
-  std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
   const TPDecay *fDecayTable;                             // pointer to the decay table
-
+#ifndef GEANT_NVCC
+  std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
 #ifdef USE_ROOT
   ClassDefNV(TMXsec, 1) // Material X-secs
+#endif
+#else
+  Vector<vecgeom::pair<float, double>> **fInvRangeTable; // [fNCharge]
+
 #endif
 };
 

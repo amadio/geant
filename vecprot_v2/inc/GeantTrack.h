@@ -194,6 +194,7 @@ public:
   int EIndex() const { return fEindex; }
 
   /** @brief Function that return gamma value*/
+  GEANT_CUDA_BOTH_CODE
   double Gamma() const { return fMass ? fE / fMass : std::numeric_limits<double>::max(); }
 
   /** @brief Function that return selected physical step */
@@ -1052,6 +1053,7 @@ public:
    * @brief Function that return gamma value
    * @param  i Input bit number 'i'
    */
+  GEANT_CUDA_BOTH_CODE
   double Gamma(int i) const { return fMassV[i] ? fEV[i] / fMassV[i] : std::numeric_limits<double>::max(); }
 
   /**

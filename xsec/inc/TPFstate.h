@@ -19,8 +19,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+#include "Geant/Error.h"
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
+#endif
 #endif
 
 
@@ -28,6 +31,7 @@ class TFinState;
 
 class TPFstate {
 public:
+  GEANT_CUDA_BOTH_CODE
   TPFstate();
   TPFstate(int pdg, int nfstat, int nreac, const int dict[]);
   TPFstate(const TPFstate &other);
@@ -39,16 +43,19 @@ public:
       return false;
     return true;
   }
-
+  GEANT_CUDA_BOTH_CODE
   const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
+
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[]);
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinState vecfs[]);
   bool SetFinState(int ibin, int reac, const int npart[], const float weight[], const float kerma[], const float en[],
                    const char surv[], const int pid[], const float mom[]);
   void Print(const char *opt = "") const;
   bool Prune() { return true; }
+  GEANT_CUDA_BOTH_CODE
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx) const;
+  GEANT_CUDA_BOTH_CODE
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx, double randn1, double randn2) const;
   bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid,
@@ -56,39 +63,44 @@ public:
   bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid, const float *&mom,
                             double randn) const;
 
+  GEANT_CUDA_BOTH_CODE
   bool GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                const float *&mom) const;
   int NEFstat() const { return fNEFstat; }
   void Dump() const {}
   bool Resample();
 
+  GEANT_CUDA_BOTH_CODE
   int SizeOf() const;
   void Compact();
+  GEANT_CUDA_BOTH_CODE
   void RebuildClass();
 #ifdef MAGIC_DEBUG
+  GEANT_CUDA_BOTH_CODE
   int GetMagic() const {return fMagic;}
 #endif
 
+  GEANT_CUDA_BOTH_CODE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) {std::cout << "TPFstate::fNEbins misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) {std::cout << "TPFstate::fNEFstat misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNFstat) % sizeof(fNFstat) != 0) {std::cout << "TPFstate::fNFstat misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNReac) % sizeof(fNReac) != 0) {std::cout << "TPFstate::fNReac misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPFstate::CheckAlign","fNEbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) { Geant::Error("TPFstate::CheckAlign","fNEFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNFstat) % sizeof(fNFstat) != 0) { Geant::Error("TPFstate::CheckAlign","fNFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNReac) % sizeof(fNReac) != 0) { Geant::Error("TPFstate::CheckAlign","fNReac misaligned\n");isaligned=false;}
   for(auto i=0; i< fNFstat; ++i)
-    if(((unsigned long) fFstatP[i]) % sizeof(double) != 0) {std::cout << "TPFstate::fFstatP[" << i << "] misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fRestCaptFstat) % sizeof(double) != 0) {std::cout << "TPFstate::fRestCaptFstat misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fEGrid) % sizeof(fEGrid) != 0) {std::cout << "TPFstate::fEGrid misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) {std::cout << "TPFstate::fEmin misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) {std::cout << "TPFstate::fEmax misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) {std::cout << "TPFstate::fEilDelta misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) {std::cout << "TPFstate::fPDG misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fRdict) % sizeof(int) != 0) {std::cout << "TPFstate::fRdict misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fRmap) % sizeof(int) != 0) {std::cout << "TPFstate::fRmap misaligned" << std::endl;isaligned=false;}
+    if(((unsigned long) fFstatP[i]) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fFstatP[%d] misaligned\n",i);isaligned=false;}
+  if(((unsigned long) fRestCaptFstat) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fRestCaptFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEGrid) % sizeof(fEGrid) != 0) { Geant::Error("TPFstate::CheckAlign","fEGrid misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TPFstate::CheckAlign","fEmin misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TPFstate::CheckAlign","fEmax misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPFstate::CheckAlign","fEilDelta misaligned\n");isaligned=false;}
+  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPFstate::CheckAlign","fPDG misaligned\n");isaligned=false;}
+  if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPFstate::CheckAlign","fRdict misaligned\n");isaligned=false;}
+  if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPFstate::CheckAlign","fRmap misaligned\n");isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TPFstate::fMagic misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","fMagic misaligned\n");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TPFstate::fStore misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
 
@@ -96,8 +108,9 @@ bool CheckAlign() {
   static int GetVerbose() { return fVerbose; }
 
 private:
+#ifndef GEANT_NVCC
   TPFstate &operator=(const TPFstate &); // Not implemented
-
+#endif
   static int fVerbose; // Controls verbosity level
 
   int fNEbins;               // number of energy bins
@@ -121,8 +134,10 @@ private:
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
   ClassDefNV(TPFstate, 3) // Particle Final States
+#endif
 #endif
 
 private:

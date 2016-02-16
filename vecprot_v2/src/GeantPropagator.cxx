@@ -302,6 +302,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthreads) {
   // Single instance of the propagator
   if (fgInstance)

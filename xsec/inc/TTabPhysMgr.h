@@ -2,9 +2,10 @@
 #define TTabPhysMgr_H
 
 #include "Geant/Config.h"
-
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
+#endif
 #endif
 
 #define MAXNELEMENTS 20 // max number of elements in one material(TMXsec)
@@ -58,9 +59,9 @@ public:
   void TransformLF(int indref, GeantTrack_v &tracks, int nproducts, int indprod,
                    GeantTrack_v &output); // not. imp. but done
   // API used by particle transport
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   void ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   int Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   void ProposeStep(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   int SampleDecay(int ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout); // not. imp.
@@ -78,20 +79,20 @@ public:
   // # return: number of inserted secondary tracks
   int SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   void GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks, int iintrack,
                         int &nTotSecPart, GeantTaskData *td);
   void SampleDecayInFlight(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks, int iintrack,
                            int &nTotSecPart, GeantTaskData *td);
 
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   bool HasRestProcess(int gvindex);
 
   void RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack &track);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   void RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack_v &tracks, int itrack);
   void RotateTrack(GeantTrack &track, double theta, double phi);
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   void RotateTrack(GeantTrack_v &tracks, int itrack, double theta, double phi);
 
   // get current version number

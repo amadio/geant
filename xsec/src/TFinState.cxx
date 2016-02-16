@@ -1,6 +1,8 @@
 #include "TFinState.h"
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "TRandom.h"
+#endif
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
@@ -10,6 +12,7 @@ using vecgeom::RNG;
 int TFinState::fVerbose = 0;
 
 //_________________________________________________________________________
+ GEANT_CUDA_BOTH_CODE
 TFinState::TFinState()
     : fNFstates(0), fNsecs(0), fNMom(0), fWeight(0), fKerma(0), fEn(0), fMom(0), fPID(0), fNpart(0), fSurv(0) {
 }
@@ -100,7 +103,6 @@ TFinState &TFinState::operator=(const TFinState &right) {
   }
   return *this;
 }
-
 //_________________________________________________________________________
 bool TFinState::SetFinState(int nfstates, const int npart[], const float weight[], const float kerma[],
                             const float en[], const char surv[], const int pid[], const float mom[]) {
@@ -201,6 +203,7 @@ void TFinState::NormFinSateWeights() {
 }
 
 //_________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid,
                            const float *&mom) const {
 
@@ -243,13 +246,14 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
   kerma = fKerma[finstat];
   en = fEn[finstat];
   //  memcpy(pid,&fPID[ipoint],npart*sizeof(int));
-  //  memcpy(mom,&fMom[3*ipoint],3*npart*sizeof(float));
+  //  memcpy(mom&fMom[3*ipoint],3*npart*sizeof(float));
   pid = &fPID[ipoint];
   mom = &fMom[3 * ipoint];
   return fSurv[finstat];
 }
 
 //_________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom,
                            double randn) const {
 
@@ -294,6 +298,7 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
 }
 
 //_________________________________________________________________________
+  GEANT_CUDA_BOTH_CODE
 bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, float &en, const int *&pid,
                         const float *&mom) const {
   if (!fNFstates) { // ensure that nothing happens
@@ -329,6 +334,7 @@ bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, fl
 }
 
 //_________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 int TFinState::SizeOf() const {
    size_t size = sizeof(*this);
    size += 3 * fNFstates * sizeof(float);
@@ -396,10 +402,11 @@ void TFinState::Compact() {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void TFinState::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-      cout << "TFinState::RebuildClass: the class is misaligned" << endl;
-      exit(1);
+    Geant::Fatal("TFinState::RebuildClass","the class is misaligned\n");
+    return;
   }
    int size = 0;
    char *start = fStore;

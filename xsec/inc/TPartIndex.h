@@ -17,7 +17,6 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
@@ -28,6 +27,7 @@
 #endif
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
+#include "Geant/Error.h"
 #ifdef GEANT_NVCC
 #include "base/Map.h"
 #include "base/Vector.h"
@@ -62,6 +62,7 @@ enum GVproc {
 #ifdef GEANT_NVCC
 class TPartIndex;
 extern GEANT_CUDA_DEVICE_CODE TPartIndex *fgPartIndexDev;
+extern TPartIndex *fgPartIndexHost;
 #endif
 
 class TPartIndex {
@@ -73,9 +74,9 @@ public:
   using Map_t = std::map<int,int>;
 #endif
 
-#ifndef GEANT_NVCC
-  GEANT_CUDA_HOST_CODE
+  GEANT_CUDA_BOTH_CODE
   static TPartIndex *I() {
+#ifndef GEANT_NVCC
      if (!fgPartIndex) {
 #ifdef USE_VECGEOM_NAVIGATOR
       Particle_t::CreateParticles();
@@ -83,10 +84,8 @@ public:
       fgPartIndex = new TPartIndex();
      }
     return fgPartIndex;
- }
 #else
-  GEANT_CUDA_DEVICE_CODE
-  static TPartIndex *I() {
+#ifdef GEANT_CUDA_DEVICE_BUILD
      if (!fgPartIndexDev) {
 #ifdef USE_VECGEOM_NAVIGATOR
       Particle_t::CreateParticles();
@@ -94,9 +93,19 @@ public:
       fgPartIndexDev = new TPartIndex();
      }
     return fgPartIndexDev;
+#else
 
-}
+     if (!fgPartIndexHost) {
+#ifdef USE_VECGEOM_NAVIGATOR
+      Particle_t::CreateParticles();
+#endif
+      fgPartIndexHost = new TPartIndex();
+     }
+    return fgPartIndexHost;
+#endif
+
 #endif 
+}
   GEANT_CUDA_BOTH_CODE
   TPartIndex();
   GEANT_CUDA_BOTH_CODE
@@ -126,6 +135,7 @@ public:
   // Process index <- G4 process*1000+subprocess
   static int ProcCode(int procindex) /* const */ { return fgPCode[procindex]; }
 
+  GEANT_CUDA_BOTH_CODE
   static short NProc() /* const */ { return fgNProc; }
 
   // Fill the particle table
@@ -139,7 +149,7 @@ public:
   int PDG(const char *pname) const;
 // Particle name <- GV particle number
 #ifdef USE_VECGEOM_NAVIGATOR
-#ifndef GEANT_NVCC 
+#ifndef GEANT_CUDA_DEVICE_BUILD
   const char *PartName(int i) const { 
    return Particle_t::GetParticle(fPDG[i]).Name(); 
  }
@@ -167,7 +177,9 @@ public:
   // Number of particles with reactions
   void SetNPartReac(int np) { fNpReac = np; }
   void SetNPartCharge(int nc) { fNpCharge = nc; }
+ GEANT_CUDA_BOTH_CODE
   int NPartReac() const { return fNpReac; }
+ GEANT_CUDA_BOTH_CODE
   int NPartCharge() const { return fNpCharge; }
 #ifndef USE_VECGEOM_NAVIGATOR
   TDatabasePDG *DBPdg() const { return fDBPdg; }
@@ -175,10 +187,15 @@ public:
 
  GEANT_CUDA_BOTH_CODE
   void SetEnergyGrid(double emin, double emax, int nbins);
+GEANT_CUDA_BOTH_CODE
   int NEbins() const { return fNEbins; }
+GEANT_CUDA_BOTH_CODE
   double Emin() const { return fEGrid[0]; }
+GEANT_CUDA_BOTH_CODE
   double Emax() const { return fEGrid[fNEbins - 1]; }
+GEANT_CUDA_BOTH_CODE
   double EilDelta() const { return fEilDelta; }
+ GEANT_CUDA_BOTH_CODE
   const double *EGrid() const { return fEGrid; }
 
   static const char *EleSymb(int z) { return fgEleSymbol[z - 1]; }
@@ -215,7 +232,6 @@ private:
   static const int fgNProc = FNPROC;   // Number of processes
   static const char *fgPrName[FNPROC]; // Process name
   static const short fgPCode[FNPROC];  // G4 process codes
-
   static const int fgNElem = NELEM;      // Number of Elements
   static const char *fgEleSymbol[NELEM]; // Symbol of Element
   static const char *fgEleName[NELEM];   // Name of Element
@@ -239,7 +255,6 @@ private:
 #else
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 #endif
-
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR

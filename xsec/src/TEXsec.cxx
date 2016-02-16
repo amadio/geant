@@ -1,3 +1,5 @@
+#include "TEXsec.h"
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "TAxis.h"
 #include "TCanvas.h"
@@ -19,24 +21,51 @@
 #include <TGLabel.h>
 #include <TRootEmbeddedCanvas.h>
 #endif
-#include "TEXsec.h"
-#include <TPXsec.h>
-#include <TPartIndex.h>
+#endif
 #include "base/Global.h"
+#ifndef GEANT_NVCC
 #include "base/MessageLogger.h"
-
+#endif
 using vecgeom::kAvogadro;
 using std::numeric_limits;
+
+#ifndef GEANT_NVCC
+
 using std::max;
 
+#else
+
+template<class T>
+GEANT_CUDA_BOTH_CODE
+const T& max(const T&a,const T& b) {
+    return (a<b)?b:a;
+}
+#endif
+
+#ifndef GEANT_NVCC
+int TEXsec::fNLdElems = 0;
 TEXsec *TEXsec::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#else
+int fNLdElemsDev = 0;            //! number of loaded elements
+TEXsec *fElementsDev[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-int TEXsec::fNLdElems = 0;
+int fNLdElemsHost = 0;            //! number of loaded elements
+TEXsec *fElementsHost[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#endif
 
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 TGMainFrame *TEXsec::fMain = 0;
 TGHorizontalFrame *TEXsec::fSecond = 0;
@@ -44,8 +73,10 @@ TRootEmbeddedCanvas *TEXsec::fCanvas = 0;
 TGListBox *TEXsec::fReactionBox = 0;
 TGListBox *TEXsec::fParticleBox = 0;
 #endif
+#endif
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 TEXsec::TEXsec()
     : fEGrid(TPartIndex::I()->EGrid()), fAtcm3(0), fEmin(0), fEmax(0), fEilDelta(0),
       fEle(0), fIndex(-1), fNEbins(0), fNRpart(0), fPXsec(nullptr), fPXsecP(nullptr) {
@@ -69,13 +100,19 @@ TEXsec::TEXsec(int z, int a, float dens, int np)
 }
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 TEXsec::TEXsec(const TEXsec &other): fEGrid(other.fEGrid), fAtcm3(other.fAtcm3),
 				     fEmin(other.fEmin), fEmax(other.fEmax), fEilDelta(other.fEilDelta),
 				     fEle(other.fEle), fIndex(other.fIndex), fNEbins(other.fNEbins),
 				     fNRpart(other.fNRpart), fPXsecP(other.fPXsecP)
  {
+   #ifndef GEANT_NVCC
    strncpy(fName,other.fName,32);
    strncpy(fTitle,other.fTitle,128);
+   #else
+   this->strncpy(fName,other.fName,32);
+   this->strncpy(fTitle,other.fTitle,128);
+   #endif
    memcpy(fCuts,other.fCuts,4*sizeof(float));
  }
 
@@ -87,6 +124,7 @@ TEXsec::~TEXsec() {
    delete [] fPXsec;
 }
 
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TEXsec::Streamer(TBuffer &R__b)
@@ -106,6 +144,7 @@ void TEXsec::Streamer(TBuffer &R__b)
       R__b.WriteClassBuffer(TEXsec::Class(),this);
    }
 }
+#endif
 #endif
 
 //___________________________________________________________________
@@ -131,6 +170,7 @@ bool TEXsec::AddPartIon(int kpart, const float dedx[]) {
    return fPXsecP[kpart]->SetPartIon(dedx); }
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 float TEXsec::XS(int pindex, int rindex, float en) const {
    return fPXsecP[pindex]->XS(rindex, en); }
 
@@ -145,12 +185,13 @@ bool TEXsec::MS(int pindex, float en, float &ang, float &asig, float &len, float
 
 //___________________________________________________________________
 void TEXsec::DumpPointers() const {
-  printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n", fEle, fEmin, fEmax, fNEbins, fEilDelta,
-         fNRpart);
+  Geant::Printf("Material %d emin %f emax %f NEbins %d EilDelta %f Npart %d\n", fEle, fEmin, fEmax, fNEbins, fEilDelta,
+                fNRpart);
   for (int i = 0; i < fNRpart; ++i)
     fPXsecP[i]->Dump();
 }
 
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 //___________________________________________________________________
 TGraph *TEXsec::XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const {
@@ -408,7 +449,7 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
       if (TPartIndex::I()->ProcIndex(reac) < 0) {
         Error("Draw", "Reaction %s does not exist\n", reac);
         TPartIndex::I()->Print("reactions");
-        printf("dEdx, MSangle, MSangle_sig, MSCorr, MSCorr_sig\n");
+        Geant::Printf("dEdx, MSangle, MSangle_sig, MSCorr, MSCorr_sig\n");
         delete[] text;
         delete[] line;
         return;
@@ -615,8 +656,10 @@ void TEXsec::ResetFrame() {
   fMain = NULL;
 }
 #endif
+#endif
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 int TEXsec::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
@@ -627,6 +670,7 @@ int TEXsec::SizeOf() const {
 }
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void TEXsec::Compact() {
    char *start = fStore;
    for(auto i=0; i<fNRpart; ++i) {
@@ -640,10 +684,11 @@ void TEXsec::Compact() {
 }
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void TEXsec::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-      cout << "TEXsec::RebuildClass: the class is misaligned" << endl;
-      exit(1);
+    Geant::Fatal("aTEXsec::RebuildClass","the class is misaligned\n");
+    return;
   }
    char *start = fStore;
    // We consider that the fPXsecP pointer is bad and we do not delete it
@@ -652,26 +697,51 @@ void TEXsec::RebuildClass() {
    for(auto i=0; i<fNRpart; ++i) {
 #ifdef MAGIC_DEBUG
       if(((TPXsec*) start)->GetMagic() != -777777) {
-	 cout << "TPXsec::Broken magic " << ((TPXsec*) start)->GetMagic() << endl;
-	 exit(1);
+        Geant::Fatal("TEXsec::RebuildClass","Broken magic %d\n",((TPXsec*) start)->GetMagic());
+        return;
       }
 #endif
       ((TPXsec *) start)->RebuildClass();
       fPXsecP[i] = (TPXsec *) start;
-      if(!fPXsecP[i]->CheckAlign()) exit(1);;
+      if(!fPXsecP[i]->CheckAlign()) 
+#ifndef GEANT_NVCC
+      exit(1);;
+#else
+      return;
+#endif 
       start += ((TPXsec*) start)->SizeOf();
    }
 }
 
 //___________________________________________________________________
+#ifndef GEANT_NVCC
 int TEXsec::SizeOfStore() {
    // First calculate how much we need
    int totsize = 0;
    for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
    return totsize + 2 * sizeof(int);
 }
+#else
+#ifdef GEANT_CUDA_DEVICE_BUILD
+GEANT_CUDA_DEVICE_CODE
+int TEXsec::SizeOfStore() {
+   // First calculate how much we need
+   int totsize = 0;
+   for(auto i=0; i<fNLdElemsDev; ++i) totsize += fElementsDev[i]->SizeOf();
+   return totsize + 2 * sizeof(int);
+}
+#else 
+int TEXsec::SizeOfStore() {
+   // First calculate how much we need
+   int totsize = 0;
+   for(auto i=0; i<fNLdElemsHost; ++i) totsize += fElementsHost[i]->SizeOf();
+   return totsize + 2 * sizeof(int);
+}
+#endif
+#endif
 
 //___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 size_t TEXsec::MakeCompactBuffer(char* &b) {
    // First calculate how much we need
    size_t totsize = SizeOfStore();
@@ -683,6 +753,7 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
    char* start = b;
    memcpy(start,&totsize,sizeof(int));
    start += sizeof(int);
+  #ifndef GEANT_NVCC
    memcpy(start,&fNLdElems,sizeof(int));
    start += sizeof(int);
    // now copy and compact
@@ -691,10 +762,32 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
       el->Compact();
       start += el->SizeOf();
    }
+   #else
+  #ifdef GEANT_CUDA_DEVICE_BUILD
+   memcpy(start,&fNLdElemsDev,sizeof(int));
+   start += sizeof(int);
+   // now copy and compact
+   for(auto i=0; i<fNLdElemsDev; ++i) {
+      TEXsec *el = new(start) TEXsec(*fElementsDev[i]);
+      el->Compact();
+      start += el->SizeOf();
+   }
+   #else
+   memcpy(start,&fNLdElemsHost,sizeof(int));
+   start += sizeof(int);
+   // now copy and compact
+   for(auto i=0; i<fNLdElemsHost; ++i) {
+      TEXsec *el = new(start) TEXsec(*fElementsHost[i]);
+      el->Compact();
+      start += el->SizeOf();
+   }
+   #endif
+   #endif
    return totsize;
 }
 
 //___________________________________________________________________
+#ifndef GEANT_NVCC
 void TEXsec::RebuildStore(char *b) {
    int size = 0;
    fNLdElems = 0;
@@ -707,7 +800,7 @@ void TEXsec::RebuildStore(char *b) {
       TEXsec *current = (TEXsec *) start;
 #ifdef MAGIC_DEBUG
       if(current->GetMagic() != -777777) {
-	 cout << "TEXsec::Broken Magic@" << i << " " << current->GetMagic() << endl;
+	 std::cout << "TEXsec::Broken Magic@" << i << " " << current->GetMagic() << std::endl;
 	 exit(1);
       }
 #endif
@@ -717,12 +810,70 @@ void TEXsec::RebuildStore(char *b) {
       start += current->SizeOf();
    }
    if(int (start - b) != size) {
-      cout << "TEXsec::RebuildStore: expected size " << size
-	   << " found size " << start - b << endl;
-      exit(1);
+     Geant::Fatal("TEXsec::RebuildStore","expected size %d found size %d",sizestart - b);
+     return;
    }
 }
-
+#else
+#ifdef GEANT_CUDA_DEVICE_BUILD
+//___________________________________________________________________
+GEANT_CUDA_DEVICE_CODE
+void TEXsec::RebuildStore(char *b) {
+   int size = 0;
+   fNLdElemsDev = 0;
+   char *start = b;
+   memcpy(&size,start,sizeof(int));
+   start += sizeof(int);
+   memcpy(&fNLdElemsDev,start,sizeof(int));
+   start += sizeof(int);
+   for(auto i=0; i<fNLdElemsDev; ++i) {
+      TEXsec *current = (TEXsec *) start;
+#ifdef MAGIC_DEBUG
+      if(current->GetMagic() != -777777) {
+	 Geant::Error("TEXsec::RebuildStore:","Broken Magic@ %d %d\n", i, current->GetMagic());
+ 	 return;
+      }
+#endif
+      current->RebuildClass();
+      fElementsDev[i] = current;
+      if(!fElementsDev[i]->CheckAlign()) 
+       return;
+      start += current->SizeOf();
+   }
+   if(int (start - b) != size) {
+     Geant::Fatal("TEXsec::RebuildStore","expected size %d found size %d",sizestart - b);
+     return;
+   }
+}
+#else 
+void TEXsec::RebuildStore(char *b) {
+   int size = 0;
+   fNLdElemsHost = 0;
+   char *start = b;
+   memcpy(&size,start,sizeof(int));
+   start += sizeof(int);
+   memcpy(&fNLdElemsHost,start,sizeof(int));
+   start += sizeof(int);
+   for(auto i=0; i<fNLdElemsHost; ++i) {
+      TEXsec *current = (TEXsec *) start;
+#ifdef MAGIC_DEBUG
+      if(current->GetMagic() != -777777) {
+        Geant::Error("TEXsec::RebuildStore:","Broken Magic@ %d %d\n", i, current->GetMagic());
+        return;
+      }
+#endif
+      current->RebuildClass();
+      fElementsHost[i] = current;
+      if(!fElementsHost[i]->CheckAlign()) 
+       return;
+      start += current->SizeOf();
+   }
+   if(int (start - b) != size) {
+     Geant::Fatal("TEXsec::RebuildStore","expected size %d found size %d",sizestart - b);
+   }
+}
+#endif
+#endif
 //___________________________________________________________________
 float TEXsec::Lambda(int pindex, double en) const {
   double xs = fPXsecP[pindex]->XS(TPartIndex::I()->NProc() - 1, en);
@@ -754,13 +905,29 @@ int TEXsec::SampleReac(int pindex, double en, double randn) const {
    return fPXsecP[pindex]->SampleReac(en, randn); }
 
 //___________________________________________________________________
+#ifdef GEANT_NVCC 
+GEANT_CUDA_BOTH_CODE
+TEXsec *TEXsec::GetElement(int z, int a) {
+  int ecode = z * 10000 + a * 10;
+#ifdef GEANT_CUDA_DEVICE_BUILD 
+  for (int el = 0; el < fNLdElemsDev; ++el)
+    if (ecode == fElementsDev[el]->Ele())
+      return fElementsDev[el];
+  return 0;
+#else
+  for (int el = 0; el < fNLdElemsHost; ++el)
+    if (ecode == fElementsHost[el]->Ele())
+      return fElementsHost[el];
+  return 0;
+#endif   
+}
+#else   
 TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
   //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
   int ecode = z * 10000 + a * 10;
   for (int el = 0; el < fNLdElems; ++el)
     if (ecode == fElements[el]->Ele())
       return fElements[el];
-
 #ifdef USE_ROOT
   // Element not found in memory, getting it from file
   TFile *ff = gFile;
@@ -785,11 +952,11 @@ TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
   }
 #else
   // No element, we return 0
-  log_error(std::cout, "Element Z:%d A:%d\n", z, a);
+  Geant::Printf("Element Z:%d A:%d\n", z, a);
   return 0;
 #endif
 }
-
+#endif
 //___________________________________________________________________
 bool TEXsec::Prune() {
   for (int ip = 0; ip < fNRpart; ++ip)
@@ -807,3 +974,18 @@ bool TEXsec::Resample() {
   fEGrid = TPartIndex::I()->EGrid();
   return true;
 }
+#ifdef GEANT_NVCC
+GEANT_CUDA_BOTH_CODE
+char *TEXsec::strncpy(char *dest, const char *src, size_t n)
+{
+    char *ret = dest;
+    do {
+        if (!n--)
+            return ret;
+    } while (*dest++ = *src++);
+    while (n--)
+        *dest++ = 0;
+    return ret;
+}
+#endif
+

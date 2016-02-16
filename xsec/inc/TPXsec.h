@@ -19,71 +19,106 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TPartIndex.h"
+#include "Geant/Error.h"
+
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
-
+#endif
+ 
 class TPXsec {
 public:
+  GEANT_CUDA_BOTH_CODE
   TPXsec();
+  GEANT_CUDA_BOTH_CODE
   TPXsec(int pdg, int nxsec);
+  GEANT_CUDA_BOTH_CODE
   TPXsec(const TPXsec &other);
+  GEANT_CUDA_BOTH_CODE
   virtual ~TPXsec();
   void Print(const char *opt = "") const;
+ #ifndef GEANT_NVCC
   const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
+ #else
+  GEANT_CUDA_DEVICE_CODE
+  const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
+ #endif
   bool SetPart(int pdg, int nxsec);
   bool SetPartXS(const float xsec[], const int dict[]);
   bool SetPartIon(const float dedx[]);
   bool SetPartMS(const float angle[], const float ansig[], const float length[], const float lensig[]);
   int PDG() const { return fPDG; }
+  GEANT_CUDA_BOTH_CODE
   float XS(int rindex, double en, bool verbose=false) const;
   bool XS_v(int npart, int rindex, const double en[], double lam[]) const;
   float DEdx(double en) const;
   bool MS(double en, float &ang, float &asig, float &len, float &lsig) const;
+  GEANT_CUDA_BOTH_CODE
   bool Resample();
   bool Prune();
   int SampleReac(double en) const;
   int SampleReac(double en, double randn) const;
 
   void Dump() const;
+  GEANT_CUDA_BOTH_CODE
   void Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en, float result[]);
 
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
+  GEANT_CUDA_BOTH_CODE
   int SizeOf() const;
+  GEANT_CUDA_BOTH_CODE
   void Compact();
+  GEANT_CUDA_BOTH_CODE
   void RebuildClass();
 #ifdef MAGIC_DEBUG
+  GEANT_CUDA_BOTH_CODE
   int GetMagic() const {return fMagic;}
 #endif
 
+  GEANT_CUDA_BOTH_CODE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) {std::cout << "TPXsec::fPDG misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) {std::cout << "TPXsec::fNEbins misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNCbins) % sizeof(fNCbins) != 0) {std::cout << "TPXsec::fNCbins misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNXsec) % sizeof(fNXsec) != 0) {std::cout << "TPXsec::fNXsec misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNTotXs) % sizeof(fNTotXs) != 0) {std::cout << "TPXsec::fNTotXs misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fNXSecs) % sizeof(fNXSecs) != 0) {std::cout << "TPXsec::fNXSecs misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) {std::cout << "TPXsec::fEGrid misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fMSangle) % sizeof(fMSangle[0]) != 0) {std::cout << "TPXsec::fMSangle misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fMSansig) % sizeof(fMSansig[0]) != 0) {std::cout << "TPXsec::fMSansig misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fMSlength) % sizeof(fMSlength[0]) != 0) {std::cout << "TPXsec::fMSlength misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fMSlensig) % sizeof(fMSlensig[0]) != 0) {std::cout << "TPXsec::fMSlensig misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fdEdx) % sizeof(fdEdx[0]) != 0) {std::cout << "TPXsec::fdEdx misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fTotXs) % sizeof(fTotXs[0]) != 0) {std::cout << "TPXsec::fTotXs misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) fXSecs) % sizeof(fXSecs[0]) != 0) {std::cout << "TPXsec::fXSecs misaligned" << std::endl;isaligned=false;}
-  if(int delta = ((unsigned long) &fEmin) % sizeof(fEmin) != 0) {std::cout << "TPXsec::fEmin misaligned " << delta << std::endl;isaligned=false;}
-  if(int delta = ((unsigned long) &fEmax) % sizeof(fEmax) != 0) {std::cout << "TPXsec::fEmax misaligned " << delta << std::endl;isaligned=false;}
-  if(int delta = ((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) {std::cout << "TPXsec::fEilDelta misaligned " << delta << std::endl;isaligned=false;}
-  if(((unsigned long) &fRdict) % sizeof(int) != 0) {std::cout << "TPXsec::fRdict misaligned" << std::endl;isaligned=false;}
-  if(((unsigned long) &fRmap) % sizeof(int) != 0) {std::cout << "TPXsec::fRmap misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPXsec::CheckAlign","fPDG misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPXsec::CheckAlign","fNEbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNCbins) % sizeof(fNCbins) != 0) { Geant::Error("TPXsec::CheckAlign","fNCbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNXsec) % sizeof(fNXsec) != 0) { Geant::Error("TPXsec::CheckAlign","fNXsec misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNTotXs) % sizeof(fNTotXs) != 0) { Geant::Error("TPXsec::CheckAlign","fNTotXs misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNXSecs) % sizeof(fNXSecs) != 0) { Geant::Error("TPXsec::CheckAlign","fNXSecs misaligned\n");isaligned=false;}
+  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fEGrid misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSangle) % sizeof(fMSangle[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSangle misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSansig) % sizeof(fMSansig[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSansig misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSlength) % sizeof(fMSlength[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSlength misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSlensig) % sizeof(fMSlensig[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSlensig misaligned\n");isaligned=false;}
+  if(((unsigned long) fdEdx) % sizeof(fdEdx[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fdEdx misaligned\n");isaligned=false;}
+  if(((unsigned long) fTotXs) % sizeof(fTotXs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fTotXs misaligned\n");isaligned=false;}
+  if(((unsigned long) fXSecs) % sizeof(fXSecs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fXSecs misaligned\n");isaligned=false;}
+  if(int delta = ((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TPXsec::CheckAlign","fEmin misaligned %d \n",delta);isaligned=false;}
+  if(int delta = ((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TPXsec::CheckAlign","fEmax misaligned %d \n",delta);isaligned=false;}
+  if(int delta = ((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPXsec::CheckAlign","fEilDelta misaligned %d \n",delta);isaligned=false;}
+  if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","fRdict misaligned\n");isaligned=false;}
+  if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","fRmap misaligned\n");isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) {std::cout << "TPXsec::fMagic misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPXsec::CheckAlign","fMagic misaligned\n");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) {std::cout << "TPXsec::fStore misaligned" << std::endl;isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPXsec::CheckAlign","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
+#ifdef GEANT_NVCC
+GEANT_CUDA_BOTH_CODE
+char *strncpy(char *dest, const char *src, size_t n)
+{
+    char *ret = dest;
+    do {
+        if (!n--)
+            return ret;
+    } while (*dest++ = *src++);
+    while (n--)
+        *dest++ = 0;
+    return ret;
+};
+#endif
 
 private:
   TPXsec &operator=(const TPXsec &); // Not implemented
@@ -115,8 +150,10 @@ private:
   const int fMagic = -777777;
 #endif
 
+#ifndef GEANT_NVCC
 #ifdef USE_ROOT
   ClassDefNV(TPXsec, 4) // Particle X-secs
+#endif
 #endif
 
 private:

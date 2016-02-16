@@ -11,6 +11,13 @@
 #ifndef GEANT_NVCC
 using std::transform;
 using std::string;
+using std::max;
+#else
+template<class T>
+GEANT_CUDA_BOTH_CODE
+const T& max(const T&a,const T& b) {
+  return (a<b)?b:a;
+}
 #endif
 
 const
@@ -63,6 +70,7 @@ const float TPartIndex::fgWElem[NELEM] = {
 TPartIndex *TPartIndex::fgPartIndex = 0;
 #else
 GEANT_CUDA_DEVICE_CODE TPartIndex *fgPartIndexDev = 0;
+TPartIndex *fgPartIndexHost = 0;
 #endif
 
 //___________________________________________________________________
@@ -221,6 +229,8 @@ void TPartIndex::SetPDGToGVMap(TPartIndex::Map_t &theMap) {
   fSpecGVIndices[2] = fPDGToGVMap.find(22)->second;   // gamma
   fSpecGVIndices[3] = fPDGToGVMap.find(2212)->second; // proton
 }
+
+
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 //______________________________________________________________________________
@@ -243,7 +253,6 @@ void TPartIndex::Streamer(TBuffer &R__b) {
    // we want to avoid memory leaks, so we have to delete the data member before
    // it is overwritten by the streamer.
    //
-
   if (R__b.IsReading()) {
 #ifdef USE_VECGEOM_NAVIGATOR
     Particle_t::CreateParticles();
@@ -271,9 +280,15 @@ void TPartIndex::CreateReferenceVector() {
 #ifdef USE_VECGEOM_NAVIGATOR
 // std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
 // create direct access vector with GeantV code
+#ifndef GEANT_CUDA_DEVICE_BUILD
       const Particle_t *pp = &Particle_t::GetParticle(p->first);
       // set the code inside the particle too
       const_cast<Particle_t *>(pp)->SetCode(p->second);
+#else
+      const Particle_t *pp = &Particle_t::GetParticleDev(p->first);
+      // set the code inside the particle too
+      const_cast<Particle_t *>(pp)->SetCode(p->second);
+#endif
       if (pp->Mass() >= 0)
         fGVParticle[p->second] = pp;
       else
@@ -418,7 +433,7 @@ void TPartIndex::CreateReferenceVector() {
             if (index == std::string::npos)
               name += "_bar";
             int acode = 0;
-            int len = std::max<int>(name.size(), 28 - lpdg - 1);
+            int len = max<int>(name.size(), 28 - lpdg - 1);
             sprintf(fmt, "%%5d %%-%d.%ds%%-%dd%%4d%%6d%%s", len, len, lpdg + 1);
             //		printf("%5d %-15.15s %-12d%4d%6d\n",
             printf(fmt, count, name.c_str(), updg[i], ap, acode, "\n");
@@ -437,7 +452,7 @@ void TPartIndex::CreateReferenceVector() {
             int trkcode = -1;
             int ndec = 0;
             int len = 23 - lpdg - 1;
-            len = std::max<int>(name.size(), 23 - lpdg - 1);
+            len = max<int>(name.size(), 23 - lpdg - 1);
             sprintf(fmt, "%%5d %%-%d.%ds%%%dd%%3d%%4d %%-11s%%3d%%12.5e%%12.5e%%5d%%3d%%5d%%3d%%5d%%4d%%s", len, len,
                     lpdg + 1);
             //		printf("%s\n",fmt);
