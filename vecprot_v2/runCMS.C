@@ -16,7 +16,7 @@ void runCMS(const int ncputhreads=4,
             const char *fstate="fstate_FTFP_BERT_G496p02_1mev.root",
             bool coprocessor = COPROCESSOR_REQUEST,
 	    const char *eventfile="pp14TeVminbias.root",
-	    const float magfield=40.,
+	    const float magfield=4.,  // Attention... this is in Tesla
 	    const int ntotal=10                                    // Number of events to be transported
 )
 {
@@ -36,7 +36,7 @@ void runCMS(const int ncputhreads=4,
    printf("Cross sections:                    %s\n",xsec);
    printf("Final state:                       %s\n",fstate);
    printf("Input event file:                  %s\n",eventfile);
-   printf("Mag field (kGauss)                 %f\n",magfield);
+   printf("Mag field (Tesla )                 %f\n",magfield);
    printf("===================================== Input parameters ========================================\n\n");
 
 
