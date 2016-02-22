@@ -339,9 +339,8 @@ void *WorkloadManager::TransportTracks() {
 //   bool useDebug = propagator->fUseDebug;
 //   Geant::Print("","(%d) WORKER started", tid);
 // Create navigator if none serving this thread.
-#ifdef USE_VECGEOM_NAVIGATOR
-// Suppose I do not need a new navigator for VecGeom... otherwise how it ever worked... ?
-#else
+#ifndef USE_VECGEOM_NAVIGATOR
+  // If we use ROOT make sure we have a navigator here
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
@@ -357,33 +356,44 @@ void *WorkloadManager::TransportTracks() {
        break;
     }
 
+    // Collect info about the queue
     waiting[tid] = 1;
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
-    // If prioritizer has work, just do it
-    if (prioritizer->HasTracks()) {
-      basket = prioritizer->GetBasketForTransport(td);
-      ngcoll = 0;
-    } else {
-      if ((nbaskets < 1) && (!propagator->IsFeeding())) {
-        sch->GarbageCollect(td);
-        ngcoll++;
-      }
-      // Too many garbage collections - enter priority mode
-      if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
-        ngcoll = 0;
-        for (int slot = 0; slot < propagator->fNevents; slot++)
-          if (propagator->fEvents[slot]->Prioritize())
-            propagator->fPriorityEvents++;
-        while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
-          ;
-      }
-      wm->FeederQueue()->wait_and_pop(basket);
+    
+    // Fire garbage collection if starving
+    if ((nbaskets < 1) && (!propagator->IsFeeding())) {
+      sch->GarbageCollect(td);
+     ngcoll++;
     }
-    // Check exit condition: null basket in the queue
-    if (!basket)
-      break;
+    // Too many garbage collections - enter priority mode
+    if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
+      ngcoll = 0;
+      for (int slot = 0; slot < propagator->fNevents; slot++)
+        if (propagator->fEvents[slot]->Prioritize())
+          propagator->fPriorityEvents++;
+      while ((!sch->GarbageCollect(td, true)) && 
+             (feederQ->size_async() == 0) && 
+             (!basket) &&
+             (!prioritizer->HasTracks()))
+        ;
+    }
+    // Check if the current basket is reused or we need a new one
+    if (!basket) {
+      // If prioritizer has work, just do it
+      if (prioritizer->HasTracks()) {
+        basket = prioritizer->GetBasketForTransport(td);
+        ngcoll = 0;
+      } else {
+        // Take next basket from queue
+        wm->FeederQueue()->wait_and_pop(basket);
+        // If basket from queue is null, exit
+        if (!basket)
+          break;
+      }
+    }
+    // Start transporting the basket
     waiting[tid] = 0;
     MaybeCleanupBaskets(td,basket);
     ++counter;
@@ -426,6 +436,19 @@ void *WorkloadManager::TransportTracks() {
     while (ntotransport) {
       // Interrupt condition here. Work stealing could be also implemented here...
       generation++;
+      // Use fNsteps track data to detect geometry anomalies
+      for (auto itr=0; itr<ntotransport; ++itr) {
+        input.fNstepsV[itr]++;
+        if ((input.fStatusV[itr] != kKilled) && 
+            (input.fNstepsV[itr] > gPropagator->fNstepsKillThr) &&
+            input.fBoundaryV[itr] && (input.fSnextV[itr]<1.e-9)) {
+          Error("TransportTracks", "track %d seems to be stuck -> killing it after next step", input.fParticleV[itr]);
+          Error("TransportTracks", "Transport will continue, but this is a fatal error");
+          input.PrintTrack(itr, "stuck");
+          input.fStatusV[itr] = kKilled;
+        }  
+      }  
+      
       //         Geant::Print("","====== WorkloadManager:");
       //         input.PrintTracks();
       // Propagate all remaining tracks
@@ -535,24 +558,31 @@ void *WorkloadManager::TransportTracks() {
     output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, prop->fDebugRep, "EndStep");
 #endif
     for (auto itr = 0; itr < ntotnext; ++itr) {
-      output.fNstepsV[itr]++;
+      //output.fNstepsV[itr]++;
       if (output.fStatusV[itr] == kBoundary)
         *output.fPathV[itr] = *output.fNextpathV[itr];
     }
   finish:
-    //      basket->Clear();
-    //      Geant::Print("","======= BASKET(tid=%d): in=%d out=%d =======", tid, ninput, basket->GetNoutput());
-    //      ninjected =
+    // Check if there are enough transported tracks staying in the same volume
+    // to be reused without re-basketizing
+    int nreusable = sch->ReusableTracks(output);
+    bool reusable = (basket->IsMixed())? false : (nreusable>=gPropagator->fNminReuse);
+//    reusable = false;
+    
+    if (reusable) 
+      sch->CopyReusableTracks(output, input, basket->GetThreshold());
+    // Remaining tracks need to be re-basketized
     sch->AddTracks(output, ntot, nnew, nkilled, td);
-    //      Geant::Print("","thread %d: injected %d baskets", tid, ninjected);
-    //      wm->TransportedQueue()->push(basket);
-    //    sched_locker.StartOne();
     // Make sure the basket is not recycled before gets released by basketizer
     // This should not happen vey often, just when some threads are highly
     // demoted ant the basket makes it through the whole cycle before being fully released
-    while (basket->fNused.load())
-      ;
-    basket->Recycle(td);
+    if (!reusable) {
+      // Recycle basket, otherwise keep it for the next iteration
+      while (basket->fNused.load())
+        ;
+      basket->Recycle(td);
+      basket = 0; // signal reusability by non-null pointer
+    }
   }
 
   // WP

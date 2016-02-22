@@ -25,7 +25,12 @@
 #include <fenv.h>
 
 #if USE_VECGEOM_NAVIGATOR == 1
+#include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
+#include "navigation/NewSimpleNavigator.h"
+#include "navigation/SimpleABBoxNavigator.h"
+#include "navigation/SimpleABBoxLevelLocator.h"
+#include "navigation/HybridNavigator2.h"
 #include "management/RootGeoManager.h"
 #include "volumes/PlacedVolume.h"
 #else
@@ -49,6 +54,10 @@
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 
+#ifdef USE_CALLGRIND_CONTROL
+#include <valgrind/callgrind.h>
+#endif
+
 // #define RUNGE_KUTTA  1
 
 // The classes for integrating in a non-uniform magnetic field
@@ -63,6 +72,7 @@
 // #endif
 
 using namespace Geant;
+using namespace vecgeom;
 
 GeantPropagator *gPropagator = 0;
 
@@ -72,18 +82,24 @@ ClassImp(GeantPropagator)
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0), fNsteps(0),
-      fNsnext(0), fNphys(0), fNmag(0), fNsmall(0), fFeederLock(ATOMIC_FLAG_INIT), fPriorityEvents(0), fDoneEvents(0),
-      fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1),
-      fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0),
-      fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
+    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
+      fNprimaries(0), fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNsmall(0),
+      fFeederLock(ATOMIC_FLAG_INIT), fPriorityEvents(0), fDoneEvents(0),
+      fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10),
+      fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000),
+      fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0),
+      fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
+      fNminReuse(4), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
-      fBmag(1.),
+      fBmag(0.),    // kiloGauss
       fEpsilonRK(0.0003), 
-      fUsePhysics(kTRUE), fUseRungeKutta(kFALSE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fUseStdScoring(kFALSE),
-      fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE), fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE), fTracksLock(),  
-      fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
+      fUsePhysics(kTRUE), fUseRungeKutta(kFALSE), fUseDebug(kFALSE),
+      fUseGraphics(kFALSE), fUseStdScoring(kFALSE), fTransportOngoing(kFALSE),
+      fSingleTrack(kFALSE), fFillTree(kFALSE), fTreeSizeWriteThreshold(100000),
+      fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE),
+      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0),
+      fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
       fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fgInstance = this;
@@ -399,6 +415,23 @@ void GeantPropagator::PrepareRkIntegration() {
 }
 
 #if USE_VECGEOM_NAVIGATOR == 1
+//______________________________________________________________________________
+void InitNavigators(){
+    for( auto & lvol : GeoManager::Instance().GetLogicalVolumesMap() ){
+        if( lvol.second->GetDaughtersp()->size() < 4 ){
+            lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
+        }
+        if( lvol.second->GetDaughtersp()->size() >= 5 ){
+            lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
+        }
+	if( lvol.second->GetDaughtersp()->size() >= 10 ){
+	    lvol.second->SetNavigator(HybridNavigator<>::Instance());
+	    HybridManager2::Instance().InitStructure((lvol.second));
+	}
+	lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
+    }
+}
+
 /**
  * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
  */
@@ -423,8 +456,9 @@ bool GeantPropagator::LoadVecGeomGeometry() {
   if (fWMgr && fWMgr->GetTaskBroker()) {
     Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
     return fWMgr->LoadGeometry();
-  } else
-    return true;
+  }
+  InitNavigators();
+  return true;
 }
 #endif
 
@@ -545,6 +579,9 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     capp->Update();
   }
   fTimer = new TStopwatch();
+#ifdef USE_CALLGRIND_CONTROL
+    CALLGRIND_START_INSTRUMENTATION;
+#endif
   fWMgr->StartThreads();
   fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
@@ -553,6 +590,10 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fWMgr->WaitWorkers();
   fWMgr->JoinThreads();
   fTimer->Stop();
+#ifdef USE_CALLGRIND_CONTROL
+    CALLGRIND_STOP_INSTRUMENTATION;
+    CALLGRIND_DUMP_STATS;
+#endif
   double rtime = fTimer->RealTime();
   double ctime = fTimer->CpuTime();
   //   fTimer->Print();

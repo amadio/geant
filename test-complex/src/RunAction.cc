@@ -123,9 +123,8 @@ void RunAction::EndOfRunAction(const G4Run* aRun)
   G4int NbOfEvents = aRun->GetNumberOfEvent();
   if (NbOfEvents == 0) return;
  
-  fRunTime=-1.0*(fRunTime-clock());
   std::cout<<"\n-------------------- Run time in [s] --------------------------\n"
-            <<"  Total run time= " << ((G4double)(fRunTime)/CLOCKS_PER_SEC) 
+	   <<"  Total run time= " << ((G4double)(clock()-fRunTime))/CLOCKS_PER_SEC 
             <<"\n--------------------------------------------------------------\n"
             << std::endl;
 

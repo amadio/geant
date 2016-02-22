@@ -12,6 +12,7 @@
 // #include "G4UniformMagField.hh"
 // #include "G4SystemOfUnits.hh"
 #include "Units.h"
+#include <cfloat>
 
 // using fieldUnits::meter;
 using fieldUnits::millimeter;   

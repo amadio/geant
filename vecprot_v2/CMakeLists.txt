@@ -33,7 +33,7 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingFile.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingServer.cxx
-)     
+)
 
 set(headers
    ${CMAKE_HOME_DIRECTORY}/base/inc/Geant/Config.h
@@ -53,6 +53,24 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingFile.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
 )   
+
+if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
+   set(sources ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceTGeo.cxx)
+   set(headers ${headers} ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceTGeo.h)
+endif()
+
+if(USE_VECGEOM_NAVIGATOR)
+   set(sources ${sources} 
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVG.cxx 
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVGM.cxx
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/VectorNavInterface.cxx
+   )
+   set(headers ${headers} 
+     ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceVG.h 
+     ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceVGM.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/inc/VectorNavInterface.h
+   )
+endif()
 
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 

@@ -105,8 +105,24 @@ else()
   message(STATUS "USE_VECPHYS OFF : Vector physics is NOT active !")
 endif()
 
+option(VECTORIZED_GEOMETRY "Enable vectorized geometry" OFF)
+if(VECTORIZED_GEOMETRY)
+  add_definitions(-DVECTORIZED_GEOMETRY)
+  message(STATUS "VECTORIZED_GEOMETRY ON  : Vectorized geometry ON !")
+else()
+  message(STATUS "VECTORIZED_GEOMETRY OFF : Vectorized geometry OFF !")
+endif()
+
+option(USE_CALLGRIND_CONTROL "Enable callgrind profiling" OFF)
+if(USE_CALLGRIND_CONTROL)
+  add_definitions(-DUSE_CALLGRIND_CONTROL)
+  message(STATUS "USE_CALLGRIND_CONTROL ON  : Callgrind profiling enabled")
+else()
+  message(STATUS "USE_CALLGRIND_CONTROL OFF : Callgrind profiling disabled")
+endif()
+
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
-option(USE_VECGEOM_NAVIGATOR "Use the navigaator from VecGeom" ON)
+option(USE_VECGEOM_NAVIGATOR "Use the navigator from VecGeom" ON)
 option(USE_ROOT "Use ROOT" ON)
 #---------------------------------------------------------------------------
 # Debuging options
@@ -172,6 +188,16 @@ endif()
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
+
+#----------------------------------------------------------------------------
+# see if we have CCACHE ( to avoid recompilation on branch switches )
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+  message(STATUS "found ccache")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
 
 #---------------------------------------------------------------------------
 # Include creation and submission to dashboard cdash.cern.ch

@@ -199,6 +199,41 @@ int GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
+int GeantScheduler::ReusableTracks(GeantTrack_v &tracks) const
+{
+// Check if the basket can be reused efficiently in the next transport iteration.
+  int ntracks = tracks.GetNtracks();
+  int nreusable = 0;
+  for (int itr = 0; itr < ntracks; ++itr) {
+    if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside())
+      continue;
+    if (tracks.fStatusV[itr] == kNew || tracks.fStatusV[itr] == kPhysics)
+      nreusable++;
+  }
+  return nreusable;
+}
+
+//______________________________________________________________________________
+int GeantScheduler::CopyReusableTracks(GeantTrack_v &tracks, GeantTrack_v &input, int nmax) const
+{
+// Copy reusable tracks from the output tracks to the input tracks, not
+// exceeding nmax
+  int ntracks = tracks.GetNtracks();
+  int nreused = 0;
+  for (int itr=0; itr<ntracks; ++itr) {
+    if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside())
+      continue;
+    if (tracks.fStatusV[itr] == kNew || tracks.fStatusV[itr] == kPhysics) {
+      tracks.MarkRemoved(itr);
+      nreused++;
+      if (nreused == nmax) break;
+    }
+  }
+  tracks.Compact(&input);
+  return nreused;
+}
+
+//______________________________________________________________________________
 int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &nkilled, GeantTaskData *td) {
   // Main re-basketizing method. Add all tracks and inject baskets if above threshold.
   // Returns the number of injected baskets.
@@ -209,7 +244,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
   ntot += ntracks;
   GeantBasketMgr *basket_mgr = 0;
   Volume_t *vol = 0;
-  for (int itr = 0; itr < ntracks; itr++) {
+  for (int itr = 0; itr < ntracks; ++itr) {
     // We have to collect the killed tracks
     if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside()) {
       nkilled++;

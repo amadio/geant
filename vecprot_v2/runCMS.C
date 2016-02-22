@@ -9,12 +9,16 @@
 class TaskBroker;
 class GeantPropagator;
 
-void runCMS(int ncputhreads=4,
-            bool performance=true,
+void runCMS(const int ncputhreads=4,
+            const bool performance=true,
             const char *geomfile="../cmstrack/cms2015.root",
             const char *xsec="xsec_FTFP_BERT_G496p02_1mev.root",
             const char *fstate="fstate_FTFP_BERT_G496p02_1mev.root",
-            bool coprocessor = COPROCESSOR_REQUEST)
+            bool coprocessor = COPROCESSOR_REQUEST,
+	    const char *eventfile="pp14TeVminbias.root",
+	    const float magfield=40.,
+	    const int ntotal=10                                    // Number of events to be transported
+)
 {
    // gSystem->Load("libPhysics");
    // gSystem->Load("libHist");
@@ -25,13 +29,23 @@ void runCMS(int ncputhreads=4,
    // gSystem->Load("../lib/libXsec");
    // gSystem->Load("../lib/libGeantExamples");
 
+   printf("\n===================================== Input parameters ========================================\n");
+   printf("Number of threads:                 %d\n",ncputhreads);
+   printf("Number of event requested:         %d\n",ntotal);
+   printf("Geometry file:                     %s\n",geomfile);
+   printf("Cross sections:                    %s\n",xsec);
+   printf("Final state:                       %s\n",fstate);
+   printf("Input event file:                  %s\n",eventfile);
+   printf("Mag field (kGauss)                 %f\n",magfield);
+   printf("===================================== Input parameters ========================================\n\n");
+
+
 //=============================================================================
 // PERFORMANCE MODE SWITCH: no scoring, no memory cleanup thread, no monitoring
 //=============================================================================
 //   bool performance = true;
 
    int nthreads = ncputhreads;
-   int ntotal   = 20;  // Number of events to be transported
    int nbuffered  = 5;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
    
@@ -49,7 +63,7 @@ void runCMS(int ncputhreads=4,
    }
 
    GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
-   prop->fBmag = 40.; // 4 Tesla
+   prop->fBmag = magfield; // 4 Tesla
 
    //  Enable use of RK integration in field for charged particles
    prop->fUseRungeKutta = false;
@@ -80,6 +94,14 @@ void runCMS(int ncputhreads=4,
    // This is now the most important parameter for memory considerations
    prop->fMaxPerBasket = 64;   // Maximum vector size (tunable)
 
+   // Minimum number of tracks in a basket that stay in the same volume and
+   // therefore can be re-used with the same thread without re-basketizing.
+   prop->fNminReuse = 4;   // (default in propagator is 4)
+
+   // Kill threshold - number of steps allowed before killing a track 
+   //                  (includes internal geometry steps)
+   prop->fNstepsKillThr = 100000;
+
    // Maximum user memory limit [MB]
    prop->fMaxRes = 4000;
    if (performance) prop->fMaxRes = 0;
@@ -91,8 +113,8 @@ void runCMS(int ncputhreads=4,
    prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
 //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
    //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
-   std::string s = "pp14TeVminbias.root";
 //   prop->fPrimaryGenerator = new GunGenerator(1, 0, 1., 0, 0, 0, 0.362783697740757, 0.259450124768640, 0.882633622956438);
+   std::string s(eventfile);
    prop->fPrimaryGenerator = new HepMCGenerator(s);
 //   prop->fPrimaryGenerator->SetEtaRange(-2.4,2.4);
 //   prop->fPrimaryGenerator->SetMomRange(0.,0.5);
