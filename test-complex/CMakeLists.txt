@@ -91,7 +91,7 @@ endforeach()
 #----------------------------------------------------------------------------
 # Add program to the project targets
 #
-add_custom_target(TESTCOMPLEX DEPENDS testcomplex)
+add_custom_target(TESTCOMPLEX_T DEPENDS testcomplex)
 
 #----------------------------------------------------------------------------
 # Setting Geant4 version compiler definition  
