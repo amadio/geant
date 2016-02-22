@@ -18,7 +18,9 @@ endif()
 find_path(PYTHIA8_INCLUDE_DIR Pythia8/Pythia.h
           HINTS ${PYTHIA8_ROOT_DIR}/include)
 find_path(PYTHIA8_XML_DIR Version.xml
-          HINTS ${PYTHIA8_ROOT_DIR}/xmldoc ${PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc ${PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc)
+          HINTS ${PYTHIA8_ROOT_DIR}/xmldoc
+                ${PYTHIA8_ROOT_DIR}/share/pythia8/xmldoc
+                ${PYTHIA8_ROOT_DIR}/share/Pythia8/xmldoc)
 
 message(STATUS "xml path: ${PYTHIA8_XML_DIR}")
 

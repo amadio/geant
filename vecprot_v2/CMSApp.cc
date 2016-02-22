@@ -166,7 +166,14 @@ int main(int argc, char *argv[]) {
   }
 
   GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered);
+
+  // Default value is 1. (0.1 Tesla)
   propagator->fBmag = 40.; // 4 Tesla
+
+  // Enable use of RK integration in field for charged particles
+  propagator->fUseRungeKutta = false;
+  // prop->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default
+
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
   propagator->fUseMonitoring = monitor;
@@ -191,7 +198,7 @@ int main(int argc, char *argv[]) {
   // Maximum user memory limit [MB]
   propagator->fMaxRes = max_memory;
   if (performance) propagator->fMaxRes = 0;
-  propagator->fEmin = 0.001; // [10 MeV] energy cut
+  propagator->fEmin = 0.001; // [1 MeV] energy cut
   propagator->fEmax = 0.01;  // 10 MeV
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -210,6 +217,12 @@ int main(int argc, char *argv[]) {
   propagator->fLearnSteps = n_learn_steps;
   if (performance) propagator->fLearnSteps = 0;
 
+  // Activate I/O
+  propagator->fFillTree = false;
+  propagator->fTreeSizeWriteThreshold = 100000;
+  // Activate old version of single thread serialization/reading
+  //   prop->fConcurrentWrite = false;
+
   CMSApplication *CMSApp = new CMSApplication();
   if (score) {
     CMSApp->SetScoreType(CMSApplication::kScore);
@@ -220,6 +233,9 @@ int main(int argc, char *argv[]) {
   if (debug) {
     propagator->fUseDebug = kTRUE;
     propagator->fDebugTrk = 1;
+    //propagator->fDebugEvt = 0;
+    //propagator->fDebugStp = 0;
+    //propagator->fDebugRep = 10;
   }
   propagator->fUseMonitoring = monitor;
   // Activate standard scoring   
