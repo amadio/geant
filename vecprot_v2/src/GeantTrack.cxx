@@ -656,7 +656,8 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   // Now the start of objects, we need to align the memory.
   buf = round_up_align(buf);
   size_t size_bits = BitSet::SizeOfInstance(size);
-  BitSet *holes = BitSet::MakeCopyAt(*fHoles, buf);
+//  BitSet *holes = BitSet::MakeCopyAt(*fHoles, buf, size);
+  BitSet *holes = BitSet::MakeInstanceAt(size, buf);
   BitSet::ReleaseInstance(fHoles);
   fHoles = holes;
   buf += size_bits;
@@ -2047,10 +2048,6 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateSingle", itr);
 #endif
-  if (fNstepsV[itr] > 100000) {
-    Error("PropagateTracks", "track %d seems to be stuck", fParticleV[itr]);
-    PrintTrack(itr, "stuck");
-  }
   ComputeTransportLengthSingle(itr, td);
 #ifdef BUG_HUNT
   BreakOnStep(0, 15352, 0, 10, "AfterCompTranspLenSingle");

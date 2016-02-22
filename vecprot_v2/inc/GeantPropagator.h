@@ -93,6 +93,7 @@ public:
   int fLastEvent;                    /** Last transported event */
   float fPriorityThr;                /** Threshold for prioritizing events */
   int fNstepsKillThr;                /** Threshold in number of steps to kill a track */
+  int fNminReuse;                    /** Minimum number of transported tracks to be reused without re-basketizing */
 
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
   double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */

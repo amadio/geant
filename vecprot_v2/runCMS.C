@@ -94,6 +94,14 @@ void runCMS(const int ncputhreads=4,
    // This is now the most important parameter for memory considerations
    prop->fMaxPerBasket = 64;   // Maximum vector size (tunable)
 
+   // Minimum number of tracks in a basket that stay in the same volume and
+   // therefore can be re-used with the same thread without re-basketizing.
+   prop->fNminReuse = 4;   // (default in propagator is 4)
+
+   // Kill threshold - number of steps allowed before killing a track 
+   //                  (includes internal geometry steps)
+   prop->fNstepsKillThr = 100000;
+
    // Maximum user memory limit [MB]
    prop->fMaxRes = 4000;
    if (performance) prop->fMaxRes = 0;

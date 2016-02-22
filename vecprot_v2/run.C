@@ -81,6 +81,14 @@ void run(int ncputhreads=4,
    // This is now the most important parameter for memory considerations
    prop->fMaxPerBasket = 256;   // Maximum vector size (tunable)
 
+   // Minimum number of tracks in a basket that stay in the same volume and
+   // therefore can be re-used with the same thread without re-basketizing.
+   prop->fNminReuse = 4;   // (default in propagator is 4)
+
+   // Kill threshold - number of steps allowed before killing a track 
+   //                  (includes internal geometry steps)
+   prop->fNstepsKillThr = 100000;
+
    prop->fEmin = 3.E-6; // [3 KeV] energy cut
    prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 

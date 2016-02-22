@@ -177,6 +177,12 @@ public:
   /** @brief Function to print size */
   void PrintSize() const;
 
+  /** @brief Get the number of tracks that can be reused with the same thread */
+  int ReusableTracks(GeantTrack_v &tracks) const;
+
+  /** @brief Copy reusable tracks to the input of the basket */
+  int CopyReusableTracks(GeantTrack_v &tracks, GeantTrack_v &input, int nmax) const;
+
   /** @brief Function to returns size */
   size_t Sizeof() const;
 };
