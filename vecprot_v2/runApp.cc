@@ -47,6 +47,7 @@ void help() {
 }
 
 int main(int argc, char *argv[]) {
+  std::cout << "Avoid ctest truncation of output: CTEST_FULL_OUTPUT" << std::endl;
   std::string exn03_geometry_filename("ExN03.root");
   std::string xsec_filename("xsec_FTFP_BERT.root");
   std::string fstate_filename("fstate_FTFP_BERT.root");
