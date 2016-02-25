@@ -112,7 +112,8 @@ public:
   double fStep;          /** Current step */
   double fSnext;         /** Straight distance to next boundary */
   double fSafety;        /** Safe distance to any boundary */
-  bool fBoundary;         /** True if starting from boundary */
+  double fNradLen;       /** Number of radiation lenghts traveled in last step */
+  bool fBoundary;        /** True if starting from boundary */
   bool fPending;
   VolumePath_t *fPath;
   VolumePath_t *fNextpath;
@@ -226,6 +227,9 @@ public:
 
   /** @brief Function that return safe distance to any boundary */
   double GetSafety() const { return fSafety; }
+
+  /** @brief Function that return number of radiation lengths travelled since last step */
+  double GetNradLen() const { return fNradLen; }
 
   /** @brief Function that check if track is alive */
   bool IsAlive() const { return (fStatus != kKilled); }
@@ -489,6 +493,13 @@ public:
   void SetSafety(double safety) { fSafety = safety; }
 
   /**
+   * @brief Function that set number of radiation lengths traveled
+   *
+   * @param nradlen Number of radiation lengths travelled
+   */
+  void SetNradLen(double nradlen) { fNradLen = nradlen; }
+
+  /**
    * @brief Function that set starting from boundary flag
    *
    * @param flag Flag that is true if starting from boundary
@@ -572,7 +583,8 @@ public:
   double *fStepV;   /** Current steps */
   double *fSnextV;  /** Straight distances to next boundary */
   double *fSafetyV; /** Safe distances to any boundary */
-  bool *fBoundaryV;  /** True if starting from boundary */
+  double *fNradLenV;/** Number of radiation lenghts traveled in last step */
+  bool *fBoundaryV; /** True if starting from boundary */
   bool *fPendingV;
   VolumePath_t **fPathV;     /** Paths for the particles in the geometry */
   VolumePath_t **fNextpathV; /** Paths for next volumes */

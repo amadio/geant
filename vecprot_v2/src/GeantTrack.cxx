@@ -69,7 +69,7 @@ using namespace VECGEOM_NAMESPACE;
 GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fBoundary(false),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNradLen(0), fBoundary(false),
       fPending(false), fPath(0), fNextpath(0) {
   // Dummy constructor
 }
@@ -96,7 +96,7 @@ void printrace(void) {
 GeantTrack::GeantTrack(int ipdg)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fBoundary(false),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNradLen(0), fBoundary(false),
       fPending(false), fPath(0), fNextpath(0) {
   // Constructor
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
@@ -109,7 +109,7 @@ GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack(int ipdg, int maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1), fVindex(0),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fBoundary(false),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNradLen(0), fBoundary(false),
       fPending(false), fPath(0), fNextpath(0) {
   // Constructor
   fPath = VolumePath_t::MakeInstance(maxdepth);
@@ -123,8 +123,8 @@ GeantTrack::GeantTrack(const GeantTrack &other)
       fVindex(other.fVindex), fNsteps(other.fNsteps), fSpecies(other.fSpecies), fStatus(other.fStatus),
       fMass(other.fMass), fXpos(other.fXpos), fYpos(other.fYpos), fZpos(other.fZpos), fXdir(other.fXdir),
       fYdir(other.fYdir), fZdir(other.fZdir), fP(other.fP), fE(other.fE), fTime(other.fTime), fEdep(other.fEdep),
-      fPstep(other.fPstep), fStep(other.fStep), fSnext(other.fSnext), fSafety(other.fSafety), fBoundary(other.fBoundary),
-      fPending(other.fPending), fPath(0), fNextpath(0) {
+      fPstep(other.fPstep), fStep(other.fStep), fSnext(other.fSnext), fSafety(other.fSafety), fNradLen(other.fNradLen), 
+      fBoundary(other.fBoundary), fPending(other.fPending), fPath(0), fNextpath(0) {
   // Copy constructor
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
   fPath = VolumePath_t::MakeInstance(maxdepth);
@@ -164,6 +164,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fStep = other.fStep;
     fSnext = other.fSnext;
     fSafety = other.fSafety;
+    fNradLen = other.fNradLen;
     fBoundary = other.fBoundary;
     fPending = other.fPending;
     int maxdepth = GeantPropagator::Instance()->fMaxDepth;
@@ -213,6 +214,7 @@ void GeantTrack::ReadFromVector(const GeantTrack_v &arr, int i) {
   fStep = arr.fStepV[i];
   fSnext = arr.fSnextV[i];
   fSafety = arr.fSafetyV[i];
+  fNradLen = arr.fNradLenV[i];
   fBoundary = arr.fBoundaryV[i];
   fPending = arr.fPendingV[i];
   //   if (!fPath) fPath = wm->NavStates()->borrow();
@@ -251,6 +253,7 @@ void GeantTrack::Clear(const char *) {
   fStep = 0.;
   fSnext = 0.;
   fSafety = 0.;
+  fNradLen = 0.;
   fBoundary = false;
   fPending = false;
 }
@@ -327,9 +330,9 @@ void GeantTrack::Print(const char *location) const {
 //  TString spath;
   //   if (path) path->GetPath(spath);
   Geant::Print(location, "=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Dir:(%f,%f,%f) "
-         "P:%g E:%g snext=%g safety=%g nsteps=%d",
+         "P:%g E:%g snext=%g safety=%g nradlen=%g nsteps=%d",
          fParticle, fEvent, fProcess, fPstep, fCharge, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, P(), fE, fSnext,
-         fSafety, fNsteps);
+         fSafety, fNradLen, fNsteps);
 }
 
 //______________________________________________________________________________
@@ -338,7 +341,7 @@ GeantTrack_v::GeantTrack_v()
       fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0),
       fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0),
-      fSnextV(0), fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+      fSnextV(0), fSafetyV(0), fNradLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
   // Dummy ctor.
 }
 
@@ -348,7 +351,7 @@ GeantTrack_v::GeantTrack_v(int size, int maxdepth)
       fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
       fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
       fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNradLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
   // Constructor with maximum capacity.
   Resize(size);
 }
@@ -366,7 +369,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
       fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0),
       fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0),
       fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0),
-      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0),
+      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNradLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0),
       fNextpathV(0) {
 
   // Constructor with maximum capacity.
@@ -385,7 +388,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
       fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0),
       fProcessV(0), fVindexV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0),
       fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0),
-      fSafetyV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
+      fSafetyV(0), fNradLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
 // Copy constructor
 #ifndef GEANT_CUDA_DEVICE_BUILD
   fNtracks.store(track_v.fNtracks);
@@ -499,6 +502,8 @@ void GeantTrack_v::AssignInBuffer(char *buff, int size) {
   fSnextV = (double *)buf;
   buf += size_doublen;
   fSafetyV = (double *)buf;
+  buf += size_doublen;
+  fNradLenV = (double *)buf;
   buf += size_doublen;
   fBoundaryV = (bool *)buf;
   buf += size_booln;
@@ -619,6 +624,9 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   memcpy(buf, fSafetyV, size_double);
   fSafetyV = (double *)buf;
   buf += size_doublen;
+  memcpy(buf, fNradLenV, size_double);
+  fNradLenV = (double *)buf;
+  buf += size_doublen;
   memcpy(buf, fBoundaryV, ntracks * sizeof(bool));
   fBoundaryV = (bool *)buf;
   buf += size * sizeof(bool);
@@ -684,10 +692,10 @@ bool GeantTrack_v::IsSame(const GeantTrack_v &tr1, int i1, const GeantTrack_v &t
   double dchk1, dchk2;
   dchk1 = (Long64_t)tr1.fMassV[i1] + tr1.fXposV[i1] + tr1.fYposV[i1] + tr1.fZposV[i1] + tr1.fXdirV[i1] +
           tr1.fYdirV[i1] + tr1.fZdirV[i1] + tr1.fPV[i1] + tr1.fEdepV[i1] + tr1.fEV[i1] + tr1.fPstepV[i1] +
-          tr1.fStepV[i1] + tr1.fSnextV[i1] + tr1.fSafetyV[i1];
+          tr1.fStepV[i1] + tr1.fSnextV[i1] + tr1.fSafetyV[i1] + tr1.fNradLenV[i1];
   dchk2 = (Long64_t)tr2.fMassV[i2] + tr2.fXposV[i2] + tr2.fYposV[i2] + tr2.fZposV[i2] + tr2.fXdirV[i2] +
           tr2.fYdirV[i2] + tr2.fZdirV[i2] + tr2.fPV[i2] + tr2.fEdepV[i2] + tr2.fEV[i2] + tr2.fPstepV[i2] +
-          tr2.fStepV[i2] + tr2.fSnextV[i2] + tr2.fSafetyV[i2];
+          tr2.fStepV[i2] + tr2.fSnextV[i2] + tr2.fSafetyV[i2] + tr2.fNradLenV[i2];
   if (!Math::AreEqualAbs(dchk1, dchk2, 1.E-10))
     return false;
   if (tr1.fPendingV[i1] != tr2.fPendingV[i2])
@@ -813,6 +821,7 @@ int GeantTrack_v::AddTrack(GeantTrack &track, bool /*import*/) {
   fStepV[itrack] = track.fStep;
   fSnextV[itrack] = track.fSnext;
   fSafetyV[itrack] = track.fSafety;
+  fNradLenV[itrack] = track.fNradLen;
   fBoundaryV[itrack] = track.fBoundary;
   fPendingV[itrack] = track.fPending;
   // Copy the volume paths
@@ -862,6 +871,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack &track) {
   fStepV[itrack] = track.fStep;
   fSnextV[itrack] = track.fSnext;
   fSafetyV[itrack] = track.fSafety;
+  fNradLenV[itrack] = track.fNradLen;
   fBoundaryV[itrack] = track.fBoundary;
   fPendingV[itrack] = track.fPending;
   // Copy the volume paths
@@ -929,6 +939,7 @@ int GeantTrack_v::AddTrack(GeantTrack_v &arr, int i, bool /*import*/) {
   fStepV[itrack] = arr.fStepV[i];
   fSnextV[itrack] = arr.fSnextV[i];
   fSafetyV[itrack] = arr.fSafetyV[i];
+  fNradLenV[itrack] = arr.fNradLenV[i];
   fBoundaryV[itrack] = arr.fBoundaryV[i];
   fPendingV[itrack] = arr.fPendingV[i];
   // Copy the volume paths
@@ -983,6 +994,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack_v &arr, int i) {
   fStepV[itrack] = arr.fStepV[i];
   fSnextV[itrack] = arr.fSnextV[i];
   fSafetyV[itrack] = arr.fSafetyV[i];
+  fNradLenV[itrack] = arr.fNradLenV[i];
   fBoundaryV[itrack] = arr.fBoundaryV[i];
   fPendingV[itrack] = arr.fPendingV[i];
   // Copy the volume paths
@@ -1055,7 +1067,7 @@ int GeantTrack_v::AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i) {
   fPstepV[itrack] = arr.fPstepV[i];
   fStepV[itrack] = arr.fStepV[i];
   fSnextV[itrack] = arr.fSnextV[i];
-  fSafetyV[itrack] = arr.fSafetyV[i];
+  fNradLenV[itrack] = arr.fNradLenV[i];
   fBoundaryV[itrack] = arr.fBoundaryV[i];
   fPendingV[itrack] = arr.fPendingV[i];
   // Copy the volume paths
@@ -1102,6 +1114,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, int istart, int iend, bool /*imp
   memcpy(&fStepV[ntracks], &arr.fStepV[istart], ncpy * sizeof(double));
   memcpy(&fSnextV[ntracks], &arr.fSnextV[istart], ncpy * sizeof(double));
   memcpy(&fSafetyV[ntracks], &arr.fSafetyV[istart], ncpy * sizeof(double));
+  memcpy(&fNradLenV[ntracks], &arr.fNradLenV[istart], ncpy * sizeof(double));
   memcpy(&fBoundaryV[ntracks], &arr.fBoundaryV[istart], ncpy * sizeof(bool));
   memcpy(&fPendingV[ntracks], &arr.fPendingV[istart], ncpy * sizeof(bool));
 
@@ -1205,6 +1218,9 @@ void GeantTrack_v::SwapTracks(int i, int j) {
   tdbl = fSafetyV[i];
   fSafetyV[i] = fSafetyV[j];
   fSafetyV[j] = tdbl;
+  tdbl = fNradLenV[i];
+  fNradLenV[i] = fNradLenV[j];
+  fNradLenV[j] = tdbl;
   tbool = fBoundaryV[i];
   fBoundaryV[i] = fBoundaryV[j];
   fBoundaryV[j] = tbool;
@@ -1253,6 +1269,7 @@ void GeantTrack_v::ReplaceTrack(int i, int j) {
   fStepV[i] = fStepV[j];
   fSnextV[i] = fSnextV[j];
   fSafetyV[i] = fSafetyV[j];
+  fNradLenV[i] = fNradLenV[j];
   fBoundaryV[i] = fBoundaryV[j];
   fPendingV[i] = fPendingV[j];
   //   if (!fPathV[i]) fPathV[i] = wm->NavStates()->Borrow();
@@ -1315,6 +1332,7 @@ void GeantTrack_v::RemoveTracks(int from, int to) {
   memmove(&fStepV[from], &fStepV[to + 1], ncpy * sizeof(double));
   memmove(&fSnextV[from], &fSnextV[to + 1], ncpy * sizeof(double));
   memmove(&fSafetyV[from], &fSafetyV[to + 1], ncpy * sizeof(double));
+  memmove(&fNradLenV[from], &fNradLenV[to + 1], ncpy * sizeof(double));
   memmove(&fBoundaryV[from], &fBoundaryV[to + 1], ncpy * sizeof(bool));
   memmove(&fPendingV[from], &fPendingV[to + 1], ncpy * sizeof(bool));
   memmove(&fPathV[from], &fPathV[to + 1], ncpy * sizeof(VolumePath_t *));
@@ -1666,11 +1684,11 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
 #ifdef USE_VECGEOM_NAVIGATOR
   Geant::Print(msg,
       "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d chg=%d proc=%d vid=%d nstp=%d spc=%d status=%s mass=%g "
-      "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n",
+      "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nrl=%g bdr=%d\n",
       itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fGVcodeV[itr],
       fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
-      fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fBoundaryV[itr]);
+      fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fNradLenV[itr], fBoundaryV[itr]);
   
   fPathV[itr]->Print();
   fNextpathV[itr]->Print();
@@ -1682,11 +1700,11 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
 
   Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d eind=%d chg=%d proc=%d vid=%d nstp=%d "
          "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
-         "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g bdr=%d\n pth=%s npth=%s\n",
+         "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g nrl=%g bdr=%d\n pth=%s npth=%s\n",
          itr, fEventV[itr], fEvslotV[itr], fParticleV[itr], fPDGV[itr], fEindexV[itr], fGVcodeV[itr],
          fChargeV[itr], fProcessV[itr], fVindexV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
          fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
-         fTimeV[itr], fEdepV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fBoundaryV[itr], path.Data(),
+         fTimeV[itr], fEdepV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fNradLenV[itr], fBoundaryV[itr], path.Data(),
          nextpath.Data());
 #endif
 }
