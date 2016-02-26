@@ -112,7 +112,8 @@ public:
   double fStep;          /** Current step */
   double fSnext;         /** Straight distance to next boundary */
   double fSafety;        /** Safe distance to any boundary */
-  double fNradLen;       /** Number of radiation lenghts traveled in last step */
+  double fNintLen;       /** Number of interaction lenghts traveled in last step */
+  double fIntLen;        /** Cumulated interaction length since last discrete process */
   bool fBoundary;        /** True if starting from boundary */
   bool fPending;
   VolumePath_t *fPath;
@@ -228,8 +229,11 @@ public:
   /** @brief Function that return safe distance to any boundary */
   double GetSafety() const { return fSafety; }
 
-  /** @brief Function that return number of radiation lengths travelled since last step */
-  double GetNradLen() const { return fNradLen; }
+  /** @brief Function that return number of interaction lengths travelled since last step */
+  double GetNintLen() const { return fNintLen; }
+
+  /** @brief Function that return interaction length since last discrete process */
+  double GetIntLen() const { return fIntLen; }
 
   /** @brief Function that check if track is alive */
   bool IsAlive() const { return (fStatus != kKilled); }
@@ -493,11 +497,18 @@ public:
   void SetSafety(double safety) { fSafety = safety; }
 
   /**
-   * @brief Function that set number of radiation lengths traveled
+   * @brief Function that set number of interaction lengths traveled
    *
-   * @param nradlen Number of radiation lengths travelled
+   * @param nradlen Number of interaction lengths travelled
    */
-  void SetNradLen(double nradlen) { fNradLen = nradlen; }
+  void SetNintLen(double nradlen) { fNintLen = nradlen; }
+
+  /**
+   * @brief Function that set interaction length since last discrete process
+   *
+   * @param intlen Interaction length
+   */
+  void SetIntLen(double intlen) { fIntLen = intlen; }
 
   /**
    * @brief Function that set starting from boundary flag
@@ -583,7 +594,8 @@ public:
   double *fStepV;   /** Current steps */
   double *fSnextV;  /** Straight distances to next boundary */
   double *fSafetyV; /** Safe distances to any boundary */
-  double *fNradLenV;/** Number of radiation lenghts traveled in last step */
+  double *fNintLenV;/** Number of interaction lenghts traveled in last step */
+  double *fIntLenV; /** Cumulated interaction length since last discrete process */
   bool *fBoundaryV; /** True if starting from boundary */
   bool *fPendingV;
   VolumePath_t **fPathV;     /** Paths for the particles in the geometry */
