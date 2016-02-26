@@ -324,14 +324,21 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Propose step for the first ntracks in the input vector of tracks and write to
   // tracks.fPstepV[]
 
+  // count number of rndn needed
+  int numRndn = 0;
+  for (int i = 0; i < ntracks; ++i)
+    if (tracks.fNintLenV[i]<=0.0)
+      ++numRndn;
+
   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
   double *rndArray = td->fDblArray;
 #ifdef USE_ROOT
-  td->fRndm->RndmArray(ntracks, rndArray);
+  td->fRndm->RndmArray(numRndn, rndArray);
 #else
-  td->fRndm->uniform_array(ntracks, rndArray);
+  td->fRndm->uniform_array(numRndn, rndArray);
 #endif
 
+  int numUsedRndn = 0;
   for (int i = 0; i < ntracks; ++i) {
     int ipart = tracks.fGVcodeV[i];                   // GV particle index/code
     double energy = tracks.fEV[i] - tracks.fMassV[i]; // $E_{kin}$
@@ -353,7 +360,10 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
           cx = cx * dRR + finRange * ((1. - dRR) * (2.0 - finRange / cx));
       }
     }
-    tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
+    tracks.fPstepV[i]  = cx; // set it to the cont. step limit and update later
+    // set mfp to 1.0 to handle properly particles that has no interaction when
+    // fNintLen is updated in the WorkloadManager i.e. step-length/mfp
+    tracks.fIntLenV[i] = 1.0;
 
     // discrete step limit
     if (ipart < TPartIndex::I()->NPartReac()) {       // can have different reactions + decay
@@ -366,14 +376,28 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
       double xrat = (en2 - energy) / (en2 - en1);
       // get interpolated -(total mean free path)
       double x = xrat * fTotXL[ipart * fNEbins + ibin] + (1 - xrat) * fTotXL[ipart * fNEbins + ibin + 1];
-      x *= -1. * log(rndArray[i]);
+      // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+      if (tracks.fNintLenV[i]<=0.0) {
+        tracks.fNintLenV[i] = -log(rndArray[numUsedRndn]);
+        ++numUsedRndn;
+      }
+      tracks.fIntLenV[i]  = x;   // save the total mfp; to be used for the update in WorkloadManager
+      x *= tracks.fNintLenV[i];
+      //x *= -1. * log(rndArray[i]);
       if (x < cx) {
         tracks.fPstepV[i] = x;
         tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
       }
     } else if (fDecayTable->HasDecay(ipart)) {                       // it has only decay
       double x = tracks.fPV[i] * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
-      x = -1. * x * log(rndArray[i]);
+      // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+      if (tracks.fNintLenV[i]<=0.0) {
+        tracks.fNintLenV[i] = -log(rndArray[numUsedRndn]); // normaly, we need to do it only once at the beginning
+        ++numUsedRndn;
+      }
+      tracks.fIntLenV[i]  = x;   // save the total mfp; to be used for the update in WorkloadManager
+      x *= tracks.fNintLenV[i];
+      //x = -1. * x * log(rndArray[i]);
       if (x < cx) {
         tracks.fPstepV[i] = x;
         tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
@@ -387,12 +411,19 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
   // Propose step for a single track in the input vector of tracks and write to
   // tracks.fPstepV[]
 
+  // count number of rndn needed
+  int numRndn = 0;
+  if (tracks.fNintLenV[i]<=0.0)
+      ++numRndn;
+
   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
   double *rndArray = td->fDblArray;
 #ifdef USE_ROOT
-  td->fRndm->RndmArray(1, rndArray);
+  if (numRndn)
+    td->fRndm->RndmArray(numRndn, rndArray);
 #else
-  td->fRndm->uniform_array(1, rndArray);
+  if (numRndn)
+    td->fRndm->uniform_array(numRndn, rndArray);
 #endif
 
   int ipart = tracks.fGVcodeV[i];                   // GV particle index/code
@@ -415,7 +446,10 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
         cx = cx * dRR + finRange * ((1. - dRR) * (2.0 - finRange / cx));
     }
   }
-  tracks.fPstepV[i] = cx; // set it to the cont. step limit and update later
+  tracks.fPstepV[i]  = cx; // set it to the cont. step limit and update later
+  // set mfp to 1.0 to handle properly particles that has no interaction when
+  // fNintLen is updated in the WorkloadManager i.e. step-length/mfp
+  tracks.fIntLenV[i] = 1.0;
 
   // discrete step limit
   if (ipart < TPartIndex::I()->NPartReac()) {       // can have different reactions + decay
@@ -428,14 +462,24 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
     double xrat = (en2 - energy) / (en2 - en1);
     // get interpolated -(total mean free path)
     double x = xrat * fTotXL[ipart * fNEbins + ibin] + (1 - xrat) * fTotXL[ipart * fNEbins + ibin + 1];
-    x *= -1. * log(rndArray[0]);
+    // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+    if (tracks.fNintLenV[i]<=0.0)
+      tracks.fNintLenV[i] = -log(rndArray[0]);
+    tracks.fIntLenV[i] = x;   // save the total mfp; to be used for the update in WorkloadManager
+    x *= tracks.fNintLenV[i];
+    //x *= -1. * log(rndArray[0]);
     if (x < cx) {
       tracks.fPstepV[i] = x;
       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
     }
   } else if (fDecayTable->HasDecay(ipart)) {                       // it has only decay
     double x = tracks.fPV[i] * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
-    x = -1. * x * log(rndArray[0]);
+    // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+    if (tracks.fNintLenV[i]<=0.0)
+      tracks.fNintLenV[i] = -log(rndArray[0]); // normaly, we need to do it only once at the beginning
+    tracks.fIntLenV[i] = x;   // save the total mfp; to be used for the update in WorkloadManager
+    x *= tracks.fNintLenV[i];
+//    x = -1. * x * log(rndArray[0]);
     if (x < cx) {
       tracks.fPstepV[i] = x;
       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
@@ -869,7 +913,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
 #endif
             double xsum = 0;
             int ibase = ipart * (fNEbins * fNElems);
-            int iibin  = ibase + ibin * fNElems; 
+            int iibin  = ibase + ibin * fNElems;
             for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
               xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
               if (ran <= xsum) {
@@ -963,7 +1007,7 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
 #endif
           double xsum = 0;
           int ibase = ipart * (fNEbins * fNElems);
-          int iibin  = ibase + ibin * fNElems; 
+          int iibin  = ibase + ibin * fNElems;
           for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
             xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
             if (ran <= xsum) {

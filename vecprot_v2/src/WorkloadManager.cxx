@@ -82,10 +82,10 @@ WorkloadManager::~WorkloadManager() {
 int WorkloadManager::ThreadId() {
 #if USE_VECGEOM_NAVIGATOR
   return BaseTLS::ThreadId();
-#else  
+#else
   gGeoManager->SetMultiThread();
   return TGeoManager::ThreadId();
-#endif  
+#endif
 }
 
 //______________________________________________________________________________
@@ -306,7 +306,7 @@ void *WorkloadManager::TransportTracks() {
 
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
-    
+
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16);
 
@@ -314,18 +314,18 @@ void *WorkloadManager::TransportTracks() {
   TThreadMergingFile* file=0;
   TTree *tree=0;
   GeantBlock<MyHit>* data=0;
-  
+
   if (concurrentWrite)
     {
-      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");     
+      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
       tree = new TTree("Tree","Simulation output");
-      
+
       tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
-      
+
       // set factory to use thread-local queues
       myhitFactory->queue_per_thread = true;
     }
-  
+
   // Start the feeder
   propagator->Feeder(td);
   Material_t *mat = 0;
@@ -361,7 +361,7 @@ void *WorkloadManager::TransportTracks() {
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
-    
+
     // Fire garbage collection if starving
     if ((nbaskets < 1) && (!propagator->IsFeeding())) {
       sch->GarbageCollect(td);
@@ -373,8 +373,8 @@ void *WorkloadManager::TransportTracks() {
       for (int slot = 0; slot < propagator->fNevents; slot++)
         if (propagator->fEvents[slot]->Prioritize())
           propagator->fPriorityEvents++;
-      while ((!sch->GarbageCollect(td, true)) && 
-             (feederQ->size_async() == 0) && 
+      while ((!sch->GarbageCollect(td, true)) &&
+             (feederQ->size_async() == 0) &&
              (!basket) &&
              (!prioritizer->HasTracks()))
         ;
@@ -439,16 +439,16 @@ void *WorkloadManager::TransportTracks() {
       // Use fNsteps track data to detect geometry anomalies
       for (auto itr=0; itr<ntotransport; ++itr) {
         input.fNstepsV[itr]++;
-        if ((input.fStatusV[itr] != kKilled) && 
+        if ((input.fStatusV[itr] != kKilled) &&
             (input.fNstepsV[itr] > gPropagator->fNstepsKillThr) &&
             input.fBoundaryV[itr] && (input.fSnextV[itr]<1.e-9)) {
           Error("TransportTracks", "track %d seems to be stuck -> killing it after next step", input.fParticleV[itr]);
           Error("TransportTracks", "Transport will continue, but this is a fatal error");
           input.PrintTrack(itr, "stuck");
           input.fStatusV[itr] = kKilled;
-        }  
-      }  
-      
+        }
+      }
+
       //         Geant::Print("","====== WorkloadManager:");
       //         input.PrintTracks();
       // Propagate all remaining tracks
@@ -467,9 +467,12 @@ void *WorkloadManager::TransportTracks() {
 
     // Update track time for all output tracks (this should vectorize)
     nout = output.GetNtracks();
-    for (auto itr = 0; itr < nout; ++itr) 
-      output.fTimeV[itr] += output.TimeStep(itr, output.fStepV[itr]);
-    
+    for (auto itr = 0; itr < nout; ++itr) {
+      output.fTimeV[itr]    += output.TimeStep(itr, output.fStepV[itr]);
+      // update number-of-interaction-legth-left
+      output.fNintLenV[itr] -= output.fStepV[itr]/output.fIntLenV[itr];
+    }
+
     // Post-step actions by continuous processes for all particles. There are no
     // new generated particles at this point.
     if (propagator->fUsePhysics) {
@@ -489,6 +492,10 @@ void *WorkloadManager::TransportTracks() {
       // Discrete processes only
       nphys = output.SortByLimitingDiscreteProcess(); // only those that kPhysics and not continous limit
       if (nphys) {
+        // reset number-of-interaction-legth-left
+        for (auto itr = 0; itr < nphys; ++itr)
+          output.fNintLenV[itr] = -1.0;
+
         // Do post step actions for particles suffering a given process.
         // Surviving particles are added to the output array
 
@@ -542,7 +549,7 @@ void *WorkloadManager::TransportTracks() {
 
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
-    
+
 // Normalize directions (should be not needed)
 //    for (auto itr=0; itr<ntotnext; ++itr)
 //      output.Normalize(itr);
@@ -568,8 +575,8 @@ void *WorkloadManager::TransportTracks() {
     int nreusable = sch->ReusableTracks(output);
     bool reusable = (basket->IsMixed())? false : (nreusable>=gPropagator->fNminReuse);
 //    reusable = false;
-    
-    if (reusable) 
+
+    if (reusable)
       sch->CopyReusableTracks(output, input, basket->GetThreshold());
     // Remaining tracks need to be re-basketized
     sch->AddTracks(output, ntot, nnew, nkilled, td);
@@ -589,7 +596,7 @@ void *WorkloadManager::TransportTracks() {
   if (concurrentWrite) {
     file->Write();
   }
-   
+
   wm->DoneQueue()->push(0);
   delete prioritizer;
   // Final reduction of counters
@@ -598,7 +605,7 @@ void *WorkloadManager::TransportTracks() {
   propagator->fNphys += td->fNphys;
   propagator->fNmag += td->fNmag;
   propagator->fNsmall += td->fNsmall;
-  
+
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   if (wm->IsStopped()) wm->MergingServer()->Finish();
@@ -1301,6 +1308,6 @@ void *WorkloadManager::OutputThread() {
   }
 
   Geant::Info("OutputThread", "=== Output thread finished ===");
-    
+
   return 0;
 }
