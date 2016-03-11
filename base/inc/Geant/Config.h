@@ -7,6 +7,18 @@
 #error "GeantV requires C++11"
 #endif
 
+// Inlining
+#ifdef __INTEL_COMPILER
+  #define GEANT_INLINE inline
+#else
+  #if (defined(__GNUC__) || defined(__GNUG__)) && !defined(__clang__) && !defined(__NO_INLINE__) && !defined( GEANT_NOINLINE )
+    #define GEANT_INLINE inline __attribute__((always_inline))
+  #else
+  // Clang or forced inlining is disabled ( by falling back to compiler decision )
+    #define GEANT_INLINE inline
+  #endif
+#endif
+
 #if (defined(__CUDACC__) || defined(__NVCC__))
 
   // Compiling with nvcc

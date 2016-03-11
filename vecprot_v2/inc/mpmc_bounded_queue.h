@@ -6,15 +6,14 @@
 /**
  * @file mpmc_bounded_queue.h
  * @brief Implementation of MPMC bounded queue for Geant-V prototype 
- * @author Andrei Gheata 
+ * @author Andrei Gheata
+ * based on http://www.1024cores.net/home/lock-free-algorithms/queues/bounded-mpmc-queue
  */
 //===----------------------------------------------------------------------===//
 
 #ifndef GEANT_MPMC_BOUNDED_QUEUE
 #define GEANT_MPMC_BOUNDED_QUEUE
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
 #include <cassert>
 
 typedef std::size_t size_t;
@@ -106,9 +105,7 @@ private:
 
   /** @struct cell_t */
   struct cell_t {
-#if __cplusplus >= 201103L
     std::atomic<size_t> sequence_;
-#endif
     T data_;
 
     /**
@@ -121,26 +118,16 @@ private:
   };
 
   static size_t const cacheline_size = 64;
-#if __cplusplus >= 201103L
   typedef char cacheline_pad_t[cacheline_size];
-#else
-  typedef char cacheline_pad_t[64];
-#endif
   cacheline_pad_t pad0_;
   cell_t *const buffer_;
   size_t const buffer_mask_;
   cacheline_pad_t pad1_;
-#if __cplusplus >= 201103L
   std::atomic<size_t> enqueue_pos_;
-#endif
   cacheline_pad_t pad2_;
-#if __cplusplus >= 201103L
   std::atomic<size_t> dequeue_pos_;
-#endif
   cacheline_pad_t pad3_;
-#if __cplusplus >= 201103L
   std::atomic<size_t> nstored_;
-#endif
   cacheline_pad_t pad4_;
   
   /** @brief MPMC bounded queue copy constructor */
