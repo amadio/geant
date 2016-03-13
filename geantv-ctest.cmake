@@ -14,8 +14,7 @@
 cmake_minimum_required(VERSION 2.8)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "1000")
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "1000")
-set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE "500000")
-set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE "500000")
+set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE "50000")
 ###################################################################
 macro(CheckExitCode)
   if(NOT ${ExitCode} EQUAL 0)
@@ -50,7 +49,43 @@ IF(NOT DEFINED CTEST_SITE)
 ENDIF(NOT DEFINED CTEST_SITE)
 
 #######################################################
-set(WITH_MEMCHECK FALSE)
+# Build dashboard model setup
+
+#------------ Cdash---------------------------------
+if("$ENV{MODE}" STREQUAL "")
+  set(CTEST_MODE Experimental)
+else()
+  set(CTEST_MODE "$ENV{MODE}")
+endif()
+
+if(${CTEST_MODE} MATCHES nightly)
+  SET(MODEL Nightly)
+elseif(${CTEST_MODE} MATCHES continuous)
+  SET(MODEL Continuous)
+elseif(${CTEST_MODE} MATCHES memory)
+  SET(MODEL NightlyMemoryCheck)
+else()
+  SET(MODEL Experimental)
+endif()
+
+find_program(CTEST_COMMAND_BIN NAMES ctest)
+SET (CTEST_COMMAND
+    "$CTEST_COMMAND_BIN -D ${MODEL}")
+
+#######################################################
+if(MODEL STREQUAL NightlyMemoryCheck)
+  set(WITH_MEMCHECK TRUE)
+  find_package(Valgrind REQUIRED)
+  find_package(ROOT REQUIRED)
+  if(ROOT)
+    set(MEMORYCHECK_SUPPRESSIONS_FILE "$ROOTSYS/etc/valgrind-root.supp")
+  endif()
+  set(CTEST_MEMORYCHECK_COMMAND ${VALGRIND_PROGRAM})
+else()
+  set(WITH_MEMCHECK FALSE)
+endif()
+
+######################################################
 set(WITH_COVERAGE FALSE)
 
 #######################################################
@@ -119,28 +154,6 @@ endforeach(v)
 message("Dashboard script configuration (check if everything is declared correctly):\n${vars}\n")
 
 #######################################################
-# Build dashboard model setup
-
-#------------ Cdash---------------------------------
-if("$ENV{MODE}" STREQUAL "")
-  set(CTEST_MODE Experimental)
-else()
-  set(CTEST_MODE "$ENV{MODE}")
-endif()
-
-if(${CTEST_MODE} MATCHES nightly)
-  SET(MODEL Nightly)
-elseif(${CTEST_MODE} MATCHES continuous)
-  SET(MODEL Continuous)
-else()
-  SET(MODEL Experimental)
-endif()
-
-find_program(CTEST_COMMAND_BIN NAMES ctest)
-SET (CTEST_COMMAND
-    "$CTEST_COMMAND_BIN -D ${MODEL}")
-
-#######################################################
 # Test custom update with a dashboard script.
 message("Running CTest Dashboard Script (custom update)...")
 include("${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
@@ -167,5 +180,9 @@ CheckExitCode()
 ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Tested.")
 ctest_submit(PARTS Test)
+
+if(${MODEL} MATCHES NightlyMemoryCheck)
+  ctest_submit(PARTS MemCheck)
+endif()
 
 message("DONE:CTestScript")
