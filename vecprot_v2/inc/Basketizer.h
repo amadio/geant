@@ -33,7 +33,7 @@ public:
   /**
    * @brief Basketizer dummy constructor
    */
-  Basketizer() : fBsize(0), fShift(0), fLock(ATOMIC_FLAG_INIT), fBuffer(0),
+  Basketizer() : fBsize(0), fBmask(0), fLock(ATOMIC_FLAG_INIT), fBuffer(0),
         fNadded(0), fBufferMask(0),
         fIbook(0), fLow(0), fNstored(0), fNbaskets(0) {}
   /**
@@ -43,7 +43,7 @@ public:
    * @param basket_size Size of produced baskets
    */
   Basketizer(size_t buffer_size, unsigned int basket_size)
-      : fBsize(0), fShift(0), fLock(ATOMIC_FLAG_INIT), fBuffer(0),
+      : fBsize(0), fBmask(0), fLock(ATOMIC_FLAG_INIT), fBuffer(0),
         fNadded(0), fBufferMask(0),
         fIbook(0), fLow(0), fNstored(0), fNbaskets(0) {
     Init(buffer_size, basket_size);
@@ -57,14 +57,13 @@ public:
   void Init(size_t buffer_size, unsigned int basket_size) {
     // Make sure the requested size is a power of 2
     assert((buffer_size >= 2) && ((buffer_size & (buffer_size - 1)) == 0));
+    assert((basket_size >= 2) && ((basket_size & (basket_size - 1)) == 0));
     fBsize = basket_size;
     fBuffer = new T*[buffer_size];
     fNadded = new std::atomic<unsigned int>[buffer_size];
     fBufferMask = buffer_size - 1;
-    // Make sure the basket size is a power of 2 and compute corresponding
-    // bitwise shift
-    while (basket_size >> (++fShift + 1));
-    fBsize = 1 << fShift;
+    fBsize = basket_size;
+    fBmask = ~(fBsize - 1);
     for (size_t i=0; i<buffer_size; ++i) {
       fBuffer[i] = nullptr;
       fNadded[i].store(0, std::memory_order_relaxed);
@@ -76,7 +75,7 @@ public:
   GEANT_INLINE
   bool AddElement(T* const data, std::vector<T*> &basket) {
     // Book atomically a slot for copying the element
-    size_t low = fLow.load(std::memory_order_relaxed);
+//    size_t low = fLow.load(std::memory_order_relaxed);
     size_t ibook = fIbook.fetch_add(1);
     // We should check that we do not overwrite data here...
 //    assert(ibook-low < fBufferMask);
@@ -86,7 +85,7 @@ public:
     fNstored++;
     
     // Get basket address for the booked index. Assume fixed size baskets.
-    size_t buf_start = ibook_buf >> fShift << fShift;
+    size_t buf_start = ibook_buf & fBmask;
     unsigned int nadded = fNadded[buf_start].fetch_add(1) + 1;
     if (nadded == 1) fNbaskets++;
     if (nadded >= fBsize) {
@@ -111,15 +110,15 @@ public:
     // Get current index, then compute a safe location forward
     size_t ibook = fIbook.load(std::memory_order_acquire);
     size_t inext = (ibook + 1 + fBsize) & fBufferMask;
-    size_t inext_start = inext >> fShift << fShift;
+    size_t inext_start = inext & fBmask;
     while (!fIbook.compare_exchange_weak(ibook, inext_start, std::memory_order_relaxed)) {
       ibook = fIbook.load(std::memory_order_acquire);
       inext = (ibook + 1 + fBsize) & fBufferMask;
-      inext_start = inext >> fShift << fShift;
+      inext_start = inext & fBmask;
     }
     // Now we can cleanup the basket at ibook
     size_t buf_pos = ibook & fBufferMask;
-    size_t buf_start = buf_pos >> fShift << fShift;
+    size_t buf_start = buf_pos & fBmask;
     size_t nelem = buf_pos - buf_start;
     if (!nelem) {
       Unlock();
@@ -141,7 +140,7 @@ public:
   //____________________________________________________________________________
   /** @brief Change dynamically basket size */
   GEANT_INLINE
-  bool SetBasketSize(unsigned int bsize, std::vector<T*> &basket) {
+  bool SetBasketSize(unsigned int bsize, std::vector<T*> &/*basket*/) {
     int shift = 0;
     size_t basket_size;
     while (bsize >> (++shift + 1));
@@ -151,7 +150,7 @@ public:
     // while doing this.
     Lock();
     // The algorithm here will need to deal with usage of the previous fBsize
-    // and fShift values concurrently by AddElement
+    // concurrently by AddElement
     Unlock();
     return false;
   }  
@@ -180,7 +179,7 @@ private:
   static const size_t cacheline_size = 64;
   typedef char cacheline_pad_t[cacheline_size];
   size_t fBsize;                 /** Size of the produced baskets */
-  int    fShift;                 /** fThres = 2^fShift */
+  size_t fBmask;                 /** Basket mask */
   std::atomic_flag fLock;        /** Lock for garbage collection and bsize changes */
   // Make sure the following data members are not sitting in the same cache line
   cacheline_pad_t pad0_;

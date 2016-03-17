@@ -104,9 +104,15 @@ struct Workload {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters-1);
     // Create a pool of numbers  
+#ifdef USE_NUMA
     allocated_ = numa_aligned_malloc(ntracks_*sizeof(test_track), 0 /*numa_node*/, 64);
+#else
+    allocated_ = new char[ntracks_*sizeof(test_track)];
+#endif    
     tracks_ = new (allocated_) test_track[ntracks_];
+#ifdef USE_NUMA
     std::cout << "Allocated data " << allocated_ << " on node: " << numa_node_addr(allocated_) << std::endl;
+#endif
     for (size_t i=0; i<ntracks_; ++i) {
       tracks_[i].id_ = i;
       // Generate randomly the filtering type
@@ -116,7 +122,9 @@ struct Workload {
   };
   
   ~Workload() {
+#ifdef USE_NUMA
     numa_aligned_free(allocated_);
+#endif
     for (size_t i=0; i<nnodes_; ++i)
       delete basketizers_[i];
     delete [] basketizers_;
@@ -137,7 +145,9 @@ struct Workload {
     Lock();
     if (!basketizers_[node]) {
       basketizers_[node] = new Basketizer(buf_size_, bsize_);
+#ifdef USE_NUMA
       std::cout << "basketizer[" << node << "] allocated on NUMA node " << numa_node_addr(basketizers_[node]) << std::endl;
+#endif
     }  
     Unlock();  
   }
@@ -148,7 +158,10 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks)
 {
 // Code run by each thread
   // Pin thread according to the NUMA policy
-  int numa_node = work->policy_.AllocateNextThread();
+  int numa_node = 0;
+#ifdef USE_NUMA
+  numa_node = work->policy_.AllocateNextThread();
+#endif
 //  numa_node = (numa_node+1)%2;
   work->InitBasketizers(numa_node);
   std::cout << "thread " << tid << " allocated on NUMA node: " << numa_node << std::endl;
