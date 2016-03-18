@@ -472,7 +472,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
       sinTheta.store(&wsinTheta[ibase]);
 
       //set the status bit
-      for(int j = 0; j < Double_t::Size ; ++j) {
+      for(size_t j = 0; j < Double_t::Size ; ++j) {
         flag.set(ibase+j,status[j]);
       }
 
