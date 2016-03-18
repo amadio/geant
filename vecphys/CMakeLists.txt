@@ -222,7 +222,7 @@ if (VC_ACCELERATION OR Vc)
   else()
     set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})
   endif()
-  include_directories(AFTER SYSTEM ${Vc_INCLUDE_DIR})
+  include_directories(AFTER ${Vc_INCLUDE_DIR})
 
   if (Vc)
     set(SRC_EXTERNAL ${SRC_EXTERNAL} src/backend/vc/Backend.cpp)
@@ -257,23 +257,16 @@ endif()
 if (ROOT)
   find_package(ROOT REQUIRED)
 
-  include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR} )
+  include_directories(AFTER ${ROOT_INCLUDE_DIR})
   link_directories(${ROOT_LIBRARY_DIR})
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL}
       ${ROOT_LIBRARIES} )
 endif()
 
-# until VecCore is separated from VecPhys (then it become something
-# ${VecCore_DIR}/include
-#include_directories(${CMAKE_SOURCE_DIR}/VecCore/inc )
-#include_directories(${CMAKE_INSTALL_PREFIX}/VecCore)
-
 ################################################################################
 
-include_directories(${CMAKE_SOURCE_DIR}
-                    ${CMAKE_SOURCE_DIR}/inc
+include_directories(${CMAKE_SOURCE_DIR}/inc
                     ${CMAKE_SOURCE_DIR}/test/inc
-                    ${CMAKE_SOURCE_DIR}/core
 )
 
 set(SRC_CPP_RELATIVE
