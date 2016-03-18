@@ -7,6 +7,7 @@
 #include "IonisationMoller.h"
 #include "BremSeltzerBerger.h"
 #include "SamplingMethod.h"
+#include "GUPhysicsModelName.h"
 
 #ifdef VECPHYS_ROOT
 #include "GUHistogram.h"
