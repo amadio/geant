@@ -154,7 +154,7 @@ if (CUDA)
       -std=c++11
       -Xcudafe "--diag_suppress=code_is_unreachable"
       -Xcudafe "--diag_suppress=initialization_not_reachable" 
-      --relaxed-constexpr
+      --expt-relaxed-constexpr
   )
   set(VECPHYS_NVCC_CONFIGS
         DEBUG -g -G
