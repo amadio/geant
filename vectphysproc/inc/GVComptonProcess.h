@@ -10,15 +10,15 @@
 // #include "GeantTrack.h"
 //#include "GUTrack.h"
 //#include "GUTrackHandler.h"
-// #include "GUComptonKleinNishina.h"
+#include "ComptonKleinNishina.h"
 
 #include "GeantFwd.h"
-class GUComptonKleinNishina;
 class GUTrack_v;
 
 class GVComptonProcess
 {
   public:
+        using GeantTrack = Geant::GeantTrack;
         using GeantTrack_v = Geant::GeantTrack_v;
 
   	FQUALIFIER GVComptonProcess();
@@ -27,8 +27,7 @@ class GVComptonProcess
   	FQUALIFIER ~GVComptonProcess();
         // driver method for performing all the necessary actions
         // returns with the number of secondary tracks inserted into GeantTrack_v  
-        FQUALIFIER int ApplyPostStepProcess(GeantTrack_v& gTrackV, int numtracks,
-                                            int tid);
+        FQUALIFIER int ApplyPostStepProcess(GeantTrack_v& gTrackV, int numtracks, int tid);
         
   private:
        void  Allocator(int size);
@@ -57,7 +56,7 @@ class GVComptonProcess
     int     fProcessId;       // Index of this process in tabulated physics (TPartIndex)
                               // Used to select primary tracks for current interation from GeantTrack_v
     double  fEnergyLimit;     // Tracking cut in kinetic energy (In GeantV units [GeV]) 
-    GUComptonKleinNishina*  fVComptonModel;  // this vector physics model 
+    vecphys::ComptonKleinNishina*  fVComptonModel;  // this vector physics model 
      
     // Intermediate containers
     int     *fTargetElements;       // Z-of target atoms
@@ -69,4 +68,3 @@ class GVComptonProcess
 };  
 
 #endif 
-

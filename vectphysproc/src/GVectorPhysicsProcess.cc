@@ -10,6 +10,8 @@
 #include "GeantTrack.h"
 #include "TGeoMaterial.h" // ROOT
 
+#include "GeantTaskData.h"
+
 // Vector physics process related
 #include "GVComptonProcess.h"
 
@@ -58,7 +60,7 @@ void GVectorPhysicsProcess::PostStepFinalStateSampling( TGeoMaterial */*mat*/,
                                                         int ntracks, 
                                                         GeantTrack_v &tracks,
                                                         int &nout, 
-                                                        int tid)
+                                                        GeantTaskData *td)
 {
     if(!fVComptonProcess) {
        std::cerr<<"\n"
@@ -74,6 +76,6 @@ void GVectorPhysicsProcess::PostStepFinalStateSampling( TGeoMaterial */*mat*/,
       exit(EXIT_FAILURE);       
     }
 
-    nout = fVComptonProcess[tid]->ApplyPostStepProcess(tracks, ntracks, tid);
+    nout = fVComptonProcess[td->fTid]->ApplyPostStepProcess(tracks, ntracks, td->fTid);
 }
 

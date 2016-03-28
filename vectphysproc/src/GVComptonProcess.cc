@@ -10,7 +10,6 @@
 #include <math.h>
 // Vector physics model related
 #include "GUTrack.h"
-#include "GUComptonKleinNishina.h"
 
 // GeantV prototype related
 #include "globals.h"
@@ -19,6 +18,9 @@
 
 // Xsec library realted
 #include "TPartIndex.h"
+
+// this should be replaced by <VecCore/VecCore> - syjun
+#include "backend/vc/Backend.h"
 
 //------------------------------------------------------------------------------
 FQUALIFIER
@@ -34,7 +36,7 @@ GVComptonProcess::GVComptonProcess(int processId, double energyLimit, int numtra
   fSecondaryTracks = new GUTrack_v();
   Allocator(numtracks);                         // allocate numtracks GUTrack_v for primaries
                                                 // and secondaries and so on; will be increased if needed
-  fVComptonModel = new GUComptonKleinNishina(); // create the vector physics model
+  fVComptonModel = new vecphys::ComptonKleinNishina(0,-1); // create the vector physics model
 
   std::cout << "------------ process index: = " << fProcessId << std::endl;
 }
@@ -180,7 +182,7 @@ void GVComptonProcess::PerformInteraction() {
   //      number of GUTrack-s (capacity >= fPrimaryTracks->numTracks now); the
   //      final number of secondary tracks produced by the vector physics model
   //      must be set in fSecondaryTracks->numTracks bythe model
-  fVComptonModel->Interact(*fPrimaryTracks, fTargetElements, fSecondaryTracks);
+  fVComptonModel->Interact<vecphys::kVc>(*fPrimaryTracks, fTargetElements, *fSecondaryTracks);
 }
 
 //------------------------------------------------------------------------------
@@ -225,7 +227,7 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, int tid) {
   // A process with the same secondary can define its base properties here
   // like Compton: the only possible secondary is e-
   const int secPDG = 11;                                    // e- PDG code
-  const int secGVcode = TPartIndex::I()->PartIndex(secPDG); // e- GV code
+  //  const int secGVcode = TPartIndex::I()->PartIndex(secPDG); // e- GV code
   // the rest mass and charge of the secondary particle in a general way
   const double secMass = // e- rest mass
       TPartIndex::I()->DBPdg()->Instance()->GetParticle(secPDG)->Mass();
@@ -247,7 +249,7 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, int tid) {
 
       // set additianl members of gTrack
       double secPtot = std::sqrt(kinE * (kinE + 2. * secMass)); // total P [GeV]
-      double invSecPtot = 1. / secPtot;                         // inv. total P [1/GeV]
+      //      double invSecPtot = 1. / secPtot;                         // inv. total P [1/GeV]
       gTrack.fPDG = secPDG;                                     // PDG code
       gTrack.fGVcode = TPartIndex::I()->PartIndex(secPDG);      // corresponding GV code
       gTrack.fCharge = secCharge;                               // charge
@@ -282,7 +284,7 @@ void GVComptonProcess::SetGeantTrack(GeantTrack &left, GeantTrack_v &right, int 
   left.fEindex = -1;                 // init
                                      //    left.fCharge   = secCharge;                           // will be set
   left.fProcess = -1;                // init
-  left.fIzero = 0;                   // init
+  //  left.fIzero = 0;                   // init
   left.fNsteps = 0;                  // init
   left.fStatus = kNew;               // new track
                                      //    left.fMass     = secMass;                             // will be set
@@ -299,7 +301,7 @@ void GVComptonProcess::SetGeantTrack(GeantTrack &left, GeantTrack_v &right, int 
   left.fStep = 0.;                     // init
   left.fSnext = 0.;                    // init
   left.fSafety = right.fSafetyV[ip];   // init to (same as parent)
-  left.fFrombdr = right.fFrombdrV[ip]; // init to (same as parent)
+  //  left.fFrombdr = right.fFrombdrV[ip]; // init to (same as parent)
   left.fPending = kFALSE;              // init
   *left.fPath = *right.fPathV[ip];     // init
   *left.fNextpath = *right.fPathV[ip]; // init

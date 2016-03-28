@@ -22,6 +22,7 @@ private:
 
 public:
   using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 
   GVectorPhysicsProcess();
   GVectorPhysicsProcess(double energyLimit, int numThreads);
@@ -32,7 +33,7 @@ public:
                                            int ntracks, 
                                            GeantTrack_v &tracks,
                                            int &nout, 
-                                           int tid);
+                                           GeantTaskData *td);
 
   // these are not active !!! 
   //
@@ -40,18 +41,18 @@ public:
                              int /*ntracks*/, 
                              GeantTrack_v & /*tracks*/,
                              double * /*lengths*/, 
-                             int /*tid*/)                            {}
+                             GeantTaskData * /*tid*/)                            {}
   
   virtual void PostStep(     Material_t * /*mat*/,
                              int /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
                              int & /*nout*/, 
-                             int /*tid*/)                            {}         
+                             GeantTaskData * /*tid*/)                            {}         
 
   virtual void PostStepTypeOfIntrActSampling(     Material_t * /*mat*/,
                                                   int /*ntracks*/,
                                                   GeantTrack_v & /*tracks*/, 
-                                                  int /*tid*/)       {} 
+                                                  GeantTaskData * /*tid*/)       {} 
 
   virtual void AtRest(       int /*ntracks*/,
                              GeantTrack_v &/*tracks*/, 
