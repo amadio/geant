@@ -26,16 +26,85 @@
  */
 namespace Geant {
 
+template <typename T> class BasketCounter {
+  using size_t = std::size_t;
+
+public:
+  size_t fBsize;                // Basket size
+  std::atomic<size_t> fNbooked; // Counter for booked slots
+  std::atomic<size_t> fNfilled; // Counter for filled slots
+  std::atomic_flag fLock;       // Lock for the basket counter
+  BasketCounter() : fBsize(0), fNbooked(0), fNfilled(0), fLock() {
+    // Constructor
+    fLock.clear();
+  }
+
+  BasketCounter(short bsize) : fBsize(bsize), fNbooked(0), fNfilled(0), fLock() {
+    // Constructor
+    fLock.clear();
+  }
+
+  GEANT_INLINE
+  void SetBsize(size_t bsize) { fBsize = bsize; }
+
+  GEANT_INLINE
+  size_t Bsize() { return (fBsize); }
+
+  GEANT_INLINE
+  size_t BookSlot() { return (fNbooked.fetch_add(1) + 1); }
+
+  GEANT_INLINE
+  size_t FillSlot(size_t &ibooked, T *address, T const data) {
+    if (ibooked > fBsize) {
+      // Block slot filling until basket is released
+      while (Nbooked() > fBsize)
+        ;
+      ibooked -= fBsize;
+    }
+    *address = data;
+    return (fNfilled.fetch_add(1) + 1);
+  }
+
+  GEANT_INLINE
+  void ReleaseBasket() {
+    fNfilled -= fBsize;
+    fNbooked -= fBsize;
+  }
+
+  GEANT_INLINE
+  void Clear() {
+    fNfilled.store(0);
+    fNbooked.store(0);
+  }
+
+  GEANT_INLINE
+  size_t Nbooked() const { return (fNbooked.load()); }
+
+  GEANT_INLINE
+  size_t Nfilled() const { return (fNfilled.load()); }
+
+  GEANT_INLINE
+  void Lock() {
+    while (fLock.test_and_set(std::memory_order_acquire))
+      ;
+  }
+
+  GEANT_INLINE
+  void Unlock() { fLock.clear(std::memory_order_release); }
+};
+
 template <typename T> class Basketizer {
 public:
   using size_t = std::size_t;
+  using BasketCounter = BasketCounter<T *>;
 
   /**
    * @brief Basketizer dummy constructor
    */
   Basketizer()
-      : fBsize(0), fBmask(0), fLock(ATOMIC_FLAG_INIT), fBuffer(0), fNadded(0), fBufferMask(0), fIbook(0), fLow(0),
-        fNstored(0), fNbaskets(0) {}
+      : fBsize(0), fBmask(0), fLock(), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
+    fLock.clear();
+  }
   /**
    * @brief Basketizer default constructor
    *
@@ -43,15 +112,15 @@ public:
    * @param basket_size Size of produced baskets
    */
   Basketizer(size_t buffer_size, unsigned int basket_size)
-      : fBsize(0), fBmask(0), fLock(ATOMIC_FLAG_INIT), fBuffer(0), fNadded(0), fBufferMask(0), fIbook(0), fLow(0),
-        fNstored(0), fNbaskets(0) {
+      : fBsize(0), fBmask(0), fLock(), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
+    fLock.clear();
     Init(buffer_size, basket_size);
   }
 
   /** @brief Basketizer destructor */
   ~Basketizer() {
     delete[] fBuffer;
-    delete[] fNadded;
+    delete[] fCounters;
   }
 
   //____________________________________________________________________________
@@ -62,13 +131,13 @@ public:
     assert((basket_size >= 2) && ((basket_size & (basket_size - 1)) == 0));
     fBsize = basket_size;
     fBuffer = new T *[buffer_size];
-    fNadded = new std::atomic<unsigned int>[buffer_size];
+    fCounters = new BasketCounter[buffer_size];
     fBufferMask = buffer_size - 1;
     fBsize = basket_size;
     fBmask = ~(fBsize - 1);
     for (size_t i = 0; i < buffer_size; ++i) {
       fBuffer[i] = nullptr;
-      fNadded[i].store(0, std::memory_order_relaxed);
+      fCounters[i].SetBsize(fBsize);
     }
   }
 
@@ -77,28 +146,23 @@ public:
   GEANT_INLINE
   bool AddElement(T *const data, std::vector<T *> &basket) {
     // Book atomically a slot for copying the element
-    //    size_t low = fLow.load(std::memory_order_relaxed);
     size_t ibook = fIbook.fetch_add(1);
-    // We should check that we do not overwrite data here...
-    //    assert(ibook-low < fBufferMask);
-    // Copy data at the booked location in the buffer
+    // Compute position in the buffer and increment booking counter
     size_t ibook_buf = ibook & fBufferMask;
-    fBuffer[ibook_buf] = data;
-    fNstored++;
-
     // Get basket address for the booked index. Assume fixed size baskets.
     size_t buf_start = ibook_buf & fBmask;
-    unsigned int nadded = fNadded[buf_start].fetch_add(1) + 1;
-    if (nadded == 1)
+    size_t nbooked = fCounters[buf_start].BookSlot();
+    if ((nbooked & (fBsize - 1)) == 1)
       fNbaskets++;
-    if (nadded >= fBsize) {
+    size_t nfilled = fCounters[buf_start].FillSlot(nbooked, &fBuffer[ibook_buf], data);
+    fNstored++;
+
+    if (nfilled == fBsize) {
       // Deploy basket (copy data)
       fNstored -= fBsize;
-      basket.clear();
       basket.insert(basket.end(), &fBuffer[buf_start], &fBuffer[buf_start + fBsize]);
-      fNadded[buf_start].store(0, std::memory_order_release);
-      fLow += fBsize;
       fNbaskets--;
+      fCounters[buf_start].ReleaseBasket();
       return true;
     }
     return false;
@@ -110,6 +174,7 @@ public:
   bool GarbageCollect(std::vector<T *> &basket) {
     // Garbage collect all elements present in the container on the current basket
     Lock();
+    std::cout << "GC\n";
     // Get current index, then compute a safe location forward
     size_t ibook = fIbook.load(std::memory_order_acquire);
     size_t inext = (ibook + 1 + fBsize) & fBufferMask;
@@ -127,15 +192,13 @@ public:
       Unlock();
       return false;
     }
-    while (fNadded[buf_start].load(std::memory_order_relaxed) < nelem)
+    while (fCounters[buf_start].Nfilled() < nelem)
       ;
     fNstored -= nelem;
     // Now fill the objects from the pending basket
-    basket.clear();
     basket.insert(basket.end(), &fBuffer[buf_start], &fBuffer[buf_start + nelem]);
     fNbaskets--;
-    fNadded[buf_start].store(0, std::memory_order_release);
-    fLow += fBsize;
+    fCounters[buf_start].Clear();
     Unlock();
     return true;
   }
@@ -188,18 +251,16 @@ private:
   cacheline_pad_t pad0_;
   T **fBuffer; /** Circular buffer for elements to be basketized*/
   cacheline_pad_t pad1_;
-  std::atomic<unsigned int> *fNadded; /** Circular buffer of atomic counters */
+  BasketCounter *fCounters; /** Basket counters */
   cacheline_pad_t pad2_;
   size_t fBufferMask; /** Buffer mask used for fast index calculation in buffer */
   cacheline_pad_t pad3_;
   std::atomic<size_t> fIbook; /** Current booked index */
   cacheline_pad_t pad4_;
-  std::atomic<size_t> fLow; /** Low watermark limit */
-  cacheline_pad_t pad5_;
   std::atomic<size_t> fNstored; /** Number of objects currently stored */
+  cacheline_pad_t pad5_;
+  std::atomic<short> fNbaskets; /** Number of pending baskets */
   cacheline_pad_t pad6_;
-  std::atomic<short int> fNbaskets; /** Number of pending baskets */
-  cacheline_pad_t pad7_;
 };
 } // Geant
 
