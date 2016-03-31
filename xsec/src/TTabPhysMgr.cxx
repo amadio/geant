@@ -94,7 +94,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
 // Load elements from geometry, however in most cases it should already be done
 #ifdef USE_VECGEOM_NAVIGATOR
   GeantPropagator::Instance()->LoadVecGeomGeometry();
-  vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
+  std::vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
 #else
   fGeom = gGeoManager;
   if (!fGeom)
@@ -1274,7 +1274,7 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, int itrack, double theta, do
 //______________________________________________________________________________
 const char *TTabPhysMgr::GetVersion() const {
   static bool first = true;
-  static mutex l;
+  static std::mutex l;
   static char ver[512];
   l.lock();
   if (first) {
