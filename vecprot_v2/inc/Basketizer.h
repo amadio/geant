@@ -96,7 +96,7 @@ public:
 template <typename T> class Basketizer {
 public:
   using size_t = std::size_t;
-  using BasketCounter = BasketCounter<T *>;
+  using BasketCounter_t = BasketCounter<T *>;
 
   /**
    * @brief Basketizer dummy constructor
@@ -131,7 +131,7 @@ public:
     assert((basket_size >= 2) && ((basket_size & (basket_size - 1)) == 0));
     fBsize = basket_size;
     fBuffer = new T *[buffer_size];
-    fCounters = new BasketCounter[buffer_size];
+    fCounters = new BasketCounter_t[buffer_size];
     fBufferMask = buffer_size - 1;
     fBsize = basket_size;
     fBmask = ~(fBsize - 1);
@@ -251,7 +251,7 @@ private:
   cacheline_pad_t pad0_;
   T **fBuffer; /** Circular buffer for elements to be basketized*/
   cacheline_pad_t pad1_;
-  BasketCounter *fCounters; /** Basket counters */
+  BasketCounter_t *fCounters; /** Basket counters */
   cacheline_pad_t pad2_;
   size_t fBufferMask; /** Buffer mask used for fast index calculation in buffer */
   cacheline_pad_t pad3_;
