@@ -8,12 +8,12 @@
 # VECPHYS_LIBRARY_DIR    PATH to the library directory 
 
 # !! this should be changed after vecphys will have a proper install
-set(WHERE_TO_LOOK ${PROJECT_SOURCE_DIR}/GXTracking/GUTracking)
+set(WHERE_TO_LOOK ${PROJECT_SOURCE_DIR}/vecphys)
 
 find_library(VECPHYS_LIBRARIES libvecphys.a PATHS ${WHERE_TO_LOOK}/build)
 if (VECPHYS_LIBRARIES) 
    set(VECPHYS_FOUND TRUE)	
-   set(VECPHYS_INCLUDE_DIR ${WHERE_TO_LOOK}/inc)
+   set(VECPHYS_INCLUDE_DIR ${WHERE_TO_LOOK}/include)
    set(VECPHYS_LIBRARY_DIR ${WHERE_TO_LOOK}/build)
 
    message(STATUS "Found VecPhys: ${VECPHYS_LIBRARIES}")
