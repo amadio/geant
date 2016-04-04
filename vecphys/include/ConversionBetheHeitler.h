@@ -126,7 +126,6 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   // now return only secondary electron information and
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //early return if E_gamma < 2*electron_mass_c2

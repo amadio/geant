@@ -170,7 +170,6 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
                                   typename Backend::Double_v& energyOut,
                                   typename Backend::Double_v& sinTheta)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Index_v<Double_v>   irow;

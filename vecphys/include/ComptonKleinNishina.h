@@ -190,7 +190,6 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
                                     typename Backend::Double_v& energyOut,
                                     typename Backend::Double_v& sinTheta)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Index_v<Double_v>   irow;
@@ -424,7 +423,6 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //filtering the energy region for the alias method - setable if necessary

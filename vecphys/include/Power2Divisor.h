@@ -54,7 +54,6 @@ void Power2Divisor::GetBinAndFraction(typename Backend::Double_v x,
                                       typename Backend::Double_v& frac)
 {
   typedef typename Backend::Int_t Int_t;
-  typedef Index_v<typename Backend::Double_v> Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Int_t    exponent;

@@ -191,7 +191,6 @@ InteractKernel(typename Backend::Double_v  energyIn,
                typename Backend::Double_v& energyOut,
                typename Backend::Double_v& sinTheta)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //energy of photo-electron: Sandia parameterization
@@ -431,7 +430,6 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
                                                const int* targetElements,
                                                GUTrack_v& outSecondary)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //filtering energy regions for sampling methods - setable if necessary

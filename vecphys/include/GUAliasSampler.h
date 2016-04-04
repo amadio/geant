@@ -164,7 +164,6 @@ SampleBin(typename Backend::Double_v kineticEnergy,
           typename Backend::Double_v &fraction  //  in sampled variable
          ) const
 {
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
   typedef typename Backend::Int_t  Int_t;
 
@@ -246,7 +245,6 @@ SampleX(typename Backend::Double_v rangeSampled,
 {
   typedef typename Backend::Int_t    Int_t;
   using Double_v = typename Backend::Double_v;
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
@@ -286,7 +284,6 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
 {
   typedef typename Backend::Int_t    Int_t;
   using Double_v = typename Backend::Double_v;
-  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
