@@ -20,11 +20,11 @@ class ConversionBetheHeitler : public EmModelBase<ConversionBetheHeitler>
 public:
 
   VECPHYS_CUDA_HEADER_HOST
-  ConversionBetheHeitler(Random_t* states = 0, int threadId = -1); 
+  ConversionBetheHeitler(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
-  ConversionBetheHeitler(Random_t* states, int threadId, 
-                         GUAliasSampler* sampler); 
+  ConversionBetheHeitler(Random_t* states, int threadId,
+                         GUAliasSampler* sampler);
 
   VECPHYS_CUDA_HEADER_BOTH
   ~ConversionBetheHeitler(){}
@@ -33,7 +33,7 @@ public:
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST 
+  VECPHYS_CUDA_HEADER_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
@@ -42,28 +42,28 @@ public:
 public:
   // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t
   CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::Double_t  energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernel(typename Backend::Double_t  energyIn,
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernelCR(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernelCR(typename Backend::Double_t energyIn,
                    typename Backend::Index_t   zElement,
                    typename Backend::Double_t& energyOut,
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernelUnpack(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernelUnpack(typename Backend::Double_t energyIn,
                        typename Backend::Index_t   zElement,
                        typename Backend::Double_t& energyOut,
                        typename Backend::Double_t& sinTheta,
@@ -75,33 +75,33 @@ public:
   SampleSinTheta(typename Backend::Double_t energyElectron,
                  typename Backend::Double_t energyPositron,
 		 typename Backend::Double_t& sinThetaElectron,
-		 typename Backend::Double_t& sinThetaPositron) const; 
+		 typename Backend::Double_t& sinThetaPositron) const;
 
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   void SampleByCompositionRejection(int    elementZ,
                                     double energyIn,
                                     double& energyOut,
                                     double& sinTheta);
 
-  VECPHYS_CUDA_HEADER_BOTH 
-  double 
-  GetG4CrossSection(double  energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH
+  double
+  GetG4CrossSection(double  energyIn,
                     const int zElement);
 
   VECPHYS_CUDA_HEADER_BOTH
-  double CalculateDiffCrossSection(int Zelement, 
+  double CalculateDiffCrossSection(int Zelement,
                                    double Ein,
                                    double outEphoton );
 
-  //this should be a method of GUElement 
+  //this should be a method of GUElement
   /*
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   double ComputeCoulombFactor(double Zeff) const;
   */
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   double ScreenFunction1(double screenVariable) const;
 
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   double ScreenFunction2(double screenVariable) const;
 
   // the mother is friend in order to access private methods of this
@@ -116,9 +116,9 @@ private:
 //Implementation
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH 
-void 
-ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn, 
+VECPHYS_CUDA_HEADER_BOTH
+void
+ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
                                        typename Backend::Index_t   zElement,
                                        typename Backend::Double_t& energyOut,
                                        typename Backend::Double_t& sinTheta)
@@ -130,7 +130,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
 
-  //early return if E_gamma < 2*electron_mass_c2 
+  //early return if E_gamma < 2*electron_mass_c2
 
   Index_t   irow;
   Index_t   icol;
@@ -145,7 +145,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
-  
+
   Double_t mininumE = electron_mass_c2;
   Double_t deltaE = energyIn - mininumE;
 
@@ -160,11 +160,11 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t energyPositron;
 
   //check correctness
-  MaskedAssign( condition, energyOut, &energyElectron);     
-  MaskedAssign( condition, energyIn - energyOut, &energyPositron);     
+  MaskedAssign( condition, energyOut, &energyElectron);
+  MaskedAssign( condition, energyIn - energyOut, &energyPositron);
 
-  MaskedAssign(!condition, energyOut, &energyPositron);     
-  MaskedAssign(!condition, energyIn - energyOut, &energyElectron);     
+  MaskedAssign(!condition, energyOut, &energyPositron);
+  MaskedAssign(!condition, energyIn - energyOut, &energyElectron);
 
   Double_t sinThetaElectron;
   Double_t sinThetaPositron;
@@ -174,7 +174,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   //fill secondaries
   energyOut = energyElectron;
   sinTheta = sinThetaElectron;
-}    
+}
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
@@ -210,7 +210,7 @@ SampleSinTheta(typename Backend::Double_t energyElectron,
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::Double_t
 ConversionBetheHeitler::
 CrossSectionKernel(typename Backend::Double_t energy,
                    typename Backend::Index_t Z)
@@ -228,7 +228,7 @@ CrossSectionKernel(typename Backend::Double_t energy,
   Double_t energyLimit = 1.5*MeV;
   Bool_t condition = energy < energyLimit;
   MaskedAssign( condition, energyLimit, &energy );
-  
+
   Double_t X = log(energy/electron_mass_c2);
   Double_t X2 = X*X;
   Double_t X3 =X2*X;
@@ -237,31 +237,31 @@ CrossSectionKernel(typename Backend::Double_t energy,
 
   //put coff's to a constant header
   /*
-  Double_t a0= 8.7842e+2*microbarn; 
-  Double_t a1=-1.9625e+3*microbarn; 
+  Double_t a0= 8.7842e+2*microbarn;
+  Double_t a1=-1.9625e+3*microbarn;
   Double_t a2= 1.2949e+3*microbarn;
-  Double_t a3=-2.0028e+2*microbarn; 
-  Double_t a4= 1.2575e+1*microbarn; 
+  Double_t a3=-2.0028e+2*microbarn;
+  Double_t a4= 1.2575e+1*microbarn;
   Double_t a5=-2.8333e-1*microbarn;
-  
-  Double_t b0=-1.0342e+1*microbarn; 
-  Double_t b1= 1.7692e+1*microbarn; 
+
+  Double_t b0=-1.0342e+1*microbarn;
+  Double_t b1= 1.7692e+1*microbarn;
   Double_t b2=-8.2381   *microbarn;
-  Double_t b3= 1.3063   *microbarn; 
-  Double_t b4=-9.0815e-2*microbarn; 
+  Double_t b3= 1.3063   *microbarn;
+  Double_t b4=-9.0815e-2*microbarn;
   Double_t b5= 2.3586e-3*microbarn;
-  
-  Double_t c0=-4.5263e+2*microbarn; 
-  Double_t c1= 1.1161e+3*microbarn; 
+
+  Double_t c0=-4.5263e+2*microbarn;
+  Double_t c1= 1.1161e+3*microbarn;
   Double_t c2=-8.6749e+2*microbarn;
-  Double_t c3= 2.1773e+2*microbarn; 
-  Double_t c4=-2.0467e+1*microbarn; 
+  Double_t c3= 2.1773e+2*microbarn;
+  Double_t c4=-2.0467e+1*microbarn;
   Double_t c5= 6.5372e-1*microbarn;
   */
 
   Double_t F1 = a0 + a1*X + a2*X2 + a3*X3 + a4*X4 + a5*X5;
   Double_t F2 = b0 + b1*X + b2*X2 + b3*X3 + b4*X4 + b5*X5;
-  Double_t F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;     
+  Double_t F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;
 
   sigma = (Z + 1.)*(F1*Z + F2*Z*Z + F3);
   Bool_t done = energySave < energyLimit;
@@ -279,8 +279,8 @@ CrossSectionKernel(typename Backend::Double_t energy,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_t  energyIn, 
+VECPHYS_CUDA_HEADER_BOTH void
+ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_t  energyIn,
                                          typename Backend::Index_t   zElement,
                                          typename Backend::Double_t& energyOut,
                                          typename Backend::Double_t& sinTheta)
@@ -291,8 +291,8 @@ ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_t energyIn, 
+VECPHYS_CUDA_HEADER_BOTH void
+ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_t energyIn,
                                              typename Backend::Index_t   zElement,
                                              typename Backend::Double_t& energyOut,
                                              typename Backend::Double_t& sinTheta,

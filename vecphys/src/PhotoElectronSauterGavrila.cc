@@ -11,20 +11,20 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
-PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid) 
+PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid)
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid)
 {
   Initialization();
 }
 
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid,
-                                                       GUAliasSampler* sampler) 
+                                                       GUAliasSampler* sampler)
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid,sampler)
 {
 }
 
-VECPHYS_CUDA_HEADER_HOST void 
+VECPHYS_CUDA_HEADER_HOST void
 PhotoElectronSauterGavrila::Initialization()
 {
   if(fSampleType == kAlias) {
@@ -37,22 +37,22 @@ PhotoElectronSauterGavrila::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST void 
+VECPHYS_CUDA_HEADER_HOST void
 PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void 
+VECPHYS_CUDA_HEADER_HOST void
 PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 {
-  // Build the probability density function (KleinNishina pdf) in the 
-  // input energy randge [fAliasSampler->GetIncomingMin(),fAliasSampler->GetIncomingMax()] 
+  // Build the probability density function (KleinNishina pdf) in the
+  // input energy randge [fAliasSampler->GetIncomingMin(),fAliasSampler->GetIncomingMax()]
   //       with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number)
   // output :  p    (probability distribution) with the array dimension
-  //                [fAliasSampler->GetNumEntries()][fAliasSampler->GetSamplesPerEntry()] 
+  //                [fAliasSampler->GetNumEntries()][fAliasSampler->GetSamplesPerEntry()]
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
@@ -69,19 +69,19 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
     double x = exp(logxmin + dx*i);
 
     const double ymin = -1.0;
-    const double dy = 2./ncol; 
+    const double dy = 2./ncol;
     //    const double yo = ymin + 0.5*dy;
-  
+
     double sum = 0.;
 
     for(int j = 0; j < ncol ; ++j) {
 
       //for each input cos(theta) bin
-      double normal = 0;  
+      double normal = 0;
 
       //cross section weighted bin position
       for(int k = 0; k < nintegral ; ++k) {
-        
+
         double y = ymin + dy*(j+(0.5+k)/nintegral);
         double fxsec = CalculateDiffCrossSectionK(Z,x,y);
         normal  += fxsec;
@@ -107,15 +107,15 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 
 // function implementing the angular distribution of photoelectrons
 
-VECPHYS_CUDA_HEADER_BOTH double 
-PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement, 
-                                                       double energy, 
+VECPHYS_CUDA_HEADER_BOTH double
+PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
+                                                       double energy,
                                                        double cosTheta ) const
 {
   // based on Geant4 : G4SauterGavrilaAngularDistribution
   // input  : energy   (incomming photon energy)
   //          cosTheta (cons(theta) of photo-electron)
-  // output : dsigmaK  (differential cross section, K-shell only) 
+  // output : dsigmaK  (differential cross section, K-shell only)
 
   double tau = energy/electron_mass_c2 ;
 
@@ -133,15 +133,15 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
   return dsigmaK;
 }
 
-VECPHYS_CUDA_HEADER_BOTH double 
-PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement, 
-                                                      double energy, 
+VECPHYS_CUDA_HEADER_BOTH double
+PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
+                                                      double energy,
                                                       double cosTheta ) const
 {
   // based on Geant4 : G4SauterGavrilaAngularDistribution
   // input  : energy   (incomming photon energy)
   //          cosTheta (cons(theta) of photo-electron)
-  // output : dsigma  (differential cross section, K-shell + L-shells) 
+  // output : dsigma  (differential cross section, K-shell + L-shells)
 
   double tau = energy/electron_mass_c2 ;
 
@@ -189,20 +189,20 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
                   + y*((g+1)/z5 - g*(g+1)/z4 + g2*(3*g+1)*(g2-1)/z3);
 
   dsigmaL2 *= coeff;
-  
-  double dsigmaL3 = g*(1-3*g)/(2*z4) + g2*(3*g2-1)/z3 
+
+  double dsigmaL3 = g*(1-3*g)/(2*z4) + g2*(3*g2-1)/z3
     + g3*(g3-3*g2+2*g+1)/z3 - g4*(g-2)*(g-1)/(2*z)
     +y*( (g+1)/z5 - g*(g+1)*(2*g-1)/z4 + g2*(g2-1)/z3  );
 
   dsigmaL3 *= coeff;
 
-  double dsigma = PK*dsigmaK + PL*dsigmaL1 +PL2*dsigmaL2 + PL3*dsigmaL3; 
+  double dsigma = PK*dsigmaK + PL*dsigmaL1 +PL2*dsigmaL2 + PL3*dsigmaL3;
   return dsigma;
 
 }
 
 VECPHYS_CUDA_HEADER_BOTH double
-PhotoElectronSauterGavrila::GetG4CrossSection(double  gammaEnergy, 
+PhotoElectronSauterGavrila::GetG4CrossSection(double  gammaEnergy,
                                               const int Z)
 {
   double xSection = 0.;
@@ -210,7 +210,7 @@ PhotoElectronSauterGavrila::GetG4CrossSection(double  gammaEnergy,
   return xSection;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_BOTH void
 PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
                                                          double energyIn,
                                                          double& energyOut,
@@ -222,7 +222,7 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
   //sample angular direction according to SauterGavrilaAngularDistribution
 
   G4double tau = energyIn/electron_mass_c2;
-  //  static 
+  //  static
   const G4double taulimit = 50.0;
 
   G4double cost  = -1.0;
@@ -230,8 +230,8 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
   if (tau > taulimit) {
     cost  = 1.0; //set to the primary direction
   } else {
-    // algorithm according Penelope 2008 manual and 
-    // F.Sauter Ann. Physik 9, 217(1931); 11, 454(1931). 
+    // algorithm according Penelope 2008 manual and
+    // F.Sauter Ann. Physik 9, 217(1931); 11, 454(1931).
 
     G4double gamma = tau + 1.;
     G4double beta  = std::sqrt(tau*(tau + 2.))/gamma;
@@ -240,13 +240,13 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
     G4double B     = 0.5*beta*gamma*(gamma - 1.)*(gamma - 2.);
     G4double grej  = 2.*(1. + A*B)/A;
     G4double z, g;
-    do { 
+    do {
       G4double q = UniformRandom<kScalar>(fRandomState,fThreadId);
-      z = 2*A*(2*q + Ap2*std::sqrt(q))/(Ap2*Ap2 - 4*q); 
+      z = 2*A*(2*q + Ap2*std::sqrt(q))/(Ap2*Ap2 - 4*q);
       g = (2 - z)*(1.0/(A + z) + B);
 
     } while(g < UniformRandom<kScalar>(fRandomState,fThreadId)*grej);
- 
+
     cost = 1 - z;
   }
 

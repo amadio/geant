@@ -175,7 +175,7 @@ VECPHYS_INLINE
 VcPrecision IntToDouble( VcInt const &val ){
   VcPrecision s;
   for(int i = 0; i < kVc::kSize ; ++i) {
-    s[i] = val[i*2]*1.f;    
+    s[i] = val[i*2]*1.f;
   }
   return s;
 }

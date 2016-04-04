@@ -9,10 +9,10 @@
 
 namespace vecphys {
 
-class GUTrackHandler 
+class GUTrackHandler
 {
 public:
- 
+
   GUTrackHandler();
   GUTrackHandler(size_t nTracks);
   ~GUTrackHandler();
@@ -28,9 +28,9 @@ public:
   GUTrack_v& GetSoATracks() {return fTrack_soa; };
 
   void FillOneTrack(GUTrack* aTrack);
-  void GenerateRandomTracks(size_t nTracks, 
+  void GenerateRandomTracks(size_t nTracks,
 			    double minP=20.0, double maxP = 1000.);
- 
+
  //utility functions - can be elsewhere
   void SortAoSTracksByEnergy(GUTrack* AoS, size_t nTracks);
   void SortSoATracksByEnergy(GUTrack_v& SoA, size_t nTracks);

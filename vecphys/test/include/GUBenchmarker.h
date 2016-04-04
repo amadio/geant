@@ -19,8 +19,8 @@ public:
   int RunBenchmark();
 
   void SetNTracks(const int ntracks) { fNtracks = ntracks; }
-  void SetRepetitions(const unsigned repetitions) { 
-    fRepetitions = repetitions; 
+  void SetRepetitions(const unsigned repetitions) {
+    fRepetitions = repetitions;
   }
 
   void SetMinP(double pMin) { fMinP= pMin; }
@@ -32,11 +32,11 @@ public:
   void SetMonoEnergeticBeam(double E){ SetMinP(E); SetMaxP(E); } // For gamma only now!
 
 private:
-    
+
   int  RunBenchmarkInteract();
 
   void PrepareTargetElements(int *targetElements, int ntracks);
-  
+
   void RunGeant4();
   void RunScalar();
   void RunVector();

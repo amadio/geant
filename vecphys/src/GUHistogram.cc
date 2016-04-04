@@ -18,12 +18,12 @@ GUHistogram::~GUHistogram()
 void GUHistogram::BookHistograms(double maxE)
 {
   for(int i = 0 ; i < kNumberPhysicsModel ; ++i) {
-    
-    fHistFile->mkdir(GUPhysicsModelName[i]); 
-    fHistFile->cd(GUPhysicsModelName[i]);   
+
+    fHistFile->mkdir(GUPhysicsModelName[i]);
+    fHistFile->cd(GUPhysicsModelName[i]);
 
     fTime[i]       = new TH1F("Time",     "Time",     100, 0.,  0.001);
-    fEnergyIn[i]   = new TH1F("EnergyIn", "EnergyIn", 100, 0.,  1.1 * maxE);  
+    fEnergyIn[i]   = new TH1F("EnergyIn", "EnergyIn", 100, 0.,  1.1 * maxE);
     fEnergyOut1[i] = new TH1F("EnergyOut1","EnergyOut1", 100, 0.,  1.1 * maxE);
     fEnergyOut2[i] = new TH1F("EnergyOut2","EnergyOut2", 100, 0.,  1.1 * maxE);
     fAngleOut1[i]  = new TH1F("AngleOut1","AngleOut1", 100, -1.,  1.0);
@@ -34,7 +34,7 @@ void GUHistogram::BookHistograms(double maxE)
 void GUHistogram::RecordHistos(int imodel,
                                double energyIn,
                                double energyOut1,
-                               double AngleOut1,    
+                               double AngleOut1,
                                double energyOut2,
                                double AngleOut2)
 {
@@ -49,5 +49,5 @@ void GUHistogram::RecordTime(int imodel, double elapsedTime)
 {
   fTime[imodel]->Fill(elapsedTime);
 }
-   
+
 } // end namespace vecphys

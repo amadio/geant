@@ -6,22 +6,22 @@
 // This file has been provided by Geant4 (simulation toolkit for HEP).
 //
 // The basic units are :
-//  		millimeter  
-// 		nanosecond  
-// 		Mega electron Volt  
-// 		positon charge 
+//  		millimeter
+// 		nanosecond
+// 		Mega electron Volt
+// 		positon charge
 // 		degree Kelvin
 //              amount of substance (mole)
 //              luminous intensity (candela)
-// 		radian  
-//              steradian 
+// 		radian
+//              steradian
 //
 // Below is a non exhaustive list of Physical CONSTANTS,
 // computed in the Internal HEP System Of Units.
 //
 // Most of them are extracted from the Particle Data Book :
 //        Phys. Rev. D  volume 50 3-1 (1994) page 1233
-// 
+//
 //        ...with a meaningful (?) name ...
 //
 // You can add your own constants.
@@ -44,13 +44,13 @@
 namespace CLHEP {
 
 //
-// 
+//
 //
 constexpr double Avogadro = 6.02214179e+23/mole;
 
 //
 // c   = 299.792458 mm/ns
-// c^2 = 898.7404 (mm/ns)^2 
+// c^2 = 898.7404 (mm/ns)^2
 //
 constexpr double c_light   = 2.99792458e+8 * m/s;
 constexpr double c_squared = c_light * c_light;

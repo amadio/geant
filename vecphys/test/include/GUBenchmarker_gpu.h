@@ -11,89 +11,89 @@ namespace vecphys {
 
 // CUDA
 
-void CudaKleinNishina(int blocksPerGrid, 
+void CudaKleinNishina(int blocksPerGrid,
 		      int threadsPerBlock,
 		      Random_t* devStates,
 		      GUAliasTableManager** table,
 		      Physics2DVector* sbData,
-		      int nTrackSize, 
-		      GUTrack* itrack, 
-		      int* targetElements, 
+		      int nTrackSize,
+		      GUTrack* itrack,
+		      int* targetElements,
 		      GUTrack* otrack,
 		      SamplingMethod sampleType);
 
-void CudaHybridCompton(int blocksPerGrid, 
+void CudaHybridCompton(int blocksPerGrid,
                        int threadsPerBlock,
 		       Random_t* devStates,
 		       GUAliasTableManager** table,
 		       Physics2DVector* sbData,
-		       int nTrackSize, 
-		       GUTrack* itrack, 
-		       int* targetElements, 
+		       int nTrackSize,
+		       GUTrack* itrack,
+		       int* targetElements,
 		       GUTrack* otrack,
 		       SamplingMethod sampleType);
- 
-void CudaBetheHeitler(int blocksPerGrid, 
+
+void CudaBetheHeitler(int blocksPerGrid,
 		      int threadsPerBlock,
 		      Random_t* devStates,
 		      GUAliasTableManager** table,
 		      Physics2DVector* sbData,
-		      int nTrackSize, 
-		      GUTrack* itrack, 
-		      int* targetElements, 
+		      int nTrackSize,
+		      GUTrack* itrack,
+		      int* targetElements,
 		      GUTrack* otrack,
 		      SamplingMethod sampleType);
- 
-void CudaSauterGavrila(int blocksPerGrid, 
+
+void CudaSauterGavrila(int blocksPerGrid,
 		       int threadsPerBlock,
 		       Random_t* devStates,
 		       GUAliasTableManager** table,
 		       Physics2DVector* sbData,
-		       int nTrackSize, 
-		       GUTrack* itrack, 
-		       int* targetElements, 
+		       int nTrackSize,
+		       GUTrack* itrack,
+		       int* targetElements,
 		       GUTrack* otrack,
 		       SamplingMethod sampleType);
 
-void CudaMollerBhabha(int blocksPerGrid, 
+void CudaMollerBhabha(int blocksPerGrid,
 		      int threadsPerBlock,
 		      Random_t* devStates,
 		      GUAliasTableManager** table,
 		      Physics2DVector* sbData,
-		      int nTrackSize, 
-		      GUTrack* itrack, 
-		      int* targetElements, 
+		      int nTrackSize,
+		      GUTrack* itrack,
+		      int* targetElements,
 		      GUTrack* otrack,
 		      SamplingMethod sampleType);
 
-void CudaSeltzerBerger(int blocksPerGrid, 
+void CudaSeltzerBerger(int blocksPerGrid,
 		       int threadsPerBlock,
 		       Random_t* devStates,
 		       GUAliasTableManager** table,
 		       Physics2DVector* sbData,
-		       int nTrackSize, 
-		       GUTrack* itrack, 
-		       int* targetElements, 
+		       int nTrackSize,
+		       GUTrack* itrack,
+		       int* targetElements,
 		       GUTrack* otrack,
 		       SamplingMethod sampleType);
- 
-typedef void (*CudaKernelFunc_t)(int blocksPerGrid, 
+
+typedef void (*CudaKernelFunc_t)(int blocksPerGrid,
 				 int threadsPerBlock,
 				 Random_t* devStates,
 				 GUAliasTableManager** table,
 				 Physics2DVector* sbData,
-				 int nTrackSize, 
-				 GUTrack* itrack, 
-				 int* targetElements, 
+				 int nTrackSize,
+				 GUTrack* itrack,
+				 int* targetElements,
 				 GUTrack* otrack,
 				 SamplingMethod sampleType);
 
 CudaKernelFunc_t CudaKernelFunc[] = {CudaKleinNishina,
-                                     CudaHybridCompton, 
-                                     CudaBetheHeitler, 
-                                     CudaSauterGavrila, 
-                                     CudaMollerBhabha, 
-                                     CudaSeltzerBerger}; 
+                                     CudaHybridCompton,
+                                     CudaBetheHeitler,
+                                     CudaSauterGavrila,
+                                     CudaMollerBhabha,
+                                     CudaSeltzerBerger};
 
 } // end namespace vecphys
 

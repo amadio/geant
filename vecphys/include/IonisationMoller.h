@@ -23,7 +23,7 @@ public:
   IonisationMoller(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
-  IonisationMoller(Random_t* states, int threadId, GUAliasSampler* sampler); 
+  IonisationMoller(Random_t* states, int threadId, GUAliasSampler* sampler);
 
   VECPHYS_CUDA_HEADER_BOTH
   ~IonisationMoller(){}
@@ -32,23 +32,23 @@ public:
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST 
+  VECPHYS_CUDA_HEADER_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
   void BuildPdfTable(int Z, double *p);
 
-private: 
-  // Implementation methods 
+private:
+  // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t
   CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernel(typename Backend::Double_t energyIn,
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
@@ -57,18 +57,18 @@ private:
   VECPHYS_CUDA_HEADER_BOTH
   typename Backend::Double_t
   SampleSinTheta(typename Backend::Double_t energyIn,
-                 typename Backend::Double_t energyOut) const; 
+                 typename Backend::Double_t energyOut) const;
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernelCR(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernelCR(typename Backend::Double_t energyIn,
                    typename Backend::Index_t   zElement,
                    typename Backend::Double_t& energyOut,
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernelUnpack(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernelUnpack(typename Backend::Double_t energyIn,
                        typename Backend::Index_t   zElement,
                        typename Backend::Double_t& energyOut,
                        typename Backend::Double_t& sinTheta,
@@ -77,21 +77,21 @@ private:
   template<class Backend>
   inline
   VECPHYS_CUDA_HEADER_BOTH
-  typename Backend::Double_t 
+  typename Backend::Double_t
   SampleSequential(typename Backend::Double_t xmin,
                    typename Backend::Double_t xmax,
                    typename Backend::Double_t gg) const;
 
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   void SampleByCompositionRejection(int    Z,
                                     double energyIn,
                                     double& energyOut,
                                     double& sinTheta);
 
   VECPHYS_CUDA_HEADER_BOTH double
-  GetG4CrossSection(double  energyIn, 
+  GetG4CrossSection(double  energyIn,
                     const int zElement);
-  
+
   VECPHYS_CUDA_HEADER_BOTH
   double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
 
@@ -104,9 +104,9 @@ private:
 
 //Implementation
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 typename Backend::Double_t
-IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy, 
+IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy,
                                      typename Backend::Index_t  Z)
 {
   //the total cross section for Moller scattering per atom
@@ -119,19 +119,19 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy,
   Bool_t belowLimit = Bool_t(false);
   //low energy limit
   belowLimit |= ( energy < fLowEnergyLimit );
-  if(Backend::early_returns && IsFull(belowLimit)) return;  
+  if(Backend::early_returns && IsFull(belowLimit)) return;
 
   //delta-ray cuff-off (material dependent) use 1.0*keV temporarily
   Double_t tmin = fDeltaRayThreshold;
   Double_t tmax = 0.5*energy;
-  
+
   Double_t xmin  = tmin/energy;
   Double_t xmax  = tmax/energy;
   Double_t tau   = energy/electron_mass_c2;
   Double_t gam   = tau + 1.0;
   Double_t gamma2= gam*gam;
   Double_t beta2 = tau*(tau + 2)/gamma2;
- 
+
   //Moller (e-e-) scattering
   //H. Messel and D.F. Crawford, Pergamon Press, Oxford (1970)
   //G4MollerBhabhaModel::ComputeCrossSectionPerAtom
@@ -142,14 +142,14 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_t energy,
           - gg*Log( xmax*(1.0 - xmin)/(xmin*(1.0 - xmax)) ) ) / beta2;
 
   sigmaOut *= Z*twopi_mc2_rcl2/energy;
-  
-  //this is the case if one of E < belowLimit 
+
+  //this is the case if one of E < belowLimit
   MaskedAssign(belowLimit, 0.0,&sigmaOut);
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-IonisationMoller::InteractKernel(typename Backend::Double_t  energyIn, 
+VECPHYS_CUDA_HEADER_BOTH void
+IonisationMoller::InteractKernel(typename Backend::Double_t  energyIn,
                                  typename Backend::Index_t   zElement,
                                  typename Backend::Double_t& energyOut,
                                  typename Backend::Double_t& sinTheta)
@@ -170,18 +170,18 @@ IonisationMoller::InteractKernel(typename Backend::Double_t  energyIn,
   Double_t ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
-  
+
   Double_t mininumE = fDeltaRayThreshold;
   Double_t deltaE = energyIn/2.0 - mininumE;
 
-  energyOut = mininumE 
+  energyOut = mininumE
     + fAliasSampler->SampleX<Backend>(deltaE,probNA,aliasInd,icol,fraction);
   sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
-}    
+}
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::Double_t
 IonisationMoller::SampleSinTheta(typename Backend::Double_t energyIn,
                                  typename Backend::Double_t energyOut) const
 {
@@ -201,14 +201,14 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_t energyIn,
   Double_t sinTheta;
   Bool_t condition2 = sint2 < 0.0;
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
-  MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );   
-  
+  MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );
+
   return sinTheta;
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-IonisationMoller::InteractKernelCR(typename Backend::Double_t  kineticEnergy, 
+VECPHYS_CUDA_HEADER_BOTH void
+IonisationMoller::InteractKernelCR(typename Backend::Double_t  kineticEnergy,
                                    typename Backend::Index_t   zElement,
                                    typename Backend::Double_t& deltaKinEnergy,
                                    typename Backend::Double_t& sinTheta)
@@ -221,12 +221,12 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_t  kineticEnergy,
   Double_t maxEnergy = 1.0*TeV;
 
   //based on G4MollerBhabhaModel::SampleSecondaries
-  Double_t tmin = cutEnergy;  
-  Double_t tmax = 0.5*kineticEnergy; 
+  Double_t tmin = cutEnergy;
+  Double_t tmax = 0.5*kineticEnergy;
 
   Bool_t condCut = (tmax < maxEnergy);
   MaskedAssign(!condCut, maxEnergy, &tmax);
-  
+
   condCut |= (tmax >= tmin );
 
   if(Backend::early_returns && IsEmpty(condCut)) return;
@@ -264,7 +264,7 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_t  kineticEnergy,
 template<class Backend>
 inline
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::Double_t
 IonisationMoller::SampleSequential(typename Backend::Double_t xmin,
                                    typename Backend::Double_t xmax,
                                    typename Backend::Double_t gg) const
@@ -292,7 +292,7 @@ IonisationMoller::SampleSequential(typename Backend::Double_t xmin,
 template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH
-typename kVc::Double_t 
+typename kVc::Double_t
 IonisationMoller::SampleSequential<kVc>(typename kVc::Double_t xmin,
                                         typename kVc::Double_t xmax,
                                         typename kVc::Double_t gg) const
@@ -319,8 +319,8 @@ IonisationMoller::SampleSequential<kVc>(typename kVc::Double_t xmin,
 #endif
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-IonisationMoller::InteractKernelUnpack(typename Backend::Double_t energyIn, 
+VECPHYS_CUDA_HEADER_BOTH void
+IonisationMoller::InteractKernelUnpack(typename Backend::Double_t energyIn,
                                        typename Backend::Index_t   zElement,
                                        typename Backend::Double_t& energyOut,
                                        typename Backend::Double_t& sinTheta,

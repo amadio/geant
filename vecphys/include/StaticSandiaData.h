@@ -1,8 +1,8 @@
 #ifndef StaticSandiaData_H
 #define StaticSandiaData_H
-// class description 
-// 
-// File for static data of PhotoAbsorption cross section coefficients 
+// class description
+//
+// File for static data of PhotoAbsorption cross section coefficients
 // according Sandia parametrisation
 //
 // const G4double G4SandiaTable::fSandiaTable[981][5]
@@ -41,7 +41,7 @@
 // Tables, 18(1976)497-508.
 //------------------------------------------------------------------------------
 //
-// Ionization potentials of first 100 elements in eV   
+// Ionization potentials of first 100 elements in eV
 //
 // const G4double G4SandiaTable::fIonizationPotentials[101]
 //
@@ -58,7 +58,7 @@
 
 namespace vecphys {
 
-constexpr double fSandiaTable[981][5] = 
+constexpr double fSandiaTable[981][5] =
 {
 
 { 0.0,          0.0,         0.0,         0.0,         0.0 },  // 'zero' row
@@ -1373,7 +1373,7 @@ constexpr double fSandiaTable[981][5] =
 // of energy interval in which Sandia coeeficients are parametrized for each
 // element.
 
-constexpr int fNbOfIntervals [101] = 
+constexpr int fNbOfIntervals [101] =
 {
 
       0,  // nonexisting 'zero' element
@@ -1414,14 +1414,14 @@ constexpr int fNbOfIntervals [101] =
 //   Am,    Cm,    Bk,    Cf,    Es,    Fm                             (100)
      11,    11,    11,    11,    12,    12
 
-};    
+};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.... ....oooOO0OOooo....
 
 // The ration of atomic number to atomic mass for first 100 elements
 // (which assumes A in amu/atom or in g/mole)
 
-constexpr double fZtoAratio[101] = 
+constexpr double fZtoAratio[101] =
 {
 
       0,  // nonexisting 'zero' element
@@ -1462,7 +1462,7 @@ constexpr double fZtoAratio[101] =
 //   Am,     Cm,     Bk,     Cf,     Es,     Fm                                (100)
  0.3909, 0.3887, 0.3927, 0.3904, 0.3929, 0.3891
 
-};     
+};
 
 constexpr int fNumberOfElements  = 100 ;
 
@@ -1471,16 +1471,16 @@ constexpr int fIntervalLimit     = 100 ;
 constexpr int fNumberOfIntervals = 980 ;
 
 constexpr double funitc[5] = {keV,
-  		              cm*cm*keV/gram,     
-		              cm*cm*keV*keV/gram,     
-		              cm*cm*keV*keV*keV/gram,     
+  		              cm*cm*keV/gram,
+		              cm*cm*keV*keV/gram,
+		              cm*cm*keV*keV*keV/gram,
 		              cm*cm*keV*keV*keV*keV/gram};
 
 //int    fCumulInterval[101]  = {0};
 
 // G4AtomicShells.hh + G4AtomicShells.cc
 
-VECPHYS_GLOBAL int fNumberOfShells[101] = 
+VECPHYS_GLOBAL int fNumberOfShells[101] =
 {
  0 ,  // nonexisting zero element
 
@@ -1508,23 +1508,23 @@ VECPHYS_GLOBAL int fNumberOfShells[101] =
 };
 
 // The total shell number is:
-// 1 + G4AtomicShells::TotalNumberOfShells(100) = 1 + 1539 = 1540 
+// 1 + G4AtomicShells::TotalNumberOfShells(100) = 1 + 1539 = 1540
 
 VECPHYS_GLOBAL int fIndexOfShells[101] =
 {    0,
-     1,    2,    3,    5,    7,   10,   13,   17,   21,   24,  
-    28,   33,   38,   44,   50,   56,   62,   68,   75,   83,  
-    91,  100,  109,  118,  127,  136,  145,  154,  164,  174,  
-   184,  195,  206,  217,  228,  239,  251,  264,  277,  291,  
-   305,  319,  333,  347,  361,  375,  390,  405,  420,  436,  
-   452,  468,  484,  500,  517,  535,  553,  572,  591,  610,  
-   629,  648,  667,  686,  706,  725,  744,  763,  782,  801,  
-   821,  842,  863,  884,  905,  926,  947,  968,  989, 1011,  
-  1033, 1056, 1079, 1102, 1125, 1149, 1173, 1198, 1223, 1249,  
+     1,    2,    3,    5,    7,   10,   13,   17,   21,   24,
+    28,   33,   38,   44,   50,   56,   62,   68,   75,   83,
+    91,  100,  109,  118,  127,  136,  145,  154,  164,  174,
+   184,  195,  206,  217,  228,  239,  251,  264,  277,  291,
+   305,  319,  333,  347,  361,  375,  390,  405,  420,  436,
+   452,  468,  484,  500,  517,  535,  553,  572,  591,  610,
+   629,  648,  667,  686,  706,  725,  744,  763,  782,  801,
+   821,  842,  863,  884,  905,  926,  947,  968,  989, 1011,
+  1033, 1056, 1079, 1102, 1125, 1149, 1173, 1198, 1223, 1249,
   1275, 1302, 1329, 1356, 1382, 1408, 1435, 1462, 1488, 1514
 };
 
-VECPHYS_GLOBAL double fBindingEnergies[1540] = 
+VECPHYS_GLOBAL double fBindingEnergies[1540] =
 {
   0.0 ,   // Nonexisting zero element
 
@@ -1655,7 +1655,7 @@ VECPHYS_GLOBAL double fBindingEnergies[1540] =
 
   //  Y  ---------------------------------------------------------
   17038.0 , 2375.0 , 2158.0 , 2083.0 , 397.0 , 315.0 , 304.0 , 163.0 ,
-    161.0 ,   48.0 ,   30.0 ,   29.0 ,   6.48,   6.38 ,  
+    161.0 ,   48.0 ,   30.0 ,   29.0 ,   6.48,   6.38 ,
 
   //  Zr ---------------------------------------------------------
   17998.0 , 2536.0 , 2311.0 , 2227.0 , 434.0 , 348.0 , 335.0 , 187.0 ,
@@ -1735,7 +1735,7 @@ VECPHYS_GLOBAL double fBindingEnergies[1540] =
 
   //  Ce -------------------------------------------------------------
   40443.0 , 6548.0 , 6164.0 , 5723.0 , 1437.0 , 1275.0 , 1184.0 , 903.0 ,
-    885.0 ,  291.0 ,  225.0 ,  209.0 ,  114.0 ,  111.0 ,   39.0 ,  25.0 , 
+    885.0 ,  291.0 ,  225.0 ,  209.0 ,  114.0 ,  111.0 ,   39.0 ,  25.0 ,
      22.0 ,    6.0 ,    5.65 ,
 
   //  Pr -------------------------------------------------------------
@@ -1786,7 +1786,7 @@ VECPHYS_GLOBAL double fBindingEnergies[1540] =
   //  Er -------------------------------------------------------------
   57486.0 , 9751.0 , 9264.0 , 8358.0 , 2220.0 , 2008.0 , 1815.0 , 1456.0 ,
    1412.0 ,  452.0 ,  365.0 ,  323.0 ,  181.0 ,  172.0 ,   54.0 ,
-     35.0 ,   30.0 ,    6.10 ,   6.0 , 
+     35.0 ,   30.0 ,    6.10 ,   6.0 ,
 
   //  Tu -------------------------------------------------------------
   59390.0 , 10116.0 , 9617.0 , 8648.0 , 2309.0 , 2092.0 , 1885.0 , 1518.0 ,
@@ -1795,7 +1795,7 @@ VECPHYS_GLOBAL double fBindingEnergies[1540] =
 
   //  Yb -------------------------------------------------------------
   61332.0 , 10486.0 , 9978.0 , 8944.0 , 2401.0 , 2178.0 , 1956.0 , 1580.0 ,
-   1531.0 ,   490.0 ,  399.0 ,  349.0 ,  200.0 ,  190.0 ,  
+   1531.0 ,   490.0 ,  399.0 ,  349.0 ,  200.0 ,  190.0 ,
      58.0 ,    37.0 ,   31.0 ,    8.0 ,    7.0 ,    6.25 ,
 
   //  Lu -------------------------------------------------------------

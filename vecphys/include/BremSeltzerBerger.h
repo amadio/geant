@@ -22,11 +22,11 @@ class BremSeltzerBerger : public EmModelBase<BremSeltzerBerger>
 public:
 
   VECPHYS_CUDA_HEADER_HOST
-  BremSeltzerBerger(Random_t* states = 0, int threadId = -1); 
+  BremSeltzerBerger(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
-  BremSeltzerBerger(Random_t* states, int threadId, 
-                    GUAliasSampler* sampler, Physics2DVector* sbData); 
+  BremSeltzerBerger(Random_t* states, int threadId,
+                    GUAliasSampler* sampler, Physics2DVector* sbData);
 
   VECPHYS_CUDA_HEADER_BOTH
   ~BremSeltzerBerger();
@@ -35,7 +35,7 @@ public:
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST 
+  VECPHYS_CUDA_HEADER_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
   VECPHYS_CUDA_HEADER_HOST
@@ -49,30 +49,30 @@ public:
   VECPHYS_CUDA_HEADER_HOST bool
   RetrieveSeltzerBergerData(std::ifstream& in, Physics2DVector *vec2D);
 
-  // Implementation methods 
+  // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH typename 
+  VECPHYS_CUDA_HEADER_BOTH typename
   Backend::Double_t
   CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernel(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernel(typename Backend::Double_t energyIn,
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernelCR(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernelCR(typename Backend::Double_t energyIn,
                    typename Backend::Index_t   zElement,
                    typename Backend::Double_t& energyOut,
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void 
-  InteractKernelUnpack(typename Backend::Double_t energyIn, 
+  VECPHYS_CUDA_HEADER_BOTH void
+  InteractKernelUnpack(typename Backend::Double_t energyIn,
                        typename Backend::Index_t   zElement,
                        typename Backend::Double_t& energyOut,
                        typename Backend::Double_t& sinTheta,
@@ -131,7 +131,7 @@ private:
   Physics2DVector* fDataSB;
 
 //Geant4 cross section
- private: 
+ private:
 
   G4double totalEnergy;
   G4double currentZ;
@@ -149,7 +149,7 @@ private:
   G4double Fel;
   G4double Finel;
   G4double fCoulomb;
-  G4double fMax; 
+  G4double fMax;
 
 };
 
@@ -157,14 +157,14 @@ private:
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
 typename Backend::Double_t
-BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_t  energy, 
+BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_t  energy,
                                       typename Backend::Index_t   Z)
 {
   return 1.0;
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_BOTH void
 BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
                                   typename Backend::Index_t   zElement,
                                   typename Backend::Double_t& energyOut,
@@ -188,11 +188,11 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
 
   //Seltzer-Berger specific
-  
+
   // To-do: apply densityFactor (dummy for now) and calculate deltaY correctly
-  // densityFactor = (Migdal constant)x(electron density of the material); 
+  // densityFactor = (Migdal constant)x(electron density of the material);
   Double_t densityFactor = 1.0;
-  
+
   Double_t emin = Min(fAliasSampler->GetIncomingMin(), energyIn);
   Double_t emax = Min(fAliasSampler->GetIncomingMax(), energyIn);
 
@@ -207,22 +207,22 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
 
   energyOut =  Sqrt(Max(Exp(minY + yhat)- densityCorr,0.0));
   sinTheta = SampleSinTheta<Backend>(energyOut);
-}    
+}
 
 template<class Backend>
 VECPHYS_CUDA_HEADER_BOTH
-typename Backend::Double_t 
+typename Backend::Double_t
 BremSeltzerBerger::SampleSinTheta(typename Backend::Double_t energyIn) const
 {
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Double_t Double_t;
 
-  //angle of the radiated photon 
+  //angle of the radiated photon
   //based on G4DipBustGenerator::SampleDirection
-  
+
   Double_t c = 4. - 8.*UniformRandom<Backend>(fRandomState,fThreadId);
   Double_t a;
-  Double_t signc; 
+  Double_t signc;
   Bool_t condition = c > 0.;
   MaskedAssign(  condition,  1. , &signc );
   MaskedAssign( !condition, -1. , &signc );
@@ -231,9 +231,9 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_t energyIn) const
 
   Double_t delta  = Sqrt(a*a+4.);
   delta += a;
-  delta *= 0.5; 
+  delta *= 0.5;
 
-  //To-do:  Vc does not support pow 
+  //To-do:  Vc does not support pow
   //  Double_t cofA = -signc*Pow(delta, 1./3.);
   Double_t cofA = -signc*Sqrt(delta); //temporary replace Sqrt by pow
 
@@ -250,8 +250,8 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_t energyIn) const
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn, 
+VECPHYS_CUDA_HEADER_BOTH void
+BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn,
                                     typename Backend::Index_t   zElement,
                                     typename Backend::Double_t& energyOut,
                                     typename Backend::Double_t& sinTheta)
@@ -262,8 +262,8 @@ BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void 
-BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_t energyIn, 
+VECPHYS_CUDA_HEADER_BOTH void
+BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_t energyIn,
                                         typename Backend::Index_t   zElement,
                                         typename Backend::Double_t& energyOut,
                                         typename Backend::Double_t& sinTheta,

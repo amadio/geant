@@ -14,7 +14,7 @@ namespace vecphys {
 
 // Scalar
 
-Precision ScalarKleinNishina(int ntracks, 
+Precision ScalarKleinNishina(int ntracks,
 	                     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
@@ -45,7 +45,7 @@ Precision ScalarKleinNishina(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarHybridCompton(int ntracks, 
+Precision ScalarHybridCompton(int ntracks,
 	                      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -68,7 +68,7 @@ Precision ScalarHybridCompton(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarBetheHeitler(int ntracks, 
+Precision ScalarBetheHeitler(int ntracks,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
@@ -91,7 +91,7 @@ Precision ScalarBetheHeitler(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarSauterGavrila(int ntracks, 
+Precision ScalarSauterGavrila(int ntracks,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -114,7 +114,7 @@ Precision ScalarSauterGavrila(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarMollerBhabha(int ntracks, 
+Precision ScalarMollerBhabha(int ntracks,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
@@ -137,7 +137,7 @@ Precision ScalarMollerBhabha(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarSeltzerBerger(int ntracks, 
+Precision ScalarSeltzerBerger(int ntracks,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -194,7 +194,7 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
   /*
   double* sigma  = new double [ntracks];
   for(int i = 0 ; i < ntracks ; ++i) {
-    sigma[i] = 0;  
+    sigma[i] = 0;
   }
 
   model.AtomicCrossSection<kVc>(itrack_soa, targetElements,sigma);
@@ -321,7 +321,7 @@ Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
 
 // Geant4 composition and rejection
 
-Precision G4KleinNishina(int ntracks, 
+Precision G4KleinNishina(int ntracks,
 	                 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
@@ -349,7 +349,7 @@ Precision G4KleinNishina(int ntracks,
   return elapsedTime;
 }
 
-Precision G4HybridCompton(int ntracks, 
+Precision G4HybridCompton(int ntracks,
 	                  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
@@ -370,7 +370,7 @@ Precision G4HybridCompton(int ntracks,
   return elapsedTime;
 }
 
-Precision G4BetheHeitler(int ntracks, 
+Precision G4BetheHeitler(int ntracks,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
@@ -391,7 +391,7 @@ Precision G4BetheHeitler(int ntracks,
   return elapsedTime;
 }
 
-Precision G4SauterGavrila(int ntracks, 
+Precision G4SauterGavrila(int ntracks,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
@@ -412,7 +412,7 @@ Precision G4SauterGavrila(int ntracks,
   return elapsedTime;
 }
 
-Precision G4MollerBhabha(int ntracks, 
+Precision G4MollerBhabha(int ntracks,
 	                 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
@@ -434,7 +434,7 @@ Precision G4MollerBhabha(int ntracks,
   return elapsedTime;
 }
 
-Precision G4SeltzerBerger(int ntracks, 
+Precision G4SeltzerBerger(int ntracks,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
@@ -442,7 +442,7 @@ Precision G4SeltzerBerger(int ntracks,
   static vecphys::cxx::BremSeltzerBerger model(0,-2);
 
   //fThreadId = -2 is used not to build the alias table for testing the Geant4
-  //composition and rejection method. This convention should be temporary 
+  //composition and rejection method. This convention should be temporary
   //and is only used for the purpose of validation or other testings.
   //see BremSeltzerBerger::Initialization().
 

@@ -4,24 +4,24 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
-GUAliasTableManager::GUAliasTableManager(int nelements, int ngrid) 
+GUAliasTableManager::GUAliasTableManager(int nelements, int ngrid)
   : fNElement(0)
 {
-  for (int i = 0; i < maximumZ ; ++i) fIndex[i] = -1;   
+  for (int i = 0; i < maximumZ ; ++i) fIndex[i] = -1;
   //better to have another member for the total number of elements = nelements
   fAliasTables = new GUAliasTable*[nelements];
 
 }
 
 VECPHYS_CUDA_HEADER_HOST
-GUAliasTableManager::~GUAliasTableManager() 
+GUAliasTableManager::~GUAliasTableManager()
 {
   for(int i = 0 ; i < fNElement ; ++i) delete fAliasTables[i];
   delete [] fAliasTables;
 }
 
 VECPHYS_CUDA_HEADER_HOST
-void GUAliasTableManager::SetTableIndex(int Z) { 
+void GUAliasTableManager::SetTableIndex(int Z) {
   assert(Z > -1 && Z < maximumZ );
   if(fIndex[Z] == -1 ) {
     fIndex[Z] = fNElement;
@@ -30,12 +30,12 @@ void GUAliasTableManager::SetTableIndex(int Z) {
  }
 
 VECPHYS_CUDA_HEADER_BOTH
-GUAliasTable* GUAliasTableManager::GetAliasTable(int Z) { 
+GUAliasTable* GUAliasTableManager::GetAliasTable(int Z) {
   return fAliasTables[GetTableIndex(Z)];
 }
 
 VECPHYS_CUDA_HEADER_BOTH
-int GUAliasTableManager::GetTableIndex(int Z) { 
+int GUAliasTableManager::GetTableIndex(int Z) {
   assert(Z > -1 && Z < maximumZ ) ;
   return fIndex[Z];
 }
@@ -46,36 +46,36 @@ int GUAliasTableManager::GetNumberOfElements() {
 }
 
 VECPHYS_CUDA_HEADER_HOST
-void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable* table) { 
+void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable* table) {
   assert( Z > -1 && Z < maximumZ ) ;
 
   fAliasTables[fNElement] = table;
-  SetTableIndex(Z);  
+  SetTableIndex(Z);
 }
 
 VECPHYS_CUDA_HEADER_HOST
-int GUAliasTableManager::SizeOfManager() { 
+int GUAliasTableManager::SizeOfManager() {
   return sizeof(GUAliasTable*)*fNElement + (maximumZ+1)*sizeof(int);
 }
 
 #ifdef VECPHYS_NVCC
-void GUAliasTableManager::Relocate(void *devPtr) 
+void GUAliasTableManager::Relocate(void *devPtr)
 {
   //device pointers in device memory
-  GUAliasTable **fAliasTables_d;     
+  GUAliasTable **fAliasTables_d;
   cudaMalloc((void**)&fAliasTables_d, sizeof(GUAliasTable*)*fNElement);
 
   //device pointers in host memory
-  GUAliasTable* tables_d[fNElement]; 
+  GUAliasTable* tables_d[fNElement];
 
-  // relocate pointers of this to the corresponding device pointers 
+  // relocate pointers of this to the corresponding device pointers
   for(int i = 0 ; i < fNElement ; i++) {
     cudaMalloc((void**)&tables_d[i], fAliasTables[i]->SizeOfTable());
     fAliasTables[i]->Relocate(tables_d[i]);
   }
 
   // copy the pointer to alias table pointers from the host to the device
-  cudaMemcpy(fAliasTables_d, tables_d, sizeof(GUAliasTable*)*fNElement, 
+  cudaMemcpy(fAliasTables_d, tables_d, sizeof(GUAliasTable*)*fNElement,
 	     cudaMemcpyHostToDevice);
   fAliasTables = fAliasTables_d;
 

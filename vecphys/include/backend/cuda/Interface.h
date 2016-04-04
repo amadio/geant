@@ -13,7 +13,7 @@
 
 #include <type_traits>
 
-namespace vecphys { 
+namespace vecphys {
 
 #ifdef VECPHYS_NVCC
 
@@ -223,7 +223,7 @@ public:
       explicit DevicePtr(DevicePtr<inputType> const &input) : DevicePtrImpl<Type>((void*)input) {}
 
    // Disallow conversion from const to non-const.
-   DevicePtr(DevicePtr<const Type> const &input, 
+   DevicePtr(DevicePtr<const Type> const &input,
       typename std::enable_if<!std::is_const<Type>::value, Type>::type * = nullptr) = delete;
 
 #ifdef VECPHYS_NVCC
@@ -278,7 +278,7 @@ public:
 
    // Implicit conversion from non-const to const.
    DevicePtr(DevicePtr<typename std::remove_const<Type>::type > const &input) : DevicePtrImpl<const Type>((void*)input) {}
- 
+
 #ifdef VECPHYS_NVCC
    // Allows implicit conversion from DevicePtr<Derived> to DevicePtr<Base>
    template <typename inputType,

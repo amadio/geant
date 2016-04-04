@@ -9,8 +9,8 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 //should be template for precision choices
-class GUAliasTableManager 
-{ 
+class GUAliasTableManager
+{
 public:
   VECPHYS_CUDA_HEADER_HOST
   GUAliasTableManager(int nelements, int ngrid);
@@ -43,8 +43,8 @@ private:
 
 private:
   //  MaterialHandler *fMaterialHandler;
-  GUAliasTable** fAliasTables; 
-  int            fIndex[maximumZ]; 
+  GUAliasTable** fAliasTables;
+  int            fIndex[maximumZ];
   int            fNElement;        // the number of elements
 } ;
 

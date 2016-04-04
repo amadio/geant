@@ -7,14 +7,14 @@
 namespace GUCLHEPRandFlat {
 
 inline
-FQUALIFIER double flat() 
+FQUALIFIER double flat()
 {
 #ifdef GPNONRANDOM
   return 0.123456;
 #else
   return (G4double)rand()/RAND_MAX;
 #endif
-} 
+}
 
 };
 
@@ -37,9 +37,9 @@ inline FQUALIFIER double shoot()
   if ( getFlag() ) {
     setFlag(false);
     double x = getVal();
-    return x; 
+    return x;
     // return getVal();
-  } 
+  }
 
   double r;
   double v1,v2,fac,val;
@@ -76,16 +76,16 @@ inline FQUALIFIER static  double  getMaxMean() {return meanMax_st;}
 inline FQUALIFIER static  void    setOldMean( double val ){oldm_st = val;}
 inline FQUALIFIER static  double* getPStatus() {return status_st;}
 
-inline FQUALIFIER static void setPStatus(double sq, double alxm, double g1) 
+inline FQUALIFIER static void setPStatus(double sq, double alxm, double g1)
 {
   status_st[0] = sq; status_st[1] = alxm; status_st[2] = g1;
 }
 
 inline
-FQUALIFIER double gammln(double xx) 
+FQUALIFIER double gammln(double xx)
 {
 
-// Returns the value ln(Gamma(xx) for xx > 0.  Full accuracy is obtained for 
+// Returns the value ln(Gamma(xx) for xx > 0.  Full accuracy is obtained for
 // xx > 1. For 0 < xx < 1. the reflection formula (6.1.4) can be used first.
 // (Adapted from Numerical Recipes in C)
 
@@ -110,7 +110,7 @@ FQUALIFIER double gammln(double xx)
 }
 
 inline
-FQUALIFIER static double normal ()  
+FQUALIFIER static double normal ()
 {
   double r;
   double v1,v2,fac;
@@ -127,7 +127,7 @@ FQUALIFIER static double normal ()
 }
 
 inline
-FQUALIFIER long shoot(double xm) 
+FQUALIFIER long shoot(double xm)
 {
 
 // Returns as a floating-point number an integer value that is a random
@@ -178,11 +178,11 @@ FQUALIFIER long shoot(double xm)
     //    } while( anEngine->flat() > t );
   }
   else {
-    //    em = xm + sqrt(xm) * normal (anEngine); 
+    //    em = xm + sqrt(xm) * normal (anEngine);
     em = xm + sqrt(xm) * normal();
-    if ( static_cast<long>(em) < 0 ) 
+    if ( static_cast<long>(em) < 0 )
       em = static_cast<long>(xm) >= 0 ? xm : getMaxMean();
-  }    
+  }
   setPStatus(sq,alxm,g1);
   return long(em);
 }
@@ -193,7 +193,7 @@ FQUALIFIER long shoot(double xm)
 namespace GUCLHEPRandGamma {
 
 inline
-FQUALIFIER double genGamma(double a, double lambda ) 
+FQUALIFIER double genGamma(double a, double lambda )
 {
 static double aa = -1.0, aaa = -1.0, b, c, d, e, r, s, si, ss, q0,
        q1 = 0.0416666664, q2 =  0.0208333723, q3 = 0.0079849875,
@@ -340,7 +340,7 @@ double v1,v2,v12;
 }
 
 inline
-FQUALIFIER double shoot(double k, double lambda) 
+FQUALIFIER double shoot(double k, double lambda)
 {
   return genGamma(k, lambda);
 }

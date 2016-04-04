@@ -5,10 +5,10 @@
 
 namespace vecphys {
 
-bool GUCurand_Init(Random_t* randomStates, 
-		   unsigned long seed,  
+bool GUCurand_Init(Random_t* randomStates,
+		   unsigned long seed,
 		   int blocksPerGrid,
-		   int threadsPerBlock); 
+		   int threadsPerBlock);
 
 } // end namespace vecphys
 

@@ -7,7 +7,7 @@
 
 namespace vecphys {
 
-typedef Precision (*KernelFunc_t)(int ntrack, 
+typedef Precision (*KernelFunc_t)(int ntrack,
 			          GUTrack* itrack_aos,
 			          int *targetElements,
 			          GUTrack* otrack_aos,
@@ -15,43 +15,43 @@ typedef Precision (*KernelFunc_t)(int ntrack,
 
 // Scalar
 
-Precision ScalarKleinNishina(int ntrack, 
+Precision ScalarKleinNishina(int ntrack,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
-Precision ScalarHybridCompton(int ntrack, 
+Precision ScalarHybridCompton(int ntrack,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
                               SamplingMethod sampleType);
 
-Precision ScalarBetheHeitler(int ntrack, 
+Precision ScalarBetheHeitler(int ntrack,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
-Precision ScalarSauterGavrila(int ntrack, 
+Precision ScalarSauterGavrila(int ntrack,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
-			      GUTrack* otrack_aos, 
+			      GUTrack* otrack_aos,
                               SamplingMethod sampleType);
 
-Precision ScalarMollerBhabha(int ntrack, 
+Precision ScalarMollerBhabha(int ntrack,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
-			     GUTrack* otrack_aos, 
+			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
-Precision ScalarSeltzerBerger(int ntrack, 
+Precision ScalarSeltzerBerger(int ntrack,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
-			      GUTrack* otrack_aos, 
+			      GUTrack* otrack_aos,
                               SamplingMethod sampleType);
 
-KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina, 
+KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina,
                                    ScalarHybridCompton,
                                    ScalarBetheHeitler,
                                    ScalarSauterGavrila,
@@ -60,91 +60,91 @@ KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina,
 
 //Geant4
 
-typedef Precision (*G4KernelFunc_t)(int ntrack, 
+typedef Precision (*G4KernelFunc_t)(int ntrack,
 		  	            GUTrack* itrack_aos,
 			            int *targetElements,
 			            GUTrack* otrack_aos);
 
-Precision G4KleinNishina(int ntrack, 
+Precision G4KleinNishina(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
 
-Precision G4HybridCompton(int ntrack, 
+Precision G4HybridCompton(int ntrack,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos);
 
-Precision G4BetheHeitler(int ntrack, 
+Precision G4BetheHeitler(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
 
-Precision G4SauterGavrila(int ntrack, 
+Precision G4SauterGavrila(int ntrack,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos);
 
-Precision G4MollerBhabha(int ntrack, 
+Precision G4MollerBhabha(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
 
-Precision G4SeltzerBerger(int ntrack, 
+Precision G4SeltzerBerger(int ntrack,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos);
 
-G4KernelFunc_t G4KernelFunc[] = {G4KleinNishina, 
+G4KernelFunc_t G4KernelFunc[] = {G4KleinNishina,
                                  G4HybridCompton,
                                  G4BetheHeitler,
                                  G4SauterGavrila,
                                  G4MollerBhabha,
-                                 G4SeltzerBerger}; 
+                                 G4SeltzerBerger};
 
 // Vector
 
 typedef Precision (*VectorKernelFunc_t)(GUTrack_v& itrack_soa,
      			                int *targetElements,
-			                GUTrack_v& otrack_soa, 
+			                GUTrack_v& otrack_soa,
                                         SamplingMethod sampleType);
 
 Precision VectorKleinNishina(GUTrack_v& itrack_soa,
      			     int *targetElements,
-			     GUTrack_v& otrack_soa, 
+			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType);
 
 Precision VectorHybridCompton(GUTrack_v& itrack_soa,
      			      int *targetElements,
-			      GUTrack_v& otrack_soa, 
+			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType);
 
 Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
      			     int *targetElements,
-			     GUTrack_v& otrack_soa, 
+			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType);
 
 Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
      			      int *targetElements,
-			      GUTrack_v& otrack_soa, 
+			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType);
 
 Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
      			     int *targetElements,
-			     GUTrack_v& otrack_soa, 
+			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType);
 
 Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
 			      int *targetElements,
-			      GUTrack_v& otrack_soa, 
+			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType);
 
 VectorKernelFunc_t VectorKernelFunc[] = {VectorKleinNishina,
                                          VectorHybridCompton,
                                          VectorBetheHeitler,
                                          VectorSauterGavrila,
-                                         VectorMollerBhabha, 
-                                         VectorSeltzerBerger}; 
+                                         VectorMollerBhabha,
+                                         VectorSeltzerBerger};
 
 } // end namespace vecphys
 

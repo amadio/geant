@@ -36,8 +36,8 @@
 // 20.05.98   names: meter, second, gram, radian, degree
 //            (from Brian.Lasiuk@yale.edu (STAR)). Added luminous units.
 // 05.08.98   angstrom, picobarn, microsecond, picosecond, petaelectronvolt
-// 01.03.01   parsec    
-// 31.01.06   kilogray, milligray, microgray    
+// 01.03.01   parsec
+// 31.01.06   kilogray, milligray, microgray
 // 29.04.08   use PDG 2006 value of e_SI
 // 03.11.08   use PDG 2008 value of e_SI
 
@@ -56,28 +56,28 @@ namespace CLHEP {
   constexpr double halfpi  = pi/2;
   constexpr double     pi2 = pi*pi;
 
-  // 
+  //
   // Length [L]
   //
-  constexpr double millimeter  = 1.;                        
+  constexpr double millimeter  = 1.;
   constexpr double millimeter2 = millimeter*millimeter;
   constexpr double millimeter3 = millimeter*millimeter*millimeter;
 
-  constexpr double centimeter  = 10.*millimeter;   
+  constexpr double centimeter  = 10.*millimeter;
   constexpr double centimeter2 = centimeter*centimeter;
   constexpr double centimeter3 = centimeter*centimeter*centimeter;
 
-  constexpr double meter  = 1000.*millimeter;                  
+  constexpr double meter  = 1000.*millimeter;
   constexpr double meter2 = meter*meter;
   constexpr double meter3 = meter*meter*meter;
 
-  constexpr double kilometer = 1000.*meter;                   
+  constexpr double kilometer = 1000.*meter;
   constexpr double kilometer2 = kilometer*kilometer;
   constexpr double kilometer3 = kilometer*kilometer*kilometer;
 
   constexpr double parsec = 3.0856775807e+16*meter;
 
-  constexpr double micrometer = 1.e-6 *meter;             
+  constexpr double micrometer = 1.e-6 *meter;
   constexpr double  nanometer = 1.e-9 *meter;
   constexpr double  angstrom  = 1.e-10*meter;
   constexpr double  fermi     = 1.e-15*meter;
@@ -89,22 +89,22 @@ namespace CLHEP {
   constexpr double  picobarn = 1.e-12*barn;
 
   // symbols
-  constexpr double nm  = nanometer;                        
-  constexpr double um  = micrometer;                        
+  constexpr double nm  = nanometer;
+  constexpr double um  = micrometer;
 
-  constexpr double mm  = millimeter;                        
+  constexpr double mm  = millimeter;
   constexpr double mm2 = millimeter2;
   constexpr double mm3 = millimeter3;
 
-  constexpr double cm  = centimeter;   
+  constexpr double cm  = centimeter;
   constexpr double cm2 = centimeter2;
   constexpr double cm3 = centimeter3;
 
-  constexpr double m  = meter;                  
+  constexpr double m  = meter;
   constexpr double m2 = meter2;
   constexpr double m3 = meter3;
 
-  constexpr double km  = kilometer;                   
+  constexpr double km  = kilometer;
   constexpr double km2 = kilometer2;
   constexpr double km3 = kilometer3;
 
@@ -113,12 +113,12 @@ namespace CLHEP {
   //
   // Angle
   //
-  constexpr double radian      = 1.;                  
+  constexpr double radian      = 1.;
   constexpr double milliradian = 1.e-3*radian;
   constexpr double degree = (pi/180.0)*radian;
 
   constexpr double   steradian = 1.;
-  
+
   // symbols
   constexpr double rad  = radian;
   constexpr double mrad = milliradian;
@@ -173,7 +173,7 @@ namespace CLHEP {
   //
   // Mass [E][T^2][L^-2]
   //
-  constexpr double  kilogram = joule*second*second/(meter*meter);   
+  constexpr double  kilogram = joule*second*second/(meter*meter);
   constexpr double      gram = 1.e-3*kilogram;
   constexpr double milligram = 1.e-3*gram;
 
@@ -195,7 +195,7 @@ namespace CLHEP {
   //
   // Pressure [E][L^-3]
   //
-#define pascal hep_pascal                          // a trick to avoid warnings 
+#define pascal hep_pascal                          // a trick to avoid warnings
   constexpr double hep_pascal = newton/m2;   // pascal = 6.24150 e+3 * MeV/mm3
   constexpr double bar        = 100000*pascal; // bar    = 6.24150 e+8 * MeV/mm3
   constexpr double atmosphere = 101325*pascal; // atm    = 6.32420 e+8 * MeV/mm3

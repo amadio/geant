@@ -10,10 +10,10 @@
 
 namespace vecphys {
 
-class GUHistogram 
+class GUHistogram
 {
 public:
- 
+
   GUHistogram(std::string fileName, double maxEnergy);
   ~GUHistogram();
 
@@ -21,7 +21,7 @@ public:
   void RecordHistos(int imodel,
                     double energyIn,
                     double energyOut1,
-                    double AngleOut1,    
+                    double AngleOut1,
                     double energyOut2,
                     double AngleOut2);
 
@@ -36,7 +36,7 @@ private:
   TH1F*  fEnergyOut2[kNumberPhysicsModel];
   TH1F*  fAngleOut1[kNumberPhysicsModel];
   TH1F*  fAngleOut2[kNumberPhysicsModel];
-  
+
 #endif
 };
 

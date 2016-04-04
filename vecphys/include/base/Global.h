@@ -267,7 +267,7 @@ void Assert(const bool condition) {
 }
 
 namespace details {
-   template <typename DataType, typename Target> struct UseIfSameType { 
+   template <typename DataType, typename Target> struct UseIfSameType {
       VECPHYS_CUDA_HEADER_BOTH
       static Target const *Get(DataType*) { return nullptr; }
    };

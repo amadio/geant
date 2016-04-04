@@ -7,7 +7,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-class MaterialHandler 
+class MaterialHandler
 {
 public:
 

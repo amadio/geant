@@ -28,10 +28,10 @@ public:
   VECPHYS_CUDA_HEADER_HOST
   EmModelBase(Random_t* states, int tid);
 
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler);
 
-  VECPHYS_CUDA_HEADER_BOTH 
+  VECPHYS_CUDA_HEADER_BOTH
   ~EmModelBase();
 
   VECPHYS_CUDA_HEADER_HOST
@@ -45,38 +45,38 @@ public:
 
   //scalar
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH 
-  void AtomicCrossSection(GUTrack&  projectile,   
+  VECPHYS_CUDA_HEADER_BOTH
+  void AtomicCrossSection(GUTrack&  projectile,
                           const int targetElement,
                           double&   sigma);
 
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH 
-  void Interact(GUTrack&  projectile,   
+  VECPHYS_CUDA_HEADER_BOTH
+  void Interact(GUTrack&  projectile,
                 const int targetElement,
                 GUTrack&  secondary );
 
   //vector
 #ifndef VECPHYS_NVCC
   template <typename Backend>
-  void AtomicCrossSection(GUTrack_v& inProjectile,  
+  void AtomicCrossSection(GUTrack_v& inProjectile,
                           const int* targetElements,
-                          double*    sigma);     
+                          double*    sigma);
 
   template <typename Backend>
-  void Interact(GUTrack_v& inProjectile,  
+  void Interact(GUTrack_v& inProjectile,
                 const int* targetElements,
-                GUTrack_v& outSecondaryV);     
+                GUTrack_v& outSecondaryV);
 
-  //temporary method for testing 
+  //temporary method for testing
   template <typename Backend>
-  void InteractUnpack(GUTrack_v& inProjectile,  
+  void InteractUnpack(GUTrack_v& inProjectile,
                       const int* targetElements,
-                      GUTrack_v& outSecondary); 
+                      GUTrack_v& outSecondary);
 
 #endif
 
-  //validation 
+  //validation
   template <typename Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void AtomicCrossSectionG4(GUTrack&  inProjectile,
@@ -109,7 +109,7 @@ protected:
   VECPHYS_CUDA_HEADER_BOTH
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
 
-  VECPHYS_CUDA_HEADER_BOTH double 
+  VECPHYS_CUDA_HEADER_BOTH double
   ComputeCoulombFactor(double fZeff);
 
 protected:
@@ -123,34 +123,34 @@ protected:
                    typename Backend::Double_t &xr,
                    typename Backend::Double_t &yr,
                    typename Backend::Double_t &zr);
- 
+
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void ConvertXtoFinalState(double energyIn, 
-                            double energyOut, 
-                            double sinTheta, 
-                            GUTrack& primary, 
+  void ConvertXtoFinalState(double energyIn,
+                            double energyOut,
+                            double sinTheta,
+                            GUTrack& primary,
                             GUTrack& secondary);
 
 #ifndef VECPHYS_NVCC
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void ConvertXtoFinalState(typename Backend::Double_t energyIn, 
-                            typename Backend::Double_t energyOut, 
-                            typename Backend::Double_t sinTheta, 
+  void ConvertXtoFinalState(typename Backend::Double_t energyIn,
+                            typename Backend::Double_t energyOut,
+                            typename Backend::Double_t sinTheta,
                             int index,
-                            GUTrack_v& primary, 
+                            GUTrack_v& primary,
                             GUTrack_v& secondary);
 
-  //this inner template cannot be specialized unless template <class EmModel> 
-  //is also explicitly specialized 
+  //this inner template cannot be specialized unless template <class EmModel>
+  //is also explicitly specialized
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn, 
-                                   typename Backend::Double_t energyOut, 
-                                   typename Backend::Double_t sinTheta, 
+  void ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn,
+                                   typename Backend::Double_t energyOut,
+                                   typename Backend::Double_t sinTheta,
                                    int index,
-                                   GUTrack_v& primary, 
+                                   GUTrack_v& primary,
                                    GUTrack_v& secondary);
 #endif
 
@@ -160,21 +160,21 @@ protected:
   int       fThreadId;
 
   bool      fAtomicDependentModel;
-  double    fLowEnergyLimit;  
-  double    fHighEnergyLimit;  
+  double    fLowEnergyLimit;
+  double    fHighEnergyLimit;
 
   //Sampling methods
   SamplingMethod  fSampleType;
 
   //Alias sampling Tables
-  GUAliasSampler* fAliasSampler; 
+  GUAliasSampler* fAliasSampler;
 };
 
 //Implementation
 template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST 
-EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid) 
-  : fRandomState(states), fThreadId(tid), 
+VECPHYS_CUDA_HEADER_HOST
+EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid)
+  : fRandomState(states), fThreadId(tid),
     fAtomicDependentModel(false),
     fLowEnergyLimit(0.1*keV),
     fHighEnergyLimit(1.0*TeV),
@@ -184,67 +184,67 @@ EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid)
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_BOTH 
-EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler) 
-  : fRandomState(states), fThreadId(tid), 
+VECPHYS_CUDA_HEADER_BOTH
+EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler)
+  : fRandomState(states), fThreadId(tid),
     fAtomicDependentModel(false),
     fLowEnergyLimit(0.1*keV),
     fHighEnergyLimit(1.0*TeV),
     fSampleType(kAlias)
 {
-  fAliasSampler = sampler; 
+  fAliasSampler = sampler;
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 EmModelBase<EmModel>::~EmModelBase()
 {
   //  if(fAliasSampler) delete fAliasSampler;
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST 
-void EmModelBase<EmModel>::BuildCrossSectionTable() 
-{ 
+VECPHYS_CUDA_HEADER_HOST
+void EmModelBase<EmModel>::BuildCrossSectionTable()
+{
   //dummy interface for now
   for( int z= 1 ; z < maximumZ ; ++z)
   {
-    static_cast<EmModel*>(this)->BuildCrossSectionTablePerAtom(z); 
+    static_cast<EmModel*>(this)->BuildCrossSectionTablePerAtom(z);
   }
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST 
+VECPHYS_CUDA_HEADER_HOST
   void EmModelBase<EmModel>::BuildAliasTable(bool atomicDependentModel)
-{ 
+{
   //size of the array for the alias table data
   size_t sizeOfTable = (fAliasSampler->GetNumEntries()+1)*fAliasSampler->GetSamplesPerEntry();
   double *pdf = new double [sizeOfTable];
-  
+
   int z = -1;
   if(fAtomicDependentModel) {
     MaterialHandler* materialHander = MaterialHandler::Instance();
     int numberOfElements = materialHander->GetNumberOfElements();
     for( int i = 0 ; i < numberOfElements ; ++i) {
       int z = (materialHander->GetElementArray())[i];
-      static_cast<EmModel*>(this)->BuildPdfTable(z,pdf); 
+      static_cast<EmModel*>(this)->BuildPdfTable(z,pdf);
       fAliasSampler->BuildAliasTable(z,pdf);
     }
-  } 
+  }
   else {
-    z = 0 ; //Z=0 is convention for atomic independent models 
-    static_cast<EmModel*>(this)->BuildPdfTable(z,pdf); 
-    fAliasSampler->BuildAliasTable(z,pdf); 
+    z = 0 ; //Z=0 is convention for atomic independent models
+    static_cast<EmModel*>(this)->BuildPdfTable(z,pdf);
+    fAliasSampler->BuildAliasTable(z,pdf);
   }
   delete [] pdf;
 }
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 void EmModelBase<EmModel>::AtomicCrossSection(GUTrack&  inProjectile,
                                               const int targetElement,
-                                              double&   sigma ) 
+                                              double&   sigma )
 {
   sigma = 0.;
   double energyIn= inProjectile.E;
@@ -255,10 +255,10 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack&  inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
                                     const int targetElement,
-                                    GUTrack&  outSecondary ) 
+                                    GUTrack&  outSecondary )
 {
   double energyIn = inProjectile.E;
 
@@ -276,8 +276,8 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
     case SamplingMethod::kRejection :
         static_cast<EmModel*>(this)-> template InteractKernelCR<Backend>(energyIn,targetElement,energyOut,sinTheta);
       break;
-    case SamplingMethod::kUnpack : 
-      {      
+    case SamplingMethod::kUnpack :
+      {
         bool status = false;
         do {
           static_cast<EmModel*>(this)-> template InteractKernelUnpack<Backend>(energyIn,
@@ -292,13 +292,13 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
                                 inProjectile,outSecondary);
 }
-  
+
 #ifndef VECPHYS_NVCC
 template <class EmModel>
 template <typename Backend>
 void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
                                               const int* targetElements,
-                                              double*    sigma) 
+                                              double*    sigma)
 {
   typedef typename Backend::Index_t  Index_t;
   typedef typename Backend::Double_t Double_t;
@@ -328,16 +328,16 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,  
+void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
                                     const int* targetElements,
-                                    GUTrack_v& outSecondary) 
+                                    GUTrack_v& outSecondary)
 {
   //check for the validity of energy
   int nTracks = inProjectile.numTracks;
 
   // this inclusive check may be redundant as this model/process should not be
   // selected if energy of the track is outside the valid energy region
-  //  if(inProjectile.E[0]         < fLowEnergyLimit || 
+  //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
   typedef typename Backend::Index_t  Index_t;
@@ -372,7 +372,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
         ;
     }
 
-    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);  
+    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
     ibase+= Double_t::Size;
   }
 
@@ -383,7 +383,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     double senergyOut, ssinTheta;
 
     static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);  
+    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 
@@ -391,13 +391,13 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
 //from the code once performance and validation studies are done
 template <class EmModel>
 template <typename Backend>
-void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,  
+void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
                                           const int* targetElements,
-                                          GUTrack_v& outSecondary) 
+                                          GUTrack_v& outSecondary)
 {
   //check for the validity of energy
   int sizeOfInputTracks = inProjectile.numTracks;
-  if(inProjectile.E[0]                   < fLowEnergyLimit || 
+  if(inProjectile.E[0]                   < fLowEnergyLimit ||
      inProjectile.E[sizeOfInputTracks-1] > fHighEnergyLimit) return;
 
   typedef typename Backend::Bool_t   Bool_t;
@@ -414,12 +414,12 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
   //creat a bit set to hold the status of sampling
 
   const int maxSizeOfTracks = 160000; // the maximum number of tracks - use ~2496*64 for now
-  if(sizeOfInputTracks > maxSizeOfTracks ) { 
+  if(sizeOfInputTracks > maxSizeOfTracks ) {
     std::cout << "Size of input tracks > maxSizeOfTracks = " << maxSizeOfTracks << std::endl;
     exit(0);
-  } 
+  }
   std::bitset<maxSizeOfTracks> flag;
-  
+
   //working arrays for the shuffling loop: using std::vector for now
   std::vector<double> wenergyIn;
   std::vector<double> tenergyIn;
@@ -451,7 +451,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
     //vectorization loop
     int currentSize = wenergyOut.size();
-    numChunks = currentSize/Double_t::Size; 
+    numChunks = currentSize/Double_t::Size;
 
     for(int i= 0; i < numChunks ; ++i) {
 
@@ -461,12 +461,12 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
       Double_t energyOut;
       Double_t sinTheta;
 
-      //kernel 
+      //kernel
       static_cast<EmModel*>(this)-> template InteractKernelUnpack<Backend>(energyIn,
                                              zElement,energyOut,sinTheta,status);
 
       //store energy and sinTheta of the secondary
-      Double_t secE = energyIn - energyOut; 
+      Double_t secE = energyIn - energyOut;
 
       secE.store(&wenergyOut[ibase]);
       sinTheta.store(&wsinTheta[ibase]);
@@ -480,7 +480,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     }
     //end of vectorization loop
 
-    //@@@syjun - need to add a cleanup task for the leftover array of which 
+    //@@@syjun - need to add a cleanup task for the leftover array of which
     //size < Double_t::Size - see the bottom of this method for a similar task
 
     //scatter
@@ -525,10 +525,10 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
   for(int i= 0; i < numChunks ; ++i) {
     Double_t energyIn(&inProjectile.E[ibase]);
-    Double_t sinTheta(&outSecondary.px[ibase]); 
+    Double_t sinTheta(&outSecondary.px[ibase]);
     Double_t energyOut(&outSecondary.E[ibase]);
 
-    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);  
+    ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
 
     ibase+= Double_t::Size;
   }
@@ -540,7 +540,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     double senergyOut, ssinTheta;
 
     static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);  
+    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 
@@ -548,7 +548,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack&  inProjectile,
                                                 const int targetElement,
                                                 double&   sigma)
@@ -563,7 +563,7 @@ void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack&  inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
                                       const int targetElement,
                                       GUTrack&  outSecondary)
@@ -609,20 +609,20 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
   Bool_t negativeZ = ( zhat < 0. );
 
   Double_t phat;
-    
+
   MaskedAssign(positive, Sqrt(pt) , &phat);
   MaskedAssign(positive, (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what , &xr);
   MaskedAssign(positive, (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what , &yr);
   MaskedAssign(positive, -phat*uhat + zhat*what , &zr);
-    
+
   MaskedAssign(negativeZ,-xhat, &xr);
   MaskedAssign(negativeZ, yhat, &yr);
   MaskedAssign(negativeZ,-zhat, &zr);
-    
+
   MaskedAssign(!positive && !negativeZ, xhat, &xr);
   MaskedAssign(!positive && !negativeZ, yhat, &yr);
   MaskedAssign(!positive && !negativeZ, zhat, &zr);
-  
+
   //mask operation???
  /* if(positive) {
     Double_t phat = Sqrt(pt);
@@ -634,7 +634,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
     xr = -xhat;
     yr =  yhat;
     zr = -zhat;
-  }  
+  }
   else {
     xr = xhat;
     yr = yhat;
@@ -644,10 +644,10 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH 
-void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn, 
-                                                double energyOut, 
-                                                double sinTheta, 
+VECPHYS_CUDA_HEADER_BOTH
+void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
+                                                double energyOut,
+                                                double sinTheta,
                                                 GUTrack& inProjectile,
                                                 GUTrack& outSecondary )
 {
@@ -670,7 +670,7 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
   inProjectile.pz = energyOut*what;
 
   //create secondary
-  outSecondary.E  = (energyIn-energyOut); 
+  outSecondary.E  = (energyIn-energyOut);
   outSecondary.px = outSecondary.E*(xhat-uhat);
   outSecondary.py = outSecondary.E*(yhat-vhat);
   outSecondary.pz = outSecondary.E*(zhat-what);
@@ -682,11 +682,11 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
 template <class EmModel>
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH void
-EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn, 
-                                           typename Backend::Double_t energyOut, 
-                                           typename Backend::Double_t sinTheta, 
+EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
+                                           typename Backend::Double_t energyOut,
+                                           typename Backend::Double_t sinTheta,
                                            int ibase,
-                                           GUTrack_v& primary, 
+                                           GUTrack_v& primary,
                                            GUTrack_v& secondary) // const
 {
     typedef typename Backend::Double_t Double_t;
@@ -710,7 +710,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
     // Update primary
     energyOut.store(&primary.E[ibase]);
     Double_t pxFinal, pyFinal, pzFinal;
-     
+
     pxFinal= energyOut*uhat;
     pyFinal= energyOut*vhat;
     pzFinal= energyOut*what;
@@ -719,7 +719,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
     pzFinal.store(&primary.pz[ibase]);
 
     // create Secondary
-    Double_t secE = energyIn - energyOut; 
+    Double_t secE = energyIn - energyOut;
     Double_t pxSec= secE*(xhat-uhat);
     Double_t pySec= secE*(yhat-vhat);
     Double_t pzSec= secE*(zhat-what);
@@ -736,11 +736,11 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
 template<class EmModel>
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH void
-EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn, 
-                                                  typename Backend::Double_t energyOut, 
-                                                  typename Backend::Double_t sinTheta, 
+EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn,
+                                                  typename Backend::Double_t energyOut,
+                                                  typename Backend::Double_t sinTheta,
                                                   int ibase,
-                                                  GUTrack_v& primary, 
+                                                  GUTrack_v& primary,
                                                   GUTrack_v& secondary)
 {
   typedef typename kScalar::Double_t Double_t;
@@ -765,8 +765,8 @@ EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t ene
   primary.pz[ibase] = energyOut*what;
 
   // create Secondary
-  Double_t secE = energyIn - energyOut; 
-  secondary.E[ibase]  = secE; 
+  Double_t secE = energyIn - energyOut;
+  secondary.E[ibase]  = secE;
   secondary.px[ibase] = secE*(xhat-uhat);
   secondary.py[ibase] = secE*(yhat-vhat);
   secondary.pz[ibase] = secE*(zhat-what);
@@ -776,7 +776,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t ene
 #endif
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_BOTH double 
+VECPHYS_CUDA_HEADER_BOTH double
 EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff)
 {
   // Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)

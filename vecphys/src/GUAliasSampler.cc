@@ -8,17 +8,17 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 VECPHYS_CUDA_HEADER_HOST
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
-               double incomingMin, 
+               double incomingMin,
                double incomingMax,
                int    numEntriesIncoming, // for 'energy' (or log) of projectile
-               int    numEntriesSampled   
-)  
+               int    numEntriesSampled
+)
   :
-  fRandomState(states), 
+  fRandomState(states),
   fThreadId(threadId),
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
-  fInNumEntries(numEntriesIncoming), 
+  fInNumEntries(numEntriesIncoming),
   fLogIncomingMin (log(incomingMin)),
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
   fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-fLogIncomingMin)),
@@ -33,18 +33,18 @@ GUAliasSampler(Random_t* states, int threadId,
 VECPHYS_CUDA_HEADER_BOTH
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
-               double incomingMin, 
+               double incomingMin,
                double incomingMax,
                int    numEntriesIncoming, // for 'energy' (or log) of projectile
-               int    numEntriesSampled,   
+               int    numEntriesSampled,
                GUAliasTableManager* tableManager
-)  
+)
   :
-  fRandomState(states), 
+  fRandomState(states),
   fThreadId(threadId),
   fIncomingMin( incomingMin ),
   fIncomingMax( incomingMax ),
-  fInNumEntries(numEntriesIncoming), 
+  fInNumEntries(numEntriesIncoming),
   fLogIncomingMin (log(incomingMin)),
   fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
   fInverseLogBinIncoming( numEntriesIncoming / (log(incomingMax)-fLogIncomingMin)),
@@ -90,10 +90,10 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
                                       const double *pdf )
 {
   // Build alias and alias probability
-  //    
-  // Reference: (1) A.J. Walker, "An Efficient Method for Generating Discrete 
+  //
+  // Reference: (1) A.J. Walker, "An Efficient Method for Generating Discrete
   // Random Variables with General Distributions" ACM Trans. Math. Software, 3,
-  // 3, 253-256 (1977) (2) A.L. Edwards, J.A. Rathkopf, and R.K. Smidt, 
+  // 3, 253-256 (1977) (2) A.L. Edwards, J.A. Rathkopf, and R.K. Smidt,
   // "Extending the Alias Monte Carlo Sampling Method to General Distributions"
   // UCRL-JC-104791 (1991)
   //
@@ -101,12 +101,12 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
   //         fSampledNumEntries (dimension of discrete outcomes)
   //         pdf[fInNumEntries x fSampledNumEntries] (probability density function)
   // output: a[fInNumEntries x fSampledNumEntries]   (alias)
-  //         q[fInNumEntries x fSampledNumEntries]   (non-alias probability) 
+  //         q[fInNumEntries x fSampledNumEntries]   (non-alias probability)
   //
 
   //temporary array
-  int *a     = (int*)   malloc(fSampledNumEntries*sizeof(int)); 
-  double *ap = (double*)malloc(fSampledNumEntries*sizeof(double)); 
+  int *a     = (int*)   malloc(fSampledNumEntries*sizeof(int));
+  double *ap = (double*)malloc(fSampledNumEntries*sizeof(double));
 
   //likelihood per equal probable event
   const double cp = 1.0/fSampledNumEntries;
@@ -127,11 +127,11 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
 
     //O(n) iterations
     int iter = fSampledNumEntries;
-  
+
     do {
       int donor = 0;
       int recip = 0;
-    
+
       // A very simple search algorithm
       for(int j = donor; j < fSampledNumEntries ; ++j) {
          if(ap[j] >= cp) {
@@ -151,8 +151,8 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
 
       table->fAlias[ir*fSampledNumEntries+recip] = donor;
       table->fProbQ[ir*fSampledNumEntries+recip] = fSampledNumEntries*ap[recip];
-    
-      //update pdf 
+
+      //update pdf
       ap[donor] = ap[donor] - (cp-ap[recip]);
       ap[recip] = 0.0;
       --iter;

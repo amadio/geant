@@ -14,7 +14,7 @@
 static int fElementMode = 1;
 //   Values:
 //   1  - Single material
-//   
+//
 
 static bool   verbose = false; // true;
 
@@ -33,7 +33,7 @@ constexpr double defaultMinP = 500.*MeV;
 constexpr double defaultMaxP = defaultMinP;
 //  Equal maxp & minP ==> monoenergetic beam
 
-// 'Broad spectrum' test 
+// 'Broad spectrum' test
 // static double defaultMinP=   5.0 * KeV;
 // static double defaultMaxP= 500.0 * MeV;
 
@@ -41,16 +41,16 @@ GUBenchmarker::GUBenchmarker()
     : fNtracks(4992),
       fRepetitions(1),
       fVerbosity(1),
-      fMinP(defaultMinP),  
+      fMinP(defaultMinP),
       fMaxP(defaultMaxP),
-      fSampleType(kAlias),   
-      fEmModel(GUPhysicsModelIndex::kNullModel)   
+      fSampleType(kAlias),
+      fEmModel(GUPhysicsModelIndex::kNullModel)
 {
   fTrackHandler = new GUTrackHandler();
   fMaterialHandler = vecphys::MaterialHandler::Instance();
 }
 
-GUBenchmarker::~GUBenchmarker() 
+GUBenchmarker::~GUBenchmarker()
 {
   delete fTrackHandler;
 }
@@ -87,27 +87,27 @@ int GUBenchmarker::RunBenchmarkInteract()
   return mismatches;
 }
 
-void GUBenchmarker::RunScalar() 
+void GUBenchmarker::RunScalar()
 {
 #ifdef VECPHYS_ROOT
   GUHistogram *histogram = new GUHistogram("scalar.root", fMaxP); //maxE= maxP
 #endif
 
   if( verbose ) std::cout << "Scalar Run" << std::endl;
-  
+
   int *targetElements = new int [fNtracks];
   GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
-  for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.; 
+  for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r)
   {
     fMaterialHandler->PrepareTargetElements(targetElements, fNtracks,fMaterialMode);
     // In 'random' mode, it should change for every iteration
-     
+
     //prepare input tracks
     fTrackHandler->GenerateRandomTracks(fNtracks, fMinP, fMaxP);
 
@@ -115,13 +115,13 @@ void GUBenchmarker::RunScalar()
     fTrackHandler->SortAoSTracksByEnergy(track_aos,fNtracks);
 
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {
 	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos,fNtracks);
 	elapsedT[k] = 0.0;
 	elapsedT[k] = ScalarKernelFunc[k](fNtracks,itrack_aos,targetElements,
 					  otrack_aos,fSampleType);
 	elapsedTotal[k] += elapsedT[k];
-	
+
 #ifdef VECPHYS_ROOT
 	histogram->RecordTime(k,elapsedT[k]);
 	for(int i = 0 ; i < fNtracks ; ++i) {
@@ -130,14 +130,14 @@ void GUBenchmarker::RunScalar()
 				  itrack_aos[i].pz/itrack_aos[i].E,
 				  otrack_aos[i].E,
 				  otrack_aos[i].pz/otrack_aos[i].E);
-	} 
-#endif    
+	}
+#endif
       }
     }
   }
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {
       printf("%s  Scalar Total time of %3d reps = %6.3f sec\n",
 	     GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
     }
@@ -151,7 +151,7 @@ void GUBenchmarker::RunScalar()
 #endif
 }
 
-void GUBenchmarker::RunGeant4() 
+void GUBenchmarker::RunGeant4()
 {
 #ifdef VECPHYS_ROOT
   GUHistogram *histogram = new GUHistogram("geant4.root", fMaxP); //maxE= maxP
@@ -165,7 +165,7 @@ void GUBenchmarker::RunGeant4()
 
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
-  for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.; 
+  for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
@@ -179,14 +179,14 @@ void GUBenchmarker::RunGeant4()
     fTrackHandler->SortAoSTracksByEnergy(track_aos,fNtracks);
 
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {
 	fTrackHandler->CopyAoSTracks(track_aos,itrack_aos,fNtracks);
-	
+
 	elapsedT[k] = 0.0;
 	elapsedT[k] = G4KernelFunc[k](fNtracks,itrack_aos,targetElements,
 				      otrack_aos);
 	elapsedTotal[k] += elapsedT[k];
-	
+
 #ifdef VECPHYS_ROOT
 	histogram->RecordTime(k,elapsedT[k]);
 	for(int i = 0 ; i < fNtracks ; ++i) {
@@ -195,14 +195,14 @@ void GUBenchmarker::RunGeant4()
 				  itrack_aos[i].pz/itrack_aos[i].E,
 				  otrack_aos[i].E,
 				  otrack_aos[i].pz/otrack_aos[i].E);
-	} 
-#endif    
+	}
+#endif
       }
     }
-  }    
+  }
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {
       printf("%s  Geant4 Total time of %3d reps = %6.3f sec\n",
 	     GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
     }
@@ -230,10 +230,10 @@ void GUBenchmarker::RunVector()
   GUTrack_v itrack_soa = handler_in->GetSoATracks();
 
   int *targetElements = new int[fNtracks];
-  
+
   Precision elapsedTotal[kNumberPhysicsModel];
   Precision elapsedT[kNumberPhysicsModel];
-  for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.; 
+  for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
 
@@ -245,16 +245,16 @@ void GUBenchmarker::RunVector()
 
     GUTrack_v& track_soa = fTrackHandler->GetSoATracks();
     fTrackHandler->SortSoATracksByEnergy(track_soa,fNtracks);
-    
+
     for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+      if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {
 	fTrackHandler->CopySoATracks(track_soa,itrack_soa,fNtracks);
-	
+
 	elapsedT[k] = 0.0;
 	elapsedT[k] = VectorKernelFunc[k](itrack_soa,targetElements,
 					  otrack_soa,fSampleType);
 	elapsedTotal[k] += elapsedT[k];
-	
+
 #ifdef VECPHYS_ROOT
 	histogram->RecordTime(k,elapsedT[k]);
 	for(int i = 0 ; i < fNtracks ; ++i) {
@@ -263,14 +263,14 @@ void GUBenchmarker::RunVector()
 				  itrack_soa.pz[i]/itrack_soa.E[i],
 				  otrack_soa.E[i],
 				  otrack_soa.pz[i]/otrack_soa.E[i]);
-	} 
-#endif    
+	}
+#endif
       }
     }
-  }    
+  }
 
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) {
-    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {     
+    if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == k) {
       printf("%s  Vector Total time of %3d reps = %6.3f sec\n",
 	     GUPhysicsModelName[k], fRepetitions, elapsedTotal[k]);
     }
@@ -295,19 +295,19 @@ void GUBenchmarker::CheckTimer()
   }
   printf("Null Task Timer: Total time of %3d reps = %6.3f sec\n", fRepetitions,
          elapsedNullTotal);
-} 
+}
 
 #include <Vc/Vc>
   using Vc::double_v;
 
-void GUBenchmarker::CheckRandom() 
+void GUBenchmarker::CheckRandom()
 {
   size_t nsample = 1000000;
 
   //test Vc random
   std::cout << "Vc::Size  = " <<  Vc::Vector<Precision>::Size << std::endl;
 
-  Stopwatch timer; 
+  Stopwatch timer;
   timer.Start();
 
   double_v a, b, c;
@@ -324,9 +324,9 @@ void GUBenchmarker::CheckRandom()
 
   double sumC= 0.0;
   for (size_t i = 0; i <  Vc::Vector<Precision>::Size ; ++i) {
-     sumC += c[i]; 
+     sumC += c[i];
   }
-  
+
   std::cout << "vector sum  = " <<  sumC << std::endl;
 
   timer.Start();
@@ -356,33 +356,33 @@ void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
    int mainElement = 8;   // Oxygen
    constexpr int NumFx = 16;
    constexpr int maxElement = 100;  // Should obtain it from elsewhere ...
-   
-   int Element[NumFx] = { 82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 92 };  
+
+   int Element[NumFx] = { 82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 92 };
                       //  Pb   W  O  N  C  Al  Ar, Ti  Fe  Cu  Zn  Cd  Xe  Gd  Au   U
 
    static int noCalls=0 ;
    // static int lastIndex= 1;
 
    noCalls++;
-   
+
    bool report = (noCalls == 1 );
-   
+
    if( (fElementMode == 0) || (fElementMode > maxElement ) )     //  All Elements
    {
-      if( report ) 
+      if( report )
          std::cout << " Generating Target Elements with Random mode - mode # = " << fElementMode
                    << " numFx= " << NumFx << std::endl;
-      
+
       for(int i = 0 ; i < ntracks ; ++i) {
          targetElements[i] = ( i % maxElement) + 1 ;
       }
    }
    else if( fElementMode == 1 )
    {
-      if( report ) 
+      if( report )
          std::cout << " Using *Constant* Target Element - mode # = " << fElementMode
                    << " Element used is Z= " << mainElement << std::endl;
-      
+
       for(int i = 0 ; i < ntracks ; ++i) {
          targetElements[i] = mainElement;
       }
@@ -397,27 +397,27 @@ void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
       int indEl;
       for(int i = 0 ; i < ntracks ; ++i) {
          indEl = ( i % numElements ) ;
-         targetElements[i] = Element[ indEl ]; 
+         targetElements[i] = Element[ indEl ];
       }
-      // lastIndex= indEl; 
-      
+      // lastIndex= indEl;
+
    }else{
       // Cycle through different numbers of elements
       int numElements = fElementMode;
-      if( report )      
+      if( report )
          std::cout << " Generating Target Elements cycling through "
                    << " - mode # = " << fElementMode << std::endl
                    << " Using " << numElements << " number of elements. " << std::endl;
       for(int i = 0 ; i < ntracks ; ++i) {
-         targetElements[i] = 
+         targetElements[i] =
             ( (i * 101 + (noCalls%numElements) * 59 ) % numElements ) + 1;
 
          assert ( (targetElements[i] > 0)  &&  (targetElements[i] <= numElements) );
       }
-      // lastIndex= indEl; 
+      // lastIndex= indEl;
    }
 }
-   
+
 void
 GUBenchmarker::ReportInteraction( double incomingEnergy,
                                   int    targetElement,
@@ -431,7 +431,7 @@ GUBenchmarker::ReportInteraction( double incomingEnergy,
    double GammaOut_Uz = GammaOut_E  > 0.0 ? GammaOut_Pz / GammaOut_E : -2.0  ;
    double electron_Uz = electron_En > 0.0 ? electron_Pz / electron_En : -2.0  ;
    double SumEout=      GammaOut_E + electron_En;
-   
+
    printf( " E_in = %8.5f  elem = %4d E_out = %8.4g  E_elec = %8.4g  Sum(E_out)= %8.4g  Diff(In-Out)= %8.3g   ",
            incomingEnergy,
            targetElement,
@@ -442,7 +442,7 @@ GUBenchmarker::ReportInteraction( double incomingEnergy,
       );
    if( print_Uz )
       printf(" |  g.uz= %8.4g e-.uz = %8.4g",  GammaOut_Uz, electron_Uz );
-   printf("\n"); 
+   printf("\n");
 }
 
 } // end namespace vecphys

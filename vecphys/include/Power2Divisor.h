@@ -8,7 +8,7 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 class Power2Divisor
-{ 
+{
 public:
   VECPHYS_CUDA_HEADER_BOTH
   Power2Divisor(int nmin, int nmax, int ndiv);
@@ -30,9 +30,9 @@ public:
 
   template <typename Backend>
   VECPHYS_CUDA_HEADER_BOTH
-  void GetBinAndFraction(typename Backend::Double_t x, 
+  void GetBinAndFraction(typename Backend::Double_t x,
                          typename Backend::Index_t& ibin,
-                         typename Backend::Double_t& frac); 
+                         typename Backend::Double_t& frac);
 
 private:
   VECPHYS_CUDA_HEADER_BOTH
@@ -49,9 +49,9 @@ private:
 
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH
-void Power2Divisor::GetBinAndFraction(typename Backend::Double_t x, 
+void Power2Divisor::GetBinAndFraction(typename Backend::Double_t x,
                                       typename Backend::Index_t& ibin,
-                                      typename Backend::Double_t& frac) 
+                                      typename Backend::Double_t& frac)
 {
   typedef typename Backend::Int_t Int_t;
   typedef typename Backend::Index_t Index_t;
@@ -61,14 +61,14 @@ void Power2Divisor::GetBinAndFraction(typename Backend::Double_t x,
   Double_t mantissa = frexp (x, &exponent); // Vc::frexp
 
   Double_t fexponent = IntToDouble(exponent-1-fNmin); //Backend
-  //note: the normal  conversion from int to double, 
+  //note: the normal  conversion from int to double,
   //Double_t fexponent(exponent-1-fNmin)
   //does not work for the int output of frexp which is in [int,dummy,int,dummy]
 
-  ibin = Floor((mantissa-.5)*(2.*fNdiv)) + fNdiv*fexponent;   
+  ibin = Floor((mantissa-.5)*(2.*fNdiv)) + fNdiv*fexponent;
 
-  Index_t idiv = ibin - fNdiv*Floor(ibin/fNdiv); //idiv = ibin%fNdiv 
-  //note: ibin%fNdiv = ibin & (fNdiv-1) for any fNdiv = 2^n does not work here 
+  Index_t idiv = ibin - fNdiv*Floor(ibin/fNdiv); //idiv = ibin%fNdiv
+  //note: ibin%fNdiv = ibin & (fNdiv-1) for any fNdiv = 2^n does not work here
   //as the & operator is not vectorized)
 
   Double_t  power2  = ldexp(1.,exponent -1);

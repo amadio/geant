@@ -1,20 +1,20 @@
 #ifndef GUPhysicsModelName_H
-#define GUPhysicsModelName_H 
+#define GUPhysicsModelName_H
 
 namespace vecphys {
 
 enum GUPhysicsModelIndex {
-  kNullModel = -1, 
-  kKleinNishina,      // Compton  
-  kHybridKleinNishina,// Compton with Alias + Composition and Rejection   
+  kNullModel = -1,
+  kKleinNishina,      // Compton
+  kHybridKleinNishina,// Compton with Alias + Composition and Rejection
   kBetheHeitler,      // Conversion
   kSauterGavrila,     // Photo-Electric Effect
   kMollerBhabha,      // Ionization
-  kSeltzerBerger,     // Bremsstrahlung 
+  kSeltzerBerger,     // Bremsstrahlung
   kNumberPhysicsModel
 };
 
-static 
+static
 const char* GUPhysicsModelName[kNumberPhysicsModel] = {
   "KleinNishina",
   "HybridKleinNishina",

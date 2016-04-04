@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
   if(argc >= 3) testType = atoi(argv[2]);
 
   if(testType < 0 || testType > 2) {
-    std::cout << "Usage: GUTrackingTest [ntrack=1000] [testType=1] " 
+    std::cout << "Usage: GUTrackingTest [ntrack=1000] [testType=1] "
 	      << std::endl;
     return 0;
   }
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     targetElements[i] = i ;
   }
 
-  Stopwatch timer; 
+  Stopwatch timer;
   timer.Start();
 
   model->Interact(track_in,targetElements,&track_out);
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
   if(testType==0) {
     for(int j = 0; j < ntrack ; ++j) {
-      std::cout << "vector primary secondary E " <<  (track_in.E)[j] << " " 
+      std::cout << "vector primary secondary E " <<  (track_in.E)[j] << " "
 		<< (track_out.E)[j] << std::endl;
     }
     std::cout << " " << std::endl;
@@ -72,13 +72,13 @@ int main(int argc, char* argv[]) {
 
   if(testType==0) {
     for(int i = 0 ; i < ntrack ; ++i) {
-      std::cout << "scalar primary secondary E " <<  track_aos[i].E << " " 
+      std::cout << "scalar primary secondary E " <<  track_aos[i].E << " "
 		<< track_aos_out[i].E << std::endl;
     }
   }
 
   //original method
-  
+
   timer.Start();
   for(int i = 0 ; i < ntrack ; ++i) {
     model->InteractG4(track_aos[i],targetElements[i],&track_aos_out[i]);
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
   timer.Stop();
   double g4time =  timer.Elapsed();
 
-  std::cout << " vtime stime g4time " << vtime << " " << stime << " " 
+  std::cout << " vtime stime g4time " << vtime << " " << stime << " "
 	    << g4time << std::endl;
 
   //  delete handler_in;

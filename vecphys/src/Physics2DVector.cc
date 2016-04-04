@@ -20,19 +20,19 @@ VECPHYS_FUNC_QUALIFIER Physics2DVector::Physics2DVector()
   }
 };
 
-VECPHYS_FUNC_QUALIFIER 
+VECPHYS_FUNC_QUALIFIER
 double Physics2DVector::Value(double x, double y)
 {
   // no interpolation outside the table
-  if(x < xVector[0]) { 
-    x = xVector[0]; 
-  } else if(x > xVector[numberOfXNodes - 1]) { 
-    x = xVector[numberOfXNodes - 1]; 
+  if(x < xVector[0]) {
+    x = xVector[0];
+  } else if(x > xVector[numberOfXNodes - 1]) {
+    x = xVector[numberOfXNodes - 1];
   }
-  if(y < yVector[0]) { 
-    y = yVector[0]; 
-  } else if(y > yVector[numberOfYNodes - 1]) { 
-    y = yVector[numberOfYNodes - 1]; 
+  if(y < yVector[0]) {
+    y = yVector[0];
+  } else if(y > yVector[numberOfYNodes - 1]) {
+    y = yVector[numberOfYNodes - 1];
   }
 
   // find bins
@@ -48,8 +48,8 @@ double Physics2DVector::Value(double x, double y)
   double v12= GetValue(idx+1, idy);
   double v21= GetValue(idx,   idy+1);
   double v22= GetValue(idx+1, idy+1);
-  return ((y2 - y)*(v11*(x2 - x) + v12*(x - x1)) + 
-	  ((y - y1)*(v21*(x2 - x) + v22*(x - x1))))/((x2 - x1)*(y2 - y1)); 
+  return ((y2 - y)*(v11*(x2 - x) + v12*(x - x1)) +
+	  ((y - y1)*(v21*(x2 - x) + v22*(x - x1))))/((x2 - x1)*(y2 - y1));
 }
 
 VECPHYS_FUNC_QUALIFIER
@@ -64,7 +64,7 @@ void Physics2DVector::PutY(size_t idy, double val)
   yVector[idy] = val;
 }
 
-VECPHYS_FUNC_QUALIFIER void 
+VECPHYS_FUNC_QUALIFIER void
 Physics2DVector::PutValue(size_t idx, size_t idy, double val)
 {
   value[idy][idx] = val;
@@ -76,16 +76,16 @@ double Physics2DVector::GetValue(size_t idx, size_t idy)
   return value[idy][idx];
 }
 
-VECPHYS_FUNC_QUALIFIER 
+VECPHYS_FUNC_QUALIFIER
 size_t Physics2DVector::FindBinLocationX(double z)
 {
   size_t id = 0;
-  if(z < xVector[1]) { 
-    id = 0; 
-  } 
-  else if(z >= xVector[numberOfXNodes-2]) { 
-    id = numberOfXNodes - 2; 
-  } 
+  if(z < xVector[1]) {
+    id = 0;
+  }
+  else if(z >= xVector[numberOfXNodes-2]) {
+    id = numberOfXNodes - 2;
+  }
   else {
     size_t lowerBound = 0;
     size_t upperBound = numberOfXNodes - 2;
@@ -100,16 +100,16 @@ size_t Physics2DVector::FindBinLocationX(double z)
   return id;
 }
 
-VECPHYS_FUNC_QUALIFIER 
+VECPHYS_FUNC_QUALIFIER
 size_t Physics2DVector::FindBinLocationY(double z)
 {
   size_t id = 0;
-  if(z < yVector[1]) { 
-    id = 0; 
-  } 
-  else if(z >= yVector[numberOfYNodes-2]) { 
-    id = numberOfYNodes - 2; 
-  } 
+  if(z < yVector[1]) {
+    id = 0;
+  }
+  else if(z >= yVector[numberOfYNodes-2]) {
+    id = numberOfYNodes - 2;
+  }
   else {
     size_t lowerBound = 0;
     size_t upperBound = numberOfYNodes - 2;

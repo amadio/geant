@@ -13,10 +13,10 @@ MaterialHandler* MaterialHandler::Instance()
 }
 
 VECPHYS_CUDA_HEADER_HOST
-MaterialHandler::MaterialHandler() 
+MaterialHandler::MaterialHandler()
 {
   //test mode: 0 all elements in the element table, 1 single element
-  fElementMode = 0; 
+  fElementMode = 0;
 
   //initialize the element array
   fNumberOfElements = 0;
@@ -27,23 +27,23 @@ MaterialHandler::MaterialHandler()
 }
 
 VECPHYS_CUDA_HEADER_HOST
-MaterialHandler::~MaterialHandler() 
+MaterialHandler::~MaterialHandler()
 {
   ;
 }
 
 VECPHYS_CUDA_HEADER_HOST
-void MaterialHandler::BuildElementTable() 
+void MaterialHandler::BuildElementTable()
 {
-  //This should interface with the global material manager of GeantV so that 
+  //This should interface with the global material manager of GeantV so that
   //the element arrary is properly filled with all elements of detector
   //materials. Temporarily, build a table based on John's arrary
-  
+
   constexpr int NumFx = 16;
-  int Element[NumFx] = { 82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 91};  
+  int Element[NumFx] = { 82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 91};
                       // Pb   W  O  N  C  Al  Ar, Ti  Fe  Cu  Zn  Cd  Xe  Gd  Au  Pa
 
-  for(int ie = 0 ; ie < NumFx ; ++ie) AddElement(Element[ie]);   
+  for(int ie = 0 ; ie < NumFx ; ++ie) AddElement(Element[ie]);
 
 }
 
@@ -57,11 +57,11 @@ void MaterialHandler::AddElement(int element) {
       if (fElementArray[i] == element) {
         found = true;
         break;
-      }    
-    } 
+      }
+    }
 
     //add a new element to the array
-    if(!found) { 
+    if(!found) {
       fElementArray[fNumberOfElements] = element;
       fNumberOfElements++;
     }
@@ -74,9 +74,9 @@ void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, in
   //only two modes for now based on John's original method
   static int noCalls=0 ;
   noCalls++;
-  
+
   bool report = (noCalls == 1 );
-  
+
   if(elementMode == 0 ) { // all elements in the material table
     if( report )
       printf(" Generating Target Elements from table of %d elements - mode # =  %d\n",
@@ -84,14 +84,14 @@ void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, in
     int indEl;
     for(int i = 0 ; i < ntracks ; ++i) {
       indEl = ( i % fNumberOfElements ) ;
-      targetElements[i] = fElementArray[ indEl ]; 
+      targetElements[i] = fElementArray[ indEl ];
     }
   }
   else if( elementMode == 1 ) { // using a single element
-    if( report ) 
+    if( report )
       printf(" Using *Constant* Target Element Z = %d - mode # = %d\n",
 	     fElementArray[0],elementMode);
-    
+
     for(int i = 0 ; i < ntracks ; ++i) {
       targetElements[i] = fElementArray[0];
     }

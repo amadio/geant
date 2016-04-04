@@ -9,25 +9,25 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECPHYS_CUDA_HEADER_HOST
-IonisationMoller::IonisationMoller(Random_t* states, int tid) 
+IonisationMoller::IonisationMoller(Random_t* states, int tid)
   : EmModelBase<IonisationMoller>(states,tid)
 {
-  fDeltaRayThreshold = 1.0*keV; //temporary: should be set from a cut table 
+  fDeltaRayThreshold = 1.0*keV; //temporary: should be set from a cut table
   SetLowEnergyLimit(0.1*keV);
 
   Initialization();
 
 }
 
-VECPHYS_CUDA_HEADER_BOTH 
+VECPHYS_CUDA_HEADER_BOTH
 IonisationMoller::IonisationMoller(Random_t* states, int tid,
-                                   GUAliasSampler* sampler) 
+                                   GUAliasSampler* sampler)
   :  EmModelBase<IonisationMoller>(states,tid,sampler)
 {
   SetLowEnergyLimit(0.1*keV);
 }
 
-VECPHYS_CUDA_HEADER_HOST void 
+VECPHYS_CUDA_HEADER_HOST void
 IonisationMoller::Initialization()
 {
   if(fSampleType == kAlias) {
@@ -37,20 +37,20 @@ IonisationMoller::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST void 
+VECPHYS_CUDA_HEADER_HOST void
 IonisationMoller::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void 
+VECPHYS_CUDA_HEADER_HOST void
 IonisationMoller::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (MollerBhabha pdf) in the
   // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
   //
   // input  :  Z    (atomic number) - not used for the atomic independent model
-  // output :  p[nrow][ncol] (probability distribution) 
+  // output :  p[nrow][ncol] (probability distribution)
   //
   // storing/retrieving convention for irow and icol : p[irow x ncol + icol]
 
@@ -68,7 +68,7 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
     double ymin = fDeltaRayThreshold; //minimum delta-ray energy
     double dy = (x/2.0 - ymin)/ncol; //maximum x/2.0
     double yo = ymin + 0.5*dy;
-  
+
     double sum = 0.;
 
     for(int j = 0; j < ncol ; ++j) {
@@ -90,15 +90,15 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
 
 // function implementing the cross section for MollerBhabha
 
-VECPHYS_CUDA_HEADER_BOTH double 
+VECPHYS_CUDA_HEADER_BOTH double
 IonisationMoller::CalculateDiffCrossSection(int Zelement,
-                                            double kineticEnergy, 
+                                            double kineticEnergy,
 					    double deltaRayEnergy) const
 {
   // based on Geant3 : Simulation of the delta-ray production (PHY331-1)
   // input  : kineticEnergy (incomming photon energy)
   //          deltaRayEnergy (scattered photon energy)
-  // output : dcross (differential cross section) 
+  // output : dcross (differential cross section)
 
   double dcross = 0.0;
 
@@ -120,8 +120,8 @@ IonisationMoller::CalculateDiffCrossSection(int Zelement,
   return dcross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH double 
-IonisationMoller::GetG4CrossSection(double kineticEnergy, 
+VECPHYS_CUDA_HEADER_BOTH double
+IonisationMoller::GetG4CrossSection(double kineticEnergy,
                                     const int Z)
 {
   G4double cross = 0.0;
@@ -154,7 +154,7 @@ IonisationMoller::GetG4CrossSection(double kineticEnergy,
   return cross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void 
+VECPHYS_CUDA_HEADER_BOTH void
 IonisationMoller::SampleByCompositionRejection(int     Z, //not used
                                                double  kineticEnergy,
                                                double& deltaKinEnergy,
@@ -166,8 +166,8 @@ IonisationMoller::SampleByCompositionRejection(int     Z, //not used
 
   //based on G4MollerBhabhaModel::SampleSecondaries
 
-  G4double tmin = cutEnergy;  
-  G4double tmax = 0.5*kineticEnergy; 
+  G4double tmin = cutEnergy;
+  G4double tmax = 0.5*kineticEnergy;
 
   if(maxEnergy < tmax) { tmax = maxEnergy; }
 

@@ -9,7 +9,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 //should be template for precision choices
 class GUAliasTable
-{ 
+{
  public:
   VECPHYS_FUNC_QUALIFIER
   GUAliasTable(int ngrid);

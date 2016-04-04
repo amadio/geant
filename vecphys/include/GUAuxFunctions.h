@@ -2,7 +2,7 @@
 //  Separate declarations of necessary or useful methods
 //
 //   Must be used only in implementation files (ie .cxx) - not in headers
-// 
+//
 //  Author: J. Apostolakis
 //
 

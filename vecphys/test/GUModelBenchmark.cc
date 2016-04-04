@@ -13,11 +13,11 @@ int main(int argc, char* argv[])
   int ntracks = 4992;
   int nrepetitions = 100;
   double minEnergy =  500.*MeV;
-  double maxEnergy =  minEnergy; 
+  double maxEnergy =  minEnergy;
   SamplingMethod sampleType = SamplingMethod::kAlias;
   int emModel = GUPhysicsModelIndex::kNullModel ; //all models
   int materialMode = 0; //32 selected elements
-  
+
   if(argc >= 2) ntracks =      atoi(argv[1]);
   if(argc >= 3) nrepetitions = atoi(argv[2]);
   if(argc >= 4) {
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   }
 
   if(argc >= 6)  {
-    int type = atoi(argv[5]);   
+    int type = atoi(argv[5]);
     if(type==0) sampleType = SamplingMethod::kAlias;
     if(type==1) sampleType = SamplingMethod::kRejection;
     if(type==2) sampleType = SamplingMethod::kUnpack;
@@ -53,16 +53,16 @@ int main(int argc, char* argv[])
   }
 
   if(argc >= 7)  {
-    emModel = atoi(argv[6]);   
+    emModel = atoi(argv[6]);
     if(emModel == -1 ) {
       std::cout << "  Validation for all available vector EM physics models" << std::endl;
     }
     else if(emModel >= 0 && emModel < kNumberPhysicsModel ) {
-      std::cout << "  Validation for vector EM physics model  = " 
+      std::cout << "  Validation for vector EM physics model  = "
 		<< GUPhysicsModelName[emModel] << std::endl;
     }
     else {
-      std::cout << "  Illegal vector physics model " << emModel 
+      std::cout << "  Illegal vector physics model " << emModel
 		<< "! Should be [-1:" << kNumberPhysicsModel-1 << "]" << std::endl;
       exit(0);
     }
@@ -71,9 +71,9 @@ int main(int argc, char* argv[])
   }
 
   if(argc >= 8)  {
-    materialMode = atoi(argv[7]);   
+    materialMode = atoi(argv[7]);
     if(materialMode < 0 || materialMode > 1) {
-      std::cout << "  Illegal material mode " << materialMode 
+      std::cout << "  Illegal material mode " << materialMode
 		<< "! Should be [0:1] (see " << std::endl;
       exit(0);
     }
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   tester.SetSampleType( sampleType );
   tester.SetEmModel( emModel );
   tester.SetMaterialMode( materialMode );
-  
+
   int status = tester.RunBenchmark();
 
   if(status==1) std::cout << "RunBenchmark Failed" << std::endl;
