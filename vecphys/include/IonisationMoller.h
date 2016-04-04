@@ -113,7 +113,7 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy,
   //energy = kinetic energy
 
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v sigmaOut = 0.;
   Bool_t belowLimit = Bool_t(false);
@@ -155,7 +155,7 @@ IonisationMoller::InteractKernel(typename Backend::Double_v  energyIn,
                                  typename Backend::Double_v& sinTheta)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Index_t   irow;
   Index_t   icol;
@@ -186,7 +186,7 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
                                  typename Backend::Double_v energyOut) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //angle of the scatterred electron
 
@@ -214,7 +214,7 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
                                    typename Backend::Double_v& sinTheta)
 {
   typedef typename Backend::Bool_t Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //temporary - set by material
   Double_v cutEnergy = fDeltaRayThreshold;
@@ -270,7 +270,7 @@ IonisationMoller::SampleSequential(typename Backend::Double_v xmin,
                                    typename Backend::Double_v gg) const
 {
   typedef typename Backend::Int_t Int_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v  q;
   Double_v  x;

@@ -135,7 +135,7 @@ typename Backend::Double_v
 PhotoElectronSauterGavrila::CrossSectionKernel(typename Backend::Double_v energy,
                                                typename Backend::Index_t  Z)
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v sigma = 0.;
 
@@ -192,7 +192,7 @@ InteractKernel(typename Backend::Double_v  energyIn,
                typename Backend::Double_v& sinTheta)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //energy of photo-electron: Sandia parameterization
   energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement) ;
@@ -231,7 +231,7 @@ GetPhotoElectronEnergy(typename Backend::Double_v energy,
   // this method is not vectorizable and only for the scalar backend
 
   typedef typename Backend::Int_t Int_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   // Photo electron energy
   Double_v energyOut = 0.;
@@ -289,7 +289,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
                                              typename Backend::Double_v& energyOut,
                                              typename Backend::Double_v& sinTheta)
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   //  typedef typename Backend::Bool_t Bool_t;
 
   //energy of photo-electron: Sandia parameterization
@@ -328,7 +328,7 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_v A,
                                              typename Backend::Double_v B,
                                              typename Backend::Double_v grej) const
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v z;
   Double_v g;
@@ -390,7 +390,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack&  inProjectile,
                                                const int targetElement,
                                                GUTrack&  outSecondary )
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v energyIn = inProjectile.E;
 
@@ -433,7 +433,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
                                                GUTrack_v& outSecondary)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //filtering energy regions for sampling methods - setable if necessary
   const double aliaslimit = 1.0*MeV;

@@ -55,7 +55,7 @@ void Power2Divisor::GetBinAndFraction(typename Backend::Double_v x,
 {
   typedef typename Backend::Int_t Int_t;
   typedef typename Backend::Index_t Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Int_t    exponent;
   Double_v mantissa = frexp (x, &exponent); // Vc::frexp

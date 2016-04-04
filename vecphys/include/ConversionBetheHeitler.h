@@ -128,7 +128,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   // interface  to fill produced secondaries into a single stact
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //early return if E_gamma < 2*electron_mass_c2
 
@@ -186,7 +186,7 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
 	       typename Backend::Double_v& sinThetaPositron) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //angles of the pair production (gamma -> e+e-)
 
@@ -216,7 +216,7 @@ CrossSectionKernel(typename Backend::Double_v energy,
                    typename Backend::Index_t Z)
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v sigma = 0.;
 

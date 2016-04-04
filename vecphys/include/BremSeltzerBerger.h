@@ -171,7 +171,7 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
                                   typename Backend::Double_v& sinTheta)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Index_t   irow;
   Index_t   icol;
@@ -215,7 +215,7 @@ typename Backend::Double_v
 BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //angle of the radiated photon
   //based on G4DipBustGenerator::SampleDirection

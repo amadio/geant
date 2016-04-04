@@ -165,7 +165,7 @@ SampleBin(typename Backend::Double_v kineticEnergy,
          ) const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   typedef typename Backend::Bool_t Bool_t;
   typedef typename Backend::Int_t  Int_t;
 
@@ -203,7 +203,7 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
              typename Backend::Double_v &fraction  // within the sampled bin
              ) const
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   typedef typename Backend::Bool_t Bool_t;
   typedef typename Backend::Int_t  Int_t;
 
@@ -248,7 +248,7 @@ SampleX(typename Backend::Double_v rangeSampled,
 {
   typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   typedef typename Backend::Index_t  Index_t;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
@@ -289,7 +289,7 @@ SampleXL(typename Backend::Index_t  zElement,
 {
   typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   typedef typename Backend::Index_t  Index_t;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
@@ -377,7 +377,7 @@ GUAliasSampler::GetPDF(typename Backend::Index_t zElement,
                        typename Backend::Index_t irow,
                        typename Backend::Index_t icol) const
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   int     intIndex= (int) (fSampledNumEntries*irow + icol);
   Double_v pdf= (fAliasTableManager->GetAliasTable(zElement))->fpdf[intIndex];
@@ -407,7 +407,7 @@ typename Backend::Double_v
 GUAliasSampler::GetPDF(typename Backend::Index_t irow,
                        typename Backend::Index_t icol) const
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   int     intIndex= (int) (fSampledNumEntries*irow + icol);
   Double_v pdf= (fAliasTableManager->GetAliasTable(0))->fpdf[intIndex];

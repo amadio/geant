@@ -301,7 +301,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
                                               double*    sigma)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
@@ -341,7 +341,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < nTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
@@ -402,7 +402,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < sizeOfInputTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
@@ -592,7 +592,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
                                   typename Backend::Double_v &zr)
 {
   typedef typename Backend::Int_t    Int_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   typedef typename Backend::Bool_t   Bool_t;
 
   Double_v phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
@@ -689,7 +689,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn,
                                            GUTrack_v& primary,
                                            GUTrack_v& secondary) // const
 {
-    typedef typename Backend::Double_v Double_v;
+    using Double_v = typename Backend::Double_v;
 
     //need to rotate the angle with respect to the line of flight
     Double_v px(&primary.px[ibase]);

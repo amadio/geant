@@ -139,7 +139,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
                                         typename Backend::Index_t   Z)
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v sigmaOut = 0.;
   Bool_t belowLimit = Bool_t(false);
@@ -192,7 +192,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
                                     typename Backend::Double_v& sinTheta)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Index_t   irow;
   Index_t   icol;
@@ -229,7 +229,7 @@ ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v  energyIn,
                                       typename Backend::Double_v& energyOut,
                                       typename Backend::Double_v& sinTheta)
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v E0_m = energyIn/electron_mass_c2;
 
@@ -254,7 +254,7 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
                                     typename Backend::Double_v energyOut) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //angle of the scatterred photon
 
@@ -289,7 +289,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
 {
   typedef typename Backend::Int_t Int_t;
   typedef typename Backend::Bool_t Bool_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v epsilon;
   Double_v greject;
@@ -352,7 +352,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
                                           typename Backend::Double_v& sinTheta,
                                           typename Backend::Bool_t&   status)
 {
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
   typedef typename Backend::Bool_t Bool_t;
   typedef typename Backend::Int_t Int_t;
 
@@ -429,7 +429,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_v Double_v;
+  using Double_v = typename Backend::Double_v;
 
   //filtering the energy region for the alias method - setable if necessary
   const double aliaslimit = 100.0*MeV;
