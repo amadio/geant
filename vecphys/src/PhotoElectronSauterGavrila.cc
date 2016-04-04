@@ -217,7 +217,7 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
                                                          double& sint)
 {
   //use the scalar implementation which is equivalent to Geant4
-  energyOut =  GetPhotoElectronEnergy<kScalar>(energyIn,Z);
+  energyOut =  GetPhotoElectronEnergy<backend::Scalar>(energyIn,Z);
 
   //sample angular direction according to SauterGavrilaAngularDistribution
 
@@ -241,11 +241,11 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
     G4double grej  = 2.*(1. + A*B)/A;
     G4double z, g;
     do {
-      G4double q = UniformRandom<kScalar>(fRandomState,fThreadId);
+      G4double q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       z = 2*A*(2*q + Ap2*std::sqrt(q))/(Ap2*Ap2 - 4*q);
       g = (2 - z)*(1.0/(A + z) + B);
 
-    } while(g < UniformRandom<kScalar>(fRandomState,fThreadId)*grej);
+    } while(g < UniformRandom<backend::Scalar>(fRandomState,fThreadId)*grej);
 
     cost = 1 - z;
   }

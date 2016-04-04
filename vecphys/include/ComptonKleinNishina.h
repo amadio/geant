@@ -325,14 +325,14 @@ ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_v E0_m,
   for(int i = 0; i < kVc::kSize ; ++i) {
 
     do {
-      bool cond = test[i] > UniformRandom<kScalar>(fRandomState,fThreadId);
-      if(cond) epsilon[i] = Exp(-alpha1[i]*UniformRandom<kScalar>(fRandomState,fThreadId));
-      else  epsilon[i] = Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<kScalar>(fRandomState,fThreadId));
+      bool cond = test[i] > UniformRandom<backend::Scalar>(fRandomState,fThreadId);
+      if(cond) epsilon[i] = Exp(-alpha1[i]*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
+      else  epsilon[i] = Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
 
       double onecost = (1.- epsilon[i])/(epsilon[i]*E0_m[i]);
       sint2[i]   = onecost*(2.-onecost);
       greject = 1. - epsilon[i]*sint2[i]/(1.+ epsilon[i]*epsilon[i]);
-    } while (greject < UniformRandom<kScalar>(fRandomState,fThreadId));
+    } while (greject < UniformRandom<backend::Scalar>(fRandomState,fThreadId));
   }
 
   return epsilon;
@@ -463,8 +463,8 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
     //use InteractKernel for any leftover to be consistent with EmBaseModel
-    InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    InteractKernel<backend::Scalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 

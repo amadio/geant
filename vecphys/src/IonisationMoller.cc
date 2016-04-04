@@ -187,11 +187,11 @@ IonisationMoller::SampleByCompositionRejection(int     Z, //not used
   grej = 1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
 
   do {
-    q = UniformRandom<kScalar>(fRandomState,fThreadId);
+    q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
     x = xmin*xmax/(xmin*(1.0 - q) + xmax*q);
     y = 1.0 - x;
     z = 1.0 - gg*x + x*x*(1.0 - gg + (1.0 - gg*y)/(y*y));
-  } while(grej * UniformRandom<kScalar>(fRandomState,fThreadId) > z);
+  } while(grej * UniformRandom<backend::Scalar>(fRandomState,fThreadId) > z);
 
   deltaKinEnergy = x * kineticEnergy;
 

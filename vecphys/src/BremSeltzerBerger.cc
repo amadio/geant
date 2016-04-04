@@ -244,7 +244,7 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   if(x0 < 0.05) { vmax *= 1.2; }
 
   do {
-    G4double auxrand = UniformRandom<kScalar>(fRandomState,fThreadId);
+    G4double auxrand = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
     G4double x = G4Exp(xmin + auxrand*(xmax - xmin)) - densityCorr;
     if(x < 0.0) { x = 0.0; }
     gammaEnergy = Sqrt(x);
@@ -253,13 +253,13 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
 
     // correction for positrons
 
-  } while (v < vmax*UniformRandom<kScalar>(fRandomState,fThreadId));
+  } while (v < vmax*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
 
   //
   // angles of the emitted gamma. ( Z - axis along the parent particle)
   // use general interface
   //
-  sinTheta = SampleSinTheta<kScalar>(gammaEnergy);
+  sinTheta = SampleSinTheta<backend::Scalar>(gammaEnergy);
 }
 
 VECCORE_CUDA_HOST_DEVICE double

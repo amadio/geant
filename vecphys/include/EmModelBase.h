@@ -321,7 +321,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
 
   //leftover - do scalar
   for(int i = numChunks*VectorSize<Double_v>() ; i < inProjectile.numTracks ; ++i) {
-    sigma[i] = static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i]);
+    sigma[i] = static_cast<EmModel*>(this)-> template CrossSectionKernel<backend::Scalar>(inProjectile.E[i],targetElements[i]);
   }
 }
 
@@ -380,8 +380,8 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
 
-    static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    static_cast<EmModel*>(this)-> template InteractKernel<backend::Scalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 
@@ -535,8 +535,8 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
 
-    static_cast<EmModel*>(this)-> template InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    static_cast<EmModel*>(this)-> template InteractKernel<backend::Scalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 
@@ -750,7 +750,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_v ene
   Double_v vhat = 0.;
   Double_v what = 0.;
 
-  RotateAngle<kScalar>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+  RotateAngle<backend::Scalar>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
   // Update primary
   primary.E[ibase]  = energyOut;

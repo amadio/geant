@@ -272,7 +272,7 @@ GetPhotoElectronEnergy<kVc>(typename kVc::Double_v energy,
   kVc::Double_v energyOut;
 
   for(int i = 0; i < kVc::kSize ; ++i) {
-    energyOut[i] = GetPhotoElectronEnergy<kScalar>(energy[i],zElement[i]);
+    energyOut[i] = GetPhotoElectronEnergy<backend::Scalar>(energy[i],zElement[i]);
   }
 
   return energyOut;
@@ -357,10 +357,10 @@ PhotoElectronSauterGavrila::SampleSequential<kVc>(typename kVc::Double_v A,
 
   for(int i = 0; i < kVc::kSize ; ++i) {
     do {
-      double q = UniformRandom<kScalar>(fRandomState,fThreadId);
+      double q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       z[i] = 2*A[i]*(2*q + Ap2[i]*sqrt(q))/(Ap2[i]*Ap2[i] - 4*q);
       g = (2 - z[i])*(1.0/(A[i] + z[i]) + B[i]);
-    } while(g < UniformRandom<kScalar>(fRandomState,fThreadId)*grej[i]);
+    } while(g < UniformRandom<backend::Scalar>(fRandomState,fThreadId)*grej[i]);
   }
 
   return z;
@@ -477,8 +477,8 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
     //use InteractKernel for any leftover to be consistent with EmBaseModel
-    InteractKernel<kScalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
-    ConvertXtoFinalState_Scalar<kScalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    InteractKernel<backend::Scalar>(senergyIn,targetElements[i],senergyOut,ssinTheta);
+    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 

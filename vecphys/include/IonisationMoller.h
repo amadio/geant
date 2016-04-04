@@ -304,11 +304,11 @@ IonisationMoller::SampleSequential<kVc>(typename kVc::Double_v xmin,
 
   for(int i = 0; i < kVc::kSize ; ++i) {
     do {
-      q = UniformRandom<kScalar>(fRandomState,fThreadId);
+      q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       x[i] = xmin[i]*xmax[i]/(xmin[i]*(1.0 - q) + xmax[i]*q);
       y[i] = 1.0 - x[i];
       z = 1.0 - gg[i]*x[i] + x[i]*x[i]*(1.0 - gg[i] + (1.0 - gg[i]*y[i])/(y[i]*y[i]));
-    } while(grej[i] * UniformRandom<kScalar>(fRandomState,fThreadId) > z);
+    } while(grej[i] * UniformRandom<backend::Scalar>(fRandomState,fThreadId) > z);
   }
   return x;
 }

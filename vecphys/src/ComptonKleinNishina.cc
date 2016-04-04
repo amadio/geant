@@ -187,13 +187,13 @@ ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
   double alpha2     = 0.5*(1.- epsilon0sq);
 
   do {
-    if(alpha1/(alpha1+alpha2) > UniformRandom<kScalar>(fRandomState,fThreadId))
+    if(alpha1/(alpha1+alpha2) > UniformRandom<backend::Scalar>(fRandomState,fThreadId))
     {
-      epsilon   = exp(-alpha1*UniformRandom<kScalar>(fRandomState,fThreadId));
+      epsilon   = exp(-alpha1*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
       epsilonsq = epsilon*epsilon;
     }
     else {
-      epsilonsq = epsilon0sq+(1.- epsilon0sq)*UniformRandom<kScalar>(fRandomState,fThreadId);
+      epsilonsq = epsilon0sq+(1.- epsilon0sq)*UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       epsilon   = sqrt(epsilonsq);
     }
 
@@ -201,7 +201,7 @@ ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilonsq);
 
-  } while (greject < UniformRandom<kScalar>(fRandomState,fThreadId));
+  } while (greject < UniformRandom<backend::Scalar>(fRandomState,fThreadId));
 
   energyOut = epsilon*energyIn;
   sinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);
