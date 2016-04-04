@@ -208,8 +208,8 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   //  G4double emax = Min(maxEnergy, kineticEnergy);
   //@@@syj cutEnergy should be get from the material table (cut table).
   //other hard coded numbers are also temporary and will be replaced properly
-  G4double cut  = Min(1.0*keV, kineticEnergy);
-  G4double emax = Min(1.0*TeV, kineticEnergy);
+  G4double cut  = math::Min(1.0*keV, kineticEnergy);
+  G4double emax = math::Min(1.0*TeV, kineticEnergy);
   if(cut >= emax) { return; }
 
 
@@ -237,7 +237,7 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   bool isElectron = true;
   if(isElectron && x0 < 0.97 &&
      ((kineticEnergy > epeaklimit) || (kineticEnergy < elowlimit))) {
-    G4double ylim = Min(fDataSB[Z].Value(0.97, 4*log(10.)),
+    G4double ylim = math::Min(fDataSB[Z].Value(0.97, 4*log(10.)),
                     1.1*fDataSB[Z].Value(0.97,y));
     if(ylim > vmax) { vmax = ylim; }
   }
@@ -273,8 +273,8 @@ BremSeltzerBerger::GetG4CrossSection(double  kineticEnergy,
   //G4eBremsstrahlungRelModel::ComputeCrossSectionPerAtom
   if(kineticEnergy < fLowEnergyLimit) { return 0.0; }
 
-  G4double cut  = Min(cutEnergy, kineticEnergy);
-  G4double tmax = Min(maxEnergy, kineticEnergy);
+  G4double cut  = math::Min(cutEnergy, kineticEnergy);
+  G4double tmax = math::Min(maxEnergy, kineticEnergy);
 
   if(cut >= tmax) { return 0.0; }
 

@@ -201,7 +201,7 @@ SampleByCompositionRejection(int     elementZ,
     G4double Z3 = pow(1.0*int(elementZ + 0.5),1/3.0);
     G4double screenfac = 136.*epsil0/Z3;//(anElement->GetIonisation()->GetZ3());
     G4double screenmax = exp ((42.24 - FZ)/8.368) - 0.952 ;
-    G4double screenmin = fmin(4.*screenfac,screenmax);
+    G4double screenmin = math::Min(4.*screenfac,screenmax);
 
     // limits of the energy sampling
     G4double epsil1 = 0.5 - 0.5*sqrt(1. - screenmin/screenmax) ;

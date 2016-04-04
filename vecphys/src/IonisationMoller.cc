@@ -131,7 +131,7 @@ IonisationMoller::GetG4CrossSection(double kineticEnergy,
   G4double maxEnergy = 1.0*TeV;
 
   G4double tmax =  0.5*kineticEnergy;
-  tmax = Min(maxEnergy, tmax);
+  tmax = math::Min(maxEnergy, tmax);
 
   if(cutEnergy < tmax) {
     G4double xmin  = cutEnergy/kineticEnergy;

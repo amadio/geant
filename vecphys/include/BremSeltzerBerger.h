@@ -192,8 +192,8 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
   // densityFactor = (Migdal constant)x(electron density of the material);
   Double_v densityFactor = 1.0;
 
-  Double_v emin = Min(fAliasSampler->GetIncomingMin(), energyIn);
-  Double_v emax = Min(fAliasSampler->GetIncomingMax(), energyIn);
+  Double_v emin = math::Min(fAliasSampler->GetIncomingMin(), energyIn);
+  Double_v emax = math::Min(fAliasSampler->GetIncomingMax(), energyIn);
 
   Double_v totalEnergy = energyIn + electron_mass_c2;
   Double_v densityCorr = densityFactor*totalEnergy*totalEnergy;
