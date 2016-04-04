@@ -3,14 +3,14 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 GUAliasTable::GUAliasTable(int ngrid)
 {
   fNGrid = ngrid;
   Allocate(ngrid);
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 GUAliasTable::GUAliasTable(const GUAliasTable& table)
 {
   Deallocate();
@@ -18,7 +18,7 @@ GUAliasTable::GUAliasTable(const GUAliasTable& table)
   CopyData(table);
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 GUAliasTable& GUAliasTable::operator=(const GUAliasTable& table)
 {
   if (this != &table) {
@@ -29,13 +29,13 @@ GUAliasTable& GUAliasTable::operator=(const GUAliasTable& table)
   return *this;
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 GUAliasTable::~GUAliasTable()
 {
   Deallocate();
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasTable::Allocate(int ngrid) {
   //try
   fpdf   = new Precision [fNGrid];
@@ -49,14 +49,14 @@ void GUAliasTable::Allocate(int ngrid) {
   }
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasTable::Deallocate() {
   delete [] fpdf;
   delete [] fProbQ;
   delete [] fAlias;
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasTable::CopyData(const GUAliasTable& table) {
   int i;
   fNGrid = table.fNGrid;
@@ -67,12 +67,12 @@ void GUAliasTable::CopyData(const GUAliasTable& table) {
   }
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 int GUAliasTable::SizeOfTable() {
   return sizeof(int) + SizeOfGrid()*(2.*sizeof(Precision)+sizeof(int));
 }
 
-VECPHYS_FUNC_QUALIFIER
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasTable::PrintInfo() {
   printf("Size(NGrid,Table) = (%d,%d)\n",SizeOfGrid(),SizeOfTable());
 }

@@ -11,38 +11,38 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 class GUAliasTable
 {
  public:
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasTable(int ngrid);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasTable(const GUAliasTable& table);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasTable& operator=(const GUAliasTable& table);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   ~GUAliasTable();
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void Allocate(int ngrid);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void Deallocate();
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void CopyData(const GUAliasTable& table);
 
 #ifdef VECCORE_NVCC
   void Relocate(void *devPtr);
 #endif
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   int SizeOfGrid() { return fNGrid; }
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   int SizeOfTable();
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void PrintInfo();
 
   Precision* fpdf;         // original p.d.f distribution

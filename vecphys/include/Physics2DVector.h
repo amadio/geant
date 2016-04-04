@@ -14,31 +14,31 @@ class Physics2DVector
 {
 public:
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   Physics2DVector();
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   ~Physics2DVector(){};
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   double Value(double x, double y);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void PutX(size_t idx, double val);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void PutY(size_t idy, double val);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   void PutValue(size_t idx, size_t idy, double val);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   double GetValue(size_t idx, size_t idy);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   size_t FindBinLocationX(double x);
 
-  VECPHYS_FUNC_QUALIFIER
+  VECCORE_CUDA_HOST_DEVICE
   size_t FindBinLocationY(double y);
 
 private:
