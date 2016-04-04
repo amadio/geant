@@ -161,7 +161,7 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
     for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
       double y = exp(yo + dy*j) - dc;
-      double w = (y < 0 ) ? 0 : sqrt(y)/x;
+      double w = (y < 0 ) ? 0 : math::Sqrt(y)/x;
       double xsec = CalculateDiffCrossSection(Z,w,logx);
       p[i*ncol+j] = xsec;
       sum += xsec;
@@ -219,7 +219,7 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
 
   double totalEnergy = kineticEnergy + electron_mass_c2;
   double densityCorr = densityFactor*totalEnergy*totalEnergy;
-  //G4double totMomentum = Sqrt(kineticEnergy*(totalEnergy + electron_mass_c2));
+  //G4double totMomentum = math::Sqrt(kineticEnergy*(totalEnergy + electron_mass_c2));
   G4double xmin = G4Log(cut*cut + densityCorr);
   G4double xmax = G4Log(emax*emax  + densityCorr);
   G4double y = G4Log(kineticEnergy/MeV);
@@ -247,7 +247,7 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
     G4double auxrand = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
     G4double x = G4Exp(xmin + auxrand*(xmax - xmin)) - densityCorr;
     if(x < 0.0) { x = 0.0; }
-    gammaEnergy = Sqrt(x);
+    gammaEnergy = math::Sqrt(x);
     G4double x1 = gammaEnergy/kineticEnergy;
     v = fDataSB[Z].Value(x1, y);
 
@@ -360,7 +360,7 @@ G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut,
   G4double xs;
 
   // densityFactor = mat->GetElectronDensity()*fMigdalConstant;
-  // energyThresholdLPM=sqrt(densityFactor)*lpmEnergy;
+  // energyThresholdLPM=math::Sqrt(densityFactor)*lpmEnergy;
   G4double densityFactor = 1.0;
   G4double energyThresholdLPM=1.0;
   G4double densityCorr = densityFactor*totalEnergy*totalEnergy;
@@ -468,7 +468,7 @@ void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
   // *** calculate lpm variable s & sprime ***
   // Klein eqs. (78) & (79)
 
-  G4double sprime = sqrt(0.125*k*lpmEnergy/(totalEnergy*(totalEnergy-k)));
+  G4double sprime = math::Sqrt(0.125*k*lpmEnergy/(totalEnergy*(totalEnergy-k)));
 
   //  G4double s1 = preS1*z23;
   G4double s1 = (1./(184.15*184.15))*z23;
@@ -481,13 +481,13 @@ void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
 
   if (sprime>1)
     xiLPM = 1.;
-  else if (sprime>sqrt(2.)*s1) {
+  else if (sprime>math::Sqrt(2.)*s1) {
     G4double h  = log(sprime)/logTS1;
     //    xiLPM = 1+h-0.08*(1-h)*(1-sqr(1-h))/logTS1;
     xiLPM = 1+h-0.08*(1-h)*(1-(1-h)*(1-h))/logTS1;
   }
 
-  G4double s0 = sprime/sqrt(xiLPM);
+  G4double s0 = sprime/math::Sqrt(xiLPM);
 
   // *** merging with density effect***  should be only necessary in region
   // "close to" kp, e.g. k<100*kp using Ter-Mikaelian eq. (20.9)

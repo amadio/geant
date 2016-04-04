@@ -194,7 +194,7 @@ ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
     }
     else {
       epsilonsq = epsilon0sq+(1.- epsilon0sq)*UniformRandom<backend::Scalar>(fRandomState,fThreadId);
-      epsilon   = sqrt(epsilonsq);
+      epsilon   = math::Sqrt(epsilonsq);
     }
 
     onecost = (1.- epsilon)/(epsilon*E0_m);
@@ -204,7 +204,7 @@ ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
   } while (greject < UniformRandom<backend::Scalar>(fRandomState,fThreadId));
 
   energyOut = epsilon*energyIn;
-  sinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);
+  sinTheta = (sint2 < 0.0) ? 0.0 : math::Sqrt(sint2);
 }
 
 } // end namespace impl

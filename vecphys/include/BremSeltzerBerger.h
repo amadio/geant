@@ -204,7 +204,7 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
   Double_v yhat = fAliasSampler->SampleX<Backend>(deltaY,probNA,
                                                   aliasInd,icol,fraction);
 
-  energyOut =  Sqrt(math::Max(Exp(minY + yhat)- densityCorr,0.0));
+  energyOut =  math::Sqrt(math::Max(Exp(minY + yhat)- densityCorr,0.0));
   sinTheta = SampleSinTheta<Backend>(energyOut);
 }
 
@@ -227,22 +227,22 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
   MaskedAssign(  condition,  c , &a );
   MaskedAssign( !condition, -c , &a );
 
-  Double_v delta  = Sqrt(a*a+4.);
+  Double_v delta  = math::Sqrt(a*a+4.);
   delta += a;
   delta *= 0.5;
 
   //To-do:  Vc does not support pow
   //  Double_v cofA = -signc*Pow(delta, 1./3.);
-  Double_v cofA = -signc*Sqrt(delta); //temporary replace Sqrt by pow
+  Double_v cofA = -signc*math::Sqrt(delta); //temporary replace Sqrt by pow
 
   Double_v cosTheta = cofA - 1./cofA;
 
   Double_v tau  = energyIn/electron_mass_c2;
-  Double_v beta = Sqrt(tau*(tau + 2.))/(tau + 1.);
+  Double_v beta = math::Sqrt(tau*(tau + 2.))/(tau + 1.);
 
   cosTheta = (cosTheta + beta)/(1 + cosTheta*beta);
 
-  Double_v sinTheta = Sqrt((1 - cosTheta)*(1 + cosTheta));
+  Double_v sinTheta = math::Sqrt((1 - cosTheta)*(1 + cosTheta));
 
   return sinTheta;
 }

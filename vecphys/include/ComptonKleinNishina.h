@@ -242,7 +242,7 @@ ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v  energyIn,
   Double_v epsilon = SampleSequential<Backend>(E0_m,test,alpha1,epsilon0sq,sint2);
 
   energyOut = epsilon*energyIn;
-  sinTheta = Sqrt(sint2);
+  sinTheta = math::Sqrt(sint2);
 }
 
 template<class Backend>
@@ -269,7 +269,7 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
   Mask_v<Double_v> condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
-  MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );
+  MaskedAssign( !condition2, math::Sqrt(sint2), &sinTheta );
 
   return sinTheta;
 }
@@ -294,7 +294,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
     Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
     MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
-    MaskedAssign(!cond, Sqrt(epsil0sq+(1.- epsil0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
+    MaskedAssign(!cond, math::Sqrt(epsil0sq+(1.- epsil0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
 
     Double_v onecost = (1.- epsilon)/(epsilon*E0_m);
     sint2   = onecost*(2.-onecost);
@@ -327,7 +327,7 @@ ComptonKleinNishina::SampleSequential<backend::VcVector>(typename backend::VcVec
     do {
       bool cond = test[i] > UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       if(cond) epsilon[i] = Exp(-alpha1[i]*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
-      else  epsilon[i] = Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
+      else  epsilon[i] = math::Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
 
       double onecost = (1.- epsilon[i])/(epsilon[i]*E0_m[i]);
       sint2[i]   = onecost*(2.-onecost);
@@ -366,7 +366,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
   Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
-  MaskedAssign(!cond, Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
+  MaskedAssign(!cond, math::Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
 
   Double_v onecost = (1.- epsilon)/(epsilon*E0_m);
   Double_v sint2   = onecost*(2.-onecost);
@@ -376,7 +376,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
   status = greject < UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   energyOut = epsilon*energyIn;
-  sinTheta = Sqrt(sint2);
+  sinTheta = math::Sqrt(sint2);
 }
 
 //Alternative Interact method

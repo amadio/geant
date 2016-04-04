@@ -121,7 +121,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
 
   double g         = tau + 1.0;
   double invgamma  = 1.0/(tau + 1.0);
-  double beta      = sqrt(tau*(tau + 2.0))*invgamma;
+  double beta      = math::Sqrt(tau*(tau + 2.0))*invgamma;
 
   double z  = 1-beta*cosTheta;
   double z2 = z*z;
@@ -147,7 +147,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
 
   double g         = tau + 1.0;
   double invgamma  = 1.0/(tau + 1.0);
-  double beta      = sqrt(tau*(tau + 2.0))*invgamma;
+  double beta      = math::Sqrt(tau*(tau + 2.0))*invgamma;
 
   double g2 = g*g;
   double g3 = g2*g;
@@ -182,7 +182,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
   double dsigmaK = (y/z4)*(1+0.5*g*(g-1)*(g-2)*z)*PK;
   double dsigmaL1 = dsigmaK;
 
-  double coeff= sqrt((g+1)*tau)/pow(g*tau,5.0);
+  double coeff= math::Sqrt((g+1)*tau)/pow(g*tau,5.0);
 
   double dsigmaL2 =  g*(3.*g+1)/(2*z4) - g2*(9*g2+30*g -7)/(8*z3)
                   + g3*(g3+6*g2 +11*g -2)/(4*z2) - g4*(tau*(g+7))/(8*z)
@@ -234,7 +234,7 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
     // F.Sauter Ann. Physik 9, 217(1931); 11, 454(1931).
 
     G4double gamma = tau + 1.;
-    G4double beta  = std::sqrt(tau*(tau + 2.))/gamma;
+    G4double beta  = math::Sqrt(tau*(tau + 2.))/gamma;
     G4double A     = (1 - beta)/beta;
     G4double Ap2   = A + 2.;
     G4double B     = 0.5*beta*gamma*(gamma - 1.)*(gamma - 2.);
@@ -242,7 +242,7 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
     G4double z, g;
     do {
       G4double q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
-      z = 2*A*(2*q + Ap2*std::sqrt(q))/(Ap2*Ap2 - 4*q);
+      z = 2*A*(2*q + Ap2*math::Sqrt(q))/(Ap2*Ap2 - 4*q);
       g = (2 - z)*(1.0/(A + z) + B);
 
     } while(g < UniformRandom<backend::Scalar>(fRandomState,fThreadId)*grej);
@@ -250,7 +250,7 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
     cost = 1 - z;
   }
 
-  sint = sqrt((1+cost)*(1-cost));
+  sint = math::Sqrt((1+cost)*(1-cost));
 }
 
 } // end namespace impl

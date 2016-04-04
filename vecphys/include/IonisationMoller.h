@@ -188,9 +188,9 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
   //angle of the scatterred electron
 
   Double_v energy = energyIn + electron_mass_c2;
-  Double_v totalMomentum = Sqrt(energyIn*(energyIn + 2.0*electron_mass_c2));
+  Double_v totalMomentum = math::Sqrt(energyIn*(energyIn + 2.0*electron_mass_c2));
 
-  Double_v deltaMomentum = Sqrt(energyOut * (energyOut + 2.0*electron_mass_c2));
+  Double_v deltaMomentum = math::Sqrt(energyOut * (energyOut + 2.0*electron_mass_c2));
   Double_v cost =  energyOut * (energy + electron_mass_c2) /
     (deltaMomentum * totalMomentum);
 
@@ -198,7 +198,7 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
   Double_v sinTheta;
   Mask_v<Double_v> condition2 = sint2 < 0.0;
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
-  MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );
+  MaskedAssign( !condition2, math::Sqrt(sint2), &sinTheta );
 
   return sinTheta;
 }
@@ -240,10 +240,10 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
 
   deltaKinEnergy = x * kineticEnergy;
 
-  Double_v totalMomentum = Sqrt(kineticEnergy*(kineticEnergy + 2.0*electron_mass_c2));
+  Double_v totalMomentum = math::Sqrt(kineticEnergy*(kineticEnergy + 2.0*electron_mass_c2));
 
   Double_v deltaMomentum =
-    Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));
+    math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));
   Double_v cost = deltaKinEnergy * (energy + electron_mass_c2) /
     (deltaMomentum * totalMomentum );
 
@@ -254,7 +254,7 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
 
   Mask_v<Double_v> condSin2 = (sint2 >= 0.0);
   Double_v zero(0.0);
-  CondAssign(condSin2, Sqrt(sint2), zero, &sinTheta);
+  CondAssign(condSin2, math::Sqrt(sint2), zero, &sinTheta);
 }
 
 template<class Backend>

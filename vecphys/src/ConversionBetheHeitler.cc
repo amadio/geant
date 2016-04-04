@@ -204,7 +204,7 @@ SampleByCompositionRejection(int     elementZ,
     G4double screenmin = math::Min(4.*screenfac,screenmax);
 
     // limits of the energy sampling
-    G4double epsil1 = 0.5 - 0.5*sqrt(1. - screenmin/screenmax) ;
+    G4double epsil1 = 0.5 - 0.5*math::Sqrt(1. - screenmin/screenmax) ;
     G4double epsilmin = math::Max(epsil0,epsil1) , epsilrange = 0.5 - epsilmin;
 
     //

@@ -217,7 +217,7 @@ InteractKernel(typename Backend::Double_v  energyIn,
   Double_v cosTheta = mininum + fAliasSampler->SampleX<Backend>(deltaE,probNA,
                                                       aliasInd,icol,fraction);
 
-  sinTheta = Sqrt((1+cosTheta)*(1-cosTheta));
+  sinTheta = math::Sqrt((1+cosTheta)*(1-cosTheta));
 }
 
 template<class Backend>
@@ -304,7 +304,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
   */
 
   Double_v gamma     = tau + 1.0;
-  Double_v beta      = sqrt(tau*(tau + 2.0))/gamma;
+  Double_v beta      = math::Sqrt(tau*(tau + 2.0))/gamma;
 
   Double_v A = (1-beta)/beta;
   Double_v Ap2 = A + 2;
@@ -314,7 +314,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
   Double_v z = SampleSequential<Backend>(A,Ap2,B,grej);
 
   //  MaskedAssign(!highE, 1.0 - z , &cosTheta);
-  sinTheta = Sqrt(z*(2-z)); // cosTheta = 1 -z
+  sinTheta = math::Sqrt(z*(2-z)); // cosTheta = 1 -z
 
 }
 template<class Backend>
@@ -333,7 +333,7 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_v A,
 
   do {
     Double_v q = UniformRandom<Backend>(fRandomState,fThreadId);
-    z = 2*A*(2*q + Ap2*sqrt(q))/(Ap2*Ap2 - 4*q);
+    z = 2*A*(2*q + Ap2*math::Sqrt(q))/(Ap2*Ap2 - 4*q);
     g = (2 - z)*(1.0/(A + z) + B);
   } while(g < UniformRandom<Backend>(fRandomState,fThreadId)*grej);
 
@@ -358,7 +358,7 @@ PhotoElectronSauterGavrila::SampleSequential<backend::VcVector>(typename backend
   for(int i = 0; i < backend::VcVector::kSize ; ++i) {
     do {
       double q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
-      z[i] = 2*A[i]*(2*q + Ap2[i]*sqrt(q))/(Ap2[i]*Ap2[i] - 4*q);
+      z[i] = 2*A[i]*(2*q + Ap2[i]*math::Sqrt(q))/(Ap2[i]*Ap2[i] - 4*q);
       g = (2 - z[i])*(1.0/(A[i] + z[i]) + B[i]);
     } while(g < UniformRandom<backend::Scalar>(fRandomState,fThreadId)*grej[i]);
   }

@@ -195,16 +195,16 @@ IonisationMoller::SampleByCompositionRejection(int     Z, //not used
 
   deltaKinEnergy = x * kineticEnergy;
 
-  G4double totalMomentum = sqrt(kineticEnergy*(kineticEnergy + 2.0*electron_mass_c2));
+  G4double totalMomentum = math::Sqrt(kineticEnergy*(kineticEnergy + 2.0*electron_mass_c2));
 
   G4double deltaMomentum =
-    sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));
+    math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0*electron_mass_c2));
   G4double cost = deltaKinEnergy * (energy + electron_mass_c2) /
     (deltaMomentum * totalMomentum );
   if(cost > 1.0) { cost = 1.0; }
   G4double sint2 = (1.0 - cost)*(1.0 + cost);
 
-  sinTheta = (sint2 < 0.0) ? 0.0 : sqrt(sint2);
+  sinTheta = (sint2 < 0.0) ? 0.0 : math::Sqrt(sint2);
 }
 
 } // end namespace impl

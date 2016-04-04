@@ -223,7 +223,7 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     (fTrack_soa.pz)[i] = fTrack_aos[i].pz = p*costheta; // std::cos(theta);
 
     mass = 0; // electron_mass_c2*fTrack_aos[i].q*fTrack_aos[i].q;
-    (fTrack_soa.E)[i]  = fTrack_aos[i].E  = p*p/(sqrt(p*p + mass*mass) + mass);
+    (fTrack_soa.E)[i]  = fTrack_aos[i].E  = p*p/(math::Sqrt(p*p + mass*mass) + mass);
 
   }
 }
