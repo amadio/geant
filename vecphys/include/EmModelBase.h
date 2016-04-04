@@ -307,7 +307,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
   }
 
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/Double_v::Size);
+  int numChunks= (inProjectile.numTracks/VectorSize<Double_v>());
 
   for(int i=0; i < numChunks ; ++i) {
     Double_v energyIn(&inProjectile.E[ibase]);
@@ -316,11 +316,11 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
     Double_v sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
 
     sigmaOut.store(&sigma[ibase]);
-    ibase+= Double_v::Size;
+    ibase+= VectorSize<Double_v>();
   }
 
   //leftover - do scalar
-  for(int i = numChunks*Double_v::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*VectorSize<Double_v>() ; i < inProjectile.numTracks ; ++i) {
     sigma[i] = static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i]);
   }
 }
@@ -346,7 +346,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   }
 
   int ibase= 0;
-  int numChunks= (nTracks/Double_v::Size);
+  int numChunks= (nTracks/VectorSize<Double_v>());
 
   for(int i= 0; i < numChunks ; ++i) {
     Index_v<Double_v>  zElement(targetElements[ibase]);
@@ -371,11 +371,11 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     }
 
     ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
-    ibase+= Double_v::Size;
+    ibase+= VectorSize<Double_v>();
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*Double_v::Size ; i < nTracks ; ++i) {
+  for(int i = numChunks*VectorSize<Double_v>() ; i < nTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
@@ -405,7 +405,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
   }
 
   int ibase= 0;
-  int numChunks= sizeOfInputTracks/Double_v::Size;
+  int numChunks= sizeOfInputTracks/VectorSize<Double_v>();
 
   //creat a bit set to hold the status of sampling
 
@@ -447,7 +447,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
     //vectorization loop
     int currentSize = wenergyOut.size();
-    numChunks = currentSize/Double_v::Size;
+    numChunks = currentSize/VectorSize<Double_v>();
 
     for(int i= 0; i < numChunks ; ++i) {
 
@@ -468,16 +468,16 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
       sinTheta.store(&wsinTheta[ibase]);
 
       //set the status bit
-      for(size_t j = 0; j < Double_v::Size ; ++j) {
+      for(size_t j = 0; j < VectorSize<Double_v>() ; ++j) {
         flag.set(ibase+j,status[j]);
       }
 
-      ibase+= Double_v::Size;
+      ibase+= VectorSize<Double_v>();
     }
     //end of vectorization loop
 
     //@@@syjun - need to add a cleanup task for the leftover array of which
-    //size < Double_v::Size - see the bottom of this method for a similar task
+    //size < VectorSize<Double_v>() - see the bottom of this method for a similar task
 
     //scatter
     for(int i = 0; i < currentSize ; ++i) {
@@ -517,7 +517,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
   //reset ibase and number of chunks
   ibase= 0;
-  numChunks= (sizeOfInputTracks/Double_v::Size);
+  numChunks= (sizeOfInputTracks/VectorSize<Double_v>());
 
   for(int i= 0; i < numChunks ; ++i) {
     Double_v energyIn(&inProjectile.E[ibase]);
@@ -526,11 +526,11 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
     ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
 
-    ibase+= Double_v::Size;
+    ibase+= VectorSize<Double_v>();
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*Double_v::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*VectorSize<Double_v>() ; i < inProjectile.numTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;

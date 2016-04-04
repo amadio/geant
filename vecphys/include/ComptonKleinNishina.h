@@ -435,7 +435,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   }
 
   int ibase= 0;
-  int numChunks= (nTracks/Double_v::Size);
+  int numChunks= (nTracks/VectorSize<Double_v>());
 
   for(int i= 0; i < numChunks ; ++i) {
 
@@ -454,11 +454,11 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
 
     ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
 
-    ibase+= Double_v::Size;
+    ibase+= VectorSize<Double_v>();
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*Double_v::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*VectorSize<Double_v>() ; i < inProjectile.numTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
