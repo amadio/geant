@@ -76,7 +76,7 @@ public:
                        Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
-                       typename Backend::Bool_t &status);
+                       Mask_v<typename Backend::Double_v> &status);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -214,7 +214,7 @@ VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
 
   //angle of the radiated photon
@@ -267,7 +267,7 @@ BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_v energyIn,
                                         Index_v<typename Backend::Double_v>   zElement,
                                         typename Backend::Double_v& energyOut,
                                         typename Backend::Double_v& sinTheta,
-                                        typename Backend::Bool_t &status)
+                                        Mask_v<typename Backend::Double_v> &status)
 {
   //dummy for now
   energyOut = energyIn;

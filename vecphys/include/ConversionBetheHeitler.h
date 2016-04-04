@@ -67,7 +67,7 @@ public:
                        Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
-                       typename Backend::Bool_t &status);
+                       Mask_v<typename Backend::Double_v> &status);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -126,7 +126,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   // now return only secondary electron information and
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Bool_t;
   typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
@@ -185,7 +185,7 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
 	       typename Backend::Double_v& sinThetaElectron,
 	       typename Backend::Double_v& sinThetaPositron) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
 
   //angles of the pair production (gamma -> e+e-)
@@ -215,7 +215,7 @@ ConversionBetheHeitler::
 CrossSectionKernel(typename Backend::Double_v energy,
                    Index_v<typename Backend::Double_v> Z)
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigma = 0.;
@@ -296,7 +296,7 @@ ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_v energyIn
                                              Index_v<typename Backend::Double_v>   zElement,
                                              typename Backend::Double_v& energyOut,
                                              typename Backend::Double_v& sinTheta,
-                                             typename Backend::Bool_t &status)
+                                             Mask_v<typename Backend::Double_v> &status)
 {
   //dummy for now
   energyOut = energyIn;

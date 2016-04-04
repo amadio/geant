@@ -86,7 +86,7 @@ private:
                        Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
-                       typename Backend::Bool_t &status);
+                       Mask_v<typename Backend::Double_v> &status);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -290,7 +290,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
                                              typename Backend::Double_v& sinTheta)
 {
   using Double_v = typename Backend::Double_v;
-  //  typedef typename Backend::Bool_t Bool_t;
+  //  typedef Mask_v<typename Backend::Double_v> Bool_t;
 
   //energy of photo-electron: Sandia parameterization
   energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement) ;
@@ -375,7 +375,7 @@ PhotoElectronSauterGavrila::InteractKernelUnpack(typename Backend::Double_v ener
                                                  Index_v<typename Backend::Double_v>   zElement,
                                                  typename Backend::Double_v& energyOut,
                                                  typename Backend::Double_v& sinTheta,
-                                                 typename Backend::Bool_t &status)
+                                                 Mask_v<typename Backend::Double_v> &status)
 {
   //dummy for now
   energyOut = energyIn;

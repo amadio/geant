@@ -90,7 +90,7 @@ private:
                        Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
-                       typename Backend::Bool_t &status);
+                       Mask_v<typename Backend::Double_v> &status);
 
   template<class Backend>
   inline
@@ -138,7 +138,7 @@ typename Backend::Double_v
 ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
                                         Index_v<typename Backend::Double_v>   Z)
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigmaOut = 0.;
@@ -253,7 +253,7 @@ typename Backend::Double_v
 ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
                                     typename Backend::Double_v energyOut) const
 {
-  typedef typename Backend::Bool_t   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
 
   //angle of the scatterred photon
@@ -288,7 +288,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
                                       typename Backend::Double_v &sint2) const
 {
   typedef typename Backend::Int_t Int_t;
-  typedef typename Backend::Bool_t Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Bool_t;
   using Double_v = typename Backend::Double_v;
 
   Double_v epsilon;
@@ -350,10 +350,10 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
                                           Index_v<typename Backend::Double_v>   zElement,
                                           typename Backend::Double_v& energyOut,
                                           typename Backend::Double_v& sinTheta,
-                                          typename Backend::Bool_t&   status)
+                                          Mask_v<typename Backend::Double_v>&   status)
 {
   using Double_v = typename Backend::Double_v;
-  typedef typename Backend::Bool_t Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Bool_t;
   typedef typename Backend::Int_t Int_t;
 
   Double_v E0_m = energyIn/electron_mass_c2;
