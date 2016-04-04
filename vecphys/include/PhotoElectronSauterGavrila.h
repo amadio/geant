@@ -264,14 +264,14 @@ GetPhotoElectronEnergy(typename Backend::Double_v energy,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_v
+typename backend::VcVector::Double_v
 PhotoElectronSauterGavrila::
-GetPhotoElectronEnergy<kVc>(typename kVc::Double_v energy,
-                            typename kVc::Index_v<Double_v>  zElement)
+GetPhotoElectronEnergy<backend::VcVector>(typename backend::VcVector::Double_v energy,
+                            typename backend::VcVector::Index_v<Double_v>  zElement)
 {
-  kVc::Double_v energyOut;
+  backend::VcVector::Double_v energyOut;
 
-  for(int i = 0; i < kVc::kSize ; ++i) {
+  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
     energyOut[i] = GetPhotoElectronEnergy<backend::Scalar>(energy[i],zElement[i]);
   }
 
@@ -344,18 +344,18 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_v A,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_v
-PhotoElectronSauterGavrila::SampleSequential<kVc>(typename kVc::Double_v A,
-                                                  typename kVc::Double_v Ap2,
-                                                  typename kVc::Double_v B,
-                                                  typename kVc::Double_v grej) const
+typename backend::VcVector::Double_v
+PhotoElectronSauterGavrila::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v A,
+                                                  typename backend::VcVector::Double_v Ap2,
+                                                  typename backend::VcVector::Double_v B,
+                                                  typename backend::VcVector::Double_v grej) const
 {
-  typedef typename kVc::Double_v Double_v;
+  typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v z;
   double g;
 
-  for(int i = 0; i < kVc::kSize ; ++i) {
+  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
     do {
       double q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       z[i] = 2*A[i]*(2*q + Ap2[i]*sqrt(q))/(Ap2[i]*Ap2[i] - 4*q);

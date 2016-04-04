@@ -414,14 +414,14 @@ template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
-GatherAlias<kVc>(typename kVc::Index_v<Double_v>    index,
-                 typename kVc::Index_v<Double_v>    zElement,
-                 typename kVc::Double_v  &probNA,
-                 typename kVc::Index_v<Double_v>   &aliasInd
+GatherAlias<backend::VcVector>(typename backend::VcVector::Index_v<Double_v>    index,
+                 typename backend::VcVector::Index_v<Double_v>    zElement,
+                 typename backend::VcVector::Double_v  &probNA,
+                 typename backend::VcVector::Index_v<Double_v>   &aliasInd
                 ) const
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
-  for(int i = 0; i < kVc::kSize ; ++i)
+  for(int i = 0; i < backend::VcVector::kSize ; ++i)
   {
     int z= zElement[i];
     int ind = index[i];
@@ -442,16 +442,16 @@ GatherAlias<kVc>(typename kVc::Index_v<Double_v>    index,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_v
-GUAliasSampler::GetPDF<kVc>(typename kVc::Index_v<Double_v> zElement,
-                            typename kVc::Index_v<Double_v> irow,
-                            typename kVc::Index_v<Double_v> icol) const
+typename backend::VcVector::Double_v
+GUAliasSampler::GetPDF<backend::VcVector>(typename backend::VcVector::Index_v<Double_v> zElement,
+                            typename backend::VcVector::Index_v<Double_v> irow,
+                            typename backend::VcVector::Index_v<Double_v> icol) const
 {
-  typedef typename kVc::Double_v Double_v;
+  typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v pdf;
 
-  for(int i = 0; i < kVc::kSize ; ++i)
+  for(int i = 0; i < backend::VcVector::kSize ; ++i)
   {
     int z= zElement[i];
     int ind = fSampledNumEntries*irow[i] + icol[i];
@@ -472,13 +472,13 @@ template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
-GatherAlias<kVc>(typename kVc::Index_v<Double_v>    index,
-                 typename kVc::Double_v  &probNA,
-                 typename kVc::Index_v<Double_v>   &aliasInd
+GatherAlias<backend::VcVector>(typename backend::VcVector::Index_v<Double_v>    index,
+                 typename backend::VcVector::Double_v  &probNA,
+                 typename backend::VcVector::Index_v<Double_v>   &aliasInd
                 ) const
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
-  for(int i = 0; i < kVc::kSize ; ++i)
+  for(int i = 0; i < backend::VcVector::kSize ; ++i)
   {
     int ind = index[i];
     probNA[i]=   (fAliasTableManager->GetAliasTable(0))->fProbQ[ ind ];
@@ -489,15 +489,15 @@ GatherAlias<kVc>(typename kVc::Index_v<Double_v>    index,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_v
-GUAliasSampler::GetPDF<kVc>(typename kVc::Index_v<Double_v> irow,
-                            typename kVc::Index_v<Double_v> icol) const
+typename backend::VcVector::Double_v
+GUAliasSampler::GetPDF<backend::VcVector>(typename backend::VcVector::Index_v<Double_v> irow,
+                            typename backend::VcVector::Index_v<Double_v> icol) const
 {
-  typedef typename kVc::Double_v Double_v;
+  typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v pdf;
 
-  for(int i = 0; i < kVc::kSize ; ++i)
+  for(int i = 0; i < backend::VcVector::kSize ; ++i)
   {
     int ind = fSampledNumEntries*irow[i] + icol[i];
     pdf[i] = (fAliasTableManager->GetAliasTable(0))->fpdf[ ind ];

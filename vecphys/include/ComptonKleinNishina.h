@@ -308,21 +308,21 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_v
-ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_v E0_m,
-                                           typename kVc::Double_v test,
-                                           typename kVc::Double_v alpha1,
-                                           typename kVc::Double_v epsil0sq,
-                                           typename kVc::Double_v &sint2) const
+typename backend::VcVector::Double_v
+ComptonKleinNishina::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v E0_m,
+                                           typename backend::VcVector::Double_v test,
+                                           typename backend::VcVector::Double_v alpha1,
+                                           typename backend::VcVector::Double_v epsil0sq,
+                                           typename backend::VcVector::Double_v &sint2) const
 {
   //  typedef typename Vc::Int_t Int_t;
-  //  typedef typename kVc::Mask_v<Double_v> Mask_v<Double_v>;
-  typedef typename kVc::Double_v Double_v;
+  //  typedef typename backend::VcVector::Mask_v<Double_v> Mask_v<Double_v>;
+  typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v epsilon;
   double greject;
 
-  for(int i = 0; i < kVc::kSize ; ++i) {
+  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
 
     do {
       bool cond = test[i] > UniformRandom<backend::Scalar>(fRandomState,fThreadId);

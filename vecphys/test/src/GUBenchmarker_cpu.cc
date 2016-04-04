@@ -178,14 +178,14 @@ Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
   if(sampleType == SamplingMethod::kUnpack) {
     timer.Start();
 
-    model.InteractUnpack<kVc>(itrack_soa, targetElements, otrack_soa);
+    model.InteractUnpack<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
     elapsedTime = timer.Stop();
   }
   else {
     timer.Start();
 
-    model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+    model.Interact<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
     elapsedTime = timer.Stop();
   }
@@ -197,7 +197,7 @@ Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
     sigma[i] = 0;
   }
 
-  model.AtomicCrossSection<kVc>(itrack_soa, targetElements,sigma);
+  model.AtomicCrossSection<backend::VcVector>(itrack_soa, targetElements,sigma);
 
   delete [] sigma;
   */
@@ -219,14 +219,14 @@ Real_t VectorHybridCompton(GUTrack_v& itrack_soa,
   if(sampleType == SamplingMethod::kUnpack) {
     timer.Start();
 
-    model.InteractUnpack<kVc>(itrack_soa, targetElements, otrack_soa);
+    model.InteractUnpack<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
     elapsedTime = timer.Stop();
   }
   else {
     timer.Start();
 
-    model.ModelInteract<kVc>(itrack_soa, targetElements, otrack_soa);
+    model.ModelInteract<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
     elapsedTime = timer.Stop();
   }
@@ -248,7 +248,7 @@ Real_t VectorBetheHeitler(GUTrack_v& itrack_soa,
 
   timer.Start();
 
-  model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+  model.Interact<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
   elapsedTime = timer.Stop();
 
@@ -270,7 +270,7 @@ Real_t VectorSauterGavrila(GUTrack_v& itrack_soa,
 
   timer.Start();
 
-  model.ModelInteract<kVc>(itrack_soa, targetElements, otrack_soa);
+  model.ModelInteract<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
   elapsedTime = timer.Stop();
 
@@ -291,7 +291,7 @@ Real_t VectorMollerBhabha(GUTrack_v& itrack_soa,
 
   timer.Start();
 
-  model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+  model.Interact<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
   elapsedTime = timer.Stop();
 
@@ -312,7 +312,7 @@ Real_t VectorSeltzerBerger(GUTrack_v& itrack_soa,
 
   timer.Start();
 
-  model.Interact<kVc>(itrack_soa, targetElements, otrack_soa);
+  model.Interact<backend::VcVector>(itrack_soa, targetElements, otrack_soa);
 
   elapsedTime = timer.Stop();
 

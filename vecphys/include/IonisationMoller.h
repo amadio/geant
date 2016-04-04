@@ -288,12 +288,12 @@ IonisationMoller::SampleSequential(typename Backend::Double_v xmin,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_v
-IonisationMoller::SampleSequential<kVc>(typename kVc::Double_v xmin,
-                                        typename kVc::Double_v xmax,
-                                        typename kVc::Double_v gg) const
+typename backend::VcVector::Double_v
+IonisationMoller::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v xmin,
+                                        typename backend::VcVector::Double_v xmax,
+                                        typename backend::VcVector::Double_v gg) const
 {
-  typedef typename kVc::Double_v Double_v;
+  typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v  x;
   Double_v  y = 1.0 - xmax;
@@ -302,7 +302,7 @@ IonisationMoller::SampleSequential<kVc>(typename kVc::Double_v xmin,
   double  q;
   double  z;
 
-  for(int i = 0; i < kVc::kSize ; ++i) {
+  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
     do {
       q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
       x[i] = xmin[i]*xmax[i]/(xmin[i]*(1.0 - q) + xmax[i]*q);
