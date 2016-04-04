@@ -569,9 +569,9 @@ void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
                                       GUTrack&  outSecondary)
 {
 
-  Precision energyIn = inProjectile.E;
-  Precision energyOut;
-  Precision sinTheta;
+  Real_t energyIn = inProjectile.E;
+  Real_t energyOut;
+  Real_t sinTheta;
 
   static_cast<EmModel*>(this)->SampleByCompositionRejection(targetElement,energyIn,energyOut,sinTheta);
 

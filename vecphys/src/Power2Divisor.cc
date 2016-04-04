@@ -21,7 +21,7 @@ int Power2Divisor::GetNumberOfBins()
 }
 
 VECCORE_CUDA_HOST_DEVICE
-Precision Power2Divisor::GetBinPosition(int ibin)
+Real_t Power2Divisor::GetBinPosition(int ibin)
 {
   int exponent = Power2Exponent(ibin);
   //  int idiv = ibin & (fNdiv -1); // idiv=ibin%ndiv for any fNdiv = 2^n
@@ -30,7 +30,7 @@ Precision Power2Divisor::GetBinPosition(int ibin)
 }
 
 VECCORE_CUDA_HOST_DEVICE
-Precision Power2Divisor::GetBinSize(int ibin)
+Real_t Power2Divisor::GetBinSize(int ibin)
 {
   int exponent = Power2Exponent(ibin);
   return ldexp(1.,exponent)/fNdiv;

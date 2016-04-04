@@ -38,8 +38,8 @@ GUAliasTable::~GUAliasTable()
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasTable::Allocate(int ngrid) {
   //try
-  fpdf   = new Precision [fNGrid];
-  fProbQ = new Precision [fNGrid];
+  fpdf   = new Real_t [fNGrid];
+  fProbQ = new Real_t [fNGrid];
   fAlias = new int    [fNGrid];
 
   for (int i = 0 ; i < fNGrid ; ++i) {
@@ -69,7 +69,7 @@ void GUAliasTable::CopyData(const GUAliasTable& table) {
 
 VECCORE_CUDA_HOST_DEVICE
 int GUAliasTable::SizeOfTable() {
-  return sizeof(int) + SizeOfGrid()*(2.*sizeof(Precision)+sizeof(int));
+  return sizeof(int) + SizeOfGrid()*(2.*sizeof(Real_t)+sizeof(int));
 }
 
 VECCORE_CUDA_HOST_DEVICE
@@ -81,17 +81,17 @@ void GUAliasTable::PrintInfo() {
 void GUAliasTable::Relocate(void *devPtr)
 {
   //Implement/use a general way to (byte-wise) copy a object to GPU
-  Precision *d_fpdf;
-  Precision *d_fProbQ;
+  Real_t *d_fpdf;
+  Real_t *d_fProbQ;
   int       *d_fAlias;
 
-  cudaMalloc((void**) &(d_fpdf)  , sizeof(Precision)*fNGrid);
-  cudaMalloc((void**) &(d_fProbQ), sizeof(Precision)*fNGrid);
+  cudaMalloc((void**) &(d_fpdf)  , sizeof(Real_t)*fNGrid);
+  cudaMalloc((void**) &(d_fProbQ), sizeof(Real_t)*fNGrid);
   cudaMalloc((void**) &(d_fAlias), sizeof(int)*fNGrid);
 
   //Copy array contents from host to device.
-  cudaMemcpy(d_fpdf,  fpdf,   sizeof(Precision)*fNGrid, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_fProbQ,fProbQ, sizeof(Precision)*fNGrid, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_fpdf,  fpdf,   sizeof(Real_t)*fNGrid, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_fProbQ,fProbQ, sizeof(Real_t)*fNGrid, cudaMemcpyHostToDevice);
   cudaMemcpy(d_fAlias,fAlias, sizeof(int)*fNGrid, cudaMemcpyHostToDevice);
 
   //point to device pointer in host struct.

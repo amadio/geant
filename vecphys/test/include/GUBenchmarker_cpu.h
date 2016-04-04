@@ -7,7 +7,7 @@
 
 namespace vecphys {
 
-typedef Precision (*KernelFunc_t)(int ntrack,
+typedef Real_t (*KernelFunc_t)(int ntrack,
 			          GUTrack* itrack_aos,
 			          int *targetElements,
 			          GUTrack* otrack_aos,
@@ -15,37 +15,37 @@ typedef Precision (*KernelFunc_t)(int ntrack,
 
 // Scalar
 
-Precision ScalarKleinNishina(int ntrack,
+Real_t ScalarKleinNishina(int ntrack,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
-Precision ScalarHybridCompton(int ntrack,
+Real_t ScalarHybridCompton(int ntrack,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
                               SamplingMethod sampleType);
 
-Precision ScalarBetheHeitler(int ntrack,
+Real_t ScalarBetheHeitler(int ntrack,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
-Precision ScalarSauterGavrila(int ntrack,
+Real_t ScalarSauterGavrila(int ntrack,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
                               SamplingMethod sampleType);
 
-Precision ScalarMollerBhabha(int ntrack,
+Real_t ScalarMollerBhabha(int ntrack,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
                              SamplingMethod sampleType);
 
-Precision ScalarSeltzerBerger(int ntrack,
+Real_t ScalarSeltzerBerger(int ntrack,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -60,37 +60,37 @@ KernelFunc_t ScalarKernelFunc[] = {ScalarKleinNishina,
 
 //Geant4
 
-typedef Precision (*G4KernelFunc_t)(int ntrack,
+typedef Real_t (*G4KernelFunc_t)(int ntrack,
 		  	            GUTrack* itrack_aos,
 			            int *targetElements,
 			            GUTrack* otrack_aos);
 
-Precision G4KleinNishina(int ntrack,
+Real_t G4KleinNishina(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
 
-Precision G4HybridCompton(int ntrack,
+Real_t G4HybridCompton(int ntrack,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos);
 
-Precision G4BetheHeitler(int ntrack,
+Real_t G4BetheHeitler(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
 
-Precision G4SauterGavrila(int ntrack,
+Real_t G4SauterGavrila(int ntrack,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos);
 
-Precision G4MollerBhabha(int ntrack,
+Real_t G4MollerBhabha(int ntrack,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos);
 
-Precision G4SeltzerBerger(int ntrack,
+Real_t G4SeltzerBerger(int ntrack,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos);
@@ -104,37 +104,37 @@ G4KernelFunc_t G4KernelFunc[] = {G4KleinNishina,
 
 // Vector
 
-typedef Precision (*VectorKernelFunc_t)(GUTrack_v& itrack_soa,
+typedef Real_t (*VectorKernelFunc_t)(GUTrack_v& itrack_soa,
      			                int *targetElements,
 			                GUTrack_v& otrack_soa,
                                         SamplingMethod sampleType);
 
-Precision VectorKleinNishina(GUTrack_v& itrack_soa,
+Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
      			     int *targetElements,
 			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType);
 
-Precision VectorHybridCompton(GUTrack_v& itrack_soa,
+Real_t VectorHybridCompton(GUTrack_v& itrack_soa,
      			      int *targetElements,
 			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType);
 
-Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
+Real_t VectorBetheHeitler(GUTrack_v& itrack_soa,
      			     int *targetElements,
 			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType);
 
-Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
+Real_t VectorSauterGavrila(GUTrack_v& itrack_soa,
      			      int *targetElements,
 			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType);
 
-Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
+Real_t VectorMollerBhabha(GUTrack_v& itrack_soa,
      			     int *targetElements,
 			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType);
 
-Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
+Real_t VectorSeltzerBerger(GUTrack_v& itrack_soa,
 			      int *targetElements,
 			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType);

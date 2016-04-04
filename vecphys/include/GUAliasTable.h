@@ -45,8 +45,8 @@ class GUAliasTable
   VECCORE_CUDA_HOST_DEVICE
   void PrintInfo();
 
-  Precision* fpdf;         // original p.d.f distribution
-  Precision* fProbQ;       // non-alias probability
+  Real_t* fpdf;         // original p.d.f distribution
+  Real_t* fProbQ;       // non-alias probability
   int*       fAlias;       // alias index
   int        fNGrid;       // the number of bins that can be stored
 } ;

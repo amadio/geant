@@ -14,7 +14,7 @@ namespace vecphys {
 
 // Scalar
 
-Precision ScalarKleinNishina(int ntracks,
+Real_t ScalarKleinNishina(int ntracks,
 	                     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
@@ -24,7 +24,7 @@ Precision ScalarKleinNishina(int ntracks,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -45,7 +45,7 @@ Precision ScalarKleinNishina(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarHybridCompton(int ntracks,
+Real_t ScalarHybridCompton(int ntracks,
 	                      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -55,7 +55,7 @@ Precision ScalarHybridCompton(int ntracks,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -68,7 +68,7 @@ Precision ScalarHybridCompton(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarBetheHeitler(int ntracks,
+Real_t ScalarBetheHeitler(int ntracks,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
@@ -78,7 +78,7 @@ Precision ScalarBetheHeitler(int ntracks,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -91,7 +91,7 @@ Precision ScalarBetheHeitler(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarSauterGavrila(int ntracks,
+Real_t ScalarSauterGavrila(int ntracks,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -101,7 +101,7 @@ Precision ScalarSauterGavrila(int ntracks,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -114,7 +114,7 @@ Precision ScalarSauterGavrila(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarMollerBhabha(int ntracks,
+Real_t ScalarMollerBhabha(int ntracks,
 			     GUTrack* itrack_aos,
 			     int *targetElements,
 			     GUTrack* otrack_aos,
@@ -124,7 +124,7 @@ Precision ScalarMollerBhabha(int ntracks,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -137,7 +137,7 @@ Precision ScalarMollerBhabha(int ntracks,
   return elapsedTime;
 }
 
-Precision ScalarSeltzerBerger(int ntracks,
+Real_t ScalarSeltzerBerger(int ntracks,
 			      GUTrack* itrack_aos,
 			      int *targetElements,
 			      GUTrack* otrack_aos,
@@ -147,7 +147,7 @@ Precision ScalarSeltzerBerger(int ntracks,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -162,7 +162,7 @@ Precision ScalarSeltzerBerger(int ntracks,
 
 // Vector
 
-Precision VectorKleinNishina(GUTrack_v& itrack_soa,
+Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
 			     int *targetElements,
 			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType)
@@ -171,7 +171,7 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   //  int ntracks = itrack_soa.numTracks;
 
@@ -205,7 +205,7 @@ Precision VectorKleinNishina(GUTrack_v& itrack_soa,
 
 }
 
-Precision VectorHybridCompton(GUTrack_v& itrack_soa,
+Real_t VectorHybridCompton(GUTrack_v& itrack_soa,
 			      int *targetElements,
 			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType)
@@ -214,7 +214,7 @@ Precision VectorHybridCompton(GUTrack_v& itrack_soa,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   if(sampleType == SamplingMethod::kUnpack) {
     timer.Start();
@@ -235,7 +235,7 @@ Precision VectorHybridCompton(GUTrack_v& itrack_soa,
 
 }
 
-Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
+Real_t VectorBetheHeitler(GUTrack_v& itrack_soa,
 			     int *targetElements,
 			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType)
@@ -244,7 +244,7 @@ Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -256,7 +256,7 @@ Precision VectorBetheHeitler(GUTrack_v& itrack_soa,
 
 }
 
-Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
+Real_t VectorSauterGavrila(GUTrack_v& itrack_soa,
 			      int *targetElements,
 			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType)
@@ -266,7 +266,7 @@ Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -278,7 +278,7 @@ Precision VectorSauterGavrila(GUTrack_v& itrack_soa,
 
 }
 
-Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
+Real_t VectorMollerBhabha(GUTrack_v& itrack_soa,
 			     int *targetElements,
 			     GUTrack_v& otrack_soa,
                              SamplingMethod sampleType)
@@ -287,7 +287,7 @@ Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -299,7 +299,7 @@ Precision VectorMollerBhabha(GUTrack_v& itrack_soa,
 
 }
 
-Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
+Real_t VectorSeltzerBerger(GUTrack_v& itrack_soa,
 			      int *targetElements,
 			      GUTrack_v& otrack_soa,
                               SamplingMethod sampleType)
@@ -307,7 +307,7 @@ Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
   static vecphys::cxx::BremSeltzerBerger model(0,-1);
   model.SetSamplingMethod(sampleType);
 
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
   static Stopwatch timer;
 
   timer.Start();
@@ -321,7 +321,7 @@ Precision VectorSeltzerBerger(GUTrack_v& itrack_soa,
 
 // Geant4 composition and rejection
 
-Precision G4KleinNishina(int ntracks,
+Real_t G4KleinNishina(int ntracks,
 	                 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
@@ -329,7 +329,7 @@ Precision G4KleinNishina(int ntracks,
   static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -349,7 +349,7 @@ Precision G4KleinNishina(int ntracks,
   return elapsedTime;
 }
 
-Precision G4HybridCompton(int ntracks,
+Real_t G4HybridCompton(int ntracks,
 	                  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
@@ -357,7 +357,7 @@ Precision G4HybridCompton(int ntracks,
   static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -370,7 +370,7 @@ Precision G4HybridCompton(int ntracks,
   return elapsedTime;
 }
 
-Precision G4BetheHeitler(int ntracks,
+Real_t G4BetheHeitler(int ntracks,
 			 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
@@ -378,7 +378,7 @@ Precision G4BetheHeitler(int ntracks,
   static vecphys::cxx::ConversionBetheHeitler model(0,-1,0);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -391,7 +391,7 @@ Precision G4BetheHeitler(int ntracks,
   return elapsedTime;
 }
 
-Precision G4SauterGavrila(int ntracks,
+Real_t G4SauterGavrila(int ntracks,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
@@ -399,7 +399,7 @@ Precision G4SauterGavrila(int ntracks,
   static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1,0);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -412,7 +412,7 @@ Precision G4SauterGavrila(int ntracks,
   return elapsedTime;
 }
 
-Precision G4MollerBhabha(int ntracks,
+Real_t G4MollerBhabha(int ntracks,
 	                 GUTrack* itrack_aos,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
@@ -421,7 +421,7 @@ Precision G4MollerBhabha(int ntracks,
   //  static vecphys::cxx::GUMollerBhabha model(0,-1);
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 
@@ -434,7 +434,7 @@ Precision G4MollerBhabha(int ntracks,
   return elapsedTime;
 }
 
-Precision G4SeltzerBerger(int ntracks,
+Real_t G4SeltzerBerger(int ntracks,
 			  GUTrack* itrack_aos,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
@@ -447,7 +447,7 @@ Precision G4SeltzerBerger(int ntracks,
   //see BremSeltzerBerger::Initialization().
 
   static Stopwatch timer;
-  Precision elapsedTime = 0.0;
+  Real_t elapsedTime = 0.0;
 
   timer.Start();
 

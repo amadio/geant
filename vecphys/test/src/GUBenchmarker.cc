@@ -99,8 +99,8 @@ void GUBenchmarker::RunScalar()
   GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
-  Precision elapsedTotal[kNumberPhysicsModel];
-  Precision elapsedT[kNumberPhysicsModel];
+  Real_t elapsedTotal[kNumberPhysicsModel];
+  Real_t elapsedT[kNumberPhysicsModel];
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r)
@@ -163,8 +163,8 @@ void GUBenchmarker::RunGeant4()
   GUTrack* itrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
   GUTrack* otrack_aos = (GUTrack*) malloc(fNtracks*sizeof(GUTrack));
 
-  Precision elapsedTotal[kNumberPhysicsModel];
-  Precision elapsedT[kNumberPhysicsModel];
+  Real_t elapsedTotal[kNumberPhysicsModel];
+  Real_t elapsedT[kNumberPhysicsModel];
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
@@ -231,8 +231,8 @@ void GUBenchmarker::RunVector()
 
   int *targetElements = new int[fNtracks];
 
-  Precision elapsedTotal[kNumberPhysicsModel];
-  Precision elapsedT[kNumberPhysicsModel];
+  Real_t elapsedTotal[kNumberPhysicsModel];
+  Real_t elapsedT[kNumberPhysicsModel];
   for(int k = 0 ; k < kNumberPhysicsModel ; ++k) elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
@@ -286,11 +286,11 @@ void GUBenchmarker::RunVector()
 void GUBenchmarker::CheckTimer()
 {
   Stopwatch timer;
-  Precision elapsedNullTotal= 0.0;
+  Real_t elapsedNullTotal= 0.0;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
     timer.Start();
-    Precision elapsedNull = timer.Stop();
+    Real_t elapsedNull = timer.Stop();
     elapsedNullTotal += elapsedNull;
   }
   printf("Null Task Timer: Total time of %3d reps = %6.3f sec\n", fRepetitions,
@@ -305,7 +305,7 @@ void GUBenchmarker::CheckRandom()
   size_t nsample = 1000000;
 
   //test Vc random
-  std::cout << "Vc::Size  = " <<  Vc::Vector<Precision>::Size << std::endl;
+  std::cout << "Vc::Size  = " <<  Vc::Vector<Real_t>::Size << std::endl;
 
   Stopwatch timer;
   timer.Start();
@@ -323,7 +323,7 @@ void GUBenchmarker::CheckRandom()
   double vctime =  timer.Elapsed();
 
   double sumC= 0.0;
-  for (size_t i = 0; i <  Vc::Vector<Precision>::Size ; ++i) {
+  for (size_t i = 0; i <  Vc::Vector<Real_t>::Size ; ++i) {
      sumC += c[i];
   }
 

@@ -17,16 +17,16 @@ public:
   int GetNumberOfBins();
 
   VECCORE_CUDA_HOST_DEVICE
-  Precision GetLowerBound() { return fLowerBound; }
+  Real_t GetLowerBound() { return fLowerBound; }
 
   VECCORE_CUDA_HOST_DEVICE
-  Precision GetUpperBound() { return fUpperBound; }
+  Real_t GetUpperBound() { return fUpperBound; }
 
   VECCORE_CUDA_HOST_DEVICE
-  Precision GetBinPosition(int ibin);
+  Real_t GetBinPosition(int ibin);
 
   VECCORE_CUDA_HOST_DEVICE
-  Precision GetBinSize(int ibin);
+  Real_t GetBinSize(int ibin);
 
   template <typename Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -43,8 +43,8 @@ private:
   int fNmax;              // maximum of the power2 exponent
   int fNdiv;              // number of equal divisions between 2^e and 2^{e+1}
 
-  Precision fLowerBound;   // lower bound of the power2 range
-  Precision fUpperBound;   // upper bound of the power2 range
+  Real_t fLowerBound;   // lower bound of the power2 range
+  Real_t fUpperBound;   // upper bound of the power2 range
 };
 
 template <typename Backend>
