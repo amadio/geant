@@ -197,8 +197,8 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
 
   Double_v totalEnergy = energyIn + electron_mass_c2;
   Double_v densityCorr = densityFactor*totalEnergy*totalEnergy;
-  Double_v minY = Log(emin*emin + densityCorr);
-  Double_v maxY = Log(emax*emax + densityCorr);
+  Double_v minY = math::Log(emin*emin + densityCorr);
+  Double_v maxY = math::Log(emax*emax + densityCorr);
   Double_v deltaY = maxY - minY;
 
   Double_v yhat = fAliasSampler->SampleX<Backend>(deltaY,probNA,

@@ -59,8 +59,8 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
   const int nrow = fAliasSampler->GetNumEntries();
   const int ncol = fAliasSampler->GetSamplesPerEntry();
 
-  double logxmin = log(fAliasSampler->GetIncomingMin());
-  double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
+  double logxmin = math::Log(fAliasSampler->GetIncomingMin());
+  double dx = (math::Log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
 
   const int nintegral= 10; //temporary
 
@@ -154,7 +154,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
   double g4 = g2*g2;
   //  double g5 = g2*g3;
 
-  double term = log(g*(1.+beta))/(g*beta);
+  double term = math::Log(g*(1.+beta))/(g*beta);
 
   double sigmaL2 =    g3 - 5.*g2 + 24.*g - 16. + (g2 + 3*g - 8)*term ;
   double sigmaL3 = 4.*g3 - 6.*g2 +  5.*g +  3. + (g2 - 3*g + 4)*term ;

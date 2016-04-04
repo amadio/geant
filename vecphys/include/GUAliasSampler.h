@@ -140,7 +140,7 @@ private:
   Random_t* fRandomState;
   int       fThreadId;
 
-  double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or Log(E_kinetic)
+  double   fIncomingMin; // Min of Incoming - e.g. e_Kinetic or math::Log(E_kinetic)
   double   fIncomingMax; // Max
   int      fInNumEntries;
   double   fLogIncomingMin;
@@ -205,7 +205,7 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
-  Double_v eloc = (Log(kineticEnergy) - fLogIncomingMin)*fInverseLogBinIncoming;
+  Double_v eloc = (math::Log(kineticEnergy) - fLogIncomingMin)*fInverseLogBinIncoming;
   irow = Floor(eloc);
   Double_v efrac = eloc -1.0*irow;
 

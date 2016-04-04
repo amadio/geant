@@ -64,11 +64,11 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   const int nrow = fAliasSampler->GetNumEntries();
   const int ncol = fAliasSampler->GetSamplesPerEntry();
 
-  double logxmin = log(fAliasSampler->GetIncomingMin());
-  double logxmax = log(fAliasSampler->GetIncomingMax());
+  double logxmin = math::Log(fAliasSampler->GetIncomingMin());
+  double logxmax = math::Log(fAliasSampler->GetIncomingMax());
   double dx = (logxmax - logxmin)/nrow;
 
-  int    nintegral= 5*int(log(logxmax)); //temporary
+  int    nintegral= 5*int(math::Log(logxmax)); //temporary
 
   //use the average xsec within the bin instead of xsec at the mid-point
   for(int i = 0; i <= nrow ; ++i) {
@@ -183,7 +183,7 @@ ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
   double E0_m = energyIn*inv_electron_mass_c2 ;
   double eps0       = 1./(1. + 2.*E0_m);
   double epsilon0sq = eps0*eps0;
-  double alpha1     = - log(eps0);
+  double alpha1     = - math::Log(eps0);
   double alpha2     = 0.5*(1.- epsilon0sq);
 
   do {

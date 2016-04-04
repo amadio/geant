@@ -190,7 +190,7 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     else
     {
        do {
-	 p = minP - 0.2*(maxP - minP)*log(UniformRandom<Real_t>(0,-1));
+	 p = minP - 0.2*(maxP - minP)*math::Log(UniformRandom<Real_t>(0,-1));
        }
        while (p>maxP);
     }

@@ -158,7 +158,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
 
   Double_v X  =  math::Max(energy,T0)/electron_mass_c2;
   Double_v X2 = X*X;
-  Double_v sigma = p1*Log(1.+2.*X)/X
+  Double_v sigma = p1*math::Log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
   sigmaOut = Z*sigma*barn;
 
@@ -169,13 +169,13 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
   //correction when energy < T0
   Double_v dT0 = 1.*keV;
   X = (T0+dT0) / electron_mass_c2 ;
-  sigma = p1*log(1.+2.*X)/X
+  sigma = p1*math::Log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
 
   Double_v   c1 = -T0*(Z*sigma*barn-sigmaOut)/(sigmaOut*dT0);
   Double_v   c2 = 0.150;
-  MaskedAssign( !condZ, 0.375-0.0556*Log(1.*Z) , &c2 );
-  Double_v    y = Log(energy/T0);
+  MaskedAssign( !condZ, 0.375-0.0556*math::Log(1.*Z) , &c2 );
+  Double_v    y = math::Log(energy/T0);
   MaskedAssign(!condE, sigmaOut*math::Exp(-y*(c1+c2*y)),&sigmaOut);
 
   //this is the case if one of E < belowLimit
@@ -233,7 +233,7 @@ ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v  energyIn,
 
   Double_v eps0 = 1./(1. + 2.*E0_m);
   Double_v epsilon0sq = eps0*eps0;
-  Double_v alpha1     = - log(eps0);
+  Double_v alpha1     = - math::Log(eps0);
   Double_v alpha2  = 0.5*(1.- epsilon0sq);
 
   Double_v test = alpha1/(alpha1+alpha2);
@@ -355,7 +355,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
 
   Double_v eps0 = 1./(1. + 2.*E0_m);
   Double_v epsilon0sq = eps0*eps0;
-  Double_v alpha1     = - log(eps0);
+  Double_v alpha1     = - math::Log(eps0);
   Double_v alpha2  = 0.5*(1.- epsilon0sq);
 
   Double_v test = alpha1/(alpha1+alpha2);

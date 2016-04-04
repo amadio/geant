@@ -57,8 +57,8 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
   const int nrow = fAliasSampler->GetNumEntries();
   const int ncol = fAliasSampler->GetSamplesPerEntry();
 
-  double logxmin = log(fAliasSampler->GetIncomingMin());
-  double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
+  double logxmin = math::Log(fAliasSampler->GetIncomingMin());
+  double dx = (math::Log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin

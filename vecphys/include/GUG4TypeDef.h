@@ -10,7 +10,7 @@ typedef int G4int;
 typedef double G4double;
 
 // Geant4 function definition
-#define G4Log(X) log(X)
+#define G4Log(X) math::Log(X)
 #define G4Exp(X) math::Exp(X)
 
 

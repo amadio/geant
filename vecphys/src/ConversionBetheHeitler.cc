@@ -57,8 +57,8 @@ ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
   const int nrow = fAliasSampler->GetNumEntries();
   const int ncol = fAliasSampler->GetSamplesPerEntry();
 
-  double logxmin = log(fAliasSampler->GetIncomingMin());
-  double dx = (log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
+  double logxmin = math::Log(fAliasSampler->GetIncomingMin());
+  double dx = (math::Log(fAliasSampler->GetIncomingMax()) - logxmin)/nrow;
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
@@ -109,7 +109,7 @@ ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
 
   // Extract Coulomb factor for this Element
   //F(Z)
-  int logZ3 = log(1.0*int(Zelement + 0.5))/3.0;
+  int logZ3 = math::Log(1.0*int(Zelement + 0.5))/3.0;
   double FZ = 8.*logZ3 ; //8.*(anElement->GetIonisation()->GetlogZ3());
   if (gammaEnergy > 50. /* *MeV */) {
     FZ += 8.*ComputeCoulombFactor(1.0*Zelement);
@@ -133,7 +133,7 @@ ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
   double screenVal;
 
   if (screenVariable > 1.)
-    screenVal = 42.24 - 8.368*log(screenVariable+0.952);
+    screenVal = 42.24 - 8.368*math::Log(screenVariable+0.952);
   else
     screenVal = 42.392 - screenVariable*(7.796 - 1.961*screenVariable);
 
@@ -147,7 +147,7 @@ ConversionBetheHeitler::ScreenFunction2(double screenVariable) const
   double screenVal;
 
   if (screenVariable > 1.)
-    screenVal = 42.24 - 8.368*log(screenVariable+0.952);
+    screenVal = 42.24 - 8.368*math::Log(screenVariable+0.952);
   else
     screenVal = 41.405 - screenVariable*(5.828 - 0.8945*screenVariable);
 
@@ -193,7 +193,7 @@ SampleByCompositionRejection(int     elementZ,
 
     // Extract Coulomb factor for this Element
 
-    G4double logZ3 = log(1.0*int(elementZ + 0.5))/3.0;
+    G4double logZ3 = math::Log(1.0*int(elementZ + 0.5))/3.0;
     G4double FZ = 8.*logZ3; //(anElement->GetIonisation()->GetlogZ3());
     if (GammaEnergy > 50.*MeV) { FZ += 8.*ComputeCoulombFactor(elementZ); }
 

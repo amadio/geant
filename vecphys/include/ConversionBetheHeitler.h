@@ -192,9 +192,9 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
 
   Double_v r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
   Mask_v<Double_v> condition = 9./(9. + d) > r1;
-  MaskedAssign( condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
+  MaskedAssign( condition, -math::Log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a1, &u );
-  MaskedAssign(!condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
+  MaskedAssign(!condition, -math::Log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a2, &u );
 
   Double_v TetEl = u*electron_mass_c2/energyElectron;
@@ -225,7 +225,7 @@ CrossSectionKernel(typename Backend::Double_v energy,
   Mask_v<Double_v> condition = energy < energyLimit;
   MaskedAssign( condition, energyLimit, &energy );
 
-  Double_v X = log(energy/electron_mass_c2);
+  Double_v X = math::Log(energy/electron_mass_c2);
   Double_v X2 = X*X;
   Double_v X3 =X2*X;
   Double_v X4 =X3*X;

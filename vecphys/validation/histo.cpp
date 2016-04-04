@@ -267,8 +267,8 @@ void chiSquare_pdf(TH1F* eOutScalar, TH1F* eOutVector, TH1F* eOutG4, int energy)
     Double_t pdf[entries], x[entries];
     TGraph *pdfGraph;
     
-    double logxmin = log(1);
-    double dx = (log(10000) - logxmin)/99;
+    double logxmin = math::Log(1);
+    double dx = (math::Log(10000) - logxmin)/99;
     
     //// pdf calculation
     double energy0 = math::Exp(logxmin + dx*energy);

@@ -138,7 +138,7 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy,
   Double_v gg = (2.0*gam - 1.0)/gamma2;
   sigmaOut = ((xmax - xmin)*(1.0 - gg + 1.0/(xmin*xmax)
           + 1.0/((1.0-xmin)*(1.0 - xmax)))
-          - gg*Log( xmax*(1.0 - xmin)/(xmin*(1.0 - xmax)) ) ) / beta2;
+          - gg*math::Log( xmax*(1.0 - xmin)/(xmin*(1.0 - xmax)) ) ) / beta2;
 
   sigmaOut *= Z*twopi_mc2_rcl2/energy;
 

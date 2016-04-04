@@ -131,8 +131,8 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
   const double minX = fAliasSampler->GetIncomingMin();
   const double maxX = fAliasSampler->GetIncomingMax();
 
-  double logxmin = log(minX);
-  double dx = (log(maxX) - logxmin)/nrow;
+  double logxmin = math::Log(minX);
+  double dx = (math::Log(maxX) - logxmin)/nrow;
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
@@ -148,13 +148,13 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
     double df = 1.0; //test
     double dc = df*t*t;
 
-    double ymin = log(emin*emin + dc);
-    double ymax = log(emax*emax + dc);
+    double ymin = math::Log(emin*emin + dc);
+    double ymax = math::Log(emax*emax + dc);
 
     double dy = (ymax - ymin)/(ncol-1);
     double yo = ymin + 0.5*dy;
 
-    double logx = log(x);
+    double logx = math::Log(x);
 
     double sum = 0.0;
 
@@ -237,7 +237,7 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   bool isElectron = true;
   if(isElectron && x0 < 0.97 &&
      ((kineticEnergy > epeaklimit) || (kineticEnergy < elowlimit))) {
-    G4double ylim = math::Min(fDataSB[Z].Value(0.97, 4*log(10.)),
+    G4double ylim = math::Min(fDataSB[Z].Value(0.97, 4*math::Log(10.)),
                     1.1*fDataSB[Z].Value(0.97,y));
     if(ylim > vmax) { vmax = ylim; }
   }
@@ -314,8 +314,8 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z)
     //    lnZ = nist->GetLOGZ(iz);
     //        = g4pow->logZ(iz);
     //        = lz[Z];
-    //        = log(x);
-    lnZ = log(x);
+    //        = math::Log(x);
+    lnZ = math::Log(x);
 
     constexpr G4double Fel_light[5] = {0., 5.31  , 4.79  , 4.74 ,  4.71};
     constexpr G4double Finel_light[5] = {0., 6.144 , 5.621 , 5.805 , 5.924};
@@ -328,12 +328,12 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z)
       Finel = Finel_light[iz] ;
     }
     else {
-      //    const G4double facFel = log(184.15);
-      //    const G4double facFinel = log(1194.);
+      //    const G4double facFel = math::Log(184.15);
+      //    const G4double facFinel = math::Log(1194.);
       //    Fel = facFel - lnZ/3. ;
       //    Finel = facFinel - 2.*lnZ/3. ;
-      Fel = log(184.15) - lnZ/3. ;
-      Finel = log(1194.) - 2.*lnZ/3. ;
+      Fel = math::Log(184.15) - lnZ/3. ;
+      Finel = math::Log(1194.) - 2.*lnZ/3. ;
     }
 
     //    fCoulomb = GetCurrentElement()->GetfCoulomb();
@@ -473,16 +473,16 @@ void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
   //  G4double s1 = preS1*z23;
   G4double s1 = (1./(184.15*184.15))*z23;
   //  G4double logS1 = 2./3.*lnZ-2.*facFel;
-  G4double logS1 = 2./3.*lnZ-2.*log(184.15);
+  G4double logS1 = 2./3.*lnZ-2.*math::Log(184.15);
   //  G4double logTS1 = logTwo+logS1;
-  G4double logTS1 = log(2.)+logS1;
+  G4double logTS1 = math::Log(2.)+logS1;
 
   xiLPM = 2.;
 
   if (sprime>1)
     xiLPM = 1.;
   else if (sprime>math::Sqrt(2.)*s1) {
-    G4double h  = log(sprime)/logTS1;
+    G4double h  = math::Log(sprime)/logTS1;
     //    xiLPM = 1+h-0.08*(1-h)*(1-sqr(1-h))/logTS1;
     xiLPM = 1+h-0.08*(1-h)*(1-(1-h)*(1-h))/logTS1;
   }
@@ -498,7 +498,7 @@ void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
   // Klein eq. (75)
   xiLPM = 1.;
   if (s0<=s1) xiLPM = 2.;
-  else if ( (s1<s0) && (s0<=1) ) xiLPM = 1. + log(s0)/logS1;
+  else if ( (s1<s0) && (s0<=1) ) xiLPM = 1. + math::Log(s0)/logS1;
 
   // *** calculate supression functions phi and G ***
   // Klein eqs. (77)
@@ -545,8 +545,8 @@ VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::Phi1(G4double gg)
 {
   // Thomas-Fermi FF from Tsai, eq.(3.38) for Z>=5
-  //  return 20.863 - 2.*log(1. + sqr(0.55846*gg) )
-  return 20.863 - 2.*log(1. + (0.55846*gg)*(0.55846*gg) )
+  //  return 20.863 - 2.*math::Log(1. + sqr(0.55846*gg) )
+  return 20.863 - 2.*math::Log(1. + (0.55846*gg)*(0.55846*gg) )
     - 4.*( 1. - 0.6*math::Exp(-0.9*gg) - 0.4*math::Exp(-1.5*gg) );
 }
 
@@ -562,8 +562,8 @@ VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::Psi1(G4double eps)
 {
   // Thomas-Fermi FF from Tsai, eq.(3.40) for Z>=5
-  //  return 28.340 - 2.*log(1. + sqr(3.621*eps) )
-  return 28.340 - 2.*log(1. + (3.621*eps)*(3.621*eps) )
+  //  return 28.340 - 2.*math::Log(1. + sqr(3.621*eps) )
+  return 28.340 - 2.*math::Log(1. + (3.621*eps)*(3.621*eps) )
     - 4.*( 1. - 0.7*math::Exp(-8*eps) - 0.3*math::Exp(-29.*eps) );
 }
 
