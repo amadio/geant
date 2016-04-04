@@ -24,11 +24,11 @@ public:
   VECCORE_CUDA_HOST
   BremSeltzerBerger(Random_t* states = 0, int threadId = -1);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   BremSeltzerBerger(Random_t* states, int threadId,
                     GUAliasSampler* sampler, Physics2DVector* sbData);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   ~BremSeltzerBerger();
 
   VECCORE_CUDA_HOST
@@ -43,7 +43,7 @@ public:
 
 public:
   // Auxiliary methods
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   Physics2DVector* GetSBData() {return fDataSB;}
 
   VECCORE_CUDA_HOST bool
@@ -51,27 +51,27 @@ public:
 
   // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH typename
+  VECCORE_CUDA_HOST_DEVICE typename
   Backend::Double_t
   CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_t energyIn,
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_t energyIn,
                    typename Backend::Index_t   zElement,
                    typename Backend::Double_t& energyOut,
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_t energyIn,
                        typename Backend::Index_t   zElement,
                        typename Backend::Double_t& energyOut,
@@ -79,49 +79,49 @@ public:
                        typename Backend::Bool_t &status);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   SampleSinTheta(typename Backend::Double_t energyIn) const;
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int     elementZ,
                                     double  energyIn,
                                     double& energyOut,
                                     double& sinTheta);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection(int Zelement, double Ein, double Eout) const;
 
   //the cross section calculation from Geant4
 
-  VECPHYS_CUDA_HEADER_BOTH double
+  VECCORE_CUDA_HOST_DEVICE double
   GetG4CrossSection(double  energyIn, const int zElement);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SetCurrentElement(G4double Z);
 
-  VECPHYS_CUDA_HEADER_BOTH double
+  VECCORE_CUDA_HOST_DEVICE double
   ComputeXSectionPerAtom(double cut, double energy);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   G4double ComputeRelDXSectionPerAtom(G4double gammaEnergy);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   G4double ComputeDXSectionPerAtom(G4double gammaEnergy);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void  CalcLPMFunctions(G4double k);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   G4double Phi1(G4double gg);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   G4double Phi1M2(G4double gg);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   G4double Psi1(G4double eps);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   G4double Psi1M2(G4double eps);
 
   // the mother is friend in order to access private methods of this
@@ -155,7 +155,7 @@ private:
 
 //Implementation
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_t  energy,
                                       typename Backend::Index_t   Z)
@@ -164,7 +164,7 @@ BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_t  energy,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
                                   typename Backend::Index_t   zElement,
                                   typename Backend::Double_t& energyOut,
@@ -210,7 +210,7 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 BremSeltzerBerger::SampleSinTheta(typename Backend::Double_t energyIn) const
 {
@@ -250,7 +250,7 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_t energyIn) const
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn,
                                     typename Backend::Index_t   zElement,
                                     typename Backend::Double_t& energyOut,
@@ -262,7 +262,7 @@ BremSeltzerBerger::InteractKernelCR(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_t energyIn,
                                         typename Backend::Index_t   zElement,
                                         typename Backend::Double_t& energyOut,

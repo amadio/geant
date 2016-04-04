@@ -35,7 +35,7 @@ public:
                  int       numEntriesSampled
                  );
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasSampler(Random_t* states, int threadId,
                  double incomingMin,
                  double incomingMax,
@@ -44,35 +44,35 @@ public:
                  GUAliasTableManager* table
                  );
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   ~GUAliasSampler();
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void PrintTable();
 
   VECCORE_CUDA_HOST
   void BuildAliasTable( int z, const double *pdf );
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasTableManager* GetAliasTableManager(){ return fAliasTableManager ;}
 
   // Backend Implementation:
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SampleBin( typename Backend::Double_t  kineticEnergy,
                   typename Backend::Index_t   &index,
                   typename Backend::Index_t   &icol,
                   typename Backend::Double_t  &fraction) const;
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SampleLogBin( typename Backend::Double_t  kineticEnergy,
                      typename Backend::Index_t   &irow,
                      typename Backend::Index_t   &icol,
                      typename Backend::Double_t  &fraction) const;
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   SampleX(typename Backend::Double_t rangeSampled,
           typename Backend::Double_t probNA,
@@ -81,7 +81,7 @@ public:
           typename Backend::Double_t fraction ) const;
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   SampleXL(typename Backend::Index_t  zElement,
            typename Backend::Double_t rangeSampled,
@@ -92,7 +92,7 @@ public:
 
   template<class Backend>
   inline
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void
   GatherAlias(typename Backend::Index_t   index,
               typename Backend::Index_t   zElement,
@@ -101,7 +101,7 @@ public:
 
   template<class Backend>
   inline
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   GetPDF(typename Backend::Index_t zElement,
          typename Backend::Index_t irow,
@@ -110,7 +110,7 @@ public:
   //For atomic independent models
   template<class Backend>
   inline
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void
   GatherAlias(typename Backend::Index_t   index,
               typename Backend::Double_t &probNA,
@@ -118,22 +118,22 @@ public:
 
   template<class Backend>
   inline
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   GetPDF(typename Backend::Index_t irow,
          typename Backend::Index_t icol ) const;
 
   //accessors
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   double GetIncomingMin()  const { return fIncomingMin ; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   double GetIncomingMax()  const { return fIncomingMax ; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int GetNumEntries()      const { return fInNumEntries; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int GetSamplesPerEntry() const { return fSampledNumEntries;}
 
 private:
@@ -156,7 +156,7 @@ private:
 // Backend Implementation
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 SampleBin(typename Backend::Double_t kineticEnergy,
           typename Backend::Index_t  &index,    // ~ sampled value
@@ -195,7 +195,7 @@ SampleBin(typename Backend::Double_t kineticEnergy,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 SampleLogBin(typename Backend::Double_t kineticEnergy,
              typename Backend::Index_t  &irow,     // input energy
@@ -236,7 +236,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
 //    Feature of this method:  flat distribution within bin
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 GUAliasSampler::
 SampleX(typename Backend::Double_t rangeSampled,
@@ -277,7 +277,7 @@ SampleX(typename Backend::Double_t rangeSampled,
 //      for given zElement ...
 //    Feature of this method:  linear interpolation using 'PDF'
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 GUAliasSampler::
 SampleXL(typename Backend::Index_t  zElement,
@@ -419,7 +419,7 @@ GUAliasSampler::GetPDF(typename Backend::Index_t irow,
 #ifndef VECCORE_NVCC
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index,
                  typename kVc::Index_t    zElement,
@@ -448,7 +448,7 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
 
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_t
 GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
                             typename kVc::Index_t irow,
@@ -477,7 +477,7 @@ GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
 
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index,
                  typename kVc::Double_t  &probNA,
@@ -495,7 +495,7 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
 
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_t
 GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t irow,
                             typename kVc::Index_t icol) const

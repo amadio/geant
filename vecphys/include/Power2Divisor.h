@@ -10,32 +10,32 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 class Power2Divisor
 {
 public:
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   Power2Divisor(int nmin, int nmax, int ndiv);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int GetNumberOfBins();
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   Precision GetLowerBound() { return fLowerBound; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   Precision GetUpperBound() { return fUpperBound; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   Precision GetBinPosition(int ibin);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   Precision GetBinSize(int ibin);
 
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void GetBinAndFraction(typename Backend::Double_t x,
                          typename Backend::Index_t& ibin,
                          typename Backend::Double_t& frac);
 
 private:
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int Power2Exponent(int ibin);
 
 private:
@@ -48,7 +48,7 @@ private:
 };
 
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void Power2Divisor::GetBinAndFraction(typename Backend::Double_t x,
                                       typename Backend::Index_t& ibin,
                                       typename Backend::Double_t& frac)

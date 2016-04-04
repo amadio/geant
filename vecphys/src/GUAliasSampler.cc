@@ -30,7 +30,7 @@ GUAliasSampler(Random_t* states, int threadId,
   fAliasTableManager = new GUAliasTableManager(nelements,ngrid);
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
                double incomingMin,
@@ -54,7 +54,7 @@ GUAliasSampler(Random_t* states, int threadId,
   fAliasTableManager = tableManager;
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 GUAliasSampler::~GUAliasSampler()
 {
 #ifndef VECCORE_NVCC
@@ -63,7 +63,7 @@ GUAliasSampler::~GUAliasSampler()
 
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::PrintTable()
 {
   printf("Incoming Min= %g , Max= %g , numEntries= %d \n",

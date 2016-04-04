@@ -27,7 +27,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid)
 
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid,
                                      GUAliasSampler* sampler,
                                      Physics2DVector* sbData)
@@ -41,7 +41,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid,
 
 //need another Ctor with setable parameters
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 BremSeltzerBerger::~BremSeltzerBerger()
 {
   free(fDataSB);
@@ -178,7 +178,7 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 
 // function implementing the differential cross section for SeltzerBerger
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 BremSeltzerBerger::CalculateDiffCrossSection(int Zelement,
                                              double w,
 					     double y) const
@@ -197,7 +197,7 @@ BremSeltzerBerger::CalculateDiffCrossSection(int Zelement,
   return dcross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::SampleByCompositionRejection(int     Z,
                                                 double  kineticEnergy,
                                                 double& gammaEnergy,
@@ -262,7 +262,7 @@ BremSeltzerBerger::SampleByCompositionRejection(int     Z,
   sinTheta = SampleSinTheta<kScalar>(gammaEnergy);
 }
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 BremSeltzerBerger::GetG4CrossSection(double  kineticEnergy,
                                      int Z)
 {
@@ -294,7 +294,7 @@ BremSeltzerBerger::GetG4CrossSection(double  kineticEnergy,
   return cross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void BremSeltzerBerger::SetCurrentElement(G4double Z)
 {
   if(Z != currentZ) {
@@ -342,7 +342,7 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z)
   }
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut,
                                                    G4double kineticEnergy)
 {
@@ -393,7 +393,7 @@ G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut,
   return cross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::ComputeRelDXSectionPerAtom(G4double gammaEnergy)
 // Ultra relativistic model
 //   only valid for very high energies, but includes LPM suppression
@@ -420,7 +420,7 @@ G4double BremSeltzerBerger::ComputeRelDXSectionPerAtom(G4double gammaEnergy)
   return cross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::ComputeDXSectionPerAtom(G4double gammaEnergy)
 // Relativistic model
 //  only valid for high energies (and if LPM suppression does not play a role)
@@ -462,7 +462,7 @@ G4double BremSeltzerBerger::ComputeDXSectionPerAtom(G4double gammaEnergy)
   return cross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
 {
   // *** calculate lpm variable s & sprime ***
@@ -541,7 +541,7 @@ void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
   if (xiLPM*phiLPM>1. || s0>0.57)  { xiLPM=1./phiLPM; }
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::Phi1(G4double gg)
 {
   // Thomas-Fermi FF from Tsai, eq.(3.38) for Z>=5
@@ -550,7 +550,7 @@ G4double BremSeltzerBerger::Phi1(G4double gg)
     - 4.*( 1. - 0.6*exp(-0.9*gg) - 0.4*exp(-1.5*gg) );
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::Phi1M2(G4double gg)
 {
   // Thomas-Fermi FF from Tsai, eq. (3.39) for Z>=5
@@ -558,7 +558,7 @@ G4double BremSeltzerBerger::Phi1M2(G4double gg)
   return 2./(3.*(1. + 6.5*gg +6.*gg*gg) );
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::Psi1(G4double eps)
 {
   // Thomas-Fermi FF from Tsai, eq.(3.40) for Z>=5
@@ -567,7 +567,7 @@ G4double BremSeltzerBerger::Psi1(G4double eps)
     - 4.*( 1. - 0.7*exp(-8*eps) - 0.3*exp(-29.*eps) );
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 G4double BremSeltzerBerger::Psi1M2(G4double eps)
 {
   // Thomas-Fermi FF from Tsai, eq. (3.41) for Z>=5

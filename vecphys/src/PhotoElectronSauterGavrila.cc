@@ -17,7 +17,7 @@ PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid
   Initialization();
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid,
                                                        GUAliasSampler* sampler)
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid,sampler)
@@ -107,7 +107,7 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 
 // function implementing the angular distribution of photoelectrons
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
                                                        double energy,
                                                        double cosTheta ) const
@@ -133,7 +133,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
   return dsigmaK;
 }
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
                                                       double energy,
                                                       double cosTheta ) const
@@ -201,7 +201,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
 
 }
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 PhotoElectronSauterGavrila::GetG4CrossSection(double  gammaEnergy,
                                               const int Z)
 {
@@ -210,7 +210,7 @@ PhotoElectronSauterGavrila::GetG4CrossSection(double  gammaEnergy,
   return xSection;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
                                                          double energyIn,
                                                          double& energyOut,

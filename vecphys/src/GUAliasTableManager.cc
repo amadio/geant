@@ -29,18 +29,18 @@ void GUAliasTableManager::SetTableIndex(int Z) {
   }
  }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 GUAliasTable* GUAliasTableManager::GetAliasTable(int Z) {
   return fAliasTables[GetTableIndex(Z)];
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 int GUAliasTableManager::GetTableIndex(int Z) {
   assert(Z > -1 && Z < maximumZ ) ;
   return fIndex[Z];
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 int GUAliasTableManager::GetNumberOfElements() {
   return fNElement;
 }

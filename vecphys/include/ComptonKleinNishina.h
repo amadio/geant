@@ -20,10 +20,10 @@ public:
   VECCORE_CUDA_HOST
   ComptonKleinNishina(Random_t* states = 0, int threadId = -1);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   ComptonKleinNishina(Random_t* states, int threadId, GUAliasSampler* sampler);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
     ~ComptonKleinNishina();//{}
 
   VECCORE_CUDA_HOST
@@ -38,10 +38,10 @@ public:
 
 public:
   // Auxiliary methods
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasSampler* GetSampler() {return fAliasSampler;}
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
 
   //Alternative Interact method to test energy dependent subtasks for a
@@ -49,7 +49,7 @@ public:
   //method of EmBaseModel
 
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void ModelInteract(GUTrack&  projectile,
                      const int targetElement,
                      GUTrack&  secondary );
@@ -65,27 +65,27 @@ public:
 private:
   // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH typename
+  VECCORE_CUDA_HOST_DEVICE typename
   Backend::Double_t
   CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_t energyIn,
                  typename Backend::Index_t   zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_t energyIn,
                    typename Backend::Index_t   zElement,
                    typename Backend::Double_t& energyOut,
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_t energyIn,
                        typename Backend::Index_t   zElement,
                        typename Backend::Double_t& energyOut,
@@ -94,7 +94,7 @@ private:
 
   template<class Backend>
   inline
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   SampleSequential(typename Backend::Double_t E0_m,
                    typename Backend::Double_t test,
@@ -103,25 +103,25 @@ private:
                    typename Backend::Double_t &sint2) const;
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   SampleSinTheta(typename Backend::Double_t energyIn,
                  typename Backend::Double_t energyOut) const;
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    Z,
                                     double energyIn,
                                     double& energyOut,
                                     double& sinTheta);
 
-  VECPHYS_CUDA_HEADER_BOTH double
+  VECCORE_CUDA_HOST_DEVICE double
   GetG4CrossSection(double  energyIn,
                     const int zElement);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   GUTrack& GetSecondaryElectron() { return fSecondaryElectron; }
 
   // the mother is friend in order to access private methods of this
@@ -133,7 +133,7 @@ private:
 };
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_t  energy,
                                         typename Backend::Index_t   Z)
@@ -185,7 +185,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_t  energy,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
                                     typename Backend::Index_t   zElement,
                                     typename Backend::Double_t& energyOut,
@@ -223,7 +223,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernelCR(typename Backend::Double_t  energyIn,
                                       typename Backend::Index_t   zElement,
                                       typename Backend::Double_t& energyOut,
@@ -248,7 +248,7 @@ ComptonKleinNishina::InteractKernelCR(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 ComptonKleinNishina::SampleSinTheta(typename Backend::Double_t energyIn,
                                     typename Backend::Double_t energyOut) const
@@ -279,7 +279,7 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::Double_t energyIn,
 
 template<class Backend>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 ComptonKleinNishina::SampleSequential(typename Backend::Double_t E0_m,
                                       typename Backend::Double_t test,
@@ -311,7 +311,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_t E0_m,
 #ifndef VECCORE_NVCC
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_t
 ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_t E0_m,
                                            typename kVc::Double_t test,
@@ -345,7 +345,7 @@ ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_t E0_m,
 #endif
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_t  energyIn,
                                           typename Backend::Index_t   zElement,
                                           typename Backend::Double_t& energyOut,
@@ -387,7 +387,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_t  energyIn,
 //Alternative Interact method
 
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void ComptonKleinNishina::ModelInteract(GUTrack&  inProjectile,
                                         const int targetElement,
                                         GUTrack&  outSecondary )

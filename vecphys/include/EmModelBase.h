@@ -28,10 +28,10 @@ public:
   VECCORE_CUDA_HOST
   EmModelBase(Random_t* states, int tid);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   ~EmModelBase();
 
   VECCORE_CUDA_HOST
@@ -45,13 +45,13 @@ public:
 
   //scalar
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void AtomicCrossSection(GUTrack&  projectile,
                           const int targetElement,
                           double&   sigma);
 
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void Interact(GUTrack&  projectile,
                 const int targetElement,
                 GUTrack&  secondary );
@@ -78,44 +78,44 @@ public:
 
   //validation
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void AtomicCrossSectionG4(GUTrack&  inProjectile,
                             const int targetElement,
                             double&   sigma);
 
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void InteractG4(GUTrack&  inProjectile,
                   const int targetElement,
                   GUTrack&  outSecondary);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasSampler* GetSampler() {return fAliasSampler;}
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SetSampler(GUAliasSampler* sampler) { fAliasSampler = sampler ;}
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SetSamplingMethod(SamplingMethod type) { fSampleType = type; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   SamplingMethod GetSamplingMethod() { return fSampleType; }
 
 protected:
   // Auxiliary methods
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SetLowEnergyLimit(double lowLimit) { fLowEnergyLimit = lowLimit; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
 
-  VECPHYS_CUDA_HEADER_BOTH double
+  VECCORE_CUDA_HOST_DEVICE double
   ComputeCoulombFactor(double fZeff);
 
 protected:
   // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void RotateAngle(typename Backend::Double_t sinTheta,
                    typename Backend::Double_t xhat,
                    typename Backend::Double_t yhat,
@@ -125,7 +125,7 @@ protected:
                    typename Backend::Double_t &zr);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void ConvertXtoFinalState(double energyIn,
                             double energyOut,
                             double sinTheta,
@@ -134,7 +134,7 @@ protected:
 
 #ifndef VECCORE_NVCC
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void ConvertXtoFinalState(typename Backend::Double_t energyIn,
                             typename Backend::Double_t energyOut,
                             typename Backend::Double_t sinTheta,
@@ -145,7 +145,7 @@ protected:
   //this inner template cannot be specialized unless template <class EmModel>
   //is also explicitly specialized
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn,
                                    typename Backend::Double_t energyOut,
                                    typename Backend::Double_t sinTheta,
@@ -184,7 +184,7 @@ EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid)
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sampler)
   : fRandomState(states), fThreadId(tid),
     fAtomicDependentModel(false),
@@ -196,7 +196,7 @@ EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid, GUAliasSampler* sam
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 EmModelBase<EmModel>::~EmModelBase()
 {
   //  if(fAliasSampler) delete fAliasSampler;
@@ -241,7 +241,7 @@ VECCORE_CUDA_HOST
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void EmModelBase<EmModel>::AtomicCrossSection(GUTrack&  inProjectile,
                                               const int targetElement,
                                               double&   sigma )
@@ -255,7 +255,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack&  inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
                                     const int targetElement,
                                     GUTrack&  outSecondary )
@@ -548,7 +548,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack&  inProjectile,
                                                 const int targetElement,
                                                 double&   sigma)
@@ -563,7 +563,7 @@ void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack&  inProjectile,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
                                       const int targetElement,
                                       GUTrack&  outSecondary)
@@ -582,7 +582,7 @@ void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
 
 template <class EmModel>
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
                                   typename Backend::Double_t xhat,
                                   typename Backend::Double_t yhat,
@@ -644,7 +644,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
 
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
                                                 double energyOut,
                                                 double sinTheta,
@@ -681,7 +681,7 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
 #ifndef VECCORE_NVCC
 template <class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
                                            typename Backend::Double_t energyOut,
                                            typename Backend::Double_t sinTheta,
@@ -735,7 +735,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
 
 template<class EmModel>
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn,
                                                   typename Backend::Double_t energyOut,
                                                   typename Backend::Double_t sinTheta,
@@ -776,7 +776,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t ene
 #endif
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff)
 {
   // Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)

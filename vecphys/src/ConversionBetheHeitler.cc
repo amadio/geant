@@ -17,7 +17,7 @@ ConversionBetheHeitler(Random_t* states, int tid)
   Initialization();
 }
 
-VECPHYS_CUDA_HEADER_BOTH ConversionBetheHeitler::
+VECCORE_CUDA_HOST_DEVICE ConversionBetheHeitler::
 ConversionBetheHeitler(Random_t* states, int tid,
                          GUAliasSampler* sampler)
   : EmModelBase<ConversionBetheHeitler>(states,tid,sampler)
@@ -92,7 +92,7 @@ ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 // function implementing the cross section for KleinNishina
 // TODO: need to get electron properties from somewhere
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
                                                   double gammaEnergy,
                                                   double electEnergy)
@@ -126,7 +126,7 @@ ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
   return dsigma;
 }
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
 {
   // compute the value of the screening function 3*PHI1 - PHI2
@@ -140,7 +140,7 @@ ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
   return screenVal;
 }
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 ConversionBetheHeitler::ScreenFunction2(double screenVariable) const
 {
   // compute the value of the screening function 1.5*PHI1 - 0.5*PHI2
@@ -154,7 +154,7 @@ ConversionBetheHeitler::ScreenFunction2(double screenVariable) const
   return screenVal;
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void ConversionBetheHeitler::
 SampleByCompositionRejection(int     elementZ,
                              double  GammaEnergy,

@@ -19,7 +19,7 @@ IonisationMoller::IonisationMoller(Random_t* states, int tid)
 
 }
 
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 IonisationMoller::IonisationMoller(Random_t* states, int tid,
                                    GUAliasSampler* sampler)
   :  EmModelBase<IonisationMoller>(states,tid,sampler)
@@ -90,7 +90,7 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
 
 // function implementing the cross section for MollerBhabha
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 IonisationMoller::CalculateDiffCrossSection(int Zelement,
                                             double kineticEnergy,
 					    double deltaRayEnergy) const
@@ -120,7 +120,7 @@ IonisationMoller::CalculateDiffCrossSection(int Zelement,
   return dcross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH double
+VECCORE_CUDA_HOST_DEVICE double
 IonisationMoller::GetG4CrossSection(double kineticEnergy,
                                     const int Z)
 {
@@ -154,7 +154,7 @@ IonisationMoller::GetG4CrossSection(double kineticEnergy,
   return cross;
 }
 
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 IonisationMoller::SampleByCompositionRejection(int     Z, //not used
                                                double  kineticEnergy,
                                                double& deltaKinEnergy,

@@ -20,13 +20,13 @@ public:
   VECCORE_CUDA_HOST
   void AddAliasTable(int Z, GUAliasTable* table);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   GUAliasTable* GetAliasTable(int Z);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int GetTableIndex(int nelement);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int GetNumberOfElements();
 
   VECCORE_CUDA_HOST

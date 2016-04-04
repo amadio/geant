@@ -22,11 +22,11 @@ public:
   VECCORE_CUDA_HOST
   PhotoElectronSauterGavrila(Random_t* states, int threadId = -1);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   PhotoElectronSauterGavrila(Random_t* states, int threadId,
                              GUAliasSampler* sampler);
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   ~PhotoElectronSauterGavrila() {}
 
   VECCORE_CUDA_HOST
@@ -44,7 +44,7 @@ public:
   //method of EmBaseModel
 
   template <typename Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void ModelInteract(GUTrack&  projectile,
                      const int targetElement,
                      GUTrack&  secondary );
@@ -61,27 +61,27 @@ public:
 private:
   // Implementation methods
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   CrossSectionKernel(typename Backend::Double_t  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_t energyIn,
                  typename Backend::Index_t  zElement,
                  typename Backend::Double_t& energyOut,
                  typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_t energyIn,
                    typename Backend::Index_t   zElement,
                    typename Backend::Double_t& energyOut,
                    typename Backend::Double_t& sinTheta);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH void
+  VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_t energyIn,
                        typename Backend::Index_t   zElement,
                        typename Backend::Double_t& energyOut,
@@ -89,35 +89,35 @@ private:
                        typename Backend::Bool_t &status);
 
   template<class Backend>
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   GetPhotoElectronEnergy(typename Backend::Double_t energyIn,
                          typename Backend::Index_t zElement);
 
   template<class Backend>
   inline
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_t
   SampleSequential(typename Backend::Double_t A,
                    typename Backend::Double_t Ap2,
                    typename Backend::Double_t B,
                    typename Backend::Double_t grej) const;
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    Z,
                                     double energyIn,
                                     double& energyOut,
                                     double& sinTheta);
 
-  VECPHYS_CUDA_HEADER_BOTH double
+  VECCORE_CUDA_HOST_DEVICE double
   GetG4CrossSection(double  energyIn,
                     const int zElement);
 
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSectionK( int Zelement, double Ein, double outEphoton ) const;
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection( int Zelement, double Ein, double outEphoton ) const;
 
   // the mother is friend in order to access private methods of this
@@ -130,7 +130,7 @@ private:
 //Implementation
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 PhotoElectronSauterGavrila::CrossSectionKernel(typename Backend::Double_t energy,
                                                typename Backend::Index_t  Z)
@@ -184,7 +184,7 @@ PhotoElectronSauterGavrila::CrossSectionKernel(typename Backend::Double_t energy
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void PhotoElectronSauterGavrila::
 InteractKernel(typename Backend::Double_t  energyIn,
                typename Backend::Index_t   zElement,
@@ -222,7 +222,7 @@ InteractKernel(typename Backend::Double_t  energyIn,
 }
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 PhotoElectronSauterGavrila::
 GetPhotoElectronEnergy(typename Backend::Double_t energy,
@@ -264,7 +264,7 @@ GetPhotoElectronEnergy(typename Backend::Double_t energy,
 #ifndef VECCORE_NVCC
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_t
 PhotoElectronSauterGavrila::
 GetPhotoElectronEnergy<kVc>(typename kVc::Double_t energy,
@@ -283,7 +283,7 @@ GetPhotoElectronEnergy<kVc>(typename kVc::Double_t energy,
 
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_t  energyIn,
                                              typename Backend::Index_t   zElement,
                                              typename Backend::Double_t& energyOut,
@@ -321,7 +321,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_t  energyI
 }
 template<class Backend>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_t
 PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_t A,
                                              typename Backend::Double_t Ap2,
@@ -345,7 +345,7 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_t A,
 #ifndef VECCORE_NVCC
 template<>
 inline
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_t
 PhotoElectronSauterGavrila::SampleSequential<kVc>(typename kVc::Double_t A,
                                                   typename kVc::Double_t Ap2,
@@ -370,7 +370,7 @@ PhotoElectronSauterGavrila::SampleSequential<kVc>(typename kVc::Double_t A,
 #endif
 
 template<class Backend>
-VECPHYS_CUDA_HEADER_BOTH void
+VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::InteractKernelUnpack(typename Backend::Double_t energyIn,
                                                  typename Backend::Index_t   zElement,
                                                  typename Backend::Double_t& energyOut,
@@ -385,7 +385,7 @@ PhotoElectronSauterGavrila::InteractKernelUnpack(typename Backend::Double_t ener
 //Alternative Interact method
 
 template <typename Backend>
-VECPHYS_CUDA_HEADER_BOTH
+VECCORE_CUDA_HOST_DEVICE
 void PhotoElectronSauterGavrila::ModelInteract(GUTrack&  inProjectile,
                                                const int targetElement,
                                                GUTrack&  outSecondary )

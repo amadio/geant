@@ -21,10 +21,10 @@ public:
   ~MaterialHandler();
 
 public:
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
   int GetNumberOfElements() { return fNumberOfElements; }
 
-  VECPHYS_CUDA_HEADER_BOTH
+  VECCORE_CUDA_HOST_DEVICE
     int* GetElementArray() { return &fElementArray[0]; }
 
   //a temporary method for the purpose of validation/benchmarking
