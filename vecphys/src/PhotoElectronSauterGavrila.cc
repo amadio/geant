@@ -31,7 +31,7 @@ PhotoElectronSauterGavrila::Initialization()
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId,
 				       fLowEnergyLimit, fHighEnergyLimit,
                                        100, 200);
-    //note: if (Egamma/electron_mass_c2 > 50), cos(theta) = 1 in Geant4
+    //note: if (Egamma/electron_mass_c2 > 50), math::Cos(theta) = 1 in Geant4
 
     BuildAliasTable();
   }
@@ -76,7 +76,7 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 
     for(int j = 0; j < ncol ; ++j) {
 
-      //for each input cos(theta) bin
+      //for each input math::Cos(theta) bin
       double normal = 0;
 
       //cross section weighted bin position

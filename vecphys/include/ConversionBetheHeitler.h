@@ -201,8 +201,8 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
   Double_v TetPo = u*electron_mass_c2/energyPositron;
 
   //sinTheta - just return theta instead!
-  sinThetaElectron =  sin(TetEl);
-  sinThetaPositron = -sin(TetPo);
+  sinThetaElectron =  math::Sin(TetEl);
+  sinThetaPositron = -math::Sin(TetPo);
 }
 
 template<class Backend>

@@ -200,11 +200,11 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
     tantheta = rho/z;
     theta = std::atan(tantheta); // (rho/z);
 
-    // cosphi = std::cos(phi);
-    // sinphi = std::sin(phi);
+    // cosphi = math::Cos(phi);
+    // sinphi = math::Sin(phi);
     sincos(phi,   &sinphi,   &cosphi);
     sincos(theta, &sintheta, &costheta);
-    // sintheta = std::sin(theta);
+    // sintheta = math::Sin(theta);
 
     (fTrack_soa.status)[i]       = fTrack_aos[i].status = 0;
     (fTrack_soa.proc)[i]         = fTrack_aos[i].proc = -1;
@@ -220,7 +220,7 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
 
     (fTrack_soa.px)[i] = fTrack_aos[i].px = p*sintheta*cosphi;
     (fTrack_soa.py)[i] = fTrack_aos[i].py = p*sintheta*sinphi;
-    (fTrack_soa.pz)[i] = fTrack_aos[i].pz = p*costheta; // std::cos(theta);
+    (fTrack_soa.pz)[i] = fTrack_aos[i].pz = p*costheta; // math::Cos(theta);
 
     mass = 0; // electron_mass_c2*fTrack_aos[i].q*fTrack_aos[i].q;
     (fTrack_soa.E)[i]  = fTrack_aos[i].E  = p*p/(math::Sqrt(p*p + mass*mass) + mass);

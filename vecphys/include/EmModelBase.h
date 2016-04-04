@@ -596,8 +596,8 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
   Double_v cosphi, sinphi;
   sincos(phi, &sinphi, &cosphi);
 
-  Double_v uhat = sinTheta*cosphi; // cos(phi);
-  Double_v vhat = sinTheta*sinphi; // sin(phi);
+  Double_v uhat = sinTheta*cosphi; // math::Cos(phi);
+  Double_v vhat = sinTheta*sinphi; // math::Sin(phi);
   Double_v what = math::Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Mask_v<Double_v> positive = ( pt > 0. );

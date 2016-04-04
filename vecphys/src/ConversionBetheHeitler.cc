@@ -269,15 +269,15 @@ SampleByCompositionRejection(int     elementZ,
   /*
   G4double TetPo = u*electron_mass_c2/PositTotEnergy;
   G4double Phi  = twopi *UniformRandom<backend::Scalar>(fRandomState,fThreadId) ;
-  G4double dxEl= sin(TetEl)*cos(Phi),dyEl= sin(TetEl)*sin(Phi),dzEl=cos(TetEl);
-  G4double dxPo=-sin(TetPo)*cos(Phi),dyPo=-sin(TetPo)*sin(Phi),dzPo=cos(TetPo);
+  G4double dxEl= math::Sin(TetEl)*math::Cos(Phi),dyEl= math::Sin(TetEl)*math::Sin(Phi),dzEl=math::Cos(TetEl);
+  G4double dxPo=-math::Sin(TetPo)*math::Cos(Phi),dyPo=-math::Sin(TetPo)*math::Sin(Phi),dzPo=math::Cos(TetPo);
   */
 
   //return energy and sinTheta of the electron -
   //ToDo: store secondaries into a global stack
 
   energyOut = ElectTotEnergy;
-  sinTheta = sin(TetEl);
+  sinTheta = math::Sin(TetEl);
 }
 
 } // end namespace impl
