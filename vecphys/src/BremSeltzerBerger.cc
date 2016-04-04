@@ -136,7 +136,7 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = exp(logxmin + dx*i);
+    double x = math::Exp(logxmin + dx*i);
 
     double emin = (minX < x) ? minX : x;
     double emax = (maxX < x) ? maxX : x;
@@ -160,7 +160,7 @@ BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 
     for(int j = 0; j < ncol ; ++j) {
       //for each output energy bin
-      double y = exp(yo + dy*j) - dc;
+      double y = math::Exp(yo + dy*j) - dc;
       double w = (y < 0 ) ? 0 : math::Sqrt(y)/x;
       double xsec = CalculateDiffCrossSection(Z,w,logx);
       p[i*ncol+j] = xsec;
@@ -515,11 +515,11 @@ void  BremSeltzerBerger::CalcLPMFunctions(G4double k)
   else if (s0<1.9516) {
     // intermediate suppression
     // using eq.77 approxim. valid s<2.
-    phiLPM = 1.-exp(-6.*s0*(1.+(3.-pi)*s0)
+    phiLPM = 1.-math::Exp(-6.*s0*(1.+(3.-pi)*s0)
                 +s3/(0.623+0.795*s0+0.658*s2));
     if (s0<0.415827397755) {
       // using eq.77 approxim. valid 0.07<s<2
-      G4double psiLPM = 1-exp(-4*s0-8*s2/(1+3.936*s0+4.97*s2-0.05*s3+7.50*s4));
+      G4double psiLPM = 1-math::Exp(-4*s0-8*s2/(1+3.936*s0+4.97*s2-0.05*s3+7.50*s4));
       gLPM = 3*psiLPM-2*phiLPM;
     }
     else {
@@ -547,7 +547,7 @@ G4double BremSeltzerBerger::Phi1(G4double gg)
   // Thomas-Fermi FF from Tsai, eq.(3.38) for Z>=5
   //  return 20.863 - 2.*log(1. + sqr(0.55846*gg) )
   return 20.863 - 2.*log(1. + (0.55846*gg)*(0.55846*gg) )
-    - 4.*( 1. - 0.6*exp(-0.9*gg) - 0.4*exp(-1.5*gg) );
+    - 4.*( 1. - 0.6*math::Exp(-0.9*gg) - 0.4*math::Exp(-1.5*gg) );
 }
 
 VECCORE_CUDA_HOST_DEVICE
@@ -564,7 +564,7 @@ G4double BremSeltzerBerger::Psi1(G4double eps)
   // Thomas-Fermi FF from Tsai, eq.(3.40) for Z>=5
   //  return 28.340 - 2.*log(1. + sqr(3.621*eps) )
   return 28.340 - 2.*log(1. + (3.621*eps)*(3.621*eps) )
-    - 4.*( 1. - 0.7*exp(-8*eps) - 0.3*exp(-29.*eps) );
+    - 4.*( 1. - 0.7*math::Exp(-8*eps) - 0.3*math::Exp(-29.*eps) );
 }
 
 VECCORE_CUDA_HOST_DEVICE

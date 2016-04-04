@@ -66,7 +66,7 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = exp(logxmin + dx*i);
+    double x = math::Exp(logxmin + dx*i);
 
     const double ymin = -1.0;
     const double dy = 2./ncol;

@@ -62,7 +62,7 @@ IonisationMoller::BuildPdfTable(int Z, double *p)
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = exp(logxmin + dx*i);
+    double x = math::Exp(logxmin + dx*i);
 
     //e-e- (Moller) only for now
     double ymin = fDeltaRayThreshold; //minimum delta-ray energy

@@ -62,7 +62,7 @@ ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 
   for(int i = 0; i <= nrow ; ++i) {
     //for each input energy bin
-    double x = exp(logxmin + dx*i);
+    double x = math::Exp(logxmin + dx*i);
 
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;

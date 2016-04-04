@@ -176,7 +176,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
   Double_v   c2 = 0.150;
   MaskedAssign( !condZ, 0.375-0.0556*Log(1.*Z) , &c2 );
   Double_v    y = Log(energy/T0);
-  MaskedAssign(!condE, sigmaOut*Exp(-y*(c1+c2*y)),&sigmaOut);
+  MaskedAssign(!condE, sigmaOut*math::Exp(-y*(c1+c2*y)),&sigmaOut);
 
   //this is the case if one of E < belowLimit
   MaskedAssign(belowLimit, 0.0,&sigmaOut);
@@ -293,7 +293,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
   do {
     Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-    MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
+    MaskedAssign( cond, math::Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
     MaskedAssign(!cond, math::Sqrt(epsil0sq+(1.- epsil0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
 
     Double_v onecost = (1.- epsilon)/(epsilon*E0_m);
@@ -326,7 +326,7 @@ ComptonKleinNishina::SampleSequential<backend::VcVector>(typename backend::VcVec
 
     do {
       bool cond = test[i] > UniformRandom<backend::Scalar>(fRandomState,fThreadId);
-      if(cond) epsilon[i] = Exp(-alpha1[i]*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
+      if(cond) epsilon[i] = math::Exp(-alpha1[i]*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
       else  epsilon[i] = math::Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
 
       double onecost = (1.- epsilon[i])/(epsilon[i]*E0_m[i]);
@@ -365,7 +365,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
 
   Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
+  MaskedAssign( cond, math::Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
   MaskedAssign(!cond, math::Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
 
   Double_v onecost = (1.- epsilon)/(epsilon*E0_m);

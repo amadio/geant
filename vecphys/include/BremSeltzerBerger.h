@@ -204,7 +204,7 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
   Double_v yhat = fAliasSampler->SampleX<Backend>(deltaY,probNA,
                                                   aliasInd,icol,fraction);
 
-  energyOut =  math::Sqrt(math::Max(Exp(minY + yhat)- densityCorr,0.0));
+  energyOut =  math::Sqrt(math::Max(math::Exp(minY + yhat)- densityCorr,0.0));
   sinTheta = SampleSinTheta<Backend>(energyOut);
 }
 

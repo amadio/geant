@@ -73,7 +73,7 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
   //use the average xsec within the bin instead of xsec at the mid-point
   for(int i = 0; i <= nrow ; ++i) {
 
-    double x = exp(logxmin + dx*i);
+    double x = math::Exp(logxmin + dx*i);
 
     double ymin = x/(1+2.0*x*inv_electron_mass_c2);
     double dy = (x - ymin)/ncol;
@@ -189,7 +189,7 @@ ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
   do {
     if(alpha1/(alpha1+alpha2) > UniformRandom<backend::Scalar>(fRandomState,fThreadId))
     {
-      epsilon   = exp(-alpha1*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
+      epsilon   = math::Exp(-alpha1*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
       epsilonsq = epsilon*epsilon;
     }
     else {
