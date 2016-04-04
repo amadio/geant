@@ -127,23 +127,23 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
   typedef Mask_v<typename Backend::Double_v>   Bool_t;
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //early return if E_gamma < 2*electron_mass_c2
 
-  Index_t   irow;
-  Index_t   icol;
+  Index_v<Double_v>   irow;
+  Index_v<Double_v>   icol;
   Double_v  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_v probNA;
-  Index_t  aliasInd;
+  Index_v<Double_v>  aliasInd;
 
   //this did not used to work - Fixed SW
   Double_v ncol(fAliasSampler->GetSamplesPerEntry());
-  Index_t   index = ncol*irow + icol;
+  Index_v<Double_v>   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
 
   Double_v mininumE = electron_mass_c2;

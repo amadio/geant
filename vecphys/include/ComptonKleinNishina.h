@@ -191,21 +191,21 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
                                     typename Backend::Double_v& energyOut,
                                     typename Backend::Double_v& sinTheta)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
-  Index_t   irow;
-  Index_t   icol;
+  Index_v<Double_v>   irow;
+  Index_v<Double_v>   icol;
   Double_v  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_v probNA;
-  Index_t  aliasInd;
+  Index_v<Double_v>  aliasInd;
 
   //this did not used to work - Fixed SW
   Double_v ncol(fAliasSampler->GetSamplesPerEntry());
-  Index_t   index = ncol*irow + icol;
+  Index_v<Double_v>   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
 
   Double_v mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
@@ -428,7 +428,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //filtering the energy region for the alias method - setable if necessary
@@ -449,7 +449,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
     Double_v sinTheta(0.);
     Double_v energyOut;
 
-    Index_t  zElement(targetElements[ibase]);
+    Index_v<Double_v>  zElement(targetElements[ibase]);
 
     if(ibase < indexAliasLimit) {
       InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);

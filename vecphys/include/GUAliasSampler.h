@@ -164,18 +164,18 @@ SampleBin(typename Backend::Double_v kineticEnergy,
           typename Backend::Double_v &fraction  //  in sampled variable
          ) const
 {
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
   typedef Mask_v<typename Backend::Double_v> Bool_t;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
   Double_v eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
-  Index_t  irow  = Floor(eloc);
+  Index_v<Double_v>  irow  = Floor(eloc);
   Double_v efrac = eloc -1.0*irow;
   // to use fPower2Divisor
   //  Double_v eloc  = (kineticEnergy - fIncomingMin);
-  //  Index_t irow = fPower2Divisor->GetBin<Backend>(eloc);
+  //  Index_v<Double_v> irow = fPower2Divisor->GetBin<Backend>(eloc);
   //  Double_v efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
 
   Double_v u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
@@ -249,7 +249,7 @@ SampleX(typename Backend::Double_v rangeSampled,
   typedef typename Backend::Int_t    Int_t;
   typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
@@ -257,7 +257,7 @@ SampleX(typename Backend::Double_v rangeSampled,
   Double_v xd, xu;
   Double_v binSampled = rangeSampled * fInverseBinSampled;
 
-  Index_t       icolDist= icol;
+  Index_v<Double_v>       icolDist= icol;
   MaskedAssign( !useDirect, aliasInd, &icolDist );
 
   xd = icolDist*binSampled;
@@ -290,7 +290,7 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
   typedef typename Backend::Int_t    Int_t;
   typedef Mask_v<typename Backend::Double_v>   Bool_t;
   using Double_v = typename Backend::Double_v;
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
@@ -298,7 +298,7 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
   Double_v xd, xu;
   Double_v binSampled = rangeSampled * fInverseBinSampled;
 
-  Index_t       icolDist= icol;
+  Index_v<Double_v>       icolDist= icol;
   MaskedAssign( !condition, aliasInd, &icolDist );
   xd = icolDist * binSampled;
   xu = xd + binSampled;
@@ -421,10 +421,10 @@ template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
-GatherAlias<kVc>(typename kVc::Index_t    index,
-                 typename kVc::Index_t    zElement,
+GatherAlias<kVc>(typename kVc::Index_v<Double_v>    index,
+                 typename kVc::Index_v<Double_v>    zElement,
                  typename kVc::Double_v  &probNA,
-                 typename kVc::Index_t   &aliasInd
+                 typename kVc::Index_v<Double_v>   &aliasInd
                 ) const
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
@@ -450,9 +450,9 @@ template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_v
-GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
-                            typename kVc::Index_t irow,
-                            typename kVc::Index_t icol) const
+GUAliasSampler::GetPDF<kVc>(typename kVc::Index_v<Double_v> zElement,
+                            typename kVc::Index_v<Double_v> irow,
+                            typename kVc::Index_v<Double_v> icol) const
 {
   typedef typename kVc::Double_v Double_v;
 
@@ -479,9 +479,9 @@ template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
-GatherAlias<kVc>(typename kVc::Index_t    index,
+GatherAlias<kVc>(typename kVc::Index_v<Double_v>    index,
                  typename kVc::Double_v  &probNA,
-                 typename kVc::Index_t   &aliasInd
+                 typename kVc::Index_v<Double_v>   &aliasInd
                 ) const
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
@@ -497,8 +497,8 @@ template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_v
-GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t irow,
-                            typename kVc::Index_t icol) const
+GUAliasSampler::GetPDF<kVc>(typename kVc::Index_v<Double_v> irow,
+                            typename kVc::Index_v<Double_v> icol) const
 {
   typedef typename kVc::Double_v Double_v;
 

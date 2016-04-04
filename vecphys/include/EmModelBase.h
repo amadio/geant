@@ -300,7 +300,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
                                               const int* targetElements,
                                               double*    sigma)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
@@ -312,7 +312,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
 
   for(int i=0; i < numChunks ; ++i) {
     Double_v energyIn(&inProjectile.E[ibase]);
-    Index_t  zElement(targetElements[ibase]);
+    Index_v<Double_v>  zElement(targetElements[ibase]);
 
     Double_v sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
 
@@ -340,7 +340,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < nTracks  ; ++j) {
@@ -351,7 +351,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   int numChunks= (nTracks/Double_v::Size);
 
   for(int i= 0; i < numChunks ; ++i) {
-    Index_t  zElement(targetElements[ibase]);
+    Index_v<Double_v>  zElement(targetElements[ibase]);
     Double_v energyIn(&inProjectile.E[ibase]);
 
     Double_v sinTheta(0.);
@@ -401,7 +401,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
      inProjectile.E[sizeOfInputTracks-1] > fHighEnergyLimit) return;
 
   typedef Mask_v<typename Backend::Double_v>   Bool_t;
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < sizeOfInputTracks  ; ++j) {
@@ -456,7 +456,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     for(int i= 0; i < numChunks ; ++i) {
 
       Double_v energyIn(&wenergyIn[ibase]);
-      Index_t  zElement(targetElements[ibase]);
+      Index_v<Double_v>  zElement(targetElements[ibase]);
 
       Double_v energyOut;
       Double_v sinTheta;

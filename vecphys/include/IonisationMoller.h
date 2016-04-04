@@ -154,21 +154,21 @@ IonisationMoller::InteractKernel(typename Backend::Double_v  energyIn,
                                  typename Backend::Double_v& energyOut,
                                  typename Backend::Double_v& sinTheta)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
-  Index_t   irow;
-  Index_t   icol;
+  Index_v<Double_v>   irow;
+  Index_v<Double_v>   icol;
   Double_v  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_v probNA;
-  Index_t  aliasInd;
+  Index_v<Double_v>  aliasInd;
 
   //this did not used to work - Fixed SW
   Double_v ncol(fAliasSampler->GetSamplesPerEntry());
-  Index_t   index = ncol*irow + icol;
+  Index_v<Double_v>   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
 
   Double_v mininumE = fDeltaRayThreshold;

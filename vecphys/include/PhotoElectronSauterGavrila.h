@@ -191,7 +191,7 @@ InteractKernel(typename Backend::Double_v  energyIn,
                typename Backend::Double_v& energyOut,
                typename Backend::Double_v& sinTheta)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //energy of photo-electron: Sandia parameterization
@@ -199,17 +199,17 @@ InteractKernel(typename Backend::Double_v  energyIn,
 
   //sample angular distribution of photo-electron
 
-  Index_t   irow;
-  Index_t   icol;
+  Index_v<Double_v>   irow;
+  Index_v<Double_v>   icol;
   Double_v  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_v probNA;
-  Index_t  aliasInd;
+  Index_v<Double_v>  aliasInd;
 
   Double_v ncol(fAliasSampler->GetSamplesPerEntry());
-  Index_t   index = ncol*irow + icol;
+  Index_v<Double_v>   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
 
   Double_v mininum = -1.0;
@@ -268,7 +268,7 @@ VECCORE_CUDA_HOST_DEVICE
 typename kVc::Double_v
 PhotoElectronSauterGavrila::
 GetPhotoElectronEnergy<kVc>(typename kVc::Double_v energy,
-                            typename kVc::Index_t  zElement)
+                            typename kVc::Index_v<Double_v>  zElement)
 {
   kVc::Double_v energyOut;
 
@@ -432,7 +432,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
                                                const int* targetElements,
                                                GUTrack_v& outSecondary)
 {
-  typedef Index_v<typename Backend::Double_v>  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //filtering energy regions for sampling methods - setable if necessary
@@ -456,7 +456,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
     Double_v sinTheta(0.);
     Double_v energyOut;
 
-    Index_t  zElement(targetElements[ibase]);
+    Index_v<Double_v>  zElement(targetElements[ibase]);
 
     if(ibase < indexAliasLimit) {
       InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
