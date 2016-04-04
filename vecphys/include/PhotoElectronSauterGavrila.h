@@ -64,26 +64,26 @@ private:
   VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_v
   CrossSectionKernel(typename Backend::Double_v  energyIn,
-                     typename Backend::Index_t   zElement);
+                     Index_v<typename Backend::Double_v>   zElement);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_v energyIn,
-                 typename Backend::Index_t  zElement,
+                 Index_v<typename Backend::Double_v>  zElement,
                  typename Backend::Double_v& energyOut,
                  typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_v energyIn,
-                   typename Backend::Index_t   zElement,
+                   Index_v<typename Backend::Double_v>   zElement,
                    typename Backend::Double_v& energyOut,
                    typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_v energyIn,
-                       typename Backend::Index_t   zElement,
+                       Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
                        typename Backend::Bool_t &status);
@@ -92,7 +92,7 @@ private:
   VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_v
   GetPhotoElectronEnergy(typename Backend::Double_v energyIn,
-                         typename Backend::Index_t zElement);
+                         Index_v<typename Backend::Double_v> zElement);
 
   template<class Backend>
   inline
@@ -133,7 +133,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 PhotoElectronSauterGavrila::CrossSectionKernel(typename Backend::Double_v energy,
-                                               typename Backend::Index_t  Z)
+                                               Index_v<typename Backend::Double_v>  Z)
 {
   using Double_v = typename Backend::Double_v;
 
@@ -187,11 +187,11 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 void PhotoElectronSauterGavrila::
 InteractKernel(typename Backend::Double_v  energyIn,
-               typename Backend::Index_t   zElement,
+               Index_v<typename Backend::Double_v>   zElement,
                typename Backend::Double_v& energyOut,
                typename Backend::Double_v& sinTheta)
 {
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   //energy of photo-electron: Sandia parameterization
@@ -226,7 +226,7 @@ VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 PhotoElectronSauterGavrila::
 GetPhotoElectronEnergy(typename Backend::Double_v energy,
-                       typename Backend::Index_t  zElement)
+                       Index_v<typename Backend::Double_v>  zElement)
 {
   // this method is not vectorizable and only for the scalar backend
 
@@ -285,7 +285,7 @@ GetPhotoElectronEnergy<kVc>(typename kVc::Double_v energy,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyIn,
-                                             typename Backend::Index_t   zElement,
+                                             Index_v<typename Backend::Double_v>   zElement,
                                              typename Backend::Double_v& energyOut,
                                              typename Backend::Double_v& sinTheta)
 {
@@ -372,7 +372,7 @@ PhotoElectronSauterGavrila::SampleSequential<kVc>(typename kVc::Double_v A,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                 typename Backend::Index_t   zElement,
+                                                 Index_v<typename Backend::Double_v>   zElement,
                                                  typename Backend::Double_v& energyOut,
                                                  typename Backend::Double_v& sinTheta,
                                                  typename Backend::Bool_t &status)
@@ -432,7 +432,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,
                                                const int* targetElements,
                                                GUTrack_v& outSecondary)
 {
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   //filtering energy regions for sampling methods - setable if necessary

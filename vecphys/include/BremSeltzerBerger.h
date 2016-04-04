@@ -54,26 +54,26 @@ public:
   VECCORE_CUDA_HOST_DEVICE typename
   Backend::Double_v
   CrossSectionKernel(typename Backend::Double_v  energyIn,
-                     typename Backend::Index_t   zElement);
+                     Index_v<typename Backend::Double_v>   zElement);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_v energyIn,
-                 typename Backend::Index_t   zElement,
+                 Index_v<typename Backend::Double_v>   zElement,
                  typename Backend::Double_v& energyOut,
                  typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_v energyIn,
-                   typename Backend::Index_t   zElement,
+                   Index_v<typename Backend::Double_v>   zElement,
                    typename Backend::Double_v& energyOut,
                    typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_v energyIn,
-                       typename Backend::Index_t   zElement,
+                       Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
                        typename Backend::Bool_t &status);
@@ -158,7 +158,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_v  energy,
-                                      typename Backend::Index_t   Z)
+                                      Index_v<typename Backend::Double_v>   Z)
 {
   return 1.0;
 }
@@ -166,11 +166,11 @@ BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_v  energy,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
-                                  typename Backend::Index_t   zElement,
+                                  Index_v<typename Backend::Double_v>   zElement,
                                   typename Backend::Double_v& energyOut,
                                   typename Backend::Double_v& sinTheta)
 {
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   Index_t   irow;
@@ -252,7 +252,7 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::InteractKernelCR(typename Backend::Double_v  energyIn,
-                                    typename Backend::Index_t   zElement,
+                                    Index_v<typename Backend::Double_v>   zElement,
                                     typename Backend::Double_v& energyOut,
                                     typename Backend::Double_v& sinTheta)
 {
@@ -264,7 +264,7 @@ BremSeltzerBerger::InteractKernelCR(typename Backend::Double_v  energyIn,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                        typename Backend::Index_t   zElement,
+                                        Index_v<typename Backend::Double_v>   zElement,
                                         typename Backend::Double_v& energyOut,
                                         typename Backend::Double_v& sinTheta,
                                         typename Backend::Bool_t &status)

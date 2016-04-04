@@ -68,26 +68,26 @@ private:
   VECCORE_CUDA_HOST_DEVICE typename
   Backend::Double_v
   CrossSectionKernel(typename Backend::Double_v  energyIn,
-                     typename Backend::Index_t   zElement);
+                     Index_v<typename Backend::Double_v>   zElement);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_v energyIn,
-                 typename Backend::Index_t   zElement,
+                 Index_v<typename Backend::Double_v>   zElement,
                  typename Backend::Double_v& energyOut,
                  typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_v energyIn,
-                   typename Backend::Index_t   zElement,
+                   Index_v<typename Backend::Double_v>   zElement,
                    typename Backend::Double_v& energyOut,
                    typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_v energyIn,
-                       typename Backend::Index_t   zElement,
+                       Index_v<typename Backend::Double_v>   zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
                        typename Backend::Bool_t &status);
@@ -136,7 +136,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
-                                        typename Backend::Index_t   Z)
+                                        Index_v<typename Backend::Double_v>   Z)
 {
   typedef typename Backend::Bool_t   Bool_t;
   using Double_v = typename Backend::Double_v;
@@ -187,11 +187,11 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
-                                    typename Backend::Index_t   zElement,
+                                    Index_v<typename Backend::Double_v>   zElement,
                                     typename Backend::Double_v& energyOut,
                                     typename Backend::Double_v& sinTheta)
 {
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   Index_t   irow;
@@ -225,7 +225,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v  energyIn,
-                                      typename Backend::Index_t   zElement,
+                                      Index_v<typename Backend::Double_v>   zElement,
                                       typename Backend::Double_v& energyOut,
                                       typename Backend::Double_v& sinTheta)
 {
@@ -347,7 +347,7 @@ ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_v E0_m,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
-                                          typename Backend::Index_t   zElement,
+                                          Index_v<typename Backend::Double_v>   zElement,
                                           typename Backend::Double_v& energyOut,
                                           typename Backend::Double_v& sinTheta,
                                           typename Backend::Bool_t&   status)
@@ -428,7 +428,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   //filtering the energy region for the alias method - setable if necessary

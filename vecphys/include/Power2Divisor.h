@@ -31,7 +31,7 @@ public:
   template <typename Backend>
   VECCORE_CUDA_HOST_DEVICE
   void GetBinAndFraction(typename Backend::Double_v x,
-                         typename Backend::Index_t& ibin,
+                         Index_v<typename Backend::Double_v>& ibin,
                          typename Backend::Double_v& frac);
 
 private:
@@ -50,11 +50,11 @@ private:
 template <typename Backend>
 VECCORE_CUDA_HOST_DEVICE
 void Power2Divisor::GetBinAndFraction(typename Backend::Double_v x,
-                                      typename Backend::Index_t& ibin,
+                                      Index_v<typename Backend::Double_v>& ibin,
                                       typename Backend::Double_v& frac)
 {
   typedef typename Backend::Int_t Int_t;
-  typedef typename Backend::Index_t Index_t;
+  typedef Index_v<typename Backend::Double_v> Index_t;
   using Double_v = typename Backend::Double_v;
 
   Int_t    exponent;

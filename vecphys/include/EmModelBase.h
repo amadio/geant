@@ -300,7 +300,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
                                               const int* targetElements,
                                               double*    sigma)
 {
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
@@ -340,7 +340,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < nTracks  ; ++j) {
@@ -401,7 +401,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
      inProjectile.E[sizeOfInputTracks-1] > fHighEnergyLimit) return;
 
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Index_t  Index_t;
+  typedef Index_v<typename Backend::Double_v>  Index_t;
   using Double_v = typename Backend::Double_v;
 
   for(int j = 0; j < sizeOfInputTracks  ; ++j) {
