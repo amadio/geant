@@ -153,7 +153,7 @@ ComptonKleinNishina::GetG4CrossSection(double  gammaEnergy,
   G4double T0  = 15.0*keV;
   if (Z < 1.5) { T0 = 40.0*keV; }
 
-  G4double X   = Max(gammaEnergy, T0) / electron_mass_c2;
+  G4double X   = math::Max(gammaEnergy, T0) / electron_mass_c2;
   xSection = p1Z*G4Log(1.+2.*X)/X
                + (p2Z + p3Z*X + p4Z*X*X)/(1. + a*X + b*X*X + c*X*X*X);
 

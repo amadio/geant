@@ -205,7 +205,7 @@ SampleByCompositionRejection(int     elementZ,
 
     // limits of the energy sampling
     G4double epsil1 = 0.5 - 0.5*sqrt(1. - screenmin/screenmax) ;
-    G4double epsilmin = fmax(epsil0,epsil1) , epsilrange = 0.5 - epsilmin;
+    G4double epsilmin = math::Max(epsil0,epsil1) , epsilrange = 0.5 - epsilmin;
 
     //
     // sample the energy rate of the created electron (or positron)
@@ -215,8 +215,8 @@ SampleByCompositionRejection(int     elementZ,
 
     G4double F10 = ScreenFunction1(screenmin) - FZ;
     G4double F20 = ScreenFunction2(screenmin) - FZ;
-    G4double NormF1 = fmax(F10*epsilrange*epsilrange,0.);
-    G4double NormF2 = fmax(1.5*F20,0.);
+    G4double NormF1 = math::Max(F10*epsilrange*epsilrange,0.);
+    G4double NormF2 = math::Max(1.5*F20,0.);
 
     do {
       if ( NormF1/(NormF1+NormF2) > UniformRandom<backend::Scalar>(fRandomState,fThreadId) ) {

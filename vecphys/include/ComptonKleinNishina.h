@@ -156,7 +156,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
   Double_v T0 = 0.0;
   CondAssign(condZ, 15.*keV, 40.*keV, &T0);
 
-  Double_v X  =  Max(energy,T0)/electron_mass_c2;
+  Double_v X  =  math::Max(energy,T0)/electron_mass_c2;
   Double_v X2 = X*X;
   Double_v sigma = p1*Log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
