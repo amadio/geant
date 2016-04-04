@@ -58,7 +58,7 @@ int GUAliasTableManager::SizeOfManager() {
   return sizeof(GUAliasTable*)*fNElement + (maximumZ+1)*sizeof(int);
 }
 
-#ifdef VECPHYS_NVCC
+#ifdef VECCORE_NVCC
 void GUAliasTableManager::Relocate(void *devPtr)
 {
   //device pointers in device memory

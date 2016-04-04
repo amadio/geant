@@ -50,7 +50,7 @@ public:
                      GUTrack&  secondary );
 
   //vector
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
   template <typename Backend>
   void ModelInteract(GUTrack_v& inProjectile,
                      const int* targetElements,
@@ -261,7 +261,7 @@ GetPhotoElectronEnergy(typename Backend::Double_t energy,
   return energyOut;
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH
@@ -342,7 +342,7 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_t A,
   return z;
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH
@@ -425,7 +425,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack&  inProjectile,
   ConvertXtoFinalState<Backend>(energyIn,energyOut,sinTheta,
                                 inProjectile,outSecondary);
 }
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 
 template <typename Backend>
 void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v& inProjectile,

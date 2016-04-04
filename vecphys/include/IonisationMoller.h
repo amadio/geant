@@ -288,7 +288,7 @@ IonisationMoller::SampleSequential(typename Backend::Double_t xmin,
   return x;
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH

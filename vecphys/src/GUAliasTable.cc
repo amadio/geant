@@ -77,7 +77,7 @@ void GUAliasTable::PrintInfo() {
   printf("Size(NGrid,Table) = (%d,%d)\n",SizeOfGrid(),SizeOfTable());
 }
 
-#ifdef VECPHYS_NVCC
+#ifdef VECCORE_NVCC
 void GUAliasTable::Relocate(void *devPtr)
 {
   //Implement/use a general way to (byte-wise) copy a object to GPU

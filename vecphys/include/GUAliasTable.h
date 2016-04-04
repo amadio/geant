@@ -32,7 +32,7 @@ class GUAliasTable
   VECPHYS_FUNC_QUALIFIER
   void CopyData(const GUAliasTable& table);
 
-#ifdef VECPHYS_NVCC
+#ifdef VECCORE_NVCC
   void Relocate(void *devPtr);
 #endif
 

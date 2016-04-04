@@ -12,7 +12,7 @@
 #include "SamplingMethod.h"
 #include "MaterialHandler.h"
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 #include <bitset>
 #include <vector>
 #endif
@@ -57,7 +57,7 @@ public:
                 GUTrack&  secondary );
 
   //vector
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
   template <typename Backend>
   void AtomicCrossSection(GUTrack_v& inProjectile,
                           const int* targetElements,
@@ -132,7 +132,7 @@ protected:
                             GUTrack& primary,
                             GUTrack& secondary);
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
   template<class Backend>
   VECPHYS_CUDA_HEADER_BOTH
   void ConvertXtoFinalState(typename Backend::Double_t energyIn,
@@ -293,7 +293,7 @@ void EmModelBase<EmModel>::Interact(GUTrack&  inProjectile,
                                 inProjectile,outSecondary);
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template <class EmModel>
 template <typename Backend>
 void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
@@ -678,7 +678,7 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
   //fill other information
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template <class EmModel>
 template <typename Backend>
 VECPHYS_CUDA_HEADER_BOTH void

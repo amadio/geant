@@ -55,7 +55,7 @@ public:
                      GUTrack&  secondary );
 
   //vector
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
   template <typename Backend>
   void ModelInteract(GUTrack_v& inProjectile,
                      const int* targetElements,
@@ -308,7 +308,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_t E0_m,
   return epsilon;
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH
@@ -414,7 +414,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack&  inProjectile,
                                 inProjectile,outSecondary);
 }
 
-#ifndef VECPHYS_NVCC
+#ifndef VECCORE_NVCC
 template <typename Backend>
 void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
                                         const int* targetElements,

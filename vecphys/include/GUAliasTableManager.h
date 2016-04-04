@@ -32,7 +32,7 @@ public:
   VECPHYS_CUDA_HEADER_HOST
   int SizeOfManager();
 
-#ifdef VECPHYS_NVCC
+#ifdef VECCORE_NVCC
   void Relocate(void *devPtr);
 #endif
 
