@@ -112,7 +112,6 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy,
   //the total cross section for Moller scattering per atom
   //energy = kinetic energy
 
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigmaOut = 0.;
@@ -185,7 +184,6 @@ typename Backend::Double_v
 IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
                                  typename Backend::Double_v energyOut) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angle of the scatterred electron
@@ -213,7 +211,6 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
                                    typename Backend::Double_v& deltaKinEnergy,
                                    typename Backend::Double_v& sinTheta)
 {
-  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //temporary - set by material

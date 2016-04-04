@@ -400,7 +400,6 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
   if(inProjectile.E[0]                   < fLowEnergyLimit ||
      inProjectile.E[sizeOfInputTracks-1] > fHighEnergyLimit) return;
 
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
@@ -593,7 +592,6 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
 {
   typedef typename Backend::Int_t    Int_t;
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
 
   Double_v phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   Double_v pt = xhat*xhat + yhat*yhat;

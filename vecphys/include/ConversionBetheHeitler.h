@@ -126,7 +126,6 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   // now return only secondary electron information and
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
@@ -185,7 +184,6 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
 	       typename Backend::Double_v& sinThetaElectron,
 	       typename Backend::Double_v& sinThetaPositron) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angles of the pair production (gamma -> e+e-)
@@ -215,7 +213,6 @@ ConversionBetheHeitler::
 CrossSectionKernel(typename Backend::Double_v energy,
                    Index_v<typename Backend::Double_v> Z)
 {
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigma = 0.;

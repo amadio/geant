@@ -214,7 +214,6 @@ VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angle of the radiated photon

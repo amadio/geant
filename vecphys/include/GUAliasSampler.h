@@ -166,7 +166,6 @@ SampleBin(typename Backend::Double_v kineticEnergy,
 {
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
@@ -204,7 +203,6 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
              ) const
 {
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
@@ -247,7 +245,6 @@ SampleX(typename Backend::Double_v rangeSampled,
        ) const
 {
   typedef typename Backend::Int_t    Int_t;
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
@@ -288,7 +285,6 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
          Index_v<typename Backend::Double_v>  icol) const
 {
   typedef typename Backend::Int_t    Int_t;
-  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
