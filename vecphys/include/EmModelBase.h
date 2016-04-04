@@ -25,7 +25,7 @@ class EmModelBase {
 
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   EmModelBase(Random_t* states, int tid);
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -34,13 +34,13 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~EmModelBase();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void Initialization();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildCrossSectionTable();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildAliasTable(bool atomicDependentModel = false);
 
   //scalar
@@ -172,7 +172,7 @@ protected:
 
 //Implementation
 template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 EmModelBase<EmModel>::EmModelBase(Random_t* states, int tid)
   : fRandomState(states), fThreadId(tid),
     fAtomicDependentModel(false),
@@ -203,7 +203,7 @@ EmModelBase<EmModel>::~EmModelBase()
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void EmModelBase<EmModel>::BuildCrossSectionTable()
 {
   //dummy interface for now
@@ -214,7 +214,7 @@ void EmModelBase<EmModel>::BuildCrossSectionTable()
 }
 
 template <class EmModel>
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
   void EmModelBase<EmModel>::BuildAliasTable(bool atomicDependentModel)
 {
   //size of the array for the alias table data

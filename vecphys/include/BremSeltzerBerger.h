@@ -21,7 +21,7 @@ class BremSeltzerBerger : public EmModelBase<BremSeltzerBerger>
 {
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   BremSeltzerBerger(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -31,14 +31,14 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~BremSeltzerBerger();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);
 
 public:
@@ -46,7 +46,7 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   Physics2DVector* GetSBData() {return fDataSB;}
 
-  VECPHYS_CUDA_HEADER_HOST bool
+  VECCORE_CUDA_HOST bool
   RetrieveSeltzerBergerData(std::ifstream& in, Physics2DVector *vec2D);
 
   // Implementation methods

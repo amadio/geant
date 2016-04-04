@@ -19,7 +19,7 @@ class IonisationMoller : public EmModelBase<IonisationMoller>
 {
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   IonisationMoller(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -28,14 +28,14 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~IonisationMoller(){}
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);
 
 private:

@@ -26,7 +26,7 @@ class GUAliasSampler
 {
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   GUAliasSampler(Random_t* states,
                  int       threadId,
                  double    incomingMin,
@@ -50,7 +50,7 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   void PrintTable();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildAliasTable( int z, const double *pdf );
 
   VECPHYS_CUDA_HEADER_BOTH

@@ -10,7 +10,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid)
   : EmModelBase<ComptonKleinNishina>(states,tid)
 {
@@ -26,20 +26,20 @@ ComptonKleinNishina::ComptonKleinNishina(Random_t* states, int tid,
   SetLowEnergyLimit(10.*keV);
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 ComptonKleinNishina::~ComptonKleinNishina()
 {
   delete fAliasSampler;
 }
 
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 ComptonKleinNishina::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 ComptonKleinNishina::Initialization()
 {
   if(fSampleType == kAlias) {
@@ -50,7 +50,7 @@ ComptonKleinNishina::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 ComptonKleinNishina::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (KleinNishina pdf) in the

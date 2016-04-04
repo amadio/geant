@@ -8,7 +8,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 IonisationMoller::IonisationMoller(Random_t* states, int tid)
   : EmModelBase<IonisationMoller>(states,tid)
 {
@@ -27,7 +27,7 @@ IonisationMoller::IonisationMoller(Random_t* states, int tid,
   SetLowEnergyLimit(0.1*keV);
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 IonisationMoller::Initialization()
 {
   if(fSampleType == kAlias) {
@@ -37,13 +37,13 @@ IonisationMoller::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 IonisationMoller::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 IonisationMoller::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (MollerBhabha pdf) in the

@@ -8,7 +8,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_HOST ConversionBetheHeitler::
+VECCORE_CUDA_HOST ConversionBetheHeitler::
 ConversionBetheHeitler(Random_t* states, int tid)
   : EmModelBase<ConversionBetheHeitler>(states,tid)
 {
@@ -26,7 +26,7 @@ ConversionBetheHeitler(Random_t* states, int tid,
   SetLowEnergyLimit(2.*electron_mass_c2);
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 ConversionBetheHeitler::Initialization()
 {
   if(fSampleType == kAlias) {
@@ -37,13 +37,13 @@ ConversionBetheHeitler::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (BetheHeitler pdf) in the

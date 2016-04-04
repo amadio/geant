@@ -5,7 +5,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 GUAliasSampler::
 GUAliasSampler(Random_t* states, int threadId,
                double incomingMin,
@@ -85,7 +85,7 @@ void GUAliasSampler::PrintTable()
   }
 
 }
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void GUAliasSampler::BuildAliasTable( int Zelement,
                                       const double *pdf )
 {

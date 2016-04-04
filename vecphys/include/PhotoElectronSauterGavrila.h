@@ -19,7 +19,7 @@ class PhotoElectronSauterGavrila : public EmModelBase<PhotoElectronSauterGavrila
 {
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   PhotoElectronSauterGavrila(Random_t* states, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -29,14 +29,14 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
   ~PhotoElectronSauterGavrila() {}
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);
 
   //Alternative Interact method to test energy dependent subtasks for a

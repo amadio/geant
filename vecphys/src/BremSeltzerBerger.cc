@@ -12,7 +12,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 //const double
 
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 BremSeltzerBerger::BremSeltzerBerger(Random_t* states, int tid)
   : EmModelBase<BremSeltzerBerger>(states,tid)
 {
@@ -47,7 +47,7 @@ BremSeltzerBerger::~BremSeltzerBerger()
   free(fDataSB);
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 BremSeltzerBerger::Initialization()
 {
   fDataSB =
@@ -74,7 +74,7 @@ BremSeltzerBerger::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST bool
+VECCORE_CUDA_HOST bool
 BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream& in,
                                              Physics2DVector *vec2D)
 {
@@ -109,13 +109,13 @@ BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream& in,
 
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 BremSeltzerBerger::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (SeltzerBerger pdf) in the

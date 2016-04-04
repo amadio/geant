@@ -10,7 +10,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid)
   : EmModelBase<PhotoElectronSauterGavrila>(states,tid)
 {
@@ -24,7 +24,7 @@ PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t* states, int tid
 {
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 PhotoElectronSauterGavrila::Initialization()
 {
   if(fSampleType == kAlias) {
@@ -37,13 +37,13 @@ PhotoElectronSauterGavrila::Initialization()
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int Z)
 {
   ; //dummy for now
 }
 
-VECPHYS_CUDA_HEADER_HOST void
+VECCORE_CUDA_HOST void
 PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (KleinNishina pdf) in the

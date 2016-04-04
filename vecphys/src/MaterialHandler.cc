@@ -5,14 +5,14 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 MaterialHandler* MaterialHandler::fInstance = 0;
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 MaterialHandler* MaterialHandler::Instance()
 {
   if (fInstance == 0) fInstance = new MaterialHandler();
   return fInstance;
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 MaterialHandler::MaterialHandler()
 {
   //test mode: 0 all elements in the element table, 1 single element
@@ -26,13 +26,13 @@ MaterialHandler::MaterialHandler()
   BuildElementTable();
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 MaterialHandler::~MaterialHandler()
 {
   ;
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void MaterialHandler::BuildElementTable()
 {
   //This should interface with the global material manager of GeantV so that
@@ -47,7 +47,7 @@ void MaterialHandler::BuildElementTable()
 
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void MaterialHandler::AddElement(int element) {
   //check validity of the element
   if(element > 0 && element < maximumZ) {
@@ -68,7 +68,7 @@ void MaterialHandler::AddElement(int element) {
   }
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, int elementMode)
 {
   //only two modes for now based on John's original method

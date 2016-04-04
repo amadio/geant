@@ -11,13 +11,13 @@ class MaterialHandler
 {
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   static MaterialHandler* Instance();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   MaterialHandler();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   ~MaterialHandler();
 
 public:
@@ -28,14 +28,14 @@ public:
     int* GetElementArray() { return &fElementArray[0]; }
 
   //a temporary method for the purpose of validation/benchmarking
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void PrepareTargetElements(int *targetElements, int ntracks, int elementMode = 0);
 
 private:
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildElementTable();
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void AddElement(int element);
 
 private:

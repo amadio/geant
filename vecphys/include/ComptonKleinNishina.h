@@ -17,7 +17,7 @@ class ComptonKleinNishina : public EmModelBase<ComptonKleinNishina>
 {
 public:
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   ComptonKleinNishina(Random_t* states = 0, int threadId = -1);
 
   VECPHYS_CUDA_HEADER_BOTH
@@ -26,14 +26,14 @@ public:
   VECPHYS_CUDA_HEADER_BOTH
     ~ComptonKleinNishina();//{}
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void Initialization();
 
   //interfaces for tables
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
-  VECPHYS_CUDA_HEADER_HOST
+  VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);
 
 public:

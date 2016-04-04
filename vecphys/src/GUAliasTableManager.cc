@@ -3,7 +3,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 GUAliasTableManager::GUAliasTableManager(int nelements, int ngrid)
   : fNElement(0)
 {
@@ -13,14 +13,14 @@ GUAliasTableManager::GUAliasTableManager(int nelements, int ngrid)
 
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 GUAliasTableManager::~GUAliasTableManager()
 {
   for(int i = 0 ; i < fNElement ; ++i) delete fAliasTables[i];
   delete [] fAliasTables;
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void GUAliasTableManager::SetTableIndex(int Z) {
   assert(Z > -1 && Z < maximumZ );
   if(fIndex[Z] == -1 ) {
@@ -45,7 +45,7 @@ int GUAliasTableManager::GetNumberOfElements() {
   return fNElement;
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable* table) {
   assert( Z > -1 && Z < maximumZ ) ;
 
@@ -53,7 +53,7 @@ void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable* table) {
   SetTableIndex(Z);
 }
 
-VECPHYS_CUDA_HEADER_HOST
+VECCORE_CUDA_HOST
 int GUAliasTableManager::SizeOfManager() {
   return sizeof(GUAliasTable*)*fNElement + (maximumZ+1)*sizeof(int);
 }
