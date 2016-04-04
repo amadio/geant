@@ -214,7 +214,7 @@ VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angle of the radiated photon
@@ -223,7 +223,7 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
   Double_v c = 4. - 8.*UniformRandom<Backend>(fRandomState,fThreadId);
   Double_v a;
   Double_v signc;
-  Bool_t condition = c > 0.;
+  Mask_v<Double_v> condition = c > 0.;
   MaskedAssign(  condition,  1. , &signc );
   MaskedAssign( !condition, -1. , &signc );
   MaskedAssign(  condition,  c , &a );

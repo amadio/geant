@@ -166,7 +166,7 @@ SampleBin(typename Backend::Double_v kineticEnergy,
 {
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
@@ -180,7 +180,7 @@ SampleBin(typename Backend::Double_v kineticEnergy,
 
   Double_v u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t useHigh = (u1 <= efrac) ;
+  Mask_v<Double_v> useHigh = (u1 <= efrac) ;
 
   // irow = useHigh ? irow+1 : irow;
   MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
@@ -204,7 +204,7 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
              ) const
 {
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
@@ -214,7 +214,7 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
 
   Double_v u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t useHigh = (u1 <= efrac) ;
+  Mask_v<Double_v> useHigh = (u1 <= efrac) ;
 
   // MaskedAssign( condition, irow , &irow );     // at the lower edge   --- Null operation!
   // MaskedAssign( condition, irow + 1 , &irow ); // at the upper edge
@@ -247,13 +247,13 @@ SampleX(typename Backend::Double_v rangeSampled,
        ) const
 {
   typedef typename Backend::Int_t    Int_t;
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t useDirect = r1 <= probNA;  // Was Boot_t condition = ...
+  Mask_v<Double_v> useDirect = r1 <= probNA;  // Was Boot_t condition = ...
   Double_v xd, xu;
   Double_v binSampled = rangeSampled * fInverseBinSampled;
 
@@ -288,13 +288,13 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
          Index_v<typename Backend::Double_v>  icol) const
 {
   typedef typename Backend::Int_t    Int_t;
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t condition = r1 <= probNA;
+  Mask_v<Double_v> condition = r1 <= probNA;
   Double_v xd, xu;
   Double_v binSampled = rangeSampled * fInverseBinSampled;
 
@@ -321,7 +321,7 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
   Double_v r2 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   Double_v r3 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
-  Bool_t below = r2*(pd+pu) < (1.-r3)*pd + r3*pu;;
+  Mask_v<Double_v> below = r2*(pd+pu) < (1.-r3)*pd + r3*pu;;
 
   MaskedAssign(  below, (1.-r3)*xd + r3*xu , &x);
   MaskedAssign( !below, r3*xd + (1.-r3)*xu , &x);

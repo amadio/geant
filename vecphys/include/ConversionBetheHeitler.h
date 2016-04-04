@@ -126,7 +126,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   // now return only secondary electron information and
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
@@ -154,7 +154,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
 					        aliasInd,icol,fraction);
 
   Double_v r1 = UniformRandom<Backend>(fRandomState,fThreadId);
-  Bool_t condition = 0.5 > r1;
+  Mask_v<Double_v> condition = 0.5 > r1;
 
   Double_v energyElectron;
   Double_v energyPositron;
@@ -185,7 +185,7 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
 	       typename Backend::Double_v& sinThetaElectron,
 	       typename Backend::Double_v& sinThetaPositron) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angles of the pair production (gamma -> e+e-)
@@ -194,7 +194,7 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
   const double a1 = 0.625 , a2 = 3.*a1 , d = 27. ;
 
   Double_v r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
-  Bool_t condition = 9./(9. + d) > r1;
+  Mask_v<Double_v> condition = 9./(9. + d) > r1;
   MaskedAssign( condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a1, &u );
   MaskedAssign(!condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
@@ -215,7 +215,7 @@ ConversionBetheHeitler::
 CrossSectionKernel(typename Backend::Double_v energy,
                    Index_v<typename Backend::Double_v> Z)
 {
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigma = 0.;
@@ -226,7 +226,7 @@ CrossSectionKernel(typename Backend::Double_v energy,
 
   //gamma energyLimit = 1.5*MeV
   Double_v energyLimit = 1.5*MeV;
-  Bool_t condition = energy < energyLimit;
+  Mask_v<Double_v> condition = energy < energyLimit;
   MaskedAssign( condition, energyLimit, &energy );
 
   Double_v X = log(energy/electron_mass_c2);
@@ -264,7 +264,7 @@ CrossSectionKernel(typename Backend::Double_v energy,
   Double_v F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;
 
   sigma = (Z + 1.)*(F1*Z + F2*Z*Z + F3);
-  Bool_t done = energySave < energyLimit;
+  Mask_v<Double_v> done = energySave < energyLimit;
 
   if(Any(done)) {
     X = (energySave - 2.*electron_mass_c2)/(energyLimit - 2.*electron_mass_c2);
@@ -272,7 +272,7 @@ CrossSectionKernel(typename Backend::Double_v energy,
     MaskedAssign( done, tmpsigma, &sigma );
   }
 
-  Bool_t check = sigma < 0.;
+  Mask_v<Double_v> check = sigma < 0.;
   MaskedAssign( check, 0., &sigma );
 
   return sigma*microbarn;

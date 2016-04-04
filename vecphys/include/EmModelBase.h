@@ -400,7 +400,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
   if(inProjectile.E[0]                   < fLowEnergyLimit ||
      inProjectile.E[sizeOfInputTracks-1] > fHighEnergyLimit) return;
 
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   typedef Index_v<typename Backend::Double_v>  Index_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
@@ -441,7 +441,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
     windex.push_back(i);
   }
 
-  Bool_t status(false);
+  Mask_v<Double_v> status(false);
 
   //shuffling loop
 
@@ -593,7 +593,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
 {
   typedef typename Backend::Int_t    Int_t;
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
 
   Double_v phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   Double_v pt = xhat*xhat + yhat*yhat;
@@ -605,8 +605,8 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
   Double_v vhat = sinTheta*sinphi; // sin(phi);
   Double_v what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
-  Bool_t positive = ( pt > 0. );
-  Bool_t negativeZ = ( zhat < 0. );
+  Mask_v<Double_v> positive = ( pt > 0. );
+  Mask_v<Double_v> negativeZ = ( zhat < 0. );
 
   Double_v phat;
 

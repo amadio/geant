@@ -290,7 +290,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
                                              typename Backend::Double_v& sinTheta)
 {
   using Double_v = typename Backend::Double_v;
-  //  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  //  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
 
   //energy of photo-electron: Sandia parameterization
   energyOut = GetPhotoElectronEnergy<Backend>(energyIn,zElement) ;
@@ -300,7 +300,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
 
   /*
   const double taulimit = 50.0;
-  Bool_t highE = tau > taulimit;
+  Mask_v<Double_v> highE = tau > taulimit;
   cosTheta = 1.0;
   if(Backend::early_returns && IsFull(highE)) return;
   */

@@ -138,11 +138,11 @@ typename Backend::Double_v
 ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
                                         Index_v<typename Backend::Double_v>   Z)
 {
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigmaOut = 0.;
-  Bool_t belowLimit = Bool_t(false);
+  Mask_v<Double_v> belowLimit = Mask_v<Double_v>(false);
   //low energy limit
   belowLimit |= ( energy < fLowEnergyLimit );
   if(Backend::early_returns && IsFull(belowLimit)) return sigmaOut;
@@ -153,7 +153,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
   Double_v p3 =  6.7527    + -7.3913e-2*Z +  6.0480e-5*Z2;
   Double_v p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
 
-  Bool_t condZ = (Z < 1.5);
+  Mask_v<Double_v> condZ = (Z < 1.5);
   Double_v T0 = 0.0;
   CondAssign(condZ, 15.*keV, 40.*keV, &T0);
 
@@ -163,7 +163,7 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
   sigmaOut = Z*sigma*barn;
 
-  Bool_t condE = Bool_t(false);
+  Mask_v<Double_v> condE = Mask_v<Double_v>(false);
   condE |= (energy > T0);
   if(Backend::early_returns && IsFull(condE)) return sigmaOut;
 
@@ -253,14 +253,14 @@ typename Backend::Double_v
 ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
                                     typename Backend::Double_v energyOut) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angle of the scatterred photon
 
   Double_v epsilon = energyOut/energyIn;
 
-  Bool_t condition = epsilon > 1.0;
+  Mask_v<Double_v> condition = epsilon > 1.0;
 
   MaskedAssign( condition, 1.0 , &epsilon );
 
@@ -269,7 +269,7 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
   Double_v sint2   = onecost*(2.-onecost);
 
   Double_v sinTheta = 0.5;
-  Bool_t condition2 = sint2 < 0.0;
+  Mask_v<Double_v> condition2 = sint2 < 0.0;
 
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );
@@ -288,14 +288,14 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
                                       typename Backend::Double_v &sint2) const
 {
   typedef typename Backend::Int_t Int_t;
-  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Double_v epsilon;
   Double_v greject;
 
   do {
-    Bool_t cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+    Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
     MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
     MaskedAssign(!cond, Sqrt(epsil0sq+(1.- epsil0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
@@ -320,7 +320,7 @@ ComptonKleinNishina::SampleSequential<kVc>(typename kVc::Double_v E0_m,
                                            typename kVc::Double_v &sint2) const
 {
   //  typedef typename Vc::Int_t Int_t;
-  //  typedef typename kVc::Bool_t Bool_t;
+  //  typedef typename kVc::Mask_v<Double_v> Mask_v<Double_v>;
   typedef typename kVc::Double_v Double_v;
 
   Double_v epsilon;
@@ -353,7 +353,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
                                           Mask_v<typename Backend::Double_v>&   status)
 {
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   typedef typename Backend::Int_t Int_t;
 
   Double_v E0_m = energyIn/electron_mass_c2;
@@ -368,7 +368,7 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
   Double_v epsilon;
   Double_v greject;
 
-  Bool_t cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   MaskedAssign( cond, Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
   MaskedAssign(!cond, Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);

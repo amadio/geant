@@ -112,11 +112,11 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy,
   //the total cross section for Moller scattering per atom
   //energy = kinetic energy
 
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   Double_v sigmaOut = 0.;
-  Bool_t belowLimit = Bool_t(false);
+  Mask_v<Double_v> belowLimit = Mask_v<Double_v>(false);
   //low energy limit
   belowLimit |= ( energy < fLowEnergyLimit );
   if(Backend::early_returns && IsFull(belowLimit)) return;
@@ -185,7 +185,7 @@ typename Backend::Double_v
 IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
                                  typename Backend::Double_v energyOut) const
 {
-  typedef Mask_v<typename Backend::Double_v>   Bool_t;
+  typedef Mask_v<typename Backend::Double_v>   Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //angle of the scatterred electron
@@ -199,7 +199,7 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
 
   Double_v sint2 = (1.0 - cost)*(1. + cost);
   Double_v sinTheta;
-  Bool_t condition2 = sint2 < 0.0;
+  Mask_v<Double_v> condition2 = sint2 < 0.0;
   MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
   MaskedAssign( !condition2, Sqrt(sint2), &sinTheta );
 
@@ -213,7 +213,7 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
                                    typename Backend::Double_v& deltaKinEnergy,
                                    typename Backend::Double_v& sinTheta)
 {
-  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  typedef Mask_v<typename Backend::Double_v> Mask_v<Double_v>;
   using Double_v = typename Backend::Double_v;
 
   //temporary - set by material
@@ -224,7 +224,7 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
   Double_v tmin = cutEnergy;
   Double_v tmax = 0.5*kineticEnergy;
 
-  Bool_t condCut = (tmax < maxEnergy);
+  Mask_v<Double_v> condCut = (tmax < maxEnergy);
   MaskedAssign(!condCut, maxEnergy, &tmax);
 
   condCut |= (tmax >= tmin );
@@ -251,12 +251,12 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
   Double_v cost = deltaKinEnergy * (energy + electron_mass_c2) /
     (deltaMomentum * totalMomentum );
 
-  Bool_t condCos = (cost <= 1.0);
+  Mask_v<Double_v> condCos = (cost <= 1.0);
   MaskedAssign(!condCos, 1.0, &cost);
 
   Double_v sint2 = (1.0 - cost)*(1.0 + cost);
 
-  Bool_t condSin2 = (sint2 >= 0.0);
+  Mask_v<Double_v> condSin2 = (sint2 >= 0.0);
   Double_v zero(0.0);
   CondAssign(condSin2, Sqrt(sint2), zero, &sinTheta);
 }
