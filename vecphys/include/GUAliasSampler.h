@@ -59,33 +59,33 @@ public:
   // Backend Implementation:
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  void SampleBin( typename Backend::Double_t  kineticEnergy,
+  void SampleBin( typename Backend::Double_v  kineticEnergy,
                   typename Backend::Index_t   &index,
                   typename Backend::Index_t   &icol,
-                  typename Backend::Double_t  &fraction) const;
+                  typename Backend::Double_v  &fraction) const;
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  void SampleLogBin( typename Backend::Double_t  kineticEnergy,
+  void SampleLogBin( typename Backend::Double_v  kineticEnergy,
                      typename Backend::Index_t   &irow,
                      typename Backend::Index_t   &icol,
-                     typename Backend::Double_t  &fraction) const;
+                     typename Backend::Double_v  &fraction) const;
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  typename Backend::Double_t
-  SampleX(typename Backend::Double_t rangeSampled,
-          typename Backend::Double_t probNA,
+  typename Backend::Double_v
+  SampleX(typename Backend::Double_v rangeSampled,
+          typename Backend::Double_v probNA,
           typename Backend::Index_t aliasInd,
           typename Backend::Index_t  icol,
-          typename Backend::Double_t fraction ) const;
+          typename Backend::Double_v fraction ) const;
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  typename Backend::Double_t
+  typename Backend::Double_v
   SampleXL(typename Backend::Index_t  zElement,
-           typename Backend::Double_t rangeSampled,
-           typename Backend::Double_t probNA,
+           typename Backend::Double_v rangeSampled,
+           typename Backend::Double_v probNA,
            typename Backend::Index_t aliasInd,
            typename Backend::Index_t  irow,
            typename Backend::Index_t  icol) const;
@@ -96,13 +96,13 @@ public:
   void
   GatherAlias(typename Backend::Index_t   index,
               typename Backend::Index_t   zElement,
-              typename Backend::Double_t &probNA,
+              typename Backend::Double_v &probNA,
               typename Backend::Index_t  &aliasInd ) const;
 
   template<class Backend>
   inline
   VECCORE_CUDA_HOST_DEVICE
-  typename Backend::Double_t
+  typename Backend::Double_v
   GetPDF(typename Backend::Index_t zElement,
          typename Backend::Index_t irow,
          typename Backend::Index_t icol ) const;
@@ -113,13 +113,13 @@ public:
   VECCORE_CUDA_HOST_DEVICE
   void
   GatherAlias(typename Backend::Index_t   index,
-              typename Backend::Double_t &probNA,
+              typename Backend::Double_v &probNA,
               typename Backend::Index_t  &aliasInd ) const;
 
   template<class Backend>
   inline
   VECCORE_CUDA_HOST_DEVICE
-  typename Backend::Double_t
+  typename Backend::Double_v
   GetPDF(typename Backend::Index_t irow,
          typename Backend::Index_t icol ) const;
 
@@ -158,34 +158,34 @@ private:
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
-SampleBin(typename Backend::Double_t kineticEnergy,
+SampleBin(typename Backend::Double_v kineticEnergy,
           typename Backend::Index_t  &index,    // ~ sampled value
           typename Backend::Index_t  &icol,     // ~ input Energy
-          typename Backend::Double_t &fraction  //  in sampled variable
+          typename Backend::Double_v &fraction  //  in sampled variable
          ) const
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
   typedef typename Backend::Bool_t Bool_t;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
-  Double_t eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
+  Double_v eloc  = (kineticEnergy - fIncomingMin)*fInverseBinIncoming;
   Index_t  irow  = Floor(eloc);
-  Double_t efrac = eloc -1.0*irow;
+  Double_v efrac = eloc -1.0*irow;
   // to use fPower2Divisor
-  //  Double_t eloc  = (kineticEnergy - fIncomingMin);
+  //  Double_v eloc  = (kineticEnergy - fIncomingMin);
   //  Index_t irow = fPower2Divisor->GetBin<Backend>(eloc);
-  //  Double_t efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
+  //  Double_v efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
 
-  Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t useHigh = (u1 <= efrac) ;
 
   // irow = useHigh ? irow+1 : irow;
   MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
 
-  Double_t r1 = fSampledNumEntries*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v r1 = fSampledNumEntries*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   // Prepare output values
   icol = Floor(r1);
@@ -197,22 +197,22 @@ SampleBin(typename Backend::Double_t kineticEnergy,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
-SampleLogBin(typename Backend::Double_t kineticEnergy,
+SampleLogBin(typename Backend::Double_v kineticEnergy,
              typename Backend::Index_t  &irow,     // input energy
              typename Backend::Index_t  &icol,     // sampled value
-             typename Backend::Double_t &fraction  // within the sampled bin
+             typename Backend::Double_v &fraction  // within the sampled bin
              ) const
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
   typedef typename Backend::Bool_t Bool_t;
   typedef typename Backend::Int_t  Int_t;
 
   //select the alias table for incoming energy
-  Double_t eloc = (Log(kineticEnergy) - fLogIncomingMin)*fInverseLogBinIncoming;
+  Double_v eloc = (Log(kineticEnergy) - fLogIncomingMin)*fInverseLogBinIncoming;
   irow = Floor(eloc);
-  Double_t efrac = eloc -1.0*irow;
+  Double_v efrac = eloc -1.0*irow;
 
-  Double_t u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v u1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t useHigh = (u1 <= efrac) ;
 
@@ -223,7 +223,7 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
   MaskedAssign( useHigh, irow + 1 , &irow ); // at the upper edge
 
   //select the sampling bin
-  Double_t r1 = fSampledNumEntries*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v r1 = fSampledNumEntries*UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
   icol = Floor(r1);
   fraction = r1 - 1.0*icol;
 
@@ -237,25 +237,25 @@ SampleLogBin(typename Backend::Double_t kineticEnergy,
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
-typename Backend::Double_t
+typename Backend::Double_v
 GUAliasSampler::
-SampleX(typename Backend::Double_t rangeSampled,
-        typename Backend::Double_t probNA,
+SampleX(typename Backend::Double_v rangeSampled,
+        typename Backend::Double_v probNA,
         typename Backend::Index_t  aliasInd,
         typename Backend::Index_t  icol,
-        typename Backend::Double_t fraction
+        typename Backend::Double_v fraction
        ) const
 {
   typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
   typedef typename Backend::Index_t  Index_t;
 
-  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t useDirect = r1 <= probNA;  // Was Boot_t condition = ...
-  Double_t xd, xu;
-  Double_t binSampled = rangeSampled * fInverseBinSampled;
+  Double_v xd, xu;
+  Double_v binSampled = rangeSampled * fInverseBinSampled;
 
   Index_t       icolDist= icol;
   MaskedAssign( !useDirect, aliasInd, &icolDist );
@@ -263,7 +263,7 @@ SampleX(typename Backend::Double_t rangeSampled,
   xd = icolDist*binSampled;
   xu = xd + binSampled;
 
-  Double_t x = (1 - fraction) * xd + fraction* xu;
+  Double_v x = (1 - fraction) * xd + fraction* xu;
 
   return x;
 }
@@ -278,25 +278,25 @@ SampleX(typename Backend::Double_t rangeSampled,
 //    Feature of this method:  linear interpolation using 'PDF'
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
-typename Backend::Double_t
+typename Backend::Double_v
 GUAliasSampler::
 SampleXL(typename Backend::Index_t  zElement,
-         typename Backend::Double_t rangeSampled,
-         typename Backend::Double_t probNA,
+         typename Backend::Double_v rangeSampled,
+         typename Backend::Double_v probNA,
          typename Backend::Index_t  aliasInd,
          typename Backend::Index_t  irow,
          typename Backend::Index_t  icol) const
 {
   typedef typename Backend::Int_t    Int_t;
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
   typedef typename Backend::Index_t  Index_t;
 
-  Double_t r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v r1 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t condition = r1 <= probNA;
-  Double_t xd, xu;
-  Double_t binSampled = rangeSampled * fInverseBinSampled;
+  Double_v xd, xu;
+  Double_v binSampled = rangeSampled * fInverseBinSampled;
 
   Index_t       icolDist= icol;
   MaskedAssign( !condition, aliasInd, &icolDist );
@@ -304,13 +304,13 @@ SampleXL(typename Backend::Index_t  zElement,
   xu = xd + binSampled;
 
   // Flat distribution was
-  //  Double_t x = (1 - fraction) * xd + fraction* xu;
+  //  Double_v x = (1 - fraction) * xd + fraction* xu;
 
   //Using pdf of linear interpolation within the sampling bin based on the pdf
   //linear interpolation within the sampling bin based on the pdf
-  Double_t x(0.);
-  Double_t pd(0.);
-  Double_t pu(0.);
+  Double_v x(0.);
+  Double_v pd(0.);
+  Double_v pu(0.);
 
   pd = GetPDF<Backend>(irow,icolDist);
   pu = GetPDF<Backend>(irow,icolDist+1);
@@ -318,8 +318,8 @@ SampleXL(typename Backend::Index_t  zElement,
   //* Obtain 'x' in interval [xd, xu] using pdf from linear interpolation
   //    (x,y) from (xd, pd) and (xu, pu)
   //  - Uses two random numbers in order to avoid square root
-  Double_t r2 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
-  Double_t r3 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v r2 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v r3 = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
 
   Bool_t below = r2*(pd+pu) < (1.-r3)*pd + r3*pu;;
 
@@ -346,7 +346,7 @@ inline
 void GUAliasSampler::
 GatherAlias(typename Backend::Index_t    index,
             typename Backend::Index_t    zElement,
-            typename Backend::Double_t  &probNA,
+            typename Backend::Double_v  &probNA,
             typename Backend::Index_t   &aliasInd
            ) const
 {
@@ -372,15 +372,15 @@ GatherAlias(typename Backend::Index_t    index,
 
 template<class Backend>
 inline
-typename Backend::Double_t
+typename Backend::Double_v
 GUAliasSampler::GetPDF(typename Backend::Index_t zElement,
                        typename Backend::Index_t irow,
                        typename Backend::Index_t icol) const
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   int     intIndex= (int) (fSampledNumEntries*irow + icol);
-  Double_t pdf= (fAliasTableManager->GetAliasTable(zElement))->fpdf[intIndex];
+  Double_v pdf= (fAliasTableManager->GetAliasTable(zElement))->fpdf[intIndex];
 
   return pdf;
 }
@@ -391,7 +391,7 @@ template<class Backend>
 inline
 void GUAliasSampler::
 GatherAlias(typename Backend::Index_t    index,
-            typename Backend::Double_t  &probNA,
+            typename Backend::Double_v  &probNA,
             typename Backend::Index_t   &aliasInd
            ) const
 {
@@ -403,14 +403,14 @@ GatherAlias(typename Backend::Index_t    index,
 
 template<class Backend>
 inline
-typename Backend::Double_t
+typename Backend::Double_v
 GUAliasSampler::GetPDF(typename Backend::Index_t irow,
                        typename Backend::Index_t icol) const
 {
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   int     intIndex= (int) (fSampledNumEntries*irow + icol);
-  Double_t pdf= (fAliasTableManager->GetAliasTable(0))->fpdf[intIndex];
+  Double_v pdf= (fAliasTableManager->GetAliasTable(0))->fpdf[intIndex];
 
   return pdf;
 }
@@ -423,7 +423,7 @@ VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index,
                  typename kVc::Index_t    zElement,
-                 typename kVc::Double_t  &probNA,
+                 typename kVc::Double_v  &probNA,
                  typename kVc::Index_t   &aliasInd
                 ) const
 {
@@ -449,14 +449,14 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_t
+typename kVc::Double_v
 GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t zElement,
                             typename kVc::Index_t irow,
                             typename kVc::Index_t icol) const
 {
-  typedef typename kVc::Double_t Double_t;
+  typedef typename kVc::Double_v Double_v;
 
-  Double_t pdf;
+  Double_v pdf;
 
   for(int i = 0; i < kVc::kSize ; ++i)
   {
@@ -480,7 +480,7 @@ inline
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 GatherAlias<kVc>(typename kVc::Index_t    index,
-                 typename kVc::Double_t  &probNA,
+                 typename kVc::Double_v  &probNA,
                  typename kVc::Index_t   &aliasInd
                 ) const
 {
@@ -496,13 +496,13 @@ GatherAlias<kVc>(typename kVc::Index_t    index,
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
-typename kVc::Double_t
+typename kVc::Double_v
 GUAliasSampler::GetPDF<kVc>(typename kVc::Index_t irow,
                             typename kVc::Index_t icol) const
 {
-  typedef typename kVc::Double_t Double_t;
+  typedef typename kVc::Double_v Double_v;
 
-  Double_t pdf;
+  Double_v pdf;
 
   for(int i = 0; i < kVc::kSize ; ++i)
   {

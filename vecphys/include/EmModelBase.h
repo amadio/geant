@@ -116,13 +116,13 @@ protected:
   // Implementation methods
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  void RotateAngle(typename Backend::Double_t sinTheta,
-                   typename Backend::Double_t xhat,
-                   typename Backend::Double_t yhat,
-                   typename Backend::Double_t zhat,
-                   typename Backend::Double_t &xr,
-                   typename Backend::Double_t &yr,
-                   typename Backend::Double_t &zr);
+  void RotateAngle(typename Backend::Double_v sinTheta,
+                   typename Backend::Double_v xhat,
+                   typename Backend::Double_v yhat,
+                   typename Backend::Double_v zhat,
+                   typename Backend::Double_v &xr,
+                   typename Backend::Double_v &yr,
+                   typename Backend::Double_v &zr);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -135,9 +135,9 @@ protected:
 #ifndef VECCORE_NVCC
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  void ConvertXtoFinalState(typename Backend::Double_t energyIn,
-                            typename Backend::Double_t energyOut,
-                            typename Backend::Double_t sinTheta,
+  void ConvertXtoFinalState(typename Backend::Double_v energyIn,
+                            typename Backend::Double_v energyOut,
+                            typename Backend::Double_v sinTheta,
                             int index,
                             GUTrack_v& primary,
                             GUTrack_v& secondary);
@@ -146,9 +146,9 @@ protected:
   //is also explicitly specialized
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  void ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn,
-                                   typename Backend::Double_t energyOut,
-                                   typename Backend::Double_t sinTheta,
+  void ConvertXtoFinalState_Scalar(typename Backend::Double_v energyIn,
+                                   typename Backend::Double_v energyOut,
+                                   typename Backend::Double_v sinTheta,
                                    int index,
                                    GUTrack_v& primary,
                                    GUTrack_v& secondary);
@@ -301,27 +301,27 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v& inProjectile,
                                               double*    sigma)
 {
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   for(int j = 0; j < inProjectile.numTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
   }
 
   int ibase= 0;
-  int numChunks= (inProjectile.numTracks/Double_t::Size);
+  int numChunks= (inProjectile.numTracks/Double_v::Size);
 
   for(int i=0; i < numChunks ; ++i) {
-    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_v energyIn(&inProjectile.E[ibase]);
     Index_t  zElement(targetElements[ibase]);
 
-    Double_t sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
+    Double_v sigmaOut = static_cast<EmModel*>(this)-> template CrossSectionKernel<Backend>(energyIn,zElement);
 
     sigmaOut.store(&sigma[ibase]);
-    ibase+= Double_t::Size;
+    ibase+= Double_v::Size;
   }
 
   //leftover - do scalar
-  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*Double_v::Size ; i < inProjectile.numTracks ; ++i) {
     sigma[i] = static_cast<EmModel*>(this)-> template CrossSectionKernel<kScalar>(inProjectile.E[i],targetElements[i]);
   }
 }
@@ -341,21 +341,21 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
 
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   for(int j = 0; j < nTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
   }
 
   int ibase= 0;
-  int numChunks= (nTracks/Double_t::Size);
+  int numChunks= (nTracks/Double_v::Size);
 
   for(int i= 0; i < numChunks ; ++i) {
     Index_t  zElement(targetElements[ibase]);
-    Double_t energyIn(&inProjectile.E[ibase]);
+    Double_v energyIn(&inProjectile.E[ibase]);
 
-    Double_t sinTheta(0.);
-    Double_t energyOut;
+    Double_v sinTheta(0.);
+    Double_v energyOut;
 
     //eventually there will be no switch as we select one Kernel for each model
     switch(fSampleType) {
@@ -373,11 +373,11 @@ void EmModelBase<EmModel>::Interact(GUTrack_v& inProjectile,
     }
 
     ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
-    ibase+= Double_t::Size;
+    ibase+= Double_v::Size;
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*Double_t::Size ; i < nTracks ; ++i) {
+  for(int i = numChunks*Double_v::Size ; i < nTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
@@ -402,14 +402,14 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   for(int j = 0; j < sizeOfInputTracks  ; ++j) {
     assert( (targetElements[j] > 0)  && (targetElements[j] <= maximumZ ) );
   }
 
   int ibase= 0;
-  int numChunks= sizeOfInputTracks/Double_t::Size;
+  int numChunks= sizeOfInputTracks/Double_v::Size;
 
   //creat a bit set to hold the status of sampling
 
@@ -451,37 +451,37 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
     //vectorization loop
     int currentSize = wenergyOut.size();
-    numChunks = currentSize/Double_t::Size;
+    numChunks = currentSize/Double_v::Size;
 
     for(int i= 0; i < numChunks ; ++i) {
 
-      Double_t energyIn(&wenergyIn[ibase]);
+      Double_v energyIn(&wenergyIn[ibase]);
       Index_t  zElement(targetElements[ibase]);
 
-      Double_t energyOut;
-      Double_t sinTheta;
+      Double_v energyOut;
+      Double_v sinTheta;
 
       //kernel
       static_cast<EmModel*>(this)-> template InteractKernelUnpack<Backend>(energyIn,
                                              zElement,energyOut,sinTheta,status);
 
       //store energy and sinTheta of the secondary
-      Double_t secE = energyIn - energyOut;
+      Double_v secE = energyIn - energyOut;
 
       secE.store(&wenergyOut[ibase]);
       sinTheta.store(&wsinTheta[ibase]);
 
       //set the status bit
-      for(size_t j = 0; j < Double_t::Size ; ++j) {
+      for(size_t j = 0; j < Double_v::Size ; ++j) {
         flag.set(ibase+j,status[j]);
       }
 
-      ibase+= Double_t::Size;
+      ibase+= Double_v::Size;
     }
     //end of vectorization loop
 
     //@@@syjun - need to add a cleanup task for the leftover array of which
-    //size < Double_t::Size - see the bottom of this method for a similar task
+    //size < Double_v::Size - see the bottom of this method for a similar task
 
     //scatter
     for(int i = 0; i < currentSize ; ++i) {
@@ -521,20 +521,20 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v& inProjectile,
 
   //reset ibase and number of chunks
   ibase= 0;
-  numChunks= (sizeOfInputTracks/Double_t::Size);
+  numChunks= (sizeOfInputTracks/Double_v::Size);
 
   for(int i= 0; i < numChunks ; ++i) {
-    Double_t energyIn(&inProjectile.E[ibase]);
-    Double_t sinTheta(&outSecondary.px[ibase]);
-    Double_t energyOut(&outSecondary.E[ibase]);
+    Double_v energyIn(&inProjectile.E[ibase]);
+    Double_v sinTheta(&outSecondary.px[ibase]);
+    Double_v energyOut(&outSecondary.E[ibase]);
 
     ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
 
-    ibase+= Double_t::Size;
+    ibase+= Double_v::Size;
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*Double_t::Size ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*Double_v::Size ; i < inProjectile.numTracks ; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
@@ -583,32 +583,32 @@ void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
 template <class EmModel>
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
-                                  typename Backend::Double_t xhat,
-                                  typename Backend::Double_t yhat,
-                                  typename Backend::Double_t zhat,
-                                  typename Backend::Double_t &xr,
-                                  typename Backend::Double_t &yr,
-                                  typename Backend::Double_t &zr)
+EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
+                                  typename Backend::Double_v xhat,
+                                  typename Backend::Double_v yhat,
+                                  typename Backend::Double_v zhat,
+                                  typename Backend::Double_v &xr,
+                                  typename Backend::Double_v &yr,
+                                  typename Backend::Double_v &zr)
 {
   typedef typename Backend::Int_t    Int_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
   typedef typename Backend::Bool_t   Bool_t;
 
-  Double_t phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
-  Double_t pt = xhat*xhat + yhat*yhat;
+  Double_v phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v pt = xhat*xhat + yhat*yhat;
 
-  Double_t cosphi, sinphi;
+  Double_v cosphi, sinphi;
   sincos(phi, &sinphi, &cosphi);
 
-  Double_t uhat = sinTheta*cosphi; // cos(phi);
-  Double_t vhat = sinTheta*sinphi; // sin(phi);
-  Double_t what = Sqrt((1.-sinTheta)*(1.+sinTheta));
+  Double_v uhat = sinTheta*cosphi; // cos(phi);
+  Double_v vhat = sinTheta*sinphi; // sin(phi);
+  Double_v what = Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Bool_t positive = ( pt > 0. );
   Bool_t negativeZ = ( zhat < 0. );
 
-  Double_t phat;
+  Double_v phat;
 
   MaskedAssign(positive, Sqrt(pt) , &phat);
   MaskedAssign(positive, (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what , &xr);
@@ -625,7 +625,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_t sinTheta,
 
   //mask operation???
  /* if(positive) {
-    Double_t phat = Sqrt(pt);
+    Double_v phat = Sqrt(pt);
     xr = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
     yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
     zr = -phat*uhat + zhat*what;
@@ -682,34 +682,34 @@ void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn,
 template <class EmModel>
 template <typename Backend>
 VECCORE_CUDA_HOST_DEVICE void
-EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
-                                           typename Backend::Double_t energyOut,
-                                           typename Backend::Double_t sinTheta,
+EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn,
+                                           typename Backend::Double_v energyOut,
+                                           typename Backend::Double_v sinTheta,
                                            int ibase,
                                            GUTrack_v& primary,
                                            GUTrack_v& secondary) // const
 {
-    typedef typename Backend::Double_t Double_t;
+    typedef typename Backend::Double_v Double_v;
 
     //need to rotate the angle with respect to the line of flight
-    Double_t px(&primary.px[ibase]);
-    Double_t py(&primary.py[ibase]);
-    Double_t pz(&primary.pz[ibase]);
+    Double_v px(&primary.px[ibase]);
+    Double_v py(&primary.py[ibase]);
+    Double_v pz(&primary.pz[ibase]);
 
-    Double_t invp = 1./energyIn;
-    Double_t xhat = px*invp;
-    Double_t yhat = py*invp;
-    Double_t zhat = pz*invp;
+    Double_v invp = 1./energyIn;
+    Double_v xhat = px*invp;
+    Double_v yhat = py*invp;
+    Double_v zhat = pz*invp;
 
-    Double_t uhat = 0.;
-    Double_t vhat = 0.;
-    Double_t what = 0.;
+    Double_v uhat = 0.;
+    Double_v vhat = 0.;
+    Double_v what = 0.;
 
     RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
     // Update primary
     energyOut.store(&primary.E[ibase]);
-    Double_t pxFinal, pyFinal, pzFinal;
+    Double_v pxFinal, pyFinal, pzFinal;
 
     pxFinal= energyOut*uhat;
     pyFinal= energyOut*vhat;
@@ -719,10 +719,10 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
     pzFinal.store(&primary.pz[ibase]);
 
     // create Secondary
-    Double_t secE = energyIn - energyOut;
-    Double_t pxSec= secE*(xhat-uhat);
-    Double_t pySec= secE*(yhat-vhat);
-    Double_t pzSec= secE*(zhat-what);
+    Double_v secE = energyIn - energyOut;
+    Double_v pxSec= secE*(xhat-uhat);
+    Double_v pySec= secE*(yhat-vhat);
+    Double_v pzSec= secE*(zhat-what);
 
     secE.store(&secondary.E[ibase]);
     pxSec.store(&secondary.px[ibase]);
@@ -736,24 +736,24 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_t energyIn,
 template<class EmModel>
 template <typename Backend>
 VECCORE_CUDA_HOST_DEVICE void
-EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t energyIn,
-                                                  typename Backend::Double_t energyOut,
-                                                  typename Backend::Double_t sinTheta,
+EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_v energyIn,
+                                                  typename Backend::Double_v energyOut,
+                                                  typename Backend::Double_v sinTheta,
                                                   int ibase,
                                                   GUTrack_v& primary,
                                                   GUTrack_v& secondary)
 {
-  typedef typename kScalar::Double_t Double_t;
+  typedef typename kScalar::Double_v Double_v;
 
   //need to rotate the angle with respect to the line of flight
-  Double_t invp = 1./energyIn;
-  Double_t xhat = primary.px[ibase]*invp;
-  Double_t yhat = primary.py[ibase]*invp;
-  Double_t zhat = primary.pz[ibase]*invp;
+  Double_v invp = 1./energyIn;
+  Double_v xhat = primary.px[ibase]*invp;
+  Double_v yhat = primary.py[ibase]*invp;
+  Double_v zhat = primary.pz[ibase]*invp;
 
-  Double_t uhat = 0.;
-  Double_t vhat = 0.;
-  Double_t what = 0.;
+  Double_v uhat = 0.;
+  Double_v vhat = 0.;
+  Double_v what = 0.;
 
   RotateAngle<kScalar>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
 
@@ -765,7 +765,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_t ene
   primary.pz[ibase] = energyOut*what;
 
   // create Secondary
-  Double_t secE = energyIn - energyOut;
+  Double_v secE = energyIn - energyOut;
   secondary.E[ibase]  = secE;
   secondary.px[ibase] = secE*(xhat-uhat);
   secondary.py[ibase] = secE*(yhat-vhat);

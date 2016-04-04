@@ -43,39 +43,39 @@ public:
   // Implementation methods
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
-  typename Backend::Double_t
-  CrossSectionKernel(typename Backend::Double_t  energyIn,
+  typename Backend::Double_v
+  CrossSectionKernel(typename Backend::Double_v  energyIn,
                      typename Backend::Index_t   zElement);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
-  InteractKernel(typename Backend::Double_t  energyIn,
+  InteractKernel(typename Backend::Double_v  energyIn,
                  typename Backend::Index_t   zElement,
-                 typename Backend::Double_t& energyOut,
-                 typename Backend::Double_t& sinTheta);
+                 typename Backend::Double_v& energyOut,
+                 typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
-  InteractKernelCR(typename Backend::Double_t energyIn,
+  InteractKernelCR(typename Backend::Double_v energyIn,
                    typename Backend::Index_t   zElement,
-                   typename Backend::Double_t& energyOut,
-                   typename Backend::Double_t& sinTheta);
+                   typename Backend::Double_v& energyOut,
+                   typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
-  InteractKernelUnpack(typename Backend::Double_t energyIn,
+  InteractKernelUnpack(typename Backend::Double_v energyIn,
                        typename Backend::Index_t   zElement,
-                       typename Backend::Double_t& energyOut,
-                       typename Backend::Double_t& sinTheta,
+                       typename Backend::Double_v& energyOut,
+                       typename Backend::Double_v& sinTheta,
                        typename Backend::Bool_t &status);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
   void
-  SampleSinTheta(typename Backend::Double_t energyElectron,
-                 typename Backend::Double_t energyPositron,
-		 typename Backend::Double_t& sinThetaElectron,
-		 typename Backend::Double_t& sinThetaPositron) const;
+  SampleSinTheta(typename Backend::Double_v energyElectron,
+                 typename Backend::Double_v energyPositron,
+		 typename Backend::Double_v& sinThetaElectron,
+		 typename Backend::Double_v& sinThetaPositron) const;
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    elementZ,
@@ -118,46 +118,46 @@ private:
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 void
-ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
+ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
                                        typename Backend::Index_t   zElement,
-                                       typename Backend::Double_t& energyOut,
-                                       typename Backend::Double_t& sinTheta)
+                                       typename Backend::Double_v& energyOut,
+                                       typename Backend::Double_v& sinTheta)
 {
   // now return only secondary electron information and
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
   typedef typename Backend::Bool_t   Bool_t;
   typedef typename Backend::Index_t  Index_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   //early return if E_gamma < 2*electron_mass_c2
 
   Index_t   irow;
   Index_t   icol;
-  Double_t  fraction;
+  Double_v  fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
-  Double_t probNA;
+  Double_v probNA;
   Index_t  aliasInd;
 
   //this did not used to work - Fixed SW
-  Double_t ncol(fAliasSampler->GetSamplesPerEntry());
+  Double_v ncol(fAliasSampler->GetSamplesPerEntry());
   Index_t   index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,zElement,probNA,aliasInd);
 
-  Double_t mininumE = electron_mass_c2;
-  Double_t deltaE = energyIn - mininumE;
+  Double_v mininumE = electron_mass_c2;
+  Double_v deltaE = energyIn - mininumE;
 
   //electron energy
   energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
 					        aliasInd,icol,fraction);
 
-  Double_t r1 = UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_v r1 = UniformRandom<Backend>(fRandomState,fThreadId);
   Bool_t condition = 0.5 > r1;
 
-  Double_t energyElectron;
-  Double_t energyPositron;
+  Double_v energyElectron;
+  Double_v energyPositron;
 
   //check correctness
   MaskedAssign( condition, energyOut, &energyElectron);
@@ -166,8 +166,8 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_t  energyIn,
   MaskedAssign(!condition, energyOut, &energyPositron);
   MaskedAssign(!condition, energyIn - energyOut, &energyElectron);
 
-  Double_t sinThetaElectron;
-  Double_t sinThetaPositron;
+  Double_v sinThetaElectron;
+  Double_v sinThetaPositron;
   SampleSinTheta<Backend>(energyElectron,energyPositron,
                           sinThetaElectron, sinThetaPositron);
 
@@ -180,28 +180,28 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 void
 ConversionBetheHeitler::
-SampleSinTheta(typename Backend::Double_t energyElectron,
-               typename Backend::Double_t energyPositron,
-	       typename Backend::Double_t& sinThetaElectron,
-	       typename Backend::Double_t& sinThetaPositron) const
+SampleSinTheta(typename Backend::Double_v energyElectron,
+               typename Backend::Double_v energyPositron,
+	       typename Backend::Double_v& sinThetaElectron,
+	       typename Backend::Double_v& sinThetaPositron) const
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
   //angles of the pair production (gamma -> e+e-)
 
-  Double_t u;
+  Double_v u;
   const double a1 = 0.625 , a2 = 3.*a1 , d = 27. ;
 
-  Double_t r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_v r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
   Bool_t condition = 9./(9. + d) > r1;
   MaskedAssign( condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a1, &u );
   MaskedAssign(!condition, -log( UniformRandom<Backend>(fRandomState,fThreadId)*
                        UniformRandom<Backend>(fRandomState,fThreadId))/a2, &u );
 
-  Double_t TetEl = u*electron_mass_c2/energyElectron;
-  Double_t TetPo = u*electron_mass_c2/energyPositron;
+  Double_v TetEl = u*electron_mass_c2/energyElectron;
+  Double_v TetPo = u*electron_mass_c2/energyPositron;
 
   //sinTheta - just return theta instead!
   sinThetaElectron =  sin(TetEl);
@@ -210,65 +210,65 @@ SampleSinTheta(typename Backend::Double_t energyElectron,
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
-typename Backend::Double_t
+typename Backend::Double_v
 ConversionBetheHeitler::
-CrossSectionKernel(typename Backend::Double_t energy,
+CrossSectionKernel(typename Backend::Double_v energy,
                    typename Backend::Index_t Z)
 {
   typedef typename Backend::Bool_t   Bool_t;
-  typedef typename Backend::Double_t Double_t;
+  typedef typename Backend::Double_v Double_v;
 
-  Double_t sigma = 0.;
+  Double_v sigma = 0.;
 
   if ( Z < 0.9 || energy <= 2.0*electron_mass_c2 ) { return sigma; }
 
-  Double_t energySave = energy;
+  Double_v energySave = energy;
 
   //gamma energyLimit = 1.5*MeV
-  Double_t energyLimit = 1.5*MeV;
+  Double_v energyLimit = 1.5*MeV;
   Bool_t condition = energy < energyLimit;
   MaskedAssign( condition, energyLimit, &energy );
 
-  Double_t X = log(energy/electron_mass_c2);
-  Double_t X2 = X*X;
-  Double_t X3 =X2*X;
-  Double_t X4 =X3*X;
-  Double_t X5 =X4*X;
+  Double_v X = log(energy/electron_mass_c2);
+  Double_v X2 = X*X;
+  Double_v X3 =X2*X;
+  Double_v X4 =X3*X;
+  Double_v X5 =X4*X;
 
   //put coff's to a constant header
   /*
-  Double_t a0= 8.7842e+2*microbarn;
-  Double_t a1=-1.9625e+3*microbarn;
-  Double_t a2= 1.2949e+3*microbarn;
-  Double_t a3=-2.0028e+2*microbarn;
-  Double_t a4= 1.2575e+1*microbarn;
-  Double_t a5=-2.8333e-1*microbarn;
+  Double_v a0= 8.7842e+2*microbarn;
+  Double_v a1=-1.9625e+3*microbarn;
+  Double_v a2= 1.2949e+3*microbarn;
+  Double_v a3=-2.0028e+2*microbarn;
+  Double_v a4= 1.2575e+1*microbarn;
+  Double_v a5=-2.8333e-1*microbarn;
 
-  Double_t b0=-1.0342e+1*microbarn;
-  Double_t b1= 1.7692e+1*microbarn;
-  Double_t b2=-8.2381   *microbarn;
-  Double_t b3= 1.3063   *microbarn;
-  Double_t b4=-9.0815e-2*microbarn;
-  Double_t b5= 2.3586e-3*microbarn;
+  Double_v b0=-1.0342e+1*microbarn;
+  Double_v b1= 1.7692e+1*microbarn;
+  Double_v b2=-8.2381   *microbarn;
+  Double_v b3= 1.3063   *microbarn;
+  Double_v b4=-9.0815e-2*microbarn;
+  Double_v b5= 2.3586e-3*microbarn;
 
-  Double_t c0=-4.5263e+2*microbarn;
-  Double_t c1= 1.1161e+3*microbarn;
-  Double_t c2=-8.6749e+2*microbarn;
-  Double_t c3= 2.1773e+2*microbarn;
-  Double_t c4=-2.0467e+1*microbarn;
-  Double_t c5= 6.5372e-1*microbarn;
+  Double_v c0=-4.5263e+2*microbarn;
+  Double_v c1= 1.1161e+3*microbarn;
+  Double_v c2=-8.6749e+2*microbarn;
+  Double_v c3= 2.1773e+2*microbarn;
+  Double_v c4=-2.0467e+1*microbarn;
+  Double_v c5= 6.5372e-1*microbarn;
   */
 
-  Double_t F1 = a0 + a1*X + a2*X2 + a3*X3 + a4*X4 + a5*X5;
-  Double_t F2 = b0 + b1*X + b2*X2 + b3*X3 + b4*X4 + b5*X5;
-  Double_t F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;
+  Double_v F1 = a0 + a1*X + a2*X2 + a3*X3 + a4*X4 + a5*X5;
+  Double_v F2 = b0 + b1*X + b2*X2 + b3*X3 + b4*X4 + b5*X5;
+  Double_v F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;
 
   sigma = (Z + 1.)*(F1*Z + F2*Z*Z + F3);
   Bool_t done = energySave < energyLimit;
 
   if(Any(done)) {
     X = (energySave - 2.*electron_mass_c2)/(energyLimit - 2.*electron_mass_c2);
-    Double_t tmpsigma = sigma*X*X;
+    Double_v tmpsigma = sigma*X*X;
     MaskedAssign( done, tmpsigma, &sigma );
   }
 
@@ -280,10 +280,10 @@ CrossSectionKernel(typename Backend::Double_t energy,
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_t  energyIn,
+ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v  energyIn,
                                          typename Backend::Index_t   zElement,
-                                         typename Backend::Double_t& energyOut,
-                                         typename Backend::Double_t& sinTheta)
+                                         typename Backend::Double_v& energyOut,
+                                         typename Backend::Double_v& sinTheta)
 {
   //dummy for now
   energyOut = 0.0;
@@ -292,10 +292,10 @@ ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_t  energyIn,
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_t energyIn,
+ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_v energyIn,
                                              typename Backend::Index_t   zElement,
-                                             typename Backend::Double_t& energyOut,
-                                             typename Backend::Double_t& sinTheta,
+                                             typename Backend::Double_v& energyOut,
+                                             typename Backend::Double_v& sinTheta,
                                              typename Backend::Bool_t &status)
 {
   //dummy for now
