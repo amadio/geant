@@ -67,27 +67,27 @@ private:
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE typename
   Backend::Double_v
-  CrossSectionKernel(typename Backend::Double_v  energyIn,
-                     Index_v<typename Backend::Double_v>   zElement);
+  CrossSectionKernel(typename Backend::Double_v energyIn,
+                     Index_v<typename Backend::Double_v> zElement);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernel(typename Backend::Double_v energyIn,
-                 Index_v<typename Backend::Double_v>   zElement,
+                 Index_v<typename Backend::Double_v> zElement,
                  typename Backend::Double_v& energyOut,
                  typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelCR(typename Backend::Double_v energyIn,
-                   Index_v<typename Backend::Double_v>   zElement,
+                   Index_v<typename Backend::Double_v> zElement,
                    typename Backend::Double_v& energyOut,
                    typename Backend::Double_v& sinTheta);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
   InteractKernelUnpack(typename Backend::Double_v energyIn,
-                       Index_v<typename Backend::Double_v>   zElement,
+                       Index_v<typename Backend::Double_v> zElement,
                        typename Backend::Double_v& energyOut,
                        typename Backend::Double_v& sinTheta,
                        Mask_v<typename Backend::Double_v> &status);
@@ -135,16 +135,10 @@ private:
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
-ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
-                                        Index_v<typename Backend::Double_v>   Z)
+ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v energy,
+                                        Index_v<typename Backend::Double_v> Z)
 {
   using Double_v = typename Backend::Double_v;
-
-  Double_v sigmaOut = 0.;
-  Mask_v<Double_v> belowLimit = Mask_v<Double_v>(false);
-  //low energy limit
-  belowLimit |= ( energy < fLowEnergyLimit );
-  if(Backend::early_returns && IsFull(belowLimit)) return sigmaOut;
 
   Double_v Z2 = Z*Z;
   Double_v p1 =  2.7965e-1 +  1.9756e-5*Z + -3.9178e-7*Z2;
@@ -153,18 +147,18 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
   Double_v p4 = -1.9798e+1 +  2.7079e-2*Z +  3.0274e-4*Z2;
 
   Mask_v<Double_v> condZ = (Z < 1.5);
-  Double_v T0 = 0.0;
-  CondAssign(condZ, 15.*keV, 40.*keV, &T0);
+  Double_v T0 = Blend(condZ, Double_v(15.*keV), Double_v(40.*keV));
 
   Double_v X  =  math::Max(energy,T0)/electron_mass_c2;
   Double_v X2 = X*X;
   Double_v sigma = p1*math::Log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
-  sigmaOut = Z*sigma*barn;
 
-  Mask_v<Double_v> condE = Mask_v<Double_v>(false);
-  condE |= (energy > T0);
-  if(Backend::early_returns && IsFull(condE)) return sigmaOut;
+  Double_v sigmaOut = Z*sigma*barn;
+
+  Mask_v<Double_v> condE = (energy > T0);
+
+  if(EarlyReturnAllowed() && MaskFull(condE)) return sigmaOut;
 
   //correction when energy < T0
   Double_v dT0 = 1.*keV;
@@ -172,38 +166,37 @@ ComptonKleinNishina::CrossSectionKernel(typename Backend::Double_v  energy,
   sigma = p1*math::Log(1.+2.*X)/X
           + (p2 + p3*X + p4*X2)/(1. + 20.*X + 230.*X2 + 440.*X2*X);
 
-  Double_v   c1 = -T0*(Z*sigma*barn-sigmaOut)/(sigmaOut*dT0);
-  Double_v   c2 = 0.150;
-  MaskedAssign( !condZ, 0.375-0.0556*math::Log(1.*Z) , &c2 );
-  Double_v    y = math::Log(energy/T0);
-  MaskedAssign(!condE, sigmaOut*math::Exp(-y*(c1+c2*y)),&sigmaOut);
+  Double_v c1 = -T0*(Z*sigma*barn-sigmaOut)/(sigmaOut*dT0);
+  Double_v c2 = Blend(condZ, Double_v(0.150),
+                             Double_v(0.375) - Double_v(0.0556) * math::Log(Double_v(Z)));
+  Double_v  y = math::Log(energy/T0);
 
-  //this is the case if one of E < belowLimit
-  MaskedAssign(belowLimit, 0.0,&sigmaOut);
+  MaskedAssign(sigmaOut, !condE, sigmaOut*math::Exp(-y*(c1+c2*y)));
+  MaskedAssign(sigmaOut, energy < fLowEnergyLimit, 0.0);
+
   return  sigmaOut;
 }
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
-                                    Index_v<typename Backend::Double_v>   zElement,
+                                    Index_v<typename Backend::Double_v> zElement,
                                     typename Backend::Double_v& energyOut,
                                     typename Backend::Double_v& sinTheta)
 {
   using Double_v = typename Backend::Double_v;
 
-  Index_v<Double_v>   irow;
-  Index_v<Double_v>   icol;
-  Double_v  fraction;
+  Index_v<Double_v> irow;
+  Index_v<Double_v> icol;
+  Double_v fraction;
 
   fAliasSampler->SampleLogBin<Backend>(energyIn,irow,icol,fraction);
 
   Double_v probNA;
-  Index_v<Double_v>  aliasInd;
+  Index_v<Double_v> aliasInd;
 
-  //this did not used to work - Fixed SW
   Double_v ncol(fAliasSampler->GetSamplesPerEntry());
-  Index_v<Double_v>   index = ncol*irow + icol;
+  Index_v<Double_v> index = ncol*irow + icol;
   fAliasSampler->GatherAlias<Backend>(index,probNA,aliasInd);
 
   Double_v mininumE = energyIn/(1+2.0*energyIn*inv_electron_mass_c2);
@@ -212,18 +205,12 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
   energyOut = mininumE + fAliasSampler->SampleXL<Backend>(zElement,
                                         deltaE,probNA,aliasInd,irow,icol);
   sinTheta = SampleSinTheta<Backend>(energyIn,energyOut);
-
-  //create the secondary electron
-
-  //update the primary
-
-  //  printf("icol = %d energyOut = %f %f %f %f\n",icol,energyOut,deltaE,aliasInd,probNA);
 }
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v  energyIn,
-                                      Index_v<typename Backend::Double_v>   zElement,
+ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v energyIn,
+                                      Index_v<typename Backend::Double_v> zElement,
                                       typename Backend::Double_v& energyOut,
                                       typename Backend::Double_v& sinTheta)
 {
@@ -255,23 +242,12 @@ ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
 
   //angle of the scatterred photon
 
-  Double_v epsilon = energyOut/energyIn;
-
-  Mask_v<Double_v> condition = epsilon > 1.0;
-
-  MaskedAssign( condition, 1.0 , &epsilon );
-
+  Double_v epsilon = Blend(energyOut > energyIn, Double_v(1.0), energyOut/energyIn);
   Double_v E0_m    = inv_electron_mass_c2*energyIn;
   Double_v onecost = (1.0 - epsilon)/(epsilon*E0_m);
   Double_v sint2   = onecost*(2.-onecost);
 
-  Double_v sinTheta = 0.5;
-  Mask_v<Double_v> condition2 = sint2 < 0.0;
-
-  MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
-  MaskedAssign( !condition2, math::Sqrt(sint2), &sinTheta );
-
-  return sinTheta;
+  return Blend(sint2 < 0.0, Double_v(0.0), math::Sqrt(sint2));
 }
 
 template<class Backend>
@@ -284,72 +260,35 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
                                       typename Backend::Double_v epsil0sq,
                                       typename Backend::Double_v &sint2) const
 {
-  typedef typename Backend::Int_t Int_t;
   using Double_v = typename Backend::Double_v;
 
   Double_v epsilon;
   Double_v greject;
+  Mask_v<Double_v> done(false);
 
   do {
-    Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
-
-    MaskedAssign( cond, math::Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
-    MaskedAssign(!cond, math::Sqrt(epsil0sq+(1.- epsil0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
-
-    Double_v onecost = (1.- epsilon)/(epsilon*E0_m);
+    Double_v tmp = Blend(test > UniformRandom<Double_v>(fRandomState, fThreadId),
+                         math::Exp(-alpha1*UniformRandom<Double_v>(fRandomState, fThreadId)),
+                         math::Sqrt(epsil0sq+(1.0 - epsil0sq)*UniformRandom<Double_v>(fRandomState, fThreadId)));
+    MaskedAssign(epsilon, !done, tmp);
+    Double_v onecost = (1.0 - epsilon)/(epsilon*E0_m);
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
-  } while (greject < UniformRandom<Backend>(fRandomState,Int_t(fThreadId)));
+    done |= greject < UniformRandom<Double_v>(fRandomState, fThreadId);
+  } while (!MaskFull(done));
 
   return epsilon;
 }
-
-#ifndef VECCORE_NVCC
-template<>
-inline
-VECCORE_CUDA_HOST_DEVICE
-typename backend::VcVector::Double_v
-ComptonKleinNishina::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v E0_m,
-                                           typename backend::VcVector::Double_v test,
-                                           typename backend::VcVector::Double_v alpha1,
-                                           typename backend::VcVector::Double_v epsil0sq,
-                                           typename backend::VcVector::Double_v &sint2) const
-{
-  //  typedef typename Vc::Int_t Int_t;
-  //  typedef typename backend::VcVector::Mask_v<Double_v> Mask_v<Double_v>;
-  typedef typename backend::VcVector::Double_v Double_v;
-
-  Double_v epsilon;
-  double greject;
-
-  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
-
-    do {
-      bool cond = test[i] > UniformRandom<backend::Scalar>(fRandomState,fThreadId);
-      if(cond) epsilon[i] = math::Exp(-alpha1[i]*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
-      else  epsilon[i] = math::Sqrt(epsil0sq[i]+(1.- epsil0sq[i])*UniformRandom<backend::Scalar>(fRandomState,fThreadId));
-
-      double onecost = (1.- epsilon[i])/(epsilon[i]*E0_m[i]);
-      sint2[i]   = onecost*(2.-onecost);
-      greject = 1. - epsilon[i]*sint2[i]/(1.+ epsilon[i]*epsilon[i]);
-    } while (greject < UniformRandom<backend::Scalar>(fRandomState,fThreadId));
-  }
-
-  return epsilon;
-}
-
-#endif
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
-                                          Index_v<typename Backend::Double_v>   zElement,
+ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v energyIn,
+                                          Index_v<typename Backend::Double_v> zElement,
                                           typename Backend::Double_v& energyOut,
                                           typename Backend::Double_v& sinTheta,
-                                          Mask_v<typename Backend::Double_v>&   status)
+                                          Mask_v<typename Backend::Double_v>& status)
 {
   using Double_v = typename Backend::Double_v;
-  typedef typename Backend::Int_t Int_t;
 
   Double_v E0_m = energyIn/electron_mass_c2;
 
@@ -360,20 +299,16 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v  energyIn,
 
   Double_v test = alpha1/(alpha1+alpha2);
 
-  Double_v epsilon;
-  Double_v greject;
-
-  Mask_v<Double_v> cond = test > UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
-
-  MaskedAssign( cond, math::Exp(-alpha1*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
-  MaskedAssign(!cond, math::Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Backend>(fRandomState,Int_t(fThreadId))), &epsilon);
+  Double_v epsilon = Blend(test > UniformRandom<Double_v>(fRandomState, fThreadId),
+                           math::Exp(-alpha1*UniformRandom<Double_v>(fRandomState, fThreadId)),
+                           math::Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Double_v>(fRandomState, fThreadId)));
 
   Double_v onecost = (1.- epsilon)/(epsilon*E0_m);
   Double_v sint2   = onecost*(2.-onecost);
 
-  greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
+  Double_v greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
 
-  status = greject < UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  status = greject < UniformRandom<Double_v>(fRandomState, fThreadId);
 
   energyOut = epsilon*energyIn;
   sinTheta = math::Sqrt(sint2);
@@ -415,6 +350,8 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
                                         const int* targetElements,
                                         GUTrack_v& outSecondary)
 {
+  using Double_v = typename Backend::Double_v;
+
   //check for the validity of energy
   int nTracks = inProjectile.numTracks;
 
@@ -422,8 +359,6 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   // selected if energy of the track is outside the valid energy region
   //  if(inProjectile.E[0]         < fLowEnergyLimit ||
   //     inProjectile.E[nTracks-1] > fHighEnergyLimit) return;
-
-  using Double_v = typename Backend::Double_v;
 
   //filtering the energy region for the alias method - setable if necessary
   const double aliaslimit = 100.0*MeV;
@@ -443,7 +378,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
     Double_v sinTheta(0.);
     Double_v energyOut;
 
-    Index_v<Double_v>  zElement(targetElements[ibase]);
+    Index_v<Double_v> zElement(targetElements[ibase]);
 
     if(ibase < indexAliasLimit) {
       InteractKernel<Backend>(energyIn,zElement,energyOut,sinTheta);
@@ -458,7 +393,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v& inProjectile,
   }
 
   //leftover - do scalar (temporary)
-  for(int i = numChunks*VectorSize<Double_v>() ; i < inProjectile.numTracks ; ++i) {
+  for(int i = numChunks*VectorSize<Double_v>(); i < inProjectile.numTracks; ++i) {
 
     double senergyIn= inProjectile.E[i];
     double senergyOut, ssinTheta;
