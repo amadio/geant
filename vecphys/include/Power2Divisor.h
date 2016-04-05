@@ -53,10 +53,10 @@ void Power2Divisor::GetBinAndFraction(typename Backend::Double_v x,
                                       Index_v<typename Backend::Double_v>& ibin,
                                       typename Backend::Double_v& frac)
 {
-  typedef typename Backend::Int_t Int_t;
+  using Int_v    = typename Backend::Int_v;
   using Double_v = typename Backend::Double_v;
 
-  Int_t    exponent;
+  Int_v    exponent;
   Double_v mantissa = frexp (x, &exponent); // Vc::frexp
 
   Double_v fexponent = IntToDouble(exponent-1-fNmin); //Backend
@@ -64,9 +64,9 @@ void Power2Divisor::GetBinAndFraction(typename Backend::Double_v x,
   //Double_v fexponent(exponent-1-fNmin)
   //does not work for the int output of frexp which is in [int,dummy,int,dummy]
 
-  ibin = Floor((mantissa-.5)*(2.*fNdiv)) + fNdiv*fexponent;
+  ibin = math::Floor((mantissa-.5)*(2.*fNdiv)) + fNdiv*fexponent;
 
-  Index_v<Double_v> idiv = ibin - fNdiv*Floor(ibin/fNdiv); //idiv = ibin%fNdiv
+  Index_v<Double_v> idiv = ibin - fNdiv*math::Floor(ibin/fNdiv); //idiv = ibin%fNdiv
   //note: ibin%fNdiv = ibin & (fNdiv-1) for any fNdiv = 2^n does not work here
   //as the & operator is not vectorized)
 

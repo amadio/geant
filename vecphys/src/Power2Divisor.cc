@@ -25,7 +25,7 @@ Real_t Power2Divisor::GetBinPosition(int ibin)
 {
   int exponent = Power2Exponent(ibin);
   //  int idiv = ibin & (fNdiv -1); // idiv=ibin%ndiv for any fNdiv = 2^n
-  int idiv = ibin - fNdiv*Floor(ibin/fNdiv); //idiv=ibin%fNdiv (not restricted)
+  int idiv = ibin - fNdiv*math::Floor(ibin/fNdiv); //idiv=ibin%fNdiv (not restricted)
   return  ldexp(1.+ 1.*idiv/fNdiv,exponent);
 }
 
