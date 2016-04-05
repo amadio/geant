@@ -860,7 +860,7 @@ int main(int argc, char **argv) {
         decayTable->SetCTauPerMass(ctaupermass, np);
         fh->WriteObject(decayTable, "DecayTable");
         delete decayTable;
-        delete ctaupermass;
+        delete [] ctaupermass;
       }
 
       // From here on we tabulate the cross sections and sample the interactions
