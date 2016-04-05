@@ -21,12 +21,12 @@ int main(int argc, char* argv[])
   if(argc >= 2) ntracks =      atoi(argv[1]);
   if(argc >= 3) nrepetitions = atoi(argv[2]);
   if(argc >= 4) {
-     minEnergy  =  atof(argv[3]);
+     minEnergy  =  atof(argv[3]) * MeV;
      std::cout << "  Min energy (MeV) = " << minEnergy << std::endl;
 
      maxEnergy = minEnergy;  // Assume mono-energetic if no max is defined
      if(argc >= 5) {
-        maxEnergy  =  atof(argv[4]);
+        maxEnergy  =  atof(argv[4]) * MeV;
         std::cout << "  Max energy (MeV) = " << maxEnergy << std::endl;
      } else {
         std::cout << "  Mono-energetic> max energy (MeV) = " << maxEnergy << std::endl;
