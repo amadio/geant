@@ -21,6 +21,7 @@ struct GUTrack
 
 struct GUTrack_v
 {
+  int capacity;        // real number of tracks stored
   int numTracks;       // real number of tracks stored
   int *status;         // status of the track: alive or killed (possible at rest ???)
   int *particleType;
