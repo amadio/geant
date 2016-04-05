@@ -192,8 +192,8 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
   // densityFactor = (Migdal constant)x(electron density of the material);
   Double_v densityFactor = 1.0;
 
-  Double_v emin = math::Min(fAliasSampler->GetIncomingMin(), energyIn);
-  Double_v emax = math::Min(fAliasSampler->GetIncomingMax(), energyIn);
+  Double_v emin = math::Min(Double_v(fAliasSampler->GetIncomingMin()), energyIn);
+  Double_v emax = math::Min(Double_v(fAliasSampler->GetIncomingMax()), energyIn);
 
   Double_v totalEnergy = energyIn + electron_mass_c2;
   Double_v densityCorr = densityFactor*totalEnergy*totalEnergy;
@@ -204,7 +204,7 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
   Double_v yhat = fAliasSampler->SampleX<Backend>(deltaY,probNA,
                                                   aliasInd,icol,fraction);
 
-  energyOut =  math::Sqrt(math::Max(math::Exp(minY + yhat)- densityCorr,0.0));
+  energyOut =  math::Sqrt(math::Max(math::Exp(minY + yhat) - densityCorr, Double_v(0.0)));
   sinTheta = SampleSinTheta<Backend>(energyOut);
 }
 
@@ -218,31 +218,22 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
   //angle of the radiated photon
   //based on G4DipBustGenerator::SampleDirection
 
-  Double_v c = 4. - 8.*UniformRandom<Backend>(fRandomState,fThreadId);
-  Double_v a;
-  Double_v signc;
-  Mask_v<Double_v> condition = c > 0.;
-  MaskedAssign(  condition,  1. , &signc );
-  MaskedAssign( !condition, -1. , &signc );
-  MaskedAssign(  condition,  c , &a );
-  MaskedAssign( !condition, -c , &a );
+  Double_v c = Double_v(4.0) - Double_v(8.0) * UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v signc = math::Sign(c);
+  Double_v a = math::Abs(c);
 
-  Double_v delta  = math::Sqrt(a*a+4.);
-  delta += a;
-  delta *= 0.5;
+  Double_v delta = 0.5*(math::Sqrt(4.0*a*a) + a);
 
-  //To-do:  Vc does not support pow
-  //  Double_v cofA = -signc*Pow(delta, 1./3.);
-  Double_v cofA = -signc*math::Sqrt(delta); //temporary replace Sqrt by pow
+  Double_v cofA = -signc*math::Pow(delta, Double_v(1.0/3.0));
 
-  Double_v cosTheta = cofA - 1./cofA;
+  Double_v cosTheta = cofA - 1.0/cofA;
 
   Double_v tau  = energyIn/electron_mass_c2;
-  Double_v beta = math::Sqrt(tau*(tau + 2.))/(tau + 1.);
+  Double_v beta = math::Sqrt(tau*(tau + 2.0))/(tau + 1.0);
 
-  cosTheta = (cosTheta + beta)/(1 + cosTheta*beta);
+  cosTheta = (cosTheta + beta)/(1.0 + cosTheta*beta);
 
-  Double_v sinTheta = math::Sqrt((1 - cosTheta)*(1 + cosTheta));
+  Double_v sinTheta = math::Sqrt((1.0 - cosTheta)*(1.0 + cosTheta));
 
   return sinTheta;
 }
