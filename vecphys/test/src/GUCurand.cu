@@ -1,4 +1,3 @@
-#include "base/Global.h"
 #include "GUCurand.h"
 
 #include <iostream>
