@@ -182,7 +182,7 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
   double dsigmaK = (y/z4)*(1+0.5*g*(g-1)*(g-2)*z)*PK;
   double dsigmaL1 = dsigmaK;
 
-  double coeff= math::Sqrt((g+1)*tau)/pow(g*tau,5.0);
+  double coeff= math::Sqrt((g+1)*tau)/math::Pow(g*tau,5.0);
 
   double dsigmaL2 =  g*(3.*g+1)/(2*z4) - g2*(9*g2+30*g -7)/(8*z3)
                   + g3*(g3+6*g2 +11*g -2)/(4*z2) - g4*(tau*(g+7))/(8*z)

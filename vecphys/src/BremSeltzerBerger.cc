@@ -306,9 +306,9 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z)
     //    z13 = nist->GetZ13(iz);
     //        = g4pow->Z13(iz);
     //        = pz13[Z];
-    //        = pow(x,1.0/3.0);
+    //        = math::Pow(x,1.0/3.0);
 
-    z13 = pow(x,1.0/3.0);
+    z13 = math::Pow(x,1.0/3.0);
 
     z23 = z13*z13;
     //    lnZ = nist->GetLOGZ(iz);

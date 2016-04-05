@@ -116,7 +116,7 @@ ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement,
   }
 
   //delta -> screenvar
-  int Z3 = pow(1.0*int(Zelement + 0.5),1/3.0);
+  int Z3 = math::Pow(1.0*int(Zelement + 0.5),1/3.0);
   double screenfac = 136.*epsil0/Z3; //(anElement->GetIonisation()->GetZ3());
   double screenvar = screenfac/(epsil*(1-epsil));
 
@@ -198,7 +198,7 @@ SampleByCompositionRejection(int     elementZ,
     if (GammaEnergy > 50.*MeV) { FZ += 8.*ComputeCoulombFactor(elementZ); }
 
     // limits of the screening variable
-    G4double Z3 = pow(1.0*int(elementZ + 0.5),1/3.0);
+    G4double Z3 = math::Pow(1.0*int(elementZ + 0.5),1/3.0);
     G4double screenfac = 136.*epsil0/Z3;//(anElement->GetIonisation()->GetZ3());
     G4double screenmax = exp ((42.24 - FZ)/8.368) - 0.952 ;
     G4double screenmin = math::Min(4.*screenfac,screenmax);
@@ -220,7 +220,7 @@ SampleByCompositionRejection(int     elementZ,
 
     do {
       if ( NormF1/(NormF1+NormF2) > UniformRandom<backend::Scalar>(fRandomState,fThreadId) ) {
-	epsil = 0.5 - epsilrange*pow(UniformRandom<backend::Scalar>(fRandomState,fThreadId), 0.333333);
+	epsil = 0.5 - epsilrange*math::Pow(UniformRandom<backend::Scalar>(fRandomState,fThreadId), 0.333333);
         screenvar = screenfac/(epsil*(1-epsil));
         greject = (ScreenFunction1(screenvar) - FZ)/F10;
       } else {
