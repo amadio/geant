@@ -118,7 +118,7 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy,
   Mask_v<Double_v> belowLimit = Mask_v<Double_v>(false);
   //low energy limit
   belowLimit |= ( energy < fLowEnergyLimit );
-  if(Backend::early_returns && IsFull(belowLimit)) return;
+  if(EarlyReturnAllowed() && MaskFull(belowLimit)) return;
 
   //delta-ray cuff-off (material dependent) use 1.0*keV temporarily
   Double_v tmin = fDeltaRayThreshold;
@@ -143,7 +143,7 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy,
   sigmaOut *= Z*twopi_mc2_rcl2/energy;
 
   //this is the case if one of E < belowLimit
-  MaskedAssign(belowLimit, 0.0,&sigmaOut);
+  MaskedAssign(sigmaOut, belowLimit, Double_v(0.0));
 }
 
 template<class Backend>
@@ -189,18 +189,11 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
 
   Double_v energy = energyIn + electron_mass_c2;
   Double_v totalMomentum = math::Sqrt(energyIn*(energyIn + 2.0*electron_mass_c2));
-
   Double_v deltaMomentum = math::Sqrt(energyOut * (energyOut + 2.0*electron_mass_c2));
-  Double_v cost =  energyOut * (energy + electron_mass_c2) /
-    (deltaMomentum * totalMomentum);
+  Double_v cost =  energyOut * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
+  Double_v sint2 = 1.0 - cost*cost;
 
-  Double_v sint2 = (1.0 - cost)*(1. + cost);
-  Double_v sinTheta;
-  Mask_v<Double_v> condition2 = sint2 < 0.0;
-  MaskedAssign(  condition2, 0.0, &sinTheta );   // Set sinTheta = 0
-  MaskedAssign( !condition2, math::Sqrt(sint2), &sinTheta );
-
-  return sinTheta;
+  return Blend(sint2 < 0.0, Double_v(0.0), math::Sqrt(sint2));
 }
 
 template<class Backend>
@@ -221,11 +214,11 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
   Double_v tmax = 0.5*kineticEnergy;
 
   Mask_v<Double_v> condCut = (tmax < maxEnergy);
-  MaskedAssign(!condCut, maxEnergy, &tmax);
+  MaskedAssign(tmax, !condCut, maxEnergy);
 
   condCut |= (tmax >= tmin );
 
-  if(Backend::early_returns && IsEmpty(condCut)) return;
+  if(EarlyReturnAllowed() && MaskEmpty(condCut)) return;
 
   Double_v energy = kineticEnergy + electron_mass_c2;
   Double_v xmin   = tmin/kineticEnergy;
@@ -248,13 +241,12 @@ IonisationMoller::InteractKernelCR(typename Backend::Double_v  kineticEnergy,
     (deltaMomentum * totalMomentum );
 
   Mask_v<Double_v> condCos = (cost <= 1.0);
-  MaskedAssign(!condCos, 1.0, &cost);
+  MaskedAssign(cost, !condCos, Double_v(1.0));
 
   Double_v sint2 = (1.0 - cost)*(1.0 + cost);
 
   Mask_v<Double_v> condSin2 = (sint2 >= 0.0);
-  Double_v zero(0.0);
-  CondAssign(condSin2, math::Sqrt(sint2), zero, &sinTheta);
+  sinTheta = Blend(condSin2, math::Sqrt(sint2), Double_v(0.0));
 }
 
 template<class Backend>
@@ -265,7 +257,6 @@ IonisationMoller::SampleSequential(typename Backend::Double_v xmin,
                                    typename Backend::Double_v xmax,
                                    typename Backend::Double_v gg) const
 {
-  typedef typename Backend::Int_t Int_t;
   using Double_v = typename Backend::Double_v;
 
   Double_v  q;
@@ -275,11 +266,11 @@ IonisationMoller::SampleSequential(typename Backend::Double_v xmin,
   Double_v  y = 1.0 - xmax;
   Double_v grej =  1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
   do {
-    q = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+    q = UniformRandom<Double_v>(fRandomState, fThreadId);
     x = xmin*xmax/(xmin*(1.0 - q) + xmax*q);
     y = 1.0 - x;
     z = 1.0 - gg*x + x*x*(1.0 - gg + (1.0 - gg*y)/(y*y));
-  } while(grej * UniformRandom<Backend>(fRandomState,Int_t(fThreadId)) > z);
+  } while(grej * UniformRandom<Double_v>(fRandomState, fThreadId) > z);
 
   return x;
 }
@@ -290,25 +281,25 @@ inline
 VECCORE_CUDA_HOST_DEVICE
 typename backend::VcVector::Double_v
 IonisationMoller::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v xmin,
-                                        typename backend::VcVector::Double_v xmax,
-                                        typename backend::VcVector::Double_v gg) const
+                                                      typename backend::VcVector::Double_v xmax,
+                                                      typename backend::VcVector::Double_v gg) const
 {
-  typedef typename backend::VcVector::Double_v Double_v;
+  using Double_v = typename backend::VcVector::Double_v;
 
-  Double_v  x;
-  Double_v  y = 1.0 - xmax;
-  Double_v  grej =  1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
+  Double_v x;
+  Double_v y = 1.0 - xmax;
+  Double_v grej = 1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
 
-  double  q;
-  double  z;
+  Double_v q;
+  Double_v z;
 
-  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
+  for(Size_t i = 0; i < VectorSize<Double_v>() ; ++i) {
     do {
-      q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
+      q = UniformRandom<Double_v>(fRandomState, fThreadId);
       x[i] = xmin[i]*xmax[i]/(xmin[i]*(1.0 - q) + xmax[i]*q);
       y[i] = 1.0 - x[i];
       z = 1.0 - gg[i]*x[i] + x[i]*x[i]*(1.0 - gg[i] + (1.0 - gg[i]*y[i])/(y[i]*y[i]));
-    } while(grej[i] * UniformRandom<backend::Scalar>(fRandomState,fThreadId) > z);
+    } while(grej[i] * UniformRandom<Double_v>(fRandomState, fThreadId) > z);
   }
   return x;
 }
