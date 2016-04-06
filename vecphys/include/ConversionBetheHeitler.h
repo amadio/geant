@@ -151,7 +151,7 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
 					        aliasInd,icol,fraction);
 
-  Double_v r1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
   Mask_v<Double_v> condition = 0.5 > r1;
 
   Double_v energyElectron = Blend(condition, energyOut, energyIn - energyOut);
@@ -180,10 +180,10 @@ SampleSinTheta(typename Backend::Double_v energyElectron,
 
   // angles of the pair production (gamma -> e+e-)
 
-  Double_v r1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
-  Double_v r2 = UniformRandom<Double_v>(fRandomState, fThreadId) *
-                UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r2 = UniformRandom<Double_v>(&fRandomState, &fThreadId) *
+                UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   Double_v u = -math::Log(r2) * Double_v(electron_mass_c2) *
                 Blend(r1 < 0.25, Double_v(1.6), Double_v(1.6 / 3.0));

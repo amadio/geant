@@ -218,7 +218,7 @@ BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
   //angle of the radiated photon
   //based on G4DipBustGenerator::SampleDirection
 
-  Double_v c = Double_v(4.0) - Double_v(8.0) * UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v c = Double_v(4.0) - Double_v(8.0) * UniformRandom<Double_v>(&fRandomState, &fThreadId);
   Double_v signc = math::Sign(c);
   Double_v a = math::Abs(c);
 

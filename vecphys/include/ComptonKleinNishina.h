@@ -267,14 +267,14 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
   Mask_v<Double_v> done(false);
 
   do {
-    Double_v tmp = Blend(test > UniformRandom<Double_v>(fRandomState, fThreadId),
-                         math::Exp(-alpha1*UniformRandom<Double_v>(fRandomState, fThreadId)),
-                         math::Sqrt(epsil0sq+(1.0 - epsil0sq)*UniformRandom<Double_v>(fRandomState, fThreadId)));
+    Double_v tmp = Blend(test > UniformRandom<Double_v>(&fRandomState, &fThreadId),
+                         math::Exp(-alpha1*UniformRandom<Double_v>(&fRandomState, &fThreadId)),
+                         math::Sqrt(epsil0sq+(1.0 - epsil0sq)*UniformRandom<Double_v>(&fRandomState, &fThreadId)));
     MaskedAssign(epsilon, !done, tmp);
     Double_v onecost = (1.0 - epsilon)/(epsilon*E0_m);
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
-    done |= greject < UniformRandom<Double_v>(fRandomState, fThreadId);
+    done |= greject < UniformRandom<Double_v>(&fRandomState, &fThreadId);
   } while (!MaskFull(done));
 
   return epsilon;
@@ -299,16 +299,16 @@ ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v energyIn,
 
   Double_v test = alpha1/(alpha1+alpha2);
 
-  Double_v epsilon = Blend(test > UniformRandom<Double_v>(fRandomState, fThreadId),
-                           math::Exp(-alpha1*UniformRandom<Double_v>(fRandomState, fThreadId)),
-                           math::Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Double_v>(fRandomState, fThreadId)));
+  Double_v epsilon = Blend(test > UniformRandom<Double_v>(&fRandomState, &fThreadId),
+                           math::Exp(-alpha1*UniformRandom<Double_v>(&fRandomState, &fThreadId)),
+                           math::Sqrt(epsilon0sq+(1.- epsilon0sq)*UniformRandom<Double_v>(&fRandomState, &fThreadId)));
 
   Double_v onecost = (1.- epsilon)/(epsilon*E0_m);
   Double_v sint2   = onecost*(2.-onecost);
 
   Double_v greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
 
-  status = greject < UniformRandom<Double_v>(fRandomState, fThreadId);
+  status = greject < UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   energyOut = epsilon*energyIn;
   sinTheta = math::Sqrt(sint2);

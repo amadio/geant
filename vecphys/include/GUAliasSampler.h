@@ -175,14 +175,14 @@ SampleBin(typename Backend::Double_v kineticEnergy,
   //  Index_v<Double_v> irow = fPower2Divisor->GetBin<Backend>(eloc);
   //  Double_v efrac = fPower2Divisor->FractionWithinBin<Backend>(eloc,irow);
 
-  Double_v u1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v u1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   Mask_v<Double_v> useHigh = (u1 <= efrac) ;
 
   // irow = useHigh ? irow+1 : irow;
   MaskedAssign(irow, useHigh, irow + 1); // at the upper edge
 
-  Double_v r1 = fSampledNumEntries*UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r1 = fSampledNumEntries*UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   // Prepare output values
   icol = math::Floor(r1);
@@ -209,14 +209,14 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
 
   Double_v efrac = eloc - irowf;
 
-  Double_v u1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v u1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   Mask_v<Double_v> useHigh = (u1 <= efrac);
 
   MaskedAssign(irowf, useHigh, irowf + 1.0); // at the upper edge
 
   //select the sampling bin
-  Double_v r1 = fSampledNumEntries*UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r1 = fSampledNumEntries*UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   irow = (Index_v<Double_v>)math::Floor(irowf);
   icol = (Index_v<Double_v>)math::Floor(r1);
@@ -241,7 +241,7 @@ SampleX(typename Backend::Double_v rangeSampled,
 {
   using Double_v = typename Backend::Double_v;
 
-  Double_v r1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   Double_v xd, xu;
   Double_v binSampled = rangeSampled * fInverseBinSampled;
@@ -278,7 +278,7 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
 {
   using Double_v = typename Backend::Double_v;
 
-  Double_v r1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   Double_v xd, xu;
   Double_v binSampled = rangeSampled * fInverseBinSampled;
@@ -303,8 +303,8 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
   //* Obtain 'x' in interval [xd, xu] using pdf from linear interpolation
   //    (x,y) from (xd, pd) and (xu, pu)
   //  - Uses two random numbers in order to avoid square root
-  Double_v r2 = UniformRandom<Double_v>(fRandomState, fThreadId);
-  Double_v r3 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v r2 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  Double_v r3 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   Mask_v<Double_v> below = r2*(pd+pu) < (1.-r3)*pd + r3*pu;;
 

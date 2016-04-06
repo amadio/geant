@@ -241,11 +241,11 @@ PhotoElectronSauterGavrila::SampleByCompositionRejection(int    Z, //not used
     G4double grej  = 2.*(1. + A*B)/A;
     G4double z, g;
     do {
-      G4double q = UniformRandom<double>(fRandomState, fThreadId);
+      G4double q = UniformRandom<double>(&fRandomState, &fThreadId);
       z = 2*A*(2*q + Ap2*math::Sqrt(q))/(Ap2*Ap2 - 4*q);
       g = (2 - z)*(1.0/(A + z) + B);
 
-    } while(g < UniformRandom<double>(fRandomState, fThreadId)*grej);
+    } while(g < UniformRandom<double>(&fRandomState, &fThreadId)*grej);
 
     cost = 1 - z;
   }
