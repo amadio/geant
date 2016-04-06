@@ -262,48 +262,20 @@ IonisationMoller::SampleSequential(typename Backend::Double_v xmin,
   Double_v  q;
   Double_v  x;
   Double_v  z;
+  Mask_v<Double_v> done(false);
 
   Double_v  y = 1.0 - xmax;
   Double_v grej =  1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
   do {
-    q = UniformRandom<Double_v>(fRandomState, fThreadId);
-    x = xmin*xmax/(xmin*(1.0 - q) + xmax*q);
-    y = 1.0 - x;
-    z = 1.0 - gg*x + x*x*(1.0 - gg + (1.0 - gg*y)/(y*y));
-  } while(grej * UniformRandom<Double_v>(fRandomState, fThreadId) > z);
+    q = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+    MaskedAssign(x, !done, xmin*xmax/(xmin*(1.0 - q) + xmax*q));
+    MaskedAssign(y, !done, 1.0 - x);
+    MaskedAssign(z, !done, 1.0 - gg*x + x*x*(1.0 - gg + (1.0 - gg*y)/(y*y)));
+    done |= z < grej * UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  } while(!MaskFull(done));
 
   return x;
 }
-
-#ifndef VECCORE_NVCC
-template<>
-inline
-VECCORE_CUDA_HOST_DEVICE
-typename backend::VcVector::Double_v
-IonisationMoller::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v xmin,
-                                                      typename backend::VcVector::Double_v xmax,
-                                                      typename backend::VcVector::Double_v gg) const
-{
-  using Double_v = typename backend::VcVector::Double_v;
-
-  Double_v x;
-  Double_v y = 1.0 - xmax;
-  Double_v grej = 1.0 - gg*xmax + xmax*xmax*(1.0 - gg + (1.0 - gg*y)/(y*y));
-
-  Double_v q;
-  Double_v z;
-
-  for(Size_t i = 0; i < VectorSize<Double_v>() ; ++i) {
-    do {
-      q = UniformRandom<Double_v>(fRandomState, fThreadId);
-      x[i] = xmin[i]*xmax[i]/(xmin[i]*(1.0 - q) + xmax[i]*q);
-      y[i] = 1.0 - x[i];
-      z = 1.0 - gg[i]*x[i] + x[i]*x[i]*(1.0 - gg[i] + (1.0 - gg[i]*y[i])/(y[i]*y[i]));
-    } while(grej[i] * UniformRandom<Double_v>(fRandomState, fThreadId) > z);
-  }
-  return x;
-}
-#endif
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
