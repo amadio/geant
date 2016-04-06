@@ -57,7 +57,7 @@ private:
   VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_v
   SampleSinTheta(typename Backend::Double_v energyIn,
-                 typename Backend::Double_v energyOut) const;
+                 typename Backend::Double_v energyOut);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE void
@@ -80,7 +80,7 @@ private:
   typename Backend::Double_v
   SampleSequential(typename Backend::Double_v xmin,
                    typename Backend::Double_v xmax,
-                   typename Backend::Double_v gg) const;
+                   typename Backend::Double_v gg);
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    Z,
@@ -181,7 +181,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn,
-                                 typename Backend::Double_v energyOut) const
+                                 typename Backend::Double_v energyOut)
 {
   using Double_v = typename Backend::Double_v;
 
@@ -255,7 +255,7 @@ VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 IonisationMoller::SampleSequential(typename Backend::Double_v xmin,
                                    typename Backend::Double_v xmax,
-                                   typename Backend::Double_v gg) const
+                                   typename Backend::Double_v gg)
 {
   using Double_v = typename Backend::Double_v;
 

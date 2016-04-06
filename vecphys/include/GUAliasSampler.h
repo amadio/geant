@@ -62,14 +62,14 @@ public:
   void SampleBin( typename Backend::Double_v  kineticEnergy,
                   Index_v<typename Backend::Double_v>   &index,
                   Index_v<typename Backend::Double_v>   &icol,
-                  typename Backend::Double_v  &fraction) const;
+                  typename Backend::Double_v  &fraction);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
   void SampleLogBin( typename Backend::Double_v  kineticEnergy,
                      Index_v<typename Backend::Double_v>   &irow,
                      Index_v<typename Backend::Double_v>   &icol,
-                     typename Backend::Double_v  &fraction) const;
+                     typename Backend::Double_v  &fraction);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -78,7 +78,7 @@ public:
           typename Backend::Double_v probNA,
           Index_v<typename Backend::Double_v> aliasInd,
           Index_v<typename Backend::Double_v>  icol,
-          typename Backend::Double_v fraction ) const;
+          typename Backend::Double_v fraction );
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
@@ -88,7 +88,7 @@ public:
            typename Backend::Double_v probNA,
            Index_v<typename Backend::Double_v> aliasInd,
            Index_v<typename Backend::Double_v>  irow,
-           Index_v<typename Backend::Double_v>  icol) const;
+           Index_v<typename Backend::Double_v>  icol);
 
   template<class Backend>
   inline
@@ -162,7 +162,7 @@ SampleBin(typename Backend::Double_v kineticEnergy,
           Index_v<typename Backend::Double_v>  &index,    // ~ sampled value
           Index_v<typename Backend::Double_v>  &icol,     // ~ input Energy
           typename Backend::Double_v &fraction  //  in sampled variable
-         ) const
+         )
 {
   using Double_v = typename Backend::Double_v;
 
@@ -198,7 +198,7 @@ SampleLogBin(typename Backend::Double_v kineticEnergy,
              Index_v<typename Backend::Double_v>  &irow,     // input energy
              Index_v<typename Backend::Double_v>  &icol,     // sampled value
              typename Backend::Double_v &fraction  // within the sampled bin
-             ) const
+             )
 {
   using Double_v = typename Backend::Double_v;
 
@@ -237,7 +237,7 @@ SampleX(typename Backend::Double_v rangeSampled,
         Index_v<typename Backend::Double_v>  aliasInd,
         Index_v<typename Backend::Double_v>  icol,
         typename Backend::Double_v fraction
-       ) const
+       )
 {
   using Double_v = typename Backend::Double_v;
 
@@ -274,7 +274,7 @@ SampleXL(Index_v<typename Backend::Double_v>  zElement,
          typename Backend::Double_v probNA,
          Index_v<typename Backend::Double_v>  aliasInd,
          Index_v<typename Backend::Double_v>  irow,
-         Index_v<typename Backend::Double_v>  icol) const
+         Index_v<typename Backend::Double_v>  icol)
 {
   using Double_v = typename Backend::Double_v;
 

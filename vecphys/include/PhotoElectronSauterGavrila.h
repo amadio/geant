@@ -132,7 +132,7 @@ private:
   SampleSequential(typename Backend::Double_v A,
                    typename Backend::Double_v Ap2,
                    typename Backend::Double_v B,
-                   typename Backend::Double_v grej) const;
+                   typename Backend::Double_v grej);
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    Z,
@@ -294,7 +294,7 @@ typename Backend::Double_v
 PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_v A,
                                              typename Backend::Double_v Ap2,
                                              typename Backend::Double_v B,
-                                             typename Backend::Double_v grej) const
+                                             typename Backend::Double_v grej)
 {
   using Double_v = typename Backend::Double_v;
 

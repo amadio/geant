@@ -75,7 +75,7 @@ public:
   SampleSinTheta(typename Backend::Double_v energyElectron,
                  typename Backend::Double_v energyPositron,
 		 typename Backend::Double_v& sinThetaElectron,
-		 typename Backend::Double_v& sinThetaPositron) const;
+		 typename Backend::Double_v& sinThetaPositron);
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    elementZ,
@@ -174,7 +174,7 @@ ConversionBetheHeitler::
 SampleSinTheta(typename Backend::Double_v energyElectron,
                typename Backend::Double_v energyPositron,
                typename Backend::Double_v& sinThetaElectron,
-               typename Backend::Double_v& sinThetaPositron) const
+               typename Backend::Double_v& sinThetaPositron)
 {
   using Double_v = typename Backend::Double_v;
 

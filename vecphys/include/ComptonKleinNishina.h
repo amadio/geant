@@ -100,13 +100,13 @@ private:
                    typename Backend::Double_v test,
                    typename Backend::Double_v alpha1,
                    typename Backend::Double_v epsil0sq,
-                   typename Backend::Double_v &sint2) const;
+                   typename Backend::Double_v &sint2);
 
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_v
   SampleSinTheta(typename Backend::Double_v energyIn,
-                 typename Backend::Double_v energyOut) const;
+                 typename Backend::Double_v energyOut);
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int    Z,
@@ -236,7 +236,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 ComptonKleinNishina::SampleSinTheta(typename Backend::Double_v energyIn,
-                                    typename Backend::Double_v energyOut) const
+                                    typename Backend::Double_v energyOut)
 {
   using Double_v = typename Backend::Double_v;
 
@@ -258,7 +258,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
                                       typename Backend::Double_v test,
                                       typename Backend::Double_v alpha1,
                                       typename Backend::Double_v epsil0sq,
-                                      typename Backend::Double_v &sint2) const
+                                      typename Backend::Double_v &sint2)
 {
   using Double_v = typename Backend::Double_v;
 

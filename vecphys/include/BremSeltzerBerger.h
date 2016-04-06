@@ -81,7 +81,7 @@ public:
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_v
-  SampleSinTheta(typename Backend::Double_v energyIn) const;
+  SampleSinTheta(typename Backend::Double_v energyIn);
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int     elementZ,
@@ -211,7 +211,7 @@ BremSeltzerBerger::InteractKernel(typename Backend::Double_v  energyIn,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
-BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) const
+BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn)
 {
   using Double_v = typename Backend::Double_v;
 
