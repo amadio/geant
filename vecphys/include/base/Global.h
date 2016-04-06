@@ -6,7 +6,7 @@
 #include <cstdio>
 
 #include <VecCore/VecCore>
-#include <VecCore/Random.h>
+#include <Random.h>
 
 namespace vecphys {
   using namespace vecCore;
