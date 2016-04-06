@@ -186,7 +186,7 @@ SampleByCompositionRejection(int     elementZ,
 
   if (GammaEnergy < Egsmall) {
 
-    epsil = epsil0 + (0.5-epsil0)*UniformRandom<backend::Scalar>(fRandomState,fThreadId);
+    epsil = epsil0 + (0.5-epsil0)*UniformRandom<double>(fRandomState, fThreadId);
 
   } else {
     // now comes the case with GammaEnergy >= 2. MeV
@@ -219,17 +219,17 @@ SampleByCompositionRejection(int     elementZ,
     G4double NormF2 = math::Max(1.5*F20,0.);
 
     do {
-      if ( NormF1/(NormF1+NormF2) > UniformRandom<backend::Scalar>(fRandomState,fThreadId) ) {
-	epsil = 0.5 - epsilrange*math::Pow(UniformRandom<backend::Scalar>(fRandomState,fThreadId), 0.333333);
+      if ( NormF1/(NormF1+NormF2) > UniformRandom<double>(fRandomState, fThreadId) ) {
+	epsil = 0.5 - epsilrange*math::Pow(UniformRandom<double>(fRandomState, fThreadId), 0.333333);
         screenvar = screenfac/(epsil*(1-epsil));
         greject = (ScreenFunction1(screenvar) - FZ)/F10;
       } else {
-        epsil = epsilmin + epsilrange*UniformRandom<backend::Scalar>(fRandomState,fThreadId);
+        epsil = epsilmin + epsilrange*UniformRandom<double>(fRandomState, fThreadId);
         screenvar = screenfac/(epsil*(1-epsil));
         greject = (ScreenFunction2(screenvar) - FZ)/F20;
       }
 
-    } while( greject < UniformRandom<backend::Scalar>(fRandomState,fThreadId));
+    } while( greject < UniformRandom<double>(fRandomState, fThreadId));
   }   //  end of epsil sampling
 
   //
@@ -237,7 +237,7 @@ SampleByCompositionRejection(int     elementZ,
   //
 
   G4double ElectTotEnergy;// PositTotEnergy;
-  if ( UniformRandom<backend::Scalar>(fRandomState,fThreadId) > 0.5) {
+  if ( UniformRandom<double>(fRandomState, fThreadId) > 0.5) {
     ElectTotEnergy = (1.-epsil)*GammaEnergy;
     //    PositTotEnergy = epsil*GammaEnergy;
 
@@ -259,19 +259,12 @@ SampleByCompositionRejection(int     elementZ,
   const G4double aa2 = 1.875;
   const G4double d = 27. ;
 
-  if (9./(9.+d) >UniformRandom<backend::Scalar>(fRandomState,fThreadId))
-   u= - G4Log(UniformRandom<backend::Scalar>(fRandomState,fThreadId)*UniformRandom<backend::Scalar>(fRandomState,fThreadId))/aa1;
+  if (9./(9.+d) >UniformRandom<double>(fRandomState, fThreadId))
+   u= - G4Log(UniformRandom<double>(fRandomState, fThreadId)*UniformRandom<double>(fRandomState, fThreadId))/aa1;
   else
-    u= - G4Log(UniformRandom<backend::Scalar>(fRandomState,fThreadId)*UniformRandom<backend::Scalar>(fRandomState,fThreadId))/aa2;
+    u= - G4Log(UniformRandom<double>(fRandomState, fThreadId)*UniformRandom<double>(fRandomState, fThreadId))/aa2;
 
   G4double TetEl = u*electron_mass_c2/ElectTotEnergy;
-
-  /*
-  G4double TetPo = u*electron_mass_c2/PositTotEnergy;
-  G4double Phi  = twopi *UniformRandom<backend::Scalar>(fRandomState,fThreadId) ;
-  G4double dxEl= math::Sin(TetEl)*math::Cos(Phi),dyEl= math::Sin(TetEl)*math::Sin(Phi),dzEl=math::Cos(TetEl);
-  G4double dxPo=-math::Sin(TetPo)*math::Cos(Phi),dyPo=-math::Sin(TetPo)*math::Sin(Phi),dzPo=math::Cos(TetPo);
-  */
 
   //return energy and sinTheta of the electron -
   //ToDo: store secondaries into a global stack

@@ -151,18 +151,11 @@ ConversionBetheHeitler::InteractKernel(typename Backend::Double_v  energyIn,
   energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE,probNA,
 					        aliasInd,icol,fraction);
 
-  Double_v r1 = UniformRandom<Backend>(fRandomState,fThreadId);
+  Double_v r1 = UniformRandom<Double_v>(fRandomState, fThreadId);
   Mask_v<Double_v> condition = 0.5 > r1;
 
-  Double_v energyElectron;
-  Double_v energyPositron;
-
-  //check correctness
-  MaskedAssign( condition, energyOut, &energyElectron);
-  MaskedAssign( condition, energyIn - energyOut, &energyPositron);
-
-  MaskedAssign(!condition, energyOut, &energyPositron);
-  MaskedAssign(!condition, energyIn - energyOut, &energyElectron);
+  Double_v energyElectron = Blend(condition, energyOut, energyIn - energyOut);
+  Double_v energyPositron = Blend(condition, energyIn - energyOut, energyOut);
 
   Double_v sinThetaElectron;
   Double_v sinThetaPositron;
@@ -180,27 +173,24 @@ void
 ConversionBetheHeitler::
 SampleSinTheta(typename Backend::Double_v energyElectron,
                typename Backend::Double_v energyPositron,
-	       typename Backend::Double_v& sinThetaElectron,
-	       typename Backend::Double_v& sinThetaPositron) const
+               typename Backend::Double_v& sinThetaElectron,
+               typename Backend::Double_v& sinThetaPositron) const
 {
   using Double_v = typename Backend::Double_v;
 
-  //angles of the pair production (gamma -> e+e-)
+  // angles of the pair production (gamma -> e+e-)
 
-  Double_v u;
-  const double a1 = 0.625 , a2 = 3.*a1 , d = 27. ;
+  Double_v r1 = UniformRandom<Double_v>(fRandomState, fThreadId);
 
-  Double_v r1 =  UniformRandom<Backend>(fRandomState,fThreadId);
-  Mask_v<Double_v> condition = 9./(9. + d) > r1;
-  MaskedAssign( condition, -math::Log( UniformRandom<Backend>(fRandomState,fThreadId)*
-                       UniformRandom<Backend>(fRandomState,fThreadId))/a1, &u );
-  MaskedAssign(!condition, -math::Log( UniformRandom<Backend>(fRandomState,fThreadId)*
-                       UniformRandom<Backend>(fRandomState,fThreadId))/a2, &u );
+  Double_v r2 = UniformRandom<Double_v>(fRandomState, fThreadId) *
+                UniformRandom<Double_v>(fRandomState, fThreadId);
 
-  Double_v TetEl = u*electron_mass_c2/energyElectron;
-  Double_v TetPo = u*electron_mass_c2/energyPositron;
+  Double_v u = -math::Log(r2) * Double_v(electron_mass_c2) *
+                Blend(r1 < 0.25, Double_v(1.6), Double_v(1.6 / 3.0));
 
-  //sinTheta - just return theta instead!
+  Double_v TetEl = u / energyElectron;
+  Double_v TetPo = u / energyPositron;
+
   sinThetaElectron =  math::Sin(TetEl);
   sinThetaPositron = -math::Sin(TetPo);
 }
@@ -214,62 +204,32 @@ CrossSectionKernel(typename Backend::Double_v energy,
 {
   using Double_v = typename Backend::Double_v;
 
-  Double_v sigma = 0.;
+  if (MaskFull(Z < 0.9 || energy <= Double_v(2.0*electron_mass_c2)))
+    return 0.0;
 
-  if ( Z < 0.9 || energy <= 2.0*electron_mass_c2 ) { return sigma; }
-
-  Double_v energySave = energy;
-
-  //gamma energyLimit = 1.5*MeV
   Double_v energyLimit = 1.5*MeV;
-  Mask_v<Double_v> condition = energy < energyLimit;
-  MaskedAssign( condition, energyLimit, &energy );
+  Double_v energySave = energy;
+  Mask_v<Double_v> done = energy < energyLimit;
+  energy = math::Min(energy, energyLimit);
 
-  Double_v X = math::Log(energy/electron_mass_c2);
-  Double_v X2 = X*X;
-  Double_v X3 =X2*X;
-  Double_v X4 =X3*X;
-  Double_v X5 =X4*X;
-
-  //put coff's to a constant header
-  /*
-  Double_v a0= 8.7842e+2*microbarn;
-  Double_v a1=-1.9625e+3*microbarn;
-  Double_v a2= 1.2949e+3*microbarn;
-  Double_v a3=-2.0028e+2*microbarn;
-  Double_v a4= 1.2575e+1*microbarn;
-  Double_v a5=-2.8333e-1*microbarn;
-
-  Double_v b0=-1.0342e+1*microbarn;
-  Double_v b1= 1.7692e+1*microbarn;
-  Double_v b2=-8.2381   *microbarn;
-  Double_v b3= 1.3063   *microbarn;
-  Double_v b4=-9.0815e-2*microbarn;
-  Double_v b5= 2.3586e-3*microbarn;
-
-  Double_v c0=-4.5263e+2*microbarn;
-  Double_v c1= 1.1161e+3*microbarn;
-  Double_v c2=-8.6749e+2*microbarn;
-  Double_v c3= 2.1773e+2*microbarn;
-  Double_v c4=-2.0467e+1*microbarn;
-  Double_v c5= 6.5372e-1*microbarn;
-  */
+  Double_v X  = -math::Log(energy/electron_mass_c2);
+  Double_v X2 =  X*X;
+  Double_v X3 = X2*X;
+  Double_v X4 = X3*X;
+  Double_v X5 = X4*X;
 
   Double_v F1 = a0 + a1*X + a2*X2 + a3*X3 + a4*X4 + a5*X5;
   Double_v F2 = b0 + b1*X + b2*X2 + b3*X3 + b4*X4 + b5*X5;
   Double_v F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;
 
-  sigma = (Z + 1.)*(F1*Z + F2*Z*Z + F3);
-  Mask_v<Double_v> done = energySave < energyLimit;
+  Double_v sigma = (Z + 1.0)*(F1*Z + F2*Z*Z + F3);
 
-  if(Any(done)) {
+  if(!MaskEmpty(done)) {
     X = (energySave - 2.*electron_mass_c2)/(energyLimit - 2.*electron_mass_c2);
-    Double_v tmpsigma = sigma*X*X;
-    MaskedAssign( done, tmpsigma, &sigma );
+    MaskedAssign(sigma, done, sigma*X*X);
   }
 
-  Mask_v<Double_v> check = sigma < 0.;
-  MaskedAssign( check, 0., &sigma );
+  MaskedAssign(sigma, sigma < 0.0, 0.0);
 
   return sigma*microbarn;
 }
