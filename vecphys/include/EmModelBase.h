@@ -587,54 +587,30 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
                                   typename Backend::Double_v &yr,
                                   typename Backend::Double_v &zr)
 {
-  typedef typename Backend::Int_t    Int_t;
   using Double_v = typename Backend::Double_v;
 
-  Double_v phi = UniformRandom<Backend>(fRandomState,Int_t(fThreadId));
+  Double_v phi = UniformRandom<Double_v>(fRandomState, fThreadId);
   Double_v pt = xhat*xhat + yhat*yhat;
 
   Double_v cosphi, sinphi;
   sincos(phi, &sinphi, &cosphi);
 
-  Double_v uhat = sinTheta*cosphi; // math::Cos(phi);
-  Double_v vhat = sinTheta*sinphi; // math::Sin(phi);
+  Double_v uhat = sinTheta*cosphi; // cos(phi);
+  Double_v vhat = sinTheta*sinphi; // sin(phi);
   Double_v what = math::Sqrt((1.-sinTheta)*(1.+sinTheta));
 
   Mask_v<Double_v> positive = ( pt > 0. );
   Mask_v<Double_v> negativeZ = ( zhat < 0. );
 
-  Double_v phat;
+  Double_v phat = math::Sqrt(pt);
 
-  MaskedAssign(positive, math::Sqrt(pt) , &phat);
-  MaskedAssign(positive, (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what , &xr);
-  MaskedAssign(positive, (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what , &yr);
-  MaskedAssign(positive, -phat*uhat + zhat*what , &zr);
+  Double_v px = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
+  Double_v py = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
+  Double_v pz = -phat*uhat + zhat*what;
 
-  MaskedAssign(negativeZ,-xhat, &xr);
-  MaskedAssign(negativeZ, yhat, &yr);
-  MaskedAssign(negativeZ,-zhat, &zr);
-
-  MaskedAssign(!positive && !negativeZ, xhat, &xr);
-  MaskedAssign(!positive && !negativeZ, yhat, &yr);
-  MaskedAssign(!positive && !negativeZ, zhat, &zr);
-
-  //mask operation???
- /* if(positive) {
-    Double_v phat = math::Sqrt(pt);
-    xr = (xhat*zhat*uhat - yhat*vhat)/phat + xhat*what;
-    yr = (yhat*zhat*uhat - xhat*vhat)/phat + yhat*what;
-    zr = -phat*uhat + zhat*what;
-  }
-  else if(negativeZ) {
-    xr = -xhat;
-    yr =  yhat;
-    zr = -zhat;
-  }
-  else {
-    xr = xhat;
-    yr = yhat;
-    zr = zhat;
-  }*/
+  xr = Blend(negativeZ, -xhat, Blend(positive, px, xhat));
+  yr = Blend(negativeZ,  yhat, Blend(positive, py, yhat));
+  zr = Blend(negativeZ, -zhat, Blend(positive, pz, zhat));
 }
 
 template <class EmModel>
@@ -738,7 +714,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_v ene
                                                   GUTrack_v& primary,
                                                   GUTrack_v& secondary)
 {
-  typedef typename kScalar::Double_v Double_v;
+  using Double_v = typename backend::Scalar::Double_v;
 
   //need to rotate the angle with respect to the line of flight
   Double_v invp = 1./energyIn;
