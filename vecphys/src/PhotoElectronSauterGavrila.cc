@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "GUG4TypeDef.h"
 
 #include "GUAliasSampler.h"

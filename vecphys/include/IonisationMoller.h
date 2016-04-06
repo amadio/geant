@@ -1,7 +1,7 @@
 #ifndef IonisationMoller_H
 #define IonisationMoller_H 1
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"

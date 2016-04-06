@@ -1,7 +1,7 @@
 #ifndef ConversionBetheHeitler_H
 #define ConversionBetheHeitler_H 1
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "base/PhysicalConstants.h"
 
 // #include "GUAuxFunctions.h"    // Define sincos if needed

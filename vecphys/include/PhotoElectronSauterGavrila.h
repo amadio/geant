@@ -1,7 +1,7 @@
 #ifndef PhotoElectronSauterGavrila_H
 #define PhotoElectronSauterGavrila_H 1
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"

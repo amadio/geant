@@ -2,7 +2,7 @@
 #include "GUAliasTable.h"
 #include "IonisationMoller.h"
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {

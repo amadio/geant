@@ -1,7 +1,7 @@
 #ifndef POWER2DIVISOR_H
 #define POWER2DIVISOR_H 1
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 
 namespace vecphys {
 

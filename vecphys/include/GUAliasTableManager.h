@@ -1,7 +1,6 @@
 #ifndef GUALIASTABLEMANAGER_H
 #define GUALIASTABLEMANAGER_H 1
 
-#include "backend/Backend.h"
 #include "GUAliasTable.h"
 #include "GUConstants.h"
 

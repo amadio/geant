@@ -1,7 +1,7 @@
 #ifndef EmModelBase_H
 #define EmModelBase_H
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "base/SystemOfUnits.h"
 
 #include "GUAuxFunctions.h"    // Define sincos if needed

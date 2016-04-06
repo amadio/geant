@@ -4,7 +4,7 @@
 #include "ComptonKleinNishina.h"
 #include <iostream>
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {

@@ -2,8 +2,8 @@
 #include "GUBenchmarker_gpu.h"
 #include "GUPhysicsModelName.h"
 
+#include "base/Global.h"
 #include "base/Stopwatch.h"
-#include "backend/cuda/Backend.h"
 
 #include "GUAliasSampler.h"
 //#include "GVComptonKleinNishina.h"

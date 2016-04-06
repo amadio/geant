@@ -1,7 +1,7 @@
 #ifndef ComptonKleinNishina_H
 #define ComptonKleinNishina_H 1
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUTrack.h"

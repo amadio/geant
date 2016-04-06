@@ -6,7 +6,7 @@
 #include <algorithm>
 #include "mm_malloc.h"
 
-#include "backend/Backend.h"
+#include "base/Global.h"
 #include "GUAuxFunctions.h"      // Define sincos on Apple, etc
 
 namespace vecphys {

@@ -15,7 +15,6 @@
 //   TODO: a measure will be required for the integration for log, theta etc.
 //
 //  Based on first alias sampler by Soon Y. Jun - July 2014
-#include "backend/Backend.h"
 
 #include "GUAliasTable.h"
 #include "GUAliasTableManager.h"
