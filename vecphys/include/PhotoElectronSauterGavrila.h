@@ -88,11 +88,42 @@ private:
                        typename Backend::Double_v& sinTheta,
                        Mask_v<typename Backend::Double_v> &status);
 
+
+  VECCORE_CUDA_HOST_DEVICE
+  double
+  GetPhotoElectronEnergyScalar(double E, size_t Z)
+  {
+    assert(Z > 0 && Z <= 100);
+
+    int i = 0, nShells = fNumberOfShells[Z];
+
+    while (i < nShells && E >= fBindingEnergies[fIndexOfShells[Z] + i] * eV)
+      i++;
+
+    return i < nShells ? E - fBindingEnergies[fIndexOfShells[Z] + i] * eV : 0.0;
+  }
+
   template<class Backend>
   VECCORE_CUDA_HOST_DEVICE
   typename Backend::Double_v
-  GetPhotoElectronEnergy(typename Backend::Double_v energyIn,
-                         Index_v<typename Backend::Double_v> zElement);
+  GetPhotoElectronEnergy(typename Backend::Double_v E,
+                         Index_v<typename Backend::Double_v> Z)
+  {
+    using Double_v = typename Backend::Double_v;
+    using DIndex_v = Index_v<Double_v>;
+    using Scalar_t = typename ScalarType<DIndex_v>::Type;
+
+    Double_v Eout;
+    Double_t* E_ptr = (Double_t*)&E;
+    Double_t* Eout_ptr = (Double_t*)&Eout;
+    Scalar_t* Z_ptr = (Scalar_t*) &Z;
+
+    for (Size_t i = 0; i < VectorSize<Double_v>(); i++) {
+      Eout_ptr[i] = GetPhotoElectronEnergyScalar(E_ptr[i], Z_ptr[i]);
+    }
+
+    return Eout;
+  }
 
   template<class Backend>
   inline
@@ -221,67 +252,6 @@ InteractKernel(typename Backend::Double_v  energyIn,
 }
 
 template<class Backend>
-VECCORE_CUDA_HOST_DEVICE
-typename Backend::Double_v
-PhotoElectronSauterGavrila::
-GetPhotoElectronEnergy(typename Backend::Double_v energy,
-                       Index_v<typename Backend::Double_v>  zElement)
-{
-  // this method is not vectorizable and only for the scalar backend
-
-  typedef typename Backend::Int_t Int_t;
-  using Double_v = typename Backend::Double_v;
-
-  // Photo electron energy
-  Double_v energyOut = 0.;
-
-  // Select atomic shell
-  assert (zElement>0 && zElement <101);
-
-  Int_t nShells = fNumberOfShells[zElement];
-
-  Int_t i = 0;
-  Double_v bindingEnergy =0;
-
-  for( ; i < nShells ; ++i) {
-    bindingEnergy = fBindingEnergies[fIndexOfShells[zElement] + i]*eV;
-    if(energy >= bindingEnergy ) { break; }
-  }
-
-  // Normally one shell is available
-  if (i < nShells) {
-    bindingEnergy = fBindingEnergies[fIndexOfShells[zElement] + i]*eV;
-
-    // update by deexcitation goes here
-
-    energyOut = energy - bindingEnergy;
-  }
-
-  return energyOut;
-}
-
-#ifndef VECCORE_NVCC
-template<>
-inline
-VECCORE_CUDA_HOST_DEVICE
-typename backend::VcVector::Double_v
-PhotoElectronSauterGavrila::
-GetPhotoElectronEnergy<backend::VcVector>(typename backend::VcVector::Double_v energy,
-                            typename backend::VcVector::Index_v<Double_v>  zElement)
-{
-  backend::VcVector::Double_v energyOut;
-
-  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
-    energyOut[i] = GetPhotoElectronEnergy<backend::Scalar>(energy[i],zElement[i]);
-  }
-
-  return energyOut;
-}
-
-#endif
-
-
-template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyIn,
                                              Index_v<typename Backend::Double_v>   zElement,
@@ -300,7 +270,7 @@ PhotoElectronSauterGavrila::InteractKernelCR(typename Backend::Double_v  energyI
   const double taulimit = 50.0;
   Mask_v<Double_v> highE = tau > taulimit;
   cosTheta = 1.0;
-  if(Backend::early_returns && IsFull(highE)) return;
+  if(EarlyReturnAllowed() && MaskFull(highE)) return;
   */
 
   Double_v gamma     = tau + 1.0;
@@ -330,42 +300,17 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_v A,
 
   Double_v z;
   Double_v g;
+  Mask_v<Double_v> done(false);
 
   do {
-    Double_v q = UniformRandom<Backend>(fRandomState,fThreadId);
-    z = 2*A*(2*q + Ap2*math::Sqrt(q))/(Ap2*Ap2 - 4*q);
-    g = (2 - z)*(1.0/(A + z) + B);
-  } while(g < UniformRandom<Backend>(fRandomState,fThreadId)*grej);
+    Double_v q = UniformRandom<Double_v>(fRandomState, fThreadId);
+    MaskedAssign(z, !done, 2*A*(2*q + Ap2*math::Sqrt(q))/(Ap2*Ap2 - 4*q));
+    MaskedAssign(g, !done, (2 - z)*(1.0/(A + z) + B));
+    done |= g < UniformRandom<Double_v>(fRandomState, fThreadId) * grej;
+  } while(!MaskFull(done));
 
   return z;
 }
-
-#ifndef VECCORE_NVCC
-template<>
-inline
-VECCORE_CUDA_HOST_DEVICE
-typename backend::VcVector::Double_v
-PhotoElectronSauterGavrila::SampleSequential<backend::VcVector>(typename backend::VcVector::Double_v A,
-                                                  typename backend::VcVector::Double_v Ap2,
-                                                  typename backend::VcVector::Double_v B,
-                                                  typename backend::VcVector::Double_v grej) const
-{
-  typedef typename backend::VcVector::Double_v Double_v;
-
-  Double_v z;
-  double g;
-
-  for(int i = 0; i < backend::VcVector::kSize ; ++i) {
-    do {
-      double q = UniformRandom<backend::Scalar>(fRandomState,fThreadId);
-      z[i] = 2*A[i]*(2*q + Ap2[i]*math::Sqrt(q))/(Ap2[i]*Ap2[i] - 4*q);
-      g = (2 - z[i])*(1.0/(A[i] + z[i]) + B[i]);
-    } while(g < UniformRandom<backend::Scalar>(fRandomState,fThreadId)*grej[i]);
-  }
-
-  return z;
-}
-#endif
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
