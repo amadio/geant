@@ -106,7 +106,7 @@ struct Workload {
     ntracks_ = 1 << 20;
     const size_t nfilters = 1000;
     bsize_ = 16;
-    buf_size_ = 1 << 20;
+    buf_size_ = 1 << 14;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters - 1);
@@ -164,9 +164,9 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
 #endif
   //  numa_node = (numa_node+1)%2;
   work->InitBasketizers(numa_node);
-  work->Lock();
-  std::cout << "thread " << tid << " allocated on NUMA node: " << numa_node << std::endl;
-  work->Unlock();
+//  work->Lock();
+//  std::cout << "thread " << tid << " allocated on NUMA node: " << numa_node << std::endl;
+//  work->Unlock();
   test_track *tracks = &work->tracks_[tid * nchunk];
   std::vector<test_track *> basket;
   basket.reserve(work->bsize_);
@@ -187,12 +187,14 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
     }
   }
   basket.clear();
+
   if (work->basketizers_[numa_node]->GarbageCollect(basket)) {
     for (size_t itr = 0; itr < basket.size(); ++itr) {
       checksum += (*basket[itr]).id_;
       Process(basket);
     }
   }
+
   work->promise_[tid].set_value(checksum);
   //  std::cout << "thread " << tid << " npmax: " << npmax << std::endl;
   //  std::cout << "thread " << tid << " checksum: " << checksum << " ref: " <<

@@ -58,6 +58,7 @@ public:
     if (ibooked > fBsize) {
       // Block slot filling until basket is released
       while (Nbooked() > fBsize)
+        assert(Nbooked() < 2*fBsize);
         ;
       ibooked -= fBsize;
     }
@@ -147,22 +148,22 @@ public:
   bool AddElement(T *const data, std::vector<T *> &basket) {
     // Book atomically a slot for copying the element
     size_t ibook = fIbook.fetch_add(1);
-    // Compute position in the buffer and increment booking counter
+    // Compute position in the buffer
     size_t ibook_buf = ibook & fBufferMask;
     // Get basket address for the booked index. Assume fixed size baskets.
-    size_t buf_start = ibook_buf & fBmask;
-    size_t nbooked = fCounters[buf_start].BookSlot();
-    if ((nbooked & (fBsize - 1)) == 1)
+    size_t ibasket = ibook_buf & fBmask;
+    size_t nbooked = fCounters[ibasket].BookSlot();
+    if (ibasket == ibook_buf)
       fNbaskets++;
-    size_t nfilled = fCounters[buf_start].FillSlot(nbooked, &fBuffer[ibook_buf], data);
+    size_t nfilled = fCounters[ibasket].FillSlot(nbooked, &fBuffer[ibook_buf], data);
     fNstored++;
-
+    assert (nfilled <= fBsize);
     if (nfilled == fBsize) {
       // Deploy basket (copy data)
+      basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + fBsize]);
       fNstored -= fBsize;
-      basket.insert(basket.end(), &fBuffer[buf_start], &fBuffer[buf_start + fBsize]);
       fNbaskets--;
-      fCounters[buf_start].ReleaseBasket();
+      fCounters[ibasket].ReleaseBasket();
       return true;
     }
     return false;
@@ -174,7 +175,6 @@ public:
   bool GarbageCollect(std::vector<T *> &basket) {
     // Garbage collect all elements present in the container on the current basket
     Lock();
-    std::cout << "GC\n";
     // Get current index, then compute a safe location forward
     size_t ibook = fIbook.load(std::memory_order_acquire);
     size_t inext = (ibook + 1 + fBsize) & fBufferMask;
