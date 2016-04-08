@@ -89,7 +89,7 @@ GeantPropagator::GeantPropagator()
       fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000),
       fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0),
       fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
-      fNminReuse(4), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
+      fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
       fEmin(1.E-4), // 100 KeV
       fEmax(10),    // 10 Gev
       fBmag(0.),    // kiloGauss

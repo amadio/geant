@@ -83,7 +83,7 @@ void run(int ncputhreads=4,
 
    // Minimum number of tracks in a basket that stay in the same volume and
    // therefore can be re-used with the same thread without re-basketizing.
-   prop->fNminReuse = 4;   // (default in propagator is 4)
+   prop->fNminReuse = 10000;   // (default in propagator is 4)
 
    // Kill threshold - number of steps allowed before killing a track 
    //                  (includes internal geometry steps)
