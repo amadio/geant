@@ -25,7 +25,7 @@ VECCORE_CUDA_HOST_DEVICE
 T UniformRandom(void* States, int* ThreadId)
 {
 #ifndef VECCORE_NVCC_DEVICE
-  static thread_local unsigned short xsubi[3];
+  unsigned short xsubi[3];
   return erand48(xsubi);
 #else
 #if 1
