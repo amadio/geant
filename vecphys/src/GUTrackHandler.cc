@@ -7,7 +7,6 @@
 #include "mm_malloc.h"
 
 #include "base/Global.h"
-#include "GUAuxFunctions.h"      // Define sincos on Apple, etc
 
 namespace vecphys {
 
@@ -202,8 +201,8 @@ void GUTrackHandler::GenerateRandomTracks(size_t nTracks,
 
     // cosphi = math::Cos(phi);
     // sinphi = math::Sin(phi);
-    sincos(phi,   &sinphi,   &cosphi);
-    sincos(theta, &sintheta, &costheta);
+    math::SinCos(phi,   &sinphi,   &cosphi);
+    math::SinCos(theta, &sintheta, &costheta);
     // sintheta = math::Sin(theta);
 
     (fTrack_soa.status)[i]       = fTrack_aos[i].status = 0;

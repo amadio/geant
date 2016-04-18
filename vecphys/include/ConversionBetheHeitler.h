@@ -4,8 +4,6 @@
 #include "base/Global.h"
 #include "base/PhysicalConstants.h"
 
-// #include "GUAuxFunctions.h"    // Define sincos if needed
-
 #include "GUConstants.h"
 #include "GUTrack.h"
 

@@ -4,7 +4,6 @@
 #include "base/Global.h"
 #include "base/SystemOfUnits.h"
 
-#include "GUAuxFunctions.h"    // Define sincos if needed
 #include "GUConstants.h"
 
 #include "GUTrack.h"
@@ -593,7 +592,7 @@ EmModelBase<EmModel>::RotateAngle(typename Backend::Double_v sinTheta,
   Double_v pt = xhat*xhat + yhat*yhat;
 
   Double_v cosphi, sinphi;
-  sincos(phi, &sinphi, &cosphi);
+  math::SinCos(phi, &sinphi, &cosphi);
 
   Double_v uhat = sinTheta*cosphi; // cos(phi);
   Double_v vhat = sinTheta*sinphi; // sin(phi);

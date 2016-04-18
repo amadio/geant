@@ -1,8 +1,6 @@
 #include "base/Stopwatch.h"
 #include "GUHistogram.h"
 
-#include "GUAuxFunctions.h"
-
 #include "ComptonKleinNishina.h"
 #include "ConversionBetheHeitler.h"
 #include "PhotoElectronSauterGavrila.h"
