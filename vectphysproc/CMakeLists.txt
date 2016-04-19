@@ -43,7 +43,8 @@ ROOT_GENERATE_DICTIONARY(vphysprocDict ${headers} MODULE libVphysproc LINKDEF in
 # Add traget library and dependencies
 #----------------------------------------------------------------------------
 add_library(Vphysproc SHARED ${sources} vphysprocDict.cxx)
-target_link_libraries(Vphysproc  ${VECPHYS_LIBRARIES} ${VC_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v)
+target_link_libraries(Vphysproc  ${VECPHYS_LIBRARIES} ${VC_LIBRARIES}
+  -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v ${ROOT_LIBRARIES} EG Geom)
 
 add_custom_target(VectPhysProc DEPENDS Vphysproc)
 
