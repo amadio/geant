@@ -31,65 +31,120 @@ template <typename T> class BasketCounter {
 
 public:
   size_t fBsize;                // Basket size
-  std::atomic<size_t> fNbooked; // Counter for booked slots
+  std::atomic<size_t> fIbook;   // Booking base index
+  std::atomic<size_t> fNbook0;  // Booking base counter
+  std::atomic<size_t> fNbooktot; // Counter for booked slots
   std::atomic<size_t> fNfilled; // Counter for filled slots
   std::atomic_flag fLock;       // Lock for the basket counter
-  BasketCounter() : fBsize(0), fNbooked(0), fNfilled(0), fLock() {
+  BasketCounter() : fBsize(0), fNbooktot(0), fNfilled(0), fLock() {
     // Constructor
     fLock.clear();
   }
 
-  BasketCounter(short bsize) : fBsize(bsize), fNbooked(0), fNfilled(0), fLock() {
+  //____________________________________________________________________________
+  BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0), fLock() {
     // Constructor
     fLock.clear();
   }
 
+  //____________________________________________________________________________
   GEANT_INLINE
   void SetBsize(size_t bsize) { fBsize = bsize; }
 
+  //____________________________________________________________________________
   GEANT_INLINE
   size_t Bsize() { return (fBsize); }
 
+  //____________________________________________________________________________
   GEANT_INLINE
-  size_t BookSlot() { return (fNbooked.fetch_add(1) + 1); }
+  size_t BookSlot(size_t ibook) {
+    while (ibook - Ibook() >= fBsize)
+      ;
+    return (fNbooktot.fetch_add(1) + 1);
+  }
 
+  //____________________________________________________________________________
   GEANT_INLINE
-  size_t FillSlot(size_t &ibooked, T *address, T const data) {
-    if (ibooked > fBsize) {
-      // Block slot filling until basket is released
-      while (Nbooked() > fBsize)
-        assert(Nbooked() < 2*fBsize);
-        ;
-      ibooked -= fBsize;
-    }
+  bool BookSlots(size_t ibook, size_t expected, size_t nslots) {
+     if (ibook - Ibook() >= fBsize)
+       return false;
+     while (!fNbooktot.compare_exchange_weak(expected, expected+nslots, std::memory_order_relaxed))
+       ;
+     return true;
+  }
+
+  //____________________________________________________________________________
+  void Print() {
+    std::cout << "== ibook = " << Ibook() << " nbook0 = " << Nbook0()
+              << " nbooktot = " << Nbooktot() << " nfilled = " << Nfilled() << std::endl;
+  }
+
+  //____________________________________________________________________________
+  GEANT_INLINE
+  size_t FillSlot(size_t nbooktot, T *address, T const data) {
+    // Block thread until booking range matches the current basket
+    // This can create contention if the buffer is too small or the
+    // workload is too small.
+    while (nbooktot - Nbook0() > fBsize)
+      ;
+    // Copy data to the booked slot
     *address = data;
     return (fNfilled.fetch_add(1) + 1);
   }
 
+  //____________________________________________________________________________
   GEANT_INLINE
-  void ReleaseBasket() {
-    fNfilled -= fBsize;
-    fNbooked -= fBsize;
-  }
+  size_t FillDummy(size_t nslots) {
+    return (fNfilled.fetch_add(nslots) + nslots);
+  }  
 
+  //____________________________________________________________________________
   GEANT_INLINE
-  void Clear() {
+  void ReleaseBasket(size_t ibook) {
     fNfilled.store(0);
-    fNbooked.store(0);
+    fNbook0 += fBsize;
+    fIbook.store(ibook);
   }
 
+  //____________________________________________________________________________
   GEANT_INLINE
-  size_t Nbooked() const { return (fNbooked.load()); }
+  void SetIbook(size_t ibook) { fIbook.store(ibook); }
 
+  //____________________________________________________________________________
+  GEANT_INLINE
+  void Clear(size_t nclear) {
+    fNfilled -= nclear;
+    fNbook0 += nclear;
+  }
+
+  //____________________________________________________________________________
+  GEANT_INLINE
+  size_t Ibook() const { return (fIbook.load()); }
+
+  //____________________________________________________________________________
+  GEANT_INLINE
+  size_t Nbooktot() const { return (fNbooktot.load()); }
+
+  //____________________________________________________________________________
+  GEANT_INLINE
+  size_t Nbook0() const { return (fNbook0.load()); }
+
+  //____________________________________________________________________________
+  GEANT_INLINE
+  size_t Nbooked() const { return (fNbooktot.load() - fNbook0.load()); }
+
+  //____________________________________________________________________________
   GEANT_INLINE
   size_t Nfilled() const { return (fNfilled.load()); }
 
+  //____________________________________________________________________________
   GEANT_INLINE
   void Lock() {
     while (fLock.test_and_set(std::memory_order_acquire))
       ;
   }
 
+  //____________________________________________________________________________
   GEANT_INLINE
   void Unlock() { fLock.clear(std::memory_order_release); }
 };
@@ -128,7 +183,6 @@ public:
   /** @brief Initialize basketizer */
   void Init(size_t buffer_size, unsigned int basket_size) {
     // Make sure the requested size is a power of 2
-    assert((buffer_size >= 2) && ((buffer_size & (buffer_size - 1)) == 0));
     assert((basket_size >= 2) && ((basket_size & (basket_size - 1)) == 0));
     fBsize = basket_size;
     fBuffer = new T *[buffer_size];
@@ -138,7 +192,10 @@ public:
     fBmask = ~(fBsize - 1);
     for (size_t i = 0; i < buffer_size; ++i) {
       fBuffer[i] = nullptr;
-      fCounters[i].SetBsize(fBsize);
+      if (i%basket_size == 0) {
+        fCounters[i].SetBsize(fBsize);
+        fCounters[i].SetIbook(i);
+      }  
     }
   }
 
@@ -152,53 +209,81 @@ public:
     size_t ibook_buf = ibook & fBufferMask;
     // Get basket address for the booked index. Assume fixed size baskets.
     size_t ibasket = ibook_buf & fBmask;
-    size_t nbooked = fCounters[ibasket].BookSlot();
+    size_t nbooktot = fCounters[ibasket].BookSlot(ibook);
     if (ibasket == ibook_buf)
       fNbaskets++;
-    size_t nfilled = fCounters[ibasket].FillSlot(nbooked, &fBuffer[ibook_buf], data);
+    size_t nfilled = fCounters[ibasket].FillSlot(nbooktot, &fBuffer[ibook_buf], data);
     fNstored++;
-    assert (nfilled <= fBsize);
     if (nfilled == fBsize) {
       // Deploy basket (copy data)
       basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + fBsize]);
       fNstored -= fBsize;
       fNbaskets--;
-      fCounters[ibasket].ReleaseBasket();
+      fCounters[ibasket].ReleaseBasket(fBufferMask + 1 + (ibook & fBmask));
       return true;
     }
     return false;
   }
 
   //____________________________________________________________________________
+  /** @brief Check baskets for remaining tracks */
+  GEANT_INLINE
+  void CheckBaskets() {
+    size_t nbaskets = (fBufferMask+1)/fBsize;
+    Lock();
+    std::cout << "fNstored = " << fNstored << "  fNbaskets = " << fNbaskets << std::endl;
+    size_t nstored = 0;
+    size_t nbooked = 0;
+    size_t nbooktot = 0;
+    for (size_t ib=0; ib<nbaskets; ++ib) {
+      size_t ibasket = ib*fBsize;
+      nstored += fCounters[ibasket].Nfilled();
+      nbooktot += fCounters[ibasket].Nbooktot();
+      nbooked += fCounters[ibasket].Nbooked();
+    }
+    std::cout << "ibook = " << fIbook.load() << "  sumbooked = " << nbooktot << "  sumstored = " << nstored << "  stillbooked = " << nbooked << std::endl;  
+    Unlock();
+  }  
+
+  //____________________________________________________________________________
   /** @brief Garbage collect data */
   GEANT_INLINE
   bool GarbageCollect(std::vector<T *> &basket) {
     // Garbage collect all elements present in the container on the current basket
+    // If this is not the last basket, drop garbage collection
+    if (fNbaskets.load() > 1)
+      return false;
     Lock();
     // Get current index, then compute a safe location forward
     size_t ibook = fIbook.load(std::memory_order_acquire);
-    size_t inext = (ibook + 1 + fBsize) & fBufferMask;
-    size_t inext_start = inext & fBmask;
-    while (!fIbook.compare_exchange_weak(ibook, inext_start, std::memory_order_relaxed)) {
-      ibook = fIbook.load(std::memory_order_acquire);
-      inext = (ibook + 1 + fBsize) & fBufferMask;
-      inext_start = inext & fBmask;
-    }
-    // Now we can cleanup the basket at ibook
-    size_t buf_pos = ibook & fBufferMask;
-    size_t buf_start = buf_pos & fBmask;
-    size_t nelem = buf_pos - buf_start;
-    if (!nelem) {
+    size_t inext = (ibook + fBsize) & fBmask;
+    // Now we can cleanup the basket at ibook.
+    size_t ibook_buf = ibook & fBufferMask;
+    size_t ibasket = ibook_buf & fBmask;
+    size_t nelem = ibook_buf - ibasket;
+    size_t nbooktot = fCounters[ibasket].Nbooktot();
+    size_t nbooked = fCounters[ibasket].Nbooked();
+    size_t nfilled = fCounters[ibasket].Nfilled();
+    size_t ibook0 = fCounters[ibasket].Ibook();
+    if ((!nelem) || (nbooked!=nelem) || (nfilled != nelem) || (ibook-ibook0>=fBsize)) {
       Unlock();
       return false;
     }
-    while (fCounters[buf_start].Nfilled() < nelem)
+    if (!fIbook.compare_exchange_strong(ibook, inext, std::memory_order_relaxed)) {
+      Unlock();
+      return false;    
+    }
+    // We managed to push ibook to a safe location, so new bookers cannot book this
+    // basket till it gets released. Now book the remaining slots in the basket
+    while (!fCounters[ibasket].BookSlots(ibook, nbooktot, fBsize-nelem))
       ;
-    fNstored -= nelem;
     // Now fill the objects from the pending basket
-    basket.insert(basket.end(), &fBuffer[buf_start], &fBuffer[buf_start + nelem]);
+    basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + nelem]);
+
+    fNstored -= nelem;
     fNbaskets--;
-    fCounters[buf_start].Clear();
+    fCounters[ibasket].ReleaseBasket(fBufferMask + 1 + (ibook & fBmask));
+    
     Unlock();
     return true;
   }

@@ -43,10 +43,9 @@ double get_cpu_time() { return (double)clock() / CLOCKS_PER_SEC; }
 void Process(std::vector<test_track *> &basket) {
   // Emulate CPU time on a basket
   const int load = 35;
-  return;
   for (size_t itr = 0; itr < basket.size(); ++itr) {
     double x = 1.;
-    for (int j = 0; j < 10 * load; ++j) {
+    for (int j = 0; j < 100 * load; ++j) {
       x *= ((*basket[itr]).id_) % 100;
       double y = std::sqrt(x) * std::tanh(x);
       x = std::sin(y) / std::atan(x);
@@ -152,6 +151,13 @@ struct Workload {
     }
     Unlock();
   }
+  
+  void CheckBasketizers() {
+    for (size_t i=0; i<nnodes_; ++i) {
+      std::cout << "Basketizer #" << i << ":\n";
+      if (basketizers_[i]) basketizers_[i]->CheckBaskets();
+    }
+  }
 };
 
 //______________________________________________________________________________
@@ -232,4 +238,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "run time: " << rt1 - rt0 << "   cpu time: " << cpu1 - cpu0 << "  checksum: " << checksum
             << " ref: " << work.checksum_ref_ << std::endl;
+  if (  checksum > work.checksum_ref_) std::cout << "### Data overwritten! ###\n";
+  else if (checksum < work.checksum_ref_) std::cout << "### Not all tracks collected! ###\n";
+//  work.CheckBasketizers();
 }
