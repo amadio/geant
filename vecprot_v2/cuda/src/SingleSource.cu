@@ -4,6 +4,7 @@
 
 #include "../src/GeantTrack.cxx"
 #include "../src/GeantTaskData.cxx"
+#include "../src/ScalarNavInterfaceVGM.cxx"
 #include "GeantTrack.cu"
 #include "PropagateTracks.cu"
 #include "GeantCudaUtils.cu"

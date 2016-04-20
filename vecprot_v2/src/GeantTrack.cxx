@@ -1709,8 +1709,10 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
       fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fNintLenV[itr], fIntLenV[itr], fBoundaryV[itr]);
   
+#ifndef GEANT_NVCC
   fPathV[itr]->Print();
   fNextpathV[itr]->Print();
+#endif
 #else
   TString path;
   fPathV[itr]->GetPath(path);

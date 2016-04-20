@@ -75,8 +75,8 @@ SET (CTEST_COMMAND
 #######################################################
 if(MODEL STREQUAL NightlyMemoryCheck)
   set(WITH_MEMCHECK TRUE)
-  find_package(Valgrind)
-  find_package(ROOT REQUIRED)
+#  find_package(Valgrind)
+#  find_package(ROOT REQUIRED)
   if(ROOT)
     set(MEMORYCHECK_SUPPRESSIONS_FILE "$ROOTSYS/etc/valgrind-root.supp")
   endif()

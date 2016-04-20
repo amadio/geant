@@ -54,6 +54,10 @@ ENDIF (NOT WIN32)
 cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
 project(GEANTV)
 
+enable_language(CXX)
+set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ ISO Standard")
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 # Fix bug on APPLE, this is the default everywhere
 if(APPLE)
   set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem ")
@@ -326,6 +330,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
+  # CMake fails to add -std option for icc, so add it manually
+  if(CMAKE_CXX_STANDARD STREQUAL 11)
+    list(APPEND CMAKE_CXX_FLAGS -std=c++11)
+  elseif(CMAKE_CXX_STANDARD STREQUAL 14)
+    list(APPEND CMAKE_CXX_FLAGS -std=c++14)
+  else()
+    message(FATAL_ERROR "Unsupported C++ standard requested")
+  endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
@@ -334,7 +346,7 @@ if (NOT DISABLE_WEFFC)
    set(WEFFC_FLAG -Weffc++)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
   if(APPLE)
@@ -352,12 +364,12 @@ endif()
 get_property(GEANTV_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
 get_property(GEANTV_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
 set(GEANTV_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG               "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2 -std=c++11")
-set(GEANTV_CXX_NOW_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11")
-set(GEANTV_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} -std=c++11")
-set(GEANTV_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11")
-set(GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -std=c++11")
-set(GEANTV_EXE_NOW_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS_DEBUG               "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2 ")
+set(GEANTV_CXX_NOW_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ")
+set(GEANTV_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ")
+set(GEANTV_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} ")
+set(GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ")
+set(GEANTV_EXE_NOW_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ")
 if (CUDA)
    # Currently we are stuck with gcc 4.8 and a broken Weffc++ so let's not us it there
    set(GEANTV_WARNING_FLAGS "-W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
@@ -410,7 +422,7 @@ if (CUDA)
   #set(CUDA_NVCC_FLAGS --ptxas-options=-v)
   set(
     CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-   -std=c++11
+    -std=c++11
     -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"
     -Xcudafe "--diag_suppress=initialization_not_reachable"
   )
