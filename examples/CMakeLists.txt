@@ -10,11 +10,13 @@ include_directories(inc ../vecprot_v2/inc)
 set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/ExN03Application.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMSApplication.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/LHCbApplication.cxx
 )     
      
 set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
 )   
 
 #file(GLOB sources src/*.cxx)
