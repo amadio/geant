@@ -22,8 +22,8 @@ endif()
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources src/T*.cxx src/GunGenerator.cxx)
-file(GLOB headers inc/T*.h inc/GunGenerator.h)
+file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/TestProcess.cxx)
+file(GLOB headers inc/T*.h inc/GunGenerator.h inc/TestProcess.h)
 
 #set(XSEC_HEADERS ${headers} PARENT_SCOPE)
 #set(XSEC_SOURCES ${sources} PARENT_SCOPE)
