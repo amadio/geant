@@ -94,6 +94,9 @@ if (GEANT_INSTALL_RPATH)
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
   endif("${isSystemDir}" STREQUAL "-1")
 endif()
+
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
+
 #----------------------------------------------------------------------------
 
 option(CTEST "Enable CTest when building." OFF)
