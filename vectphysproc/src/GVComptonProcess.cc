@@ -18,6 +18,7 @@
 
 // Xsec library realted
 #include "TPartIndex.h"
+#include "base/PhysicalConstants.h" // from vecphys
 
 #include <VecCore/VecCore> 
 
@@ -228,10 +229,8 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, int tid) {
   const int secPDG = 11;                                    // e- PDG code
   //  const int secGVcode = TPartIndex::I()->PartIndex(secPDG); // e- GV code
   // the rest mass and charge of the secondary particle in a general way
-  const double secMass = // e- rest mass
-      TPartIndex::I()->DBPdg()->Instance()->GetParticle(secPDG)->Mass();
-  const double secCharge = // e- charge
-      TPartIndex::I()->DBPdg()->Instance()->GetParticle(secPDG)->Charge() / 3.;
+  const double secMass = vecphys::electron_mass_c2;
+  const double secCharge = vecphys::electron_charge;
 
   int numInsertedTracks = 0;
   for (int isec = 0; isec < numSecondaries; ++isec) {
