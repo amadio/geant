@@ -1,15 +1,10 @@
 
-#----------------------------------------------------------------------------
-# Find VecPhys (required )
-#----------------------------------------------------------------------------
-find_package(VecPhys REQUIRED)
-if(VECPHYS_FOUND)
-  include_directories(${VECPHYS_INCLUDE_DIR})
-else()
-  message(FATAL_ERROR "Required library vecphys was not found!")
+link_libraries(vecphys)
+include_directories(${CMAKE_SOURCE_DIR}/vecphys/include)
+
+if (CUDA)
+  link_libraries(vecphyscuda)
 endif()
-
-
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -38,13 +33,11 @@ include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
 #----------------------------------------------------------------------------
 ROOT_GENERATE_DICTIONARY(vphysprocDict ${headers} MODULE libVphysproc LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
-
 #----------------------------------------------------------------------------
 # Add traget library and dependencies
 #----------------------------------------------------------------------------
 add_library(Vphysproc SHARED ${sources} vphysprocDict.cxx)
-target_link_libraries(Vphysproc  ${VECPHYS_LIBRARIES} ${VC_LIBRARIES}
-  -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v ${ROOT_LIBRARIES} EG Geom)
+target_link_libraries(Vphysproc ${VC_LIBRARIES} Xsec Geant_v ${ROOT_LIBRARIES} EG Geom)
 
 add_custom_target(VectPhysProc DEPENDS Vphysproc)
 
