@@ -265,8 +265,8 @@ endif()
 
 ################################################################################
 
-include_directories(${CMAKE_SOURCE_DIR}/include
-                    ${CMAKE_SOURCE_DIR}/test/include
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test/include
 )
 
 set(SRC_CPP_RELATIVE
@@ -283,7 +283,7 @@ set(SRC_CPP_RELATIVE
   src/MaterialHandler.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
-  set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
+  set(SRC_CPP ${SRC_CPP} ${CMAKE_CURRENT_SOURCE_DIR}/${SRC})
 endforeach()
 
 # Copy all source files to .cu-files in order for NVCC to compile them as CUDA
