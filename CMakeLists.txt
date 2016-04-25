@@ -488,5 +488,6 @@ if (ROOT_mathmore_FOUND)
 endif()
 
 if(USE_VECPHYS)
- add_subdirectory (vectphysproc)
+ add_subdirectory(vecphys)
+ add_subdirectory(vectphysproc)
 endif()
