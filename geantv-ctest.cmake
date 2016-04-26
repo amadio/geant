@@ -158,7 +158,7 @@ message("Dashboard script configuration (check if everything is declared correct
 message("Running CTest Dashboard Script (custom update)...")
 include("${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
 
-ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
+#ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
 ctest_start(${MODEL} TRACK ${MODEL})
 
