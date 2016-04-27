@@ -468,8 +468,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
          int t = fInputBasket->GetInputTracks().AddTrack(input,hostIdx);
 
          // Prepare the navigation state pointers in the basket
-         gputracks.fPathV[t]->ConvertToGPUPointers();
-         gputracks.fNextpathV[t]->ConvertToGPUPointers();
+         //gputracks.fPathV[t]->ConvertToGPUPointers();
+         //gputracks.fNextpathV[t]->ConvertToGPUPointers();
 
          // fTrackId[fNStaged] = input.PostponeTrack(hostIdx,fBasket->GetOutputTracks());
          input.MarkRemoved(hostIdx);
@@ -511,8 +511,8 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
    // Fix the navigation state pointers in the output basket
    for(int t = 0; t < transferTo.fMaxtracks; ++t) {
       // if (output.fHoles->TestBitNumber(t) continue;
-      if (transferTo.fPathV[t]) transferTo.fPathV[t]->ConvertToCPUPointers();
-      if (transferTo.fNextpathV[t]) transferTo.fNextpathV[t]->ConvertToCPUPointers();
+      //if (transferTo.fPathV[t]) transferTo.fPathV[t]->ConvertToCPUPointers();
+      //if (transferTo.fNextpathV[t]) transferTo.fNextpathV[t]->ConvertToCPUPointers();
    }
 
    //output.PrintTracks("TrackToHost");
