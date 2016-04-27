@@ -6,9 +6,7 @@
 #include <future>
 #include <random>
 
-#ifdef USE_NUMA
-#include "NumaTopology.h"
-#endif
+#include "GeantNuma.h"
 
 struct test_track {
   int id_;
@@ -59,9 +57,7 @@ void Process(std::vector<test_track *> &basket) {
 using namespace Geant;
 //______________________________________________________________________________
 struct Workload {
-#ifdef USE_NUMA
   NumaPolicy policy_; // kSysDefault, kCompact, kScatter
-#endif
   size_t nnodes_;
   size_t bsize_;
   size_t buf_size_;
@@ -84,16 +80,12 @@ struct Workload {
 
   Workload(size_t nthreads)
       :
-#ifdef USE_NUMA
         policy_(Geant::NumaPolicy::kCompact),
-#endif
         nnodes_(1), nthreads_(nthreads), fLock() {
     using Basketizer = Geant::Basketizer<test_track>;
-#ifdef USE_NUMA
     std::cout << *policy_.GetTopology() << std::endl;
     nnodes_ = policy_.fTopo.fNodes;
-    numa_set_localalloc();
-#endif
+    //numa_set_localalloc();
     fLock.clear();
     promise_ = new std::promise<size_t>[nthreads];
     future_ = new std::future<size_t>[nthreads];
@@ -110,17 +102,11 @@ struct Workload {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters - 1);
 // Create a pool of numbers
-#ifdef USE_NUMA
     allocated_ = numa_aligned_malloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
-#else
-    allocated_ = new char[ntracks_ * sizeof(test_track)];
-#endif
     tracks_ = new (allocated_) test_track[ntracks_];
-#ifdef USE_NUMA
-    Lock();
+    //Lock();
     //    std::cout << "Allocated data " << allocated_ << " on node: " << numa_node_addr(allocated_) << std::endl;
-    Unlock();
-#endif
+    //Unlock();
     for (size_t i = 0; i < ntracks_; ++i) {
       tracks_[i].id_ = i;
       // Generate randomly the filtering type
@@ -130,9 +116,7 @@ struct Workload {
   };
 
   ~Workload() {
-#ifdef USE_NUMA
     numa_aligned_free(allocated_);
-#endif
     for (size_t i = 0; i < nnodes_; ++i)
       delete basketizers_[i];
     delete[] basketizers_;
@@ -144,10 +128,8 @@ struct Workload {
     Lock();
     if (!basketizers_[node]) {
       basketizers_[node] = new Basketizer(buf_size_, bsize_);
-#ifdef USE_NUMA
       std::cout << "basketizer[" << node << "] allocated on NUMA node " << numa_node_addr(basketizers_[node])
                 << std::endl;
-#endif
     }
     Unlock();
   }
@@ -165,9 +147,7 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
   // Code run by each thread
   // Pin thread according to the NUMA policy
   int numa_node = 0;
-#ifdef USE_NUMA
   numa_node = work->policy_.AllocateNextThread();
-#endif
   //  numa_node = (numa_node+1)%2;
   work->InitBasketizers(numa_node);
 //  work->Lock();
