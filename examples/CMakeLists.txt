@@ -11,12 +11,14 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/ExN03Application.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMSApplication.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/LHCbApplication.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/FastSimApplication.cxx
 )     
      
 set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h 
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
 )   
 
 #file(GLOB sources src/*.cxx)

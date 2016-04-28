@@ -449,6 +449,7 @@ endif()
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
+include_directories("${PROJECT_SOURCE_DIR}/fastsim/inc")
 include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
 
 
@@ -475,6 +476,7 @@ if (WITH_GEANT4)
   add_subdirectory (tabxsec)
 endif()
 add_subdirectory (magneticfield)
+add_subdirectory (fastsim)
 
 if (WITH_GEANT4)
 add_subdirectory (test-small)
