@@ -265,8 +265,8 @@ endif()
 
 ################################################################################
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test/include
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test/inc
 )
 
 set(SRC_CPP_RELATIVE
