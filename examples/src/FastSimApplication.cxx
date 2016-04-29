@@ -112,7 +112,7 @@ void FastSimApplication::StepManager( int npart, const GeantTrack_v &tracks, Gea
     //std::cout << "\t Volume=" << vol->GetName() << " ; ivol=" << ivol;  // Debug
     if ( propagator->fNthreads > 1 ) fMHist.lock();
     // Workaround for the unknown initial energy of the projectile: fixed by hand!
-    double ekin_true = 10.0;  // [GeV]
+    double ekin_true = 50.0;  // [GeV]
     if ( isTrackerVolume[ ivol ] ) {
       //std::cout << " --> is TRACKER volume ! ";  // Debug
       double p_true = std::sqrt( ekin_true*ekin_true + 2.0*tracks.fMassV[itr]*ekin_true );
