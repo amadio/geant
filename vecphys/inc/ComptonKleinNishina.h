@@ -274,7 +274,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
     Double_v onecost = (1.0 - epsilon)/(epsilon*E0_m);
     sint2   = onecost*(2.-onecost);
     greject = 1. - epsilon*sint2/(1.+ epsilon*epsilon);
-    done |= greject < UniformRandom<Double_v>(&fRandomState, &fThreadId);
+    done |= greject > UniformRandom<Double_v>(&fRandomState, &fThreadId);
   } while (!MaskFull(done));
 
   return epsilon;
