@@ -2,8 +2,8 @@
 #include "GUBenchmarker_cpu.h"
 #include "GUPhysicsModelName.h"
 
-#include "base/Stopwatch.h"
-#include "base/SystemOfUnits.h"
+#include "Stopwatch.h"
+#include "SystemOfUnits.h"
 
 #include "GUTrackHandler.h"
 

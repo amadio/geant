@@ -1,4 +1,4 @@
-#include "base/Stopwatch.h"
+#include "Stopwatch.h"
 #include "GUHistogram.h"
 
 #include "ComptonKleinNishina.h"

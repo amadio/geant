@@ -1,5 +1,5 @@
 +-------------------------------------------+
-| How to run examples under GUTracking/test |
+| How to run examples under vecphys         |
 +-------------------------------------------+
 
 1. setup 
@@ -17,11 +17,11 @@
    #root (if ROOT=ON)
    source ${ROOT_INSTALL_DIR}/bin/thisroot.sh
 
-2. How to build and run an example benchmarker of GUTracking/test
+2. How to build and run an example benchmarker of vecphys
 
    mkdir build
    cd build
-   cmake -DBENCHMARK=ON -DCUDA=ON -DVc_DIR=${Vc_DIR} ..
+   cmake -GUDBENCHMARK=ON -DCUDA=ON -DVc_DIR=${Vc_DIR} ..
    make
    ./GUModelBenchmark [ntracks] [nrepetitions] [minEnergy] [maxEnergy] [samplingType] [model] [materialMode]
 
@@ -40,7 +40,7 @@
 
 3. Other important options
 
-   # turn on histogramming (with BENCHMARK=ON)
+   # turn on histogramming (with GUBENCHMARK=ON)
    -DROOT=ON
 
    # set a vector instruction set
@@ -54,17 +54,18 @@
 
 4. How to run GeantV with GUTracking (libvecphys.a)
    
-   - build your physics library (libvecphys) into GUTracking/build
    - build GeantV with a -DUSE_VECPHYS=ON option which will build a libVphysproc 
 
-   - activate following the two lines in run.C:
+   - add/activate following lines in run.C :
 
-   gSystem->Load("../lib/libVphysproc"); //to load the vector physics interface lib
+   R__LOAD_LIBRARY(libGeant_v)
+   R__LOAD_LIBRARY(libVphysproc)
+
    prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin, nthreads);
 
   - run the prototype
 
-    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/phihome/syjun/products.vproot6
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<path_to_geantV_install/lib>
     root.exe -b -l -q 'run.C(4)'
 
 5. How to build and run the benchmaker (GUModelBenchmark) on Intel Xeon Phi

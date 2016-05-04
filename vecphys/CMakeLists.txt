@@ -15,7 +15,7 @@ option(CUDA "Enable compilation for CUDA." OFF)
 
 option(CUDA_VOLUME_SPECIALIZATION "Use specialized volumes for CUDA." ON)
 
-option(BENCHMARK "Enable performance comparisons." OFF)
+option(GUBENCHMARK "Enable performance comparisons." OFF)
 
 option(NO_SPECIALIZATION "Disable specialization of volumes." OFF)
 
@@ -180,7 +180,7 @@ if (VC_ACCELERATION)
   set(VECPHYS_COMPILATION_FLAGS
       "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_VC_ACCELERATION")
 endif()
-if (BENCHMARK)
+if (GUBENCHMARK)
   set(VECPHYS_COMPILATION_FLAGS
       "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_BENCHMARK")
 endif()
@@ -266,6 +266,7 @@ endif()
 ################################################################################
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/inc/base
                     ${CMAKE_CURRENT_SOURCE_DIR}/test/inc
 )
 
@@ -313,7 +314,7 @@ endif()
 
 # Add files that won't be compiled for CUDA
 
-if (BENCHMARK)
+if (GUBENCHMARK)
   set(SRC_CPP ${SRC_CPP}
     test/src/GUBenchmarker.cc
     test/src/GUBenchmarker_cpu.cc
@@ -371,7 +372,7 @@ endif()
 
 #  ${CMAKE_SOURCE_DIR}/test/benchmark/GUModelBenchmark.cc
 set(TEST_EXECUTABLES_BENCHMARK
-  ${CMAKE_SOURCE_DIR}/test/GUModelBenchmark.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/GUModelBenchmark.cc
 )
 set(TEST_EXECUTABLES_CUDA
   # Files go here
@@ -412,7 +413,7 @@ endfunction()
 
 build_executables("${TEST_EXECUTABLES_CORE}")
 add_to_ctest("${TEST_EXECUTABLES_CORE}")
-if (BENCHMARK)
+if (GUBENCHMARK)
   build_executables("${TEST_EXECUTABLES_BENCHMARK}")
 endif()
 if (CUDA)
