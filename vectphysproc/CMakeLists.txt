@@ -1,6 +1,6 @@
 
 link_libraries(vecphys)
-include_directories(${CMAKE_SOURCE_DIR}/vecphys/include)
+include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc)
 
 if (CUDA)
   link_libraries(vecphyscuda)
