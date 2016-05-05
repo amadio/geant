@@ -17,8 +17,6 @@ option(CUDA_VOLUME_SPECIALIZATION "Use specialized volumes for CUDA." ON)
 
 option(GUBENCHMARK "Enable performance comparisons." OFF)
 
-option(NO_SPECIALIZATION "Disable specialization of volumes." OFF)
-
 option(DISTANCE_DEBUG "Enable comparision of calculcated distances againt ROOT/Geant4 behind the scenes" OFF)
 
 set(VECPHYS_VECTOR "" CACHE STRING
@@ -46,7 +44,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 ################################################################################
-SET(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-7.0")
+SET(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-7.5")
 
 # Determine backend
 
@@ -184,10 +182,6 @@ if (GUBENCHMARK)
   set(VECPHYS_COMPILATION_FLAGS
       "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_BENCHMARK")
 endif()
-if (NO_SPECIALIZATION)
-  set(VECPHYS_COMPILATION_FLAGS
-      "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_NO_SPECIALIZATION")
-endif()
 if (ROOT)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_ROOT")
 endif()
@@ -268,6 +262,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
                     ${CMAKE_CURRENT_SOURCE_DIR}/inc/base
                     ${CMAKE_CURRENT_SOURCE_DIR}/test/inc
+                    ${VecGeom_DIR}/include
 )
 
 set(SRC_CPP_RELATIVE
