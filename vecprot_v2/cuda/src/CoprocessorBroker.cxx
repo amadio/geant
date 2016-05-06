@@ -465,7 +465,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
       if (task->Select(input,hostIdx)) {
 
-         int t = fInputBasket->GetInputTracks().AddTrack(input,hostIdx);
+         /* int t = */ fInputBasket->GetInputTracks().AddTrack(input,hostIdx);
 
          // Prepare the navigation state pointers in the basket
          //gputracks.fPathV[t]->ConvertToGPUPointers();
