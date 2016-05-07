@@ -86,6 +86,7 @@ namespace Geant
          * output: new position, new direction of particle
          */
          template<typename Vector3D, typename BaseType, typename BaseIType>
+         GEANT_CUDA_BOTH_CODE
          void DoStep( Vector3D const & pos, Vector3D const & dir,
                            BaseIType const & charge, BaseType const &  momentum,
                            BaseType const & step,
