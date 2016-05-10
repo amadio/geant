@@ -61,7 +61,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
       *outstate[itr] = *instate[itr];
       continue;
     }
-    
+
     step[itr] = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(x[itr], y[itr], z[itr]),
                                Vector3D_t(dirx[itr], diry[itr], dirz[itr]),
                                Math::Min<double>(1.E20, pstep[itr]), *instate[itr], *outstate[itr] /* the paths */, !isonbdr[itr], safe[itr]);
