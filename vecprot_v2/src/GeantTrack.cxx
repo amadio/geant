@@ -1533,8 +1533,8 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    // if( icount++ < 2 )  std::cout << " PropagateInVolumeSingle: useRungeKutta= " << useRungeKutta << std::endl;
 
 // #ifdef RUNGE_KUTTA
-   GUFieldPropagator *fieldPropagator = nullptr;
 #ifndef GEANT_CUDA_DEVICE_BUILD
+   GUFieldPropagator *fieldPropagator = nullptr;
    if( useRungeKutta ){
       // Initialize for the current thread -- move to GeantPropagator::Initialize()
       static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
