@@ -2,7 +2,7 @@
 #include "GUAliasTable.h"
 #include "ConversionBetheHeitler.h"
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {
@@ -33,7 +33,47 @@ VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p) {
+VECCORE_CUDA_HOST double
+ConversionBetheHeitler::GetG4CrossSection(const int Z, double GammaEnergy)
+{
+  // G4BetheHeitlerModel::ComputeCrossSectionPerAtom
+
+  const G4double GammaEnergyLimit = 1.5*MeV;
+ 
+  // Calculates the microscopic cross section in GEANT4 internal units.
+  // A parametrized formula from L. Urban is used to estimate
+  // the total cross section.
+  // It gives a good description of the data from 1.5 MeV to 100 GeV.
+  // below 1.5 MeV: sigma=sigma(1.5MeV)*(GammaEnergy-2electronmass)
+  //                                   *(GammaEnergy-2electronmass) 
+  G4double xSection = 0.0 ;
+  if ( Z < 0.9 || GammaEnergy <= 2.0*electron_mass_c2 ) { return xSection; }
+ 
+  G4double GammaEnergySave = GammaEnergy;
+  if (GammaEnergy < GammaEnergyLimit) { GammaEnergy = GammaEnergyLimit; }
+ 
+  G4double X=G4Log(GammaEnergy/electron_mass_c2), X2=X*X, X3=X2*X, X4=X3*X, X5=X4*X;
+ 
+  G4double F1 = a0 + a1*X + a2*X2 + a3*X3 + a4*X4 + a5*X5,
+           F2 = b0 + b1*X + b2*X2 + b3*X3 + b4*X4 + b5*X5,
+           F3 = c0 + c1*X + c2*X2 + c3*X3 + c4*X4 + c5*X5;     
+ 
+  xSection = (Z + 1.)*(F1*Z + F2*Z*Z + F3)*microbarn;
+ 
+  if (GammaEnergySave < GammaEnergyLimit) {
+ 
+    X = (GammaEnergySave  - 2.*electron_mass_c2)
+      / (GammaEnergyLimit - 2.*electron_mass_c2);
+    xSection *= X*X;
+  }
+ 
+  if (xSection < 0.) { xSection = 0.; }
+  return xSection;
+}
+
+VECCORE_CUDA_HOST void
+ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
+{
   // Build the probability density function (BetheHeitler pdf) in the
   // input energy randge [xmin,xmax] with an equal logarithmic bin size
   //

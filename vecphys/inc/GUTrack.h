@@ -7,7 +7,7 @@ struct GUTrack
   int particleType;
   int id;            // counter
   int parentId;      // id of parent
-  int proc;          //  ?? process index ??
+  int proc;          // index of physics process
   double x;          // x position - rarely relevant
   double y;          // y position - ditto
   double z;          // z position - ditto
@@ -16,6 +16,8 @@ struct GUTrack
   double pz;
   double E;
   double q;          // charge ?
+  double nint;       // number of interaction length left
+  double lambda;     // interaction length
   double s;          // step length ??
 } ;
 
@@ -27,7 +29,7 @@ struct GUTrack_v
   int *particleType;
   int *id;
   int *parentId;       // index of the corresponding parent track in GeantTrack_v
-  int *proc;           // process index (not really necessary)
+  int *proc;           // index of physics process
   double *x;           // (x,y,z) position
   double *y;
   double *z;
@@ -35,8 +37,10 @@ struct GUTrack_v
   double *py;
   double *pz;
   double *E;           // total energy
-  double *q;           // charge ???
-  double *s;           // ???
+  double *q;           // charge 
+  double *nint;        // number of interaction length left
+  double *lambda;      // interaction length
+  double *s;           // step length
 } ;
 
 #endif

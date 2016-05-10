@@ -2,7 +2,7 @@
 #include "GUAliasTable.h"
 #include "IonisationMoller.h"
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {
@@ -105,7 +105,9 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
   return dcross;
 }
 
-VECCORE_CUDA_HOST_DEVICE double IonisationMoller::GetG4CrossSection(double kineticEnergy, const int Z) {
+VECCORE_CUDA_HOST double
+IonisationMoller::GetG4CrossSection(const int Z, double kineticEnergy)
+{
   G4double cross = 0.0;
 
   // temporary - set by material

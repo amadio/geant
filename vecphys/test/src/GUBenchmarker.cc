@@ -3,7 +3,7 @@
 #include "GUPhysicsModelName.h"
 
 #include "Stopwatch.h"
-#include "SystemOfUnits.h"
+#include "base/SystemOfUnits.h"
 
 #include "GUTrackHandler.h"
 

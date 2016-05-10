@@ -1,5 +1,6 @@
 #ifndef StaticSandiaData_H
-#define StaticSandiaData_H
+#define StaticSandiaData_H 1
+
 // class description
 //
 // File for static data of PhotoAbsorption cross section coefficients
@@ -54,9 +55,10 @@
 // element.
 
 #include "base/SystemOfUnits.h"
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
+inline namespace VECPHYS_IMPL_NAMESPACE {
 
 constexpr double fSandiaTable[981][5] = {
 
@@ -1372,7 +1374,9 @@ constexpr double fSandiaTable[981][5] = {
 // of energy interval in which Sandia coeeficients are parametrized for each
 // element.
 
-constexpr int fNbOfIntervals[101] = {
+//int fNbOfIntervals [101] =
+constexpr int fNbOfIntervals [101] =
+{
 
     0, // nonexisting 'zero' element
 
@@ -1880,6 +1884,7 @@ VECPHYS_GLOBAL double fBindingEnergies[1540] = {
     606.0,    587.0,   453.0,   375.0,   275.0,  160.0,  145.0,  69.0,   45.0,   29.0,   15.0,   7.0,
 };
 
-}; // end of namespace vecphys
+} // end namespace impl
+}; //end of namespace vecphys
 
 #endif

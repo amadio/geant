@@ -1,7 +1,11 @@
 #ifndef IonisationMoller_H
 #define IonisationMoller_H 1
 
+<<<<<<< a07d1f9e866c33bb72c827af7b0a424067295c8d
 #include "base/VPGlobal.h"
+=======
+#include "base/VecPhys.h"
+>>>>>>> add initial implementation of vectorized em processes
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"
@@ -68,7 +72,12 @@ private:
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int Z, double energyIn, double &energyOut, double &sinTheta);
 
+<<<<<<< a07d1f9e866c33bb72c827af7b0a424067295c8d
   VECCORE_CUDA_HOST_DEVICE double GetG4CrossSection(double energyIn, const int zElement);
+=======
+  VECCORE_CUDA_HOST double
+  GetG4CrossSection(const int Z, double  energyIn); 
+>>>>>>> add initial implementation of vectorized em processes
 
   VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection(int Zelement, double Ein, double outEphoton) const;

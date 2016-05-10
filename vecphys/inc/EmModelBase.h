@@ -1,8 +1,13 @@
 #ifndef EmModelBase_H
 #define EmModelBase_H
 
+<<<<<<< a07d1f9e866c33bb72c827af7b0a424067295c8d
 #include "base/VPGlobal.h"
+=======
+#include "base/VecPhys.h"
+>>>>>>> add initial implementation of vectorized em processes
 #include "base/SystemOfUnits.h"
+#include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"
 
@@ -15,6 +20,8 @@
 #include <bitset>
 #include <vector>
 #endif
+
+#include "materials/Material.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -33,9 +40,6 @@ public:
 
   VECCORE_CUDA_HOST
   void Initialization();
-
-  VECCORE_CUDA_HOST
-  void BuildCrossSectionTable();
 
   VECCORE_CUDA_HOST
   void BuildAliasTable(bool atomicDependentModel = false);
@@ -61,9 +65,14 @@ public:
 
 #endif
 
-  // validation
-  template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void AtomicCrossSectionG4(GUTrack &inProjectile, const int targetElement, double &sigma);
+  //validation
+  VECCORE_CUDA_HOST
+  double G4CrossSectionPerAtom(const int Z,
+                               double energy);
+
+  VECCORE_CUDA_HOST
+  double G4CrossSectionPerVolume(const vecgeom::Material* material,
+                                 double energy);
 
   template <typename Backend>
   VECCORE_CUDA_HOST_DEVICE void InteractG4(GUTrack &inProjectile, const int targetElement, GUTrack &outSecondary);
@@ -149,6 +158,7 @@ template <class EmModel> VECCORE_CUDA_HOST_DEVICE EmModelBase<EmModel>::~EmModel
   //  if(fAliasSampler) delete fAliasSampler;
 }
 
+<<<<<<< a07d1f9e866c33bb72c827af7b0a424067295c8d
 template <class EmModel> VECCORE_CUDA_HOST void EmModelBase<EmModel>::BuildCrossSectionTable() {
   // dummy interface for now
   for (int z = 1; z < maximumZ; ++z) {
@@ -160,6 +170,15 @@ template <class EmModel> VECCORE_CUDA_HOST void EmModelBase<EmModel>::BuildAlias
   // size of the array for the alias table data
   size_t sizeOfTable = (fAliasSampler->GetNumEntries() + 1) * fAliasSampler->GetSamplesPerEntry();
   double *pdf = new double[sizeOfTable];
+=======
+template <class EmModel>
+VECCORE_CUDA_HOST
+  void EmModelBase<EmModel>::BuildAliasTable(bool atomicDependentModel)
+{
+  //size of the array for the alias table data
+  size_t sizeOfTable = (fAliasSampler->GetNumEntries()+1)*fAliasSampler->GetSamplesPerEntry();
+  double *pdf = new double [sizeOfTable];
+>>>>>>> add initial implementation of vectorized em processes
 
   int z = -1;
   if (fAtomicDependentModel) {
@@ -480,10 +499,11 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::AtomicCrossSectionG4(GUTrack
   }
 }
 
-template <class EmModel>
-template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::InteractG4(GUTrack &inProjectile, const int targetElement,
-                                                               GUTrack &outSecondary) {
+VECCORE_CUDA_HOST_DEVICE
+void EmModelBase<EmModel>::InteractG4(GUTrack&  inProjectile,
+                                      const int targetElement,
+                                      GUTrack&  outSecondary)
+{
 
   Real_t energyIn = inProjectile.E;
   Real_t energyOut;
@@ -569,6 +589,7 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn, 
                                            GUTrack_v &secondary) // const
 {
   using Double_v = typename Backend::Double_v;
+<<<<<<< a07d1f9e866c33bb72c827af7b0a424067295c8d
 
   // need to rotate the angle with respect to the line of flight
   Double_v px(&primary.px[ibase]);
@@ -609,6 +630,48 @@ EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn, 
   pzSec.store(&secondary.pz[ibase]);
 
   // fill other information
+=======
+
+  //need to rotate the angle with respect to the line of flight
+  Double_v px(&primary.px[ibase]);
+  Double_v py(&primary.py[ibase]);
+  Double_v pz(&primary.pz[ibase]);
+
+  Double_v invp = 1./energyIn;
+  Double_v xhat = px*invp;
+  Double_v yhat = py*invp;
+  Double_v zhat = pz*invp;
+
+  Double_v uhat = 0.;
+  Double_v vhat = 0.;
+  Double_v what = 0.;
+
+  RotateAngle<Backend>(sinTheta,xhat,yhat,zhat,uhat,vhat,what);
+
+  // Update primary
+  energyOut.store(&primary.E[ibase]);
+  Double_v pxFinal, pyFinal, pzFinal;
+
+  pxFinal= energyOut*uhat;
+  pyFinal= energyOut*vhat;
+  pzFinal= energyOut*what;
+  pxFinal.store(&primary.px[ibase]);
+  pyFinal.store(&primary.py[ibase]);
+  pzFinal.store(&primary.pz[ibase]);
+
+  // create Secondary
+  Double_v secE = energyIn - energyOut;
+  Double_v pxSec= secE*(xhat-uhat);
+  Double_v pySec= secE*(yhat-vhat);
+  Double_v pzSec= secE*(zhat-what);
+
+  secE.store(&secondary.E[ibase]);
+  pxSec.store(&secondary.px[ibase]);
+  pySec.store(&secondary.py[ibase]);
+  pzSec.store(&secondary.pz[ibase]);
+
+  //fill other information
+>>>>>>> add initial implementation of vectorized em processes
 }
 
 template <class EmModel>
@@ -653,8 +716,13 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(
 template <class EmModel> VECCORE_CUDA_HOST_DEVICE double EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff) {
   // Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)
 
+<<<<<<< a07d1f9e866c33bb72c827af7b0a424067295c8d
   const double k1 = 0.0083, k2 = 0.20206, k3 = 0.0020, k4 = 0.0369;
   const double fine_structure_const = (1.0 / 137); // check unit
+=======
+  double k1 = 0.0083 , k2 = 0.20206 ,k3 = 0.0020 , k4 = 0.0369 ;
+  double fine_structure_const = (1.0/137); //check unit
+>>>>>>> add initial implementation of vectorized em processes
 
   double az1 = fine_structure_const * Zeff;
   double az2 = az1 * az1;
@@ -662,6 +730,40 @@ template <class EmModel> VECCORE_CUDA_HOST_DEVICE double EmModelBase<EmModel>::C
 
   double coulombFactor = (k1 * az4 + k2 + 1. / (1. + az2)) * az2 - (k3 * az4 + k4) * az4;
   return coulombFactor;
+}
+
+template <class EmModel>
+VECCORE_CUDA_HOST
+double EmModelBase<EmModel>::G4CrossSectionPerAtom(const int Z,
+                                                   double energy)
+{
+  double sigma = 0.;
+  if(energy > fLowEnergyLimit) {
+    sigma = static_cast<EmModel*>(this)->GetG4CrossSection(Z,energy);
+  }
+  return sigma;
+}
+
+template <class EmModel>
+VECCORE_CUDA_HOST
+double EmModelBase<EmModel>::G4CrossSectionPerVolume(const vecgeom::Material* material,
+                                                     double energy)
+{
+  double sigma = 0.;
+
+  int nelm = material->GetNelements(); 
+
+  for (int i=0; i < nelm; ++i) {
+    double a = 0;
+    double z = 0;
+    double w = 0;
+
+    material->GetElementProp(a,z,w,i);
+    double atomNumDensity = Avogadro*material->GetDensity()*w/a;
+    sigma += atomNumDensity*G4CrossSectionPerAtom(z,energy);
+  }
+
+  return sigma;
 }
 
 } // end namespace impl

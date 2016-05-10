@@ -2,7 +2,7 @@
 #define MODEL_KERNEL_H 1
 
 #include "GUTrack.h"
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "SamplingMethod.h"
 
 namespace vecphys {

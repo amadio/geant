@@ -4,7 +4,7 @@
 #include "ComptonKleinNishina.h"
 #include <iostream>
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {
@@ -109,8 +109,10 @@ VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::CalculateDiffCrossSection(i
   return dsigma;
 }
 
-VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::GetG4CrossSection(double gammaEnergy, const int Z) {
-  // G4KleinNishinaModel::ComputeCrossSectionPerAtom - Genat4 10.1.p2
+VECCORE_CUDA_HOST double
+ComptonKleinNishina::GetG4CrossSection(const int Z, double  gammaEnergy)
+{
+  //G4KleinNishinaModel::ComputeCrossSectionPerAtom - Genat4 10.1.p2
   double xSection = 0.;
 
   const G4double dT0 = keV;

@@ -2,7 +2,7 @@
 #define GUBENCHMARKER_GPU_H 1
 
 #include "GUTrack.h"
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "GUAliasTableManager.h"
 #include "Physics2DVector.h"
 #include "SamplingMethod.h"

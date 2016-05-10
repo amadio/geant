@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
 
 #include "GUAliasSampler.h"
@@ -182,10 +182,57 @@ VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSe
   return dsigma;
 }
 
-VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::GetG4CrossSection(double /*gammaEnergy*/, const int /*Z*/) {
-  double xSection = 0.;
-  // dummy for now
-  return xSection;
+VECCORE_CUDA_HOST double
+PhotoElectronSauterGavrila::GetG4CrossSection(const int Z, double energy)
+{
+  //G4PEEffectFluoModel::ComputeCrossSectionPerAtom
+
+  // This method may be used only if G4MaterialCutsCouple pointer
+  //   has been set properly
+
+  //Sandia parameterization for Z < 100
+  //  int Z = zElement;
+
+  G4int    fCumulInterval[101]  = {0};
+  G4double fSandiaCof[4]        = {0.0};
+
+  fCumulInterval[0] = 1;
+
+  //scan - move it to constructor or use pre-built table
+  for (int iz = 1; iz < 101; ++iz) {     
+    fCumulInterval[iz] = fCumulInterval[iz-1] + fNbOfIntervals[iz];
+  }
+
+  G4double Emin  = fSandiaTable[fCumulInterval[Z-1]][0]*keV;
+
+  G4int interval = fNbOfIntervals[Z] - 1;
+  G4int row = fCumulInterval[Z-1] + interval;
+
+  while ((interval>0) && (energy<fSandiaTable[row][0]*keV)) {
+    --interval;
+    row = fCumulInterval[Z-1] + interval;
+  }
+
+  if (energy >= Emin) {        
+    G4double AoverAvo = Z*amu/fZtoAratio[Z];
+    fSandiaCof[0]=AoverAvo*funitc[1]*fSandiaTable[row][1];     
+    fSandiaCof[1]=AoverAvo*funitc[2]*fSandiaTable[row][2];     
+    fSandiaCof[2]=AoverAvo*funitc[3]*fSandiaTable[row][3];     
+    fSandiaCof[3]=AoverAvo*funitc[4]*fSandiaTable[row][4];
+  }
+  else {
+    fSandiaCof[0] = fSandiaCof[1] = fSandiaCof[2] = fSandiaCof[3] = 0.;
+  }     
+
+  //   CurrentCouple()->GetMaterial()
+  //     ->GetSandiaTable()->GetSandiaCofPerAtom((G4int)Z, energy, fSandiaCof);
+ 
+  G4double energy2 = energy*energy;
+  G4double energy3 = energy*energy2;
+  G4double energy4 = energy2*energy2;
+ 
+  return fSandiaCof[0]/energy  + fSandiaCof[1]/energy2 +
+     fSandiaCof[2]/energy3 + fSandiaCof[3]/energy4;
 }
 
 VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRejection(int Z, // not used

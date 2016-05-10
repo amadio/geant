@@ -1,7 +1,7 @@
 #ifndef ConversionBetheHeitler_H
 #define ConversionBetheHeitler_H 1
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"
@@ -29,6 +29,9 @@ public:
   // interfaces for tables
   VECCORE_CUDA_HOST
   void BuildCrossSectionTablePerAtom(int Z);
+
+  VECCORE_CUDA_HOST 
+  double GetG4CrossSection(const int Z, double  energy);
 
   VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);

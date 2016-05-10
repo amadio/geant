@@ -1,7 +1,7 @@
 #ifndef ComptonKleinNishina_H
 #define ComptonKleinNishina_H 1
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUTrack.h"
@@ -88,7 +88,8 @@ private:
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int Z, double energyIn, double &energyOut, double &sinTheta);
 
-  VECCORE_CUDA_HOST_DEVICE double GetG4CrossSection(double energyIn, const int zElement);
+  VECCORE_CUDA_HOST double
+  GetG4CrossSection(const int Z, double  energyIn); 
 
   VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection(int Zelement, double Ein, double outEphoton) const;

@@ -3,7 +3,7 @@
 #include "BremSeltzerBerger.h"
 #include <iostream>
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {
@@ -338,7 +338,7 @@ G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut, G4double kineti
   G4double delta = (vmax - vcut) / G4double(n);
 
   G4double e0 = vcut;
-  G4double xs;
+  G4double xs = 0.0;
 
   // densityFactor = mat->GetElectronDensity()*fMigdalConstant;
   // energyThresholdLPM=math::Sqrt(densityFactor)*lpmEnergy;
@@ -381,6 +381,7 @@ G4double BremSeltzerBerger::ComputeRelDXSectionPerAtom(G4double gammaEnergy)
   if (gammaEnergy < 0.0) {
     return 0.0;
   }
+  totalEnergy = gammaEnergy + electron_mass_c2;
 
   G4double y = gammaEnergy / totalEnergy;
   G4double y2 = y * y * .25;
@@ -411,7 +412,8 @@ G4double BremSeltzerBerger::ComputeDXSectionPerAtom(G4double gammaEnergy)
     return 0.0;
   }
 
-  G4double y = gammaEnergy / totalEnergy;
+  totalEnergy = gammaEnergy + electron_mass_c2;
+  G4double y = gammaEnergy/totalEnergy;
 
   G4double main = 0., secondTerm = 0.;
 
