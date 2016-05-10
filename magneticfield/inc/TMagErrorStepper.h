@@ -17,6 +17,11 @@ namespace GUIntegrationNms
    constexpr unsigned int NumVarBase  = 8;  //
 }
 
+template <class T_Stepper, class T_Equation, unsigned int Nvar> class TMagErrorStepper;
+
+template<class T_Stepper, class T_Equation, unsigned int Nvar>
+std::ostream& operator<<( std::ostream& ostr, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> &stepper );
+
 template
 <class T_Stepper, class T_Equation, unsigned int Nvar>
 class TMagErrorStepper : public GUVIntegrationStepper
@@ -53,7 +58,7 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
         // template<class T_Stepper, class T_Equation, int Nvar>
         friend  std::ostream&
-           operator<<( std::ostream& os, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> &  );
+           operator<< <>( std::ostream& os, const TMagErrorStepper<T_Stepper, T_Equation, Nvar> &  );
 
         bool CheckInitialisation() const;
 
