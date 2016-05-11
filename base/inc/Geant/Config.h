@@ -55,6 +55,16 @@
    using host_constant::name
 #else
 #ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef CUDA_SEP_COMP
+#define GEANT_DECLARE_CONSTANT(type,name) \
+   namespace host_constant { \
+      extern const type gTolerance; \
+   } \
+   namespace device_constant { \
+      extern __constant__ type name; \
+   } \
+   using device_constant::gTolerance
+#else // CUDA_SEP_COMP
 #define GEANT_DECLARE_CONSTANT(type,name) \
    namespace host_constant { \
       extern const type gTolerance; \
@@ -63,8 +73,19 @@
       __constant__ type name; \
    } \
    using device_constant::gTolerance
-#else
-#define GEANT_DECLARE_CONSTANT(type,name) \
+#endif // CUDA_SEP_COMP
+#else // GEANT_CUDA_DEVICE_BUILD
+#ifdef CUDA_SEP_COMP
+#define GEANT_DECLARE_CONSTANT(type,name)       \
+   namespace host_constant { \
+      extern const type name; \
+   } \
+   namespace device_constant { \
+      extern __constant__ type name; \
+   } \
+   using host_constant::gTolerance
+#else // CUDA_SEP_COMP
+#define GEANT_DECLARE_CONSTANT(type,name)       \
    namespace host_constant { \
       extern const type name; \
    } \
@@ -72,6 +93,7 @@
       __constant__ type name; \
    } \
    using host_constant::gTolerance
+#endif // CUDA_SEP_COMP
 #endif // Device build or not
 #endif // gcc or nvcc
 

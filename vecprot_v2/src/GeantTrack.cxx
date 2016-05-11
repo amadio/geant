@@ -60,6 +60,11 @@ const double gTolerance = vecgeom::kTolerance;
 const double gTolerance = TGeoShape::Tolerance();
 #endif
 }
+#ifdef CUDA_SEP_COMP
+namespace device_constant {
+   __constant__ double gTolerance;
+}
+#endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
 using namespace VECGEOM_NAMESPACE;
