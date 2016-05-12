@@ -397,16 +397,13 @@ if (CUDA)
   include(FindCUDA)
 
   set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+  set(CUDA_SEPARABLE_COMPILATION ON)
 
   if (NOT CUDA_ARCH)
     if (CUDA_SEPARABLE_COMPILATION)
-      # Separable compilation will 'succeed' with sm50 and sm21 but sm50 is
-      # not supported by the K20 and sm21 is too old for our code ....
-      # The related bug is fixed in nvcc.  This fix will be part of nvcc
-      # released after June 2014 (so likely 6.0.2)
-      set(CUDA_ARCH 50)
-    else()
       set(CUDA_ARCH 30)
+    else()
+       message(FATAL_ERROR "VecGeom requires using separable compilation")
     endif()
     if (NOT VECGEOM_CUDA_ARCH)
        message(FATAL_ERROR "VecGeom not configured with CUDA/NVCC")
