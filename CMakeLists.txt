@@ -393,6 +393,8 @@ if(CUSTOM_ALLOCATOR)
   find_package(CAllocator)
 endif()
 if (CUDA)
+  option(GEANT_CUDA_SINGLE_SOURCE "Compile all the GeantV CUDA code in a single compilation unit." ON)
+
   find_package(CUDA REQUIRED)
   include(FindCUDA)
 

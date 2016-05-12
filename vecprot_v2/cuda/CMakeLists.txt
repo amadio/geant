@@ -20,7 +20,7 @@ add_definitions(-DGEANT_CUDA)
 
 #NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC -DGX_MULTI_OBJ_FILES
 
-if (CUDA_SEPARABLE_COMPILATION)
+if (GEANT_CUDA_SINGLE_SOURCE)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP -DGX_MULTI_OBJ_FILES)
 endif()
 
@@ -48,17 +48,19 @@ set(cuda_cxx_sources
 )
 
 
-if (CUDA_SEPARABLE_COMPILATION)
+if (GEANT_CUDA_SINGLE_SOURCE)
 set(cuda_sources
-   ${CUDA_SRCDIR}/../src/GeantTrack.cxx
-   ${CUDA_SRCDIR}/../src/GeantTaskData.cxx
+    ${CUDA_SRCDIR}/SingleSource.cu
+ )
+else()
+message(WARNING "Use GEANT_CUDA_SINGLE_SOURCE=OFF is not working properly yet as the object fiels for the cxx files are not passed to the device link phase")
+set(cuda_sources
+   ${CUDA_SRCDIR}/../../src/GeantTrack.cxx
+   ${CUDA_SRCDIR}/../../src/GeantTaskData.cxx
+   ${CUDA_SRCDIR}/../../src/ScalarNavInterfaceVGM.cxx
    ${CUDA_SRCDIR}/GeantTrack.cu
    ${CUDA_SRCDIR}/PropagateTracks.cu
    ${CUDA_SRCDIR}/GeantCudaUtils.cu
-)
-else()
-set(cuda_sources
-    ${CUDA_SRCDIR}/SingleSource.cu
 )
 endif()
 
