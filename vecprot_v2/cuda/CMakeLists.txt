@@ -103,6 +103,9 @@ CUDA_ADD_LIBRARY( ${GeantCudaLib}
                  OPTIONS ${CUDA_ARCH}
 )
 
+cuda_add_library_depend(${GeantCudaLib} ${VECGEOM_CUDA_STATIC_LIBRARY})
+target_link_libraries(${GeantCudaLib} ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
+
 if( VECGEOM_FOUND )
   target_link_libraries(${GeantCudaLib} Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom -lGui  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 else()

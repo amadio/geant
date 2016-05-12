@@ -396,6 +396,8 @@ if (CUDA)
   find_package(CUDA REQUIRED)
   include(FindCUDA)
 
+  set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+
   if (NOT CUDA_ARCH)
     if (CUDA_SEPARABLE_COMPILATION)
       # Separable compilation will 'succeed' with sm50 and sm21 but sm50 is
