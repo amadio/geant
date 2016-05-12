@@ -18,22 +18,16 @@ set(CUDA_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 set(GEANT_COMPILATION_FLAGS ${GEANT_COMPILATION_FLAGS} -DGEANT_CUDA)
 add_definitions(-DGEANT_CUDA)
 
-#NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC -DGX_MULTI_OBJ_FILES
+#NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC
 
 if (GEANT_CUDA_SINGLE_SOURCE)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP -DGX_MULTI_OBJ_FILES)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP)
 endif()
 
 
-CUDA_INCLUDE_DIRECTORIES(
-       ${CudaCode}/GXTracking/gpu/cuda/kernel/include
-       ${CudaCode}/GXTracking/gpu/cuda/kernel/src
-)
-
 #CXXFLAGS += -I$(CUDA_INC) -I$(CUDA_INCDIR)
 
-INCLUDE_DIRECTORIES( ${CudaCode}/GXTracking/gpu/cuda/kernel/include
-       ${CUDA_INCDIR} ${CudaCode}/xsec/inc ${CudaCode}/magneticfield/inc )
+INCLUDE_DIRECTORIES(${CUDA_INCDIR} ${CudaCode}/xsec/inc ${CudaCode}/magneticfield/inc )
 
 
 #set(CUDA_DATA_TARFILE ${PROJECT_SOURCE_DIR}/data/vpdata_v1.tar.gz)

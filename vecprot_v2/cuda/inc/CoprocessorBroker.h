@@ -20,7 +20,6 @@
 #ifndef __CINT__
 #include <cuda.h>
 #include <curand.h>
-#include "random_kernel.h"
 #else
 class cudaStream_t;
 class curandState;
