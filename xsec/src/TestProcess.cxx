@@ -27,7 +27,7 @@ void TestProcess::Initialize() {
 }
 
 
-void TestProcess::Eloss( Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td ) {
+void TestProcess::Eloss( Material_t */* mat */, int ntracks, GeantTrack_v &tracks, int &/* nout */, GeantTaskData */* td */ ) {
 
   //  std::cout << "TestProcess::Eloss : Start" << std::endl;
   
@@ -38,8 +38,8 @@ void TestProcess::Eloss( Material_t *mat, int ntracks, GeantTrack_v &tracks, int
 }
 
 
-void TestProcess::ComputeIntLen( Material_t *mat, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
-				    GeantTaskData *td ) {
+void TestProcess::ComputeIntLen( Material_t */* mat */, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
+				    GeantTaskData */* td */ ) {
   //  std::cout << "TestProcess::ComputeIntLen : Start : ntracks=" << ntracks << std::endl;
   for ( int i = 0; i < ntracks; i++ ) {
     //    std::cout << " TestProcess::ComputeIntLen : proposedStepLengths[" << i << "]=" << 10 
@@ -52,14 +52,14 @@ void TestProcess::ComputeIntLen( Material_t *mat, int ntracks, GeantTrack_v &tra
 }
 
 
-void TestProcess::PostStepTypeOfIntrActSampling( Material_t *mat, int ntracks, GeantTrack_v &tracks,
-                                                    GeantTaskData *td ) {
+void TestProcess::PostStepTypeOfIntrActSampling( Material_t */* mat */, int /* ntracks */, GeantTrack_v &/* tracks */,
+                                                    GeantTaskData */* td */ ) {
   //  std::cout << "TestProcess::PostStepTypeOfIntrActSampling : Start & End" << std::endl;
 }
 
 
-void TestProcess::PostStepFinalStateSampling( Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
-                                                 GeantTaskData *td ) {
+void TestProcess::PostStepFinalStateSampling( Material_t */* mat */, int /* ntracks */, GeantTrack_v &/* tracks */, int &/* nout */,
+                                                 GeantTaskData */* td */ ) {
   //  std::cout << "TestProcess::PostStepTypeOfIntrActSampling : Start" << std::endl;
   //  std::cout << "TestProcess::PostStepTypeOfIntrActSampling : --- End ---" << std::endl;
 }

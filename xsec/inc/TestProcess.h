@@ -44,11 +44,11 @@ class TestProcess : public PhysicsProcess {
     virtual void PostStepFinalStateSampling( Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
                                              GeantTaskData *td );
 
-    virtual void AtRest( int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td ) {};
+    virtual void AtRest( int /*ntracks*/, GeantTrack_v &/* tracks */, int &/* nout */, GeantTaskData */* td */ ) {};
 
-    virtual void Eloss( Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td );
+    virtual void Eloss( Material_t */* mat */, int /* ntracks */, GeantTrack_v &/* tracks */, int &/* nout */, GeantTaskData */* td */ );
 
-    virtual void ApplyMsc( Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td ) {};
+    virtual void ApplyMsc( Material_t */* mat */, int /* ntracks */, GeantTrack_v &/* tracks */, GeantTaskData */* td */ ) {};
 
   private:
 
