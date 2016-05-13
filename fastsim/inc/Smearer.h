@@ -214,7 +214,7 @@ class Smearer {
     std::vector< int > hasVolumeMuonParameterisation;
     std::vector< int > hasVolumeParameterisation;
 
-    ClassDef( Smearer, 1 )
+    ClassDefNV( Smearer, 1 )
 };
 
 
