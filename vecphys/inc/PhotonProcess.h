@@ -115,9 +115,10 @@ PhotonProcess::GetLambda<backend::VcVector>(Index_v<typename backend::VcVector::
   for(size_t i = 0; i < VectorSize(ebin) ; ++i) {
     int im = matId[i];
     int ie = ebin[i];
+    //test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
     double xlow = fPhotonCrossSectionData[im][ie].sigma;
     double xhigh = fPhotonCrossSectionData[im][ie+1].sigma;
-    lambda[i] = (xhigh-xlow)*fraction[i];
+    lambda[i] = xlow + (xhigh-xlow)*fraction[i];
   }
   return lambda;
 }
@@ -194,8 +195,8 @@ PhotonProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
   double rp = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   for(int i = 0; i < fNumberOfProcess - 1 ; ++i) {
-    weight = fPhotonCrossSectionData[im][ie].w[i];
-    if(weight < rp) {
+    weight += fPhotonCrossSectionData[im][ie].w[i];
+    if(weight > rp) {
       ip = i;
       break;
     }
@@ -223,8 +224,8 @@ PhotonProcess::G3NextProcess<backend::VcVector>(Index_v<typename backend::VcVect
     double rp = UniformRandom<double>(&fRandomState, &fThreadId);
 
     for(int j = 0; j < fNumberOfProcess - 1 ; ++j) {
-      weight = fPhotonCrossSectionData[im][ie].w[j];
-      if(weight < rp) {
+      weight += fPhotonCrossSectionData[im][ie].w[j];
+      if(weight > rp) {
         ip[i] = j;
         break;
       }
