@@ -54,19 +54,19 @@ enum EScoreType {
 };  
 
 private:
+#ifdef USE_VECGEOM_NAVIGATOR 
+  using Map_t = vecgeom::map<int,int>;
+#else
+  using Map_t = std::map<int,int>;
+#endif
   bool fInitialized;                            /** Initialized flag */
   bool  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
   float fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
   float fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
   int fECALid[kNECALModules];                   /** ECAL volume id's */
   int fHCALid[kNHCALModules];                   /** HCAL volume id's */
-#ifdef USE_VECGEOM_NAVIGATOR 
-  vecgeom::map<int,int> fECALMap;                     /** Map of ECAL modules */
-  vecgeom::map<int,int> fHCALMap;                     /** Map of ECAL modules */
-#else 
-  std::map<int,int> fECALMap;                     /** Map of ECAL modules */
-  std::map<int,int> fHCALMap;                     /** Map of ECAL modules */
-#endif
+  Map_t fECALMap;                               /** Map of ECAL modules */
+  Map_t fHCALMap;                                /** Map of ECAL modules */
   std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
   EScoreType fScore;                              /** Entity for scoring */
   TH1F   *fFluxElec;                              /** Flux histogram for electrons */
