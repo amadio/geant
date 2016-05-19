@@ -380,7 +380,7 @@ int TEFstate::MakeCompactBuffer(char* &b) {
 #ifndef GEANT_NVCC
 void TEFstate::RebuildStore(char *b) {
    char *start = b;
-   int size = 0;
+   long size = 0;
    memcpy(&size,start,sizeof(int));
    start += sizeof(int);
    memcpy(&fNLdElems,start,sizeof(int));
@@ -399,8 +399,8 @@ void TEFstate::RebuildStore(char *b) {
 	 exit(1);
       start += current->SizeOf();
    }
-   if((int)(start - b) != size) {
-     Geant::Fatal("TEFstate::RebuildStore","expected size %d  found size %d\n",size,start - b);
+   if((start - b) != size) {
+     Geant::Fatal("TEFstate::RebuildStore","expected size %ld  found size %ld\n",size,start - b);
      return;
    }
 }
@@ -410,7 +410,7 @@ void TEFstate::RebuildStore(char *b) {
 GEANT_CUDA_DEVICE_CODE
 void TEFstate::RebuildStore(char *b) {
    char *start = b;
-   int size = 0;
+   long size = 0;
    memcpy(&size,start,sizeof(int));
    start += sizeof(int);
    memcpy(&fEFNLdElemsDev,start,sizeof(int));
@@ -429,8 +429,8 @@ void TEFstate::RebuildStore(char *b) {
          return;
       start += current->SizeOf();
    }
-   if((int)(start - b) != size) {
-     Geant::Fatal("TEFstate::RebuildStore","expected size %d  found size %d\n",size,start - b);
+   if((start - b) != size) {
+     Geant::Fatal("TEFstate::RebuildStore","expected size %ld  found size %ld",size,start - b);
      return;
    }
 }
