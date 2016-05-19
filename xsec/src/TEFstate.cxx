@@ -15,11 +15,13 @@
 using vecgeom::kAvogadro;
 
 #ifndef GEANT_NVCC
+
 TEFstate *TEFstate::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 int TEFstate::fNLdElems = 0;
 TPDecay* TEFstate::fDecay = nullptr;
 #else
@@ -92,33 +94,35 @@ TEFstate::TEFstate(const TEFstate &other) :
    fPFstateP(other.fPFstateP)
 {
 }
+
 //___________________________________________________________________
 TEFstate::~TEFstate()
 {
-   if(fPFstateP != nullptr)
-      for(auto i=0; i<fNRpart; ++i) delete fPFstateP[i];
-   delete [] fPFstateP;
-   delete [] fPFstate;
+  if(fPFstateP != nullptr)
+    for(auto i=0; i<fNRpart; ++i) delete fPFstateP[i];
+  delete [] fPFstateP;
+  delete [] fPFstate;
 }
+
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TEFstate::Streamer(TBuffer &R__b)
 {
-   // Stream an object of class TEXsec.
+  // Stream an object of class TEXsec.
 
-   if (R__b.IsReading()) {
-      R__b.ReadClassBuffer(TEFstate::Class(),this);
+  if (R__b.IsReading()) {
+    R__b.ReadClassBuffer(TEFstate::Class(),this);
 
-      if(fPFstateP != nullptr)
-	     for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPFstateP[ipart];
-      delete [] fPFstateP;
-      fPFstateP = new TPFstate*[fNRpart];
-      for(auto i=0; i<fNRpart; ++i) fPFstateP[i] = &fPFstate[i];
+    if(fPFstateP != nullptr)
+      for(auto ipart=0; ipart<fNRpart; ++ipart) delete fPFstateP[ipart];
+    delete [] fPFstateP;
+    fPFstateP = new TPFstate*[fNRpart];
+    for(auto i=0; i<fNRpart; ++i) fPFstateP[i] = &fPFstate[i];
 
-   } else {
-      R__b.WriteClassBuffer(TEFstate::Class(),this);
-   }
+  } else {
+    R__b.WriteClassBuffer(TEFstate::Class(),this);
+  }
 }
 #endif
 #endif
@@ -146,7 +150,9 @@ bool TEFstate::AddPartFS(int kpart, int ibin, int reac, const int npart[], const
 }
 
 //_____________________________________________________________________________
-void TEFstate::SetRestCaptFstate(int kpart, const TFinState &fstate) { fPFstateP[kpart]->SetRestCaptFstate(fstate); }
+void TEFstate::SetRestCaptFstate(int kpart, const TFinState &fstate) {
+   fPFstateP[kpart]->SetRestCaptFstate(fstate);
+}
 
 //______________________________________________________________________________
 bool TEFstate::HasRestCapture(int partindex) {
@@ -280,6 +286,7 @@ bool TEFstate::Resample() {
 #ifndef GEANT_NVCC
 void TEFstate::Draw(const char * /*option*/) {}
 #endif
+
 //___________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 int TEFstate::SizeOf() const {

@@ -6,6 +6,7 @@
  *************************************************************************/
 #ifndef TEFstate_H
 #define TEFstate_H
+
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // TEXSec                                                               //
@@ -36,9 +37,10 @@ extern GEANT_CUDA_DEVICE_CODE TEFstate *fEFElementsDev[NELEM]; //! databases of 
 extern TPDecay  *fDecayHost;           //! decay table
 extern GEANT_CUDA_DEVICE_CODE TPDecay  *fDecayDev;           //! decay table
 #endif
+
 class TEFstate {
 public:
-GEANT_CUDA_BOTH_CODE
+  GEANT_CUDA_BOTH_CODE
   TEFstate();
   TEFstate(int z, int a, float dens);
   TEFstate &operator=(const TEFstate &other);

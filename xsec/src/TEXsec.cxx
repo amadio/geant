@@ -974,6 +974,8 @@ bool TEXsec::Resample() {
   fEGrid = TPartIndex::I()->EGrid();
   return true;
 }
+
+//___________________________________________________________________
 #ifdef GEANT_NVCC
 GEANT_CUDA_BOTH_CODE
 char *TEXsec::strncpy(char *dest, const char *src, size_t n)

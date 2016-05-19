@@ -20,12 +20,12 @@
 
 #include "TPartIndex.h"
 #include "Geant/Error.h"
+
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
 #endif
-
 
 class TFinState;
 
@@ -77,7 +77,7 @@ public:
   void RebuildClass();
 #ifdef MAGIC_DEBUG
   GEANT_CUDA_BOTH_CODE
-  int GetMagic() const {return fMagic;}
+  int GetMagic() const { return fMagic;}
 #endif
 
   GEANT_CUDA_BOTH_CODE
