@@ -245,10 +245,12 @@ VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(in
   sinTheta = SampleSinTheta<backend::Scalar>(gammaEnergy);
 }
 
-VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::GetG4CrossSection(double kineticEnergy, int Z) {
-  // temporary
-  G4double cutEnergy = 1.0 * keV;
-  G4double maxEnergy = 1.0 * TeV;
+VECCORE_CUDA_HOST double
+BremSeltzerBerger::GetG4CrossSection(int Z, double  kineticEnergy)
+{
+  //temporary
+  G4double cutEnergy = 1.0*keV;
+  G4double maxEnergy = 1.0*TeV;
 
   // G4eBremsstrahlungRelModel::ComputeCrossSectionPerAtom
   if (kineticEnergy < fLowEnergyLimit) {

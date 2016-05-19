@@ -31,7 +31,7 @@ public:
   void BuildCrossSectionTablePerAtom(int Z);
 
   VECCORE_CUDA_HOST 
-  double GetG4CrossSection(const int Z, double  energy);
+  double GetG4CrossSection(int Z, double  energy);
 
   VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);
@@ -67,10 +67,9 @@ public:
   void SampleByCompositionRejection(int elementZ, double energyIn, double &energyOut, double &sinTheta);
 
   VECCORE_CUDA_HOST_DEVICE
-  double GetG4CrossSection(double energyIn, const int zElement);
-
-  VECCORE_CUDA_HOST_DEVICE
-  double CalculateDiffCrossSection(int Zelement, double Ein, double outEphoton);
+  double CalculateDiffCrossSection(int Zelement,
+                                   double Ein,
+                                   double outEphoton );
 
   // this should be a method of GUElement
   /*

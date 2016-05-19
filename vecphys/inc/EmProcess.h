@@ -33,7 +33,7 @@ public:
   VECCORE_CUDA_HOST_DEVICE
   void GetStepLengthAndProcess(GUTrack& track, const int materialIndex);
 
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void GetStepLengthAndProcess(GUTrack_v& tracks, const int* materialIndex);
 
@@ -142,7 +142,7 @@ EmProcess<Process>::GetStepLengthAndProcess(GUTrack& track, const int materialIn
   track.proc = GetNextProcess<Backend>(materialIndex,ebin);
 }
 
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template <class Process>
 template <typename Backend>
 void

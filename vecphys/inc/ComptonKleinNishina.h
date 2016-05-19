@@ -48,8 +48,8 @@ public:
   template <typename Backend>
   VECCORE_CUDA_HOST_DEVICE void ModelInteract(GUTrack &projectile, const int targetElement, GUTrack &secondary);
 
-// vector
-#ifndef VECCORE_NVCC
+  //vector
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void ModelInteract(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondaryV);
 #endif
@@ -89,7 +89,7 @@ private:
   void SampleByCompositionRejection(int Z, double energyIn, double &energyOut, double &sinTheta);
 
   VECCORE_CUDA_HOST double
-  GetG4CrossSection(const int Z, double  energyIn); 
+  GetG4CrossSection(int Z, double  energyIn); 
 
   VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection(int Zelement, double Ein, double outEphoton) const;
@@ -293,7 +293,7 @@ VECCORE_CUDA_HOST_DEVICE void ComptonKleinNishina::ModelInteract(GUTrack &inProj
   ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, inProjectile, outSecondary);
 }
 
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template <typename Backend>
 void ComptonKleinNishina::ModelInteract(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondary) {
   using Double_v = typename Backend::Double_v;

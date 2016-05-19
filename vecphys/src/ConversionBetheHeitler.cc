@@ -34,7 +34,7 @@ VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int
 }
 
 VECCORE_CUDA_HOST double
-ConversionBetheHeitler::GetG4CrossSection(const int Z, double GammaEnergy)
+ConversionBetheHeitler::GetG4CrossSection(int Z, double GammaEnergy)
 {
   // G4BetheHeitlerModel::ComputeCrossSectionPerAtom
 

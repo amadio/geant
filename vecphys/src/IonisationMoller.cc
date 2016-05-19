@@ -106,7 +106,7 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
 }
 
 VECCORE_CUDA_HOST double
-IonisationMoller::GetG4CrossSection(const int Z, double kineticEnergy)
+IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
 {
   G4double cross = 0.0;
 

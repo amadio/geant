@@ -183,7 +183,7 @@ VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSe
 }
 
 VECCORE_CUDA_HOST double
-PhotoElectronSauterGavrila::GetG4CrossSection(const int Z, double energy)
+PhotoElectronSauterGavrila::GetG4CrossSection(int Z, double energy)
 {
   //G4PEEffectFluoModel::ComputeCrossSectionPerAtom
 

@@ -77,7 +77,8 @@ public:
 
   // the cross section calculation from Geant4
 
-  VECCORE_CUDA_HOST_DEVICE double GetG4CrossSection(double energyIn, const int zElement);
+  VECCORE_CUDA_HOST double
+  GetG4CrossSection(int Z, double  energyIn); 
 
   VECCORE_CUDA_HOST_DEVICE
   void SetCurrentElement(G4double Z);

@@ -110,7 +110,7 @@ VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::CalculateDiffCrossSection(i
 }
 
 VECCORE_CUDA_HOST double
-ComptonKleinNishina::GetG4CrossSection(const int Z, double  gammaEnergy)
+ComptonKleinNishina::GetG4CrossSection(int Z, double  gammaEnergy)
 {
   //G4KleinNishinaModel::ComputeCrossSectionPerAtom - Genat4 10.1.p2
   double xSection = 0.;

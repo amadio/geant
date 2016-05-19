@@ -328,14 +328,21 @@ inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backen
 }
 
 // Specialisation for all vector-type backends - Vc for now
-#ifndef VECCORE_NVCC
-template <>
-inline VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::GatherAlias<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> index, Index_v<typename backend::VcVector::Double_v> zElement,
-    typename backend::VcVector::Double_v &probNA, Index_v<typename backend::VcVector::Double_v> &aliasInd) const {
-  // gather for alias table lookups - (backend type has no ptr arithmetic)
-  for (size_t i = 0; i < VectorSize(index); ++i) {
-    int z = zElement[i];
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+template<>
+inline
+VECCORE_CUDA_HOST_DEVICE
+void GUAliasSampler::
+GatherAlias<backend::VcVector>(Index_v<typename backend::VcVector::Double_v>    index,
+                 Index_v<typename backend::VcVector::Double_v>    zElement,
+                 typename backend::VcVector::Double_v  &probNA,
+                 Index_v<typename backend::VcVector::Double_v>   &aliasInd
+                ) const
+{
+  //gather for alias table lookups - (backend type has no ptr arithmetic)
+  for(size_t i = 0; i < VectorSize(index) ; ++i)
+  {
+    int z= zElement[i];
     int ind = index[i];
 
     if (ind < 0) {

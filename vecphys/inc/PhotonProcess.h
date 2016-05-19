@@ -100,7 +100,7 @@ PhotonProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
   return xlow + (xhigh - xlow)*fraction;
 }
 
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
@@ -148,7 +148,7 @@ PhotonProcess::GetWeightAndAlias(Index_v<typename Backend::Double_v> matId,
   alias =  fPhotonCrossSectionData[im][ie].a[ip];
 }
 
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template<>
 inline
 VECCORE_CUDA_HOST_DEVICE
@@ -204,7 +204,7 @@ PhotonProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
   return ip;
 }
 
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template <>
 inline
 VECCORE_CUDA_HOST_DEVICE
