@@ -1,18 +1,21 @@
+#include "Geant/Config.h"
+#include "Geant/Error.h"
+#include "base/Global.h"
+#include "base/MessageLogger.h"
+
+#include "TPartIndex.h"
+#include "TPFstate.h"
+#include "TPartIndex.h"
+#include "TEFstate.h"
+#include "TPDecay.h"
+using vecgeom::kAvogadro;
+
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "TFile.h"
-#include "TError.h"
 #endif
 #endif
-#include <TPFstate.h>
-#include <TPartIndex.h>
-#include "TEFstate.h"
-#include "TPDecay.h"
-#include "base/Global.h"
-#ifndef GEANT_NVCC
-#include "base/MessageLogger.h"
-#endif
-using vecgeom::kAvogadro;
+
 
 #ifndef GEANT_NVCC
 

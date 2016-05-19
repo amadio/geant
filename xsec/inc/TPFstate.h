@@ -18,6 +18,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#include "Geant/Config.h"
 #include "TPartIndex.h"
 #include "Geant/Error.h"
 

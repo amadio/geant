@@ -124,7 +124,7 @@ if (CUDA)
 
  cuda_add_library(xseccuda
      ${SRC_CUDA}
-    OPTIONS ${CUDA_ARCH} "-DGEANT_NVCC"
+    OPTIONS ${CUDA_ARCH}
 )  
 
 add_custom_target(testserial ALL DEPENDS xseccuda)

@@ -15,9 +15,10 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-#include "TPFstate.h"
+
 #include "Geant/Config.h"
 #include "Geant/Error.h"
+#include "TPFstate.h"
 
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT

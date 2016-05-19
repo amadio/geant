@@ -17,6 +17,7 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+#include "Geant/Config.h"
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
 #include "Rtypes.h"
@@ -26,7 +27,6 @@
 #include "materials/Particle.h"
 #endif
 #include "Geant/Typedefs.h"
-#include "Geant/Config.h"
 #include "Geant/Error.h"
 #ifdef GEANT_NVCC
 #include "base/Map.h"
