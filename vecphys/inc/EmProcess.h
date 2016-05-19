@@ -18,7 +18,7 @@ public:
   EmProcess(Random_t* states = 0, int threadId = -1);
 
   VECCORE_CUDA_HOST_DEVICE 
-  ~EmProcess();
+  ~EmProcess() = default ;
 
   VECCORE_CUDA_HOST
   void Initialization();
@@ -88,13 +88,6 @@ EmProcess<Process>::EmProcess(Random_t* states, int tid)
   fEnergyLowerBound(1.*10e-3),
   fEnergyUpperBound(1.*10e+6)
 {
-}
-
-template <class Process>
-VECCORE_CUDA_HOST_DEVICE 
-EmProcess<Process>::~EmProcess()
-{
-  ;
 }
 
 template <class Process>
