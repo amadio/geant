@@ -786,94 +786,52 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
    return totsize;
 }
 
-//___________________________________________________________________
 #ifndef GEANT_NVCC
-void TEXsec::RebuildStore(char *b) {
-   int size = 0;
-   fNLdElems = 0;
-   char *start = b;
-   memcpy(&size,start,sizeof(int));
-   start += sizeof(int);
-   memcpy(&fNLdElems,start,sizeof(int));
-   start += sizeof(int);
-   for(auto i=0; i<fNLdElems; ++i) {
-      TEXsec *current = (TEXsec *) start;
-#ifdef MAGIC_DEBUG
-      if(current->GetMagic() != -777777) {
-	 std::cout << "TEXsec::Broken Magic@" << i << " " << current->GetMagic() << std::endl;
-	 exit(1);
-      }
-#endif
-      current->RebuildClass();
-      fElements[i] = current;
-      if(!fElements[i]->CheckAlign()) exit(1);
-      start += current->SizeOf();
-   }
-   if(int (start - b) != size) {
-     Geant::Fatal("TEXsec::RebuildStore","expected size %d found size %d",sizestart - b);
-     return;
-   }
-}
+#define EXIT_OR_RETURN(val) exit(val);
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#define EXIT_OR_RETURN(val) return;
+#endif
+
 //___________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+GEANT_CUDA_BOTH_CODE
 void TEXsec::RebuildStore(char *b) {
-   int size = 0;
-   fNLdElemsDev = 0;
+   size_t size = 0;
+   typedef TEXsec *ElementArray_t[NELEM];
+#ifndef GEANT_NVCC
+   int &nElems(fNLdElems);
+   ElementArray_t &elements(fElements);
+#elif defined(GEANT_CUDA_DEVICE_BUILD)
+   int &nElems(fNLdElemsDev);
+   ElementArray_t &elements(fElementsDev);
+#else // NVCC Host
+   int &nElems(fNLdElemsHost);
+   ElementArray_t &elements(fElementsHost);
+#endif
    char *start = b;
    memcpy(&size,start,sizeof(int));
    start += sizeof(int);
-   memcpy(&fNLdElemsDev,start,sizeof(int));
+   memcpy(&nElems,start,sizeof(int));
    start += sizeof(int);
-   for(auto i=0; i<fNLdElemsDev; ++i) {
+   for(auto i=0; i<nElems; ++i) {
       TEXsec *current = (TEXsec *) start;
 #ifdef MAGIC_DEBUG
       if(current->GetMagic() != -777777) {
-	 Geant::Error("TEXsec::RebuildStore:","Broken Magic@ %d %d\n", i, current->GetMagic());
- 	 return;
+        Geant::Fatal("TEXsec::RebuildStore:","Broken Magic@ %d %d\n", i, current->GetMagic());
+        EXIT_OR_RETURN(1);
       }
 #endif
       current->RebuildClass();
-      fElementsDev[i] = current;
-      if(!fElementsDev[i]->CheckAlign()) 
-       return;
+      elements[i] = current;
+      if(!elements[i]->CheckAlign())
+        EXIT_OR_RETURN(1);
       start += current->SizeOf();
    }
-   if(int (start - b) != size) {
-     Geant::Fatal("TEXsec::RebuildStore","expected size %d found size %d",sizestart - b);
-     return;
+   if(size_t (start - b) != size) {
+     Geant::Fatal("TEXsec::RebuildStore","expected size %ld found size %ld", size, start - b);
+     EXIT_OR_RETURN(1);
    }
 }
-#else 
-void TEXsec::RebuildStore(char *b) {
-   int size = 0;
-   fNLdElemsHost = 0;
-   char *start = b;
-   memcpy(&size,start,sizeof(int));
-   start += sizeof(int);
-   memcpy(&fNLdElemsHost,start,sizeof(int));
-   start += sizeof(int);
-   for(auto i=0; i<fNLdElemsHost; ++i) {
-      TEXsec *current = (TEXsec *) start;
-#ifdef MAGIC_DEBUG
-      if(current->GetMagic() != -777777) {
-        Geant::Error("TEXsec::RebuildStore:","Broken Magic@ %d %d\n", i, current->GetMagic());
-        return;
-      }
-#endif
-      current->RebuildClass();
-      fElementsHost[i] = current;
-      if(!fElementsHost[i]->CheckAlign()) 
-       return;
-      start += current->SizeOf();
-   }
-   if(int (start - b) != size) {
-     Geant::Fatal("TEXsec::RebuildStore","expected size %d found size %d",sizestart - b);
-   }
-}
-#endif
-#endif
+
 //___________________________________________________________________
 float TEXsec::Lambda(int pindex, double en) const {
   double xs = fPXsecP[pindex]->XS(TPartIndex::I()->NProc() - 1, en);

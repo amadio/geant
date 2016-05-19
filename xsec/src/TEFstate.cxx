@@ -383,91 +383,50 @@ int TEFstate::MakeCompactBuffer(char* &b) {
    return totsize;
 }
 
-//___________________________________________________________________
 #ifndef GEANT_NVCC
-void TEFstate::RebuildStore(char *b) {
-   char *start = b;
-   long size = 0;
-   memcpy(&size,start,sizeof(int));
-   start += sizeof(int);
-   memcpy(&fNLdElems,start,sizeof(int));
-   start += sizeof(int);
-   for(auto i=0; i<fNLdElems; ++i) {
-      TEFstate *current = (TEFstate *) start;
-#ifdef MAGIC_DEBUG
-      if(current->GetMagic() != -777777) {
-        Geant::Fatal("TEFstate::RebuildStore","Broken Magic %d\n",current->GetMagic());
-        exit(1);
-      }
+#define EXIT_OR_RETURN(val) exit(val);
+#else
+#define EXIT_OR_RETURN(val) return;
 #endif
-      current->RebuildClass();
-      fElements[i] = current;
-      if(!fElements[i]->CheckAlign())
-	 exit(1);
-      start += current->SizeOf();
-   }
-   if((start - b) != size) {
-     Geant::Fatal("TEFstate::RebuildStore","expected size %ld  found size %ld\n",size,start - b);
-     return;
-   }
-}
+
+//___________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+void TEFstate::RebuildStore(char *b) {
+  typedef TEFstate *StateArray_t[NELEM];
+#ifndef GEANT_NVCC
+  int &nElems(fNLdElems);
+  StateArray_t &elements(fElements);
 #else
 #ifdef GEANT_CUDA_DEVICE_BUILD
-//___________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
-void TEFstate::RebuildStore(char *b) {
-   char *start = b;
-   long size = 0;
-   memcpy(&size,start,sizeof(int));
-   start += sizeof(int);
-   memcpy(&fEFNLdElemsDev,start,sizeof(int));
-   start += sizeof(int);
-   for(auto i=0; i<fEFNLdElemsDev; ++i) {
-      TEFstate *current = (TEFstate *) start;
-#ifdef MAGIC_DEBUG
-      if(current->GetMagic() != -777777) {
-        Geant::Fatal("TEFstate::RebuildStore","Broken Magic %d\n",current->GetMagic());
-        return;
-      }
-#endif
-      current->RebuildClass();
-      fEFElementsDev[i] = current;
-      if(!fEFElementsDev[i]->CheckAlign())
-         return;
-      start += current->SizeOf();
-   }
-   if((start - b) != size) {
-     Geant::Fatal("TEFstate::RebuildStore","expected size %ld  found size %ld",size,start - b);
-     return;
-   }
-}
+  int &nElems(fEFNLdElemsDev);
+  StateArray_t &elements(fEFElementsDev);
 #else
-//___________________________________________________________________
-void TEFstate::RebuildStore(char *b) {
-   char *start = b;
-   int size = 0;
-   memcpy(&size,start,sizeof(int));
-   start += sizeof(int);
-   memcpy(&fEFNLdElemsHost,start,sizeof(int));
-   start += sizeof(int);
-   for(auto i=0; i<fEFNLdElemsHost; ++i) {
-      TEFstate *current = (TEFstate *) start;
+  int &nElems(fEFNLdElemsHost);
+  StateArray_t &elements(fEFElementsHost);
+#endif
+#endif
+  char *start = b;
+  long size = 0;
+  memcpy(&size,start,sizeof(int));
+  start += sizeof(int);
+  memcpy(&nElems,start,sizeof(int));
+  start += sizeof(int);
+  for(auto i=0; i<nElems; ++i) {
+    TEFstate *current = (TEFstate *) start;
 #ifdef MAGIC_DEBUG
-      if(current->GetMagic() != -777777) {
-        Geant::Fatal("TEFstate::RebuildStore","Broken Magic %d\n",current->GetMagic());
-        return;
-      }
+    if(current->GetMagic() != -777777) {
+      Geant::Fatal("TEFstate::RebuildStore","Broken Magic %d\n",current->GetMagic());
+      EXIT_OR_RETURN(1);
+    }
 #endif
-      current->RebuildClass();
-      fEFElementsHost[i] = current;
-      if(!fEFElementsHost[i]->CheckAlign())
-         return;
-      start += current->SizeOf();
-   }
-   if((int)(start - b) != size) {
-     Geant::Fatal("TEFstate::RebuildStore","expected size %d  found size %d\n",size,start - b);
-     return;
-   }
+    current->RebuildClass();
+    elements[i] = current;
+    if(!elements[i]->CheckAlign())
+      EXIT_OR_RETURN(1);
+    start += current->SizeOf();
+  }
+  if((start - b) != size) {
+    Geant::Fatal("TEFstate::RebuildStore","expected size %ld  found size %ld\n",size,start - b);
+    EXIT_OR_RETURN(1);
+  }
 }
-#endif
-#endif
