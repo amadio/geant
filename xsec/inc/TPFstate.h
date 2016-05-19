@@ -108,9 +108,8 @@ bool CheckAlign() {
   static int GetVerbose() { return fVerbose; }
 
 private:
-#ifndef GEANT_NVCC
-  TPFstate &operator=(const TPFstate &); // Not implemented
-#endif
+  TPFstate &operator=(const TPFstate &) = delete;
+
   static int fVerbose; // Controls verbosity level
 
   int fNEbins;               // number of energy bins
