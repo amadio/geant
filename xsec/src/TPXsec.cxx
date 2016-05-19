@@ -489,6 +489,9 @@ int TPXsec::SampleReac(double en) const {
 #elif USE_ROOT
 #ifndef GEANT_NVCC
     double ran = xnorm * gRandom->Rndm();
+#else
+    // Suppress warning
+    (void)xnorm;
 #endif
 #endif
     double xsum = 0;
