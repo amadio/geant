@@ -207,7 +207,6 @@ PhotonProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template <>
 inline
-VECCORE_CUDA_HOST_DEVICE
 Index_v<typename backend::VcVector::Double_v>
 PhotonProcess::G3NextProcess<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> matId,
                                                 Index_v<typename backend::VcVector::Double_v> ebin) 

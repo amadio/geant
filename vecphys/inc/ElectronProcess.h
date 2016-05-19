@@ -177,8 +177,6 @@ Index_v<typename Backend::Double_v>
 ElectronProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
                                Index_v<typename Backend::Double_v> ebin)
 {
-  using Double_v = typename Backend::Double_v;
-
   //select a physics process randomly based on the weight
   int im = (int)(matId);
   int ie = (int)(ebin);
@@ -186,7 +184,7 @@ ElectronProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
   int ip = fNumberOfProcess - 1;
 
   double weight = 0.0;
-  double rp = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  double rp = UniformRandom<double>(&fRandomState, &fThreadId);
 
   for(int i = 0; i < fNumberOfProcess - 1 ; ++i) {
     weight += fElectronCrossSectionData[im][ie].w[i];
@@ -201,7 +199,6 @@ ElectronProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template <>
 inline
-VECCORE_CUDA_HOST_DEVICE
 Index_v<typename backend::VcVector::Double_v>
 ElectronProcess::G3NextProcess<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> matId,
                                                   Index_v<typename backend::VcVector::Double_v> ebin) 
