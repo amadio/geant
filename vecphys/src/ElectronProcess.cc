@@ -51,9 +51,9 @@ ElectronProcess::Initialization()
   //initialize table
   for (int i = 0 ; i < fNumberOfMaterialBin ; ++i) {
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
-      for (int k = 0 ; k < fNumberOfProcess ; ++k) fElectronCrossSectionData[i][j].a[k] = 0;
+      for (int k = 0 ; k < fNumberOfProcess ; ++k) fElectronCrossSectionData[i][j].alias[k] = 0;
       fElectronCrossSectionData[i][j].sigma = 0.0;
-      for (int k = 0 ; k < fNumberOfProcess-1 ; ++k) fElectronCrossSectionData[i][j].w[k] = 0.0;
+      for (int k = 0 ; k < fNumberOfProcess-1 ; ++k) fElectronCrossSectionData[i][j].weight[k] = 0.0;
     }
   }
   
@@ -86,8 +86,8 @@ ElectronProcess::BuildCrossSectionTable()
       fElectronCrossSectionData[i][j].sigma = cross[0] + cross[1];
 
       if(fElectronCrossSectionData[i][j].sigma !=0.0) {
-        fElectronCrossSectionData[i][j].w[0] = cross[0]/(fElectronCrossSectionData[i][j].sigma);
-        fElectronCrossSectionData[i][j].w[1] = cross[1]/(fElectronCrossSectionData[i][j].sigma);
+        fElectronCrossSectionData[i][j].weight[0] = cross[0]/(fElectronCrossSectionData[i][j].sigma);
+        fElectronCrossSectionData[i][j].weight[1] = cross[1]/(fElectronCrossSectionData[i][j].sigma);
       }
 
       //alias table
@@ -97,9 +97,9 @@ ElectronProcess::BuildCrossSectionTable()
       double cp = 1./fNumberOfProcess;
 
       //pdf for alias
-      double pdf[3] = {fElectronCrossSectionData[i][j].w[0],
-                       fElectronCrossSectionData[i][j].w[1],
-                       1.0-fElectronCrossSectionData[i][j].w[0]-fElectronCrossSectionData[i][j].w[1]};
+      double pdf[3] = {fElectronCrossSectionData[i][j].weight[0],
+                       fElectronCrossSectionData[i][j].weight[1],
+                       1.0-fElectronCrossSectionData[i][j].weight[0]-fElectronCrossSectionData[i][j].weight[1]};
 
       for(int k = 0; k < fNumberOfProcess ; ++k) {
         a[k] = -1;
@@ -129,7 +129,7 @@ ElectronProcess::BuildCrossSectionTable()
         }
 
         //alias and non-alias probability
-        fElectronCrossSectionData[i][j].a[recip] = donor;
+        fElectronCrossSectionData[i][j].alias[recip] = donor;
 
         //update pdf 
         ap[donor] = ap[donor] - (cp-ap[recip]);
@@ -155,11 +155,11 @@ ElectronProcess::PrintCrossSectionTable()
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
       printf("[M=%d][E=%d] = [ %g %g %g %d %d %d]\n",i,j,
              fElectronCrossSectionData[i][j].sigma,
-             fElectronCrossSectionData[i][j].w[0],
-             fElectronCrossSectionData[i][j].w[1],
-             fElectronCrossSectionData[i][j].a[0],
-             fElectronCrossSectionData[i][j].a[1],
-             fElectronCrossSectionData[i][j].a[2]
+             fElectronCrossSectionData[i][j].weight[0],
+             fElectronCrossSectionData[i][j].weight[1],
+             fElectronCrossSectionData[i][j].alias[0],
+             fElectronCrossSectionData[i][j].alias[1],
+             fElectronCrossSectionData[i][j].alias[2]
       );
     }
   }

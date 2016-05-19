@@ -19,8 +19,8 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 struct PhotonCrossSectionData
 {
   double sigma;
-  double w[2];
-  int a[3];
+  double weight[2];
+  int alias[3];
 };
 
 class PhotonProcess : public EmProcess<PhotonProcess>
@@ -90,8 +90,8 @@ PhotonProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
                          Index_v<typename Backend::Double_v> ebin,
                          typename Backend::Double_v fraction) const
 {
-  int im= (int)(matId);
-  int ie= (int)(ebin);
+  auto im = matId;
+  auto ie = ebin;
 
   //linear approximation
   double xlow  = fPhotonCrossSectionData[im][ie].sigma;
@@ -103,7 +103,6 @@ PhotonProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template<>
 inline
-VECCORE_CUDA_HOST_DEVICE
 typename backend::VcVector::Double_v
 PhotonProcess::GetLambda<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> matId, 
                                             Index_v<typename backend::VcVector::Double_v> ebin,
@@ -113,8 +112,8 @@ PhotonProcess::GetLambda<backend::VcVector>(Index_v<typename backend::VcVector::
   Double_t lambda(0.0);
 
   for(size_t i = 0; i < VectorSize(ebin) ; ++i) {
-    int im = matId[i];
-    int ie = ebin[i];
+    auto im = matId[i];
+    auto ie = ebin[i];
     //test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
     double xlow = fPhotonCrossSectionData[im][ie].sigma;
     double xhigh = fPhotonCrossSectionData[im][ie+1].sigma;
@@ -134,24 +133,23 @@ PhotonProcess::GetWeightAndAlias(Index_v<typename Backend::Double_v> matId,
                                  typename Backend::Double_v &weight,
                                  Index_v<typename Backend::Double_v> &alias) const
 {
-  int im = (int)(matId);
-  int ie = (int)(ebin);
-  int ip = (int)(iprocess);
+  auto im = matId;
+  auto ie = ebin;
+  auto ip = iprocess;
 
   if(ip == fNumberOfProcess-1) {
-    for(int j = 0 ; j < fNumberOfProcess-1 ; ++j) weight -= fPhotonCrossSectionData[im][ie].w[j];
+    for(int j = 0 ; j < fNumberOfProcess-1 ; ++j) weight -= fPhotonCrossSectionData[im][ie].weight[j];
     weight += 1.0;        
   }
   else {
-    weight = fPhotonCrossSectionData[im][ie].w[ip];
+    weight = fPhotonCrossSectionData[im][ie].weight[ip];
   }
-  alias =  fPhotonCrossSectionData[im][ie].a[ip];
+  alias =  fPhotonCrossSectionData[im][ie].alias[ip];
 }
 
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template<>
 inline
-VECCORE_CUDA_HOST_DEVICE
 void 
 PhotonProcess::GetWeightAndAlias<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> matId, 
                                                     Index_v<typename backend::VcVector::Double_v> ebin,  
@@ -160,18 +158,18 @@ PhotonProcess::GetWeightAndAlias<backend::VcVector>(Index_v<typename backend::Vc
                                                     Index_v<typename backend::VcVector::Double_v> &alias) const 
 {
   for(size_t i = 0; i < VectorSize(matId) ; ++i) {
-    int im = matId[i];
-    int ie = ebin[i];
-    int ip = iprocess[i];
+    auto im = matId[i];
+    auto ie = ebin[i];
+    auto ip = iprocess[i];
 
     if(ip == fNumberOfProcess-1) {
-      for(int j = 0 ; j < fNumberOfProcess - 1 ; ++j) weight[i] -= fPhotonCrossSectionData[im][ie].w[j];
+      for(int j = 0 ; j < fNumberOfProcess - 1 ; ++j) weight[i] -= fPhotonCrossSectionData[im][ie].weight[j];
       weight[i] += 1.0;        
     }
     else {
-      weight[i] = fPhotonCrossSectionData[im][ie].w[ip];
+      weight[i] = fPhotonCrossSectionData[im][ie].weight[ip];
     }
-    alias[i] =  fPhotonCrossSectionData[im][ie].a[ip];
+    alias[i] =  fPhotonCrossSectionData[im][ie].alias[ip];
   }
 }
 #endif
@@ -186,8 +184,8 @@ PhotonProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
   //select a physics process randomly based on the weight
   using Double_v = typename Backend::Double_v;
 
-  int im = (int)(matId);
-  int ie = (int)(ebin);
+  auto im = matId;
+  auto ie = ebin;
 
   int ip = fNumberOfProcess - 1;
 
@@ -195,7 +193,7 @@ PhotonProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
   double rp = UniformRandom<Double_v>(&fRandomState, &fThreadId);
 
   for(int i = 0; i < fNumberOfProcess - 1 ; ++i) {
-    weight += fPhotonCrossSectionData[im][ie].w[i];
+    weight += fPhotonCrossSectionData[im][ie].weight[i];
     if(weight > rp) {
       ip = i;
       break;
@@ -216,14 +214,14 @@ PhotonProcess::G3NextProcess<backend::VcVector>(Index_v<typename backend::VcVect
 
   for(size_t i = 0; i < VectorSize(matId) ; ++i) {
 
-    int im = (int)(matId[i]);
-    int ie = (int)(ebin[i]);
+    auto im = matId[i];
+    auto ie = ebin[i];
 
     double weight = 0.0;
     double rp = UniformRandom<double>(&fRandomState, &fThreadId);
 
     for(int j = 0; j < fNumberOfProcess - 1 ; ++j) {
-      weight += fPhotonCrossSectionData[im][ie].w[j];
+      weight += fPhotonCrossSectionData[im][ie].weight[j];
       if(weight > rp) {
         ip[i] = j;
         break;

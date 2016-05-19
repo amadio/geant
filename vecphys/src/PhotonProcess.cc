@@ -54,9 +54,9 @@ PhotonProcess::Initialization()
   //initialize table
   for (int i = 0 ; i < fNumberOfMaterialBin ; ++i) {
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
-      for (int k = 0 ; k < 3 ; ++k) fPhotonCrossSectionData[i][j].a[k] = 0;
+      for (int k = 0 ; k < 3 ; ++k) fPhotonCrossSectionData[i][j].alias[k] = 0;
       fPhotonCrossSectionData[i][j].sigma = 0.0;
-      for (int k = 0 ; k < 2 ; ++k) fPhotonCrossSectionData[i][j].w[k] = 0.0;
+      for (int k = 0 ; k < 2 ; ++k) fPhotonCrossSectionData[i][j].weight[k] = 0.0;
     }
   }
   
@@ -89,8 +89,8 @@ PhotonProcess::BuildCrossSectionTable()
       fPhotonCrossSectionData[i][j].sigma = cross[0] + cross[1] + cross[2];
 
       if(fPhotonCrossSectionData[i][j].sigma !=0.0) {
-        fPhotonCrossSectionData[i][j].w[0] = cross[0]/(fPhotonCrossSectionData[i][j].sigma);
-        fPhotonCrossSectionData[i][j].w[1] = cross[1]/(fPhotonCrossSectionData[i][j].sigma);
+        fPhotonCrossSectionData[i][j].weight[0] = cross[0]/(fPhotonCrossSectionData[i][j].sigma);
+        fPhotonCrossSectionData[i][j].weight[1] = cross[1]/(fPhotonCrossSectionData[i][j].sigma);
       }
 
       //alias table
@@ -100,10 +100,10 @@ PhotonProcess::BuildCrossSectionTable()
       const double cp = 1./fNumberOfProcess;
 
       //copy and initialize
-      //      double pdf[fNumberOfProcess] = {fPhotonCrossSectionData[i][j].w[0],
-      double pdf[3] = {fPhotonCrossSectionData[i][j].w[0],
-                       fPhotonCrossSectionData[i][j].w[1],
-                       1.0-fPhotonCrossSectionData[i][j].w[0]-fPhotonCrossSectionData[i][j].w[1]};
+      //      double pdf[fNumberOfProcess] = {fPhotonCrossSectionData[i][j].weight[0],
+      double pdf[3] = {fPhotonCrossSectionData[i][j].weight[0],
+                       fPhotonCrossSectionData[i][j].weight[1],
+                       1.0-fPhotonCrossSectionData[i][j].weight[0]-fPhotonCrossSectionData[i][j].weight[1]};
 
       for(int k = 0; k < fNumberOfProcess ; ++k) {
         a[k] = -1;
@@ -133,7 +133,7 @@ PhotonProcess::BuildCrossSectionTable()
         }
 
         //alias and non-alias probability
-        fPhotonCrossSectionData[i][j].a[recip] = donor;
+        fPhotonCrossSectionData[i][j].alias[recip] = donor;
 
         //update pdf 
         ap[donor] = ap[donor] - (cp-ap[recip]);
@@ -159,11 +159,11 @@ PhotonProcess::PrintCrossSectionTable()
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
       printf("[M=%d][E=%d] = [ %g %g %g %d %d %d ]\n",i,j,
              fPhotonCrossSectionData[i][j].sigma,
-	     fPhotonCrossSectionData[i][j].w[0],
-	     fPhotonCrossSectionData[i][j].w[1],
-	     fPhotonCrossSectionData[i][j].a[0],
-	     fPhotonCrossSectionData[i][j].a[1],
-	     fPhotonCrossSectionData[i][j].a[2]
+	     fPhotonCrossSectionData[i][j].weight[0],
+	     fPhotonCrossSectionData[i][j].weight[1],
+	     fPhotonCrossSectionData[i][j].alias[0],
+	     fPhotonCrossSectionData[i][j].alias[1],
+	     fPhotonCrossSectionData[i][j].alias[2]
       );
     }
   }
