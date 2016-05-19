@@ -51,9 +51,9 @@ ElectronProcess::Initialization()
   //initialize table
   for (int i = 0 ; i < fNumberOfMaterialBin ; ++i) {
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
-      for (int k = 0 ; k < fNumberOfProcess ; ++k) fElectronCrossSectionData[i][j].alias[k] = 0;
-      fElectronCrossSectionData[i][j].sigma = 0.0;
-      for (int k = 0 ; k < fNumberOfProcess-1 ; ++k) fElectronCrossSectionData[i][j].weight[k] = 0.0;
+      for (int k = 0 ; k < fNumberOfProcess ; ++k) fElectronCrossSectionData[i][j].fAlias[k] = 0;
+      fElectronCrossSectionData[i][j].fSigma = 0.0;
+      for (int k = 0 ; k < fNumberOfProcess-1 ; ++k) fElectronCrossSectionData[i][j].fWeight[k] = 0.0;
     }
   }
   
@@ -83,11 +83,11 @@ ElectronProcess::BuildCrossSectionTable()
       //add-msc
 
       //fill cross section information (total and weights)
-      fElectronCrossSectionData[i][j].sigma = cross[0] + cross[1];
+      fElectronCrossSectionData[i][j].fSigma = cross[0] + cross[1];
 
-      if(fElectronCrossSectionData[i][j].sigma !=0.0) {
-        fElectronCrossSectionData[i][j].weight[0] = cross[0]/(fElectronCrossSectionData[i][j].sigma);
-        fElectronCrossSectionData[i][j].weight[1] = cross[1]/(fElectronCrossSectionData[i][j].sigma);
+      if(fElectronCrossSectionData[i][j].fSigma !=0.0) {
+        fElectronCrossSectionData[i][j].fWeight[0] = cross[0]/(fElectronCrossSectionData[i][j].fSigma);
+        fElectronCrossSectionData[i][j].fWeight[1] = cross[1]/(fElectronCrossSectionData[i][j].fSigma);
       }
 
       //alias table
@@ -97,9 +97,9 @@ ElectronProcess::BuildCrossSectionTable()
       double cp = 1./fNumberOfProcess;
 
       //pdf for alias
-      double pdf[3] = {fElectronCrossSectionData[i][j].weight[0],
-                       fElectronCrossSectionData[i][j].weight[1],
-                       1.0-fElectronCrossSectionData[i][j].weight[0]-fElectronCrossSectionData[i][j].weight[1]};
+      double pdf[3] = {fElectronCrossSectionData[i][j].fWeight[0],
+                       fElectronCrossSectionData[i][j].fWeight[1],
+                       1.0-fElectronCrossSectionData[i][j].fWeight[0]-fElectronCrossSectionData[i][j].fWeight[1]};
 
       for(int k = 0; k < fNumberOfProcess ; ++k) {
         a[k] = -1;
@@ -129,7 +129,7 @@ ElectronProcess::BuildCrossSectionTable()
         }
 
         //alias and non-alias probability
-        fElectronCrossSectionData[i][j].alias[recip] = donor;
+        fElectronCrossSectionData[i][j].fAlias[recip] = donor;
 
         //update pdf 
         ap[donor] = ap[donor] - (cp-ap[recip]);
@@ -154,12 +154,12 @@ ElectronProcess::PrintCrossSectionTable()
   for (int i = 0 ; i < fNumberOfMaterialBin ; ++i) {
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
       printf("[M=%d][E=%d] = [ %g %g %g %d %d %d]\n",i,j,
-             fElectronCrossSectionData[i][j].sigma,
-             fElectronCrossSectionData[i][j].weight[0],
-             fElectronCrossSectionData[i][j].weight[1],
-             fElectronCrossSectionData[i][j].alias[0],
-             fElectronCrossSectionData[i][j].alias[1],
-             fElectronCrossSectionData[i][j].alias[2]
+             fElectronCrossSectionData[i][j].fSigma,
+             fElectronCrossSectionData[i][j].fWeight[0],
+             fElectronCrossSectionData[i][j].fWeight[1],
+             fElectronCrossSectionData[i][j].fAlias[0],
+             fElectronCrossSectionData[i][j].fAlias[1],
+             fElectronCrossSectionData[i][j].fAlias[2]
       );
     }
   }

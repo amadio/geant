@@ -54,9 +54,9 @@ PhotonProcess::Initialization()
   //initialize table
   for (int i = 0 ; i < fNumberOfMaterialBin ; ++i) {
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
-      for (int k = 0 ; k < 3 ; ++k) fPhotonCrossSectionData[i][j].alias[k] = 0;
-      fPhotonCrossSectionData[i][j].sigma = 0.0;
-      for (int k = 0 ; k < 2 ; ++k) fPhotonCrossSectionData[i][j].weight[k] = 0.0;
+      for (int k = 0 ; k < 3 ; ++k) fPhotonCrossSectionData[i][j].fAlias[k] = 0;
+      fPhotonCrossSectionData[i][j].fSigma = 0.0;
+      for (int k = 0 ; k < 2 ; ++k) fPhotonCrossSectionData[i][j].fWeight[k] = 0.0;
     }
   }
   
@@ -86,11 +86,11 @@ PhotonProcess::BuildCrossSectionTable()
       cross[2] = fPhotoElectron->G4CrossSectionPerVolume((mtable)[i],energy);
 
       //fill cross section information (total and weights)
-      fPhotonCrossSectionData[i][j].sigma = cross[0] + cross[1] + cross[2];
+      fPhotonCrossSectionData[i][j].fSigma = cross[0] + cross[1] + cross[2];
 
-      if(fPhotonCrossSectionData[i][j].sigma !=0.0) {
-        fPhotonCrossSectionData[i][j].weight[0] = cross[0]/(fPhotonCrossSectionData[i][j].sigma);
-        fPhotonCrossSectionData[i][j].weight[1] = cross[1]/(fPhotonCrossSectionData[i][j].sigma);
+      if(fPhotonCrossSectionData[i][j].fSigma !=0.0) {
+        fPhotonCrossSectionData[i][j].fWeight[0] = cross[0]/(fPhotonCrossSectionData[i][j].fSigma);
+        fPhotonCrossSectionData[i][j].fWeight[1] = cross[1]/(fPhotonCrossSectionData[i][j].fSigma);
       }
 
       //alias table
@@ -100,10 +100,10 @@ PhotonProcess::BuildCrossSectionTable()
       const double cp = 1./fNumberOfProcess;
 
       //copy and initialize
-      //      double pdf[fNumberOfProcess] = {fPhotonCrossSectionData[i][j].weight[0],
-      double pdf[3] = {fPhotonCrossSectionData[i][j].weight[0],
-                       fPhotonCrossSectionData[i][j].weight[1],
-                       1.0-fPhotonCrossSectionData[i][j].weight[0]-fPhotonCrossSectionData[i][j].weight[1]};
+      //      double pdf[fNumberOfProcess] = {fPhotonCrossSectionData[i][j].fWeight[0],
+      double pdf[3] = {fPhotonCrossSectionData[i][j].fWeight[0],
+                       fPhotonCrossSectionData[i][j].fWeight[1],
+                       1.0-fPhotonCrossSectionData[i][j].fWeight[0]-fPhotonCrossSectionData[i][j].fWeight[1]};
 
       for(int k = 0; k < fNumberOfProcess ; ++k) {
         a[k] = -1;
@@ -133,7 +133,7 @@ PhotonProcess::BuildCrossSectionTable()
         }
 
         //alias and non-alias probability
-        fPhotonCrossSectionData[i][j].alias[recip] = donor;
+        fPhotonCrossSectionData[i][j].fAlias[recip] = donor;
 
         //update pdf 
         ap[donor] = ap[donor] - (cp-ap[recip]);
@@ -158,12 +158,12 @@ PhotonProcess::PrintCrossSectionTable()
   for (int i = 0 ; i < fNumberOfMaterialBin ; ++i) {
     for (int j = 0 ; j < fNumberOfEnergyBin ; ++j) {
       printf("[M=%d][E=%d] = [ %g %g %g %d %d %d ]\n",i,j,
-             fPhotonCrossSectionData[i][j].sigma,
-	     fPhotonCrossSectionData[i][j].weight[0],
-	     fPhotonCrossSectionData[i][j].weight[1],
-	     fPhotonCrossSectionData[i][j].alias[0],
-	     fPhotonCrossSectionData[i][j].alias[1],
-	     fPhotonCrossSectionData[i][j].alias[2]
+             fPhotonCrossSectionData[i][j].fSigma,
+	     fPhotonCrossSectionData[i][j].fWeight[0],
+	     fPhotonCrossSectionData[i][j].fWeight[1],
+	     fPhotonCrossSectionData[i][j].fAlias[0],
+	     fPhotonCrossSectionData[i][j].fAlias[1],
+	     fPhotonCrossSectionData[i][j].fAlias[2]
       );
     }
   }

@@ -17,9 +17,9 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 struct ElectronCrossSectionData
 {
-  double sigma;
-  double weight[2];
-  int alias[3];
+  double fSigma;
+  double fWeight[2];
+  int fAlias[3];
 };
 
 class ElectronProcess : public EmProcess<ElectronProcess>
@@ -88,8 +88,8 @@ ElectronProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
   auto im = matId;
   auto ie = ebin;
   //linear approximation
-  double xlow  = fElectronCrossSectionData[im][ie].sigma;
-  double xhigh = fElectronCrossSectionData[im][ie+1].sigma;
+  double xlow  = fElectronCrossSectionData[im][ie].fSigma;
+  double xhigh = fElectronCrossSectionData[im][ie+1].fSigma;
 
   return xlow + (xhigh - xlow)*fraction;
 }
@@ -109,8 +109,8 @@ ElectronProcess::GetLambda<backend::VcVector>(Index_v<typename backend::VcVector
     auto im = matId[i];
     auto ie = ebin[i];
     //test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
-    double xlow = fElectronCrossSectionData[im][ie].sigma;
-    double xhigh = fElectronCrossSectionData[im][ie+1].sigma;
+    double xlow = fElectronCrossSectionData[im][ie].fSigma;
+    double xhigh = fElectronCrossSectionData[im][ie+1].fSigma;
     lambda[i] = xlow + (xhigh-xlow)*fraction[i];
   }
   return lambda;
@@ -129,16 +129,16 @@ ElectronProcess::GetWeightAndAlias(Index_v<typename Backend::Double_v> matId,
 {
   auto im = matId;
   auto ie = ebin;
-  auto ip = iprocess;
+  int ip = (int)iprocess;
 
   if(ip == fNumberOfProcess-1) {
-    for(int j = 0 ; j < fNumberOfProcess-1 ; ++j) weight -= fElectronCrossSectionData[im][ie].weight[j];
+    for(int j = 0 ; j < fNumberOfProcess-1 ; ++j) weight -= fElectronCrossSectionData[im][ie].fWeight[j];
     weight += 1.0;        
   }
   else {
-    weight = fElectronCrossSectionData[im][ie].weight[ip];
+    weight = fElectronCrossSectionData[im][ie].fWeight[ip];
   }
-  alias =  fElectronCrossSectionData[im][ie].alias[ip];
+  alias =  fElectronCrossSectionData[im][ie].fAlias[ip];
 }
 
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
@@ -154,16 +154,16 @@ ElectronProcess::GetWeightAndAlias<backend::VcVector>(Index_v<typename backend::
   for(size_t i = 0; i < VectorSize(matId) ; ++i) {
     auto im = matId[i];
     auto ie = ebin[i];
-    auto ip = iprocess[i];
+    int ip = (int)iprocess[i];
 
     if(ip == fNumberOfProcess-1) {
-      for(int j = 0 ; j < fNumberOfProcess - 1 ; ++j) weight[i] -= fElectronCrossSectionData[im][ie].weight[j];
+      for(int j = 0 ; j < fNumberOfProcess - 1 ; ++j) weight[i] -= fElectronCrossSectionData[im][ie].fWeight[j];
       weight[i] += 1.0;        
     }
     else {
-      weight[i] = fElectronCrossSectionData[im][ie].weight[ip];
+      weight[i] = fElectronCrossSectionData[im][ie].fWeight[ip];
     }
-    alias[i] =  fElectronCrossSectionData[im][ie].alias[ip];
+    alias[i] =  fElectronCrossSectionData[im][ie].fAlias[ip];
   }
 }
 #endif
@@ -185,7 +185,7 @@ ElectronProcess::G3NextProcess(Index_v<typename Backend::Double_v> matId,
   double rp = UniformRandom<double>(&fRandomState, &fThreadId);
 
   for(int i = 0; i < fNumberOfProcess - 1 ; ++i) {
-    weight += fElectronCrossSectionData[im][ie].weight[i];
+    weight += fElectronCrossSectionData[im][ie].fWeight[i];
     if(weight > rp) {
       ip = i;
       break;
@@ -213,7 +213,7 @@ ElectronProcess::G3NextProcess<backend::VcVector>(Index_v<typename backend::VcVe
     double rp = UniformRandom<double>(&fRandomState, &fThreadId);
 
     for(int j = 0; j < fNumberOfProcess - 1 ; ++j) {
-      weight += fElectronCrossSectionData[im][ie].weight[j];
+      weight += fElectronCrossSectionData[im][ie].fWeight[j];
       if(weight > rp) {
         ip[i] = j;
         break;
