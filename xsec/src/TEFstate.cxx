@@ -244,10 +244,10 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
   if (f)
     ff = f;
   if (!ff)
-    ::Fatal("TEFstate::GetElement", "No file open!");
+    Geant::Fatal("TEFstate::GetElement", "No file open!");
   fElements[fNLdElems] = (TEFstate *)ff->Get(TPartIndex::I()->EleSymb(z));
   if (!fElements[fNLdElems]) {
-    ::Fatal("GetElement", "Element z %d a %d not found", z, a);
+    Geant::Fatal("GetElement", "Element z %d a %d not found", z, a);
     return 0; // just to make the compiler happy
   } else {
     // We loaded the element, however we have to see whether
