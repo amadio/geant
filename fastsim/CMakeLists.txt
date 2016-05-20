@@ -35,7 +35,7 @@ endif()
 
 include_directories(inc)
 
-ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE libFastsim LINKDEF inc/fastsimLinkDef.h)
+ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE libFastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
