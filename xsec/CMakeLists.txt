@@ -122,24 +122,17 @@ if (CUDA)
   endforeach()
 
 
- cuda_add_library(xseccuda
-     ${SRC_CUDA}
+cuda_add_library(xseccuda
+    ${SRC_CUDA}
+    SHARED
     OPTIONS ${CUDA_ARCH}
 )  
 
-add_custom_target(testserial ALL DEPENDS xseccuda)
-message (STATUS "vecgeom defs ${CUDA_ARCH}")
+cuda_add_library_depend(xseccuda ${VECGEOM_CUDA_STATIC_LIBRARY} )
+target_link_libraries(xseccuda ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
 
-ADD_CUSTOM_COMMAND(
-    TARGET testserial
-    PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda"
-   COMMAND ${CUDA_HOST_COMPILER} -c -v --std=c++11 -DUSE_VECGEOM_NAVIGATOR ${VECGEOM_DEFINITIONS} ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cpp -o testserialReadCuda.cpp.o -I${VECGEOM_INSTALL_DIR}/include -I${CUDA_TOOLKIT_ROOT_DIR}/include -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/xsec/inc -I${CMAKE_SOURCE_DIR}/base/inc -I${VECGEOM_INSTALL_DIR}/include/
-    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda nvcc ${GEANTV_COMPILE_DEFINITIONS}"
-    COMMAND ${CUDA_NVCC_EXECUTABLE} ${CUDA_NVCC_FLAGS} ${VECGEOM_DEFINITIONS} -DUSE_VECGEOM_NAVIGATOR --debug --device-debug -lineinfo -DUSE_VECGEOM_NAVIGATOR -dc -arch=sm_30 ${CMAKE_SOURCE_DIR}/xsec/testserialReadCuda.cu -o testserial.o -I${VECGEOM_INSTALL_DIR}/include -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/xsec/inc -I${CMAKE_SOURCE_DIR}/base/inc
-    COMMAND ${CMAKE_COMMAND} -E echo "Separate Compilation for testserialReadCuda linking"
-    COMMAND ${CUDA_NVCC_EXECUTABLE} --verbose -arch=sm_30 -lineinfo  testserialReadCuda.cpp.o testserial.o -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lxseccuda -L${VECGEOM_INSTALL_DIR}/lib/ -lvecgeomcuda -lvecgeom ${Vc_LIBRARIES} ${ROOT_LIBRARIES} -o runtest
-  )
+add_executable(testserialRead testserialRead.cc)
+target_link_libraries(testserialRead xseccuda Xsec Geant_v)
 
 endif()
 
