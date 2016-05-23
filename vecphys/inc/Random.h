@@ -22,7 +22,7 @@ namespace cuda {
 template <typename T>
 VECCORE_FORCE_INLINE
 VECCORE_CUDA_HOST_DEVICE
-T UniformRandom(void* States, int* ThreadId)
+   T UniformRandom(void* /*States*/, int* /*ThreadId*/)
 {
 #ifndef VECCORE_NVCC_DEVICE
   unsigned short xsubi[3];

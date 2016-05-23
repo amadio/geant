@@ -84,7 +84,7 @@ ClassImp(GeantPropagator)
 GeantPropagator::GeantPropagator()
     : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
       fNprimaries(0), fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNsmall(0),
-      fFeederLock(ATOMIC_FLAG_INIT), fPriorityEvents(0), fDoneEvents(0),
+      fPriorityEvents(0), fDoneEvents(0),
       fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10),
       fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000),
       fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0),

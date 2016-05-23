@@ -24,7 +24,7 @@ using vecgeom::GeoManager;
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
     : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0),
-      fNsteps(0), fCrtMgr(0), fCollecting(false), fLearning(ATOMIC_FLAG_INIT), fGBCLock(ATOMIC_FLAG_INIT),
+      fNsteps(0), fCrtMgr(0), fCollecting(false), 
       fVolumes() {
   // Default constructor
   SetLearning(false);

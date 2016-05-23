@@ -54,7 +54,7 @@
 // element.
 
 #include "base/SystemOfUnits.h"
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 
 namespace vecphys {
 

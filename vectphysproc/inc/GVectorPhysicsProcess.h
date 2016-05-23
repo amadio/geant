@@ -16,7 +16,7 @@ class GVComptonProcess;
 class GVectorPhysicsProcess : public PhysicsProcess
 {
 private:
-  GVComptonProcess    **fVComptonProcess; 
+  GVComptonProcess    **fVComptonProcess;
   double                fEnergyLimit;       // tracking cut in kinetic energy [GeV]
   int                   fNumThreads;        // number of working threads
 
@@ -30,48 +30,48 @@ public:
 
   virtual void Initialize();
   virtual void PostStepFinalStateSampling( Material_t* /*mat*/,
-                                           int ntracks, 
+                                           int ntracks,
                                            GeantTrack_v &tracks,
-                                           int &nout, 
+                                           int &nout,
                                            GeantTaskData *td);
 
-  // these are not active !!! 
+  // these are not active !!!
   //
   virtual void ComputeIntLen(Material_t * /*mat*/,
-                             int /*ntracks*/, 
+                             int /*ntracks*/,
                              GeantTrack_v & /*tracks*/,
-                             double * /*lengths*/, 
+                             double * /*lengths*/,
                              GeantTaskData * /*tid*/)                            {}
-  
+
   virtual void PostStep(     Material_t * /*mat*/,
                              int /*ntracks*/,
-                             GeantTrack_v &/*tracks*/, 
-                             int & /*nout*/, 
-                             GeantTaskData * /*tid*/)                            {}         
+                             GeantTrack_v &/*tracks*/,
+                             int & /*nout*/,
+                             GeantTaskData * /*tid*/)                            {}
 
   virtual void PostStepTypeOfIntrActSampling(     Material_t * /*mat*/,
                                                   int /*ntracks*/,
-                                                  GeantTrack_v & /*tracks*/, 
-                                                  GeantTaskData * /*tid*/)       {} 
+                                                  GeantTrack_v & /*tracks*/,
+                                                  GeantTaskData * /*tid*/)       {}
 
   virtual void AtRest(       int /*ntracks*/,
-                             GeantTrack_v &/*tracks*/, 
-                             int &/*nout*/, 
-                             int /*tid*/)                             {}
+                             GeantTrack_v &/*tracks*/,
+                             int &/*nout*/,
+                             GeantTaskData* /*tid*/)                             {}
 
   virtual void Eloss(        Material_t */*mat*/,
                              int /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
                              int &/*nout*/,
-                             int /*tid*/)                             {}
+                             GeantTaskData* /*tid*/)                             {}
 
   virtual void ApplyMsc(     Material_t */*mat*/,
                              int /*ntracks*/,
                              GeantTrack_v &/*tracks*/,
-                             int /*tid*/)                             {}
+                             GeantTaskData* /*tid*/)                             {}
 
 private:
-   GVectorPhysicsProcess (const GVectorPhysicsProcess  &);//no imp.	
+   GVectorPhysicsProcess (const GVectorPhysicsProcess  &);//no imp.
    GVectorPhysicsProcess & operator=(const GVectorPhysicsProcess  &);//no imp.
 
    // we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed
@@ -79,4 +79,3 @@ private:
 };
 
 #endif
-

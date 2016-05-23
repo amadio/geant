@@ -4,7 +4,7 @@
 #include "ComptonKleinNishina.h"
 #include <iostream>
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {
@@ -34,7 +34,7 @@ ComptonKleinNishina::~ComptonKleinNishina()
 
 
 VECCORE_CUDA_HOST void
-ComptonKleinNishina::BuildCrossSectionTablePerAtom(int Z)
+ComptonKleinNishina::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; //dummy for now
 }
@@ -108,7 +108,7 @@ ComptonKleinNishina::BuildPdfTable(int Z, double *p)
 // function implementing the cross section for KleinNishina
 
 VECCORE_CUDA_HOST_DEVICE double
-ComptonKleinNishina::CalculateDiffCrossSection(int Zelement, //not used
+ComptonKleinNishina::CalculateDiffCrossSection(int /*Zelement*/, //not used
                                                double energy0,
                                                double energy1 ) const
 {
@@ -173,7 +173,7 @@ ComptonKleinNishina::GetG4CrossSection(double  gammaEnergy,
 }
 
 VECCORE_CUDA_HOST_DEVICE void
-ComptonKleinNishina::SampleByCompositionRejection(int    Z, //not used
+ComptonKleinNishina::SampleByCompositionRejection(int    /*Z*/, //not used
                                                   double energyIn,
                                                   double& energyOut,
                                                   double& sinTheta)

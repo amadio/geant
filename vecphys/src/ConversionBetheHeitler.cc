@@ -2,7 +2,7 @@
 #include "GUAliasTable.h"
 #include "ConversionBetheHeitler.h"
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {
@@ -38,7 +38,7 @@ ConversionBetheHeitler::Initialization()
 }
 
 VECCORE_CUDA_HOST void
-ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int Z)
+ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; //dummy for now
 }

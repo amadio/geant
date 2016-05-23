@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
 
 #include "GUAliasSampler.h"
@@ -38,7 +38,7 @@ PhotoElectronSauterGavrila::Initialization()
 }
 
 VECCORE_CUDA_HOST void
-PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int Z)
+PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; //dummy for now
 }
@@ -108,7 +108,7 @@ PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 // function implementing the angular distribution of photoelectrons
 
 VECCORE_CUDA_HOST_DEVICE double
-PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int Zelement,
+PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int /*Zelement*/,
                                                        double energy,
                                                        double cosTheta ) const
 {
@@ -202,8 +202,8 @@ PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement,
 }
 
 VECCORE_CUDA_HOST_DEVICE double
-PhotoElectronSauterGavrila::GetG4CrossSection(double  gammaEnergy,
-                                              const int Z)
+PhotoElectronSauterGavrila::GetG4CrossSection(double  /*gammaEnergy*/,
+                                              const int /*Z*/)
 {
   double xSection = 0.;
   //dummy for now

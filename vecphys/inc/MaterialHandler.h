@@ -1,7 +1,7 @@
 #ifndef MaterialHandler_H
 #define MaterialHandler_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "GUConstants.h"
 
 namespace vecphys {

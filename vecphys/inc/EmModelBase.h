@@ -1,7 +1,7 @@
 #ifndef EmModelBase_H
 #define EmModelBase_H
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "base/SystemOfUnits.h"
 
 #include "GUConstants.h"
@@ -214,7 +214,7 @@ void EmModelBase<EmModel>::BuildCrossSectionTable()
 
 template <class EmModel>
 VECCORE_CUDA_HOST
-  void EmModelBase<EmModel>::BuildAliasTable(bool atomicDependentModel)
+   void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDependentModel*/)
 {
   //size of the array for the alias table data
   size_t sizeOfTable = (fAliasSampler->GetNumEntries()+1)*fAliasSampler->GetSamplesPerEntry();

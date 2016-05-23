@@ -1,7 +1,7 @@
 #ifndef PhotoElectronSauterGavrila_H
 #define PhotoElectronSauterGavrila_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"
@@ -315,10 +315,10 @@ PhotoElectronSauterGavrila::SampleSequential(typename Backend::Double_v A,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 PhotoElectronSauterGavrila::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                 Index_v<typename Backend::Double_v>   zElement,
+                                                 Index_v<typename Backend::Double_v>   /*zElement*/,
                                                  typename Backend::Double_v& energyOut,
                                                  typename Backend::Double_v& sinTheta,
-                                                 Mask_v<typename Backend::Double_v> &status)
+                                                 Mask_v<typename Backend::Double_v> &/*status*/)
 {
   //dummy for now
   energyOut = energyIn;

@@ -24,9 +24,11 @@
 
 using namespace Geant;
 
+/* Future use?
 const int kIncremental = 0;
 const int kReplaceImmediately = 1;
 const int kReplaceWait = 2;
+*/
 
 #include "TKey.h"
 static Bool_t R__NeedInitialMerge(TDirectory *dir)

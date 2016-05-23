@@ -1,7 +1,7 @@
 #ifndef ComptonKleinNishina_H
 #define ComptonKleinNishina_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUTrack.h"
@@ -210,7 +210,7 @@ ComptonKleinNishina::InteractKernel(typename Backend::Double_v  energyIn,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernelCR(typename Backend::Double_v energyIn,
-                                      Index_v<typename Backend::Double_v> zElement,
+                                      Index_v<typename Backend::Double_v> /*zElement*/,
                                       typename Backend::Double_v& energyOut,
                                       typename Backend::Double_v& sinTheta)
 {
@@ -283,7 +283,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ComptonKleinNishina::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                          Index_v<typename Backend::Double_v> zElement,
+                                          Index_v<typename Backend::Double_v> /*zElement*/,
                                           typename Backend::Double_v& energyOut,
                                           typename Backend::Double_v& sinTheta,
                                           Mask_v<typename Backend::Double_v>& status)

@@ -1,7 +1,7 @@
 #ifndef GUBenchmarker_H
 #define GUBenchmarker_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "SamplingMethod.h"
 #include "MaterialHandler.h"
 

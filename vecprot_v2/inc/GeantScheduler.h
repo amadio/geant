@@ -49,8 +49,8 @@ protected:
   std::atomic_long fNsteps;  /** Total number of tracks steps */
   std::atomic_int  fCrtMgr;  /** Current basket manager being garbage collected */
   std::atomic_bool fCollecting;      /** Flag marking colecting tracks for priority events */
-  std::atomic_flag fLearning;        /** Flag marking the learning phase */
-  std::atomic_flag fGBCLock;         /** Flag marking that garbage collector is busy */
+  std::atomic_flag fLearning = ATOMIC_FLAG_INIT;        /** Flag marking the learning phase */
+  std::atomic_flag fGBCLock = ATOMIC_FLAG_INIT;         /** Flag marking that garbage collector is busy */
   std::vector<Volume_t const *> fVolumes; /** List of logical volumes */
 
 private:

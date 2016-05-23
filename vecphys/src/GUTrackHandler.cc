@@ -6,7 +6,7 @@
 #include <algorithm>
 #include "mm_malloc.h"
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 
 namespace vecphys {
 

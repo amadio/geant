@@ -1,7 +1,7 @@
 #ifndef GUALIASTABLE_H
 #define GUALIASTABLE_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 
 namespace vecphys {
 

@@ -3,7 +3,7 @@
 #include "BremSeltzerBerger.h"
 #include <iostream>
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
 
 namespace vecphys {

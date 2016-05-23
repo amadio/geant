@@ -4,7 +4,7 @@
 #ifndef Physics2DVector_H
 #define Physics2DVector_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "GUConstants.h"
 
 namespace vecphys {

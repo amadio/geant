@@ -4,7 +4,7 @@
 #ifndef VECPHYS_BASE_STOPWATCH_H_
 #define VECPHYS_BASE_STOPWATCH_H_
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 
 // OS X compatibility
 #ifdef __MACH__

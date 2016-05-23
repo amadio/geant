@@ -1,7 +1,7 @@
 #ifndef BremSeltzerBerger_H
 #define BremSeltzerBerger_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"

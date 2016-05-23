@@ -159,7 +159,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::
 SampleBin(typename Backend::Double_v kineticEnergy,
-          Index_v<typename Backend::Double_v>  &index,    // ~ sampled value
+          Index_v<typename Backend::Double_v>  &/*index*/,    // ~ sampled value
           Index_v<typename Backend::Double_v>  &icol,     // ~ input Energy
           typename Backend::Double_v &fraction  //  in sampled variable
          )
@@ -269,7 +269,7 @@ template<class Backend>
 VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v
 GUAliasSampler::
-SampleXL(Index_v<typename Backend::Double_v>  zElement,
+   SampleXL(Index_v<typename Backend::Double_v>  /*zElement*/,
          typename Backend::Double_v rangeSampled,
          typename Backend::Double_v probNA,
          Index_v<typename Backend::Double_v>  aliasInd,

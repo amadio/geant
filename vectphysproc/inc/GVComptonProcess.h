@@ -13,7 +13,7 @@
 #include "ComptonKleinNishina.h"
 
 #include "GeantFwd.h"
-class GUTrack_v;
+struct GUTrack_v;
 
 class GVComptonProcess
 {

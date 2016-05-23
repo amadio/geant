@@ -1,7 +1,7 @@
 #ifndef ConversionBetheHeitler_H
 #define ConversionBetheHeitler_H 1
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "base/PhysicalConstants.h"
 
 #include "GUConstants.h"
@@ -234,8 +234,8 @@ CrossSectionKernel(typename Backend::Double_v energy,
 
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v  energyIn,
-                                         Index_v<typename Backend::Double_v>   zElement,
+ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v  /*energyIn*/,
+                                         Index_v<typename Backend::Double_v>   /*zElement*/,
                                          typename Backend::Double_v& energyOut,
                                          typename Backend::Double_v& sinTheta)
 {
@@ -247,10 +247,10 @@ ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v  energyIn,
 template<class Backend>
 VECCORE_CUDA_HOST_DEVICE void
 ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                             Index_v<typename Backend::Double_v>   zElement,
+                                             Index_v<typename Backend::Double_v>   /*zElement*/,
                                              typename Backend::Double_v& energyOut,
                                              typename Backend::Double_v& sinTheta,
-                                             Mask_v<typename Backend::Double_v> &status)
+                                             Mask_v<typename Backend::Double_v> &/*status*/)
 {
   //dummy for now
   energyOut = energyIn;
