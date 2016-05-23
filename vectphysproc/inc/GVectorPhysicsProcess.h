@@ -50,7 +50,7 @@ public:
   virtual void ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*tid*/) {}
 
 private:
-  GVectorPhysicsProcess(const GVectorPhysicsProcess &); // no imp.
+  GVectorPhysicsProcess(const GVectorPhysicsProcess &);            // no imp.
   GVectorPhysicsProcess &operator=(const GVectorPhysicsProcess &); // no imp.
 
   // we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed

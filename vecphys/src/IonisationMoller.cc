@@ -53,7 +53,7 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
     double x = math::Exp(logxmin + dx * i);
 
     // e-e- (Moller) only for now
-    double ymin = fDeltaRayThreshold; // minimum delta-ray energy
+    double ymin = fDeltaRayThreshold;    // minimum delta-ray energy
     double dy = (x / 2.0 - ymin) / ncol; // maximum x/2.0
     double yo = ymin + 0.5 * dy;
 
