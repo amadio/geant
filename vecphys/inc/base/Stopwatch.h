@@ -16,18 +16,14 @@
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
-namespace standardtimer
-{
-   // this implementation is stripped from the TBB library ( so that we don't need to link against tbb )
-
+namespace standardtimer {
+// this implementation is stripped from the TBB library ( so that we don't need to link against tbb )
 
 typedef long long count_t;
 
-inline long long now()
-{
+inline long long now() {
   count_t result;
   struct timespec ts;
-
 
 #ifdef __MACH__
   // OS X compatibility code taken from
@@ -40,18 +36,14 @@ inline long long now()
   ts.tv_sec = mts.tv_sec;
   ts.tv_nsec = mts.tv_nsec;
 #else
-    clock_gettime(CLOCK_REALTIME, &ts);
+  clock_gettime(CLOCK_REALTIME, &ts);
 #endif
 
-    result = static_cast<count_t>(1000000000UL)*static_cast<count_t>(ts.tv_sec)
-           + static_cast<count_t>(ts.tv_nsec);
-    return result;
+  result = static_cast<count_t>(1000000000UL) * static_cast<count_t>(ts.tv_sec) + static_cast<count_t>(ts.tv_nsec);
+  return result;
 }
 
-inline double seconds( count_t value ) {
-    return value*1E-9;
-}
-
+inline double seconds(count_t value) { return value * 1E-9; }
 }
 
 /**
@@ -63,22 +55,19 @@ private:
   standardtimer::count_t t2;
 
 public:
-  inline
-  void Start() { t1 = standardtimer::now(); }
+  inline void Start() { t1 = standardtimer::now(); }
 
   /**
    * @return Elapsed time since start.
    */
-  inline
-  double Stop() {
+  inline double Stop() {
     t2 = standardtimer::now();
     return Elapsed();
   }
 
-  inline
-  double Elapsed() const { return standardtimer::seconds( t2-t1 ); }
+  inline double Elapsed() const { return standardtimer::seconds(t2 - t1); }
 };
-
-} } // End global namespace
+}
+} // End global namespace
 
 #endif // VECPHYS_BASE_STOPWATCH_H_

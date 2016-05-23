@@ -7,18 +7,17 @@ namespace vecphys {
 
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-//should be template for precision choices
-class GUAliasTable
-{
- public:
+// should be template for precision choices
+class GUAliasTable {
+public:
   VECCORE_CUDA_HOST_DEVICE
   GUAliasTable(int ngrid);
 
   VECCORE_CUDA_HOST_DEVICE
-  GUAliasTable(const GUAliasTable& table);
+  GUAliasTable(const GUAliasTable &table);
 
   VECCORE_CUDA_HOST_DEVICE
-  GUAliasTable& operator=(const GUAliasTable& table);
+  GUAliasTable &operator=(const GUAliasTable &table);
 
   VECCORE_CUDA_HOST_DEVICE
   ~GUAliasTable();
@@ -30,7 +29,7 @@ class GUAliasTable
   void Deallocate();
 
   VECCORE_CUDA_HOST_DEVICE
-  void CopyData(const GUAliasTable& table);
+  void CopyData(const GUAliasTable &table);
 
 #ifdef VECCORE_NVCC
   void Relocate(void *devPtr);
@@ -45,11 +44,11 @@ class GUAliasTable
   VECCORE_CUDA_HOST_DEVICE
   void PrintInfo();
 
-  Real_t* fpdf;         // original p.d.f distribution
-  Real_t* fProbQ;       // non-alias probability
-  int*       fAlias;       // alias index
-  int        fNGrid;       // the number of bins that can be stored
-} ;
+  Real_t *fpdf;   // original p.d.f distribution
+  Real_t *fProbQ; // non-alias probability
+  int *fAlias;    // alias index
+  int fNGrid;     // the number of bins that can be stored
+};
 
 } // end namespace impl
 } // end namespace vecphys

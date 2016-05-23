@@ -62,38 +62,38 @@ public:
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
   // data members to be made private
-  int fNthreads;                     /** Number of worker threads */
-  int fNevents;                      /** Number of buffered events */
-  int fNtotal;                       /** Total number of events to be transported */
-  std::atomic<long> fNtransported;   /** Number of transported tracks */
-  std::atomic<long> fNprimaries;     /** Number of primary tracks */
-  std::atomic<long> fNsteps;         /** Total number of steps */
-  std::atomic<long> fNsnext;         /** Total number of calls to getting distance to next boundary */
-  std::atomic<long> fNphys;          /** Total number of steps to physics processes */
-  std::atomic<long> fNmag;           /** Total number of partial steps in magnetic field */
-  std::atomic<long> fNsmall;         /** Total number of small steps taken */
-  std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT;      /** Atomic flag to protect the particle feeder */
-  std::atomic_int fPriorityEvents;   /** Number of prioritized events */
-  BitSet *fDoneEvents;               /** Array of bits marking done events */
-  int fNprocesses;                   /** Number of active physics processes */
-  int fNstart;                       /** Cumulated initial number of tracks */
-  int fMaxTracks;                    /** Maximum number of tracks per event */
-  int fMaxThreads;                   /** Maximum number of threads */
-  int fNminThreshold;                /** Threshold for starting transporting a basket */
-  int fDebugEvt;                     /** Event to debug */
-  int fDebugTrk;                     /** Track to debug */
-  int fDebugStp;                     /** Step to start debugging */
-  int fDebugRep;                     /** Number of steps to debug */
-  int fMaxSteps;                     /** Maximum number of steps per track */
-  int fNperBasket;                   /** Number of tracks per basket */
-  int fMaxPerBasket;                 /** Maximum number of tracks per basket */
-  int fMaxPerEvent;                  /** Maximum number of tracks per event */
-  int fMaxDepth;                     /** Maximum geometry depth */
-  int fLearnSteps;                   /** Number of steps needed for the learning phase */
-  int fLastEvent;                    /** Last transported event */
-  float fPriorityThr;                /** Threshold for prioritizing events */
-  int fNstepsKillThr;                /** Threshold in number of steps to kill a track */
-  int fNminReuse;                    /** Minimum number of transported tracks to be reused without re-basketizing */
+  int fNthreads;                                   /** Number of worker threads */
+  int fNevents;                                    /** Number of buffered events */
+  int fNtotal;                                     /** Total number of events to be transported */
+  std::atomic<long> fNtransported;                 /** Number of transported tracks */
+  std::atomic<long> fNprimaries;                   /** Number of primary tracks */
+  std::atomic<long> fNsteps;                       /** Total number of steps */
+  std::atomic<long> fNsnext;                       /** Total number of calls to getting distance to next boundary */
+  std::atomic<long> fNphys;                        /** Total number of steps to physics processes */
+  std::atomic<long> fNmag;                         /** Total number of partial steps in magnetic field */
+  std::atomic<long> fNsmall;                       /** Total number of small steps taken */
+  std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
+  std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
+  BitSet *fDoneEvents;                             /** Array of bits marking done events */
+  int fNprocesses;                                 /** Number of active physics processes */
+  int fNstart;                                     /** Cumulated initial number of tracks */
+  int fMaxTracks;                                  /** Maximum number of tracks per event */
+  int fMaxThreads;                                 /** Maximum number of threads */
+  int fNminThreshold;                              /** Threshold for starting transporting a basket */
+  int fDebugEvt;                                   /** Event to debug */
+  int fDebugTrk;                                   /** Track to debug */
+  int fDebugStp;                                   /** Step to start debugging */
+  int fDebugRep;                                   /** Number of steps to debug */
+  int fMaxSteps;                                   /** Maximum number of steps per track */
+  int fNperBasket;                                 /** Number of tracks per basket */
+  int fMaxPerBasket;                               /** Maximum number of tracks per basket */
+  int fMaxPerEvent;                                /** Maximum number of tracks per event */
+  int fMaxDepth;                                   /** Maximum geometry depth */
+  int fLearnSteps;                                 /** Number of steps needed for the learning phase */
+  int fLastEvent;                                  /** Last transported event */
+  float fPriorityThr;                              /** Threshold for prioritizing events */
+  int fNstepsKillThr;                              /** Threshold in number of steps to kill a track */
+  int fNminReuse; /** Minimum number of transported tracks to be reused without re-basketizing */
 
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
   double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */
@@ -104,19 +104,19 @@ public:
   double fBmag;      /** Magnetic field */
   double fEpsilonRK; /** Relative error in RK integration */
 
-  bool fUsePhysics;       /** Enable/disable physics */
-  bool fUseRungeKutta;    /** Enable/disable Runge-Kutta integration in field */
-  bool fUseDebug;         /** Use debug mode */
-  bool fUseGraphics;      /** Graphics mode */
-  bool fUseStdScoring;    /** Use standard scoring */
-  bool fTransportOngoing; /** Flag for ongoing transport */
-  bool fSingleTrack;      /** Use single track transport mode */
-  Bool_t fFillTree;       /** Enable I/O */
-  int fTreeSizeWriteThreshold; /** Maximum size of the tree (before automatic writing) **/  
-  Bool_t fConcurrentWrite;/** switch between single and mutlithreaded writing */
-  bool fUseMonitoring;    /** Monitoring different features */
-  bool fUseAppMonitoring; /** Monitoring the application */
-  TMutex fTracksLock;       /** Mutex for adding tracks */
+  bool fUsePhysics;            /** Enable/disable physics */
+  bool fUseRungeKutta;         /** Enable/disable Runge-Kutta integration in field */
+  bool fUseDebug;              /** Use debug mode */
+  bool fUseGraphics;           /** Graphics mode */
+  bool fUseStdScoring;         /** Use standard scoring */
+  bool fTransportOngoing;      /** Flag for ongoing transport */
+  bool fSingleTrack;           /** Use single track transport mode */
+  Bool_t fFillTree;            /** Enable I/O */
+  int fTreeSizeWriteThreshold; /** Maximum size of the tree (before automatic writing) **/
+  Bool_t fConcurrentWrite;     /** switch between single and mutlithreaded writing */
+  bool fUseMonitoring;         /** Monitoring different features */
+  bool fUseAppMonitoring;      /** Monitoring the application */
+  TMutex fTracksLock;          /** Mutex for adding tracks */
 
   WorkloadManager *fWMgr;             /** Workload manager */
   GeantVApplication *fApplication;    /** User application */
@@ -131,7 +131,7 @@ public:
   PrimaryGenerator *fPrimaryGenerator; /** Primary generator */
 
   // Data per event
-  int *fNtracks;             /** ![fNevents] Number of tracks {array of [fNevents]} */
+  int *fNtracks;               /** ![fNevents] Number of tracks {array of [fNevents]} */
   GeantEvent **fEvents;        /** ![fNevents]    Array of events */
   GeantTaskData **fThreadData; /** ![fNthreads] Data private to threads */
 
@@ -140,13 +140,13 @@ public:
   /** @brief Initialization function */
   void Initialize();
 
-   /** @brief Initialization function */
+  /** @brief Initialization function */
   void InitializeAfterGeom();
 
   /** @brief Initialize classes for RK Integration */
   void PrepareRkIntegration();
 
-   /** @brief Function for loading geometry */
+  /** @brief Function for loading geometry */
   bool LoadGeometry(const char *filename = "geometry.root");
 #if USE_VECGEOM_NAVIGATOR == 1
 

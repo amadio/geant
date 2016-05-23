@@ -23,9 +23,8 @@ using vecgeom::GeoManager;
 
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
-    : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0),
-      fNsteps(0), fCrtMgr(0), fCollecting(false), 
-      fVolumes() {
+    : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0),
+      fCrtMgr(0), fCollecting(false), fVolumes() {
   // Default constructor
   SetLearning(false);
   fNvect = new int[257];
@@ -93,7 +92,8 @@ void GeantScheduler::ActivateBasketManagers() {
       break;
   }
   threshold = double(nsum) / ntot;
-  Geant::Info("ActivateBasketManagers", "Activated %d volumes accounting for %4.1f%% of track steps", nactive, 100 * threshold);
+  Geant::Info("ActivateBasketManagers", "Activated %d volumes accounting for %4.1f%% of track steps", nactive,
+              100 * threshold);
   int nprint = 10;
   if (nprint > fNvolumes)
     nprint = fNvolumes;
@@ -141,7 +141,8 @@ void GeantScheduler::CreateBaskets() {
 #else
   TObjArray *lvolumes = gGeoManager->GetListOfVolumes();
   fNvolumes = lvolumes->GetEntries();
-  for (auto ivol=0; ivol<fNvolumes; ivol++) fVolumes.push_back((TGeoVolume*)lvolumes->At(ivol));
+  for (auto ivol = 0; ivol < fNvolumes; ivol++)
+    fVolumes.push_back((TGeoVolume *)lvolumes->At(ivol));
 #endif
   fBasketMgr = new GeantBasketMgr *[fNvolumes];
   fNstvol = new int[fNvolumes];
@@ -153,7 +154,7 @@ void GeantScheduler::CreateBaskets() {
   GeantBasketMgr *basket_mgr;
   int icrt = 0;
   int nperbasket = gPropagator->fNperBasket;
-  for (auto ivol=0; ivol<fNvolumes; ++ivol) {
+  for (auto ivol = 0; ivol < fNvolumes; ++ivol) {
     vol = (Volume_t *)fVolumes[ivol];
     basket_mgr = new GeantBasketMgr(this, vol, icrt);
     basket_mgr->SetThreshold(nperbasket);
@@ -199,9 +200,8 @@ int GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-int GeantScheduler::ReusableTracks(GeantTrack_v &tracks) const
-{
-// Check if the basket can be reused efficiently in the next transport iteration.
+int GeantScheduler::ReusableTracks(GeantTrack_v &tracks) const {
+  // Check if the basket can be reused efficiently in the next transport iteration.
   int ntracks = tracks.GetNtracks();
   int nreusable = 0;
   for (int itr = 0; itr < ntracks; ++itr) {
@@ -214,19 +214,19 @@ int GeantScheduler::ReusableTracks(GeantTrack_v &tracks) const
 }
 
 //______________________________________________________________________________
-int GeantScheduler::CopyReusableTracks(GeantTrack_v &tracks, GeantTrack_v &input, int nmax) const
-{
-// Copy reusable tracks from the output tracks to the input tracks, not
-// exceeding nmax
+int GeantScheduler::CopyReusableTracks(GeantTrack_v &tracks, GeantTrack_v &input, int nmax) const {
+  // Copy reusable tracks from the output tracks to the input tracks, not
+  // exceeding nmax
   int ntracks = tracks.GetNtracks();
   int nreused = 0;
-  for (int itr=0; itr<ntracks; ++itr) {
+  for (int itr = 0; itr < ntracks; ++itr) {
     if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside())
       continue;
     if (tracks.fStatusV[itr] == kNew || tracks.fStatusV[itr] == kPhysics) {
       tracks.MarkRemoved(itr);
       nreused++;
-      if (nreused == nmax) break;
+      if (nreused == nmax)
+        break;
     }
   }
   tracks.Compact(&input);
@@ -266,7 +266,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
 #endif
     int ivol = basket_mgr->GetNumber();
-//    tracks.fVindexV[itr] = ivol;
+    //    tracks.fVindexV[itr] = ivol;
     fNstvol[ivol]++;
     long nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
@@ -309,7 +309,7 @@ int GeantScheduler::GarbageCollect(GeantTaskData *td, bool force) {
       ninjected += fBasketMgr[ibasket]->GarbageCollect(td);
   }
   fGBCLock.clear(std::memory_order_release);
-//  Printf("=== Garbage collect: %d baskets", ninjected);
+  //  Printf("=== Garbage collect: %d baskets", ninjected);
   return ninjected;
 }
 
@@ -328,7 +328,7 @@ size_t GeantScheduler::Sizeof() const {
 void GeantScheduler::PrintSize() const {
   // Prints detailed breakdown of size allocated
   size_t size = Sizeof();
-  Geant::Print("","Size of scheduler: %ld bytes", size);
+  Geant::Print("", "Size of scheduler: %ld bytes", size);
   for (auto i = 0; i < fNvolumes; ++i)
     fBasketMgr[i]->PrintSize();
   if (fGarbageCollector)

@@ -82,25 +82,19 @@ ClassImp(GeantPropagator)
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
-      fNprimaries(0), fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNsmall(0),
-      fPriorityEvents(0), fDoneEvents(0),
-      fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10),
-      fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000),
-      fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0),
-      fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
-      fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
-      fEmin(1.E-4), // 100 KeV
-      fEmax(10),    // 10 Gev
-      fBmag(0.),    // kiloGauss
-      fEpsilonRK(0.0003), 
-      fUsePhysics(kTRUE), fUseRungeKutta(kFALSE), fUseDebug(kFALSE),
-      fUseGraphics(kFALSE), fUseStdScoring(kFALSE), fTransportOngoing(kFALSE),
-      fSingleTrack(kFALSE), fFillTree(kFALSE), fTreeSizeWriteThreshold(100000),
-      fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE),
-      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0),
-      fProcess(0), fVectorPhysicsProcess(0), fStoredTracks(0),
-      fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
+    : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0), fNsteps(0), fNsnext(0),
+      fNphys(0), fNmag(0), fNsmall(0), fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
+      fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1),
+      fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0),
+      fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000), fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0),
+      fVertex(), fEmin(1.E-4), // 100 KeV
+      fEmax(10),               // 10 Gev
+      fBmag(0.),               // kiloGauss
+      fEpsilonRK(0.0003), fUsePhysics(kTRUE), fUseRungeKutta(kFALSE), fUseDebug(kFALSE), fUseGraphics(kFALSE),
+      fUseStdScoring(kFALSE), fTransportOngoing(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE),
+      fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(kFALSE), fUseAppMonitoring(kFALSE),
+      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
+      fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fgInstance = this;
 }
@@ -208,7 +202,7 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
 
 //______________________________________________________________________________
 int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *thread_data) {
-  // Import tracks from "somewhere". Here we just generate nevents.
+// Import tracks from "somewhere". Here we just generate nevents.
 #ifdef USE_VECGEOM_NAVIGATOR
   using vecgeom::SimpleNavigator;
   using vecgeom::Vector3D;
@@ -244,12 +238,11 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
   GeantEventInfo eventinfo;
   for (int slot = startslot; slot < startslot + nevents; slot++) {
     eventinfo = fPrimaryGenerator->NextEvent();
-    // Set initial track states
+// Set initial track states
 #ifdef USE_VECGEOM_NAVIGATOR
     startpath->Clear();
-    nav.LocatePoint(GeoManager::Instance().GetWorld(), 
-      Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert),
-      *startpath, true);
+    nav.LocatePoint(GeoManager::Instance().GetWorld(),
+                    Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert), *startpath, true);
     vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
     basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
 #else
@@ -289,10 +282,10 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     }
     event++;
   }
-  
+
   VolumePath_t::ReleaseInstance(startpath);
-  Geant::Print("ImportTracks","Imported %d tracks from events %d to %d. Dispatched %d baskets.", ntotal, startevent,
-         startevent + nevents - 1, ndispatched);
+  Geant::Print("ImportTracks", "Imported %d tracks from events %d to %d. Dispatched %d baskets.", ntotal, startevent,
+               startevent + nevents - 1, ndispatched);
   return ndispatched;
 }
 
@@ -320,7 +313,6 @@ GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthrea
   return fgInstance;
 }
 
-
 //______________________________________________________________________________
 void GeantPropagator::Initialize() {
   // Initialization
@@ -340,8 +332,8 @@ void GeantPropagator::Initialize() {
   fVectorPhysicsProcess->Initialize();
 #endif
 
-  if( fUseRungeKutta ) {
-     PrepareRkIntegration();
+  if (fUseRungeKutta) {
+    PrepareRkIntegration();
   }
 
   if (!fNtracks) {
@@ -378,58 +370,52 @@ void GeantPropagator::PrepareRkIntegration() {
   using GUFieldPropagator = ::GUFieldPropagator;
 
   // Initialise the classes required for tracking in field
-  const unsigned int  Nvar= 6; // Integration will occur over 3-position & 3-momentum coord.
-  using Field_t    =  TUniformMagField;
-  using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
+  const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
+  using Field_t = TUniformMagField;
+  using Equation_t = TMagFieldEquation<Field_t, Nvar>;
 
-  auto gvField= new Field_t( fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fBmag) );
-  auto gvEquation =
-     FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
-  
-  GUVIntegrationStepper*
-     aStepper= StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
+  auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fBmag));
+  auto gvEquation = FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
 
-  const double hminimum  = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
+  GUVIntegrationStepper *aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
+
+  const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
   // const double epsTol = 3.0e-4;               // Relative error tolerance of integration
-  int   statisticsVerbosity= 0;
-  cout << "Parameters for RK integration in magnetic field: "  << endl;
-  cout << "   Driver parameters:  eps_tol= "  << fEpsilonRK << "  h_min= " << hminimum << endl;
+  int statisticsVerbosity = 0;
+  cout << "Parameters for RK integration in magnetic field: " << endl;
+  cout << "   Driver parameters:  eps_tol= " << fEpsilonRK << "  h_min= " << hminimum << endl;
 
-  auto integrDriver= new GUIntegrationDriver( hminimum,
-                                                 aStepper,
-                                                 Nvar,
-                                                 statisticsVerbosity);
+  auto integrDriver = new GUIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
   // GUFieldPropagator *
-  auto fieldPropagator=
-     new GUFieldPropagator(integrDriver, fEpsilonRK);  // epsTol);
-  
-  static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
-  assert( fpPool );  // Cannot be zero
-  if( fpPool ) {
-     fpPool->RegisterPrototype( fieldPropagator );
-     // Create clones for other threads
-     fpPool->Initialize(fNthreads);
-  }else{
-     ::Error("PrepareRkIntegration","Cannot find GUFieldPropagatorPool Instance.");
-  }   
+  auto fieldPropagator = new GUFieldPropagator(integrDriver, fEpsilonRK); // epsTol);
+
+  static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
+  assert(fpPool); // Cannot be zero
+  if (fpPool) {
+    fpPool->RegisterPrototype(fieldPropagator);
+    // Create clones for other threads
+    fpPool->Initialize(fNthreads);
+  } else {
+    ::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
+  }
 }
 
 #if USE_VECGEOM_NAVIGATOR == 1
 //______________________________________________________________________________
-void InitNavigators(){
-    for( auto & lvol : GeoManager::Instance().GetLogicalVolumesMap() ){
-        if( lvol.second->GetDaughtersp()->size() < 4 ){
-            lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
-        }
-        if( lvol.second->GetDaughtersp()->size() >= 5 ){
-            lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
-        }
-	if( lvol.second->GetDaughtersp()->size() >= 10 ){
-	    lvol.second->SetNavigator(HybridNavigator<>::Instance());
-	    HybridManager2::Instance().InitStructure((lvol.second));
-	}
-	lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
+void InitNavigators() {
+  for (auto &lvol : GeoManager::Instance().GetLogicalVolumesMap()) {
+    if (lvol.second->GetDaughtersp()->size() < 4) {
+      lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
     }
+    if (lvol.second->GetDaughtersp()->size() >= 5) {
+      lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
+    }
+    if (lvol.second->GetDaughtersp()->size() >= 10) {
+      lvol.second->SetNavigator(HybridNavigator<>::Instance());
+      HybridManager2::Instance().InitStructure((lvol.second));
+    }
+    lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
+  }
 }
 
 /**
@@ -450,7 +436,8 @@ bool GeantPropagator::LoadVecGeomGeometry() {
     Printf("Have placed volumes %ld\n", v2.size());
     //    vecgeom::RootGeoManager::Instance().world()->PrintContent();
 
-    if (fWMgr->GetTaskBroker()) Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    if (fWMgr->GetTaskBroker())
+      Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
     return fWMgr->LoadGeometry();
   }
   if (fWMgr && fWMgr->GetTaskBroker()) {
@@ -555,7 +542,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   else
     Printf("  Physics OFF");
   if (fUseRungeKutta)
-     Printf("  Runge-Kutta integration ON with epsilon= %g", fEpsilonRK ); 
+    Printf("  Runge-Kutta integration ON with epsilon= %g", fEpsilonRK);
   else
     Printf("  Runge-Kutta integration OFF");
 
@@ -580,7 +567,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   }
   fTimer = new TStopwatch();
 #ifdef USE_CALLGRIND_CONTROL
-    CALLGRIND_START_INSTRUMENTATION;
+  CALLGRIND_START_INSTRUMENTATION;
 #endif
   fWMgr->StartThreads();
   fTimer->Start();
@@ -591,26 +578,26 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fWMgr->JoinThreads();
   fTimer->Stop();
 #ifdef USE_CALLGRIND_CONTROL
-    CALLGRIND_STOP_INSTRUMENTATION;
-    CALLGRIND_DUMP_STATS;
+  CALLGRIND_STOP_INSTRUMENTATION;
+  CALLGRIND_DUMP_STATS;
 #endif
   double rtime = fTimer->RealTime();
   double ctime = fTimer->CpuTime();
   //   fTimer->Print();
   double speedup = ctime / rtime;
   double efficiency = speedup / nthreads;
-  //   fWMgr->Print();
+//   fWMgr->Print();
 
 #ifdef GEANTV_OUTPUT_RESULT_FILE
   const char *geomname = geomfile;
   if (strstr(geomfile, "http://root.cern.ch/files/"))
     geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
-//  int nsteps = fWMgr->GetScheduler()->GetNsteps();
+  //  int nsteps = fWMgr->GetScheduler()->GetNsteps();
   Printf("=== Transported: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld  RT=%gs, CP=%gs",
-         fNprimaries.load(), fNtransported.load(), fNsteps.load(), fNsnext.load(), fNphys.load(),
-         fNmag.load(), fNsmall.load(), rtime, ctime);
+         fNprimaries.load(), fNtransported.load(), fNsteps.load(), fNsnext.load(), fNphys.load(), fNmag.load(),
+         fNsmall.load(), rtime, ctime);
   Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
   //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
   fApplication->FinishRun();

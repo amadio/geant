@@ -13,12 +13,11 @@
 // Interface to vector physics models
 class GVComptonProcess;
 
-class GVectorPhysicsProcess : public PhysicsProcess
-{
+class GVectorPhysicsProcess : public PhysicsProcess {
 private:
-  GVComptonProcess    **fVComptonProcess;
-  double                fEnergyLimit;       // tracking cut in kinetic energy [GeV]
-  int                   fNumThreads;        // number of working threads
+  GVComptonProcess **fVComptonProcess;
+  double fEnergyLimit; // tracking cut in kinetic energy [GeV]
+  int fNumThreads;     // number of working threads
 
 public:
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -29,53 +28,33 @@ public:
   virtual ~GVectorPhysicsProcess();
 
   virtual void Initialize();
-  virtual void PostStepFinalStateSampling( Material_t* /*mat*/,
-                                           int ntracks,
-                                           GeantTrack_v &tracks,
-                                           int &nout,
-                                           GeantTaskData *td);
+  virtual void PostStepFinalStateSampling(Material_t * /*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
+                                          GeantTaskData *td);
 
   // these are not active !!!
   //
-  virtual void ComputeIntLen(Material_t * /*mat*/,
-                             int /*ntracks*/,
-                             GeantTrack_v & /*tracks*/,
-                             double * /*lengths*/,
-                             GeantTaskData * /*tid*/)                            {}
+  virtual void ComputeIntLen(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, double * /*lengths*/,
+                             GeantTaskData * /*tid*/) {}
 
-  virtual void PostStep(     Material_t * /*mat*/,
-                             int /*ntracks*/,
-                             GeantTrack_v &/*tracks*/,
-                             int & /*nout*/,
-                             GeantTaskData * /*tid*/)                            {}
+  virtual void PostStep(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
+                        GeantTaskData * /*tid*/) {}
 
-  virtual void PostStepTypeOfIntrActSampling(     Material_t * /*mat*/,
-                                                  int /*ntracks*/,
-                                                  GeantTrack_v & /*tracks*/,
-                                                  GeantTaskData * /*tid*/)       {}
+  virtual void PostStepTypeOfIntrActSampling(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/,
+                                             GeantTaskData * /*tid*/) {}
 
-  virtual void AtRest(       int /*ntracks*/,
-                             GeantTrack_v &/*tracks*/,
-                             int &/*nout*/,
-                             GeantTaskData* /*tid*/)                             {}
+  virtual void AtRest(int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/, GeantTaskData * /*tid*/) {}
 
-  virtual void Eloss(        Material_t */*mat*/,
-                             int /*ntracks*/,
-                             GeantTrack_v &/*tracks*/,
-                             int &/*nout*/,
-                             GeantTaskData* /*tid*/)                             {}
+  virtual void Eloss(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
+                     GeantTaskData * /*tid*/) {}
 
-  virtual void ApplyMsc(     Material_t */*mat*/,
-                             int /*ntracks*/,
-                             GeantTrack_v &/*tracks*/,
-                             GeantTaskData* /*tid*/)                             {}
+  virtual void ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*tid*/) {}
 
 private:
-   GVectorPhysicsProcess (const GVectorPhysicsProcess  &);//no imp.
-   GVectorPhysicsProcess & operator=(const GVectorPhysicsProcess  &);//no imp.
+  GVectorPhysicsProcess(const GVectorPhysicsProcess &); // no imp.
+  GVectorPhysicsProcess &operator=(const GVectorPhysicsProcess &); // no imp.
 
-   // we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed
-   ClassDef(GVectorPhysicsProcess,1)
+  // we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed
+  ClassDef(GVectorPhysicsProcess, 1)
 };
 
 #endif

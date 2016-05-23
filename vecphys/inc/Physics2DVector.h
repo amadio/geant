@@ -1,4 +1,4 @@
-//a temporary interface to load and read SeltzerBerger data
+// a temporary interface to load and read SeltzerBerger data
 //(adopted from G4Physics2DVector) - need to vectorize this utility class
 
 #ifndef Physics2DVector_H
@@ -10,10 +10,8 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-class Physics2DVector
-{
+class Physics2DVector {
 public:
-
   VECCORE_CUDA_HOST_DEVICE
   Physics2DVector();
 
@@ -42,10 +40,9 @@ public:
   size_t FindBinLocationY(double y);
 
 private:
-  double  xVector[numberOfXNodes];
-  double  yVector[numberOfYNodes];
-  double  value[numberOfYNodes][numberOfXNodes];
-
+  double xVector[numberOfXNodes];
+  double yVector[numberOfYNodes];
+  double value[numberOfYNodes][numberOfXNodes];
 };
 
 } // end namespace impl

@@ -7,12 +7,10 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-class MaterialHandler
-{
+class MaterialHandler {
 public:
-
   VECCORE_CUDA_HOST
-  static MaterialHandler* Instance();
+  static MaterialHandler *Instance();
 
   VECCORE_CUDA_HOST
   MaterialHandler();
@@ -25,9 +23,9 @@ public:
   int GetNumberOfElements() { return fNumberOfElements; }
 
   VECCORE_CUDA_HOST_DEVICE
-    int* GetElementArray() { return &fElementArray[0]; }
+  int *GetElementArray() { return &fElementArray[0]; }
 
-  //a temporary method for the purpose of validation/benchmarking
+  // a temporary method for the purpose of validation/benchmarking
   VECCORE_CUDA_HOST
   void PrepareTargetElements(int *targetElements, int ntracks, int elementMode = 0);
 
@@ -39,7 +37,7 @@ private:
   void AddElement(int element);
 
 private:
-  static MaterialHandler* fInstance;
+  static MaterialHandler *fInstance;
   int fElementMode;
   int fNumberOfElements;
   int fElementArray[maximumZ];

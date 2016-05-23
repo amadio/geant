@@ -12,28 +12,27 @@ class GUTrackHandler;
 class GUBenchmarker {
 
 public:
-
   GUBenchmarker();
   ~GUBenchmarker();
 
   int RunBenchmark();
 
   void SetNTracks(const int ntracks) { fNtracks = ntracks; }
-  void SetRepetitions(const unsigned repetitions) {
-    fRepetitions = repetitions;
-  }
+  void SetRepetitions(const unsigned repetitions) { fRepetitions = repetitions; }
 
-  void SetMinP(double pMin) { fMinP= pMin; }
-  void SetMaxP(double pMax) { fMaxP= pMax; }
-  void SetSampleType(SamplingMethod type) { fSampleType = type ; }
-  void SetEmModel(int model) { fEmModel = model ; }
-  void SetMaterialMode(int materialMode) { fMaterialMode = materialMode ; }
+  void SetMinP(double pMin) { fMinP = pMin; }
+  void SetMaxP(double pMax) { fMaxP = pMax; }
+  void SetSampleType(SamplingMethod type) { fSampleType = type; }
+  void SetEmModel(int model) { fEmModel = model; }
+  void SetMaterialMode(int materialMode) { fMaterialMode = materialMode; }
 
-  void SetMonoEnergeticBeam(double E){ SetMinP(E); SetMaxP(E); } // For gamma only now!
+  void SetMonoEnergeticBeam(double E) {
+    SetMinP(E);
+    SetMaxP(E);
+  } // For gamma only now!
 
 private:
-
-  int  RunBenchmarkInteract();
+  int RunBenchmarkInteract();
 
   void PrepareTargetElements(int *targetElements, int ntracks);
 
@@ -47,18 +46,13 @@ private:
   void RunCuda();
 #endif
 
-
 protected:
-  void
-  ReportInteraction( double incomingEnergy, int    targetElement,
-                     double GammaOut_E,     double GammaOut_Pz,
-                     double electron_En,    double electron_Pz,
-                     bool   print_Uz= false
-     );
+  void ReportInteraction(double incomingEnergy, int targetElement, double GammaOut_E, double GammaOut_Pz,
+                         double electron_En, double electron_Pz, bool print_Uz = false);
   // Print results - one per line, to enable debugging
 
 private:
-  ///phihome/syjun/devel/sbTest/test/src/GUBenchmarker.cc:1:  GUComptonKleinNishina *fmodel;
+  /// phihome/syjun/devel/sbTest/test/src/GUBenchmarker.cc:1:  GUComptonKleinNishina *fmodel;
 
   GUTrackHandler *fTrackHandler;
   MaterialHandler *fMaterialHandler;
@@ -67,7 +61,7 @@ private:
   unsigned fRepetitions;
   int fVerbosity;
 
-  double fMinP, fMaxP;  // Minimum and Maximum momentum of primaries
+  double fMinP, fMaxP; // Minimum and Maximum momentum of primaries
   SamplingMethod fSampleType;
   int fEmModel;
   int fMaterialMode;
