@@ -114,12 +114,12 @@ if (CUDA)
         DEPENDS ${SRC_FILE}
       )
 
-      set(
+    set(
         SRC_CUDA ${SRC_CUDA}
         ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
-      )
+    )
 
-   endforeach()
+  endforeach()
 
 
  cuda_add_library(xseccuda
