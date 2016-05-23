@@ -485,7 +485,7 @@ int TPXsec::SampleReac(double en) const {
   double xnorm = 1.;
   while (1) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    double ran = RNG::Instance().uniform();
+    double ran = xnorm * RNG::Instance().uniform();
 #elif USE_ROOT
 #ifndef GEANT_NVCC
     double ran = xnorm * gRandom->Rndm();

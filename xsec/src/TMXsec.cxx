@@ -44,7 +44,7 @@ const T& max(const T&a,const T& b) {
 TMXsec::TMXsec()
     : fNEbins(0), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(0), fEGrid(0), fNElems(0), fElems(0), fTotXL(0),
       fRelXS(0), fDEdx(0), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(0), fRange(0),
-      fInvRangeTable(0), fDecayTable(0) {
+      fDecayTable(0), fInvRangeTable(0) {
   fName[0] = '\0';
   fTitle[0] = '\0';
 }
@@ -71,8 +71,8 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
                float dens, bool weight, const TPDecay *decaytable)
     : fNEbins(TPartIndex::I()->NEbins()), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(TPartIndex::I()->EilDelta()),
       fEGrid(TPartIndex::I()->EGrid()), fNElems(nel), fElems(new TEXsec *[fNElems]), fTotXL(0), fRelXS(0), fDEdx(0),
-      fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(new double[fNElems]), fRange(0), fInvRangeTable(0),
-      fDecayTable(decaytable) {
+      fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(new double[fNElems]), fRange(0),
+      fDecayTable(decaytable), fInvRangeTable(0) {
   // Create a mixture material, we support only natural materials for the moment
   // so we ignore a (i.e. we consider it == 0)
 
