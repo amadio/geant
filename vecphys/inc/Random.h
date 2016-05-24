@@ -20,7 +20,7 @@ static __shared__ curandState CudaRNGState;
 #endif
 
 template <typename T>
-  VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(void * /*States*/, int * /*ThreadId*/)
+VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(void * /*States*/, int * /*ThreadId*/)
 {
 #ifndef VECCORE_NVCC_DEVICE
   unsigned short xsubi[3];
@@ -29,7 +29,7 @@ template <typename T>
 #if 1
   return curand_uniform(&cuda::CudaRNGState);
 #else
-  // for some reason, this implementation doesn't seem to work 
+  // for some reason, this implementation doesn't seem to work
   // <- this is the source of CUDA random problem after the VecCore migration and should be fixed! (syjun)
   curandState *state_ptr = (curandState *)States;
   curandState localState = state_ptr[*ThreadId];
