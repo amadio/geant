@@ -1,8 +1,8 @@
 #ifndef ConversionBetheHeitler_H
 #define ConversionBetheHeitler_H 1
 
-#include "base/VPGlobal.h"
 #include "base/PhysicalConstants.h"
+#include "base/VecPhys.h"
 
 #include "GUConstants.h"
 #include "GUTrack.h"
@@ -31,6 +31,9 @@ public:
   void BuildCrossSectionTablePerAtom(int Z);
 
   VECCORE_CUDA_HOST
+  double GetG4CrossSection(int Z, double energy);
+
+  VECCORE_CUDA_HOST
   void BuildPdfTable(int Z, double *p);
 
 public:
@@ -40,31 +43,32 @@ public:
                                                                          Index_v<typename Backend::Double_v> zElement);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void
-  InteractKernel(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
-                 typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta);
+  VECCORE_CUDA_HOST_DEVICE void InteractKernel(typename Backend::Double_v energyIn,
+                                               Index_v<typename Backend::Double_v> zElement,
+                                               typename Backend::Double_v &energyOut,
+                                               typename Backend::Double_v &sinTheta);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void
-  InteractKernelCR(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
-                   typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta);
+  VECCORE_CUDA_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
+                                                 Index_v<typename Backend::Double_v> zElement,
+                                                 typename Backend::Double_v &energyOut,
+                                                 typename Backend::Double_v &sinTheta);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void
-  InteractKernelUnpack(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
-                       typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta,
-                       Mask_v<typename Backend::Double_v> &status);
+  VECCORE_CUDA_HOST_DEVICE void InteractKernelUnpack(typename Backend::Double_v energyIn,
+                                                     Index_v<typename Backend::Double_v> zElement,
+                                                     typename Backend::Double_v &energyOut,
+                                                     typename Backend::Double_v &sinTheta,
+                                                     Mask_v<typename Backend::Double_v> &status);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void
-  SampleSinTheta(typename Backend::Double_v energyElectron, typename Backend::Double_v energyPositron,
-                 typename Backend::Double_v &sinThetaElectron, typename Backend::Double_v &sinThetaPositron);
+  VECCORE_CUDA_HOST_DEVICE void SampleSinTheta(typename Backend::Double_v energyElectron,
+                                               typename Backend::Double_v energyPositron,
+                                               typename Backend::Double_v &sinThetaElectron,
+                                               typename Backend::Double_v &sinThetaPositron);
 
   VECCORE_CUDA_HOST_DEVICE
   void SampleByCompositionRejection(int elementZ, double energyIn, double &energyOut, double &sinTheta);
-
-  VECCORE_CUDA_HOST_DEVICE
-  double GetG4CrossSection(double energyIn, const int zElement);
 
   VECCORE_CUDA_HOST_DEVICE
   double CalculateDiffCrossSection(int Zelement, double Ein, double outEphoton);
@@ -95,7 +99,8 @@ template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernel(typename Backend::Double_v energyIn,
                                                                      Index_v<typename Backend::Double_v> zElement,
                                                                      typename Backend::Double_v &energyOut,
-                                                                     typename Backend::Double_v &sinTheta) {
+                                                                     typename Backend::Double_v &sinTheta)
+{
   // now return only secondary electron information and
   // a positron will be created based on the electron - eventually we need a common
   // interface  to fill produced secondaries into a single stact
@@ -142,7 +147,8 @@ template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::SampleSinTheta(typename Backend::Double_v energyElectron,
                                                                      typename Backend::Double_v energyPositron,
                                                                      typename Backend::Double_v &sinThetaElectron,
-                                                                     typename Backend::Double_v &sinThetaPositron) {
+                                                                     typename Backend::Double_v &sinThetaPositron)
+{
   using Double_v = typename Backend::Double_v;
 
   // angles of the pair production (gamma -> e+e-)
@@ -161,8 +167,9 @@ VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::SampleSinTheta(typename Ba
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
-ConversionBetheHeitler::CrossSectionKernel(typename Backend::Double_v energy, Index_v<typename Backend::Double_v> Z) {
+VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v ConversionBetheHeitler::CrossSectionKernel(
+    typename Backend::Double_v energy, Index_v<typename Backend::Double_v> Z)
+{
   using Double_v = typename Backend::Double_v;
 
   if (MaskFull(Z < 0.9 || energy <= Double_v(2.0 * electron_mass_c2)))
@@ -196,23 +203,27 @@ ConversionBetheHeitler::CrossSectionKernel(typename Backend::Double_v energy, In
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v /*energyIn*/,
-                                                                       Index_v<typename Backend::Double_v> /*zElement*/,
+VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v energyIn,
+                                                                       Index_v<typename Backend::Double_v> /*Z*/,
                                                                        typename Backend::Double_v &energyOut,
-                                                                       typename Backend::Double_v &sinTheta) {
+                                                                       typename Backend::Double_v &sinTheta)
+{
   // dummy for now
-  energyOut = 0.0;
+  energyOut = energyIn;
   sinTheta = 0.0;
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelUnpack(
-    typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> /*zElement*/,
-    typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta,
-    Mask_v<typename Backend::Double_v> & /*status*/) {
+VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_v energyIn,
+                                                                           Index_v<typename Backend::Double_v> /*Z*/,
+                                                                           typename Backend::Double_v &energyOut,
+                                                                           typename Backend::Double_v &sinTheta,
+                                                                           Mask_v<typename Backend::Double_v> &status)
+{
   // dummy for now
   energyOut = energyIn;
-  sinTheta = 0;
+  sinTheta = 0.0;
+  status = false;
 }
 
 } // end namespace impl

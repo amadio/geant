@@ -1,10 +1,10 @@
+#include "BremSeltzerBerger.h"
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"
-#include "BremSeltzerBerger.h"
 #include <iostream>
 
-#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -12,7 +12,8 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 // const double
 
 VECCORE_CUDA_HOST
-BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid) : EmModelBase<BremSeltzerBerger>(states, tid) {
+BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid) : EmModelBase<BremSeltzerBerger>(states, tid)
+{
   fAtomicDependentModel = true;
   SetLowEnergyLimit(0.1 * keV);
 
@@ -25,7 +26,8 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid) : EmModelBase<Br
 
 VECCORE_CUDA_HOST_DEVICE
 BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid, GUAliasSampler *sampler, Physics2DVector *sbData)
-    : EmModelBase<BremSeltzerBerger>(states, tid, sampler) {
+    : EmModelBase<BremSeltzerBerger>(states, tid, sampler)
+{
   fAtomicDependentModel = true;
   SetLowEnergyLimit(0.1 * keV);
 
@@ -37,7 +39,8 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid, GUAliasSampler *
 VECCORE_CUDA_HOST_DEVICE
 BremSeltzerBerger::~BremSeltzerBerger() { free(fDataSB); }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::Initialization() {
+VECCORE_CUDA_HOST void BremSeltzerBerger::Initialization()
+{
   fDataSB = (Physics2DVector *)malloc(maximumZ * sizeof(Physics2DVector));
 
   char sbDataFile[256];
@@ -60,7 +63,8 @@ VECCORE_CUDA_HOST void BremSeltzerBerger::Initialization() {
   }
 }
 
-VECCORE_CUDA_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream &in, Physics2DVector *vec2D) {
+VECCORE_CUDA_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream &in, Physics2DVector *vec2D)
+{
   // binning
   int k;
   int dummyX; // 32 fixed up to Z = 92
@@ -99,11 +103,13 @@ VECCORE_CUDA_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstrea
   return true;
 }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::BuildCrossSectionTablePerAtom(int /*Z*/) {
+VECCORE_CUDA_HOST void BremSeltzerBerger::BuildCrossSectionTablePerAtom(int /*Z*/)
+{
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p) {
+VECCORE_CUDA_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p)
+{
   // Build the probability density function (SeltzerBerger pdf) in the
   // input energy randge [minX,maxX] with an equal logarithmic bin size
   //
@@ -164,7 +170,8 @@ VECCORE_CUDA_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p) {
 
 // function implementing the differential cross section for SeltzerBerger
 
-VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::CalculateDiffCrossSection(int Zelement, double w, double y) const {
+VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::CalculateDiffCrossSection(int Zelement, double w, double y) const
+{
   // based on Geant4
   // data   : SeltzerBerger parameterization (G4LEDATA data set)
   // input  : Zelement (atomic number)
@@ -180,7 +187,8 @@ VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::CalculateDiffCrossSection(int
 }
 
 VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(int Z, double kineticEnergy,
-                                                                              double &gammaEnergy, double &sinTheta) {
+                                                                              double &gammaEnergy, double &sinTheta)
+{
   // G4SeltzerBergerModel::SampleSecondaries
   //  G4double cut  = Min(cutEnergy, kineticEnergy);
   //  G4double emax = Min(maxEnergy, kineticEnergy);
@@ -209,8 +217,8 @@ VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(in
   G4double x0 = cut / kineticEnergy;
   G4double vmax = fDataSB[Z].Value(x0, y) * 1.02;
 
-  const double_t epeaklimit = 300 * MeV;
-  const double_t elowlimit = 10 * keV;
+  double_t epeaklimit = 300 * MeV;
+  double_t elowlimit = 10 * keV;
 
   // majoranta corrected for e-
   bool isElectron = true;
@@ -245,7 +253,8 @@ VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(in
   sinTheta = SampleSinTheta<backend::Scalar>(gammaEnergy);
 }
 
-VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::GetG4CrossSection(double kineticEnergy, int Z) {
+VECCORE_CUDA_HOST double BremSeltzerBerger::GetG4CrossSection(int Z, double kineticEnergy)
+{
   // temporary
   G4double cutEnergy = 1.0 * keV;
   G4double maxEnergy = 1.0 * TeV;
@@ -280,7 +289,8 @@ VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::GetG4CrossSection(double kine
 }
 
 VECCORE_CUDA_HOST_DEVICE
-void BremSeltzerBerger::SetCurrentElement(G4double Z) {
+void BremSeltzerBerger::SetCurrentElement(G4double Z)
+{
   if (Z != currentZ) {
     currentZ = Z;
 
@@ -301,8 +311,8 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z) {
     //        = math::Log(x);
     lnZ = math::Log(x);
 
-    constexpr G4double Fel_light[5] = {0., 5.31, 4.79, 4.74, 4.71};
-    constexpr G4double Finel_light[5] = {0., 6.144, 5.621, 5.805, 5.924};
+    G4double Fel_light[5] = {0., 5.31, 4.79, 4.74, 4.71};
+    G4double Finel_light[5] = {0., 6.144, 5.621, 5.805, 5.924};
 
     G4double Fel = 0.0;
     G4double Finel = 0.0;
@@ -310,7 +320,8 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z) {
     if (iz <= 4) {
       Fel = Fel_light[iz];
       Finel = Finel_light[iz];
-    } else {
+    }
+    else {
       //    const G4double facFel = math::Log(184.15);
       //    const G4double facFinel = math::Log(1194.);
       //    Fel = facFel - lnZ/3. ;
@@ -326,7 +337,8 @@ void BremSeltzerBerger::SetCurrentElement(G4double Z) {
 }
 
 VECCORE_CUDA_HOST_DEVICE
-G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut, G4double kineticEnergy) {
+G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut, G4double kineticEnergy)
+{
   G4double cross = 0.0;
 
   // number of intervals and integration step
@@ -338,7 +350,7 @@ G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut, G4double kineti
   G4double delta = (vmax - vcut) / G4double(n);
 
   G4double e0 = vcut;
-  G4double xs;
+  G4double xs = 0.0;
 
   // densityFactor = mat->GetElectronDensity()*fMigdalConstant;
   // energyThresholdLPM=math::Sqrt(densityFactor)*lpmEnergy;
@@ -346,8 +358,8 @@ G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut, G4double kineti
   G4double energyThresholdLPM = 1.0;
   G4double densityCorr = densityFactor * totalEnergy * totalEnergy;
 
-  constexpr double xgi[8] = {0.0199, 0.1017, 0.2372, 0.4083, 0.5917, 0.7628, 0.8983, 0.9801};
-  constexpr double wgi[8] = {0.0506, 0.1112, 0.1569, 0.1813, 0.1813, 0.1569, 0.1112, 0.0506};
+  double xgi[8] = {0.0199, 0.1017, 0.2372, 0.4083, 0.5917, 0.7628, 0.8983, 0.9801};
+  double wgi[8] = {0.0506, 0.1112, 0.1569, 0.1813, 0.1813, 0.1569, 0.1112, 0.0506};
 
   // integration
   for (G4int l = 0; l < n; l++) {
@@ -358,8 +370,9 @@ G4double BremSeltzerBerger::ComputeXSectionPerAtom(G4double cut, G4double kineti
 
       if (totalEnergy > energyThresholdLPM) {
         xs = ComputeRelDXSectionPerAtom(eg);
-      } else {
-        // ToDo:syjun - select G4eBremsstrahlungRelModel or G4SeltzerBergerModel
+      }
+      else {
+        // ToDo:syjun - select G4eBremsstrahlungRelMedel or G4SeltzerBergerModel
         xs = ComputeDXSectionPerAtom(eg);
       }
       cross += wgi[i] * xs / (1.0 + densityCorr / (eg * eg));
@@ -381,6 +394,7 @@ G4double BremSeltzerBerger::ComputeRelDXSectionPerAtom(G4double gammaEnergy)
   if (gammaEnergy < 0.0) {
     return 0.0;
   }
+  totalEnergy = gammaEnergy + electron_mass_c2;
 
   G4double y = gammaEnergy / totalEnergy;
   G4double y2 = y * y * .25;
@@ -411,6 +425,7 @@ G4double BremSeltzerBerger::ComputeDXSectionPerAtom(G4double gammaEnergy)
     return 0.0;
   }
 
+  totalEnergy = gammaEnergy + electron_mass_c2;
   G4double y = gammaEnergy / totalEnergy;
 
   G4double main = 0., secondTerm = 0.;
@@ -421,7 +436,8 @@ G4double BremSeltzerBerger::ComputeDXSectionPerAtom(G4double gammaEnergy)
     // ** form factors complete screening case **
     main = (3. / 4. * y * y - y + 1.) * ((Fel - fCoulomb) + Finel / currentZ);
     secondTerm = (1. - y) / 12. * (1. + 1. / currentZ);
-  } else {
+  }
+  else {
     // ** intermediate screening using Thomas-Fermi FF from Tsai
     // only valid for Z>=5**
     G4double dd = 100. * electron_mass_c2 * y / (totalEnergy - gammaEnergy);
@@ -444,7 +460,8 @@ G4double BremSeltzerBerger::ComputeDXSectionPerAtom(G4double gammaEnergy)
 }
 
 VECCORE_CUDA_HOST_DEVICE
-void BremSeltzerBerger::CalcLPMFunctions(G4double k) {
+void BremSeltzerBerger::CalcLPMFunctions(G4double k)
+{
   // *** calculate lpm variable s & sprime ***
   // Klein eqs. (78) & (79)
 
@@ -492,7 +509,8 @@ void BremSeltzerBerger::CalcLPMFunctions(G4double k) {
     // high suppression limit
     phiLPM = 6. * s0 - 18.84955592153876 * s2 + 39.47841760435743 * s3 - 57.69873135166053 * s4;
     gLPM = 37.69911184307752 * s2 - 236.8705056261446 * s3 + 807.7822389 * s4;
-  } else if (s0 < 1.9516) {
+  }
+  else if (s0 < 1.9516) {
     // intermediate suppression
     // using eq.77 approxim. valid s<2.
     phiLPM = 1. - math::Exp(-6. * s0 * (1. + (3. - pi) * s0) + s3 / (0.623 + 0.795 * s0 + 0.658 * s2));
@@ -500,13 +518,15 @@ void BremSeltzerBerger::CalcLPMFunctions(G4double k) {
       // using eq.77 approxim. valid 0.07<s<2
       G4double psiLPM = 1 - math::Exp(-4 * s0 - 8 * s2 / (1 + 3.936 * s0 + 4.97 * s2 - 0.05 * s3 + 7.50 * s4));
       gLPM = 3 * psiLPM - 2 * phiLPM;
-    } else {
+    }
+    else {
       // using alternative parametrisiation
       G4double pre = -0.16072300849123999 + s0 * 3.7550300067531581 + s2 * -1.7981383069010097 +
                      s3 * 0.67282686077812381 + s4 * -0.1207722909879257;
       gLPM = math::Tanh(pre);
     }
-  } else {
+  }
+  else {
     // low suppression limit valid s>2.
     phiLPM = 1. - 0.0119048 / s4;
     gLPM = 1. - 0.0230655 / s4;
@@ -520,7 +540,8 @@ void BremSeltzerBerger::CalcLPMFunctions(G4double k) {
 }
 
 VECCORE_CUDA_HOST_DEVICE
-G4double BremSeltzerBerger::Phi1(G4double gg) {
+G4double BremSeltzerBerger::Phi1(G4double gg)
+{
   // Thomas-Fermi FF from Tsai, eq.(3.38) for Z>=5
   //  return 20.863 - 2.*math::Log(1. + sqr(0.55846*gg) )
   return 20.863 - 2. * math::Log(1. + (0.55846 * gg) * (0.55846 * gg)) -
@@ -528,14 +549,16 @@ G4double BremSeltzerBerger::Phi1(G4double gg) {
 }
 
 VECCORE_CUDA_HOST_DEVICE
-G4double BremSeltzerBerger::Phi1M2(G4double gg) {
+G4double BremSeltzerBerger::Phi1M2(G4double gg)
+{
   // Thomas-Fermi FF from Tsai, eq. (3.39) for Z>=5
   // return Phi1(gg,Z) -
   return 2. / (3. * (1. + 6.5 * gg + 6. * gg * gg));
 }
 
 VECCORE_CUDA_HOST_DEVICE
-G4double BremSeltzerBerger::Psi1(G4double eps) {
+G4double BremSeltzerBerger::Psi1(G4double eps)
+{
   // Thomas-Fermi FF from Tsai, eq.(3.40) for Z>=5
   //  return 28.340 - 2.*math::Log(1. + sqr(3.621*eps) )
   return 28.340 - 2. * math::Log(1. + (3.621 * eps) * (3.621 * eps)) -
@@ -543,7 +566,8 @@ G4double BremSeltzerBerger::Psi1(G4double eps) {
 }
 
 VECCORE_CUDA_HOST_DEVICE
-G4double BremSeltzerBerger::Psi1M2(G4double eps) {
+G4double BremSeltzerBerger::Psi1M2(G4double eps)
+{
   // Thomas-Fermi FF from Tsai, eq. (3.41) for Z>=5
   return 2. / (3. * (1. + 40. * eps + 400. * eps * eps));
 }

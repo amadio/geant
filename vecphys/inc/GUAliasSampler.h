@@ -48,31 +48,37 @@ public:
 
   // Backend Implementation:
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void
-  SampleBin(typename Backend::Double_v kineticEnergy, Index_v<typename Backend::Double_v> &index,
-            Index_v<typename Backend::Double_v> &icol, typename Backend::Double_v &fraction);
+  VECCORE_CUDA_HOST_DEVICE void SampleBin(typename Backend::Double_v kineticEnergy,
+                                          Index_v<typename Backend::Double_v> &index,
+                                          Index_v<typename Backend::Double_v> &icol,
+                                          typename Backend::Double_v &fraction);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void
-  SampleLogBin(typename Backend::Double_v kineticEnergy, Index_v<typename Backend::Double_v> &irow,
-               Index_v<typename Backend::Double_v> &icol, typename Backend::Double_v &fraction);
+  VECCORE_CUDA_HOST_DEVICE void SampleLogBin(typename Backend::Double_v kineticEnergy,
+                                             Index_v<typename Backend::Double_v> &irow,
+                                             Index_v<typename Backend::Double_v> &icol,
+                                             typename Backend::Double_v &fraction);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
-  SampleX(typename Backend::Double_v rangeSampled, typename Backend::Double_v probNA,
-          Index_v<typename Backend::Double_v> aliasInd, Index_v<typename Backend::Double_v> icol,
-          typename Backend::Double_v fraction);
+  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v SampleX(typename Backend::Double_v rangeSampled,
+                                                              typename Backend::Double_v probNA,
+                                                              Index_v<typename Backend::Double_v> aliasInd,
+                                                              Index_v<typename Backend::Double_v> icol,
+                                                              typename Backend::Double_v fraction);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
-  SampleXL(Index_v<typename Backend::Double_v> zElement, typename Backend::Double_v rangeSampled,
-           typename Backend::Double_v probNA, Index_v<typename Backend::Double_v> aliasInd,
-           Index_v<typename Backend::Double_v> irow, Index_v<typename Backend::Double_v> icol);
+  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v SampleXL(Index_v<typename Backend::Double_v> zElement,
+                                                               typename Backend::Double_v rangeSampled,
+                                                               typename Backend::Double_v probNA,
+                                                               Index_v<typename Backend::Double_v> aliasInd,
+                                                               Index_v<typename Backend::Double_v> irow,
+                                                               Index_v<typename Backend::Double_v> icol);
 
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE void
-  GatherAlias(Index_v<typename Backend::Double_v> index, Index_v<typename Backend::Double_v> zElement,
-              typename Backend::Double_v &probNA, Index_v<typename Backend::Double_v> &aliasInd) const;
+  inline VECCORE_CUDA_HOST_DEVICE void GatherAlias(Index_v<typename Backend::Double_v> index,
+                                                   Index_v<typename Backend::Double_v> zElement,
+                                                   typename Backend::Double_v &probNA,
+                                                   Index_v<typename Backend::Double_v> &aliasInd) const;
 
   template <class Backend>
   inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GetPDF(Index_v<typename Backend::Double_v> zElement,
@@ -122,12 +128,12 @@ private:
 // Backend Implementation
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void
-GUAliasSampler::SampleBin(typename Backend::Double_v kineticEnergy,
-                          Index_v<typename Backend::Double_v> & /*index*/, // ~ sampled value
-                          Index_v<typename Backend::Double_v> &icol,       // ~ input Energy
-                          typename Backend::Double_v &fraction             //  in sampled variable
-                          ) {
+VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleBin(typename Backend::Double_v kineticEnergy,
+                                                        Index_v<typename Backend::Double_v> &index, // ~ sampled value
+                                                        Index_v<typename Backend::Double_v> &icol,  // ~ input Energy
+                                                        typename Backend::Double_v &fraction //  in sampled variable
+                                                        )
+{
   using Double_v = typename Backend::Double_v;
 
   // select the alias table for incoming energy
@@ -156,12 +162,13 @@ GUAliasSampler::SampleBin(typename Backend::Double_v kineticEnergy,
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void
-GUAliasSampler::SampleLogBin(typename Backend::Double_v kineticEnergy,
-                             Index_v<typename Backend::Double_v> &irow, // input energy
-                             Index_v<typename Backend::Double_v> &icol, // sampled value
-                             typename Backend::Double_v &fraction       // within the sampled bin
-                             ) {
+VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleLogBin(
+    typename Backend::Double_v kineticEnergy,
+    Index_v<typename Backend::Double_v> &irow, // input energy
+    Index_v<typename Backend::Double_v> &icol, // sampled value
+    typename Backend::Double_v &fraction       // within the sampled bin
+    )
+{
   using Double_v = typename Backend::Double_v;
 
   // select the alias table for incoming energy
@@ -191,10 +198,11 @@ GUAliasSampler::SampleLogBin(typename Backend::Double_v kineticEnergy,
 //    Feature of this method:  flat distribution within bin
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
-GUAliasSampler::SampleX(typename Backend::Double_v rangeSampled, typename Backend::Double_v probNA,
-                        Index_v<typename Backend::Double_v> aliasInd, Index_v<typename Backend::Double_v> icol,
-                        typename Backend::Double_v fraction) {
+VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleX(
+    typename Backend::Double_v rangeSampled, typename Backend::Double_v probNA,
+    Index_v<typename Backend::Double_v> aliasInd, Index_v<typename Backend::Double_v> icol,
+    typename Backend::Double_v fraction)
+{
   using Double_v = typename Backend::Double_v;
 
   Double_v r1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
@@ -222,10 +230,11 @@ GUAliasSampler::SampleX(typename Backend::Double_v rangeSampled, typename Backen
 //      for given zElement ...
 //    Feature of this method:  linear interpolation using 'PDF'
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
-GUAliasSampler::SampleXL(Index_v<typename Backend::Double_v> /*zElement*/, typename Backend::Double_v rangeSampled,
-                         typename Backend::Double_v probNA, Index_v<typename Backend::Double_v> aliasInd,
-                         Index_v<typename Backend::Double_v> irow, Index_v<typename Backend::Double_v> icol) {
+VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleXL(
+    Index_v<typename Backend::Double_v> /*zElement*/, typename Backend::Double_v rangeSampled,
+    typename Backend::Double_v probNA, Index_v<typename Backend::Double_v> aliasInd,
+    Index_v<typename Backend::Double_v> irow, Index_v<typename Backend::Double_v> icol)
+{
   using Double_v = typename Backend::Double_v;
 
   Double_v r1 = UniformRandom<Double_v>(&fRandomState, &fThreadId);
@@ -270,9 +279,11 @@ GUAliasSampler::SampleXL(Index_v<typename Backend::Double_v> /*zElement*/, typen
 // Scalar method - to be used ONLY for 'scalar-type' backends
 //                  i.e. currently: scalar & CUDA
 template <class Backend>
-inline void
-GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, Index_v<typename Backend::Double_v> zElement,
-                            typename Backend::Double_v &probNA, Index_v<typename Backend::Double_v> &aliasInd) const {
+inline void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index,
+                                        Index_v<typename Backend::Double_v> zElement,
+                                        typename Backend::Double_v &probNA,
+                                        Index_v<typename Backend::Double_v> &aliasInd) const
+{
 #ifdef CHECK
 // if( zElement <= 0  || zElement > fMaxZelement )
 //{
@@ -296,7 +307,8 @@ GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, Index_v<t
 template <class Backend>
 inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> zElement,
                                                          Index_v<typename Backend::Double_v> irow,
-                                                         Index_v<typename Backend::Double_v> icol) const {
+                                                         Index_v<typename Backend::Double_v> icol) const
+{
   using Double_v = typename Backend::Double_v;
 
   int intIndex = (int)(fSampledNumEntries * irow + icol);
@@ -309,7 +321,8 @@ inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backen
 
 template <class Backend>
 inline void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, typename Backend::Double_v &probNA,
-                                        Index_v<typename Backend::Double_v> &aliasInd) const {
+                                        Index_v<typename Backend::Double_v> &aliasInd) const
+{
   int intIndex = (int)index;
   probNA = (fAliasTableManager->GetAliasTable(0))->fProbQ[intIndex];
   aliasInd = (fAliasTableManager->GetAliasTable(0))->fAlias[intIndex];
@@ -317,7 +330,8 @@ inline void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> inde
 
 template <class Backend>
 inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> irow,
-                                                         Index_v<typename Backend::Double_v> icol) const {
+                                                         Index_v<typename Backend::Double_v> icol) const
+{
   using Double_v = typename Backend::Double_v;
 
   int intIndex = (int)(fSampledNumEntries * irow + icol);
@@ -327,11 +341,12 @@ inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backen
 }
 
 // Specialisation for all vector-type backends - Vc for now
-#ifndef VECCORE_NVCC
+#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
 template <>
 inline VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::GatherAlias<backend::VcVector>(
     Index_v<typename backend::VcVector::Double_v> index, Index_v<typename backend::VcVector::Double_v> zElement,
-    typename backend::VcVector::Double_v &probNA, Index_v<typename backend::VcVector::Double_v> &aliasInd) const {
+    typename backend::VcVector::Double_v &probNA, Index_v<typename backend::VcVector::Double_v> &aliasInd) const
+{
   // gather for alias table lookups - (backend type has no ptr arithmetic)
   for (size_t i = 0; i < VectorSize(index); ++i) {
     int z = zElement[i];
@@ -351,10 +366,10 @@ inline VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::GatherAlias<backend::VcVect
 }
 
 template <>
-inline VECCORE_CUDA_HOST_DEVICE typename backend::VcVector::Double_v
-GUAliasSampler::GetPDF<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> zElement,
-                                          Index_v<typename backend::VcVector::Double_v> irow,
-                                          Index_v<typename backend::VcVector::Double_v> icol) const {
+inline VECCORE_CUDA_HOST_DEVICE typename backend::VcVector::Double_v GUAliasSampler::GetPDF<backend::VcVector>(
+    Index_v<typename backend::VcVector::Double_v> zElement, Index_v<typename backend::VcVector::Double_v> irow,
+    Index_v<typename backend::VcVector::Double_v> icol) const
+{
   typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v pdf;
@@ -376,10 +391,10 @@ GUAliasSampler::GetPDF<backend::VcVector>(Index_v<typename backend::VcVector::Do
 // For atomic indedepend models
 
 template <>
-inline VECCORE_CUDA_HOST_DEVICE void
-GUAliasSampler::GatherAlias<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> index,
-                                               typename backend::VcVector::Double_v &probNA,
-                                               Index_v<typename backend::VcVector::Double_v> &aliasInd) const {
+inline VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::GatherAlias<backend::VcVector>(
+    Index_v<typename backend::VcVector::Double_v> index, typename backend::VcVector::Double_v &probNA,
+    Index_v<typename backend::VcVector::Double_v> &aliasInd) const
+{
   // gather for alias table lookups - (backend type has no ptr arithmetic)
   for (size_t i = 0; i < VectorSize(index); ++i) {
     int ind = index[i];
@@ -389,9 +404,9 @@ GUAliasSampler::GatherAlias<backend::VcVector>(Index_v<typename backend::VcVecto
 }
 
 template <>
-inline VECCORE_CUDA_HOST_DEVICE typename backend::VcVector::Double_v
-GUAliasSampler::GetPDF<backend::VcVector>(Index_v<typename backend::VcVector::Double_v> irow,
-                                          Index_v<typename backend::VcVector::Double_v> icol) const {
+inline VECCORE_CUDA_HOST_DEVICE typename backend::VcVector::Double_v GUAliasSampler::GetPDF<backend::VcVector>(
+    Index_v<typename backend::VcVector::Double_v> irow, Index_v<typename backend::VcVector::Double_v> icol) const
+{
   typedef typename backend::VcVector::Double_v Double_v;
 
   Double_v pdf;

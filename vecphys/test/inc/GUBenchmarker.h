@@ -1,9 +1,9 @@
 #ifndef GUBenchmarker_H
 #define GUBenchmarker_H 1
 
-#include "base/VPGlobal.h"
-#include "SamplingMethod.h"
 #include "MaterialHandler.h"
+#include "SamplingMethod.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 
@@ -26,7 +26,8 @@ public:
   void SetEmModel(int model) { fEmModel = model; }
   void SetMaterialMode(int materialMode) { fMaterialMode = materialMode; }
 
-  void SetMonoEnergeticBeam(double E) {
+  void SetMonoEnergeticBeam(double E)
+  {
     SetMinP(E);
     SetMaxP(E);
   } // For gamma only now!

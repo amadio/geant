@@ -4,8 +4,8 @@
 #ifndef Physics2DVector_H
 #define Physics2DVector_H 1
 
-#include "base/VPGlobal.h"
 #include "GUConstants.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {

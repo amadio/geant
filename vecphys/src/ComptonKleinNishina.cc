@@ -4,39 +4,44 @@
 #include "ComptonKleinNishina.h"
 #include <iostream>
 
-#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECCORE_CUDA_HOST
-ComptonKleinNishina::ComptonKleinNishina(Random_t *states, int tid) : EmModelBase<ComptonKleinNishina>(states, tid) {
+ComptonKleinNishina::ComptonKleinNishina(Random_t *states, int tid) : EmModelBase<ComptonKleinNishina>(states, tid)
+{
   SetLowEnergyLimit(10. * keV);
   Initialization();
 }
 
 VECCORE_CUDA_HOST_DEVICE
 ComptonKleinNishina::ComptonKleinNishina(Random_t *states, int tid, GUAliasSampler *sampler)
-    : EmModelBase<ComptonKleinNishina>(states, tid, sampler) {
+    : EmModelBase<ComptonKleinNishina>(states, tid, sampler)
+{
   SetLowEnergyLimit(10. * keV);
 }
 
 VECCORE_CUDA_HOST
 ComptonKleinNishina::~ComptonKleinNishina() { delete fAliasSampler; }
 
-VECCORE_CUDA_HOST void ComptonKleinNishina::BuildCrossSectionTablePerAtom(int /*Z*/) {
+VECCORE_CUDA_HOST void ComptonKleinNishina::BuildCrossSectionTablePerAtom(int /*Z*/)
+{
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void ComptonKleinNishina::Initialization() {
+VECCORE_CUDA_HOST void ComptonKleinNishina::Initialization()
+{
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fLowEnergyLimit, fHighEnergyLimit, 100, 200);
     BuildAliasTable();
   }
 }
 
-VECCORE_CUDA_HOST void ComptonKleinNishina::BuildPdfTable(int Z, double *p) {
+VECCORE_CUDA_HOST void ComptonKleinNishina::BuildPdfTable(int Z, double *p)
+{
   // Build the probability density function (KleinNishina pdf) in the
   // input energy randge [fMinX,fMaxX] with an equallogarithmic  bin size
   //
@@ -92,7 +97,8 @@ VECCORE_CUDA_HOST void ComptonKleinNishina::BuildPdfTable(int Z, double *p) {
 // function implementing the cross section for KleinNishina
 
 VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::CalculateDiffCrossSection(int /*Zelement*/, // not used
-                                                                               double energy0, double energy1) const {
+                                                                               double energy0, double energy1) const
+{
   // based on Geant4 : KleinNishinaCompton
   // input  : energy0 (incomming photon energy)
   //          energy1 (scattered photon energy)
@@ -109,7 +115,8 @@ VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::CalculateDiffCrossSection(i
   return dsigma;
 }
 
-VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::GetG4CrossSection(double gammaEnergy, const int Z) {
+VECCORE_CUDA_HOST double ComptonKleinNishina::GetG4CrossSection(int Z, double gammaEnergy)
+{
   // G4KleinNishinaModel::ComputeCrossSectionPerAtom - Genat4 10.1.p2
   double xSection = 0.;
 
@@ -157,7 +164,8 @@ VECCORE_CUDA_HOST_DEVICE double ComptonKleinNishina::GetG4CrossSection(double ga
 
 VECCORE_CUDA_HOST_DEVICE void ComptonKleinNishina::SampleByCompositionRejection(int /*Z*/, // not used
                                                                                 double energyIn, double &energyOut,
-                                                                                double &sinTheta) {
+                                                                                double &sinTheta)
+{
   double epsilon, epsilonsq, onecost, sint2, greject;
 
   double E0_m = energyIn * inv_electron_mass_c2;
@@ -170,7 +178,8 @@ VECCORE_CUDA_HOST_DEVICE void ComptonKleinNishina::SampleByCompositionRejection(
     if (alpha1 / (alpha1 + alpha2) > UniformRandom<double>(&fRandomState, &fThreadId)) {
       epsilon = math::Exp(-alpha1 * UniformRandom<double>(&fRandomState, &fThreadId));
       epsilonsq = epsilon * epsilon;
-    } else {
+    }
+    else {
       epsilonsq = epsilon0sq + (1. - epsilon0sq) * UniformRandom<double>(&fRandomState, &fThreadId);
       epsilon = math::Sqrt(epsilonsq);
     }

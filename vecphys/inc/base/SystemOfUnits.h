@@ -44,7 +44,7 @@
 #ifndef HEP_SYSTEM_OF_UNITS_H
 #define HEP_SYSTEM_OF_UNITS_H
 
-#include "base/VPGlobal.h"
+#include "base/VecPhys.h"
 
 namespace CLHEP {
 

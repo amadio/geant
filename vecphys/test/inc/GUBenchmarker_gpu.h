@@ -1,11 +1,11 @@
 #ifndef GUBENCHMARKER_GPU_H
 #define GUBENCHMARKER_GPU_H 1
 
-#include "GUTrack.h"
-#include "base/VPGlobal.h"
 #include "GUAliasTableManager.h"
+#include "GUTrack.h"
 #include "Physics2DVector.h"
 #include "SamplingMethod.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 

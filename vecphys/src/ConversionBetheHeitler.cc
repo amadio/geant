@@ -1,15 +1,16 @@
+#include "ConversionBetheHeitler.h"
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"
-#include "ConversionBetheHeitler.h"
 
-#include "base/VPGlobal.h"
 #include "GUG4TypeDef.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECCORE_CUDA_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid)
-    : EmModelBase<ConversionBetheHeitler>(states, tid) {
+    : EmModelBase<ConversionBetheHeitler>(states, tid)
+{
   fAtomicDependentModel = true;
   SetLowEnergyLimit(2. * electron_mass_c2);
   Initialization();
@@ -17,23 +18,69 @@ VECCORE_CUDA_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *state
 
 VECCORE_CUDA_HOST_DEVICE ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid,
                                                                         GUAliasSampler *sampler)
-    : EmModelBase<ConversionBetheHeitler>(states, tid, sampler) {
+    : EmModelBase<ConversionBetheHeitler>(states, tid, sampler)
+{
   fAtomicDependentModel = true;
   SetLowEnergyLimit(2. * electron_mass_c2);
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::Initialization() {
+VECCORE_CUDA_HOST void ConversionBetheHeitler::Initialization()
+{
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fLowEnergyLimit, fHighEnergyLimit, 100, 100);
     BuildAliasTable(fAtomicDependentModel);
   }
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int /*Z*/) {
+VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int /*Z*/)
+{
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p) {
+VECCORE_CUDA_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double GammaEnergy)
+{
+  // G4BetheHeitlerModel::ComputeCrossSectionPerAtom
+
+  const G4double GammaEnergyLimit = 1.5 * MeV;
+
+  // Calculates the microscopic cross section in GEANT4 internal units.
+  // A parametrized formula from L. Urban is used to estimate
+  // the total cross section.
+  // It gives a good description of the data from 1.5 MeV to 100 GeV.
+  // below 1.5 MeV: sigma=sigma(1.5MeV)*(GammaEnergy-2electronmass)
+  //                                   *(GammaEnergy-2electronmass)
+  G4double xSection = 0.0;
+  if (Z < 0.9 || GammaEnergy <= 2.0 * electron_mass_c2) {
+    return xSection;
+  }
+
+  G4double GammaEnergySave = GammaEnergy;
+  if (GammaEnergy < GammaEnergyLimit) {
+    GammaEnergy = GammaEnergyLimit;
+  }
+
+  G4double X = G4Log(GammaEnergy / electron_mass_c2), X2 = X * X, X3 = X2 * X, X4 = X3 * X, X5 = X4 * X;
+
+  G4double F1 = a0 + a1 * X + a2 * X2 + a3 * X3 + a4 * X4 + a5 * X5,
+           F2 = b0 + b1 * X + b2 * X2 + b3 * X3 + b4 * X4 + b5 * X5,
+           F3 = c0 + c1 * X + c2 * X2 + c3 * X3 + c4 * X4 + c5 * X5;
+
+  xSection = (Z + 1.) * (F1 * Z + F2 * Z * Z + F3) * microbarn;
+
+  if (GammaEnergySave < GammaEnergyLimit) {
+
+    X = (GammaEnergySave - 2. * electron_mass_c2) / (GammaEnergyLimit - 2. * electron_mass_c2);
+    xSection *= X * X;
+  }
+
+  if (xSection < 0.) {
+    xSection = 0.;
+  }
+  return xSection;
+}
+
+VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
+{
   // Build the probability density function (BetheHeitler pdf) in the
   // input energy randge [xmin,xmax] with an equal logarithmic bin size
   //
@@ -81,7 +128,8 @@ VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p) {
 // TODO: need to get electron properties from somewhere
 
 VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement, double gammaEnergy,
-                                                                                  double electEnergy) {
+                                                                                  double electEnergy)
+{
   // based on Geant4 : G4BetheHeitlerModel
   // input  : gammaEnergy (incomming photon energy)
   //          electEnergy (converted electron/positron energy)
@@ -113,7 +161,8 @@ VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSectio
   return dsigma;
 }
 
-VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction1(double screenVariable) const {
+VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
+{
   // compute the value of the screening function 3*PHI1 - PHI2
   double screenVal;
 
@@ -125,7 +174,8 @@ VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction1(double s
   return screenVal;
 }
 
-VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction2(double screenVariable) const {
+VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction2(double screenVariable) const
+{
   // compute the value of the screening function 1.5*PHI1 - 0.5*PHI2
   double screenVal;
 
@@ -139,7 +189,8 @@ VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction2(double s
 
 VECCORE_CUDA_HOST_DEVICE
 void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double GammaEnergy, double &energyOut,
-                                                          double &sinTheta) {
+                                                          double &sinTheta)
+{
   // G4BetheHeitlerModel::SampleSecondaries
   //
   // The secondaries e+e- energies are sampled using the Bethe - Heitler
@@ -168,8 +219,8 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   if (GammaEnergy < Egsmall) {
 
     epsil = epsil0 + (0.5 - epsil0) * UniformRandom<double>(&fRandomState, &fThreadId);
-
-  } else {
+  }
+  else {
     // now comes the case with GammaEnergy >= 2. MeV
 
     // Extract Coulomb factor for this Element
@@ -206,7 +257,8 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
         epsil = 0.5 - epsilrange * math::Pow(UniformRandom<double>(&fRandomState, &fThreadId), 0.333333);
         screenvar = screenfac / (epsil * (1 - epsil));
         greject = (ScreenFunction1(screenvar) - FZ) / F10;
-      } else {
+      }
+      else {
         epsil = epsilmin + epsilrange * UniformRandom<double>(&fRandomState, &fThreadId);
         screenvar = screenfac / (epsil * (1 - epsil));
         greject = (ScreenFunction2(screenvar) - FZ) / F20;
@@ -223,8 +275,8 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   if (UniformRandom<double>(&fRandomState, &fThreadId) > 0.5) {
     ElectTotEnergy = (1. - epsil) * GammaEnergy;
     //    PositTotEnergy = epsil*GammaEnergy;
-
-  } else {
+  }
+  else {
     //    PositTotEnergy = (1.-epsil)*GammaEnergy;
     ElectTotEnergy = epsil * GammaEnergy;
   }

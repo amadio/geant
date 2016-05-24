@@ -94,7 +94,7 @@ set(VECPHYS_COMPILATION_FLAGS_INTEL)
 set(VECPHYS_NVCC_COMPILATION_FLAGS)
 
 set(VECPHYS_COMPILATION_FLAGS
-    "${VECPHYS_COMPILATION_FLAGS} -Wall -fPIC")
+    "${VECPHYS_COMPILATION_FLAGS} -Wall -Wextra -fPIC")
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ -ggdb")
   if (APPLE OR UNIX)
@@ -257,12 +257,24 @@ if (ROOT)
       ${ROOT_LIBRARIES} )
 endif()
 
+#----------------------------------------------------------------------------
+# Find VecGeom geometry headers and library
+#
 ################################################################################
+find_package(VecGeom REQUIRED)
+if( VECGEOM_FOUND )
+  message(STATUS "Found VECGEOM_LIBRARIES " ${VECGEOM_LIBRARIES} )
+  set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${VECGEOM_LIBRARIES} )
+else()
+   message(FATAL_ERROR "Required VecGeom library not found")
+endif()
+
+message(STATUS "Found  VECGEOM_INCLUDE_DIR " ${VECGEOM_INCLUDE_DIR}  )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
                     ${CMAKE_CURRENT_SOURCE_DIR}/inc/base
                     ${CMAKE_CURRENT_SOURCE_DIR}/test/inc
-                    ${VecGeom_DIR}/include
+                    ${VECGEOM_INCLUDE_DIR}
 )
 
 set(SRC_CPP_RELATIVE
@@ -277,6 +289,9 @@ set(SRC_CPP_RELATIVE
   src/Physics2DVector.cc
   src/EmModelBase.cc
   src/MaterialHandler.cc
+  src/EmProcess.cc
+  src/PhotonProcess.cc
+  src/ElectronProcess.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${CMAKE_CURRENT_SOURCE_DIR}/${SRC})
@@ -313,6 +328,8 @@ if (GUBENCHMARK)
   set(SRC_CPP ${SRC_CPP}
     test/src/GUBenchmarker.cc
     test/src/GUBenchmarker_cpu.cc
+    test/src/ProcessBenchmarker.cc
+    test/src/ProcessBenchmarker_cpu.cc
     src/GUTrackHandler.cc
   )
   if (ROOT) 
@@ -368,6 +385,7 @@ endif()
 #  ${CMAKE_SOURCE_DIR}/test/benchmark/GUModelBenchmark.cc
 set(TEST_EXECUTABLES_BENCHMARK
   ${CMAKE_CURRENT_SOURCE_DIR}/test/GUModelBenchmark.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/ProcessBenchmark.cc
 )
 set(TEST_EXECUTABLES_CUDA
   # Files go here

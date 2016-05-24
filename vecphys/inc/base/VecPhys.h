@@ -5,8 +5,8 @@
 
 #include <cstdio>
 
-#include <VecCore/VecCore>
 #include <Random.h>
+#include <VecCore/VecCore>
 
 namespace vecphys {
 using namespace vecCore;
@@ -85,11 +85,22 @@ typedef int Random_t;
 #else
 // Not compiling with NVCC
 namespace vecphys {
-template <typename DataType> struct kCudaType;
-template <typename DataType> using CudaType_t = typename kCudaType<DataType>::type_t;
-template <> struct kCudaType<float> { using type_t = float; };
-template <> struct kCudaType<double> { using type_t = double; };
-template <> struct kCudaType<int> { using type_t = int; };
+template <typename DataType>
+struct kCudaType;
+template <typename DataType>
+using CudaType_t = typename kCudaType<DataType>::type_t;
+template <>
+struct kCudaType<float> {
+  using type_t = float;
+};
+template <>
+struct kCudaType<double> {
+  using type_t = double;
+};
+template <>
+struct kCudaType<int> {
+  using type_t = int;
+};
 }
 
 #define VECPHYS_HOST_FORWARD_DECLARE(X)
