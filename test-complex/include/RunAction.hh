@@ -74,8 +74,6 @@ private:
   unsigned long    fNumTotalStepsRun;    // number of total steps 
   unsigned long    fNumAllStepsRun;      // number of ALL steps
 
-  G4double  fSumTime;
-
   // The CMS application 
   CMSApp   *fCMSApp; 
 };
