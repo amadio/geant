@@ -99,7 +99,7 @@ VECCORE_CUDA_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstrea
   return true;
 }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::BuildCrossSectionTablePerAtom(int Z) {
+VECCORE_CUDA_HOST void BremSeltzerBerger::BuildCrossSectionTablePerAtom(int /*Z*/) {
   ; // dummy for now
 }
 

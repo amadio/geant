@@ -4,7 +4,7 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECCORE_CUDA_HOST
-GUAliasTableManager::GUAliasTableManager(int nelements, int ngrid)
+GUAliasTableManager::GUAliasTableManager(int nelements, int /*ngrid*/)
   : fNElement(0)
 {
   for (int i = 0; i < maximumZ ; ++i) fIndex[i] = -1;

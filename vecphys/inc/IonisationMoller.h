@@ -124,7 +124,7 @@ IonisationMoller::CrossSectionKernel(typename Backend::Double_v energy, Index_v<
 
 template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void
-IonisationMoller::InteractKernel(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
+IonisationMoller::InteractKernel(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> /*zElement*/,
                                  typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta) {
   using Double_v = typename Backend::Double_v;
 
@@ -167,7 +167,7 @@ IonisationMoller::SampleSinTheta(typename Backend::Double_v energyIn, typename B
 
 template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void IonisationMoller::InteractKernelCR(typename Backend::Double_v kineticEnergy,
-                                                                 Index_v<typename Backend::Double_v> zElement,
+                                                                 Index_v<typename Backend::Double_v> /*zElement*/,
                                                                  typename Backend::Double_v &deltaKinEnergy,
                                                                  typename Backend::Double_v &sinTheta) {
   using Double_v = typename Backend::Double_v;
@@ -241,10 +241,10 @@ IonisationMoller::SampleSequential(typename Backend::Double_v xmin, typename Bac
 
 template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void IonisationMoller::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                                     Index_v<typename Backend::Double_v> zElement,
+                                                                     Index_v<typename Backend::Double_v> /*zElement*/,
                                                                      typename Backend::Double_v &energyOut,
                                                                      typename Backend::Double_v &sinTheta,
-                                                                     Mask_v<typename Backend::Double_v> &status) {
+                                                                     Mask_v<typename Backend::Double_v> &/*status*/) {
   // dummy for now
   energyOut = energyIn;
   sinTheta = 0;

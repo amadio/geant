@@ -29,7 +29,7 @@ VECCORE_CUDA_HOST void IonisationMoller::Initialization() {
   }
 }
 
-VECCORE_CUDA_HOST void IonisationMoller::BuildCrossSectionTablePerAtom(int Z) {
+	  VECCORE_CUDA_HOST void IonisationMoller::BuildCrossSectionTablePerAtom(int /*Z*/) {
   ; // dummy for now
 }
 
@@ -78,7 +78,7 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
 
 // function implementing the cross section for MollerBhabha
 
-VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int Zelement, double kineticEnergy,
+	  VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int /*Zelement*/, double kineticEnergy,
                                                                             double deltaRayEnergy) const {
   // based on Geant3 : Simulation of the delta-ray production (PHY331-1)
   // input  : kineticEnergy (incomming photon energy)
@@ -135,7 +135,7 @@ VECCORE_CUDA_HOST_DEVICE double IonisationMoller::GetG4CrossSection(double kinet
   return cross;
 }
 
-VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int Z, // not used
+VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int /*Z*/, // not used
                                                                              double kineticEnergy,
                                                                              double &deltaKinEnergy, double &sinTheta) {
   // temporary - set by material

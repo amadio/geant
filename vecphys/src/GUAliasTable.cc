@@ -36,7 +36,7 @@ GUAliasTable::~GUAliasTable()
 }
 
 VECCORE_CUDA_HOST_DEVICE
-void GUAliasTable::Allocate(int ngrid) {
+void GUAliasTable::Allocate(int /*ngrid*/) {
   //try
   fpdf   = new Real_t [fNGrid];
   fProbQ = new Real_t [fNGrid];
