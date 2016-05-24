@@ -161,7 +161,7 @@ VECCORE_CUDA_HOST_DEVICE EmModelBase<EmModel>::~EmModelBase()
 }
 
 template <class EmModel>
-  VECCORE_CUDA_HOST void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDependentModel*/)
+VECCORE_CUDA_HOST void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDependentModel*/)
 {
   // size of the array for the alias table data
   size_t sizeOfTable = (fAliasSampler->GetNumEntries() + 1) * fAliasSampler->GetSamplesPerEntry();
