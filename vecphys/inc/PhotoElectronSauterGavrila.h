@@ -266,7 +266,8 @@ template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::InteractKernelUnpack(
     typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> /*zElement*/,
     typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta,
-    Mask_v<typename Backend::Double_v> & /*status*/) {
+    Mask_v<typename Backend::Double_v> & /*status*/)
+{
   // dummy for now
   energyOut = energyIn;
   sinTheta = 0;

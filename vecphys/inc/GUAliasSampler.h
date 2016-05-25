@@ -122,12 +122,13 @@ private:
 // Backend Implementation
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void
-GUAliasSampler::SampleBin(typename Backend::Double_v kineticEnergy,
-                          Index_v<typename Backend::Double_v> & /*index*/, // ~ sampled value
-                          Index_v<typename Backend::Double_v> &icol,       // ~ input Energy
-                          typename Backend::Double_v &fraction             //  in sampled variable
-                          ) {
+
+VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleBin(
+    typename Backend::Double_v kineticEnergy, Index_v<typename Backend::Double_v> & /*index*/, // ~ sampled value
+    Index_v<typename Backend::Double_v> &icol,                                                 // ~ input Energy
+    typename Backend::Double_v &fraction                                                       //  in sampled variable
+    )
+{
   using Double_v = typename Backend::Double_v;
 
   // select the alias table for incoming energy
