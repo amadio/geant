@@ -331,8 +331,10 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if(GCC_VERSION_MAJOR LESS 5 AND GCC_VERSION_MINOR LESS 9)
     set(DISABLE_WEFFC ON)
   endif()
-  if(GCC_VERSION_MAJIOR LESS 5)
-    list(APPEND CMAKE_CXX_FLAGS "-fabi-version=6")
+  if(GCC_VERSION_MAJOR LESS 5)
+    if ( Vc_FOUND )  # Actually this should really be if VecGeomConfigureToUseVC
+       list(APPEND CMAKE_CXX_FLAGS "-fabi-version=6")
+    endif
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
