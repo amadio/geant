@@ -69,8 +69,8 @@ inline typename Backend::Double_v ElectronProcess::GetLambda(Index_v<typename Ba
                                                              Index_v<typename Backend::Double_v> ebin,
                                                              typename Backend::Double_v fraction) const
 {
-  auto im = matId;
-  auto ie = ebin;
+  int im = matId;
+  int ie = ebin;
   // linear approximation
   double xlow = fElectronCrossSectionData[im][ie].fSigma;
   double xhigh = fElectronCrossSectionData[im][ie + 1].fSigma;
@@ -88,8 +88,8 @@ inline typename backend::VcVector::Double_v ElectronProcess::GetLambda<backend::
   Double_t lambda(0.0);
 
   for (size_t i = 0; i < VectorSize(ebin); ++i) {
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = matId[i];
+    int ie = ebin[i];
     // test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
     double xlow = fElectronCrossSectionData[im][ie].fSigma;
     double xhigh = fElectronCrossSectionData[im][ie + 1].fSigma;
@@ -105,8 +105,8 @@ inline VECCORE_CUDA_HOST_DEVICE void ElectronProcess::GetWeightAndAlias(
     Index_v<typename Backend::Double_v> iprocess, typename Backend::Double_v &weight,
     Index_v<typename Backend::Double_v> &alias) const
 {
-  auto im = matId;
-  auto ie = ebin;
+  int im = matId;
+  int ie = ebin;
   int ip = (int)iprocess;
 
   if (ip == fNumberOfProcess - 1) {
@@ -128,8 +128,8 @@ inline void ElectronProcess::GetWeightAndAlias<backend::VcVector>(
     Index_v<typename backend::VcVector::Double_v> &alias) const
 {
   for (size_t i = 0; i < VectorSize(matId); ++i) {
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = matId[i];
+    int ie = ebin[i];
     int ip = (int)iprocess[i];
 
     if (ip == fNumberOfProcess - 1) {
@@ -150,8 +150,8 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> ElectronProc
     Index_v<typename Backend::Double_v> matId, Index_v<typename Backend::Double_v> ebin)
 {
   // select a physics process randomly based on the weight
-  auto im = matId;
-  auto ie = ebin;
+  int im = matId;
+  int ie = ebin;
 
   int ip = fNumberOfProcess - 1;
 
@@ -178,8 +178,8 @@ inline Index_v<typename backend::VcVector::Double_v> ElectronProcess::G3NextProc
 
   for (size_t i = 0; i < VectorSize(matId); ++i) {
 
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = matId[i];
+    int ie = ebin[i];
 
     double weight = 0.0;
     double rp = UniformRandom<double>(&fRandomState, &fThreadId);

@@ -94,8 +94,8 @@ inline typename backend::VcVector::Double_v PhotonProcess::GetLambda<backend::Vc
   Double_t lambda(0.0);
 
   for (size_t i = 0; i < VectorSize(ebin); ++i) {
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = matId[i];
+    int ie = ebin[i];
     // test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
     double xlow = fPhotonCrossSectionData[im][ie].fSigma;
     double xhigh = fPhotonCrossSectionData[im][ie + 1].fSigma;
@@ -135,8 +135,8 @@ inline void PhotonProcess::GetWeightAndAlias<backend::VcVector>(
     Index_v<typename backend::VcVector::Double_v> &alias) const
 {
   for (size_t i = 0; i < VectorSize(matId); ++i) {
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = matId[i];
+    int ie = ebin[i];
     int ip = (int)iprocess[i];
 
     if (ip == fNumberOfProcess - 1) {
@@ -187,8 +187,8 @@ inline Index_v<typename backend::VcVector::Double_v> PhotonProcess::G3NextProces
 
   for (size_t i = 0; i < VectorSize(matId); ++i) {
 
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = matId[i];
+    int ie = ebin[i];
 
     double weight = 0.0;
     double rp = UniformRandom<double>(&fRandomState, &fThreadId);
