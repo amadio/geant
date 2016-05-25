@@ -1,7 +1,4 @@
 cmake_minimum_required(VERSION 2.8.8)
-project(VecPhys)
-
-set(VECPHYS ON)
 
 ################################################################################
 
@@ -10,10 +7,6 @@ set(VECPHYS ON)
 option(VC_ACCELERATION "Internal vectorization using Vc." ON)
 
 option(MIC "Enable compilation for MIC." OFF)
-
-option(CUDA "Enable compilation for CUDA." OFF)
-
-option(CUDA_VOLUME_SPECIALIZATION "Use specialized volumes for CUDA." ON)
 
 option(GUBENCHMARK "Enable performance comparisons." OFF)
 
