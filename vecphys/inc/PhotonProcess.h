@@ -74,8 +74,8 @@ inline typename Backend::Double_v PhotonProcess::GetLambda(Index_v<typename Back
                                                            Index_v<typename Backend::Double_v> ebin,
                                                            typename Backend::Double_v fraction) const
 {
-  auto im = matId;
-  auto ie = ebin;
+  int im = (int)(matId);
+  int ie = (int)(ebin);
 
   // linear approximation
   double xlow = fPhotonCrossSectionData[im][ie].fSigma;
@@ -94,8 +94,8 @@ inline typename backend::VcVector::Double_v PhotonProcess::GetLambda<backend::Vc
   Double_t lambda(0.0);
 
   for (size_t i = 0; i < VectorSize(ebin); ++i) {
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = (int)(matId[i]);
+    int ie = (int)(ebin[i]);
     // test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
     double xlow = fPhotonCrossSectionData[im][ie].fSigma;
     double xhigh = fPhotonCrossSectionData[im][ie + 1].fSigma;
@@ -112,9 +112,9 @@ inline VECCORE_CUDA_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<ty
                                                                       typename Backend::Double_v &weight,
                                                                       Index_v<typename Backend::Double_v> &alias) const
 {
-  auto im = matId;
-  auto ie = ebin;
-  int ip = (int)iprocess;
+  int im = (int)(matId);
+  int ie = (int)(ebin);
+  int ip = (int)(iprocess);
 
   if (ip == fNumberOfProcess - 1) {
     for (int j = 0; j < fNumberOfProcess - 1; ++j)
@@ -135,9 +135,9 @@ inline void PhotonProcess::GetWeightAndAlias<backend::VcVector>(
     Index_v<typename backend::VcVector::Double_v> &alias) const
 {
   for (size_t i = 0; i < VectorSize(matId); ++i) {
-    auto im = matId[i];
-    auto ie = ebin[i];
-    int ip = (int)iprocess[i];
+    int im = (int)(matId[i]);
+    int ie = (int)(ebin[i]);
+    int ip = (int)(iprocess[i]);
 
     if (ip == fNumberOfProcess - 1) {
       for (int j = 0; j < fNumberOfProcess - 1; ++j)
@@ -159,8 +159,8 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProces
   // select a physics process randomly based on the weight
   using Double_v = typename Backend::Double_v;
 
-  auto im = matId;
-  auto ie = ebin;
+  int im = (int)(matId);
+  int ie = (int)(ebin);
 
   int ip = fNumberOfProcess - 1;
 
@@ -187,8 +187,8 @@ inline Index_v<typename backend::VcVector::Double_v> PhotonProcess::G3NextProces
 
   for (size_t i = 0; i < VectorSize(matId); ++i) {
 
-    auto im = matId[i];
-    auto ie = ebin[i];
+    int im = (int)(matId[i]);
+    int ie = (int)(ebin[i]);
 
     double weight = 0.0;
     double rp = UniformRandom<double>(&fRandomState, &fThreadId);
