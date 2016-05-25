@@ -331,6 +331,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if(GCC_VERSION_MAJOR LESS 5 AND GCC_VERSION_MINOR LESS 9)
     set(DISABLE_WEFFC ON)
   endif()
+  if(GCC_VERSION_MAJIOR LESS 5)
+    list(APPEND CMAKE_CXX_FLAGS "-fabi-version=6")
+  endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
   # CMake fails to add -std option for icc, so add it manually
