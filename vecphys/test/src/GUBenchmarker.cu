@@ -2,7 +2,7 @@
 #include "GUBenchmarker_gpu.h"
 #include "GUPhysicsModelName.h"
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 #include "base/Stopwatch.h"
 
 #include "GUAliasSampler.h"

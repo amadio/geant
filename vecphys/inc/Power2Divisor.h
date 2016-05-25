@@ -1,7 +1,7 @@
 #ifndef POWER2DIVISOR_H
 #define POWER2DIVISOR_H 1
 
-#include "base/VecPhys.h"
+#include "base/VPGlobal.h"
 
 namespace vecphys {
 
@@ -48,8 +48,7 @@ private:
 template <typename Backend>
 VECCORE_CUDA_HOST_DEVICE void Power2Divisor::GetBinAndFraction(typename Backend::Double_v x,
                                                                Index_v<typename Backend::Double_v> &ibin,
-                                                               typename Backend::Double_v &frac)
-{
+                                                               typename Backend::Double_v &frac) {
   using Int_v = typename Backend::Int_v;
   using Double_v = typename Backend::Double_v;
 

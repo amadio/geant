@@ -49,13 +49,12 @@
    3.2 how to build 
 
    cd vecphys ; mkdir build ; cd build
-   cmake -DVc_DIR=${Vc_DIR} -DVecGeom_DIR=${VecGeom_DIR} -DVecGeom_SRC=${VecGeom_SRC} \
-         -DROOT=ON -DCUDA=ON -DGUBENCHMARK=ON ..
+   cmake -DVc_DIR=${Vc_DIR} -DVecGeom_DIR=${VecGeom_DIR} -DROOT=ON -DCUDA=ON \
+   -DGUBENCHMARK=ON ..
 
    3.3 how to run benchmarker 
 
    ./GUModelBenchmark [ntracks] [nrepetitions] [minEnergy] [maxEnergy] [samplingType] [model] [materialMode]
-   ./ProcessBenchmark [ntracks] [nrepetitions] [minEnergy] [maxEnergy] [ProcessType] [runmode] [materialMode]
 
    where the valid argument for 
    samplingType: [0=kAlias, 1=kRejection, 2=kUnpack]      

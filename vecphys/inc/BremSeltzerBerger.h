@@ -1,8 +1,8 @@
 #ifndef BremSeltzerBerger_H
 #define BremSeltzerBerger_H 1
 
+#include "base/VPGlobal.h"
 #include "base/PhysicalConstants.h"
-#include "base/VecPhys.h"
 
 #include "GUConstants.h"
 #include "GUTrack.h"
@@ -51,23 +51,20 @@ public:
                                                                          Index_v<typename Backend::Double_v> zElement);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractKernel(typename Backend::Double_v energyIn,
-                                               Index_v<typename Backend::Double_v> zElement,
-                                               typename Backend::Double_v &energyOut,
-                                               typename Backend::Double_v &sinTheta);
+  VECCORE_CUDA_HOST_DEVICE void
+  InteractKernel(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
+                 typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
-                                                 Index_v<typename Backend::Double_v> zElement,
-                                                 typename Backend::Double_v &energyOut,
-                                                 typename Backend::Double_v &sinTheta);
+  VECCORE_CUDA_HOST_DEVICE void
+  InteractKernelCR(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
+                   typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                     Index_v<typename Backend::Double_v> zElement,
-                                                     typename Backend::Double_v &energyOut,
-                                                     typename Backend::Double_v &sinTheta,
-                                                     Mask_v<typename Backend::Double_v> &status);
+  VECCORE_CUDA_HOST_DEVICE void
+  InteractKernelUnpack(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
+                       typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta,
+                       Mask_v<typename Backend::Double_v> &status);
 
   template <class Backend>
   VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v SampleSinTheta(typename Backend::Double_v energyIn);
@@ -80,7 +77,7 @@ public:
 
   // the cross section calculation from Geant4
 
-  VECCORE_CUDA_HOST double GetG4CrossSection(int Z, double energyIn);
+  VECCORE_CUDA_HOST_DEVICE double GetG4CrossSection(double energyIn, const int zElement);
 
   VECCORE_CUDA_HOST_DEVICE
   void SetCurrentElement(G4double Z);
@@ -137,18 +134,15 @@ private:
 
 // Implementation
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v BremSeltzerBerger::CrossSectionKernel(
-    typename Backend::Double_v energy, Index_v<typename Backend::Double_v> Z)
-{
+VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
+BremSeltzerBerger::CrossSectionKernel(typename Backend::Double_v /*energy*/, Index_v<typename Backend::Double_v> /*Z*/) {
   return 1.0;
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::InteractKernel(typename Backend::Double_v energyIn,
-                                                                Index_v<typename Backend::Double_v> zElement,
-                                                                typename Backend::Double_v &energyOut,
-                                                                typename Backend::Double_v &sinTheta)
-{
+VECCORE_CUDA_HOST_DEVICE void
+BremSeltzerBerger::InteractKernel(typename Backend::Double_v energyIn, Index_v<typename Backend::Double_v> zElement,
+                                  typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta) {
   using Double_v = typename Backend::Double_v;
 
   Index_v<Double_v> irow;
@@ -187,9 +181,8 @@ VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::InteractKernel(typename Backend
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v BremSeltzerBerger::SampleSinTheta(
-    typename Backend::Double_v energyIn)
-{
+VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v
+BremSeltzerBerger::SampleSinTheta(typename Backend::Double_v energyIn) {
   using Double_v = typename Backend::Double_v;
 
   // angle of the radiated photon
@@ -216,27 +209,23 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v BremSeltzerBerger::SampleSin
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::InteractKernelCR(typename Backend::Double_v energyIn,
-                                                                  Index_v<typename Backend::Double_v> /*Z*/,
-                                                                  typename Backend::Double_v &energyOut,
-                                                                  typename Backend::Double_v &sinTheta)
-{
+VECCORE_CUDA_HOST_DEVICE void
+BremSeltzerBerger::InteractKernelCR(typename Backend::Double_v /*energyIn*/, Index_v<typename Backend::Double_v> /*zElement*/,
+                                    typename Backend::Double_v &energyOut, typename Backend::Double_v &sinTheta) {
   // dummy for now
-  energyOut = energyIn;
+  energyOut = 0.0;
   sinTheta = 0.0;
 }
 
 template <class Backend>
 VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                                      Index_v<typename Backend::Double_v> /*Z*/,
+                                                                      Index_v<typename Backend::Double_v> /*zElement*/,
                                                                       typename Backend::Double_v &energyOut,
                                                                       typename Backend::Double_v &sinTheta,
-                                                                      Mask_v<typename Backend::Double_v> &status)
-{
+                                                                      Mask_v<typename Backend::Double_v> &/*status*/) {
   // dummy for now
   energyOut = energyIn;
-  sinTheta = 0.0;
-  status = false;
+  sinTheta = 0;
 }
 
 } // end namespace impl

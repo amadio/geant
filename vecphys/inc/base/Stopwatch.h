@@ -4,7 +4,7 @@
 #ifndef VECPHYS_BASE_STOPWATCH_H_
 #define VECPHYS_BASE_STOPWATCH_H_
 
-#include "base/Global.h"
+#include "base/VPGlobal.h"
 
 // OS X compatibility
 #ifdef __MACH__
@@ -21,8 +21,7 @@ namespace standardtimer {
 
 typedef long long count_t;
 
-inline long long now()
-{
+inline long long now() {
   count_t result;
   struct timespec ts;
 
@@ -61,8 +60,7 @@ public:
   /**
    * @return Elapsed time since start.
    */
-  inline double Stop()
-  {
+  inline double Stop() {
     t2 = standardtimer::now();
     return Elapsed();
   }

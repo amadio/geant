@@ -4,7 +4,7 @@
 #include "GUTrack.h"
 #include "stddef.h"
 
-#include "base/VecPhys.h"
+#include "base/VPGlobal.h"
 
 namespace vecphys {
 

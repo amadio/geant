@@ -1,7 +1,7 @@
 #ifndef RANDOM_KERNEL_H
 #define RANDOM_KERNEL_H
 
-#include "base/VecPhys.h"
+#include "base/VPGlobal.h"
 
 namespace vecphys {
 
