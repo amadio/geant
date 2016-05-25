@@ -203,13 +203,13 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v ConversionBetheHeitler::Cros
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v /*energyIn*/,
-                                                                       Index_v<typename Backend::Double_v> /*zElement*/,
+VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v energyIn,
+                                                                       Index_v<typename Backend::Double_v> /*Z*/,
                                                                        typename Backend::Double_v &energyOut,
                                                                        typename Backend::Double_v &sinTheta)
 {
   // dummy for now
-  energyOut = 0.0;
+  energyOut = energyIn;
   sinTheta = 0.0;
 }
 
@@ -222,7 +222,8 @@ VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelUnpack(typen
 {
   // dummy for now
   energyOut = energyIn;
-  sinTheta = 0;
+  sinTheta = 0.0;
+  status = false;
 }
 
 } // end namespace impl
