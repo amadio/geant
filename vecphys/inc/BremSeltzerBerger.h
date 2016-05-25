@@ -138,7 +138,7 @@ private:
 // Implementation
 template <class Backend>
 VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v BremSeltzerBerger::CrossSectionKernel(
-											  typename Backend::Double_v /*energy*/, Index_v<typename Backend::Double_v> /*Z*/)
+    typename Backend::Double_v energy, Index_v<typename Backend::Double_v> Z)
 {
   return 1.0;
 }

@@ -146,10 +146,10 @@ void MaterialHandler::BuildMaterialTable()
   */
 
   // should have an interface to add elements to Material
-  /*
   double density = 1.0 * g / cm3;
 
   // PbWO4
+
   double PbWO4_a[3] = {207.2 * g / mole, 183.84 * g / mole, 16.00 * g / mole};
   double PbWO4_z[3] = {82, 74, 8};
   double PbWO4_w[3] = {0.455, 0.404, 0.141};
@@ -172,8 +172,8 @@ void MaterialHandler::BuildMaterialTable()
 
   density = 8.6 * g / cm3;
   vecgeom::Material *Brass = new vecgeom::Material("Brass", Brass_a, Brass_z, Brass_w, 2, density);
-  */
 }
+
 VECCORE_CUDA_HOST
 void MaterialHandler::PrepareMaterialIndex(int *materialIndex, int ntracks, int materialMode)
 {
