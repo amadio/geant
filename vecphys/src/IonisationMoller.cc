@@ -1,15 +1,16 @@
+#include "IonisationMoller.h"
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"
-#include "IonisationMoller.h"
 
-#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECCORE_CUDA_HOST
-IonisationMoller::IonisationMoller(Random_t *states, int tid) : EmModelBase<IonisationMoller>(states, tid) {
+IonisationMoller::IonisationMoller(Random_t *states, int tid) : EmModelBase<IonisationMoller>(states, tid)
+{
   fDeltaRayThreshold = 1.0 * keV; // temporary: should be set from a cut table
   SetLowEnergyLimit(0.1 * keV);
 
@@ -18,22 +19,26 @@ IonisationMoller::IonisationMoller(Random_t *states, int tid) : EmModelBase<Ioni
 
 VECCORE_CUDA_HOST_DEVICE
 IonisationMoller::IonisationMoller(Random_t *states, int tid, GUAliasSampler *sampler)
-    : EmModelBase<IonisationMoller>(states, tid, sampler) {
+    : EmModelBase<IonisationMoller>(states, tid, sampler)
+{
   SetLowEnergyLimit(0.1 * keV);
 }
 
-VECCORE_CUDA_HOST void IonisationMoller::Initialization() {
+VECCORE_CUDA_HOST void IonisationMoller::Initialization()
+{
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, 1.e-4, 1.e+6, 100, 100);
     BuildAliasTable();
   }
 }
 
-	  VECCORE_CUDA_HOST void IonisationMoller::BuildCrossSectionTablePerAtom(int /*Z*/) {
+VECCORE_CUDA_HOST void IonisationMoller::BuildCrossSectionTablePerAtom(int /*Z*/)
+{
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
+VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p)
+{
   // Build the probability density function (MollerBhabha pdf) in the
   // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
   //
@@ -78,8 +83,9 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
 
 // function implementing the cross section for MollerBhabha
 
-	  VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int /*Zelement*/, double kineticEnergy,
-                                                                            double deltaRayEnergy) const {
+VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int /*Zelement*/, double kineticEnergy,
+                                                                            double deltaRayEnergy) const
+{
   // based on Geant3 : Simulation of the delta-ray production (PHY331-1)
   // input  : kineticEnergy (incomming photon energy)
   //          deltaRayEnergy (scattered photon energy)
@@ -105,8 +111,7 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p) {
   return dcross;
 }
 
-VECCORE_CUDA_HOST double
-IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
+VECCORE_CUDA_HOST double IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
 {
   G4double cross = 0.0;
 
@@ -139,7 +144,8 @@ IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
 
 VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int /*Z*/, // not used
                                                                              double kineticEnergy,
-                                                                             double &deltaKinEnergy, double &sinTheta) {
+                                                                             double &deltaKinEnergy, double &sinTheta)
+{
   // temporary - set by material
   G4double cutEnergy = fDeltaRayThreshold;
   G4double maxEnergy = 1.0 * TeV;

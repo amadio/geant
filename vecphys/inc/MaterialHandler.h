@@ -1,14 +1,13 @@
 #ifndef MaterialHandler_H
 #define MaterialHandler_H 1
 
-#include "base/VecPhys.h"
 #include "GUConstants.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-class MaterialHandler
-{
+class MaterialHandler {
 public:
   VECCORE_CUDA_HOST
   static MaterialHandler *Instance();
@@ -24,9 +23,9 @@ public:
   int GetNumberOfElements() { return fNumberOfElements; }
 
   VECCORE_CUDA_HOST
-    int* GetElementArray() { return &fElementArray[0]; }
+  int *GetElementArray() { return &fElementArray[0]; }
 
-  //temporary methods for the purpose of validation/benchmarking
+  // temporary methods for the purpose of validation/benchmarking
   VECCORE_CUDA_HOST
   void PrepareTargetElements(int *targetElements, int ntracks, int elementMode = 0);
 
@@ -48,7 +47,6 @@ private:
   int fElementMode;
   int fNumberOfElements;
   int fElementArray[maximumZ];
-
 };
 
 } // end namespace impl

@@ -12,15 +12,19 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECCORE_CUDA_HOST
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t *states, int tid)
-    : EmModelBase<PhotoElectronSauterGavrila>(states, tid) {
+    : EmModelBase<PhotoElectronSauterGavrila>(states, tid)
+{
   Initialization();
 }
 
 VECCORE_CUDA_HOST_DEVICE
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t *states, int tid, GUAliasSampler *sampler)
-    : EmModelBase<PhotoElectronSauterGavrila>(states, tid, sampler) {}
+    : EmModelBase<PhotoElectronSauterGavrila>(states, tid, sampler)
+{
+}
 
-VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::Initialization() {
+VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::Initialization()
+{
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fLowEnergyLimit, fHighEnergyLimit, 100, 200);
     // note: if (Egamma/electron_mass_c2 > 50), math::Cos(theta) = 1 in Geant4
@@ -29,11 +33,13 @@ VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::Initialization() {
   }
 }
 
-VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int /*Z*/) {
+VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int /*Z*/)
+{
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p) {
+VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
+{
   // Build the probability density function (KleinNishina pdf) in the
   // input energy randge [fAliasSampler->GetIncomingMin(),fAliasSampler->GetIncomingMax()]
   //       with an equal logarithmic bin size
@@ -96,7 +102,8 @@ VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *
 // function implementing the angular distribution of photoelectrons
 
 VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int /*Zelement*/, double energy,
-                                                                                       double cosTheta) const {
+                                                                                       double cosTheta) const
+{
   // based on Geant4 : G4SauterGavrilaAngularDistribution
   // input  : energy   (incomming photon energy)
   //          cosTheta (cons(theta) of photo-electron)
@@ -119,7 +126,8 @@ VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSe
 }
 
 VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement, double energy,
-                                                                                      double cosTheta) const {
+                                                                                      double cosTheta) const
+{
   // based on Geant4 : G4SauterGavrilaAngularDistribution
   // input  : energy   (incomming photon energy)
   //          cosTheta (cons(theta) of photo-electron)
@@ -182,63 +190,65 @@ VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSe
   return dsigma;
 }
 
-VECCORE_CUDA_HOST double
-PhotoElectronSauterGavrila::GetG4CrossSection(int Z, double energy)
+VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, double energy)
 {
-  //G4PEEffectFluoModel::ComputeCrossSectionPerAtom
+  // G4PEEffectFluoModel::ComputeCrossSectionPerAtom
 
   // This method may be used only if G4MaterialCutsCouple pointer
   //   has been set properly
 
-  //Sandia parameterization for Z < 100
+  // Sandia parameterization for Z < 100
   //  int Z = zElement;
 
-  G4int    fCumulInterval[101]  = {0};
-  G4double fSandiaCof[4]        = {0.0};
+  G4int fCumulInterval[101] = {0};
+  G4double fSandiaCof[4] = {0.0};
 
   fCumulInterval[0] = 1;
 
-  //scan - move it to constructor or use pre-built table
-  for (int iz = 1; iz < 101; ++iz) {     
-    fCumulInterval[iz] = fCumulInterval[iz-1] + fNbOfIntervals[iz];
+  // scan - move it to constructor or use pre-built table
+  for (int iz = 1; iz < 101; ++iz) {
+    fCumulInterval[iz] = fCumulInterval[iz - 1] + fNbOfIntervals[iz];
   }
 
-  G4double Emin  = fSandiaTable[fCumulInterval[Z-1]][0]*keV;
+  G4double Emin = fSandiaTable[fCumulInterval[Z - 1]][0] * keV;
 
   G4int interval = fNbOfIntervals[Z] - 1;
-  G4int row = fCumulInterval[Z-1] + interval;
+  G4int row = fCumulInterval[Z - 1] + interval;
 
-  while ((interval>0) && (energy<fSandiaTable[row][0]*keV)) {
+  while ((interval > 0) && (energy < fSandiaTable[row][0] * keV)) {
     --interval;
-    row = fCumulInterval[Z-1] + interval;
+    row = fCumulInterval[Z - 1] + interval;
   }
 
-  if (energy >= Emin) {        
-    G4double AoverAvo = Z*amu/fZtoAratio[Z];
-    fSandiaCof[0]=AoverAvo*funitc[1]*fSandiaTable[row][1];     
-    fSandiaCof[1]=AoverAvo*funitc[2]*fSandiaTable[row][2];     
-    fSandiaCof[2]=AoverAvo*funitc[3]*fSandiaTable[row][3];     
-    fSandiaCof[3]=AoverAvo*funitc[4]*fSandiaTable[row][4];
+  if (energy >= Emin) {
+    G4double AoverAvo = Z * amu / fZtoAratio[Z];
+    fSandiaCof[0] = AoverAvo * funitc[1] * fSandiaTable[row][1];
+    fSandiaCof[1] = AoverAvo * funitc[2] * fSandiaTable[row][2];
+    fSandiaCof[2] = AoverAvo * funitc[3] * fSandiaTable[row][3];
+    fSandiaCof[3] = AoverAvo * funitc[4] * fSandiaTable[row][4];
   }
   else {
     fSandiaCof[0] = fSandiaCof[1] = fSandiaCof[2] = fSandiaCof[3] = 0.;
-  }     
+  }
 
   //   CurrentCouple()->GetMaterial()
   //     ->GetSandiaTable()->GetSandiaCofPerAtom((G4int)Z, energy, fSandiaCof);
- 
-  G4double energy2 = energy*energy;
-  G4double energy3 = energy*energy2;
-  G4double energy4 = energy2*energy2;
- 
-  return fSandiaCof[0]/energy  + fSandiaCof[1]/energy2 +
-     fSandiaCof[2]/energy3 + fSandiaCof[3]/energy4;
+
+  G4double energy2 = energy * energy;
+  G4double energy3 = energy * energy2;
+  G4double energy4 = energy2 * energy2;
+
+  return fSandiaCof[0] / energy + fSandiaCof[1] / energy2 + fSandiaCof[2] / energy3 + fSandiaCof[3] / energy4;
+
+  double xSection = 1.0 * 10e-24;
+  // dummy for now
+  return xSection;
 }
 
 VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRejection(int Z, // not used
                                                                                        double energyIn,
-                                                                                       double &energyOut,
-                                                                                       double &sint) {
+                                                                                       double &energyOut, double &sint)
+{
   // use the scalar implementation which is equivalent to Geant4
   energyOut = GetPhotoElectronEnergy<backend::Scalar>(energyIn, Z);
 
@@ -252,7 +262,8 @@ VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRej
 
   if (tau > taulimit) {
     cost = 1.0; // set to the primary direction
-  } else {
+  }
+  else {
     // algorithm according Penelope 2008 manual and
     // F.Sauter Ann. Physik 9, 217(1931); 11, 454(1931).
 

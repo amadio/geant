@@ -11,7 +11,7 @@ GUAliasTable::GUAliasTable(int ngrid)
 }
 
 VECCORE_CUDA_HOST_DEVICE
-GUAliasTable::GUAliasTable(const GUAliasTable& table)
+GUAliasTable::GUAliasTable(const GUAliasTable &table)
 {
   Deallocate();
   Allocate(table.fNGrid);
@@ -19,7 +19,7 @@ GUAliasTable::GUAliasTable(const GUAliasTable& table)
 }
 
 VECCORE_CUDA_HOST_DEVICE
-GUAliasTable& GUAliasTable::operator=(const GUAliasTable& table)
+GUAliasTable &GUAliasTable::operator=(const GUAliasTable &table)
 {
   if (this != &table) {
     Deallocate();
@@ -30,72 +30,68 @@ GUAliasTable& GUAliasTable::operator=(const GUAliasTable& table)
 }
 
 VECCORE_CUDA_HOST_DEVICE
-GUAliasTable::~GUAliasTable()
-{
-  Deallocate();
-}
+GUAliasTable::~GUAliasTable() { Deallocate(); }
 
 VECCORE_CUDA_HOST_DEVICE
-void GUAliasTable::Allocate(int /*ngrid*/) {
-  //try
-  fpdf   = new Real_t [fNGrid];
-  fProbQ = new Real_t [fNGrid];
-  fAlias = new int    [fNGrid];
+void GUAliasTable::Allocate(int /*ngrid*/)
+{
+  // try
+  fpdf = new Real_t[fNGrid];
+  fProbQ = new Real_t[fNGrid];
+  fAlias = new int[fNGrid];
 
-  for (int i = 0 ; i < fNGrid ; ++i) {
-    fpdf[i]   = -1;
+  for (int i = 0; i < fNGrid; ++i) {
+    fpdf[i] = -1;
     fProbQ[i] = -1;
     fAlias[i] = -1;
   }
 }
 
 VECCORE_CUDA_HOST_DEVICE
-void GUAliasTable::Deallocate() {
-  delete [] fpdf;
-  delete [] fProbQ;
-  delete [] fAlias;
+void GUAliasTable::Deallocate()
+{
+  delete[] fpdf;
+  delete[] fProbQ;
+  delete[] fAlias;
 }
 
 VECCORE_CUDA_HOST_DEVICE
-void GUAliasTable::CopyData(const GUAliasTable& table) {
+void GUAliasTable::CopyData(const GUAliasTable &table)
+{
   int i;
   fNGrid = table.fNGrid;
-  for(i = 0 ; i < fNGrid  ; ++i) {
-    fpdf[i] =   table.fpdf[i];
+  for (i = 0; i < fNGrid; ++i) {
+    fpdf[i] = table.fpdf[i];
     fProbQ[i] = table.fProbQ[i];
     fAlias[i] = table.fAlias[i];
   }
 }
 
 VECCORE_CUDA_HOST_DEVICE
-int GUAliasTable::SizeOfTable() {
-  return sizeof(int) + SizeOfGrid()*(2.*sizeof(Real_t)+sizeof(int));
-}
+int GUAliasTable::SizeOfTable() { return sizeof(int) + SizeOfGrid() * (2. * sizeof(Real_t) + sizeof(int)); }
 
 VECCORE_CUDA_HOST_DEVICE
-void GUAliasTable::PrintInfo() {
-  printf("Size(NGrid,Table) = (%d,%d)\n",SizeOfGrid(),SizeOfTable());
-}
+void GUAliasTable::PrintInfo() { printf("Size(NGrid,Table) = (%d,%d)\n", SizeOfGrid(), SizeOfTable()); }
 
 #ifdef VECCORE_NVCC
 void GUAliasTable::Relocate(void *devPtr)
 {
-  //Implement/use a general way to (byte-wise) copy a object to GPU
+  // Implement/use a general way to (byte-wise) copy a object to GPU
   Real_t *d_fpdf;
   Real_t *d_fProbQ;
-  int       *d_fAlias;
+  int *d_fAlias;
 
-  cudaMalloc((void**) &(d_fpdf)  , sizeof(Real_t)*fNGrid);
-  cudaMalloc((void**) &(d_fProbQ), sizeof(Real_t)*fNGrid);
-  cudaMalloc((void**) &(d_fAlias), sizeof(int)*fNGrid);
+  cudaMalloc((void **)&(d_fpdf), sizeof(Real_t) * fNGrid);
+  cudaMalloc((void **)&(d_fProbQ), sizeof(Real_t) * fNGrid);
+  cudaMalloc((void **)&(d_fAlias), sizeof(int) * fNGrid);
 
-  //Copy array contents from host to device.
-  cudaMemcpy(d_fpdf,  fpdf,   sizeof(Real_t)*fNGrid, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_fProbQ,fProbQ, sizeof(Real_t)*fNGrid, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_fAlias,fAlias, sizeof(int)*fNGrid, cudaMemcpyHostToDevice);
+  // Copy array contents from host to device.
+  cudaMemcpy(d_fpdf, fpdf, sizeof(Real_t) * fNGrid, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_fProbQ, fProbQ, sizeof(Real_t) * fNGrid, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_fAlias, fAlias, sizeof(int) * fNGrid, cudaMemcpyHostToDevice);
 
-  //point to device pointer in host struct.
-  fpdf =   d_fpdf;
+  // point to device pointer in host struct.
+  fpdf = d_fpdf;
   fAlias = d_fAlias;
   fProbQ = d_fProbQ;
 

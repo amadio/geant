@@ -6,50 +6,30 @@ namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
 VECCORE_CUDA_HOST
-GUAliasSampler::
-GUAliasSampler(Random_t* states, int threadId,
-               double incomingMin,
-               double incomingMax,
-               int    numEntriesIncoming, // for 'energy' (or log) of projectile
-               int    numEntriesSampled
-)
-  :
-  fRandomState(states),
-  fThreadId(threadId),
-  fIncomingMin( incomingMin ),
-  fIncomingMax( incomingMax ),
-  fInNumEntries(numEntriesIncoming),
-  fLogIncomingMin (math::Log(incomingMin)),
-  fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
-  fInverseLogBinIncoming( numEntriesIncoming / (math::Log(incomingMax)-fLogIncomingMin)),
-  fSampledNumEntries( numEntriesSampled ),
-  fInverseBinSampled( 1.0 / numEntriesSampled )
+GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMin, double incomingMax,
+                               int numEntriesIncoming, // for 'energy' (or log) of projectile
+                               int numEntriesSampled)
+    : fRandomState(states), fThreadId(threadId), fIncomingMin(incomingMin), fIncomingMax(incomingMax),
+      fInNumEntries(numEntriesIncoming), fLogIncomingMin(math::Log(incomingMin)),
+      fInverseBinIncoming(numEntriesIncoming / (incomingMax - incomingMin)),
+      fInverseLogBinIncoming(numEntriesIncoming / (math::Log(incomingMax) - fLogIncomingMin)),
+      fSampledNumEntries(numEntriesSampled), fInverseBinSampled(1.0 / numEntriesSampled)
 {
   int nelements = MaterialHandler::Instance()->GetNumberOfElements();
-  int ngrid =  (fInNumEntries + 1)*fSampledNumEntries ;
-  fAliasTableManager = new GUAliasTableManager(nelements,ngrid);
+  int ngrid = (fInNumEntries + 1) * fSampledNumEntries;
+  fAliasTableManager = new GUAliasTableManager(nelements, ngrid);
 }
 
 VECCORE_CUDA_HOST_DEVICE
-GUAliasSampler::
-GUAliasSampler(Random_t* states, int threadId,
-               double incomingMin,
-               double incomingMax,
-               int    numEntriesIncoming, // for 'energy' (or log) of projectile
-               int    numEntriesSampled,
-               GUAliasTableManager* tableManager
-)
-  :
-  fRandomState(states),
-  fThreadId(threadId),
-  fIncomingMin( incomingMin ),
-  fIncomingMax( incomingMax ),
-  fInNumEntries(numEntriesIncoming),
-  fLogIncomingMin (math::Log(incomingMin)),
-  fInverseBinIncoming( numEntriesIncoming / (incomingMax-incomingMin)),
-  fInverseLogBinIncoming( numEntriesIncoming / (math::Log(incomingMax)-fLogIncomingMin)),
-  fSampledNumEntries( numEntriesSampled ),
-  fInverseBinSampled( 1.0 / numEntriesSampled )  // Careful - convention build / use table!
+GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMin, double incomingMax,
+                               int numEntriesIncoming, // for 'energy' (or log) of projectile
+                               int numEntriesSampled, GUAliasTableManager *tableManager)
+    : fRandomState(states), fThreadId(threadId), fIncomingMin(incomingMin), fIncomingMax(incomingMax),
+      fInNumEntries(numEntriesIncoming), fLogIncomingMin(math::Log(incomingMin)),
+      fInverseBinIncoming(numEntriesIncoming / (incomingMax - incomingMin)),
+      fInverseLogBinIncoming(numEntriesIncoming / (math::Log(incomingMax) - fLogIncomingMin)),
+      fSampledNumEntries(numEntriesSampled),
+      fInverseBinSampled(1.0 / numEntriesSampled) // Careful - convention build / use table!
 {
   fAliasTableManager = tableManager;
 }
@@ -58,36 +38,29 @@ VECCORE_CUDA_HOST_DEVICE
 GUAliasSampler::~GUAliasSampler()
 {
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
-  if(fAliasTableManager)  delete fAliasTableManager;
+  if (fAliasTableManager)
+    delete fAliasTableManager;
 #endif
-
 }
 
 VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::PrintTable()
 {
-  printf("Incoming Min= %g , Max= %g , numEntries= %d \n",
-         fIncomingMin, fIncomingMax, fInNumEntries );
+  printf("Incoming Min= %g , Max= %g , numEntries= %d \n", fIncomingMin, fIncomingMax, fInNumEntries);
 
-  if( fAliasTableManager->GetNumberOfElements() >0 ) {
-    for (int i = 0; i < fAliasTableManager->GetNumberOfElements() ; ++i ) {
-      GUAliasTable* tb= fAliasTableManager->GetAliasTable(i);
-      printf("GUAliasSampler fAliasTable = %p fNGrid = %d value=(%d,%f,%f)\n",
-	     tb,
-	     tb->fNGrid,
-	     tb->fAlias[1],
-	     tb->fProbQ[1],
-	     tb->fpdf[1]);
+  if (fAliasTableManager->GetNumberOfElements() > 0) {
+    for (int i = 0; i < fAliasTableManager->GetNumberOfElements(); ++i) {
+      GUAliasTable *tb = fAliasTableManager->GetAliasTable(i);
+      printf("GUAliasSampler fAliasTable = %p fNGrid = %d value=(%d,%f,%f)\n", tb, tb->fNGrid, tb->fAlias[1],
+             tb->fProbQ[1], tb->fpdf[1]);
     }
   }
   else {
     printf("GUAliasSampler fAliasTableManager is empty\n");
   }
-
 }
 VECCORE_CUDA_HOST
-void GUAliasSampler::BuildAliasTable( int Zelement,
-                                      const double *pdf )
+void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
 {
   // Build alias and alias probability
   //
@@ -104,28 +77,28 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
   //         q[fInNumEntries x fSampledNumEntries]   (non-alias probability)
   //
 
-  //temporary array
-  int *a     = (int*)   malloc(fSampledNumEntries*sizeof(int));
-  double *ap = (double*)malloc(fSampledNumEntries*sizeof(double));
+  // temporary array
+  int *a = (int *)malloc(fSampledNumEntries * sizeof(int));
+  double *ap = (double *)malloc(fSampledNumEntries * sizeof(double));
 
-  //likelihood per equal probable event
-  const double cp = 1.0/fSampledNumEntries;
+  // likelihood per equal probable event
+  const double cp = 1.0 / fSampledNumEntries;
 
-  GUAliasTable* table = new GUAliasTable((fInNumEntries+1)*fSampledNumEntries);
+  GUAliasTable *table = new GUAliasTable((fInNumEntries + 1) * fSampledNumEntries);
 
-  for(int ir = 0; ir <= fInNumEntries ; ++ir) {
+  for (int ir = 0; ir <= fInNumEntries; ++ir) {
 
-    //copy and initialize
-    for(int i = 0; i < fSampledNumEntries ; ++i) {
+    // copy and initialize
+    for (int i = 0; i < fSampledNumEntries; ++i) {
 
-       int ipos= ir*fSampledNumEntries+i;
-       table->fpdf[ipos] = pdf[ipos];
+      int ipos = ir * fSampledNumEntries + i;
+      table->fpdf[ipos] = pdf[ipos];
 
-       a[i] = -1;
-       ap[i] = pdf[ipos]; // pdf[ir*fSampledNumEntries+i];
+      a[i] = -1;
+      ap[i] = pdf[ipos]; // pdf[ir*fSampledNumEntries+i];
     }
 
-    //O(n) iterations
+    // O(n) iterations
     int iter = fSampledNumEntries;
 
     do {
@@ -133,35 +106,34 @@ void GUAliasSampler::BuildAliasTable( int Zelement,
       int recip = 0;
 
       // A very simple search algorithm
-      for(int j = donor; j < fSampledNumEntries ; ++j) {
-         if(ap[j] >= cp) {
-            donor = j;
-            break;
-         }
+      for (int j = donor; j < fSampledNumEntries; ++j) {
+        if (ap[j] >= cp) {
+          donor = j;
+          break;
+        }
       }
 
-      for(int j = recip; j < fSampledNumEntries ; ++j) {
-         if(ap[j] > 0.0 && ap[j] < cp) {
-            recip = j;
-            break;
-         }
+      for (int j = recip; j < fSampledNumEntries; ++j) {
+        if (ap[j] > 0.0 && ap[j] < cp) {
+          recip = j;
+          break;
+        }
       }
 
-      //alias and non-alias probability
+      // alias and non-alias probability
 
-      table->fAlias[ir*fSampledNumEntries+recip] = donor;
-      table->fProbQ[ir*fSampledNumEntries+recip] = fSampledNumEntries*ap[recip];
+      table->fAlias[ir * fSampledNumEntries + recip] = donor;
+      table->fProbQ[ir * fSampledNumEntries + recip] = fSampledNumEntries * ap[recip];
 
-      //update pdf
-      ap[donor] = ap[donor] - (cp-ap[recip]);
+      // update pdf
+      ap[donor] = ap[donor] - (cp - ap[recip]);
       ap[recip] = 0.0;
       --iter;
 
-    }
-    while (iter > 0);
+    } while (iter > 0);
   }
 
-  fAliasTableManager->AddAliasTable(Zelement,table);
+  fAliasTableManager->AddAliasTable(Zelement, table);
 
   free(a);
   free(ap);
