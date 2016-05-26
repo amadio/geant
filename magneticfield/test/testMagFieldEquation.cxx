@@ -56,16 +56,16 @@ bool TestEquation(GUVEquationOfMotion* equation)
   // double magField[3];
 
   double dydx[Nposmom];
-  double PositionMomentum[Nposmom];
+  //  double PositionMomentum[Nposmom];
 
   double charge= -1;
 
-  PositionMomentum[0]= PositionVec[0];
-  PositionMomentum[1]= PositionVec[1];  
-  PositionMomentum[2]= PositionVec[2];
-  PositionMomentum[3]= MomentumVec[0];
-  PositionMomentum[4]= MomentumVec[1];  
-  PositionMomentum[5]= MomentumVec[2];
+  //  PositionMomentum[0]= PositionVec[0];
+  //  PositionMomentum[1]= PositionVec[1];  
+  //  PositionMomentum[2]= PositionVec[2];
+  // PositionMomentum[3]= MomentumVec[0];
+  // PositionMomentum[4]= MomentumVec[1];  
+  // PositionMomentum[5]= MomentumVec[2]; 
 
   double FieldArr[3]= { FieldVec.x(), FieldVec.y(), FieldVec.z() };
 
