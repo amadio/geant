@@ -65,7 +65,7 @@ bool TestEquation(GUVEquationOfMotion* equation)
   //  PositionMomentum[2]= PositionVec[2];
   // PositionMomentum[3]= MomentumVec[0];
   // PositionMomentum[4]= MomentumVec[1];  
-  // PositionMomentum[5]= MomentumVec[2]; 
+  // PositionMomentum[5]= MomentumVec[2];
 
   double FieldArr[3]= { FieldVec.x(), FieldVec.y(), FieldVec.z() };
 
