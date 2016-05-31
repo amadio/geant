@@ -127,7 +127,7 @@ void WorkloadManager::SetTaskBroker(TaskBroker *broker) {
     fBroker = broker;
 }
 
-#if USE_VECGEOM_NAVIGATOR == 1
+#ifdef USE_VECGEOM_NAVIGATOR
 //______________________________________________________________________________
 bool WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
   /**
@@ -516,7 +516,7 @@ void *WorkloadManager::TransportTracks() {
 //            'ntotnext' to the value of the number of secondary tracks
 //            inserted to the track vector
 //
-#if USE_VECPHYS == 1
+#ifdef USE_VECPHYS
         propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 #endif
         // second: sample final states (based on the inf. regarding sampled

@@ -148,11 +148,12 @@ public:
 
   /** @brief Function for loading geometry */
   bool LoadGeometry(const char *filename = "geometry.root");
-#if USE_VECGEOM_NAVIGATOR == 1
 
   /** @brief Function for loading VecGeom geometry */
   bool LoadVecGeomGeometry();
-#endif
+
+  /** @brief Function to initialize VecGeom navigators */
+  void InitNavigators();
 
 public:
   /** @brief GeantPropagator constructor */

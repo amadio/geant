@@ -24,7 +24,7 @@
 #include "TCanvas.h"
 #include <fenv.h>
 
-#if USE_VECGEOM_NAVIGATOR == 1
+#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/NewSimpleNavigator.h"
@@ -400,9 +400,9 @@ void GeantPropagator::PrepareRkIntegration() {
   }
 }
 
-#if USE_VECGEOM_NAVIGATOR == 1
 //______________________________________________________________________________
-void InitNavigators() {
+void GeantPropagator::InitNavigators() {
+#ifdef USE_VECGEOM_NAVIGATOR
   for (auto &lvol : GeoManager::Instance().GetLogicalVolumesMap()) {
     if (lvol.second->GetDaughtersp()->size() < 4) {
       lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
@@ -416,6 +416,7 @@ void InitNavigators() {
     }
     lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
   }
+#endif
 }
 
 /**
@@ -423,6 +424,7 @@ void InitNavigators() {
  */
 //______________________________________________________________________________
 bool GeantPropagator::LoadVecGeomGeometry() {
+#ifdef USE_VECGEOM_NAVIGATOR
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
     Printf("Now loading VecGeom geometry\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
@@ -446,10 +448,11 @@ bool GeantPropagator::LoadVecGeomGeometry() {
   }
   InitNavigators();
   return true;
-}
+#else
+  return false;
 #endif
+}
 
-#ifndef USE_VECGEOM_GEOMETRY
 //______________________________________________________________________________
 bool GeantPropagator::LoadGeometry(const char *filename) {
 // Load the detector geometry from file, unless already loaded.
@@ -459,7 +462,7 @@ bool GeantPropagator::LoadGeometry(const char *filename) {
   TGeoManager *geom = (gGeoManager) ? gGeoManager : TGeoManager::Import(filename);
 #endif
   if (geom) {
-#if USE_VECGEOM_NAVIGATOR == 1
+#ifdef USE_VECGEOM_NAVIGATOR
     LoadVecGeomGeometry();
     fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
 #else
@@ -470,7 +473,6 @@ bool GeantPropagator::LoadGeometry(const char *filename) {
   ::Error("LoadGeometry", "Cannot load geometry from file %s", filename);
   return kFALSE;
 }
-#endif
 
 //______________________________________________________________________________
 void GeantPropagator::ApplyMsc(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {

@@ -202,7 +202,7 @@ public:
   /** @brief  Setter for task broker */
   TaskBroker *GetTaskBroker() { return fBroker; }
 
-#if USE_VECGEOM_NAVIGATOR == 1
+#if USE_VECGEOM_NAVIGATOR
   /**
    * @brief Tell the task broker(s) to load the geometry.
    *
