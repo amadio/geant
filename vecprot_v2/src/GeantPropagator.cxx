@@ -83,7 +83,7 @@ ClassImp(GeantPropagator)
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
     : TObject(), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0), fNprimaries(0), fNsteps(0), fNsnext(0),
-      fNphys(0), fNmag(0), fNsmall(0), fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
+      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
       fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1),
       fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0),
       fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000), fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0),
@@ -597,9 +597,9 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
 #endif
   //  int nsteps = fWMgr->GetScheduler()->GetNsteps();
   Printf("=== Transported: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
-         "phys steps: %ld, mag. field steps: %ld, small steps: %ld  RT=%gs, CP=%gs",
+         "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RT=%gs, CP=%gs",
          fNprimaries.load(), fNtransported.load(), fNsteps.load(), fNsnext.load(), fNphys.load(), fNmag.load(),
-         fNsmall.load(), rtime, ctime);
+         fNsmall.load(), fNcross.load(), rtime, ctime);
   Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
   //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
   fApplication->FinishRun();

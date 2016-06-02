@@ -72,6 +72,7 @@ public:
   std::atomic<long> fNphys;                        /** Total number of steps to physics processes */
   std::atomic<long> fNmag;                         /** Total number of partial steps in magnetic field */
   std::atomic<long> fNsmall;                       /** Total number of small steps taken */
+  std::atomic<long> fNcross;                       /** Total number of boundaries crossed */
   std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
   std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
   BitSet *fDoneEvents;                             /** Array of bits marking done events */

@@ -25,7 +25,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
       fSOA3Dworkspace1(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)),
       fSOA3Dworkspace2(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)), 
       fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0)
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
 {
   // Constructor
   fNthreads = nthreads;
@@ -60,7 +60,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
       fSOA3Dworkspace1(nullptr),
       fSOA3Dworkspace2(nullptr),
       fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0)
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
 {
   // Constructor
   char *buffer = (char*)addr;

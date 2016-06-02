@@ -275,8 +275,9 @@ void *WorkloadManager::TransportTracks() {
   //   const int max_idle = 1;
   //   int indmin, indmax;
   static std::atomic<int> counter(0);
-  int ntotnext, ncross, nbaskets;
+  int ntotnext, nbaskets;
   int ntotransport;
+  int ncross = 0;
   int nextra_at_rest = 0;
   int generation = 0;
   //   int ninjected = 0;
@@ -590,6 +591,8 @@ void *WorkloadManager::TransportTracks() {
       basket->Recycle(td);
       basket = 0; // signal reusability by non-null pointer
     }
+    // Update boundary crossing counter
+    td->fNcross += ncross;
   }
 
   // WP
@@ -605,6 +608,7 @@ void *WorkloadManager::TransportTracks() {
   propagator->fNphys += td->fNphys;
   propagator->fNmag += td->fNmag;
   propagator->fNsmall += td->fNsmall;
+  propagator->fNcross += td->fNcross;
 
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
