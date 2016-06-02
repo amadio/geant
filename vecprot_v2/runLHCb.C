@@ -17,7 +17,7 @@ void runLHCb(const int ncputhreads=4,
             const char *fstate="../../fstate_FTFP_BERT_G496p02_1mev.root",
             bool coprocessor = COPROCESSOR_REQUEST,
 	    const char *eventfile="../../pp14TeVminbias.root",
-	    const float magfield=40.,
+	    const float magfield=10.,
 	    const int ntotal=1                                    // Number of events to be transported
 )
 {
