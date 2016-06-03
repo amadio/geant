@@ -111,8 +111,8 @@ void runLHCb(const int ncputhreads=4,
    prop->fEmax = 0.01; // 10 MeV
    
    // Create physics process.
-   //   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
-   prop->fProcess = new TestProcess();
+   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
+   //prop->fProcess = new TestProcess();
 
    //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
    //   prop->fPrimaryGenerator = new GunGenerator(1, 0, 1., 0, 0, 0, 0.362783697740757, 0.259450124768640, 0.882633622956438);
