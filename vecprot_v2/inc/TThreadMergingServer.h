@@ -1,31 +1,14 @@
 #ifndef GEANT_TTHREADMERGINGSERVER
 #define GEANT_TTHREADMERGINGSERVER
 
-#include "TBufferFile.h"
-#include "TBenchmark.h"
-#include "TSocket.h"
-#include "TH2.h"
-#include "TTree.h"
-#include "TMemFile.h"
-#include "TRandom.h"
-#include "TError.h"
-#include "TFileMerger.h"
-
-#include "TServerSocket.h"
-#include "TPad.h"
-#include "TCanvas.h"
-#include "TMonitor.h"
-
-#include "TFileCacheWrite.h"
-#include "TSystem.h"
-#include "THashTable.h"
-
-#include "TMath.h"
-#include "TTimeStamp.h"
-
-#include "TKey.h"
-
 #include "dcqueue.h"
+
+#include "TBits.h"
+#include "TFile.h"
+#include "TFileCacheWrite.h"
+#include "TFileMerger.h"
+#include "TSystem.h"
+#include "TTimeStamp.h"
 
 namespace Geant {
   
