@@ -61,7 +61,7 @@ __global__ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t work
     itr += blockDim.x * gridDim.x;
   }
   if (output->fSelected->GetNbits() != 2 * 4096)
-    printf("output bitset %d\n", output->fSelected->GetNbits());
+    printf("output bitset %ld\n", output->fSelected->GetNbits());
 }
 
 int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
