@@ -77,7 +77,7 @@ endif()
 ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers}
                 MODULE lib${GeantCudaLib}
                 LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h
-                OPTIONS -I${CUDA_INCLUDE_DIRS} ${extra_dict_options} )
+                OPTIONS -I${CUDA_INCLUDE_DIRS} -DVC_COMMON_SIMDIZE_H_=1 ${extra_dict_options} )
 
 # add the command to generate the source code
 #add_custom_command (
