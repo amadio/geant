@@ -466,7 +466,6 @@ install(FILES
 
 # Install headers and libraries
 file(GLOB _headers LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/inc inc/*)
-message(${_headers})
 foreach(_file ${_headers})
   install(FILES inc/${_file} DESTINATION ${INSTALL_INCLUDE_DIR}/vecphys)
 endforeach()

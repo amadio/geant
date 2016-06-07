@@ -106,7 +106,7 @@ endif()
 add_custom_target(Geantlib_v DEPENDS Geant_v)
 if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.so DESTINATION lib)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS Geant_v DESTINATION lib)
 endif()

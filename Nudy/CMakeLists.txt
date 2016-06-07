@@ -23,7 +23,7 @@ target_link_libraries(Nudy ${ROOT_LIBRARIES} Geom EG MathMore Graf)
 
 # for some reason the installation process alters the libraries on Mac, and the program fails
 if(APPLE) 
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNudy.so DESTINATION lib)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNudy${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS Nudy DESTINATION lib)
 endif()

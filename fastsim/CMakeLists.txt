@@ -64,7 +64,7 @@ add_headers("${headers}")
 add_custom_target(fastsimlib DEPENDS Fastsim)
 if(APPLE) 
 # for some reason the installation process alters the libraries on Mac, and the program fails
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim.so DESTINATION lib)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS Fastsim DESTINATION lib)
 endif()
