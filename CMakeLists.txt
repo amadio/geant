@@ -432,6 +432,7 @@ if (CUDA)
   set(
     CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
     -std=c++11
+    -Xcompiler ,\"-Wno-unused-function\"
     -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"
     -Xcudafe "--diag_suppress=initialization_not_reachable"
   )
