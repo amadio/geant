@@ -52,7 +52,7 @@ add_custom_target(Exampleslib DEPENDS GeantExamples)
 
 if(APPLE) 
 # for some reason the installation process alters the libraries on Mac, and the program fails
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.dylib DESTINATION lib)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.so DESTINATION lib)
 else()
   install(TARGETS GeantExamples DESTINATION lib)
 endif()
