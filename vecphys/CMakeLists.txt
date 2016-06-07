@@ -465,8 +465,15 @@ install(FILES
   DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 # Install headers and libraries
-foreach(FOLDER src test)
-  install(DIRECTORY ${FOLDER} DESTINATION ${INSTALL_INCLUDE_DIR})
+file(GLOB _headers LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/inc inc/*)
+message(${_headers})
+foreach(_file ${_headers})
+  install(FILES inc/${_file} DESTINATION ${INSTALL_INCLUDE_DIR}/vecphys)
+endforeach()
+
+file(GLOB _headers_test LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/test/inc test/inc/*)
+foreach(_file ${_headers_test})
+  install(FILES test/inc/${_file} DESTINATION ${INSTALL_INCLUDE_DIR}/vecphys/test)
 endforeach()
 install(TARGETS vecphys DESTINATION ${INSTALL_LIB_DIR})
 if (CUDA)
