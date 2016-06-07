@@ -12,6 +12,8 @@ option(GUBENCHMARK "Enable performance comparisons." OFF)
 
 option(DISTANCE_DEBUG "Enable comparision of calculcated distances againt ROOT/Geant4 behind the scenes" OFF)
 
+option(VECPHYS_STANDALONE "Build VECPHYS standalone" OFF)
+
 set(VECPHYS_VECTOR "" CACHE STRING
     "Vector instruction set to use (sse/avx/...).")
 
@@ -131,8 +133,6 @@ if (Cilk)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CILK")
 endif()
 if (CUDA)
-  set(CUDA_ARCH 35 CACHE STRING "CUDA device architecture.")
-  set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CUDA")
   if (CUDA_VOLUME_SPECIALIZATION)
     set(VECPHYS_COMPILATION_FLAGS
@@ -142,16 +142,21 @@ if (CUDA)
         "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CUDA_NO_VOLUME_SPECIALIZATION")
   endif()
   set(VECPHYS_NVCC_COMPILATION_FLAGS ${VECPHYS_NVCC_COMPILATION_FLAGS}
-      -std=c++11
       -Xcudafe "--diag_suppress=code_is_unreachable"
       -Xcudafe "--diag_suppress=initialization_not_reachable" 
       --expt-relaxed-constexpr
   )
-  set(VECPHYS_NVCC_CONFIGS
+  if(VECPHYS_STANDALONE) 
+    set(CUDA_ARCH 35 CACHE STRING "CUDA device architecture.")
+    set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
+    set(VECPHYS_NVCC_COMPILATION_FLAGS ${VECPHYS_NVCC_COMPILATION_FLAGS}
+       -std=c++11)
+    set(VECPHYS_NVCC_CONFIGS
         DEBUG -g -G
         RELEASE  -O2 --use_fast_math
         RELWITHDEBINFO -g -G  -O2 --use_fast_math
         MINSIZEREL --use_fast_math )
+  endif()
 endif()
 
 # Enable pretty diagnostics coloring if gcc 4.9+ is being used
