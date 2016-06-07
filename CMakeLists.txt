@@ -58,8 +58,9 @@ enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ ISO Standard")
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Fix bug on APPLE, this is the default everywhere
 if(APPLE)
+  set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
+# Fix bug on APPLE, this is the default everywhere
   set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem ")
 endif()
 
