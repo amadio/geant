@@ -470,7 +470,6 @@ if (CUDA)
   endif()
   set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
 
-  #set(CUDA_NVCC_FLAGS --ptxas-options=-v)
   set(
     CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
     -std=c++11
@@ -492,8 +491,6 @@ if (CUDA)
 
   include_directories(AFTER SYSTEM ${CUDA_INCLUDE_DIRS})
   message(STATUS "Added to include directories:  ${CUDA_INCLUDE_DIRS}")
-
-  message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
 endif()
 
