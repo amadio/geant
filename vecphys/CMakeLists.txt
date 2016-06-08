@@ -261,13 +261,10 @@ endif()
 ################################################################################
 find_package(VecGeom REQUIRED)
 if( VECGEOM_FOUND )
-  message(STATUS "Found VECGEOM_LIBRARIES " ${VECGEOM_LIBRARIES} )
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${VECGEOM_LIBRARIES} )
 else()
    message(FATAL_ERROR "Required VecGeom library not found")
 endif()
-
-message(STATUS "Found  VECGEOM_INCLUDE_DIR " ${VECGEOM_INCLUDE_DIR}  )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
                     ${CMAKE_CURRENT_SOURCE_DIR}/inc/base
