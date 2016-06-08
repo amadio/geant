@@ -32,9 +32,17 @@ int main()
    int totsize;
    // read from file
    std::ifstream fin("xfphys.bin", std::ios::binary);
+   if ( ! fin.is_open() ) {
+     std::cerr << "Could not open file xfphys.bin in current directory\n";
+     return 1;
+   }
    fin.read(reinterpret_cast<char*>(&totsize), sizeof(totsize));
    //buf = new char[totsize];
    buf = (char*)_mm_malloc(totsize,sizeof(double));
+   if (!buf) {
+     std::cerr << "Failed to allocate memory, needed: " << totsize*sizeof(double) << '\n';
+     return 2;
+   }
    fin.read(reinterpret_cast<char*>(buf), totsize);
    fin.close();
    std::cout << "Total size of store " << totsize << std::endl;
@@ -42,11 +50,11 @@ int main()
    expandPhysics(buf);
    const char *fxsec = "/dev/null";
    const char *ffins = "/dev/null";
-   #ifdef USE_ROOT
+#ifdef USE_ROOT
    GeantPropagator::Instance(1,1,1);
    TGeoManager *geom = TGeoManager::Import("http://root.cern.ch/files/cms.root");
 
-   #endif
+#endif
    TTabPhysMgr::Instance(fxsec, ffins );
 
    constexpr int nrep = 1000;
