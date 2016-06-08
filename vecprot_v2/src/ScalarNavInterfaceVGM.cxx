@@ -2,8 +2,11 @@
 
 #include "backend/Backend.h"
 #include "navigation/VNavigator.h"
+#ifdef GEANT_NVCC
 #include "navigation/SimpleNavigator.h"
+#else
 #include "navigation/ABBoxNavigator.h"
+#endif
 #include "volumes/PlacedVolume.h"
 #include "base/Vector3D.h"
 #include "base/Transformation3D.h"
@@ -72,8 +75,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
     
     //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
-#ifndef GEANT_NVCC
-#ifdef CROSSCHECK
+#if defined(CROSSCHECK) && !defined(GEANT_NVCC)
     //************
     // CROSS CHECK USING TGEO
     //************
@@ -103,7 +105,6 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
                                                  Vector3D_t(dirx[itr], diry[itr], dirz[itr]), *instate[itr]);
     }
 #endif // CROSSCHECK
-#endif // GEANT_NVCC
 
 #ifdef VERBOSE
     Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
@@ -135,20 +136,15 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
   for (int itr = 0; itr < ntracks; ++itr) {
 
 // cross check with answer from ROOT
-#ifndef GEANT_NVCC
-#ifdef CROSSCHECK
-    TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
-    TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
-#endif
-#endif
 
     // TODO: not using the direction yet here !!
     bool samepath = nav.HasSamePath(
       Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
     if (!samepath) tmpstate->CopyTo(end[itr]);
 
-#ifndef GEANT_NVCC
-#ifdef CROSSCHECK
+#if defined(CROSSCHECK) && !defined(GEANT_NVCC)
+    TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
+    TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
     nav->ResetState();
     nav->SetLastSafetyForPoint(0, 0, 0, 0);
@@ -177,8 +173,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
     }
     delete sb;
     delete eb;
-#endif // CROSSCHECK
-#endif // GEANT_NVCC
+#endif // CROSSCHECK && !GEANT_NVCC
     same[itr] = samepath;
   }
 }
