@@ -153,8 +153,8 @@ public:
    virtual bool        GetPointsOnSegments(int npoints, double *array) const;
 
 
-   virtual double      Safety(const double *point, bool in=kTRUE) const;
-   virtual void          Safety_l(const double *point, double *safety, int np, bool in=kTRUE) const;
+   virtual double      Safety(const double *point, bool in=true) const;
+   virtual void          Safety_l(const double *point, double *safety, int np, bool in=true) const;
 
    virtual void          Safety_v(const double *point, bool in, double *safety, int np ) const; 
    //SOA version

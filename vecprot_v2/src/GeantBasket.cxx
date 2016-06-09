@@ -55,14 +55,14 @@ int GeantBasket::AddTrack(GeantTrack_v &tracks, int itr) {
   // Add track from a track_v array. Has to work concurrently.
 
   // Activating the line below adds non-concurrently an input track
-  //   fTracksIn.AddTrack(tracks, itr, kTRUE);
+  //   fTracksIn.AddTrack(tracks, itr, true);
   return (fTracksIn.AddTrackSync(tracks, itr));
 }
 
 //______________________________________________________________________________
 void GeantBasket::AddTracks(GeantTrack_v &tracks, int istart, int iend) {
   // Add multiple tracks from a track_v array.
-  fTracksIn.AddTracks(tracks, istart, iend, kTRUE);
+  fTracksIn.AddTracks(tracks, istart, iend, true);
 }
 
 //______________________________________________________________________________
@@ -125,7 +125,7 @@ void GeantBasket::SetThreshold(int threshold) {
 
 //______________________________________________________________________________
 GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
-  : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
+  : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
     fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
     fDispatchList() {
   // Constructor
@@ -351,7 +351,7 @@ void GeantBasketMgr::CreateEmptyBaskets(int nbaskets, GeantTaskData *td) {
   for (auto i = 0; i < nbaskets; ++i) {
     GeantBasket *next = new GeantBasket(fBcap, this);
     if (fCollector)
-      next->SetMixed(kTRUE);
+      next->SetMixed(true);
     fNbaskets++;
     next->SetThreshold(fThreshold.load(std::memory_order_relaxed));
     td->RecycleBasket(next);
@@ -384,7 +384,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
     fNbaskets++;
   }
   if (fCollector)
-    next->SetMixed(kTRUE);
+    next->SetMixed(true);
   else
     next->SetBasketMgr(this);
   next->SetThreshold(fThreshold.load(std::memory_order_relaxed));

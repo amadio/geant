@@ -367,7 +367,7 @@ void ShapeBenchmarker<T>::timeSafety(double & Tacc, unsigned int vecsize)
   if(vecsize==1)
     {
       timer.Start();
-      results_s[startindex]=testshape->T::Safety( &points_s[3*startindex], kTRUE );
+      results_s[startindex]=testshape->T::Safety( &points_s[3*startindex], true );
       timer.Stop();
     }
   else
@@ -375,7 +375,7 @@ void ShapeBenchmarker<T>::timeSafety(double & Tacc, unsigned int vecsize)
       timer.Start();
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
-	  results_s[index]=testshape->T::Safety( &points_s[3*index], kTRUE );
+	  results_s[index]=testshape->T::Safety( &points_s[3*index], true );
 	}
       timer.Stop();
     }
@@ -526,7 +526,7 @@ void ShapeBenchmarker<T>::heatup()
   results_dI[0] = this->testshape->T::DistFromInside( &points_dI[3*0], &dirs_dI[3*0], 3, TGeoShape::Big(), 0 ); 
   results_dO[0] = this->testshape->T::DistFromOutside( &points_dO[3*0], &dirs_dO[3*0], 3, TGeoShape::Big(), 0 ); 
   results_C[0] = this->testshape->T::Contains( points_C );
-  results_s[0] = this->testshape->T::Safety( points_s, kTRUE );
+  results_s[0] = this->testshape->T::Safety( points_s, true );
 }
 
 

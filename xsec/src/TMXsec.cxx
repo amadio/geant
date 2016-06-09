@@ -255,7 +255,7 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
 bool TMXsec::Prune() {
    // Prune elements
    for(int iel=0; iel<TEXsec::NLdElems(); ++iel) TEXsec::Element(iel)->Prune();
-   return kTRUE;
+   return true;
 }
 */
 
@@ -311,7 +311,7 @@ bool TMXsec::Xlength_v(int npart, const int part[], const float en[], double lam
       lam[ip] = xrat*fTotXL[part[ip]*fNEbins+ibin]+(1-xrat)*fTotXL[part[ip]*fNEbins+ibin+1];
     }
   }
-  return kTRUE;
+  return true;
 }
 */
 
@@ -562,7 +562,7 @@ bool TMXsec::DEdx_v(int npart, const int part[], const float en[], float de[]) {
       de[ip] = xrat*fDEdx[part[ip]*fNEbins+ibin]+(1-xrat)*fDEdx[part[ip]*fNEbins+ibin+1];
     }
   }
-  return kTRUE;
+  return true;
 }
 */
 
@@ -786,7 +786,7 @@ TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
 #else
       if (RNG::Instance().uniform() < lambdaTotal / lambdaDecay)
 #endif
-        isDecay = kTRUE;
+        isDecay = true;
     }
     if (isDecay) {
       reac = 3; // decay
@@ -876,7 +876,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
         double lambdaTotal = Xlength(ipart, energy, ptotal);
         // $P(decay) =\lambda_{Total}/\lambda_{decay}$
         if (rndArray[t] < lambdaTotal / lambdaDecay)
-          isDecay = kTRUE;
+          isDecay = true;
       }
       if (isDecay) {
         tracksin.fProcessV[t] = 3; // decay
@@ -971,7 +971,7 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
       double lambdaTotal = Xlength(ipart, energy, ptotal);
       // $P(decay) =\lambda_{Total}/\lambda_{decay}$
       if (rndArray[0] < lambdaTotal / lambdaDecay)
-        isDecay = kTRUE;
+        isDecay = true;
     }
     if (isDecay) {
       tracksin.fProcessV[t] = 3; // decay

@@ -300,7 +300,7 @@ void GVComptonProcess::SetGeantTrack(GeantTrack &left, GeantTrack_v &right, int 
   left.fSnext = 0.;                    // init
   left.fSafety = right.fSafetyV[ip];   // init to (same as parent)
   //  left.fFrombdr = right.fFrombdrV[ip]; // init to (same as parent)
-  left.fPending = kFALSE;              // init
+  left.fPending = false;              // init
   *left.fPath = *right.fPathV[ip];     // init
   *left.fNextpath = *right.fPathV[ip]; // init
 }

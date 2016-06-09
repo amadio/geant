@@ -69,8 +69,8 @@ using namespace ROOT::Math;
 void MSaveBigPDF(double scale=5) {
     TCanvas* old_canv = gPad->GetCanvas();
     
-    gROOT->SetBatch(kTRUE);
-    gROOT->ForceStyle(kTRUE);
+    gROOT->SetBatch(true);
+    gROOT->ForceStyle(true);
     
     Int_t orig_msz = gStyle->GetMarkerSize();
     Int_t orig_mst = gStyle->GetMarkerStyle();
@@ -102,8 +102,8 @@ void MSaveBigPDF(double scale=5) {
     gStyle->SetMarkerStyle(orig_mst);
     gStyle->SetLineWidth(orig_lt);
     
-    gROOT->ForceStyle(kFALSE);
-    gROOT->SetBatch(kFALSE);
+    gROOT->ForceStyle(false);
+    gROOT->SetBatch(false);
     
     std::cout<<"Saving the image as: "<<filename<<"\n";
     

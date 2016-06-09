@@ -151,7 +151,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, int itr) {
 
   // Find next volume
   double dir[3];
-  //   frombdr = kTRUE;
+  //   frombdr = true;
   Direction(dir);
   pstep -= crtstep;
   safety = 0;
@@ -169,7 +169,7 @@ GeantVolumeBasket *GeantTrack::PropagateStraight(double crtstep, int itr) {
     nextpath->UpdateNavigator(nav);
   else
     path->UpdateNavigator(nav);
-  nav->SetOutside(kFALSE);
+  nav->SetOutside(false);
   nav->SetStep(crtstep);
   xpos += crtstep * dir[0];
   ypos += crtstep * dir[1];
@@ -215,7 +215,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, bool checkcross,
     nav->SetLastSafetyForPoint(safety, &xpos);
   }
   // Reset relevant variables
-  frombdr = kFALSE;
+  frombdr = false;
   pstep -= crtstep;
   safety -= crtstep;
   if (safety < 0.)
@@ -254,16 +254,16 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, bool checkcross,
   if (!checkcross)
     return 0;
   if (charge) {
-    if (nav->IsSameLocation(xpos, ypos, zpos, kTRUE))
+    if (nav->IsSameLocation(xpos, ypos, zpos, true))
       return 0;
   } else {
-    frombdr = kTRUE;
+    frombdr = true;
     TGeoNode *skip = nav->GetCurrentNode();
     TGeoNode *next = 0;
-    next = nav->CrossBoundaryAndLocate(kTRUE, skip);
+    next = nav->CrossBoundaryAndLocate(true, skip);
     if (!next && !nav->IsOutside()) {
       path->UpdateNavigator(nav);
-      next = nav->FindNextBoundaryAndStep(TGeoShape::Big(), kFALSE);
+      next = nav->FindNextBoundaryAndStep(TGeoShape::Big(), false);
     }
   }
 
@@ -279,7 +279,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, bool checkcross,
   dir[1] = -newdir[1];
   dir[2] = -newdir[2];
   int level = nav->GetLevel();
-  bool entering = kTRUE;
+  bool entering = true;
   TGeoNode *node1 = 0;
   TGeoNode *node2 = 0;
   if (level < path->GetLevel() && !outside) {
@@ -288,7 +288,7 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, bool checkcross,
       node2 = path->GetNode(lev);
       if (node1 == node2) {
         if (lev == level)
-          entering = kFALSE;
+          entering = false;
       } else {
         // different nodes at some level -> entering current node
         break;
@@ -350,12 +350,12 @@ GeantVolumeBasket *GeantTrack::PropagateInField(double crtstep, bool checkcross,
   ypos = point[1];
   zpos = point[2];
   // Mark track as "on boundary" and update step/pstep
-  frombdr = kTRUE;
+  frombdr = true;
   safety = 0.;
   pstep += delta;
   step -= delta;
   if (outside) {
-    nav->SetOutside(kTRUE);
+    nav->SetOutside(true);
     return 0;
   }
   // Create a new branch array

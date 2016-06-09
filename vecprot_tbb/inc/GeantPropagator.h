@@ -177,8 +177,8 @@ public:
    void             PrintParticles(int *trackin, int ntracks);
    PhysicsProcess  *Process(int iproc) const {return fProcesses[iproc];}
    void             PropagatorGeom(const char *geomfile="geometry.root",
-                                   bool graphics=kFALSE,
-                                   bool single=kFALSE);
+                                   bool graphics=false,
+                                   bool single=false);
    void             SelectTracksForProcess(int iproc, int ntotransport, int *particles, int &ntodo, int *parttodo);
 
 private:

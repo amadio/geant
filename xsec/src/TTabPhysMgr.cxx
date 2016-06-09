@@ -235,7 +235,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
       Fatal("TTabPhysMgr", "The material (%s) seems to have no elements", mat->GetName());
     }
     // Construct the TMXsec object that corresponds to the current material
-    TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetName(), z, a, w, nelem, mat->GetDensity(), kTRUE, fDecay);
+    TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetName(), z, a, w, nelem, mat->GetDensity(), true, fDecay);
     fMatXsec[fNmaterials++] = mxs;
 // Connect to Material
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -631,7 +631,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
       if (isSurv)
         j = 1;
       // loop over the secondaries and put them into tracks if they good to track:
-      // j=0 -> including stopped primary as well if isSurv = kTRUE;
+      // j=0 -> including stopped primary as well if isSurv = true;
       // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above)
       for (int i = j; i < nSecPart; ++i) {
         if (pid[i] >= TPartIndex::I()->NPart()) { // fragment: put its Ekin to energy deposit
@@ -708,7 +708,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.fSnext = 0.;
           track.fSafety = tracks.fSafetyV[t];
           track.fBoundary = tracks.fBoundaryV[t];
-          track.fPending = kFALSE;
+          track.fPending = false;
           *track.fPath = *tracks.fPathV[t];
           *track.fNextpath = *tracks.fPathV[t];
 
@@ -835,7 +835,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fSnext = 0.;
       track1.fSafety = tracks.fSafetyV[iintrack];
       track1.fBoundary = tracks.fBoundaryV[iintrack];
-      track1.fPending = kFALSE;
+      track1.fPending = false;
       *track1.fPath = *tracks.fPathV[iintrack];
       *track1.fNextpath = *tracks.fPathV[iintrack];
 
@@ -878,7 +878,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
   // note: parent was already stopped because an at Rest process happend;
   //      -> primary is not in the list of secondaries
 
-  // isSurv should always be kFALSE here because primary was stopped -> just a check
+  // isSurv should always be false here because primary was stopped -> just a check
   if (isSurv)
     printf("A stopped particle survived its rest process in TTabPhysMgr::GetRestFinSates!\n");
 
@@ -958,7 +958,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track.fSnext = 0.;
       track.fSafety = tracks.fSafetyV[iintrack];
       track.fBoundary = tracks.fBoundaryV[iintrack];
-      track.fPending = kFALSE;
+      track.fPending = false;
       *track.fPath = *tracks.fPathV[iintrack];
       *track.fNextpath = *tracks.fPathV[iintrack];
 
@@ -1073,7 +1073,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track.fSnext = 0.;
         track.fSafety = tracks.fSafetyV[iintrack];
         track.fBoundary = tracks.fBoundaryV[iintrack];
-        track.fPending = kFALSE;
+        track.fPending = false;
         *track.fPath = *tracks.fPathV[iintrack];
         *track.fNextpath = *tracks.fPathV[iintrack];
 

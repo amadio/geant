@@ -211,9 +211,9 @@ public:
   inline bool IsFeeding() {
     bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
     if (feeding)
-      return kTRUE;
+      return true;
     fFeederLock.clear(std::memory_order_release);
-    return kFALSE;
+    return false;
   }
 
   /**
@@ -267,8 +267,8 @@ public:
    * @param graphics Graphics (by default False)
    * @param single Transport single tracks rather than vectors (by default False)
    */
-  void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, bool graphics = kFALSE,
-                      bool single = kFALSE);
+  void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, bool graphics = false,
+                      bool single = false);
 
   /** @brief Function returning the number of monitored features */
   int GetMonFeatures() const;

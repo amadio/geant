@@ -94,7 +94,7 @@ Bool_t TThreadMergingFile::UploadAndReset()
    ResetAfterMerge(0);
    
    
-   return kTRUE;
+   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

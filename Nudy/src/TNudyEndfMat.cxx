@@ -19,7 +19,7 @@
 
 //_______________________________________________________________________________
 TNudyEndfMat::TNudyEndfMat()
-  : fMAT(0), fZA(0), fAWR(0), fLRP(-1), fLFI(kFALSE), fNLIB(0), fNMOD(0), fELIS(0), fSTA(kTRUE), fLIS(0), fLISO(0),
+  : fMAT(0), fZA(0), fAWR(0), fLRP(-1), fLFI(false), fNLIB(0), fNMOD(0), fELIS(0), fSTA(true), fLIS(0), fLISO(0),
     fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL), fNXC(0),
     fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL) {
   //
@@ -38,7 +38,7 @@ TNudyEndfMat::TNudyEndfMat()
 
 //_______________________________________________________________________________
 TNudyEndfMat::TNudyEndfMat(int mat, int za, double awr, int lrp, bool lfi, int nlib, int nmod)
-    : fMAT(mat), fZA(za), fAWR(awr), fLRP(lrp), fLFI(lfi), fNLIB(nlib), fNMOD(nmod), fELIS(0), fSTA(kTRUE), fLIS(0),
+    : fMAT(mat), fZA(za), fAWR(awr), fLRP(lrp), fLFI(lfi), fNLIB(nlib), fNMOD(nmod), fELIS(0), fSTA(true), fLIS(0),
       fLISO(0), fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL),
       fNXC(0), fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL) {
   //

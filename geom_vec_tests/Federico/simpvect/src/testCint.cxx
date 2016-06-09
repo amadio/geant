@@ -648,7 +648,7 @@ static void G__setup_memfuncTGeoBBox_v(void) {
    G__memfunc_setup("GetPointsOnSegments",1952,(G__InterfaceMethod) NULL,103, -1, G__defined_typename("Bool_t"), 0, 2, 1, 1, 8, 
 "i - 'Int_t' 0 - npoints D - 'Double_t' 0 - array", (char*)NULL, (void*) NULL, 1);
    G__memfunc_setup("Safety",620,(G__InterfaceMethod) NULL,100, -1, G__defined_typename("Double_t"), 0, 2, 1, 1, 8, 
-"D - 'Double_t' 0 - point g - 'Bool_t' 0 'kTRUE' in", (char*)NULL, (void*) NULL, 1);
+"D - 'Double_t' 0 - point g - 'Bool_t' 0 'true' in", (char*)NULL, (void*) NULL, 1);
    G__memfunc_setup("Class",502,G__testCint_191_0_19, 85, G__get_linked_tagnum(&G__testCintLN_TClass), -1, 0, 0, 3, 1, 0, "", (char*)NULL, (void*) G__func2void( (TClass* (*)())(&TGeoBBox_v::Class) ), 0);
    G__memfunc_setup("Class_Name",982,G__testCint_191_0_20, 67, -1, -1, 0, 0, 3, 1, 1, "", (char*)NULL, (void*) G__func2void( (const char* (*)())(&TGeoBBox_v::Class_Name) ), 0);
    G__memfunc_setup("Class_Version",1339,G__testCint_191_0_21, 115, -1, G__defined_typename("Version_t"), 0, 0, 3, 1, 0, "", (char*)NULL, (void*) G__func2void( (Version_t (*)())(&TGeoBBox_v::Class_Version) ), 0);

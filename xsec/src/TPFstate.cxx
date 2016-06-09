@@ -106,7 +106,7 @@ bool TPFstate::SetFinState(int ibin, int reac, const int npart[], const float we
   int rnumber = fRdict[reac];
   int ipoint = rnumber * fNEbins + ibin;
   fFstat[ipoint].SetFinState(fNEFstat, npart, weight, kerma, en, surv, pid, mom);
-  return kTRUE;
+  return true;
 }
 
 //______________________________________________________________________________
@@ -119,7 +119,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     pid = 0;
     mom = 0;
     ebinindx = -1;
-    return kFALSE;
+    return false;
   } else {
     kerma = en;
     double eta = gRandom->Rndm();
@@ -132,7 +132,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     //    if(en1>en || en2<en) {
     //      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
     //            ibin, en1, en, en2);
-    //      return kFALSE;
+    //      return false;
     //    }
     double xrat = (en2 - en) / (en2 - en1);
     if (eta > xrat)
@@ -156,7 +156,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     pid = 0;
     mom = 0;
     ebinindx = -1;
-    return kFALSE;
+    return false;
   } else {
     // double eta = randn1;
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
@@ -168,7 +168,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     //    if(en1>en || en2<en) {
     //      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
     //            ibin, en1, en, en2);
-    //      return kFALSE;
+    //      return false;
     //    }
     double xrat = (en2 - en) / (en2 - en1);
     if (randn1 > xrat)
@@ -192,7 +192,7 @@ bool TPFstate::SampleRestCaptFstate(int &npart, float &weight, float &kerma, flo
     npart = 0;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    return false;
   }
 }
 
@@ -206,7 +206,7 @@ bool TPFstate::SampleRestCaptFstate(int &npart, float &weight, float &kerma, flo
     npart = 0;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    return false;
   }
 }
 
@@ -219,7 +219,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
     npart = 0;
     pid = 0;
     mom = 0;
-    return kFALSE;
+    return false;
   } else {
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
     en = max<double>(en, fEGrid[0]);
@@ -230,7 +230,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
     //    if(en1>en || en2<en) {
     //      Error("SetFinState","Wrong bin %d in interpolation: should be %f < %f < %f\n",
     //            ibin, en1, en, en2);
-    //      return kFALSE;
+    //      return false;
     //    }
     if (en - en1 > en2 - en)
       ++ibin;
@@ -322,5 +322,5 @@ bool TPFstate::Resample() {
   delete[] obins;
   delete[] oFstat;
   delete[] oGrid;
-  return kTRUE;
+  return true;
 }

@@ -90,7 +90,7 @@ void compare_perf(const char *fname)
    hist->SetMarkerSize(1.0);
    hist->SetBarWidth(0.2);
    hist->SetBarOffset(0.2*irun);
-   hist->SetStats(kFALSE);
+   hist->SetStats(false);
    hist->GetXaxis()->SetTitle("# threads");
    double error;
    for (int i=0; i<nres; ++i) {

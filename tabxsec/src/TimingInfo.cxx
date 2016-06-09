@@ -13,7 +13,7 @@ void TimingInfo(float cpu,int z,int pdg,int proc,float en, int np)
   static int sreac=0;
   static float sen=0;
   static int snp=0;
-  static bool first=kTRUE;
+  static bool first=true;
   
   if(first) {
     f = new TFile("timing.root","recreate");
@@ -25,7 +25,7 @@ void TimingInfo(float cpu,int z,int pdg,int proc,float en, int np)
     t->Branch("process",&sreac,"process/I");
     t->Branch("energy",&sen,"energy/F");
     t->Branch("nprod",&snp,"nprod/I");
-    first = kFALSE;
+    first = false;
   }
   //create the file, the Tree and a few branches
   scpu = cpu;

@@ -227,7 +227,7 @@ void MaterialConverter::ConnectG4andRootMaterials()
 #include <TList.h>
 
 //  TGeoMaterial method
-//  void SetUsed(bool flag=kTRUE)
+//  void SetUsed(bool flag=true)
 void
 MaterialConverter::IdentifyUsedMaterials()
 {

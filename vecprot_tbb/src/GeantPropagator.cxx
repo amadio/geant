@@ -80,7 +80,7 @@ GeantPropagator::GeantPropagator()
       fMaxThreads(100), fDebugTrk(-1), fMaxSteps(10000), fNperBasket(10), fMaxPerBasket(100), fMaxPerEvent(0),
       fNaverage(0.), fEmin(0.1), // 100 MeV
       fEmax(10),                 // 10 Gev
-      fBmag(1.), fUsePhysics(kTRUE), fUseDebug(kFALSE), fUseGraphics(kFALSE), fSingleTrack(kFALSE), fFillTree(kFALSE),
+      fBmag(1.), fUsePhysics(true), fUseDebug(false), fUseGraphics(false), fSingleTrack(false), fFillTree(false),
       fWMgr(0), fOutput(0), fKineTF1(0), fOutTree(0), fOutFile(0), fTimer(0), fProcesses(0), fTracks(0), fEvents(0),
       fNimportedEvents(), niter(),
       /*niter2(),
@@ -213,12 +213,12 @@ int GeantPropagator::ImportTracks(int nevents, double average, int startevent, i
   static double pdgProb[9] = {0.};
   int pdgCount[9] = {0};
 
-  static bool init = kTRUE;
+  static bool init = true;
   if (init) {
     pdgProb[0] = pdgRelProb[0];
     for (int i = 1; i < kMaxPart; ++i)
       pdgProb[i] = pdgProb[i - 1] + pdgRelProb[i];
-    init = kFALSE;
+    init = false;
   }
   int event = startevent;
   for (int slot = startslot; slot < startslot + nevents; slot++) {
@@ -269,7 +269,7 @@ int GeantPropagator::ImportTracks(int nevents, double average, int startevent, i
       track->px = p * sin(theta) * cos(phi);
       track->py = p * sin(theta) * sin(phi);
       track->pz = p * cos(theta);
-      track->frombdr = kFALSE;
+      track->frombdr = false;
       int itrack = track->particle;
 
       TBBperThread.fCollection->AddTrack(itrack, basket);
@@ -423,16 +423,16 @@ void GeantPropagator::InjectCollection(GeantTrackCollection *inColl) {
 bool GeantPropagator::LoadGeometry(const char *filename) {
   // Load the detector geometry from file.
   if (gGeoManager)
-    return kTRUE;
+    return true;
   TGeoManager *geom = TGeoManager::Import(filename);
   if (geom) {
     // Create the basket array
     int nvols = gGeoManager->GetListOfVolumes()->GetEntries();
     fWMgr->CreateBaskets(2 * nvols);
-    return kTRUE;
+    return true;
   }
   ::Error("LoadGeometry", "Cannot load geometry from file %s", filename);
-  return kFALSE;
+  return false;
 }
 
 //______________________________________________________________________________
@@ -517,7 +517,7 @@ void *GeantPropagator::GlobalObserver(void *arg) {
 void GeantPropagator::PropagatorGeom(const char *geomfile, bool graphics, bool single) {
   // Propagate fNevents in the volume containing the vertex.
   // Simulate 2 physics processes up to exiting the current volume.
-  static bool called = kFALSE;
+  static bool called = false;
   fUseGraphics = graphics;
   fSingleTrack = single;
   Initialize();
@@ -525,7 +525,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, bool graphics, bool s
     Printf("Sorry, you can call this only once per session.");
     return;
   }
-  called = kTRUE;
+  called = true;
 
   // Initialize geometry and current volume
   if (!LoadGeometry(geomfile))
@@ -601,7 +601,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, bool graphics, bool s
       fCollsWaiting = 0;
       fTracksWaiting = 0;
 
-      fGarbageCollMode = kTRUE;
+      fGarbageCollMode = true;
       CollDispTask &garbTask = *new (task::allocate_root()) CollDispTask(fWMgr->tbb_collector_queue.size());
       task::spawn_root_and_wait(garbTask);
     } else {
@@ -628,17 +628,17 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, bool graphics, bool s
     c1->Divide(1, 3);
 
     pad1 = (TPad *)c1->cd(1);
-    hnb->SetStats(kFALSE);
+    hnb->SetStats(false);
     hnb->GetXaxis()->SetRangeUser(0, niter / 10);
     hnb->Draw();
 
     pad2 = (TPad *)c1->cd(2);
-    htracks->SetStats(kFALSE);
+    htracks->SetStats(false);
     htracks->GetXaxis()->SetRangeUser(0, niter / 10);
     htracks->Draw();
 
     pad3 = (TPad *)c1->cd(3);
-    numOfTracksTransportedInIter->SetStats(kFALSE);
+    numOfTracksTransportedInIter->SetStats(false);
     numOfTracksTransportedInIter->GetXaxis()->SetRangeUser(0, niter / 10);
     numOfTracksTransportedInIter->Draw();
 

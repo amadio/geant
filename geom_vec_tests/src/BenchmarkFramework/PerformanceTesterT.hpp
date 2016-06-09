@@ -335,7 +335,7 @@ void ShapeBenchmarker<T>::timeSafety(double & Tacc, unsigned int vecsize)
   if(vecsize==1)
     {
       timer.Start();
-      safety=testshape->T::Safety( &points_s[3*startindex], kTRUE );
+      safety=testshape->T::Safety( &points_s[3*startindex], true );
       timer.Stop();
     }
   else
@@ -343,7 +343,7 @@ void ShapeBenchmarker<T>::timeSafety(double & Tacc, unsigned int vecsize)
       timer.Start();
       for(unsigned int index=startindex; index < startindex+vecsize; ++index)
 	{
-	  safety=testshape->T::Safety( &points_s[3*index], kTRUE );
+	  safety=testshape->T::Safety( &points_s[3*index], true );
 	}
       timer.Stop();
     }

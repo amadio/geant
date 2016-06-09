@@ -95,7 +95,7 @@ TGeoVolume *VP_SimpleECal(int nphi = 4, int nz = 3, double density = 8.28)
    return world;
 }
 
-void runGPU0(Int_t nthreads=4, Bool_t graphics=kFALSE,
+void runGPU0(Int_t nthreads=4, Bool_t graphics=false,
 //         const char *geomfile="gexam1.root")
          const char *geomfile="http://root.cern.ch/files/cms.root")
 {
@@ -132,7 +132,7 @@ void runGPU0(Int_t nthreads=4, Bool_t graphics=kFALSE,
    prop->fApplication = new MyApplication();
 
 //   gROOT->ProcessLine(".x factory.C+");   
-//   prop->fUseDebug = kTRUE;
+//   prop->fUseDebug = true;
 //   prop->fDebugTrk = 1;
    //prop->PropagatorGeom(geomfile, nthreads, graphics);
  

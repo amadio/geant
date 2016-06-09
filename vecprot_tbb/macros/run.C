@@ -1,4 +1,4 @@
-void run(Int_t nthreads=16, Bool_t graphics=kTRUE, const char *geomfile="../../geometry/cms.root",
+void run(Int_t nthreads=16, Bool_t graphics=true, const char *geomfile="../../geometry/cms.root",
          Int_t evtot=500,
          Int_t evbuf=100,
          Double_t trav=400.,

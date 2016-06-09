@@ -19,7 +19,7 @@ using vecgeom::GeoManager;
 
 //______________________________________________________________________________
 CMSApplication::CMSApplication()
-  : GeantVApplication(), fInitialized(kFALSE), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
+  : GeantVApplication(), fInitialized(false), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
     fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
@@ -68,7 +68,7 @@ CMSApplication::CMSApplication()
 bool CMSApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
-    return kTRUE;
+    return true;
   // Loop unique volume id's
   GeantScheduler *sch = WorkloadManager::Instance()->GetScheduler();
   int nvolumes = sch->GetNvolumes();
@@ -114,8 +114,8 @@ bool CMSApplication::Initialize() {
   }
   
   Printf("=== CMSApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
-  fInitialized = kTRUE;  
-  return kTRUE;
+  fInitialized = true;  
+  return true;
 }
 
 //______________________________________________________________________________

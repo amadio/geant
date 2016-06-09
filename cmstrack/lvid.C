@@ -23,7 +23,7 @@ void lvid(Int_t event=0, Int_t nmax=1000) {
    hlvid->Draw();
    TPad *pad2 =(TPad*)c1->cd(2);
    pad2->SetLogy();
-   hlvidtop->SetStats(kFALSE);
+   hlvidtop->SetStats(false);
    hlvidtop->Draw();
    Double_t percent = hlvidtop->Integral()/hlvid->Integral();
    printf("percent = %g\n",percent);

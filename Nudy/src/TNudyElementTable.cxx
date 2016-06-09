@@ -75,7 +75,7 @@ void TNudyElementTable::Draw(const char */*option*/) {
   fRNTable->SetBorderMode(0);
   fRNTable->SetFillColor(TColor::GetColor(60, 90, 140));
   fRNTable->Range(0, 0, 1000, 1000);
-  // fRNTable->SetEditable(kTRUE);
+  // fRNTable->SetEditable(true);
   for (int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++) {
     TNudyElementRN *newEle;
     TGeoElementRN *newRN = (TGeoElementRN *)(fTable->GetElementsRN()->At(i));
@@ -89,7 +89,7 @@ void TNudyElementTable::Draw(const char */*option*/) {
   for (int j = 0; j < 9; j++) {
     ((TButton *)fControls.At(j))->Draw();
   }
-  // fRNTable->SetEditable(kFALSE);
+  // fRNTable->SetEditable(false);
 }
 TNudyElementTable::~TNudyElementTable() {
   if (fRNTable) {

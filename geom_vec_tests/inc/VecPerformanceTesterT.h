@@ -160,7 +160,7 @@ void ShapeBenchmarker_v<T>::timeSafety_v(double & Tacc, unsigned int vecsize)
      
   // we should call the SOA version here
   // so we pass a reference to Struct of Point
-  this->testshape->T::Safety_v( points_s_SOA, kTRUE, results_v_s, vecsize );
+  this->testshape->T::Safety_v( points_s_SOA, true, results_v_s, vecsize );
   this->timer.Stop();
   Tacc+=this->timer.getDeltaSecs();
 }
@@ -222,7 +222,7 @@ void ShapeBenchmarker_v<T>::heatup()
   this->testshape->T::DistFromInside_v( points_dI_SOA, dirs_dI_SOA, 3, this->steps, 0, results_v_dI, this->MAXSIZE );
   this->testshape->T::DistFromOutside_v( points_dO_SOA, dirs_dO_SOA, 3, this->steps, 0, results_v_dO, this->MAXSIZE );
   this->testshape->T::Contains_v( points_C_SOA, results_v_C, this->MAXSIZE );
-  this->testshape->T::Safety_v( points_s_SOA, kTRUE, results_v_s, this->MAXSIZE );
+  this->testshape->T::Safety_v( points_s_SOA, true, results_v_s, this->MAXSIZE );
 }
 
 

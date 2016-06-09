@@ -27,7 +27,7 @@ ClassNames = [ "TGeoBBox",
 #virtual bool        Contains(double *point) const;
 #virtual double      DistFromInside(double *point, double *dir, int iact=1, double step=TGeoShape::Big(), double *safe=0);
 #virtual double      DistFromOutside(double *point, double *dir, int iact=1, double step=TGeoShape::Big(), double *safe=0);
-#virtual double      Safety(double *point, bool in=kTRUE);
+#virtual double      Safety(double *point, bool in=true);
 
 def EmitCommonStuff( classn ):
     None

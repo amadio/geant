@@ -5,16 +5,16 @@ void test1()
 {
    const UInt_t size = 100000;
    TBits b(size);
-   Bool_t success = kTRUE;
+   Bool_t success = true;
    UInt_t i, j;
    printf("Testing TBits::LastSetBit() ...\n");
    for (i=0; i<size; i++) {
       b.SetBitNumber(i);
       if ((b.LastSetBit() != i) || (b.LastSetBit(i+1) != i)) {
          printf("Error for bit %d: lastset=%d lastset(i+1)=%d\n", i, b.LastSetBit(), b.LastSetBit(i+1));
-         success = kFALSE;
+         success = false;
       }   
-      b.SetBitNumber(i, kFALSE);
+      b.SetBitNumber(i, false);
    }
    if (success) printf("Test 1: Set/Find SUCCESS\n");
    else         printf("Test 1: Set/Find FAILED\n");
@@ -46,7 +46,7 @@ void test1()
       b.SetBitNumber(i, false);
       if ((b.LastNullBit() != i) || (b.LastNullBit(i+1) != i)) {
          printf("Error for bit %d: lastnull=%d lastnull(i+1)=%d\n", i, b.LastNullBit(),b.LastNullBit(i+1));
-         success = kFALSE;
+         success = false;
       }   
       b.SetBitNumber(i);
    }

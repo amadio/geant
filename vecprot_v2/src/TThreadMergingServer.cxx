@@ -34,7 +34,7 @@ const int kReplaceWait = 2;
 static Bool_t R__NeedInitialMerge(TDirectory *dir) {
 
   if (dir == 0)
-    return kFALSE;
+    return false;
 
   TIter nextkey(dir->GetListOfKeys());
   TKey *key;
@@ -46,15 +46,15 @@ static Bool_t R__NeedInitialMerge(TDirectory *dir) {
         subdir = (TDirectory *)key->ReadObj();
       }
       if (R__NeedInitialMerge(subdir)) {
-        return kTRUE;
+        return true;
       }
     } else {
       if (0 != cl->GetResetAfterMerge()) {
-        return kTRUE;
+        return true;
       }
     }
   }
-  return kFALSE;
+  return false;
 }
 
 static void R__DeleteObject(TDirectory *dir, Bool_t withReset) {
@@ -72,7 +72,7 @@ static void R__DeleteObject(TDirectory *dir, Bool_t withReset) {
       }
       R__DeleteObject(subdir, withReset);
     } else {
-      Bool_t todelete = kFALSE;
+      Bool_t todelete = false;
       if (withReset) {
         todelete = (0 != cl->GetResetAfterMerge());
       } else {
@@ -150,7 +150,7 @@ Bool_t ThreadFileMerger::InitialMerge(TFile *input) {
 
   Bool_t result = fMerger.PartialMerge(TFileMerger::kIncremental | TFileMerger::kResetable);
 
-  R__DeleteObject(input, kTRUE);
+  R__DeleteObject(input, true);
   return result;
 }
 
@@ -159,7 +159,7 @@ Bool_t ThreadFileMerger::Merge() {
 
   R__DeleteObject(
       fMerger.GetOutputFile(),
-      kFALSE); // Remove object that can *not* be incrementally merge and will *not* be reset by the client code.
+      false); // Remove object that can *not* be incrementally merge and will *not* be reset by the client code.
   for (unsigned int f = 0; f < fClients.size(); ++f) {
     fMerger.AddFile(fClients[f].fFile);
   }
@@ -169,12 +169,12 @@ Bool_t ThreadFileMerger::Merge() {
   // be re-merged.  Keep only the object that always need to be re-merged (Histograms).
   for (unsigned int f = 0; f < fClients.size(); ++f) {
     if (fClients[f].fFile) {
-      R__DeleteObject(fClients[f].fFile, kTRUE);
+      R__DeleteObject(fClients[f].fFile, true);
     } else {
       // We back up the file (probably due to memory constraint)
       TFile *file = TFile::Open(fClients[f].fLocalName, "UPDATE");
       R__DeleteObject(file,
-                      kTRUE); // Remove object that can be incrementally merge and will be reset by the client code.
+                      true); // Remove object that can be incrementally merge and will be reset by the client code.
       file->Write();
       delete file;
     }
@@ -196,7 +196,7 @@ Bool_t ThreadFileMerger::NeedMerge(Float_t clientThreshold) {
   // Return true, if enough client have reported
 
   if (fClients.size() == 0) {
-    return kFALSE;
+    return false;
   }
 
   // Calculate average and rms of the time between the last 2 contacts.
@@ -218,7 +218,7 @@ Bool_t ThreadFileMerger::NeedMerge(Float_t clientThreshold) {
     //            }
     //            fprintf(stderr,"merge:%f avg:%f target:%f\n",(now.AsDouble() - fLastMerge.AsDouble()),avg,target);
     //         }
-    return kTRUE;
+    return true;
   }
   Float_t cut = clientThreshold * fClients.size();
   return fClientsContact.CountBits() > cut || fNClientsContact > 2 * cut;

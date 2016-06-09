@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
   propagator->fFillTree = false;
    // Activate debugging using -DBUG_HUNT=ON in your cmake build
   if (debug) {
-    propagator->fUseDebug = kTRUE;
+    propagator->fUseDebug = true;
     propagator->fDebugTrk = 1;
   }
 // Activate standard scoring   

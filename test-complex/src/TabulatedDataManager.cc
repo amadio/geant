@@ -231,7 +231,7 @@ TabulatedDataManager::TabulatedDataManager(TGeoManager *geom, const char *xsecfi
       w[iel] = wd;
     }
     // Construct the TMXsec object that corresponds to the current material
-    TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetTitle(), z, a, w, nelem, mat->GetDensity(), kTRUE, fDecay);
+    TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetTitle(), z, a, w, nelem, mat->GetDensity(), true, fDecay);
     fMatXsec[fNmaterials++] = mxs;
     // Connect to TGeoMaterial
     mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));

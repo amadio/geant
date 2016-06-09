@@ -120,7 +120,7 @@ bool TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, 
   mat1->LocalToMaster(o1, master);
   mat2->MasterToLocal(master, local);
   if (TGeoBBox_v::Contains(local, box2->GetDX(), box2->GetDY(), box2->GetDZ(), o2))
-    return kTRUE;
+    return true;
   double distsq = (local[0] - o2[0]) * (local[0] - o2[0]) + (local[1] - o2[1]) * (local[1] - o2[1]) +
                     (local[2] - o2[2]) * (local[2] - o2[2]);
   // Compute distance between box centers and compare with max value
@@ -128,7 +128,7 @@ bool TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, 
                     (box1->GetDY() + box2->GetDY()) * (box1->GetDY() + box2->GetDY()) +
                     (box1->GetDZ() + box2->GetDZ()) * (box1->GetDZ() + box2->GetDZ());
   if (distsq > rmaxsq + TGeoShape::Tolerance())
-    return kFALSE;
+    return false;
   // We are still not sure: shoot a ray from the center of "1" towards the
   // center of 2.
   double dir[3];
@@ -145,8 +145,8 @@ bool TGeoBBox_v::AreOverlapping(const TGeoBBox_v *box1, const TGeoMatrix *mat1, 
   // Distance to enter from o2
   double dist2 = TGeoBBox_v::DistFromOutside(local, ldir2, box2->GetDX(), box2->GetDY(), box2->GetDZ(), o2);
   if (dist1 > dist2)
-    return kTRUE;
-  return kFALSE;
+    return true;
+  return false;
 }
 
 //_____________________________________________________________________________
@@ -175,19 +175,19 @@ bool TGeoBBox_v::CouldBeCrossed(double *point, double *dir) const {
   double dz = fOrigin[2] - point[2];
   double do2 = dx * dx + dy * dy + dz * dz;
   if (do2 <= (mind * mind))
-    return kTRUE;
+    return true;
   double rmax2 = fDX * fDX + fDY * fDY + fDZ * fDZ;
   if (do2 <= rmax2)
-    return kTRUE;
+    return true;
   // inside bounding sphere
   double doct = dx * dir[0] + dy * dir[1] + dz * dir[2];
   // leaving ray
   if (doct <= 0)
-    return kFALSE;
+    return false;
   double dirnorm = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
   if ((doct * doct) >= (do2 - rmax2) * dirnorm)
-    return kTRUE;
-  return kFALSE;
+    return true;
+  return false;
 }
 
 //_____________________________________________________________________________
@@ -201,12 +201,12 @@ int TGeoBBox_v::DistancetoPrimitive(int px, int py) {
 bool TGeoBBox_v::Contains(double *point) const {
   // Test if point is inside this shape.
   if (fabs(point[2] - fOrigin[2]) > fDZ)
-    return kFALSE;
+    return false;
   if (fabs(point[0] - fOrigin[0]) > fDX)
-    return kFALSE;
+    return false;
   if (fabs(point[1] - fOrigin[1]) > fDY)
-    return kFALSE;
-  return kTRUE;
+    return false;
+  return true;
 }
 
 #define vector(elcount, type) __attribute__((vector_size((elcount) * sizeof(type)))) type
@@ -227,12 +227,12 @@ void TGeoBBox_v::Contains_v(const double *point, bool *isin, const int np) const
 bool TGeoBBox_v::Contains(const double *point, double dx, double dy, double dz, const double *origin) {
   // Test if point is inside this shape.
   if (fabs(point[2] - origin[2]) > dz)
-    return kFALSE;
+    return false;
   if (fabs(point[0] - origin[0]) > dx)
-    return kFALSE;
+    return false;
   if (fabs(point[1] - origin[1]) > dy)
-    return kFALSE;
-  return kTRUE;
+    return false;
+  return true;
 }
 
 //_____________________________________________________________________________
@@ -312,7 +312,7 @@ double TGeoBBox_v::DistFromInside(const double *point, const double *dir, double
 double TGeoBBox_v::DistFromOutside(double *point, double *dir, int iact, double step, double *safe) const {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
-  bool in = kTRUE;
+  bool in = true;
   double saf[3];
   double par[3];
   double newpt[3];
@@ -327,7 +327,7 @@ double TGeoBBox_v::DistFromOutside(double *point, double *dir, int iact, double 
     if (saf[i] >= step)
       return TGeoShape::Big();
     if (in && saf[i] > 0)
-      in = kFALSE;
+      in = false;
   }
   if (iact < 3 && safe) {
     // compute safe distance
@@ -389,7 +389,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
                                      const double *origin, double stepmax) {
   // Compute distance from outside point to surface of the box.
   // Boundary safe algorithm.
-  bool in = kTRUE;
+  bool in = true;
   double saf[3];
   double par[3];
   double newpt[3];
@@ -404,7 +404,7 @@ double TGeoBBox_v::DistFromOutside(const double *point, const double *dir, doubl
     if (saf[i] >= stepmax)
       return TGeoShape::Big();
     if (in && saf[i] > 0)
-      in = kFALSE;
+      in = false;
   }
   // In case point is inside return ZERO
   if (in)
@@ -442,7 +442,7 @@ bool TGeoBBox_v::GetPointsOnFacet(int index, int npoints, double *array) const {
   //    0 - all facets togeather
   //    1 to 6 - facet index from bottom to top Z
   if (index < 0 || index > 6)
-    return kFALSE;
+    return false;
   double surf[6];
   double area = 0.;
   if (index == 0) {
@@ -497,7 +497,7 @@ bool TGeoBBox_v::GetPointsOnFacet(int index, int npoints, double *array) const {
       break;
     }
   }
-  return kTRUE;
+  return true;
 }
 
 //_____________________________________________________________________________
@@ -507,9 +507,9 @@ bool TGeoBBox_v::GetPointsOnSegments(int npoints, double *array) const {
   // true if operation is implemented.
   if (npoints < GetNmeshVertices()) {
     Error("GetPointsOnSegments", "You should require at least %d points", GetNmeshVertices());
-    return kFALSE;
+    return false;
   }
-  TBuffer3D &buff = (TBuffer3D &)GetBuffer3D(TBuffer3D::kRawSizes | TBuffer3D::kRaw, kTRUE);
+  TBuffer3D &buff = (TBuffer3D &)GetBuffer3D(TBuffer3D::kRawSizes | TBuffer3D::kRaw, true);
   int npnts = buff.NbPnts();
   int nsegs = buff.NbSegs();
   // Copy buffered points  in the array
@@ -537,7 +537,7 @@ bool TGeoBBox_v::GetPointsOnSegments(int npoints, double *array) const {
       ipoints--;
     }
   }
-  return kTRUE;
+  return true;
 }
 
 //_____________________________________________________________________________

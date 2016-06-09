@@ -675,7 +675,7 @@ int main(int argc, char **argv) {
 
       // Write out particles
       // not very useful indeed, so it is disabled
-      bool outpart = kFALSE;
+      bool outpart = false;
       if (outpart) {
         FILE *fout = fopen("file.txt", "w");
 
@@ -1588,23 +1588,23 @@ void DefineParticles() {
 
   // optical phothon
   if (!pdgDB->GetParticle(kspe + 50))
-    pdgDB->AddParticle("Cherenkov", "Cherenkov", 0, kFALSE, 0, 0, "Special", kspe + 50);
+    pdgDB->AddParticle("Cherenkov", "Cherenkov", 0, false, 0, 0, "Special", kspe + 50);
   partDict.Add(new TObjString("opticalphoton"), new TObjString("Cherenkov"));
 
   // feedback phothon
   if (!pdgDB->GetParticle(kspe + 51))
-    pdgDB->AddParticle("FeedbackPhoton", "FeedbackPhoton", 0, kFALSE, 0, 0, "Special", kspe + 51);
+    pdgDB->AddParticle("FeedbackPhoton", "FeedbackPhoton", 0, false, 0, 0, "Special", kspe + 51);
 
   // charged rootino
   if (!pdgDB->GetParticle(kspe + 52))
-    pdgDB->AddParticle("ChargedRootino", "ChargedRootino", 0, kFALSE, 0, -1, "Special", kspe + 52);
+    pdgDB->AddParticle("ChargedRootino", "ChargedRootino", 0, false, 0, -1, "Special", kspe + 52);
   partDict.Add(new TObjString("chargedgeantino"), new TObjString("ChargedRootino"));
 
   // generic ion
   // This particle should not appear in tracking (as it is commented
   // in class G4GenericIon), but as it does, we map it anyway
   if (!pdgDB->GetParticle(kspe + 60))
-    pdgDB->AddParticle("GenericIon", "GenericIon", 0.938272, kTRUE, 0, 1, "Special", kspe + 60);
+    pdgDB->AddParticle("GenericIon", "GenericIon", 0.938272, true, 0, 1, "Special", kspe + 60);
   partDict.Add(new TObjString("GenericIon"), new TObjString("GenericIon"));
 
   // Light ions
@@ -1620,24 +1620,24 @@ void DefineParticles() {
 
   particle = particleTable->FindParticle("deuteron");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("Deuteron", "Deuteron", 2 * kGeV + 8.071e-3, kTRUE, 0, 3, "Ion", particle->GetPDGEncoding());
+    pdgDB->AddParticle("Deuteron", "Deuteron", 2 * kGeV + 8.071e-3, true, 0, 3, "Ion", particle->GetPDGEncoding());
   }
 
   particle = particleTable->FindParticle("triton");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("Triton", "Triton", 3 * kGeV + 14.931e-3, kFALSE, kHshGeV / (12.33 * kYearsToSec), 3, "Ion",
+    pdgDB->AddParticle("Triton", "Triton", 3 * kGeV + 14.931e-3, false, kHshGeV / (12.33 * kYearsToSec), 3, "Ion",
                        particle->GetPDGEncoding());
   }
 
   particle = particleTable->FindParticle("alpha");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("Alpha", "Alpha", 4 * kGeV + 2.424e-3, kTRUE, kHshGeV / (12.33 * kYearsToSec), 6, "Ion",
+    pdgDB->AddParticle("Alpha", "Alpha", 4 * kGeV + 2.424e-3, true, kHshGeV / (12.33 * kYearsToSec), 6, "Ion",
                        particle->GetPDGEncoding());
   }
 
   particle = particleTable->FindParticle("He3");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("HE3", "HE3", 3 * kGeV + 14.931e-3, kFALSE, 0, 6, "Ion", particle->GetPDGEncoding());
+    pdgDB->AddParticle("HE3", "HE3", 3 * kGeV + 14.931e-3, false, 0, 6, "Ion", particle->GetPDGEncoding());
   }
 
   // Light anti-ions
@@ -1645,22 +1645,22 @@ void DefineParticles() {
 
   particle = particleTable->FindParticle("anti_deuteron");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("AntiDeuteron", "AntiDeuteron", 1.875613, kTRUE, 0, -3, "Ion", particle->GetPDGEncoding());
+    pdgDB->AddParticle("AntiDeuteron", "AntiDeuteron", 1.875613, true, 0, -3, "Ion", particle->GetPDGEncoding());
   }
 
   particle = particleTable->FindParticle("anti_triton");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("AntiTriton", "AntiTriton", 2.808921, kTRUE, 0, -3, "Ion", particle->GetPDGEncoding());
+    pdgDB->AddParticle("AntiTriton", "AntiTriton", 2.808921, true, 0, -3, "Ion", particle->GetPDGEncoding());
   }
 
   particle = particleTable->FindParticle("anti_alpha");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("AntiAlpha", "AntiAlpha", 3.727379, kTRUE, 0, -6, "Ion", particle->GetPDGEncoding());
+    pdgDB->AddParticle("AntiAlpha", "AntiAlpha", 3.727379, true, 0, -6, "Ion", particle->GetPDGEncoding());
   }
 
   particle = particleTable->FindParticle("anti_He3");
   if (particle && !pdgDB->GetParticle(particle->GetPDGEncoding())) {
-    pdgDB->AddParticle("AntiHE3", "AntiHE3", 2.808391, kTRUE, 0, -6, "Ion", particle->GetPDGEncoding());
+    pdgDB->AddParticle("AntiHE3", "AntiHE3", 2.808391, true, 0, -6, "Ion", particle->GetPDGEncoding());
   }
   partDict.Add(new TObjString("geantino"), new TObjString("Rootino"));
 }

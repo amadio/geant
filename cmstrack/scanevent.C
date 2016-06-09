@@ -9,7 +9,7 @@
 #include <TRandom.h>
 #include <TMath.h>
 
-void scanevent(Int_t event=0, Bool_t verbose=kFALSE, double zlim=1e10)
+void scanevent(Int_t event=0, Bool_t verbose=false, double zlim=1e10)
 {
 
    double fX;            // x position

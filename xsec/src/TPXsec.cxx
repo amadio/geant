@@ -100,7 +100,7 @@ bool TPXsec::Prune() {
   delete[] fdEdx;
   fdEdx = 0;
   fNCbins = 0;
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________
@@ -172,7 +172,7 @@ bool TPXsec::Resample() {
     fdEdx = ldEdx;
   }
   delete[] oGrid;
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________
@@ -186,7 +186,7 @@ bool TPXsec::SetPart(int pdg, int nxsec) {
   fEmax = TPartIndex::I()->Emax();
   fEGrid = TPartIndex::I()->EGrid();
   fEilDelta = TPartIndex::I()->EilDelta();
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________
@@ -217,7 +217,7 @@ bool TPXsec::SetPartXS(const float xsec[], const int dict[]) {
       for (int j = 0; j < fNXsec; ++j)
         fXSecs[i * fNXsec + j] /= fTotXs[i];
   }
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________
@@ -226,7 +226,7 @@ bool TPXsec::SetPartIon(const float dedx[]) {
   fNCbins = fNEbins;
   fdEdx = new float[fNCbins];
   memcpy(fdEdx, dedx, fNCbins * sizeof(float));
-  return kTRUE;
+  return true;
 }
 
 //___________________________________________________________________
@@ -249,7 +249,7 @@ bool TPXsec::SetPartMS(const float angle[], const float ansig[], const float len
   fMSlensig = new float[fNCbins];
   memcpy(fMSlensig, lensig, fNCbins * sizeof(float));
 
-  return kTRUE;
+  return true;
 }
 
 //_________________________________________________________________________
@@ -285,7 +285,7 @@ float TPXsec::DEdx(double en) const {
 bool TPXsec::MS(double en, float &ang, float &asig, float &len, float &lsig) const {
   if (!fNCbins) {
     ang = asig = len = lsig = 0;
-    return kFALSE;
+    return false;
   }
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
   en = max<double>(en, fEGrid[0]);
@@ -305,7 +305,7 @@ bool TPXsec::MS(double en, float &ang, float &asig, float &len, float &lsig) con
   asig = xrat * fMSansig[ibin] + (1 - xrat) * fMSansig[ibin + 1];
   len = xrat * fMSlength[ibin] + (1 - xrat) * fMSlength[ibin + 1];
   lsig = xrat * fMSlensig[ibin] + (1 - xrat) * fMSlensig[ibin + 1];
-  return kTRUE;
+  return true;
 }
 
 //_________________________________________________________________________
@@ -405,7 +405,7 @@ bool TPXsec::XS_v(int npart, int rindex, const double en[], double lam[]) const 
     }
     lam[ip] = xsec * xtot;
   }
-  return kTRUE;
+  return true;
 }
 
 //_________________________________________________________________________

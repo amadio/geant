@@ -1,5 +1,5 @@
 void DrawPopulation(TObjArray *vect, TCanvas *can, Double_t tmin=0.,
-                    Double_t tmax=0., Bool_t logx=kFALSE);
+                    Double_t tmax=0., Bool_t logx=false);
 
 void RadioNuclides()
 {
@@ -108,7 +108,7 @@ void RadioNuclides()
    TCanvas *c2 = new TCanvas("c2","Mixture decay", 1000,800);
    c2->SetGrid();
    mix->FillMaterialEvolution(vect);
-   DrawPopulation(vect, c2, 0.01, 1000., kTRUE);
+   DrawPopulation(vect, c2, 0.01, 1000., true);
    tex = new TLatex(0.019,0.861,"C_{Ca^{53}_{20}}");
    tex->SetTextSize(0.0388601);
    tex->SetTextColor(1);

@@ -24,7 +24,7 @@ void testGUFieldPropagator(double * px, double * py, double * pz,
                            int np )
 {
     GUFieldPropagator stepper(1,1);
-    stepper.SetField(0,0,10., kFALSE);
+    stepper.SetField(0,0,10., false);
     for(int i=0;i<np;++i)
     {
         double const *p;

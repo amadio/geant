@@ -33,10 +33,10 @@
 
 // GUI to draw the geometry shapes
 // Author: M.Gheata  06/16/03
-Bool_t comments = kTRUE;
-Bool_t raytracing = kFALSE;
-Bool_t grotate = kFALSE;
-Bool_t axis = kTRUE;
+Bool_t comments = true;
+Bool_t raytracing = false;
+Bool_t grotate = false;
+Bool_t axis = true;
 void autorotate();
 //______________________________________________________________________________
 
@@ -392,7 +392,7 @@ void autorotate()
 {
    grotate = !grotate;
    if (!grotate) {
-      gROOT->SetInterrupt(kTRUE);
+      gROOT->SetInterrupt(true);
       return;
    }
    if (!gPad) return;
@@ -407,19 +407,19 @@ void autorotate()
    Double_t dphi = 1.;
    Int_t irep;
    TProcessEventTimer *timer = new TProcessEventTimer(5);
-   gROOT->SetInterrupt(kFALSE);
+   gROOT->SetInterrupt(false);
    while (grotate) {
       if (timer->ProcessEvents()) break;
       if (gROOT->IsInterrupted()) break;
       longit += dphi;
       if (longit>360) longit -= 360.;
       if (!gPad) {
-         grotate = kFALSE;
+         grotate = false;
          return;
       }
       view = gPad->GetView();
       if (!view) {
-         grotate = kFALSE;
+         grotate = false;
          return;
       }
       view->SetView(longit,view->GetLatitude(),view->GetPsi(),irep);
@@ -503,7 +503,7 @@ void box(Int_t iaxis=0, Int_t ndiv=8, Double_t start=0, Double_t step=0)
    pt->Draw();
 //   SavePicture("box",c,vol,iaxis,step);
    c->cd(1);
-   gROOT->SetInterrupt(kTRUE);
+   gROOT->SetInterrupt(true);
 }
 
 //______________________________________________________________________________
@@ -1862,7 +1862,7 @@ void ideal()
 
 // Aligning physical nodes
 //==========================
-//      node->Align(TGeoMatrix *newmat, TGeoShape *newshape, Bool_t check=kFALSE);
+//      node->Align(TGeoMatrix *newmat, TGeoShape *newshape, Bool_t check=false);
 //   newmat = new matrix to replace final node LOCAL matrix
 //   newshape = new shape to replace final node shape
 //   check = optional check if the new aligned node is overlapping
@@ -1905,7 +1905,7 @@ void ideal()
    pt->AddText("-- You must start from a valid CLOSED geometry");
    pt->AddText("    TGeoPhysicalNode *node = gGeoManager->MakePhysicalNode(const char *path)");
    pt->AddText("    + creates a physical node represented by path, e.g. TOP_1/A_2/B_3");
-   pt->AddText("    node->Align(TGeoMatrix *newmat, TGeoShape *newshape, Bool_t check=kFALSE)");
+   pt->AddText("    node->Align(TGeoMatrix *newmat, TGeoShape *newshape, Bool_t check=false)");
    pt->AddText("    + newmat = new matrix to replace final node LOCAL matrix");
    pt->AddText("    + newshape = new shape to replace final node shape");
    pt->AddText("    + check = optional check if the new aligned node is overlapping");

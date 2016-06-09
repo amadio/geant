@@ -156,10 +156,10 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(), fDevMaxTracks, maxdepth);
 
   fInputBasket = new GeantBasket(fDevMaxTracks, fGeantTaskData->fBmgr);
-  fInputBasket->SetMixed(kTRUE);
+  fInputBasket->SetMixed(true);
   // fInputBasket->SetThreshold(fThreshold.load());
   fOutputBasket = new GeantBasket(fDevMaxTracks, fGeantTaskData->fBmgr);
-  fOutputBasket->SetMixed(kTRUE);
+  fOutputBasket->SetMixed(true);
   // fOutputBasket->SetThreshold(fThreshold.load());
 
   return true;

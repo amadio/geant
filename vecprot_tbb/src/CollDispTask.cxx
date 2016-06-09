@@ -156,20 +156,20 @@ PropTask &CollDispTask::StartPropTasks(int amountPriority, int amountNormal) {
   if (amountPriority) {
 
     for (int i = 0; i < amountPriority - 1; i++)
-      tlist_priority.push_back(*new (cont.allocate_child()) PropTask(kTRUE));
+      tlist_priority.push_back(*new (cont.allocate_child()) PropTask(true));
     for (int i = 0; i < amountNormal; i++)
-      tlist_normal.push_back(*new (cont.allocate_child()) PropTask(kFALSE));
+      tlist_normal.push_back(*new (cont.allocate_child()) PropTask(false));
 
-    flag = kTRUE;
+    flag = true;
 
   } else if (amountNormal) {
 
     for (int i = 0; i < amountPriority; i++)
-      tlist_priority.push_back(*new (cont.allocate_child()) PropTask(kTRUE));
+      tlist_priority.push_back(*new (cont.allocate_child()) PropTask(true));
     for (int i = 0; i < amountNormal - 1; i++)
-      tlist_normal.push_back(*new (cont.allocate_child()) PropTask(kFALSE));
+      tlist_normal.push_back(*new (cont.allocate_child()) PropTask(false));
 
-    flag = kFALSE;
+    flag = false;
   }
 
   PropTask &lastTask = *new (cont.allocate_child()) PropTask(flag);

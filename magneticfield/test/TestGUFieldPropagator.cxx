@@ -38,7 +38,7 @@ void testGUFieldPropagator(double * px, double * py, double * pz, double * dx, d
     GUPropagator &stepper= (*stepper);
 
     // TGeoHelix stepper(1,1);
-    // stepper.SetField(0,0,10., kFALSE);
+    // stepper.SetField(0,0,10., false);
     for(int i=0;i<np;++i)
     {
         double const *p;

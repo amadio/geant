@@ -31,7 +31,7 @@ void performance() {
       vec[6*i+4]=TMath::Sin(theta)*TMath::Sin(phi);
       vec[6*i+5]=TMath::Cos(theta);
    }
-   timer.Start(kTRUE);
+   timer.Start(true);
    for (Int_t i=0; i<ntr; i++) shape->DistFromOutside(&vec[6*i], &vec[6*i+3],3);
    timer.Stop();
    timer.Print();

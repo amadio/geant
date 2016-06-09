@@ -56,7 +56,7 @@ public:
                                    double dx, double dy, double dz, const double *origin, double stepmax=TGeoShape::Big());
    virtual bool        GetPointsOnFacet(int index, int npoints, double *array) const;
    virtual bool        GetPointsOnSegments(int npoints, double *array) const;
-   virtual double      Safety(double *point, bool in=kTRUE) const;
+   virtual double      Safety(double *point, bool in=true) const;
 
    ClassDef(TGeoBBox_v, 1)         // box primitive
 };

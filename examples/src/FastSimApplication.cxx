@@ -21,7 +21,7 @@ using std::max;
 
 //______________________________________________________________________________
 FastSimApplication::FastSimApplication()
-  : GeantVApplication(), fInitialized(kFALSE), fMHist(), 
+  : GeantVApplication(), fInitialized(false), fMHist(), 
     fRatioMomentumInTracker( nullptr ), fRatioEnergyInEcal( nullptr ),
     fRatioEnergyInHcal( nullptr )
 {
@@ -39,7 +39,7 @@ FastSimApplication::FastSimApplication()
 
 //______________________________________________________________________________
 bool FastSimApplication::Initialize() {
-  if ( fInitialized ) return kTRUE;
+  if ( fInitialized ) return true;
   // Fill the vectors isTrackerVolume, isEcalVolume, isHcalVolume
   std::cout << "APPLICATION : FastSimApplication::Initialize" << std::endl;  // Debug
   #ifdef USE_VECGEOM_NAVIGATOR
@@ -83,8 +83,8 @@ bool FastSimApplication::Initialize() {
               << " ; flagTracker=" << flagTracker << " ; flagEcal=" << flagEcal 
               << " ; flagHcal=" << flagHcal << std::endl;
   }
-  fInitialized = kTRUE;  
-  return kTRUE;
+  fInitialized = true;  
+  return true;
 }
 
 //______________________________________________________________________________

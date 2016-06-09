@@ -72,7 +72,7 @@ int GeantMainScheduler::AddTrack(int itrack, int ibasket, bool* pushedPriority)
    WorkloadManager *wm = WorkloadManager::Instance();
 
    int ninjected = 0;
-   bool priority = kFALSE;
+   bool priority = false;
    GeantBasket **baskets = fBaskets;
    GeantTrack *track = gPropagator->fTracks[itrack];
 
@@ -85,7 +85,7 @@ int GeantMainScheduler::AddTrack(int itrack, int ibasket, bool* pushedPriority)
       int event = gPropagator->fTracks[itrack]->event;
       if (event >= gPropagator->fPriorityRange[0] && event <= gPropagator->fPriorityRange[1]) {
          baskets = fPriorityBaskets;
-         priority = kTRUE;
+         priority = true;
       }
    }
 

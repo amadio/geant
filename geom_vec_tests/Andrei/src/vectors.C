@@ -212,7 +212,7 @@ void vectors(int nloop)
      vpoints[i].LoadPoints(16, &points[j]);
    }  
    printf("Testing %d points...\n", 1024*nloop);
-   timer.Start(kTRUE);
+   timer.Start(true);
    for (i=0; i<nloop; i++) {
      for (j=0; j<1024; j++) inside[j] = ContainsEarlyReturn(points[j]);
    }  
@@ -224,7 +224,7 @@ void vectors(int nloop)
    memset(inside, 0, 1024*sizeof(bool));
    printf("  checksum=%d\n", checksum);
 
-   timer.Start(kTRUE);
+   timer.Start(true);
    for (i=0; i<nloop; i++) {
      for (j=0; j<64; j++) ContainsNonVect(16, points+16*j, inside+16*j);
    }  
@@ -236,7 +236,7 @@ void vectors(int nloop)
    memset(inside, 0, 1024*sizeof(bool));
    printf("  checksum=%d\n", checksum);
 
-   timer.Start(kTRUE);
+   timer.Start(true);
    for (i=0; i<nloop; i++) {
      for (j=0; j<64; j++) ContainsVect(16, points+16*j, inside+16*j);
    }  
@@ -248,7 +248,7 @@ void vectors(int nloop)
    memset(inside, 0, 1024*sizeof(bool));
    printf("  checksum=%d\n", checksum);
   
-   timer.Start(kTRUE);
+   timer.Start(true);
    for (i=0; i<nloop; i++) {
      for (j=0; j<64; j++) ContainsVect(vpoints[j], inside+16*j);
    }  
@@ -261,7 +261,7 @@ void vectors(int nloop)
    printf("  checksum=%d\n", checksum);
 
 /*
-   timer.Start(kTRUE);
+   timer.Start(true);
    for (i=0; i<nloop*64; i++) ContainsIntrinsics(16, points, inside);
    printf("ContainsIntrinsics:\n");
    timer.Stop();

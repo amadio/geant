@@ -144,9 +144,9 @@ void ElossProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, dou
   double mata = mat->GetA();
   double matz = mat->GetZ();
   double matr = mat->GetDensity();
-  bool invalid_material = kFALSE;
+  bool invalid_material = false;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
-    invalid_material = kTRUE;
+    invalid_material = true;
   int itrack;
   GeantTrack *track;
   for (int i = 0; i < ntracks; i++) {
@@ -173,9 +173,9 @@ void ElossProcess::PostStep(TGeoVolume *vol, int ntracks, int *trackin, int &nou
   double mata = mat->GetA();
   double matz = mat->GetZ();
   double matr = mat->GetDensity();
-  bool invalid_material = kFALSE;
+  bool invalid_material = false;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
-    invalid_material = kTRUE;
+    invalid_material = true;
 
   for (int i = 0; i < ntracks; i++) {
     itrack = trackin[i];
@@ -282,9 +282,9 @@ void InteractionProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *tracki
   double mata = mat->GetA();
   double matz = mat->GetZ();
   double matr = mat->GetDensity();
-  bool invalid_material = kFALSE;
+  bool invalid_material = false;
   if (matz < 1 || mata < 1 || matr < 1.E-8)
-    invalid_material = kTRUE;
+    invalid_material = true;
   if (!invalid_material) {
     double density = max<double>(matr, 1e-5);
     double sigma = 28.5 * pow(mata, 0.75);

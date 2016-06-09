@@ -242,7 +242,7 @@ task* PropTask::execute ()
 
    // Check whether we need to start dispatching
    int nCollsToPop = 0;
-   int flagToStartDisp = kFALSE;
+   int flagToStartDisp = false;
 
 propagator->fPropTaskLock.Lock ();			// CRITICAL SECTION begin
 
@@ -255,14 +255,14 @@ propagator->fPropTaskLock.Lock ();			// CRITICAL SECTION begin
 		   nCollsToPop = propagator->fCollsWaiting;
 		   propagator->fCollsWaiting = 0;
 		   propagator->fTracksWaiting = 0;
-		   flagToStartDisp = kTRUE;
+		   flagToStartDisp = true;
 	   }
    } else {
 	      if ((propagator->fTracksWaiting >= propagator->fDispThrPriority) || (propagator->fGarbageCollMode)) {
 		      nCollsToPop = propagator->fCollsWaiting;
 		      propagator->fCollsWaiting = 0;
 		      propagator->fTracksWaiting = 0;
-		      flagToStartDisp = kTRUE;
+		      flagToStartDisp = true;
 	      }
    }
 

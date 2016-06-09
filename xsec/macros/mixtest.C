@@ -19,10 +19,10 @@ void mixtest() {
    float w[2]={2,1};
    int a[2];
    TMXsec *tm = nullptr;
-   tm = new TMXsec("h2o","water",z,a,w,2,1,kFALSE,dt);
+   tm = new TMXsec("h2o","water",z,a,w,2,1,false,dt);
    tm->Print();
    w[0] = 2*TPartIndex::I()->WEle(1)/(2*TPartIndex::I()->WEle(1)+TPartIndex::I()->WEle(16));
    w[1] = TPartIndex::I()->WEle(16)/(2*TPartIndex::I()->WEle(1)+TPartIndex::I()->WEle(16));
-   tm = new TMXsec("h2o","water",z,a,w,2,1,kTRUE,dt);
+   tm = new TMXsec("h2o","water",z,a,w,2,1,true,dt);
    tm->Print();
 }

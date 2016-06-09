@@ -55,9 +55,9 @@ bool GeantBasket::Contains(int event) const {
 
   for (int itr = 0; itr < fNtracks; itr++) {
     if (gPropagator->fTracks[fIndex[itr]]->event == event)
-      return kTRUE;
+      return true;
   }
-  return kFALSE;
+  return false;
 }
 
 //______________________________________________________________________________

@@ -94,7 +94,7 @@ int rsampling(const char *el="O",const char *part="proton",int nrep=100000)
    double mx = 0.6;
    double my = 0.88;
    double md = 0.03;
-   bool fhist = kFALSE;
+   bool fhist = false;
    int ndelta = 0;
    for(int i=0; i<nproc; ++i) {
       if(!histos[i]->GetEntries()) continue;
@@ -102,14 +102,14 @@ int rsampling(const char *el="O",const char *part="proton",int nrep=100000)
       histos[i]->SetLineColor(colo);
       histos[i]->SetMarkerStyle(20+(ndelta+1)/5);
       histos[i]->SetMarkerColor(colo);
-      histos[i]->SetStats(kFALSE);
+      histos[i]->SetStats(false);
       if(!fhist) {
 	 histos[i]->SetMinimum(ymin);
 	 histos[i]->SetMaximum(1.5*ymax);
 	 histos[i]->Draw("lpe");
 	 histos[i]->GetXaxis()->SetTitle("Log10(E [GeV])");
 	 histos[i]->GetYaxis()->SetTitle("#sigma [barn]");
-	 fhist = kTRUE;
+	 fhist = true;
       }
       else histos[i]->Draw("samelpe");
       m[i] = new TMarker(mx,my-md*ndelta,20+(ndelta+1)/5);

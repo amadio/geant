@@ -39,7 +39,7 @@ struct ThreadFileMerger : public TObject
    TTimeStamp    fLastMerge;
    TFileMerger   fMerger;
 
-   ThreadFileMerger(const char *filename, Bool_t writeCache = kFALSE) : fFilename(filename), fNClientsContact(0), fMerger(kFALSE,kTRUE)
+   ThreadFileMerger(const char *filename, Bool_t writeCache = false) : fFilename(filename), fNClientsContact(0), fMerger(false,true)
    {
       // Default constructor.
 

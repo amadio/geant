@@ -65,7 +65,7 @@ void TNudyLibrary::ReadTape(TNudyEndfTape *tape) {
       // If particles relative masses are equal material is read into corresponding sub-library and that it is not a
       // anti particle
       // Anti-particles have negative pdgcodes
-      if (TMath::AreEqualAbs(awi, particle->Mass() / neutron, 0.0000001) == kTRUE && particle->PdgCode() > 0) {
+      if (TMath::AreEqualAbs(awi, particle->Mass() / neutron, 0.0000001) == true && particle->PdgCode() > 0) {
         // Create a new TParticle of the right type
         // Create of new Sublibrary of TParticle part
         TNudySubLibrary *subLib = NULL;
@@ -109,4 +109,4 @@ TNudySubLibrary *TNudyLibrary::AddSubLib(TParticlePDG *particle) {
 }
 
 //_______________________________________________________________________________
-bool TNudyLibrary::IsHandled(TParticlePDG */*particle*/, TGeoElementRN */*targets*/, unsigned long /*temp*/) { return (kTRUE); }
+bool TNudyLibrary::IsHandled(TParticlePDG */*particle*/, TGeoElementRN */*targets*/, unsigned long /*temp*/) { return (true); }

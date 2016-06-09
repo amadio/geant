@@ -1,7 +1,7 @@
 //Conbinatorial Solid Geometry example
 //Author: Andrei Gheata
 
-Bool_t raytracing = kTRUE;
+Bool_t raytracing = true;
 
 //______________________________________________________________________________
 void csgdemo ()
@@ -22,7 +22,7 @@ void csgdemo ()
 //______________________________________________________________________________
 void MakePicture()
 {
-   gGeoManager->GetGeomPainter()->SetRaytracing(kFALSE);
+   gGeoManager->GetGeomPainter()->SetRaytracing(false);
    gPad->Modified();
    gPad->Update();
 }

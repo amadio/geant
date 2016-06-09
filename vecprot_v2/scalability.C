@@ -83,7 +83,7 @@ void scalability(Int_t option=0, const char *fname="scalability.txt")
    hist->SetMarkerColor(irun);
    hist->SetMarkerStyle(24+irun);
    hist->SetMarkerSize(1.0);
-   hist->SetStats(kFALSE);
+   hist->SetStats(false);
    hist->GetXaxis()->SetTitle("# threads");
    double error;
    for (int i=0; i<nres; ++i) {

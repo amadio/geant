@@ -38,7 +38,7 @@ void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
   static int icalls = 0;
   double pdir[3];
   int itr;
-  bool isOnBoundary = kFALSE;
+  bool isOnBoundary = false;
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
 
   if (!nav) {
@@ -46,7 +46,7 @@ void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
     std::cerr << "[ComputeTransportLength] Added navigator" << std::endl;
   }
 
-  nav->SetOutside(kFALSE);
+  nav->SetOutside(false);
 
   for (itr = 0; itr < ntracks; itr++) {
     GeantTrack *track = gPropagator->fTracks[trackin[itr]];
@@ -66,7 +66,7 @@ void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
       if (gPropagator->fUseDebug && (gPropagator->fDebugTrk == trackin[itr] || gPropagator->fDebugTrk < 0)) {
         Printf("track %d in %s - calling FNBAS", trackin[itr], nav->GetCurrentNode()->GetName());
       }
-      nav->FindNextBoundaryAndStep(pstep, kFALSE);
+      nav->FindNextBoundaryAndStep(pstep, false);
       track->safety = 0.;
       track->snext = nav->GetStep();
       if (gPropagator->fUseDebug && (gPropagator->fDebugTrk == trackin[itr] || gPropagator->fDebugTrk < 0)) {
@@ -86,7 +86,7 @@ void GeantVolumeBasket::ComputeTransportLength(int ntracks, int *trackin) {
           gPropagator->StopTrack(track);
           continue;
         }
-        nav->FindNextBoundaryAndStep(1.E30, kFALSE);
+        nav->FindNextBoundaryAndStep(1.E30, false);
         track->nextpath->InitFromNavigator(nav);
         track->snext += nav->GetStep();
       }
@@ -154,7 +154,7 @@ void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, in
     // If proposed step less than safety, just propagate to physics process
     if (step < safety) {
       track->izero = 0;
-      track->PropagateInField(step, kFALSE, trackin[itr]);
+      track->PropagateInField(step, false, trackin[itr]);
       gPropagator->fNsafeSteps++; // increment-only, thread safe
       // track transported to physics process
       if (gPropagator->fUseDebug && (gPropagator->fDebugTrk == trackin[itr] || gPropagator->fDebugTrk < 0))
@@ -169,7 +169,7 @@ void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, in
       //   backup track position and momentum
       if (track->izero > 10)
         snext = 1.E-3;
-      basket = track->PropagateInField(snext + 10 * gTolerance, kTRUE, trackin[itr]);
+      basket = track->PropagateInField(snext + 10 * gTolerance, true, trackin[itr]);
       if (snext < 1.E-6)
         track->izero++;
       else
@@ -208,11 +208,11 @@ void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, in
       track->izero++;
       if (track->izero > 10)
         safety = 0.5 * snext;
-      basket = track->PropagateInField(safety, kTRUE, trackin[itr]);
+      basket = track->PropagateInField(safety, true, trackin[itr]);
     } else {
       if (track->izero > 10) {
         // Propagate with snext
-        basket = track->PropagateInField(snext + 10 * gTolerance, kTRUE, trackin[itr]);
+        basket = track->PropagateInField(snext + 10 * gTolerance, true, trackin[itr]);
         track->izero = 0;
         gPropagator->fNsnextSteps++;
         if (!basket) {
@@ -238,7 +238,7 @@ void GeantVolumeBasket::PropagateTracks(int ntracks, int *trackin, int &nout, in
       if (safety < 1.E-3)
         track->izero++;
       // Propagate with safety without checking crossing
-      basket = track->PropagateInField(safety, kFALSE, trackin[itr]);
+      basket = track->PropagateInField(safety, false, trackin[itr]);
     }
     gPropagator->fNsafeSteps++;
     if (!basket) {

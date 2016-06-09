@@ -238,7 +238,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
   // Main re-basketizing method. Add all tracks and inject baskets if above threshold.
   // Returns the number of injected baskets.
   int ninjected = 0;
-  bool priority = kFALSE;
+  bool priority = false;
   GeantPropagator *propagator = GeantPropagator::Instance();
   int ntracks = tracks.GetNtracks();
   ntot += ntracks;
@@ -256,7 +256,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
       nnew++;
     tracks.fStatusV[itr] = kAlive;
 
-    priority = kFALSE;
+    priority = false;
 
 #ifdef USE_VECGEOM_NAVIGATOR
     vol = const_cast<Volume_t *>(tracks.fPathV[itr]->Top()->GetLogicalVolume());

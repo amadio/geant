@@ -55,7 +55,7 @@ GeantThreadData::GeantThreadData(int maxperbasket, int maxprocesses) :
    fPartTodo  = new TArrayI(fMaxPerBasket);
    fPartCross = new TArrayI(fMaxPerBasket);
    fFieldPropagator = new TGeoHelix(1,1);
-   fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
+   fFieldPropagator->SetField(0,0,propagator->fBmag, false);
    fCollection = new GeantTrackCollection(100);
 
    fRndm->SetSeed();
@@ -86,7 +86,7 @@ GeantThreadData::GeantThreadData(const GeantThreadData& oth) :
    fPartTodo  = new TArrayI(fMaxPerBasket);
    fPartCross = new TArrayI(fMaxPerBasket);
    fFieldPropagator = new TGeoHelix(1,1);
-   fFieldPropagator->SetField(0,0,propagator->fBmag, kFALSE);
+   fFieldPropagator->SetField(0,0,propagator->fBmag, false);
    fCollection = new GeantTrackCollection(100);
 
    fRndm->SetSeed();

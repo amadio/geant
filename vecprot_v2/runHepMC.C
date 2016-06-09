@@ -1,5 +1,5 @@
 void runHepMC(Int_t nthreads=4,
-         Bool_t graphics=kFALSE,
+         Bool_t graphics=false,
 //         const char *geomfile="simple_ecal.root")
 //         const char *geomfile="http://root.cern.ch/files/cms.root")
 	 const char *geomfile="ExN03.root",
@@ -39,7 +39,7 @@ void runHepMC(Int_t nthreads=4,
    prop->fApplication = new MyApplication();
 
 //   gROOT->ProcessLine(".x factory.C+");   
-//   prop->fUseDebug = kTRUE;
+//   prop->fUseDebug = true;
 //   prop->fDebugTrk = 1;
    prop->fUseMonitoring = graphics;
    prop->PropagatorGeom(geomfile, nthreads, graphics);

@@ -1,5 +1,5 @@
 //______________________________________________________________________________
-void parallel_world(Bool_t usepw=kTRUE, Bool_t useovlp=kTRUE)
+void parallel_world(Bool_t usepw=true, Bool_t useovlp=true)
 {
 // Misaligning geometry generate in many cases overlaps, due to the idealization
 // of the design and the fact that in real life movements of the geometry volumes
@@ -57,7 +57,7 @@ void parallel_world(Bool_t usepw=kTRUE, Bool_t useovlp=kTRUE)
    if (usepw) {
       if (useovlp) pw->AddOverlap(ladder);
       pw->CloseGeometry();
-      gGeoManager->SetUseParallelWorldNav(kTRUE);
+      gGeoManager->SetUseParallelWorldNav(true);
    }
    TString cname;
    cname = usepw ? "cpw" : "cnopw";

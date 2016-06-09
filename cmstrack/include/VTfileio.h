@@ -63,12 +63,12 @@ public:
             double cpustep);
   bool IsNewEvent() {
     if (fNewEvent) {
-      fNewEvent = kFALSE;
-      return kTRUE;
+      fNewEvent = false;
+      return true;
     } else
-      return kFALSE;
+      return false;
   }
-  void SetNewEvent() { fNewEvent = kTRUE; }
+  void SetNewEvent() { fNewEvent = true; }
   void SetPrimaries(int prim) { fNprimaries = prim; }
   int GetPrimaries() const { return fNprimaries; }
 

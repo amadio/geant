@@ -11,7 +11,7 @@
 
 //______________________________________________________________________________
 StdApplication::StdApplication()
-  : GeantVApplication(), fInitialized(kFALSE), fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0), fMHist(),
+  : GeantVApplication(), fInitialized(false), fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0), fMHist(),
     fScore(kScore) {
   // Ctor.
   double *array = 0;
@@ -50,10 +50,10 @@ double *StdApplication::MakeUniformLogArray(int nbins, double lmin, double lmax)
 bool StdApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
-    return kTRUE;
+    return true;
   Printf("=== StdApplication::Initialize done");
-  fInitialized = kTRUE;
-  return kTRUE;
+  fInitialized = true;
+  return true;
 }
 
 //______________________________________________________________________________

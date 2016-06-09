@@ -50,13 +50,13 @@ void rootgeom()
    TGeoVolume *top = geom->MakeBox("TOP", Vacuum, 270., 270., 120.);
    geom->SetTopVolume(top);
    TGeoVolume *replica = geom->MakeBox("REPLICA", Vacuum,120,120,120);
-   replica->SetVisibility(kFALSE);
+   replica->SetVisibility(false);
    TGeoVolume *rootbox = geom->MakeBox("ROOT", Vacuum, 110., 50., 5.);
-   rootbox->SetVisibility(kFALSE);
+   rootbox->SetVisibility(false);
 
    //--- make letter 'R'
    TGeoVolume *R = geom->MakeBox("R", Vacuum, 25., 25., 5.);
-   R->SetVisibility(kFALSE);
+   R->SetVisibility(false);
    TGeoVolume *bar1 = geom->MakeBox("bar1", Al, 5., 25, 5.);
    bar1->SetLineColor(kRed);
    R->AddNode(bar1, 1, tr1);
@@ -82,7 +82,7 @@ void rootgeom()
 
    //--- make letter 'O'
    TGeoVolume *O = geom->MakeBox("O", Vacuum, 25., 25., 5.);
-   O->SetVisibility(kFALSE);
+   O->SetVisibility(false);
    TGeoVolume *bar4 = geom->MakeBox("bar4", Al, 5., 7.5, 5.);
    bar4->SetLineColor(kYellow);
    O->AddNode(bar4, 1, tr5);
@@ -94,7 +94,7 @@ void rootgeom()
 
    //--- make letter 'T'
    TGeoVolume *T = geom->MakeBox("T", Vacuum, 25., 25., 5.);
-   T->SetVisibility(kFALSE);
+   T->SetVisibility(false);
    TGeoVolume *bar5 = geom->MakeBox("bar5", Al, 5., 20., 5.);
    bar5->SetLineColor(kBlue);
    T->AddNode(bar5, 1, tr8);

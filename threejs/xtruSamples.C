@@ -6,17 +6,17 @@ void xtruSamples()
 
 // One normally specifies the x-y points in counter-clockwise order;
 // flip this to TRUE to test that it doesn't matter.
-  Bool_t makecw      = kFALSE;
+  Bool_t makecw      = false;
 
 // One normally specifies the z points in increasing z order;
 // flip this to TRUE to test that it doesn't matter.
-  Bool_t reversez    = kFALSE;
+  Bool_t reversez    = false;
 
 // One shouldn't be creating malformed polygons
 // but to test what happens when one does here's a flag.
 // The effect will be only apparent in solid rendering mode
-  Bool_t domalformed = kFALSE;
-//  domalformed = kTRUE;
+  Bool_t domalformed = false;
+//  domalformed = true;
 
   c1 = new TCanvas("c1","sample TXTRU Shapes",200,10,640,640);
 
