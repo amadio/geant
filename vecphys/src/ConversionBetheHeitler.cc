@@ -295,11 +295,9 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   const G4double d = 27.;
 
   if (9. / (9. + d) > UniformRandom<double>(fRandomState, fThreadId))
-    u = -G4Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) /
-        aa1;
+    u = -G4Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa1;
   else
-    u = -G4Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) /
-        aa2;
+    u = -G4Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa2;
 
   G4double TetEl = u * electron_mass_c2 / ElectTotEnergy;
 

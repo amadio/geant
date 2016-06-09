@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "base/VecPhys.h"
 #include "GUG4TypeDef.h"
+#include "base/VecPhys.h"
 
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"

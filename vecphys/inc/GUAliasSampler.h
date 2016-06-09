@@ -16,7 +16,6 @@
 //
 //  Based on first alias sampler by Soon Y. Jun - July 2014
 
-
 #include "GUAliasTableManager.h"
 
 namespace vecphys {
