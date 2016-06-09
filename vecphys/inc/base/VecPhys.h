@@ -5,7 +5,6 @@
 
 #include <cstdio>
 
-#include <Random.h>
 #include <VecCore/VecCore>
 
 namespace vecphys {
@@ -59,6 +58,8 @@ typedef curandState Random_t;
 #else
 typedef int Random_t;
 #endif
+
+#include <Random.h>
 
 #define VECPHYS_NAMESPACE ::vecphys
 
