@@ -18,6 +18,8 @@ template <typename T>
 VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(Random_t *states, int threadId)
 {
 #ifndef VECCORE_NVCC_DEVICE
+  (void)states;
+  (void)threadId;
   unsigned short xsubi[3];
   return erand48(xsubi);
 #else
