@@ -263,10 +263,10 @@ inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v PhotoElectronSauterGa
   Mask_v<Double_v> done(false);
 
   do {
-    Double_v q = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+    Double_v q = UniformRandom<Double_v>(fRandomState, fThreadId);
     MaskedAssign(z, !done, 2 * A * (2 * q + Ap2 * math::Sqrt(q)) / (Ap2 * Ap2 - 4 * q));
     MaskedAssign(g, !done, (2 - z) * (1.0 / (A + z) + B));
-    done |= g < UniformRandom<Double_v>(&fRandomState, &fThreadId) * grej;
+    done |= g < UniformRandom<Double_v>(fRandomState, fThreadId) * grej;
   } while (!MaskFull(done));
 
   return z;

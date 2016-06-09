@@ -238,11 +238,11 @@ inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v IonisationMoller::Sam
   Double_v y = 1.0 - xmax;
   Double_v grej = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
   do {
-    q = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+    q = UniformRandom<Double_v>(fRandomState, fThreadId);
     MaskedAssign(x, !done, xmin * xmax / (xmin * (1.0 - q) + xmax * q));
     MaskedAssign(y, !done, 1.0 - x);
     MaskedAssign(z, !done, 1.0 - gg * x + x * x * (1.0 - gg + (1.0 - gg * y) / (y * y)));
-    done |= z < grej * UniformRandom<Double_v>(&fRandomState, &fThreadId);
+    done |= z < grej * UniformRandom<Double_v>(fRandomState, fThreadId);
   } while (!MaskFull(done));
 
   return x;

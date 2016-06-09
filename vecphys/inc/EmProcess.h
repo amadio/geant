@@ -263,7 +263,7 @@ VECCORE_CUDA_HOST_DEVICE void EmProcess<Process>::GetNextStep(Index_v<typename B
   typedef Mask_v<typename Backend::Double_v> Bool_t;
 
   Bool_t reset = nint < 0.0;
-  nint = Blend(reset, -math::Log(UniformRandom<Double_v>(&fRandomState, &fThreadId)), nint - step / lambda);
+  nint = Blend(reset, -math::Log(UniformRandom<Double_v>(fRandomState, fThreadId)), nint - step / lambda);
 
   lambda = static_cast<Process *>(this)->template GetLambda<Backend>(matId, ebin, efrac);
   step = lambda * nint;
@@ -279,7 +279,7 @@ VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>:
   using Double_v = typename Backend::Double_v;
   typedef Mask_v<typename Backend::Double_v> Bool_t;
 
-  Double_v u1 = fNumberOfProcess * UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  Double_v u1 = fNumberOfProcess * UniformRandom<Double_v>(fRandomState, fThreadId);
   Index_v<typename Backend::Double_v> ip = (Index_v<Double_v>)math::Floor(u1);
 
   Bool_t last = (ip == (Index_v<Double_v>)(fNumberOfProcess - 1));
@@ -293,7 +293,7 @@ VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>:
   // get the relative weight of the cross section for the ip-th model
   // if (random < weigth*fNumberOfProcess ) use ip else use alias[ip]
 
-  Double_v u2 = fNumberOfProcess * UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  Double_v u2 = fNumberOfProcess * UniformRandom<Double_v>(fRandomState, fThreadId);
   Mask_v<Index_v<Double_v>> mask = u2 <= probNA;
   ip = Blend(mask, ip, alias);
 

@@ -502,7 +502,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::RotateAngle(
 {
   using Double_v = typename Backend::Double_v;
 
-  Double_v phi = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  Double_v phi = UniformRandom<Double_v>(fRandomState, fThreadId);
   Double_v pt = xhat * xhat + yhat * yhat;
 
   Double_v cosphi, sinphi;

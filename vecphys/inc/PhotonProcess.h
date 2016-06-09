@@ -165,7 +165,7 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProces
   int ip = fNumberOfProcess - 1;
 
   double weight = 0.0;
-  double rp = UniformRandom<Double_v>(&fRandomState, &fThreadId);
+  double rp = UniformRandom<Double_v>(fRandomState, fThreadId);
 
   for (int i = 0; i < fNumberOfProcess - 1; ++i) {
     weight += fPhotonCrossSectionData[im][ie].fWeight[i];
@@ -191,7 +191,7 @@ inline Index_v<typename backend::VcVector::Double_v> PhotonProcess::G3NextProces
     int ie = (int)(ebin[i]);
 
     double weight = 0.0;
-    double rp = UniformRandom<double>(&fRandomState, &fThreadId);
+    double rp = UniformRandom<double>(fRandomState, fThreadId);
 
     for (int j = 0; j < fNumberOfProcess - 1; ++j) {
       weight += fPhotonCrossSectionData[im][ie].fWeight[j];
