@@ -1,8 +1,8 @@
 #ifndef VECPHYS_RANDOM_H
 #define VECPHYS_RANDOM_H
 
-#include <VecCore/VecCore>
 #include "VecPhys.h"
+#include <VecCore/VecCore>
 
 #if !defined(VECCORE_NVCC)
 #include <random>
