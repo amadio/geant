@@ -2,6 +2,7 @@
 #define VECPHYS_RANDOM_H
 
 #include <VecCore/VecCore>
+#include "VecPhys.h"
 
 #if !defined(VECCORE_NVCC)
 #include <random>
@@ -13,30 +14,17 @@
 
 namespace vecCore {
 
-#ifdef VECCORE_NVCC
-namespace cuda {
-static __shared__ curandState CudaRNGState;
-}
-#endif
-
 template <typename T>
-VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(void * /*States*/, int * /*ThreadId*/)
+VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(Random_t *states, int threadId)
 {
 #ifndef VECCORE_NVCC_DEVICE
   unsigned short xsubi[3];
   return erand48(xsubi);
 #else
-#if 1
-  return curand_uniform(&cuda::CudaRNGState);
-#else
-  // for some reason, this implementation doesn't seem to work
-  // <- this is the source of CUDA random problem after the VecCore migration and should be fixed! (syjun)
-  curandState *state_ptr = (curandState *)States;
-  curandState localState = state_ptr[*ThreadId];
+  curandState localState = states[threadId];
   T rng = curand_uniform(&localState);
-  state_ptr[*ThreadId] = localState;
+  states[threadId] = localState;
   return rng;
-#endif
 #endif
 }
 
@@ -44,13 +32,13 @@ VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(void * /*States*/,
 #include <Vc/Vc>
 
 template <>
-VECCORE_FORCE_INLINE Vc::Vector<float> UniformRandom<Vc::Vector<float>>(void *, int *)
+VECCORE_FORCE_INLINE Vc::Vector<float> UniformRandom<Vc::Vector<float>>(Random_t *, int)
 {
   return Vc::Vector<float>::Random();
 }
 
 template <>
-VECCORE_FORCE_INLINE Vc::Vector<double> UniformRandom<Vc::Vector<double>>(void *, int *)
+VECCORE_FORCE_INLINE Vc::Vector<double> UniformRandom<Vc::Vector<double>>(Random_t *, int)
 {
   return Vc::Vector<double>::Random();
 }
