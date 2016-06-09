@@ -13,13 +13,7 @@
 #ifndef GEANT_TRACK_STAT
 #define GEANT_TRACK_STAT
 
-#ifndef ROOT_TObject
-#include "TObject.h"
-#endif
-
-#ifndef ROOT_TMutex
-#include "TMutex.h"
-#endif
+#include <mutex>
 
 #include "GeantFwd.h"
 
@@ -28,7 +22,7 @@
  * @details Used statistic object for a track array
  *
  */
-class GeantTrackStat : public TObject {
+class GeantTrackStat {
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -37,7 +31,7 @@ public:
   int fNslots;   /** Number of event slots */
   int *fNtracks; /** [fNslots] Number of tracks from an event */
   int *fNsteps;  /**[fNslots] Cumulated number of steps per event */
-  TMutex fMutex; /** Mutex */
+  std::mutex fMutex; /** Mutex */
 
 private:
   /**
@@ -54,7 +48,7 @@ private:
 
 public:
   /** @brief GeantTrackStat constructor */
-  GeantTrackStat() : TObject(), fNslots(0), fNtracks(0), fNsteps(0), fMutex() {}
+  GeantTrackStat() = default;
 
   /**
    * @brief GeantTrackStat constructor
@@ -122,6 +116,5 @@ public:
   /** @brief Reset function */
   void Reset();
 
-  ClassDef(GeantTrackStat, 1) // Track statistics
 };
 #endif

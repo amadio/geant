@@ -14,7 +14,6 @@
 #define GEANTV_PrimaryGenerator_h
 
 #include "base/Global.h"
-#include "TNamed.h"
 
 #include "GeantFwd.h"
 
@@ -34,7 +33,7 @@ struct GeantEventInfo {
 /**
  * @brief Class of primary generators
  */
-class PrimaryGenerator : public TNamed {
+class PrimaryGenerator {
 protected:
   bool fEtaCut;   // flag for specifying a cut in eta
   bool fPhiCut;   // flag for specifying a cut in phi
@@ -48,7 +47,7 @@ protected:
   GeantEventInfo fCurrentEvent; // current event
 public:
   PrimaryGenerator()
-      : TNamed(), fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
+      : fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
         fPMin(0), fPMax(0) {}
   virtual ~PrimaryGenerator() {}
   static double EtaToTheta(double eta) { return (2. * atan(exp(-eta)) * kRadToDeg); }

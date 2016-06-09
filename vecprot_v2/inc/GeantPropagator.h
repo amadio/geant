@@ -13,20 +13,13 @@
 #ifndef GEANT_PROPAGATOR
 #define GEANT_PROPAGATOR
 
-#ifndef ROOT_TObject
-#include "TObject.h"
-#endif
-
 #ifndef GEANT_TRACK
 #include "GeantTrack.h"
 #endif
 
-#ifndef ROOT_TMutex
-#include "TMutex.h"
-#endif
-
 #include <vector>
 #include <atomic>
+#include <mutex>
 
 #include "Geant/Typedefs.h"
 
@@ -44,7 +37,7 @@ class TaskBroker;
 
 #include "GeantFwd.h"
 
-class GeantPropagator : public TObject {
+class GeantPropagator {
 public:
   /**
    * @brief Monitoring type
@@ -112,12 +105,12 @@ public:
   bool fUseStdScoring;         /** Use standard scoring */
   bool fTransportOngoing;      /** Flag for ongoing transport */
   bool fSingleTrack;           /** Use single track transport mode */
-  Bool_t fFillTree;            /** Enable I/O */
+  bool fFillTree;            /** Enable I/O */
   int fTreeSizeWriteThreshold; /** Maximum size of the tree (before automatic writing) **/
-  Bool_t fConcurrentWrite;     /** switch between single and mutlithreaded writing */
+  bool fConcurrentWrite;     /** switch between single and mutlithreaded writing */
   bool fUseMonitoring;         /** Monitoring different features */
   bool fUseAppMonitoring;      /** Monitoring the application */
-  TMutex fTracksLock;          /** Mutex for adding tracks */
+  std::mutex fTracksLock;          /** Mutex for adding tracks */
 
   WorkloadManager *fWMgr;             /** Workload manager */
   GeantVApplication *fApplication;    /** User application */
@@ -173,7 +166,7 @@ public:
    * @brief Function that returns the number of transported tracks (C++11)
    * @return Number of transported tracks
    */
-  Long64_t GetNtransported() const { return fNtransported.load(); }
+  long GetNtransported() const { return fNtransported.load(); }
 
   /**
    * @brief Function that returns a temporary track object per thread
@@ -305,6 +298,5 @@ private:
   /** @brief Assignment operator not implemented */
   GeantPropagator &operator=(const GeantPropagator &);
 
-  ClassDef(GeantPropagator, 1)
 };
 #endif

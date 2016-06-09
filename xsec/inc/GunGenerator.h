@@ -57,7 +57,6 @@ private:
   GunGenerator(const GunGenerator &);            // no imp.
   GunGenerator &operator=(const GunGenerator &); // no imp.
 
-  ClassDef(GunGenerator, 1)
 };
 
 #endif

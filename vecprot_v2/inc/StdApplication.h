@@ -93,6 +93,5 @@ public:
   /** @brief User FinishRun function */
   virtual void FinishRun();
 
-  ClassDef(StdApplication, 1) // Standard scoring application
 };
 #endif

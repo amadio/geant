@@ -1,9 +1,10 @@
 #include "GeantTrackStat.h"
 #include "GeantTrack.h"
+#include "Geant/Error.h"
 
 //______________________________________________________________________________
 GeantTrackStat::GeantTrackStat(int nslots)
-  : TObject(), fNslots(nslots), fNtracks(0), fNsteps(0), fMutex() {
+  : fNslots(nslots), fNtracks(0), fNsteps(0), fMutex() {
   // Ctor
   InitArrays(nslots);
 }
@@ -32,19 +33,19 @@ void GeantTrackStat::AddTrack(const GeantTrack_v &trackv, int itr) {
 //______________________________________________________________________________
 void GeantTrackStat::AddTracks(const GeantTrack_v &trackv) {
   // Remove statistics for tracks
-  fMutex.Lock();
+  fMutex.lock();
   int ntracks = trackv.GetNtracks();
   for (int i = 0; i < ntracks; i++) {
     fNtracks[trackv.fEvslotV[i]]++;
     fNsteps[trackv.fEvslotV[i]] += trackv.fNstepsV[i];
   }
-  fMutex.UnLock();
+  fMutex.unlock();
 }
 
 //______________________________________________________________________________
 void GeantTrackStat::RemoveTracks(const GeantTrack_v &trackv) {
   // Remove statistics for tracks
-  fMutex.Lock();
+  fMutex.lock();
   int ntracks = trackv.GetNtracks();
   for (int i = 0; i < ntracks; i++) {
     // do *NOT* remove new tracks since they were not added yet anywhere
@@ -53,7 +54,7 @@ void GeantTrackStat::RemoveTracks(const GeantTrack_v &trackv) {
     fNtracks[trackv.fEvslotV[i]]--;
     fNsteps[trackv.fEvslotV[i]] -= trackv.fNstepsV[i];
   }
-  fMutex.UnLock();
+  fMutex.unlock();
 }
 
 //______________________________________________________________________________
