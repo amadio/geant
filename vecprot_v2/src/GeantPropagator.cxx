@@ -19,7 +19,6 @@
 #include "GeantPropagator.h"
 
 #include "TTimer.h"
-#include "TError.h"
 #include "TStopwatch.h"
 #include "TCanvas.h"
 #include <fenv.h>
@@ -154,7 +153,7 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
   if (tid < 0)
     tid = WorkloadManager::Instance()->ThreadId();
   if (tid > fNthreads)
-    Fatal("GetTempTrack", "Thread id %d is too large (max %d)", tid, fNthreads);
+    Geant::Fatal("GeantPropagator::GetTempTrack", "Thread id %d is too large (max %d)", tid, fNthreads);
   GeantTrack &track = fThreadData[tid]->fTrack;
   track.Clear();
   return track;
@@ -321,7 +320,7 @@ void GeantPropagator::Initialize() {
   gPropagator = GeantPropagator::Instance();
   fDoneEvents = BitSet::MakeInstance(fNtotal);
   if (!fProcess) {
-    Fatal("Initialize", "The physics process has to be initialized before this");
+    Geant::Fatal("GeantPropagator::Initialize", "The physics process has to be initialized before this");
     return;
   }
   // Initialize the process(es)
@@ -394,7 +393,7 @@ void GeantPropagator::PrepareRkIntegration() {
     // Create clones for other threads
     fpPool->Initialize(fNthreads);
   } else {
-    ::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
+    Geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
   }
 }
 
@@ -468,7 +467,7 @@ bool GeantPropagator::LoadGeometry(const char *filename) {
 #endif
     return kTRUE;
   }
-  ::Error("LoadGeometry", "Cannot load geometry from file %s", filename);
+  Geant::Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
   return kFALSE;
 }
 

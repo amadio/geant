@@ -3,6 +3,7 @@
 #include <TFile.h>
 #include <TMath.h>
 #include <TRandom.h>
+#include "Geant/Error.h"
 
 using std::max;
 
@@ -30,7 +31,7 @@ TPFstate::TPFstate(int pdg, int nfstat, int nreac, const int dict[])
   // consistency
   for (int i = 0; i < fNReac; ++i)
     if (fRdict[fRmap[i]] != i)
-      Fatal("SetPartXS", "Dictionary mismatch for!");
+      Geant::Fatal("TPFstate::SetPartXS", "Dictionary mismatch for!");
 }
 
 //_________________________________________________________________________
@@ -71,8 +72,8 @@ bool TPFstate::SetPart(int pdg, int nfstat, int nreac, const int dict[]) {
   // consistency
   for (int i = 0; i < fNReac; ++i)
     if (fRdict[fRmap[i]] != i)
-      Fatal("SetPart", "Dictionary mismatch for!");
-  return kTRUE;
+      Geant::Fatal("TPFstate::SetPart", "Dictionary mismatch for!");
+  return true;
 }
 
 //_________________________________________________________________________
@@ -95,8 +96,8 @@ bool TPFstate::SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinSta
   // consistency
   for (int i = 0; i < fNReac; ++i)
     if (fRdict[fRmap[i]] != i)
-      Fatal("SetPart", "Dictionary mismatch for!");
-  return kTRUE;
+      Geant::Fatal("TPFstate::SetPart", "Dictionary mismatch for!");
+  return true;
 }
 
 //_________________________________________________________________________

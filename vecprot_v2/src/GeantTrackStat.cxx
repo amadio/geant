@@ -60,7 +60,7 @@ void GeantTrackStat::RemoveTracks(const GeantTrack_v &trackv) {
 GeantTrackStat &GeantTrackStat::operator+=(const GeantTrackStat &other) {
   // Compound addition.
   if (fNslots != other.fNslots) {
-    Error("operator+=", "Different number of slots");
+    Geant::Error("GeantTrackStat::operator+=", "Different number of slots");
     return *this;
   }
   for (int i = 0; i < fNslots; i++) {
@@ -74,7 +74,7 @@ GeantTrackStat &GeantTrackStat::operator+=(const GeantTrackStat &other) {
 GeantTrackStat &GeantTrackStat::operator-=(const GeantTrackStat &other) {
   // Compound addition.
   if (fNslots != other.fNslots) {
-    Error("operator+=", "Different number of slots");
+    Geant::Error("GeantTrackStat::operator+=", "Different number of slots");
     return *this;
   }
   for (int i = 0; i < fNslots; i++) {

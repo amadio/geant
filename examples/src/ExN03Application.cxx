@@ -14,6 +14,8 @@ using vecgeom::GeoManager;
 #include "TROOT.h"
 #include <cassert>
 
+#include "Geant/Error.h"
+
 using std::min;
 using std::max;
 
@@ -39,7 +41,7 @@ bool ExN03Application::Initialize() {
 #else
   if (!GeoManager::Instance().GetWorld()) {
 #endif
-    Error("Initialize", "Geometry not loaded");
+    Geant::Error("ExN03Application::Initialize", "Geometry not loaded");
     return kFALSE;
   }
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -51,7 +53,7 @@ bool ExN03Application::Initialize() {
 #endif
 
   if (!lvGap || !lvAbs) {
-    Error("Initialize", "Logical volumes for gap and absorber not found - do you use the right geometry");
+    Geant::Error("ExN03Application::Initialize", "Logical volumes for gap and absorber not found - do you use the right geometry");
     return kFALSE;
   }
 #ifndef USE_VECGEOM_NAVIGATOR

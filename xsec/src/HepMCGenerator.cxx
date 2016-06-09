@@ -2,6 +2,7 @@
 #include "base/Global.h"
 using vecgeom::kPi;
 #include "Geant/Typedefs.h"
+#include "Geant/Error.h"
 
 #include "GeantTrack.h"
 
@@ -46,7 +47,7 @@ GeantEventInfo HepMCGenerator::NextEvent() {
   HepMC::GenEvent evt(HepMC::Units::GEV, HepMC::Units::MM);
 
   if (!(input_file->read_event(evt)))
-    Fatal("ImportTracks", "No more particles to read!");
+    Geant::Fatal("HepMCGenerator::ImportTracks", "No more particles to read!");
 
   //  std::cout << std::endl
   //            << "Find all stable particles: " << std::endl;
