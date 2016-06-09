@@ -14,12 +14,8 @@ using std::max;
 
 int TPXsec::fVerbose = 0;
 
-#ifdef USE_ROOT
-ClassImp(TPXsec)
-#endif
-
-    //_________________________________________________________________________
-    TPXsec::TPXsec()
+//_________________________________________________________________________
+TPXsec::TPXsec()
     : fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0), fEmin(0), fEmax(0), fEilDelta(0),
       fEGrid(TPartIndex::I()->EGrid()), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fdEdx(0), fTotXs(0),
       fXSecs(0) {

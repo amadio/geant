@@ -17,13 +17,13 @@ using vecgeom::kPi;
 using std::min;
 using std::max;
 
-ClassImp(TVNudyModel)
-
-    //______________________________________________________________________________
-    TVNudyModel::TVNudyModel()
-    : fMAT(0), fTemp(0), fEndf(0), fPdg(0), fMaterial(NULL), fReaction((Reaction_t)0), fProjectile(NULL),
-      fEXSect_length(0), fE_file3(NULL), fXSect_file3(NULL), f4nens(0), f4eins(0), fAPAlias(NULL), f4Tein(0), f4Tel(0),
-      nens(0), nperc(25), maxpop(50), fEPtable(NULL), fPerc(NULL), f5Tein(-1), f5Tel(0), fEPAlias(NULL) {}
+//______________________________________________________________________________
+TVNudyModel::TVNudyModel()
+  : fMAT(0), fTemp(0), fEndf(0), fPdg(0), fMaterial(NULL), fReaction((Reaction_t)0), fProjectile(NULL),
+    fEXSect_length(0), fE_file3(NULL), fXSect_file3(NULL), f4nens(0), f4eins(0), fAPAlias(NULL), f4Tein(0), f4Tel(0),
+    nens(0), nperc(25), maxpop(50), fEPtable(NULL), fPerc(NULL), f5Tein(-1), f5Tel(0), fEPAlias(NULL) 
+{
+}
 
 //_______________________________________________________________________________
 TVNudyModel::TVNudyModel(TGeoElementRN *mat, Reaction_t reac, unsigned long temp, TParticlePDG *projectile,

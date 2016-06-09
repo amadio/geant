@@ -2,12 +2,8 @@
 #include "TFinState.h"
 #include "TPartIndex.h"
 
-#ifdef USE_ROOT
-ClassImp(TPDecay)
-#endif
-
-    //___________________________________________________________________
-    TPDecay::TPDecay()
+//___________________________________________________________________
+TPDecay::TPDecay()
     : fNSamp(0), fNPart(0), fDecay(0), fCTauPerMass(0)
 //    ,fDecayLambdaTable(0)
 {

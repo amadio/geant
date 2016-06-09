@@ -8,10 +8,8 @@ using std::max;
 
 int TPFstate::fVerbose = 0;
 
-ClassImp(TPFstate)
-
-    //_________________________________________________________________________
-    TPFstate::TPFstate()
+//_________________________________________________________________________
+TPFstate::TPFstate()
     : fPDG(0), fNEbins(0), fNReac(0), fNEFstat(0), fNFstat(0), fEmin(0), fEmax(0), fEilDelta(0),
       fEGrid(TPartIndex::I()->EGrid()), fFstat(0), fRestCaptFstat(0) {
   int np = TPartIndex::I()->NProc();

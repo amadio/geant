@@ -39,9 +39,7 @@ using vecgeom::kPi;
 using vecgeom::kTwoPi;
 #include "base/MessageLogger.h"
 
-ClassImp(TTabPhysMgr)
-
-    TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
+TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
 
 //______________________________________________________________________________
 TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsfilename) {

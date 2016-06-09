@@ -17,13 +17,11 @@
 #include <TNudyEndfMat.h>
 #include <TNudyEndfCont.h>
 
-ClassImp(TNudyEndfMat)
-
-    //_______________________________________________________________________________
-    TNudyEndfMat::TNudyEndfMat()
-    : fMAT(0), fZA(0), fAWR(0), fLRP(-1), fLFI(kFALSE), fNLIB(0), fNMOD(0), fELIS(0), fSTA(kTRUE), fLIS(0), fLISO(0),
-      fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL), fNXC(0),
-      fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL) {
+//_______________________________________________________________________________
+TNudyEndfMat::TNudyEndfMat()
+  : fMAT(0), fZA(0), fAWR(0), fLRP(-1), fLFI(kFALSE), fNLIB(0), fNMOD(0), fELIS(0), fSTA(kTRUE), fLIS(0), fLISO(0),
+    fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL), fNXC(0),
+    fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL) {
   //
   // Default constructor
   //

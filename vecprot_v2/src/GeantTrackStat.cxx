@@ -1,11 +1,9 @@
 #include "GeantTrackStat.h"
 #include "GeantTrack.h"
 
-ClassImp(GeantTrackStat)
-
-    //______________________________________________________________________________
-    GeantTrackStat::GeantTrackStat(int nslots)
-    : TObject(), fNslots(nslots), fNtracks(0), fNsteps(0), fMutex() {
+//______________________________________________________________________________
+GeantTrackStat::GeantTrackStat(int nslots)
+  : TObject(), fNslots(nslots), fNtracks(0), fNsteps(0), fMutex() {
   // Ctor
   InitArrays(nslots);
 }

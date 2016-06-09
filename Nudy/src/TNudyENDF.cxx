@@ -32,11 +32,9 @@ const char TNudyENDF::fkElNam[119][4] = {
 
 const char TNudyENDF::fkElIso[4][2] = {"", "m", "n", "o"};
 
-ClassImp(TNudyENDF)
-
-    //_______________________________________________________________________________
-    TNudyENDF::TNudyENDF()
-    : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
+//_______________________________________________________________________________
+TNudyENDF::TNudyENDF()
+  : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
   //
   // Standard constructor
   //

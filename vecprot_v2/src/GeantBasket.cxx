@@ -13,8 +13,6 @@
 #include "TGeoNavigator.h"
 #endif
 
-ClassImp(GeantBasket)
-
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
     : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
@@ -125,13 +123,11 @@ void GeantBasket::SetThreshold(int threshold) {
 // concurrent queue
 //______________________________________________________________________________
 
-ClassImp(GeantBasketMgr)
-
-    //______________________________________________________________________________
-    GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
-    : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
-      fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
-      fDispatchList() {
+//______________________________________________________________________________
+GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
+  : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(kFALSE),
+    fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
+    fDispatchList() {
   // Constructor
   fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
   // The line below to be removed when the automatic activation schema in place

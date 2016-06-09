@@ -1,11 +1,9 @@
 
 #include "TNudyDB.h"
 
-ClassImp(TNudyDB)
-
-    //______________________________________________________________________________
-    //   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
-    TNudyDB::TNudyDB(const char *name, const char *title, const char *file) {
+//______________________________________________________________________________
+//   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
+TNudyDB::TNudyDB(const char *name, const char *title, const char *file) {
   // Constructor for TNudyDB, opens database storage file
 
   // Set Name and title of database

@@ -27,7 +27,6 @@
   #include "TBits.h"
   #include "TError.h"
   #include "TSystem.h"
-  ClassImp( Smearer )
 #endif
 
 

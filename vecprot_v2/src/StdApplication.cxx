@@ -9,12 +9,10 @@
 #include "TROOT.h"
 #include "TFile.h"
 
-ClassImp(StdApplication)
-
-    //______________________________________________________________________________
-    StdApplication::StdApplication()
-    : GeantVApplication(), fInitialized(kFALSE), fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0), fMHist(),
-      fScore(kScore) {
+//______________________________________________________________________________
+StdApplication::StdApplication()
+  : GeantVApplication(), fInitialized(kFALSE), fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0), fMHist(),
+    fScore(kScore) {
   // Ctor.
   double *array = 0;
   TH1::AddDirectory(false);

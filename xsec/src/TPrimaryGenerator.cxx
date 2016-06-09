@@ -3,12 +3,8 @@
 #include "GeantTrack.h"
 #include "Geant/Error.h"
 
-#ifdef USE_ROOT
-ClassImp(TPrimaryGenerator)
-#endif
-
-    //______________________________________________________________________________
-    TPrimaryGenerator::TPrimaryGenerator()
+//______________________________________________________________________________
+TPrimaryGenerator::TPrimaryGenerator()
     : fPDG(11),                        // PDG code of the primary: 11 -> e-
       fPartEkin(0.03),                 // kinetic energy of the primary [GeV] : 30 MeV
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)

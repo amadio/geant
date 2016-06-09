@@ -16,11 +16,9 @@
 #include <TString.h>
 #include <TNudyEndfFile.h>
 
-ClassImp(TNudyEndfFile)
-
-    //_______________________________________________________________________________
-    TNudyEndfFile::TNudyEndfFile()
-    : fMAT(0), fMF(0) {
+//_______________________________________________________________________________
+TNudyEndfFile::TNudyEndfFile()
+  : fMAT(0), fMF(0) {
   //
   // Default constructor
   //

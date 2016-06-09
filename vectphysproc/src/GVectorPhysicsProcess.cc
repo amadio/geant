@@ -15,9 +15,6 @@
 // Vector physics process related
 #include "GVComptonProcess.h"
 
-// we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed
-ClassImp(GVectorPhysicsProcess)
-
 //------------------------------------------------------------------------------
 GVectorPhysicsProcess::GVectorPhysicsProcess()
       : PhysicsProcess(),

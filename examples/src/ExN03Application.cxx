@@ -17,11 +17,9 @@ using vecgeom::GeoManager;
 using std::min;
 using std::max;
 
-ClassImp(ExN03Application)
-
-    //______________________________________________________________________________
-    ExN03Application::ExN03Application()
-    : GeantVApplication(), fInitialized(kFALSE), fIdGap(0), fIdAbs(0), fFactory(0) {
+//______________________________________________________________________________
+ExN03Application::ExN03Application()
+  : GeantVApplication(), fInitialized(kFALSE), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
   fFactory = store->GetFactory<MyHit>(16);

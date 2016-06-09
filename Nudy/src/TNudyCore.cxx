@@ -2,9 +2,7 @@
 #include "TROOT.h"
 #include <stdlib.h>
 
-ClassImp(TNudyCore)
-
-    using std::max;
+using std::max;
 using std::min;
 
 TNudyCore *TNudyCore::fgInstance = 0;

@@ -7,11 +7,9 @@
 
 #include "TThread.h"
 
-ClassImp(GeantBasket)
-
-    //______________________________________________________________________________
-    GeantBasket::GeantBasket()
-    : TObject(), fNtracks(0), fMaxTracks(0), fIndex(0) {
+//______________________________________________________________________________
+GeantBasket::GeantBasket()
+  : TObject(), fNtracks(0), fMaxTracks(0), fIndex(0) {
   // ctor.
 }
 
@@ -86,11 +84,9 @@ void GeantBasket::Resize(int newSize) {
   fMaxTracks = newSize;
 }
 
-ClassImp(GeantTrackCollection)
-
-    //______________________________________________________________________________
-    GeantTrackCollection::GeantTrackCollection()
-    : TObject(), fNtracks(0), fSize(0), fTracks(0), fBaskets(0) {
+//______________________________________________________________________________
+GeantTrackCollection::GeantTrackCollection()
+  : TObject(), fNtracks(0), fSize(0), fTracks(0), fBaskets(0) {
   // Default ctor.
 }
 

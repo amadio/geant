@@ -76,9 +76,7 @@ using namespace vecgeom;
 
 GeantPropagator *gPropagator = 0;
 
-ClassImp(GeantPropagator)
-
-    GeantPropagator *GeantPropagator::fgInstance = 0;
+GeantPropagator *GeantPropagator::fgInstance = 0;
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()

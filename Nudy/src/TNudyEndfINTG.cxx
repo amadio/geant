@@ -1,11 +1,9 @@
 #include <string.h>
 #include <TNudyEndfINTG.h>
 
-ClassImp(TNudyEndfINTG)
-
-    //______________________________________________________________________________
-    TNudyEndfINTG::TNudyEndfINTG()
-    : TNudyEndfCont(), fNrow(18), fNdigit(2) {
+//______________________________________________________________________________
+TNudyEndfINTG::TNudyEndfINTG()
+  : TNudyEndfCont(), fNrow(18), fNdigit(2) {
   for (int i = 0; i < 18; fKIJ[i++] = 0)
     ;
   fII = fJJ = 0;

@@ -1,14 +1,12 @@
 #include "TNudyAliasCont.h"
 
-ClassImp(TNudyAliasCont)
-
-    //_______________________________________________________________________________
-    TNudyAliasCont::TNudyAliasCont()
-    : fLen(0), fChooseBin(NULL), fP(NULL), fX(NULL), fInterX(NULL), fInterP(NULL), fTx(NULL), fTp(NULL), fTa(-1),
-      fInterAlpha(10), fRan(NULL), fRnd(NULL), fAlpha(10)
+//_______________________________________________________________________________
+TNudyAliasCont::TNudyAliasCont()
+  : fLen(0), fChooseBin(NULL), fP(NULL), fX(NULL), fInterX(NULL), fInterP(NULL), fTx(NULL), fTp(NULL), fTa(-1),
+    fInterAlpha(10), fRan(NULL), fRnd(NULL), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
-      ,
-      fMult(NULL), fMultLen(0)
+    ,
+    fMult(NULL), fMultLen(0)
 #endif
 {
 }

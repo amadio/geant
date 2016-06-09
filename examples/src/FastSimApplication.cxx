@@ -19,8 +19,6 @@
 using std::min;
 using std::max;
 
-ClassImp( FastSimApplication )
-
 //______________________________________________________________________________
 FastSimApplication::FastSimApplication()
   : GeantVApplication(), fInitialized(kFALSE), fMHist(), 

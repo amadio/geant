@@ -4,4 +4,3 @@
 // - generic interaction as discrete process, producing secondaries
 
 #include "PhysicsProcess.h"
-ClassImp(PhysicsProcess)

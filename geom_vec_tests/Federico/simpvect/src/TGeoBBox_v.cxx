@@ -84,10 +84,8 @@
 #include "TMath.h"
 #include "TRandom.h"
 
-ClassImp(TGeoBBox_v)
-
-    //_____________________________________________________________________________
-    TGeoBBox_v::TGeoBBox_v() {
+//_____________________________________________________________________________
+TGeoBBox_v::TGeoBBox_v() {
   // Default constructor
   SetShapeBit(TGeoShape::kGeoBox);
   fDX = fDY = fDZ = 0;

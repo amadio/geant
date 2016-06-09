@@ -5,9 +5,7 @@
 
 using std::max;
 
-ClassImp(GeantMainPropagator)
-
-    GeantMainPropagator *GeantMainPropagator::fgInstance = 0;
+GeantMainPropagator *GeantMainPropagator::fgInstance = 0;
 GeantPropagator *GeantMainPropagator::fgPropInstance = 0;
 
 GeantMainPropagator::GeantMainPropagator() : TObject() {}

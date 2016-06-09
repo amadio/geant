@@ -2,10 +2,9 @@
 #include "TFile.h"
 #include "TH1D.h"
 #include "TCanvas.h"
-ClassImp(TNudySubLibrary)
 
-    //______________________________________________________________________________
-    TNudySubLibrary::TNudySubLibrary() {
+//______________________________________________________________________________
+TNudySubLibrary::TNudySubLibrary() {
   // Default Constructor to create a new SubLibrary
   printf("Making SubLibrary %s\n", GetName());
   // BTree to store data for fast processing

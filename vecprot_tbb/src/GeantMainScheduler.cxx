@@ -5,8 +5,6 @@
 #include "GeantBasket.h"
 #include "GeantTrack.h"
 
-ClassImp(GeantMainScheduler)
-
 GeantMainScheduler* GeantMainScheduler::fgInstance = 0;
 
 //______________________________________________________________________________

@@ -1,9 +1,7 @@
 #include "TVNudyModel.h"
 
-ClassImp(TVNudyModel)
-
-    //______________________________________________________________________________
-    void TVNudyModel::ReadFile3(TNudyEndfFile *file) {
+//______________________________________________________________________________
+void TVNudyModel::ReadFile3(TNudyEndfFile *file) {
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
   while ((sec = (TNudyEndfSec *)secIter.Next())) {

@@ -3,13 +3,11 @@
 #include "TNudyElementTable.h"
 #include "TNudyElementRN.h"
 
-ClassImp(TNudyElementTable)
+// TNudyElementTable *gTNudyElementTable;
 
-    // TNudyElementTable *gTNudyElementTable;
-
-    TNudyElementTable::TNudyElementTable()
-    : fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1), fRNTable(NULL),
-      fGeom(new TGeoManager("", "")) {
+TNudyElementTable::TNudyElementTable()
+  : fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1), fRNTable(NULL),
+    fGeom(new TGeoManager("", "")) {
   fTable->BuildDefaultElements();
   fTable->ImportElementsRN();
 }

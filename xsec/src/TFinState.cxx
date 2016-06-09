@@ -8,12 +8,8 @@ using vecgeom::RNG;
 
 int TFinState::fVerbose = 0;
 
-#ifdef USE_ROOT
-ClassImp(TFinState)
-#endif
-
-    //_________________________________________________________________________
-    TFinState::TFinState()
+//_________________________________________________________________________
+TFinState::TFinState()
     : fNFstates(0), fNsecs(0), fNMom(0), fNpart(0), fWeight(0), fKerma(0), fEn(0), fSurv(0), fPID(0), fMom(0) {
 }
 

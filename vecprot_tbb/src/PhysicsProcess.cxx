@@ -33,11 +33,9 @@ using vecgeom::kAvogadro;
 using std::numeric_limits;
 using std::min;
 
-ClassImp(PhysicsProcess)
-
-    //______________________________________________________________________________
-    void PhysicsProcess::StepManager(int iproc, int npart, int * /*particles*/, int nout,
-                                     int * /*partnext*/) {
+//______________________________________________________________________________
+void PhysicsProcess::StepManager(int iproc, int npart, int * /*particles*/, int nout,
+                                 int * /*partnext*/) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   // User stepping routine. <partnext> array can
   // be null.
@@ -47,10 +45,8 @@ ClassImp(PhysicsProcess)
   }
 }
 
-ClassImp(ScatteringProcess)
-
-    //______________________________________________________________________________
-    void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
+//______________________________________________________________________________
+void ScatteringProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
   // Generates an interaction length for the scattering process. Nothing physical,
   // just generate something comparable with the size of the current volume.
   //
@@ -138,10 +134,8 @@ void ScatteringProcess::PostStep(TGeoVolume *, int ntracks, int *trackin, int &n
   StepManager(0, ntracks, trackin, nout, trackout);
 }
 
-ClassImp(ElossProcess)
-
-    //______________________________________________________________________________
-    void ElossProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
+//______________________________________________________________________________
+void ElossProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
   // Energy loss process. Continuous process. Compute step limit for losing
   // maximum dw per step.
   GeantPropagator *gPropagator = GeantPropagator::Instance();
@@ -276,10 +270,8 @@ void ElossProcess::PlotBB(double z, double a, double rho, double bgmin, double b
   f->Draw("same");
 }
 
-ClassImp(InteractionProcess)
-
-    //______________________________________________________________________________
-    void InteractionProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
+//______________________________________________________________________________
+void InteractionProcess::ComputeIntLen(TGeoVolume *vol, int ntracks, int *trackin, double *lengths) {
   GeantPropagator *gPropagator = GeantPropagator::Instance();
   double fact = 1.;
   const double nabarn = fact * kAvogadro * 1e-24;

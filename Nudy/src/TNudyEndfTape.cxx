@@ -12,11 +12,9 @@
 #include <TNudyEndfTape.h>
 #include <TNudyEndfMat.h>
 
-ClassImp(TNudyEndfTape)
-
-    //_______________________________________________________________________________
-    TNudyEndfTape::TNudyEndfTape()
-    : fLogLev(0), fMats(0) {
+//_______________________________________________________________________________
+TNudyEndfTape::TNudyEndfTape()
+  : fLogLev(0), fMats(0) {
   //
   // Standard constructor
   //

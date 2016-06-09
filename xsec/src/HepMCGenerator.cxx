@@ -10,11 +10,9 @@ using vecgeom::kPi;
 #include "HepMC/ReaderAscii.h"
 #include "HepMC/ReaderRoot.h"
 
-ClassImp(HepMCGenerator)
-
-    //______________________________________________________________________________
-    HepMCGenerator::HepMCGenerator()
-    : input_file(0), search(0) {}
+//______________________________________________________________________________
+HepMCGenerator::HepMCGenerator()
+  : input_file(0), search(0) {}
 
 //______________________________________________________________________________
 HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0) {

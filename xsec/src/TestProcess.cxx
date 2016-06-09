@@ -12,11 +12,6 @@
 #include "TGeoBranchArray.h"
 #endif
 
-#ifdef USE_ROOT
-#include "Rtypes.h"
-ClassImp( TestProcess )
-#endif
-
 
 TestProcess::TestProcess() : PhysicsProcess() {}
 

@@ -3,10 +3,6 @@
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
-#ifdef USE_ROOT
-ClassImp(GunGenerator)
-#endif
-
 //______________________________________________________________________________
 GunGenerator::GunGenerator()
     : fAverage(0), fPDG(11),           // PDG code of the primary: 11 -> e-

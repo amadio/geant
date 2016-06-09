@@ -16,9 +16,7 @@
 using std::min;
 using std::max;
 
-ClassImp(GeantVolumeBasket)
-
-    const double gTolerance = TGeoShape::Tolerance();
+const double gTolerance = TGeoShape::Tolerance();
 
 //______________________________________________________________________________
 GeantVolumeBasket::GeantVolumeBasket(TGeoVolume *vol, int number) : TObject(), fVolume(vol), fNumber(number) {

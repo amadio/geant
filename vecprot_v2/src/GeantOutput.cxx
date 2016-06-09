@@ -2,8 +2,6 @@
 #include "GeantOutput.h"
 #include "GeantTrack.h"
 
-// ClassImp(GeantOutput)
-
 //______________________________________________________________________________
 GeantOutput::~GeantOutput() {
   // Destructor

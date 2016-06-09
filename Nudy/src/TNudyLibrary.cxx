@@ -1,9 +1,8 @@
 #include "TNudyLibrary.h"
 #include <TFile.h>
-ClassImp(TNudyLibrary)
 
-    //______________________________________________________________________________
-    TNudyLibrary::TNudyLibrary() {
+//______________________________________________________________________________
+TNudyLibrary::TNudyLibrary() {
   // Create TNudy Library class
   printf("Making %s\n", GetName());
   // Create new sublibrary Hashtable;

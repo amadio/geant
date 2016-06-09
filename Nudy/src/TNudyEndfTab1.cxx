@@ -11,11 +11,9 @@
 #include <TString.h>
 #include <TNudyEndfTab1.h>
 
-ClassImp(TNudyEndfTab1)
-
-    //_______________________________________________________________________________
-    TNudyEndfTab1::TNudyEndfTab1()
-    : TNudyEndfCont(), fNBT(NULL), fINT(NULL), fX(NULL), fY(NULL) {
+//_______________________________________________________________________________
+TNudyEndfTab1::TNudyEndfTab1()
+  : TNudyEndfCont(), fNBT(NULL), fINT(NULL), fX(NULL), fY(NULL) {
   //
   // Default constructor
   //

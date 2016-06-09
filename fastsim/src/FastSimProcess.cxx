@@ -13,12 +13,6 @@
 #include "TGeoBranchArray.h"
 #endif
 
-#ifdef USE_ROOT
-#include "Rtypes.h"
-ClassImp( FastSimProcess )
-#endif
-
-
 FastSimProcess::FastSimProcess() : PhysicsProcess() , fSmearer( nullptr ) {}
 
 

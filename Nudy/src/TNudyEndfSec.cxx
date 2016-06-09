@@ -16,11 +16,10 @@
 #include <TNudyEndfSec.h>
 //#include "TNudyEndfRecord.h"
 #include "TNudyEndfCont.h"
-ClassImp(TNudyEndfSec)
 
-    //_______________________________________________________________________________
-    TNudyEndfSec::TNudyEndfSec()
-    : fMAT(0), fMF(0), fMT(0), fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0) {
+//_______________________________________________________________________________
+TNudyEndfSec::TNudyEndfSec()
+  : fMAT(0), fMF(0), fMT(0), fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0) {
   //
   // Default constructor
   //

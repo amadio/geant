@@ -8,15 +8,11 @@ using std::transform;
 using std::string;
 using std::map;
 
-#ifdef USE_ROOT
-ClassImp(TPartIndex)
-#endif
-
-    const
-    char *TPartIndex::fgPrName[FNPROC] = {"Transport",    "MultScatt",   "Ionisation", "Decay",      "inElastic",
-                                          "Elastic",      "RestCapture", "Brehms",     "PairProd",   "Annihilation",
-                                          "CoulombScatt", "Photoel",     "Compton",    "Conversion", "Capture",
-                                          "Fission",      "Killer",      "Total"};
+const
+char *TPartIndex::fgPrName[FNPROC] = {"Transport",    "MultScatt",   "Ionisation", "Decay",      "inElastic",
+                                      "Elastic",      "RestCapture", "Brehms",     "PairProd",   "Annihilation",
+                                      "CoulombScatt", "Photoel",     "Compton",    "Conversion", "Capture",
+                                      "Fission",      "Killer",      "Total"};
 const short TPartIndex::fgPCode[FNPROC] = {1091, 2010, 2002, 6201, 4121, 4111, 4151, 2003, 2004,
                                            2005, 2001, 2012, 2013, 2014, 4131, 4141, 7403, 999};
 

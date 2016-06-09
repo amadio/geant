@@ -6,11 +6,9 @@
 
 #define ABS(X) X >= 0 ? X : -X
 
-ClassImp(TNudyAlias)
-
-    //_______________________________________________________________________________
-    TNudyAlias::TNudyAlias()
-    : fLen(0), fP(NULL), fX(NULL), fA(NULL), fR(NULL), fRnd(NULL), fMult(NULL), fMultLen(0) {}
+//_______________________________________________________________________________
+TNudyAlias::TNudyAlias()
+  : fLen(0), fP(NULL), fX(NULL), fA(NULL), fR(NULL), fRnd(NULL), fMult(NULL), fMultLen(0) {}
 
 //_______________________________________________________________________________
 TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed)

@@ -1,9 +1,7 @@
 #include "TNudyManager.h"
 #include <TROOT.h>
 
-ClassImp(TNudyManager)
-
-    TNudyManager *TNudyManager::fgInstance = 0;
+TNudyManager *TNudyManager::fgInstance = 0;
 
 //______________________________________________________________________________
 TNudyManager::~TNudyManager() {

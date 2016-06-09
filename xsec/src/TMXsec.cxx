@@ -21,12 +21,8 @@ using vecgeom::kAvogadro;
 using std::numeric_limits;
 using std::max;
 
-#ifdef USE_ROOT
-ClassImp(TMXsec)
-#endif
-
-    //____________________________________________________________________________
-    TMXsec::TMXsec()
+//____________________________________________________________________________
+TMXsec::TMXsec()
     : fNEbins(0), fNTotXL(0), fNCharge(0), fNRelXS(0), fEilDelta(0), fEGrid(0), fNElems(0), fElems(0), fTotXL(0),
       fRelXS(0), fDEdx(0), fMSangle(0), fMSansig(0), fMSlength(0), fMSlensig(0), fRatios(0), fRange(0),
       fInvRangeTable(0), fDecayTable(0) {

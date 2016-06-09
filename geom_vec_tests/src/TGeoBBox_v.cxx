@@ -86,8 +86,6 @@
 
 using std::min;
 
-// ClassImp(TGeoBBox_v)
-
 //_____________________________________________________________________________
 TGeoBBox_v::TGeoBBox_v() {
   // Default constructor
