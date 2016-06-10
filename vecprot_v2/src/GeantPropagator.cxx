@@ -288,7 +288,6 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
         track.Print("Not normalized");
       track.fBoundary = false;
       track.fStatus = kAlive;
-      track.fVindex = basket_mgr->GetNumber();
       AddTrack(track);
       ndispatched += DispatchTrack(track, thread_data);
     }

@@ -81,7 +81,6 @@ public:
   int fEindex;           /** Element index */
   int fCharge;           /** Particle charge */
   int fProcess;          /** Current process */
-  int fVindex;           /** Current volume index */
   int fNsteps;           /** Number of steps made */
   Species_t fSpecies;    /** Particle species */
   TrackStatus_t fStatus; /** Track status */
@@ -233,9 +232,6 @@ public:
   /** @brief  Check direction normalization within tolerance */
   bool IsNormalized(double tolerance = 1.E-8) const;
 
-  /** @brief Function that return current volume index */
-  int Vindex() const { return fVindex; }
-
   /** @brief Function that set status killed to track */
   void Kill() { fStatus = kKilled; }
 
@@ -376,13 +372,6 @@ public:
    * @param process Process that should be set as fProcess
    */
   void SetProcess(int process) { fProcess = process; }
-
-  /**
-   * @brief Function that set current volume index
-   *
-   * @param ind Current volume index that should be set as fVindex
-   */
-  void SetVindex(int ind) { fVindex = ind; }
 
   /**
    * @brief Function that set current step

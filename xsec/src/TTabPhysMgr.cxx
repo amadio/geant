@@ -414,14 +414,6 @@ void TTabPhysMgr::ProposeStep(Material_t *mat, int ntracks, GeantTrack_v &tracks
 #ifndef GEANT_CUDA_DEVICE_BUILD
   if (mat) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    /*
-    static std::mutex m;
-    m.lock();
-    std::cout << __FILE__ << "::" << __func__ <<"::mat:" << mat->GetName()
-         << " vol:" << vecgeom::GeoManager::Instance().FindLogicalVolume(tracks.fVindexV[0])->GetName()
-         << " xsecptr:" << mat->GetXsecPtr() << std::endl;
-    m.unlock();
-    */
     mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
@@ -695,7 +687,6 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
 	  track.fCharge /=3.;
 #endif
           track.fProcess = 0;
-          track.fVindex = tracks.fVindexV[t];
           track.fNsteps = 0;
           //          track.fSpecies  = 0;
           track.fStatus = kNew;           // status of this particle
@@ -823,7 +814,6 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fEindex = 0;
       track1.fCharge = 0.; // charge
       track1.fProcess = 0;
-      track1.fVindex = tracks.fVindexV[iintrack];
       track1.fNsteps = 0;
       //       track.fSpecies  = 0;
       track1.fStatus = kNew;                  // status of this particle
@@ -946,7 +936,6 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track.fCharge /=3.;
 #endif
       track.fProcess = 0;
-      track.fVindex = tracks.fVindexV[iintrack]; // volume index
       track.fNsteps = 0;
       //       track.fSpecies  = 0;
       track.fStatus = kNew;                  // status of this particle
@@ -1061,7 +1050,6 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
 	track.fCharge /=3.;
 #endif
         track.fProcess = -1;
-        track.fVindex = tracks.fVindexV[iintrack];
         track.fNsteps = 0;
         //         track.fSpecies  = 0;
         track.fStatus = kNew;                  // status of this particle
