@@ -20,7 +20,7 @@ GVectorPhysicsProcess::GVectorPhysicsProcess()
       : PhysicsProcess(),
         fVComptonProcess(0), fEnergyLimit(0), fNumThreads(0)
 {
-   TObject::SetBit(kDiscrete);
+   //TObject::SetBit(kDiscrete);
 }
 
 //------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ GVectorPhysicsProcess::GVectorPhysicsProcess(double energyLimit, int numThreads)
       : PhysicsProcess(),
         fVComptonProcess(0), fEnergyLimit(energyLimit), fNumThreads(numThreads)
 {
-   TObject::SetBit(kDiscrete);
+   //TObject::SetBit(kDiscrete);
 }
 
 //------------------------------------------------------------------------------

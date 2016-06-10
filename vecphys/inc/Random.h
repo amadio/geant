@@ -1,7 +1,7 @@
 #ifndef VECPHYS_RANDOM_H
 #define VECPHYS_RANDOM_H
 
-#include "VecPhys.h"
+#include "base/VecPhys.h"
 #include <VecCore/VecCore>
 
 #if !defined(VECCORE_NVCC)
