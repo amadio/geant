@@ -2,7 +2,6 @@
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"
 
-#include "GUG4TypeDef.h"
 #include "base/VecPhys.h"
 
 namespace vecphys {
@@ -113,28 +112,28 @@ VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int 
 
 VECCORE_CUDA_HOST double IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
 {
-  G4double cross = 0.0;
+  double cross = 0.0;
 
   // temporary - set by material
-  G4double cutEnergy = fDeltaRayThreshold;
-  G4double maxEnergy = 1.0 * TeV;
+  double cutEnergy = fDeltaRayThreshold;
+  double maxEnergy = 1.0 * TeV;
 
-  G4double tmax = 0.5 * kineticEnergy;
+  double tmax = 0.5 * kineticEnergy;
   tmax = math::Min(maxEnergy, tmax);
 
   if (cutEnergy < tmax) {
-    G4double xmin = cutEnergy / kineticEnergy;
-    G4double xmax = tmax / kineticEnergy;
-    G4double tau = kineticEnergy / electron_mass_c2;
-    G4double gam = tau + 1.0;
-    G4double gamma2 = gam * gam;
-    G4double beta2 = tau * (tau + 2) / gamma2;
+    double xmin = cutEnergy / kineticEnergy;
+    double xmax = tmax / kineticEnergy;
+    double tau = kineticEnergy / electron_mass_c2;
+    double gam = tau + 1.0;
+    double gamma2 = gam * gam;
+    double beta2 = tau * (tau + 2) / gamma2;
 
     // Moller (e-e-) scattering
 
-    G4double gg = (2.0 * gam - 1.0) / gamma2;
+    double gg = (2.0 * gam - 1.0) / gamma2;
     cross = ((xmax - xmin) * (1.0 - gg + 1.0 / (xmin * xmax) + 1.0 / ((1.0 - xmin) * (1.0 - xmax))) -
-             gg * G4Log(xmax * (1.0 - xmin) / (xmin * (1.0 - xmax)))) /
+             gg * math::Log(xmax * (1.0 - xmin) / (xmin * (1.0 - xmax)))) /
             beta2;
   }
   cross *= Z * twopi_mc2_rcl2 / kineticEnergy;
@@ -147,13 +146,13 @@ VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int
                                                                              double &deltaKinEnergy, double &sinTheta)
 {
   // temporary - set by material
-  G4double cutEnergy = fDeltaRayThreshold;
-  G4double maxEnergy = 1.0 * TeV;
+  double cutEnergy = fDeltaRayThreshold;
+  double maxEnergy = 1.0 * TeV;
 
   // based on G4MollerBhabhaModel::SampleSecondaries
 
-  G4double tmin = cutEnergy;
-  G4double tmax = 0.5 * kineticEnergy;
+  double tmin = cutEnergy;
+  double tmax = 0.5 * kineticEnergy;
 
   if (maxEnergy < tmax) {
     tmax = maxEnergy;
@@ -163,17 +162,17 @@ VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int
     return;
   }
 
-  G4double energy = kineticEnergy + electron_mass_c2;
-  G4double xmin = tmin / kineticEnergy;
-  G4double xmax = tmax / kineticEnergy;
-  G4double gam = energy / electron_mass_c2;
-  G4double gamma2 = gam * gam;
-  //  G4double beta2  = 1.0 - 1.0/gamma2;
-  G4double x, z, q, grej;
+  double energy = kineticEnergy + electron_mass_c2;
+  double xmin = tmin / kineticEnergy;
+  double xmax = tmax / kineticEnergy;
+  double gam = energy / electron_mass_c2;
+  double gamma2 = gam * gam;
+  //  double beta2  = 1.0 - 1.0/gamma2;
+  double x, z, q, grej;
 
   // Moller (e-e-) scattering
-  G4double gg = (2.0 * gam - 1.0) / gamma2;
-  G4double y = 1.0 - xmax;
+  double gg = (2.0 * gam - 1.0) / gamma2;
+  double y = 1.0 - xmax;
   grej = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
 
   do {
@@ -185,14 +184,14 @@ VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int
 
   deltaKinEnergy = x * kineticEnergy;
 
-  G4double totalMomentum = math::Sqrt(kineticEnergy * (kineticEnergy + 2.0 * electron_mass_c2));
+  double totalMomentum = math::Sqrt(kineticEnergy * (kineticEnergy + 2.0 * electron_mass_c2));
 
-  G4double deltaMomentum = math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0 * electron_mass_c2));
-  G4double cost = deltaKinEnergy * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
+  double deltaMomentum = math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0 * electron_mass_c2));
+  double cost = deltaKinEnergy * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
   if (cost > 1.0) {
     cost = 1.0;
   }
-  G4double sint2 = (1.0 - cost) * (1.0 + cost);
+  double sint2 = (1.0 - cost) * (1.0 + cost);
 
   sinTheta = (sint2 < 0.0) ? 0.0 : math::Sqrt(sint2);
 }

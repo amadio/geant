@@ -2,7 +2,6 @@
 #include "GUAliasTable.h"
 
 #include "ElectronProcess.h"
-#include "GUG4TypeDef.h"
 
 // from VecGeom
 #include "materials/Material.h"

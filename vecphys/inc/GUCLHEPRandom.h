@@ -12,7 +12,7 @@ FQUALIFIER double flat()
 #ifdef GPNONRANDOM
   return 0.123456;
 #else
-  return (G4double)rand()/RAND_MAX;
+  return (double)rand()/RAND_MAX;
 #endif
 }
 

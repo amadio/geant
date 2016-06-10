@@ -1,7 +1,6 @@
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"
 
-#include "GUG4TypeDef.h"
 #include "PhotonProcess.h"
 
 // from VecGeom

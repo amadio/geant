@@ -2,7 +2,6 @@
 #include "GUAliasSampler.h"
 #include "GUAliasTable.h"
 
-#include "GUG4TypeDef.h"
 #include "base/VecPhys.h"
 
 namespace vecphys {
@@ -41,7 +40,7 @@ VECCORE_CUDA_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double
 {
   // G4BetheHeitlerModel::ComputeCrossSectionPerAtom
 
-  const G4double GammaEnergyLimit = 1.5 * MeV;
+  const double GammaEnergyLimit = 1.5 * MeV;
 
   // Calculates the microscopic cross section in GEANT4 internal units.
   // A parametrized formula from L. Urban is used to estimate
@@ -49,19 +48,19 @@ VECCORE_CUDA_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double
   // It gives a good description of the data from 1.5 MeV to 100 GeV.
   // below 1.5 MeV: sigma=sigma(1.5MeV)*(GammaEnergy-2electronmass)
   //                                   *(GammaEnergy-2electronmass)
-  G4double xSection = 0.0;
+  double xSection = 0.0;
   if (Z < 0.9 || GammaEnergy <= 2.0 * electron_mass_c2) {
     return xSection;
   }
 
-  G4double GammaEnergySave = GammaEnergy;
+  double GammaEnergySave = GammaEnergy;
   if (GammaEnergy < GammaEnergyLimit) {
     GammaEnergy = GammaEnergyLimit;
   }
 
-  G4double X = G4Log(GammaEnergy / electron_mass_c2), X2 = X * X, X3 = X2 * X, X4 = X3 * X, X5 = X4 * X;
+  double X = math::Log(GammaEnergy / electron_mass_c2), X2 = X * X, X3 = X2 * X, X4 = X3 * X, X5 = X4 * X;
 
-  G4double F1 = a0 + a1 * X + a2 * X2 + a3 * X3 + a4 * X4 + a5 * X5,
+  double F1 = a0 + a1 * X + a2 * X2 + a3 * X3 + a4 * X4 + a5 * X5,
            F2 = b0 + b1 * X + b2 * X2 + b3 * X3 + b4 * X4 + b5 * X5,
            F3 = c0 + c1 * X + c2 * X2 + c3 * X3 + c4 * X4 + c5 * X5;
 
@@ -206,8 +205,8 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   //          pair creation in both nuclear and atomic electron fields.
   //          However triplet prodution is not generated.
 
-  G4double epsil;
-  G4double epsil0 = electron_mass_c2 / GammaEnergy;
+  double epsil;
+  double epsil0 = electron_mass_c2 / GammaEnergy;
   if (epsil0 > 1.0) {
     return;
   }
@@ -225,32 +224,32 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
 
     // Extract Coulomb factor for this Element
 
-    G4double logZ3 = math::Log(1.0 * int(elementZ + 0.5)) / 3.0;
-    G4double FZ = 8. * logZ3; //(anElement->GetIonisation()->GetlogZ3());
+    double logZ3 = math::Log(1.0 * int(elementZ + 0.5)) / 3.0;
+    double FZ = 8. * logZ3; //(anElement->GetIonisation()->GetlogZ3());
     if (GammaEnergy > 50. * MeV) {
       FZ += 8. * ComputeCoulombFactor(elementZ);
     }
 
     // limits of the screening variable
-    G4double Z3 = math::Pow(1.0 * int(elementZ + 0.5), 1 / 3.0);
-    G4double screenfac = 136. * epsil0 / Z3; //(anElement->GetIonisation()->GetZ3());
-    G4double screenmax = exp((42.24 - FZ) / 8.368) - 0.952;
-    G4double screenmin = math::Min(4. * screenfac, screenmax);
+    double Z3 = math::Pow(1.0 * int(elementZ + 0.5), 1 / 3.0);
+    double screenfac = 136. * epsil0 / Z3; //(anElement->GetIonisation()->GetZ3());
+    double screenmax = exp((42.24 - FZ) / 8.368) - 0.952;
+    double screenmin = math::Min(4. * screenfac, screenmax);
 
     // limits of the energy sampling
-    G4double epsil1 = 0.5 - 0.5 * math::Sqrt(1. - screenmin / screenmax);
-    G4double epsilmin = math::Max(epsil0, epsil1), epsilrange = 0.5 - epsilmin;
+    double epsil1 = 0.5 - 0.5 * math::Sqrt(1. - screenmin / screenmax);
+    double epsilmin = math::Max(epsil0, epsil1), epsilrange = 0.5 - epsilmin;
 
     //
     // sample the energy rate of the created electron (or positron)
     //
-    // G4double epsil, screenvar, greject ;
-    G4double screenvar, greject;
+    // double epsil, screenvar, greject ;
+    double screenvar, greject;
 
-    G4double F10 = ScreenFunction1(screenmin) - FZ;
-    G4double F20 = ScreenFunction2(screenmin) - FZ;
-    G4double NormF1 = math::Max(F10 * epsilrange * epsilrange, 0.);
-    G4double NormF2 = math::Max(1.5 * F20, 0.);
+    double F10 = ScreenFunction1(screenmin) - FZ;
+    double F20 = ScreenFunction2(screenmin) - FZ;
+    double NormF1 = math::Max(F10 * epsilrange * epsilrange, 0.);
+    double NormF2 = math::Max(1.5 * F20, 0.);
 
     do {
       if (NormF1 / (NormF1 + NormF2) > UniformRandom<double>(fRandomState, fThreadId)) {
@@ -271,7 +270,7 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   // fixe charges randomly
   //
 
-  G4double ElectTotEnergy; // PositTotEnergy;
+  double ElectTotEnergy; // PositTotEnergy;
   if (UniformRandom<double>(fRandomState, fThreadId) > 0.5) {
     ElectTotEnergy = (1. - epsil) * GammaEnergy;
     //    PositTotEnergy = epsil*GammaEnergy;
@@ -288,18 +287,18 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   // (Geant3 manual (1993) Phys211),
   //  derived from Tsai distribution (Rev Mod Phys 49,421(1977))
 
-  G4double u;
+  double u;
   // static
-  const G4double aa1 = 0.625;
-  const G4double aa2 = 1.875;
-  const G4double d = 27.;
+  const double aa1 = 0.625;
+  const double aa2 = 1.875;
+  const double d = 27.;
 
   if (9. / (9. + d) > UniformRandom<double>(fRandomState, fThreadId))
-    u = -G4Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa1;
+    u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa1;
   else
-    u = -G4Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa2;
+    u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa2;
 
-  G4double TetEl = u * electron_mass_c2 / ElectTotEnergy;
+  double TetEl = u * electron_mass_c2 / ElectTotEnergy;
 
   // return energy and sinTheta of the electron -
   // ToDo: store secondaries into a global stack

@@ -10,7 +10,6 @@
 #include <fstream>
 
 #include "EmModelBase.h"
-#include "GUG4TypeDef.h"
 
 namespace vecphys {
 
@@ -83,30 +82,30 @@ public:
   VECCORE_CUDA_HOST double GetG4CrossSection(int Z, double energyIn);
 
   VECCORE_CUDA_HOST_DEVICE
-  void SetCurrentElement(G4double Z);
+  void SetCurrentElement(double Z);
 
   VECCORE_CUDA_HOST_DEVICE double ComputeXSectionPerAtom(double cut, double energy);
 
   VECCORE_CUDA_HOST_DEVICE
-  G4double ComputeRelDXSectionPerAtom(G4double gammaEnergy);
+  double ComputeRelDXSectionPerAtom(double gammaEnergy);
 
   VECCORE_CUDA_HOST_DEVICE
-  G4double ComputeDXSectionPerAtom(G4double gammaEnergy);
+  double ComputeDXSectionPerAtom(double gammaEnergy);
 
   VECCORE_CUDA_HOST_DEVICE
-  void CalcLPMFunctions(G4double k);
+  void CalcLPMFunctions(double k);
 
   VECCORE_CUDA_HOST_DEVICE
-  G4double Phi1(G4double gg);
+  double Phi1(double gg);
 
   VECCORE_CUDA_HOST_DEVICE
-  G4double Phi1M2(G4double gg);
+  double Phi1M2(double gg);
 
   VECCORE_CUDA_HOST_DEVICE
-  G4double Psi1(G4double eps);
+  double Psi1(double eps);
 
   VECCORE_CUDA_HOST_DEVICE
-  G4double Psi1M2(G4double eps);
+  double Psi1M2(double eps);
 
   // the mother is friend in order to access private methods of this
   friend class EmModelBase<BremSeltzerBerger>;
@@ -116,23 +115,23 @@ private:
 
   // Geant4 cross section
 private:
-  G4double totalEnergy;
-  G4double currentZ;
-  G4double densityFactor;
-  G4double densityCorr;
+  double totalEnergy;
+  double currentZ;
+  double densityFactor;
+  double densityCorr;
 
-  G4double lpmEnergy;
-  G4double xiLPM;
-  G4double phiLPM;
-  G4double gLPM;
+  double lpmEnergy;
+  double xiLPM;
+  double phiLPM;
+  double gLPM;
 
-  G4double z13;
-  G4double z23;
-  G4double lnZ;
-  G4double Fel;
-  G4double Finel;
-  G4double fCoulomb;
-  G4double fMax;
+  double z13;
+  double z23;
+  double lnZ;
+  double Fel;
+  double Finel;
+  double fCoulomb;
+  double fMax;
 };
 
 // Implementation

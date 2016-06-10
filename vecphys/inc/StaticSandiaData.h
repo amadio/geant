@@ -6,7 +6,7 @@
 // File for static data of PhotoAbsorption cross section coefficients
 // according Sandia parametrisation
 //
-// const G4double G4SandiaTable::fSandiaTable[981][5]
+// const double G4SandiaTable::fSandiaTable[981][5]
 //
 // These are the coefficients from F. Biggs, R. Lighthill 'Analytical
 // Approximation for X-ray Cross Sections III', SAND-0070, May 1990.
@@ -44,7 +44,7 @@
 //
 // Ionization potentials of first 100 elements in eV
 //
-// const G4double G4SandiaTable::fIonizationPotentials[101]
+// const double G4SandiaTable::fIonizationPotentials[101]
 //
 // The most of ionization energies are taken from S. Ruben, Handbook of the
 // Elements, 3rd ed. (Open Court, La Salle, IL, 1985). 28 of the ionization

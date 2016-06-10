@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "GUG4TypeDef.h"
 #include "base/VecPhys.h"
 
 #include "GUAliasSampler.h"
@@ -200,8 +199,8 @@ VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, do
   // Sandia parameterization for Z < 100
   //  int Z = zElement;
 
-  G4int fCumulInterval[101] = {0};
-  G4double fSandiaCof[4] = {0.0};
+  int fCumulInterval[101] = {0};
+  double fSandiaCof[4] = {0.0};
 
   fCumulInterval[0] = 1;
 
@@ -210,10 +209,10 @@ VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, do
     fCumulInterval[iz] = fCumulInterval[iz - 1] + fNbOfIntervals[iz];
   }
 
-  G4double Emin = fSandiaTable[fCumulInterval[Z - 1]][0] * keV;
+  double Emin = fSandiaTable[fCumulInterval[Z - 1]][0] * keV;
 
-  G4int interval = fNbOfIntervals[Z] - 1;
-  G4int row = fCumulInterval[Z - 1] + interval;
+  int interval = fNbOfIntervals[Z] - 1;
+  int row = fCumulInterval[Z - 1] + interval;
 
   while ((interval > 0) && (energy < fSandiaTable[row][0] * keV)) {
     --interval;
@@ -221,7 +220,7 @@ VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, do
   }
 
   if (energy >= Emin) {
-    G4double AoverAvo = Z * amu / fZtoAratio[Z];
+    double AoverAvo = Z * amu / fZtoAratio[Z];
     fSandiaCof[0] = AoverAvo * funitc[1] * fSandiaTable[row][1];
     fSandiaCof[1] = AoverAvo * funitc[2] * fSandiaTable[row][2];
     fSandiaCof[2] = AoverAvo * funitc[3] * fSandiaTable[row][3];
@@ -232,11 +231,11 @@ VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, do
   }
 
   //   CurrentCouple()->GetMaterial()
-  //     ->GetSandiaTable()->GetSandiaCofPerAtom((G4int)Z, energy, fSandiaCof);
+  //     ->GetSandiaTable()->GetSandiaCofPerAtom((int)Z, energy, fSandiaCof);
 
-  G4double energy2 = energy * energy;
-  G4double energy3 = energy * energy2;
-  G4double energy4 = energy2 * energy2;
+  double energy2 = energy * energy;
+  double energy3 = energy * energy2;
+  double energy4 = energy2 * energy2;
 
   return fSandiaCof[0] / energy + fSandiaCof[1] / energy2 + fSandiaCof[2] / energy3 + fSandiaCof[3] / energy4;
 
@@ -254,11 +253,11 @@ VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRej
 
   // sample angular direction according to SauterGavrilaAngularDistribution
 
-  G4double tau = energyIn / electron_mass_c2;
+  double tau = energyIn / electron_mass_c2;
   //  static
-  const G4double taulimit = 50.0;
+  const double taulimit = 50.0;
 
-  G4double cost = -1.0;
+  double cost = -1.0;
 
   if (tau > taulimit) {
     cost = 1.0; // set to the primary direction
@@ -267,15 +266,15 @@ VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRej
     // algorithm according Penelope 2008 manual and
     // F.Sauter Ann. Physik 9, 217(1931); 11, 454(1931).
 
-    G4double gamma = tau + 1.;
-    G4double beta = math::Sqrt(tau * (tau + 2.)) / gamma;
-    G4double A = (1 - beta) / beta;
-    G4double Ap2 = A + 2.;
-    G4double B = 0.5 * beta * gamma * (gamma - 1.) * (gamma - 2.);
-    G4double grej = 2. * (1. + A * B) / A;
-    G4double z, g;
+    double gamma = tau + 1.;
+    double beta = math::Sqrt(tau * (tau + 2.)) / gamma;
+    double A = (1 - beta) / beta;
+    double Ap2 = A + 2.;
+    double B = 0.5 * beta * gamma * (gamma - 1.) * (gamma - 2.);
+    double grej = 2. * (1. + A * B) / A;
+    double z, g;
     do {
-      G4double q = UniformRandom<double>(fRandomState, fThreadId);
+      double q = UniformRandom<double>(fRandomState, fThreadId);
       z = 2 * A * (2 * q + Ap2 * math::Sqrt(q)) / (Ap2 * Ap2 - 4 * q);
       g = (2 - z) * (1.0 / (A + z) + B);
 
