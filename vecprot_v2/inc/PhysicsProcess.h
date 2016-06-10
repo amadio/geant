@@ -20,19 +20,16 @@
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 
-#ifndef ROOT_TNamed
-#include "TNamed.h"
-#endif
-
 #include "base/Global.h"
 #include "GeantFwd.h"
 
-#include "TMutex.h"
+#include <string>
 
 /**
  * @brief Class describing physics processes
  */
-class PhysicsProcess : public TNamed {
+class PhysicsProcess {
+
 public:
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
@@ -41,31 +38,40 @@ public:
    * @enum EProcessType
    * @brief Enum ProcessType definition
    */
-  enum EProcessType { kDiscrete = BIT(14), kContinuous = BIT(15) };
+  enum EProcessType : char { kDiscrete = 1, kContinuous = 2 };
+
+protected:
+  std::string fName;
+
+private:
+  EProcessType fType;
 
 public:
   /**
    * @brief PhysicsProcess constructor
    */
-  PhysicsProcess() : TNamed() {}
-
+  PhysicsProcess() {}
   /**
    * @brief PhysicsProcess parametrized constructor
    *
    * @param name Name of physics process
    */
-  PhysicsProcess(const char *name) : TNamed(name, "") {}
+  PhysicsProcess(const char *name) : fName(name) {}
 
   /** @brief PhysicsProcess destructor */
-  virtual ~PhysicsProcess() {}
+  virtual ~PhysicsProcess();
+
+
+  /** @brief Record type information */
+  void SetType(EProcessType type) { fType = type; }
 
   /**
    * @brief Function that check type
    *
    * @param type EProcessType type
-   * @return Boolean value -> (bool) ((fBits & type) != 0);
+   * @return Boolean value
    */
-  bool IsType(EProcessType type) { return TObject::TestBit(type); }
+  bool IsType(EProcessType type) { return fType == type; }
 
   /** @brief Function of initialization */
   virtual void Initialize() {}
@@ -81,8 +87,7 @@ public:
    */
   virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double *lengths,
                              GeantTaskData *td) = 0;
-
-  /**
+ /**
    * @brief Function that provides posterior steps
    *
    * @param mat Material_t material
@@ -124,8 +129,7 @@ public:
   GEANT_CUDA_DEVICE_CODE
   virtual void PostStepFinalStateSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
                                           GeantTaskData *td) = 0;
-
-  /**
+ /**
    * @todo  Need to be implemented
    */
   virtual void AtRest(int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/, GeantTaskData * /*td*/) {}
@@ -143,7 +147,6 @@ public:
   GEANT_CUDA_DEVICE_CODE
   virtual void ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
 
-  ClassDef(PhysicsProcess, 1) // Physics process base class
 };
 
 #endif

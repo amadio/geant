@@ -4,3 +4,6 @@
 // - generic interaction as discrete process, producing secondaries
 
 #include "PhysicsProcess.h"
+
+// pin virtual table.
+PhysicsProcess::~PhysicsProcess() {}
