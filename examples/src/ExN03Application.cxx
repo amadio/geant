@@ -5,7 +5,7 @@
 using vecgeom::GeoManager;
 #endif
 #include "GeantFactoryStore.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"

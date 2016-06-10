@@ -1,7 +1,7 @@
 #include "TMXsec.h"
 #include "TPartIndex.h"
 #include "TPDecay.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "Geant/Typedefs.h"

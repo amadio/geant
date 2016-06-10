@@ -1,6 +1,6 @@
 #include "globals.h"
 #include "GeantOutput.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 
 //______________________________________________________________________________
 GeantOutput::~GeantOutput() {

@@ -4,7 +4,7 @@ using vecgeom::kPi;
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"

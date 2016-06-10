@@ -1,6 +1,5 @@
 #include "GeantTrackStat.h"
-#include "GeantTrack.h"
-#include "Geant/Error.h"
+#include "GeantTrackVec.h"
 
 //______________________________________________________________________________
 GeantTrackStat::GeantTrackStat(int nslots)

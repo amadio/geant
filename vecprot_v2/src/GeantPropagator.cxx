@@ -46,7 +46,7 @@
 #endif
 
 #include "Geant/Error.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"

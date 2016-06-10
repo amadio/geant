@@ -1,6 +1,6 @@
 #include "GeantBasket.h"
 #include "globals.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantEvent.h"
 #include "GeantPropagator.h"
 #include "GeantScheduler.h"

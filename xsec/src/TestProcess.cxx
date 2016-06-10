@@ -4,7 +4,7 @@
 #include "GeantVApplication.h"
 #include "WorkloadManager.h"
 #include "globals.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"

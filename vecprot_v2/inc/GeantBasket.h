@@ -20,7 +20,7 @@
 #endif
 
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "priority_queue.h"
 #include "mpmc_bounded_queue.h"
 

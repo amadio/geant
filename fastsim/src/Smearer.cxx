@@ -5,7 +5,7 @@
 #include "GeantVApplication.h"
 #include "WorkloadManager.h"
 #include "globals.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
   #include "management/GeoManager.h"
@@ -105,7 +105,7 @@ std::vector< double > Smearer::StepLengthProposedByParameterisation( int ntracks
   GeantTrack& aTrack = aTaskData.GetTrack();
   for ( int i = 0; i < ntracks; i++ ) {
     double value = aLargeValue;
-     aTrack.ReadFromVector( tracks, i );
+     tracks.GetTrack(i, aTrack);
     // Check in which part of the detector (Tracker, ECAL, HCAL, Muon system)
     // the track is, and then check if a parameterisation should be applied
     // for that track in that volume.
@@ -344,7 +344,7 @@ void Smearer::ApplyParameterisation( int ntracks, GeantTrack_v& tracks, GeantTas
     tracks.fProcessV[i] = 999;  // Arbitrary number to signal fast-simulation process
     //std::cout << " Smearer::ApplyParameterisation : isElossCalling=" << isElossCalling
     //          << " ; tracks.fPstepV[i]=" << tracks.fPstepV[i] << std::endl;  // Debug
-    aTrack.ReadFromVector( tracks, i );
+    tracks.GetTrack(i, aTrack);
     // Check in which part of the detector (Tracker, ECAL, HCAL, Muon system)
     // the track is, and then check if a parameterisation should be applied
     // for that track in that volume.

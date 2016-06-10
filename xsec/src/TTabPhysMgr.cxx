@@ -10,7 +10,7 @@
 #include "TList.h"
 #endif
 
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 
 #include "globals.h"
 #include "GeantPropagator.h"

@@ -14,7 +14,7 @@
 #define GEANT_SCALARNAVINTERFACEVGM
 
 #include "Geant/Config.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "Geant/Typedefs.h"
 
 namespace Geant {

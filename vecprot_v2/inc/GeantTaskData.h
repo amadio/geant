@@ -14,7 +14,7 @@
 #define GEANT_TASKDATA
 
 #ifndef GEANT_TRACK
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #endif
 
 #include <deque>

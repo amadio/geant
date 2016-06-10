@@ -1,6 +1,6 @@
 #include "TPrimaryGenerator.h"
 
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "Geant/Error.h"
 
 //______________________________________________________________________________

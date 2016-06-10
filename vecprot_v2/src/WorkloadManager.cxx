@@ -12,8 +12,7 @@
 #include "TTree.h"
 #include "TMath.h"
 #endif
-
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
 #include "GeantTaskData.h"

@@ -23,7 +23,7 @@
 #include "TGeoManager.h"
 #endif
 
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 
 #ifdef USE_ROOT

@@ -4,7 +4,7 @@
 
 #include "GeantBasket.h"
 #include "globals.h"
-#include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantTaskData.h"
 #include "GeantEvent.h"
 #include "WorkloadManager.h"
