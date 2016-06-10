@@ -61,8 +61,8 @@ VECCORE_CUDA_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double
   double X = math::Log(GammaEnergy / electron_mass_c2), X2 = X * X, X3 = X2 * X, X4 = X3 * X, X5 = X4 * X;
 
   double F1 = a0 + a1 * X + a2 * X2 + a3 * X3 + a4 * X4 + a5 * X5,
-           F2 = b0 + b1 * X + b2 * X2 + b3 * X3 + b4 * X4 + b5 * X5,
-           F3 = c0 + c1 * X + c2 * X2 + c3 * X3 + c4 * X4 + c5 * X5;
+         F2 = b0 + b1 * X + b2 * X2 + b3 * X3 + b4 * X4 + b5 * X5,
+         F3 = c0 + c1 * X + c2 * X2 + c3 * X3 + c4 * X4 + c5 * X5;
 
   xSection = (Z + 1.) * (F1 * Z + F2 * Z * Z + F3) * microbarn;
 
@@ -294,9 +294,11 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   const double d = 27.;
 
   if (9. / (9. + d) > UniformRandom<double>(fRandomState, fThreadId))
-    u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa1;
+    u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) /
+        aa1;
   else
-    u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) / aa2;
+    u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) /
+        aa2;
 
   double TetEl = u * electron_mass_c2 / ElectTotEnergy;
 
