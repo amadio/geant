@@ -20,7 +20,8 @@ GVectorPhysicsProcess::GVectorPhysicsProcess()
       : PhysicsProcess(),
         fVComptonProcess(0), fEnergyLimit(0), fNumThreads(0)
 {
-   //TObject::SetBit(kDiscrete);
+   // Default type is already discrete.
+   // SetType(kDiscrete);
 }
 
 //------------------------------------------------------------------------------
@@ -28,7 +29,8 @@ GVectorPhysicsProcess::GVectorPhysicsProcess(double energyLimit, int numThreads)
       : PhysicsProcess(),
         fVComptonProcess(0), fEnergyLimit(energyLimit), fNumThreads(numThreads)
 {
-   //TObject::SetBit(kDiscrete);
+   // Default type is already discrete.
+   // SetType(kDiscrete);
 }
 
 //------------------------------------------------------------------------------
