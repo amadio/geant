@@ -521,7 +521,7 @@ void BremSeltzerBerger::CalcLPMFunctions(double k)
     else {
       // using alternative parametrisiation
       double pre = -0.16072300849123999 + s0 * 3.7550300067531581 + s2 * -1.7981383069010097 +
-                     s3 * 0.67282686077812381 + s4 * -0.1207722909879257;
+                   s3 * 0.67282686077812381 + s4 * -0.1207722909879257;
       gLPM = math::Tanh(pre);
     }
   }

@@ -140,7 +140,8 @@ VECCORE_CUDA_HOST double ComptonKleinNishina::GetG4CrossSection(int Z, double ga
   }
 
   double X = math::Max(gammaEnergy, T0) / electron_mass_c2;
-  xSection = p1Z * math::Log(1. + 2. * X) / X + (p2Z + p3Z * X + p4Z * X * X) / (1. + a * X + b * X * X + c * X * X * X);
+  xSection =
+      p1Z * math::Log(1. + 2. * X) / X + (p2Z + p3Z * X + p4Z * X * X) / (1. + a * X + b * X * X + c * X * X * X);
 
   //  modification for low energy. (special case for Hydrogen)
   if (gammaEnergy < T0) {
