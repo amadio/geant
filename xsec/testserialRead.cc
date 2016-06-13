@@ -28,8 +28,8 @@ int main()
    std::cout << "Total size of store " << totsize << std::endl;
 
    expandPhysics(buf);
-  cout<<"MAIN MAGIC "<<TEXsec::Element(10)->GetMagic()<<endl<<std::flush;
-   cout<<"MAIN XS "<< TEXsec::Element(10)->XS(10,4, 1.)<<endl<<std::flush;
+  //cout<<"MAIN MAGIC "<<TEXsec::Element(10)->GetMagic()<<endl<<std::flush;
+  // cout<<"MAIN XS "<< TEXsec::Element(10)->XS(10,4, 1.)<<endl<<std::flush;
    const char *fxsec = "/dev/null";
    const char *ffins = "/dev/null";
    TTabPhysMgr::Instance(fxsec, ffins );
@@ -46,8 +46,8 @@ int main()
 	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
          float xs = TEXsec::Element(iel)->XS(ipart, ireac, en);
+ //        cout<<"MAIN 0 "<<iel<<" "<<irep<<endl;
  	 if(xs < 0) continue;
-         cout<<"MAIN 0 "<<iel<<" "<<irep<<endl;
 	 int npart=0;
 	 float weight=0;
 	 float kerma=0;
@@ -55,7 +55,7 @@ int main()
 	 const int *pid=0;
 	 const float *mom=0;
 	 int ebinindx=0;
-         cout<<" MAIN "<<ipart<<" "<<ireac<<" "<<en<<endl;
+        // cout<<" MAIN "<<ipart<<" "<<ireac<<" "<<en<<endl;
 	 TEFstate::Element(iel)->SampleReac(ipart, ireac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 	 if(npart <= 0) continue;
 	 fftest <<  iel << ":" << TPartIndex::I()->PartName(ipart) << ":" << ireac << ":" << en
