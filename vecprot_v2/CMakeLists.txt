@@ -201,10 +201,9 @@ target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXse
 
 add_dependencies(CMSApp Geant_v Xsec GeantExamples)
 
-add_executable(runApp runApp.cc)
-
-target_link_libraries(runApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
-       ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-
-add_dependencies(runApp Geant_v Xsec GeantExamples)
+endif()
+if (NOT MIC)
+install(TARGETS CMSApp runApp DESTINATION bin)
+else()
+install(TARGETS CMSApp DESTINATION bin)
 endif()
