@@ -38,12 +38,8 @@ public:
   GEANT_CUDA_BOTH_CODE
   virtual ~TPXsec();
   void Print(const char *opt = "") const;
- #ifndef GEANT_NVCC
+  GEANT_CUDA_BOTH_CODE
   const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
- #else
-  GEANT_CUDA_DEVICE_CODE
-  const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
- #endif
   bool SetPart(int pdg, int nxsec);
   bool SetPartXS(const float xsec[], const int dict[]);
   bool SetPartIon(const float dedx[]);
