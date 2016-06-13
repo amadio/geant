@@ -18,9 +18,11 @@
 #include "base/Global.h"
 #include "management/GeoManager.h"
 #include "base/SOA3D.h"
-#ifdef CROSSCHECK
+#ifndef GEANT_NVCC
+#ifdef CROSSCHECK 
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
+#endif
 #endif
 #else
 #include "ScalarNavInterfaceTGeo.h"

@@ -10,9 +10,11 @@
 #include "base/Global.h"
 #include "management/GeoManager.h"
 
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
+#endif
 #endif
 
 #ifdef BUG_HUNT
@@ -50,7 +52,6 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
   SimpleNavigator nav;
 #else
   ABBoxNavigator nav;
-#endif // GEANT_NVCC
   VNavigator const * newnav = instate[0]->Top()->GetLogicalVolume()->GetNavigator();
   newnav->ComputeStepsAndPropagatedStates(SOA3D_t(const_cast<double*>(x),const_cast<double*>(y),const_cast<double*>(z),ntracks),
                               SOA3D_t(const_cast<double*>(dirx),const_cast<double*>(diry),const_cast<double*>(dirz),ntracks),
@@ -100,6 +101,7 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
                                                  Vector3D_t(dirx[itr], diry[itr], dirz[itr]), *instate[itr]);
     }
 #endif // CROSSCHECK
+#endif // GEANT_NVCC
 
 #ifdef VERBOSE
     Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
@@ -131,9 +133,11 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
   for (int itr = 0; itr < ntracks; ++itr) {
 
 // cross check with answer from ROOT
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
     TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
     TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
+#endif
 #endif
 
     // TODO: not using the direction yet here !!
@@ -141,6 +145,7 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
       Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
     if (!samepath) tmpstate->CopyTo(end[itr]);
 
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
     nav->ResetState();
@@ -171,6 +176,7 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
     delete sb;
     delete eb;
 #endif // CROSSCHECK
+#endif
     same[itr] = samepath;
   }
 }

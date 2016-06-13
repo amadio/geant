@@ -1,17 +1,22 @@
 #include "ScalarNavInterfaceVG.h"
 
 #include "backend/Backend.h"
+#ifdef GEANT_NVCC
 #include "navigation/SimpleNavigator.h"
+#else
 #include "navigation/ABBoxNavigator.h"
+#endif
 #include "volumes/PlacedVolume.h"
 #include "base/Vector3D.h"
 #include "base/Transformation3D.h"
 #include "base/Global.h"
 #include "management/GeoManager.h"
 
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
+#endif
 #endif
 
 #ifdef BUG_HUNT
@@ -71,6 +76,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
     
     //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
     //************
     // CROSS CHECK USING TGEO
@@ -101,6 +107,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
                                                  Vector3D_t(dirx[itr], diry[itr], dirz[itr]), *instate[itr]);
     }
 #endif // CROSSCHECK
+#endif 
 
 #ifdef VERBOSE
     Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
@@ -129,16 +136,18 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
   for (int itr = 0; itr < ntracks; ++itr) {
 
 // cross check with answer from ROOT
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
     TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
     TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
+#endif
 #endif
 
     // TODO: not using the direction yet here !!
     bool samepath = nav.HasSamePath(
       Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
     if (!samepath) tmpstate->CopyTo(end[itr]);
-
+#ifndef GEANT_NVCC
 #ifdef CROSSCHECK
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
     nav->ResetState();
@@ -169,6 +178,7 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
     delete sb;
     delete eb;
 #endif // CROSSCHECK
+#endif 
     same[itr] = samepath;
   }
 }
