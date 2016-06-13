@@ -41,7 +41,7 @@ int main()
       for(auto irep=0; irep<nrep; ++irep) {
 	 // Get a random particle & reaction & energy
 	 int ipart = (((double) rand())/RAND_MAX) * TPartIndex::I()->NPartReac();
-	 if (abs(TPartIndex::I()->PDG(ipart)) > 100000000) continue;
+//	 if (abs(TPartIndex::I()->PDG(ipart)) > 100000000) continue;
          int ireac = (((double) rand())/RAND_MAX) * FNPROC;
 	 float en = (((double) rand())/RAND_MAX) * (TPartIndex::I()->Emax() - TPartIndex::I()->Emin())
 	    + TPartIndex::I()->Emin();
