@@ -1,7 +1,8 @@
 #include "TPFstate.h"
 #include "TFinState.h"
 #include "Geant/Error.h"
-#ifndef GEANTV_MIC
+#ifdef USE_ROOT
+#include <TMath.h>
 #include <TFile.h>
 #include <TRandom.h>
 #else
@@ -169,11 +170,11 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
     return false;
   } else {
     kerma = en;
-   #ifndef GEANTV_MIC
+#ifdef USE_ROOT
     double eta = gRandom->Rndm();
-   #else
+#else
     double eta = RNG::Instance().uniform();
-   #endif
+#endif
     en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
     en = max<double>(en, fEGrid[0]);
     int ibin = log(en / fEGrid[0]) * fEilDelta;
