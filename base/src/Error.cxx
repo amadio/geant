@@ -21,10 +21,18 @@ void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *va_(fmt
    va_end(ap);
 }
 #else
-void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *msgfmt, ...)
+void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *va_(msgfmt), ...)
 {
    // Trivial implementation
-   vfprintf(stdout,"Geant Message level %d at %s: %s\n",level,location,msgfmt);
+   va_list args;
+   va_start(args, va_(msgfmt));
+
+   if (level > EMsgLevel::kPrint || (location==nullptr || location[0]=='\0')) {
+    vfprintf(stdout,"Geant Message level %d at %s:",level,location);
+   }
+   vfprintf(stdout, msgfmt, args);
+   vfprintf(stdout, "\n");
+   va_end(ap);
 }
 #endif
 

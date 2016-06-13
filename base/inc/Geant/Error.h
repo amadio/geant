@@ -85,6 +85,13 @@ namespace Geant {
 
     template <typename... ArgsTypes>
     GEANT_CUDA_BOTH_CODE
+    void Printf(const char *msgfmt, ArgsTypes... params)
+    {
+      MessageHandler(EMsgLevel::kPrint,"",msgfmt, params...);
+    }
+
+    template <typename... ArgsTypes>
+    GEANT_CUDA_BOTH_CODE
     void Print(const char *location, const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kPrint,location,msgfmt, params...);
