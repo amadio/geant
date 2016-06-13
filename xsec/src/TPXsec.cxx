@@ -593,9 +593,13 @@ float TPXsec::XS(int rindex, double en, bool verbose) const {
   double xsec = 1;
   if (rindex < TPartIndex::I()->NProc() - 1) {
     int rnumber = fRdict[rindex];
-    if (rnumber < 0 && verbose) {
-      Geant::Error("TPXsec::XS", "No %s for %s\n", TPartIndex::I()->ProcName(rindex),
-                   TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
+    if (rnumber < 0) {
+#ifndef GEANT_CUDA_DEVICE_BUILD
+      // We do not want to update TPartIndex::ProcName to work on the device.
+      if (verbose)
+        Geant::Error("TPXsec::XS", "No %s for %s\n", TPartIndex::I()->ProcName(rindex),
+                     TPartIndex::I()->PartName(TPartIndex::I()->PartIndex(fPDG)));
+#endif
       return -1;
     }
     xsec = xrat * fXSecs[ibin * fNXsec + rnumber] + (1 - xrat) * fXSecs[(ibin + 1) * fNXsec + rnumber];
