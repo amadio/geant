@@ -268,6 +268,30 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 #endif
       if (propagator->fNthreads > 1)
         fMHist.unlock();      
+#ifdef USE_ROOT
+      
+      if (gPropagator->fFillTree) {
+	MyHit *hit;
+	
+	// Deposit hits
+	if (tracks.fEdepV[itr]>0.00002)
+	  {
+	    //	    Printf("hit with energy %f", tracks.fEdepV[itr]);
+	    
+	    hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
+	    
+	    hit->fX = tracks.fXposV[itr];
+	    hit->fY = tracks.fYposV[itr];
+	    hit->fZ = tracks.fZposV[itr];
+	    hit->fEdep = 1000*tracks.fEdepV[itr];
+       hit->fTime = tracks.fTimeV[itr];
+       hit->fEvent = tracks.fEventV[itr];
+       hit->fTrack = tracks.fParticleV[itr];
+	    hit->fVolId = ivol;
+	    hit->fDetId = idtype; 
+	  }
+      }
+#endif
     }
   }
 }
