@@ -63,7 +63,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(load_gdml load_gdml.cc ${sources} ${headers})
-target_link_libraries(load_gdml ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom
+target_link_libraries(load_gdml ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} -lGeom -lEG -lTreePlayer -lGui
   ${PYTHIA8_LIBRARIES})
 
 #----------------------------------------------------------------------------
