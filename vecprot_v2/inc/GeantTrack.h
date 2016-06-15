@@ -19,10 +19,8 @@
 
 #include <climits>
 #include <float.h>
-
-#include "Geant/Typedefs.h"
-
 #include <atomic>
+#include "Geant/Typedefs.h"
 
 #ifndef GEANT_ALIGN_PADDING
 #define GEANT_ALIGN_PADDING 64
