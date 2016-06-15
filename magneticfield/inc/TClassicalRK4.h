@@ -124,17 +124,10 @@ static constexpr double inv6=1./6;
 
 #define INLINEDUMBSTEPPER 1
 
-// #ifdef INLINEDUMBSTEPPER
-// #pragma message "In-lining Dumb Stepper"   
-// #else
-// #pragma message "NOT in-lining Dumb Stepper"
-// #endif
-
 template <class T_Equation, unsigned int Nvar>
 #ifdef INLINEDUMBSTEPPER
    __attribute__((always_inline)) 
 #else
-#pragma message "NOT in-lining Dumb Stepper"   
 // __attribute__((noinline))
 #endif 
    void TClassicalRK4<T_Equation,Nvar>::StepWithoutErrorEst( const double  yIn[],

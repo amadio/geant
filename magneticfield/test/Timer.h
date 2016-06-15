@@ -44,7 +44,6 @@
 
 
 #ifdef DEBUG
-# pragma message("DEBUG DEFINED")
 # define NEVER_TRUE k%kPrint==0
 #else
 # define NEVER_TRUE k%kPrint==-1
