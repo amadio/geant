@@ -120,22 +120,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(const double &pstep,
-         const double &x, const double &y, const double &z,
-         const double &dirx, const double &diry, const double &dirz, 
-         const VolumePath_t *instate, VolumePath_t *outstate, 
-         double &step, double &safe, bool &isonbdr) {
-// Find the next boundary and state after propagating to the boundary. 
-// Input:  pstep - proposed step
-//         x, y, z, dirx, diry, dirz - particle position and direction
-//         instate - input particle navigation state
-//         safe - estimated safety value for the input point
-//         isonbdr - starting point is on a boundary
-// Output: outstate - navigation state after propagation. If boundary further
-//           than proposed step, outstate has to match instate
-//         step - propagation step for which the state is sampled
-//         safety - calculated safety value for the input point
-//         isonbdr - propagated point is on a boundary
+void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
   const double epserr = 1.E-3; // push value in case of repeated geom error
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -144,36 +129,36 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(const double &pstep,
   TGeoNode *nextnode, *lastnode;
   double pt[3];
   ismall = 0;
-  step = 0;
+  track.fStep = 0;
   // Check if current safety allows for the proposed step
-  if (safe > pstep) {
-    step = pstep;
-    *outstate = *instate;
-    isonbdr = false;
+  if (track.fSafety > track.fPstep) {
+    track.fStep = track.fPstep;
+    *track.fNextpath = *track.fPath;
+    track.fBoundary = false;
     return;
   }
   // Reset navigation state flags and safety to start fresh
   nav->ResetState();
   // Setup start state
-  nav->SetCurrentPoint(x, y, z);
-  nav->SetCurrentDirection(dirx, diry, dirz);
-  instate->UpdateNavigator(nav);
+  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
+  nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
+  track.fPath->UpdateNavigator(nav);
   nextnode = nav->GetCurrentNode();
   while (nextnode) {
     lastnode = nextnode;
     // Compute distance to next boundary and propagate internally
-    nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, pstep), !isonbdr);
+    nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.fPstep), !track.fBoundary);
     snext = nav->GetStep();
     // Adjust step to be non-negative and cross the boundary
-    step = Math::Max<double>(2 * gTolerance, snext + 2 * gTolerance);
+    track.fStep = Math::Max<double>(2 * gTolerance, snext + 2 * gTolerance);
     // Check for repeated small steps starting from boundary
-    if (isonbdr && (snext < 1.E-8) && (pstep > 1.E-8)) {
+    if (track.fBoundary && (snext < 1.E-8) && (track.fPstep > 1.E-8)) {
       ismall++;
       if ((ismall < 3) && (nextnode != lastnode)) {
         // Make sure we don't have a thin layer artefact so repeat search
-        nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, pstep - snext), !isonbdr);
+        nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.fPstep - snext), !track.fBoundary);
         snext = nav->GetStep();
-        step += snext;
+        track.fStep += snext;
         // If step still small, repeat
         if (snext < 1.E-8)
           continue;
@@ -183,7 +168,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(const double &pstep,
       } else {
         if (ismall > 3) {
           // Mark track to be killed
-          step = -1;
+          track.fStep = -1;
           break;
         }
         // The block below can only happen if crossing into the same node on different geometry
@@ -192,7 +177,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(const double &pstep,
         const double *dir = gGeoManager->GetCurrentDirection();
         for (int j = 0; j < 3; j++)
           pt[j] += epserr * dir[j];
-        step += epserr;
+        track.fStep += epserr;
         nav->CdTop();
         nextnode = nav->FindNode(pt[0], pt[1], pt[2]);
         if (nav->IsOutside())
@@ -205,14 +190,14 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(const double &pstep,
     break;
   }
   // Update safety, boundary flag and next path
-  safe = isonbdr ? 0. : nav->GetSafeDistance();
-  isonbdr = nav->IsOnBoundary();
-  outstate->InitFromNavigator(nav);
+  track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
+  track.fBoundary = nav->IsOnBoundary();
+  track.fNextpath->InitFromNavigator(nav);
 #ifdef VERBOSE
   double bruteforces = nav->Safety();
-  Geant::Print("","##TGEOM  BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", isonbdr,
-         pstep, step, safe, bruteforces, nav->IsOnBoundary());
-// assert( safe<=bruteforces );
+  Geant::Print("","##TGEOM  BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", track.fBoundary,
+         track.fPstep, track.fStep, track.fSafety, bruteforces, nav->IsOnBoundary());
+// assert( track.fSafety<=bruteforces );
 #endif // VERBOSE
 }
 
@@ -255,29 +240,19 @@ void ScalarNavInterfaceTGeo::NavIsSameLocation(int ntracks,
 }
 
 //______________________________________________________________________________
-void ScalarNavInterfaceTGeo::NavIsSameLocation(const double &x, const double &y, const double &z,
-       const double &dirx, const double &diry, const double &dirz,
-       const VolumePath_t *start, VolumePath_t *end, bool &same) {
-// 
-// Checks if the navigation states corresponding to positions (x,y,z) are the
-// same as the ones pointed by start. Update new states in end.
-// Input:  x,y,z   - arrays of positions
-//         start   - starting navigation paths to compare with
-// Output: end     - navigation paths corresponding to given positions
-//         same    - flags showing if the end and start positions are matching
-
+void ScalarNavInterfaceTGeo::NavIsSameLocation(GeantTrack &track, bool &same) {
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();
   nav->SetLastSafetyForPoint(0, 0, 0, 0);
-  nav->SetCurrentPoint(x[itr], y[itr], z[itr]);
-  nav->SetCurrentDirection(dirx[itr], diry[itr], dirz[itr]);
-  start[itr]->UpdateNavigator(nav);
-  if (!nav->IsSameLocation(x[itr], y[itr], z[itr], true)) {
+  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
+  nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
+  track.fPath->UpdateNavigator(nav);
+  if (!nav->IsSameLocation(track.fXpos, track.fYpos, track.fZpos, true)) {
     end[itr]->InitFromNavigator(nav);
-    same[itr] = false;     
+    same = false;     
   } else {
   // Track not crossing
-    same[itr] = true;
+    same = true;
   }
 }
 

@@ -59,11 +59,7 @@ public:
   * @brief Single track version of the function above */
   GEANT_CUDA_BOTH_CODE
   static
-  void NavFindNextBoundaryAndStep(const double &pstep, 
-         const double &x, const double &y, const double &z,
-         const double &dirx, const double &diry, const double &dirz, 
-         const VolumePath_t *instate, VolumePath_t *outstate, 
-         double &step, double &safe, bool &isonbdr);
+  void NavFindNextBoundaryAndStep(GeantTrack &track);
     
   /**
    * @brief Function for navigation that checks if location is the same or not
@@ -91,9 +87,7 @@ public:
   * @brief Single track version of the function above */
   GEANT_CUDA_BOTH_CODE
   static
-  void NavIsSameLocation(const double &x, const double &y, const double &z, 
-         const double &dirx, const double &diry, const double &dirz, 
-         const VolumePath_t *start, VolumePath_t *end, bool &same, VolumePath_t *tmpstate);
+  void NavIsSameLocation(GeantTrack &track, bool &same, VolumePath_t *tmpstate);
 };
 } // GEANT_IMPL_NAMESPACE
 
