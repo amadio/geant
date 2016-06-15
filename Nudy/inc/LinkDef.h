@@ -24,5 +24,6 @@
 #pragma link C++ class TVNudyModel+;
 #pragma link C++ class TNudyAlias+;
 #pragma link C++ class TNudyAliasCont+;
+#pragma link C++ class TNudyEndfRecoPoint+;
 
 #endif
