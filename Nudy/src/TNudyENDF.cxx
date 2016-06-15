@@ -31,10 +31,9 @@ const char TNudyENDF::fkElNam[119][4] = {
     "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Uut", "Uuq", "Uup", "Uuh", "Uus", "Uuo"};
 
 const char TNudyENDF::fkElIso[4][2] = {"", "m", "n", "o"};
-
-//_______________________________________________________________________________
-TNudyENDF::TNudyENDF()
-  : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
+    //_______________________________________________________________________________
+    TNudyENDF::TNudyENDF()
+    : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
   //
   // Standard constructor
   //
@@ -43,11 +42,11 @@ TNudyENDF::TNudyENDF()
 
 //_______________________________________________________________________________
 TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt, unsigned char loglev)
-    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
+    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL),ENDFSUB() {
 
   fLine[0] = '\0';
-
   // Open input stream
+  
   fENDF.open(nFileENDF);
   if (!fENDF.is_open())
     Fatal("ctor", "Could not open input file %s", nFileENDF);
@@ -58,12 +57,16 @@ TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *
     Fatal("ctor", "Could not open output file %s", nFileRENDF);
 
   // Read to Tape Identifier
+  for (int i = 0; i<6; i++){
   fENDF.getline(fLine, LINLEN);
+  }
   if (loglev > 3)
     std::cout << "Opened ENDF file:" << std::endl
               << fLine << std::endl;
-
   fTape = new TNudyEndfTape(fLine, fLogLev);
+  fENDF.seekg(0);	      
+  fENDF.getline(fLine, LINLEN);
+  std::cout<<"main file "<< fLine << std::endl;
 }
 
 //_______________________________________________________________________________
@@ -71,6 +74,15 @@ void TNudyENDF::Process() {
   //
   // Process a tape
   //
+  if(sub==kTRUE){
+    const char* EndfSub;
+    std::string subname = GetEndfSubName();
+    EndfSub =(const char*)subname.c_str();
+    fENDF.open(EndfSub);
+  if (!fENDF.is_open())
+    Fatal("ctor", "Could not open input file %s", EndfSub);
+    fENDF.getline(fLine, LINLEN);   
+  }
   double c[2];
   int nl[4];
   int mtf[4];
@@ -82,7 +94,7 @@ void TNudyENDF::Process() {
     fENDF.getline(fLine, LINLEN);
     if (fLogLev > 10)
       std::cout << fLine << std::endl;
-
+      
     // See what we have
     GetMTF(mtf);
 
@@ -120,9 +132,11 @@ void TNudyENDF::Process() {
   }
 
   // Write the tape to disk
+  
   fTape->Print();
   fTape->Write();
-  fRENDF->Close();
+  fENDF.close();
+  if(sub==kTRUE)fRENDF->Close();
 }
 
 //_______________________________________________________________________________
@@ -151,7 +165,6 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Material record line 2
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
-
   mat->SetELIS(c[0]);
   mat->SetSTA(c[1]);
   mat->SetLIS(nl[0]); // Because nl's are INT and Function expects char
@@ -319,7 +332,6 @@ void TNudyENDF::Process(TNudyEndfFile *file) {
     // Careful to the inverted logics... we are already at the beg of the new file here
     // so we cannot read the next line, otherwise we skip the first line of the new file
     GetMTF(mtf);
-
     if (!curMF) {
       // End of File, return from the method
       CheckFEND(mtf);
@@ -452,7 +464,7 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
     Fatal("ProcessF1(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   switch (curMT) {
-  case 451:
+  case 451://                      only comments in this section
     break;
   case 452: // ------------------- Section 452 -- Fission Yield
     switch (nl[1]) {
@@ -641,9 +653,12 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
         } break;
         case 1: // Resolved resonance parameters
         {
+//	  std::cout<<"SLBW "<<iLRF<<std::endl;
           switch (iLRF) {
           case 1: // Single-level Breit-Wigner
-          case 2: // Multi-level Breit-Wigner
+	    
+          case 2:// Multi-level Breit-Wigner
+
           case 3: // Reich-Moore
           {
             if (iNRO != 0) {
@@ -685,7 +700,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
             TNudyEndfCont *secContJval = new TNudyEndfCont(); // CONT (J-value) record
             Process(secContJval);
             sec->Add(secContJval);
-            for (int k = 0; k < secContJval->GetN1(); ++k) {
+            for (int k = 0; k < 2 * secContJval->GetN1(); ++k) {
               // loop over J-values, subsection
               // secContLval->GetN1() is NJS
               TNudyEndfList *secList = new TNudyEndfList();
@@ -2179,8 +2194,8 @@ void TNudyENDF::CheckMEND(const int pmtf[3]) const {
 
   GetCONT(c, nl, mtf);
   if (c[0] || c[1] || nl[0] || nl[1] || nl[2] || nl[3] || mtf[0] || mtf[1] || mtf[2]) {
-    std::cout << "Expecting MEND and found for MAT " << pmtf[0] << std::endl;
     Fatal("CheckMEND", "MEND not found\n");
+    std::cout << "Expecting MEND and found for MAT " << pmtf[0] << std::endl;
   }
 }
 
@@ -2192,8 +2207,8 @@ void TNudyENDF::CheckTEND() const {
 
   GetCONT(c, nl, mtf);
   if (c[0] || c[1] || nl[0] || nl[1] || nl[2] || nl[3] || (mtf[0] != -1) || mtf[1] || mtf[2]) {
-    std::cout << "Expecting TEND and found" << std::endl;
     Fatal("CheckTEND", "TEND not found\n");
+    std::cout << "Expecting TEND and found" << std::endl;
   }
 }
 
