@@ -40,8 +40,8 @@ public:
   void DumpENDF(int flags);
   TNudyEndfRecord *GetRecord(int recNo);
 
-  int GetC1() const { return fC1; }
-  int GetC2() const { return fC2; }
+  double GetC1() const { return fC1; }
+  double GetC2() const { return fC2; }
   int GetL1() const { return fL1; }
   int GetL2() const { return fL2; }
   int GetN1() const { return fN1; }
