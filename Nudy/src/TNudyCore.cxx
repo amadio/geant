@@ -208,6 +208,7 @@ double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *
     if (index < nbt[jnt - 1]) {
       intlaw = interp[jnt - 1];
       yy = InterpolateScale(x + index, y + index, intlaw, xx);
+      return yy;
     }
   }
   //  Info("Value","Interpolated Value = %e",yy);
