@@ -342,7 +342,6 @@ if(USE_ROOT)
 #   - ROOT built with classic configure/make use the provided $ROOTSYS/etc/cmake/FindROOT.cmake
 #   - ROOT built with CMake. Add in CMAKE_PREFIX_PATH the installation prefix for ROOT
    list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-
 #---Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
    find_package(ROOT REQUIRED COMPONENTS EG Gui Geom TreePlayer)
 
