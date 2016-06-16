@@ -42,5 +42,3 @@ target_link_libraries(Vphysproc ${VC_LIBRARIES} Xsec Geant_v ${ROOT_LIBRARIES} E
 add_custom_target(VectPhysProc DEPENDS Vphysproc)
 
 install(TARGETS Vphysproc DESTINATION lib)
-install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVphysproc.rootmap 
-              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVphysproc_rdict.pcm DESTINATION lib)
