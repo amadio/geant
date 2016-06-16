@@ -75,7 +75,7 @@ if (GeantCudaReplace)
 endif()
 
 ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers}
-                MODULE lib${GeantCudaLib}
+                MODULE ${GeantCudaLib}
                 LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h
                 OPTIONS -I${CUDA_INCLUDE_DIRS} -DVC_COMMON_SIMDIZE_H_=1 ${extra_dict_options} )
 

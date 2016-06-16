@@ -41,7 +41,7 @@ set(headers
    ${CMAKE_SOURCE_DIR}/xsec/inc/TTabPhysProcess.h
 )
 
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 if(CTEST)

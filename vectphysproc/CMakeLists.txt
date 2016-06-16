@@ -31,7 +31,7 @@ include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
 #----------------------------------------------------------------------------
 # Generate the root dictionary: this library will be used in run.C root macro.  
 #----------------------------------------------------------------------------
-ROOT_GENERATE_DICTIONARY(vphysprocDict ${headers} MODULE libVphysproc LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+ROOT_GENERATE_DICTIONARY(vphysprocDict ${headers} MODULE Vphysproc LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
 # Add traget library and dependencies

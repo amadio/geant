@@ -25,6 +25,18 @@ endif()
 
 include_directories(inc)
 
+ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+
+#----------------------------------------------------------------------------
+# Add the executable, and link it to the Geant4 libraries
+#
+add_library(Xsec SHARED ${sources} xsecDict.cxx)
+
+set(HEPMC_LIBS "")
+if(HepMC_FOUND)
+  set(HEPMC_LIBS "${HEPMC_LIBRARIES}")
+endif()
+
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
      ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 

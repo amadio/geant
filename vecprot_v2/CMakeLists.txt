@@ -72,11 +72,8 @@ if(USE_VECGEOM_NAVIGATOR)
    )
 endif()
 
-if (NOT MIC)
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE libGeant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-else()
-set(GEANT_MIC ON)
-endif()
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+
 #----------------------------------------------------------------------------
 #
 

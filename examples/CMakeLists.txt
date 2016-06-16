@@ -21,7 +21,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
 )   
 
-ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
 #

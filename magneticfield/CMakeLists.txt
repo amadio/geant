@@ -27,7 +27,7 @@ message(STATUS "Include directories: ${inc_dirs}")
 #----------------------------------------------------------------------------
 # Generate the root dictionary: this library will be used in run.C root macro.  
 #----------------------------------------------------------------------------
-## ROOT_GENERATE_DICTIONARY(vMagFieldDict ${headers} MODULE libVphysproc LINKDEF inc/LinkDef.h)
+## ROOT_GENERATE_DICTIONARY(vMagFieldDict ${headers} MODULE Vphysproc LINKDEF inc/LinkDef.h)
 
 #----------------------------------------------------------------------------
 # Add traget library and dependencies
