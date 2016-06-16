@@ -1,5 +1,5 @@
-#ifndef TNudyEndfRecoPoint_H
-#define TNudyEndfRecoPoint_H
+#ifndef __TNudyEndfRecoPoint__
+#define __TNudyEndfRecoPoint__
 
 #include <iostream>
 #include <string>
@@ -72,26 +72,13 @@
 #define Fac1(x) (1.0 + x2(x))
 #define Fac2(x) (9.0 + 3.0 * x2(x) + x4(x))
 #define Fac3(x) 225.0 + 50445.0*x2(x)  - 13500.0*x3(x)  + 1386.0*x4(x)  - 60.0*x5(x)  + x6(x)
-class TFile;
-class TGeoMatrix;
-class TGeoVolume;
-class TNudyEndfTape;
-class TNudyEndfMat;
-class TNudyEndfFile;
-class TNudyEndfSec;
-class TNudyEndfCont;
-class TNudyEndfList;
-class TNudyEndfTab1;
-class TNudyEndfTab2;
-class TNudyEndfINTG;
-class TNudyManager;
-class TNudyCore;
+class TNudyEndfDoppler;
 
 class  TNudyEndfRecoPoint : public TObject {
 
 public: 
   TNudyEndfRecoPoint();
-  ~TNudyEndfRecoPoint();
+  virtual ~TNudyEndfRecoPoint();
   void GetData(const char *rENDF);
   double SetsigPrecision(double x1){return sigDiff = x1;}
   void fixupTotal(std::vector<double> &x1, std::vector<double> &x2);
@@ -121,7 +108,8 @@ public:
   std::vector<double> sigmaMts;				// MT numbers for sigma in file3
   std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
   int NoOfElements = 0;
-  
+protected:
+  double AWRI;
 private:
   void ReadFile1(TNudyEndfFile *file);
   double recursionLinearNu(double x1, double x2, double sig1, double sig2);
@@ -162,7 +150,6 @@ private:
   double recursionLinear(double x1, double x2, double sig1, double sig2);
   double recursionLinear(double x1, double x2, double sig1, double sig2, double sig3, double sig4, double sig5, double sig6);
   int widthFluctuation(double gnr, double gx, double gg, double gf, int jval);
-  double dopplerBroadning(double t1, double t2, std::vector<double> &x1,std::vector<double> &x2);
   void Sort(std::vector<double> &x1,std::vector<double> &x2);
   double Thinning(std::vector<double> &x1, std::vector<double> &x2);
   double ThinningDuplicate(std::vector<double> &x1);
@@ -173,7 +160,7 @@ private:
   int dopplerBroad=0, flagResolve=0, flagUnResolve=0;   // flag for Doppler broadening for thinning, Resolve  and URR parameter exist
   double eLo1=0, eLo2=0, eHi1=0,  eHi2=0, eLo=0, eHi=0; // Resonance energy range Low, High
   double SPI, AP, APL[10], rad_a;                       // Target Spin (I), Scattering Radius (AP), L-dependent AP, Channel radius (a)
-  double A, AWR, ABN, AWRI, QX;                         // standard ENDF parameters
+  double A, AWR, ABN, QX;                         // standard ENDF parameters
   double factor_k;                                      // factor for wave vector
   double JMIN, JMAX;                                    // J values
   double RN,RG,RF,RX;                                   // standard ENDF parameters
@@ -237,6 +224,7 @@ private:
   std::vector<double> D, GX, GNO, GG, GF;		// URR parameters
   std::vector<double> PhiEr,ShiftEr;			// penetration and shift factors
   std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  TNudyEndfDoppler *doppler;
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction
 };
 #endif
