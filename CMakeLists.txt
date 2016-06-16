@@ -119,6 +119,9 @@ if (GEANT_INSTALL_RPATH)
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
   endif("${isSystemDir}" STREQUAL "-1")
 endif()
+
+set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
+
 #----------------------------------------------------------------------------
 
 option(CTEST "Enable CTest when building." OFF)
@@ -208,15 +211,20 @@ endif()
 # Find ROOT and setup the libraries
 #
 
-if (MIC)
-#add_definitions(-DGEANTV_MIC)
-set (USE_ROOT FALSE)
-else()
-find_package(ROOT REQUIRED)
+if(USE_ROOT) 
+# You need to tell CMake where to find the ROOT installation. This can be done in a number of ways:
+#   - ROOT built with classic configure/make use the provided $ROOTSYS/etc/cmake/FindROOT.cmake
+#   - ROOT built with CMake. Add in CMAKE_PREFIX_PATH the installation prefix for ROOT
+   list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
-include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR})
+#---Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
+   find_package(ROOT REQUIRED COMPONENTS EG Gui Geom TreePlayer)
 
-if( USE_ROOT )
+#---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
+   include(${ROOT_USE_FILE})
+   include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR})
+#   list(APPEND ROOT_LIBRARIES EG Gui Geom)
+
    add_definitions("-DUSE_ROOT")
 endif()
 endif()
@@ -472,7 +480,6 @@ if (CUDA)
 
   set(
     CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-    -std=c++11
     -Xcompiler ,\"-Wno-unused-function\"
     -Xcompiler ,\"-Wno-unused-parameter\"
     -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"

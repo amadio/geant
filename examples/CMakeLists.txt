@@ -21,14 +21,8 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
 )   
 
-#file(GLOB sources src/*.cxx)
+ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
-#file(GLOB headers inc/*.h)
-#string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h" "" headers "${headers}")
-
-if (NOT MIC)
-  ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE libGeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-endif()
 #----------------------------------------------------------------------------
 #
 
@@ -46,7 +40,7 @@ else()
 endif()
 
 target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  -lGeant_v ${ROOT_LIBRARIES} -lEG -lGeom ${Vc_LIBRARIES})
+  -lGeant_v ${ROOT_LIBRARIES} ${Vc_LIBRARIES})
 
 else()
 add_library(GeantExamples SHARED ${sources})

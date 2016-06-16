@@ -61,7 +61,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 add_executable(tabxsec tabxsec.cc ${sources} ${c_sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
-                              -lEG -lTreePlayer -lGui ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
+                              ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
 add_dependencies(tabxsec xseclib)
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")

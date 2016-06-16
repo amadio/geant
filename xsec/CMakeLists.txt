@@ -10,24 +10,10 @@ if(HepMC_FOUND)
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
 
-#set(HepMC_FOUND NO)
-
-#----------------------------------------------------------------------------
-# Setup include directory for this project
-#
-
-
-#----------------------------------------------------------------------------
-# Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/TestProcess.cxx)
 file(GLOB headers inc/T*.h inc/GunGenerator.h inc/TestProcess.h)
-
-#set(XSEC_HEADERS ${headers} PARENT_SCOPE)
-#set(XSEC_SOURCES ${sources} PARENT_SCOPE)
-
-#set(headers ${headers} ${VC_INCLUDE_DIR}/base/Vector.h)
 
 if(HepMC_FOUND)
   add_definitions(-DHEPMC)
@@ -39,35 +25,8 @@ endif()
 
 include_directories(inc)
 
-
-
-if (NOT MIC)
-  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE libXsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-  #----------------------------------------------------------------------------
-  # Add the executable, and link it to the Geant4 libraries
-  #
-  add_library(Xsec SHARED ${sources} xsecDict.cxx)
-
-  set(ROOT_LIBS "")
-  if(USE_ROOT OR NOT USE_VECGEOM_NAVIGATOR)
-    set(ROOT_LIBS "${ROOT_LIBRARIES} -lEG -lGui -lGeom")
-  endif()
-else()
-  add_library(Xsec SHARED ${sources})
-endif()
-
-set(HEPMC_LIBS "")
-if(HepMC_FOUND)
-  set(HEPMC_LIBS "${HEPMC_LIBRARIES}")
-endif()
-
-if (NOT MIC)
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-     ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
-else()
-target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v 
-     ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
-endif()
+     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 
 set(XSEC_LINK_LIBS "-lXsec" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 

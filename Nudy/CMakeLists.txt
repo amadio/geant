@@ -19,7 +19,7 @@ ROOT_GENERATE_DICTIONARY(NudyDict ${headers} MODULE libNudy LINKDEF inc/LinkDef.
 #
 add_library(Nudy SHARED ${sources} NudyDict.cxx)
 
-target_link_libraries(Nudy ${ROOT_LIBRARIES} Geom EG MathMore Graf)
+target_link_libraries(Nudy ${ROOT_LIBRARIES} MathMore ${VC_LIBRARIES})
 
 # for some reason the installation process alters the libraries on Mac, and the program fails
 if(APPLE) 

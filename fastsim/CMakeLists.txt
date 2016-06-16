@@ -24,6 +24,7 @@ endif()
 #
 file(GLOB sources src/*.cxx src/GunGenerator.cxx)
 file(GLOB headers inc/*.h inc/GunGenerator.h)
+string(REGEX REPLACE "[^ ]*/fastsimLinkDef.h" "" headers "${headers}")
 
 if(HepMC_FOUND)
   add_definitions(-DHEPMC)
@@ -42,18 +43,13 @@ ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE libFastsim LINKDEF inc/fa
 #
 add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
 
-set(ROOT_LIBS "")
-if(USE_ROOT OR NOT USE_VECGEOM_NAVIGATOR)
-  set(ROOT_LIBS "${ROOT_LIBRARIES} -lEG -lGui -lGeom")
-endif()
-
 set(HEPMC_LIBS "")
 if(HepMC_FOUND)
   set(HEPMC_LIBS "${HEPMC_LIBRARIES}")
 endif()
 
 target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-     ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
+     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
 
 set(FASTSIM_LINK_LIBS "-lFastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 
