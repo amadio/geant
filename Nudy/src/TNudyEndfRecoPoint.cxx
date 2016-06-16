@@ -3,9 +3,11 @@
 // Author: Dr. Harphool Kumawat
 // Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // date of creation: March 22, 2016
+
+#include "TNudyEndfDoppler.h"
 #include "TNudyEndfRecoPoint.h"
-TNudyEndfRecoPoint::TNudyEndfRecoPoint(){}
-TNudyEndfRecoPoint::~TNudyEndfRecoPoint(){}
+
+TNudyEndfRecoPoint::TNudyEndfRecoPoint(): TObject(){}
 
 double TNudyEndfRecoPoint::recursionLinearPh(double x1, double x2, double sig1, double sig2){
   double siga;
@@ -872,13 +874,14 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
     }while(eneLow < 1E3);
   
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-//    std::cout <<"MT  "<<sec->GetMT() <<std::endl;
+    std::cout <<"MT  "<<sec->GetMT() <<std::endl;
     int MT = sec->GetMT();
     MtNumbers.push_back(MT);
     MtNumber += 1;
     TIter recIter(sec->GetRecords());
     TNudyEndfCont *header = (TNudyEndfCont *)recIter.Next();
     //double ZA   = sec->GetC1();
+    double AWRI  = sec->GetC2();
     //double AWR  = sec->GetC2();
     //double QM   = header->GetC1();
     double QI   = header->GetC2();
@@ -2829,132 +2832,6 @@ double TNudyEndfRecoPoint::Gamma_xrE(int ii, int lrx) {
 double TNudyEndfRecoPoint::Gamma_rE(double x, int ii, int lval, int lrx) {
   return Gamma_nrE(x, ii, lval) + Gamma_xrE(ii, lrx) + Gamma_g[ii] + Gamma_f[ii];
 }
-
-
-double TNudyEndfRecoPoint::dopplerBroadning(double t1, double t2,std::vector<double> &x1,std::vector<double> &x2){
-  double OVSQPI = 0.564189583547756279;
-  double boltz = 8.617385E-05;
-  double ONE = 1.0, TWO = 2.0, THH = 3.0/TWO, TW3 = TWO/3.0, ZERO = 0.0, HALF = ONE/TWO;
-  double ZLIMI = 4;
-  double tk = t2 - t1;
-  double ALPHA = AWRI/(boltz*tk);
-  double ZKT,Y2;
-  double ZK2P,ZK22P,EXPAP,F0K2P,F1K2P,F2K2P,F3K2P,F4K2P;
-  double ZK2,ZK22,EXPA,F0K2,F1K2,F2K2,F3K2,F4K2;
-  double ZK1,F0K1,F1K1,F2K1,F3K1,F4K1;
-  double FACT,AK,CK,CKY,CKY2;
-  double FTAIL1=0, FTAIL2=0;
-  double E1, E2, S1, S2;
-  double ZK1P,F0K1P,F1K1P,F2K1P,F3K1P,F4K1P;
-#define XNEPSM(S)  fabs(1.0 - TW3*sqrt(ONE/3.0)*pow((ONE + S*(ONE + S)),THH)/(S*(ONE+S)))
-#define FTAIL(X,Y) OVSQPI*((1.0+2.0*Y*Y)*sqrt(PI)*HALF*(erf(X-Y)-erf(X+Y))-(X+Y)*exp(-(X-Y)*(X-Y))+(X-Y)*exp(-(X+Y)*(X+Y))) 
-  int ncrs = x1.size();
-  double  RATLOW = 1;
-  double  RATHIG = 2;
-  while(RATHIG-RATLOW > 1E-7){
-    double RATHLF = HALF*(RATLOW+RATHIG);
-    double HTEST = XNEPSM(RATHLF);
-    if(HTEST < 0.01){
-      RATLOW = RATHLF;
-      }else{
-      RATHIG = RATHLF;
-    }
-  }//end of while loop
-  int IPP = 0, KPP;
-  for(int j=0; j < x1.size(); j++){
-    Y2 = x1[j]*ALPHA;
-    double Y = sqrt(Y2);
-    ZKT = sqrt(x1[IPP+1]*ALPHA)-Y;
-    
-    while(ZKT < -ZLIMI){
-      IPP += 1; 
-      ZKT = sqrt(x1[IPP+1]*ALPHA)-Y;
-    }//end of while loop
-    double XSUM = 0.0;
-    KPP = IPP;
-    E2 = x1[KPP];
-    S2 = x2[KPP];
-    ZK2 = sqrt(E2*ALPHA)-Y;
-    ZK22 = ZK2*ZK2;
-    EXPA = exp(-ZK22);
-    F0K2 = erf(ZK2);
-    F1K2 = OVSQPI*(ONE-EXPA);
-    F2K2 = HALF*F0K2-OVSQPI*ZK2*EXPA;
-    F3K2 = OVSQPI*(ONE-(1+ZK22)*EXPA);
-    F4K2 = HALF*THH*F0K2-OVSQPI*ZK2*(THH+ZK22)*EXPA;
-    if(Y < ZLIMI){
-      ZK2P = ZK2+2*Y;
-      ZK22P = ZK2P*ZK2P;
-      EXPAP = exp(-ZK22P);
-      F0K2P = erf(ZK2P);
-      F1K2P = OVSQPI*(ONE-EXPAP);
-      F2K2P = HALF*F0K2P-OVSQPI*ZK2P*EXPAP;
-      F3K2P = OVSQPI*(ONE-(1+ZK22P)*EXPAP);
-      F4K2P = HALF*THH*F0K2P-OVSQPI*ZK2P*(THH+ZK22P)*EXPAP;
-    }
-    do
-    {
-      if(ZK2 < ZLIMI){
-	E1 = E2;
-	S1 = S2;
-	KPP = KPP + 1;
-	E2 = x1[KPP];
-	S2 = x2[KPP];
-	while(E2==E1){
-	  KPP = KPP + 1;
-	  E2 = x1[KPP];
-	  S2 = x2[KPP];
-	}
-	if(E2-E1==0.0||Y2==0.0||ALPHA==0.0)std::cout<<E1<<"  "<<E2<<" zero "<<Y2<<"  "<<ALPHA<<"  "<<AWRI<<std::endl;
-	ZK1 =ZK2;
-	F0K1=F0K2;
-	F1K1=F1K2;
-	F2K1=F2K2;
-	F3K1=F3K2;
-	F4K1=F4K2;
-	ZK2 =sqrt(E2*ALPHA)-Y;
-	ZK22=ZK2*ZK2;
-	EXPA=exp(-ZK22);
-	F0K2=erf(ZK2);
-	F1K2=OVSQPI*(ONE-EXPA);
-	F2K2=HALF*F0K2-OVSQPI*ZK2*EXPA;
-	F3K2=OVSQPI*(ONE-(1+ZK22)*EXPA);
-	F4K2=HALF*THH*F0K2-OVSQPI*ZK2*(THH+ZK22)*EXPA;
-	FACT=ONE/(E2-E1);
-	AK  =(E2*S1-E1*S2)*FACT;
-	CK  =(S2-S1)*FACT/ALPHA;
-	CKY =CK*Y;
-	CKY2=CK*Y2;
-	XSUM = XSUM + CK*(F4K2-F4K1)+4*CKY*(F3K2-F3K1)+(AK+6*CKY2)*(F2K2-F2K1)+2*Y*(AK+2*CKY2)*(F1K2-F1K1)+Y2*(AK+CKY2)*(F0K2-F0K1);
-	if(Y < ZLIMI){
-	  ZK1P =ZK2P;
-          F0K1P=F0K2P;
-	  F1K1P=F1K2P;
-	  F2K1P=F2K2P;
-	  F3K1P=F3K2P;
-	  F4K1P=F4K2P;
-	  ZK2P =ZK2+2*Y;
-	  ZK22P=ZK2P*ZK2P;
-	  EXPAP=exp(-ZK22P);
-	  F0K2P=erf(ZK2P);
-	  F1K2P=OVSQPI*(ONE-EXPAP);
-	  F2K2P=HALF*F0K2P-OVSQPI*ZK2P*EXPAP;
-	  F3K2P=OVSQPI*(ONE-(1+ZK22P)*EXPAP);
-	  F4K2P=HALF*THH*F0K2P-OVSQPI*ZK2P*(THH+ZK22P)*EXPAP;
-	  XSUM=XSUM-(CK*(F4K2P-F4K1P)-4*CKY*(F3K2P-F3K1P)+(AK+6*CKY2)*(F2K2P-F2K1P)-2*Y*(AK+2*CKY2)*(F1K2P-F1K1P)+Y2*(AK+CKY2)*(F0K2P-F0K1P));
-	  FTAIL1=x1[1]*(FTAIL(sqrt(x1[0]*ALPHA),Y)-FTAIL(ZERO,Y));
-	  XSUM=XSUM+FTAIL1;
-	}//end of if
-      }//end of if
-    }while(KPP < ncrs - 1 && ZK2 < ZLIMI);
-	 //while loop
-    FTAIL2 = x2[ncrs-1]*(FTAIL(sqrt(100E7*ALPHA),Y)-FTAIL(sqrt(x1[ncrs-1]*ALPHA),Y));
-    XSUM=XSUM+FTAIL2;
-    sigma.push_back(HALF*XSUM/Y2);
-//             std::cout << std::setprecision(10) << x1[j] <<"  "<< std::setprecision(10) << x2[j] <<"  "<< std::setprecision(10) << HALF*XSUM/Y2 <<"  " << std::setprecision(10) << HALF*XSUM/Y2 << std::endl;
-  }// end of for loop
-  return 0;
-}
 int TNudyEndfRecoPoint::widthFluctuation(double GNR, double gx, double gg, double gf,int jval ){
   double XX[10][5]={
   {3.0013465E-03,1.3219203E-02,1.0004488E-03,1.3219203E-02,1.0E+0},
@@ -3929,7 +3806,7 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
     TIter iter(tMat->GetFiles());
     TNudyEndfFile *file;
     while ((file = (TNudyEndfFile *)iter.Next())) {
-//   std::cout <<" mf "<< file->GetMF() << std::endl;
+    //std::cout <<" mf "<< file->GetMF() << std::endl;
     // Read File data into class structures
       switch (file->GetMF()) 
       {
@@ -3937,7 +3814,7 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	  ReadFile1(file);
 	  break;
         case 2:
-//	  ReadFile2(file);
+	  ReadFile2(file);
 //      std::cout<<" file2 finished "<< std::endl;
 	  if(LRU !=0){
 	    Sort(eLinElastic, xLinElastic);
@@ -3957,14 +3834,15 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	  break;
         case 3:
 	  ReadFile3(file);
-/*	  
+///*	  
 	  std::cout<<"file 3 OK "<<std::endl;
+	  //std::cout<<"Total energy points "<< energyUni.size()<<std::endl;
 	  std::sort(energyUni.begin(), energyUni.end());//Unionization of energy grid for cross-section 
+	  //for(int j=0;j<energyUni.size();j++){
+	  //  std::cout<<energyUni[j]<<std::endl;
+	  //}
 	  ThinningDuplicate(energyUni);
 	  std::cout<<"Total energy points "<< energyUni.size()<<std::endl;
-//	  for(int j=0;j<energyUni.size();j++){
-//	    std::cout<<energyUni[j]<<std::endl;
-//	  }
 //      if(LRU==0){
 	  std::cout<<"NoOfElements "<< MtValues.size() <<" MT values "<< MtValues[0].size() << std::endl;
 	  for (int i = 0; i < MtValues.size(); i++){
@@ -3972,7 +3850,7 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	      std::cout <<"MT value "<< MtValues[i][j] << std::endl;
 	    }
 	  }
-	  std::cout<<"NoOfsigma "<< sigmaOfMts.size() <<" MT values "<< sigmaOfMts[0].size() <<"  "<< sigmaOfMts[1].size()<< std::endl;
+	  std::cout<<"NoOfsigma "<< sigmaOfMts.size() <<" No of points of 1, 2 "<< sigmaOfMts[0].size() <<"  "<< sigmaOfMts[1].size()<< std::endl;
 	  for (int i = 0; i < sigmaOfMts.size(); i++){
 	    int size = sigmaOfMts[i].size()/2;
 //	    std::cout<<"NoOfsigma before "<< size << std::endl;
@@ -4031,15 +3909,17 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	    }
 	  }
 	  sigma.clear();
+	  //std::cout<<" AWRI "<< AWRI <<"   "<< GetAWR() << std::endl;
 	  if(energyUni.size()>0){
-	    dopplerBroadning(0.0, 293.6, energyUni, sigmaUniTotal);
-	    std::cout<<"Total Doppler done "<<std::endl;
+	    doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, energyUni, sigmaUniTotal);
+	    //dopplerBroadning(0.0, 293.6, energyUni, sigmaUniTotal);
+	    std::cout<<"Total Doppler done "<<doppler->sigma.size()<<std::endl;
 	    dopplerBroad=1;
 	    sigmaUniTotal.clear();
 	    for(int j=0; j< energyUni.size(); j++){
-	      sigmaUniTotal.push_back(sigma[j]);
+	      sigmaUniTotal.push_back(doppler->sigma[j]);
 	    }
-	    sigma.clear();
+	    doppler->sigma.clear();
 	  }
 	  outtotal << energyUni.size() << std::endl;
 	  for(int j=0;j<energyUni.size();j++){
@@ -4067,37 +3947,40 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
   //	  }
 	    std::cout<<"Elstic Doppler begins "<<std::endl;
 	    if(eLinElastic.size()>0){
-	      dopplerBroadning(0.0, 293.6, eLinElastic, xLinElastic);
+	      doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, eLinElastic, xLinElastic);
+	      //dopplerBroadning(0.0, 293.6, eLinElastic, xLinElastic);
 	      std::cout<<"Elstic Doppler done "<<std::endl;
 	      dopplerBroad=1;
 	      for(int j=0; j< eLinElastic.size(); j++){
   //	     energy.push_back(eLinElastic[j]);
-		xBroadElastic.push_back(sigma[j]);}
-		sigma.clear();
+		xBroadElastic.push_back(doppler->sigma[j]);}
+		doppler->sigma.clear();
   //	   for(int j=0; j< eLinElastic.size(); j++)
   //	     std::cout<<eLinElastic[j]<<"  "<<xBroadElastic[j]<<std::endl;
 		Thinning(eLinElastic, xBroadElastic);
 	      }
 	      std::cout<<"Capture Doppler begins "<<std::endl;
 	      if(eLinCapture.size()>0){
-		dopplerBroadning(0.0, 293.6, eLinCapture, xLinCapture);
+		doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, eLinCapture, xLinCapture);
+		//dopplerBroadning(0.0, 293.6, eLinCapture, xLinCapture);
 		std::cout<<"Capture Doppler done "<<std::endl;
 		for(int j=0; j< eLinCapture.size(); j++){
   //	     energy.push_back(eLinCapture[j]);
-		  xBroadCapture.push_back(sigma[j]);
+		  xBroadCapture.push_back(doppler->sigma[j]);
 		}
-		sigma.clear();
+		doppler->sigma.clear();
 		Thinning(eLinCapture, xBroadCapture);
 	      }
 	      std::cout<<"Fission Doppler begins "<<std::endl;
 	      if(eLinFission.size()>0){
-		dopplerBroadning(0.0, 293.6, eLinFission, xLinFission);
+		doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, eLinFission, xLinFission);
+		//dopplerBroadning(0.0, 293.6, eLinFission, xLinFission);
 		std::cout<<"Fission Doppler done "<<std::endl;
 		for(int j=0; j< eLinFission.size(); j++){
   //	     energy.push_back(eLinFission[j]);
-		  xBroadFission.push_back(sigma[j]);
+		  xBroadFission.push_back(doppler->sigma[j]);
 		}
-		sigma.clear();
+		doppler->sigma.clear();
 		Thinning(eLinFission, xBroadFission);
 	      }
 	      dopplerBroad=0;
@@ -4111,7 +3994,7 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	      out << eLinFission.size() << std::endl;
 	    for(int j =0; j< eLinFission.size(); j++)
 	      out << eLinFission[j] <<"  "<< xBroadFission[j] << std::endl;
-*/     
+//*/     
 //    }
 	  break;
         case 4:
@@ -4160,8 +4043,8 @@ double TNudyEndfRecoPoint::ThinningDuplicate(std::vector<double> &x1){
   if(size>2){
     for(int i = 0; i< size1 - 1; i++){
       if(x1[i+1] == x1[i]) x1.erase(x1.begin()+i+1);
-    }
     size1 = x1.size();
+    }
   }
   size1 = x1.size();
   if(size == size1)return 0;
@@ -4238,3 +4121,4 @@ void TNudyEndfRecoPoint::fixupTotal(std::vector<double> &x1, std::vector<double>
   if (fE_file3) {    delete[] fE_file3;    fE_file3 = 0;  }
   if (fXsec_file3) {    delete[] fXsec_file3;    fXsec_file3 = 0;  }
 }
+TNudyEndfRecoPoint::~TNudyEndfRecoPoint(){}
