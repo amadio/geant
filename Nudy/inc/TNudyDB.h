@@ -1,6 +1,8 @@
 #ifndef TNudyDB_H
 #define TNudyDB_H
 
+#include <string>
+
 #include <THashTable.h>
 #include <TFile.h>
 #include <TList.h>
@@ -8,7 +10,9 @@
 #include "TNudyCore.h"
 #include "TNudyLibrary.h"
 
-class TNudyDB : public TNamed {
+using std::string;
+
+class TNudyDB : public TObject {
 public:
   TNudyDB(const char *name, const char *title, const char *file); // DEBUG
   virtual ~TNudyDB();
@@ -17,8 +21,12 @@ public:
   TList *GetEntries();                                 // Get a List of Libraries in the Nudy Database
   TFile *GetDBFile() { return fDB; }                   // Get a pointer to the database file
 private:
+  string fName;
+  string fTitle;
   TFile *fDB; //! Database data file
 
+#ifdef USE_ROOT
   ClassDef(TNudyDB, 1)
+#endif
 };
 #endif

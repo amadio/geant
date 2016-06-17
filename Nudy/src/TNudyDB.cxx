@@ -1,14 +1,16 @@
 
 #include "TNudyDB.h"
 
+#ifdef USE_ROOT
+ClassImp(TNudyDB)
+#endif
+
 //______________________________________________________________________________
 //   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
-TNudyDB::TNudyDB(const char *name, const char *title, const char *file) {
+TNudyDB::TNudyDB(const char *name, const char *title, const char *file) : 
+fName(name), fTitle(title) {
   // Constructor for TNudyDB, opens database storage file
 
-  // Set Name and title of database
-  SetName(name);
-  SetTitle(title);
   // Try to open file for update
   fDB = new TFile(file, "UPDATE");
   if (fDB->IsOpen()) {
@@ -34,7 +36,6 @@ TNudyDB::~TNudyDB() {
   }
   // Delete database file in memory
   delete fDB;
-  fDB = 0;
 }
 
 //______________________________________________________________________________
