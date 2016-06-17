@@ -1,30 +1,34 @@
 #include "TNudyAliasCont.h"
 
+#ifdef USE_ROOT
+ClassImp(TNudyAlias)
+#endif
+
 //_______________________________________________________________________________
 TNudyAliasCont::TNudyAliasCont()
-  : fLen(0), fChooseBin(NULL), fP(NULL), fX(NULL), fInterX(NULL), fInterP(NULL), fTx(NULL), fTp(NULL), fTa(-1),
-    fInterAlpha(10), fRan(NULL), fRnd(NULL), fAlpha(10)
+  : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
+    fInterAlpha(10), fRan(nullptr), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
     ,
-    fMult(NULL), fMultLen(0)
+    fMult(nullptr), fMultLen(0)
 #endif
 {
 }
 
 //_______________________________________________________________________________
 TNudyAliasCont::TNudyAliasCont(TArrayD *data, double alpha, unsigned int seed)
-    : fLen(0), fChooseBin(NULL), fP(NULL), fX(NULL), fInterX(NULL), fInterP(NULL), fTx(NULL), fTp(NULL), fTa(-1),
-      fInterAlpha(10), fRan(NULL), fRnd(NULL), fAlpha(10)
+    : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
+      fInterAlpha(10), fRan(nullptr), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
       ,
-      fMult(NULL), fMultLen(0)
+      fMult(nullptr), fMultLen(0)
 #endif
 {
   // TArrayD of x1,p1,x2,p2.....xn,pn
   int len = data->GetSize();
   int i = 0, j = 0;
   if (len % 2 != 0) {
-    Error("TNudyAliasCont", "Incorrect TArrayD specified");
+    printf("TNudyAliasCont::TNudyAliasCont: Incorrect TArrayD specified");
   }
   double *x = new double[len / 2];
   double *p = new double[len / 2];
@@ -34,18 +38,16 @@ TNudyAliasCont::TNudyAliasCont(TArrayD *data, double alpha, unsigned int seed)
   }
   Initialize(p, x, len, alpha, seed);
   delete[] p;
-  p = NULL;
   delete[] x;
-  x = NULL;
 }
 
 //_______________________________________________________________________________
 TNudyAliasCont::TNudyAliasCont(double *p, double *x, const int len, double alpha, unsigned int seed)
-    : fLen(0), fChooseBin(NULL), fP(NULL), fX(NULL), fInterX(NULL), fInterP(NULL), fTx(NULL), fTp(NULL), fTa(-1),
-      fInterAlpha(10), fRan(NULL), fRnd(NULL), fAlpha(10)
+    : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
+      fInterAlpha(10), fRan(nullptr), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
       ,
-      fMult(NULL), fMultLen(0)
+      fMult(nullptr), fMultLen(0)
 #endif
 {
   Initialize(p, x, len, alpha, seed);
@@ -56,14 +58,14 @@ void TNudyAliasCont::Initialize(double *p, double *x, const int len, double alph
   // Data sorted(asc) in x
   // alpha to be used when using statistical interpolation between two distributions
   int i;
-  double *integral = NULL, *I = NULL;
-  fInterX = fInterP = NULL;
+  double *integral = nullptr, *I = nullptr;
+  fInterX = fInterP = nullptr;
   //  fTx = new TArrayD(len);
   //  fTp = new TArrayD(len);
   fTa = -1;
   fInterAlpha = 0;
 #ifdef TNUDYALIAS_MULTITHREAD
-  fMult = NULL;
+  fMult = nullptr;
   fMultLen = 0;
 #endif
   fLen = len;
@@ -102,20 +104,12 @@ TNudyAliasCont::~TNudyAliasCont() {
   delete fX;
   delete fInterX;
   delete fInterP;
-  if (fTx)
-    delete fTx;
-  if (fTp)
-    delete fTp;
+  delete fTx;
+  delete fTp;
   delete fRnd;
   delete fRan;
-  fP = fX = fInterX = fInterP = NULL;
-  fChooseBin = NULL;
-  fRnd = fRan = NULL;
-  fLen = 0;
 #ifdef TNUDYALIAS_MULTITHREAD
   delete[] fMult;
-  fMult = NULL;
-  fMultLen = 0;
 #endif
 }
 
@@ -387,8 +381,8 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const int len) {
     delete integral;
     delete integralp1;
   }
-  dists[len - 1].fInterP = NULL;
-  dists[len - 1].fInterX = NULL;
+  dists[len - 1].fInterP = nullptr;
+  dists[len - 1].fInterX = nullptr;
   dists[len - 1].fInterAlpha = 0;
 }
 
@@ -396,8 +390,7 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const int len) {
 
 //_______________________________________________________________________________
 double *TNudyAliasCont::Randoms(int n, IntScheme_t iScheme) {
-  if (fMult)
-    delete[] fMult;
+  delete[] fMult;
   double *bins = fChooseBin->Randoms(n);
   int i;
   fMultLen = n;

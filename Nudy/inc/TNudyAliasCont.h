@@ -1,7 +1,6 @@
 #ifndef ROOT_TNudyAliasCont
 #define ROOT_TNudyAliasCont
 
-#include <TObject.h>
 #include <TRandom.h>
 #include <TArrayD.h>
 
@@ -14,7 +13,7 @@
 // probability distributions using the Alias method
 //--------------------------------------------------
 
-class TNudyAliasCont : public TObject {
+class TNudyAliasCont {
 private:
   int fLen;               // Length of data
   TNudyAlias *fChooseBin; // Use alias method to choose bin
@@ -74,7 +73,9 @@ public:
   double *Randoms(int n, IntScheme_t iScheme = kLinear);
 #endif
 
+#ifdef USE_ROOT
   ClassDef(TNudyAliasCont, 1)
+#endif
 };
 
 #endif
