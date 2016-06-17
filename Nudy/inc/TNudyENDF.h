@@ -35,6 +35,9 @@ public:
   TNudyENDF();
   TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt = "new", unsigned char loglev = 0);
   virtual ~TNudyENDF();
+  bool sub=kFALSE;
+  void SetEndfSub(std::string ENDFSUB){this->sub=kTRUE; this->ENDFSUB=ENDFSUB; }
+  std::string GetEndfSubName() const {return ENDFSUB; }
   void SetLogLev(unsigned char loglev) { fLogLev = loglev; }
   unsigned char GetLogLev() const { return fLogLev; }
   void Process();
@@ -158,12 +161,9 @@ public:
     std::istringstream ss;
     std::string s0(fLine);
     std::string s1 = s0.substr(0, 66);
-    ss.str(s1);
 
     for (ii = 0; ii < 6; ii++)
-      ss >> strNum[ii];
-    ss.str("");
-    ss.clear();
+      strNum[ii] = s1.substr(ii * 11, 11);
 
     for (ii = 0; ii < 6; ii++) {
       c[ii] = 0.0;
@@ -218,7 +218,7 @@ private:
   char fLine[LINLEN];    //! Buffer to read the line
   TNudyEndfTape *fTape;  //! Support link for the tape structure
   TNudyEndfMat *fMat;    //! Support link for the current material
-
+  std::string ENDFSUB;
   ClassDef(TNudyENDF, 1) // class for an ENDF data file
 };
 
