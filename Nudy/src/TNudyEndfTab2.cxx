@@ -30,8 +30,8 @@ TNudyEndfTab2::TNudyEndfTab2(double c1, double c2, int l1, int l2, int n1, int n
 //______________________________________________________________________________
 TNudyEndfTab2::~TNudyEndfTab2() {
   // printf("Deleting Tab2\n");
-  SafeDelete(fNBT);
-  SafeDelete(fINT);
+  delete [] fNBT;
+  delete [] fINT;
 }
 
 //_______________________________________________________________________________

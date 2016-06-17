@@ -33,7 +33,7 @@ TNudyEndfList::TNudyEndfList(double c1, double c2, int l1, int l2, int n1, int n
 }
 
 //______________________________________________________________________________
-TNudyEndfList::~TNudyEndfList() { SafeDelete(fList); }
+TNudyEndfList::~TNudyEndfList() { delete [] fList; }
 //_______________________________________________________________________________
 void TNudyEndfList::SetCont(double c1, double c2, int l1, int l2, int n1, int n2) {
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);

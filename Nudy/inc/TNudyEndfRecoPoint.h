@@ -67,7 +67,6 @@
 #define kconst 2.196771e-3
 #define Mn 939.565378e+6    // in eV/c^2   1.00866491588   // in u
 #define hcross 6.5821192815e-6   // eV.s  1.054571800e-34 // in J.s
-//#define kconst sqrt(2.0 * Mn)/hcross       // used for k and k^prime
 #define Fac1(x) (1.0 + x2(x))
 #define Fac2(x) (9.0 + 3.0 * x2(x) + x4(x))
 #define Fac3(x) 225.0 + 50445.0*x2(x)  - 13500.0*x3(x)  + 1386.0*x4(x)  - 60.0*x5(x)  + x6(x)
@@ -75,7 +74,7 @@ class TNudyEndfDoppler;
 class TNudyEndfAng;
 class TNudyEndfEnergy;
 
-class  TNudyEndfRecoPoint : public TObject {
+class  TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfRecoPoint();
@@ -228,6 +227,9 @@ private:
   TNudyEndfAng *recoAng;
   TNudyEndfEnergy *recoEnergy;
   TNudyEndfDoppler *doppler;
+
+#ifdef USE_ROOT
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction
+#endif
 };
 #endif

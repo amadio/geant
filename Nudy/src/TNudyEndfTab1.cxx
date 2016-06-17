@@ -41,10 +41,10 @@ TNudyEndfTab1::TNudyEndfTab1(double c1, double c2, int l1, int l2, int n1, int n
 //_______________________________________________________________________________
 TNudyEndfTab1::~TNudyEndfTab1() {
   // printf("Deleting Tab1\n");
-  SafeDelete(fNBT);
-  SafeDelete(fINT);
-  SafeDelete(fX);
-  SafeDelete(fY);
+  delete [] fNBT;
+  delete [] fINT;
+  delete [] fX;
+  delete [] fY;
 }
 
 //_______________________________________________________________________________

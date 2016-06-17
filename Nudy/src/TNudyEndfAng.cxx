@@ -30,7 +30,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
     MtNumbers.push_back(MT);
     int LTT = sec->GetL2();
     int LI = header->GetL1();
-    int LCT = header->GetL2();
+    //    int LCT = header->GetL2();
     //printf("LTT = %d LCT = %d LI = %d\n",LTT, LCT, LI);
     //Legendre polynomial coefficients
     if (LTT == 1 && LI == 0) { 
