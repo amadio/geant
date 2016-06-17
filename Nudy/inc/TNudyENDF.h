@@ -30,7 +30,7 @@ class TNudyEndfINTG;
 
 #define LINLEN 256
 
-class TNudyENDF : public TObject {
+class TNudyENDF {
 public:
   TNudyENDF();
   TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt = "new", unsigned char loglev = 0);
@@ -219,7 +219,9 @@ private:
   TNudyEndfTape *fTape;  //! Support link for the tape structure
   TNudyEndfMat *fMat;    //! Support link for the current material
   std::string ENDFSUB;
+#ifdef USE_ROOT
   ClassDef(TNudyENDF, 1) // class for an ENDF data file
+#endif
 };
 
 #endif

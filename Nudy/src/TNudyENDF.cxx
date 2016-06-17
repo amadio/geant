@@ -5,7 +5,7 @@
    fca 2-mai-2010
 */
 
-#include <string.h>
+#include <string>
 
 #include <Riostream.h>
 #include <TNudyENDF.h>
@@ -20,6 +20,10 @@
 #include <TFile.h>
 #include <TMath.h>
 #include <cstdlib>
+
+#ifdef USE_ROOT
+ClassImp(TNudyENDF)
+#endif
 
 const char TNudyENDF::fkElNam[119][4] = {
     "n",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na",  "Mg",  "Al",  "Si",  "P",   "S",
