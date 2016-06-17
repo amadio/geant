@@ -16,7 +16,7 @@
 // Set to turn on multi threaded generation of random numbers
 #define TNUDYALIAS_MULTITHREAD
 
-class TNudyCore : public TNamed {
+class TNudyCore {
 protected:
   static TNudyCore *fgInstance;
   TGeoManager *fGeom;
@@ -24,13 +24,8 @@ protected:
   TDatabasePDG *fPdgDB;
   TList *fListOfObjects;
   TNudyCore();
-  TNudyCore(const TNudyCore &core) : TNamed(core) {}
-  TNudyCore &operator=(const TNudyCore &core) {
-    if (this != &core) {
-      TNamed::operator=(core);
-    }
-    return *this;
-  }
+  TNudyCore(const TNudyCore &core) = delete; // not implemented
+  TNudyCore &operator=(const TNudyCore &core) = delete; // not implemented
 
 public:
   virtual ~TNudyCore();         // Public Destructor
@@ -64,7 +59,9 @@ public:
   TParticle *GetParticle(const char *name);
   void MemProfile();
 
+#ifdef USE_ROOT
   ClassDef(TNudyCore, 1)
+#endif
 };
 
 #endif

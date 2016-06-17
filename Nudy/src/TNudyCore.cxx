@@ -7,22 +7,21 @@ using std::min;
 
 TNudyCore *TNudyCore::fgInstance = 0;
 
+#ifdef USE_ROOT
+ClassImp(TNudyCore)
+#endif
+
 //______________________________________________________________________________
 TNudyCore::~TNudyCore() {
   delete fGeom;
-  fGeom = NULL;
-  fTable = NULL;
   delete fPdgDB;
-  fPdgDB = NULL;
   fListOfObjects->Delete();
   delete fListOfObjects;
-  fListOfObjects = NULL;
-  gROOT->GetListOfSpecials()->Remove(this);
   fgInstance = NULL;
 }
 
 //______________________________________________________________________________
-TNudyCore::TNudyCore() : TNamed("NudyCore", "Core of Nudy ENDF Framework") {
+TNudyCore::TNudyCore() {
   fGeom = new TGeoManager("NudyGeoManager", "Geometry Manager for the TNudy Framework");
   fTable = fGeom->GetElementTable();
   fTable->BuildDefaultElements();
@@ -30,12 +29,6 @@ TNudyCore::TNudyCore() : TNamed("NudyCore", "Core of Nudy ENDF Framework") {
   fPdgDB = new TDatabasePDG();
   fPdgDB->ReadPDGTable();
   fListOfObjects = new TList();
-  if (fgInstance) {
-    Warning("TNudyCore", "object already instantiated");
-  } else {
-    fgInstance = this;
-    gROOT->GetListOfSpecials()->Add(this);
-  }
 }
 
 //______________________________________________________________________________
