@@ -73,6 +73,7 @@
 #define Fac2(x) (9.0 + 3.0 * x2(x) + x4(x))
 #define Fac3(x) 225.0 + 50445.0*x2(x)  - 13500.0*x3(x)  + 1386.0*x4(x)  - 60.0*x5(x)  + x6(x)
 class TNudyEndfDoppler;
+class TNudyEndfAng;
 
 class  TNudyEndfRecoPoint : public TObject {
 
@@ -108,6 +109,7 @@ public:
   std::vector<double> sigmaMts;				// MT numbers for sigma in file3
   std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
   int NoOfElements = 0;
+  virtual double GetAWR() const{ return AWRI; }
 protected:
   double AWRI;
 private:
@@ -117,9 +119,6 @@ private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
   double recursionLinearFile3(double x1, double x2, double sig1, double sig2);
-  void ReadFile4(TNudyEndfFile *file);
-  double recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2);
-  void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2);
   void ReadFile5(TNudyEndfFile *file);
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
   double recursionLinearFile5GenEva(double x1, double x2, double pdf1, double pdf2, double energy);
@@ -224,6 +223,7 @@ private:
   std::vector<double> D, GX, GNO, GG, GF;		// URR parameters
   std::vector<double> PhiEr,ShiftEr;			// penetration and shift factors
   std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  TNudyEndfAng *recoAng;
   TNudyEndfDoppler *doppler;
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction
 };
