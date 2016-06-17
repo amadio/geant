@@ -4,7 +4,9 @@
 #include <TThread.h>
 #endif
 
-#define ABS(X) X >= 0 ? X : -X
+#ifdef USE_ROOT
+ClassImp(TNudyAlias)
+#endif
 
 //_______________________________________________________________________________
 TNudyAlias::TNudyAlias()
@@ -25,7 +27,7 @@ TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed)
   for (i = 0; i < len; i++)
     sum += p[i];
   if (fabs(1.0 - sum) > ERROR_MARGIN) {
-    Error("TNudyAlias", "Data not normalized, Integral = %e \n", sum);
+    printf("TNudyAlias::TNudyAlias: Data not normalized, Integral = %e \n", sum);
     for (i = 0; i < len; i++)
       p[i] /= sum;
   }
@@ -49,7 +51,7 @@ TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed)
     }
     sum = 0;
     for (j = 0; j < len; j++)
-      sum += ABS(b[j]);
+       sum += std::abs(b[j]);
     if (sum < 1e-9) {
       break;
     } else {
@@ -69,9 +71,6 @@ TNudyAlias::~TNudyAlias() {
   delete[] fA;
   delete[] fR;
   delete fRnd;
-  fP = fX = fA = fR = NULL;
-  fRnd = NULL;
-  fLen = 0;
 }
 
 //_______________________________________________________________________________

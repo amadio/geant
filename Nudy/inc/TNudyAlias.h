@@ -11,7 +11,7 @@
 // probability distribution using the Alias Method
 //--------------------------------------------------
 
-class TNudyAlias : public TObject {
+class TNudyAlias {
 private:
   int fLen; // Length of data
   // Alias table
@@ -57,7 +57,9 @@ public:
   double *Randoms(int n);
 #endif
 
+#ifdef USE_ROOT
   ClassDef(TNudyAlias, 1)
+#endif
 };
 
 #endif
