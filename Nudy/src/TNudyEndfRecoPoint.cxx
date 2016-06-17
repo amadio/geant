@@ -1290,6 +1290,31 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 //  std::vector<double>().swap(sigmaMts);
   NoOfElements += 1;
 }
+
+double TNudyEndfRecoPoint::recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2){
+  double pdf =1.0;
+  double mid     = 0.5 * (x1 + x2);
+  if((pdf1==0.0 && pdf2 ==0.0) || x1==x2)return 0;
+//  std::cout <<" beg   "<< x1 <<"  "<< x2 <<"  "<< pdf1 <<"  "<< pdf2 << std::endl;
+  for (int j = 0; j < lCoef[i].GetSize(); j++) {
+    double leg = ROOT::Math::legendre((unsigned int)(j+1), mid);
+    pdf += 0.5*(2.*(j+1) + 1.)*lCoef[i].At(j)*leg;
+  }
+//  std::cout<< mid <<" mid  "<< pdf1 <<std::endl;
+//  double sigmid1 = TNudyCore::Instance()->LinearInterpolation(x1,pdf1,x2,pdf2,mid);
+  double pdfmid1 = pdf1 + (pdf2 - pdf1)*(mid - x1)/(x2 - x1);
+//  std::cout << mid <<" linear "<< pdf <<"  "<< pdfmid1 << std::endl;
+  
+  if(fabs((pdf - pdfmid1)/pdfmid1)<=1E-3){
+    return 0;
+  }
+  cosFile4.push_back(mid); 
+  cosPdfFile4.push_back(pdf);
+  recursionLinearFile4(i, x1, mid, pdf1, pdf);
+  recursionLinearFile4(i, mid, x2, pdf, pdf2);
+  return 0;  
+}
+
 void TNudyEndfRecoPoint::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2){
   double cos4Cdf = 0.0;
   int size = x1.size();
