@@ -14,7 +14,7 @@
 const int kENABLED = 1;
 const int kDISABLED = 0;
 
-class TNudyElementTable : public TObject {
+class TNudyElementTable {
 
 private:
   int fState;
@@ -40,6 +40,8 @@ public:
   void MoveLeft();
   void MoveRight();
   void Update();
+#ifdef USE_ROOT
   ClassDef(TNudyElementTable, 1) // Table of RadioNucleides
+#endif
 };
 #endif

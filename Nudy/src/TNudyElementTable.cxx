@@ -3,7 +3,9 @@
 #include "TNudyElementTable.h"
 #include "TNudyElementRN.h"
 
-// TNudyElementTable *gTNudyElementTable;
+#ifdef USE_ROOT
+ClassImp(TNudyElementTable)
+#endif
 
 TNudyElementTable::TNudyElementTable()
   : fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1), fRNTable(NULL),
