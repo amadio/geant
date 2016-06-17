@@ -27,5 +27,6 @@
 #pragma link C++ class TNudyEndfRecoPoint+;
 #pragma link C++ class TNudyEndfDoppler+;
 #pragma link C++ class TNudyEndfAng+;
+#pragma link C++ class TNudyEndfEnergy+;
 
 #endif

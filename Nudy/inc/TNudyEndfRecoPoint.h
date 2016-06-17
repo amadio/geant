@@ -58,7 +58,6 @@
 #include "TVNudyModel.h"
 
 #define PI 2.0 * asin(1.0)
-#define sqrt(x) pow(x,0.5)
 #define x2(x) (x * x)
 #define x3(x) (x * x2(x))
 #define x4(x) (x2(x) * x2(x))
@@ -74,6 +73,7 @@
 #define Fac3(x) 225.0 + 50445.0*x2(x)  - 13500.0*x3(x)  + 1386.0*x4(x)  - 60.0*x5(x)  + x6(x)
 class TNudyEndfDoppler;
 class TNudyEndfAng;
+class TNudyEndfEnergy;
 
 class  TNudyEndfRecoPoint : public TObject {
 
@@ -226,6 +226,7 @@ private:
   std::vector<double> PhiEr,ShiftEr;			// penetration and shift factors
   std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
   TNudyEndfAng *recoAng;
+  TNudyEndfEnergy *recoEnergy;
   TNudyEndfDoppler *doppler;
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction
 };
