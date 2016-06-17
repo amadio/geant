@@ -1290,7 +1290,19 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 //  std::vector<double>().swap(sigmaMts);
   NoOfElements += 1;
 }
-
+void TNudyEndfRecoPoint::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2){
+  double cos4Cdf = 0.0;
+  int size = x1.size();
+  for(int cr=0; cr < size ; cr ++){
+    cos4Cdf += x2[cr];
+  }
+  double df = 0.0;
+  for(int cr=0; cr < size ; cr ++){
+    if(cos4Cdf > 0.0)x2[cr] = x2[cr]/cos4Cdf;
+    df += x2[cr];
+    cosCdfFile4.push_back(df);
+  }
+}
 void TNudyEndfRecoPoint::cdfGenerateE(std::vector<double> &x1,std::vector<double> &x2){
   double energy5Cdf = 0.0;
   for(int cr=0; cr < x1.size() ; cr ++){
