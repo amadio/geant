@@ -119,6 +119,8 @@ private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
   double recursionLinearFile3(double x1, double x2, double sig1, double sig2);
+  double recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2);
+  void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2);
   void ReadFile5(TNudyEndfFile *file);
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
   double recursionLinearFile5GenEva(double x1, double x2, double pdf1, double pdf2, double energy);
