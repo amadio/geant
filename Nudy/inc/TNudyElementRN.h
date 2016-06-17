@@ -37,13 +37,15 @@ public:
   TColor fColors[26];
   TNudyElementRN();
   TNudyElementRN(TGeoElementRN *elem, float fX, float fY);
-  virtual ~TNudyElementRN(){};
+  virtual ~TNudyElementRN(){delete fBox;}
   void Draw(const char *option = "");
   void Move(float x, float y);
   void SetColorCode(TList *cCodeRange, TList *cCodeColor);
   int GetA() { return fEle->AtomicNo(); }
   int GetZ() { return fEle->MassNo(); }
 
+#ifdef USE_ROOT
   ClassDef(TNudyElementRN, 1) // Radio Nucleide Element
+#endif
 };
 #endif
