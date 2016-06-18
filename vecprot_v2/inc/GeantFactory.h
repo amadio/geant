@@ -17,9 +17,6 @@
 
 #ifndef GEANT_FACTORY
 #define GEANT_FACTORY
-#ifdef USE_ROOT
-#include <Rtypes.h>
-#endif
 
 #include <vector>
 #include <cassert>

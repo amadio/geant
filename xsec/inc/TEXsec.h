@@ -181,7 +181,9 @@ bool CheckAlign() {
   const char *GetName() const { return fName; }
   const char *GetTitle() const { return fTitle; }
 #ifndef GEANT_NVCC
+#ifdef USE_ROOT
   static TEXsec *GetElement(int z, int a = 0, TFile *f = 0);
+#endif
   static TEXsec **GetElements() { return fElements; }
 #else
   GEANT_CUDA_BOTH_CODE

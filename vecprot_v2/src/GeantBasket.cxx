@@ -12,26 +12,19 @@
 #include "TGeoManager.h"
 #include "TGeoNavigator.h"
 #endif
+#include "Geant/Error.h"
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
-#ifdef USE_ROOT
-    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-#else
     : fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-#endif
-      fThreshold(0), fTracksIn() {
+      fThreshold(0), fTracksIn(), fIsMixed(false) {
   // Dummy constructor.
 }
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
-#ifdef USE_ROOT
-   : TObject(), fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-#else
    : fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-#endif
-      fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth) {
+     fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth), fIsMixed(false) {
   // Default constructor.
   if (!mgr->GetVolume() || mgr->IsCollector())
     SetMixed(true);
@@ -39,12 +32,8 @@ GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket(int size, int depth)
-#ifdef USE_ROOT
-    : TObject(), fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-#else
     : fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-#endif 
-     fThreshold(size), fTracksIn(size, depth) {
+      fThreshold(size), fTracksIn(size, depth), fIsMixed(false) {
   // Default constructor.
 }
 
@@ -106,11 +95,7 @@ Volume_t *GeantBasket::GetVolume() const {
 //______________________________________________________________________________
 void GeantBasket::Print(const char *) const {
   // Print basket content.
-#ifdef USE_ROOT
-  Printf("*** basket %s: ntracks=%3d", GetName(), GetNinput());
-#else
-  printf("*** basket : ntracks=");
-#endif
+  Geant::Printf("*** basket : ntracks=");
 }
 
 //______________________________________________________________________________
@@ -435,11 +420,7 @@ void GeantBasketMgr::CleanBaskets(int ntoclean, GeantTaskData *td) {
 //______________________________________________________________________________
 void GeantBasketMgr::Print(const char *) const {
   // Print info about the basket content.
-#ifdef USE_ROOT
-  Printf("Bsk_mgr %s: current: tracks=%d", GetName(), GetCBasket()->GetNinput());
-#else
-  printf("Bsk_mgr %s: current: tracks=%d", GetName(), GetCBasket()->GetNinput());
-#endif
+  Geant::Printf("Bsk_mgr %s: current: tracks=%d", GetName(), GetCBasket()->GetNinput());
 }
 
 //______________________________________________________________________________
@@ -449,9 +430,5 @@ void GeantBasketMgr::PrintSize() const {
   size_t sizeb = 0;
   if (GetCBasket())
     sizeb = GetCBasket()->Sizeof();
-#ifdef USE_ROOT
-  Printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
-#else
-  printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
-#endif
+  Geant::Printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
 }

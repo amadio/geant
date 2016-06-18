@@ -15,9 +15,7 @@
 #define GEANT_SYNCOBJECTS
 #include <deque>
 #include <cassert>
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
 #include "TCondition.h"
 #include "TMutex.h"
 
@@ -146,16 +144,15 @@ public:
   void Print();
 };
 #endif
+
 /** @brief Reference counted atomic pointer */
 template <class T> class ref_ptr {
 public:
 
   T *fObjPtr; /** Object pointer */
-#if __cplusplus >= 201103L
   std::atomic_flag fAcqLock; /** Memory barrier to lock acquiring */
   std::atomic_flag fXcgLock; /** Memory barrier to lock exchanging */
   std::atomic_int fRef;      /** Reference counter */
-#endif
 public:
 
   /** @brief Reference counted atomic pointer constructor */

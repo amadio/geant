@@ -18,11 +18,7 @@
 #include "globals.h"
 
 /** @brief GeantOutput class */
-#ifdef USE_ROOT
-class GeantOutput : public TObject {
-#else
 class GeantOutput {
-#endif
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -66,11 +62,7 @@ public:
 
   /** @brief GeantOutput constructor */
   GeantOutput()
-#ifdef USE_ROOT
-      : TObject(), fCpuTime(0), fVolId(-1), fBasketGeneration(0), fGeneration(0), fNtracks(0),
-#else
       : fCpuTime(0), fVolId(-1), fBasketGeneration(0), fGeneration(0), fNtracks(0),
-#endif 
         fEvent(0), fInd(0), fProc(0), fX(0), fY(0), fZ(0), fPx(0), fPy(0), fPz(0), fE(0), fPstep(0),
         fStep(0), fSnext(0), fSafety(0) {}
 

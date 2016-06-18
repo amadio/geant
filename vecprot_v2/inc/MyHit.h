@@ -74,6 +74,7 @@ public:
 
   /** @brief Function that add user hit */
   void AddHit();
+
 #ifdef USE_ROOT
   ClassDefNV(MyHit, 1) // User hit
 #endif

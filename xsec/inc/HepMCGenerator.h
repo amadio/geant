@@ -4,25 +4,14 @@
 #include "TPartIndex.h"
 #include "PrimaryGenerator.h"
 
-#if __cplusplus >= 201103L
 #include "HepMC/Reader.h"
 #include "HepMC/GenEvent.h"
 #include "HepMC/Search/FindParticles.h"
-#endif
-
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "materials/Particle.h"
-using vecgeom::Particle;
-#else
-class TParticlePDG;
-#endif
 
 class HepMCGenerator : public PrimaryGenerator {
 private:
-#if __cplusplus >= 201103L
   HepMC::Reader *input_file;
   HepMC::FindParticles *search;
-#endif
 
 public:
   HepMCGenerator();
@@ -40,9 +29,6 @@ private:
   HepMCGenerator(const HepMCGenerator &);            // no imp.
   HepMCGenerator &operator=(const HepMCGenerator &); // no imp.
 
-#ifdef USE_ROOT
-  ClassDef(HepMCGenerator, 1)
-#endif
 };
 
 #endif

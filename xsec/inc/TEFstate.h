@@ -139,7 +139,9 @@ GEANT_CUDA_BOTH_CODE
   TEFstate **GetElements() { return fEFElementsHost; }
 #endif
 #else
+#ifdef USE_ROOT
   static TEFstate *GetElement(int z, int a = 0, TFile *f = 0);
+#endif
   static TEFstate **GetElements() { return fElements; }
 #endif
 GEANT_CUDA_BOTH_CODE

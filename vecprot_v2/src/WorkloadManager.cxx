@@ -543,11 +543,7 @@ void *WorkloadManager::TransportTracks() {
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
         if (0 /*ntotnext*/) {
-        #ifdef USE_ROOT 
-          Geant::Print("","============= Basket: %s\n", basket->GetName());
-        #else
-          Geant::Print("","============= Basket:\n");
-        #endif
+          Geant::Printf("","============= Basket.");
           output.PrintTracks();
         }
       }

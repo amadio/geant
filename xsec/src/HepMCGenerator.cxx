@@ -13,6 +13,13 @@ using vecgeom::kPi;
 #include "HepMC/ReaderRoot.h"
 #endif
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "materials/Particle.h"
+using vecgeom::Particle;
+#else
+class TParticlePDG;
+#endif
+
 //______________________________________________________________________________
 HepMCGenerator::HepMCGenerator()
   : input_file(0), search(0) {}

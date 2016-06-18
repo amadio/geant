@@ -32,11 +32,7 @@ class GeantBasketMgr;
  * @brief Class GeantBasket descripting basic operations with baskets
  * @details Basket of tracks in the same volume which are transported by a single thread
  */
-#ifdef USE_ROOT
-class GeantBasket : public TObject {
-#else
 class GeantBasket {
-#endif
 public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -46,21 +42,6 @@ public:
    * @enum EbasketFlags
    * @details Flags marking up different types of baskets
    */
-   #ifdef USE_ROOT
-  enum EBasketFlags {
-    kMixed = BIT(14) /** Basket mixing tracks from different volumes */
-  };
-   #else
-  enum EBasketFlags {
-    kMixed = MIC_BIT(14) /** Basket mixing tracks from different volumes */
-  };
-   enum {
-         kIsOnHeap      = 0x01000000,    // object is on heap
-          kNotDeleted    = 0x02000000,    // object has not been deleted
-          kZombie        = 0x04000000,    // object ctor failed
-          kBitMask       = 0x00ffffff
-    };
-  #endif  
 
 protected:
   GeantBasketMgr *fManager; /** Manager for the basket */
@@ -84,9 +65,8 @@ private:
   /** @todo Still not implemented operator = */
   GeantBasket &operator=(const GeantBasket &);
 
-  #ifndef USE_ROOT
-   long int fBits;
-  #endif
+  bool fIsMixed : 1;
+
 public:
   /** @brief Default GeantBasket constructor */
   GeantBasket();
@@ -207,11 +187,7 @@ public:
    * @brief Function returning the mixed tracks property.
    * @return Boolean value if the tracks are mixed from several volumes
    */
-  #ifdef USE_ROOT
-  bool IsMixed() const { return TObject::TestBit(kMixed); }
-  #else
-  bool IsMixed() const {  return (bool) ((fBits & kMixed) != 0); }
-  #endif
+  bool IsMixed() const { return fIsMixed; }
   /**
    * @brief Check if tracks are being copied
    * @return Track copy flag
@@ -256,13 +232,8 @@ public:
    * @return Sum of sizes of all tracks (input and output) + data members
    */
   size_t Sizeof() const {
-   #ifdef USE_ROOT
-    return fTracksIn.Sizeof() + sizeof(TObject) + sizeof(GeantBasketMgr *) +
-           sizeof(std::atomic_int);
-   #else
     return fTracksIn.Sizeof() + sizeof(this) + sizeof(GeantBasketMgr *) +
            sizeof(std::atomic_int);
-   #endif
   }
 
   /**
@@ -270,17 +241,8 @@ public:
    *
    * @param flag Boolean flag.
    */
-  #ifdef USE_ROOT
-  void SetMixed(bool flag) { TObject::SetBit(kMixed, flag); }
-  #else
-  void SetMixed(bool flag) { 
-  if (flag)
-   fBits |= kMixed & kBitMask; 
-  else
-   fBits &= ~(kMixed & kBitMask);
+  void SetMixed(bool flag) { fIsMixed = flag; }
 
-  }
-  #endif
   /**
    * @brief Function to change the transportability threshold for the basket
    *
@@ -291,9 +253,6 @@ public:
   /** @brief Try to get the dispatch lock for the basket */
   bool TryDispatch() { return (!fDispatched.test_and_set(std::memory_order_acquire)); }
 
- #ifdef USE_ROOT
-  ClassDef(GeantBasket, 1) // A basket containing tracks in the same geomety volume
- #endif 
 };
 
 class GeantScheduler;

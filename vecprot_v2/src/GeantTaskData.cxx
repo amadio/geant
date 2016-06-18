@@ -114,7 +114,9 @@ GeantTaskData::~GeantTaskData()
 // Destructor
 //  delete fMatrix;
 #ifndef GEANT_NVCC
+#ifndef USE_VECGEOM_NAVIGATOR
   delete fRndm;
+#endif
 #endif
   delete[] fBoolArray;
   delete[] fDblArray;

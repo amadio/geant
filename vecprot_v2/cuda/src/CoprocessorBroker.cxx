@@ -434,7 +434,6 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
   // Post-step actions by continuous processes for all particles. There are no
   // new generated particles at this point.
   {
-    auto basket = fOutputBasket;
     // GeantTrack_v &output = *td->fTransported;
     // GeantTrack_v &output = *fOutputBasket->GetInputTracks();
     auto ntotnext = 0;
@@ -493,7 +492,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
           propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
           if (0 /*ntotnext*/) {
-            printf("============= Basket: %s\n", basket->GetName());
+            Geant::Printf("============= Basket.\n");
             output.PrintTracks();
           }
         }
