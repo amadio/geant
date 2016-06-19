@@ -73,6 +73,8 @@
 class TNudyEndfDoppler;
 class TNudyEndfAng;
 class TNudyEndfEnergy;
+class TNudyEndfEnergyAng;
+class TNudyEndfNuPh;
 
 class  TNudyEndfRecoPoint {
 
@@ -112,9 +114,6 @@ public:
 protected:
   double AWRI;
 private:
-  void ReadFile1(TNudyEndfFile *file);
-  double recursionLinearNu(double x1, double x2, double sig1, double sig2);
-  double recursionLinearPh(double x1, double x2, double sig1, double sig2);
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
   double recursionLinearFile3(double x1, double x2, double sig1, double sig2);
@@ -171,19 +170,10 @@ private:
   int *NBT,*NBT1,*INT1, NR, NP;                         // standard ENDF parameters for range and interpolation
   int *NBT2, *INT2, NR2, NE;                            // standard ENDF parameters for range and interpolation
   int *NBT3, *INT3, NR3, NE2;				// standard ENDF parameters for range and interpolation
-  double *fE_file1,*fnu_file1,*fph_file1; 		// File1 energy and nu, photon yield values
   double *fE_file3,*fXsec_file3; 			// file3 energy and cross-sections;
-  double *fE1_file5,*fp91_file5,*fE2_file5,*fp92_file5,
-         *fE3_file5,*fp93_file5; 			// file5 energy and probabilities
-  double *fE1_file6,*fp11_file6,*fE2_file6,*fp12_file6; // file 6 energy and probabilities
   double *INorm, QValue[999];				// ENDF parameter and Q values from file 3
   double sigDiff;					// precision for cross-section reconstruction
   TArrayD *lCoef, xengr, *zafp, *fps, *zafpc, *fpsc, *yi, *dyi, *yc, *dyc;
-  std::vector<double> eintFile1,nutFile1,einFile1,nuFile1,nudFile1,phFile1;
-  std::vector<double> einFile6,eoutFile6,eoutPdfFile6,eoutCdfFile6,cosFile6,cosPdfFile6,cosCdfFile6;
-  std::vector<double> cosFile4, energyFile5;
-  std::vector<double> cosPdfFile4, energyPdfFile5;
-  std::vector<double> cosCdfFile4, energyCdfFile5;
   std::vector<double> eLinearFile3;
   std::vector<double> xLinearFile3;
   std::vector<double> energy, sigma, sigmaT; 
@@ -224,9 +214,11 @@ private:
   std::vector<double> D, GX, GNO, GG, GF;		// URR parameters
   std::vector<double> PhiEr,ShiftEr;			// penetration and shift factors
   std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  TNudyEndfDoppler *doppler;
   TNudyEndfAng *recoAng;
   TNudyEndfEnergy *recoEnergy;
-  TNudyEndfDoppler *doppler;
+  TNudyEndfEnergyAng *recoEnergyAng;
+  TNudyEndfNuPh *recoNuPh;
 
 #ifdef USE_ROOT
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction

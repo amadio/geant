@@ -28,5 +28,7 @@
 #pragma link C++ class TNudyEndfDoppler+;
 #pragma link C++ class TNudyEndfAng+;
 #pragma link C++ class TNudyEndfEnergy+;
+#pragma link C++ class TNudyEndfEnergyAng+;
+#pragma link C++ class TNudyEndfNuPh+;
 
 #endif
