@@ -1,8 +1,7 @@
 #ifndef ROOT_TNudyAlias
 #define ROOT_TNudyAlias
 
-#include <TObject.h>
-#include <TRandom.h>
+class TRandom;
 
 #include "TNudyCore.h"
 

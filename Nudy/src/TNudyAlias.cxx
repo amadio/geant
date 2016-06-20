@@ -1,4 +1,5 @@
 #include "TNudyAlias.h"
+#include "TRandom.h"
 
 #ifdef TNUDYALIAS_MULTITHREAD
 #include <TThread.h>
