@@ -17,8 +17,8 @@ VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
       int ibin = i * fNumberOfEnergyBin + j;
 
       // alias table
-      int *a = (int *)malloc(fNumberOfProcess * sizeof(int));
-      double *ap = (double *)malloc(fNumberOfProcess * sizeof(double));
+      int *a = new int [fNumberOfProcess];
+      double *ap = new double [fNumberOfProcess];
 
       const double cp = 1. / fNumberOfProcess;
 
@@ -62,8 +62,8 @@ VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
 
       } while (iter > 0);
 
-      free(a);
-      free(ap);
+      delete a;
+      delete ap;
     }
   }
 }
