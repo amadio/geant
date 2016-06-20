@@ -13,6 +13,8 @@
 #ifndef GEANT_OUTPUT
 #define GEANT_OUTPUT
 
+#include "Rtypes.h"
+#include "TObject.h"
 #include "globals.h"
 
 /** @brief GeantOutput class */
