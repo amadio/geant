@@ -758,7 +758,7 @@ void GeantTrack_v::Resize(int newsize) {
   // Resize the container.
   int size = round_up_align(newsize);
   if (size < GetNtracks()) {
-    Geant::Error("Resize","Cannot resize to less than current track content");
+    Geant::Error("Resize","Cannot resize to less than current track content (round up size: %d less than current number of tracks: %d)",size,GetNtracks());
     return;
   }
   fBufSize = BufferSize(size, fMaxDepth);
@@ -1316,7 +1316,7 @@ void GeantTrack_v::RemoveTracks(int from, int to) {
 // copied to another container beforehand.
 #ifndef GEANT_CUDA_DEVICE_BUILD
   if (!fCompact)
-    Geant::Error("RemoveTracks","Not compact");
+    Geant::Error("RemoveTracks","Not compact (%p)",this);
 #endif
   int ntracks = GetNtracks();
   if (to >= ntracks - 1) {
@@ -1736,7 +1736,7 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
 void GeantTrack_v::PrintTracks(const char *msg) const {
   // Print all tracks
   int ntracks = GetNtracks();
-  Geant::Print(msg,"");
+  Geant::Print(msg,"%s","");
   for (int i = 0; i < ntracks; i++)
     PrintTrack(i);
 }
