@@ -44,6 +44,9 @@
 #endif
 #include "GeantFactoryStore.h"
 
+// TBB
+#include "tbb/task.h"
+
 using namespace Geant;
 using std::max;
 
@@ -262,7 +265,11 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
                                                   GeantTaskData &td) {
 
   if (!prioritizer.HasTracks() && (propagator.GetNpriority() || GetNworking() == 1)) {
-    bool didFeeder = propagator.Feeder(&td);
+    //bool didFeeder = propagator.Feeder(&td);
+    int didFeeder;
+    FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(&td, &didFeeder);
+    tbb::task::spawn_root_and_wait(feederTask);
+
     // Check exit condition
     if (propagator.TransportCompleted()) {
       int nworkers = propagator.fNthreads;
@@ -344,7 +351,11 @@ void *WorkloadManager::TransportTracks() {
   
    #endif
   // Start the feeder
-  propagator->Feeder(td);
+  //propagator->Feeder(td);
+  int returning;
+  FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(td, &returning);
+  tbb::task::spawn_root_and_wait(feederTask);
+
   Material_t *mat = 0;
   int *waiting = wm->GetWaiting();
 //  condition_locker &sched_locker = wm->GetSchLocker();

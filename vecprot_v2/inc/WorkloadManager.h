@@ -25,6 +25,7 @@
 
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
+#include "FeederTask.h"
 
 #ifdef USE_ROOT
 #include "TThreadMergingServer.h"
@@ -117,7 +118,7 @@ public:
   //                      *NavStates() const   {return fNavStates;}
 
   /**
-   * @brief Function that provides IO queue 
+   * @brief Function that provides IO queue
    */
   #ifdef USE_ROOT
   dcqueue<TBufferFile*>*  IOQueue() const { return fOutputIO; }
@@ -259,7 +260,7 @@ public:
    *
    * @param arg Arguments to be passed in the function
    */
-  
+
   static void *OutputThread();
 
   /**
