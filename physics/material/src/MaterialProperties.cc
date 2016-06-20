@@ -1,8 +1,3 @@
-/**
-   @file MaterialProperties.h
-   @brief Material property class
-*/
-
 
 #include "MaterialProperties.h"
 
