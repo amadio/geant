@@ -1,3 +1,8 @@
+/**
+ * @file TNudyAlias.cxx
+ * @brief Implementation file for Alias Sampling
+*/
+
 #include "TNudyAlias.h"
 #include "TRandom.h"
 
@@ -9,14 +14,24 @@
 ClassImp(TNudyAlias)
 #endif
 
+/**
+ * Dummy constructor
+ */
 //_______________________________________________________________________________
 TNudyAlias::TNudyAlias()
-  : fLen(0), fP(NULL), fX(NULL), fA(NULL), fR(NULL), fRnd(NULL), fMult(NULL), fMultLen(0) {}
+  : fLen(0), fP(nullptr), fX(nullptr), fA(nullptr), fR(nullptr), fRnd(nullptr), fMult(nullptr), fMultLen(0) {}
 
+/**
+ * @brief Full constructor
+ * @param[in] p pointer to the discrete probability density function
+ * @param[in] x pointer to the values of the random variable
+ * @param[in] len number of points of the discrete probability function
+ * @param[in] seed seed for the random number generator
+ */
 //_______________________________________________________________________________
-TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed)
+TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
     : fLen(len), fP(new double[fLen]), fX(new double[fLen]), fA(new double[fLen]), fR(new double[fLen]),
-      fRnd(new TRandom(seed)), fMult(NULL), fMultLen(0) {
+      fRnd(new TRandom(seed)), fMult(nullptr), fMultLen(0) {
   // Improve algorithm for building table
   int i, j;
   double sum, c, d, mean;
@@ -65,6 +80,9 @@ TNudyAlias::TNudyAlias(double *p, double *x, const int len, unsigned int seed)
   delete[] b;
 }
 
+/** 
+ * @brief Destructor
+ */
 //_______________________________________________________________________________
 TNudyAlias::~TNudyAlias() {
   delete[] fP;
@@ -74,8 +92,11 @@ TNudyAlias::~TNudyAlias() {
   delete fRnd;
 }
 
+/**
+ * @brief Dump the alias table
+ */
 //_______________________________________________________________________________
-void TNudyAlias::DumpTable() {
+void TNudyAlias::DumpTable() const {
   int i, j;
   i = j = 0;
   // Reconstruct probability table
@@ -93,8 +114,11 @@ void TNudyAlias::DumpTable() {
   delete[] prob;
 }
 
+/** 
+ * Sample the distribution
+ */
 //_______________________________________________________________________________
-double TNudyAlias::Random() {
+double TNudyAlias::Random() const {
   double ua = fRnd->Uniform(1);
   double ub = fRnd->Uniform(1);
   int x = (int)(ua * fLen);

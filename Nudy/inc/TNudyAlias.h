@@ -1,47 +1,67 @@
 #ifndef ROOT_TNudyAlias
 #define ROOT_TNudyAlias
+/**
+ * @file TNudyAlias.h
+ * @brief Header file for Alias Sampling
+*/
 
 class TRandom;
 
 #include "TNudyCore.h"
 
-//--------------------------------------------------
-// Provides random number generation using a discrete
-// probability distribution using the Alias Method
-//--------------------------------------------------
 
+/**
+ * @class TNudyAlias
+ * @brief Random number generation from a discrete distribution with Alias method
+ * @author Harphool Kumawat
+*/
 class TNudyAlias {
 private:
-  int fLen; // Length of data
-  // Alias table
-  double *fP;    //[fLen]
+  /** Length of alias table */
+  int fLen;
+  // Alias table components
+  /** Probability density function */
+  double *fP;    //[fLen] 
+  /** X random variable */
   double *fX;    //[fLen]
+  /** Alias table */
   double *fA;    //[fLen]
+  /** Residual values */
   double *fR;    //[fLen]
-  TRandom *fRnd; // Uniform random number generation
+  /** Pointer to uniform random number generator */
+  TRandom *fRnd; 
 public:
   TNudyAlias();
   virtual ~TNudyAlias();
-  TNudyAlias(double *p, double *x, const int len, unsigned int seed = 65539);
-  void DumpTable();
-  double Random();
-  double GetP(int i) {
+  TNudyAlias(double *p, double *x, int len, unsigned int seed = 65539);
+  void DumpTable() const;
+  double Random() const;
+
+  /** @brief Return the probability density function at bin i */
+  double GetP(int i) const {
     if (i < fLen)
       return fP[i];
     else
       return -1;
   };
-  double GetX(int i) {
+  /** @brief Return the random variable value at bin i */
+  double GetX(int i) const {
     if (i < fLen)
       return fX[i];
     else
       return -1;
   };
-  int GetLen() { return fLen; }
+  /** @brief Return the number of bins of the proability distribution */
+  int GetLen() const { return fLen; }
+
 #ifdef TNUDYALIAS_MULTITHREAD
+  /**
+   * @class TNudyComStruct
+   * @brief Class to communicate between thread handler and object
+   */
   class TNudyComStruct {
-    // Class to communicate between thread handler and objects
   public:
+    /** Array of Alias Tables */
     TNudyAlias *fAl;
     int fI;
     TNudyComStruct(TNudyAlias *a, int j) {
