@@ -22,8 +22,8 @@ public:
   VECCORE_CUDA_HOST
   EmProcess(Random_t *states = 0, int threadId = -1);
 
-  VECCORE_CUDA_HOST_DEVICE 
-  EmProcess(Random_t *states, int threadId, CrossSectionData* data);
+  VECCORE_CUDA_HOST_DEVICE
+  EmProcess(Random_t *states, int threadId, CrossSectionData *data);
 
   VECCORE_CUDA_HOST
   ~EmProcess() = default;
@@ -38,7 +38,7 @@ public:
   void BuildAlias();
 
   VECCORE_CUDA_HOST
-  CrossSectionData* GetCrossSectionData() { return fCrossSectionData; }
+  CrossSectionData *GetCrossSectionData() { return fCrossSectionData; }
 
   VECCORE_CUDA_HOST_DEVICE
   void SetCrossSectionData(CrossSectionData *table) { fCrossSectionData = table; }
@@ -67,11 +67,11 @@ public:
   VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> GetNextProcess(
       Index_v<typename Backend::Double_v> materialIndex, Index_v<typename Backend::Double_v> ebin);
 
-  VECCORE_CUDA_HOST_DEVICE int GetNumberOfProcess() { return fNumberOfProcess; } 
+  VECCORE_CUDA_HOST_DEVICE int GetNumberOfProcess() { return fNumberOfProcess; }
 
-  VECCORE_CUDA_HOST_DEVICE int GetNumberOfEnergyBin() { return fNumberOfEnergyBin; } 
+  VECCORE_CUDA_HOST_DEVICE int GetNumberOfEnergyBin() { return fNumberOfEnergyBin; }
 
-  VECCORE_CUDA_HOST_DEVICE int GetNumberOfMaterialBin() { return fNumberOfMaterialBin; } 
+  VECCORE_CUDA_HOST_DEVICE int GetNumberOfMaterialBin() { return fNumberOfMaterialBin; }
 
 protected:
   Random_t *fRandomState;
@@ -111,7 +111,7 @@ template <class Process>
 VECCORE_CUDA_HOST void EmProcess<Process>::BuildCrossSectionTable()
 {
   static_cast<Process *>(this)->BuildCrossSectionTable();
-  this->BuildAias();  
+  this->BuildAias();
 }
 
 template <class Process>
@@ -314,8 +314,8 @@ VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>:
   Index_v<Double_v> alias;
   static_cast<Process *>(this)->template GetWeightAndAlias<Backend>(matId, ebin, ip, weight, alias);
 
-  //calculate non-alias probablity based on weight (i.e., pdf[ip]) and the normalization factor (1/fNumberOfProcess)
-  //non-alias probablity = weight/(normalization factor)
+  // calculate non-alias probablity based on weight (i.e., pdf[ip]) and the normalization factor (1/fNumberOfProcess)
+  // non-alias probablity = weight/(normalization factor)
   Double_v probNA = weight * fNumberOfProcess;
 
   // get the relative weight of the cross section for the ip-th model

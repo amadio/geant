@@ -40,15 +40,13 @@ int ProcessBenchmarker::RunBenchmark()
   printf(" MaxP (MeV)    = %f\n", fMaxP);
   if (fEmProcess == -1) {
     printf(" EM Process    = -1 ( Using all available vector EM physics processes)\n");
-  }
-  else {
+  } else {
     printf(" EM Process    =  %d ( Process = %s )\n", fEmProcess, GUPhysicsProcessName[fEmProcess]);
   }
 
   if (fRunMode == -1) {
     printf(" Run Mode      = -1 ( Using all available test modes)\n");
-  }
-  else {
+  } else {
     printf(" Run Mode      =  %d ( [-1,0,1,2,3,4]=[all,Scalar,Vector,Geant3,GeantV,Cuda] )\n", fRunMode);
   }
 
@@ -107,15 +105,11 @@ void ProcessBenchmarker::RunScalar()
         elapsedTotal[k] += elapsedT[k];
 
 #ifdef VECPHYS_ROOT
-        histogram->RecordTime(k,elapsedT[k]);
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          histogram->RecordHistosProc(k,
-                                      itrack_aos[i].E,
-                                      itrack_aos[i].nint,
-                                      itrack_aos[i].s,
-                                      itrack_aos[i].lambda);
-        } 
-#endif    
+        histogram->RecordTime(k, elapsedT[k]);
+        for (int i = 0; i < fNtracks; ++i) {
+          histogram->RecordHistosProc(k, itrack_aos[i].E, itrack_aos[i].nint, itrack_aos[i].s, itrack_aos[i].lambda);
+        }
+#endif
       }
     }
   }
@@ -132,7 +126,6 @@ void ProcessBenchmarker::RunScalar()
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
-
 }
 
 void ProcessBenchmarker::RunVector()
@@ -168,18 +161,12 @@ void ProcessBenchmarker::RunVector()
         elapsedT[k] = VectorKernelFunc[k](itrack_soa, targetElements);
         elapsedTotal[k] += elapsedT[k];
 
-
-
 #ifdef VECPHYS_ROOT
-        histogram->RecordTime(k,elapsedT[k]);
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          histogram->RecordHistosProc(k,
-                                      itrack_soa.E[i],
-                                      itrack_soa.nint[i],
-                                      itrack_soa.s[i],
-                                      itrack_soa.lambda[i]);
-        } 
-#endif    
+        histogram->RecordTime(k, elapsedT[k]);
+        for (int i = 0; i < fNtracks; ++i) {
+          histogram->RecordHistosProc(k, itrack_soa.E[i], itrack_soa.nint[i], itrack_soa.s[i], itrack_soa.lambda[i]);
+        }
+#endif
       }
     }
   }
@@ -195,7 +182,6 @@ void ProcessBenchmarker::RunVector()
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
-
 }
 
 void ProcessBenchmarker::RunGeantV()
@@ -232,15 +218,11 @@ void ProcessBenchmarker::RunGeantV()
         elapsedTotal[k] += elapsedT[k];
 
 #ifdef VECPHYS_ROOT
-        histogram->RecordTime(k,elapsedT[k]);
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          histogram->RecordHistosProc(k,
-                                      itrack_soa.E[i],
-                                      itrack_soa.nint[i],
-                                      itrack_soa.s[i],
-                                      itrack_soa.lambda[i]);
-        } 
-#endif    
+        histogram->RecordTime(k, elapsedT[k]);
+        for (int i = 0; i < fNtracks; ++i) {
+          histogram->RecordHistosProc(k, itrack_soa.E[i], itrack_soa.nint[i], itrack_soa.s[i], itrack_soa.lambda[i]);
+        }
+#endif
       }
     }
   }
@@ -256,7 +238,6 @@ void ProcessBenchmarker::RunGeantV()
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
-
 }
 
 void ProcessBenchmarker::RunGeant3()
@@ -287,15 +268,11 @@ void ProcessBenchmarker::RunGeant3()
         elapsedTotal[k] += elapsedT[k];
 
 #ifdef VECPHYS_ROOT
-        histogram->RecordTime(k,elapsedT[k]);
-        for(int i = 0 ; i < fNtracks ; ++i) {
-          histogram->RecordHistosProc(k,
-                                      itrack_aos[i].E,
-                                      itrack_aos[i].nint,
-                                      itrack_aos[i].s,
-                                      itrack_aos[i].lambda);
-        } 
-#endif    
+        histogram->RecordTime(k, elapsedT[k]);
+        for (int i = 0; i < fNtracks; ++i) {
+          histogram->RecordHistosProc(k, itrack_aos[i].E, itrack_aos[i].nint, itrack_aos[i].s, itrack_aos[i].lambda);
+        }
+#endif
       }
     }
   }
@@ -313,7 +290,6 @@ void ProcessBenchmarker::RunGeant3()
 #ifdef VECPHYS_ROOT
   delete histogram;
 #endif
-
 }
 
 } // end namespace vecphys

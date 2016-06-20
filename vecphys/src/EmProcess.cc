@@ -9,7 +9,7 @@ template <class Process>
 VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
 {
   // build alias table for the physics process based on their relative cross sections
-  // non-alias proability will be calculated on the fly 
+  // non-alias proability will be calculated on the fly
 
   for (int i = 0; i < fNumberOfMaterialBin; ++i) {
     for (int j = 0; j < fNumberOfEnergyBin; ++j) {
@@ -30,8 +30,8 @@ VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
         a[k] = -1;
         ap[k] = pdf[k];
       }
-     // O(n) iterations
-      int iter = fNumberOfProcess ;
+      // O(n) iterations
+      int iter = fNumberOfProcess;
 
       do {
         int donor = 0;

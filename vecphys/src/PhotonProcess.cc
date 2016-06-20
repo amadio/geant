@@ -23,8 +23,8 @@ PhotonProcess::PhotonProcess(Random_t *states, int tid) : EmProcess<PhotonProces
 }
 
 VECCORE_CUDA_HOST_DEVICE
-PhotonProcess::PhotonProcess(Random_t *states, int tid, CrossSectionData *data) 
-  : EmProcess<PhotonProcess>(states, tid, data)
+PhotonProcess::PhotonProcess(Random_t *states, int tid, CrossSectionData *data)
+    : EmProcess<PhotonProcess>(states, tid, data)
 {
   fNumberOfProcess = 3;
   fCompton = 0;
@@ -34,10 +34,9 @@ PhotonProcess::PhotonProcess(Random_t *states, int tid, CrossSectionData *data)
   fLogEnergyLowerBound = log(fEnergyLowerBound);
   fInverseLogEnergyBin = fNumberOfEnergyBin / (log(fEnergyUpperBound) - fLogEnergyLowerBound);
 
-  fNumberOfMaterialBin = 3;//(vecgeom::Material::GetMaterials()).size();
-
+  fNumberOfMaterialBin = 3; //(vecgeom::Material::GetMaterials()).size();
 }
-       
+
 VECCORE_CUDA_HOST
 PhotonProcess::~PhotonProcess()
 {
@@ -55,15 +54,15 @@ VECCORE_CUDA_HOST void PhotonProcess::Initialization()
 
   fNumberOfMaterialBin = (vecgeom::Material::GetMaterials()).size();
 
-  fCrossSectionData = (CrossSectionData *)malloc(sizeof(CrossSectionData) * fNumberOfEnergyBin* fNumberOfMaterialBin);
+  fCrossSectionData = (CrossSectionData *)malloc(sizeof(CrossSectionData) * fNumberOfEnergyBin * fNumberOfMaterialBin);
   // initialize table
   for (int i = 0; i < fNumberOfMaterialBin; ++i) {
     for (int j = 0; j < fNumberOfEnergyBin; ++j) {
       int ibin = i * fNumberOfEnergyBin + j;
       fCrossSectionData[ibin].fSigma = 0.0;
-      for (int k = 0; k < fNumberOfProcess ; ++k)
+      for (int k = 0; k < fNumberOfProcess; ++k)
         fCrossSectionData[ibin].fAlias[k] = 0;
-      for (int k = 0; k < fNumberOfProcess - 1 ; ++k)
+      for (int k = 0; k < fNumberOfProcess - 1; ++k)
         fCrossSectionData[ibin].fWeight[k] = 0.0;
     }
   }

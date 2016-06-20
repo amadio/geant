@@ -1,9 +1,9 @@
 #ifndef PROCESSBENCHMARKER_GPU_H
 #define PROCESSBENCHMARKER_GPU_H 1
 
-#include "base/VecPhys.h"
-#include "GUTrack.h"
 #include "EmProcess.h"
+#include "GUTrack.h"
+#include "base/VecPhys.h"
 
 namespace vecphys {
 
@@ -15,7 +15,7 @@ void CudaElectronProcess(int blocksPerGrid, int threadsPerBlock, Random_t *devSt
                          int nTrackSize, GUTrack *itrack, int *targetElements);
 
 typedef void (*CudaKernelFunc_t)(int blocksPerGrid, int threadsPerBlock, Random_t *devStates, CrossSectionData *table,
-				 int nTrackSize, GUTrack *itrack, int *targetElements);
+                                 int nTrackSize, GUTrack *itrack, int *targetElements);
 
 CudaKernelFunc_t CudaKernelFunc[] = {CudaPhotonProcess, CudaElectronProcess};
 

@@ -24,8 +24,8 @@ ElectronProcess::ElectronProcess(Random_t *states, int tid) : EmProcess<Electron
 }
 
 VECCORE_CUDA_HOST_DEVICE
-ElectronProcess::ElectronProcess(Random_t *states, int tid, CrossSectionData *data) 
-  : EmProcess<ElectronProcess>(states, tid, data)
+ElectronProcess::ElectronProcess(Random_t *states, int tid, CrossSectionData *data)
+    : EmProcess<ElectronProcess>(states, tid, data)
 {
   fNumberOfProcess = 3;
   fIonisation = 0;
@@ -35,9 +35,8 @@ ElectronProcess::ElectronProcess(Random_t *states, int tid, CrossSectionData *da
   fLogEnergyLowerBound = log(fEnergyLowerBound);
   fInverseLogEnergyBin = fNumberOfEnergyBin / (log(fEnergyUpperBound) - fLogEnergyLowerBound);
 
-  fNumberOfMaterialBin = 3;//(vecgeom::Material::GetMaterials()).size();
+  fNumberOfMaterialBin = 3; //(vecgeom::Material::GetMaterials()).size();
 }
-
 
 VECCORE_CUDA_HOST
 ElectronProcess::~ElectronProcess()
@@ -51,21 +50,20 @@ VECCORE_CUDA_HOST void ElectronProcess::Initialization()
 {
   fIonisation = new IonisationMoller(0, -1);
   fBremsstrahlung = new BremSeltzerBerger(0, -1);
-  fMSC = new UrbanWentzelVI(0,-1);
+  fMSC = new UrbanWentzelVI(0, -1);
 
   fNumberOfMaterialBin = (vecgeom::Material::GetMaterials()).size();
 
-  fCrossSectionData =
-      (CrossSectionData *)malloc(sizeof(CrossSectionData) * fNumberOfEnergyBin*fNumberOfMaterialBin);
+  fCrossSectionData = (CrossSectionData *)malloc(sizeof(CrossSectionData) * fNumberOfEnergyBin * fNumberOfMaterialBin);
   // initialize table
   for (int i = 0; i < fNumberOfMaterialBin; ++i) {
     for (int j = 0; j < fNumberOfEnergyBin; ++j) {
       int ibin = i * fNumberOfEnergyBin + j;
       fCrossSectionData[ibin].fSigma = 0.0;
 
-      for (int k = 0; k < fNumberOfProcess ; ++k)
+      for (int k = 0; k < fNumberOfProcess; ++k)
         fCrossSectionData[ibin].fAlias[k] = 0;
-      for (int k = 0; k < fNumberOfProcess - 1 ; ++k)
+      for (int k = 0; k < fNumberOfProcess - 1; ++k)
         fCrossSectionData[ibin].fWeight[k] = 0.0;
     }
   }
@@ -92,7 +90,7 @@ VECCORE_CUDA_HOST void ElectronProcess::BuildCrossSectionTable()
 
       cross[0] = fIonisation->G4CrossSectionPerVolume((mtable)[i], energy);
       cross[1] = fBremsstrahlung->G4CrossSectionPerVolume((mtable)[i], energy);
-      cross[2] = fMSC->G4CrossSectionPerVolume((mtable)[i],energy);
+      cross[2] = fMSC->G4CrossSectionPerVolume((mtable)[i], energy);
 
       // fill cross section information (total and weights)
       double totalCrossSection = cross[0] + cross[1] + cross[2];

@@ -88,16 +88,14 @@ void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, in
       indEl = (i % fNumberOfElements);
       targetElements[i] = fElementArray[indEl];
     }
-  }
-  else if (elementMode == 1) { // using a single element
+  } else if (elementMode == 1) { // using a single element
     if (report)
       printf(" Using *Constant* Target Element Z = %d - mode # = %d\n", fElementArray[0], elementMode);
 
     for (int i = 0; i < ntracks; ++i) {
       targetElements[i] = fElementArray[0];
     }
-  }
-  else {
+  } else {
     printf(" Illeagal - mode # = %d\n", elementMode);
     assert(0);
   }
@@ -160,16 +158,14 @@ void MaterialHandler::PrepareMaterialIndex(int *materialIndex, int ntracks, int 
     for (int i = 0; i < ntracks; ++i) {
       materialIndex[i] = (i % numberOfMaterials);
     }
-  }
-  else if (materialMode == 1) { // using a single material
+  } else if (materialMode == 1) { // using a single material
     if (report)
       printf(" Material Mode =  %d ( Using *Constant* target material mame = %s )\n", materialMode,
              (mtable[0]->GetName()));
     for (int i = 0; i < ntracks; ++i) {
       materialIndex[i] = (mtable[0])->GetIndex();
     }
-  }
-  else {
+  } else {
     printf(" Illeagal - mode # = %d\n", materialMode);
     assert(0);
   }
