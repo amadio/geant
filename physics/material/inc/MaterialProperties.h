@@ -88,15 +88,15 @@ namespace geant{
    *      \f[
    *         I < 100 \textrm{[eV]}
    *         \begin{cases}
-   *          X_0 = 0.2,                 & X_1 = 2.0   & \textrm{for} \quad  \tilde{C}  <   3.681  \\
-   *          X_0 = 0.326\tilde{C}-1.0,  & X_1 = 2.0   & \textrm{for} \quad  \tilde{C} \geq 3.681  \\
+   *          X_0 = 0.2,                 X_1 = 2.0   & \textrm{for} \quad  \tilde{C}  <   3.681  \\
+   *          X_0 = 0.326\tilde{C}-1.0,  X_1 = 2.0   & \textrm{for} \quad  \tilde{C} \geq 3.681  \\
    *         \end{cases}
    *      \f]
    *      \f[
    *         I \geq 100 \textrm{[eV]}
    *         \begin{cases}
-   *          X_0 = 0.2,                 & X_1 = 3.0   & \textrm{for} \quad  \tilde{C}  <   5.215  \\
-   *          X_0 = 0.326\tilde{C}-1.5,  & X_1 = 3.0   & \textrm{for} \quad  \tilde{C} \geq 5.215  \\
+   *          X_0 = 0.2,                 X_1 = 3.0   & \textrm{for} \quad  \tilde{C}  <   5.215  \\
+   *          X_0 = 0.326\tilde{C}-1.5,  X_1 = 3.0   & \textrm{for} \quad  \tilde{C} \geq 5.215  \\
    *         \end{cases}
    *      \f]
    *      - for gases(Eqs.(37-41) plus text in \cite sternheimer1971general)
