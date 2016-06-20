@@ -42,9 +42,9 @@ int main(int argc, char *argv[])
 
   if (argc >= 7) {
     runMode = atoi(argv[6]);
-    if (runMode < -1 || runMode >= 4) {
-      std::cout << "  Illegal run mode " << runMode << "! Should be [-1:" << 3
-                << "] [-1,0,1,2,3]=[all,Scalar,Vector,Geant3,GeantV]" << std::endl;
+    if (runMode < -1 || runMode >= 5) {
+      std::cout << "  Illegal run mode " << runMode << "! Should be [-1:" << 4
+                << "] [-1,0,1,2,3,4]=[all,Scalar,Vector,Geant3,GeantV,Cuda]" << std::endl;
       exit(0);
     }
   }

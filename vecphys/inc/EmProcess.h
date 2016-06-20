@@ -9,6 +9,12 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
+struct CrossSectionData {
+  double fSigma;
+  double fWeight[2];
+  int fAlias[3];
+};
+
 template <class Process>
 class EmProcess {
 
@@ -16,7 +22,10 @@ public:
   VECCORE_CUDA_HOST
   EmProcess(Random_t *states = 0, int threadId = -1);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_CUDA_HOST_DEVICE 
+  EmProcess(Random_t *states, int threadId, CrossSectionData* data);
+
+  VECCORE_CUDA_HOST
   ~EmProcess() = default;
 
   VECCORE_CUDA_HOST
@@ -26,7 +35,13 @@ public:
   void BuildCrossSectionTable();
 
   VECCORE_CUDA_HOST
-  void PrintCrossSectionTable();
+  void BuildAlias();
+
+  VECCORE_CUDA_HOST
+  CrossSectionData* GetCrossSectionData() { return fCrossSectionData; }
+
+  VECCORE_CUDA_HOST_DEVICE
+  void SetCrossSectionData(CrossSectionData *table) { fCrossSectionData = table; }
 
   template <typename Backend>
   VECCORE_CUDA_HOST_DEVICE void GetStepLengthAndProcess(GUTrack &track, const int materialIndex);
@@ -52,6 +67,12 @@ public:
   VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> GetNextProcess(
       Index_v<typename Backend::Double_v> materialIndex, Index_v<typename Backend::Double_v> ebin);
 
+  VECCORE_CUDA_HOST_DEVICE int GetNumberOfProcess() { return fNumberOfProcess; } 
+
+  VECCORE_CUDA_HOST_DEVICE int GetNumberOfEnergyBin() { return fNumberOfEnergyBin; } 
+
+  VECCORE_CUDA_HOST_DEVICE int GetNumberOfMaterialBin() { return fNumberOfMaterialBin; } 
+
 protected:
   Random_t *fRandomState;
   int fThreadId;
@@ -65,6 +86,8 @@ protected:
 
   double fLogEnergyLowerBound;
   double fInverseLogEnergyBin;
+
+  CrossSectionData *fCrossSectionData;
 };
 
 // Implementation
@@ -77,15 +100,18 @@ VECCORE_CUDA_HOST EmProcess<Process>::EmProcess(Random_t *states, int tid)
 }
 
 template <class Process>
-VECCORE_CUDA_HOST void EmProcess<Process>::BuildCrossSectionTable()
+VECCORE_CUDA_HOST_DEVICE EmProcess<Process>::EmProcess(Random_t *states, int tid, CrossSectionData *data)
+    : fRandomState(states), fThreadId(tid), fNumberOfProcess(0), fNumberOfEnergyBin(100), fNumberOfMaterialBin(0),
+      fEnergyLowerBound(1. * 10e-3), fEnergyUpperBound(1. * 10e+6)
 {
-  static_cast<Process *>(this)->BuildCrossSectionTable();
+  fCrossSectionData = data;
 }
 
 template <class Process>
-VECCORE_CUDA_HOST void EmProcess<Process>::PrintCrossSectionTable()
+VECCORE_CUDA_HOST void EmProcess<Process>::BuildCrossSectionTable()
 {
-  static_cast<Process *>(this)->PrintCrossSectionTable();
+  static_cast<Process *>(this)->BuildCrossSectionTable();
+  this->BuildAias();  
 }
 
 template <class Process>
@@ -277,17 +303,19 @@ VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>:
   // select a physics process
 
   using Double_v = typename Backend::Double_v;
-  typedef Mask_v<typename Backend::Double_v> Bool_t;
+  //  typedef Mask_v<typename Backend::Double_v> Bool_t;
 
   Double_v u1 = fNumberOfProcess * UniformRandom<Double_v>(fRandomState, fThreadId);
   Index_v<typename Backend::Double_v> ip = (Index_v<Double_v>)math::Floor(u1);
 
-  Bool_t last = (ip == (Index_v<Double_v>)(fNumberOfProcess - 1));
+  //  Bool_t last = (ip == (Index_v<Double_v>)(fNumberOfProcess - 1));
 
   Double_v weight(0.0);
   Index_v<Double_v> alias;
   static_cast<Process *>(this)->template GetWeightAndAlias<Backend>(matId, ebin, ip, weight, alias);
 
+  //calculate non-alias probablity based on weight (i.e., pdf[ip]) and the normalization factor (1/fNumberOfProcess)
+  //non-alias probablity = weight/(normalization factor)
   Double_v probNA = weight * fNumberOfProcess;
 
   // get the relative weight of the cross section for the ip-th model

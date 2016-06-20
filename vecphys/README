@@ -14,7 +14,7 @@
    2.1 build GeantV with additional cmake switches
 
    -DUSE_VECPHYS=ON 
-   -DGUBENCHMARK=ON (build benchmarker executables. see 3.3 how to run it)
+   -DGUBENCHMARK=[Model|Process] (build benchmarker executables. see 3.3 how to run it)
 
    2.2 run one of example macros under vecprot_v2: for example,
 
@@ -50,7 +50,7 @@
 
    cd vecphys ; mkdir build ; cd build
    cmake -DVc_DIR=${Vc_DIR} -DVecGeom_DIR=${VecGeom_DIR} -DVecGeom_SRC=${VecGeom_SRC} \
-         -DROOT=ON -DCUDA=ON -DGUBENCHMARK=ON ..
+         -DROOT=ON -DCUDA=ON -DGUBENCHMARK=[Model|Process] ..
 
    3.3 how to run benchmarker 
 

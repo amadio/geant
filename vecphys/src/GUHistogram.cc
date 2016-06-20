@@ -28,6 +28,24 @@ void GUHistogram::BookHistograms(double maxE)
     fEnergyOut2[i] = new TH1F("EnergyOut2","EnergyOut2", 100, 0.,  1.1 * maxE);
     fAngleOut1[i]  = new TH1F("AngleOut1","AngleOut1", 100, -1.,  1.0);
     fAngleOut2[i]  = new TH1F("AngleOut2","AngleOut2", 100, -1.,  1.0);
+
+  }
+
+  for(int i = 0 ; i < kNumberPhysicsProcess ; ++i) {
+
+    fHistFile->mkdir(GUPhysicsProcessName[i]);
+    fHistFile->cd(GUPhysicsProcessName[i]);
+
+    fProcEnergy[i] = new TH1F("ProcEnergy", "ProcEnergy", 100, 0.,  1.1 * maxE);
+    fNint[i]  = new TH1F("Nint","Nint", 100, 0.,  10.);
+    if(i == kPhotonProcess ) {
+      fStep[i]  = new TH1F("Step","Step", 100, 0.,  1.);
+      fLambda[i]  = new TH1F("Lambda","Lambda", 100, 0.,  1.);
+    }
+    else {
+      fStep[i]  = new TH1F("Step","Step", 100, 0.,  100.);
+      fLambda[i]  = new TH1F("Lambda","Lambda", 100, 0.,  100.);
+    }
   }
 }
 
@@ -43,6 +61,18 @@ void GUHistogram::RecordHistos(int imodel,
   fEnergyOut2[imodel]->Fill(energyOut2);
   fAngleOut1[imodel]->Fill(AngleOut1);
   fAngleOut2[imodel]->Fill(AngleOut2);
+}
+
+void GUHistogram::RecordHistosProc(int iprocess,
+                                   double energy,
+                                   double nint,
+                                   double step,
+                                   double lambda)
+{
+  fProcEnergy[iprocess]->Fill(energy);
+  fNint[iprocess]->Fill(nint);
+  fStep[iprocess]->Fill(step);
+  fLambda[iprocess]->Fill(lambda);
 }
 
 void GUHistogram::RecordTime(int imodel, double elapsedTime)

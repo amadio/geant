@@ -9,22 +9,20 @@
 
 #include "BremSeltzerBerger.h"
 #include "IonisationMoller.h"
+#include "UrbanWentzelVI.h"
 
 #include "EmProcess.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-struct ElectronCrossSectionData {
-  double fSigma;
-  double fWeight[2];
-  int fAlias[3];
-};
-
 class ElectronProcess : public EmProcess<ElectronProcess> {
 public:
   VECCORE_CUDA_HOST
   ElectronProcess(Random_t *states = 0, int threadId = -1);
+
+  VECCORE_CUDA_HOST_DEVICE
+  ElectronProcess(Random_t *states, int threadId, CrossSectionData *data);
 
   VECCORE_CUDA_HOST_DEVICE
   ~ElectronProcess();
@@ -34,9 +32,6 @@ public:
 
   VECCORE_CUDA_HOST
   void BuildCrossSectionTable();
-
-  VECCORE_CUDA_HOST
-  void PrintCrossSectionTable();
 
   template <class Backend>
   inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GetLambda(
@@ -60,8 +55,7 @@ public:
 private:
   IonisationMoller *fIonisation;
   BremSeltzerBerger *fBremsstrahlung;
-
-  ElectronCrossSectionData **fElectronCrossSectionData;
+  UrbanWentzelVI *fMSC;
 };
 
 template <class Backend>
@@ -72,8 +66,8 @@ inline typename Backend::Double_v ElectronProcess::GetLambda(Index_v<typename Ba
   int im = (int)(matId);
   int ie = (int)(ebin);
   // linear approximation
-  double xlow = fElectronCrossSectionData[im][ie].fSigma;
-  double xhigh = fElectronCrossSectionData[im][ie + 1].fSigma;
+  double xlow = fCrossSectionData[im*fNumberOfEnergyBin + ie].fSigma;
+  double xhigh = fCrossSectionData[im*fNumberOfEnergyBin + ie + 1].fSigma;
 
   return xlow + (xhigh - xlow) * fraction;
 }
@@ -90,9 +84,9 @@ inline typename backend::VcVector::Double_v ElectronProcess::GetLambda<backend::
   for (size_t i = 0; i < VectorSize(ebin); ++i) {
     int im = (int)(matId[i]);
     int ie = (int)(ebin[i]);
-    // test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
-    double xlow = fElectronCrossSectionData[im][ie].fSigma;
-    double xhigh = fElectronCrossSectionData[im][ie + 1].fSigma;
+
+    double xlow = fCrossSectionData[im*fNumberOfEnergyBin + ie].fSigma;
+    double xhigh = fCrossSectionData[im*fNumberOfEnergyBin + ie + 1].fSigma;
     lambda[i] = xlow + (xhigh - xlow) * fraction[i];
   }
   return lambda;
@@ -107,17 +101,17 @@ inline VECCORE_CUDA_HOST_DEVICE void ElectronProcess::GetWeightAndAlias(
 {
   int im = (int)(matId);
   int ie = (int)(ebin);
-  int ip = (int)iprocess;
+  int ip = (int)(iprocess);
 
   if (ip == fNumberOfProcess - 1) {
+    weight = 1.0;
     for (int j = 0; j < fNumberOfProcess - 1; ++j)
-      weight -= fElectronCrossSectionData[im][ie].fWeight[j];
-    weight += 1.0;
+      weight -= fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[j];
   }
   else {
-    weight = fElectronCrossSectionData[im][ie].fWeight[ip];
+    weight = fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[ip];
   }
-  alias = fElectronCrossSectionData[im][ie].fAlias[ip];
+  alias = fCrossSectionData[im*fNumberOfEnergyBin + ie].fAlias[ip];
 }
 
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
@@ -133,14 +127,14 @@ inline void ElectronProcess::GetWeightAndAlias<backend::VcVector>(
     int ip = (int)(iprocess[i]);
 
     if (ip == fNumberOfProcess - 1) {
+      weight[i] = 1.0;
       for (int j = 0; j < fNumberOfProcess - 1; ++j)
-        weight[i] -= fElectronCrossSectionData[im][ie].fWeight[j];
-      weight[i] += 1.0;
+        weight[i] -= fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[j];
     }
     else {
-      weight[i] = fElectronCrossSectionData[im][ie].fWeight[ip];
+      weight[i] = fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[ip];
     }
-    alias[i] = fElectronCrossSectionData[im][ie].fAlias[ip];
+    alias[i] = fCrossSectionData[im*fNumberOfEnergyBin + ie].fAlias[ip];
   }
 }
 #endif
@@ -150,16 +144,18 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> ElectronProc
     Index_v<typename Backend::Double_v> matId, Index_v<typename Backend::Double_v> ebin)
 {
   // select a physics process randomly based on the weight
+  using Double_v = typename Backend::Double_v;
+
   int im = (int)(matId);
   int ie = (int)(ebin);
 
   int ip = fNumberOfProcess - 1;
 
   double weight = 0.0;
-  double rp = UniformRandom<double>(fRandomState, fThreadId);
+  double rp = UniformRandom<Double_v>(fRandomState, fThreadId);
 
   for (int i = 0; i < fNumberOfProcess - 1; ++i) {
-    weight += fElectronCrossSectionData[im][ie].fWeight[i];
+    weight += fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[i];
     if (weight > rp) {
       ip = i;
       break;
@@ -185,7 +181,7 @@ inline Index_v<typename backend::VcVector::Double_v> ElectronProcess::G3NextProc
     double rp = UniformRandom<double>(fRandomState, fThreadId);
 
     for (int j = 0; j < fNumberOfProcess - 1; ++j) {
-      weight += fElectronCrossSectionData[im][ie].fWeight[j];
+      weight += fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[j];
       if (weight > rp) {
         ip[i] = j;
         break;

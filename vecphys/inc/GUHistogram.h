@@ -7,6 +7,7 @@
 #endif
 
 #include "GUPhysicsModelName.h"
+#include "GUPhysicsProcessName.h"
 
 namespace vecphys {
 
@@ -25,6 +26,12 @@ public:
                     double energyOut2,
                     double AngleOut2);
 
+  void RecordHistosProc(int iprocess,
+                        double energy,
+                        double nint,
+                        double step,
+                        double lambda);
+
 #ifdef VECPHYS_ROOT
 private:
   void BookHistograms(double maxEnergy);
@@ -36,6 +43,11 @@ private:
   TH1F*  fEnergyOut2[kNumberPhysicsModel];
   TH1F*  fAngleOut1[kNumberPhysicsModel];
   TH1F*  fAngleOut2[kNumberPhysicsModel];
+
+  TH1F*  fProcEnergy[kNumberPhysicsProcess];
+  TH1F*  fNint[kNumberPhysicsProcess];
+  TH1F*  fStep[kNumberPhysicsProcess];
+  TH1F*  fLambda[kNumberPhysicsProcess];
 
 #endif
 };

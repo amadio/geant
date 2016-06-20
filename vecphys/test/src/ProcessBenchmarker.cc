@@ -9,6 +9,10 @@
 
 #include "GUTrackHandler.h"
 
+#ifdef VECPHYS_ROOT
+#include "GUHistogram.h"
+#endif
+
 namespace vecphys {
 
 // Mono-energetic test
@@ -45,7 +49,7 @@ int ProcessBenchmarker::RunBenchmark()
     printf(" Run Mode      = -1 ( Using all available test modes)\n");
   }
   else {
-    printf(" Run Mode      =  %d ( [-1,0,1,2,3]=[all,Scalar,Vector,Geant3,GeantV] )\n", fRunMode);
+    printf(" Run Mode      =  %d ( [-1,0,1,2,3,4]=[all,Scalar,Vector,Geant3,GeantV,Cuda] )\n", fRunMode);
   }
 
   int errorcode = 0;
@@ -68,12 +72,18 @@ int ProcessBenchmarker::RunBenchmarkProcess()
     RunGeant3();
   if (fRunMode == 3 || fRunMode == -1)
     RunGeantV();
+  if (fRunMode == 4 || fRunMode == -1)
+    RunCuda();
 
   return mismatches;
 }
 
 void ProcessBenchmarker::RunScalar()
 {
+#ifdef VECPHYS_ROOT
+  GUHistogram *histogram = new GUHistogram("process_scalar.root", fMaxP);
+#endif
+
   int *targetElements = new int[fNtracks];
   GUTrack *itrack_aos = (GUTrack *)malloc(fNtracks * sizeof(GUTrack));
 
@@ -95,6 +105,17 @@ void ProcessBenchmarker::RunScalar()
         elapsedT[k] = 0.0;
         elapsedT[k] = ScalarKernelFunc[k](fNtracks, itrack_aos, targetElements);
         elapsedTotal[k] += elapsedT[k];
+
+#ifdef VECPHYS_ROOT
+        histogram->RecordTime(k,elapsedT[k]);
+        for(int i = 0 ; i < fNtracks ; ++i) {
+          histogram->RecordHistosProc(k,
+                                      itrack_aos[i].E,
+                                      itrack_aos[i].nint,
+                                      itrack_aos[i].s,
+                                      itrack_aos[i].lambda);
+        } 
+#endif    
       }
     }
   }
@@ -107,10 +128,18 @@ void ProcessBenchmarker::RunScalar()
 
   free(itrack_aos);
   delete[] targetElements;
+
+#ifdef VECPHYS_ROOT
+  delete histogram;
+#endif
+
 }
 
 void ProcessBenchmarker::RunVector()
 {
+#ifdef VECPHYS_ROOT
+  GUHistogram *histogram = new GUHistogram("process_vector.root", fMaxP);
+#endif
   // SOA tracks
   GUTrackHandler *handler_in = new GUTrackHandler(fNtracks);
   GUTrack_v itrack_soa = handler_in->GetSoATracks();
@@ -138,6 +167,19 @@ void ProcessBenchmarker::RunVector()
         elapsedT[k] = 0.0;
         elapsedT[k] = VectorKernelFunc[k](itrack_soa, targetElements);
         elapsedTotal[k] += elapsedT[k];
+
+
+
+#ifdef VECPHYS_ROOT
+        histogram->RecordTime(k,elapsedT[k]);
+        for(int i = 0 ; i < fNtracks ; ++i) {
+          histogram->RecordHistosProc(k,
+                                      itrack_soa.E[i],
+                                      itrack_soa.nint[i],
+                                      itrack_soa.s[i],
+                                      itrack_soa.lambda[i]);
+        } 
+#endif    
       }
     }
   }
@@ -149,10 +191,18 @@ void ProcessBenchmarker::RunVector()
   }
   delete handler_in;
   delete[] targetElements;
+
+#ifdef VECPHYS_ROOT
+  delete histogram;
+#endif
+
 }
 
 void ProcessBenchmarker::RunGeantV()
 {
+#ifdef VECPHYS_ROOT
+  GUHistogram *histogram = new GUHistogram("process_geantv.root", fMaxP);
+#endif
   // SOA tracks
   GUTrackHandler *handler_in = new GUTrackHandler(fNtracks);
   GUTrack_v itrack_soa = handler_in->GetSoATracks();
@@ -180,6 +230,17 @@ void ProcessBenchmarker::RunGeantV()
         elapsedT[k] = 0.0;
         elapsedT[k] = GeantVKernelFunc[k](itrack_soa, targetElements);
         elapsedTotal[k] += elapsedT[k];
+
+#ifdef VECPHYS_ROOT
+        histogram->RecordTime(k,elapsedT[k]);
+        for(int i = 0 ; i < fNtracks ; ++i) {
+          histogram->RecordHistosProc(k,
+                                      itrack_soa.E[i],
+                                      itrack_soa.nint[i],
+                                      itrack_soa.s[i],
+                                      itrack_soa.lambda[i]);
+        } 
+#endif    
       }
     }
   }
@@ -191,10 +252,18 @@ void ProcessBenchmarker::RunGeantV()
   }
   delete handler_in;
   delete[] targetElements;
+
+#ifdef VECPHYS_ROOT
+  delete histogram;
+#endif
+
 }
 
 void ProcessBenchmarker::RunGeant3()
 {
+#ifdef VECPHYS_ROOT
+  GUHistogram *histogram = new GUHistogram("process_geant3.root", fMaxP);
+#endif
   int *targetElements = new int[fNtracks];
   GUTrack *itrack_aos = (GUTrack *)malloc(fNtracks * sizeof(GUTrack));
 
@@ -216,6 +285,17 @@ void ProcessBenchmarker::RunGeant3()
         elapsedT[k] = 0.0;
         elapsedT[k] = Geant3KernelFunc[k](fNtracks, itrack_aos, targetElements);
         elapsedTotal[k] += elapsedT[k];
+
+#ifdef VECPHYS_ROOT
+        histogram->RecordTime(k,elapsedT[k]);
+        for(int i = 0 ; i < fNtracks ; ++i) {
+          histogram->RecordHistosProc(k,
+                                      itrack_aos[i].E,
+                                      itrack_aos[i].nint,
+                                      itrack_aos[i].s,
+                                      itrack_aos[i].lambda);
+        } 
+#endif    
       }
     }
   }
@@ -229,6 +309,11 @@ void ProcessBenchmarker::RunGeant3()
 
   free(itrack_aos);
   delete[] targetElements;
+
+#ifdef VECPHYS_ROOT
+  delete histogram;
+#endif
+
 }
 
 } // end namespace vecphys

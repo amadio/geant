@@ -16,16 +16,13 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-struct PhotonCrossSectionData {
-  double fSigma;
-  double fWeight[2];
-  int fAlias[3];
-};
-
 class PhotonProcess : public EmProcess<PhotonProcess> {
 public:
   VECCORE_CUDA_HOST
   PhotonProcess(Random_t *states = 0, int threadId = -1);
+
+  VECCORE_CUDA_HOST_DEVICE
+  PhotonProcess(Random_t *states, int threadId, CrossSectionData *data);
 
   VECCORE_CUDA_HOST_DEVICE
   ~PhotonProcess();
@@ -35,12 +32,6 @@ public:
 
   VECCORE_CUDA_HOST
   void BuildCrossSectionTable();
-
-  VECCORE_CUDA_HOST
-  void PrintCrossSectionTable();
-
-  VECCORE_CUDA_HOST
-  PhotoElectronSauterGavrila *GetPE() { return fPhotoElectron; }
 
   template <class Backend>
   inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GetLambda(
@@ -65,8 +56,6 @@ private:
   ComptonKleinNishina *fCompton;
   ConversionBetheHeitler *fConversion;
   PhotoElectronSauterGavrila *fPhotoElectron;
-
-  PhotonCrossSectionData **fPhotonCrossSectionData;
 };
 
 template <class Backend>
@@ -78,8 +67,8 @@ inline typename Backend::Double_v PhotonProcess::GetLambda(Index_v<typename Back
   int ie = (int)(ebin);
 
   // linear approximation
-  double xlow = fPhotonCrossSectionData[im][ie].fSigma;
-  double xhigh = fPhotonCrossSectionData[im][ie + 1].fSigma;
+  double xlow = fCrossSectionData[im*fNumberOfEnergyBin + ie].fSigma;
+  double xhigh = fCrossSectionData[im*fNumberOfEnergyBin + ie + 1].fSigma;
 
   return xlow + (xhigh - xlow) * fraction;
 }
@@ -96,9 +85,9 @@ inline typename backend::VcVector::Double_v PhotonProcess::GetLambda<backend::Vc
   for (size_t i = 0; i < VectorSize(ebin); ++i) {
     int im = (int)(matId[i]);
     int ie = (int)(ebin[i]);
-    // test to call the scalar method: lambda[i] = GetLambda(im,ie,fraction[i]);
-    double xlow = fPhotonCrossSectionData[im][ie].fSigma;
-    double xhigh = fPhotonCrossSectionData[im][ie + 1].fSigma;
+
+    double xlow = fCrossSectionData[im*fNumberOfEnergyBin + ie].fSigma;
+    double xhigh = fCrossSectionData[im*fNumberOfEnergyBin + ie + 1].fSigma;
     lambda[i] = xlow + (xhigh - xlow) * fraction[i];
   }
   return lambda;
@@ -117,14 +106,14 @@ inline VECCORE_CUDA_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<ty
   int ip = (int)(iprocess);
 
   if (ip == fNumberOfProcess - 1) {
+    weight = 1.0;
     for (int j = 0; j < fNumberOfProcess - 1; ++j)
-      weight -= fPhotonCrossSectionData[im][ie].fWeight[j];
-    weight += 1.0;
+      weight -= fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[j];
   }
   else {
-    weight = fPhotonCrossSectionData[im][ie].fWeight[ip];
+    weight = fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[ip];
   }
-  alias = fPhotonCrossSectionData[im][ie].fAlias[ip];
+  alias = fCrossSectionData[im*fNumberOfEnergyBin + ie].fAlias[ip];
 }
 
 #if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
@@ -140,14 +129,14 @@ inline void PhotonProcess::GetWeightAndAlias<backend::VcVector>(
     int ip = (int)(iprocess[i]);
 
     if (ip == fNumberOfProcess - 1) {
+      weight[i] = 1.0;
       for (int j = 0; j < fNumberOfProcess - 1; ++j)
-        weight[i] -= fPhotonCrossSectionData[im][ie].fWeight[j];
-      weight[i] += 1.0;
+        weight[i] -= fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[j];
     }
     else {
-      weight[i] = fPhotonCrossSectionData[im][ie].fWeight[ip];
+      weight[i] = fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[ip];
     }
-    alias[i] = fPhotonCrossSectionData[im][ie].fAlias[ip];
+    alias[i] = fCrossSectionData[im*fNumberOfEnergyBin + ie].fAlias[ip];
   }
 }
 #endif
@@ -168,7 +157,7 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProces
   double rp = UniformRandom<Double_v>(fRandomState, fThreadId);
 
   for (int i = 0; i < fNumberOfProcess - 1; ++i) {
-    weight += fPhotonCrossSectionData[im][ie].fWeight[i];
+    weight += fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[i];
     if (weight > rp) {
       ip = i;
       break;
@@ -194,7 +183,7 @@ inline Index_v<typename backend::VcVector::Double_v> PhotonProcess::G3NextProces
     double rp = UniformRandom<double>(fRandomState, fThreadId);
 
     for (int j = 0; j < fNumberOfProcess - 1; ++j) {
-      weight += fPhotonCrossSectionData[im][ie].fWeight[j];
+      weight += fCrossSectionData[im*fNumberOfEnergyBin + ie].fWeight[j];
       if (weight > rp) {
         ip[i] = j;
         break;

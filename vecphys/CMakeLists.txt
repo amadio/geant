@@ -282,6 +282,7 @@ set(SRC_CPP_RELATIVE
   src/PhotoElectronSauterGavrila.cc
   src/IonisationMoller.cc
   src/BremSeltzerBerger.cc
+  src/UrbanWentzelVI.cc
   src/GUAliasTable.cc
   src/GUAliasTableManager.cc
   src/Physics2DVector.cc
@@ -322,24 +323,44 @@ endif()
 
 # Add files that won't be compiled for CUDA
 
-if (GUBENCHMARK)
+if (GUBENCHMARK) 
+  if (ROOT) 
+    set(SRC_CPP ${SRC_CPP}
+      src/GUHistogram.cc
+    )
+  endif()
+
   set(SRC_CPP ${SRC_CPP}
-    test/src/GUBenchmarker.cc
-    test/src/GUBenchmarker_cpu.cc
-    test/src/ProcessBenchmarker.cc
-    test/src/ProcessBenchmarker_cpu.cc
     src/GUTrackHandler.cc
   )
-  if (ROOT) 
-  set(SRC_CPP ${SRC_CPP}
-    src/GUHistogram.cc
-  )
-  endif()
   set(SRC_CUDA ${SRC_CUDA}
-    test/src/GUBenchmarker.cu
-    test/src/GUBenchmarker_gpu.cu
     test/src/GUCurand.cu
+
   )
+
+  # build benchmark executables separately
+  if (GUBENCHMARK STREQUAL "Model") 
+    set(SRC_CPP ${SRC_CPP}
+      test/src/GUBenchmarker.cc
+      test/src/GUBenchmarker_cpu.cc
+    )
+    set(SRC_CUDA ${SRC_CUDA}
+      test/src/GUBenchmarker.cu
+      test/src/GUBenchmarker_gpu.cu
+    )
+  elseif(GUBENCHMARK STREQUAL "Process")
+    set(SRC_CPP ${SRC_CPP}
+      test/src/ProcessBenchmarker.cc
+      test/src/ProcessBenchmarker_cpu.cc
+    )
+    set(SRC_CUDA ${SRC_CUDA}
+      test/src/ProcessBenchmarker.cu
+      test/src/ProcessBenchmarker_gpu.cu
+    )
+  else()
+    message(FATAL_ERROR "Invalid GUBENCHMARK=${GUBENCHMARK}: 
+    Use GUBENCHMARK=[Model|Process]")
+  endif()
 endif()
 
 # Compile cpp-files for C++11
@@ -380,11 +401,16 @@ endif()
 
 # Define executables
 
-#  ${CMAKE_SOURCE_DIR}/test/benchmark/GUModelBenchmark.cc
-set(TEST_EXECUTABLES_BENCHMARK
-  ${CMAKE_CURRENT_SOURCE_DIR}/test/GUModelBenchmark.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/test/ProcessBenchmark.cc
-)
+if (GUBENCHMARK STREQUAL "Model")
+  set(TEST_EXECUTABLES_BENCHMARK
+      ${CMAKE_CURRENT_SOURCE_DIR}/test/GUModelBenchmark.cc
+  )
+elseif (GUBENCHMARK STREQUAL "Process")
+  set(TEST_EXECUTABLES_BENCHMARK
+      ${CMAKE_CURRENT_SOURCE_DIR}/test/ProcessBenchmark.cc
+  )
+endif()
+
 set(TEST_EXECUTABLES_CUDA
   # Files go here
 )

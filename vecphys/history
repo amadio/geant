@@ -1,5 +1,19 @@
 Development history of GUTracking
 
+Jun. 20, 2016
+
+1) add a benchmark tester for EmProcess (GPU)
+2) use a common cross section data structure for EmProcess - 
+   used a struct of fixed size of data members for now as the variable size
+   (i.e., pointers) degrades performance on GPU significantly
+3) add a skeleton for MSC
+
+May 2, 2016
+
+1) add EmProcess (PhotonProcess and ElectronProcess) 
+2) apply clang-format
+3) add a benchmark tester for EmProcess (CPU only)
+
 Dec. 2, 2015 
 
 1) sort input tracks by energy in ascending order

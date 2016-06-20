@@ -34,6 +34,7 @@ private:
   void RunVector();
   void RunGeant3();
   void RunGeantV();
+  void RunCuda();
 
 private:
   GUTrackHandler *fTrackHandler;

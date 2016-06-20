@@ -1,6 +1,5 @@
 #include "MaterialHandler.h"
 
-//#include "Element.h"
 #include "base/PhysicalConstants.h"
 #include "materials/Material.h"
 
@@ -113,38 +112,6 @@ void MaterialHandler::BuildMaterialTable()
   using CLHEP::mole;
   using CLHEP::cm3;
 
-  /*
-  // Element Lead - Pb
-  z = 82;
-  a = 207.2*g/mole;
-  vecgeom::Material::Element elPb(z, a, 1.);
-
-  // Element Tungsten - W
-  z = 74;
-  a = 183.84*g/mole;
-  vecgeom::Material::Element elW(z, a, 1.);
-
-  // Element Oxygen - O
-  z = 8;
-  a = 16.00*g/mole;
-  vecgeom::Material::Element elO(z, a,1.0);
-
-  // Element Silicon - Si
-  z = 14;
-  a = 28.09*g/mole;
-  vecgeom::Material::Element elSi(z, a, 1.);
-
-  // Element Copper - Cu
-  z = 29;
-  a = 63.54*g/mole;
-  vecgeom::Material::Element elCu(z, a, 1.);
-
-  // Element Zinc - Zn
-  z = 30;
-  a = 65.41*g/mole;
-  vecgeom::Material::Element elZn(z, a, 1.);
-  */
-
   // should have an interface to add elements to Material
   double density = 1.0 * g / cm3;
 
@@ -155,8 +122,7 @@ void MaterialHandler::BuildMaterialTable()
   double PbWO4_w[3] = {0.455, 0.404, 0.141};
 
   density = 8.28 * g / cm3;
-  vecgeom::Material *PbWO4 = new vecgeom::Material("PbWO4", PbWO4_a, PbWO4_z, PbWO4_w, 3, density);
-  PbWO4->Dump();
+  new vecgeom::Material("PbWO4", PbWO4_a, PbWO4_z, PbWO4_w, 3, density);
 
   // SiO2
   double SiO2_a[2] = {28.09 * g / mole, 16.00 * g / mole};
@@ -164,8 +130,7 @@ void MaterialHandler::BuildMaterialTable()
   double SiO2_w[2] = {0.467, 0.533};
 
   density = 2.200 * g / cm3;
-  vecgeom::Material *SiO2 = new vecgeom::Material("Quartz", SiO2_a, SiO2_z, SiO2_w, 2, density);
-  SiO2->Dump();
+  new vecgeom::Material("Quartz", SiO2_a, SiO2_z, SiO2_w, 2, density);
 
   // Brass
   double Brass_a[2] = {63.54 * g / mole, 65.41 * g / mole};
@@ -173,8 +138,7 @@ void MaterialHandler::BuildMaterialTable()
   double Brass_w[2] = {0.493, 0.507};
 
   density = 8.6 * g / cm3;
-  vecgeom::Material *Brass = new vecgeom::Material("Brass", Brass_a, Brass_z, Brass_w, 2, density);
-  Brass->Dump();
+  new vecgeom::Material("Brass", Brass_a, Brass_z, Brass_w, 2, density);
 }
 
 VECCORE_CUDA_HOST
