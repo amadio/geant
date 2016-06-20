@@ -75,6 +75,7 @@ class TNudyEndfAng;
 class TNudyEndfEnergy;
 class TNudyEndfEnergyAng;
 class TNudyEndfNuPh;
+class TNudyEndfFissionYield;
 
 class  TNudyEndfRecoPoint {
 
@@ -110,23 +111,12 @@ public:
   std::vector<double> sigmaMts;				// MT numbers for sigma in file3
   std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
   int NoOfElements = 0;
-  virtual double GetAWR() const{ return AWRI; }
 protected:
   double AWRI;
 private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
   double recursionLinearFile3(double x1, double x2, double sig1, double sig2);
-  double recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2);
-  void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2);
-  void ReadFile5(TNudyEndfFile *file);
-  double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
-  double recursionLinearFile5GenEva(double x1, double x2, double pdf1, double pdf2, double energy);
-  double recursionLinearFile5Maxwell(double x1, double x2, double pdf1, double pdf2, double energy);
-  double recursionLinearFile5Watt(double x1, double x2, double pdf1, double pdf2, double energy);
-  void cdfGenerateE(std::vector<double> &x1,std::vector<double> &x2);
-  void ReadFile6(TNudyEndfFile *file);
-  void ReadFile8(TNudyEndfFile *file);
   void ReadResDat4l(int l1, int mm, TNudyEndfList *theList, TList *rec);
   void recoPlusBroad(int flagNer);
   void GetSigma(int lrfp, double x, double &siga, double &sigb, double &sigc);
@@ -173,7 +163,7 @@ private:
   double *fE_file3,*fXsec_file3; 			// file3 energy and cross-sections;
   double *INorm, QValue[999];				// ENDF parameter and Q values from file 3
   double sigDiff;					// precision for cross-section reconstruction
-  TArrayD *lCoef, xengr, *zafp, *fps, *zafpc, *fpsc, *yi, *dyi, *yc, *dyc;
+  TArrayD *lCoef, xengr;
   std::vector<double> eLinearFile3;
   std::vector<double> xLinearFile3;
   std::vector<double> energy, sigma, sigmaT; 
@@ -219,6 +209,7 @@ private:
   TNudyEndfEnergy *recoEnergy;
   TNudyEndfEnergyAng *recoEnergyAng;
   TNudyEndfNuPh *recoNuPh;
+  TNudyEndfFissionYield *recoFissY;
 
 #ifdef USE_ROOT
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction

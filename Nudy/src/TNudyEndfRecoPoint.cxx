@@ -9,6 +9,7 @@
 #include "TNudyEndfEnergy.h"
 #include "TNudyEndfEnergyAng.h"
 #include "TNudyEndfNuPh.h"
+#include "TNudyEndfFissionYield.h"
 #include "TNudyEndfRecoPoint.h"
 
 #ifdef USE_ROOT
@@ -982,70 +983,6 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
     double mass = awr + 1;
     return cmCos * sqrt(cmEOut / labEOut) + sqrt (inE / labEOut) / mass;
   }
-
-void TNudyEndfRecoPoint::ReadFile8(TNudyEndfFile *file) { //fission product yield data
-  TIter secIter(file->GetSections());
-  TNudyEndfSec *sec;
-  while ((sec = (TNudyEndfSec *)secIter.Next())) {
-//    std::cout <<"file  "<<sec->GetMT() <<std::endl;
-    TIter recIter(sec->GetRecords());
-    //double ZA   = sec->GetC1();
-    //double AWR  = sec->GetC2();
-    int MT = sec->GetMT();
-    int LE = sec->GetL1();
-    if(MT == 454){// Neutron induced independent fission yield
-      TArrayD ein(LE);
-      zafp = new TArrayD[LE];
-      fps = new TArrayD[LE];
-      yi = new TArrayD[LE];
-      dyi = new TArrayD[LE];
-      for (int i =0; i < LE; i++){
-        TNudyEndfList *list1 = (TNudyEndfList *)recIter.Next();
-	ein[i]   = list1->GetC1();
-	//int NN   = list1->GetN1();
-	int NFP  = list1->GetN2();
-//      std::cout<<"energy i " <<ein[i] << std::endl;
-	zafp[i].Set(NFP);
-	fps[i].Set(NFP);
-	yi[i].Set(NFP);
-	dyi[i].Set(NFP);
-//	    std::cout<<"energy "<< ein[lis] << std::endl; 
-          for (int j = 0; j < NFP; j++){
-            zafp[i].SetAt(list1->GetLIST(4*j+0), j);
-            fps[i].SetAt(list1->GetLIST(4*j+1), j);
-            yi[i].SetAt(list1->GetLIST(4*j+2), j);
-            dyi[i].SetAt(list1->GetLIST(4*j+3), j);
-//	    std::cout<<"fission yield i "<< zafp[i].At(j) << std::endl; 
-	  }
-	}
-      }else if(MT == 459){
-          TArrayD einc(LE);
-	  zafpc = new TArrayD[LE];
-          fpsc = new TArrayD[LE];
-	  yc = new TArrayD[LE];
-	  dyc = new TArrayD[LE];
-	  for (int i =0; i < LE; i++){
-	    TNudyEndfList *list1 = (TNudyEndfList *)recIter.Next();
-	    einc[i]   = list1->GetC1();
-	    //int NN   = list1->GetN1();
-	    int NFP  = list1->GetN2();
-//      std::cout<<"energy c " <<einc[i] << std::endl;
-	    zafpc[i].Set(NFP);
-	    fpsc[i].Set(NFP);
-	    yc[i].Set(NFP);
-	    dyc[i].Set(NFP);
-//	    std::cout<<"energy "<< ein[lis] << std::endl; 
-	    for (int j = 0; j < NFP; j++){
-	      zafpc[i].SetAt(list1->GetLIST(4*j+0), j);
-	      fpsc[i].SetAt(list1->GetLIST(4*j+1), j);
-              yc[i].SetAt(list1->GetLIST(4*j+2), j);
-	      dyc[i].SetAt(list1->GetLIST(4*j+3), j);
-//	    std::cout<<"fission yield c "<< zafpc[i].At(j) << std::endl; 
-	    }
-	  }
-      }
-   }
-}
 
 double TNudyEndfRecoPoint::K_wnum(double x) {
   double k; 
@@ -2318,7 +2255,7 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	  recoEnergyAng = new TNudyEndfEnergyAng(file);
 	  break;
         case 8:
-//      ReadFile8(file);
+	  recoFissY = new TNudyEndfFissionYield(file);
 	  break;
       }
     }
