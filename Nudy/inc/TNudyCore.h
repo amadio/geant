@@ -36,6 +36,8 @@ public:
   virtual ~TNudyCore();         // Public Destructor
   static TNudyCore *Instance(); // Returns Instance of TNudyManager
   // Calculation functions
+  double ThinningDuplicate(std::vector<double> &x1);
+  double ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2);
   int BinarySearch(std::vector<double> array, int len, double val);
   double Interpolate(std::vector<int> nbt1, std::vector<int> int1, int nr, std::vector<double> x, std::vector<double> y, int np, double xx);
   void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2,std::vector<double> &x3);

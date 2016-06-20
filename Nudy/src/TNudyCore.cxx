@@ -358,3 +358,37 @@ void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, st
     double mass = awr + 1;
     return cmCos * sqrt(cmEOut / labEOut) + sqrt (inE / labEOut) / mass;
   }
+
+double TNudyCore::ThinningDuplicate(std::vector<double> &x1){
+  int size = x1.size();
+  int size1 = x1.size();
+  if(size>2){
+    for(int i = 0; i< size1 - 1; i++){
+      if(x1[i+1] == x1[i]) x1.erase(x1.begin()+i+1);
+    size1 = x1.size();
+    }
+  }
+  size1 = x1.size();
+  if(size == size1)return 0;
+  ThinningDuplicate(x1);
+  return 0;
+}
+double TNudyCore::ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2){
+  int size = x1.size();
+  int size1 = x1.size();
+  if(size>2){
+    for(int i = 0; i< size1 - 1; i++){
+      if(x1[i+1] == x1[i]){ 
+	x1.erase(x1.begin()+i+1);
+	x2.erase(x2.begin()+i+1);
+      }
+      size1 = x1.size();
+    }
+  }
+  size1 = x1.size();
+  if(size == size1)return 0;
+  ThinningDuplicate(x1,x2);
+  return 0; 
+}
+
+  
