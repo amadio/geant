@@ -147,6 +147,27 @@ int TNudyCore::BinarySearch(double *array, int len, double val) {
 }
 
 //______________________________________________________________________________
+int TNudyCore::BinarySearch(std::vector<double> array, int len, double val) {
+  int min = 0;
+  int max = len - 1;
+  int mid = 0;
+  if (val <= array[min])
+    return 0;
+  else if (val >= array[max])
+    return max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (val < array[mid])
+        max = mid;
+      else
+        min = mid;
+    }
+  }
+  return min;
+}
+
+//______________________________________________________________________________
 double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx) {
   double yy = -1;
   double small = 1e-20;
@@ -174,6 +195,41 @@ double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx)
   }
   return yy;
 }
+//______________________________________________________________________________
+double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int nr, std::vector<double> x, std::vector<double> y, int np, double xx) {
+  double yy = 0;
+  //  Info("Interpolation","E = %e:%e, xx = %e , P = %e:%e",x[0],x[np-1],xx,y[0],y[np-1]);
+  //  Info("Interpolation limits","xx = %e min = %e max = %e",xx,x[0],x[np-1]);
+  if (xx < x[0]) {
+    yy = 0;
+    return yy;
+  } else if (xx > x[np - 1]) {
+    yy = 0;
+    return yy;
+  } else if (xx == x[np - 1]) {
+    yy = y[np - 1];
+    return yy;
+  }
+  int index = BinarySearch(x, np, xx);
+  if (xx < x[index] || xx > x[index + 1]) {
+    Error("Interpolate", "Error in the interpolation xx = %e does not lie between %e and %e Index = %d", xx, x[index],
+          x[index + 1], index);
+    return 0;
+  }
+  int intlaw = 0;
+  for (int jnt = 0; jnt < nr; jnt++) {
+    if (index < nbt[jnt]) {
+      intlaw = interp[jnt];
+      double x1[2] = {x[index],x[index+1]};
+      double y1[2] = {y[index],y[index+1]};
+      yy = InterpolateScale(x1, y1, intlaw, xx);
+      return yy;
+    }
+  }
+  //  Info("Value","Interpolated Value = %e",yy);
+  return yy;
+}
+
 
 //______________________________________________________________________________
 double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *y, int np, double xx) {
@@ -260,3 +316,45 @@ void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const int npts, 
     out[i] = out[i - 1] + (xpts[i] - xpts[i - 1]) * (ypts[i] + ypts[i - 1]) * 0.5;
   }
 }
+void TNudyCore::Sort(std::vector<double>& x1, std::vector<double>& x2){
+  std::multimap<double, double>map;
+  std::multimap<double, double>::iterator i;
+  for(unsigned long p = 0; p< x1.size(); p++){
+    map.insert(std::make_pair(x1[p],x2[p]));
+  }
+  int p1=0;
+  for(i=map.begin(); i!=map.end();i++){
+    x1[p1]=i->first;
+    x2[p1]=i->second;
+    p1++;
+  }
+}
+
+void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, std::vector<double> &x3){
+  double cos4Cdf = 0.0;
+  for(unsigned long cr=0; cr < x1.size() ; cr ++){
+    cos4Cdf += x2[cr];
+  }
+  double df = 0.0;
+  for(unsigned long cr=0; cr < x1.size() ; cr ++){
+    if(cos4Cdf > 0.0)x2[cr] = x2[cr]/cos4Cdf;
+    df += x2[cr];
+    x3.push_back(df);
+  }
+}
+
+  double TNudyCore::cmToLabElasticE(double inE, double cmCos, double awr){
+    return inE * ((1 + awr * awr + 2 * awr * cmCos)/((1 + awr) * (1 + awr)));
+  }
+  double TNudyCore::cmToLabElasticCosT(double cmCos, double awr){
+    double sint = sqrt(1 - cmCos * cmCos);
+    return atan(awr * sint/(awr * cmCos + 1));
+  }
+  double TNudyCore::cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr){
+    double mass = awr + 1;
+    return cmEOut + (inE + 2 * cmCos * mass * sqrt(inE * cmEOut))/(mass*mass);
+  }
+  double TNudyCore::cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr){
+    double mass = awr + 1;
+    return cmCos * sqrt(cmEOut / labEOut) + sqrt (inE / labEOut) / mass;
+  }

@@ -513,12 +513,11 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
   }
 }
 double TNudyEndfRecoPoint::recursionLinearFile3(double x1, double x2, double sig1, double sig2){
-  double siga;int flag = 0;
+  double siga;
   double mid     = 0.5 * (x1 + x2);
 //  std::cout <<"beg "<< x1 <<"  "<< x2 <<"  "<< mid <<"  "<< sig1 <<"  "<< sig2 <<std::endl;
   if(sig1==0.0 && sig2 ==0.0)return 0;
   if(x1==x2 || x1 < 1E-5 || x2 < 1E-5){
-    flag = 1;
     return 0;
   }
   siga = TNudyCore::Instance()->Interpolate(NBT, INT1, NR, fE_file3,fXsec_file3, NP, mid);
@@ -967,22 +966,6 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 //  std::vector<double>().swap(sigmaMts);
   NoOfElements += 1;
 }
-
-  double TNudyEndfRecoPoint::cmToLabElasticE(double inE, double cmCos, double awr){
-    return inE * ((1 + awr * awr + 2 * awr * cmCos)/((1 + awr) * (1 + awr)));
-  }
-  double TNudyEndfRecoPoint::cmToLabElasticCosT(double cmCos, double awr){
-    double sint = sqrt(1 - cmCos * cmCos);
-    return atan(awr * sint/(awr * cmCos + 1));
-  }
-  double TNudyEndfRecoPoint::cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr){
-    double mass = awr + 1;
-    return cmEOut + (inE + 2 * cmCos * mass * sqrt(inE * cmEOut))/(mass*mass);
-  }
-  double TNudyEndfRecoPoint::cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr){
-    double mass = awr + 1;
-    return cmCos * sqrt(cmEOut / labEOut) + sqrt (inE / labEOut) / mass;
-  }
 
 double TNudyEndfRecoPoint::K_wnum(double x) {
   double k; 

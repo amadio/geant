@@ -50,43 +50,30 @@
 #include "TNudyEndfRecoPoint.h"
 #include <RConfig.h>
 
-#define PI 2.0 * asin(1.0)
-
 class  TNudyEndfAng : public TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfAng ();
   TNudyEndfAng (TNudyEndfFile *file);
   virtual ~TNudyEndfAng ();
-  double cmToLabElasticE(double inE, double cmCos, double awr);
-  double cmToLabElasticCosT(double cmCos, double awr);
-  double cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr);
-  double cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr);
   std::vector<std::vector<std::vector<double> > >cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
   std::vector<std::vector<std::vector<double> > >cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
   std::vector<std::vector<double> > energy4OfMts;       // incident energy in file 4 for each reaction
   std::vector<std::vector<int> > Mt4Values;             // MT values for which angular distributions are given in file 4
+  std::vector<std::vector<int> > Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
   std::vector<int> MtNumbers;				// MT numbers
+  std::vector<int> MtLct;				// LCT numbers
 private:
-  double recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2);
-  void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2);
-  void Sort(std::vector<double> &x1,std::vector<double> &x2);
-  double Thinning(std::vector<double> &x1, std::vector<double> &x2);
-  double ThinningDuplicate(std::vector<double> &x1);
-  double ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2);
-
+  double recursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2);
+  double recursionLinearProb(double x1, double x2, double pdf1, double pdf2);
   double A, AWR, ABN, QX;                         // standard ENDF parameters
-  int *NBT,*NBT1,*INT1, NR, NP;                         // standard ENDF parameters for range and interpolation
-  int *NBT2, *INT2, NR2, NE;                            // standard ENDF parameters for range and interpolation
-  int *NBT3, *INT3, NR3, NE2;				// standard ENDF parameters for range and interpolation
-  double *INorm, QValue[999];				// ENDF parameter and Q values from file 3
-  double sigDiff;					// precision for cross-section reconstruction
-  TArrayD *lCoef, xengr;
+  std::vector<double>ein,cdf,pdf,lCoef1;
+  std::vector<std::vector<double> >pdf2d,cdf2d,lCoef;
   std::vector<double> cosFile4;
   std::vector<double> cosPdfFile4;
   std::vector<double> cosCdfFile4;
-  std::vector<double> energy, sigma, sigmaT; 
-  std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  std::vector<int> nbt1,int1;
+  int nr, np;                         // standard ENDF parameters
   ClassDef(TNudyEndfAng, 1) // class for an ENDF reconstruction
 };
 #endif
