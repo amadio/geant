@@ -17,8 +17,8 @@ VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
       int ibin = i * fNumberOfEnergyBin + j;
 
       // alias table
-      int *a = new int [fNumberOfProcess];
-      double *ap = new double [fNumberOfProcess];
+      int *a = new int[fNumberOfProcess];
+      double *ap = new double[fNumberOfProcess];
 
       const double cp = 1. / fNumberOfProcess;
 
