@@ -23,7 +23,11 @@ ClassImp(TNudyAlias)
  */
 //_______________________________________________________________________________
 TNudyAlias::TNudyAlias()
-  : fLen(0), fP(nullptr), fX(nullptr), fA(nullptr), fR(nullptr), fRnd(nullptr), fMult(nullptr), fMultLen(0) {}
+  : fLen(0), fP(nullptr), fX(nullptr), fA(nullptr), fR(nullptr), fRnd(nullptr)
+#ifdef TNUDYALIAS_MULTITHREAD
+, fMult(nullptr), fMultLen(0) 
+#endif
+{}
 
 /**
  * @brief Full constructor
@@ -40,7 +44,10 @@ TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
 #else
       fRnd(&RNG::Instance()),
 #endif
-      fMult(nullptr), fMultLen(0) {
+#ifdef TNUDYALIAS_MULTITHREAD
+      fMult(nullptr), fMultLen(0) 
+#endif
+{
   // Improve algorithm for building table
   int i, j;
   double sum, c, d, mean;

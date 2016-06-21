@@ -4,8 +4,8 @@
 #include <TRandom.h>
 #include <TArrayD.h>
 
+#include "TNudyTypes.h"
 #include "TNudyAlias.h"
-#include "TNudyCore.h"
 
 //--------------------------------------------------
 // This class takes a continuous piecewise linear probability

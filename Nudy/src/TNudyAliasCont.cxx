@@ -1,3 +1,4 @@
+#include "TNudyCore.h"
 #include "TNudyAliasCont.h"
 
 #ifdef USE_ROOT
