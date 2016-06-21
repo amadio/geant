@@ -11,11 +11,11 @@
 
 */
 
-#include <string.h>
-
 #include <TNudyEndfSec.h>
-//#include "TNudyEndfRecord.h"
 #include "TNudyEndfCont.h"
+#ifdef USE_ROOT
+ClassImp(TNudyEndfSec)
+#endif
 
 //_______________________________________________________________________________
 TNudyEndfSec::TNudyEndfSec()

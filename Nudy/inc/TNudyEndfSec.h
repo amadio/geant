@@ -23,10 +23,7 @@
 
 */
 
-#include <Riostream.h>
-#include <TObject.h>
-#include <TList.h>
-#include <RConfig.h>
+#include "TList.h"
 #include "TNudyEndfRecord.h"
 
 class TNudyEndfSec : public TObject {
@@ -63,8 +60,9 @@ private:
   int fN2;        // N2 of the HEAD record
 
   TList *fRecs; // List of records for this section
-
+#ifdef USE_ROOT
   ClassDef(TNudyEndfSec, 1)
+#endif
 };
 
 #endif
