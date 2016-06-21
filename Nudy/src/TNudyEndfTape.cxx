@@ -5,12 +5,14 @@
    fca 2-mai-2010
 */
 
-#include <string.h>
-
-#include <TString.h>
-#include <Riostream.h>
+#include <iostream>
+#include "TList.h"
 #include <TNudyEndfTape.h>
-#include <TNudyEndfMat.h>
+#include "TNudyEndfMat.h"
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfTape)
+#endif
 
 //_______________________________________________________________________________
 TNudyEndfTape::TNudyEndfTape()

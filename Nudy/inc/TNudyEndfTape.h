@@ -9,14 +9,8 @@
 
 */
 
-class TFile;
 class TNudyEndfMat;
-class TNudyENDF;
-
 #include <TNamed.h>
-#include <TList.h>
-#include <Riostream.h>
-#include <RConfig.h>
 
 class TNudyEndfTape : public TNamed {
 public:
@@ -38,7 +32,9 @@ private:
   unsigned char fLogLev; // LogLevel
   TList *fMats;          // List of materials
 
+#ifdef USE_ROOT
   ClassDef(TNudyEndfTape, 1) // class for an ENDF data file
+#endif
 };
 
 #endif
