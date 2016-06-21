@@ -1,5 +1,6 @@
-
 #include "TNudyDB.h"
+#include "TFile.h"
+#include "TNudyLibrary.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyDB)

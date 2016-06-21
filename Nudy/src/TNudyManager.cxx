@@ -1,4 +1,5 @@
 #include "TNudyManager.h"
+#include "TFile.h"
 #include <TROOT.h>
 
 TNudyManager *TNudyManager::fgInstance = 0;

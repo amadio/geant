@@ -2,13 +2,8 @@
 #define TNudyDB_H
 
 #include <string>
-
-#include <THashTable.h>
-#include <TFile.h>
-#include <TList.h>
-
-#include "TNudyCore.h"
-#include "TNudyLibrary.h"
+#include "TOBject.h"
+class TFile;
 
 using std::string;
 
