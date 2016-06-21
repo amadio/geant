@@ -11,10 +11,11 @@
 
 */
 
-#include <string.h>
-
-#include <TString.h>
 #include <TNudyEndfList.h>
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfList)
+#endif
 
 //_______________________________________________________________________________
 TNudyEndfList::TNudyEndfList()

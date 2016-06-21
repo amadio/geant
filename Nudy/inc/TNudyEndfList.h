@@ -23,9 +23,11 @@
 
 */
 
-#include <Riostream.h>
 #include "TNudyEndfCont.h"
-#include <RConfig.h>
+
+#ifdef USE_ROOT
+#include "RTypes.h"
+#endif
 
 class TNudyEndfList : public TNudyEndfCont {
 public:
@@ -42,7 +44,9 @@ public:
 private:
   double *fList; //[fN1]
 
+#ifdef USE_ROOT
   ClassDef(TNudyEndfList, 1)
+#endif
 };
 
 #endif
