@@ -3,6 +3,8 @@
 // Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // date of creation: March 22, 2016
 
+#include <math.h>
+#include <iostream>
 #include "TNudyEndfDoppler.h"
 
 #ifdef USE_ROOT

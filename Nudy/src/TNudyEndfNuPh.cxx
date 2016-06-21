@@ -3,6 +3,11 @@
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: March 22, 2016
 
+#include "TList.h"
+#include "TNudyEndfFile.h"
+#include "TNudyEndfList.h"
+#include "TNudyEndfTab1.h"
+#include "TNudyCore.h"
 #include "TNudyEndfNuPh.h"
 #ifdef USE_ROOT
 ClassImp(TNudyEndfNuPh)
@@ -74,7 +79,7 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       }else if(LNU == 2 && LDG == 0){
 	TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
 	int NNF = list->GetNPL();
-	TArrayD nui(NNF);
+	double nui[NNF];
 	for(int i = 0; i < NNF; i++){
 	  nui[i] = list->GetLIST(i); 
 //	 std::cout<<" lambda "<< nui[i] << std::endl;
@@ -182,7 +187,7 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 	  }while(ein < 21E8);
 //	std::cout<< "NPLY "<< NPLY <<" ER "<< ER <<" ET "<< ET << std::endl;
       }else {
-	TArrayD c0(9*(NPLY+1)),c1(9*(NPLY+1));
+	double c0[9*(NPLY+1)],c1[9*(NPLY+1)];
 	for(int i = 0; i < 9*(NPLY+1); i++){
 	  c0[i] = list->GetLIST(i);
 //	     std::cout <<"c0  "<< c0[i] << std::endl; 
@@ -236,7 +241,7 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
           TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
 	  int NNF = list->GetN1();
 //	std::cout<< "Photon NNF "<< NNF <<" LO "<< LO << std::endl;
-	  TArrayD lambda(NNF);
+	  double lambda[NNF];
 	  for(int i = 0; i < NNF; i++){
 	    lambda[i] = list->GetLIST(i);
 //	     std::cout <<"lambda  "<< lambda[i] << std::endl; 

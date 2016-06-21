@@ -3,6 +3,9 @@
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: March 22, 2016
 
+#include "TList.h"
+#include "TNudyEndfFile.h"
+#include "TNudyEndfList.h"
 #include "TNudyEndfFissionYield.h"
 
 TNudyEndfFissionYield::TNudyEndfFissionYield(){}

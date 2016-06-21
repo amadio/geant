@@ -4,7 +4,15 @@
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: March 22, 2016
 
+#include "TList.h"
 #include "TNudyEndfAng.h"
+#include "TNudyEndfFile.h"
+#include "TNudyEndfCont.h"
+#include "TNudyEndfTab1.h"
+#include "TNudyEndfTab2.h"
+#include "TNudyEndfList.h"
+#include "TNudyCore.h"
+#include "Math/SpecFuncMathMore.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfAng)

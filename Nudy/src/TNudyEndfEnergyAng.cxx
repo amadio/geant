@@ -4,7 +4,15 @@
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: March 22, 2016
 
+#include "TList.h"
+#include "TNudyEndfFile.h"
+#include "TNudyEndfSec.h"
+#include "TNudyEndfTab1.h"
+#include "TNudyEndfTab2.h"
+#include "TNudyEndfList.h"
+#include "TNudyCore.h"
 #include "TNudyEndfEnergyAng.h"
+#include "Math/SpecFuncMathMore.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfEnergyAng)
@@ -369,7 +377,7 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	  TNudyEndfTab2 *tab3 = (TNudyEndfTab2 *)recIter.Next();
 	  ein.push_back(tab3->GetC2());
 	  int NMU  = tab3->GetN2();
-	  TArrayD cosin(NMU);
+	  double cosin[NMU];
 	  for(int cr2=0; cr2 < NMU ; cr2 ++){
 	    TNudyEndfTab1 *tab12 = (TNudyEndfTab1 *)recIter.Next();
 	    cosin[cr2] = tab12->GetC2();

@@ -4,12 +4,21 @@
 // Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // date of creation: March 22, 2016
 
+#include "TList.h"
+#include "TFile.h"
+#include "TKey.h"
+#include "TNudyEndfFile.h"
+#include "TNudyEndfTape.h"
+#include "TNudyEndfList.h"
+#include "TNudyEndfTab1.h"
+#include "TNudyEndfMat.h"
+#include "TNudyEndfNuPh.h"
 #include "TNudyEndfDoppler.h"
 #include "TNudyEndfAng.h"
 #include "TNudyEndfEnergy.h"
 #include "TNudyEndfEnergyAng.h"
-#include "TNudyEndfNuPh.h"
 #include "TNudyEndfFissionYield.h"
+#include "TNudyCore.h"
 #include "TNudyEndfRecoPoint.h"
 
 #ifdef USE_ROOT

@@ -1,61 +1,21 @@
 #ifndef __TNudyEndfRecoPoint__
 #define __TNudyEndfRecoPoint__
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <cmath>
 #include <vector>
-#include <iterator>
-#include <map>
-#include <algorithm>
-#include <iomanip>
-#include <dirent.h>
-#include "TRandom3.h"
-#include "Math/SpecFuncMathMore.h"
-#include <Riostream.h>
-#include <TGraph.h>
-#include <TH2D.h>
-#include <TTree.h>
-#include <TCollection.h>
-#include <TIterator.h>
-#include <TFile.h>
-#include <TMath.h>
-#include <TString.h>
-#include <TClass.h>
-#include <TObject.h>
-#include <TROOT.h>
-#include <TSystem.h>
-#include <TCollection.h>
-#include <Rtypes.h>
-#include <TCanvas.h>
-#include <TNtuple.h>
-#include <TTreeReader.h>
-#include <TKey.h>
-#include <TMacro.h>
-#include <TGeoManager.h>
-#include <TGeoNode.h>
-#include <TGeoVolume.h>
+#include <fstream>
+class TNudyEndfNuPh;
+class TNudyEndfFissionYield;
+class TNudyEndfEnergy;
+class TNudyEndfEnergyAng;
+class TNudyEndfAng;
+class TNudyEndfDoppler;
+class TNudyEndfFile;
+class TNudyEndfList;
+class TList;
 
-#include "TNudyCore.h"
-#include "TNudyDB.h"
-#include "TNudyElementTable.h"
-#include "TNudyENDF.h"
-#include "TNudyEndfCont.h"
-#include "TNudyEndfFile.h"
-#include "TNudyEndfINTG.h"
-#include "TNudyEndfList.h"
-#include "TNudyEndfMat.h"
-#include "TNudyEndfTape.h"
-#include "TNudyEndfRecord.h"
-#include "TNudyEndfSec.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyLibrary.h"
-#include "TNudyManager.h"
-#include "TNudySubLibrary.h"
-#include "TVNudyModel.h"
+#ifdef USE_ROOT
+#include <RTypes.h>
+#endif
 
 #define PI acos(-1.0)
 #define x2(x) (x * x)
@@ -70,12 +30,6 @@
 #define Fac1(x) (1.0 + x2(x))
 #define Fac2(x) (9.0 + 3.0 * x2(x) + x4(x))
 #define Fac3(x) 225.0 + 50445.0*x2(x)  - 13500.0*x3(x)  + 1386.0*x4(x)  - 60.0*x5(x)  + x6(x)
-class TNudyEndfDoppler;
-class TNudyEndfAng;
-class TNudyEndfEnergy;
-class TNudyEndfEnergyAng;
-class TNudyEndfNuPh;
-class TNudyEndfFissionYield;
 
 class  TNudyEndfRecoPoint {
 
@@ -164,7 +118,6 @@ private:
   int *NBT3, *INT3, NR3, NE2;				// standard ENDF parameters for range and interpolation
   double *fE_file3,*fXsec_file3; 			// file3 energy and cross-sections;
   double *INorm;				// ENDF parameter and Q values from file 3
-  TArrayD *lCoef, xengr;
   std::vector<double> eLinearFile3;
   std::vector<double> xLinearFile3;
   std::vector<double> energy, sigma, sigmaT; 
