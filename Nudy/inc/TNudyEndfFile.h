@@ -23,14 +23,8 @@
 
 */
 
-// class TString;
-// class TNudyEndfSec;
-
 #include "TNudyEndfSec.h"
-#include <Riostream.h>
-#include <TObject.h>
 #include <TList.h>
-#include <RConfig.h>
 
 class TNudyEndfFile : public TObject {
 public:
