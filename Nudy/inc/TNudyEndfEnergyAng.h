@@ -50,7 +50,7 @@
 #include "TNudyEndfRecoPoint.h"
 #include <RConfig.h>
 
-#define PI 2.0 * asin(1.0)
+#define PI acos(-1.0)
 
 class  TNudyEndfEnergyAng : public TNudyEndfRecoPoint {
 

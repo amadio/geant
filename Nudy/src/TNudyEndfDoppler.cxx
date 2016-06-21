@@ -2,9 +2,12 @@
 // Author: Dr. Harphool Kumawat
 // Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // date of creation: March 22, 2016
+
 #include "TNudyEndfDoppler.h"
-#define PI 2.0 * asin(1.0)
-class TNudyEndfRecoPoint;
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfDoppler)
+#endif
 
 TNudyEndfDoppler::TNudyEndfDoppler(){}
 

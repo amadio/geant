@@ -57,7 +57,7 @@
 #include "TNudySubLibrary.h"
 #include "TVNudyModel.h"
 
-#define PI 2.0 * asin(1.0)
+#define PI acos(-1.0)
 #define x2(x) (x * x)
 #define x3(x) (x * x2(x))
 #define x4(x) (x2(x) * x2(x))

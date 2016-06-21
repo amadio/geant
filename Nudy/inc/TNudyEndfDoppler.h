@@ -1,17 +1,7 @@
 #ifndef ROOT_TNudyEndfDoppler
 #define ROOT_TNudyEndfDoppler
 
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include <iterator>
-#include <map>
-#include <algorithm>
-#include "Math/SpecFuncMathMore.h"
-#include <TMath.h>
-#include <Riostream.h>
 #include "TNudyEndfRecoPoint.h"
-#include <RConfig.h>
 
 class  TNudyEndfDoppler : public TNudyEndfRecoPoint {
 
@@ -43,6 +33,8 @@ private:
   double Y;
   double XSUM;
   int ncrs, IPP, KPP, size;
+#ifdef USE_ROOT
   ClassDef(TNudyEndfDoppler, 1) 
+#endif
 };
 #endif
