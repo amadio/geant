@@ -4,7 +4,11 @@
 */
 
 #include "TNudyAlias.h"
+#ifdef USE_ROOT
 #include "TRandom.h"
+#else
+#include "base/RNG.h"
+#endif
 
 #ifdef TNUDYALIAS_MULTITHREAD
 #include <TThread.h>
@@ -31,7 +35,12 @@ TNudyAlias::TNudyAlias()
 //_______________________________________________________________________________
 TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
     : fLen(len), fP(new double[fLen]), fX(new double[fLen]), fA(new double[fLen]), fR(new double[fLen]),
-      fRnd(new TRandom(seed)), fMult(nullptr), fMultLen(0) {
+#ifdef USE_ROOT
+      fRnd(new TRandom(seed)), 
+#else
+      fRnd(&RNG::Instance()),
+#endif
+      fMult(nullptr), fMultLen(0) {
   // Improve algorithm for building table
   int i, j;
   double sum, c, d, mean;
@@ -89,7 +98,9 @@ TNudyAlias::~TNudyAlias() {
   delete[] fX;
   delete[] fA;
   delete[] fR;
+#ifdef USE_ROOT
   delete fRnd;
+#endif
 }
 
 /**

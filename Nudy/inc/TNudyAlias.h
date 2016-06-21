@@ -5,7 +5,11 @@
  * @brief Header file for Alias Sampling
 */
 
+#ifdef USE_ROOT
 class TRandom;
+#else
+class RNG;
+#endif
 
 #include "TNudyCore.h"
 
@@ -28,8 +32,12 @@ private:
   double *fA;    //[fLen]
   /** Residual values */
   double *fR;    //[fLen]
-  /** Pointer to uniform random number generator */
-  TRandom *fRnd; 
+  /** Pointer to random number generator */
+#ifdef USE_ROOT
+  TRandom *fRnd;
+#else
+  RNG *fRnd;    
+#endif
 public:
   TNudyAlias();
   virtual ~TNudyAlias();
