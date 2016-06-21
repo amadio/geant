@@ -22,14 +22,8 @@
 
 */
 
-class TString;
-class TNudyEndfFile;
-
-#include <Riostream.h>
-#include <TObject.h>
 #include <TList.h>
 #include "TNudyEndfFile.h"
-#include <RConfig.h>
 
 class TNudyEndfMat : public TObject {
 public:
@@ -192,7 +186,9 @@ private:
 
   TList *fFiles; // List of the files of this material
 
+#ifdef USE_ROOT
   ClassDef(TNudyEndfMat, 1)
+#endif
 };
 
 #endif

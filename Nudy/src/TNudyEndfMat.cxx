@@ -11,11 +11,19 @@
 
 */
 
+/*
 #include <string.h>
 
 #include <TString.h>
-#include <TNudyEndfMat.h>
+*/
+
+#include <TError.h>
 #include <TNudyEndfCont.h>
+#include <TNudyEndfMat.h>
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfMat)
+#endif
 
 //_______________________________________________________________________________
 TNudyEndfMat::TNudyEndfMat()
