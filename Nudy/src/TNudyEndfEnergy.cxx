@@ -5,12 +5,6 @@
 // 	date of creation: March 22, 2016
 
 #include "TNudyEndfEnergy.h"
-class TNudyEndfFile;
-class TNudyEndfSec;
-class TNudyEndfCont;
-class TNudyEndfTab1;
-class TNudyEndfTab2;
-class TNudyEndfList;
 
 TNudyEndfEnergy::TNudyEndfEnergy(){}
 
