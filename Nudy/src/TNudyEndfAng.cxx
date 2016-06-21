@@ -5,12 +5,10 @@
 // 	date of creation: March 22, 2016
 
 #include "TNudyEndfAng.h"
-class TNudyEndfFile;
-class TNudyEndfSec;
-class TNudyEndfCont;
-class TNudyEndfTab1;
-class TNudyEndfTab2;
-class TNudyEndfList;
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfAng)
+#endif
 
 TNudyEndfAng::TNudyEndfAng(){}
 
