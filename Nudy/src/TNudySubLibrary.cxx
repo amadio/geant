@@ -2,6 +2,8 @@
 #include "TParticlePDG.h"
 #include "TBtree.h"
 #include "TVNudyModel.h"
+#include "TNudyCore.h"
+#include "TNudyEndfMat.h"
 #include "TROOT.h"
 #include "TFile.h"
 

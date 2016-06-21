@@ -1,20 +1,20 @@
 #ifndef ROOT_TVNudyModel
 #define ROOT_TVNudyModel
 
-#include <TObjArray.h>
-#include <TArrayD.h>
-#include <TList.h>
-#include <TArrayI.h>
 #include <TNamed.h>
-#include "TNudyCore.h"
-#include "TNudyEndfMat.h"
-#include "TNudyEndfSec.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyEndfList.h"
-#include "TNudyEndfINTG.h"
-#include "TNudyAliasCont.h"
+#include "TArrayD.h"
+#include "TArrayI.h"
 #include "TRandom3.h"
+class TNudyAlias;
+class TNudyAliasCont;
+class TNudyEndfFile;
+class TNudyEndfSec;
+class TNudyEndfTab1;
+class TNudyEndfTab2;
+class TGeoElementRN;
+class TParticlePDG;
+class TNudyEndfMat;
+#include "TNudyTypes.h"
 
 class TVNudyModel : public TNamed {
 public:
@@ -94,7 +94,9 @@ private:
   void FillGrid(double u, int nep, TNudyEndfTab1 *tab, TNudyEndfTab1 *pe);
   int EoExists(int index, double ef);
 
+#ifdef USE_ROOT
   ClassDef(TVNudyModel, 1)
+#endif
 };
 
 #endif

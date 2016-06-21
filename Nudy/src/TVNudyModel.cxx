@@ -1,17 +1,25 @@
-#include "TNudyCore.h"
 #include "TVNudyModel.h"
-// Header files required to display data
-#include "TMath.h"
-#include "TFile.h"
-#include "TRandom3.h"
-#include "Math/SpecFuncMathMore.h"
-#include <TCanvas.h>
-#include <TGraph.h>
-#include <TAxis.h>
+
 #include <TFrame.h>
-#include <TGraph2D.h>
 #include <TStyle.h>
+#include <TAxis.h>
+#include <TGraph.h>
+#include <TGraph2D.h>
+#include <TCanvas.h>
+#include "TMath.h"
+#include "Math/SpecFuncMathMore.h"
 #include "base/Global.h"
+#include "TNudyCore.h"
+#include "TNudyEndfMat.h"
+#include "TNudyAliasCont.h"
+#include "TNudyEndfCont.h"
+#include "TNudyEndfTab1.h"
+#include "TNudyEndfTab2.h"
+#include "TNudyEndfList.h"
+
+#ifdef USE_ROOT
+ClassImp(TVNudyModel)
+#endif
 
 using vecgeom::kPi;
 using std::min;
