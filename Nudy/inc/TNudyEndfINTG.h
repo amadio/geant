@@ -1,7 +1,6 @@
 #ifndef ROOT_TNudyEndfINTG
 #define ROOT_TNudyEndfINTG
 
-#include <Riostream.h>
 #include "TNudyEndfCont.h"
 
 class TNudyEndfINTG : public TNudyEndfCont {
@@ -26,7 +25,9 @@ private:
   int fNdigit;
   int fII;
   int fJJ;
+#ifdef USE_ROOT
   ClassDef(TNudyEndfINTG, 1)
+#endif
 };
 
 #endif

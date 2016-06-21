@@ -1,5 +1,8 @@
-#include <string.h>
 #include <TNudyEndfINTG.h>
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfINTG)
+#endif
 
 //______________________________________________________________________________
 TNudyEndfINTG::TNudyEndfINTG()
