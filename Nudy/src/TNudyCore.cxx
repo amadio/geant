@@ -1,6 +1,9 @@
-#include "TNudyCore.h"
-#include "TROOT.h"
 #include <stdlib.h>
+
+#include "TSystem.h"
+#include "TGeoManager.h"
+#include "TNudyCore.h"
+#include "TParticle.h"
 
 using std::max;
 using std::min;
@@ -15,9 +18,6 @@ ClassImp(TNudyCore)
 TNudyCore::~TNudyCore() {
   delete fGeom;
   delete fPdgDB;
-  fListOfObjects->Delete();
-  delete fListOfObjects;
-  fgInstance = NULL;
 }
 
 //______________________________________________________________________________
@@ -28,7 +28,6 @@ TNudyCore::TNudyCore() {
   fTable->ImportElementsRN();
   fPdgDB = new TDatabasePDG();
   fPdgDB->ReadPDGTable();
-  fListOfObjects = new TList();
 }
 
 //______________________________________________________________________________

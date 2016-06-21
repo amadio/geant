@@ -1,25 +1,13 @@
 #ifndef ROOT_TNudyCore
 #define ROOT_TNudyCore
 
-#include <TObject.h>
-#include <TGeoElement.h>
-#include <TGeoManager.h>
-#include <TPDGCode.h>
-#include <TParticlePDG.h>
-#include <TDatabasePDG.h>
-#include <TParticle.h>
-#include <TList.h>
-#include <TSystem.h>
-#include <vector>
-#include <iterator>
-#include <map>
-#include <algorithm>
-#include <iostream>
-
+class TGeoManager;
+class TGeoElementRN;
+class THashList;
+class TParticle;
+#include "TGeoElement.h"
+#include "TDatabasePDG.h"
 #include "TNudyTypes.h"
-
-// Set to turn on multi threaded generation of random numbers
-#define TNUDYALIAS_MULTITHREAD
 
 class TNudyCore {
 protected:
@@ -27,7 +15,6 @@ protected:
   TGeoManager *fGeom;
   TGeoElementTable *fTable;
   TDatabasePDG *fPdgDB;
-  TList *fListOfObjects;
   TNudyCore();
   TNudyCore(const TNudyCore &core) = delete; // not implemented
   TNudyCore &operator=(const TNudyCore &core) = delete; // not implemented

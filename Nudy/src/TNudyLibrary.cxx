@@ -1,3 +1,6 @@
+#include "TMath.h"
+
+#include "TPDGCode.h"
 #include "TNudyLibrary.h"
 #include <TFile.h>
 

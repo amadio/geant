@@ -34,6 +34,7 @@ enum IntScheme_t {
 
 #define ERROR_MARGIN 1e-5
 
+// Set to turn on multi threaded generation of random numbers
 #define TNUDYALIAS_MULTITHREAD
 
 #endif

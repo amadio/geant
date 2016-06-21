@@ -27,7 +27,7 @@ TNudyAliasCont::TNudyAliasCont(double *data, int len, double alpha, unsigned int
   // double* of x1,p1,x2,p2.....xn,pn
   int i = 0, j = 0;
   if (len % 2 != 0) {
-    printf("TNudyAliasCont::TNudyAliasCont: Incorrect array specified");
+    printf("TNudyAliasCont::TNudyAliasCont: Incorrect array specified\n");
   }
   double *x = new double[len / 2];
   double *p = new double[len / 2];
@@ -146,7 +146,7 @@ double TNudyAliasCont::Random(IntScheme_t iScheme, int binNo, AliasDist_t distri
       xp = (fInterX && fInterP) ? fInterP : fP;
       break;
     default:
-      Error("Random", "Unknown distribution type");
+      printf("TNudyAliasCont::Random: Unknown distribution type\n");
       return 0.;
   }
   double rnd1, rnd2, x1, x2;
@@ -193,7 +193,7 @@ double TNudyAliasCont::ImprovedInterpolation(double alpha) {
   double x1, x2, X1, X2, P1, P2, rnd1, rnd2, u;
   u = (alpha - fAlpha) / (fInterAlpha - fAlpha);
   if (alpha < fAlpha || alpha > fInterAlpha) {
-    Error("ImprovedInterpolation", "%e does not lie between %e and %e", alpha, fAlpha, fInterAlpha);
+    printf("TNudyAliasCont::ImprovedInterpolation: %e does not lie between %e and %e\n", alpha, fAlpha, fInterAlpha);
   }
   double h = 0;
   if (!fTx)
