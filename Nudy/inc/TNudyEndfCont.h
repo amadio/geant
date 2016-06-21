@@ -23,9 +23,6 @@
 
 */
 
-#include <Riostream.h>
-#include <TObject.h>
-// class TNudyEndfSec;
 #include "TNudyEndfRecord.h"
 
 class TNudyEndfCont : public TNudyEndfRecord {

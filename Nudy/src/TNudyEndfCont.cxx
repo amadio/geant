@@ -11,9 +11,6 @@
 
 */
 
-#include <string.h>
-
-#include <TString.h>
 #include <TNudyEndfCont.h>
 
 //_______________________________________________________________________________
