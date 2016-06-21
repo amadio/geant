@@ -9,7 +9,8 @@
 #include "RTypes.h"
 class TRandom;
 #else
-class RNG;
+#include "base/RNG.h"
+using VECGEOM_NAMESPACE::RNG;
 #endif
 
 #include "TNudyTypes.h"

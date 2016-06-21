@@ -1,7 +1,13 @@
 #ifndef ROOT_TNudyAliasCont
 #define ROOT_TNudyAliasCont
 
-#include <TRandom.h>
+#ifdef USE_ROOT
+#include "RTypes.h"
+#include "TRandom.h"
+#else
+#include "base/RNG.h"
+using VECGEOM_NAMESPACE::RNG;
+#endif
 
 #include "TNudyTypes.h"
 #include "TNudyAlias.h"
@@ -25,7 +31,11 @@ private:
   double *fTp;        //! Temporary Probability distribution
   double fTa;         //! Temporary Alpha value
   double fInterAlpha; // Alpha for the next distribution
+#ifdef USE_ROOT
   TRandom *fRnd;      // To generate unifrom random numbers
+#else
+  RNG     *fRnd;      // To generate unifrom random numbers
+#endif
   double fAlpha;      // Stores the number which identifies the distribution
 public:
   TNudyAliasCont();

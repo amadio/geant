@@ -21,8 +21,7 @@ TNudyAliasCont::TNudyAliasCont(double *data, int len, double alpha, unsigned int
     : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
       fInterAlpha(10), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
-      ,
-      fMult(nullptr), fMultLen(0)
+      ,fMult(nullptr), fMultLen(0)
 #endif
 {
   // double* of x1,p1,x2,p2.....xn,pn
@@ -70,7 +69,11 @@ void TNudyAliasCont::Initialize(double *p, double *x, const int len, double alph
 #endif
   fLen = len;
   fAlpha = alpha;
+#ifdef USE_ROOT
   fRnd = new TRandom(seed);
+#else
+  fRnd = &RNG::Instance();
+#endif
   fP = new double[fLen];
   fX = new double[fLen];
   integral = new double[len - 1];
@@ -105,7 +108,9 @@ TNudyAliasCont::~TNudyAliasCont() {
   delete [] fInterP;
   delete [] fTx;
   delete [] fTp;
+#ifdef USE_ROOT
   delete fRnd;
+#endif
 #ifdef TNUDYALIAS_MULTITHREAD
   delete[] fMult;
 #endif

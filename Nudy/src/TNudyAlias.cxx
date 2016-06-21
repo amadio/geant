@@ -4,10 +4,9 @@
 */
 
 #include "TNudyAlias.h"
+
 #ifdef USE_ROOT
 #include "TRandom.h"
-#else
-#include "base/RNG.h"
 #endif
 
 #ifdef TNUDYALIAS_MULTITHREAD
