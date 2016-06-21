@@ -9,19 +9,17 @@
 
 #include "tbb/task.h"
 
-using namespace tbb;
-
-class FeederTask : public task
+class FeederTask : public tbb::task
 {
 private:
   Geant::GeantTaskData *fTd;
-  int * fNbaskets;
+  int *fNbaskets;
 
 public:
   FeederTask (Geant::GeantTaskData *td, int *nbaskets);
   ~FeederTask ();
 
-  task* execute ();
+  tbb::task* execute ();
 
 };
 

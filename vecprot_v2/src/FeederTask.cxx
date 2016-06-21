@@ -1,14 +1,15 @@
 #include "FeederTask.h"
 
 #include <iostream>
+#ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
-
+#endif
 
 FeederTask::FeederTask (Geant::GeantTaskData *td, int * nbaskets): fTd(td), fNbaskets(nbaskets) { }
 
 FeederTask::~FeederTask () { }
 
-task* FeederTask::execute ()
+tbb::task* FeederTask::execute ()
 {
 
   GeantPropagator *propagator = GeantPropagator::Instance();

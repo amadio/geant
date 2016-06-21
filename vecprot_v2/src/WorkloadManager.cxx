@@ -44,8 +44,9 @@
 #endif
 #include "GeantFactoryStore.h"
 
-// TBB
+#ifdef GEANT_TBB
 #include "tbb/task.h"
+#endif
 
 using namespace Geant;
 using std::max;
