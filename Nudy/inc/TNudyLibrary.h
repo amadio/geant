@@ -1,12 +1,13 @@
 #ifndef ROOT_TNudyLibrary
 #define ROOT_TNudyLibrary
 
-#include <THashList.h>
-#include <THashTable.h>
-#include "TNudyCore.h"
-#include "TNudySubLibrary.h"
-#include "TNudyEndfMat.h"
-#include "TNudyEndfTape.h"
+#include "TNamed.h"
+#include "THashTable.h"
+#include "TParticlePDG.h"
+class TNudyEndfTape;
+class TParticlePDG;
+class TNudySubLibrary;
+class TGeoElementRN;
 
 class TNudyLibrary : public TNamed {
 public:
@@ -28,6 +29,8 @@ private:
   THashTable *fSubLib;         // Sub-Libaries storing the MAT-MT information for each particle
   TNudySubLibrary *fCurSubLib; //! Current Sublibrary
 
+#ifdef USE_ROOT
   ClassDef(TNudyLibrary, 1)
+#endif
 };
 #endif

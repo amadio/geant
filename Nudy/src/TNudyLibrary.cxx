@@ -1,8 +1,15 @@
 #include "TMath.h"
 
-#include "TPDGCode.h"
 #include "TNudyLibrary.h"
-#include <TFile.h>
+#include "TNudySubLibrary.h"
+#include "TNudyEndfTape.h"
+#include "THashList.h"
+#include "TPDGCode.h"
+#include "TROOT.h"
+
+#ifdef USE_ROOT
+ClassImp(TNudyLibrary)
+#endif
 
 //______________________________________________________________________________
 TNudyLibrary::TNudyLibrary() {

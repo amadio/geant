@@ -1,4 +1,5 @@
 #include "TNudyDB.h"
+#include "TNudyEndfTape.h"
 #include "TFile.h"
 #include "TNudyLibrary.h"
 

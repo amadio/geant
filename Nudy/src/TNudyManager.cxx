@@ -1,4 +1,5 @@
 #include "TNudyManager.h"
+#include "TNudyEndfTape.h"
 #include "TFile.h"
 #include <TROOT.h>
 
