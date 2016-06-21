@@ -1,54 +1,7 @@
 #ifndef TNudyEndfEnergyAng_H
 #define TNudyEndfEnergyAng_H
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <vector>
-#include <iterator>
-#include <map>
-#include <algorithm>
-#include <iomanip>
-#include <dirent.h>
-#include "TRandom3.h"
-#include "Math/SpecFuncMathMore.h"
-#include <TCollection.h>
-#include <TIterator.h>
-#include <TFile.h>
-#include <TMath.h>
-#include <TString.h>
-#include <TClass.h>
-#include <TObject.h>
-#include <TROOT.h>
-#include <TSystem.h>
-#include <Rtypes.h>
-#include <TTreeReader.h>
-#include <TKey.h>
-
-#include "TNudyCore.h"
-#include "TNudyDB.h"
-#include "TNudyElementTable.h"
-#include "TNudyENDF.h"
-#include "TNudyEndfCont.h"
-#include "TNudyEndfFile.h"
-#include "TNudyEndfINTG.h"
-#include "TNudyEndfList.h"
-#include "TNudyEndfMat.h"
-#include "TNudyEndfTape.h"
-#include "TNudyEndfRecord.h"
-#include "TNudyEndfSec.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyLibrary.h"
-#include "TNudyManager.h"
-#include "TNudySubLibrary.h"
-#include "TVNudyModel.h"
-
-#include <Riostream.h>
 #include "TNudyEndfRecoPoint.h"
-#include <RConfig.h>
 
 #define PI acos(-1.0)
 
@@ -88,6 +41,8 @@ private:
   int nr3, np3;                         // standard ENDF parameters
   std::vector<double>ein,cdf,pdf,lCoef1;
   std::vector<std::vector<double> >pdf2d,cdf2d,lCoef;
+#ifdef USE_ROOT
   ClassDef(TNudyEndfEnergyAng, 1) // class for an ENDF reconstruction
+#endif
 };
 #endif

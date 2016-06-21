@@ -5,12 +5,10 @@
 // 	date of creation: March 22, 2016
 
 #include "TNudyEndfEnergyAng.h"
-class TNudyEndfFile;
-class TNudyEndfSec;
-class TNudyEndfCont;
-class TNudyEndfTab1;
-class TNudyEndfTab2;
-class TNudyEndfList;
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfEnergyAng)
+#endif
 
 TNudyEndfEnergyAng::TNudyEndfEnergyAng(){}
 
@@ -370,7 +368,6 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	for(int cr1=0; cr1 < NE2 ; cr1 ++){
 	  TNudyEndfTab2 *tab3 = (TNudyEndfTab2 *)recIter.Next();
 	  ein.push_back(tab3->GetC2());
-	  int NRM  = tab3->GetN1();
 	  int NMU  = tab3->GetN2();
 	  TArrayD cosin(NMU);
 	  for(int cr2=0; cr2 < NMU ; cr2 ++){
