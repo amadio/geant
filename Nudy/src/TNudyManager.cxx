@@ -1,6 +1,7 @@
 #include "TNudyManager.h"
 #include "TNudyEndfTape.h"
 #include "TNudySubLibrary.h"
+#include "TVNudyModel.h"
 #include "TNudyENDF.h"
 #include "TFile.h"
 #include <TROOT.h>

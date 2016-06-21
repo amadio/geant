@@ -3,6 +3,8 @@
 #include "TNudyLibrary.h"
 #include "TNudySubLibrary.h"
 #include "TNudyEndfTape.h"
+#include "TNudyCore.h"
+#include "TNudyEndfMat.h"
 #include "THashList.h"
 #include "TPDGCode.h"
 #include "TROOT.h"

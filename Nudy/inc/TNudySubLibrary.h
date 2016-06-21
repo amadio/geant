@@ -1,13 +1,13 @@
 #ifndef ROOT_TNudySubLibrary
 #define ROOT_TNudySubLibrary
 
-#include <TBtree.h>
-#include <TList.h>
-#include "TNudyCore.h"
-#include "TNudyEndfMat.h"
-#include "TNudyEndfFile.h"
-#include "TNudyEndfSec.h"
-#include "TVNudyModel.h"
+#include "TNamed.h"
+class TVNudyModel;
+class TNudyEndfMat;
+#include "TNudyTypes.h"
+class TBtree;
+class TParticlePDG;
+class TGeoElementRN;
 
 class TNudySubLibrary : public TNamed {
 public:
@@ -27,6 +27,8 @@ private:
   TBtree *fIndex;            // Btree storing all Models
   TBtree *fBuffer;           // Buffer storing results of last query
   TParticlePDG *fProjectile; // Projectile particle
+#ifdef USE_ROOT
   ClassDef(TNudySubLibrary, 1)
+#endif
 };
 #endif

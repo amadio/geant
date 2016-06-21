@@ -1,7 +1,13 @@
 #include "TNudySubLibrary.h"
+#include "TParticlePDG.h"
+#include "TBtree.h"
+#include "TVNudyModel.h"
+#include "TROOT.h"
 #include "TFile.h"
-#include "TH1D.h"
-#include "TCanvas.h"
+
+#ifdef USE_ROOT
+ClassImp(TNudySubLibrary)
+#endif
 
 //______________________________________________________________________________
 TNudySubLibrary::TNudySubLibrary() {
