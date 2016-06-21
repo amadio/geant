@@ -1,16 +1,13 @@
 #ifndef ROOT_TNudyElementTable
 #define ROOT_TNudyElementTable
 
-#include "RConfigure.h"
-#include "Riostream.h"
-#include "TGeoElement.h"
-#include "TGeoManager.h"
-#include "TNudyElementRN.h"
-#include "TCanvas.h"
-#include "TObject.h"
+class TCanvas;
+class TGeoElementTable;
+class TGeoManager;
 #include "TBox.h"
 #include "TList.h"
-#include "TButton.h"
+
+
 const int kENABLED = 1;
 const int kDISABLED = 0;
 

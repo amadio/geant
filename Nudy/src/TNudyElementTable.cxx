@@ -1,7 +1,9 @@
-#include <stdlib.h>
-#include "Rtypes.h"
 #include "TNudyElementTable.h"
+#include "TGeoManager.h"
+#include "TCanvas.h"
+#include "TButton.h"
 #include "TNudyElementRN.h"
+#include <iostream>
 
 #ifdef USE_ROOT
 ClassImp(TNudyElementTable)
