@@ -1,7 +1,13 @@
 #include "TNudyManager.h"
 #include "TNudyEndfTape.h"
+#include "TNudySubLibrary.h"
+#include "TNudyENDF.h"
 #include "TFile.h"
 #include <TROOT.h>
+
+#ifdef USE_ROOT
+ClassImp(TNudyManager)
+#endif
 
 TNudyManager *TNudyManager::fgInstance = 0;
 

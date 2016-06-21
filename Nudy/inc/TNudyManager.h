@@ -1,12 +1,16 @@
 #ifndef ROOT_TNudyManager
 #define ROOT_TNudyManager
 
-#include "TNudyCore.h"
+#include "TNamed.h"
+#include "TBtree.h"
+class TVNudyModel;
+#include "THashTable.h"
 #include "TNudyDB.h"
 #include "TNudyLibrary.h"
-#include "TNudySubLibrary.h"
-#include "TVNudyModel.h"
-#include "TNudyENDF.h"
+#include "TNudyCore.h"
+class TGeoElementRN;
+class TParticlePDG;
+#include "TNudyTypes.h"
 
 class TNudyManager : public TNamed {
 protected:
@@ -60,6 +64,8 @@ public:
   TBtree *GetAllModels(const int a = 0, const int z = 0, const int iso = 0, const int reaction = kNoReaction,
                        const unsigned long temp = 0, const char *particleName = NULL);
 
+#ifdef USE_ROOT
   ClassDef(TNudyManager, 1)
+#endif
 };
 #endif
