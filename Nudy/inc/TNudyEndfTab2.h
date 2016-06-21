@@ -23,9 +23,7 @@
 
 */
 
-#include <Riostream.h>
 #include "TNudyEndfCont.h"
-#include <RConfig.h>
 
 class TNudyEndfTab2 : public TNudyEndfCont {
 public:
@@ -48,8 +46,9 @@ public:
 private:
   int *fNBT; //[fN1]
   int *fINT; //[fN1]
-
+#ifdef USE_ROOT
   ClassDef(TNudyEndfTab2, 1)
+#endif
 };
 
 #endif
