@@ -168,7 +168,7 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
 		    MissingJ[l[lseries]][ju] = jtemp[j1];
 		    NJValue[l[lseries]] += 1 ; 
 		    jmis = jtemp[j1];
-		    gjfound += (2 *fabs(jtemp[j1]) + 1 )/gjdeno;	
+		    gjfound += (2 *std::fabs(jtemp[j1]) + 1 )/gjdeno;	
 		    ju += 1;
 		  }
 		}
@@ -257,7 +257,7 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
 		      MissingJ[l[lseries]][ju] = jtemp[j1];
 		      NJValue[l[lseries]] += 1 ; 
 		      jmis = jtemp[j1];
-		      gjfound += (2 *fabs(jtemp[j1]) + 1 )/gjdeno;	
+		      gjfound += (2 *std::fabs(jtemp[j1]) + 1 )/gjdeno;	
 		      ju += 1;
 		    }
 		  }
@@ -2311,7 +2311,7 @@ double TNudyEndfRecoPoint::Thinning(std::vector<double> &x1, std::vector<double>
     double sigmid1 = x2[i] + (x2[i+2] - x2[i])*(x1[i+1] - x1[i])/(x1[i+2] - x1[i]);
 //  std::cout<<" mid " << mid <<"  "<< siga <<"  "<< sigmid1 << std::endl;
   
-    if(fabs((x2[i+1] - sigmid1)/sigmid1)<=sigDiff){
+    if(std::fabs((x2[i+1] - sigmid1)/sigmid1)<=sigDiff){
       x1.erase(x1.begin()+i+1);
       x2.erase(x2.begin()+i+1);
     } 

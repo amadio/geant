@@ -58,44 +58,36 @@ public:
   TNudyEndfEnergyAng ();
   TNudyEndfEnergyAng (TNudyEndfFile *file);
   virtual ~TNudyEndfEnergyAng ();
-  double cmToLabElasticE(double inE, double cmCos, double awr);
-  double cmToLabElasticCosT(double cmCos, double awr);
-  double cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr);
-  double cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr);
-  std::vector<std::vector<std::vector<double> > >cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
-  std::vector<std::vector<std::vector<double> > >cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
-  std::vector<std::vector<double> > energy4OfMts;       // incident energy in file 4 for each reaction
+  std::vector<std::vector<std::vector<double> > >energyPdf5OfMts;        // cosine, energy and pdf from file 5 for each reaction
+  std::vector<std::vector<std::vector<double> > >energyCdf5OfMts;        // cosine, energy and cdf from file 5 for each reaction
+  std::vector<std::vector<double> > energy5OfMts;       // incident energy in file 5 for each reaction
   std::vector<std::vector<int> > Mt4Values;             // MT values for which angular distributions are given in file 4
   std::vector<int> MtNumbers;				// MT numbers
+  std::vector<std::vector<int> > Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
+  std::vector<int> MtLct;				// LCT numbers
 private:
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
-  double recursionLinearFile5GenEva(double x1, double x2, double pdf1, double pdf2, double energy);
-  double recursionLinearFile5Maxwell(double x1, double x2, double pdf1, double pdf2, double energy);
-  double recursionLinearFile5Watt(double x1, double x2, double pdf1, double pdf2, double energy);
-  void cdfGenerateE(std::vector<double> &x1,std::vector<double> &x2);
-  void Sort(std::vector<double> &x1,std::vector<double> &x2);
   double recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2);
-  void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2);
-  double Thinning(std::vector<double> &x1, std::vector<double> &x2);
-  double ThinningDuplicate(std::vector<double> &x1);
-  double ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2);
+  double recursionLinearProb(double x1, double x2, double pdf1, double pdf2);
 
   double A, AWR, ABN, QX;                         // standard ENDF parameters
-  int *NBT,*NBT1,*INT1, NR, NP;                         // standard ENDF parameters for range and interpolation
-  int *NBT2, *INT2, NR2, NE;                            // standard ENDF parameters for range and interpolation
-  int *NBT3, *INT3, NR3, NE2;				// standard ENDF parameters for range and interpolation
-  double *INorm, QValue[999];				// ENDF parameter and Q values from file 3
-  double sigDiff;					// precision for cross-section reconstruction
-  double *fE1_file5,*fp91_file5,*fE2_file5,*fp92_file5,
-         *fE3_file5,*fp93_file5; 			// file5 energy and probabilities
-  double *fE1_file6,*fp11_file6,*fE2_file6,*fp12_file6; // file 6 energy and probabilities
-  TArrayD *lCoef, xengr;
-  std::vector<double> einFile6,eoutFile6,eoutPdfFile6,eoutCdfFile6,cosFile6,cosPdfFile6,cosCdfFile6;
+  int NR, NP;                         // standard ENDF parameters for range and interpolation
+  int NR2, NE;                            // standard ENDF parameters for range and interpolation
+  int NR3, NE2;				// standard ENDF parameters for range and interpolation
+//  double *INorm, QValue[999];				// ENDF parameter and Q values from file 3
   std::vector<double> cosFile4, energyFile5;
   std::vector<double> cosPdfFile4, energyPdfFile5;
   std::vector<double> cosCdfFile4, energyCdfFile5;
-  std::vector<double> energy, sigma, sigmaT; 
-  std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  std::vector<double> edes6,f06,r6,a6;
+  std::vector<double> fE1, fP1, fE2, fP2, fE3, fP3, INorm;
+  std::vector<int> nbt1,int1;
+  int nr1, np1;                         // standard ENDF parameters
+  std::vector<int> nbt2,int2;
+  int nr2, np2;                         // standard ENDF parameters
+  std::vector<int> nbt3,int3;
+  int nr3, np3;                         // standard ENDF parameters
+  std::vector<double>ein,cdf,pdf,lCoef1;
+  std::vector<std::vector<double> >pdf2d,cdf2d,lCoef;
   ClassDef(TNudyEndfEnergyAng, 1) // class for an ENDF reconstruction
 };
 #endif

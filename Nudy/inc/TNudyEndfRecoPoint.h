@@ -111,6 +111,8 @@ public:
   std::vector<double> sigmaMts;				// MT numbers for sigma in file3
   std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
   int NoOfElements = 0;
+  double QValue[999];
+  double sigDiff;					// precision for cross-section reconstruction
 protected:
   double AWRI;
 private:
@@ -161,8 +163,7 @@ private:
   int *NBT2, *INT2, NR2, NE;                            // standard ENDF parameters for range and interpolation
   int *NBT3, *INT3, NR3, NE2;				// standard ENDF parameters for range and interpolation
   double *fE_file3,*fXsec_file3; 			// file3 energy and cross-sections;
-  double *INorm, QValue[999];				// ENDF parameter and Q values from file 3
-  double sigDiff;					// precision for cross-section reconstruction
+  double *INorm;				// ENDF parameter and Q values from file 3
   TArrayD *lCoef, xengr;
   std::vector<double> eLinearFile3;
   std::vector<double> xLinearFile3;
