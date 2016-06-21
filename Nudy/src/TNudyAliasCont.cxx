@@ -8,7 +8,7 @@ ClassImp(TNudyAlias)
 //_______________________________________________________________________________
 TNudyAliasCont::TNudyAliasCont()
   : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
-    fInterAlpha(10), fRan(nullptr), fRnd(nullptr), fAlpha(10)
+    fInterAlpha(10), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
     ,
     fMult(nullptr), fMultLen(0)
@@ -17,25 +17,24 @@ TNudyAliasCont::TNudyAliasCont()
 }
 
 //_______________________________________________________________________________
-TNudyAliasCont::TNudyAliasCont(TArrayD *data, double alpha, unsigned int seed)
+TNudyAliasCont::TNudyAliasCont(double *data, int len, double alpha, unsigned int seed)
     : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
-      fInterAlpha(10), fRan(nullptr), fRnd(nullptr), fAlpha(10)
+      fInterAlpha(10), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
       ,
       fMult(nullptr), fMultLen(0)
 #endif
 {
-  // TArrayD of x1,p1,x2,p2.....xn,pn
-  int len = data->GetSize();
+  // double* of x1,p1,x2,p2.....xn,pn
   int i = 0, j = 0;
   if (len % 2 != 0) {
-    printf("TNudyAliasCont::TNudyAliasCont: Incorrect TArrayD specified");
+    printf("TNudyAliasCont::TNudyAliasCont: Incorrect array specified");
   }
   double *x = new double[len / 2];
   double *p = new double[len / 2];
   for (i = 0, j = 0; i < len; i += 2, j++) {
-    x[j] = data->GetAt(i);
-    p[j] = data->GetAt(i + 1);
+    x[j] = data[i];
+    p[j] = data[i + 1];
   }
   Initialize(p, x, len, alpha, seed);
   delete[] p;
@@ -43,9 +42,9 @@ TNudyAliasCont::TNudyAliasCont(TArrayD *data, double alpha, unsigned int seed)
 }
 
 //_______________________________________________________________________________
-TNudyAliasCont::TNudyAliasCont(double *p, double *x, const int len, double alpha, unsigned int seed)
+TNudyAliasCont::TNudyAliasCont(double *p, double *x, int len, double alpha, unsigned int seed)
     : fLen(0), fChooseBin(nullptr), fP(nullptr), fX(nullptr), fInterX(nullptr), fInterP(nullptr), fTx(nullptr), fTp(nullptr), fTa(-1),
-      fInterAlpha(10), fRan(nullptr), fRnd(nullptr), fAlpha(10)
+      fInterAlpha(10), fRnd(nullptr), fAlpha(10)
 #ifdef TNUDYALIAS_MULTITHREAD
       ,
       fMult(nullptr), fMultLen(0)
@@ -61,8 +60,8 @@ void TNudyAliasCont::Initialize(double *p, double *x, const int len, double alph
   int i;
   double *integral = nullptr, *I = nullptr;
   fInterX = fInterP = nullptr;
-  //  fTx = new TArrayD(len);
-  //  fTp = new TArrayD(len);
+  //  fTx = new double[len];
+  //  fTp = new double[len];
   fTa = -1;
   fInterAlpha = 0;
 #ifdef TNUDYALIAS_MULTITHREAD
@@ -72,24 +71,23 @@ void TNudyAliasCont::Initialize(double *p, double *x, const int len, double alph
   fLen = len;
   fAlpha = alpha;
   fRnd = new TRandom(seed);
-  fRan = new TRandom(seed >> 2);
-  fP = new TArrayD(len);
-  fX = new TArrayD(len);
+  fP = new double[fLen];
+  fX = new double[fLen];
   integral = new double[len - 1];
   I = new double[len - 1];
   integral[0] = 0;
   I[0] = 0;
   double h = 0;
   for (i = 0; i < len; i++) {
-    fP->SetAt(p[i], i);
-    fX->SetAt(x[i], i);
+    fP[i] = p[i];
+    fX[i] = x[i];
     if (i > 0)
       h += (x[i] - x[i - 1]) * (p[i] + p[i - 1]) * 0.5;
   }
   for (i = 0; i < len; i++) {
-    fP->SetAt(fP->At(i) / h, i);
+    fP[i] /= h;
     if (i > 0) {
-      integral[i - 1] = (fX->At(i) - fX->At(i - 1)) * (fP->At(i) + fP->At(i - 1)) * 0.5;
+      integral[i - 1] = (fX[i] - fX[i - 1]) * (fP[i] + fP[i - 1]) * 0.5;
       I[i - 1] = i - 1;
     }
   }
@@ -101,14 +99,13 @@ void TNudyAliasCont::Initialize(double *p, double *x, const int len, double alph
 //_______________________________________________________________________________
 TNudyAliasCont::~TNudyAliasCont() {
   delete fChooseBin;
-  delete fP;
-  delete fX;
-  delete fInterX;
-  delete fInterP;
-  delete fTx;
-  delete fTp;
+  delete [] fP;
+  delete [] fX;
+  delete [] fInterX;
+  delete [] fInterP;
+  delete [] fTx;
+  delete [] fTp;
   delete fRnd;
-  delete fRan;
 #ifdef TNUDYALIAS_MULTITHREAD
   delete[] fMult;
 #endif
@@ -119,11 +116,11 @@ void TNudyAliasCont::DumpTable() {
   int i;
   printf("Continuous probability distribution --> \n");
   for (i = 0; i < fLen; i++) {
-    printf("x[%d]=%e, p[%d]=%e\n", i, fX->At(i), i, fP->At(i));
+    printf("x[%d]=%e, p[%d]=%e\n", i, fX[i], i, fP[i]);
   }
   if (fInterX && fInterP)
     for (i = 0; i < fLen; i++)
-      printf("fIx[%i]=%e, fIp[%d]=%e\n", i, fInterX->At(i), i, fInterP->At(i));
+      printf("fIx[%i]=%e, fIp[%d]=%e\n", i, fInterX[i], i, fInterP[i]);
   printf("Alias table -->\n");
   fChooseBin->DumpTable();
 }
@@ -136,12 +133,12 @@ double TNudyAliasCont::Random(IntScheme_t iScheme, int binNo, AliasDist_t distri
   double *xp = 0;
   switch (distribution) {
     case kOriginal:
-      xx = fX->GetArray();
-      xp = fP->GetArray();
+      xx = fX;
+      xp = fP;
       break;
     case kBuilt:
-      xx = (fInterX && fInterP) ? fInterX->GetArray() : fX->GetArray();
-      xp = (fInterX && fInterP) ? fInterP->GetArray() : fP->GetArray();
+      xx = (fInterX && fInterP) ? fInterX : fX;
+      xp = (fInterX && fInterP) ? fInterP : fP;
       break;
     default:
       Error("Random", "Unknown distribution type");
@@ -152,7 +149,7 @@ double TNudyAliasCont::Random(IntScheme_t iScheme, int binNo, AliasDist_t distri
   case kLinear:
     // Coerce linear probabiliy distributions to equal probability bins
     rnd1 = r1 < 0 ? fRnd->Uniform() : r1;
-    rnd2 = r2 < 0 ? fRan->Uniform() : r2;
+    rnd2 = r2 < 0 ? fRnd->Uniform() : r2;
     x1 = (1 - rnd1) * xx[binNo] + rnd1 * xx[binNo + 1];
     x2 = rnd1 * xx[binNo] + (1 - rnd1) * xx[binNo + 1];
     if (rnd2 * (xp[binNo] + xp[binNo + 1]) <= (1 - rnd1) * xp[binNo] + rnd1 * xp[binNo + 1])
@@ -195,31 +192,31 @@ double TNudyAliasCont::ImprovedInterpolation(double alpha) {
   }
   double h = 0;
   if (!fTx)
-    fTx = new TArrayD(fLen);
+     fTx = new double[fLen];
   if (!fTp)
-    fTp = new TArrayD(fLen);
+     fTp = new double[fLen];
   if (alpha != fTa) {
     fTa = alpha;
     for (int i = 0; i < fLen; i++) {
-      fTx->SetAt((1 - u) * fX->At(i) + u * fInterX->At(i), i);
-      fTp->SetAt((1 - u) * fP->At(i) + u * fInterP->At(i), i);
+      fTx[i] = (1 - u) * fX[i] + u * fInterX[i];
+      fTp[i] = (1 - u) * fP[i] + u * fInterP[i];
       if (i > 0) {
-        h += 0.5 * (fTx->At(i) - fTx->At(i - 1)) * (fTp->At(i) + fTp->At(i - 1));
+        h += 0.5 * (fTx[i] - fTx[i - 1]) * (fTp[i] + fTp[i - 1]);
       }
     }
     if (fabs(1.0 - h) > 1e-5) {
       for (int i = 0; i < fLen; i++) {
-        fTp->SetAt(fTp->At(i) / h, i);
+        fTp[i] /= h;
       }
     }
   }
   int binNo = (int)fChooseBin->Random();
-  X1 = fTx->At(binNo);
-  X2 = fTx->At(binNo + 1);
-  P1 = fTp->At(binNo);
-  P2 = fTp->At(binNo + 1);
+  X1 = fTx[binNo];
+  X2 = fTx[binNo + 1];
+  P1 = fTp[binNo];
+  P2 = fTp[binNo + 1];
   rnd1 = fRnd->Uniform();
-  rnd2 = fRan->Uniform();
+  rnd2 = fRnd->Uniform();
   x1 = (1.0 - rnd1) * X1 + rnd1 * X2;
   x2 = rnd1 * X1 + (1.0 - rnd1) * X2;
   if (rnd2 * (P1 + P2) <= (1.0 - rnd1) * P1 + rnd1 * P2)
@@ -231,16 +228,16 @@ double TNudyAliasCont::ImprovedInterpolation(double alpha) {
 double TNudyAliasCont::SelectBin(double /*alpha*/, AliasDist_t distribution) {
   int binNo = (int)fChooseBin->Random();
   if (distribution == kOriginal)
-    return fX->At(binNo);
+    return fX[binNo];
   else
-    return fInterX->At(binNo);
+    return fInterX[binNo];
 }
 //_______________________________________________________________________________
 void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const int len) {
   // Populates data structures to interpolate between distributions
   int i, j, k;
-  TArrayD *integral;
-  TArrayD *integralp1;
+  double *integral = nullptr;
+  double *integralp1 = nullptr;
   double x;
   int lo, hi, mid, min;
   int count;
@@ -249,48 +246,47 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const int len) {
   lo = hi = mid = 0;
   for (i = 0; i < len - 1; i++) {
     dists[i].fInterAlpha = dists[i + 1].fAlpha;
-    integral = new TArrayD(dists[i].fLen);       // Integral for dists[i]
-    integralp1 = new TArrayD(dists[i + 1].fLen); // Integral for dists[i+1]
-    integral->SetAt(0, 0);
-    integralp1->SetAt(0, 0);
+    integral = new double[dists[i].fLen];       // Integral for dists[i]
+    integralp1 = new double[dists[i + 1].fLen]; // Integral for dists[i+1]
+    integral[0] = 0;
+    integralp1[0] = 0;
     // Evaluate integrals
     for (j = 1; j < dists[i].fLen; j++) {
-      integral->SetAt(
-          0.5 * (dists[i].fX->At(j) - dists[i].fX->At(j - 1)) * (dists[i].fP->At(j) + dists[i].fP->At(j - 1)), j);
-      integral->SetAt(integral->At(j) + integral->At(j - 1), j);
+      integral[j] = 
+          0.5 * (dists[i].fX[j] - dists[i].fX[j - 1]) * (dists[i].fP[j] + dists[i].fP[j - 1]);
+      integral[j] = integral[j] + integral[j - 1];
     }
     // Store bin areas of
     for (j = 1; j < dists[i + 1].fLen; j++) {
-      integralp1->SetAt(0.5 * (dists[i + 1].fX->At(j) - dists[i + 1].fX->At(j - 1)) *
-                            (dists[i + 1].fP->At(j) + dists[i + 1].fP->At(j - 1)),
-                        j);
-      integralp1->SetAt(integralp1->At(j) + integralp1->At(j - 1), j);
+      integralp1[j] = 0.5 * (dists[i + 1].fX[j] - dists[i + 1].fX[j - 1]) *
+                            (dists[i + 1].fP[j] + dists[i + 1].fP[j - 1]);
+      integralp1[j] = integralp1[j] + integralp1[j - 1];
     }
     // Add Extra points into distribution
     for (j = 0, count = 0; j < dists[i + 1].fLen; j++) {
-      lo = TNudyCore::Instance()->BinarySearch(integral->GetArray(), dists[i].fLen, integralp1->At(j));
+      lo = TNudyCore::Instance()->BinarySearch(integral, dists[i].fLen, integralp1[j]);
       hi = lo + 1;
-      f1 = dists[i].fP->At(lo);
-      f2 = dists[i].fP->At(hi);
-      e1 = dists[i].fX->At(lo);
-      e2 = dists[i].fX->At(hi);
+      f1 = dists[i].fP[lo];
+      f2 = dists[i].fP[hi];
+      e1 = dists[i].fX[lo];
+      e2 = dists[i].fX[hi];
       ;
       delf = f2 - f1;
       if (fabs(delf) != 0) {
         dele = e2 - e1;
-        temp = 2 * (integralp1->At(j) - integral->At(lo)) * delf / dele;
-        if (integralp1->At(j) < integral->At(hi))
+        temp = 2 * (integralp1[j] - integral[lo]) * delf / dele;
+        if (integralp1[j] < integral[hi])
           x = e1 + dele * (sqrt(pow(f1, 2) + temp) - f1) / delf;
         else
           x = e2 + 1e-5;
       } else {
         if (f1 != 0)
-          x = e1 + (integralp1->At(j) - integral->At(lo)) / f1;
+          x = e1 + (integralp1[j] - integral[lo]) / f1;
         else
           x = e1 + 1e-5;
       }
       pp = TNudyCore::Instance()->LinearInterpolation(e1, f1, e2, f2, x);
-      //      if(fabs(integralp1->At(j) - integral->At(lo)) > 1e-5){
+      //      if(fabs(integralp1[j] - integral[lo]) > 1e-5){
       //** Work in progress to improve accuracy
       /*                 count++;
                   dists[i].fP->Set(dists[i].fLen+count);
@@ -300,34 +296,36 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const int len) {
  */ //}
     }
     dists[i].fLen += count;
-    integral->Set(dists[i].fLen);
+    delete [] integral;
+    integral = new double[dists[i].fLen];
+    integral[0] = 0;
     // Sort array
     for (j = 0; j < dists[i].fLen; j++) {
       min = j;
       for (k = j + 1; k < dists[i].fLen; k++) {
-        if (dists[i].fX->At(k) < dists[i].fX->At(min)) {
+        if (dists[i].fX[k] < dists[i].fX[min]) {
           min = k;
         }
       }
-      x = dists[i].fP->At(min);
-      dists[i].fP->SetAt(dists[i].fP->At(j), min);
-      dists[i].fP->SetAt(x, j);
-      x = dists[i].fX->At(min);
-      dists[i].fX->SetAt(dists[i].fX->At(j), min);
-      dists[i].fX->SetAt(x, j);
+      x = dists[i].fP[min];
+      dists[i].fP[min] = dists[i].fP[j];
+      dists[i].fP[j] = x;
+      x = dists[i].fX[min];
+      dists[i].fX[min] = dists[i].fX[j];
+      dists[i].fX[j] = x;
     }
 
     // Recalculate integrals
     for (j = 1; j < dists[i].fLen; j++) {
-      integral->SetAt(
-          0.5 * (dists[i].fX->At(j) - dists[i].fX->At(j - 1)) * (dists[i].fP->At(j) + dists[i].fP->At(j - 1)), j);
-      integral->SetAt(integral->At(j) + integral->At(j - 1), j);
+      integral[j] = 
+          0.5 * (dists[i].fX[j] - dists[i].fX[j - 1]) * (dists[i].fP[j] + dists[i].fP[j - 1]);
+      integral[j] = integral[j] + integral[j - 1];
     }
     double *It = new double[dists[i].fLen - 1];
     double *I = new double[dists[i].fLen - 1];
     for (int k = 0; k < dists[i].fLen; k++) {
       if (k > 0) {
-        It[k - 1] = (dists[i].fX->At(k) - dists[i].fX->At(k - 1)) * (dists[i].fP->At(k) + dists[i].fP->At(k - 1)) * 0.5;
+        It[k - 1] = (dists[i].fX[k] - dists[i].fX[k - 1]) * (dists[i].fP[k] + dists[i].fP[k - 1]) * 0.5;
         I[k - 1] = k - 1;
       }
     }
@@ -336,49 +334,49 @@ void TNudyAliasCont::BuildIntermediate(TNudyAliasCont *dists, const int len) {
     delete[] It;
     delete[] I;
 
-    dists[i].fInterP = new TArrayD(dists[i].fLen);
-    dists[i].fInterX = new TArrayD(dists[i].fLen);
+    dists[i].fInterP = new double(dists[i].fLen);
+    dists[i].fInterX = new double[dists[i].fLen];
 
     // Fill interpolation vector for ith entry
-    dists[i].fInterX->SetAt(dists[i + 1].fX->At(0), 0);
-    dists[i].fInterP->SetAt(dists[i + 1].fP->At(0), 0);
+    dists[i].fInterX[0] = dists[i + 1].fX[0];
+    dists[i].fInterP[0] = dists[i + 1].fP[0];
 
     for (j = 1; j < dists[i].fLen; j++) {
-      lo = TNudyCore::Instance()->BinarySearch(integralp1->GetArray(), dists[i + 1].fLen, integral->At(j));
+      lo = TNudyCore::Instance()->BinarySearch(integralp1, dists[i + 1].fLen, integral[j]);
       hi = lo + 1;
-      f1 = dists[i + 1].fP->At(lo);
-      f2 = dists[i + 1].fP->At(hi);
-      e1 = dists[i + 1].fX->At(lo);
-      e2 = dists[i + 1].fX->At(hi);
+      f1 = dists[i + 1].fP[lo];
+      f2 = dists[i + 1].fP[hi];
+      e1 = dists[i + 1].fX[lo];
+      e2 = dists[i + 1].fX[hi];
       ;
       delf = f2 - f1;
       if (fabs(delf) != 0) {
         dele = e2 - e1;
-        temp = 2 * (integral->At(j) - integralp1->At(lo)) * delf / dele;
-        if (integral->At(j) < integralp1->At(hi))
+        temp = 2 * (integral[j] - integralp1[lo]) * delf / dele;
+        if (integral[j] < integralp1[hi])
           x = e1 + dele * (sqrt(pow(f1, 2) + temp) - f1) / delf;
         else
           x = e2 + 1e-5;
       } else {
         if (f1 != 0)
-          x = e1 + (integral->At(j) - integralp1->At(lo)) / f1;
+          x = e1 + (integral[j] - integralp1[lo]) / f1;
         else
           x = e1 + 1e-5;
       }
 
-      dists[i].fInterX->SetAt(x, j);
+      dists[i].fInterX[j] = x;
       pp = TNudyCore::Instance()->LinearInterpolation(e1, f1, e2, f2, x);
       if (pp < 0)
         pp = 0;
-      dists[i].fInterP->SetAt(pp, j);
+      dists[i].fInterP[j] = pp;
 
       if (j > 0) {
-        h += 0.5 * (dists[i].fInterX->At(j) - dists[i].fInterX->At(j - 1)) *
-             (dists[i].fInterP->At(j) + dists[i].fInterP->At(j - 1));
+        h += 0.5 * (dists[i].fInterX[j] - dists[i].fInterX[j - 1]) *
+             (dists[i].fInterP[j] + dists[i].fInterP[j - 1]);
       }
     }
     for (j = 0; j < dists[i].fLen; j++)
-      dists[i].fInterP->SetAt(dists[i].fInterP->At(j) / h, j);
+       dists[i].fInterP[j] /= h;
     delete integral;
     delete integralp1;
   }
