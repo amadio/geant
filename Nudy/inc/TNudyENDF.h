@@ -20,13 +20,13 @@ class TNudyEndfTab1;
 class TNudyEndfTab2;
 class TNudyEndfINTG;
 
-#include <TObject.h>
-#include <TList.h>
-#include <Riostream.h>
-#include <RConfig.h>
+#ifdef USE_ROOT
+#include "RTypes.h"
+#endif 
+
 #include <sstream>
-#include <string>
-#include <cstring>
+#include <fstream>
+using std::ifstream;
 
 #define LINLEN 256
 
@@ -35,7 +35,7 @@ public:
   TNudyENDF();
   TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt = "new", unsigned char loglev = 0);
   virtual ~TNudyENDF();
-  bool sub=kFALSE;
+  bool sub=false;
   void SetEndfSub(std::string ENDFSUB){this->sub=kTRUE; this->ENDFSUB=ENDFSUB; }
   std::string GetEndfSubName() const {return ENDFSUB; }
   void SetLogLev(unsigned char loglev) { fLogLev = loglev; }
@@ -213,7 +213,7 @@ private:
   static const char fkElIso[4][2];
 
   unsigned char fLogLev; //  Log Level Flag
-  std::ifstream fENDF;   //! Input fENDF tape
+  ifstream fENDF;        //! Input fENDF tape
   TFile *fRENDF;         //! Output fRENDF file
   char fLine[LINLEN];    //! Buffer to read the line
   TNudyEndfTape *fTape;  //! Support link for the tape structure
