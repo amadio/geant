@@ -6,13 +6,13 @@
 */
 
 #ifdef USE_ROOT
+#include "RTypes.h"
 class TRandom;
 #else
 class RNG;
 #endif
 
-#include "TNudyCore.h"
-
+#include "TNudyTypes.h"
 
 /**
  * @class TNudyAlias
@@ -71,6 +71,7 @@ public:
   public:
     /** Array of Alias Tables */
     TNudyAlias *fAl;
+    /** Thread index */
     int fI;
     TNudyComStruct(TNudyAlias *a, int j) {
       fAl = a;
@@ -79,8 +80,10 @@ public:
     virtual ~TNudyComStruct() {}
   };
   static void *ThreadHandle(void *ptr);
-  double *fMult; //! When generating using a multithreaded approach
-  int fMultLen;  //! Number of random values to be generated using the multi threaded approach
+  /** When generating using a multithreaded approach */
+  double *fMult; //! 
+  /** Number of random values to be generated using the multi threaded approach */
+  int fMultLen;  //! 
   double *Randoms(int n);
 #endif
 

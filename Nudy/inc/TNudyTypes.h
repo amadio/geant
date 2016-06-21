@@ -34,4 +34,6 @@ enum IntScheme_t {
 
 #define ERROR_MARGIN 1e-5
 
+#define TNUDYALIAS_MULTITHREAD
+
 #endif
