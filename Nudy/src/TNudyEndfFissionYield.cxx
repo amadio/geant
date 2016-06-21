@@ -4,9 +4,6 @@
 // 	date of creation: March 22, 2016
 
 #include "TNudyEndfFissionYield.h"
-class TNudyEndfFile;
-class TNudyEndfSec;
-class TNudyEndfList;
 
 TNudyEndfFissionYield::TNudyEndfFissionYield(){}
 
