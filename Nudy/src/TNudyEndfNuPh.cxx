@@ -4,12 +4,9 @@
 // 	date of creation: March 22, 2016
 
 #include "TNudyEndfNuPh.h"
-class TNudyEndfFile;
-class TNudyEndfSec;
-class TNudyEndfCont;
-class TNudyEndfTab1;
-class TNudyEndfTab2;
-class TNudyEndfList;
+#ifdef USE_ROOT
+ClassImp(TNudyEndfNuPh)
+#endif
 
 TNudyEndfNuPh::TNudyEndfNuPh(){}
 
