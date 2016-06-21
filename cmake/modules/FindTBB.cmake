@@ -2,7 +2,6 @@
 # This module sets up TBB information
 # It defines:
 # TBB_FOUND
-# GEANT_TBB
 # TBB_INCLUDE_DIR    PATH to the include directory
 # TBB_LIBRARIES      Most common libraries
 # TBB_LIBRARY_DIR    PATH to the library directory
@@ -13,7 +12,6 @@ set(TBBROOT $ENV{TBBROOT})
 find_library(TBB_LIBRARIES libtbb${CMAKE_SHARED_LIBRARY_SUFFIX} PATHS ${TBBROOT}/lib )
 if( TBB_LIBRARIES  )
 	set(TBB_FOUND TRUE)
-	add_definitions(-DGEANT_TBB)
 	set(TBB_INCLUDE_DIR ${TBBROOT}/include)
 	message(STATUS "Found TBB library in ${TBB_LIBRARIES}")
 else()
