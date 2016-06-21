@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "TNudyElementRN.h"
 
 #ifdef USE_ROOT
@@ -37,11 +36,11 @@ int TNudyElementRN::fCCodeColor[26][3] = {{50, 101, 200},
 
 //______________________________________________________________________________________________________
 TNudyElementRN::TNudyElementRN()
-    : fCoSize(26), fX(0), fY(0), fEle(NULL), fBox(NULL), fSize(10), fScale(1), fPadding(1) {}
+    : fCoSize(26), fX(0), fY(0), fEle(nullptr), fBox(nullptr), fSize(10), fScale(1), fPadding(1) {}
 
 //______________________________________________________________________________________________________
 TNudyElementRN::TNudyElementRN(TGeoElementRN *elem, float x, float y)
-    : fCoSize(26), fX(x), fY(y), fEle(elem), fBox(NULL), fSize(10), fScale(1), fPadding(1) {}
+    : fCoSize(26), fX(x), fY(y), fEle(elem), fBox(nullptr), fSize(10), fScale(1), fPadding(1) {}
 
 //______________________________________________________________________________________________________
 Color_t TNudyElementRN::GetColor(double halfLife) {

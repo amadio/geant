@@ -66,7 +66,7 @@ void TNudyElementTable::Update() {
   for (int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++) {
     newEle = (TNudyElementRN *)fEleBox.At(i);
     //    std::cout<<newEle->GetZ()*10+fOx<<", "<<newEle->GetA()*10+fOy<<std::endl;
-    newEle->fScale = fLOD;
+    newEle->SetScale(fLOD);
     newEle->Move((newEle->GetZ() - newEle->GetA()) * 10 + fOx, newEle->GetA() * 10 + fOy);
   }
   fRNTable->Modified();
