@@ -2,7 +2,7 @@
 #define TNudyDB_H
 
 #include <string>
-#include "TOBject.h"
+#include "TObject.h"
 class TFile;
 
 using std::string;

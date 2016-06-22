@@ -31,5 +31,6 @@
 #pragma link C++ class TNudyEndfEnergyAng+;
 #pragma link C++ class TNudyEndfNuPh+;
 #pragma link C++ class TNudyEndfFissionYield+;
+#pragma link C++ class TNudySampling+;
 
 #endif
