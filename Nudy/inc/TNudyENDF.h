@@ -21,7 +21,7 @@ class TNudyEndfTab2;
 class TNudyEndfINTG;
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 #endif 
 
 #include <sstream>

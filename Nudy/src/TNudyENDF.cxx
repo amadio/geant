@@ -22,7 +22,7 @@
 #include "TError.h"
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 ClassImp(TNudyENDF)
 #endif
 

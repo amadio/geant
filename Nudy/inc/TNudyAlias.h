@@ -6,7 +6,7 @@
 */
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 class TRandom;
 #else
 #include "base/RNG.h"

@@ -26,7 +26,7 @@
 #include "TNudyEndfCont.h"
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 #endif
 
 class TNudyEndfList : public TNudyEndfCont {

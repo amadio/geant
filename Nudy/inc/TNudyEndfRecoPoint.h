@@ -14,7 +14,7 @@ class TNudyEndfList;
 class TList;
 
 #ifdef USE_ROOT
-#include <RTypes.h>
+#include <Rtypes.h>
 #endif
 
 #define PI acos(-1.0)

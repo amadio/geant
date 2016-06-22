@@ -2,7 +2,7 @@
 #define ROOT_TNudyAliasCont
 
 #ifdef USE_ROOT
-#include "RTypes.h"
+#include "Rtypes.h"
 #include "TRandom.h"
 #else
 #include "base/RNG.h"
