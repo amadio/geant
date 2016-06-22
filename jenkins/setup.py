@@ -9,7 +9,7 @@ system = platform.system()
 
 # --------------------- Setting command lines options
 def main(argv):
-   global compiler, build_type, op_sys, external, rootDir, workspace, specific_type
+   global compiler, build_type, op_sys, external, rootDir
    global comp, build, label
 
    compiler = ''
@@ -19,13 +19,11 @@ def main(argv):
    build = ''
    comp = ''
    label = ''
-   workspace = ''
-   specific_type = ''
 
-   opts, args = getopt.getopt(argv,"hc:b:o:v:w:t:")
+   opts, args = getopt.getopt(argv,"hc:b:o:v:")
    for opt, arg in opts:
       if opt == '-h':
-         print 'setup.py -c <compiler> -b <build_type> -o <operating_system> -v <external> -w <workspace> -t <specific_type>'
+         print 'setup.py -c <compiler> -b <build_type> -o <operating_system> -v <external>'
          sys.exit()
       elif opt in ("-c"):
          comp = arg
@@ -39,11 +37,6 @@ def main(argv):
       elif opt in ("-v"):
          external = arg
 
-      elif opt in ("-w"):
-         workspace = arg
-
-      elif opt in ("-t"):
-         specific_type = arg
 
    if build == 'Release' : build_type = 'opt'
    elif build == 'Debug' : build_type = 'dbg'
@@ -52,7 +45,7 @@ def main(argv):
 
    if label == 'cuda7' :
       ops_sys = 'slc6'
-   elif label == 'xeonphi' :
+   elif label == "xeonphi" :
       ops_sys = 'slc6'
    elif label == 'slc6-physical' :
        ops_sys = 'slc6'
@@ -64,7 +57,6 @@ def main(argv):
        ops_sys = 'slc6'
    else :
       ops_sys = label
-
 
    if comp == 'clang34' :
       compiler = 'gcc48'
@@ -105,7 +97,7 @@ def default_os():
 
 def default_compiler():
 
-   if os.getenv('COMPILER'):
+   if os.getenv('COMPILER') and os.getenv('COMPILER') not in ['native'] and not os.getenv("CC"):
       compiler_orig = os.getenv('COMPILER')
    else:
       if os.getenv('CC'):
@@ -116,28 +108,28 @@ def default_compiler():
          ccommand = 'clang'
       else:
          ccommand = 'gcc'
-         if ccommand == 'cl':
-            versioninfo = os.popen(ccommand).read()
-            patt = re.compile('.*Version ([0-9]+)[.].*')
-            mobj = patt.match(versioninfo)
-            compiler_orig = 'vc' + str(int(mobj.group(1))-6)
-         elif ccommand == 'gcc':
-            versioninfo = os.popen(ccommand + ' -dumpversion').read()
-            patt = re.compile('([0-9]+)\\.([0-9]+)')
-            mobj = patt.match(versioninfo)
-            compiler_orig = 'gcc' + mobj.group(1) + mobj.group(2)
-         elif ccommand == 'clang':
-            versioninfo = os.popen4(ccommand + ' -v')[1].read()
-            patt = re.compile('.*version ([0-9]+)[.]([0-9]+)')
-            mobj = patt.match(versioninfo)
-            compiler_orig = 'clang' + mobj.group(1) + mobj.group(2)
-         elif ccommand == 'icc':
-            versioninfo = os.popen(ccommand + ' -dumpversion').read()
-            patt = re.compile('([0-9]+)')
-            mobj = patt.match(versioninfo)
-            compiler_orig = 'icc' + mobj.group(1) + mobj.group(2)
-         else:
-            compiler_orig = 'unk-cmp'
+      if ccommand == 'cl':
+         versioninfo = os.popen(ccommand).read()
+         patt = re.compile('.*Version ([0-9]+)[.].*')
+         mobj = patt.match(versioninfo)
+         compiler_orig = 'vc' + str(int(mobj.group(1))-6)
+      elif ccommand == 'gcc':
+         versioninfo = os.popen(ccommand + ' -dumpversion').read()
+         patt = re.compile('([0-9]+)\\.([0-9]+)')
+         mobj = patt.match(versioninfo)
+         compiler_orig = 'gcc' + mobj.group(1) + mobj.group(2)
+      elif ccommand == 'clang':
+         versioninfo = os.popen4(ccommand + ' -v')[1].read()
+         patt = re.compile('.*version ([0-9]+)[.]([0-9]+)')
+         mobj = patt.match(versioninfo)
+         compiler_orig = 'clang' + mobj.group(1) + mobj.group(2)
+      elif ccommand == 'icc':
+         versioninfo = os.popen(ccommand + ' -dumpversion').read()
+         patt = re.compile('([0-9]+)')
+         mobj = patt.match(versioninfo)
+         compiler_orig = 'icc' + mobj.group(1) + mobj.group(2)
+      else:
+         compiler_orig = 'unk-cmp'
    return compiler_orig;
 
 # --------------------- Setting default built type
@@ -160,7 +152,7 @@ def default_bt():
 def directories():
    dir_hash = []
    vecgeom_var = 'VecGeom-'+specific_type
-   packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators',vecgeom_var]
+   packages_list = ['ROOT','Geant4','Vc','hepmc3','MCGenerators','umesimd,'vecgeom_var]
 
    for dirs in os.listdir(rootDir):
       if os.path.isfile(dirs):
@@ -266,7 +258,12 @@ if __name__ == "__main__":
        os.environ["LD_LIBRARY_PATH_ALL"] = "/usr/local/cuda/lib64"+":"+workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
    else:
        os.environ["CMAKE_PREFIX_PATH_ALL"] = directory_names()[0]
-       os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]
+       if not 'PATH' in os.environ:
+          os.environ['PATH'] = "/usr/bin:/usr/local/bin"
+       os.environ["PATH_ALL"] = directory_names()[1]+":"+os.environ["PATH"]+":/usr/local/bin"
+
+       if not 'LD_LIBRARY_PATH' in os.environ:
+          os.environ['LD_LIBRARY_PATH'] = "/usr/local/gfortran/lib"
        os.environ["LD_LIBRARY_PATH_ALL"] = workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
    prefix = os.environ["CMAKE_PREFIX_PATH_ALL"]
    path = os.environ["PATH_ALL"]
