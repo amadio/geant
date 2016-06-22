@@ -9,7 +9,7 @@ system = platform.system()
 
 # --------------------- Setting command lines options
 def main(argv):
-   global compiler, build_type, op_sys, external, rootDir
+   global compiler, build_type, op_sys, external, rootDir, workspace, specific_type
    global comp, build, label
 
    compiler = ''
@@ -20,10 +20,10 @@ def main(argv):
    comp = ''
    label = ''
 
-   opts, args = getopt.getopt(argv,"hc:b:o:v:")
+   opts, args = getopt.getopt(argv,"hc:b:o:v:w:t:")
    for opt, arg in opts:
       if opt == '-h':
-         print 'setup.py -c <compiler> -b <build_type> -o <operating_system> -v <external>'
+         print 'setup.py -c <compiler> -b <build_type> -o <operating_system> -v <external> -w <workspace> -t <specific_type>'
          sys.exit()
       elif opt in ("-c"):
          comp = arg
@@ -36,7 +36,12 @@ def main(argv):
 
       elif opt in ("-v"):
          external = arg
-
+      
+      elif opt in ("-w"):
+         workspace = arg
+      
+      elif opt in ("-t"):
+         specific_type = arg
 
    if build == 'Release' : build_type = 'opt'
    elif build == 'Debug' : build_type = 'dbg'
