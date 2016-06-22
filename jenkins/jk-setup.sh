@@ -93,15 +93,14 @@ elif [[ $COMPILER == *clang* ]]; then
   export FC=`which gfortran`
 fi
 
-  export CMAKE_SOURCE_DIR=$WORKSPACE/geant
-  export CMAKE_BINARY_DIR=$WORKSPACE/geant/builds
-  export CMAKE_BUILD_TYPE=$BUILDTYPE
+export CMAKE_SOURCE_DIR=$WORKSPACE/geant
+export CMAKE_BINARY_DIR=$WORKSPACE/geant/builds
+export CMAKE_BUILD_TYPE=$BUILDTYPE
 
-  export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON ${ExtraCMakeOptions}"
-  export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
-  export BACKEND=$BACKEND
-  export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
-fi
+export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON ${ExtraCMakeOptions}"
+export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
+export BACKEND=$BACKEND
+export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
 
 echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}
 eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}`
