@@ -53,7 +53,7 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
 	NRO = cont2->GetN1();  
 	NAPS = cont2->GetN2();
 	std::cout<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
-      std::cout<<"eLo "<<eLo<<" eHi  "<<eHi<<" NLS "<<NLS<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
+        std::cout<<"eLo "<<eLo<<" eHi  "<<eHi<<" NLS "<<NLS<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
       
 	if(LRU==2 && LRF==1 && LFW == 1){
 	}else{
@@ -521,7 +521,12 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
     }
   }
 }
-double TNudyEndfRecoPoint::recursionLinearFile3(double x1, double x2, double sig1, double sig2){
+double TNudyEndfRecoPoint::recursionLinearFile3(double x1, 
+						double x2, 
+						double sig1, 
+						double sig2, 
+						std::vector<double> ene, 
+						std::vector<double> sig){
   double siga;
   double mid     = 0.5 * (x1 + x2);
 //  std::cout <<"beg "<< x1 <<"  "<< x2 <<"  "<< mid <<"  "<< sig1 <<"  "<< sig2 <<std::endl;
@@ -529,7 +534,7 @@ double TNudyEndfRecoPoint::recursionLinearFile3(double x1, double x2, double sig
   if(x1==x2 || x1 < 1E-5 || x2 < 1E-5){
     return 0;
   }
-  siga = TNudyCore::Instance()->Interpolate(NBT, INT1, NR, fE_file3,fXsec_file3, NP, mid);
+  siga = TNudyCore::Instance()->Interpolate(nbt1, int1, NR, ene,sig, NP, mid);
   double sigmid1 = sig1 + (sig2 - sig1)*(mid - x1)/(x2 - x1);
 //  std::cout << x1 <<"  "<< x2 <<"  "<< mid <<"  "<< sig1 <<"  "<< sig2 <<"  "<< siga<<"  "<<sigmid1<<"  "<<std::fabs((siga - sigmid1)/siga)/*<<" NR "<< NR <<" NBT "<< NBT[0] <<" INT1 "<< INT1[0]*/<< std::endl;
   if(siga==0.0)return 0;
@@ -540,11 +545,72 @@ double TNudyEndfRecoPoint::recursionLinearFile3(double x1, double x2, double sig
     xLinearFile3.push_back(siga);
   }
 //  std::cout<<" linear " << mid <<"  "<<x1<< "  "<<x2 << "  "<< siga <<"  "<< sigmid1 <<"  "<< (siga - sigmid1)/siga<< std::endl;
-  recursionLinearFile3(x1, mid, sig1, siga);
-  recursionLinearFile3(mid, x2, siga, sig2);
+  recursionLinearFile3(x1, mid, sig1, siga, ene, sig);
+  recursionLinearFile3(mid, x2, siga, sig2, ene, sig);
   return 0;  
 }
 
+double TNudyEndfRecoPoint::addFile3Resonance(double &x1, 
+					     double &x2, 
+				std::vector<double> &x3, 
+				std::vector<double> &x4){
+  int linsize = x3.size();
+  int size1 = eLinearFile3.size();
+  for(int cr1=0; cr1 < linsize ; cr1 ++){
+    if(x3[cr1] >= x1 && x3[cr1] <= x2){
+      double crs = TNudyCore::Instance()->Interpolate(nbt1,int1,NR,eLinearFile3,xLinearFile3,size1,x3[cr1]);
+      x4[cr1] += crs;
+    }
+  }
+  return 0;
+}
+
+double TNudyEndfRecoPoint::insertFile3(std::vector<double> &x1, 
+				       std::vector<double> &x2){
+  int size1 = eLinearFile3.size();
+  for(int cr1=0; cr1 < size1 ; cr1 ++){
+    if((eLinearFile3[cr1] >eLo2 && eLinearFile3[cr1] <=eHi2) || eLinearFile3[cr1] >eHi1){
+      x1.push_back(eLinearFile3[cr1]);
+      x2.push_back(xLinearFile3[cr1]);
+    }
+  }
+  return 0;
+}
+
+double TNudyEndfRecoPoint::insertFile3High(std::vector<double> &x1, 
+					   std::vector<double> &x2){
+  if(flagResolve != 0){
+    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
+      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo1){
+	x1.push_back(eLinearFile3[cr]);
+	x2.push_back(xLinearFile3[cr]);
+      }
+    }
+  }else if(flagResolve == 0 && flagUnResolve != 0){
+    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
+      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo2){
+	x1.push_back(eLinearFile3[cr]);
+	x2.push_back(xLinearFile3[cr]);
+      }
+    }
+  }
+  if(flagUnResolve != 0){
+    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
+      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi2){
+	x1.push_back(eLinearFile3[cr]);
+	x2.push_back(xLinearFile3[cr]);
+      }
+    }
+  }else if(flagUnResolve == 0){
+    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
+      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi1){
+	x1.push_back(eLinearFile3[cr]);
+	x2.push_back(xLinearFile3[cr]);
+      }
+    }
+  }
+  return 0;
+}
 
 void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
   TIter secIter(file->GetSections());
@@ -560,7 +626,7 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
     }while(eneLow < 1E3);
   
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-    std::cout <<"MT  "<<sec->GetMT() <<std::endl;
+    //std::cout <<"MT  "<<sec->GetMT() <<std::endl;
     int MT = sec->GetMT();
     MtNumbers.push_back(MT);
     MtNumber += 1;
@@ -578,21 +644,12 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
     NP = header->GetN2();
 //std::cout<<sec->GetMT() <<"  "<< LR <<"  "<< NR <<"  "<< NP << std::endl;      
     TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)(sec->GetRecords()->At(0));
-    NBT         = new int[NR]();
-    INT1         = new int[NR]();
-    fE_file3    = new double[NP]();
-    fXsec_file3 = new double[NP]();
-
     for(int cr=0; cr < NR ; cr ++){
-      NBT[cr] = tab1->GetNBT(cr);
-      INT1[cr] = tab1->GetINT(cr);
+      nbt1.push_back (tab1->GetNBT(cr));
+      int1.push_back (tab1->GetINT(cr));
 //      TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)(sec->GetRecords()->At(0));
 //   std::cout << tab1->GetNBT(cr) <<" NBT "<< tab1->GetINT(cr)<< std::endl;
 //   std::cout << tab1->GetINT(cr)<< std::endl;
-    }
-    for(int crs=0; crs < NP ; crs ++){
-      fE_file3[crs]    = 0.0;
-      fXsec_file3[crs] = 0.0;
     }
     for(int crs=0; crs < NP ; crs ++){
       eneTemp.push_back(tab1->GetX(crs));
@@ -601,53 +658,42 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
       if(eneTemp[crs]==eneTemp[crs-2])eneTemp[crs] += 0.002;//adding small difference for double boundary points
 //	std::cout<<"hi "<< npp <<"  "<< fE_file3[npp]<< std::endl;
     }
-    Sort(eneTemp, sigTemp);
-    ThinningDuplicate(eneTemp, sigTemp);
+    TNudyCore::Instance()->Sort(eneTemp, sigTemp);
+    TNudyCore::Instance()->ThinningDuplicate(eneTemp, sigTemp);
     NP = eneTemp.size();
     for(int crs=0; crs < NP ; crs ++){
-      fE_file3[crs]    = eneTemp[crs];
-      fXsec_file3[crs] = sigTemp[crs];
-      eLinearFile3.push_back(fE_file3[crs]);
-      xLinearFile3.push_back(fXsec_file3[crs]);
+      eLinearFile3.push_back(eneTemp[crs]);
+      xLinearFile3.push_back(sigTemp[crs]);
     }
 //	std::cout << NBT[0] <<" "<< NBT[1] <<"  "<< INT1[0] <<"  "<< INT1[1] <<"  "<< eLinearFile3.size() << std::endl;
 // Linearization of file 3 data
-    for(int cr=0; cr < NP-1 ; cr ++){
+    for(int cr=0; cr < NP - 1 ; cr ++){
 //	  std::cout<<"cr = "<<cr<<"  "<<eLinearFile3[cr] <<"  "<< xLinearFile3[cr] << std::endl;
-      recursionLinearFile3(fE_file3[cr], fE_file3[cr+1], fXsec_file3[cr], fXsec_file3[cr+1]);
+      recursionLinearFile3(eLinearFile3[cr], eLinearFile3[cr+1], xLinearFile3[cr], xLinearFile3[cr+1], eLinearFile3, xLinearFile3);
     }
     for(unsigned long ie = 0; ie < eneExtra.size(); ie++){
-      double sigExtra = TNudyCore::Instance()->Interpolate(NBT, INT1, NR, fE_file3,fXsec_file3, NP, eneExtra[ie]);
+      double sigExtra = TNudyCore::Instance()->Interpolate(nbt1, int1, NR, eLinearFile3,xLinearFile3, NP, eneExtra[ie]);
       if(sigExtra > 0.0){
 	eLinearFile3.push_back(eneExtra[ie]);
 	xLinearFile3.push_back(sigExtra);
       }
 //	  std::cout<<"extra= "<<MT<<"  "<<std::setprecision(12)<<eneExtra[ie] <<"  "<<std::setprecision(12)<< sigExtra << std::endl;
     }
-    Sort(eLinearFile3, xLinearFile3);
+    TNudyCore::Instance()->Sort(eLinearFile3, xLinearFile3);
 //    for(int cr=0; cr < eLinearFile3.size() ; cr ++){
 //      std::cout<<"1Mt = "<<MT<<"  "<<eLinearFile3[cr] <<"  "<< xLinearFile3[cr] << std::endl;
 //    }    
-    ThinningDuplicate(eLinearFile3, xLinearFile3);
+    TNudyCore::Instance()->ThinningDuplicate(eLinearFile3, xLinearFile3);
 	
 //    for(int cr=0; cr < eLinearFile3.size() ; cr ++){
 //      std::cout<<"2Mt = "<<MT<<"  "<<eLinearFile3[cr] <<"  "<< xLinearFile3[cr] << std::endl;
 //    }    
 //Filling of array to interpolate and add with file 2 data if it is given    
-    if (NBT) { delete[] NBT;    NBT = 0;  }
-    if (INT1) {    delete[] INT1;    INT1 = 0;  }
-    if (fE_file3) {    delete[] fE_file3;    fE_file3 = 0;  }
-    if (fXsec_file3) {    delete[] fXsec_file3;    fXsec_file3 = 0;  }
-    fE_file3    = new double[eLinearFile3.size()]();
-    fXsec_file3 = new double[eLinearFile3.size()]();
-    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-      fE_file3[cr] = eLinearFile3[cr]; 
-      fXsec_file3[cr] = xLinearFile3[cr];
-    }
-    NBT     = new int[1]();
-    INT1    = new int[1]();
-    NBT[0]  = eLinearFile3.size(); 
-    INT1[0] = 2;
+    nbt1.clear(); int1.clear();
+    
+    nbt1.push_back(eLinearFile3.size()); 
+    int1.push_back(2);
+    NR = 1;
 /////////////////////////////////////////////////////////////////////////    
 //	std::cout<<"LSSF "<< LSSF <<" LRU "<< LRU <<" eLo1 "<<eLo1<<" eHi "<< eHi << std::endl;
 //	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++)
@@ -660,36 +706,15 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 	{
 	  case 2:
 	  {
-	  int linsize = eLinElastic.size();
-	  int size1 = eLinearFile3.size();
-	  for(int cr1=0; cr1 < linsize ; cr1 ++){
-	    if(eLinElastic[cr1] >=eLo1 && eLinElastic[cr1] <=eHi1){
-	      double crs = TNudyCore::Instance()->Interpolate(NBT,INT1,NR,fE_file3,fXsec_file3,size1,eLinElastic[cr1]);
-	      xLinElastic[cr1] += crs;
-	    }
-	  }
+	    addFile3Resonance(eLo1, eHi1, eLinElastic, xLinElastic);  
 	  }break;
 	  case 18:
 	  {
-	  int linsize = eLinFission.size();
-	  int size1 = eLinearFile3.size();
-	  for(int cr1=0; cr1 < linsize ; cr1 ++){
-	    if(eLinFission[cr1] >=eLo1 && eLinFission[cr1] <=eHi1){
-	      double crs = TNudyCore::Instance()->Interpolate(NBT,INT1,NR,fE_file3,fXsec_file3,size1,eLinFission[cr1]);
-	      xLinFission[cr1] += crs;
-	    }
-	  }
+	    addFile3Resonance(eLo1, eHi1, eLinFission, xLinFission);  
 	  }break;
 	  case 102:
 	  {
-	  int linsize = eLinCapture.size();
-	  int size1 = eLinearFile3.size();
-	  for(int cr1=0; cr1 < linsize ; cr1 ++){
-	    if(eLinCapture[cr1] >=eLo1 && eLinCapture[cr1] <=eHi1){
-	      double crs = TNudyCore::Instance()->Interpolate(NBT,INT1,NR,fE_file3,fXsec_file3,size1,eLinCapture[cr1]);
-	      xLinCapture[cr1] += crs;
-	    }
-	  }
+	    addFile3Resonance(eLo1, eHi1, eLinCapture, xLinCapture);  
 	  }break;
 	}
       }
@@ -703,36 +728,15 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 	    {
 	    case 2:
 	    {
-	      int linsize = eLinElastic.size();
-	      int size1 = eLinearFile3.size();
-	      for(int cr1=0; cr1 < linsize ; cr1 ++){
-		if(eLinElastic[cr1] >eLo2 && eLinElastic[cr1] <=eHi2){
-		  double crs = TNudyCore::Instance()->Interpolate(NBT,INT1,NR,fE_file3,fXsec_file3,size1,eLinElastic[cr1]);
-		  xLinElastic[cr1] += crs;
-		}
-	      }
+	      addFile3Resonance(eLo2, eHi2, eLinElastic, xLinElastic);  
 	    }break;
 	    case 18:
 	    {
-	      int linsize = eLinFission.size();
-	      int size1 = eLinearFile3.size();
-	      for(int cr1=0; cr1 < linsize ; cr1 ++){
-		if(eLinFission[cr1] >eLo2 && eLinFission[cr1] <=eHi2){
-		  double crs = TNudyCore::Instance()->Interpolate(NBT,INT1,NR,fE_file3,fXsec_file3,size1,eLinFission[cr1]);
-		  xLinFission[cr1] += crs;
-		}
-	      }
+	      addFile3Resonance(eLo2, eHi2, eLinFission, xLinFission);
 	    }break;
 	    case 102:
 	    {
-	      int linsize = eLinCapture.size();
-	      int size1 = eLinearFile3.size();
-	      for(int cr1=0; cr1 < linsize ; cr1 ++){
-		if(eLinCapture[cr1] >eLo2 && eLinCapture[cr1] <=eHi2){
-		  double crs = TNudyCore::Instance()->Interpolate(NBT,INT1,NR,fE_file3,fXsec_file3,size1,eLinCapture[cr1]);
-		  xLinCapture[cr1] += crs;
-		}
-	      }
+	      addFile3Resonance(eLo2, eHi2, eLinCapture, xLinCapture);
 	    }break;
 	  }
 	}break;
@@ -742,33 +746,15 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 	  {
 	    case 2:
 	    {
-	      int size1 = eLinearFile3.size();
-	      for(int cr1=0; cr1 < size1 ; cr1 ++){
-		if((eLinearFile3[cr1] >eLo2 && eLinearFile3[cr1] <=eHi2) || eLinearFile3[cr1] >eHi1){
-		  eLinElastic.push_back(eLinearFile3[cr1]);
-		  xLinElastic.push_back(xLinearFile3[cr1]);
-		}
-	      }
+	      insertFile3(eLinElastic, xLinElastic); 
 	    }break;
 	    case 18:
 	    {
-	      int size1 = eLinearFile3.size();
-	      for(int cr1=0; cr1 < size1 ; cr1 ++){
-		if((eLinearFile3[cr1] >eLo2 && eLinearFile3[cr1] <=eHi2) || eLinearFile3[cr1] >eHi1){
-		  eLinFission.push_back(eLinearFile3[cr1]);
-		  xLinFission.push_back(xLinearFile3[cr1]);
-		}
-	      }
+	      insertFile3(eLinFission, xLinFission); 
 	    }break;
 	    case 102:
 	    {
-	      int size1 = eLinearFile3.size();
-	      for(int cr1=0; cr1 < size1 ; cr1 ++){
-		if((eLinearFile3[cr1] >eLo2 && eLinearFile3[cr1] <=eHi2) || eLinearFile3[cr1] >eHi1){
-		  eLinCapture.push_back(eLinearFile3[cr1]);
-		  xLinCapture.push_back(xLinearFile3[cr1]);
-		}
-	      }
+	      insertFile3(eLinCapture, xLinCapture); 
 	    }break;
 	  }	  
 	}break;
@@ -779,104 +765,17 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
      {
        case 2:
 	{
-	  if(flagResolve != 0){
-	    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo1){
-		eLinElastic.push_back(eLinearFile3[cr]);
-		xLinElastic.push_back(xLinearFile3[cr]);
-	      }
-	    }
-	  }else if(flagResolve == 0 && flagUnResolve != 0){
-	    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo2){
-		eLinElastic.push_back(eLinearFile3[cr]);
-		xLinElastic.push_back(xLinearFile3[cr]);
-	      }
-	    }
-	  }
-	  if(flagUnResolve != 0){
-	    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi2){
-		eLinElastic.push_back(eLinearFile3[cr]);
-		xLinElastic.push_back(xLinearFile3[cr]);
-	      }
-	    }
-	  }else if(flagUnResolve == 0){
-	    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi1){
-		eLinElastic.push_back(eLinearFile3[cr]);
-		xLinElastic.push_back(xLinearFile3[cr]);
-	      }
-	    }
-	  }
+	  insertFile3High(eLinElastic, xLinElastic); 
 	}break;
        case 18:
 	{
-	  if(flagResolve != 0){
-	    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo1){
-		eLinFission.push_back(eLinearFile3[cr]);
-		xLinFission.push_back(xLinearFile3[cr]);
-	      }
-	    }
-	  }else if(flagResolve == 0 && flagUnResolve != 0){
-	    for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	      if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo2){
-		eLinFission.push_back(eLinearFile3[cr]);
-		xLinFission.push_back(xLinearFile3[cr]);
-	      }
-	    }
-	  }
-	if(flagUnResolve != 0){
-	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	    if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi2){
-	      eLinFission.push_back(eLinearFile3[cr]);
-	      xLinFission.push_back(xLinearFile3[cr]);
-	    }
-	  }
-	}else if(flagUnResolve == 0){
-	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	    if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi1){
-	      eLinFission.push_back(eLinearFile3[cr]);
-	      xLinFission.push_back(xLinearFile3[cr]);
-	    }
-	  }
-	}
+	  insertFile3High(eLinFission, xLinFission); 
       }break;
       case 102:
-      {
-	if(flagResolve != 0){
-	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	    if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo1){
-	      eLinCapture.push_back(eLinearFile3[cr]);
-	      xLinCapture.push_back(xLinearFile3[cr]);
-	    }
-	   }
-	}else if(flagResolve == 0 && flagUnResolve != 0){
-	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	    if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] <=eLo2){
-	      eLinCapture.push_back(eLinearFile3[cr]);
-	      xLinCapture.push_back(xLinearFile3[cr]);
-	    }
-	  }
-	}
-	if(flagUnResolve != 0){
-	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	    if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi2){
-	      eLinCapture.push_back(eLinearFile3[cr]);
-	      xLinCapture.push_back(xLinearFile3[cr]);
-	    }
-	  }
-	}else if(flagUnResolve == 0){
-	  for(unsigned long cr=0; cr < eLinearFile3.size() ; cr ++){
-	    if(xLinearFile3[cr]>0.0 && eLinearFile3[cr] >eHi1){
-	      eLinCapture.push_back(eLinearFile3[cr]);
-	      xLinCapture.push_back(xLinearFile3[cr]);
-	    }
-	  }
-	}
-      }break;
-    }
+	{
+	  insertFile3High(eLinCapture, xLinCapture); 
+	}break;
+      }
   }else{// no resonance parameters are given
     switch(MT)
     {
@@ -942,21 +841,13 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
 	sigmaMts.insert(std::end(sigmaMts), std::begin(xLinearFile3), std::end(xLinearFile3));
 	energyUni.insert(std::end(energyUni), std::begin(eLinearFile3), std::end(eLinearFile3));
       }
-//    if ( MT==2 )energyUni.insert(it,eLinElastic.begin(),eLinElastic.end());
-//    if ( MT ==18 )energyUni.insert(it,eLinFission.begin(),eLinFission.end());
-//    if ( MT == 102 )energyUni.insert(it,eLinCapture.begin(),eLinCapture.end());
     if(MT != 1 && MT != 2 && MT != 3 && MT != 4 && MT != 27 && MT != 18 && MT != 19 && MT != 20 && MT != 21 && MT != 38 && MT != 101 && MT != 102 && MT < 250){
-//  fixupTotal(eLinearFile3, xLinearFile3);
     }
     eLinearFile3.clear();	
     xLinearFile3.clear();
     eneTemp.clear();	
     sigTemp.clear();	
-
-    if (NBT) { delete[] NBT;    NBT = 0;  }
-    if (INT1) {    delete[] INT1;    INT1 = 0;  }
-    if (fE_file3) {    delete[] fE_file3;    fE_file3 = 0;  }
-    if (fXsec_file3) {    delete[] fXsec_file3;    fXsec_file3 = 0;  }
+    nbt1.clear(); int1.clear();
     
 //    for(unsigned long i = 0; i < sigmaMts.size(); i++){
 //      std::cout<<sigmaMts[i]<<std::endl;
@@ -1298,9 +1189,6 @@ void TNudyEndfRecoPoint::GetSigmaRMP(double x, double &siga, double &sigb, doubl
 	  nrs=r;
 	  break;
 	}
-//        std::cout<<r<< "  "<< J[r]<<"   "<< nrs<< "  "<<Gamma_g[r]<< "  "<< nrsl<<  std::endl;
-//	{
-//	  continue;}	
 	// Gamma_n,r term
 	reduced_n = 0.5 * Gamma_nrE(x, r, l[lcnt]);//calcPene(x, l[lcnt]) * std::fabs(Gamma_n[r])/calcPene(std::fabs(Er[r]), l[lcnt]);  // 
 	reduced_g = 0.5 * std::fabs(Gamma_g[r]);  // 
@@ -1375,11 +1263,7 @@ void TNudyEndfRecoPoint::GetSigmaRMP(double x, double &siga, double &sigb, doubl
     sumCrsElastic +=  pibyk2 * (sigel) + fac2;
     sumCrsCapture += sigrm1 * pibyk2;
     sumCrsFission += sigf1 * pibyk2;
-///	   std::cout<<" l= "<< lVal<< "  "<< pibyk2 * (sigel)<<"   " <<fac1 <<"  "<< 2.0*sfil2 <<"  "<< fac3 << "  "<<pibyk2<< std::endl;
-//   std::cout<<phil<<"  "<<philp<<"  "<<std::setprecision(8)<< x << "  "<<std::setprecision(10)<<sumCrsElastic << "  "<<std::setprecision(10)<<sumCrsCapture<< "  "<<std::setprecision(10)<<sumCrsFission << std::endl;
   }
-//         energy.push_back(x);
-//	  sigma.push_back(sumCrsElastic);
   siga = sumCrsElastic;	    
   sigb = sumCrsCapture;	    
   sigc = sumCrsFission;	    
@@ -1409,7 +1293,6 @@ void TNudyEndfRecoPoint::GetSigma(int lrfa, double x, double &siga, double &sigb
 	case 1:
 	  {
 	    for (int lcnt = 0; lcnt < NLS; lcnt++) {
-//     if(lcnt>0)continue;
 	      sumElastic = 0.0; sumCapture = 0.0; sumFission = 0.0;
 	      sumElasticM = 0.0; 
 	      lVal = l[lcnt];
@@ -1461,8 +1344,6 @@ void TNudyEndfRecoPoint::GetSigma(int lrfa, double x, double &siga, double &sigb
 //   std::cout<<phil<<"  "<<std::setprecision(8)<< x << "  "<<std::setprecision(10)<<sumCrsElastic << "  "<<std::setprecision(10)<<sumCrsCapture<< "  "<<std::setprecision(10)<<sumCrsFission << std::endl;
 	    }
 //	   std::cout<< "E  "<< x << "  "<<sumCrsElastic <<"  "<< sumCrsCapture <<"  "<< sumCrsFission << std::endl;
-//          energy.push_back(x);
-//	  sigma.push_back(sumCrsElastic);
 	    siga = sumCrsElastic;	    
 	    sigb = sumCrsCapture;	    
 	    sigc = sumCrsFission;	
@@ -1534,9 +1415,6 @@ void TNudyEndfRecoPoint::GetSigma(int lrfa, double x, double &siga, double &sigb
 		siga = sumCrsElastic;	    
 		sigb = sumCrsCapture;	    
 		sigc = sumCrsFission;	    
-//          energy.push_back(x);
-//	  sigma.push_back(sumCrsCapture);
-	    
 	      }break;
 	    case 1:
 	      {
@@ -1601,9 +1479,6 @@ void TNudyEndfRecoPoint::GetSigma(int lrfa, double x, double &siga, double &sigb
 	      siga = sumCrsElastic;	    
 	      sigb = sumCrsCapture;	    
 	      sigc = sumCrsFission;	    
-//          energy.push_back(x);
-//	  sigma.push_back(sumCrsCapture);
-	    
 	  }break;
 	}
 	break;
@@ -1689,8 +1564,6 @@ void TNudyEndfRecoPoint::GetSigma(int lrfa, double x, double &siga, double &sigb
 		      sumCrsFission += pibyk2 * (sumFission);
 //std::cout<<pibyk2<<"  "<< x << "  "<<pibyk2 * (fac1 + sumElastic +sumElasticM) <<"  "<< pibyk2 * (sumCapture) <<"  "<< pibyk2 * (sumFission) << std::endl;
 		    }
-//          energy.push_back(x);
-//	  sigma.push_back(sumCrsElastic);
 		    siga = sumCrsElastic;	    
 		    sigb = sumCrsCapture;	    
 		    sigc = sumCrsFission;	    
@@ -1760,8 +1633,6 @@ void TNudyEndfRecoPoint::GetSigma(int lrfa, double x, double &siga, double &sigb
 		    siga = sumCrsElastic;	    
 		    sigb = sumCrsCapture;	    
 		    sigc = sumCrsFission;	    
-//          energy.push_back(x);
-//	  sigma.push_back(sumCrsCapture);
 		}break;
 	    }break;
 	  }break;
@@ -1826,53 +1697,47 @@ double TNudyEndfRecoPoint::recursionLinear(double x1, double x2, double sig1, do
   double siga, sigb, sigc, elRatio= sigDiff-0.1*sigDiff, capRatio= sigDiff-0.1*sigDiff, fisRatio= sigDiff-0.1*sigDiff;
   double mid     = 0.5 * (x1 + x2);
   if((sig1==0.0 && sig2 ==0.0 )|| x1==x2 || (x1 < 1E-5 || x2 < 1E-5))return 0;
-//  std::cout<<" beg " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< sig1 <<"  "<< sig2 <<"  "<< sig3 <<"  "<< sig4<<"  "<< sig5 <<"  "<< sig6<< std::endl;
   GetSigma(LRF, mid, siga, sigb, sigc);
-//  double sigmid1 = TNudyCore::Instance()->LinearInterpolation(x1,sig1,x2,sig2,mid);
   double sigmid1 = sig1 + (sig2 - sig1)*(mid - x1)/(x2 - x1);
   double sigmid2 = sig3 + (sig4 - sig3)*(mid - x1)/(x2 - x1);
   double sigmid3 = sig5 + (sig6 - sig5)*(mid - x1)/(x2 - x1);
   if(siga>0)elRatio = std::fabs((siga - sigmid1)/siga);
   if(sigb>0)capRatio = std::fabs((sigb - sigmid2)/sigb);
   if(sigc>0)fisRatio = std::fabs((sigc - sigmid3)/sigc);
-//  if(elRatio <= sigDiff){
   if(elRatio <= sigDiff  && capRatio <= sigDiff && fisRatio <= sigDiff){
   return 0;
   }else{
-//    if(elRatio > sigDiff){ 
+  //std::cout<<elRatio <<"  "<<capRatio<<"  "<< fisRatio <<"  "<<std::setprecision(6)<< mid <<"  "<< x1 <<"  "<< x2 << std::endl;
+    //if(elRatio > sigDiff){ 
       eLinElastic.push_back(mid);
       xLinElastic.push_back(siga);
 //  std::cout<<" el1 " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< siga <<"  "<< sigb <<"  "<< sigc <<"  "<< elRatio <<"  "<< capRatio<<"  "<<fisRatio << std::endl;
-//    }	  
-//    if(capRatio > sigDiff){ 
+    //}	  
+    //if(capRatio > sigDiff){ 
       eLinCapture.push_back(mid);
       xLinCapture.push_back(sigb);
 //  std::cout<<" cap " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< siga <<"  "<< sigb <<"  "<< sigc <<"  "<< elRatio <<"  "<< capRatio<<"  "<<fisRatio << std::endl;
-//    }	  
-//    if(fisRatio > sigDiff){ 
+    //}	  
+    //if(fisRatio > sigDiff){ 
       eLinFission.push_back(mid);
       xLinFission.push_back(sigc);
 //  std::cout<<" fis " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< siga <<"  "<< sigb <<"  "<< sigc <<"  "<< elRatio <<"  "<< capRatio<<"  "<<fisRatio << std::endl;
-//    }
+    //}
   }
   recursionLinear(x1, mid, sig1, siga, sig3, sigb, sig5, sigc);
   recursionLinear(mid, x2, siga, sig2, sigb, sig4, sigc, sig6);
   return 0;
 }
 double TNudyEndfRecoPoint::recursionLinear(double x1, double x2, double sig1, double sig2){
-  double siga, sigb, sigc, elRatio;//= sigDiff-0.1*sigDiff;
+  double siga, sigb, sigc, elRatio; //= sigDiff-0.1*sigDiff;
   double mid     = 0.5 * (x1 + x2);
   if((sig1==0.0 && sig2 ==0.0 )|| x1==x2 || (x1 < 1E-5 || x2 < 1E-5))return 0;
-//  std::cout<<" x1 " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< sig1 <<"  "<< sig2 << std::endl;
   GetSigma(LRF, mid, siga, sigb, sigc);
-//  double sigmid1 = TNudyCore::Instance()->LinearInterpolation(x1,sig1,x2,sig2,mid);
   double sigmid1 = sig1 + (sig2 - sig1)*(mid - x1)/(x2 - x1);
   elRatio=std::fabs((siga - sigmid1)/siga);
-//  std::cout<<" mid " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< elRatio <<"  "<< capRatio<<"  "<<fisRatio << std::endl;
   if(elRatio <= sigDiff){
     return 0;
   }else{
-//  std::cout<<" el1 " << mid <<"  "<< x1 <<"  "<< x2 <<"  "<< siga <<"  "<< sigb <<"  "<< sigc <<"  "<< elRatio << std::endl;
     eLinElastic.push_back(mid);
     xLinElastic.push_back(siga);
     eLinCapture.push_back(mid);
@@ -1895,18 +1760,6 @@ void TNudyEndfRecoPoint::additionalSigma(int LRF, double x){
   xLinElastic.push_back(siga);
   xLinCapture.push_back(sigb);
   xLinFission.push_back(sigc);
-}
-void TNudyEndfRecoPoint::Sort(std::vector<double>& x1, std::vector<double>& x2){
-  std::multimap<double, double>map;
-  std::multimap<double, double>::iterator i;
-  for(unsigned long p = 0; p< x1.size(); p++)
-    map.insert(std::make_pair(x1[p],x2[p]));
-    int p1=0;
-    for(i=map.begin(); i!=map.end();i++){
-      x1[p1]=i->first;
-      x2[p1]=i->second;
-      p1++;
-    }
 }
  void TNudyEndfRecoPoint::recoPlusBroad(int flagNer){
   int nrs = 0, nrsl;
@@ -1935,12 +1788,12 @@ void TNudyEndfRecoPoint::Sort(std::vector<double>& x1, std::vector<double>& x2){
       }while(eneLow < 1.0E3 && eneLow < eHi1 );
     } 
 //    std::cout << eLinElastic.size() <<std::endl;
-    Sort(eLinElastic, xLinElastic);
-    Sort(eLinCapture, xLinCapture);
-    Sort(eLinFission, xLinFission);
-    ThinningDuplicate(eLinElastic, xLinElastic);
-    ThinningDuplicate(eLinCapture, xLinCapture);
-    ThinningDuplicate(eLinFission, xLinFission);
+    TNudyCore::Instance()->Sort(eLinElastic, xLinElastic);
+    TNudyCore::Instance()->Sort(eLinCapture, xLinCapture);
+    TNudyCore::Instance()->Sort(eLinFission, xLinFission);
+    TNudyCore::Instance()->ThinningDuplicate(eLinElastic, xLinElastic);
+    TNudyCore::Instance()->ThinningDuplicate(eLinCapture, xLinCapture);
+    TNudyCore::Instance()->ThinningDuplicate(eLinFission, xLinFission);
     int nvectorend = eLinElastic.size();
 //	std::cout<<"eLo1 "<< eLo1 <<" eHi1 "<< eHi1 <<"   "<< eLinElastic[nvectorend-1] << std::endl;
     for(int ju = intLinLru1; ju < nvectorend-1 ; ju++){
@@ -2008,37 +1861,14 @@ void TNudyEndfRecoPoint::Linearize(int flagNer) {
 }
 //******************** Get Resonant PArameter and cross-section data from ENDF file **********
 void TNudyEndfRecoPoint::GetData(const char *rENDF) {
-  //TVNudyModel *model;
-  //TGeoElementRN *mat;
   std::vector<double> rowI;
-//  if (!gGeoManager) gGeoManager = new TGeoManager("rENDF Nudy Manager","");
-//  TNudyManager *nudy = TNudyManager::Instance();
-//  nudy->OpenDatabase("endf",rENDF);
-//  nudy->AddEndfLibrary("endf",fENDF);
-//  nudy->LoadLibrary("endf","endf");
-  
-//  TVNudyModel *model = nudy->GetModel(13,27,0,2,300.0,"neutron");
-//  std::cout<< "end of get model " << std::endl;
-
   TFile *rEND = TFile::Open(rENDF);
   if (!rEND || rEND->IsZombie()) printf("Error: TFile :: Cannot open file %s\n", rENDF);
   TKey *rkey = (TKey*)rEND->GetListOfKeys()->First();
   TNudyEndfTape *rENDFVol = (TNudyEndfTape*)rkey->ReadObj();
   TNudyEndfMat *tMat = 0; 
   TList *mats = (TList*)rENDFVol->GetMats(); 
-  
-  // I am checking for Char_t* as Root Browser is showing as TString
-  //std::cout << " I am checking whether fname and fTitle crashes or not for Char_t *...\n";
-  //Char_t *theKeyName = (Char_t*)rENDFVol->GetName();
-  //Char_t *theTitle   = (Char_t*)rENDFVol->GetTitle();
-  //std::cout << " Key Name :" << theKeyName << "\nTitle: " << theTitle << std::endl;
-  //std::cout << "-------------------------------------------------------\n";
-  //std::cout << " I am checking whether fname and fTitle crashes or not for TString ...\n";
-  //TString strKeyName = rENDFVol->GetName();
-  //TString strTitle   = rENDFVol->GetTitle();
-  //std::cout << " Using TString fName: " << strKeyName << "\nTitle: " << strTitle << std::endl;
- //std::cout << "-------------------------------------------------------\n";
-  
+ 
   int nmats = mats->GetEntries();
   for (int iMat = 0; iMat < nmats; iMat++) {
     tMat = (TNudyEndfMat*)mats->At(iMat);
@@ -2046,23 +1876,24 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
     TIter iter(tMat->GetFiles());
     TNudyEndfFile *file;
     while ((file = (TNudyEndfFile *)iter.Next())) {
-    //std::cout <<" mf "<< file->GetMF() << std::endl;
+    std::cout <<" mf "<< file->GetMF() << std::endl;
     // Read File data into class structures
       switch (file->GetMF()) 
       {
         case 1:
 	  recoNuPh = new TNudyEndfNuPh(file);
+	  std::cout<<"file 1 OK "<< std::endl;
 	  break;
         case 2:
 	  ReadFile2(file);
-//      std::cout<<" file2 finished "<< std::endl;
+          //      std::cout<<" file2 finished "<< std::endl;
 	  if(LRU !=0){
-	    Sort(eLinElastic, xLinElastic);
-	    Sort(eLinCapture, xLinCapture);
-	    Sort(eLinFission, xLinFission);
-	    ThinningDuplicate(eLinElastic, xLinElastic);
-	    ThinningDuplicate(eLinCapture, xLinCapture);
-	    ThinningDuplicate(eLinFission, xLinFission);
+	    TNudyCore::Instance()->Sort(eLinElastic, xLinElastic);
+	    TNudyCore::Instance()->Sort(eLinCapture, xLinCapture);
+	    TNudyCore::Instance()->Sort(eLinFission, xLinFission);
+	    TNudyCore::Instance()->ThinningDuplicate(eLinElastic, xLinElastic);
+	    TNudyCore::Instance()->ThinningDuplicate(eLinCapture, xLinCapture);
+	    TNudyCore::Instance()->ThinningDuplicate(eLinFission, xLinFission);
 	    std::cout<<"Elastic points  "<< eLinElastic.size() << std::endl;
 	    std::cout<<"Capture points  "<< eLinCapture.size() << std::endl;
 	    std::cout<<"Fission points  "<< eLinFission.size() << std::endl;
@@ -2076,164 +1907,26 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	  ReadFile3(file);
 ///*	  
 	  std::cout<<"file 3 OK "<<std::endl;
-	  //std::cout<<"Total energy points "<< energyUni.size()<<std::endl;
-	  std::sort(energyUni.begin(), energyUni.end());//Unionization of energy grid for cross-section 
-	  //for(int j=0;j<energyUni.size();j++){
-	  //  std::cout<<energyUni[j]<<std::endl;
-	  //}
-	  ThinningDuplicate(energyUni);
-	  std::cout<<"Total energy points "<< energyUni.size()<<std::endl;
-//      if(LRU==0){
-	  std::cout<<"NoOfElements "<< MtValues.size() <<" MT values "<< MtValues[0].size() << std::endl;
-	  for (unsigned long i = 0; i < MtValues.size(); i++){
-	    for (unsigned long j = 0; j < MtValues[i].size(); j++){
-	      std::cout <<"MT value "<< MtValues[i][j] << std::endl;
-	    }
-	  }
-	  std::cout<<"NoOfsigma "<< sigmaOfMts.size() <<" No of points of 1, 2 "<< sigmaOfMts[0].size() <<"  "<< sigmaOfMts[1].size()<< std::endl;
-	  for (unsigned long i = 0; i < sigmaOfMts.size(); i++){
-	    int size = sigmaOfMts[i].size()/2;
-//	    std::cout<<"NoOfsigma before "<< size << std::endl;
-	    for (unsigned long k = 0; k < energyUni.size(); k++){
-	      int min = 0;
-	      int max = size - 1;
-	      int mid = 0;
-	      if (energyUni[k] <= sigmaOfMts[i][min])min = 0;
-	      else if (energyUni[k] >= sigmaOfMts[i][max]) min = max - 1;
-	      else {
-		while (max - min > 1) {
-		  mid = (min + max) / 2;
-		  if (energyUni[k] < sigmaOfMts[i][mid])
-		    max = mid;
-		  else
-		    min = mid;
-		  }
-	      }
-//	      std::cout<<"energy "<< energyUni[k] << std::endl;
-	      if(energyUni[k] == sigmaOfMts[i][min] && sigmaOfMts[i][size + min] > 1E-20){
-		sigmaMts.push_back(energyUni[k]);
-		sigmaMts.push_back(sigmaOfMts[i][size + min]);
-//		std::cout<<"energy =  "<< energyUni[k] << std::endl;
-	      }else{
-		double sigmaAdd = sigmaOfMts[i][size + min] + (sigmaOfMts[i][size + min + 1] - sigmaOfMts[i][size + min]) 
-				* (energyUni[k]-sigmaOfMts[i][min])/(sigmaOfMts[i][min + 1] - sigmaOfMts[i][min]); //linear interpolation
-		if(sigmaAdd > 1E-20){
-		  sigmaMts.push_back(energyUni[k]);
-		  sigmaMts.push_back(sigmaAdd);
-//		    std::cout <<"energy!= "<< energyUni[k]  << std::endl;
-		}
-//		std::cout <<"energy "<< sigmaOfMts[i][j] <<" sigma "<<sigmaOfMts[i][size + j] << std::endl;
-	      }
-	      if(sigmaMts.size() == 2){
-//		std::cout <<" first location "<< k << std::endl;
-		energyLocationMts.push_back(k);
-	      }
-	    }
-//	    std::cout<<"NoOfsigma after "<< sigmaMts.size() << std::endl;
-//	    for(unsigned long l = 0 ; l < sigmaMts.size(); l++){
-//	      std::cout << l <<"   "<< sigmaMts[l] << std::endl;
-//	    }
-	    sigmaUniOfMts.push_back(sigmaMts);
-	    sigmaMts.clear();
-	  }
-	  sigmaUniTotal.resize(energyUni.size());
-	  for (unsigned long i = 0; i < sigmaUniOfMts.size(); i++){
-	    int size = sigmaUniOfMts[i].size();
-//	    std::cout<<"NoOfsigma after add "<< size/2 <<" location "<< energyLocationMts[i] << " MT = "<< MtValues[0][i] << std::endl;
-	    int MT = MtValues[0][i];
-	    if(MT != 1 && MT != 3 && MT != 4 && MT != 27 && MT != 19 && MT != 20 && MT != 21 && MT != 38 && MT != 101 && MT < 250){
-	      for (int j = 0; j < size/2; j++){
-		sigmaUniTotal[energyLocationMts[i] + j] += sigmaUniOfMts[i][2*j + 1];
-//		std::cout <<"MT= "<< MT <<"  "<< energyUni[energyLocationMts[i]+j] << "  "<< sigmaUniOfMts[i][2*j] <<"  "<< sigmaUniOfMts[i][2*j + 1]<< std::endl;
-	      }
-	    }
-	  }
+	  fixupTotal(energyUni, sigmaUniTotal);
+	  std::cout<<"Union Total OK "<<std::endl;
 	  sigma.clear();
-	  //std::cout<<" AWRI "<< AWRI <<"   "<< GetAWR() << std::endl;
-	  if(energyUni.size()>0){
-	    doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, energyUni, sigmaUniTotal);
-	    //dopplerBroadning(0.0, 293.6, energyUni, sigmaUniTotal);
-	    std::cout<<"Total Doppler done "<<doppler->sigma.size()<<std::endl;
-	    dopplerBroad=1;
-	    sigmaUniTotal.clear();
-	    for(unsigned long j=0; j< energyUni.size(); j++){
-	      sigmaUniTotal.push_back(doppler->sigma[j]);
-	    }
-	    doppler->sigma.clear();
-	  }
-	  outtotal << energyUni.size() << std::endl;
-	  for(unsigned long j=0;j<energyUni.size();j++){
-	    outtotal << energyUni[j] << "  " << sigmaUniTotal[j] << std::endl;
-	  }
-	    std::cout<<"file 3 OK "<<std::endl;
-	    sigma.clear();
-  //      dopplerBroadning(0.0, 293.6,  energy, sigmaT);
-  //      for(int j =0; j< energy.size(); j++)
-  //	if(fabs((sigmaT[j]-sigma[j])*100/sigmaT[j]>1.0))std::cout <<"Total "<< energy[j] <<"  "<<sigmaT[j]<<"  "<< sigma[j]<<"   "<<(sigmaT[j]-sigma[j])*100/sigmaT[j]<< std::endl;
-  //      energy.clear(); sigmaT.clear();sigma.clear();
-  // std::cout<<LRU <<"  "<< LSSF<<std::endl;     
-	    std::cout<<"sorting before Doppler begins "<<std::endl;
-	    Sort(eLinElastic, xLinElastic);
-	    Sort(eLinCapture, xLinCapture);
-	    Sort(eLinFission, xLinFission);
-	    std::cout<<"sorting before Doppler done "<<std::endl;
-  //           if(LRU !=0){
-  //           Thinning(eLinElastic, xLinElastic);
-  //           Thinning(eLinCapture, xLinCapture);
-  //           Thinning(eLinFission, xLinFission);
-  //	  }
-  //	  for(int j=0; j< eLinElastic.size(); j++){
-  //	    std::cout<<eLinElastic[j]<<"  "<<xLinElastic[j]<<std::endl;
-  //	  }
-	    std::cout<<"Elstic Doppler begins "<<std::endl;
-	    if(eLinElastic.size()>0){
-	      doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, eLinElastic, xLinElastic);
-	      //dopplerBroadning(0.0, 293.6, eLinElastic, xLinElastic);
-	      std::cout<<"Elstic Doppler done "<<std::endl;
-	      dopplerBroad=1;
-	      for(unsigned long j=0; j< eLinElastic.size(); j++){
-  //	     energy.push_back(eLinElastic[j]);
-		xBroadElastic.push_back(doppler->sigma[j]);}
-		doppler->sigma.clear();
-  //	   for(int j=0; j< eLinElastic.size(); j++)
-  //	     std::cout<<eLinElastic[j]<<"  "<<xBroadElastic[j]<<std::endl;
-		Thinning(eLinElastic, xBroadElastic);
-	      }
-	      std::cout<<"Capture Doppler begins "<<std::endl;
-	      if(eLinCapture.size()>0){
-		doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, eLinCapture, xLinCapture);
-		//dopplerBroadning(0.0, 293.6, eLinCapture, xLinCapture);
-		std::cout<<"Capture Doppler done "<<std::endl;
-		for(unsigned long j=0; j< eLinCapture.size(); j++){
-  //	     energy.push_back(eLinCapture[j]);
-		  xBroadCapture.push_back(doppler->sigma[j]);
-		}
-		doppler->sigma.clear();
-		Thinning(eLinCapture, xBroadCapture);
-	      }
-	      std::cout<<"Fission Doppler begins "<<std::endl;
-	      if(eLinFission.size()>0){
-		doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, eLinFission, xLinFission);
-		//dopplerBroadning(0.0, 293.6, eLinFission, xLinFission);
-		std::cout<<"Fission Doppler done "<<std::endl;
-		for(unsigned long j=0; j< eLinFission.size(); j++){
-  //	     energy.push_back(eLinFission[j]);
-		  xBroadFission.push_back(doppler->sigma[j]);
-		}
-		doppler->sigma.clear();
-		Thinning(eLinFission, xBroadFission);
-	      }
-	      dopplerBroad=0;
-  //      std::sort(energy.begin(),energy.end());
-	    out << eLinElastic.size() << std::endl;
-	    for(unsigned long j =0; j< eLinElastic.size(); j++)
-	      out << eLinElastic[j] <<"  "<< xBroadElastic[j] << std::endl;
-	      out << eLinCapture.size() << std::endl;
-	    for(unsigned long j =0; j< eLinCapture.size(); j++)
-	      out << eLinCapture[j] <<"  "<< xBroadCapture[j] << std::endl;
-	      out << eLinFission.size() << std::endl;
-	    for(unsigned long j =0; j< eLinFission.size(); j++)
-	      out << eLinFission[j] <<"  "<< xBroadFission[j] << std::endl;
+  // std::cout<<LRU <<"  "<< LSSF<<std::endl; 
+	  std::cout<<"before Doppler begins "<<std::endl;
+	  broadSigma(eLinElastic, xLinElastic, xBroadElastic);
+	  broadSigma(eLinCapture, xLinCapture, xBroadCapture);
+	  broadSigma(eLinFission, xLinFission, xBroadFission);
+	  std::cout<<"Doppler done "<<std::endl;
+	  dopplerBroad=0;
+
+	  out << eLinElastic.size() << std::endl;
+	  for(unsigned long j =0; j< eLinElastic.size(); j++)
+	    out << eLinElastic[j] <<"  "<< xBroadElastic[j] << std::endl;
+	    out << eLinCapture.size() << std::endl;
+	  for(unsigned long j =0; j< eLinCapture.size(); j++)
+	    out << eLinCapture[j] <<"  "<< xBroadCapture[j] << std::endl;
+	    out << eLinFission.size() << std::endl;
+	  for(unsigned long j =0; j< eLinFission.size(); j++)
+	    out << eLinFission[j] <<"  "<< xBroadFission[j] << std::endl;
 //*/     
 //    }
 	  break;
@@ -2251,16 +1944,104 @@ void TNudyEndfRecoPoint::GetData(const char *rENDF) {
 	  break;
       }
     }
-
-//     model->ReadFile(tMat);
-    //if (!strcmp(tMat->GetName(),"90-Th-232")) {       //94-Pu-238  90-Th-232
-    //if (tMat->GetMAT()==9434) {
-    if (tMat->GetMAT()==9434) {
-      std::cout << " Found Material " << tMat->GetName() << " < MAT # " << tMat->GetMAT() << ">" << std::endl;
-      break;
+  }
+}
+void TNudyEndfRecoPoint::broadSigma(std::vector<double> &x1, 
+				    std::vector<double> &x2, 
+				    std::vector<double> &x3){
+  TNudyCore::Instance()->Sort(x1, x2);
+  if(x1.size()>0){
+    doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, x1, x2);
+    dopplerBroad=1;
+    for(unsigned long j=0; j< x1.size(); j++){
+      x3.push_back(doppler->sigma[j]);
+    }
+    doppler->sigma.clear();
+    Thinning(x1, x3);
+  }
+}
+void TNudyEndfRecoPoint::fixupTotal(std::vector<double> &x1, 
+				    std::vector<double> &x2){
+  
+  std::sort(x1.begin(), x1.end());//Unionization of energy grid for cross-section 
+  TNudyCore::Instance()->ThinningDuplicate(x1);
+  std::cout<<"Total energy points "<< x1.size()<<std::endl;
+  for (unsigned int i = 0; i < x1.size(); i++)
+    std::cout << std::setprecision(12) << x1[i] << std::endl;
+  std::cout<<"NoOfElements "<< MtValues.size() <<" MT values "<< MtValues[0].size() << std::endl;
+  // for (unsigned long i = 0; i < MtValues.size(); i++){
+  //   for (unsigned long j = 0; j < MtValues[i].size(); j++){
+  //     std::cout <<"MT value "<< MtValues[i][j] << std::endl;
+  //   }
+  // }
+  // std::cout<<"NoOfsigma "<< sigmaOfMts.size() <<" No of points of 1, 2 "<< sigmaOfMts[0].size() <<"  "<< sigmaOfMts[1].size()<< std::endl;
+  for (unsigned long i = 0; i < sigmaOfMts.size(); i++){
+    int size = sigmaOfMts[i].size()/2;
+    for (unsigned long k = 0; k < x1.size(); k++){
+      int min = 0;
+      int max = size - 1;
+      int mid = 0;
+      if (x1[k] <= sigmaOfMts[i][min])min = 0;
+      else if (x1[k] >= sigmaOfMts[i][max]) min = max - 1;
+      else {
+	while (max - min > 1) {
+	  mid = (min + max) / 2;
+	  if (x1[k] < sigmaOfMts[i][mid])
+	    max = mid;
+	  else
+	    min = mid;
+	}
+      }
+      if(x1[k] == sigmaOfMts[i][min] && sigmaOfMts[i][size + min] > 1E-20){
+	sigmaMts.push_back(x1[k]);
+	sigmaMts.push_back(sigmaOfMts[i][size + min]);
+      }else{
+	double sigmaAdd = sigmaOfMts[i][size + min] + (sigmaOfMts[i][size + min + 1] - sigmaOfMts[i][size + min]) 
+			* (x1[k]-sigmaOfMts[i][min])/(sigmaOfMts[i][min + 1] - sigmaOfMts[i][min]); //linear interpolation
+	if(sigmaAdd > 1E-20){
+	  sigmaMts.push_back(x1[k]);
+	  sigmaMts.push_back(sigmaAdd);
+	}
+      }
+      if(sigmaMts.size() == 2){
+	energyLocationMts.push_back(k);
+      }
+    }
+    sigmaUniOfMts.push_back(sigmaMts);
+    sigmaMts.clear();
+  }
+  x2.resize(x1.size());
+  ///*
+  for (unsigned long i = 0; i < sigmaUniOfMts.size(); i++){
+    int size = sigmaUniOfMts[i].size();
+//	    std::cout<<"NoOfsigma after add "<< size/2 <<" location "<< energyLocationMts[i] << " MT = "<< MtValues[0][i] << std::endl;
+    int MT = MtValues[0][i];
+    if(MT != 1 && MT != 3 && MT != 4 && MT != 27 && MT != 19 && MT != 20 && MT != 21 && MT != 38 && MT != 101 && MT < 250){
+      for (int j = 0; j < size/2; j++){
+	x2[energyLocationMts[i] + j] += sigmaUniOfMts[i][2*j + 1];
+	//	std::cout <<"MT= "<< MT <<"  "<< x1[energyLocationMts[i]+j] << "  "<< sigmaUniOfMts[i][2*j] <<"  "<< sigmaUniOfMts[i][2*j + 1]<< std::endl;
+      }
     }
   }
-}	 
+ // */
+  sigma.clear();
+  //std::cout<<" AWRI "<< AWRI <<"   "<< GetAWR() << std::endl;
+  if(x1.size()>0){
+    doppler = new TNudyEndfDoppler(AWRI,0.0, 293.6, x1, x2);
+    dopplerBroad=1;
+    x2.clear();
+    for(unsigned long j=0; j< x1.size(); j++){
+      x2.push_back(doppler->sigma[j]);
+    }
+    doppler->sigma.clear();
+  }
+  outtotal << x1.size() << std::endl;
+  for(unsigned long j = 0; j < x1.size(); j++){
+    outtotal << x1[j] << "  " << x2[j] << std::endl;
+  }
+}
+
+
 double TNudyEndfRecoPoint::GetSigmaTotal(double energyK){
   int min = 0;
   int max = energyUni.size() - 1;
@@ -2276,37 +2057,6 @@ double TNudyEndfRecoPoint::GetSigmaTotal(double energyK){
   }
   return sigmaUniTotal[min] + (sigmaUniTotal[min + 1] - sigmaUniTotal[min])*
 	 (energyK - energyUni[min])/(energyUni[min + 1] - energyUni[min]);
-}
-double TNudyEndfRecoPoint::ThinningDuplicate(std::vector<double> &x1){
-  int size = x1.size();
-  int size1 = x1.size();
-  if(size>2){
-    for(int i = 0; i< size1 - 1; i++){
-      if(x1[i+1] == x1[i]) x1.erase(x1.begin()+i+1);
-    size1 = x1.size();
-    }
-  }
-  size1 = x1.size();
-  if(size == size1)return 0;
-  ThinningDuplicate(x1);
-  return 0;
-}
-double TNudyEndfRecoPoint::ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2){
-  int size = x1.size();
-  int size1 = x1.size();
-  if(size>2){
-    for(int i = 0; i< size1 - 1; i++){
-      if(x1[i+1] == x1[i]){ 
-	x1.erase(x1.begin()+i+1);
-	x2.erase(x2.begin()+i+1);
-      }
-      size1 = x1.size();
-    }
-  }
-  size1 = x1.size();
-  if(size == size1)return 0;
-  ThinningDuplicate(x1,x2);
-  return 0; 
 }
 
 double TNudyEndfRecoPoint::Thinning(std::vector<double> &x1, std::vector<double> &x2){
@@ -2334,31 +2084,5 @@ double TNudyEndfRecoPoint::Thinning(std::vector<double> &x1, std::vector<double>
   if(size == size1)return 0;
   Thinning(x1, x2);
   return 0;
-}
-
-void TNudyEndfRecoPoint::fixupTotal(std::vector<double> &x1, std::vector<double> &x2){
-  int size = energy.size();
-  int size1 = x1.size();
-  double sigmid1=0.0;
-  if (fE_file3) {    delete[] fE_file3;    fE_file3 = 0;  }
-  if (fXsec_file3) {    delete[] fXsec_file3;    fXsec_file3 = 0;  }
-  fE_file3    = new double[x1.size()]();
-  fXsec_file3 = new double[x1.size()]();
-  for(int cr=0; cr < size1 ; cr ++){
-    fE_file3[cr] = x1[cr]; 
-    fXsec_file3[cr] = x2[cr];
-  }
-  for(int i = 0; i< size; i++){
-    int index = TNudyCore::Instance()->BinarySearch(fE_file3, size1, energy[i]);
-//    std::cout<<"index "<< index <<"  "<<std::setprecision(10)<< fE_file3[index] <<"  "<<std::setprecision(10)<< fE_file3[index+1]<< std::endl;
-    if(energy[i]>=fE_file3[0]){
-      sigmid1 = TNudyCore::Instance()->LinearInterpolation(fE_file3[index],fXsec_file3[index],fE_file3[index+1],fXsec_file3[index+1],energy[i]);
-// std::cout<<i<<"  "<<std::setprecision(10)<< energy[i]<<"  "<<std::setprecision(10)<<sigmid1<<"  "<<std::setprecision(10)<< sigma[i] << std::endl;
-      sigma[i] += sigmid1;
-// std::cout<<i<<"  "<<std::setprecision(10)<< energy[i]<<"  "<<std::setprecision(10)<<sigmid1<<"  "<<std::setprecision(10)<< sigma[i] << std::endl;
-    }
-  }
-  if (fE_file3) {    delete[] fE_file3;    fE_file3 = 0;  }
-  if (fXsec_file3) {    delete[] fXsec_file3;    fXsec_file3 = 0;  }
 }
 TNudyEndfRecoPoint::~TNudyEndfRecoPoint(){}

@@ -38,6 +38,7 @@ public:
   virtual ~TNudyEndfRecoPoint();
   void GetData(const char *rENDF);
   double SetsigPrecision(double x1){return sigDiff = x1;}
+  void broadSigma(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3);
   void fixupTotal(std::vector<double> &x1, std::vector<double> &x2);
   double GetSigmaTotal(double energyK);
   double cmToLabElasticE(double inE, double cmCos, double awr);
@@ -72,7 +73,7 @@ protected:
 private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
-  double recursionLinearFile3(double x1, double x2, double sig1, double sig2);
+  double recursionLinearFile3(double x1, double x2, double sig1, double sig2, std::vector<double> x3, std::vector<double> x4);
   void ReadResDat4l(int l1, int mm, TNudyEndfList *theList, TList *rec);
   void recoPlusBroad(int flagNer);
   void GetSigma(int lrfp, double x, double &siga, double &sigb, double &sigc);
@@ -95,10 +96,10 @@ private:
   double recursionLinear(double x1, double x2, double sig1, double sig2);
   double recursionLinear(double x1, double x2, double sig1, double sig2, double sig3, double sig4, double sig5, double sig6);
   int widthFluctuation(double gnr, double gx, double gg, double gf, int jval);
-  void Sort(std::vector<double> &x1,std::vector<double> &x2);
   double Thinning(std::vector<double> &x1, std::vector<double> &x2);
-  double ThinningDuplicate(std::vector<double> &x1);
-  double ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2);
+  double addFile3Resonance(double &x1, double &x2, std::vector<double> &x3, std::vector<double> &x4);
+  double insertFile3(std::vector<double> &x1, std::vector<double> &x2);
+  double insertFile3High(std::vector<double> &x1, std::vector<double> &x2);
 
   int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, LSSF, NLS2, NJS, INT,NIS,intLinLru1=0; // standard ENDF parameters
   int LRX,cueMat=0;                                     // flag for inelastic reaction, number of J
@@ -113,11 +114,8 @@ private:
   double R[3][3],S[3][3];                               // matrix for RM formalism
   double RI[3][3],SI[3][3];                             // matrix for RM formalism
   double MissingJ[5][50], MisGj[5]; int NJValue[5];     // J values in sorted form
-  int *NBT,*NBT1,*INT1, NR, NP;                         // standard ENDF parameters for range and interpolation
-  int *NBT2, *INT2, NR2, NE;                            // standard ENDF parameters for range and interpolation
-  int *NBT3, *INT3, NR3, NE2;				// standard ENDF parameters for range and interpolation
-  double *fE_file3,*fXsec_file3; 			// file3 energy and cross-sections;
-  double *INorm;				// ENDF parameter and Q values from file 3
+  int NR, NP, NE;                         // standard ENDF parameters for range and interpolation
+  std::vector<int> nbt1,int1;
   std::vector<double> eLinearFile3;
   std::vector<double> xLinearFile3;
   std::vector<double> energy, sigma, sigmaT; 

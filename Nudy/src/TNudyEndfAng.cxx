@@ -61,8 +61,10 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	    fme += 0.5*(2.*(j+1) + 1.)*lCoef[i][j]*leg;
           //printf("a%d = %e leg= %e\n", j, lCoef[i].At(j),leg);
           }
-	  cosFile4.push_back(x);
-	  cosPdfFile4.push_back(fme);
+          if(fme > 0.0) {
+	    cosFile4.push_back(x);
+	    cosPdfFile4.push_back(fme);
+	  }
           //printf("%e %e\n", x, fme);
           k1++;
 	}while(k1<41);
@@ -159,8 +161,10 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	    fme += 0.5*(2.*(j+1) + 1.)*lCoef[i][j]*leg;
 //            printf("a%d = %e leg= %e\n", j, lCoef[i].At(j),leg);
           }
-	  cosFile4.push_back(x);
-	  cosPdfFile4.push_back(fme);
+          if(fme > 0.0) {
+	    cosFile4.push_back(x);
+	    cosPdfFile4.push_back(fme);
+	  }
 //            printf("%e %e\n", x, fme);
           k1++;
 	}while(k1<41);

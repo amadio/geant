@@ -138,9 +138,11 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	    if(thetae > 0.0)gx = TNudyCore::Instance()->Interpolate(nbt3,int3,nr3,fE3,fP3,np3, eout/thetae);
 	    double ppe = 0.0;
 	    ppe = pe * gx;
-	    energyFile5.push_back(eout);
-	    energyPdfFile5.push_back(ppe);
- //   std:: cout<<"k = "<< k <<" pe "<< pe <<" thetae "<< thetae <<"  prob "<< ppe <<"  ein "<< energy <<"  eout "<< eout << std::endl;
+	    if(ppe > 0.0) {
+	      energyFile5.push_back(eout);
+	      energyPdfFile5.push_back(ppe);
+	    }
+            //std:: cout<<"i = "<< i <<" pe "<< pe <<" thetae "<< thetae <<"  prob "<< ppe <<"  ein "<< energy <<"  eout "<< eout <<"  "<< u << std::endl;
 	    eout *= 2;
 	  }while(eout < energy - u);
 	  int size = energyFile5.size();
@@ -207,8 +209,10 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	    double thetae = TNudyCore::Instance()->Interpolate(nbt2,int2,nr2,fE2,fP2,np2, energy);
 	    double ppe = 0.0;
 	    if(I > 0.0)ppe = pe * sqrt(eout) * exp (-eout/thetae)/I;
-	    energyFile5.push_back(eout);
-	    energyPdfFile5.push_back(ppe);
+	    if(ppe > 0.0){
+	      energyFile5.push_back(eout);
+	      energyPdfFile5.push_back(ppe);
+	    }
 //    std:: cout<<"I = "<< I <<" pe "<< pe <<" thetae "<< thetae <<"  prob "<< ppe <<"  ein "<< energy <<"  eout "<< eout << std::endl;
 	    eout *= 2;
 	  }while(eout < energy - u);
@@ -274,8 +278,10 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	    double thetae = TNudyCore::Instance()->Interpolate(nbt2,int2,nr2,fE2,fP2,np2, energy);
 	    double ppe = 0.0;
 	    if(I > 0.0)ppe = pe * eout * exp (-eout/thetae)/I;
-	    energyFile5.push_back(eout);
-	    energyPdfFile5.push_back(ppe);
+	    if(ppe > 0.0) {
+	      energyFile5.push_back(eout);
+	      energyPdfFile5.push_back(ppe);
+	    }
   //    std:: cout<<"I = "<< I <<" pe "<< pe <<" thetae "<< thetae <<"  prob "<< ppe <<"  ein "<< energy <<"  eout "<< eout << std::endl;
 	    eout *= 2;
 	  }while(eout < u);
@@ -361,8 +367,10 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	    double be = TNudyCore::Instance()->Interpolate(nbt2,int2,nr2,fE3,fP3,np3, energy);
 	    double ppe = 0.0;
 	    if(I > 0.0)ppe = pe * sinh(sqrt(be*eout)) * exp (-eout/ae)/I;
-	    energyFile5.push_back(eout);
-	    energyPdfFile5.push_back(ppe);
+	    if(ppe > 0.0) {
+	      energyFile5.push_back(eout);
+	      energyPdfFile5.push_back(ppe);
+	    }
   //    std:: cout<<"I = "<< I <<" pe "<< pe <<" ae "<< ae <<"  prob "<< ppe <<"  ein "<< energy <<"  eout "<< eout << std::endl;
 	    eout *= 2;
 	  }while(eout < energy - u);	   
