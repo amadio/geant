@@ -412,9 +412,9 @@ void genAllHisto(const char *process, const char* energy)
     
     TString processName= process;
     //TString histogramName= variable;
-    TString geant4RootFileName= Form("geant4_%sMeV.root",energy);
-    TString scalarRootFileName= Form("scalar_%sMeV.root",energy);
-    TString vectorRootFileName= Form("vector_%sMeV.root",energy);
+    TString geant4RootFileName= Form("geant4.root");
+    TString scalarRootFileName= Form("scalar.root");
+    TString vectorRootFileName= Form("vector.root");
     
     TString g4HistoName=Form("%s/geant4",process);
     TString gvHistoScalarName=Form("%s/geantVscalar",process);
