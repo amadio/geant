@@ -11,8 +11,8 @@ if [ $# -ge 7 ]; then
   COMPILER=$1 ; shift
   BUILDTYPE=$1 ; shift
   EXTERNALS=$1 ; shift
-  TYPE=$1 ; shift
   WORKSPACE=$1 ; shift
+  TYPE=$1 ; shift
   BACKEND=$1 ; shift
 else
   echo "$0: expecting 7 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [TYPE] [BACKEND]"
