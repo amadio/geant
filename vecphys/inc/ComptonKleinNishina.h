@@ -219,25 +219,40 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v ComptonKleinNishina::SampleS
 }
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v ComptonKleinNishina::SampleSequential(
-    typename Backend::Double_v E0_m, typename Backend::Double_v test, typename Backend::Double_v alpha1,
-    typename Backend::Double_v epsil0sq, typename Backend::Double_v &sint2)
+inline VECCORE_CUDA_HOST_DEVICE
+typename Backend::Double_v
+ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m, typename Backend::Double_v test,
+                                      typename Backend::Double_v alpha1, typename Backend::Double_v epsil0sq,
+                                      typename Backend::Double_v &sint2)
 {
   using Double_v = typename Backend::Double_v;
 
-  Double_v epsilon;
-  Double_v greject;
-  Mask_v<Double_v> done(false);
+  Mask_v<Double_v> done(false), condition;
+  Double_v epsilon, stheta;
 
   do {
-    Double_v tmp = Blend(test > UniformRandom<Double_v>(fRandomState, fThreadId),
-                         math::Exp(-alpha1 * UniformRandom<Double_v>(fRandomState, fThreadId)),
-                         math::Sqrt(epsil0sq + (1.0 - epsil0sq) * UniformRandom<Double_v>(fRandomState, fThreadId)));
-    MaskedAssign(epsilon, !done, tmp);
-    Double_v onecost = (1.0 - epsilon) / (epsilon * E0_m);
-    sint2 = onecost * (2. - onecost);
-    greject = 1. - epsilon * sint2 / (1. + epsilon * epsilon);
-    done |= greject > UniformRandom<Double_v>(fRandomState, fThreadId);
+    // generate random numbers
+    Double_v rng0 = UniformRandom<Double_v>(fRandomState, fThreadId);
+    Double_v rng1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+    Double_v rng2 = UniformRandom<Double_v>(fRandomState, fThreadId);
+
+    // find out which expression to use for epsilon
+    Mask_v<Double_v> condition = test > rng0;
+
+    // compute new epsilon
+    Double_v tmp0 = math::Exp(-alpha1 * rng1);
+    Double_v tmp1 = math::Sqrt(epsil0sq + (Double_v(1.0) - epsil0sq) * rng1);
+    MaskedAssign(epsilon, !done, Blend(condition, tmp0, tmp1));
+
+    // compute associated quantities
+    Double_v onecost = (Double_v(1.0) - epsilon) / (epsilon * E0_m);
+    Double_v stheta2 = onecost * (Double_v(2.0) - onecost);
+    Double_v greject = Double_v(1.0) - epsilon * stheta2 / (Double_v(1.0) + epsilon * epsilon);
+
+    // assign values that are "done" in this iteration
+    MaskedAssign(sint2, !done, stheta2);
+
+    done = done || greject > rng2;
   } while (!MaskFull(done));
 
   return epsilon;
