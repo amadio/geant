@@ -267,11 +267,11 @@ void chiSquare_pdf(TH1F* eOutScalar, TH1F* eOutVector, TH1F* eOutG4, int energy)
     Double_t pdf[entries], x[entries];
     TGraph *pdfGraph;
     
-    double logxmin = math::Log(1);
-    double dx = (math::Log(10000) - logxmin)/99;
+    double logxmin = std::log(1);
+    double dx = (std::log(10000) - logxmin)/99;
     
     //// pdf calculation
-    double energy0 = math::Exp(logxmin + dx*energy);
+    double energy0 = std::exp(logxmin + dx*energy);
     
     double ymin = energy0/(1+2.0*energy0*inv_electron_mass_c2); //MeV
     double dy = (energy0 - ymin)/(1000);
