@@ -23,4 +23,5 @@ lib
 bin
 build
 /include
+doxygen.conf
 
