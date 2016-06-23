@@ -137,13 +137,25 @@ public:
   ~GeantTrack();
 
   /** @brief Function that return beta value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_INLINE
   double Beta() const { return fP / fE; }
 
   /** @brief Function that return charge value */
+  GEANT_CUDA_BOTH_CODE
   int Charge() const { return fCharge; }
 
-  /** @brief Function that return curvature */
-  double Curvature() const;
+  /** @brief Function that return curvature. To be changed when handling properly field*/
+  GEANT_CUDA_BOTH_CODE
+  GEANT_INLINE
+  double Curvature(double Bz) const {
+    // Curvature
+    constexpr double kB2C = -0.299792458e-3;
+    constexpr double kTiny = 1.E-50;
+    double qB = fCharge * Bz;
+    if (qB < kTiny) return kTiny;
+    return fabs(kB2C * qB / (Pt() + kTiny));
+  }
 
   /** @brief Function that return pointer to X direction value */
   const double *Direction() const { return &fXdir; }

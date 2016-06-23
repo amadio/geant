@@ -163,16 +163,6 @@ void GeantTrack::Clear(const char *) {
 }
 
 //______________________________________________________________________________
-double GeantTrack::Curvature() const {
-  // Curvature
-  constexpr double kB2C = -0.299792458e-3;
-  constexpr double tiny = 1.E-30;
-  if (fCharge == 0)
-    return 0.;
-  return fabs(kB2C * fCharge * gPropagator->fBmag / (Pt() + tiny));
-}
-
-//______________________________________________________________________________
 Volume_t const*GeantTrack::GetVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   return fPath->Top()->GetLogicalVolume();
