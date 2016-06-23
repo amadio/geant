@@ -493,9 +493,9 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
       cdf2d.clear();
     }
   }
-  std::cout<<"before print "<< std::endl;  
   Mt5Values.push_back(MtNumbers);
   MtNumbers.clear();
+  /*
   for(unsigned long i = 0; i < energy5OfMts.size() ; i++){
       std::cout <<" mt "<<Mt5Values[0][i]<<" size "<< energy5OfMts[i].size() << std::endl;
     for(unsigned long j = 0; j < energy5OfMts[i].size(); j++){
@@ -505,6 +505,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
       }
     }
   }
+  */
 }
 
 TNudyEndfEnergy::~TNudyEndfEnergy(){}

@@ -13,6 +13,7 @@ class  TNudySampling {
 
 public: 
   TNudySampling ();
+  TNudySampling (const char *rENDF);
   virtual ~TNudySampling ();
 private:
   TNudyEndfAng *recoAng;

@@ -14,7 +14,8 @@ class TNudyEndfList;
 class TList;
 
 #ifdef USE_ROOT
-#include <Rtypes.h>
+#include "Rtypes.h"
+class TRandom;
 #endif
 
 #define PI acos(-1.0)
@@ -41,35 +42,30 @@ public:
   void broadSigma(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3);
   void fixupTotal(std::vector<double> &x1, std::vector<double> &x2);
   double GetSigmaTotal(double energyK);
-  double cmToLabElasticE(double inE, double cmCos, double awr);
-  double cmToLabElasticCosT(double cmCos, double awr);
-  double cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr);
-  double cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr);
+  double GetSigmaPartial(int i, double energyK);
+  double GetCos4(int mt, double energyK);
+  double GetEnergy5(int mt, double energyK);
   std::fstream out,outtotal;
   std::string outstring,outstringTotal;
-  std::vector<double> eLinElastic,eLinCapture,eLinFission;
-  std::vector<double> xLinElastic,xLinCapture,xLinFission;
-  std::vector<double> xBroadElastic,xBroadCapture,xBroadFission;
   std::vector<double> energyUni,sigmaUniTotal;		// unionization of energy and total cross-section
   std::vector<std::vector<double> > sigmaOfMts;         // sigma for each reaction
   std::vector<std::vector<double> > sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
   std::vector<std::vector<int> > MtValues;              // MT values for which cross-section/ heating values are given 
+  std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
+  int NoOfElements = 0;
+  double sigDiff;					// precision for cross-section reconstruction
+protected:
   std::vector<std::vector<std::vector<double> > >cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
   std::vector<std::vector<std::vector<double> > >cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
   std::vector<std::vector<double> > energy4OfMts;       // incident energy in file 4 for each reaction
   std::vector<std::vector<int> > Mt4Values;             // MT values for which angular distributions are given in file 4
+  std::vector<std::vector<int> > Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
   std::vector<std::vector<std::vector<double> > >energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
   std::vector<std::vector<std::vector<double> > >energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
   std::vector<std::vector<double> > energy5OfMts;       // incident energy in file 4 for each reaction
   std::vector<std::vector<int> > Mt5Values;             // MT values for which angular distributions are given in file 4
-  std::vector<int> MtNumbers;				// MT numbers
-  std::vector<double> sigmaMts;				// MT numbers for sigma in file3
-  std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
-  int NoOfElements = 0;
-  double QValue[999];
-  double sigDiff;					// precision for cross-section reconstruction
-protected:
   double AWRI;
+  double QValue[999];
 private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
@@ -115,10 +111,15 @@ private:
   double RI[3][3],SI[3][3];                             // matrix for RM formalism
   double MissingJ[5][50], MisGj[5]; int NJValue[5];     // J values in sorted form
   int NR, NP, NE;                         // standard ENDF parameters for range and interpolation
+  std::vector<int> MtNumbers;				// MT numbers
+  std::vector<double> sigmaMts;				// MT numbers for sigma in file3
+  std::vector<double> eLinElastic,eLinCapture,eLinFission;
+  std::vector<double> xLinElastic,xLinCapture,xLinFission;
+  std::vector<double> xBroadElastic,xBroadCapture,xBroadFission;
   std::vector<int> nbt1,int1;
   std::vector<double> eLinearFile3;
   std::vector<double> xLinearFile3;
-  std::vector<double> energy, sigma, sigmaT; 
+  std::vector<double> sigma; 
   std::vector<int> l;					// l values
   std::vector<int> NRS;              			// no. of resolved resonances
   std::vector<int> NRJ;              			// no. of URR J
@@ -162,6 +163,9 @@ private:
   TNudyEndfEnergyAng *recoEnergyAng;
   TNudyEndfNuPh *recoNuPh;
   TNudyEndfFissionYield *recoFissY;
+#ifdef USE_ROOT
+  TRandom *fRnd;
+#endif
 
 #ifdef USE_ROOT
   ClassDef(TNudyEndfRecoPoint, 1) // class for an ENDF reconstruction

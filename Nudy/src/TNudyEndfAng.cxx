@@ -268,7 +268,8 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
   Mt4Lct.push_back(MtLct);
   std::vector<int>().swap(MtNumbers);
   std::vector<int>().swap(MtLct);
-  ///*
+  /*
+  std::cout<<"energies "<< energy4OfMts.size() << std::endl;
   for(unsigned long i = 0; i < energy4OfMts.size(); i++){
     std::cout <<" mt "<<Mt4Values[0][i]<<" size "<< energy4OfMts[i].size() << std::endl;
     for(unsigned long j = 0; j < energy4OfMts[i].size(); j++){
@@ -278,7 +279,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
       }
     }
   }
-  //*/
+  */
 }//end class
 
 TNudyEndfAng::~TNudyEndfAng(){}
