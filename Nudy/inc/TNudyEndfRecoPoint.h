@@ -31,6 +31,11 @@ class TRandom;
 #define Fac1(x) (1.0 + x2(x))
 #define Fac2(x) (9.0 + 3.0 * x2(x) + x4(x))
 #define Fac3(x) 225.0 + 50445.0*x2(x)  - 13500.0*x3(x)  + 1386.0*x4(x)  - 60.0*x5(x)  + x6(x)
+typedef std::vector<double> rowd;
+typedef std::vector<int> rowint;
+typedef std::vector<rowint > matrixint;
+typedef std::vector<rowd > matrixd2;
+typedef std::vector<std::vector<rowd > > matrixd3;
 
 class  TNudyEndfRecoPoint {
 
@@ -39,37 +44,37 @@ public:
   virtual ~TNudyEndfRecoPoint();
   void GetData(const char *rENDF);
   double SetsigPrecision(double x1){return sigDiff = x1;}
-  void broadSigma(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3);
-  void fixupTotal(std::vector<double> &x1, std::vector<double> &x2);
+  void broadSigma(rowd &x1, rowd &x2, rowd &x3);
+  void fixupTotal(rowd &x1, rowd &x2);
   double GetSigmaTotal(double energyK);
   double GetSigmaPartial(int i, double energyK);
   double GetCos4(int mt, double energyK);
   double GetEnergy5(int mt, double energyK);
   std::fstream out,outtotal;
   std::string outstring,outstringTotal;
-  std::vector<double> energyUni,sigmaUniTotal;		// unionization of energy and total cross-section
-  std::vector<std::vector<double> > sigmaOfMts;         // sigma for each reaction
-  std::vector<std::vector<double> > sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
-  std::vector<std::vector<int> > MtValues;              // MT values for which cross-section/ heating values are given 
-  std::vector<int> energyLocationMts;			// MT wise starting energy for cross-section
+  rowd energyUni,sigmaUniTotal;		// unionization of energy and total cross-section
+  matrixd2 sigmaOfMts;         // sigma for each reaction
+  matrixd2 sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
+  matrixint MtValues;              // MT values for which cross-section/ heating values are given 
+  rowint energyLocationMts;			// MT wise starting energy for cross-section
   int NoOfElements = 0;
   double sigDiff;					// precision for cross-section reconstruction
 protected:
-  std::vector<std::vector<std::vector<double> > >cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
-  std::vector<std::vector<std::vector<double> > >cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
-  std::vector<std::vector<double> > energy4OfMts;       // incident energy in file 4 for each reaction
-  std::vector<std::vector<int> > Mt4Values;             // MT values for which angular distributions are given in file 4
-  std::vector<std::vector<int> > Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
-  std::vector<std::vector<std::vector<double> > >energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
-  std::vector<std::vector<std::vector<double> > >energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
-  std::vector<std::vector<double> > energy5OfMts;       // incident energy in file 4 for each reaction
-  std::vector<std::vector<int> > Mt5Values;             // MT values for which angular distributions are given in file 4
+  matrixd3 cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
+  matrixd3 cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
+  matrixd2 energy4OfMts;       // incident energy in file 4 for each reaction
+  matrixint Mt4Values;             // MT values for which angular distributions are given in file 4
+  matrixint Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
+  matrixd3 energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
+  matrixd3 energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
+  matrixd2 energy5OfMts;       // incident energy in file 4 for each reaction
+  matrixint Mt5Values;             // MT values for which angular distributions are given in file 4
   double AWRI;
   double QValue[999];
 private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
-  double recursionLinearFile3(double x1, double x2, double sig1, double sig2, std::vector<double> x3, std::vector<double> x4);
+  double recursionLinearFile3(double x1, double x2, double sig1, double sig2, rowd x3, rowd x4);
   void ReadResDat4l(int l1, int mm, TNudyEndfList *theList, TList *rec);
   void recoPlusBroad(int flagNer);
   void GetSigma(int lrfp, double x, double &siga, double &sigb, double &sigc);
@@ -92,10 +97,10 @@ private:
   double recursionLinear(double x1, double x2, double sig1, double sig2);
   double recursionLinear(double x1, double x2, double sig1, double sig2, double sig3, double sig4, double sig5, double sig6);
   int widthFluctuation(double gnr, double gx, double gg, double gf, int jval);
-  double Thinning(std::vector<double> &x1, std::vector<double> &x2);
-  double addFile3Resonance(double &x1, double &x2, std::vector<double> &x3, std::vector<double> &x4);
-  double insertFile3(std::vector<double> &x1, std::vector<double> &x2);
-  double insertFile3High(std::vector<double> &x1, std::vector<double> &x2);
+  double Thinning(rowd &x1, rowd &x2);
+  double addFile3Resonance(double &x1, double &x2, rowd &x3, rowd &x4);
+  double insertFile3(rowd &x1, rowd &x2);
+  double insertFile3High(rowd &x1, rowd &x2);
 
   int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, LSSF, NLS2, NJS, INT,NIS,intLinLru1=0; // standard ENDF parameters
   int LRX,cueMat=0;                                     // flag for inelastic reaction, number of J
@@ -111,52 +116,52 @@ private:
   double RI[3][3],SI[3][3];                             // matrix for RM formalism
   double MissingJ[5][50], MisGj[5]; int NJValue[5];     // J values in sorted form
   int NR, NP, NE;                         // standard ENDF parameters for range and interpolation
-  std::vector<int> MtNumbers;				// MT numbers
-  std::vector<double> sigmaMts;				// MT numbers for sigma in file3
-  std::vector<double> eLinElastic,eLinCapture,eLinFission;
-  std::vector<double> xLinElastic,xLinCapture,xLinFission;
-  std::vector<double> xBroadElastic,xBroadCapture,xBroadFission;
-  std::vector<int> nbt1,int1;
-  std::vector<double> eLinearFile3;
-  std::vector<double> xLinearFile3;
-  std::vector<double> sigma; 
-  std::vector<int> l;					// l values
-  std::vector<int> NRS;              			// no. of resolved resonances
-  std::vector<int> NRJ;              			// no. of URR J
-  std::vector<int> JSM;              			// URR J
-  std::vector<double> Er;            			// resolved resonance energy
-  std::vector<double> J;            			// associated J
-  std::vector<double> GJ;				// spin multiplication factor
-  std::vector<double> Gamma_r;       			// total width = Gamma_n + Gamma_g + Gamma_f
-  std::vector<double> Gamma_n;       			// neutron scattering width
-  std::vector<double> Gamma_g;       			// Capture width
-  std::vector<double> Gamma_f;       			// fission width
-  std::vector<double> Gamma_x;       			// Inelastic width
-  std::vector<double> Gamma_fa,Gamma_fasq;       	// fission width 1
-  std::vector<double> Gamma_fb,Gamma_fbsq;       	// fission width 2
-  std::vector<double> at1;       			// 1 background constant (Reich-Moore)
-  std::vector<double> at2;       			// 2 background constant (Reich-Moore)
-  std::vector<double> at3;       			// 3 background constant (Reich-Moore)
-  std::vector<double> at4;       			// 4 background constant (Reich-Moore)
-  std::vector<double> bt1;       			// 5 background constant (Reich-Moore)
-  std::vector<double> bt2;       			// 6 background constant (Reich-Moore)
-  std::vector<double> det1;       			// 1 resonance energy (Reich-Moore)
-  std::vector<double> dwt1;       			// 2 half width (Reich-Moore)
-  std::vector<double> grt1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
-  std::vector<double> git1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
-  std::vector<double> def1;       			// 5 background constant (Reich-Moore)
-  std::vector<double> dwf1;       			// 6 background constant (Reich-Moore)
-  std::vector<double> grf1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
-  std::vector<double> gif1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
-  std::vector<double> dec1;       			// 5 background constant (Reich-Moore)
-  std::vector<double> dwc1;       			// 6 background constant (Reich-Moore)
-  std::vector<double> grc1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
-  std::vector<double> gic1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
-  std::vector<double> amux, amun, amug, amuf;		// standard ENDF parameters
-  std::vector<double> Es;				// energy URR
-  std::vector<double> D, GX, GNO, GG, GF;		// URR parameters
-  std::vector<double> PhiEr,ShiftEr;			// penetration and shift factors
-  std::vector<double> eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  rowint MtNumbers;				// MT numbers
+  rowd sigmaMts;				// MT numbers for sigma in file3
+  rowd eLinElastic,eLinCapture,eLinFission;
+  rowd xLinElastic,xLinCapture,xLinFission;
+  rowd xBroadElastic,xBroadCapture,xBroadFission;
+  rowint nbt1,int1;
+  rowd eLinearFile3;
+  rowd xLinearFile3;
+  rowd sigma; 
+  rowint l;					// l values
+  rowint NRS;              			// no. of resolved resonances
+  rowint NRJ;              			// no. of URR J
+  rowint JSM;              			// URR J
+  rowd Er;            			// resolved resonance energy
+  rowd J;            			// associated J
+  rowd GJ;				// spin multiplication factor
+  rowd Gamma_r;       			// total width = Gamma_n + Gamma_g + Gamma_f
+  rowd Gamma_n;       			// neutron scattering width
+  rowd Gamma_g;       			// Capture width
+  rowd Gamma_f;       			// fission width
+  rowd Gamma_x;       			// Inelastic width
+  rowd Gamma_fa,Gamma_fasq;       	// fission width 1
+  rowd Gamma_fb,Gamma_fbsq;       	// fission width 2
+  rowd at1;       			// 1 background constant (Reich-Moore)
+  rowd at2;       			// 2 background constant (Reich-Moore)
+  rowd at3;       			// 3 background constant (Reich-Moore)
+  rowd at4;       			// 4 background constant (Reich-Moore)
+  rowd bt1;       			// 5 background constant (Reich-Moore)
+  rowd bt2;       			// 6 background constant (Reich-Moore)
+  rowd det1;       			// 1 resonance energy (Reich-Moore)
+  rowd dwt1;       			// 2 half width (Reich-Moore)
+  rowd grt1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
+  rowd git1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
+  rowd def1;       			// 5 background constant (Reich-Moore)
+  rowd dwf1;       			// 6 background constant (Reich-Moore)
+  rowd grf1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
+  rowd gif1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
+  rowd dec1;       			// 5 background constant (Reich-Moore)
+  rowd dwc1;       			// 6 background constant (Reich-Moore)
+  rowd grc1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
+  rowd gic1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
+  rowd amux, amun, amug, amuf;		// standard ENDF parameters
+  rowd Es;				// energy URR
+  rowd D, GX, GNO, GG, GF;		// URR parameters
+  rowd PhiEr,ShiftEr;			// penetration and shift factors
+  rowd eneTemp,sigTemp;			// temporary vectors to store energy and sigma
   TNudyEndfDoppler *doppler;
   TNudyEndfAng *recoAng;
   TNudyEndfEnergy *recoEnergy;

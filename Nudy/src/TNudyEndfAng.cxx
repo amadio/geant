@@ -22,6 +22,12 @@ TNudyEndfAng::TNudyEndfAng(){}
 
 //______________________________________________________________________________
 TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
+/*:energy4OfMts(energy4OfMts),
+Mt4Values(Mt4Values),
+Mt4Lct(Mt4Lct),
+cosPdf4OfMts(cosPdf4OfMts),
+cosCdf4OfMts(cosCdf4OfMts)
+*/
 {
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
@@ -71,28 +77,9 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	for(int l=0; l<40; l++){
 	  recursionLinearLeg(i, cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
 	}
-	TNudyCore::Instance()->Sort(cosFile4, cosPdfFile4);
-	TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
-	for(unsigned long i = 0; i < cosFile4.size(); i++){
-	  pdf.push_back(cosFile4[i]);
-	  pdf.push_back(cosPdfFile4[i]);
-	  cdf.push_back(cosFile4[i]);
-	  cdf.push_back(cosCdfFile4[i]);	  
-	}
-	pdf2d.push_back(pdf);
-	cdf2d.push_back(cdf);
-	cosFile4.clear();	
-	cosPdfFile4.clear();	
-	cosCdfFile4.clear();
-	pdf.clear();
-	cdf.clear();
+	fillPdf1d();
       }
-      energy4OfMts.push_back(ein);
-      cosPdf4OfMts.push_back(pdf2d);
-      cosCdf4OfMts.push_back(cdf2d);
-      ein.clear();
-      pdf2d.clear();
-      cdf2d.clear();
+      fillPdf2d();
       lCoef.clear();
       //Tabulated probability tables
     } else if (LTT == 2 && LI == 0) {
@@ -113,30 +100,11 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	for(int l=0; l < tab->GetNP() - 1; l++){
 	  recursionLinearProb(cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
 	}
-	TNudyCore::Instance()->Sort(cosFile4, cosPdfFile4);
-	TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
-	for(unsigned long i = 0; i < cosFile4.size(); i++){
-	  pdf.push_back(cosFile4[i]);
-	  pdf.push_back(cosPdfFile4[i]);
-	  cdf.push_back(cosFile4[i]);
-	  cdf.push_back(cosCdfFile4[i]);	  
-	}
-	pdf2d.push_back(pdf);
-	cdf2d.push_back(cdf);
-	cosFile4.clear();	
-	cosPdfFile4.clear();	
-	cosCdfFile4.clear();	
-	pdf.clear();
-	cdf.clear();
+	fillPdf1d();
 	nbt1.clear();
 	int1.clear();
       }
-      energy4OfMts.push_back(ein);
-      cosPdf4OfMts.push_back(pdf2d);
-      cosCdf4OfMts.push_back(cdf2d);
-      ein.clear();
-      pdf2d.clear();
-      cdf2d.clear();
+      fillPdf2d();
       // Low energy given by legendre polynomial and high energy by tabulated probability tables
     }else if (LTT == 3 && LI == 0) {
       TNudyEndfTab2 *lowE = (TNudyEndfTab2 *)recIter.Next();
@@ -172,22 +140,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	for(int l=0; l<40; l++){
 	  recursionLinearLeg(i, cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
 	}
-	TNudyCore::Instance()->Sort(cosFile4, cosPdfFile4);
-	TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
-	
-	for(unsigned long i = 0; i < cosFile4.size(); i++){
-	  pdf.push_back(cosFile4[i]);
-	  pdf.push_back(cosPdfFile4[i]);
-	  cdf.push_back(cosFile4[i]);
-	  cdf.push_back(cosCdfFile4[i]);	  
-	}
-	pdf2d.push_back(pdf);
-	cdf2d.push_back(cdf);
-	cosFile4.clear();	
-	cosPdfFile4.clear();	
-	cosCdfFile4.clear();	
-	pdf.clear();
-	cdf.clear();
+	fillPdf1d();
       } lCoef.clear();
       TNudyEndfTab2 *highE = (TNudyEndfTab2 *)recIter.Next();
       for (int i = 0; i < highE->GetN2(); i++) {
@@ -206,31 +159,11 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	for(int l=0; l < tab->GetNP() - 1; l++){
 	  recursionLinearProb(cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
 	}
-	TNudyCore::Instance()->Sort(cosFile4, cosPdfFile4);
-	TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
-	
-	for(unsigned long i = 0; i < cosFile4.size(); i++){
-	  pdf.push_back(cosFile4[i]);
-	  pdf.push_back(cosPdfFile4[i]);
-	  cdf.push_back(cosFile4[i]);
-	  cdf.push_back(cosCdfFile4[i]);	  
-	}
-	pdf2d.push_back(pdf);
-	cdf2d.push_back(cdf);
-	cosFile4.clear();	
-	cosPdfFile4.clear();	
-	cosCdfFile4.clear();	
-	pdf.clear();
-	cdf.clear();
+	fillPdf1d();
 	nbt1.clear();
 	int1.clear();
       }
-      energy4OfMts.push_back(ein);
-      cosPdf4OfMts.push_back(pdf2d);
-      cosCdf4OfMts.push_back(cdf2d);
-      ein.clear();
-      pdf2d.clear();
-      cdf2d.clear();
+      fillPdf2d();
     } else if (LTT == 0 && LI == 1) {
       ein.push_back(1E-14);
       ein.push_back(1.5E8);
@@ -239,28 +172,9 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	cosPdfFile4.push_back(0.5);
 	cosFile4.push_back(-1);
 	cosPdfFile4.push_back(0.5);
-	TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
-	
-	for(unsigned long i = 0; i < cosFile4.size(); i++){
-	  pdf.push_back(cosFile4[i]);
-	  pdf.push_back(cosPdfFile4[i]);
-	  cdf.push_back(cosFile4[i]);
-	  cdf.push_back(cosCdfFile4[i]);	  
-	}
-	pdf2d.push_back(pdf);
-	cdf2d.push_back(cdf);
-	cosFile4.clear();	
-	cosPdfFile4.clear();	
-	cosCdfFile4.clear();	
-	pdf.clear();
-	cdf.clear();
+	fillPdf1d();
       }
-      energy4OfMts.push_back(ein);
-      cosPdf4OfMts.push_back(pdf2d);
-      cosCdf4OfMts.push_back(cdf2d);
-      ein.clear();
-      pdf2d.clear();
-      cdf2d.clear();
+      fillPdf2d();
     }
       // Low energy given by legendre polynomial and high energy by tabulated probability tables
   }//end while loop
@@ -322,4 +236,29 @@ double TNudyEndfAng::recursionLinearProb(double x1, double x2, double pdf1, doub
   recursionLinearProb(x1, mid, pdf1, pdf);
   recursionLinearProb(mid, x2, pdf, pdf2);
   return 0;  
+}
+void TNudyEndfAng::fillPdf1d() {
+  TNudyCore::Instance()->Sort(cosFile4, cosPdfFile4);
+  TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
+  for(unsigned long i = 0; i < cosFile4.size(); i++){
+    pdf.push_back(cosFile4[i]);
+    pdf.push_back(cosPdfFile4[i]);
+    cdf.push_back(cosFile4[i]);
+    cdf.push_back(cosCdfFile4[i]);	  
+  }
+  pdf2d.push_back(pdf);
+  cdf2d.push_back(cdf);
+  cosFile4.clear();	
+  cosPdfFile4.clear();	
+  cosCdfFile4.clear();	
+  pdf.clear();
+  cdf.clear();
+}
+void TNudyEndfAng::fillPdf2d() {
+  energy4OfMts.push_back(ein);
+  cosPdf4OfMts.push_back(pdf2d);
+  cosCdf4OfMts.push_back(cdf2d);
+  ein.clear();
+  pdf2d.clear();
+  cdf2d.clear();
 }

@@ -65,23 +65,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	  for(int cr=0; cr < np3 - 1 ; cr ++){
 	    recursionLinearFile5Prob(energyFile5[cr], energyFile5[cr+1], energyPdfFile5[cr], energyPdfFile5[cr+1]);
 	  }
-	  TNudyCore::Instance()->Sort(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->ThinningDuplicate(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
-	  for(unsigned long i = 0; i < energyFile5.size(); i++){
-	    pdf.push_back(energyFile5[i]);
-	    pdf.push_back(energyPdfFile5[i]);
-	    cdf.push_back(energyFile5[i]);
-	    cdf.push_back(energyCdfFile5[i]);
-	    std::cout << energyFile5[i] << "  "<< energyPdfFile5[i] <<"  "<< energyCdfFile5[i] << std::endl;
-	  }
-	  pdf2d.push_back(pdf);
-	  cdf2d.push_back(cdf);
-	  energyFile5.clear();	
-	  energyPdfFile5.clear();	
-	  energyCdfFile5.clear();	
-	  pdf.clear();
-	  cdf.clear();
+	  fillPdf1d();
 	  nbt3.clear();
 	  int3.clear();
 	}
@@ -149,24 +133,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	  for(int cr=0; cr < size - 1 ; cr ++){
 	    recursionLinearFile5GenEva(energyFile5[cr], energyFile5[cr+1], energyPdfFile5[cr], energyPdfFile5[cr+1],energy);
 	  }
-	  TNudyCore::Instance()->Sort(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->ThinningDuplicate(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
-	  for(unsigned long i = 0; i < energyFile5.size(); i++){
-	    if(energyPdfFile5[i] > 1E-15){
-	      pdf.push_back(energyFile5[i]);
-	      pdf.push_back(energyPdfFile5[i]);
-	      cdf.push_back(energyFile5[i]);
-	      cdf.push_back(energyCdfFile5[i]);
-	    }
-	  }
-	  pdf2d.push_back(pdf);
-	  cdf2d.push_back(cdf);
-	  energyFile5.clear();	
-	  energyPdfFile5.clear();	
-	  energyCdfFile5.clear();	
-	  pdf.clear();
-	  cdf.clear();
+	  fillPdf1d();
 	}
 	nbt1.clear(); int1.clear(); fE1.clear(); fP1.clear();
 	nbt2.clear(); int2.clear(); fE2.clear(); fP2.clear();
@@ -220,24 +187,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	  for(int cr=0; cr < size - 1 ; cr ++){
 	    recursionLinearFile5Maxwell(energyFile5[cr], energyFile5[cr+1], energyPdfFile5[cr], energyPdfFile5[cr+1],energy);
 	  }
-	  TNudyCore::Instance()->Sort(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->ThinningDuplicate(energyFile5, energyPdfFile5);	  
-	  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
-	  for(unsigned long i = 0; i < energyFile5.size(); i++){
-	    if(energyPdfFile5[i] > 1E-15){
-	      pdf.push_back(energyFile5[i]);
-	      pdf.push_back(energyPdfFile5[i]);
-	      cdf.push_back(energyFile5[i]);
-	      cdf.push_back(energyCdfFile5[i]);
-	    }
-	  }
-	  pdf2d.push_back(pdf);
-	  cdf2d.push_back(cdf);
-	  energyFile5.clear();	
-	  energyPdfFile5.clear();	
-	  energyCdfFile5.clear();	
-	  pdf.clear();
-	  cdf.clear();
+	  fillPdf1d();
 	}	   
 	nbt1.clear(); int1.clear(); fE1.clear(); fP1.clear();
 	nbt2.clear(); int2.clear(); fE2.clear(); fP2.clear();INorm.clear();
@@ -289,24 +239,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	  for(int cr=0; cr < size - 1 ; cr ++){
 	    recursionLinearFile5Maxwell(energyFile5[cr], energyFile5[cr+1], energyPdfFile5[cr], energyPdfFile5[cr+1],energy);
 	  }
-	  TNudyCore::Instance()->Sort(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->ThinningDuplicate(energyFile5, energyPdfFile5);	  
-	  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
-	  for(unsigned long i = 0; i < energyFile5.size(); i++){
-	    if(energyPdfFile5[i] > 1E-15){
-	      pdf.push_back(energyFile5[i]);
-	      pdf.push_back(energyPdfFile5[i]);
-	      cdf.push_back(energyFile5[i]);
-	      cdf.push_back(energyCdfFile5[i]);
-	    }
-	  }
-	  pdf2d.push_back(pdf);
-	  cdf2d.push_back(cdf);
-	  energyFile5.clear();	
-	  energyPdfFile5.clear();	
-	  energyCdfFile5.clear();	
-	  pdf.clear();
-	  cdf.clear();
+	  fillPdf1d();
 	}
       //std:: cout<< std::endl;
 	nbt1.clear(); int1.clear(); fE1.clear(); fP1.clear();
@@ -378,24 +311,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	  for(int cr=0; cr < size - 1 ; cr ++){
 	    recursionLinearFile5Watt(energyFile5[cr], energyFile5[cr+1], energyPdfFile5[cr], energyPdfFile5[cr+1],energy);
 	  }
-	  TNudyCore::Instance()->Sort(energyFile5, energyPdfFile5);
-	  TNudyCore::Instance()->ThinningDuplicate(energyFile5, energyPdfFile5);	  
-	  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
-	  for(unsigned long i = 0; i < energyFile5.size(); i++){
-	    if(energyPdfFile5[i] > 1E-15){
-	      pdf.push_back(energyFile5[i]);
-	      pdf.push_back(energyPdfFile5[i]);
-	      cdf.push_back(energyFile5[i]);
-	      cdf.push_back(energyCdfFile5[i]);
-	    }
-	  }
-	  pdf2d.push_back(pdf);
-	  cdf2d.push_back(cdf);
-	  energyFile5.clear();	
-	  energyPdfFile5.clear();	
-	  energyCdfFile5.clear();	
-	  pdf.clear();
-	  cdf.clear();
+	  fillPdf1d();
 	}
 	nbt1.clear(); int1.clear(); fE1.clear(); fP1.clear();
 	nbt2.clear(); int2.clear(); fE2.clear(); fP2.clear();
@@ -464,23 +380,8 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
   //    std:: cout<< eout <<"  "<< ppe <<"  "<< energy <<"  "<< eout << std::endl;
   //    std:: cout<<"I = "<< I <<" pe "<< pe <<" ae "<< ae <<"  prob "<< ppe <<"  ein "<< energy <<"  eout "<< eout << std::endl;
 	    eout *= 2;
-	  }while(eout < fE1[NP-1]);   
-	  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
-	  for(unsigned long i = 0; i < energyFile5.size() ; i++){
-	    if(energyPdfFile5[i] > 1E-15){
-	      pdf.push_back(energyFile5[i]);
-	      pdf.push_back(energyPdfFile5[i]);
-	      cdf.push_back(energyFile5[i]);
-	      cdf.push_back(energyCdfFile5[i]);
-	    }
-	  }
-	  pdf2d.push_back(pdf);
-	  cdf2d.push_back(cdf);
-	  energyFile5.clear();	
-	  energyPdfFile5.clear();	
-	  energyCdfFile5.clear();	
-	  pdf.clear();
-	  cdf.clear();
+	  }while(eout < fE1[NP-1]);
+	  fillPdf1d();
 	}
 	nbt1.clear(); int1.clear(); fE1.clear(); fP1.clear();
 	nbt2.clear(); int2.clear(); fE2.clear(); fP2.clear();
@@ -586,4 +487,24 @@ double TNudyEndfEnergy::recursionLinearFile5Watt(double x1, double x2, double pd
   recursionLinearFile5Watt(x1, mid, pdf1, pdf, energy);
   recursionLinearFile5Watt(mid, x2, pdf, pdf2, energy);
   return 0;
+}
+void TNudyEndfEnergy::fillPdf1d(){
+  TNudyCore::Instance()->Sort(energyFile5, energyPdfFile5);
+  TNudyCore::Instance()->ThinningDuplicate(energyFile5, energyPdfFile5);	  
+  TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
+  for(unsigned long i = 0; i < energyFile5.size(); i++){
+    if(energyPdfFile5[i] > 1E-15){
+      pdf.push_back(energyFile5[i]);
+      pdf.push_back(energyPdfFile5[i]);
+      cdf.push_back(energyFile5[i]);
+      cdf.push_back(energyCdfFile5[i]);
+    }
+  }
+  pdf2d.push_back(pdf);
+  cdf2d.push_back(cdf);
+  energyFile5.clear();	
+  energyPdfFile5.clear();	
+  energyCdfFile5.clear();	
+  pdf.clear();
+  cdf.clear();
 }
