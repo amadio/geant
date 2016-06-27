@@ -18,6 +18,7 @@
 #endif
 
 #include <deque>
+#include <vector>
 
 #include "Geant/Typedefs.h"
 
@@ -70,6 +71,7 @@ public:
   int fSizeInt;                             // current size of IntArray
   int *fIntArray;                           // Thread array of ints (used in vector navigation)
   GeantTrack_v  *fTransported;              // Transported tracks in current step
+  std::vector<GeantTrack *> fTransported1;  // Transported tracks in current step
   int            fNkeepvol;                 // Number of tracks keeping the same volume
   int fNsteps;           /** Total number of steps per thread */
   int fNsnext;           /** Total number of calls to getting distance to next boundary */

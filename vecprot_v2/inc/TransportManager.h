@@ -29,7 +29,7 @@ class GeantTaskData;
  * @brief Class GeantTrack
  */
 namespace TransportManager {
-  typedef std::vector<GeantTrack * const> TrackVec_t;
+  typedef std::vector<GeantTrack *> TrackVec_t;
 
   /**
    * @brief Check if the geometry location changed for a vector of tracks
@@ -82,7 +82,7 @@ namespace TransportManager {
    */  
   GEANT_CUDA_BOTH_CODE
   GEANT_INLINE
-  TransportAction_t PostponedAction(int ntracks) const {
+  TransportAction_t PostponedAction(int ntracks) {
     // Check the action to be taken according the current policy
     const int kMinVecSize = 4; // this should be retrieved from elsewhere
     if (!ntracks)
@@ -102,7 +102,8 @@ namespace TransportManager {
   GEANT_CUDA_BOTH_CODE
   GEANT_INLINE
   void MoveTrack(int itr, TrackVec_t &input, TrackVec_t &output) {
-    std::move(input.begin()+itr, input.begin()+itr+1, std::back_inserter(output));
+    auto it = input.begin() + itr;
+    std::move(it, it+1, std::back_inserter(output));
     input.erase(input.begin() + itr);
   }
 
@@ -191,11 +192,16 @@ namespace TransportManager {
   /** @brief Function that returns safe length */
   GEANT_CUDA_BOTH_CODE
   GEANT_INLINE
-  double SafeLength(const GeantTrack &track, double eps = 1.E-4) {
+  double SafeLength(const GeantTrack &track, double Bz, double eps = 1.E-4) {
     // Returns the propagation length in field such that the propagated point is
     // shifted less than eps with respect to the linear propagation.
-    return 2. * sqrt(eps / track.Curvature());
+    return 2. * sqrt(eps / track.Curvature(Bz));
   }
+  
+  /** @brief Function allowing to debug a step */
+  GEANT_CUDA_BOTH_CODE
+ bool BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp, int nsteps, const char *msg, int itr);
+
 };
 
 } // GEANT_IMPL_NAMESPACE

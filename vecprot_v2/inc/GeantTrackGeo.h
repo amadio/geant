@@ -37,8 +37,6 @@ struct GeantTrackGeo {
   double fSnext;         /** Straight distance to next boundary */
   double fSafety;        /** Safe distance to any boundary */
   bool   fBoundary;      /** True if starting from boundary */
-  VolumePath_t *fPath;   /** Path to current volume containing the particle */
-  VolumePath_t *fNextpath; /** Path to volume particle is entering into */
 };
 
 /**
@@ -46,7 +44,7 @@ struct GeantTrackGeo {
  *
  */
 class GeantTrackGeo_v {
-  using TrackArray_t = std::vector<GeantTrack*>;
+  using TrackVec_t = std::vector<GeantTrack*>;
 
 public:
   int fNtracks;      /** Number of tracks contained */
@@ -67,8 +65,6 @@ public:
   double *fSnextV;  /** Straight distances to next boundary */
   double *fSafetyV; /** Safe distances to any boundary */
   bool *fBoundaryV; /** True if starting from boundary */
-  VolumePath_t **fPathV;     /** Paths for the particles in the geometry */
-  VolumePath_t **fNextpathV; /** Paths for next volumes */
 
   /**
    * @brief Function that assign in current buffer
@@ -155,7 +151,7 @@ public:
     if (itrack == fMaxtracks) {
 #ifndef GEANT_CUDA_DEVICE_BUILD
       Resize(2 * fMaxtracks);
-#endif
+#else
       printf("Error in GeantTrackGeo::AddTrack, resizing is not supported in device code\n");
 #endif
     }
@@ -171,8 +167,6 @@ public:
     fSnextV[itrack] = track.fSnext;
     fSafetyV[itrack] = track.fSafety;
     fBoundaryV[itrack] = track.fBoundary;
-    fPathV[itrack] = track.fPath;
-    fNextpathV[itrack] = track.fNextpath;
     fNtracks++;
     return itrack;
   }
@@ -183,7 +177,7 @@ public:
    * @param array Array of tracks that should be added
    */
   GEANT_CUDA_BOTH_CODE
-  int AddTracks(TrackArray_t const &array);
+  int AddTracks(TrackVec_t const &array);
 
   /**
    * @brief Update a single original track from the container
@@ -193,29 +187,31 @@ public:
   GEANT_CUDA_BOTH_CODE
   GEANT_INLINE
   void UpdateOriginalTrack(int itr) const {
-    // Update all the original tracks. This should ideally vectorize.
-    for (int itr=0; itr<fNtracks; ++itr) {
-      GeantTrackGeo &track = *fOriginals[itr];
-      track->fXpos = fXposV[itr];
-      track->fYpos = fYposV[itr];
-      track->fZpos = fZposV[itr];
-      track->fXdir = fXdirV[itr];
-      track->fYdir = fYdirV[itr];
-      track->fZdir = fZdirV[itr];
-      track->fPstep = fPstepV[itr];
-      track->fStep = fStepV[itr];
-      track->fSnext = fSnextV[itr];
-      track->fSafety = fSafetyV[itr];
-      track->fBoundary = fBoundaryV[itr];
-      // The path and nextpath members are already pointing to the storage used by the original track
-    }
+    // Update the original track itr.
+    GeantTrack &track = *fOriginalV[itr];
+    track.fXpos = fXposV[itr];
+    track.fYpos = fYposV[itr];
+    track.fZpos = fZposV[itr];
+    track.fXdir = fXdirV[itr];
+    track.fYdir = fYdirV[itr];
+    track.fZdir = fZdirV[itr];
+    track.fPstep = fPstepV[itr];
+    track.fStep = fStepV[itr];
+    track.fSnext = fSnextV[itr];
+    track.fSafety = fSafetyV[itr];
+    track.fBoundary = fBoundaryV[itr];
   }
 
   /**
    * @brief Update all original tracks from the container
   */
   GEANT_CUDA_BOTH_CODE
-  void UpdateOriginalTracks() const;
+  void UpdateOriginalTracks() const {
+    // Update all the original tracks. This should ideally vectorize.
+    for (int itr=0; itr<fNtracks; ++itr) {
+      UpdateOriginalTrack(itr);
+    }
+  }
 
   /** @brief Function that return size of track */
   size_t Sizeof() const { return sizeof(GeantTrackGeo_v) + fBufSize; }
@@ -234,128 +230,10 @@ public:
   void Clear() { fNtracks = 0; }
 
   /**
-   * @brief Function that print track
-   *
-   * @param itr Track ID
-   */
-  GEANT_CUDA_BOTH_CODE
-  void PrintTrack(int itr, const char *msg = "") const;
-
-  /** @brief Function that print all tracks */
-  void PrintTracks(const char *msg = "") const;
-
-#ifdef USE_VECGEOM_NAVIGATOR
-
-  /**
-   * @brief Function that check if location path's consistency
-   *
-   * @param itr Track ID
-   */
-  void CheckLocationPathConsistency(int itr) const;
-#endif
-
-  /**
-   * @brief Check consistency of track navigation
-   * @param  itr Track number to be checked
-   */
-  bool CheckNavConsistency(int itr);
-
-  /**
-   * @brief Function that compute transport length
-   *
-   * @param ntracks Number of tracks and TaskData object ( with preallocated thread/task local workspaces )
-   */
-  GEANT_CUDA_BOTH_CODE
-  void ComputeTransportLength(int ntracks, GeantTaskData *);
-
-  /**
-   * @brief Function that compute single transport length ?????
-   *
-   * @param itr Track ID
-   */
-  GEANT_CUDA_BOTH_CODE
-  void ComputeTransportLengthSingle(int itr, GeantTaskData *);
-
-  /**
-   * @brief Function of propagation in volume
-   *
-   * @param ntracks Number of tracks
-   * @param crtstep ??????
-   * @param tid Track ID
-   */
-  GEANT_CUDA_BOTH_CODE
-  void PropagateInVolume(int ntracks, const double *crtstep, GeantTaskData *td);
-
-  /**
-   * @brief Function of propagation of track in volume
-   *
-   * @param i Bit number 'i'
-   * @param crtstep ???????
-   * @param tid Track ID
-   */
-  GEANT_CUDA_BOTH_CODE
-  void PropagateInVolumeSingle(int i, double crtstep, GeantTaskData *td);
-
-  /**
-   * @brief Popagation function in straight trajectories
-   *
-   * @param ntracks Number of tracks
-   * @param crtstep  ?????
-   */
-  int PropagateStraight(int ntracks, double *crtstep);
-
-  /**
-   * @brief Function of propagation of tracks
-   *
-   * @param output Output array of tracks
-   * @param tid Track ID
-   */
-  int PropagateTracks(GeantTaskData *td);
-
-  GEANT_CUDA_BOTH_CODE
-  int PropagateTracksScalar(GeantTaskData *td, int stage = 0);
-
-  GEANT_CUDA_BOTH_CODE
-  int PropagateSingleTrack(int itr, GeantTaskData *td, int stage);
-
-  /**
    * @brief Resize function
    * @param newsize New size to be resized
    */
   void Resize(int newsize);
-
-  /**
-   * @brief Function that return curvature in different areas of geometry
-   * @param  i Input bit number 'i'
-   */
-  GEANT_CUDA_BOTH_CODE
-  double Curvature(int i) const;
-
-  /** @brief Function that return safe length */
-  GEANT_CUDA_BOTH_CODE
-  double SafeLength(int i, double eps = 1.E-4);
-
-  /**
-   * @brief Function that returns the logical volume of the i-th track
-   * @param  i Input bit number 'i'
-   */
-  Volume_t const*GetVolume(int i) const;
-
-  /**
-   * @brief Function that returns next logical volume of i-th track
-   * @param  i Input bit number 'i'
-   */
-  Volume_t const*GetNextVolume(int i) const;
-
-  /**
-   * @brief Function that returns the current material the i-th track is in
-   * @param  i Input bit number 'i'
-   */
-  Material_t *GetMaterial(int i) const;
-
-  /** @brief Function allowing to set a breakpoint on a given step */
-  GEANT_CUDA_BOTH_CODE
-  bool BreakOnStep(int evt, int trk, int stp, int nsteps = 1, const char *msg = "", int itr = -1);
 
   /**
    * @brief Function round up align ?????
@@ -391,10 +269,6 @@ namespace cuda {
 class GeantTrackGeo_v;
 }
 #endif
-
-bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrackGeo_v> dest, cxx::GeantTrackGeo_v *source, cudaStream_t stream);
-bool FromDevice(cxx::GeantTrackGeo_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrackGeo_v> source, cudaStream_t stream);
-void FromDeviceConversion(cxx::GeantTrackGeo_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrackGeo_v> source);
 #endif
 
 } // Geant

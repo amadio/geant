@@ -4,8 +4,8 @@
 #include "Geant/Error.h"
 #include <execinfo.h>
 
+#include "GeantTrackGeo.h"
 #ifdef USE_VECGEOM_NAVIGATOR
-#pragma message("Compiling against VecGeom")
 #include "ScalarNavInterfaceVG.h"
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
@@ -38,7 +38,6 @@
 #include "GeantScheduler.h"
 
 // #ifdef  RUNGE_KUTTA
-#pragma message("Compiling using Runge-Kutta for integration")
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
 // #endif
@@ -65,8 +64,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 // Query geometry if the location has changed for a vector of particles
 // Returns number of tracks crossing the boundary.
 
-  const int kMinVecSize = 4; // this should be retrieved from elsewhere
-  TrackVec_t &output = *td->fTransported;
+  TrackVec_t &output = td->fTransported1;
   int icrossed = 0;
   int nsel = ntracks;
   for (int itr = 0; itr < ntracks; itr++) {
@@ -79,11 +77,12 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
   }
   if (!nsel) return 0;
 #if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
+  constexpr int kMinVecSize = 4; // this should be retrieved from elsewhere
   if (nsel < kMinVecSize) {
     // No efficient vectorization possible, do scalar treatment
 #endif
     // The scalar treatment is always done in case of non-vector compilation
-    for (int itr = 0; itr < tracks.size(); itr++) {
+    for (unsigned int itr = 0; itr < tracks.size(); itr++) {
       GeantTrack &track = *tracks[itr];
       int crossed = CheckSameLocationSingle(track, td);
       if (crossed) MoveTrack(itr--, tracks, output);
@@ -185,10 +184,10 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
 // Vector version for proposing the geometry step. All tracks have to be
 // in the same volume. This may still fall back on the scalar implementation
 // in case the vector size is too small.
-  const int kMinVecSize = 4; // this should be retrieved from elsewhere
 #ifdef USE_VECGEOM_NAVIGATOR
 //#define VECTORIZED_GEOMETRY
 #ifdef VECTORIZED_GEOMETRY
+  constexpr int kMinVecSize = 4; // this should be retrieved from elsewhere
   // We ignore tracks for which the current safety allows for the proposed step
   // We need to count if the remaining tracks may form a vector
   int nsel = 0;
@@ -248,7 +247,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrackGeo::ComputeTransportLengthSingle(GeantTrack &track, GeantTaskData *td) {
+void TransportManager::ComputeTransportLengthSingle(GeantTrack &track, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
@@ -276,7 +275,7 @@ void GeantTrackGeo::ComputeTransportLengthSingle(GeantTrack &track, GeantTaskDat
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrackGeo::PropagateInVolume(TrackVec_t &tracks,
+void TransportManager::PropagateInVolume(TrackVec_t &tracks,
                                       int ntracks,
                                       const double *crtstep,
                                       GeantTaskData *td) {
@@ -289,16 +288,16 @@ void GeantTrackGeo::PropagateInVolume(TrackVec_t &tracks,
   // - snext step (bdr=1)
   
   // For the moment fall back on scalar propagation
-  int itr = 0;
-  for (auto track : tracks) {
-    PropagateInVolumeSingle(*track, crtstep[itr++], td);
+  for (int itr=0; itr<ntracks; ++itr) {
+    GeantTrack &track = *tracks[itr];
+    PropagateInVolumeSingle(track, crtstep[itr++], td);
   }
 }
 
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-void GeantTrackGeo::PropagateInVolumeSingle(GeantTrack &track, double crtstep, GeantTaskData * td) {
+void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep, GeantTaskData * td) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -340,7 +339,7 @@ void GeantTrackGeo::PropagateInVolumeSingle(GeantTrack &track, double crtstep, G
   // Reset relevant variables
   track.fStatus = kInFlight;
   track.fPstep -= crtstep;
-  if (track.fPstepV < 1.E-10) {
+  if (track.fPstep < 1.E-10) {
     track.fPstep = 0;
     track.fStatus = kPhysics;
   }
@@ -354,7 +353,7 @@ void GeantTrackGeo::PropagateInVolumeSingle(GeantTrack &track, double crtstep, G
       track.fStatus = kBoundary;
     }
   }
-  fStep += crtstep;
+  track.fStep += crtstep;
 #ifdef USE_VECGEOM_NAVIGATOR
 //  CheckLocationPathConsistency(i);
 #endif
@@ -406,11 +405,11 @@ void GeantTrackGeo::PropagateInVolumeSingle(GeantTrack &track, double crtstep, G
 }
 
 //______________________________________________________________________________
-int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
+int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   // Propagate the ntracks in the current volume with their physics steps (already
   // computed)
   // Vectors are pushed downstream when efficient.
-  TrackVec_t &output = *td->fTransported;
+  TrackVec_t &output = td->fTransported1;
   int ntracks = tracks.size();
   // Check if tracking the remaining tracks can be postponed
   TransportAction_t action = PostponedAction(ntracks);
@@ -425,30 +424,28 @@ int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
   GeantPropagator *prop = GeantPropagator::Instance();
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
+  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(tracks, ntracks, td);
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTransLen");
+  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTransLen");
 #endif
 
   int itr = 0;
   int icrossed = 0;
-  int nsel = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
   const double bmag = gPropagator->fBmag;
 
   // Remove dead tracks, propagate neutrals
-  int itr = 0;
-  for (int itr=0; itr<tracks.size(); ++itr) {
+  for (unsigned int itr=0; itr<tracks.size(); ++itr) {
     GeantTrack &track = *tracks[itr];
     // Move dead to output
     if (track.fSnext < 0) {
       Error("ComputeTransportLength", "Track %d cannot cross boundary and has to be killed", track.fParticle);
-      track.Print();
+      track.Print("");
       track.fStatus = kKilled;
     }
     if (track.fStatus == kKilled) {
@@ -493,10 +490,10 @@ int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   case kDone:
     return icrossed;
   case kSingle:
-    icrossed += PropagateTracksScalar(td, 1);
+    icrossed += TransportManager::PropagateTracksScalar(tracks, td, 1);
     return icrossed;
   case kPostpone:
-    PostponeTracks(output);
+    PostponeTracks(tracks, output);
     return icrossed;
   case kVector:
     break;
@@ -508,9 +505,8 @@ int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   // i.e. what is the propagated length for which the track deviation in magnetic
   // field with respect to straight propagation is less than epsilon.
   // Take the maximum between the safety and the "bending" safety
-  nsel = 0;
   double *steps = td->GetDblArray(ntracks);
-  for (itr = 0; itr < fNtracks; itr++) {
+  for (itr = 0; itr < ntracks; itr++) {
     GeantTrack &track = *tracks[itr];
     lmax = SafeLength(track, eps);
     lmax = Math::Max<double>(lmax, track.fSafety);
@@ -535,8 +531,8 @@ int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   //         -> keep in the container
 
   // Select tracks that made it to physics and copy to output
-  for (int itr=0; itr<tracks.size(); ++itr) {
-    track = *tracks[itr];
+  for (unsigned int itr=0; itr<tracks.size(); ++itr) {
+    GeantTrack &track = *tracks[itr];
     if (track.fStatus == kPhysics) {
       // Update number of steps to physics and total number of steps
       td->fNphys++;
@@ -550,7 +546,7 @@ int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   // Select tracks that are in flight or were propagated to boundary with
   // steps bigger than safety. Keep these tracks at the beginning of the
   // vector while moving the others to the end
-  ntracks = GetNtracks();
+  ntracks = tracks.size();
   td->fNsteps += ntracks;
 
 #if (defined(USE_VECGEOM_NAVIGATOR) && defined(VECTORIZED_GEOMETRY))
@@ -565,14 +561,14 @@ int GeantTrackGeo::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 #endif
     
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateTracks");
+  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateTracks");
 #endif
   return icrossed;
 }
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-int GeantTrackGeo::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
+int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
   // Propagate the track with its selected steps, starting from a given stage.
 
   int icrossed = 0;
@@ -586,21 +582,21 @@ int GeantTrackGeo::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskD
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
   GeantPropagator *prop = GeantPropagator::Instance();
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep,
+  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep,
               "PropagateSingle", itr);
 #endif
 
-  TrackVec_t &output = *td->fTransported;
+  TrackVec_t &output = td->fTransported1;
   GeantTrack &track = *tracks[itr];
   ComputeTransportLengthSingle(track, td);
 
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTranspLenSingle");
+  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTranspLenSingle");
 #endif
   // Mark dead tracks for copy/removal
   if (track.fSnext < 0) {
     Error("ComputeTransportLength", "Track %d cannot cross boundary and has to be killed", track.fParticle);
-    track.Print();
+    track.Print("");
     track.fStatus = kKilled;
   }
   if (track.fStatus == kKilled) {
@@ -618,7 +614,7 @@ int GeantTrackGeo::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskD
           track.fStatus = kBoundary;
         icrossed++;
       } else {
-        fStatusV[itr] = kPhysics;
+        track.fStatus = kPhysics;
         // Update number of steps to physics
         td->fNphys++;
       }
@@ -637,7 +633,7 @@ int GeantTrackGeo::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskD
       MoveTrack(itr--, tracks, output);
 
 #ifdef BUG_HUNT
-      BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingleNeutral",
+      BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingleNeutral",
                   track.fParticle);
 #endif
       return icrossed;
@@ -685,14 +681,14 @@ int GeantTrackGeo::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskD
     if (icrossed) MoveTrack(itr--, tracks, output);
   }
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingle", itr);
+  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingle", itr);
 #endif
   return icrossed;
 }
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-int GeantTrackGeo::PropagateTracksScalar(TrackVec_t &tracks,
+int TransportManager::PropagateTracksScalar(TrackVec_t &tracks,
                                          GeantTaskData *td,
                                          int stage) {
 
@@ -700,16 +696,16 @@ int GeantTrackGeo::PropagateTracksScalar(TrackVec_t &tracks,
   // starting from a given stage.
 
   int icrossed = 0;
-  for (int itr = 0; itr < tracks; ++itr) {
+  for (int itr = 0; itr < (int)tracks.size(); ++itr) {
     icrossed += PropagateSingleTrack(tracks, itr, td, stage);
   }
   return icrossed;
 }
 
 //______________________________________________________________________________
-int GeantTrackGeo::PostponeTracks(TrackVec_t &input, TrackVec_t &output) {
+int TransportManager::PostponeTracks(TrackVec_t &input, TrackVec_t &output) {
   // Postpone transport of remaining tracks and copy them to the output.
-  int npostponed = input.size();
+  auto npostponed = input.size();
   assert(output.size() >= npostponed);
   // Move content
   std::move(input.begin(), input.end(), std::back_inserter(output));
@@ -720,112 +716,23 @@ int GeantTrackGeo::PostponeTracks(TrackVec_t &input, TrackVec_t &output) {
 
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
-int GeantTrackGeo::PostponeTrack(int itr, GeantTrackGeo &output) {
-  // Postpone transport of a track and copy it to the output.
-  // Returns where in the output the track was added.
-
-  fStatusV[itr] = kPostponed;
-  // Move these tracks to the output container
-  int new_itr = output.AddTrack(*this, itr, true);
-  MarkRemoved(itr);
-  return new_itr;
-}
-
-
-//______________________________________________________________________________
-Volume_t const*GeantTrackGeo::GetNextVolume(int i) const {
-  // Next volume the track is getting into
-#ifdef USE_VECGEOM_NAVIGATOR
-  return fNextpathV[i]->Top()->GetLogicalVolume();
-#else
-  return fNextpathV[i]->GetCurrentNode()->GetVolume();
-#endif
-}
-
-//______________________________________________________________________________
-Volume_t const*GeantTrackGeo::GetVolume(int i) const {
-  // Current volume the track is into
-#ifdef USE_VECGEOM_NAVIGATOR
-  return fPathV[i]->Top()->GetLogicalVolume();
-#else
-  return (fPathV[i]->GetCurrentNode()->GetVolume());
-#endif
-}
-
-//______________________________________________________________________________
-Material_t *GeantTrackGeo::GetMaterial(int i) const {
-  // Current material the track is into
-#ifdef USE_VECGEOM_NAVIGATOR
-  Medium_t *med = (Medium_t *)GetVolume(i)->GetTrackingMediumPtr();
-#else
-  Medium_t *med = (Medium_t *)GetVolume(i)->GetMedium();
-#endif
-  // TODO: better to use assert
-  if (!med)
-    return nullptr;
-  return med->GetMaterial();
-}
-
-//______________________________________________________________________________
-#ifdef USE_VECGEOM_NAVIGATOR
-bool GeantTrackGeo::CheckNavConsistency(int /*itr*/) {
-  // TO IMPLEMENT WIRH VECGEOM
-#else
-bool GeantTrackGeo::CheckNavConsistency(int itr) {
-// Check consistency of navigation state for a given track.
-// Debugging purpose
-  double point[3], local[3];
-  point[0] = fXposV[itr];
-  point[1] = fYposV[itr];
-  point[2] = fZposV[itr];
-  fPathV[itr]->GetMatrix()->MasterToLocal(point, local);
-  TGeoShape *shape = fPathV[itr]->GetCurrentNode()->GetVolume()->GetShape();
-  int evt = fEventV[itr];
-  int trk = fParticleV[itr];
-  int stp = fNstepsV[itr];
-  bool onbound = fBoundaryV[itr];
-  bool inside = shape->Contains(local);
-  double safin = shape->Safety(local, true);
-  double safout = shape->Safety(local, false);
-
-  // 1. Check that the current state really contains the particle position if the position is not declared on boundary.
-  if (!onbound && !inside && safout > 0.01) {
-    Printf("ERRINSIDE: evt=%d trk=%d stp=%d (%16.14f,  %16.14f, %16.14f) not inside. safout=%g", evt, trk, stp,
-           point[0], point[1], point[2], safout);
-    //    PrintTrack(itr);
-    return false;
-  }
-  // 2. Check that the safety state is consistent
-  if (!onbound && inside) {
-    if (safin < fSafetyV[itr] - 1.E-8) {
-      Printf("ERRSAFIN: evt=%d trk=%d stp=%d (%16.14f,  %16.14f, %16.14f) safin=%g smaller than track safety=%g", evt,
-             trk, stp, point[0], point[1], point[2], safin, fSafetyV[itr]);
-      return false;
-    }
-  }
-#endif
-  return true;
-}
-
-//______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
-bool GeantTrackGeo::BreakOnStep(int evt, int trk, int stp, int nsteps, const char *msg, int itr) {
+bool TransportManager::BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp, int nsteps, const char *msg, int itr) {
   // Return true if container has a track with a given number doing a given step from a given event
   // Debugging purpose
-  int ntracks = GetNtracks();
   int start = 0;
-  int end = ntracks;
+  int end = tracks.size();
   bool has_it = false;
   if (itr >= 0) {
     start = itr;
     end = itr + 1;
   }
   for (itr = start; itr < end; ++itr) {
-    if ((fParticleV[itr] == trk) && (fEventV[itr] == evt) &&
-        ((fNstepsV[itr] >= stp) && (fNstepsV[itr] < stp + nsteps))) {
+    GeantTrack &track = *tracks[itr];
+    if ((track.fParticle == trk) && (track.fEvent == evt) &&
+        ((track.fNsteps >= stp) && (track.fNsteps < stp + nsteps))) {
       has_it = true;
 #ifndef GEANT_NVCC
-      PrintTrack(itr, msg);
+      track.Print(msg);
 #else
       (void)msg;
 #endif
@@ -839,87 +746,5 @@ bool GeantTrackGeo::BreakOnStep(int evt, int trk, int stp, int nsteps, const cha
 }
 
 } // GEANT_IMPL_NAMESPACE
-
-#ifdef GEANT_CUDA
-#ifndef GEANT_NVCC
-
-bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrackGeo> dest, cxx::GeantTrackGeo *source, cudaStream_t stream) {
-  // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
-  // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
-  //       == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
-
-  size_t bufferOffset = GeantTrackGeo::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrackGeo>::SizeOf());
-  long offset = ((const char *)dest.GetPtr() + bufferOffset) - (const char *)source->Buffer();
-  for (int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx) {
-    // Technically this offset is a 'guess' and depends on the
-    // host (cxx) and device (cuda) GeantTrackGeo to be strictly aligned.
-    if (source->fPathV[hostIdx])
-      source->fPathV[hostIdx] = (VolumePath_t *)(((char *)source->fPathV[hostIdx]) + offset);
-    if (source->fNextpathV[hostIdx])
-      source->fNextpathV[hostIdx] = (VolumePath_t *)(((char *)source->fNextpathV[hostIdx]) + offset);
-  }
-  // const char* destBuf =  ((const char*)dest.GetPtr() + bufferOffset;
-  // const char* sourBuf =  (const char*)source->Buffer();
-  // for(int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx ) {
-  //    fprintf(stderr,"Track[%d] : val=%p diff=%p off=%p\n", hostIdx, source->fPathV[hostIdx],
-  //            ((const char*)source->fPathV[hostIdx]) - destBuf,  ((const char*)source->fPathV[hostIdx]) - offset);
-  // }
-
-  assert(((void *)source) == ((void *)(&(source->fNtracks))));
-
-  fprintf(stderr,"Posting the copy from host=%p to device=%p and size=%ld\n",
-          source->Buffer(),
-          ((char*)dest.GetPtr()) + bufferOffset,
-          source->BufferSize());
-  // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(((char*)dest.GetPtr()) + bufferOffset,
-                                   source->Buffer(),
-                                   source->BufferSize(),
-                                   cudaMemcpyHostToDevice, stream));
-  // Copy stream->fInputBasket->fNtracks, stream->fInputBasket->fNselected, stream->fInputBasket->fCompact, stream->fInputBasket->fMixed
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
-                                   source,
-                                   sizeof(int)*2+sizeof(Bool_t)*2,
-                                   cudaMemcpyHostToDevice, stream));
-
-  return true;
-}
-
-void FromDeviceConversion(cxx::GeantTrackGeo *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrackGeo> source) {
-  size_t bufferOffset = GeantTrackGeo::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrackGeo>::SizeOf());
-  // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
-  // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
-  //        == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
-
-  long offset = ((const char *)dest->Buffer()) - (((const char *)source.GetPtr()) + bufferOffset);
-  for (int hostIdx = 0; hostIdx < dest->GetNtracks(); ++hostIdx) {
-    // Technically this offset is a 'guess' and depends on the
-    // host (cxx) and device (cuda) GeantTrackGeo to be strictly aligned.
-    if (dest->fPathV[hostIdx])
-      dest->fPathV[hostIdx] = (VolumePath_t *)(((char *)dest->fPathV[hostIdx]) + offset);
-    if (dest->fNextpathV[hostIdx])
-      dest->fNextpathV[hostIdx] = (VolumePath_t *)(((char *)dest->fNextpathV[hostIdx]) + offset);
-  }
-}
-
-bool FromDevice(cxx::GeantTrackGeo *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrackGeo> source, cudaStream_t stream) {
-  size_t bufferOffset = GeantTrackGeo::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrackGeo>::SizeOf());
-  // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
-                                   source.GetPtr(),
-                                   sizeof(int)*2+sizeof(Bool_t)*2,
-                                   cudaMemcpyDeviceToHost, stream));
-  fprintf(stderr,"Posting the copy from device=%p to host=%p and size=%lu\n",
-          ((char*)source.GetPtr()) + bufferOffset,
-          dest->Buffer(),
-          dest->BufferSize());
-  GEANT_CUDA_ERROR(cudaMemcpyAsync(dest->Buffer(),
-                                   ((char*)source.GetPtr()) + bufferOffset,
-                                   dest->BufferSize(),
-                                   cudaMemcpyDeviceToHost, stream));
-  return true;
-}
-#endif
-#endif
 
 } // Geant

@@ -16,6 +16,8 @@ set(sources
    ../base/src/Error.cxx
    src/GeantTaskData.cxx
    src/GeantTrack.cxx
+   src/GeantTrackVec.cxx
+   src/GeantTrackGeo.cxx
    src/GeantBasket.cxx
    src/sync_objects.cxx
    src/GeantOutput.cxx
@@ -31,6 +33,8 @@ set(sources
    src/StdApplication.cxx
    src/TThreadMergingFile.cxx
    src/TThreadMergingServer.cxx
+   src/TrackManager.cxx
+   src/TransportManager.cxx
 )
 
 set(headers
@@ -41,6 +45,8 @@ set(headers
    inc/GeantBasket.h
    inc/GeantPropagator.h
    inc/GeantTrack.h
+   inc/GeantTrackVec.h
+   inc/GeantTrackGeo.h
    inc/GeantOutput.h
    inc/GeantVApplication.h
    inc/GeantTrackStat.h
@@ -50,6 +56,7 @@ set(headers
    inc/PrimaryGenerator.h
    inc/TThreadMergingFile.h
    inc/TThreadMergingServer.h
+   inc/TrackManager.h
 )   
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

@@ -24,7 +24,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
       fPath(nullptr), fBmgr(nullptr), fPool(),
       fSOA3Dworkspace1(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)),
       fSOA3Dworkspace2(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)), 
-      fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fNkeepvol(0),
+      fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fTransported1(), fNkeepvol(0),
       fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
 {
   // Constructor
@@ -42,6 +42,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 #endif
 #endif
   fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
+  fTransported1.reserve(maxPerBasket);
 }
 
 template <typename T>
