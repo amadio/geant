@@ -94,9 +94,9 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = material/inc material/src material/doc
+INPUT                  = material/inc material/src material/doc models/EM/inc models/EM/src utils/inc utils/src dummies/inc dummies/src
 # the bib
-CITE_BIB_FILES         = material/doc/biblio
+CITE_BIB_FILES         = material/doc/biblio models/EM/doc/biblio
 #
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
