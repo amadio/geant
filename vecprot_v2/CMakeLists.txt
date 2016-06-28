@@ -1,7 +1,7 @@
+# Add this directory to Doxygen
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
-
 
 include_directories(inc)
 include_directories("${CMAKE_SOURCE_DIR}/magneticfield/inc")
@@ -179,7 +179,7 @@ install(TARGETS CMSApp runApp DESTINATION bin)
 add_dependencies(runApp Geant_v Xsec GeantExamples)
 else()  # ---- KNC
   add_library(Geant_v SHARED ${sources})
-#target_link_libraries(Geant_v -lEG -lGeom)
+
 if(USE_VECGEOM_NAVIGATOR )
   target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 endif()
@@ -192,10 +192,6 @@ target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXse
         ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
 add_dependencies(CMSApp Geant_v Xsec GeantExamples)
-
-endif()
-if (NOT KNC)
-install(TARGETS CMSApp runApp DESTINATION bin)
-else()
 install(TARGETS CMSApp DESTINATION bin)
+
 endif()
