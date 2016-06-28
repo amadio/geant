@@ -222,8 +222,7 @@ if(USE_ROOT)
 
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
    include(${ROOT_USE_FILE})
-   include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR})
-#   list(APPEND ROOT_LIBRARIES EG Gui Geom)
+   include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIRS})
 
    add_definitions("-DUSE_ROOT")
 endif()
