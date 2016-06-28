@@ -5,10 +5,6 @@ endif()
 
 # Configuration options
 
-option(VC_ACCELERATION "Internal vectorization using Vc." ON)
-
-option(KNC "Enable compilation for KNC." OFF)
-
 option(GUBENCHMARK "Enable performance comparisons." OFF)
 
 option(DISTANCE_DEBUG "Enable comparision of calculcated distances againt ROOT/Geant4 behind the scenes" OFF)

@@ -127,7 +127,8 @@ else()
   install(TARGETS Xsec DESTINATION lib)
 endif()
 
-if (NOT KNC)
+if(NOT USE_ROOT)
+
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
 endif()
