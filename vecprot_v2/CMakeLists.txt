@@ -1,5 +1,8 @@
-#----------------------------------------------------------------------------
-# Setup the project
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 
 include_directories(inc)
 include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
@@ -177,30 +180,3 @@ if(CTEST)
 endif()
 
 install(TARGETS CMSApp runApp DESTINATION bin)
-add_dependencies(runApp Geant_v Xsec GeantExamples)
-else()  # ---- MIC
-  add_library(Geant_v SHARED ${sources})
-#target_link_libraries(Geant_v -lEG -lGeom)
-if(USE_VECGEOM_NAVIGATOR )
-  target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-endif()
-add_custom_target(Geantlib_v DEPENDS Geant_v)
-install(TARGETS Geant_v DESTINATION lib)
-
-
-find_package(HepMC REQUIRED)
-include_directories("${HEPMC_INCLUDE_DIR}")
-
-add_executable(CMSApp CMSApp.cc)
-
-target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
-        ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-
-add_dependencies(CMSApp Geant_v Xsec GeantExamples)
-
-endif()
-if (NOT MIC)
-install(TARGETS CMSApp runApp DESTINATION bin)
-else()
-install(TARGETS CMSApp DESTINATION bin)
-endif()
