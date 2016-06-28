@@ -18,16 +18,9 @@
 ClassImp(TNudyEndfAng)
 #endif
 
-TNudyEndfAng::TNudyEndfAng(){}
-
+TNudyEndfAng::TNudyEndfAng () : TNudyEndfRecoPoint(){}
 //______________________________________________________________________________
 TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
-/*:energy4OfMts(energy4OfMts),
-Mt4Values(Mt4Values),
-Mt4Lct(Mt4Lct),
-cosPdf4OfMts(cosPdf4OfMts),
-cosCdf4OfMts(cosCdf4OfMts)
-*/
 {
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
@@ -41,7 +34,7 @@ cosCdf4OfMts(cosCdf4OfMts)
     int LI = header->GetL1();
     int LCT = header->GetL2();
     MtLct.push_back(LCT);
-    //	printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
+    	printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
     //Legendre polynomial coefficients
     if (LTT == 1 && LI == 0) { 
       TNudyEndfTab2 *tab2 = (TNudyEndfTab2 *)recIter.Next();
@@ -156,8 +149,10 @@ cosCdf4OfMts(cosCdf4OfMts)
           cosFile4.push_back(tab->GetX(j));
           cosPdfFile4.push_back(tab->GetY(j));
         }
-	for(int l=0; l < tab->GetNP() - 1; l++){
-	  recursionLinearProb(cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
+        if(np > 2){
+	  for(int l=0; l < tab->GetNP() - 1; l++){
+	    recursionLinearProb(cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
+	  }
 	}
 	fillPdf1d();
 	nbt1.clear();
@@ -180,8 +175,14 @@ cosCdf4OfMts(cosCdf4OfMts)
   }//end while loop
   Mt4Values.push_back(MtNumbers);
   Mt4Lct.push_back(MtLct);
+  energy4OfMts.push_back(ein2d);
+  cosPdf4OfMts.push_back(pdf3d);
+  cosCdf4OfMts.push_back(cdf3d);
   std::vector<int>().swap(MtNumbers);
   std::vector<int>().swap(MtLct);
+  ein2d.clear();
+  pdf3d.clear();
+  cdf3d.clear();
   /*
   std::cout<<"energies "<< energy4OfMts.size() << std::endl;
   for(unsigned long i = 0; i < energy4OfMts.size(); i++){
@@ -228,7 +229,7 @@ double TNudyEndfAng::recursionLinearProb(double x1, double x2, double pdf1, doub
   double pdfmid1 = pdf1 + (pdf2 - pdf1)*(mid - x1)/(x2 - x1);
 //  std::cout << mid <<" linear "<< pdf <<"  "<< pdfmid1 << std::endl;
   
-  if(fabs((pdf - pdfmid1)/pdfmid1)<=1E-3){
+  if(fabs((pdf - pdfmid1)/pdfmid1) <= 1E-3){
     return 0;
   }
   cosFile4.push_back(mid); 
@@ -244,7 +245,8 @@ void TNudyEndfAng::fillPdf1d() {
     pdf.push_back(cosFile4[i]);
     pdf.push_back(cosPdfFile4[i]);
     cdf.push_back(cosFile4[i]);
-    cdf.push_back(cosCdfFile4[i]);	  
+    cdf.push_back(cosCdfFile4[i]);
+    //std::cout<<cosFile4[i] <<"  "<<cosPdfFile4[i] <<"  "<< cosCdfFile4[i] << std::endl;
   }
   pdf2d.push_back(pdf);
   cdf2d.push_back(cdf);
@@ -255,9 +257,9 @@ void TNudyEndfAng::fillPdf1d() {
   cdf.clear();
 }
 void TNudyEndfAng::fillPdf2d() {
-  energy4OfMts.push_back(ein);
-  cosPdf4OfMts.push_back(pdf2d);
-  cosCdf4OfMts.push_back(cdf2d);
+  ein2d.push_back(ein);
+  pdf3d.push_back(pdf2d);
+  cdf3d.push_back(cdf2d);
   ein.clear();
   pdf2d.clear();
   cdf2d.clear();

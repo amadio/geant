@@ -386,16 +386,22 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	nbt1.clear(); int1.clear(); fE1.clear(); fP1.clear();
 	nbt2.clear(); int2.clear(); fE2.clear(); fP2.clear();
       }
-      energy5OfMts.push_back(ein);
-      energyPdf5OfMts.push_back(pdf2d);
-      energyCdf5OfMts.push_back(cdf2d);
+      ein2d.push_back(ein);
+      pdf3d.push_back(pdf2d);
+      cdf3d.push_back(cdf2d);
       ein.clear();
       pdf2d.clear();
       cdf2d.clear();
     }
   }
   Mt5Values.push_back(MtNumbers);
+  energy5OfMts.push_back(ein2d);
+  energyPdf5OfMts.push_back(pdf3d);
+  energyCdf5OfMts.push_back(cdf3d);
   MtNumbers.clear();
+  ein2d.clear();
+  pdf3d.clear();
+  cdf3d.clear();
   /*
   for(unsigned long i = 0; i < energy5OfMts.size() ; i++){
       std::cout <<" mt "<<Mt5Values[0][i]<<" size "<< energy5OfMts[i].size() << std::endl;

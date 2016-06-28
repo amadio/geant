@@ -13,6 +13,7 @@
 #include "TNudyCore.h"
 #include "TNudyEndfEnergyAng.h"
 #include "Math/SpecFuncMathMore.h"
+//#include "TNudyEndfRecoPoint.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfEnergyAng)
@@ -21,7 +22,7 @@ ClassImp(TNudyEndfEnergyAng)
 TNudyEndfEnergyAng::TNudyEndfEnergyAng(){}
 
 //______________________________________________________________________________
-TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
+TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file, double iQValue[])
 {
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
@@ -154,9 +155,9 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	    edes6.clear(); f06.clear(); r6.clear(); a6.clear();
 	}
       }      
-      energy5OfMts.push_back(ein);
-      energyPdf5OfMts.push_back(pdf2d);
-      energyCdf5OfMts.push_back(cdf2d);
+      ein2d.push_back(ein);
+      pdf3d.push_back(pdf2d);
+      cdf3d.push_back(cdf2d);
       ein.clear();
       pdf2d.clear();
       cdf2d.clear();
@@ -244,9 +245,9 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	    cdf.clear();
 	  }
 	}
-	energy5OfMts.push_back(ein);
-	energyPdf5OfMts.push_back(pdf2d);
-	energyCdf5OfMts.push_back(cdf2d);
+	ein2d.push_back(ein);
+	pdf3d.push_back(pdf2d);
+	cdf3d.push_back(cdf2d);
 	ein.clear();
 	pdf2d.clear();
 	cdf2d.clear();
@@ -304,13 +305,13 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	TNudyEndfCont *header = (TNudyEndfCont *)recIter.Next();
 	APSX   = header->GetC1();
 	NPSX   = header->GetN2();
-	double energy = std::fabs(-(1. + AWRI)*QValue[sec->GetMT()]/AWRI), eout =1E-5;
-        //std::cout<<" begin incident energy "<< energy <<"  "<< QValue[sec->GetMT()] << std::endl;
+	double energy = std::fabs(-(1. + AWRI)*iQValue[sec->GetMT()]/AWRI), eout =1E-5;
+        //std::cout<<" begin incident energy "<< energy <<"  "<< GetQValue(sec->GetMT()) << std::endl;
 	energy += 0.001*(energy);
 	do
 	{
 	  ein.push_back(energy);
-	  double Ea = AWRI * energy/(1. + AWRI) + QValue[sec->GetMT()];
+	  double Ea = AWRI * energy/(1. + AWRI) + iQValue[sec->GetMT()];
 	  double EiMax = (APSX - AWP ) * Ea /APSX ;
 	  //double EStar = energy/(AWP + AWRI);
 	  double C[3] = {4./(PI*EiMax*EiMax), 105./(32. * pow(EiMax, 3.5)), 256./(14.*PI*pow(EiMax,5))};
@@ -322,7 +323,6 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	  {
 	    double ppeCm = 0.0;
 	    ppeCm = C[NPSX-3]*sqrt(eout)*pow((EiMax - eout),1.5*NPSX-4);
-	    //std::cout<<" E = "<<energy <<"  "<<eout <<"  "<< ppeCm <<"  "<< QValue[sec->GetMT()] << std::endl;
 	    energyFile5.push_back(eout);
 	    energyPdfFile5.push_back(ppeCm);
 	    eout *= 2;
@@ -346,9 +346,9 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	    cdf.clear();
 	    energy *= 2;
 	}while(energy < fE1[NP-1]);	   
-	energy5OfMts.push_back(ein);
-	energyPdf5OfMts.push_back(pdf2d);
-	energyCdf5OfMts.push_back(cdf2d);
+	ein2d.push_back(ein);
+	pdf3d.push_back(pdf2d);
+	cdf3d.push_back(cdf2d);
 	ein.clear();
 	pdf2d.clear();
 	cdf2d.clear();
@@ -403,7 +403,7 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	    pdf.push_back(energyPdfFile5[i]);
 	    cdf.push_back(energyFile5[i]);
 	    cdf.push_back(energyCdfFile5[i]);
-	    std::cout << energyFile5[i] << "  "<< energyPdfFile5[i] <<"  "<< energyCdfFile5[i] << std::endl;
+	    //std::cout << energyFile5[i] << "  "<< energyPdfFile5[i] <<"  "<< energyCdfFile5[i] << std::endl;
 	  }
 	  pdf2d.push_back(pdf);
 	  cdf2d.push_back(cdf);
@@ -416,9 +416,9 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
 	  int3.clear();
 	 }	
 	}
-      energy5OfMts.push_back(ein);
-      energyPdf5OfMts.push_back(pdf2d);
-      energyCdf5OfMts.push_back(cdf2d);
+      ein2d.push_back(ein);
+      pdf3d.push_back(pdf2d);
+      cdf3d.push_back(cdf2d);
       ein.clear();
       pdf2d.clear();
       cdf2d.clear();
@@ -428,10 +428,16 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file)
       }
     }  
   }
+  energy5OfMts.push_back(ein2d);
+  energyPdf5OfMts.push_back(pdf3d);
+  energyCdf5OfMts.push_back(cdf3d);
   Mt5Values.push_back(MtNumbers);
-  MtNumbers.clear();
   Mt4Lct.push_back(MtLct);
+  MtNumbers.clear();
   MtLct.clear();
+  ein2d.clear();
+  pdf3d.clear();
+  cdf3d.clear();
   /*  
   for(unsigned long i = 0; i < energy5OfMts.size(); i++){
       std::cout <<" mt "<<Mt5Values[0][i]<<" size "<< energy5OfMts[i].size() << std::endl;

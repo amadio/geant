@@ -36,41 +36,43 @@ typedef std::vector<int> rowint;
 typedef std::vector<rowint > matrixint;
 typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
+typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
 
 class  TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfRecoPoint();
+  TNudyEndfRecoPoint(int ielemId, const char *irENDF, double isigDiff);
   virtual ~TNudyEndfRecoPoint();
-  void GetData(const char *rENDF);
+  void GetData(int elemid, const char *irENDF,double isigDiff);
   double SetsigPrecision(double x1){return sigDiff = x1;}
   void broadSigma(rowd &x1, rowd &x2, rowd &x3);
   void fixupTotal(rowd &x1, rowd &x2);
-  double GetSigmaTotal(double energyK);
-  double GetSigmaPartial(int i, double energyK);
-  double GetCos4(int mt, double energyK);
-  double GetEnergy5(int mt, double energyK);
+  double GetSigmaTotal(int elemid, double energyK);
+  double GetSigmaPartial(int elemid, int i, double energyK);
+  double GetCos4(int elemid, int mt, double energyK);
+  double GetEnergy5(int elemid, int mt, double energyK);
+  virtual double GetQValue(int i) const { return QValue[i]; }
   std::fstream out,outtotal;
   std::string outstring,outstringTotal;
-  rowd energyUni,sigmaUniTotal;		// unionization of energy and total cross-section
-  matrixd2 sigmaOfMts;         // sigma for each reaction
-  matrixd2 sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
-  matrixint MtValues;              // MT values for which cross-section/ heating values are given 
-  rowint energyLocationMts;			// MT wise starting energy for cross-section
-  int NoOfElements = 0;
-  double sigDiff;					// precision for cross-section reconstruction
+  matrixint MtValues;              // MT values for which cross-section/ heating values are given  all elements
+  matrixd2 eneUni,sigUniT;		// unionization of energy and total cross-section
 protected:
-  matrixd3 cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
-  matrixd3 cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
-  matrixd2 energy4OfMts;       // incident energy in file 4 for each reaction
+  int elemId;
+  const char *rENDF;					// precision for cross-section reconstruction
+  double sigDiff;					// precision for cross-section reconstruction
+  matrixd3 sigUniOfMt;      // sigma for each reaction afte unionization of energy and all elements
+  matrixint energyLocMtId;			// MT wise starting energy for cross-section all elements
+  matrixd4 cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
+  matrixd4 cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
+  matrixd3 energy4OfMts;       // incident energy in file 4 for each reaction
   matrixint Mt4Values;             // MT values for which angular distributions are given in file 4
   matrixint Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
-  matrixd3 energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
-  matrixd3 energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
-  matrixd2 energy5OfMts;       // incident energy in file 4 for each reaction
+  matrixd4 energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
+  matrixd4 energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
+  matrixd3 energy5OfMts;       // incident energy in file 4 for each reaction
   matrixint Mt5Values;             // MT values for which angular distributions are given in file 4
   double AWRI;
-  double QValue[999];
 private:
   void ReadFile2(TNudyEndfFile *file);
   void ReadFile3(TNudyEndfFile *file);
@@ -82,6 +84,7 @@ private:
   void GetSigmaRMP(double x, double &siga, double &sigb, double &sigc);
   void InverseMatrix();
   double backCrsAdler(double x, int l1);
+  void SetQValue(double fQValue, int i) { QValue[i] = fQValue; }
   double calcPhi(double x, int l);
   double calcShift(double x, int l);
   double calcPene(double x, int l);
@@ -104,6 +107,7 @@ private:
 
   int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, LSSF, NLS2, NJS, INT,NIS,intLinLru1=0; // standard ENDF parameters
   int LRX,cueMat=0;                                     // flag for inelastic reaction, number of J
+  double QValue[999];
   int dopplerBroad=0, flagResolve=0, flagUnResolve=0;   // flag for Doppler broadening for thinning, Resolve  and URR parameter exist
   double eLo1=0, eLo2=0, eHi1=0,  eHi2=0, eLo=0, eHi=0; // Resonance energy range Low, High
   double SPI, AP, APL[10], rad_a;                       // Target Spin (I), Scattering Radius (AP), L-dependent AP, Channel radius (a)
@@ -116,6 +120,10 @@ private:
   double RI[3][3],SI[3][3];                             // matrix for RM formalism
   double MissingJ[5][50], MisGj[5]; int NJValue[5];     // J values in sorted form
   int NR, NP, NE;                         // standard ENDF parameters for range and interpolation
+  rowd energyUni,sigmaUniTotal;		// unionization of energy and total cross-section
+  matrixd2 sigmaOfMts;         // sigma for each reaction
+  matrixd2 sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
+  rowint energyLocationMts;			// MT wise starting energy for cross-section
   rowint MtNumbers;				// MT numbers
   rowd sigmaMts;				// MT numbers for sigma in file3
   rowd eLinElastic,eLinCapture,eLinFission;

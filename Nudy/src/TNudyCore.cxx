@@ -336,7 +336,8 @@ void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, st
   }
   double df = 0.0;
   for(unsigned long cr=0; cr < x1.size() ; cr ++){
-    if(cos4Cdf > 0.0)x2[cr] = x2[cr]/cos4Cdf;
+    if(cos4Cdf > 0.0)x2[cr] /= cos4Cdf;
+    // printf("%e   %e\n", x2[cr], cos4Cdf);
     df += x2[cr];
     x3.push_back(df);
   }

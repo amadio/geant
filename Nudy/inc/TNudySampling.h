@@ -2,29 +2,26 @@
 #define TNudySampling_H
 
 #define PI acos(-1.0)
-class TNudyEndfNuPh;
-class TNudyEndfFissionYield;
-class TNudyEndfEnergy;
-class TNudyEndfEnergyAng;
-class TNudyEndfAng;
-class TNudyEndfRecoPoint;
+#ifdef USE_ROOT
+#include "Rtypes.h"
+class TRandom;
+#endif
 
-class  TNudySampling {
+class  TNudySampling{
 
 public: 
   TNudySampling ();
-  TNudySampling (const char *rENDF);
+  TNudySampling (TNudyEndfRecoPoint *recoPoint);
   virtual ~TNudySampling ();
 private:
-  TNudyEndfAng *recoAng;
-  TNudyEndfEnergy *recoEnergy;
-  TNudyEndfEnergyAng *recoEnergyAng;
-  TNudyEndfNuPh *recoNuPh;
-  TNudyEndfFissionYield *recoFissY;
-  TNudyEndfRecoPoint *recoPoint;
-
+  
+ #ifdef USE_ROOT
+  TRandom *fRnd;
+#endif
+ 
 #ifdef USE_ROOT
   ClassDef(TNudySampling, 1) // class for sampling
 #endif
+
 };
 #endif

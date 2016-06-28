@@ -2,40 +2,68 @@
 // 	Author: Dr. Harphool Kumawat
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: June 22, 2016
-
 #include <iostream>
-#include "TNudyEndfNuPh.h"
-#include "TNudyEndfDoppler.h"
-#include "TNudyEndfAng.h"
-#include "TNudyEndfEnergy.h"
-#include "TNudyEndfEnergyAng.h"
-#include "TNudyEndfFissionYield.h"
-#include "TNudyCore.h"
+//#include "TNudyEndfDoppler.h"
+//#include "TNudyEndfAng.h"
+//#include "TNudyEndfEnergy.h"
+//#include "TNudyEndfEnergyAng.h"
+//#include "TNudyEndfFissionYield.h"
+//#include "TNudyCore.h"
 #include "TNudyEndfRecoPoint.h"
 #include "TNudySampling.h"
+#ifdef USE_ROOT
+#include "TRandom.h"
+#endif
 
 #ifdef USE_ROOT
 ClassImp(TNudySampling)
 #endif
+
 TNudySampling::TNudySampling(){}
-//______________________________________________________________________________
-TNudySampling::TNudySampling(const char *rENDF)
-{
-  ///*
-  recoPoint = new TNudyEndfRecoPoint();
-  recoAng = new TNudyEndfAng ();
-  recoPoint->SetsigPrecision(1E-3);
-  recoPoint->GetData(rENDF);
-  double sigmaTotal = recoPoint->GetSigmaTotal(20.0);
-  std::cout <<" sigma Total "<< sigmaTotal << std::endl;
-  /*
-  for (unsigned int i = 0; i < recoPoint->sigmaUniOfMts.size(); i++) {
-    double sigmaPartial = recoPoint->GetSigmaPartial(i, 20.0);
-    std::cout <<"MT = "<< recoPoint->MtValues[0][i] <<" sigma Partial = "<< sigmaPartial << std::endl;
-     std::cout<<" cos "<< recoPoint->GetCos4(recoPoint->MtValues[0][i], 20.0) << std::endl;
-   std::cout<<" energy "<< recoPoint->GetEnergy5(recoPoint->MtValues[0][i], 20.0) << std::endl;
-  }
-  */
-  //*/
-} 
+//------------------------------------------------------------------------------------------------------
+TNudySampling::TNudySampling(TNudyEndfRecoPoint *recoPoint){
+  fRnd = new TRandom();
+  std::cout <<"sampling sigmaTotal "<< recoPoint->GetSigmaTotal(0,20) << std::endl;
+  std::cout <<"sampling sigmaPartial total "<< recoPoint->GetSigmaPartial(0,0,20) << std::endl;
+  std::cout <<"sampling sigmaPartial elstic "<< recoPoint->GetSigmaPartial(0,1,20) << std::endl;
+  // determining reaction type from element;
+  int elemId = 0;
+  //double density = 1;
+  //double mass = 1;
+  //double charge = 1;
+  //double avg = 6.022E23;
+  //double ro = avg * density / mass;
+  double kineticE = 10; 
+  int isel = 0;
+  std::vector<double> crs;
+  int enemax = recoPoint->eneUni[elemId].size(); 
+  int counter =0;
+  do
+  {
+    double sum1 = 0;
+    kineticE = fRnd->Uniform(1) * recoPoint->eneUni[elemId][enemax-1];
+    for(unsigned int crsp = 0; crsp < recoPoint->MtValues[elemId].size(); crsp++){
+      crs.push_back(recoPoint->GetSigmaPartial(elemId,crsp,kineticE)/recoPoint->GetSigmaTotal(elemId,kineticE));
+    }  
+    double rnd1 = fRnd->Uniform(1);    
+    for(unsigned int crsp = 0; crsp < recoPoint->MtValues[elemId].size(); crsp++){
+      sum1 += crs[crsp];
+      if(rnd1 <= sum1){
+	isel = crsp;
+	break;
+      }
+    }
+    //std::cout <<"selected reaction MT  "<< recoPoint->MtValues[elemId][isel] <<"  "<< kineticE << std::endl;
+    int MT = recoPoint->MtValues[elemId][isel];
+    //double cosT = recoPoint->GetCos4(elemId, MT, kineticE);
+    //std::cout <<"counter "<<counter <<" cos "<< cosT << std::endl;
+    double secEnergy = recoPoint->GetEnergy5(elemId, MT, kineticE);
+    //std::cout <<"counter "<<counter <<" energy "<< secEnergy << std::endl;
+    crs.clear();
+    counter++;
+  }while(counter < 100);
+  std::cout<<" end sampling "<< std::endl;
+}
+//------------------------------------------------------------------------------------------------------
+
 TNudySampling::~TNudySampling(){}

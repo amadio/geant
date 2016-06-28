@@ -7,6 +7,7 @@
 typedef std::vector<double> rowd;
 typedef std::vector<int> rowint;
 typedef std::vector<rowd > matrixd2;
+typedef std::vector<std::vector<rowd > > matrixd3;
 
 class  TNudyEndfEnergy : public TNudyEndfRecoPoint {
 
@@ -37,7 +38,8 @@ private:
   rowd energyPdfFile5;
   rowd energyCdfFile5;
   rowd ein, cdf, pdf;
-  matrixd2 cdf2d, pdf2d;
+  matrixd2 cdf2d, pdf2d,ein2d;
+  matrixd3 cdf3d, pdf3d;
   ClassDef(TNudyEndfEnergy, 1) // class for an ENDF energy reconstruction
 };
 #endif

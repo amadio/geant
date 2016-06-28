@@ -4,7 +4,10 @@
 #include "TNudyEndfRecoPoint.h"
 typedef std::vector<double> rowd;
 typedef std::vector<int> rowint;
+typedef std::vector<rowint > matrixint;
 typedef std::vector<rowd > matrixd2;
+typedef std::vector<std::vector<rowd > > matrixd3;
+typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
 
 class  TNudyEndfAng : public TNudyEndfRecoPoint {
 
@@ -19,7 +22,8 @@ private:
   void fillPdf2d();
   double A, AWR, ABN, QX;                         // standard ENDF parameters
   rowd ein,cdf,pdf,lCoef1;
-  matrixd2 pdf2d,cdf2d,lCoef;
+  matrixd2 pdf2d,cdf2d,lCoef,ein2d;
+  matrixd3 pdf3d,cdf3d;
   rowd cosFile4;
   rowd cosPdfFile4;
   rowd cosCdfFile4;
