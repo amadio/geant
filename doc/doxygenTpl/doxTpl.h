@@ -3,14 +3,12 @@
 
 /**
    @file doxTpl.h Header file for doxTpl
-
    Usually there is not much to say about the file itself as it is better
    to link the information to the module or to the class
 */
 
 /**
    @defgroup doxygenExample Doxygen example for geant
-
    This is the example group for the Doxygen example for geant
 */
 

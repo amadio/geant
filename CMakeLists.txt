@@ -55,14 +55,26 @@ configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
     IMMEDIATE @ONLY)
 
+<<<<<<< f389fa915a552bc1faf52f20ce556e133c665297
+=======
+# configure the Doxygen file
+configure_file(
+  "doxygen.conf.in"
+  "doxygen.conf"
+  IMMEDIATE @ONLY) 
+  
+>>>>>>> [GEANT-217]Integrate Doxygen with CMake
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 # Doxygen documentation
 #__________________________________________________________________________________________________________________
+<<<<<<< f389fa915a552bc1faf52f20ce556e133c665297
 # based on the files from Tobias Rautenkrantz
 # https://tobias.rautenkranz.ch/cmake/doxygen/
 
+=======
+>>>>>>> [GEANT-217]Integrate Doxygen with CMake
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   find_file(DOXYFILE_IN "Doxyfile.in"
@@ -76,7 +88,11 @@ if(DOXYGEN_FOUND)
     set(DOXYFILE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc/Doxygen" CACHE PATH "Doxygen output directory")
     set(DOXYFILE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc/Doxygen" CACHE PATH "Doxygen documentation installation directory")
     set(DOXYFILE_SOURCE_DIRS "")
+<<<<<<< f389fa915a552bc1faf52f20ce556e133c665297
     set(DOXYFILE_LATEX "NO" CACHE BOOL "Generate LaTeX API documentation")
+=======
+    set(DOXYFILE_LATEX "YES" CACHE BOOL "Generate LaTeX API documentation")
+>>>>>>> [GEANT-217]Integrate Doxygen with CMake
     set(DOXYFILE_MATHJAX "YES" CACHE BOOL "Use MATHJAX to render formulas in HTML")
     set(DOXYFILE_PDFLATEX "NO" CACHE BOOL "Use pdflatex for better quality pdf files")
     set(DOXYFILE_CITE_BIB_FILES "")
@@ -150,10 +166,13 @@ if(DOXYGEN_FOUND)
  
   install(DIRECTORY ${DOXYFILE_OUTPUT_DIR}/html 
     DESTINATION ${DOXYFILE_INSTALL_DIR})
+<<<<<<< f389fa915a552bc1faf52f20ce556e133c665297
 
 #------------------------------------- Add our Doxygen template source
   set(DOXYFILE_SOURCE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/doc/doxygenTpl")
 
+=======
+>>>>>>> [GEANT-217]Integrate Doxygen with CMake
 endif()
 
 #----------------------------------------------------------------------------
