@@ -11,7 +11,8 @@
 *
 <table>
 <caption id="DensityEffectDataDoc">Density effect parameters used in geant::MaterialProperties</caption>
-<tr><th rowspan="1">  Name <th rowspan="1"> Plasma energy  [eV] <th rowspan="1"> -C<th rowspan="1"> X_0 <th rowspan="1"> X_1 <th rowspan="1"> a <th rowspan="1"> m <th rowspan="1"> Delta_0 <tr><td> \c NIST_MAT_lH2 <td> 7.031 <td> 3.2632 <td> 0.4759 <td> 1.9215 <td> 0.13483 <td> 5.6249 <td> 0
+<tr><th rowspan="1">  Name <th rowspan="1"> Plasma energy  [eV] <th rowspan="1"> -C <th rowspan="1"> X_0 <th rowspan="1"> X_1 <th rowspan="1"> a <th rowspan="1"> m <th rowspan="1"> Delta_0 
+<tr><td> \c NIST_MAT_lH2 <td> 7.031 <td> 3.2632 <td> 0.4759 <td> 1.9215 <td> 0.13483 <td> 5.6249 <td> 0
 <tr><td> \c NIST_MAT_H <td> 0.263 <td> 9.5835 <td> 1.8639 <td> 3.2718 <td> 0.14092 <td> 5.7273 <td> 0
 <tr><td> \c NIST_MAT_He <td> 0.263 <td> 11.1393 <td> 2.2017 <td> 3.6122 <td> 0.13443 <td> 5.8347 <td> 0
 <tr><td> \c NIST_MAT_Li <td> 13.844 <td> 3.1221 <td> 0.1304 <td> 1.6397 <td> 0.95136 <td> 2.4993 <td> 0.14
