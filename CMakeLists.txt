@@ -66,6 +66,9 @@ add_custom_target(uninstall
 
 # Doxygen documentation
 #__________________________________________________________________________________________________________________
+# based on the files from Tobias Rautenkrantz
+# https://tobias.rautenkranz.ch/cmake/doxygen/
+
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   find_file(DOXYFILE_IN "Doxyfile.in"

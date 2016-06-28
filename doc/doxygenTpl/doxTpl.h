@@ -3,14 +3,14 @@
 
 /**
    @file doxTpl.h Header file for doxTpl
-   
+
    Usually there is not much to say about the file itself as it is better
    to link the information to the module or to the class
 */
 
 /**
    @defgroup doxygenExample Doxygen example for geant
-   
+
    This is the example group for the Doxygen example for geant
 */
 
@@ -26,7 +26,7 @@
    @warning   The code contains a bug
    @bug       This is the bug
    @todo      Fix it
-   
+
    This is a somewhat longish description of the class. If you want to double
    a number here how you should do
 
@@ -65,26 +65,26 @@ For any further information you can ask our expert.
 */
 class doxTpl {
 public:
-   /**
-      @brief This is the default constructor
+  /**
+     @brief This is the default constructor
 
-      Be careful not to allocate any space in the default constructor if you 
-      are using ROOT, because this will lead to a leak.
-   */
-   doxTpl();
+     Be careful not to allocate any space in the default constructor if you
+     are using ROOT, because this will lead to a leak.
+  */
+  doxTpl();
 
-   /**
-      @brief Duplicate input number.
-      @todo  Make it constant
+  /**
+     @brief Duplicate input number.
+     @todo  Make it constant
 
-      This method duplicates the input number.
-   */
-   int oneMethod(int a);
+     This method duplicates the input number.
+  */
+  int oneMethod(int a);
 
 private:
-   int     fMember1; ///<! ROOT transient member
-   int    *fMember2; ///<[fMember1] ROOT array
-   double  fMember3; ///< Another class member
+  int fMember1;    ///<! ROOT transient member
+  int *fMember2;   ///<[fMember1] ROOT array
+  double fMember3; ///< Another class member
 };
 
 #endif
