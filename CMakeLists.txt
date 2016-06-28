@@ -59,7 +59,7 @@ configure_file(
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/doxygen.conf.in"
   "${CMAKE_CURRENT_SOURCE_DIR}/doxygen.conf"
-  IMMEDIATE @ONLY)
+  IMMEDIATE @ONLY) 
   
 
 add_custom_target(uninstall
@@ -67,7 +67,7 @@ add_custom_target(uninstall
 
 #----------------------------------------------------------------------------
 # Setup the project
-cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 project(GEANTV)
 
 enable_language(CXX)
