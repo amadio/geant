@@ -104,7 +104,7 @@ public:
    *  
    *  This method is expected to be called at initialization by the physics list.
    */
-  virtual void BuildPhysicsTables( /* Not yet defined */ );
+  virtual void BuildPhysicsTables( /* Not yet defined */ ) {}
 
   /** @brief Method that returns "true" is the particle can have this process,
    *         "false" otherwise.
@@ -113,7 +113,7 @@ public:
    *  Note: this method is meant to be called only at initialization,
    *        and not in the simulation event loop.
    */
-  virtual bool IsApplicable( const int particleGVcode ) const;
+  virtual bool IsApplicable( const int particleGVcode ) const {return true;}
 
   /** @brief Methods that return the atomic (i.e. microscopic) cross section 
    *         (unit: 1/length^2) of the discrete part of this process.
@@ -134,7 +134,7 @@ public:
    */
   virtual double GetAtomicCrossSection( const int projectileCode,
                                         const double projectileKineticEnergy,
-                                        const int targetZ, const int targetN = 0 ) const;
+                                        const int targetZ, const int targetN = 0 ) const {return 0;}
 
   double GetAtomicCrossSection( const LightTrack &track ) const;
 
@@ -197,7 +197,7 @@ public:
    *  to the new particles created along-the-step (this is rare, but possible:
    *  e.g. for sub-cutoff production; or from atomic de-excitation).
    */ 
-  virtual LightTrack_v AlongStepDoIt( LightTrack &track ) const;
+  //  virtual LightTrack_v AlongStepDoIt( LightTrack &track ) const;
 
   /** @brief Method that does the post-step, i.e. the discrete part, action
    *         of the in-flight process.
@@ -207,7 +207,7 @@ public:
    *  The output of the method is a LightTrack_v object, which corresponds
    *  to the new particles created by the discrete part of the process.
    */ 
-  virtual LightTrack_v PostStepDoIt( LightTrack &track ) const;
+  //  virtual LightTrack_v PostStepDoIt( LightTrack &track ) const;
 
   /** @brief Method that does the at-rest action of the process.
    *
@@ -218,7 +218,7 @@ public:
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */ 
-  virtual LightTrack_v AtRestDoIt( LightTrack &track ); 
+  //  virtual LightTrack_v AtRestDoIt( LightTrack &track ); 
 
   //--- Getters ---
 

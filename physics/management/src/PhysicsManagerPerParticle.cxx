@@ -1,5 +1,5 @@
 #include "PhysicsManagerPerParticle.h"
-#include "PhysicsProcess.h"
+#include "NewPhysicsProcess.h"
 
 using namespace geant;
 

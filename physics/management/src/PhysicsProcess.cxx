@@ -1,4 +1,4 @@
-#include "PhysicsProcess.h"
+#include "NewPhysicsProcess.h"
 #include "LightTrack.h"
 
 using namespace geant;
