@@ -1,4 +1,8 @@
-# Setup the project
+#----------------------------------------------------------------------------
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
 
 
 #----------------------------------------------------------------------------
@@ -10,6 +14,8 @@ if(HepMC_FOUND)
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
 
+#----------------------------------------------------------------------------
+# Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/TestProcess.cxx)
@@ -28,8 +34,9 @@ include_directories(inc)
 ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
 #----------------------------------------------------------------------------
-# Add the executable, and link it to the Geant4 libraries
+# Add the library, and link it to the Geant4 libraries
 #
+
 add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
@@ -125,7 +132,6 @@ if(APPLE)
 else()
   install(TARGETS Xsec DESTINATION lib)
 endif()
-if (NOT MIC)
+
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
-endif()

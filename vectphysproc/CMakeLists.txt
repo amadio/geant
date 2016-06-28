@@ -1,3 +1,8 @@
+# Add this directrory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 
 link_libraries(vecphys)
 include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc)
@@ -24,10 +29,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/inc/GVComptonProcess.h
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
 
-# print include directories
-#get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-#message("-----  ${inc_dirs}")
-
 #----------------------------------------------------------------------------
 # Generate the root dictionary: this library will be used in run.C root macro.  
 #----------------------------------------------------------------------------
@@ -42,3 +43,7 @@ target_link_libraries(Vphysproc ${VC_LIBRARIES} Xsec Geant_v ${ROOT_LIBRARIES} E
 add_custom_target(VectPhysProc DEPENDS Vphysproc)
 
 install(TARGETS Vphysproc DESTINATION lib)
+
+install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVphysproc.rootmap 
+              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libVphysproc_rdict.pcm DESTINATION lib)
+

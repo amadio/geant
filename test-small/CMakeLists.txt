@@ -1,7 +1,7 @@
-#----------------------------------------------------------------------------
-# Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-project(N03)
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -38,10 +38,10 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${PROJECT_SOURCE_DIR}/include 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include 
                     ${Geant4_INCLUDE_DIR}
                     ${ROOT_INCLUDE_DIR}
-                    ${PROJECT_SOURCE_DIR}/../xsec/inc 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../xsec/inc 
 )
 
 if(CMAKE_BUILD_TYPE MATCHES None)
@@ -59,8 +59,8 @@ endif()
 separate_arguments(_cf)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
+file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh)
 
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
@@ -94,8 +94,8 @@ set(N03_SCRIPTS
 
 foreach(_script ${N03_SCRIPTS})
   configure_file(
-    ${PROJECT_SOURCE_DIR}/${_script}
-    ${PROJECT_BINARY_DIR}/${_script}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${_script}
+    ${CMAKE_CURRENT_BINARY_DIR}/${_script}
     COPYONLY
     )
 endforeach()
@@ -110,4 +110,5 @@ add_custom_target(N03 DEPENDS exampleN03)
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS exampleN03 DESTINATION bin)
+
 

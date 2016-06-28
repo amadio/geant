@@ -1,8 +1,7 @@
-#----------------------------------------------------------------------------
-# Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-project(TESTCOMPLEX)
-
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
 
 #----------------------------------------------------------------------------
 # Find HepMC (required package)
@@ -27,7 +26,7 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${PROJECT_SOURCE_DIR}/include 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include 
                     ${Geant4_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
@@ -48,8 +47,8 @@ endif()
 separate_arguments(_cf)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
+file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh)
 
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
@@ -81,8 +80,8 @@ set(TESTCOMPLEX_SCRIPTS
 
 foreach(_script ${TESTCOMPLEX_SCRIPTS})
   configure_file(
-    ${PROJECT_SOURCE_DIR}/${_script}
-    #${PROJECT_BINARY_DIR}/${_script}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${_script}
+    #${CMAKE_BINARY_DIR}/${_script}
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
     )
@@ -107,4 +106,5 @@ endif()
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS testcomplex DESTINATION bin)
+
 

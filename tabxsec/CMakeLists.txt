@@ -1,3 +1,8 @@
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
@@ -98,3 +103,4 @@ endforeach()
 #
 add_custom_target(ExtracXS DEPENDS tabxsec)
 install(TARGETS tabxsec DESTINATION bin)
+

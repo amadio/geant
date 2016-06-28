@@ -1,5 +1,7 @@
-#----------------------------------------------------------------------------
-# Setup the project
+# Adding this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
 
 include_directories(inc ../magneticfield/inc)
 
@@ -83,3 +85,4 @@ endfunction()
 build_executables("${TEST_EXECUTABLES}")
 add_to_ctest("${TEST_EXECUTABLES}")
 install(TARGETS executable_test DESTINATION ${CMAKE_SOURCE_DIR}/vecprot_v2/tests)
+

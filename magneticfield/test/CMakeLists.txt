@@ -1,3 +1,8 @@
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
@@ -52,3 +57,4 @@ message(STATUS "Created target for testGUPropagateField")
 
 add_custom_target(testMagEq DEPENDS testMagFieldEquation)
 install(TARGETS testMagFieldEquation DESTINATION bin)
+
