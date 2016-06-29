@@ -150,6 +150,10 @@ if(DOXYGEN_FOUND)
  
   install(DIRECTORY ${DOXYFILE_OUTPUT_DIR}/html 
     DESTINATION ${DOXYFILE_INSTALL_DIR})
+
+#------------------------------------- Add our Doxygen template source
+  set(DOXYFILE_SOURCE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/doc/doxygenTpl")
+
 endif()
 
 #----------------------------------------------------------------------------
