@@ -16,7 +16,7 @@ include_directories(management/inc material/inc)
 set(_extraLibs "")
 
 if(USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(physicsDict ${headers} MODULE libPhysics LINKDEF physicsLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  ROOT_GENERATE_DICTIONARY(physicsDict ${headers} MODULE NewPhysics LINKDEF physicsLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   set(sources ${sources} physicsDict.cxx)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()
@@ -28,16 +28,16 @@ target_link_libraries(NewPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
 
 add_headers("${headers}")
 
-add_custom_target(physlib DEPENDS Physics)
+add_custom_target(physlib DEPENDS NewPhysics)
 
 if(APPLE) 
 # for some reason the installation process alters the libraries on Mac, and the program fails
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libPhysics${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
-  install(TARGETS Physics DESTINATION lib)
+  install(TARGETS NewPhysics DESTINATION lib)
 endif()
 
-install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libPhysics.rootmap 
-              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libPhysics_rdict.pcm DESTINATION lib)
+install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics.rootmap 
+              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics_rdict.pcm DESTINATION lib)
 
 
