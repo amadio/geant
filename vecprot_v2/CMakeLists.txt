@@ -87,111 +87,111 @@ set(GEANTV_SOURCES ${sources} )
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
 if (NOT KNC)
-if (CUDA)
-  # See vecprot_v2/cuda/CMakeLists.txt
-  add_subdirectory (cuda)
-else()
-  add_library(Geant_v SHARED ${sources} G__Geant.cxx)
-
-target_link_libraries(Geant_v Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom )
-
-if( VECGEOM_FOUND )
-  target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-  
-   if (VECGEOM_GEANT4)
-      include(${Geant4_USE_FILE})
-      message(${Geant4_INCLUDE_DIRS})
-      include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
-      target_link_libraries(Geant_v ${Geant4_LIBRARIES})
-   endif()
-endif()
-
-add_custom_target(Geantlib_v DEPENDS Geant_v)
-if(APPLE)
-# for some reason the installation process alters the libraries on Mac, and the program fails
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
-else()
-  install(TARGETS Geant_v DESTINATION lib)
-endif()
-install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
-              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
-
-endif()
-
-#---------------------- Building executables // ctest ------------------------------------
-#
-
-set(TEST_EXECUTABLES
-   CMSApp.cc
-   runApp.cc
-)
-
-#----------------------------------------------------------------------------
-
-macro(build_executables EXECUTABLES)
-  foreach(EXECUTABLE ${EXECUTABLES})
-    get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
-    add_executable(${TARGET_NAME} ${EXECUTABLE})
-    if(USE_VECGEOM_NAVIGATOR)
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v -lGeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
-    else()
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  -lGeant_v -lXsec -lGeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
-    endif()
-    add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples)
-    set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
-  endforeach()
-endmacro()
-
-#----------------------------------------------------------------------------
-
-function(add_to_ctest EXECUTABLES)
-  foreach(EXECUTABLE ${EXECUTABLES})
-    if (CTEST)
-      get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
-      if(TARGET_NAME STREQUAL "runApp")
-        if(CUDA)
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root -r true)
-        else()
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
-        endif()
-      elseif(TARGET_NAME STREQUAL "CMSApp")
-        if(CUDA)
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root -r true)
-        else()
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
-        endif()
-      else()
-        add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
+  if (CUDA)
+    # See vecprot_v2/cuda/CMakeLists.txt
+    add_subdirectory (cuda)
+  else()
+    add_library(Geant_v SHARED ${sources} G__Geant.cxx)
+    
+    target_link_libraries(Geant_v Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom )
+    
+    if( VECGEOM_FOUND )
+      target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+      
+      if (VECGEOM_GEANT4)
+	include(${Geant4_USE_FILE})
+	message(${Geant4_INCLUDE_DIRS})
+	include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
+	target_link_libraries(Geant_v ${Geant4_LIBRARIES})
       endif()
     endif()
-  endforeach()
-endfunction()
-
-link_directories(${PROJECT_BINARY_DIR}/lib)
-
-build_executables("${TEST_EXECUTABLES}")
-
-if(CTEST)
-  add_to_ctest("${TEST_EXECUTABLES}")
-endif()
-
-install(TARGETS CMSApp runApp DESTINATION bin)
-add_dependencies(runApp Geant_v Xsec GeantExamples)
+    
+    add_custom_target(Geantlib_v DEPENDS Geant_v)
+    if(APPLE)
+      # for some reason the installation process alters the libraries on Mac, and the program fails
+      install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
+    else()
+      install(TARGETS Geant_v DESTINATION lib)
+    endif()
+    install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
+      ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
+    
+  endif()
+  
+  #---------------------- Building executables // ctest ------------------------------------
+  #
+  
+  set(TEST_EXECUTABLES
+    CMSApp.cc
+    runApp.cc
+    )
+  
+  #----------------------------------------------------------------------------
+  
+  macro(build_executables EXECUTABLES)
+    foreach(EXECUTABLE ${EXECUTABLES})
+      get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
+      add_executable(${TARGET_NAME} ${EXECUTABLE})
+      if(USE_VECGEOM_NAVIGATOR)
+	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v -lGeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+      else()
+	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  -lGeant_v -lXsec -lGeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
+      endif()
+      add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples)
+      set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
+    endforeach()
+  endmacro()
+  
+  #----------------------------------------------------------------------------
+  
+  function(add_to_ctest EXECUTABLES)
+    foreach(EXECUTABLE ${EXECUTABLES})
+      if (CTEST)
+	get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
+	if(TARGET_NAME STREQUAL "runApp")
+          if(CUDA)
+            add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root -r true)
+          else()
+            add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
+          endif()
+	elseif(TARGET_NAME STREQUAL "CMSApp")
+          if(CUDA)
+            add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root -r true)
+          else()
+            add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
+          endif()
+	else()
+          add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
+	endif()
+      endif()
+    endforeach()
+  endfunction()
+  
+  link_directories(${PROJECT_BINARY_DIR}/lib)
+  
+  build_executables("${TEST_EXECUTABLES}")
+  
+  if(CTEST)
+    add_to_ctest("${TEST_EXECUTABLES}")
+  endif()
+  
+  install(TARGETS CMSApp runApp DESTINATION bin)
+  add_dependencies(runApp Geant_v Xsec GeantExamples)
 else()  # ---- KNC
   add_library(Geant_v SHARED ${sources})
-
-if(USE_VECGEOM_NAVIGATOR )
-  target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-endif()
-add_custom_target(Geantlib_v DEPENDS Geant_v)
-install(TARGETS Geant_v DESTINATION lib)
-
-add_executable(CMSApp CMSApp.cc)
-
-target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples -lVmagfield
-        ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-
-add_dependencies(CMSApp Geant_v Xsec GeantExamples)
-install(TARGETS CMSApp DESTINATION bin)
-
+  
+  if(USE_VECGEOM_NAVIGATOR )
+    target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  endif()
+  add_custom_target(Geantlib_v DEPENDS Geant_v)
+  install(TARGETS Geant_v DESTINATION lib)
+  
+  add_executable(CMSApp CMSApp.cc)
+  
+  target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples -lVmagfield
+    ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  
+  add_dependencies(CMSApp Geant_v Xsec GeantExamples)
+  install(TARGETS CMSApp DESTINATION bin)
+  
 endif()
