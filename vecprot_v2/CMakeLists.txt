@@ -85,7 +85,6 @@ set(GEANTV_SOURCES ${sources} )
 
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
-if (NOT MIC)
 if (CUDA)
   # See vecprot_v2/cuda/CMakeLists.txt
   add_subdirectory (cuda)

@@ -39,9 +39,6 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
-################################################################################
-SET(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-7.5")
-
 # Determine backend
 
 set(Vc)
