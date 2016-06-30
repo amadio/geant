@@ -277,6 +277,7 @@ void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index,
                                  typename Backend::Double_v &probNA,
                                  Index_v<typename Backend::Double_v> &aliasInd) const
 {
+  // cannot gather from multiple tables at the same time, must use loop
   for (size_t i = 0; i < VectorSize(index); ++i) {
     int idx  = LaneAt(index, i);
     int Zidx = LaneAt(zElement, i);
@@ -291,6 +292,7 @@ typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Doub
                                                   Index_v<typename Backend::Double_v> irow,
                                                   Index_v<typename Backend::Double_v> icol) const
 {
+  // cannot gather from multiple tables at the same time, must use loop
   typename Backend::Double_v pdf;
   for (size_t i = 0; i < VectorSize<Double_v>(); ++i) {
     int Zidx = LaneAt(zElement, i);
@@ -307,9 +309,12 @@ inline VECCORE_CUDA_HOST_DEVICE
 void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, typename Backend::Double_v &probNA,
                                  Index_v<typename Backend::Double_v> &aliasInd) const
 {
+  // gather works fine: index to double, pointer to double
+  probNA = Gather<typename Backend::Double_v>(fAliasTableManager->GetAliasTable(0)->fProbQ, index);
+
+  // incompatible with gather: index to double, pointer to 32 bit integer
   for (size_t i = 0; i < VectorSize(index); ++i) {
     int idx = LaneAt(index, i);
-    AssignLane(probNA,   i, fAliasTableManager->GetAliasTable(0)->fProbQ[idx]);
     AssignLane(aliasInd, i, fAliasTableManager->GetAliasTable(0)->fAlias[idx]);
   }
 }
@@ -319,12 +324,9 @@ inline VECCORE_CUDA_HOST_DEVICE
 typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> irow,
                                                   Index_v<typename Backend::Double_v> icol) const
 {
-  typename Backend::Double_v pdf;
-  for (size_t i = 0; i < VectorSize<Double_v>(); ++i) {
-    int idx = fSampledNumEntries * LaneAt(irow, i) + LaneAt(icol, i);
-    AssignLane(pdf, i, fAliasTableManager->GetAliasTable(0)->fpdf[idx]);
-  }
-  return pdf;
+  // gather works fine: index to double, pointer to double
+  Index_v<typename Backend::Double_v> idx = fSampledNumEntries * irow + icol;
+  return Gather<typename Backend::Double_v>(fAliasTableManager->GetAliasTable(0)->fpdf, idx);
 }
 
 } // end namespace impl
