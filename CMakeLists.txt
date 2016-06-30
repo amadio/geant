@@ -341,7 +341,8 @@ endif()
 # Define compiler flags
 #
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+    OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
