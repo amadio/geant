@@ -105,6 +105,21 @@ target_link_libraries(xseccuda ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL
 add_executable(testserialRead testserialRead.cc)
 target_link_libraries(testserialRead xseccuda Xsec Geant_v)
 
+cuda_add_library(xseccudatest
+    testserialReadCuda.cu
+    SHARED
+    OPTIONS ${CUDA_ARCH}
+)
+
+  # Note: the repeat below is due the author of  cuda_add_library_depend
+  # not knowing how to automatically go from the target to the real
+  # file in add_custom_command
+cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a ../lib/libGeant_v_static.a ${VECGEOM_CUDA_STATIC_LIBRARY})
+target_link_libraries(xseccudatest xseccuda)
+
+add_executable(testserialReadCuda testserialReadCuda.cpp)
+target_link_libraries(testserialReadCuda xseccudatest xseccuda Xsec Geant_v)
+
 endif()
 
 
