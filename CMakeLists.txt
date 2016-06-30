@@ -182,26 +182,21 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 #----------------------------------------------------------------------------
 # Find VecGeom geometry headers library
 #
-message(STATUS "COMPILATION FLAGS START ARE -${CMAKE_CXX_FLAGS}")
+set(VECGEOM_DIR "" CACHE DIRECTORY "Location of VecGeom")
+if(VECGEOM_DIR)
+  list(APPEND CMAKE_PREFIX_PATH ${VECGEOM_DIR})
+endif()
+
 find_package(VecGeom REQUIRED)
-message(STATUS "COMPILATION FLAGS POST ARE -${CMAKE_CXX_FLAGS}")
 if( VECGEOM_FOUND )
-   find_package(Vc)
+   find_package(Vc REQUIRED)
    if ( Vc_FOUND )
       include_directories( AFTER SYSTEM ${Vc_INCLUDE_DIR})
-      message(STATUS "Found Vc version " ${Vc_VERSION} " at " ${Vc_INSTALL_DIR} )
-      message(STATUS "  Variables:    Vc_LIBRARIES    = " ${Vc_LIBRARIES})
       set(VC_LIBRARIES ${Vc_LIBRARIES})
-      message(STATUS "                Vc_INCLUDE_DIR  = " ${Vc_INCLUDE_DIR})
-   else()
-      message(STATUS "Vc NOT found")
    endif()
    if( USE_VECGEOM_NAVIGATOR )
      add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
    endif()
-   # temporary fix for VecGeom include dir
-   include_directories("${VECGEOM_INSTALL_DIR}/include")
-   include_directories(${VECGEOM_INCLUDE_DIR})
    include_directories(${VECGEOM_INCLUDE_DIR})
 else()
    message(FATAL_ERROR "Required VecGeom library not found")
@@ -507,11 +502,6 @@ include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
 include_directories("${PROJECT_SOURCE_DIR}/fastsim/inc")
 include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
-
-
-message(STATUS "VECGEOM_INSTALL_DIR is: ${VECGEOM_INSTALL_DIR}")
-message(STATUS "VECGEOM_INCLUDE_DIR is: ${VECGEOM_INCLUDE_DIR}")
-message(STATUS "VECGEOM_DEFINITIONS is: ${VECGEOM_DEFINITIONS}")
 
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
